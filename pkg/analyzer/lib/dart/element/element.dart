@@ -635,6 +635,11 @@ abstract class Element implements AnalysisTarget {
   bool get isPrivate;
 
   /**
+   * Return `true` if this element has an annotation of the form '@protected'.
+   */
+  bool get isProtected;
+
+  /**
    * Return `true` if this element is public. Public elements are visible within
    * any library that imports the library in which they are declared.
    */
@@ -807,6 +812,13 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
    * expected to override an inherited method.
    */
   bool get isOverride;
+
+
+  /**
+   * Return `true` if this annotation marks the associated member as being
+   * protected.
+   */
+  bool get isProtected;
 
   /**
    * Return `true` if this annotation marks the associated class as implementing

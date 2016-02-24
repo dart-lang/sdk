@@ -467,6 +467,9 @@ abstract class Member implements Element {
   bool get isPrivate => _baseElement.isPrivate;
 
   @override
+  bool get isProtected => _baseElement.isProtected;
+
+  @override
   bool get isPublic => _baseElement.isPublic;
 
   @override

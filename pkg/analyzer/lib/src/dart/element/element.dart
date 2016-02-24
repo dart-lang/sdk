@@ -1562,10 +1562,21 @@ class ElementAnnotationImpl implements ElementAnnotation {
   static String _DEPRECATED_VARIABLE_NAME = "deprecated";
 
   /**
+   * The name of `meta` library, used to define analysis annotations.
+   */
+  static String _META_LIB_NAME = "meta";
+
+  /**
    * The name of the top-level variable used to mark a method as being expected
    * to override an inherited method.
    */
   static String _OVERRIDE_VARIABLE_NAME = "override";
+
+  /**
+   * The name of the top-level variable used to mark a method as being
+   * protected.
+   */
+  static String _PROTECTED_VARIABLE_NAME = "protected";
 
   /**
    * The name of the top-level variable used to mark a class as implementing a
@@ -1636,6 +1647,20 @@ class ElementAnnotationImpl implements ElementAnnotation {
       if (library != null && library.isDartCore) {
         if (element is PropertyAccessorElement &&
             element.name == _OVERRIDE_VARIABLE_NAME) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get isProtected {
+    if (element != null) {
+      LibraryElement library = element.library;
+      if (library != null && library.name == _META_LIB_NAME) {
+        if (element is PropertyAccessorElement &&
+            element.name == _PROTECTED_VARIABLE_NAME) {
           return true;
         }
       }
@@ -1834,6 +1859,16 @@ abstract class ElementImpl implements Element {
       return true;
     }
     return Identifier.isPrivateName(name);
+  }
+
+  @override
+  bool get isProtected {
+    for (ElementAnnotation annotation in metadata) {
+      if (annotation.isProtected) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @override
@@ -3919,6 +3954,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
     }
     return Identifier.isPrivateName(name);
   }
+
+  @override
+  bool get isProtected => false;
 
   @override
   bool get isPublic => !isPrivate;

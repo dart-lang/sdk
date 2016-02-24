@@ -33,6 +33,7 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/string_source.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
@@ -100,6 +101,12 @@ class AnalysisContextFactory {
     return initContextWithCore(context);
   }
 
+  static InternalAnalysisContext contextWithCoreAndPackages(
+      Map<String, String> packages) {
+    AnalysisContextForTests context = new AnalysisContextForTests();
+    return initContextWithCore(context, new TestPackageUriResolver(packages));
+  }
+
   /**
    * Initialize the given analysis context with a fake core library already resolved.
    *
@@ -107,12 +114,19 @@ class AnalysisContextFactory {
    * @return the analysis context that was created
    */
   static InternalAnalysisContext initContextWithCore(
-      InternalAnalysisContext context) {
+      InternalAnalysisContext context,
+      [UriResolver contributedResolver]) {
     DirectoryBasedDartSdk sdk = new _AnalysisContextFactory_initContextWithCore(
         new JavaFile("/fake/sdk"),
         enableAsync: context.analysisOptions.enableAsync);
-    SourceFactory sourceFactory =
-        new SourceFactory([new DartUriResolver(sdk), new FileUriResolver()]);
+    List<UriResolver> resolvers = <UriResolver>[
+      new DartUriResolver(sdk),
+      new FileUriResolver()
+    ];
+    if (contributedResolver != null) {
+      resolvers.add(contributedResolver);
+    }
+    SourceFactory sourceFactory = new SourceFactory(resolvers);
     context.sourceFactory = sourceFactory;
     AnalysisContext coreContext = sdk.context;
     (coreContext.analysisOptions as AnalysisOptionsImpl).strongMode =
@@ -2467,6 +2481,21 @@ class B {}''');
     verify([source, source2, source3]);
   }
 
+  @override
+  void reset() {
+    analysisContext2 = AnalysisContextFactory.contextWithCoreAndPackages({
+      'package:meta/meta.dart': r'''
+library meta;
+
+const _Protected protected = const _Protected();
+
+class _Protected {
+  const _Protected();
+}
+'''
+    });
+  }
+
   void test_argumentTypeNotAssignable_functionType() {
     Source source = addSource(r'''
 m() {
@@ -3300,6 +3329,95 @@ main() {
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_1() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void a(){ }
+}
+main() {
+  new A().a();
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_2() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void a(){ }
+}
+class B {
+  void b() => new A().a();
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_3() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void a(){ }
+}
+abstract class B implements A {
+  void b() => a();
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_OK_1() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void a(){ }
+}
+class B extends A {
+  void b() => a();
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_OK_2() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void a(){ }
+}
+class B extends Object with A {
+  void b() => a();
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_OK_3() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected m1() {}
+}
+class B extends A {
+  static m2(A a) => a.m1();
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, []);
     verify([source]);
   }
 
@@ -14408,6 +14526,23 @@ class SubtypeManagerTest {
     expect(subtypesOfA, hasLength(1));
     expect(arraySubtypesOfA, unorderedEquals([classB]));
   }
+}
+
+class TestPackageUriResolver extends UriResolver {
+  Map<Uri, Source> sourceMap = new HashMap<Uri, Source>();
+
+  TestPackageUriResolver(Map<String, String> map) {
+    map.forEach((String uri, String contents) {
+      sourceMap[Uri.parse(uri)] =
+          new StringSource(contents, '/test_pkg_source.dart');
+    });
+  }
+
+  @override
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) => sourceMap[uri];
+
+  @override
+  Uri restoreAbsolute(Source source) => throw new UnimplementedError();
 }
 
 @reflectiveTest

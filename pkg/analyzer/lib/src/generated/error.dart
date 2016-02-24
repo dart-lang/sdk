@@ -3533,6 +3533,18 @@ class HintCode extends ErrorCode {
       "A value of type '{0}' cannot be assigned to a variable of type '{1}'");
 
   /**
+   * This hint is generated anywhere where a member annotated with `@protected`
+   * is used outside an instance member of a subclass.
+   *
+   * Parameters:
+   * 0: the name of the member
+   * 1: the name of the defining class
+   */
+  static const HintCode INVALID_USE_OF_PROTECTED_MEMBER = const HintCode(
+      'INVALID_USE_OF_PROTECTED_MEMBER',
+      "The member '{0}' can only be used within instance members of subclasses of '{1}'");
+
+  /**
    * Generate a hint for methods or functions that have a return type, but do
    * not have a non-void return statement on all branches. At the end of methods
    * or functions with no return, Dart implicitly returns `null`, avoiding these

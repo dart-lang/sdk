@@ -206,6 +206,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitMethodInvocation(MethodInvocation node) {
     _checkForCanBeNullAfterNullAware(node.realTarget, node.operator);
+    _checkForInvalidProtectedMethodCalls(node);
     return super.visitMethodInvocation(node);
   }
 
@@ -608,6 +609,39 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
+   * Produces a hint if the given invocation is of a protected method outside
+   * a subclass instance method.
+   */
+  void _checkForInvalidProtectedMethodCalls(MethodInvocation node) {
+    Element element = node.methodName.bestElement;
+    if (element == null || !element.isProtected) {
+      return;
+    }
+
+    ClassElement definingClass = element.enclosingElement;
+
+    MethodDeclaration decl =
+        node.getAncestor((AstNode node) => node is MethodDeclaration);
+    if (decl == null) {
+      _errorReporter.reportErrorForNode(
+          HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
+          node,
+          [node.methodName.toString(), definingClass.name]);
+      return;
+    }
+
+    ClassElement invokingClass = decl.element?.enclosingElement;
+    if (invokingClass != null) {
+      if (!_hasSuperClassOrMixin(invokingClass, definingClass.type)) {
+        _errorReporter.reportErrorForNode(
+            HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
+            node,
+            [node.methodName.toString(), definingClass.name]);
+      }
+    }
+  }
+
+  /**
    * Check that the imported library does not define a loadLibrary function. The import has already
    * been determined to be deferred when this is called.
    *
@@ -790,35 +824,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Check for the passed class declaration for the
-   * [HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE] hint code.
-   *
-   * @param node the class declaration to check
-   * @return `true` if and only if a hint code is generated on the passed node
-   * See [HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE].
-   */
-//  bool _checkForOverrideEqualsButNotHashCode(ClassDeclaration node) {
-//    ClassElement classElement = node.element;
-//    if (classElement == null) {
-//      return false;
-//    }
-//    MethodElement equalsOperatorMethodElement =
-//        classElement.getMethod(sc.TokenType.EQ_EQ.lexeme);
-//    if (equalsOperatorMethodElement != null) {
-//      PropertyAccessorElement hashCodeElement =
-//          classElement.getGetter(_HASHCODE_GETTER_NAME);
-//      if (hashCodeElement == null) {
-//        _errorReporter.reportErrorForNode(
-//            HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE,
-//            node.name,
-//            [classElement.displayName]);
-//        return true;
-//      }
-//    }
-//    return false;
-//  }
-
-  /**
    * Generate a hint for `noSuchMethod` methods that do nothing except of
    * calling another `noSuchMethod` that is not defined by `Object`.
    *
@@ -867,6 +872,35 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
+   * Check for the passed class declaration for the
+   * [HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE] hint code.
+   *
+   * @param node the class declaration to check
+   * @return `true` if and only if a hint code is generated on the passed node
+   * See [HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE].
+   */
+//  bool _checkForOverrideEqualsButNotHashCode(ClassDeclaration node) {
+//    ClassElement classElement = node.element;
+//    if (classElement == null) {
+//      return false;
+//    }
+//    MethodElement equalsOperatorMethodElement =
+//        classElement.getMethod(sc.TokenType.EQ_EQ.lexeme);
+//    if (equalsOperatorMethodElement != null) {
+//      PropertyAccessorElement hashCodeElement =
+//          classElement.getGetter(_HASHCODE_GETTER_NAME);
+//      if (hashCodeElement == null) {
+//        _errorReporter.reportErrorForNode(
+//            HintCode.OVERRIDE_EQUALS_BUT_NOT_HASH_CODE,
+//            node.name,
+//            [classElement.displayName]);
+//        return true;
+//      }
+//    }
+//    return false;
+//  }
+
+  /**
    * Check for situations where the result of a method or function is used, when it returns 'void'.
    *
    * TODO(jwren) Many other situations of use could be covered. We currently cover the cases var x =
@@ -888,6 +922,24 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
           HintCode.USE_OF_VOID_RESULT, methodName, [methodName.name]);
       return true;
     }
+    return false;
+  }
+
+  bool _hasSuperClassOrMixin(ClassElement element, InterfaceType type) {
+    List<ClassElement> seenClasses = <ClassElement>[];
+    while (element != null && !seenClasses.contains(element)) {
+      if (element.type == type) {
+        return true;
+      }
+
+      if (element.mixins.any((InterfaceType t) => t == type)) {
+        return true;
+      }
+
+      seenClasses.add(element);
+      element = element.supertype?.element;
+    }
+
     return false;
   }
 
@@ -8383,26 +8435,6 @@ class ResolverVisitor extends ScopedVisitor {
     return null;
   }
 
-  void _inferArgumentTypesFromContext(InvocationExpression node) {
-    DartType contextType = node.staticInvokeType;
-    if (contextType is FunctionType) {
-      DartType originalType = node.function.staticType;
-      DartType returnContextType = InferenceContext.getType(node);
-      TypeSystem ts = typeSystem;
-      if (returnContextType != null &&
-          node.typeArguments == null &&
-          originalType is FunctionType &&
-          originalType.typeFormals.isNotEmpty &&
-          ts is StrongTypeSystemImpl) {
-
-        contextType = ts.inferGenericFunctionCall(typeProvider, originalType,
-            DartType.EMPTY_LIST, DartType.EMPTY_LIST, returnContextType);
-      }
-
-      InferenceContext.setType(node.argumentList, contextType);
-    }
-  }
-
   @override
   Object visitNamedExpression(NamedExpression node) {
     InferenceContext.setType(node.expression, InferenceContext.getType(node));
@@ -8728,6 +8760,25 @@ class ResolverVisitor extends ScopedVisitor {
       }
     }
     return null;
+  }
+
+  void _inferArgumentTypesFromContext(InvocationExpression node) {
+    DartType contextType = node.staticInvokeType;
+    if (contextType is FunctionType) {
+      DartType originalType = node.function.staticType;
+      DartType returnContextType = InferenceContext.getType(node);
+      TypeSystem ts = typeSystem;
+      if (returnContextType != null &&
+          node.typeArguments == null &&
+          originalType is FunctionType &&
+          originalType.typeFormals.isNotEmpty &&
+          ts is StrongTypeSystemImpl) {
+        contextType = ts.inferGenericFunctionCall(typeProvider, originalType,
+            DartType.EMPTY_LIST, DartType.EMPTY_LIST, returnContextType);
+      }
+
+      InferenceContext.setType(node.argumentList, contextType);
+    }
   }
 
   void _inferFormalParameterList(FormalParameterList node, DartType type) {

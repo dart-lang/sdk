@@ -358,6 +358,9 @@ abstract class ElementHandle implements Element {
   bool get isPrivate => actualElement.isPrivate;
 
   @override
+  bool get isProtected => actualElement.isProtected;
+
+  @override
   bool get isPublic => actualElement.isPublic;
 
   @override
