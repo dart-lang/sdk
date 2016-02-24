@@ -3148,9 +3148,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   }
 
   @override
-  int get hashCode => _definingCompilationUnit.hashCode;
-
-  @override
   bool get hasLoadLibraryFunction {
     if (_definingCompilationUnit.hasLoadLibraryFunction) {
       return true;
@@ -3363,11 +3360,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     _addVisibleLibraries(visibleLibraries, false);
     return new List.from(visibleLibraries);
   }
-
-  @override
-  bool operator ==(Object object) =>
-      object is LibraryElementImpl &&
-      _definingCompilationUnit == object.definingCompilationUnit;
 
   @override
   accept(ElementVisitor visitor) => visitor.visitLibraryElement(this);

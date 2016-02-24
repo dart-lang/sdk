@@ -212,6 +212,9 @@ class InSummarySource extends Source {
   String get fullName => encoding;
 
   @override
+  int get hashCode => uri.hashCode;
+
+  @override
   bool get isInSystemLibrary => false;
 
   @override
@@ -222,6 +225,10 @@ class InSummarySource extends Source {
 
   @override
   UriKind get uriKind => UriKind.PACKAGE_URI;
+
+  @override
+  bool operator ==(Object object) =>
+      object is InSummarySource && object.uri == uri;
 
   @override
   bool exists() => true;

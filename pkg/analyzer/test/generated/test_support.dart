@@ -580,9 +580,7 @@ class TestSource extends Source {
     return new TimestampedData<String>(0, _contents);
   }
 
-  String get encoding {
-    throw new UnsupportedOperationException();
-  }
+  String get encoding => _name;
 
   String get fullName {
     return _name;
