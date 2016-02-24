@@ -103,7 +103,7 @@ convertDartToNative_Dictionary(Map dict) {
 class _ReturnedDictionary {
   Map _values;
 
-  noSuchMethod(InvocationMirror invocation) {
+  noSuchMethod(Invocation invocation) {
     var key = MirrorSystem.getName(invocation.memberName);
     if (invocation.isGetter) {
       return _values[key];
