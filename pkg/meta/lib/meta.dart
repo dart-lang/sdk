@@ -18,15 +18,20 @@
 /// in the language tour.
 library meta;
 
-/// Used to annotate an instance method `m` in a class `C`. Indicates that `m`
+/// Used to annotate an instance member (method, getter, setter, operator, or
+/// field) `m` in a class `C`. If the annotation is on a field it applies to the
+/// getter and setter, if appropriate, implied by the field. Indicates that `m`
 /// should only be invoked from instance methods of `C` or classes that extend
 /// or mix in `C`, either directly or indirectly. Additionally indicates that
 /// `m` should only be invoked on `this`, whether explicitly or implicitly.
 ///
 /// Tools, such as the analyzer, can provide feedback if an invocation of a
-/// method marked as being protected is used outside of an instance method
+/// member marked as being protected is used outside of an instance member
 /// defined on a class that extends or mixes in the class in which the protected
-/// method is defined, or that uses a receiver other than `this`.
+/// member is defined, or that uses a receiver other than `this`.
+///
+/// Tools can also provide feedback if the annotation is used on anything other
+/// than an instance member.
 const _Protected protected = const _Protected();
 
 class _Protected {
