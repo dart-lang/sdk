@@ -314,24 +314,30 @@ class Database(object):
     The list contains the interface objects for interfaces defined in the
     database, and the name for undefined interfaces.
     """
-    def walk(parents):
+    def walk(parents, walk_result):
       for parent in parents:
         parent_name = parent.type.id
         if IsDartCollectionType(parent_name):
-          result.append(parent_name)
+          if not(parent_name in walk_result):
+            walk_result.append(parent_name)
           continue
         if self.HasInterface(parent_name):
           parent_interface = self.GetInterface(parent_name)
-          result.append(parent_interface)
-          walk(parent_interface.parents)
+          if not(parent_interface in walk_result):
+            # Interface has multi-inherited don't add interfaces more than once
+            # to our parent result list.
+            walk_result.append(parent_interface)
+          walk(parent_interface.parents, walk_result)
+      return walk_result
 
     result = []
     if interface.parents:
       parent = interface.parents[0]
       if (IsPureInterface(parent.type.id) or
           (propagate_event_target and parent.type.id == 'EventTarget')):
-        walk(interface.parents)
+        result = walk(interface.parents, [])
       else:
-        walk(interface.parents[1:])
+        result = walk(interface.parents[1:], [])
+
     return result
 
