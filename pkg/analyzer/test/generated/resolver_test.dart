@@ -3332,7 +3332,22 @@ main() {
     verify([source]);
   }
 
-  void test_invalidUseOfProtectedMember_1() {
+  void test_invalidUseOfProtectedMember_field() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  int a;
+}
+abstract class B implements A {
+  int b() => a;
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_function() {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';
 class A {
@@ -3347,7 +3362,38 @@ main() {
     verify([source]);
   }
 
-  void test_invalidUseOfProtectedMember_2() {
+  void test_invalidUseOfProtectedMember_getter() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  int get a => 42;
+}
+abstract class B implements A {
+  int b() => a;
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_message() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void a(){ }
+}
+class B {
+  void b() => new A().a();
+}''');
+    List<AnalysisError> errors = analysisContext2.computeErrors(source);
+    expect(errors, hasLength(1));
+    expect(errors[0].message,
+        "The member 'a' can only be used within instance members of subclasses of 'A'");
+  }
+
+  void test_invalidUseOfProtectedMember_method_1() {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';
 class A {
@@ -3362,7 +3408,7 @@ class B {
     verify([source]);
   }
 
-  void test_invalidUseOfProtectedMember_3() {
+  void test_invalidUseOfProtectedMember_method_2() {
     Source source = addSource(r'''
 import 'package:meta/meta.dart';
 class A {
@@ -3418,6 +3464,91 @@ class B extends A {
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(source, []);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_OK_4() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void a(){ }
+}
+class B extends A {
+  void a() => a();
+}
+main() {
+  new B().a();
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_OK_field() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  int a = 42;
+}
+class B extends A {
+  int b() => a;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_OK_getter() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  int get a => 42;
+}
+class B extends A {
+  int b() => a;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_OK_setter() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void set a(int i) { }
+}
+class B extends A {
+  void b(int i) {
+    a = i;
+  }
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_setter() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void set a(int i) { }
+}
+abstract class B implements A {
+  b(int i) {
+    a = i;
+  }
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
     verify([source]);
   }
 

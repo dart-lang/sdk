@@ -238,6 +238,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitSimpleIdentifier(SimpleIdentifier node) {
     _checkForDeprecatedMemberUseAtIdentifier(node);
+    _checkForInvalidProtectedPropertyAccess(node);
     return super.visitSimpleIdentifier(node);
   }
 
@@ -606,6 +607,39 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       }
     }
     return false;
+  }
+
+  /**
+   * Produces a hint if the given identifier is a protected field or getter
+   * accessed outside a subclass.
+   */
+  void _checkForInvalidProtectedPropertyAccess(SimpleIdentifier identifier) {
+    if (identifier.inDeclarationContext()) {
+      return;
+    }
+    Element element = identifier.bestElement;
+    if (element is PropertyAccessorElement &&
+        (element.isProtected || element.variable.isProtected)) {
+      ClassElement definingClass = element.enclosingElement;
+      if (definingClass == null) {
+        return;
+      }
+      ClassDeclaration accessingClass =
+          identifier.getAncestor((AstNode node) => node is ClassDeclaration);
+
+      if (accessingClass == null) {
+        _errorReporter.reportErrorForNode(
+            HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
+            identifier,
+            [identifier.name.toString(), definingClass.name]);
+      } else if (!_hasSuperClassOrMixin(
+          accessingClass.element, definingClass.type)) {
+        _errorReporter.reportErrorForNode(
+            HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
+            identifier,
+            [identifier.name.toString(), definingClass.name]);
+      }
+    }
   }
 
   /**
