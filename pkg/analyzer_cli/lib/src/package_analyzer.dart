@@ -342,11 +342,9 @@ class PackageAnalyzer {
 
   void _createContext() {
     DirectoryBasedDartSdk sdk = DirectoryBasedDartSdk.defaultSdk;
-    sdk.useSummary = true;
 
     // Create the context.
     context = AnalysisEngine.instance.createAnalysisContext();
-    context.typeProvider = sdk.context.typeProvider;
     context.sourceFactory = new SourceFactory(<UriResolver>[
       new DartUriResolver(sdk),
       new InSummaryPackageUriResolver(options.packageSummaryInputs),
@@ -362,7 +360,9 @@ class PackageAnalyzer {
     Driver.setAnalysisContextOptions(
         context, options, (AnalysisOptionsImpl contextOptions) {});
 
-    // Set the result provider.
+    // Configure using summaries.
+    sdk.useSummary = true;
+    context.typeProvider = sdk.context.typeProvider;
     context.resultProvider =
         new InputPackagesResultProvider(context, options.packageSummaryInputs);
   }

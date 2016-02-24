@@ -9,8 +9,8 @@ import 'dart:io';
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/context/context.dart';
-import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dart/scanner/reader.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -264,14 +264,6 @@ class DirectoryBasedDartSdk implements DartSdk {
       _analysisContext = new SdkAnalysisContext();
       SourceFactory factory = new SourceFactory([new DartUriResolver(this)]);
       _analysisContext.sourceFactory = factory;
-      // Try to use summaries.
-      if (_useSummary) {
-        PackageBundle sdkBundle = _getSummarySdkBundle();
-        if (sdkBundle != null) {
-          _analysisContext.resultProvider =
-              new SdkSummaryResultProvider(_analysisContext, sdkBundle);
-        }
-      }
     }
     return _analysisContext;
   }
@@ -398,14 +390,17 @@ class DirectoryBasedDartSdk implements DartSdk {
   List<String> get uris => _libraryMap.uris;
 
   /**
-   * Specify whether SDK summary should be used.  This property can only be set
-   * before [context] is invoked.
+   * Specify whether SDK summary should be used.
    */
   void set useSummary(bool use) {
-    if (_analysisContext != null) {
-      throw new StateError('SDK analysis context has been already created.');
-    }
     _useSummary = use;
+    if (_useSummary) {
+      PackageBundle sdkBundle = _getSummarySdkBundle();
+      if (sdkBundle != null) {
+        _analysisContext.resultProvider =
+            new SdkSummaryResultProvider(_analysisContext, sdkBundle);
+      }
+    }
   }
 
   /**
@@ -557,7 +552,9 @@ class DirectoryBasedDartSdk implements DartSdk {
    */
   PackageBundle _getSummarySdkBundle() {
     String rootPath = directory.getAbsolutePath();
-    String path = pathos.join(rootPath, 'lib', '_internal', 'spec.sum');
+    String name =
+        context.analysisOptions.strongMode ? 'strong.sum' : 'spec.sum';
+    String path = pathos.join(rootPath, 'lib', '_internal', name);
     try {
       File file = new File(path);
       if (file.existsSync()) {
