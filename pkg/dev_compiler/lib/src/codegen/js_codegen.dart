@@ -430,7 +430,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
     var classExpr = new JS.ClassExpression(new JS.Identifier(type.name),
         _classHeritage(classElem), _emitClassMethods(node, ctors, fields),
-        typeParams: _emitTypeParams(classElem).toList(),
+        typeParams: _emitTypeFormals(classElem.typeParameters),
         fields:
             _emitFieldDeclarations(classElem, fields, staticFields).toList());
 
@@ -473,11 +473,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     return result;
   }
 
-  Iterable<JS.Identifier> _emitTypeParams(TypeParameterizedElement e) sync* {
-    if (!options.closure) return;
-    for (var typeParam in e.typeParameters) {
-      yield new JS.Identifier(typeParam.name);
-    }
+  List<JS.Identifier> _emitTypeFormals(List<TypeParameterElement> typeFormals) {
+    if (!options.closure) return null;
+    return typeFormals
+        .map((t) => new JS.Identifier(t.name))
+        .toList(growable: false);
   }
 
   /// Emit field declarations for TypeScript & Closure's ES6_TYPED
@@ -1057,7 +1057,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       // TODO(jmesserly): we'll need something different once we have
       // rest/spread support, but this should work for now.
       var params =
-          _emitFormalParameterList(node.parameters, allowDestructuring: false);
+          visitFormalParameterList(node.parameters, destructure: false);
 
       var fun = new JS.Fun(
           params,
@@ -1072,7 +1072,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     // available for use by top-level constant initializers.
     ClassDeclaration cls = node.parent;
     if (node.constKeyword != null) _loader.startTopLevel(cls.element);
-    var params = _emitFormalParameterList(node.parameters);
+    var params = visitFormalParameterList(node.parameters);
     if (node.constKeyword != null) _loader.finishTopLevel(cls.element);
 
     // Factory constructors are essentially static methods.
@@ -1378,13 +1378,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     }
   }
 
-  JS.Fun _emitNativeFunctionBody(List<JS.Parameter> params,
-      List<JS.Expression> paramRefs, MethodDeclaration node) {
+  JS.Fun _emitNativeFunctionBody(MethodDeclaration node) {
     if (node.isStatic) {
       // TODO(vsm): Do we need to handle this case?
       return null;
     }
 
+    var params = visitFormalParameterList(node.parameters, destructure: false);
     String name = node.name.name;
     var annotation = findAnnotation(node.element, isJsName);
     if (annotation != null) {
@@ -1395,10 +1395,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       return new JS.Fun(params, js.statement('{ return this.#; }', [name]));
     } else if (node.isSetter) {
       return new JS.Fun(
-          params, js.statement('{ this.# = #; }', [name, paramRefs.last]));
+          params, js.statement('{ this.# = #; }', [name, params.last]));
     } else {
       return new JS.Fun(
-          params, js.statement('{ return this.#(#); }', [name, paramRefs]));
+          params, js.statement('{ return this.#(#); }', [name, params]));
     }
   }
 
@@ -1407,40 +1407,21 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       return null;
     }
 
-    var params = _visit(node.parameters) as List<JS.Parameter>;
-    if (params == null) params = <JS.Parameter>[];
-    var paramRefs = _emitParameterReferences(node.parameters);
-
     JS.Fun fn;
     if (_externalOrNative(node)) {
-      fn = _emitNativeFunctionBody(params, paramRefs, node);
+      fn = _emitNativeFunctionBody(node);
       // TODO(vsm): Remove if / when we handle the static case above.
       if (fn == null) return null;
     } else {
-      var typeParams = _emitTypeParams(node.element).toList();
-      var returnType = emitTypeRef(node.element.returnType);
-      fn = _emitFunctionBody(
-          params, paramRefs, node.body, typeParams, returnType);
-    }
+      fn = _emitFunctionBody(node.element, node.parameters, node.body);
 
-    if (node.operatorKeyword != null &&
-        node.name.name == '[]=' &&
-        params.isNotEmpty) {
-      // []= methods need to return the value. We could also address this at
-      // call sites, but it's cleaner to instead transform the operator method.
-      var returnValue = new JS.Return(params.last);
-      var body = fn.body;
-      if (JS.Return.foundIn(fn)) {
-        // If a return is inside body, transform `(params) { body }` to
-        // `(params) { (() => { body })(); return value; }`.
-        // TODO(jmesserly): we could instead generate the return differently,
-        // and avoid the immediately invoked function.
-        body = new JS.Call(new JS.ArrowFun([], fn.body), []).toStatement();
+      if (node.operatorKeyword != null &&
+          node.name.name == '[]=' &&
+          fn.params.isNotEmpty) {
+        // []= methods need to return the value. We could also address this at
+        // call sites, but it's cleaner to instead transform the operator method.
+        fn = _alwaysReturnLastParameter(fn);
       }
-      // Rewrite the function to include the return.
-      fn = new JS.Fun(fn.params, new JS.Block([body, returnValue]),
-          typeParams: fn.typeParams,
-          returnType: fn.returnType)..sourceInformation = fn.sourceInformation;
     }
 
     return annotate(
@@ -1450,6 +1431,26 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
             isStatic: node.isStatic),
         node,
         node.element);
+  }
+
+  /// Transform the function so the last parameter is always returned.
+  ///
+  /// This is useful for indexed set methods, which otherwise would not have
+  /// the right return value in JS.
+  JS.Fun _alwaysReturnLastParameter(JS.Fun fn) {
+    var body = fn.body;
+    if (JS.Return.foundIn(fn)) {
+      // If a return is inside body, transform `(params) { body }` to
+      // `(params) { (() => { body })(); return value; }`.
+      // TODO(jmesserly): we could instead generate the return differently,
+      // and avoid the immediately invoked function.
+      body = new JS.Call(new JS.ArrowFun([], fn.body), []).toStatement();
+    }
+    // Rewrite the function to include the return.
+    return new JS.Fun(
+        fn.params, new JS.Block([body, new JS.Return(fn.params.last)]),
+        typeParams: fn.typeParams,
+        returnType: fn.returnType)..sourceInformation = fn.sourceInformation;
   }
 
   @override
@@ -1580,80 +1581,76 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
   @override
   JS.Expression visitFunctionExpression(FunctionExpression node) {
-    var params = _visit(node.parameters) as List<JS.Parameter>;
-    if (params == null) params = <JS.Parameter>[];
+    var params = visitFormalParameterList(node.parameters);
 
+    var body = node.body;
     var parent = node.parent;
     var inStmt = parent.parent is FunctionDeclarationStatement;
-    var typeParams = _emitTypeParams(node.element).toList();
-    var returnType = emitTypeRef(node.element.returnType);
     if (parent is FunctionDeclaration) {
-      var paramRefs = _emitParameterReferences(node.parameters);
-      return _emitFunctionBody(
-          params, paramRefs, node.body, typeParams, returnType);
+      return _emitFunctionBody(node.element, node.parameters, body);
+    }
+
+    JS.Node jsBody;
+    if (body.isGenerator || body.isAsynchronous) {
+      jsBody = _emitGeneratorFunctionBody(node.element, node.parameters, body);
+    } else if (body is ExpressionFunctionBody) {
+      jsBody = _visit(body.expression);
+    } else {
+      jsBody = _visit(body);
+    }
+
+    var type = node.element.type;
+    var typeFormals = _emitTypeFormals(type.typeFormals);
+    var returnType = emitTypeRef(type.returnType);
+
+    JS.FunctionExpression fn;
+    if (node.parameters.parameters
+        .every((p) => p.kind != ParameterKind.NAMED)) {
+      fn = new JS.ArrowFun(params, jsBody,
+          typeParams: typeFormals, returnType: returnType);
     } else {
       // Chrome Canary does not accept default values with destructuring in
       // arrow functions yet (e.g. `({a} = {}) => 1`) but happily accepts them
       // with regular functions (e.g. `function({a} = {}) { return 1 }`).
       // Note that Firefox accepts both syntaxes just fine.
       // TODO(ochafik): Simplify this code when Chrome Canary catches up.
-      var canUseArrowFun = !node.parameters.parameters.any(_isNamedParam);
 
-      JS.Node jsBody;
-      var body = node.body;
-      if (body.isGenerator || body.isAsynchronous) {
-        var paramRefs = _emitParameterReferences(node.parameters);
-        jsBody =
-            _emitGeneratorFunctionBody(params, paramRefs, body, returnType);
-      } else if (body is ExpressionFunctionBody) {
-        jsBody = _visit(body.expression);
-      } else {
-        jsBody = _visit(body);
-      }
-      if (jsBody is JS.Expression && !canUseArrowFun) {
+      if (jsBody is JS.Expression) {
         jsBody = js.statement("{ return #; }", [jsBody]);
       }
-      var clos = canUseArrowFun
-          ? new JS.ArrowFun(params, jsBody,
-              typeParams: typeParams, returnType: returnType)
-          : new JS.Fun(params, jsBody,
-              typeParams: typeParams, returnType: returnType);
-      if (!inStmt) {
-        var type = getStaticType(node);
-        return _emitFunctionTagged(clos, type,
-            topLevel: _executesAtTopLevel(node));
-      }
-      return clos;
+      fn = new JS.Fun(params, jsBody,
+          typeParams: typeFormals, returnType: returnType);
     }
+
+    if (!inStmt) {
+      var type = getStaticType(node);
+      return _emitFunctionTagged(fn, type, topLevel: _executesAtTopLevel(node));
+    }
+    return fn;
   }
 
-  JS.Fun _emitFunctionBody(
-      List<JS.Parameter> params,
-      List<JS.Expression> paramRefs,
-      FunctionBody body,
-      List<JS.Identifier> typeParams,
-      JS.TypeRef returnType) {
+  JS.Fun _emitFunctionBody(ExecutableElement element,
+      FormalParameterList parameters, FunctionBody body) {
+    var returnType = emitTypeRef(element.returnType);
+
     // sync*, async, async*
-    if (body.isAsynchronous || body.isGenerator) {
-      // TODO(ochafik): Refine params: we don't need default values in the
-      // nested function, so we'd need to generate a custom, simpler params
-      // list here.
+    if (element.isAsynchronous || element.isGenerator) {
       return new JS.Fun(
-          params,
-          js.statement('{ return #; }', [
-            _emitGeneratorFunctionBody(params, paramRefs, body, returnType)
-          ]),
+          visitFormalParameterList(parameters, destructure: false),
+          js.statement('{ return #; }',
+              [_emitGeneratorFunctionBody(element, parameters, body)]),
           returnType: returnType);
     }
     // normal function (sync)
-    return new JS.Fun(params, _visit(body),
-        typeParams: typeParams, returnType: returnType);
+    return new JS.Fun(visitFormalParameterList(parameters), _visit(body),
+        typeParams: _emitTypeFormals(element.typeParameters),
+        returnType: returnType);
   }
 
-  JS.Expression _emitGeneratorFunctionBody(List<JS.Parameter> params,
-      List<JS.Expression> paramRefs, FunctionBody body, JS.TypeRef returnType) {
-    var kind = body.isSynchronous ? 'sync' : 'async';
-    if (body.isGenerator) kind += 'Star';
+  JS.Expression _emitGeneratorFunctionBody(ExecutableElement element,
+      FormalParameterList parameters, FunctionBody body) {
+    var kind = element.isSynchronous ? 'sync' : 'async';
+    if (element.isGenerator) kind += 'Star';
 
     // Transforms `sync*` `async` and `async*` function bodies
     // using ES6 generators.
@@ -1687,25 +1684,28 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     // `await` is generated as `yield`.
     // runtime/_generators.js has an example of what the code is generated as.
     var savedController = _asyncStarController;
-    List jsParams;
+    List jsParams = visitFormalParameterList(parameters);
     if (kind == 'asyncStar') {
       _asyncStarController = new JS.TemporaryId('stream');
-      jsParams = [_asyncStarController]..addAll(params);
+      jsParams.insert(0, _asyncStarController);
     } else {
       _asyncStarController = null;
-      jsParams = params;
     }
-    JS.Expression gen = new JS.Fun(jsParams, _visit(body),
-        isGenerator: true, returnType: returnType);
+    // Visit the body with our async* controller set.
+    var jsBody = _visit(body);
+    _asyncStarController = savedController;
+
+    DartType returnType = _getExpectedReturnType(element);
+    JS.Expression gen = new JS.Fun(jsParams, jsBody,
+        isGenerator: true, returnType: emitTypeRef(returnType));
     if (JS.This.foundIn(gen)) {
       gen = js.call('#.bind(this)', gen);
     }
-    _asyncStarController = savedController;
 
-    var T = _emitTypeName(_getExpectedReturnType(body));
+    var T = _emitTypeName(returnType);
     return js.call('dart.#(#)', [
       kind,
-      [gen, T]..addAll(paramRefs)
+      [gen, T]..addAll(visitFormalParameterList(parameters, destructure: false))
     ]);
   }
 
@@ -2210,29 +2210,15 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
         _propertyName(node.name.label.name), _visit(node.expression));
   }
 
-  bool _isNamedParam(FormalParameter param) =>
-      param.kind == ParameterKind.NAMED;
-
   @override
-  List<JS.Parameter> visitFormalParameterList(FormalParameterList node) =>
-      _emitFormalParameterList(node);
+  List<JS.Parameter> visitFormalParameterList(FormalParameterList node,
+      {bool destructure: true}) {
+    if (node == null) return [];
 
-  // TODO(ochafik): Decouple Parameter from Identifier.
-  List<JS.Expression> _emitParameterReferences(FormalParameterList node) =>
-      node == null
-          ? <JS.Expression>[]
-          : _emitFormalParameterList(node, allowDestructuring: false)
-              .map((JS.Parameter p) {
-              if (p is JS.RestParameter) return new JS.Spread(p.parameter);
-              return p as JS.Identifier;
-            }).toList();
+    destructure = destructure && options.destructureNamedParams;
 
-  List<JS.Parameter> _emitFormalParameterList(FormalParameterList node,
-      {bool allowDestructuring: true}) {
     var result = <JS.Parameter>[];
-
     var namedVars = <JS.DestructuredVariable>[];
-    var destructure = allowDestructuring && options.destructureNamedParams;
     var hasNamedArgsConflictingWithObjectProperties = false;
     var needsOpts = false;
 
@@ -3683,23 +3669,16 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
   // TODO(leafp): Various analyzer pieces computed similar things.
   // Share this logic somewhere?
-  DartType _getExpectedReturnType(FunctionBody body) {
-    FunctionType functionType;
-    var parent = body.parent;
-    if (parent is Declaration) {
-      functionType = (parent.element as dynamic)?.type;
-    } else {
-      assert(parent is FunctionExpression);
-      functionType = parent.staticType;
-    }
+  DartType _getExpectedReturnType(ExecutableElement element) {
+    FunctionType functionType = element.type;
     if (functionType == null) {
       return DynamicTypeImpl.instance;
     }
     var type = functionType.returnType;
 
     InterfaceType expectedType = null;
-    if (body.isAsynchronous) {
-      if (body.isGenerator) {
+    if (element.isAsynchronous) {
+      if (element.isGenerator) {
         // Stream<T> -> T
         expectedType = _types.streamType;
       } else {
@@ -3708,7 +3687,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
         expectedType = _types.futureType;
       }
     } else {
-      if (body.isGenerator) {
+      if (element.isGenerator) {
         // Iterable<T> -> T
         expectedType = _types.iterableType;
       } else {

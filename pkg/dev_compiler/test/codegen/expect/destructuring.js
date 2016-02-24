@@ -9,12 +9,12 @@ dart_library.library('destructuring', null, /* Imports */[
     f(a, b, c);
   }
   dart.fn(f, dart.dynamic, [core.int, dart.dynamic], [dart.dynamic]);
-  function f_sync(a, b, c = 1) {
+  function f_sync(a, b, c) {
     return dart.syncStar(function*(a, b, c = 1) {
     }, dart.dynamic, a, b, c);
   }
   dart.fn(f_sync, dart.dynamic, [core.int, dart.dynamic], [dart.dynamic]);
-  function f_async(a, b, c = 1) {
+  function f_async(a, b, c) {
     return dart.asyncStar(function*(stream, a, b, c = 1) {
     }, dart.dynamic, a, b, c);
   }
@@ -23,12 +23,12 @@ dart_library.library('destructuring', null, /* Imports */[
     f(a, b, c);
   }
   dart.fn(g, dart.dynamic, [core.int, dart.dynamic], {c: dart.dynamic});
-  function g_sync(a, b, {c = 1} = {}) {
+  function g_sync(a, b, opts) {
     return dart.syncStar(function*(a, b, {c = 1} = {}) {
     }, dart.dynamic, a, b, opts);
   }
   dart.fn(g_sync, dart.dynamic, [core.int, dart.dynamic], {c: dart.dynamic});
-  function g_async(a, b, {c = 1} = {}) {
+  function g_async(a, b, opts) {
     return dart.asyncStar(function*(stream, a, b, {c = 1} = {}) {
     }, dart.dynamic, a, b, opts);
   }
