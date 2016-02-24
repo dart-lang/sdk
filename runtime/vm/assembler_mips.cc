@@ -536,6 +536,19 @@ void Assembler::BranchLinkPatchable(const StubEntry& stub_entry) {
 }
 
 
+void Assembler::BranchLinkWithEquivalence(const StubEntry& stub_entry,
+                                          const Object& equivalence) {
+  const Code& target = Code::Handle(stub_entry.code());
+  ASSERT(!in_delay_slot_);
+  const int32_t offset = ObjectPool::element_offset(
+      object_pool_wrapper_.FindObject(target, equivalence));
+  LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag);
+  lw(T9, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  jalr(T9);
+  delay_slot_available_ = false;  // CodePatcher expects a nop.
+}
+
+
 bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
   ASSERT(!Thread::CanLoadFromThread(object));

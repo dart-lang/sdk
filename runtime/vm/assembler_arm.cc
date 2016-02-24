@@ -2751,6 +2751,21 @@ void Assembler::BranchLinkPatchable(const Code& target) {
 }
 
 
+void Assembler::BranchLinkWithEquivalence(const StubEntry& stub_entry,
+                                          const Object& equivalence) {
+  const Code& target = Code::Handle(stub_entry.code());
+  // Make sure that class CallPattern is able to patch the label referred
+  // to by this code sequence.
+  // For added code robustness, use 'blx lr' in a patchable sequence and
+  // use 'blx ip' in a non-patchable sequence (see other BranchLink flavors).
+  const int32_t offset = ObjectPool::element_offset(
+      object_pool_wrapper_.FindObject(target, equivalence));
+  LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag, PP, AL);
+  ldr(LR, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  blx(LR);  // Use blx instruction so that the return branch prediction works.
+}
+
+
 void Assembler::BranchLink(const ExternalLabel* label) {
   LoadImmediate(LR, label->address());  // Target address is never patched.
   blx(LR);  // Use blx instruction so that the return branch prediction works.

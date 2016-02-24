@@ -680,6 +680,11 @@ class Assembler : public ValueObject {
   void BranchLinkPatchable(const StubEntry& stub_entry);
   void BranchLinkPatchable(const Code& code);
 
+  // Emit a call that shares its object pool entries with other calls
+  // that have the same equivalence marker.
+  void BranchLinkWithEquivalence(const StubEntry& stub_entry,
+                                 const Object& equivalence);
+
   // Branch and link to [base + offset]. Call sequence is never patched.
   void BranchLinkOffset(Register base, int32_t offset);
 

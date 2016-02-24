@@ -1554,9 +1554,6 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
   ASSERT(caller_code.is_optimized());
   const Function& target_function = Function::Handle(
       zone, caller_code.GetStaticCallTargetFunctionAt(frame->pc()));
-  const Code& target_code = Code::Handle(
-      zone, caller_code.GetStaticCallTargetCodeAt(frame->pc()));
-  ASSERT(!target_code.IsNull());
   if (!target_function.HasCode()) {
     const Error& error = Error::Handle(
         zone, Compiler::CompileFunction(thread, target_function));
@@ -1565,7 +1562,6 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
     }
   }
   ASSERT(target_function.HasCode());
-  ASSERT(target_function.raw() == target_code.function());
 
   const Code& current_target_code = Code::Handle(
       zone, target_function.CurrentCode());
@@ -1575,11 +1571,10 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
   caller_code.SetStaticCallTargetCodeAt(frame->pc(), current_target_code);
   if (FLAG_trace_patching) {
     OS::PrintErr("FixCallersTarget: caller %#" Px " "
-        "target '%s' %#" Px " -> %#" Px "\n",
-        frame->pc(),
-        target_function.ToFullyQualifiedCString(),
-        target_code.EntryPoint(),
-        current_target_code.EntryPoint());
+                 "target '%s' -> %#" Px "\n",
+                 frame->pc(),
+                 target_function.ToFullyQualifiedCString(),
+                 current_target_code.EntryPoint());
   }
   arguments.SetReturn(current_target_code);
 }

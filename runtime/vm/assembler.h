@@ -212,11 +212,30 @@ class AssemblerBuffer : public ValueObject {
 };
 
 
+struct ObjectPoolWrapperEntry {
+  ObjectPoolWrapperEntry()
+    : raw_value_(), type_(), equivalence_() { }
+  explicit ObjectPoolWrapperEntry(const Object* obj)
+    : obj_(obj), type_(ObjectPool::kTaggedObject), equivalence_(obj) { }
+  explicit ObjectPoolWrapperEntry(const Object* obj, const Object* eqv)
+    : obj_(obj), type_(ObjectPool::kTaggedObject), equivalence_(eqv) { }
+  ObjectPoolWrapperEntry(uword value, ObjectPool::EntryType info)
+    : raw_value_(value), type_(info), equivalence_() { }
+
+  union {
+    const Object* obj_;
+    uword raw_value_;
+  };
+  ObjectPool::EntryType type_;
+  const Object* equivalence_;
+};
+
+
 // Pair type parameter for DirectChainedHashMap used for the constant pool.
 class ObjIndexPair {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
-  typedef ObjectPool::Entry Key;
+  typedef ObjectPoolWrapperEntry Key;
   typedef intptr_t Value;
   typedef ObjIndexPair Pair;
 
@@ -232,6 +251,11 @@ class ObjIndexPair {
         key_.obj_ = key.obj_;
       } else {
         key_.obj_ = &Object::ZoneHandle(key.obj_->raw());
+      }
+      if (key.equivalence_->IsNotTemporaryScopedHandle()) {
+        key_.equivalence_ = key.equivalence_;
+      } else {
+        key_.equivalence_ = &Object::ZoneHandle(key.equivalence_->raw());
       }
     } else {
       key_.raw_value_ = key.raw_value_;
@@ -268,7 +292,8 @@ class ObjIndexPair {
   static inline bool IsKeyEqual(Pair kv, Key key) {
     if (kv.key_.type_ != key.type_) return false;
     if (kv.key_.type_ == ObjectPool::kTaggedObject) {
-      return kv.key_.obj_->raw() == key.obj_->raw();
+      return (kv.key_.obj_->raw() == key.obj_->raw()) &&
+             (kv.key_.equivalence_->raw() == key.equivalence_->raw());
     }
     return kv.key_.raw_value_ == key.raw_value_;
   }
@@ -293,6 +318,8 @@ class ObjectPoolWrapper : public ValueObject {
 
   intptr_t FindObject(const Object& obj,
                       Patchability patchable = kNotPatchable);
+  intptr_t FindObject(const Object& obj,
+                      const Object& equivalence);
   intptr_t FindImmediate(uword imm);
   intptr_t FindNativeEntry(const ExternalLabel* label,
                            Patchability patchable);
@@ -300,11 +327,11 @@ class ObjectPoolWrapper : public ValueObject {
   RawObjectPool* MakeObjectPool();
 
  private:
-  intptr_t AddObject(ObjectPool::Entry entry, Patchability patchable);
-  intptr_t FindObject(ObjectPool::Entry entry, Patchability patchable);
+  intptr_t AddObject(ObjectPoolWrapperEntry entry, Patchability patchable);
+  intptr_t FindObject(ObjectPoolWrapperEntry entry, Patchability patchable);
 
   // Objects and jump targets.
-  GrowableArray<ObjectPool::Entry> object_pool_;
+  GrowableArray<ObjectPoolWrapperEntry> object_pool_;
 
   // Hashmap for fast lookup in object pool.
   DirectChainedHashMap<ObjIndexPair> object_pool_index_table_;

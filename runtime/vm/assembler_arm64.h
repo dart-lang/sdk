@@ -1213,6 +1213,11 @@ class Assembler : public ValueObject {
 
   void BranchLinkPatchable(const StubEntry& stub_entry);
 
+  // Emit a call that shares its object pool entries with other calls
+  // that have the same equivalence marker.
+  void BranchLinkWithEquivalence(const StubEntry& stub_entry,
+                                 const Object& equivalence);
+
   // Macros accepting a pp Register argument may attempt to load values from
   // the object pool when possible. Unless you are sure that the untagged object
   // pool pointer is in another register, or that it is not available at all,

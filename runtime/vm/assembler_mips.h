@@ -926,6 +926,11 @@ class Assembler : public ValueObject {
 
   void BranchLinkPatchable(const StubEntry& stub_entry);
 
+  // Emit a call that shares its object pool entries with other calls
+  // that have the same equivalence marker.
+  void BranchLinkWithEquivalence(const StubEntry& stub_entry,
+                                 const Object& equivalence);
+
   void Drop(intptr_t stack_elements) {
     ASSERT(stack_elements >= 0);
     if (stack_elements > 0) {

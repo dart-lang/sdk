@@ -97,6 +97,18 @@ void Assembler::CallPatchable(const StubEntry& stub_entry) {
 }
 
 
+void Assembler::CallWithEquivalence(const StubEntry& stub_entry,
+                                    const Object& equivalence) {
+  ASSERT(constant_pool_allowed());
+  const Code& target = Code::Handle(stub_entry.code());
+  const int32_t offset = ObjectPool::element_offset(
+      object_pool_wrapper_.FindObject(target, equivalence));
+  LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag);
+  movq(TMP, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  call(TMP);
+}
+
+
 void Assembler::Call(const StubEntry& stub_entry) {
   ASSERT(constant_pool_allowed());
   const Code& target = Code::Handle(stub_entry.code());

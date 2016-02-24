@@ -611,6 +611,17 @@ void Assembler::BranchLinkPatchable(const StubEntry& stub_entry) {
 }
 
 
+void Assembler::BranchLinkWithEquivalence(const StubEntry& stub_entry,
+                                          const Object& equivalence) {
+  const Code& target = Code::Handle(stub_entry.code());
+  const int32_t offset = ObjectPool::element_offset(
+      object_pool_wrapper_.FindObject(target, equivalence));
+  LoadWordFromPoolOffset(CODE_REG, offset);
+  ldr(TMP, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  blr(TMP);
+}
+
+
 void Assembler::AddImmediate(Register dest, Register rn, int64_t imm) {
   Operand op;
   if (imm == 0) {
