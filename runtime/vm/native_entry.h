@@ -120,7 +120,11 @@ class NativeEntry : public AllStatic {
 
   static uword LinkNativeCallEntry();
   static void LinkNativeCall(Dart_NativeArguments args);
+
  private:
+  static void NativeCallWrapperNoStackCheck(Dart_NativeArguments args,
+                                            Dart_NativeFunction func);
+
   static bool ReturnValueIsError(NativeArguments* arguments);
   static void PropagateErrors(NativeArguments* arguments);
 };
