@@ -4650,12 +4650,20 @@ class InferenceContext {
   final TypeSystem _typeSystem;
 
   /**
+   * When no context type is available, this will track the least upper bound
+   * of all return statements in a lambda.
+   *
+   * This will always be kept in sync with [_returnStack].
+   */
+  final List<DartType> _inferredReturn = <DartType>[];
+
+  /**
    * A stack of return types for all of the enclosing
    * functions and methods.
    */
   // TODO(leafp) Handle the implicit union type for Futures
   // https://github.com/dart-lang/sdk/issues/25322
-  List<DartType> _returnStack = <DartType>[];
+  final List<DartType> _returnStack = <DartType>[];
 
   InferenceContext._(this._errorListener, TypeProvider typeProvider,
       this._typeSystem, this._inferenceHints)
@@ -4674,6 +4682,24 @@ class InferenceContext {
       _returnStack.isNotEmpty ? _returnStack.last : null;
 
   /**
+   * Records the type of the expression of a return statement.
+   *
+   * This will be used for inferring a block bodied lambda, if no context
+   * type was available.
+   */
+  void addReturnOrYieldType(DartType type) {
+    if (_returnStack.isEmpty) {
+      return;
+    }
+    DartType context = _returnStack.last;
+    if (context == null || context.isDynamic) {
+      DartType inferred = _inferredReturn.last;
+      inferred = _typeSystem.getLeastUpperBound(_typeProvider, type, inferred);
+      _inferredReturn[_inferredReturn.length - 1] = inferred;
+    }
+  }
+
+  /**
    * Match type [t1] against type [t2] as follows.
    * If `t1 = I<dynamic, ..., dynamic>`, then look for a supertype
    * of t1 of the form `K<S0, ..., Sm>` where `t2 = K<S0', ..., Sm'>`
@@ -4686,19 +4712,31 @@ class InferenceContext {
 
   /**
    * Pop a return type off of the return stack.
+   *
+   * Also record any inferred return type using [setType], unless this node
+   * already has a context type. This recorded type will be the least upper
+   * bound of all types added with [addReturnOrYieldType].
    */
-  void popReturnContext() {
-    assert(_returnStack.isNotEmpty);
+  void popReturnContext(BlockFunctionBody node) {
+    assert(_returnStack.isNotEmpty && _inferredReturn.isNotEmpty);
     if (_returnStack.isNotEmpty) {
       _returnStack.removeLast();
+    }
+    if (_inferredReturn.isNotEmpty) {
+      DartType inferred = _inferredReturn.removeLast();
+      if (!inferred.isBottom) {
+        setType(node, inferred);
+      }
     }
   }
 
   /**
-   * Push a [returnType] onto the return stack.
+   * Push a block function body's return type onto the return stack.
    */
-  void pushReturnContext(DartType returnType) {
+  void pushReturnContext(BlockFunctionBody node) {
+    DartType returnType = getType(node);
     _returnStack.add(returnType);
+    _inferredReturn.add(BottomTypeImpl.instance);
   }
 
   /**
@@ -7705,11 +7743,11 @@ class ResolverVisitor extends ScopedVisitor {
   Object visitBlockFunctionBody(BlockFunctionBody node) {
     _overrideManager.enterScope();
     try {
-      inferenceContext.pushReturnContext(InferenceContext.getType(node));
+      inferenceContext.pushReturnContext(node);
       super.visitBlockFunctionBody(node);
     } finally {
       _overrideManager.exitScope();
-      inferenceContext.popReturnContext();
+      inferenceContext.popReturnContext(node);
     }
     return null;
   }
@@ -8187,10 +8225,8 @@ class ResolverVisitor extends ScopedVisitor {
               matchFunctionTypeParameters(node.typeParameters, functionType);
           if (functionType is FunctionType) {
             _inferFormalParameterList(node.parameters, functionType);
-            DartType returnType = _computeReturnOrYieldType(
-                functionType.returnType,
-                _enclosingFunction.isGenerator,
-                _enclosingFunction.isAsynchronous);
+            DartType returnType =
+                _computeReturnOrYieldType(functionType.returnType);
             InferenceContext.setType(node.body, returnType);
           }
         }
@@ -8400,10 +8436,8 @@ class ResolverVisitor extends ScopedVisitor {
     try {
       _currentFunctionBody = node.body;
       _enclosingFunction = node.element;
-      DartType returnType = _computeReturnOrYieldType(
-          _enclosingFunction.type?.returnType,
-          _enclosingFunction.isGenerator,
-          _enclosingFunction.isAsynchronous);
+      DartType returnType =
+          _computeReturnOrYieldType(_enclosingFunction.type?.returnType);
       InferenceContext.setType(node.body, returnType);
       super.visitMethodDeclaration(node);
     } finally {
@@ -8496,8 +8530,19 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitReturnStatement(ReturnStatement node) {
-    InferenceContext.setType(node.expression, inferenceContext.returnContext);
-    return super.visitReturnStatement(node);
+    Expression e = node.expression;
+    InferenceContext.setType(e, inferenceContext.returnContext);
+    super.visitReturnStatement(node);
+    DartType type = e?.staticType;
+    // Generators cannot return values, so don't try to do any inference if
+    // we're processing erroneous code.
+    if (type != null && _enclosingFunction?.isGenerator == false) {
+      if (_enclosingFunction.isAsynchronous) {
+        type = type.flattenFutures(typeSystem);
+      }
+      inferenceContext.addReturnOrYieldType(type);
+    }
+    return null;
   }
 
   @override
@@ -8619,25 +8664,44 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitYieldStatement(YieldStatement node) {
+    Expression e = node.expression;
     DartType returnType = inferenceContext.returnContext;
-    if (returnType != null && _enclosingFunction != null) {
+    bool isGenerator = _enclosingFunction?.isGenerator ?? false;
+    if (returnType != null && isGenerator) {
       // If we're not in a generator ([a]sync*, then we shouldn't have a yield.
       // so don't infer
-      if (_enclosingFunction.isGenerator) {
-        // If this just a yield, then we just pass on the element type
-        DartType type = returnType;
-        if (node.star != null) {
-          // If this is a yield*, then we wrap the element return type
-          // If it's synchronous, we expect Iterable<T>, otherwise Stream<T>
-          InterfaceType wrapperType = _enclosingFunction.isSynchronous
-              ? typeProvider.iterableType
-              : typeProvider.streamType;
-          type = wrapperType.substitute4(<DartType>[type]);
-        }
-        InferenceContext.setType(node.expression, type);
+
+      // If this just a yield, then we just pass on the element type
+      DartType type = returnType;
+      if (node.star != null) {
+        // If this is a yield*, then we wrap the element return type
+        // If it's synchronous, we expect Iterable<T>, otherwise Stream<T>
+        InterfaceType wrapperType = _enclosingFunction.isSynchronous
+            ? typeProvider.iterableType
+            : typeProvider.streamType;
+        type = wrapperType.substitute4(<DartType>[type]);
+      }
+      InferenceContext.setType(e, type);
+    }
+    super.visitYieldStatement(node);
+    DartType type = e?.staticType;
+    if (type != null && isGenerator) {
+      // If this just a yield, then we just pass on the element type
+      if (node.star != null) {
+        // If this is a yield*, then we unwrap the element return type
+        // If it's synchronous, we expect Iterable<T>, otherwise Stream<T>
+        InterfaceType wrapperType = _enclosingFunction.isSynchronous
+            ? typeProvider.iterableType
+            : typeProvider.streamType;
+        List<DartType> candidates =
+            _findImplementedTypeArgument(type, wrapperType);
+        type = InterfaceTypeImpl.findMostSpecificType(candidates, typeSystem);
+      }
+      if (type != null) {
+        inferenceContext.addReturnOrYieldType(type);
       }
     }
-    return super.visitYieldStatement(node);
+    return null;
   }
 
   /**
@@ -8677,8 +8741,10 @@ class ResolverVisitor extends ScopedVisitor {
    * values which should be returned or yielded as appropriate.  If a type
    * cannot be computed from the declared return type, return null.
    */
-  DartType _computeReturnOrYieldType(
-      DartType declaredType, bool isGenerator, bool isAsynchronous) {
+  DartType _computeReturnOrYieldType(DartType declaredType) {
+    bool isGenerator = _enclosingFunction.isGenerator;
+    bool isAsynchronous = _enclosingFunction.isAsynchronous;
+
     // Ordinary functions just return their declared types.
     if (!isGenerator && !isAsynchronous) {
       return declaredType;
@@ -8698,6 +8764,39 @@ class ResolverVisitor extends ScopedVisitor {
     }
     // Must be asynchronous to reach here, so strip off any layers of Future
     return declaredType.flattenFutures(typeSystem);
+  }
+
+  /**
+   * Starting from t1, search its class hierarchy for types of the form
+   * `t2<R>`, and return a list of the resulting R's.
+   *
+   * For example, given t1 = `List<int>` and t2 = `Iterable<T>`, this will
+   * return [int].
+   */
+  // TODO(jmesserly): this is very similar to code used for flattening futures.
+  // The only difference is, because of a lack of TypeProvider, the other method
+  // has to match the Future type by its name and library. Here was are passed
+  // in the correct type.
+  List<DartType> _findImplementedTypeArgument(DartType t1, InterfaceType t2) {
+    List<DartType> result = <DartType>[];
+    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
+    void recurse(InterfaceTypeImpl type) {
+      if (type.element == t2.element && type.typeArguments.isNotEmpty) {
+        result.add(type.typeArguments[0]);
+      }
+      if (visitedClasses.add(type.element)) {
+        if (type.superclass != null) {
+          recurse(type.superclass);
+        }
+        type.mixins.forEach(recurse);
+        type.interfaces.forEach(recurse);
+        visitedClasses.remove(type.element);
+      }
+    }
+    if (t1 is InterfaceType) {
+      recurse(t1);
+    }
+    return result;
   }
 
   /**

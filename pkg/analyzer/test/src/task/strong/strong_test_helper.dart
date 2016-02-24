@@ -52,7 +52,9 @@ void addFile(String content, {String name: '/main.dart'}) {
 ///
 /// See [addFile] for more information about how to encode expectations in
 /// the file text.
-void check() {
+///
+/// Returns the main resolved library. This can be used for further checks.
+CompilationUnit check() {
   _checkCalled = true;
 
   expect(files.getFile('/main.dart').exists, true,
@@ -93,12 +95,16 @@ void check() {
       _expectErrors(resolved, errors);
     }
   }
+
+  return initialLibrary;
 }
 
 /// Adds a file using [addFile] and calls [check].
-void checkFile(String content) {
+///
+/// Also returns the resolved compilation unit.
+CompilationUnit checkFile(String content) {
   addFile(content);
-  check();
+  return check();
 }
 
 SourceSpanWithContext _createSpanHelper(

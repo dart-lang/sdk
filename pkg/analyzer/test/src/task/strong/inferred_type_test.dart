@@ -1903,8 +1903,10 @@ void functionExpressionInvocation() {
       void foo(int f(Object _)) {}
 
       main() {
-        var f = (x) => null;
-        f = (x) => 'hello';
+        var f = (Object x) => null;
+        String y = /*info:DYNAMIC_CAST*/f(42);
+
+        f = /*info:INFERRED_TYPE_CLOSURE*/(x) => 'hello';
 
         var g = null;
         g = 'hello';
@@ -1959,5 +1961,234 @@ test2() {
   Map<int, String> y = /*info:ASSIGNMENT_CAST*/x;
 }
     ''');
+  });
+
+
+  group('block bodied lambdas', () {
+    // Original feature request: https://github.com/dart-lang/sdk/issues/25487
+
+    test('basic', () {
+      checkFile(r'''
+        test1() {
+          List<int> o;
+          var y = o.map(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/(x) { return x + 1; });
+          Iterable<int> z = y;
+        }
+      ''');
+    });
+
+    test('no return', () {
+      var mainUnit = checkFile(r'''
+        test1() {
+          List<int> o;
+          var y = o.map(/*info:INFERRED_TYPE_CLOSURE*/(x) { });
+          Iterable<int> z = /*warning:DOWN_CAST_COMPOSITE*/y;
+        }
+      ''');
+      var f = mainUnit.element.functions[0].localVariables[1];
+      expect(f.type.toString(), 'Iterable<dynamic>');
+    });
+
+    test('LUB', () {
+      checkFile(r'''
+        import 'dart:math' show Random;
+        test2() {
+          List<num> o;
+          var y = o.map(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/(x) {
+            if (new Random().nextBool()) {
+              return x.toInt() + 1;
+            } else {
+              return x.toDouble();
+            }
+          });
+          Iterable<num> w = y;
+          Iterable<int> z = /*info:ASSIGNMENT_CAST*/y;
+        }
+      ''');
+    });
+
+    group('does not infer bottom', () {
+      test('sync', () {
+        var mainUnit = checkFile(r'''
+          var h = null;
+          void foo(int f(Object _)) {}
+
+          main() {
+            var f = (Object x) { return null; };
+            String y = /*info:DYNAMIC_CAST*/f(42);
+
+            f = /*info:INFERRED_TYPE_CLOSURE*/(x) => 'hello';
+
+            foo(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/(x) { return null; });
+            foo(/*info:INFERRED_TYPE_CLOSURE,info:INFERRED_TYPE_CLOSURE*/(x) { throw "not implemented"; });
+          }
+        ''');
+
+        var f = mainUnit.element.functions[1].localVariables[0];
+        expect(f.type.toString(), '(Object) → dynamic');
+      });
+
+      test('sync*', () {
+        var mainUnit = checkFile(r'''
+          main() {
+            var f = () sync* { yield null; };
+            Iterable y = f();
+            Iterable<String> z = /*warning:DOWN_CAST_COMPOSITE*/f();
+            String s = /*info:DYNAMIC_CAST*/f().first;
+          }
+        ''');
+
+        var f = mainUnit.element.functions[0].localVariables[0];
+        expect(f.type.toString(), '() → Iterable<dynamic>');
+      });
+
+      test('async', () {
+        var mainUnit = checkFile(r'''
+          import 'dart:async';
+          main() async {
+            var f = () async { return null; };
+            Future y = f();
+            Future<String> z = /*warning:DOWN_CAST_COMPOSITE*/f();
+            String s = /*info:DYNAMIC_CAST*/await f();
+          }
+        ''');
+
+        var f = mainUnit.element.functions[0].localVariables[0];
+        expect(f.type.toString(), '() → Future<dynamic>');
+      });
+
+      test('async*', () {
+        var mainUnit = checkFile(r'''
+          import 'dart:async';
+          main() async {
+            var f = () async* { yield null; };
+            Stream y = f();
+            Stream<String> z = /*warning:DOWN_CAST_COMPOSITE*/f();
+            String s = /*info:DYNAMIC_CAST*/await f().first;
+          }
+        ''');
+
+        var f = mainUnit.element.functions[0].localVariables[0];
+        expect(f.type.toString(), '() → Stream<dynamic>');
+      });
+    });
+
+    group('async', () {
+      test('all returns are values', () {
+        var mainUnit = checkFile(r'''
+          import 'dart:async';
+          import 'dart:math' show Random;
+          main() {
+            var f = /*info:INFERRED_TYPE_CLOSURE*/() async {
+              if (new Random().nextBool()) {
+                return 1;
+              } else {
+                return 2.0;
+              }
+            };
+            Future<num> g = f();
+            Future<int> h = /*info:ASSIGNMENT_CAST*/f();
+          }
+        ''');
+        var f = mainUnit.element.functions[0].localVariables[0];
+        expect(f.type.toString(), '() → Future<num>');
+      });
+
+      test('all returns are futures', () {
+        var mainUnit = checkFile(r'''
+          import 'dart:async';
+          import 'dart:math' show Random;
+          main() {
+            var f = /*info:INFERRED_TYPE_CLOSURE*/() async {
+              if (new Random().nextBool()) {
+                return new Future<int>.value(1);
+              } else {
+                return new Future<double>.value(2.0);
+              }
+            };
+            Future<num> g = f();
+            Future<int> h = /*info:ASSIGNMENT_CAST*/f();
+          }
+        ''');
+        var f = mainUnit.element.functions[0].localVariables[0];
+        expect(f.type.toString(), '() → Future<num>');
+      });
+
+      test('mix of values and futures', () {
+        var mainUnit = checkFile(r'''
+          import 'dart:async';
+          import 'dart:math' show Random;
+          main() {
+            var f = /*info:INFERRED_TYPE_CLOSURE*/() async {
+              if (new Random().nextBool()) {
+                return new Future<int>.value(1);
+              } else {
+                return 2.0;
+              }
+            };
+            Future<num> g = f();
+            Future<int> h = /*info:ASSIGNMENT_CAST*/f();
+          }
+        ''');
+        var f = mainUnit.element.functions[0].localVariables[0];
+        expect(f.type.toString(), '() → Future<num>');
+      });
+    });
+
+    test('sync*', () {
+      var mainUnit = checkFile(r'''
+        main() {
+          var f = /*info:INFERRED_TYPE_CLOSURE*/() sync* {
+            yield 1;
+            yield* [3, 4.0];
+          };
+          Iterable<num> g = f();
+          Iterable<int> h = /*info:ASSIGNMENT_CAST*/f();
+        }
+      ''');
+      var f = mainUnit.element.functions[0].localVariables[0];
+      expect(f.type.toString(), '() → Iterable<num>');
+    });
+
+    test('async*', () {
+      var mainUnit = checkFile(r'''
+        import 'dart:async';
+        main() {
+          var f = /*info:INFERRED_TYPE_CLOSURE*/() async* {
+            yield 1;
+            Stream<double> s;
+            yield* s;
+          };
+          Stream<num> g = f();
+          Stream<int> h = /*info:ASSIGNMENT_CAST*/f();
+        }
+      ''');
+      var f = mainUnit.element.functions[0].localVariables[0];
+      expect(f.type.toString(), '() → Stream<num>');
+    });
+
+    test('downwards incompatible with upwards inference', () {
+      var mainUnit = checkFile(r'''
+        main() {
+          String f() => null;
+          var g = f;
+          g = /*info:INFERRED_TYPE_CLOSURE*/() { return /*severe:STATIC_TYPE_ERROR*/1; };
+        }
+      ''');
+      var f = mainUnit.element.functions[0].localVariables[0];
+      expect(f.type.toString(), '() → String');
+    });
+
+    test('nested lambdas', () {
+      var mainUnit = checkFile(r'''
+        main() {
+          var f = /*info:INFERRED_TYPE_CLOSURE*/() {
+            return /*info:INFERRED_TYPE_CLOSURE*/(int x) { return 2.0 * x; };
+          };
+        }
+      ''');
+      var f = mainUnit.element.functions[0].localVariables[0];
+      expect(f.type.toString(), '() → (int) → num');
+    });
   });
 }
