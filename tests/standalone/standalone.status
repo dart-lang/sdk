@@ -68,7 +68,6 @@ out_of_memory_test: Skip
 verbose_gc_to_bmu_test: Skip
 precompilation_test: Skip # Standalone only test.
 precompilation_dart2js_test: Skip # Standalone only test.
-noopt_test: Skip # Standalone only test.
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 issue14236_test: Skip # Analyzer can't handle Script snapshots.
@@ -108,7 +107,6 @@ unboxed_int_converter_test: Skip
 pair_location_remapping_test: Skip
 precompilation_test: Skip # Standalone only test.
 precompilation_dart2js_test: Skip # Standalone only test.
-noopt_test: Skip # Standalone only test.
 regress_25335_test: Skip # Int64List not supported.
 
 [ ($runtime == vm || $runtime == dart_product) && $mode == debug ]
@@ -117,7 +115,6 @@ precompilation_dart2js_test: Pass, Slow
 [ ($runtime == vm || $runtime == dart_product) && $arch == ia32 ]
 precompilation_test: Skip # Not expected to pass on ia32.
 precompilation_dart2js_test: Skip # Not expected to pass on ia32.
-noopt_test: Skip # Not expected to pass on ia32.
 
 [ ($runtime == vm || $runtime == dart_product) && $arch == arm ]
 precompilation_test: Skip # Issue 24427
@@ -237,7 +234,6 @@ io/stdout_bad_argument_test: Skip # Test exits and so can't generate snapshot.
 
 [ $runtime == dart_precompiled || $runtime == dart_product ]
 debugger/*: Skip
-noopt_test: Skip
 precompilation_test: Skip # Platform.executable
 precompilation_dart2js_test: Skip # Platform.executable
 full_coverage_test: Skip # Platform.executable
