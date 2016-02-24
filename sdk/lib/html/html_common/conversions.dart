@@ -266,7 +266,7 @@ abstract class _AcceptStructuredClone {
 // Conversions for ContextAttributes.
 //
 // On Firefox, the returned ContextAttributes is a plain object.
-class _TypedContextAttributes {
+class ContextAttributes {
   bool alpha;
   bool antialias;
   bool depth;
@@ -275,7 +275,7 @@ class _TypedContextAttributes {
   bool stencil;
   bool failIfMajorPerformanceCaveat;
 
-  _TypedContextAttributes(this.alpha, this.antialias, this.depth,
+  ContextAttributes(this.alpha, this.antialias, this.depth,
       this.failIfMajorPerformanceCaveat, this.premultipliedAlpha,
       this.preserveDrawingBuffer, this.stencil);
 }
@@ -284,7 +284,7 @@ convertNativeToDart_ContextAttributes(nativeContextAttributes) {
   // On Firefox the above test fails because ContextAttributes is a plain
   // object so we create a _TypedContextAttributes.
 
-  return new _TypedContextAttributes(
+  return new ContextAttributes(
       JS('var', '#.alpha', nativeContextAttributes),
       JS('var', '#.antialias', nativeContextAttributes),
       JS('var', '#.depth', nativeContextAttributes),
