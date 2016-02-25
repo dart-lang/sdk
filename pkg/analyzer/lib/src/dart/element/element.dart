@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart'
     show DartObject, EvaluationResultImpl;
+import 'package:analyzer/src/generated/element_handle.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
 import 'package:analyzer/src/generated/java_core.dart';
@@ -3265,6 +3266,17 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       indices[library] = index;
       active.add(library);
       stack.add(library);
+      LibraryElementImpl getActualLibrary(LibraryElement lib) {
+        // TODO(paulberry): this means that computing a library cycle will be
+        // expensive for libraries resynthesized from summaries, since it will
+        // require fully resynthesizing all the libraries in the cycle as well
+        // as any libraries they import or export.  Try to find a better way.
+        if (lib is LibraryElementHandle) {
+          return lib.actualElement;
+        } else {
+          return lib;
+        }
+      }
       void recurse(LibraryElementImpl child) {
         if (!indices.containsKey(child)) {
           // We haven't visited this child yet, so recurse on the child,
@@ -3282,9 +3294,11 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       // Recurse on all of the children in the import/export graph, filtering
       // out those for which library cycles have already been computed.
       library.exportedLibraries
+          .map(getActualLibrary)
           .where((l) => l._libraryCycle == null)
           .forEach(recurse);
       library.importedLibraries
+          .map(getActualLibrary)
           .where((l) => l._libraryCycle == null)
           .forEach(recurse);
 
