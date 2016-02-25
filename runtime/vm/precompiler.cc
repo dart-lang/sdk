@@ -1966,6 +1966,8 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       // Maps inline_id_to_function[inline_id] -> function. Top scope
       // function has inline_id 0. The map is populated by the inliner.
       GrowableArray<const Function*> inline_id_to_function;
+      // Token position where inlining occured.
+      GrowableArray<TokenPosition> inline_id_to_token_pos;
       // For a given inlining-id(index) specifies the caller's inlining-id.
       GrowableArray<intptr_t> caller_inline_id;
       // Collect all instance fields that are loaded in the graph and
@@ -1978,6 +1980,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
                                   "OptimizationPasses");
 #endif  // !PRODUCT
         inline_id_to_function.Add(&function);
+        inline_id_to_token_pos.Add(function.token_pos());
         // Top scope function has no caller (-1).
         caller_inline_id.Add(-1);
         CSTAT_TIMER_SCOPE(thread(), graphoptimizer_timer);
@@ -2021,6 +2024,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
           FlowGraphInliner inliner(flow_graph,
                                    &inline_id_to_function,
+                                   &inline_id_to_token_pos,
                                    &caller_inline_id,
                                    use_speculative_inlining,
                                    &inlining_black_list);
@@ -2317,6 +2321,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       FlowGraphCompiler graph_compiler(&assembler, flow_graph,
                                        *parsed_function(), optimized(),
                                        inline_id_to_function,
+                                       inline_id_to_token_pos,
                                        caller_inline_id);
       {
         CSTAT_TIMER_SCOPE(thread(), graphcompiler_timer);

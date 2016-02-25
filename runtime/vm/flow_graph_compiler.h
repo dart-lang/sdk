@@ -302,6 +302,7 @@ class FlowGraphCompiler : public ValueObject {
       const ParsedFunction& parsed_function,
       bool is_optimizing,
       const GrowableArray<const Function*>& inline_id_to_function,
+      const GrowableArray<TokenPosition>& inline_id_to_token_pos,
       const GrowableArray<intptr_t>& caller_inline_id);
 
   ~FlowGraphCompiler();
@@ -590,7 +591,7 @@ class FlowGraphCompiler : public ValueObject {
   }
 
   RawArray* InliningIdToFunction() const;
-
+  RawArray* InliningIdToTokenPos() const;
   RawArray* CallerInliningIdMap() const;
 
  private:
@@ -787,6 +788,7 @@ class FlowGraphCompiler : public ValueObject {
 
   Array& inlined_code_intervals_;
   const GrowableArray<const Function*>& inline_id_to_function_;
+  const GrowableArray<TokenPosition>& inline_id_to_token_pos_;
   const GrowableArray<intptr_t>& caller_inline_id_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphCompiler);

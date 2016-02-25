@@ -457,6 +457,12 @@ void CompileParsedFunctionHelper::FinalizeCompilation(
            caller_inlining_id_map_array.Length() * sizeof(uword));
   code.SetInlinedCallerIdMap(caller_inlining_id_map_array);
 
+  const Array& inlined_id_to_token_pos =
+      Array::Handle(zone, graph_compiler->InliningIdToTokenPos());
+  INC_STAT(thread(), total_code_size,
+           inlined_id_to_token_pos.Length() * sizeof(uword));
+  code.SetInlinedIdToTokenPos(inlined_id_to_token_pos);
+
   graph_compiler->FinalizePcDescriptors(code);
   code.set_deopt_info_array(deopt_info_array);
 
@@ -670,6 +676,8 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       // Maps inline_id_to_function[inline_id] -> function. Top scope
       // function has inline_id 0. The map is populated by the inliner.
       GrowableArray<const Function*> inline_id_to_function;
+      // Token position where inlining occured.
+      GrowableArray<TokenPosition> inline_id_to_token_pos;
       // For a given inlining-id(index) specifies the caller's inlining-id.
       GrowableArray<intptr_t> caller_inline_id;
       // Collect all instance fields that are loaded in the graph and
@@ -680,6 +688,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
                                                  compiler_timeline,
                                                  "OptimizationPasses"));
         inline_id_to_function.Add(&function);
+        inline_id_to_token_pos.Add(function.token_pos());
         // Top scope function has no caller (-1).
         caller_inline_id.Add(-1);
         CSTAT_TIMER_SCOPE(thread(), graphoptimizer_timer);
@@ -712,6 +721,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
           FlowGraphInliner inliner(flow_graph,
                                    &inline_id_to_function,
+                                   &inline_id_to_token_pos,
                                    &caller_inline_id,
                                    use_speculative_inlining,
                                    NULL);
@@ -982,6 +992,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       FlowGraphCompiler graph_compiler(&assembler, flow_graph,
                                        *parsed_function(), optimized(),
                                        inline_id_to_function,
+                                       inline_id_to_token_pos,
                                        caller_inline_id);
       {
         CSTAT_TIMER_SCOPE(thread(), graphcompiler_timer);

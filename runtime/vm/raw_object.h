@@ -1052,7 +1052,8 @@ class RawCode : public RawObject {
     kInlinedIntervalsIndex = 0,
     kInlinedIdToFunctionIndex = 1,
     kInlinedCallerIdMapIndex = 2,
-    kInlinedMetadataSize = 3,
+    kInlinedIdToTokenPosIndex = 3,
+    kInlinedMetadataSize = 4,
   };
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(Code);

@@ -4417,6 +4417,9 @@ class Code : public Object {
   RawArray* GetInlinedIdToFunction() const;
   void SetInlinedIdToFunction(const Array& value) const;
 
+  RawArray* GetInlinedIdToTokenPos() const;
+  void SetInlinedIdToTokenPos(const Array& value) const;
+
   RawArray* GetInlinedCallerIdMap() const;
   void SetInlinedCallerIdMap(const Array& value) const;
 

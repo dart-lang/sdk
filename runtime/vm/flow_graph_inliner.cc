@@ -903,6 +903,7 @@ class CallSiteInliner : public ValueObject {
 
         FlowGraphInliner::SetInliningId(callee_graph,
             inliner_->NextInlineId(callee_graph->function(),
+                                   call_data->call->token_pos(),
                                    call_data->caller_inlining_id_));
         TRACE_INLINING(THR_Print("     Success\n"));
         PRINT_INLINING_TREE(NULL,
@@ -1824,11 +1825,13 @@ static bool ShouldTraceInlining(FlowGraph* flow_graph) {
 FlowGraphInliner::FlowGraphInliner(
     FlowGraph* flow_graph,
     GrowableArray<const Function*>* inline_id_to_function,
+    GrowableArray<TokenPosition>* inline_id_to_token_pos,
     GrowableArray<intptr_t>* caller_inline_id,
     bool use_speculative_inlining,
     GrowableArray<intptr_t>* inlining_black_list)
     : flow_graph_(flow_graph),
       inline_id_to_function_(inline_id_to_function),
+      inline_id_to_token_pos_(inline_id_to_token_pos),
       caller_inline_id_(caller_inline_id),
       trace_inlining_(ShouldTraceInlining(flow_graph)),
       use_speculative_inlining_(use_speculative_inlining),
@@ -1949,9 +1952,15 @@ void FlowGraphInliner::Inline() {
 
 
 intptr_t FlowGraphInliner::NextInlineId(const Function& function,
+                                        TokenPosition tp,
                                         intptr_t parent_id) {
   const intptr_t id = inline_id_to_function_->length();
+  // TODO(johnmccutchan): Do not allow IsNoSource once all nodes have proper
+  // source positions.
+  ASSERT(tp.IsReal() || tp.IsSynthetic() || tp.IsNoSource());
   inline_id_to_function_->Add(&function);
+  inline_id_to_token_pos_->Add(tp);
+  ASSERT(inline_id_to_token_pos_->length() == inline_id_to_function_->length());
   caller_inline_id_->Add(parent_id);
   return id;
 }

@@ -12740,6 +12740,29 @@ void Code::SetInlinedIdToFunction(const Array& value) const {
 }
 
 
+RawArray* Code::GetInlinedIdToTokenPos() const {
+  const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
+  if (metadata.IsNull()) {
+    return metadata.raw();
+  }
+  return reinterpret_cast<RawArray*>(
+      metadata.At(RawCode::kInlinedIdToTokenPosIndex));
+}
+
+
+void Code::SetInlinedIdToTokenPos(const Array& value) const {
+  if (raw_ptr()->inlined_metadata_ == Array::null()) {
+    StorePointer(&raw_ptr()->inlined_metadata_,
+                 Array::New(RawCode::kInlinedMetadataSize, Heap::kOld));
+  }
+  const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
+  ASSERT(!metadata.IsNull());
+  ASSERT(metadata.IsOld());
+  ASSERT(value.IsOld());
+  metadata.SetAt(RawCode::kInlinedIdToTokenPosIndex, value);
+}
+
+
 RawArray* Code::GetInlinedCallerIdMap() const {
   const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
   if (metadata.IsNull()) {
@@ -13205,9 +13228,16 @@ void Code::DumpInlinedIntervals() const {
       THR_Print("  %" Pd ": %s\n", i, function.ToQualifiedCString());
     }
   }
+  THR_Print("Inlined token pos:\n");
+  const Array& token_pos_map = Array::Handle(GetInlinedIdToTokenPos());
+  Smi& smi = Smi::Handle();
+  for (intptr_t i = 0; i < token_pos_map.Length(); i++) {
+    smi ^= token_pos_map.At(i);
+    TokenPosition tp = TokenPosition(smi.Value());
+    THR_Print("  %" Pd ": %s\n", i, tp.ToCString());
+  }
   THR_Print("Caller Inlining Ids:\n");
   const Array& caller_map = Array::Handle(GetInlinedCallerIdMap());
-  Smi& smi = Smi::Handle();
   for (intptr_t i = 0; i < caller_map.Length(); i++) {
     smi ^= caller_map.At(i);
     THR_Print("  iid: %" Pd " caller iid: %" Pd "\n", i, smi.Value());

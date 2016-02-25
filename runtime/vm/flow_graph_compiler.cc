@@ -179,6 +179,7 @@ FlowGraphCompiler::FlowGraphCompiler(
     const ParsedFunction& parsed_function,
     bool is_optimizing,
     const GrowableArray<const Function*>& inline_id_to_function,
+    const GrowableArray<TokenPosition>& inline_id_to_token_pos,
     const GrowableArray<intptr_t>& caller_inline_id)
       : thread_(Thread::Current()),
         zone_(Thread::Current()->zone()),
@@ -216,6 +217,7 @@ FlowGraphCompiler::FlowGraphCompiler(
         edge_counters_array_(Array::ZoneHandle()),
         inlined_code_intervals_(Array::ZoneHandle(Object::empty_array().raw())),
         inline_id_to_function_(inline_id_to_function),
+        inline_id_to_token_pos_(inline_id_to_token_pos),
         caller_inline_id_(caller_inline_id) {
   ASSERT(flow_graph->parsed_function().function().raw() ==
          parsed_function.function().raw());
@@ -477,12 +479,16 @@ static void LoopInfoComment(
 
 // We collect intervals while generating code.
 struct IntervalStruct {
-  // 'start' and 'end' are pc-offsets.
+  // 'start' is the pc-offsets where the inlined code started.
+  // 'pos' is the token position where the inlined call occured.
   intptr_t start;
+  TokenPosition pos;
   intptr_t inlining_id;
-  IntervalStruct(intptr_t s, intptr_t id) : start(s), inlining_id(id) {}
+  IntervalStruct(intptr_t s, TokenPosition tp, intptr_t id)
+      : start(s), pos(tp), inlining_id(id) {}
   void Dump() {
-    THR_Print("start: 0x%" Px " iid: %" Pd " ",  start, inlining_id);
+    THR_Print("start: 0x%" Px " iid: %" Pd " pos: %s",
+              start, inlining_id, pos.ToCString());
   }
 };
 
@@ -500,6 +506,7 @@ void FlowGraphCompiler::VisitBlocks() {
   GrowableArray<IntervalStruct> intervals;
   intptr_t prev_offset = 0;
   intptr_t prev_inlining_id = 0;
+  TokenPosition prev_inlining_pos = parsed_function_.function().token_pos();
   intptr_t max_inlining_id = 0;
   for (intptr_t i = 0; i < block_order().length(); ++i) {
     // Compile the block entry.
@@ -527,9 +534,11 @@ void FlowGraphCompiler::VisitBlocks() {
       // Compose intervals.
       if (instr->has_inlining_id() && is_optimizing()) {
         if (prev_inlining_id != instr->inlining_id()) {
-          intervals.Add(IntervalStruct(prev_offset, prev_inlining_id));
+          intervals.Add(
+              IntervalStruct(prev_offset, prev_inlining_pos, prev_inlining_id));
           prev_offset = assembler()->CodeSize();
           prev_inlining_id = instr->inlining_id();
+          prev_inlining_pos = inline_id_to_token_pos_[prev_inlining_id];
           if (prev_inlining_id > max_inlining_id) {
             max_inlining_id = prev_inlining_id;
           }
@@ -567,7 +576,8 @@ void FlowGraphCompiler::VisitBlocks() {
 
   if (is_optimizing()) {
     LogBlock lb;
-    intervals.Add(IntervalStruct(prev_offset, prev_inlining_id));
+    intervals.Add(
+        IntervalStruct(prev_offset, prev_inlining_pos, prev_inlining_id));
     inlined_code_intervals_ =
         Array::New(intervals.length() * Code::kInlIntNumEntries, Heap::kOld);
     Smi& start_h = Smi::Handle();
@@ -1747,6 +1757,21 @@ RawArray* FlowGraphCompiler::InliningIdToFunction() const {
       Array::New(inline_id_to_function_.length(), Heap::kOld));
   for (intptr_t i = 0; i < inline_id_to_function_.length(); i++) {
     res.SetAt(i, *inline_id_to_function_[i]);
+  }
+  return res.raw();
+}
+
+
+RawArray* FlowGraphCompiler::InliningIdToTokenPos() const {
+  if (inline_id_to_token_pos_.length() == 0) {
+    return Object::empty_array().raw();
+  }
+  const Array& res = Array::Handle(zone(),
+      Array::New(inline_id_to_token_pos_.length(), Heap::kOld));
+  Smi& smi = Smi::Handle(zone());
+  for (intptr_t i = 0; i < inline_id_to_token_pos_.length(); i++) {
+    smi = Smi::New(inline_id_to_token_pos_[i].value());
+    res.SetAt(i, smi);
   }
   return res.raw();
 }
