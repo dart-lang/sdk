@@ -1469,8 +1469,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     _flushLibraryProperties(body);
 
     var name = node.name.name;
-
-    var fn = _visit(node.functionExpression);
+    var fn = _emitFunction(node.functionExpression);
 
     if (currentLibrary.source.isInSystemLibrary &&
         _isInlineJSFunction(node.functionExpression)) {
@@ -1531,7 +1530,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   JS.Method _emitTopLevelProperty(FunctionDeclaration node) {
     var name = node.name.name;
     return annotate(
-        new JS.Method(_propertyName(name), _visit(node.functionExpression),
+        new JS.Method(
+            _propertyName(name), _emitFunction(node.functionExpression),
             isGetter: node.isGetter, isSetter: node.isSetter),
         node,
         node.element);
@@ -1559,7 +1559,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     return _loader.isLoaded(type.element);
   }
 
-  JS.Expression _emitFunctionTagged(JS.Expression clos, DartType type,
+  JS.Expression _emitFunctionTagged(JS.Expression fn, DartType type,
       {topLevel: false}) {
     var name = type.name;
     var lazy = topLevel && !_typeIsLoaded(type);
@@ -1569,64 +1569,76 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
           type.optionalParameterTypes.isEmpty &&
           type.namedParameterTypes.isEmpty &&
           type.normalParameterTypes.every((t) => t.isDynamic)) {
-        return js.call('dart.fn(#)', [clos]);
+        return js.call('dart.fn(#)', [fn]);
       }
       if (lazy) {
-        return js.call('dart.fn(#, () => #)', [clos, _emitFunctionRTTI(type)]);
+        return js.call('dart.fn(#, () => #)', [fn, _emitFunctionRTTI(type)]);
       }
-      return js.call('dart.fn(#, #)', [clos, _emitFunctionTypeParts(type)]);
+      return js.call('dart.fn(#, #)', [fn, _emitFunctionTypeParts(type)]);
     }
     throw 'Function has non function type: $type';
   }
 
+  /// Emits an arrow FunctionExpression node.
+  ///
+  /// This should be used for all places in Dart's AST where FunctionExpression
+  /// appears and the function is actually in an Expression context. These
+  /// correspond to arrow functions in Dart.
+  ///
+  /// Contrast with [_emitFunction].
   @override
   JS.Expression visitFunctionExpression(FunctionExpression node) {
-    var params = visitFormalParameterList(node.parameters);
+    assert(node.parent is! FunctionDeclaration &&
+        node.parent is! MethodDeclaration);
+    return _emitFunctionTagged(_emitArrowFunction(node), getStaticType(node),
+        topLevel: _executesAtTopLevel(node));
+  }
+
+  JS.ArrowFun _emitArrowFunction(FunctionExpression node) {
+    List<JS.Parameter> params;
 
     var body = node.body;
-    var parent = node.parent;
-    var inStmt = parent.parent is FunctionDeclarationStatement;
-    if (parent is FunctionDeclaration) {
-      return _emitFunctionBody(node.element, node.parameters, body);
-    }
-
     JS.Node jsBody;
     if (body.isGenerator || body.isAsynchronous) {
+      params = visitFormalParameterList(node.parameters, destructure: false);
       jsBody = _emitGeneratorFunctionBody(node.element, node.parameters, body);
-    } else if (body is ExpressionFunctionBody) {
-      jsBody = _visit(body.expression);
-    } else {
-      jsBody = _visit(body);
-    }
-
-    var type = node.element.type;
-    var typeFormals = _emitTypeFormals(type.typeFormals);
-    var returnType = emitTypeRef(type.returnType);
-
-    JS.FunctionExpression fn;
-    if (node.parameters.parameters
-        .every((p) => p.kind != ParameterKind.NAMED)) {
-      fn = new JS.ArrowFun(params, jsBody,
-          typeParams: typeFormals, returnType: returnType);
     } else {
       // Chrome Canary does not accept default values with destructuring in
       // arrow functions yet (e.g. `({a} = {}) => 1`) but happily accepts them
       // with regular functions (e.g. `function({a} = {}) { return 1 }`).
       // Note that Firefox accepts both syntaxes just fine.
       // TODO(ochafik): Simplify this code when Chrome Canary catches up.
+      bool hasNamedParams =
+          node.parameters.parameters.any((p) => p.kind == ParameterKind.NAMED);
 
-      if (jsBody is JS.Expression) {
-        jsBody = js.statement("{ return #; }", [jsBody]);
+      params = visitFormalParameterList(node.parameters,
+          destructure: !hasNamedParams);
+
+      if (body is ExpressionFunctionBody) {
+        // An arrow function can use the expression directly.
+        jsBody = _visit(body.expression);
+      } else {
+        jsBody = _visit(body);
       }
-      fn = new JS.Fun(params, jsBody,
-          typeParams: typeFormals, returnType: returnType);
     }
 
-    if (!inStmt) {
-      var type = getStaticType(node);
-      return _emitFunctionTagged(fn, type, topLevel: _executesAtTopLevel(node));
-    }
-    return fn;
+    var type = node.element.type;
+    var fn = new JS.ArrowFun(params, jsBody,
+        typeParams: _emitTypeFormals(type.typeFormals),
+        returnType: emitTypeRef(type.returnType));
+    return annotate(fn, node);
+  }
+
+  /// Emits a non-arrow FunctionExpression node.
+  ///
+  /// This should be used for all places in Dart's AST where FunctionExpression
+  /// appears but the function is not actually in an Expression context, such
+  /// as methods, properties, and top-level functions.
+  ///
+  /// Contrast with [visitFunctionExpression].
+  JS.Fun _emitFunction(FunctionExpression node) {
+    var fn = _emitFunctionBody(node.element, node.parameters, node.body);
+    return annotate(fn, node);
   }
 
   JS.Fun _emitFunctionBody(ExecutableElement element,
@@ -1717,7 +1729,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       return js.comment('Unimplemented function get/set statement: $node');
     }
 
-    var fn = _visit(func.functionExpression);
+    var fn = _emitFunction(func.functionExpression);
 
     var name = new JS.Identifier(func.name.name);
     JS.Statement declareFn;
@@ -3499,7 +3511,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
   // TODO(jmesserly): this will need to be a generic method, if we ever want to
   // self-host strong mode.
-  List/*<T>*/ _visitList/*<T>*/(Iterable<AstNode> nodes) {
+  List /*<T>*/ _visitList /*<T>*/ (Iterable<AstNode> nodes) {
     if (nodes == null) return null;
     var result = /*<T>*/ [];
     for (var node in nodes) result.add(_visit(node));

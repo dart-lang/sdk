@@ -54861,19 +54861,19 @@ dart_library.library('language/function_subtype_inline0_test', null, /* Imports 
           dart.as(a, T);
           if (b === void 0) b = null;
         }, dart.dynamic, [T], [core.String]), Boz), `(${nameOfT},[String])->void is Boz`);
-        expect.Expect.isFalse(dart.is(dart.fn(function(a, opts) {
+        expect.Expect.isFalse(dart.is(dart.fn((a, opts) => {
           dart.as(a, T);
           let b = opts && 'b' in opts ? opts.b : null;
         }, dart.dynamic, [T], {b: core.String}), Foo), `(${nameOfT},{b:String})->void is Foo`);
-        expect.Expect.isFalse(dart.is(dart.fn(function(a, opts) {
+        expect.Expect.isFalse(dart.is(dart.fn((a, opts) => {
           dart.as(a, T);
           let b = opts && 'b' in opts ? opts.b : null;
         }, dart.dynamic, [T], {b: core.String}), Bar), `(${nameOfT},{b:String})->void is Bar`);
-        expect.Expect.equals(expectedResult, dart.is(dart.fn(function(a, opts) {
+        expect.Expect.equals(expectedResult, dart.is(dart.fn((a, opts) => {
           dart.as(a, T);
           let b = opts && 'b' in opts ? opts.b : null;
         }, dart.dynamic, [T], {b: core.String}), Baz), `(${nameOfT},{b:String})->void is Baz`);
-        expect.Expect.equals(expectedResult, dart.is(dart.fn(function(a, opts) {
+        expect.Expect.equals(expectedResult, dart.is(dart.fn((a, opts) => {
           dart.as(a, T);
           let b = opts && 'b' in opts ? opts.b : null;
         }, dart.dynamic, [T], {b: core.String}), Boz), `(${nameOfT},{b:String})->void is Boz`);
@@ -110389,12 +110389,8 @@ dart_library.library('language/named_argument_test', null, /* Imports */[
   'use strict';
   let dartx = dart.dartx;
   function main() {
-    let c1 = dart.fn(function(opts) {
-      return `a: ${a} b: ${b}`;
-    }, core.String, [], {b: dart.dynamic, a: dart.dynamic});
-    let c2 = dart.fn(function(opts) {
-      return `a: ${a} b: ${b}`;
-    }, core.String, [], {a: dart.dynamic, b: dart.dynamic});
+    let c1 = dart.fn(opts => `a: ${a} b: ${b}`, core.String, [], {b: dart.dynamic, a: dart.dynamic});
+    let c2 = dart.fn(opts => `a: ${a} b: ${b}`, core.String, [], {a: dart.dynamic, b: dart.dynamic});
     expect.Expect.equals('a: 2 b: 1', dart.dcall(c1, {b: 1, a: 2}));
     expect.Expect.equals('a: 1 b: 2', dart.dcall(c1, {a: 1, b: 2}));
     expect.Expect.equals('a: 2 b: 1', dart.dcall(c2, {b: 1, a: 2}));
@@ -111254,7 +111250,7 @@ dart_library.library('language/named_parameters_with_conversions_test', null, /*
       }, dart.dynamic, [dart.dynamic], [dart.dynamic, dart.dynamic]);
     }
     makeFoo2(owner) {
-      return dart.fn(function(tag, opts) {
+      return dart.fn((tag, opts) => {
         let a = opts && 'a' in opts ? opts.a : 10;
         let b = opts && 'b' in opts ? opts.b : 20;
         dart.dput(owner, 'calls', dart.dsend(dart.dload(owner, 'calls'), '+', 1));
