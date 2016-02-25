@@ -62,6 +62,24 @@ static_library("libdart_vm") {
 }
 
 
+static_library("libdart_vm_precompiled_runtime") {
+  configs += ["..:dart_config_no_precompiler"]
+  public_configs = [":libdart_vm_config"]
+  defines = ["DART_PRECOMPILED_RUNTIME"]
+  vm_sources_list = exec_script("../../tools/gypi_to_gn.py",
+                                [rebase_path("vm_sources.gypi")],
+                                "scope",
+                                ["vm_sources.gypi"])
+
+  set_sources_assignment_filter(["*_test.cc", "*_test.h"])
+  sources = vm_sources_list.sources
+            - ["vtune.cc", "vtune.h"]
+  include_dirs = [
+    "..",
+  ]
+}
+
+
 static_library("libdart_vm_nosnapshot") {
   configs += ["..:dart_config"]
   public_configs = [":libdart_vm_config"]
@@ -174,6 +192,14 @@ template("generate_core_libraries") {
   }
   static_library("libdart_lib") {
     configs += ["..:dart_config"]
+    sources = libsources + [ "bootstrap_nocore.cc", ]
+    include_dirs = [
+      "..",
+    ]
+  }
+  static_library("libdart_lib_precompiled_runtime") {
+    configs += ["..:dart_config_no_precompiler"]
+    defines = ["DART_PRECOMPILED_RUNTIME"]
     sources = libsources + [ "bootstrap_nocore.cc", ]
     include_dirs = [
       "..",
