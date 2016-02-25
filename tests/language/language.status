@@ -147,6 +147,29 @@ vm/reflect_core_vm_test: CompileTimeError
 
 deferred_global_test: RuntimeError # Issue 25845
 
+[ $runtime == dart_product ]
+# Imports dart:mirrors
+const_evaluation_test: SkipByDesign
+deferred_constraints_constants_test: SkipByDesign
+enum_mirror_test: SkipByDesign
+field_increment_bailout_test: SkipByDesign
+instance_creation_in_function_annotation_test: SkipByDesign
+invocation_mirror2_test: SkipByDesign
+invocation_mirror_invoke_on2_test: SkipByDesign
+invocation_mirror_invoke_on_test: SkipByDesign
+issue21079_test: SkipByDesign
+many_overridden_no_such_method_test: SkipByDesign
+no_such_method_test: SkipByDesign
+null_test/none: SkipByDesign
+overridden_no_such_method_test: SkipByDesign
+regress_13462_0_test: SkipByDesign
+regress_13462_1_test: SkipByDesign
+regress_18535_test: SkipByDesign
+super_call4_test: SkipByDesign
+super_getter_setter_test: SkipByDesign
+vm/reflect_core_vm_test: SkipByDesign
+redirecting_factory_reflection_test: SkipByDesign
+
 [ ($noopt || $compiler == precompiler || $compiler == dart2app) ]
 # Deferred loading happens eagerly
 regress_23408_test: RuntimeError

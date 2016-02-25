@@ -194,3 +194,4 @@ int_parse_radix_test: Pass, Timeout # --no_intrinsify
 [ ($runtime == dart_product) ]
 data_resource_test: Skip # Resolve URI not supported yet in product mode.
 package_resource_test: Skip # Resolve URI not supported yet in product mode.
+apply3_test: SkipByDesign # Imports dart:mirrors

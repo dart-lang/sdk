@@ -87,6 +87,7 @@ dart/optimized_stacktrace_test: RuntimeError # Expects line and column numbers
 
 [ $compiler == dart2app ]
 dart/optimized_stacktrace_test: RuntimeError # Expects line and column numbers
+dart/redirection_type_shuffling_test: SkipByDesign # Imports dart:mirrors
 
 [ $runtime == dart_product ]
 dart/data_uri_spawn_test: Skip # Isolate.spawnUri

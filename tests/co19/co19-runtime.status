@@ -159,6 +159,7 @@ LibTest/isolate/Isolate/spawnUri*: RuntimeError # Isolate.spawnUri
 
 [ $runtime == dart_product ]
 LibTest/isolate/Isolate/spawnUri*: Skip # Isolate.spawnUri
+Language/Metadata/*: SkipByDesign # Uses dart:mirrors
 
 [ $runtime == vm && $mode == product ]
 LibTest/typed_data/Float32List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.

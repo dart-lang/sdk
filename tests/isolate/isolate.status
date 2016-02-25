@@ -161,6 +161,28 @@ stacktrace_message_test: CompileTimeError
 static_function_test: CompileTimeError
 unresolved_ports_test: CompileTimeError
 
+[ $runtime == dart_product ]
+# Imports dart:mirrors
+count_test: SkipByDesign
+cross_isolate_message_test: SkipByDesign
+illegal_msg_function_test: SkipByDesign
+illegal_msg_mirror_test: SkipByDesign
+isolate_complex_messages_test: SkipByDesign
+mandel_isolate_test: SkipByDesign
+message2_test: SkipByDesign
+message_test: SkipByDesign
+mint_maker_test: SkipByDesign
+nested_spawn2_test: SkipByDesign
+nested_spawn_test: SkipByDesign
+raw_port_test: SkipByDesign
+request_reply_test: SkipByDesign
+spawn_function_custom_class_test: SkipByDesign
+spawn_function_test: SkipByDesign
+stacktrace_message_test: SkipByDesign
+stacktrace_message_test: SkipByDesign
+static_function_test: SkipByDesign
+unresolved_ports_test: SkipByDesign
+
 [ $runtime == dart_precompiled || $runtime == dart_product ]
 deferred_in_isolate_test: Skip # Isolate.spawnUri
 deferred_in_isolate2_test: Skip # Isolate.spawnUri
