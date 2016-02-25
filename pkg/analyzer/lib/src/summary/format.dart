@@ -11,6 +11,19 @@ import 'flat_buffers.dart' as fb;
 import 'idl.dart' as idl;
 import 'dart:convert' as convert;
 
+class _IndexRelationKindReader extends fb.Reader<idl.IndexRelationKind> {
+  const _IndexRelationKindReader() : super();
+
+  @override
+  int get size => 1;
+
+  @override
+  idl.IndexRelationKind read(fb.BufferPointer bp) {
+    int index = const fb.Uint8Reader().read(bp);
+    return idl.IndexRelationKind.values[index];
+  }
+}
+
 class _ReferenceKindReader extends fb.Reader<idl.ReferenceKind> {
   const _ReferenceKindReader() : super();
 
@@ -1332,6 +1345,463 @@ abstract class _PackageBundleMixin implements idl.PackageBundle {
     "unlinkedUnitHashes": unlinkedUnitHashes,
     "unlinkedUnits": unlinkedUnits,
     "unlinkedUnitUris": unlinkedUnitUris,
+  };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
+}
+
+class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.PackageIndex {
+  bool _finished = false;
+
+  List<int> _elementLibraryUris;
+  List<int> _elementOffsets;
+  List<int> _elementUnits;
+  List<int> _elementUnitUris;
+  List<UnitIndexBuilder> _units;
+  List<String> _uris;
+
+  @override
+  List<int> get elementLibraryUris => _elementLibraryUris ??= <int>[];
+
+  /**
+   * Each item of this list corresponds to a unique library URI with an element
+   * referenced in the [PackageIndex].  It is an index into [uris] list.
+   */
+  void set elementLibraryUris(List<int> _value) {
+    assert(!_finished);
+    assert(_value == null || _value.every((e) => e >= 0));
+    _elementLibraryUris = _value;
+  }
+
+  @override
+  List<int> get elementOffsets => _elementOffsets ??= <int>[];
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the offset of the element name relative to the beginning of the file.  The
+   * list is sorted in ascending order, so that the client can quickly check
+   * whether an element is referenced in this [PackageIndex].
+   */
+  void set elementOffsets(List<int> _value) {
+    assert(!_finished);
+    assert(_value == null || _value.every((e) => e >= 0));
+    _elementOffsets = _value;
+  }
+
+  @override
+  List<int> get elementUnits => _elementUnits ??= <int>[];
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the index into [elementLibraryUris] and [elementUnitUris] for the library
+   * specific unit where the element is declared.
+   */
+  void set elementUnits(List<int> _value) {
+    assert(!_finished);
+    assert(_value == null || _value.every((e) => e >= 0));
+    _elementUnits = _value;
+  }
+
+  @override
+  List<int> get elementUnitUris => _elementUnitUris ??= <int>[];
+
+  /**
+   * Each item of this list corresponds to a unique unit URI with an element
+   * referenced in the [PackageIndex].  It is an index into [uris] list.
+   */
+  void set elementUnitUris(List<int> _value) {
+    assert(!_finished);
+    assert(_value == null || _value.every((e) => e >= 0));
+    _elementUnitUris = _value;
+  }
+
+  @override
+  List<UnitIndexBuilder> get units => _units ??= <UnitIndexBuilder>[];
+
+  /**
+   * List of units indexed in this [PackageIndex].
+   */
+  void set units(List<UnitIndexBuilder> _value) {
+    assert(!_finished);
+    _units = _value;
+  }
+
+  @override
+  List<String> get uris => _uris ??= <String>[];
+
+  /**
+   * List of unique URIs used in this [PackageIndex].
+   */
+  void set uris(List<String> _value) {
+    assert(!_finished);
+    _uris = _value;
+  }
+
+  PackageIndexBuilder({List<int> elementLibraryUris, List<int> elementOffsets, List<int> elementUnits, List<int> elementUnitUris, List<UnitIndexBuilder> units, List<String> uris})
+    : _elementLibraryUris = elementLibraryUris,
+      _elementOffsets = elementOffsets,
+      _elementUnits = elementUnits,
+      _elementUnitUris = elementUnitUris,
+      _units = units,
+      _uris = uris;
+
+  List<int> toBuffer() {
+    fb.Builder fbBuilder = new fb.Builder();
+    return fbBuilder.finish(finish(fbBuilder));
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    assert(!_finished);
+    _finished = true;
+    fb.Offset offset_elementLibraryUris;
+    fb.Offset offset_elementOffsets;
+    fb.Offset offset_elementUnits;
+    fb.Offset offset_elementUnitUris;
+    fb.Offset offset_units;
+    fb.Offset offset_uris;
+    if (!(_elementLibraryUris == null || _elementLibraryUris.isEmpty)) {
+      offset_elementLibraryUris = fbBuilder.writeListUint32(_elementLibraryUris);
+    }
+    if (!(_elementOffsets == null || _elementOffsets.isEmpty)) {
+      offset_elementOffsets = fbBuilder.writeListUint32(_elementOffsets);
+    }
+    if (!(_elementUnits == null || _elementUnits.isEmpty)) {
+      offset_elementUnits = fbBuilder.writeListUint32(_elementUnits);
+    }
+    if (!(_elementUnitUris == null || _elementUnitUris.isEmpty)) {
+      offset_elementUnitUris = fbBuilder.writeListUint32(_elementUnitUris);
+    }
+    if (!(_units == null || _units.isEmpty)) {
+      offset_units = fbBuilder.writeList(_units.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (!(_uris == null || _uris.isEmpty)) {
+      offset_uris = fbBuilder.writeList(_uris.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    fbBuilder.startTable();
+    if (offset_elementLibraryUris != null) {
+      fbBuilder.addOffset(2, offset_elementLibraryUris);
+    }
+    if (offset_elementOffsets != null) {
+      fbBuilder.addOffset(1, offset_elementOffsets);
+    }
+    if (offset_elementUnits != null) {
+      fbBuilder.addOffset(0, offset_elementUnits);
+    }
+    if (offset_elementUnitUris != null) {
+      fbBuilder.addOffset(3, offset_elementUnitUris);
+    }
+    if (offset_units != null) {
+      fbBuilder.addOffset(5, offset_units);
+    }
+    if (offset_uris != null) {
+      fbBuilder.addOffset(4, offset_uris);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+idl.PackageIndex readPackageIndex(List<int> buffer) {
+  fb.BufferPointer rootRef = new fb.BufferPointer.fromBytes(buffer);
+  return const _PackageIndexReader().read(rootRef);
+}
+
+class _PackageIndexReader extends fb.TableReader<_PackageIndexImpl> {
+  const _PackageIndexReader();
+
+  @override
+  _PackageIndexImpl createObject(fb.BufferPointer bp) => new _PackageIndexImpl(bp);
+}
+
+class _PackageIndexImpl extends Object with _PackageIndexMixin implements idl.PackageIndex {
+  final fb.BufferPointer _bp;
+
+  _PackageIndexImpl(this._bp);
+
+  List<int> _elementLibraryUris;
+  List<int> _elementOffsets;
+  List<int> _elementUnits;
+  List<int> _elementUnitUris;
+  List<idl.UnitIndex> _units;
+  List<String> _uris;
+
+  @override
+  List<int> get elementLibraryUris {
+    _elementLibraryUris ??= const fb.Uint32ListReader().vTableGet(_bp, 2, const <int>[]);
+    return _elementLibraryUris;
+  }
+
+  @override
+  List<int> get elementOffsets {
+    _elementOffsets ??= const fb.Uint32ListReader().vTableGet(_bp, 1, const <int>[]);
+    return _elementOffsets;
+  }
+
+  @override
+  List<int> get elementUnits {
+    _elementUnits ??= const fb.Uint32ListReader().vTableGet(_bp, 0, const <int>[]);
+    return _elementUnits;
+  }
+
+  @override
+  List<int> get elementUnitUris {
+    _elementUnitUris ??= const fb.Uint32ListReader().vTableGet(_bp, 3, const <int>[]);
+    return _elementUnitUris;
+  }
+
+  @override
+  List<idl.UnitIndex> get units {
+    _units ??= const fb.ListReader<idl.UnitIndex>(const _UnitIndexReader()).vTableGet(_bp, 5, const <idl.UnitIndex>[]);
+    return _units;
+  }
+
+  @override
+  List<String> get uris {
+    _uris ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 4, const <String>[]);
+    return _uris;
+  }
+}
+
+abstract class _PackageIndexMixin implements idl.PackageIndex {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (elementLibraryUris.isNotEmpty) _result["elementLibraryUris"] = elementLibraryUris;
+    if (elementOffsets.isNotEmpty) _result["elementOffsets"] = elementOffsets;
+    if (elementUnits.isNotEmpty) _result["elementUnits"] = elementUnits;
+    if (elementUnitUris.isNotEmpty) _result["elementUnitUris"] = elementUnitUris;
+    if (units.isNotEmpty) _result["units"] = units.map((_value) => _value.toJson()).toList();
+    if (uris.isNotEmpty) _result["uris"] = uris;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+    "elementLibraryUris": elementLibraryUris,
+    "elementOffsets": elementOffsets,
+    "elementUnits": elementUnits,
+    "elementUnitUris": elementUnitUris,
+    "units": units,
+    "uris": uris,
+  };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
+}
+
+class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIndex {
+  bool _finished = false;
+
+  List<int> _elements;
+  List<idl.IndexRelationKind> _kinds;
+  int _libraryUri;
+  List<int> _locationLengths;
+  List<int> _locationOffsets;
+  int _unitUri;
+
+  @override
+  List<int> get elements => _elements ??= <int>[];
+
+  /**
+   * Each item of this list is the index into [PackageIndex.elementUnits] and
+   * [PackageIndex.elementOffsets].  The list is sorted in ascending order, so
+   * that the client can quickly find element references in this [UnitIndex].
+   */
+  void set elements(List<int> _value) {
+    assert(!_finished);
+    assert(_value == null || _value.every((e) => e >= 0));
+    _elements = _value;
+  }
+
+  @override
+  List<idl.IndexRelationKind> get kinds => _kinds ??= <idl.IndexRelationKind>[];
+
+  /**
+   * Each item of this list is the kind of the element usage.
+   */
+  void set kinds(List<idl.IndexRelationKind> _value) {
+    assert(!_finished);
+    _kinds = _value;
+  }
+
+  @override
+  int get libraryUri => _libraryUri ??= 0;
+
+  /**
+   * The library source URI of this unit, e.g. `dart:core` or
+   * `package:foo/bar.dart`, as index into [PackageIndex.uris].
+   */
+  void set libraryUri(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _libraryUri = _value;
+  }
+
+  @override
+  List<int> get locationLengths => _locationLengths ??= <int>[];
+
+  /**
+   * Each item of this list is the length of the element usage.
+   */
+  void set locationLengths(List<int> _value) {
+    assert(!_finished);
+    assert(_value == null || _value.every((e) => e >= 0));
+    _locationLengths = _value;
+  }
+
+  @override
+  List<int> get locationOffsets => _locationOffsets ??= <int>[];
+
+  /**
+   * Each item of this list is the offset of the element usage relative to the
+   * beginning of the file.
+   */
+  void set locationOffsets(List<int> _value) {
+    assert(!_finished);
+    assert(_value == null || _value.every((e) => e >= 0));
+    _locationOffsets = _value;
+  }
+
+  @override
+  int get unitUri => _unitUri ??= 0;
+
+  /**
+   * The unit source URI of this unit, e.g. `dart:core/int.dart` or
+   * `package:foo/bar/baz.dart`, as index into [PackageIndex.uris].
+   */
+  void set unitUri(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _unitUri = _value;
+  }
+
+  UnitIndexBuilder({List<int> elements, List<idl.IndexRelationKind> kinds, int libraryUri, List<int> locationLengths, List<int> locationOffsets, int unitUri})
+    : _elements = elements,
+      _kinds = kinds,
+      _libraryUri = libraryUri,
+      _locationLengths = locationLengths,
+      _locationOffsets = locationOffsets,
+      _unitUri = unitUri;
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    assert(!_finished);
+    _finished = true;
+    fb.Offset offset_elements;
+    fb.Offset offset_kinds;
+    fb.Offset offset_locationLengths;
+    fb.Offset offset_locationOffsets;
+    if (!(_elements == null || _elements.isEmpty)) {
+      offset_elements = fbBuilder.writeListUint32(_elements);
+    }
+    if (!(_kinds == null || _kinds.isEmpty)) {
+      offset_kinds = fbBuilder.writeListUint8(_kinds.map((b) => b.index).toList());
+    }
+    if (!(_locationLengths == null || _locationLengths.isEmpty)) {
+      offset_locationLengths = fbBuilder.writeListUint32(_locationLengths);
+    }
+    if (!(_locationOffsets == null || _locationOffsets.isEmpty)) {
+      offset_locationOffsets = fbBuilder.writeListUint32(_locationOffsets);
+    }
+    fbBuilder.startTable();
+    if (offset_elements != null) {
+      fbBuilder.addOffset(4, offset_elements);
+    }
+    if (offset_kinds != null) {
+      fbBuilder.addOffset(5, offset_kinds);
+    }
+    if (_libraryUri != null && _libraryUri != 0) {
+      fbBuilder.addUint32(0, _libraryUri);
+    }
+    if (offset_locationLengths != null) {
+      fbBuilder.addOffset(2, offset_locationLengths);
+    }
+    if (offset_locationOffsets != null) {
+      fbBuilder.addOffset(3, offset_locationOffsets);
+    }
+    if (_unitUri != null && _unitUri != 0) {
+      fbBuilder.addUint32(1, _unitUri);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _UnitIndexReader extends fb.TableReader<_UnitIndexImpl> {
+  const _UnitIndexReader();
+
+  @override
+  _UnitIndexImpl createObject(fb.BufferPointer bp) => new _UnitIndexImpl(bp);
+}
+
+class _UnitIndexImpl extends Object with _UnitIndexMixin implements idl.UnitIndex {
+  final fb.BufferPointer _bp;
+
+  _UnitIndexImpl(this._bp);
+
+  List<int> _elements;
+  List<idl.IndexRelationKind> _kinds;
+  int _libraryUri;
+  List<int> _locationLengths;
+  List<int> _locationOffsets;
+  int _unitUri;
+
+  @override
+  List<int> get elements {
+    _elements ??= const fb.Uint32ListReader().vTableGet(_bp, 4, const <int>[]);
+    return _elements;
+  }
+
+  @override
+  List<idl.IndexRelationKind> get kinds {
+    _kinds ??= const fb.ListReader<idl.IndexRelationKind>(const _IndexRelationKindReader()).vTableGet(_bp, 5, const <idl.IndexRelationKind>[]);
+    return _kinds;
+  }
+
+  @override
+  int get libraryUri {
+    _libraryUri ??= const fb.Uint32Reader().vTableGet(_bp, 0, 0);
+    return _libraryUri;
+  }
+
+  @override
+  List<int> get locationLengths {
+    _locationLengths ??= const fb.Uint32ListReader().vTableGet(_bp, 2, const <int>[]);
+    return _locationLengths;
+  }
+
+  @override
+  List<int> get locationOffsets {
+    _locationOffsets ??= const fb.Uint32ListReader().vTableGet(_bp, 3, const <int>[]);
+    return _locationOffsets;
+  }
+
+  @override
+  int get unitUri {
+    _unitUri ??= const fb.Uint32Reader().vTableGet(_bp, 1, 0);
+    return _unitUri;
+  }
+}
+
+abstract class _UnitIndexMixin implements idl.UnitIndex {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (elements.isNotEmpty) _result["elements"] = elements;
+    if (kinds.isNotEmpty) _result["kinds"] = kinds.map((_value) => _value.toString().split('.')[1]).toList();
+    if (libraryUri != 0) _result["libraryUri"] = libraryUri;
+    if (locationLengths.isNotEmpty) _result["locationLengths"] = locationLengths;
+    if (locationOffsets.isNotEmpty) _result["locationOffsets"] = locationOffsets;
+    if (unitUri != 0) _result["unitUri"] = unitUri;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+    "elements": elements,
+    "kinds": kinds,
+    "libraryUri": libraryUri,
+    "locationLengths": locationLengths,
+    "locationOffsets": locationOffsets,
+    "unitUri": unitUri,
   };
 
   @override

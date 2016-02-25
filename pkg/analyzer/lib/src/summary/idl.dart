@@ -137,6 +137,46 @@ abstract class EntityRef extends base.SummaryClass {
 }
 
 /**
+ * Enum used to indicate the kind of index relation.
+ */
+enum IndexRelationKind {
+  /**
+   * Left: class.
+   *   Is extended by.
+   * Right: other class declaration.
+   */
+  IS_EXTENDED_BY,
+
+  /**
+   * Left: class.
+   *   Is implemented by.
+   * Right: other class declaration.
+   */
+  IS_IMPLEMENTED_BY,
+
+  /**
+   * Left: class.
+   *   Is mixed into.
+   * Right: other class declaration.
+   */
+  IS_MIXED_IN_BY,
+
+  /**
+   * Left: method, property accessor, function, variable.
+   *   Is invoked at.
+   * Right: location.
+   */
+  IS_INVOKED_BY,
+
+  /**
+   * Left: any element.
+   *   Is referenced (and not invoked, read/written) at.
+   * Right: location.
+   */
+  IS_REFERENCED_BY
+}
+
+/**
  * Information about a dependency that exists between one library and another
  * due to an "import" declaration.
  */
@@ -395,6 +435,58 @@ abstract class PackageBundle extends base.SummaryClass {
 }
 
 /**
+ * Index information about a package.
+ */
+@topLevel
+abstract class PackageIndex extends base.SummaryClass {
+  factory PackageIndex.fromBuffer(List<int> buffer) =>
+      generated.readPackageIndex(buffer);
+
+  /**
+   * Each item of this list corresponds to a unique library URI with an element
+   * referenced in the [PackageIndex].  It is an index into [uris] list.
+   */
+  @Id(2)
+  List<int> get elementLibraryUris;
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the offset of the element name relative to the beginning of the file.  The
+   * list is sorted in ascending order, so that the client can quickly check
+   * whether an element is referenced in this [PackageIndex].
+   */
+  @Id(1)
+  List<int> get elementOffsets;
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the index into [elementLibraryUris] and [elementUnitUris] for the library
+   * specific unit where the element is declared.
+   */
+  @Id(0)
+  List<int> get elementUnits;
+
+  /**
+   * Each item of this list corresponds to a unique unit URI with an element
+   * referenced in the [PackageIndex].  It is an index into [uris] list.
+   */
+  @Id(3)
+  List<int> get elementUnitUris;
+
+  /**
+   * List of units indexed in this [PackageIndex].
+   */
+  @Id(5)
+  List<UnitIndex> get units;
+
+  /**
+   * List of unique URIs used in this [PackageIndex].
+   */
+  @Id(4)
+  List<String> get uris;
+}
+
+/**
  * Enum used to indicate the kind of entity referred to by a
  * [LinkedReference].
  */
@@ -460,6 +552,52 @@ enum ReferenceKind {
    * The entity being referred to does not exist.
    */
   unresolved
+}
+
+/**
+ * Index information about a unit in a [PackageIndex].
+ */
+abstract class UnitIndex extends base.SummaryClass {
+  /**
+   * Each item of this list is the index into [PackageIndex.elementUnits] and
+   * [PackageIndex.elementOffsets].  The list is sorted in ascending order, so
+   * that the client can quickly find element references in this [UnitIndex].
+   */
+  @Id(4)
+  List<int> get elements;
+
+  /**
+   * Each item of this list is the kind of the element usage.
+   */
+  @Id(5)
+  List<IndexRelationKind> get kinds;
+
+  /**
+   * The library source URI of this unit, e.g. `dart:core` or
+   * `package:foo/bar.dart`, as index into [PackageIndex.uris].
+   */
+  @Id(0)
+  int get libraryUri;
+
+  /**
+   * Each item of this list is the length of the element usage.
+   */
+  @Id(2)
+  List<int> get locationLengths;
+
+  /**
+   * Each item of this list is the offset of the element usage relative to the
+   * beginning of the file.
+   */
+  @Id(3)
+  List<int> get locationOffsets;
+
+  /**
+   * The unit source URI of this unit, e.g. `dart:core/int.dart` or
+   * `package:foo/bar/baz.dart`, as index into [PackageIndex.uris].
+   */
+  @Id(1)
+  int get unitUri;
 }
 
 /**
