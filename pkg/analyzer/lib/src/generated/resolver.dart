@@ -610,39 +610,6 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Produces a hint if the given identifier is a protected field or getter
-   * accessed outside a subclass.
-   */
-  void _checkForInvalidProtectedPropertyAccess(SimpleIdentifier identifier) {
-    if (identifier.inDeclarationContext()) {
-      return;
-    }
-    Element element = identifier.bestElement;
-    if (element is PropertyAccessorElement &&
-        (element.isProtected || element.variable.isProtected)) {
-      ClassElement definingClass = element.enclosingElement;
-      if (definingClass == null) {
-        return;
-      }
-      ClassDeclaration accessingClass =
-          identifier.getAncestor((AstNode node) => node is ClassDeclaration);
-
-      if (accessingClass == null) {
-        _errorReporter.reportErrorForNode(
-            HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
-            identifier,
-            [identifier.name.toString(), definingClass.name]);
-      } else if (!_hasSuperClassOrMixin(
-          accessingClass.element, definingClass.type)) {
-        _errorReporter.reportErrorForNode(
-            HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
-            identifier,
-            [identifier.name.toString(), definingClass.name]);
-      }
-    }
-  }
-
-  /**
    * Produces a hint if the given invocation is of a protected method outside
    * a subclass instance method.
    */
@@ -671,6 +638,39 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
             HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
             node,
             [node.methodName.toString(), definingClass.name]);
+      }
+    }
+  }
+
+  /**
+   * Produces a hint if the given identifier is a protected field or getter
+   * accessed outside a subclass.
+   */
+  void _checkForInvalidProtectedPropertyAccess(SimpleIdentifier identifier) {
+    if (identifier.inDeclarationContext()) {
+      return;
+    }
+    Element element = identifier.bestElement;
+    if (element is PropertyAccessorElement &&
+        (element.isProtected || element.variable.isProtected)) {
+      ClassElement definingClass = element.enclosingElement;
+      if (definingClass == null) {
+        return;
+      }
+      ClassDeclaration accessingClass =
+          identifier.getAncestor((AstNode node) => node is ClassDeclaration);
+
+      if (accessingClass == null) {
+        _errorReporter.reportErrorForNode(
+            HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
+            identifier,
+            [identifier.name.toString(), definingClass.name]);
+      } else if (!_hasSuperClassOrMixin(
+          accessingClass.element, definingClass.type)) {
+        _errorReporter.reportErrorForNode(
+            HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
+            identifier,
+            [identifier.name.toString(), definingClass.name]);
       }
     }
   }
@@ -2124,6 +2124,11 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
  */
 class DeclarationResolver extends RecursiveAstVisitor<Object> {
   /**
+   * The analysis context containing the sources to be analyzed.
+   */
+  AnalysisContext _context;
+
+  /**
    * The elements that are reachable from the compilation unit element. When a
    * compilation unit has been resolved, this set should be empty.
    */
@@ -2164,6 +2169,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
    * if the element model and compilation unit do not match each other.
    */
   void resolve(CompilationUnit unit, CompilationUnitElement element) {
+    _context = element.context;
     ElementGatherer gatherer = new ElementGatherer();
     element.accept(gatherer);
     _expectedElements = gatherer.elements;
@@ -2301,11 +2307,9 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     ExportElement exportElement;
     if (uri != null) {
       LibraryElement library = _enclosingUnit.library;
-      exportElement = _findExport(
-          node,
-          library.exports,
-          _enclosingUnit.context.sourceFactory
-              .resolveUri(_enclosingUnit.source, uri));
+      Source source = _enclosingUnit.context.sourceFactory
+          .resolveUri(_enclosingUnit.source, uri);
+      exportElement = _findExport(node, library.exports, source);
       node.element = exportElement;
     }
     super.visitExportDirective(node);
@@ -2442,11 +2446,9 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
     ImportElement importElement;
     if (uri != null) {
       LibraryElement library = _enclosingUnit.library;
-      importElement = _findImport(
-          node,
-          library.imports,
-          _enclosingUnit.context.sourceFactory
-              .resolveUri(_enclosingUnit.source, uri));
+      Source source = _enclosingUnit.context.sourceFactory
+          .resolveUri(_enclosingUnit.source, uri);
+      importElement = _findImport(node, library.imports, source);
       node.element = importElement;
     }
     super.visitImportDirective(node);
@@ -2657,6 +2659,9 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
    */
   ExportElement _findExport(
       ExportDirective node, List<ExportElement> exports, Source source) {
+    if (source == null || !_context.exists(source)) {
+      return null;
+    }
     for (ExportElement export in exports) {
       if (export.exportedLibrary.source == source) {
         return export;
@@ -2685,12 +2690,14 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
 
   /**
    * Return the import element from the given list of [imports] whose library
-   * has the given [source] and that has the given [prefix]. Throw an
-   * [ElementMismatchException] if an element corresponding to the identifier
-   * cannot be found.
+   * has the given [source]. Throw an [ElementMismatchException] if an element
+   * corresponding to the [source] cannot be found.
    */
   ImportElement _findImport(
       ImportDirective node, List<ImportElement> imports, Source source) {
+    if (source == null || !_context.exists(source)) {
+      return null;
+    }
     SimpleIdentifier prefix = node.prefix;
     bool foundSource = false;
     for (ImportElement element in imports) {
