@@ -158,6 +158,18 @@ OPERATION_PQ = '  $%s_Callback_1_(mthis, __arg_0) => mthis[__arg_0];\n\n'
 ARGUMENT_NUM = "__arg_%s"
 OPERATION_ARGS = '  %s_Callback_%s_(mthis, %s) => Blink_JsNative_DomException.callMethod(mthis, "%s", [%s]);\n\n'
 
+# get class property to make static call.
+CLASS_STATIC = 'Blink_JsNative_DomException.getProperty(js.context, "%s")'
+
+# name, classname_getproperty, name
+STATIC_ATTRIBUTE_GETTER = '  %s_Getter_() => Blink_JsNative_DomException.getProperty(%s, "%s");\n\n'
+
+# name, classname_getproperty, name
+STATIC_OPERATION_0 = '  %s_Callback_0_() => Blink_JsNative_DomException.callMethod(%s, "%s", []);\n\n'
+
+# name, argsCount, args, classname_getproperty, name, args
+STATIC_OPERATION_ARGS = '  %s_Callback_%s_(%s) => Blink_JsNative_DomException.callMethod(%s, "%s", [%s]);\n\n'
+
 CLASS_DEFINITION_END = """}
 
 """
@@ -215,12 +227,12 @@ def Generate_Blink(output_dir, database, type_registry):
       # Zero parameter constructor.
       blink_file.write(CONSTRUCTOR_0 % rename_constructor(name))
 
-    _Process_Attributes(blink_file, interface.attributes)
+    _Process_Attributes(blink_file, interface, interface.attributes)
     _Process_Operations(blink_file, interface, interface.operations)
 
     secondary_parents = database.TransitiveSecondaryParents(interface, False)
     for secondary in secondary_parents:
-      _Process_Attributes(blink_file, secondary.attributes)
+      _Process_Attributes(blink_file, secondary, secondary.attributes)
       _Process_Operations(blink_file, secondary, secondary.operations)
 
     blink_file.write(CLASS_DEFINITION_END);
@@ -245,12 +257,16 @@ def _Emit_Blink_Constructors(blink_file, analyzed_constructors):
       argument_list = ', '.join(arguments)
       blink_file.write(CONSTRUCTOR_ARGS % (callback_index, argument_list, rename_constructor(name), argument_list))
 
-def _Process_Attributes(blink_file, attributes):
+def _Process_Attributes(blink_file, interface, attributes):
   # Emit an interface's attributes and operations.
   for attribute in sorted(attributes, ConstantOutputOrder):
     name = attribute.id
     if attribute.is_read_only:
-      blink_file.write(ATTRIBUTE_GETTER % (name, name))
+      if attribute.is_static:
+        class_property = CLASS_STATIC % interface.id
+        blink_file.write(STATIC_ATTRIBUTE_GETTER % (name, class_property, name))
+      else:
+        blink_file.write(ATTRIBUTE_GETTER % (name, name))
     else:
       blink_file.write(ATTRIBUTE_GETTER % (name, name))
       blink_file.write(ATTRIBUTE_SETTER % (name, name))
@@ -297,10 +313,18 @@ def _Emit_Blink_Operation(blink_file, interface, analyzeOperations):
 
   for callback_index in range(arg_min_count, arg_max_count):
     if callback_index == 0:
-      blink_file.write(OPERATION_0 % (name, name))
+      if operation.is_static:
+        class_property = CLASS_STATIC % interface.id
+        blink_file.write(STATIC_OPERATION_0 % (name, class_property, name))
+      else:
+        blink_file.write(OPERATION_0 % (name, name))
     else:
       arguments = []
       for i in range(0, callback_index):
         arguments.append(ARGUMENT_NUM % i)
       argument_list = ', '.join(arguments)
-      blink_file.write(OPERATION_ARGS % (name, callback_index, argument_list, name, argument_list))
+      if operation.is_static:
+        class_property = CLASS_STATIC % interface.id
+        blink_file.write(STATIC_OPERATION_ARGS % (name, callback_index, argument_list, class_property, name, argument_list))
+      else:
+        blink_file.write(OPERATION_ARGS % (name, callback_index, argument_list, name, argument_list))
