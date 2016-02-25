@@ -389,8 +389,12 @@ abstract class HeapObject extends ServiceObject {
       clazz = map['class'];
     }
 
-    // Load the full class object.
-    clazz?.load();
+    // Load the full class object if the isolate is runnable.
+    if (clazz != null) {
+      if (clazz.owner.runnable) {
+        clazz.load();
+      }
+    }
 
     if (mapIsRef) {
       return;
@@ -1140,7 +1144,7 @@ class Isolate extends ServiceObjectOwner {
   @observable bool running = false;
   @observable bool idle = false;
   @observable bool loading = true;
-
+  @observable bool runnable = false;
   @observable bool ioEnabled = false;
 
   final List<String> extensionRPCs = new List<String>();
@@ -1378,7 +1382,7 @@ class Isolate extends ServiceObjectOwner {
     }
     _loaded = true;
     loading = false;
-
+    runnable = map['runnable'] == true;
     _upgradeCollection(map, isolate);
     originNumber = int.parse(map['_originNumber'], onError:(_) => null);
     rootLibrary = map['rootLib'];
@@ -1861,6 +1865,7 @@ class ServiceEvent extends ServiceObject {
   void _update(ObservableMap map, bool mapIsRef) {
     _loaded = true;
     _upgradeCollection(map, owner);
+
     assert(map['isolate'] == null || owner == map['isolate']);
     timestamp =
         new DateTime.fromMillisecondsSinceEpoch(map['timestamp']);
