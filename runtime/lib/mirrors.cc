@@ -270,7 +270,7 @@ static RawInstance* CreateMethodMirror(const Function& func,
   args.SetAt(0, MirrorReference::Handle(MirrorReference::New(func)));
 
   String& name = String::Handle(func.name());
-  name = String::IdentifierPrettyNameRetainPrivate(name);
+  name = String::ScrubNameRetainPrivate(name);
   args.SetAt(1, name);
   args.SetAt(2, owner_mirror);
   args.SetAt(3, instantiator);

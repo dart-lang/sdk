@@ -171,7 +171,7 @@ void CompileType::PrintTo(BufferFormatter* f) const {
   if ((cid_ != kIllegalCid) && (cid_ != kDynamicCid)) {
     const Class& cls =
         Class::Handle(Isolate::Current()->class_table()->At(cid_));
-    type_name = String::Handle(cls.PrettyName()).ToCString();
+    type_name = String::Handle(cls.ScrubbedName()).ToCString();
   } else if (type_ != NULL &&
              !type_->Equals(Type::Handle(Type::DynamicType()))) {
     type_name = type_->ToCString();
@@ -568,7 +568,7 @@ void RelationalOpInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void AllocateObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s", String::Handle(cls().PrettyName()).ToCString());
+  f->Print("%s", String::Handle(cls().ScrubbedName()).ToCString());
   for (intptr_t i = 0; i < ArgumentCount(); i++) {
     f->Print(", ");
     PushArgumentAt(i)->value()->PrintTo(f);
@@ -581,7 +581,7 @@ void AllocateObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void MaterializeObjectInstr::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s", String::Handle(cls_.PrettyName()).ToCString());
+  f->Print("%s", String::Handle(cls_.ScrubbedName()).ToCString());
   for (intptr_t i = 0; i < InputCount(); i++) {
     f->Print(", ");
     f->Print("%s: ", slots_[i]->ToCString());
@@ -929,7 +929,7 @@ void CheckClassIdInstr::PrintOperandsTo(BufferFormatter* f) const {
 
   const Class& cls =
     Class::Handle(Isolate::Current()->class_table()->At(cid()));
-  f->Print(", %s", String::Handle(cls.PrettyName()).ToCString());
+  f->Print(", %s", String::Handle(cls.ScrubbedName()).ToCString());
 }
 
 

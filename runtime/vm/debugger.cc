@@ -1057,7 +1057,7 @@ RawObject* ActivationFrame::Evaluate(const String& expr) {
     VariableAt(i, &name, &ignore, &ignore, &value);
     if (!name.Equals(Symbols::This())) {
       if (IsPrivateVariableName(name)) {
-        name = String::IdentifierPrettyName(name);
+        name = String::ScrubName(name);
       }
       param_names.Add(name);
       param_values.Add(value);
@@ -1130,7 +1130,7 @@ void ActivationFrame::PrintToJSONObject(JSONObject* jsobj,
       if (var_name.raw() != Symbols::AsyncOperation().raw()) {
         JSONObject jsvar(&jsvars);
         jsvar.AddProperty("type", "BoundVariable");
-        var_name = String::IdentifierPrettyName(var_name);
+        var_name = String::ScrubName(var_name);
         jsvar.AddProperty("name", var_name.ToCString());
         jsvar.AddProperty("value", var_value, !full);
         // TODO(turnidge): Do we really want to provide this on every

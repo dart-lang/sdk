@@ -4692,7 +4692,7 @@ struct TestResult {
 };
 
 
-VM_TEST_CASE(String_IdentifierPrettyName) {
+VM_TEST_CASE(String_ScrubName) {
   TestResult tests[] = {
     {"(dynamic, dynamic) => void", "(dynamic, dynamic) => void"},
     {"_List@915557746", "_List"},
@@ -4712,7 +4712,7 @@ VM_TEST_CASE(String_IdentifierPrettyName) {
   String& result = String::Handle();
   for (size_t i = 0; i < ARRAY_SIZE(tests); i++) {
     test = String::New(tests[i].in);
-    result = String::IdentifierPrettyName(test);
+    result = String::ScrubName(test);
     EXPECT_STREQ(tests[i].out, result.ToCString());
   }
 }

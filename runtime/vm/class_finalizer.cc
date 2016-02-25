@@ -2259,7 +2259,7 @@ void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
                 script, func.token_pos(), Report::AtLocation,
                 Report::kError, Heap::kNew,
                 "constructor '%s' is illegal in mixin class %s",
-                String::Handle(func.PrettyName()).ToCString(),
+                String::Handle(func.UserVisibleName()).ToCString(),
                 String::Handle(zone, mixin_cls.Name()).ToCString()));
 
         ReportErrors(error, cls, cls.token_pos(),

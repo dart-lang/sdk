@@ -92,7 +92,7 @@ class AstNodeVisitor : public ValueObject {
 
 #define DECLARE_COMMON_NODE_FUNCTIONS(type)                                    \
   virtual void Visit(AstNodeVisitor* visitor);                                 \
-  virtual const char* PrettyName() const;                                      \
+  virtual const char* Name() const;                                            \
   virtual type* As##type() { return this; }
 
 
@@ -116,7 +116,7 @@ class AstNode : public ZoneAllocated {
 
   virtual void Visit(AstNodeVisitor* visitor) = 0;
   virtual void VisitChildren(AstNodeVisitor* visitor) const = 0;
-  virtual const char* PrettyName() const = 0;
+  virtual const char* Name() const = 0;
 
   // Convert the node into an assignment node using the rhs which is passed in,
   // this is typically used for converting nodes like LoadLocalNode,

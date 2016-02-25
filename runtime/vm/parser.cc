@@ -4605,7 +4605,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   SkipMetadata();
   ExpectToken(Token::kENUM);
 
-  const String& enum_name = String::Handle(Z, cls.PrettyName());
+  const String& enum_name = String::Handle(Z, cls.ScrubbedName());
   ClassDesc enum_members(Z, cls, enum_name, false, cls.token_pos());
 
   // Add instance field 'final int index'.
@@ -4703,7 +4703,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
     // For the user-visible name of the enumeration value, we need to
     // unmangle private names.
     if (enum_ident->CharAt(0) == '_') {
-      *enum_ident = String::IdentifierPrettyName(*enum_ident);
+      *enum_ident = String::ScrubName(*enum_ident);
     }
     enum_value_name = Symbols::FromConcat(name_prefix, *enum_ident);
     enum_names.Add(enum_value_name, Heap::kOld);

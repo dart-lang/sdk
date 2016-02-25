@@ -591,7 +591,7 @@ class Object {
     //   core impl class name shown - _OneByteString
     kInternalName = 0,
 
-    // Pretty names drop privacy suffixes, getter prefixes, and
+    // Scrubbed names drop privacy suffixes, getter prefixes, and
     // trailing dots on unnamed constructors.  These names are used in
     // the vm service.
     //
@@ -600,10 +600,10 @@ class Object {
     //   _MyClass@6b3832b.      -> _MyClass
     //   _MyClass@6b3832b.named -> _MyClass.named
     //   _OneByteString          -> _OneByteString (not remapped)
-    kPrettyName,
+    kScrubbedName,
 
     // User visible names are appropriate for reporting type errors
-    // directly to programmers.  The names have been "prettied" and
+    // directly to programmers.  The names have been scrubbed and
     // the names of core implementation classes are remapped to their
     // public interface names.
     //
@@ -953,7 +953,7 @@ class Class : public Object {
   }
 
   RawString* Name() const;
-  RawString* PrettyName() const;
+  RawString* ScrubbedName() const;
   RawString* UserVisibleName() const;
   bool IsInFullSnapshot() const;
 
@@ -1417,9 +1417,7 @@ class Class : public Object {
   class IsAllocatedBit : public BitField<uint16_t, bool, kIsAllocatedBit, 1> {};
 
   void set_name(const String& value) const;
-  void set_pretty_name(const String& value) const;
   void set_user_name(const String& value) const;
-  RawString* GeneratePrettyName() const;
   RawString* GenerateUserVisibleName() const;
   void set_state_bits(intptr_t bits) const;
 
@@ -1547,12 +1545,6 @@ class TypeArguments : public Object {
   // The name of this type argument vector, e.g. "<T, dynamic, List<T>, Smi>".
   RawString* Name() const {
     return SubvectorName(0, Length(), kInternalName);
-  }
-
-  // The name of this type argument vector, e.g. "<T, dynamic, List<T>, Smi>".
-  // Names of internal classes are not mapped to their public interfaces.
-  RawString* PrettyName() const {
-    return SubvectorName(0, Length(), kPrettyName);
   }
 
   // The name of this type argument vector, e.g. "<T, dynamic, List<T>, int>".
@@ -2108,11 +2100,13 @@ class ICData : public Object {
 class Function : public Object {
  public:
   RawString* name() const { return raw_ptr()->name_; }
-  RawString* PrettyName() const;
-  RawString* UserVisibleName() const;
-  RawString* QualifiedPrettyName() const;
-  RawString* QualifiedUserVisibleName() const;
-  const char* QualifiedUserVisibleNameCString() const;
+  RawString* UserVisibleName() const;  // Same as scrubbed name.
+  RawString* QualifiedScrubbedName() const {
+    return QualifiedName(kScrubbedName);
+  }
+  RawString* QualifiedUserVisibleName() const {
+    return QualifiedName(kUserVisibleName);
+  }
   virtual RawString* DictionaryName() const { return name(); }
 
   RawString* GetSource() const;
@@ -2134,12 +2128,6 @@ class Function : public Object {
   RawString* Signature() const {
     const bool instantiate = false;
     return BuildSignature(instantiate, kInternalName, TypeArguments::Handle());
-  }
-
-  RawString* PrettySignature() const {
-    const bool instantiate = false;
-    return BuildSignature(
-        instantiate, kPrettyName, TypeArguments::Handle());
   }
 
   // Build a string of the form '(T, {b: B, c: C}) => R' representing the
@@ -2798,6 +2786,8 @@ FOR_EACH_FUNCTION_KIND_BIT(DEFINE_BIT)
 
   static RawFunction* New();
 
+  RawString* QualifiedName(NameVisibility name_visibility) const;
+
   void BuildSignatureParameters(
       bool instantiate,
       NameVisibility name_visibility,
@@ -2892,8 +2882,7 @@ class RedirectionData: public Object {
 class Field : public Object {
  public:
   RawString* name() const { return raw_ptr()->name_; }
-  RawString* PrettyName() const;
-  RawString* UserVisibleName() const;
+  RawString* UserVisibleName() const;  // Same as scrubbed name.
   virtual RawString* DictionaryName() const { return name(); }
 
   bool is_static() const { return StaticBit::decode(raw_ptr()->kind_bits_); }
@@ -4519,7 +4508,7 @@ class Code : public Object {
   intptr_t GetDeoptIdForOsr(uword pc) const;
 
   RawString* Name() const;
-  RawString* PrettyName() const;
+  RawString* QualifiedName() const;
 
   int64_t compile_timestamp() const {
     return raw_ptr()->compile_timestamp_;
@@ -5317,10 +5306,6 @@ class AbstractType : public Instance {
   // The name of this type, including the names of its type arguments, if any.
   virtual RawString* Name() const {
     return BuildName(kInternalName);
-  }
-
-  virtual RawString* PrettyName() const {
-    return BuildName(kPrettyName);
   }
 
   // The name of this type, including the names of its type arguments, if any.
@@ -6520,8 +6505,8 @@ class String : public Instance {
   static RawString* ToLowerCase(const String& str,
                                 Heap::Space space = Heap::kNew);
 
-  static RawString* IdentifierPrettyName(const String& name);
-  static RawString* IdentifierPrettyNameRetainPrivate(const String& name);
+  static RawString* ScrubName(const String& name);
+  static RawString* ScrubNameRetainPrivate(const String& name);
 
   static bool EqualsIgnoringPrivateKey(const String& str1,
                                        const String& str2);

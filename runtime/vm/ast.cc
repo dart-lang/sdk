@@ -19,7 +19,7 @@ DEFINE_FLAG(bool, trace_ast_visitor, false,
 #define DEFINE_VISIT_FUNCTION(BaseName)                                        \
 void BaseName##Node::Visit(AstNodeVisitor* visitor) {                          \
   if (FLAG_trace_ast_visitor) {                                                \
-    THR_Print("Visiting %s\n", PrettyName());                                  \
+    THR_Print("Visiting %s\n", Name());                                        \
   }                                                                            \
   visitor->Visit##BaseName##Node(this);                                        \
 }
@@ -29,7 +29,7 @@ FOR_EACH_NODE(DEFINE_VISIT_FUNCTION)
 
 
 #define DEFINE_NAME_FUNCTION(BaseName)                                         \
-const char* BaseName##Node::PrettyName() const {                               \
+const char* BaseName##Node::Name() const {                                     \
   return #BaseName;                                                            \
 }
 

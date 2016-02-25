@@ -213,12 +213,15 @@ static const char* MergeSubStrings(Zone* zone,
 //   _MyClass@6328321. -> _MyClass
 //   _MyClass@6328321.named -> _MyClass.named
 //
-RawString* String::IdentifierPrettyName(const String& name) {
+RawString* String::ScrubName(const String& name) {
   Zone* zone = Thread::Current()->zone();
+
+NOT_IN_PRODUCT(
   if (name.Equals(Symbols::TopLevel())) {
     // Name of invisible top-level class.
     return Symbols::Empty().raw();
   }
+)
 
   const char* cname = name.ToCString();
   ASSERT(strlen(cname) == static_cast<size_t>(name.Length()));
@@ -263,6 +266,7 @@ RawString* String::IdentifierPrettyName(const String& name) {
     unmangled_name = MergeSubStrings(zone, unmangled_segments, sum_segment_len);
   }
 
+NOT_IN_PRODUCT(
   intptr_t len = sum_segment_len;
   intptr_t start = 0;
   intptr_t dot_pos = -1;  // Position of '.' in the name, if any.
@@ -311,12 +315,14 @@ RawString* String::IdentifierPrettyName(const String& name) {
   }
 
   unmangled_name = MergeSubStrings(zone, unmangled_segments, final_len);
+)
 
   return Symbols::New(unmangled_name);
 }
 
 
-RawString* String::IdentifierPrettyNameRetainPrivate(const String& name) {
+RawString* String::ScrubNameRetainPrivate(const String& name) {
+NOT_IN_PRODUCT(
   intptr_t len = name.Length();
   intptr_t start = 0;
   intptr_t at_pos = -1;  // Position of '@' in the name, if any.
@@ -359,6 +365,8 @@ RawString* String::IdentifierPrettyNameRetainPrivate(const String& name) {
   }
 
   return result.raw();
+)
+  return name.raw();  // In PRODUCT, return argument unchanged.
 }
 
 
@@ -1094,11 +1102,11 @@ RawError* Object::Init(Isolate* isolate) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   ASSERT(isolate == thread->isolate());
-#ifndef PRODUCT
+NOT_IN_PRODUCT(
   TimelineDurationScope tds(thread,
                             isolate->GetIsolateStream(),
                             "Object::Init");
-#endif
+)
 
 #if defined(DART_NO_SNAPSHOT)
   // Object::Init version when we are running in a version of dart that does
@@ -1372,7 +1380,8 @@ NOT_IN_PRODUCT(
   ASSERT(lib.raw() == Library::MirrorsLibrary());
 
   cls = Class::New<MirrorReference>();
-  RegisterPrivateClass(cls, Symbols::_MirrorReference(), lib));
+  RegisterPrivateClass(cls, Symbols::_MirrorReference(), lib);
+)
 
   // Pre-register the collection library so we can place the vm class
   // LinkedHashMap there rather than the core library.
@@ -1914,18 +1923,17 @@ RawString* Class::Name() const {
 }
 
 
-RawString* Class::PrettyName() const {
-  return GeneratePrettyName();
+RawString* Class::ScrubbedName() const {
+  return String::ScrubName(String::Handle(Name()));
 }
 
 
 RawString* Class::UserVisibleName() const {
-#if defined(PRODUCT)
-  return raw_ptr()->name_;
-#else  // defined(PRODUCT)
+NOT_IN_PRODUCT(
   ASSERT(raw_ptr()->user_name_ != String::null());
   return raw_ptr()->user_name_;
-#endif  // defined(PRODUCT)
+)
+  return GenerateUserVisibleName();  // No caching in PRODUCT, regenerate.
 }
 
 
@@ -3158,6 +3166,7 @@ RawClass* Class::NewExternalTypedDataClass(intptr_t class_id) {
 
 
 void Class::set_name(const String& value) const {
+  ASSERT(raw_ptr()->name_ == String::null());
   ASSERT(value.IsSymbol());
   StorePointer(&raw_ptr()->name_, value.raw());
 NOT_IN_PRODUCT(
@@ -3179,16 +3188,11 @@ void Class::set_user_name(const String& value) const {
 )
 
 
-RawString* Class::GeneratePrettyName() const {
-  const String& name = String::Handle(Name());
-  return String::IdentifierPrettyName(name);
-}
-
-
 RawString* Class::GenerateUserVisibleName() const {
   if (FLAG_show_internal_names) {
     return Name();
   }
+NOT_IN_PRODUCT(
   switch (id()) {
     case kNullCid:
       return Symbols::Null().raw();
@@ -3320,11 +3324,10 @@ RawString* Class::GenerateUserVisibleName() const {
     case kTypedDataFloat64ArrayCid:
     case kExternalTypedDataFloat64ArrayCid:
       return Symbols::Float64List().raw();
-    default:
-      const String& name = String::Handle(Name());
-      return String::IdentifierPrettyName(name);
   }
-  UNREACHABLE();
+)
+  const String& name = String::Handle(Name());
+  return String::ScrubName(name);
 }
 
 
@@ -6652,68 +6655,36 @@ bool Function::HasOptimizedCode() const {
 }
 
 
-RawString* Function::PrettyName() const {
-  const String& str = String::Handle(name());
-  return String::IdentifierPrettyName(str);
-}
-
-
-const char* Function::QualifiedUserVisibleNameCString() const {
-  const String& str = String::Handle(QualifiedUserVisibleName());
-  return str.ToCString();
-}
-
-
 RawString* Function::UserVisibleName() const {
-  return PrettyName();
+  if (FLAG_show_internal_names) {
+    return name();
+  }
+  return String::ScrubName(String::Handle(name()));
 }
 
 
-RawString* Function::QualifiedPrettyName() const {
-  String& tmp = String::Handle();
-  const Class& cls = Class::Handle(Owner());
-
+RawString* Function::QualifiedName(NameVisibility name_visibility) const {
+  ASSERT(name_visibility != kInternalName);  // We never request it.
+  // A function's scrubbed name and its user visible name are identical.
+  String& result = String::Handle(UserVisibleName());
   if (IsClosureFunction()) {
-    if (IsLocalFunction() && !IsImplicitClosureFunction()) {
-      const Function& parent = Function::Handle(parent_function());
-      tmp = parent.QualifiedPrettyName();
-    } else {
-      return PrettyName();
-    }
-  } else {
-    if (cls.IsTopLevel()) {
-      return PrettyName();
-    } else {
-      tmp = cls.PrettyName();
+    Function& fun = Function::Handle(raw());
+    while (fun.IsLocalFunction() && !fun.IsImplicitClosureFunction()) {
+      fun = fun.parent_function();
+      result = String::Concat(Symbols::Dot(), result, Heap::kOld);
+      result = String::Concat(
+          String::Handle(fun.UserVisibleName()), result, Heap::kOld);
     }
   }
-  tmp = String::Concat(tmp, Symbols::Dot(), Heap::kOld);
-  const String& suffix = String::Handle(PrettyName());
-  return String::Concat(tmp, suffix, Heap::kOld);
-}
-
-
-RawString* Function::QualifiedUserVisibleName() const {
-  String& tmp = String::Handle();
   const Class& cls = Class::Handle(Owner());
-
-  if (IsClosureFunction()) {
-    if (IsLocalFunction() && !IsImplicitClosureFunction()) {
-      const Function& parent = Function::Handle(parent_function());
-      tmp = parent.QualifiedUserVisibleName();
-    } else {
-      return UserVisibleName();
-    }
-  } else {
-    if (cls.IsTopLevel()) {
-      return UserVisibleName();
-    } else {
-      tmp = cls.UserVisibleName();
-    }
+  if (!cls.IsTopLevel()) {
+    result = String::Concat(Symbols::Dot(), result, Heap::kOld);
+    const String& cls_name = String::Handle(
+        name_visibility == kScrubbedName ? cls.ScrubbedName()
+                                         : cls.UserVisibleName());
+    result = String::Concat(cls_name, result, Heap::kOld);
   }
-  tmp = String::Concat(tmp, Symbols::Dot());
-  const String& suffix = String::Handle(UserVisibleName());
-  return String::Concat(tmp, suffix);
+  return result.raw();
 }
 
 
@@ -7205,14 +7176,11 @@ RawField* Field::Clone(const Class& new_owner) const {
 }
 
 
-RawString* Field::PrettyName() const {
-  const String& str = String::Handle(name());
-  return String::IdentifierPrettyName(str);
-}
-
-
 RawString* Field::UserVisibleName() const {
-  return PrettyName();
+  if (FLAG_show_internal_names) {
+    return name();
+  }
+  return String::ScrubName(String::Handle(name()));
 }
 
 
@@ -8969,7 +8937,7 @@ static RawString* MakeFunctionMetaName(const Function& func) {
   GrowableHandlePtrArray<const String> pieces(Thread::Current()->zone(), 3);
   pieces.Add(cname);
   pieces.Add(Symbols::At());
-  pieces.Add(String::Handle(func.QualifiedPrettyName()));
+  pieces.Add(String::Handle(func.QualifiedScrubbedName()));
   return Symbols::FromConcatAll(pieces);
 }
 
@@ -13029,7 +12997,6 @@ const char* Code::ToCString() const {
 }
 
 
-// Called by disassembler.
 RawString* Code::Name() const {
   const Object& obj = Object::Handle(owner());
   if (obj.IsNull()) {
@@ -13041,36 +13008,23 @@ RawString* Code::Name() const {
   } else if (obj.IsClass()) {
     // Allocation stub.
     const Class& cls = Class::Cast(obj);
-    String& cls_name = String::Handle(cls.Name());
+    String& cls_name = String::Handle(cls.ScrubbedName());
     ASSERT(!cls_name.IsNull());
     return Symbols::FromConcat(Symbols::AllocationStubFor(), cls_name);
   } else {
     ASSERT(obj.IsFunction());
     // Dart function.
-    return Function::Cast(obj).name();
+    return Function::Cast(obj).UserVisibleName();  // Same as scrubbed name.
   }
 }
 
 
-RawString* Code::PrettyName() const {
+RawString* Code::QualifiedName() const {
   const Object& obj = Object::Handle(owner());
-  if (obj.IsNull()) {
-    // Regular stub.
-    const char* name = StubCode::NameOfStub(EntryPoint());
-    ASSERT(name != NULL);
-    const String& stub_name = String::Handle(String::New(name));
-    return String::Concat(Symbols::StubPrefix(), stub_name);
-  } else if (obj.IsClass()) {
-    // Allocation stub.
-    const Class& cls = Class::Cast(obj);
-    String& cls_name = String::Handle(cls.Name());
-    ASSERT(!cls_name.IsNull());
-    return String::Concat(Symbols::AllocationStubFor(), cls_name);
-  } else {
-    ASSERT(obj.IsFunction());
-    // Dart function.
-    return Function::Cast(obj).QualifiedPrettyName();
+  if (obj.IsFunction()) {
+    return Function::Cast(obj).QualifiedScrubbedName();
   }
+  return Name();
 }
 
 
@@ -14782,13 +14736,12 @@ bool AbstractType::TestAndAddBuddyToTrail(TrailPtr* trail,
 
 
 RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
+  ASSERT(name_visibility != kScrubbedName);
   Zone* zone = Thread::Current()->zone();
   if (IsBoundedType()) {
     const AbstractType& type = AbstractType::Handle(
         BoundedType::Cast(*this).type());
-    if (name_visibility == kPrettyName) {
-      return type.BuildName(kPrettyName);
-    } else if (name_visibility == kUserVisibleName) {
+    if (name_visibility == kUserVisibleName) {
       return type.BuildName(kUserVisibleName);
     }
     GrowableHandlePtrArray<const String> pieces(zone, 5);
@@ -14858,8 +14811,6 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
     }
     if (name_visibility == kInternalName) {
       class_name = cls.Name();
-    } else if (name_visibility == kPrettyName) {
-      class_name = cls.PrettyName();
     } else {
       ASSERT(name_visibility == kUserVisibleName);
       // Map internal types to their corresponding public interfaces.
