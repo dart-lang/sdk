@@ -6,6 +6,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, precompilation);
+
 void DescriptorList::AddDescriptor(RawPcDescriptors::Kind kind,
                                    intptr_t pc_offset,
                                    intptr_t deopt_id,
@@ -16,7 +18,7 @@ void DescriptorList::AddDescriptor(RawPcDescriptors::Kind kind,
          (deopt_id != Thread::kNoDeoptId));
 
   // When precompiling, we only use pc descriptors for exceptions.
-  if (!FLAG_precompiled_mode || try_index != -1) {
+  if (!FLAG_precompilation || try_index != -1) {
     intptr_t merged_kind_try =
         RawPcDescriptors::MergedKindTry::Encode(kind, try_index);
 

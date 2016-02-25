@@ -19,6 +19,7 @@
 namespace dart {
 
 DECLARE_FLAG(bool, enable_type_checks);
+DECLARE_FLAG(bool, load_deferred_eagerly);
 DECLARE_FLAG(bool, concurrent_sweep);
 
 // Check if serialized and deserialized objects are equal.
@@ -1000,7 +1001,6 @@ TEST_CASE(SerializeScript) {
 }
 
 
-#if !defined(PRODUCT)  // Uses deferred loading.
 UNIT_TEST_CASE(CanonicalizationInScriptSnapshots) {
   const char* kScriptChars =
       "\n"
@@ -1106,7 +1106,6 @@ UNIT_TEST_CASE(CanonicalizationInScriptSnapshots) {
   free(script_snapshot);
   free(full_snapshot);
 }
-#endif
 
 
 static void IterateScripts(const Library& lib) {
@@ -1470,6 +1469,9 @@ UNIT_TEST_CASE(ScriptSnapshot) {
 }
 
 
+#endif  // !PRODUCT
+
+
 UNIT_TEST_CASE(ScriptSnapshot1) {
   const char* kScriptChars =
     "class _SimpleNumEnumerable<T extends num> {"
@@ -1662,9 +1664,6 @@ UNIT_TEST_CASE(ScriptSnapshot2) {
   free(full_snapshot);
   free(script_snapshot);
 }
-
-
-#endif  // !PRODUCT
 
 
 TEST_CASE(IntArrayMessage) {

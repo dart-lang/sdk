@@ -24,6 +24,8 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, interpret_irregexp);
+
 // When entering intrinsics code:
 // ECX: IC Data
 // EDX: Arguments descriptor

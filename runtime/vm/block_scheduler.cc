@@ -11,6 +11,8 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, emit_edge_counters, true, "Emit edge counters at targets.");
+
 static intptr_t GetEdgeCount(const Array& edge_counters, intptr_t edge_id) {
   if (!FLAG_emit_edge_counters) {
     // Assume everything was visited once.

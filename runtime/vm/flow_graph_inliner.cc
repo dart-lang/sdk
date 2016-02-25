@@ -62,6 +62,7 @@ DEFINE_FLAG(bool, enable_inlining_annotations, false,
 
 DECLARE_FLAG(bool, compiler_stats);
 DECLARE_FLAG(int, max_deoptimization_counter_threshold);
+DECLARE_FLAG(bool, precompilation);
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
 DECLARE_FLAG(bool, verify_compiler);
@@ -631,7 +632,7 @@ class CallSiteInliner : public ValueObject {
 
     // Function has no type feedback. With precompilation we don't rely on
     // type feedback.
-    if (!FLAG_precompiled_mode &&
+    if (!FLAG_precompilation &&
         function.ic_data_array() == Object::null()) {
       TRACE_INLINING(THR_Print("     Bailout: not compiled yet\n"));
       PRINT_INLINING_TREE("Not compiled",
@@ -789,7 +790,7 @@ class CallSiteInliner : public ValueObject {
           CSTAT_TIMER_SCOPE(thread(), graphinliner_opt_timer);
           // TODO(fschneider): Improve suppression of speculative inlining.
           // Deopt-ids overlap between caller and callee.
-          if (FLAG_precompiled_mode) {
+          if (FLAG_precompilation) {
             AotOptimizer optimizer(callee_graph,
                                    inliner_->use_speculative_inlining_,
                                    inliner_->inlining_black_list_);
@@ -929,7 +930,7 @@ class CallSiteInliner : public ValueObject {
     // Propagate a compile-time error. Only in precompilation do we attempt to
     // inline functions that have never been compiled before; when JITing we
     // should only see compile-time errors in unoptimized compilation.
-    ASSERT(FLAG_precompiled_mode);
+    ASSERT(FLAG_precompilation);
     Thread::Current()->long_jump_base()->Jump(1, error);
     UNREACHABLE();
     return false;

@@ -14,6 +14,7 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, deoptimize_alot);
 DECLARE_FLAG(bool, trace_natives);
 DECLARE_FLAG(bool, verify_on_transition);
 

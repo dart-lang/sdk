@@ -11,6 +11,9 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, background_compilation);
+DECLARE_FLAG(int, optimization_counter_threshold);
+DECLARE_FLAG(bool, use_osr);
 DECLARE_FLAG(bool, trace_shutdown);
 
 #ifndef PRODUCT

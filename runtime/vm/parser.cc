@@ -41,8 +41,11 @@
 namespace dart {
 
 DEFINE_FLAG(bool, enable_debug_break, false, "Allow use of break \"message\".");
+DEFINE_FLAG(bool, load_deferred_eagerly, false,
+    "Load deferred libraries eagerly.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef.");
+DEFINE_FLAG(bool, link_natives_lazily, false, "Link native calls lazily");
 DEFINE_FLAG(bool, conditional_directives, false,
     "Enable conditional directives");
 DEFINE_FLAG(bool, warn_super, false,
@@ -50,6 +53,7 @@ DEFINE_FLAG(bool, warn_super, false,
 DEFINE_FLAG(bool, await_is_keyword, false,
     "await and yield are treated as proper keywords in synchronous code.");
 
+DECLARE_FLAG(bool, load_deferred_eagerly);
 DECLARE_FLAG(bool, profile_vm);
 
 // Quick access to the current thread, isolate and zone.
@@ -14340,6 +14344,11 @@ void Parser::SkipQualIdent() {
 
 
 namespace dart {
+
+DEFINE_FLAG(bool, load_deferred_eagerly, false,
+    "Load deferred libraries eagerly.");
+DEFINE_FLAG(bool, link_natives_lazily, false, "Link native calls lazily");
+
 
 void ParsedFunction::AddToGuardedFields(const Field* field) const {
   UNREACHABLE();

@@ -15,6 +15,7 @@ DEFINE_FLAG(bool, trace_type_propagation, false,
             "Trace flow graph type propagation");
 
 DECLARE_FLAG(bool, propagate_types);
+DECLARE_FLAG(bool, fields_may_be_reset);
 
 
 void FlowGraphTypePropagator::Propagate(FlowGraph* flow_graph) {

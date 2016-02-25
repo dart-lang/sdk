@@ -23,6 +23,10 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, emit_edge_counters);
+DECLARE_FLAG(int, optimization_counter_threshold);
+DECLARE_FLAG(bool, use_osr);
+
 // Generic summary for call instructions that have all arguments pushed
 // on the stack and return the result in a fixed register EAX.
 LocationSummary* Instruction::MakeCallSummary(Zone* zone) {

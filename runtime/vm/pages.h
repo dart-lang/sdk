@@ -15,6 +15,7 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, collect_code);
 DECLARE_FLAG(bool, log_code_drop);
 DECLARE_FLAG(bool, always_drop_code);
 DECLARE_FLAG(bool, write_protect_code);

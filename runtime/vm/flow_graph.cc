@@ -19,6 +19,7 @@ namespace dart {
 DEFINE_FLAG(bool, trace_smi_widening, false, "Trace Smi->Int32 widening pass.");
 #endif
 DEFINE_FLAG(bool, prune_dead_locals, true, "optimize dead locals away");
+DECLARE_FLAG(bool, emit_edge_counters);
 DECLARE_FLAG(bool, reorder_basic_blocks);
 DECLARE_FLAG(bool, verify_compiler);
 

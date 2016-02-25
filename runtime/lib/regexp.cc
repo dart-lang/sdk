@@ -15,6 +15,7 @@
 namespace dart {
 
 DECLARE_FLAG(bool, trace_irregexp);
+DECLARE_FLAG(bool, interpret_irregexp);
 
 
 DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_factory, 4) {

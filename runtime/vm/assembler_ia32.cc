@@ -18,6 +18,7 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
 DECLARE_FLAG(bool, inline_alloc);
 
 

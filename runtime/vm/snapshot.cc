@@ -28,6 +28,9 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, use_field_guards);
+
+
 static const int kNumVmIsolateSnapshotReferences = 32 * KB;
 static const int kNumInitialReferencesInFullSnapshot = 160 * KB;
 static const int kNumInitialReferences = 64;

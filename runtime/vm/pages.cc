@@ -29,6 +29,8 @@ DEFINE_FLAG(bool, print_free_list_before_gc, false,
             "Print free list statistics before a GC");
 DEFINE_FLAG(bool, print_free_list_after_gc, false,
             "Print free list statistics after a GC");
+DEFINE_FLAG(bool, collect_code, true,
+            "Attempt to GC infrequently used code.");
 DEFINE_FLAG(int, code_collection_interval_in_us, 30000000,
             "Time between attempts to collect unused code.");
 DEFINE_FLAG(bool, log_code_drop, false,

@@ -12,6 +12,9 @@
 
 namespace dart {
 
+DECLARE_FLAG(int, optimization_counter_threshold);
+DECLARE_FLAG(bool, use_field_guards);
+
 #define NEW_OBJECT(type)                                                       \
   ((kind == Snapshot::kFull) ? reader->New##type() : type::New())
 

@@ -49,6 +49,9 @@ namespace dart {
 #define Z (zone())
 
 
+DEFINE_FLAG(bool, collect_dynamic_function_names, false,
+    "In precompilation collects all dynamic function names in order to"
+    " identify unique targets");
 DEFINE_FLAG(bool, print_unique_targets, false, "Print unique dynaic targets");
 DEFINE_FLAG(bool, trace_precompiler, false, "Trace precompiler.");
 DEFINE_FLAG(int, max_speculative_inlining_attempts, 1,
@@ -66,7 +69,9 @@ DECLARE_FLAG(bool, trace_optimizing_compiler);
 DECLARE_FLAG(bool, trace_bailout);
 DECLARE_FLAG(bool, use_inlining);
 DECLARE_FLAG(bool, verify_compiler);
+DECLARE_FLAG(bool, precompilation);
 DECLARE_FLAG(bool, huge_method_cutoff_in_code_size);
+DECLARE_FLAG(bool, load_deferred_eagerly);
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
 DECLARE_FLAG(bool, trace_inlining_intervals);
 DECLARE_FLAG(bool, trace_irregexp);
@@ -1884,7 +1889,7 @@ void PrecompileParsedFunctionHelper::FinalizeCompilation(
 // If optimized_result_code is not NULL then it is caller's responsibility
 // to install code.
 bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
-  ASSERT(FLAG_precompiled_mode);
+  ASSERT(FLAG_precompilation);
   const Function& function = parsed_function()->function();
   if (optimized() && !function.IsOptimizable()) {
     return false;
@@ -2399,7 +2404,7 @@ static RawError* PrecompileFunctionHelper(CompilationPipeline* pipeline,
                                           const Function& function,
                                           bool optimized) {
   // Check that we optimize, except if the function is not optimizable.
-  ASSERT(FLAG_precompiled_mode);
+  ASSERT(FLAG_precompilation);
   ASSERT(!function.IsOptimizable() || optimized);
   ASSERT(!function.HasCode());
   LongJumpScope jump;
@@ -2496,7 +2501,7 @@ RawError* Precompiler::CompileFunction(Thread* thread,
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
 
-  ASSERT(FLAG_precompiled_mode);
+  ASSERT(FLAG_precompilation);
   const bool optimized = function.IsOptimizable();  // False for natives.
   return PrecompileFunctionHelper(pipeline, function, optimized);
 }

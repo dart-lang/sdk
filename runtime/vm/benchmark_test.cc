@@ -20,6 +20,8 @@ using dart::bin::File;
 
 namespace dart {
 
+DECLARE_FLAG(bool, background_compilation);
+
 Benchmark* Benchmark::first_ = NULL;
 Benchmark* Benchmark::tail_ = NULL;
 const char* Benchmark::executable_ = NULL;
@@ -179,15 +181,10 @@ BENCHMARK(Dart2JSCompilerStats) {
   stats->EnableBenchmark();
   Timer timer(true, "Compile all of dart2js benchmark");
   timer.Start();
-#if !defined(PRODUCT)
-  // Constant in product mode.
   const bool old_flag = FLAG_background_compilation;
   FLAG_background_compilation = false;
-#endif
   Dart_Handle result = Dart_CompileAll();
-#if !defined(PRODUCT)
   FLAG_background_compilation = old_flag;
-#endif
   EXPECT_VALID(result);
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
@@ -390,14 +387,10 @@ BENCHMARK(Dart2JSCompileAll) {
   }
   Timer timer(true, "Compile all of dart2js benchmark");
   timer.Start();
-#if !defined(PRODUCT)
   const bool old_flag = FLAG_background_compilation;
   FLAG_background_compilation = false;
-#endif
   Dart_Handle result = Dart_CompileAll();
-#if !defined(PRODUCT)
   FLAG_background_compilation = old_flag;
-#endif
   EXPECT_VALID(result);
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
