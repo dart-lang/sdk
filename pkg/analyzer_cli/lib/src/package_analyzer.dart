@@ -15,6 +15,7 @@ import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -341,7 +342,8 @@ class PackageAnalyzer {
   }
 
   void _createContext() {
-    DirectoryBasedDartSdk sdk = DirectoryBasedDartSdk.defaultSdk;
+    DirectoryBasedDartSdk sdk =
+        new DirectoryBasedDartSdk(new JavaFile(options.dartSdkPath));
 
     // Create the context.
     context = AnalysisEngine.instance.createAnalysisContext();
