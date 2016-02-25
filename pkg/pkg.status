@@ -214,3 +214,6 @@ analyzer/test/src/task/model_test: Crash # Issue 24485
 analyzer/test/src/task/strong/checker_test: Crash # t: Failed assertion: line 88 pos 12: '!variable2index.containsKey(element)' is not true.
 analyzer/test/src/task/strong/inferred_type_test: Crash # t: Failed assertion: line 88 pos 12: '!variable2index.containsKey(element)' is not true.
 analyzer/test/src/task/strong_mode_test: Crash # Issue 24485
+
+[ $noopt || $runtime == dart_precompiled || $runtime == dart_product ]
+*: SkipByDesign # The pkg test framework imports dart:mirrors.
