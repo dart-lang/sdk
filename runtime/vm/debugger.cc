@@ -330,7 +330,9 @@ void Debugger::InvokeEventHandler(DebuggerEvent* event) {
     // If we were paused, notify the service that we have resumed.
     const Error& error =
         Error::Handle(Thread::Current()->sticky_error());
-    ASSERT(error.IsNull() || error.IsUnwindError());
+    ASSERT(error.IsNull() ||
+           error.IsUnwindError() ||
+           error.IsUnhandledException());
 
     // Only send a resume event when the isolate is not unwinding.
     if (!error.IsUnwindError()) {
@@ -1636,7 +1638,7 @@ Dart_ExceptionPauseInfo Debugger::GetExceptionPauseInfo() const {
 
 
 bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
-                                      const Instance& exc) {
+                                      const Instance& exception) {
   if (exc_pause_info_ == kNoPauseOnExceptions) {
     return false;
   }
@@ -1644,7 +1646,7 @@ bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
     return true;
   }
   ASSERT(exc_pause_info_ == kPauseOnUnhandledExceptions);
-  ActivationFrame* handler_frame = stack_trace->GetHandlerFrame(exc);
+  ActivationFrame* handler_frame = stack_trace->GetHandlerFrame(exception);
   if (handler_frame == NULL) {
     // Did not find an exception handler that catches this exception.
     // Note that this check is not precise, since we can't check
@@ -1673,8 +1675,9 @@ void Debugger::SignalExceptionThrown(const Instance& exc) {
   }
   DebuggerEvent event(isolate_, DebuggerEvent::kExceptionThrown);
   event.set_exception(&exc);
-  ASSERT(stack_trace->Length() > 0);
-  event.set_top_frame(stack_trace->FrameAt(0));
+  if (stack_trace->Length() > 0) {
+    event.set_top_frame(stack_trace->FrameAt(0));
+  }
   ASSERT(stack_trace_ == NULL);
   stack_trace_ = stack_trace;
   Pause(&event);

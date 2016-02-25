@@ -996,6 +996,10 @@ static void ReportPauseOnConsole(ServiceEvent* event) {
     OS::PrintErr("  Connect to Observatory at %s to debug.\n",
                  ServiceIsolate::server_address());
   }
+  const Error& err = Error::Handle(Thread::Current()->sticky_error());
+  if (!err.IsNull()) {
+    OS::PrintErr("%s\n", err.ToErrorCString());
+  }
 }
 
 

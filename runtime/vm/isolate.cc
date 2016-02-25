@@ -655,20 +655,6 @@ static MessageHandler::MessageStatus StoreError(Thread* thread,
 
 MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
     const Error& result) {
-  // Notify the debugger about specific unhandled exceptions which are withheld
-  // when being thrown.
-  if (result.IsUnhandledException()) {
-    const UnhandledException& error = UnhandledException::Cast(result);
-    RawInstance* exception = error.exception();
-    if ((exception == I->object_store()->out_of_memory()) ||
-        (exception == I->object_store()->stack_overflow())) {
-      // We didn't notify the debugger when the stack was full. Do it now.
-      if (FLAG_support_debugger) {
-        I->debugger()->SignalExceptionThrown(Instance::Handle(exception));
-      }
-    }
-  }
-
   // Generate the error and stacktrace strings for the error message.
   String& exc_str = String::Handle(T->zone());
   String& stacktrace_str = String::Handle(T->zone());
@@ -703,6 +689,21 @@ MessageHandler::MessageStatus IsolateMessageHandler::ProcessUnhandledException(
         T->clear_sticky_error();
       } else {
         T->set_sticky_error(result);
+      }
+      // Notify the debugger about specific unhandled exceptions which are
+      // withheld when being thrown. Do this after setting the sticky error
+      // so the isolate has an error set when paused with the unhandled
+      // exception.
+      if (result.IsUnhandledException()) {
+        const UnhandledException& error = UnhandledException::Cast(result);
+        RawInstance* exception = error.exception();
+        if ((exception == I->object_store()->out_of_memory()) ||
+            (exception == I->object_store()->stack_overflow())) {
+          // We didn't notify the debugger when the stack was full. Do it now.
+          if (FLAG_support_debugger) {
+            I->debugger()->SignalExceptionThrown(Instance::Handle(exception));
+          }
+        }
       }
       return kError;
     }

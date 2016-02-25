@@ -389,6 +389,9 @@ abstract class HeapObject extends ServiceObject {
       clazz = map['class'];
     }
 
+    // Load the full class object.
+    clazz?.load();
+
     if (mapIsRef) {
       return;
     }
@@ -2041,6 +2044,10 @@ class Library extends HeapObject {
   bool get canCache => true;
   bool get immutable => false;
 
+  bool isDart(String libraryName) {
+    return uri == 'dart:$libraryName';
+  }
+
   Library._empty(ServiceObjectOwner owner) : super._empty(owner);
 
   void _update(ObservableMap map, bool mapIsRef) {
@@ -2325,6 +2332,25 @@ class Instance extends HeapObject {
   bool get isWeakProperty => kind == 'WeakProperty';
   bool get isClosure => kind == 'Closure';
   bool get isStackTrace => kind == 'StackTrace';
+  bool get isStackOverflowError {
+    if (clazz == null) {
+      return false;
+    }
+    if (clazz.library == null) {
+      return false;
+    }
+    return (clazz.name == 'StackOverflowError') && clazz.library.isDart('core');
+  }
+
+  bool get isOutOfMemoryError {
+    if (clazz == null) {
+      return false;
+    }
+    if (clazz.library == null) {
+      return false;
+    }
+    return (clazz.name == 'OutOfMemoryError') && clazz.library.isDart('core');
+  }
 
   // TODO(turnidge): Is this properly backwards compatible when new
   // instance kinds are added?

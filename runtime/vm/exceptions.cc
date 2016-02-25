@@ -64,7 +64,8 @@ class PreallocatedStacktraceBuilder : public StacktraceBuilder {
  public:
   explicit PreallocatedStacktraceBuilder(const Instance& stacktrace)
   : stacktrace_(Stacktrace::Cast(stacktrace)),
-        cur_index_(0) {
+        cur_index_(0),
+        dropped_frames_(0) {
     ASSERT(stacktrace_.raw() ==
            Isolate::Current()->object_store()->preallocated_stack_trace());
   }
@@ -77,6 +78,7 @@ class PreallocatedStacktraceBuilder : public StacktraceBuilder {
 
   const Stacktrace& stacktrace_;
   intptr_t cur_index_;
+  intptr_t dropped_frames_;
 
   DISALLOW_COPY_AND_ASSIGN(PreallocatedStacktraceBuilder);
 };
@@ -90,11 +92,18 @@ void PreallocatedStacktraceBuilder::AddFrame(const Code& code,
     Smi& frame_offset = Smi::Handle();
     intptr_t start = Stacktrace::kPreallocatedStackdepth - (kNumTopframes - 1);
     intptr_t null_slot = start - 2;
+    // We are going to drop one frame.
+    dropped_frames_++;
     // Add an empty slot to indicate the overflow so that the toString
     // method can account for the overflow.
     if (stacktrace_.FunctionAtFrame(null_slot) != Function::null()) {
       stacktrace_.SetCodeAtFrame(null_slot, frame_code);
+      // We drop an extra frame here too.
+      dropped_frames_++;
     }
+    // Encode the number of dropped frames into the pc offset.
+    frame_offset ^= Smi::New(dropped_frames_);
+    stacktrace_.SetPcOffsetAtFrame(null_slot, frame_offset);
     // Move frames one slot down so that we can accomodate the new frame.
     for (intptr_t i = start; i < Stacktrace::kPreallocatedStackdepth; i++) {
       intptr_t prev = (i - 1);

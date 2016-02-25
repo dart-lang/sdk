@@ -1492,7 +1492,7 @@ class ObservatoryDebugger extends Debugger {
     warnOutOfDate();
   }
 
-  void _reportIsolateError(Isolate isolate) {
+  void _reportIsolateError(Isolate isolate, String eventKind) {
     if (isolate == null) {
       return;
     }
@@ -1501,14 +1501,26 @@ class ObservatoryDebugger extends Debugger {
       return;
     }
     console.newline();
-    console.printBold('Isolate exited due to an unhandled exception:');
+    if (eventKind == ServiceEvent.kPauseException) {
+      console.printBold('Isolate will exit due to an unhandled exception:');
+    } else {
+      console.printBold('Isolate has exited due to an unhandled exception:');
+    }
     console.print(error.message);
     console.newline();
-    console.printBold("Type 'set break-on-exception Unhandled' to pause the"
-                      " isolate when an unhandled exception occurs.");
-    console.newline();
-    console.printBold("You can make this the default by running with "
-                      "--pause-isolates-on-unhandled-exceptions");
+    if (eventKind == ServiceEvent.kPauseException &&
+        (error.exception.isStackOverflowError ||
+         error.exception.isOutOfMemoryError)) {
+      console.printBold(
+          'When an unhandled stack overflow or OOM exception occurs, the VM '
+          'has run out of memory and cannot keep the stack alive while '
+          'paused.');
+    } else {
+      console.printBold("Type 'set break-on-exception Unhandled' to pause the"
+                        " isolate when an unhandled exception occurs.");
+      console.printBold("You can make this the default by running with "
+                        "--pause-isolates-on-unhandled-exceptions");
+    }
   }
 
   void _reportPause(ServiceEvent event) {
@@ -1520,7 +1532,12 @@ class ObservatoryDebugger extends Debugger {
       console.print(
           "Paused at isolate exit "
           "(type 'continue' or [F7] to exit the isolate')");
-      _reportIsolateError(isolate);
+      _reportIsolateError(isolate, event.kind);
+    } else if (event.kind == ServiceEvent.kPauseException) {
+      console.print(
+          "Paused at an unhandled exception "
+          "(type 'continue' or [F7] to exit the isolate')");
+      _reportIsolateError(isolate, event.kind);
     } else if (stack['frames'].length > 0) {
       Frame frame = stack['frames'][0];
       var script = frame.location.script;

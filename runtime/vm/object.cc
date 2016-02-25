@@ -21088,7 +21088,7 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
   for (intptr_t i = 0; (i < Length()) && (*frame_index < max_frames); i++) {
     function = FunctionAtFrame(i);
     if (function.IsNull()) {
-      // Check if null function object indicates a gap in a StackOverflow or
+      // Check for a null function, which indicates a gap in a StackOverflow or
       // OutOfMemory trace.
       if ((i < (Length() - 1)) &&
           (FunctionAtFrame(i + 1) != Function::null())) {
@@ -21098,6 +21098,9 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
         OS::SNPrint(chars, truncated_len, "%s", kTruncated);
         frame_strings.Add(chars);
         total_len += truncated_len;
+        ASSERT(PcOffsetAtFrame(i) != Smi::null());
+        // To account for gap frames.
+        (*frame_index) += Smi::Value(PcOffsetAtFrame(i));
       }
     } else {
       code = CodeAtFrame(i);
