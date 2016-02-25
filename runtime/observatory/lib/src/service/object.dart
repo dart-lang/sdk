@@ -391,7 +391,7 @@ abstract class HeapObject extends ServiceObject {
 
     // Load the full class object if the isolate is runnable.
     if (clazz != null) {
-      if (clazz.owner.runnable) {
+      if (clazz.isolate.runnable) {
         clazz.load();
       }
     }
