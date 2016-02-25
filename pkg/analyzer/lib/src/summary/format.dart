@@ -669,7 +669,7 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
 
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
-    return fbBuilder.finish(finish(fbBuilder));
+    return fbBuilder.finish(finish(fbBuilder), "LLib");
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -1226,7 +1226,7 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
 
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
-    return fbBuilder.finish(finish(fbBuilder));
+    return fbBuilder.finish(finish(fbBuilder), "PBdl");
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -1448,7 +1448,7 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
 
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
-    return fbBuilder.finish(finish(fbBuilder));
+    return fbBuilder.finish(finish(fbBuilder), "Indx");
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -5439,7 +5439,7 @@ class UnlinkedPublicNamespaceBuilder extends Object with _UnlinkedPublicNamespac
 
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
-    return fbBuilder.finish(finish(fbBuilder));
+    return fbBuilder.finish(finish(fbBuilder), "UPNS");
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -6252,7 +6252,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
 
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
-    return fbBuilder.finish(finish(fbBuilder));
+    return fbBuilder.finish(finish(fbBuilder), "UUnt");
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {

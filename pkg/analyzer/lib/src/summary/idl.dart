@@ -42,7 +42,7 @@
 library analyzer.tool.summary.idl;
 
 import 'base.dart' as base;
-import 'base.dart' show Id;
+import 'base.dart' show Id, TopLevel;
 import 'format.dart' as generated;
 
 /**
@@ -51,12 +51,6 @@ import 'format.dart' as generated;
  * static analysis and runtime behavior of the library are unaffected.
  */
 const informative = null;
-
-/**
- * Annotation describing a class which can be the top level object in an
- * encoded summary.
- */
-const topLevel = null;
 
 /**
  * Summary information about a reference to a an entity such as a type, top
@@ -237,7 +231,7 @@ abstract class LinkedExportName extends base.SummaryClass {
 /**
  * Linked summary of a library.
  */
-@topLevel
+@TopLevel('LLib')
 abstract class LinkedLibrary extends base.SummaryClass {
   factory LinkedLibrary.fromBuffer(List<int> buffer) =>
       generated.readLinkedLibrary(buffer);
@@ -396,7 +390,7 @@ abstract class LinkedUnit extends base.SummaryClass {
 /**
  * Summary information about a package.
  */
-@topLevel
+@TopLevel('PBdl')
 abstract class PackageBundle extends base.SummaryClass {
   factory PackageBundle.fromBuffer(List<int> buffer) =>
       generated.readPackageBundle(buffer);
@@ -437,7 +431,7 @@ abstract class PackageBundle extends base.SummaryClass {
 /**
  * Index information about a package.
  */
-@topLevel
+@TopLevel('Indx')
 abstract class PackageIndex extends base.SummaryClass {
   factory PackageIndex.fromBuffer(List<int> buffer) =>
       generated.readPackageIndex(buffer);
@@ -1786,7 +1780,7 @@ abstract class UnlinkedPublicName extends base.SummaryClass {
  * library's public namespace.  This is the subset of [UnlinkedUnit] that is
  * required from dependent libraries in order to perform prelinking.
  */
-@topLevel
+@TopLevel('UPNS')
 abstract class UnlinkedPublicNamespace extends base.SummaryClass {
   factory UnlinkedPublicNamespace.fromBuffer(List<int> buffer) =>
       generated.readUnlinkedPublicNamespace(buffer);
@@ -1922,7 +1916,7 @@ abstract class UnlinkedTypeParam extends base.SummaryClass {
 /**
  * Unlinked summary information about a compilation unit ("part file").
  */
-@topLevel
+@TopLevel('UUnt')
 abstract class UnlinkedUnit extends base.SummaryClass {
   factory UnlinkedUnit.fromBuffer(List<int> buffer) =>
       generated.readUnlinkedUnit(buffer);

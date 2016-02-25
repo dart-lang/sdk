@@ -246,12 +246,20 @@ class Builder {
   /**
    * Finish off the creation of the buffer.  The given [offset] is used as the
    * root object offset, and usually references directly or indirectly every
-   * written object.
+   * written object.  If [fileIdentifier] is specified (and not `null`), it is
+   * interpreted as a 4-byte Latin-1 encoded string that should be placed at
+   * bytes 4-7 of the file.
    */
-  Uint8List finish(Offset offset) {
-    _prepare(max(4, _maxAlign), 1);
+  Uint8List finish(Offset offset, [String fileIdentifier]) {
+    _prepare(max(4, _maxAlign), fileIdentifier == null ? 1 : 2);
     int alignedTail = _tail + ((-_tail) % _maxAlign);
     _setUint32AtTail(_buf, alignedTail, alignedTail - offset._tail);
+    if (fileIdentifier != null) {
+      for (int i = 0; i < 4; i++) {
+        _setUint8AtTail(
+            _buf, alignedTail - 4 - i, fileIdentifier.codeUnitAt(i));
+      }
+    }
     return _buf.buffer.asUint8List(_buf.lengthInBytes - alignedTail);
   }
 

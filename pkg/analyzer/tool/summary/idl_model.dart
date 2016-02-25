@@ -23,7 +23,14 @@ class ClassDeclaration extends Declaration {
    */
   final bool isTopLevel;
 
-  ClassDeclaration(String documentation, String name, this.isTopLevel)
+  /**
+   * If [isTopLevel] is `true` and a file identifier was specified for this
+   * class, the file identifier string.  Otheswise `null`.
+   */
+  final String fileIdentifier;
+
+  ClassDeclaration(
+      String documentation, String name, this.isTopLevel, this.fileIdentifier)
       : super(documentation, name);
 }
 

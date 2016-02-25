@@ -86,6 +86,17 @@ class _CodeGenerator {
    */
   void checkIdl() {
     _idl.classes.forEach((String name, idlModel.ClassDeclaration cls) {
+      if (cls.fileIdentifier != null) {
+        if (cls.fileIdentifier.length != 4) {
+          throw new Exception('$name: file identifier must be 4 characters');
+        }
+        for (int i = 0; i < cls.fileIdentifier.length; i++) {
+          if (cls.fileIdentifier.codeUnitAt(i) >= 256) {
+            throw new Exception(
+                '$name: file identifier must be encodable as Latin-1');
+          }
+        }
+      }
       Map<int, String> idsUsed = <int, String>{};
       for (idlModel.FieldDeclaration field in cls.fields) {
         String fieldName = field.name;
@@ -190,25 +201,49 @@ class _CodeGenerator {
     for (CompilationUnitMember decl in idlParsed.declarations) {
       if (decl is ClassDeclaration) {
         bool isTopLevel = false;
+        String fileIdentifier;
+        String clsName = decl.name.name;
         for (Annotation annotation in decl.metadata) {
-          if (annotation.arguments == null &&
-              annotation.name.name == 'topLevel') {
+          if (annotation.arguments != null &&
+              annotation.name.name == 'TopLevel' &&
+              annotation.constructorName == null) {
             isTopLevel = true;
+            if (annotation.arguments == null) {
+              throw new Exception(
+                  'Class `$clsName`: TopLevel requires parenthesis');
+            }
+            if (annotation.constructorName != null) {
+              throw new Exception(
+                  "Class `$clsName`: TopLevel doesn't have named constructors");
+            }
+            if (annotation.arguments.arguments.length == 1) {
+              Expression arg = annotation.arguments.arguments[0];
+              if (arg is StringLiteral) {
+                fileIdentifier = arg.stringValue;
+              } else {
+                throw new Exception(
+                    'Class `$clsName`: TopLevel argument must be a string'
+                    ' literal');
+              }
+            } else if (annotation.arguments.arguments.length != 0) {
+              throw new Exception(
+                  'Class `$clsName`: TopLevel requires 0 or 1 arguments');
+            }
           }
         }
         String doc = _getNodeDoc(lineInfo, decl);
-        idlModel.ClassDeclaration cls =
-            new idlModel.ClassDeclaration(doc, decl.name.name, isTopLevel);
-        _idl.classes[cls.name] = cls;
+        idlModel.ClassDeclaration cls = new idlModel.ClassDeclaration(
+            doc, clsName, isTopLevel, fileIdentifier);
+        _idl.classes[clsName] = cls;
         String expectedBase = 'base.SummaryClass';
         if (decl.extendsClause == null ||
             decl.extendsClause.superclass.name.name != expectedBase) {
           throw new Exception(
-              'Class `${cls.name}` needs to extend `$expectedBase`');
+              'Class `$clsName` needs to extend `$expectedBase`');
         }
         for (ClassMember classMember in decl.members) {
           if (classMember is MethodDeclaration && classMember.isGetter) {
-            String desc = '${cls.name}.${classMember.name.name}';
+            String desc = '$clsName.${classMember.name.name}';
             TypeName type = classMember.returnType;
             if (type == null) {
               throw new Exception('Class member needs a type: $desc');
@@ -434,7 +469,10 @@ class _CodeGenerator {
         out('List<int> toBuffer() {');
         indent(() {
           out('fb.Builder fbBuilder = new fb.Builder();');
-          out('return fbBuilder.finish(finish(fbBuilder));');
+          String fileId = cls.fileIdentifier == null
+              ? ''
+              : ', ${quoted(cls.fileIdentifier)}';
+          out('return fbBuilder.finish(finish(fbBuilder)$fileId);');
         });
         out('}');
       }

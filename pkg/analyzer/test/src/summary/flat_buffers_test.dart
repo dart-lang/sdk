@@ -55,6 +55,34 @@ class BuilderTest {
     }, throwsStateError);
   }
 
+  void test_file_identifier() {
+    Uint8List byteList;
+    {
+      Builder builder = new Builder(initialSize: 0);
+      builder.startTable();
+      Offset offset = builder.endTable();
+      byteList = builder.finish(offset, 'Az~ÿ');
+    }
+    // Convert byteList to a ByteData so that we can read data from it.
+    ByteData byteData = byteList.buffer.asByteData(byteList.offsetInBytes);
+    // First 4 bytes are an offset to the table data.
+    int tableDataLoc = byteData.getUint32(0, Endianness.LITTLE_ENDIAN);
+    // Next 4 bytes are the file identifier.
+    expect(byteData.getUint8(4), 65); // 'a'
+    expect(byteData.getUint8(5), 122); // 'z'
+    expect(byteData.getUint8(6), 126); // '~'
+    expect(byteData.getUint8(7), 255); // 'ÿ'
+    // First 4 bytes of the table data are a backwards offset to the vtable.
+    int vTableLoc = tableDataLoc -
+        byteData.getInt32(tableDataLoc, Endianness.LITTLE_ENDIAN);
+    // First 2 bytes of the vtable are the size of the vtable in bytes, which
+    // should be 4.
+    expect(byteData.getUint16(vTableLoc, Endianness.LITTLE_ENDIAN), 4);
+    // Next 2 bytes are the size of the object in bytes (including the vtable
+    // pointer), which should be 4.
+    expect(byteData.getUint16(vTableLoc + 2, Endianness.LITTLE_ENDIAN), 4);
+  }
+
   void test_low() {
     Builder builder = new Builder(initialSize: 0);
     builder.lowReset();
