@@ -1591,7 +1591,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
   Element element;
 
   /**
-   * The compliation unit in which this annotation appears.
+   * The compilation unit in which this annotation appears.
    */
   final CompilationUnitElementImpl compilationUnit;
 
@@ -1622,65 +1622,33 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   @override
   bool get isDeprecated {
-    if (element != null) {
-      LibraryElement library = element.library;
-      if (library != null && library.isDartCore) {
-        if (element is ConstructorElement) {
-          ConstructorElement constructorElement = element as ConstructorElement;
-          if (constructorElement.enclosingElement.name ==
-              _DEPRECATED_CLASS_NAME) {
-            return true;
-          }
-        } else if (element is PropertyAccessorElement &&
-            element.name == _DEPRECATED_VARIABLE_NAME) {
-          return true;
-        }
+    if (element?.library?.isDartCore == true) {
+      if (element is ConstructorElement) {
+        return element.enclosingElement.name == _DEPRECATED_CLASS_NAME;
+      } else if (element is PropertyAccessorElement) {
+        return element.name == _DEPRECATED_VARIABLE_NAME;
       }
     }
     return false;
   }
 
   @override
-  bool get isOverride {
-    if (element != null) {
-      LibraryElement library = element.library;
-      if (library != null && library.isDartCore) {
-        if (element is PropertyAccessorElement &&
-            element.name == _OVERRIDE_VARIABLE_NAME) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
+  bool get isOverride =>
+      element is PropertyAccessorElement &&
+      element.name == _OVERRIDE_VARIABLE_NAME &&
+      element.library?.isDartCore == true;
 
   @override
-  bool get isProtected {
-    if (element != null) {
-      LibraryElement library = element.library;
-      if (library != null && library.name == _META_LIB_NAME) {
-        if (element is PropertyAccessorElement &&
-            element.name == _PROTECTED_VARIABLE_NAME) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
+  bool get isProtected =>
+      element is PropertyAccessorElement &&
+      element.name == _PROTECTED_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
 
   @override
-  bool get isProxy {
-    if (element != null) {
-      LibraryElement library = element.library;
-      if (library != null && library.isDartCore) {
-        if (element is PropertyAccessorElement &&
-            element.name == PROXY_VARIABLE_NAME) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
+  bool get isProxy =>
+      element is PropertyAccessorElement &&
+      element.name == PROXY_VARIABLE_NAME &&
+      element.library?.isDartCore == true;
 
   /**
    * Get the library containing this annotation.
