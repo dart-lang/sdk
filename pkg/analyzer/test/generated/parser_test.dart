@@ -4016,6 +4016,33 @@ class C {
     expect(metadata[0].name.name, "override");
   }
 
+  void test_missingSemicolon_varialeDeclarationList() {
+    void verify(CompilationUnitMember member, String expectedTypeName,
+        String expectedName, String expectedSemicolon) {
+      expect(member, new isInstanceOf<TopLevelVariableDeclaration>());
+      TopLevelVariableDeclaration declaration = member;
+      VariableDeclarationList variableList = declaration.variables;
+      expect(variableList, isNotNull);
+      NodeList<VariableDeclaration> variables = variableList.variables;
+      expect(variables, hasLength(1));
+      VariableDeclaration variable = variables[0];
+      expect(variableList.type.toString(), expectedTypeName);
+      expect(variable.name.name, expectedName);
+      expect(declaration.semicolon.lexeme, expectedSemicolon);
+    }
+
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(
+        'String n x = "";', [
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE
+    ]);
+    expect(unit, isNotNull);
+    NodeList<CompilationUnitMember> declarations = unit.declarations;
+    expect(declarations, hasLength(2));
+    verify(declarations[0], 'String', 'n', '');
+    verify(declarations[1], 'null', 'x', ';');
+  }
+
   void test_multiplicativeExpression_missing_LHS() {
     BinaryExpression expression =
         parseExpression("* y", [ParserErrorCode.MISSING_IDENTIFIER]);

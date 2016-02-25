@@ -125,8 +125,6 @@ Map<String, MethodTrampoline> methodTable_Parser = <String, MethodTrampoline>{
   'expectGt_0': new MethodTrampoline(0, (Parser target) => target._expectGt()),
   'expectKeyword_1': new MethodTrampoline(
       1, (Parser target, arg0) => target._expectKeyword(arg0)),
-  'expectSemicolon_0':
-      new MethodTrampoline(0, (Parser target) => target._expectSemicolon()),
   'findRange_2': new MethodTrampoline(
       2, (Parser target, arg0, arg1) => target._findRange(arg0, arg1)),
   'getCodeBlockRanges_1': new MethodTrampoline(
@@ -2510,7 +2508,7 @@ class Parser {
             commentAndMetadata.metadata,
             null,
             new VariableDeclarationList(null, null, keyword, null, variables),
-            _expectSemicolon());
+            _expect(TokenType.SEMICOLON));
       }
       _reportErrorForToken(
           ParserErrorCode.EXPECTED_CLASS_MEMBER, _currentToken);
@@ -3797,10 +3795,9 @@ class Parser {
       }
       _reportErrorForToken(ParserErrorCode.EXPECTED_TOKEN,
           _currentToken.previous, [type.lexeme]);
-    } else {
-      _reportErrorForCurrentToken(
-          ParserErrorCode.EXPECTED_TOKEN, [type.lexeme]);
+      return _createSyntheticToken(TokenType.SEMICOLON);
     }
+    _reportErrorForCurrentToken(ParserErrorCode.EXPECTED_TOKEN, [type.lexeme]);
     return _currentToken;
   }
 
@@ -3831,21 +3828,6 @@ class Parser {
     _reportErrorForCurrentToken(
         ParserErrorCode.EXPECTED_TOKEN, [keyword.syntax]);
     return _currentToken;
-  }
-
-  /**
-   * If the current token is a semicolon, return it after advancing to the next
-   * token. Otherwise report an error and create a synthetic semicolon.
-   */
-  Token _expectSemicolon() {
-    // TODO(scheglov) consider pushing this behavior into [_expect]
-    if (_matches(TokenType.SEMICOLON)) {
-      return getAndAdvance();
-    } else {
-      _reportErrorForToken(
-          ParserErrorCode.EXPECTED_TOKEN, _currentToken.previous, [";"]);
-      return _createSyntheticToken(TokenType.SEMICOLON);
-    }
   }
 
   /**
@@ -5241,7 +5223,7 @@ class Parser {
             commentAndMetadata.comment,
             commentAndMetadata.metadata,
             new VariableDeclarationList(null, null, keyword, null, variables),
-            _expectSemicolon());
+            _expect(TokenType.SEMICOLON));
       }
       _reportErrorForToken(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken);
       return null;
@@ -5817,7 +5799,7 @@ class Parser {
     StringLiteral libraryUri = _parseUri();
     List<Configuration> configurations = _parseConfigurations();
     List<Combinator> combinators = _parseCombinators();
-    Token semicolon = _expectSemicolon();
+    Token semicolon = _expect(TokenType.SEMICOLON);
     return new ExportDirective(
         commentAndMetadata.comment,
         commentAndMetadata.metadata,
@@ -6040,12 +6022,12 @@ class Parser {
         _reportErrorForToken(
             ParserErrorCode.INVALID_AWAIT_IN_FOR, awaitKeyword);
       }
-      Token leftSeparator = _expectSemicolon();
+      Token leftSeparator = _expect(TokenType.SEMICOLON);
       Expression condition = null;
       if (!_matches(TokenType.SEMICOLON)) {
         condition = parseExpression2();
       }
-      Token rightSeparator = _expectSemicolon();
+      Token rightSeparator = _expect(TokenType.SEMICOLON);
       List<Expression> updaters = null;
       if (!_matches(TokenType.CLOSE_PAREN)) {
         updaters = _parseExpressionList();
@@ -6520,7 +6502,7 @@ class Parser {
       }
     }
     List<Combinator> combinators = _parseCombinators();
-    Token semicolon = _expectSemicolon();
+    Token semicolon = _expect(TokenType.SEMICOLON);
     return new ImportDirective(
         commentAndMetadata.comment,
         commentAndMetadata.metadata,
@@ -7154,7 +7136,8 @@ class Parser {
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_STATEMENT);
       return new EmptyStatement(_createSyntheticToken(TokenType.SEMICOLON));
     } else {
-      return new ExpressionStatement(parseExpression2(), _expectSemicolon());
+      return new ExpressionStatement(
+          parseExpression2(), _expect(TokenType.SEMICOLON));
     }
   }
 
