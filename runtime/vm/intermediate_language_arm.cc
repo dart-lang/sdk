@@ -25,12 +25,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, allow_absolute_addresses);
-DECLARE_FLAG(bool, emit_edge_counters);
-DECLARE_FLAG(int, optimization_counter_threshold);
-DECLARE_FLAG(bool, precompilation);
-DECLARE_FLAG(bool, use_osr);
-
 // Generic summary for call instructions that have all arguments pushed
 // on the stack and return the result in a fixed register R0.
 LocationSummary* Instruction::MakeCallSummary(Zone* zone) {
@@ -2378,7 +2372,7 @@ void CreateArrayInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->in(kLengthPos).reg() == kLengthReg);
 
   if (compiler->is_optimizing() &&
-      !FLAG_precompilation &&
+      !FLAG_precompiled_mode &&
       num_elements()->BindsToConstant() &&
       num_elements()->BoundConstant().IsSmi()) {
     const intptr_t length = Smi::Cast(num_elements()->BoundConstant()).Value();

@@ -19,8 +19,6 @@
 namespace dart {
 
 DECLARE_FLAG(bool, trace_irregexp);
-DEFINE_FLAG(bool, interpret_irregexp, false,
-            "Use irregexp bytecode interpreter");
 
 // Default to generating optimized regexp code.
 static const bool kRegexpOptimization = true;

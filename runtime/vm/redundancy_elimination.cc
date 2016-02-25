@@ -19,9 +19,6 @@ DEFINE_FLAG(bool, load_cse, true, "Use redundant load elimination.");
 DEFINE_FLAG(bool, trace_load_optimization, false,
     "Print live sets for load optimization pass.");
 
-DECLARE_FLAG(bool, fields_may_be_reset);
-DECLARE_FLAG(bool, precompilation);
-
 // Quick access to the current zone.
 #define Z (zone())
 
@@ -1430,7 +1427,7 @@ void LICM::TrySpecializeSmiPhi(PhiInstr* phi,
 
 void LICM::OptimisticallySpecializeSmiPhis() {
   if (!flow_graph()->function().allows_hoisting_check_class() ||
-      FLAG_precompilation) {
+      FLAG_precompiled_mode) {
     // Do not hoist any: Either deoptimized on a hoisted check,
     // or compiling precompiled code where we can't do optimistic
     // hoisting of checks.

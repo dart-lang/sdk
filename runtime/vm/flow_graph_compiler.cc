@@ -30,10 +30,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, allow_absolute_addresses, true,
-    "Allow embedding absolute addresses in generated code.");
-DEFINE_FLAG(bool, always_megamorphic_calls, false,
-    "Instance call always as megamorphic.");
 DEFINE_FLAG(bool, enable_simd_inline, true,
     "Enable inlining of SIMD related method calls.");
 DEFINE_FLAG(int, min_optimization_counter_threshold, 5000,
@@ -45,28 +41,14 @@ DEFINE_FLAG(bool, trace_inlining_intervals, false,
     "Inlining interval diagnostics");
 DEFINE_FLAG(bool, use_megamorphic_stub, true, "Out of line megamorphic lookup");
 
-DECLARE_FLAG(bool, background_compilation);
 DECLARE_FLAG(bool, code_comments);
-DECLARE_FLAG(bool, collect_dynamic_function_names);
-DECLARE_FLAG(bool, deoptimize_alot);
-DECLARE_FLAG(int, deoptimize_every);
 DECLARE_FLAG(charp, deoptimize_filter);
-DECLARE_FLAG(bool, emit_edge_counters);
-DECLARE_FLAG(bool, fields_may_be_reset);
-DECLARE_FLAG(bool, ic_range_profiling);
 DECLARE_FLAG(bool, intrinsify);
-DECLARE_FLAG(bool, load_deferred_eagerly);
-DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, propagate_ic_data);
 DECLARE_FLAG(int, regexp_optimization_counter_threshold);
 DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(int, stacktrace_every);
 DECLARE_FLAG(charp, stacktrace_filter);
-DECLARE_FLAG(bool, use_field_guards);
-DECLARE_FLAG(bool, use_osr);
-DECLARE_FLAG(bool, print_stop_message);
-DECLARE_FLAG(bool, interpret_irregexp);
-DECLARE_FLAG(bool, link_natives_lazily);
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(int, inlining_hotness);
 DECLARE_FLAG(int, inlining_size_threshold);
@@ -77,39 +59,19 @@ DECLARE_FLAG(int, inlining_caller_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_max_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_min_size_threshold);
 
-bool FLAG_precompilation = false;
+#if !defined(DART_PRECOMPILED_RUNTIME)
 static void PrecompilationModeHandler(bool value) {
   if (value) {
 #if defined(TARGET_ARCH_IA32)
     FATAL("Precompilation not supported on IA32");
 #endif
-    FLAG_precompilation = true;
 
-    FLAG_always_megamorphic_calls = true;
-    FLAG_optimization_counter_threshold = -1;
-    FLAG_use_field_guards = false;
-    FLAG_use_osr = false;
-    FLAG_emit_edge_counters = false;
-#ifndef PRODUCT
+#if defined(PRODUCT)
+    FATAL("dart_noopt not supported in product mode");
+#else
     FLAG_support_debugger = false;
-#endif  // !PRODUCT
-    FLAG_ic_range_profiling = false;
-    FLAG_collect_code = false;
-    FLAG_load_deferred_eagerly = true;
-    FLAG_deoptimize_alot = false;  // Used in some tests.
-    FLAG_deoptimize_every = 0;     // Used in some tests.
-    // Calling the PrintStopMessage stub is not supported in precompiled code
-    // since it is done at places where no pool pointer is loaded.
-    FLAG_print_stop_message = false;
 
-    FLAG_interpret_irregexp = true;
-#ifndef PRODUCT
-    FLAG_enable_mirrors = false;
-#endif  // !PRODUCT
-    FLAG_link_natives_lazily = true;
-    FLAG_fields_may_be_reset = true;
-    FLAG_allow_absolute_addresses = false;
-
+    // Flags affecting compilation only:
     // There is no counter feedback in precompilation, so ignore the counter
     // when making inlining decisions.
     FLAG_inlining_hotness = 0;
@@ -120,38 +82,65 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_inlining_callee_size_threshold = 20;
     FLAG_inlining_depth_threshold = 2;
     FLAG_inlining_caller_size_threshold = 1000;
-
     FLAG_inlining_constant_arguments_max_size_threshold = 100;
     FLAG_inlining_constant_arguments_min_size_threshold = 30;
 
-    // Background compilation relies on two-stage compilation pipeline,
-    // while precompilation has only one.
+    FLAG_allow_absolute_addresses = false;
+    FLAG_always_megamorphic_calls = true;
     FLAG_background_compilation = false;
+    FLAG_collect_code = false;
     FLAG_collect_dynamic_function_names = true;
-#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(PRODUCT)
+    FLAG_deoptimize_alot = false;  // Used in some tests.
+    FLAG_deoptimize_every = 0;     // Used in some tests.
+    FLAG_emit_edge_counters = false;
+    FLAG_enable_mirrors = false;
+    FLAG_fields_may_be_reset = true;
+    FLAG_ic_range_profiling = false;
+    FLAG_interpret_irregexp = true;
     FLAG_lazy_dispatchers = false;
+    FLAG_link_natives_lazily = true;
+    FLAG_load_deferred_eagerly = true;
+    FLAG_optimization_counter_threshold = -1;
     FLAG_polymorphic_with_deopt = false;
-    // Precompilation finalizes all classes and thus allows CHA optimizations.
-    // Do not require CHA triggered deoptimization.
+    FLAG_precompiled_mode = true;
+    FLAG_print_stop_message = false;
     FLAG_use_cha_deopt = false;
-#elif defined(DART_PRECOMPILED_RUNTIME)
-    // Precompiled product and release mode.
-    COMPILE_ASSERT(!FLAG_lazy_dispatchers);
-    COMPILE_ASSERT(!FLAG_polymorphic_with_deopt);
-    COMPILE_ASSERT(!FLAG_use_cha_deopt);
-#elif defined(PRODUCT)
-    // Jit product and release mode.
-    COMPILE_ASSERT(FLAG_lazy_dispatchers);
-    COMPILE_ASSERT(FLAG_polymorphic_with_deopt);
-    COMPILE_ASSERT(FLAG_use_cha_deopt);
-#endif
+    FLAG_use_field_guards = false;
+    FLAG_use_osr = false;
+#endif  // PRODUCT
   }
 }
-
 
 DEFINE_FLAG_HANDLER(PrecompilationModeHandler,
                     precompilation,
                     "Precompilation mode");
+
+#else  // DART_PRECOMPILED_RUNTIME
+
+COMPILE_ASSERT(!FLAG_allow_absolute_addresses);
+COMPILE_ASSERT(!FLAG_background_compilation);
+COMPILE_ASSERT(!FLAG_collect_code);
+COMPILE_ASSERT(!FLAG_deoptimize_alot);  // Used in some tests.
+COMPILE_ASSERT(!FLAG_emit_edge_counters);
+COMPILE_ASSERT(!FLAG_enable_mirrors);
+COMPILE_ASSERT(!FLAG_ic_range_profiling);
+COMPILE_ASSERT(!FLAG_lazy_dispatchers);
+COMPILE_ASSERT(!FLAG_polymorphic_with_deopt);
+COMPILE_ASSERT(!FLAG_print_stop_message);
+COMPILE_ASSERT(!FLAG_use_cha_deopt);
+COMPILE_ASSERT(!FLAG_use_field_guards);
+COMPILE_ASSERT(!FLAG_use_osr);
+COMPILE_ASSERT(FLAG_always_megamorphic_calls);
+COMPILE_ASSERT(FLAG_collect_dynamic_function_names);
+COMPILE_ASSERT(FLAG_deoptimize_every == 0);  // Used in some tests.
+COMPILE_ASSERT(FLAG_fields_may_be_reset);
+COMPILE_ASSERT(FLAG_interpret_irregexp);
+COMPILE_ASSERT(FLAG_link_natives_lazily);
+COMPILE_ASSERT(FLAG_load_deferred_eagerly);
+COMPILE_ASSERT(FLAG_optimization_counter_threshold == -1);
+COMPILE_ASSERT(FLAG_precompiled_mode);
+
+#endif  // DART_PRECOMPILED_RUNTIME
 
 
 // Assign locations to incoming arguments, i.e., values pushed above spill slots
@@ -942,8 +931,8 @@ Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
     return &intrinsic_slow_path_label_;
   }
 
-  // No deoptimization allowed when 'FLAG_precompilation' is set.
-  if (FLAG_precompilation) {
+  // No deoptimization allowed when 'FLAG_precompiled_mode' is set.
+  if (FLAG_precompiled_mode) {
     if (FLAG_trace_compiler) {
       THR_Print(
           "Retrying compilation %s, suppressing inlining of deopt_id:%" Pd "\n",
@@ -991,7 +980,7 @@ void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
 
 RawArray* FlowGraphCompiler::CreateDeoptInfo(Assembler* assembler) {
   // No deopt information if we precompile (no deoptimization allowed).
-  if (FLAG_precompilation) {
+  if (FLAG_precompiled_mode) {
     return Array::empty_array().raw();
   }
   // For functions with optional arguments, all incoming arguments are copied
@@ -1148,7 +1137,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
     LocationSummary* locs,
     const ICData& ic_data_in) {
   const ICData& ic_data = ICData::ZoneHandle(ic_data_in.Original());
-  if (FLAG_precompilation) {
+  if (FLAG_precompiled_mode) {
     EmitSwitchableInstanceCall(ic_data, argument_count,
                                deopt_id, token_pos, locs);
     return;

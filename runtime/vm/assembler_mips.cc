@@ -14,14 +14,11 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, allow_absolute_addresses);
 DECLARE_FLAG(bool, check_code_pointer);
 DECLARE_FLAG(bool, inline_alloc);
 #if defined(USING_SIMULATOR)
 DECLARE_FLAG(int, trace_sim_after);
 #endif
-
-DEFINE_FLAG(bool, print_stop_message, false, "Print stop message.");
 
 void Assembler::InitializeMemoryWithBreakpoints(uword data, intptr_t length) {
   ASSERT(Utils::IsAligned(data, 4));

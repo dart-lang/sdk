@@ -29,8 +29,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, precompilation);
-
 // Quick access to the current isolate and zone.
 #define I (isolate())
 #define Z (zone())
@@ -2034,7 +2032,7 @@ bool AotOptimizer::TryInlineFloat32x4Constructor(
     StaticCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
   // Cannot handle unboxed instructions.
-  ASSERT(FLAG_precompilation);
+  ASSERT(FLAG_precompiled_mode);
   return false;
 }
 
@@ -2043,7 +2041,7 @@ bool AotOptimizer::TryInlineFloat64x2Constructor(
     StaticCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
   // Cannot handle unboxed instructions.
-  ASSERT(FLAG_precompilation);
+  ASSERT(FLAG_precompiled_mode);
   return false;
 }
 
@@ -2052,7 +2050,7 @@ bool AotOptimizer::TryInlineInt32x4Constructor(
     StaticCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
   // Cannot handle unboxed instructions.
-  ASSERT(FLAG_precompilation);
+  ASSERT(FLAG_precompiled_mode);
   return false;
 }
 
@@ -2549,7 +2547,7 @@ void AotOptimizer::InstanceCallNoopt(InstanceCallInstr* instr) {
 // Tries to optimize instance call by replacing it with a faster instruction
 // (e.g, binary op, field load, ..).
 void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
-  ASSERT(FLAG_precompilation);
+  ASSERT(FLAG_precompiled_mode);
   InstanceCallNoopt(instr);
 }
 
@@ -2576,7 +2574,7 @@ void AotOptimizer::VisitStaticCall(StaticCallInstr* call) {
       break;
   }
   if (unary_kind != MathUnaryInstr::kIllegal) {
-    ASSERT(FLAG_precompilation);
+    ASSERT(FLAG_precompiled_mode);
     // TODO(srdjan): Adapt MathUnaryInstr to allow tagged inputs as well.
     return;
   }
@@ -2656,7 +2654,7 @@ void AotOptimizer::VisitStaticCall(StaticCallInstr* call) {
     case MethodRecognizer::kMathAcos:
     case MethodRecognizer::kMathAtan:
     case MethodRecognizer::kMathAtan2: {
-      ASSERT(FLAG_precompilation);
+      ASSERT(FLAG_precompiled_mode);
       // No UnboxDouble instructions allowed.
       return;
     }

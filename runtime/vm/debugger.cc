@@ -46,7 +46,6 @@ DEFINE_FLAG(bool, steal_breakpoints, false,
 
 DECLARE_FLAG(bool, trace_isolates);
 DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
-DECLARE_FLAG(bool, precompilation);
 
 
 #ifndef PRODUCT
@@ -1518,7 +1517,7 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
     }
     if (frame->IsDartFrame()) {
       code = frame->LookupDartCode();
-      if (code.is_optimized() && !FLAG_precompilation) {
+      if (code.is_optimized() && !FLAG_precompiled_mode) {
         deopt_frame = DeoptimizeToArray(thread, frame, code);
         for (InlinedFunctionsIterator it(code, frame->pc());
              !it.Done();

@@ -19,8 +19,6 @@ DEFINE_FLAG(bool, remove_redundant_phis, true, "Remove redundant phis.");
 DEFINE_FLAG(bool, trace_constant_propagation, false,
     "Print constant propagation and useless code elimination.");
 
-DECLARE_FLAG(bool, fields_may_be_reset);
-
 // Quick access to the current zone and isolate.
 #define I (isolate())
 #define Z (graph_->zone())

@@ -17,8 +17,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, interpret_irregexp);
-
 // When entering intrinsics code:
 // S4: Arguments descriptor
 // RA: Return address
