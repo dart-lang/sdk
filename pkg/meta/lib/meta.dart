@@ -18,17 +18,31 @@
 /// in the language tour.
 library meta;
 
+/// Used to annotate an instance method `m`. Indicates that every invocation of
+/// a method that overrides `m` must also invoke `m`. In addition, every method
+/// that overrides `m` is implicitly annotated with this same annotation.
+///
+/// Note that private methods with this annotation cannot be validly overridden
+/// outside of the library that defines the annotated method.
+///
+/// Tools, such as the analyzer, can provide feedback if
+/// * the annotation is associated with anything other than an instance method,
+///   or
+/// * a method that overrides a method that has this annotation can return
+///   without invoking the overridden method.
+const _MustCallSuper mustCallSuper = const _MustCallSuper();
+
 /// Used to annotate an instance member (method, getter, setter, operator, or
 /// field) `m` in a class `C`. If the annotation is on a field it applies to the
-/// getter and setter, if appropriate, implied by the field. Indicates that `m`
-/// should only be invoked from instance methods of `C` or classes that extend
-/// or mix in `C`, either directly or indirectly. Additionally indicates that
-/// `m` should only be invoked on `this`, whether explicitly or implicitly.
+/// getter, and setter if appropriate, that are induced by the field. Indicates
+/// that `m` should only be invoked from instance methods of `C` or classes that
+/// extend or mix in `C`, either directly or indirectly. Additionally indicates
+/// that `m` should only be invoked on `this`, whether explicitly or implicitly.
 ///
 /// Tools, such as the analyzer, can provide feedback if
 /// * the annotation is associated with anything other than an instance member,
 ///   or
-/// * an invocation of a member marked as being protected is used outside of an
+/// * an invocation of a member that has this annotation is used outside of an
 ///   instance member defined on a class that extends or mixes in the class in
 ///   which the protected member is defined, or that uses a receiver other than
 ///   `this`.
@@ -45,6 +59,10 @@ const _Protected protected = const _Protected();
 /// * an invocation of a method or function does not include an argument
 ///   corresponding to a named parameter that has this annotation.
 const _Required required = const _Required();
+
+class _MustCallSuper {
+  const _MustCallSuper();
+}
 
 class _Protected {
   const _Protected();
