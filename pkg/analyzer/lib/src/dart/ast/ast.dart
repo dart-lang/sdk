@@ -29,8 +29,8 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
  * the same kind (single line or multi-line), this class doesn't enforce that
  * restriction.
  *
- * > adjacentStrings ::=
- * >     [StringLiteral] [StringLiteral]+
+ *    adjacentStrings ::=
+ *        [StringLiteral] [StringLiteral]+
  */
 class AdjacentStringsImpl extends StringLiteralImpl implements AdjacentStrings {
   /**
@@ -181,11 +181,11 @@ abstract class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
 /**
  * An annotation that can be associated with an AST node.
  *
- * > metadata ::=
- * >     annotation*
- * >
- * > annotation ::=
- * >     '@' [Identifier] ('.' [SimpleIdentifier])? [ArgumentList]?
+ *    metadata ::=
+ *        annotation*
+ *
+ *    annotation ::=
+ *        '@' [Identifier] ('.' [SimpleIdentifier])? [ArgumentList]?
  */
 class AnnotationImpl extends AstNodeImpl implements Annotation {
   /**
@@ -316,12 +316,12 @@ class AnnotationImpl extends AstNodeImpl implements Annotation {
  * A list of arguments in the invocation of an executable element (that is, a
  * function, method, or constructor).
  *
- * > argumentList ::=
- * >     '(' arguments? ')'
- * >
- * > arguments ::=
- * >     [NamedExpression] (',' [NamedExpression])*
- * >   | [Expression] (',' [Expression])* (',' [NamedExpression])*
+ *    argumentList ::=
+ *        '(' arguments? ')'
+ *
+ *    arguments ::=
+ *        [NamedExpression] (',' [NamedExpression])*
+ *      | [Expression] (',' [Expression])* (',' [NamedExpression])*
  */
 class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   /**
@@ -468,8 +468,8 @@ class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
 /**
  * An as expression.
  *
- * > asExpression ::=
- * >     [Expression] 'as' [TypeName]
+ *    asExpression ::=
+ *        [Expression] 'as' [TypeName]
  */
 class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   /**
@@ -537,8 +537,8 @@ class AsExpressionImpl extends ExpressionImpl implements AsExpression {
 /**
  * An assert statement.
  *
- * > assertStatement ::=
- * >     'assert' '(' [Expression] ')' ';'
+ *    assertStatement ::=
+ *        'assert' '(' [Expression] ')' ';'
  */
 class AssertStatementImpl extends StatementImpl implements AssertStatement {
   /**
@@ -637,8 +637,8 @@ class AssertStatementImpl extends StatementImpl implements AssertStatement {
 /**
  * An assignment expression.
  *
- * > assignmentExpression ::=
- * >     [Expression] operator [Expression]
+ *    assignmentExpression ::=
+ *        [Expression] operator [Expression]
  */
 class AssignmentExpressionImpl extends ExpressionImpl
     implements AssignmentExpression {
@@ -941,8 +941,8 @@ abstract class AstNodeImpl implements AstNode {
 /**
  * An await expression.
  *
- * > awaitExpression ::=
- * >     'await' [Expression]
+ *    awaitExpression ::=
+ *        'await' [Expression]
  */
 class AwaitExpressionImpl extends ExpressionImpl implements AwaitExpression {
   /**
@@ -1000,8 +1000,8 @@ class AwaitExpressionImpl extends ExpressionImpl implements AwaitExpression {
 /**
  * A binary (infix) expression.
  *
- * > binaryExpression ::=
- * >     [Expression] [Token] [Expression]
+ *    binaryExpression ::=
+ *        [Expression] [Token] [Expression]
  */
 class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
   /**
@@ -1128,8 +1128,8 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
 /**
  * A function body that consists of a block of statements.
  *
- * > blockFunctionBody ::=
- * >     ('async' | 'async' '*' | 'sync' '*')? [Block]
+ *    blockFunctionBody ::=
+ *        ('async' | 'async' '*' | 'sync' '*')? [Block]
  */
 class BlockFunctionBodyImpl extends FunctionBodyImpl
     implements BlockFunctionBody {
@@ -1204,8 +1204,8 @@ class BlockFunctionBodyImpl extends FunctionBodyImpl
 /**
  * A sequence of statements.
  *
- * > block ::=
- * >     '{' statement* '}'
+ *    block ::=
+ *        '{' statement* '}'
  */
 class BlockImpl extends StatementImpl implements Block {
   /**
@@ -1257,8 +1257,8 @@ class BlockImpl extends StatementImpl implements Block {
 /**
  * A boolean literal expression.
  *
- * > booleanLiteral ::=
- * >     'false' | 'true'
+ *    booleanLiteral ::=
+ *        'false' | 'true'
  */
 class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
   /**
@@ -1300,8 +1300,8 @@ class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
 /**
  * A break statement.
  *
- * > breakStatement ::=
- * >     'break' [SimpleIdentifier]? ';'
+ *    breakStatement ::=
+ *        'break' [SimpleIdentifier]? ';'
  */
 class BreakStatementImpl extends StatementImpl implements BreakStatement {
   /**
@@ -1371,16 +1371,16 @@ class BreakStatementImpl extends StatementImpl implements BreakStatement {
  * There are three kinds of expressions that can be used in a cascade
  * expression: [IndexExpression], [MethodInvocation] and [PropertyAccess].
  *
- * > cascadeExpression ::=
- * >     [Expression] cascadeSection*
- * >
- * > cascadeSection ::=
- * >     '..'  (cascadeSelector arguments*) (assignableSelector arguments*)*
- * >     (assignmentOperator expressionWithoutCascade)?
- * >
- * > cascadeSelector ::=
- * >     '[ ' expression '] '
- * >   | identifier
+ *    cascadeExpression ::=
+ *        [Expression] cascadeSection*
+ *
+ *    cascadeSection ::=
+ *        '..'  (cascadeSelector arguments*) (assignableSelector arguments*)*
+ *        (assignmentOperator expressionWithoutCascade)?
+ *
+ *    cascadeSelector ::=
+ *        '[ ' expression '] '
+ *      | identifier
  */
 class CascadeExpressionImpl extends ExpressionImpl
     implements CascadeExpression {
@@ -1441,12 +1441,12 @@ class CascadeExpressionImpl extends ExpressionImpl
 /**
  * A catch clause within a try statement.
  *
- * > onPart ::=
- * >     catchPart [Block]
- * >   | 'on' type catchPart? [Block]
- * >
- * > catchPart ::=
- * >     'catch' '(' [SimpleIdentifier] (',' [SimpleIdentifier])? ')'
+ *    onPart ::=
+ *        catchPart [Block]
+ *      | 'on' type catchPart? [Block]
+ *
+ *    catchPart ::=
+ *        'catch' '(' [SimpleIdentifier] (',' [SimpleIdentifier])? ')'
  */
 class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   /**
@@ -1624,11 +1624,11 @@ class ChildEntities extends Object with IterableMixin implements Iterable {
 /**
  * The declaration of a class.
  *
- * > classDeclaration ::=
- * >     'abstract'? 'class' [SimpleIdentifier] [TypeParameterList]?
- * >     ([ExtendsClause] [WithClause]?)?
- * >     [ImplementsClause]?
- * >     '{' [ClassMember]* '}'
+ *    classDeclaration ::=
+ *        'abstract'? 'class' [SimpleIdentifier] [TypeParameterList]?
+ *        ([ExtendsClause] [WithClause]?)?
+ *        [ImplementsClause]?
+ *        '{' [ClassMember]* '}'
  */
 class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     implements ClassDeclaration {
@@ -1874,11 +1874,11 @@ abstract class ClassMemberImpl extends DeclarationImpl implements ClassMember {
 /**
  * A class type alias.
  *
- * > classTypeAlias ::=
- * >     [SimpleIdentifier] [TypeParameterList]? '=' 'abstract'? mixinApplication
- * >
- * > mixinApplication ::=
- * >     [TypeName] [WithClause] [ImplementsClause]? ';'
+ *    classTypeAlias ::=
+ *        [SimpleIdentifier] [TypeParameterList]? '=' 'abstract'? mixinApplication
+ *
+ *    mixinApplication ::=
+ *        [TypeName] [WithClause] [ImplementsClause]? ';'
  */
 class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   /**
@@ -2017,9 +2017,9 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
 /**
  * A combinator associated with an import or export directive.
  *
- * > combinator ::=
- * >     [HideCombinator]
- * >   | [ShowCombinator]
+ *    combinator ::=
+ *        [HideCombinator]
+ *      | [ShowCombinator]
  */
 abstract class CombinatorImpl extends AstNodeImpl implements Combinator {
   /**
@@ -2040,20 +2040,20 @@ abstract class CombinatorImpl extends AstNodeImpl implements Combinator {
 /**
  * A comment within the source code.
  *
- * > comment ::=
- * >     endOfLineComment
- * >   | blockComment
- * >   | documentationComment
- * >
- * > endOfLineComment ::=
- * >     '//' (CHARACTER - EOL)* EOL
- * >
- * > blockComment ::=
- * >     '/ *' CHARACTER* '&#42;/'
- * >
- * > documentationComment ::=
- * >     '/ **' (CHARACTER | [CommentReference])* '&#42;/'
- * >   | ('///' (CHARACTER - EOL)* EOL)+
+ *    comment ::=
+ *        endOfLineComment
+ *      | blockComment
+ *      | documentationComment
+ *
+ *    endOfLineComment ::=
+ *        '//' (CHARACTER - EOL)* EOL
+ *
+ *    blockComment ::=
+ *        '/ *' CHARACTER* '&#42;/'
+ *
+ *    documentationComment ::=
+ *        '/ **' (CHARACTER | [CommentReference])* '&#42;/'
+ *      | ('///' (CHARACTER - EOL)* EOL)+
  */
 class CommentImpl extends AstNodeImpl implements Comment {
   /**
@@ -2143,8 +2143,8 @@ class CommentImpl extends AstNodeImpl implements Comment {
 /**
  * A reference to a Dart element that is found within a documentation comment.
  *
- * > commentReference ::=
- * >     '[' 'new'? [Identifier] ']'
+ *    commentReference ::=
+ *        '[' 'new'? [Identifier] ']'
  */
 class CommentReferenceImpl extends AstNodeImpl implements CommentReference {
   /**
@@ -2235,19 +2235,19 @@ class CommentType {
  * order even if lexical order does not conform to the restrictions of the
  * grammar.
  *
- * > compilationUnit ::=
- * >     directives declarations
- * >
- * > directives ::=
- * >     [ScriptTag]? [LibraryDirective]? namespaceDirective* [PartDirective]*
- * >   | [PartOfDirective]
- * >
- * > namespaceDirective ::=
- * >     [ImportDirective]
- * >   | [ExportDirective]
- * >
- * > declarations ::=
- * >     [CompilationUnitMember]*
+ *    compilationUnit ::=
+ *        directives declarations
+ *
+ *    directives ::=
+ *        [ScriptTag]? [LibraryDirective]? namespaceDirective* [PartDirective]*
+ *      | [PartOfDirective]
+ *
+ *    namespaceDirective ::=
+ *        [ImportDirective]
+ *      | [ExportDirective]
+ *
+ *    declarations ::=
+ *        [CompilationUnitMember]*
  */
 class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   /**
@@ -2386,13 +2386,13 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
  * A node that declares one or more names within the scope of a compilation
  * unit.
  *
- * > compilationUnitMember ::=
- * >     [ClassDeclaration]
- * >   | [TypeAlias]
- * >   | [FunctionDeclaration]
- * >   | [MethodDeclaration]
- * >   | [VariableDeclaration]
- * >   | [VariableDeclaration]
+ *    compilationUnitMember ::=
+ *        [ClassDeclaration]
+ *      | [TypeAlias]
+ *      | [FunctionDeclaration]
+ *      | [MethodDeclaration]
+ *      | [VariableDeclaration]
+ *      | [VariableDeclaration]
  */
 abstract class CompilationUnitMemberImpl extends DeclarationImpl
     implements CompilationUnitMember {
@@ -2408,8 +2408,8 @@ abstract class CompilationUnitMemberImpl extends DeclarationImpl
 /**
  * A conditional expression.
  *
- * > conditionalExpression ::=
- * >     [Expression] '?' [Expression] ':' [Expression]
+ *    conditionalExpression ::=
+ *        [Expression] '?' [Expression] ':' [Expression]
  */
 class ConditionalExpressionImpl extends ExpressionImpl
     implements ConditionalExpression {
@@ -2588,23 +2588,23 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
 /**
  * A constructor declaration.
  *
- * > constructorDeclaration ::=
- * >     constructorSignature [FunctionBody]?
- * >   | constructorName formalParameterList ':' 'this' ('.' [SimpleIdentifier])? arguments
- * >
- * > constructorSignature ::=
- * >     'external'? constructorName formalParameterList initializerList?
- * >   | 'external'? 'factory' factoryName formalParameterList initializerList?
- * >   | 'external'? 'const'  constructorName formalParameterList initializerList?
- * >
- * > constructorName ::=
- * >     [SimpleIdentifier] ('.' [SimpleIdentifier])?
- * >
- * > factoryName ::=
- * >     [Identifier] ('.' [SimpleIdentifier])?
- * >
- * > initializerList ::=
- * >     ':' [ConstructorInitializer] (',' [ConstructorInitializer])*
+ *    constructorDeclaration ::=
+ *        constructorSignature [FunctionBody]?
+ *      | constructorName formalParameterList ':' 'this' ('.' [SimpleIdentifier])? arguments
+ *
+ *    constructorSignature ::=
+ *        'external'? constructorName formalParameterList initializerList?
+ *      | 'external'? 'factory' factoryName formalParameterList initializerList?
+ *      | 'external'? 'const'  constructorName formalParameterList initializerList?
+ *
+ *    constructorName ::=
+ *        [SimpleIdentifier] ('.' [SimpleIdentifier])?
+ *
+ *    factoryName ::=
+ *        [Identifier] ('.' [SimpleIdentifier])?
+ *
+ *    initializerList ::=
+ *        ':' [ConstructorInitializer] (',' [ConstructorInitializer])*
  */
 class ConstructorDeclarationImpl extends ClassMemberImpl
     implements ConstructorDeclaration {
@@ -2813,8 +2813,8 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
 /**
  * The initialization of a field within a constructor's initialization list.
  *
- * > fieldInitializer ::=
- * >     ('this' '.')? [SimpleIdentifier] '=' [Expression]
+ *    fieldInitializer ::=
+ *        ('this' '.')? [SimpleIdentifier] '=' [Expression]
  */
 class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
     implements ConstructorFieldInitializer {
@@ -2903,10 +2903,10 @@ class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
 /**
  * A node that can occur in the initializer list of a constructor declaration.
  *
- * > constructorInitializer ::=
- * >     [SuperConstructorInvocation]
- * >   | [ConstructorFieldInitializer]
- * >   | [RedirectingConstructorInvocation]
+ *    constructorInitializer ::=
+ *        [SuperConstructorInvocation]
+ *      | [ConstructorFieldInitializer]
+ *      | [RedirectingConstructorInvocation]
  */
 abstract class ConstructorInitializerImpl extends AstNodeImpl
     implements ConstructorInitializer {}
@@ -2914,8 +2914,8 @@ abstract class ConstructorInitializerImpl extends AstNodeImpl
 /**
  * The name of the constructor.
  *
- * > constructorName ::=
- * >     type ('.' identifier)?
+ *    constructorName ::=
+ *        type ('.' identifier)?
  */
 class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   /**
@@ -2995,8 +2995,8 @@ class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
 /**
  * A continue statement.
  *
- * > continueStatement ::=
- * >     'continue' [SimpleIdentifier]? ';'
+ *    continueStatement ::=
+ *        'continue' [SimpleIdentifier]? ';'
  */
 class ContinueStatementImpl extends StatementImpl implements ContinueStatement {
   /**
@@ -3078,8 +3078,8 @@ abstract class DeclarationImpl extends AnnotatedNodeImpl
 /**
  * The declaration of a single identifier.
  *
- * > declaredIdentifier ::=
- * >     [Annotation] finalConstVarOrType [SimpleIdentifier]
+ *    declaredIdentifier ::=
+ *        [Annotation] finalConstVarOrType [SimpleIdentifier]
  */
 class DeclaredIdentifierImpl extends DeclarationImpl
     implements DeclaredIdentifier {
@@ -3180,11 +3180,11 @@ class DeclaredIdentifierImpl extends DeclarationImpl
  * that are both represented by this class: named formal parameters and
  * positional formal parameters.
  *
- * > defaultFormalParameter ::=
- * >     [NormalFormalParameter] ('=' [Expression])?
- * >
- * > defaultNamedParameter ::=
- * >     [NormalFormalParameter] (':' [Expression])?
+ *    defaultFormalParameter ::=
+ *        [NormalFormalParameter] ('=' [Expression])?
+ *
+ *    defaultNamedParameter ::=
+ *        [NormalFormalParameter] (':' [Expression])?
  */
 class DefaultFormalParameterImpl extends FormalParameterImpl
     implements DefaultFormalParameter {
@@ -3276,12 +3276,12 @@ class DefaultFormalParameterImpl extends FormalParameterImpl
 /**
  * A node that represents a directive.
  *
- * > directive ::=
- * >     [ExportDirective]
- * >   | [ImportDirective]
- * >   | [LibraryDirective]
- * >   | [PartDirective]
- * >   | [PartOfDirective]
+ *    directive ::=
+ *        [ExportDirective]
+ *      | [ImportDirective]
+ *      | [LibraryDirective]
+ *      | [PartDirective]
+ *      | [PartOfDirective]
  */
 abstract class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
   /**
@@ -3302,8 +3302,8 @@ abstract class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
 /**
  * A do statement.
  *
- * > doStatement ::=
- * >     'do' [Statement] 'while' '(' [Expression] ')' ';'
+ *    doStatement ::=
+ *        'do' [Statement] 'while' '(' [Expression] ')' ';'
  */
 class DoStatementImpl extends StatementImpl implements DoStatement {
   /**
@@ -3401,8 +3401,8 @@ class DoStatementImpl extends StatementImpl implements DoStatement {
 /**
  * A dotted name, used in a configuration within an import or export directive.
  *
- * > dottedName ::=
- * >     [SimpleIdentifier] ('.' [SimpleIdentifier])*
+ *    dottedName ::=
+ *        [SimpleIdentifier] ('.' [SimpleIdentifier])*
  */
 class DottedNameImpl extends AstNodeImpl implements DottedName {
   /**
@@ -3442,12 +3442,12 @@ class DottedNameImpl extends AstNodeImpl implements DottedName {
 /**
  * A floating point literal expression.
  *
- * > doubleLiteral ::=
- * >     decimalDigit+ ('.' decimalDigit*)? exponent?
- * >   | '.' decimalDigit+ exponent?
- * >
- * > exponent ::=
- * >     ('e' | 'E') ('+' | '-')? decimalDigit+
+ *    doubleLiteral ::=
+ *        decimalDigit+ ('.' decimalDigit*)? exponent?
+ *      | '.' decimalDigit+ exponent?
+ *
+ *    exponent ::=
+ *        ('e' | 'E') ('+' | '-')? decimalDigit+
  */
 class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
   /**
@@ -3487,8 +3487,8 @@ class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
  * An empty function body, which can only appear in constructors or abstract
  * methods.
  *
- * > emptyFunctionBody ::=
- * >     ';'
+ *    emptyFunctionBody ::=
+ *        ';'
  */
 class EmptyFunctionBodyImpl extends FunctionBodyImpl
     implements EmptyFunctionBody {
@@ -3524,8 +3524,8 @@ class EmptyFunctionBodyImpl extends FunctionBodyImpl
 /**
  * An empty statement.
  *
- * > emptyStatement ::=
- * >     ';'
+ *    emptyStatement ::=
+ *        ';'
  */
 class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
   /**
@@ -3612,8 +3612,8 @@ class EnumConstantDeclarationImpl extends DeclarationImpl
 /**
  * The declaration of an enumeration.
  *
- * > enumType ::=
- * >     metadata 'enum' [SimpleIdentifier] '{' [SimpleIdentifier] (',' [SimpleIdentifier])* (',')? '}'
+ *    enumType ::=
+ *        metadata 'enum' [SimpleIdentifier] '{' [SimpleIdentifier] (',' [SimpleIdentifier])* (',')? '}'
  */
 class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
     implements EnumDeclaration {
@@ -3702,8 +3702,8 @@ class EphemeralIdentifier extends SimpleIdentifierImpl {
 /**
  * An export directive.
  *
- * > exportDirective ::=
- * >     [Annotation] 'export' [StringLiteral] [Combinator]* ';'
+ *    exportDirective ::=
+ *        [Annotation] 'export' [StringLiteral] [Combinator]* ';'
  */
 class ExportDirectiveImpl extends NamespaceDirectiveImpl
     implements ExportDirective {
@@ -3754,8 +3754,8 @@ class ExportDirectiveImpl extends NamespaceDirectiveImpl
 /**
  * A function body consisting of a single expression.
  *
- * > expressionFunctionBody ::=
- * >     'async'? '=>' [Expression] ';'
+ *    expressionFunctionBody ::=
+ *        'async'? '=>' [Expression] ';'
  */
 class ExpressionFunctionBodyImpl extends FunctionBodyImpl
     implements ExpressionFunctionBody {
@@ -3840,10 +3840,10 @@ class ExpressionFunctionBodyImpl extends FunctionBodyImpl
 /**
  * A node that represents an expression.
  *
- * > expression ::=
- * >     [AssignmentExpression]
- * >   | [ConditionalExpression] cascadeSection*
- * >   | [ThrowExpression]
+ *    expression ::=
+ *        [AssignmentExpression]
+ *      | [ConditionalExpression] cascadeSection*
+ *      | [ThrowExpression]
  */
 abstract class ExpressionImpl extends AstNodeImpl implements Expression {
   /**
@@ -3939,8 +3939,8 @@ abstract class ExpressionImpl extends AstNodeImpl implements Expression {
 /**
  * An expression used as a statement.
  *
- * > expressionStatement ::=
- * >     [Expression]? ';'
+ *    expressionStatement ::=
+ *        [Expression]? ';'
  */
 class ExpressionStatementImpl extends StatementImpl
     implements ExpressionStatement {
@@ -4000,8 +4000,8 @@ class ExpressionStatementImpl extends StatementImpl
 /**
  * The "extends" clause in a class declaration.
  *
- * > extendsClause ::=
- * >     'extends' [TypeName]
+ *    extendsClause ::=
+ *        'extends' [TypeName]
  */
 class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
   /**
@@ -4051,8 +4051,8 @@ class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
 /**
  * The declaration of one or more fields of the same type.
  *
- * > fieldDeclaration ::=
- * >     'static'? [VariableDeclarationList] ';'
+ *    fieldDeclaration ::=
+ *        'static'? [VariableDeclarationList] ';'
  */
 class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
   /**
@@ -4125,9 +4125,9 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
 /**
  * A field formal parameter.
  *
- * > fieldFormalParameter ::=
- * >     ('final' [TypeName] | 'const' [TypeName] | 'var' | [TypeName])?
- * >     'this' '.' [SimpleIdentifier] ([TypeParameterList]? [FormalParameterList])?
+ *    fieldFormalParameter ::=
+ *        ('final' [TypeName] | 'const' [TypeName] | 'var' | [TypeName])?
+ *        'this' '.' [SimpleIdentifier] ([TypeParameterList]? [FormalParameterList])?
  */
 class FieldFormalParameterImpl extends NormalFormalParameterImpl
     implements FieldFormalParameter {
@@ -4267,9 +4267,9 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
 /**
  * A for-each statement.
  *
- * > forEachStatement ::=
- * >     'await'? 'for' '(' [DeclaredIdentifier] 'in' [Expression] ')' [Block]
- * >   | 'await'? 'for' '(' [SimpleIdentifier] 'in' [Expression] ')' [Block]
+ *    forEachStatement ::=
+ *        'await'? 'for' '(' [DeclaredIdentifier] 'in' [Expression] ')' [Block]
+ *      | 'await'? 'for' '(' [SimpleIdentifier] 'in' [Expression] ')' [Block]
  */
 class ForEachStatementImpl extends StatementImpl implements ForEachStatement {
   /**
@@ -4422,9 +4422,9 @@ class ForEachStatementImpl extends StatementImpl implements ForEachStatement {
 /**
  * A node representing a parameter to a function.
  *
- * > formalParameter ::=
- * >     [NormalFormalParameter]
- * >   | [DefaultFormalParameter]
+ *    formalParameter ::=
+ *        [NormalFormalParameter]
+ *      | [DefaultFormalParameter]
  */
 abstract class FormalParameterImpl extends AstNodeImpl
     implements FormalParameter {
@@ -4448,23 +4448,23 @@ abstract class FormalParameterImpl extends AstNodeImpl
  * flattened into a single list, which can have any or all kinds of parameters
  * (normal, named, and positional) in any order.
  *
- * > formalParameterList ::=
- * >     '(' ')'
- * >   | '(' normalFormalParameters (',' optionalFormalParameters)? ')'
- * >   | '(' optionalFormalParameters ')'
- * >
- * > normalFormalParameters ::=
- * >     [NormalFormalParameter] (',' [NormalFormalParameter])*
- * >
- * > optionalFormalParameters ::=
- * >     optionalPositionalFormalParameters
- * >   | namedFormalParameters
- * >
- * > optionalPositionalFormalParameters ::=
- * >     '[' [DefaultFormalParameter] (',' [DefaultFormalParameter])* ']'
- * >
- * > namedFormalParameters ::=
- * >     '{' [DefaultFormalParameter] (',' [DefaultFormalParameter])* '}'
+ *    formalParameterList ::=
+ *        '(' ')'
+ *      | '(' normalFormalParameters (',' optionalFormalParameters)? ')'
+ *      | '(' optionalFormalParameters ')'
+ *
+ *    normalFormalParameters ::=
+ *        [NormalFormalParameter] (',' [NormalFormalParameter])*
+ *
+ *    optionalFormalParameters ::=
+ *        optionalPositionalFormalParameters
+ *      | namedFormalParameters
+ *
+ *    optionalPositionalFormalParameters ::=
+ *        '[' [DefaultFormalParameter] (',' [DefaultFormalParameter])* ']'
+ *
+ *    namedFormalParameters ::=
+ *        '{' [DefaultFormalParameter] (',' [DefaultFormalParameter])* '}'
  */
 class FormalParameterListImpl extends AstNodeImpl
     implements FormalParameterList {
@@ -4555,15 +4555,15 @@ class FormalParameterListImpl extends AstNodeImpl
 /**
  * A for statement.
  *
- * > forStatement ::=
- * >     'for' '(' forLoopParts ')' [Statement]
- * >
- * > forLoopParts ::=
- * >     forInitializerStatement ';' [Expression]? ';' [Expression]?
- * >
- * > forInitializerStatement ::=
- * >     [DefaultFormalParameter]
- * >   | [Expression]?
+ *    forStatement ::=
+ *        'for' '(' forLoopParts ')' [Statement]
+ *
+ *    forLoopParts ::=
+ *        forInitializerStatement ';' [Expression]? ';' [Expression]?
+ *
+ *    forInitializerStatement ::=
+ *        [DefaultFormalParameter]
+ *      | [Expression]?
  */
 class ForStatementImpl extends StatementImpl implements ForStatement {
   /**
@@ -4715,10 +4715,10 @@ class ForStatementImpl extends StatementImpl implements ForStatement {
 /**
  * A node representing the body of a function or method.
  *
- * > functionBody ::=
- * >     [BlockFunctionBody]
- * >   | [EmptyFunctionBody]
- * >   | [ExpressionFunctionBody]
+ *    functionBody ::=
+ *        [BlockFunctionBody]
+ *      | [EmptyFunctionBody]
+ *      | [ExpressionFunctionBody]
  */
 abstract class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
   /**
@@ -4775,12 +4775,12 @@ abstract class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
 /**
  * A top-level declaration.
  *
- * > functionDeclaration ::=
- * >     'external' functionSignature
- * >   | functionSignature [FunctionBody]
- * >
- * > functionSignature ::=
- * >     [Type]? ('get' | 'set')? [SimpleIdentifier] [FormalParameterList]
+ *    functionDeclaration ::=
+ *        'external' functionSignature
+ *      | functionSignature [FunctionBody]
+ *
+ *    functionSignature ::=
+ *        [Type]? ('get' | 'set')? [SimpleIdentifier] [FormalParameterList]
  */
 class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
     implements FunctionDeclaration {
@@ -4940,8 +4940,8 @@ class FunctionDeclarationStatementImpl extends StatementImpl
 /**
  * A function expression.
  *
- * > functionExpression ::=
- * >     [TypeParameterList]? [FormalParameterList] [FunctionBody]
+ *    functionExpression ::=
+ *        [TypeParameterList]? [FormalParameterList] [FunctionBody]
  */
 class FunctionExpressionImpl extends ExpressionImpl
     implements FunctionExpression {
@@ -5051,8 +5051,8 @@ class FunctionExpressionImpl extends ExpressionImpl
  * [MethodInvocation] nodes. Invocations of getters and setters are represented
  * by either [PrefixedIdentifier] or [PropertyAccess] nodes.
  *
- * > functionExpressionInvocation ::=
- * >     [Expression] [TypeArgumentList]? [ArgumentList]
+ *    functionExpressionInvocation ::=
+ *        [Expression] [TypeArgumentList]? [ArgumentList]
  */
 class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
     implements FunctionExpressionInvocation {
@@ -5128,11 +5128,11 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
 /**
  * A function type alias.
  *
- * > functionTypeAlias ::=
- * >     functionPrefix [TypeParameterList]? [FormalParameterList] ';'
- * >
- * > functionPrefix ::=
- * >     [TypeName]? [SimpleIdentifier]
+ *    functionTypeAlias ::=
+ *        functionPrefix [TypeParameterList]? [FormalParameterList] ';'
+ *
+ *    functionPrefix ::=
+ *        [TypeName]? [SimpleIdentifier]
  */
 class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
   /**
@@ -5227,8 +5227,8 @@ class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
 /**
  * A function-typed formal parameter.
  *
- * > functionSignature ::=
- * >     [TypeName]? [SimpleIdentifier] [TypeParameterList]? [FormalParameterList]
+ *    functionSignature ::=
+ *        [TypeName]? [SimpleIdentifier] [TypeParameterList]? [FormalParameterList]
  */
 class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
     implements FunctionTypedFormalParameter {
@@ -5330,8 +5330,8 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
  * A combinator that restricts the names being imported to those that are not in
  * a given list.
  *
- * > hideCombinator ::=
- * >     'hide' [SimpleIdentifier] (',' [SimpleIdentifier])*
+ *    hideCombinator ::=
+ *        'hide' [SimpleIdentifier] (',' [SimpleIdentifier])*
  */
 class HideCombinatorImpl extends CombinatorImpl implements HideCombinator {
   /**
@@ -5370,9 +5370,9 @@ class HideCombinatorImpl extends CombinatorImpl implements HideCombinator {
 /**
  * A node that represents an identifier.
  *
- * > identifier ::=
- * >     [SimpleIdentifier]
- * >   | [PrefixedIdentifier]
+ *    identifier ::=
+ *        [SimpleIdentifier]
+ *      | [PrefixedIdentifier]
  */
 abstract class IdentifierImpl extends ExpressionImpl implements Identifier {
   /**
@@ -5391,8 +5391,8 @@ abstract class IdentifierImpl extends ExpressionImpl implements Identifier {
 /**
  * An if statement.
  *
- * > ifStatement ::=
- * >     'if' '(' [Expression] ')' [Statement] ('else' [Statement])?
+ *    ifStatement ::=
+ *        'if' '(' [Expression] ')' [Statement] ('else' [Statement])?
  */
 class IfStatementImpl extends StatementImpl implements IfStatement {
   /**
@@ -5508,8 +5508,8 @@ class IfStatementImpl extends StatementImpl implements IfStatement {
 /**
  * The "implements" clause in an class declaration.
  *
- * > implementsClause ::=
- * >     'implements' [TypeName] (',' [TypeName])*
+ *    implementsClause ::=
+ *        'implements' [TypeName] (',' [TypeName])*
  */
 class ImplementsClauseImpl extends AstNodeImpl implements ImplementsClause {
   /**
@@ -5556,9 +5556,9 @@ class ImplementsClauseImpl extends AstNodeImpl implements ImplementsClause {
 /**
  * An import directive.
  *
- * > importDirective ::=
- * >     [Annotation] 'import' [StringLiteral] ('as' identifier)? [Combinator]* ';'
- * >   | [Annotation] 'import' [StringLiteral] 'deferred' 'as' identifier [Combinator]* ';'
+ *    importDirective ::=
+ *        [Annotation] 'import' [StringLiteral] ('as' identifier)? [Combinator]* ';'
+ *      | [Annotation] 'import' [StringLiteral] 'deferred' 'as' identifier [Combinator]* ';'
  */
 class ImportDirectiveImpl extends NamespaceDirectiveImpl
     implements ImportDirective {
@@ -5647,8 +5647,8 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
 /**
  * An index expression.
  *
- * > indexExpression ::=
- * >     [Expression] '[' [Expression] ']'
+ *    indexExpression ::=
+ *        [Expression] '[' [Expression] ']'
  */
 class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
   /**
@@ -5860,8 +5860,8 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
 /**
  * An instance creation expression.
  *
- * > newExpression ::=
- * >     ('new' | 'const') [TypeName] ('.' [SimpleIdentifier])? [ArgumentList]
+ *    newExpression ::=
+ *        ('new' | 'const') [TypeName] ('.' [SimpleIdentifier])? [ArgumentList]
  */
 class InstanceCreationExpressionImpl extends ExpressionImpl
     implements InstanceCreationExpression {
@@ -5946,16 +5946,16 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
 /**
  * An integer literal expression.
  *
- * > integerLiteral ::=
- * >     decimalIntegerLiteral
- * >   | hexadecimalIntegerLiteral
- * >
- * > decimalIntegerLiteral ::=
- * >     decimalDigit+
- * >
- * > hexadecimalIntegerLiteral ::=
- * >     '0x' hexadecimalDigit+
- * >   | '0X' hexadecimalDigit+
+ *    integerLiteral ::=
+ *        decimalIntegerLiteral
+ *      | hexadecimalIntegerLiteral
+ *
+ *    decimalIntegerLiteral ::=
+ *        decimalDigit+
+ *
+ *    hexadecimalIntegerLiteral ::=
+ *        '0x' hexadecimalDigit+
+ *      | '0X' hexadecimalDigit+
  */
 class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   /**
@@ -5994,9 +5994,9 @@ class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
 /**
  * A node within a [StringInterpolation].
  *
- * > interpolationElement ::=
- * >     [InterpolationExpression]
- * >   | [InterpolationString]
+ *    interpolationElement ::=
+ *        [InterpolationExpression]
+ *      | [InterpolationString]
  */
 abstract class InterpolationElementImpl extends AstNodeImpl
     implements InterpolationElement {}
@@ -6004,9 +6004,9 @@ abstract class InterpolationElementImpl extends AstNodeImpl
 /**
  * An expression embedded in a string interpolation.
  *
- * > interpolationExpression ::=
- * >     '$' [SimpleIdentifier]
- * >   | '$' '{' [Expression] '}'
+ *    interpolationExpression ::=
+ *        '$' [SimpleIdentifier]
+ *      | '$' '{' [Expression] '}'
  */
 class InterpolationExpressionImpl extends InterpolationElementImpl
     implements InterpolationExpression {
@@ -6073,8 +6073,8 @@ class InterpolationExpressionImpl extends InterpolationElementImpl
 /**
  * A non-empty substring of an interpolated string.
  *
- * > interpolationString ::=
- * >     characters
+ *    interpolationString ::=
+ *        characters
  */
 class InterpolationStringImpl extends InterpolationElementImpl
     implements InterpolationString {
@@ -6175,8 +6175,8 @@ abstract class InvocationExpressionImpl extends ExpressionImpl
 /**
  * An is expression.
  *
- * > isExpression ::=
- * >     [Expression] 'is' '!'? [TypeName]
+ *    isExpression ::=
+ *        [Expression] 'is' '!'? [TypeName]
  */
 class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   /**
@@ -6254,8 +6254,8 @@ class IsExpressionImpl extends ExpressionImpl implements IsExpression {
 /**
  * A statement that has a label associated with them.
  *
- * > labeledStatement ::=
- * >    [Label]+ [Statement]
+ *    labeledStatement ::=
+ *       [Label]+ [Statement]
  */
 class LabeledStatementImpl extends StatementImpl implements LabeledStatement {
   /**
@@ -6319,8 +6319,8 @@ class LabeledStatementImpl extends StatementImpl implements LabeledStatement {
 /**
  * A label on either a [LabeledStatement] or a [NamedExpression].
  *
- * > label ::=
- * >     [SimpleIdentifier] ':'
+ *    label ::=
+ *        [SimpleIdentifier] ':'
  */
 class LabelImpl extends AstNodeImpl implements Label {
   /**
@@ -6369,8 +6369,8 @@ class LabelImpl extends AstNodeImpl implements Label {
 /**
  * A library directive.
  *
- * > libraryDirective ::=
- * >     [Annotation] 'library' [Identifier] ';'
+ *    libraryDirective ::=
+ *        [Annotation] 'library' [Identifier] ';'
  */
 class LibraryDirectiveImpl extends DirectiveImpl implements LibraryDirective {
   /**
@@ -6433,8 +6433,8 @@ class LibraryDirectiveImpl extends DirectiveImpl implements LibraryDirective {
 /**
  * The identifier for a library.
  *
- * > libraryIdentifier ::=
- * >     [SimpleIdentifier] ('.' [SimpleIdentifier])*
+ *    libraryIdentifier ::=
+ *        [SimpleIdentifier] ('.' [SimpleIdentifier])*
  */
 class LibraryIdentifierImpl extends IdentifierImpl
     implements LibraryIdentifier {
@@ -6502,8 +6502,8 @@ class LibraryIdentifierImpl extends IdentifierImpl
 /**
  * A list literal.
  *
- * > listLiteral ::=
- * >     'const'? ('<' [TypeName] '>')? '[' ([Expression] ','?)? ']'
+ *    listLiteral ::=
+ *        'const'? ('<' [TypeName] '>')? '[' ([Expression] ','?)? ']'
  */
 class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   /**
@@ -6571,14 +6571,14 @@ class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
 /**
  * A node that represents a literal expression.
  *
- * > literal ::=
- * >     [BooleanLiteral]
- * >   | [DoubleLiteral]
- * >   | [IntegerLiteral]
- * >   | [ListLiteral]
- * >   | [MapLiteral]
- * >   | [NullLiteral]
- * >   | [StringLiteral]
+ *    literal ::=
+ *        [BooleanLiteral]
+ *      | [DoubleLiteral]
+ *      | [IntegerLiteral]
+ *      | [ListLiteral]
+ *      | [MapLiteral]
+ *      | [NullLiteral]
+ *      | [StringLiteral]
  */
 abstract class LiteralImpl extends ExpressionImpl implements Literal {
   @override
@@ -6608,8 +6608,8 @@ class LocalVariableInfo {
 /**
  * A single key/value pair in a map literal.
  *
- * > mapLiteralEntry ::=
- * >     [Expression] ':' [Expression]
+ *    mapLiteralEntry ::=
+ *        [Expression] ':' [Expression]
  */
 class MapLiteralEntryImpl extends AstNodeImpl implements MapLiteralEntry {
   /**
@@ -6674,9 +6674,9 @@ class MapLiteralEntryImpl extends AstNodeImpl implements MapLiteralEntry {
 /**
  * A literal map.
  *
- * > mapLiteral ::=
- * >     'const'? ('<' [TypeName] (',' [TypeName])* '>')?
- * >     '{' ([MapLiteralEntry] (',' [MapLiteralEntry])* ','?)? '}'
+ *    mapLiteral ::=
+ *        'const'? ('<' [TypeName] (',' [TypeName])* '>')?
+ *        '{' ([MapLiteralEntry] (',' [MapLiteralEntry])* ','?)? '}'
  */
 class MapLiteralImpl extends TypedLiteralImpl implements MapLiteral {
   /**
@@ -6743,16 +6743,16 @@ class MapLiteralImpl extends TypedLiteralImpl implements MapLiteral {
 /**
  * A method declaration.
  *
- * > methodDeclaration ::=
- * >     methodSignature [FunctionBody]
- * >
- * > methodSignature ::=
- * >     'external'? ('abstract' | 'static')? [Type]? ('get' | 'set')?
- * >     methodName [TypeParameterList] [FormalParameterList]
- * >
- * > methodName ::=
- * >     [SimpleIdentifier]
- * >   | 'operator' [SimpleIdentifier]
+ *    methodDeclaration ::=
+ *        methodSignature [FunctionBody]
+ *
+ *    methodSignature ::=
+ *        'external'? ('abstract' | 'static')? [Type]? ('get' | 'set')?
+ *        methodName [TypeParameterList] [FormalParameterList]
+ *
+ *    methodName ::=
+ *        [SimpleIdentifier]
+ *      | 'operator' [SimpleIdentifier]
  */
 class MethodDeclarationImpl extends ClassMemberImpl
     implements MethodDeclaration {
@@ -6962,8 +6962,8 @@ class MethodDeclarationImpl extends ClassMemberImpl
  * [FunctionExpressionInvocation] nodes. Invocations of getters and setters are
  * represented by either [PrefixedIdentifier] or [PropertyAccess] nodes.
  *
- * > methodInvocation ::=
- * >     ([Expression] '.')? [SimpleIdentifier] [TypeArgumentList]? [ArgumentList]
+ *    methodInvocation ::=
+ *        ([Expression] '.')? [SimpleIdentifier] [TypeArgumentList]? [ArgumentList]
  */
 class MethodInvocationImpl extends InvocationExpressionImpl
     implements MethodInvocation {
@@ -7108,8 +7108,8 @@ abstract class NamedCompilationUnitMemberImpl extends CompilationUnitMemberImpl
  * An expression that has a name associated with it. They are used in method
  * invocations when there are named parameters.
  *
- * > namedExpression ::=
- * >     [Label] [Expression]
+ *    namedExpression ::=
+ *        [Label] [Expression]
  */
 class NamedExpressionImpl extends ExpressionImpl implements NamedExpression {
   /**
@@ -7181,9 +7181,9 @@ class NamedExpressionImpl extends ExpressionImpl implements NamedExpression {
 /**
  * A node that represents a directive that impacts the namespace of a library.
  *
- * > directive ::=
- * >     [ExportDirective]
- * >   | [ImportDirective]
+ *    directive ::=
+ *        [ExportDirective]
+ *      | [ImportDirective]
  */
 abstract class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
     implements NamespaceDirective {
@@ -7246,8 +7246,8 @@ abstract class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
 /**
  * The "native" clause in an class declaration.
  *
- * > nativeClause ::=
- * >     'native' [StringLiteral]
+ *    nativeClause ::=
+ *        'native' [StringLiteral]
  */
 class NativeClauseImpl extends AstNodeImpl implements NativeClause {
   /**
@@ -7298,8 +7298,8 @@ class NativeClauseImpl extends AstNodeImpl implements NativeClause {
  * A function body that consists of a native keyword followed by a string
  * literal.
  *
- * > nativeFunctionBody ::=
- * >     'native' [SimpleStringLiteral] ';'
+ *    nativeFunctionBody ::=
+ *        'native' [SimpleStringLiteral] ';'
  */
 class NativeFunctionBodyImpl extends FunctionBodyImpl
     implements NativeFunctionBody {
@@ -7480,10 +7480,10 @@ class NodeListImpl<E extends AstNode> extends Object
 /**
  * A formal parameter that is required (is not optional).
  *
- * > normalFormalParameter ::=
- * >     [FunctionTypedFormalParameter]
- * >   | [FieldFormalParameter]
- * >   | [SimpleFormalParameter]
+ *    normalFormalParameter ::=
+ *        [FunctionTypedFormalParameter]
+ *      | [FieldFormalParameter]
+ *      | [SimpleFormalParameter]
  */
 abstract class NormalFormalParameterImpl extends FormalParameterImpl
     implements NormalFormalParameter {
@@ -7600,8 +7600,8 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
 /**
  * A null literal expression.
  *
- * > nullLiteral ::=
- * >     'null'
+ *    nullLiteral ::=
+ *        'null'
  */
 class NullLiteralImpl extends LiteralImpl implements NullLiteral {
   /**
@@ -7635,8 +7635,8 @@ class NullLiteralImpl extends LiteralImpl implements NullLiteral {
 /**
  * A parenthesized expression.
  *
- * > parenthesizedExpression ::=
- * >     '(' [Expression] ')'
+ *    parenthesizedExpression ::=
+ *        '(' [Expression] ')'
  */
 class ParenthesizedExpressionImpl extends ExpressionImpl
     implements ParenthesizedExpression {
@@ -7698,8 +7698,8 @@ class ParenthesizedExpressionImpl extends ExpressionImpl
 /**
  * A part directive.
  *
- * > partDirective ::=
- * >     [Annotation] 'part' [StringLiteral] ';'
+ *    partDirective ::=
+ *        [Annotation] 'part' [StringLiteral] ';'
  */
 class PartDirectiveImpl extends UriBasedDirectiveImpl implements PartDirective {
   /**
@@ -7744,8 +7744,8 @@ class PartDirectiveImpl extends UriBasedDirectiveImpl implements PartDirective {
 /**
  * A part-of directive.
  *
- * > partOfDirective ::=
- * >     [Annotation] 'part' 'of' [Identifier] ';'
+ *    partOfDirective ::=
+ *        [Annotation] 'part' 'of' [Identifier] ';'
  */
 class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
   /**
@@ -7821,8 +7821,8 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
 /**
  * A postfix unary expression.
  *
- * > postfixExpression ::=
- * >     [Expression] [Token]
+ *    postfixExpression ::=
+ *        [Expression] [Token]
  */
 class PostfixExpressionImpl extends ExpressionImpl
     implements PostfixExpression {
@@ -7935,8 +7935,8 @@ class PostfixExpressionImpl extends ExpressionImpl
  * An identifier that is prefixed or an access to an object property where the
  * target of the property access is a simple identifier.
  *
- * > prefixedIdentifier ::=
- * >     [SimpleIdentifier] '.' [SimpleIdentifier]
+ *    prefixedIdentifier ::=
+ *        [SimpleIdentifier] '.' [SimpleIdentifier]
  */
 class PrefixedIdentifierImpl extends IdentifierImpl
     implements PrefixedIdentifier {
@@ -8048,8 +8048,8 @@ class PrefixedIdentifierImpl extends IdentifierImpl
 /**
  * A prefix unary expression.
  *
- * > prefixExpression ::=
- * >     [Token] [Expression]
+ *    prefixExpression ::=
+ *        [Token] [Expression]
  */
 class PrefixExpressionImpl extends ExpressionImpl implements PrefixExpression {
   /**
@@ -8163,8 +8163,8 @@ class PrefixExpressionImpl extends ExpressionImpl implements PrefixExpression {
  * as [PrefixedIdentifier] nodes in cases where the target is also a simple
  * identifier.
  *
- * > propertyAccess ::=
- * >     [Expression] '.' [SimpleIdentifier]
+ *    propertyAccess ::=
+ *        [Expression] '.' [SimpleIdentifier]
  */
 class PropertyAccessImpl extends ExpressionImpl implements PropertyAccess {
   /**
@@ -8261,8 +8261,8 @@ class PropertyAccessImpl extends ExpressionImpl implements PropertyAccess {
  * The invocation of a constructor in the same class from within a constructor's
  * initialization list.
  *
- * > redirectingConstructorInvocation ::=
- * >     'this' ('.' identifier)? arguments
+ *    redirectingConstructorInvocation ::=
+ *        'this' ('.' identifier)? arguments
  */
 class RedirectingConstructorInvocationImpl extends ConstructorInitializerImpl
     implements RedirectingConstructorInvocation {
@@ -8349,8 +8349,8 @@ class RedirectingConstructorInvocationImpl extends ConstructorInitializerImpl
 /**
  * A rethrow expression.
  *
- * > rethrowExpression ::=
- * >     'rethrow'
+ *    rethrowExpression ::=
+ *        'rethrow'
  */
 class RethrowExpressionImpl extends ExpressionImpl
     implements RethrowExpression {
@@ -8388,8 +8388,8 @@ class RethrowExpressionImpl extends ExpressionImpl
 /**
  * A return statement.
  *
- * > returnStatement ::=
- * >     'return' [Expression]? ';'
+ *    returnStatement ::=
+ *        'return' [Expression]? ';'
  */
 class ReturnStatementImpl extends StatementImpl implements ReturnStatement {
   /**
@@ -8447,8 +8447,8 @@ class ReturnStatementImpl extends StatementImpl implements ReturnStatement {
 /**
  * A script tag that can optionally occur at the beginning of a compilation unit.
  *
- * > scriptTag ::=
- * >     '#!' (~NEWLINE)* NEWLINE
+ *    scriptTag ::=
+ *        '#!' (~NEWLINE)* NEWLINE
  */
 class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
   /**
@@ -8482,8 +8482,8 @@ class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
 /**
  * A combinator that restricts the names being imported to those in a given list.
  *
- * > showCombinator ::=
- * >     'show' [SimpleIdentifier] (',' [SimpleIdentifier])*
+ *    showCombinator ::=
+ *        'show' [SimpleIdentifier] (',' [SimpleIdentifier])*
  */
 class ShowCombinatorImpl extends CombinatorImpl implements ShowCombinator {
   /**
@@ -8523,8 +8523,8 @@ class ShowCombinatorImpl extends CombinatorImpl implements ShowCombinator {
 /**
  * A simple formal parameter.
  *
- * > simpleFormalParameter ::=
- * >     ('final' [TypeName] | 'var' | [TypeName])? [SimpleIdentifier]
+ *    simpleFormalParameter ::=
+ *        ('final' [TypeName] | 'var' | [TypeName])? [SimpleIdentifier]
  */
 class SimpleFormalParameterImpl extends NormalFormalParameterImpl
     implements SimpleFormalParameter {
@@ -8604,12 +8604,12 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
 /**
  * A simple identifier.
  *
- * > simpleIdentifier ::=
- * >     initialCharacter internalCharacter*
- * >
- * > initialCharacter ::= '_' | '$' | letter
- * >
- * > internalCharacter ::= '_' | '$' | letter | digit
+ *    simpleIdentifier ::=
+ *        initialCharacter internalCharacter*
+ *
+ *    initialCharacter ::= '_' | '$' | letter
+ *
+ *    internalCharacter ::= '_' | '$' | letter | digit
  */
 class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   /**
@@ -8892,24 +8892,24 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
 /**
  * A string literal expression that does not contain any interpolations.
  *
- * > simpleStringLiteral ::=
- * >     rawStringLiteral
- * >   | basicStringLiteral
- * >
- * > rawStringLiteral ::=
- * >     'r' basicStringLiteral
- * >
- * > simpleStringLiteral ::=
- * >     multiLineStringLiteral
- * >   | singleLineStringLiteral
- * >
- * > multiLineStringLiteral ::=
- * >     "'''" characters "'''"
- * >   | '"""' characters '"""'
- * >
- * > singleLineStringLiteral ::=
- * >     "'" characters "'"
- * >   | '"' characters '"'
+ *    simpleStringLiteral ::=
+ *        rawStringLiteral
+ *      | basicStringLiteral
+ *
+ *    rawStringLiteral ::=
+ *        'r' basicStringLiteral
+ *
+ *    simpleStringLiteral ::=
+ *        multiLineStringLiteral
+ *      | singleLineStringLiteral
+ *
+ *    multiLineStringLiteral ::=
+ *        "'''" characters "'''"
+ *      | '"""' characters '"""'
+ *
+ *    singleLineStringLiteral ::=
+ *        "'" characters "'"
+ *      | '"' characters '"'
  */
 class SimpleStringLiteralImpl extends SingleStringLiteralImpl
     implements SimpleStringLiteral {
@@ -8986,9 +8986,9 @@ class SimpleStringLiteralImpl extends SingleStringLiteralImpl
 /**
  * A single string literal expression.
  *
- * > singleStringLiteral ::=
- * >     [SimpleStringLiteral]
- * >   | [StringInterpolation]
+ *    singleStringLiteral ::=
+ *        [SimpleStringLiteral]
+ *      | [StringInterpolation]
  */
 abstract class SingleStringLiteralImpl extends StringLiteralImpl
     implements SingleStringLiteral {}
@@ -8996,21 +8996,21 @@ abstract class SingleStringLiteralImpl extends StringLiteralImpl
 /**
  * A node that represents a statement.
  *
- * > statement ::=
- * >     [Block]
- * >   | [VariableDeclarationStatement]
- * >   | [ForStatement]
- * >   | [ForEachStatement]
- * >   | [WhileStatement]
- * >   | [DoStatement]
- * >   | [SwitchStatement]
- * >   | [IfStatement]
- * >   | [TryStatement]
- * >   | [BreakStatement]
- * >   | [ContinueStatement]
- * >   | [ReturnStatement]
- * >   | [ExpressionStatement]
- * >   | [FunctionDeclarationStatement]
+ *    statement ::=
+ *        [Block]
+ *      | [VariableDeclarationStatement]
+ *      | [ForStatement]
+ *      | [ForEachStatement]
+ *      | [WhileStatement]
+ *      | [DoStatement]
+ *      | [SwitchStatement]
+ *      | [IfStatement]
+ *      | [TryStatement]
+ *      | [BreakStatement]
+ *      | [ContinueStatement]
+ *      | [ReturnStatement]
+ *      | [ExpressionStatement]
+ *      | [FunctionDeclarationStatement]
  */
 abstract class StatementImpl extends AstNodeImpl implements Statement {
   @override
@@ -9020,9 +9020,9 @@ abstract class StatementImpl extends AstNodeImpl implements Statement {
 /**
  * A string interpolation literal.
  *
- * > stringInterpolation ::=
- * >     ''' [InterpolationElement]* '''
- * >   | '"' [InterpolationElement]* '"'
+ *    stringInterpolation ::=
+ *        ''' [InterpolationElement]* '''
+ *      | '"' [InterpolationElement]* '"'
  */
 class StringInterpolationImpl extends SingleStringLiteralImpl
     implements StringInterpolation {
@@ -9191,10 +9191,10 @@ class StringLexemeHelper {
 /**
  * A string literal expression.
  *
- * > stringLiteral ::=
- * >     [SimpleStringLiteral]
- * >   | [AdjacentStrings]
- * >   | [StringInterpolation]
+ *    stringLiteral ::=
+ *        [SimpleStringLiteral]
+ *      | [AdjacentStrings]
+ *      | [StringInterpolation]
  */
 abstract class StringLiteralImpl extends LiteralImpl implements StringLiteral {
   @override
@@ -9220,8 +9220,8 @@ abstract class StringLiteralImpl extends LiteralImpl implements StringLiteral {
  * The invocation of a superclass' constructor from within a constructor's
  * initialization list.
  *
- * > superInvocation ::=
- * >     'super' ('.' [SimpleIdentifier])? [ArgumentList]
+ *    superInvocation ::=
+ *        'super' ('.' [SimpleIdentifier])? [ArgumentList]
  */
 class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
     implements SuperConstructorInvocation {
@@ -9308,8 +9308,8 @@ class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
 /**
  * A super expression.
  *
- * > superExpression ::=
- * >     'super'
+ *    superExpression ::=
+ *        'super'
  */
 class SuperExpressionImpl extends ExpressionImpl implements SuperExpression {
   /**
@@ -9346,8 +9346,8 @@ class SuperExpressionImpl extends ExpressionImpl implements SuperExpression {
 /**
  * A case in a switch statement.
  *
- * > switchCase ::=
- * >     [SimpleIdentifier]* 'case' [Expression] ':' [Statement]*
+ *    switchCase ::=
+ *        [SimpleIdentifier]* 'case' [Expression] ':' [Statement]*
  */
 class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
   /**
@@ -9395,8 +9395,8 @@ class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
 /**
  * The default case in a switch statement.
  *
- * > switchDefault ::=
- * >     [SimpleIdentifier]* 'default' ':' [Statement]*
+ *    switchDefault ::=
+ *        [SimpleIdentifier]* 'default' ':' [Statement]*
  */
 class SwitchDefaultImpl extends SwitchMemberImpl implements SwitchDefault {
   /**
@@ -9427,9 +9427,9 @@ class SwitchDefaultImpl extends SwitchMemberImpl implements SwitchDefault {
 /**
  * An element within a switch statement.
  *
- * > switchMember ::=
- * >     switchCase
- * >   | switchDefault
+ *    switchMember ::=
+ *        switchCase
+ *      | switchDefault
  */
 abstract class SwitchMemberImpl extends AstNodeImpl implements SwitchMember {
   /**
@@ -9488,8 +9488,8 @@ abstract class SwitchMemberImpl extends AstNodeImpl implements SwitchMember {
 /**
  * A switch statement.
  *
- * > switchStatement ::=
- * >     'switch' '(' [Expression] ')' '{' [SwitchCase]* [SwitchDefault]? '}'
+ *    switchStatement ::=
+ *        'switch' '(' [Expression] ')' '{' [SwitchCase]* [SwitchDefault]? '}'
  */
 class SwitchStatementImpl extends StatementImpl implements SwitchStatement {
   /**
@@ -9584,8 +9584,8 @@ class SwitchStatementImpl extends StatementImpl implements SwitchStatement {
 /**
  * A symbol literal expression.
  *
- * > symbolLiteral ::=
- * >     '#' (operator | (identifier ('.' identifier)*))
+ *    symbolLiteral ::=
+ *        '#' (operator | (identifier ('.' identifier)*))
  */
 class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
   /**
@@ -9627,8 +9627,8 @@ class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
 /**
  * A this expression.
  *
- * > thisExpression ::=
- * >     'this'
+ *    thisExpression ::=
+ *        'this'
  */
 class ThisExpressionImpl extends ExpressionImpl implements ThisExpression {
   /**
@@ -9665,8 +9665,8 @@ class ThisExpressionImpl extends ExpressionImpl implements ThisExpression {
 /**
  * A throw expression.
  *
- * > throwExpression ::=
- * >     'throw' [Expression]
+ *    throwExpression ::=
+ *        'throw' [Expression]
  */
 class ThrowExpressionImpl extends ExpressionImpl implements ThrowExpression {
   /**
@@ -9724,9 +9724,9 @@ class ThrowExpressionImpl extends ExpressionImpl implements ThrowExpression {
 /**
  * The declaration of one or more top-level variables of the same type.
  *
- * > topLevelVariableDeclaration ::=
- * >     ('final' | 'const') type? staticFinalDeclarationList ';'
- * >   | variableDeclaration ';'
+ *    topLevelVariableDeclaration ::=
+ *        ('final' | 'const') type? staticFinalDeclarationList ';'
+ *      | variableDeclaration ';'
  */
 class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
     implements TopLevelVariableDeclaration {
@@ -9785,11 +9785,11 @@ class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
 /**
  * A try statement.
  *
- * > tryStatement ::=
- * >     'try' [Block] ([CatchClause]+ finallyClause? | finallyClause)
- * >
- * > finallyClause ::=
- * >     'finally' [Block]
+ *    tryStatement ::=
+ *        'try' [Block] ([CatchClause]+ finallyClause? | finallyClause)
+ *
+ *    finallyClause ::=
+ *        'finally' [Block]
  */
 class TryStatementImpl extends StatementImpl implements TryStatement {
   /**
@@ -9887,12 +9887,12 @@ class TryStatementImpl extends StatementImpl implements TryStatement {
 /**
  * The declaration of a type alias.
  *
- * > typeAlias ::=
- * >     'typedef' typeAliasBody
- * >
- * > typeAliasBody ::=
- * >     classTypeAlias
- * >   | functionTypeAlias
+ *    typeAlias ::=
+ *        'typedef' typeAliasBody
+ *
+ *    typeAliasBody ::=
+ *        classTypeAlias
+ *      | functionTypeAlias
  */
 abstract class TypeAliasImpl extends NamedCompilationUnitMemberImpl
     implements TypeAlias {
@@ -9925,8 +9925,8 @@ abstract class TypeAliasImpl extends NamedCompilationUnitMemberImpl
 /**
  * A list of type arguments.
  *
- * > typeArguments ::=
- * >     '<' typeName (',' typeName)* '>'
+ *    typeArguments ::=
+ *        '<' typeName (',' typeName)* '>'
  */
 class TypeArgumentListImpl extends AstNodeImpl implements TypeArgumentList {
   /**
@@ -9980,9 +9980,9 @@ class TypeArgumentListImpl extends AstNodeImpl implements TypeArgumentList {
 /**
  * A literal that has a type associated with it.
  *
- * > typedLiteral ::=
- * >     [ListLiteral]
- * >   | [MapLiteral]
+ *    typedLiteral ::=
+ *        [ListLiteral]
+ *      | [MapLiteral]
  */
 abstract class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
   /**
@@ -10026,8 +10026,8 @@ abstract class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
 /**
  * The name of a type, which can optionally include type arguments.
  *
- * > typeName ::=
- * >     [Identifier] typeArguments?
+ *    typeName ::=
+ *        [Identifier] typeArguments?
  */
 class TypeNameImpl extends AstNodeImpl implements TypeName {
   /**
@@ -10111,8 +10111,8 @@ class TypeNameImpl extends AstNodeImpl implements TypeName {
 /**
  * A type parameter.
  *
- * > typeParameter ::=
- * >     [SimpleIdentifier] ('extends' [TypeName])?
+ *    typeParameter ::=
+ *        [SimpleIdentifier] ('extends' [TypeName])?
  */
 class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   /**
@@ -10194,8 +10194,8 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
 /**
  * Type parameters within a declaration.
  *
- * > typeParameterList ::=
- * >     '<' [TypeParameter] (',' [TypeParameter])* '>'
+ *    typeParameterList ::=
+ *        '<' [TypeParameter] (',' [TypeParameter])* '>'
  */
 class TypeParameterListImpl extends AstNodeImpl implements TypeParameterList {
   /**
@@ -10248,10 +10248,10 @@ class TypeParameterListImpl extends AstNodeImpl implements TypeParameterList {
 /**
  * A directive that references a URI.
  *
- * > uriBasedDirective ::=
- * >     [ExportDirective]
- * >   | [ImportDirective]
- * >   | [PartDirective]
+ *    uriBasedDirective ::=
+ *        [ExportDirective]
+ *      | [ImportDirective]
+ *      | [PartDirective]
  */
 abstract class UriBasedDirectiveImpl extends DirectiveImpl
     implements UriBasedDirective {
@@ -10354,8 +10354,8 @@ class UriValidationCodeImpl implements UriValidationCode {
  * An identifier that has an initial value associated with it. Instances of this
  * class are always children of the class [VariableDeclarationList].
  *
- * > variableDeclaration ::=
- * >     [SimpleIdentifier] ('=' [Expression])?
+ *    variableDeclaration ::=
+ *        [SimpleIdentifier] ('=' [Expression])?
  *
  * TODO(paulberry): the grammar does not allow metadata to be associated with
  * a VariableDeclaration, and currently we don't record comments for it either.
@@ -10472,14 +10472,14 @@ class VariableDeclarationImpl extends DeclarationImpl
 /**
  * The declaration of one or more variables of the same type.
  *
- * > variableDeclarationList ::=
- * >     finalConstVarOrType [VariableDeclaration] (',' [VariableDeclaration])*
- * >
- * > finalConstVarOrType ::=
- * >   | 'final' [TypeName]?
- * >   | 'const' [TypeName]?
- * >   | 'var'
- * >   | [TypeName]
+ *    variableDeclarationList ::=
+ *        finalConstVarOrType [VariableDeclaration] (',' [VariableDeclaration])*
+ *
+ *    finalConstVarOrType ::=
+ *      | 'final' [TypeName]?
+ *      | 'const' [TypeName]?
+ *      | 'var'
+ *      | [TypeName]
  */
 class VariableDeclarationListImpl extends AnnotatedNodeImpl
     implements VariableDeclarationList {
@@ -10568,8 +10568,8 @@ class VariableDeclarationListImpl extends AnnotatedNodeImpl
  * A list of variables that are being declared in a context where a statement is
  * required.
  *
- * > variableDeclarationStatement ::=
- * >     [VariableDeclarationList] ';'
+ *    variableDeclarationStatement ::=
+ *        [VariableDeclarationList] ';'
  */
 class VariableDeclarationStatementImpl extends StatementImpl
     implements VariableDeclarationStatement {
@@ -10621,8 +10621,8 @@ class VariableDeclarationStatementImpl extends StatementImpl
 /**
  * A while statement.
  *
- * > whileStatement ::=
- * >     'while' '(' [Expression] ')' [Statement]
+ *    whileStatement ::=
+ *        'while' '(' [Expression] ')' [Statement]
  */
 class WhileStatementImpl extends StatementImpl implements WhileStatement {
   /**
@@ -10702,8 +10702,8 @@ class WhileStatementImpl extends StatementImpl implements WhileStatement {
 /**
  * The with clause in a class declaration.
  *
- * > withClause ::=
- * >     'with' [TypeName] (',' [TypeName])*
+ *    withClause ::=
+ *        'with' [TypeName] (',' [TypeName])*
  */
 class WithClauseImpl extends AstNodeImpl implements WithClause {
   /**
@@ -10750,8 +10750,8 @@ class WithClauseImpl extends AstNodeImpl implements WithClause {
 /**
  * A yield statement.
  *
- * > yieldStatement ::=
- * >     'yield' '*'? [Expression] ‘;’
+ *    yieldStatement ::=
+ *        'yield' '*'? [Expression] ‘;’
  */
 class YieldStatementImpl extends StatementImpl implements YieldStatement {
   /**

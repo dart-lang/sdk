@@ -53,8 +53,8 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
  * the same kind (single line or multi-line), this class doesn't enforce that
  * restriction.
  *
- * > adjacentStrings ::=
- * >     [StringLiteral] [StringLiteral]+
+ *    adjacentStrings ::=
+ *        [StringLiteral] [StringLiteral]+
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -110,11 +110,11 @@ abstract class AnnotatedNode extends AstNode {
 /**
  * An annotation that can be associated with an AST node.
  *
- * > metadata ::=
- * >     annotation*
- * >
- * > annotation ::=
- * >     '@' [Identifier] ('.' [SimpleIdentifier])? [ArgumentList]?
+ *    metadata ::=
+ *        annotation*
+ *
+ *    annotation ::=
+ *        '@' [Identifier] ('.' [SimpleIdentifier])? [ArgumentList]?
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -215,12 +215,12 @@ abstract class Annotation extends AstNode {
  * A list of arguments in the invocation of an executable element (that is, a
  * function, method, or constructor).
  *
- * > argumentList ::=
- * >     '(' arguments? ')'
- * >
- * > arguments ::=
- * >     [NamedExpression] (',' [NamedExpression])*
- * >   | [Expression] (',' [Expression])* (',' [NamedExpression])*
+ *    argumentList ::=
+ *        '(' arguments? ')'
+ *
+ *    arguments ::=
+ *        [NamedExpression] (',' [NamedExpression])*
+ *      | [Expression] (',' [Expression])* (',' [NamedExpression])*
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -279,8 +279,8 @@ abstract class ArgumentList extends AstNode {
 /**
  * An as expression.
  *
- * > asExpression ::=
- * >     [Expression] 'as' [TypeName]
+ *    asExpression ::=
+ *        [Expression] 'as' [TypeName]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -326,8 +326,8 @@ abstract class AsExpression extends Expression {
 /**
  * An assert statement.
  *
- * > assertStatement ::=
- * >     'assert' '(' [Expression] ')' ';'
+ *    assertStatement ::=
+ *        'assert' '(' [Expression] ')' ';'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -423,8 +423,8 @@ abstract class AssertStatement extends Statement {
 /**
  * An assignment expression.
  *
- * > assignmentExpression ::=
- * >     [Expression] operator [Expression]
+ *    assignmentExpression ::=
+ *        [Expression] operator [Expression]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -853,8 +853,8 @@ abstract class AstVisitor<R> {
 /**
  * An await expression.
  *
- * > awaitExpression ::=
- * >     'await' [Expression]
+ *    awaitExpression ::=
+ *        'await' [Expression]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -889,8 +889,8 @@ abstract class AwaitExpression extends Expression {
 /**
  * A binary (infix) expression.
  *
- * > binaryExpression ::=
- * >     [Expression] [Token] [Expression]
+ *    binaryExpression ::=
+ *        [Expression] [Token] [Expression]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -975,8 +975,8 @@ abstract class BinaryExpression extends Expression {
 /**
  * A sequence of statements.
  *
- * > block ::=
- * >     '{' statement* '}'
+ *    block ::=
+ *        '{' statement* '}'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -1017,8 +1017,8 @@ abstract class Block extends Statement {
 /**
  * A function body that consists of a block of statements.
  *
- * > blockFunctionBody ::=
- * >     ('async' | 'async' '*' | 'sync' '*')? [Block]
+ *    blockFunctionBody ::=
+ *        ('async' | 'async' '*' | 'sync' '*')? [Block]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -1056,8 +1056,8 @@ abstract class BlockFunctionBody extends FunctionBody {
 /**
  * A boolean literal expression.
  *
- * > booleanLiteral ::=
- * >     'false' | 'true'
+ *    booleanLiteral ::=
+ *        'false' | 'true'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -1086,8 +1086,8 @@ abstract class BooleanLiteral extends Literal {
 /**
  * A break statement.
  *
- * > breakStatement ::=
- * >     'break' [SimpleIdentifier]? ';'
+ *    breakStatement ::=
+ *        'break' [SimpleIdentifier]? ';'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -1154,16 +1154,16 @@ abstract class BreakStatement extends Statement {
  * There are three kinds of expressions that can be used in a cascade
  * expression: [IndexExpression], [MethodInvocation] and [PropertyAccess].
  *
- * > cascadeExpression ::=
- * >     [Expression] cascadeSection*
- * >
- * > cascadeSection ::=
- * >     '..'  (cascadeSelector arguments*) (assignableSelector arguments*)*
- * >     (assignmentOperator expressionWithoutCascade)?
- * >
- * > cascadeSelector ::=
- * >     '[ ' expression '] '
- * >   | identifier
+ *    cascadeExpression ::=
+ *        [Expression] cascadeSection*
+ *
+ *    cascadeSection ::=
+ *        '..'  (cascadeSelector arguments*) (assignableSelector arguments*)*
+ *        (assignmentOperator expressionWithoutCascade)?
+ *
+ *    cascadeSelector ::=
+ *        '[ ' expression '] '
+ *      | identifier
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -1195,12 +1195,12 @@ abstract class CascadeExpression extends Expression {
 /**
  * A catch clause within a try statement.
  *
- * > onPart ::=
- * >     catchPart [Block]
- * >   | 'on' type catchPart? [Block]
- * >
- * > catchPart ::=
- * >     'catch' '(' [SimpleIdentifier] (',' [SimpleIdentifier])? ')'
+ *    onPart ::=
+ *        catchPart [Block]
+ *      | 'on' type catchPart? [Block]
+ *
+ *    catchPart ::=
+ *        'catch' '(' [SimpleIdentifier] (',' [SimpleIdentifier])? ')'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -1326,11 +1326,11 @@ abstract class CatchClause extends AstNode {
 /**
  * The declaration of a class.
  *
- * > classDeclaration ::=
- * >     'abstract'? 'class' [SimpleIdentifier] [TypeParameterList]?
- * >     ([ExtendsClause] [WithClause]?)?
- * >     [ImplementsClause]?
- * >     '{' [ClassMember]* '}'
+ *    classDeclaration ::=
+ *        'abstract'? 'class' [SimpleIdentifier] [TypeParameterList]?
+ *        ([ExtendsClause] [WithClause]?)?
+ *        [ImplementsClause]?
+ *        '{' [ClassMember]* '}'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -1497,11 +1497,11 @@ abstract class ClassMember extends Declaration {}
 /**
  * A class type alias.
  *
- * > classTypeAlias ::=
- * >     [SimpleIdentifier] [TypeParameterList]? '=' 'abstract'? mixinApplication
- * >
- * > mixinApplication ::=
- * >     [TypeName] [WithClause] [ImplementsClause]? ';'
+ *    classTypeAlias ::=
+ *        [SimpleIdentifier] [TypeParameterList]? '=' 'abstract'? mixinApplication
+ *
+ *    mixinApplication ::=
+ *        [TypeName] [WithClause] [ImplementsClause]? ';'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -1601,9 +1601,9 @@ abstract class ClassTypeAlias extends TypeAlias {
 /**
  * A combinator associated with an import or export directive.
  *
- * > combinator ::=
- * >     [HideCombinator]
- * >   | [ShowCombinator]
+ *    combinator ::=
+ *        [HideCombinator]
+ *      | [ShowCombinator]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -1624,20 +1624,20 @@ abstract class Combinator extends AstNode {
 /**
  * A comment within the source code.
  *
- * > comment ::=
- * >     endOfLineComment
- * >   | blockComment
- * >   | documentationComment
- * >
- * > endOfLineComment ::=
- * >     '//' (CHARACTER - EOL)* EOL
- * >
- * > blockComment ::=
- * >     '/ *' CHARACTER* '&#42;/'
- * >
- * > documentationComment ::=
- * >     '/ **' (CHARACTER | [CommentReference])* '&#42;/'
- * >   | ('///' (CHARACTER - EOL)* EOL)+
+ *    comment ::=
+ *        endOfLineComment
+ *      | blockComment
+ *      | documentationComment
+ *
+ *    endOfLineComment ::=
+ *        '//' (CHARACTER - EOL)* EOL
+ *
+ *    blockComment ::=
+ *        '/ *' CHARACTER* '&#42;/'
+ *
+ *    documentationComment ::=
+ *        '/ **' (CHARACTER | [CommentReference])* '&#42;/'
+ *      | ('///' (CHARACTER - EOL)* EOL)+
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -1706,8 +1706,8 @@ abstract class Comment extends AstNode {
 /**
  * A reference to a Dart element that is found within a documentation comment.
  *
- * > commentReference ::=
- * >     '[' 'new'? [Identifier] ']'
+ *    commentReference ::=
+ *        '[' 'new'? [Identifier] ']'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -1750,19 +1750,19 @@ abstract class CommentReference extends AstNode {
  * order even if lexical order does not conform to the restrictions of the
  * grammar.
  *
- * > compilationUnit ::=
- * >     directives declarations
- * >
- * > directives ::=
- * >     [ScriptTag]? [LibraryDirective]? namespaceDirective* [PartDirective]*
- * >   | [PartOfDirective]
- * >
- * > namespaceDirective ::=
- * >     [ImportDirective]
- * >   | [ExportDirective]
- * >
- * > declarations ::=
- * >     [CompilationUnitMember]*
+ *    compilationUnit ::=
+ *        directives declarations
+ *
+ *    directives ::=
+ *        [ScriptTag]? [LibraryDirective]? namespaceDirective* [PartDirective]*
+ *      | [PartOfDirective]
+ *
+ *    namespaceDirective ::=
+ *        [ImportDirective]
+ *      | [ExportDirective]
+ *
+ *    declarations ::=
+ *        [CompilationUnitMember]*
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -1848,13 +1848,13 @@ abstract class CompilationUnit extends AstNode {
  * A node that declares one or more names within the scope of a compilation
  * unit.
  *
- * > compilationUnitMember ::=
- * >     [ClassDeclaration]
- * >   | [TypeAlias]
- * >   | [FunctionDeclaration]
- * >   | [MethodDeclaration]
- * >   | [VariableDeclaration]
- * >   | [VariableDeclaration]
+ *    compilationUnitMember ::=
+ *        [ClassDeclaration]
+ *      | [TypeAlias]
+ *      | [FunctionDeclaration]
+ *      | [MethodDeclaration]
+ *      | [VariableDeclaration]
+ *      | [VariableDeclaration]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -1863,8 +1863,8 @@ abstract class CompilationUnitMember extends Declaration {}
 /**
  * A conditional expression.
  *
- * > conditionalExpression ::=
- * >     [Expression] '?' [Expression] ':' [Expression]
+ *    conditionalExpression ::=
+ *        [Expression] '?' [Expression] ':' [Expression]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -1942,14 +1942,14 @@ abstract class ConditionalExpression extends Expression {
 /**
  * A configuration in either an import or export directive.
  *
- * > configuration ::=
- * >     'if' '(' test ')' uri
- * >
- * > test ::=
- * >     dottedName ('==' stringLiteral)?
- * >
- * > dottedName ::=
- * >     identifier ('.' identifier)*
+ *    configuration ::=
+ *        'if' '(' test ')' uri
+ *
+ *    test ::=
+ *        dottedName ('==' stringLiteral)?
+ *
+ *    dottedName ::=
+ *        identifier ('.' identifier)*
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -2047,23 +2047,23 @@ abstract class Configuration extends AstNode {
 /**
  * A constructor declaration.
  *
- * > constructorDeclaration ::=
- * >     constructorSignature [FunctionBody]?
- * >   | constructorName formalParameterList ':' 'this' ('.' [SimpleIdentifier])? arguments
- * >
- * > constructorSignature ::=
- * >     'external'? constructorName formalParameterList initializerList?
- * >   | 'external'? 'factory' factoryName formalParameterList initializerList?
- * >   | 'external'? 'const'  constructorName formalParameterList initializerList?
- * >
- * > constructorName ::=
- * >     [SimpleIdentifier] ('.' [SimpleIdentifier])?
- * >
- * > factoryName ::=
- * >     [Identifier] ('.' [SimpleIdentifier])?
- * >
- * > initializerList ::=
- * >     ':' [ConstructorInitializer] (',' [ConstructorInitializer])*
+ *    constructorDeclaration ::=
+ *        constructorSignature [FunctionBody]?
+ *      | constructorName formalParameterList ':' 'this' ('.' [SimpleIdentifier])? arguments
+ *
+ *    constructorSignature ::=
+ *        'external'? constructorName formalParameterList initializerList?
+ *      | 'external'? 'factory' factoryName formalParameterList initializerList?
+ *      | 'external'? 'const'  constructorName formalParameterList initializerList?
+ *
+ *    constructorName ::=
+ *        [SimpleIdentifier] ('.' [SimpleIdentifier])?
+ *
+ *    factoryName ::=
+ *        [Identifier] ('.' [SimpleIdentifier])?
+ *
+ *    initializerList ::=
+ *        ':' [ConstructorInitializer] (',' [ConstructorInitializer])*
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -2229,8 +2229,8 @@ abstract class ConstructorDeclaration extends ClassMember {
 /**
  * The initialization of a field within a constructor's initialization list.
  *
- * > fieldInitializer ::=
- * >     ('this' '.')? [SimpleIdentifier] '=' [Expression]
+ *    fieldInitializer ::=
+ *        ('this' '.')? [SimpleIdentifier] '=' [Expression]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -2307,10 +2307,10 @@ abstract class ConstructorFieldInitializer extends ConstructorInitializer {
 /**
  * A node that can occur in the initializer list of a constructor declaration.
  *
- * > constructorInitializer ::=
- * >     [SuperConstructorInvocation]
- * >   | [ConstructorFieldInitializer]
- * >   | [RedirectingConstructorInvocation]
+ *    constructorInitializer ::=
+ *        [SuperConstructorInvocation]
+ *      | [ConstructorFieldInitializer]
+ *      | [RedirectingConstructorInvocation]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -2319,8 +2319,8 @@ abstract class ConstructorInitializer extends AstNode {}
 /**
  * The name of a constructor.
  *
- * > constructorName ::=
- * >     type ('.' identifier)?
+ *    constructorName ::=
+ *        type ('.' identifier)?
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -2382,8 +2382,8 @@ abstract class ConstructorName extends AstNode {
 /**
  * A continue statement.
  *
- * > continueStatement ::=
- * >     'continue' [SimpleIdentifier]? ';'
+ *    continueStatement ::=
+ *        'continue' [SimpleIdentifier]? ';'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -2462,8 +2462,8 @@ abstract class Declaration extends AnnotatedNode {
 /**
  * The declaration of a single identifier.
  *
- * > declaredIdentifier ::=
- * >     [Annotation] finalConstVarOrType [SimpleIdentifier]
+ *    declaredIdentifier ::=
+ *        [Annotation] finalConstVarOrType [SimpleIdentifier]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -2535,11 +2535,11 @@ abstract class DeclaredIdentifier extends Declaration {
  * that are both represented by this class: named formal parameters and
  * positional formal parameters.
  *
- * > defaultFormalParameter ::=
- * >     [NormalFormalParameter] ('=' [Expression])?
- * >
- * > defaultNamedParameter ::=
- * >     [NormalFormalParameter] (':' [Expression])?
+ *    defaultFormalParameter ::=
+ *        [NormalFormalParameter] ('=' [Expression])?
+ *
+ *    defaultNamedParameter ::=
+ *        [NormalFormalParameter] (':' [Expression])?
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -2598,12 +2598,12 @@ abstract class DefaultFormalParameter extends FormalParameter {
 /**
  * A node that represents a directive.
  *
- * > directive ::=
- * >     [ExportDirective]
- * >   | [ImportDirective]
- * >   | [LibraryDirective]
- * >   | [PartDirective]
- * >   | [PartOfDirective]
+ *    directive ::=
+ *        [ExportDirective]
+ *      | [ImportDirective]
+ *      | [LibraryDirective]
+ *      | [PartDirective]
+ *      | [PartOfDirective]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -2629,8 +2629,8 @@ abstract class Directive extends AnnotatedNode {
 /**
  * A do statement.
  *
- * > doStatement ::=
- * >     'do' [Statement] 'while' '(' [Expression] ')' ';'
+ *    doStatement ::=
+ *        'do' [Statement] 'while' '(' [Expression] ')' ';'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -2722,8 +2722,8 @@ abstract class DoStatement extends Statement {
 /**
  * A dotted name, used in a configuration within an import or export directive.
  *
- * > dottedName ::=
- * >     [SimpleIdentifier] ('.' [SimpleIdentifier])*
+ *    dottedName ::=
+ *        [SimpleIdentifier] ('.' [SimpleIdentifier])*
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -2742,12 +2742,12 @@ abstract class DottedName extends AstNode {
 /**
  * A floating point literal expression.
  *
- * > doubleLiteral ::=
- * >     decimalDigit+ ('.' decimalDigit*)? exponent?
- * >   | '.' decimalDigit+ exponent?
- * >
- * > exponent ::=
- * >     ('e' | 'E') ('+' | '-')? decimalDigit+
+ *    doubleLiteral ::=
+ *        decimalDigit+ ('.' decimalDigit*)? exponent?
+ *      | '.' decimalDigit+ exponent?
+ *
+ *    exponent ::=
+ *        ('e' | 'E') ('+' | '-')? decimalDigit+
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -2782,8 +2782,8 @@ abstract class DoubleLiteral extends Literal {
  * An empty function body, which can only appear in constructors or abstract
  * methods.
  *
- * > emptyFunctionBody ::=
- * >     ';'
+ *    emptyFunctionBody ::=
+ *        ';'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -2809,8 +2809,8 @@ abstract class EmptyFunctionBody extends FunctionBody {
 /**
  * An empty statement.
  *
- * > emptyStatement ::=
- * >     ';'
+ *    emptyStatement ::=
+ *        ';'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -2861,8 +2861,8 @@ abstract class EnumConstantDeclaration extends Declaration {
 /**
  * The declaration of an enumeration.
  *
- * > enumType ::=
- * >     metadata 'enum' [SimpleIdentifier] '{' [SimpleIdentifier] (',' [SimpleIdentifier])* (',')? '}'
+ *    enumType ::=
+ *        metadata 'enum' [SimpleIdentifier] '{' [SimpleIdentifier] (',' [SimpleIdentifier])* (',')? '}'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -2924,8 +2924,8 @@ abstract class EnumDeclaration extends NamedCompilationUnitMember {
 /**
  * An export directive.
  *
- * > exportDirective ::=
- * >     [Annotation] 'export' [StringLiteral] [Combinator]* ';'
+ *    exportDirective ::=
+ *        [Annotation] 'export' [StringLiteral] [Combinator]* ';'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -2949,10 +2949,10 @@ abstract class ExportDirective extends NamespaceDirective {
 /**
  * A node that represents an expression.
  *
- * > expression ::=
- * >     [AssignmentExpression]
- * >   | [ConditionalExpression] cascadeSection*
- * >   | [ThrowExpression]
+ *    expression ::=
+ *        [AssignmentExpression]
+ *      | [ConditionalExpression] cascadeSection*
+ *      | [ThrowExpression]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -3043,8 +3043,8 @@ abstract class Expression extends AstNode {
 /**
  * A function body consisting of a single expression.
  *
- * > expressionFunctionBody ::=
- * >     'async'? '=>' [Expression] ';'
+ *    expressionFunctionBody ::=
+ *        'async'? '=>' [Expression] ';'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -3099,8 +3099,8 @@ abstract class ExpressionFunctionBody extends FunctionBody {
 /**
  * An expression used as a statement.
  *
- * > expressionStatement ::=
- * >     [Expression]? ';'
+ *    expressionStatement ::=
+ *        [Expression]? ';'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -3136,8 +3136,8 @@ abstract class ExpressionStatement extends Statement {
 /**
  * The "extends" clause in a class declaration.
  *
- * > extendsClause ::=
- * >     'extends' [TypeName]
+ *    extendsClause ::=
+ *        'extends' [TypeName]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -3172,8 +3172,8 @@ abstract class ExtendsClause extends AstNode {
 /**
  * The declaration of one or more fields of the same type.
  *
- * > fieldDeclaration ::=
- * >     'static'? [VariableDeclarationList] ';'
+ *    fieldDeclaration ::=
+ *        'static'? [VariableDeclarationList] ';'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -3231,9 +3231,9 @@ abstract class FieldDeclaration extends ClassMember {
 /**
  * A field formal parameter.
  *
- * > fieldFormalParameter ::=
- * >     ('final' [TypeName] | 'const' [TypeName] | 'var' | [TypeName])?
- * >     'this' '.' [SimpleIdentifier] ([TypeParameterList]? [FormalParameterList])?
+ *    fieldFormalParameter ::=
+ *        ('final' [TypeName] | 'const' [TypeName] | 'var' | [TypeName])?
+ *        'this' '.' [SimpleIdentifier] ([TypeParameterList]? [FormalParameterList])?
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -3331,9 +3331,9 @@ abstract class FieldFormalParameter extends NormalFormalParameter {
 /**
  * A for-each statement.
  *
- * > forEachStatement ::=
- * >     'await'? 'for' '(' [DeclaredIdentifier] 'in' [Expression] ')' [Block]
- * >   | 'await'? 'for' '(' [SimpleIdentifier] 'in' [Expression] ')' [Block]
+ *    forEachStatement ::=
+ *        'await'? 'for' '(' [DeclaredIdentifier] 'in' [Expression] ')' [Block]
+ *      | 'await'? 'for' '(' [SimpleIdentifier] 'in' [Expression] ')' [Block]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -3466,9 +3466,9 @@ abstract class ForEachStatement extends Statement {
 /**
  * A node representing a parameter to a function.
  *
- * > formalParameter ::=
- * >     [NormalFormalParameter]
- * >   | [DefaultFormalParameter]
+ *    formalParameter ::=
+ *        [NormalFormalParameter]
+ *      | [DefaultFormalParameter]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -3517,23 +3517,23 @@ abstract class FormalParameter extends AstNode {
  * flattened into a single list, which can have any or all kinds of parameters
  * (normal, named, and positional) in any order.
  *
- * > formalParameterList ::=
- * >     '(' ')'
- * >   | '(' normalFormalParameters (',' optionalFormalParameters)? ')'
- * >   | '(' optionalFormalParameters ')'
- * >
- * > normalFormalParameters ::=
- * >     [NormalFormalParameter] (',' [NormalFormalParameter])*
- * >
- * > optionalFormalParameters ::=
- * >     optionalPositionalFormalParameters
- * >   | namedFormalParameters
- * >
- * > optionalPositionalFormalParameters ::=
- * >     '[' [DefaultFormalParameter] (',' [DefaultFormalParameter])* ']'
- * >
- * > namedFormalParameters ::=
- * >     '{' [DefaultFormalParameter] (',' [DefaultFormalParameter])* '}'
+ *    formalParameterList ::=
+ *        '(' ')'
+ *      | '(' normalFormalParameters (',' optionalFormalParameters)? ')'
+ *      | '(' optionalFormalParameters ')'
+ *
+ *    normalFormalParameters ::=
+ *        [NormalFormalParameter] (',' [NormalFormalParameter])*
+ *
+ *    optionalFormalParameters ::=
+ *        optionalPositionalFormalParameters
+ *      | namedFormalParameters
+ *
+ *    optionalPositionalFormalParameters ::=
+ *        '[' [DefaultFormalParameter] (',' [DefaultFormalParameter])* ']'
+ *
+ *    namedFormalParameters ::=
+ *        '{' [DefaultFormalParameter] (',' [DefaultFormalParameter])* '}'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -3610,15 +3610,15 @@ abstract class FormalParameterList extends AstNode {
 /**
  * A for statement.
  *
- * > forStatement ::=
- * >     'for' '(' forLoopParts ')' [Statement]
- * >
- * > forLoopParts ::=
- * >     forInitializerStatement ';' [Expression]? ';' [Expression]?
- * >
- * > forInitializerStatement ::=
- * >     [DefaultFormalParameter]
- * >   | [Expression]?
+ *    forStatement ::=
+ *        'for' '(' forLoopParts ')' [Statement]
+ *
+ *    forLoopParts ::=
+ *        forInitializerStatement ';' [Expression]? ';' [Expression]?
+ *
+ *    forInitializerStatement ::=
+ *        [DefaultFormalParameter]
+ *      | [Expression]?
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -3746,10 +3746,10 @@ abstract class ForStatement extends Statement {
 /**
  * A node representing the body of a function or method.
  *
- * > functionBody ::=
- * >     [BlockFunctionBody]
- * >   | [EmptyFunctionBody]
- * >   | [ExpressionFunctionBody]
+ *    functionBody ::=
+ *        [BlockFunctionBody]
+ *      | [EmptyFunctionBody]
+ *      | [ExpressionFunctionBody]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -3811,12 +3811,12 @@ abstract class FunctionBody extends AstNode {
 /**
  * A top-level declaration.
  *
- * > functionDeclaration ::=
- * >     'external' functionSignature
- * >   | functionSignature [FunctionBody]
- * >
- * > functionSignature ::=
- * >     [Type]? ('get' | 'set')? [SimpleIdentifier] [FormalParameterList]
+ *    functionDeclaration ::=
+ *        'external' functionSignature
+ *      | functionSignature [FunctionBody]
+ *
+ *    functionSignature ::=
+ *        [Type]? ('get' | 'set')? [SimpleIdentifier] [FormalParameterList]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -3924,8 +3924,8 @@ abstract class FunctionDeclarationStatement extends Statement {
 /**
  * A function expression.
  *
- * > functionExpression ::=
- * >     [TypeParameterList]? [FormalParameterList] [FunctionBody]
+ *    functionExpression ::=
+ *        [TypeParameterList]? [FormalParameterList] [FunctionBody]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -3989,8 +3989,8 @@ abstract class FunctionExpression extends Expression {
  * [MethodInvocation] nodes. Invocations of getters and setters are represented
  * by either [PrefixedIdentifier] or [PropertyAccess] nodes.
  *
- * > functionExpressionInvocation ::=
- * >     [Expression] [TypeArgumentList]? [ArgumentList]
+ *    functionExpressionInvocation ::=
+ *        [Expression] [TypeArgumentList]? [ArgumentList]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -4098,11 +4098,11 @@ abstract class FunctionExpressionInvocation extends InvocationExpression {
 /**
  * A function type alias.
  *
- * > functionTypeAlias ::=
- * >     functionPrefix [TypeParameterList]? [FormalParameterList] ';'
- * >
- * > functionPrefix ::=
- * >     [TypeName]? [SimpleIdentifier]
+ *    functionTypeAlias ::=
+ *        functionPrefix [TypeParameterList]? [FormalParameterList] ';'
+ *
+ *    functionPrefix ::=
+ *        [TypeName]? [SimpleIdentifier]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -4163,8 +4163,8 @@ abstract class FunctionTypeAlias extends TypeAlias {
 /**
  * A function-typed formal parameter.
  *
- * > functionSignature ::=
- * >     [TypeName]? [SimpleIdentifier] [TypeParameterList]? [FormalParameterList]
+ *    functionSignature ::=
+ *        [TypeName]? [SimpleIdentifier] [TypeParameterList]? [FormalParameterList]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -4222,8 +4222,8 @@ abstract class FunctionTypedFormalParameter extends NormalFormalParameter {
  * A combinator that restricts the names being imported to those that are not in
  * a given list.
  *
- * > hideCombinator ::=
- * >     'hide' [SimpleIdentifier] (',' [SimpleIdentifier])*
+ *    hideCombinator ::=
+ *        'hide' [SimpleIdentifier] (',' [SimpleIdentifier])*
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -4244,9 +4244,9 @@ abstract class HideCombinator extends Combinator {
 /**
  * A node that represents an identifier.
  *
- * > identifier ::=
- * >     [SimpleIdentifier]
- * >   | [PrefixedIdentifier]
+ *    identifier ::=
+ *        [SimpleIdentifier]
+ *      | [PrefixedIdentifier]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -4292,8 +4292,8 @@ abstract class Identifier extends Expression {
 /**
  * An if statement.
  *
- * > ifStatement ::=
- * >     'if' '(' [Expression] ')' [Statement] ('else' [Statement])?
+ *    ifStatement ::=
+ *        'if' '(' [Expression] ')' [Statement] ('else' [Statement])?
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -4391,8 +4391,8 @@ abstract class IfStatement extends Statement {
 /**
  * The "implements" clause in an class declaration.
  *
- * > implementsClause ::=
- * >     'implements' [TypeName] (',' [TypeName])*
+ *    implementsClause ::=
+ *        'implements' [TypeName] (',' [TypeName])*
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -4422,9 +4422,9 @@ abstract class ImplementsClause extends AstNode {
 /**
  * An import directive.
  *
- * > importDirective ::=
- * >     [Annotation] 'import' [StringLiteral] ('as' identifier)? [Combinator]* ';'
- * >   | [Annotation] 'import' [StringLiteral] 'deferred' 'as' identifier [Combinator]* ';'
+ *    importDirective ::=
+ *        [Annotation] 'import' [StringLiteral] ('as' identifier)? [Combinator]* ';'
+ *      | [Annotation] 'import' [StringLiteral] 'deferred' 'as' identifier [Combinator]* ';'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -4580,8 +4580,8 @@ abstract class ImportDirective extends NamespaceDirective {
 /**
  * An index expression.
  *
- * > indexExpression ::=
- * >     [Expression] '[' [Expression] ']'
+ *    indexExpression ::=
+ *        [Expression] '[' [Expression] ']'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -4744,8 +4744,8 @@ abstract class IndexExpression extends Expression {
 /**
  * An instance creation expression.
  *
- * > newExpression ::=
- * >     ('new' | 'const') [TypeName] ('.' [SimpleIdentifier])? [ArgumentList]
+ *    newExpression ::=
+ *        ('new' | 'const') [TypeName] ('.' [SimpleIdentifier])? [ArgumentList]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -4813,16 +4813,16 @@ abstract class InstanceCreationExpression extends Expression {
 /**
  * An integer literal expression.
  *
- * > integerLiteral ::=
- * >     decimalIntegerLiteral
- * >   | hexadecimalIntegerLiteral
- * >
- * > decimalIntegerLiteral ::=
- * >     decimalDigit+
- * >
- * > hexadecimalIntegerLiteral ::=
- * >     '0x' hexadecimalDigit+
- * >   | '0X' hexadecimalDigit+
+ *    integerLiteral ::=
+ *        decimalIntegerLiteral
+ *      | hexadecimalIntegerLiteral
+ *
+ *    decimalIntegerLiteral ::=
+ *        decimalDigit+
+ *
+ *    hexadecimalIntegerLiteral ::=
+ *        '0x' hexadecimalDigit+
+ *      | '0X' hexadecimalDigit+
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -4856,9 +4856,9 @@ abstract class IntegerLiteral extends Literal {
 /**
  * A node within a [StringInterpolation].
  *
- * > interpolationElement ::=
- * >     [InterpolationExpression]
- * >   | [InterpolationString]
+ *    interpolationElement ::=
+ *        [InterpolationExpression]
+ *      | [InterpolationString]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -4867,9 +4867,9 @@ abstract class InterpolationElement extends AstNode {}
 /**
  * An expression embedded in a string interpolation.
  *
- * > interpolationExpression ::=
- * >     '$' [SimpleIdentifier]
- * >   | '$' '{' [Expression] '}'
+ *    interpolationExpression ::=
+ *        '$' [SimpleIdentifier]
+ *      | '$' '{' [Expression] '}'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -4922,8 +4922,8 @@ abstract class InterpolationExpression extends InterpolationElement {
 /**
  * A non-empty substring of an interpolated string.
  *
- * > interpolationString ::=
- * >     characters
+ *    interpolationString ::=
+ *        characters
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -5036,8 +5036,8 @@ abstract class InvocationExpression extends Expression {
 /**
  * An is expression.
  *
- * > isExpression ::=
- * >     [Expression] 'is' '!'? [TypeName]
+ *    isExpression ::=
+ *        [Expression] 'is' '!'? [TypeName]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -5094,8 +5094,8 @@ abstract class IsExpression extends Expression {
 /**
  * A label on either a [LabeledStatement] or a [NamedExpression].
  *
- * > label ::=
- * >     [SimpleIdentifier] ':'
+ *    label ::=
+ *        [SimpleIdentifier] ':'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -5130,8 +5130,8 @@ abstract class Label extends AstNode {
 /**
  * A statement that has a label associated with them.
  *
- * > labeledStatement ::=
- * >    [Label]+ [Statement]
+ *    labeledStatement ::=
+ *       [Label]+ [Statement]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -5162,8 +5162,8 @@ abstract class LabeledStatement extends Statement {
 /**
  * A library directive.
  *
- * > libraryDirective ::=
- * >     [Annotation] 'library' [Identifier] ';'
+ *    libraryDirective ::=
+ *        [Annotation] 'library' [Identifier] ';'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -5214,8 +5214,8 @@ abstract class LibraryDirective extends Directive {
 /**
  * The identifier for a library.
  *
- * > libraryIdentifier ::=
- * >     [SimpleIdentifier] ('.' [SimpleIdentifier])*
+ *    libraryIdentifier ::=
+ *        [SimpleIdentifier] ('.' [SimpleIdentifier])*
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -5235,8 +5235,8 @@ abstract class LibraryIdentifier extends Identifier {
 /**
  * A list literal.
  *
- * > listLiteral ::=
- * >     'const'? ('<' [TypeName] '>')? '[' ([Expression] ','?)? ']'
+ *    listLiteral ::=
+ *        'const'? ('<' [TypeName] '>')? '[' ([Expression] ','?)? ']'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -5283,14 +5283,14 @@ abstract class ListLiteral extends TypedLiteral {
 /**
  * A node that represents a literal expression.
  *
- * > literal ::=
- * >     [BooleanLiteral]
- * >   | [DoubleLiteral]
- * >   | [IntegerLiteral]
- * >   | [ListLiteral]
- * >   | [MapLiteral]
- * >   | [NullLiteral]
- * >   | [StringLiteral]
+ *    literal ::=
+ *        [BooleanLiteral]
+ *      | [DoubleLiteral]
+ *      | [IntegerLiteral]
+ *      | [ListLiteral]
+ *      | [MapLiteral]
+ *      | [NullLiteral]
+ *      | [StringLiteral]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -5299,9 +5299,9 @@ abstract class Literal extends Expression {}
 /**
  * A literal map.
  *
- * > mapLiteral ::=
- * >     'const'? ('<' [TypeName] (',' [TypeName])* '>')?
- * >     '{' ([MapLiteralEntry] (',' [MapLiteralEntry])* ','?)? '}'
+ *    mapLiteral ::=
+ *        'const'? ('<' [TypeName] (',' [TypeName])* '>')?
+ *        '{' ([MapLiteralEntry] (',' [MapLiteralEntry])* ','?)? '}'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -5347,8 +5347,8 @@ abstract class MapLiteral extends TypedLiteral {
 /**
  * A single key/value pair in a map literal.
  *
- * > mapLiteralEntry ::=
- * >     [Expression] ':' [Expression]
+ *    mapLiteralEntry ::=
+ *        [Expression] ':' [Expression]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -5397,16 +5397,16 @@ abstract class MapLiteralEntry extends AstNode {
 /**
  * A method declaration.
  *
- * > methodDeclaration ::=
- * >     methodSignature [FunctionBody]
- * >
- * > methodSignature ::=
- * >     'external'? ('abstract' | 'static')? [Type]? ('get' | 'set')?
- * >     methodName [TypeParameterList] [FormalParameterList]
- * >
- * > methodName ::=
- * >     [SimpleIdentifier]
- * >   | 'operator' [SimpleIdentifier]
+ *    methodDeclaration ::=
+ *        methodSignature [FunctionBody]
+ *
+ *    methodSignature ::=
+ *        'external'? ('abstract' | 'static')? [Type]? ('get' | 'set')?
+ *        methodName [TypeParameterList] [FormalParameterList]
+ *
+ *    methodName ::=
+ *        [SimpleIdentifier]
+ *      | 'operator' [SimpleIdentifier]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -5570,8 +5570,8 @@ abstract class MethodDeclaration extends ClassMember {
  * [FunctionExpressionInvocation] nodes. Invocations of getters and setters are
  * represented by either [PrefixedIdentifier] or [PropertyAccess] nodes.
  *
- * > methodInvocation ::=
- * >     ([Expression] '.')? [SimpleIdentifier] [TypeArgumentList]? [ArgumentList]
+ *    methodInvocation ::=
+ *        ([Expression] '.')? [SimpleIdentifier] [TypeArgumentList]? [ArgumentList]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -5709,8 +5709,8 @@ abstract class NamedCompilationUnitMember extends CompilationUnitMember {
  * An expression that has a name associated with it. They are used in method
  * invocations when there are named parameters.
  *
- * > namedExpression ::=
- * >     [Label] [Expression]
+ *    namedExpression ::=
+ *        [Label] [Expression]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -5753,9 +5753,9 @@ abstract class NamedExpression extends Expression {
 /**
  * A node that represents a directive that impacts the namespace of a library.
  *
- * > directive ::=
- * >     [ExportDirective]
- * >   | [ImportDirective]
+ *    directive ::=
+ *        [ExportDirective]
+ *      | [ImportDirective]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -5791,8 +5791,8 @@ abstract class NamespaceDirective extends UriBasedDirective {
 /**
  * The "native" clause in an class declaration.
  *
- * > nativeClause ::=
- * >     'native' [StringLiteral]
+ *    nativeClause ::=
+ *        'native' [StringLiteral]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -5829,8 +5829,8 @@ abstract class NativeClause extends AstNode {
  * A function body that consists of a native keyword followed by a string
  * literal.
  *
- * > nativeFunctionBody ::=
- * >     'native' [SimpleStringLiteral] ';'
+ *    nativeFunctionBody ::=
+ *        'native' [SimpleStringLiteral] ';'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -5937,10 +5937,10 @@ abstract class NodeList<E extends AstNode> implements List<E> {
 /**
  * A formal parameter that is required (is not optional).
  *
- * > normalFormalParameter ::=
- * >     [FunctionTypedFormalParameter]
- * >   | [FieldFormalParameter]
- * >   | [SimpleFormalParameter]
+ *    normalFormalParameter ::=
+ *        [FunctionTypedFormalParameter]
+ *      | [FieldFormalParameter]
+ *      | [SimpleFormalParameter]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -5977,8 +5977,8 @@ abstract class NormalFormalParameter extends FormalParameter {
 /**
  * A null literal expression.
  *
- * > nullLiteral ::=
- * >     'null'
+ *    nullLiteral ::=
+ *        'null'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -6002,8 +6002,8 @@ abstract class NullLiteral extends Literal {
 /**
  * A parenthesized expression.
  *
- * > parenthesizedExpression ::=
- * >     '(' [Expression] ')'
+ *    parenthesizedExpression ::=
+ *        '(' [Expression] ')'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -6048,8 +6048,8 @@ abstract class ParenthesizedExpression extends Expression {
 /**
  * A part directive.
  *
- * > partDirective ::=
- * >     [Annotation] 'part' [StringLiteral] ';'
+ *    partDirective ::=
+ *        [Annotation] 'part' [StringLiteral] ';'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -6090,8 +6090,8 @@ abstract class PartDirective extends UriBasedDirective {
 /**
  * A part-of directive.
  *
- * > partOfDirective ::=
- * >     [Annotation] 'part' 'of' [Identifier] ';'
+ *    partOfDirective ::=
+ *        [Annotation] 'part' 'of' [Identifier] ';'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -6155,8 +6155,8 @@ abstract class PartOfDirective extends Directive {
 /**
  * A postfix unary expression.
  *
- * > postfixExpression ::=
- * >     [Expression] [Token]
+ *    postfixExpression ::=
+ *        [Expression] [Token]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -6229,8 +6229,8 @@ abstract class PostfixExpression extends Expression {
  * An identifier that is prefixed or an access to an object property where the
  * target of the property access is a simple identifier.
  *
- * > prefixedIdentifier ::=
- * >     [SimpleIdentifier] '.' [SimpleIdentifier]
+ *    prefixedIdentifier ::=
+ *        [SimpleIdentifier] '.' [SimpleIdentifier]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -6288,8 +6288,8 @@ abstract class PrefixedIdentifier extends Identifier {
 /**
  * A prefix unary expression.
  *
- * > prefixExpression ::=
- * >     [Token] [Expression]
+ *    prefixExpression ::=
+ *        [Token] [Expression]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -6365,8 +6365,8 @@ abstract class PrefixExpression extends Expression {
  * as [PrefixedIdentifier] nodes in cases where the target is also a simple
  * identifier.
  *
- * > propertyAccess ::=
- * >     [Expression] '.' [SimpleIdentifier]
+ *    propertyAccess ::=
+ *        [Expression] '.' [SimpleIdentifier]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -6433,8 +6433,8 @@ abstract class PropertyAccess extends Expression {
  * The invocation of a constructor in the same class from within a constructor's
  * initialization list.
  *
- * > redirectingConstructorInvocation ::=
- * >     'this' ('.' identifier)? arguments
+ *    redirectingConstructorInvocation ::=
+ *        'this' ('.' identifier)? arguments
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -6511,8 +6511,8 @@ abstract class RedirectingConstructorInvocation extends ConstructorInitializer {
 /**
  * A rethrow expression.
  *
- * > rethrowExpression ::=
- * >     'rethrow'
+ *    rethrowExpression ::=
+ *        'rethrow'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -6536,8 +6536,8 @@ abstract class RethrowExpression extends Expression {
 /**
  * A return statement.
  *
- * > returnStatement ::=
- * >     'return' [Expression]? ';'
+ *    returnStatement ::=
+ *        'return' [Expression]? ';'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -6586,8 +6586,8 @@ abstract class ReturnStatement extends Statement {
 /**
  * A script tag that can optionally occur at the beginning of a compilation unit.
  *
- * > scriptTag ::=
- * >     '#!' (~NEWLINE)* NEWLINE
+ *    scriptTag ::=
+ *        '#!' (~NEWLINE)* NEWLINE
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -6611,8 +6611,8 @@ abstract class ScriptTag extends AstNode {
 /**
  * A combinator that restricts the names being imported to those in a given list.
  *
- * > showCombinator ::=
- * >     'show' [SimpleIdentifier] (',' [SimpleIdentifier])*
+ *    showCombinator ::=
+ *        'show' [SimpleIdentifier] (',' [SimpleIdentifier])*
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -6633,8 +6633,8 @@ abstract class ShowCombinator extends Combinator {
 /**
  * A simple formal parameter.
  *
- * > simpleFormalParameter ::=
- * >     ('final' [TypeName] | 'var' | [TypeName])? [SimpleIdentifier]
+ *    simpleFormalParameter ::=
+ *        ('final' [TypeName] | 'var' | [TypeName])? [SimpleIdentifier]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -6679,12 +6679,12 @@ abstract class SimpleFormalParameter extends NormalFormalParameter {
 /**
  * A simple identifier.
  *
- * > simpleIdentifier ::=
- * >     initialCharacter internalCharacter*
- * >
- * > initialCharacter ::= '_' | '$' | letter
- * >
- * > internalCharacter ::= '_' | '$' | letter | digit
+ *    simpleIdentifier ::=
+ *        initialCharacter internalCharacter*
+ *
+ *    initialCharacter ::= '_' | '$' | letter
+ *
+ *    internalCharacter ::= '_' | '$' | letter | digit
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -6769,24 +6769,24 @@ abstract class SimpleIdentifier extends Identifier {
 /**
  * A string literal expression that does not contain any interpolations.
  *
- * > simpleStringLiteral ::=
- * >     rawStringLiteral
- * >   | basicStringLiteral
- * >
- * > rawStringLiteral ::=
- * >     'r' basicStringLiteral
- * >
- * > simpleStringLiteral ::=
- * >     multiLineStringLiteral
- * >   | singleLineStringLiteral
- * >
- * > multiLineStringLiteral ::=
- * >     "'''" characters "'''"
- * >   | '"""' characters '"""'
- * >
- * > singleLineStringLiteral ::=
- * >     "'" characters "'"
- * >   | '"' characters '"'
+ *    simpleStringLiteral ::=
+ *        rawStringLiteral
+ *      | basicStringLiteral
+ *
+ *    rawStringLiteral ::=
+ *        'r' basicStringLiteral
+ *
+ *    simpleStringLiteral ::=
+ *        multiLineStringLiteral
+ *      | singleLineStringLiteral
+ *
+ *    multiLineStringLiteral ::=
+ *        "'''" characters "'''"
+ *      | '"""' characters '"""'
+ *
+ *    singleLineStringLiteral ::=
+ *        "'" characters "'"
+ *      | '"' characters '"'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -6821,9 +6821,9 @@ abstract class SimpleStringLiteral extends SingleStringLiteral {
 /**
  * A single string literal expression.
  *
- * > singleStringLiteral ::=
- * >     [SimpleStringLiteral]
- * >   | [StringInterpolation]
+ *    singleStringLiteral ::=
+ *        [SimpleStringLiteral]
+ *      | [StringInterpolation]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -6859,21 +6859,21 @@ abstract class SingleStringLiteral extends StringLiteral {
 /**
  * A node that represents a statement.
  *
- * > statement ::=
- * >     [Block]
- * >   | [VariableDeclarationStatement]
- * >   | [ForStatement]
- * >   | [ForEachStatement]
- * >   | [WhileStatement]
- * >   | [DoStatement]
- * >   | [SwitchStatement]
- * >   | [IfStatement]
- * >   | [TryStatement]
- * >   | [BreakStatement]
- * >   | [ContinueStatement]
- * >   | [ReturnStatement]
- * >   | [ExpressionStatement]
- * >   | [FunctionDeclarationStatement]
+ *    statement ::=
+ *        [Block]
+ *      | [VariableDeclarationStatement]
+ *      | [ForStatement]
+ *      | [ForEachStatement]
+ *      | [WhileStatement]
+ *      | [DoStatement]
+ *      | [SwitchStatement]
+ *      | [IfStatement]
+ *      | [TryStatement]
+ *      | [BreakStatement]
+ *      | [ContinueStatement]
+ *      | [ReturnStatement]
+ *      | [ExpressionStatement]
+ *      | [FunctionDeclarationStatement]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -6888,9 +6888,9 @@ abstract class Statement extends AstNode {
 /**
  * A string interpolation literal.
  *
- * > stringInterpolation ::=
- * >     ''' [InterpolationElement]* '''
- * >   | '"' [InterpolationElement]* '"'
+ *    stringInterpolation ::=
+ *        ''' [InterpolationElement]* '''
+ *      | '"' [InterpolationElement]* '"'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -6910,10 +6910,10 @@ abstract class StringInterpolation extends SingleStringLiteral {
 /**
  * A string literal expression.
  *
- * > stringLiteral ::=
- * >     [SimpleStringLiteral]
- * >   | [AdjacentStrings]
- * >   | [StringInterpolation]
+ *    stringLiteral ::=
+ *        [SimpleStringLiteral]
+ *      | [AdjacentStrings]
+ *      | [StringInterpolation]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -6929,8 +6929,8 @@ abstract class StringLiteral extends Literal {
  * The invocation of a superclass' constructor from within a constructor's
  * initialization list.
  *
- * > superInvocation ::=
- * >     'super' ('.' [SimpleIdentifier])? [ArgumentList]
+ *    superInvocation ::=
+ *        'super' ('.' [SimpleIdentifier])? [ArgumentList]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -7008,8 +7008,8 @@ abstract class SuperConstructorInvocation extends ConstructorInitializer {
 /**
  * A super expression.
  *
- * > superExpression ::=
- * >     'super'
+ *    superExpression ::=
+ *        'super'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -7033,8 +7033,8 @@ abstract class SuperExpression extends Expression {
 /**
  * A case in a switch statement.
  *
- * > switchCase ::=
- * >     [SimpleIdentifier]* 'case' [Expression] ':' [Statement]*
+ *    switchCase ::=
+ *        [SimpleIdentifier]* 'case' [Expression] ':' [Statement]*
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -7061,8 +7061,8 @@ abstract class SwitchCase extends SwitchMember {
 /**
  * The default case in a switch statement.
  *
- * > switchDefault ::=
- * >     [SimpleIdentifier]* 'default' ':' [Statement]*
+ *    switchDefault ::=
+ *        [SimpleIdentifier]* 'default' ':' [Statement]*
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -7078,9 +7078,9 @@ abstract class SwitchDefault extends SwitchMember {
 /**
  * An element within a switch statement.
  *
- * > switchMember ::=
- * >     switchCase
- * >   | switchDefault
+ *    switchMember ::=
+ *        switchCase
+ *      | switchDefault
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -7123,8 +7123,8 @@ abstract class SwitchMember extends AstNode {
 /**
  * A switch statement.
  *
- * > switchStatement ::=
- * >     'switch' '(' [Expression] ')' '{' [SwitchCase]* [SwitchDefault]? '}'
+ *    switchStatement ::=
+ *        'switch' '(' [Expression] ')' '{' [SwitchCase]* [SwitchDefault]? '}'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -7213,8 +7213,8 @@ abstract class SwitchStatement extends Statement {
 /**
  * A symbol literal expression.
  *
- * > symbolLiteral ::=
- * >     '#' (operator | (identifier ('.' identifier)*))
+ *    symbolLiteral ::=
+ *        '#' (operator | (identifier ('.' identifier)*))
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -7244,8 +7244,8 @@ abstract class SymbolLiteral extends Literal {
 /**
  * A this expression.
  *
- * > thisExpression ::=
- * >     'this'
+ *    thisExpression ::=
+ *        'this'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -7269,8 +7269,8 @@ abstract class ThisExpression extends Expression {
 /**
  * A throw expression.
  *
- * > throwExpression ::=
- * >     'throw' [Expression]
+ *    throwExpression ::=
+ *        'throw' [Expression]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -7306,9 +7306,9 @@ abstract class ThrowExpression extends Expression {
 /**
  * The declaration of one or more top-level variables of the same type.
  *
- * > topLevelVariableDeclaration ::=
- * >     ('final' | 'const') type? staticFinalDeclarationList ';'
- * >   | variableDeclaration ';'
+ *    topLevelVariableDeclaration ::=
+ *        ('final' | 'const') type? staticFinalDeclarationList ';'
+ *      | variableDeclaration ';'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -7349,11 +7349,11 @@ abstract class TopLevelVariableDeclaration extends CompilationUnitMember {
 /**
  * A try statement.
  *
- * > tryStatement ::=
- * >     'try' [Block] ([CatchClause]+ finallyClause? | finallyClause)
- * >
- * > finallyClause ::=
- * >     'finally' [Block]
+ *    tryStatement ::=
+ *        'try' [Block] ([CatchClause]+ finallyClause? | finallyClause)
+ *
+ *    finallyClause ::=
+ *        'finally' [Block]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -7421,12 +7421,12 @@ abstract class TryStatement extends Statement {
 /**
  * The declaration of a type alias.
  *
- * > typeAlias ::=
- * >     'typedef' typeAliasBody
- * >
- * > typeAliasBody ::=
- * >     classTypeAlias
- * >   | functionTypeAlias
+ *    typeAlias ::=
+ *        'typedef' typeAliasBody
+ *
+ *    typeAliasBody ::=
+ *        classTypeAlias
+ *      | functionTypeAlias
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -7455,8 +7455,8 @@ abstract class TypeAlias extends NamedCompilationUnitMember {
 /**
  * A list of type arguments.
  *
- * > typeArguments ::=
- * >     '<' typeName (',' typeName)* '>'
+ *    typeArguments ::=
+ *        '<' typeName (',' typeName)* '>'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -7497,9 +7497,9 @@ abstract class TypeArgumentList extends AstNode {
 /**
  * A literal that has a type associated with it.
  *
- * > typedLiteral ::=
- * >     [ListLiteral]
- * >   | [MapLiteral]
+ *    typedLiteral ::=
+ *        [ListLiteral]
+ *      | [MapLiteral]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -7531,8 +7531,8 @@ abstract class TypedLiteral extends Literal {
 /**
  * The name of a type, which can optionally include type arguments.
  *
- * > typeName ::=
- * >     [Identifier] typeArguments?
+ *    typeName ::=
+ *        [Identifier] typeArguments?
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -7589,8 +7589,8 @@ abstract class TypeName extends AstNode {
 /**
  * A type parameter.
  *
- * > typeParameter ::=
- * >     [SimpleIdentifier] ('extends' [TypeName])?
+ *    typeParameter ::=
+ *        [SimpleIdentifier] ('extends' [TypeName])?
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -7645,8 +7645,8 @@ abstract class TypeParameter extends Declaration {
 /**
  * Type parameters within a declaration.
  *
- * > typeParameterList ::=
- * >     '<' [TypeParameter] (',' [TypeParameter])* '>'
+ *    typeParameterList ::=
+ *        '<' [TypeParameter] (',' [TypeParameter])* '>'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -7678,10 +7678,10 @@ abstract class TypeParameterList extends AstNode {
 /**
  * A directive that references a URI.
  *
- * > uriBasedDirective ::=
- * >     [ExportDirective]
- * >   | [ImportDirective]
- * >   | [PartDirective]
+ *    uriBasedDirective ::=
+ *        [ExportDirective]
+ *      | [ImportDirective]
+ *      | [PartDirective]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -7751,8 +7751,8 @@ abstract class UriValidationCode {
  * An identifier that has an initial value associated with it. Instances of this
  * class are always children of the class [VariableDeclarationList].
  *
- * > variableDeclaration ::=
- * >     [SimpleIdentifier] ('=' [Expression])?
+ *    variableDeclaration ::=
+ *        [SimpleIdentifier] ('=' [Expression])?
  *
  * TODO(paulberry): the grammar does not allow metadata to be associated with
  * a VariableDeclaration, and currently we don't record comments for it either.
@@ -7823,14 +7823,14 @@ abstract class VariableDeclaration extends Declaration {
 /**
  * The declaration of one or more variables of the same type.
  *
- * > variableDeclarationList ::=
- * >     finalConstVarOrType [VariableDeclaration] (',' [VariableDeclaration])*
- * >
- * > finalConstVarOrType ::=
- * >   | 'final' [TypeName]?
- * >   | 'const' [TypeName]?
- * >   | 'var'
- * >   | [TypeName]
+ *    variableDeclarationList ::=
+ *        finalConstVarOrType [VariableDeclaration] (',' [VariableDeclaration])*
+ *
+ *    finalConstVarOrType ::=
+ *      | 'final' [TypeName]?
+ *      | 'const' [TypeName]?
+ *      | 'var'
+ *      | [TypeName]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -7895,8 +7895,8 @@ abstract class VariableDeclarationList extends AnnotatedNode {
  * A list of variables that are being declared in a context where a statement is
  * required.
  *
- * > variableDeclarationStatement ::=
- * >     [VariableDeclarationList] ';'
+ *    variableDeclarationStatement ::=
+ *        [VariableDeclarationList] ';'
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -7932,8 +7932,8 @@ abstract class VariableDeclarationStatement extends Statement {
 /**
  * A while statement.
  *
- * > whileStatement ::=
- * >     'while' '(' [Expression] ')' [Statement]
+ *    whileStatement ::=
+ *        'while' '(' [Expression] ')' [Statement]
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -8004,8 +8004,8 @@ abstract class WhileStatement extends Statement {
 /**
  * The with clause in a class declaration.
  *
- * > withClause ::=
- * >     'with' [TypeName] (',' [TypeName])*
+ *    withClause ::=
+ *        'with' [TypeName] (',' [TypeName])*
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -8035,8 +8035,8 @@ abstract class WithClause extends AstNode {
 /**
  * A yield statement.
  *
- * > yieldStatement ::=
- * >     'yield' '*'? [Expression] ‘;’
+ *    yieldStatement ::=
+ *        'yield' '*'? [Expression] ‘;’
  *
  * Clients may not extend, implement or mix-in this class.
  */
