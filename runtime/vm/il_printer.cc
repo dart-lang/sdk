@@ -447,6 +447,9 @@ void PolymorphicInstanceCallInstr::PrintOperandsTo(BufferFormatter* f) const {
     PushArgumentAt(i)->value()->PrintTo(f);
   }
   PrintICDataHelper(f, ic_data());
+  if (with_checks()) {
+    f->Print(" WITH CHECKS");
+  }
 }
 
 

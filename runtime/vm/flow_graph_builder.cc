@@ -39,9 +39,7 @@ DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
 DEFINE_FLAG(bool, trace_type_check_elimination, false,
             "Trace type check elimination at compile time.");
 
-DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, profile_vm);
-DECLARE_FLAG(bool, use_field_guards);
 
 // Quick access to the locally defined zone() method.
 #define Z (zone())

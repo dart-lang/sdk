@@ -55,14 +55,11 @@ DEFINE_FLAG(bool, overlap_type_arguments, true,
 DEFINE_FLAG(bool, show_internal_names, false,
     "Show names of internal classes (e.g. \"OneByteString\") in error messages "
     "instead of showing the corresponding interface names (e.g. \"String\")");
-DEFINE_FLAG(bool, use_field_guards, true, "Guard field cids.");
 DEFINE_FLAG(bool, use_lib_cache, true, "Use library name cache");
 DEFINE_FLAG(bool, ignore_patch_signature_mismatch, false,
             "Ignore patch file member signature mismatch.");
 
 DECLARE_FLAG(charp, coverage_dir);
-DECLARE_FLAG(bool, load_deferred_eagerly);
-DECLARE_FLAG(bool, precompilation);
 DECLARE_FLAG(bool, show_invisible_frames);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
@@ -21108,7 +21105,7 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
       uword pc = code.EntryPoint() + Smi::Value(PcOffsetAtFrame(i));
       if (code.is_optimized() && expand_inlined()) {
         // Traverse inlined frames.
-        if (!FLAG_precompilation) {
+        if (!FLAG_precompiled_mode) {
           for (InlinedFunctionsIterator it(code, pc);
                !it.Done() && (*frame_index < max_frames); it.Advance()) {
             function = it.function();

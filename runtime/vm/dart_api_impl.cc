@@ -51,8 +51,6 @@ namespace dart {
 #define Z (T->zone())
 
 
-DECLARE_FLAG(bool, load_deferred_eagerly);
-DECLARE_FLAG(bool, precompilation);
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, verify_handles);
 #if defined(DART_NO_SNAPSHOT)
@@ -1147,7 +1145,7 @@ DART_EXPORT char* Dart_Initialize(
     Dart_FileCloseCallback file_close,
     Dart_EntropySource entropy_source,
     Dart_GetVMServiceAssetsArchive get_service_assets) {
-  if ((instructions_snapshot != NULL) && !FLAG_precompilation) {
+  if ((instructions_snapshot != NULL) && !FLAG_precompiled_mode) {
     return strdup("Flag --precompilation was not specified.");
   }
   if (interrupt != NULL) {
@@ -6100,7 +6098,7 @@ DART_EXPORT Dart_Handle Dart_Precompile(
     bool reset_fields) {
   API_TIMELINE_BEGIN_END;
   DARTSCOPE(Thread::Current());
-  if (!FLAG_precompilation) {
+  if (!FLAG_precompiled_mode) {
     return Dart_NewApiError("Flag --precompilation was not specified.");
   }
   Dart_Handle result = Api::CheckAndFinalizePendingClasses(T);

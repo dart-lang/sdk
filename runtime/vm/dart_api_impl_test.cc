@@ -19,7 +19,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, verify_acquired_data);
 DECLARE_FLAG(bool, ignore_patch_signature_mismatch);
 
@@ -1906,6 +1905,9 @@ TEST_CASE(ExternalByteDataAccess) {
 }
 
 
+#ifndef PRODUCT
+
+
 static const intptr_t kOptExtLength = 16;
 static int8_t opt_data[kOptExtLength] = { 0x01, 0x02, 0x03, 0x04,
                                           0x05, 0x06, 0x07, 0x08,
@@ -1972,6 +1974,9 @@ TEST_CASE(OptimizedExternalByteDataAccess) {
   EXPECT_VALID(result);
   FLAG_optimization_counter_threshold = old_oct;
 }
+
+
+#endif  // !PRODUCT
 
 
 static void TestTypedDataDirectAccess() {

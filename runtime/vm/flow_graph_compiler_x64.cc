@@ -27,7 +27,6 @@ DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
 DECLARE_FLAG(bool, enable_simd_inline);
 DECLARE_FLAG(bool, use_megamorphic_stub);
-DECLARE_FLAG(bool, precompilation);
 
 void MegamorphicSlowPath::EmitNativeCode(FlowGraphCompiler* compiler) {
   Assembler* assembler = compiler->assembler();
@@ -1146,7 +1145,7 @@ void FlowGraphCompiler::CompileGraph() {
   // Emit function patching code. This will be swapped with the first 13 bytes
   // at entry point.
 
-  if (is_optimizing() && !FLAG_precompilation) {
+  if (is_optimizing() && !FLAG_precompiled_mode) {
     // Leave enough space for patching in case of lazy deoptimization from
     // deferred code.
     __ nop(ShortCallPattern::pattern_length_in_bytes());
@@ -1338,7 +1337,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
 
   RecordSafepoint(locs);
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
-  if (FLAG_precompilation) {
+  if (FLAG_precompiled_mode) {
     // Megamorphic calls may occur in slow path stubs.
     // If valid use try_index argument.
     if (try_index == CatchClauseNode::kInvalidTryIndex) {

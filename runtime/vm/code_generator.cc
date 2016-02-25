@@ -27,15 +27,8 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, deoptimize_alot, false,
-    "Deoptimizes all live frames when we are about to return to Dart code from"
-    " native entries.");
-DEFINE_FLAG(bool, background_compilation, false,
-    "Run optimizing compilation in background");
 DEFINE_FLAG(int, max_subtype_cache_entries, 100,
     "Maximum number of subtype cache entries (number of checks cached).");
-DEFINE_FLAG(int, optimization_counter_threshold, 30000,
-    "Function's usage-counter value before it is optimized, -1 means never");
 DEFINE_FLAG(int, regexp_optimization_counter_threshold, 1000,
     "RegExp's usage-counter value before it is optimized, -1 means never");
 DEFINE_FLAG(charp, optimization_filter, NULL, "Optimize only named function");
@@ -66,17 +59,13 @@ DECLARE_FLAG(bool, enable_inlining_annotations);
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, trace_optimizing_compiler);
 DECLARE_FLAG(int, max_polymorphic_checks);
-DECLARE_FLAG(bool, precompilation);
 
-DEFINE_FLAG(bool, use_osr, true, "Use on-stack replacement.");
 DEFINE_FLAG(bool, trace_osr, false, "Trace attempts at on-stack replacement.");
 
 DEFINE_FLAG(int, stacktrace_every, 0,
             "Compute debugger stacktrace on every N stack overflow checks");
 DEFINE_FLAG(charp, stacktrace_filter, NULL,
             "Compute stacktrace in named function on stack overflow checks");
-DEFINE_FLAG(int, deoptimize_every, 0,
-            "Deoptimize on every N stack overflow checks");
 DEFINE_FLAG(charp, deoptimize_filter, NULL,
             "Deoptimize in named function on stack overflow checks");
 
@@ -1384,7 +1373,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
       ActivationFrame* frame = stack->FrameAt(i);
       // Variable locations and number are unknown when precompiling.
       const int num_vars =
-         FLAG_precompilation ? 0 : frame->NumLocalVariables();
+         FLAG_precompiled_mode ? 0 : frame->NumLocalVariables();
       TokenPosition unused = TokenPosition::kNoSource;
       for (intptr_t v = 0; v < num_vars; v++) {
         frame->VariableAt(v, &var_name, &unused, &unused, &var_value);

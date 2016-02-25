@@ -69,12 +69,9 @@ DEFINE_FLAG(bool, use_inlining, true, "Enable call-site inlining");
 DEFINE_FLAG(bool, verify_compiler, false,
     "Enable compiler verification assertions");
 
-DECLARE_FLAG(bool, background_compilation);
 DECLARE_FLAG(bool, huge_method_cutoff_in_code_size);
-DECLARE_FLAG(bool, load_deferred_eagerly);
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
 DECLARE_FLAG(bool, trace_irregexp);
-DECLARE_FLAG(bool, precompilation);
 
 
 #ifndef DART_PRECOMPILED_RUNTIME
@@ -420,7 +417,7 @@ void CompileParsedFunctionHelper::FinalizeCompilation(
     Assembler* assembler,
     FlowGraphCompiler* graph_compiler,
     FlowGraph* flow_graph) {
-  ASSERT(!FLAG_precompilation);
+  ASSERT(!FLAG_precompiled_mode);
   const Function& function = parsed_function()->function();
   Zone* const zone = thread()->zone();
 
@@ -556,7 +553,7 @@ void CompileParsedFunctionHelper::FinalizeCompilation(
 // If optimized_result_code is not NULL then it is caller's responsibility
 // to install code.
 bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
-  ASSERT(!FLAG_precompilation);
+  ASSERT(!FLAG_precompiled_mode);
   const Function& function = parsed_function()->function();
   if (optimized() && !function.IsOptimizable()) {
     return false;
@@ -1086,7 +1083,7 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
                                        const Function& function,
                                        bool optimized,
                                        intptr_t osr_id) {
-  ASSERT(!FLAG_precompilation);
+  ASSERT(!FLAG_precompiled_mode);
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     Thread* const thread = Thread::Current();
@@ -1200,7 +1197,7 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
 RawError* Compiler::CompileFunction(Thread* thread,
                                     const Function& function) {
 #ifdef DART_PRECOMPILER
-  if (FLAG_precompilation) {
+  if (FLAG_precompiled_mode) {
     return Precompiler::CompileFunction(thread, function);
   }
 #endif
@@ -1360,7 +1357,7 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
 
 RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
 #ifdef DART_PRECOMPILER
-  if (FLAG_precompilation) {
+  if (FLAG_precompiled_mode) {
     return Precompiler::EvaluateStaticInitializer(field);
   }
 #endif
@@ -1404,7 +1401,7 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
 
 RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
 #ifdef DART_PRECOMPILER
-  if (FLAG_precompilation) {
+  if (FLAG_precompiled_mode) {
     return Precompiler::ExecuteOnce(fragment);
   }
 #endif
