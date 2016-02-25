@@ -56,17 +56,6 @@ class Visitor extends GeneralizingAstVisitor {
     }
   }
 
-  bool hasOverrideAnnotation(Declaration node) =>
-      node.metadata.map((Annotation a) => a.name.name).contains('override');
-
-  bool inPrivateMember(AstNode node) {
-    AstNode parent = node.parent;
-    if (parent is NamedCompilationUnitMember) {
-      return isPrivate(parent.name);
-    }
-    return false;
-  }
-
   @override
   visitClassDeclaration(ClassDeclaration node) {
     if (!isPrivate(node.name)) {

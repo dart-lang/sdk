@@ -7,6 +7,7 @@ library linter.src.ast;
 
 import 'package:analyzer/src/generated/ast.dart'
     show
+        Annotation,
         AssignmentExpression,
         AstNode,
         Block,
@@ -26,6 +27,7 @@ import 'package:analyzer/src/generated/ast.dart'
         FunctionTypeAlias,
         Identifier,
         MethodDeclaration,
+        NamedCompilationUnitMember,
         ReturnStatement,
         SimpleIdentifier,
         TopLevelVariableDeclaration,
@@ -56,6 +58,20 @@ List<Element> getChildren(Element parent, [String name]) {
 AstNode getNodeToAnnotate(Declaration node) {
   AstNode mostSpecific = _getNodeToAnnotate(node);
   return mostSpecific ?? node;
+}
+
+/// Returns `true` if this [node] has an `@override` annotation.
+bool hasOverrideAnnotation(Declaration node) =>
+    node.metadata.map((Annotation a) => a.name.name).contains('override');
+
+/// Returns `true` if this [node] is the child of a private compilation unit
+/// member.
+bool inPrivateMember(AstNode node) {
+  AstNode parent = node.parent;
+  if (parent is NamedCompilationUnitMember) {
+    return isPrivate(parent.name);
+  }
+  return false;
 }
 
 /// Returns `true` if this element is the `==` method declaration.
