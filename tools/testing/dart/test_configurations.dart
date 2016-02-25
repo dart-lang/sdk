@@ -225,6 +225,7 @@ void testConfigurations(List<Map> configurations) {
       }
     }
     DebugLogger.close();
+    TestUtils.deleteTempSnapshotDirectory(configurations[0]);
   }
 
   var eventListener = [];

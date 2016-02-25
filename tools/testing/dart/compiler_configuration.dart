@@ -405,35 +405,37 @@ class Dart2AppSnapshotCompilerConfiguration extends CompilerConfiguration {
       CommandBuilder commandBuilder,
       List arguments,
       Map<String, String> environmentOverrides) {
+    String outputName = computeOutputName(tempDir);
     return new CommandArtifact(
         <Command>[
             this.computeCompilationCommand(
-                tempDir,
+                outputName,
                 buildDir,
                 CommandBuilder.instance,
                 arguments,
                 environmentOverrides)],
-        computeOutputName(tempDir),
+        outputName,
         'application/dart-snapshot');
   }
 
   String computeOutputName(String tempDir) {
-    return '$tempDir/test.snapshot';
+    var randName = TestUtils.getRandomNumber().toString();
+    return '$tempDir/test.$randName';
   }
 
   CompilationCommand computeCompilationCommand(
-      String tempDir,
+      String outputName,
       String buildDir,
       CommandBuilder commandBuilder,
       List arguments,
       Map<String, String> environmentOverrides) {
     var exec = "$buildDir/dart_no_snapshot";
     var args = new List();
-    args.add("--full-snapshot-after-run=${computeOutputName(tempDir)}");
+    args.add("--full-snapshot-after-run=$outputName");
     args.addAll(arguments);
 
     return commandBuilder.getCompilationCommand(
-        'dart2snapshot', computeOutputName(tempDir), !useSdk,
+        'dart2snapshot', outputName, !useSdk,
         bootstrapDependencies(buildDir),
         exec, args, environmentOverrides);
   }

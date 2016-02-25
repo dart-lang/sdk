@@ -16,6 +16,7 @@ library test_suite;
 
 import "dart:async";
 import "dart:io";
+import "dart:math";
 import "drt_updater.dart";
 import "html_test.dart" as htmlTest;
 import "path.dart";
@@ -2149,12 +2150,20 @@ class TestUtils {
     dartDirUri = uri;
     dartDir = new Path(uri.toFilePath());
   }
+  static Random rand = new Random.secure();
   static Uri dartDirUri;
   static Path dartDir;
   static LastModifiedCache lastModifiedCache = new LastModifiedCache();
   static ExistsCache existsCache = new ExistsCache();
   static Path currentWorkingDirectory =
       new Path(Directory.current.path);
+
+  /**
+   * Generates a random number.
+   */
+  static int getRandomNumber() {
+    return rand.nextInt(0xffffffff);
+  }
 
   /**
    * Creates a directory using a [relativePath] to an existing
@@ -2229,6 +2238,22 @@ class TestUtils {
     } else {
       var dir = new Directory(path);
       return dir.delete(recursive: true);
+    }
+  }
+
+  static deleteTempSnapshotDirectory(Map configuration) {
+    if (configuration['compiler'] == 'dart2app') {
+      var checked = configuration['checked'] ? '-checked' : '';
+      var minified = configuration['minified'] ? '-minified' : '';
+      var csp = configuration['csp'] ? '-csp' : '';
+      var sdk = configuration['use_sdk'] ? '-sdk' : '';
+      var packages = configuration['use_public_packages']
+          ? '-public_packages' : '';
+      var dirName = "${configuration['compiler']}"
+          "$checked$minified$csp$packages$sdk";
+      String generatedPath = "${TestUtils.buildDir(configuration)}"
+          "/generated_compilations/$dirName";
+      TestUtils.deleteDirectory(generatedPath);
     }
   }
 
