@@ -25,15 +25,31 @@ library meta;
 /// or mix in `C`, either directly or indirectly. Additionally indicates that
 /// `m` should only be invoked on `this`, whether explicitly or implicitly.
 ///
-/// Tools, such as the analyzer, can provide feedback if an invocation of a
-/// member marked as being protected is used outside of an instance member
-/// defined on a class that extends or mixes in the class in which the protected
-/// member is defined, or that uses a receiver other than `this`.
-///
-/// Tools can also provide feedback if the annotation is used on anything other
-/// than an instance member.
+/// Tools, such as the analyzer, can provide feedback if
+/// * the annotation is associated with anything other than an instance member,
+///   or
+/// * an invocation of a member marked as being protected is used outside of an
+///   instance member defined on a class that extends or mixes in the class in
+///   which the protected member is defined, or that uses a receiver other than
+///   `this`.
 const _Protected protected = const _Protected();
+
+/// Used to annotate a named parameter `p` in a method or function `f`.
+/// Indicates that every invocation of `f` must include an argument
+/// corresponding to `p`, despite the fact that `p` would otherwise be an
+/// optional parameter.
+///
+/// Tools, such as the analyzer, can provide feedback if
+/// * the annotation is associated with anything other than a named parameter,
+///   or
+/// * an invocation of a method or function does not include an argument
+///   corresponding to a named parameter that has this annotation.
+const _Required required = const _Required();
 
 class _Protected {
   const _Protected();
+}
+
+class _Required {
+  const _Required();
 }
