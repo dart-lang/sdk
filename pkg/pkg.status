@@ -53,9 +53,10 @@ analyzer/test/generated/all_the_rest_test: Pass, Slow # Issue 21628
 analyzer/test/generated/ast_test: Pass, Slow # Issue 21628
 analyzer/test/generated/compile_time_error_code_test: Pass, Slow
 analyzer/test/generated/compile_time_error_code_test: Pass, Slow # Issue 21628
-analyzer/test/generated/constant_test.dart: Pass, Slow # Issue 24914
+analyzer/test/generated/constant_test: Pass, Slow # Issue 24914
 analyzer/test/generated/declaration_resolver_test: Pass, Slow # Issue 24914
 analyzer/test/generated/element_test: Pass, Slow # Issue 21628
+analyzer/test/generated/error_suppression_test: Pass, Slow # Issue 21628
 analyzer/test/generated/engine_test: SkipSlow
 analyzer/test/generated/incremental_resolver_test: Pass, Slow # Issue 21628
 analyzer/test/generated/incremental_scanner_test: Pass, Slow # Issue 21628
@@ -92,6 +93,8 @@ analyzer/test/src/task/model_test: Pass, Slow # Issue 21628
 analyzer/test/src/task/options_test: Pass, Slow # Issue 21628
 analyzer/test/src/task/options_work_manager_test: Pass, Slow # Issue 21628
 analyzer/test/src/task/strong/checker_test: Pass, Slow # Issue 21628
+analyzer/test/src/task/strong/inferred_type_test: Pass, Slow # Issue 21628
+analyzer/test/src/task/yaml_test: Pass, Slow # Issue 21628
 collection/test/equality_test/01: Fail # Issue 1533
 collection/test/equality_test/02: Fail # Issue 1533
 collection/test/equality_test/03: Fail # Issue 1533
