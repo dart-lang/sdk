@@ -180,10 +180,16 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
         node.element = exportElement;
         exports.add(exportElement);
         if (exportSourceKindMap[exportedSource] != SourceKind.LIBRARY) {
+          int offset = node.offset;
+          int length = node.length;
+          if (uriLiteral != null) {
+            offset = uriLiteral.offset;
+            length = uriLiteral.length;
+          }
           errors.add(new AnalysisError(
-              exportedSource,
-              uriLiteral.offset,
-              uriLiteral.length,
+              libraryElement.source,
+              offset,
+              length,
               CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
               [uriLiteral.toSource()]));
         }
@@ -234,11 +240,17 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
         node.element = importElement;
         imports.add(importElement);
         if (importSourceKindMap[importedSource] != SourceKind.LIBRARY) {
+          int offset = node.offset;
+          int length = node.length;
+          if (uriLiteral != null) {
+            offset = uriLiteral.offset;
+            length = uriLiteral.length;
+          }
           ErrorCode errorCode = (importElement.isDeferred
               ? StaticWarningCode.IMPORT_OF_NON_LIBRARY
               : CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY);
-          errors.add(new AnalysisError(importedSource, uriLiteral.offset,
-              uriLiteral.length, errorCode, [uriLiteral.toSource()]));
+          errors.add(new AnalysisError(libraryElement.source, offset, length,
+              errorCode, [uriLiteral.toSource()]));
         }
       }
     }
@@ -1065,7 +1077,8 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   Object visitSwitchCase(SwitchCase node) {
     for (Label label in node.labels) {
       SimpleIdentifier labelName = label.label;
-      LabelElementImpl element = new LabelElementImpl.forNode(labelName, false, true);
+      LabelElementImpl element =
+          new LabelElementImpl.forNode(labelName, false, true);
       _currentHolder.addLabel(element);
       labelName.staticElement = element;
     }
@@ -1076,7 +1089,8 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   Object visitSwitchDefault(SwitchDefault node) {
     for (Label label in node.labels) {
       SimpleIdentifier labelName = label.label;
-      LabelElementImpl element = new LabelElementImpl.forNode(labelName, false, true);
+      LabelElementImpl element =
+          new LabelElementImpl.forNode(labelName, false, true);
       _currentHolder.addLabel(element);
       labelName.staticElement = element;
     }

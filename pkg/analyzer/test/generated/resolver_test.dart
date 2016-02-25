@@ -8255,6 +8255,7 @@ class ResolverTestCase extends EngineTestCase {
       [List<ErrorCode> expectedErrorCodes = ErrorCode.EMPTY_LIST]) {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     for (AnalysisError error in analysisContext2.computeErrors(source)) {
+      expect(error.source, source);
       ErrorCode errorCode = error.errorCode;
       if (!enableUnusedElement &&
           (errorCode == HintCode.UNUSED_ELEMENT ||

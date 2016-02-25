@@ -85,7 +85,7 @@ class AnalysisError {
   /**
    * The source in which the error occurred, or `null` if unknown.
    */
-  Source source;
+  final Source source;
 
   /**
    * The character offset from the beginning of the source (zero based) where
