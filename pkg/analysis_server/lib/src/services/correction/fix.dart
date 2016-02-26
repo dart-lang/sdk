@@ -46,8 +46,8 @@ Future<List<Fix>> computeFixes(
 /**
  * Return true if this [errorCode] is likely to have a fix associated with it.
  */
-bool hasFix(ErrorCode errorCode) => errorCode ==
-        StaticWarningCode.UNDEFINED_CLASS_BOOLEAN ||
+bool hasFix(ErrorCode errorCode) =>
+    errorCode == StaticWarningCode.UNDEFINED_CLASS_BOOLEAN ||
     errorCode == StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER ||
     errorCode == StaticWarningCode.EXTRA_POSITIONAL_ARGUMENTS ||
     errorCode == StaticWarningCode.NEW_WITH_UNDEFINED_CONSTRUCTOR ||
@@ -60,7 +60,8 @@ bool hasFix(ErrorCode errorCode) => errorCode ==
     errorCode ==
         StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FOUR ||
     errorCode ==
-        StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS ||
+        StaticWarningCode
+            .NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_FIVE_PLUS ||
     errorCode == StaticWarningCode.CAST_TO_NON_TYPE ||
     errorCode == StaticWarningCode.TYPE_TEST_WITH_UNDEFINED_NAME ||
     errorCode == StaticWarningCode.UNDEFINED_CLASS ||
@@ -165,6 +166,8 @@ class DartFixKind {
       const FixKind('IMPORT_LIBRARY_SHOW', 49, "Update library '{0}' import");
   static const INSERT_SEMICOLON =
       const FixKind('INSERT_SEMICOLON', 50, "Insert ';'");
+  static const LINT_ADD_OVERRIDE =
+      const FixKind('LINT_ADD_OVERRIDE', 50, "Add '@override' annotation");
   static const MAKE_CLASS_ABSTRACT =
       const FixKind('MAKE_CLASS_ABSTRACT', 50, "Make class '{0}' abstract");
   static const REMOVE_DEAD_CODE =
