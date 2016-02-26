@@ -122,6 +122,24 @@ abstract class EntityRef extends base.SummaryClass {
   int get slot;
 
   /**
+   * If this [EntityRef] is a reference to a function type whose
+   * [FunctionElement] is not in any library (e.g. a function type that was
+   * synthesized by a LUB computation), the function parameters.  Otherwise
+   * empty.
+   */
+  @Id(6)
+  List<UnlinkedParam> get syntheticParams;
+
+  /**
+   * If this [EntityRef] is a reference to a function type whose
+   * [FunctionElement] is not in any library (e.g. a function type that was
+   * synthesized by a LUB computation), the return type of the function.
+   * Otherwise `null`.
+   */
+  @Id(5)
+  EntityRef get syntheticReturnType;
+
+  /**
    * If this is an instantiation of a generic type or generic executable, the
    * type arguments used to instantiate it.  Trailing type arguments of type
    * `dynamic` are omitted.

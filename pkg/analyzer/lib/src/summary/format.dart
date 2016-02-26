@@ -96,6 +96,8 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
   int _paramReference;
   int _reference;
   int _slot;
+  List<UnlinkedParamBuilder> _syntheticParams;
+  EntityRefBuilder _syntheticReturnType;
   List<EntityRefBuilder> _typeArguments;
 
   @override
@@ -187,6 +189,34 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
   }
 
   @override
+  List<UnlinkedParamBuilder> get syntheticParams => _syntheticParams ??= <UnlinkedParamBuilder>[];
+
+  /**
+   * If this [EntityRef] is a reference to a function type whose
+   * [FunctionElement] is not in any library (e.g. a function type that was
+   * synthesized by a LUB computation), the function parameters.  Otherwise
+   * empty.
+   */
+  void set syntheticParams(List<UnlinkedParamBuilder> _value) {
+    assert(!_finished);
+    _syntheticParams = _value;
+  }
+
+  @override
+  EntityRefBuilder get syntheticReturnType => _syntheticReturnType;
+
+  /**
+   * If this [EntityRef] is a reference to a function type whose
+   * [FunctionElement] is not in any library (e.g. a function type that was
+   * synthesized by a LUB computation), the return type of the function.
+   * Otherwise `null`.
+   */
+  void set syntheticReturnType(EntityRefBuilder _value) {
+    assert(!_finished);
+    _syntheticReturnType = _value;
+  }
+
+  @override
   List<EntityRefBuilder> get typeArguments => _typeArguments ??= <EntityRefBuilder>[];
 
   /**
@@ -199,20 +229,30 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
     _typeArguments = _value;
   }
 
-  EntityRefBuilder({List<int> implicitFunctionTypeIndices, int paramReference, int reference, int slot, List<EntityRefBuilder> typeArguments})
+  EntityRefBuilder({List<int> implicitFunctionTypeIndices, int paramReference, int reference, int slot, List<UnlinkedParamBuilder> syntheticParams, EntityRefBuilder syntheticReturnType, List<EntityRefBuilder> typeArguments})
     : _implicitFunctionTypeIndices = implicitFunctionTypeIndices,
       _paramReference = paramReference,
       _reference = reference,
       _slot = slot,
+      _syntheticParams = syntheticParams,
+      _syntheticReturnType = syntheticReturnType,
       _typeArguments = typeArguments;
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
     fb.Offset offset_implicitFunctionTypeIndices;
+    fb.Offset offset_syntheticParams;
+    fb.Offset offset_syntheticReturnType;
     fb.Offset offset_typeArguments;
     if (!(_implicitFunctionTypeIndices == null || _implicitFunctionTypeIndices.isEmpty)) {
       offset_implicitFunctionTypeIndices = fbBuilder.writeListUint32(_implicitFunctionTypeIndices);
+    }
+    if (!(_syntheticParams == null || _syntheticParams.isEmpty)) {
+      offset_syntheticParams = fbBuilder.writeList(_syntheticParams.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (_syntheticReturnType != null) {
+      offset_syntheticReturnType = _syntheticReturnType.finish(fbBuilder);
     }
     if (!(_typeArguments == null || _typeArguments.isEmpty)) {
       offset_typeArguments = fbBuilder.writeList(_typeArguments.map((b) => b.finish(fbBuilder)).toList());
@@ -229,6 +269,12 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
     }
     if (_slot != null && _slot != 0) {
       fbBuilder.addUint32(2, _slot);
+    }
+    if (offset_syntheticParams != null) {
+      fbBuilder.addOffset(6, offset_syntheticParams);
+    }
+    if (offset_syntheticReturnType != null) {
+      fbBuilder.addOffset(5, offset_syntheticReturnType);
     }
     if (offset_typeArguments != null) {
       fbBuilder.addOffset(1, offset_typeArguments);
@@ -253,6 +299,8 @@ class _EntityRefImpl extends Object with _EntityRefMixin implements idl.EntityRe
   int _paramReference;
   int _reference;
   int _slot;
+  List<idl.UnlinkedParam> _syntheticParams;
+  idl.EntityRef _syntheticReturnType;
   List<idl.EntityRef> _typeArguments;
 
   @override
@@ -280,6 +328,18 @@ class _EntityRefImpl extends Object with _EntityRefMixin implements idl.EntityRe
   }
 
   @override
+  List<idl.UnlinkedParam> get syntheticParams {
+    _syntheticParams ??= const fb.ListReader<idl.UnlinkedParam>(const _UnlinkedParamReader()).vTableGet(_bp, 6, const <idl.UnlinkedParam>[]);
+    return _syntheticParams;
+  }
+
+  @override
+  idl.EntityRef get syntheticReturnType {
+    _syntheticReturnType ??= const _EntityRefReader().vTableGet(_bp, 5, null);
+    return _syntheticReturnType;
+  }
+
+  @override
   List<idl.EntityRef> get typeArguments {
     _typeArguments ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bp, 1, const <idl.EntityRef>[]);
     return _typeArguments;
@@ -294,6 +354,8 @@ abstract class _EntityRefMixin implements idl.EntityRef {
     if (paramReference != 0) _result["paramReference"] = paramReference;
     if (reference != 0) _result["reference"] = reference;
     if (slot != 0) _result["slot"] = slot;
+    if (syntheticParams.isNotEmpty) _result["syntheticParams"] = syntheticParams.map((_value) => _value.toJson()).toList();
+    if (syntheticReturnType != null) _result["syntheticReturnType"] = syntheticReturnType.toJson();
     if (typeArguments.isNotEmpty) _result["typeArguments"] = typeArguments.map((_value) => _value.toJson()).toList();
     return _result;
   }
@@ -304,6 +366,8 @@ abstract class _EntityRefMixin implements idl.EntityRef {
     "paramReference": paramReference,
     "reference": reference,
     "slot": slot,
+    "syntheticParams": syntheticParams,
+    "syntheticReturnType": syntheticReturnType,
     "typeArguments": typeArguments,
   };
 

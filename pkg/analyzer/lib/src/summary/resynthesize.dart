@@ -1656,17 +1656,19 @@ class _LibraryResynthesizer {
   /**
    * Resynthesize a [ParameterElement].
    */
-  ParameterElement buildParameter(UnlinkedParam serializedParameter) {
+  ParameterElement buildParameter(UnlinkedParam serializedParameter,
+      {bool synthetic: false}) {
     ParameterElementImpl parameterElement;
+    int nameOffset = synthetic ? -1 : serializedParameter.nameOffset;
     if (serializedParameter.isInitializingFormal) {
       FieldFormalParameterElementImpl initializingParameter;
       if (serializedParameter.kind == UnlinkedParamKind.required) {
         initializingParameter = new FieldFormalParameterElementImpl(
-            serializedParameter.name, serializedParameter.nameOffset);
+            serializedParameter.name, nameOffset);
       } else {
         DefaultFieldFormalParameterElementImpl defaultParameter =
             new DefaultFieldFormalParameterElementImpl(
-                serializedParameter.name, serializedParameter.nameOffset);
+                serializedParameter.name, nameOffset);
         initializingParameter = defaultParameter;
         if (serializedParameter.defaultValue != null) {
           defaultParameter.constantInitializer =
@@ -1679,12 +1681,12 @@ class _LibraryResynthesizer {
       initializingParameter.field = fields[serializedParameter.name];
     } else {
       if (serializedParameter.kind == UnlinkedParamKind.required) {
-        parameterElement = new ParameterElementImpl(
-            serializedParameter.name, serializedParameter.nameOffset);
+        parameterElement =
+            new ParameterElementImpl(serializedParameter.name, nameOffset);
       } else {
         DefaultParameterElementImpl defaultParameter =
             new DefaultParameterElementImpl(
-                serializedParameter.name, serializedParameter.nameOffset);
+                serializedParameter.name, nameOffset);
         parameterElement = defaultParameter;
         if (serializedParameter.defaultValue != null) {
           defaultParameter.constantInitializer =
@@ -1694,6 +1696,7 @@ class _LibraryResynthesizer {
         }
       }
     }
+    parameterElement.synthetic = synthetic;
     buildAnnotations(parameterElement, serializedParameter.annotations);
     if (serializedParameter.isFunctionTyped) {
       FunctionElementImpl parameterTypeElement =
@@ -1784,6 +1787,17 @@ class _LibraryResynthesizer {
     }
     if (type.paramReference != 0) {
       return getTypeParameterFromScope(type.paramReference);
+    } else if (type.syntheticReturnType != null) {
+      FunctionElementImpl element = new FunctionElementImpl('', -1);
+      element.synthetic = true;
+      element.parameters = type.syntheticParams
+          .map((UnlinkedParam param) => buildParameter(param, synthetic: true))
+          .toList();
+      element.returnType = buildType(type.syntheticReturnType);
+      FunctionTypeImpl result = new FunctionTypeImpl.elementWithNameAndArgs(
+          element, null, null, false);
+      element.type = result;
+      return result;
     } else {
       DartType getTypeArgument(int i) {
         if (i < type.typeArguments.length) {
