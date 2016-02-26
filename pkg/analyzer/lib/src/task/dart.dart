@@ -2266,7 +2266,7 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
   static const String PARSED_UNIT_INPUT = 'PARSED_UNIT_INPUT';
 
   // Prefix for comments ignoring error codes.
-  static const String _normalizedIgnorePrefix = '//#ignore:';
+  static const String _normalizedIgnorePrefix = '//ignore:';
 
   DartErrorsTask(InternalAnalysisContext context, AnalysisTarget target)
       : super(context, target);
