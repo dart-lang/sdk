@@ -4,6 +4,7 @@
 
 import 'dart:convert';
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -40,15 +41,192 @@ class PackageIndexAssemblerTest extends AbstractSingleUnitTest {
   PackageIndex packageIndex;
   UnitIndex unitIndex;
 
+  _ElementIndexAssert assertThat(Element element) {
+    return new _ElementIndexAssert(this, element);
+  }
+
+  CompilationUnitElement importedUnit({int index: 0}) {
+    List<ImportElement> imports = testLibraryElement.imports;
+    return imports[index].importedLibrary.definingCompilationUnit;
+  }
+
   void test_isExtendedBy_ClassDeclaration() {
     _indexTestUnit('''
 class A {} // 1
 class B extends A {} // 2
 ''');
-    ClassElement classElementA = findElement('A');
-    // verify
-    _assertHasRelation(classElementA, IndexRelationKind.IS_EXTENDED_BY,
-        _expectedLocation('A {} // 2'));
+    ClassElement elementA = findElement('A');
+    assertThat(elementA).isExtendedAt('A {} // 2');
+  }
+
+  void test_isExtendedBy_ClassDeclaration_Object() {
+    _indexTestUnit('''
+class A {}
+''');
+    ClassElement elementA = findElement('A');
+    ClassElement elementObject = elementA.supertype.element;
+    assertThat(elementObject).isExtendedAt('A {}', length: 0);
+  }
+
+  void test_isExtendedBy_ClassTypeAlias() {
+    _indexTestUnit('''
+class A {}
+class B {}
+class C = A with B;
+''');
+    ClassElement elementA = findElement('A');
+    assertThat(elementA).isExtendedAt('A with');
+  }
+
+  void test_isImplementedBy_ClassDeclaration() {
+    _indexTestUnit('''
+class A {} // 1
+class B implements A {} // 2
+''');
+    ClassElement elementA = findElement('A');
+    assertThat(elementA).isImplementedAt('A {} // 2');
+  }
+
+  void test_isImplementedBy_ClassTypeAlias() {
+    _indexTestUnit('''
+class A {} // 1
+class B {} // 2
+class C = Object with A implements B; // 3
+''');
+    ClassElement elementB = findElement('B');
+    assertThat(elementB).isImplementedAt('B; // 3');
+  }
+
+  void test_isInvokedBy_FieldElement() {
+    _indexTestUnit('''
+class A {
+  var field;
+  main() {
+    this.field(); // q
+    field(); // nq
+  }
+}''');
+    FieldElement field = findElement('field');
+    assertThat(field.getter)
+      ..isInvokedAt('field(); // q', qualified: true)
+      ..isInvokedAt('field(); // nq');
+  }
+
+  void test_isInvokedBy_FunctionElement() {
+    addSource(
+        '/lib.dart',
+        '''
+library lib;
+foo() {}
+''');
+    _indexTestUnit('''
+import 'lib.dart';
+import 'lib.dart' as pref;
+main() {
+  pref.foo(); // q
+  foo(); // nq
+}''');
+    FunctionElement element = importedUnit().functions[0];
+    assertThat(element)
+      ..isInvokedAt('foo(); // q', qualified: true)
+      ..isInvokedAt('foo(); // nq');
+  }
+
+  void test_isInvokedBy_MethodElement() {
+    _indexTestUnit('''
+class A {
+  foo() {}
+  main() {
+    this.foo(); // q
+    foo(); // nq
+  }
+}''');
+    Element element = findElement('foo');
+    assertThat(element)
+      ..isInvokedAt('foo(); // q', qualified: true)
+      ..isInvokedAt('foo(); // nq');
+  }
+
+  void test_isInvokedBy_MethodElement_propagatedType() {
+    _indexTestUnit('''
+class A {
+  foo() {}
+}
+main() {
+  var a = new A();
+  a.foo();
+}
+''');
+    Element element = findElement('foo');
+    assertThat(element).isInvokedAt('foo();', qualified: true);
+  }
+
+  void test_isInvokedBy_operator_binary() {
+    _indexTestUnit('''
+class A {
+  operator +(other) => this;
+}
+main(A a) {
+  print(a + 1);
+  a += 2;
+  ++a;
+  a++;
+}
+''');
+    MethodElement element = findElement('+');
+    assertThat(element)
+      ..isInvokedAt('+ 1', length: 1)
+      ..isInvokedAt('+= 2', length: 2)
+      ..isInvokedAt('++a', length: 2)
+      ..isInvokedAt('++;', length: 2);
+  }
+
+  void test_isInvokedBy_operator_index() {
+    _indexTestUnit('''
+class A {
+  operator [](i) => null;
+  operator []=(i, v) {}
+}
+main(A a) {
+  print(a[0]);
+  a[1] = 42;
+}
+''');
+    MethodElement readElement = findElement('[]');
+    MethodElement writeElement = findElement('[]=');
+    assertThat(readElement).isInvokedAt('[0]', length: 1);
+    assertThat(writeElement).isInvokedAt('[1]', length: 1);
+  }
+
+  void test_isInvokedBy_operator_prefix() {
+    _indexTestUnit('''
+class A {
+  A operator ~() => this;
+}
+main(A a) {
+  print(~a);
+}
+''');
+    MethodElement element = findElement('~');
+    assertThat(element).isInvokedAt('~a', length: 1);
+  }
+
+  void test_isMixedInBy_ClassDeclaration() {
+    _indexTestUnit('''
+class A {} // 1
+class B extends Object with A {} // 2
+''');
+    ClassElement elementA = findElement('A');
+    assertThat(elementA).isMixedInAt('A {} // 2');
+  }
+
+  void test_isMixedInBy_ClassTypeAlias() {
+    _indexTestUnit('''
+class A {} // 1
+class B = Object with A; // 2
+''');
+    ClassElement elementA = findElement('A');
+    assertThat(elementA).isMixedInAt('A; // 2');
   }
 
   void test_isReferencedBy_ClassElement() {
@@ -63,18 +241,280 @@ main(A p) {
   print(A.field); // 3
 }
 ''');
-    ClassElement element = findElement("A");
-    // verify
-    _assertHasRelation(element, IndexRelationKind.IS_REFERENCED_BY,
-        _expectedLocation('A p) {'));
-    _assertHasRelation(
-        element, IndexRelationKind.IS_REFERENCED_BY, _expectedLocation('A v;'));
-    _assertHasRelation(element, IndexRelationKind.IS_REFERENCED_BY,
-        _expectedLocation('A(); // 2'));
-    _assertHasRelation(element, IndexRelationKind.IS_REFERENCED_BY,
-        _expectedLocation('A.field = 1;'));
-    _assertHasRelation(element, IndexRelationKind.IS_REFERENCED_BY,
-        _expectedLocation('A.field); // 3'));
+    ClassElement element = findElement('A');
+    assertThat(element)
+      ..isReferencedAt('A p) {')
+      ..isReferencedAt('A v;')
+      ..isReferencedAt('A(); // 2')
+      ..isReferencedAt('A.field = 1;')
+      ..isReferencedAt('A.field); // 3');
+  }
+
+  void test_isReferencedBy_ClassElement_invocation() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+class A {}
+main() {
+  A(); // invalid code, but still a reference
+}''');
+    Element element = findElement('A');
+    assertThat(element).isReferencedAt('A();');
+  }
+
+  void test_isReferencedBy_ClassTypeAlias() {
+    _indexTestUnit('''
+class A {}
+class B = Object with A;
+main(B p) {
+  B v;
+}
+''');
+    ClassElement element = findElement('B');
+    assertThat(element)..isReferencedAt('B p) {')..isReferencedAt('B v;');
+  }
+
+  void test_isReferencedBy_CompilationUnitElement_export() {
+    addSource(
+        '/lib.dart',
+        '''
+library lib;
+''');
+    _indexTestUnit('''
+export 'lib.dart';
+''');
+    LibraryElement element = testLibraryElement.exports[0].exportedLibrary;
+    assertThat(element)..isReferencedAt("'lib.dart'", length: 10);
+  }
+
+  void test_isReferencedBy_CompilationUnitElement_import() {
+    addSource(
+        '/lib.dart',
+        '''
+library lib;
+''');
+    _indexTestUnit('''
+import 'lib.dart';
+''');
+    LibraryElement element = testLibraryElement.imports[0].importedLibrary;
+    assertThat(element)..isReferencedAt("'lib.dart'", length: 10);
+  }
+
+  void test_isReferencedBy_CompilationUnitElement_part() {
+    addSource('/my_unit.dart', 'part of my_lib;');
+    _indexTestUnit('''
+library my_lib;
+part 'my_unit.dart';
+''');
+    CompilationUnitElement element = testLibraryElement.parts[0];
+    assertThat(element)..isReferencedAt("'my_unit.dart';", length: 14);
+  }
+
+  void test_isReferencedBy_ConstructorElement() {
+    _indexTestUnit('''
+class A implements B {
+  A() {}
+  A.foo() {}
+}
+class B extends A {
+  B() : super(); // 1
+  B.foo() : super.foo(); // 2
+  factory B.bar() = A.foo; // 3
+}
+main() {
+  new A(); // 4
+  new A.foo(); // 5
+}
+''');
+    ClassElement classA = findElement('A');
+    ConstructorElement constA = classA.constructors[0];
+    ConstructorElement constA_foo = classA.constructors[1];
+    // A()
+    assertThat(constA)
+      ..isReferencedAt('(); // 1', length: 0)
+      ..isReferencedAt('(); // 4', length: 0);
+    // A.foo()
+    assertThat(constA_foo)
+      ..isReferencedAt('.foo(); // 2', length: 4)
+      ..isReferencedAt('.foo; // 3', length: 4)
+      ..isReferencedAt('.foo(); // 5', length: 4);
+  }
+
+  void test_isReferencedBy_ConstructorElement_classTypeAlias() {
+    _indexTestUnit('''
+class M {}
+class A implements B {
+  A() {}
+  A.named() {}
+}
+class B = A with M;
+main() {
+  new B(); // 1
+  new B.named(); // 2
+}
+''');
+    ClassElement classA = findElement('A');
+    ConstructorElement constA = classA.constructors[0];
+    ConstructorElement constA_named = classA.constructors[1];
+    assertThat(constA).isReferencedAt('(); // 1', length: 0);
+    assertThat(constA_named).isReferencedAt('.named(); // 2', length: 6);
+  }
+
+  void test_isReferencedBy_ConstructorElement_redirection() {
+    _indexTestUnit('''
+class A {
+  A() : this.bar(); // 1
+  A.foo() : this(); // 2
+  A.bar();
+}
+''');
+    ClassElement classA = findElement('A');
+    ConstructorElement constA = classA.constructors[0];
+    ConstructorElement constA_bar = classA.constructors[2];
+    assertThat(constA).isReferencedAt('(); // 2', length: 0);
+    assertThat(constA_bar).isReferencedAt('.bar(); // 1', length: 4);
+  }
+
+  void test_isReferencedBy_ConstructorFieldInitializer() {
+    _indexTestUnit('''
+class A {
+  int field;
+  A() : field = 5;
+}
+''');
+    FieldElement element = findElement('field');
+    assertThat(element).isReferencedAt('field = 5');
+  }
+
+  void test_isReferencedBy_FieldElement() {
+    _indexTestUnit('''
+class A {
+  var field;
+  A({this.field});
+  m() {
+    field = 1; // nq
+    print(field); // nq
+  }
+}
+main(A a) {
+  a.field = 2; // q
+  print(a.field); // q
+  new A(field: 3);
+}
+''');
+    FieldElement field = findElement('field');
+    PropertyAccessorElement getter = field.getter;
+    PropertyAccessorElement setter = field.setter;
+    // A()
+    assertThat(field)..isReferencedAt('field});');
+    // m()
+    assertThat(setter)..isReferencedAt('field = 1; // nq');
+    assertThat(getter)..isReferencedAt('field); // nq');
+    // main()
+    assertThat(setter)..isReferencedAt('field = 2; // q', qualified: true);
+    assertThat(getter)..isReferencedAt('field); // q', qualified: true);
+    assertThat(field)..isReferencedAt('field: 3');
+  }
+
+  void test_isReferencedBy_FunctionElement() {
+    _indexTestUnit('''
+foo() {}
+main() {
+  print(foo);
+  print(foo());
+}
+''');
+    FunctionElement element = findElement('foo');
+    assertThat(element)
+      ..isReferencedAt('foo);')
+      ..isInvokedAt('foo());');
+  }
+
+  void test_isReferencedBy_FunctionTypeAliasElement() {
+    _indexTestUnit('''
+typedef A();
+main(A p) {
+}
+''');
+    Element element = findElement('A');
+    assertThat(element)..isReferencedAt('A p) {');
+  }
+
+  /**
+   * There was a bug in the AST structure, when single [Comment] was cloned and
+   * assigned to both [FieldDeclaration] and [VariableDeclaration].
+   *
+   * This caused duplicate indexing.
+   * Here we test that the problem is fixed one way or another.
+   */
+  void test_isReferencedBy_identifierInComment() {
+    _indexTestUnit('''
+class A {}
+/// [A] text
+var myVariable = null;
+''');
+    Element element = findElement('A');
+    assertThat(element)..isReferencedAt('A] text');
+  }
+
+  void test_isReferencedBy_MethodElement() {
+    _indexTestUnit('''
+class A {
+  method() {}
+  main() {
+    print(this.method); // q
+    print(method); // nq
+  }
+}''');
+    MethodElement element = findElement('method');
+    assertThat(element)
+      ..isReferencedAt('method); // q', qualified: true)
+      ..isReferencedAt('method); // nq');
+  }
+
+  void test_isReferencedBy_ParameterElement() {
+    _indexTestUnit('''
+foo({var p}) {}
+main() {
+  foo(p: 1);
+}
+''');
+    Element element = findElement('p');
+    assertThat(element)..isReferencedAt('p: 1');
+  }
+
+  void test_isReferencedBy_TopLevelVariableElement() {
+    addSource(
+        '/lib.dart',
+        '''
+library lib;
+var V;
+''');
+    _indexTestUnit('''
+import 'lib.dart' show V; // imp
+import 'lib.dart' as pref;
+main() {
+  pref.V = 5; // q
+  print(pref.V); // q
+  V = 5; // nq
+  print(V); // nq
+}''');
+    TopLevelVariableElement variable = importedUnit().topLevelVariables[0];
+    assertThat(variable)..isReferencedAt('V; // imp');
+    assertThat(variable.getter)
+      ..isReferencedAt('V); // q', qualified: true)
+      ..isReferencedAt('V); // nq');
+    assertThat(variable.setter)
+      ..isReferencedAt('V = 5; // q', qualified: true)
+      ..isReferencedAt('V = 5; // nq');
+  }
+
+  void test_isReferencedBy_typeInVariableList() {
+    _indexTestUnit('''
+class A {}
+A myVariable = null;
+''');
+    Element element = findElement('A');
+    assertThat(element).isReferencedAt('A myVariable');
   }
 
   /**
@@ -89,6 +529,8 @@ main(A p) {
       if (unitIndex.elements[i] == elementId &&
           unitIndex.locationOffsets[i] == expectedLocation.offset &&
           unitIndex.locationLengths[i] == expectedLocation.length) {
+        // TODO(scheglov) continue looking to check that only one usage at one
+        // location, e.g. no both 'reference' and 'invocation'.
         return;
       }
     }
@@ -97,9 +539,9 @@ main(A p) {
   }
 
   ExpectedLocation _expectedLocation(String search,
-      {int length: -1, bool isQualified: false, bool isResolved: true}) {
+      {int length, bool isQualified: false, bool isResolved: true}) {
     int offset = findOffset(search);
-    if (length == -1) {
+    if (length == null) {
       length = getLeadingIdentifierLength(search);
     }
     return new ExpectedLocation(
@@ -117,11 +559,17 @@ main(A p) {
    */
   int _findElementId(Element element) {
     int elementUnitId = _getElementUnitId(element);
+    int offset = element.nameOffset;
+    if (element is LibraryElement || element is CompilationUnitElement) {
+      offset = 0;
+    }
+    IndexSyntheticElementKind kind = PackageIndexAssembler.getIndexElementKind(element);
     for (int elementId = 0;
         elementId < packageIndex.elementUnits.length;
         elementId++) {
       if (packageIndex.elementUnits[elementId] == elementUnitId &&
-          packageIndex.elementOffsets[elementId] == element.nameOffset) {
+          packageIndex.elementOffsets[elementId] == offset &&
+          packageIndex.elementKinds[elementId] == kind) {
         return elementId;
       }
     }
@@ -133,14 +581,14 @@ main(A p) {
     CompilationUnitElement unitElement =
         PackageIndexAssembler.getUnitElement(element);
     int libraryUriId = _getUriId(unitElement.library.source.uri);
-    int unitUriId = _getUriId(unitElement.library.source.uri);
+    int unitUriId = _getUriId(unitElement.source.uri);
     for (int i = 0; i < packageIndex.elementLibraryUris.length; i++) {
       if (packageIndex.elementLibraryUris[i] == libraryUriId &&
           packageIndex.elementUnitUris[i] == unitUriId) {
         return i;
       }
     }
-    fail('Unit $unitElement of $element is not referenced in the index.');
+    _failWithIndexDump('Unit $unitElement of $element is not referenced');
     return -1;
   }
 
@@ -162,5 +610,39 @@ main(A p) {
     // prepare the only unit index
     expect(packageIndex.units, hasLength(1));
     unitIndex = packageIndex.units[0];
+  }
+}
+
+class _ElementIndexAssert {
+  final PackageIndexAssemblerTest test;
+  final Element element;
+
+  _ElementIndexAssert(this.test, this.element);
+
+  void isExtendedAt(String search, {int length}) {
+    test._assertHasRelation(element, IndexRelationKind.IS_EXTENDED_BY,
+        test._expectedLocation(search, length: length));
+  }
+
+  void isImplementedAt(String search, {int length}) {
+    test._assertHasRelation(element, IndexRelationKind.IS_IMPLEMENTED_BY,
+        test._expectedLocation(search, length: length));
+  }
+
+  void isInvokedAt(String search, {int length, bool qualified: false}) {
+    // TODO(scheglov) use 'qualified'
+    test._assertHasRelation(element, IndexRelationKind.IS_INVOKED_BY,
+        test._expectedLocation(search, length: length));
+  }
+
+  void isMixedInAt(String search, {int length}) {
+    test._assertHasRelation(element, IndexRelationKind.IS_MIXED_IN_BY,
+        test._expectedLocation(search, length: length));
+  }
+
+  void isReferencedAt(String search, {int length, bool qualified: false}) {
+    // TODO(scheglov) use 'qualified'
+    test._assertHasRelation(element, IndexRelationKind.IS_REFERENCED_BY,
+        test._expectedLocation(search, length: length));
   }
 }

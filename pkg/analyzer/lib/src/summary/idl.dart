@@ -149,6 +149,33 @@ abstract class EntityRef extends base.SummaryClass {
 }
 
 /**
+ * When we need to reference a synthetic element in [PackageIndex] we use a
+ * value of this enum to specify which kind of the synthetic element we
+ * actually reference.
+ */
+enum IndexSyntheticElementKind {
+  /**
+   * Not a synthetic element.
+   */
+  notSynthetic,
+
+  /**
+   * The unnamed synthetic constructor a class element.
+   */
+  constructor,
+
+  /**
+   * The synthetic getter of a property introducing element.
+   */
+  getter,
+
+  /**
+   * The synthetic setter of a property introducing element.
+   */
+  setter
+}
+
+/**
  * Enum used to indicate the kind of index relation.
  */
 enum IndexRelationKind {
@@ -453,6 +480,13 @@ abstract class PackageBundle extends base.SummaryClass {
 abstract class PackageIndex extends base.SummaryClass {
   factory PackageIndex.fromBuffer(List<int> buffer) =>
       generated.readPackageIndex(buffer);
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the kind of the synthetic element.
+   */
+  @Id(6)
+  List<IndexSyntheticElementKind> get elementKinds;
 
   /**
    * Each item of this list corresponds to a unique library URI with an element

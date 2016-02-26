@@ -75,6 +75,7 @@ class PackageIndexAssembler {
         elementUnitUris: _elementUnitUris,
         elementUnits: elementInfoList.map((e) => e.unitId).toList(),
         elementOffsets: elementInfoList.map((e) => e.offset).toList(),
+        elementKinds: elementInfoList.map((e) => e.kind).toList(),
         uris: _uris,
         units: _units.map((unit) => unit.assemble()).toList());
   }
@@ -97,7 +98,12 @@ class PackageIndexAssembler {
     return _elementMap.putIfAbsent(element, () {
       CompilationUnitElement unitElement = getUnitElement(element);
       int unitId = _getUnitElementId(unitElement);
-      return new _ElementInfo(unitId, element.nameOffset);
+      int offset = element.nameOffset;
+      if (element is LibraryElement || element is CompilationUnitElement) {
+        offset = 0;
+      }
+      IndexSyntheticElementKind kind = getIndexElementKind(element);
+      return new _ElementInfo(unitId, offset, kind);
     });
   }
 
@@ -127,6 +133,23 @@ class PackageIndexAssembler {
       _uris.add(str);
       return id;
     });
+  }
+
+  /**
+   * Return the kind of the given [element].
+   */
+  static IndexSyntheticElementKind getIndexElementKind(Element element) {
+    if (element.isSynthetic) {
+      if (element is ConstructorElement) {
+        return IndexSyntheticElementKind.constructor;
+      }
+      if (element is PropertyAccessorElement) {
+        return element.isGetter
+            ? IndexSyntheticElementKind.getter
+            : IndexSyntheticElementKind.setter;
+      }
+    }
+    return IndexSyntheticElementKind.notSynthetic;
   }
 
   /**
@@ -161,12 +184,17 @@ class _ElementInfo {
   final int offset;
 
   /**
+   * The kind of the element.
+   */
+  final IndexSyntheticElementKind kind;
+
+  /**
    * The unique id of the element.  It is set after indexing of the whole
    * package is done and we are assembling the full package index.
    */
   int id;
 
-  _ElementInfo(this.unitId, this.offset);
+  _ElementInfo(this.unitId, this.offset, this.kind);
 }
 
 /**
@@ -205,14 +233,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
         recordSuperType(interfaceNode, IndexRelationKind.IS_IMPLEMENTED_BY);
       }
     }
-  }
-
-  /**
-   * Records reference to defining [CompilationUnitElement] of the given
-   * [LibraryElement].
-   */
-  void recordLibraryReference(UriBasedDirective node, LibraryElement library) {
-    recordRelation(library, IndexRelationKind.IS_REFERENCED_BY, node?.uri);
   }
 
   /**
@@ -264,11 +284,14 @@ class _IndexContributor extends GeneralizingAstVisitor {
       Element element, IndexRelationKind kind, int offset, int length) {
     // Ignore elements that can't be referenced outside of the unit.
     if (element == null ||
+        element is FunctionElement &&
+            element.enclosingElement is ExecutableElement ||
+        element is LabelElement ||
         element is LocalVariableElement ||
         element is ParameterElement &&
             element.parameterKind != ParameterKind.NAMED ||
-        element is FunctionElement &&
-            element.enclosingElement is ExecutableElement) {
+        element is PrefixElement ||
+        element is TypeParameterElement) {
       return;
     }
     // Add the relation.
@@ -315,8 +338,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 //    }
   }
 
-  void recordUriFileReference(UriBasedDirective directive) {
-    Element element = directive.element;
+  void recordUriReference(Element element, UriBasedDirective directive) {
     recordRelation(element, IndexRelationKind.IS_REFERENCED_BY, directive.uri);
   }
 
@@ -395,11 +417,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   visitExportDirective(ExportDirective node) {
     ExportElement element = node.element;
-    if (element != null) {
-      LibraryElement expLibrary = element.exportedLibrary;
-      recordLibraryReference(node, expLibrary);
-    }
-    recordUriFileReference(node);
+    recordUriReference(element?.exportedLibrary, node);
     super.visitExportDirective(node);
   }
 
@@ -420,11 +438,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   visitImportDirective(ImportDirective node) {
     ImportElement element = node.element;
-    if (element != null) {
-      LibraryElement impLibrary = element.importedLibrary;
-      recordLibraryReference(node, impLibrary);
-    }
-    recordUriFileReference(node);
+    recordUriReference(element?.importedLibrary, node);
     super.visitImportDirective(node);
   }
 
@@ -452,9 +466,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
         element is PropertyAccessorElement ||
         element is FunctionElement ||
         element is VariableElement) {
-      recordRelation(element, IndexRelationKind.IS_INVOKED_BY, node);
+      recordRelation(element, IndexRelationKind.IS_INVOKED_BY, name);
     } else if (element is ClassElement) {
-      recordRelation(element, IndexRelationKind.IS_REFERENCED_BY, node);
+      recordRelation(element, IndexRelationKind.IS_REFERENCED_BY, name);
     }
     node.target?.accept(this);
     node.argumentList?.accept(this);
@@ -462,14 +476,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   visitPartDirective(PartDirective node) {
-    recordRelation(node.element, IndexRelationKind.IS_REFERENCED_BY, node);
-    recordUriFileReference(node);
+    Element element = node.element;
+    recordUriReference(element, node);
     super.visitPartDirective(node);
-  }
-
-  @override
-  visitPartOfDirective(PartOfDirective node) {
-    recordRelation(node.element, IndexRelationKind.IS_REFERENCED_BY, node);
   }
 
   @override
@@ -532,6 +541,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
         element is FunctionTypeAliasElement ||
         element is LabelElement ||
         element is MethodElement ||
+        element is ParameterElement ||
         element is PrefixElement ||
         element is PropertyAccessorElement ||
         element is PropertyInducingElement ||

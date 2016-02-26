@@ -11,6 +11,19 @@ import 'flat_buffers.dart' as fb;
 import 'idl.dart' as idl;
 import 'dart:convert' as convert;
 
+class _IndexSyntheticElementKindReader extends fb.Reader<idl.IndexSyntheticElementKind> {
+  const _IndexSyntheticElementKindReader() : super();
+
+  @override
+  int get size => 1;
+
+  @override
+  idl.IndexSyntheticElementKind read(fb.BufferPointer bp) {
+    int index = const fb.Uint8Reader().read(bp);
+    return idl.IndexSyntheticElementKind.values[index];
+  }
+}
+
 class _IndexRelationKindReader extends fb.Reader<idl.IndexRelationKind> {
   const _IndexRelationKindReader() : super();
 
@@ -1418,12 +1431,25 @@ abstract class _PackageBundleMixin implements idl.PackageBundle {
 class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.PackageIndex {
   bool _finished = false;
 
+  List<idl.IndexSyntheticElementKind> _elementKinds;
   List<int> _elementLibraryUris;
   List<int> _elementOffsets;
   List<int> _elementUnits;
   List<int> _elementUnitUris;
   List<UnitIndexBuilder> _units;
   List<String> _uris;
+
+  @override
+  List<idl.IndexSyntheticElementKind> get elementKinds => _elementKinds ??= <idl.IndexSyntheticElementKind>[];
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the kind of the element.
+   */
+  void set elementKinds(List<idl.IndexSyntheticElementKind> _value) {
+    assert(!_finished);
+    _elementKinds = _value;
+  }
 
   @override
   List<int> get elementLibraryUris => _elementLibraryUris ??= <int>[];
@@ -1502,8 +1528,9 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
     _uris = _value;
   }
 
-  PackageIndexBuilder({List<int> elementLibraryUris, List<int> elementOffsets, List<int> elementUnits, List<int> elementUnitUris, List<UnitIndexBuilder> units, List<String> uris})
-    : _elementLibraryUris = elementLibraryUris,
+  PackageIndexBuilder({List<idl.IndexSyntheticElementKind> elementKinds, List<int> elementLibraryUris, List<int> elementOffsets, List<int> elementUnits, List<int> elementUnitUris, List<UnitIndexBuilder> units, List<String> uris})
+    : _elementKinds = elementKinds,
+      _elementLibraryUris = elementLibraryUris,
       _elementOffsets = elementOffsets,
       _elementUnits = elementUnits,
       _elementUnitUris = elementUnitUris,
@@ -1518,12 +1545,16 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
+    fb.Offset offset_elementKinds;
     fb.Offset offset_elementLibraryUris;
     fb.Offset offset_elementOffsets;
     fb.Offset offset_elementUnits;
     fb.Offset offset_elementUnitUris;
     fb.Offset offset_units;
     fb.Offset offset_uris;
+    if (!(_elementKinds == null || _elementKinds.isEmpty)) {
+      offset_elementKinds = fbBuilder.writeListUint8(_elementKinds.map((b) => b.index).toList());
+    }
     if (!(_elementLibraryUris == null || _elementLibraryUris.isEmpty)) {
       offset_elementLibraryUris = fbBuilder.writeListUint32(_elementLibraryUris);
     }
@@ -1543,6 +1574,9 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
       offset_uris = fbBuilder.writeList(_uris.map((b) => fbBuilder.writeString(b)).toList());
     }
     fbBuilder.startTable();
+    if (offset_elementKinds != null) {
+      fbBuilder.addOffset(6, offset_elementKinds);
+    }
     if (offset_elementLibraryUris != null) {
       fbBuilder.addOffset(2, offset_elementLibraryUris);
     }
@@ -1582,12 +1616,19 @@ class _PackageIndexImpl extends Object with _PackageIndexMixin implements idl.Pa
 
   _PackageIndexImpl(this._bp);
 
+  List<idl.IndexSyntheticElementKind> _elementKinds;
   List<int> _elementLibraryUris;
   List<int> _elementOffsets;
   List<int> _elementUnits;
   List<int> _elementUnitUris;
   List<idl.UnitIndex> _units;
   List<String> _uris;
+
+  @override
+  List<idl.IndexSyntheticElementKind> get elementKinds {
+    _elementKinds ??= const fb.ListReader<idl.IndexSyntheticElementKind>(const _IndexSyntheticElementKindReader()).vTableGet(_bp, 6, const <idl.IndexSyntheticElementKind>[]);
+    return _elementKinds;
+  }
 
   @override
   List<int> get elementLibraryUris {
@@ -1630,6 +1671,7 @@ abstract class _PackageIndexMixin implements idl.PackageIndex {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
+    if (elementKinds.isNotEmpty) _result["elementKinds"] = elementKinds.map((_value) => _value.toString().split('.')[1]).toList();
     if (elementLibraryUris.isNotEmpty) _result["elementLibraryUris"] = elementLibraryUris;
     if (elementOffsets.isNotEmpty) _result["elementOffsets"] = elementOffsets;
     if (elementUnits.isNotEmpty) _result["elementUnits"] = elementUnits;
@@ -1641,6 +1683,7 @@ abstract class _PackageIndexMixin implements idl.PackageIndex {
 
   @override
   Map<String, Object> toMap() => {
+    "elementKinds": elementKinds,
     "elementLibraryUris": elementLibraryUris,
     "elementOffsets": elementOffsets,
     "elementUnits": elementUnits,
