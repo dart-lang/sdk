@@ -585,10 +585,10 @@ class Object {
     // are preserved as well.
     //
     // e.g.
-    //   private getter             - get:foo@6be832b
-    //   private constructor        - _MyClass@6b3832b.
-    //   private named constructor  - _MyClass@6b3832b.named
-    //   core impl class name shown - _OneByteString
+    //   private getter             -> get:foo@6be832b
+    //   private constructor        -> _MyClass@6b3832b.
+    //   private named constructor  -> _MyClass@6b3832b.named
+    //   core impl class name shown -> _OneByteString
     kInternalName = 0,
 
     // Scrubbed names drop privacy suffixes, getter prefixes, and
@@ -599,7 +599,7 @@ class Object {
     //   get:foo@6be832b        -> foo
     //   _MyClass@6b3832b.      -> _MyClass
     //   _MyClass@6b3832b.named -> _MyClass.named
-    //   _OneByteString          -> _OneByteString (not remapped)
+    //   _OneByteString         -> _OneByteString (not remapped)
     kScrubbedName,
 
     // User visible names are appropriate for reporting type errors
@@ -611,7 +611,7 @@ class Object {
     //   get:foo@6be832b        -> foo
     //   _MyClass@6b3832b.      -> _MyClass
     //   _MyClass@6b3832b.named -> _MyClass.named
-    //   _OneByteString          -> String (remapped)
+    //   _OneByteString         -> String (remapped)
     kUserVisibleName
   };
 
@@ -1635,6 +1635,9 @@ class TypeArguments : public Object {
 
   // Canonicalize only if instantiated, otherwise returns 'this'.
   RawTypeArguments* Canonicalize(TrailPtr trail = NULL) const;
+
+  // Returns a formatted list of occuring type arguments with their URI.
+  RawString* EnumerateURIs() const;
 
   // Return 'this' if this type argument vector is instantiated, i.e. if it does
   // not refer to type parameters. Otherwise, return a new type argument vector
@@ -5350,6 +5353,13 @@ class AbstractType : public Instance {
     return BuildName(kUserVisibleName);
   }
 
+  // Same as user visible name, but including the URI of each occuring type.
+  // Used to report errors involving types with identical names.
+  virtual RawString* UserVisibleNameWithURI() const;
+
+  // Returns a formatted list of occuring types with their URI.
+  virtual RawString* EnumerateURIs() const;
+
   virtual intptr_t Hash() const;
 
   // The name of this type's class, i.e. without the type argument names of this
@@ -5493,6 +5503,7 @@ class Type : public AbstractType {
       const Class& new_owner,
       TrailPtr trail = NULL) const;
   virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const;
+  virtual RawString* EnumerateURIs() const;
 
   virtual intptr_t Hash() const;
 
@@ -5641,6 +5652,7 @@ class FunctionType : public AbstractType {
       const Class& new_owner,
       TrailPtr trail = NULL) const;
   virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const;
+  virtual RawString* EnumerateURIs() const;
 
   virtual intptr_t Hash() const;
 
@@ -5717,6 +5729,7 @@ class TypeRef : public AbstractType {
       const Class& new_owner,
       TrailPtr trail = NULL) const;
   virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const;
+  virtual RawString* EnumerateURIs() const;
 
   virtual intptr_t Hash() const;
 
@@ -5792,6 +5805,7 @@ class TypeParameter : public AbstractType {
   virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const {
     return raw();
   }
+  virtual RawString* EnumerateURIs() const;
 
   virtual intptr_t Hash() const;
 
@@ -5878,6 +5892,7 @@ class BoundedType : public AbstractType {
   virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const {
     return raw();
   }
+  virtual RawString* EnumerateURIs() const;
 
   virtual intptr_t Hash() const;
 

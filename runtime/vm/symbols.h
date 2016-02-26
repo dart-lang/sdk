@@ -316,6 +316,9 @@ class ObjectPointerVisitor;
   V(ColonSpace, ": ")                                                          \
   V(RParenArrow, ") => ")                                                      \
   V(SpaceExtendsSpace, " extends ")                                            \
+  V(SpaceWhereNewLine, " where\n")                                             \
+  V(SpaceIsFromSpace, " is from ")                                             \
+  V(SpaceOfSpace, " of ")                                                      \
   V(SwitchExpr, ":switch_expr")                                                \
   V(TwoNewlines, "\n\n")                                                       \
   V(TwoSpaces, "  ")                                                           \
@@ -421,7 +424,7 @@ class Symbols : public AllStatic {
 
     kKwTableStart,  // First keyword at kKwTableStart + 1.
 
-#define DEFINE_KEYWORD_SYMBOL_INDEX(t, s, p, a)                            \
+#define DEFINE_KEYWORD_SYMBOL_INDEX(t, s, p, a)                                \
     t##Id,
     DART_KEYWORD_LIST(DEFINE_KEYWORD_SYMBOL_INDEX)
 #undef DEFINE_KEYWORD_SYMBOL_INDEX

@@ -4921,6 +4921,22 @@ RawTypeArguments* TypeArguments::Canonicalize(TrailPtr trail) const {
 }
 
 
+RawString* TypeArguments::EnumerateURIs() const {
+  if (IsNull()) {
+    return Symbols::Empty().raw();
+  }
+  Zone* zone = Thread::Current()->zone();
+  AbstractType& type = AbstractType::Handle(zone);
+  const intptr_t num_types = Length();
+  GrowableHandlePtrArray<const String> pieces(zone, num_types);
+  for (intptr_t i = 0; i < num_types; i++) {
+    type = TypeAt(i);
+    pieces.Add(String::Handle(zone, type.EnumerateURIs()));
+  }
+  return Symbols::FromConcatAll(pieces);
+}
+
+
 const char* TypeArguments::ToCString() const {
   if (IsNull()) {
     return "NULL TypeArguments";
@@ -14847,6 +14863,13 @@ RawAbstractType* AbstractType::Canonicalize(TrailPtr trail) const {
 }
 
 
+RawString* AbstractType::EnumerateURIs() const {
+  // AbstractType is an abstract class.
+  UNREACHABLE();
+  return NULL;
+}
+
+
 RawAbstractType* AbstractType::OnlyBuddyInTrail(TrailPtr trail) const {
   if (trail == NULL) {
     return AbstractType::null();
@@ -15039,6 +15062,29 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
   // The name is only used for type checking and debugging purposes.
   // Unless profiling data shows otherwise, it is not worth caching the name in
   // the type.
+  return Symbols::FromConcatAll(pieces);
+}
+
+
+// Same as user visible name, but including the URI of each occuring type.
+// Used to report errors involving types with identical names.
+//
+// e.g.
+//   MyClass<String>     -> MyClass<String> where
+//                            MyClass is from my_uri
+//                            String is from dart:core
+//   MyClass<dynamic, T> -> MyClass<dynamic, T> where
+//                            MyClass is from my_uri
+//                            T of OtherClass is from other_uri
+//   (MyClass) => int    -> (MyClass) => int where
+//                            MyClass is from my_uri
+//                            int is from dart:core
+RawString* AbstractType::UserVisibleNameWithURI() const {
+  Zone* zone = Thread::Current()->zone();
+  GrowableHandlePtrArray<const String> pieces(zone, 3);
+  pieces.Add(String::Handle(zone, BuildName(kUserVisibleName)));
+  pieces.Add(Symbols::SpaceWhereNewLine());
+  pieces.Add(String::Handle(zone, EnumerateURIs()));
   return Symbols::FromConcatAll(pieces);
 }
 
@@ -15787,6 +15833,25 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
 }
 
 
+RawString* Type::EnumerateURIs() const {
+  if (IsDynamicType()) {
+    return Symbols::Empty().raw();
+  }
+  Zone* zone = Thread::Current()->zone();
+  GrowableHandlePtrArray<const String> pieces(zone, 6);
+  const Class& cls = Class::Handle(zone, type_class());
+  pieces.Add(Symbols::TwoSpaces());
+  pieces.Add(String::Handle(zone, cls.UserVisibleName()));
+  pieces.Add(Symbols::SpaceIsFromSpace());
+  const Library& library = Library::Handle(zone, cls.library());
+  pieces.Add(String::Handle(zone, library.url()));
+  pieces.Add(Symbols::NewLine());
+  const TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
+  pieces.Add(String::Handle(zone, type_args.EnumerateURIs()));
+  return Symbols::FromConcatAll(pieces);
+}
+
+
 intptr_t Type::Hash() const {
   ASSERT(IsFinalized());
   uint32_t result = 1;
@@ -16278,6 +16343,28 @@ RawAbstractType* FunctionType::Canonicalize(TrailPtr trail) const {
 }
 
 
+RawString* FunctionType::EnumerateURIs() const {
+  Zone* zone = Thread::Current()->zone();
+  // The scope class and type arguments do not appear explicitly in the user
+  // visible name. The type arguments were used to instantiate the function type
+  // prior to this call.
+  const Function& sig_fun = Function::Handle(zone, signature());
+  AbstractType& type = AbstractType::Handle(zone);
+  const intptr_t num_params = sig_fun.NumParameters();
+  GrowableHandlePtrArray<const String> pieces(zone, num_params + 1);
+  for (intptr_t i = 0; i < num_params; i++) {
+    type = sig_fun.ParameterTypeAt(i);
+    pieces.Add(String::Handle(zone, type.EnumerateURIs()));
+  }
+  // Handle result type last, since it appears last in the user visible name.
+  type = sig_fun.result_type();
+  if (!type.IsDynamicType() && !type.IsVoidType()) {
+    pieces.Add(String::Handle(zone, type.EnumerateURIs()));
+  }
+  return Symbols::FromConcatAll(pieces);
+}
+
+
 intptr_t FunctionType::Hash() const {
   ASSERT(IsFinalized());
   uint32_t result = 1;
@@ -16478,6 +16565,11 @@ RawAbstractType* TypeRef::Canonicalize(TrailPtr trail) const {
   ref_type = ref_type.Canonicalize(trail);
   set_type(ref_type);
   return raw();
+}
+
+
+RawString* TypeRef::EnumerateURIs() const {
+  return Symbols::Empty().raw();  // Break cycle.
 }
 
 
@@ -16693,6 +16785,22 @@ RawAbstractType* TypeParameter::CloneUninstantiated(
   upper_bound = upper_bound.CloneUninstantiated(new_owner, trail);
   clone.set_bound(upper_bound);
   return clone.raw();
+}
+
+
+RawString* TypeParameter::EnumerateURIs() const {
+  Zone* zone = Thread::Current()->zone();
+  GrowableHandlePtrArray<const String> pieces(zone, 4);
+  pieces.Add(Symbols::TwoSpaces());
+  pieces.Add(String::Handle(zone, name()));
+  pieces.Add(Symbols::SpaceOfSpace());
+  const Class& cls = Class::Handle(zone, parameterized_class());
+  pieces.Add(String::Handle(zone, cls.UserVisibleName()));
+  pieces.Add(Symbols::SpaceIsFromSpace());
+  const Library& library = Library::Handle(zone, cls.library());
+  pieces.Add(String::Handle(zone, library.url()));
+  pieces.Add(Symbols::NewLine());
+  return Symbols::FromConcatAll(pieces);
 }
 
 
@@ -16945,6 +17053,12 @@ RawAbstractType* BoundedType::CloneUninstantiated(
   TypeParameter& type_param =  TypeParameter::Handle(type_parameter());
   type_param ^= type_param.CloneUninstantiated(new_owner, trail);
   return BoundedType::New(bounded_type, upper_bound, type_param);
+}
+
+
+RawString* BoundedType::EnumerateURIs() const {
+  // The bound does not appear in the user visible name.
+  return AbstractType::Handle(type()).EnumerateURIs();
 }
 
 

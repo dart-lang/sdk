@@ -494,8 +494,7 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 4) {
 // Return value: instance if a subtype, otherwise throw a TypeError.
 DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
   const Instance& src_instance = Instance::CheckedHandle(arguments.ArgAt(0));
-  const AbstractType& dst_type =
-      AbstractType::CheckedHandle(arguments.ArgAt(1));
+  AbstractType& dst_type = AbstractType::CheckedHandle(arguments.ArgAt(1));
   const TypeArguments& instantiator_type_arguments =
       TypeArguments::CheckedHandle(arguments.ArgAt(2));
   const String& dst_name = String::CheckedHandle(arguments.ArgAt(3));
@@ -520,40 +519,21 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 5) {
     const TokenPosition location = GetCallerLocation();
     const AbstractType& src_type = AbstractType::Handle(src_instance.GetType());
     String& src_type_name = String::Handle(src_type.UserVisibleName());
-    String& dst_type_name = String::Handle();
-    Library& dst_type_lib = Library::Handle();
     if (!dst_type.IsInstantiated()) {
       // Instantiate dst_type before reporting the error.
-      const AbstractType& instantiated_dst_type = AbstractType::Handle(
-          dst_type.InstantiateFrom(instantiator_type_arguments, NULL,
-                                   NULL, NULL, Heap::kNew));
-      // Note that instantiated_dst_type may be malbounded.
-      dst_type_name = instantiated_dst_type.UserVisibleName();
-      dst_type_lib =
-          Class::Handle(instantiated_dst_type.type_class()).library();
-    } else {
-      dst_type_name = dst_type.UserVisibleName();
-      dst_type_lib = Class::Handle(dst_type.type_class()).library();
+      dst_type = dst_type.InstantiateFrom(instantiator_type_arguments, NULL,
+                                          NULL, NULL, Heap::kNew);
+      // Note that instantiated dst_type may be malbounded.
     }
+    String& dst_type_name = String::Handle(dst_type.UserVisibleName());
     String& bound_error_message =  String::Handle();
     if (!bound_error.IsNull()) {
       ASSERT(isolate->type_checks());
       bound_error_message = String::New(bound_error.ToErrorCString());
     }
     if (src_type_name.Equals(dst_type_name)) {
-      // Qualify the names with their libraries.
-      String& lib_name = String::Handle();
-      lib_name = Library::Handle(
-          Class::Handle(src_type.type_class()).library()).name();
-      if (lib_name.Length() != 0) {
-        lib_name = String::Concat(lib_name, Symbols::Dot());
-        src_type_name = String::Concat(lib_name, src_type_name);
-      }
-      lib_name = dst_type_lib.name();
-      if (lib_name.Length() != 0) {
-        lib_name = String::Concat(lib_name, Symbols::Dot());
-        dst_type_name = String::Concat(lib_name, dst_type_name);
-      }
+      src_type_name = src_type.UserVisibleNameWithURI();
+      dst_type_name = dst_type.UserVisibleNameWithURI();
     }
     Exceptions::CreateAndThrowTypeError(location, src_type_name, dst_type_name,
                                         dst_name, bound_error_message);
