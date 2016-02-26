@@ -47,8 +47,16 @@ R(dump_symbol_stats, false, bool, false,                                       \
   "Dump symbol table statistics")                                              \
 C(emit_edge_counters, false, true, bool, true,                                 \
   "Emit edge counters")                                                        \
+R(enable_asserts, false, bool, false,                                          \
+  "Enable assert statements.")                                                 \
 C(enable_mirrors, false, false, bool, true,                                    \
   "Disable to make importing dart:mirrors an error.")                          \
+R(enable_type_checks, false, bool, false,                                      \
+  "Enable type checks.")                                                       \
+R(error_on_bad_override, false, bool, false,                                   \
+  "Report error for bad overrides.")                                           \
+R(error_on_bad_type, false, bool, false,                                       \
+  "Report error for malformed types.")                                         \
 C(fields_may_be_reset, true, false, bool, false,                               \
   "Don't optimize away static field initialization")                           \
 R(gc_at_alloc, false, bool, false,                                             \

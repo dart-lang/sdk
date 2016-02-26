@@ -389,7 +389,7 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
     return;
   }
 
-  if (Isolate::Current()->flags().error_on_bad_override()) {
+  if (Isolate::Current()->error_on_bad_override()) {
     // Verify that the target is compatible with the redirecting factory.
     Error& error = Error::Handle();
     if (!target.HasCompatibleParametersWith(factory, &error)) {
@@ -677,7 +677,7 @@ intptr_t ClassFinalizer::ExpandAndFinalizeTypeArguments(
   TypeArguments& arguments = TypeArguments::Handle(Z, type.arguments());
   if (!arguments.IsNull() && (arguments.Length() != num_type_parameters)) {
     // Wrong number of type arguments. The type is mapped to the raw type.
-    if (Isolate::Current()->flags().error_on_bad_type()) {
+    if (Isolate::Current()->error_on_bad_type()) {
       const String& type_class_name = String::Handle(Z, type_class.Name());
       ReportError(cls, type.token_pos(),
                   "wrong number of type arguments for class '%s'",
@@ -1456,7 +1456,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
            !const_value.IsInstanceOf(type,
                                      Object::null_type_arguments(),
                                      &error))) {
-        if (Isolate::Current()->flags().error_on_bad_type()) {
+        if (Isolate::Current()->error_on_bad_type()) {
           const AbstractType& const_value_type = AbstractType::Handle(
               Z, const_value.GetType());
           const String& const_value_type_name = String::Handle(
@@ -1519,7 +1519,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
     FinalizeSignature(cls, function);
     name = function.name();
     // Report signature conflicts only.
-    if (Isolate::Current()->flags().error_on_bad_override() &&
+    if (Isolate::Current()->error_on_bad_override() &&
         !function.is_static() && !function.IsGenerativeConstructor()) {
       // A constructor cannot override anything.
       for (intptr_t i = 0; i < interfaces.length(); i++) {
@@ -2710,7 +2710,7 @@ void ClassFinalizer::CollectTypeArguments(
       }
       return;
     }
-    if (Isolate::Current()->flags().error_on_bad_type()) {
+    if (Isolate::Current()->error_on_bad_type()) {
       const String& type_class_name = String::Handle(type_class.Name());
       ReportError(cls, type.token_pos(),
                   "wrong number of type arguments for class '%s'",
@@ -3142,7 +3142,7 @@ void ClassFinalizer::MarkTypeMalformed(const Error& prev_error,
           prev_error, script, type.token_pos(), Report::AtLocation,
           Report::kMalformedType, Heap::kOld,
           format, args));
-  if (Isolate::Current()->flags().error_on_bad_type()) {
+  if (Isolate::Current()->error_on_bad_type()) {
     ReportError(error);
   }
   type.set_error(error);
@@ -3204,7 +3204,7 @@ void ClassFinalizer::FinalizeMalboundedType(const Error& prev_error,
           Report::kMalboundedType, Heap::kOld,
           format, args));
   va_end(args);
-  if (Isolate::Current()->flags().error_on_bad_type()) {
+  if (Isolate::Current()->error_on_bad_type()) {
     ReportError(error);
   }
   type.set_error(error);

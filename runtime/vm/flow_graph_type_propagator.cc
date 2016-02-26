@@ -45,7 +45,7 @@ FlowGraphTypePropagator::FlowGraphTypePropagator(FlowGraph* flow_graph)
     types_.Add(NULL);
   }
 
-  if (Isolate::Current()->flags().type_checks()) {
+  if (Isolate::Current()->type_checks()) {
     asserts_ = new ZoneGrowableArray<AssertAssignableInstr*>(
         flow_graph->current_ssa_temp_index());
     for (intptr_t i = 0; i < flow_graph->current_ssa_temp_index(); i++) {
@@ -127,7 +127,7 @@ void FlowGraphTypePropagator::PropagateRecursive(BlockEntryInstr* block) {
 
   const intptr_t rollback_point = rollback_.length();
 
-  if (Isolate::Current()->flags().type_checks()) {
+  if (Isolate::Current()->type_checks()) {
     StrengthenAsserts(block);
   }
 
@@ -890,7 +890,7 @@ CompileType StaticCallInstr::ComputeType() const {
     return CompileType::FromCid(result_cid_);
   }
 
-  if (Isolate::Current()->flags().type_checks()) {
+  if (Isolate::Current()->type_checks()) {
     // Void functions are known to return null, which is checked at the return
     // from the function.
     const AbstractType& result_type =
@@ -905,7 +905,7 @@ CompileType StaticCallInstr::ComputeType() const {
 
 
 CompileType LoadLocalInstr::ComputeType() const {
-  if (Isolate::Current()->flags().type_checks()) {
+  if (Isolate::Current()->type_checks()) {
     return CompileType::FromAbstractType(local().type());
   }
   return CompileType::Dynamic();
@@ -949,7 +949,7 @@ CompileType LoadStaticFieldInstr::ComputeType() const {
   intptr_t cid = kDynamicCid;
   AbstractType* abstract_type = NULL;
   const Field& field = this->StaticField();
-  if (Isolate::Current()->flags().type_checks()) {
+  if (Isolate::Current()->type_checks()) {
     cid = kIllegalCid;
     abstract_type = &AbstractType::ZoneHandle(field.type());
   }
@@ -1008,7 +1008,7 @@ CompileType LoadFieldInstr::ComputeType() const {
   }
 
   const AbstractType* abstract_type = NULL;
-  if (Isolate::Current()->flags().type_checks() &&
+  if (Isolate::Current()->type_checks() &&
       type().HasResolvedTypeClass() &&
       !Field::IsExternalizableCid(Class::Handle(type().type_class()).id())) {
     abstract_type = &type();

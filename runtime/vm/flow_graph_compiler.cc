@@ -1090,7 +1090,7 @@ void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
 bool FlowGraphCompiler::TryIntrinsify() {
   // Intrinsification skips arguments checks, therefore disable if in checked
   // mode.
-  if (FLAG_intrinsify && !isolate()->flags().type_checks()) {
+  if (FLAG_intrinsify && !isolate()->type_checks()) {
     if (parsed_function().function().kind() == RawFunction::kImplicitGetter) {
       // An implicit getter must have a specific AST structure.
       const SequenceNode& sequence_node = *parsed_function().node_sequence();

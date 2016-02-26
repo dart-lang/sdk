@@ -332,13 +332,13 @@ static void EmitAssertBoolean(Register reg,
   ASSERT(locs->always_calls());
   Label done;
 
-  if (Isolate::Current()->flags().type_checks()) {
+  if (Isolate::Current()->type_checks()) {
     __ CompareObject(reg, Bool::True());
     __ j(EQUAL, &done, Assembler::kNearJump);
     __ CompareObject(reg, Bool::False());
     __ j(EQUAL, &done, Assembler::kNearJump);
   } else {
-    ASSERT(Isolate::Current()->flags().asserts());
+    ASSERT(Isolate::Current()->asserts());
     __ CompareObject(reg, Object::null_instance());
     __ j(NOT_EQUAL, &done, Assembler::kNearJump);
   }

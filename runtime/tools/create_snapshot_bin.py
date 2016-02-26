@@ -104,7 +104,9 @@ def Main():
     return 1
 
   # Setup arguments to the snapshot generator binary.
-  script_args = ["--error_on_bad_type", "--error_on_bad_override"]
+  script_args = ["--ignore_unrecognized_flags",
+                 "--error_on_bad_type",
+                 "--error_on_bad_override"]
 
   # Pass along the package_root if there is one.
   if options.package_root:

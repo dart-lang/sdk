@@ -18,7 +18,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, concurrent_sweep);
 
 // Check if serialized and deserialized objects are equal.
@@ -1579,7 +1578,7 @@ UNIT_TEST_CASE(ScriptSnapshot2) {
 
   // Force creation of snapshot in production mode.
   bool saved_enable_type_checks_mode = FLAG_enable_type_checks;
-  FLAG_enable_type_checks = false;
+  NOT_IN_PRODUCT(FLAG_enable_type_checks = false);
   bool saved_load_deferred_eagerly_mode = FLAG_load_deferred_eagerly;
   FLAG_load_deferred_eagerly = true;
   bool saved_concurrent_sweep_mode = FLAG_concurrent_sweep;
@@ -1631,7 +1630,7 @@ UNIT_TEST_CASE(ScriptSnapshot2) {
   }
 
   // Continue in originally saved mode.
-  FLAG_enable_type_checks = saved_enable_type_checks_mode;
+  NOT_IN_PRODUCT(FLAG_enable_type_checks = saved_enable_type_checks_mode);
   FLAG_load_deferred_eagerly = saved_load_deferred_eagerly_mode;
 
   {

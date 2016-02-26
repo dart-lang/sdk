@@ -1240,8 +1240,7 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
   // Setup default flags in case none were passed.
   Dart_IsolateFlags api_flags;
   if (flags == NULL) {
-    Isolate::Flags vm_flags;
-    vm_flags.CopyTo(&api_flags);
+    Isolate::FlagsInitialize(&api_flags);
     flags = &api_flags;
   }
   Isolate* I = Dart::CreateIsolate(isolate_name, *flags);

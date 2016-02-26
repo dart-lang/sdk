@@ -422,11 +422,11 @@ static void EmitAssertBoolean(Register reg,
   ASSERT(locs->always_calls());
   Label done;
 
-  if (Isolate::Current()->flags().type_checks()) {
+  if (Isolate::Current()->type_checks()) {
     __ BranchEqual(reg, Bool::True(), &done);
     __ BranchEqual(reg, Bool::False(), &done);
   } else {
-    ASSERT(Isolate::Current()->flags().asserts());
+    ASSERT(Isolate::Current()->asserts());
     __ BranchNotEqual(reg, Object::null_instance(), &done);
   }
 

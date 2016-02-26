@@ -5942,7 +5942,7 @@ const char* Function::ToQualifiedCString() const {
 
 bool Function::HasCompatibleParametersWith(const Function& other,
                                            Error* bound_error) const {
-  ASSERT(Isolate::Current()->flags().error_on_bad_override());
+  ASSERT(Isolate::Current()->error_on_bad_override());
   ASSERT((bound_error != NULL) && bound_error->IsNull());
   // Check that this function's signature type is a subtype of the other
   // function's signature type.
@@ -14236,7 +14236,7 @@ bool Instance::IsInstanceOf(const AbstractType& other,
           zone, other.InstantiateFrom(other_instantiator, bound_error,
                                       NULL, NULL, Heap::kOld));
       if ((bound_error != NULL) && !bound_error->IsNull()) {
-        ASSERT(Isolate::Current()->flags().type_checks());
+        ASSERT(Isolate::Current()->type_checks());
         return false;
       }
       if (instantiated_other.IsTypeRef()) {
@@ -14292,7 +14292,7 @@ bool Instance::IsInstanceOf(const AbstractType& other,
     instantiated_other = other.InstantiateFrom(other_instantiator, bound_error,
                                                NULL, NULL, Heap::kOld);
     if ((bound_error != NULL) && !bound_error->IsNull()) {
-      ASSERT(Isolate::Current()->flags().type_checks());
+      ASSERT(Isolate::Current()->type_checks());
       return false;
     }
     if (instantiated_other.IsTypeRef()) {
@@ -14985,14 +14985,14 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
   // type and/or malbounded parameter types, which will then be encountered here
   // at run time.
   if (IsMalbounded()) {
-    ASSERT(Isolate::Current()->flags().type_checks());
+    ASSERT(Isolate::Current()->type_checks());
     if ((bound_error != NULL) && bound_error->IsNull()) {
       *bound_error = error();
     }
     return false;
   }
   if (other.IsMalbounded()) {
-    ASSERT(Isolate::Current()->flags().type_checks());
+    ASSERT(Isolate::Current()->type_checks());
     if ((bound_error != NULL) && bound_error->IsNull()) {
       *bound_error = other.error();
     }
@@ -15243,7 +15243,7 @@ bool Type::IsMalformed() const {
 
 
 bool Type::IsMalbounded() const {
-  if (!Isolate::Current()->flags().type_checks()) {
+  if (!Isolate::Current()->type_checks()) {
     return false;
   }
   if (raw_ptr()->error_ == LanguageError::null()) {
@@ -15263,7 +15263,7 @@ bool Type::IsMalformedOrMalbounded() const {
     return true;
   }
   ASSERT(type_error.kind() == Report::kMalboundedType);
-  return Isolate::Current()->flags().type_checks();
+  return Isolate::Current()->type_checks();
 }
 
 
@@ -15750,7 +15750,7 @@ bool FunctionType::IsMalformed() const {
 
 
 bool FunctionType::IsMalbounded() const {
-  if (!Isolate::Current()->flags().type_checks()) {
+  if (!Isolate::Current()->type_checks()) {
     return false;
   }
   if (raw_ptr()->error_ == LanguageError::null()) {
@@ -15770,7 +15770,7 @@ bool FunctionType::IsMalformedOrMalbounded() const {
     return true;
   }
   ASSERT(type_error.kind() == Report::kMalboundedType);
-  return Isolate::Current()->flags().type_checks();
+  return Isolate::Current()->type_checks();
 }
 
 
@@ -16713,7 +16713,7 @@ RawAbstractType* BoundedType::InstantiateFrom(
     // (or instantiated) either.
     // Note that instantiator_type_arguments must have the final length, though.
   }
-  if ((Isolate::Current()->flags().type_checks()) &&
+  if ((Isolate::Current()->type_checks()) &&
       (bound_error != NULL) && bound_error->IsNull()) {
     AbstractType& upper_bound = AbstractType::Handle(bound());
     ASSERT(upper_bound.IsFinalized());

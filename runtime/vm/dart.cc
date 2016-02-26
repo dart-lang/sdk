@@ -131,9 +131,8 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     const bool precompiled = instructions_snapshot != NULL;
 
     // Setup default flags for the VM isolate.
-    Isolate::Flags vm_flags;
     Dart_IsolateFlags api_flags;
-    vm_flags.CopyTo(&api_flags);
+    Isolate::FlagsInitialize(&api_flags);
     vm_isolate_ = Isolate::Init("vm-isolate", api_flags, is_vm_isolate);
     start_time_ = vm_isolate_->start_time();
     vm_isolate_->set_compilation_allowed(!precompiled);

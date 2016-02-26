@@ -123,7 +123,6 @@ TEST_CASE(RegenerateAllocStubs) {
             "  return unOpt();\n"
             "}\n";
 
-  // Isolate::Current()->flags().set_checked(true);
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
   EXPECT_VALID(result);

@@ -575,7 +575,7 @@ AstNode* LoadStaticFieldNode::MakeAssignmentNode(AstNode* rhs) {
   if (field().is_final()) {
     return NULL;
   }
-  if (Isolate::Current()->flags().type_checks()) {
+  if (Isolate::Current()->type_checks()) {
     rhs = new AssignableNode(
         field().token_pos(),
         rhs,
@@ -663,7 +663,7 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
     if (obj.IsField()) {
       const Field& field = Field::ZoneHandle(zone, Field::Cast(obj).raw());
       if (!field.is_final()) {
-        if (isolate->flags().type_checks()) {
+        if (isolate->type_checks()) {
           rhs = new AssignableNode(field.token_pos(),
                                    rhs,
                                    AbstractType::ZoneHandle(zone, field.type()),
@@ -698,7 +698,7 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
     if (obj.IsField()) {
       const Field& field = Field::ZoneHandle(zone, Field::Cast(obj).raw());
       if (!field.is_final()) {
-        if (isolate->flags().type_checks()) {
+        if (isolate->type_checks()) {
           rhs = new AssignableNode(field.token_pos(),
                                    rhs,
                                    AbstractType::ZoneHandle(zone, field.type()),
@@ -754,7 +754,7 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
     ASSERT(!getter.IsNull() &&
            (getter.kind() == RawFunction::kImplicitStaticFinalGetter));
 #endif
-    if (isolate->flags().type_checks()) {
+    if (isolate->type_checks()) {
       rhs = new AssignableNode(
           field.token_pos(),
           rhs,
