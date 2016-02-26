@@ -142,7 +142,8 @@ class AbstractContextManagerTest {
         providePackageResolver,
         provideEmbeddedUriResolver,
         packageMapProvider,
-        InstrumentationService.NULL_SERVICE);
+        InstrumentationService.NULL_SERVICE,
+        new AnalysisOptionsImpl());
     callbacks = new TestContextManagerCallbacks(resourceProvider);
     manager.callbacks = callbacks;
     resourceProvider.newFolder(projPath);
@@ -2361,9 +2362,6 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
    * Iterable of the paths to contexts that currently exist.
    */
   Iterable<String> get currentContextPaths => currentContextTimestamps.keys;
-
-  @override
-  AnalysisOptions get defaultAnalysisOptions => new AnalysisOptionsImpl();
 
   @override
   AnalysisContext addContext(

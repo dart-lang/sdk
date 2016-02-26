@@ -307,12 +307,6 @@ abstract class ContextManager {
  */
 abstract class ContextManagerCallbacks {
   /**
-   * Return the default analysis options to be used when creating an analysis
-   * context.
-   */
-  AnalysisOptions get defaultAnalysisOptions;
-
-  /**
    * Create and return a new analysis context rooted at the given [folder], with
    * the given analysis [options], allowing [disposition] to govern details of
    * how the context is to be created.
@@ -460,6 +454,11 @@ class ContextManagerImpl implements ContextManager {
    */
   final InstrumentationService _instrumentationService;
 
+  /**
+   * The default options used to create new analysis contexts.
+   */
+  final AnalysisOptionsImpl defaultContextOptions;
+
   @override
   ContextManagerCallbacks callbacks;
 
@@ -481,7 +480,8 @@ class ContextManagerImpl implements ContextManager {
       this.packageResolverProvider,
       this.embeddedUriResolverProvider,
       this._packageMapProvider,
-      this._instrumentationService) {
+      this._instrumentationService,
+      this.defaultContextOptions) {
     absolutePathContext = resourceProvider.absolutePathContext;
     pathContext = resourceProvider.pathContext;
   }
@@ -892,7 +892,6 @@ class ContextManagerImpl implements ContextManager {
           if (sourceFactory is SourceFactoryImpl) {
             if (!sourceFactory.resolvers
                 .any((UriResolver r) => r is EmbedderUriResolver)) {
-
               // Get all but the dart: Uri resolver.
               List<UriResolver> resolvers = sourceFactory.resolvers
                   .where((r) => r is! DartUriResolver)
@@ -1046,7 +1045,7 @@ class ContextManagerImpl implements ContextManager {
 
     Map<String, Object> optionMap = readOptions(info.folder);
     AnalysisOptions options =
-        new AnalysisOptionsImpl.from(callbacks.defaultAnalysisOptions);
+        new AnalysisOptionsImpl.from(defaultContextOptions);
     applyToAnalysisOptions(options, optionMap);
 
     info.setDependencies(dependencies);

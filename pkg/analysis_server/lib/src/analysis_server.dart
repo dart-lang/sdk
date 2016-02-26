@@ -280,9 +280,10 @@ class AnalysisServer {
   Set<String> prevAnalyzedFiles;
 
   /**
-   * The default options used to create new analysis contexts.
+   * The default options used to create new analysis contexts. This object is
+   * also referenced by the ContextManager.
    */
-  AnalysisOptionsImpl defaultContextOptions = new AnalysisOptionsImpl();
+  final AnalysisOptionsImpl defaultContextOptions = new AnalysisOptionsImpl();
 
   /**
    * The controller for sending [ContextsChangedEvent]s.
@@ -314,22 +315,23 @@ class AnalysisServer {
       : index = _index,
         searchEngine = _index != null ? createSearchEngine(_index) : null {
     _performance = performanceDuringStartup;
-    operationQueue = new ServerOperationQueue();
-    contextManager = new ContextManagerImpl(
-        resourceProvider,
-        packageResolverProvider,
-        embeddedResolverProvider,
-        packageMapProvider,
-        instrumentationService);
-    ServerContextManagerCallbacks contextManagerCallbacks =
-        new ServerContextManagerCallbacks(this, resourceProvider);
-    contextManager.callbacks = contextManagerCallbacks;
     defaultContextOptions.incremental = true;
     defaultContextOptions.incrementalApi =
         options.enableIncrementalResolutionApi;
     defaultContextOptions.incrementalValidation =
         options.enableIncrementalResolutionValidation;
     defaultContextOptions.generateImplicitErrors = false;
+    operationQueue = new ServerOperationQueue();
+    contextManager = new ContextManagerImpl(
+        resourceProvider,
+        packageResolverProvider,
+        embeddedResolverProvider,
+        packageMapProvider,
+        instrumentationService,
+        defaultContextOptions);
+    ServerContextManagerCallbacks contextManagerCallbacks =
+        new ServerContextManagerCallbacks(this, resourceProvider);
+    contextManager.callbacks = contextManagerCallbacks;
     _noErrorNotification = options.noErrorNotification;
     AnalysisEngine.instance.logger = new AnalysisLogger(this);
     _onAnalysisStartedController = new StreamController.broadcast();
@@ -1479,10 +1481,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     }
     return _analyzedFilesGlobs;
   }
-
-  @override
-  AnalysisOptions get defaultAnalysisOptions =>
-      analysisServer.defaultContextOptions;
 
   @override
   AnalysisContext addContext(
