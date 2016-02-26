@@ -37,6 +37,15 @@ DEFINE_FLAG(bool, unbox_numeric_fields, true,
     "Support unboxed double and float32x4 fields.");
 DECLARE_FLAG(bool, eliminate_type_checks);
 
+
+#if defined(DEBUG)
+void Instruction::CheckField(const Field& field) const {
+  ASSERT(field.IsZoneHandle());
+  ASSERT(!Compiler::IsBackgroundCompilation() || !field.IsOriginal());
+}
+#endif  // DEBUG
+
+
 Definition::Definition(intptr_t deopt_id)
     : Instruction(deopt_id),
       range_(NULL),
@@ -406,7 +415,7 @@ bool LoadStaticFieldInstr::AttributesEqual(Instruction* other) const {
 
 
 const Field& LoadStaticFieldInstr::StaticField() const {
-  Field& field = Field::Handle();
+  Field& field = Field::ZoneHandle();
   field ^= field_value()->BoundConstant().raw();
   return field;
 }

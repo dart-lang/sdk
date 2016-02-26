@@ -1262,7 +1262,7 @@ bool JitOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
 }
 
 
-// Using field class
+// Using field class.
 RawField* JitOptimizer::GetField(intptr_t class_id,
                                  const String& field_name) {
   Class& cls = Class::Handle(Z, isolate()->class_table()->At(class_id));
@@ -1270,7 +1270,12 @@ RawField* JitOptimizer::GetField(intptr_t class_id,
   while (!cls.IsNull()) {
     field = cls.LookupInstanceField(field_name);
     if (!field.IsNull()) {
-      return field.raw();
+      if (Compiler::IsBackgroundCompilation() ||
+          FLAG_force_clone_compiler_objects) {
+        return field.CloneFromOriginal();
+      } else {
+        return field.raw();
+      }
     }
     cls = cls.SuperClass();
   }

@@ -714,6 +714,16 @@ class Instruction : public ZoneAllocated {
 
   virtual const char* DebugName() const = 0;
 
+#if defined(DEBUG)
+  // Checks that the field stored in an instruction has proper form:
+  // - must be a zone-handle
+  // - In background compilation, must be cloned.
+  // Aborts if field is not OK.
+  void CheckField(const Field& field) const;
+#else
+  void CheckField(const Field& field) const {}
+#endif  // DEBUG
+
   // Printing support.
   const char* ToCString() const;
 #ifndef PRODUCT
@@ -3550,6 +3560,7 @@ class StoreInstanceFieldInstr : public TemplateDefinition<2, NoThrow> {
         is_object_reference_initialization_(false) {
     SetInputAt(kInstancePos, instance);
     SetInputAt(kValuePos, value);
+    CheckField(field);
   }
 
   StoreInstanceFieldInstr(intptr_t offset_in_bytes,
@@ -3651,6 +3662,7 @@ class GuardFieldInstr : public TemplateInstruction<1, NoThrow, Pure> {
     : TemplateInstruction(deopt_id),
       field_(field) {
     SetInputAt(0, value);
+    CheckField(field);
   }
 
   Value* value() const { return inputs_[0]; }
@@ -3677,7 +3689,9 @@ class GuardFieldClassInstr : public GuardFieldInstr {
   GuardFieldClassInstr(Value* value,
                        const Field& field,
                        intptr_t deopt_id)
-    : GuardFieldInstr(value, field, deopt_id) { }
+      : GuardFieldInstr(value, field, deopt_id) {
+    CheckField(field);
+  }
 
   DECLARE_INSTRUCTION(GuardFieldClass)
 
@@ -3695,7 +3709,9 @@ class GuardFieldLengthInstr : public GuardFieldInstr {
   GuardFieldLengthInstr(Value* value,
                        const Field& field,
                        intptr_t deopt_id)
-    : GuardFieldInstr(value, field, deopt_id) { }
+      : GuardFieldInstr(value, field, deopt_id) {
+    CheckField(field);
+  }
 
   DECLARE_INSTRUCTION(GuardFieldLength)
 
@@ -3750,6 +3766,7 @@ class StoreStaticFieldInstr : public TemplateDefinition<1, NoThrow> {
         token_pos_(token_pos) {
     ASSERT(field.IsZoneHandle());
     SetInputAt(kValuePos, value);
+    CheckField(field);
   }
 
   enum {
@@ -4641,6 +4658,7 @@ class InitStaticFieldInstr : public TemplateInstruction<1, Throws> {
       : TemplateInstruction(Thread::Current()->GetNextDeoptId()),
         field_(field) {
     SetInputAt(0, input);
+    CheckField(field);
   }
 
   virtual TokenPosition token_pos() const {
