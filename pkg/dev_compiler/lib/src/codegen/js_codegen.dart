@@ -1269,7 +1269,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       for (var p in ctor.parameters.parameters) {
         var element = p.element;
         if (element is FieldFormalParameterElement) {
-          fields[element.field] = _emitFormalParameter(p, allowType: false);
+          fields[element.field] = visitSimpleIdentifier(p.identifier);
         }
       }
 
@@ -1327,10 +1327,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
     var body = <JS.Statement>[];
     for (var param in parameters.parameters) {
-      var jsParam = _emitSimpleIdentifier(param.identifier, allowType: false);
+      var jsParam = visitSimpleIdentifier(param.identifier);
 
-      if (param.kind == ParameterKind.NAMED) {
-        if (!options.destructureNamedParams) {
+      if (!options.destructureNamedParams) {
+        if (param.kind == ParameterKind.NAMED) {
           // Parameters will be passed using their real names, not the (possibly
           // renamed) local variable.
           var paramName = js.string(param.identifier.name, "'");
@@ -1345,11 +1345,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
             paramName,
             _defaultParamValue(param),
           ]));
+        } else if (param.kind == ParameterKind.POSITIONAL) {
+          body.add(js.statement('if (# === void 0) # = #;',
+              [jsParam, jsParam, _defaultParamValue(param)]));
         }
-      } else if (param.kind == ParameterKind.POSITIONAL &&
-          !options.destructureNamedParams) {
-        body.add(js.statement('if (# === void 0) # = #;',
-            [jsParam, jsParam, _defaultParamValue(param)]));
       }
 
       // TODO(jmesserly): various problems here, see:
@@ -1598,31 +1597,33 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     List<JS.Parameter> params;
 
     var body = node.body;
+    var type = node.element.type;
+
     JS.Node jsBody;
     if (body.isGenerator || body.isAsynchronous) {
       params = visitFormalParameterList(node.parameters, destructure: false);
       jsBody = _emitGeneratorFunctionBody(node.element, node.parameters, body);
     } else {
+      params = visitFormalParameterList(node.parameters);
+
       // Chrome Canary does not accept default values with destructuring in
       // arrow functions yet (e.g. `({a} = {}) => 1`) but happily accepts them
       // with regular functions (e.g. `function({a} = {}) { return 1 }`).
       // Note that Firefox accepts both syntaxes just fine.
       // TODO(ochafik): Simplify this code when Chrome Canary catches up.
-      bool hasNamedParams =
-          node.parameters.parameters.any((p) => p.kind == ParameterKind.NAMED);
+      bool destructureNamed = params.any((p) =>
+          p is JS.DestructuredVariable &&
+          p.structure is JS.ObjectBindingPattern);
 
-      params = visitFormalParameterList(node.parameters,
-          destructure: !hasNamedParams);
-
-      if (body is ExpressionFunctionBody) {
+      if (body is ExpressionFunctionBody && !destructureNamed) {
         // An arrow function can use the expression directly.
+        // Note: this only works if we don't need to emit argument initializers.
         jsBody = _visit(body.expression);
       } else {
         jsBody = _visit(body);
       }
     }
 
-    var type = node.element.type;
     var fn = new JS.ArrowFun(params, jsBody,
         typeParams: _emitTypeFormals(type.typeFormals),
         returnType: emitTypeRef(type.returnType));
@@ -1746,14 +1747,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     ]);
   }
 
-  @override
-  JS.Expression visitSimpleIdentifier(SimpleIdentifier node) =>
-      _emitSimpleIdentifier(node);
-
   /// Writes a simple identifier. This can handle implicit `this` as well as
   /// going through the qualified library name if necessary.
-  JS.Expression _emitSimpleIdentifier(SimpleIdentifier node,
-      {bool allowType: false}) {
+  @override
+  JS.Expression visitSimpleIdentifier(SimpleIdentifier node) {
     var accessor = node.staticElement;
     if (accessor == null) {
       return js.commentExpression(
@@ -1804,14 +1801,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       return js.call(code, member);
     }
 
-    // initializing formal parameter, e.g. `Point(this.x)`
-    if (element is ParameterElement &&
-        element.isInitializingFormal &&
-        element.isPrivate) {
-      /// Rename private names so they don't shadow the private field symbol.
-      /// The renamer would handle this, but it would prefer to rename the
-      /// temporary used for the private symbol. Instead rename the parameter.
-      return _getTemp(element, '${name.substring(1)}');
+    if (element is ParameterElement) {
+      return _emitParameter(element);
     }
 
     if (element is TemporaryVariableElement) {
@@ -1822,10 +1813,22 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       }
     }
 
-    return annotate(
-        new JS.Identifier(name,
-            type: allowType ? emitTypeRef(node.bestType) : null),
-        node);
+    return new JS.Identifier(name);
+  }
+
+  JS.Identifier _emitParameter(ParameterElement element,
+      {bool declaration: false}) {
+    // initializing formal parameter, e.g. `Point(this._x)`
+    // TODO(jmesserly): type ref is not attached in this case.
+    if (element.isInitializingFormal && element.isPrivate) {
+      /// Rename private names so they don't shadow the private field symbol.
+      /// The renamer would handle this, but it would prefer to rename the
+      /// temporary used for the private symbol. Instead rename the parameter.
+      return _getTemp(element, '${element.name.substring(1)}');
+    }
+
+    var type = declaration ? emitTypeRef(element.type) : null;
+    return new JS.Identifier(element.name, type: type);
   }
 
   JS.TemporaryId _getTemp(Element key, String name) =>
@@ -2940,11 +2943,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       _visit(node.expression);
 
   @override
-  visitFormalParameter(FormalParameter node) => _emitFormalParameter(node);
-
-  _emitFormalParameter(FormalParameter node, {bool allowType: true}) {
-    var id = _emitSimpleIdentifier(node.identifier, allowType: allowType);
-
+  visitFormalParameter(FormalParameter node) {
+    var id = _emitParameter(node.element, declaration: true);
     var isRestArg = findAnnotation(node.element, isJsRestAnnotation) != null;
     return isRestArg ? new JS.RestParameter(id) : id;
   }
