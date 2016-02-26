@@ -59,6 +59,7 @@ DEFINE_FLAG(bool, print_flow_graph_optimized, false,
     "Print the IR flow graph when optimizing.");
 DEFINE_FLAG(bool, print_ic_data_map, false,
     "Print the deopt-id to ICData map in optimizing compiler.");
+DEFINE_FLAG(bool, print_code_source_map, false, "Print code source map.");
 DEFINE_FLAG(bool, range_analysis, true, "Enable range analysis");
 DEFINE_FLAG(bool, reorder_basic_blocks, true, "Enable basic-block reordering.");
 DEFINE_FLAG(bool, trace_compiler, false, "Trace compiler operations.");
@@ -471,6 +472,18 @@ void CompileParsedFunctionHelper::FinalizeCompilation(
   graph_compiler->FinalizeExceptionHandlers(code);
   graph_compiler->FinalizeStaticCallTargetsTable(code);
 
+NOT_IN_PRODUCT(
+  // Set the code source map after setting the inlined information because
+  // we use the inlined information when printing.
+  const CodeSourceMap& code_source_map =
+      CodeSourceMap::Handle(
+          zone,
+          graph_compiler->code_source_map_builder()->Finalize());
+  code.set_code_source_map(code_source_map);
+  if (FLAG_print_code_source_map) {
+    CodeSourceMap::Dump(code_source_map, code, function);
+  }
+);
   if (optimized()) {
     // Installs code while at safepoint.
     if (thread()->IsMutatorThread()) {

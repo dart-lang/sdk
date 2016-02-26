@@ -594,6 +594,17 @@ class FlowGraphCompiler : public ValueObject {
   RawArray* InliningIdToTokenPos() const;
   RawArray* CallerInliningIdMap() const;
 
+  CodeSourceMapBuilder* code_source_map_builder() {
+    if (code_source_map_builder_ == NULL) {
+      code_source_map_builder_ = new CodeSourceMapBuilder();
+    }
+    ASSERT(code_source_map_builder_ != NULL);
+    return code_source_map_builder_;
+  }
+
+  void BeginCodeSourceRange();
+  bool EndCodeSourceRange(TokenPosition token_pos);
+
  private:
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
 
@@ -751,6 +762,8 @@ class FlowGraphCompiler : public ValueObject {
   ExceptionHandlerList* exception_handlers_list_;
   DescriptorList* pc_descriptors_list_;
   StackmapTableBuilder* stackmap_table_builder_;
+  CodeSourceMapBuilder* code_source_map_builder_;
+  intptr_t saved_code_size_;
   GrowableArray<BlockInfo*> block_info_;
   GrowableArray<CompilerDeoptInfo*> deopt_infos_;
   GrowableArray<SlowPathCode*> slow_path_code_;

@@ -10984,6 +10984,87 @@ void PcDescriptors::Verify(const Function& function) const {
 }
 
 
+TokenPosition CodeSourceMap::TokenPositionForPCOffset(
+    uword pc_offset) const {
+  Iterator iterator(*this);
+
+  TokenPosition result = TokenPosition::kNoSource;
+
+  while (iterator.MoveNext()) {
+    if (iterator.PcOffset() > pc_offset) {
+      break;
+    }
+    result = iterator.TokenPos();
+  }
+
+  return result;
+}
+
+
+RawFunction* CodeSourceMap::FunctionForPCOffset(const Code& code,
+                                                const Function& function,
+                                                uword pc_offset) const {
+  GrowableArray<Function*> inlined_functions;
+  code.GetInlinedFunctionsAt(pc_offset, &inlined_functions);
+  if (inlined_functions.length() > 0) {
+    Function* inlined_function = inlined_functions[0];
+    return inlined_function->raw();
+  } else {
+    return function.raw();
+  }
+}
+
+
+RawScript* CodeSourceMap::ScriptForPCOffset(const Code& code,
+                                            const Function& function,
+                                            uword pc_offset) const {
+  const Function& func =
+      Function::Handle(FunctionForPCOffset(code, function, pc_offset));
+  return func.script();
+}
+
+
+void CodeSourceMap::Dump(const CodeSourceMap& code_source_map,
+                         const Code& code,
+                         const Function& function) {
+  const String& code_name = String::Handle(code.QualifiedName());
+  THR_Print("Dumping Code Source Map for %s\n", code_name.ToCString());
+  if (code_source_map.Length() == 0) {
+    THR_Print("<empty>\n");
+    return;
+  }
+
+  const int addr_width = kBitsPerWord / 4;
+
+  Iterator iterator(code_source_map);
+  Function& current_function = Function::Handle();
+  Script& current_script = Script::Handle();
+  TokenPosition tp;
+  while (iterator.MoveNext()) {
+    const uword pc_offset = iterator.PcOffset();
+    tp = code_source_map.TokenPositionForPCOffset(pc_offset);
+    current_function ^=
+        code_source_map.FunctionForPCOffset(code, function, pc_offset);
+    current_script ^=
+        code_source_map.ScriptForPCOffset(code, function, pc_offset);
+    if (current_function.IsNull() || current_script.IsNull()) {
+      THR_Print("%#-*" Px "\t%s\t%s\n", addr_width,
+                pc_offset,
+                tp.ToCString(),
+                code_name.ToCString());
+      continue;
+    }
+    const String& uri = String::Handle(current_script.url());
+    ASSERT(!uri.IsNull());
+    THR_Print("%#-*" Px "\t%s\t%s\t%s\n", addr_width,
+              pc_offset,
+              tp.ToCString(),
+              current_function.ToQualifiedCString(),
+              uri.ToCString());
+  }
+}
+
+
 intptr_t CodeSourceMap::Length() const {
   return raw_ptr()->length_;
 }

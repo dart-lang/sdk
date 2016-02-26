@@ -1138,12 +1138,14 @@ void FlowGraphCompiler::CompileGraph() {
     }
   }
 
+  EndCodeSourceRange(TokenPosition::kDartCodePrologue);
   ASSERT(!block_order().is_empty());
   VisitBlocks();
 
   __ int3();
   GenerateDeferredCode();
 
+  BeginCodeSourceRange();
   if (is_optimizing() && !FLAG_precompiled_mode) {
     // Leave enough space for patching in case of lazy deoptimization from
     // deferred code.
@@ -1151,6 +1153,7 @@ void FlowGraphCompiler::CompileGraph() {
     lazy_deopt_pc_offset_ = assembler()->CodeSize();
     __ Jmp(*StubCode::DeoptimizeLazy_entry());
   }
+  EndCodeSourceRange(TokenPosition::kDartCodeEpilogue);
 }
 
 

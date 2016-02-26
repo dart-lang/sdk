@@ -191,6 +191,8 @@ FlowGraphCompiler::FlowGraphCompiler(
         exception_handlers_list_(NULL),
         pc_descriptors_list_(NULL),
         stackmap_table_builder_(NULL),
+        code_source_map_builder_(NULL),
+        saved_code_size_(0),
         block_info_(block_order_.length()),
         deopt_infos_(),
         static_calls_target_table_(),
@@ -527,7 +529,9 @@ void FlowGraphCompiler::VisitBlocks() {
     LoopInfoComment(assembler(), *entry, *loop_headers);
 
     entry->set_offset(assembler()->CodeSize());
+    BeginCodeSourceRange();
     entry->EmitNativeCode(this);
+    EndCodeSourceRange(entry->token_pos());
     // Compile all successors until an exit, branch, or a block entry.
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       Instruction* instr = it.Current();
@@ -554,12 +558,14 @@ void FlowGraphCompiler::VisitBlocks() {
       if (instr->IsParallelMove()) {
         parallel_move_resolver_.EmitNativeCode(instr->AsParallelMove());
       } else {
+        BeginCodeSourceRange();
         EmitInstructionPrologue(instr);
         ASSERT(pending_deoptimization_env_ == NULL);
         pending_deoptimization_env_ = instr->env();
         instr->EmitNativeCode(this);
         pending_deoptimization_env_ = NULL;
         EmitInstructionEpilogue(instr);
+        EndCodeSourceRange(instr->token_pos());
       }
 
 #if defined(DEBUG)
@@ -737,10 +743,14 @@ void FlowGraphCompiler::AddSlowPathCode(SlowPathCode* code) {
 
 void FlowGraphCompiler::GenerateDeferredCode() {
   for (intptr_t i = 0; i < slow_path_code_.length(); i++) {
+    BeginCodeSourceRange();
     slow_path_code_[i]->GenerateCode(this);
+    EndCodeSourceRange(TokenPosition::kDeferredSlowPath);
   }
   for (intptr_t i = 0; i < deopt_infos_.length(); i++) {
+    BeginCodeSourceRange();
     deopt_infos_[i]->GenerateCode(this, i);
+    EndCodeSourceRange(TokenPosition::kDeferredDeoptInfo);
   }
 }
 
@@ -1437,7 +1447,9 @@ void ParallelMoveResolver::EmitNativeCode(ParallelMoveInstr* parallel_move) {
     const MoveOperands& move = *moves_[i];
     if (!move.IsEliminated()) {
       ASSERT(move.src().IsConstant());
+      compiler_->BeginCodeSourceRange();
       EmitMove(i);
+      compiler_->EndCodeSourceRange(TokenPosition::kParallelMove);
     }
   }
 
@@ -1513,13 +1525,17 @@ void ParallelMoveResolver::PerformMove(int index) {
     const MoveOperands& other_move = *moves_[i];
     if (other_move.Blocks(destination)) {
       ASSERT(other_move.IsPending());
+      compiler_->BeginCodeSourceRange();
       EmitSwap(index);
+      compiler_->EndCodeSourceRange(TokenPosition::kParallelMove);
       return;
     }
   }
 
   // This move is not blocked.
+  compiler_->BeginCodeSourceRange();
   EmitMove(index);
+  compiler_->EndCodeSourceRange(TokenPosition::kParallelMove);
 }
 
 
@@ -1789,6 +1805,30 @@ RawArray* FlowGraphCompiler::CallerInliningIdMap() const {
     res.SetAt(i, smi);
   }
   return res.raw();
+}
+
+
+void FlowGraphCompiler::BeginCodeSourceRange() {
+NOT_IN_PRODUCT(
+  // Remember how many bytes of code we emitted so far. This function
+  // is called before we call into an instruction's EmitNativeCode.
+  saved_code_size_ = assembler()->CodeSize();
+);
+}
+
+
+bool FlowGraphCompiler::EndCodeSourceRange(TokenPosition token_pos) {
+NOT_IN_PRODUCT(
+  // This function is called after each instructions' EmitNativeCode.
+  if (saved_code_size_ < assembler()->CodeSize()) {
+    // We emitted more code, now associate the emitted code chunk with
+    // |token_pos|.
+    code_source_map_builder()->AddEntry(saved_code_size_, token_pos);
+    BeginCodeSourceRange();
+    return true;
+  }
+);
+  return false;
 }
 
 

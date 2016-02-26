@@ -44,6 +44,9 @@ RawPcDescriptors* DescriptorList::FinalizePcDescriptors(uword entry_point) {
 
 void CodeSourceMapBuilder::AddEntry(intptr_t pc_offset,
                                     TokenPosition token_pos) {
+  // Require pc offset to monotonically increase.
+  ASSERT((prev_pc_offset < pc_offset) ||
+         ((prev_pc_offset == 0) && (pc_offset == 0)));
   CodeSourceMap::EncodeInteger(&encoded_data_, pc_offset - prev_pc_offset);
   CodeSourceMap::EncodeInteger(&encoded_data_,
                                token_pos.value() - prev_token_pos);

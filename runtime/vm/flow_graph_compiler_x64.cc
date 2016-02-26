@@ -1136,6 +1136,7 @@ void FlowGraphCompiler::CompileGraph() {
     }
   }
 
+  EndCodeSourceRange(TokenPosition::kDartCodePrologue);
   ASSERT(!block_order().is_empty());
   VisitBlocks();
 
@@ -1145,6 +1146,7 @@ void FlowGraphCompiler::CompileGraph() {
   // Emit function patching code. This will be swapped with the first 13 bytes
   // at entry point.
 
+  BeginCodeSourceRange();
   if (is_optimizing() && !FLAG_precompiled_mode) {
     // Leave enough space for patching in case of lazy deoptimization from
     // deferred code.
@@ -1152,6 +1154,7 @@ void FlowGraphCompiler::CompileGraph() {
     lazy_deopt_pc_offset_ = assembler()->CodeSize();
     __ Jmp(*StubCode::DeoptimizeLazy_entry(), PP);
   }
+  EndCodeSourceRange(TokenPosition::kDartCodeEpilogue);
 }
 
 

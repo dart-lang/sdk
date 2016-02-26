@@ -38,7 +38,11 @@ namespace dart {
     V(ControlFlow, -7)                                                         \
     V(Context, -8)                                                             \
     V(MethodExtractor, -9)                                                     \
-    V(Last, -10)   // Always keep this at the end.
+    V(DeferredSlowPath, -10)                                                   \
+    V(DeferredDeoptInfo, -11)                                                  \
+    V(DartCodePrologue, -12)                                                   \
+    V(DartCodeEpilogue, -13)                                                   \
+    V(Last, -14)   // Always keep this at the end.
 
 // A token position representing a debug safe source (real) position,
 // non-debug safe source (synthetic) positions, or a classifying value used

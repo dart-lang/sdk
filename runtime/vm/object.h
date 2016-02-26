@@ -4040,6 +4040,18 @@ class CodeSourceMap : public Object {
   // Decode SLEB128 encoded integer. Update byte_index to the next integer.
   intptr_t DecodeInteger(intptr_t* byte_index) const;
 
+  TokenPosition TokenPositionForPCOffset(uword pc_offset) const;
+  RawFunction* FunctionForPCOffset(const Code& code,
+                                   const Function& function,
+                                   uword pc_offset) const;
+  RawScript* ScriptForPCOffset(const Code& code,
+                               const Function& function,
+                               uword pc_offset) const;
+
+  static void Dump(const CodeSourceMap& code_source_map,
+                   const Code& code,
+                   const Function& function);
+
   class Iterator : ValueObject {
    public:
     explicit Iterator(const CodeSourceMap& code_source_map)
