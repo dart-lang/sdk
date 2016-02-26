@@ -453,11 +453,14 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     StubCode::Init(I);
   }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   // When running precompiled, the megamorphic miss function/code comes from the
   // snapshot.
   if (!Dart::IsRunningPrecompiledCode()) {
     MegamorphicCacheTable::InitMissHandler(I);
   }
+#endif
+
   const Code& miss_code =
       Code::Handle(I->object_store()->megamorphic_miss_code());
   I->set_ic_miss_code(miss_code);

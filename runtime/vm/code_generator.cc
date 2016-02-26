@@ -1572,6 +1572,7 @@ DEFINE_RUNTIME_ENTRY(FixCallersTarget, 0) {
 // The caller tried to allocate an instance via an invalidated allocation
 // stub.
 DEFINE_RUNTIME_ENTRY(FixAllocationStubTarget, 0) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
   StackFrameIterator iterator(StackFrameIterator::kDontValidateFrames);
   StackFrame* frame = iterator.NextFrame();
   ASSERT(frame != NULL);
@@ -1607,6 +1608,9 @@ DEFINE_RUNTIME_ENTRY(FixAllocationStubTarget, 0) {
         alloc_stub.EntryPoint());
   }
   arguments.SetReturn(alloc_stub);
+#else
+  UNREACHABLE();
+#endif
 }
 
 
