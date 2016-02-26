@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -206,36 +205,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
   _IndexContributor(this.assembler);
 
   /**
-   * Record information about a [ClassDeclaration] or [ClassTypeAlias] with
-   * the given [nameNode].  Nodes [superNode], [withClause] and
-   * [implementsClause] can be `null`.
-   */
-  void recordClassClauses(SimpleIdentifier nameNode, TypeName superNode,
-      WithClause withClause, ImplementsClause implementsClause) {
-    if (superNode != null) {
-      recordSuperType(superNode, IndexRelationKind.IS_EXTENDED_BY);
-    } else {
-      ClassElement element = nameNode.staticElement;
-      InterfaceType superType = element.supertype;
-      if (superType != null) {
-        ClassElement objectElement = superType.element;
-        recordRelationOffset(objectElement, IndexRelationKind.IS_EXTENDED_BY,
-            nameNode.offset, 0);
-      }
-    }
-    if (withClause != null) {
-      for (TypeName mixinNode in withClause.mixinTypes) {
-        recordSuperType(mixinNode, IndexRelationKind.IS_MIXED_IN_BY);
-      }
-    }
-    if (implementsClause != null) {
-      for (TypeName interfaceNode in implementsClause.interfaces) {
-        recordSuperType(interfaceNode, IndexRelationKind.IS_IMPLEMENTED_BY);
-      }
-    }
-  }
-
-  /**
    * Record reference to the given operator [Element] and name.
    */
   void recordOperatorReference(Token operator, Element element) {
@@ -310,15 +279,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   /**
-   * Records a relation between [superNode] and its [Element].
+   * Record a relation between a super [typeName] and its [Element].
    */
-  void recordSuperType(TypeName superNode, IndexRelationKind kind) {
-    if (superNode != null) {
-      Identifier superName = superNode.name;
-      if (superName != null) {
-        Element superElement = superName.staticElement;
-        recordRelation(superElement, kind, superName);
-      }
+  void recordSuperType(TypeName typeName, IndexRelationKind kind) {
+    Identifier name = typeName?.name;
+    if (name != null) {
+      recordRelation(name.staticElement, kind, name);
+      typeName.typeArguments?.accept(this);
     }
   }
 
@@ -358,8 +325,11 @@ class _IndexContributor extends GeneralizingAstVisitor {
   visitClassDeclaration(ClassDeclaration node) {
     ClassElement element = node.element;
     recordTopLevelElementDefinition(element);
-    recordClassClauses(node.name, node.extendsClause?.superclass,
-        node.withClause, node.implementsClause);
+    if (node.extendsClause == null) {
+      ClassElement objectElement = element.supertype?.element;
+      recordRelationOffset(
+          objectElement, IndexRelationKind.IS_EXTENDED_BY, node.name.offset, 0);
+    }
     super.visitClassDeclaration(node);
   }
 
@@ -367,8 +337,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
   visitClassTypeAlias(ClassTypeAlias node) {
     ClassElement element = node.element;
     recordTopLevelElementDefinition(element);
-    recordClassClauses(
-        node.name, node.superclass, node.withClause, node.implementsClause);
     super.visitClassTypeAlias(node);
   }
 
@@ -422,6 +390,11 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitExtendsClause(ExtendsClause node) {
+    recordSuperType(node.superclass, IndexRelationKind.IS_EXTENDED_BY);
+  }
+
+  @override
   visitFunctionDeclaration(FunctionDeclaration node) {
     Element element = node.element;
     recordTopLevelElementDefinition(element);
@@ -433,6 +406,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
     Element element = node.element;
     recordTopLevelElementDefinition(element);
     super.visitFunctionTypeAlias(node);
+  }
+
+  @override
+  visitImplementsClause(ImplementsClause node) {
+    for (TypeName typeName in node.interfaces) {
+      recordSuperType(typeName, IndexRelationKind.IS_IMPLEMENTED_BY);
+    }
   }
 
   @override
@@ -524,10 +504,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
 //          indexableName, IndexConstants.NAME_IS_DEFINED_BY, location);
       return;
     }
-    // name in an extends/with/implements clause
-    if (_isInExtendsWithImplementsClause(node)) {
-      return;
-    }
     Element element = node.bestElement;
     // this.field parameter
     if (element is FieldFormalParameterElement) {
@@ -567,6 +543,16 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitTypeName(TypeName node) {
+    AstNode parent = node.parent;
+    if (parent is ClassTypeAlias && parent.superclass == node) {
+      recordSuperType(node, IndexRelationKind.IS_EXTENDED_BY);
+    } else {
+      super.visitTypeName(node);
+    }
+  }
+
+  @override
   visitVariableDeclaration(VariableDeclaration node) {
     VariableElement element = node.element;
     recordTopLevelElementDefinition(element);
@@ -582,24 +568,11 @@ class _IndexContributor extends GeneralizingAstVisitor {
     super.visitVariableDeclaration(node);
   }
 
-  static bool _isInExtendsWithImplementsClause(SimpleIdentifier node) {
-    TypeName typeName;
-    AstNode parent = node?.parent;
-    AstNode parent2 = parent?.parent;
-    if (parent is TypeName && parent.name == node) {
-      typeName = parent;
-    } else if (parent is PrefixedIdentifier &&
-        parent.identifier == node &&
-        parent2 is TypeName &&
-        parent2.name == node) {
-      typeName = parent2;
-    } else {
-      return false;
+  @override
+  visitWithClause(WithClause node) {
+    for (TypeName typeName in node.mixinTypes) {
+      recordSuperType(typeName, IndexRelationKind.IS_MIXED_IN_BY);
     }
-    AstNode clause = typeName.parent;
-    return clause is ExtendsClause ||
-        clause is WithClause ||
-        clause is ImplementsClause;
   }
 }
 

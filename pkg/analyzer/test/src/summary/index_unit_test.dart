@@ -522,20 +522,28 @@ A myVariable = null;
    */
   void _assertHasRelation(
       Element element,
-      IndexRelationKind expectedRelationship,
+      IndexRelationKind expectedRelationKind,
       ExpectedLocation expectedLocation) {
     int elementId = _findElementId(element);
+    int matchIndex;
     for (int i = 0; i < unitIndex.locationOffsets.length; i++) {
       if (unitIndex.elements[i] == elementId &&
           unitIndex.locationOffsets[i] == expectedLocation.offset &&
           unitIndex.locationLengths[i] == expectedLocation.length) {
-        // TODO(scheglov) continue looking to check that only one usage at one
-        // location, e.g. no both 'reference' and 'invocation'.
-        return;
+        if (matchIndex == null) {
+          matchIndex = i;
+        } else {
+          _failWithIndexDump('more then one ($matchIndex and $i) match found\n'
+              '$element at $expectedLocation');
+        }
       }
     }
+    if (matchIndex != null &&
+        unitIndex.kinds[matchIndex] == expectedRelationKind) {
+      return;
+    }
     _failWithIndexDump(
-        'not found\n$element $expectedRelationship at $expectedLocation');
+        'not found\n$element $expectedRelationKind at $expectedLocation');
   }
 
   ExpectedLocation _expectedLocation(String search,
@@ -563,7 +571,8 @@ A myVariable = null;
     if (element is LibraryElement || element is CompilationUnitElement) {
       offset = 0;
     }
-    IndexSyntheticElementKind kind = PackageIndexAssembler.getIndexElementKind(element);
+    IndexSyntheticElementKind kind =
+        PackageIndexAssembler.getIndexElementKind(element);
     for (int elementId = 0;
         elementId < packageIndex.elementUnits.length;
         elementId++) {
