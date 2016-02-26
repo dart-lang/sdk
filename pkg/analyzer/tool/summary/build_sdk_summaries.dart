@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
@@ -7,6 +8,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/index_unit.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:path/path.dart';
 
@@ -69,7 +71,8 @@ class _Builder {
   AnalysisContext context;
   final Set<Source> processedSources = new Set<Source>();
 
-  final PackageBundleAssembler assembler = new PackageBundleAssembler();
+  final PackageBundleAssembler bundleAssembler = new PackageBundleAssembler();
+  final PackageIndexAssembler indexAssembler = new PackageIndexAssembler();
 
   _Builder(this.sdkPath, this.outputDirectoryPath, this.strongMode);
 
@@ -77,7 +80,8 @@ class _Builder {
    * Build a strong or spec mode summary for the Dart SDK at [sdkPath].
    */
   void build() {
-    print('Generating ${strongMode ? 'strong' : 'spec'} mode summary.');
+    String modeName = strongMode ? 'strong' : 'spec';
+    print('Generating $modeName mode summary and index.');
     Stopwatch sw = new Stopwatch()..start();
     //
     // Prepare SDK.
@@ -105,11 +109,21 @@ class _Builder {
     //
     // Write the whole SDK bundle.
     //
-    PackageBundleBuilder sdkBundle = assembler.assemble();
-    String outputFilePath =
-        join(outputDirectoryPath, strongMode ? 'strong.sum' : 'spec.sum');
-    File file = new File(outputFilePath);
-    file.writeAsBytesSync(sdkBundle.toBuffer(), mode: FileMode.WRITE_ONLY);
+    {
+      PackageBundleBuilder bundle = bundleAssembler.assemble();
+      String outputPath = join(outputDirectoryPath, '$modeName.sum');
+      File file = new File(outputPath);
+      file.writeAsBytesSync(bundle.toBuffer(), mode: FileMode.WRITE_ONLY);
+    }
+    //
+    // Write the whole SDK index.
+    //
+    {
+      PackageIndexBuilder index = indexAssembler.assemble();
+      String outputPath = join(outputDirectoryPath, '$modeName.index');
+      File file = new File(outputPath);
+      file.writeAsBytesSync(index.toBuffer(), mode: FileMode.WRITE_ONLY);
+    }
     //
     // Done.
     //
@@ -125,8 +139,15 @@ class _Builder {
       return;
     }
     LibraryElement element = context.computeLibraryElement(source);
-    assembler.serializeLibraryElement(element);
+    bundleAssembler.serializeLibraryElement(element);
     element.importedLibraries.forEach((e) => _serializeLibrary(e.source));
     element.exportedLibraries.forEach((e) => _serializeLibrary(e.source));
+    // Index every unit of the library.
+    for (CompilationUnitElement unitElement in element.units) {
+      Source unitSource = unitElement.source;
+      CompilationUnit unit =
+          context.resolveCompilationUnit2(unitSource, source);
+      indexAssembler.index(unit);
+    }
   }
 }
