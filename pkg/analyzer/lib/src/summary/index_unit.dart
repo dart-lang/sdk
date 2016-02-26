@@ -446,7 +446,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
         element is PropertyAccessorElement ||
         element is FunctionElement ||
         element is VariableElement) {
-      recordRelation(element, IndexRelationKind.IS_INVOKED_BY, name);
+      IndexRelationKind kind = node.realTarget != null
+          ? IndexRelationKind.IS_INVOKED_QUALIFIED_BY
+          : IndexRelationKind.IS_INVOKED_BY;
+      recordRelation(element, kind, name);
     } else if (element is ClassElement) {
       recordRelation(element, IndexRelationKind.IS_REFERENCED_BY, name);
     }
@@ -511,19 +514,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
       return;
     }
     // record specific relations
-    // TODO(scheglov) consider removing the conditions
-    if (element is ClassElement ||
-        element is FunctionElement ||
-        element is FunctionTypeAliasElement ||
-        element is LabelElement ||
-        element is MethodElement ||
-        element is ParameterElement ||
-        element is PrefixElement ||
-        element is PropertyAccessorElement ||
-        element is PropertyInducingElement ||
-        element is TypeParameterElement) {
-      recordRelation(element, IndexRelationKind.IS_REFERENCED_BY, node);
-    }
+    IndexRelationKind kind = node.isQualified
+        ? IndexRelationKind.IS_REFERENCED_QUALIFIED_BY
+        : IndexRelationKind.IS_REFERENCED_BY;
+    recordRelation(element, kind, node);
   }
 
   @override

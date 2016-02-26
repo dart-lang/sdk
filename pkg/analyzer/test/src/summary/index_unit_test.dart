@@ -108,7 +108,7 @@ class A {
 }''');
     FieldElement field = findElement('field');
     assertThat(field.getter)
-      ..isInvokedAt('field(); // q', qualified: true)
+      ..isInvokedQualifiedAt('field(); // q')
       ..isInvokedAt('field(); // nq');
   }
 
@@ -128,7 +128,7 @@ main() {
 }''');
     FunctionElement element = importedUnit().functions[0];
     assertThat(element)
-      ..isInvokedAt('foo(); // q', qualified: true)
+      ..isInvokedQualifiedAt('foo(); // q')
       ..isInvokedAt('foo(); // nq');
   }
 
@@ -143,7 +143,7 @@ class A {
 }''');
     Element element = findElement('foo');
     assertThat(element)
-      ..isInvokedAt('foo(); // q', qualified: true)
+      ..isInvokedQualifiedAt('foo(); // q')
       ..isInvokedAt('foo(); // nq');
   }
 
@@ -158,7 +158,7 @@ main() {
 }
 ''');
     Element element = findElement('foo');
-    assertThat(element).isInvokedAt('foo();', qualified: true);
+    assertThat(element).isInvokedQualifiedAt('foo();');
   }
 
   void test_isInvokedBy_operator_binary() {
@@ -410,8 +410,8 @@ main(A a) {
     assertThat(setter)..isReferencedAt('field = 1; // nq');
     assertThat(getter)..isReferencedAt('field); // nq');
     // main()
-    assertThat(setter)..isReferencedAt('field = 2; // q', qualified: true);
-    assertThat(getter)..isReferencedAt('field); // q', qualified: true);
+    assertThat(setter)..isReferencedQualifiedAt('field = 2; // q');
+    assertThat(getter)..isReferencedQualifiedAt('field); // q');
     assertThat(field)..isReferencedAt('field: 3');
   }
 
@@ -467,7 +467,7 @@ class A {
 }''');
     MethodElement element = findElement('method');
     assertThat(element)
-      ..isReferencedAt('method); // q', qualified: true)
+      ..isReferencedQualifiedAt('method); // q')
       ..isReferencedAt('method); // nq');
   }
 
@@ -501,10 +501,10 @@ main() {
     TopLevelVariableElement variable = importedUnit().topLevelVariables[0];
     assertThat(variable)..isReferencedAt('V; // imp');
     assertThat(variable.getter)
-      ..isReferencedAt('V); // q', qualified: true)
+      ..isReferencedQualifiedAt('V); // q')
       ..isReferencedAt('V); // nq');
     assertThat(variable.setter)
-      ..isReferencedAt('V = 5; // q', qualified: true)
+      ..isReferencedQualifiedAt('V = 5; // q')
       ..isReferencedAt('V = 5; // nq');
   }
 
@@ -638,9 +638,13 @@ class _ElementIndexAssert {
         test._expectedLocation(search, length: length));
   }
 
-  void isInvokedAt(String search, {int length, bool qualified: false}) {
-    // TODO(scheglov) use 'qualified'
+  void isInvokedAt(String search, {int length}) {
     test._assertHasRelation(element, IndexRelationKind.IS_INVOKED_BY,
+        test._expectedLocation(search, length: length));
+  }
+
+  void isInvokedQualifiedAt(String search, {int length}) {
+    test._assertHasRelation(element, IndexRelationKind.IS_INVOKED_QUALIFIED_BY,
         test._expectedLocation(search, length: length));
   }
 
@@ -649,9 +653,15 @@ class _ElementIndexAssert {
         test._expectedLocation(search, length: length));
   }
 
-  void isReferencedAt(String search, {int length, bool qualified: false}) {
-    // TODO(scheglov) use 'qualified'
+  void isReferencedAt(String search, {int length}) {
     test._assertHasRelation(element, IndexRelationKind.IS_REFERENCED_BY,
+        test._expectedLocation(search, length: length));
+  }
+
+  void isReferencedQualifiedAt(String search, {int length}) {
+    test._assertHasRelation(
+        element,
+        IndexRelationKind.IS_REFERENCED_QUALIFIED_BY,
         test._expectedLocation(search, length: length));
   }
 }

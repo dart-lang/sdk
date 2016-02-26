@@ -149,34 +149,7 @@ abstract class EntityRef extends base.SummaryClass {
 }
 
 /**
- * When we need to reference a synthetic element in [PackageIndex] we use a
- * value of this enum to specify which kind of the synthetic element we
- * actually reference.
- */
-enum IndexSyntheticElementKind {
-  /**
-   * Not a synthetic element.
-   */
-  notSynthetic,
-
-  /**
-   * The unnamed synthetic constructor a class element.
-   */
-  constructor,
-
-  /**
-   * The synthetic getter of a property introducing element.
-   */
-  getter,
-
-  /**
-   * The synthetic setter of a property introducing element.
-   */
-  setter
-}
-
-/**
- * Enum used to indicate the kind of index relation.
+ * Enum used to indicate the kind of an index relation.
  */
 enum IndexRelationKind {
   /**
@@ -208,11 +181,52 @@ enum IndexRelationKind {
   IS_INVOKED_BY,
 
   /**
+   * Left: method, property accessor, function, variable.
+   *   Is invoked with a qualifier at.
+   * Right: location.
+   */
+  IS_INVOKED_QUALIFIED_BY,
+
+  /**
    * Left: any element.
    *   Is referenced (and not invoked, read/written) at.
    * Right: location.
    */
-  IS_REFERENCED_BY
+  IS_REFERENCED_BY,
+
+  /**
+   * Left: any element.
+   *   Is referenced (and not invoked, read/written) with a qualifier at.
+   * Right: location.
+   */
+  IS_REFERENCED_QUALIFIED_BY
+}
+
+/**
+ * When we need to reference a synthetic element in [PackageIndex] we use a
+ * value of this enum to specify which kind of the synthetic element we
+ * actually reference.
+ */
+enum IndexSyntheticElementKind {
+  /**
+   * Not a synthetic element.
+   */
+  notSynthetic,
+
+  /**
+   * The unnamed synthetic constructor a class element.
+   */
+  constructor,
+
+  /**
+   * The synthetic getter of a property introducing element.
+   */
+  getter,
+
+  /**
+   * The synthetic setter of a property introducing element.
+   */
+  setter
 }
 
 /**

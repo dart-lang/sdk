@@ -11,19 +11,6 @@ import 'flat_buffers.dart' as fb;
 import 'idl.dart' as idl;
 import 'dart:convert' as convert;
 
-class _IndexSyntheticElementKindReader extends fb.Reader<idl.IndexSyntheticElementKind> {
-  const _IndexSyntheticElementKindReader() : super();
-
-  @override
-  int get size => 1;
-
-  @override
-  idl.IndexSyntheticElementKind read(fb.BufferPointer bp) {
-    int index = const fb.Uint8Reader().read(bp);
-    return idl.IndexSyntheticElementKind.values[index];
-  }
-}
-
 class _IndexRelationKindReader extends fb.Reader<idl.IndexRelationKind> {
   const _IndexRelationKindReader() : super();
 
@@ -34,6 +21,19 @@ class _IndexRelationKindReader extends fb.Reader<idl.IndexRelationKind> {
   idl.IndexRelationKind read(fb.BufferPointer bp) {
     int index = const fb.Uint8Reader().read(bp);
     return idl.IndexRelationKind.values[index];
+  }
+}
+
+class _IndexSyntheticElementKindReader extends fb.Reader<idl.IndexSyntheticElementKind> {
+  const _IndexSyntheticElementKindReader() : super();
+
+  @override
+  int get size => 1;
+
+  @override
+  idl.IndexSyntheticElementKind read(fb.BufferPointer bp) {
+    int index = const fb.Uint8Reader().read(bp);
+    return idl.IndexSyntheticElementKind.values[index];
   }
 }
 
