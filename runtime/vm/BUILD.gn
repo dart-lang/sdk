@@ -55,7 +55,6 @@ static_library("libdart_vm") {
 
   set_sources_assignment_filter(["*_test.cc", "*_test.h"])
   sources = vm_sources_list.sources
-            - ["vtune.cc", "vtune.h"]
   include_dirs = [
     "..",
   ]
@@ -73,7 +72,6 @@ static_library("libdart_vm_precompiled_runtime") {
 
   set_sources_assignment_filter(["*_test.cc", "*_test.h"])
   sources = vm_sources_list.sources
-            - ["vtune.cc", "vtune.h"]
   include_dirs = [
     "..",
   ]
@@ -91,7 +89,6 @@ static_library("libdart_vm_nosnapshot") {
 
   set_sources_assignment_filter(["*_test.cc", "*_test.h"])
   sources = vm_sources_list.sources
-            - ["vtune.cc", "vtune.h"]
   include_dirs = [
     "..",
   ]
