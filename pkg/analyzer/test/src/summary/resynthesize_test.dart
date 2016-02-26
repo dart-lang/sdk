@@ -119,6 +119,7 @@ class ResynthTest extends ResolverTestCase {
           original.loadLibraryFunction as ExecutableElementImpl,
           '(loadLibraryFunction)');
     }
+    expect(resynthesized.libraryCycle.toSet(), original.libraryCycle.toSet());
   }
 
   /**
@@ -3970,7 +3971,7 @@ var x;''');
   }
 
   test_variable_propagatedType_final_dep_inLib() {
-    addNamedSource('/a.dart', 'final a = 1;');
+    addLibrarySource('/a.dart', 'final a = 1;');
     checkLibrary('import "a.dart"; final b = a / 2;');
   }
 
@@ -3985,8 +3986,8 @@ var x;''');
 
   test_variable_propagatedType_implicit_dep() {
     // The propagated type is defined in a library that is not imported.
-    addNamedSource('/a.dart', 'class C {}');
-    addNamedSource('/b.dart', 'import "a.dart"; C f() => null;');
+    addLibrarySource('/a.dart', 'class C {}');
+    addLibrarySource('/b.dart', 'import "a.dart"; C f() => null;');
     checkLibrary('import "b.dart"; final x = f();');
   }
 

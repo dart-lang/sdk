@@ -1325,6 +1325,12 @@ abstract class LibraryElement implements Element {
   static const List<LibraryElement> EMPTY_LIST = const <LibraryElement>[];
 
   /**
+   * Return a list containing the strongly connected component in the
+   * import/export graph in which the current library resides.
+   */
+  List<LibraryElement> get libraryCycle;
+
+  /**
    * Return the compilation unit that defines this library.
    */
   CompilationUnitElement get definingCompilationUnit;

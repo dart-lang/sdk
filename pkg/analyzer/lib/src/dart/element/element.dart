@@ -3245,6 +3245,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @override
   LibraryElement get library => this;
 
+  @override
   List<LibraryElement> get libraryCycle {
     if (_libraryCycle != null) {
       return _libraryCycle;
