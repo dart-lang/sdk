@@ -42,7 +42,7 @@ class ResynthTest extends ResolverTestCase {
   /**
    * Determine the analysis options that should be used for this test.
    */
-  AnalysisOptionsImpl get options =>
+  AnalysisOptionsImpl createOptions() =>
       new AnalysisOptionsImpl()..enableGenericMethods = true;
 
   void addLibrary(String uri) {
@@ -234,6 +234,8 @@ class ResynthTest extends ResolverTestCase {
           '$desc.${original.methods[i].name}');
     }
     compareTypes(resynthesized.type, original.type, desc);
+    expect(resynthesized.hasBeenInferred, original.hasBeenInferred,
+        reason: desc);
   }
 
   void compareCompilationUnitElements(CompilationUnitElementImpl resynthesized,
@@ -1086,7 +1088,7 @@ class ResynthTest extends ResolverTestCase {
         analysisContext.sourceFactory,
         unlinkedSummaries,
         linkedSummaries,
-        options.strongMode);
+        createOptions().strongMode);
   }
 
   fail_library_hasExtUri() {
@@ -1131,7 +1133,7 @@ class ResynthTest extends ResolverTestCase {
   @override
   void setUp() {
     super.setUp();
-    resetWithOptions(options);
+    resetWithOptions(createOptions());
   }
 
   test_class_abstract() {
@@ -2512,6 +2514,11 @@ class C<T> {
   }
 
   test_core() {
+    if (createOptions().strongMode) {
+      // The fake `dart:core` library is always in spec mode, so don't bother
+      // trying to check that it resynthesizes properly; it won't.
+      return;
+    }
     String uri = 'dart:core';
     LibraryElementImpl original =
         resolve2(analysisContext2.sourceFactory.forUri(uri));
@@ -2770,12 +2777,12 @@ f() {}''');
   }
 
   test_function_type_parameter() {
-    resetWithOptions(new AnalysisOptionsImpl()..enableGenericMethods = true);
+    resetWithOptions(createOptions()..enableGenericMethods = true);
     checkLibrary('T f<T, U>(U u) => null;');
   }
 
   test_function_type_parameter_with_function_typed_parameter() {
-    resetWithOptions(new AnalysisOptionsImpl()..enableGenericMethods = true);
+    resetWithOptions(createOptions()..enableGenericMethods = true);
     checkLibrary('void f<T, U>(T x(U u)) {}');
   }
 
@@ -2784,7 +2791,7 @@ f() {}''');
   }
 
   test_generic_gClass_gMethodStatic() {
-    resetWithOptions(new AnalysisOptionsImpl()..enableGenericMethods = true);
+    resetWithOptions(createOptions()..enableGenericMethods = true);
     checkLibrary('''
 class C<T, U> {
   static void m<V, W>(V v, W w) {
@@ -2984,7 +2991,7 @@ class C<U, V> {
   }
 
   test_inferred_function_type_in_generic_closure() {
-    if (!options.strongMode) {
+    if (!createOptions().strongMode) {
       // The test below uses generic comment syntax because proper generic
       // method syntax doesn't support generic closures.  So it can only run in
       // strong mode.
@@ -3003,7 +3010,7 @@ f<T>() {
   }
 
   test_inferred_generic_function_type_in_generic_closure() {
-    if (!options.strongMode) {
+    if (!createOptions().strongMode) {
       // The test below uses generic comment syntax because proper generic
       // method syntax doesn't support generic closures.  So it can only run in
       // strong mode.
@@ -3459,17 +3466,17 @@ class C {
   }
 
   test_method_type_parameter() {
-    resetWithOptions(new AnalysisOptionsImpl()..enableGenericMethods = true);
+    resetWithOptions(createOptions()..enableGenericMethods = true);
     checkLibrary('class C { T f<T, U>(U u) => null; }');
   }
 
   test_method_type_parameter_in_generic_class() {
-    resetWithOptions(new AnalysisOptionsImpl()..enableGenericMethods = true);
+    resetWithOptions(createOptions()..enableGenericMethods = true);
     checkLibrary('class C<T, U> { V f<V, W>(T t, U u, W w) => null; }');
   }
 
   test_method_type_parameter_with_function_typed_parameter() {
-    resetWithOptions(new AnalysisOptionsImpl()..enableGenericMethods = true);
+    resetWithOptions(createOptions()..enableGenericMethods = true);
     checkLibrary('class C { void f<T, U>(T x(U u)) {} }');
   }
 
@@ -3647,7 +3654,7 @@ void set x(value) {}''');
   }
 
   test_syntheticFunctionType_genericClosure() {
-    if (!options.strongMode) {
+    if (!createOptions().strongMode) {
       // The test below uses generic comment syntax because proper generic
       // method syntax doesn't support generic closures.  So it can only run in
       // strong mode.
@@ -3663,7 +3670,7 @@ bool f() => true;
   }
 
   test_syntheticFunctionType_genericClosure_inGenericFunction() {
-    if (!options.strongMode) {
+    if (!createOptions().strongMode) {
       // The test below uses generic comment syntax because proper generic
       // method syntax doesn't support generic closures.  So it can only run in
       // strong mode.

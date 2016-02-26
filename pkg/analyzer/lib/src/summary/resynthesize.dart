@@ -949,6 +949,7 @@ class _LibraryResynthesizer {
   void buildClass(UnlinkedClass serializedClass) {
     ClassElementImpl classElement =
         new ClassElementImpl(serializedClass.name, serializedClass.nameOffset);
+    classElement.hasBeenInferred = summaryResynthesizer.strongMode;
     classElement.typeParameters =
         buildTypeParameters(serializedClass.typeParameters);
     classElement.abstract = serializedClass.isAbstract;

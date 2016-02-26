@@ -18,5 +18,6 @@ main() {
 @reflectiveTest
 class ResynthStrongTest extends ResynthTest {
   @override
-  AnalysisOptionsImpl get options => super.options..strongMode = true;
+  AnalysisOptionsImpl createOptions() =>
+      super.createOptions()..strongMode = true;
 }
