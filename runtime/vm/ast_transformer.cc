@@ -521,9 +521,10 @@ void AwaitTransformer::VisitLoadStaticFieldNode(LoadStaticFieldNode* node) {
 
 void AwaitTransformer::VisitStoreStaticFieldNode(StoreStaticFieldNode* node) {
   AstNode* new_value = Transform(node->value());
-  result_ = new(Z) StoreStaticFieldNode(node->token_pos(),
-                                        node->field(),
-                                        new_value);
+  result_ = new(Z) StoreStaticFieldNode(
+      node->token_pos(),
+      Field::ZoneHandle(Z, node->field().Original()),
+      new_value);
 }
 
 

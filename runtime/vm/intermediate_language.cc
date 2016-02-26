@@ -419,6 +419,7 @@ ConstantInstr::ConstantInstr(const Object& value, TokenPosition token_pos)
   ASSERT(!value.IsBigint() || !Bigint::Cast(value).FitsIntoSmi());
   ASSERT(!value.IsBigint() || !Bigint::Cast(value).FitsIntoInt64());
   ASSERT(!value.IsMint() || !Smi::IsValid(Mint::Cast(value).AsInt64Value()));
+  ASSERT(!value.IsField() || Field::Cast(value).IsOriginal());
 }
 
 

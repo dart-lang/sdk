@@ -368,6 +368,7 @@ intptr_t Assembler::FindImmediate(int64_t imm) {
 
 bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
+  ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
   ASSERT(!Thread::CanLoadFromThread(object));
   if (!constant_pool_allowed()) {
     return false;
@@ -403,6 +404,7 @@ void Assembler::LoadObjectHelper(Register dst,
                                  const Object& object,
                                  bool is_unique) {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
+  ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
   if (Thread::CanLoadFromThread(object)) {
     ldr(dst, Address(THR, Thread::OffsetFromThread(object)));
   } else if (CanLoadFromObjectPool(object)) {
@@ -442,6 +444,7 @@ void Assembler::LoadUniqueObject(Register dst, const Object& object) {
 
 void Assembler::CompareObject(Register reg, const Object& object) {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
+  ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
   if (Thread::CanLoadFromThread(object)) {
     ldr(TMP, Address(THR, Thread::OffsetFromThread(object)));
     CompareRegisters(reg, TMP);
@@ -948,6 +951,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          const Object& value) {
   ASSERT(!value.IsICData() || ICData::Cast(value).IsOriginal());
+  ASSERT(!value.IsField() || Field::Cast(value).IsOriginal());
   ASSERT(value.IsSmi() || value.InVMHeap() ||
          (value.IsOld() && value.IsNotTemporaryScopedHandle()));
   // No store buffer update.

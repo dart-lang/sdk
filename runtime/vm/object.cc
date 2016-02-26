@@ -3017,7 +3017,8 @@ void Class::SetFields(const Array& value) const {
   intptr_t len = value.Length();
   for (intptr_t i = 0; i < len; i++) {
     field ^= value.At(i);
-    ASSERT(field.owner() == raw());
+    ASSERT(field.IsOriginal());
+    ASSERT(field.Owner() == raw());
   }
 #endif
   // The value of static fields is already initialized to null.
@@ -6786,6 +6787,9 @@ void Function::SaveICDataMap(
 void Function::RestoreICDataMap(
     ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data,
     bool clone_ic_data) const {
+  if (FLAG_force_clone_compiler_objects) {
+    clone_ic_data = true;
+  }
   ASSERT(deopt_id_to_ic_data->is_empty());
   Zone* zone = Thread::Current()->zone();
   const Array& saved_ic_data = Array::Handle(zone, ic_data_array());
@@ -6982,6 +6986,31 @@ const char* RedirectionData::ToCString() const {
 }
 
 
+RawField* Field::CloneFromOriginal() const {
+  return this->Clone(*this);
+}
+
+
+RawField* Field::Original() const {
+  if (IsNull()) {
+    return Field::null();
+  }
+  Object& obj = Object::Handle(raw_ptr()->owner_);
+  if (obj.IsField()) {
+    return Field::RawCast(obj.raw());
+  } else {
+    return this->raw();
+  }
+}
+
+
+void Field::SetOriginal(const Field& value) const {
+  ASSERT(value.IsOriginal());
+  ASSERT(!value.IsNull());
+  StorePointer(&raw_ptr()->owner_, reinterpret_cast<RawObject*>(value.raw()));
+}
+
+
 RawString* Field::GetterName(const String& field_name) {
   return String::Concat(Symbols::GetterPrefix(), field_name);
 }
@@ -7036,12 +7065,27 @@ bool Field::IsSetterName(const String& function_name) {
 
 void Field::set_name(const String& value) const {
   ASSERT(value.IsSymbol());
+  ASSERT(IsOriginal());
   StorePointer(&raw_ptr()->name_, value.raw());
 }
 
 
-RawClass* Field::owner() const {
-  const Object& obj = Object::Handle(raw_ptr()->owner_);
+RawObject* Field::RawOwner() const {
+  if (Original()) {
+    return raw_ptr()->owner_;
+  } else {
+    const Field& field = Field::Handle(Original());
+    ASSERT(field.IsOriginal());
+    ASSERT(!Object::Handle(field.raw_ptr()->owner_).IsField());
+    return field.raw_ptr()->owner_;
+  }
+}
+
+
+RawClass* Field::Owner() const {
+  const Field& field = Field::Handle(Original());
+  ASSERT(field.IsOriginal());
+  const Object& obj = Object::Handle(field.raw_ptr()->owner_);
   if (obj.IsClass()) {
     return Class::Cast(obj).raw();
   }
@@ -7050,8 +7094,10 @@ RawClass* Field::owner() const {
 }
 
 
-RawClass* Field::origin() const {
-  const Object& obj = Object::Handle(raw_ptr()->owner_);
+RawClass* Field::Origin() const {
+  const Field& field = Field::Handle(Original());
+  ASSERT(field.IsOriginal());
+  const Object& obj = Object::Handle(field.raw_ptr()->owner_);
   if (obj.IsClass()) {
     return Class::Cast(obj).raw();
   }
@@ -7060,8 +7106,10 @@ RawClass* Field::origin() const {
 }
 
 
-RawScript* Field::script() const {
-  const Object& obj = Object::Handle(raw_ptr()->owner_);
+RawScript* Field::Script() const {
+  const Field& field = Field::Handle(Original());
+  ASSERT(field.IsOriginal());
+  const Object& obj = Object::Handle(field.raw_ptr()->owner_);
   if (obj.IsClass()) {
     return Class::Cast(obj).script();
   }
@@ -7073,6 +7121,7 @@ RawScript* Field::script() const {
 // Called at finalization time
 void Field::SetFieldType(const AbstractType& value) const {
   ASSERT(Thread::Current()->IsMutatorThread());
+  ASSERT(IsOriginal());
   ASSERT(!value.IsNull());
   if (value.raw() != type()) {
     StorePointer(&raw_ptr()->type_, value.raw());
@@ -7159,7 +7208,7 @@ RawField* Field::NewTopLevel(const String& name,
 RawField* Field::Clone(const Class& new_owner) const {
   Field& clone = Field::Handle();
   clone ^= Object::Clone(*this, Heap::kOld);
-  const Class& owner = Class::Handle(this->owner());
+  const Class& owner = Class::Handle(this->Owner());
   const PatchClass& clone_owner =
       PatchClass::Handle(PatchClass::New(new_owner, owner));
   clone.set_owner(clone_owner);
@@ -7172,6 +7221,18 @@ RawField* Field::Clone(const Class& new_owner) const {
     type ^= type.CloneUninstantiated(new_owner);
     clone.SetFieldType(type);
   }
+  return clone.raw();
+}
+
+
+RawField* Field::Clone(const Field& original) const {
+  if (original.IsNull()) {
+    return Field::null();
+  }
+  ASSERT(original.IsOriginal());
+  Field& clone = Field::Handle();
+  clone ^= Object::Clone(*this, Heap::kOld);
+  clone.SetOriginal(original);
   return clone.raw();
 }
 
@@ -7191,6 +7252,7 @@ intptr_t Field::guarded_list_length() const {
 
 void Field::set_guarded_list_length(intptr_t list_length) const {
   ASSERT(Thread::Current()->IsMutatorThread());
+  ASSERT(IsOriginal());
   StoreSmi(&raw_ptr()->guarded_list_length_, Smi::New(list_length));
 }
 
@@ -7203,6 +7265,7 @@ intptr_t Field::guarded_list_length_in_object_offset() const {
 void Field::set_guarded_list_length_in_object_offset(
     intptr_t list_length_offset) const {
   ASSERT(Thread::Current()->IsMutatorThread());
+  ASSERT(IsOriginal());
   StoreNonPointer(&raw_ptr()->guarded_list_length_in_object_offset_,
                   static_cast<int8_t>(list_length_offset - kHeapObjectTag));
   ASSERT(guarded_list_length_in_object_offset() == list_length_offset);
@@ -7217,7 +7280,7 @@ const char* Field::ToCString() const {
   const char* kF1 = is_final() ? " final" : "";
   const char* kF2 = is_const() ? " const" : "";
   const char* field_name = String::Handle(name()).ToCString();
-  const Class& cls = Class::Handle(owner());
+  const Class& cls = Class::Handle(Owner());
   const char* cls_name = String::Handle(cls.Name()).ToCString();
   return OS::SCreate(Thread::Current()->zone(),
       "Field <%s.%s>:%s%s%s", cls_name, field_name, kF0, kF1, kF2);
@@ -7229,7 +7292,7 @@ const char* Field::ToCString() const {
 // named #f (or #f= in case of a setter).
 RawInstance* Field::AccessorClosure(bool make_setter) const {
   ASSERT(is_static());
-  const Class& field_owner = Class::Handle(owner());
+  const Class& field_owner = Class::Handle(Owner());
 
   String& closure_name = String::Handle(this->name());
   closure_name = Symbols::FromConcat(Symbols::HashMark(), closure_name);
@@ -7299,6 +7362,7 @@ RawArray* Field::dependent_code() const {
 
 
 void Field::set_dependent_code(const Array& array) const {
+  ASSERT(IsOriginal());
   StorePointer(&raw_ptr()->dependent_code_, array.raw());
 }
 
@@ -7342,6 +7406,7 @@ class FieldDependentArray : public WeakCodeReferences {
 
 
 void Field::RegisterDependentCode(const Code& code) const {
+  ASSERT(IsOriginal());
   DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   ASSERT(code.is_optimized());
   FieldDependentArray a(*this);
@@ -7350,6 +7415,7 @@ void Field::RegisterDependentCode(const Code& code) const {
 
 
 void Field::DeoptimizeDependentCode() const {
+  ASSERT(IsOriginal());
   ASSERT(Thread::Current()->IsMutatorThread());
   FieldDependentArray a(*this);
   a.DisableCode();
@@ -7364,6 +7430,7 @@ bool Field::IsUninitialized() const {
 
 
 void Field::SetPrecompiledInitializer(const Function& initializer) const {
+  ASSERT(IsOriginal());
   StorePointer(&raw_ptr()->initializer_.precompiled_, initializer.raw());
 }
 
@@ -7375,12 +7442,14 @@ bool Field::HasPrecompiledInitializer() const {
 
 
 void Field::SetSavedInitialStaticValue(const Instance& value) const {
+  ASSERT(IsOriginal());
   ASSERT(!HasPrecompiledInitializer());
   StorePointer(&raw_ptr()->initializer_.saved_value_, value.raw());
 }
 
 
 void Field::EvaluateInitializer() const {
+  ASSERT(IsOriginal());
   ASSERT(is_static());
   if (StaticValue() == Object::sentinel().raw()) {
     SetStaticValue(Object::transition_sentinel());
@@ -7482,6 +7551,7 @@ const char* Field::GuardedPropertiesAsCString() const {
 
 
 void Field::InitializeGuardedListLengthInObjectOffset() const {
+  ASSERT(IsOriginal());
   if (needs_length_check() &&
       (guarded_list_length() != Field::kUnknownFixedLength)) {
     const intptr_t offset = GetListLengthOffset(guarded_cid());
@@ -7494,6 +7564,7 @@ void Field::InitializeGuardedListLengthInObjectOffset() const {
 
 
 bool Field::UpdateGuardedCidAndLength(const Object& value) const {
+  ASSERT(IsOriginal());
   const intptr_t cid = value.GetClassId();
 
   if (guarded_cid() == kIllegalCid) {
@@ -7561,6 +7632,7 @@ bool Field::UpdateGuardedCidAndLength(const Object& value) const {
 
 
 void Field::RecordStore(const Object& value) const {
+  ASSERT(IsOriginal());
   if (!FLAG_use_field_guards) {
     return;
   }
@@ -8922,7 +8994,7 @@ static RawString* MakeClassMetaName(const Class& cls) {
 
 static RawString* MakeFieldMetaName(const Field& field) {
   const String& cname =
-      String::Handle(MakeClassMetaName(Class::Handle(field.origin())));
+      String::Handle(MakeClassMetaName(Class::Handle(field.Origin())));
   GrowableHandlePtrArray<const String> pieces(Thread::Current()->zone(), 3);
   pieces.Add(cname);
   pieces.Add(Symbols::At());
@@ -9387,7 +9459,7 @@ RawArray* Library::LoadedScripts() const {
       } else if (entry.IsFunction()) {
         owner_script = Function::Cast(entry).script();
       } else if (entry.IsField()) {
-        owner_script = Field::Cast(entry).script();
+        owner_script = Field::Cast(entry).Script();
       } else {
         continue;
       }

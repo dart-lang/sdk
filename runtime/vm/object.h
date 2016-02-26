@@ -2881,6 +2881,20 @@ class RedirectionData: public Object {
 
 class Field : public Object {
  public:
+  RawField* Original() const;
+  void SetOriginal(const Field& value) const;
+  bool IsOriginal() const {
+    if (IsNull()) {
+      return true;
+    }
+    NoSafepointScope no_safepoint;
+    return !raw_ptr()->owner_->IsField();
+  }
+
+  // Returns a field cloned from 'this'. 'this' is set as the
+  // original field of result.
+  RawField* CloneFromOriginal() const;
+
   RawString* name() const { return raw_ptr()->name_; }
   RawString* UserVisibleName() const;  // Same as scrubbed name.
   virtual RawString* DictionaryName() const { return name(); }
@@ -2892,6 +2906,7 @@ class Field : public Object {
     return ReflectableBit::decode(raw_ptr()->kind_bits_);
   }
   void set_is_reflectable(bool value) const {
+    ASSERT(IsOriginal());
     set_kind_bits(ReflectableBit::update(value, raw_ptr()->kind_bits_));
   }
   bool is_double_initialized() const {
@@ -2901,6 +2916,7 @@ class Field : public Object {
   // Marks fields that are initialized with a simple double constant.
   void set_is_double_initialized(bool value) const {
     ASSERT(Thread::Current()->IsMutatorThread());
+    ASSERT(IsOriginal());
     set_kind_bits(DoubleInitializedBit::update(value, raw_ptr()->kind_bits_));
   }
 
@@ -2912,10 +2928,10 @@ class Field : public Object {
   inline void SetStaticValue(const Instance& value,
                              bool save_initial_value = false) const;
 
-  RawClass* owner() const;
-  RawClass* origin() const;  // Either mixin class, or same as owner().
-  RawScript* script() const;
-  RawObject* RawOwner() const { return raw_ptr()->owner_; }
+  RawClass* Owner() const;
+  RawClass* Origin() const;  // Either mixin class, or same as owner().
+  RawScript* Script() const;
+  RawObject* RawOwner() const;
 
   RawAbstractType* type() const  { return raw_ptr()->type_; }
   // Used by class finalizer, otherwise initialized in constructor.
@@ -2943,6 +2959,9 @@ class Field : public Object {
   // Allocate new field object, clone values from this field. The
   // owner of the clone is new_owner.
   RawField* Clone(const Class& new_owner) const;
+  // Allocate new field object, clone values from this field. The
+  // original is specified.
+  RawField* Clone(const Field& original) const;
 
   static intptr_t instance_field_offset() {
     return OFFSET_OF(RawField, value_.offset_);
@@ -2960,6 +2979,7 @@ class Field : public Object {
   }
   // Called by parser after allocating field.
   void set_has_initializer(bool has_initializer) const {
+    ASSERT(IsOriginal());
     ASSERT(Thread::Current()->IsMutatorThread());
     set_kind_bits(HasInitializerBit::update(has_initializer,
                                             raw_ptr()->kind_bits_));
@@ -3010,6 +3030,7 @@ class Field : public Object {
   // Default 'true', set to false once optimizing compiler determines it should
   // be boxed.
   void set_is_unboxing_candidate(bool b) const {
+    ASSERT(IsOriginal());
     set_kind_bits(UnboxingCandidateBit::update(b, raw_ptr()->kind_bits_));
   }
 

@@ -334,7 +334,7 @@ void RedirectionData::PrintJSONImpl(JSONStream* stream, bool ref) const {
 
 void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
-  Class& cls = Class::Handle(owner());
+  Class& cls = Class::Handle(Owner());
   String& field_name = String::Handle(name());
   field_name = String::EncodeIRI(field_name);
   AddCommonObjectProperties(&jsobj, "Field", ref);
@@ -382,8 +382,8 @@ void Field::PrintJSONImpl(JSONStream* stream, bool ref) const {
   } else {
     jsobj.AddProperty("_guardLength", guarded_list_length());
   }
-  const Class& origin_cls = Class::Handle(origin());
-  const Script& script = Script::Handle(origin_cls.script());
+  const Class& origin_cls = Class::Handle(Origin());
+  const class Script& script = Script::Handle(origin_cls.script());
   if (!script.IsNull()) {
     jsobj.AddLocation(script, token_pos());
   }

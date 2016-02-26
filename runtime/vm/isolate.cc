@@ -2082,6 +2082,7 @@ void Isolate::set_registered_service_extension_handlers(
 
 
 void Isolate::AddDeoptimizingBoxedField(const Field& field) {
+  ASSERT(field.IsOriginal());
   MonitorLocker ml(boxed_field_list_monitor_);
   if (boxed_field_list_ == GrowableObjectArray::null()) {
     boxed_field_list_ = GrowableObjectArray::New(Heap::kOld);

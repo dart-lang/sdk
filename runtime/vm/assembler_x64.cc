@@ -2749,6 +2749,7 @@ void Assembler::Drop(intptr_t stack_elements, Register tmp) {
 
 bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
+  ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
   ASSERT(!Thread::CanLoadFromThread(object));
   if (!constant_pool_allowed()) {
     return false;
@@ -2785,6 +2786,7 @@ void Assembler::LoadObjectHelper(Register dst,
                                  const Object& object,
                                  bool is_unique) {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
+  ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
   if (Thread::CanLoadFromThread(object)) {
     movq(dst, Address(THR, Thread::OffsetFromThread(object)));
   } else if (CanLoadFromObjectPool(object)) {
@@ -2823,6 +2825,7 @@ void Assembler::LoadUniqueObject(Register dst, const Object& object) {
 
 void Assembler::StoreObject(const Address& dst, const Object& object) {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
+  ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
   if (Thread::CanLoadFromThread(object)) {
     movq(TMP, Address(THR, Thread::OffsetFromThread(object)));
     movq(dst, TMP);
@@ -2838,6 +2841,7 @@ void Assembler::StoreObject(const Address& dst, const Object& object) {
 
 void Assembler::PushObject(const Object& object) {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
+  ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
   if (Thread::CanLoadFromThread(object)) {
     pushq(Address(THR, Thread::OffsetFromThread(object)));
   } else if (CanLoadFromObjectPool(object)) {
@@ -2852,6 +2856,7 @@ void Assembler::PushObject(const Object& object) {
 
 void Assembler::CompareObject(Register reg, const Object& object) {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
+  ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
   if (Thread::CanLoadFromThread(object)) {
     cmpq(reg, Address(THR, Thread::OffsetFromThread(object)));
   } else if (CanLoadFromObjectPool(object)) {
@@ -3079,6 +3084,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Object& value,
                                          FieldContent old_content) {
   ASSERT(!value.IsICData() || ICData::Cast(value).IsOriginal());
+  ASSERT(!value.IsField() || Field::Cast(value).IsOriginal());
   VerifyHeapWord(dest, old_content);
   if (VerifiedMemory::enabled()) {
     const Register temp = RCX;

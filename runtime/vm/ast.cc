@@ -37,6 +37,17 @@ FOR_EACH_NODE(DEFINE_NAME_FUNCTION)
 #undef DEFINE_NAME_FUNCTION
 
 
+const Field* AstNode::MayCloneField(const Field& value) {
+  if (Compiler::IsBackgroundCompilation() ||
+      FLAG_force_clone_compiler_objects) {
+    return &Field::ZoneHandle(value.CloneFromOriginal());
+  } else {
+    ASSERT(value.IsZoneHandle());
+    return &value;
+  }
+}
+
+
 // A visitor class to collect all the nodes (including children) into an
 // array.
 class AstNodeCollector : public AstNodeVisitor {
@@ -582,7 +593,8 @@ AstNode* LoadStaticFieldNode::MakeAssignmentNode(AstNode* rhs) {
         AbstractType::ZoneHandle(field().type()),
         String::ZoneHandle(field().name()));
   }
-  return new StoreStaticFieldNode(token_pos(), field(), rhs);
+  return new StoreStaticFieldNode(
+      token_pos(), Field::ZoneHandle(field().Original()), rhs);
 }
 
 

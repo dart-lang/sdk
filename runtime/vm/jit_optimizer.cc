@@ -2988,9 +2988,9 @@ void JitOptimizer::VisitStoreInstanceField(
     // usage count of at least 1/kGetterSetterRatio of the getter usage count.
     // This is to avoid unboxing fields where the setter is never or rarely
     // executed.
-    const Field& field = Field::ZoneHandle(Z, instr->field().raw());
+    const Field& field = Field::ZoneHandle(Z, instr->field().Original());
     const String& field_name = String::Handle(Z, field.name());
-    const Class& owner = Class::Handle(Z, field.owner());
+    const Class& owner = Class::Handle(Z, field.Owner());
     const Function& getter =
         Function::Handle(Z, owner.LookupGetterFunction(field_name));
     const Function& setter =

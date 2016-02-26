@@ -689,7 +689,7 @@ static RawInstance* InvokeLibraryGetter(const Library& library,
     }
     // An uninitialized field was found.  Check for a getter in the field's
     // owner classs.
-    const Class& klass = Class::Handle(field.owner());
+    const Class& klass = Class::Handle(field.Owner());
     const String& internal_getter_name =
         String::Handle(Field::GetterName(getter_name));
     getter = klass.LookupStaticFunction(internal_getter_name);
@@ -883,7 +883,7 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_metadata, 1) {
     klass = Function::Cast(decl).origin();
     library = klass.library();
   } else if (decl.IsField()) {
-    klass = Field::Cast(decl).origin();
+    klass = Field::Cast(decl).Origin();
     library = klass.library();
   } else if (decl.IsLibrary()) {
     library ^= decl.raw();
@@ -1993,7 +1993,7 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_location, 1) {
     token_pos = cls.token_pos();
   } else if (decl.IsField()) {
     const Field& field = Field::Cast(decl);
-    script = field.script();
+    script = field.Script();
     token_pos = field.token_pos();
   } else if (decl.IsTypeParameter()) {
     const TypeParameter& type_var = TypeParameter::Cast(decl);

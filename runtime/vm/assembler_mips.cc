@@ -548,6 +548,7 @@ void Assembler::BranchLinkWithEquivalence(const StubEntry& stub_entry,
 
 bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
+  ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
   ASSERT(!Thread::CanLoadFromThread(object));
   if (!constant_pool_allowed()) {
     return false;
@@ -563,6 +564,7 @@ void Assembler::LoadObjectHelper(Register rd,
                                  const Object& object,
                                  bool is_unique) {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
+  ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
   ASSERT(!in_delay_slot_);
   if (Thread::CanLoadFromThread(object)) {
     // Load common VM constants from the thread. This works also in places where
@@ -621,6 +623,7 @@ void Assembler::LoadNativeEntry(Register rd,
 
 void Assembler::PushObject(const Object& object) {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
+  ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
   ASSERT(!in_delay_slot_);
   LoadObject(TMP, object);
   Push(TMP);
@@ -748,6 +751,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Address& dest,
                                          const Object& value) {
   ASSERT(!value.IsICData() || ICData::Cast(value).IsOriginal());
+  ASSERT(!value.IsField() || Field::Cast(value).IsOriginal());
   ASSERT(!in_delay_slot_);
   ASSERT(value.IsSmi() || value.InVMHeap() ||
          (value.IsOld() && value.IsNotTemporaryScopedHandle()));

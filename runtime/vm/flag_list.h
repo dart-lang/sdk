@@ -59,6 +59,8 @@ R(error_on_bad_type, false, bool, false,                                       \
   "Report error for malformed types.")                                         \
 C(fields_may_be_reset, true, false, bool, false,                               \
   "Don't optimize away static field initialization")                           \
+C(force_clone_compiler_objects, false, false, bool, false,                     \
+  "Force cloning of objects needed in compiler (ICData and Field).")           \
 R(gc_at_alloc, false, bool, false,                                             \
   "GC at every allocation.")                                                   \
 P(getter_setter_ratio, int, 13,                                                \

@@ -22,6 +22,7 @@
 #include "vm/symbols.h"
 
 #define __ compiler->assembler()->
+#define Z (compiler->zone())
 
 namespace dart {
 
@@ -1610,7 +1611,7 @@ void GuardFieldClassInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* fail = (deopt != NULL) ? deopt : &fail_label;
 
   if (emit_full_guard) {
-    __ LoadObject(field_reg, Field::ZoneHandle(field().raw()));
+    __ LoadObject(field_reg, Field::ZoneHandle(field().Original()));
 
     FieldAddress field_cid_operand(field_reg, Field::guarded_cid_offset());
     FieldAddress field_nullability_operand(
@@ -1757,7 +1758,7 @@ void GuardFieldLengthInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
     Label ok;
 
-    __ LoadObject(field_reg, Field::ZoneHandle(field().raw()));
+    __ LoadObject(field_reg, Field::ZoneHandle(field().Original()));
 
     __ ldrsb(offset_reg, FieldAddress(field_reg,
         Field::guarded_list_length_in_object_offset_offset()));
@@ -2114,7 +2115,7 @@ void StoreInstanceFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Label store_float32x4;
     Label store_float64x2;
 
-    __ LoadObject(temp, Field::ZoneHandle(field().raw()));
+    __ LoadObject(temp, Field::ZoneHandle(Z, field().Original()));
 
     __ ldrh(temp2, FieldAddress(temp, Field::is_nullable_offset()));
     __ CompareImmediate(temp2, kNullCid);
@@ -2254,7 +2255,7 @@ void StoreStaticFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register value = locs()->in(0).reg();
   const Register temp = locs()->temp(0).reg();
 
-  __ LoadObject(temp, field());
+  __ LoadObject(temp, Field::ZoneHandle(Z, field().Original()));
   if (this->value()->NeedsStoreBuffer()) {
     __ StoreIntoObject(temp,
                        FieldAddress(temp, Field::static_value_offset()),
@@ -2476,7 +2477,7 @@ void LoadFieldInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     Label load_float32x4;
     Label load_float64x2;
 
-    __ LoadObject(result_reg, Field::ZoneHandle(field()->raw()));
+    __ LoadObject(result_reg, Field::ZoneHandle(field()->Original()));
 
     FieldAddress field_cid_operand(result_reg, Field::guarded_cid_offset());
     FieldAddress field_nullability_operand(result_reg,

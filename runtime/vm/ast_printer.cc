@@ -137,7 +137,7 @@ void AstPrinter::VisitLoadInstanceFieldNode(LoadInstanceFieldNode* node) {
 
 
 void AstPrinter::VisitStoreInstanceFieldNode(StoreInstanceFieldNode* node) {
-  VisitGenericFieldNode(node, node->field());
+  VisitGenericFieldNode(node, Field::ZoneHandle(node->field().Original()));
 }
 
 

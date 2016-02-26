@@ -162,7 +162,7 @@ void ParsedFunction::AddToGuardedFields(const Field* field) const {
       return;
     }
   }
-  guarded_fields_->Add(field);
+  guarded_fields_->Add(&Field::ZoneHandle(Z, field->Original()));
 }
 
 
@@ -1077,8 +1077,8 @@ RawObject* Parser::ParseMetadata(const Field& meta_data) {
     Thread* thread = Thread::Current();
     StackZone stack_zone(thread);
     Zone* zone = stack_zone.GetZone();
-    const Class& owner_class = Class::Handle(zone, meta_data.owner());
-    const Script& script = Script::Handle(zone, meta_data.script());
+    const Class& owner_class = Class::Handle(zone, meta_data.Owner());
+    const Script& script = Script::Handle(zone, meta_data.Script());
     const TokenPosition token_pos = meta_data.token_pos();
     // Parsing metadata can involve following paths in the parser that are
     // normally used for expressions and assume current_function is non-null,
@@ -1218,10 +1218,10 @@ ParsedFunction* Parser::ParseStaticFieldInitializer(const Field& field) {
   String& init_name = String::Handle(zone,
       Symbols::FromConcat(Symbols::InitPrefix(), field_name));
 
-  const Script& script = Script::Handle(zone, field.script());
-  Object& initializer_owner = Object::Handle(field.owner());
+  const Script& script = Script::Handle(zone, field.Script());
+  Object& initializer_owner = Object::Handle(field.Owner());
   initializer_owner =
-      PatchClass::New(Class::Handle(field.owner()), script);
+      PatchClass::New(Class::Handle(field.Owner()), script);
 
   const Function& initializer = Function::ZoneHandle(zone,
       Function::New(init_name,
@@ -2548,7 +2548,8 @@ void Parser::CheckFieldsInitialized(const Class& cls) {
       if (initializers->NodeAt(i)->IsStoreInstanceFieldNode()) {
         StoreInstanceFieldNode* initializer =
             initializers->NodeAt(i)->AsStoreInstanceFieldNode();
-        if (initializer->field().raw() == field.raw()) {
+        ASSERT(field.IsOriginal());
+        if (initializer->field().Original() == field.raw()) {
           found = true;
           break;
         }
@@ -2566,13 +2567,13 @@ AstNode* Parser::ParseExternalInitializedField(const Field& field) {
   // Only use this function if the initialized field originates
   // from a different class. We need to save and restore current
   // class, library, and token stream (script).
-  ASSERT(current_class().raw() != field.origin());
+  ASSERT(current_class().raw() != field.Origin());
   const Class& saved_class = Class::Handle(Z, current_class().raw());
   const Library& saved_library = Library::Handle(Z, library().raw());
   const Script& saved_script = Script::Handle(Z, script().raw());
   const TokenPosition saved_token_pos = TokenPos();
 
-  set_current_class(Class::Handle(Z, field.origin()));
+  set_current_class(Class::Handle(Z, field.Origin()));
   set_library(Library::Handle(Z, current_class().library()));
   SetScript(Script::Handle(Z, current_class().script()), field.token_pos());
 
@@ -2620,7 +2621,7 @@ void Parser::ParseInitializedInstanceFields(const Class& cls,
         initialized_fields->Add(&field);
       }
       AstNode* init_expr = NULL;
-      if (current_class().raw() != field.origin()) {
+      if (current_class().raw() != field.Origin()) {
         init_expr = ParseExternalInitializedField(field);
       } else {
         SetPosition(field.token_pos());
@@ -10682,7 +10683,7 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original,
     } else if (original->IsLoadStaticFieldNode()) {
       name = original->AsLoadStaticFieldNode()->field().name();
       target_cls = &Class::Handle(Z,
-          original->AsLoadStaticFieldNode()->field().owner());
+          original->AsLoadStaticFieldNode()->field().Owner());
     } else if ((left_ident != NULL) &&
                (original->IsLiteralNode() ||
                 original->IsLoadLocalNode())) {
@@ -11180,7 +11181,7 @@ AstNode* Parser::GenerateStaticFieldLookup(const Field& field,
   }
   // The field is initialized.
   ASSERT(field.is_static());
-  const Class& field_owner = Class::ZoneHandle(Z, field.owner());
+  const Class& field_owner = Class::ZoneHandle(Z, field.Owner());
   const String& field_name = String::ZoneHandle(Z, field.name());
   const String& getter_name =
       String::Handle(Z, Field::GetterSymbol(field_name));
@@ -12023,7 +12024,7 @@ RawInstance* Parser::TryCanonicalize(const Instance& instance,
 StaticGetterNode* Parser::RunStaticFieldInitializer(
     const Field& field, TokenPosition field_ref_pos) {
   ASSERT(field.is_static());
-  const Class& field_owner = Class::ZoneHandle(Z, field.owner());
+  const Class& field_owner = Class::ZoneHandle(Z, field.Owner());
   const String& field_name = String::ZoneHandle(Z, field.name());
   const String& getter_name =
       String::Handle(Z, Field::GetterSymbol(field_name));

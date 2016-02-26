@@ -2770,7 +2770,8 @@ void ValueGraphVisitor::VisitClosureCallNode(ClosureCallNode* node) {
 
 
 void EffectGraphVisitor::VisitInitStaticFieldNode(InitStaticFieldNode* node) {
-  Value* field = Bind(new(Z) ConstantInstr(node->field()));
+  Value* field = Bind(new(Z) ConstantInstr(
+      Field::ZoneHandle(Z, node->field().Original())));
   AddInstruction(new(Z) InitStaticFieldInstr(field, node->field()));
 }
 
@@ -3733,7 +3734,8 @@ void EffectGraphVisitor::VisitLoadStaticFieldNode(LoadStaticFieldNode* node) {
         Instance::ZoneHandle(Z, node->field().StaticValue()), token_pos);
     return ReturnDefinition(result);
   }
-  Value* field_value = Bind(new(Z) ConstantInstr(node->field(), token_pos));
+  Value* field_value = Bind(new(Z) ConstantInstr(
+      Field::ZoneHandle(Z, node->field().Original()), token_pos));
   LoadStaticFieldInstr* load =
       new(Z) LoadStaticFieldInstr(field_value, token_pos);
   ReturnDefinition(load);
