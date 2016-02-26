@@ -1444,7 +1444,7 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
 
   /**
    * Each item of this list corresponds to a unique referenced element.  It is
-   * the kind of the element.
+   * the kind of the synthetic element.
    */
   void set elementKinds(List<idl.IndexSyntheticElementKind> _value) {
     assert(!_finished);
