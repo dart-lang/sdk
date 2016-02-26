@@ -18,6 +18,18 @@
 /// in the language tour.
 library meta;
 
+/// Used to annotate an instance method `m`. Indicates that `m` must either be
+/// abstract or must return a newly allocated object. In addition, every method
+/// that either implements or overrides `m` is implicitly annotated with this
+/// same annotation.
+///
+/// Tools, such as the analyzer, can provide feedback if
+/// * the annotation is associated with anything other than an instance method,
+///   or
+/// * a method that has this annotation that can return anything other than a
+///   newly allocated object.
+const _Factory factory = const _Factory();
+
 /// Used to annotate an instance method `m`. Indicates that every invocation of
 /// a method that overrides `m` must also invoke `m`. In addition, every method
 /// that overrides `m` is implicitly annotated with this same annotation.
@@ -59,6 +71,10 @@ const _Protected protected = const _Protected();
 /// * an invocation of a method or function does not include an argument
 ///   corresponding to a named parameter that has this annotation.
 const _Required required = const _Required();
+
+class _Factory {
+  const _Factory();
+}
 
 class _MustCallSuper {
   const _MustCallSuper();
