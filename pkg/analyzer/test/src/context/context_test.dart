@@ -2548,7 +2548,7 @@ class B {
       expect(unitA.element, same(unitElementA));
       expect(unitElementA.library, same(libraryElementA));
     }
-    // Update a.dart, rename A to A2, invalidates b.dart, so
+    // Add method to a.dart. This invalidates b.dart, so
     // we know that the previous update did not damage dependencies.
     context.setContents(
         sourceA,
@@ -2760,8 +2760,10 @@ class A {
   }
 
   void _assertInvalid(AnalysisTarget target, ResultDescriptor descriptor) {
-    CacheState state = analysisCache.getState(target, descriptor);
-    expect(state, CacheState.INVALID);
+    CacheState actual = analysisCache.getState(target, descriptor);
+    if (actual != CacheState.INVALID) {
+      fail("cache state of $target $descriptor: wanted INVALID, got: $actual");
+    }
   }
 
   void _assertValid(AnalysisTarget target, ResultDescriptor descriptor) {

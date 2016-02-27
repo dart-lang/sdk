@@ -1017,7 +1017,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       if (changed) {
         if (!analysisOptions.incremental ||
             !_tryPoorMansIncrementalResolution(source, newContents)) {
-          _sourceChanged(source);
+          // Don't compare with old contents because the cache has already been
+          // updated, and we know at this point that it changed.
+          _sourceChanged(source, compareWithOld: false);
         }
         entry.modificationTime = _contentCache.getModificationStamp(source);
         entry.setValue(CONTENT, newContents, TargetedResult.EMPTY_LIST);
@@ -1754,21 +1756,28 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   /**
    * Invalidate the [source] that was changed and any sources that referenced
    * the source before it existed.
+   *
+   * Note: source may be considered "changed" if it was previously missing,
+   * but pointed to by an import or export directive.
    */
-  void _sourceChanged(Source source) {
+  void _sourceChanged(Source source, {bool compareWithOld: true}) {
     CacheEntry entry = _cache.get(source);
-    // If the source is removed, we don't care about it.
+    // If the source has no cache entry, there is nothing to invalidate.
     if (entry == null) {
       return;
     }
-    // Check whether the content of the source is the same as it was the last
-    // time.
-    String sourceContent = entry.getValue(CONTENT);
-    if (sourceContent != null) {
-      entry.setState(CONTENT, CacheState.FLUSHED);
+
+    String oldContents = compareWithOld ? entry.getValue(CONTENT) : null;
+
+    // Flush so that from now on we will get new contents.
+    // (For example, in getLibrariesContaining.)
+    entry.setState(CONTENT, CacheState.FLUSHED);
+
+    if (oldContents != null) {
+      // Fast path if the content is the same as it was last time.
       try {
         TimestampedData<String> fileContents = getContents(source);
-        if (fileContents.data == sourceContent) {
+        if (fileContents.data == oldContents) {
           int time = fileContents.modificationTime;
           for (CacheEntry entry in _entriesFor(source)) {
             entry.modificationTime = time;
@@ -1813,6 +1822,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
         }
       }
       entry.setState(CONTENT, CacheState.INVALID);
+      entry.setState(MODIFICATION_TIME, CacheState.INVALID);
+      entry.setState(SOURCE_KIND, CacheState.INVALID);
     }
     driver.reset();
     for (WorkManager workManager in workManagers) {

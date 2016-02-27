@@ -7,6 +7,7 @@ library analyzer.test.generated.compile_time_error_code_test;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:unittest/unittest.dart' show expect;
 
 import '../reflective_tests.dart';
 import '../utils.dart';
@@ -6041,6 +6042,27 @@ main() {
     Source source = addSource("import 'unknown.dart';");
     computeLibrarySourceErrors(source);
     assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
+  }
+
+  void test_uriDoesNotExist_import_then_fixed() {
+    Source source = addSource("import 'target.dart';");
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
+
+    // Check that the file is represented as missing.
+    Source target =
+        analysisContext2.getSourcesWithFullName("/target.dart").first;
+    expect(analysisContext2.getModificationStamp(target), -1);
+
+    // Add an overlay in the same way as AnalysisServer.
+    analysisContext2
+      ..setContents(target, "")
+      ..handleContentsChanged(target, null, "", true);
+
+    // Make sure the error goes away.
+    // TODO(skybrian) why isn't there an unused import hint?
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.UNUSED_IMPORT]);
   }
 
   void test_uriDoesNotExist_part() {
