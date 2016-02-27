@@ -538,79 +538,80 @@ class IDLType(IDLNode):
   def __init__(self, ast):
     IDLNode.__init__(self, ast)
 
-    self.nullable = self._has(ast, 'Nullable')
-    # Search for a 'ScopedName' or any label ending with 'Type'.
-    if isinstance(ast, list):
-      self.id = self._find_first(ast, 'ScopedName')
-      if not self.id:
-        # FIXME: use regexp search instead
-        def findType(ast):
-          for label, childAst in ast:
-            if label.endswith('Type'):
-              type = self._label_to_type(label, ast)
-              if type != 'sequence':
-                return type
-              type_ast = self._find_first(childAst, 'Type')
-              if not type_ast:
-                return type
-              return 'sequence<%s>' % findType(type_ast)
-          raise Exception('No type declaration found in %s' % ast)
-        self.id = findType(ast)
-      # TODO(terry): Remove array_modifiers id has [] appended, keep for old
-      #              parsing.
-      array_modifiers = self._find_first(ast, 'ArrayModifiers')
-      if array_modifiers:
-        self.id += array_modifiers
-    elif isinstance(ast, tuple):
-      (label, value) = ast
-      if label == 'ScopedName':
-        self.id = value
-      else:
-        self.id = self._label_to_type(label, ast)
-    elif isinstance(ast, str):
-      self.id = ast
-    # New blink handling.
-    elif ast.__module__ == "idl_types":
-      if isinstance(ast, IdlType) or isinstance(ast, IdlArrayOrSequenceType) or \
-         isinstance(ast, IdlNullableType):
-        if isinstance(ast, IdlNullableType) and ast.inner_type.is_union_type:
-          print 'WARNING type %s is union mapped to \'any\'' % self.id
+    if ast:
+      self.nullable = self._has(ast, 'Nullable')
+      # Search for a 'ScopedName' or any label ending with 'Type'.
+      if isinstance(ast, list):
+        self.id = self._find_first(ast, 'ScopedName')
+        if not self.id:
+          # FIXME: use regexp search instead
+          def findType(ast):
+            for label, childAst in ast:
+              if label.endswith('Type'):
+                type = self._label_to_type(label, ast)
+                if type != 'sequence':
+                  return type
+                type_ast = self._find_first(childAst, 'Type')
+                if not type_ast:
+                  return type
+                return 'sequence<%s>' % findType(type_ast)
+            raise Exception('No type declaration found in %s' % ast)
+          self.id = findType(ast)
+        # TODO(terry): Remove array_modifiers id has [] appended, keep for old
+        #              parsing.
+        array_modifiers = self._find_first(ast, 'ArrayModifiers')
+        if array_modifiers:
+          self.id += array_modifiers
+      elif isinstance(ast, tuple):
+        (label, value) = ast
+        if label == 'ScopedName':
+          self.id = value
+        else:
+          self.id = self._label_to_type(label, ast)
+      elif isinstance(ast, str):
+        self.id = ast
+      # New blink handling.
+      elif ast.__module__ == "idl_types":
+        if isinstance(ast, IdlType) or isinstance(ast, IdlArrayOrSequenceType) or \
+           isinstance(ast, IdlNullableType):
+          if isinstance(ast, IdlNullableType) and ast.inner_type.is_union_type:
+            print 'WARNING type %s is union mapped to \'any\'' % self.id
+            # TODO(terry): For union types use any otherwise type is unionType is
+            #              not found and is removed during merging.
+            self.id = 'any'
+          else:
+            type_name = str(ast)
+            # TODO(terry): For now don't handle unrestricted types see
+            #              https://code.google.com/p/chromium/issues/detail?id=354298
+            type_name = type_name.replace('unrestricted ', '', 1);
+  
+            # TODO(terry): Handled USVString as a DOMString.
+            type_name = type_name.replace('USVString', 'DOMString', 1)
+  
+            # TODO(terry); WindowTimers setInterval/setTimeout overloads with a
+            #              Function type - map to any until the IDL uses union.
+            type_name = type_name.replace('Function', 'any', 1)
+  
+            self.id = type_name
+        else:
+          # IdlUnionType
+          if ast.is_union_type:
+            print 'WARNING type %s is union mapped to \'any\'' % self.id
           # TODO(terry): For union types use any otherwise type is unionType is
           #              not found and is removed during merging.
-          self.id = 'any'
-        else:
-          type_name = str(ast)
-          # TODO(terry): For now don't handle unrestricted types see
-          #              https://code.google.com/p/chromium/issues/detail?id=354298
-          type_name = type_name.replace('unrestricted ', '', 1);
-
-          # TODO(terry): Handled USVString as a DOMString.
-          type_name = type_name.replace('USVString', 'DOMString', 1)
-
-          # TODO(terry); WindowTimers setInterval/setTimeout overloads with a
-          #              Function type - map to any until the IDL uses union.
-          type_name = type_name.replace('Function', 'any', 1)
-
-          self.id = type_name
-      else:
-        # IdlUnionType
-        if ast.is_union_type:
-          print 'WARNING type %s is union mapped to \'any\'' % self.id
-        # TODO(terry): For union types use any otherwise type is unionType is
-        #              not found and is removed during merging.
-          self.id = 'any'
-        # TODO(terry): Any union type e.g. 'type1 or type2 or type2',
-        #                            'typedef (Type1 or Type2) UnionType'
-        # Is a problem we need to extend IDLType and IDLTypeDef to handle more
-        # than one type.
-        #
-        # Also for typedef's e.g.,
-        #                 typedef (Type1 or Type2) UnionType
-        # should consider synthesizing a new interface (e.g., UnionType) that's
-        # both Type1 and Type2.
-    if not self.id:
-      print '>>>> __module__ %s' % ast.__module__
-      raise SyntaxError('Could not parse type %s' % (ast))
+            self.id = 'any'
+          # TODO(terry): Any union type e.g. 'type1 or type2 or type2',
+          #                            'typedef (Type1 or Type2) UnionType'
+          # Is a problem we need to extend IDLType and IDLTypeDef to handle more
+          # than one type.
+          #
+          # Also for typedef's e.g.,
+          #                 typedef (Type1 or Type2) UnionType
+          # should consider synthesizing a new interface (e.g., UnionType) that's
+          # both Type1 and Type2.
+      if not self.id:
+        print '>>>> __module__ %s' % ast.__module__
+        raise SyntaxError('Could not parse type %s' % (ast))
 
   def _label_to_type(self, label, ast):
     if label == 'LongLongType':

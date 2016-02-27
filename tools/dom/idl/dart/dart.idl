@@ -210,9 +210,6 @@ interface IDBKeyRange {
 interface IDBObjectStore {
     [CallWith=ScriptState, RaisesException] IDBRequest put(any value, [DartForceOptional] optional any key);
     [CallWith=ScriptState, RaisesException] IDBRequest add(any value, [DartForceOptional] optional any key);
-    // [CallWith=ExecutionContext, ImplementedAs=deleteFunction, RaisesException] IDBRequest delete(any key);
-    [CallWith=ExecutionContext, RaisesException] IDBRequest openCursor([Default=Undefined] optional any range, [DartForceOptional] optional DOMString direction);
-    [CallWith=ExecutionContext, RaisesException] IDBRequest count([Default=Undefined] any key);
 };
 
 interface EntrySync {

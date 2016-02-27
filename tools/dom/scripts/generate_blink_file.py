@@ -191,6 +191,7 @@ def generate_parameter_entries(param_infos):
 
 constructor_renames = {
     'RTCPeerConnection': 'webkitRTCPeerConnection',
+    'SpeechRecognition': 'webkitSpeechRecognition',
 }
 
 def rename_constructor(name):
