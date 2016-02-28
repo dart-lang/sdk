@@ -11,6 +11,15 @@ abstract class CanvasRenderingContext {
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements CanvasRenderingContext {
 $!MEMBERS
 
+  @DomName('CanvasRenderingContext2D.createImageDataFromImageData')
+  @DocsEditable()
+  ImageData createImageDataFromImageData(ImageData imagedata) =>
+$if DART2JS
+    JS('ImageData', '#.createImageData(#, #)', this, imagedata);
+$else
+    this.createImageData(imagedata);
+$endif
+
   /**
    * Sets the color used inside shapes.
    * [r], [g], [b] are 0-255, [a] is 0-1.
