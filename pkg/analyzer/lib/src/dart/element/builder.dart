@@ -160,6 +160,8 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
 
   @override
   Object visitExportDirective(ExportDirective node) {
+    // Remove previous element. (It will remain null if the target is missing.)
+    node.element = null;
     Source exportedSource = node.source;
     if (exportedSource != null && context.exists(exportedSource)) {
       // The exported source will be null if the URI in the export
@@ -200,6 +202,9 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
 
   @override
   Object visitImportDirective(ImportDirective node) {
+    // Remove previous element. (It will remain null if the target is missing.)
+    node.element = null;
+
     String uriContent = node.uriContent;
     if (DartUriResolver.isDartExtUri(uriContent)) {
       libraryElement.hasExtUri = true;

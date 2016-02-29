@@ -12,6 +12,7 @@ import 'package:unittest/unittest.dart' show expect;
 import '../reflective_tests.dart';
 import '../utils.dart';
 import 'resolver_test.dart';
+import 'package:analyzer/src/generated/engine.dart';
 
 main() {
   initializeTestEnvironment();
@@ -6044,7 +6045,7 @@ main() {
     assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
   }
 
-  void test_uriDoesNotExist_import_then_fixed() {
+  void test_uriDoesNotExist_import_disappears_when_fixed() {
     Source source = addSource("import 'target.dart';");
     computeLibrarySourceErrors(source);
     assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
@@ -6060,9 +6061,23 @@ main() {
       ..handleContentsChanged(target, null, "", true);
 
     // Make sure the error goes away.
-    // TODO(skybrian) why isn't there an unused import hint?
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.UNUSED_IMPORT]);
+  }
+
+  void test_uriDoesNotExist_import_appears_after_deleting_target() {
+    Source test = addSource("import 'target.dart';");
+    Source target = addNamedSource("/target.dart", "");
+    computeLibrarySourceErrors(test);
+    assertErrors(test, [HintCode.UNUSED_IMPORT]);
+
+    // Remove the overlay in the same way as AnalysisServer.
+    analysisContext2.setContents(target, null);
+    ChangeSet changeSet = new ChangeSet()..removedSource(target);
+    analysisContext2.applyChanges(changeSet);
+
+    computeLibrarySourceErrors(test);
+    assertErrors(test, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
   }
 
   void test_uriDoesNotExist_part() {
