@@ -1445,6 +1445,7 @@ DEFINE_RUNTIME_ENTRY(TraceICCall, 2) {
 // The requesting function can be already optimized (reoptimization).
 // Returns the Code object where to continue execution.
 DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
   const Function& function = Function::CheckedHandle(zone,
                                                      arguments.ArgAt(0));
   ASSERT(!function.IsNull());
@@ -1500,6 +1501,9 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     ASSERT(!optimized_code.IsNull());
   }
   arguments.SetReturn(Code::Handle(zone, function.CurrentCode()));
+#else
+  UNREACHABLE();
+#endif  // !DART_PRECOMPILED_RUNTIME
 }
 
 
@@ -1663,7 +1667,7 @@ void DeoptimizeFunctionsOnStack() {
   }
 }
 
-
+#if !defined(DART_PRECOMPILED_RUNTIME)
 static void CopySavedRegisters(uword saved_registers_address,
                                fpu_register_t** fpu_registers,
                                intptr_t** cpu_registers) {
@@ -1688,6 +1692,7 @@ static void CopySavedRegisters(uword saved_registers_address,
   }
   *cpu_registers = cpu_registers_copy;
 }
+#endif
 
 
 // Copies saved registers and caller's frame into temporary buffers.
@@ -1699,6 +1704,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
                           2,
                           uword saved_registers_address,
                           uword is_lazy_deopt) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   StackZone zone(thread);
@@ -1745,6 +1751,10 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
 
   // Stack size (FP - SP) in bytes.
   return deopt_context->DestStackAdjustment() * kWordSize;
+#else
+  UNREACHABLE();
+  return 0;
+#endif  // !DART_PRECOMPILED_RUNTIME
 }
 END_LEAF_RUNTIME_ENTRY
 
@@ -1752,6 +1762,7 @@ END_LEAF_RUNTIME_ENTRY
 // The stack has been adjusted to fit all values for unoptimized frame.
 // Fill the unoptimized frame.
 DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, 1, uword last_fp) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   StackZone zone(thread);
@@ -1786,6 +1797,9 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, 1, uword last_fp) {
       caller_frame->sp() - (kDartFrameFixedSize * kWordSize));
   deopt_context->set_dest_frame(start);
   deopt_context->FillDestFrame();
+#else
+  UNREACHABLE();
+#endif  // !DART_PRECOMPILED_RUNTIME
 }
 END_LEAF_RUNTIME_ENTRY
 
@@ -1796,6 +1810,7 @@ END_LEAF_RUNTIME_ENTRY
 // under return address to keep them discoverable by GC that can occur during
 // materialization phase.
 DEFINE_RUNTIME_ENTRY(DeoptimizeMaterialize, 0) {
+#if !defined(DART_PRECOMPILED_RUNTIME)
   DeoptContext* deopt_context = isolate->deopt_context();
   intptr_t deopt_arg_count = deopt_context->MaterializeDeferredObjects();
   isolate->set_deopt_context(NULL);
@@ -1804,6 +1819,9 @@ DEFINE_RUNTIME_ENTRY(DeoptimizeMaterialize, 0) {
   // Return value tells deoptimization stub to remove the given number of bytes
   // from the stack.
   arguments.SetReturn(Smi::Handle(Smi::New(deopt_arg_count * kWordSize)));
+#else
+  UNREACHABLE();
+#endif  // !DART_PRECOMPILED_RUNTIME
 }
 
 
