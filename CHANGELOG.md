@@ -1,8 +1,20 @@
 ## 1.15.0
 
+### Language features
+* Added support for [configuration-specific imports](https://github.com/munificent/dep-interface-libraries/blob/master/Proposal.md).
+  On the VM and dart2js, they can be enabled with `--conditional-directives`.
+
+  The analyzer requires an additional option in an `options` file:
+  ```
+  analyzer:
+    language:
+      enableConditionalDirectives: true
+  ```
+  Then run the analyzer with `--options=<path-to-options-file>`.
+
 ### Core library changes
-  * Added `Uri.queryParametersAll` to handle multiple query parameters with
-    the same name.
+* Added `Uri.queryParametersAll` to handle multiple query parameters with
+  the same name.
 
 * `dart:io`
   * Added `SecurityContext.usePrivateKeyBytes`,
