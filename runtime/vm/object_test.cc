@@ -4034,7 +4034,11 @@ TEST_CASE(FunctionSourceFingerprint) {
   EXPECT_NE(a_test3.SourceFingerprint(), a_test4.SourceFingerprint());
   EXPECT_NE(a_test4.SourceFingerprint(), a_test5.SourceFingerprint());
   EXPECT_EQ(a_test5.SourceFingerprint(), b_test5.SourceFingerprint());
-  EXPECT_NE(a_test6.SourceFingerprint(), b_test6.SourceFingerprint());
+  // Although a_test6's receiver type is different than b_test6's receiver type,
+  // the fingerprints are identical. The token stream does not reflect the
+  // receiver's type. This is not a problem, since we recognize functions
+  // of a given class and of a given name.
+  EXPECT_EQ(a_test6.SourceFingerprint(), b_test6.SourceFingerprint());
 }
 
 

@@ -6751,9 +6751,7 @@ RawString* Function::GetSource() const {
 // Construct fingerprint from token stream. The token stream contains also
 // arguments.
 int32_t Function::SourceFingerprint() const {
-  uint32_t result = IsImplicitClosureFunction()
-      ? String::Handle(Function::Handle(parent_function()).Signature()).Hash()
-      : String::Handle(Signature()).Hash();
+  uint32_t result = 0;
   TokenStream::Iterator tokens_iterator(TokenStream::Handle(
       Script::Handle(script()).tokens()), token_pos());
   Object& obj = Object::Handle();
