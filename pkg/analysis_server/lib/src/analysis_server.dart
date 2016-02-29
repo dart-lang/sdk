@@ -332,6 +332,7 @@ class AnalysisServer {
     ServerContextManagerCallbacks contextManagerCallbacks =
         new ServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
+    contextManager.onComputingPackageMap.listen(_computingPackageMap);
     _noErrorNotification = options.noErrorNotification;
     AnalysisEngine.instance.logger = new AnalysisLogger(this);
     _onAnalysisStartedController = new StreamController.broadcast();
@@ -614,23 +615,6 @@ class AnalysisServer {
     return elements;
   }
 
-// TODO(brianwilkerson) Add the following method after 'prioritySources' has
-// been added to InternalAnalysisContext.
-//  /**
-//   * Return a list containing the full names of all of the sources that are
-//   * priority sources.
-//   */
-//  List<String> getPriorityFiles() {
-//    List<String> priorityFiles = new List<String>();
-//    folderMap.values.forEach((ContextDirectory directory) {
-//      InternalAnalysisContext context = directory.context;
-//      context.prioritySources.forEach((Source source) {
-//        priorityFiles.add(source.fullName);
-//      });
-//    });
-//    return priorityFiles;
-//  }
-
   /**
    * Return an analysis error info containing the array of all of the errors and
    * the line info associated with [file].
@@ -656,6 +640,23 @@ class AnalysisServer {
     }
     return context.getErrors(source);
   }
+
+// TODO(brianwilkerson) Add the following method after 'prioritySources' has
+// been added to InternalAnalysisContext.
+//  /**
+//   * Return a list containing the full names of all of the sources that are
+//   * priority sources.
+//   */
+//  List<String> getPriorityFiles() {
+//    List<String> priorityFiles = new List<String>();
+//    folderMap.values.forEach((ContextDirectory directory) {
+//      InternalAnalysisContext context = directory.context;
+//      context.prioritySources.forEach((Source source) {
+//        priorityFiles.add(source.fullName);
+//      });
+//    });
+//    return priorityFiles;
+//  }
 
   /**
    * Returns resolved [AstNode]s at the given [offset] of the given [file].
@@ -1333,6 +1334,14 @@ class AnalysisServer {
     });
   }
 
+  void _computingPackageMap(bool computing) {
+    if (serverServices.contains(ServerService.STATUS)) {
+      PubStatus pubStatus = new PubStatus(computing);
+      ServerStatusParams params = new ServerStatusParams(pub: pubStatus);
+      sendNotification(params.toNotification());
+    }
+  }
+
   /**
    * Return a set of all contexts whose associated folder is contained within,
    * or equal to, one of the resources in the given list of [resources].
@@ -1516,16 +1525,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
-  void beginComputePackageMap() {
-    _computingPackageMap(true);
-  }
-
-  @override
-  void endComputePackageMap() {
-    _computingPackageMap(false);
-  }
-
-  @override
   void removeContext(Folder folder, List<String> flushedFiles) {
     AnalysisContext context = analysisServer.folderMap.remove(folder);
     sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
@@ -1566,14 +1565,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(changed: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
-  }
-
-  void _computingPackageMap(bool computing) {
-    if (analysisServer.serverServices.contains(ServerService.STATUS)) {
-      PubStatus pubStatus = new PubStatus(computing);
-      ServerStatusParams params = new ServerStatusParams(pub: pubStatus);
-      analysisServer.sendNotification(params.toNotification());
-    }
   }
 
   /**
