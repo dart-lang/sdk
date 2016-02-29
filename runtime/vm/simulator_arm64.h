@@ -208,8 +208,8 @@ class Simulator {
 
   // Synchronization primitives support.
   void ClearExclusive();
-  intptr_t ReadExclusiveW(uword addr, Instr* instr);
-  intptr_t WriteExclusiveW(uword addr, intptr_t value, Instr* instr);
+  intptr_t ReadExclusiveX(uword addr, Instr* instr);
+  intptr_t WriteExclusiveX(uword addr, intptr_t value, Instr* instr);
 
   // Set access to given address to 'exclusive state' for current thread.
   static void SetExclusiveAccess(uword addr);

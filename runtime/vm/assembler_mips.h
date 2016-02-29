@@ -663,6 +663,10 @@ class Assembler : public ValueObject {
     EmitLoadStore(LHU, rt, addr);
   }
 
+  void ll(Register rt, const Address& addr) {
+    EmitLoadStore(LL, rt, addr);
+  }
+
   void lui(Register rt, const Immediate& imm) {
     ASSERT(Utils::IsUint(kImmBits, imm.value()));
     const uint16_t imm_value = static_cast<uint16_t>(imm.value());
@@ -789,6 +793,11 @@ class Assembler : public ValueObject {
 
   void sb(Register rt, const Address& addr) {
     EmitLoadStore(SB, rt, addr);
+  }
+
+  // rt = 1 on success, 0 on failure.
+  void sc(Register rt, const Address& addr) {
+    EmitLoadStore(SC, rt, addr);
   }
 
   void sdc1(DRegister dt, const Address& addr) {
