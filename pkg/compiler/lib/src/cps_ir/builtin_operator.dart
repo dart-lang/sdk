@@ -5,8 +5,6 @@ library builtin_operator;
 // This is shared by the CPS and Tree IRs.
 // Both cps_ir_nodes and tree_ir_nodes import and re-export this file.
 
-import 'effects.dart';
-
 /// An operator supported natively in the CPS and Tree IRs using the
 /// `ApplyBuiltinOperator` instructions.
 ///
@@ -222,19 +220,5 @@ bool isCompoundableOperator(BuiltinOperator operator) {
       return true;
     default:
       return false;
-  }
-}
-
-int getEffectsOfBuiltinMethod(BuiltinMethod method) {
-  switch (method) {
-    case BuiltinMethod.Push:
-      return Effects.changesIndexableContent |
-             Effects.changesIndexableLength;
-    case BuiltinMethod.Pop:
-      return Effects.dependsOnIndexableContent |
-             Effects.dependsOnIndexableLength |
-             Effects.changesIndexableLength;
-    case BuiltinMethod.SetLength:
-      return Effects.changesIndexableLength;
   }
 }

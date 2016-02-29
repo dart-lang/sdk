@@ -12,12 +12,9 @@ import '../elements/elements.dart';
 import '../io/source_information.dart' show SourceInformation;
 import '../types/types.dart' show TypeMask;
 import '../universe/selector.dart' show Selector;
-import '../universe/side_effects.dart';
 
 import 'builtin_operator.dart';
 export 'builtin_operator.dart';
-
-import 'effects.dart';
 
 // These imports are only used for the JavaScript specific nodes.  If we want to
 // support more than one native backend, we should probably create better
@@ -245,10 +242,6 @@ class RefinedUseIterable extends IterableBase<Reference<Primitive>> {
 abstract class Primitive extends Variable<Primitive> {
   Primitive() : super(null);
 
-  /// Returns a bitmask with the non-local side effects and dependencies of
-  /// this primitive, as defined by [Effects].
-  int get effects => Effects.none;
-
   /// True if this primitive has a value that can be used by other expressions.
   bool get hasValue;
 
@@ -352,8 +345,10 @@ abstract class Primitive extends Variable<Primitive> {
 
 /// A primitive that is generally not safe for elimination, but may be marked
 /// as safe by type propagation
+//
+// TODO(asgerf): Store the flag in a bitmask in [Primitive] and get rid of this
+//               class.
 abstract class UnsafePrimitive extends Primitive {
-  int effects = Effects.all;
   bool isSafeForElimination = false;
   bool isSafeForReordering = false;
 }
@@ -1148,8 +1143,6 @@ class ApplyBuiltinMethod extends Primitive {
     receiver.parent = this;
     _setParentsOnList(arguments, this);
   }
-
-  int get effects => getEffectsOfBuiltinMethod(method);
 }
 
 /// Throw a value.
@@ -1345,8 +1338,6 @@ class SetField extends Primitive {
     object.parent = this;
     value.parent = this;
   }
-
-  int get effects => Effects.changesInstanceField;
 }
 
 /// Directly reads from a field on a given object.
@@ -1356,18 +1347,13 @@ class GetField extends Primitive {
   final Reference<Primitive> object;
   FieldElement field;
 
-  /// True if the field never changes value.
-  final bool isFinal;
-
   /// True if the object is known not to be null.
   // TODO(asgerf): This is a placeholder until we agree on how to track
   //               side effects.
   bool objectIsNotNull = false;
 
-  GetField(Primitive object, this.field, {this.isFinal})
-      : this.object = new Reference<Primitive>(object) {
-    assert(isFinal != null);
-  }
+  GetField(Primitive object, this.field)
+      : this.object = new Reference<Primitive>(object);
 
   accept(Visitor visitor) => visitor.visitGetField(this);
 
@@ -1380,22 +1366,16 @@ class GetField extends Primitive {
   void setParentPointers() {
     object.parent = this;
   }
-
-  int get effects => isFinal ? 0 : Effects.dependsOnInstanceField;
 }
 
 /// Get the length of a string or native list.
 class GetLength extends Primitive {
   final Reference<Primitive> object;
 
-  /// True if the length of the given object can never change.
-  bool isFinal;
-
   /// True if the object is known not to be null.
   bool objectIsNotNull = false;
 
-  GetLength(Primitive object, {this.isFinal: false})
-      : this.object = new Reference<Primitive>(object);
+  GetLength(Primitive object) : this.object = new Reference<Primitive>(object);
 
   bool get hasValue => true;
   bool get isSafeForElimination => objectIsNotNull;
@@ -1406,8 +1386,6 @@ class GetLength extends Primitive {
   void setParentPointers() {
     object.parent = this;
   }
-
-  int get effects => isFinal ? 0 : Effects.dependsOnIndexableLength;
 }
 
 /// Read an entry from an indexable object.
@@ -1435,16 +1413,11 @@ class GetIndex extends Primitive {
     object.parent = this;
     index.parent = this;
   }
-
-  int get effects => Effects.dependsOnIndexableContent;
 }
 
 /// Set an entry on a native list.
 ///
-/// [object] must be null or a native list, and [index] must be an integer
-/// within the bounds of the indexable object.
-///
-/// [SetIndex] may not be used to alter the length of a JS array.
+/// [object] must be null or a native list, and [index] must be an integer.
 ///
 /// The primitive itself has no value and may not be referenced.
 class SetIndex extends Primitive {
@@ -1468,8 +1441,6 @@ class SetIndex extends Primitive {
     index.parent = this;
     value.parent = this;
   }
-
-  int get effects => Effects.changesIndexableContent;
 }
 
 /// Reads the value of a static field or tears off a static method.
@@ -1482,36 +1453,32 @@ class GetStatic extends Primitive {
   final Element element;
   final SourceInformation sourceInformation;
 
-  /// True if the field never changes value.
-  final bool isFinal;
-
   /// If reading a lazily initialized field, [witness] must refer to a node
   /// that initializes the field or always occurs after the field initializer.
   ///
   /// The value of the witness is not used.
   Reference<Primitive> witness;
 
-  GetStatic(this.element, {this.isFinal: false, this.sourceInformation});
+  GetStatic(this.element, [this.sourceInformation]);
 
   /// Read a lazily initialized static field that is known to have been
   /// initialized by [witness] or earlier.
-  GetStatic.witnessed(this.element, Primitive witness, {this.sourceInformation})
-      : witness = witness == null ? null : new Reference<Primitive>(witness),
-        isFinal = false;
+  GetStatic.witnessed(this.element, Primitive witness, [this.sourceInformation])
+      : witness = witness == null ? null : new Reference<Primitive>(witness);
 
   accept(Visitor visitor) => visitor.visitGetStatic(this);
 
   bool get hasValue => true;
   bool get isSafeForElimination => true;
-  bool get isSafeForReordering => isFinal;
+  bool get isSafeForReordering {
+    return element is FunctionElement || element.isFinal;
+  }
 
   void setParentPointers() {
     if (witness != null) {
       witness.parent = this;
     }
   }
-
-  int get effects => isFinal ? 0 : Effects.dependsOnStaticField;
 }
 
 /// Sets the value of a static field.
@@ -1532,8 +1499,6 @@ class SetStatic extends Primitive {
   void setParentPointers() {
     value.parent = this;
   }
-
-  int get effects => Effects.changesStaticField;
 }
 
 /// Reads the value of a lazily initialized static field.
@@ -1544,19 +1509,13 @@ class GetLazyStatic extends UnsafePrimitive {
   final FieldElement element;
   final SourceInformation sourceInformation;
 
-  /// True if the field never changes value.
-  final bool isFinal;
-
-  GetLazyStatic(this.element, {this.isFinal: false, this.sourceInformation});
+  GetLazyStatic(this.element, [this.sourceInformation]);
 
   accept(Visitor visitor) => visitor.visitGetLazyStatic(this);
 
   bool get hasValue => true;
 
   void setParentPointers() {}
-
-  // TODO(asgerf): Track side effects of lazy field initializers.
-  int get effects => Effects.all;
 }
 
 /// Creates an object for holding boxed variables captured by a closure.
@@ -1676,9 +1635,7 @@ class ForeignCode extends UnsafePrimitive {
 
   ForeignCode(this.codeTemplate, this.storedType, List<Primitive> arguments,
       this.nativeBehavior, {this.dependency})
-      : this.arguments = _referenceList(arguments) {
-    effects = Effects.from(nativeBehavior.sideEffects);
-  }
+      : this.arguments = _referenceList(arguments);
 
   accept(Visitor visitor) => visitor.visitForeignCode(this);
 
@@ -2679,11 +2636,6 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   /// Get the copy of a [Reference]'s definition from the map.
   Definition getCopy(Reference reference) => _copies[reference.definition];
 
-  /// Get the copy of a [Reference]'s definition from the map.
-  Definition getCopyOrNull(Reference reference) => reference == null
-      ? null
-      : getCopy(reference);
-
   /// Map a list of [Reference]s to the list of their definition's copies.
   List<Definition> getList(List<Reference> list) => list.map(getCopy).toList();
 
@@ -2753,9 +2705,7 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   }
 
   Definition visitGetLazyStatic(GetLazyStatic node) {
-    return new GetLazyStatic(node.element,
-        isFinal: node.isFinal,
-        sourceInformation: node.sourceInformation);
+    return new GetLazyStatic(node.element, node.sourceInformation);
   }
 
   Definition visitAwait(Await node) {
@@ -2788,15 +2738,7 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   }
 
   Definition visitGetStatic(GetStatic node) {
-    if (node.witness != null) {
-      return new GetStatic.witnessed(node.element,
-          getCopy(node.witness),
-          sourceInformation: node.sourceInformation);
-    } else {
-      return new GetStatic(node.element,
-          isFinal: node.isFinal,
-          sourceInformation: node.sourceInformation);
-    }
+    return new GetStatic(node.element, node.sourceInformation);
   }
 
   Definition visitInterceptor(Interceptor node) {
@@ -2813,8 +2755,7 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   }
 
   Definition visitGetField(GetField node) {
-    return new GetField(getCopy(node.object), node.field,
-        isFinal: node.isFinal);
+    return new GetField(getCopy(node.object), node.field);
   }
 
   Definition visitCreateBox(CreateBox node) {
@@ -2861,7 +2802,7 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   }
 
   Definition visitGetLength(GetLength node) {
-    return new GetLength(getCopy(node.object), isFinal: node.isFinal);
+    return new GetLength(getCopy(node.object));
   }
 
   Definition visitGetIndex(GetIndex node) {
@@ -2883,7 +2824,7 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
           node.sourceInformation);
     } else {
       return new BoundsCheck(getCopy(node.object), getCopy(node.index),
-          getCopyOrNull(node.length),
+          node.length == null ? null : getCopy(node.length),
           node.checks,
           node.sourceInformation);
     }
@@ -2893,7 +2834,7 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
     return new ReceiverCheck(getCopy(node.value),
         node.selector,
         node.sourceInformation,
-        condition: getCopyOrNull(node.condition),
+        condition: node.condition == null ? null : getCopy(node.condition),
         useSelector: node.useSelector,
         isNullCheck: node.isNullCheck);
   }

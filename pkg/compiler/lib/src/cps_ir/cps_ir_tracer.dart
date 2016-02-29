@@ -269,14 +269,12 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   visitGetField(cps_ir.GetField node) {
     String object = formatReference(node.object);
     String field = node.field.name;
-    String finalFlag = node.isFinal ? 'final' : 'non-final';
-    return 'GetField $object.$field $finalFlag';
+    return 'GetField($object.$field)';
   }
 
   visitGetStatic(cps_ir.GetStatic node) {
     String element = node.element.name;
-    String finalFlag = node.isFinal ? 'final' : 'non-final';
-    return 'GetStatic $element $finalFlag';
+    return 'GetStatic($element)';
   }
 
   visitSetStatic(cps_ir.SetStatic node) {
@@ -287,8 +285,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
 
   visitGetLazyStatic(cps_ir.GetLazyStatic node) {
     String element = node.element.name;
-    String finalFlag = node.isFinal ? 'final' : 'non-final';
-    return "GetLazyStatic $element $finalFlag";
+    return "GetLazyStatic $element";
   }
 
   visitCreateBox(cps_ir.CreateBox node) {
@@ -364,8 +361,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
 
   visitGetLength(cps_ir.GetLength node) {
     String object = formatReference(node.object);
-    String finalFlag = node.isFinal ? 'final' : 'non-final';
-    return 'GetLength $object $finalFlag';
+    return 'GetLength $object';
   }
 
   visitGetIndex(cps_ir.GetIndex node) {

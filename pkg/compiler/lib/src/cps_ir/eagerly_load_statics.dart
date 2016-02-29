@@ -7,7 +7,6 @@ library dart2js.cps_ir.eagerly_load_statics;
 import 'cps_ir_nodes.dart';
 import 'optimizers.dart' show Pass;
 import '../elements/elements.dart';
-import 'cps_fragment.dart';
 
 /// Replaces [GetLazyStatic] with [GetStatic] when the static field is known
 /// to have been initialized.
@@ -31,12 +30,6 @@ class EagerlyLoadStatics extends TrampolineRecursiveVisitor implements Pass {
     visit(node.body);
   }
 
-  Expression traverseLetPrim(LetPrim node) {
-    Expression next = node.body;
-    visit(node.primitive);
-    return next;
-  }
-
   Expression traverseLetCont(LetCont node) {
     for (Continuation cont in node.continuations) {
       initializersAt[cont] = cloneFieldMap(initializerFor);
@@ -58,13 +51,10 @@ class EagerlyLoadStatics extends TrampolineRecursiveVisitor implements Pass {
 
   void visitGetLazyStatic(GetLazyStatic node) {
     Primitive initializer = initializerFor[node.element];
-    if (initializer is GetLazyStatic && initializer.isFinal) {
-      // No reason to create a GetStatic when the field is final.
-      node.replaceWithFragment(new CpsFragment(), initializer);
-    } else if (initializer != null) {
-      GetStatic newNode = new GetStatic.witnessed(node.element,
-          initializer, sourceInformation: node.sourceInformation)
-          ..type = node.type;
+    if (initializer != null) {
+      GetStatic newNode = new GetStatic.witnessed(node.element, initializer,
+          node.sourceInformation);
+      newNode.type = node.type;
       node.replaceWith(newNode);
     } else {
       initializerFor[node.element] = node;
