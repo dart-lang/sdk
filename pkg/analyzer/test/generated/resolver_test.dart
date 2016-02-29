@@ -3552,6 +3552,21 @@ abstract class B implements A {
     verify([source]);
   }
 
+  void test_invalidUseOfProtectedMember_topLevelVariable() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+@protected
+int x = 0;
+main() {
+  print(x);
+}''');
+    computeLibrarySourceErrors(source);
+    // TODO(brianwilkerson) This should produce a hint because the annotation is
+    // being applied to the wrong kind of declaration.
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_isDouble() {
     AnalysisOptionsImpl options = new AnalysisOptionsImpl();
     options.dart2jsHint = true;
