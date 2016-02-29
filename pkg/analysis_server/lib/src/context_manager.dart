@@ -262,13 +262,6 @@ abstract class ContextManager {
   List<String> get includedPaths;
 
   /**
-   * The stream that is notified when we are starting or ending the computation
-   * of a package map. A value of `true` is added when the computation starts
-   * and a value of `false` is added when the computation ends.
-   */
-  Stream<bool> get onComputingPackageMap;
-
-  /**
    * Return a list of all of the contexts reachable from the given
    * [analysisRoot] (the context associated with [analysisRoot] and all of its
    * descendants).
@@ -339,6 +332,12 @@ abstract class ContextManagerCallbacks {
    * changes that need to be applied to the context.
    */
   void applyChangesToContext(Folder contextFolder, ChangeSet changeSet);
+
+  /**
+   * Signals that the context manager has started to compute a package map (if
+   * [computing] is `true`) or has finished (if [computing] is `false`).
+   */
+  void computingPackageMap(bool computing);
 
   /**
    * Remove the context associated with the given [folder].  [flushedFiles] is
@@ -480,12 +479,6 @@ class ContextManagerImpl implements ContextManager {
       new HashMap<Folder, AnalysisContext>();
 
   /**
-   * The controller that is notified when we are starting or ending the
-   * computation of a package map.
-   */
-  StreamController<bool> _onComputingPackageMapController;
-
-  /**
    * Stream subscription we are using to watch each analysis root directory for
    * changes.
    */
@@ -501,12 +494,6 @@ class ContextManagerImpl implements ContextManager {
       this.defaultContextOptions) {
     absolutePathContext = resourceProvider.absolutePathContext;
     pathContext = resourceProvider.pathContext;
-    _onComputingPackageMapController = new StreamController.broadcast();
-  }
-
-  @override
-  Stream<bool> get onComputingPackageMap {
-    return _onComputingPackageMapController.stream;
   }
 
   @override
@@ -1020,7 +1007,7 @@ class ContextManagerImpl implements ContextManager {
       return new NoPackageFolderDisposition(packageRoot: packageRoot);
     } else {
       PackageMapInfo packageMapInfo;
-      _onComputingPackageMapController.add(true);
+      callbacks.computingPackageMap(true);
       try {
         // Try .packages first.
         if (absolutePathContext.basename(packagespecFile.path) ==
@@ -1039,7 +1026,7 @@ class ContextManagerImpl implements ContextManager {
           packageMapInfo = _packageMapProvider.computePackageMap(folder);
         });
       } finally {
-        _onComputingPackageMapController.add(false);
+        callbacks.computingPackageMap(false);
       }
       for (String dependencyPath in packageMapInfo.dependencies) {
         addDependency(dependencyPath);

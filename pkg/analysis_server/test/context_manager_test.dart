@@ -2427,6 +2427,11 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
+  void computingPackageMap(bool computing) {
+    // Do nothing.
+  }
+
+  @override
   void removeContext(Folder folder, List<String> flushedFiles) {
     String path = folder.path;
     expect(currentContextPaths, contains(path));

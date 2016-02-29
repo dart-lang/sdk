@@ -326,7 +326,6 @@ class AnalysisServer {
     ServerContextManagerCallbacks contextManagerCallbacks =
         new ServerContextManagerCallbacks(this, resourceProvider);
     contextManager.callbacks = contextManagerCallbacks;
-    contextManager.onComputingPackageMap.listen(_computingPackageMap);
     _noErrorNotification = options.noErrorNotification;
     AnalysisEngine.instance.logger = new AnalysisLogger(this);
     _onAnalysisStartedController = new StreamController.broadcast();
@@ -1522,6 +1521,10 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
       sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
     }
   }
+
+  @override
+  void computingPackageMap(bool computing) =>
+      analysisServer._computingPackageMap(computing);
 
   @override
   void removeContext(Folder folder, List<String> flushedFiles) {
