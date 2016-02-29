@@ -850,12 +850,6 @@ table PackageIndex {
   elementKinds:[IndexSyntheticElementKind] (id: 5);
 
   /**
-   * Each item of this list corresponds to a unique library URI with an element
-   * referenced in the [PackageIndex].  It is an index into [uris] list.
-   */
-  elementLibraryUris:[uint] (id: 2);
-
-  /**
    * Each item of this list corresponds to a unique referenced element.  It is
    * the offset of the element name relative to the beginning of the file.  The
    * list is sorted in ascending order, so that the client can quickly check
@@ -865,16 +859,10 @@ table PackageIndex {
 
   /**
    * Each item of this list corresponds to a unique referenced element.  It is
-   * the index into [elementLibraryUris] and [elementUnitUris] for the library
+   * the index into [unitLibraryUris] and [unitUnitUris] for the library
    * specific unit where the element is declared.
    */
   elementUnits:[uint] (id: 0);
-
-  /**
-   * Each item of this list corresponds to a unique unit URI with an element
-   * referenced in the [PackageIndex].  It is an index into [uris] list.
-   */
-  elementUnitUris:[uint] (id: 3);
 
   /**
    * List of unique element strings used in this [PackageIndex].
@@ -882,9 +870,21 @@ table PackageIndex {
   strings:[string] (id: 6);
 
   /**
-   * List of units indexed in this [PackageIndex].
+   * Each item of this list corresponds to the library URI of a unique library
+   * specific unit referenced in the [PackageIndex].
+   */
+  unitLibraryUris:[uint] (id: 2);
+
+  /**
+   * List of indexes of each unit in this [PackageIndex].
    */
   units:[UnitIndex] (id: 4);
+
+  /**
+   * Each item of this list corresponds to the unit URI of a unique library
+   * specific unit referenced in the [PackageIndex].
+   */
+  unitUnitUris:[uint] (id: 3);
 }
 
 /**
@@ -894,13 +894,13 @@ table UnitIndex {
   /**
    * Each item of this list is the kind of an element defined in this unit.
    */
-  definedNameKinds:[IndexNameKind] (id: 7);
+  definedNameKinds:[IndexNameKind] (id: 6);
 
   /**
    * Each item of this list is the name offset of an element defined in this
    * unit relative to the beginning of the file.
    */
-  definedNameOffsets:[uint] (id: 8);
+  definedNameOffsets:[uint] (id: 7);
 
   /**
    * Each item of this list corresponds to an element defined in this unit.  It
@@ -908,42 +908,36 @@ table UnitIndex {
    * ascending order, so that the client can quickly find name definitions in
    * this [UnitIndex].
    */
-  definedNames:[uint] (id: 6);
+  definedNames:[uint] (id: 5);
+
+  /**
+   * Index into [PackageIndex.unitLibraryUris] and [PackageIndex.unitUnitUris]
+   * for the library specific unit that corresponds to this [UnitIndex].
+   */
+  unit:uint (id: 0);
+
+  /**
+   * Each item of this list is the kind of the element usage.
+   */
+  usedElementKinds:[IndexRelationKind] (id: 4);
+
+  /**
+   * Each item of this list is the length of the element usage.
+   */
+  usedElementLengths:[uint] (id: 1);
+
+  /**
+   * Each item of this list is the offset of the element usage relative to the
+   * beginning of the file.
+   */
+  usedElementOffsets:[uint] (id: 2);
 
   /**
    * Each item of this list is the index into [PackageIndex.elementUnits] and
    * [PackageIndex.elementOffsets].  The list is sorted in ascending order, so
    * that the client can quickly find element references in this [UnitIndex].
    */
-  elements:[uint] (id: 4);
-
-  /**
-   * Each item of this list is the kind of the element usage.
-   */
-  kinds:[IndexRelationKind] (id: 5);
-
-  /**
-   * The library source URI of this unit, e.g. `dart:core` or
-   * `package:foo/bar.dart`, as index into [PackageIndex.uris].
-   */
-  libraryUri:uint (id: 0);
-
-  /**
-   * Each item of this list is the length of the element usage.
-   */
-  locationLengths:[uint] (id: 2);
-
-  /**
-   * Each item of this list is the offset of the element usage relative to the
-   * beginning of the file.
-   */
-  locationOffsets:[uint] (id: 3);
-
-  /**
-   * The unit source URI of this unit, e.g. `dart:core/int.dart` or
-   * `package:foo/bar/baz.dart`, as index into [PackageIndex.uris].
-   */
-  unitUri:uint (id: 1);
+  usedElements:[uint] (id: 3);
 }
 
 /**

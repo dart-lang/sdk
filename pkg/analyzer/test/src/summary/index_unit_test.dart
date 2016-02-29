@@ -625,10 +625,10 @@ A myVariable = null;
       ExpectedLocation expectedLocation) {
     int elementId = _findElementId(element);
     int matchIndex;
-    for (int i = 0; i < unitIndex.locationOffsets.length; i++) {
-      if (unitIndex.elements[i] == elementId &&
-          unitIndex.locationOffsets[i] == expectedLocation.offset &&
-          unitIndex.locationLengths[i] == expectedLocation.length) {
+    for (int i = 0; i < unitIndex.usedElementOffsets.length; i++) {
+      if (unitIndex.usedElements[i] == elementId &&
+          unitIndex.usedElementOffsets[i] == expectedLocation.offset &&
+          unitIndex.usedElementLengths[i] == expectedLocation.length) {
         if (matchIndex == null) {
           matchIndex = i;
         } else {
@@ -638,7 +638,7 @@ A myVariable = null;
       }
     }
     if (matchIndex != null &&
-        unitIndex.kinds[matchIndex] == expectedRelationKind) {
+        unitIndex.usedElementKinds[matchIndex] == expectedRelationKind) {
       return;
     }
     _failWithIndexDump(
@@ -665,7 +665,7 @@ A myVariable = null;
    * Return the [element] identifier in [packageIndex] or fail.
    */
   int _findElementId(Element element) {
-    int elementUnitId = _getElementUnitId(element);
+    int unitId = _getUnitId(element);
     int offset = element.nameOffset;
     if (element is LibraryElement || element is CompilationUnitElement) {
       offset = 0;
@@ -675,7 +675,7 @@ A myVariable = null;
     for (int elementId = 0;
         elementId < packageIndex.elementUnits.length;
         elementId++) {
-      if (packageIndex.elementUnits[elementId] == elementUnitId &&
+      if (packageIndex.elementUnits[elementId] == unitId &&
           packageIndex.elementOffsets[elementId] == offset &&
           packageIndex.elementKinds[elementId] == kind) {
         return elementId;
@@ -685,25 +685,27 @@ A myVariable = null;
     return 0;
   }
 
-  int _getElementUnitId(Element element) {
+  int _getStringId(String str) {
+    int id = packageIndex.strings.indexOf(str);
+    expect(id, isNonNegative);
+    return id;
+  }
+
+  int _getUnitId(Element element) {
     CompilationUnitElement unitElement =
         PackageIndexAssembler.getUnitElement(element);
     int libraryUriId = _getUriId(unitElement.library.source.uri);
     int unitUriId = _getUriId(unitElement.source.uri);
-    for (int i = 0; i < packageIndex.elementLibraryUris.length; i++) {
-      if (packageIndex.elementLibraryUris[i] == libraryUriId &&
-          packageIndex.elementUnitUris[i] == unitUriId) {
+    expect(packageIndex.unitLibraryUris,
+        hasLength(packageIndex.unitUnitUris.length));
+    for (int i = 0; i < packageIndex.unitLibraryUris.length; i++) {
+      if (packageIndex.unitLibraryUris[i] == libraryUriId &&
+          packageIndex.unitUnitUris[i] == unitUriId) {
         return i;
       }
     }
     _failWithIndexDump('Unit $unitElement of $element is not referenced');
     return -1;
-  }
-
-  int _getStringId(String str) {
-    int id = packageIndex.strings.indexOf(str);
-    expect(id, isNonNegative);
-    return id;
   }
 
   int _getUriId(Uri uri) {
@@ -722,6 +724,7 @@ A myVariable = null;
     // prepare the only unit index
     expect(packageIndex.units, hasLength(1));
     unitIndex = packageIndex.units[0];
+    expect(unitIndex.unit, _getUnitId(testUnitElement));
   }
 }
 

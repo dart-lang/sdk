@@ -24,22 +24,22 @@ class PackageIndexAssembler {
 
   /**
    * Map associating [CompilationUnitElement]s with their identifiers, which
-   * are indices into [_elementLibraryUris] and [_elementUnitUris].
+   * are indices into [_unitLibraryUris] and [_unitUnitUris].
    */
-  final Map<CompilationUnitElement, int> _elementUnitMap =
+  final Map<CompilationUnitElement, int> _unitMap =
       <CompilationUnitElement, int>{};
 
   /**
    * Each item of this list corresponds to the library URI of a unique
    * [CompilationUnitElement].  It is an index into [_strings].
    */
-  final List<int> _elementLibraryUris = <int>[];
+  final List<int> _unitLibraryUris = <int>[];
 
   /**
    * Each item of this list corresponds to the unit URI of a unique
    * [CompilationUnitElement].  It is an index into [_strings].
    */
-  final List<int> _elementUnitUris = <int>[];
+  final List<int> _unitUnitUris = <int>[];
 
   /**
    * Map associating strings with their identifiers, which are indices
@@ -70,8 +70,8 @@ class PackageIndexAssembler {
       elementInfoList[i].id = i;
     }
     return new PackageIndexBuilder(
-        elementLibraryUris: _elementLibraryUris,
-        elementUnitUris: _elementUnitUris,
+        unitLibraryUris: _unitLibraryUris,
+        unitUnitUris: _unitUnitUris,
         elementUnits: elementInfoList.map((e) => e.unitId).toList(),
         elementOffsets: elementInfoList.map((e) => e.offset).toList(),
         elementKinds: elementInfoList.map((e) => e.kind).toList(),
@@ -83,8 +83,8 @@ class PackageIndexAssembler {
    * Index the given fully resolved [unit].
    */
   void index(CompilationUnit unit) {
-    CompilationUnitElement unitElement = unit.element;
-    _UnitIndexAssembler assembler = new _UnitIndexAssembler(this, unitElement);
+    int unitId = _getUnitId(unit.element);
+    _UnitIndexAssembler assembler = new _UnitIndexAssembler(this, unitId);
     _units.add(assembler);
     unit.accept(new _IndexContributor(assembler));
   }
@@ -96,7 +96,7 @@ class PackageIndexAssembler {
   _ElementInfo _getElementInfo(Element element) {
     return _elementMap.putIfAbsent(element, () {
       CompilationUnitElement unitElement = getUnitElement(element);
-      int unitId = _getUnitElementId(unitElement);
+      int unitId = _getUnitId(unitElement);
       int offset = element.nameOffset;
       if (element is LibraryElement || element is CompilationUnitElement) {
         offset = 0;
@@ -119,16 +119,16 @@ class PackageIndexAssembler {
   }
 
   /**
-   * Add information about [unitElement] to [_elementUnitUris] and
-   * [_elementLibraryUris] if necessary, and return the location in those
+   * Add information about [unitElement] to [_unitUnitUris] and
+   * [_unitLibraryUris] if necessary, and return the location in those
    * arrays representing [unitElement].
    */
-  int _getUnitElementId(CompilationUnitElement unitElement) {
-    return _elementUnitMap.putIfAbsent(unitElement, () {
-      assert(_elementLibraryUris.length == _elementUnitUris.length);
-      int id = _elementUnitUris.length;
-      _elementLibraryUris.add(_getUriId(unitElement.library.source.uri));
-      _elementUnitUris.add(_getUriId(unitElement.source.uri));
+  int _getUnitId(CompilationUnitElement unitElement) {
+    return _unitMap.putIfAbsent(unitElement, () {
+      assert(_unitLibraryUris.length == _unitUnitUris.length);
+      int id = _unitUnitUris.length;
+      _unitLibraryUris.add(_getUriId(unitElement.library.source.uri));
+      _unitUnitUris.add(_getUriId(unitElement.source.uri));
       return id;
     });
   }
@@ -572,11 +572,11 @@ class _RelationInfo {
  */
 class _UnitIndexAssembler {
   final PackageIndexAssembler pkg;
-  final CompilationUnitElement unitElement;
+  final int unitId;
   final List<_DefinedNameInfo> definedNames = <_DefinedNameInfo>[];
   final List<_RelationInfo> relations = <_RelationInfo>[];
 
-  _UnitIndexAssembler(this.pkg, this.unitElement);
+  _UnitIndexAssembler(this.pkg, this.unitId);
 
   void addRelation(
       Element element, IndexRelationKind kind, int offset, int length) {
@@ -602,15 +602,14 @@ class _UnitIndexAssembler {
       return a.nameId - b.nameId;
     });
     return new UnitIndexBuilder(
+        unit: unitId,
         definedNames: definedNames.map((n) => n.nameId).toList(),
         definedNameKinds: definedNames.map((n) => n.kind).toList(),
         definedNameOffsets: definedNames.map((n) => n.offset).toList(),
-        elements: relations.map((r) => r.elementInfo.id).toList(),
-        kinds: relations.map((r) => r.kind).toList(),
-        locationOffsets: relations.map((r) => r.offset).toList(),
-        locationLengths: relations.map((r) => r.length).toList(),
-        libraryUri: pkg._getUriId(unitElement.library.source.uri),
-        unitUri: pkg._getUriId(unitElement.source.uri));
+        usedElements: relations.map((r) => r.elementInfo.id).toList(),
+        usedElementKinds: relations.map((r) => r.kind).toList(),
+        usedElementOffsets: relations.map((r) => r.offset).toList(),
+        usedElementLengths: relations.map((r) => r.length).toList());
   }
 
   void defineName(String name, IndexNameKind kind, int offset) {

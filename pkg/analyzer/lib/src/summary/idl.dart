@@ -518,13 +518,6 @@ abstract class PackageIndex extends base.SummaryClass {
   List<IndexSyntheticElementKind> get elementKinds;
 
   /**
-   * Each item of this list corresponds to a unique library URI with an element
-   * referenced in the [PackageIndex].  It is an index into [uris] list.
-   */
-  @Id(2)
-  List<int> get elementLibraryUris;
-
-  /**
    * Each item of this list corresponds to a unique referenced element.  It is
    * the offset of the element name relative to the beginning of the file.  The
    * list is sorted in ascending order, so that the client can quickly check
@@ -535,18 +528,11 @@ abstract class PackageIndex extends base.SummaryClass {
 
   /**
    * Each item of this list corresponds to a unique referenced element.  It is
-   * the index into [elementLibraryUris] and [elementUnitUris] for the library
+   * the index into [unitLibraryUris] and [unitUnitUris] for the library
    * specific unit where the element is declared.
    */
   @Id(0)
   List<int> get elementUnits;
-
-  /**
-   * Each item of this list corresponds to a unique unit URI with an element
-   * referenced in the [PackageIndex].  It is an index into [uris] list.
-   */
-  @Id(3)
-  List<int> get elementUnitUris;
 
   /**
    * List of unique element strings used in this [PackageIndex].
@@ -555,10 +541,24 @@ abstract class PackageIndex extends base.SummaryClass {
   List<String> get strings;
 
   /**
-   * List of units indexed in this [PackageIndex].
+   * Each item of this list corresponds to the library URI of a unique library
+   * specific unit referenced in the [PackageIndex].
+   */
+  @Id(2)
+  List<int> get unitLibraryUris;
+
+  /**
+   * List of indexes of each unit in this [PackageIndex].
    */
   @Id(4)
   List<UnitIndex> get units;
+
+  /**
+   * Each item of this list corresponds to the unit URI of a unique library
+   * specific unit referenced in the [PackageIndex].
+   */
+  @Id(3)
+  List<int> get unitUnitUris;
 }
 
 /**
@@ -636,14 +636,14 @@ abstract class UnitIndex extends base.SummaryClass {
   /**
    * Each item of this list is the kind of an element defined in this unit.
    */
-  @Id(7)
+  @Id(6)
   List<IndexNameKind> get definedNameKinds;
 
   /**
    * Each item of this list is the name offset of an element defined in this
    * unit relative to the beginning of the file.
    */
-  @Id(8)
+  @Id(7)
   List<int> get definedNameOffsets;
 
   /**
@@ -652,49 +652,42 @@ abstract class UnitIndex extends base.SummaryClass {
    * ascending order, so that the client can quickly find name definitions in
    * this [UnitIndex].
    */
-  @Id(6)
+  @Id(5)
   List<int> get definedNames;
+
+  /**
+   * Index into [PackageIndex.unitLibraryUris] and [PackageIndex.unitUnitUris]
+   * for the library specific unit that corresponds to this [UnitIndex].
+   */
+  @Id(0)
+  int get unit;
+
+  /**
+   * Each item of this list is the kind of the element usage.
+   */
+  @Id(4)
+  List<IndexRelationKind> get usedElementKinds;
+
+  /**
+   * Each item of this list is the length of the element usage.
+   */
+  @Id(1)
+  List<int> get usedElementLengths;
+
+  /**
+   * Each item of this list is the offset of the element usage relative to the
+   * beginning of the file.
+   */
+  @Id(2)
+  List<int> get usedElementOffsets;
 
   /**
    * Each item of this list is the index into [PackageIndex.elementUnits] and
    * [PackageIndex.elementOffsets].  The list is sorted in ascending order, so
    * that the client can quickly find element references in this [UnitIndex].
    */
-  @Id(4)
-  List<int> get elements;
-
-  /**
-   * Each item of this list is the kind of the element usage.
-   */
-  @Id(5)
-  List<IndexRelationKind> get kinds;
-
-  /**
-   * The library source URI of this unit, e.g. `dart:core` or
-   * `package:foo/bar.dart`, as index into [PackageIndex.uris].
-   */
-  @Id(0)
-  int get libraryUri;
-
-  /**
-   * Each item of this list is the length of the element usage.
-   */
-  @Id(2)
-  List<int> get locationLengths;
-
-  /**
-   * Each item of this list is the offset of the element usage relative to the
-   * beginning of the file.
-   */
   @Id(3)
-  List<int> get locationOffsets;
-
-  /**
-   * The unit source URI of this unit, e.g. `dart:core/int.dart` or
-   * `package:foo/bar/baz.dart`, as index into [PackageIndex.uris].
-   */
-  @Id(1)
-  int get unitUri;
+  List<int> get usedElements;
 }
 
 /**
