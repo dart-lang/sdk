@@ -1522,8 +1522,38 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     }
     switch (node.selector.name) {
       case 'length':
-        if (!node.selector.isGetter) return null;
-        return new GetLength(receiver);
+        if (node.selector.isGetter) {
+          return new GetLength(receiver);
+        }
+        if (node.selector.isSetter) {
+          if (!typeSystem.isDefinitelyExtendableArray(receiver.type,
+                allowNull: true)) {
+            return null;
+          }
+          CpsFragment cps = new CpsFragment(node.sourceInformation);
+          Primitive newLength = node.dartArgument(0);
+          if (!typeSystem.isDefinitelyUint(newLength.type)) {
+            // TODO(asgerf): We could let the SetLength instruction throw for
+            // negative right-hand sides (see length setter in js_array.dart).
+            if (compiler.trustPrimitives) {
+              newLength = cps.refine(newLength, typeSystem.uint32Type);
+              newLength.type = typeSystem.uint32Type;
+            } else {
+              return null;
+            }
+          }
+          cps.letPrim(new ApplyBuiltinMethod(
+              BuiltinMethod.SetLength,
+              receiver,
+              [newLength],
+              node.sourceInformation));
+          if (!typeSystem.isDefinitelyUint32(newLength.type)) {
+            // If the setter succeeded, the length must have been a uint32.
+            cps.refine(newLength, typeSystem.uint32Type);
+          }
+          return cps;
+        }
+        return null;
 
       case '[]':
         Primitive index = node.dartArgument(0);

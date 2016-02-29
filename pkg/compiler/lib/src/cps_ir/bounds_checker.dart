@@ -704,6 +704,10 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
         // after = before - 1
         makeExactSum(lengthAfter, lengthBefore, -1);
         break;
+
+      case BuiltinMethod.SetLength:
+        makeEqual(lengthAfter, getValue(node.arguments[0].definition));
+        break;
     }
   }
 

@@ -1211,20 +1211,20 @@ class CodeGenerator extends tree_ir.StatementVisitor
     return js.js('# >>> 0', [op]);
   }
 
-
-  /// The JS name of a built-in method.
-  static final Map<BuiltinMethod, String> builtinMethodName =
-    const <BuiltinMethod, String>{
-      BuiltinMethod.Push: 'push',
-      BuiltinMethod.Pop: 'pop',
-  };
-
   @override
   js.Expression visitApplyBuiltinMethod(tree_ir.ApplyBuiltinMethod node) {
-    String name = builtinMethodName[node.method];
     js.Expression receiver = visitExpression(node.receiver);
     List<js.Expression> args = visitExpressionList(node.arguments);
-    return js.js('#.#(#)', [receiver, name, args]);
+    switch (node.method) {
+      case BuiltinMethod.Push:
+        return js.js('#.push(#)', [receiver, args]);
+
+      case BuiltinMethod.Pop:
+        return js.js('#.pop()', [receiver]);
+
+      case BuiltinMethod.SetLength:
+        return js.js('#.length = #', [receiver, args[0]]);
+    }
   }
 
   @override
