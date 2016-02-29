@@ -404,6 +404,8 @@ class ObjectPointerVisitor;
   V(ConstructorClosurePrefix, "new#")                                          \
   V(_runExtension, "_runExtension")                                            \
   V(_runPendingImmediateCallback, "_runPendingImmediateCallback")              \
+  V(DartLibrary, "dart.library.")                                              \
+  V(DartLibraryMirrors, "dart.library.mirrors")                                \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This

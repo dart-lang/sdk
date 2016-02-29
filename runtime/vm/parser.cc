@@ -5796,7 +5796,7 @@ void Parser::ParseLibraryImportExport(const Object& tl_owner,
           : String::Cast(valueNode->AsLiteralNode()->literal());
       // Call the embedder to supply us with the environment.
       const String& env_value =
-          String::Handle(Api::CallEnvironmentCallback(T, key));
+          String::Handle(Api::GetEnvironmentValue(T, key));
       if (!env_value.IsNull() && env_value.Equals(value)) {
         condition_triggered = true;
         url_literal = conditional_url_literal;

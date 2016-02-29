@@ -4964,6 +4964,44 @@ DART_EXPORT void Dart_SetWeakHandleReturnValue(Dart_NativeArguments args,
 
 
 // --- Environment ---
+RawString* Api::GetEnvironmentValue(Thread* thread, const String& name) {
+  String& result = String::Handle(CallEnvironmentCallback(thread, name));
+  if (result.IsNull()) {
+    // Every 'dart:X' library introduces an environment variable
+    // 'dart.library.X' that is set to 'true'.
+    // We just need to make sure to hide private libraries (starting with
+    // "_", and the mirrors library, if it is not supported.
+
+    if (!FLAG_enable_mirrors && name.Equals(Symbols::DartLibraryMirrors())) {
+      return Symbols::False().raw();
+    }
+
+    const String& prefix = Symbols::DartLibrary();
+    if (name.StartsWith(prefix)) {
+      const String& library_name =
+          String::Handle(String::SubString(name, prefix.Length()));
+
+      // Private libraries (starting with "_") are not exposed to the user.
+      if (!library_name.IsNull() && library_name.CharAt(0) != '_') {
+        const String& dart_library_name =
+            String::Handle(String::Concat(Symbols::DartScheme(), library_name));
+        const Library& library =
+            Library::Handle(Library::LookupLibrary(dart_library_name));
+        if (!library.IsNull()) {
+          return Symbols::True().raw();
+        }
+      }
+    }
+    // Check for default VM provided values. If it was not overriden on the
+    // command line.
+    if (Symbols::DartIsVM().Equals(name)) {
+      return Symbols::True().raw();
+    }
+  }
+  return result.raw();
+}
+
+
 RawString* Api::CallEnvironmentCallback(Thread* thread, const String& name) {
   Isolate* isolate = thread->isolate();
   Dart_EnvironmentCallback callback = isolate->environment_callback();
@@ -4983,15 +5021,6 @@ RawString* Api::CallEnvironmentCallback(Thread* thread, const String& name) {
       // At this point everything except null are invalid environment values.
       Exceptions::ThrowArgumentError(
           String::Handle(String::New("Illegal environment value")));
-    }
-  }
-  if (result.IsNull()) {
-    // TODO(iposva): Determine whether builtin values can be overriden by the
-    // embedder.
-    // Check for default VM provided values. If it was not overriden on the
-    // command line.
-    if (Symbols::DartIsVM().Equals(name)) {
-      return Symbols::True().raw();
     }
   }
   return result.raw();
