@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -94,6 +95,9 @@ class PackageIndexAssembler {
    * [_ElementInfo.id] is filled by [assemble] during final sorting.
    */
   _ElementInfo _getElementInfo(Element element) {
+    if (element is Member) {
+      element = (element as Member).baseElement;
+    }
     return _elementMap.putIfAbsent(element, () {
       CompilationUnitElement unitElement = getUnitElement(element);
       int unitId = _getUnitId(unitElement);
