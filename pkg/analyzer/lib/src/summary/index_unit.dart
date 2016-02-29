@@ -384,14 +384,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   visitConstructorName(ConstructorName node) {
     ConstructorElement element = node.staticElement;
-    // in 'class B = A;' actually A constructors are invoked
-    // TODO(scheglov) add support for multiple levels of redirection
-    // TODO(scheglov) test for a loop of redirection
-    if (element != null &&
-        element.isSynthetic &&
-        element.redirectedConstructor != null) {
-      element = element.redirectedConstructor;
-    }
+    element = _getActualConstructorElement(element);
     // record relation
     if (node.name != null) {
       int offset = node.period.offset;
@@ -552,6 +545,26 @@ class _IndexContributor extends GeneralizingAstVisitor {
     for (TypeName typeName in node.mixinTypes) {
       recordSuperType(typeName, IndexRelationKind.IS_MIXED_IN_BY);
     }
+  }
+
+  /**
+   * If the given [constructor] is a synthetic constructor created for a
+   * [ClassTypeAlias], return the actual constructor of a [ClassDeclaration]
+   * which is invoked.  Return `null` if a redirection cycle is detected.
+   */
+  ConstructorElement _getActualConstructorElement(
+      ConstructorElement constructor) {
+    Set<ConstructorElement> seenConstructors = new Set<ConstructorElement>();
+    while (constructor != null &&
+        constructor.isSynthetic &&
+        constructor.redirectedConstructor != null) {
+      constructor = constructor.redirectedConstructor;
+      // fail if a cycle is detected
+      if (!seenConstructors.add(constructor)) {
+        return null;
+      }
+    }
+    return constructor;
   }
 }
 

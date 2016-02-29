@@ -437,16 +437,36 @@ class A implements B {
   A.named() {}
 }
 class B = A with M;
+class C = B with M;
 main() {
-  new B(); // 1
-  new B.named(); // 2
+  new B(); // B1
+  new B.named(); // B2
+  new C(); // C1
+  new C.named(); // C2
 }
 ''');
     ClassElement classA = findElement('A');
     ConstructorElement constA = classA.constructors[0];
     ConstructorElement constA_named = classA.constructors[1];
-    assertThat(constA).isReferencedAt('(); // 1', length: 0);
-    assertThat(constA_named).isReferencedAt('.named(); // 2', length: 6);
+    assertThat(constA)
+      ..isReferencedAt('(); // B1', length: 0)
+      ..isReferencedAt('(); // C1', length: 0);
+    assertThat(constA_named)
+      ..isReferencedAt('.named(); // B2', length: 6)
+      ..isReferencedAt('.named(); // C2', length: 6);
+  }
+
+  void test_isReferencedBy_ConstructorElement_classTypeAlias_cycle() {
+    _indexTestUnit('''
+class M {}
+class A = B with M;
+class B = A with M;
+main() {
+  new A();
+  new B();
+}
+''');
+    // No additional validation, but it should not fail with stack overflow.
   }
 
   void test_isReferencedBy_ConstructorElement_redirection() {
