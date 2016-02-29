@@ -14,6 +14,7 @@ import '../types/types.dart';
 import '../world.dart';
 import '../elements/elements.dart';
 import 'loop_effects.dart';
+import 'effects.dart';
 
 /// Eliminates bounds checks when they can be proven safe.
 ///
@@ -548,7 +549,7 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
         }
       }
     }
-    if (loopEffects.loopChangesLength(cont)) {
+    if (loopEffects.changesIndexableLength(cont)) {
       currentEffectNumber = effectNumberAt[cont] = makeNewEffect();
     }
     push(cont);
@@ -613,6 +614,18 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
   // ---------------- PRIMITIVES --------------------
 
   @override
+  Expression traverseLetPrim(LetPrim node) {
+    visit(node.primitive);
+    // visitApplyBuiltinMethod updates the effect number.
+    if (node.primitive is! ApplyBuiltinMethod) {
+      if (node.primitive.effects & Effects.changesIndexableLength != 0) {
+        currentEffectNumber = makeNewEffect();
+      }
+    }
+    return node.body;
+  }
+
+  @override
   void visitInvokeMethod(InvokeMethod node) {
     if (node.selector.isGetter && node.selector.name == 'length') {
       // If the receiver type is not known to be indexable, the length call
@@ -624,65 +637,6 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
         valueOf[node] = getLength(node.dartReceiver, currentEffectNumber);
       }
     }
-    // TODO(asgerf): What we really need is a "changes length" side effect flag.
-    if (world
-        .getSideEffectsOfSelector(node.selector, node.mask)
-        .changesIndex()) {
-      currentEffectNumber = makeNewEffect();
-    }
-  }
-
-  @override
-  void visitInvokeStatic(InvokeStatic node) {
-    if (world.getSideEffectsOfElement(node.target).changesIndex()) {
-      currentEffectNumber = makeNewEffect();
-    }
-  }
-
-  @override
-  void visitInvokeMethodDirectly(InvokeMethodDirectly node) {
-    FunctionElement target = node.target;
-    if (target is ConstructorBodyElement) {
-      ConstructorBodyElement body = target;
-      target = body.constructor;
-    }
-    if (world.getSideEffectsOfElement(target).changesIndex()) {
-      currentEffectNumber = makeNewEffect();
-    }
-  }
-
-  @override
-  void visitInvokeConstructor(InvokeConstructor node) {
-    if (world.getSideEffectsOfElement(node.target).changesIndex()) {
-      currentEffectNumber = makeNewEffect();
-    }
-  }
-
-  @override
-  void visitTypeCast(TypeCast node) {
-  }
-
-  @override
-  void visitGetLazyStatic(GetLazyStatic node) {
-    // TODO(asgerf): How do we get the side effects of a lazy field initializer?
-    currentEffectNumber = makeNewEffect();
-  }
-
-  @override
-  void visitForeignCode(ForeignCode node) {
-    if (node.nativeBehavior.sideEffects.changesIndex()) {
-      currentEffectNumber = makeNewEffect();
-    }
-  }
-
-  @override
-  void visitAwait(Await node) {
-    currentEffectNumber = makeNewEffect();
-  }
-
-  @override
-  void visitYield(Yield node) {
-    currentEffectNumber = makeNewEffect();
   }
 
   @override
