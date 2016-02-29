@@ -571,6 +571,23 @@ void Precompiler::AddTypesOf(const Function& function) {
     type = function.ParameterTypeAt(i);
     AddType(type);
   }
+  Code& code = Code::Handle(Z, function.CurrentCode());
+  if (code.IsNull()) {
+    ASSERT(function.kind() == RawFunction::kSignatureFunction);
+  } else {
+    const ExceptionHandlers& handlers =
+        ExceptionHandlers::Handle(Z, code.exception_handlers());
+    if (!handlers.IsNull()) {
+      Array& types = Array::Handle(Z);
+      for (intptr_t i = 0; i < handlers.num_entries(); i++) {
+        types = handlers.GetHandledTypes(i);
+        for (intptr_t j = 0; j < types.Length(); j++) {
+          type ^= types.At(j);
+          AddType(type);
+        }
+      }
+    }
+  }
 }
 
 
