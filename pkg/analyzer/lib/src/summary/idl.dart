@@ -542,7 +542,8 @@ abstract class PackageIndex extends base.SummaryClass {
 
   /**
    * Each item of this list corresponds to the library URI of a unique library
-   * specific unit referenced in the [PackageIndex].
+   * specific unit referenced in the [PackageIndex].  It is an index into
+   * [strings] list.
    */
   @Id(2)
   List<int> get unitLibraryUris;
@@ -555,7 +556,8 @@ abstract class PackageIndex extends base.SummaryClass {
 
   /**
    * Each item of this list corresponds to the unit URI of a unique library
-   * specific unit referenced in the [PackageIndex].
+   * specific unit referenced in the [PackageIndex].  It is an index into
+   * [strings] list.
    */
   @Id(3)
   List<int> get unitUnitUris;
@@ -688,6 +690,27 @@ abstract class UnitIndex extends base.SummaryClass {
    */
   @Id(3)
   List<int> get usedElements;
+
+  /**
+   * Each item of this list is the kind of the name usage.
+   */
+  @Id(10)
+  List<IndexRelationKind> get usedNameKinds;
+
+  /**
+   * Each item of this list is the offset of the name usage relative to the
+   * beginning of the file.
+   */
+  @Id(9)
+  List<int> get usedNameOffsets;
+
+  /**
+   * Each item of this list is the index into [PackageIndex.strings] for a
+   * used name.  The list is sorted in ascending order, so that the client can
+   * quickly find name uses in this [UnitIndex].
+   */
+  @Id(8)
+  List<int> get usedNames;
 }
 
 /**

@@ -45,6 +45,10 @@ class PackageIndexAssemblerTest extends AbstractSingleUnitTest {
     return new _ElementIndexAssert(this, element);
   }
 
+  _NameIndexAssert assertThatName(String name) {
+    return new _NameIndexAssert(this, name);
+  }
+
   CompilationUnitElement importedUnit({int index: 0}) {
     List<ImportElement> imports = testLibraryElement.imports;
     return imports[index].importedLibrary.definingCompilationUnit;
@@ -603,6 +607,50 @@ A myVariable = null;
     assertThat(element).isReferencedAt('A myVariable');
   }
 
+  void test_usedName_isInvokedBy() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+class A {
+  Function x;
+
+  m() {
+    x(); // 1
+    this.x(); // 2
+    y(); // 3
+    this.y(); // 4
+  }
+}
+''');
+    assertThatName('x')
+      ..isInvokedAt('x(); // 1', isQualified: false)
+      ..isInvokedAt('x(); // 2');
+    assertThatName('y')
+      ..isInvokedAt('y(); // 3', isQualified: false, isResolved: false)
+      ..isInvokedAt('y(); // 4', isResolved: false);
+  }
+
+  void test_usedName_isReferencedBy() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+class A {
+  int x;
+
+  m() {
+    x; // 1
+    this.x; // 2
+    y; // 3
+    this.y; // 4
+  }
+}
+''');
+    assertThatName('x')
+      ..isReferencedAt('x; // 1', isQualified: false)
+      ..isReferencedAt('x; // 2');
+    assertThatName('y')
+      ..isReferencedAt('y; // 3', isQualified: false, isResolved: false)
+      ..isReferencedAt('y; // 4', isResolved: false);
+  }
+
   void _assertDefinedName(String name, IndexNameKind kind, String search) {
     int offset = findOffset(search);
     int nameId = _getStringId(name);
@@ -639,10 +687,25 @@ A myVariable = null;
     }
     if (matchIndex != null &&
         unitIndex.usedElementKinds[matchIndex] == expectedRelationKind) {
+      // TODO(scheglov) verify 'qualified' and 'resolved'
       return;
     }
     _failWithIndexDump(
         'not found\n$element $expectedRelationKind at $expectedLocation');
+  }
+
+  void _assertUsedName(
+      String name, IndexRelationKind kind, ExpectedLocation expectedLocation) {
+    int nameId = _getStringId(name);
+    for (int i = 0; i < unitIndex.usedNames.length; i++) {
+      if (unitIndex.usedNames[i] == nameId &&
+          unitIndex.usedNameKinds[i] == kind &&
+          unitIndex.usedNameOffsets[i] == expectedLocation.offset) {
+        // TODO(scheglov) verify 'qualified' and 'resolved'
+        return;
+      }
+    }
+    _failWithIndexDump('Not found $name $kind at $expectedLocation');
   }
 
   ExpectedLocation _expectedLocation(String search,
@@ -769,5 +832,30 @@ class _ElementIndexAssert {
         element,
         IndexRelationKind.IS_REFERENCED_QUALIFIED_BY,
         test._expectedLocation(search, length: length));
+  }
+}
+
+class _NameIndexAssert {
+  final PackageIndexAssemblerTest test;
+  final String name;
+
+  _NameIndexAssert(this.test, this.name);
+
+  void isInvokedAt(String search,
+      {int length, bool isQualified: true, bool isResolved: true}) {
+    test._assertUsedName(
+        name,
+        IndexRelationKind.IS_INVOKED_BY,
+        test._expectedLocation(search,
+            length: length, isQualified: isQualified, isResolved: isResolved));
+  }
+
+  void isReferencedAt(String search,
+      {int length, bool isQualified: true, bool isResolved: true}) {
+    test._assertUsedName(
+        name,
+        IndexRelationKind.IS_REFERENCED_BY,
+        test._expectedLocation(search,
+            length: length, isQualified: isQualified, isResolved: isResolved));
   }
 }

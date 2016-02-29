@@ -1509,7 +1509,8 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
 
   /**
    * Each item of this list corresponds to the library URI of a unique library
-   * specific unit referenced in the [PackageIndex].
+   * specific unit referenced in the [PackageIndex].  It is an index into
+   * [strings] list.
    */
   void set unitLibraryUris(List<int> _value) {
     assert(!_finished);
@@ -1533,7 +1534,8 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
 
   /**
    * Each item of this list corresponds to the unit URI of a unique library
-   * specific unit referenced in the [PackageIndex].
+   * specific unit referenced in the [PackageIndex].  It is an index into
+   * [strings] list.
    */
   void set unitUnitUris(List<int> _value) {
     assert(!_finished);
@@ -1720,6 +1722,9 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
   List<int> _usedElementLengths;
   List<int> _usedElementOffsets;
   List<int> _usedElements;
+  List<idl.IndexRelationKind> _usedNameKinds;
+  List<int> _usedNameOffsets;
+  List<int> _usedNames;
 
   @override
   List<idl.IndexNameKind> get definedNameKinds => _definedNameKinds ??= <idl.IndexNameKind>[];
@@ -1823,7 +1828,45 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
     _usedElements = _value;
   }
 
-  UnitIndexBuilder({List<idl.IndexNameKind> definedNameKinds, List<int> definedNameOffsets, List<int> definedNames, int unit, List<idl.IndexRelationKind> usedElementKinds, List<int> usedElementLengths, List<int> usedElementOffsets, List<int> usedElements})
+  @override
+  List<idl.IndexRelationKind> get usedNameKinds => _usedNameKinds ??= <idl.IndexRelationKind>[];
+
+  /**
+   * Each item of this list is the kind of the name usage.
+   */
+  void set usedNameKinds(List<idl.IndexRelationKind> _value) {
+    assert(!_finished);
+    _usedNameKinds = _value;
+  }
+
+  @override
+  List<int> get usedNameOffsets => _usedNameOffsets ??= <int>[];
+
+  /**
+   * Each item of this list is the offset of the name usage relative to the
+   * beginning of the file.
+   */
+  void set usedNameOffsets(List<int> _value) {
+    assert(!_finished);
+    assert(_value == null || _value.every((e) => e >= 0));
+    _usedNameOffsets = _value;
+  }
+
+  @override
+  List<int> get usedNames => _usedNames ??= <int>[];
+
+  /**
+   * Each item of this list is the index into [PackageIndex.strings] for a
+   * used name.  The list is sorted in ascending order, so that the client can
+   * quickly find name uses in this [UnitIndex].
+   */
+  void set usedNames(List<int> _value) {
+    assert(!_finished);
+    assert(_value == null || _value.every((e) => e >= 0));
+    _usedNames = _value;
+  }
+
+  UnitIndexBuilder({List<idl.IndexNameKind> definedNameKinds, List<int> definedNameOffsets, List<int> definedNames, int unit, List<idl.IndexRelationKind> usedElementKinds, List<int> usedElementLengths, List<int> usedElementOffsets, List<int> usedElements, List<idl.IndexRelationKind> usedNameKinds, List<int> usedNameOffsets, List<int> usedNames})
     : _definedNameKinds = definedNameKinds,
       _definedNameOffsets = definedNameOffsets,
       _definedNames = definedNames,
@@ -1831,7 +1874,10 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
       _usedElementKinds = usedElementKinds,
       _usedElementLengths = usedElementLengths,
       _usedElementOffsets = usedElementOffsets,
-      _usedElements = usedElements;
+      _usedElements = usedElements,
+      _usedNameKinds = usedNameKinds,
+      _usedNameOffsets = usedNameOffsets,
+      _usedNames = usedNames;
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -1843,6 +1889,9 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
     fb.Offset offset_usedElementLengths;
     fb.Offset offset_usedElementOffsets;
     fb.Offset offset_usedElements;
+    fb.Offset offset_usedNameKinds;
+    fb.Offset offset_usedNameOffsets;
+    fb.Offset offset_usedNames;
     if (!(_definedNameKinds == null || _definedNameKinds.isEmpty)) {
       offset_definedNameKinds = fbBuilder.writeListUint8(_definedNameKinds.map((b) => b.index).toList());
     }
@@ -1863,6 +1912,15 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
     }
     if (!(_usedElements == null || _usedElements.isEmpty)) {
       offset_usedElements = fbBuilder.writeListUint32(_usedElements);
+    }
+    if (!(_usedNameKinds == null || _usedNameKinds.isEmpty)) {
+      offset_usedNameKinds = fbBuilder.writeListUint8(_usedNameKinds.map((b) => b.index).toList());
+    }
+    if (!(_usedNameOffsets == null || _usedNameOffsets.isEmpty)) {
+      offset_usedNameOffsets = fbBuilder.writeListUint32(_usedNameOffsets);
+    }
+    if (!(_usedNames == null || _usedNames.isEmpty)) {
+      offset_usedNames = fbBuilder.writeListUint32(_usedNames);
     }
     fbBuilder.startTable();
     if (offset_definedNameKinds != null) {
@@ -1889,6 +1947,15 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
     if (offset_usedElements != null) {
       fbBuilder.addOffset(3, offset_usedElements);
     }
+    if (offset_usedNameKinds != null) {
+      fbBuilder.addOffset(10, offset_usedNameKinds);
+    }
+    if (offset_usedNameOffsets != null) {
+      fbBuilder.addOffset(9, offset_usedNameOffsets);
+    }
+    if (offset_usedNames != null) {
+      fbBuilder.addOffset(8, offset_usedNames);
+    }
     return fbBuilder.endTable();
   }
 }
@@ -1913,6 +1980,9 @@ class _UnitIndexImpl extends Object with _UnitIndexMixin implements idl.UnitInde
   List<int> _usedElementLengths;
   List<int> _usedElementOffsets;
   List<int> _usedElements;
+  List<idl.IndexRelationKind> _usedNameKinds;
+  List<int> _usedNameOffsets;
+  List<int> _usedNames;
 
   @override
   List<idl.IndexNameKind> get definedNameKinds {
@@ -1961,6 +2031,24 @@ class _UnitIndexImpl extends Object with _UnitIndexMixin implements idl.UnitInde
     _usedElements ??= const fb.Uint32ListReader().vTableGet(_bp, 3, const <int>[]);
     return _usedElements;
   }
+
+  @override
+  List<idl.IndexRelationKind> get usedNameKinds {
+    _usedNameKinds ??= const fb.ListReader<idl.IndexRelationKind>(const _IndexRelationKindReader()).vTableGet(_bp, 10, const <idl.IndexRelationKind>[]);
+    return _usedNameKinds;
+  }
+
+  @override
+  List<int> get usedNameOffsets {
+    _usedNameOffsets ??= const fb.Uint32ListReader().vTableGet(_bp, 9, const <int>[]);
+    return _usedNameOffsets;
+  }
+
+  @override
+  List<int> get usedNames {
+    _usedNames ??= const fb.Uint32ListReader().vTableGet(_bp, 8, const <int>[]);
+    return _usedNames;
+  }
 }
 
 abstract class _UnitIndexMixin implements idl.UnitIndex {
@@ -1975,6 +2063,9 @@ abstract class _UnitIndexMixin implements idl.UnitIndex {
     if (usedElementLengths.isNotEmpty) _result["usedElementLengths"] = usedElementLengths;
     if (usedElementOffsets.isNotEmpty) _result["usedElementOffsets"] = usedElementOffsets;
     if (usedElements.isNotEmpty) _result["usedElements"] = usedElements;
+    if (usedNameKinds.isNotEmpty) _result["usedNameKinds"] = usedNameKinds.map((_value) => _value.toString().split('.')[1]).toList();
+    if (usedNameOffsets.isNotEmpty) _result["usedNameOffsets"] = usedNameOffsets;
+    if (usedNames.isNotEmpty) _result["usedNames"] = usedNames;
     return _result;
   }
 
@@ -1988,6 +2079,9 @@ abstract class _UnitIndexMixin implements idl.UnitIndex {
     "usedElementLengths": usedElementLengths,
     "usedElementOffsets": usedElementOffsets,
     "usedElements": usedElements,
+    "usedNameKinds": usedNameKinds,
+    "usedNameOffsets": usedNameOffsets,
+    "usedNames": usedNames,
   };
 
   @override

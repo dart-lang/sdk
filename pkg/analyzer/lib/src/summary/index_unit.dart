@@ -185,8 +185,19 @@ class PackageIndexAssembler {
  * context of the compilation unit pointed to by the [_UnitIndexAssembler].
  */
 class _DefinedNameInfo {
+  /**
+   * The identifier of the name returned [PackageIndexAssembler._getStringId].
+   */
   final int nameId;
+
+  /**
+   * The coarse-grained kind of the defined name.
+   */
   final IndexNameKind kind;
+
+  /**
+   * The name offset of the defined element.
+   */
   final int offset;
 
   _DefinedNameInfo(this.nameId, this.kind, this.offset);
@@ -226,6 +237,21 @@ class _ElementInfo {
 }
 
 /**
+ * Information about a single relation.  Any [_ElementRelationInfo] is always
+ * part of a [_UnitIndexAssembler], so [offset] and [length] should be
+ * understood within the context of the compilation unit pointed to by the
+ * [_UnitIndexAssembler].
+ */
+class _ElementRelationInfo {
+  final _ElementInfo elementInfo;
+  final IndexRelationKind kind;
+  final int offset;
+  final int length;
+
+  _ElementRelationInfo(this.elementInfo, this.kind, this.offset, this.length);
+}
+
+/**
  * Visits a resolved AST and adds relationships into [_UnitIndexAssembler].
  */
 class _IndexContributor extends GeneralizingAstVisitor {
@@ -250,34 +276,19 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   /**
-   * Record reference to the given operator [Element] and name.
+   * Record that the name [node] has a relation of the given [kind].
+   */
+  void recordNameRelation(SimpleIdentifier node, IndexRelationKind kind) {
+    if (node != null) {
+      assembler.addNameRelation(node.name, kind, node.offset, node.length);
+    }
+  }
+
+  /**
+   * Record reference to the given operator [Element].
    */
   void recordOperatorReference(Token operator, Element element) {
     recordRelationToken(element, IndexRelationKind.IS_INVOKED_BY, operator);
-    // TODO(scheglov) do we need this?
-//    // prepare location
-//    LocationImpl location = _createLocationForToken(operator, element != null);
-//    // record name reference
-//    {
-//      String name = operator.lexeme;
-//      if (name == "++") {
-//        name = "+";
-//      }
-//      if (name == "--") {
-//        name = "-";
-//      }
-//      if (StringUtilities.endsWithChar(name, 0x3D) && name != "==") {
-//        name = name.substring(0, name.length - 1);
-//      }
-//      IndexableName indexableName = new IndexableName(name);
-//      recordRelationshipIndexable(
-//          indexableName, IndexConstants.IS_INVOKED_BY, location);
-//    }
-//    // record element reference
-//    if (element != null) {
-//      recordRelationshipElement(
-//          element, IndexConstants.IS_INVOKED_BY, location);
-//    }
   }
 
   /**
@@ -309,7 +320,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       return;
     }
     // Add the relation.
-    assembler.addRelation(element, kind, offset, length);
+    assembler.addElementRelation(element, kind, offset, length);
   }
 
   /**
@@ -434,11 +445,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier name = node.methodName;
-    // TODO(scheglov) do we need this?
-//    LocationImpl location = _createLocationForNode(name);
-//    // name invocation
-//    recordRelationshipIndexable(
-//        new IndexableName(name.name), IndexConstants.IS_INVOKED_BY, location);
+    // record name invocation
+    recordNameRelation(name, IndexRelationKind.IS_INVOKED_BY);
     // element invocation
     Element element = name.bestElement;
     if (element is MethodElement ||
@@ -494,17 +502,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
     Element element = node.bestElement;
-    // TODO(scheglov) do we need this?
-//    IndexableName indexableName = new IndexableName(node.name);
-//    LocationImpl location = _createLocationForNode(node);
-//    if (location == null) {
-//      return;
-//    }
     // name in declaration
     if (node.inDeclarationContext()) {
       recordDefinedElement(element);
       return;
     }
+    // record name reference
+    recordNameRelation(node, IndexRelationKind.IS_REFERENCED_BY);
     // this.field parameter
     if (element is FieldFormalParameterElement) {
       recordRelation(element.field, IndexRelationKind.IS_REFERENCED_BY, node);
@@ -552,57 +556,75 @@ class _IndexContributor extends GeneralizingAstVisitor {
 }
 
 /**
- * Information about a single relation.  Any [_RelationInfo] is always part
- * of a [_UnitIndexAssembler], so [offset] and [length] should be understood
- * within the context of the compilation unit pointed to by the
+ * Information about a single name relation.  Any [_NameRelationInfo] is always
+ * part of a [_UnitIndexAssembler], so [offset] and [length] should be
+ * understood within the context of the compilation unit pointed to by the
  * [_UnitIndexAssembler].
  */
-class _RelationInfo {
-  final _ElementInfo elementInfo;
+class _NameRelationInfo {
+  /**
+   * The identifier of the name returned [PackageIndexAssembler._getStringId].
+   */
+  final int nameId;
   final IndexRelationKind kind;
   final int offset;
   final int length;
 
-  _RelationInfo(this.elementInfo, this.kind, this.offset, this.length);
+  _NameRelationInfo(this.nameId, this.kind, this.offset, this.length);
 }
 
 /**
  * Assembler of a single [CompilationUnit] index.  The intended usage sequence:
  *
- *  - Call [defineName] for name defined in the compilation unit.
- *  - Call [addRelation] for each relation found in the compilation unit.
- *  - Assign ids to all the [_ElementInfo] objects reachable from [relations].
+ *  - Call [defineName] for each name defined in the compilation unit.
+ *  - Call [addElementRelation] for each element relation found in the
+ *    compilation unit.
+ *  - Call [addNameRelation] for each name relation found in the
+ *    compilation unit.
+ *  - Assign ids to all the [_ElementInfo] objects reachable from
+ *    [elementRelations].
  *  - Call [assemble] to produce the final unit index.
  */
 class _UnitIndexAssembler {
   final PackageIndexAssembler pkg;
   final int unitId;
   final List<_DefinedNameInfo> definedNames = <_DefinedNameInfo>[];
-  final List<_RelationInfo> relations = <_RelationInfo>[];
+  final List<_ElementRelationInfo> elementRelations = <_ElementRelationInfo>[];
+  final List<_NameRelationInfo> nameRelations = <_NameRelationInfo>[];
 
   _UnitIndexAssembler(this.pkg, this.unitId);
 
-  void addRelation(
+  void addElementRelation(
       Element element, IndexRelationKind kind, int offset, int length) {
     try {
       _ElementInfo elementInfo = pkg._getElementInfo(element);
-      relations.add(new _RelationInfo(elementInfo, kind, offset, length));
+      elementRelations
+          .add(new _ElementRelationInfo(elementInfo, kind, offset, length));
     } on StateError {}
+  }
+
+  void addNameRelation(
+      String name, IndexRelationKind kind, int offset, int length) {
+    int nameId = pkg._getStringId(name);
+    nameRelations.add(new _NameRelationInfo(nameId, kind, offset, length));
   }
 
   /**
    * Assemble a new [UnitIndexBuilder] using the information gathered
-   * by [addRelation] and [defineName].
+   * by [addElementRelation] and [defineName].
    */
   UnitIndexBuilder assemble() {
-    relations.sort((a, b) {
+    definedNames.sort((a, b) {
+      return a.nameId - b.nameId;
+    });
+    elementRelations.sort((a, b) {
       if (a.elementInfo.id == null) {
         throw new StateError('No id for ${a.elementInfo.element}, '
             'location= ${a.elementInfo.element?.location}');
       }
       return a.elementInfo.id - b.elementInfo.id;
     });
-    definedNames.sort((a, b) {
+    nameRelations.sort((a, b) {
       return a.nameId - b.nameId;
     });
     return new UnitIndexBuilder(
@@ -610,10 +632,13 @@ class _UnitIndexAssembler {
         definedNames: definedNames.map((n) => n.nameId).toList(),
         definedNameKinds: definedNames.map((n) => n.kind).toList(),
         definedNameOffsets: definedNames.map((n) => n.offset).toList(),
-        usedElements: relations.map((r) => r.elementInfo.id).toList(),
-        usedElementKinds: relations.map((r) => r.kind).toList(),
-        usedElementOffsets: relations.map((r) => r.offset).toList(),
-        usedElementLengths: relations.map((r) => r.length).toList());
+        usedElements: elementRelations.map((r) => r.elementInfo.id).toList(),
+        usedElementKinds: elementRelations.map((r) => r.kind).toList(),
+        usedElementOffsets: elementRelations.map((r) => r.offset).toList(),
+        usedElementLengths: elementRelations.map((r) => r.length).toList(),
+        usedNames: nameRelations.map((r) => r.nameId).toList(),
+        usedNameKinds: nameRelations.map((r) => r.kind).toList(),
+        usedNameOffsets: nameRelations.map((r) => r.offset).toList());
   }
 
   void defineName(String name, IndexNameKind kind, int offset) {
