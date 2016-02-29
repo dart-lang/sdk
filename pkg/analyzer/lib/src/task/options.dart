@@ -47,6 +47,8 @@ class AnalyzerOptions {
   static const String enableAsync = 'enableAsync';
   static const String enableGenericMethods = 'enableGenericMethods';
   static const String enableSuperMixins = 'enableSuperMixins';
+  static const String enableConditionalDirectives =
+      "enableConditionalDirectives";
   static const String errors = 'errors';
   static const String exclude = 'exclude';
   static const String language = 'language';
@@ -79,7 +81,8 @@ class AnalyzerOptions {
   static const List<String> languageOptions = const [
     enableAsync,
     enableGenericMethods,
-    enableSuperMixins
+    enableSuperMixins,
+    enableConditionalDirectives,
   ];
 }
 
@@ -487,6 +490,14 @@ class _OptionsProcessor {
         AnalysisOptionsImpl options =
             new AnalysisOptionsImpl.from(context.analysisOptions);
         options.enableGenericMethods = true;
+        context.analysisOptions = options;
+      }
+    }
+    if (feature == AnalyzerOptions.enableConditionalDirectives) {
+      if (isTrue(value)) {
+        AnalysisOptionsImpl options =
+            new AnalysisOptionsImpl.from(context.analysisOptions);
+        options.enableConditionalDirectives = true;
         context.analysisOptions = options;
       }
     }
