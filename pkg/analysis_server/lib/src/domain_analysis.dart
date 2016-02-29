@@ -110,7 +110,7 @@ class AnalysisDomainHandler implements RequestHandler {
   Response getLibraryDependencies(Request request) {
     server.onAnalysisComplete.then((_) {
       LibraryDependencyCollector collector =
-          new LibraryDependencyCollector(server.getAnalysisContexts());
+          new LibraryDependencyCollector(server.analysisContexts);
       Set<String> libraries = collector.collectLibraryDependencies();
       Map<String, Map<String, List<String>>> packageMap =
           collector.calculatePackageMap(server.folderMap);
@@ -378,7 +378,7 @@ class AnalysisDomainImpl implements AnalysisDomain {
         .putIfAbsent(descriptor,
             () => new StreamController<engine.ComputedResult>.broadcast())
         .stream;
-    server.getAnalysisContexts().forEach(_subscribeForContext);
+    server.analysisContexts.forEach(_subscribeForContext);
     return stream;
   }
 

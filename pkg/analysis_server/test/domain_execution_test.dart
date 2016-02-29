@@ -223,7 +223,7 @@ main() {
       when(manager.isInAnalysisRoot(anyString)).thenReturn(true);
 
       AnalysisServer server = new AnalysisServerMock();
-      when(server.getAnalysisContexts()).thenReturn([context]);
+      when(server.analysisContexts).thenReturn([context]);
       when(server.contextManager).thenReturn(manager);
 
       StreamController controller = new StreamController.broadcast(sync: true);

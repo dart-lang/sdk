@@ -156,12 +156,6 @@ class AnalysisServer {
   final InstrumentationService instrumentationService;
 
   /**
-   * A table mapping [Folder]s to the [AnalysisContext]s associated with them.
-   */
-  final Map<Folder, AnalysisContext> folderMap =
-      new HashMap<Folder, AnalysisContext>();
-
-  /**
    * A queue of the operations to perform in this server.
    */
   ServerOperationQueue operationQueue;
@@ -355,6 +349,19 @@ class AnalysisServer {
   }
 
   /**
+   * Return the [AnalysisContext]s that are being used to analyze the analysis
+   * roots.
+   */
+  Iterable<AnalysisContext> get analysisContexts =>
+      contextManager.analysisContexts;
+
+  /**
+   * Return a table mapping [Folder]s to the [AnalysisContext]s associated with
+   * them.
+   */
+  Map<Folder, AnalysisContext> get folderMap => contextManager.folderMap;
+
+  /**
    * The [Future] that completes when analysis is complete.
    */
   Future get onAnalysisComplete {
@@ -465,21 +472,13 @@ class AnalysisServer {
    * explicitly or implicitly.  Return `null` if there is no such context.
    */
   AnalysisContext getAnalysisContextForSource(Source source) {
-    for (AnalysisContext context in folderMap.values) {
+    for (AnalysisContext context in analysisContexts) {
       SourceKind kind = context.getKindOf(source);
       if (kind != SourceKind.UNKNOWN) {
         return context;
       }
     }
     return null;
-  }
-
-  /**
-   * Return the [AnalysisContext]s that are being used to analyze the analysis
-   * roots.
-   */
-  Iterable<AnalysisContext> getAnalysisContexts() {
-    return folderMap.values;
   }
 
   CompilationUnitElement getCompilationUnitElement(String file) {
@@ -557,7 +556,7 @@ class AnalysisServer {
       }
     }
     // try to find a context that analysed the file
-    for (AnalysisContext context in folderMap.values) {
+    for (AnalysisContext context in analysisContexts) {
       Source source = ContextManagerImpl.createSourceInContext(context, file);
       SourceKind kind = context.getKindOf(source);
       if (kind != SourceKind.UNKNOWN) {
@@ -565,7 +564,7 @@ class AnalysisServer {
       }
     }
     // try to find a context for which the file is a priority source
-    for (InternalAnalysisContext context in folderMap.values) {
+    for (InternalAnalysisContext context in analysisContexts) {
       List<Source> sources = context.getSourcesWithFullName(path);
       if (sources.isNotEmpty) {
         Source source = sources.first;
@@ -1117,7 +1116,7 @@ class AnalysisServer {
       if (preferredContext == null) {
         Resource resource = resourceProvider.getResource(file);
         if (resource is File && resource.exists) {
-          for (AnalysisContext context in folderMap.values) {
+          for (AnalysisContext context in analysisContexts) {
             Uri uri = context.sourceFactory.restoreUri(source);
             if (uri.scheme != 'file') {
               preferredContext = context;
@@ -1134,7 +1133,7 @@ class AnalysisServer {
         sourceMap.putIfAbsent(preferredContext, () => <Source>[]).add(source);
         contextFound = true;
       }
-      for (AnalysisContext context in folderMap.values) {
+      for (AnalysisContext context in analysisContexts) {
         if (context != preferredContext &&
             context.getKindOf(source) != SourceKind.UNKNOWN) {
           sourceMap.putIfAbsent(context, () => <Source>[]).add(source);
@@ -1248,7 +1247,7 @@ class AnalysisServer {
       // If the source does not exist, then it was an overlay-only one.
       // Remove it from contexts.
       if (newContents == null && !source.exists()) {
-        for (InternalAnalysisContext context in folderMap.values) {
+        for (InternalAnalysisContext context in analysisContexts) {
           List<Source> sources = context.getSourcesWithFullName(file);
           ChangeSet changeSet = new ChangeSet();
           sources.forEach(changeSet.removedSource);
@@ -1259,7 +1258,7 @@ class AnalysisServer {
       }
       // Update all contexts.
       bool anyContextUpdated = false;
-      for (InternalAnalysisContext context in folderMap.values) {
+      for (InternalAnalysisContext context in analysisContexts) {
         List<Source> sources = context.getSourcesWithFullName(file);
         sources.forEach((Source source) {
           anyContextUpdated = true;
@@ -1316,7 +1315,7 @@ class AnalysisServer {
     //
     // Update existing contexts.
     //
-    folderMap.forEach((Folder folder, AnalysisContext context) {
+    for (AnalysisContext context in analysisContexts) {
       AnalysisOptionsImpl options =
           new AnalysisOptionsImpl.from(context.analysisOptions);
       optionUpdaters.forEach((OptionUpdater optionUpdater) {
@@ -1325,7 +1324,7 @@ class AnalysisServer {
       context.analysisOptions = options;
       // TODO(brianwilkerson) As far as I can tell, this doesn't cause analysis
       // to be scheduled for this context.
-    });
+    }
     //
     // Update the defaults used to create new contexts.
     //

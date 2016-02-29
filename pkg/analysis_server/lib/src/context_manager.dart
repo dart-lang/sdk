@@ -228,6 +228,12 @@ abstract class ContextManager {
   // TODO(brianwilkerson) Move this class to a public library.
 
   /**
+   * Return the [AnalysisContext]s that are being used to analyze the analysis
+   * roots.
+   */
+  Iterable<AnalysisContext> get analysisContexts;
+
+  /**
    * Get the callback interface used to create, destroy, and update contexts.
    */
   ContextManagerCallbacks get callbacks;
@@ -242,6 +248,12 @@ abstract class ContextManager {
    * to [setRoots].
    */
   List<String> get excludedPaths;
+
+  /**
+   * Return a table mapping [Folder]s to the [AnalysisContext]s associated with
+   * them.
+   */
+  Map<Folder, AnalysisContext> get folderMap;
 
   /**
    * Return the list of included paths (folders and files) most recently passed
@@ -461,6 +473,13 @@ class ContextManagerImpl implements ContextManager {
   final ContextInfo rootInfo = new ContextInfo._root();
 
   /**
+   * A table mapping [Folder]s to the [AnalysisContext]s associated with them.
+   */
+  @override
+  final Map<Folder, AnalysisContext> folderMap =
+      new HashMap<Folder, AnalysisContext>();
+
+  /**
    * The controller that is notified when we are starting or ending the
    * computation of a package map.
    */
@@ -489,6 +508,9 @@ class ContextManagerImpl implements ContextManager {
   Stream<bool> get onComputingPackageMap {
     return _onComputingPackageMapController.stream;
   }
+
+  @override
+  Iterable<AnalysisContext> get analysisContexts => folderMap.values;
 
   @override
   List<AnalysisContext> contextsInAnalysisRoot(Folder analysisRoot) {
