@@ -31,26 +31,26 @@ class PackageIndexAssembler {
 
   /**
    * Each item of this list corresponds to the library URI of a unique
-   * [CompilationUnitElement].  It is an index into [_uris].
+   * [CompilationUnitElement].  It is an index into [_strings].
    */
   final List<int> _elementLibraryUris = <int>[];
 
   /**
    * Each item of this list corresponds to the unit URI of a unique
-   * [CompilationUnitElement].  It is an index into [_uris].
+   * [CompilationUnitElement].  It is an index into [_strings].
    */
   final List<int> _elementUnitUris = <int>[];
 
   /**
-   * Map associating URIs with their identifiers, which are indices
-   * into [_uris].
+   * Map associating strings with their identifiers, which are indices
+   * into [_strings].
    */
-  final Map<String, int> _uriMap = <String, int>{};
+  final Map<String, int> _stringMap = <String, int>{};
 
   /**
-   * List of unique URIs used in this index.
+   * List of unique strings used in this index.
    */
-  final List<String> _uris = <String>[];
+  final List<String> _strings = <String>[];
 
   /**
    * List of information about each unit indexed in this index.
@@ -75,7 +75,7 @@ class PackageIndexAssembler {
         elementUnits: elementInfoList.map((e) => e.unitId).toList(),
         elementOffsets: elementInfoList.map((e) => e.offset).toList(),
         elementKinds: elementInfoList.map((e) => e.kind).toList(),
-        uris: _uris,
+        strings: _strings,
         units: _units.map((unit) => unit.assemble()).toList());
   }
 
@@ -107,6 +107,18 @@ class PackageIndexAssembler {
   }
 
   /**
+   * Add information about [str] to [_strings] if necessary, and return the
+   * location in this array representing [str].
+   */
+  int _getStringId(String str) {
+    return _stringMap.putIfAbsent(str, () {
+      int id = _strings.length;
+      _strings.add(str);
+      return id;
+    });
+  }
+
+  /**
    * Add information about [unitElement] to [_elementUnitUris] and
    * [_elementLibraryUris] if necessary, and return the location in those
    * arrays representing [unitElement].
@@ -122,16 +134,11 @@ class PackageIndexAssembler {
   }
 
   /**
-   * Add information about [uri] to [_uris] if necessary, and return the
-   * location in this array representing [uri].
+   * Return the identifier corresponding to [uri].
    */
   int _getUriId(Uri uri) {
     String str = uri.toString();
-    return _uriMap.putIfAbsent(str, () {
-      int id = _uris.length;
-      _uris.add(str);
-      return id;
-    });
+    return _getStringId(str);
   }
 
   /**
@@ -169,6 +176,19 @@ class PackageIndexAssembler {
 }
 
 /**
+ * Information about a single defined name.  Any [_DefinedNameInfo] is always
+ * part of a [_UnitIndexAssembler], so [offset] should be understood within the
+ * context of the compilation unit pointed to by the [_UnitIndexAssembler].
+ */
+class _DefinedNameInfo {
+  final int nameId;
+  final IndexNameKind kind;
+  final int offset;
+
+  _DefinedNameInfo(this.nameId, this.kind, this.offset);
+}
+
+/**
  * Information about an element referenced in index.
  */
 class _ElementInfo {
@@ -203,6 +223,22 @@ class _IndexContributor extends GeneralizingAstVisitor {
   final _UnitIndexAssembler assembler;
 
   _IndexContributor(this.assembler);
+
+  /**
+   * Record definition of the given [element].
+   */
+  void recordDefinedElement(Element element) {
+    if (element != null) {
+      String name = element.displayName;
+      int offset = element.nameOffset;
+      Element enclosing = element.enclosingElement;
+      if (enclosing is CompilationUnitElement) {
+        assembler.defineName(name, IndexNameKind.topLevel, offset);
+      } else if (enclosing is ClassElement) {
+        assembler.defineName(name, IndexNameKind.classMember, offset);
+      }
+    }
+  }
 
   /**
    * Record reference to the given operator [Element] and name.
@@ -289,22 +325,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
   }
 
-  /**
-   * Record the top-level [element] definition.
-   */
-  void recordTopLevelElementDefinition(Element element) {
-    // TODO(scheglov) do we need this?
-//    if (element?.enclosingElement is CompilationUnitElement) {
-//      IndexableElement indexable = new IndexableElement(element);
-//      int offset = element.nameOffset;
-//      int length = element.nameLength;
-//      LocationImpl location = new LocationImpl(indexable, offset, length);
-//      recordRelationshipElement(
-//          _libraryElement, IndexConstants.DEFINES, location);
-//      _store.recordTopLevelDeclaration(element);
-//    }
-  }
-
   void recordUriReference(Element element, UriBasedDirective directive) {
     recordRelation(element, IndexRelationKind.IS_REFERENCED_BY, directive.uri);
   }
@@ -323,21 +343,12 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
-    ClassElement element = node.element;
-    recordTopLevelElementDefinition(element);
     if (node.extendsClause == null) {
-      ClassElement objectElement = element.supertype?.element;
+      ClassElement objectElement = node.element.supertype?.element;
       recordRelationOffset(
           objectElement, IndexRelationKind.IS_EXTENDED_BY, node.name.offset, 0);
     }
     super.visitClassDeclaration(node);
-  }
-
-  @override
-  visitClassTypeAlias(ClassTypeAlias node) {
-    ClassElement element = node.element;
-    recordTopLevelElementDefinition(element);
-    super.visitClassTypeAlias(node);
   }
 
   @override
@@ -376,13 +387,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitEnumDeclaration(EnumDeclaration node) {
-    ClassElement element = node.element;
-    recordTopLevelElementDefinition(element);
-    super.visitEnumDeclaration(node);
-  }
-
-  @override
   visitExportDirective(ExportDirective node) {
     ExportElement element = node.element;
     recordUriReference(element?.exportedLibrary, node);
@@ -392,20 +396,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   visitExtendsClause(ExtendsClause node) {
     recordSuperType(node.superclass, IndexRelationKind.IS_EXTENDED_BY);
-  }
-
-  @override
-  visitFunctionDeclaration(FunctionDeclaration node) {
-    Element element = node.element;
-    recordTopLevelElementDefinition(element);
-    super.visitFunctionDeclaration(node);
-  }
-
-  @override
-  visitFunctionTypeAlias(FunctionTypeAlias node) {
-    Element element = node.element;
-    recordTopLevelElementDefinition(element);
-    super.visitFunctionTypeAlias(node);
   }
 
   @override
@@ -494,6 +484,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
+    Element element = node.bestElement;
     // TODO(scheglov) do we need this?
 //    IndexableName indexableName = new IndexableName(node.name);
 //    LocationImpl location = _createLocationForNode(node);
@@ -502,12 +493,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
 //    }
     // name in declaration
     if (node.inDeclarationContext()) {
-      // TODO(scheglov) do we need this?
-//      recordRelationshipIndexable(
-//          indexableName, IndexConstants.NAME_IS_DEFINED_BY, location);
+      recordDefinedElement(element);
       return;
     }
-    Element element = node.bestElement;
     // this.field parameter
     if (element is FieldFormalParameterElement) {
       recordRelation(element.field, IndexRelationKind.IS_REFERENCED_BY, node);
@@ -547,22 +535,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  visitVariableDeclaration(VariableDeclaration node) {
-    VariableElement element = node.element;
-    recordTopLevelElementDefinition(element);
-    // TODO(scheglov) do we need this?
-//    // record declaration
-//    {
-//      SimpleIdentifier name = node.name;
-//      LocationImpl location = _createLocationForNode(name);
-//      location = _getLocationWithExpressionType(location, node.initializer);
-//      recordRelationshipElement(
-//          element, IndexConstants.NAME_IS_DEFINED_BY, location);
-//    }
-    super.visitVariableDeclaration(node);
-  }
-
-  @override
   visitWithClause(WithClause node) {
     for (TypeName typeName in node.mixinTypes) {
       recordSuperType(typeName, IndexRelationKind.IS_MIXED_IN_BY);
@@ -588,6 +560,7 @@ class _RelationInfo {
 /**
  * Assembler of a single [CompilationUnit] index.  The intended usage sequence:
  *
+ *  - Call [defineName] for name defined in the compilation unit.
  *  - Call [addRelation] for each relation found in the compilation unit.
  *  - Assign ids to all the [_ElementInfo] objects reachable from [relations].
  *  - Call [assemble] to produce the final unit index.
@@ -595,6 +568,7 @@ class _RelationInfo {
 class _UnitIndexAssembler {
   final PackageIndexAssembler pkg;
   final CompilationUnitElement unitElement;
+  final List<_DefinedNameInfo> definedNames = <_DefinedNameInfo>[];
   final List<_RelationInfo> relations = <_RelationInfo>[];
 
   _UnitIndexAssembler(this.pkg, this.unitElement);
@@ -609,18 +583,29 @@ class _UnitIndexAssembler {
 
   /**
    * Assemble a new [UnitIndexBuilder] using the information gathered
-   * by [addRelation]
+   * by [addRelation] and [defineName].
    */
   UnitIndexBuilder assemble() {
     relations.sort((a, b) {
       return a.elementInfo.id - b.elementInfo.id;
     });
+    definedNames.sort((a, b) {
+      return a.nameId - b.nameId;
+    });
     return new UnitIndexBuilder(
+        definedNames: definedNames.map((n) => n.nameId).toList(),
+        definedNameKinds: definedNames.map((n) => n.kind).toList(),
+        definedNameOffsets: definedNames.map((n) => n.offset).toList(),
         elements: relations.map((r) => r.elementInfo.id).toList(),
         kinds: relations.map((r) => r.kind).toList(),
         locationOffsets: relations.map((r) => r.offset).toList(),
         locationLengths: relations.map((r) => r.length).toList(),
         libraryUri: pkg._getUriId(unitElement.library.source.uri),
         unitUri: pkg._getUriId(unitElement.source.uri));
+  }
+
+  void defineName(String name, IndexNameKind kind, int offset) {
+    int nameId = pkg._getStringId(name);
+    definedNames.add(new _DefinedNameInfo(nameId, kind, offset));
   }
 }

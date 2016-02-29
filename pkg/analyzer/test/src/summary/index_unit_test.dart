@@ -50,6 +50,92 @@ class PackageIndexAssemblerTest extends AbstractSingleUnitTest {
     return imports[index].importedLibrary.definingCompilationUnit;
   }
 
+  void test_definedName_classMember_field() {
+    _indexTestUnit('''
+class A {
+  int f;
+}''');
+    _assertDefinedName('f', IndexNameKind.classMember, 'f;');
+  }
+
+  void test_definedName_classMember_getter() {
+    _indexTestUnit('''
+class A {
+  int get g => 0;
+}''');
+    _assertDefinedName('g', IndexNameKind.classMember, 'g => 0;');
+  }
+
+  void test_definedName_classMember_method() {
+    _indexTestUnit('''
+class A {
+  m() {}
+}''');
+    _assertDefinedName('m', IndexNameKind.classMember, 'm() {}');
+  }
+
+  void test_definedName_classMember_operator() {
+    _indexTestUnit('''
+class A {
+  operator +(o) {}
+}''');
+    _assertDefinedName('+', IndexNameKind.classMember, '+(o) {}');
+  }
+
+  void test_definedName_classMember_setter() {
+    _indexTestUnit('''
+class A {
+  int set s (_) {}
+}''');
+    _assertDefinedName('s', IndexNameKind.classMember, 's (_) {}');
+  }
+
+  void test_definedName_topLevel_class() {
+    _indexTestUnit('class A {}');
+    _assertDefinedName('A', IndexNameKind.topLevel, 'A {}');
+  }
+
+  void test_definedName_topLevel_classAlias() {
+    _indexTestUnit('''
+class M {}
+class C = Object with M;''');
+    _assertDefinedName('C', IndexNameKind.topLevel, 'C =');
+  }
+
+  void test_definedName_topLevel_enum() {
+    _indexTestUnit('enum E {a, b, c}');
+    _assertDefinedName('E', IndexNameKind.topLevel, 'E {');
+  }
+
+  void test_definedName_topLevel_function() {
+    _indexTestUnit('foo() {}');
+    _assertDefinedName('foo', IndexNameKind.topLevel, 'foo() {}');
+  }
+
+  void test_definedName_topLevel_functionTypeAlias() {
+    _indexTestUnit('typedef F(int p);');
+    _assertDefinedName('F', IndexNameKind.topLevel, 'F(int p);');
+  }
+
+  void test_definedName_topLevel_getter() {
+    _indexTestUnit('''
+int get g => 0;
+''');
+    _assertDefinedName('g', IndexNameKind.topLevel, 'g => 0;');
+  }
+
+  void test_definedName_topLevel_setter() {
+    _indexTestUnit('''
+int set s (_) {}
+''');
+    _assertDefinedName('s', IndexNameKind.topLevel, 's (_) {}');
+  }
+
+  void test_definedName_topLevel_topLevelVariable() {
+    _indexTestUnit('var V = 42;');
+    _assertDefinedName('V', IndexNameKind.topLevel, 'V = 42;');
+  }
+
   void test_isExtendedBy_ClassDeclaration() {
     _indexTestUnit('''
 class A {} // 1
@@ -517,6 +603,19 @@ A myVariable = null;
     assertThat(element).isReferencedAt('A myVariable');
   }
 
+  void _assertDefinedName(String name, IndexNameKind kind, String search) {
+    int offset = findOffset(search);
+    int nameId = _getStringId(name);
+    for (int i = 0; i < unitIndex.definedNames.length; i++) {
+      if (unitIndex.definedNames[i] == nameId &&
+          unitIndex.definedNameKinds[i] == kind &&
+          unitIndex.definedNameOffsets[i] == offset) {
+        return;
+      }
+    }
+    _failWithIndexDump('Not found $name $kind at $offset');
+  }
+
   /**
    * Asserts that [unitIndex] has an item with the expected properties.
    */
@@ -601,11 +700,15 @@ A myVariable = null;
     return -1;
   }
 
-  int _getUriId(Uri uri) {
-    String str = uri.toString();
-    int id = packageIndex.uris.indexOf(str);
+  int _getStringId(String str) {
+    int id = packageIndex.strings.indexOf(str);
     expect(id, isNonNegative);
     return id;
+  }
+
+  int _getUriId(Uri uri) {
+    String str = uri.toString();
+    return _getStringId(str);
   }
 
   void _indexTestUnit(String code) {

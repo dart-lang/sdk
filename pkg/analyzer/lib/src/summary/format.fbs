@@ -7,6 +7,21 @@
 
 
 /**
+ * Enum used to indicate the kind of a name in index.
+ */
+enum IndexNameKind : byte {
+  /**
+   * A top-level element.
+   */
+  topLevel,
+
+  /**
+   * A class member.
+   */
+  classMember
+}
+
+/**
  * Enum used to indicate the kind of an index relation.
  */
 enum IndexRelationKind : byte {
@@ -832,7 +847,7 @@ table PackageIndex {
    * Each item of this list corresponds to a unique referenced element.  It is
    * the kind of the synthetic element.
    */
-  elementKinds:[IndexSyntheticElementKind] (id: 6);
+  elementKinds:[IndexSyntheticElementKind] (id: 5);
 
   /**
    * Each item of this list corresponds to a unique library URI with an element
@@ -862,20 +877,39 @@ table PackageIndex {
   elementUnitUris:[uint] (id: 3);
 
   /**
-   * List of units indexed in this [PackageIndex].
+   * List of unique element strings used in this [PackageIndex].
    */
-  units:[UnitIndex] (id: 5);
+  strings:[string] (id: 6);
 
   /**
-   * List of unique URIs used in this [PackageIndex].
+   * List of units indexed in this [PackageIndex].
    */
-  uris:[string] (id: 4);
+  units:[UnitIndex] (id: 4);
 }
 
 /**
  * Index information about a unit in a [PackageIndex].
  */
 table UnitIndex {
+  /**
+   * Each item of this list is the kind of an element defined in this unit.
+   */
+  definedNameKinds:[IndexNameKind] (id: 7);
+
+  /**
+   * Each item of this list is the name offset of an element defined in this
+   * unit relative to the beginning of the file.
+   */
+  definedNameOffsets:[uint] (id: 8);
+
+  /**
+   * Each item of this list corresponds to an element defined in this unit.  It
+   * is an index into [PackageIndex.strings] list.  The list is sorted in
+   * ascending order, so that the client can quickly find name definitions in
+   * this [UnitIndex].
+   */
+  definedNames:[uint] (id: 6);
+
   /**
    * Each item of this list is the index into [PackageIndex.elementUnits] and
    * [PackageIndex.elementOffsets].  The list is sorted in ascending order, so

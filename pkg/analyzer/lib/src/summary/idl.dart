@@ -149,6 +149,21 @@ abstract class EntityRef extends base.SummaryClass {
 }
 
 /**
+ * Enum used to indicate the kind of a name in index.
+ */
+enum IndexNameKind {
+  /**
+   * A top-level element.
+   */
+  topLevel,
+
+  /**
+   * A class member.
+   */
+  classMember
+}
+
+/**
  * Enum used to indicate the kind of an index relation.
  */
 enum IndexRelationKind {
@@ -499,7 +514,7 @@ abstract class PackageIndex extends base.SummaryClass {
    * Each item of this list corresponds to a unique referenced element.  It is
    * the kind of the synthetic element.
    */
-  @Id(6)
+  @Id(5)
   List<IndexSyntheticElementKind> get elementKinds;
 
   /**
@@ -534,16 +549,16 @@ abstract class PackageIndex extends base.SummaryClass {
   List<int> get elementUnitUris;
 
   /**
-   * List of units indexed in this [PackageIndex].
+   * List of unique element strings used in this [PackageIndex].
    */
-  @Id(5)
-  List<UnitIndex> get units;
+  @Id(6)
+  List<String> get strings;
 
   /**
-   * List of unique URIs used in this [PackageIndex].
+   * List of units indexed in this [PackageIndex].
    */
   @Id(4)
-  List<String> get uris;
+  List<UnitIndex> get units;
 }
 
 /**
@@ -618,6 +633,28 @@ enum ReferenceKind {
  * Index information about a unit in a [PackageIndex].
  */
 abstract class UnitIndex extends base.SummaryClass {
+  /**
+   * Each item of this list is the kind of an element defined in this unit.
+   */
+  @Id(7)
+  List<IndexNameKind> get definedNameKinds;
+
+  /**
+   * Each item of this list is the name offset of an element defined in this
+   * unit relative to the beginning of the file.
+   */
+  @Id(8)
+  List<int> get definedNameOffsets;
+
+  /**
+   * Each item of this list corresponds to an element defined in this unit.  It
+   * is an index into [PackageIndex.strings] list.  The list is sorted in
+   * ascending order, so that the client can quickly find name definitions in
+   * this [UnitIndex].
+   */
+  @Id(6)
+  List<int> get definedNames;
+
   /**
    * Each item of this list is the index into [PackageIndex.elementUnits] and
    * [PackageIndex.elementOffsets].  The list is sorted in ascending order, so

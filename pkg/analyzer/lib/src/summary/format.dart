@@ -11,6 +11,19 @@ import 'flat_buffers.dart' as fb;
 import 'idl.dart' as idl;
 import 'dart:convert' as convert;
 
+class _IndexNameKindReader extends fb.Reader<idl.IndexNameKind> {
+  const _IndexNameKindReader() : super();
+
+  @override
+  int get size => 1;
+
+  @override
+  idl.IndexNameKind read(fb.BufferPointer bp) {
+    int index = const fb.Uint8Reader().read(bp);
+    return idl.IndexNameKind.values[index];
+  }
+}
+
 class _IndexRelationKindReader extends fb.Reader<idl.IndexRelationKind> {
   const _IndexRelationKindReader() : super();
 
@@ -1436,8 +1449,8 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
   List<int> _elementOffsets;
   List<int> _elementUnits;
   List<int> _elementUnitUris;
+  List<String> _strings;
   List<UnitIndexBuilder> _units;
-  List<String> _uris;
 
   @override
   List<idl.IndexSyntheticElementKind> get elementKinds => _elementKinds ??= <idl.IndexSyntheticElementKind>[];
@@ -1507,6 +1520,17 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
   }
 
   @override
+  List<String> get strings => _strings ??= <String>[];
+
+  /**
+   * List of unique element strings used in this [PackageIndex].
+   */
+  void set strings(List<String> _value) {
+    assert(!_finished);
+    _strings = _value;
+  }
+
+  @override
   List<UnitIndexBuilder> get units => _units ??= <UnitIndexBuilder>[];
 
   /**
@@ -1517,25 +1541,14 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
     _units = _value;
   }
 
-  @override
-  List<String> get uris => _uris ??= <String>[];
-
-  /**
-   * List of unique URIs used in this [PackageIndex].
-   */
-  void set uris(List<String> _value) {
-    assert(!_finished);
-    _uris = _value;
-  }
-
-  PackageIndexBuilder({List<idl.IndexSyntheticElementKind> elementKinds, List<int> elementLibraryUris, List<int> elementOffsets, List<int> elementUnits, List<int> elementUnitUris, List<UnitIndexBuilder> units, List<String> uris})
+  PackageIndexBuilder({List<idl.IndexSyntheticElementKind> elementKinds, List<int> elementLibraryUris, List<int> elementOffsets, List<int> elementUnits, List<int> elementUnitUris, List<String> strings, List<UnitIndexBuilder> units})
     : _elementKinds = elementKinds,
       _elementLibraryUris = elementLibraryUris,
       _elementOffsets = elementOffsets,
       _elementUnits = elementUnits,
       _elementUnitUris = elementUnitUris,
-      _units = units,
-      _uris = uris;
+      _strings = strings,
+      _units = units;
 
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
@@ -1550,8 +1563,8 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
     fb.Offset offset_elementOffsets;
     fb.Offset offset_elementUnits;
     fb.Offset offset_elementUnitUris;
+    fb.Offset offset_strings;
     fb.Offset offset_units;
-    fb.Offset offset_uris;
     if (!(_elementKinds == null || _elementKinds.isEmpty)) {
       offset_elementKinds = fbBuilder.writeListUint8(_elementKinds.map((b) => b.index).toList());
     }
@@ -1567,15 +1580,15 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
     if (!(_elementUnitUris == null || _elementUnitUris.isEmpty)) {
       offset_elementUnitUris = fbBuilder.writeListUint32(_elementUnitUris);
     }
+    if (!(_strings == null || _strings.isEmpty)) {
+      offset_strings = fbBuilder.writeList(_strings.map((b) => fbBuilder.writeString(b)).toList());
+    }
     if (!(_units == null || _units.isEmpty)) {
       offset_units = fbBuilder.writeList(_units.map((b) => b.finish(fbBuilder)).toList());
     }
-    if (!(_uris == null || _uris.isEmpty)) {
-      offset_uris = fbBuilder.writeList(_uris.map((b) => fbBuilder.writeString(b)).toList());
-    }
     fbBuilder.startTable();
     if (offset_elementKinds != null) {
-      fbBuilder.addOffset(6, offset_elementKinds);
+      fbBuilder.addOffset(5, offset_elementKinds);
     }
     if (offset_elementLibraryUris != null) {
       fbBuilder.addOffset(2, offset_elementLibraryUris);
@@ -1589,11 +1602,11 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
     if (offset_elementUnitUris != null) {
       fbBuilder.addOffset(3, offset_elementUnitUris);
     }
-    if (offset_units != null) {
-      fbBuilder.addOffset(5, offset_units);
+    if (offset_strings != null) {
+      fbBuilder.addOffset(6, offset_strings);
     }
-    if (offset_uris != null) {
-      fbBuilder.addOffset(4, offset_uris);
+    if (offset_units != null) {
+      fbBuilder.addOffset(4, offset_units);
     }
     return fbBuilder.endTable();
   }
@@ -1621,12 +1634,12 @@ class _PackageIndexImpl extends Object with _PackageIndexMixin implements idl.Pa
   List<int> _elementOffsets;
   List<int> _elementUnits;
   List<int> _elementUnitUris;
+  List<String> _strings;
   List<idl.UnitIndex> _units;
-  List<String> _uris;
 
   @override
   List<idl.IndexSyntheticElementKind> get elementKinds {
-    _elementKinds ??= const fb.ListReader<idl.IndexSyntheticElementKind>(const _IndexSyntheticElementKindReader()).vTableGet(_bp, 6, const <idl.IndexSyntheticElementKind>[]);
+    _elementKinds ??= const fb.ListReader<idl.IndexSyntheticElementKind>(const _IndexSyntheticElementKindReader()).vTableGet(_bp, 5, const <idl.IndexSyntheticElementKind>[]);
     return _elementKinds;
   }
 
@@ -1655,15 +1668,15 @@ class _PackageIndexImpl extends Object with _PackageIndexMixin implements idl.Pa
   }
 
   @override
-  List<idl.UnitIndex> get units {
-    _units ??= const fb.ListReader<idl.UnitIndex>(const _UnitIndexReader()).vTableGet(_bp, 5, const <idl.UnitIndex>[]);
-    return _units;
+  List<String> get strings {
+    _strings ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 6, const <String>[]);
+    return _strings;
   }
 
   @override
-  List<String> get uris {
-    _uris ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 4, const <String>[]);
-    return _uris;
+  List<idl.UnitIndex> get units {
+    _units ??= const fb.ListReader<idl.UnitIndex>(const _UnitIndexReader()).vTableGet(_bp, 4, const <idl.UnitIndex>[]);
+    return _units;
   }
 }
 
@@ -1676,8 +1689,8 @@ abstract class _PackageIndexMixin implements idl.PackageIndex {
     if (elementOffsets.isNotEmpty) _result["elementOffsets"] = elementOffsets;
     if (elementUnits.isNotEmpty) _result["elementUnits"] = elementUnits;
     if (elementUnitUris.isNotEmpty) _result["elementUnitUris"] = elementUnitUris;
+    if (strings.isNotEmpty) _result["strings"] = strings;
     if (units.isNotEmpty) _result["units"] = units.map((_value) => _value.toJson()).toList();
-    if (uris.isNotEmpty) _result["uris"] = uris;
     return _result;
   }
 
@@ -1688,8 +1701,8 @@ abstract class _PackageIndexMixin implements idl.PackageIndex {
     "elementOffsets": elementOffsets,
     "elementUnits": elementUnits,
     "elementUnitUris": elementUnitUris,
+    "strings": strings,
     "units": units,
-    "uris": uris,
   };
 
   @override
@@ -1699,12 +1712,54 @@ abstract class _PackageIndexMixin implements idl.PackageIndex {
 class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIndex {
   bool _finished = false;
 
+  List<idl.IndexNameKind> _definedNameKinds;
+  List<int> _definedNameOffsets;
+  List<int> _definedNames;
   List<int> _elements;
   List<idl.IndexRelationKind> _kinds;
   int _libraryUri;
   List<int> _locationLengths;
   List<int> _locationOffsets;
   int _unitUri;
+
+  @override
+  List<idl.IndexNameKind> get definedNameKinds => _definedNameKinds ??= <idl.IndexNameKind>[];
+
+  /**
+   * Each item of this list is the kind of an element defined in this unit.
+   */
+  void set definedNameKinds(List<idl.IndexNameKind> _value) {
+    assert(!_finished);
+    _definedNameKinds = _value;
+  }
+
+  @override
+  List<int> get definedNameOffsets => _definedNameOffsets ??= <int>[];
+
+  /**
+   * Each item of this list is the name offset of an element defined in this
+   * unit relative to the beginning of the file.
+   */
+  void set definedNameOffsets(List<int> _value) {
+    assert(!_finished);
+    assert(_value == null || _value.every((e) => e >= 0));
+    _definedNameOffsets = _value;
+  }
+
+  @override
+  List<int> get definedNames => _definedNames ??= <int>[];
+
+  /**
+   * Each item of this list corresponds to an element defined in this unit.  It
+   * is an index into [PackageIndex.strings] list.  The list is sorted in
+   * ascending order, so that the client can quickly find name definitions in
+   * this [UnitIndex].
+   */
+  void set definedNames(List<int> _value) {
+    assert(!_finished);
+    assert(_value == null || _value.every((e) => e >= 0));
+    _definedNames = _value;
+  }
 
   @override
   List<int> get elements => _elements ??= <int>[];
@@ -1782,8 +1837,11 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
     _unitUri = _value;
   }
 
-  UnitIndexBuilder({List<int> elements, List<idl.IndexRelationKind> kinds, int libraryUri, List<int> locationLengths, List<int> locationOffsets, int unitUri})
-    : _elements = elements,
+  UnitIndexBuilder({List<idl.IndexNameKind> definedNameKinds, List<int> definedNameOffsets, List<int> definedNames, List<int> elements, List<idl.IndexRelationKind> kinds, int libraryUri, List<int> locationLengths, List<int> locationOffsets, int unitUri})
+    : _definedNameKinds = definedNameKinds,
+      _definedNameOffsets = definedNameOffsets,
+      _definedNames = definedNames,
+      _elements = elements,
       _kinds = kinds,
       _libraryUri = libraryUri,
       _locationLengths = locationLengths,
@@ -1793,10 +1851,22 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
+    fb.Offset offset_definedNameKinds;
+    fb.Offset offset_definedNameOffsets;
+    fb.Offset offset_definedNames;
     fb.Offset offset_elements;
     fb.Offset offset_kinds;
     fb.Offset offset_locationLengths;
     fb.Offset offset_locationOffsets;
+    if (!(_definedNameKinds == null || _definedNameKinds.isEmpty)) {
+      offset_definedNameKinds = fbBuilder.writeListUint8(_definedNameKinds.map((b) => b.index).toList());
+    }
+    if (!(_definedNameOffsets == null || _definedNameOffsets.isEmpty)) {
+      offset_definedNameOffsets = fbBuilder.writeListUint32(_definedNameOffsets);
+    }
+    if (!(_definedNames == null || _definedNames.isEmpty)) {
+      offset_definedNames = fbBuilder.writeListUint32(_definedNames);
+    }
     if (!(_elements == null || _elements.isEmpty)) {
       offset_elements = fbBuilder.writeListUint32(_elements);
     }
@@ -1810,6 +1880,15 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
       offset_locationOffsets = fbBuilder.writeListUint32(_locationOffsets);
     }
     fbBuilder.startTable();
+    if (offset_definedNameKinds != null) {
+      fbBuilder.addOffset(7, offset_definedNameKinds);
+    }
+    if (offset_definedNameOffsets != null) {
+      fbBuilder.addOffset(8, offset_definedNameOffsets);
+    }
+    if (offset_definedNames != null) {
+      fbBuilder.addOffset(6, offset_definedNames);
+    }
     if (offset_elements != null) {
       fbBuilder.addOffset(4, offset_elements);
     }
@@ -1844,12 +1923,33 @@ class _UnitIndexImpl extends Object with _UnitIndexMixin implements idl.UnitInde
 
   _UnitIndexImpl(this._bp);
 
+  List<idl.IndexNameKind> _definedNameKinds;
+  List<int> _definedNameOffsets;
+  List<int> _definedNames;
   List<int> _elements;
   List<idl.IndexRelationKind> _kinds;
   int _libraryUri;
   List<int> _locationLengths;
   List<int> _locationOffsets;
   int _unitUri;
+
+  @override
+  List<idl.IndexNameKind> get definedNameKinds {
+    _definedNameKinds ??= const fb.ListReader<idl.IndexNameKind>(const _IndexNameKindReader()).vTableGet(_bp, 7, const <idl.IndexNameKind>[]);
+    return _definedNameKinds;
+  }
+
+  @override
+  List<int> get definedNameOffsets {
+    _definedNameOffsets ??= const fb.Uint32ListReader().vTableGet(_bp, 8, const <int>[]);
+    return _definedNameOffsets;
+  }
+
+  @override
+  List<int> get definedNames {
+    _definedNames ??= const fb.Uint32ListReader().vTableGet(_bp, 6, const <int>[]);
+    return _definedNames;
+  }
 
   @override
   List<int> get elements {
@@ -1892,6 +1992,9 @@ abstract class _UnitIndexMixin implements idl.UnitIndex {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
+    if (definedNameKinds.isNotEmpty) _result["definedNameKinds"] = definedNameKinds.map((_value) => _value.toString().split('.')[1]).toList();
+    if (definedNameOffsets.isNotEmpty) _result["definedNameOffsets"] = definedNameOffsets;
+    if (definedNames.isNotEmpty) _result["definedNames"] = definedNames;
     if (elements.isNotEmpty) _result["elements"] = elements;
     if (kinds.isNotEmpty) _result["kinds"] = kinds.map((_value) => _value.toString().split('.')[1]).toList();
     if (libraryUri != 0) _result["libraryUri"] = libraryUri;
@@ -1903,6 +2006,9 @@ abstract class _UnitIndexMixin implements idl.UnitIndex {
 
   @override
   Map<String, Object> toMap() => {
+    "definedNameKinds": definedNameKinds,
+    "definedNameOffsets": definedNameOffsets,
+    "definedNames": definedNames,
     "elements": elements,
     "kinds": kinds,
     "libraryUri": libraryUri,
