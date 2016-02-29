@@ -61,6 +61,7 @@ class _SyncIterator implements Iterator {
         yieldEachIterator = null;
       }
       isYieldEach = false;
+      // moveNextFn() will update the values of isYieldEach and _current.
       if (!moveNextFn(this)) {
         moveNextFn = null;
         _current = null;
