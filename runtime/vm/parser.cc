@@ -51,6 +51,7 @@ DEFINE_FLAG(bool, await_is_keyword, false,
     "await and yield are treated as proper keywords in synchronous code.");
 
 DECLARE_FLAG(bool, profile_vm);
+DECLARE_FLAG(bool, trace_service);
 
 // Quick access to the current thread, isolate and zone.
 #define T (thread())
@@ -2956,6 +2957,22 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
 }
 
 
+// Returns a zone allocated string.
+static char* DumpPendingFunctions(
+    Zone* zone,
+    const GrowableObjectArray& pending_functions) {
+  ASSERT(zone != NULL);
+  char* result = OS::SCreate(zone, "Pending Functions:\n");
+  for (intptr_t i = 0; i < pending_functions.Length(); i++) {
+    const Function& func =
+        Function::Handle(zone, Function::RawCast(pending_functions.At(i)));
+    const String& fname = String::Handle(zone, func.UserVisibleName());
+    result = OS::SCreate(zone, "%s%" Pd ": %s\n", result, i, fname.ToCString());
+  }
+  return result;
+}
+
+
 void Parser::CheckRecursiveInvocation() {
   const GrowableObjectArray& pending_functions =
       GrowableObjectArray::Handle(Z, T->pending_functions());
@@ -2964,7 +2981,16 @@ void Parser::CheckRecursiveInvocation() {
     if (pending_functions.At(i) == current_function().raw()) {
       const String& fname =
           String::Handle(Z, current_function().UserVisibleName());
-      ReportError("circular dependency for function %s", fname.ToCString());
+      if (FLAG_trace_service) {
+        const char* pending_function_dump =
+            DumpPendingFunctions(Z, pending_functions);
+        ASSERT(pending_function_dump != NULL);
+        ReportError("circular dependency for function %s\n%s",
+                    fname.ToCString(),
+                    pending_function_dump);
+      } else {
+        ReportError("circular dependency for function %s", fname.ToCString());
+      }
     }
   }
   ASSERT(!unregister_pending_function_);

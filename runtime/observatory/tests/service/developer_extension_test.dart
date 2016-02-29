@@ -152,5 +152,4 @@ var tests = [
   },
 ];
 
-main(args) async => runIsolateTests(args, tests, testeeConcurrent:test,
-                                    trace_compiler: true);
+main(args) async => runIsolateTests(args, tests, testeeConcurrent:test);
