@@ -184,6 +184,11 @@ core_runtime_types_test: Pass, RuntimeError # Issue 25795.
 [ $compiler == dart2js && $cps_ir && $host_checked ]
 regexp/pcre_test: Crash # Stack Overflow
 
+[ $noopt || $compiler == precompiler ]
+# Stacktraces in precompilation omit inlined frames.
+stacktrace_current_test: Pass, RuntimeError
+error_stack_trace1_test: Pass, RuntimeError
+
 [ ($noopt || $compiler == precompiler) ]
 apply3_test: CompileTimeError # Imports dart:mirrors
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
@@ -191,7 +196,7 @@ big_integer_huge_mul_vm_test: Pass, Timeout # --no_intrinsify
 big_integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify
 int_parse_radix_test: Pass, Timeout # --no_intrinsify
 
-[ ($runtime == dart_product) ]
+[ $runtime == dart_product ]
 data_resource_test: Skip # Resolve URI not supported yet in product mode.
 package_resource_test: Skip # Resolve URI not supported yet in product mode.
 apply3_test: SkipByDesign # Imports dart:mirrors

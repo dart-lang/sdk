@@ -211,10 +211,13 @@ io/secure_socket_bad_data_test: RuntimeError  # An error in a secure connection 
 no_allow_absolute_addresses_test: SkipByDesign # Not supported.
 link_natives_lazily_test: SkipByDesign # Not supported.
 
-[ ($noopt || $compiler == precompiler) ]
+[ $noopt || $compiler == precompiler ]
+# Stacktraces in precompilation omit inlined frames.
+assert_test: Pass, RuntimeError
+
+[ $noopt || $compiler == precompiler ]
 map_literal_oom_test: Pass, Crash # Issue 24678
 io/web_socket_test: Pass, RuntimeError # Issue 24674
-assert_test: RuntimeError # Expects line and column numbers
 precompilation_test: Skip # Platform.executable
 precompilation_dart2js_test: Skip  # Platform.executable
 io/test_extension_test: Skip # Platform.executable
@@ -268,7 +271,6 @@ io/raw_socket_cross_process_test: Skip # Platform.executable
 io/test_extension_test: Skip # Platform.executable
 io/regress_7679_test: Skip # Platform.executable
 io/process_*: Skip # Most use Platform.executable
-assert_test: RuntimeError # Expects line and column numbers
 
 # Code coverage is not supported in product mode.
 [ $mode == product ]
