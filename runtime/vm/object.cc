@@ -3558,6 +3558,8 @@ void Class::SetCanonicalType(const Type& type) const {
     ASSERT(!types.IsNull() && (types.Length() > 1));
     ASSERT((types.At(0) == Object::null()) || (types.At(0) == type.raw()));
     types.SetAt(0, type);
+    // Makes sure that 'canonical_types' has not changed.
+    ASSERT(types.raw() == canonical_types());
   }
 }
 
@@ -4124,6 +4126,53 @@ RawLibraryPrefix* Class::LookupLibraryPrefix(const String& name) const {
     return LibraryPrefix::Cast(obj).raw();
   }
   return LibraryPrefix::null();
+}
+
+
+// Canonicalizing the type arguments may have changed the index, may have
+// grown the table, or may even have canonicalized this type. Therefore
+// conrtinue search for canonical type at the last index visited.
+RawAbstractType* Class::LookupOrAddCanonicalType(
+    const AbstractType& lookup_type, intptr_t start_index) const {
+  intptr_t index = start_index;
+  Zone* zone = Thread::Current()->zone();
+  AbstractType& type = Type::Handle(zone);
+  Array& canonical_types = Array::Handle(zone);
+  canonical_types ^= this->canonical_types();
+  if (canonical_types.IsNull()) {
+    canonical_types = empty_array().raw();
+  }
+  ASSERT(canonical_types.IsArray());
+  const intptr_t length = canonical_types.Length();
+  while (index < length) {
+    type ^= canonical_types.At(index);
+    if (type.IsNull()) {
+      break;
+    }
+    ASSERT(type.IsFinalized());
+    if (lookup_type.Equals(type)) {
+      ASSERT(type.IsCanonical());
+      return type.raw();
+    }
+    index++;
+  }
+
+  lookup_type.SetCanonical();
+
+  // The type needs to be added to the list. Grow the list if it is full.
+  if (index >= length) {
+    ASSERT((index == length) || ((index == 1) && (length == 0)));
+    const intptr_t new_length = (length > 64) ?
+        (length + 64) :
+        ((length == 0) ? 2 : (length * 2));
+    const Array& new_canonical_types = Array::Handle(
+        zone, Array::Grow(canonical_types, new_length, Heap::kOld));
+    new_canonical_types.SetAt(index, lookup_type);
+    this->set_canonical_types(new_canonical_types);
+  } else {
+    canonical_types.SetAt(index, lookup_type);
+  }
+  return lookup_type.raw();
 }
 
 
@@ -15791,43 +15840,9 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
     return this->raw();
   }
   set_arguments(type_args);
-
-  // Canonicalizing the type arguments may have changed the index, may have
-  // grown the table, or may even have canonicalized this type.
-  canonical_types ^= cls.canonical_types();
-  if (canonical_types.IsNull()) {
-    canonical_types = empty_array().raw();
-  }
-  length = canonical_types.Length();
-  while (index < length) {
-    type ^= canonical_types.At(index);
-    if (type.IsNull()) {
-      break;
-    }
-    ASSERT(type.IsFinalized());
-    if (this->Equals(type)) {
-      ASSERT(type.IsCanonical());
-      return type.raw();
-    }
-    index++;
-  }
-
-  // The type needs to be added to the list. Grow the list if it is full.
-  if (index >= length) {
-    ASSERT((index == length) || ((index == 1) && (length == 0)));
-    const intptr_t new_length = (length > 64) ?
-        (length + 64) :
-        ((length == 0) ? 2 : (length * 2));
-    const Array& new_canonical_types = Array::Handle(
-        zone, Array::Grow(canonical_types, new_length, Heap::kOld));
-    cls.set_canonical_types(new_canonical_types);
-    canonical_types = new_canonical_types.raw();
-  }
-  canonical_types.SetAt(index, *this);
-  ASSERT(IsOld());
   ASSERT(type_args.IsNull() || type_args.IsOld());
-  SetCanonical();
-  return this->raw();
+
+  return cls.LookupOrAddCanonicalType(*this, index);
 }
 
 
@@ -16301,43 +16316,9 @@ RawAbstractType* FunctionType::Canonicalize(TrailPtr trail) const {
     sig_fun.set_parameter_names(Array::Handle(zone, fun.parameter_names()));
     set_signature(sig_fun);
   }
-
-  // Canonicalizing the type arguments and the signature may have changed the
-  // index, may have grown the table, or may even have canonicalized this type.
-  canonical_types ^= scope_cls.canonical_types();
-  if (canonical_types.IsNull()) {
-    canonical_types = empty_array().raw();
-  }
-  length = canonical_types.Length();
-  while (index < length) {
-    type ^= canonical_types.At(index);
-    if (type.IsNull()) {
-      break;
-    }
-    ASSERT(type.IsFinalized());
-    if (this->Equals(type)) {
-      ASSERT(type.IsCanonical());
-      return type.raw();
-    }
-    index++;
-  }
-
-  // The type needs to be added to the list. Grow the list if it is full.
-  if (index >= length) {
-    ASSERT((index == length) || ((index == 1) && (length == 0)));
-    const intptr_t new_length = (length > 64) ?
-        (length + 64) :
-        ((length == 0) ? 2 : (length * 2));
-    const Array& new_canonical_types = Array::Handle(
-        zone, Array::Grow(canonical_types, new_length, Heap::kOld));
-    scope_cls.set_canonical_types(new_canonical_types);
-    canonical_types = new_canonical_types.raw();
-  }
-  canonical_types.SetAt(index, *this);
-  ASSERT(IsOld());
   ASSERT(type_args.IsNull() || type_args.IsOld());
-  SetCanonical();
-  return this->raw();
+
+  return scope_cls.LookupOrAddCanonicalType(*this, index);
 }
 
 

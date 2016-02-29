@@ -1488,6 +1488,9 @@ class Class : public Object {
       TrailPtr bound_trail,
       Heap::Space space);
 
+  RawAbstractType* LookupOrAddCanonicalType(const AbstractType& type,
+                                            intptr_t start_index) const;
+
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Class, Object);
   friend class AbstractType;
   friend class Instance;
