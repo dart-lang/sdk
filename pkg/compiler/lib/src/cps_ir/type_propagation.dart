@@ -38,6 +38,7 @@ import '../world.dart' show World;
 import 'cps_fragment.dart';
 import 'cps_ir_nodes.dart';
 import 'type_mask_system.dart';
+import 'effects.dart';
 
 class ConstantPropagationLattice {
   final TypeMaskSystem typeSystem;
@@ -2060,7 +2061,19 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     }
   }
 
+  visitInvokeConstructor(InvokeConstructor node) {
+    node.effects =
+        Effects.from(compiler.world.getSideEffectsOfElement(node.target));
+  }
+
   visitInvokeMethodDirectly(InvokeMethodDirectly node) {
+    Element target = node.target;
+    if (target is ConstructorBodyElement) {
+      ConstructorBodyElement constructorBody = target;
+      target = constructorBody.constructor;
+    }
+    node.effects =
+        Effects.from(compiler.world.getSideEffectsOfElement(target));
     TypeMask receiverType = node.dartReceiver.type;
     if (node.callingConvention == CallingConvention.Intercepted &&
         typeSystem.areDisjoint(receiverType, typeSystem.interceptorType)) {
@@ -2083,6 +2096,9 @@ class TransformingVisitor extends DeepRecursiveVisitor {
 
     TypeMask receiverType = node.dartReceiver.type;
     node.mask = typeSystem.intersection(node.mask, receiverType);
+
+    node.effects = Effects.from(
+        compiler.world.getSideEffectsOfSelector(node.selector, node.mask));
 
     bool canBeNonThrowingCallOnNull =
         selectorsOnNull.contains(node.selector) &&
@@ -2159,6 +2175,8 @@ class TransformingVisitor extends DeepRecursiveVisitor {
   }
 
   visitInvokeStatic(InvokeStatic node) {
+    node.effects = Effects.from(
+        compiler.world.getSideEffectsOfElement(node.target));
     return specializeInternalMethodCall(node);
   }
 
@@ -2463,6 +2481,11 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       return new CpsFragment();
     }
     return null;
+  }
+
+  visitGetLength(GetLength node) {
+    node.isFinal = typeSystem.isDefinitelyFixedLengthIndexable(
+        node.object.definition.type, allowNull: true);
   }
 
   visitReadTypeVariable(ReadTypeVariable node) {

@@ -2588,7 +2588,8 @@ class IrBuilder {
   }
 
   ir.Primitive buildFieldGet(ir.Primitive receiver, FieldElement target) {
-    return addPrimitive(new ir.GetField(receiver, target));
+    return addPrimitive(new ir.GetField(receiver, target,
+        isFinal: program.fieldNeverChanges(target)));
   }
 
   void buildFieldSet(ir.Primitive receiver,
