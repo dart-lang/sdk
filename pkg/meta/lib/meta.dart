@@ -30,6 +30,18 @@ library meta;
 ///   newly allocated object.
 const _Factory factory = const _Factory();
 
+/// Used to annotate a const constructor `c`. Indicates that any invocation of
+/// the constructor must use the keyword `const` unless one or more of the
+/// arguments to the constructor is not a compile-time constant.
+///
+/// Tools, such as the analyzer, can provide feedback if
+/// * the annotation is associated with anything other than a const constructor,
+///   or
+/// * an invocation of a constructor that has this annotation is not invoked
+///   using the `const` keyword unless one or more of the arguments to the
+///   constructor is not a compile-time constant.
+const _Literal literal = const _Literal();
+
 /// Used to annotate an instance method `m`. Indicates that every invocation of
 /// a method that overrides `m` must also invoke `m`. In addition, every method
 /// that overrides `m` is implicitly annotated with this same annotation.
@@ -76,6 +88,10 @@ const _Required required = const _Required();
 
 class _Factory {
   const _Factory();
+}
+
+class _Literal {
+  const _Literal();
 }
 
 class _MustCallSuper {
