@@ -15,71 +15,71 @@ bool tlsException(e) => e is TlsException;
 
 void testUsePrivateKeyArguments() {
     var c = new SecurityContext();
-    c.useCertificateChainSync(localFile('certificates/server_chain.pem'));
+    c.useCertificateChain(localFile('certificates/server_chain.pem'));
 
     // Wrong password.
-    Expect.throws(() => c.usePrivateKeySync(
+    Expect.throws(() => c.usePrivateKey(
         localFile('certificates/server_key.pem')),
         tlsException);
-    Expect.throws(() => c.usePrivateKeySync(
-          localFile('certificates/server_key.pem'), password: "iHackSites"),
+    Expect.throws(() => c.usePrivateKey(
+        localFile('certificates/server_key.pem'), password: "iHackSites"),
         tlsException);
-    Expect.throws(() => c.usePrivateKeySync(
+    Expect.throws(() => c.usePrivateKey(
         localFile('certificates/server_key.p12')),
         tlsException);
-    Expect.throws(() => c.usePrivateKeySync(
-          localFile('certificates/server_key.p12'), password: "iHackSites"),
+    Expect.throws(() => c.usePrivateKey(
+        localFile('certificates/server_key.p12'), password: "iHackSites"),
         tlsException);
-    Expect.throws(() => c.setTrustedCertificatesSync(
+    Expect.throws(() => c.setTrustedCertificates(
         localFile('certificates/server_key.p12')),
         tlsException);
-    Expect.throws(() => c.setTrustedCertificatesSync(
-          localFile('certificates/server_key.p12'), password: "iHackSites"),
+    Expect.throws(() => c.setTrustedCertificates(
+        localFile('certificates/server_key.p12'), password: "iHackSites"),
         tlsException);
-    Expect.throws(() => c.useCertificateChainSync(
+    Expect.throws(() => c.useCertificateChain(
         localFile('certificates/server_key.p12')),
         tlsException);
-    Expect.throws(() => c.useCertificateChainSync(
-          localFile('certificates/server_key.p12'), password: "iHackSites"),
+    Expect.throws(() => c.useCertificateChain(
+        localFile('certificates/server_key.p12'), password: "iHackSites"),
         tlsException);
-    Expect.throws(() => c.setClientAuthoritiesSync(
+    Expect.throws(() => c.setClientAuthorities(
         localFile('certificates/server_key.p12')),
         argumentError);
-    Expect.throws(() => c.setClientAuthoritiesSync(
-          localFile('certificates/server_key.p12'), password: "iHackSites"),
+    Expect.throws(() => c.setClientAuthorities(
+        localFile('certificates/server_key.p12'), password: "iHackSites"),
         argumentError);
 
     // File does not exist
-    Expect.throws(() => c.usePrivateKeySync(
+    Expect.throws(() => c.usePrivateKey(
         localFile('certificates/server_key_oops.pem'),
                   password: "dartdart"),
         fileSystemException);
 
     // Wrong type for file name or data
-    Expect.throws(() => c.usePrivateKeySync(1), argumentOrTypeError);
-    Expect.throws(() => c.usePrivateKeySync(null), argumentError);
+    Expect.throws(() => c.usePrivateKey(1), argumentOrTypeError);
+    Expect.throws(() => c.usePrivateKey(null), argumentError);
     Expect.throws(() => c.usePrivateKeyBytes(1), argumentOrTypeError);
     Expect.throws(() => c.usePrivateKeyBytes(null), argumentError);
 
     // Too-long passwords.
-    Expect.throws(() => c.usePrivateKeySync(
+    Expect.throws(() => c.usePrivateKey(
         localFile('certificates/server_key.pem'), password: "dart" * 1000),
         argumentError);
-    Expect.throws(() => c.usePrivateKeySync(
+    Expect.throws(() => c.usePrivateKey(
         localFile('certificates/server_key.p12'), password: "dart" * 1000),
         argumentOrTypeError);
-    Expect.throws(() => c.setTrustedCertificatesSync(
+    Expect.throws(() => c.setTrustedCertificates(
         localFile('certificates/server_key.p12'), password: "dart" * 1000),
         argumentOrTypeError);
-    Expect.throws(() => c.useCertificateChainSync(
+    Expect.throws(() => c.useCertificateChain(
         localFile('certificates/server_key.p12'), password: "dart" * 1000),
         argumentOrTypeError);
-    Expect.throws(() => c.setClientAuthoritiesSync(
+    Expect.throws(() => c.setClientAuthorities(
         localFile('certificates/server_key.p12'), password: "dart" * 1000),
         argumentOrTypeError);
 
     // Bad password type.
-    Expect.throws(() => c.usePrivateKeySync(
+    Expect.throws(() => c.usePrivateKey(
         localFile('certificates/server_key.pem'), password: 3),
         argumentOrTypeError);
     Expect.throws(() => c.setTrustedCertificatesBytes(
@@ -100,24 +100,24 @@ void testUsePrivateKeyArguments() {
     Expect.throws(() => c.setClientAuthoritiesBytes([]), argumentError);
 
     // Malformed PEM certs.
-    Expect.throws(() => c.usePrivateKeySync(
+    Expect.throws(() => c.usePrivateKey(
         localFile('certificates/client1_key_malformed.pem'),
         password: "dartdart"),
         tlsException);
-    Expect.throws(() => c.setTrustedCertificatesSync(
+    Expect.throws(() => c.setTrustedCertificates(
         localFile('certificates/trusted_certs_malformed.pem')),
         tlsException);
-    Expect.throws(() => c.useCertificateChainSync(
+    Expect.throws(() => c.useCertificateChain(
         localFile('certificates/server_chain_malformed1.pem')),
         tlsException);
-    Expect.throws(() => c.useCertificateChainSync(
+    Expect.throws(() => c.useCertificateChain(
         localFile('certificates/server_chain_malformed2.pem')),
         tlsException);
-    Expect.throws(() => c.setClientAuthoritiesSync(
+    Expect.throws(() => c.setClientAuthorities(
         localFile('certificates/client_authority_malformed.pem')),
         argumentError);
 
-    c.usePrivateKeySync(
+    c.usePrivateKey(
         localFile('certificates/server_key.pem'), password: "dartdart");
 }
 

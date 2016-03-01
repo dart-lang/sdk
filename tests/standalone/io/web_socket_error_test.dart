@@ -28,12 +28,12 @@ const String HOST_NAME = 'localhost';
 String localFile(path) => Platform.script.resolve(path).toFilePath();
 
 SecurityContext serverContext = new SecurityContext()
-  ..useCertificateChainSync(localFile('certificates/server_chain.pem'))
-  ..usePrivateKeySync(localFile('certificates/server_key.pem'),
-                      password: 'dartdart');
+  ..useCertificateChain(localFile('certificates/server_chain.pem'))
+  ..usePrivateKey(localFile('certificates/server_key.pem'),
+                  password: 'dartdart');
 
 SecurityContext clientContext = new SecurityContext()
-  ..setTrustedCertificatesSync(localFile('certificates/trusted_certs.pem'));
+  ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
 
 /**
  * A SecurityConfiguration lets us run the tests over HTTP or HTTPS.

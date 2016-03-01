@@ -26,13 +26,8 @@
     `SecurityContext.useCertificateChainBytes`,
     `SecurityContext.setTrustedCertificatesBytes`, and
     `SecurityContext.setClientAuthoritiesBytes`.
-  * The non-`Bytes` methods of `SecurityContext` are being renamed -`Sync`, as
-    they will do synchronous IO. The non-`Bytes` and non-`Sync` methods are
-    deprecated and will be removed in a later release.
   * **Breaking** The named `directory` argument of
-    `SecurityContext.setTrustedCertificates` is no longer supported.
-    The method now only supports one argument for the PEM file name containing
-    the trusted certificates.
+    `SecurityContext.setTrustedCertificates` has been removed.
   * Added support to `SecurityContext` for PKCS12 certificate and key
     containers.
   * All calls in `SecurityContext` that accept certificate data now accept an

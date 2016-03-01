@@ -14,27 +14,27 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 
 SecurityContext serverContext(String certType, String password) =>
   new SecurityContext()
-  ..useCertificateChainSync(
-      localFile('certificates/server_chain.$certType'), password: password)
-  ..usePrivateKeySync(
-      localFile('certificates/server_key.$certType'), password: password)
-  ..setTrustedCertificatesSync(localFile(
+  ..useCertificateChain(localFile(
+      'certificates/server_chain.$certType'), password: password)
+  ..usePrivateKey(localFile(
+      'certificates/server_key.$certType'), password: password)
+  ..setTrustedCertificates(localFile(
       'certificates/client_authority.$certType'), password: password)
-  ..setClientAuthoritiesSync(localFile(
+  ..setClientAuthorities(localFile(
       'certificates/client_authority.$certType'), password: password);
 
 SecurityContext clientCertContext(String certType, String password) =>
   new SecurityContext()
-  ..setTrustedCertificatesSync(
-      localFile('certificates/trusted_certs.$certType'), password: password)
-  ..useCertificateChainSync(
-      localFile('certificates/client1.$certType'), password: password)
-  ..usePrivateKeySync(
-      localFile('certificates/client1_key.$certType'), password: password);
+  ..setTrustedCertificates(localFile(
+      'certificates/trusted_certs.$certType'), password: password)
+  ..useCertificateChain(localFile(
+      'certificates/client1.$certType'), password: password)
+  ..usePrivateKey(localFile(
+      'certificates/client1_key.$certType'), password: password);
 
 SecurityContext clientNoCertContext(String certType, String password) =>
   new SecurityContext()
-  ..setTrustedCertificatesSync(localFile(
+  ..setTrustedCertificates(localFile(
       'certificates/trusted_certs.$certType'), password: password);
 
 Future testClientCertificate(
