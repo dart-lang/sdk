@@ -90,11 +90,11 @@ class _AstCloner extends AstCloner {
     return clone;
   }
 
-  // TODO(jmesserly): as a workaround for analyzer <0.26.0-alpha.1.
-  // ResolutionCopier won't copy the type, so we do it here.
+  // TODO(vsm): ResolutionCopier is apparently not copying the type here
+  // either.
   @override
-  AwaitExpression visitAwaitExpression(AwaitExpression node) {
-    var clone = super.visitAwaitExpression(node);
+  AdjacentStrings visitAdjacentStrings(AdjacentStrings node) {
+    var clone = super.visitAdjacentStrings(node);
     clone.staticType = node.staticType;
     clone.propagatedType = node.propagatedType;
     return clone;
