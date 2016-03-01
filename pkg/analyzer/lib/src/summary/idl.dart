@@ -196,25 +196,11 @@ enum IndexRelationKind {
   IS_INVOKED_BY,
 
   /**
-   * Left: method, property accessor, function, variable.
-   *   Is invoked with a qualifier at.
-   * Right: location.
-   */
-  IS_INVOKED_QUALIFIED_BY,
-
-  /**
    * Left: any element.
    *   Is referenced (and not invoked, read/written) at.
    * Right: location.
    */
-  IS_REFERENCED_BY,
-
-  /**
-   * Left: any element.
-   *   Is referenced (and not invoked, read/written) with a qualifier at.
-   * Right: location.
-   */
-  IS_REFERENCED_QUALIFIED_BY
+  IS_REFERENCED_BY
 }
 
 /**
@@ -663,6 +649,13 @@ abstract class UnitIndex extends base.SummaryClass {
    */
   @Id(0)
   int get unit;
+
+  /**
+   * Each item of this list is the `true` if the corresponding element usage
+   * is qualified with some prefix.
+   */
+  @Id(11)
+  List<bool> get usedElementIsQualifiedFlags;
 
   /**
    * Each item of this list is the kind of the element usage.

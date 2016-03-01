@@ -242,8 +242,10 @@ class _ElementRelationInfo {
   final IndexRelationKind kind;
   final int offset;
   final int length;
+  final bool isQualified;
 
-  _ElementRelationInfo(this.elementInfo, this.kind, this.offset, this.length);
+  _ElementRelationInfo(
+      this.elementInfo, this.kind, this.offset, this.length, this.isQualified);
 }
 
 /**
@@ -288,20 +290,26 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   /**
    * Record that [element] has a relation of the given [kind] at the location
-   * of the given [node].
+   * of the given [node].  The flag [isQualified] is `true` if [node] has an
+   * explicit or implicit qualifier, so cannot be shadowed by a local
+   * declaration.
    */
-  void recordRelation(Element element, IndexRelationKind kind, AstNode node) {
+  void recordRelation(
+      Element element, IndexRelationKind kind, AstNode node, bool isQualified) {
     if (element != null && node != null) {
-      recordRelationOffset(element, kind, node.offset, node.length);
+      recordRelationOffset(
+          element, kind, node.offset, node.length, isQualified);
     }
   }
 
   /**
    * Record that [element] has a relation of the given [kind] at the given
-   * [offset] and [length].
+   * [offset] and [length].  The flag [isQualified] is `true` if the relation
+   * has an explicit or implicit qualifier, so [element] cannot be shadowed by
+   * a local declaration.
    */
-  void recordRelationOffset(
-      Element element, IndexRelationKind kind, int offset, int length) {
+  void recordRelationOffset(Element element, IndexRelationKind kind, int offset,
+      int length, bool isQualified) {
     // Ignore elements that can't be referenced outside of the unit.
     if (element == null ||
         element is FunctionElement &&
@@ -315,7 +323,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       return;
     }
     // Add the relation.
-    assembler.addElementRelation(element, kind, offset, length);
+    assembler.addElementRelation(element, kind, offset, length, isQualified);
   }
 
   /**
@@ -325,7 +333,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   void recordRelationToken(
       Element element, IndexRelationKind kind, Token token) {
     if (element != null && token != null) {
-      recordRelationOffset(element, kind, token.offset, token.length);
+      recordRelationOffset(element, kind, token.offset, token.length, true);
     }
   }
 
@@ -335,13 +343,19 @@ class _IndexContributor extends GeneralizingAstVisitor {
   void recordSuperType(TypeName typeName, IndexRelationKind kind) {
     Identifier name = typeName?.name;
     if (name != null) {
-      recordRelation(name.staticElement, kind, name);
+      Element element = name.staticElement;
+      SimpleIdentifier relNode =
+          name is PrefixedIdentifier ? name.identifier : name;
+      recordRelation(element, kind, relNode, true);
+      recordRelation(
+          element, IndexRelationKind.IS_REFERENCED_BY, relNode, true);
       typeName.typeArguments?.accept(this);
     }
   }
 
   void recordUriReference(Element element, UriBasedDirective directive) {
-    recordRelation(element, IndexRelationKind.IS_REFERENCED_BY, directive.uri);
+    recordRelation(
+        element, IndexRelationKind.IS_REFERENCED_BY, directive.uri, true);
   }
 
   @override
@@ -360,8 +374,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
   visitClassDeclaration(ClassDeclaration node) {
     if (node.extendsClause == null) {
       ClassElement objectElement = node.element.supertype?.element;
-      recordRelationOffset(
-          objectElement, IndexRelationKind.IS_EXTENDED_BY, node.name.offset, 0);
+      recordRelationOffset(objectElement, IndexRelationKind.IS_EXTENDED_BY,
+          node.name.offset, 0, true);
     }
     super.visitClassDeclaration(node);
   }
@@ -371,7 +385,8 @@ class _IndexContributor extends GeneralizingAstVisitor {
     SimpleIdentifier fieldName = node.fieldName;
     if (fieldName != null) {
       Element element = fieldName.staticElement;
-      recordRelation(element, IndexRelationKind.IS_REFERENCED_BY, fieldName);
+      recordRelation(
+          element, IndexRelationKind.IS_REFERENCED_BY, fieldName, true);
     }
     node.expression?.accept(this);
   }
@@ -385,11 +400,11 @@ class _IndexContributor extends GeneralizingAstVisitor {
       int offset = node.period.offset;
       int length = node.name.end - offset;
       recordRelationOffset(
-          element, IndexRelationKind.IS_REFERENCED_BY, offset, length);
+          element, IndexRelationKind.IS_REFERENCED_BY, offset, length, true);
     } else {
       int offset = node.type.end;
       recordRelationOffset(
-          element, IndexRelationKind.IS_REFERENCED_BY, offset, 0);
+          element, IndexRelationKind.IS_REFERENCED_BY, offset, 0, true);
     }
     super.visitConstructorName(node);
   }
@@ -440,17 +455,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
       recordNameRelation(name, IndexRelationKind.IS_INVOKED_BY);
     }
     // element invocation
-    if (element is MethodElement ||
-        element is PropertyAccessorElement ||
-        element is FunctionElement ||
-        element is VariableElement) {
-      IndexRelationKind kind = isQualified
-          ? IndexRelationKind.IS_INVOKED_QUALIFIED_BY
-          : IndexRelationKind.IS_INVOKED_BY;
-      recordRelation(element, kind, name);
-    } else if (element is ClassElement) {
-      recordRelation(element, IndexRelationKind.IS_REFERENCED_BY, name);
-    }
+    IndexRelationKind kind = element is ClassElement
+        ? IndexRelationKind.IS_REFERENCED_BY
+        : IndexRelationKind.IS_INVOKED_BY;
+    recordRelation(element, kind, name, isQualified);
     node.target?.accept(this);
     node.argumentList?.accept(this);
   }
@@ -481,11 +489,11 @@ class _IndexContributor extends GeneralizingAstVisitor {
       int offset = node.period.offset;
       int length = node.constructorName.end - offset;
       recordRelationOffset(
-          element, IndexRelationKind.IS_REFERENCED_BY, offset, length);
+          element, IndexRelationKind.IS_REFERENCED_BY, offset, length, true);
     } else {
       int offset = node.thisKeyword.end;
       recordRelationOffset(
-          element, IndexRelationKind.IS_REFERENCED_BY, offset, 0);
+          element, IndexRelationKind.IS_REFERENCED_BY, offset, 0, true);
     }
     super.visitRedirectingConstructorInvocation(node);
   }
@@ -499,20 +507,19 @@ class _IndexContributor extends GeneralizingAstVisitor {
       return;
     }
     // record qualified unresolved name reference
-    bool isQualified = node.isQualified;
+    bool isQualified = _isQualified(node);
     if (isQualified && element == null) {
       recordNameRelation(node, IndexRelationKind.IS_REFERENCED_BY);
     }
     // this.field parameter
     if (element is FieldFormalParameterElement) {
-      recordRelation(element.field, IndexRelationKind.IS_REFERENCED_BY, node);
+      recordRelation(
+          element.field, IndexRelationKind.IS_REFERENCED_BY, node, true);
       return;
     }
     // record specific relations
-    IndexRelationKind kind = isQualified
-        ? IndexRelationKind.IS_REFERENCED_QUALIFIED_BY
-        : IndexRelationKind.IS_REFERENCED_BY;
-    recordRelation(element, kind, node);
+    recordRelation(
+        element, IndexRelationKind.IS_REFERENCED_BY, node, isQualified);
   }
 
   @override
@@ -522,11 +529,11 @@ class _IndexContributor extends GeneralizingAstVisitor {
       int offset = node.period.offset;
       int length = node.constructorName.end - offset;
       recordRelationOffset(
-          element, IndexRelationKind.IS_REFERENCED_BY, offset, length);
+          element, IndexRelationKind.IS_REFERENCED_BY, offset, length, true);
     } else {
       int offset = node.superKeyword.end;
       recordRelationOffset(
-          element, IndexRelationKind.IS_REFERENCED_BY, offset, 0);
+          element, IndexRelationKind.IS_REFERENCED_BY, offset, 0, true);
     }
     super.visitSuperConstructorInvocation(node);
   }
@@ -567,13 +574,24 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
     return constructor;
   }
+
+  /**
+   * Return `true` if [node] has an explicit or implicit qualifier, so that it
+   * cannot be shadowed by a local declaration.
+   */
+  bool _isQualified(SimpleIdentifier node) {
+    if (node.isQualified) {
+      return true;
+    }
+    AstNode parent = node.parent;
+    return parent is Combinator || parent is Label;
+  }
 }
 
 /**
  * Information about a single name relation.  Any [_NameRelationInfo] is always
- * part of a [_UnitIndexAssembler], so [offset] and [length] should be
- * understood within the context of the compilation unit pointed to by the
- * [_UnitIndexAssembler].
+ * part of a [_UnitIndexAssembler], so [offset] should be understood within the
+ * context of the compilation unit pointed to by the [_UnitIndexAssembler].
  */
 class _NameRelationInfo {
   /**
@@ -607,12 +625,12 @@ class _UnitIndexAssembler {
 
   _UnitIndexAssembler(this.pkg, this.unitId);
 
-  void addElementRelation(
-      Element element, IndexRelationKind kind, int offset, int length) {
+  void addElementRelation(Element element, IndexRelationKind kind, int offset,
+      int length, bool isQualified) {
     try {
       _ElementInfo elementInfo = pkg._getElementInfo(element);
-      elementRelations
-          .add(new _ElementRelationInfo(elementInfo, kind, offset, length));
+      elementRelations.add(new _ElementRelationInfo(
+          elementInfo, kind, offset, length, isQualified));
     } on StateError {}
   }
 
@@ -644,6 +662,8 @@ class _UnitIndexAssembler {
         usedElementKinds: elementRelations.map((r) => r.kind).toList(),
         usedElementOffsets: elementRelations.map((r) => r.offset).toList(),
         usedElementLengths: elementRelations.map((r) => r.length).toList(),
+        usedElementIsQualifiedFlags:
+            elementRelations.map((r) => r.isQualified).toList(),
         usedNames: nameRelations.map((r) => r.nameId).toList(),
         usedNameKinds: nameRelations.map((r) => r.kind).toList(),
         usedNameOffsets: nameRelations.map((r) => r.offset).toList());

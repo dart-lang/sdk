@@ -54,25 +54,11 @@ enum IndexRelationKind : byte {
   IS_INVOKED_BY,
 
   /**
-   * Left: method, property accessor, function, variable.
-   *   Is invoked with a qualifier at.
-   * Right: location.
-   */
-  IS_INVOKED_QUALIFIED_BY,
-
-  /**
    * Left: any element.
    *   Is referenced (and not invoked, read/written) at.
    * Right: location.
    */
-  IS_REFERENCED_BY,
-
-  /**
-   * Left: any element.
-   *   Is referenced (and not invoked, read/written) with a qualifier at.
-   * Right: location.
-   */
-  IS_REFERENCED_QUALIFIED_BY
+  IS_REFERENCED_BY
 }
 
 /**
@@ -917,6 +903,12 @@ table UnitIndex {
    * for the library specific unit that corresponds to this [UnitIndex].
    */
   unit:uint (id: 0);
+
+  /**
+   * Each item of this list is the `true` if the corresponding element usage
+   * is qualified with some prefix.
+   */
+  usedElementIsQualifiedFlags:[ubyte] (id: 11);
 
   /**
    * Each item of this list is the kind of the element usage.

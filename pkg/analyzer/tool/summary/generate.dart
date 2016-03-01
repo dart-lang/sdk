@@ -124,6 +124,8 @@ class _CodeGenerator {
             // List of classes is ok
           } else if (_idl.enums.containsKey(type.typeName)) {
             // List of enums is ok
+          } else if (type.typeName == 'bool') {
+            // List of booleans is ok
           } else if (type.typeName == 'int') {
             // List of ints is ok
           } else if (type.typeName == 'double') {
@@ -355,6 +357,12 @@ class _CodeGenerator {
         break;
     }
     if (type.isList) {
+      // FlatBuffers don't natively support a packed list of booleans, so we
+      // treat it as a list of unsigned bytes, which is a compatible data
+      // structure.
+      if (typeStr == 'bool') {
+        typeStr = 'ubyte';
+      }
       return '[$typeStr]';
     } else {
       return typeStr;
@@ -606,6 +614,9 @@ class _CodeGenerator {
               String itemCode = 'b.index';
               String listCode = '$valueName.map((b) => $itemCode).toList()';
               writeCode = '$offsetName = fbBuilder.writeListUint8($listCode);';
+            } else if (fieldType.typeName == 'bool') {
+              writeCode =
+                  '$offsetName = fbBuilder.writeListBool($valueName);';
             } else if (fieldType.typeName == 'int') {
               writeCode =
                   '$offsetName = fbBuilder.writeListUint32($valueName);';
@@ -723,7 +734,9 @@ class _CodeGenerator {
         String readCode;
         String def = defaultValue(type, false);
         if (type.isList) {
-          if (typeName == 'int') {
+          if (typeName == 'bool') {
+            readCode = 'const fb.BoolListReader()';
+          } else if (typeName == 'int') {
             readCode = 'const fb.Uint32ListReader()';
           } else if (typeName == 'double') {
             readCode = 'const fb.Float64ListReader()';
