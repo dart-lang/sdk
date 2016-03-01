@@ -319,6 +319,9 @@ class Isolate : public BaseIsolate {
 
   Mutex* mutex() const { return mutex_; }
   Mutex* symbols_mutex() const { return symbols_mutex_; }
+  Mutex* type_canonicalization_mutex() const {
+    return type_canonicalization_mutex_;
+  }
 
   Debugger* debugger() const {
     if (!FLAG_support_debugger) {
@@ -752,8 +755,9 @@ class Isolate : public BaseIsolate {
   bool has_compiled_code_;  // Can check that no compilation occured.
   Random random_;
   Simulator* simulator_;
-  Mutex* mutex_;  // protects stack_limit_, saved_stack_limit_, compiler stats.
-  Mutex* symbols_mutex_;  // Protects concurrent access to teh symbol table.
+  Mutex* mutex_;  // Protects stack_limit_, saved_stack_limit_, compiler stats.
+  Mutex* symbols_mutex_;  // Protects concurrent access to the symbol table.
+  Mutex* type_canonicalization_mutex_;  // Protects type canonicalization.
   uword saved_stack_limit_;
   uword deferred_interrupts_mask_;
   uword deferred_interrupts_;

@@ -1488,6 +1488,12 @@ class Class : public Object {
       TrailPtr bound_trail,
       Heap::Space space);
 
+  // Returns AbstractType::null() if type not found.
+  RawAbstractType* LookupCanonicalType(Zone* zone,
+                                       const AbstractType& type,
+                                       intptr_t* index) const;
+
+  // Returns canonical type. Thread safe.
   RawAbstractType* LookupOrAddCanonicalType(const AbstractType& type,
                                             intptr_t start_index) const;
 
