@@ -371,7 +371,7 @@ class SqlResultSetRowList extends DartHtmlDomObject with ListMixin<Map>, Immutab
 
   @DomName('SQLResultSetRowList.item')
   @DocsEditable()
-  Map item(int index) => wrap_jso(_blink.BlinkSQLResultSetRowList.instance.item_Callback_1_(unwrap_jso(this), index));
+  Object item(int index) => wrap_jso(_blink.BlinkSQLResultSetRowList.instance.item_Callback_1_(unwrap_jso(this), index));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -407,8 +407,21 @@ class SqlTransaction extends DartHtmlDomObject {
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
   int get hashCode => unwrap_jso(this).hashCode;
 
-  @DomName('SQLTransaction.executeSql')
-  @DocsEditable()
-  void executeSql(String sqlStatement, List<Object> arguments, [SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) => _blink.BlinkSQLTransaction.instance.executeSql_Callback_4_(unwrap_jso(this), sqlStatement, unwrap_jso(arguments), unwrap_jso((transaction, resultSet) => callback(wrap_jso(transaction), wrap_jso(resultSet))), unwrap_jso((transaction, error) => errorCallback(wrap_jso(transaction), wrap_jso(error))));
-  
+  void executeSql(String sqlStatement, [List arguments, SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) {
+    if (errorCallback != null) {
+      _blink.BlinkSQLTransaction.instance.executeSql_Callback_4_(unwrap_jso(this), sqlStatement, arguments, unwrap_jso((transaction, resultSet) => callback(wrap_jso(transaction), wrap_jso(resultSet))), unwrap_jso((transaction, error) => errorCallback(wrap_jso(transaction), wrap_jso(error))));
+      return;
+    }
+    if (callback != null) {
+      _blink.BlinkSQLTransaction.instance.executeSql_Callback_3_(unwrap_jso(this), sqlStatement, arguments, unwrap_jso((transaction, resultSet) => callback(wrap_jso(transaction), wrap_jso(resultSet))));
+      return;
+    }
+    if (arguments != null) {
+      _blink.BlinkSQLTransaction.instance.executeSql_Callback_2_(unwrap_jso(this), sqlStatement, arguments);
+      return;
+    }
+    _blink.BlinkSQLTransaction.instance.executeSql_Callback_1_(unwrap_jso(this), sqlStatement);
+    return;
+  }
+
 }
