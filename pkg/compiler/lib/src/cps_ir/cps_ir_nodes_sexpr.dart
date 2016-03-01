@@ -170,7 +170,7 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
 
   String visitLetMutable(LetMutable node) {
     String name = visit(node.variable);
-    String value = access(node.value);
+    String value = access(node.valueRef);
     String body = indentBlock(() => visit(node.body));
     return '$indentation(LetMutable ($name $value)\n$body)';
   }
@@ -200,22 +200,22 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
 
   String visitInvokeStatic(InvokeStatic node) {
     String name = node.target.name;
-    String args = formatArguments(node.selector.callStructure, node.arguments);
+    String args = formatArguments(node.selector.callStructure, node.argumentRefs);
     return '(InvokeStatic $name $args)';
   }
 
   String visitInvokeMethod(InvokeMethod node) {
     String name = node.selector.name;
-    String rcv = access(node.receiver);
-    String args = formatArguments(node.selector.callStructure, node.arguments,
+    String rcv = access(node.receiverRef);
+    String args = formatArguments(node.selector.callStructure, node.argumentRefs,
         node.callingConvention);
     return '(InvokeMethod $rcv $name $args)';
   }
 
   String visitInvokeMethodDirectly(InvokeMethodDirectly node) {
-    String receiver = access(node.receiver);
+    String receiver = access(node.receiverRef);
     String name = node.selector.name;
-    String args = formatArguments(node.selector.callStructure, node.arguments,
+    String args = formatArguments(node.selector.callStructure, node.argumentRefs,
         node.callingConvention);
     return '(InvokeMethodDirectly $receiver $name $args)';
   }
@@ -231,22 +231,22 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     if (!node.target.name.isEmpty) {
       name = '${name}.${node.target.name}';
     }
-    String args = formatArguments(node.selector.callStructure, node.arguments);
+    String args = formatArguments(node.selector.callStructure, node.argumentRefs);
     return '(InvokeConstructor $name $args)';
   }
 
   String visitInvokeContinuation(InvokeContinuation node) {
-    String name = access(node.continuation);
+    String name = access(node.continuationRef);
     if (node.isRecursive) name = 'rec $name';
-    String args = node.arguments == null
+    String args = node.argumentRefs == null
         ? '**** NULL ****'
-	: node.arguments.map(access).join(' ');
+	: node.argumentRefs.map(access).join(' ');
     String escaping = node.isEscapingTry ? ' escape' : '';
     return '$indentation(InvokeContinuation $name ($args)$escaping)';
   }
 
   String visitThrow(Throw node) {
-    String value = access(node.value);
+    String value = access(node.valueRef);
     return '$indentation(Throw $value)';
   }
 
@@ -255,13 +255,13 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
   }
 
   String visitBranch(Branch node) {
-    String condition = access(node.condition);
-    assert(isBranchTarget(node.trueContinuation.definition));
-    assert(isBranchTarget(node.falseContinuation.definition));
+    String condition = access(node.conditionRef);
+    assert(isBranchTarget(node.trueContinuation));
+    assert(isBranchTarget(node.falseContinuation));
     String trueCont =
-        indentBlock(() => visit(node.trueContinuation.definition));
+        indentBlock(() => visit(node.trueContinuation));
     String falseCont =
-        indentBlock(() => visit(node.falseContinuation.definition));
+        indentBlock(() => visit(node.falseContinuation));
     String strict = node.isStrictCheck ? 'Strict' : 'NonStrict';
     return '$indentation(Branch $strict $condition\n$trueCont\n$falseCont)';
   }
@@ -295,45 +295,45 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
   }
 
   String visitGetMutable(GetMutable node) {
-    return '(GetMutable ${access(node.variable)})';
+    return '(GetMutable ${access(node.variableRef)})';
   }
 
   String visitSetMutable(SetMutable node) {
-    String value = access(node.value);
-    return '(SetMutable ${access(node.variable)} $value)';
+    String value = access(node.valueRef);
+    return '(SetMutable ${access(node.variableRef)} $value)';
   }
 
   String visitTypeCast(TypeCast node) {
-    String value = access(node.value);
-    String typeArguments = node.typeArguments.map(access).join(' ');
+    String value = access(node.valueRef);
+    String typeArguments = node.typeArgumentRefs.map(access).join(' ');
     return '(TypeCast $value ${node.dartType} ($typeArguments))';
   }
 
   String visitTypeTest(TypeTest node) {
-    String value = access(node.value);
-    String typeArguments = node.typeArguments.map(access).join(' ');
+    String value = access(node.valueRef);
+    String typeArguments = node.typeArgumentRefs.map(access).join(' ');
     return '(TypeTest $value ${node.dartType} ($typeArguments))';
   }
 
   String visitTypeTestViaFlag(TypeTestViaFlag node) {
-    String interceptor = access(node.interceptor);
+    String interceptor = access(node.interceptorRef);
     return '(TypeTestViaFlag $interceptor ${node.dartType})';
   }
 
   String visitLiteralList(LiteralList node) {
-    String values = node.values.map(access).join(' ');
+    String values = node.valueRefs.map(access).join(' ');
     return '(LiteralList ($values))';
   }
 
   String visitSetField(SetField node) {
-    String object = access(node.object);
+    String object = access(node.objectRef);
     String field = node.field.name;
-    String value = access(node.value);
+    String value = access(node.valueRef);
     return '(SetField $object $field $value)';
   }
 
   String visitGetField(GetField node) {
-    String object = access(node.object);
+    String object = access(node.objectRef);
     String field = node.field.name;
     return '(GetField $object $field)';
   }
@@ -345,7 +345,7 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
 
   String visitSetStatic(SetStatic node) {
     String element = node.element.name;
-    String value = access(node.value);
+    String value = access(node.valueRef);
     return '(SetStatic $element $value)';
   }
 
@@ -360,79 +360,79 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
 
   String visitCreateInstance(CreateInstance node) {
     String className = node.classElement.name;
-    String arguments = node.arguments.map(access).join(' ');
-    String typeInformation = optionalAccess(node.typeInformation);
+    String arguments = node.argumentRefs.map(access).join(' ');
+    String typeInformation = optionalAccess(node.typeInformationRef);
     return '(CreateInstance $className ($arguments) ($typeInformation))';
   }
 
   String visitInterceptor(Interceptor node) {
-    return '(Interceptor ${access(node.input)})';
+    return '(Interceptor ${access(node.inputRef)})';
   }
 
   String visitReifyRuntimeType(ReifyRuntimeType node) {
-    return '(ReifyRuntimeType ${access(node.value)})';
+    return '(ReifyRuntimeType ${access(node.valueRef)})';
   }
 
   String visitReadTypeVariable(ReadTypeVariable node) {
-    return '(ReadTypeVariable ${access(node.target)}.${node.variable})';
+    return '(ReadTypeVariable ${access(node.targetRef)}.${node.variable})';
   }
 
   String visitTypeExpression(TypeExpression node) {
-    String args = node.arguments.map(access).join(' ');
+    String args = node.argumentRefs.map(access).join(' ');
     return '(TypeExpression ${node.kindAsString} ${node.dartType} ($args))';
   }
 
   String visitCreateInvocationMirror(CreateInvocationMirror node) {
     String selector = node.selector.name;
-    String args = node.arguments.map(access).join(' ');
+    String args = node.argumentRefs.map(access).join(' ');
     return '(CreateInvocationMirror $selector ($args))';
   }
 
   String visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
     String operator = node.operator.toString();
-    String args = node.arguments.map(access).join(' ');
+    String args = node.argumentRefs.map(access).join(' ');
     return '(ApplyBuiltinOperator $operator ($args))';
   }
 
   String visitApplyBuiltinMethod(ApplyBuiltinMethod node) {
     String method = node.method.toString();
-    String receiver = access(node.receiver);
-    String args = node.arguments.map(access).join(' ');
+    String receiver = access(node.receiverRef);
+    String args = node.argumentRefs.map(access).join(' ');
     return '(ApplyBuiltinMethod $method $receiver ($args))';
   }
 
   String visitForeignCode(ForeignCode node) {
-    String arguments = node.arguments.map(access).join(' ');
+    String arguments = node.argumentRefs.map(access).join(' ');
     return '(JS "${node.codeTemplate.source}" ($arguments))';
   }
 
   String visitGetLength(GetLength node) {
-    String object = access(node.object);
+    String object = access(node.objectRef);
     return '(GetLength $object)';
   }
 
   String visitGetIndex(GetIndex node) {
-    String object = access(node.object);
-    String index = access(node.index);
+    String object = access(node.objectRef);
+    String index = access(node.indexRef);
     return '(GetIndex $object $index)';
   }
 
   String visitSetIndex(SetIndex node) {
-    String object = access(node.object);
-    String index = access(node.index);
-    String value = access(node.value);
+    String object = access(node.objectRef);
+    String index = access(node.indexRef);
+    String value = access(node.valueRef);
     return '(SetIndex $object $index $value)';
   }
 
   @override
   String visitAwait(Await node) {
-    String value = access(node.input);
+    String value = access(node.inputRef);
     return '(Await $value)';
   }
 
   @override
   String visitYield(Yield node) {
-    String value = access(node.input);
+    String value = access(node.inputRef);
     return '(Yield $value)';
   }
 
@@ -442,15 +442,15 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
   }
 
   String visitBoundsCheck(BoundsCheck node) {
-    String object = access(node.object);
-    String index = optionalAccess(node.index);
-    String length = optionalAccess(node.length);
+    String object = access(node.objectRef);
+    String index = optionalAccess(node.indexRef);
+    String length = optionalAccess(node.lengthRef);
     return '(BoundsCheck $object $index $length ${node.checkString})';
   }
 
   String visitReceiverCheck(ReceiverCheck node) {
-    String value = access(node.value);
-    String condition = optionalAccess(node.condition);
+    String value = access(node.valueRef);
+    String condition = optionalAccess(node.conditionRef);
     return '(ReceiverCheck $value ${node.selector} $condition '
         '${node.flagString}))';
   }

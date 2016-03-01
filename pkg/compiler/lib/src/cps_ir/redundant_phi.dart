@@ -47,7 +47,7 @@ class RedundantPhiEliminator extends TrampolineRecursiveVisitor implements Pass 
     List<InvokeContinuation> invokes = <InvokeContinuation>[];
     for (Reference ref = cont.firstRef; ref != null; ref = ref.next) {
       Node parent = ref.parent;
-      if (parent is InvokeContinuation && ref == parent.continuation) {
+      if (parent is InvokeContinuation && ref == parent.continuationRef) {
         invokes.add(parent);
       } else {
         return; // Can't optimize.
@@ -64,7 +64,7 @@ class RedundantPhiEliminator extends TrampolineRecursiveVisitor implements Pass 
     Primitive uniqueDefinitionOf(int i) {
       Primitive value = null;
       for (InvokeContinuation invoke in invokes) {
-        Primitive def = invoke.arguments[i].definition.effectiveDefinition;
+        Primitive def = invoke.argument(i).effectiveDefinition;
 
         if (cont.parameters[i] == def) {
           // Invocation param == param in LetCont (i.e. a recursive call).
@@ -110,7 +110,7 @@ class RedundantPhiEliminator extends TrampolineRecursiveVisitor implements Pass 
         if (src != dst) {
           cont.parameters[dst] = cont.parameters[src];
           for (InvokeContinuation invoke in invokes) {
-            invoke.arguments[dst] = invoke.arguments[src];
+            invoke.argumentRefs[dst] = invoke.argumentRefs[src];
           }
         }
         dst++;
@@ -126,7 +126,7 @@ class RedundantPhiEliminator extends TrampolineRecursiveVisitor implements Pass 
            ref = ref.next) {
         Node parent = ref.parent;
         if (parent is InvokeContinuation) {
-          Continuation thatCont = parent.continuation.definition;
+          Continuation thatCont = parent.continuation;
           if (thatCont != cont) {
             workSet.add(thatCont);
           }
@@ -140,7 +140,7 @@ class RedundantPhiEliminator extends TrampolineRecursiveVisitor implements Pass 
       //   arguments are unlinked to keep definition usages up to date.
       oldDefinition.replaceUsesWith(uniqueDefinition);
       for (InvokeContinuation invoke in invokes) {
-        invoke.arguments[src].unlink();
+        invoke.argumentRefs[src].unlink();
       }
 
       // Finally, if the substituted definition is not in scope of the affected
@@ -156,7 +156,7 @@ class RedundantPhiEliminator extends TrampolineRecursiveVisitor implements Pass 
     // Remove trailing items from parameter and argument lists.
     cont.parameters.length = dst;
     for (InvokeContinuation invoke in invokes) {
-      invoke.arguments.length = dst;
+      invoke.argumentRefs.length = dst;
     }
   }
 

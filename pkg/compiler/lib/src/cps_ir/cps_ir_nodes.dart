@@ -267,8 +267,8 @@ abstract class Primitive extends Variable<Primitive> {
   // TODO(johnniwinther): Require source information for all primitives.
   SourceInformation get sourceInformation => null;
 
-  /// If this is a [Refinement], [BoundsCheck] or [ReceiverCheck] node, returns the
-  /// value being refined, the indexable object being checked, or the value
+  /// If this is a [Refinement], [BoundsCheck] or [ReceiverCheck] node, returns
+  /// the value being refined, the indexable object being checked, or the value
   /// that was checked to be non-null, respectively.
   ///
   /// Those instructions all return the corresponding operand directly, and
@@ -496,11 +496,13 @@ class LetHandler extends InteriorExpression {
 /// one-hole context 'let mutable v = P in []'.
 class LetMutable extends InteriorExpression {
   final MutableVariable variable;
-  final Reference<Primitive> value;
+  final Reference<Primitive> valueRef;
   Expression body;
 
+  Primitive get value => valueRef.definition;
+
   LetMutable(this.variable, Primitive value)
-      : this.value = new Reference<Primitive>(value);
+      : this.valueRef = new Reference<Primitive>(value);
 
   Expression plug(Expression expr) {
     return body = expr;
@@ -510,7 +512,7 @@ class LetMutable extends InteriorExpression {
 
   void setParentPointers() {
     variable.parent = this;
-    value.parent = this;
+    valueRef.parent = this;
     if (body != null) body.parent = this;
   }
 }
@@ -544,12 +546,15 @@ enum CallingConvention {
 ///
 /// This class defines the common interface of function invocations.
 abstract class InvocationPrimitive extends UnsafePrimitive {
-  Reference<Primitive> get receiver => null;
-  List<Reference<Primitive>> get arguments;
-  SourceInformation get sourceInformation;
+  Reference<Primitive> get receiverRef => null;
+  Primitive get receiver => receiverRef?.definition;
 
-  Reference<Primitive> get dartReceiverReference => null;
-  Primitive get dartReceiver => dartReceiverReference.definition;
+  List<Reference<Primitive>> get argumentRefs;
+  Primitive argument(int n) => argumentRefs[n].definition;
+  Iterable<Primitive> get arguments => _dereferenceList(argumentRefs);
+
+  Reference<Primitive> get dartReceiverRef => null;
+  Primitive get dartReceiver => dartReceiverRef?.definition;
 
   CallingConvention get callingConvention => CallingConvention.Normal;
 
@@ -557,20 +562,22 @@ abstract class InvocationPrimitive extends UnsafePrimitive {
     switch (callingConvention) {
       case CallingConvention.Normal:
       case CallingConvention.OneShotIntercepted:
-        return arguments[n];
+        return argumentRefs[n];
 
       case CallingConvention.Intercepted:
       case CallingConvention.DummyIntercepted:
-        return arguments[n + 1];
+        return argumentRefs[n + 1];
     }
   }
 
   Primitive dartArgument(int n) => dartArgumentReference(n).definition;
 
   int get dartArgumentsLength =>
-      arguments.length -
+      argumentRefs.length -
       (callingConvention == CallingConvention.Intercepted ||
           callingConvention == CallingConvention.DummyIntercepted ? 1 : 0);
+
+  SourceInformation get sourceInformation;
 }
 
 /// Invoke a static function.
@@ -584,18 +591,18 @@ abstract class InvocationPrimitive extends UnsafePrimitive {
 class InvokeStatic extends InvocationPrimitive {
   final FunctionElement target;
   final Selector selector;
-  final List<Reference<Primitive>> arguments;
+  final List<Reference<Primitive>> argumentRefs;
   final SourceInformation sourceInformation;
 
   InvokeStatic(this.target,
                this.selector,
                List<Primitive> args,
                [this.sourceInformation])
-      : arguments = _referenceList(args);
+      : argumentRefs = _referenceList(args);
 
   InvokeStatic.byReference(this.target,
                            this.selector,
-                           this.arguments,
+                           this.argumentRefs,
                            [this.sourceInformation]);
 
   accept(Visitor visitor) => visitor.visitInvokeStatic(this);
@@ -603,7 +610,7 @@ class InvokeStatic extends InvocationPrimitive {
   bool get hasValue => true;
 
   void setParentPointers() {
-    _setParentsOnList(arguments, this);
+    _setParentsOnList(argumentRefs, this);
   }
 }
 
@@ -617,18 +624,18 @@ class InvokeStatic extends InvocationPrimitive {
 /// The [selector] records the names of named arguments. The value of named
 /// arguments occur at the end of the [arguments] list, in normalized order.
 class InvokeMethod extends InvocationPrimitive {
-  Reference<Primitive> receiver;
+  Reference<Primitive> receiverRef;
   Selector selector;
   TypeMask mask;
-  final List<Reference<Primitive>> arguments;
+  final List<Reference<Primitive>> argumentRefs;
   final SourceInformation sourceInformation;
 
   CallingConvention callingConvention = CallingConvention.Normal;
 
-  Reference<Primitive> get dartReceiverReference {
+  Reference<Primitive> get dartReceiverRef {
     return callingConvention == CallingConvention.Intercepted
-        ? arguments[0]
-        : receiver;
+        ? argumentRefs[0]
+        : receiverRef;
   }
 
   /// If true, it is known that the receiver cannot be `null`.
@@ -640,16 +647,16 @@ class InvokeMethod extends InvocationPrimitive {
                List<Primitive> arguments,
                {this.sourceInformation,
                 this.callingConvention: CallingConvention.Normal})
-      : this.receiver = new Reference<Primitive>(receiver),
-        this.arguments = _referenceList(arguments);
+      : this.receiverRef = new Reference<Primitive>(receiver),
+        this.argumentRefs = _referenceList(arguments);
 
   accept(Visitor visitor) => visitor.visitInvokeMethod(this);
 
   bool get hasValue => true;
 
   void setParentPointers() {
-    receiver.parent = this;
-    _setParentsOnList(arguments, this);
+    receiverRef.parent = this;
+    _setParentsOnList(argumentRefs, this);
   }
 }
 
@@ -673,18 +680,18 @@ class InvokeMethod extends InvocationPrimitive {
 /// All optional arguments declared by [target] are passed in explicitly, and
 /// occur at the end of [arguments] list, in normalized order.
 class InvokeMethodDirectly extends InvocationPrimitive {
-  Reference<Primitive> receiver;
+  Reference<Primitive> receiverRef;
   final FunctionElement target;
   final Selector selector;
-  final List<Reference<Primitive>> arguments;
+  final List<Reference<Primitive>> argumentRefs;
   final SourceInformation sourceInformation;
 
   CallingConvention callingConvention;
 
-  Reference<Primitive> get dartReceiverReference {
+  Reference<Primitive> get dartReceiverRef {
     return callingConvention == CallingConvention.Intercepted
-        ? arguments[0]
-        : receiver;
+        ? argumentRefs[0]
+        : receiverRef;
   }
 
   InvokeMethodDirectly(Primitive receiver,
@@ -693,16 +700,16 @@ class InvokeMethodDirectly extends InvocationPrimitive {
                        List<Primitive> arguments,
                        this.sourceInformation,
                        {this.callingConvention: CallingConvention.Normal})
-      : this.receiver = new Reference<Primitive>(receiver),
-        this.arguments = _referenceList(arguments);
+      : this.receiverRef = new Reference<Primitive>(receiver),
+        this.argumentRefs = _referenceList(arguments);
 
   accept(Visitor visitor) => visitor.visitInvokeMethodDirectly(this);
 
   bool get hasValue => true;
 
   void setParentPointers() {
-    receiver.parent = this;
-    _setParentsOnList(arguments, this);
+    receiverRef.parent = this;
+    _setParentsOnList(argumentRefs, this);
   }
 
   bool get isConstructorBodyCall => target is ConstructorBodyElement;
@@ -727,7 +734,7 @@ class InvokeMethodDirectly extends InvocationPrimitive {
 class InvokeConstructor extends InvocationPrimitive {
   final DartType dartType;
   final ConstructorElement target;
-  final List<Reference<Primitive>> arguments;
+  final List<Reference<Primitive>> argumentRefs;
   final Selector selector;
   final SourceInformation sourceInformation;
 
@@ -744,14 +751,14 @@ class InvokeConstructor extends InvocationPrimitive {
                     List<Primitive> args,
                     this.sourceInformation,
                     {this.allocationSiteType})
-      : arguments = _referenceList(args);
+      : argumentRefs = _referenceList(args);
 
   accept(Visitor visitor) => visitor.visitInvokeConstructor(this);
 
   bool get hasValue => true;
 
   void setParentPointers() {
-    _setParentsOnList(arguments, this);
+    _setParentsOnList(argumentRefs, this);
   }
 }
 
@@ -815,11 +822,15 @@ class Refinement extends Primitive {
 /// [object], a [Refinement] can be created for it with the non-negative integer
 /// type.
 class BoundsCheck extends Primitive {
-  final Reference<Primitive> object;
-  Reference<Primitive> index;
-  Reference<Primitive> length;
+  final Reference<Primitive> objectRef;
+  Reference<Primitive> indexRef;
+  Reference<Primitive> lengthRef;
   int checks;
   final SourceInformation sourceInformation;
+
+  Primitive get object => objectRef.definition;
+  Primitive get index => indexRef?.definition;
+  Primitive get length => lengthRef?.definition;
 
   /// If true, check that `index >= 0`.
   bool get hasLowerBoundCheck => checks & LOWER_BOUND != 0;
@@ -854,23 +865,23 @@ class BoundsCheck extends Primitive {
 
   BoundsCheck(Primitive object, Primitive index, Primitive length,
       [this.checks = BOTH_BOUNDS, this.sourceInformation])
-      : this.object = new Reference<Primitive>(object),
-        this.index = new Reference<Primitive>(index),
-        this.length = length == null ? null : new Reference<Primitive>(length);
+      : this.objectRef = new Reference<Primitive>(object),
+        this.indexRef = new Reference<Primitive>(index),
+        this.lengthRef = _optionalReference(length);
 
   BoundsCheck.noCheck(Primitive object, [this.sourceInformation])
-      : this.object = new Reference<Primitive>(object),
+      : this.objectRef = new Reference<Primitive>(object),
         this.checks = NONE;
 
   accept(Visitor visitor) => visitor.visitBoundsCheck(this);
 
   void setParentPointers() {
-    object.parent = this;
-    if (index != null) {
-      index.parent = this;
+    objectRef.parent = this;
+    if (indexRef != null) {
+      indexRef.parent = this;
     }
-    if (length != null) {
-      length.parent = this;
+    if (lengthRef != null) {
+      lengthRef.parent = this;
     }
   }
 
@@ -888,7 +899,7 @@ class BoundsCheck extends Primitive {
   bool get isSafeForReordering => false;
   bool get hasValue => true; // Can be referenced to restrict code motion.
 
-  Primitive get effectiveDefinition => object.definition.effectiveDefinition;
+  Primitive get effectiveDefinition => object.effectiveDefinition;
 }
 
 /// Throw a [NoSuchMethodError] if [value] cannot respond to [selector].
@@ -918,11 +929,14 @@ class BoundsCheck extends Primitive {
 ///
 /// [selector] may not be one of the selectors implemented by the null object.
 class ReceiverCheck extends Primitive {
-  final Reference<Primitive> value;
+  final Reference<Primitive> valueRef;
   final Selector selector;
   final SourceInformation sourceInformation;
-  final Reference<Primitive> condition;
+  final Reference<Primitive> conditionRef;
   final int _flags;
+
+  Primitive get value => valueRef.definition;
+  Primitive get condition => conditionRef?.definition;
 
   static const int _USE_SELECTOR = 1 << 0;
   static const int _NULL_CHECK = 1 << 1;
@@ -942,8 +956,8 @@ class ReceiverCheck extends Primitive {
   /// [useSelector] and [isNullCheck] are mandatory named arguments.
   ReceiverCheck(Primitive value, this.selector, this.sourceInformation,
         {Primitive condition, bool useSelector, bool isNullCheck})
-      : value = new Reference<Primitive>(value),
-        condition = _optionalReference(condition),
+      : valueRef = new Reference<Primitive>(value),
+        conditionRef = _optionalReference(condition),
         _flags = (useSelector ? _USE_SELECTOR : 0) |
                  (isNullCheck ? _NULL_CHECK : 0);
 
@@ -986,13 +1000,13 @@ class ReceiverCheck extends Primitive {
   accept(Visitor visitor) => visitor.visitReceiverCheck(this);
 
   void setParentPointers() {
-    value.parent = this;
-    if (condition != null) {
-      condition.parent = this;
+    valueRef.parent = this;
+    if (conditionRef != null) {
+      conditionRef.parent = this;
     }
   }
 
-  Primitive get effectiveDefinition => value.definition.effectiveDefinition;
+  Primitive get effectiveDefinition => value.effectiveDefinition;
 
   String get nullCheckString => isNullCheck ? 'null-check' : 'general-check';
   String get useSelectorString => useSelector ? 'use-selector' : 'no-selector';
@@ -1007,7 +1021,7 @@ class ReceiverCheck extends Primitive {
 /// be a type variable containing one of these types). This design is chosen
 /// to simplify code generation for type tests.
 class TypeTest extends Primitive {
-  Reference<Primitive> value;
+  Reference<Primitive> valueRef;
   final DartType dartType;
 
   /// If [dartType] is an [InterfaceType], this holds the internal
@@ -1021,13 +1035,17 @@ class TypeTest extends Primitive {
   /// internal representation of that type,
   ///
   /// Otherwise the list is empty.
-  final List<Reference<Primitive>> typeArguments;
+  final List<Reference<Primitive>> typeArgumentRefs;
+
+  Primitive get value => valueRef.definition;
+  Primitive typeArgument(int n) => typeArgumentRefs[n].definition;
+  Iterable<Primitive> get typeArguments => _dereferenceList(typeArgumentRefs);
 
   TypeTest(Primitive value,
            this.dartType,
            List<Primitive> typeArguments)
-      : this.value = new Reference<Primitive>(value),
-        this.typeArguments = _referenceList(typeArguments);
+      : this.valueRef = new Reference<Primitive>(value),
+        this.typeArgumentRefs = _referenceList(typeArguments);
 
   accept(Visitor visitor) => visitor.visitTypeTest(this);
 
@@ -1036,8 +1054,8 @@ class TypeTest extends Primitive {
   bool get isSafeForReordering => true;
 
   void setParentPointers() {
-    value.parent = this;
-    _setParentsOnList(typeArguments, this);
+    valueRef.parent = this;
+    _setParentsOnList(typeArgumentRefs, this);
   }
 }
 
@@ -1045,11 +1063,13 @@ class TypeTest extends Primitive {
 ///
 /// Returns `true` if [interceptor] is for [dartType].
 class TypeTestViaFlag extends Primitive {
-  Reference<Primitive> interceptor;
+  Reference<Primitive> interceptorRef;
   final DartType dartType;
 
+  Primitive get interceptor => interceptorRef.definition;
+
   TypeTestViaFlag(Primitive interceptor, this.dartType)
-      : this.interceptor = new Reference<Primitive>(interceptor);
+      : this.interceptorRef = new Reference<Primitive>(interceptor);
 
   accept(Visitor visitor) => visitor.visitTypeTestViaFlag(this);
 
@@ -1058,7 +1078,7 @@ class TypeTestViaFlag extends Primitive {
   bool get isSafeForReordering => true;
 
   void setParentPointers() {
-    interceptor.parent = this;
+    interceptorRef.parent = this;
   }
 }
 
@@ -1073,25 +1093,29 @@ class TypeTestViaFlag extends Primitive {
 /// simplify type propagation, since a better type can be computed for the
 /// continuation parameter without needing flow-sensitive analysis.
 class TypeCast extends UnsafePrimitive {
-  Reference<Primitive> value;
+  Reference<Primitive> valueRef;
   final DartType dartType;
 
   /// See the corresponding field on [TypeTest].
-  final List<Reference<Primitive>> typeArguments;
+  final List<Reference<Primitive>> typeArgumentRefs;
+
+  Primitive get value => valueRef.definition;
+  Primitive typeArgument(int n) => typeArgumentRefs[n].definition;
+  Iterable<Primitive> get typeArguments => _dereferenceList(typeArgumentRefs);
 
   TypeCast(Primitive value,
            this.dartType,
            List<Primitive> typeArguments)
-      : this.value = new Reference<Primitive>(value),
-        this.typeArguments = _referenceList(typeArguments);
+      : this.valueRef = new Reference<Primitive>(value),
+        this.typeArgumentRefs = _referenceList(typeArguments);
 
   accept(Visitor visitor) => visitor.visitTypeCast(this);
 
   bool get hasValue => true;
 
   void setParentPointers() {
-    value.parent = this;
-    _setParentsOnList(typeArguments, this);
+    valueRef.parent = this;
+    _setParentsOnList(typeArgumentRefs, this);
   }
 }
 
@@ -1100,13 +1124,16 @@ class TypeCast extends UnsafePrimitive {
 /// It must be known that the arguments have the proper types.
 class ApplyBuiltinOperator extends Primitive {
   BuiltinOperator operator;
-  List<Reference<Primitive>> arguments;
+  List<Reference<Primitive>> argumentRefs;
   final SourceInformation sourceInformation;
+
+  Primitive argument(int n) => argumentRefs[n].definition;
+  Iterable<Primitive> get arguments => _dereferenceList(argumentRefs);
 
   ApplyBuiltinOperator(this.operator,
                        List<Primitive> arguments,
                        this.sourceInformation)
-      : this.arguments = _referenceList(arguments);
+      : this.argumentRefs = _referenceList(arguments);
 
   accept(Visitor visitor) => visitor.visitApplyBuiltinOperator(this);
 
@@ -1115,7 +1142,7 @@ class ApplyBuiltinOperator extends Primitive {
   bool get isSafeForReordering => true;
 
   void setParentPointers() {
-    _setParentsOnList(arguments, this);
+    _setParentsOnList(argumentRefs, this);
   }
 }
 
@@ -1124,9 +1151,13 @@ class ApplyBuiltinOperator extends Primitive {
 /// It must be known that the arguments have the proper types.
 class ApplyBuiltinMethod extends Primitive {
   BuiltinMethod method;
-  Reference<Primitive> receiver;
-  List<Reference<Primitive>> arguments;
+  Reference<Primitive> receiverRef;
+  List<Reference<Primitive>> argumentRefs;
   final SourceInformation sourceInformation;
+
+  Primitive get receiver => receiverRef.definition;
+  Primitive argument(int n) => argumentRefs[n].definition;
+  Iterable<Primitive> get arguments => _dereferenceList(argumentRefs);
 
   bool receiverIsNotNull;
 
@@ -1135,8 +1166,8 @@ class ApplyBuiltinMethod extends Primitive {
                      List<Primitive> arguments,
                      this.sourceInformation,
                      {this.receiverIsNotNull: false})
-      : this.receiver = new Reference<Primitive>(receiver),
-        this.arguments = _referenceList(arguments);
+      : this.receiverRef = new Reference<Primitive>(receiver),
+        this.argumentRefs = _referenceList(arguments);
 
   accept(Visitor visitor) => visitor.visitApplyBuiltinMethod(this);
 
@@ -1145,8 +1176,8 @@ class ApplyBuiltinMethod extends Primitive {
   bool get isSafeForReordering => false;
 
   void setParentPointers() {
-    receiver.parent = this;
-    _setParentsOnList(arguments, this);
+    receiverRef.parent = this;
+    _setParentsOnList(argumentRefs, this);
   }
 
   int get effects => getEffectsOfBuiltinMethod(method);
@@ -1157,14 +1188,16 @@ class ApplyBuiltinMethod extends Primitive {
 /// Throw is an expression, i.e., it always occurs in tail position with
 /// respect to a body or expression.
 class Throw extends TailExpression {
-  Reference<Primitive> value;
+  Reference<Primitive> valueRef;
 
-  Throw(Primitive value) : value = new Reference<Primitive>(value);
+  Primitive get value => valueRef.definition;
+
+  Throw(Primitive value) : valueRef = new Reference<Primitive>(value);
 
   accept(BlockVisitor visitor) => visitor.visitThrow(this);
 
   void setParentPointers() {
-    value.parent = this;
+    valueRef.parent = this;
   }
 }
 
@@ -1195,10 +1228,12 @@ class Unreachable extends TailExpression {
 ///   let prim p = ![variable] in [body]
 ///
 class GetMutable extends Primitive {
-  final Reference<MutableVariable> variable;
+  final Reference<MutableVariable> variableRef;
+
+  MutableVariable get variable => variableRef.definition;
 
   GetMutable(MutableVariable variable)
-      : this.variable = new Reference<MutableVariable>(variable);
+      : this.variableRef = new Reference<MutableVariable>(variable);
 
   accept(Visitor visitor) => visitor.visitGetMutable(this);
 
@@ -1207,7 +1242,7 @@ class GetMutable extends Primitive {
   bool get isSafeForReordering => false;
 
   void setParentPointers() {
-    variable.parent = this;
+    variableRef.parent = this;
   }
 }
 
@@ -1218,12 +1253,15 @@ class GetMutable extends Primitive {
 ///
 ///   { [variable] := [value]; [body] }
 class SetMutable extends Primitive {
-  final Reference<MutableVariable> variable;
-  final Reference<Primitive> value;
+  final Reference<MutableVariable> variableRef;
+  final Reference<Primitive> valueRef;
+
+  MutableVariable get variable => variableRef.definition;
+  Primitive get value => valueRef.definition;
 
   SetMutable(MutableVariable variable, Primitive value)
-      : this.variable = new Reference<MutableVariable>(variable),
-        this.value = new Reference<Primitive>(value);
+      : this.variableRef = new Reference<MutableVariable>(variable),
+        this.valueRef = new Reference<Primitive>(value);
 
   accept(Visitor visitor) => visitor.visitSetMutable(this);
 
@@ -1232,16 +1270,20 @@ class SetMutable extends Primitive {
   bool get isSafeForReordering => false;
 
   void setParentPointers() {
-    variable.parent = this;
-    value.parent = this;
+    variableRef.parent = this;
+    valueRef.parent = this;
   }
 }
 
 /// Invoke a continuation in tail position.
 class InvokeContinuation extends TailExpression {
-  Reference<Continuation> continuation;
-  List<Reference<Primitive>> arguments;
+  Reference<Continuation> continuationRef;
+  List<Reference<Primitive>> argumentRefs;
   SourceInformation sourceInformation;
+
+  Continuation get continuation => continuationRef.definition;
+  Primitive argument(int n) => argumentRefs[n].definition;
+  Iterable<Primitive> get arguments => _dereferenceList(argumentRefs);
 
   // An invocation of a continuation is recursive if it occurs in the body of
   // the continuation itself.
@@ -1255,8 +1297,8 @@ class InvokeContinuation extends TailExpression {
                      {this.isRecursive: false,
                       this.isEscapingTry: false,
                       this.sourceInformation})
-      : continuation = new Reference<Continuation>(cont),
-        arguments = _referenceList(args) {
+      : continuationRef = new Reference<Continuation>(cont),
+        argumentRefs = _referenceList(args) {
     assert(cont.parameters == null || cont.parameters.length == args.length);
     if (isRecursive) cont.isRecursive = true;
   }
@@ -1268,15 +1310,15 @@ class InvokeContinuation extends TailExpression {
   /// (e.g., in the translation of break and continue).
   InvokeContinuation.uninitialized({this.isRecursive: false,
                                     this.isEscapingTry: false})
-      : continuation = null,
-        arguments = null,
+      : continuationRef = null,
+        argumentRefs = null,
         sourceInformation = null;
 
   accept(BlockVisitor visitor) => visitor.visitInvokeContinuation(this);
 
   void setParentPointers() {
-    if (continuation != null) continuation.parent = this;
-    if (arguments != null) _setParentsOnList(arguments, this);
+    if (continuationRef != null) continuationRef.parent = this;
+    if (argumentRefs != null) _setParentsOnList(argumentRefs, this);
   }
 }
 
@@ -1284,9 +1326,13 @@ class InvokeContinuation extends TailExpression {
 ///
 /// The two continuations must not declare any parameters.
 class Branch extends TailExpression {
-  final Reference<Primitive> condition;
-  final Reference<Continuation> trueContinuation;
-  final Reference<Continuation> falseContinuation;
+  final Reference<Primitive> conditionRef;
+  final Reference<Continuation> trueContinuationRef;
+  final Reference<Continuation> falseContinuationRef;
+
+  Primitive get condition => conditionRef.definition;
+  Continuation get trueContinuation => trueContinuationRef.definition;
+  Continuation get falseContinuation => falseContinuationRef.definition;
 
   /// If true, only the value `true` satisfies the condition. Otherwise, any
   /// truthy value satisfies the check.
@@ -1299,9 +1345,9 @@ class Branch extends TailExpression {
          Continuation trueCont,
          Continuation falseCont,
          {bool strict})
-      : this.condition = new Reference<Primitive>(condition),
-        trueContinuation = new Reference<Continuation>(trueCont),
-        falseContinuation = new Reference<Continuation>(falseCont),
+      : this.conditionRef = new Reference<Primitive>(condition),
+        trueContinuationRef = new Reference<Continuation>(trueCont),
+        falseContinuationRef = new Reference<Continuation>(falseCont),
         isStrictCheck = strict {
     assert(strict != null);
   }
@@ -1319,21 +1365,24 @@ class Branch extends TailExpression {
   accept(BlockVisitor visitor) => visitor.visitBranch(this);
 
   void setParentPointers() {
-    condition.parent = this;
-    trueContinuation.parent = this;
-    falseContinuation.parent = this;
+    conditionRef.parent = this;
+    trueContinuationRef.parent = this;
+    falseContinuationRef.parent = this;
   }
 }
 
 /// Directly assigns to a field on a given object.
 class SetField extends Primitive {
-  final Reference<Primitive> object;
+  final Reference<Primitive> objectRef;
   FieldElement field;
-  final Reference<Primitive> value;
+  final Reference<Primitive> valueRef;
+
+  Primitive get object => objectRef.definition;
+  Primitive get value => valueRef.definition;
 
   SetField(Primitive object, this.field, Primitive value)
-      : this.object = new Reference<Primitive>(object),
-        this.value = new Reference<Primitive>(value);
+      : this.objectRef = new Reference<Primitive>(object),
+        this.valueRef = new Reference<Primitive>(value);
 
   accept(Visitor visitor) => visitor.visitSetField(this);
 
@@ -1342,8 +1391,8 @@ class SetField extends Primitive {
   bool get isSafeForReordering => false;
 
   void setParentPointers() {
-    object.parent = this;
-    value.parent = this;
+    objectRef.parent = this;
+    valueRef.parent = this;
   }
 
   int get effects => Effects.changesInstanceField;
@@ -1353,7 +1402,7 @@ class SetField extends Primitive {
 ///
 /// The [object] must either be `null` or an object that has [field].
 class GetField extends Primitive {
-  final Reference<Primitive> object;
+  final Reference<Primitive> objectRef;
   FieldElement field;
 
   /// True if the field never changes value.
@@ -1364,8 +1413,10 @@ class GetField extends Primitive {
   //               side effects.
   bool objectIsNotNull = false;
 
+  Primitive get object => objectRef.definition;
+
   GetField(Primitive object, this.field, {this.isFinal: false})
-      : this.object = new Reference<Primitive>(object);
+      : this.objectRef = new Reference<Primitive>(object);
 
   accept(Visitor visitor) => visitor.visitGetField(this);
 
@@ -1376,7 +1427,7 @@ class GetField extends Primitive {
   toString() => 'GetField($field)';
 
   void setParentPointers() {
-    object.parent = this;
+    objectRef.parent = this;
   }
 
   int get effects => isFinal ? 0 : Effects.dependsOnInstanceField;
@@ -1384,7 +1435,7 @@ class GetField extends Primitive {
 
 /// Get the length of a string or native list.
 class GetLength extends Primitive {
-  final Reference<Primitive> object;
+  final Reference<Primitive> objectRef;
 
   /// True if the length of the given object can never change.
   bool isFinal;
@@ -1392,8 +1443,10 @@ class GetLength extends Primitive {
   /// True if the object is known not to be null.
   bool objectIsNotNull = false;
 
+  Primitive get object => objectRef.definition;
+
   GetLength(Primitive object, {this.isFinal: false})
-      : this.object = new Reference<Primitive>(object);
+      : this.objectRef = new Reference<Primitive>(object);
 
   bool get hasValue => true;
   bool get isSafeForElimination => objectIsNotNull;
@@ -1402,7 +1455,7 @@ class GetLength extends Primitive {
   accept(Visitor v) => v.visitGetLength(this);
 
   void setParentPointers() {
-    object.parent = this;
+    objectRef.parent = this;
   }
 
   int get effects => isFinal ? 0 : Effects.dependsOnIndexableLength;
@@ -1413,15 +1466,18 @@ class GetLength extends Primitive {
 /// [object] must be null or an indexable object, and [index] must be
 /// an integer where `0 <= index < object.length`.
 class GetIndex extends Primitive {
-  final Reference<Primitive> object;
-  final Reference<Primitive> index;
+  final Reference<Primitive> objectRef;
+  final Reference<Primitive> indexRef;
 
   /// True if the object is known not to be null.
   bool objectIsNotNull = false;
 
+  Primitive get object => objectRef.definition;
+  Primitive get index => indexRef.definition;
+
   GetIndex(Primitive object, Primitive index)
-      : this.object = new Reference<Primitive>(object),
-        this.index = new Reference<Primitive>(index);
+      : this.objectRef = new Reference<Primitive>(object),
+        this.indexRef = new Reference<Primitive>(index);
 
   bool get hasValue => true;
   bool get isSafeForElimination => objectIsNotNull;
@@ -1430,8 +1486,8 @@ class GetIndex extends Primitive {
   accept(Visitor v) => v.visitGetIndex(this);
 
   void setParentPointers() {
-    object.parent = this;
-    index.parent = this;
+    objectRef.parent = this;
+    indexRef.parent = this;
   }
 
   int get effects => Effects.dependsOnIndexableContent;
@@ -1446,14 +1502,18 @@ class GetIndex extends Primitive {
 ///
 /// The primitive itself has no value and may not be referenced.
 class SetIndex extends Primitive {
-  final Reference<Primitive> object;
-  final Reference<Primitive> index;
-  final Reference<Primitive> value;
+  final Reference<Primitive> objectRef;
+  final Reference<Primitive> indexRef;
+  final Reference<Primitive> valueRef;
+
+  Primitive get object => objectRef.definition;
+  Primitive get index => indexRef.definition;
+  Primitive get value => valueRef.definition;
 
   SetIndex(Primitive object, Primitive index, Primitive value)
-      : this.object = new Reference<Primitive>(object),
-        this.index = new Reference<Primitive>(index),
-        this.value = new Reference<Primitive>(value);
+      : this.objectRef = new Reference<Primitive>(object),
+        this.indexRef = new Reference<Primitive>(index),
+        this.valueRef = new Reference<Primitive>(value);
 
   bool get hasValue => false;
   bool get isSafeForElimination => false;
@@ -1462,9 +1522,9 @@ class SetIndex extends Primitive {
   accept(Visitor v) => v.visitSetIndex(this);
 
   void setParentPointers() {
-    object.parent = this;
-    index.parent = this;
-    value.parent = this;
+    objectRef.parent = this;
+    indexRef.parent = this;
+    valueRef.parent = this;
   }
 
   int get effects => Effects.changesIndexableContent;
@@ -1487,14 +1547,16 @@ class GetStatic extends Primitive {
   /// that initializes the field or always occurs after the field initializer.
   ///
   /// The value of the witness is not used.
-  Reference<Primitive> witness;
+  Reference<Primitive> witnessRef;
+
+  Primitive get witness => witnessRef.definition;
 
   GetStatic(this.element, {this.isFinal: false, this.sourceInformation});
 
   /// Read a lazily initialized static field that is known to have been
   /// initialized by [witness] or earlier.
   GetStatic.witnessed(this.element, Primitive witness, {this.sourceInformation})
-      : witness = witness == null ? null : new Reference<Primitive>(witness),
+      : witnessRef = _optionalReference(witness),
         isFinal = false;
 
   accept(Visitor visitor) => visitor.visitGetStatic(this);
@@ -1504,8 +1566,8 @@ class GetStatic extends Primitive {
   bool get isSafeForReordering => isFinal;
 
   void setParentPointers() {
-    if (witness != null) {
-      witness.parent = this;
+    if (witnessRef != null) {
+      witnessRef.parent = this;
     }
   }
 
@@ -1515,11 +1577,13 @@ class GetStatic extends Primitive {
 /// Sets the value of a static field.
 class SetStatic extends Primitive {
   final FieldElement element;
-  final Reference<Primitive> value;
+  final Reference<Primitive> valueRef;
   final SourceInformation sourceInformation;
 
+  Primitive get value => valueRef.definition;
+
   SetStatic(this.element, Primitive value, [this.sourceInformation])
-      : this.value = new Reference<Primitive>(value);
+      : this.valueRef = new Reference<Primitive>(value);
 
   accept(Visitor visitor) => visitor.visitSetStatic(this);
 
@@ -1528,7 +1592,7 @@ class SetStatic extends Primitive {
   bool get isSafeForReordering => false;
 
   void setParentPointers() {
-    value.parent = this;
+    valueRef.parent = this;
   }
 
   int get effects => Effects.changesStaticField;
@@ -1575,24 +1639,26 @@ class CreateInstance extends Primitive {
 
   /// Initial values for the fields on the class.
   /// The order corresponds to the order of fields on the class.
-  final List<Reference<Primitive>> arguments;
+  final List<Reference<Primitive>> argumentRefs;
 
   /// The runtime type information structure which contains the type arguments.
   ///
   /// May be `null` to indicate that no type information is needed because the
   /// compiler determined that the type information for instances of this class
   /// is not needed at runtime.
-  final Reference<Primitive> typeInformation;
+  final Reference<Primitive> typeInformationRef;
 
   final SourceInformation sourceInformation;
+
+  Primitive argument(int n) => argumentRefs[n].definition;
+  Iterable<Primitive> get arguments => _dereferenceList(argumentRefs);
+  Primitive get typeInformation => typeInformationRef?.definition;
 
   CreateInstance(this.classElement, List<Primitive> arguments,
       Primitive typeInformation,
       this.sourceInformation)
-      : this.arguments = _referenceList(arguments),
-        this.typeInformation = typeInformation == null
-            ? null
-            : new Reference<Primitive>(typeInformation);
+      : this.argumentRefs = _referenceList(arguments),
+        this.typeInformationRef = _optionalReference(typeInformation);
 
   accept(Visitor visitor) => visitor.visitCreateInstance(this);
 
@@ -1603,8 +1669,8 @@ class CreateInstance extends Primitive {
   toString() => 'CreateInstance($classElement)';
 
   void setParentPointers() {
-    _setParentsOnList(arguments, this);
-    if (typeInformation != null) typeInformation.parent = this;
+    _setParentsOnList(argumentRefs, this);
+    if (typeInformationRef != null) typeInformationRef.parent = this;
   }
 }
 
@@ -1628,12 +1694,14 @@ class CreateInstance extends Primitive {
 /// additional special cases for null (which can either by intercepted or
 /// bypassed).
 class Interceptor extends Primitive {
-  final Reference<Primitive> input;
+  final Reference<Primitive> inputRef;
   final Set<ClassElement> interceptedClasses = new Set<ClassElement>();
   final SourceInformation sourceInformation;
 
+  Primitive get input => inputRef.definition;
+
   Interceptor(Primitive input, this.sourceInformation)
-      : this.input = new Reference<Primitive>(input);
+      : this.inputRef = new Reference<Primitive>(input);
 
   accept(Visitor visitor) => visitor.visitInterceptor(this);
 
@@ -1642,17 +1710,20 @@ class Interceptor extends Primitive {
   bool get isSafeForReordering => true;
 
   void setParentPointers() {
-    input.parent = this;
+    inputRef.parent = this;
   }
 }
 
 /// Create an instance of [Invocation] for use in a call to `noSuchMethod`.
 class CreateInvocationMirror extends Primitive {
   final Selector selector;
-  final List<Reference<Primitive>> arguments;
+  final List<Reference<Primitive>> argumentRefs;
+
+  Primitive argument(int n) => argumentRefs[n].definition;
+  Iterable<Primitive> get arguments => _dereferenceList(argumentRefs);
 
   CreateInvocationMirror(this.selector, List<Primitive> arguments)
-      : this.arguments = _referenceList(arguments);
+      : this.argumentRefs = _referenceList(arguments);
 
   accept(Visitor visitor) => visitor.visitCreateInvocationMirror(this);
 
@@ -1661,20 +1732,23 @@ class CreateInvocationMirror extends Primitive {
   bool get isSafeForReordering => true;
 
   void setParentPointers() {
-    _setParentsOnList(arguments, this);
+    _setParentsOnList(argumentRefs, this);
   }
 }
 
 class ForeignCode extends UnsafePrimitive {
   final js.Template codeTemplate;
   final TypeMask storedType;
-  final List<Reference<Primitive>> arguments;
+  final List<Reference<Primitive>> argumentRefs;
   final native.NativeBehavior nativeBehavior;
   final FunctionElement dependency;
 
+  Primitive argument(int n) => argumentRefs[n].definition;
+  Iterable<Primitive> get arguments => _dereferenceList(argumentRefs);
+
   ForeignCode(this.codeTemplate, this.storedType, List<Primitive> arguments,
       this.nativeBehavior, {this.dependency})
-      : this.arguments = _referenceList(arguments) {
+      : this.argumentRefs = _referenceList(arguments) {
     effects = Effects.from(nativeBehavior.sideEffects);
   }
 
@@ -1683,11 +1757,11 @@ class ForeignCode extends UnsafePrimitive {
   bool get hasValue => true;
 
   void setParentPointers() {
-    _setParentsOnList(arguments, this);
+    _setParentsOnList(argumentRefs, this);
   }
 
   bool isNullGuardOnNullFirstArgument() {
-    if (arguments.length < 1) return false;
+    if (argumentRefs.length < 1) return false;
     // TODO(sra): Fix NativeThrowBehavior to distinguish MAY from
     // throws-nsm-on-null-followed-by-MAY and remove
     // [isNullGuardForFirstArgument].
@@ -1716,14 +1790,17 @@ class Constant extends Primitive {
 class LiteralList extends Primitive {
   /// The List type being created; this is not the type argument.
   final InterfaceType dartType;
-  final List<Reference<Primitive>> values;
+  final List<Reference<Primitive>> valueRefs;
 
   /// If non-null, this is an allocation site-specific type for the list
   /// created here.
   TypeMask allocationSiteType;
 
+  Primitive value(int n) => valueRefs[n].definition;
+  Iterable<Primitive> get values => _dereferenceList(valueRefs);
+
   LiteralList(this.dartType, List<Primitive> values, {this.allocationSiteType})
-      : this.values = _referenceList(values);
+      : this.valueRefs = _referenceList(values);
 
   accept(Visitor visitor) => visitor.visitLiteralList(this);
 
@@ -1732,7 +1809,7 @@ class LiteralList extends Primitive {
   bool get isSafeForReordering => true;
 
   void setParentPointers() {
-    _setParentsOnList(values, this);
+    _setParentsOnList(valueRefs, this);
   }
 }
 
@@ -1857,12 +1934,14 @@ class FunctionDefinition extends InteriorNode {
 class ReifyRuntimeType extends Primitive {
   /// Reference to the internal representation of a type (as produced, for
   /// example, by [ReadTypeVariable]).
-  final Reference<Primitive> value;
+  final Reference<Primitive> valueRef;
 
   final SourceInformation sourceInformation;
 
+  Primitive get value => valueRef.definition;
+
   ReifyRuntimeType(Primitive value, this.sourceInformation)
-    : this.value = new Reference<Primitive>(value);
+    : this.valueRef = new Reference<Primitive>(value);
 
   @override
   accept(Visitor visitor) => visitor.visitReifyRuntimeType(this);
@@ -1872,7 +1951,7 @@ class ReifyRuntimeType extends Primitive {
   bool get isSafeForReordering => true;
 
   void setParentPointers() {
-    value.parent = this;
+    valueRef.parent = this;
   }
 }
 
@@ -1883,11 +1962,13 @@ class ReifyRuntimeType extends Primitive {
 /// used as a Dart value.
 class ReadTypeVariable extends Primitive {
   final TypeVariableType variable;
-  final Reference<Primitive> target;
+  final Reference<Primitive> targetRef;
   final SourceInformation sourceInformation;
 
+  Primitive get target => targetRef.definition;
+
   ReadTypeVariable(this.variable, Primitive target, this.sourceInformation)
-      : this.target = new Reference<Primitive>(target);
+      : this.targetRef = new Reference<Primitive>(target);
 
   @override
   accept(Visitor visitor) => visitor.visitReadTypeVariable(this);
@@ -1897,7 +1978,7 @@ class ReadTypeVariable extends Primitive {
   bool get isSafeForReordering => true;
 
   void setParentPointers() {
-    target.parent = this;
+    targetRef.parent = this;
   }
 }
 
@@ -1959,12 +2040,15 @@ enum TypeExpressionKind {
 class TypeExpression extends Primitive {
   final TypeExpressionKind kind;
   final DartType dartType;
-  final List<Reference<Primitive>> arguments;
+  final List<Reference<Primitive>> argumentRefs;
+
+  Primitive argument(int n) => argumentRefs[n].definition;
+  Iterable<Primitive> get arguments => _dereferenceList(argumentRefs);
 
   TypeExpression(this.kind,
                  this.dartType,
                  List<Primitive> arguments)
-      : this.arguments = _referenceList(arguments) {
+      : this.argumentRefs = _referenceList(arguments) {
     assert(kind == TypeExpressionKind.INSTANCE
            ? dartType == (dartType.element as ClassElement).thisType
            : true);
@@ -1980,7 +2064,7 @@ class TypeExpression extends Primitive {
   bool get isSafeForReordering => true;
 
   void setParentPointers() {
-    _setParentsOnList(arguments, this);
+    _setParentsOnList(argumentRefs, this);
   }
 
   String get kindAsString {
@@ -1992,10 +2076,12 @@ class TypeExpression extends Primitive {
 }
 
 class Await extends UnsafePrimitive {
-  final Reference<Primitive> input;
+  final Reference<Primitive> inputRef;
+
+  Primitive get input => inputRef.definition;
 
   Await(Primitive input)
-    : this.input = new Reference<Primitive>(input);
+    : this.inputRef = new Reference<Primitive>(input);
 
   @override
   accept(Visitor visitor) {
@@ -2005,16 +2091,18 @@ class Await extends UnsafePrimitive {
   bool get hasValue => true;
 
   void setParentPointers() {
-    input.parent = this;
+    inputRef.parent = this;
   }
 }
 
 class Yield extends UnsafePrimitive {
-  final Reference<Primitive> input;
+  final Reference<Primitive> inputRef;
   final bool hasStar;
 
+  Primitive get input => inputRef.definition;
+
   Yield(Primitive input, this.hasStar)
-    : this.input = new Reference<Primitive>(input);
+    : this.inputRef = new Reference<Primitive>(input);
 
   @override
   accept(Visitor visitor) {
@@ -2024,7 +2112,7 @@ class Yield extends UnsafePrimitive {
   bool get hasValue => true;
 
   void setParentPointers() {
-    input.parent = this;
+    inputRef.parent = this;
   }
 }
 
@@ -2040,6 +2128,10 @@ Reference<Primitive> _optionalReference(Primitive definition) {
 
 List<Reference<Primitive>> _referenceList(Iterable<Primitive> definitions) {
   return definitions.map((e) => new Reference<Primitive>(e)).toList();
+}
+
+Iterable<Primitive> _dereferenceList(List<Reference<Primitive>> references) {
+  return references.map((ref) => ref.definition);
 }
 
 void _setParentsOnNodes(List<Node> nodes, Node parent) {
@@ -2251,47 +2343,47 @@ class DeepRecursiveVisitor implements Visitor {
   visitLetMutable(LetMutable node) {
     processLetMutable(node);
     visit(node.variable);
-    processReference(node.value);
+    processReference(node.valueRef);
     visit(node.body);
   }
 
   processInvokeStatic(InvokeStatic node) {}
   visitInvokeStatic(InvokeStatic node) {
     processInvokeStatic(node);
-    node.arguments.forEach(processReference);
+    node.argumentRefs.forEach(processReference);
   }
 
   processInvokeContinuation(InvokeContinuation node) {}
   visitInvokeContinuation(InvokeContinuation node) {
     processInvokeContinuation(node);
-    processReference(node.continuation);
-    node.arguments.forEach(processReference);
+    processReference(node.continuationRef);
+    node.argumentRefs.forEach(processReference);
   }
 
   processInvokeMethod(InvokeMethod node) {}
   visitInvokeMethod(InvokeMethod node) {
     processInvokeMethod(node);
-    processReference(node.receiver);
-    node.arguments.forEach(processReference);
+    processReference(node.receiverRef);
+    node.argumentRefs.forEach(processReference);
   }
 
   processInvokeMethodDirectly(InvokeMethodDirectly node) {}
   visitInvokeMethodDirectly(InvokeMethodDirectly node) {
     processInvokeMethodDirectly(node);
-    processReference(node.receiver);
-    node.arguments.forEach(processReference);
+    processReference(node.receiverRef);
+    node.argumentRefs.forEach(processReference);
   }
 
   processInvokeConstructor(InvokeConstructor node) {}
   visitInvokeConstructor(InvokeConstructor node) {
     processInvokeConstructor(node);
-    node.arguments.forEach(processReference);
+    node.argumentRefs.forEach(processReference);
   }
 
   processThrow(Throw node) {}
   visitThrow(Throw node) {
     processThrow(node);
-    processReference(node.value);
+    processReference(node.valueRef);
   }
 
   processRethrow(Rethrow node) {}
@@ -2302,36 +2394,36 @@ class DeepRecursiveVisitor implements Visitor {
   processBranch(Branch node) {}
   visitBranch(Branch node) {
     processBranch(node);
-    processReference(node.trueContinuation);
-    processReference(node.falseContinuation);
-    processReference(node.condition);
+    processReference(node.trueContinuationRef);
+    processReference(node.falseContinuationRef);
+    processReference(node.conditionRef);
   }
 
   processTypeCast(TypeCast node) {}
   visitTypeCast(TypeCast node) {
     processTypeCast(node);
-    processReference(node.value);
-    node.typeArguments.forEach(processReference);
+    processReference(node.valueRef);
+    node.typeArgumentRefs.forEach(processReference);
   }
 
   processTypeTest(TypeTest node) {}
   visitTypeTest(TypeTest node) {
     processTypeTest(node);
-    processReference(node.value);
-    node.typeArguments.forEach(processReference);
+    processReference(node.valueRef);
+    node.typeArgumentRefs.forEach(processReference);
   }
 
   processTypeTestViaFlag(TypeTestViaFlag node) {}
   visitTypeTestViaFlag(TypeTestViaFlag node) {
     processTypeTestViaFlag(node);
-    processReference(node.interceptor);
+    processReference(node.interceptorRef);
   }
 
   processSetMutable(SetMutable node) {}
   visitSetMutable(SetMutable node) {
     processSetMutable(node);
-    processReference(node.variable);
-    processReference(node.value);
+    processReference(node.variableRef);
+    processReference(node.valueRef);
   }
 
   processGetLazyStatic(GetLazyStatic node) {}
@@ -2342,7 +2434,7 @@ class DeepRecursiveVisitor implements Visitor {
   processLiteralList(LiteralList node) {}
   visitLiteralList(LiteralList node) {
     processLiteralList(node);
-    node.values.forEach(processReference);
+    node.valueRefs.forEach(processReference);
   }
 
   processConstant(Constant node) {}
@@ -2358,7 +2450,7 @@ class DeepRecursiveVisitor implements Visitor {
   processGetMutable(GetMutable node) {}
   visitGetMutable(GetMutable node) {
     processGetMutable(node);
-    processReference(node.variable);
+    processReference(node.variableRef);
   }
 
   processParameter(Parameter node) {}
@@ -2369,41 +2461,43 @@ class DeepRecursiveVisitor implements Visitor {
   processInterceptor(Interceptor node) {}
   visitInterceptor(Interceptor node) {
     processInterceptor(node);
-    processReference(node.input);
+    processReference(node.inputRef);
   }
 
   processCreateInstance(CreateInstance node) {}
   visitCreateInstance(CreateInstance node) {
     processCreateInstance(node);
-    node.arguments.forEach(processReference);
-    if (node.typeInformation != null) processReference(node.typeInformation);
+    node.argumentRefs.forEach(processReference);
+    if (node.typeInformationRef != null) {
+      processReference(node.typeInformationRef);
+    }
   }
 
   processSetField(SetField node) {}
   visitSetField(SetField node) {
     processSetField(node);
-    processReference(node.object);
-    processReference(node.value);
+    processReference(node.objectRef);
+    processReference(node.valueRef);
   }
 
   processGetField(GetField node) {}
   visitGetField(GetField node) {
     processGetField(node);
-    processReference(node.object);
+    processReference(node.objectRef);
   }
 
   processGetStatic(GetStatic node) {}
   visitGetStatic(GetStatic node) {
     processGetStatic(node);
-    if (node.witness != null) {
-      processReference(node.witness);
+    if (node.witnessRef != null) {
+      processReference(node.witnessRef);
     }
   }
 
   processSetStatic(SetStatic node) {}
   visitSetStatic(SetStatic node) {
     processSetStatic(node);
-    processReference(node.value);
+    processReference(node.valueRef);
   }
 
   processCreateBox(CreateBox node) {}
@@ -2414,44 +2508,44 @@ class DeepRecursiveVisitor implements Visitor {
   processReifyRuntimeType(ReifyRuntimeType node) {}
   visitReifyRuntimeType(ReifyRuntimeType node) {
     processReifyRuntimeType(node);
-    processReference(node.value);
+    processReference(node.valueRef);
   }
 
   processReadTypeVariable(ReadTypeVariable node) {}
   visitReadTypeVariable(ReadTypeVariable node) {
     processReadTypeVariable(node);
-    processReference(node.target);
+    processReference(node.targetRef);
   }
 
   processTypeExpression(TypeExpression node) {}
   visitTypeExpression(TypeExpression node) {
     processTypeExpression(node);
-    node.arguments.forEach(processReference);
+    node.argumentRefs.forEach(processReference);
   }
 
   processCreateInvocationMirror(CreateInvocationMirror node) {}
   visitCreateInvocationMirror(CreateInvocationMirror node) {
     processCreateInvocationMirror(node);
-    node.arguments.forEach(processReference);
+    node.argumentRefs.forEach(processReference);
   }
 
   processApplyBuiltinOperator(ApplyBuiltinOperator node) {}
   visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
     processApplyBuiltinOperator(node);
-    node.arguments.forEach(processReference);
+    node.argumentRefs.forEach(processReference);
   }
 
   processApplyBuiltinMethod(ApplyBuiltinMethod node) {}
   visitApplyBuiltinMethod(ApplyBuiltinMethod node) {
     processApplyBuiltinMethod(node);
-    processReference(node.receiver);
-    node.arguments.forEach(processReference);
+    processReference(node.receiverRef);
+    node.argumentRefs.forEach(processReference);
   }
 
   processForeignCode(ForeignCode node) {}
   visitForeignCode(ForeignCode node) {
     processForeignCode(node);
-    node.arguments.forEach(processReference);
+    node.argumentRefs.forEach(processReference);
   }
 
   processUnreachable(Unreachable node) {}
@@ -2462,34 +2556,34 @@ class DeepRecursiveVisitor implements Visitor {
   processAwait(Await node) {}
   visitAwait(Await node) {
     processAwait(node);
-    processReference(node.input);
+    processReference(node.inputRef);
   }
 
   processYield(Yield node) {}
   visitYield(Yield node) {
     processYield(node);
-    processReference(node.input);
+    processReference(node.inputRef);
   }
 
   processGetLength(GetLength node) {}
   visitGetLength(GetLength node) {
     processGetLength(node);
-    processReference(node.object);
+    processReference(node.objectRef);
   }
 
   processGetIndex(GetIndex node) {}
   visitGetIndex(GetIndex node) {
     processGetIndex(node);
-    processReference(node.object);
-    processReference(node.index);
+    processReference(node.objectRef);
+    processReference(node.indexRef);
   }
 
   processSetIndex(SetIndex node) {}
   visitSetIndex(SetIndex node) {
     processSetIndex(node);
-    processReference(node.object);
-    processReference(node.index);
-    processReference(node.value);
+    processReference(node.objectRef);
+    processReference(node.indexRef);
+    processReference(node.valueRef);
   }
 
   processRefinement(Refinement node) {}
@@ -2501,21 +2595,21 @@ class DeepRecursiveVisitor implements Visitor {
   processBoundsCheck(BoundsCheck node) {}
   visitBoundsCheck(BoundsCheck node) {
     processBoundsCheck(node);
-    processReference(node.object);
-    if (node.index != null) {
-      processReference(node.index);
+    processReference(node.objectRef);
+    if (node.indexRef != null) {
+      processReference(node.indexRef);
     }
-    if (node.length != null) {
-      processReference(node.length);
+    if (node.lengthRef != null) {
+      processReference(node.lengthRef);
     }
   }
 
   processNullCheck(ReceiverCheck node) {}
   visitReceiverCheck(ReceiverCheck node) {
     processNullCheck(node);
-    processReference(node.value);
-    if (node.condition != null) {
-      processReference(node.condition);
+    processReference(node.valueRef);
+    if (node.conditionRef != null) {
+      processReference(node.conditionRef);
     }
   }
 }
@@ -2611,7 +2705,7 @@ class TrampolineRecursiveVisitor extends DeepRecursiveVisitor {
   Expression traverseLetMutable(LetMutable node) {
     processLetMutable(node);
     visit(node.variable);
-    processReference(node.value);
+    processReference(node.valueRef);
     return node.body;
   }
 
@@ -2706,48 +2800,49 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   visitContinuation(Continuation node) {}
 
   Definition visitInvokeStatic(InvokeStatic node) {
-    return new InvokeStatic(node.target, node.selector, getList(node.arguments),
-        node.sourceInformation);
+    return new InvokeStatic(node.target, node.selector,
+        getList(node.argumentRefs), node.sourceInformation);
   }
 
   Definition visitInvokeMethod(InvokeMethod node) {
-    return new InvokeMethod(getCopy(node.receiver), node.selector, node.mask,
-        getList(node.arguments),
+    return new InvokeMethod(getCopy(node.receiverRef), node.selector, node.mask,
+        getList(node.argumentRefs),
         sourceInformation: node.sourceInformation,
         callingConvention: node.callingConvention);
   }
 
   Definition visitInvokeMethodDirectly(InvokeMethodDirectly node) {
-    return new InvokeMethodDirectly(getCopy(node.receiver), node.target,
+    return new InvokeMethodDirectly(getCopy(node.receiverRef), node.target,
         node.selector,
-        getList(node.arguments),
+        getList(node.argumentRefs),
         node.sourceInformation,
         callingConvention: node.callingConvention);
   }
 
   Definition visitInvokeConstructor(InvokeConstructor node) {
     return new InvokeConstructor(node.dartType, node.target, node.selector,
-        getList(node.arguments),
+        getList(node.argumentRefs),
         node.sourceInformation)
         ..allocationSiteType = node.allocationSiteType;
   }
 
   Definition visitTypeCast(TypeCast node) {
-    return new TypeCast(getCopy(node.value), node.dartType,
-        getList(node.typeArguments));
+    return new TypeCast(getCopy(node.valueRef), node.dartType,
+        getList(node.typeArgumentRefs));
   }
 
   Definition visitSetMutable(SetMutable node) {
-    return new SetMutable(getCopy(node.variable), getCopy(node.value));
+    return new SetMutable(getCopy(node.variableRef), getCopy(node.valueRef));
   }
 
   Definition visitSetStatic(SetStatic node) {
-    return new SetStatic(node.element, getCopy(node.value),
+    return new SetStatic(node.element, getCopy(node.valueRef),
         node.sourceInformation);
   }
 
   Definition visitSetField(SetField node) {
-    return new SetField(getCopy(node.object), node.field, getCopy(node.value));
+    return new SetField(getCopy(node.objectRef), node.field,
+        getCopy(node.valueRef));
   }
 
   Definition visitGetLazyStatic(GetLazyStatic node) {
@@ -2757,15 +2852,15 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   }
 
   Definition visitAwait(Await node) {
-    return new Await(getCopy(node.input));
+    return new Await(getCopy(node.inputRef));
   }
 
   Definition visitYield(Yield node) {
-    return new Yield(getCopy(node.input), node.hasStar);
+    return new Yield(getCopy(node.inputRef), node.hasStar);
   }
 
   Definition visitLiteralList(LiteralList node) {
-    return new LiteralList(node.dartType, getList(node.values))
+    return new LiteralList(node.dartType, getList(node.valueRefs))
         ..allocationSiteType = node.allocationSiteType;
   }
 
@@ -2774,7 +2869,7 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   }
 
   Definition visitGetMutable(GetMutable node) {
-    return new GetMutable(getCopy(node.variable));
+    return new GetMutable(getCopy(node.variableRef));
   }
 
   Definition visitParameter(Parameter node) {
@@ -2786,9 +2881,9 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   }
 
   Definition visitGetStatic(GetStatic node) {
-    if (node.witness != null) {
+    if (node.witnessRef != null) {
       return new GetStatic.witnessed(node.element,
-          getCopy(node.witness),
+          getCopy(node.witnessRef),
           sourceInformation: node.sourceInformation);
     } else {
       return new GetStatic(node.element,
@@ -2798,20 +2893,20 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   }
 
   Definition visitInterceptor(Interceptor node) {
-    return new Interceptor(getCopy(node.input), node.sourceInformation)
+    return new Interceptor(getCopy(node.inputRef), node.sourceInformation)
         ..interceptedClasses.addAll(node.interceptedClasses);
   }
 
   Definition visitCreateInstance(CreateInstance node) {
     return new CreateInstance(
         node.classElement,
-        getList(node.arguments),
-        node.typeInformation == null ? null : getCopy(node.typeInformation),
+        getList(node.argumentRefs),
+        getCopyOrNull(node.typeInformationRef),
         node.sourceInformation);
   }
 
   Definition visitGetField(GetField node) {
-    return new GetField(getCopy(node.object), node.field,
+    return new GetField(getCopy(node.objectRef), node.field,
         isFinal: node.isFinal);
   }
 
@@ -2820,55 +2915,56 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   }
 
   Definition visitReifyRuntimeType(ReifyRuntimeType node) {
-    return new ReifyRuntimeType(getCopy(node.value), node.sourceInformation);
+    return new ReifyRuntimeType(getCopy(node.valueRef), node.sourceInformation);
   }
 
   Definition visitReadTypeVariable(ReadTypeVariable node) {
-    return new ReadTypeVariable(node.variable, getCopy(node.target),
+    return new ReadTypeVariable(node.variable, getCopy(node.targetRef),
         node.sourceInformation);
   }
 
   Definition visitTypeExpression(TypeExpression node) {
     return new TypeExpression(
-        node.kind, node.dartType, getList(node.arguments));
+        node.kind, node.dartType, getList(node.argumentRefs));
   }
 
   Definition visitCreateInvocationMirror(CreateInvocationMirror node) {
-    return new CreateInvocationMirror(node.selector, getList(node.arguments));
+    return new CreateInvocationMirror(node.selector,
+        getList(node.argumentRefs));
   }
 
   Definition visitTypeTest(TypeTest node) {
-    return new TypeTest(getCopy(node.value), node.dartType,
-        getList(node.typeArguments));
+    return new TypeTest(getCopy(node.valueRef), node.dartType,
+        getList(node.typeArgumentRefs));
   }
 
   Definition visitTypeTestViaFlag(TypeTestViaFlag node) {
-    return new TypeTestViaFlag(getCopy(node.interceptor), node.dartType);
+    return new TypeTestViaFlag(getCopy(node.interceptorRef), node.dartType);
   }
 
   Definition visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
-    return new ApplyBuiltinOperator(node.operator, getList(node.arguments),
+    return new ApplyBuiltinOperator(node.operator, getList(node.argumentRefs),
         node.sourceInformation);
   }
 
   Definition visitApplyBuiltinMethod(ApplyBuiltinMethod node) {
-    return new ApplyBuiltinMethod(node.method, getCopy(node.receiver),
-        getList(node.arguments),
+    return new ApplyBuiltinMethod(node.method, getCopy(node.receiverRef),
+        getList(node.argumentRefs),
         node.sourceInformation,
         receiverIsNotNull: node.receiverIsNotNull);
   }
 
   Definition visitGetLength(GetLength node) {
-    return new GetLength(getCopy(node.object), isFinal: node.isFinal);
+    return new GetLength(getCopy(node.objectRef), isFinal: node.isFinal);
   }
 
   Definition visitGetIndex(GetIndex node) {
-    return new GetIndex(getCopy(node.object), getCopy(node.index));
+    return new GetIndex(getCopy(node.objectRef), getCopy(node.indexRef));
   }
 
   Definition visitSetIndex(SetIndex node) {
-    return new SetIndex(getCopy(node.object), getCopy(node.index),
-        getCopy(node.value));
+    return new SetIndex(getCopy(node.objectRef), getCopy(node.indexRef),
+        getCopy(node.valueRef));
   }
 
   Definition visitRefinement(Refinement node) {
@@ -2877,28 +2973,28 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
 
   Definition visitBoundsCheck(BoundsCheck node) {
     if (node.hasNoChecks) {
-      return new BoundsCheck.noCheck(getCopy(node.object),
+      return new BoundsCheck.noCheck(getCopy(node.objectRef),
           node.sourceInformation);
     } else {
-      return new BoundsCheck(getCopy(node.object), getCopy(node.index),
-          getCopyOrNull(node.length),
+      return new BoundsCheck(getCopy(node.objectRef), getCopy(node.indexRef),
+          getCopyOrNull(node.lengthRef),
           node.checks,
           node.sourceInformation);
     }
   }
 
   Definition visitReceiverCheck(ReceiverCheck node) {
-    return new ReceiverCheck(getCopy(node.value),
+    return new ReceiverCheck(getCopy(node.valueRef),
         node.selector,
         node.sourceInformation,
-        condition: getCopyOrNull(node.condition),
+        condition: getCopyOrNull(node.conditionRef),
         useSelector: node.useSelector,
         isNullCheck: node.isNullCheck);
   }
 
   Definition visitForeignCode(ForeignCode node) {
     return new ForeignCode(node.codeTemplate, node.storedType,
-        getList(node.arguments),
+        getList(node.argumentRefs),
         node.nativeBehavior,
         dependency: node.dependency);
   }
@@ -3011,22 +3107,22 @@ class CopyingVisitor extends TrampolineRecursiveVisitor {
 
   Expression traverseLetMutable(LetMutable node) {
     plug(new LetMutable(_definitions.copy(node.variable),
-        _definitions.getCopy(node.value)));
+        _definitions.getCopy(node.valueRef)));
     return node.body;
   }
 
   // Tail expressions do not have references, so we do not need to map them
   // to their copies.
   visitInvokeContinuation(InvokeContinuation node) {
-    plug(new InvokeContinuation(_copies[node.continuation.definition],
-        _definitions.getList(node.arguments),
+    plug(new InvokeContinuation(_copies[node.continuation],
+        _definitions.getList(node.argumentRefs),
         isRecursive: node.isRecursive,
         isEscapingTry: node.isEscapingTry,
         sourceInformation: node.sourceInformation));
   }
 
   visitThrow(Throw node) {
-    plug(new Throw(_definitions.getCopy(node.value)));
+    plug(new Throw(_definitions.getCopy(node.valueRef)));
   }
 
   visitRethrow(Rethrow node) {
@@ -3034,9 +3130,9 @@ class CopyingVisitor extends TrampolineRecursiveVisitor {
   }
 
   visitBranch(Branch node) {
-    plug(new Branch.loose(_definitions.getCopy(node.condition),
-        _copies[node.trueContinuation.definition],
-        _copies[node.falseContinuation.definition])
+    plug(new Branch.loose(_definitions.getCopy(node.conditionRef),
+        _copies[node.trueContinuation],
+        _copies[node.falseContinuation])
       ..isStrictCheck = node.isStrictCheck);
   }
 

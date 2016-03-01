@@ -343,8 +343,8 @@ class ForwardJumpCollector extends JumpCollector {
         arguments.add(new ir.Reference(invocationEnvironment[varIndex]));
       }
       ir.InvokeContinuation invocation = _invocations[jumpIndex];
-      invocation.continuation = new ir.Reference(_continuation);
-      invocation.arguments = arguments;
+      invocation.continuationRef = new ir.Reference(_continuation);
+      invocation.argumentRefs = arguments;
     }
   }
 }

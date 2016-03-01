@@ -137,27 +137,27 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
 
   visitLetMutable(cps_ir.LetMutable node) {
     String id = names.name(node.variable);
-    printStmt(id, "LetMutable $id = ${formatReference(node.value)}");
+    printStmt(id, "LetMutable $id = ${formatReference(node.valueRef)}");
     visit(node.body);
   }
 
   visitInvokeStatic(cps_ir.InvokeStatic node) {
     String callName = node.selector.name;
-    String args = node.arguments.map(formatReference).join(', ');
+    String args = node.argumentRefs.map(formatReference).join(', ');
     return "InvokeStatic $callName ($args)";
   }
 
   visitInvokeMethod(cps_ir.InvokeMethod node) {
-    String receiver = formatReference(node.receiver);
+    String receiver = formatReference(node.receiverRef);
     String callName = node.selector.name;
-    String args = node.arguments.map(formatReference).join(', ');
+    String args = node.argumentRefs.map(formatReference).join(', ');
     return "InvokeMethod $receiver $callName ($args)";
   }
 
   visitInvokeMethodDirectly(cps_ir.InvokeMethodDirectly node) {
-    String receiver = formatReference(node.receiver);
+    String receiver = formatReference(node.receiverRef);
     String callName = node.selector.name;
-    String args = node.arguments.map(formatReference).join(', ');
+    String args = node.argumentRefs.map(formatReference).join(', ');
     return "InvokeMethodDirectly $receiver $callName ($args)";
   }
 
@@ -169,13 +169,13 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
     } else {
       callName = '${className}.${node.target.name}';
     }
-    String args = node.arguments.map(formatReference).join(', ');
+    String args = node.argumentRefs.map(formatReference).join(', ');
     return "InvokeConstructor $callName ($args)";
   }
 
   visitThrow(cps_ir.Throw node) {
     String dummy = names.name(node);
-    String value = formatReference(node.value);
+    String value = formatReference(node.valueRef);
     printStmt(dummy, "Throw $value");
   }
 
@@ -190,46 +190,46 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   }
 
   visitLiteralList(cps_ir.LiteralList node) {
-    String values = node.values.map(formatReference).join(', ');
+    String values = node.valueRefs.map(formatReference).join(', ');
     return "LiteralList ($values)";
   }
 
   visitTypeCast(cps_ir.TypeCast node) {
-    String value = formatReference(node.value);
-    String args = node.typeArguments.map(formatReference).join(', ');
+    String value = formatReference(node.valueRef);
+    String args = node.typeArgumentRefs.map(formatReference).join(', ');
     return "TypeCast ($value ${node.dartType} ($args))";
   }
 
   visitInvokeContinuation(cps_ir.InvokeContinuation node) {
     String dummy = names.name(node);
-    String kont = formatReference(node.continuation);
-    String args = node.arguments.map(formatReference).join(', ');
+    String kont = formatReference(node.continuationRef);
+    String args = node.argumentRefs.map(formatReference).join(', ');
     printStmt(dummy, "InvokeContinuation $kont ($args)");
   }
 
   visitBranch(cps_ir.Branch node) {
     String dummy = names.name(node);
-    String condition = formatReference(node.condition);
-    String trueCont = formatReference(node.trueContinuation);
-    String falseCont = formatReference(node.falseContinuation);
+    String condition = formatReference(node.conditionRef);
+    String trueCont = formatReference(node.trueContinuationRef);
+    String falseCont = formatReference(node.falseContinuationRef);
     String strict = node.isStrictCheck ? "Strict" : "NonStrict";
     printStmt(dummy, "Branch $condition ($trueCont, $falseCont) $strict");
   }
 
   visitAwait(cps_ir.Await node) {
-    String value = formatReference(node.input);
+    String value = formatReference(node.inputRef);
     return 'Await $value';
   }
 
   visitYield(cps_ir.Yield node) {
     String name = node.hasStar ? 'YieldStar' : 'Yield';
-    String value = formatReference(node.input);
+    String value = formatReference(node.inputRef);
     return '$name $value';
   }
 
   visitSetMutable(cps_ir.SetMutable node) {
-    String variable = names.name(node.variable.definition);
-    String value = formatReference(node.value);
+    String variable = names.name(node.variable);
+    String value = formatReference(node.valueRef);
     return 'SetMutable $variable := $value';
   }
 
@@ -260,14 +260,14 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   }
 
   visitSetField(cps_ir.SetField node) {
-    String object = formatReference(node.object);
+    String object = formatReference(node.objectRef);
     String field = node.field.name;
-    String value = formatReference(node.value);
+    String value = formatReference(node.valueRef);
     return 'SetField $object.$field = $value';
   }
 
   visitGetField(cps_ir.GetField node) {
-    String object = formatReference(node.object);
+    String object = formatReference(node.objectRef);
     String field = node.field.name;
     String finalFlag = node.isFinal ? 'final' : 'non-final';
     return 'GetField $object.$field $finalFlag';
@@ -281,7 +281,7 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
 
   visitSetStatic(cps_ir.SetStatic node) {
     String element = node.element.name;
-    String value = formatReference(node.value);
+    String value = formatReference(node.valueRef);
     return 'SetStatic $element = $value';
   }
 
@@ -297,87 +297,87 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
 
   visitCreateInstance(cps_ir.CreateInstance node) {
     String className = node.classElement.name;
-    String arguments = node.arguments.map(formatReference).join(', ');
-    String typeInformation = formatReference(node.typeInformation);
+    String arguments = node.argumentRefs.map(formatReference).join(', ');
+    String typeInformation = formatReference(node.typeInformationRef);
     return 'CreateInstance $className ($arguments) <$typeInformation>';
   }
 
   visitInterceptor(cps_ir.Interceptor node) {
-    return 'Interceptor(${formatReference(node.input)}, '
+    return 'Interceptor(${formatReference(node.inputRef)}, '
            '${node.interceptedClasses})';
   }
 
   visitGetMutable(cps_ir.GetMutable node) {
-    String variable = names.name(node.variable.definition);
+    String variable = names.name(node.variable);
     return 'GetMutable $variable';
   }
 
   visitReadTypeVariable(cps_ir.ReadTypeVariable node) {
     return "ReadTypeVariable ${node.variable.element} "
-        "${formatReference(node.target)}";
+        "${formatReference(node.targetRef)}";
   }
 
   visitReifyRuntimeType(cps_ir.ReifyRuntimeType node) {
-    return "ReifyRuntimeType ${formatReference(node.value)}";
+    return "ReifyRuntimeType ${formatReference(node.valueRef)}";
   }
 
   visitTypeExpression(cps_ir.TypeExpression node) {
     return "TypeExpression ${node.kindAsString} ${node.dartType}"
-        "${node.arguments.map(formatReference).join(', ')}";
+        "${node.argumentRefs.map(formatReference).join(', ')}";
   }
 
   visitCreateInvocationMirror(cps_ir.CreateInvocationMirror node) {
-    String args = node.arguments.map(formatReference).join(', ');
+    String args = node.argumentRefs.map(formatReference).join(', ');
     return "CreateInvocationMirror(${node.selector.name}, $args)";
   }
 
   visitTypeTest(cps_ir.TypeTest node) {
-    String value = formatReference(node.value);
-    String args = node.typeArguments.map(formatReference).join(', ');
+    String value = formatReference(node.valueRef);
+    String args = node.typeArgumentRefs.map(formatReference).join(', ');
     return "TypeTest ($value ${node.dartType} ($args))";
   }
 
   visitTypeTestViaFlag(cps_ir.TypeTestViaFlag node) {
-    String interceptor = formatReference(node.interceptor);
+    String interceptor = formatReference(node.interceptorRef);
     return "TypeTestViaFlag ($interceptor ${node.dartType})";
   }
 
   visitApplyBuiltinOperator(cps_ir.ApplyBuiltinOperator node) {
     String operator = node.operator.toString();
-    String args = node.arguments.map(formatReference).join(', ');
+    String args = node.argumentRefs.map(formatReference).join(', ');
     return 'ApplyBuiltinOperator $operator ($args)';
   }
 
   visitApplyBuiltinMethod(cps_ir.ApplyBuiltinMethod node) {
     String method = node.method.toString();
-    String receiver = formatReference(node.receiver);
-    String args = node.arguments.map(formatReference).join(', ');
+    String receiver = formatReference(node.receiverRef);
+    String args = node.argumentRefs.map(formatReference).join(', ');
     return 'ApplyBuiltinMethod $method $receiver ($args)';
   }
 
   visitForeignCode(cps_ir.ForeignCode node) {
     String id = names.name(node);
-    String arguments = node.arguments.map(formatReference).join(', ');
+    String arguments = node.argumentRefs.map(formatReference).join(', ');
     printStmt(id,
         "ForeignCode ${node.type} ${node.codeTemplate.source} $arguments");
   }
 
   visitGetLength(cps_ir.GetLength node) {
-    String object = formatReference(node.object);
+    String object = formatReference(node.objectRef);
     String finalFlag = node.isFinal ? 'final' : 'non-final';
     return 'GetLength $object $finalFlag';
   }
 
   visitGetIndex(cps_ir.GetIndex node) {
-    String object = formatReference(node.object);
-    String index = formatReference(node.index);
+    String object = formatReference(node.objectRef);
+    String index = formatReference(node.indexRef);
     return 'GetIndex $object $index';
   }
 
   visitSetIndex(cps_ir.SetIndex node) {
-    String object = formatReference(node.object);
-    String index = formatReference(node.index);
-    String value = formatReference(node.value);
+    String object = formatReference(node.objectRef);
+    String index = formatReference(node.indexRef);
+    String value = formatReference(node.valueRef);
     return 'SetIndex $object $index $value';
   }
 
@@ -387,19 +387,19 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
   }
 
   visitBoundsCheck(cps_ir.BoundsCheck node) {
-    String object = formatReference(node.object);
-    String index = node.index == null
+    String object = formatReference(node.objectRef);
+    String index = node.indexRef == null
         ? 'no-index'
-        : formatReference(node.index);
-    String length = node.length == null
+        : formatReference(node.indexRef);
+    String length = node.lengthRef == null
         ? 'no-length'
-        : formatReference(node.length);
+        : formatReference(node.lengthRef);
     return 'BoundsCheck $object $index $length ${node.checkString}';
   }
 
   visitReceiverCheck(cps_ir.ReceiverCheck node) {
-    String value = formatReference(node.value);
-    String condition = formatReference(node.condition);
+    String value = formatReference(node.valueRef);
+    String condition = formatReference(node.conditionRef);
     return 'ReceiverCheck $value $condition ${node.selector} '
         '${node.flagString}';
   }
@@ -510,7 +510,7 @@ class BlockCollector implements cps_ir.Visitor {
   }
 
   visitInvokeContinuation(cps_ir.InvokeContinuation exp) {
-    addEdgeToContinuation(exp.continuation);
+    addEdgeToContinuation(exp.continuationRef);
   }
 
   visitInvokeStatic(cps_ir.InvokeStatic node) {
@@ -543,11 +543,11 @@ class BlockCollector implements cps_ir.Visitor {
   }
 
   visitBranch(cps_ir.Branch exp) {
-    cps_ir.Continuation trueTarget = exp.trueContinuation.definition;
+    cps_ir.Continuation trueTarget = exp.trueContinuation;
     if (!trueTarget.isReturnContinuation) {
       currentBlock.addEdgeTo(getBlock(trueTarget));
     }
-    cps_ir.Continuation falseTarget = exp.falseContinuation.definition;
+    cps_ir.Continuation falseTarget = exp.falseContinuation;
     if (!falseTarget.isReturnContinuation) {
       currentBlock.addEdgeTo(getBlock(falseTarget));
     }

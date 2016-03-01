@@ -118,14 +118,14 @@ class LoopHierarchy {
     Continuation target;
     if (node is InvokeContinuation) {
       if (node.isRecursive) {
-        target = node.continuation.definition;
+        target = node.continuation;
       } else {
-        target = loopTarget[node.continuation.definition];
+        target = loopTarget[node.continuation];
       }
     } else if (node is Branch) {
       target = _markInnerLoop(
-          loopTarget[node.trueContinuation.definition],
-          loopTarget[node.falseContinuation.definition]);
+          loopTarget[node.trueContinuation],
+          loopTarget[node.falseContinuation]);
     } else if (node == null) {
       // If the code ends abruptly, use the exit loop provided in [update].
       target = _exitLoop;

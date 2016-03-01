@@ -39,7 +39,7 @@ class MutableVariablePreanalysis extends TrampolineRecursiveVisitor {
   }
 
   void processSetMutable(SetMutable node) {
-    MutableVariable variable = node.variable.definition;
+    MutableVariable variable = node.variable;
     if (currentDepth > variableDepth[variable]) {
       hasAssignmentInTry.add(variable);
     }
@@ -142,29 +142,29 @@ class MutableVariableEliminator implements Pass {
         stack.add(new VariableItem());
 
         // Put the initial value into the environment.
-        Primitive value = node.value.definition;
+        Primitive value = node.value;
         environment[node.variable] = value;
 
         // Preserve variable names.
         mergeHints(node.variable, value);
 
         // Remove the mutable variable binding.
-        node.value.unlink();
+        node.valueRef.unlink();
         node.remove();
       } else if (node is LetPrim && node.primitive is SetMutable) {
         SetMutable setter = node.primitive;
-        MutableVariable variable = setter.variable.definition;
+        MutableVariable variable = setter.variable;
         if (shouldRewrite(variable)) {
           // As above, update the environment, preserve variables and remove
           // the mutable variable assignment.
-          environment[variable] = setter.value.definition;
-          mergeHints(variable, setter.value.definition);
-          setter.value.unlink();
+          environment[variable] = setter.value;
+          mergeHints(variable, setter.value);
+          setter.valueRef.unlink();
           node.remove();
         }
       } else if (node is LetPrim && node.primitive is GetMutable) {
         GetMutable getter = node.primitive;
-        MutableVariable variable = getter.variable.definition;
+        MutableVariable variable = getter.variable;
         if (shouldRewrite(variable)) {
           // Replace with the reaching definition from the environment.
           Primitive value = environment[variable];
@@ -206,7 +206,7 @@ class MutableVariableEliminator implements Pass {
 
     // Analyze the terminal node.
     if (node is InvokeContinuation) {
-      Continuation cont = node.continuation.definition;
+      Continuation cont = node.continuation;
       if (cont.isReturnContinuation) return;
       // This is a call to a join continuation. Add arguments for the phi
       // parameters that were added to this continuation.
@@ -214,7 +214,7 @@ class MutableVariableEliminator implements Pass {
       for (int i = 0; i < phiCount; ++i) {
         Primitive value = environment[mutableVariables[i]];
         Reference<Primitive> arg = new Reference<Primitive>(value);
-        node.arguments.add(arg);
+        node.argumentRefs.add(arg);
         arg.parent = node;
       }
     } else if (node is Branch) {
@@ -222,10 +222,10 @@ class MutableVariableEliminator implements Pass {
       // Clone the environments once so the processing of one branch does not
       // mutate the environment needed to process the other branch.
       stack.add(new ContinuationItem(
-          node.trueContinuation.definition,
+          node.trueContinuation,
           new Map<MutableVariable, Primitive>.from(environment)));
       stack.add(new ContinuationItem(
-          node.falseContinuation.definition,
+          node.falseContinuation,
           environment));
     } else {
       assert(node is Throw || node is Unreachable);

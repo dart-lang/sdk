@@ -403,7 +403,7 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
   }
 
   void visitInvokeContinuation(InvokeContinuation node) {
-    Continuation cont = node.continuation.definition;
+    Continuation cont = node.continuation;
     if (cont.isRecursive) return;
     EffectNumbers join = effectsAt[cont];
     if (join == null) {
@@ -414,8 +414,8 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
   }
 
   void visitBranch(Branch node) {
-    Continuation trueCont = node.trueContinuation.definition;
-    Continuation falseCont = node.falseContinuation.definition;
+    Continuation trueCont = node.trueContinuation;
+    Continuation falseCont = node.falseContinuation;
     // Copy the effect number vector once, so the analysis of one branch does
     // not influence the other.
     effectsAt[trueCont] = effectNumbers;

@@ -237,9 +237,9 @@ class SizeVisitor extends TrampolineRecursiveVisitor {
   static int sizeOf(InvocationPrimitive invoke, FunctionDefinition function) {
     SizeVisitor visitor = new SizeVisitor();
     visitor.visit(function);
-    visitor.countArgument(invoke.receiver, function.thisParameter);
-    for (int i = 0; i < invoke.arguments.length; ++i) {
-      visitor.countArgument(invoke.arguments[i], function.parameters[i]);
+    visitor.countArgument(invoke.receiverRef, function.thisParameter);
+    for (int i = 0; i < invoke.argumentRefs.length; ++i) {
+      visitor.countArgument(invoke.argumentRefs[i], function.parameters[i]);
     }
     return visitor.size;
   }
@@ -336,13 +336,13 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
   /// function that takes optional arguments not passed at the call site.
   FunctionDefinition buildAdapter(InvokeMethod node, FunctionElement target) {
     Parameter thisParameter = new Parameter(new ThisParameterLocal(target))
-        ..type = node.receiver.definition.type;
+        ..type = node.receiver.type;
     List<Parameter> parameters = new List<Parameter>.generate(
-        node.arguments.length,
+        node.argumentRefs.length,
         (int index) {
           // TODO(kmillikin): Use a hint for the parameter names.
           return new Parameter(null)
-              ..type = node.arguments[index].definition.type;
+              ..type = node.argument(index).type;
         });
     Continuation returnContinuation = new Continuation.retrn();
     CpsFragment cps = new CpsFragment();
@@ -444,7 +444,7 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
       return null;
     }
 
-    Reference<Primitive> dartReceiver = invoke.dartReceiverReference;
+    Reference<Primitive> dartReceiver = invoke.dartReceiverRef;
     TypeMask abstractReceiver =
         dartReceiver == null ? null : abstractType(dartReceiver);
     // The receiver is non-null in a method body, unless the receiver is known
@@ -455,7 +455,7 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
             ? abstractReceiver
             : abstractReceiver.nonNullable();
     List<TypeMask> abstractArguments =
-        invoke.arguments.map(abstractType).toList();
+        invoke.argumentRefs.map(abstractType).toList();
     var cachedResult = _inliner.cache.get(target, callStructure,
         abstractReceiverInMethod,
         abstractArguments);
@@ -465,9 +465,8 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
 
     Primitive finish(FunctionDefinition function) {
       _fragment = new CpsFragment(invoke.sourceInformation);
-      Primitive receiver = invoke.receiver?.definition;
-      List<Primitive> arguments =
-          invoke.arguments.map((Reference ref) => ref.definition).toList();
+      Primitive receiver = invoke.receiver;
+      List<Primitive> arguments = invoke.arguments.toList();
       // Add a null check to the inlined function body if necessary.  The
       // cached function body does not contain the null check.
       if (dartReceiver != null && abstractReceiver.isNullable) {
@@ -518,17 +517,17 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
         variable.type = value.definition.type;
       }
       if (invoke.callingConvention == CallingConvention.Intercepted) {
-        setValue(function.thisParameter, invoke.receiver);
+        setValue(function.thisParameter, invoke.receiverRef);
         function.parameters[0].type = abstractReceiverInMethod;
-        for (int i = 1; i < invoke.arguments.length; ++i) {
-          setValue(function.parameters[i], invoke.arguments[i]);
+        for (int i = 1; i < invoke.argumentRefs.length; ++i) {
+          setValue(function.parameters[i], invoke.argumentRefs[i]);
         }
       } else {
-        if (invoke.receiver != null) {
+        if (invoke.receiverRef != null) {
           function.thisParameter.type = abstractReceiverInMethod;
         }
-        for (int i = 0; i < invoke.arguments.length; ++i) {
-          setValue(function.parameters[i], invoke.arguments[i]);
+        for (int i = 0; i < invoke.argumentRefs.length; ++i) {
+          setValue(function.parameters[i], invoke.argumentRefs[i]);
         }
       }
       optimizeBeforeInlining(function);

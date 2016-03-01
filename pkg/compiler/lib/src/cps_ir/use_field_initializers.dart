@@ -94,7 +94,7 @@ class UseFieldInitializers extends BlockVisitor implements Pass {
   }
 
   void visitLetMutable(LetMutable node) {
-    escape(node.value);
+    escape(node.valueRef);
   }
 
   void visitLetCont(LetCont node) {
@@ -125,24 +125,24 @@ class UseFieldInitializers extends BlockVisitor implements Pass {
     Primitive prim = node.primitive;
     if (prim is CreateInstance) {
       unescaped.add(prim);
-      prim.arguments.forEach(escape);
+      prim.argumentRefs.forEach(escape);
       return;
     }
     if (unescaped.isEmpty) return;
     if (prim is SetField) {
-      escape(prim.value);
-      Primitive object = prim.object.definition;
+      escape(prim.valueRef);
+      Primitive object = prim.object;
       if (object is CreateInstance && unescaped.contains(object)) {
         int index = getFieldIndex(object.classElement, prim.field);
         if (index == -1) {
           // This field is not initialized at creation time, so we cannot pull
           // set SetField into the CreateInstance instruction.  We have to
           // leave the instruction here, and this counts as a use of the object.
-          escape(prim.object);
+          escape(prim.objectRef);
         } else {
           // Replace the field initializer with the new value. There are no uses
           // of the object before this, so the old value cannot have been seen.
-          object.arguments[index].changeTo(prim.value.definition);
+          object.argumentRefs[index].changeTo(prim.value);
           prim.destroy();
           // The right-hand side might not be in scope at the CreateInstance.
           // Sink the creation down to this point.
@@ -156,13 +156,13 @@ class UseFieldInitializers extends BlockVisitor implements Pass {
       // When reading the field of a newly created object, just use the initial
       // value and destroy the GetField. This can unblock the other optimization
       // since we remove a use of the object.
-      Primitive object = prim.object.definition;
+      Primitive object = prim.object;
       if (object is CreateInstance && unescaped.contains(object)) {
         int index = getFieldIndex(object.classElement, prim.field);
         if (index == -1) {
-          escape(prim.object);
+          escape(prim.objectRef);
         } else {
-          prim.replaceUsesWith(object.arguments[index].definition);
+          prim.replaceUsesWith(object.argument(index));
           prim.destroy();
           node.remove();
         }
