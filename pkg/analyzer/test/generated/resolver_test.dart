@@ -8497,6 +8497,7 @@ class ResolverTestCase extends EngineTestCase {
 
   @override
   void setUp() {
+    ElementFactory.flushStaticState();
     super.setUp();
     reset();
   }
