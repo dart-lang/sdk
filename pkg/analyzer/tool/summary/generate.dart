@@ -63,6 +63,9 @@ final GeneratedFile schemaTarget =
 typedef String _StringToString(String s);
 
 class _CodeGenerator {
+  static const String _throwDeprecated =
+      "throw new UnimplementedError('attempt to access deprecated field')";
+
   /**
    * Buffer in which generated code is accumulated.
    */
@@ -279,6 +282,7 @@ class _CodeGenerator {
               throw new Exception('Cannot handle type arguments in `$type`');
             }
             int id;
+            bool isDeprecated = false;
             for (Annotation annotation in classMember.metadata) {
               if (annotation.name.name == 'Id') {
                 if (id != null) {
@@ -296,6 +300,11 @@ class _CodeGenerator {
                   throw new Exception(
                       '@Id parameter must be an integer literal ($desc)');
                 }
+              } else if (annotation.name.name == 'deprecated') {
+                if (annotation.arguments != null) {
+                  throw new Exception('@deprecated does not take args ($desc)');
+                }
+                isDeprecated = true;
               }
             }
             if (id == null) {
@@ -304,8 +313,8 @@ class _CodeGenerator {
             String doc = _getNodeDoc(lineInfo, classMember);
             idlModel.FieldType fieldType =
                 new idlModel.FieldType(type.name.name, isList);
-            cls.fields.add(new idlModel.FieldDeclaration(
-                doc, classMember.name.name, fieldType, id));
+            cls.allFields.add(new idlModel.FieldDeclaration(
+                doc, classMember.name.name, fieldType, id, isDeprecated));
           } else if (classMember is ConstructorDeclaration &&
               classMember.name.name == 'fromBuffer') {
             // Ignore `fromBuffer` declarations; they simply forward to the
@@ -396,13 +405,18 @@ class _CodeGenerator {
       outDoc(cls.documentation);
       out('table ${cls.name} {');
       indent(() {
-        for (int i = 0; i < cls.fields.length; i++) {
-          idlModel.FieldDeclaration field = cls.fields[i];
+        for (int i = 0; i < cls.allFields.length; i++) {
+          idlModel.FieldDeclaration field = cls.allFields[i];
           if (i != 0) {
             out();
           }
           outDoc(field.documentation);
-          out('${field.name}:${fbsType(field.type)} (id: ${field.id});');
+          List<String> attributes = <String>['id: ${field.id}'];
+          if (field.isDeprecated) {
+            attributes.add('deprecated');
+          }
+          String attrText = attributes.join(', ');
+          out('${field.name}:${fbsType(field.type)} ($attrText);');
         }
       });
       out('}');
@@ -532,7 +546,7 @@ class _CodeGenerator {
         out('$typeStr _$fieldName;');
       }
       // Generate getters and setters.
-      for (idlModel.FieldDeclaration field in cls.fields) {
+      for (idlModel.FieldDeclaration field in cls.allFields) {
         String fieldName = field.name;
         idlModel.FieldType fieldType = field.type;
         String typeStr = encodedType(fieldType);
@@ -540,34 +554,39 @@ class _CodeGenerator {
         String defSuffix = def == null ? '' : ' ??= $def';
         out();
         out('@override');
-        out('$typeStr get $fieldName => _$fieldName$defSuffix;');
-        out();
-        outDoc(field.documentation);
-        constructorParams.add('$typeStr $fieldName');
-        out('void set $fieldName($typeStr _value) {');
-        indent(() {
-          String stateFieldName = '_' + fieldName;
-          out('assert(!_finished);');
-          // Validate that int(s) are non-negative.
-          if (fieldType.typeName == 'int') {
-            if (!fieldType.isList) {
-              out('assert(_value == null || _value >= 0);');
-            } else {
-              out('assert(_value == null || _value.every((e) => e >= 0));');
+        if (field.isDeprecated) {
+          out('$typeStr get $fieldName => $_throwDeprecated;');
+        } else {
+          out('$typeStr get $fieldName => _$fieldName$defSuffix;');
+          out();
+          outDoc(field.documentation);
+          constructorParams.add('$typeStr $fieldName');
+          out('void set $fieldName($typeStr _value) {');
+          indent(() {
+            String stateFieldName = '_' + fieldName;
+            out('assert(!_finished);');
+            // Validate that int(s) are non-negative.
+            if (fieldType.typeName == 'int') {
+              if (!fieldType.isList) {
+                out('assert(_value == null || _value >= 0);');
+              } else {
+                out('assert(_value == null || _value.every((e) => e >= 0));');
+              }
             }
-          }
-          // Set the value.
-          out('$stateFieldName = _value;');
-        });
-        out('}');
+            // Set the value.
+            out('$stateFieldName = _value;');
+          });
+          out('}');
+        }
       }
       // Generate constructor.
       out();
       out('$builderName({${constructorParams.join(', ')}})');
-      for (int i = 0; i < cls.fields.length; i++) {
-        idlModel.FieldDeclaration field = cls.fields[i];
+      List<idlModel.FieldDeclaration> fields = cls.fields.toList();
+      for (int i = 0; i < fields.length; i++) {
+        idlModel.FieldDeclaration field = fields[i];
         String prefix = i == 0 ? '  : ' : '    ';
-        String suffix = i == cls.fields.length - 1 ? ';' : ',';
+        String suffix = i == fields.length - 1 ? ';' : ',';
         out('${prefix}_${field.name} = ${field.name}$suffix');
       }
       // Generate finish.
@@ -725,7 +744,7 @@ class _CodeGenerator {
         out('$returnType _$fieldName;');
       }
       // Write getters.
-      for (idlModel.FieldDeclaration field in cls.fields) {
+      for (idlModel.FieldDeclaration field in cls.allFields) {
         int index = field.id;
         String fieldName = field.name;
         idlModel.FieldType type = field.type;
@@ -767,13 +786,17 @@ class _CodeGenerator {
         out();
         out('@override');
         String returnType = dartType(type);
-        out('$returnType get $fieldName {');
-        indent(() {
-          String readExpr = '$readCode.vTableGet(_bp, $index, $def)';
-          out('_$fieldName ??= $readExpr;');
-          out('return _$fieldName;');
-        });
-        out('}');
+        if (field.isDeprecated) {
+          out('$returnType get $fieldName => $_throwDeprecated;');
+        } else {
+          out('$returnType get $fieldName {');
+          indent(() {
+            String readExpr = '$readCode.vTableGet(_bp, $index, $def)';
+            out('_$fieldName ??= $readExpr;');
+            out('return _$fieldName;');
+          });
+          out('}');
+        }
       }
     });
     out('}');
