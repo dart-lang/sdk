@@ -116,6 +116,12 @@ class AnalysisServer {
   final ServerPlugin serverPlugin;
 
   /**
+   * A list of the globs used to determine which files should be analyzed. The
+   * list is lazily created and should be accessed using [analyzedFilesGlobs].
+   */
+  List<Glob> _analyzedFilesGlobs = null;
+
+  /**
    * The [ContextManager] that handles the mapping from analysis roots to
    * context directories.
    */
@@ -321,6 +327,7 @@ class AnalysisServer {
         packageResolverProvider,
         embeddedResolverProvider,
         packageMapProvider,
+        analyzedFilesGlobs,
         instrumentationService,
         defaultContextOptions);
     ServerContextManagerCallbacks contextManagerCallbacks =
@@ -353,6 +360,27 @@ class AnalysisServer {
    */
   Iterable<AnalysisContext> get analysisContexts =>
       contextManager.analysisContexts;
+
+  /**
+   * Return a list of the globs used to determine which files should be analyzed.
+   */
+  List<Glob> get analyzedFilesGlobs {
+    if (_analyzedFilesGlobs == null) {
+      _analyzedFilesGlobs = <Glob>[];
+      List<String> patterns = serverPlugin.analyzedFilePatterns;
+      for (String pattern in patterns) {
+        try {
+          _analyzedFilesGlobs
+              .add(new Glob(JavaFile.pathContext.separator, pattern));
+        } catch (exception, stackTrace) {
+          AnalysisEngine.instance.logger.logError(
+              'Invalid glob pattern: "$pattern"',
+              new CaughtException(exception, stackTrace));
+        }
+      }
+    }
+    return _analyzedFilesGlobs;
+  }
 
   /**
    * Return a table mapping [Folder]s to the [AnalysisContext]s associated with
@@ -1460,34 +1488,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
    */
   final ResourceProvider resourceProvider;
 
-  /**
-   * A list of the globs used to determine which files should be analyzed. The
-   * list is lazily created and should be accessed using [analyzedFilesGlobs].
-   */
-  List<Glob> _analyzedFilesGlobs = null;
-
   ServerContextManagerCallbacks(this.analysisServer, this.resourceProvider);
-
-  /**
-   * Return a list of the globs used to determine which files should be analyzed.
-   */
-  List<Glob> get analyzedFilesGlobs {
-    if (_analyzedFilesGlobs == null) {
-      _analyzedFilesGlobs = <Glob>[];
-      List<String> patterns = analysisServer.serverPlugin.analyzedFilePatterns;
-      for (String pattern in patterns) {
-        try {
-          _analyzedFilesGlobs
-              .add(new Glob(JavaFile.pathContext.separator, pattern));
-        } catch (exception, stackTrace) {
-          AnalysisEngine.instance.logger.logError(
-              'Invalid glob pattern: "$pattern"',
-              new CaughtException(exception, stackTrace));
-        }
-      }
-    }
-    return _analyzedFilesGlobs;
-  }
 
   @override
   AnalysisContext addContext(
@@ -1540,22 +1541,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     analysisServer.sendContextAnalysisDoneNotifications(
         context, AnalysisDoneReason.CONTEXT_REMOVED);
     context.dispose();
-  }
-
-  @override
-  bool shouldFileBeAnalyzed(File file) {
-    for (Glob glob in analyzedFilesGlobs) {
-      if (glob.matches(file.path)) {
-        // Emacs creates dummy links to track the fact that a file is open for
-        // editing and has unsaved changes (e.g. having unsaved changes to
-        // 'foo.dart' causes a link '.#foo.dart' to be created, which points to
-        // the non-existent file 'username@hostname.pid'. To avoid these dummy
-        // links causing the analyzer to thrash, just ignore links to
-        // non-existent files.
-        return file.exists;
-      }
-    }
-    return false;
   }
 
   @override

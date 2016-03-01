@@ -31,6 +31,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/absolute_path.dart';
+import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:package_config/packages.dart';
 import 'package:package_config/packages_file.dart' as pkgfile show parse;
@@ -347,11 +348,6 @@ abstract class ContextManagerCallbacks {
   void removeContext(Folder folder, List<String> flushedFiles);
 
   /**
-   * Return `true` if the given [file] should be analyzed.
-   */
-  bool shouldFileBeAnalyzed(File file);
-
-  /**
    * Called when the disposition for a context has changed.
    */
   void updateContextPackageUriResolver(
@@ -453,14 +449,19 @@ class ContextManagerImpl implements ContextManager {
       new AnalysisOptionsProvider();
 
   /**
-   * The instrumentation service used to report instrumentation data.
+   * A list of the globs used to determine which files should be analyzed.
    */
-  final InstrumentationService _instrumentationService;
+  final List<Glob> analyzedFilesGlobs;
 
   /**
    * The default options used to create new analysis contexts.
    */
   final AnalysisOptionsImpl defaultContextOptions;
+
+  /**
+   * The instrumentation service used to report instrumentation data.
+   */
+  final InstrumentationService _instrumentationService;
 
   @override
   ContextManagerCallbacks callbacks;
@@ -490,6 +491,7 @@ class ContextManagerImpl implements ContextManager {
       this.packageResolverProvider,
       this.embeddedUriResolverProvider,
       this._packageMapProvider,
+      this.analyzedFilesGlobs,
       this._instrumentationService,
       this.defaultContextOptions) {
     absolutePathContext = resourceProvider.absolutePathContext;
@@ -796,7 +798,7 @@ class ContextManagerImpl implements ContextManager {
       // add files, recurse into folders
       if (child is File) {
         // ignore if should not be analyzed at all
-        if (!callbacks.shouldFileBeAnalyzed(child)) {
+        if (!_shouldFileBeAnalyzed(child)) {
           continue;
         }
         // ignore if was not excluded
@@ -843,7 +845,7 @@ class ContextManagerImpl implements ContextManager {
       }
       // add files, recurse into folders
       if (child is File) {
-        if (callbacks.shouldFileBeAnalyzed(child)) {
+        if (_shouldFileBeAnalyzed(child)) {
           Source source = createSourceInContext(info.context, child);
           changeSet.addedSource(source);
           info.sources[path] = source;
@@ -1317,7 +1319,7 @@ class ContextManagerImpl implements ContextManager {
         // that case don't add it.
         if (resource is File) {
           File file = resource;
-          if (callbacks.shouldFileBeAnalyzed(file)) {
+          if (_shouldFileBeAnalyzed(file)) {
             ChangeSet changeSet = new ChangeSet();
             Source source = createSourceInContext(info.context, file);
             changeSet.addedSource(source);
@@ -1498,6 +1500,24 @@ class ContextManagerImpl implements ContextManager {
         info.folder, dependencies.add, _findPackageSpecFile(info.folder));
     info.setDependencies(dependencies);
     callbacks.updateContextPackageUriResolver(info.folder, disposition);
+  }
+
+  /**
+   * Return `true` if the given [file] should be analyzed.
+   */
+  bool _shouldFileBeAnalyzed(File file) {
+    for (Glob glob in analyzedFilesGlobs) {
+      if (glob.matches(file.path)) {
+        // Emacs creates dummy links to track the fact that a file is open for
+        // editing and has unsaved changes (e.g. having unsaved changes to
+        // 'foo.dart' causes a link '.#foo.dart' to be created, which points to
+        // the non-existent file 'username@hostname.pid'. To avoid these dummy
+        // links causing the analyzer to thrash, just ignore links to
+        // non-existent files.
+        return file.exists;
+      }
+    }
+    return false;
   }
 
   /**
