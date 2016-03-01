@@ -114,6 +114,23 @@ class LibrarySerializationResult {
  * [PackageBundleBuilder].
  */
 class PackageBundleAssembler {
+  /**
+   * Value that will be stored in [PackageBundle.majorVersion] for any summaries
+   * created by this code.  When making a breaking change to the summary format,
+   * this value should be incremented by 1 and [currentMinorVersion] should be
+   * reset to zero.
+   */
+  static const int currentMajorVersion = 1;
+
+  /**
+   * Value that will be stored in [PackageBundle.minorVersion] for any summaries
+   * created by this code.  When making a non-breaking change to the summary
+   * format that clients might need to be aware of (such as adding a kind of
+   * data that was previously not summarized), this value should be incremented
+   * by 1.
+   */
+  static const int currentMinorVersion = 0;
+
   final List<String> _linkedLibraryUris = <String>[];
   final List<LinkedLibraryBuilder> _linkedLibraries = <LinkedLibraryBuilder>[];
   final List<String> _unlinkedUnitUris = <String>[];
@@ -129,7 +146,9 @@ class PackageBundleAssembler {
         linkedLibraries: _linkedLibraries,
         unlinkedUnitUris: _unlinkedUnitUris,
         unlinkedUnits: _unlinkedUnits,
-        unlinkedUnitHashes: _unlinkedUnitHashes);
+        unlinkedUnitHashes: _unlinkedUnitHashes,
+        majorVersion: currentMajorVersion,
+        minorVersion: currentMinorVersion);
   }
 
   /**

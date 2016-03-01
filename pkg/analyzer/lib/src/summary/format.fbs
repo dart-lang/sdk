@@ -809,6 +809,18 @@ table PackageBundle {
   linkedLibraryUris:[string] (id: 1);
 
   /**
+   * Major version of the summary format.  See
+   * [PackageBundleAssembler.currentMajorVersion].
+   */
+  majorVersion:uint (id: 5);
+
+  /**
+   * Minor version of the summary format.  See
+   * [PackageBundleAssembler.currentMinorVersion].
+   */
+  minorVersion:uint (id: 6);
+
+  /**
    * List of MD5 hashes of the files listed in [unlinkedUnitUris].  Each hash
    * is encoded as a hexadecimal string using lower case letters.
    */

@@ -469,6 +469,20 @@ abstract class PackageBundle extends base.SummaryClass {
   List<String> get linkedLibraryUris;
 
   /**
+   * Major version of the summary format.  See
+   * [PackageBundleAssembler.currentMajorVersion].
+   */
+  @Id(5)
+  int get majorVersion;
+
+  /**
+   * Minor version of the summary format.  See
+   * [PackageBundleAssembler.currentMinorVersion].
+   */
+  @Id(6)
+  int get minorVersion;
+
+  /**
    * List of MD5 hashes of the files listed in [unlinkedUnitUris].  Each hash
    * is encoded as a hexadecimal string using lower case letters.
    */

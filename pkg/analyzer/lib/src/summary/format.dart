@@ -1246,6 +1246,8 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
 
   List<LinkedLibraryBuilder> _linkedLibraries;
   List<String> _linkedLibraryUris;
+  int _majorVersion;
+  int _minorVersion;
   List<String> _unlinkedUnitHashes;
   List<UnlinkedUnitBuilder> _unlinkedUnits;
   List<String> _unlinkedUnitUris;
@@ -1271,6 +1273,32 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
   void set linkedLibraryUris(List<String> _value) {
     assert(!_finished);
     _linkedLibraryUris = _value;
+  }
+
+  @override
+  int get majorVersion => _majorVersion ??= 0;
+
+  /**
+   * Major version of the summary format.  See
+   * [PackageBundleAssembler.currentMajorVersion].
+   */
+  void set majorVersion(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _majorVersion = _value;
+  }
+
+  @override
+  int get minorVersion => _minorVersion ??= 0;
+
+  /**
+   * Minor version of the summary format.  See
+   * [PackageBundleAssembler.currentMinorVersion].
+   */
+  void set minorVersion(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _minorVersion = _value;
   }
 
   @override
@@ -1307,9 +1335,11 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
     _unlinkedUnitUris = _value;
   }
 
-  PackageBundleBuilder({List<LinkedLibraryBuilder> linkedLibraries, List<String> linkedLibraryUris, List<String> unlinkedUnitHashes, List<UnlinkedUnitBuilder> unlinkedUnits, List<String> unlinkedUnitUris})
+  PackageBundleBuilder({List<LinkedLibraryBuilder> linkedLibraries, List<String> linkedLibraryUris, int majorVersion, int minorVersion, List<String> unlinkedUnitHashes, List<UnlinkedUnitBuilder> unlinkedUnits, List<String> unlinkedUnitUris})
     : _linkedLibraries = linkedLibraries,
       _linkedLibraryUris = linkedLibraryUris,
+      _majorVersion = majorVersion,
+      _minorVersion = minorVersion,
       _unlinkedUnitHashes = unlinkedUnitHashes,
       _unlinkedUnits = unlinkedUnits,
       _unlinkedUnitUris = unlinkedUnitUris;
@@ -1349,6 +1379,12 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
     if (offset_linkedLibraryUris != null) {
       fbBuilder.addOffset(1, offset_linkedLibraryUris);
     }
+    if (_majorVersion != null && _majorVersion != 0) {
+      fbBuilder.addUint32(5, _majorVersion);
+    }
+    if (_minorVersion != null && _minorVersion != 0) {
+      fbBuilder.addUint32(6, _minorVersion);
+    }
     if (offset_unlinkedUnitHashes != null) {
       fbBuilder.addOffset(4, offset_unlinkedUnitHashes);
     }
@@ -1381,6 +1417,8 @@ class _PackageBundleImpl extends Object with _PackageBundleMixin implements idl.
 
   List<idl.LinkedLibrary> _linkedLibraries;
   List<String> _linkedLibraryUris;
+  int _majorVersion;
+  int _minorVersion;
   List<String> _unlinkedUnitHashes;
   List<idl.UnlinkedUnit> _unlinkedUnits;
   List<String> _unlinkedUnitUris;
@@ -1395,6 +1433,18 @@ class _PackageBundleImpl extends Object with _PackageBundleMixin implements idl.
   List<String> get linkedLibraryUris {
     _linkedLibraryUris ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 1, const <String>[]);
     return _linkedLibraryUris;
+  }
+
+  @override
+  int get majorVersion {
+    _majorVersion ??= const fb.Uint32Reader().vTableGet(_bp, 5, 0);
+    return _majorVersion;
+  }
+
+  @override
+  int get minorVersion {
+    _minorVersion ??= const fb.Uint32Reader().vTableGet(_bp, 6, 0);
+    return _minorVersion;
   }
 
   @override
@@ -1422,6 +1472,8 @@ abstract class _PackageBundleMixin implements idl.PackageBundle {
     Map<String, Object> _result = <String, Object>{};
     if (linkedLibraries.isNotEmpty) _result["linkedLibraries"] = linkedLibraries.map((_value) => _value.toJson()).toList();
     if (linkedLibraryUris.isNotEmpty) _result["linkedLibraryUris"] = linkedLibraryUris;
+    if (majorVersion != 0) _result["majorVersion"] = majorVersion;
+    if (minorVersion != 0) _result["minorVersion"] = minorVersion;
     if (unlinkedUnitHashes.isNotEmpty) _result["unlinkedUnitHashes"] = unlinkedUnitHashes;
     if (unlinkedUnits.isNotEmpty) _result["unlinkedUnits"] = unlinkedUnits.map((_value) => _value.toJson()).toList();
     if (unlinkedUnitUris.isNotEmpty) _result["unlinkedUnitUris"] = unlinkedUnitUris;
@@ -1432,6 +1484,8 @@ abstract class _PackageBundleMixin implements idl.PackageBundle {
   Map<String, Object> toMap() => {
     "linkedLibraries": linkedLibraries,
     "linkedLibraryUris": linkedLibraryUris,
+    "majorVersion": majorVersion,
+    "minorVersion": minorVersion,
     "unlinkedUnitHashes": unlinkedUnitHashes,
     "unlinkedUnits": unlinkedUnits,
     "unlinkedUnitUris": unlinkedUnitUris,
