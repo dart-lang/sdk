@@ -305,7 +305,7 @@ Monitor::~Monitor() {
 }
 
 
-bool Mutex::TryEnter() {
+bool Monitor::TryEnter() {
   // Attempt to pass the semaphore but return immediately.
   BOOL result = TryEnterCriticalSection(&data_.cs_);
   if (!result) {
