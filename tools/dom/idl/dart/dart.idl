@@ -142,47 +142,6 @@ interface WebGLContextEvent {
                               optional DOMString statusMessageArg);
 };
 
-[DartSupplemental]
-interface WebGLRenderingContext {
-
-  //void         compressedTexImage2D(unsigned long target, long level, unsigned long internalformat, unsigned long width, unsigned long height, long border, unsigned long imageSize, const void* data);
-  //void         compressedTexSubImage2D(unsigned long target, long level, long xoffset, long yoffset, unsigned long width, unsigned long height, unsigned long format, unsigned long imageSize, const void* data);
-
-  [Custom] any getBufferParameter(unsigned long target, unsigned long pname);
-  [DartSuppress, DartStrictTypeChecking, Custom] void getBufferParameter();
-
-  [Custom] any getFramebufferAttachmentParameter(unsigned long target, unsigned long attachment, unsigned long pname);
-  [DartSuppress, DartStrictTypeChecking, Custom] void getFramebufferAttachmentParameter();
-
-  [Custom] any getParameter(unsigned long pname);
-  [DartSuppress, DartStrictTypeChecking, Custom] void getParameter();
-
-  [Custom] any getProgramParameter(WebGLProgram program, unsigned long pname);
-  [DartSuppress, DartStrictTypeChecking, Custom] void getProgramParameter();
-
-  [Custom] any getRenderbufferParameter(unsigned long target, unsigned long pname);
-  [DartSuppress, DartStrictTypeChecking, Custom] void getRenderbufferParameter();
-
-  [Custom] any getShaderParameter(WebGLShader shader, unsigned long pname);
-  [DartSuppress, DartStrictTypeChecking, Custom] void getShaderParameter();
-
-  // TBD
-  // void glGetShaderPrecisionFormat (GLenum shadertype, GLenum precisiontype, GLint* range, GLint* precision);
-
-  [Custom] any getExtension(DOMString name);
-  [DartSuppress, DartStrictTypeChecking, Custom] void getExtension(DOMString name);
-  [DartSuppress, DartStrictTypeChecking, Custom] void getSupportedExtensions();
-
-  [Custom] any getTexParameter(unsigned long target, unsigned long pname);
-  [DartSuppress, DartStrictTypeChecking, Custom] void getTexParameter();
-
-  [Custom] any getUniform(WebGLProgram program, WebGLUniformLocation location);
-  [DartSuppress, DartStrictTypeChecking, Custom] void getUniform();
-
-  [Custom] any getVertexAttrib(unsigned long index, unsigned long pname);
-  [DartSuppress, DartStrictTypeChecking, Custom] void getVertexAttrib();
-};
-
 // TODO(vsm): Define new names for these (see b/4436830).
 [DartSupplemental]
 interface IDBCursor {
