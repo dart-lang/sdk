@@ -630,45 +630,43 @@ A myVariable = null;
   void test_usedName_isInvokedBy() {
     verifyNoTestUnitErrors = false;
     _indexTestUnit('''
-class A {
-  Function x;
-
-  m() {
-    x(); // 1
-    this.x(); // 2
-    y(); // 3
-    this.y(); // 4
-  }
+class C {
+  x() {}
+}
+main(C c) {
+  x(); // nq
+  c.x(); // q
+  y(); // nq
+  c.y(); // q
 }
 ''');
     assertThatName('x')
-      ..isInvokedAt('x(); // 1', isQualified: false)
-      ..isInvokedAt('x(); // 2');
+      ..isNotInvokedAt('x(); // nq')
+      ..isNotInvokedAt('x(); // q');
     assertThatName('y')
-      ..isInvokedAt('y(); // 3', isQualified: false, isResolved: false)
-      ..isInvokedAt('y(); // 4', isResolved: false);
+      ..isNotInvokedAt('y(); // nq')
+      ..isInvokedAt('y(); // q');
   }
 
   void test_usedName_isReferencedBy() {
     verifyNoTestUnitErrors = false;
     _indexTestUnit('''
-class A {
+class C {
   int x;
-
-  m() {
-    x; // 1
-    this.x; // 2
-    y; // 3
-    this.y; // 4
-  }
+}
+main(C c) {
+  x; // nq
+  c.x; // q
+  y; // nq
+  c.y; // q
 }
 ''');
     assertThatName('x')
-      ..isReferencedAt('x; // 1', isQualified: false)
-      ..isReferencedAt('x; // 2');
+      ..isNotReferencedAt('x; // nq')
+      ..isNotReferencedAt('x; // q');
     assertThatName('y')
-      ..isReferencedAt('y; // 3', isQualified: false, isResolved: false)
-      ..isReferencedAt('y; // 4', isResolved: false);
+      ..isNotReferencedAt('y; // nq')
+      ..isReferencedAt('y; // q');
   }
 
   void _assertDefinedName(String name, IndexNameKind kind, String search) {
@@ -714,16 +712,22 @@ class A {
         'not found\n$element $expectedRelationKind at $expectedLocation');
   }
 
-  void _assertUsedName(
-      String name, IndexRelationKind kind, ExpectedLocation expectedLocation) {
+  void _assertUsedName(String name, IndexRelationKind kind,
+      ExpectedLocation expectedLocation, bool isNot) {
     int nameId = _getStringId(name);
     for (int i = 0; i < unitIndex.usedNames.length; i++) {
       if (unitIndex.usedNames[i] == nameId &&
           unitIndex.usedNameKinds[i] == kind &&
           unitIndex.usedNameOffsets[i] == expectedLocation.offset) {
+        if (isNot) {
+          _failWithIndexDump('Unexpected $name $kind at $expectedLocation');
+        }
         // TODO(scheglov) verify 'qualified' and 'resolved'
         return;
       }
+    }
+    if (isNot) {
+      return;
     }
     _failWithIndexDump('Not found $name $kind at $expectedLocation');
   }
@@ -861,21 +865,23 @@ class _NameIndexAssert {
 
   _NameIndexAssert(this.test, this.name);
 
-  void isInvokedAt(String search,
-      {int length, bool isQualified: true, bool isResolved: true}) {
-    test._assertUsedName(
-        name,
-        IndexRelationKind.IS_INVOKED_BY,
-        test._expectedLocation(search,
-            length: length, isQualified: isQualified, isResolved: isResolved));
+  void isInvokedAt(String search, {int length}) {
+    test._assertUsedName(name, IndexRelationKind.IS_INVOKED_BY,
+        test._expectedLocation(search, length: length), false);
   }
 
-  void isReferencedAt(String search,
-      {int length, bool isQualified: true, bool isResolved: true}) {
-    test._assertUsedName(
-        name,
-        IndexRelationKind.IS_REFERENCED_BY,
-        test._expectedLocation(search,
-            length: length, isQualified: isQualified, isResolved: isResolved));
+  void isNotInvokedAt(String search, {int length}) {
+    test._assertUsedName(name, IndexRelationKind.IS_INVOKED_BY,
+        test._expectedLocation(search, length: length), true);
+  }
+
+  void isNotReferencedAt(String search, {int length}) {
+    test._assertUsedName(name, IndexRelationKind.IS_REFERENCED_BY,
+        test._expectedLocation(search, length: length), true);
+  }
+
+  void isReferencedAt(String search, {int length}) {
+    test._assertUsedName(name, IndexRelationKind.IS_REFERENCED_BY,
+        test._expectedLocation(search, length: length), false);
   }
 }

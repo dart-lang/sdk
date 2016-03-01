@@ -280,7 +280,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
    */
   void recordNameRelation(SimpleIdentifier node, IndexRelationKind kind) {
     if (node != null) {
-      assembler.addNameRelation(node.name, kind, node.offset, node.length);
+      assembler.addNameRelation(node.name, kind, node.offset);
     }
   }
 
@@ -438,15 +438,18 @@ class _IndexContributor extends GeneralizingAstVisitor {
   @override
   visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier name = node.methodName;
-    // record name invocation
-    recordNameRelation(name, IndexRelationKind.IS_INVOKED_BY);
-    // element invocation
     Element element = name.bestElement;
+    // qualified unresolved name invocation
+    bool isQualified = node.realTarget != null;
+    if (isQualified && element == null) {
+      recordNameRelation(name, IndexRelationKind.IS_INVOKED_BY);
+    }
+    // element invocation
     if (element is MethodElement ||
         element is PropertyAccessorElement ||
         element is FunctionElement ||
         element is VariableElement) {
-      IndexRelationKind kind = node.realTarget != null
+      IndexRelationKind kind = isQualified
           ? IndexRelationKind.IS_INVOKED_QUALIFIED_BY
           : IndexRelationKind.IS_INVOKED_BY;
       recordRelation(element, kind, name);
@@ -500,15 +503,18 @@ class _IndexContributor extends GeneralizingAstVisitor {
       recordDefinedElement(element);
       return;
     }
-    // record name reference
-    recordNameRelation(node, IndexRelationKind.IS_REFERENCED_BY);
+    // record qualified unresolved name reference
+    bool isQualified = node.isQualified;
+    if (isQualified && element == null) {
+      recordNameRelation(node, IndexRelationKind.IS_REFERENCED_BY);
+    }
     // this.field parameter
     if (element is FieldFormalParameterElement) {
       recordRelation(element.field, IndexRelationKind.IS_REFERENCED_BY, node);
       return;
     }
     // record specific relations
-    IndexRelationKind kind = node.isQualified
+    IndexRelationKind kind = isQualified
         ? IndexRelationKind.IS_REFERENCED_QUALIFIED_BY
         : IndexRelationKind.IS_REFERENCED_BY;
     recordRelation(element, kind, node);
@@ -581,9 +587,8 @@ class _NameRelationInfo {
   final int nameId;
   final IndexRelationKind kind;
   final int offset;
-  final int length;
 
-  _NameRelationInfo(this.nameId, this.kind, this.offset, this.length);
+  _NameRelationInfo(this.nameId, this.kind, this.offset);
 }
 
 /**
@@ -616,10 +621,9 @@ class _UnitIndexAssembler {
     } on StateError {}
   }
 
-  void addNameRelation(
-      String name, IndexRelationKind kind, int offset, int length) {
+  void addNameRelation(String name, IndexRelationKind kind, int offset) {
     int nameId = pkg._getStringId(name);
-    nameRelations.add(new _NameRelationInfo(nameId, kind, offset, length));
+    nameRelations.add(new _NameRelationInfo(nameId, kind, offset));
   }
 
   /**
