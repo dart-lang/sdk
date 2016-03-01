@@ -9,7 +9,7 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:linter/src/linter.dart';
 
-const desc = r'Annotate overridden methods';
+const desc = r'Annotate overridden members';
 
 const details = r'''
 **DO** annotate overridden methods and fields.
