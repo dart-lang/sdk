@@ -12,6 +12,8 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/ast/ast.dart'
+    show SimpleIdentifierImpl, PrefixedIdentifierImpl;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -17074,6 +17076,30 @@ class TypeResolverVisitorTest {
     _listener.assertNoErrors();
   }
 
+  void test_visitTypeName_noParameters_noArguments_undefined() {
+    SimpleIdentifier id = AstFactory.identifier3("unknown")
+      ..staticElement = new _StaleElement();
+    TypeName typeName = new TypeName(id, null);
+    _resolveNode(typeName, []);
+    expect(typeName.type, UndefinedTypeImpl.instance);
+    expect(typeName.name.staticElement, null);
+    _listener.assertErrorsWithCodes([StaticWarningCode.UNDEFINED_CLASS]);
+  }
+
+  void test_visitTypeName_prefixed_noParameters_noArguments_undefined() {
+    SimpleIdentifier prefix = AstFactory.identifier3("unknownPrefix")
+      ..staticElement = new _StaleElement();
+    SimpleIdentifier suffix = AstFactory.identifier3("unknownSuffix")
+      ..staticElement = new _StaleElement();
+    TypeName typeName =
+        new TypeName(AstFactory.identifier(prefix, suffix), null);
+    _resolveNode(typeName, []);
+    expect(typeName.type, UndefinedTypeImpl.instance);
+    expect(prefix.staticElement, null);
+    expect(suffix.staticElement, null);
+    _listener.assertErrorsWithCodes([StaticWarningCode.UNDEFINED_CLASS]);
+  }
+
   void test_visitTypeName_parameters_arguments() {
     ClassElement classA = ElementFactory.classElement2("A", ["E"]);
     ClassElement classB = ElementFactory.classElement2("B");
@@ -17231,6 +17257,21 @@ class _SimpleResolverTest_localVariable_types_invoked
     }
     return null;
   }
+}
+
+/**
+ * Represents an element left over from a previous resolver run.
+ *
+ * A _StaleElement should always be replaced with either null or a new Element.
+ */
+class _StaleElement extends ElementImpl {
+  _StaleElement() : super("_StaleElement", -1);
+
+  @override
+  accept(_) => throw "_StaleElement shouldn't be visited";
+
+  @override
+  get kind => throw "_StaleElement's kind shouldn't be accessed";
 }
 
 /**

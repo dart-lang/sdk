@@ -11633,6 +11633,7 @@ class TypeResolverVisitor extends ScopedVisitor {
   Object visitTypeName(TypeName node) {
     super.visitTypeName(node);
     Identifier typeName = node.name;
+    _setElement(typeName, null); // Clear old Elements from previous run.
     TypeArgumentList argumentList = node.typeArguments;
     Element element = nameScope.lookup(typeName, definingLibrary);
     if (element == null) {
@@ -11781,8 +11782,6 @@ class TypeResolverVisitor extends ScopedVisitor {
     if (!elementValid) {
       if (element is MultiplyDefinedElement) {
         _setElement(typeName, element);
-      } else {
-        _setElement(typeName, null);
       }
       typeName.staticType = _undefinedType;
       node.type = _undefinedType;
@@ -11847,7 +11846,6 @@ class TypeResolverVisitor extends ScopedVisitor {
               StaticWarningCode.NOT_A_TYPE, typeName, [typeName.name]);
         }
       }
-      _setElement(typeName, null);
       typeName.staticType = _dynamicType;
       node.type = _dynamicType;
       return null;
@@ -12348,25 +12346,19 @@ class TypeResolverVisitor extends ScopedVisitor {
   }
 
   /**
-   * If the given [element] is not `null`, set `staticElement` of the
-   * [typeName] to it.  If the [typeName] is a prefixed identifier, and the
-   * prefix can be resolved to a not `null` element, set also the
-   * `staticElement` of the prefix.
+   * Records the new Element for a TypeName's Identifier.
+   *
+   * A null may be passed in to indicate that the element can't be resolved.
+   * (During a re-run of a task, it's important to clear any previous value
+   * of the element.)
    */
   void _setElement(Identifier typeName, Element element) {
     if (typeName is SimpleIdentifier) {
-      if (element != null) {
-        typeName.staticElement = element;
-      }
+      typeName.staticElement = element;
     } else if (typeName is PrefixedIdentifier) {
-      if (element != null) {
-        typeName.identifier.staticElement = element;
-      }
+      typeName.identifier.staticElement = element;
       SimpleIdentifier prefix = typeName.prefix;
-      Element prefixElement = nameScope.lookup(prefix, definingLibrary);
-      if (prefixElement != null) {
-        prefix.staticElement = prefixElement;
-      }
+      prefix.staticElement = nameScope.lookup(prefix, definingLibrary);
     }
   }
 
