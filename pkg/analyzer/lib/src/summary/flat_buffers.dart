@@ -10,6 +10,21 @@ import 'dart:math';
 import 'dart:typed_data';
 
 /**
+ * Reader of lists of boolean values.
+ *
+ * The returned unmodifiable lists lazily read values on access.
+ */
+class BoolListReader extends Reader<List<bool>> {
+  const BoolListReader();
+
+  @override
+  int get size => 4;
+
+  @override
+  List<bool> read(BufferPointer bp) => new _FbBoolList(bp.derefObject());
+}
+
+/**
  * The reader of booleans.
  */
 class BoolReader extends Reader<bool> {
@@ -335,6 +350,38 @@ class Builder {
   }
 
   /**
+   * Write the given list of boolean [values].
+   */
+  Offset writeListBool(List<bool> values) {
+    int bitLength = values.length;
+    int padding = (-bitLength) % 8;
+    int byteLength = (bitLength + padding) ~/ 8;
+    // Prepare the backing Uint8List.
+    Uint8List bytes = new Uint8List(byteLength + 1);
+    // Record every bit.
+    int byteIndex = 0;
+    int byte = 0;
+    int mask = 1;
+    for (int bitIndex = 0; bitIndex < bitLength; bitIndex++) {
+      if (bitIndex != 0 && (bitIndex % 8 == 0)) {
+        bytes[byteIndex++] = byte;
+        byte = 0;
+        mask = 1;
+      }
+      if (values[bitIndex]) {
+        byte |= mask;
+      }
+      mask <<= 1;
+    }
+    // Write the last byte, even if it may be on the padding.
+    bytes[byteIndex] = byte;
+    // Write the padding length.
+    bytes[byteLength] = padding;
+    // Write as a Uint8 list.
+    return writeListUint8(bytes);
+  }
+
+  /**
    * Write the given list of 64-bit float [values].
    */
   Offset writeListFloat64(List<double> values) {
@@ -645,7 +692,7 @@ abstract class TableReader<T> extends Reader<T> {
 }
 
 /**
- * Reader of lists of 32-bit float values.
+ * Reader of lists of unsigned 32-bit integer values.
  *
  * The returned unmodifiable lists lazily read values on access.
  */
@@ -683,6 +730,40 @@ class Uint8Reader extends Reader<int> {
 
   @override
   int read(BufferPointer bp) => bp._getUint8();
+}
+
+/**
+ * List of booleans backed by 8-bit unsigned integers.
+ */
+class _FbBoolList extends Object with ListMixin<bool> implements List<bool> {
+  final List<int> uint8List;
+  int _length;
+
+  _FbBoolList(BufferPointer bp)
+      : uint8List = new _FbGenericList<int>(const Uint8Reader(), bp);
+
+  @override
+  int get length {
+    if (_length == null) {
+      _length = (uint8List.length - 1) * 8 - uint8List.last;
+    }
+    return _length;
+  }
+
+  @override
+  void set length(int i) =>
+      throw new StateError('Attempt to modify immutable list');
+
+  @override
+  bool operator [](int i) {
+    int index = i ~/ 8;
+    int mask = 1 << i % 8;
+    return uint8List[index] & mask != 0;
+  }
+
+  @override
+  void operator []=(int i, bool e) =>
+      throw new StateError('Attempt to modify immutable list');
 }
 
 /**
