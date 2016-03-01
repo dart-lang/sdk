@@ -261,14 +261,14 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   @override
   AstVisitor getVisitor() => null;
 
-  void reportLint(AstNode node) {
-    if (node != null) {
+  void reportLint(AstNode node, {bool ignoreSyntheticNodes: true}) {
+    if (node != null && (!node.isSynthetic || !ignoreSyntheticNodes)) {
       reporter.reportErrorForNode(new _LintCode(name, description), node, []);
     }
   }
 
-  void reportLintForToken(Token token) {
-    if (token != null) {
+  void reportLintForToken(Token token, {bool ignoreSyntheticTokens: true}) {
+    if (token != null && (!token.isSynthetic || !ignoreSyntheticTokens)) {
       reporter.reportErrorForToken(new _LintCode(name, description), token, []);
     }
   }

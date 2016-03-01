@@ -188,15 +188,7 @@ defineRuleUnitTests() {
       ];
       testEach(good, isLowerCaseUnderScoreWithDots, isTrue);
 
-      var bad = [
-        'Foo',
-        'fooBar.',
-        '.foo_Bar',
-        '_f',
-        'F_B',
-        'JS',
-        'JSON'
-      ];
+      var bad = ['Foo', 'fooBar.', '.foo_Bar', '_f', 'F_B', 'JS', 'JSON'];
       testEach(bad, isLowerCaseUnderScoreWithDots, isFalse);
     });
     group('lowerCamelCase', () {
@@ -284,6 +276,15 @@ defineSanityTests() {
           () => expect(new Annotation('Message', ErrorType.LINT, 1),
               matchesAnnotation('Message', ErrorType.LINT, 2)),
           throwsA(new isInstanceOf<TestFailure>()));
+    });
+  });
+
+  group('reporting', () {
+    //https://github.com/dart-lang/linter/issues/193
+    group('ignore synthetic nodes', () {
+      String path = p.join('test', '_data', 'synthetic', 'synthetic.dart');
+      File file = new File(path);
+      testRule('non_constant_identifier_names', file);
     });
   });
 }
