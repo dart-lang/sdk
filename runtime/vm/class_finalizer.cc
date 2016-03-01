@@ -16,6 +16,7 @@
 namespace dart {
 
 DEFINE_FLAG(bool, print_classes, false, "Prints details about loaded classes.");
+DEFINE_FLAG(bool, reify, true, "Reify type arguments of generic types.");
 DEFINE_FLAG(bool, trace_class_finalization, false, "Trace class finalization.");
 DEFINE_FLAG(bool, trace_type_finalization, false, "Trace type finalization.");
 
@@ -670,6 +671,11 @@ intptr_t ClassFinalizer::ExpandAndFinalizeTypeArguments(
   // The class has num_type_parameters type parameters.
   const intptr_t num_type_parameters = type_class.NumTypeParameters();
 
+  // If we are not reifying types, drop type arguments.
+  if (!FLAG_reify) {
+    type.set_arguments(TypeArguments::Handle(Z, TypeArguments::null()));
+  }
+
   // Initialize the type argument vector.
   // Check the number of parsed type arguments, if any.
   // Specifying no type arguments indicates a raw type, which is not an error.
@@ -699,7 +705,7 @@ intptr_t ClassFinalizer::ExpandAndFinalizeTypeArguments(
   // super types of type_class, which are initialized from the parsed
   // type arguments, followed by the parsed type arguments.
   TypeArguments& full_arguments = TypeArguments::Handle(Z);
-  if (num_type_arguments > 0) {
+  if (FLAG_reify && (num_type_arguments > 0)) {
     // If no type arguments were parsed and if the super types do not prepend
     // type arguments to the vector, we can leave the vector as null.
     if (!arguments.IsNull() || (num_type_arguments > num_type_parameters)) {
