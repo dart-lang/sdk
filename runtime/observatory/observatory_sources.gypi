@@ -119,6 +119,8 @@
     'lib/src/elements/observatory_application.html',
     'lib/src/elements/observatory_element.dart',
     'lib/src/elements/observatory_element.html',
+    'lib/src/elements/persistent_handles.dart',
+    'lib/src/elements/persistent_handles.html',
     'lib/src/elements/ports.dart',
     'lib/src/elements/ports.html',
     'lib/src/elements/script_inset.dart',

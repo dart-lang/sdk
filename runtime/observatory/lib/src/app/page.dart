@@ -266,6 +266,21 @@ class PortsPage extends SimplePage {
   }
 }
 
+class PersistentHandlesPage extends SimplePage {
+  PersistentHandlesPage(app)
+      : super('persistent-handles', 'persistent-handles-page', app);
+
+  void _visit(Uri uri) {
+    super._visit(uri);
+    getIsolate(uri).then((isolate) {
+      if (element != null) {
+        PersistentHandlesPageElement page = element;
+        page.isolate = isolate;
+      }
+    });
+  }
+}
+
 class HeapMapPage extends SimplePage {
   HeapMapPage(app) : super('heap-map', 'heap-map', app);
 

@@ -1200,6 +1200,10 @@ class Isolate extends ServiceObjectOwner {
     return invokeRpc('_getPorts', {});
   }
 
+  Future<ServiceObject> getPersistentHandles() {
+    return invokeRpc('_getPersistentHandles', {});
+  }
+
   Future<List<Class>> getClassRefs() async {
     ServiceMap classList = await invokeRpc('getClassList', {});
     assert(classList.type == 'ClassList');

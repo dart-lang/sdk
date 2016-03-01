@@ -440,6 +440,81 @@ TEST_CASE(Service_LocalVarDescriptors) {
 }
 
 
+
+static void WeakHandleFinalizer(void* isolate_callback_data,
+                                Dart_WeakPersistentHandle handle,
+                                void* peer) {
+}
+
+
+TEST_CASE(Service_PersistentHandles) {
+  const char* kScript =
+    "var port;\n"  // Set to our mock port by C++.
+    "\n"
+    "class A {\n"
+    "  var a;\n"
+    "}\n"
+    "var global = new A();\n"
+    "main() {\n"
+    "  return global;\n"
+    "}";
+
+  Isolate* isolate = thread->isolate();
+  isolate->set_is_runnable(true);
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& vmlib = Library::Handle();
+  vmlib ^= Api::UnwrapHandle(lib);
+  EXPECT(!vmlib.IsNull());
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+  // Create a persistent handle to global.
+  Dart_PersistentHandle persistent_handle = Dart_NewPersistentHandle(result);
+
+  // Create a weak persistent handle to global.
+  Dart_WeakPersistentHandle weak_persistent_handle =
+      Dart_NewWeakPersistentHandle(result,
+                                   reinterpret_cast<void*>(0xdeadbeef),
+                                   128,
+                                   WeakHandleFinalizer);
+
+  // Build a mock message handler and wrap it in a dart port.
+  ServiceTestMessageHandler handler;
+  Dart_Port port_id = PortMap::CreatePort(&handler);
+  Dart_Handle port = Api::NewHandle(thread, SendPort::New(port_id));
+  EXPECT_VALID(port);
+  EXPECT_VALID(Dart_SetField(lib, NewString("port"), port));
+
+  Array& service_msg = Array::Handle();
+
+  // Get persistent handles.
+  service_msg = Eval(lib, "[0, port, '0', '_getPersistentHandles', [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
+  // Look for a heart beat.
+  EXPECT_SUBSTRING("\"type\":\"_PersistentHandles\"", handler.msg());
+  EXPECT_SUBSTRING("\"peer\":\"0xdeadbeef\"", handler.msg());
+  EXPECT_SUBSTRING("\"name\":\"A\"", handler.msg());
+  EXPECT_SUBSTRING("\"externalSize\":\"128\"", handler.msg());
+
+  // Delete persistent handles.
+  Dart_DeletePersistentHandle(persistent_handle);
+  Dart_DeleteWeakPersistentHandle(Dart_CurrentIsolate(),
+                                  weak_persistent_handle);
+
+  // Get persistent handles (again).
+  service_msg = Eval(lib, "[0, port, '0', '_getPersistentHandles', [], []]");
+  Service::HandleIsolateMessage(isolate, service_msg);
+  EXPECT_EQ(MessageHandler::kOK, handler.HandleNextMessage());
+  EXPECT_SUBSTRING("\"type\":\"_PersistentHandles\"", handler.msg());
+  // Verify that old persistent handles are not present.
+  EXPECT_NOTSUBSTRING("\"peer\":\"0xdeadbeef\"", handler.msg());
+  EXPECT_NOTSUBSTRING("\"name\":\"A\"", handler.msg());
+  EXPECT_NOTSUBSTRING("\"externalSize\":\"128\"", handler.msg());
+}
+
+
 TEST_CASE(Service_Address) {
   const char* kScript =
       "var port;\n"  // Set to our mock port by C++.
