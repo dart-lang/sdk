@@ -2054,11 +2054,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     }
 
     if (target != null && DynamicInvoke.get(target)) {
-      return js.call('dart.$DPUT(#, #, #)', [
-        _visit(target),
-        _emitMemberName(id.name, type: getStaticType(target)),
-        _visit(rhs)
-      ]);
+      return js.call('dart.$DPUT(#, #, #)',
+          [_visit(target), _emitMemberName(id.name), _visit(rhs)]);
     }
 
     return _visit(rhs).toAssignExpression(_visit(lhs));

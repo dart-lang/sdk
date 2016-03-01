@@ -928,7 +928,7 @@ dart_library.library('dart/html', null, /* Imports */[
         Element._parseDocument = exports.document[dartx.implementation][dartx.createHtmlDocument]('');
         Element._parseRange = Element._parseDocument[dartx.createRange]();
         let base = Element._parseDocument[dartx.createElement]('base');
-        dart.dput(base, dartx.href, exports.document[dartx.baseUri]);
+        dart.dput(base, 'href', exports.document[dartx.baseUri]);
         Element._parseDocument[dartx.head][dartx.append](base);
       }
       let contextElement = null;
@@ -1909,7 +1909,7 @@ dart_library.library('dart/html', null, /* Imports */[
     static new(opts) {
       let href = opts && 'href' in opts ? opts.href : null;
       let e = exports.document[dartx.createElement]("a");
-      if (href != null) dart.dput(e, dartx.href, href);
+      if (href != null) dart.dput(e, 'href', href);
       return dart.as(e, AnchorElement);
     }
     created() {
@@ -3789,8 +3789,8 @@ dart_library.library('dart/html', null, /* Imports */[
       let width = opts && 'width' in opts ? opts.width : null;
       let height = opts && 'height' in opts ? opts.height : null;
       let e = exports.document[dartx.createElement]("canvas");
-      if (width != null) dart.dput(e, dartx.width, width);
-      if (height != null) dart.dput(e, dartx.height, height);
+      if (width != null) dart.dput(e, 'width', width);
+      if (height != null) dart.dput(e, 'height', height);
       return dart.as(e, CanvasElement);
     }
     created() {
@@ -13274,7 +13274,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return new _CssStyleDeclarationSet(dart.as(this, core.Iterable$(Element)));
     }
     set classes(value) {
-      this[_nodeList][dartx.forEach](dart.fn(e => dart.dput(e, dartx.classes, value), core.Iterable$(core.String), [Node]));
+      this[_nodeList][dartx.forEach](dart.fn(e => dart.dput(e, 'classes', value), core.Iterable$(core.String), [Node]));
     }
     get contentEdge() {
       return new _ContentCssListRect(this);
@@ -16519,9 +16519,9 @@ dart_library.library('dart/html', null, /* Imports */[
       let width = opts && 'width' in opts ? opts.width : null;
       let height = opts && 'height' in opts ? opts.height : null;
       let e = exports.document[dartx.createElement]("img");
-      if (src != null) dart.dput(e, dartx.src, src);
-      if (width != null) dart.dput(e, dartx.width, width);
-      if (height != null) dart.dput(e, dartx.height, height);
+      if (src != null) dart.dput(e, 'src', src);
+      if (width != null) dart.dput(e, 'width', width);
+      if (height != null) dart.dput(e, 'height', height);
       return dart.as(e, ImageElement);
     }
     created() {
@@ -16708,7 +16708,7 @@ dart_library.library('dart/html', null, /* Imports */[
       let e = exports.document[dartx.createElement]("input");
       if (type != null) {
         try {
-          dart.dput(e, dartx.type, type);
+          dart.dput(e, 'type', type);
         } catch (_) {
         }
 
