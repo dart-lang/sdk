@@ -8,6 +8,7 @@ import 'dart:async';
 
 import 'package:analysis_server/plugin/edit/fix/fix_core.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
+import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -100,7 +101,8 @@ bool hasFix(ErrorCode errorCode) =>
     errorCode == StaticTypeWarningCode.UNDEFINED_FUNCTION ||
     errorCode == StaticTypeWarningCode.UNDEFINED_GETTER ||
     errorCode == StaticTypeWarningCode.UNDEFINED_METHOD ||
-    errorCode == StaticTypeWarningCode.UNDEFINED_SETTER;
+    errorCode == StaticTypeWarningCode.UNDEFINED_SETTER ||
+    (errorCode is LintCode && errorCode.name == LintNames.annotate_overrides);
 
 /**
  * An enumeration of possible quick fix kinds.
