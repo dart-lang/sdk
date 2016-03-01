@@ -63,7 +63,7 @@ class Visitor extends SimpleAstVisitor {
 
   @override
   visitFunctionDeclaration(FunctionDeclaration node) {
-    if (node.returnType == null) {
+    if (!node.isSetter && node.returnType == null) {
       rule.reportLint(node.name);
     }
   }
@@ -77,7 +77,7 @@ class Visitor extends SimpleAstVisitor {
 
   @override
   visitMethodDeclaration(MethodDeclaration node) {
-    if (node.returnType == null) {
+    if (!node.isSetter && node.returnType == null) {
       rule.reportLint(node.name);
     }
   }

@@ -21,3 +21,10 @@ _Foo bar2() => new _Foo();
 class _Foo2 {
   int _foo() => 42;
 }
+
+set speed(int ms) {} //OK
+
+class Car {
+  static set make(String name) {} // OK
+  set speed(int ms) {} //OK
+}
