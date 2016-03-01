@@ -54,7 +54,6 @@ class Profiler : public AllStatic {
 
  private:
   static bool initialized_;
-  static Monitor* monitor_;
 
   static SampleBuffer* sample_buffer_;
 

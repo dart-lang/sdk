@@ -823,7 +823,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       cha_invalidation_gen_(kInvalidGen),
       field_invalidation_gen_(kInvalidGen),
       prefix_invalidation_gen_(kInvalidGen),
-      boxed_field_list_monitor_(new Monitor()),
+      boxed_field_list_mutex_(new Mutex()),
       boxed_field_list_(GrowableObjectArray::null()),
       spawn_count_monitor_(new Monitor()),
       spawn_count_(0) {
@@ -866,8 +866,8 @@ Isolate::~Isolate() {
   object_id_ring_ = NULL;
   delete pause_loop_monitor_;
   pause_loop_monitor_ = NULL;
-  delete boxed_field_list_monitor_;
-  boxed_field_list_monitor_ = NULL;
+  delete boxed_field_list_mutex_;
+  boxed_field_list_mutex_ = NULL;
   ASSERT(spawn_count_ == 0);
   delete spawn_count_monitor_;
   if (compiler_stats_ != NULL) {
@@ -1872,7 +1872,7 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Visit the boxed_field_list.
   // 'boxed_field_list_' access via mutator and background compilation threads
   // is guarded with a monitor. This means that we can visit it only
-  // when at safepoint or the boxed_field_list_monitor_ lock has been taken.
+  // when at safepoint or the boxed_field_list_mutex_ lock has been taken.
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&boxed_field_list_));
 
   // Visit objects in the debugger.
@@ -2086,7 +2086,9 @@ void Isolate::set_registered_service_extension_handlers(
 
 void Isolate::AddDeoptimizingBoxedField(const Field& field) {
   ASSERT(field.IsOriginal());
-  MonitorLocker ml(boxed_field_list_monitor_);
+  // The enclosed code allocates objects and can potentially trigger a GC,
+  // ensure that we account for safepoints when grabbing the lock.
+  SafepointMutexLocker ml(boxed_field_list_mutex_);
   if (boxed_field_list_ == GrowableObjectArray::null()) {
     boxed_field_list_ = GrowableObjectArray::New(Heap::kOld);
   }
@@ -2097,7 +2099,7 @@ void Isolate::AddDeoptimizingBoxedField(const Field& field) {
 
 
 RawField* Isolate::GetDeoptimizingBoxedField() {
-  MonitorLocker ml(boxed_field_list_monitor_);
+  MutexLocker ml(boxed_field_list_mutex_);
   if (boxed_field_list_ == GrowableObjectArray::null()) {
     return Field::null();
   }
@@ -2320,9 +2322,9 @@ void Isolate::PauseEventHandler() {
     // Handle all available vm service messages, up to a resume
     // request.
     while (!resume && Dart_HasServiceMessages()) {
-      pause_loop_monitor_->Exit();
+      ml.Exit();
       resume = Dart_HandleServiceMessages();
-      pause_loop_monitor_->Enter();
+      ml.Enter();
     }
     if (resume) {
       break;
@@ -2341,7 +2343,9 @@ void Isolate::VisitIsolates(IsolateVisitor* visitor) {
   if (visitor == NULL) {
     return;
   }
-  MonitorLocker ml(isolates_list_monitor_);
+  // The visitor could potentially run code that could safepoint so use
+  // SafepointMonitorLocker to ensure the lock has safepoint checks.
+  SafepointMonitorLocker ml(isolates_list_monitor_);
   Isolate* current = isolates_list_head_;
   while (current) {
     visitor->VisitIsolate(current);
@@ -2531,7 +2535,12 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
   Thread* thread = NULL;
   OSThread* os_thread = OSThread::Current();
   if (os_thread != NULL) {
-    MonitorLocker ml(threads_lock());
+    // We are about to associate the thread with an isolate and it would
+    // not be possible to correctly track no_safepoint_scope_depth for the
+    // thread in the constructor/destructor of MonitorLocker,
+    // so we create a MonitorLocker object which does not do any
+    // no_safepoint_scope_depth increments/decrements.
+    MonitorLocker ml(threads_lock(), false);
 
     // If a safepoint operation is in progress wait for it
     // to finish before scheduling this thread in.
@@ -2551,6 +2560,7 @@ Thread* Isolate::ScheduleThread(bool is_mutator, bool bypass_safepoint) {
     ASSERT(thread->execution_state() == Thread::kThreadInVM);
     thread->set_safepoint_state(0);
     thread->set_vm_tag(VMTag::kVMTagId);
+    ASSERT(thread->no_safepoint_scope_depth() == 0);
     os_thread->set_thread(thread);
     if (is_mutator) {
       mutator_thread_ = thread;
@@ -2567,7 +2577,12 @@ void Isolate::UnscheduleThread(Thread* thread,
                                bool bypass_safepoint) {
   // Disassociate the 'Thread' structure and unschedule the thread
   // from this isolate.
-  MonitorLocker ml(threads_lock());
+  // We are disassociating the thread from an isolate and it would
+  // not be possible to correctly track no_safepoint_scope_depth for the
+  // thread in the constructor/destructor of MonitorLocker,
+  // so we create a MonitorLocker object which does not do any
+  // no_safepoint_scope_depth increments/decrements.
+  MonitorLocker ml(threads_lock(), false);
   if (!bypass_safepoint) {
     // Ensure that the thread reports itself as being at a safepoint.
     thread->EnterSafepoint();
@@ -2585,6 +2600,7 @@ void Isolate::UnscheduleThread(Thread* thread,
   thread->set_os_thread(NULL);
   thread->set_execution_state(Thread::kThreadInVM);
   thread->set_safepoint_state(0);
+  ASSERT(thread->no_safepoint_scope_depth() == 0);
   // Return thread structure.
   thread_registry()->ReturnThreadLocked(is_mutator, thread);
 }

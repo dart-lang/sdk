@@ -267,7 +267,7 @@ class Mutex {
   ~Mutex();
 
   void Lock();
-  bool TryLock();
+  bool TryLock();  // Returns false if lock is busy and locking failed.
   void Unlock();
 
 #if defined(DEBUG)
@@ -303,6 +303,7 @@ class Monitor {
   Monitor();
   ~Monitor();
 
+  bool TryEnter();  // Returns false if lock is busy and locking failed.
   void Enter();
   void Exit();
 

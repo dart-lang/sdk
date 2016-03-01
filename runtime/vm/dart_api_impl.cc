@@ -1610,12 +1610,12 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
   CHECK_API_SCOPE(T);
   CHECK_CALLBACK_STATE(T);
   API_TIMELINE_BEGIN_END;
-  Monitor monitor;
-  MonitorLocker ml(&monitor);
+  // The message handler run loop does not expect to have a current isolate
+  // so we exit the isolate here and enter it again after the runloop is done.
+  ::Dart_ExitIsolate();
   {
-    // The message handler run loop does not expect to have a current isolate
-    // so we exit the isolate here and enter it again after the runloop is done.
-    Dart_ExitIsolate();
+    Monitor monitor;
+    MonitorLocker ml(&monitor);
     RunLoopData data;
     data.monitor = &monitor;
     data.done = false;
@@ -1625,8 +1625,8 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
     while (!data.done) {
       ml.Wait();
     }
-    ::Dart_EnterIsolate(Api::CastIsolate(I));
   }
+  ::Dart_EnterIsolate(Api::CastIsolate(I));
   if (T->sticky_error() != Object::null()) {
     Dart_Handle error = Api::NewHandle(T, T->sticky_error());
     T->clear_sticky_error();

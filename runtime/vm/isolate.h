@@ -841,7 +841,7 @@ class Isolate : public BaseIsolate {
   uint32_t prefix_invalidation_gen_;
 
   // Protect access to boxed_field_list_.
-  Monitor* boxed_field_list_monitor_;
+  Mutex* boxed_field_list_mutex_;
   // List of fields that became boxed and that trigger deoptimization.
   RawGrowableObjectArray* boxed_field_list_;
 

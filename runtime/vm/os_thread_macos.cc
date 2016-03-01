@@ -335,6 +335,22 @@ Monitor::~Monitor() {
 }
 
 
+bool Monitor::TryEnter() {
+  int result = pthread_mutex_trylock(data_.mutex());
+  // Return false if the lock is busy and locking failed.
+  if ((result == EBUSY) || (result == EDEADLK)) {
+    return false;
+  }
+  ASSERT_PTHREAD_SUCCESS(result);  // Verify no other errors.
+#if defined(DEBUG)
+  // When running with assertions enabled we track the owner.
+  ASSERT(owner_ == OSThread::kInvalidThreadId);
+  owner_ = OSThread::GetCurrentThreadId();
+#endif  // defined(DEBUG)
+  return true;
+}
+
+
 void Monitor::Enter() {
   int result = pthread_mutex_lock(data_.mutex());
   VALIDATE_PTHREAD_RESULT(result);
