@@ -1444,6 +1444,12 @@ class AssistProcessor {
       _coverageMarker();
       return;
     }
+    // ignore if an incomplete variable declaration
+    if (declarationList.variables.length == 1 &&
+        declarationList.variables[0].name.isSynthetic) {
+      _coverageMarker();
+      return;
+    }
     // must be not after the name of the variable
     VariableDeclaration firstVariable = declarationList.variables[0];
     if (selectionOffset > firstVariable.name.end) {

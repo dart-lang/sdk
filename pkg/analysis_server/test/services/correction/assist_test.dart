@@ -3317,6 +3317,14 @@ main() {
 ''');
   }
 
+  test_removeTypeAnnotation_topLevelVariable_BAD_syntheticName() async {
+    verifyNoTestUnitErrors = false;
+    resolveTestUnit('''
+MyType
+''');
+    await assertNoAssistAt('MyType', DartAssistKind.REMOVE_TYPE_ANNOTATION);
+  }
+
   test_removeTypeAnnotation_topLevelVariable_OK() async {
     resolveTestUnit('''
 int V = 1;
