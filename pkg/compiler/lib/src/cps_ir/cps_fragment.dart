@@ -124,7 +124,6 @@ class CpsFragment {
                           {bool receiverIsNotNull: false}) {
     ApplyBuiltinMethod apply =
         new ApplyBuiltinMethod(method, receiver, arguments, sourceInformation);
-    apply.receiverIsNotNull = receiverIsNotNull;
     return letPrim(apply);
   }
 

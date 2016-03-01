@@ -638,9 +638,6 @@ class InvokeMethod extends InvocationPrimitive {
         : receiverRef;
   }
 
-  /// If true, it is known that the receiver cannot be `null`.
-  bool receiverIsNotNull = false;
-
   InvokeMethod(Primitive receiver,
                this.selector,
                this.mask,
@@ -1159,13 +1156,10 @@ class ApplyBuiltinMethod extends Primitive {
   Primitive argument(int n) => argumentRefs[n].definition;
   Iterable<Primitive> get arguments => _dereferenceList(argumentRefs);
 
-  bool receiverIsNotNull;
-
   ApplyBuiltinMethod(this.method,
                      Primitive receiver,
                      List<Primitive> arguments,
-                     this.sourceInformation,
-                     {this.receiverIsNotNull: false})
+                     this.sourceInformation)
       : this.receiverRef = new Reference<Primitive>(receiver),
         this.argumentRefs = _referenceList(arguments);
 
@@ -2950,8 +2944,7 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   Definition visitApplyBuiltinMethod(ApplyBuiltinMethod node) {
     return new ApplyBuiltinMethod(node.method, getCopy(node.receiverRef),
         getList(node.argumentRefs),
-        node.sourceInformation,
-        receiverIsNotNull: node.receiverIsNotNull);
+        node.sourceInformation);
   }
 
   Definition visitGetLength(GetLength node) {

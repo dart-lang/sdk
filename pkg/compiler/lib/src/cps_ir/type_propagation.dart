@@ -2776,7 +2776,6 @@ class TypePropagationVisitor implements Visitor {
 
   void visitInvokeMethod(InvokeMethod node) {
     AbstractConstantValue receiver = getValue(node.dartReceiver);
-    node.receiverIsNotNull = receiver.isDefinitelyNotNull;
     if (receiver.isNothing) {
       return setResult(node, lattice.nothing);
     }
