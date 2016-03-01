@@ -381,7 +381,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       shared = '-dynamiclib';
       libname = 'libprecompiled.dylib';
     } else {
-      throw "Platform not supported: ${Platform.name}";
+      throw "Platform not supported: ${Platform.operatingSystem}";
     }
 
     if (arch == 'x64') {
