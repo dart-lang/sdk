@@ -63,7 +63,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   final StrongTypeSystemImpl rules;
 
   /// The global extension type table.
-  final HashSet<ClassElement> _extensionTypes;
+  final ExtensionTypeSet _extensionTypes;
 
   /// Information that is precomputed for this library, indicates which fields
   /// need storage slots.
@@ -3716,12 +3716,16 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   }
 }
 
-class _ExtensionFinder extends GeneralizingElementVisitor {
+class ExtensionTypeSet extends GeneralizingElementVisitor {
   final AnalysisContext _context;
-  final HashSet<ClassElement> _extensionTypes;
   final TypeProvider _types;
 
-  _ExtensionFinder(this._context, this._extensionTypes, this._types);
+  final _extensionTypes = new HashSet<ClassElement>();
+  final _pendingLibraries = new HashSet<String>();
+
+  ExtensionTypeSet(AbstractCompiler compiler)
+      : _context = compiler.context,
+        _types = compiler.context.typeProvider;
 
   visitClassElement(ClassElement element) {
     if (findAnnotation(element, isJsPeerInterface) != null ||
@@ -3738,39 +3742,79 @@ class _ExtensionFinder extends GeneralizingElementVisitor {
     _addExtensionType(t.superclass);
   }
 
+  void _addExtensionTypesForLibrary(String libraryUri, List<String> typeNames) {
+    var sourceFactory = _context.sourceFactory.forUri(libraryUri);
+    var library = _context.computeLibraryElement(sourceFactory);
+    for (var typeName in typeNames) {
+      var element = library.getType(typeName);
+      _addExtensionType(element.type);
+    }
+  }
+
   void _addExtensionTypes(String libraryUri) {
     var sourceFactory = _context.sourceFactory.forUri(libraryUri);
     var library = _context.computeLibraryElement(sourceFactory);
     visitLibraryElement(library);
   }
+
+  void _addPendingExtensionTypes(String libraryUri) {
+    _pendingLibraries.add(libraryUri);
+  }
+
+  bool contains(Element element) {
+    if (_extensionTypes.contains(element)) return true;
+    if (_pendingLibraries.isEmpty) return false;
+    if (element is ClassElement) {
+      var uri = element.library.source.uri.toString();
+      if (_pendingLibraries.contains(uri)) {
+        // Load all pending libraries
+        for (var libraryUri in _pendingLibraries) {
+          _addExtensionTypes(libraryUri);
+        }
+        _pendingLibraries.clear();
+        return _extensionTypes.contains(element);
+      }
+    }
+    return false;
+  }
 }
 
 class JSGenerator extends CodeGenerator {
-  final _extensionTypes = new HashSet<ClassElement>();
+  final ExtensionTypeSet _extensionTypes;
   final TypeProvider _types;
 
   JSGenerator(AbstractCompiler compiler)
       : _types = compiler.context.typeProvider,
+        _extensionTypes = new ExtensionTypeSet(compiler),
         super(compiler) {
     // TODO(vsm): Eventually, we want to make this extensible - i.e., find
     // annotations in user code as well.  It would need to be summarized in
-    // the element model - not searched this way on every compile.
-    var finder = new _ExtensionFinder(context, _extensionTypes, _types);
-    finder._addExtensionTypes('dart:_interceptors');
-    finder._addExtensionTypes('dart:_native_typed_data');
-    finder._addExtensionTypes('dart:html');
-    finder._addExtensionTypes('dart:indexed_db');
-    finder._addExtensionTypes('dart:svg');
-    finder._addExtensionTypes('dart:web_audio');
-    finder._addExtensionTypes('dart:web_gl');
-    finder._addExtensionTypes('dart:web_sql');
+    // the element model - not searched this way on every compile.  To make this
+    // a little more efficient now, we do this in two phases.
 
+    // First, core types:
+    _extensionTypes._addExtensionTypes('dart:_interceptors');
+    _extensionTypes._addExtensionTypes('dart:_native_typed_data');
     // TODO(vsm): If we're analyzing against the main SDK, those
     // types are not explicitly annotated.
-    finder._addExtensionType(_types.intType);
-    finder._addExtensionType(_types.doubleType);
-    finder._addExtensionType(_types.boolType);
-    finder._addExtensionType(_types.stringType);
+    _extensionTypes._addExtensionType(_types.intType);
+    _extensionTypes._addExtensionType(_types.doubleType);
+    _extensionTypes._addExtensionType(_types.boolType);
+    _extensionTypes._addExtensionType(_types.stringType);
+    // These are used natively by dart:html but also not annotated.
+    _extensionTypes
+        ._addExtensionTypesForLibrary('dart:core', ['Comparable', 'Map']);
+    _extensionTypes
+        ._addExtensionTypesForLibrary('dart:collection', ['ListMixin']);
+    _extensionTypes._addExtensionTypesForLibrary('dart:math', ['Rectangle']);
+
+    // Second, html types - these are only searched if we use dart:html, etc.:
+    _extensionTypes._addPendingExtensionTypes('dart:html');
+    _extensionTypes._addPendingExtensionTypes('dart:indexed_db');
+    _extensionTypes._addPendingExtensionTypes('dart:svg');
+    _extensionTypes._addPendingExtensionTypes('dart:web_audio');
+    _extensionTypes._addPendingExtensionTypes('dart:web_gl');
+    _extensionTypes._addPendingExtensionTypes('dart:web_sql');
   }
 
   String generateLibrary(LibraryUnit unit) {
