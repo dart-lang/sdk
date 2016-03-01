@@ -1264,6 +1264,9 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     # TODO(vsm): This won't actually work until we convert the Map to
     # a native JS Map for JS DOM.
     'Dictionary': TypeData(clazz='Primitive', dart_type='Map'),
+    # TODO(terry): It's a dictionary but a very complex dictionary is multiple lists.
+    #              Need to investigate a 1-off solution probably.
+    'MediaKeySystemConfiguration': TypeData(clazz='Primitive', dart_type='Map'),
     'DOMTimeStamp': TypeData(clazz='Primitive', dart_type='int', native_type='unsigned long long'),
     'object': TypeData(clazz='Primitive', dart_type='Object', native_type='ScriptValue'),
     'ObjectArray': TypeData(clazz='Primitive', dart_type='List'),
