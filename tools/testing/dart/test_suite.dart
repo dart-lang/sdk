@@ -1018,14 +1018,18 @@ class StandardTestSuite extends TestSuite {
     List<List<String>> vmOptionsList = getVmOptions(info.optionsFromFile);
     assert(!vmOptionsList.isEmpty);
 
-    for (var vmOptions in vmOptionsList) {
+    for (var vmOptionsVarient = 0;
+         vmOptionsVarient < vmOptionsList.length;
+         vmOptionsVarient++) {
+      var vmOptions = vmOptionsList[vmOptionsVarient];
       var allVmOptions = vmOptions;
       if (!extraVmOptions.isEmpty) {
         allVmOptions = new List.from(vmOptions)..addAll(extraVmOptions);
       }
 
       var commands = []..addAll(baseCommands);
-      commands.addAll(makeCommands(info, allVmOptions, commonArguments));
+      commands.addAll(makeCommands(info, vmOptionsVarient,
+                                   allVmOptions, commonArguments));
       enqueueNewTestCase(
           new TestCase('$suiteName/$testName',
                        commands,
@@ -1050,7 +1054,10 @@ class StandardTestSuite extends TestSuite {
     return negative;
   }
 
-  List<Command> makeCommands(TestInformation info, var vmOptions, var args) {
+  List<Command> makeCommands(TestInformation info,
+                             int vmOptionsVarient,
+                             var vmOptions,
+                             var args) {
     List<Command> commands = <Command>[];
     CompilerConfiguration compilerConfiguration =
         new CompilerConfiguration(configuration);
@@ -1064,7 +1071,12 @@ class StandardTestSuite extends TestSuite {
                                                          sharedOptions,
                                                          args);
       // Avoid doing this for analyzer.
-      tempDir = createCompilationOutputDirectory(info.filePath);
+      var path = info.filePath;
+      if (vmOptionsVarient != 0) {
+        // Ensure a unique directory for each test case.
+        path = path.join(new Path(vmOptionsVarient.toString()));
+      }
+      tempDir = createCompilationOutputDirectory(path);
     }
 
     CommandArtifact compilationArtifact =

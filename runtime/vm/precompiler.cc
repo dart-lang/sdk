@@ -590,6 +590,15 @@ void Precompiler::AddTypesOf(const Function& function) {
       }
     }
   }
+  // A function can always be inlined and have only a nested local function
+  // remain.
+  const Function& parent = Function::Handle(Z, function.parent_function());
+  if (!parent.IsNull()) {
+    AddTypesOf(parent);
+  }
+  // A class may have all functions inlined except a local function.
+  const Class& owner = Class::Handle(Z, function.Owner());
+  AddTypesOf(owner);
 }
 
 
@@ -623,6 +632,13 @@ void Precompiler::AddType(const AbstractType& abstype) {
     AbstractType& type = AbstractType::Handle(Z);
     type = TypeRef::Cast(abstype).type();
     AddType(type);
+  } else if (abstype.IsTypeParameter()) {
+    const AbstractType& type =
+        AbstractType::Handle(Z, TypeParameter::Cast(abstype).bound());
+    AddType(type);
+    const Class& cls =
+        Class::Handle(Z, TypeParameter::Cast(abstype).parameterized_class());
+    AddTypesOf(cls);
   }
 }
 

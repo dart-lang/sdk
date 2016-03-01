@@ -10393,6 +10393,11 @@ bool LibraryPrefix::LoadLibrary() const {
   }
   ASSERT(is_deferred_load());
   ASSERT(num_imports() == 1);
+  if (Dart::IsRunningPrecompiledCode()) {
+    // The library list was tree-shaken away.
+    this->set_is_loaded();
+    return true;
+  }
   // This is a prefix for a deferred library. If the library is not loaded
   // yet and isn't being loaded, call the library tag handler to schedule
   // loading. Once all outstanding load requests have completed, the embedder
