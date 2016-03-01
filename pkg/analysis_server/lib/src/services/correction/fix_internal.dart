@@ -2213,9 +2213,18 @@ class FixProcessor {
     if (member == null) {
       return;
     }
-    exitPosition = new Position(file, member.offset - 1);
+
+    //TODO(pq): migrate annotation edit building to change_builder
+
+    // Handle doc comments.
+    Token token = member.beginToken;
+    if (token is CommentToken) {
+      token = (token as CommentToken).parent;
+    }
+
+    exitPosition = new Position(file, token.offset - 1);
     String indent = utils.getIndent(1);
-    _addReplaceEdit(rf.rangeStartLength(member, 0), '@override$eol$indent');
+    _addReplaceEdit(rf.rangeStartLength(token, 0), '@override$eol$indent');
     _addFix(DartFixKind.LINT_ADD_OVERRIDE, []);
   }
 
