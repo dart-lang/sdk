@@ -20,7 +20,7 @@ class _IndexNameKindReader extends fb.Reader<idl.IndexNameKind> {
   @override
   idl.IndexNameKind read(fb.BufferPointer bp) {
     int index = const fb.Uint8Reader().read(bp);
-    return idl.IndexNameKind.values[index];
+    return index < idl.IndexNameKind.values.length ? idl.IndexNameKind.values[index] : idl.IndexNameKind.topLevel;
   }
 }
 
@@ -33,7 +33,7 @@ class _IndexRelationKindReader extends fb.Reader<idl.IndexRelationKind> {
   @override
   idl.IndexRelationKind read(fb.BufferPointer bp) {
     int index = const fb.Uint8Reader().read(bp);
-    return idl.IndexRelationKind.values[index];
+    return index < idl.IndexRelationKind.values.length ? idl.IndexRelationKind.values[index] : idl.IndexRelationKind.IS_EXTENDED_BY;
   }
 }
 
@@ -46,7 +46,7 @@ class _IndexSyntheticElementKindReader extends fb.Reader<idl.IndexSyntheticEleme
   @override
   idl.IndexSyntheticElementKind read(fb.BufferPointer bp) {
     int index = const fb.Uint8Reader().read(bp);
-    return idl.IndexSyntheticElementKind.values[index];
+    return index < idl.IndexSyntheticElementKind.values.length ? idl.IndexSyntheticElementKind.values[index] : idl.IndexSyntheticElementKind.notSynthetic;
   }
 }
 
@@ -59,7 +59,7 @@ class _ReferenceKindReader extends fb.Reader<idl.ReferenceKind> {
   @override
   idl.ReferenceKind read(fb.BufferPointer bp) {
     int index = const fb.Uint8Reader().read(bp);
-    return idl.ReferenceKind.values[index];
+    return index < idl.ReferenceKind.values.length ? idl.ReferenceKind.values[index] : idl.ReferenceKind.classOrEnum;
   }
 }
 
@@ -72,7 +72,7 @@ class _UnlinkedConstOperationReader extends fb.Reader<idl.UnlinkedConstOperation
   @override
   idl.UnlinkedConstOperation read(fb.BufferPointer bp) {
     int index = const fb.Uint8Reader().read(bp);
-    return idl.UnlinkedConstOperation.values[index];
+    return index < idl.UnlinkedConstOperation.values.length ? idl.UnlinkedConstOperation.values[index] : idl.UnlinkedConstOperation.pushInt;
   }
 }
 
@@ -85,7 +85,7 @@ class _UnlinkedConstructorInitializerKindReader extends fb.Reader<idl.UnlinkedCo
   @override
   idl.UnlinkedConstructorInitializerKind read(fb.BufferPointer bp) {
     int index = const fb.Uint8Reader().read(bp);
-    return idl.UnlinkedConstructorInitializerKind.values[index];
+    return index < idl.UnlinkedConstructorInitializerKind.values.length ? idl.UnlinkedConstructorInitializerKind.values[index] : idl.UnlinkedConstructorInitializerKind.field;
   }
 }
 
@@ -98,7 +98,7 @@ class _UnlinkedExecutableKindReader extends fb.Reader<idl.UnlinkedExecutableKind
   @override
   idl.UnlinkedExecutableKind read(fb.BufferPointer bp) {
     int index = const fb.Uint8Reader().read(bp);
-    return idl.UnlinkedExecutableKind.values[index];
+    return index < idl.UnlinkedExecutableKind.values.length ? idl.UnlinkedExecutableKind.values[index] : idl.UnlinkedExecutableKind.functionOrMethod;
   }
 }
 
@@ -111,7 +111,7 @@ class _UnlinkedParamKindReader extends fb.Reader<idl.UnlinkedParamKind> {
   @override
   idl.UnlinkedParamKind read(fb.BufferPointer bp) {
     int index = const fb.Uint8Reader().read(bp);
-    return idl.UnlinkedParamKind.values[index];
+    return index < idl.UnlinkedParamKind.values.length ? idl.UnlinkedParamKind.values[index] : idl.UnlinkedParamKind.required;
   }
 }
 

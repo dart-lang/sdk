@@ -634,8 +634,7 @@ class _CodeGenerator {
               String listCode = '$valueName.map((b) => $itemCode).toList()';
               writeCode = '$offsetName = fbBuilder.writeListUint8($listCode);';
             } else if (fieldType.typeName == 'bool') {
-              writeCode =
-                  '$offsetName = fbBuilder.writeListBool($valueName);';
+              writeCode = '$offsetName = fbBuilder.writeListBool($valueName);';
             } else if (fieldType.typeName == 'int') {
               writeCode =
                   '$offsetName = fbBuilder.writeListUint32($valueName);';
@@ -708,6 +707,8 @@ class _CodeGenerator {
   void _generateEnumReader(idlModel.EnumDeclaration enm) {
     String name = enm.name;
     String readerName = '_${name}Reader';
+    String count = '${idlPrefix(name)}.values.length';
+    String def = '${idlPrefix(name)}.${enm.values[0].name}';
     out('class $readerName extends fb.Reader<${idlPrefix(name)}> {');
     indent(() {
       out('const $readerName() : super();');
@@ -719,7 +720,7 @@ class _CodeGenerator {
       out('${idlPrefix(name)} read(fb.BufferPointer bp) {');
       indent(() {
         out('int index = const fb.Uint8Reader().read(bp);');
-        out('return ${idlPrefix(name)}.values[index];');
+        out('return index < $count ? ${idlPrefix(name)}.values[index] : $def;');
       });
       out('}');
     });
