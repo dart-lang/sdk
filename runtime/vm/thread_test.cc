@@ -44,7 +44,6 @@ UNIT_TEST_CASE(Monitor) {
   thread->DisableThreadInterrupts();
   Monitor* monitor = new Monitor();
   monitor->Enter();
-  EXPECT_EQ(false, monitor->TryEnter());
   monitor->Exit();
   EXPECT_EQ(true, monitor->TryEnter());
   monitor->Exit();
