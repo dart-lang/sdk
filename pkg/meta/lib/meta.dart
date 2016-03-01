@@ -67,7 +67,9 @@ const _Protected protected = const _Protected();
 ///
 /// Tools, such as the analyzer, can provide feedback if
 /// * the annotation is associated with anything other than a named parameter,
-///   or
+/// * the annotation is associated with a named parameter in a method `m1` that
+///   overrides a method `m0` and `m0` defines a named parameter with the same
+///   name that does not have this annotation, or
 /// * an invocation of a method or function does not include an argument
 ///   corresponding to a named parameter that has this annotation.
 const _Required required = const _Required();
