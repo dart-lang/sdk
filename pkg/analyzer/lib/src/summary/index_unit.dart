@@ -106,7 +106,7 @@ class PackageIndexAssembler {
         offset = 0;
       }
       IndexSyntheticElementKind kind = getIndexElementKind(element);
-      return new _ElementInfo(element, unitId, offset, kind);
+      return new _ElementInfo(unitId, offset, kind);
     });
   }
 
@@ -208,11 +208,6 @@ class _DefinedNameInfo {
  */
 class _ElementInfo {
   /**
-   * TODO(scheglov) remove after fixing build flakiness on bots
-   */
-  final Element element;
-
-  /**
    * The identifier of the [CompilationUnitElement] containing this element.
    */
   final int unitId;
@@ -233,7 +228,7 @@ class _ElementInfo {
    */
   int id;
 
-  _ElementInfo(this.element, this.unitId, this.offset, this.kind);
+  _ElementInfo(this.unitId, this.offset, this.kind);
 }
 
 /**
@@ -635,10 +630,6 @@ class _UnitIndexAssembler {
       return a.nameId - b.nameId;
     });
     elementRelations.sort((a, b) {
-      if (a.elementInfo.id == null) {
-        throw new StateError('No id for ${a.elementInfo.element}, '
-            'location= ${a.elementInfo.element?.location}');
-      }
       return a.elementInfo.id - b.elementInfo.id;
     });
     nameRelations.sort((a, b) {
