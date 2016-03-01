@@ -181,14 +181,20 @@ regress_22443_test: Skip
 [ $runtime == vm && $mode == product ]
 vm/type_vm_test: Fail,OK  # Expects exact type name.
 
-[ $compiler == none && $browser ]
+[ ($compiler == none || $compiler == precompiler || $compiler == dart2app) && $browser ]
 # The following tests are supposed to fail.
 library_env_test/has_io_support: RuntimeError, OK
 library_env_test/has_no_html_support: RuntimeError, OK
-library_env_test/has_no_mirror_support: RuntimeError, OK
 
-[ $compiler == none && $browser != true ]
+[ ($compiler == none || $compiler == precompiler || $compiler == dart2app) && $browser != true ]
 # The following tests are supposed to fail.
 library_env_test/has_html_support: RuntimeError, OK
 library_env_test/has_no_io_support: RuntimeError, OK
+
+[ $compiler == none && $noopt == false && $mode != product ]
+# The following tests are supposed to fail.
 library_env_test/has_no_mirror_support: RuntimeError, OK
+
+[ $noopt || $compiler == precompiler || $mode == product ]
+# The following tests are supposed to fail.
+library_env_test/has_mirror_support: RuntimeError, OK
