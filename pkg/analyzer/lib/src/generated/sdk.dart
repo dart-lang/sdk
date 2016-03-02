@@ -377,12 +377,14 @@ class SdkLibraryImpl implements SdkLibrary {
    * The short name of the library. This is the name used after 'dart:' in a
    * URI.
    */
+  @override
   final String shortName;
 
   /**
    * The path to the file defining the library. The path is relative to the
    * 'lib' directory within the SDK.
    */
+  @override
   String path = null;
 
   /**
@@ -390,6 +392,7 @@ class SdkLibraryImpl implements SdkLibrary {
    * in the libraries file all libraries are assumed to be shared between server
    * and client.
    */
+  @override
   String category = "Shared";
 
   /**

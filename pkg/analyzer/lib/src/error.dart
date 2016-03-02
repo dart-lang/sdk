@@ -20,6 +20,7 @@ class AnalyzerError implements Exception {
 
   String get message => toString();
 
+  @override
   String toString() {
     var builder = new StringBuffer();
 
@@ -89,5 +90,6 @@ class AnalyzerErrorGroup implements Exception {
       new UnmodifiableListView<AnalyzerError>(_errors);
 
   String get message => toString();
+  @override
   String toString() => errors.join("\n");
 }

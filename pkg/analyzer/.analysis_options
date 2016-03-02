@@ -1,4 +1,5 @@
 linter:
   rules:
-    - unnecessary_brace_in_string_interp
+    - annotate_overrides
     - empty_constructor_bodies
+    - unnecessary_brace_in_string_interp

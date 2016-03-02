@@ -2539,6 +2539,7 @@ class SyntheticIdentifier extends IdentifierImpl {
   /**
    * The name of the synthetic identifier.
    */
+  @override
   final String name;
 
   /**

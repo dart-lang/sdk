@@ -47,6 +47,7 @@ class FileSystemException implements Exception {
 
   FileSystemException(this.path, this.message);
 
+  @override
   String toString() => 'FileSystemException(path=$path; message=$message)';
 }
 

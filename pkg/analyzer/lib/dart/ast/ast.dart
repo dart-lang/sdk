@@ -4020,6 +4020,7 @@ abstract class FunctionExpressionInvocation extends InvocationExpression {
   /**
    * Return the expression producing the function being invoked.
    */
+  @override
   Expression get function;
 
   /**
@@ -4050,12 +4051,14 @@ abstract class FunctionExpressionInvocation extends InvocationExpression {
    * [InterfaceType] with a `call` method, `dynamic`, `Function`, or a `@proxy`
    * interface type that implements `Function`.
    */
+  @override
   DartType get propagatedInvokeType;
 
   /**
    * Set the function type of the method invocation based on the propagated type
    * information to the given [type].
    */
+  @override
   void set propagatedInvokeType(DartType type);
 
   /**
@@ -4080,12 +4083,14 @@ abstract class FunctionExpressionInvocation extends InvocationExpression {
    * [InterfaceType] with a `call` method, `dynamic`, `Function`, or a `@proxy`
    * interface type that implements `Function`.
    */
+  @override
   DartType get staticInvokeType;
 
   /**
    * Set the function type of the method invocation based on the static type
    * information to the given [type].
    */
+  @override
   void set staticInvokeType(DartType type);
 
   /**
@@ -5632,12 +5637,14 @@ abstract class MethodInvocation extends InvocationExpression {
    * [InterfaceType] with a `call` method, `dynamic`, `Function`, or a `@proxy`
    * interface type that implements `Function`.
    */
+  @override
   DartType get propagatedInvokeType;
 
   /**
    * Set the function type of the method invocation based on the propagated type
    * information to the given [type].
    */
+  @override
   void set propagatedInvokeType(DartType type);
 
   /**
@@ -5657,12 +5664,14 @@ abstract class MethodInvocation extends InvocationExpression {
    * [InterfaceType] with a `call` method, `dynamic`, `Function`, or a `@proxy`
    * interface type that implements `Function`.
    */
+  @override
   DartType get staticInvokeType;
 
   /**
    * Set the function type of the method invocation based on the static type
    * information to the given [type].
    */
+  @override
   void set staticInvokeType(DartType type);
 
   /**
@@ -5920,12 +5929,14 @@ abstract class NodeList<E extends AstNode> implements List<E> {
    * Return the node at the given [index] in the list or throw a [RangeError] if
    * [index] is out of bounds.
    */
+  @override
   E operator [](int index);
 
   /**
    * Set the node at the given [index] in the list to the given [node] or throw
    * a [RangeError] if [index] is out of bounds.
    */
+  @override
   void operator []=(int index, E node);
 
   /**

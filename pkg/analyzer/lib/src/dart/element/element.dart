@@ -86,11 +86,13 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
    * A list containing all of the mixins that are applied to the class being
    * extended in order to derive the superclass of this class.
    */
+  @override
   List<InterfaceType> mixins = InterfaceType.EMPTY_LIST;
 
   /**
    * A list containing all of the interfaces that are implemented by this class.
    */
+  @override
   List<InterfaceType> interfaces = InterfaceType.EMPTY_LIST;
 
   /**
@@ -102,11 +104,13 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
    * The superclass of the class, or `null` if the class does not have an
    * explicit superclass.
    */
+  @override
   InterfaceType supertype;
 
   /**
    * The type defined by the class.
    */
+  @override
   InterfaceType type;
 
   /**
@@ -911,6 +915,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /**
    * The source that corresponds to this compilation unit.
    */
+  @override
   Source source;
 
   /**

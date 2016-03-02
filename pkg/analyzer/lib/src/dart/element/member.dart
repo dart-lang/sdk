@@ -455,6 +455,7 @@ abstract class Member implements Element {
   @override
   String get documentationComment => _baseElement.documentationComment;
 
+  @override
   int get id => _baseElement.id;
 
   @override

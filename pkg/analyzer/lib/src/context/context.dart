@@ -72,6 +72,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
    * A client-provided name used to identify this context, or `null` if the
    * client has not provided a name.
    */
+  @override
   String name;
 
   /**
@@ -129,6 +130,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   /**
    * A list of all [WorkManager]s used by this context.
    */
+  @override
   final List<WorkManager> workManagers = <WorkManager>[];
 
   /**
@@ -490,6 +492,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   /**
    * Sets the [TypeProvider] for this context.
    */
+  @override
   void set typeProvider(TypeProvider typeProvider) {
     _typeProvider = typeProvider;
   }

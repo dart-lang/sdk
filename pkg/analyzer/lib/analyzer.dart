@@ -127,5 +127,6 @@ class _ErrorCollector extends AnalysisErrorListener {
   /// Whether any errors where collected.
   bool get hasErrors => !_errors.isEmpty;
 
+  @override
   void onError(AnalysisError error) => _errors.add(error);
 }

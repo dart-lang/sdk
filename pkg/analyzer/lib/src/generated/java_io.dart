@@ -25,7 +25,9 @@ class JavaFile {
       this._path = pathContext.join(base._path, child);
     }
   }
+  @override
   int get hashCode => _path.hashCode;
+  @override
   bool operator ==(other) {
     return other is JavaFile && other._path == _path;
   }
@@ -101,6 +103,7 @@ class JavaFile {
   }
 
   String readAsStringSync() => _newFile().readAsStringSync();
+  @override
   String toString() => _path.toString();
   Uri toURI() {
     String path = getAbsolutePath();

@@ -23,6 +23,7 @@ class SourceFactoryImpl implements SourceFactory {
   /**
    * The analysis context that this source factory is associated with.
    */
+  @override
   AnalysisContext context;
 
   /**
@@ -63,6 +64,7 @@ class SourceFactoryImpl implements SourceFactory {
    * @return the [DartSdk] associated with this [SourceFactory], or `null` if
    *         there is no such SDK
    */
+  @override
   DartSdk get dartSdk {
     for (UriResolver resolver in resolvers) {
       if (resolver is DartUriResolver) {
@@ -78,12 +80,14 @@ class SourceFactoryImpl implements SourceFactory {
    *
    * @param localSourcePredicate the predicate to determine is [Source] is local
    */
+  @override
   void set localSourcePredicate(LocalSourcePredicate localSourcePredicate) {
     this._localSourcePredicate = localSourcePredicate;
   }
 
   /// A table mapping package names to paths of directories containing
   /// the package (or [null] if there is no registered package URI resolver).
+  @override
   Map<String, List<Folder>> get packageMap {
     // Start by looking in .packages.
     if (_packages != null) {
@@ -108,6 +112,7 @@ class SourceFactoryImpl implements SourceFactory {
    * Return a source factory that will resolve URI's in the same way that this
    * source factory does.
    */
+  @override
   SourceFactory clone() {
     SourceFactory factory =
         new SourceFactory(resolvers, _packages, _resourceProvider);
@@ -122,6 +127,7 @@ class SourceFactoryImpl implements SourceFactory {
    * @param absoluteUri the absolute URI to be resolved
    * @return a source object representing the absolute URI
    */
+  @override
   Source forUri(String absoluteUri) {
     try {
       Uri uri = parseUriWithException(absoluteUri);
@@ -143,6 +149,7 @@ class SourceFactoryImpl implements SourceFactory {
    * @param absoluteUri the absolute URI to be resolved
    * @return a source object representing the absolute URI
    */
+  @override
   Source forUri2(Uri absoluteUri) {
     if (absoluteUri.isAbsolute) {
       try {
@@ -165,6 +172,7 @@ class SourceFactoryImpl implements SourceFactory {
    * @throws IllegalArgumentException if the argument is not a valid encoding
    * See [Source.encoding].
    */
+  @override
   Source fromEncoding(String encoding) {
     Source source = forUri(encoding);
     if (source == null) {
@@ -180,6 +188,7 @@ class SourceFactoryImpl implements SourceFactory {
    * @param source the [Source] to analyze
    * @return `true` if the given [Source] is local
    */
+  @override
   bool isLocalSource(Source source) => _localSourcePredicate.isLocal(source);
 
   /**
@@ -189,6 +198,7 @@ class SourceFactoryImpl implements SourceFactory {
    * if either the [containedUri] is invalid or if it cannot be resolved against
    * the [containingSource]'s URI.
    */
+  @override
   Source resolveUri(Source containingSource, String containedUri) {
     if (containedUri == null || containedUri.isEmpty) {
       return null;
@@ -217,6 +227,7 @@ class SourceFactoryImpl implements SourceFactory {
    * @param source the source to get URI for
    * @return the absolute URI representing the given source
    */
+  @override
   Uri restoreUri(Source source) {
     // First see if a resolver can restore the URI.
     for (UriResolver resolver in resolvers) {

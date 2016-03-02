@@ -53,6 +53,7 @@ class StringSource extends Source {
    * Return `true` if the given [object] is a string source that is equal to
    * this source.
    */
+  @override
   bool operator ==(Object object) {
     return object is StringSource &&
         object._contents == _contents &&

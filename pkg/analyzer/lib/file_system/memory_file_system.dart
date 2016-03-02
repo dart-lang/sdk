@@ -29,6 +29,7 @@ class MemoryResourceProvider implements ResourceProvider {
   int nextStamp = 0;
 
   final Context _pathContext;
+  @override
   final AbsolutePathContext absolutePathContext;
 
   MemoryResourceProvider({bool isWindows: false})
@@ -211,6 +212,7 @@ class _MemoryDummyLink extends _MemoryResource implements File {
   @override
   bool get exists => false;
 
+  @override
   int get modificationStamp {
     int stamp = _provider._pathToTimestamp[path];
     if (stamp == null) {
@@ -249,6 +251,7 @@ class _MemoryFile extends _MemoryResource implements File {
   @override
   bool get exists => _provider._pathToResource[path] is _MemoryFile;
 
+  @override
   int get modificationStamp {
     int stamp = _provider._pathToTimestamp[path];
     if (stamp == null) {
@@ -303,6 +306,7 @@ class _MemoryFileSource extends Source {
 
   final _MemoryFile file;
 
+  @override
   final Uri uri;
 
   /**
@@ -453,6 +457,7 @@ class _MemoryFolder extends _MemoryResource implements Folder {
  */
 abstract class _MemoryResource implements Resource {
   final MemoryResourceProvider _provider;
+  @override
   final String path;
 
   _MemoryResource(this._provider, this.path);
