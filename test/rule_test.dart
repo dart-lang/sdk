@@ -419,6 +419,7 @@ class Annotation {
   Annotation.forLint([String message, int column, int length])
       : this(message, ErrorType.LINT, null, column: column, length: length);
 
+  @override
   String toString() =>
       '[$type]: "$message" (line: $lineNumber) - [$column:$length]';
 
@@ -434,9 +435,11 @@ class AnnotationMatcher extends Matcher {
   final Annotation _expected;
   AnnotationMatcher(this._expected);
 
+  @override
   Description describe(Description description) =>
       description.addDescriptionOf(_expected);
 
+  @override
   bool matches(item, Map matchState) =>
       item is Annotation && _matches(item as Annotation);
 

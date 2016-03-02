@@ -327,7 +327,9 @@ class _MockSdkFile {
 }
 
 class _MockSdkLibrary implements SdkLibrary {
+  @override
   final String shortName;
+  @override
   final String path;
   final String content;
   final List<_MockSdkFile> parts;

@@ -41,6 +41,7 @@ class Visitor extends PubspecVisitor {
   LintRule rule;
   Visitor(this.rule);
 
+  @override
   visitPackageName(PSEntry name) {
     if (!isValidPackageName(name.value.text)) {
       rule.reportPubLint(name.value);

@@ -39,6 +39,7 @@ class CamelCaseString {
 
   String get humanized => _humanize(value);
 
+  @override
   String toString() => value;
 
   static bool isCamelCase(String name) => _camelCaseTester.hasMatch(name);
@@ -185,6 +186,7 @@ class LinterException implements Exception {
   /// Creates a new LinterException with an optional error [message].
   const LinterException([this.message]);
 
+  @override
   String toString() =>
       message == null ? "LinterException" : "LinterException: $message";
 }
@@ -192,6 +194,7 @@ class LinterException implements Exception {
 /// Linter options.
 class LinterOptions extends DriverOptions {
   Iterable<LintRule> enabledLints;
+  @override
   final bool enableLints = true;
   LintFilter filter;
   LinterOptions([this.enabledLints]) {
@@ -345,8 +348,11 @@ abstract class Reporter {
 
 /// Linter implementation.
 class SourceLinter implements DartLinter, AnalysisErrorListener {
+  @override
   final errors = <AnalysisError>[];
+  @override
   final LinterOptions options;
+  @override
   final Reporter reporter;
 
   @override
@@ -407,6 +413,7 @@ class SourceLinter implements DartLinter, AnalysisErrorListener {
   @override
   onError(AnalysisError error) => errors.add(error);
 
+  @override
   Iterable<AnalysisErrorInfo> _lintPubspecFile(File sourceFile) =>
       lintPubspecSource(
           contents: sourceFile.readAsStringSync(), sourcePath: sourceFile.path);
@@ -420,6 +427,7 @@ class _LineInfo implements LineInfo {
   LineInfo_Location getLocation(int offset) => new LineInfo_Location(
       node.span.start.line + 1, node.span.start.column + 1);
 
+  @override
   int getOffsetOfLine(int lineNumber) {
     throw new UnsupportedError('Cannot get line offset from a yaml node');
   }

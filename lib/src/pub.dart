@@ -148,9 +148,13 @@ abstract class PubspecVisitor<T> {
 }
 
 class _PSDependency extends PSDependency {
+  @override
   PSNode name;
+  @override
   PSEntry version;
+  @override
   PSHost host;
+  @override
   PSGitRepo git;
 
   factory _PSDependency(dynamic k, YamlNode v) {
@@ -240,8 +244,11 @@ class _PSDependencyList extends PSDependencyList {
 }
 
 class _PSGitRepo implements PSGitRepo {
+  @override
   PSNode token;
+  @override
   PSEntry ref;
+  @override
   PSEntry url;
   @override
   String toString() => '''
@@ -251,8 +258,11 @@ class _PSGitRepo implements PSGitRepo {
 }
 
 class _PSHost implements PSHost {
+  @override
   PSNode token;
+  @override
   PSEntry name;
+  @override
   PSEntry url;
   @override
   String toString() => '''
@@ -262,7 +272,9 @@ class _PSHost implements PSHost {
 }
 
 class _PSNode implements PSNode {
+  @override
   final String text;
+  @override
   final SourceSpan span;
 
   _PSNode(YamlNode node)
@@ -274,6 +286,7 @@ class _PSNode implements PSNode {
 }
 
 class _PSNodeList extends PSNodeList {
+  @override
   final PSNode token;
   final Iterable<PSNode> nodes;
 
@@ -289,14 +302,23 @@ $token:
 }
 
 class _Pubspec implements Pubspec {
+  @override
   PSEntry author;
+  @override
   PSNodeList authors;
+  @override
   PSEntry description;
+  @override
   PSEntry documentation;
+  @override
   PSEntry homepage;
+  @override
   PSEntry name;
+  @override
   PSEntry version;
+  @override
   PSDependencyList dependencies;
+  @override
   PSDependencyList devDependencies;
 
   _Pubspec(String src, {Uri sourceUrl}) {
@@ -307,6 +329,7 @@ class _Pubspec implements Pubspec {
     }
   }
 
+  @override
   void accept(PubspecVisitor visitor) {
     if (author != null) {
       visitor.visitPackageAuthor(author);

@@ -15,10 +15,10 @@ From the [style guide] (https://www.dartlang.org/articles/style-guide/):
 
 **AVOID** defining a one-member abstract class when a simple function will do.
 
-Unlike Java, Dart has first-class functions, closures, and a nice light syntax 
-for using them. If all you need is something like a callback, just use a 
-function. If you're defining an class and it only has a single abstract member 
-with a meaningless name like `call` or `invoke`, there is a good chance 
+Unlike Java, Dart has first-class functions, closures, and a nice light syntax
+for using them. If all you need is something like a callback, just use a
+function. If you're defining an class and it only has a single abstract member
+with a meaningless name like `call` or `invoke`, there is a good chance
 you just want a function.
 
 **GOOD:**
@@ -49,6 +49,7 @@ class Visitor extends SimpleAstVisitor {
   LintRule rule;
   Visitor(this.rule);
 
+  @override
   visitClassDeclaration(ClassDeclaration node) {
     if (node.isAbstract &&
         node.extendsClause == null &&

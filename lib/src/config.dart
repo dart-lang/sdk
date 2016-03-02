@@ -75,8 +75,11 @@ abstract class RuleConfig {
 }
 
 class _LintConfig implements LintConfig {
+  @override
   final fileIncludes = <String>[];
+  @override
   final fileExcludes = <String>[];
+  @override
   final ruleConfigs = <RuleConfig>[];
 
   void addAsListOrString(value, List<String> list) {
@@ -248,7 +251,10 @@ class _LintConfig implements LintConfig {
 }
 
 class _RuleConfig extends RuleConfig {
+  @override
   String group;
+  @override
   String name;
+  @override
   var args = <String, dynamic>{};
 }

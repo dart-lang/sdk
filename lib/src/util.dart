@@ -100,6 +100,7 @@ class Spelunker {
 class _ErrorListener implements AnalysisErrorListener {
   final errors = <AnalysisError>[];
 
+  @override
   void onError(AnalysisError error) {
     errors.add(error);
   }
