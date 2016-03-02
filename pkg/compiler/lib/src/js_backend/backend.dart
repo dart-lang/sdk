@@ -509,7 +509,8 @@ class JavaScriptBackend extends Backend {
 
   JavaScriptBackend(Compiler compiler,
                     {bool generateSourceMap: true,
-                     bool useStartupEmitter: false})
+                     bool useStartupEmitter: false,
+                     bool useNewSourceInfo: false})
       : namer = determineNamer(compiler),
         oneShotInterceptors = new Map<jsAst.Name, Selector>(),
         interceptedElements = new Map<String, Set<Element>>(),

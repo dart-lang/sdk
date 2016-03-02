@@ -71,8 +71,9 @@ main(List<String> args) async {
   if (optionSegments.length == 1) {
     // Use default options; comparing SSA and CPS output using the new
     // source information strategy.
-    options.add([USE_NEW_SOURCE_INFO]..addAll(commonArguments));
-    options.add([USE_NEW_SOURCE_INFO, Flags.useCpsIr]..addAll(commonArguments));
+    options.add([Flags.useNewSourceInfo]..addAll(commonArguments));
+    options.add(
+        [Flags.useNewSourceInfo, Flags.useCpsIr]..addAll(commonArguments));
   } else if (optionSegments.length == 2) {
     // Use alternative options for the second output column.
     options.add(commonArguments);
@@ -459,7 +460,7 @@ Future<CodeLinesResult> computeCodeLines(
       String title = '${step.id}:${step.kind}:${step.offset}';
       if (!addSourceLocationsForNode(WITH_SOURCE_INFO, step.node, title)) {
         int offset;
-        if (options.contains(USE_NEW_SOURCE_INFO)) {
+        if (options.contains(Flags.useNewSourceInfo)) {
           offset = step.offset.subexpressionOffset;
         } else {
           offset = info.jsCodePositions[step.node].startPosition;

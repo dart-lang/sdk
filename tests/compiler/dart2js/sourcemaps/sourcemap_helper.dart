@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:compiler/compiler_new.dart';
 import 'package:compiler/src/apiimpl.dart' as api;
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/null_compiler_output.dart' show NullSink;
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/helpers/helpers.dart';
@@ -271,7 +272,6 @@ class FindVisitor extends js.BaseVisitor {
   }
 }
 
-const String USE_NEW_SOURCE_INFO =  '--use-new-source-info';
 const String DISABLE_INLINING = '--disable-inlining';
 
 /// Processor that computes [SourceMapInfo] for the JavaScript compiled for a
@@ -312,9 +312,8 @@ class SourceMapProcessor {
     OutputProvider outputProvider = outputToFile
         ? new CloningOutputProvider(targetUri, sourceMapFileUri)
         : new OutputProvider();
-    if (options.contains(USE_NEW_SOURCE_INFO)) {
+    if (options.contains(Flags.useNewSourceInfo)) {
       if (verbose) print('Using the new source information system.');
-      useNewSourceInfo = true;
     }
     api.CompilerImpl compiler = await compilerFor(
         outputProvider: outputProvider,

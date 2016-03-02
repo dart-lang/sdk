@@ -15,9 +15,6 @@ import '../js/js.dart' show
     JavaScriptNodeSourceInformation;
 import 'source_file.dart';
 
-bool useNewSourceInfo =
-    const bool.fromEnvironment('USE_NEW_SOURCE_INFO', defaultValue: false);
-
 /// Interface for passing source information, for instance for use in source
 /// maps, through the backend.
 abstract class SourceInformation extends JavaScriptNodeSourceInformation {

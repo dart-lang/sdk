@@ -126,6 +126,7 @@ class CompilerImpl extends Compiler {
             useStartupEmitter: hasOption(options, Flags.fastStartup),
             enableConditionalDirectives:
                 hasOption(options, Flags.conditionalDirectives),
+            useNewSourceInfo: hasOption(options, Flags.useNewSourceInfo),
             hasIncrementalSupport:
                 forceIncrementalSupport ||
                 hasOption(options, Flags.incrementalSupport),
