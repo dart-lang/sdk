@@ -337,7 +337,7 @@ class CodeChecker extends RecursiveAstVisitor {
         : node.loopVariable?.identifier;
     if (loopVariable != null) {
       var iteratorType = loopVariable.staticType;
-      var checkedType = iterableType.substitute4([iteratorType]);
+      var checkedType = iterableType.instantiate([iteratorType]);
       checkAssignment(expr, checkedType);
     }
     node.visitChildren(this);
@@ -648,7 +648,7 @@ class CodeChecker extends RecursiveAstVisitor {
         !body.isGenerator &&
         actualType is InterfaceType &&
         actualType.element == futureType.element) {
-      type = futureType.substitute4([type]);
+      type = futureType.instantiate([type]);
     }
     // TODO(vsm): Enforce void or dynamic (to void?) when expression is null.
     if (expression != null) checkAssignment(expression, type);
@@ -753,7 +753,7 @@ class CodeChecker extends RecursiveAstVisitor {
     if (yieldStar) {
       if (type.isDynamic) {
         // Ensure it's at least a Stream / Iterable.
-        return expectedType.substitute4([typeProvider.dynamicType]);
+        return expectedType.instantiate([typeProvider.dynamicType]);
       } else {
         // Analyzer will provide a separate error if expected type
         // is not compatible with type.

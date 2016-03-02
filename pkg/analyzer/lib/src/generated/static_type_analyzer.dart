@@ -641,7 +641,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       }
     }
     _recordStaticType(
-        node, _typeProvider.listType.substitute4(<DartType>[staticType]));
+        node, _typeProvider.listType.instantiate(<DartType>[staticType]));
     return null;
   }
 
@@ -697,7 +697,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     _recordStaticType(
         node,
         _typeProvider.mapType
-            .substitute4(<DartType>[staticKeyType, staticValueType]));
+            .instantiate(<DartType>[staticKeyType, staticValueType]));
     return null;
   }
 
@@ -787,7 +787,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
               if (returnType != null) {
                 // prepare the type of the returned Future
                 InterfaceType newFutureType = _typeProvider.futureType
-                    .substitute4([returnType.flattenFutures(_typeSystem)]);
+                    .instantiate([returnType.flattenFutures(_typeSystem)]);
                 // set the 'then' invocation type
                 _resolver.recordPropagatedTypeIfBetter(node, newFutureType);
                 needPropagatedType = false;
@@ -1485,10 +1485,10 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       InterfaceType genericType = body.isAsynchronous
           ? _typeProvider.streamType
           : _typeProvider.iterableType;
-      return genericType.substitute4(<DartType>[type]);
+      return genericType.instantiate(<DartType>[type]);
     } else if (body.isAsynchronous) {
       return _typeProvider.futureType
-          .substitute4(<DartType>[type.flattenFutures(_typeSystem)]);
+          .instantiate(<DartType>[type.flattenFutures(_typeSystem)]);
     } else {
       return type;
     }
@@ -1604,7 +1604,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         if (returnType.typeParameters.isNotEmpty) {
           // Caller can't deal with unbound type parameters, so substitute
           // `dynamic`.
-          return returnType.type.substitute4(
+          return returnType.type.instantiate(
               returnType.typeParameters.map((_) => _dynamicType).toList());
         }
         return returnType.type;

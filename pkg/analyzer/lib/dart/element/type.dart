@@ -132,6 +132,15 @@ abstract class DartType {
   bool isSupertypeOf(DartType type);
 
   /**
+   * If this type is a [TypeParameterType], returns its bound if it has one, or
+   * [objectType] otherwise.
+   *
+   * For any other type, returns `this`. Applies recursively -- if the bound is
+   * itself a type parameter, that is resolved too.
+   */
+  DartType resolveToBound(DartType objectType);
+
+  /**
    * Return the type resulting from substituting the given [argumentTypes] for
    * the given [parameterTypes] in this type. The specification defines this
    * operation in section 2:
@@ -150,15 +159,6 @@ abstract class DartType {
    */
   DartType substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes);
-
-  /**
-   * If this type is a [TypeParameterType], returns its bound if it has one, or
-   * [objectType] otherwise.
-   *
-   * For any other type, returns `this`. Applies recursively -- if the bound is
-   * itself a type parameter, that is resolved too.
-   */
-  DartType resolveToBound(DartType objectType);
 }
 
 /**
@@ -242,10 +242,7 @@ abstract class FunctionType implements ParameterizedType {
    */
   List<TypeParameterElement> get typeFormals;
 
-  /**
-   * Return the type resulting from instantiating (replacing) the given
-   * [argumentTypes] for this function's bound type parameters.
-   */
+  @override
   FunctionType instantiate(List<DartType> argumentTypes);
 
   /**
@@ -400,6 +397,9 @@ abstract class InterfaceType implements ParameterizedType {
    * with the given name.
    */
   PropertyAccessorElement getSetter(String name);
+
+  @override
+  InterfaceType instantiate(List<DartType> argumentTypes);
 
   /**
    * Return `true` if this type is a direct supertype of the given [type]. The
@@ -633,12 +633,7 @@ abstract class InterfaceType implements ParameterizedType {
    * type's parameters. This is fully equivalent to `substitute2(argumentTypes,
    * getTypeArguments())`.
    */
-  // TODO(jmesserly): introduce a new "instantiate" and deprecate this.
-  // The new "instantiate" should work similar to FunctionType.instantiate,
-  // which uses [typeFormals] to model type parameters that haven't been
-  // filled in yet. Those are kept separate from already-substituted type
-  // parameters or free variables from the enclosing scopes, which allows nested
-  // generics to work, such as a generic method in a generic class.
+  @deprecated // use instantiate
   InterfaceType substitute4(List<DartType> argumentTypes);
 
   /**
@@ -665,7 +660,7 @@ abstract class InterfaceType implements ParameterizedType {
  * This substitution will be propagated to its members. For example, say our
  * `Foo<T>` class has a field `T bar;`. When we look up this field, we will get
  * back a [FieldElement] that tracks the substituted type as `{S/T}T`, so when
- * we ask for the field type we will get`S`.
+ * we ask for the field type we will get `S`.
  *
  * Clients may not extend, implement or mix-in this class.
  */
@@ -684,6 +679,12 @@ abstract class ParameterizedType implements DartType {
    * Return a list containing all of the type parameters declared for this type.
    */
   List<TypeParameterElement> get typeParameters;
+
+  /**
+   * Return the type resulting from instantiating (replacing) the given
+   * [argumentTypes] for this type's bound type parameters.
+   */
+  ParameterizedType instantiate(List<DartType> argumentTypes);
 }
 
 /**

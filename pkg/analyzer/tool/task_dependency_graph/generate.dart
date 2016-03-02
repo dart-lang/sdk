@@ -151,9 +151,9 @@ class Driver {
     resultDescriptorType = modelElement
         .getType('ResultDescriptor')
         .type
-        .substitute4([dynamicType]);
+        .instantiate([dynamicType]);
     listOfResultDescriptorType =
-        context.typeProvider.listType.substitute4([resultDescriptorType]);
+        context.typeProvider.listType.instantiate([resultDescriptorType]);
     CompilationUnitElement enginePluginUnitElement =
         getUnit(enginePluginSource).element;
     enginePluginClass = enginePluginUnitElement.getType('EnginePlugin');

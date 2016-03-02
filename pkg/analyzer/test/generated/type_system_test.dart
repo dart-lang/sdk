@@ -138,14 +138,14 @@ class StrongAssignabilityTest {
     InterfaceType LType = LClass.type;
     ClassElementImpl MClass = ElementFactory.classElement2('M', ["T"]);
     DartType typeParam = MClass.typeParameters[0].type;
-    InterfaceType superType = LType.substitute4(<DartType>[typeParam]);
+    InterfaceType superType = LType.instantiate(<DartType>[typeParam]);
     MClass.interfaces = <InterfaceType>[superType];
     InterfaceType MType = MClass.type;
 
-    InterfaceType top = LType.substitute4(<DartType>[dynamicType]);
-    InterfaceType left = MType.substitute4(<DartType>[dynamicType]);
-    InterfaceType right = LType.substitute4(<DartType>[intType]);
-    InterfaceType bottom = MType.substitute4(<DartType>[intType]);
+    InterfaceType top = LType.instantiate(<DartType>[dynamicType]);
+    InterfaceType left = MType.instantiate(<DartType>[dynamicType]);
+    InterfaceType right = LType.instantiate(<DartType>[intType]);
+    InterfaceType bottom = MType.instantiate(<DartType>[intType]);
 
     _checkCrossLattice(top, left, right, bottom);
   }
@@ -341,12 +341,12 @@ class StrongGenericFunctionInferenceTest {
     // <TFrom, TTo extends Iterable<TFrom>>(TFrom) -> TTo
     var tFrom = TypeBuilder.variable('TFrom');
     var tTo =
-        TypeBuilder.variable('TTo', bound: iterableType.substitute4([tFrom]));
+        TypeBuilder.variable('TTo', bound: iterableType.instantiate([tFrom]));
     var cast = TypeBuilder
         .function(types: [tFrom, tTo], required: [tFrom], result: tTo);
     expect(_inferCall(cast, [stringType]), [
       stringType,
-      iterableType.substitute4([stringType])
+      iterableType.instantiate([stringType])
     ]);
   }
 
@@ -358,19 +358,19 @@ class StrongGenericFunctionInferenceTest {
         clonable.type;
     // class Foo extends Clonable<Foo>
     ClassElementImpl foo = ElementFactory.classElement('Foo', null);
-    foo.supertype = clonable.type.substitute4([foo.type]);
+    foo.supertype = clonable.type.instantiate([foo.type]);
 
     // <S extends Clonable<S>>
     var s = TypeBuilder.variable('S');
     (s.element as TypeParameterElementImpl).bound =
-        clonable.type.substitute4([s]);
+        clonable.type.instantiate([s]);
     // (S, S) -> S
     var clone = TypeBuilder.function(types: [s], required: [s, s], result: s);
     expect(_inferCall(clone, [foo.type, foo.type]), [foo.type]);
 
     // Something invalid...
     expect(_inferCall(clone, [stringType, numType]), [
-      clonable.type.substitute4([dynamicType])
+      clonable.type.instantiate([dynamicType])
     ]);
   }
 
@@ -687,14 +687,14 @@ class StrongSubtypingTest {
     ClassElementImpl AClass = ElementFactory.classElement2('A', ["Q"]);
     InterfaceType AType = AClass.type;
     ClassElementImpl BClass = ElementFactory.classElement2('B', ["R"]);
-    BClass.supertype = AType.substitute4([BClass.typeParameters[0].type]);
+    BClass.supertype = AType.instantiate([BClass.typeParameters[0].type]);
     InterfaceType BType = BClass.type;
 
     DartType s = TypeBuilder.variable("S");
-    (s.element as TypeParameterElementImpl).bound = AType.substitute4([s]);
+    (s.element as TypeParameterElementImpl).bound = AType.instantiate([s]);
     DartType t = TypeBuilder.variable("T", bound: s);
     DartType u = TypeBuilder.variable("U");
-    (u.element as TypeParameterElementImpl).bound = BType.substitute4([u]);
+    (u.element as TypeParameterElementImpl).bound = BType.instantiate([u]);
     DartType v = TypeBuilder.variable("V", bound: u);
 
     _checkIsStrictSubtypeOf(
@@ -710,14 +710,14 @@ class StrongSubtypingTest {
     InterfaceType LType = LClass.type;
     ClassElementImpl MClass = ElementFactory.classElement2('M', ["T"]);
     DartType typeParam = MClass.typeParameters[0].type;
-    InterfaceType superType = LType.substitute4(<DartType>[typeParam]);
+    InterfaceType superType = LType.instantiate(<DartType>[typeParam]);
     MClass.interfaces = <InterfaceType>[superType];
     InterfaceType MType = MClass.type;
 
-    InterfaceType top = LType.substitute4(<DartType>[dynamicType]);
-    InterfaceType left = MType.substitute4(<DartType>[dynamicType]);
-    InterfaceType right = LType.substitute4(<DartType>[intType]);
-    InterfaceType bottom = MType.substitute4(<DartType>[intType]);
+    InterfaceType top = LType.instantiate(<DartType>[dynamicType]);
+    InterfaceType left = MType.instantiate(<DartType>[dynamicType]);
+    InterfaceType right = LType.instantiate(<DartType>[intType]);
+    InterfaceType bottom = MType.instantiate(<DartType>[intType]);
 
     _checkLattice(top, left, right, bottom);
   }
@@ -1224,9 +1224,9 @@ class LeastUpperBoundTest {
     // class List<int>
     // class List<double>
     //
-    InterfaceType listOfIntType = listType.substitute4(<DartType>[intType]);
+    InterfaceType listOfIntType = listType.instantiate(<DartType>[intType]);
     InterfaceType listOfDoubleType =
-        listType.substitute4(<DartType>[doubleType]);
+        listType.instantiate(<DartType>[doubleType]);
     _checkLeastUpperBound(listOfIntType, listOfDoubleType, objectType);
   }
 
@@ -1235,7 +1235,7 @@ class LeastUpperBoundTest {
     // List<int>
     // List<int>
     //
-    InterfaceType listOfIntType = listType.substitute4(<DartType>[intType]);
+    InterfaceType listOfIntType = listType.instantiate(<DartType>[intType]);
     expect(
         typeSystem.getLeastUpperBound(
             typeProvider, listOfIntType, listOfIntType),

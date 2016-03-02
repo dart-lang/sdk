@@ -356,8 +356,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   Object visitBinaryExpression(BinaryExpression node) {
     Token operator = node.operator;
     TokenType type = operator.type;
-    if (type == TokenType.AMPERSAND_AMPERSAND ||
-        type == TokenType.BAR_BAR) {
+    if (type == TokenType.AMPERSAND_AMPERSAND || type == TokenType.BAR_BAR) {
       String lexeme = operator.lexeme;
       _checkForAssignability(node.leftOperand, _boolType,
           StaticTypeWarningCode.NON_BOOL_OPERAND, [lexeme]);
@@ -2842,8 +2841,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (type.element.isAbstract) {
       ConstructorElement element = expression.staticElement;
       if (element != null && !element.isFactory) {
-        if ((expression.keyword as KeywordToken).keyword ==
-            Keyword.CONST) {
+        if ((expression.keyword as KeywordToken).keyword == Keyword.CONST) {
           _errorReporter.reportErrorForNode(
               StaticWarningCode.CONST_WITH_ABSTRACT_CLASS, typeName);
         } else {
@@ -5670,10 +5668,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       impliedReturnType = staticYieldedType;
     } else if (_enclosingFunction.isAsynchronous) {
       impliedReturnType =
-          _typeProvider.streamType.substitute4(<DartType>[staticYieldedType]);
+          _typeProvider.streamType.instantiate(<DartType>[staticYieldedType]);
     } else {
       impliedReturnType =
-          _typeProvider.iterableType.substitute4(<DartType>[staticYieldedType]);
+          _typeProvider.iterableType.instantiate(<DartType>[staticYieldedType]);
     }
     if (!_typeSystem.isAssignableTo(impliedReturnType, declaredReturnType)) {
       _errorReporter.reportTypeErrorForNode(
@@ -5783,7 +5781,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     DartType staticReturnType = getStaticType(returnExpression);
     if (staticReturnType != null && _enclosingFunction.isAsynchronous) {
-      return _typeProvider.futureType.substitute4(
+      return _typeProvider.futureType.instantiate(
           <DartType>[staticReturnType.flattenFutures(_typeSystem)]);
     }
     return staticReturnType;

@@ -3363,7 +3363,7 @@ class EnumMemberBuilder extends RecursiveAstVisitor<Object> {
     valuesField.static = true;
     valuesField.const3 = true;
     valuesField.synthetic = true;
-    valuesField.type = _typeProvider.listType.substitute4(<DartType>[enumType]);
+    valuesField.type = _typeProvider.listType.instantiate(<DartType>[enumType]);
     fields.add(valuesField);
     getters.add(_createGetter(valuesField));
     //
@@ -4886,7 +4886,7 @@ class InferenceContext {
     if (!match(t1.element.type, null)) {
       return null;
     }
-    DartType newT1 = t1.element.type.substitute4(actuals);
+    DartType newT1 = t1.element.type.instantiate(actuals);
     // If we found a solution, return it.
     if (_typeSystem.isSubtypeOf(newT1, t2)) {
       return actuals;
@@ -7718,7 +7718,7 @@ class ResolverVisitor extends ScopedVisitor {
     DartType contextType = InferenceContext.getType(node);
     if (contextType != null) {
       InterfaceType futureT = typeProvider.futureType
-          .substitute4([contextType.flattenFutures(typeSystem)]);
+          .instantiate([contextType.flattenFutures(typeSystem)]);
       InferenceContext.setType(node.expression, futureT);
     }
     return super.visitAwaitExpression(node);
@@ -8156,7 +8156,7 @@ class ResolverVisitor extends ScopedVisitor {
           ? typeProvider.iterableType
           : typeProvider.streamType;
       InferenceContext.setType(
-          iterable, targetType.substitute4([loopVariable.type.type]));
+          iterable, targetType.instantiate([loopVariable.type.type]));
     }
     safelyVisit(iterable);
     safelyVisit(loopVariable);
@@ -8424,12 +8424,12 @@ class ResolverVisitor extends ScopedVisitor {
       targs = node.typeArguments.arguments.map((t) => t.type).toList();
     } else if (contextType is InterfaceType) {
       InterfaceType listD =
-          typeProvider.listType.substitute4([typeProvider.dynamicType]);
+          typeProvider.listType.instantiate([typeProvider.dynamicType]);
       targs = inferenceContext.matchTypes(listD, contextType);
     }
     if (targs != null && targs.length == 1 && !targs[0].isDynamic) {
       DartType eType = targs[0];
-      InterfaceType listT = typeProvider.listType.substitute4([eType]);
+      InterfaceType listT = typeProvider.listType.instantiate([eType]);
       for (Expression child in node.elements) {
         InferenceContext.setType(child, eType);
       }
@@ -8449,13 +8449,13 @@ class ResolverVisitor extends ScopedVisitor {
       targs = node.typeArguments.arguments.map((t) => t.type).toList();
     } else if (contextType is InterfaceType) {
       InterfaceType mapD = typeProvider.mapType
-          .substitute4([typeProvider.dynamicType, typeProvider.dynamicType]);
+          .instantiate([typeProvider.dynamicType, typeProvider.dynamicType]);
       targs = inferenceContext.matchTypes(mapD, contextType);
     }
     if (targs != null && targs.length == 2 && targs.any((t) => !t.isDynamic)) {
       DartType kType = targs[0];
       DartType vType = targs[1];
-      InterfaceType mapT = typeProvider.mapType.substitute4([kType, vType]);
+      InterfaceType mapT = typeProvider.mapType.instantiate([kType, vType]);
       for (MapLiteralEntry entry in node.entries) {
         InferenceContext.setType(entry.key, kType);
         InferenceContext.setType(entry.value, vType);
@@ -8718,7 +8718,7 @@ class ResolverVisitor extends ScopedVisitor {
         InterfaceType wrapperType = _enclosingFunction.isSynchronous
             ? typeProvider.iterableType
             : typeProvider.streamType;
-        type = wrapperType.substitute4(<DartType>[type]);
+        type = wrapperType.instantiate(<DartType>[type]);
       }
       InferenceContext.setType(e, type);
     }
@@ -11248,10 +11248,10 @@ class TypeProviderImpl implements TypeProvider {
     _symbolType = _getType(coreNamespace, "Symbol");
     _typeType = _getType(coreNamespace, "Type");
     _undefinedType = UndefinedTypeImpl.instance;
-    _futureDynamicType = _futureType.substitute4(<DartType>[_dynamicType]);
-    _futureNullType = _futureType.substitute4(<DartType>[_nullType]);
-    _iterableDynamicType = _iterableType.substitute4(<DartType>[_dynamicType]);
-    _streamDynamicType = _streamType.substitute4(<DartType>[_dynamicType]);
+    _futureDynamicType = _futureType.instantiate(<DartType>[_dynamicType]);
+    _futureNullType = _futureType.instantiate(<DartType>[_nullType]);
+    _iterableDynamicType = _iterableType.instantiate(<DartType>[_dynamicType]);
+    _streamDynamicType = _streamType.instantiate(<DartType>[_dynamicType]);
   }
 }
 

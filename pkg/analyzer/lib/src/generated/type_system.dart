@@ -481,9 +481,7 @@ abstract class TypeSystem {
    * no instantiation is done.
    */
   DartType instantiateType(DartType type, List<DartType> typeArguments) {
-    if (type is InterfaceTypeImpl) {
-      return type.substitute4(typeArguments);
-    } else if (type is FunctionTypeImpl) {
+    if (type is ParameterizedType) {
       return type.instantiate(typeArguments);
     } else {
       return type;

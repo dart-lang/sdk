@@ -1157,7 +1157,7 @@ class _LibraryResynthesizer {
     valuesField.const3 = true;
     valuesField.static = true;
     valuesField.type = summaryResynthesizer.typeProvider.listType
-        .substitute4(<DartType>[enumType]);
+        .instantiate(<DartType>[enumType]);
     memberHolder.addField(valuesField);
     buildImplicitAccessors(valuesField, memberHolder);
     // Build fields for all enum constants.

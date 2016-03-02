@@ -1734,7 +1734,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         elementType = type;
       }
     }
-    InterfaceType listType = _typeProvider.listType.substitute4([elementType]);
+    InterfaceType listType = _typeProvider.listType.instantiate([elementType]);
     return new DartObjectImpl(listType, new ListState(elements));
   }
 
@@ -1774,7 +1774,7 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       }
     }
     InterfaceType mapType =
-        _typeProvider.mapType.substitute4([keyType, valueType]);
+        _typeProvider.mapType.instantiate([keyType, valueType]);
     return new DartObjectImpl(mapType, new MapState(map));
   }
 
