@@ -177,7 +177,7 @@ def GenerateFromDatabase(common_database,
     cpp_library_emitter = CPPLibraryEmitter(emitters, cpp_output_dir)
     dart_output_dir = os.path.join(dartium_output_dir, 'dart')
     backend_factory = lambda interface:\
-        DartiumBackend(interface, cpp_library_emitter, backend_options)
+        DartiumBackend(interface, cpp_library_emitter, backend_options, _logger)
     dart_libraries = DartLibraries(
         HTML_LIBRARY_NAMES, template_loader, 'dartium', dartium_output_dir, dart_js_interop)
 

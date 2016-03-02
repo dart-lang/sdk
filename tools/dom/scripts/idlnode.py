@@ -12,6 +12,18 @@ import dependency
 
 new_asts = {}
 
+# Report of union types mapped to any.
+_unions_to_any = []
+
+def report_unions_to_any():
+  global _unions_to_any
+
+  warnings = []
+  for union_id in sorted(_unions_to_any):
+    warnings.append('Union type %s is mapped to \'any\'' % union_id)
+
+  return warnings
+
 # Ugly but Chrome IDLs can reference typedefs in any IDL w/o an include.  So we
 # need to remember any typedef seen then alias any reference to a typedef.
 typeDefsFixup = []
@@ -364,6 +376,8 @@ class IDLFile(IDLNode):
 
     filename_basename = os.path.basename(filename)
 
+    # Report of union types mapped to any.
+
     self.interfaces = self._convert_all(ast, 'Interface', IDLInterface)
     self.dictionaries = self._convert_all(ast, 'Dictionary', IDLDictionary)
 
@@ -556,6 +570,8 @@ class IDLType(IDLNode):
   StringType, VoidType, IntegerType, etc."""
 
   def __init__(self, ast):
+    global _unions_to_any
+
     IDLNode.__init__(self, ast)
 
     if ast:
@@ -595,7 +611,9 @@ class IDLType(IDLNode):
         if isinstance(ast, IdlType) or isinstance(ast, IdlArrayOrSequenceType) or \
            isinstance(ast, IdlNullableType):
           if isinstance(ast, IdlNullableType) and ast.inner_type.is_union_type:
-            print 'WARNING type %s is union mapped to \'any\'' % self.id
+            # Report of union types mapped to any.
+            if not(self.id in _unions_to_any):
+              _unions_to_any.append(self.id)
             # TODO(terry): For union types use any otherwise type is unionType is
             #              not found and is removed during merging.
             self.id = 'any'
@@ -616,19 +634,20 @@ class IDLType(IDLNode):
         else:
           # IdlUnionType
           if ast.is_union_type:
-            print 'WARNING type %s is union mapped to \'any\'' % self.id
-          # TODO(terry): For union types use any otherwise type is unionType is
-          #              not found and is removed during merging.
+            if not(self.id in _unions_to_any):
+              _unions_to_any.append(self.id)
+            # TODO(terry): For union types use any otherwise type is unionType is
+            #              not found and is removed during merging.
             self.id = 'any'
-          # TODO(terry): Any union type e.g. 'type1 or type2 or type2',
-          #                            'typedef (Type1 or Type2) UnionType'
-          # Is a problem we need to extend IDLType and IDLTypeDef to handle more
-          # than one type.
-          #
-          # Also for typedef's e.g.,
-          #                 typedef (Type1 or Type2) UnionType
-          # should consider synthesizing a new interface (e.g., UnionType) that's
-          # both Type1 and Type2.
+            # TODO(terry): Any union type e.g. 'type1 or type2 or type2',
+            #                            'typedef (Type1 or Type2) UnionType'
+            # Is a problem we need to extend IDLType and IDLTypeDef to handle more
+            # than one type.
+            #
+            # Also for typedef's e.g.,
+            #                 typedef (Type1 or Type2) UnionType
+            # should consider synthesizing a new interface (e.g., UnionType) that's
+            # both Type1 and Type2.
       if not self.id:
         print '>>>> __module__ %s' % ast.__module__
         raise SyntaxError('Could not parse type %s' % (ast))

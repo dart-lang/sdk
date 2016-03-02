@@ -120,7 +120,8 @@ class _ReturnedDictionary {
 
 // Helper function to wrapped a returned dictionary from blink to a Dart looking
 // class.
-convertNativeDictionaryToDartDictionary(Map values) => new _ReturnedDictionary(values);
+convertNativeDictionaryToDartDictionary(Map values) =>
+  values != null ? new _ReturnedDictionary(values) : null;
 
 // Conversion function place holder (currently not used in dart2js or dartium).
 List convertDartToNative_StringArray(List<String> input) => input;

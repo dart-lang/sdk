@@ -850,6 +850,7 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
 # Manual dart: library name lookup.
 _library_names = monitored.Dict('htmlrenamer._library_names', {
   'ANGLEInstancedArrays': 'web_gl',
+  'CHROMIUMSubscribeUniform': 'web_gl',
   'Database': 'web_sql',
   'Navigator': 'html',
   'Window': 'html',
@@ -857,6 +858,7 @@ _library_names = monitored.Dict('htmlrenamer._library_names', {
 
 _library_ids = monitored.Dict('htmlrenamer._library_names', {
   'ANGLEInstancedArrays': 'WebGl',
+  'CHROMIUMSubscribeUniform': 'WebGl',
   'Database': 'WebSql',
   'Navigator': 'Html',
   'Window': 'Html',

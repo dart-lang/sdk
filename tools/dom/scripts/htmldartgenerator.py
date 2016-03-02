@@ -37,7 +37,7 @@ _custom_factories = [
 ]
 
 class HtmlDartGenerator(object):
-  def __init__(self, interface, options, dart_use_blink):
+  def __init__(self, interface, options, dart_use_blink, logger):
     self._dart_use_blink = dart_use_blink
     self._database = options.database
     self._interface = interface
@@ -46,6 +46,7 @@ class HtmlDartGenerator(object):
     self._renamer = options.renamer
     self._metadata = options.metadata
     self._library_name = self._renamer.GetLibraryName(self._interface)
+    _logger.setLevel(logger.level)
 
   def EmitSupportCheck(self):
     if self.HasSupportCheck():
@@ -252,7 +253,7 @@ class HtmlDartGenerator(object):
         operation.id != '__getter__' and
         operation.id != '__setter__' and
         operation.id != '__delete__'):
-      _logger.error('Multiple type signatures for %s.%s. Please file a bug with'
+      _logger.warn('Multiple type signatures for %s.%s. Please file a bug with'
           ' the dart:html team to determine if one of these functions should be'
           ' renamed.' % (
           interface.id, operation.id))
