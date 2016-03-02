@@ -4041,7 +4041,7 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_retained_size_params },
   { "_getRetainingPath", GetRetainingPath,
     get_retaining_path_params },
-  { "_getSourceReport", GetSourceReport,
+  { "getSourceReport", GetSourceReport,
     get_source_report_params },
   { "getStack", GetStack,
     get_stack_params },

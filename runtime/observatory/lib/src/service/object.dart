@@ -1185,7 +1185,7 @@ class Isolate extends ServiceObjectOwner {
     if (endPos != null) {
       params['endTokenPos'] = endPos;
     }
-    return invokeRpc('_getSourceReport', params);
+    return invokeRpc('getSourceReport', params);
   }
 
   /// Fetches and builds the class hierarchy for this isolate. Returns the
