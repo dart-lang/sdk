@@ -4886,7 +4886,7 @@ dart_library.library('language/async_await_test_02_multi', null, /* Imports */[
             try {
               while (yield it.moveNext()) {
                 let v = it.current;
-                i = i + v;
+                i = i + dart.notNull(v);
               }
             } finally {
               yield it.cancel();
@@ -4928,7 +4928,7 @@ dart_library.library('language/async_await_test_02_multi', null, /* Imports */[
             try {
               while (yield it.moveNext()) {
                 let i = it.current;
-                v = v + i;
+                v = v + dart.notNull(i);
               }
             } finally {
               yield it.cancel();
@@ -4956,7 +4956,7 @@ dart_library.library('language/async_await_test_02_multi', null, /* Imports */[
                 while (yield it.moveNext()) {
                   let v = it.current;
                   i = dart.notNull(i) + dart.notNull(dart.as(yield async$.Future.microtask(dart.fn(() => v, core.int, [])), core.int));
-                  dart.assert(v < 8);
+                  dart.assert(dart.notNull(v) < 8);
                 }
               } finally {
                 yield it.cancel();
@@ -7372,7 +7372,7 @@ dart_library.library('language/async_await_test_03_multi', null, /* Imports */[
             try {
               while (yield it.moveNext()) {
                 let v = it.current;
-                i = i + v;
+                i = i + dart.notNull(v);
               }
             } finally {
               yield it.cancel();
@@ -7414,7 +7414,7 @@ dart_library.library('language/async_await_test_03_multi', null, /* Imports */[
             try {
               while (yield it.moveNext()) {
                 let i = it.current;
-                v = v + i;
+                v = v + dart.notNull(i);
               }
             } finally {
               yield it.cancel();
@@ -7442,7 +7442,7 @@ dart_library.library('language/async_await_test_03_multi', null, /* Imports */[
                 while (yield it.moveNext()) {
                   let v = it.current;
                   i = dart.notNull(i) + dart.notNull(dart.as(yield async$.Future.microtask(dart.fn(() => v, core.int, [])), core.int));
-                  dart.assert(v < 8);
+                  dart.assert(dart.notNull(v) < 8);
                 }
               } finally {
                 yield it.cancel();
@@ -9892,7 +9892,7 @@ dart_library.library('language/async_await_test_none_multi', null, /* Imports */
             try {
               while (yield it.moveNext()) {
                 let v = it.current;
-                i = i + v;
+                i = i + dart.notNull(v);
               }
             } finally {
               yield it.cancel();
@@ -9934,7 +9934,7 @@ dart_library.library('language/async_await_test_none_multi', null, /* Imports */
             try {
               while (yield it.moveNext()) {
                 let i = it.current;
-                v = v + i;
+                v = v + dart.notNull(i);
               }
             } finally {
               yield it.cancel();
@@ -9962,7 +9962,7 @@ dart_library.library('language/async_await_test_none_multi', null, /* Imports */
                 while (yield it.moveNext()) {
                   let v = it.current;
                   i = dart.notNull(i) + dart.notNull(dart.as(yield async$.Future.microtask(dart.fn(() => v, core.int, [])), core.int));
-                  dart.assert(v < 8);
+                  dart.assert(dart.notNull(v) < 8);
                 }
               } finally {
                 yield it.cancel();
@@ -12917,21 +12917,21 @@ dart_library.library('language/async_or_generator_return_type_stacktrace_test_no
     } catch (e) {
       let st = dart.stackTrace(e);
       expect.Expect.isTrue(dart.is(e, core.TypeError), "wrong exception type");
-      expect.Expect.isTrue(dart.toString(st)[dartx.contains]("badReturnTypeAsync"), "missing frame");
+      expect.Expect.isTrue(st.toString()[dartx.contains]("badReturnTypeAsync"), "missing frame");
     }
 
     try {
     } catch (e) {
       let st = dart.stackTrace(e);
       expect.Expect.isTrue(dart.is(e, core.TypeError), "wrong exception type");
-      expect.Expect.isTrue(dart.toString(st)[dartx.contains]("badReturnTypeAsyncStar"), "missing frame");
+      expect.Expect.isTrue(st.toString()[dartx.contains]("badReturnTypeAsyncStar"), "missing frame");
     }
 
     try {
     } catch (e) {
       let st = dart.stackTrace(e);
       expect.Expect.isTrue(dart.is(e, core.TypeError), "wrong exception type");
-      expect.Expect.isTrue(dart.toString(st)[dartx.contains]("badReturnTypeSyncStar"), "missing frame");
+      expect.Expect.isTrue(st.toString()[dartx.contains]("badReturnTypeSyncStar"), "missing frame");
     }
 
   }
@@ -40190,7 +40190,7 @@ dart_library.library('language/custom_await_stack_trace_test', null, /* Imports 
         if (dart.is(e, core.int)) {
           let s = dart.stackTrace(e);
           expect.Expect.equals(42, e);
-          expect.Expect.equals("Blah \nBloop\nBleep\n", dart.toString(s));
+          expect.Expect.equals("Blah \nBloop\nBleep\n", s.toString());
           return;
         } else
           throw e;
@@ -52960,7 +52960,7 @@ dart_library.library('language/full_stacktrace1_test', null, /* Imports */[
     } catch (e) {
       if (dart.is(e, core.Object)) {
         let s = dart.stackTrace(e);
-        let fullTrace = dart.toString(s);
+        let fullTrace = s.toString();
         expect.Expect.isTrue(fullTrace[dartx.contains]("func1"));
         expect.Expect.isTrue(fullTrace[dartx.contains]("func2"));
         expect.Expect.isTrue(fullTrace[dartx.contains]("func3"));
@@ -53025,7 +53025,7 @@ dart_library.library('language/full_stacktrace2_test', null, /* Imports */[
     } catch (e) {
       if (dart.is(e, core.Object)) {
         let s = dart.stackTrace(e);
-        let fullTrace = dart.toString(s);
+        let fullTrace = s.toString();
         expect.Expect.isTrue(fullTrace[dartx.contains]("func1"));
         expect.Expect.isTrue(fullTrace[dartx.contains]("func2"));
         expect.Expect.isTrue(fullTrace[dartx.contains]("func3"));
@@ -53052,7 +53052,7 @@ dart_library.library('language/full_stacktrace2_test', null, /* Imports */[
     } catch (e) {
       if (dart.is(e, core.Object)) {
         let s = dart.stackTrace(e);
-        let fullTrace = dart.toString(s);
+        let fullTrace = s.toString();
         expect.Expect.isTrue(fullTrace[dartx.contains]("func1"));
         expect.Expect.isTrue(fullTrace[dartx.contains]("func2"));
         expect.Expect.isTrue(fullTrace[dartx.contains]("func3"));
@@ -53115,7 +53115,7 @@ dart_library.library('language/full_stacktrace3_test', null, /* Imports */[
     } catch (e) {
       if (dart.is(e, core.Object)) {
         let s = dart.stackTrace(e);
-        let fullTrace = dart.toString(s);
+        let fullTrace = s.toString();
         expect.Expect.isTrue(fullTrace[dartx.contains]("func1"));
         expect.Expect.isTrue(fullTrace[dartx.contains]("func2"));
         expect.Expect.isTrue(fullTrace[dartx.contains]("func3"));
@@ -53142,7 +53142,7 @@ dart_library.library('language/full_stacktrace3_test', null, /* Imports */[
     } catch (e) {
       if (dart.is(e, core.Object)) {
         let s = dart.stackTrace(e);
-        let fullTrace = dart.toString(s);
+        let fullTrace = s.toString();
         expect.Expect.isFalse(fullTrace[dartx.contains]("func1"));
         expect.Expect.isFalse(fullTrace[dartx.contains]("func2"));
         expect.Expect.isTrue(fullTrace[dartx.contains]("func3"));
@@ -59480,7 +59480,7 @@ dart_library.library('language/getter_closure_execution_order_test', null, /* Im
 
     if (failures[dartx.length] != 0) {
       for (let msg of failures) {
-        core.print(msg.toString());
+        core.print(dart.toString(msg));
       }
       dart.throw(`${(dart.notNull(failures[dartx.length]) / 2)[dartx.truncate]()} tests failed.`);
     }
@@ -119747,7 +119747,7 @@ dart_library.library('language/regress_21795_test', null, /* Imports */[
       a.test(123);
     } catch (e) {
       let s = dart.stackTrace(e);
-      if (dart.toString(s)[dartx.indexOf]("foo") == -1) {
+      if (s.toString()[dartx.indexOf]("foo") == -1) {
         core.print(s);
         dart.throw("Expected foo in stacktrace!");
       }
@@ -124343,7 +124343,7 @@ dart_library.library('language/stack_overflow_stacktrace_test', null, /* Imports
       } catch (e) {
         if (dart.is(e, core.StackOverflowError)) {
           let stacktrace = dart.stackTrace(e);
-          let s = dart.toString(stacktrace);
+          let s = stacktrace.toString();
           expect.Expect.equals(-1, s[dartx.indexOf]("-1:-1"));
           exceptionCaught = true;
         } else
@@ -124566,7 +124566,7 @@ dart_library.library('language/stack_trace_test', null, /* Imports */[
           this.d();
         } catch (e) {
           let s = dart.stackTrace(e);
-          expect.Expect.isTrue(dart.toString(s)[dartx.contains]("issue12940"));
+          expect.Expect.isTrue(s.toString()[dartx.contains]("issue12940"));
         }
 
       }
@@ -125271,7 +125271,7 @@ dart_library.library('language/stacktrace_test', null, /* Imports */[
       if (dart.is(e, core.Exception)) {
         let st = dart.stackTrace(e);
         expect.Expect.equals(ex, e);
-        expect.Expect.isTrue(dart.toString(st)[dartx.endsWith]("\n"));
+        expect.Expect.isTrue(st.toString()[dartx.endsWith]("\n"));
       } else
         throw e;
     }
@@ -130948,7 +130948,7 @@ dart_library.library('language/try_catch3_test', null, /* Imports */[
         } catch (e) {
           let trace = dart.stackTrace(e);
           i = 700;
-          core.print(dart.toString(trace));
+          core.print(trace.toString());
           core.print(dart.dsend(e, 'getMessage'));
         }
 
@@ -130967,7 +130967,7 @@ dart_library.library('language/try_catch3_test', null, /* Imports */[
           let e = e$0;
           let trace = dart.stackTrace(e);
           i = 800;
-          core.print(dart.toString(trace));
+          core.print(trace.toString());
           throw e;
         } else if (dart.is(e$0, MyException)) {
           let exception = e$0;
@@ -130977,7 +130977,7 @@ dart_library.library('language/try_catch3_test', null, /* Imports */[
           let e = e$0;
           let trace = dart.stackTrace(e);
           i = 200;
-          core.print(dart.toString(trace));
+          core.print(trace.toString());
         } else
           throw e$0;
       }

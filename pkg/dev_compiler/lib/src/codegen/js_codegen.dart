@@ -40,7 +40,7 @@ import 'js_names.dart';
 import 'js_printer.dart' show writeJsLibrary;
 import 'js_typeref_codegen.dart';
 import 'module_builder.dart';
-import 'nullability_inferrer.dart';
+import 'nullable_type_inference.dart';
 import 'side_effect_analysis.dart';
 
 // Various dynamic helpers we call.
@@ -111,6 +111,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
   bool _isDartRuntime;
 
+  NullableTypeInference _nullInference;
+
   JSCodegenVisitor(AbstractCompiler compiler, this.rules, this.currentLibrary,
       this._extensionTypes, this._fieldsNeedingStorage)
       : compiler = compiler,
@@ -127,8 +129,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
   TypeProvider get types => _types;
 
-  NullableExpressionPredicate _isNullable;
-
   JS.Program emitLibrary(LibraryUnit library) {
     // Modify the AST to make coercions explicit.
     new CoercionReifier(library, rules).reify();
@@ -142,24 +142,25 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
     library.library.directives.forEach(_visit);
 
+    var units = library.partsThenLibrary;
+
     // Rather than directly visit declarations, we instead use [_loader] to
     // visit them. It has the ability to sort elements on demand, so
     // dependencies between top level items are handled with a minimal
     // reordering of the user's input code. The loader will call back into
     // this visitor via [_emitModuleItem] when it's ready to visit the item
     // for real.
-    _loader.collectElements(currentLibrary, library.partsThenLibrary);
+    _loader.collectElements(currentLibrary, units);
 
-    var units = library.partsThenLibrary;
-    // TODO(ochafik): Move this down to smaller scopes (method, top-levels) to
-    // save memory.
-    _isNullable = new NullabilityInferrer(units,
-            getStaticType: getStaticType, isJSBuiltinType: _isJSBuiltinType)
-        .buildNullabilityPredicate();
+    // TODO(jmesserly): ideally we could do this at a smaller granularity.
+    // We'll need to be consistent about when we're generating functions, and
+    // only run this on the outermost function.
+    _nullInference =
+        new NullableTypeInference.forLibrary(_isPrimitiveType, units);
+
+    _constField = new ConstFieldVisitor(types, library.library.element.source);
 
     for (var unit in units) {
-      _constField = new ConstFieldVisitor(types, unit);
-
       for (var decl in unit.declarations) {
         if (decl is TopLevelVariableDeclaration) {
           visitTopLevelVariableDeclaration(decl);
@@ -1245,8 +1246,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   JS.Statement _initializeFields(
       ClassDeclaration cls, List<FieldDeclaration> fieldDecls,
       [ConstructorDeclaration ctor]) {
-    var unit = cls.getAncestor((a) => a is CompilationUnit) as CompilationUnit;
-    var constField = new ConstFieldVisitor(types, unit);
     bool isConst = ctor != null && ctor.constKeyword != null;
     if (isConst) _loader.startTopLevel(cls.element);
 
@@ -1256,7 +1255,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     for (var declaration in fieldDecls) {
       for (var fieldNode in declaration.fields.variables) {
         var element = fieldNode.element;
-        if (constField.isFieldInitConstant(fieldNode)) {
+        if (_constField.isFieldInitConstant(fieldNode)) {
           unsetFields[element as FieldElement] = fieldNode;
         } else {
           fields[element as FieldElement] = _visitInitializer(fieldNode);
@@ -1617,7 +1616,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
       if (body is ExpressionFunctionBody && !destructureNamed) {
         // An arrow function can use the expression directly.
-        // Note: this only works if we don't need to emit argument initializers.
         jsBody = _visit(body.expression);
       } else {
         jsBody = _visit(body);
@@ -2642,7 +2640,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   /// For these types we generate a calling convention via static
   /// "extension methods". This allows types to be extended without adding
   /// extensions directly on the prototype.
-  bool _isJSBuiltinType(DartType t) =>
+  bool _isPrimitiveType(DartType t) =>
       typeIsPrimitiveInJS(t) || t == _types.stringType;
 
   bool typeIsPrimitiveInJS(DartType t) =>
@@ -2659,6 +2657,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     if (!_isNullable(expr)) return jsExpr;
     return js.call('dart.notNull(#)', jsExpr);
   }
+
+  /// Returns true if [expr] can be null, optionally using [localIsNullable]
+  /// for locals.
+  ///
+  /// This analysis is conservative and incomplete, but it can optimize many
+  /// common patterns.
+  bool _isNullable(Expression expr) => _nullInference.isNullable(expr);
 
   @override
   JS.Expression visitBinaryExpression(BinaryExpression node) {
@@ -2732,12 +2737,13 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
     var leftType = _canonicalizeNumTypes(getStaticType(left));
     var rightType = _canonicalizeNumTypes(getStaticType(right));
-    return _isJSBuiltinType(leftType) && leftType == rightType;
+    return _isPrimitiveType(leftType) && leftType == rightType;
   }
 
   bool _isNull(Expression expr) => expr is NullLiteral;
 
-  SimpleIdentifier _createTemporary(String name, DartType type) {
+  SimpleIdentifier _createTemporary(String name, DartType type,
+      {bool nullable: true}) {
     // We use an invalid source location to signal that this is a temporary.
     // See [_isTemporary].
     // TODO(jmesserly): alternatives are
@@ -2750,6 +2756,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     id.staticElement = new TemporaryVariableElement.forNode(id);
     id.staticType = type;
     DynamicInvoke.set(id, type.isDynamic);
+    _nullInference.addVariable(id.staticElement, nullable: nullable);
     return id;
   }
 
@@ -2847,7 +2854,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   ///     // psuedocode mix of Scheme and JS:
   ///     (let* (x1=expr1, x2=expr2, t=expr1[expr2]) { x1[x2] = t + 1; t })
   ///
-  /// The [JS.JS.MetaLet] nodes automatically simplify themselves if they can.
+  /// The [JS.MetaLet] nodes automatically simplify themselves if they can.
   /// For example, if the result value is not used, then `t` goes away.
   @override
   JS.Expression visitPostfixExpression(PostfixExpression node) {
@@ -2992,7 +2999,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
           break;
         }
 
-        var param = _createTemporary('_', nodeTarget.staticType);
+        var param =
+            _createTemporary('_', nodeTarget.staticType, nullable: false);
         var baseNode = _stripNullAwareOp(node, param);
         tail.add(new JS.ArrowFun([_visit(param)], _visit(baseNode)));
         node = nodeTarget;
@@ -3227,7 +3235,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
         null,
         AstBuilder.argumentList([node.iterable]),
         false);
-    var iter = _visit(_createTemporary('it', StreamIterator_T));
+    var iter =
+        _visit(_createTemporary('it', StreamIterator_T, nullable: false));
 
     var init = _visit(node.identifier);
     if (init == null) {
@@ -3642,9 +3651,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     return _imports.putIfAbsent(
         library, () => new JS.TemporaryId(jsLibraryName(library)));
   }
-
-  DartType getStaticType(Expression e) =>
-      e.staticType ?? DynamicTypeImpl.instance;
 
   JS.Node annotate(JS.Node node, AstNode original, [Element element]) {
     if (options.closure && element != null) {

@@ -5,9 +5,10 @@
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element.dart';
-import 'package:analyzer/src/generated/error.dart' show ErrorReporter;
-import 'package:analyzer/src/generated/engine.dart' show RecordingErrorListener;
+import 'package:analyzer/src/generated/error.dart'
+    show AnalysisErrorListener, ErrorReporter;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
+import 'package:analyzer/src/generated/source.dart' show Source;
 
 /// True is the expression can be evaluated multiple times without causing
 /// code execution. This is true for final fields. This can be true for local
@@ -97,12 +98,11 @@ class _AssignmentFinder extends RecursiveAstVisitor {
 class ConstFieldVisitor {
   final ConstantVisitor _constantVisitor;
 
-  ConstFieldVisitor(TypeProvider types, CompilationUnit unit)
+  ConstFieldVisitor(TypeProvider types, Source source)
       // TODO(jmesserly): support -D variables on the command line
       : _constantVisitor = new ConstantVisitor(
             new ConstantEvaluationEngine(types, new DeclaredVariables()),
-            new ErrorReporter(
-                new RecordingErrorListener(), unit.element.source));
+            new ErrorReporter(AnalysisErrorListener.NULL_LISTENER, source));
 
   // TODO(jmesserly): this is used to determine if the field initialization is
   // side effect free. We should make the check more general, as things like

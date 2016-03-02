@@ -987,12 +987,12 @@ dart_library.library('dart/collection', null, /* Imports */[
           dart.assert(core.identical(IterableBase$()._toStringVisiting[dartx.last], iterable));
           IterableBase$()._toStringVisiting[dartx.removeLast]();
         }
-        return dart.toString((() => {
+        return (() => {
           let _ = new core.StringBuffer(leftDelimiter);
           _.writeAll(parts, ", ");
           _.write(rightDelimiter);
           return _;
-        })());
+        })().toString();
       }
       static iterableToFullString(iterable, leftDelimiter, rightDelimiter) {
         if (leftDelimiter === void 0) leftDelimiter = '(';
@@ -1735,7 +1735,7 @@ dart_library.library('dart/collection', null, /* Imports */[
         if (this[dartx.length] == 0) return "";
         let buffer = new core.StringBuffer();
         buffer.writeAll(this, separator);
-        return dart.toString(buffer);
+        return buffer.toString();
       }
       [dartx.where](test) {
         dart.as(test, dart.functionType(core.bool, [E]));

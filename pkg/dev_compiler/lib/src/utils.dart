@@ -5,7 +5,6 @@
 /// Holds a couple utility functions used at various places in the system.
 
 import 'dart:io';
-
 import 'package:path/path.dart' as path;
 import 'package:analyzer/src/generated/ast.dart'
     show
@@ -454,30 +453,6 @@ getEnumName(v) {
   return parts[1];
 }
 
-/// Simplistic directed graph.
-class DirectedGraph<V> {
-  final _adjacencyList = <V, Set<V>>{};
-
-  void addEdge(V from, V to) {
-    _adjacencyList.putIfAbsent(from, () => new Set<V>()).add(to);
-  }
-
-  /// Get all the vertices reachable from the provided [roots].
-  Set<V> getTransitiveClosure(Iterable<V> roots) {
-    final reached = new Set<V>();
-
-    visit(V e) {
-      if (reached.add(e)) {
-        var destinations = _adjacencyList[e];
-        if (destinations != null) destinations.forEach(visit);
-      }
-    }
-    roots.forEach(visit);
-
-    return reached;
-  }
-}
-
 class FileSystem {
   const FileSystem();
 
@@ -496,3 +471,6 @@ class FileSystem {
     new File(file).writeAsStringSync(contents);
   }
 }
+
+DartType getStaticType(Expression e) =>
+    e.staticType ?? DynamicTypeImpl.instance;
