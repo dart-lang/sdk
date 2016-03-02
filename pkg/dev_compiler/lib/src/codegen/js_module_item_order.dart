@@ -212,9 +212,9 @@ class ModuleItemLoadOrder {
     if (library == null) return true;
 
     // The SDK is a special case: we optimize the order to prevent laziness.
-    if (_isDartUri(library)) {
+    if (library.source.isInSystemLibrary) {
       // SDK is loaded before non-SDK libraries
-      if (!_isDartUri(_currentLibrary)) return true;
+      if (!_currentLibrary.source.isInSystemLibrary) return true;
 
       // Compute the order of both SDK libraries. If unknown, assume it's after.
       var order = corelibOrder.indexOf(library.source.uri);
@@ -239,7 +239,8 @@ class ModuleItemLoadOrder {
   bool _inLibraryCycle(LibraryElement library) {
     // SDK libs don't depend on things outside the SDK.
     // (We can reach this via the recursive call below.)
-    if (_isDartUri(library) && !_isDartUri(_currentLibrary)) return false;
+    if (library.source.isInSystemLibrary &&
+        !_currentLibrary.source.isInSystemLibrary) return false;
 
     var result = _libraryCycleMemo[library];
     if (result != null) return result;
@@ -256,10 +257,4 @@ class ModuleItemLoadOrder {
     }
     return _libraryCycleMemo[library] = result;
   }
-
-  /// Returns whether this is a library imported with 'dart:' URI.
-  ///
-  /// This is similar to [LibraryElement.isInSdk], but checking the URI instead
-  /// of the library naming convention, because the URI is reliable.
-  static bool _isDartUri(LibraryElement e) => e.source.uri.scheme == 'dart';
 }

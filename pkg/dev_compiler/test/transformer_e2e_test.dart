@@ -69,7 +69,8 @@ main() {
 Future<ChildServerProcess> _startPubServe(String directory,
     [List<String> args = const []]) async {
   assert(new Directory(directory).existsSync());
-  var result = await Process.run('pub', ['upgrade'], workingDirectory: directory);
+  var result =
+      await Process.run('pub', ['upgrade'], workingDirectory: directory);
   if (result.exitCode != 0) {
     throw new StateError('Pub get failed: ${result.stderr}');
   }

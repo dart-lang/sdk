@@ -166,7 +166,7 @@ class BatchCompiler extends AbstractCompiler {
       assert(_compilationRecord[library] == true ||
           options.codegenOptions.forceCompile);
 
-      // Process dependences one more time to propagate failure from cycles
+      // Process dependencies one more time to propagate failure from cycles
       for (var import in library.imports) {
         if (!_compilationRecord[import.importedLibrary]) {
           _compilationRecord[library] = false;
@@ -197,7 +197,7 @@ class BatchCompiler extends AbstractCompiler {
     // Optimistically mark a library valid until proven otherwise
     _compilationRecord[library] = true;
 
-    if (!options.checkSdk && library.source.uri.scheme == 'dart') {
+    if (!options.checkSdk && library.source.isInSystemLibrary) {
       // We assume the Dart SDK is always valid
       if (_jsGen != null) _copyDartRuntime();
       return true;
@@ -448,7 +448,7 @@ abstract class AbstractCompiler {
     AnalysisContext errorContext = context;
     // TODO(jmesserly): should this be a fix somewhere in analyzer?
     // otherwise we fail to find the parts.
-    if (source.uri.scheme == 'dart') {
+    if (source.isInSystemLibrary) {
       errorContext = context.sourceFactory.dartSdk.context;
     }
     List<AnalysisError> errors = errorContext.computeErrors(source);

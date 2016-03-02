@@ -149,7 +149,7 @@ class ServerCompiler extends AbstractCompiler {
     context.applyChanges(new ChangeSet()..changedSource(source));
     var entryUnit = context.resolveCompilationUnit2(source, source);
     var lib = entryUnit.element.enclosingElement;
-    if (!options.checkSdk && lib.source.uri.scheme == 'dart') return;
+    if (!options.checkSdk && lib.source.isInSystemLibrary) return;
     var current = node.info;
     if (current != null) {
       assert(current.library == lib);
