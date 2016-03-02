@@ -4217,6 +4217,104 @@ const char* Class::ToCString() const {
 }
 
 
+// Returns an instance of Double or Double::null().
+// 'index' points to either:
+// - constants_list_ position of found element, or
+// - constants_list_ position where new canonical can be inserted.
+RawDouble* Class::LookupCanonicalDouble(
+    Zone* zone, double value, intptr_t* index) const {
+  ASSERT(this->raw() == Isolate::Current()->object_store()->double_class());
+  const Array& constants = Array::Handle(zone, this->constants());
+  const intptr_t constants_len = constants.Length();
+  // Linear search to see whether this value is already present in the
+  // list of canonicalized constants.
+  Double& canonical_value = Double::Handle(zone);
+  while (*index < constants_len) {
+    canonical_value ^= constants.At(*index);
+    if (canonical_value.IsNull()) {
+      break;
+    }
+    if (canonical_value.BitwiseEqualsToDouble(value)) {
+      ASSERT(canonical_value.IsCanonical());
+      return canonical_value.raw();
+    }
+    *index = *index + 1;
+  }
+  return Double::null();
+}
+
+
+RawMint* Class::LookupCanonicalMint(
+    Zone* zone, int64_t value, intptr_t* index) const {
+  ASSERT(this->raw() == Isolate::Current()->object_store()->mint_class());
+  const Array& constants = Array::Handle(zone, this->constants());
+  const intptr_t constants_len = constants.Length();
+  // Linear search to see whether this value is already present in the
+  // list of canonicalized constants.
+  Mint& canonical_value = Mint::Handle(zone);
+  while (*index < constants_len) {
+    canonical_value ^= constants.At(*index);
+    if (canonical_value.IsNull()) {
+      break;
+    }
+    if (canonical_value.value() == value) {
+      ASSERT(canonical_value.IsCanonical());
+      return canonical_value.raw();
+    }
+    *index = *index + 1;
+  }
+  return Mint::null();
+}
+
+
+RawBigint* Class::LookupCanonicalBigint(Zone* zone,
+                                        const Bigint& value,
+                                        intptr_t* index) const {
+  ASSERT(this->raw() == Isolate::Current()->object_store()->bigint_class());
+  const Array& constants = Array::Handle(zone, this->constants());
+  const intptr_t constants_len = constants.Length();
+  // Linear search to see whether this value is already present in the
+  // list of canonicalized constants.
+  Bigint& canonical_value = Bigint::Handle(zone);
+  while (*index < constants_len) {
+    canonical_value ^= constants.At(*index);
+    if (canonical_value.IsNull()) {
+      break;
+    }
+    if (canonical_value.Equals(value)) {
+      ASSERT(canonical_value.IsCanonical());
+      return canonical_value.raw();
+    }
+    *index = *index + 1;
+  }
+  return Bigint::null();
+}
+
+
+RawInstance* Class::LookupCanonicalInstance(Zone* zone,
+                                            const Instance& value,
+                                            intptr_t* index) const {
+  ASSERT(this->raw() == value.clazz());
+  const Array& constants = Array::Handle(zone, this->constants());
+  const intptr_t constants_len = constants.Length();
+  // Linear search to see whether this value is already present in the
+  // list of canonicalized constants.
+  Instance& canonical_value = Instance::Handle(zone);
+  while (*index < constants_len) {
+    canonical_value ^= constants.At(*index);
+    if (canonical_value.IsNull()) {
+      break;
+    }
+    if (value.CanonicalizeEquals(canonical_value)) {
+      ASSERT(canonical_value.IsCanonical());
+      return canonical_value.raw();
+    }
+    *index = *index + 1;
+  }
+  return Instance::null();
+}
+
+
 void Class::InsertCanonicalConstant(intptr_t index,
                                     const Instance& constant) const {
   // The constant needs to be added to the list. Grow the list if it is full.
@@ -14412,49 +14510,51 @@ RawInstance* Instance::CheckAndCanonicalize(const char** error_str) const {
   Isolate* isolate = thread->isolate();
   Instance& result = Instance::Handle(zone);
   const Class& cls = Class::Handle(zone, this->clazz());
-  Array& constants = Array::Handle(zone, cls.constants());
-  const intptr_t constants_len = constants.Length();
-  // Linear search to see whether this value is already present in the
-  // list of canonicalized constants.
   intptr_t index = 0;
-  while (index < constants_len) {
-    result ^= constants.At(index);
-    if (result.IsNull()) {
-      break;
-    }
-    if (this->CanonicalizeEquals(result)) {
-      ASSERT(result.IsCanonical());
-      return result.raw();
-    }
-    index++;
+  result ^= cls.LookupCanonicalInstance(zone, *this, &index);
+  if (!result.IsNull()) {
+    return result.raw();
   }
-  // The value needs to be added to the list. Grow the list if
-  // it is full.
-  result ^= this->raw();
-  if (result.IsNew() ||
-      (result.InVMHeap() && (isolate != Dart::vm_isolate()))) {
-    /**
-     * When a snapshot is generated on a 64 bit architecture and then read
-     * into a 32 bit architecture, values which are Smi on the 64 bit
-     * architecture could potentially be converted to Mint objects, however
-     * since Smi values do not have any notion of canonical bits we lose
-     * that information when the object becomes a Mint.
-     * Some of these values could be literal values and end up in the
-     * VM isolate heap. Later when these values are referenced in a
-     * constant list we try to ensure that all the objects in the list
-     * are canonical and try to canonicalize them. When these Mint objects
-     * are encountered they do not have the canonical bit set and
-     * canonicalizing them won't work as the VM heap is read only now.
-     * In these cases we clone the object into the isolate and then
-     * canonicalize it.
-     */
-    // Create a canonical object in old space.
-    result ^= Object::Clone(result, Heap::kOld);
+  {
+    SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
+    // Retry lookup.
+    {
+      Instance& temp_result = Instance::Handle(zone,
+          cls.LookupCanonicalInstance(zone, *this, &index));
+      if (!temp_result.IsNull()) {
+        return temp_result.raw();
+      }
+    }
+
+    // The value needs to be added to the list. Grow the list if
+    // it is full.
+    result ^= this->raw();
+    if (result.IsNew() ||
+        (result.InVMHeap() && (isolate != Dart::vm_isolate()))) {
+      /**
+       * When a snapshot is generated on a 64 bit architecture and then read
+       * into a 32 bit architecture, values which are Smi on the 64 bit
+       * architecture could potentially be converted to Mint objects, however
+       * since Smi values do not have any notion of canonical bits we lose
+       * that information when the object becomes a Mint.
+       * Some of these values could be literal values and end up in the
+       * VM isolate heap. Later when these values are referenced in a
+       * constant list we try to ensure that all the objects in the list
+       * are canonical and try to canonicalize them. When these Mint objects
+       * are encountered they do not have the canonical bit set and
+       * canonicalizing them won't work as the VM heap is read only now.
+       * In these cases we clone the object into the isolate and then
+       * canonicalize it.
+       */
+      // Create a canonical object in old space.
+      result ^= Object::Clone(result, Heap::kOld);
+    }
+    ASSERT(result.IsOld());
+
+    result.SetCanonical();
+    cls.InsertCanonicalConstant(index, result);
+    return result.raw();
   }
-  ASSERT(result.IsOld());
-  cls.InsertCanonicalConstant(index, result);
-  result.SetCanonical();
-  return result.raw();
 }
 
 
@@ -17659,31 +17759,33 @@ RawMint* Mint::New(int64_t val, Heap::Space space) {
 RawMint* Mint::NewCanonical(int64_t value) {
   // Do not allocate a Mint if Smi would do.
   ASSERT(!Smi::IsValid(value));
-  const Class& cls =
-      Class::Handle(Isolate::Current()->object_store()->mint_class());
-  const Array& constants = Array::Handle(cls.constants());
-  const intptr_t constants_len = constants.Length();
-  // Linear search to see whether this value is already present in the
-  // list of canonicalized constants.
-  Mint& canonical_value = Mint::Handle();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
+  const Class& cls = Class::Handle(zone, isolate->object_store()->mint_class());
+  Mint& canonical_value = Mint::Handle(zone);
   intptr_t index = 0;
-  while (index < constants_len) {
-    canonical_value ^= constants.At(index);
-    if (canonical_value.IsNull()) {
-      break;
-    }
-    if (canonical_value.value() == value) {
-      ASSERT(canonical_value.IsCanonical());
-      return canonical_value.raw();
-    }
-    index++;
+  canonical_value ^= cls.LookupCanonicalMint(zone, value, &index);
+  if (!canonical_value.IsNull()) {
+    return canonical_value.raw();
   }
-  // The value needs to be added to the constants list. Grow the list if
-  // it is full.
-  canonical_value = Mint::New(value, Heap::kOld);
-  cls.InsertCanonicalConstant(index, canonical_value);
-  canonical_value.SetCanonical();
-  return canonical_value.raw();
+  {
+    SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
+    // Retry lookup.
+    {
+      const Mint& result =
+          Mint::Handle(zone, cls.LookupCanonicalMint(zone, value, &index));
+      if (!result.IsNull()) {
+        return result.raw();
+      }
+    }
+    canonical_value = Mint::New(value, Heap::kOld);
+    canonical_value.SetCanonical();
+    // The value needs to be added to the constants list. Grow the list if
+    // it is full.
+    cls.InsertCanonicalConstant(index, canonical_value);
+    return canonical_value.raw();
+  }
 }
 
 
@@ -17807,30 +17909,36 @@ RawDouble* Double::New(const String& str, Heap::Space space) {
 
 
 RawDouble* Double::NewCanonical(double value) {
-  const Class& cls =
-      Class::Handle(Isolate::Current()->object_store()->double_class());
-  const Array& constants = Array::Handle(cls.constants());
-  const intptr_t constants_len = constants.Length();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
+  const Class& cls = Class::Handle(isolate->object_store()->double_class());
   // Linear search to see whether this value is already present in the
   // list of canonicalized constants.
-  Double& canonical_value = Double::Handle();
+  Double& canonical_value = Double::Handle(zone);
   intptr_t index = 0;
-  while (index < constants_len) {
-    canonical_value ^= constants.At(index);
-    if (canonical_value.IsNull()) {
-      break;
-    }
-    if (canonical_value.BitwiseEqualsToDouble(value)) {
-      return canonical_value.raw();
-    }
-    index++;
+
+  canonical_value ^= cls.LookupCanonicalDouble(zone, value, &index);
+  if (!canonical_value.IsNull()) {
+    return canonical_value.raw();
   }
-  // The value needs to be added to the constants list. Grow the list if
-  // it is full.
-  canonical_value = Double::New(value, Heap::kOld);
-  cls.InsertCanonicalConstant(index, canonical_value);
-  canonical_value.SetCanonical();
-  return canonical_value.raw();
+  {
+    SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
+    // Retry lookup.
+    {
+      const Double& result =
+          Double::Handle(zone, cls.LookupCanonicalDouble(zone, value, &index));
+      if (!result.IsNull()) {
+        return result.raw();
+      }
+    }
+    canonical_value = Double::New(value, Heap::kOld);
+    canonical_value.SetCanonical();
+    // The value needs to be added to the constants list. Grow the list if
+    // it is full.
+    cls.InsertCanonicalConstant(index, canonical_value);
+    return canonical_value.raw();
+  }
 }
 
 
@@ -18111,31 +18219,35 @@ RawBigint* Bigint::NewFromCString(const char* str, Heap::Space space) {
 
 
 RawBigint* Bigint::NewCanonical(const String& str) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   const Bigint& value = Bigint::Handle(
-      Bigint::NewFromCString(str.ToCString(), Heap::kOld));
+      zone, Bigint::NewFromCString(str.ToCString(), Heap::kOld));
   const Class& cls =
-      Class::Handle(Isolate::Current()->object_store()->bigint_class());
-  const Array& constants = Array::Handle(cls.constants());
-  const intptr_t constants_len = constants.Length();
-  // Linear search to see whether this value is already present in the
-  // list of canonicalized constants.
-  Bigint& canonical_value = Bigint::Handle();
+      Class::Handle(zone, isolate->object_store()->bigint_class());
   intptr_t index = 0;
-  while (index < constants_len) {
-    canonical_value ^= constants.At(index);
-    if (canonical_value.IsNull()) {
-      break;
-    }
-    if (canonical_value.Equals(value)) {
-      return canonical_value.raw();
-    }
-    index++;
+  const Bigint& canonical_value =
+      Bigint::Handle(zone, cls.LookupCanonicalBigint(zone, value, &index));
+  if (!canonical_value.IsNull()) {
+    return canonical_value.raw();
   }
-  // The value needs to be added to the constants list. Grow the list if
-  // it is full.
-  cls.InsertCanonicalConstant(index, value);
-  value.SetCanonical();
-  return value.raw();
+  {
+    SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
+    // Retry lookup.
+    {
+      const Bigint& result =
+          Bigint::Handle(zone, cls.LookupCanonicalBigint(zone, value, &index));
+      if (!result.IsNull()) {
+        return result.raw();
+      }
+    }
+    value.SetCanonical();
+    // The value needs to be added to the constants list. Grow the list if
+    // it is full.
+    cls.InsertCanonicalConstant(index, value);
+    return value.raw();
+  }
 }
 
 

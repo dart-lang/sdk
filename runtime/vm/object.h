@@ -1201,6 +1201,21 @@ class Class : public Object {
 
   RawLibraryPrefix* LookupLibraryPrefix(const String& name) const;
 
+  // Returns an instance of Double or Double::null().
+  // 'index' points to either:
+  // - constants_list_ position of found element, or
+  // - constants_list_ position where new canonical can be inserted.
+  RawDouble* LookupCanonicalDouble(Zone* zone,
+                                   double value, intptr_t* index) const;
+  RawMint* LookupCanonicalMint(Zone* zone,
+                               int64_t value, intptr_t* index) const;
+  RawBigint* LookupCanonicalBigint(Zone* zone,
+                                   const Bigint& value, intptr_t* index) const;
+  // The methods above are more efficient than this generic one.
+  RawInstance* LookupCanonicalInstance(Zone* zone,
+                                       const Instance& value,
+                                       intptr_t* index) const;
+
   void InsertCanonicalConstant(intptr_t index, const Instance& constant) const;
 
   intptr_t FindCanonicalTypeIndex(const AbstractType& needle) const;

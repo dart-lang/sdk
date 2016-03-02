@@ -322,6 +322,9 @@ class Isolate : public BaseIsolate {
   Mutex* type_canonicalization_mutex() const {
     return type_canonicalization_mutex_;
   }
+  Mutex* constant_canonicalization_mutex() const {
+    return constant_canonicalization_mutex_;
+  }
 
   Debugger* debugger() const {
     if (!FLAG_support_debugger) {
@@ -758,6 +761,7 @@ class Isolate : public BaseIsolate {
   Mutex* mutex_;  // Protects stack_limit_, saved_stack_limit_, compiler stats.
   Mutex* symbols_mutex_;  // Protects concurrent access to the symbol table.
   Mutex* type_canonicalization_mutex_;  // Protects type canonicalization.
+  Mutex* constant_canonicalization_mutex_;  // Protects const canonicalization.
   uword saved_stack_limit_;
   uword deferred_interrupts_mask_;
   uword deferred_interrupts_;
