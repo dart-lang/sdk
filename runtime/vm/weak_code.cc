@@ -13,8 +13,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, precompilation);
-
 bool WeakCodeReferences::HasCodes() const {
   return !array_.IsNull() && (array_.Length() > 0);
 }
@@ -68,7 +66,7 @@ void WeakCodeReferences::DisableCode() {
   if (code_objects.IsNull()) {
     return;
   }
-  ASSERT(!FLAG_precompilation);
+  ASSERT(!FLAG_precompiled_mode);
   UpdateArrayTo(Object::null_array());
   // Disable all code on stack.
   Code& code = Code::Handle();

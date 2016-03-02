@@ -131,9 +131,8 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
     const bool precompiled = instructions_snapshot != NULL;
 
     // Setup default flags for the VM isolate.
-    Isolate::Flags vm_flags;
     Dart_IsolateFlags api_flags;
-    vm_flags.CopyTo(&api_flags);
+    Isolate::FlagsInitialize(&api_flags);
     vm_isolate_ = Isolate::Init("vm-isolate", api_flags, is_vm_isolate);
     start_time_ = vm_isolate_->start_time();
     vm_isolate_->set_compilation_allowed(!precompiled);
@@ -454,11 +453,14 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     StubCode::Init(I);
   }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   // When running precompiled, the megamorphic miss function/code comes from the
   // snapshot.
   if (!Dart::IsRunningPrecompiledCode()) {
     MegamorphicCacheTable::InitMissHandler(I);
   }
+#endif
+
   const Code& miss_code =
       Code::Handle(I->object_store()->megamorphic_miss_code());
   I->set_ic_miss_code(miss_code);

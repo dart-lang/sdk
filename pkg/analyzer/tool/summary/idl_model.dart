@@ -14,17 +14,30 @@ library analyzer.tool.summary.idl_model;
  */
 class ClassDeclaration extends Declaration {
   /**
-   * Fields defined in the class.
+   * All fields defined in the class, including deprecated ones.
    */
-  final List<FieldDeclaration> fields = <FieldDeclaration>[];
+  final List<FieldDeclaration> allFields = <FieldDeclaration>[];
 
   /**
    * Indicates whether the class has the `topLevel` annotation.
    */
   final bool isTopLevel;
 
-  ClassDeclaration(String documentation, String name, this.isTopLevel)
+  /**
+   * If [isTopLevel] is `true` and a file identifier was specified for this
+   * class, the file identifier string.  Otheswise `null`.
+   */
+  final String fileIdentifier;
+
+  ClassDeclaration(
+      String documentation, String name, this.isTopLevel, this.fileIdentifier)
       : super(documentation, name);
+
+  /**
+   * Get the non-deprecated fields defined in the class.
+   */
+  Iterable<FieldDeclaration> get fields =>
+      allFields.where((FieldDeclaration field) => !field.isDeprecated);
 }
 
 /**
@@ -79,7 +92,13 @@ class FieldDeclaration extends Declaration {
    */
   final int id;
 
-  FieldDeclaration(String documentation, String name, this.type, this.id)
+  /**
+   * Indicates whether the field is deprecated.
+   */
+  final bool isDeprecated;
+
+  FieldDeclaration(
+      String documentation, String name, this.type, this.id, this.isDeprecated)
       : super(documentation, name);
 }
 

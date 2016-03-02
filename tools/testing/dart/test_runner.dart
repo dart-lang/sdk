@@ -1679,7 +1679,7 @@ CommandOutput createCommandOutput(Command command,
     return new VmCommandOutputImpl(
         command, exitCode, timedOut, stdout, stderr, time, pid);
   } else if (command is CompilationCommand) {
-    if (command.displayName == 'precompiler.dart' ||
+    if (command.displayName == 'precompiler' ||
         command.displayName == 'dart2snapshot') {
       return new VmCommandOutputImpl(
           command, exitCode, timedOut, stdout, stderr, time, pid);

@@ -12,8 +12,6 @@ library dart2js.serialization.modelz;
 import '../common.dart';
 import '../common/resolution.dart' show
     Resolution;
-import '../compiler.dart'
-    show Compiler;
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../core_types.dart';
@@ -96,9 +94,6 @@ abstract class ElementZ extends Element with ElementCommon {
   String get fixedBackendName => _unsupported('fixedBackendName');
 
   @override
-  bool get hasFixedBackendName => _unsupported('hasFixedBackendName');
-
-  @override
   LibraryElement get implementationLibrary => library;
 
   @override
@@ -130,15 +125,6 @@ abstract class ElementZ extends Element with ElementCommon {
 
   @override
   bool get isMixinApplication => false;
-
-  @override
-  bool get isNative => false;
-
-  @override
-  bool get isJsInterop => false;
-
-  @override
-  String get jsInteropName => null;
 
   @override
   bool get isOperator => false;
@@ -375,7 +361,6 @@ class LibraryElementZ extends DeserializedElementZ
   List<ExportElement> _exports;
   ListedContainer _exportsMap;
   ListedContainer _importsMap;
-  Map<LibraryTag, LibraryElement> _libraryDependencies;
 
   LibraryElementZ(ObjectDecoder decoder)
       : super(decoder);
@@ -461,9 +446,6 @@ class LibraryElementZ extends DeserializedElementZ
   Element findLocal(String elementName) {
     return localLookup(elementName);
   }
-
-  @override
-  bool get canUseNative => false;
 
   @override
   Element findExported(String elementName) => _unsupported('findExported');
@@ -891,9 +873,6 @@ class ClassElementZ extends DeserializedElementZ
     }
     return null;
   }
-
-  @override
-  String get nativeTagInfo => _unsupported('nativeTagInfo');
 
   @override
   void reverseBackendMembers() => _unsupported('reverseBackendMembers');

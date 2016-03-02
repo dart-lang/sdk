@@ -563,6 +563,52 @@ ASSEMBLER_TEST_RUN(LoadStorePairOffset, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Semaphore, assembler) {
+  __ SetupDartSP(kTestStackSpace);
+  __ movz(R0, Immediate(40), 0);
+  __ movz(R1, Immediate(42), 0);
+  __ Push(R0);
+  Label retry;
+  __ Bind(&retry);
+  __ ldxr(R0, SP);
+  __ stxr(TMP, R1, SP);  // IP == 0, success
+  __ cmp(TMP, Operand(0));
+  __ b(&retry, NE);  // NE if context switch occurred between ldrex and strex.
+  __ Pop(R0);  // 42
+  __ mov(CSP, SP);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Semaphore, test) {
+  EXPECT(test != NULL);
+  typedef int (*Semaphore)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT64(Semaphore, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(FailedSemaphore, assembler) {
+  __ SetupDartSP(kTestStackSpace);
+  __ movz(R0, Immediate(40), 0);
+  __ movz(R1, Immediate(42), 0);
+  __ Push(R0);
+  __ ldxr(R0, SP);
+  __ clrex();  // Simulate a context switch.
+  __ stxr(TMP, R1, SP);  // IP == 1, failure
+  __ Pop(R0);  // 40
+  __ add(R0, R0, Operand(TMP));
+  __ mov(CSP, SP);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(FailedSemaphore, test) {
+  EXPECT(test != NULL);
+  typedef int (*FailedSemaphore)() DART_UNUSED;
+  EXPECT_EQ(41, EXECUTE_TEST_CODE_INT64(FailedSemaphore, test->entry()));
+}
+
+
 // Logical register operations.
 ASSEMBLER_TEST_GENERATE(AndRegs, assembler) {
   __ movz(R1, Immediate(43), 0);

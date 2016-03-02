@@ -103,7 +103,7 @@ convertDartToNative_Dictionary(Map dict) {
 class _ReturnedDictionary {
   Map _values;
 
-  noSuchMethod(InvocationMirror invocation) {
+  noSuchMethod(Invocation invocation) {
     var key = MirrorSystem.getName(invocation.memberName);
     if (invocation.isGetter) {
       return _values[key];
@@ -115,7 +115,7 @@ class _ReturnedDictionary {
 
   Map get toMap => _values;
 
-  _ReturnedDictionary(Map value): _values = value;
+  _ReturnedDictionary(Map value): _values = value != null ? value : {};
 }
 
 // Helper function to wrapped a returned dictionary from blink to a Dart looking

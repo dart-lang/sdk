@@ -131,6 +131,9 @@ import "../foo/foo.dart";
   }
 
   void setUp() {
+    ExtensionManager manager = new ExtensionManager();
+    ServerPlugin plugin = new ServerPlugin();
+    manager.processPlugins([plugin]);
     channel = new MockServerChannel();
     resourceProvider = new MemoryResourceProvider();
     packageMapProvider = new MockPackageMapProvider();
@@ -139,7 +142,7 @@ import "../foo/foo.dart";
         resourceProvider,
         packageMapProvider,
         null,
-        new ServerPlugin(),
+        plugin,
         new AnalysisServerOptions(),
         () => new MockSdk(),
         InstrumentationService.NULL_SERVICE,

@@ -143,18 +143,21 @@ DeoptContext::~DeoptContext() {
     TimelineStream* compiler_stream = isolate->GetCompilerStream();
     ASSERT(compiler_stream != NULL);
     if (compiler_stream->Enabled()) {
+      // Allocate all Dart objects needed before calling StartEvent,
+      // which blocks safe points until Complete is called.
       const Code& code = Code::Handle(zone(), code_);
       const Function& function = Function::Handle(zone(), code.function());
-      const char* function_name = function.QualifiedUserVisibleNameCString();
+      const String& function_name =
+          String::Handle(zone(), function.QualifiedScrubbedName());
       const char* reason = DeoptReasonToCString(deopt_reason());
-      int counter = function.deoptimization_counter();
+      const int counter = function.deoptimization_counter();
       TimelineEvent* timeline_event = compiler_stream->StartEvent();
       if (timeline_event != NULL) {
         timeline_event->Duration("Deoptimize",
                                  deopt_start_micros_,
                                  OS::GetCurrentMonotonicMicros());
         timeline_event->SetNumArguments(3);
-        timeline_event->CopyArgument(0, "function", function_name);
+        timeline_event->CopyArgument(0, "function", function_name.ToCString());
         timeline_event->CopyArgument(1, "reason", reason);
         timeline_event->FormatArgument(2, "deoptimizationCount", "%d", counter);
         timeline_event->Complete();

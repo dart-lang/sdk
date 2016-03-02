@@ -660,6 +660,7 @@ class C {
         AstFactory.classDeclaration(null, className, null, null, null, null);
     classDeclaration.documentationComment = AstFactory.documentationComment(
         [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
+    classDeclaration.endToken.offset = 80;
     classDeclaration.accept(builder);
     List<ClassElement> types = holder.types;
     expect(types, hasLength(1));
@@ -673,6 +674,7 @@ class C {
     expect(type.isSynthetic, isFalse);
     expect(type.documentationComment, '/// aaa');
     _assertHasDocRange(type, 50, 7);
+    _assertHasCodeRange(type, 50, 31);
   }
 
   void test_visitClassDeclaration_parameterized() {
@@ -837,6 +839,26 @@ class C {
     expect(type.typeParameters[0].name, equals('T'));
   }
 
+  void test_visitCompilationUnit_codeRange() {
+    TopLevelVariableDeclaration topLevelVariableDeclaration = AstFactory
+        .topLevelVariableDeclaration(null, AstFactory.typeName4('int'),
+            [AstFactory.variableDeclaration('V')]);
+    CompilationUnit unit = new CompilationUnit(
+        topLevelVariableDeclaration.beginToken,
+        null,
+        [],
+        [topLevelVariableDeclaration],
+        topLevelVariableDeclaration.endToken);
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = _makeBuilder(holder);
+    unit.beginToken.offset = 10;
+    unit.endToken.offset = 40;
+    unit.accept(builder);
+
+    CompilationUnitElement element = builder.compilationUnitElement;
+    _assertHasCodeRange(element, 0, 41);
+  }
+
   void test_visitConstructorDeclaration_external() {
     ElementHolder holder = new ElementHolder();
     ElementBuilder builder = _makeBuilder(holder);
@@ -909,12 +931,14 @@ class C {
     constructorDeclaration.documentationComment = AstFactory
         .documentationComment(
             [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
+    constructorDeclaration.endToken.offset = 80;
     constructorDeclaration.accept(builder);
 
     List<ConstructorElement> constructors = holder.constructors;
     expect(constructors, hasLength(1));
     ConstructorElement constructor = constructors[0];
     expect(constructor, isNotNull);
+    _assertHasCodeRange(constructor, 50, 31);
     expect(constructor.documentationComment, '/// aaa');
     _assertHasDocRange(constructor, 50, 7);
     expect(constructor.isExternal, isFalse);
@@ -993,11 +1017,14 @@ class C {
         AstFactory.declaredIdentifier3(variableName);
     AstFactory.forEachStatement(
         identifier, AstFactory.nullLiteral(), AstFactory.emptyStatement());
+    identifier.beginToken.offset = 50;
+    identifier.endToken.offset = 80;
     identifier.accept(builder);
 
     List<LocalVariableElement> variables = holder.localVariables;
     expect(variables, hasLength(1));
     LocalVariableElement variable = variables[0];
+    _assertHasCodeRange(variable, 50, 31);
     expect(variable, isNotNull);
     expect(variable.hasImplicitType, isTrue);
     expect(variable.isConst, isFalse);
@@ -1019,12 +1046,15 @@ class C {
         AstFactory.declaredIdentifier4(AstFactory.typeName4('E'), variableName);
     AstFactory.forEachStatement(
         identifier, AstFactory.nullLiteral(), AstFactory.emptyStatement());
+    identifier.beginToken.offset = 50;
+    identifier.endToken.offset = 80;
     identifier.accept(builder);
 
     List<LocalVariableElement> variables = holder.localVariables;
     expect(variables, hasLength(1));
     LocalVariableElement variable = variables[0];
     expect(variable, isNotNull);
+    _assertHasCodeRange(variable, 50, 31);
     expect(variable.hasImplicitType, isFalse);
     expect(variable.isConst, isFalse);
     expect(variable.isDeprecated, isFalse);
@@ -1045,11 +1075,14 @@ class C {
         AstFactory.positionalFormalParameter(
             AstFactory.simpleFormalParameter3(parameterName),
             AstFactory.integer(0));
+    formalParameter.beginToken.offset = 50;
+    formalParameter.endToken.offset = 80;
     formalParameter.accept(builder);
 
     List<ParameterElement> parameters = holder.parameters;
     expect(parameters, hasLength(1));
     ParameterElement parameter = parameters[0];
+    _assertHasCodeRange(parameter, 50, 31);
     expect(parameter.hasImplicitType, isTrue);
     expect(parameter.initializer, isNotNull);
     expect(parameter.initializer.type, isNotNull);
@@ -1102,11 +1135,13 @@ class C {
         AstFactory.enumDeclaration2(enumName, ["ONE"]);
     enumDeclaration.documentationComment = AstFactory.documentationComment(
         [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
+    enumDeclaration.endToken.offset = 80;
     enumDeclaration.accept(builder);
     List<ClassElement> enums = holder.enums;
     expect(enums, hasLength(1));
     ClassElement enumElement = enums[0];
     expect(enumElement, isNotNull);
+    _assertHasCodeRange(enumElement, 50, 31);
     expect(enumElement.documentationComment, '/// aaa');
     _assertHasDocRange(enumElement, 50, 7);
     expect(enumElement.name, enumName);
@@ -1124,6 +1159,7 @@ class C {
     ]);
     fieldDeclaration.documentationComment = AstFactory.documentationComment(
         [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
+    fieldDeclaration.endToken.offset = 110;
     fieldDeclaration.accept(builder);
 
     List<FieldElement> fields = holder.fields;
@@ -1131,6 +1167,7 @@ class C {
 
     FieldElement firstField = fields[0];
     expect(firstField, isNotNull);
+    _assertHasCodeRange(firstField, 50, 61);
     expect(firstField.documentationComment, '/// aaa');
     _assertHasDocRange(firstField, 50, 7);
     expect(firstField.name, firstFieldName);
@@ -1141,6 +1178,7 @@ class C {
 
     FieldElement secondField = fields[1];
     expect(secondField, isNotNull);
+    _assertHasCodeRange(secondField, 50, 61);
     expect(secondField.documentationComment, '/// aaa');
     _assertHasDocRange(secondField, 50, 7);
     expect(secondField.name, secondFieldName);
@@ -1156,11 +1194,14 @@ class C {
     String parameterName = "p";
     FieldFormalParameter formalParameter =
         AstFactory.fieldFormalParameter(null, null, parameterName);
+    formalParameter.beginToken.offset = 50;
+    formalParameter.endToken.offset = 80;
     formalParameter.accept(builder);
     List<ParameterElement> parameters = holder.parameters;
     expect(parameters, hasLength(1));
     ParameterElement parameter = parameters[0];
     expect(parameter, isNotNull);
+    _assertHasCodeRange(parameter, 50, 31);
     expect(parameter.name, parameterName);
     expect(parameter.initializer, isNull);
     expect(parameter.isConst, isFalse);
@@ -1251,12 +1292,14 @@ class C {
             AstFactory.formalParameterList(), AstFactory.blockFunctionBody2()));
     declaration.documentationComment = AstFactory.documentationComment(
         [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
+    declaration.endToken.offset = 80;
     declaration.accept(builder);
 
     List<PropertyAccessorElement> accessors = holder.accessors;
     expect(accessors, hasLength(1));
     PropertyAccessorElement accessor = accessors[0];
     expect(accessor, isNotNull);
+    _assertHasCodeRange(accessor, 50, 31);
     expect(accessor.documentationComment, '/// aaa');
     _assertHasDocRange(accessor, 50, 7);
     expect(accessor.name, functionName);
@@ -1287,12 +1330,14 @@ class C {
             AstFactory.formalParameterList(), AstFactory.blockFunctionBody2()));
     declaration.documentationComment = AstFactory.documentationComment(
         [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
+    declaration.endToken.offset = 80;
     declaration.accept(builder);
 
     List<FunctionElement> functions = holder.functions;
     expect(functions, hasLength(1));
     FunctionElement function = functions[0];
     expect(function, isNotNull);
+    _assertHasCodeRange(function, 50, 31);
     expect(function.documentationComment, '/// aaa');
     _assertHasDocRange(function, 50, 7);
     expect(function.hasImplicitReturnType, isFalse);
@@ -1317,12 +1362,14 @@ class C {
             AstFactory.formalParameterList(), AstFactory.blockFunctionBody2()));
     declaration.documentationComment = AstFactory.documentationComment(
         [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
+    declaration.endToken.offset = 80;
     declaration.accept(builder);
 
     List<PropertyAccessorElement> accessors = holder.accessors;
     expect(accessors, hasLength(1));
     PropertyAccessorElement accessor = accessors[0];
     expect(accessor, isNotNull);
+    _assertHasCodeRange(accessor, 50, 31);
     expect(accessor.documentationComment, '/// aaa');
     _assertHasDocRange(accessor, 50, 7);
     expect(accessor.hasImplicitReturnType, isTrue);
@@ -1396,12 +1443,14 @@ class C {
         null, aliasName, AstFactory.typeParameterList([parameterName]), null);
     aliasNode.documentationComment = AstFactory.documentationComment(
         [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
+    aliasNode.endToken.offset = 80;
     aliasNode.accept(builder);
 
     List<FunctionTypeAliasElement> aliases = holder.typeAliases;
     expect(aliases, hasLength(1));
     FunctionTypeAliasElement alias = aliases[0];
     expect(alias, isNotNull);
+    _assertHasCodeRange(alias, 50, 31);
     expect(alias.documentationComment, '/// aaa');
     _assertHasDocRange(alias, 50, 7);
     expect(alias.name, aliasName);
@@ -1557,6 +1606,7 @@ class C {
         AstFactory.blockFunctionBody2());
     methodDeclaration.documentationComment = AstFactory.documentationComment(
         [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
+    methodDeclaration.endToken.offset = 80;
     methodDeclaration.accept(builder);
 
     List<FieldElement> fields = holder.fields;
@@ -1568,6 +1618,7 @@ class C {
     expect(field.setter, isNull);
     PropertyAccessorElement getter = field.getter;
     expect(getter, isNotNull);
+    _assertHasCodeRange(getter, 50, 31);
     expect(getter.documentationComment, '/// aaa');
     _assertHasDocRange(getter, 50, 7);
     expect(getter.hasImplicitReturnType, isTrue);
@@ -1673,12 +1724,14 @@ class C {
         AstFactory.blockFunctionBody2());
     methodDeclaration.documentationComment = AstFactory.documentationComment(
         [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
+    methodDeclaration.endToken.offset = 80;
     methodDeclaration.accept(builder);
 
     List<MethodElement> methods = holder.methods;
     expect(methods, hasLength(1));
     MethodElement method = methods[0];
     expect(method, isNotNull);
+    _assertHasCodeRange(method, 50, 31);
     expect(method.documentationComment, '/// aaa');
     _assertHasDocRange(method, 50, 7);
     expect(method.hasImplicitReturnType, isFalse);
@@ -1742,6 +1795,7 @@ class C {
         AstFactory.blockFunctionBody2());
     methodDeclaration.documentationComment = AstFactory.documentationComment(
         [TokenFactory.tokenFromString('/// aaa')..offset = 50], []);
+    methodDeclaration.endToken.offset = 80;
     methodDeclaration.accept(builder);
 
     List<FieldElement> fields = holder.fields;
@@ -1754,6 +1808,7 @@ class C {
 
     PropertyAccessorElement setter = field.setter;
     expect(setter, isNotNull);
+    _assertHasCodeRange(setter, 50, 31);
     expect(setter.documentationComment, '/// aaa');
     _assertHasDocRange(setter, 50, 7);
     expect(setter.hasImplicitReturnType, isTrue);
@@ -1983,11 +2038,14 @@ class C {
         AstFactory.simpleFormalParameter3(parameterName),
         AstFactory.identifier3("42"));
     _useParameterInMethod(formalParameter, 100, 110);
+    formalParameter.beginToken.offset = 50;
+    formalParameter.endToken.offset = 80;
     formalParameter.accept(builder);
     List<ParameterElement> parameters = holder.parameters;
     expect(parameters, hasLength(1));
     ParameterElement parameter = parameters[0];
     expect(parameter, isNotNull);
+    _assertHasCodeRange(parameter, 50, 32);
     expect(parameter.name, parameterName);
     expect(parameter.isConst, isFalse);
     expect(parameter.isFinal, isFalse);
@@ -2088,11 +2146,14 @@ class C {
           AstFactory.simpleFormalParameter3(firstParameterName),
           AstFactory.simpleFormalParameter3(secondParameterName)
         ]));
+    typeAlias.beginToken.offset = 50;
+    typeAlias.endToken.offset = 80;
     typeAlias.accept(builder);
     List<FunctionTypeAliasElement> aliases = holder.typeAliases;
     expect(aliases, hasLength(1));
     FunctionTypeAliasElement alias = aliases[0];
     expect(alias, isNotNull);
+    _assertHasCodeRange(alias, 50, 31);
     expect(alias.name, aliasName);
     expect(alias.type, isNotNull);
     expect(alias.isSynthetic, isFalse);
@@ -2139,11 +2200,13 @@ class C {
     ElementBuilder builder = _makeBuilder(holder);
     String parameterName = "E";
     TypeParameter typeParameter = AstFactory.typeParameter(parameterName);
+    typeParameter.beginToken.offset = 50;
     typeParameter.accept(builder);
     List<TypeParameterElement> typeParameters = holder.typeParameters;
     expect(typeParameters, hasLength(1));
     TypeParameterElement typeParameterElement = typeParameters[0];
     expect(typeParameterElement, isNotNull);
+    _assertHasCodeRange(typeParameterElement, 50, 1);
     expect(typeParameterElement.name, parameterName);
     expect(typeParameterElement.bound, isNull);
     expect(typeParameterElement.isSynthetic, isFalse);
@@ -2158,8 +2221,8 @@ class C {
     String variableName = "v";
     VariableDeclaration variable =
         AstFactory.variableDeclaration2(variableName, null);
-    Statement statement =
-        AstFactory.variableDeclarationStatement2(null, [variable]);
+    VariableDeclarationStatement statement =
+        AstFactory.variableDeclarationStatement2(Keyword.VAR, [variable]);
     ConstructorDeclaration constructor = AstFactory.constructorDeclaration2(
         null,
         null,
@@ -2168,6 +2231,8 @@ class C {
         AstFactory.formalParameterList(),
         null,
         AstFactory.blockFunctionBody2([statement]));
+    statement.beginToken.offset = 50;
+    statement.endToken.offset = 80;
     constructor.accept(builder);
 
     List<ConstructorElement> constructors = holder.constructors;
@@ -2176,6 +2241,7 @@ class C {
         constructors[0].localVariables;
     expect(variableElements, hasLength(1));
     LocalVariableElement variableElement = variableElements[0];
+    _assertHasCodeRange(variableElement, 50, 31);
     expect(variableElement.hasImplicitType, isTrue);
     expect(variableElement.name, variableName);
   }
@@ -2352,6 +2418,12 @@ class C {
     expect(variable.isSynthetic, isFalse);
     expect(variable.getter, isNotNull);
     expect(variable.setter, isNull);
+  }
+
+  void _assertHasCodeRange(Element element, int offset, int length) {
+    ElementImpl elementImpl = element;
+    expect(elementImpl.codeOffset, offset);
+    expect(elementImpl.codeLength, length);
   }
 
   void _assertHasDocRange(

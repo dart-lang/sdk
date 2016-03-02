@@ -8,6 +8,7 @@ import 'package:unittest/unittest.dart';
 
 import '../../utils.dart';
 import 'flat_buffers_test.dart' as flat_buffers_test;
+import 'index_unit_test.dart' as index_unit_test;
 import 'name_filter_test.dart' as name_filter_test;
 import 'prelinker_test.dart' as prelinker_test;
 import 'resynthesize_strong_test.dart' as resynthesize_strong_test;
@@ -21,6 +22,7 @@ main() {
   initializeTestEnvironment();
   group('summary tests', () {
     flat_buffers_test.main();
+    index_unit_test.main();
     name_filter_test.main();
     prelinker_test.main();
     resynthesize_strong_test.main();

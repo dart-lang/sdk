@@ -878,9 +878,13 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       typeMaskSystem.associateConstantValueWithElement(constant, field);
       return irBuilder.buildConstant(constant, sourceInformation: src);
     } else if (backend.constants.lazyStatics.contains(field)) {
-      return irBuilder.addPrimitive(new ir.GetLazyStatic(field, src));
+      return irBuilder.addPrimitive(new ir.GetLazyStatic(field,
+          sourceInformation: src,
+          isFinal: compiler.world.fieldNeverChanges(field)));
     } else {
-      return irBuilder.addPrimitive(new ir.GetStatic(field, src));
+      return irBuilder.addPrimitive(new ir.GetStatic(field,
+          sourceInformation: src,
+          isFinal: compiler.world.fieldNeverChanges(field)));
     }
   }
 
@@ -1936,7 +1940,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.Send node,
       MethodElement function,
       _) {
-    return irBuilder.addPrimitive(new ir.GetStatic(function));
+    return irBuilder.addPrimitive(new ir.GetStatic(function, isFinal: true));
   }
 
   @override
@@ -2902,7 +2906,8 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         case CompoundGetter.GETTER:
           return buildStaticGetterGet(getter, node);
         case CompoundGetter.METHOD:
-          return irBuilder.addPrimitive(new ir.GetStatic(getter));
+          return irBuilder.addPrimitive(new ir.GetStatic(getter,
+              isFinal: true));
         case CompoundGetter.UNRESOLVED:
           return irBuilder.buildStaticNoSuchMethod(
               new Selector.getter(new Name(getter.name, getter.library)),
@@ -2942,7 +2947,8 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         case CompoundGetter.GETTER:
           return buildStaticGetterGet(getter, node);
         case CompoundGetter.METHOD:
-          return irBuilder.addPrimitive(new ir.GetStatic(getter));
+          return irBuilder.addPrimitive(new ir.GetStatic(getter,
+              isFinal: true));
         case CompoundGetter.UNRESOLVED:
           return irBuilder.buildStaticNoSuchMethod(
               new Selector.getter(new Name(getter.name, getter.library)),
@@ -4012,6 +4018,10 @@ class GlobalProgramInformation {
 
   FieldElement locateSingleField(Selector selector, TypeMask type) {
     return _compiler.world.locateSingleField(selector, type);
+  }
+
+  bool fieldNeverChanges(FieldElement field) {
+    return _compiler.world.fieldNeverChanges(field);
   }
 
   Element get closureConverter {

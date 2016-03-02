@@ -15,7 +15,6 @@ namespace dart {
 
 #ifndef PRODUCT
 
-DECLARE_FLAG(bool, background_compilation);
 DECLARE_FLAG(bool, profile_vm);
 DECLARE_FLAG(int, max_profile_depth);
 

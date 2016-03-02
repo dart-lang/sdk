@@ -302,6 +302,7 @@ class FlowGraphCompiler : public ValueObject {
       const ParsedFunction& parsed_function,
       bool is_optimizing,
       const GrowableArray<const Function*>& inline_id_to_function,
+      const GrowableArray<TokenPosition>& inline_id_to_token_pos,
       const GrowableArray<intptr_t>& caller_inline_id);
 
   ~FlowGraphCompiler();
@@ -382,6 +383,12 @@ class FlowGraphCompiler : public ValueObject {
                         const StubEntry& stub_entry,
                         RawPcDescriptors::Kind kind,
                         LocationSummary* locs);
+  void GenerateStaticDartCall(intptr_t deopt_id,
+                              TokenPosition token_pos,
+                              const StubEntry& stub_entry,
+                              RawPcDescriptors::Kind kind,
+                              LocationSummary* locs,
+                              const Function& target);
 
   void GenerateAssertAssignable(TokenPosition token_pos,
                                 intptr_t deopt_id,
@@ -584,8 +591,19 @@ class FlowGraphCompiler : public ValueObject {
   }
 
   RawArray* InliningIdToFunction() const;
-
+  RawArray* InliningIdToTokenPos() const;
   RawArray* CallerInliningIdMap() const;
+
+  CodeSourceMapBuilder* code_source_map_builder() {
+    if (code_source_map_builder_ == NULL) {
+      code_source_map_builder_ = new CodeSourceMapBuilder();
+    }
+    ASSERT(code_source_map_builder_ != NULL);
+    return code_source_map_builder_;
+  }
+
+  void BeginCodeSourceRange();
+  bool EndCodeSourceRange(TokenPosition token_pos);
 
  private:
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
@@ -744,6 +762,8 @@ class FlowGraphCompiler : public ValueObject {
   ExceptionHandlerList* exception_handlers_list_;
   DescriptorList* pc_descriptors_list_;
   StackmapTableBuilder* stackmap_table_builder_;
+  CodeSourceMapBuilder* code_source_map_builder_;
+  intptr_t saved_code_size_;
   GrowableArray<BlockInfo*> block_info_;
   GrowableArray<CompilerDeoptInfo*> deopt_infos_;
   GrowableArray<SlowPathCode*> slow_path_code_;
@@ -781,6 +801,7 @@ class FlowGraphCompiler : public ValueObject {
 
   Array& inlined_code_intervals_;
   const GrowableArray<const Function*>& inline_id_to_function_;
+  const GrowableArray<TokenPosition>& inline_id_to_token_pos_;
   const GrowableArray<intptr_t>& caller_inline_id_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphCompiler);

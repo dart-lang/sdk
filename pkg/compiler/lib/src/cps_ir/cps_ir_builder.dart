@@ -343,8 +343,8 @@ class ForwardJumpCollector extends JumpCollector {
         arguments.add(new ir.Reference(invocationEnvironment[varIndex]));
       }
       ir.InvokeContinuation invocation = _invocations[jumpIndex];
-      invocation.continuation = new ir.Reference(_continuation);
-      invocation.arguments = arguments;
+      invocation.continuationRef = new ir.Reference(_continuation);
+      invocation.argumentRefs = arguments;
     }
   }
 }
@@ -2588,7 +2588,8 @@ class IrBuilder {
   }
 
   ir.Primitive buildFieldGet(ir.Primitive receiver, FieldElement target) {
-    return addPrimitive(new ir.GetField(receiver, target));
+    return addPrimitive(new ir.GetField(receiver, target,
+        isFinal: program.fieldNeverChanges(target)));
   }
 
   void buildFieldSet(ir.Primitive receiver,

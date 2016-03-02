@@ -238,6 +238,7 @@ source_set("gen_snapshot_dart_io") {
   custom_sources_filter = [
     "*net/nss_memio.cc",
     "*net/nss_memio.h",
+    "*root_certificates.cc",
     "*secure_socket.cc",
     "*secure_socket.h",
     "filter.cc",
@@ -292,6 +293,7 @@ source_set("embedded_dart_io") {
   custom_sources_filter = [
     "*net/nss_memio.cc",
     "*net/nss_memio.h",
+    "*root_certificates.cc",
     "*secure_socket.cc",
     "*secure_socket.h",
     "*filter_unsupported.cc",

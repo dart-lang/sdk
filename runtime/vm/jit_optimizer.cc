@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/flow_graph_optimizer.h"
+#include "vm/jit_optimizer.h"
 
 #include "vm/bit_vector.h"
 #include "vm/branch_optimizer.h"
@@ -47,7 +47,7 @@ static bool CanConvertUnboxedMintToDouble() {
 
 
 // Optimize instance calls using ICData.
-void FlowGraphOptimizer::ApplyICData() {
+void JitOptimizer::ApplyICData() {
   VisitBlocks();
 }
 
@@ -58,7 +58,7 @@ void FlowGraphOptimizer::ApplyICData() {
 // have no runtime type feedback collected.
 // Attempts to convert an instance call (IC call) using propagated class-ids,
 // e.g., receiver class id, guarded-cid, or by guessing cid-s.
-void FlowGraphOptimizer::ApplyClassIds() {
+void JitOptimizer::ApplyClassIds() {
   ASSERT(current_iterator_ == NULL);
   for (BlockIterator block_it = flow_graph_->reverse_postorder_iterator();
        !block_it.Done();
@@ -89,7 +89,7 @@ static bool IsNumberCid(intptr_t cid) {
 }
 
 
-bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
+bool JitOptimizer::TryCreateICData(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
   if (call->ic_data()->NumberOfUsedChecks() > 0) {
     // This occurs when an instance call has too many checks, will be converted
@@ -198,8 +198,8 @@ bool FlowGraphOptimizer::TryCreateICData(InstanceCallInstr* call) {
 }
 
 
-const ICData& FlowGraphOptimizer::TrySpecializeICData(const ICData& ic_data,
-                                                      intptr_t cid) {
+const ICData& JitOptimizer::TrySpecializeICData(const ICData& ic_data,
+                                                intptr_t cid) {
   ASSERT(ic_data.NumArgsTested() == 1);
 
   if ((ic_data.NumberOfUsedChecks() == 1) && ic_data.HasReceiverClassId(cid)) {
@@ -226,7 +226,7 @@ const ICData& FlowGraphOptimizer::TrySpecializeICData(const ICData& ic_data,
 }
 
 
-void FlowGraphOptimizer::SpecializePolymorphicInstanceCall(
+void JitOptimizer::SpecializePolymorphicInstanceCall(
     PolymorphicInstanceCallInstr* call) {
   if (!FLAG_polymorphic_with_deopt) {
     // Specialization adds receiver checks which can lead to deoptimization.
@@ -275,7 +275,7 @@ static bool IsPositiveOrZeroSmiConst(Definition* d) {
 }
 
 
-void FlowGraphOptimizer::OptimizeLeftShiftBitAndSmiOp(
+void JitOptimizer::OptimizeLeftShiftBitAndSmiOp(
     Definition* bit_and_instr,
     Definition* left_instr,
     Definition* right_instr) {
@@ -313,10 +313,10 @@ void FlowGraphOptimizer::OptimizeLeftShiftBitAndSmiOp(
 }
 
 
-void FlowGraphOptimizer::AppendExtractNthOutputForMerged(Definition* instr,
-                                                         intptr_t index,
-                                                         Representation rep,
-                                                         intptr_t cid) {
+void JitOptimizer::AppendExtractNthOutputForMerged(Definition* instr,
+                                                   intptr_t index,
+                                                   Representation rep,
+                                                   intptr_t cid) {
   ExtractNthOutputInstr* extract =
       new(Z) ExtractNthOutputInstr(new(Z) Value(instr), index, rep, cid);
   instr->ReplaceUsesWith(extract);
@@ -341,7 +341,7 @@ void FlowGraphOptimizer::AppendExtractNthOutputForMerged(Definition* instr,
 //  v7 <- +(v5, v6)
 // Because of the environment it is important that merged instruction replaces
 // first original instruction encountered.
-void FlowGraphOptimizer::TryMergeTruncDivMod(
+void JitOptimizer::TryMergeTruncDivMod(
     GrowableArray<BinarySmiOpInstr*>* merge_candidates) {
   if (merge_candidates->length() < 2) {
     // Need at least a TRUNCDIV and a MOD.
@@ -402,7 +402,7 @@ void FlowGraphOptimizer::TryMergeTruncDivMod(
 
 
 // Tries to merge MathUnary operations, in this case sinus and cosinus.
-void FlowGraphOptimizer::TryMergeMathUnary(
+void JitOptimizer::TryMergeMathUnary(
     GrowableArray<MathUnaryInstr*>* merge_candidates) {
   if (!FlowGraphCompiler::SupportsSinCos() || !CanUnboxDouble() ||
       !FLAG_merge_sin_cos) {
@@ -463,7 +463,7 @@ void FlowGraphOptimizer::TryMergeMathUnary(
 // Optimize (a << b) & c pattern: if c is a positive Smi or zero, then the
 // shift can be a truncating Smi shift-left and result is always Smi.
 // Merging occurs only per basic-block.
-void FlowGraphOptimizer::TryOptimizePatterns() {
+void JitOptimizer::TryOptimizePatterns() {
   if (!FLAG_truncating_left_shift) return;
   ASSERT(current_iterator_ == NULL);
   GrowableArray<BinarySmiOpInstr*> div_mod_merge;
@@ -649,8 +649,8 @@ static bool ShouldSpecializeForDouble(const ICData& ic_data) {
 }
 
 
-void FlowGraphOptimizer::ReplaceCall(Definition* call,
-                                     Definition* replacement) {
+void JitOptimizer::ReplaceCall(Definition* call,
+                               Definition* replacement) {
   // Remove the original push arguments.
   for (intptr_t i = 0; i < call->ArgumentCount(); ++i) {
     PushArgumentInstr* push = call->PushArgumentAt(i);
@@ -661,10 +661,10 @@ void FlowGraphOptimizer::ReplaceCall(Definition* call,
 }
 
 
-void FlowGraphOptimizer::AddCheckSmi(Definition* to_check,
-                                     intptr_t deopt_id,
-                                     Environment* deopt_environment,
-                                     Instruction* insert_before) {
+void JitOptimizer::AddCheckSmi(Definition* to_check,
+                               intptr_t deopt_id,
+                               Environment* deopt_environment,
+                               Instruction* insert_before) {
   if (to_check->Type()->ToCid() != kSmiCid) {
     InsertBefore(insert_before,
                  new(Z) CheckSmiInstr(new(Z) Value(to_check),
@@ -676,10 +676,10 @@ void FlowGraphOptimizer::AddCheckSmi(Definition* to_check,
 }
 
 
-Instruction* FlowGraphOptimizer::GetCheckClass(Definition* to_check,
-                                               const ICData& unary_checks,
-                                               intptr_t deopt_id,
-                                               TokenPosition token_pos) {
+Instruction* JitOptimizer::GetCheckClass(Definition* to_check,
+                                         const ICData& unary_checks,
+                                         intptr_t deopt_id,
+                                         TokenPosition token_pos) {
   if ((unary_checks.NumberOfUsedChecks() == 1) &&
       unary_checks.HasReceiverClassId(kSmiCid)) {
     return new(Z) CheckSmiInstr(new(Z) Value(to_check),
@@ -691,11 +691,11 @@ Instruction* FlowGraphOptimizer::GetCheckClass(Definition* to_check,
 }
 
 
-void FlowGraphOptimizer::AddCheckClass(Definition* to_check,
-                                       const ICData& unary_checks,
-                                       intptr_t deopt_id,
-                                       Environment* deopt_environment,
-                                       Instruction* insert_before) {
+void JitOptimizer::AddCheckClass(Definition* to_check,
+                                 const ICData& unary_checks,
+                                 intptr_t deopt_id,
+                                 Environment* deopt_environment,
+                                 Instruction* insert_before) {
   // Type propagation has not run yet, we cannot eliminate the check.
   Instruction* check = GetCheckClass(
       to_check, unary_checks, deopt_id, insert_before->token_pos());
@@ -703,7 +703,7 @@ void FlowGraphOptimizer::AddCheckClass(Definition* to_check,
 }
 
 
-void FlowGraphOptimizer::AddReceiverCheck(InstanceCallInstr* call) {
+void JitOptimizer::AddReceiverCheck(InstanceCallInstr* call) {
   AddCheckClass(call->ArgumentAt(0),
                 ICData::ZoneHandle(Z, call->ic_data()->AsUnaryClassChecks()),
                 call->deopt_id(),
@@ -729,7 +729,7 @@ static bool ArgIsAlways(intptr_t cid,
 }
 
 
-bool FlowGraphOptimizer::TryReplaceWithIndexedOp(InstanceCallInstr* call) {
+bool JitOptimizer::TryReplaceWithIndexedOp(InstanceCallInstr* call) {
   // Check for monomorphic IC data.
   if (!call->HasICData()) return false;
   const ICData& ic_data =
@@ -761,8 +761,8 @@ static bool IsLengthOneString(Definition* d) {
 // comparison. Conversion is only possible for strings of length one.
 // E.g., detect str[x] == "x"; and use an integer comparison of char-codes.
 // TODO(srdjan): Expand for two-byte and external strings.
-bool FlowGraphOptimizer::TryStringLengthOneEquality(InstanceCallInstr* call,
-                                                    Token::Kind op_kind) {
+bool JitOptimizer::TryStringLengthOneEquality(InstanceCallInstr* call,
+                                              Token::Kind op_kind) {
   ASSERT(HasOnlyTwoOf(*call->ic_data(), kOneByteStringCid));
   // Check that left and right are length one strings (either string constants
   // or results of string-from-char-code.
@@ -848,8 +848,8 @@ bool FlowGraphOptimizer::TryStringLengthOneEquality(InstanceCallInstr* call,
 
 static bool SmiFitsInDouble() { return kSmiBits < 53; }
 
-bool FlowGraphOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
-                                                  Token::Kind op_kind) {
+bool JitOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
+                                            Token::Kind op_kind) {
   const ICData& ic_data = *call->ic_data();
   ASSERT(ic_data.NumArgsTested() == 2);
 
@@ -957,8 +957,8 @@ bool FlowGraphOptimizer::TryReplaceWithEqualityOp(InstanceCallInstr* call,
 }
 
 
-bool FlowGraphOptimizer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
-                                                    Token::Kind op_kind) {
+bool JitOptimizer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
+                                              Token::Kind op_kind) {
   const ICData& ic_data = *call->ic_data();
   ASSERT(ic_data.NumArgsTested() == 2);
 
@@ -1019,8 +1019,8 @@ bool FlowGraphOptimizer::TryReplaceWithRelationalOp(InstanceCallInstr* call,
 }
 
 
-bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
-                                                Token::Kind op_kind) {
+bool JitOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
+                                          Token::Kind op_kind) {
   intptr_t operands_type = kIllegalCid;
   ASSERT(call->HasICData());
   const ICData& ic_data = *call->ic_data();
@@ -1228,8 +1228,8 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallInstr* call,
 }
 
 
-bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
-                                               Token::Kind op_kind) {
+bool JitOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
+                                         Token::Kind op_kind) {
   ASSERT(call->ArgumentCount() == 1);
   Definition* input = call->ArgumentAt(0);
   Definition* unary_op = NULL;
@@ -1262,15 +1262,20 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallInstr* call,
 }
 
 
-// Using field class
-RawField* FlowGraphOptimizer::GetField(intptr_t class_id,
-                                       const String& field_name) {
+// Using field class.
+RawField* JitOptimizer::GetField(intptr_t class_id,
+                                 const String& field_name) {
   Class& cls = Class::Handle(Z, isolate()->class_table()->At(class_id));
   Field& field = Field::Handle(Z);
   while (!cls.IsNull()) {
     field = cls.LookupInstanceField(field_name);
     if (!field.IsNull()) {
-      return field.raw();
+      if (Compiler::IsBackgroundCompilation() ||
+          FLAG_force_clone_compiler_objects) {
+        return field.CloneFromOriginal();
+      } else {
+        return field.raw();
+      }
     }
     cls = cls.SuperClass();
   }
@@ -1281,7 +1286,7 @@ RawField* FlowGraphOptimizer::GetField(intptr_t class_id,
 // Use CHA to determine if the call needs a class check: if the callee's
 // receiver is the same as the caller's receiver and there are no overriden
 // callee functions, then no class check is needed.
-bool FlowGraphOptimizer::InstanceCallNeedsClassCheck(
+bool JitOptimizer::InstanceCallNeedsClassCheck(
     InstanceCallInstr* call, RawFunction::Kind kind) const {
   if (!FLAG_use_cha_deopt && !isolate()->all_classes_finalized()) {
     // Even if class or function are private, lazy class finalization
@@ -1312,8 +1317,7 @@ bool FlowGraphOptimizer::InstanceCallNeedsClassCheck(
 }
 
 
-bool FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call,
-                                                      bool allow_check) {
+bool JitOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
   const ICData& ic_data = *call->ic_data();
   ASSERT(ic_data.HasOneTarget());
@@ -1328,9 +1332,6 @@ bool FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call,
   ASSERT(!field.IsNull());
 
   if (InstanceCallNeedsClassCheck(call, RawFunction::kImplicitGetter)) {
-    if (!allow_check) {
-      return false;
-    }
     AddReceiverCheck(call);
   }
   LoadFieldInstr* load = new(Z) LoadFieldInstr(
@@ -1363,8 +1364,8 @@ bool FlowGraphOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call,
 }
 
 
-bool FlowGraphOptimizer::InlineFloat32x4Getter(InstanceCallInstr* call,
-                                               MethodRecognizer::Kind getter) {
+bool JitOptimizer::InlineFloat32x4Getter(InstanceCallInstr* call,
+                                         MethodRecognizer::Kind getter) {
   if (!ShouldInlineSimd()) {
     return false;
   }
@@ -1438,8 +1439,8 @@ bool FlowGraphOptimizer::InlineFloat32x4Getter(InstanceCallInstr* call,
 }
 
 
-bool FlowGraphOptimizer::InlineFloat64x2Getter(InstanceCallInstr* call,
-                                               MethodRecognizer::Kind getter) {
+bool JitOptimizer::InlineFloat64x2Getter(InstanceCallInstr* call,
+                                         MethodRecognizer::Kind getter) {
   if (!ShouldInlineSimd()) {
     return false;
   }
@@ -1464,8 +1465,8 @@ bool FlowGraphOptimizer::InlineFloat64x2Getter(InstanceCallInstr* call,
 }
 
 
-bool FlowGraphOptimizer::InlineInt32x4Getter(InstanceCallInstr* call,
-                                              MethodRecognizer::Kind getter) {
+bool JitOptimizer::InlineInt32x4Getter(InstanceCallInstr* call,
+                                       MethodRecognizer::Kind getter) {
   if (!ShouldInlineSimd()) {
     return false;
   }
@@ -1539,8 +1540,8 @@ bool FlowGraphOptimizer::InlineInt32x4Getter(InstanceCallInstr* call,
 }
 
 
-bool FlowGraphOptimizer::InlineFloat32x4BinaryOp(InstanceCallInstr* call,
-                                                 Token::Kind op_kind) {
+bool JitOptimizer::InlineFloat32x4BinaryOp(InstanceCallInstr* call,
+                                           Token::Kind op_kind) {
   if (!ShouldInlineSimd()) {
     return false;
   }
@@ -1572,8 +1573,8 @@ bool FlowGraphOptimizer::InlineFloat32x4BinaryOp(InstanceCallInstr* call,
 }
 
 
-bool FlowGraphOptimizer::InlineInt32x4BinaryOp(InstanceCallInstr* call,
-                                                Token::Kind op_kind) {
+bool JitOptimizer::InlineInt32x4BinaryOp(InstanceCallInstr* call,
+                                         Token::Kind op_kind) {
   if (!ShouldInlineSimd()) {
     return false;
   }
@@ -1604,8 +1605,8 @@ bool FlowGraphOptimizer::InlineInt32x4BinaryOp(InstanceCallInstr* call,
 }
 
 
-bool FlowGraphOptimizer::InlineFloat64x2BinaryOp(InstanceCallInstr* call,
-                                                 Token::Kind op_kind) {
+bool JitOptimizer::InlineFloat64x2BinaryOp(InstanceCallInstr* call,
+                                           Token::Kind op_kind) {
   if (!ShouldInlineSimd()) {
     return false;
   }
@@ -1637,9 +1638,7 @@ bool FlowGraphOptimizer::InlineFloat64x2BinaryOp(InstanceCallInstr* call,
 
 
 // Only unique implicit instance getters can be currently handled.
-// Returns false if 'allow_check' is false and a check is needed.
-bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call,
-                                                 bool allow_check) {
+bool JitOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
   const ICData& ic_data = *call->ic_data();
   if (ic_data.NumberOfUsedChecks() == 0) {
@@ -1659,11 +1658,11 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallInstr* call,
     // inlining in FlowGraphInliner.
     return false;
   }
-  return InlineImplicitInstanceGetter(call, allow_check);
+  return InlineImplicitInstanceGetter(call);
 }
 
 
-bool FlowGraphOptimizer::TryReplaceInstanceCallWithInline(
+bool JitOptimizer::TryReplaceInstanceCallWithInline(
     InstanceCallInstr* call) {
   Function& target = Function::Handle(Z);
   GrowableArray<intptr_t> class_ids;
@@ -1707,7 +1706,7 @@ bool FlowGraphOptimizer::TryReplaceInstanceCallWithInline(
 }
 
 
-void FlowGraphOptimizer::ReplaceWithMathCFunction(
+void JitOptimizer::ReplaceWithMathCFunction(
     InstanceCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
   AddReceiverCheck(call);
@@ -1748,7 +1747,7 @@ static bool IsSupportedByteArrayViewCid(intptr_t cid) {
 
 
 // Inline only simple, frequently called core library methods.
-bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
+bool JitOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
   const ICData& ic_data = *call->ic_data();
   if ((ic_data.NumberOfUsedChecks() == 0) || !ic_data.HasOneTarget()) {
@@ -1981,7 +1980,7 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallInstr* call) {
 }
 
 
-bool FlowGraphOptimizer::TryInlineFloat32x4Constructor(
+bool JitOptimizer::TryInlineFloat32x4Constructor(
     StaticCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
   if (!ShouldInlineSimd()) {
@@ -2024,7 +2023,7 @@ bool FlowGraphOptimizer::TryInlineFloat32x4Constructor(
 }
 
 
-bool FlowGraphOptimizer::TryInlineFloat64x2Constructor(
+bool JitOptimizer::TryInlineFloat64x2Constructor(
     StaticCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
   if (!ShouldInlineSimd()) {
@@ -2059,7 +2058,7 @@ bool FlowGraphOptimizer::TryInlineFloat64x2Constructor(
 }
 
 
-bool FlowGraphOptimizer::TryInlineInt32x4Constructor(
+bool JitOptimizer::TryInlineInt32x4Constructor(
     StaticCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
   if (!ShouldInlineSimd()) {
@@ -2096,7 +2095,7 @@ bool FlowGraphOptimizer::TryInlineInt32x4Constructor(
 }
 
 
-bool FlowGraphOptimizer::TryInlineFloat32x4Method(
+bool JitOptimizer::TryInlineFloat32x4Method(
     InstanceCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
   if (!ShouldInlineSimd()) {
@@ -2260,7 +2259,7 @@ bool FlowGraphOptimizer::TryInlineFloat32x4Method(
 }
 
 
-bool FlowGraphOptimizer::TryInlineFloat64x2Method(
+bool JitOptimizer::TryInlineFloat64x2Method(
     InstanceCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
   if (!ShouldInlineSimd()) {
@@ -2319,7 +2318,7 @@ bool FlowGraphOptimizer::TryInlineFloat64x2Method(
 }
 
 
-bool FlowGraphOptimizer::TryInlineInt32x4Method(
+bool JitOptimizer::TryInlineInt32x4Method(
     InstanceCallInstr* call,
     MethodRecognizer::Kind recognized_kind) {
   if (!ShouldInlineSimd()) {
@@ -2390,7 +2389,7 @@ bool FlowGraphOptimizer::TryInlineInt32x4Method(
 // If no mapping is possible, 'results' is empty.
 // An instance-of test returning all same results can be converted to a class
 // check.
-RawBool* FlowGraphOptimizer::InstanceOfAsBool(
+RawBool* JitOptimizer::InstanceOfAsBool(
     const ICData& ic_data,
     const AbstractType& type,
     ZoneGrowableArray<intptr_t>* results) const {
@@ -2449,7 +2448,7 @@ RawBool* FlowGraphOptimizer::InstanceOfAsBool(
 
 
 // Returns true if checking against this type is a direct class id comparison.
-bool FlowGraphOptimizer::TypeCheckAsClassEquality(const AbstractType& type) {
+bool JitOptimizer::TypeCheckAsClassEquality(const AbstractType& type) {
   ASSERT(type.IsFinalized() && !type.IsMalformedOrMalbounded());
   // Requires CHA.
   if (!type.IsInstantiated()) return false;
@@ -2553,7 +2552,7 @@ static bool TryExpandTestCidsResult(ZoneGrowableArray<intptr_t>* results,
 
 
 // TODO(srdjan): Use ICData to check if always true or false.
-void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
+void JitOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
   ASSERT(Token::IsTypeTestOperator(call->token_kind()));
   Definition* left = call->ArgumentAt(0);
   Definition* type_args = NULL;
@@ -2661,7 +2660,7 @@ void FlowGraphOptimizer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
 
 
 // TODO(srdjan): Apply optimizations as in ReplaceWithInstanceOf (TestCids).
-void FlowGraphOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
+void JitOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
   ASSERT(Token::IsTypeCastOperator(call->token_kind()));
   Definition* left = call->ArgumentAt(0);
   Definition* type_args = call->ArgumentAt(1);
@@ -2704,154 +2703,9 @@ void FlowGraphOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
 }
 
 
-bool FlowGraphOptimizer::IsBlackListedForInlining(intptr_t call_deopt_id) {
-  for (intptr_t i = 0; i < inlining_black_list_->length(); ++i) {
-    if ((*inlining_black_list_)[i] == call_deopt_id) return true;
-  }
-  return false;
-}
-
-// Special optimizations when running in --noopt mode.
-void FlowGraphOptimizer::InstanceCallNoopt(InstanceCallInstr* instr) {
-  // TODO(srdjan): Investigate other attempts, as they are not allowed to
-  // deoptimize.
-
-  // Type test is special as it always gets converted into inlined code.
-  const Token::Kind op_kind = instr->token_kind();
-  if (Token::IsTypeTestOperator(op_kind)) {
-    ReplaceWithInstanceOf(instr);
-    return;
-  }
-  if (Token::IsTypeCastOperator(op_kind)) {
-    ReplaceWithTypeCast(instr);
-    return;
-  }
-
-  if ((op_kind == Token::kGET) &&
-      TryInlineInstanceGetter(instr, false /* no checks allowed */)) {
-    return;
-  }
-  const ICData& unary_checks =
-      ICData::ZoneHandle(Z, instr->ic_data()->AsUnaryClassChecks());
-  if ((unary_checks.NumberOfChecks() > 0) &&
-      (op_kind == Token::kSET) &&
-      TryInlineInstanceSetter(instr, unary_checks, false /* no checks */)) {
-    return;
-  }
-
-  if (use_speculative_inlining_ &&
-      !IsBlackListedForInlining(instr->deopt_id()) &&
-      (unary_checks.NumberOfChecks() > 0)) {
-    if ((op_kind == Token::kINDEX) && TryReplaceWithIndexedOp(instr)) {
-      return;
-    }
-    if ((op_kind == Token::kASSIGN_INDEX) && TryReplaceWithIndexedOp(instr)) {
-      return;
-    }
-    if ((op_kind == Token::kEQ) && TryReplaceWithEqualityOp(instr, op_kind)) {
-      return;
-    }
-
-    if (Token::IsRelationalOperator(op_kind) &&
-        TryReplaceWithRelationalOp(instr, op_kind)) {
-      return;
-    }
-
-    if (Token::IsBinaryOperator(op_kind) &&
-        TryReplaceWithBinaryOp(instr, op_kind)) {
-      return;
-    }
-    if (Token::IsUnaryOperator(op_kind) &&
-        TryReplaceWithUnaryOp(instr, op_kind)) {
-      return;
-    }
-  }
-
-  bool has_one_target =
-      (unary_checks.NumberOfChecks() > 0) && unary_checks.HasOneTarget();
-  if (has_one_target) {
-    // Check if the single target is a polymorphic target, if it is,
-    // we don't have one target.
-    const Function& target =
-        Function::Handle(Z, unary_checks.GetTargetAt(0));
-    const bool polymorphic_target = MethodRecognizer::PolymorphicTarget(target);
-    has_one_target = !polymorphic_target;
-  }
-
-  if (has_one_target) {
-    RawFunction::Kind function_kind =
-        Function::Handle(Z, unary_checks.GetTargetAt(0)).kind();
-    if (!InstanceCallNeedsClassCheck(instr, function_kind)) {
-      PolymorphicInstanceCallInstr* call =
-          new(Z) PolymorphicInstanceCallInstr(instr, unary_checks,
-                                              /* with_checks = */ false);
-      instr->ReplaceWith(call, current_iterator());
-      return;
-    }
-  }
-
-  // More than one targets. Generate generic polymorphic call without
-  // deoptimization.
-  if (instr->ic_data()->NumberOfUsedChecks() > 0) {
-    ASSERT(!FLAG_polymorphic_with_deopt);
-    // OK to use checks with PolymorphicInstanceCallInstr since no
-    // deoptimization is allowed.
-    PolymorphicInstanceCallInstr* call =
-        new(Z) PolymorphicInstanceCallInstr(instr, unary_checks,
-                                            /* with_checks = */ true);
-    instr->ReplaceWith(call, current_iterator());
-    return;
-  }
-
-  // No IC data checks. Try resolve target using the propagated type.
-  // If the propagated type has a method with the target name and there are
-  // no overrides with that name according to CHA, call the method directly.
-  const intptr_t receiver_cid =
-      instr->PushArgumentAt(0)->value()->Type()->ToCid();
-  if (receiver_cid == kDynamicCid) return;
-  const Class& receiver_class = Class::Handle(Z,
-      isolate()->class_table()->At(receiver_cid));
-
-  const Array& args_desc_array = Array::Handle(Z,
-      ArgumentsDescriptor::New(instr->ArgumentCount(),
-                               instr->argument_names()));
-  ArgumentsDescriptor args_desc(args_desc_array);
-  const Function& function = Function::Handle(Z,
-      Resolver::ResolveDynamicForReceiverClass(
-          receiver_class,
-          instr->function_name(),
-          args_desc));
-  if (function.IsNull()) {
-    return;
-  }
-  if (!thread()->cha()->HasOverride(receiver_class, instr->function_name())) {
-    if (FLAG_trace_cha) {
-      THR_Print("  **(CHA) Instance call needs no check, "
-          "no overrides of '%s' '%s'\n",
-          instr->function_name().ToCString(), receiver_class.ToCString());
-    }
-    thread()->cha()->AddToLeafClasses(receiver_class);
-
-    // Create fake IC data with the resolved target.
-    const ICData& ic_data = ICData::Handle(
-        ICData::New(flow_graph_->function(),
-                    instr->function_name(),
-                    args_desc_array,
-                    Thread::kNoDeoptId,
-                    /* args_tested = */ 1));
-    ic_data.AddReceiverCheck(receiver_class.id(), function);
-    PolymorphicInstanceCallInstr* call =
-        new(Z) PolymorphicInstanceCallInstr(instr, ic_data,
-                                            /* with_checks = */ false);
-    instr->ReplaceWith(call, current_iterator());
-    return;
-  }
-}
-
-
 // Tries to optimize instance call by replacing it with a faster instruction
 // (e.g, binary op, field load, ..).
-void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
+void JitOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   if (!instr->HasICData() || (instr->ic_data()->NumberOfUsedChecks() == 0)) {
     return;
   }
@@ -2957,7 +2811,7 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
 }
 
 
-void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
+void JitOptimizer::VisitStaticCall(StaticCallInstr* call) {
   if (!CanUnboxDouble()) {
     return;
   }
@@ -3130,7 +2984,7 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallInstr* call) {
 }
 
 
-void FlowGraphOptimizer::VisitStoreInstanceField(
+void JitOptimizer::VisitStoreInstanceField(
     StoreInstanceFieldInstr* instr) {
   if (instr->IsUnboxedStore()) {
     ASSERT(instr->is_potential_unboxed_initialization_);
@@ -3139,9 +2993,9 @@ void FlowGraphOptimizer::VisitStoreInstanceField(
     // usage count of at least 1/kGetterSetterRatio of the getter usage count.
     // This is to avoid unboxing fields where the setter is never or rarely
     // executed.
-    const Field& field = Field::ZoneHandle(Z, instr->field().raw());
+    const Field& field = Field::ZoneHandle(Z, instr->field().Original());
     const String& field_name = String::Handle(Z, field.name());
-    const Class& owner = Class::Handle(Z, field.owner());
+    const Class& owner = Class::Handle(Z, field.Owner());
     const Function& getter =
         Function::Handle(Z, owner.LookupGetterFunction(field_name));
     const Function& setter =
@@ -3184,7 +3038,7 @@ void FlowGraphOptimizer::VisitStoreInstanceField(
 }
 
 
-void FlowGraphOptimizer::VisitAllocateContext(AllocateContextInstr* instr) {
+void JitOptimizer::VisitAllocateContext(AllocateContextInstr* instr) {
   // Replace generic allocation with a sequence of inlined allocation and
   // explicit initalizing stores.
   AllocateUninitializedContextInstr* replacement =
@@ -3219,7 +3073,7 @@ void FlowGraphOptimizer::VisitAllocateContext(AllocateContextInstr* instr) {
 }
 
 
-void FlowGraphOptimizer::VisitLoadCodeUnits(LoadCodeUnitsInstr* instr) {
+void JitOptimizer::VisitLoadCodeUnits(LoadCodeUnitsInstr* instr) {
   // TODO(zerny): Use kUnboxedUint32 once it is fully supported/optimized.
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)
   if (!instr->can_pack_into_smi())
@@ -3228,12 +3082,11 @@ void FlowGraphOptimizer::VisitLoadCodeUnits(LoadCodeUnitsInstr* instr) {
 }
 
 
-bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
-                                                 const ICData& unary_ic_data,
-                                                 bool allow_checks) {
+bool JitOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
+                                           const ICData& unary_ic_data) {
   ASSERT((unary_ic_data.NumberOfChecks() > 0) &&
       (unary_ic_data.NumArgsTested() == 1));
-  if (I->flags().type_checks()) {
+  if (I->type_checks()) {
     // Checked mode setters are inlined like normal methods by conventional
     // inlining.
     return false;
@@ -3264,15 +3117,9 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   ASSERT(!field.IsNull());
 
   if (InstanceCallNeedsClassCheck(instr, RawFunction::kImplicitSetter)) {
-    if (!allow_checks) {
-      return false;
-    }
     AddReceiverCheck(instr);
   }
   if (field.guarded_cid() != kDynamicCid) {
-    if (!allow_checks) {
-      return false;
-    }
     InsertBefore(instr,
                  new(Z) GuardFieldClassInstr(
                      new(Z) Value(instr->ArgumentAt(1)),
@@ -3283,9 +3130,6 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
   }
 
   if (field.needs_length_check()) {
-    if (!allow_checks) {
-      return false;
-    }
     InsertBefore(instr,
                  new(Z) GuardFieldLengthInstr(
                      new(Z) Value(instr->ArgumentAt(1)),

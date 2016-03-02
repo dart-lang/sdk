@@ -29,21 +29,14 @@ DEFINE_FLAG(bool, print_free_list_before_gc, false,
             "Print free list statistics before a GC");
 DEFINE_FLAG(bool, print_free_list_after_gc, false,
             "Print free list statistics after a GC");
-DEFINE_FLAG(bool, collect_code, true,
-            "Attempt to GC infrequently used code.");
 DEFINE_FLAG(int, code_collection_interval_in_us, 30000000,
             "Time between attempts to collect unused code.");
 DEFINE_FLAG(bool, log_code_drop, false,
             "Emit a log message when pointers to unused code are dropped.");
 DEFINE_FLAG(bool, always_drop_code, false,
             "Always try to drop code if the function's usage counter is >= 0");
-#if defined(TARGET_ARCH_MIPS) || defined(TARGET_ARCH_ARM64)
-DEFINE_FLAG(bool, concurrent_sweep, false,
-            "Concurrent sweep for old generation.");
-#else  // TARGET_ARCH_MIPS || TARGET_ARCH_ARM64
 DEFINE_FLAG(bool, concurrent_sweep, true,
             "Concurrent sweep for old generation.");
-#endif  // TARGET_ARCH_MIPS || TARGET_ARCH_ARM64
 DEFINE_FLAG(bool, log_growth, false, "Log PageSpace growth policy decisions.");
 
 HeapPage* HeapPage::Initialize(VirtualMemory* memory, PageType type) {

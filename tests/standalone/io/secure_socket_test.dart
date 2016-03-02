@@ -17,15 +17,15 @@ String localFile(path) => Platform.script.resolve(path).toFilePath();
 
 SecurityContext serverContext(String certType, String password) =>
     new SecurityContext()
-    ..useCertificateChainSync(localFile('certificates/server_chain.$certType'),
-                              password: password)
-    ..usePrivateKeySync(localFile('certificates/server_key.$certType'),
-                        password: password);
+    ..useCertificateChain(localFile('certificates/server_chain.$certType'),
+                          password: password)
+    ..usePrivateKey(localFile('certificates/server_key.$certType'),
+                    password: password);
 
 SecurityContext clientContext(String certType, String password) =>
     new SecurityContext()
-    ..setTrustedCertificatesSync(localFile(
-        'certificates/trusted_certs.$certType'), password: password);
+    ..setTrustedCertificates(localFile('certificates/trusted_certs.$certType'),
+                             password: password);
 
 Future<HttpServer> startServer(String certType, String password) {
   return HttpServer.bindSecure(

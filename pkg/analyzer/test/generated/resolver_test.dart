@@ -12,6 +12,8 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/ast/ast.dart'
+    show SimpleIdentifierImpl, PrefixedIdentifierImpl;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -33,6 +35,7 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/string_source.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
@@ -100,6 +103,12 @@ class AnalysisContextFactory {
     return initContextWithCore(context);
   }
 
+  static InternalAnalysisContext contextWithCoreAndPackages(
+      Map<String, String> packages) {
+    AnalysisContextForTests context = new AnalysisContextForTests();
+    return initContextWithCore(context, new TestPackageUriResolver(packages));
+  }
+
   /**
    * Initialize the given analysis context with a fake core library already resolved.
    *
@@ -107,12 +116,19 @@ class AnalysisContextFactory {
    * @return the analysis context that was created
    */
   static InternalAnalysisContext initContextWithCore(
-      InternalAnalysisContext context) {
+      InternalAnalysisContext context,
+      [UriResolver contributedResolver]) {
     DirectoryBasedDartSdk sdk = new _AnalysisContextFactory_initContextWithCore(
         new JavaFile("/fake/sdk"),
         enableAsync: context.analysisOptions.enableAsync);
-    SourceFactory sourceFactory =
-        new SourceFactory([new DartUriResolver(sdk), new FileUriResolver()]);
+    List<UriResolver> resolvers = <UriResolver>[
+      new DartUriResolver(sdk),
+      new FileUriResolver()
+    ];
+    if (contributedResolver != null) {
+      resolvers.add(contributedResolver);
+    }
+    SourceFactory sourceFactory = new SourceFactory(resolvers);
     context.sourceFactory = sourceFactory;
     AnalysisContext coreContext = sdk.context;
     (coreContext.analysisOptions as AnalysisOptionsImpl).strongMode =
@@ -2467,6 +2483,21 @@ class B {}''');
     verify([source, source2, source3]);
   }
 
+  @override
+  void reset() {
+    analysisContext2 = AnalysisContextFactory.contextWithCoreAndPackages({
+      'package:meta/meta.dart': r'''
+library meta;
+
+const _Protected protected = const _Protected();
+
+class _Protected {
+  const _Protected();
+}
+'''
+    });
+  }
+
   void test_argumentTypeNotAssignable_functionType() {
     Source source = addSource(r'''
 m() {
@@ -3300,6 +3331,241 @@ main() {
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_field() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  int a;
+}
+abstract class B implements A {
+  int b() => a;
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_function() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void a(){ }
+}
+main() {
+  new A().a();
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_getter() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  int get a => 42;
+}
+abstract class B implements A {
+  int b() => a;
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_message() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void a(){ }
+}
+class B {
+  void b() => new A().a();
+}''');
+    List<AnalysisError> errors = analysisContext2.computeErrors(source);
+    expect(errors, hasLength(1));
+    expect(errors[0].message,
+        "The member 'a' can only be used within instance members of subclasses of 'A'");
+  }
+
+  void test_invalidUseOfProtectedMember_method_1() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void a(){ }
+}
+class B {
+  void b() => new A().a();
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_method_2() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void a(){ }
+}
+abstract class B implements A {
+  void b() => a();
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_OK_1() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void a(){ }
+}
+class B extends A {
+  void b() => a();
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_OK_2() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void a(){ }
+}
+class B extends Object with A {
+  void b() => a();
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_OK_3() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected m1() {}
+}
+class B extends A {
+  static m2(A a) => a.m1();
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_OK_4() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void a(){ }
+}
+class B extends A {
+  void a() => a();
+}
+main() {
+  new B().a();
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_OK_field() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  int a = 42;
+}
+class B extends A {
+  int b() => a;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_OK_getter() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  int get a => 42;
+}
+class B extends A {
+  int b() => a;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_OK_setter() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void set a(int i) { }
+}
+class B extends A {
+  void b(int i) {
+    a = i;
+  }
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_setter() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void set a(int i) { }
+}
+abstract class B implements A {
+  b(int i) {
+    a = i;
+  }
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_topLevelVariable() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+@protected
+int x = 0;
+main() {
+  print(x);
+}''');
+    computeLibrarySourceErrors(source);
+    // TODO(brianwilkerson) This should produce a hint because the annotation is
+    // being applied to the wrong kind of declaration.
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -8006,6 +8272,7 @@ class ResolverTestCase extends EngineTestCase {
       [List<ErrorCode> expectedErrorCodes = ErrorCode.EMPTY_LIST]) {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     for (AnalysisError error in analysisContext2.computeErrors(source)) {
+      expect(error.source, source);
       ErrorCode errorCode = error.errorCode;
       if (!enableUnusedElement &&
           (errorCode == HintCode.UNUSED_ELEMENT ||
@@ -8230,6 +8497,7 @@ class ResolverTestCase extends EngineTestCase {
 
   @override
   void setUp() {
+    ElementFactory.flushStaticState();
     super.setUp();
     reset();
   }
@@ -14410,6 +14678,23 @@ class SubtypeManagerTest {
   }
 }
 
+class TestPackageUriResolver extends UriResolver {
+  Map<Uri, Source> sourceMap = new HashMap<Uri, Source>();
+
+  TestPackageUriResolver(Map<String, String> map) {
+    map.forEach((String uri, String contents) {
+      sourceMap[Uri.parse(uri)] =
+          new StringSource(contents, '/test_pkg_source.dart');
+    });
+  }
+
+  @override
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) => sourceMap[uri];
+
+  @override
+  Uri restoreAbsolute(Source source) => throw new UnimplementedError();
+}
+
 @reflectiveTest
 class TypeOverrideManagerTest extends EngineTestCase {
   void test_exitScope_noScopes() {
@@ -16792,6 +17077,30 @@ class TypeResolverVisitorTest {
     _listener.assertNoErrors();
   }
 
+  void test_visitTypeName_noParameters_noArguments_undefined() {
+    SimpleIdentifier id = AstFactory.identifier3("unknown")
+      ..staticElement = new _StaleElement();
+    TypeName typeName = new TypeName(id, null);
+    _resolveNode(typeName, []);
+    expect(typeName.type, UndefinedTypeImpl.instance);
+    expect(typeName.name.staticElement, null);
+    _listener.assertErrorsWithCodes([StaticWarningCode.UNDEFINED_CLASS]);
+  }
+
+  void test_visitTypeName_prefixed_noParameters_noArguments_undefined() {
+    SimpleIdentifier prefix = AstFactory.identifier3("unknownPrefix")
+      ..staticElement = new _StaleElement();
+    SimpleIdentifier suffix = AstFactory.identifier3("unknownSuffix")
+      ..staticElement = new _StaleElement();
+    TypeName typeName =
+        new TypeName(AstFactory.identifier(prefix, suffix), null);
+    _resolveNode(typeName, []);
+    expect(typeName.type, UndefinedTypeImpl.instance);
+    expect(prefix.staticElement, null);
+    expect(suffix.staticElement, null);
+    _listener.assertErrorsWithCodes([StaticWarningCode.UNDEFINED_CLASS]);
+  }
+
   void test_visitTypeName_parameters_arguments() {
     ClassElement classA = ElementFactory.classElement2("A", ["E"]);
     ClassElement classB = ElementFactory.classElement2("B");
@@ -16949,6 +17258,21 @@ class _SimpleResolverTest_localVariable_types_invoked
     }
     return null;
   }
+}
+
+/**
+ * Represents an element left over from a previous resolver run.
+ *
+ * A _StaleElement should always be replaced with either null or a new Element.
+ */
+class _StaleElement extends ElementImpl {
+  _StaleElement() : super("_StaleElement", -1);
+
+  @override
+  accept(_) => throw "_StaleElement shouldn't be visited";
+
+  @override
+  get kind => throw "_StaleElement's kind shouldn't be accessed";
 }
 
 /**

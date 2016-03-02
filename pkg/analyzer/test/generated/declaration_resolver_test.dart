@@ -302,6 +302,26 @@ main() {
     expect(setterName.staticElement, same(setterElement));
   }
 
+  void test_visitExportDirective_notExistingSource() {
+    String code = r'''
+export 'foo.dart';
+''';
+    CompilationUnit unit = resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
+  void test_visitExportDirective_unresolvedUri() {
+    String code = r'''
+export 'package:foo/bar.dart';
+''';
+    CompilationUnit unit = resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
   void test_visitFunctionExpression() {
     String code = r'''
 main(List<String> items) {
@@ -314,12 +334,19 @@ main(List<String> items) {
     // no other validations than built into DeclarationResolver
   }
 
-  void test_visitMethodDeclaration_unaryMinus() {
+  void test_visitImportDirective_notExistingSource() {
     String code = r'''
-class C {
-  C operator -() => null;
-  C operator -(C other) => null;
-}
+import 'foo.dart';
+''';
+    CompilationUnit unit = resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
+  void test_visitImportDirective_unresolvedUri() {
+    String code = r'''
+import 'package:foo/bar.dart';
 ''';
     CompilationUnit unit = resolveSource(code);
     // re-resolve
@@ -408,6 +435,29 @@ class C {
     SimpleIdentifier secondName = _findSimpleIdentifier(unit2, code, 'zzz(y)');
     expect(firstName.staticElement, same(firstElement));
     expect(secondName.staticElement, same(secondElement));
+  }
+
+  void test_visitMethodDeclaration_unaryMinus() {
+    String code = r'''
+class C {
+  C operator -() => null;
+  C operator -(C other) => null;
+}
+''';
+    CompilationUnit unit = resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
+  }
+
+  void test_visitPartDirective_notExistingSource() {
+    String code = r'''
+part 'foo.bar';
+''';
+    CompilationUnit unit = resolveSource(code);
+    // re-resolve
+    _cloneResolveUnit(unit);
+    // no other validations than built into DeclarationResolver
   }
 }
 

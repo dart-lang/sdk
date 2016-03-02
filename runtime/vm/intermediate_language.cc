@@ -13,7 +13,6 @@
 #include "vm/flow_graph_allocator.h"
 #include "vm/flow_graph_builder.h"
 #include "vm/flow_graph_compiler.h"
-#include "vm/flow_graph_optimizer.h"
 #include "vm/flow_graph_range_analysis.h"
 #include "vm/locations.h"
 #include "vm/method_recognizer.h"
@@ -30,18 +29,22 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, ic_range_profiling, true,
-    "Generate special IC stubs collecting range information "
-    "for binary and unary arithmetic operations");
 DEFINE_FLAG(bool, propagate_ic_data, true,
     "Propagate IC data from unoptimized to optimized IC calls.");
 DEFINE_FLAG(bool, two_args_smi_icd, true,
     "Generate special IC stubs for two args Smi operations");
 DEFINE_FLAG(bool, unbox_numeric_fields, true,
     "Support unboxed double and float32x4 fields.");
-DEFINE_FLAG(bool, fields_may_be_reset, false,
-            "Don't optimize away static field initialization");
 DECLARE_FLAG(bool, eliminate_type_checks);
+
+
+#if defined(DEBUG)
+void Instruction::CheckField(const Field& field) const {
+  ASSERT(field.IsZoneHandle());
+  ASSERT(!Compiler::IsBackgroundCompilation() || !field.IsOriginal());
+}
+#endif  // DEBUG
+
 
 Definition::Definition(intptr_t deopt_id)
     : Instruction(deopt_id),
@@ -412,7 +415,7 @@ bool LoadStaticFieldInstr::AttributesEqual(Instruction* other) const {
 
 
 const Field& LoadStaticFieldInstr::StaticField() const {
-  Field& field = Field::Handle();
+  Field& field = Field::ZoneHandle();
   field ^= field_value()->BoundConstant().raw();
   return field;
 }
@@ -425,6 +428,7 @@ ConstantInstr::ConstantInstr(const Object& value, TokenPosition token_pos)
   ASSERT(!value.IsBigint() || !Bigint::Cast(value).FitsIntoSmi());
   ASSERT(!value.IsBigint() || !Bigint::Cast(value).FitsIntoInt64());
   ASSERT(!value.IsMint() || !Smi::IsValid(Mint::Cast(value).AsInt64Value()));
+  ASSERT(!value.IsField() || Field::Cast(value).IsOriginal());
 }
 
 
@@ -2075,7 +2079,7 @@ Definition* AssertAssignableInstr::Canonicalize(FlowGraph* flow_graph) {
 
 
 Definition* InstantiateTypeArgumentsInstr::Canonicalize(FlowGraph* flow_graph) {
-  return (Isolate::Current()->flags().type_checks() || HasUses()) ? this : NULL;
+  return (Isolate::Current()->type_checks() || HasUses()) ? this : NULL;
 }
 
 

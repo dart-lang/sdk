@@ -57,6 +57,7 @@ const _usage =
     'Usage: resolve_driver <path_to_sdk> <file_to_resolve> [<packages_root>]';
 
 class _ASTVisitor extends GeneralizingAstVisitor {
+  @override
   visitNode(AstNode node) {
     var lines = <String>['${node.runtimeType} : <"$node">'];
     if (node is SimpleIdentifier) {

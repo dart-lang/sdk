@@ -4034,7 +4034,11 @@ TEST_CASE(FunctionSourceFingerprint) {
   EXPECT_NE(a_test3.SourceFingerprint(), a_test4.SourceFingerprint());
   EXPECT_NE(a_test4.SourceFingerprint(), a_test5.SourceFingerprint());
   EXPECT_EQ(a_test5.SourceFingerprint(), b_test5.SourceFingerprint());
-  EXPECT_NE(a_test6.SourceFingerprint(), b_test6.SourceFingerprint());
+  // Although a_test6's receiver type is different than b_test6's receiver type,
+  // the fingerprints are identical. The token stream does not reflect the
+  // receiver's type. This is not a problem, since we recognize functions
+  // of a given class and of a given name.
+  EXPECT_EQ(a_test6.SourceFingerprint(), b_test6.SourceFingerprint());
 }
 
 
@@ -4692,7 +4696,7 @@ struct TestResult {
 };
 
 
-VM_TEST_CASE(String_IdentifierPrettyName) {
+VM_TEST_CASE(String_ScrubName) {
   TestResult tests[] = {
     {"(dynamic, dynamic) => void", "(dynamic, dynamic) => void"},
     {"_List@915557746", "_List"},
@@ -4712,7 +4716,7 @@ VM_TEST_CASE(String_IdentifierPrettyName) {
   String& result = String::Handle();
   for (size_t i = 0; i < ARRAY_SIZE(tests); i++) {
     test = String::New(tests[i].in);
-    result = String::IdentifierPrettyName(test);
+    result = String::ScrubName(test);
     EXPECT_STREQ(tests[i].out, result.ToCString());
   }
 }

@@ -21,7 +21,7 @@ AstPrinter::~AstPrinter() { }
 
 
 void AstPrinter::VisitGenericAstNode(AstNode* node) {
-  THR_Print("(%s ", node->PrettyName());
+  THR_Print("(%s ", node->Name());
   node->VisitChildren(this);
   THR_Print(")");
 }
@@ -30,7 +30,7 @@ void AstPrinter::VisitGenericAstNode(AstNode* node) {
 void AstPrinter::VisitSequenceNode(SequenceNode* node) {
   indent_++;
   LocalScope* scope = node->scope();
-  THR_Print("(%s (scope \"%p\"", node->PrettyName(), scope);
+  THR_Print("(%s (scope \"%p\"", node->Name(), scope);
   if (scope != NULL) {
     THR_Print(" (%s-%s) loop %d",
               scope->begin_token_pos().ToCString(),
@@ -83,7 +83,7 @@ void AstPrinter::VisitReturnNode(ReturnNode* node) {
       kind = "";
       UNREACHABLE();
   }
-  THR_Print("(%s %s", node->PrettyName(), kind);
+  THR_Print("(%s %s", node->Name(), kind);
   node->VisitChildren(this);
   THR_Print(")");
 }
@@ -92,7 +92,7 @@ void AstPrinter::VisitReturnNode(ReturnNode* node) {
 void AstPrinter::VisitGenericLocalNode(AstNode* node,
                                        const LocalVariable& var) {
   THR_Print("(%s %s%s \"%s\"",
-            node->PrettyName(),
+            node->Name(),
             var.is_final() ? "final " : "",
             String::Handle(var.type().Name()).ToCString(),
             var.name().ToCString());
@@ -121,7 +121,7 @@ void AstPrinter::VisitStoreLocalNode(StoreLocalNode* node) {
 
 void AstPrinter::VisitGenericFieldNode(AstNode* node, const Field& field) {
   THR_Print("(%s %s%s \"%s\" ",
-            node->PrettyName(),
+            node->Name(),
             field.is_final() ? "final " : "",
             String::Handle(AbstractType::Handle(field.type()).Name()).
                 ToCString(),
@@ -137,7 +137,7 @@ void AstPrinter::VisitLoadInstanceFieldNode(LoadInstanceFieldNode* node) {
 
 
 void AstPrinter::VisitStoreInstanceFieldNode(StoreInstanceFieldNode* node) {
-  VisitGenericFieldNode(node, node->field());
+  VisitGenericFieldNode(node, Field::ZoneHandle(node->field().Original()));
 }
 
 
@@ -168,14 +168,14 @@ void AstPrinter::VisitStringInterpolateNode(StringInterpolateNode* node) {
 
 void AstPrinter::VisitLiteralNode(LiteralNode* node) {
   const Instance& literal = node->literal();
-  THR_Print("(%s \"%s\")", node->PrettyName(), literal.ToCString());
+  THR_Print("(%s \"%s\")", node->Name(), literal.ToCString());
 }
 
 
 void AstPrinter::VisitTypeNode(TypeNode* node) {
   const AbstractType& type = node->type();
   THR_Print("(%s \"%s\")",
-            node->PrettyName(),
+            node->Name(),
             String::Handle(type.Name()).ToCString());
 }
 
@@ -184,7 +184,7 @@ void AstPrinter::VisitAssignableNode(AssignableNode* node) {
   const AbstractType& type = node->type();
   const String& dst_name = node->dst_name();
   THR_Print("(%s (type \"%s\") (of \"%s\") ",
-            node->PrettyName(),
+            node->Name(),
             String::Handle(type.Name()).ToCString(),
             dst_name.ToCString());
   node->VisitChildren(this);
@@ -193,7 +193,7 @@ void AstPrinter::VisitAssignableNode(AssignableNode* node) {
 
 
 void AstPrinter::VisitAwaitNode(AwaitNode* node) {
-  THR_Print("(*****%s***** (scope \"%p\") ", node->PrettyName(), node->scope());
+  THR_Print("(*****%s***** (scope \"%p\") ", node->Name(), node->scope());
   node->VisitChildren(this);
   THR_Print(")");
 }
@@ -201,7 +201,7 @@ void AstPrinter::VisitAwaitNode(AwaitNode* node) {
 
 void AstPrinter::VisitAwaitMarkerNode(AwaitMarkerNode* node) {
   THR_Print("(%s (async_scope \"%p\" await_scope \"%p\"))",
-            node->PrettyName(),
+            node->Name(),
             node->async_scope(),
             node->await_scope());
 }
@@ -209,27 +209,27 @@ void AstPrinter::VisitAwaitMarkerNode(AwaitMarkerNode* node) {
 
 void AstPrinter::VisitPrimaryNode(PrimaryNode* node) {
   THR_Print("(*****%s***** \"%s\")",
-            node->PrettyName(),
+            node->Name(),
             node->primary().ToCString());
 }
 
 
 void AstPrinter::VisitComparisonNode(ComparisonNode* node) {
-  THR_Print("(%s %s ", node->PrettyName(), node->TokenName());
+  THR_Print("(%s %s ", node->Name(), node->TokenName());
   node->VisitChildren(this);
   THR_Print(")");
 }
 
 
 void AstPrinter::VisitBinaryOpNode(BinaryOpNode* node) {
-  THR_Print("(%s %s ", node->PrettyName(), node->TokenName());
+  THR_Print("(%s %s ", node->Name(), node->TokenName());
   node->VisitChildren(this);
   THR_Print(")");
 }
 
 
 void AstPrinter::VisitBinaryOpWithMask32Node(BinaryOpWithMask32Node* node) {
-  THR_Print("(%s %s ", node->PrettyName(), node->TokenName());
+  THR_Print("(%s %s ", node->Name(), node->TokenName());
   node->VisitChildren(this);
   THR_Print(" & \"0x%" Px64 "", node->mask32());
   THR_Print("\")");
@@ -237,7 +237,7 @@ void AstPrinter::VisitBinaryOpWithMask32Node(BinaryOpWithMask32Node* node) {
 
 
 void AstPrinter::VisitUnaryOpNode(UnaryOpNode* node) {
-  THR_Print("(%s %s ", node->PrettyName(), node->TokenName());
+  THR_Print("(%s %s ", node->Name(), node->TokenName());
   node->VisitChildren(this);
   THR_Print(")");
 }
@@ -254,7 +254,7 @@ void AstPrinter::VisitIfNode(IfNode* node) {
 
 
 void AstPrinter::VisitCaseNode(CaseNode* node) {
-  THR_Print("(%s (", node->PrettyName());
+  THR_Print("(%s (", node->Name());
   for (int i = 0; i < node->case_expressions()->length(); i++) {
     node->case_expressions()->NodeAt(i)->Visit(this);
   }
@@ -280,7 +280,7 @@ void AstPrinter::VisitWhileNode(WhileNode* node) {
 void AstPrinter::VisitForNode(ForNode* node) {
   // Complicated because the condition is optional and so we clearly want to
   // indicate the subparts.
-  THR_Print("(%s (init ", node->PrettyName());
+  THR_Print("(%s (init ", node->Name());
   node->initializer()->Visit(this);
   if (node->condition() != NULL) {
     THR_Print(") (cond ");
@@ -301,7 +301,7 @@ void AstPrinter::VisitDoWhileNode(DoWhileNode* node) {
 
 void AstPrinter::VisitJumpNode(JumpNode* node) {
   THR_Print("(%s %s %s (scope \"%p\"))",
-            node->PrettyName(),
+            node->Name(),
             node->TokenName(),
             node->label()->name().ToCString(),
             node->label()->owner());
@@ -310,7 +310,7 @@ void AstPrinter::VisitJumpNode(JumpNode* node) {
 
 void AstPrinter::VisitInstanceCallNode(InstanceCallNode* node) {
   THR_Print("(%s \"%s\" ",
-            node->PrettyName(),
+            node->Name(),
             node->function_name().ToCString());
   node->VisitChildren(this);
   THR_Print(")");
@@ -319,7 +319,7 @@ void AstPrinter::VisitInstanceCallNode(InstanceCallNode* node) {
 
 void AstPrinter::VisitStaticCallNode(StaticCallNode* node) {
   const char* function_fullname = node->function().ToFullyQualifiedCString();
-  THR_Print("(%s \"%s\" ", node->PrettyName(), function_fullname);
+  THR_Print("(%s \"%s\" ", node->Name(), function_fullname);
   node->VisitChildren(this);
   THR_Print(")");
 }
@@ -327,7 +327,7 @@ void AstPrinter::VisitStaticCallNode(StaticCallNode* node) {
 
 void AstPrinter::VisitClosureNode(ClosureNode* node) {
   const char* function_fullname = node->function().ToFullyQualifiedCString();
-  THR_Print("(%s \"%s\")", node->PrettyName(), function_fullname);
+  THR_Print("(%s \"%s\")", node->Name(), function_fullname);
 }
 
 
@@ -339,32 +339,29 @@ void AstPrinter::VisitClosureCallNode(ClosureCallNode* node) {
 void AstPrinter::VisitConstructorCallNode(ConstructorCallNode* node) {
   const char* kind = node->constructor().IsFactory() ? "factory " : "";
   const char* constructor_name = node->constructor().ToFullyQualifiedCString();
-  THR_Print("(%s %s \"%s\" ", node->PrettyName(), kind, constructor_name);
+  THR_Print("(%s %s \"%s\" ", node->Name(), kind, constructor_name);
   node->VisitChildren(this);
   THR_Print(")");
 }
 
 
 void AstPrinter::VisitInstanceGetterNode(InstanceGetterNode* node) {
-  THR_Print("(%s \"%s\" ",
-            node->PrettyName(),
-            node->field_name().ToCString());
+  THR_Print("(%s \"%s\" ", node->Name(), node->field_name().ToCString());
   node->VisitChildren(this);
   THR_Print(")");
 }
 
 
 void AstPrinter::VisitInstanceSetterNode(InstanceSetterNode* node) {
-  THR_Print("(%s \"%s\" ",
-            node->PrettyName(),
-            node->field_name().ToCString());
+  THR_Print("(%s \"%s\" ", node->Name(), node->field_name().ToCString());
   node->VisitChildren(this);
   THR_Print(")");
 }
 
 
 void AstPrinter::VisitInitStaticFieldNode(InitStaticFieldNode* node) {
-  THR_Print("(%s \"%s\")", node->PrettyName(),
+  THR_Print("(%s \"%s\")",
+            node->Name(),
             String::Handle(node->field().name()).ToCString());
 }
 
@@ -372,7 +369,7 @@ void AstPrinter::VisitInitStaticFieldNode(InitStaticFieldNode* node) {
 void AstPrinter::VisitStaticGetterNode(StaticGetterNode* node) {
   String& class_name = String::Handle(node->cls().Name());
   THR_Print("(%s \"%s.%s\")",
-            node->PrettyName(),
+            node->Name(),
             class_name.ToCString(),
             node->field_name().ToCString());
 }
@@ -381,7 +378,7 @@ void AstPrinter::VisitStaticGetterNode(StaticGetterNode* node) {
 void AstPrinter::VisitStaticSetterNode(StaticSetterNode* node) {
   String& class_name = String::Handle(node->cls().Name());
   THR_Print("(%s \"%s.%s\" ",
-            node->PrettyName(),
+            node->Name(),
             class_name.ToCString(),
             node->field_name().ToCString());
   node->VisitChildren(this);
@@ -390,14 +387,14 @@ void AstPrinter::VisitStaticSetterNode(StaticSetterNode* node) {
 
 
 void AstPrinter::VisitLoadIndexedNode(LoadIndexedNode* node) {
-  THR_Print("(%s%s ", node->PrettyName(), node->IsSuperLoad() ? " super" : "");
+  THR_Print("(%s%s ", node->Name(), node->IsSuperLoad() ? " super" : "");
   node->VisitChildren(this);
   THR_Print(")");
 }
 
 
 void AstPrinter::VisitStoreIndexedNode(StoreIndexedNode* node) {
-  THR_Print("(%s%s ", node->PrettyName(), node->IsSuperStore() ? " super" : "");
+  THR_Print("(%s%s ", node->Name(), node->IsSuperStore() ? " super" : "");
   node->VisitChildren(this);
   THR_Print(")");
 }
@@ -405,7 +402,7 @@ void AstPrinter::VisitStoreIndexedNode(StoreIndexedNode* node) {
 
 void AstPrinter::VisitNativeBodyNode(NativeBodyNode* node) {
   THR_Print("(%s \"%s\" (%" Pd " args))",
-            node->PrettyName(),
+            node->Name(),
             node->native_c_function_name().ToCString(),
             NativeArguments::ParameterCountForResolution(node->function()));
 }
@@ -417,7 +414,7 @@ void AstPrinter::VisitCatchClauseNode(CatchClauseNode* node) {
 
 
 void AstPrinter::VisitTryCatchNode(TryCatchNode* node) {
-  THR_Print("(%s ", node->PrettyName());
+  THR_Print("(%s ", node->Name());
   node->try_block()->Visit(this);
   node->catch_block()->Visit(this);
   if (node->finally_block() != NULL) {
@@ -435,7 +432,7 @@ void AstPrinter::VisitThrowNode(ThrowNode* node) {
 
 
 void AstPrinter::VisitStopNode(StopNode* node) {
-  THR_Print("(%s %s)", node->PrettyName(), node->message());
+  THR_Print("(%s %s)", node->Name(), node->message());
 }
 
 

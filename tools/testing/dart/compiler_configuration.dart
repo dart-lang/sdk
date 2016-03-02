@@ -78,7 +78,8 @@ abstract class CompilerConfiguration {
             isDebug: isDebug, isChecked: isChecked);
       case 'precompiler':
         return new PrecompilerCompilerConfiguration(
-            isDebug: isDebug, isChecked: isChecked);
+            isDebug: isDebug, isChecked: isChecked,
+            arch: configuration['arch']);
       case 'none':
         return new NoneCompilerConfiguration(
             isDebug: isDebug, isChecked: isChecked,
@@ -302,10 +303,13 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
 
 
 class PrecompilerCompilerConfiguration extends CompilerConfiguration {
+  final String arch;
+
   PrecompilerCompilerConfiguration({
       bool isDebug,
-      bool isChecked})
-      : super._subclass(isDebug: isDebug, isChecked: isChecked);
+      bool isChecked,
+      String arch})
+    : super._subclass(isDebug: isDebug, isChecked: isChecked), arch = arch;
 
   int computeTimeoutMultiplier() {
     int multiplier = 2;
@@ -327,6 +331,18 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
                 buildDir,
                 CommandBuilder.instance,
                 arguments,
+                environmentOverrides),
+            this.computeAssembleCommand(
+                tempDir,
+                buildDir,
+                CommandBuilder.instance,
+                arguments,
+                environmentOverrides),
+            this.computeRemoveAssemblyCommand(
+                tempDir,
+                buildDir,
+                CommandBuilder.instance,
+                arguments,
                 environmentOverrides)],
         '$tempDir',
         'application/dart-precompiled');
@@ -338,17 +354,89 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       CommandBuilder commandBuilder,
       List arguments,
       Map<String, String> environmentOverrides) {
-    var exec = "$buildDir/dart";
+    var exec = "$buildDir/dart_no_snapshot";
     var args = new List();
-    args.add("tools/precompilation/precompiler.dart");
-    args.add("$buildDir/dart_no_snapshot");
     args.add("--gen-precompiled-snapshot=$tempDir");
     args.addAll(arguments);
 
     return commandBuilder.getCompilationCommand(
-        'precompiler.dart', tempDir, !useSdk,
+        'precompiler', tempDir, !useSdk,
         bootstrapDependencies(buildDir),
         exec, args, environmentOverrides);
+  }
+
+  CompilationCommand computeAssembleCommand(
+      String tempDir,
+      String buildDir,
+      CommandBuilder commandBuilder,
+      List arguments,
+      Map<String, String> environmentOverrides) {
+    var cc, cc_flags, shared, libname;
+    if (Platform.isLinux) {
+      cc = 'gcc';
+      shared = '-shared';
+      libname = 'libprecompiled.so';
+    } else if (Platform.isMacOS) {
+      cc = 'clang';
+      shared = '-dynamiclib';
+      libname = 'libprecompiled.dylib';
+    } else {
+      throw "Platform not supported: ${Platform.operatingSystem}";
+    }
+
+    if (arch == 'x64') {
+      cc_flags = "-m64";
+    } else if (arch == 'simarm64') {
+      cc_flags = "-m64";
+    } else if (arch == 'simarm') {
+      cc_flags = "-m32";
+    } else if (arch == 'simmips') {
+      cc_flags = "-m32";
+    } else if (arch == 'arm') {
+      cc_flags = "";
+    } else if (arch == 'mips') {
+      cc_flags = "-EL";
+    } else {
+      throw "Architecture not supported: $arch";
+    }
+
+    var exec = cc;
+    var args = [shared,
+                cc_flags,
+                '-o',
+                '$tempDir/$libname',
+                '$tempDir/precompiled.S'];
+
+    return commandBuilder.getCompilationCommand(
+        'assemble', tempDir, !useSdk,
+        bootstrapDependencies(buildDir),
+        exec, args, environmentOverrides);
+  }
+
+  // This step reduces the amount of space needed to run the precompilation
+  // tests by 60%.
+  CompilationCommand computeRemoveAssemblyCommand(
+      String tempDir,
+      String buildDir,
+      CommandBuilder commandBuilder,
+      List arguments,
+      Map<String, String> environmentOverrides) {
+    var exec = 'rm';
+    var args = ['$tempDir/precompiled.S'];
+
+    return commandBuilder.getCompilationCommand(
+        'remove_assembly', tempDir, !useSdk,
+        bootstrapDependencies(buildDir),
+        exec, args, environmentOverrides);
+  }
+
+  List<String> filterVmOptions(List<String> vmOptions) {
+    var filtered = new List.from(vmOptions);
+    filtered.removeWhere(
+      (option) => option.startsWith("--optimization-counter-threshold"));
+    filtered.removeWhere(
+      (option) => option.startsWith("--optimization_counter_threshold"));
+    return filtered;
   }
 
   List<String> computeCompilerArguments(vmOptions,
@@ -360,7 +448,7 @@ class PrecompilerCompilerConfiguration extends CompilerConfiguration {
       args.add('--enable_type_checks');
     }
     return args
-        ..addAll(vmOptions)
+        ..addAll(filterVmOptions(vmOptions))
         ..addAll(sharedOptions)
         ..addAll(originalArguments);
   }
@@ -405,35 +493,37 @@ class Dart2AppSnapshotCompilerConfiguration extends CompilerConfiguration {
       CommandBuilder commandBuilder,
       List arguments,
       Map<String, String> environmentOverrides) {
+    String outputName = computeOutputName(tempDir);
     return new CommandArtifact(
         <Command>[
             this.computeCompilationCommand(
-                tempDir,
+                outputName,
                 buildDir,
                 CommandBuilder.instance,
                 arguments,
                 environmentOverrides)],
-        computeOutputName(tempDir),
+        outputName,
         'application/dart-snapshot');
   }
 
   String computeOutputName(String tempDir) {
-    return '$tempDir/test.snapshot';
+    var randName = TestUtils.getRandomNumber().toString();
+    return '$tempDir/test.$randName';
   }
 
   CompilationCommand computeCompilationCommand(
-      String tempDir,
+      String outputName,
       String buildDir,
       CommandBuilder commandBuilder,
       List arguments,
       Map<String, String> environmentOverrides) {
     var exec = "$buildDir/dart_no_snapshot";
     var args = new List();
-    args.add("--full-snapshot-after-run=${computeOutputName(tempDir)}");
+    args.add("--full-snapshot-after-run=$outputName");
     args.addAll(arguments);
 
     return commandBuilder.getCompilationCommand(
-        'dart2snapshot', computeOutputName(tempDir), !useSdk,
+        'dart2snapshot', outputName, !useSdk,
         bootstrapDependencies(buildDir),
         exec, args, environmentOverrides);
   }

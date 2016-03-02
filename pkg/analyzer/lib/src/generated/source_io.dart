@@ -102,6 +102,7 @@ class FileBasedSource extends Source {
   /**
    * The URI from which this source was originally derived.
    */
+  @override
   final Uri uri;
 
   /**

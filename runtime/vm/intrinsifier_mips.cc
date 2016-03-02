@@ -17,8 +17,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, interpret_irregexp);
-
 // When entering intrinsics code:
 // S4: Arguments descriptor
 // RA: Return address
@@ -36,7 +34,7 @@ intptr_t Intrinsifier::ParameterSlotFromSp() { return -1; }
 // Intrinsify only for Smi value and index. Non-smi values need a store buffer
 // update. Array length is always a Smi.
 void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
-  if (Isolate::Current()->flags().type_checks()) {
+  if (Isolate::Current()->type_checks()) {
     return;
   }
 
@@ -108,7 +106,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
 // On stack: growable array (+1), value (+0).
 void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   // In checked mode we need to type-check the incoming argument.
-  if (Isolate::Current()->flags().type_checks()) return;
+  if (Isolate::Current()->type_checks()) return;
   Label fall_through;
   __ lw(T0, Address(SP, 1 * kWordSize));  // Array.
   __ lw(T1, FieldAddress(T0, GrowableObjectArray::length_offset()));

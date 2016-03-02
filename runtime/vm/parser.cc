@@ -41,11 +41,8 @@
 namespace dart {
 
 DEFINE_FLAG(bool, enable_debug_break, false, "Allow use of break \"message\".");
-DEFINE_FLAG(bool, load_deferred_eagerly, false,
-    "Load deferred libraries eagerly.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef.");
-DEFINE_FLAG(bool, link_natives_lazily, false, "Link native calls lazily");
 DEFINE_FLAG(bool, conditional_directives, false,
     "Enable conditional directives");
 DEFINE_FLAG(bool, warn_super, false,
@@ -53,8 +50,8 @@ DEFINE_FLAG(bool, warn_super, false,
 DEFINE_FLAG(bool, await_is_keyword, false,
     "await and yield are treated as proper keywords in synchronous code.");
 
-DECLARE_FLAG(bool, load_deferred_eagerly);
 DECLARE_FLAG(bool, profile_vm);
+DECLARE_FLAG(bool, trace_service);
 
 // Quick access to the current thread, isolate and zone.
 #define T (thread())
@@ -166,7 +163,7 @@ void ParsedFunction::AddToGuardedFields(const Field* field) const {
       return;
     }
   }
-  guarded_fields_->Add(field);
+  guarded_fields_->Add(&Field::ZoneHandle(Z, field->Original()));
 }
 
 
@@ -1081,8 +1078,8 @@ RawObject* Parser::ParseMetadata(const Field& meta_data) {
     Thread* thread = Thread::Current();
     StackZone stack_zone(thread);
     Zone* zone = stack_zone.GetZone();
-    const Class& owner_class = Class::Handle(zone, meta_data.owner());
-    const Script& script = Script::Handle(zone, meta_data.script());
+    const Class& owner_class = Class::Handle(zone, meta_data.Owner());
+    const Script& script = Script::Handle(zone, meta_data.Script());
     const TokenPosition token_pos = meta_data.token_pos();
     // Parsing metadata can involve following paths in the parser that are
     // normally used for expressions and assume current_function is non-null,
@@ -1222,10 +1219,10 @@ ParsedFunction* Parser::ParseStaticFieldInitializer(const Field& field) {
   String& init_name = String::Handle(zone,
       Symbols::FromConcat(Symbols::InitPrefix(), field_name));
 
-  const Script& script = Script::Handle(zone, field.script());
-  Object& initializer_owner = Object::Handle(field.owner());
+  const Script& script = Script::Handle(zone, field.Script());
+  Object& initializer_owner = Object::Handle(field.Owner());
   initializer_owner =
-      PatchClass::New(Class::Handle(field.owner()), script);
+      PatchClass::New(Class::Handle(field.Owner()), script);
 
   const Function& initializer = Function::ZoneHandle(zone,
       Function::New(init_name,
@@ -2552,7 +2549,8 @@ void Parser::CheckFieldsInitialized(const Class& cls) {
       if (initializers->NodeAt(i)->IsStoreInstanceFieldNode()) {
         StoreInstanceFieldNode* initializer =
             initializers->NodeAt(i)->AsStoreInstanceFieldNode();
-        if (initializer->field().raw() == field.raw()) {
+        ASSERT(field.IsOriginal());
+        if (initializer->field().Original() == field.raw()) {
           found = true;
           break;
         }
@@ -2570,13 +2568,13 @@ AstNode* Parser::ParseExternalInitializedField(const Field& field) {
   // Only use this function if the initialized field originates
   // from a different class. We need to save and restore current
   // class, library, and token stream (script).
-  ASSERT(current_class().raw() != field.origin());
+  ASSERT(current_class().raw() != field.Origin());
   const Class& saved_class = Class::Handle(Z, current_class().raw());
   const Library& saved_library = Library::Handle(Z, library().raw());
   const Script& saved_script = Script::Handle(Z, script().raw());
   const TokenPosition saved_token_pos = TokenPos();
 
-  set_current_class(Class::Handle(Z, field.origin()));
+  set_current_class(Class::Handle(Z, field.Origin()));
   set_library(Library::Handle(Z, current_class().library()));
   SetScript(Script::Handle(Z, current_class().script()), field.token_pos());
 
@@ -2624,7 +2622,7 @@ void Parser::ParseInitializedInstanceFields(const Class& cls,
         initialized_fields->Add(&field);
       }
       AstNode* init_expr = NULL;
-      if (current_class().raw() != field.origin()) {
+      if (current_class().raw() != field.Origin()) {
         init_expr = ParseExternalInitializedField(field);
       } else {
         SetPosition(field.token_pos());
@@ -2959,6 +2957,22 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
 }
 
 
+// Returns a zone allocated string.
+static char* DumpPendingFunctions(
+    Zone* zone,
+    const GrowableObjectArray& pending_functions) {
+  ASSERT(zone != NULL);
+  char* result = OS::SCreate(zone, "Pending Functions:\n");
+  for (intptr_t i = 0; i < pending_functions.Length(); i++) {
+    const Function& func =
+        Function::Handle(zone, Function::RawCast(pending_functions.At(i)));
+    const String& fname = String::Handle(zone, func.UserVisibleName());
+    result = OS::SCreate(zone, "%s%" Pd ": %s\n", result, i, fname.ToCString());
+  }
+  return result;
+}
+
+
 void Parser::CheckRecursiveInvocation() {
   const GrowableObjectArray& pending_functions =
       GrowableObjectArray::Handle(Z, T->pending_functions());
@@ -2967,7 +2981,16 @@ void Parser::CheckRecursiveInvocation() {
     if (pending_functions.At(i) == current_function().raw()) {
       const String& fname =
           String::Handle(Z, current_function().UserVisibleName());
-      ReportError("circular dependency for function %s", fname.ToCString());
+      if (FLAG_trace_service) {
+        const char* pending_function_dump =
+            DumpPendingFunctions(Z, pending_functions);
+        ASSERT(pending_function_dump != NULL);
+        ReportError("circular dependency for function %s\n%s",
+                    fname.ToCString(),
+                    pending_function_dump);
+      } else {
+        ReportError("circular dependency for function %s", fname.ToCString());
+      }
     }
   }
   ASSERT(!unregister_pending_function_);
@@ -3278,7 +3301,7 @@ SequenceNode* Parser::ParseFunc(const Function& func, bool check_semicolon) {
     // Populate function scope with the formal parameters.
     AddFormalParamsToScope(&params, current_block_->scope);
 
-    if (I->flags().type_checks() &&
+    if (I->type_checks() &&
         (current_block_->scope->function_level() > 0)) {
       // We are parsing, but not compiling, a local function.
       // The instantiator may be required at run time for generic type checks.
@@ -4609,7 +4632,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   SkipMetadata();
   ExpectToken(Token::kENUM);
 
-  const String& enum_name = String::Handle(Z, cls.PrettyName());
+  const String& enum_name = String::Handle(Z, cls.ScrubbedName());
   ClassDesc enum_members(Z, cls, enum_name, false, cls.token_pos());
 
   // Add instance field 'final int index'.
@@ -4707,7 +4730,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
     // For the user-visible name of the enumeration value, we need to
     // unmangle private names.
     if (enum_ident->CharAt(0) == '_') {
-      *enum_ident = String::IdentifierPrettyName(*enum_ident);
+      *enum_ident = String::ScrubName(*enum_ident);
     }
     enum_value_name = Symbols::FromConcat(name_prefix, *enum_ident);
     enum_names.Add(enum_value_name, Heap::kOld);
@@ -5799,7 +5822,7 @@ void Parser::ParseLibraryImportExport(const Object& tl_owner,
           : String::Cast(valueNode->AsLiteralNode()->literal());
       // Call the embedder to supply us with the environment.
       const String& env_value =
-          String::Handle(Api::CallEnvironmentCallback(T, key));
+          String::Handle(Api::GetEnvironmentValue(T, key));
       if (!env_value.IsNull() && env_value.Equals(value)) {
         condition_triggered = true;
         url_literal = conditional_url_literal;
@@ -7466,7 +7489,7 @@ AstNode* Parser::ParseVariableDeclarationList() {
   bool is_final = (CurrentToken() == Token::kFINAL);
   bool is_const = (CurrentToken() == Token::kCONST);
   const AbstractType& type = AbstractType::ZoneHandle(Z,
-      ParseConstFinalVarOrType(I->flags().type_checks() ?
+      ParseConstFinalVarOrType(I->type_checks() ?
           ClassFinalizer::kCanonicalize : ClassFinalizer::kIgnore));
   if (!IsIdentifier()) {
     ReportError("identifier expected");
@@ -8534,7 +8557,7 @@ AstNode* Parser::ParseAwaitForStatement(String* label_name) {
     // position, which is inside the loop body.
     new_loop_var = true;
     loop_var_type = ParseConstFinalVarOrType(
-       I->flags().type_checks() ? ClassFinalizer::kCanonicalize :
+       I->type_checks() ? ClassFinalizer::kCanonicalize :
                                   ClassFinalizer::kIgnore);
   }
   TokenPosition loop_var_pos = TokenPos();
@@ -8828,7 +8851,7 @@ AstNode* Parser::ParseForInStatement(TokenPosition forin_pos,
     // position, which is inside the loop body.
     new_loop_var = true;
     loop_var_type = ParseConstFinalVarOrType(
-        I->flags().type_checks() ? ClassFinalizer::kCanonicalize :
+        I->type_checks() ? ClassFinalizer::kCanonicalize :
                                    ClassFinalizer::kIgnore);
     loop_var_name = ExpectIdentifier("variable name expected");
   }
@@ -9047,7 +9070,7 @@ AstNode* Parser::ParseAssertStatement() {
   ConsumeToken();  // Consume assert keyword.
   ExpectToken(Token::kLPAREN);
   const TokenPosition condition_pos = TokenPos();
-  if (!I->flags().asserts()) {
+  if (!I->asserts()) {
     SkipExpr();
     ExpectToken(Token::kRPAREN);
     return NULL;
@@ -10686,7 +10709,7 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original,
     } else if (original->IsLoadStaticFieldNode()) {
       name = original->AsLoadStaticFieldNode()->field().name();
       target_cls = &Class::Handle(Z,
-          original->AsLoadStaticFieldNode()->field().owner());
+          original->AsLoadStaticFieldNode()->field().Owner());
     } else if ((left_ident != NULL) &&
                (original->IsLiteralNode() ||
                 original->IsLoadLocalNode())) {
@@ -11184,7 +11207,7 @@ AstNode* Parser::GenerateStaticFieldLookup(const Field& field,
   }
   // The field is initialized.
   ASSERT(field.is_static());
-  const Class& field_owner = Class::ZoneHandle(Z, field.owner());
+  const Class& field_owner = Class::ZoneHandle(Z, field.Owner());
   const String& field_name = String::ZoneHandle(Z, field.name());
   const String& getter_name =
       String::Handle(Z, Field::GetterSymbol(field_name));
@@ -12027,7 +12050,7 @@ RawInstance* Parser::TryCanonicalize(const Instance& instance,
 StaticGetterNode* Parser::RunStaticFieldInitializer(
     const Field& field, TokenPosition field_ref_pos) {
   ASSERT(field.is_static());
-  const Class& field_owner = Class::ZoneHandle(Z, field.owner());
+  const Class& field_owner = Class::ZoneHandle(Z, field.Owner());
   const String& field_name = String::ZoneHandle(Z, field.name());
   const String& getter_name =
       String::Handle(Z, Field::GetterSymbol(field_name));
@@ -12654,7 +12677,7 @@ AstNode* Parser::ParseListLiteral(TokenPosition type_pos,
                     "include a type variable");
       }
     } else {
-      if (I->flags().error_on_bad_type()) {
+      if (I->error_on_bad_type()) {
         ReportError(type_pos,
                     "a list literal takes one type argument specifying "
                     "the element type");
@@ -12677,7 +12700,7 @@ AstNode* Parser::ParseListLiteral(TokenPosition type_pos,
     while (CurrentToken() != Token::kRBRACK) {
       const TokenPosition element_pos = TokenPos();
       AstNode* element = ParseExpr(is_const, kConsumeCascades);
-      if (I->flags().type_checks() &&
+      if (I->type_checks() &&
           !is_const &&
           !element_type.IsDynamicType()) {
         element = new(Z) AssignableNode(element_pos,
@@ -12708,7 +12731,7 @@ AstNode* Parser::ParseListLiteral(TokenPosition type_pos,
       // Arguments have been evaluated to a literal value already.
       ASSERT(elem->IsLiteralNode());
       ASSERT(!is_top_level_);  // We cannot check unresolved types.
-      if (I->flags().type_checks() &&
+      if (I->type_checks() &&
           !element_type.IsDynamicType() &&
           (!elem->AsLiteralNode()->literal().IsNull() &&
            !elem->AsLiteralNode()->literal().IsInstanceOf(
@@ -12860,7 +12883,7 @@ AstNode* Parser::ParseMapLiteral(TokenPosition type_pos,
                     "include a type variable");
       }
     } else {
-      if (I->flags().error_on_bad_type()) {
+      if (I->error_on_bad_type()) {
         ReportError(type_pos,
                     "a map literal takes two type arguments specifying "
                     "the key type and the value type");
@@ -12879,7 +12902,7 @@ AstNode* Parser::ParseMapLiteral(TokenPosition type_pos,
     const bool saved_mode = SetAllowFunctionLiterals(true);
     const TokenPosition key_pos = TokenPos();
     AstNode* key = ParseExpr(is_const, kConsumeCascades);
-    if (I->flags().type_checks() &&
+    if (I->type_checks() &&
         !is_const &&
         !key_type.IsDynamicType()) {
       key = new(Z) AssignableNode(
@@ -12902,7 +12925,7 @@ AstNode* Parser::ParseMapLiteral(TokenPosition type_pos,
     const TokenPosition value_pos = TokenPos();
     AstNode* value = ParseExpr(is_const, kConsumeCascades);
     SetAllowFunctionLiterals(saved_mode);
-    if (I->flags().type_checks() &&
+    if (I->type_checks() &&
         !is_const &&
         !value_type.IsDynamicType()) {
       value = new(Z) AssignableNode(
@@ -12934,7 +12957,7 @@ AstNode* Parser::ParseMapLiteral(TokenPosition type_pos,
       // Arguments have been evaluated to a literal value already.
       ASSERT(arg->IsLiteralNode());
       ASSERT(!is_top_level_);  // We cannot check unresolved types.
-      if (I->flags().type_checks()) {
+      if (I->type_checks()) {
         if ((i % 2) == 0) {
           // Check key type.
           arg_type = key_type.raw();
@@ -13436,7 +13459,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
         }
         return ThrowTypeError(redirect_type.token_pos(), redirect_type);
       }
-      if (I->flags().type_checks() &&
+      if (I->type_checks() &&
               !redirect_type.IsSubtypeOf(type, NULL, NULL, Heap::kOld)) {
         // Additional type checking of the result is necessary.
         type_bound = type.raw();
@@ -14344,11 +14367,6 @@ void Parser::SkipQualIdent() {
 
 
 namespace dart {
-
-DEFINE_FLAG(bool, load_deferred_eagerly, false,
-    "Load deferred libraries eagerly.");
-DEFINE_FLAG(bool, link_natives_lazily, false, "Link native calls lazily");
-
 
 void ParsedFunction::AddToGuardedFields(const Field* field) const {
   UNREACHABLE();

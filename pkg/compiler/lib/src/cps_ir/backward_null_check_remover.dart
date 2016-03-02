@@ -50,9 +50,8 @@ class BackwardNullCheckRemover extends BlockVisitor implements Pass {
     BlockVisitor.traverseInPostOrder(node, this);
   }
 
-  /// Returns a reference to an operand of [prim], where [prim] throws if null
-  /// is passed into that operand.
-  Reference<Primitive> getNullCheckedOperand(Primitive prim) {
+  /// Returns an operand of [prim] that throws if null is passed into it.
+  Primitive getNullCheckedOperand(Primitive prim) {
     if (prim is ReceiverCheck) return prim.value;
     if (prim is GetLength) return prim.object;
     if (prim is GetField) return prim.object;
@@ -60,10 +59,10 @@ class BackwardNullCheckRemover extends BlockVisitor implements Pass {
     if (prim is SetField) return prim.object;
     if (prim is SetIndex) return prim.object;
     if (prim is InvokeMethod && !selectorsOnNull.contains(prim.selector)) {
-      return prim.dartReceiverReference;
+      return prim.dartReceiver;
     }
     if (prim is ForeignCode) {
-      return prim.isNullGuardOnNullFirstArgument() ? prim.arguments[0] : null;
+      return prim.isNullGuardOnNullFirstArgument() ? prim.argument(0) : null;
     }
     return null;
   }
@@ -72,7 +71,7 @@ class BackwardNullCheckRemover extends BlockVisitor implements Pass {
   /// [newNullCheck].  Eliminate [prim] if it is not needed any more.
   void tryEliminateRedundantNullCheck(Primitive prim, Primitive newNullCheck) {
     if (prim is ReceiverCheck && prim.isNullCheck) {
-      Primitive value = prim.value.definition;
+      Primitive value = prim.value;
       LetPrim let = prim.parent;
       prim..replaceUsesWith(value)..destroy();
       let.remove();
@@ -99,7 +98,7 @@ class BackwardNullCheckRemover extends BlockVisitor implements Pass {
 
   void visitLetPrim(LetPrim node) {
     Primitive prim = node.primitive;
-    Primitive receiver = getNullCheckedOperand(prim)?.definition;
+    Primitive receiver = getNullCheckedOperand(prim);
     if (receiver != null) {
       if (nullCheckedValue != null && receiver.sameValue(nullCheckedValue)) {
         tryEliminateRedundantNullCheck(prim, nullCheckedValue);
@@ -123,7 +122,7 @@ class BackwardNullCheckRemover extends BlockVisitor implements Pass {
 
   visitInvokeContinuation(InvokeContinuation node) {
     if (!node.isRecursive) {
-      nullCheckedValue = nullCheckedValueAt[node.continuation.definition];
+      nullCheckedValue = nullCheckedValueAt[node.continuation];
     }
   }
 }

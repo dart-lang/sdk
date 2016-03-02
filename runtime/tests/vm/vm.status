@@ -65,7 +65,7 @@ cc/ArrayLengthMaxElements: Crash  # Issue 23275
 cc/Int8ListLengthMaxElements: Skip # Issue 23536, uses 1 GB memory.
 
 [ $arch == mips && $mode == debug ]
-cc/FindCodeObject: Skip # Takes more than 8 minutes. Issue 17440
+cc/FindCodeObject: SkipSlow # Takes more than 8 minutes. Issue 17440
 
 [ $compiler == dart2analyzer ]
 dart/optimized_stacktrace_test: StaticWarning
@@ -76,24 +76,24 @@ dart/spawn_infinite_loop_test: Skip  # VM shutdown test
 dart/spawn_shutdown_test: Skip  # VM Shutdown test
 
 [ ($runtime == vm || $runtime == dart_precompiled) && $mode == debug && $builder_tag == asan ]
-cc/Dart2JSCompileAll: Skip  # Timeout.
+cc/Dart2JSCompileAll: SkipSlow  # Timeout.
+
+[ $builder_tag == asan ]
+cc/CodeImmutability: Fail,OK # Address Sanitizer turns a crash into a failure.
 
 [ $noopt ]
 dart/byte_array_test: Crash # Incompatible flag --disable_alloc_stubs_after_gc
 
-[ $noopt || $compiler == precompiler ]
+[ $noopt || $compiler == precompiler || $compiler == dart2app ]
 dart/redirection_type_shuffling_test: CompileTimeError # Imports dart:mirrors
-dart/optimized_stacktrace_test: RuntimeError # Expects line and column numbers
 
-[ $compiler == dart2app ]
-dart/optimized_stacktrace_test: RuntimeError # Expects line and column numbers
+[ $noopt || $runtime == dart_precompiled ]
+# Stacktraces in precompilation omit inlined frames.
+dart/inline_stack_frame_test: Pass, RuntimeError
+dart/optimized_stacktrace_test: Pass, RuntimeError
 
-[ $runtime == dart_product ]
-dart/data_uri_spawn_test: Skip # Isolate.spawnUri
-
-[ $runtime == dart_precompiled ]
-dart/inline_stack_frame_test: Fail  # Issue 24783 - inlined frames missing
-dart/data_uri_spawn_test: RuntimeError # Isolate.spawnUri
+[ $runtime == dart_product || $runtime == dart_precompiled ]
+dart/data_uri_spawn_test: SkipByDesign # Isolate.spawnUri
 
 [ $runtime == vm && $mode == product ]
 cc/IsolateSetCheckedMode: Fail,OK  # Expects exact type name.

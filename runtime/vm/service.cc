@@ -12,6 +12,7 @@
 #include "vm/coverage.h"
 #include "vm/cpu.h"
 #include "vm/dart_api_impl.h"
+#include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/isolate.h"
@@ -20,6 +21,7 @@
 #include "vm/message_handler.h"
 #include "vm/native_entry.h"
 #include "vm/native_arguments.h"
+#include "vm/native_symbol.h"
 #include "vm/object.h"
 #include "vm/object_graph.h"
 #include "vm/object_id_ring.h"
@@ -995,6 +997,10 @@ static void ReportPauseOnConsole(ServiceEvent* event) {
   } else {
     OS::PrintErr("  Connect to Observatory at %s to debug.\n",
                  ServiceIsolate::server_address());
+  }
+  const Error& err = Error::Handle(Thread::Current()->sticky_error());
+  if (!err.IsNull()) {
+    OS::PrintErr("%s\n", err.ToErrorCString());
   }
 }
 
@@ -3463,6 +3469,99 @@ static bool GetObjectByAddress(Thread* thread, JSONStream* js) {
 }
 
 
+static const MethodParameter* get_persistent_handles_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
+
+
+template<typename T>
+class PersistentHandleVisitor : public HandleVisitor {
+ public:
+  PersistentHandleVisitor(Thread* thread, JSONArray* handles)
+      : HandleVisitor(thread),
+        handles_(handles) {
+    ASSERT(handles_ != NULL);
+  }
+
+  void Append(PersistentHandle* persistent_handle) {
+    JSONObject obj(handles_);
+    obj.AddProperty("type", "_PersistentHandle");
+    const Object& object = Object::Handle(persistent_handle->raw());
+    obj.AddProperty("object", object);
+  }
+
+  void Append(FinalizablePersistentHandle* weak_persistent_handle) {
+    JSONObject obj(handles_);
+    obj.AddProperty("type", "_WeakPersistentHandle");
+    const Object& object =
+        Object::Handle(weak_persistent_handle->raw());
+    obj.AddProperty("object", object);
+    obj.AddPropertyF(
+        "peer",
+        "0x%" Px "",
+        reinterpret_cast<uintptr_t>(weak_persistent_handle->peer()));
+    obj.AddPropertyF(
+        "callbackAddress",
+        "0x%" Px "",
+        reinterpret_cast<uintptr_t>(weak_persistent_handle->callback()));
+    // Attempt to include a native symbol name.
+    char* name = NativeSymbolResolver::LookupSymbolName(
+        reinterpret_cast<uintptr_t>(weak_persistent_handle->callback()),
+        NULL);
+    obj.AddProperty("callbackSymbolName",
+                    (name == NULL) ? "" : name);
+    if (name != NULL) {
+      NativeSymbolResolver::FreeSymbolName(name);
+    }
+    obj.AddPropertyF("externalSize",
+                     "%" Pd "",
+                     weak_persistent_handle->external_size());
+  }
+
+ protected:
+  virtual void VisitHandle(uword addr) {
+    T* handle = reinterpret_cast<T*>(addr);
+    Append(handle);
+  }
+
+  JSONArray* handles_;
+};
+
+
+static bool GetPersistentHandles(Thread* thread, JSONStream* js) {
+  Isolate* isolate = thread->isolate();
+  ASSERT(isolate != NULL);
+
+  ApiState* api_state = isolate->api_state();
+  ASSERT(api_state != NULL);
+
+  {
+    JSONObject obj(js);
+    obj.AddProperty("type", "_PersistentHandles");
+    // Persistent handles.
+    {
+      JSONArray persistent_handles(&obj, "persistentHandles");
+      PersistentHandles& handles = api_state->persistent_handles();
+      PersistentHandleVisitor<PersistentHandle> visitor(
+          thread, &persistent_handles);
+      handles.Visit(&visitor);
+    }
+    // Weak persistent handles.
+    {
+      JSONArray weak_persistent_handles(&obj, "weakPersistentHandles");
+      FinalizablePersistentHandles& handles =
+          api_state->weak_persistent_handles();
+      PersistentHandleVisitor<FinalizablePersistentHandle> visitor(
+          thread, &weak_persistent_handles);
+      handles.VisitHandles(&visitor);
+    }
+  }
+
+  return true;
+}
+
+
 static const MethodParameter* get_ports_params[] = {
   RUNNABLE_ISOLATE_PARAMETER,
   NULL,
@@ -3934,6 +4033,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_object_params },
   { "_getObjectByAddress", GetObjectByAddress,
     get_object_by_address_params },
+  { "_getPersistentHandles", GetPersistentHandles,
+      get_persistent_handles_params, },
   { "_getPorts", GetPorts,
     get_ports_params },
   { "_getReachableSize", GetReachableSize,

@@ -461,37 +461,37 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       // node.
       return null;
     }
+    bool recordInference = false;
     ExecutableElementImpl functionElement =
         node.element as ExecutableElementImpl;
-    DartType computedType = _computeStaticReturnTypeOfFunctionExpression(node);
-    if (_strongMode) {
-      // In strong mode, we don't want to allow the function's return type to
-      // be bottom. If the surrounding context has a more precise type, we
-      // will push it down with inference, below. If not we want to use dynamic.
-      // TODO(jmesserly): should we  do this for the `null` literal always in
-      // strong mode, instead of handling it here?
-      if (computedType.isBottom) {
-        computedType = DynamicTypeImpl.instance;
-      }
 
-      DartType functionType = InferenceContext.getType(node);
-      if (functionType is FunctionType) {
-        functionType = _resolver.matchFunctionTypeParameters(
-            node.typeParameters, functionType);
-
-        if (functionType is FunctionType) {
-          DartType returnType = functionType.returnType;
-          if (computedType.isDynamic &&
-              !(returnType.isDynamic || returnType.isBottom)) {
-            computedType = returnType;
-            _resolver.inferenceContext.recordInference(node, functionType);
-          }
-        }
-      }
+    FunctionBody body = node.body;
+    DartType computedType;
+    if (body is ExpressionFunctionBody) {
+      computedType = _getStaticType(body.expression);
+    } else {
+      computedType = _dynamicType;
     }
+
+    // If we had a better type from the function body, use it.
+    //
+    // This helps in a few cases:
+    // * ExpressionFunctionBody, when the surrounding context had a better type.
+    // * BlockFunctionBody, if we inferred a type from yield/return.
+    // * we also normalize bottom to dynamic here.
+    if (_strongMode && (computedType.isBottom || computedType.isDynamic)) {
+      computedType = InferenceContext.getType(body) ?? _dynamicType;
+      recordInference = !computedType.isDynamic;
+    }
+
+    computedType = _computeReturnTypeOfFunction(body, computedType);
+
     functionElement.returnType = computedType;
     _recordPropagatedTypeOfFunction(functionElement, node.body);
-    _recordStaticType(node, node.element.type);
+    _recordStaticType(node, functionElement.type);
+    if (recordInference) {
+      _resolver.inferenceContext.recordInference(node, functionElement.type);
+    }
     return null;
   }
 
@@ -941,6 +941,7 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
    */
   @override
   Object visitNullLiteral(NullLiteral node) {
+    // TODO(jmesserly): in strong mode, should we just use the context type?
     _recordStaticType(node, _typeProvider.bottomType);
     return null;
   }
@@ -1473,6 +1474,27 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
   }
 
   /**
+   * Given a function body and its return type, compute the return type of
+   * the entire function, taking into account whether the function body
+   * is `sync*`, `async` or `async*`.
+   *
+   * See also [FunctionBody.isAsynchronous], [FunctionBody.isGenerator].
+   */
+  DartType _computeReturnTypeOfFunction(FunctionBody body, DartType type) {
+    if (body.isGenerator) {
+      InterfaceType genericType = body.isAsynchronous
+          ? _typeProvider.streamType
+          : _typeProvider.iterableType;
+      return genericType.substitute4(<DartType>[type]);
+    } else if (body.isAsynchronous) {
+      return _typeProvider.futureType
+          .substitute4(<DartType>[type.flattenFutures(_typeSystem)]);
+    } else {
+      return type;
+    }
+  }
+
+  /**
    * Compute the static return type of the method or function represented by the given element.
    *
    * @param element the element representing the method or function invoked by the given node
@@ -1512,38 +1534,6 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
       return _dynamicType;
     }
     return returnType.type;
-  }
-
-  /**
-   * Given a function expression, compute the return type of the function. The return type of
-   * functions with a block body is `dynamicType`, with an expression body it is the type of
-   * the expression.
-   *
-   * @param node the function expression whose return type is to be computed
-   * @return the return type that was computed
-   */
-  DartType _computeStaticReturnTypeOfFunctionExpression(
-      FunctionExpression node) {
-    FunctionBody body = node.body;
-    if (body.isGenerator) {
-      if (body.isAsynchronous) {
-        return _typeProvider.streamDynamicType;
-      } else {
-        return _typeProvider.iterableDynamicType;
-      }
-    }
-    DartType type;
-    if (body is ExpressionFunctionBody) {
-      type = _getStaticType(body.expression);
-    } else {
-      type = _dynamicType;
-    }
-    if (body.isAsynchronous) {
-      return _typeProvider.futureType
-          .substitute4(<DartType>[type.flattenFutures(_typeSystem)]);
-    } else {
-      return type;
-    }
   }
 
   DartType _findIteratedType(DartType type, DartType targetType) {

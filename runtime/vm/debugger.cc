@@ -46,7 +46,6 @@ DEFINE_FLAG(bool, steal_breakpoints, false,
 
 DECLARE_FLAG(bool, trace_isolates);
 DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
-DECLARE_FLAG(bool, precompilation);
 
 
 #ifndef PRODUCT
@@ -330,7 +329,9 @@ void Debugger::InvokeEventHandler(DebuggerEvent* event) {
     // If we were paused, notify the service that we have resumed.
     const Error& error =
         Error::Handle(Thread::Current()->sticky_error());
-    ASSERT(error.IsNull() || error.IsUnwindError());
+    ASSERT(error.IsNull() ||
+           error.IsUnwindError() ||
+           error.IsUnhandledException());
 
     // Only send a resume event when the isolate is not unwinding.
     if (!error.IsUnwindError()) {
@@ -1056,7 +1057,7 @@ RawObject* ActivationFrame::Evaluate(const String& expr) {
     VariableAt(i, &name, &ignore, &ignore, &value);
     if (!name.Equals(Symbols::This())) {
       if (IsPrivateVariableName(name)) {
-        name = String::IdentifierPrettyName(name);
+        name = String::ScrubName(name);
       }
       param_names.Add(name);
       param_values.Add(value);
@@ -1129,7 +1130,7 @@ void ActivationFrame::PrintToJSONObject(JSONObject* jsobj,
       if (var_name.raw() != Symbols::AsyncOperation().raw()) {
         JSONObject jsvar(&jsvars);
         jsvar.AddProperty("type", "BoundVariable");
-        var_name = String::IdentifierPrettyName(var_name);
+        var_name = String::ScrubName(var_name);
         jsvar.AddProperty("name", var_name.ToCString());
         jsvar.AddProperty("value", var_value, !full);
         // TODO(turnidge): Do we really want to provide this on every
@@ -1518,7 +1519,7 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
     }
     if (frame->IsDartFrame()) {
       code = frame->LookupDartCode();
-      if (code.is_optimized() && !FLAG_precompilation) {
+      if (code.is_optimized() && !FLAG_precompiled_mode) {
         deopt_frame = DeoptimizeToArray(thread, frame, code);
         for (InlinedFunctionsIterator it(code, frame->pc());
              !it.Done();
@@ -1636,7 +1637,7 @@ Dart_ExceptionPauseInfo Debugger::GetExceptionPauseInfo() const {
 
 
 bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
-                                      const Instance& exc) {
+                                      const Instance& exception) {
   if (exc_pause_info_ == kNoPauseOnExceptions) {
     return false;
   }
@@ -1644,7 +1645,7 @@ bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
     return true;
   }
   ASSERT(exc_pause_info_ == kPauseOnUnhandledExceptions);
-  ActivationFrame* handler_frame = stack_trace->GetHandlerFrame(exc);
+  ActivationFrame* handler_frame = stack_trace->GetHandlerFrame(exception);
   if (handler_frame == NULL) {
     // Did not find an exception handler that catches this exception.
     // Note that this check is not precise, since we can't check
@@ -1673,8 +1674,9 @@ void Debugger::SignalExceptionThrown(const Instance& exc) {
   }
   DebuggerEvent event(isolate_, DebuggerEvent::kExceptionThrown);
   event.set_exception(&exc);
-  ASSERT(stack_trace->Length() > 0);
-  event.set_top_frame(stack_trace->FrameAt(0));
+  if (stack_trace->Length() > 0) {
+    event.set_top_frame(stack_trace->FrameAt(0));
+  }
   ASSERT(stack_trace_ == NULL);
   stack_trace_ = stack_trace;
   Pause(&event);

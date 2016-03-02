@@ -23,6 +23,20 @@ class Id {
 }
 
 /**
+ * Annotation used in the summary IDL to indicate that a summary class can be
+ * the top level object in an encoded summary.
+ */
+class TopLevel {
+  /**
+   * If non-null, identifier that will be stored in bytes 4-7 of the file,
+   * prior all other file data.  Must be exactly 4 Latin1 characters.
+   */
+  final String fileIdentifier;
+
+  const TopLevel([this.fileIdentifier]);
+}
+
+/**
  * Instances of this class represent data that has been read from a summary.
  */
 abstract class SummaryClass {

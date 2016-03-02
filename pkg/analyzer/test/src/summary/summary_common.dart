@@ -6525,6 +6525,130 @@ void set f(value) {}''';
     expect(unlinkedUnits[1].variables[0].propagatedTypeSlot, 1);
   }
 
+  test_syntheticFunctionType_genericClosure() {
+    if (skipFullyLinkedData) {
+      return;
+    }
+    if (!strongMode) {
+      // The test below uses generic comment syntax because proper generic
+      // method syntax doesn't support generic closures.  So it can only run in
+      // strong mode.
+      // TODO(paulberry): once proper generic method syntax supports generic
+      // closures, rewrite the test below without using generic comment syntax,
+      // and remove this hack.  See dartbug.com/25819
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('''
+final v = f() ? /*<T>*/(T t) => 0 : /*<T>*/(T t) => 1;
+bool f() => true;
+''');
+    // The inferred type of `v` is currently `(Object) -> int` due to
+    // dartbug.com/25802.  TODO(paulberry): fix this test when the bug is fixed.
+    EntityRef inferredType = getTypeRefForSlot(variable.inferredTypeSlot);
+    checkLinkedTypeRef(
+        inferredType.syntheticReturnType, 'dart:core', 'dart:core', 'int');
+    expect(inferredType.syntheticParams, hasLength(1));
+    checkLinkedTypeRef(inferredType.syntheticParams[0].type, 'dart:core',
+        'dart:core', 'Object');
+  }
+
+  test_syntheticFunctionType_genericClosure_inGenericFunction() {
+    if (skipFullyLinkedData) {
+      return;
+    }
+    if (!strongMode) {
+      // The test below uses generic comment syntax because proper generic
+      // method syntax doesn't support generic closures.  So it can only run in
+      // strong mode.
+      // TODO(paulberry): once proper generic method syntax supports generic
+      // closures, rewrite the test below without using generic comment syntax,
+      // and remove this hack.  See dartbug.com/25819
+      return;
+    }
+    UnlinkedVariable variable = serializeExecutableText('''
+void f<T, U>(bool b) {
+  final v = b ? /*<V>*/(T t, U u, V v) => 0 : /*<V>*/(T t, U u, V v) => 1;
+}
+''').localVariables[0];
+    // The inferred type of `v` is currently `(T, U, Object) -> int` due to
+    // dartbug.com/25802.  TODO(paulberry): fix this test when the bug is fixed.
+    EntityRef inferredType = getTypeRefForSlot(variable.inferredTypeSlot);
+    checkLinkedTypeRef(
+        inferredType.syntheticReturnType, 'dart:core', 'dart:core', 'int');
+    expect(inferredType.syntheticParams, hasLength(3));
+    checkParamTypeRef(inferredType.syntheticParams[0].type, 2);
+    checkParamTypeRef(inferredType.syntheticParams[1].type, 1);
+    checkLinkedTypeRef(inferredType.syntheticParams[2].type, 'dart:core',
+        'dart:core', 'Object');
+  }
+
+  test_syntheticFunctionType_inGenericClass() {
+    if (skipFullyLinkedData) {
+      return;
+    }
+    UnlinkedVariable variable = serializeClassText('''
+class C<T, U> {
+  var v = f() ? (T t, U u) => 0 : (T t, U u) => 1;
+}
+bool f() => false;
+''').fields[0];
+    EntityRef inferredType =
+        getTypeRefForSlot(variable.initializer.inferredReturnTypeSlot);
+    checkLinkedTypeRef(
+        inferredType.syntheticReturnType, 'dart:core', 'dart:core', 'int');
+    checkParamTypeRef(inferredType.syntheticParams[0].type, 2);
+    checkParamTypeRef(inferredType.syntheticParams[1].type, 1);
+  }
+
+  test_syntheticFunctionType_inGenericFunction() {
+    if (skipFullyLinkedData) {
+      return;
+    }
+    UnlinkedVariable variable = serializeExecutableText('''
+void f<T, U>(bool b) {
+  var v = b ? (T t, U u) => 0 : (T t, U u) => 1;
+}
+''').localVariables[0];
+    EntityRef inferredType =
+        getTypeRefForSlot(variable.initializer.inferredReturnTypeSlot);
+    checkLinkedTypeRef(
+        inferredType.syntheticReturnType, 'dart:core', 'dart:core', 'int');
+    checkParamTypeRef(inferredType.syntheticParams[0].type, 2);
+    checkParamTypeRef(inferredType.syntheticParams[1].type, 1);
+  }
+
+  test_syntheticFunctionType_noArguments() {
+    if (skipFullyLinkedData) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('''
+final v = f() ? () => 0 : () => 1;
+bool f() => true;
+''');
+    EntityRef propagatedType = getTypeRefForSlot(variable.propagatedTypeSlot);
+    checkLinkedTypeRef(
+        propagatedType.syntheticReturnType, 'dart:core', 'dart:core', 'int');
+    expect(propagatedType.syntheticParams, isEmpty);
+  }
+
+  test_syntheticFunctionType_withArguments() {
+    if (skipFullyLinkedData) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('''
+final v = f() ? (int x, String y) => 0 : (int x, String y) => 1;
+bool f() => true;
+''');
+    EntityRef propagatedType = getTypeRefForSlot(variable.propagatedTypeSlot);
+    checkTypeRef(
+        propagatedType.syntheticReturnType, 'dart:core', 'dart:core', 'int');
+    expect(propagatedType.syntheticParams, hasLength(2));
+    checkTypeRef(propagatedType.syntheticParams[0].type, 'dart:core',
+        'dart:core', 'int');
+    checkTypeRef(propagatedType.syntheticParams[1].type, 'dart:core',
+        'dart:core', 'String');
+  }
+
   test_type_arguments_explicit() {
     EntityRef typeRef = serializeTypeText('List<int>');
     checkTypeRef(typeRef, 'dart:core', 'dart:core', 'List',
@@ -7076,8 +7200,7 @@ var v;''';
   }
 
   test_variable_initializer_withLocals() {
-    String text =
-        'var v = <dynamic, dynamic>{"1": () { f1() {} var v1; }, '
+    String text = 'var v = <dynamic, dynamic>{"1": () { f1() {} var v1; }, '
         '"2": () { f2() {} var v2; }};';
     UnlinkedVariable variable = serializeVariableText(text);
     UnlinkedExecutable initializer = variable.initializer;

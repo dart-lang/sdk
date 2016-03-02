@@ -92,7 +92,7 @@ class AstNodeVisitor : public ValueObject {
 
 #define DECLARE_COMMON_NODE_FUNCTIONS(type)                                    \
   virtual void Visit(AstNodeVisitor* visitor);                                 \
-  virtual const char* PrettyName() const;                                      \
+  virtual const char* Name() const;                                            \
   virtual type* As##type() { return this; }
 
 
@@ -116,7 +116,7 @@ class AstNode : public ZoneAllocated {
 
   virtual void Visit(AstNodeVisitor* visitor) = 0;
   virtual void VisitChildren(AstNodeVisitor* visitor) const = 0;
-  virtual const char* PrettyName() const = 0;
+  virtual const char* Name() const = 0;
 
   // Convert the node into an assignment node using the rhs which is passed in,
   // this is typically used for converting nodes like LoadLocalNode,
@@ -149,6 +149,10 @@ class AstNode : public ZoneAllocated {
   // Number, Integer, String, Bool, or anything else (not a subtype of
   // the former).
   virtual const Instance* EvalConstExpr() const { return NULL; }
+
+  // Return ZoneHandle of a cloned 'value' when in background compilation or
+  // when testing. Otherwise return 'value' itself.
+  static const Field* MayCloneField(const Field& value);
 
  protected:
   friend class ParsedFunction;
@@ -1241,7 +1245,8 @@ class LoadInstanceFieldNode : public AstNode {
   LoadInstanceFieldNode(TokenPosition token_pos,
                         AstNode* instance,
                         const Field& field)
-      : AstNode(token_pos), instance_(instance), field_(field) {
+      : AstNode(token_pos), instance_(instance),
+        field_(*MayCloneField(field)) {
     ASSERT(instance_ != NULL);
     ASSERT(field_.IsZoneHandle());
   }
@@ -1271,7 +1276,7 @@ class StoreInstanceFieldNode : public AstNode {
                          AstNode* value)
       : AstNode(token_pos),
         instance_(instance),
-        field_(field),
+        field_(*MayCloneField(field)),
         value_(value) {
     ASSERT(instance_ != NULL);
     ASSERT(field_.IsZoneHandle());
@@ -1301,7 +1306,9 @@ class StoreInstanceFieldNode : public AstNode {
 class LoadStaticFieldNode : public AstNode {
  public:
   LoadStaticFieldNode(TokenPosition token_pos, const Field& field)
-      : AstNode(token_pos), field_(field), is_deferred_reference_(false) {
+      : AstNode(token_pos),
+        field_(*MayCloneField(field)),
+        is_deferred_reference_(false) {
     ASSERT(field_.IsZoneHandle());
   }
 
@@ -1339,7 +1346,9 @@ class StoreStaticFieldNode : public AstNode {
   StoreStaticFieldNode(TokenPosition token_pos,
                        const Field& field,
                        AstNode* value)
-      : AstNode(token_pos), field_(field), value_(value) {
+      : AstNode(token_pos),
+        field_(*MayCloneField(field)),
+        value_(value) {
     ASSERT(field_.IsZoneHandle());
     ASSERT(value_ != NULL);
   }
@@ -1561,7 +1570,8 @@ class InstanceSetterNode : public AstNode {
 class InitStaticFieldNode : public AstNode {
  public:
   InitStaticFieldNode(TokenPosition token_pos, const Field& field)
-      : AstNode(token_pos), field_(field) {
+      : AstNode(token_pos),
+        field_(*MayCloneField(field)) {
     ASSERT(field_.IsZoneHandle());
   }
 

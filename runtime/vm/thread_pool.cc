@@ -383,11 +383,11 @@ bool ThreadPool::Worker::Loop() {
     task_ = NULL;
 
     // Release monitor while handling the task.
-    monitor_.Exit();
+    ml.Exit();
     task->Run();
     ASSERT(Isolate::Current() == NULL);
     delete task;
-    monitor_.Enter();
+    ml.Enter();
 
     ASSERT(task_ == NULL);
     if (IsDone()) {

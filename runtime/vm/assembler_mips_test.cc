@@ -2169,6 +2169,30 @@ ASSEMBLER_TEST_RUN(ComputeRange, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Semaphore, assembler) {
+  __ EnterFrame();
+  __ LoadImmediate(T0, 40);
+  __ LoadImmediate(T1, 42);
+  __ Push(T0);
+  Label retry;
+  __ Bind(&retry);
+  __ ll(T0, Address(SP));
+  __ mov(T2, T1);
+  __ sc(T2, Address(SP));  // T1 == 1, success
+  __ LoadImmediate(T3, 1);
+  __ bne(T2, T3, &retry);  // NE if context switch occurred between ll and sc
+  __ Pop(V0);  // 42
+  __ LeaveFrameAndReturn();
+}
+
+
+ASSEMBLER_TEST_RUN(Semaphore, test) {
+  EXPECT(test != NULL);
+  typedef int (*Semaphore)() DART_UNUSED;
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(Semaphore, test->entry()));
+}
+
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_MIPS

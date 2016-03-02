@@ -17,7 +17,6 @@ import '../../lib/src/mirrors/dart2js_mirrors.dart'
     show BackDoor;
 
 import '../../lib/src/filenames.dart';
-import '../../lib/src/io/source_file.dart';
 import '../../lib/src/source_file_provider.dart';
 import '../../lib/src/util/uri_extras.dart';
 

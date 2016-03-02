@@ -117,7 +117,7 @@ class PathBasedOptimizer extends TrampolineRecursiveVisitor
   }
 
   void visitInvokeContinuation(InvokeContinuation node) {
-    Continuation cont = node.continuation.definition;
+    Continuation cont = node.continuation;
     if (cont.isReturnContinuation) return;
     if (node.isRecursive) return;
     Map<Primitive, int> target = valuesAt[cont];
@@ -131,9 +131,9 @@ class PathBasedOptimizer extends TrampolineRecursiveVisitor
   }
 
   visitBranch(Branch node) {
-    Primitive condition = node.condition.definition.effectiveDefinition;
-    Continuation trueCont = node.trueContinuation.definition;
-    Continuation falseCont = node.falseContinuation.definition;
+    Primitive condition = node.condition.effectiveDefinition;
+    Continuation trueCont = node.trueContinuation;
+    Continuation falseCont = node.falseContinuation;
     if (condition.hasExactlyOneUse) {
       // Handle common case specially. Do not add [condition] to the map if
       // there are no other uses.
@@ -167,7 +167,7 @@ class PathBasedOptimizer extends TrampolineRecursiveVisitor
       // self-interceptor.
       // TODO(25646): If TypeMasks could represent "any self-interceptor" this
       //   optimization should be subsumed by type propagation.
-      node.receiver.changeTo(node.dartReceiver);
+      node.receiverRef.changeTo(node.dartReceiver);
 
       // Replace the extra receiver argument with a dummy value if the
       // target definitely does not use it.
@@ -176,7 +176,7 @@ class PathBasedOptimizer extends TrampolineRecursiveVisitor
         Constant dummy = new Constant(new IntConstantValue(0))
             ..type = typeSystem.intType;
         new LetPrim(dummy).insertAbove(node.parent);
-        node.arguments[0].changeTo(dummy);
+        node.argumentRefs[0].changeTo(dummy);
         node.callingConvention = CallingConvention.DummyIntercepted;
       }
     }

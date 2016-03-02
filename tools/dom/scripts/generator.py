@@ -141,7 +141,7 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
         'ApplicationCache,DOMApplicationCache,OfflineResourceList',
 
     'Event':
-        'Event,InputEvent,ClipboardEvent',
+        'Event,InputEvent',
 
     'HTMLTableCellElement':
         'HTMLTableCellElement,HTMLTableDataCellElement,HTMLTableHeaderCellElement',
@@ -151,7 +151,7 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
     'IDBOpenDBRequest':
         'IDBOpenDBRequest,IDBVersionChangeRequest',
 
-    'MouseEvent': 'MouseEvent,DragEvent,PointerEvent,MSPointerEvent',
+    'MouseEvent': 'MouseEvent,DragEvent',
 
     'MutationObserver': 'MutationObserver,WebKitMutationObserver',
 
@@ -1264,6 +1264,9 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     # TODO(vsm): This won't actually work until we convert the Map to
     # a native JS Map for JS DOM.
     'Dictionary': TypeData(clazz='Primitive', dart_type='Map'),
+    # TODO(terry): It's a dictionary but a very complex dictionary is multiple lists.
+    #              Need to investigate a 1-off solution probably.
+    'MediaKeySystemConfiguration': TypeData(clazz='Primitive', dart_type='Map'),
     'DOMTimeStamp': TypeData(clazz='Primitive', dart_type='int', native_type='unsigned long long'),
     'object': TypeData(clazz='Primitive', dart_type='Object', native_type='ScriptValue'),
     'ObjectArray': TypeData(clazz='Primitive', dart_type='List'),
@@ -1309,6 +1312,22 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
         suppress_interface=True),
     'GLenum': TypeData(clazz='Primitive', dart_type='int',
         native_type='unsigned'),
+    'GLboolean': TypeData(clazz='Primitive', dart_type='bool',
+        native_type='bool'),
+    'GLbitfield': TypeData(clazz='Primitive', dart_type='int',
+        native_type='unsigned'),
+    'GLshort': TypeData(clazz='Primitive', dart_type='int', native_type='short'),
+    'GLint': TypeData(clazz='Primitive', dart_type='int',
+        native_type='long'),
+    'GLsizei': TypeData(clazz='Primitive', dart_type='int',
+        native_type='long'),
+    'GLintptr': TypeData(clazz='Primitive', dart_type='int'),
+    'GLsizeiptr': TypeData(clazz='Primitive', dart_type='int'),
+    'GLushort': TypeData(clazz='Primitive', dart_type='int', native_type='int'),
+    'GLuint': TypeData(clazz='Primitive', dart_type='int',
+        native_type='unsigned'),
+    'GLfloat': TypeData(clazz='Primitive', dart_type='num', native_type='float'),
+    'GLclampf': TypeData(clazz='Primitive', dart_type='num', native_type='float'),
     'HTMLCollection': TypeData(clazz='Interface', item_type='Node',
         dart_type='List<Node>'),
     'NamedNodeMap': TypeData(clazz='Interface', item_type='Node'),

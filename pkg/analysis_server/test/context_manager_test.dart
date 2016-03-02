@@ -18,6 +18,7 @@ import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/util/glob.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:linter/src/rules/avoid_as.dart';
 import 'package:package_config/packages.dart';
@@ -92,6 +93,18 @@ class AbstractContextManagerTest {
     ['x']
   ]);
 
+  List<Glob> get analysisFilesGlobs {
+    List<String> patterns = <String>[
+      '**/*.${AnalysisEngine.SUFFIX_DART}',
+      '**/*.${AnalysisEngine.SUFFIX_HTML}',
+      '**/*.${AnalysisEngine.SUFFIX_HTM}',
+      '**/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}'
+    ];
+    return patterns
+        .map((pattern) => new Glob(JavaFile.pathContext.separator, pattern))
+        .toList();
+  }
+
   List<ErrorProcessor> get errorProcessors => callbacks.currentContext
       .getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
 
@@ -142,7 +155,9 @@ class AbstractContextManagerTest {
         providePackageResolver,
         provideEmbeddedUriResolver,
         packageMapProvider,
-        InstrumentationService.NULL_SERVICE);
+        analysisFilesGlobs,
+        InstrumentationService.NULL_SERVICE,
+        new AnalysisOptionsImpl());
     callbacks = new TestContextManagerCallbacks(resourceProvider);
     manager.callbacks = callbacks;
     resourceProvider.newFolder(projPath);
@@ -403,8 +418,10 @@ linter:
     // * from `.analysis_options`:
     expect(context.analysisOptions.enableGenericMethods, isTrue);
     // * verify tests are excluded
-    expect(callbacks.currentContextFilePaths[projPath].keys,
-        ['/my/proj/sdk_ext/entry.dart']);
+    expect(
+        callbacks.currentContextFilePaths[projPath].keys,
+        unorderedEquals(
+            ['/my/proj/sdk_ext/entry.dart', '/my/proj/.analysis_options']));
 
     // Verify filter setup.
     expect(errorProcessors, hasLength(2));
@@ -656,8 +673,10 @@ analyzer:
         callbacks.currentContextFilePaths[projPath];
     expect(fileTimestamps, isNotEmpty);
     List<String> files = fileTimestamps.keys.toList();
-    expect(files.length, equals(1));
-    expect(files[0], equals('/my/proj/lib/main.dart'));
+    expect(
+        files,
+        unorderedEquals(
+            ['/my/proj/lib/main.dart', '/my/proj/.analysis_options']));
   }
 
   test_path_filter_child_contexts_option() async {
@@ -2363,9 +2382,6 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   Iterable<String> get currentContextPaths => currentContextTimestamps.keys;
 
   @override
-  AnalysisOptions get defaultAnalysisOptions => new AnalysisOptionsImpl();
-
-  @override
   AnalysisContext addContext(
       Folder folder, AnalysisOptions options, FolderDisposition disposition) {
     String path = folder.path;
@@ -2429,6 +2445,11 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
+  void computingPackageMap(bool computing) {
+    // Do nothing.
+  }
+
+  @override
   void removeContext(Folder folder, List<String> flushedFiles) {
     String path = folder.path;
     expect(currentContextPaths, contains(path));
@@ -2436,20 +2457,6 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
     currentContextFilePaths.remove(path);
     currentContextSources.remove(path);
     currentContextDispositions.remove(path);
-  }
-
-  @override
-  bool shouldFileBeAnalyzed(File file) {
-    if (!(AnalysisEngine.isDartFileName(file.path) ||
-        AnalysisEngine.isHtmlFileName(file.path))) {
-      return false;
-    }
-    // Emacs creates dummy links to track the fact that a file is open for
-    // editing and has unsaved changes (e.g. having unsaved changes to
-    // 'foo.dart' causes a link '.#foo.dart' to be created, which points to the
-    // non-existent file 'username@hostname.pid'.  To avoid these dummy links
-    // causing the analyzer to thrash, just ignore links to non-existent files.
-    return file.exists;
   }
 
   @override

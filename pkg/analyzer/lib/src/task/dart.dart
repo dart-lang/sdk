@@ -29,7 +29,6 @@ import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/generated/visitors.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/driver.dart';
@@ -1939,7 +1938,7 @@ class ComputeLibraryCycleTask extends SourceBasedAnalysisTask {
     // and the invalidation code (invalidateLibraryCycles) will ensure that
     // element model results will be re-used here only if they are still valid.
     if (context.analysisOptions.strongMode) {
-      LibraryElementImpl library = getRequiredInput(LIBRARY_ELEMENT_INPUT);
+      LibraryElement library = getRequiredInput(LIBRARY_ELEMENT_INPUT);
       List<LibraryElement> component = library.libraryCycle;
       Set<LibraryElement> filter = new Set<LibraryElement>.from(component);
       Set<CompilationUnitElement> deps = new Set<CompilationUnitElement>();
@@ -2266,7 +2265,7 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
   static const String PARSED_UNIT_INPUT = 'PARSED_UNIT_INPUT';
 
   // Prefix for comments ignoring error codes.
-  static const String _normalizedIgnorePrefix = '//#ignore:';
+  static const String _normalizedIgnorePrefix = '//ignore:';
 
   DartErrorsTask(InternalAnalysisContext context, AnalysisTarget target)
       : super(context, target);
@@ -3365,6 +3364,7 @@ class ParseDartTask extends SourceBasedAnalysisTask {
     parser.parseAsync = options.enableAsync;
     parser.parseFunctionBodies = options.analyzeFunctionBodiesPredicate(source);
     parser.parseGenericMethods = options.enableGenericMethods;
+    parser.parseConditionalDirectives = options.enableConditionalDirectives;
     parser.parseGenericMethodComments = options.strongMode;
     CompilationUnit unit = parser.parseCompilationUnit(tokenStream);
     unit.lineInfo = lineInfo;

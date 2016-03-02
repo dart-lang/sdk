@@ -80,6 +80,7 @@ FLAG_LIST(PRODUCT_FLAG_MARCO,
 #undef PRODUCT_FLAG_MARCO
 #undef PRECOMPILE_FLAG_MARCO
 
+
 bool Flags::initialized_ = false;
 
 // List of registered flags.

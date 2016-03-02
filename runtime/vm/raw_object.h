@@ -424,6 +424,9 @@ class RawObject {
   bool IsScript() {
     return ((GetClassId() == kScriptCid));
   }
+  bool IsField() {
+    return ((GetClassId() == kFieldCid));
+  }
   bool IsFunction() {
     return ((GetClassId() == kFunctionCid));
   }
@@ -881,7 +884,7 @@ class RawField : public RawObject {
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   RawString* name_;
   RawObject* owner_;  // Class or patch class or mixin class
-                      // where this field is defined.
+                      // where this field is defined or original field.
   RawAbstractType* type_;
   union {
     RawInstance* static_value_;  // Value for static fields.
@@ -1052,7 +1055,8 @@ class RawCode : public RawObject {
     kInlinedIntervalsIndex = 0,
     kInlinedIdToFunctionIndex = 1,
     kInlinedCallerIdMapIndex = 2,
-    kInlinedMetadataSize = 3,
+    kInlinedIdToTokenPosIndex = 3,
+    kInlinedMetadataSize = 4,
   };
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(Code);

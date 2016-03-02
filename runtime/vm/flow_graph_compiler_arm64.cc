@@ -26,7 +26,6 @@ namespace dart {
 DEFINE_FLAG(bool, trap_on_deoptimization, false, "Trap on deoptimization.");
 DECLARE_FLAG(bool, enable_simd_inline);
 DECLARE_FLAG(bool, use_megamorphic_stub);
-DECLARE_FLAG(bool, precompilation);
 
 
 void MegamorphicSlowPath::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -1121,13 +1120,15 @@ void FlowGraphCompiler::CompileGraph() {
     }
   }
 
+  EndCodeSourceRange(TokenPosition::kDartCodePrologue);
   VisitBlocks();
 
   __ brk(0);
   ASSERT(assembler()->constant_pool_allowed());
   GenerateDeferredCode();
 
-  if (is_optimizing() && !FLAG_precompilation) {
+  BeginCodeSourceRange();
+  if (is_optimizing() && !FLAG_precompiled_mode) {
     // Leave enough space for patching in case of lazy deoptimization from
     // deferred code.
     for (intptr_t i = 0;
@@ -1136,8 +1137,9 @@ void FlowGraphCompiler::CompileGraph() {
       __ orr(R0, ZR, Operand(R0));  // nop
     }
     lazy_deopt_pc_offset_ = assembler()->CodeSize();
-  __ BranchPatchable(*StubCode::DeoptimizeLazy_entry());
+    __ BranchPatchable(*StubCode::DeoptimizeLazy_entry());
   }
+  EndCodeSourceRange(TokenPosition::kDartCodeEpilogue);
 }
 
 
@@ -1169,6 +1171,34 @@ void FlowGraphCompiler::GenerateDartCall(intptr_t deopt_id,
     // arguments are removed.
     AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
   }
+}
+
+
+void FlowGraphCompiler::GenerateStaticDartCall(intptr_t deopt_id,
+                                               TokenPosition token_pos,
+                                               const StubEntry& stub_entry,
+                                               RawPcDescriptors::Kind kind,
+                                               LocationSummary* locs,
+                                               const Function& target) {
+  // Call sites to the same target can share object pool entries. These
+  // call sites are never patched for breakpoints: the function is deoptimized
+  // and the unoptimized code with IC calls for static calls is patched instead.
+  ASSERT(is_optimizing());
+  __ BranchLinkWithEquivalence(stub_entry, target);
+
+  AddCurrentDescriptor(kind, deopt_id, token_pos);
+  RecordSafepoint(locs);
+  // Marks either the continuation point in unoptimized code or the
+  // deoptimization point in optimized code, after call.
+  const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
+  if (is_optimizing()) {
+    AddDeoptIndexAtCall(deopt_id_after, token_pos);
+  } else {
+    // Add deoptimization continuation point after the call and before the
+    // arguments are removed.
+    AddCurrentDescriptor(RawPcDescriptors::kDeopt, deopt_id_after, token_pos);
+  }
+  AddStaticCallTarget(target);
 }
 
 
@@ -1280,7 +1310,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
 
   RecordSafepoint(locs);
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
-  if (FLAG_precompilation) {
+  if (FLAG_precompiled_mode) {
     // Megamorphic calls may occur in slow path stubs.
     // If valid use try_index argument.
     if (try_index == CatchClauseNode::kInvalidTryIndex) {
@@ -1374,12 +1404,12 @@ void FlowGraphCompiler::EmitOptimizedStaticCall(
   __ LoadObject(R4, arguments_descriptor);
   // Do not use the code from the function, but let the code be patched so that
   // we can record the outgoing edges to other code.
-  GenerateDartCall(deopt_id,
-                   token_pos,
-                   *StubCode::CallStaticFunction_entry(),
-                   RawPcDescriptors::kOther,
-                   locs);
-  AddStaticCallTarget(function);
+  GenerateStaticDartCall(deopt_id,
+                         token_pos,
+                         *StubCode::CallStaticFunction_entry(),
+                         RawPcDescriptors::kOther,
+                         locs,
+                         function);
   __ Drop(argument_count);
 }
 
@@ -1548,14 +1578,14 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
     }
     // Do not use the code from the function, but let the code be patched so
     // that we can record the outgoing edges to other code.
-    GenerateDartCall(deopt_id,
-                     token_index,
-                     *StubCode::CallStaticFunction_entry(),
-                     RawPcDescriptors::kOther,
-                     locs);
     const Function& function = Function::ZoneHandle(
         zone(), ic_data.GetTargetAt(0));
-    AddStaticCallTarget(function);
+    GenerateStaticDartCall(deopt_id,
+                           token_index,
+                           *StubCode::CallStaticFunction_entry(),
+                           RawPcDescriptors::kOther,
+                           locs,
+                           function);
     __ Drop(argument_count);
     if (kNumChecks > 1) {
       __ b(match_found);
@@ -1590,13 +1620,13 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
     }
     // Do not use the code from the function, but let the code be patched so
     // that we can record the outgoing edges to other code.
-    GenerateDartCall(deopt_id,
-                     token_index,
-                     *StubCode::CallStaticFunction_entry(),
-                     RawPcDescriptors::kOther,
-                     locs);
     const Function& function = *sorted[i].target;
-    AddStaticCallTarget(function);
+    GenerateStaticDartCall(deopt_id,
+                           token_index,
+                           *StubCode::CallStaticFunction_entry(),
+                           RawPcDescriptors::kOther,
+                           locs,
+                           function);
     __ Drop(argument_count);
     if (!kIsLastCheck) {
       __ b(match_found);

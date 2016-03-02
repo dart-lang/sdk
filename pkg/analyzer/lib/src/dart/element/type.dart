@@ -1285,13 +1285,13 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     // In other words, given the set of all types R such that T << Future<R>,
     // let S be the most specific of those types, if any such S exists.
     //
-    // Since we only care about the most specific type, it is sufficent to
+    // Since we only care about the most specific type, it is sufficient to
     // look at the types appearing as a parameter to Future in the type
     // hierarchy of T.  We don't need to consider the supertypes of those
     // types, since they are by definition less specific.
     List<DartType> candidateTypes =
         _searchTypeHierarchyForFutureTypeParameters();
-    DartType flattenResult = _findMostSpecificType(candidateTypes, typeSystem);
+    DartType flattenResult = findMostSpecificType(candidateTypes, typeSystem);
     if (flattenResult != null) {
       return flattenResult;
     }
@@ -1923,7 +1923,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
    * If there is a single type which is at least as specific as all of the
    * types in [types], return it.  Otherwise return `null`.
    */
-  static DartType _findMostSpecificType(
+  static DartType findMostSpecificType(
       List<DartType> types, TypeSystem typeSystem) {
     // The << relation ("more specific than") is a partial ordering on types,
     // so to find the most specific type of a set, we keep a bucket of the most

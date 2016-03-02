@@ -287,7 +287,7 @@ void SimulatorDebugger::PrintDartFrame(uword pc, uword fp, uword sp,
                                        bool is_optimized,
                                        bool is_inlined) {
   const Script& script = Script::Handle(function.script());
-  const String& func_name = String::Handle(function.QualifiedUserVisibleName());
+  const String& func_name = String::Handle(function.QualifiedScrubbedName());
   const String& url = String::Handle(script.url());
   intptr_t line = -1;
   intptr_t column = -1;
@@ -1223,18 +1223,18 @@ void Simulator::ClearExclusive() {
 }
 
 
-intptr_t Simulator::ReadExclusiveW(uword addr, Instr* instr) {
+intptr_t Simulator::ReadExclusiveX(uword addr, Instr* instr) {
   MutexLocker ml(exclusive_access_lock_);
   SetExclusiveAccess(addr);
-  return ReadW(addr, instr);
+  return ReadX(addr, instr);
 }
 
 
-intptr_t Simulator::WriteExclusiveW(uword addr, intptr_t value, Instr* instr) {
+intptr_t Simulator::WriteExclusiveX(uword addr, intptr_t value, Instr* instr) {
   MutexLocker ml(exclusive_access_lock_);
   bool write_allowed = HasExclusiveAccessAndOpen(addr);
   if (write_allowed) {
-    WriteW(addr, value, instr);
+    WriteX(addr, value, instr);
     return 0;  // Success.
   }
   return 1;  // Failure.
@@ -1749,6 +1749,12 @@ void Simulator::DecodeExceptionGen(Instr* instr) {
 
 
 void Simulator::DecodeSystem(Instr* instr) {
+  if (instr->InstructionBits() == CLREX) {
+    // Format(instr, "clrex");
+    ClearExclusive();
+    return;
+  }
+
   if ((instr->Bits(0, 8) == 0x1f) && (instr->Bits(12, 4) == 2) &&
       (instr->Bits(16, 3) == 3) && (instr->Bits(19, 2) == 0) &&
       (instr->Bit(21) == 0)) {
@@ -2164,6 +2170,36 @@ void Simulator::DecodeLoadRegLiteral(Instr* instr) {
 }
 
 
+void Simulator::DecodeLoadStoreExclusive(Instr* instr) {
+  if ((instr->Bit(23) != 0) ||
+      (instr->Bit(21) != 0) ||
+      (instr->Bit(15) != 0)) {
+    UNIMPLEMENTED();
+  }
+  const int32_t size = instr->Bits(30, 2);
+  if (size != 3) {
+    UNIMPLEMENTED();
+  }
+
+  const Register rs = instr->RsField();
+  const Register rn = instr->RnField();
+  const Register rt = instr->RtField();
+  const bool is_load = instr->Bit(22) == 1;
+  if (is_load) {
+    // Format(instr, "ldxr 'rt, 'rn");
+    const int64_t addr = get_register(rn, R31IsSP);
+    intptr_t value = ReadExclusiveX(addr, instr);
+    set_register(instr, rt, value, R31IsSP);
+  } else {
+    // Format(instr, "stxr 'rs, 'rt, 'rn");
+    uword value = get_register(rt, R31IsSP);
+    uword addr = get_register(rn, R31IsSP);
+    intptr_t status = WriteExclusiveX(addr, value, instr);
+    set_register(instr, rs, status, R31IsSP);
+  }
+}
+
+
 void Simulator::DecodeLoadStore(Instr* instr) {
   if (instr->IsLoadStoreRegOp()) {
     DecodeLoadStoreReg(instr);
@@ -2171,6 +2207,8 @@ void Simulator::DecodeLoadStore(Instr* instr) {
     DecodeLoadStoreRegPair(instr);
   } else if (instr->IsLoadRegLiteralOp()) {
     DecodeLoadRegLiteral(instr);
+  } else if (instr->IsLoadStoreExclusiveOp()) {
+    DecodeLoadStoreExclusive(instr);
   } else {
     UnimplementedInstruction(instr);
   }

@@ -2505,6 +2505,7 @@ class DartObjectImpl implements DartObject {
   /**
    * The run-time type of this object.
    */
+  @override
   final ParameterizedType type;
 
   /**

@@ -635,6 +635,11 @@ abstract class Element implements AnalysisTarget {
   bool get isPrivate;
 
   /**
+   * Return `true` if this element has an annotation of the form '@protected'.
+   */
+  bool get isProtected;
+
+  /**
    * Return `true` if this element is public. Public elements are visible within
    * any library that imports the library in which they are declared.
    */
@@ -807,6 +812,13 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
    * expected to override an inherited method.
    */
   bool get isOverride;
+
+
+  /**
+   * Return `true` if this annotation marks the associated member as being
+   * protected.
+   */
+  bool get isProtected;
 
   /**
    * Return `true` if this annotation marks the associated class as implementing
@@ -1311,6 +1323,12 @@ abstract class LibraryElement implements Element {
    * An empty list of library elements.
    */
   static const List<LibraryElement> EMPTY_LIST = const <LibraryElement>[];
+
+  /**
+   * Return a list containing the strongly connected component in the
+   * import/export graph in which the current library resides.
+   */
+  List<LibraryElement> get libraryCycle;
 
   /**
    * Return the compilation unit that defines this library.

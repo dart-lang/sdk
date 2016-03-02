@@ -55,14 +55,11 @@ DEFINE_FLAG(bool, overlap_type_arguments, true,
 DEFINE_FLAG(bool, show_internal_names, false,
     "Show names of internal classes (e.g. \"OneByteString\") in error messages "
     "instead of showing the corresponding interface names (e.g. \"String\")");
-DEFINE_FLAG(bool, use_field_guards, true, "Guard field cids.");
 DEFINE_FLAG(bool, use_lib_cache, true, "Use library name cache");
 DEFINE_FLAG(bool, ignore_patch_signature_mismatch, false,
             "Ignore patch file member signature mismatch.");
 
 DECLARE_FLAG(charp, coverage_dir);
-DECLARE_FLAG(bool, load_deferred_eagerly);
-DECLARE_FLAG(bool, precompilation);
 DECLARE_FLAG(bool, show_invisible_frames);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
@@ -216,12 +213,15 @@ static const char* MergeSubStrings(Zone* zone,
 //   _MyClass@6328321. -> _MyClass
 //   _MyClass@6328321.named -> _MyClass.named
 //
-RawString* String::IdentifierPrettyName(const String& name) {
+RawString* String::ScrubName(const String& name) {
   Zone* zone = Thread::Current()->zone();
+
+NOT_IN_PRODUCT(
   if (name.Equals(Symbols::TopLevel())) {
     // Name of invisible top-level class.
     return Symbols::Empty().raw();
   }
+)
 
   const char* cname = name.ToCString();
   ASSERT(strlen(cname) == static_cast<size_t>(name.Length()));
@@ -266,6 +266,7 @@ RawString* String::IdentifierPrettyName(const String& name) {
     unmangled_name = MergeSubStrings(zone, unmangled_segments, sum_segment_len);
   }
 
+NOT_IN_PRODUCT(
   intptr_t len = sum_segment_len;
   intptr_t start = 0;
   intptr_t dot_pos = -1;  // Position of '.' in the name, if any.
@@ -314,12 +315,14 @@ RawString* String::IdentifierPrettyName(const String& name) {
   }
 
   unmangled_name = MergeSubStrings(zone, unmangled_segments, final_len);
+)
 
   return Symbols::New(unmangled_name);
 }
 
 
-RawString* String::IdentifierPrettyNameRetainPrivate(const String& name) {
+RawString* String::ScrubNameRetainPrivate(const String& name) {
+NOT_IN_PRODUCT(
   intptr_t len = name.Length();
   intptr_t start = 0;
   intptr_t at_pos = -1;  // Position of '@' in the name, if any.
@@ -362,6 +365,8 @@ RawString* String::IdentifierPrettyNameRetainPrivate(const String& name) {
   }
 
   return result.raw();
+)
+  return name.raw();  // In PRODUCT, return argument unchanged.
 }
 
 
@@ -1097,11 +1102,11 @@ RawError* Object::Init(Isolate* isolate) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   ASSERT(isolate == thread->isolate());
-#ifndef PRODUCT
+NOT_IN_PRODUCT(
   TimelineDurationScope tds(thread,
                             isolate->GetIsolateStream(),
                             "Object::Init");
-#endif
+)
 
 #if defined(DART_NO_SNAPSHOT)
   // Object::Init version when we are running in a version of dart that does
@@ -1375,7 +1380,8 @@ NOT_IN_PRODUCT(
   ASSERT(lib.raw() == Library::MirrorsLibrary());
 
   cls = Class::New<MirrorReference>();
-  RegisterPrivateClass(cls, Symbols::_MirrorReference(), lib));
+  RegisterPrivateClass(cls, Symbols::_MirrorReference(), lib);
+)
 
   // Pre-register the collection library so we can place the vm class
   // LinkedHashMap there rather than the core library.
@@ -1917,18 +1923,17 @@ RawString* Class::Name() const {
 }
 
 
-RawString* Class::PrettyName() const {
-  return GeneratePrettyName();
+RawString* Class::ScrubbedName() const {
+  return String::ScrubName(String::Handle(Name()));
 }
 
 
 RawString* Class::UserVisibleName() const {
-#if defined(PRODUCT)
-  return raw_ptr()->name_;
-#else  // defined(PRODUCT)
+NOT_IN_PRODUCT(
   ASSERT(raw_ptr()->user_name_ != String::null());
   return raw_ptr()->user_name_;
-#endif  // defined(PRODUCT)
+)
+  return GenerateUserVisibleName();  // No caching in PRODUCT, regenerate.
 }
 
 
@@ -3012,7 +3017,8 @@ void Class::SetFields(const Array& value) const {
   intptr_t len = value.Length();
   for (intptr_t i = 0; i < len; i++) {
     field ^= value.At(i);
-    ASSERT(field.owner() == raw());
+    ASSERT(field.IsOriginal());
+    ASSERT(field.Owner() == raw());
   }
 #endif
   // The value of static fields is already initialized to null.
@@ -3161,6 +3167,7 @@ RawClass* Class::NewExternalTypedDataClass(intptr_t class_id) {
 
 
 void Class::set_name(const String& value) const {
+  ASSERT(raw_ptr()->name_ == String::null());
   ASSERT(value.IsSymbol());
   StorePointer(&raw_ptr()->name_, value.raw());
 NOT_IN_PRODUCT(
@@ -3182,16 +3189,11 @@ void Class::set_user_name(const String& value) const {
 )
 
 
-RawString* Class::GeneratePrettyName() const {
-  const String& name = String::Handle(Name());
-  return String::IdentifierPrettyName(name);
-}
-
-
 RawString* Class::GenerateUserVisibleName() const {
   if (FLAG_show_internal_names) {
     return Name();
   }
+NOT_IN_PRODUCT(
   switch (id()) {
     case kNullCid:
       return Symbols::Null().raw();
@@ -3323,11 +3325,10 @@ RawString* Class::GenerateUserVisibleName() const {
     case kTypedDataFloat64ArrayCid:
     case kExternalTypedDataFloat64ArrayCid:
       return Symbols::Float64List().raw();
-    default:
-      const String& name = String::Handle(Name());
-      return String::IdentifierPrettyName(name);
   }
-  UNREACHABLE();
+)
+  const String& name = String::Handle(Name());
+  return String::ScrubName(name);
 }
 
 
@@ -3557,6 +3558,8 @@ void Class::SetCanonicalType(const Type& type) const {
     ASSERT(!types.IsNull() && (types.Length() > 1));
     ASSERT((types.At(0) == Object::null()) || (types.At(0) == type.raw()));
     types.SetAt(0, type);
+    // Makes sure that 'canonical_types' has not changed.
+    ASSERT(types.raw() == canonical_types());
   }
 }
 
@@ -4123,6 +4126,84 @@ RawLibraryPrefix* Class::LookupLibraryPrefix(const String& name) const {
     return LibraryPrefix::Cast(obj).raw();
   }
   return LibraryPrefix::null();
+}
+
+
+// Returns AbstractType::null() if type not found. Modifies index to the last
+// position looked up.
+RawAbstractType* Class::LookupCanonicalType(
+    Zone* zone, const AbstractType& lookup_type, intptr_t* index) const {
+  Array& canonical_types = Array::Handle(zone);
+  canonical_types ^= this->canonical_types();
+  if (canonical_types.IsNull()) {
+    return AbstractType::null();
+  }
+  AbstractType& type = Type::Handle(zone);
+  const intptr_t length = canonical_types.Length();
+  while (*index < length) {
+    type ^= canonical_types.At(*index);
+    if (type.IsNull()) {
+      break;
+    }
+    ASSERT(type.IsFinalized());
+    if (lookup_type.Equals(type)) {
+      ASSERT(type.IsCanonical());
+      return type.raw();
+    }
+    *index = *index + 1;
+  }
+  return AbstractType::null();
+}
+
+
+// Canonicalizing the type arguments may have changed the index, may have
+// grown the table, or may even have canonicalized this type. Therefore
+// conrtinue search for canonical type at the last index visited.
+RawAbstractType* Class::LookupOrAddCanonicalType(
+    const AbstractType& lookup_type, intptr_t start_index) const {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
+  AbstractType& type = Type::Handle(zone);
+  intptr_t index = start_index;
+  type ^= LookupCanonicalType(zone, lookup_type, &index);
+
+  if (!type.IsNull()) {
+    return type.raw();
+  }
+  {
+    SafepointMutexLocker ml(isolate->type_canonicalization_mutex());
+    // Lookup again, in case the canonicalization array changed.
+    Array& canonical_types = Array::Handle(zone);
+    canonical_types ^= this->canonical_types();
+    if (canonical_types.IsNull()) {
+      canonical_types = empty_array().raw();
+    }
+    const intptr_t length = canonical_types.Length();
+    // Start looking after previously looked up last position ('length').
+    type ^= LookupCanonicalType(zone, lookup_type, &index);
+    if (!type.IsNull()) {
+      return type.raw();
+    }
+
+    // 'lookup_type' is not canonicalized yet.
+    lookup_type.SetCanonical();
+
+    // The type needs to be added to the list. Grow the list if it is full.
+    if (index >= length) {
+      ASSERT((index == length) || ((index == 1) && (length == 0)));
+      const intptr_t new_length = (length > 64) ?
+          (length + 64) :
+          ((length == 0) ? 2 : (length * 2));
+      const Array& new_canonical_types = Array::Handle(
+          zone, Array::Grow(canonical_types, new_length, Heap::kOld));
+      new_canonical_types.SetAt(index, lookup_type);
+      this->set_canonical_types(new_canonical_types);
+    } else {
+      canonical_types.SetAt(index, lookup_type);
+    }
+  }
+  return lookup_type.raw();
 }
 
 
@@ -4917,6 +4998,22 @@ RawTypeArguments* TypeArguments::Canonicalize(TrailPtr trail) const {
   ASSERT(result.IsTypeArguments());
   ASSERT(result.IsCanonical());
   return result.raw();
+}
+
+
+RawString* TypeArguments::EnumerateURIs() const {
+  if (IsNull()) {
+    return Symbols::Empty().raw();
+  }
+  Zone* zone = Thread::Current()->zone();
+  AbstractType& type = AbstractType::Handle(zone);
+  const intptr_t num_types = Length();
+  GrowableHandlePtrArray<const String> pieces(zone, num_types);
+  for (intptr_t i = 0; i < num_types; i++) {
+    type = TypeAt(i);
+    pieces.Add(String::Handle(zone, type.EnumerateURIs()));
+  }
+  return Symbols::FromConcatAll(pieces);
 }
 
 
@@ -5942,7 +6039,7 @@ const char* Function::ToQualifiedCString() const {
 
 bool Function::HasCompatibleParametersWith(const Function& other,
                                            Error* bound_error) const {
-  ASSERT(Isolate::Current()->flags().error_on_bad_override());
+  ASSERT(Isolate::Current()->error_on_bad_override());
   ASSERT((bound_error != NULL) && bound_error->IsNull());
   // Check that this function's signature type is a subtype of the other
   // function's signature type.
@@ -6655,68 +6752,36 @@ bool Function::HasOptimizedCode() const {
 }
 
 
-RawString* Function::PrettyName() const {
-  const String& str = String::Handle(name());
-  return String::IdentifierPrettyName(str);
-}
-
-
-const char* Function::QualifiedUserVisibleNameCString() const {
-  const String& str = String::Handle(QualifiedUserVisibleName());
-  return str.ToCString();
-}
-
-
 RawString* Function::UserVisibleName() const {
-  return PrettyName();
+  if (FLAG_show_internal_names) {
+    return name();
+  }
+  return String::ScrubName(String::Handle(name()));
 }
 
 
-RawString* Function::QualifiedPrettyName() const {
-  String& tmp = String::Handle();
-  const Class& cls = Class::Handle(Owner());
-
+RawString* Function::QualifiedName(NameVisibility name_visibility) const {
+  ASSERT(name_visibility != kInternalName);  // We never request it.
+  // A function's scrubbed name and its user visible name are identical.
+  String& result = String::Handle(UserVisibleName());
   if (IsClosureFunction()) {
-    if (IsLocalFunction() && !IsImplicitClosureFunction()) {
-      const Function& parent = Function::Handle(parent_function());
-      tmp = parent.QualifiedPrettyName();
-    } else {
-      return PrettyName();
-    }
-  } else {
-    if (cls.IsTopLevel()) {
-      return PrettyName();
-    } else {
-      tmp = cls.PrettyName();
+    Function& fun = Function::Handle(raw());
+    while (fun.IsLocalFunction() && !fun.IsImplicitClosureFunction()) {
+      fun = fun.parent_function();
+      result = String::Concat(Symbols::Dot(), result, Heap::kOld);
+      result = String::Concat(
+          String::Handle(fun.UserVisibleName()), result, Heap::kOld);
     }
   }
-  tmp = String::Concat(tmp, Symbols::Dot(), Heap::kOld);
-  const String& suffix = String::Handle(PrettyName());
-  return String::Concat(tmp, suffix, Heap::kOld);
-}
-
-
-RawString* Function::QualifiedUserVisibleName() const {
-  String& tmp = String::Handle();
   const Class& cls = Class::Handle(Owner());
-
-  if (IsClosureFunction()) {
-    if (IsLocalFunction() && !IsImplicitClosureFunction()) {
-      const Function& parent = Function::Handle(parent_function());
-      tmp = parent.QualifiedUserVisibleName();
-    } else {
-      return UserVisibleName();
-    }
-  } else {
-    if (cls.IsTopLevel()) {
-      return UserVisibleName();
-    } else {
-      tmp = cls.UserVisibleName();
-    }
+  if (!cls.IsTopLevel()) {
+    result = String::Concat(Symbols::Dot(), result, Heap::kOld);
+    const String& cls_name = String::Handle(
+        name_visibility == kScrubbedName ? cls.ScrubbedName()
+                                         : cls.UserVisibleName());
+    result = String::Concat(cls_name, result, Heap::kOld);
   }
-  tmp = String::Concat(tmp, Symbols::Dot());
-  const String& suffix = String::Handle(UserVisibleName());
-  return String::Concat(tmp, suffix);
+  return result.raw();
 }
 
 
@@ -6766,9 +6831,7 @@ RawString* Function::GetSource() const {
 // Construct fingerprint from token stream. The token stream contains also
 // arguments.
 int32_t Function::SourceFingerprint() const {
-  uint32_t result = IsImplicitClosureFunction()
-      ? String::Handle(Function::Handle(parent_function()).Signature()).Hash()
-      : String::Handle(Signature()).Hash();
+  uint32_t result = 0;
   TokenStream::Iterator tokens_iterator(TokenStream::Handle(
       Script::Handle(script()).tokens()), token_pos());
   Object& obj = Object::Handle();
@@ -6818,6 +6881,9 @@ void Function::SaveICDataMap(
 void Function::RestoreICDataMap(
     ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data,
     bool clone_ic_data) const {
+  if (FLAG_force_clone_compiler_objects) {
+    clone_ic_data = true;
+  }
   ASSERT(deopt_id_to_ic_data->is_empty());
   Zone* zone = Thread::Current()->zone();
   const Array& saved_ic_data = Array::Handle(zone, ic_data_array());
@@ -7014,6 +7080,31 @@ const char* RedirectionData::ToCString() const {
 }
 
 
+RawField* Field::CloneFromOriginal() const {
+  return this->Clone(*this);
+}
+
+
+RawField* Field::Original() const {
+  if (IsNull()) {
+    return Field::null();
+  }
+  Object& obj = Object::Handle(raw_ptr()->owner_);
+  if (obj.IsField()) {
+    return Field::RawCast(obj.raw());
+  } else {
+    return this->raw();
+  }
+}
+
+
+void Field::SetOriginal(const Field& value) const {
+  ASSERT(value.IsOriginal());
+  ASSERT(!value.IsNull());
+  StorePointer(&raw_ptr()->owner_, reinterpret_cast<RawObject*>(value.raw()));
+}
+
+
 RawString* Field::GetterName(const String& field_name) {
   return String::Concat(Symbols::GetterPrefix(), field_name);
 }
@@ -7068,12 +7159,27 @@ bool Field::IsSetterName(const String& function_name) {
 
 void Field::set_name(const String& value) const {
   ASSERT(value.IsSymbol());
+  ASSERT(IsOriginal());
   StorePointer(&raw_ptr()->name_, value.raw());
 }
 
 
-RawClass* Field::owner() const {
-  const Object& obj = Object::Handle(raw_ptr()->owner_);
+RawObject* Field::RawOwner() const {
+  if (Original()) {
+    return raw_ptr()->owner_;
+  } else {
+    const Field& field = Field::Handle(Original());
+    ASSERT(field.IsOriginal());
+    ASSERT(!Object::Handle(field.raw_ptr()->owner_).IsField());
+    return field.raw_ptr()->owner_;
+  }
+}
+
+
+RawClass* Field::Owner() const {
+  const Field& field = Field::Handle(Original());
+  ASSERT(field.IsOriginal());
+  const Object& obj = Object::Handle(field.raw_ptr()->owner_);
   if (obj.IsClass()) {
     return Class::Cast(obj).raw();
   }
@@ -7082,8 +7188,10 @@ RawClass* Field::owner() const {
 }
 
 
-RawClass* Field::origin() const {
-  const Object& obj = Object::Handle(raw_ptr()->owner_);
+RawClass* Field::Origin() const {
+  const Field& field = Field::Handle(Original());
+  ASSERT(field.IsOriginal());
+  const Object& obj = Object::Handle(field.raw_ptr()->owner_);
   if (obj.IsClass()) {
     return Class::Cast(obj).raw();
   }
@@ -7092,8 +7200,10 @@ RawClass* Field::origin() const {
 }
 
 
-RawScript* Field::script() const {
-  const Object& obj = Object::Handle(raw_ptr()->owner_);
+RawScript* Field::Script() const {
+  const Field& field = Field::Handle(Original());
+  ASSERT(field.IsOriginal());
+  const Object& obj = Object::Handle(field.raw_ptr()->owner_);
   if (obj.IsClass()) {
     return Class::Cast(obj).script();
   }
@@ -7105,6 +7215,7 @@ RawScript* Field::script() const {
 // Called at finalization time
 void Field::SetFieldType(const AbstractType& value) const {
   ASSERT(Thread::Current()->IsMutatorThread());
+  ASSERT(IsOriginal());
   ASSERT(!value.IsNull());
   if (value.raw() != type()) {
     StorePointer(&raw_ptr()->type_, value.raw());
@@ -7191,7 +7302,7 @@ RawField* Field::NewTopLevel(const String& name,
 RawField* Field::Clone(const Class& new_owner) const {
   Field& clone = Field::Handle();
   clone ^= Object::Clone(*this, Heap::kOld);
-  const Class& owner = Class::Handle(this->owner());
+  const Class& owner = Class::Handle(this->Owner());
   const PatchClass& clone_owner =
       PatchClass::Handle(PatchClass::New(new_owner, owner));
   clone.set_owner(clone_owner);
@@ -7208,14 +7319,23 @@ RawField* Field::Clone(const Class& new_owner) const {
 }
 
 
-RawString* Field::PrettyName() const {
-  const String& str = String::Handle(name());
-  return String::IdentifierPrettyName(str);
+RawField* Field::Clone(const Field& original) const {
+  if (original.IsNull()) {
+    return Field::null();
+  }
+  ASSERT(original.IsOriginal());
+  Field& clone = Field::Handle();
+  clone ^= Object::Clone(*this, Heap::kOld);
+  clone.SetOriginal(original);
+  return clone.raw();
 }
 
 
 RawString* Field::UserVisibleName() const {
-  return PrettyName();
+  if (FLAG_show_internal_names) {
+    return name();
+  }
+  return String::ScrubName(String::Handle(name()));
 }
 
 
@@ -7226,6 +7346,7 @@ intptr_t Field::guarded_list_length() const {
 
 void Field::set_guarded_list_length(intptr_t list_length) const {
   ASSERT(Thread::Current()->IsMutatorThread());
+  ASSERT(IsOriginal());
   StoreSmi(&raw_ptr()->guarded_list_length_, Smi::New(list_length));
 }
 
@@ -7238,6 +7359,7 @@ intptr_t Field::guarded_list_length_in_object_offset() const {
 void Field::set_guarded_list_length_in_object_offset(
     intptr_t list_length_offset) const {
   ASSERT(Thread::Current()->IsMutatorThread());
+  ASSERT(IsOriginal());
   StoreNonPointer(&raw_ptr()->guarded_list_length_in_object_offset_,
                   static_cast<int8_t>(list_length_offset - kHeapObjectTag));
   ASSERT(guarded_list_length_in_object_offset() == list_length_offset);
@@ -7252,7 +7374,7 @@ const char* Field::ToCString() const {
   const char* kF1 = is_final() ? " final" : "";
   const char* kF2 = is_const() ? " const" : "";
   const char* field_name = String::Handle(name()).ToCString();
-  const Class& cls = Class::Handle(owner());
+  const Class& cls = Class::Handle(Owner());
   const char* cls_name = String::Handle(cls.Name()).ToCString();
   return OS::SCreate(Thread::Current()->zone(),
       "Field <%s.%s>:%s%s%s", cls_name, field_name, kF0, kF1, kF2);
@@ -7264,7 +7386,7 @@ const char* Field::ToCString() const {
 // named #f (or #f= in case of a setter).
 RawInstance* Field::AccessorClosure(bool make_setter) const {
   ASSERT(is_static());
-  const Class& field_owner = Class::Handle(owner());
+  const Class& field_owner = Class::Handle(Owner());
 
   String& closure_name = String::Handle(this->name());
   closure_name = Symbols::FromConcat(Symbols::HashMark(), closure_name);
@@ -7334,6 +7456,7 @@ RawArray* Field::dependent_code() const {
 
 
 void Field::set_dependent_code(const Array& array) const {
+  ASSERT(IsOriginal());
   StorePointer(&raw_ptr()->dependent_code_, array.raw());
 }
 
@@ -7377,6 +7500,7 @@ class FieldDependentArray : public WeakCodeReferences {
 
 
 void Field::RegisterDependentCode(const Code& code) const {
+  ASSERT(IsOriginal());
   DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   ASSERT(code.is_optimized());
   FieldDependentArray a(*this);
@@ -7385,6 +7509,7 @@ void Field::RegisterDependentCode(const Code& code) const {
 
 
 void Field::DeoptimizeDependentCode() const {
+  ASSERT(IsOriginal());
   ASSERT(Thread::Current()->IsMutatorThread());
   FieldDependentArray a(*this);
   a.DisableCode();
@@ -7399,6 +7524,7 @@ bool Field::IsUninitialized() const {
 
 
 void Field::SetPrecompiledInitializer(const Function& initializer) const {
+  ASSERT(IsOriginal());
   StorePointer(&raw_ptr()->initializer_.precompiled_, initializer.raw());
 }
 
@@ -7410,12 +7536,14 @@ bool Field::HasPrecompiledInitializer() const {
 
 
 void Field::SetSavedInitialStaticValue(const Instance& value) const {
+  ASSERT(IsOriginal());
   ASSERT(!HasPrecompiledInitializer());
   StorePointer(&raw_ptr()->initializer_.saved_value_, value.raw());
 }
 
 
 void Field::EvaluateInitializer() const {
+  ASSERT(IsOriginal());
   ASSERT(is_static());
   if (StaticValue() == Object::sentinel().raw()) {
     SetStaticValue(Object::transition_sentinel());
@@ -7517,6 +7645,7 @@ const char* Field::GuardedPropertiesAsCString() const {
 
 
 void Field::InitializeGuardedListLengthInObjectOffset() const {
+  ASSERT(IsOriginal());
   if (needs_length_check() &&
       (guarded_list_length() != Field::kUnknownFixedLength)) {
     const intptr_t offset = GetListLengthOffset(guarded_cid());
@@ -7529,6 +7658,7 @@ void Field::InitializeGuardedListLengthInObjectOffset() const {
 
 
 bool Field::UpdateGuardedCidAndLength(const Object& value) const {
+  ASSERT(IsOriginal());
   const intptr_t cid = value.GetClassId();
 
   if (guarded_cid() == kIllegalCid) {
@@ -7596,6 +7726,7 @@ bool Field::UpdateGuardedCidAndLength(const Object& value) const {
 
 
 void Field::RecordStore(const Object& value) const {
+  ASSERT(IsOriginal());
   if (!FLAG_use_field_guards) {
     return;
   }
@@ -8957,7 +9088,7 @@ static RawString* MakeClassMetaName(const Class& cls) {
 
 static RawString* MakeFieldMetaName(const Field& field) {
   const String& cname =
-      String::Handle(MakeClassMetaName(Class::Handle(field.origin())));
+      String::Handle(MakeClassMetaName(Class::Handle(field.Origin())));
   GrowableHandlePtrArray<const String> pieces(Thread::Current()->zone(), 3);
   pieces.Add(cname);
   pieces.Add(Symbols::At());
@@ -8972,7 +9103,7 @@ static RawString* MakeFunctionMetaName(const Function& func) {
   GrowableHandlePtrArray<const String> pieces(Thread::Current()->zone(), 3);
   pieces.Add(cname);
   pieces.Add(Symbols::At());
-  pieces.Add(String::Handle(func.QualifiedPrettyName()));
+  pieces.Add(String::Handle(func.QualifiedScrubbedName()));
   return Symbols::FromConcatAll(pieces);
 }
 
@@ -9422,7 +9553,7 @@ RawArray* Library::LoadedScripts() const {
       } else if (entry.IsFunction()) {
         owner_script = Function::Cast(entry).script();
       } else if (entry.IsField()) {
-        owner_script = Field::Cast(entry).script();
+        owner_script = Field::Cast(entry).Script();
       } else {
         continue;
       }
@@ -10262,6 +10393,11 @@ bool LibraryPrefix::LoadLibrary() const {
   }
   ASSERT(is_deferred_load());
   ASSERT(num_imports() == 1);
+  if (Dart::IsRunningPrecompiledCode()) {
+    // The library list was tree-shaken away.
+    this->set_is_loaded();
+    return true;
+  }
   // This is a prefix for a deferred library. If the library is not loaded
   // yet and isn't being loaded, call the library tag handler to schedule
   // loading. Once all outstanding load requests have completed, the embedder
@@ -11016,6 +11152,87 @@ void PcDescriptors::Verify(const Function& function) const {
     }
   }
 #endif  // DEBUG
+}
+
+
+TokenPosition CodeSourceMap::TokenPositionForPCOffset(
+    uword pc_offset) const {
+  Iterator iterator(*this);
+
+  TokenPosition result = TokenPosition::kNoSource;
+
+  while (iterator.MoveNext()) {
+    if (iterator.PcOffset() > pc_offset) {
+      break;
+    }
+    result = iterator.TokenPos();
+  }
+
+  return result;
+}
+
+
+RawFunction* CodeSourceMap::FunctionForPCOffset(const Code& code,
+                                                const Function& function,
+                                                uword pc_offset) const {
+  GrowableArray<Function*> inlined_functions;
+  code.GetInlinedFunctionsAt(pc_offset, &inlined_functions);
+  if (inlined_functions.length() > 0) {
+    Function* inlined_function = inlined_functions[0];
+    return inlined_function->raw();
+  } else {
+    return function.raw();
+  }
+}
+
+
+RawScript* CodeSourceMap::ScriptForPCOffset(const Code& code,
+                                            const Function& function,
+                                            uword pc_offset) const {
+  const Function& func =
+      Function::Handle(FunctionForPCOffset(code, function, pc_offset));
+  return func.script();
+}
+
+
+void CodeSourceMap::Dump(const CodeSourceMap& code_source_map,
+                         const Code& code,
+                         const Function& function) {
+  const String& code_name = String::Handle(code.QualifiedName());
+  THR_Print("Dumping Code Source Map for %s\n", code_name.ToCString());
+  if (code_source_map.Length() == 0) {
+    THR_Print("<empty>\n");
+    return;
+  }
+
+  const int addr_width = kBitsPerWord / 4;
+
+  Iterator iterator(code_source_map);
+  Function& current_function = Function::Handle();
+  Script& current_script = Script::Handle();
+  TokenPosition tp;
+  while (iterator.MoveNext()) {
+    const uword pc_offset = iterator.PcOffset();
+    tp = code_source_map.TokenPositionForPCOffset(pc_offset);
+    current_function ^=
+        code_source_map.FunctionForPCOffset(code, function, pc_offset);
+    current_script ^=
+        code_source_map.ScriptForPCOffset(code, function, pc_offset);
+    if (current_function.IsNull() || current_script.IsNull()) {
+      THR_Print("%#-*" Px "\t%s\t%s\n", addr_width,
+                pc_offset,
+                tp.ToCString(),
+                code_name.ToCString());
+      continue;
+    }
+    const String& uri = String::Handle(current_script.url());
+    ASSERT(!uri.IsNull());
+    THR_Print("%#-*" Px "\t%s\t%s\t%s\n", addr_width,
+              pc_offset,
+              tp.ToCString(),
+              current_function.ToQualifiedCString(),
+              uri.ToCString());
+  }
 }
 
 
@@ -12775,6 +12992,29 @@ void Code::SetInlinedIdToFunction(const Array& value) const {
 }
 
 
+RawArray* Code::GetInlinedIdToTokenPos() const {
+  const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
+  if (metadata.IsNull()) {
+    return metadata.raw();
+  }
+  return reinterpret_cast<RawArray*>(
+      metadata.At(RawCode::kInlinedIdToTokenPosIndex));
+}
+
+
+void Code::SetInlinedIdToTokenPos(const Array& value) const {
+  if (raw_ptr()->inlined_metadata_ == Array::null()) {
+    StorePointer(&raw_ptr()->inlined_metadata_,
+                 Array::New(RawCode::kInlinedMetadataSize, Heap::kOld));
+  }
+  const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
+  ASSERT(!metadata.IsNull());
+  ASSERT(metadata.IsOld());
+  ASSERT(value.IsOld());
+  metadata.SetAt(RawCode::kInlinedIdToTokenPosIndex, value);
+}
+
+
 RawArray* Code::GetInlinedCallerIdMap() const {
   const Array& metadata = Array::Handle(raw_ptr()->inlined_metadata_);
   if (metadata.IsNull()) {
@@ -13032,7 +13272,6 @@ const char* Code::ToCString() const {
 }
 
 
-// Called by disassembler.
 RawString* Code::Name() const {
   const Object& obj = Object::Handle(owner());
   if (obj.IsNull()) {
@@ -13044,36 +13283,23 @@ RawString* Code::Name() const {
   } else if (obj.IsClass()) {
     // Allocation stub.
     const Class& cls = Class::Cast(obj);
-    String& cls_name = String::Handle(cls.Name());
+    String& cls_name = String::Handle(cls.ScrubbedName());
     ASSERT(!cls_name.IsNull());
     return Symbols::FromConcat(Symbols::AllocationStubFor(), cls_name);
   } else {
     ASSERT(obj.IsFunction());
     // Dart function.
-    return Function::Cast(obj).name();
+    return Function::Cast(obj).UserVisibleName();  // Same as scrubbed name.
   }
 }
 
 
-RawString* Code::PrettyName() const {
+RawString* Code::QualifiedName() const {
   const Object& obj = Object::Handle(owner());
-  if (obj.IsNull()) {
-    // Regular stub.
-    const char* name = StubCode::NameOfStub(EntryPoint());
-    ASSERT(name != NULL);
-    const String& stub_name = String::Handle(String::New(name));
-    return String::Concat(Symbols::StubPrefix(), stub_name);
-  } else if (obj.IsClass()) {
-    // Allocation stub.
-    const Class& cls = Class::Cast(obj);
-    String& cls_name = String::Handle(cls.Name());
-    ASSERT(!cls_name.IsNull());
-    return String::Concat(Symbols::AllocationStubFor(), cls_name);
-  } else {
-    ASSERT(obj.IsFunction());
-    // Dart function.
-    return Function::Cast(obj).QualifiedPrettyName();
+  if (obj.IsFunction()) {
+    return Function::Cast(obj).QualifiedScrubbedName();
   }
+  return Name();
 }
 
 
@@ -13254,9 +13480,16 @@ void Code::DumpInlinedIntervals() const {
       THR_Print("  %" Pd ": %s\n", i, function.ToQualifiedCString());
     }
   }
+  THR_Print("Inlined token pos:\n");
+  const Array& token_pos_map = Array::Handle(GetInlinedIdToTokenPos());
+  Smi& smi = Smi::Handle();
+  for (intptr_t i = 0; i < token_pos_map.Length(); i++) {
+    smi ^= token_pos_map.At(i);
+    TokenPosition tp = TokenPosition(smi.Value());
+    THR_Print("  %" Pd ": %s\n", i, tp.ToCString());
+  }
   THR_Print("Caller Inlining Ids:\n");
   const Array& caller_map = Array::Handle(GetInlinedCallerIdMap());
-  Smi& smi = Smi::Handle();
   for (intptr_t i = 0; i < caller_map.Length(); i++) {
     smi ^= caller_map.At(i);
     THR_Print("  iid: %" Pd " caller iid: %" Pd "\n", i, smi.Value());
@@ -14255,7 +14488,7 @@ bool Instance::IsInstanceOf(const AbstractType& other,
           zone, other.InstantiateFrom(other_instantiator, bound_error,
                                       NULL, NULL, Heap::kOld));
       if ((bound_error != NULL) && !bound_error->IsNull()) {
-        ASSERT(Isolate::Current()->flags().type_checks());
+        ASSERT(Isolate::Current()->type_checks());
         return false;
       }
       if (instantiated_other.IsTypeRef()) {
@@ -14311,7 +14544,7 @@ bool Instance::IsInstanceOf(const AbstractType& other,
     instantiated_other = other.InstantiateFrom(other_instantiator, bound_error,
                                                NULL, NULL, Heap::kOld);
     if ((bound_error != NULL) && !bound_error->IsNull()) {
-      ASSERT(Isolate::Current()->flags().type_checks());
+      ASSERT(Isolate::Current()->type_checks());
       return false;
     }
     if (instantiated_other.IsTypeRef()) {
@@ -14713,6 +14946,13 @@ RawAbstractType* AbstractType::Canonicalize(TrailPtr trail) const {
 }
 
 
+RawString* AbstractType::EnumerateURIs() const {
+  // AbstractType is an abstract class.
+  UNREACHABLE();
+  return NULL;
+}
+
+
 RawAbstractType* AbstractType::OnlyBuddyInTrail(TrailPtr trail) const {
   if (trail == NULL) {
     return AbstractType::null();
@@ -14785,13 +15025,12 @@ bool AbstractType::TestAndAddBuddyToTrail(TrailPtr* trail,
 
 
 RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
+  ASSERT(name_visibility != kScrubbedName);
   Zone* zone = Thread::Current()->zone();
   if (IsBoundedType()) {
     const AbstractType& type = AbstractType::Handle(
         BoundedType::Cast(*this).type());
-    if (name_visibility == kPrettyName) {
-      return type.BuildName(kPrettyName);
-    } else if (name_visibility == kUserVisibleName) {
+    if (name_visibility == kUserVisibleName) {
       return type.BuildName(kUserVisibleName);
     }
     GrowableHandlePtrArray<const String> pieces(zone, 5);
@@ -14861,8 +15100,6 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
     }
     if (name_visibility == kInternalName) {
       class_name = cls.Name();
-    } else if (name_visibility == kPrettyName) {
-      class_name = cls.PrettyName();
     } else {
       ASSERT(name_visibility == kUserVisibleName);
       // Map internal types to their corresponding public interfaces.
@@ -14908,6 +15145,29 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
   // The name is only used for type checking and debugging purposes.
   // Unless profiling data shows otherwise, it is not worth caching the name in
   // the type.
+  return Symbols::FromConcatAll(pieces);
+}
+
+
+// Same as user visible name, but including the URI of each occuring type.
+// Used to report errors involving types with identical names.
+//
+// e.g.
+//   MyClass<String>     -> MyClass<String> where
+//                            MyClass is from my_uri
+//                            String is from dart:core
+//   MyClass<dynamic, T> -> MyClass<dynamic, T> where
+//                            MyClass is from my_uri
+//                            T of OtherClass is from other_uri
+//   (MyClass) => int    -> (MyClass) => int where
+//                            MyClass is from my_uri
+//                            int is from dart:core
+RawString* AbstractType::UserVisibleNameWithURI() const {
+  Zone* zone = Thread::Current()->zone();
+  GrowableHandlePtrArray<const String> pieces(zone, 3);
+  pieces.Add(String::Handle(zone, BuildName(kUserVisibleName)));
+  pieces.Add(Symbols::SpaceWhereNewLine());
+  pieces.Add(String::Handle(zone, EnumerateURIs()));
   return Symbols::FromConcatAll(pieces);
 }
 
@@ -15007,14 +15267,14 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
   // type and/or malbounded parameter types, which will then be encountered here
   // at run time.
   if (IsMalbounded()) {
-    ASSERT(Isolate::Current()->flags().type_checks());
+    ASSERT(Isolate::Current()->type_checks());
     if ((bound_error != NULL) && bound_error->IsNull()) {
       *bound_error = error();
     }
     return false;
   }
   if (other.IsMalbounded()) {
-    ASSERT(Isolate::Current()->flags().type_checks());
+    ASSERT(Isolate::Current()->type_checks());
     if ((bound_error != NULL) && bound_error->IsNull()) {
       *bound_error = other.error();
     }
@@ -15265,7 +15525,7 @@ bool Type::IsMalformed() const {
 
 
 bool Type::IsMalbounded() const {
-  if (!Isolate::Current()->flags().type_checks()) {
+  if (!Isolate::Current()->type_checks()) {
     return false;
   }
   if (raw_ptr()->error_ == LanguageError::null()) {
@@ -15285,7 +15545,7 @@ bool Type::IsMalformedOrMalbounded() const {
     return true;
   }
   ASSERT(type_error.kind() == Report::kMalboundedType);
-  return Isolate::Current()->flags().type_checks();
+  return Isolate::Current()->type_checks();
 }
 
 
@@ -15569,9 +15829,14 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
       set_arguments(type_args);
       type = cls.CanonicalType();  // May be set while canonicalizing type args.
       if (type.IsNull()) {
-        cls.set_canonical_types(*this);
-        SetCanonical();
-        return this->raw();
+        MutexLocker ml(isolate->type_canonicalization_mutex());
+        // Recheck if type exists.
+        type = cls.CanonicalType();
+        if (type.IsNull()) {
+          SetCanonical();
+          cls.set_canonical_types(*this);
+          return this->raw();
+        }
       }
     }
     ASSERT(this->Equals(type));
@@ -15616,43 +15881,28 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
     return this->raw();
   }
   set_arguments(type_args);
-
-  // Canonicalizing the type arguments may have changed the index, may have
-  // grown the table, or may even have canonicalized this type.
-  canonical_types ^= cls.canonical_types();
-  if (canonical_types.IsNull()) {
-    canonical_types = empty_array().raw();
-  }
-  length = canonical_types.Length();
-  while (index < length) {
-    type ^= canonical_types.At(index);
-    if (type.IsNull()) {
-      break;
-    }
-    ASSERT(type.IsFinalized());
-    if (this->Equals(type)) {
-      ASSERT(type.IsCanonical());
-      return type.raw();
-    }
-    index++;
-  }
-
-  // The type needs to be added to the list. Grow the list if it is full.
-  if (index >= length) {
-    ASSERT((index == length) || ((index == 1) && (length == 0)));
-    const intptr_t new_length = (length > 64) ?
-        (length + 64) :
-        ((length == 0) ? 2 : (length * 2));
-    const Array& new_canonical_types = Array::Handle(
-        zone, Array::Grow(canonical_types, new_length, Heap::kOld));
-    cls.set_canonical_types(new_canonical_types);
-    canonical_types = new_canonical_types.raw();
-  }
-  canonical_types.SetAt(index, *this);
-  ASSERT(IsOld());
   ASSERT(type_args.IsNull() || type_args.IsOld());
-  SetCanonical();
-  return this->raw();
+
+  return cls.LookupOrAddCanonicalType(*this, index);
+}
+
+
+RawString* Type::EnumerateURIs() const {
+  if (IsDynamicType()) {
+    return Symbols::Empty().raw();
+  }
+  Zone* zone = Thread::Current()->zone();
+  GrowableHandlePtrArray<const String> pieces(zone, 6);
+  const Class& cls = Class::Handle(zone, type_class());
+  pieces.Add(Symbols::TwoSpaces());
+  pieces.Add(String::Handle(zone, cls.UserVisibleName()));
+  pieces.Add(Symbols::SpaceIsFromSpace());
+  const Library& library = Library::Handle(zone, cls.library());
+  pieces.Add(String::Handle(zone, library.url()));
+  pieces.Add(Symbols::NewLine());
+  const TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
+  pieces.Add(String::Handle(zone, type_args.EnumerateURIs()));
+  return Symbols::FromConcatAll(pieces);
 }
 
 
@@ -15772,7 +16022,7 @@ bool FunctionType::IsMalformed() const {
 
 
 bool FunctionType::IsMalbounded() const {
-  if (!Isolate::Current()->flags().type_checks()) {
+  if (!Isolate::Current()->type_checks()) {
     return false;
   }
   if (raw_ptr()->error_ == LanguageError::null()) {
@@ -15792,7 +16042,7 @@ bool FunctionType::IsMalformedOrMalbounded() const {
     return true;
   }
   ASSERT(type_error.kind() == Report::kMalboundedType);
-  return Isolate::Current()->flags().type_checks();
+  return Isolate::Current()->type_checks();
 }
 
 
@@ -16107,43 +16357,31 @@ RawAbstractType* FunctionType::Canonicalize(TrailPtr trail) const {
     sig_fun.set_parameter_names(Array::Handle(zone, fun.parameter_names()));
     set_signature(sig_fun);
   }
-
-  // Canonicalizing the type arguments and the signature may have changed the
-  // index, may have grown the table, or may even have canonicalized this type.
-  canonical_types ^= scope_cls.canonical_types();
-  if (canonical_types.IsNull()) {
-    canonical_types = empty_array().raw();
-  }
-  length = canonical_types.Length();
-  while (index < length) {
-    type ^= canonical_types.At(index);
-    if (type.IsNull()) {
-      break;
-    }
-    ASSERT(type.IsFinalized());
-    if (this->Equals(type)) {
-      ASSERT(type.IsCanonical());
-      return type.raw();
-    }
-    index++;
-  }
-
-  // The type needs to be added to the list. Grow the list if it is full.
-  if (index >= length) {
-    ASSERT((index == length) || ((index == 1) && (length == 0)));
-    const intptr_t new_length = (length > 64) ?
-        (length + 64) :
-        ((length == 0) ? 2 : (length * 2));
-    const Array& new_canonical_types = Array::Handle(
-        zone, Array::Grow(canonical_types, new_length, Heap::kOld));
-    scope_cls.set_canonical_types(new_canonical_types);
-    canonical_types = new_canonical_types.raw();
-  }
-  canonical_types.SetAt(index, *this);
-  ASSERT(IsOld());
   ASSERT(type_args.IsNull() || type_args.IsOld());
-  SetCanonical();
-  return this->raw();
+
+  return scope_cls.LookupOrAddCanonicalType(*this, index);
+}
+
+
+RawString* FunctionType::EnumerateURIs() const {
+  Zone* zone = Thread::Current()->zone();
+  // The scope class and type arguments do not appear explicitly in the user
+  // visible name. The type arguments were used to instantiate the function type
+  // prior to this call.
+  const Function& sig_fun = Function::Handle(zone, signature());
+  AbstractType& type = AbstractType::Handle(zone);
+  const intptr_t num_params = sig_fun.NumParameters();
+  GrowableHandlePtrArray<const String> pieces(zone, num_params + 1);
+  for (intptr_t i = 0; i < num_params; i++) {
+    type = sig_fun.ParameterTypeAt(i);
+    pieces.Add(String::Handle(zone, type.EnumerateURIs()));
+  }
+  // Handle result type last, since it appears last in the user visible name.
+  type = sig_fun.result_type();
+  if (!type.IsDynamicType() && !type.IsVoidType()) {
+    pieces.Add(String::Handle(zone, type.EnumerateURIs()));
+  }
+  return Symbols::FromConcatAll(pieces);
 }
 
 
@@ -16347,6 +16585,11 @@ RawAbstractType* TypeRef::Canonicalize(TrailPtr trail) const {
   ref_type = ref_type.Canonicalize(trail);
   set_type(ref_type);
   return raw();
+}
+
+
+RawString* TypeRef::EnumerateURIs() const {
+  return Symbols::Empty().raw();  // Break cycle.
 }
 
 
@@ -16565,6 +16808,22 @@ RawAbstractType* TypeParameter::CloneUninstantiated(
 }
 
 
+RawString* TypeParameter::EnumerateURIs() const {
+  Zone* zone = Thread::Current()->zone();
+  GrowableHandlePtrArray<const String> pieces(zone, 4);
+  pieces.Add(Symbols::TwoSpaces());
+  pieces.Add(String::Handle(zone, name()));
+  pieces.Add(Symbols::SpaceOfSpace());
+  const Class& cls = Class::Handle(zone, parameterized_class());
+  pieces.Add(String::Handle(zone, cls.UserVisibleName()));
+  pieces.Add(Symbols::SpaceIsFromSpace());
+  const Library& library = Library::Handle(zone, cls.library());
+  pieces.Add(String::Handle(zone, library.url()));
+  pieces.Add(Symbols::NewLine());
+  return Symbols::FromConcatAll(pieces);
+}
+
+
 intptr_t TypeParameter::Hash() const {
   ASSERT(IsFinalized());
   uint32_t result = Class::Handle(parameterized_class()).id();
@@ -16735,7 +16994,7 @@ RawAbstractType* BoundedType::InstantiateFrom(
     // (or instantiated) either.
     // Note that instantiator_type_arguments must have the final length, though.
   }
-  if ((Isolate::Current()->flags().type_checks()) &&
+  if ((Isolate::Current()->type_checks()) &&
       (bound_error != NULL) && bound_error->IsNull()) {
     AbstractType& upper_bound = AbstractType::Handle(bound());
     ASSERT(upper_bound.IsFinalized());
@@ -16814,6 +17073,12 @@ RawAbstractType* BoundedType::CloneUninstantiated(
   TypeParameter& type_param =  TypeParameter::Handle(type_parameter());
   type_param ^= type_param.CloneUninstantiated(new_owner, trail);
   return BoundedType::New(bounded_type, upper_bound, type_param);
+}
+
+
+RawString* BoundedType::EnumerateURIs() const {
+  // The bound does not appear in the user visible name.
+  return AbstractType::Handle(type()).EnumerateURIs();
 }
 
 
@@ -21059,23 +21324,6 @@ static intptr_t PrintOneStacktrace(Zone* zone,
 }
 
 
-static intptr_t PrintOneStacktraceNoCode(Zone* zone,
-                                         GrowableArray<char*>* frame_strings,
-                                         const Function& function,
-                                         intptr_t frame_index) {
-  const Script& script = Script::Handle(zone, function.script());
-  const String& function_name =
-      String::Handle(zone, function.QualifiedUserVisibleName());
-  const String& url = String::Handle(zone, script.url());
-  char* chars = NULL;
-  chars = OS::SCreate(zone,
-      "#%-6" Pd " %s (%s)\n",
-      frame_index, function_name.ToCString(), url.ToCString());
-  frame_strings->Add(chars);
-  return strlen(chars);
-}
-
-
 const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
                                           intptr_t max_frames) const {
   Zone* zone = Thread::Current()->zone();
@@ -21088,7 +21336,7 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
   for (intptr_t i = 0; (i < Length()) && (*frame_index < max_frames); i++) {
     function = FunctionAtFrame(i);
     if (function.IsNull()) {
-      // Check if null function object indicates a gap in a StackOverflow or
+      // Check for a null function, which indicates a gap in a StackOverflow or
       // OutOfMemory trace.
       if ((i < (Length() - 1)) &&
           (FunctionAtFrame(i + 1) != Function::null())) {
@@ -21098,48 +21346,29 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
         OS::SNPrint(chars, truncated_len, "%s", kTruncated);
         frame_strings.Add(chars);
         total_len += truncated_len;
+        ASSERT(PcOffsetAtFrame(i) != Smi::null());
+        // To account for gap frames.
+        (*frame_index) += Smi::Value(PcOffsetAtFrame(i));
       }
     } else {
       code = CodeAtFrame(i);
       ASSERT(function.raw() == code.function());
       uword pc = code.EntryPoint() + Smi::Value(PcOffsetAtFrame(i));
-      if (code.is_optimized() && expand_inlined()) {
+      if (code.is_optimized() && expand_inlined() && !FLAG_precompiled_mode) {
         // Traverse inlined frames.
-        if (!FLAG_precompilation) {
-          for (InlinedFunctionsIterator it(code, pc);
-               !it.Done() && (*frame_index < max_frames); it.Advance()) {
-            function = it.function();
-            if (function.is_visible() || FLAG_show_invisible_frames) {
-              code = it.code();
-              ASSERT(function.raw() == code.function());
-              uword pc = it.pc();
-              ASSERT(pc != 0);
-              ASSERT(code.EntryPoint() <= pc);
-              ASSERT(pc < (code.EntryPoint() + code.Size()));
-              total_len += PrintOneStacktrace(
-                  zone, &frame_strings, pc, function, code, *frame_index);
-              (*frame_index)++;  // To account for inlined frames.
-            }
-          }
-        } else {
-          // Precompilation: we don't have deopt info, so we don't know the
-          // source position of inlined functions, but we can still name them.
-          intptr_t offset = Smi::Value(PcOffsetAtFrame(i));
-          // The PC of frames below the top frame is a call's return address,
-          // which can belong to a different inlining interval than the call.
-          intptr_t effective_offset = offset - 1;
-          GrowableArray<Function*> inlined_functions;
-          code.GetInlinedFunctionsAt(effective_offset, &inlined_functions);
-          ASSERT(inlined_functions.length() >= 1);  // At least the inliner.
-          for (intptr_t j = 0; j < inlined_functions.length(); j++) {
-            Function* inlined_function = inlined_functions[j];
-            ASSERT(inlined_function != NULL);
-            ASSERT(!inlined_function->IsNull());
-            if (inlined_function->is_visible() || FLAG_show_invisible_frames) {
-              total_len += PrintOneStacktraceNoCode(
-                  zone, &frame_strings, *inlined_function, *frame_index);
-              (*frame_index)++;
-            }
+        for (InlinedFunctionsIterator it(code, pc);
+             !it.Done() && (*frame_index < max_frames); it.Advance()) {
+          function = it.function();
+          if (function.is_visible() || FLAG_show_invisible_frames) {
+            code = it.code();
+            ASSERT(function.raw() == code.function());
+            uword pc = it.pc();
+            ASSERT(pc != 0);
+            ASSERT(code.EntryPoint() <= pc);
+            ASSERT(pc < (code.EntryPoint() + code.Size()));
+            total_len += PrintOneStacktrace(
+                zone, &frame_strings, pc, function, code, *frame_index);
+            (*frame_index)++;  // To account for inlined frames.
           }
         }
       } else {

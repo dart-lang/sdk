@@ -19,9 +19,6 @@ DEFINE_FLAG(bool, load_cse, true, "Use redundant load elimination.");
 DEFINE_FLAG(bool, trace_load_optimization, false,
     "Print live sets for load optimization pass.");
 
-DECLARE_FLAG(bool, fields_may_be_reset);
-DECLARE_FLAG(bool, precompilation);
-
 // Quick access to the current zone.
 #define Z (zone())
 
@@ -484,12 +481,13 @@ class Place : public ValueObject {
   }
 
   bool SameField(const Place* other) const {
-    return (kind() == kField) ? (field().raw() == other->field().raw())
-                              : (offset_in_bytes_ == other->offset_in_bytes_);
+    return (kind() == kField) ?
+        (field().Original() == other->field().Original()) :
+        (offset_in_bytes_ == other->offset_in_bytes_);
   }
 
   intptr_t FieldHashcode() const {
-    return (kind() == kField) ? reinterpret_cast<intptr_t>(field().raw())
+    return (kind() == kField) ? reinterpret_cast<intptr_t>(field().Original())
                               : offset_in_bytes_;
   }
 
@@ -1430,7 +1428,7 @@ void LICM::TrySpecializeSmiPhi(PhiInstr* phi,
 
 void LICM::OptimisticallySpecializeSmiPhis() {
   if (!flow_graph()->function().allows_hoisting_check_class() ||
-      FLAG_precompilation) {
+      FLAG_precompiled_mode) {
     // Do not hoist any: Either deoptimized on a hoisted check,
     // or compiling precompiled code where we can't do optimistic
     // hoisting of checks.
@@ -3088,6 +3086,8 @@ void AllocationSinking::DetachMaterializations() {
 // Add a field/offset to the list of fields if it is not yet present there.
 static bool AddSlot(ZoneGrowableArray<const Object*>* slots,
                     const Object& slot) {
+  ASSERT(slot.IsSmi() || slot.IsField());
+  ASSERT(!slot.IsField() || Field::Cast(slot).IsOriginal());
   for (intptr_t i = 0; i < slots->length(); i++) {
     if ((*slots)[i]->raw() == slot.raw()) {
       return false;
@@ -3284,7 +3284,7 @@ void AllocationSinking::InsertMaterializations(Definition* alloc) {
     StoreInstanceFieldInstr* store = use->instruction()->AsStoreInstanceField();
     if ((store != NULL) && (store->instance()->definition() == alloc)) {
       if (!store->field().IsNull()) {
-        AddSlot(slots, store->field());
+        AddSlot(slots, Field::ZoneHandle(Z, store->field().Original()));
       } else {
         AddSlot(slots, Smi::ZoneHandle(Z, Smi::New(store->offset_in_bytes())));
       }

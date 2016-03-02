@@ -17,11 +17,8 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, allow_absolute_addresses);
 DECLARE_FLAG(bool, check_code_pointer);
 DECLARE_FLAG(bool, inline_alloc);
-
-DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
 
 
 Assembler::Assembler(bool use_far_branches)
@@ -94,6 +91,18 @@ void Assembler::CallPatchable(const StubEntry& stub_entry) {
   movq(TMP, FieldAddress(CODE_REG, Code::entry_point_offset()));
   call(TMP);
   ASSERT((buffer_.GetPosition() - call_start) == kCallExternalLabelSize);
+}
+
+
+void Assembler::CallWithEquivalence(const StubEntry& stub_entry,
+                                    const Object& equivalence) {
+  ASSERT(constant_pool_allowed());
+  const Code& target = Code::Handle(stub_entry.code());
+  const int32_t offset = ObjectPool::element_offset(
+      object_pool_wrapper_.FindObject(target, equivalence));
+  LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag);
+  movq(TMP, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  call(TMP);
 }
 
 
@@ -2740,6 +2749,7 @@ void Assembler::Drop(intptr_t stack_elements, Register tmp) {
 
 bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
+  ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
   ASSERT(!Thread::CanLoadFromThread(object));
   if (!constant_pool_allowed()) {
     return false;
@@ -2776,6 +2786,7 @@ void Assembler::LoadObjectHelper(Register dst,
                                  const Object& object,
                                  bool is_unique) {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
+  ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
   if (Thread::CanLoadFromThread(object)) {
     movq(dst, Address(THR, Thread::OffsetFromThread(object)));
   } else if (CanLoadFromObjectPool(object)) {
@@ -2814,6 +2825,7 @@ void Assembler::LoadUniqueObject(Register dst, const Object& object) {
 
 void Assembler::StoreObject(const Address& dst, const Object& object) {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
+  ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
   if (Thread::CanLoadFromThread(object)) {
     movq(TMP, Address(THR, Thread::OffsetFromThread(object)));
     movq(dst, TMP);
@@ -2829,6 +2841,7 @@ void Assembler::StoreObject(const Address& dst, const Object& object) {
 
 void Assembler::PushObject(const Object& object) {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
+  ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
   if (Thread::CanLoadFromThread(object)) {
     pushq(Address(THR, Thread::OffsetFromThread(object)));
   } else if (CanLoadFromObjectPool(object)) {
@@ -2843,6 +2856,7 @@ void Assembler::PushObject(const Object& object) {
 
 void Assembler::CompareObject(Register reg, const Object& object) {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
+  ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
   if (Thread::CanLoadFromThread(object)) {
     cmpq(reg, Address(THR, Thread::OffsetFromThread(object)));
   } else if (CanLoadFromObjectPool(object)) {
@@ -3070,6 +3084,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Object& value,
                                          FieldContent old_content) {
   ASSERT(!value.IsICData() || ICData::Cast(value).IsOriginal());
+  ASSERT(!value.IsField() || Field::Cast(value).IsOriginal());
   VerifyHeapWord(dest, old_content);
   if (VerifiedMemory::enabled()) {
     const Register temp = RCX;

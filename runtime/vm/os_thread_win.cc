@@ -305,6 +305,21 @@ Monitor::~Monitor() {
 }
 
 
+bool Monitor::TryEnter() {
+  // Attempt to pass the semaphore but return immediately.
+  BOOL result = TryEnterCriticalSection(&data_.cs_);
+  if (!result) {
+    return false;
+  }
+#if defined(DEBUG)
+  // When running with assertions enabled we do track the owner.
+  ASSERT(owner_ == OSThread::kInvalidThreadId);
+  owner_ = OSThread::GetCurrentThreadId();
+#endif  // defined(DEBUG)
+  return true;
+}
+
+
 void Monitor::Enter() {
   EnterCriticalSection(&data_.cs_);
 

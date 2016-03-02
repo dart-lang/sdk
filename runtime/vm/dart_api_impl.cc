@@ -51,8 +51,6 @@ namespace dart {
 #define Z (T->zone())
 
 
-DECLARE_FLAG(bool, load_deferred_eagerly);
-DECLARE_FLAG(bool, precompilation);
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, verify_handles);
 #if defined(DART_NO_SNAPSHOT)
@@ -1147,7 +1145,7 @@ DART_EXPORT char* Dart_Initialize(
     Dart_FileCloseCallback file_close,
     Dart_EntropySource entropy_source,
     Dart_GetVMServiceAssetsArchive get_service_assets) {
-  if ((instructions_snapshot != NULL) && !FLAG_precompilation) {
+  if ((instructions_snapshot != NULL) && !FLAG_precompiled_mode) {
     return strdup("Flag --precompilation was not specified.");
   }
   if (interrupt != NULL) {
@@ -1242,8 +1240,7 @@ DART_EXPORT Dart_Isolate Dart_CreateIsolate(const char* script_uri,
   // Setup default flags in case none were passed.
   Dart_IsolateFlags api_flags;
   if (flags == NULL) {
-    Isolate::Flags vm_flags;
-    vm_flags.CopyTo(&api_flags);
+    Isolate::FlagsInitialize(&api_flags);
     flags = &api_flags;
   }
   Isolate* I = Dart::CreateIsolate(isolate_name, *flags);
@@ -1613,12 +1610,12 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
   CHECK_API_SCOPE(T);
   CHECK_CALLBACK_STATE(T);
   API_TIMELINE_BEGIN_END;
-  Monitor monitor;
-  MonitorLocker ml(&monitor);
+  // The message handler run loop does not expect to have a current isolate
+  // so we exit the isolate here and enter it again after the runloop is done.
+  ::Dart_ExitIsolate();
   {
-    // The message handler run loop does not expect to have a current isolate
-    // so we exit the isolate here and enter it again after the runloop is done.
-    Dart_ExitIsolate();
+    Monitor monitor;
+    MonitorLocker ml(&monitor);
     RunLoopData data;
     data.monitor = &monitor;
     data.done = false;
@@ -1628,8 +1625,8 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
     while (!data.done) {
       ml.Wait();
     }
-    ::Dart_EnterIsolate(Api::CastIsolate(I));
   }
+  ::Dart_EnterIsolate(Api::CastIsolate(I));
   if (T->sticky_error() != Object::null()) {
     Dart_Handle error = Api::NewHandle(T, T->sticky_error());
     T->clear_sticky_error();
@@ -4321,7 +4318,7 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
       getter = lib.LookupFunctionAllowPrivate(getter_name);
     } else if (!field.IsNull() && field.IsUninitialized()) {
       // A field was found.  Check for a getter in the field's owner classs.
-      const Class& cls = Class::Handle(Z, field.owner());
+      const Class& cls = Class::Handle(Z, field.Owner());
       const String& getter_name = String::Handle(Z,
           Field::GetterName(field_name));
       getter = cls.LookupStaticFunctionAllowPrivate(getter_name);
@@ -4967,6 +4964,44 @@ DART_EXPORT void Dart_SetWeakHandleReturnValue(Dart_NativeArguments args,
 
 
 // --- Environment ---
+RawString* Api::GetEnvironmentValue(Thread* thread, const String& name) {
+  String& result = String::Handle(CallEnvironmentCallback(thread, name));
+  if (result.IsNull()) {
+    // Every 'dart:X' library introduces an environment variable
+    // 'dart.library.X' that is set to 'true'.
+    // We just need to make sure to hide private libraries (starting with
+    // "_", and the mirrors library, if it is not supported.
+
+    if (!FLAG_enable_mirrors && name.Equals(Symbols::DartLibraryMirrors())) {
+      return Symbols::False().raw();
+    }
+
+    const String& prefix = Symbols::DartLibrary();
+    if (name.StartsWith(prefix)) {
+      const String& library_name =
+          String::Handle(String::SubString(name, prefix.Length()));
+
+      // Private libraries (starting with "_") are not exposed to the user.
+      if (!library_name.IsNull() && library_name.CharAt(0) != '_') {
+        const String& dart_library_name =
+            String::Handle(String::Concat(Symbols::DartScheme(), library_name));
+        const Library& library =
+            Library::Handle(Library::LookupLibrary(dart_library_name));
+        if (!library.IsNull()) {
+          return Symbols::True().raw();
+        }
+      }
+    }
+    // Check for default VM provided values. If it was not overriden on the
+    // command line.
+    if (Symbols::DartIsVM().Equals(name)) {
+      return Symbols::True().raw();
+    }
+  }
+  return result.raw();
+}
+
+
 RawString* Api::CallEnvironmentCallback(Thread* thread, const String& name) {
   Isolate* isolate = thread->isolate();
   Dart_EnvironmentCallback callback = isolate->environment_callback();
@@ -4986,15 +5021,6 @@ RawString* Api::CallEnvironmentCallback(Thread* thread, const String& name) {
       // At this point everything except null are invalid environment values.
       Exceptions::ThrowArgumentError(
           String::Handle(String::New("Illegal environment value")));
-    }
-  }
-  if (result.IsNull()) {
-    // TODO(iposva): Determine whether builtin values can be overriden by the
-    // embedder.
-    // Check for default VM provided values. If it was not overriden on the
-    // command line.
-    if (Symbols::DartIsVM().Equals(name)) {
-      return Symbols::True().raw();
     }
   }
   return result.raw();
@@ -6100,7 +6126,7 @@ DART_EXPORT Dart_Handle Dart_Precompile(
     bool reset_fields) {
   API_TIMELINE_BEGIN_END;
   DARTSCOPE(Thread::Current());
-  if (!FLAG_precompilation) {
+  if (!FLAG_precompiled_mode) {
     return Dart_NewApiError("Flag --precompilation was not specified.");
   }
   Dart_Handle result = Api::CheckAndFinalizePendingClasses(T);

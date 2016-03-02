@@ -108,8 +108,8 @@ abstract class HttpStatus {
  *       var key =
  *           Platform.script.resolve('certificates/server_key.pem')
  *           .toFilePath();
- *       context.useCertificateChainSync(chain);
- *       context.usePrivateKeySync(key, password: 'dartdart');
+ *       context.useCertificateChain(chain);
+ *       context.usePrivateKey(key, password: 'dartdart');
  *
  *       HttpServer
  *           .bindSecure(InternetAddress.ANY_IP_V6,

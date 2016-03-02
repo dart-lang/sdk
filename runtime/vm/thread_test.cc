@@ -45,6 +45,8 @@ UNIT_TEST_CASE(Monitor) {
   Monitor* monitor = new Monitor();
   monitor->Enter();
   monitor->Exit();
+  EXPECT_EQ(true, monitor->TryEnter());
+  monitor->Exit();
 
   const int kNumAttempts = 5;
   int attempts = 0;

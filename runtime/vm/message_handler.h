@@ -12,6 +12,9 @@
 
 namespace dart {
 
+// Forward declarations.
+class MonitorLocker;
+
 // A MessageHandler is an entity capable of accepting messages.
 class MessageHandler {
  protected:
@@ -225,7 +228,8 @@ class MessageHandler {
   void ClearOOBQueue();
 
   // Handles any pending messages.
-  MessageStatus HandleMessages(bool allow_normal_messages,
+  MessageStatus HandleMessages(MonitorLocker* ml,
+                               bool allow_normal_messages,
                                bool allow_multiple_normal_messages);
 
   Monitor monitor_;  // Protects all fields in MessageHandler.

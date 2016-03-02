@@ -30,10 +30,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, allow_absolute_addresses, true,
-    "Allow embedding absolute addresses in generated code.");
-DEFINE_FLAG(bool, always_megamorphic_calls, false,
-    "Instance call always as megamorphic.");
 DEFINE_FLAG(bool, enable_simd_inline, true,
     "Enable inlining of SIMD related method calls.");
 DEFINE_FLAG(int, min_optimization_counter_threshold, 5000,
@@ -45,28 +41,14 @@ DEFINE_FLAG(bool, trace_inlining_intervals, false,
     "Inlining interval diagnostics");
 DEFINE_FLAG(bool, use_megamorphic_stub, true, "Out of line megamorphic lookup");
 
-DECLARE_FLAG(bool, background_compilation);
 DECLARE_FLAG(bool, code_comments);
-DECLARE_FLAG(bool, collect_dynamic_function_names);
-DECLARE_FLAG(bool, deoptimize_alot);
-DECLARE_FLAG(int, deoptimize_every);
 DECLARE_FLAG(charp, deoptimize_filter);
-DECLARE_FLAG(bool, emit_edge_counters);
-DECLARE_FLAG(bool, fields_may_be_reset);
-DECLARE_FLAG(bool, ic_range_profiling);
 DECLARE_FLAG(bool, intrinsify);
-DECLARE_FLAG(bool, load_deferred_eagerly);
-DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, propagate_ic_data);
 DECLARE_FLAG(int, regexp_optimization_counter_threshold);
 DECLARE_FLAG(int, reoptimization_counter_threshold);
 DECLARE_FLAG(int, stacktrace_every);
 DECLARE_FLAG(charp, stacktrace_filter);
-DECLARE_FLAG(bool, use_field_guards);
-DECLARE_FLAG(bool, use_osr);
-DECLARE_FLAG(bool, print_stop_message);
-DECLARE_FLAG(bool, interpret_irregexp);
-DECLARE_FLAG(bool, link_natives_lazily);
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(int, inlining_hotness);
 DECLARE_FLAG(int, inlining_size_threshold);
@@ -77,39 +59,19 @@ DECLARE_FLAG(int, inlining_caller_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_max_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_min_size_threshold);
 
-bool FLAG_precompilation = false;
+#if !defined(DART_PRECOMPILED_RUNTIME)
 static void PrecompilationModeHandler(bool value) {
   if (value) {
 #if defined(TARGET_ARCH_IA32)
     FATAL("Precompilation not supported on IA32");
 #endif
-    FLAG_precompilation = true;
 
-    FLAG_always_megamorphic_calls = true;
-    FLAG_optimization_counter_threshold = -1;
-    FLAG_use_field_guards = false;
-    FLAG_use_osr = false;
-    FLAG_emit_edge_counters = false;
-#ifndef PRODUCT
+#if defined(PRODUCT)
+    FATAL("dart_noopt not supported in product mode");
+#else
     FLAG_support_debugger = false;
-#endif  // !PRODUCT
-    FLAG_ic_range_profiling = false;
-    FLAG_collect_code = false;
-    FLAG_load_deferred_eagerly = true;
-    FLAG_deoptimize_alot = false;  // Used in some tests.
-    FLAG_deoptimize_every = 0;     // Used in some tests.
-    // Calling the PrintStopMessage stub is not supported in precompiled code
-    // since it is done at places where no pool pointer is loaded.
-    FLAG_print_stop_message = false;
 
-    FLAG_interpret_irregexp = true;
-#ifndef PRODUCT
-    FLAG_enable_mirrors = false;
-#endif  // !PRODUCT
-    FLAG_link_natives_lazily = true;
-    FLAG_fields_may_be_reset = true;
-    FLAG_allow_absolute_addresses = false;
-
+    // Flags affecting compilation only:
     // There is no counter feedback in precompilation, so ignore the counter
     // when making inlining decisions.
     FLAG_inlining_hotness = 0;
@@ -120,38 +82,65 @@ static void PrecompilationModeHandler(bool value) {
     FLAG_inlining_callee_size_threshold = 20;
     FLAG_inlining_depth_threshold = 2;
     FLAG_inlining_caller_size_threshold = 1000;
-
     FLAG_inlining_constant_arguments_max_size_threshold = 100;
     FLAG_inlining_constant_arguments_min_size_threshold = 30;
 
-    // Background compilation relies on two-stage compilation pipeline,
-    // while precompilation has only one.
+    FLAG_allow_absolute_addresses = false;
+    FLAG_always_megamorphic_calls = true;
     FLAG_background_compilation = false;
+    FLAG_collect_code = false;
     FLAG_collect_dynamic_function_names = true;
-#if !defined(DART_PRECOMPILED_RUNTIME) && !defined(PRODUCT)
+    FLAG_deoptimize_alot = false;  // Used in some tests.
+    FLAG_deoptimize_every = 0;     // Used in some tests.
+    FLAG_emit_edge_counters = false;
+    FLAG_enable_mirrors = false;
+    FLAG_fields_may_be_reset = true;
+    FLAG_ic_range_profiling = false;
+    FLAG_interpret_irregexp = true;
     FLAG_lazy_dispatchers = false;
+    FLAG_link_natives_lazily = true;
+    FLAG_load_deferred_eagerly = true;
+    FLAG_optimization_counter_threshold = -1;
     FLAG_polymorphic_with_deopt = false;
-    // Precompilation finalizes all classes and thus allows CHA optimizations.
-    // Do not require CHA triggered deoptimization.
+    FLAG_precompiled_mode = true;
+    FLAG_print_stop_message = false;
     FLAG_use_cha_deopt = false;
-#elif defined(DART_PRECOMPILED_RUNTIME)
-    // Precompiled product and release mode.
-    COMPILE_ASSERT(!FLAG_lazy_dispatchers);
-    COMPILE_ASSERT(!FLAG_polymorphic_with_deopt);
-    COMPILE_ASSERT(!FLAG_use_cha_deopt);
-#elif defined(PRODUCT)
-    // Jit product and release mode.
-    COMPILE_ASSERT(FLAG_lazy_dispatchers);
-    COMPILE_ASSERT(FLAG_polymorphic_with_deopt);
-    COMPILE_ASSERT(FLAG_use_cha_deopt);
-#endif
+    FLAG_use_field_guards = false;
+    FLAG_use_osr = false;
+#endif  // PRODUCT
   }
 }
-
 
 DEFINE_FLAG_HANDLER(PrecompilationModeHandler,
                     precompilation,
                     "Precompilation mode");
+
+#else  // DART_PRECOMPILED_RUNTIME
+
+COMPILE_ASSERT(!FLAG_allow_absolute_addresses);
+COMPILE_ASSERT(!FLAG_background_compilation);
+COMPILE_ASSERT(!FLAG_collect_code);
+COMPILE_ASSERT(!FLAG_deoptimize_alot);  // Used in some tests.
+COMPILE_ASSERT(!FLAG_emit_edge_counters);
+COMPILE_ASSERT(!FLAG_enable_mirrors);
+COMPILE_ASSERT(!FLAG_ic_range_profiling);
+COMPILE_ASSERT(!FLAG_lazy_dispatchers);
+COMPILE_ASSERT(!FLAG_polymorphic_with_deopt);
+COMPILE_ASSERT(!FLAG_print_stop_message);
+COMPILE_ASSERT(!FLAG_use_cha_deopt);
+COMPILE_ASSERT(!FLAG_use_field_guards);
+COMPILE_ASSERT(!FLAG_use_osr);
+COMPILE_ASSERT(FLAG_always_megamorphic_calls);
+COMPILE_ASSERT(FLAG_collect_dynamic_function_names);
+COMPILE_ASSERT(FLAG_deoptimize_every == 0);  // Used in some tests.
+COMPILE_ASSERT(FLAG_fields_may_be_reset);
+COMPILE_ASSERT(FLAG_interpret_irregexp);
+COMPILE_ASSERT(FLAG_link_natives_lazily);
+COMPILE_ASSERT(FLAG_load_deferred_eagerly);
+COMPILE_ASSERT(FLAG_optimization_counter_threshold == -1);
+COMPILE_ASSERT(FLAG_precompiled_mode);
+
+#endif  // DART_PRECOMPILED_RUNTIME
 
 
 // Assign locations to incoming arguments, i.e., values pushed above spill slots
@@ -190,6 +179,7 @@ FlowGraphCompiler::FlowGraphCompiler(
     const ParsedFunction& parsed_function,
     bool is_optimizing,
     const GrowableArray<const Function*>& inline_id_to_function,
+    const GrowableArray<TokenPosition>& inline_id_to_token_pos,
     const GrowableArray<intptr_t>& caller_inline_id)
       : thread_(Thread::Current()),
         zone_(Thread::Current()->zone()),
@@ -201,6 +191,8 @@ FlowGraphCompiler::FlowGraphCompiler(
         exception_handlers_list_(NULL),
         pc_descriptors_list_(NULL),
         stackmap_table_builder_(NULL),
+        code_source_map_builder_(NULL),
+        saved_code_size_(0),
         block_info_(block_order_.length()),
         deopt_infos_(),
         static_calls_target_table_(),
@@ -227,6 +219,7 @@ FlowGraphCompiler::FlowGraphCompiler(
         edge_counters_array_(Array::ZoneHandle()),
         inlined_code_intervals_(Array::ZoneHandle(Object::empty_array().raw())),
         inline_id_to_function_(inline_id_to_function),
+        inline_id_to_token_pos_(inline_id_to_token_pos),
         caller_inline_id_(caller_inline_id) {
   ASSERT(flow_graph->parsed_function().function().raw() ==
          parsed_function.function().raw());
@@ -285,9 +278,7 @@ void FlowGraphCompiler::InitCompiler() {
   block_info_.Clear();
   // Conservative detection of leaf routines used to remove the stack check
   // on function entry.
-  bool is_leaf = !parsed_function().function().IsClosureFunction()
-      && is_optimizing()
-      && !flow_graph().IsCompiledForOsr();
+  bool is_leaf = is_optimizing() && !flow_graph().IsCompiledForOsr();
   // Initialize block info and search optimized (non-OSR) code for calls
   // indicating a non-leaf routine and calls without IC data indicating
   // possible reoptimization.
@@ -488,12 +479,16 @@ static void LoopInfoComment(
 
 // We collect intervals while generating code.
 struct IntervalStruct {
-  // 'start' and 'end' are pc-offsets.
+  // 'start' is the pc-offsets where the inlined code started.
+  // 'pos' is the token position where the inlined call occured.
   intptr_t start;
+  TokenPosition pos;
   intptr_t inlining_id;
-  IntervalStruct(intptr_t s, intptr_t id) : start(s), inlining_id(id) {}
+  IntervalStruct(intptr_t s, TokenPosition tp, intptr_t id)
+      : start(s), pos(tp), inlining_id(id) {}
   void Dump() {
-    THR_Print("start: 0x%" Px " iid: %" Pd " ",  start, inlining_id);
+    THR_Print("start: 0x%" Px " iid: %" Pd " pos: %s",
+              start, inlining_id, pos.ToCString());
   }
 };
 
@@ -511,6 +506,7 @@ void FlowGraphCompiler::VisitBlocks() {
   GrowableArray<IntervalStruct> intervals;
   intptr_t prev_offset = 0;
   intptr_t prev_inlining_id = 0;
+  TokenPosition prev_inlining_pos = parsed_function_.function().token_pos();
   intptr_t max_inlining_id = 0;
   for (intptr_t i = 0; i < block_order().length(); ++i) {
     // Compile the block entry.
@@ -531,16 +527,20 @@ void FlowGraphCompiler::VisitBlocks() {
     LoopInfoComment(assembler(), *entry, *loop_headers);
 
     entry->set_offset(assembler()->CodeSize());
+    BeginCodeSourceRange();
     entry->EmitNativeCode(this);
+    EndCodeSourceRange(entry->token_pos());
     // Compile all successors until an exit, branch, or a block entry.
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       Instruction* instr = it.Current();
       // Compose intervals.
       if (instr->has_inlining_id() && is_optimizing()) {
         if (prev_inlining_id != instr->inlining_id()) {
-          intervals.Add(IntervalStruct(prev_offset, prev_inlining_id));
+          intervals.Add(
+              IntervalStruct(prev_offset, prev_inlining_pos, prev_inlining_id));
           prev_offset = assembler()->CodeSize();
           prev_inlining_id = instr->inlining_id();
+          prev_inlining_pos = inline_id_to_token_pos_[prev_inlining_id];
           if (prev_inlining_id > max_inlining_id) {
             max_inlining_id = prev_inlining_id;
           }
@@ -556,12 +556,14 @@ void FlowGraphCompiler::VisitBlocks() {
       if (instr->IsParallelMove()) {
         parallel_move_resolver_.EmitNativeCode(instr->AsParallelMove());
       } else {
+        BeginCodeSourceRange();
         EmitInstructionPrologue(instr);
         ASSERT(pending_deoptimization_env_ == NULL);
         pending_deoptimization_env_ = instr->env();
         instr->EmitNativeCode(this);
         pending_deoptimization_env_ = NULL;
         EmitInstructionEpilogue(instr);
+        EndCodeSourceRange(instr->token_pos());
       }
 
 #if defined(DEBUG)
@@ -578,7 +580,8 @@ void FlowGraphCompiler::VisitBlocks() {
 
   if (is_optimizing()) {
     LogBlock lb;
-    intervals.Add(IntervalStruct(prev_offset, prev_inlining_id));
+    intervals.Add(
+        IntervalStruct(prev_offset, prev_inlining_pos, prev_inlining_id));
     inlined_code_intervals_ =
         Array::New(intervals.length() * Code::kInlIntNumEntries, Heap::kOld);
     Smi& start_h = Smi::Handle();
@@ -738,10 +741,14 @@ void FlowGraphCompiler::AddSlowPathCode(SlowPathCode* code) {
 
 void FlowGraphCompiler::GenerateDeferredCode() {
   for (intptr_t i = 0; i < slow_path_code_.length(); i++) {
+    BeginCodeSourceRange();
     slow_path_code_[i]->GenerateCode(this);
+    EndCodeSourceRange(TokenPosition::kDeferredSlowPath);
   }
   for (intptr_t i = 0; i < deopt_infos_.length(); i++) {
+    BeginCodeSourceRange();
     deopt_infos_[i]->GenerateCode(this, i);
+    EndCodeSourceRange(TokenPosition::kDeferredDeoptInfo);
   }
 }
 
@@ -942,8 +949,8 @@ Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
     return &intrinsic_slow_path_label_;
   }
 
-  // No deoptimization allowed when 'FLAG_precompilation' is set.
-  if (FLAG_precompilation) {
+  // No deoptimization allowed when 'FLAG_precompiled_mode' is set.
+  if (FLAG_precompiled_mode) {
     if (FLAG_trace_compiler) {
       THR_Print(
           "Retrying compilation %s, suppressing inlining of deopt_id:%" Pd "\n",
@@ -991,7 +998,7 @@ void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
 
 RawArray* FlowGraphCompiler::CreateDeoptInfo(Assembler* assembler) {
   // No deopt information if we precompile (no deoptimization allowed).
-  if (FLAG_precompilation) {
+  if (FLAG_precompiled_mode) {
     return Array::empty_array().raw();
   }
   // For functions with optional arguments, all incoming arguments are copied
@@ -1091,7 +1098,7 @@ void FlowGraphCompiler::FinalizeStaticCallTargetsTable(const Code& code) {
 bool FlowGraphCompiler::TryIntrinsify() {
   // Intrinsification skips arguments checks, therefore disable if in checked
   // mode.
-  if (FLAG_intrinsify && !isolate()->flags().type_checks()) {
+  if (FLAG_intrinsify && !isolate()->type_checks()) {
     if (parsed_function().function().kind() == RawFunction::kImplicitGetter) {
       // An implicit getter must have a specific AST structure.
       const SequenceNode& sequence_node = *parsed_function().node_sequence();
@@ -1148,7 +1155,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
     LocationSummary* locs,
     const ICData& ic_data_in) {
   const ICData& ic_data = ICData::ZoneHandle(ic_data_in.Original());
-  if (FLAG_precompilation) {
+  if (FLAG_precompiled_mode) {
     EmitSwitchableInstanceCall(ic_data, argument_count,
                                deopt_id, token_pos, locs);
     return;
@@ -1438,7 +1445,9 @@ void ParallelMoveResolver::EmitNativeCode(ParallelMoveInstr* parallel_move) {
     const MoveOperands& move = *moves_[i];
     if (!move.IsEliminated()) {
       ASSERT(move.src().IsConstant());
+      compiler_->BeginCodeSourceRange();
       EmitMove(i);
+      compiler_->EndCodeSourceRange(TokenPosition::kParallelMove);
     }
   }
 
@@ -1514,13 +1523,17 @@ void ParallelMoveResolver::PerformMove(int index) {
     const MoveOperands& other_move = *moves_[i];
     if (other_move.Blocks(destination)) {
       ASSERT(other_move.IsPending());
+      compiler_->BeginCodeSourceRange();
       EmitSwap(index);
+      compiler_->EndCodeSourceRange(TokenPosition::kParallelMove);
       return;
     }
   }
 
   // This move is not blocked.
+  compiler_->BeginCodeSourceRange();
   EmitMove(index);
+  compiler_->EndCodeSourceRange(TokenPosition::kParallelMove);
 }
 
 
@@ -1763,6 +1776,21 @@ RawArray* FlowGraphCompiler::InliningIdToFunction() const {
 }
 
 
+RawArray* FlowGraphCompiler::InliningIdToTokenPos() const {
+  if (inline_id_to_token_pos_.length() == 0) {
+    return Object::empty_array().raw();
+  }
+  const Array& res = Array::Handle(zone(),
+      Array::New(inline_id_to_token_pos_.length(), Heap::kOld));
+  Smi& smi = Smi::Handle(zone());
+  for (intptr_t i = 0; i < inline_id_to_token_pos_.length(); i++) {
+    smi = Smi::New(inline_id_to_token_pos_[i].value());
+    res.SetAt(i, smi);
+  }
+  return res.raw();
+}
+
+
 RawArray* FlowGraphCompiler::CallerInliningIdMap() const {
   if (caller_inline_id_.length() == 0) {
     return Object::empty_array().raw();
@@ -1775,6 +1803,30 @@ RawArray* FlowGraphCompiler::CallerInliningIdMap() const {
     res.SetAt(i, smi);
   }
   return res.raw();
+}
+
+
+void FlowGraphCompiler::BeginCodeSourceRange() {
+NOT_IN_PRODUCT(
+  // Remember how many bytes of code we emitted so far. This function
+  // is called before we call into an instruction's EmitNativeCode.
+  saved_code_size_ = assembler()->CodeSize();
+);
+}
+
+
+bool FlowGraphCompiler::EndCodeSourceRange(TokenPosition token_pos) {
+NOT_IN_PRODUCT(
+  // This function is called after each instructions' EmitNativeCode.
+  if (saved_code_size_ < assembler()->CodeSize()) {
+    // We emitted more code, now associate the emitted code chunk with
+    // |token_pos|.
+    code_source_map_builder()->AddEntry(saved_code_size_, token_pos);
+    BeginCodeSourceRange();
+    return true;
+  }
+);
+  return false;
 }
 
 

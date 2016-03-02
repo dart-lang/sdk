@@ -42,7 +42,7 @@
 library analyzer.tool.summary.idl;
 
 import 'base.dart' as base;
-import 'base.dart' show Id;
+import 'base.dart' show Id, TopLevel;
 import 'format.dart' as generated;
 
 /**
@@ -51,12 +51,6 @@ import 'format.dart' as generated;
  * static analysis and runtime behavior of the library are unaffected.
  */
 const informative = null;
-
-/**
- * Annotation describing a class which can be the top level object in an
- * encoded summary.
- */
-const topLevel = null;
 
 /**
  * Summary information about a reference to a an entity such as a type, top
@@ -128,12 +122,112 @@ abstract class EntityRef extends base.SummaryClass {
   int get slot;
 
   /**
+   * If this [EntityRef] is a reference to a function type whose
+   * [FunctionElement] is not in any library (e.g. a function type that was
+   * synthesized by a LUB computation), the function parameters.  Otherwise
+   * empty.
+   */
+  @Id(6)
+  List<UnlinkedParam> get syntheticParams;
+
+  /**
+   * If this [EntityRef] is a reference to a function type whose
+   * [FunctionElement] is not in any library (e.g. a function type that was
+   * synthesized by a LUB computation), the return type of the function.
+   * Otherwise `null`.
+   */
+  @Id(5)
+  EntityRef get syntheticReturnType;
+
+  /**
    * If this is an instantiation of a generic type or generic executable, the
    * type arguments used to instantiate it.  Trailing type arguments of type
    * `dynamic` are omitted.
    */
   @Id(1)
   List<EntityRef> get typeArguments;
+}
+
+/**
+ * Enum used to indicate the kind of a name in index.
+ */
+enum IndexNameKind {
+  /**
+   * A top-level element.
+   */
+  topLevel,
+
+  /**
+   * A class member.
+   */
+  classMember
+}
+
+/**
+ * Enum used to indicate the kind of an index relation.
+ */
+enum IndexRelationKind {
+  /**
+   * Left: class.
+   *   Is extended by.
+   * Right: other class declaration.
+   */
+  IS_EXTENDED_BY,
+
+  /**
+   * Left: class.
+   *   Is implemented by.
+   * Right: other class declaration.
+   */
+  IS_IMPLEMENTED_BY,
+
+  /**
+   * Left: class.
+   *   Is mixed into.
+   * Right: other class declaration.
+   */
+  IS_MIXED_IN_BY,
+
+  /**
+   * Left: method, property accessor, function, variable.
+   *   Is invoked at.
+   * Right: location.
+   */
+  IS_INVOKED_BY,
+
+  /**
+   * Left: any element.
+   *   Is referenced (and not invoked, read/written) at.
+   * Right: location.
+   */
+  IS_REFERENCED_BY
+}
+
+/**
+ * When we need to reference a synthetic element in [PackageIndex] we use a
+ * value of this enum to specify which kind of the synthetic element we
+ * actually reference.
+ */
+enum IndexSyntheticElementKind {
+  /**
+   * Not a synthetic element.
+   */
+  notSynthetic,
+
+  /**
+   * The unnamed synthetic constructor a class element.
+   */
+  constructor,
+
+  /**
+   * The synthetic getter of a property introducing element.
+   */
+  getter,
+
+  /**
+   * The synthetic setter of a property introducing element.
+   */
+  setter
 }
 
 /**
@@ -197,7 +291,7 @@ abstract class LinkedExportName extends base.SummaryClass {
 /**
  * Linked summary of a library.
  */
-@topLevel
+@TopLevel('LLib')
 abstract class LinkedLibrary extends base.SummaryClass {
   factory LinkedLibrary.fromBuffer(List<int> buffer) =>
       generated.readLinkedLibrary(buffer);
@@ -356,7 +450,7 @@ abstract class LinkedUnit extends base.SummaryClass {
 /**
  * Summary information about a package.
  */
-@topLevel
+@TopLevel('PBdl')
 abstract class PackageBundle extends base.SummaryClass {
   factory PackageBundle.fromBuffer(List<int> buffer) =>
       generated.readPackageBundle(buffer);
@@ -373,6 +467,20 @@ abstract class PackageBundle extends base.SummaryClass {
    */
   @Id(1)
   List<String> get linkedLibraryUris;
+
+  /**
+   * Major version of the summary format.  See
+   * [PackageBundleAssembler.currentMajorVersion].
+   */
+  @Id(5)
+  int get majorVersion;
+
+  /**
+   * Minor version of the summary format.  See
+   * [PackageBundleAssembler.currentMinorVersion].
+   */
+  @Id(6)
+  int get minorVersion;
 
   /**
    * List of MD5 hashes of the files listed in [unlinkedUnitUris].  Each hash
@@ -392,6 +500,67 @@ abstract class PackageBundle extends base.SummaryClass {
    */
   @Id(3)
   List<String> get unlinkedUnitUris;
+}
+
+/**
+ * Index information about a package.
+ */
+@TopLevel('Indx')
+abstract class PackageIndex extends base.SummaryClass {
+  factory PackageIndex.fromBuffer(List<int> buffer) =>
+      generated.readPackageIndex(buffer);
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the kind of the synthetic element.
+   */
+  @Id(5)
+  List<IndexSyntheticElementKind> get elementKinds;
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the offset of the element name relative to the beginning of the file.  The
+   * list is sorted in ascending order, so that the client can quickly check
+   * whether an element is referenced in this [PackageIndex].
+   */
+  @Id(1)
+  List<int> get elementOffsets;
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the index into [unitLibraryUris] and [unitUnitUris] for the library
+   * specific unit where the element is declared.
+   */
+  @Id(0)
+  List<int> get elementUnits;
+
+  /**
+   * List of unique element strings used in this [PackageIndex].
+   */
+  @Id(6)
+  List<String> get strings;
+
+  /**
+   * Each item of this list corresponds to the library URI of a unique library
+   * specific unit referenced in the [PackageIndex].  It is an index into
+   * [strings] list.
+   */
+  @Id(2)
+  List<int> get unitLibraryUris;
+
+  /**
+   * List of indexes of each unit in this [PackageIndex].
+   */
+  @Id(4)
+  List<UnitIndex> get units;
+
+  /**
+   * Each item of this list corresponds to the unit URI of a unique library
+   * specific unit referenced in the [PackageIndex].  It is an index into
+   * [strings] list.
+   */
+  @Id(3)
+  List<int> get unitUnitUris;
 }
 
 /**
@@ -460,6 +629,95 @@ enum ReferenceKind {
    * The entity being referred to does not exist.
    */
   unresolved
+}
+
+/**
+ * Index information about a unit in a [PackageIndex].
+ */
+abstract class UnitIndex extends base.SummaryClass {
+  /**
+   * Each item of this list is the kind of an element defined in this unit.
+   */
+  @Id(6)
+  List<IndexNameKind> get definedNameKinds;
+
+  /**
+   * Each item of this list is the name offset of an element defined in this
+   * unit relative to the beginning of the file.
+   */
+  @Id(7)
+  List<int> get definedNameOffsets;
+
+  /**
+   * Each item of this list corresponds to an element defined in this unit.  It
+   * is an index into [PackageIndex.strings] list.  The list is sorted in
+   * ascending order, so that the client can quickly find name definitions in
+   * this [UnitIndex].
+   */
+  @Id(5)
+  List<int> get definedNames;
+
+  /**
+   * Index into [PackageIndex.unitLibraryUris] and [PackageIndex.unitUnitUris]
+   * for the library specific unit that corresponds to this [UnitIndex].
+   */
+  @Id(0)
+  int get unit;
+
+  /**
+   * Each item of this list is the `true` if the corresponding element usage
+   * is qualified with some prefix.
+   */
+  @Id(11)
+  List<bool> get usedElementIsQualifiedFlags;
+
+  /**
+   * Each item of this list is the kind of the element usage.
+   */
+  @Id(4)
+  List<IndexRelationKind> get usedElementKinds;
+
+  /**
+   * Each item of this list is the length of the element usage.
+   */
+  @Id(1)
+  List<int> get usedElementLengths;
+
+  /**
+   * Each item of this list is the offset of the element usage relative to the
+   * beginning of the file.
+   */
+  @Id(2)
+  List<int> get usedElementOffsets;
+
+  /**
+   * Each item of this list is the index into [PackageIndex.elementUnits] and
+   * [PackageIndex.elementOffsets].  The list is sorted in ascending order, so
+   * that the client can quickly find element references in this [UnitIndex].
+   */
+  @Id(3)
+  List<int> get usedElements;
+
+  /**
+   * Each item of this list is the kind of the name usage.
+   */
+  @Id(10)
+  List<IndexRelationKind> get usedNameKinds;
+
+  /**
+   * Each item of this list is the offset of the name usage relative to the
+   * beginning of the file.
+   */
+  @Id(9)
+  List<int> get usedNameOffsets;
+
+  /**
+   * Each item of this list is the index into [PackageIndex.strings] for a
+   * used name.  The list is sorted in ascending order, so that the client can
+   * quickly find name uses in this [UnitIndex].
+   */
+  @Id(8)
+  List<int> get usedNames;
 }
 
 /**
@@ -1648,7 +1906,7 @@ abstract class UnlinkedPublicName extends base.SummaryClass {
  * library's public namespace.  This is the subset of [UnlinkedUnit] that is
  * required from dependent libraries in order to perform prelinking.
  */
-@topLevel
+@TopLevel('UPNS')
 abstract class UnlinkedPublicNamespace extends base.SummaryClass {
   factory UnlinkedPublicNamespace.fromBuffer(List<int> buffer) =>
       generated.readUnlinkedPublicNamespace(buffer);
@@ -1784,7 +2042,7 @@ abstract class UnlinkedTypeParam extends base.SummaryClass {
 /**
  * Unlinked summary information about a compilation unit ("part file").
  */
-@topLevel
+@TopLevel('UUnt')
 abstract class UnlinkedUnit extends base.SummaryClass {
   factory UnlinkedUnit.fromBuffer(List<int> buffer) =>
       generated.readUnlinkedUnit(buffer);

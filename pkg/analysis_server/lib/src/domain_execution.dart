@@ -195,7 +195,7 @@ class ExecutionDomainHandler implements RequestHandler {
       server.contextManager.isInAnalysisRoot(filePath);
 
   void _reportCurrentFileStatus() {
-    for (AnalysisContext context in server.getAnalysisContexts()) {
+    for (AnalysisContext context in server.analysisContexts) {
       List<Source> librarySources = context.librarySources;
       List<Source> clientSources = context.launchableClientLibrarySources;
       List<Source> serverSources = context.launchableServerLibrarySources;
@@ -220,7 +220,8 @@ class ExecutionDomainHandler implements RequestHandler {
           List<Source> libraries =
               context.getLibrariesReferencedFromHtml(source);
           server.sendNotification(new ExecutionLaunchDataParams(filePath,
-              referencedFiles: _getFullNames(libraries)).toNotification());
+                  referencedFiles: _getFullNames(libraries))
+              .toNotification());
         }
       }
     }

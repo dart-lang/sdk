@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart'
     show DartObject, EvaluationResultImpl;
+import 'package:analyzer/src/generated/element_handle.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
 import 'package:analyzer/src/generated/java_core.dart';
@@ -85,11 +86,13 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
    * A list containing all of the mixins that are applied to the class being
    * extended in order to derive the superclass of this class.
    */
+  @override
   List<InterfaceType> mixins = InterfaceType.EMPTY_LIST;
 
   /**
    * A list containing all of the interfaces that are implemented by this class.
    */
+  @override
   List<InterfaceType> interfaces = InterfaceType.EMPTY_LIST;
 
   /**
@@ -101,11 +104,13 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
    * The superclass of the class, or `null` if the class does not have an
    * explicit superclass.
    */
+  @override
   InterfaceType supertype;
 
   /**
    * The type defined by the class.
    */
+  @override
   InterfaceType type;
 
   /**
@@ -910,6 +915,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /**
    * The source that corresponds to this compilation unit.
    */
+  @override
   Source source;
 
   /**
@@ -1562,10 +1568,21 @@ class ElementAnnotationImpl implements ElementAnnotation {
   static String _DEPRECATED_VARIABLE_NAME = "deprecated";
 
   /**
+   * The name of `meta` library, used to define analysis annotations.
+   */
+  static String _META_LIB_NAME = "meta";
+
+  /**
    * The name of the top-level variable used to mark a method as being expected
    * to override an inherited method.
    */
   static String _OVERRIDE_VARIABLE_NAME = "override";
+
+  /**
+   * The name of the top-level variable used to mark a method as being
+   * protected.
+   */
+  static String _PROTECTED_VARIABLE_NAME = "protected";
 
   /**
    * The name of the top-level variable used to mark a class as implementing a
@@ -1580,7 +1597,7 @@ class ElementAnnotationImpl implements ElementAnnotation {
   Element element;
 
   /**
-   * The compliation unit in which this annotation appears.
+   * The compilation unit in which this annotation appears.
    */
   final CompilationUnitElementImpl compilationUnit;
 
@@ -1611,51 +1628,33 @@ class ElementAnnotationImpl implements ElementAnnotation {
 
   @override
   bool get isDeprecated {
-    if (element != null) {
-      LibraryElement library = element.library;
-      if (library != null && library.isDartCore) {
-        if (element is ConstructorElement) {
-          ConstructorElement constructorElement = element as ConstructorElement;
-          if (constructorElement.enclosingElement.name ==
-              _DEPRECATED_CLASS_NAME) {
-            return true;
-          }
-        } else if (element is PropertyAccessorElement &&
-            element.name == _DEPRECATED_VARIABLE_NAME) {
-          return true;
-        }
+    if (element?.library?.isDartCore == true) {
+      if (element is ConstructorElement) {
+        return element.enclosingElement.name == _DEPRECATED_CLASS_NAME;
+      } else if (element is PropertyAccessorElement) {
+        return element.name == _DEPRECATED_VARIABLE_NAME;
       }
     }
     return false;
   }
 
   @override
-  bool get isOverride {
-    if (element != null) {
-      LibraryElement library = element.library;
-      if (library != null && library.isDartCore) {
-        if (element is PropertyAccessorElement &&
-            element.name == _OVERRIDE_VARIABLE_NAME) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
+  bool get isOverride =>
+      element is PropertyAccessorElement &&
+      element.name == _OVERRIDE_VARIABLE_NAME &&
+      element.library?.isDartCore == true;
 
   @override
-  bool get isProxy {
-    if (element != null) {
-      LibraryElement library = element.library;
-      if (library != null && library.isDartCore) {
-        if (element is PropertyAccessorElement &&
-            element.name == PROXY_VARIABLE_NAME) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
+  bool get isProtected =>
+      element is PropertyAccessorElement &&
+      element.name == _PROTECTED_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
+
+  @override
+  bool get isProxy =>
+      element is PropertyAccessorElement &&
+      element.name == PROXY_VARIABLE_NAME &&
+      element.library?.isDartCore == true;
 
   /**
    * Get the library containing this annotation.
@@ -1736,6 +1735,17 @@ abstract class ElementImpl implements Element {
   int _docRangeLength;
 
   /**
+   * The offset of the beginning of the element's code in the file that contains
+   * the element, or `null` if the element is synthetic.
+   */
+  int _codeOffset;
+
+  /**
+   * The length of the element's code, or `null` if the element is synthetic.
+   */
+  int _codeLength;
+
+  /**
    * Initialize a newly created element to have the given [name] at the given
    * [_nameOffset].
    */
@@ -1748,6 +1758,17 @@ abstract class ElementImpl implements Element {
    */
   ElementImpl.forNode(Identifier name)
       : this(name == null ? "" : name.name, name == null ? -1 : name.offset);
+
+  /**
+   * The length of the element's code, or `null` if the element is synthetic.
+   */
+  int get codeLength => _codeLength;
+
+  /**
+   * The offset of the beginning of the element's code in the file that contains
+   * the element, or `null` if the element is synthetic.
+   */
+  int get codeOffset => _codeOffset;
 
   @override
   AnalysisContext get context {
@@ -1834,6 +1855,16 @@ abstract class ElementImpl implements Element {
       return true;
     }
     return Identifier.isPrivateName(name);
+  }
+
+  @override
+  bool get isProtected {
+    for (ElementAnnotation annotation in metadata) {
+      if (annotation.isProtected) {
+        return true;
+      }
+    }
+    return false;
   }
 
   @override
@@ -2016,6 +2047,14 @@ abstract class ElementImpl implements Element {
         child.accept(visitor);
       }
     }
+  }
+
+  /**
+   * Set the code range for this element.
+   */
+  void setCodeRange(int offset, int length) {
+    _codeOffset = offset;
+    _codeLength = length;
   }
 
   /**
@@ -3098,6 +3137,24 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
         nameLength = name != null ? name.length : 0;
 
   @override
+  int get codeLength {
+    if (_definingCompilationUnit is CompilationUnitElementImpl) {
+      return (_definingCompilationUnit as CompilationUnitElementImpl)
+          .codeLength;
+    }
+    return null;
+  }
+
+  @override
+  int get codeOffset {
+    if (_definingCompilationUnit is CompilationUnitElementImpl) {
+      return (_definingCompilationUnit as CompilationUnitElementImpl)
+          .codeOffset;
+    }
+    return null;
+  }
+
+  @override
   CompilationUnitElement get definingCompilationUnit =>
       _definingCompilationUnit;
 
@@ -3146,9 +3203,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   void set hasExtUri(bool hasExtUri) {
     setModifier(Modifier.HAS_EXT_URI, hasExtUri);
   }
-
-  @override
-  int get hashCode => _definingCompilationUnit.hashCode;
 
   @override
   bool get hasLoadLibraryFunction {
@@ -3244,6 +3298,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @override
   LibraryElement get library => this;
 
+  @override
   List<LibraryElement> get libraryCycle {
     if (_libraryCycle != null) {
       return _libraryCycle;
@@ -3265,6 +3320,17 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       indices[library] = index;
       active.add(library);
       stack.add(library);
+      LibraryElementImpl getActualLibrary(LibraryElement lib) {
+        // TODO(paulberry): this means that computing a library cycle will be
+        // expensive for libraries resynthesized from summaries, since it will
+        // require fully resynthesizing all the libraries in the cycle as well
+        // as any libraries they import or export.  Try to find a better way.
+        if (lib is LibraryElementHandle) {
+          return lib.actualElement;
+        } else {
+          return lib;
+        }
+      }
       void recurse(LibraryElementImpl child) {
         if (!indices.containsKey(child)) {
           // We haven't visited this child yet, so recurse on the child,
@@ -3282,9 +3348,11 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       // Recurse on all of the children in the import/export graph, filtering
       // out those for which library cycles have already been computed.
       library.exportedLibraries
+          .map(getActualLibrary)
           .where((l) => l._libraryCycle == null)
           .forEach(recurse);
       library.importedLibraries
+          .map(getActualLibrary)
           .where((l) => l._libraryCycle == null)
           .forEach(recurse);
 
@@ -3363,11 +3431,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     _addVisibleLibraries(visibleLibraries, false);
     return new List.from(visibleLibraries);
   }
-
-  @override
-  bool operator ==(Object object) =>
-      object is LibraryElementImpl &&
-      _definingCompilationUnit == object.definingCompilationUnit;
 
   @override
   accept(ElementVisitor visitor) => visitor.visitLibraryElement(this);
@@ -3927,6 +3990,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
     }
     return Identifier.isPrivateName(name);
   }
+
+  @override
+  bool get isProtected => false;
 
   @override
   bool get isPublic => !isPrivate;

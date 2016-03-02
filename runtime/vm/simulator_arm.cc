@@ -269,7 +269,7 @@ void SimulatorDebugger::PrintDartFrame(uword pc, uword fp, uword sp,
                                        bool is_optimized,
                                        bool is_inlined) {
   const Script& script = Script::Handle(function.script());
-  const String& func_name = String::Handle(function.QualifiedUserVisibleName());
+  const String& func_name = String::Handle(function.QualifiedScrubbedName());
   const String& url = String::Handle(script.url());
   intptr_t line = -1;
   intptr_t column = -1;

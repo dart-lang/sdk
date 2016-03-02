@@ -455,6 +455,7 @@ abstract class Member implements Element {
   @override
   String get documentationComment => _baseElement.documentationComment;
 
+  @override
   int get id => _baseElement.id;
 
   @override
@@ -465,6 +466,9 @@ abstract class Member implements Element {
 
   @override
   bool get isPrivate => _baseElement.isPrivate;
+
+  @override
+  bool get isProtected => _baseElement.isProtected;
 
   @override
   bool get isPublic => _baseElement.isPublic;

@@ -18,8 +18,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, enable_type_checks);
-DECLARE_FLAG(bool, load_deferred_eagerly);
 DECLARE_FLAG(bool, concurrent_sweep);
 
 // Check if serialized and deserialized objects are equal.
@@ -1001,6 +999,7 @@ TEST_CASE(SerializeScript) {
 }
 
 
+#if !defined(PRODUCT)  // Uses deferred loading.
 UNIT_TEST_CASE(CanonicalizationInScriptSnapshots) {
   const char* kScriptChars =
       "\n"
@@ -1106,6 +1105,7 @@ UNIT_TEST_CASE(CanonicalizationInScriptSnapshots) {
   free(script_snapshot);
   free(full_snapshot);
 }
+#endif
 
 
 static void IterateScripts(const Library& lib) {
@@ -1469,9 +1469,6 @@ UNIT_TEST_CASE(ScriptSnapshot) {
 }
 
 
-#endif  // !PRODUCT
-
-
 UNIT_TEST_CASE(ScriptSnapshot1) {
   const char* kScriptChars =
     "class _SimpleNumEnumerable<T extends num> {"
@@ -1581,7 +1578,7 @@ UNIT_TEST_CASE(ScriptSnapshot2) {
 
   // Force creation of snapshot in production mode.
   bool saved_enable_type_checks_mode = FLAG_enable_type_checks;
-  FLAG_enable_type_checks = false;
+  NOT_IN_PRODUCT(FLAG_enable_type_checks = false);
   bool saved_load_deferred_eagerly_mode = FLAG_load_deferred_eagerly;
   FLAG_load_deferred_eagerly = true;
   bool saved_concurrent_sweep_mode = FLAG_concurrent_sweep;
@@ -1633,7 +1630,7 @@ UNIT_TEST_CASE(ScriptSnapshot2) {
   }
 
   // Continue in originally saved mode.
-  FLAG_enable_type_checks = saved_enable_type_checks_mode;
+  NOT_IN_PRODUCT(FLAG_enable_type_checks = saved_enable_type_checks_mode);
   FLAG_load_deferred_eagerly = saved_load_deferred_eagerly_mode;
 
   {
@@ -1664,6 +1661,9 @@ UNIT_TEST_CASE(ScriptSnapshot2) {
   free(full_snapshot);
   free(script_snapshot);
 }
+
+
+#endif  // !PRODUCT
 
 
 TEST_CASE(IntArrayMessage) {

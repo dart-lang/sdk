@@ -31,7 +31,6 @@ DEFINE_FLAG(bool, unbox_mints, true, "Optimize 64-bit integer arithmetic.");
 
 DECLARE_FLAG(bool, enable_simd_inline);
 DECLARE_FLAG(bool, use_megamorphic_stub);
-DECLARE_FLAG(bool, precompilation);
 
 
 void MegamorphicSlowPath::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -1139,19 +1138,22 @@ void FlowGraphCompiler::CompileGraph() {
     }
   }
 
+  EndCodeSourceRange(TokenPosition::kDartCodePrologue);
   ASSERT(!block_order().is_empty());
   VisitBlocks();
 
   __ int3();
   GenerateDeferredCode();
 
-  if (is_optimizing() && !FLAG_precompilation) {
+  BeginCodeSourceRange();
+  if (is_optimizing() && !FLAG_precompiled_mode) {
     // Leave enough space for patching in case of lazy deoptimization from
     // deferred code.
     __ nop(CallPattern::pattern_length_in_bytes());
     lazy_deopt_pc_offset_ = assembler()->CodeSize();
     __ Jmp(*StubCode::DeoptimizeLazy_entry());
   }
+  EndCodeSourceRange(TokenPosition::kDartCodeEpilogue);
 }
 
 
@@ -1311,7 +1313,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   RecordSafepoint(locs);
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
   // Precompilation not implemented on ia32 platform.
-  ASSERT(!FLAG_precompilation);
+  ASSERT(!FLAG_precompiled_mode);
   if (is_optimizing()) {
     AddDeoptIndexAtCall(deopt_id_after, token_pos);
   } else {

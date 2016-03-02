@@ -36,7 +36,9 @@ class Future<T> {
     const <String, String>{
       '/lib/async/stream.dart': r'''
 part of dart.async;
-class Stream<T> {}
+class Stream<T> {
+  Future<T> get first;
+}
 abstract class StreamTransformer<S, T> {}
 '''
     });
@@ -112,6 +114,7 @@ abstract class num implements Comparable<num> {
   num operator *(num other);
   num operator /(num other);
   int toInt();
+  double toDouble();
   num abs();
   int round();
 }
@@ -140,6 +143,7 @@ class Iterator<E> {
 abstract class Iterable<E> {
   Iterator<E> get iterator;
   bool get isEmpty;
+  E get first;
 
   Iterable/*<R>*/ map/*<R>*/(/*=R*/ f(E e));
 

@@ -25,7 +25,6 @@ DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
 DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
-DECLARE_FLAG(int, optimization_counter_threshold);
 
 // Input parameters:
 //   RA : return address.
@@ -1066,8 +1065,14 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ Ret();
 
   __ Bind(&add_to_buffer);
+  // Atomically set the remembered bit of the object header.
+  Label retry;
+  __ Bind(&retry);
+  __ ll(T2, FieldAddress(T0, Object::tags_offset()));
   __ ori(T2, T2, Immediate(1 << RawObject::kRememberedBit));
-  __ sw(T2, FieldAddress(T0, Object::tags_offset()));
+  __ sc(T2, FieldAddress(T0, Object::tags_offset()));
+  // T2 = 1 on success, 0 on failure.
+  __ beq(T2, ZR, &retry);
 
   // Load the StoreBuffer block out of the thread. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.

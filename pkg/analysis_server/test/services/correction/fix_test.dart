@@ -27,12 +27,15 @@ import '../../utils.dart';
 main() {
   initializeTestEnvironment();
   defineReflectiveTests(FixProcessorTest);
+  defineReflectiveTests(LintFixTest);
 }
 
 typedef bool AnalysisErrorFilter(AnalysisError error);
 
-@reflectiveTest
-class FixProcessorTest extends AbstractSingleUnitTest {
+/**
+ * Base class for fix processor tests.
+ */
+class BaseFixProcessorTest extends AbstractSingleUnitTest {
   AnalysisErrorFilter errorFilter = (AnalysisError error) {
     return error.errorCode != HintCode.UNUSED_CATCH_CLAUSE &&
         error.errorCode != HintCode.UNUSED_CATCH_STACK &&
@@ -112,6 +115,80 @@ bool test() {
     verifyNoTestUnitErrors = false;
   }
 
+  /**
+   * Computes fixes and verifies that there is a fix of the given kind.
+   */
+  Future<Fix> _assertHasFix(FixKind kind, AnalysisError error) async {
+    List<Fix> fixes = await _computeFixes(error);
+    for (Fix fix in fixes) {
+      if (fix.kind == kind) {
+        return fix;
+      }
+    }
+    throw fail('Expected to find fix $kind in\n${fixes.join('\n')}');
+  }
+
+  void _assertLinkedGroup(LinkedEditGroup group, List<String> expectedStrings,
+      [List<LinkedEditSuggestion> expectedSuggestions]) {
+    List<Position> expectedPositions = _findResultPositions(expectedStrings);
+    expect(group.positions, unorderedEquals(expectedPositions));
+    if (expectedSuggestions != null) {
+      expect(group.suggestions, unorderedEquals(expectedSuggestions));
+    }
+  }
+
+  /**
+   * Computes fixes for the given [error] in [testUnit].
+   */
+  Future<List<Fix>> _computeFixes(AnalysisError error) async {
+    DartFixContext dartContext = new DartFixContextImpl(
+        new FixContextImpl(provider, context, error), testUnit);
+    FixProcessor processor = new FixProcessor(dartContext);
+    return processor.compute();
+  }
+
+  /**
+   * Configures the [SourceFactory] to have the `my_pkg` package in
+   * `/packages/my_pkg/lib` folder.
+   */
+  void _configureMyPkg(String myLibCode) {
+    provider.newFile('/packages/my_pkg/lib/my_lib.dart', myLibCode);
+    // configure SourceFactory
+    Folder myPkgFolder = provider.getResource('/packages/my_pkg/lib');
+    UriResolver pkgResolver = new PackageMapUriResolver(provider, {
+      'my_pkg': [myPkgFolder]
+    });
+    context.sourceFactory = new SourceFactory(
+        [AbstractContextTest.SDK_RESOLVER, pkgResolver, resourceResolver]);
+    // force 'my_pkg' resolution
+    addSource('/tmp/other.dart', "import 'package:my_pkg/my_lib.dart';");
+  }
+
+  AnalysisError _findErrorToFix() {
+    List<AnalysisError> errors = context.computeErrors(testSource);
+    if (errorFilter != null) {
+      errors = errors.where(errorFilter).toList();
+    }
+    expect(errors, hasLength(1));
+    return errors[0];
+  }
+
+  List<Position> _findResultPositions(List<String> searchStrings) {
+    List<Position> positions = <Position>[];
+    for (String search in searchStrings) {
+      int offset = resultCode.indexOf(search);
+      positions.add(new Position(testFile, offset));
+    }
+    return positions;
+  }
+
+  void _performAnalysis() {
+    while (context.performAnalysisTask().hasMoreWork);
+  }
+}
+
+@reflectiveTest
+class FixProcessorTest extends BaseFixProcessorTest {
   test_addFieldFormalParameters_hasRequiredParameter() async {
     resolveTestUnit('''
 class Test {
@@ -4946,75 +5023,211 @@ main() {
 }
 ''');
   }
+}
 
+@reflectiveTest
+class LintFixTest extends BaseFixProcessorTest {
+  AnalysisError error;
+
+  Future applyFix(FixKind kind) async {
+    fix = await _assertHasFix(kind, error);
+    change = fix.change;
+    // apply to "file"
+    List<SourceFileEdit> fileEdits = change.edits;
+    expect(fileEdits, hasLength(1));
+    resultCode = SourceEdit.applySequence(testCode, change.edits[0].edits);
+  }
+
+  void findLint(String src, String lintCode) {
+    int errorOffset = src.indexOf('/*LINT*/');
+    resolveTestUnit(src.replaceAll('/*LINT*/', ''));
+    error = new AnalysisError(testUnit.element.source, errorOffset, 1,
+        new LintCode(lintCode, '<ignored>'));
+  }
+
+  test_lint_addMissingOverride_field() async {
+    String src = '''
+class abstract Test {
+  int get t;
+}
+class Sub extends Test {
+  int /*LINT*/t = 42;
+}
+''';
+    findLint(src, LintNames.annotate_overrides);
+
+    await applyFix(DartFixKind.LINT_ADD_OVERRIDE);
+
+    verifyResult('''
+class abstract Test {
+  int get t;
+}
+class Sub extends Test {
+  @override
+  int t = 42;
+}
+''');
+  }
+
+  test_lint_addMissingOverride_getter() async {
+    String src = '''
+class Test {
+  int get t => null;
+}
+class Sub extends Test {
+  int get /*LINT*/t => null;
+}
+''';
+    findLint(src, LintNames.annotate_overrides);
+
+    await applyFix(DartFixKind.LINT_ADD_OVERRIDE);
+
+    verifyResult('''
+class Test {
+  int get t => null;
+}
+class Sub extends Test {
+  @override
+  int get t => null;
+}
+''');
+  }
+
+  test_lint_addMissingOverride_method() async {
+    String src = '''
+class Test {
+  void t() { }
+}
+class Sub extends Test {
+  void /*LINT*/t() { }
+}
+''';
+    findLint(src, LintNames.annotate_overrides);
+
+    await applyFix(DartFixKind.LINT_ADD_OVERRIDE);
+
+    verifyResult('''
+class Test {
+  void t() { }
+}
+class Sub extends Test {
+  @override
+  void t() { }
+}
+''');
+  }
+
+  test_lint_addMissingOverride_method_with_doc_comment() async {
+    String src = '''
+class Test {
+  void t() { }
+}
+class Sub extends Test {
+  /// Doc comment.
+  void /*LINT*/t() { }
+}
+''';
+    findLint(src, LintNames.annotate_overrides);
+
+    await applyFix(DartFixKind.LINT_ADD_OVERRIDE);
+
+    verifyResult('''
+class Test {
+  void t() { }
+}
+class Sub extends Test {
+  /// Doc comment.
+  @override
+  void t() { }
+}
+''');
+  }
+
+  test_lint_addMissingOverride_method_with_doc_comment_2() async {
+    String src = '''
+class Test {
+  void t() { }
+}
+class Sub extends Test {
   /**
-   * Computes fixes and verifies that there is a fix of the given kind.
+   * Doc comment.
    */
-  Future<Fix> _assertHasFix(FixKind kind, AnalysisError error) async {
-    List<Fix> fixes = await _computeFixes(error);
-    for (Fix fix in fixes) {
-      if (fix.kind == kind) {
-        return fix;
-      }
-    }
-    throw fail('Expected to find fix $kind in\n${fixes.join('\n')}');
-  }
+  void /*LINT*/t() { }
+}
+''';
+    findLint(src, LintNames.annotate_overrides);
 
-  void _assertLinkedGroup(LinkedEditGroup group, List<String> expectedStrings,
-      [List<LinkedEditSuggestion> expectedSuggestions]) {
-    List<Position> expectedPositions = _findResultPositions(expectedStrings);
-    expect(group.positions, unorderedEquals(expectedPositions));
-    if (expectedSuggestions != null) {
-      expect(group.suggestions, unorderedEquals(expectedSuggestions));
-    }
-  }
+    await applyFix(DartFixKind.LINT_ADD_OVERRIDE);
 
+    verifyResult('''
+class Test {
+  void t() { }
+}
+class Sub extends Test {
   /**
-   * Computes fixes for the given [error] in [testUnit].
+   * Doc comment.
    */
-  Future<List<Fix>> _computeFixes(AnalysisError error) async {
-    DartFixContext dartContext = new DartFixContextImpl(
-        new FixContextImpl(provider, context, error), testUnit);
-    FixProcessor processor = new FixProcessor(dartContext);
-    return processor.compute();
+  @override
+  void t() { }
+}
+''');
   }
 
-  /**
-   * Configures the [SourceFactory] to have the `my_pkg` package in
-   * `/packages/my_pkg/lib` folder.
-   */
-  void _configureMyPkg(String myLibCode) {
-    provider.newFile('/packages/my_pkg/lib/my_lib.dart', myLibCode);
-    // configure SourceFactory
-    Folder myPkgFolder = provider.getResource('/packages/my_pkg/lib');
-    UriResolver pkgResolver = new PackageMapUriResolver(provider, {
-      'my_pkg': [myPkgFolder]
-    });
-    context.sourceFactory = new SourceFactory(
-        [AbstractContextTest.SDK_RESOLVER, pkgResolver, resourceResolver]);
-    // force 'my_pkg' resolution
-    addSource('/tmp/other.dart', "import 'package:my_pkg/my_lib.dart';");
+  test_lint_addMissingOverride_method_with_doc_comment_and_metadata() async {
+    String src = '''
+class Test {
+  void t() { }
+}
+class Sub extends Test {
+  /// Doc comment.
+  @foo
+  void /*LINT*/t() { }
+}
+''';
+    findLint(src, LintNames.annotate_overrides);
+
+    await applyFix(DartFixKind.LINT_ADD_OVERRIDE);
+
+    verifyResult('''
+class Test {
+  void t() { }
+}
+class Sub extends Test {
+  /// Doc comment.
+  @override
+  @foo
+  void t() { }
+}
+''');
   }
 
-  AnalysisError _findErrorToFix() {
-    List<AnalysisError> errors = context.computeErrors(testSource);
-    if (errorFilter != null) {
-      errors = errors.where(errorFilter).toList();
-    }
-    expect(errors, hasLength(1));
-    return errors[0];
+  test_lint_addMissingOverride_method_with_non_doc_comment() async {
+    String src = '''
+class Test {
+  void t() { }
+}
+class Sub extends Test {
+  // Non-doc comment.
+  void /*LINT*/t() { }
+}
+''';
+    findLint(src, LintNames.annotate_overrides);
+
+    await applyFix(DartFixKind.LINT_ADD_OVERRIDE);
+
+    verifyResult('''
+class Test {
+  void t() { }
+}
+class Sub extends Test {
+  // Non-doc comment.
+  @override
+  void t() { }
+}
+''');
   }
 
-  List<Position> _findResultPositions(List<String> searchStrings) {
-    List<Position> positions = <Position>[];
-    for (String search in searchStrings) {
-      int offset = resultCode.indexOf(search);
-      positions.add(new Position(testFile, offset));
-    }
-    return positions;
-  }
-
-  void _performAnalysis() {
-    while (context.performAnalysisTask().hasMoreWork);
+  void verifyResult(String expectedResult) {
+    expect(resultCode, expectedResult);
   }
 }

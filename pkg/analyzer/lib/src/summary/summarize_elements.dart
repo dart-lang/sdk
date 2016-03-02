@@ -4,6 +4,8 @@
 
 library serialization.elements;
 
+import 'dart:convert';
+
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -17,6 +19,7 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/name_filter.dart';
 import 'package:analyzer/src/summary/summarize_const_expr.dart';
+import 'package:crypto/crypto.dart';
 
 /**
  * Serialize all the elements in [lib] to a summary using [ctx] as the context
@@ -24,7 +27,8 @@ import 'package:analyzer/src/summary/summarize_const_expr.dart';
  */
 LibrarySerializationResult serializeLibrary(
     LibraryElement lib, TypeProvider typeProvider, bool strongMode) {
-  var serializer = new _LibrarySerializer(lib, typeProvider, strongMode);
+  _LibrarySerializer serializer =
+      new _LibrarySerializer(lib, typeProvider, strongMode);
   LinkedLibraryBuilder linked = serializer.serializeLibrary();
   return new LibrarySerializationResult(linked, serializer.unlinkedUnits,
       serializer.unitUris, serializer.unitSources);
@@ -106,6 +110,76 @@ class LibrarySerializationResult {
 }
 
 /**
+ * Object that gathers information uses it to assemble a new
+ * [PackageBundleBuilder].
+ */
+class PackageBundleAssembler {
+  /**
+   * Value that will be stored in [PackageBundle.majorVersion] for any summaries
+   * created by this code.  When making a breaking change to the summary format,
+   * this value should be incremented by 1 and [currentMinorVersion] should be
+   * reset to zero.
+   */
+  static const int currentMajorVersion = 1;
+
+  /**
+   * Value that will be stored in [PackageBundle.minorVersion] for any summaries
+   * created by this code.  When making a non-breaking change to the summary
+   * format that clients might need to be aware of (such as adding a kind of
+   * data that was previously not summarized), this value should be incremented
+   * by 1.
+   */
+  static const int currentMinorVersion = 0;
+
+  final List<String> _linkedLibraryUris = <String>[];
+  final List<LinkedLibraryBuilder> _linkedLibraries = <LinkedLibraryBuilder>[];
+  final List<String> _unlinkedUnitUris = <String>[];
+  final List<UnlinkedUnitBuilder> _unlinkedUnits = <UnlinkedUnitBuilder>[];
+  final List<String> _unlinkedUnitHashes = <String>[];
+
+  /**
+   * Assemble a new [PackageBundleBuilder] using the gathered information.
+   */
+  PackageBundleBuilder assemble() {
+    return new PackageBundleBuilder(
+        linkedLibraryUris: _linkedLibraryUris,
+        linkedLibraries: _linkedLibraries,
+        unlinkedUnitUris: _unlinkedUnitUris,
+        unlinkedUnits: _unlinkedUnits,
+        unlinkedUnitHashes: _unlinkedUnitHashes,
+        majorVersion: currentMajorVersion,
+        minorVersion: currentMinorVersion);
+  }
+
+  /**
+   * Serialize the library with the given [element].
+   */
+  void serializeLibraryElement(LibraryElement element) {
+    String uri = element.source.uri.toString();
+    LibrarySerializationResult libraryResult = serializeLibrary(
+        element,
+        element.context.typeProvider,
+        element.context.analysisOptions.strongMode);
+    _linkedLibraryUris.add(uri);
+    _linkedLibraries.add(libraryResult.linked);
+    _unlinkedUnitUris.addAll(libraryResult.unitUris);
+    _unlinkedUnits.addAll(libraryResult.unlinkedUnits);
+    for (Source source in libraryResult.unitSources) {
+      _unlinkedUnitHashes.add(_hash(source.contents.data));
+    }
+  }
+
+  /**
+   * Compute a hash of the given file contents.
+   */
+  String _hash(String contents) {
+    MD5 md5 = new MD5();
+    md5.add(UTF8.encode(contents));
+    return CryptoUtils.bytesToHex(md5.close());
+  }
+}
+
+/**
  * Instances of this class keep track of intermediate state during
  * serialization of a single compilation unit.
  */
@@ -184,6 +258,12 @@ class _CompilationUnitSerializer {
    * table yet.
    */
   int bottomReferenceIndex = null;
+
+  /**
+   * If `true`, we are currently generating linked references, so new
+   * references will be not stored in [unlinkedReferences].
+   */
+  bool buildingLinkedReferences = false;
 
   _CompilationUnitSerializer(
       this.librarySerializer, this.compilationUnit, this.unitNum);
@@ -317,9 +397,11 @@ class _CompilationUnitSerializer {
    * found during [addCompilationUnitElements].
    */
   void createLinkedTypes() {
+    buildingLinkedReferences = true;
     linkedUnit.types = deferredLinkedTypes
         .map((_SerializeTypeRef closure) => closure())
         .toList();
+    buildingLinkedReferences = false;
   }
 
   /**
@@ -728,7 +810,7 @@ class _CompilationUnitSerializer {
     context ??= parameter;
     UnlinkedParamBuilder b = new UnlinkedParamBuilder();
     b.name = parameter.name;
-    b.nameOffset = parameter.nameOffset;
+    b.nameOffset = parameter.nameOffset >= 0 ? parameter.nameOffset : 0;
     switch (parameter.parameterKind) {
       case ParameterKind.REQUIRED:
         b.kind = UnlinkedParamKind.required;
@@ -794,11 +876,8 @@ class _CompilationUnitSerializer {
 
   /**
    * Compute the reference index which should be stored in a [EntityRef].
-   *
-   * If [linked] is true, and a new reference has to be created, the reference
-   * will only be stored in [linkedReferences].
    */
-  int serializeReferenceForType(DartType type, bool linked) {
+  int serializeReferenceForType(DartType type) {
     Element element = type.element;
     LibraryElement dependentLibrary = element?.library;
     if (dependentLibrary == null) {
@@ -806,7 +885,7 @@ class _CompilationUnitSerializer {
         // References to the "bottom" type are always implicit, since there is
         // no way to explicitly refer to the "bottom" type.  Therefore they
         // should always be linked.
-        assert(linked);
+        assert(buildingLinkedReferences);
         return serializeBottomReference();
       }
       assert(type.isDynamic || type.isVoid);
@@ -816,7 +895,7 @@ class _CompilationUnitSerializer {
       // Note: for a type which is truly `dynamic` or `void`, fall through to
       // use [_getElementReferenceId].
     }
-    return _getElementReferenceId(element, linked: linked);
+    return _getElementReferenceId(element);
   }
 
   /**
@@ -853,26 +932,36 @@ class _CompilationUnitSerializer {
 
   /**
    * Serialize the given [type] into a [EntityRef].  If [slot] is provided,
-   * it should be included in the [EntityRef].  If [linked] is true, any
-   * references that are created will be populated into [linkedReferences] but
-   * not [unlinkedReferences].
+   * it should be included in the [EntityRef].
    *
    * [context] is the element within which the [EntityRef] will be
    * interpreted; this is used to serialize type parameters.
    */
   EntityRefBuilder serializeTypeRef(DartType type, Element context,
-      {bool linked: false, int slot}) {
+      {int slot}) {
+    if (slot != null) {
+      assert(buildingLinkedReferences);
+    }
     EntityRefBuilder b = new EntityRefBuilder(slot: slot);
+    Element typeElement = type.element;
     if (type is TypeParameterType) {
       b.paramReference = findTypeParameterIndex(type, context);
+    } else if (type is FunctionType &&
+        typeElement is FunctionElement &&
+        typeElement.enclosingElement == null) {
+      b.syntheticReturnType =
+          serializeTypeRef(typeElement.returnType, typeElement);
+      b.syntheticParams = typeElement.parameters
+          .map((ParameterElement param) => serializeParam(param, context))
+          .toList();
     } else {
       if (type is FunctionType &&
-          type.element.enclosingElement is ParameterElement) {
+          typeElement.enclosingElement is ParameterElement) {
         // Code cannot refer to function types implicitly defined by parameters
         // directly, so if we get here, we must be serializing a linked
         // reference from type inference.
-        assert(linked);
-        ParameterElement parameterElement = type.element.enclosingElement;
+        assert(buildingLinkedReferences);
+        ParameterElement parameterElement = typeElement.enclosingElement;
         while (true) {
           Element parent = parameterElement.enclosingElement;
           if (parent is ExecutableElement) {
@@ -885,7 +974,7 @@ class _CompilationUnitSerializer {
               continue;
             } else {
               // Function-typed parameter inside a top level function or method.
-              b.reference = _getElementReferenceId(parent, linked: linked);
+              b.reference = _getElementReferenceId(parent);
               break;
             }
           } else {
@@ -894,7 +983,7 @@ class _CompilationUnitSerializer {
           }
         }
       } else {
-        b.reference = serializeReferenceForType(type, linked);
+        b.reference = serializeReferenceForType(type);
       }
       List<DartType> typeArguments = getTypeArguments(type);
       if (typeArguments != null) {
@@ -907,8 +996,8 @@ class _CompilationUnitSerializer {
         if (numArgsToSerialize > 0) {
           List<EntityRefBuilder> serializedArguments = <EntityRefBuilder>[];
           for (int i = 0; i < numArgsToSerialize; i++) {
-            serializedArguments.add(
-                serializeTypeRef(typeArguments[i], context, linked: linked));
+            serializedArguments
+                .add(serializeTypeRef(typeArguments[i], context));
           }
           b.typeArguments = serializedArguments;
         }
@@ -1027,12 +1116,12 @@ class _CompilationUnitSerializer {
     int slot = ++numSlots;
     if (type != null) {
       deferredLinkedTypes
-          .add(() => serializeTypeRef(type, context, linked: true, slot: slot));
+          .add(() => serializeTypeRef(type, context, slot: slot));
     }
     return slot;
   }
 
-  int _getElementReferenceId(Element element, {bool linked: false}) {
+  int _getElementReferenceId(Element element) {
     return referenceMap.putIfAbsent(element, () {
       LibraryElement dependentLibrary = librarySerializer.libraryElement;
       int unit = 0;
@@ -1049,13 +1138,13 @@ class _CompilationUnitSerializer {
       String name = element == null ? 'void' : element.name;
       int index;
       LinkedReferenceBuilder linkedReference;
-      if (linked) {
+      if (buildingLinkedReferences) {
         linkedReference =
             new LinkedReferenceBuilder(kind: kind, unit: unit, name: name);
         if (enclosingElement != null &&
             enclosingElement is! CompilationUnitElement) {
           linkedReference.containingReference =
-              _getElementReferenceId(enclosingElement, linked: linked);
+              _getElementReferenceId(enclosingElement);
           if (enclosingElement is ClassElement) {
             // Nothing to do.
           } else if (enclosingElement is ExecutableElement) {
@@ -1095,7 +1184,7 @@ class _CompilationUnitSerializer {
             prefixReference = serializePrefix(prefix);
           }
         } else {
-          prefixReference = _getElementReferenceId(enclosing, linked: linked);
+          prefixReference = _getElementReferenceId(enclosing);
         }
         index = serializeUnlinkedReference(name, kind,
             prefixReference: prefixReference, unit: unit);
@@ -1331,7 +1420,7 @@ class _LibrarySerializer {
   /**
    * Retrieve a list of the Sources for the compilation units in the library.
    */
-  List<String> get unitSources => compilationUnitSerializers
+  List<Source> get unitSources => compilationUnitSerializers
       .map((_CompilationUnitSerializer s) => s.unitSource)
       .toList();
 

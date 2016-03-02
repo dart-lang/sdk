@@ -12,10 +12,10 @@
 #include "vm/flow_graph.h"
 #include "vm/flow_graph_builder.h"
 #include "vm/flow_graph_compiler.h"
-#include "vm/flow_graph_optimizer.h"
 #include "vm/flow_graph_type_propagator.h"
 #include "vm/il_printer.h"
 #include "vm/intrinsifier.h"
+#include "vm/jit_optimizer.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -62,7 +62,6 @@ DEFINE_FLAG(bool, enable_inlining_annotations, false,
 
 DECLARE_FLAG(bool, compiler_stats);
 DECLARE_FLAG(int, max_deoptimization_counter_threshold);
-DECLARE_FLAG(bool, precompilation);
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
 DECLARE_FLAG(bool, verify_compiler);
@@ -632,7 +631,7 @@ class CallSiteInliner : public ValueObject {
 
     // Function has no type feedback. With precompilation we don't rely on
     // type feedback.
-    if (!FLAG_precompilation &&
+    if (!FLAG_precompiled_mode &&
         function.ic_data_array() == Object::null()) {
       TRACE_INLINING(THR_Print("     Bailout: not compiled yet\n"));
       PRINT_INLINING_TREE("Not compiled",
@@ -790,7 +789,7 @@ class CallSiteInliner : public ValueObject {
           CSTAT_TIMER_SCOPE(thread(), graphinliner_opt_timer);
           // TODO(fschneider): Improve suppression of speculative inlining.
           // Deopt-ids overlap between caller and callee.
-          if (FLAG_precompilation) {
+          if (FLAG_precompiled_mode) {
             AotOptimizer optimizer(callee_graph,
                                    inliner_->use_speculative_inlining_,
                                    inliner_->inlining_black_list_);
@@ -810,9 +809,7 @@ class CallSiteInliner : public ValueObject {
             optimizer.TryOptimizePatterns();
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
           } else {
-            FlowGraphOptimizer optimizer(callee_graph,
-                                         inliner_->use_speculative_inlining_,
-                                         inliner_->inlining_black_list_);
+            JitOptimizer optimizer(callee_graph);
             optimizer.ApplyICData();
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
 
@@ -906,6 +903,7 @@ class CallSiteInliner : public ValueObject {
 
         FlowGraphInliner::SetInliningId(callee_graph,
             inliner_->NextInlineId(callee_graph->function(),
+                                   call_data->call->token_pos(),
                                    call_data->caller_inlining_id_));
         TRACE_INLINING(THR_Print("     Success\n"));
         PRINT_INLINING_TREE(NULL,
@@ -932,7 +930,7 @@ class CallSiteInliner : public ValueObject {
     // Propagate a compile-time error. Only in precompilation do we attempt to
     // inline functions that have never been compiled before; when JITing we
     // should only see compile-time errors in unoptimized compilation.
-    ASSERT(FLAG_precompilation);
+    ASSERT(FLAG_precompiled_mode);
     Thread::Current()->long_jump_base()->Jump(1, error);
     UNREACHABLE();
     return false;
@@ -1827,11 +1825,13 @@ static bool ShouldTraceInlining(FlowGraph* flow_graph) {
 FlowGraphInliner::FlowGraphInliner(
     FlowGraph* flow_graph,
     GrowableArray<const Function*>* inline_id_to_function,
+    GrowableArray<TokenPosition>* inline_id_to_token_pos,
     GrowableArray<intptr_t>* caller_inline_id,
     bool use_speculative_inlining,
     GrowableArray<intptr_t>* inlining_black_list)
     : flow_graph_(flow_graph),
       inline_id_to_function_(inline_id_to_function),
+      inline_id_to_token_pos_(inline_id_to_token_pos),
       caller_inline_id_(caller_inline_id),
       trace_inlining_(ShouldTraceInlining(flow_graph)),
       use_speculative_inlining_(use_speculative_inlining),
@@ -1952,9 +1952,15 @@ void FlowGraphInliner::Inline() {
 
 
 intptr_t FlowGraphInliner::NextInlineId(const Function& function,
+                                        TokenPosition tp,
                                         intptr_t parent_id) {
   const intptr_t id = inline_id_to_function_->length();
+  // TODO(johnmccutchan): Do not allow IsNoSource once all nodes have proper
+  // source positions.
+  ASSERT(tp.IsReal() || tp.IsSynthetic() || tp.IsNoSource());
   inline_id_to_function_->Add(&function);
+  inline_id_to_token_pos_->Add(tp);
+  ASSERT(inline_id_to_token_pos_->length() == inline_id_to_function_->length());
   caller_inline_id_->Add(parent_id);
   return id;
 }
@@ -2231,7 +2237,7 @@ static bool InlineSetIndexed(FlowGraph* flow_graph,
                                    call->GetBlock()->try_index());
   (*entry)->InheritDeoptTarget(Z, call);
   Instruction* cursor = *entry;
-  if (flow_graph->isolate()->flags().type_checks()) {
+  if (flow_graph->isolate()->type_checks()) {
     // Only type check for the value. A type check for the index is not
     // needed here because we insert a deoptimizing smi-check for the case
     // the index is not a smi.

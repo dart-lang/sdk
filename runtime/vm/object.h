@@ -585,13 +585,13 @@ class Object {
     // are preserved as well.
     //
     // e.g.
-    //   private getter             - get:foo@6be832b
-    //   private constructor        - _MyClass@6b3832b.
-    //   private named constructor  - _MyClass@6b3832b.named
-    //   core impl class name shown - _OneByteString
+    //   private getter             -> get:foo@6be832b
+    //   private constructor        -> _MyClass@6b3832b.
+    //   private named constructor  -> _MyClass@6b3832b.named
+    //   core impl class name shown -> _OneByteString
     kInternalName = 0,
 
-    // Pretty names drop privacy suffixes, getter prefixes, and
+    // Scrubbed names drop privacy suffixes, getter prefixes, and
     // trailing dots on unnamed constructors.  These names are used in
     // the vm service.
     //
@@ -599,11 +599,11 @@ class Object {
     //   get:foo@6be832b        -> foo
     //   _MyClass@6b3832b.      -> _MyClass
     //   _MyClass@6b3832b.named -> _MyClass.named
-    //   _OneByteString          -> _OneByteString (not remapped)
-    kPrettyName,
+    //   _OneByteString         -> _OneByteString (not remapped)
+    kScrubbedName,
 
     // User visible names are appropriate for reporting type errors
-    // directly to programmers.  The names have been "prettied" and
+    // directly to programmers.  The names have been scrubbed and
     // the names of core implementation classes are remapped to their
     // public interface names.
     //
@@ -611,7 +611,7 @@ class Object {
     //   get:foo@6be832b        -> foo
     //   _MyClass@6b3832b.      -> _MyClass
     //   _MyClass@6b3832b.named -> _MyClass.named
-    //   _OneByteString          -> String (remapped)
+    //   _OneByteString         -> String (remapped)
     kUserVisibleName
   };
 
@@ -953,7 +953,7 @@ class Class : public Object {
   }
 
   RawString* Name() const;
-  RawString* PrettyName() const;
+  RawString* ScrubbedName() const;
   RawString* UserVisibleName() const;
   bool IsInFullSnapshot() const;
 
@@ -1417,9 +1417,7 @@ class Class : public Object {
   class IsAllocatedBit : public BitField<uint16_t, bool, kIsAllocatedBit, 1> {};
 
   void set_name(const String& value) const;
-  void set_pretty_name(const String& value) const;
   void set_user_name(const String& value) const;
-  RawString* GeneratePrettyName() const;
   RawString* GenerateUserVisibleName() const;
   void set_state_bits(intptr_t bits) const;
 
@@ -1490,6 +1488,15 @@ class Class : public Object {
       TrailPtr bound_trail,
       Heap::Space space);
 
+  // Returns AbstractType::null() if type not found.
+  RawAbstractType* LookupCanonicalType(Zone* zone,
+                                       const AbstractType& type,
+                                       intptr_t* index) const;
+
+  // Returns canonical type. Thread safe.
+  RawAbstractType* LookupOrAddCanonicalType(const AbstractType& type,
+                                            intptr_t start_index) const;
+
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Class, Object);
   friend class AbstractType;
   friend class Instance;
@@ -1547,12 +1554,6 @@ class TypeArguments : public Object {
   // The name of this type argument vector, e.g. "<T, dynamic, List<T>, Smi>".
   RawString* Name() const {
     return SubvectorName(0, Length(), kInternalName);
-  }
-
-  // The name of this type argument vector, e.g. "<T, dynamic, List<T>, Smi>".
-  // Names of internal classes are not mapped to their public interfaces.
-  RawString* PrettyName() const {
-    return SubvectorName(0, Length(), kPrettyName);
   }
 
   // The name of this type argument vector, e.g. "<T, dynamic, List<T>, int>".
@@ -1643,6 +1644,9 @@ class TypeArguments : public Object {
 
   // Canonicalize only if instantiated, otherwise returns 'this'.
   RawTypeArguments* Canonicalize(TrailPtr trail = NULL) const;
+
+  // Returns a formatted list of occuring type arguments with their URI.
+  RawString* EnumerateURIs() const;
 
   // Return 'this' if this type argument vector is instantiated, i.e. if it does
   // not refer to type parameters. Otherwise, return a new type argument vector
@@ -2108,11 +2112,13 @@ class ICData : public Object {
 class Function : public Object {
  public:
   RawString* name() const { return raw_ptr()->name_; }
-  RawString* PrettyName() const;
-  RawString* UserVisibleName() const;
-  RawString* QualifiedPrettyName() const;
-  RawString* QualifiedUserVisibleName() const;
-  const char* QualifiedUserVisibleNameCString() const;
+  RawString* UserVisibleName() const;  // Same as scrubbed name.
+  RawString* QualifiedScrubbedName() const {
+    return QualifiedName(kScrubbedName);
+  }
+  RawString* QualifiedUserVisibleName() const {
+    return QualifiedName(kUserVisibleName);
+  }
   virtual RawString* DictionaryName() const { return name(); }
 
   RawString* GetSource() const;
@@ -2134,12 +2140,6 @@ class Function : public Object {
   RawString* Signature() const {
     const bool instantiate = false;
     return BuildSignature(instantiate, kInternalName, TypeArguments::Handle());
-  }
-
-  RawString* PrettySignature() const {
-    const bool instantiate = false;
-    return BuildSignature(
-        instantiate, kPrettyName, TypeArguments::Handle());
   }
 
   // Build a string of the form '(T, {b: B, c: C}) => R' representing the
@@ -2798,6 +2798,8 @@ FOR_EACH_FUNCTION_KIND_BIT(DEFINE_BIT)
 
   static RawFunction* New();
 
+  RawString* QualifiedName(NameVisibility name_visibility) const;
+
   void BuildSignatureParameters(
       bool instantiate,
       NameVisibility name_visibility,
@@ -2891,9 +2893,22 @@ class RedirectionData: public Object {
 
 class Field : public Object {
  public:
+  RawField* Original() const;
+  void SetOriginal(const Field& value) const;
+  bool IsOriginal() const {
+    if (IsNull()) {
+      return true;
+    }
+    NoSafepointScope no_safepoint;
+    return !raw_ptr()->owner_->IsField();
+  }
+
+  // Returns a field cloned from 'this'. 'this' is set as the
+  // original field of result.
+  RawField* CloneFromOriginal() const;
+
   RawString* name() const { return raw_ptr()->name_; }
-  RawString* PrettyName() const;
-  RawString* UserVisibleName() const;
+  RawString* UserVisibleName() const;  // Same as scrubbed name.
   virtual RawString* DictionaryName() const { return name(); }
 
   bool is_static() const { return StaticBit::decode(raw_ptr()->kind_bits_); }
@@ -2903,6 +2918,7 @@ class Field : public Object {
     return ReflectableBit::decode(raw_ptr()->kind_bits_);
   }
   void set_is_reflectable(bool value) const {
+    ASSERT(IsOriginal());
     set_kind_bits(ReflectableBit::update(value, raw_ptr()->kind_bits_));
   }
   bool is_double_initialized() const {
@@ -2912,6 +2928,7 @@ class Field : public Object {
   // Marks fields that are initialized with a simple double constant.
   void set_is_double_initialized(bool value) const {
     ASSERT(Thread::Current()->IsMutatorThread());
+    ASSERT(IsOriginal());
     set_kind_bits(DoubleInitializedBit::update(value, raw_ptr()->kind_bits_));
   }
 
@@ -2923,10 +2940,10 @@ class Field : public Object {
   inline void SetStaticValue(const Instance& value,
                              bool save_initial_value = false) const;
 
-  RawClass* owner() const;
-  RawClass* origin() const;  // Either mixin class, or same as owner().
-  RawScript* script() const;
-  RawObject* RawOwner() const { return raw_ptr()->owner_; }
+  RawClass* Owner() const;
+  RawClass* Origin() const;  // Either mixin class, or same as owner().
+  RawScript* Script() const;
+  RawObject* RawOwner() const;
 
   RawAbstractType* type() const  { return raw_ptr()->type_; }
   // Used by class finalizer, otherwise initialized in constructor.
@@ -2954,6 +2971,9 @@ class Field : public Object {
   // Allocate new field object, clone values from this field. The
   // owner of the clone is new_owner.
   RawField* Clone(const Class& new_owner) const;
+  // Allocate new field object, clone values from this field. The
+  // original is specified.
+  RawField* Clone(const Field& original) const;
 
   static intptr_t instance_field_offset() {
     return OFFSET_OF(RawField, value_.offset_);
@@ -2971,6 +2991,7 @@ class Field : public Object {
   }
   // Called by parser after allocating field.
   void set_has_initializer(bool has_initializer) const {
+    ASSERT(IsOriginal());
     ASSERT(Thread::Current()->IsMutatorThread());
     set_kind_bits(HasInitializerBit::update(has_initializer,
                                             raw_ptr()->kind_bits_));
@@ -3021,6 +3042,7 @@ class Field : public Object {
   // Default 'true', set to false once optimizing compiler determines it should
   // be boxed.
   void set_is_unboxing_candidate(bool b) const {
+    ASSERT(IsOriginal());
     set_kind_bits(UnboxingCandidateBit::update(b, raw_ptr()->kind_bits_));
   }
 
@@ -4051,6 +4073,18 @@ class CodeSourceMap : public Object {
   // Decode SLEB128 encoded integer. Update byte_index to the next integer.
   intptr_t DecodeInteger(intptr_t* byte_index) const;
 
+  TokenPosition TokenPositionForPCOffset(uword pc_offset) const;
+  RawFunction* FunctionForPCOffset(const Code& code,
+                                   const Function& function,
+                                   uword pc_offset) const;
+  RawScript* ScriptForPCOffset(const Code& code,
+                               const Function& function,
+                               uword pc_offset) const;
+
+  static void Dump(const CodeSourceMap& code_source_map,
+                   const Code& code,
+                   const Function& function);
+
   class Iterator : ValueObject {
    public:
     explicit Iterator(const CodeSourceMap& code_source_map)
@@ -4428,6 +4462,9 @@ class Code : public Object {
   RawArray* GetInlinedIdToFunction() const;
   void SetInlinedIdToFunction(const Array& value) const;
 
+  RawArray* GetInlinedIdToTokenPos() const;
+  void SetInlinedIdToTokenPos(const Array& value) const;
+
   RawArray* GetInlinedCallerIdMap() const;
   void SetInlinedCallerIdMap(const Array& value) const;
 
@@ -4519,7 +4556,7 @@ class Code : public Object {
   intptr_t GetDeoptIdForOsr(uword pc) const;
 
   RawString* Name() const;
-  RawString* PrettyName() const;
+  RawString* QualifiedName() const;
 
   int64_t compile_timestamp() const {
     return raw_ptr()->compile_timestamp_;
@@ -5319,15 +5356,18 @@ class AbstractType : public Instance {
     return BuildName(kInternalName);
   }
 
-  virtual RawString* PrettyName() const {
-    return BuildName(kPrettyName);
-  }
-
   // The name of this type, including the names of its type arguments, if any.
   // Names of internal classes are mapped to their public interfaces.
   virtual RawString* UserVisibleName() const {
     return BuildName(kUserVisibleName);
   }
+
+  // Same as user visible name, but including the URI of each occuring type.
+  // Used to report errors involving types with identical names.
+  virtual RawString* UserVisibleNameWithURI() const;
+
+  // Returns a formatted list of occuring types with their URI.
+  virtual RawString* EnumerateURIs() const;
 
   virtual intptr_t Hash() const;
 
@@ -5472,6 +5512,7 @@ class Type : public AbstractType {
       const Class& new_owner,
       TrailPtr trail = NULL) const;
   virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const;
+  virtual RawString* EnumerateURIs() const;
 
   virtual intptr_t Hash() const;
 
@@ -5620,6 +5661,7 @@ class FunctionType : public AbstractType {
       const Class& new_owner,
       TrailPtr trail = NULL) const;
   virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const;
+  virtual RawString* EnumerateURIs() const;
 
   virtual intptr_t Hash() const;
 
@@ -5696,6 +5738,7 @@ class TypeRef : public AbstractType {
       const Class& new_owner,
       TrailPtr trail = NULL) const;
   virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const;
+  virtual RawString* EnumerateURIs() const;
 
   virtual intptr_t Hash() const;
 
@@ -5771,6 +5814,7 @@ class TypeParameter : public AbstractType {
   virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const {
     return raw();
   }
+  virtual RawString* EnumerateURIs() const;
 
   virtual intptr_t Hash() const;
 
@@ -5857,6 +5901,7 @@ class BoundedType : public AbstractType {
   virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const {
     return raw();
   }
+  virtual RawString* EnumerateURIs() const;
 
   virtual intptr_t Hash() const;
 
@@ -6520,8 +6565,8 @@ class String : public Instance {
   static RawString* ToLowerCase(const String& str,
                                 Heap::Space space = Heap::kNew);
 
-  static RawString* IdentifierPrettyName(const String& name);
-  static RawString* IdentifierPrettyNameRetainPrivate(const String& name);
+  static RawString* ScrubName(const String& name);
+  static RawString* ScrubNameRetainPrivate(const String& name);
 
   static bool EqualsIgnoringPrivateKey(const String& str1,
                                        const String& str2);

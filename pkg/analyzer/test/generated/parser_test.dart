@@ -4016,6 +4016,33 @@ class C {
     expect(metadata[0].name.name, "override");
   }
 
+  void test_missingSemicolon_varialeDeclarationList() {
+    void verify(CompilationUnitMember member, String expectedTypeName,
+        String expectedName, String expectedSemicolon) {
+      expect(member, new isInstanceOf<TopLevelVariableDeclaration>());
+      TopLevelVariableDeclaration declaration = member;
+      VariableDeclarationList variableList = declaration.variables;
+      expect(variableList, isNotNull);
+      NodeList<VariableDeclaration> variables = variableList.variables;
+      expect(variables, hasLength(1));
+      VariableDeclaration variable = variables[0];
+      expect(variableList.type.toString(), expectedTypeName);
+      expect(variable.name.name, expectedName);
+      expect(declaration.semicolon.lexeme, expectedSemicolon);
+    }
+
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(
+        'String n x = "";', [
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE
+    ]);
+    expect(unit, isNotNull);
+    NodeList<CompilationUnitMember> declarations = unit.declarations;
+    expect(declarations, hasLength(2));
+    verify(declarations[0], 'String', 'n', '');
+    verify(declarations[1], 'null', 'x', ';');
+  }
+
   void test_multiplicativeExpression_missing_LHS() {
     BinaryExpression expression =
         parseExpression("* y", [ParserErrorCode.MISSING_IDENTIFIER]);
@@ -4222,6 +4249,24 @@ class C {
 
 @reflectiveTest
 class ResolutionCopierTest extends EngineTestCase {
+  void test_visitAdjacentStrings() {
+    AdjacentStrings createNode() => new AdjacentStrings([
+          new SimpleStringLiteral(null, 'hello'),
+          new SimpleStringLiteral(null, 'world')
+        ]);
+
+    AdjacentStrings fromNode = createNode();
+    DartType propagatedType = ElementFactory.classElement2("A").type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("B").type;
+    fromNode.staticType = staticType;
+
+    AdjacentStrings toNode = createNode();
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
+  }
+
   void test_visitAnnotation() {
     String annotationName = "proxy";
     Annotation fromNode =
@@ -4429,20 +4474,16 @@ class ResolutionCopierTest extends EngineTestCase {
     MethodElement propagatedElement = ElementFactory.methodElement(
         "m", ElementFactory.classElement2("C").type);
     fromNode.propagatedElement = propagatedElement;
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
     MethodElement staticElement = ElementFactory.methodElement(
         "m", ElementFactory.classElement2("C").type);
     fromNode.staticElement = staticElement;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
     FunctionExpressionInvocation toNode =
         AstFactory.functionExpressionInvocation(AstFactory.identifier3("f"));
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
+
+    _copyAndVerifyInvocation(fromNode, toNode);
+
     expect(toNode.propagatedElement, same(propagatedElement));
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticElement, same(staticElement));
-    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitImportDirective() {
@@ -4564,14 +4605,8 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitMethodInvocation() {
     MethodInvocation fromNode = AstFactory.methodInvocation2("m");
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
     MethodInvocation toNode = AstFactory.methodInvocation2("m");
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticType, same(staticType));
+    _copyAndVerifyInvocation(fromNode, toNode);
   }
 
   void test_visitNamedExpression() {
@@ -4847,6 +4882,25 @@ class ResolutionCopierTest extends EngineTestCase {
     TypeName toNode = AstFactory.typeName4("C");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect(toNode.type, same(type));
+  }
+
+  void _copyAndVerifyInvocation(
+      InvocationExpression fromNode, InvocationExpression toNode) {
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    fromNode.staticType = staticType;
+
+    DartType propagatedInvokeType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedInvokeType = propagatedInvokeType;
+    DartType staticInvokeType = ElementFactory.classElement2("C").type;
+    fromNode.staticInvokeType = staticInvokeType;
+
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
+    expect(toNode.propagatedInvokeType, same(propagatedInvokeType));
+    expect(toNode.staticInvokeType, same(staticInvokeType));
   }
 }
 

@@ -24,10 +24,10 @@
 #include "vm/flow_graph_builder.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/flow_graph_inliner.h"
-#include "vm/flow_graph_optimizer.h"
 #include "vm/flow_graph_range_analysis.h"
 #include "vm/flow_graph_type_propagator.h"
 #include "vm/il_printer.h"
+#include "vm/jit_optimizer.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -59,6 +59,7 @@ DEFINE_FLAG(bool, print_flow_graph_optimized, false,
     "Print the IR flow graph when optimizing.");
 DEFINE_FLAG(bool, print_ic_data_map, false,
     "Print the deopt-id to ICData map in optimizing compiler.");
+DEFINE_FLAG(bool, print_code_source_map, false, "Print code source map.");
 DEFINE_FLAG(bool, range_analysis, true, "Enable range analysis");
 DEFINE_FLAG(bool, reorder_basic_blocks, true, "Enable basic-block reordering.");
 DEFINE_FLAG(bool, trace_compiler, false, "Trace compiler operations.");
@@ -69,12 +70,9 @@ DEFINE_FLAG(bool, use_inlining, true, "Enable call-site inlining");
 DEFINE_FLAG(bool, verify_compiler, false,
     "Enable compiler verification assertions");
 
-DECLARE_FLAG(bool, background_compilation);
 DECLARE_FLAG(bool, huge_method_cutoff_in_code_size);
-DECLARE_FLAG(bool, load_deferred_eagerly);
 DECLARE_FLAG(bool, trace_failed_optimization_attempts);
 DECLARE_FLAG(bool, trace_irregexp);
-DECLARE_FLAG(bool, precompilation);
 
 
 #ifndef DART_PRECOMPILED_RUNTIME
@@ -420,7 +418,7 @@ void CompileParsedFunctionHelper::FinalizeCompilation(
     Assembler* assembler,
     FlowGraphCompiler* graph_compiler,
     FlowGraph* flow_graph) {
-  ASSERT(!FLAG_precompilation);
+  ASSERT(!FLAG_precompiled_mode);
   const Function& function = parsed_function()->function();
   Zone* const zone = thread()->zone();
 
@@ -460,6 +458,12 @@ void CompileParsedFunctionHelper::FinalizeCompilation(
            caller_inlining_id_map_array.Length() * sizeof(uword));
   code.SetInlinedCallerIdMap(caller_inlining_id_map_array);
 
+  const Array& inlined_id_to_token_pos =
+      Array::Handle(zone, graph_compiler->InliningIdToTokenPos());
+  INC_STAT(thread(), total_code_size,
+           inlined_id_to_token_pos.Length() * sizeof(uword));
+  code.SetInlinedIdToTokenPos(inlined_id_to_token_pos);
+
   graph_compiler->FinalizePcDescriptors(code);
   code.set_deopt_info_array(deopt_info_array);
 
@@ -468,6 +472,18 @@ void CompileParsedFunctionHelper::FinalizeCompilation(
   graph_compiler->FinalizeExceptionHandlers(code);
   graph_compiler->FinalizeStaticCallTargetsTable(code);
 
+NOT_IN_PRODUCT(
+  // Set the code source map after setting the inlined information because
+  // we use the inlined information when printing.
+  const CodeSourceMap& code_source_map =
+      CodeSourceMap::Handle(
+          zone,
+          graph_compiler->code_source_map_builder()->Finalize());
+  code.set_code_source_map(code_source_map);
+  if (FLAG_print_code_source_map) {
+    CodeSourceMap::Dump(code_source_map, code, function);
+  }
+);
   if (optimized()) {
     // Installs code while at safepoint.
     if (thread()->IsMutatorThread()) {
@@ -556,7 +572,7 @@ void CompileParsedFunctionHelper::FinalizeCompilation(
 // If optimized_result_code is not NULL then it is caller's responsibility
 // to install code.
 bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
-  ASSERT(!FLAG_precompilation);
+  ASSERT(!FLAG_precompiled_mode);
   const Function& function = parsed_function()->function();
   if (optimized() && !function.IsOptimizable()) {
     return false;
@@ -673,6 +689,8 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       // Maps inline_id_to_function[inline_id] -> function. Top scope
       // function has inline_id 0. The map is populated by the inliner.
       GrowableArray<const Function*> inline_id_to_function;
+      // Token position where inlining occured.
+      GrowableArray<TokenPosition> inline_id_to_token_pos;
       // For a given inlining-id(index) specifies the caller's inlining-id.
       GrowableArray<intptr_t> caller_inline_id;
       // Collect all instance fields that are loaded in the graph and
@@ -683,13 +701,13 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
                                                  compiler_timeline,
                                                  "OptimizationPasses"));
         inline_id_to_function.Add(&function);
+        inline_id_to_token_pos.Add(function.token_pos());
         // Top scope function has no caller (-1).
         caller_inline_id.Add(-1);
         CSTAT_TIMER_SCOPE(thread(), graphoptimizer_timer);
 
-        FlowGraphOptimizer optimizer(flow_graph,
-                                     use_speculative_inlining,
-                                     NULL);
+        JitOptimizer optimizer(flow_graph);
+
         optimizer.ApplyICData();
         DEBUG_ASSERT(flow_graph->VerifyUseLists());
 
@@ -716,6 +734,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
           FlowGraphInliner inliner(flow_graph,
                                    &inline_id_to_function,
+                                   &inline_id_to_token_pos,
                                    &caller_inline_id,
                                    use_speculative_inlining,
                                    NULL);
@@ -986,6 +1005,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
       FlowGraphCompiler graph_compiler(&assembler, flow_graph,
                                        *parsed_function(), optimized(),
                                        inline_id_to_function,
+                                       inline_id_to_token_pos,
                                        caller_inline_id);
       {
         CSTAT_TIMER_SCOPE(thread(), graphcompiler_timer);
@@ -1087,7 +1107,7 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
                                        const Function& function,
                                        bool optimized,
                                        intptr_t osr_id) {
-  ASSERT(!FLAG_precompilation);
+  ASSERT(!FLAG_precompiled_mode);
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     Thread* const thread = Thread::Current();
@@ -1201,7 +1221,7 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
 RawError* Compiler::CompileFunction(Thread* thread,
                                     const Function& function) {
 #ifdef DART_PRECOMPILER
-  if (FLAG_precompilation) {
+  if (FLAG_precompiled_mode) {
     return Precompiler::CompileFunction(thread, function);
   }
 #endif
@@ -1268,11 +1288,8 @@ RawError* Compiler::CompileOptimizedFunction(Thread* thread,
 
   // Optimization must happen in non-mutator/Dart thread if background
   // compilation is on. OSR compilation still occurs in the main thread.
-  // TODO(Srdjan): Remove assert allowance for regular expression functions
-  // once they can be compiled in background.
   ASSERT((osr_id != kNoOSRDeoptId) || !FLAG_background_compilation ||
-         !thread->IsMutatorThread() ||
-         function.IsIrregexpFunction());
+         !thread->IsMutatorThread());
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
   return CompileFunctionHelper(pipeline,
@@ -1361,7 +1378,7 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
 
 RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
 #ifdef DART_PRECOMPILER
-  if (FLAG_precompilation) {
+  if (FLAG_precompiled_mode) {
     return Precompiler::EvaluateStaticInitializer(field);
   }
 #endif
@@ -1405,7 +1422,7 @@ RawObject* Compiler::EvaluateStaticInitializer(const Field& field) {
 
 RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
 #ifdef DART_PRECOMPILER
-  if (FLAG_precompilation) {
+  if (FLAG_precompiled_mode) {
     return Precompiler::ExecuteOnce(fragment);
   }
 #endif

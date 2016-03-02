@@ -176,6 +176,7 @@ void MessageHandler::ClearOOBQueue() {
 
 
 MessageHandler::MessageStatus MessageHandler::HandleMessages(
+    MonitorLocker* ml,
     bool allow_normal_messages,
     bool allow_multiple_normal_messages) {
   // TODO(turnidge): Add assert that monitor_ is held here.
@@ -200,7 +201,7 @@ MessageHandler::MessageStatus MessageHandler::HandleMessages(
 
     // Release the monitor_ temporarily while we handle the message.
     // The monitor was acquired in MessageHandler::TaskCallback().
-    monitor_.Exit();
+    ml->Exit();
     Message::Priority saved_priority = message->priority();
     Dart_Port saved_dest_port = message->dest_port();
     MessageStatus status = HandleMessage(message);
@@ -208,7 +209,7 @@ MessageHandler::MessageStatus MessageHandler::HandleMessages(
       max_status = status;
     }
     message = NULL;  // May be deleted by now.
-    monitor_.Enter();
+    ml->Enter();
     if (FLAG_trace_isolates) {
       OS::Print("[.] Message handled (%s):\n"
                 "\tlen:        %" Pd "\n"
@@ -254,7 +255,7 @@ MessageHandler::MessageStatus MessageHandler::HandleNextMessage() {
 #if defined(DEBUG)
   CheckAccess();
 #endif
-  return HandleMessages(true, false);
+  return HandleMessages(&ml, true, false);
 }
 
 
@@ -266,7 +267,7 @@ MessageHandler::MessageStatus MessageHandler::HandleAllMessages() {
 #if defined(DEBUG)
   CheckAccess();
 #endif
-  return HandleMessages(true, true);
+  return HandleMessages(&ml, true, true);
 }
 
 
@@ -278,7 +279,7 @@ MessageHandler::MessageStatus MessageHandler::HandleOOBMessages() {
 #if defined(DEBUG)
   CheckAccess();
 #endif
-  return HandleMessages(false, false);
+  return HandleMessages(&ml, false, false);
 }
 
 
@@ -327,7 +328,7 @@ void MessageHandler::TaskCallback() {
         PausedOnStartLocked(true);
       }
       // More messages may have come in before we (re)acquired the monitor.
-      status = HandleMessages(false, false);
+      status = HandleMessages(&ml, false, false);
       if (ShouldPauseOnStart(status)) {
         // Still paused.
         ASSERT(oob_queue_->IsEmpty());
@@ -345,16 +346,16 @@ void MessageHandler::TaskCallback() {
         // main() function.
         //
         // Release the monitor_ temporarily while we call the start callback.
-        monitor_.Exit();
+        ml.Exit();
         status = start_callback_(callback_data_);
         ASSERT(Isolate::Current() == NULL);
         start_callback_ = NULL;
-        monitor_.Enter();
+        ml.Enter();
       }
 
       // Handle any pending messages for this message handler.
       if (status != kShutdown) {
-        status = HandleMessages((status == kOK), true);
+        status = HandleMessages(&ml, (status == kOK), true);
       }
     }
 
@@ -369,7 +370,7 @@ void MessageHandler::TaskCallback() {
           }
           PausedOnExitLocked(true);
           // More messages may have come in while we released the monitor.
-          status = HandleMessages(false, false);
+          status = HandleMessages(&ml, false, false);
         }
         if (ShouldPauseOnExit(status)) {
           // Still paused.

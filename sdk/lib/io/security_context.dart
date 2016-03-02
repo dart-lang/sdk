@@ -14,14 +14,6 @@ part of dart.io;
  *
  * Certificates and keys can be added to a SecurityContext from either PEM
  * or PKCS12 containers.
- *
- * [usePrivateKey], [setTrustedCertificates], [useCertificateChain], and
- * [setClientAuthorities] are deprecated. They have been renamed
- * [usePrivateKeySync], [setTrustedCertificatesSync], [useCertificateChainSync],
- * and [setClientAuthoritiesSync] to reflect the fact that they do blocking
- * IO. Async-friendly versions have been added in [usePrivateKeyBytes],
- * [setTrustedCertificatesBytes], [useCertificateChainBytes], and
- * [setClientAuthoritiesBytes].
  */
 abstract class SecurityContext {
   external factory SecurityContext();
@@ -42,23 +34,21 @@ abstract class SecurityContext {
    *
    * A secure connection using this SecurityContext will use this key with
    * the server or client certificate to sign and decrypt messages.
-   * [keyFile] is the path to a PEM or PKCS12 file containing an encrypted
-   * private key, encrypted with [password].  An unencrypted file can be
-   * used, but this is not usual.
+   * [file] is the path to a PEM or PKCS12 file containing an encrypted
+   * private key, encrypted with [password]. Assuming it is well-formatted, all
+   * other contents of [file] are ignored. An unencrypted file can be used,
+   * but this is not usual.
+   *
+   * NB: This function calls [ReadFileAsBytesSync], and will block on file IO.
+   * Prefer using [usePrivateKeyBytes].
    */
-  void usePrivateKeySync(String keyFile, {String password});
-
-  /**
-   * [usePrivateKey] is deprecated. Use [usePrivateKeySync] or
-   * [usePrivateKeyBytes].
-   */
-  @deprecated
-  void usePrivateKey(String keyFile, {String password});
+  void usePrivateKey(String file, {String password});
 
   /**
    * Sets the private key for a server certificate or client certificate.
    *
-   * Like [usePrivateKeyBytesSync], but takes the contents of the file.
+   * Like [usePrivateKey], but takes the contents of the file as a list
+   * of bytes.
    */
   void usePrivateKeyBytes(List<int> keyBytes, {String password});
 
@@ -69,24 +59,21 @@ abstract class SecurityContext {
    * [file] is the path to a PEM or PKCS12 file containing X509 certificates,
    * usually root certificates from certificate authorities. For PKCS12 files,
    * [password] is the password for the file. For PEM files, [password] is
+   * ignored. Assuming it is well-formatted, all other contents of [file] are
    * ignored.
+   *
+   * NB: This function calls [ReadFileAsBytesSync], and will block on file IO.
+   * Prefer using [setTrustedCertificatesBytes].
    */
-  void setTrustedCertificatesSync(String file, {String password});
-
-  /**
-   * [setTrustedCertificates] is deprecated. Use [setTrustedCertificatesSync]
-   * or [setTrustedCertificatesBytes].
-   */
-  @deprecated
   void setTrustedCertificates(String file, {String password});
 
   /**
    * Sets the set of trusted X509 certificates used by [SecureSocket]
    * client connections, when connecting to a secure server.
    *
-   * Like [setTrustedCertificatesSync] but takes the contents of the file.
+   * Like [setTrustedCertificates] but takes the contents of the file.
    */
-  void setTrustedCertificatesBytes(List<int> certBytes,{String password});
+  void setTrustedCertificatesBytes(List<int> certBytes, {String password});
 
   /**
    * Sets the chain of X509 certificates served by [SecureServer]
@@ -97,22 +84,19 @@ abstract class SecurityContext {
    * chain to the server certificate, and ending with the server certificate.
    * The private key for the server certificate is set by [usePrivateKey]. For
    * PKCS12 files, [password] is the password for the file. For PEM files,
-   * [password] is ignored.
+   * [password] is ignored. Assuming it is well-formatted, all
+   * other contents of [file] are ignored.
+   *
+   * NB: This function calls [ReadFileAsBytesSync], and will block on file IO.
+   * Prefer using [useCertificateChainBytes].
    */
-  void useCertificateChainSync(String file, {String password});
-
-  /**
-   * [useCertificateChain] is deprecated. Use [useCertificateChainSync]
-   * or [useCertificateChainBytes].
-   */
-  @deprecated
-  void useCertificateChain({String file, String directory, String password});
+  void useCertificateChain(String file, {String password});
 
   /**
    * Sets the chain of X509 certificates served by [SecureServer]
    * when making secure connections, including the server certificate.
    *
-   * Like [useCertificateChainSync] but takes the contents of the file.
+   * Like [useCertificateChain] but takes the contents of the file.
    */
   void useCertificateChainBytes(List<int> chainBytes, {String password});
 
@@ -124,15 +108,12 @@ abstract class SecurityContext {
    * [file] is a PEM or PKCS12 file containing the accepted signing
    * authority certificates - the authority names are extracted from the
    * certificates. For PKCS12 files, [password] is the password for the file.
-   * For PEM files, [password] is ignored.
+   * For PEM files, [password] is ignored. Assuming it is well-formatted, all
+   * other contents of [file] are ignored.
+   *
+   * NB: This function calls [ReadFileAsBytesSync], and will block on file IO.
+   * Prefer using [setClientAuthoritiesBytes].
    */
-  void setClientAuthoritiesSync(String file, {String password});
-
-  /**
-   * [setClientAuthorities] is deprecated. Use [setClientAuthoritiesSync]
-   * or [setClientAuthoritiesBytes].
-   */
-  @deprecated
   void setClientAuthorities(String file, {String password});
 
   /**
@@ -140,7 +121,7 @@ abstract class SecurityContext {
    * as accepted, when requesting a client certificate from a connecting
    * client.
    *
-   * Like [setClientAuthoritySync] but takes the contents of the file.
+   * Like [setClientAuthority] but takes the contents of the file.
    */
   void setClientAuthoritiesBytes(List<int> authCertBytes, {String password});
 

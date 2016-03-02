@@ -922,6 +922,7 @@ class AnalysisErrorInfoImpl implements AnalysisErrorInfo {
    * The analysis errors associated with a source, or `null` if there are no
    * errors.
    */
+  @override
   final List<AnalysisError> errors;
 
   /**
@@ -1528,18 +1529,21 @@ class ChangeNoticeImpl implements ChangeNotice {
   /**
    * The source for which the result is being reported.
    */
+  @override
   final Source source;
 
   /**
    * The parsed, but maybe not resolved Dart AST that changed as a result of
    * the analysis, or `null` if the AST was not changed.
    */
+  @override
   CompilationUnit parsedDartUnit;
 
   /**
    * The fully resolved Dart AST that changed as a result of the analysis, or
    * `null` if the AST was not changed.
    */
+  @override
   CompilationUnit resolvedDartUnit;
 
   /**

@@ -4,7 +4,9 @@
 
 library analyzer.test.src.context.abstract_context;
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/context/cache.dart';
@@ -19,6 +21,28 @@ import 'package:plugin/plugin.dart';
 import 'package:unittest/unittest.dart';
 
 import 'mock_sdk.dart';
+
+/**
+ * Finds an [Element] with the given [name].
+ */
+Element findChildElement(Element root, String name, [ElementKind kind]) {
+  Element result = null;
+  root.accept(new _ElementVisitorFunctionWrapper((Element element) {
+    if (element.name != name) {
+      return;
+    }
+    if (kind != null && element.kind != kind) {
+      return;
+    }
+    result = element;
+  }));
+  return result;
+}
+
+/**
+ * A function to be called for every [Element].
+ */
+typedef void _ElementVisitorFunction(Element element);
 
 class AbstractContextTest {
   MemoryResourceProvider resourceProvider = new MemoryResourceProvider();
@@ -124,6 +148,10 @@ class AbstractContextTest {
     analysisDriver = context.driver;
   }
 
+  CompilationUnit resolveLibraryUnit(Source source) {
+    return context.resolveCompilationUnit2(source, source);
+  }
+
   void setUp() {
     List<Plugin> plugins = <Plugin>[];
     plugins.addAll(AnalysisEngine.instance.requiredPlugins);
@@ -137,4 +165,19 @@ class AbstractContextTest {
   }
 
   void tearDown() {}
+}
+
+/**
+ * Wraps the given [_ElementVisitorFunction] into an instance of
+ * [GeneralizingElementVisitor].
+ */
+class _ElementVisitorFunctionWrapper extends GeneralizingElementVisitor {
+  final _ElementVisitorFunction function;
+
+  _ElementVisitorFunctionWrapper(this.function);
+
+  visitElement(Element element) {
+    function(element);
+    super.visitElement(element);
+  }
 }

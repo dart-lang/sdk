@@ -120,6 +120,12 @@ void NativeEntry::PropagateErrors(NativeArguments* arguments) {
 void NativeEntry::NativeCallWrapper(Dart_NativeArguments args,
                                     Dart_NativeFunction func) {
   CHECK_STACK_ALIGNMENT;
+  NativeCallWrapperNoStackCheck(args, func);
+}
+
+
+void NativeEntry::NativeCallWrapperNoStackCheck(Dart_NativeArguments args,
+                                                Dart_NativeFunction func) {
   VERIFY_ON_TRANSITION;
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   /* Tell MemorySanitizer 'arguments' is initialized by generated code. */
@@ -281,7 +287,9 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
 
   // Tail-call resolved target.
   if (call_through_wrapper) {
-    NativeEntry::NativeCallWrapper(
+    // Because this call is within a compilation unit, Clang doesn't respect
+    // the ABI alignment here.
+    NativeEntry::NativeCallWrapperNoStackCheck(
         args, reinterpret_cast<Dart_NativeFunction>(target_function));
   } else {
     target_function(arguments);

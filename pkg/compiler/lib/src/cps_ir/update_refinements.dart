@@ -37,9 +37,9 @@ class UpdateRefinements extends TrampolineRecursiveVisitor implements Pass {
   }
 
   visitReceiverCheck(ReceiverCheck node) {
-    if (refine(node.value)) {
+    if (refine(node.valueRef)) {
       // Update the type if the input has changed.
-      Primitive value = node.value.definition;
+      Primitive value = node.value;
       if (value.type.needsNoSuchMethodHandling(node.selector, classWorld)) {
         node.type = typeSystem.receiverTypeFor(node.selector, value.type);
       } else {
@@ -76,7 +76,7 @@ class UpdateRefinements extends TrampolineRecursiveVisitor implements Pass {
   visitBoundsCheck(BoundsCheck node) {
     super.visitBoundsCheck(node);
     if (node.hasIntegerCheck &&
-        typeSystem.isDefinitelyInt(node.index.definition.type)) {
+        typeSystem.isDefinitelyInt(node.index.type)) {
       node.checks &= ~BoundsCheck.INTEGER;
     }
   }

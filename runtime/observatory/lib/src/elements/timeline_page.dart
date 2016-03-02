@@ -67,6 +67,14 @@ class TimelinePageElement extends ObservatoryElement {
     });
   }
 
+  Future saveTimeline() async {
+    return postMessage('save');
+  }
+
+  Future loadTimeline() async {
+    return postMessage('load');
+  }
+
   _updateSize() {
     IFrameElement e = $['root'];
     final totalHeight = window.innerHeight;

@@ -39,6 +39,7 @@ class BeginTokenWithComment extends BeginToken implements TokenWithComment {
   /**
    * The first comment in the list of comments that precede this token.
    */
+  @override
   CommentToken _precedingComment;
 
   /**
@@ -54,6 +55,7 @@ class BeginTokenWithComment extends BeginToken implements TokenWithComment {
   @override
   CommentToken get precedingComments => _precedingComment;
 
+  @override
   void set precedingComments(CommentToken comment) {
     _precedingComment = comment;
     _setCommentParent(_precedingComment);
@@ -168,6 +170,7 @@ class KeywordTokenWithComment extends KeywordToken implements TokenWithComment {
   /**
    * The first comment in the list of comments that precede this token.
    */
+  @override
   CommentToken _precedingComment;
 
   /**

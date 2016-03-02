@@ -19,7 +19,8 @@ import 'optimizers.dart';
 /// one continuation. The reference chains for parameters are therefore
 /// meaningless during this pass, until repaired by [AlphaRenamer] at
 /// the end.
-class RedundantJoinEliminator extends TrampolineRecursiveVisitor implements Pass {
+class RedundantJoinEliminator extends TrampolineRecursiveVisitor
+      implements Pass {
   String get passName => 'Redundant join elimination';
 
   final Set<Branch> workSet = new Set<Branch>();
@@ -80,7 +81,7 @@ class RedundantJoinEliminator extends TrampolineRecursiveVisitor implements Pass
     // enclosing continuation.
     // Note: Do not use the parent pointer for this check, because parameters
     // are temporarily shared between different continuations during this pass.
-    Primitive condition = branch.condition.definition;
+    Primitive condition = branch.condition;
     int parameterIndex = branchCont.parameters.indexOf(condition);
     if (parameterIndex == -1) return;
 
@@ -92,7 +93,7 @@ class RedundantJoinEliminator extends TrampolineRecursiveVisitor implements Pass
     InvokeContinuation trueCall, falseCall;
     for (Reference ref = branchCont.firstRef; ref != null; ref = ref.next) {
       InvokeContinuation invoke = ref.parent;
-      Primitive argument = invoke.arguments[parameterIndex].definition;
+      Primitive argument = invoke.argument(parameterIndex);
       if (argument is! Constant) return; // Branching condition is unknown.
       Constant constant = argument;
       if (isTruthyConstant(constant.value, strict: branch.isStrictCheck)) {
@@ -139,7 +140,8 @@ class RedundantJoinEliminator extends TrampolineRecursiveVisitor implements Pass
           Expression use = ref.parent;
           if (use is InvokeContinuation) {
             for (Parameter param in branchCont.parameters) {
-              use.arguments.add(new Reference<Primitive>(param)..parent = use);
+              use.argumentRefs.add(
+                  new Reference<Primitive>(param)..parent = use);
             }
           } else {
             // The branch will be eliminated, so don't worry about updating it.
@@ -153,8 +155,8 @@ class RedundantJoinEliminator extends TrampolineRecursiveVisitor implements Pass
 
     assert(branchCont.body == branch);
 
-    Continuation trueCont = branch.trueContinuation.definition;
-    Continuation falseCont = branch.falseContinuation.definition;
+    Continuation trueCont = branch.trueContinuation;
+    Continuation falseCont = branch.falseContinuation;
 
     assert(branchCont != trueCont);
     assert(branchCont != falseCont);
@@ -168,19 +170,19 @@ class RedundantJoinEliminator extends TrampolineRecursiveVisitor implements Pass
     while (branchCont.firstRef != null) {
       Reference reference = branchCont.firstRef;
       InvokeContinuation invoke = branchCont.firstRef.parent;
-      Constant condition = invoke.arguments[parameterIndex].definition;
+      Constant condition = invoke.argument(parameterIndex);
       if (isTruthyConstant(condition.value, strict: branch.isStrictCheck)) {
-        invoke.continuation.changeTo(trueCont);
+        invoke.continuationRef.changeTo(trueCont);
       } else {
-        invoke.continuation.changeTo(falseCont);
+        invoke.continuationRef.changeTo(falseCont);
       }
       assert(branchCont.firstRef != reference);
     }
 
     // Remove the now-unused branchCont continuation.
     assert(branchCont.hasNoUses);
-    branch.trueContinuation.unlink();
-    branch.falseContinuation.unlink();
+    branch.trueContinuationRef.unlink();
+    branch.falseContinuationRef.unlink();
     outerLetCont.continuations.remove(branchCont);
     if (outerLetCont.continuations.isEmpty) {
       outerLetCont.remove();

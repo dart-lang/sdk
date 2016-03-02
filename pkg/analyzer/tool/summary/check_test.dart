@@ -19,5 +19,5 @@ main() {
   String script = Platform.script.toFilePath(windows: Platform.isWindows);
   String pkgPath = normalize(join(dirname(script), '..', '..'));
   GeneratedContent.checkAll(
-      pkgPath, 'tool/summary/generate.dart', <GeneratedContent>[target]);
+      pkgPath, 'tool/summary/generate.dart', allTargets);
 }

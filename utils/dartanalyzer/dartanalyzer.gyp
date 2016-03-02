@@ -34,8 +34,8 @@
           'action_name': 'generate_summaries',
           'inputs': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
-            '../../sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart',
             '<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
+            '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../sdk/lib"])',
             '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../pkg/analyzer"])',
           ],
           'outputs': [

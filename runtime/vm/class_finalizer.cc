@@ -16,6 +16,7 @@
 namespace dart {
 
 DEFINE_FLAG(bool, print_classes, false, "Prints details about loaded classes.");
+DEFINE_FLAG(bool, reify, true, "Reify type arguments of generic types.");
 DEFINE_FLAG(bool, trace_class_finalization, false, "Trace class finalization.");
 DEFINE_FLAG(bool, trace_type_finalization, false, "Trace type finalization.");
 
@@ -389,7 +390,7 @@ void ClassFinalizer::ResolveRedirectingFactoryTarget(
     return;
   }
 
-  if (Isolate::Current()->flags().error_on_bad_override()) {
+  if (Isolate::Current()->error_on_bad_override()) {
     // Verify that the target is compatible with the redirecting factory.
     Error& error = Error::Handle();
     if (!target.HasCompatibleParametersWith(factory, &error)) {
@@ -670,6 +671,11 @@ intptr_t ClassFinalizer::ExpandAndFinalizeTypeArguments(
   // The class has num_type_parameters type parameters.
   const intptr_t num_type_parameters = type_class.NumTypeParameters();
 
+  // If we are not reifying types, drop type arguments.
+  if (!FLAG_reify) {
+    type.set_arguments(TypeArguments::Handle(Z, TypeArguments::null()));
+  }
+
   // Initialize the type argument vector.
   // Check the number of parsed type arguments, if any.
   // Specifying no type arguments indicates a raw type, which is not an error.
@@ -677,7 +683,7 @@ intptr_t ClassFinalizer::ExpandAndFinalizeTypeArguments(
   TypeArguments& arguments = TypeArguments::Handle(Z, type.arguments());
   if (!arguments.IsNull() && (arguments.Length() != num_type_parameters)) {
     // Wrong number of type arguments. The type is mapped to the raw type.
-    if (Isolate::Current()->flags().error_on_bad_type()) {
+    if (Isolate::Current()->error_on_bad_type()) {
       const String& type_class_name = String::Handle(Z, type_class.Name());
       ReportError(cls, type.token_pos(),
                   "wrong number of type arguments for class '%s'",
@@ -699,7 +705,7 @@ intptr_t ClassFinalizer::ExpandAndFinalizeTypeArguments(
   // super types of type_class, which are initialized from the parsed
   // type arguments, followed by the parsed type arguments.
   TypeArguments& full_arguments = TypeArguments::Handle(Z);
-  if (num_type_arguments > 0) {
+  if (FLAG_reify && (num_type_arguments > 0)) {
     // If no type arguments were parsed and if the super types do not prepend
     // type arguments to the vector, we can leave the vector as null.
     if (!arguments.IsNull() || (num_type_arguments > num_type_parameters)) {
@@ -1456,7 +1462,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
            !const_value.IsInstanceOf(type,
                                      Object::null_type_arguments(),
                                      &error))) {
-        if (Isolate::Current()->flags().error_on_bad_type()) {
+        if (Isolate::Current()->error_on_bad_type()) {
           const AbstractType& const_value_type = AbstractType::Handle(
               Z, const_value.GetType());
           const String& const_value_type_name = String::Handle(
@@ -1519,7 +1525,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
     FinalizeSignature(cls, function);
     name = function.name();
     // Report signature conflicts only.
-    if (Isolate::Current()->flags().error_on_bad_override() &&
+    if (Isolate::Current()->error_on_bad_override() &&
         !function.is_static() && !function.IsGenerativeConstructor()) {
       // A constructor cannot override anything.
       for (intptr_t i = 0; i < interfaces.length(); i++) {
@@ -2259,7 +2265,7 @@ void ClassFinalizer::ApplyMixinMembers(const Class& cls) {
                 script, func.token_pos(), Report::AtLocation,
                 Report::kError, Heap::kNew,
                 "constructor '%s' is illegal in mixin class %s",
-                String::Handle(func.PrettyName()).ToCString(),
+                String::Handle(func.UserVisibleName()).ToCString(),
                 String::Handle(zone, mixin_cls.Name()).ToCString()));
 
         ReportErrors(error, cls, cls.token_pos(),
@@ -2710,7 +2716,7 @@ void ClassFinalizer::CollectTypeArguments(
       }
       return;
     }
-    if (Isolate::Current()->flags().error_on_bad_type()) {
+    if (Isolate::Current()->error_on_bad_type()) {
       const String& type_class_name = String::Handle(type_class.Name());
       ReportError(cls, type.token_pos(),
                   "wrong number of type arguments for class '%s'",
@@ -3142,7 +3148,7 @@ void ClassFinalizer::MarkTypeMalformed(const Error& prev_error,
           prev_error, script, type.token_pos(), Report::AtLocation,
           Report::kMalformedType, Heap::kOld,
           format, args));
-  if (Isolate::Current()->flags().error_on_bad_type()) {
+  if (Isolate::Current()->error_on_bad_type()) {
     ReportError(error);
   }
   type.set_error(error);
@@ -3204,7 +3210,7 @@ void ClassFinalizer::FinalizeMalboundedType(const Error& prev_error,
           Report::kMalboundedType, Heap::kOld,
           format, args));
   va_end(args);
-  if (Isolate::Current()->flags().error_on_bad_type()) {
+  if (Isolate::Current()->error_on_bad_type()) {
     ReportError(error);
   }
   type.set_error(error);

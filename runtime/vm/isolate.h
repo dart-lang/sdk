@@ -319,6 +319,9 @@ class Isolate : public BaseIsolate {
 
   Mutex* mutex() const { return mutex_; }
   Mutex* symbols_mutex() const { return symbols_mutex_; }
+  Mutex* type_canonicalization_mutex() const {
+    return type_canonicalization_mutex_;
+  }
 
   Debugger* debugger() const {
     if (!FLAG_support_debugger) {
@@ -336,42 +339,6 @@ class Isolate : public BaseIsolate {
 
   void set_has_compiled_code(bool value) { has_compiled_code_ = value; }
   bool has_compiled_code() const { return has_compiled_code_; }
-
-  // TODO(iposva): Evaluate whether two different isolate flag structures are
-  // needed. Currently it serves as a separation between publicly visible flags
-  // and VM internal flags.
-  class Flags : public ValueObject {
-   public:
-    // Construct default flags as specified by the options.
-    Flags();
-
-    bool type_checks() const { return type_checks_; }
-    bool asserts() const { return asserts_; }
-    bool error_on_bad_type() const { return error_on_bad_type_; }
-    bool error_on_bad_override() const { return error_on_bad_override_; }
-
-    void set_checked(bool val) {
-      type_checks_ = val;
-      asserts_ = val;
-    }
-
-    void CopyFrom(const Flags& orig);
-    void CopyFrom(const Dart_IsolateFlags& api_flags);
-    void CopyTo(Dart_IsolateFlags* api_flags) const;
-
-   private:
-    bool type_checks_;
-    bool asserts_;
-    bool error_on_bad_type_;
-    bool error_on_bad_override_;
-
-    friend class Isolate;
-
-    DISALLOW_ALLOCATION();
-    DISALLOW_COPY_AND_ASSIGN(Flags);
-  };
-
-  const Flags& flags() const { return flags_; }
 
   // Lets the embedder know that a service message resulted in a resume request.
   void SetResumeRequest() {
@@ -672,6 +639,23 @@ class Isolate : public BaseIsolate {
 
   bool is_service_isolate() const { return is_service_isolate_; }
 
+  // Isolate-specific flag handling.
+  static void FlagsInitialize(Dart_IsolateFlags* api_flags);
+  void FlagsCopyTo(Dart_IsolateFlags* api_flags) const;
+  void FlagsCopyFrom(const Dart_IsolateFlags& api_flags);
+
+#if defined(PRODUCT)
+  bool type_checks() const { return FLAG_enable_type_checks; }
+  bool asserts() const { return FLAG_enable_asserts; }
+  bool error_on_bad_type() const { return FLAG_error_on_bad_type; }
+  bool error_on_bad_override() const { return FLAG_error_on_bad_override; }
+#else  // defined(PRODUCT)
+  bool type_checks() const { return type_checks_; }
+  bool asserts() const { return asserts_; }
+  bool error_on_bad_type() const { return error_on_bad_type_; }
+  bool error_on_bad_override() const { return error_on_bad_override_; }
+#endif  // defined(PRODUCT)
+
   static void KillAllIsolates(LibMsgId msg_id);
   static void KillIfExists(Isolate* isolate, LibMsgId msg_id);
 
@@ -769,11 +753,11 @@ class Isolate : public BaseIsolate {
   bool resume_request_;
   int64_t last_resume_timestamp_;
   bool has_compiled_code_;  // Can check that no compilation occured.
-  Flags flags_;
   Random random_;
   Simulator* simulator_;
-  Mutex* mutex_;  // protects stack_limit_, saved_stack_limit_, compiler stats.
-  Mutex* symbols_mutex_;  // Protects concurrent access to teh symbol table.
+  Mutex* mutex_;  // Protects stack_limit_, saved_stack_limit_, compiler stats.
+  Mutex* symbols_mutex_;  // Protects concurrent access to the symbol table.
+  Mutex* type_canonicalization_mutex_;  // Protects type canonicalization.
   uword saved_stack_limit_;
   uword deferred_interrupts_mask_;
   uword deferred_interrupts_;
@@ -790,6 +774,14 @@ class Isolate : public BaseIsolate {
   CompilerStats* compiler_stats_;
 
   bool is_service_isolate_;
+
+  // Isolate-specific flags.
+  NOT_IN_PRODUCT(
+    bool type_checks_;
+    bool asserts_;
+    bool error_on_bad_type_;
+    bool error_on_bad_override_;
+  )
 
   // Status support.
   char* stacktrace_;
@@ -849,7 +841,7 @@ class Isolate : public BaseIsolate {
   uint32_t prefix_invalidation_gen_;
 
   // Protect access to boxed_field_list_.
-  Monitor* boxed_field_list_monitor_;
+  Mutex* boxed_field_list_mutex_;
   // List of fields that became boxed and that trigger deoptimization.
   RawGrowableObjectArray* boxed_field_list_;
 
@@ -997,7 +989,7 @@ class IsolateSpawnState {
   bool is_spawn_uri() const { return library_url_ == NULL; }
   bool paused() const { return paused_; }
   bool errors_are_fatal() const { return errors_are_fatal_; }
-  Isolate::Flags* isolate_flags() { return &isolate_flags_; }
+  Dart_IsolateFlags* isolate_flags() { return &isolate_flags_; }
 
   RawObject* ResolveFunction();
   RawInstance* BuildArgs(Thread* thread);
@@ -1028,7 +1020,7 @@ class IsolateSpawnState {
   Monitor* spawn_count_monitor_;
   intptr_t* spawn_count_;
 
-  Isolate::Flags isolate_flags_;
+  Dart_IsolateFlags isolate_flags_;
   bool paused_;
   bool errors_are_fatal_;
 };

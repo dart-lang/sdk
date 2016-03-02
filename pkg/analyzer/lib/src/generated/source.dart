@@ -369,6 +369,7 @@ class NonExistingSource extends Source {
   @override
   final Uri uri;
 
+  @override
   final UriKind uriKind;
 
   NonExistingSource(this.fullName, this.uri, this.uriKind);

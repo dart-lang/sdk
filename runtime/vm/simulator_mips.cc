@@ -280,7 +280,7 @@ void SimulatorDebugger::PrintDartFrame(uword pc, uword fp, uword sp,
                                        bool is_optimized,
                                        bool is_inlined) {
   const Script& script = Script::Handle(function.script());
-  const String& func_name = String::Handle(function.QualifiedUserVisibleName());
+  const String& func_name = String::Handle(function.QualifiedScrubbedName());
   const String& url = String::Handle(script.url());
   intptr_t line = -1;
   intptr_t column = -1;
@@ -1173,9 +1173,9 @@ intptr_t Simulator::WriteExclusiveW(uword addr, intptr_t value, Instr* instr) {
   bool write_allowed = HasExclusiveAccessAndOpen(addr);
   if (write_allowed) {
     WriteW(addr, value, instr);
-    return 0;  // Success.
+    return 1;  // Success.
   }
-  return 1;  // Failure.
+  return 0;  // Failure.
 }
 
 
@@ -2169,6 +2169,19 @@ void Simulator::InstructionDecode(Instr* instr) {
       set_register(instr->RtField(), instr->UImmField() << 16);
       break;
     }
+    case LL: {
+      // Format(instr, "ll 'rt, 'imms('rs)");
+      int32_t base_val = get_register(instr->RsField());
+      int32_t imm_val = instr->SImmField();
+      uword addr = base_val + imm_val;
+      if (Simulator::IsIllegalAddress(addr)) {
+        HandleIllegalAccess(addr, instr);
+      } else {
+        int32_t res = ReadExclusiveW(addr, instr);
+        set_register(instr->RtField(), res);
+      }
+      break;
+    }
     case LW: {
       // Format(instr, "lw 'rt, 'imms('rs)");
       int32_t base_val = get_register(instr->RsField());
@@ -2211,6 +2224,20 @@ void Simulator::InstructionDecode(Instr* instr) {
         HandleIllegalAccess(addr, instr);
       } else {
         WriteB(addr, rt_val & 0xff);
+      }
+      break;
+    }
+    case SC: {
+      // Format(instr, "sc 'rt, 'imms('rs)");
+      int32_t rt_val = get_register(instr->RtField());
+      int32_t base_val = get_register(instr->RsField());
+      int32_t imm_val = instr->SImmField();
+      uword addr = base_val + imm_val;
+      if (Simulator::IsIllegalAddress(addr)) {
+        HandleIllegalAccess(addr, instr);
+      } else {
+        intptr_t status = WriteExclusiveW(addr, rt_val, instr);
+        set_register(instr->RtField(), status);
       }
       break;
     }

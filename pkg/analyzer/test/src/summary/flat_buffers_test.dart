@@ -55,6 +55,34 @@ class BuilderTest {
     }, throwsStateError);
   }
 
+  void test_file_identifier() {
+    Uint8List byteList;
+    {
+      Builder builder = new Builder(initialSize: 0);
+      builder.startTable();
+      Offset offset = builder.endTable();
+      byteList = builder.finish(offset, 'Az~ÿ');
+    }
+    // Convert byteList to a ByteData so that we can read data from it.
+    ByteData byteData = byteList.buffer.asByteData(byteList.offsetInBytes);
+    // First 4 bytes are an offset to the table data.
+    int tableDataLoc = byteData.getUint32(0, Endianness.LITTLE_ENDIAN);
+    // Next 4 bytes are the file identifier.
+    expect(byteData.getUint8(4), 65); // 'a'
+    expect(byteData.getUint8(5), 122); // 'z'
+    expect(byteData.getUint8(6), 126); // '~'
+    expect(byteData.getUint8(7), 255); // 'ÿ'
+    // First 4 bytes of the table data are a backwards offset to the vtable.
+    int vTableLoc = tableDataLoc -
+        byteData.getInt32(tableDataLoc, Endianness.LITTLE_ENDIAN);
+    // First 2 bytes of the vtable are the size of the vtable in bytes, which
+    // should be 4.
+    expect(byteData.getUint16(vTableLoc, Endianness.LITTLE_ENDIAN), 4);
+    // Next 2 bytes are the size of the object in bytes (including the vtable
+    // pointer), which should be 4.
+    expect(byteData.getUint16(vTableLoc + 2, Endianness.LITTLE_ENDIAN), 4);
+  }
+
   void test_low() {
     Builder builder = new Builder(initialSize: 0);
     builder.lowReset();
@@ -162,6 +190,47 @@ class BuilderTest {
     List<int> items = const Uint32ListReader().read(root);
     expect(items, hasLength(4));
     expect(items, orderedEquals(values));
+  }
+
+  void test_writeList_ofBool() {
+    void verifyListBooleans(int len, List<int> trueBits) {
+      // write
+      List<int> byteList;
+      {
+        Builder builder = new Builder(initialSize: 0);
+        List<bool> values = new List<bool>.filled(len, false);
+        for (int bit in trueBits) {
+          values[bit] = true;
+        }
+        Offset offset = builder.writeListBool(values);
+        byteList = builder.finish(offset);
+      }
+      // read and verify
+      BufferPointer root = new BufferPointer.fromBytes(byteList);
+      List<bool> items = const BoolListReader().read(root);
+      expect(items, hasLength(len));
+      for (int i = 0; i < items.length; i++) {
+        expect(items[i], trueBits.contains(i), reason: 'bit $i of $len');
+      }
+    }
+    verifyListBooleans(0, <int>[]);
+    verifyListBooleans(1, <int>[]);
+    verifyListBooleans(1, <int>[0]);
+    verifyListBooleans(31, <int>[0, 1]);
+    verifyListBooleans(31, <int>[1, 2, 24, 25, 30]);
+    verifyListBooleans(31, <int>[0, 30]);
+    verifyListBooleans(32, <int>[1, 2, 24, 25, 31]);
+    verifyListBooleans(33, <int>[1, 2, 24, 25, 32]);
+    verifyListBooleans(33, <int>[1, 2, 24, 25, 31, 32]);
+    verifyListBooleans(63, <int>[]);
+    verifyListBooleans(63, <int>[0, 1, 2, 61, 62]);
+    verifyListBooleans(63, new List<int>.generate(63, (i) => i));
+    verifyListBooleans(64, <int>[]);
+    verifyListBooleans(64, <int>[0, 1, 2, 61, 62, 63]);
+    verifyListBooleans(64, <int>[1, 2, 62]);
+    verifyListBooleans(64, <int>[0, 1, 2, 63]);
+    verifyListBooleans(64, new List<int>.generate(64, (i) => i));
+    verifyListBooleans(100, <int>[0, 3, 30, 60, 90, 99]);
   }
 
   void test_writeList_ofFloat64() {

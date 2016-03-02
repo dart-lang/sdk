@@ -20,7 +20,7 @@ DEFINE_NATIVE_ENTRY(String_fromEnvironment, 3) {
   GET_NATIVE_ARGUMENT(String, default_value, arguments->NativeArgAt(2));
   // Call the embedder to supply us with the environment.
   const String& env_value =
-      String::Handle(Api::CallEnvironmentCallback(thread, name));
+      String::Handle(Api::GetEnvironmentValue(thread, name));
   if (!env_value.IsNull()) {
     return Symbols::New(env_value);
   }

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<!--
+  Copyright 2014 The Chromium Authors. All rights reserved.
+  Use of this source code is governed by a BSD-style license that can be
+  found in the LICENSE file.
+-->
+<html>
+<head>
+<script>
+function rnd(max) {
+    return Math.round(Math.random()*max);
+}
+
+function gen() {
+  var dirs1=['usr1', 'etc1', 'var1'];
+  var dirs2=['aaa2', 'bbb2', 'ccc2', 'ddd2', 'eee2', 'fff2', 'ggg2', 'hhh2',
+             'frobozz2', 'kazaam2', 'shazam2'];
+  var dirs3=['iii3', 'jjj3', 'kkk3', 'lll3', 'mmm3', 'nnn3', 'ooo3', 'ppp3',
+             'wonderllama3', 'excelsior3', 'src3'];
+  var filenames=['awesome.cc', 'rad.h', 'tubular.cxx', 'cool.cc', 'groovy.h',
+                 'excellent.c', 'gnarly.h', 'green.C', 'articulate.cc'];
+  //All possible types (we only see a subset in practice): 'ABbCDdGgiNpRrSsTtUuVvWw-?';
+  var nm_symbol_types = 'trd';
+  var minSize = 4;
+  var maxSize = 10000;
+  var numGen = 300000;
+  var text = 'var nm_data=[\n';
+  var vtablePercent = 5;
+  for (var x=0; x<numGen; x++) {
+    var path = '/' +
+        dirs1[rnd(dirs1.length - 1)] + '/' +
+        dirs2[rnd(dirs2.length - 1)] + '/' +
+        dirs3[rnd(dirs3.length - 1)] + '/' +
+        filenames[rnd(filenames.length - 1)];
+    var isVtable = Math.floor((Math.random()*100)+1) <= vtablePercent;
+    var size = rnd(maxSize);
+    var symbol_name;
+    var type;
+    if (!isVtable) {
+      symbol_name = 'sym' + x.toString(16);
+      type = nm_symbol_types.charAt(rnd(nm_symbol_types.length - 1));
+    } else {
+      symbol_name = 'vtable for ' + x.toString(16);
+      type = '@'
+    }
+    text = text + "{'n': '" + symbol_name +
+        "', 't': '" + type +
+        "', 's': " + size +
+        ", 'p': '" + path + "'},\n";
+  }
+  text += '];';
+
+  eval(text);
+  var treeified = to_d3_tree(nm_data);
+  generateDownloadLink('tree_data=' + JSON.stringify(treeified));
+}
+
+function generateDownloadLink(content) {
+  var blob = new Blob([content], {type: 'text/plain'});
+  var link = document.createElement('a');
+  link.download = 'generated-content.txt';
+  link.href = window.URL.createObjectURL(blob);
+  link.textContent = 'Download ready, click here.';
+  link.dataset.downloadurl = ['text/plain', link.download, link.href].join(':');
+  link.onclick = function(e) {
+    if ('disabled' in this.dataset) { return false; }
+    link.dataset.disabled = true;
+    setTimeout(function() { window.URL.revokeObjectURL(link.href); }, 1500);
+  };
+  document.getElementById('linkcontainer').innerHTML = '';
+  document.getElementById('linkcontainer').appendChild(link);
+}
+
+/**
+ * This function takes in an array of nm records and converts them into a
+ * hierarchical data structure suitable for use in a d3-base treemap layout.
+ * Leaves are individual symbols. The parents of the leaves are logical
+ * groupings by common symbol-type (for BSS, read-only data, code, etc).
+ * Above this, each node represents part of a filesystem path relative
+ * to the parent node. The root node has the name '/', and represents
+ * a root (though not necessarily THE root) of a file system traversal.
+ * The root node also has a special property, 'maxDepth', to which is bound
+ * the deepest level of nesting that was found during conversion: for the
+ * record at path /a/b/c/d.foo, the maxDepth will be 6; the file 'd.foo'
+ * is at depth 4, the type-bucket is depth 5 and the symbols are depth 6.
+ */
+function to_d3_tree(records) {
+  var result = {'n': '/', 'children': [], 'k': 'p'};
+  var maxDepth = 0;
+  //{'n': 'symbol1', 't': 'b', 's': 1000, 'p': '/usr/local/foo/foo.cc'},
+  for (index in records) {
+    var record = records[index];
+    var parts = record.p.split("/");
+    var node = result;
+    var depth = 0;
+    // Walk the tree and find the file that is named by the "location"
+    // field of the record. We create any intermediate nodes required.
+    // This is directly analogous to "mkdir -p".
+    while(parts.length > 0) {
+      var part = parts.shift();
+      if (part.length == 0) continue;
+      depth++;
+      node = _mk_child(node, part, record.s);
+      node.k = 'p'; // p for path
+    }
+    node.lastPathElement = true;
+
+    // 'node' is now the file node. Find the symbol-type bucket.
+    node = _mk_child(node, record.t, record.s);
+    node.t = record.t;
+    node.k = 'b'; // b for bucket
+    depth++;
+    // 'node' is now the symbol-type bucket. Make the child entry.
+    node = _mk_child(node, record.n, record.s);
+    delete node.children;
+    node.value = record.s;
+    node.t = record.t;
+    node.k = 's'; // s for symbol
+    depth++;
+
+    maxDepth = Math.max(maxDepth, depth);
+  }
+  result.maxDepth = maxDepth;
+  return result;
+}
+
+/**
+ * Given a node and a name, return the child within node.children whose
+ * name matches the specified name. If necessary, a new child node is
+ * created and appended to node.children.
+ * If this method creates a new node, the 'name' attribute is set to the
+ * specified name and the 'children' attribute is an empty array, and
+ * total_size is the specified size. Otherwise, the existing node is
+ * returned and its total_size value is incremented by the specified size.
+ */
+function _mk_child(node, name, size) {
+  var child = undefined;
+  for (child_index in node.children) {
+    if (node.children[child_index].n == name) {
+      child = node.children[child_index];
+    }
+  }
+  if (child === undefined) {
+    child = {'n': name, 'children': []};
+    node.children.push(child);
+  }
+  return child;
+}
+</script>
+</head>
+<body style='white-space: pre; font-family: monospace;'>
+This script generates sample data for use in D3SymbolTreeMap, and can be used
+for testing.
+<input type=button onclick='gen();' value='Generate data'></input>
+<div id='linkcontainer'></div>
+</body>
+</html>

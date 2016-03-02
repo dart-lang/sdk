@@ -42,7 +42,7 @@ class ResynthTest extends ResolverTestCase {
   /**
    * Determine the analysis options that should be used for this test.
    */
-  AnalysisOptionsImpl get options =>
+  AnalysisOptionsImpl createOptions() =>
       new AnalysisOptionsImpl()..enableGenericMethods = true;
 
   void addLibrary(String uri) {
@@ -119,6 +119,7 @@ class ResynthTest extends ResolverTestCase {
           original.loadLibraryFunction as ExecutableElementImpl,
           '(loadLibraryFunction)');
     }
+    expect(resynthesized.libraryCycle.toSet(), original.libraryCycle.toSet());
   }
 
   /**
@@ -233,6 +234,8 @@ class ResynthTest extends ResolverTestCase {
           '$desc.${original.methods[i].name}');
     }
     compareTypes(resynthesized.type, original.type, desc);
+    expect(resynthesized.hasBeenInferred, original.hasBeenInferred,
+        reason: desc);
   }
 
   void compareCompilationUnitElements(CompilationUnitElementImpl resynthesized,
@@ -642,14 +645,17 @@ class ResynthTest extends ResolverTestCase {
     }
   }
 
-  void compareExecutableElements(ExecutableElement resynthesized,
-      ExecutableElement original, String desc) {
+  void compareExecutableElements(
+      ExecutableElement resynthesized, ExecutableElement original, String desc,
+      {bool shallow: false}) {
     compareElements(resynthesized, original, desc);
     compareParameterElementLists(
         resynthesized.parameters, original.parameters, desc);
     compareTypes(
         resynthesized.returnType, original.returnType, '$desc return type');
-    compareTypes(resynthesized.type, original.type, desc);
+    if (!shallow) {
+      compareTypes(resynthesized.type, original.type, desc);
+    }
     expect(resynthesized.typeParameters.length, original.typeParameters.length);
     for (int i = 0; i < resynthesized.typeParameters.length; i++) {
       compareTypeParameterElements(
@@ -704,12 +710,13 @@ class ResynthTest extends ResolverTestCase {
   }
 
   void compareFunctionElements(
-      FunctionElement resynthesized, FunctionElement original, String desc) {
+      FunctionElement resynthesized, FunctionElement original, String desc,
+      {bool shallow: false}) {
     if (original == null && resynthesized == null) {
       return;
     }
     expect(resynthesized, isNotNull, reason: desc);
-    compareExecutableElements(resynthesized, original, desc);
+    compareExecutableElements(resynthesized, original, desc, shallow: shallow);
     checkPossibleLocalElements(resynthesized, original);
   }
 
@@ -937,6 +944,15 @@ class ResynthTest extends ResolverTestCase {
         compareFunctionTypeAliasElements(
             resynthesized.element, original.element, desc);
       }
+      if (original.element.enclosingElement == null &&
+          original.element is FunctionElement) {
+        expect(resynthesized.element, new isInstanceOf<FunctionElement>());
+        expect(resynthesized.element.enclosingElement, isNull, reason: desc);
+        compareFunctionElements(
+            resynthesized.element, original.element, '$desc element',
+            shallow: true);
+        expect(resynthesized.element.type, same(resynthesized));
+      }
       expect(resynthesized.typeArguments.length, original.typeArguments.length,
           reason: desc);
       for (int i = 0; i < resynthesized.typeArguments.length; i++) {
@@ -993,8 +1009,8 @@ class ResynthTest extends ResolverTestCase {
     VariableElementImpl resynthesizedActual =
         getActualElement(resynthesized, desc);
     VariableElementImpl originalActual = getActualElement(original, desc);
-    compareFunctionElements(
-        resynthesizedActual.initializer, originalActual.initializer, desc);
+    compareFunctionElements(resynthesizedActual.initializer,
+        originalActual.initializer, '$desc initializer');
     if (originalActual is ConstVariableElement) {
       Element oEnclosing = original.enclosingElement;
       if (oEnclosing is ClassElement && oEnclosing.isEnum) {
@@ -1072,7 +1088,7 @@ class ResynthTest extends ResolverTestCase {
         analysisContext.sourceFactory,
         unlinkedSummaries,
         linkedSummaries,
-        options.strongMode);
+        createOptions().strongMode);
   }
 
   fail_library_hasExtUri() {
@@ -1117,7 +1133,7 @@ class ResynthTest extends ResolverTestCase {
   @override
   void setUp() {
     super.setUp();
-    resetWithOptions(options);
+    resetWithOptions(createOptions());
   }
 
   test_class_abstract() {
@@ -2498,6 +2514,11 @@ class C<T> {
   }
 
   test_core() {
+    if (createOptions().strongMode) {
+      // The fake `dart:core` library is always in spec mode, so don't bother
+      // trying to check that it resynthesizes properly; it won't.
+      return;
+    }
     String uri = 'dart:core';
     LibraryElementImpl original =
         resolve2(analysisContext2.sourceFactory.forUri(uri));
@@ -2756,12 +2777,12 @@ f() {}''');
   }
 
   test_function_type_parameter() {
-    resetWithOptions(new AnalysisOptionsImpl()..enableGenericMethods = true);
+    resetWithOptions(createOptions()..enableGenericMethods = true);
     checkLibrary('T f<T, U>(U u) => null;');
   }
 
   test_function_type_parameter_with_function_typed_parameter() {
-    resetWithOptions(new AnalysisOptionsImpl()..enableGenericMethods = true);
+    resetWithOptions(createOptions()..enableGenericMethods = true);
     checkLibrary('void f<T, U>(T x(U u)) {}');
   }
 
@@ -2770,7 +2791,7 @@ f() {}''');
   }
 
   test_generic_gClass_gMethodStatic() {
-    resetWithOptions(new AnalysisOptionsImpl()..enableGenericMethods = true);
+    resetWithOptions(createOptions()..enableGenericMethods = true);
     checkLibrary('''
 class C<T, U> {
   static void m<V, W>(V v, W w) {
@@ -2970,7 +2991,7 @@ class C<U, V> {
   }
 
   test_inferred_function_type_in_generic_closure() {
-    if (!options.strongMode) {
+    if (!createOptions().strongMode) {
       // The test below uses generic comment syntax because proper generic
       // method syntax doesn't support generic closures.  So it can only run in
       // strong mode.
@@ -2989,7 +3010,7 @@ f<T>() {
   }
 
   test_inferred_generic_function_type_in_generic_closure() {
-    if (!options.strongMode) {
+    if (!createOptions().strongMode) {
       // The test below uses generic comment syntax because proper generic
       // method syntax doesn't support generic closures.  So it can only run in
       // strong mode.
@@ -3445,17 +3466,17 @@ class C {
   }
 
   test_method_type_parameter() {
-    resetWithOptions(new AnalysisOptionsImpl()..enableGenericMethods = true);
+    resetWithOptions(createOptions()..enableGenericMethods = true);
     checkLibrary('class C { T f<T, U>(U u) => null; }');
   }
 
   test_method_type_parameter_in_generic_class() {
-    resetWithOptions(new AnalysisOptionsImpl()..enableGenericMethods = true);
+    resetWithOptions(createOptions()..enableGenericMethods = true);
     checkLibrary('class C<T, U> { V f<V, W>(T t, U u, W w) => null; }');
   }
 
   test_method_type_parameter_with_function_typed_parameter() {
-    resetWithOptions(new AnalysisOptionsImpl()..enableGenericMethods = true);
+    resetWithOptions(createOptions()..enableGenericMethods = true);
     checkLibrary('class C { void f<T, U>(T x(U u)) {} }');
   }
 
@@ -3630,6 +3651,70 @@ void set x(value) {}''');
 
   test_setters() {
     checkLibrary('void set x(int value) {} set y(value) {}');
+  }
+
+  test_syntheticFunctionType_genericClosure() {
+    if (!createOptions().strongMode) {
+      // The test below uses generic comment syntax because proper generic
+      // method syntax doesn't support generic closures.  So it can only run in
+      // strong mode.
+      // TODO(paulberry): once proper generic method syntax supports generic
+      // closures, rewrite the test below without using generic comment syntax,
+      // and remove this hack.  See dartbug.com/25819
+      return;
+    }
+    checkLibrary('''
+final v = f() ? /*<T>*/(T t) => 0 : /*<T>*/(T t) => 1;
+bool f() => true;
+''');
+  }
+
+  test_syntheticFunctionType_genericClosure_inGenericFunction() {
+    if (!createOptions().strongMode) {
+      // The test below uses generic comment syntax because proper generic
+      // method syntax doesn't support generic closures.  So it can only run in
+      // strong mode.
+      // TODO(paulberry): once proper generic method syntax supports generic
+      // closures, rewrite the test below without using generic comment syntax,
+      // and remove this hack.  See dartbug.com/25819
+      return;
+    }
+    checkLibrary('''
+void f<T, U>(bool b) {
+  final v = b ? /*<V>*/(T t, U u, V v) => 0 : /*<V>*/(T t, U u, V v) => 1;
+}
+''');
+  }
+
+  test_syntheticFunctionType_inGenericClass() {
+    checkLibrary('''
+class C<T, U> {
+  var v = f() ? (T t, U u) => 0 : (T t, U u) => 1;
+}
+bool f() => false;
+''');
+  }
+
+  test_syntheticFunctionType_inGenericFunction() {
+    checkLibrary('''
+void f<T, U>(bool b) {
+  var v = b ? (T t, U u) => 0 : (T t, U u) => 1;
+}
+''');
+  }
+
+  test_syntheticFunctionType_noArguments() {
+    checkLibrary('''
+final v = f() ? () => 0 : () => 1;
+bool f() => true;
+''');
+  }
+
+  test_syntheticFunctionType_withArguments() {
+    checkLibrary('''
+final v = f() ? (int x, String y) => 0 : (int x, String y) => 1;
+bool f() => true;
+''');
   }
 
   test_type_arguments_explicit_dynamic_dynamic() {
@@ -3893,7 +3978,7 @@ var x;''');
   }
 
   test_variable_propagatedType_final_dep_inLib() {
-    addNamedSource('/a.dart', 'final a = 1;');
+    addLibrarySource('/a.dart', 'final a = 1;');
     checkLibrary('import "a.dart"; final b = a / 2;');
   }
 
@@ -3908,8 +3993,8 @@ var x;''');
 
   test_variable_propagatedType_implicit_dep() {
     // The propagated type is defined in a library that is not imported.
-    addNamedSource('/a.dart', 'class C {}');
-    addNamedSource('/b.dart', 'import "a.dart"; C f() => null;');
+    addLibrarySource('/a.dart', 'class C {}');
+    addLibrarySource('/b.dart', 'import "a.dart"; C f() => null;');
     checkLibrary('import "b.dart"; final x = f();');
   }
 

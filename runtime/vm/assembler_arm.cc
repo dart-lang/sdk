@@ -21,11 +21,8 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, allow_absolute_addresses);
 DECLARE_FLAG(bool, check_code_pointer);
 DECLARE_FLAG(bool, inline_alloc);
-
-DEFINE_FLAG(bool, print_stop_message, true, "Print stop message.");
 
 uint32_t Address::encoding3() const {
   if (kind_ == Immediate) {
@@ -1568,6 +1565,7 @@ void Assembler::LoadIsolate(Register rd) {
 
 bool Assembler::CanLoadFromObjectPool(const Object& object) const {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
+  ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
   ASSERT(!Thread::CanLoadFromThread(object));
   if (!constant_pool_allowed()) {
     return false;
@@ -1585,6 +1583,7 @@ void Assembler::LoadObjectHelper(Register rd,
                                  bool is_unique,
                                  Register pp) {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
+  ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
   // Load common VM constants from the thread. This works also in places where
   // no constant pool is set up (e.g. intrinsic code).
   if (Thread::CanLoadFromThread(object)) {
@@ -1644,6 +1643,7 @@ void Assembler::LoadNativeEntry(Register rd,
 
 void Assembler::PushObject(const Object& object) {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
+  ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
   LoadObject(IP, object);
   Push(IP);
 }
@@ -1651,6 +1651,7 @@ void Assembler::PushObject(const Object& object) {
 
 void Assembler::CompareObject(Register rn, const Object& object) {
   ASSERT(!object.IsICData() || ICData::Cast(object).IsOriginal());
+  ASSERT(!object.IsField() || Field::Cast(object).IsOriginal());
   ASSERT(rn != IP);
   if (object.IsSmi()) {
     CompareImmediate(rn, reinterpret_cast<int32_t>(object.raw()));
@@ -1910,6 +1911,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const Object& value,
                                          FieldContent old_content) {
   ASSERT(!value.IsICData() || ICData::Cast(value).IsOriginal());
+  ASSERT(!value.IsField() || Field::Cast(value).IsOriginal());
   ASSERT(value.IsSmi() || value.InVMHeap() ||
          (value.IsOld() && value.IsNotTemporaryScopedHandle()));
   // No store buffer update.
@@ -1923,6 +1925,7 @@ void Assembler::StoreIntoObjectNoBarrierOffset(Register object,
                                                const Object& value,
                                                FieldContent old_content) {
   ASSERT(!value.IsICData() || ICData::Cast(value).IsOriginal());
+  ASSERT(!value.IsField() || Field::Cast(value).IsOriginal());
   int32_t ignored = 0;
   if (Address::CanHoldStoreOffset(kWord, offset - kHeapObjectTag, &ignored)) {
     StoreIntoObjectNoBarrier(object, FieldAddress(object, offset), value,
@@ -2748,6 +2751,21 @@ void Assembler::BranchLink(const StubEntry& stub_entry,
 
 void Assembler::BranchLinkPatchable(const Code& target) {
   BranchLink(target, kPatchable);
+}
+
+
+void Assembler::BranchLinkWithEquivalence(const StubEntry& stub_entry,
+                                          const Object& equivalence) {
+  const Code& target = Code::Handle(stub_entry.code());
+  // Make sure that class CallPattern is able to patch the label referred
+  // to by this code sequence.
+  // For added code robustness, use 'blx lr' in a patchable sequence and
+  // use 'blx ip' in a non-patchable sequence (see other BranchLink flavors).
+  const int32_t offset = ObjectPool::element_offset(
+      object_pool_wrapper_.FindObject(target, equivalence));
+  LoadWordFromPoolOffset(CODE_REG, offset - kHeapObjectTag, PP, AL);
+  ldr(LR, FieldAddress(CODE_REG, Code::entry_point_offset()));
+  blx(LR);  // Use blx instruction so that the return branch prediction works.
 }
 
 

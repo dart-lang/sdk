@@ -17,12 +17,12 @@ const String MESSAGE_LENGTH_ERROR =
 String localFile(path) => Platform.script.resolve(path).toFilePath();
 
 SecurityContext clientContext() => new SecurityContext()
-  ..setTrustedCertificatesSync(localFile('certificates/trusted_certs.pem'));
+  ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
 
 SecurityContext serverContext() => new SecurityContext()
-  ..useCertificateChainSync(localFile('certificates/server_chain.pem'))
-  ..usePrivateKeySync(localFile('certificates/server_key.pem'),
-                      password: 'dartdart');
+  ..useCertificateChain(localFile('certificates/server_chain.pem'))
+  ..usePrivateKey(localFile('certificates/server_key.pem'),
+                  password: 'dartdart');
 
 // Tests that client/server with same protocol can securely establish a
 // connection, negotiate the protocol and can send data to each other.

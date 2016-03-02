@@ -160,6 +160,8 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
 
   @override
   Object visitExportDirective(ExportDirective node) {
+    // Remove previous element. (It will remain null if the target is missing.)
+    node.element = null;
     Source exportedSource = node.source;
     if (exportedSource != null && context.exists(exportedSource)) {
       // The exported source will be null if the URI in the export
@@ -180,10 +182,16 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
         node.element = exportElement;
         exports.add(exportElement);
         if (exportSourceKindMap[exportedSource] != SourceKind.LIBRARY) {
+          int offset = node.offset;
+          int length = node.length;
+          if (uriLiteral != null) {
+            offset = uriLiteral.offset;
+            length = uriLiteral.length;
+          }
           errors.add(new AnalysisError(
-              exportedSource,
-              uriLiteral.offset,
-              uriLiteral.length,
+              libraryElement.source,
+              offset,
+              length,
               CompileTimeErrorCode.EXPORT_OF_NON_LIBRARY,
               [uriLiteral.toSource()]));
         }
@@ -194,6 +202,9 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
 
   @override
   Object visitImportDirective(ImportDirective node) {
+    // Remove previous element. (It will remain null if the target is missing.)
+    node.element = null;
+
     String uriContent = node.uriContent;
     if (DartUriResolver.isDartExtUri(uriContent)) {
       libraryElement.hasExtUri = true;
@@ -234,11 +245,17 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
         node.element = importElement;
         imports.add(importElement);
         if (importSourceKindMap[importedSource] != SourceKind.LIBRARY) {
+          int offset = node.offset;
+          int length = node.length;
+          if (uriLiteral != null) {
+            offset = uriLiteral.offset;
+            length = uriLiteral.length;
+          }
           ErrorCode errorCode = (importElement.isDeferred
               ? StaticWarningCode.IMPORT_OF_NON_LIBRARY
               : CompileTimeErrorCode.IMPORT_OF_NON_LIBRARY);
-          errors.add(new AnalysisError(importedSource, uriLiteral.offset,
-              uriLiteral.length, errorCode, [uriLiteral.toSource()]));
+          errors.add(new AnalysisError(libraryElement.source, offset, length,
+              errorCode, [uriLiteral.toSource()]));
         }
       }
     }
@@ -365,6 +382,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       if (stackTraceParameter != null) {
         LocalVariableElementImpl stackTrace =
             new LocalVariableElementImpl.forNode(stackTraceParameter);
+        _setCodeRange(stackTrace, stackTraceParameter);
         _currentHolder.addLocalVariable(stackTrace);
         stackTraceParameter.staticElement = stackTrace;
       }
@@ -396,6 +414,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     }
     SimpleIdentifier className = node.name;
     ClassElementImpl element = new ClassElementImpl.forNode(className);
+    _setCodeRange(element, node);
     element.metadata = _createElementAnnotations(node.metadata);
     List<TypeParameterElement> typeParameters = holder.typeParameters;
     List<DartType> typeArguments = _createTypeParameterTypes(typeParameters);
@@ -445,6 +464,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     _visitChildren(holder, node);
     SimpleIdentifier className = node.name;
     ClassElementImpl element = new ClassElementImpl.forNode(className);
+    _setCodeRange(element, node);
     element.metadata = _createElementAnnotations(node.metadata);
     element.abstract = node.abstractKeyword != null;
     element.mixinApplication = true;
@@ -462,6 +482,14 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitCompilationUnit(CompilationUnit node) {
+    if (compilationUnitElement is ElementImpl) {
+      _setCodeRange(compilationUnitElement as ElementImpl, node);
+    }
+    return super.visitCompilationUnit(node);
+  }
+
+  @override
   Object visitConstructorDeclaration(ConstructorDeclaration node) {
     ElementHolder holder = new ElementHolder();
     bool wasInFunction = _inFunction;
@@ -475,6 +503,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     SimpleIdentifier constructorName = node.name;
     ConstructorElementImpl element =
         new ConstructorElementImpl.forNode(constructorName);
+    _setCodeRange(element, node);
     element.metadata = _createElementAnnotations(node.metadata);
     setElementDocumentationComment(element, node);
     if (node.externalKeyword != null) {
@@ -516,6 +545,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     SimpleIdentifier variableName = node.identifier;
     LocalVariableElementImpl element =
         new LocalVariableElementImpl.forNode(variableName);
+    _setCodeRange(element, node);
     element.metadata = _createElementAnnotations(node.metadata);
     ForEachStatement statement = node.parent as ForEachStatement;
     int declarationEnd = node.offset + node.length;
@@ -548,6 +578,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     } else {
       parameter = new DefaultParameterElementImpl.forNode(parameterName);
     }
+    _setCodeRange(parameter, node);
     parameter.const3 = node.isConst;
     parameter.final2 = node.isFinal;
     parameter.parameterKind = node.kind;
@@ -584,6 +615,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   Object visitEnumDeclaration(EnumDeclaration node) {
     SimpleIdentifier enumName = node.name;
     ClassElementImpl enumElement = new ClassElementImpl.forNode(enumName);
+    _setCodeRange(enumElement, node);
     enumElement.metadata = _createElementAnnotations(node.metadata);
     enumElement.enum2 = true;
     setElementDocumentationComment(enumElement, node);
@@ -613,6 +645,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
           _fieldMap == null ? null : _fieldMap[parameterName.name];
       FieldFormalParameterElementImpl parameter =
           new FieldFormalParameterElementImpl.forNode(parameterName);
+      _setCodeRange(parameter, node);
       parameter.const3 = node.isConst;
       parameter.final2 = node.isFinal;
       parameter.parameterKind = node.kind;
@@ -654,6 +687,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         SimpleIdentifier functionName = node.name;
         FunctionElementImpl element =
             new FunctionElementImpl.forNode(functionName);
+        _setCodeRange(element, node);
         element.metadata = _createElementAnnotations(node.metadata);
         setElementDocumentationComment(element, node);
         if (node.externalKeyword != null) {
@@ -701,6 +735,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         if (node.isGetter) {
           PropertyAccessorElementImpl getter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          _setCodeRange(getter, node);
           getter.metadata = _createElementAnnotations(node.metadata);
           setElementDocumentationComment(getter, node);
           if (node.externalKeyword != null) {
@@ -728,6 +763,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         } else {
           PropertyAccessorElementImpl setter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          _setCodeRange(setter, node);
           setter.metadata = _createElementAnnotations(node.metadata);
           setElementDocumentationComment(setter, node);
           if (node.externalKeyword != null) {
@@ -779,6 +815,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     FunctionBody body = node.body;
     FunctionElementImpl element =
         new FunctionElementImpl.forOffset(node.beginToken.offset);
+    _setCodeRange(element, node);
     element.functions = holder.functions;
     element.labels = holder.labels;
     element.localVariables = holder.localVariables;
@@ -817,6 +854,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     List<TypeParameterElement> typeParameters = holder.typeParameters;
     FunctionTypeAliasElementImpl element =
         new FunctionTypeAliasElementImpl.forNode(aliasName);
+    _setCodeRange(element, node);
     element.metadata = _createElementAnnotations(node.metadata);
     setElementDocumentationComment(element, node);
     element.parameters = parameters;
@@ -835,6 +873,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       SimpleIdentifier parameterName = node.identifier;
       ParameterElementImpl parameter =
           new ParameterElementImpl.forNode(parameterName);
+      _setCodeRange(parameter, node);
       parameter.parameterKind = node.kind;
       _setParameterVisibleRange(node, parameter);
       _currentHolder.addParameter(parameter);
@@ -867,6 +906,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       SimpleIdentifier labelName = label.label;
       LabelElementImpl element =
           new LabelElementImpl.forNode(labelName, onSwitchStatement, false);
+      _setCodeRange(element, node);
       _currentHolder.addLabel(element);
       labelName.staticElement = element;
     }
@@ -902,6 +942,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         }
         MethodElementImpl element =
             new MethodElementImpl(nameOfMethod, methodName.offset);
+        _setCodeRange(element, node);
         element.metadata = _createElementAnnotations(node.metadata);
         setElementDocumentationComment(element, node);
         element.abstract = node.isAbstract;
@@ -940,6 +981,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         if (node.isGetter) {
           PropertyAccessorElementImpl getter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          _setCodeRange(getter, node);
           getter.metadata = _createElementAnnotations(node.metadata);
           setElementDocumentationComment(getter, node);
           if (node.externalKeyword != null) {
@@ -967,6 +1009,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         } else {
           PropertyAccessorElementImpl setter =
               new PropertyAccessorElementImpl.forNode(propertyNameNode);
+          _setCodeRange(setter, node);
           setter.metadata = _createElementAnnotations(node.metadata);
           setElementDocumentationComment(setter, node);
           if (node.externalKeyword != null) {
@@ -1045,6 +1088,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       SimpleIdentifier parameterName = node.identifier;
       ParameterElementImpl parameter =
           new ParameterElementImpl.forNode(parameterName);
+      _setCodeRange(parameter, node);
       parameter.const3 = node.isConst;
       parameter.final2 = node.isFinal;
       parameter.parameterKind = node.kind;
@@ -1065,7 +1109,8 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   Object visitSwitchCase(SwitchCase node) {
     for (Label label in node.labels) {
       SimpleIdentifier labelName = label.label;
-      LabelElementImpl element = new LabelElementImpl.forNode(labelName, false, true);
+      LabelElementImpl element =
+          new LabelElementImpl.forNode(labelName, false, true);
       _currentHolder.addLabel(element);
       labelName.staticElement = element;
     }
@@ -1076,7 +1121,8 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   Object visitSwitchDefault(SwitchDefault node) {
     for (Label label in node.labels) {
       SimpleIdentifier labelName = label.label;
-      LabelElementImpl element = new LabelElementImpl.forNode(labelName, false, true);
+      LabelElementImpl element =
+          new LabelElementImpl.forNode(labelName, false, true);
       _currentHolder.addLabel(element);
       labelName.staticElement = element;
     }
@@ -1088,6 +1134,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     SimpleIdentifier parameterName = node.name;
     TypeParameterElementImpl typeParameter =
         new TypeParameterElementImpl.forNode(parameterName);
+    _setCodeRange(typeParameter, node);
     typeParameter.metadata = _createElementAnnotations(node.metadata);
     TypeParameterTypeImpl typeParameterType =
         new TypeParameterTypeImpl(typeParameter);
@@ -1116,6 +1163,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       }
       element = field;
       field.static = fieldNode.isStatic;
+      _setCodeRange(element, node);
       setElementDocumentationComment(element, fieldNode);
       field.hasImplicitType = varList.type == null;
       _currentHolder.addField(field);
@@ -1129,6 +1177,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         variable = new LocalVariableElementImpl.forNode(variableName);
       }
       element = variable;
+      _setCodeRange(element, node);
       Block enclosingBlock = node.getAncestor((node) => node is Block);
       // TODO(brianwilkerson) This isn't right for variables declared in a for
       // loop.
@@ -1145,6 +1194,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         variable = new TopLevelVariableElementImpl.forNode(variableName);
       }
       element = variable;
+      _setCodeRange(element, node);
       if (varList.parent is TopLevelVariableDeclaration) {
         setElementDocumentationComment(element, varList.parent);
       }
@@ -1207,8 +1257,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       elementAnnotations = _createElementAnnotations(node.metadata);
     }
     for (VariableDeclaration variableDeclaration in node.variables) {
-      (variableDeclaration.element as ElementImpl).metadata =
-          elementAnnotations;
+      ElementImpl element = variableDeclaration.element as ElementImpl;
+      _setCodeRange(element, node.parent);
+      element.metadata = elementAnnotations;
     }
     return null;
   }
@@ -1298,6 +1349,10 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       return parent.body;
     }
     return null;
+  }
+
+  void _setCodeRange(ElementImpl element, AstNode node) {
+    element.setCodeRange(node.offset, node.length);
   }
 
   /**

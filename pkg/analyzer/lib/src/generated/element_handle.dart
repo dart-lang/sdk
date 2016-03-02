@@ -4,10 +4,10 @@
 
 library analyzer.src.generated.element_handle;
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -356,6 +356,9 @@ abstract class ElementHandle implements Element {
 
   @override
   bool get isPrivate => actualElement.isPrivate;
+
+  @override
+  bool get isProtected => actualElement.isProtected;
 
   @override
   bool get isPublic => actualElement.isPublic;
@@ -764,6 +767,9 @@ class LibraryElementHandle extends ElementHandle implements LibraryElement {
 
   @override
   ElementKind get kind => ElementKind.LIBRARY;
+
+  @override
+  List<LibraryElement> get libraryCycle => actualElement.libraryCycle;
 
   @override
   FunctionElement get loadLibraryFunction => actualElement.loadLibraryFunction;

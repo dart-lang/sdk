@@ -19,7 +19,7 @@ DEFINE_FLAG(bool, trace_ast_visitor, false,
 #define DEFINE_VISIT_FUNCTION(BaseName)                                        \
 void BaseName##Node::Visit(AstNodeVisitor* visitor) {                          \
   if (FLAG_trace_ast_visitor) {                                                \
-    THR_Print("Visiting %s\n", PrettyName());                                  \
+    THR_Print("Visiting %s\n", Name());                                        \
   }                                                                            \
   visitor->Visit##BaseName##Node(this);                                        \
 }
@@ -29,12 +29,23 @@ FOR_EACH_NODE(DEFINE_VISIT_FUNCTION)
 
 
 #define DEFINE_NAME_FUNCTION(BaseName)                                         \
-const char* BaseName##Node::PrettyName() const {                               \
+const char* BaseName##Node::Name() const {                                     \
   return #BaseName;                                                            \
 }
 
 FOR_EACH_NODE(DEFINE_NAME_FUNCTION)
 #undef DEFINE_NAME_FUNCTION
+
+
+const Field* AstNode::MayCloneField(const Field& value) {
+  if (Compiler::IsBackgroundCompilation() ||
+      FLAG_force_clone_compiler_objects) {
+    return &Field::ZoneHandle(value.CloneFromOriginal());
+  } else {
+    ASSERT(value.IsZoneHandle());
+    return &value;
+  }
+}
 
 
 // A visitor class to collect all the nodes (including children) into an
@@ -575,14 +586,15 @@ AstNode* LoadStaticFieldNode::MakeAssignmentNode(AstNode* rhs) {
   if (field().is_final()) {
     return NULL;
   }
-  if (Isolate::Current()->flags().type_checks()) {
+  if (Isolate::Current()->type_checks()) {
     rhs = new AssignableNode(
         field().token_pos(),
         rhs,
         AbstractType::ZoneHandle(field().type()),
         String::ZoneHandle(field().name()));
   }
-  return new StoreStaticFieldNode(token_pos(), field(), rhs);
+  return new StoreStaticFieldNode(
+      token_pos(), Field::ZoneHandle(field().Original()), rhs);
 }
 
 
@@ -663,7 +675,7 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
     if (obj.IsField()) {
       const Field& field = Field::ZoneHandle(zone, Field::Cast(obj).raw());
       if (!field.is_final()) {
-        if (isolate->flags().type_checks()) {
+        if (isolate->type_checks()) {
           rhs = new AssignableNode(field.token_pos(),
                                    rhs,
                                    AbstractType::ZoneHandle(zone, field.type()),
@@ -698,7 +710,7 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
     if (obj.IsField()) {
       const Field& field = Field::ZoneHandle(zone, Field::Cast(obj).raw());
       if (!field.is_final()) {
-        if (isolate->flags().type_checks()) {
+        if (isolate->type_checks()) {
           rhs = new AssignableNode(field.token_pos(),
                                    rhs,
                                    AbstractType::ZoneHandle(zone, field.type()),
@@ -754,7 +766,7 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
     ASSERT(!getter.IsNull() &&
            (getter.kind() == RawFunction::kImplicitStaticFinalGetter));
 #endif
-    if (isolate->flags().type_checks()) {
+    if (isolate->type_checks()) {
       rhs = new AssignableNode(
           field.token_pos(),
           rhs,

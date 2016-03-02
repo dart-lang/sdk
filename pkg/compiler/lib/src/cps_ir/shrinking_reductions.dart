@@ -203,9 +203,9 @@ class ShrinkingReducer extends Pass {
     cont.body = null;
 
     // Substitute the invocation argument for the continuation parameter.
-    for (int i = 0; i < invoke.arguments.length; i++) {
+    for (int i = 0; i < invoke.argumentRefs.length; i++) {
       Parameter param = cont.parameters[i];
-      Primitive argument = invoke.arguments[i].definition;
+      Primitive argument = invoke.argument(i);
       param.replaceUsesWith(argument);
       argument.useElementAsHint(param.hint);
       _checkConstantBranchCondition(argument);
@@ -243,7 +243,7 @@ class ShrinkingReducer extends Pass {
     _removeContinuation(cont);
 
     InvokeContinuation invoke = cont.body;
-    Continuation wrappedCont = invoke.continuation.definition;
+    Continuation wrappedCont = invoke.continuation;
 
     for (int i = 0; i < cont.parameters.length; ++i) {
       wrappedCont.parameters[i].useElementAsHint(cont.parameters[i].hint);
@@ -280,13 +280,13 @@ class ShrinkingReducer extends Pass {
     // branch is deleted the other target becomes unreferenced and the chosen
     // target becomes available for eta-cont and further reductions.
     Continuation target;
-    Primitive condition = branch.condition.definition;
+    Primitive condition = branch.condition;
     if (condition is Constant) {
       target = isTruthyConstant(condition.value, strict: branch.isStrictCheck)
-          ? branch.trueContinuation.definition
-          : branch.falseContinuation.definition;
-    } else if (_isBranchTargetOfUselessIf(branch.trueContinuation.definition)) {
-      target = branch.trueContinuation.definition;
+          ? branch.trueContinuation
+          : branch.falseContinuation;
+    } else if (_isBranchTargetOfUselessIf(branch.trueContinuation)) {
+      target = branch.trueContinuation;
     } else {
       return;
     }
@@ -331,9 +331,9 @@ class ShrinkingReducer extends Pass {
     // Remove the index'th argument from each invocation.
     for (Reference ref = continuation.firstRef; ref != null; ref = ref.next) {
       InvokeContinuation invoke = ref.parent;
-      Reference<Primitive> argument = invoke.arguments[index];
+      Reference<Primitive> argument = invoke.argumentRefs[index];
       argument.unlink();
-      invoke.arguments.removeAt(index);
+      invoke.argumentRefs.removeAt(index);
       // Removing an argument can create a dead primitive or an eta-redex
       // in case the parent is a continuation that now has matching parameters.
       _checkDeadPrimitive(argument.definition);
@@ -449,7 +449,7 @@ bool _isEtaCont(Continuation cont) {
   }
 
   InvokeContinuation invoke = cont.body;
-  Continuation invokedCont = invoke.continuation.definition;
+  Continuation invokedCont = invoke.continuation;
 
   // Do not eta-reduce return join-points since the direct-style code is worse
   // in the common case (i.e. returns are moved inside `if` branches).
@@ -487,14 +487,14 @@ bool _isEtaCont(Continuation cont) {
   //
   // TODO(kmillikin): find real occurrences of these patterns, and see if they
   // can be optimized.
-  if (cont.parameters.length != invoke.arguments.length) {
+  if (cont.parameters.length != invoke.argumentRefs.length) {
     return false;
   }
 
   // TODO(jgruber): Linear in the parameter count. Can be improved to near
   // constant time by using union-find data structure.
   for (int i = 0; i < cont.parameters.length; i++) {
-    if (invoke.arguments[i].definition != cont.parameters[i]) {
+    if (invoke.argument(i) != cont.parameters[i]) {
       return false;
     }
   }
@@ -513,7 +513,7 @@ Expression _unfoldDeadRefinements(Expression node) {
 }
 
 bool _isBranchRedex(Branch branch) {
-  return _isUselessIf(branch) || branch.condition.definition is Constant;
+  return _isUselessIf(branch) || branch.condition is Constant;
 }
 
 bool _isBranchTargetOfUselessIf(Continuation cont) {
@@ -533,16 +533,16 @@ bool _isBranchTargetOfUselessIf(Continuation cont) {
 }
 
 bool _isUselessIf(Branch branch) {
-  Continuation trueCont = branch.trueContinuation.definition;
+  Continuation trueCont = branch.trueContinuation;
   Expression trueBody = _unfoldDeadRefinements(trueCont.body);
   if (trueBody is! InvokeContinuation) return false;
-  Continuation falseCont = branch.falseContinuation.definition;
+  Continuation falseCont = branch.falseContinuation;
   Expression falseBody = _unfoldDeadRefinements(falseCont.body);
   if (falseBody is! InvokeContinuation) return false;
   InvokeContinuation trueInvoke = trueBody;
   InvokeContinuation falseInvoke = falseBody;
-  if (trueInvoke.continuation.definition !=
-      falseInvoke.continuation.definition) {
+  if (trueInvoke.continuation !=
+      falseInvoke.continuation) {
     return false;
   }
   // Matching zero arguments should be adequate, since isomorphic true and false
@@ -553,7 +553,7 @@ bool _isUselessIf(Branch branch) {
   // dead parameter reduction, where some but not all of the invocations have
   // been rewritten.  In that case, we will find the redex (once) after both
   // of these invocations have been rewritten.
-  return trueInvoke.arguments.isEmpty && falseInvoke.arguments.isEmpty;
+  return trueInvoke.argumentRefs.isEmpty && falseInvoke.argumentRefs.isEmpty;
 }
 
 bool _isDeadParameter(Parameter parameter) {

@@ -151,8 +151,8 @@ class SpawnIsolateTask : public ThreadPool::Task {
       return;
     }
 
-    Dart_IsolateFlags api_flags;
-    state_->isolate_flags()->CopyTo(&api_flags);
+    // Make a copy of the state's isolate flags and hand it to the callback.
+    Dart_IsolateFlags api_flags = *(state_->isolate_flags());
 
     Isolate* isolate = reinterpret_cast<Isolate*>(
         (callback)(state_->script_url(),
@@ -391,7 +391,10 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
   // If we were passed a value then override the default flags state for
   // checked mode.
   if (!checked.IsNull()) {
-    state->isolate_flags()->set_checked(checked.value());
+    bool val = checked.value();
+    Dart_IsolateFlags* flags = state->isolate_flags();
+    flags->enable_asserts = val;
+    flags->enable_type_checks = val;
   }
 
   ThreadPool::Task* spawn_task = new SpawnIsolateTask(state);

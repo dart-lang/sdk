@@ -712,6 +712,10 @@ void MIPSDecoder::InstructionDecode(Instr* instr) {
       Format(instr, "lui 'rt, 'immu");
       break;
     }
+    case LL: {
+      Format(instr, "ll 'rt, 'imms('rs)");
+      break;
+    }
     case LW: {
       Format(instr, "lw 'rt, 'imms('rs)");
       break;
@@ -726,6 +730,10 @@ void MIPSDecoder::InstructionDecode(Instr* instr) {
     }
     case SB: {
       Format(instr, "sb 'rt, 'imms('rs)");
+      break;
+    }
+    case SC: {
+      Format(instr, "sc 'rt, 'imms('rs)");
       break;
     }
     case SLTI: {

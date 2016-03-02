@@ -343,6 +343,12 @@ class FixProcessor {
       _addFix_undefinedClassAccessor_useSimilar();
       _addFix_createField();
     }
+    // lints
+    if (errorCode is LintCode) {
+      if (errorCode.name == LintNames.annotate_overrides) {
+        _addLintFixAddOverrideAnnotation();
+      }
+    }
     // done
     return fixes;
   }
@@ -2202,6 +2208,26 @@ class FixProcessor {
     group.addPosition(position, range.length);
   }
 
+  void _addLintFixAddOverrideAnnotation() {
+    ClassMember member = node.getAncestor((n) => n is ClassMember);
+    if (member == null) {
+      return;
+    }
+
+    //TODO(pq): migrate annotation edit building to change_builder
+
+    // Handle doc comments.
+    Token token = member.beginToken;
+    if (token is CommentToken) {
+      token = (token as CommentToken).parent;
+    }
+
+    exitPosition = new Position(file, token.offset - 1);
+    String indent = utils.getIndent(1);
+    _addReplaceEdit(rf.rangeStartLength(token, 0), '@override$eol$indent');
+    _addFix(DartFixKind.LINT_ADD_OVERRIDE, []);
+  }
+
   /**
    * Prepares proposal for creating function corresponding to the given
    * [FunctionType].
@@ -2881,6 +2907,13 @@ class FixProcessor {
     }
     return false;
   }
+}
+
+/**
+ * An enumeration of lint names.
+ */
+class LintNames {
+  static const String annotate_overrides = 'annotate_overrides';
 }
 
 /**

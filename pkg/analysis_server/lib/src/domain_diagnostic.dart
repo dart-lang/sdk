@@ -9,7 +9,6 @@ import 'dart:core' hide Resource;
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/engine.dart';
@@ -40,15 +39,14 @@ class DiagnosticDomainHandler implements RequestHandler {
   /// Answer the `diagnostic.diagnostics` request.
   Response computeDiagnostics(Request request) {
     List<ContextData> infos = <ContextData>[];
-    server.folderMap.forEach((Folder folder, AnalysisContext context) {
-      infos.add(extractData(folder, context));
-    });
-
+    for (AnalysisContext context in server.analysisContexts) {
+      infos.add(extractData(context));
+    }
     return new DiagnosticGetDiagnosticsResult(infos).toResponse(request.id);
   }
 
   /// Extract context data from the given [context].
-  ContextData extractData(Folder folder, AnalysisContext context) {
+  ContextData extractData(AnalysisContext context) {
     int explicitFiles = 0;
     int implicitFiles = 0;
     int workItems = 0;

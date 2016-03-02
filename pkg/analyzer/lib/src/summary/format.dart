@@ -11,6 +11,45 @@ import 'flat_buffers.dart' as fb;
 import 'idl.dart' as idl;
 import 'dart:convert' as convert;
 
+class _IndexNameKindReader extends fb.Reader<idl.IndexNameKind> {
+  const _IndexNameKindReader() : super();
+
+  @override
+  int get size => 1;
+
+  @override
+  idl.IndexNameKind read(fb.BufferPointer bp) {
+    int index = const fb.Uint8Reader().read(bp);
+    return index < idl.IndexNameKind.values.length ? idl.IndexNameKind.values[index] : idl.IndexNameKind.topLevel;
+  }
+}
+
+class _IndexRelationKindReader extends fb.Reader<idl.IndexRelationKind> {
+  const _IndexRelationKindReader() : super();
+
+  @override
+  int get size => 1;
+
+  @override
+  idl.IndexRelationKind read(fb.BufferPointer bp) {
+    int index = const fb.Uint8Reader().read(bp);
+    return index < idl.IndexRelationKind.values.length ? idl.IndexRelationKind.values[index] : idl.IndexRelationKind.IS_EXTENDED_BY;
+  }
+}
+
+class _IndexSyntheticElementKindReader extends fb.Reader<idl.IndexSyntheticElementKind> {
+  const _IndexSyntheticElementKindReader() : super();
+
+  @override
+  int get size => 1;
+
+  @override
+  idl.IndexSyntheticElementKind read(fb.BufferPointer bp) {
+    int index = const fb.Uint8Reader().read(bp);
+    return index < idl.IndexSyntheticElementKind.values.length ? idl.IndexSyntheticElementKind.values[index] : idl.IndexSyntheticElementKind.notSynthetic;
+  }
+}
+
 class _ReferenceKindReader extends fb.Reader<idl.ReferenceKind> {
   const _ReferenceKindReader() : super();
 
@@ -20,7 +59,7 @@ class _ReferenceKindReader extends fb.Reader<idl.ReferenceKind> {
   @override
   idl.ReferenceKind read(fb.BufferPointer bp) {
     int index = const fb.Uint8Reader().read(bp);
-    return idl.ReferenceKind.values[index];
+    return index < idl.ReferenceKind.values.length ? idl.ReferenceKind.values[index] : idl.ReferenceKind.classOrEnum;
   }
 }
 
@@ -33,7 +72,7 @@ class _UnlinkedConstOperationReader extends fb.Reader<idl.UnlinkedConstOperation
   @override
   idl.UnlinkedConstOperation read(fb.BufferPointer bp) {
     int index = const fb.Uint8Reader().read(bp);
-    return idl.UnlinkedConstOperation.values[index];
+    return index < idl.UnlinkedConstOperation.values.length ? idl.UnlinkedConstOperation.values[index] : idl.UnlinkedConstOperation.pushInt;
   }
 }
 
@@ -46,7 +85,7 @@ class _UnlinkedConstructorInitializerKindReader extends fb.Reader<idl.UnlinkedCo
   @override
   idl.UnlinkedConstructorInitializerKind read(fb.BufferPointer bp) {
     int index = const fb.Uint8Reader().read(bp);
-    return idl.UnlinkedConstructorInitializerKind.values[index];
+    return index < idl.UnlinkedConstructorInitializerKind.values.length ? idl.UnlinkedConstructorInitializerKind.values[index] : idl.UnlinkedConstructorInitializerKind.field;
   }
 }
 
@@ -59,7 +98,7 @@ class _UnlinkedExecutableKindReader extends fb.Reader<idl.UnlinkedExecutableKind
   @override
   idl.UnlinkedExecutableKind read(fb.BufferPointer bp) {
     int index = const fb.Uint8Reader().read(bp);
-    return idl.UnlinkedExecutableKind.values[index];
+    return index < idl.UnlinkedExecutableKind.values.length ? idl.UnlinkedExecutableKind.values[index] : idl.UnlinkedExecutableKind.functionOrMethod;
   }
 }
 
@@ -72,7 +111,7 @@ class _UnlinkedParamKindReader extends fb.Reader<idl.UnlinkedParamKind> {
   @override
   idl.UnlinkedParamKind read(fb.BufferPointer bp) {
     int index = const fb.Uint8Reader().read(bp);
-    return idl.UnlinkedParamKind.values[index];
+    return index < idl.UnlinkedParamKind.values.length ? idl.UnlinkedParamKind.values[index] : idl.UnlinkedParamKind.required;
   }
 }
 
@@ -83,6 +122,8 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
   int _paramReference;
   int _reference;
   int _slot;
+  List<UnlinkedParamBuilder> _syntheticParams;
+  EntityRefBuilder _syntheticReturnType;
   List<EntityRefBuilder> _typeArguments;
 
   @override
@@ -174,6 +215,34 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
   }
 
   @override
+  List<UnlinkedParamBuilder> get syntheticParams => _syntheticParams ??= <UnlinkedParamBuilder>[];
+
+  /**
+   * If this [EntityRef] is a reference to a function type whose
+   * [FunctionElement] is not in any library (e.g. a function type that was
+   * synthesized by a LUB computation), the function parameters.  Otherwise
+   * empty.
+   */
+  void set syntheticParams(List<UnlinkedParamBuilder> _value) {
+    assert(!_finished);
+    _syntheticParams = _value;
+  }
+
+  @override
+  EntityRefBuilder get syntheticReturnType => _syntheticReturnType;
+
+  /**
+   * If this [EntityRef] is a reference to a function type whose
+   * [FunctionElement] is not in any library (e.g. a function type that was
+   * synthesized by a LUB computation), the return type of the function.
+   * Otherwise `null`.
+   */
+  void set syntheticReturnType(EntityRefBuilder _value) {
+    assert(!_finished);
+    _syntheticReturnType = _value;
+  }
+
+  @override
   List<EntityRefBuilder> get typeArguments => _typeArguments ??= <EntityRefBuilder>[];
 
   /**
@@ -186,20 +255,30 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
     _typeArguments = _value;
   }
 
-  EntityRefBuilder({List<int> implicitFunctionTypeIndices, int paramReference, int reference, int slot, List<EntityRefBuilder> typeArguments})
+  EntityRefBuilder({List<int> implicitFunctionTypeIndices, int paramReference, int reference, int slot, List<UnlinkedParamBuilder> syntheticParams, EntityRefBuilder syntheticReturnType, List<EntityRefBuilder> typeArguments})
     : _implicitFunctionTypeIndices = implicitFunctionTypeIndices,
       _paramReference = paramReference,
       _reference = reference,
       _slot = slot,
+      _syntheticParams = syntheticParams,
+      _syntheticReturnType = syntheticReturnType,
       _typeArguments = typeArguments;
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
     fb.Offset offset_implicitFunctionTypeIndices;
+    fb.Offset offset_syntheticParams;
+    fb.Offset offset_syntheticReturnType;
     fb.Offset offset_typeArguments;
     if (!(_implicitFunctionTypeIndices == null || _implicitFunctionTypeIndices.isEmpty)) {
       offset_implicitFunctionTypeIndices = fbBuilder.writeListUint32(_implicitFunctionTypeIndices);
+    }
+    if (!(_syntheticParams == null || _syntheticParams.isEmpty)) {
+      offset_syntheticParams = fbBuilder.writeList(_syntheticParams.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (_syntheticReturnType != null) {
+      offset_syntheticReturnType = _syntheticReturnType.finish(fbBuilder);
     }
     if (!(_typeArguments == null || _typeArguments.isEmpty)) {
       offset_typeArguments = fbBuilder.writeList(_typeArguments.map((b) => b.finish(fbBuilder)).toList());
@@ -216,6 +295,12 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
     }
     if (_slot != null && _slot != 0) {
       fbBuilder.addUint32(2, _slot);
+    }
+    if (offset_syntheticParams != null) {
+      fbBuilder.addOffset(6, offset_syntheticParams);
+    }
+    if (offset_syntheticReturnType != null) {
+      fbBuilder.addOffset(5, offset_syntheticReturnType);
     }
     if (offset_typeArguments != null) {
       fbBuilder.addOffset(1, offset_typeArguments);
@@ -240,6 +325,8 @@ class _EntityRefImpl extends Object with _EntityRefMixin implements idl.EntityRe
   int _paramReference;
   int _reference;
   int _slot;
+  List<idl.UnlinkedParam> _syntheticParams;
+  idl.EntityRef _syntheticReturnType;
   List<idl.EntityRef> _typeArguments;
 
   @override
@@ -267,6 +354,18 @@ class _EntityRefImpl extends Object with _EntityRefMixin implements idl.EntityRe
   }
 
   @override
+  List<idl.UnlinkedParam> get syntheticParams {
+    _syntheticParams ??= const fb.ListReader<idl.UnlinkedParam>(const _UnlinkedParamReader()).vTableGet(_bp, 6, const <idl.UnlinkedParam>[]);
+    return _syntheticParams;
+  }
+
+  @override
+  idl.EntityRef get syntheticReturnType {
+    _syntheticReturnType ??= const _EntityRefReader().vTableGet(_bp, 5, null);
+    return _syntheticReturnType;
+  }
+
+  @override
   List<idl.EntityRef> get typeArguments {
     _typeArguments ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bp, 1, const <idl.EntityRef>[]);
     return _typeArguments;
@@ -281,6 +380,8 @@ abstract class _EntityRefMixin implements idl.EntityRef {
     if (paramReference != 0) _result["paramReference"] = paramReference;
     if (reference != 0) _result["reference"] = reference;
     if (slot != 0) _result["slot"] = slot;
+    if (syntheticParams.isNotEmpty) _result["syntheticParams"] = syntheticParams.map((_value) => _value.toJson()).toList();
+    if (syntheticReturnType != null) _result["syntheticReturnType"] = syntheticReturnType.toJson();
     if (typeArguments.isNotEmpty) _result["typeArguments"] = typeArguments.map((_value) => _value.toJson()).toList();
     return _result;
   }
@@ -291,6 +392,8 @@ abstract class _EntityRefMixin implements idl.EntityRef {
     "paramReference": paramReference,
     "reference": reference,
     "slot": slot,
+    "syntheticParams": syntheticParams,
+    "syntheticReturnType": syntheticReturnType,
     "typeArguments": typeArguments,
   };
 
@@ -656,7 +759,7 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
 
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
-    return fbBuilder.finish(finish(fbBuilder));
+    return fbBuilder.finish(finish(fbBuilder), "LLib");
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -1143,6 +1246,8 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
 
   List<LinkedLibraryBuilder> _linkedLibraries;
   List<String> _linkedLibraryUris;
+  int _majorVersion;
+  int _minorVersion;
   List<String> _unlinkedUnitHashes;
   List<UnlinkedUnitBuilder> _unlinkedUnits;
   List<String> _unlinkedUnitUris;
@@ -1168,6 +1273,32 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
   void set linkedLibraryUris(List<String> _value) {
     assert(!_finished);
     _linkedLibraryUris = _value;
+  }
+
+  @override
+  int get majorVersion => _majorVersion ??= 0;
+
+  /**
+   * Major version of the summary format.  See
+   * [PackageBundleAssembler.currentMajorVersion].
+   */
+  void set majorVersion(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _majorVersion = _value;
+  }
+
+  @override
+  int get minorVersion => _minorVersion ??= 0;
+
+  /**
+   * Minor version of the summary format.  See
+   * [PackageBundleAssembler.currentMinorVersion].
+   */
+  void set minorVersion(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _minorVersion = _value;
   }
 
   @override
@@ -1204,16 +1335,18 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
     _unlinkedUnitUris = _value;
   }
 
-  PackageBundleBuilder({List<LinkedLibraryBuilder> linkedLibraries, List<String> linkedLibraryUris, List<String> unlinkedUnitHashes, List<UnlinkedUnitBuilder> unlinkedUnits, List<String> unlinkedUnitUris})
+  PackageBundleBuilder({List<LinkedLibraryBuilder> linkedLibraries, List<String> linkedLibraryUris, int majorVersion, int minorVersion, List<String> unlinkedUnitHashes, List<UnlinkedUnitBuilder> unlinkedUnits, List<String> unlinkedUnitUris})
     : _linkedLibraries = linkedLibraries,
       _linkedLibraryUris = linkedLibraryUris,
+      _majorVersion = majorVersion,
+      _minorVersion = minorVersion,
       _unlinkedUnitHashes = unlinkedUnitHashes,
       _unlinkedUnits = unlinkedUnits,
       _unlinkedUnitUris = unlinkedUnitUris;
 
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
-    return fbBuilder.finish(finish(fbBuilder));
+    return fbBuilder.finish(finish(fbBuilder), "PBdl");
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -1245,6 +1378,12 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
     }
     if (offset_linkedLibraryUris != null) {
       fbBuilder.addOffset(1, offset_linkedLibraryUris);
+    }
+    if (_majorVersion != null && _majorVersion != 0) {
+      fbBuilder.addUint32(5, _majorVersion);
+    }
+    if (_minorVersion != null && _minorVersion != 0) {
+      fbBuilder.addUint32(6, _minorVersion);
     }
     if (offset_unlinkedUnitHashes != null) {
       fbBuilder.addOffset(4, offset_unlinkedUnitHashes);
@@ -1278,6 +1417,8 @@ class _PackageBundleImpl extends Object with _PackageBundleMixin implements idl.
 
   List<idl.LinkedLibrary> _linkedLibraries;
   List<String> _linkedLibraryUris;
+  int _majorVersion;
+  int _minorVersion;
   List<String> _unlinkedUnitHashes;
   List<idl.UnlinkedUnit> _unlinkedUnits;
   List<String> _unlinkedUnitUris;
@@ -1292,6 +1433,18 @@ class _PackageBundleImpl extends Object with _PackageBundleMixin implements idl.
   List<String> get linkedLibraryUris {
     _linkedLibraryUris ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 1, const <String>[]);
     return _linkedLibraryUris;
+  }
+
+  @override
+  int get majorVersion {
+    _majorVersion ??= const fb.Uint32Reader().vTableGet(_bp, 5, 0);
+    return _majorVersion;
+  }
+
+  @override
+  int get minorVersion {
+    _minorVersion ??= const fb.Uint32Reader().vTableGet(_bp, 6, 0);
+    return _minorVersion;
   }
 
   @override
@@ -1319,6 +1472,8 @@ abstract class _PackageBundleMixin implements idl.PackageBundle {
     Map<String, Object> _result = <String, Object>{};
     if (linkedLibraries.isNotEmpty) _result["linkedLibraries"] = linkedLibraries.map((_value) => _value.toJson()).toList();
     if (linkedLibraryUris.isNotEmpty) _result["linkedLibraryUris"] = linkedLibraryUris;
+    if (majorVersion != 0) _result["majorVersion"] = majorVersion;
+    if (minorVersion != 0) _result["minorVersion"] = minorVersion;
     if (unlinkedUnitHashes.isNotEmpty) _result["unlinkedUnitHashes"] = unlinkedUnitHashes;
     if (unlinkedUnits.isNotEmpty) _result["unlinkedUnits"] = unlinkedUnits.map((_value) => _value.toJson()).toList();
     if (unlinkedUnitUris.isNotEmpty) _result["unlinkedUnitUris"] = unlinkedUnitUris;
@@ -1329,9 +1484,688 @@ abstract class _PackageBundleMixin implements idl.PackageBundle {
   Map<String, Object> toMap() => {
     "linkedLibraries": linkedLibraries,
     "linkedLibraryUris": linkedLibraryUris,
+    "majorVersion": majorVersion,
+    "minorVersion": minorVersion,
     "unlinkedUnitHashes": unlinkedUnitHashes,
     "unlinkedUnits": unlinkedUnits,
     "unlinkedUnitUris": unlinkedUnitUris,
+  };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
+}
+
+class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.PackageIndex {
+  bool _finished = false;
+
+  List<idl.IndexSyntheticElementKind> _elementKinds;
+  List<int> _elementOffsets;
+  List<int> _elementUnits;
+  List<String> _strings;
+  List<int> _unitLibraryUris;
+  List<UnitIndexBuilder> _units;
+  List<int> _unitUnitUris;
+
+  @override
+  List<idl.IndexSyntheticElementKind> get elementKinds => _elementKinds ??= <idl.IndexSyntheticElementKind>[];
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the kind of the synthetic element.
+   */
+  void set elementKinds(List<idl.IndexSyntheticElementKind> _value) {
+    assert(!_finished);
+    _elementKinds = _value;
+  }
+
+  @override
+  List<int> get elementOffsets => _elementOffsets ??= <int>[];
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the offset of the element name relative to the beginning of the file.  The
+   * list is sorted in ascending order, so that the client can quickly check
+   * whether an element is referenced in this [PackageIndex].
+   */
+  void set elementOffsets(List<int> _value) {
+    assert(!_finished);
+    assert(_value == null || _value.every((e) => e >= 0));
+    _elementOffsets = _value;
+  }
+
+  @override
+  List<int> get elementUnits => _elementUnits ??= <int>[];
+
+  /**
+   * Each item of this list corresponds to a unique referenced element.  It is
+   * the index into [unitLibraryUris] and [unitUnitUris] for the library
+   * specific unit where the element is declared.
+   */
+  void set elementUnits(List<int> _value) {
+    assert(!_finished);
+    assert(_value == null || _value.every((e) => e >= 0));
+    _elementUnits = _value;
+  }
+
+  @override
+  List<String> get strings => _strings ??= <String>[];
+
+  /**
+   * List of unique element strings used in this [PackageIndex].
+   */
+  void set strings(List<String> _value) {
+    assert(!_finished);
+    _strings = _value;
+  }
+
+  @override
+  List<int> get unitLibraryUris => _unitLibraryUris ??= <int>[];
+
+  /**
+   * Each item of this list corresponds to the library URI of a unique library
+   * specific unit referenced in the [PackageIndex].  It is an index into
+   * [strings] list.
+   */
+  void set unitLibraryUris(List<int> _value) {
+    assert(!_finished);
+    assert(_value == null || _value.every((e) => e >= 0));
+    _unitLibraryUris = _value;
+  }
+
+  @override
+  List<UnitIndexBuilder> get units => _units ??= <UnitIndexBuilder>[];
+
+  /**
+   * List of indexes of each unit in this [PackageIndex].
+   */
+  void set units(List<UnitIndexBuilder> _value) {
+    assert(!_finished);
+    _units = _value;
+  }
+
+  @override
+  List<int> get unitUnitUris => _unitUnitUris ??= <int>[];
+
+  /**
+   * Each item of this list corresponds to the unit URI of a unique library
+   * specific unit referenced in the [PackageIndex].  It is an index into
+   * [strings] list.
+   */
+  void set unitUnitUris(List<int> _value) {
+    assert(!_finished);
+    assert(_value == null || _value.every((e) => e >= 0));
+    _unitUnitUris = _value;
+  }
+
+  PackageIndexBuilder({List<idl.IndexSyntheticElementKind> elementKinds, List<int> elementOffsets, List<int> elementUnits, List<String> strings, List<int> unitLibraryUris, List<UnitIndexBuilder> units, List<int> unitUnitUris})
+    : _elementKinds = elementKinds,
+      _elementOffsets = elementOffsets,
+      _elementUnits = elementUnits,
+      _strings = strings,
+      _unitLibraryUris = unitLibraryUris,
+      _units = units,
+      _unitUnitUris = unitUnitUris;
+
+  List<int> toBuffer() {
+    fb.Builder fbBuilder = new fb.Builder();
+    return fbBuilder.finish(finish(fbBuilder), "Indx");
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    assert(!_finished);
+    _finished = true;
+    fb.Offset offset_elementKinds;
+    fb.Offset offset_elementOffsets;
+    fb.Offset offset_elementUnits;
+    fb.Offset offset_strings;
+    fb.Offset offset_unitLibraryUris;
+    fb.Offset offset_units;
+    fb.Offset offset_unitUnitUris;
+    if (!(_elementKinds == null || _elementKinds.isEmpty)) {
+      offset_elementKinds = fbBuilder.writeListUint8(_elementKinds.map((b) => b.index).toList());
+    }
+    if (!(_elementOffsets == null || _elementOffsets.isEmpty)) {
+      offset_elementOffsets = fbBuilder.writeListUint32(_elementOffsets);
+    }
+    if (!(_elementUnits == null || _elementUnits.isEmpty)) {
+      offset_elementUnits = fbBuilder.writeListUint32(_elementUnits);
+    }
+    if (!(_strings == null || _strings.isEmpty)) {
+      offset_strings = fbBuilder.writeList(_strings.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    if (!(_unitLibraryUris == null || _unitLibraryUris.isEmpty)) {
+      offset_unitLibraryUris = fbBuilder.writeListUint32(_unitLibraryUris);
+    }
+    if (!(_units == null || _units.isEmpty)) {
+      offset_units = fbBuilder.writeList(_units.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (!(_unitUnitUris == null || _unitUnitUris.isEmpty)) {
+      offset_unitUnitUris = fbBuilder.writeListUint32(_unitUnitUris);
+    }
+    fbBuilder.startTable();
+    if (offset_elementKinds != null) {
+      fbBuilder.addOffset(5, offset_elementKinds);
+    }
+    if (offset_elementOffsets != null) {
+      fbBuilder.addOffset(1, offset_elementOffsets);
+    }
+    if (offset_elementUnits != null) {
+      fbBuilder.addOffset(0, offset_elementUnits);
+    }
+    if (offset_strings != null) {
+      fbBuilder.addOffset(6, offset_strings);
+    }
+    if (offset_unitLibraryUris != null) {
+      fbBuilder.addOffset(2, offset_unitLibraryUris);
+    }
+    if (offset_units != null) {
+      fbBuilder.addOffset(4, offset_units);
+    }
+    if (offset_unitUnitUris != null) {
+      fbBuilder.addOffset(3, offset_unitUnitUris);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+idl.PackageIndex readPackageIndex(List<int> buffer) {
+  fb.BufferPointer rootRef = new fb.BufferPointer.fromBytes(buffer);
+  return const _PackageIndexReader().read(rootRef);
+}
+
+class _PackageIndexReader extends fb.TableReader<_PackageIndexImpl> {
+  const _PackageIndexReader();
+
+  @override
+  _PackageIndexImpl createObject(fb.BufferPointer bp) => new _PackageIndexImpl(bp);
+}
+
+class _PackageIndexImpl extends Object with _PackageIndexMixin implements idl.PackageIndex {
+  final fb.BufferPointer _bp;
+
+  _PackageIndexImpl(this._bp);
+
+  List<idl.IndexSyntheticElementKind> _elementKinds;
+  List<int> _elementOffsets;
+  List<int> _elementUnits;
+  List<String> _strings;
+  List<int> _unitLibraryUris;
+  List<idl.UnitIndex> _units;
+  List<int> _unitUnitUris;
+
+  @override
+  List<idl.IndexSyntheticElementKind> get elementKinds {
+    _elementKinds ??= const fb.ListReader<idl.IndexSyntheticElementKind>(const _IndexSyntheticElementKindReader()).vTableGet(_bp, 5, const <idl.IndexSyntheticElementKind>[]);
+    return _elementKinds;
+  }
+
+  @override
+  List<int> get elementOffsets {
+    _elementOffsets ??= const fb.Uint32ListReader().vTableGet(_bp, 1, const <int>[]);
+    return _elementOffsets;
+  }
+
+  @override
+  List<int> get elementUnits {
+    _elementUnits ??= const fb.Uint32ListReader().vTableGet(_bp, 0, const <int>[]);
+    return _elementUnits;
+  }
+
+  @override
+  List<String> get strings {
+    _strings ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 6, const <String>[]);
+    return _strings;
+  }
+
+  @override
+  List<int> get unitLibraryUris {
+    _unitLibraryUris ??= const fb.Uint32ListReader().vTableGet(_bp, 2, const <int>[]);
+    return _unitLibraryUris;
+  }
+
+  @override
+  List<idl.UnitIndex> get units {
+    _units ??= const fb.ListReader<idl.UnitIndex>(const _UnitIndexReader()).vTableGet(_bp, 4, const <idl.UnitIndex>[]);
+    return _units;
+  }
+
+  @override
+  List<int> get unitUnitUris {
+    _unitUnitUris ??= const fb.Uint32ListReader().vTableGet(_bp, 3, const <int>[]);
+    return _unitUnitUris;
+  }
+}
+
+abstract class _PackageIndexMixin implements idl.PackageIndex {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (elementKinds.isNotEmpty) _result["elementKinds"] = elementKinds.map((_value) => _value.toString().split('.')[1]).toList();
+    if (elementOffsets.isNotEmpty) _result["elementOffsets"] = elementOffsets;
+    if (elementUnits.isNotEmpty) _result["elementUnits"] = elementUnits;
+    if (strings.isNotEmpty) _result["strings"] = strings;
+    if (unitLibraryUris.isNotEmpty) _result["unitLibraryUris"] = unitLibraryUris;
+    if (units.isNotEmpty) _result["units"] = units.map((_value) => _value.toJson()).toList();
+    if (unitUnitUris.isNotEmpty) _result["unitUnitUris"] = unitUnitUris;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+    "elementKinds": elementKinds,
+    "elementOffsets": elementOffsets,
+    "elementUnits": elementUnits,
+    "strings": strings,
+    "unitLibraryUris": unitLibraryUris,
+    "units": units,
+    "unitUnitUris": unitUnitUris,
+  };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
+}
+
+class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIndex {
+  bool _finished = false;
+
+  List<idl.IndexNameKind> _definedNameKinds;
+  List<int> _definedNameOffsets;
+  List<int> _definedNames;
+  int _unit;
+  List<bool> _usedElementIsQualifiedFlags;
+  List<idl.IndexRelationKind> _usedElementKinds;
+  List<int> _usedElementLengths;
+  List<int> _usedElementOffsets;
+  List<int> _usedElements;
+  List<idl.IndexRelationKind> _usedNameKinds;
+  List<int> _usedNameOffsets;
+  List<int> _usedNames;
+
+  @override
+  List<idl.IndexNameKind> get definedNameKinds => _definedNameKinds ??= <idl.IndexNameKind>[];
+
+  /**
+   * Each item of this list is the kind of an element defined in this unit.
+   */
+  void set definedNameKinds(List<idl.IndexNameKind> _value) {
+    assert(!_finished);
+    _definedNameKinds = _value;
+  }
+
+  @override
+  List<int> get definedNameOffsets => _definedNameOffsets ??= <int>[];
+
+  /**
+   * Each item of this list is the name offset of an element defined in this
+   * unit relative to the beginning of the file.
+   */
+  void set definedNameOffsets(List<int> _value) {
+    assert(!_finished);
+    assert(_value == null || _value.every((e) => e >= 0));
+    _definedNameOffsets = _value;
+  }
+
+  @override
+  List<int> get definedNames => _definedNames ??= <int>[];
+
+  /**
+   * Each item of this list corresponds to an element defined in this unit.  It
+   * is an index into [PackageIndex.strings] list.  The list is sorted in
+   * ascending order, so that the client can quickly find name definitions in
+   * this [UnitIndex].
+   */
+  void set definedNames(List<int> _value) {
+    assert(!_finished);
+    assert(_value == null || _value.every((e) => e >= 0));
+    _definedNames = _value;
+  }
+
+  @override
+  int get unit => _unit ??= 0;
+
+  /**
+   * Index into [PackageIndex.unitLibraryUris] and [PackageIndex.unitUnitUris]
+   * for the library specific unit that corresponds to this [UnitIndex].
+   */
+  void set unit(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _unit = _value;
+  }
+
+  @override
+  List<bool> get usedElementIsQualifiedFlags => _usedElementIsQualifiedFlags ??= <bool>[];
+
+  /**
+   * Each item of this list is the `true` if the corresponding element usage
+   * is qualified with some prefix.
+   */
+  void set usedElementIsQualifiedFlags(List<bool> _value) {
+    assert(!_finished);
+    _usedElementIsQualifiedFlags = _value;
+  }
+
+  @override
+  List<idl.IndexRelationKind> get usedElementKinds => _usedElementKinds ??= <idl.IndexRelationKind>[];
+
+  /**
+   * Each item of this list is the kind of the element usage.
+   */
+  void set usedElementKinds(List<idl.IndexRelationKind> _value) {
+    assert(!_finished);
+    _usedElementKinds = _value;
+  }
+
+  @override
+  List<int> get usedElementLengths => _usedElementLengths ??= <int>[];
+
+  /**
+   * Each item of this list is the length of the element usage.
+   */
+  void set usedElementLengths(List<int> _value) {
+    assert(!_finished);
+    assert(_value == null || _value.every((e) => e >= 0));
+    _usedElementLengths = _value;
+  }
+
+  @override
+  List<int> get usedElementOffsets => _usedElementOffsets ??= <int>[];
+
+  /**
+   * Each item of this list is the offset of the element usage relative to the
+   * beginning of the file.
+   */
+  void set usedElementOffsets(List<int> _value) {
+    assert(!_finished);
+    assert(_value == null || _value.every((e) => e >= 0));
+    _usedElementOffsets = _value;
+  }
+
+  @override
+  List<int> get usedElements => _usedElements ??= <int>[];
+
+  /**
+   * Each item of this list is the index into [PackageIndex.elementUnits] and
+   * [PackageIndex.elementOffsets].  The list is sorted in ascending order, so
+   * that the client can quickly find element references in this [UnitIndex].
+   */
+  void set usedElements(List<int> _value) {
+    assert(!_finished);
+    assert(_value == null || _value.every((e) => e >= 0));
+    _usedElements = _value;
+  }
+
+  @override
+  List<idl.IndexRelationKind> get usedNameKinds => _usedNameKinds ??= <idl.IndexRelationKind>[];
+
+  /**
+   * Each item of this list is the kind of the name usage.
+   */
+  void set usedNameKinds(List<idl.IndexRelationKind> _value) {
+    assert(!_finished);
+    _usedNameKinds = _value;
+  }
+
+  @override
+  List<int> get usedNameOffsets => _usedNameOffsets ??= <int>[];
+
+  /**
+   * Each item of this list is the offset of the name usage relative to the
+   * beginning of the file.
+   */
+  void set usedNameOffsets(List<int> _value) {
+    assert(!_finished);
+    assert(_value == null || _value.every((e) => e >= 0));
+    _usedNameOffsets = _value;
+  }
+
+  @override
+  List<int> get usedNames => _usedNames ??= <int>[];
+
+  /**
+   * Each item of this list is the index into [PackageIndex.strings] for a
+   * used name.  The list is sorted in ascending order, so that the client can
+   * quickly find name uses in this [UnitIndex].
+   */
+  void set usedNames(List<int> _value) {
+    assert(!_finished);
+    assert(_value == null || _value.every((e) => e >= 0));
+    _usedNames = _value;
+  }
+
+  UnitIndexBuilder({List<idl.IndexNameKind> definedNameKinds, List<int> definedNameOffsets, List<int> definedNames, int unit, List<bool> usedElementIsQualifiedFlags, List<idl.IndexRelationKind> usedElementKinds, List<int> usedElementLengths, List<int> usedElementOffsets, List<int> usedElements, List<idl.IndexRelationKind> usedNameKinds, List<int> usedNameOffsets, List<int> usedNames})
+    : _definedNameKinds = definedNameKinds,
+      _definedNameOffsets = definedNameOffsets,
+      _definedNames = definedNames,
+      _unit = unit,
+      _usedElementIsQualifiedFlags = usedElementIsQualifiedFlags,
+      _usedElementKinds = usedElementKinds,
+      _usedElementLengths = usedElementLengths,
+      _usedElementOffsets = usedElementOffsets,
+      _usedElements = usedElements,
+      _usedNameKinds = usedNameKinds,
+      _usedNameOffsets = usedNameOffsets,
+      _usedNames = usedNames;
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    assert(!_finished);
+    _finished = true;
+    fb.Offset offset_definedNameKinds;
+    fb.Offset offset_definedNameOffsets;
+    fb.Offset offset_definedNames;
+    fb.Offset offset_usedElementIsQualifiedFlags;
+    fb.Offset offset_usedElementKinds;
+    fb.Offset offset_usedElementLengths;
+    fb.Offset offset_usedElementOffsets;
+    fb.Offset offset_usedElements;
+    fb.Offset offset_usedNameKinds;
+    fb.Offset offset_usedNameOffsets;
+    fb.Offset offset_usedNames;
+    if (!(_definedNameKinds == null || _definedNameKinds.isEmpty)) {
+      offset_definedNameKinds = fbBuilder.writeListUint8(_definedNameKinds.map((b) => b.index).toList());
+    }
+    if (!(_definedNameOffsets == null || _definedNameOffsets.isEmpty)) {
+      offset_definedNameOffsets = fbBuilder.writeListUint32(_definedNameOffsets);
+    }
+    if (!(_definedNames == null || _definedNames.isEmpty)) {
+      offset_definedNames = fbBuilder.writeListUint32(_definedNames);
+    }
+    if (!(_usedElementIsQualifiedFlags == null || _usedElementIsQualifiedFlags.isEmpty)) {
+      offset_usedElementIsQualifiedFlags = fbBuilder.writeListBool(_usedElementIsQualifiedFlags);
+    }
+    if (!(_usedElementKinds == null || _usedElementKinds.isEmpty)) {
+      offset_usedElementKinds = fbBuilder.writeListUint8(_usedElementKinds.map((b) => b.index).toList());
+    }
+    if (!(_usedElementLengths == null || _usedElementLengths.isEmpty)) {
+      offset_usedElementLengths = fbBuilder.writeListUint32(_usedElementLengths);
+    }
+    if (!(_usedElementOffsets == null || _usedElementOffsets.isEmpty)) {
+      offset_usedElementOffsets = fbBuilder.writeListUint32(_usedElementOffsets);
+    }
+    if (!(_usedElements == null || _usedElements.isEmpty)) {
+      offset_usedElements = fbBuilder.writeListUint32(_usedElements);
+    }
+    if (!(_usedNameKinds == null || _usedNameKinds.isEmpty)) {
+      offset_usedNameKinds = fbBuilder.writeListUint8(_usedNameKinds.map((b) => b.index).toList());
+    }
+    if (!(_usedNameOffsets == null || _usedNameOffsets.isEmpty)) {
+      offset_usedNameOffsets = fbBuilder.writeListUint32(_usedNameOffsets);
+    }
+    if (!(_usedNames == null || _usedNames.isEmpty)) {
+      offset_usedNames = fbBuilder.writeListUint32(_usedNames);
+    }
+    fbBuilder.startTable();
+    if (offset_definedNameKinds != null) {
+      fbBuilder.addOffset(6, offset_definedNameKinds);
+    }
+    if (offset_definedNameOffsets != null) {
+      fbBuilder.addOffset(7, offset_definedNameOffsets);
+    }
+    if (offset_definedNames != null) {
+      fbBuilder.addOffset(5, offset_definedNames);
+    }
+    if (_unit != null && _unit != 0) {
+      fbBuilder.addUint32(0, _unit);
+    }
+    if (offset_usedElementIsQualifiedFlags != null) {
+      fbBuilder.addOffset(11, offset_usedElementIsQualifiedFlags);
+    }
+    if (offset_usedElementKinds != null) {
+      fbBuilder.addOffset(4, offset_usedElementKinds);
+    }
+    if (offset_usedElementLengths != null) {
+      fbBuilder.addOffset(1, offset_usedElementLengths);
+    }
+    if (offset_usedElementOffsets != null) {
+      fbBuilder.addOffset(2, offset_usedElementOffsets);
+    }
+    if (offset_usedElements != null) {
+      fbBuilder.addOffset(3, offset_usedElements);
+    }
+    if (offset_usedNameKinds != null) {
+      fbBuilder.addOffset(10, offset_usedNameKinds);
+    }
+    if (offset_usedNameOffsets != null) {
+      fbBuilder.addOffset(9, offset_usedNameOffsets);
+    }
+    if (offset_usedNames != null) {
+      fbBuilder.addOffset(8, offset_usedNames);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _UnitIndexReader extends fb.TableReader<_UnitIndexImpl> {
+  const _UnitIndexReader();
+
+  @override
+  _UnitIndexImpl createObject(fb.BufferPointer bp) => new _UnitIndexImpl(bp);
+}
+
+class _UnitIndexImpl extends Object with _UnitIndexMixin implements idl.UnitIndex {
+  final fb.BufferPointer _bp;
+
+  _UnitIndexImpl(this._bp);
+
+  List<idl.IndexNameKind> _definedNameKinds;
+  List<int> _definedNameOffsets;
+  List<int> _definedNames;
+  int _unit;
+  List<bool> _usedElementIsQualifiedFlags;
+  List<idl.IndexRelationKind> _usedElementKinds;
+  List<int> _usedElementLengths;
+  List<int> _usedElementOffsets;
+  List<int> _usedElements;
+  List<idl.IndexRelationKind> _usedNameKinds;
+  List<int> _usedNameOffsets;
+  List<int> _usedNames;
+
+  @override
+  List<idl.IndexNameKind> get definedNameKinds {
+    _definedNameKinds ??= const fb.ListReader<idl.IndexNameKind>(const _IndexNameKindReader()).vTableGet(_bp, 6, const <idl.IndexNameKind>[]);
+    return _definedNameKinds;
+  }
+
+  @override
+  List<int> get definedNameOffsets {
+    _definedNameOffsets ??= const fb.Uint32ListReader().vTableGet(_bp, 7, const <int>[]);
+    return _definedNameOffsets;
+  }
+
+  @override
+  List<int> get definedNames {
+    _definedNames ??= const fb.Uint32ListReader().vTableGet(_bp, 5, const <int>[]);
+    return _definedNames;
+  }
+
+  @override
+  int get unit {
+    _unit ??= const fb.Uint32Reader().vTableGet(_bp, 0, 0);
+    return _unit;
+  }
+
+  @override
+  List<bool> get usedElementIsQualifiedFlags {
+    _usedElementIsQualifiedFlags ??= const fb.BoolListReader().vTableGet(_bp, 11, const <bool>[]);
+    return _usedElementIsQualifiedFlags;
+  }
+
+  @override
+  List<idl.IndexRelationKind> get usedElementKinds {
+    _usedElementKinds ??= const fb.ListReader<idl.IndexRelationKind>(const _IndexRelationKindReader()).vTableGet(_bp, 4, const <idl.IndexRelationKind>[]);
+    return _usedElementKinds;
+  }
+
+  @override
+  List<int> get usedElementLengths {
+    _usedElementLengths ??= const fb.Uint32ListReader().vTableGet(_bp, 1, const <int>[]);
+    return _usedElementLengths;
+  }
+
+  @override
+  List<int> get usedElementOffsets {
+    _usedElementOffsets ??= const fb.Uint32ListReader().vTableGet(_bp, 2, const <int>[]);
+    return _usedElementOffsets;
+  }
+
+  @override
+  List<int> get usedElements {
+    _usedElements ??= const fb.Uint32ListReader().vTableGet(_bp, 3, const <int>[]);
+    return _usedElements;
+  }
+
+  @override
+  List<idl.IndexRelationKind> get usedNameKinds {
+    _usedNameKinds ??= const fb.ListReader<idl.IndexRelationKind>(const _IndexRelationKindReader()).vTableGet(_bp, 10, const <idl.IndexRelationKind>[]);
+    return _usedNameKinds;
+  }
+
+  @override
+  List<int> get usedNameOffsets {
+    _usedNameOffsets ??= const fb.Uint32ListReader().vTableGet(_bp, 9, const <int>[]);
+    return _usedNameOffsets;
+  }
+
+  @override
+  List<int> get usedNames {
+    _usedNames ??= const fb.Uint32ListReader().vTableGet(_bp, 8, const <int>[]);
+    return _usedNames;
+  }
+}
+
+abstract class _UnitIndexMixin implements idl.UnitIndex {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (definedNameKinds.isNotEmpty) _result["definedNameKinds"] = definedNameKinds.map((_value) => _value.toString().split('.')[1]).toList();
+    if (definedNameOffsets.isNotEmpty) _result["definedNameOffsets"] = definedNameOffsets;
+    if (definedNames.isNotEmpty) _result["definedNames"] = definedNames;
+    if (unit != 0) _result["unit"] = unit;
+    if (usedElementIsQualifiedFlags.isNotEmpty) _result["usedElementIsQualifiedFlags"] = usedElementIsQualifiedFlags;
+    if (usedElementKinds.isNotEmpty) _result["usedElementKinds"] = usedElementKinds.map((_value) => _value.toString().split('.')[1]).toList();
+    if (usedElementLengths.isNotEmpty) _result["usedElementLengths"] = usedElementLengths;
+    if (usedElementOffsets.isNotEmpty) _result["usedElementOffsets"] = usedElementOffsets;
+    if (usedElements.isNotEmpty) _result["usedElements"] = usedElements;
+    if (usedNameKinds.isNotEmpty) _result["usedNameKinds"] = usedNameKinds.map((_value) => _value.toString().split('.')[1]).toList();
+    if (usedNameOffsets.isNotEmpty) _result["usedNameOffsets"] = usedNameOffsets;
+    if (usedNames.isNotEmpty) _result["usedNames"] = usedNames;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+    "definedNameKinds": definedNameKinds,
+    "definedNameOffsets": definedNameOffsets,
+    "definedNames": definedNames,
+    "unit": unit,
+    "usedElementIsQualifiedFlags": usedElementIsQualifiedFlags,
+    "usedElementKinds": usedElementKinds,
+    "usedElementLengths": usedElementLengths,
+    "usedElementOffsets": usedElementOffsets,
+    "usedElements": usedElements,
+    "usedNameKinds": usedNameKinds,
+    "usedNameOffsets": usedNameOffsets,
+    "usedNames": usedNames,
   };
 
   @override
@@ -4969,7 +5803,7 @@ class UnlinkedPublicNamespaceBuilder extends Object with _UnlinkedPublicNamespac
 
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
-    return fbBuilder.finish(finish(fbBuilder));
+    return fbBuilder.finish(finish(fbBuilder), "UPNS");
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {
@@ -5782,7 +6616,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
 
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
-    return fbBuilder.finish(finish(fbBuilder));
+    return fbBuilder.finish(finish(fbBuilder), "UUnt");
   }
 
   fb.Offset finish(fb.Builder fbBuilder) {

@@ -646,8 +646,8 @@ class GetHandler {
           int implicitSourceCount = 0;
           int implicitLineInfoCount = 0;
           int implicitLineCount = 0;
-          analysisServer.folderMap
-              .forEach((Folder folder, InternalAnalysisContext context) {
+          for (InternalAnalysisContext context
+              in analysisServer.analysisContexts) {
             Set<Source> explicitSources = new HashSet<Source>();
             Set<Source> implicitSources = new HashSet<Source>();
             AnalysisCache cache = context.analysisCache;
@@ -708,7 +708,7 @@ class GetHandler {
             explicitLineCount += lineCount(explicitSources, true);
             implicitSourceCount += implicitSources.length;
             implicitLineCount += lineCount(implicitSources, false);
-          });
+          }
           List<String> sourceTypeNames = sourceTypeCounts.keys.toList();
           sourceTypeNames.sort();
           List<String> typeNames = typeCounts.keys.toList();
@@ -1354,7 +1354,7 @@ class GetHandler {
           int processorCount = errorProcessors?.length ?? 0;
           buffer.write('<p><b>Error Processor count</b>: $processorCount</p>');
         });
-        
+
         SourceFactory sourceFactory = context.sourceFactory;
         if (sourceFactory is SourceFactoryImpl) {
           buffer.write('<h3>Resolvers</h3>');

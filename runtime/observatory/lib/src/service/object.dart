@@ -389,6 +389,13 @@ abstract class HeapObject extends ServiceObject {
       clazz = map['class'];
     }
 
+    // Load the full class object if the isolate is runnable.
+    if (clazz != null) {
+      if (clazz.isolate.runnable) {
+        clazz.load();
+      }
+    }
+
     if (mapIsRef) {
       return;
     }
@@ -1137,7 +1144,7 @@ class Isolate extends ServiceObjectOwner {
   @observable bool running = false;
   @observable bool idle = false;
   @observable bool loading = true;
-
+  @observable bool runnable = false;
   @observable bool ioEnabled = false;
 
   final List<String> extensionRPCs = new List<String>();
@@ -1191,6 +1198,10 @@ class Isolate extends ServiceObjectOwner {
 
   Future<ServiceObject> getPorts() {
     return invokeRpc('_getPorts', {});
+  }
+
+  Future<ServiceObject> getPersistentHandles() {
+    return invokeRpc('_getPersistentHandles', {});
   }
 
   Future<List<Class>> getClassRefs() async {
@@ -1375,7 +1386,7 @@ class Isolate extends ServiceObjectOwner {
     }
     _loaded = true;
     loading = false;
-
+    runnable = map['runnable'] == true;
     _upgradeCollection(map, isolate);
     originNumber = int.parse(map['_originNumber'], onError:(_) => null);
     rootLibrary = map['rootLib'];
@@ -1858,6 +1869,7 @@ class ServiceEvent extends ServiceObject {
   void _update(ObservableMap map, bool mapIsRef) {
     _loaded = true;
     _upgradeCollection(map, owner);
+
     assert(map['isolate'] == null || owner == map['isolate']);
     timestamp =
         new DateTime.fromMillisecondsSinceEpoch(map['timestamp']);
@@ -2040,6 +2052,10 @@ class Library extends HeapObject {
 
   bool get canCache => true;
   bool get immutable => false;
+
+  bool isDart(String libraryName) {
+    return uri == 'dart:$libraryName';
+  }
 
   Library._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -2325,6 +2341,25 @@ class Instance extends HeapObject {
   bool get isWeakProperty => kind == 'WeakProperty';
   bool get isClosure => kind == 'Closure';
   bool get isStackTrace => kind == 'StackTrace';
+  bool get isStackOverflowError {
+    if (clazz == null) {
+      return false;
+    }
+    if (clazz.library == null) {
+      return false;
+    }
+    return (clazz.name == 'StackOverflowError') && clazz.library.isDart('core');
+  }
+
+  bool get isOutOfMemoryError {
+    if (clazz == null) {
+      return false;
+    }
+    if (clazz.library == null) {
+      return false;
+    }
+    return (clazz.name == 'OutOfMemoryError') && clazz.library.isDart('core');
+  }
 
   // TODO(turnidge): Is this properly backwards compatible when new
   // instance kinds are added?

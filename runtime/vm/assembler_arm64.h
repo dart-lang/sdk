@@ -757,6 +757,22 @@ class Assembler : public ValueObject {
     EmitLoadStoreRegPair(STP, rt, rt2, a, sz);
   }
 
+  void ldxr(Register rt, Register rn) {
+    // rt = value
+    // rn = address
+    EmitLoadStoreExclusive(LDXR, R31, rn, rt, kDoubleWord);
+  }
+  void stxr(Register rs, Register rt, Register rn) {
+    // rs = status (1 = failure, 0 = success)
+    // rt = value
+    // rn = address
+    EmitLoadStoreExclusive(STXR, rs, rn, rt, kDoubleWord);
+  }
+  void clrex() {
+    const int32_t encoding = static_cast<int32_t>(CLREX);
+    Emit(encoding);
+  }
+
   // Conditional select.
   void csel(Register rd, Register rn, Register rm, Condition cond) {
     EmitConditionalSelect(CSEL, rd, rn, rm, cond, kDoubleWord);
@@ -1212,6 +1228,11 @@ class Assembler : public ValueObject {
                   Patchability patchable = kNotPatchable);
 
   void BranchLinkPatchable(const StubEntry& stub_entry);
+
+  // Emit a call that shares its object pool entries with other calls
+  // that have the same equivalence marker.
+  void BranchLinkWithEquivalence(const StubEntry& stub_entry,
+                                 const Object& equivalence);
 
   // Macros accepting a pp Register argument may attempt to load values from
   // the object pool when possible. Unless you are sure that the untagged object
@@ -1711,6 +1732,24 @@ class Assembler : public ValueObject {
         (static_cast<int32_t>(rd) << kRdShift) |
         (static_cast<int32_t>(hw_idx) << kHWShift) |
         (static_cast<int32_t>(imm.value() & 0xffff) << kImm16Shift);
+    Emit(encoding);
+  }
+
+  void EmitLoadStoreExclusive(LoadStoreExclusiveOp op, Register rs, Register rn,
+                              Register rt, OperandSize sz = kDoubleWord) {
+    ASSERT(sz == kDoubleWord);
+    const int32_t size = B31 | B30;
+
+    ASSERT((rs != kNoRegister) && (rs != ZR));
+    ASSERT((rn != kNoRegister) && (rn != ZR));
+    ASSERT((rt != kNoRegister) && (rt != ZR));
+
+    const int32_t encoding =
+        op | size |
+        (static_cast<int32_t>(ConcreteRegister(rs)) << kRsShift) |
+        (static_cast<int32_t>(ConcreteRegister(rn)) << kRnShift) |
+        (static_cast<int32_t>(ConcreteRegister(rt)) << kRtShift);
+
     Emit(encoding);
   }
 

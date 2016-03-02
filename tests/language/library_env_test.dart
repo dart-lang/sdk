@@ -5,7 +5,7 @@
 import 'package:expect/expect.dart';
 
 main() {
-  const NOT_PRESENT = null;
+  const NOT_PRESENT = false;
 
   Expect.isTrue(const bool.fromEnvironment("dart.library.async"));
   Expect.isTrue(const bool.fromEnvironment("dart.library.collection"));

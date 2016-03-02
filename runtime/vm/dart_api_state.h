@@ -213,6 +213,10 @@ class FinalizablePersistentHandle {
     return reinterpret_cast<Dart_WeakPersistentHandle>(this);
   }
 
+  intptr_t external_size() const {
+    return ExternalSizeBits::decode(external_data_);
+  }
+
   void SetExternalSize(intptr_t size, Isolate* isolate) {
     ASSERT(size >= 0);
     set_external_size(Utils::RoundUp(size, kObjectAlignment));
@@ -303,10 +307,6 @@ class FinalizablePersistentHandle {
 
   void set_callback(Dart_WeakPersistentHandleFinalizer callback) {
     callback_ = callback;
-  }
-
-  intptr_t external_size() const {
-    return ExternalSizeBits::decode(external_data_);
   }
 
   void set_external_size(intptr_t size) {
@@ -443,6 +443,13 @@ class PersistentHandles : Handles<kPersistentHandleSizeInWords,
     Handles<kPersistentHandleSizeInWords,
             kPersistentHandlesPerChunk,
             kOffsetOfRawPtrInPersistentHandle>::VisitObjectPointers(visitor);
+  }
+
+  // Visit all the handles.
+  void Visit(HandleVisitor* visitor) {
+    Handles<kPersistentHandleSizeInWords,
+            kPersistentHandlesPerChunk,
+            kOffsetOfRawPtrInPersistentHandle>::Visit(visitor);
   }
 
   // Allocates a persistent handle, these have to be destroyed explicitly

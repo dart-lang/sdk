@@ -25,7 +25,6 @@ DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
 DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
-DECLARE_FLAG(int, optimization_counter_threshold);
 
 // Input parameters:
 //   LR : return address.
@@ -1040,8 +1039,17 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ Push(R2);
   __ Push(R3);
 
-  __ orri(R2, TMP, Immediate(1 << RawObject::kRememberedBit));
-  __ StoreFieldToOffset(R2, R0, Object::tags_offset());
+  // Atomically set the remembered bit of the object header.
+  ASSERT(Object::tags_offset() == 0);
+  __ sub(R3, R0, Operand(kHeapObjectTag));
+  // R3: Untagged address of header word (ldxr/stxr do not support offsets).
+  Label retry;
+  __ Bind(&retry);
+  __ ldxr(R2, R3);
+  __ orri(R2, R2, Immediate(1 << RawObject::kRememberedBit));
+  __ stxr(R1, R2, R3);
+  __ cmp(R1, Operand(1));
+  __ b(&retry, EQ);
 
   // Load the StoreBuffer block out of the thread. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.

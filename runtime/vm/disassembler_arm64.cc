@@ -334,6 +334,10 @@ int ARM64Decoder::FormatRegister(Instr* instr, const char* format) {
     int reg = instr->RaField();
     PrintRegister(reg, R31IsZR);
     return 2;
+  } else if (format[1] == 's') {  // 'rs: Rs register
+    int reg = instr->RsField();
+    PrintRegister(reg, R31IsZR);
+    return 2;
   }
   UNREACHABLE();
   return -1;
@@ -742,6 +746,26 @@ void ARM64Decoder::DecodeLoadRegLiteral(Instr* instr) {
 }
 
 
+void ARM64Decoder::DecodeLoadStoreExclusive(Instr* instr) {
+  if ((instr->Bit(23) != 0) ||
+      (instr->Bit(21) != 0) ||
+      (instr->Bit(15) != 0)) {
+    Unknown(instr);
+  }
+  const int32_t size = instr->Bits(30, 2);
+  if (size != 3) {
+    Unknown(instr);
+  }
+
+  const bool is_load = instr->Bit(22) == 1;
+  if (is_load) {
+    Format(instr, "ldxr 'rt, 'rn");
+  } else {
+    Format(instr, "stxr 'rs, 'rt, 'rn");
+  }
+}
+
+
 void ARM64Decoder::DecodeAddSubImm(Instr* instr) {
   switch (instr->Bit(30)) {
     case 0: {
@@ -849,6 +873,11 @@ void ARM64Decoder::DecodeExceptionGen(Instr* instr) {
 
 
 void ARM64Decoder::DecodeSystem(Instr* instr) {
+  if (instr->InstructionBits() == CLREX) {
+    Format(instr, "clrex");
+    return;
+  }
+
   if ((instr->Bits(0, 8) == 0x1f) && (instr->Bits(12, 4) == 2) &&
       (instr->Bits(16, 3) == 3) && (instr->Bits(19, 2) == 0) &&
       (instr->Bit(21) == 0)) {
@@ -950,6 +979,8 @@ void ARM64Decoder::DecodeLoadStore(Instr* instr) {
     DecodeLoadStoreRegPair(instr);
   } else if (instr->IsLoadRegLiteralOp()) {
     DecodeLoadRegLiteral(instr);
+  } else if (instr->IsLoadStoreExclusiveOp()) {
+    DecodeLoadStoreExclusive(instr);
   } else {
     Unknown(instr);
   }
