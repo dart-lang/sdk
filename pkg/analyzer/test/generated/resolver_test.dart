@@ -14228,6 +14228,33 @@ void main() {
     _expectInitializerType('foo', 'Future<String>', isNull);
   }
 
+  void test_implicitBounds() {
+    String code = r'''
+class A<T> {}
+
+class B<T extends num> {}
+
+class C<S extends int, T extends B<S>, U extends B> {}
+
+void test() {
+//
+  A ai;
+  B bi;
+  C ci;
+  var aa = new A();
+  var bb = new B();
+  var cc = new C();
+}
+''';
+    _resolveTestUnit(code);
+    _expectIdentifierType('ai', "A<dynamic>");
+    _expectIdentifierType('bi', "B<num>");
+    _expectIdentifierType('ci', "C<int, B<int>, B<num>>");
+    _expectIdentifierType('aa', "A<dynamic>");
+    _expectIdentifierType('bb', "B<num>");
+    _expectIdentifierType('cc', "C<int, B<int>, B<num>>");
+  }
+
   void test_setterWithDynamicTypeIsError() {
     Source source = addSource(r'''
 class A {
@@ -17087,20 +17114,6 @@ class TypeResolverVisitorTest {
     _listener.assertErrorsWithCodes([StaticWarningCode.UNDEFINED_CLASS]);
   }
 
-  void test_visitTypeName_prefixed_noParameters_noArguments_undefined() {
-    SimpleIdentifier prefix = AstFactory.identifier3("unknownPrefix")
-      ..staticElement = new _StaleElement();
-    SimpleIdentifier suffix = AstFactory.identifier3("unknownSuffix")
-      ..staticElement = new _StaleElement();
-    TypeName typeName =
-        new TypeName(AstFactory.identifier(prefix, suffix), null);
-    _resolveNode(typeName, []);
-    expect(typeName.type, UndefinedTypeImpl.instance);
-    expect(prefix.staticElement, null);
-    expect(suffix.staticElement, null);
-    _listener.assertErrorsWithCodes([StaticWarningCode.UNDEFINED_CLASS]);
-  }
-
   void test_visitTypeName_parameters_arguments() {
     ClassElement classA = ElementFactory.classElement2("A", ["E"]);
     ClassElement classB = ElementFactory.classElement2("B");
@@ -17127,6 +17140,20 @@ class TypeResolverVisitorTest {
     expect(resultArguments, hasLength(1));
     expect(resultArguments[0], same(DynamicTypeImpl.instance));
     _listener.assertNoErrors();
+  }
+
+  void test_visitTypeName_prefixed_noParameters_noArguments_undefined() {
+    SimpleIdentifier prefix = AstFactory.identifier3("unknownPrefix")
+      ..staticElement = new _StaleElement();
+    SimpleIdentifier suffix = AstFactory.identifier3("unknownSuffix")
+      ..staticElement = new _StaleElement();
+    TypeName typeName =
+        new TypeName(AstFactory.identifier(prefix, suffix), null);
+    _resolveNode(typeName, []);
+    expect(typeName.type, UndefinedTypeImpl.instance);
+    expect(prefix.staticElement, null);
+    expect(suffix.staticElement, null);
+    _listener.assertErrorsWithCodes([StaticWarningCode.UNDEFINED_CLASS]);
   }
 
   void test_visitTypeName_void() {
@@ -17269,10 +17296,10 @@ class _StaleElement extends ElementImpl {
   _StaleElement() : super("_StaleElement", -1);
 
   @override
-  accept(_) => throw "_StaleElement shouldn't be visited";
+  get kind => throw "_StaleElement's kind shouldn't be accessed";
 
   @override
-  get kind => throw "_StaleElement's kind shouldn't be accessed";
+  accept(_) => throw "_StaleElement shouldn't be visited";
 }
 
 /**

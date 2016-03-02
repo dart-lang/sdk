@@ -11283,6 +11283,11 @@ class TypeResolverVisitor extends ScopedVisitor {
   bool _strongMode;
 
   /**
+   * Type type system in use for this resolver pass.
+   */
+  TypeSystem _typeSystem;
+
+  /**
    * Initialize a newly created visitor to resolve the nodes in an AST node.
    *
    * [definingLibrary] is the element for the library containing the node being
@@ -11305,6 +11310,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     _dynamicType = typeProvider.dynamicType;
     _undefinedType = typeProvider.undefinedType;
     _strongMode = definingLibrary.context.analysisOptions.strongMode;
+    _typeSystem = TypeSystem.create(definingLibrary.context);
   }
 
   @override
@@ -11853,7 +11859,7 @@ class TypeResolverVisitor extends ScopedVisitor {
     if (argumentList != null) {
       NodeList<TypeName> arguments = argumentList.arguments;
       int argumentCount = arguments.length;
-      List<DartType> parameters = _getTypeParameters(type);
+      List<DartType> parameters = _typeSystem.typeFormalsAsTypes(type);
       int parameterCount = parameters.length;
       List<DartType> typeArguments = new List<DartType>(parameterCount);
       if (argumentCount == parameterCount) {
@@ -11872,22 +11878,9 @@ class TypeResolverVisitor extends ScopedVisitor {
           typeArguments[i] = _dynamicType;
         }
       }
-      type = _instantiateType(type, typeArguments);
+      type = _typeSystem.instantiateType(type, typeArguments);
     } else {
-      //
-      // Check for the case where there are no type arguments given for a
-      // parameterized type.
-      //
-      List<DartType> parameters = _getTypeParameters(type);
-      int parameterCount = parameters.length;
-      if (parameterCount > 0) {
-        DynamicTypeImpl dynamicType = DynamicTypeImpl.instance;
-        List<DartType> arguments = new List<DartType>(parameterCount);
-        for (int i = 0; i < parameterCount; i++) {
-          arguments[i] = dynamicType;
-        }
-        type = _instantiateType(type, arguments);
-      }
+      type = _typeSystem.instantiateToBounds(type);
     }
     typeName.staticType = type;
     node.type = type;
@@ -12066,21 +12059,6 @@ class TypeResolverVisitor extends ScopedVisitor {
   }
 
   /**
-   * Return the type arguments associated with the given type.
-   *
-   * @param type the type whole type arguments are to be returned
-   * @return the type arguments associated with the given type
-   */
-  List<DartType> _getTypeParameters(DartType type) {
-    if (type is InterfaceType) {
-      return type.typeArguments;
-    } else if (type is FunctionType) {
-      return TypeParameterTypeImpl.getTypes(type.typeFormals);
-    }
-    return DartType.EMPTY_LIST;
-  }
-
-  /**
    * Returns the simple identifier of the given (may be qualified) type name.
    *
    * @param typeName the (may be qualified) qualified type name
@@ -12125,21 +12103,6 @@ class TypeResolverVisitor extends ScopedVisitor {
         element.isSetter &&
         element.hasImplicitReturnType) {
       element.returnType = VoidTypeImpl.instance;
-    }
-  }
-
-  DartType _instantiateType(DartType type, List<DartType> typeArguments) {
-    // TODO(jmesserly): this should use TypeSystem.instantiateToBounds,
-    // from calling methods when they know they're just trying to fill in
-    // "dynamic" for the case of missing type arguments.
-
-    if (type is InterfaceTypeImpl) {
-      return type.substitute4(typeArguments);
-    } else if (type is FunctionTypeImpl) {
-      return type.instantiate(typeArguments);
-    } else {
-      // TODO(brianwilkerson) Report this internal error.
-      return type;
     }
   }
 
