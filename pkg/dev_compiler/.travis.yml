@@ -27,3 +27,6 @@ env:
   - TEST=coverage
   - TEST=transformer
   - TEST=node
+matrix:
+  allow_failures:
+    - env: ANALYZER=master
