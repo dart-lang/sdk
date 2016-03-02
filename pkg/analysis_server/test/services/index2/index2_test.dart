@@ -2,13 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-
 import 'package:analysis_server/src/services/index2/index2.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
@@ -23,8 +20,7 @@ main() {
 
 @reflectiveTest
 class Index2Test extends AbstractSingleUnitTest {
-  PackageIndexStore indexStore = new _MemoryPackageIndexStore();
-  Index2 index;
+  Index2 index = createMemoryIndex();
 
   /**
    * Return the [Location] with given properties, or fail.
@@ -70,13 +66,11 @@ class Index2Test extends AbstractSingleUnitTest {
 
   void setUp() {
     super.setUp();
-    index = new Index2(indexStore);
   }
 
   void tearDown() {
     super.tearDown();
     index = null;
-    indexStore = null;
   }
 
   test_getRelations_isExtendedBy() async {
@@ -119,40 +113,5 @@ main(int a, int b) {
     CompilationUnit unit = resolveLibraryUnit(source);
     index.indexUnit(unit);
     return source;
-  }
-}
-
-/**
- * A [PackageIndexId] for [_MemoryPackageIndexStore].
- */
-class _MemoryPackageIndexId implements PackageIndexId {
-  final String key;
-
-  _MemoryPackageIndexId(this.key);
-}
-
-/**
- * A [PackageIndexStore] that keeps objects in memory;
- */
-class _MemoryPackageIndexStore implements PackageIndexStore {
-  final Map<String, PackageIndex> indexMap = <String, PackageIndex>{};
-
-  @override
-  Future<Iterable<PackageIndexId>> getIds() async {
-    return indexMap.keys.map((key) => new _MemoryPackageIndexId(key));
-  }
-
-  @override
-  Future<PackageIndex> getIndex(PackageIndexId id) async {
-    return indexMap[(id as _MemoryPackageIndexId).key];
-  }
-
-  @override
-  putIndex(String unitLibraryUri, String unitUnitUri,
-      PackageIndexBuilder indexBuilder) {
-    List<int> indexBytes = indexBuilder.toBuffer();
-    PackageIndex index = new PackageIndex.fromBuffer(indexBytes);
-    String key = '$unitLibraryUri;$unitUnitUri';
-    indexMap[key] = index;
   }
 }

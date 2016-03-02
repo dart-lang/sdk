@@ -13,6 +13,31 @@ import 'package:analyzer/src/summary/index_unit.dart';
 import 'package:collection/collection.dart';
 
 /**
+ * Return a new [Index2] instance that keeps information in memory.
+ */
+Index2 createMemoryIndex() {
+  _MemoryPackageIndexStore store = new _MemoryPackageIndexStore();
+  return new Index2(store);
+}
+
+/**
+ * Return the index of the first occurrence of the [value] in the [sortedList],
+ * or `-1` if the [value] is not in the list.
+ */
+int _findFirstOccurrence(List<int> sortedList, int value) {
+  // Find an occurrence.
+  int i = binarySearch(sortedList, value);
+  if (i == -1) {
+    return -1;
+  }
+  // Find the first occurrence.
+  while (i > 0 && sortedList[i - 1] == value) {
+    i--;
+  }
+  return i;
+}
+
+/**
  * Interface for storing and requesting relations.
  */
 class Index2 {
@@ -120,6 +145,41 @@ abstract class PackageIndexStore {
 }
 
 /**
+ * A [PackageIndexId] for [_MemoryPackageIndexStore].
+ */
+class _MemoryPackageIndexId implements PackageIndexId {
+  final String key;
+
+  _MemoryPackageIndexId(this.key);
+}
+
+/**
+ * A [PackageIndexStore] that keeps objects in memory;
+ */
+class _MemoryPackageIndexStore implements PackageIndexStore {
+  final Map<String, PackageIndex> indexMap = <String, PackageIndex>{};
+
+  @override
+  Future<Iterable<PackageIndexId>> getIds() async {
+    return indexMap.keys.map((key) => new _MemoryPackageIndexId(key));
+  }
+
+  @override
+  Future<PackageIndex> getIndex(PackageIndexId id) async {
+    return indexMap[(id as _MemoryPackageIndexId).key];
+  }
+
+  @override
+  putIndex(String unitLibraryUri, String unitUnitUri,
+      PackageIndexBuilder indexBuilder) {
+    List<int> indexBytes = indexBuilder.toBuffer();
+    PackageIndex index = new PackageIndex.fromBuffer(indexBytes);
+    String key = '$unitLibraryUri;$unitUnitUri';
+    indexMap[key] = index;
+  }
+}
+
+/**
  * Helper for requesting information from a single [PackageIndex].
  */
 class _PackageIndexRequester {
@@ -132,18 +192,29 @@ class _PackageIndexRequester {
    * [element] is not referenced in the [index].
    */
   int findElementId(Element element) {
+    // Find the id of the element's unit.
     int unitId = getUnitId(element);
+    if (unitId == null) {
+      return null;
+    }
+    // Prepare the offset of the element.
     int offset = element.nameOffset;
     if (element is LibraryElement || element is CompilationUnitElement) {
       offset = 0;
     }
+    // Find the first occurrence of an element with the same offset.
+    int elementId = _findFirstOccurrence(index.elementOffsets, offset);
+    if (elementId == -1) {
+      return null;
+    }
+    // Try to find the element id using offset, unit and kind.
     IndexSyntheticElementKind kind =
         PackageIndexAssembler.getIndexElementKind(element);
-    for (int elementId = 0;
-        elementId < index.elementUnits.length;
+    for (;
+        elementId < index.elementOffsets.length &&
+            index.elementOffsets[elementId] == offset;
         elementId++) {
       if (index.elementUnits[elementId] == unitId &&
-          index.elementOffsets[elementId] == offset &&
           index.elementKinds[elementId] == kind) {
         return elementId;
       }
@@ -235,14 +306,10 @@ class _UnitIndexRequester {
    * relation of the given [kind].
    */
   List<Location> getRelations(int elementId, IndexRelationKind kind) {
-    // Find a usage of the element.
-    int i = binarySearch(unitIndex.usedElements, elementId);
+    // Find the first usage of the element.
+    int i = _findFirstOccurrence(unitIndex.usedElements, elementId);
     if (i == -1) {
       return const <Location>[];
-    }
-    // Find the first usage of the element.
-    while (i > 0 && unitIndex.usedElements[i - 1] == elementId) {
-      i--;
     }
     // Create locations for every usage of the element.
     List<Location> locations = <Location>[];

@@ -5,7 +5,7 @@
 import 'package:unittest/unittest.dart';
 
 import '../../utils.dart';
-import 'index2.dart' as index;
+import 'index2_test.dart' as index_test;
 
 /**
  * Utility for manually running all tests.
@@ -13,6 +13,6 @@ import 'index2.dart' as index;
 main() {
   initializeTestEnvironment();
   group('index', () {
-    index.main();
+    index_test.main();
   });
 }
