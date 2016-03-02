@@ -60,6 +60,11 @@ interface TimeoutHandler {
   void handleEvent();
 };
 
+[Callback]
+interface RequestAnimationFrameCallback{
+    void handleEvent(double highResTime);
+};
+
 // FIXME(leafp): This is a temporary hack to get things running while
 // we are still generating _blink from the dart side idl files.
 // Once we are up and running generating dart:_blink in dartium
