@@ -31,7 +31,7 @@ dart_library.library('expect', null, /* Imports */[
         }
       }
       if (dart.notNull(end) < dart.notNull(string[dartx.length])) buf.write("...");
-      return dart.toString(buf);
+      return buf.toString();
     }
     static _stringDifference(expected, actual) {
       if (dart.notNull(expected[dartx.length]) < 20 && dart.notNull(actual[dartx.length]) < 20) return null;
@@ -205,7 +205,7 @@ dart_library.library('expect', null, /* Imports */[
       for (let val of extraSet) {
         sb.write(`${val} `);
       }
-      Expect._fail(dart.toString(sb));
+      Expect._fail(sb.toString());
     }
     static throws(f, check, reason) {
       if (check === void 0) check = null;

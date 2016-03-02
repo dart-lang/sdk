@@ -380,52 +380,52 @@ dart_library.library('language/adjacent_const_string_literals_test', null, /* Im
   }
   dart.fn(main);
   function testEmpty() {
-    expect.Expect.equals("", dart.toString(dart.const(new Conster("" + "" + ""))));
-    expect.Expect.equals("", dart.toString(dart.const(new Conster("" + '' + ""))));
-    expect.Expect.equals("", dart.toString(dart.const(new Conster("" + "" + ""))));
-    expect.Expect.equals("a", dart.toString(dart.const(new Conster("a" + ""))));
-    expect.Expect.equals("a", dart.toString(dart.const(new Conster("a" + ''))));
-    expect.Expect.equals("a", dart.toString(dart.const(new Conster("a" + ''))));
-    expect.Expect.equals("b", dart.toString(dart.const(new Conster('b' + ""))));
-    expect.Expect.equals("b", dart.toString(dart.const(new Conster('b' + ''))));
-    expect.Expect.equals("b", dart.toString(dart.const(new Conster('b' + ''))));
-    expect.Expect.equals("c", dart.toString(dart.const(new Conster('c' + ""))));
-    expect.Expect.equals("c", dart.toString(dart.const(new Conster('c' + ''))));
-    expect.Expect.equals("c", dart.toString(dart.const(new Conster('c' + ''))));
-    expect.Expect.equals("a", dart.toString(dart.const(new Conster("" + "a"))));
-    expect.Expect.equals("a", dart.toString(dart.const(new Conster("" + 'a'))));
-    expect.Expect.equals("a", dart.toString(dart.const(new Conster("" + 'a'))));
-    expect.Expect.equals("b", dart.toString(dart.const(new Conster('' + "b"))));
-    expect.Expect.equals("b", dart.toString(dart.const(new Conster('' + 'b'))));
-    expect.Expect.equals("b", dart.toString(dart.const(new Conster('' + 'b'))));
-    expect.Expect.equals("c", dart.toString(dart.const(new Conster('' + "c"))));
-    expect.Expect.equals("c", dart.toString(dart.const(new Conster('' + 'c'))));
-    expect.Expect.equals("c", dart.toString(dart.const(new Conster('' + 'c'))));
+    expect.Expect.equals("", dart.const(new Conster("" + "" + "")).toString());
+    expect.Expect.equals("", dart.const(new Conster("" + '' + "")).toString());
+    expect.Expect.equals("", dart.const(new Conster("" + "" + "")).toString());
+    expect.Expect.equals("a", dart.const(new Conster("a" + "")).toString());
+    expect.Expect.equals("a", dart.const(new Conster("a" + '')).toString());
+    expect.Expect.equals("a", dart.const(new Conster("a" + '')).toString());
+    expect.Expect.equals("b", dart.const(new Conster('b' + "")).toString());
+    expect.Expect.equals("b", dart.const(new Conster('b' + '')).toString());
+    expect.Expect.equals("b", dart.const(new Conster('b' + '')).toString());
+    expect.Expect.equals("c", dart.const(new Conster('c' + "")).toString());
+    expect.Expect.equals("c", dart.const(new Conster('c' + '')).toString());
+    expect.Expect.equals("c", dart.const(new Conster('c' + '')).toString());
+    expect.Expect.equals("a", dart.const(new Conster("" + "a")).toString());
+    expect.Expect.equals("a", dart.const(new Conster("" + 'a')).toString());
+    expect.Expect.equals("a", dart.const(new Conster("" + 'a')).toString());
+    expect.Expect.equals("b", dart.const(new Conster('' + "b")).toString());
+    expect.Expect.equals("b", dart.const(new Conster('' + 'b')).toString());
+    expect.Expect.equals("b", dart.const(new Conster('' + 'b')).toString());
+    expect.Expect.equals("c", dart.const(new Conster('' + "c")).toString());
+    expect.Expect.equals("c", dart.const(new Conster('' + 'c')).toString());
+    expect.Expect.equals("c", dart.const(new Conster('' + 'c')).toString());
   }
   dart.fn(testEmpty);
   const s = "a";
   function testInterpolation() {
-    expect.Expect.equals("ab", dart.toString(dart.const(new Conster(`${s}` + "b"))));
-    expect.Expect.equals("ab", dart.toString(dart.const(new Conster(`${s}` + "b"))));
-    expect.Expect.equals("$sb", dart.toString(dart.const(new Conster('$s' + "b"))));
-    expect.Expect.equals("-a-b", dart.toString(dart.const(new Conster(`-${s}-` + "b"))));
-    expect.Expect.equals("-a-b", dart.toString(dart.const(new Conster(`-${s}-` + "b"))));
-    expect.Expect.equals("-$s-b", dart.toString(dart.const(new Conster('-$s-' + "b"))));
-    expect.Expect.equals("ba", dart.toString(dart.const(new Conster('b' + `${s}`))));
-    expect.Expect.equals("ba", dart.toString(dart.const(new Conster('b' + `${s}`))));
-    expect.Expect.equals("b$s", dart.toString(dart.const(new Conster('b' + '$s'))));
-    expect.Expect.equals("b-a-", dart.toString(dart.const(new Conster('b' + `-${s}-`))));
-    expect.Expect.equals("b-a-", dart.toString(dart.const(new Conster('b' + `-${s}-`))));
-    expect.Expect.equals("b-$s-", dart.toString(dart.const(new Conster('b' + '-$s-'))));
+    expect.Expect.equals("ab", dart.const(new Conster(`${s}` + "b")).toString());
+    expect.Expect.equals("ab", dart.const(new Conster(`${s}` + "b")).toString());
+    expect.Expect.equals("$sb", dart.const(new Conster('$s' + "b")).toString());
+    expect.Expect.equals("-a-b", dart.const(new Conster(`-${s}-` + "b")).toString());
+    expect.Expect.equals("-a-b", dart.const(new Conster(`-${s}-` + "b")).toString());
+    expect.Expect.equals("-$s-b", dart.const(new Conster('-$s-' + "b")).toString());
+    expect.Expect.equals("ba", dart.const(new Conster('b' + `${s}`)).toString());
+    expect.Expect.equals("ba", dart.const(new Conster('b' + `${s}`)).toString());
+    expect.Expect.equals("b$s", dart.const(new Conster('b' + '$s')).toString());
+    expect.Expect.equals("b-a-", dart.const(new Conster('b' + `-${s}-`)).toString());
+    expect.Expect.equals("b-a-", dart.const(new Conster('b' + `-${s}-`)).toString());
+    expect.Expect.equals("b-$s-", dart.const(new Conster('b' + '-$s-')).toString());
   }
   dart.fn(testInterpolation);
   function testMultiline() {
-    expect.Expect.equals("abe", dart.toString(dart.const(new Conster("a" + "b" + "e"))));
-    expect.Expect.equals("a b e", dart.toString(dart.const(new Conster("a " + "b " + "e"))));
-    expect.Expect.equals("a b e", dart.toString(dart.const(new Conster("a" + " b" + " e"))));
-    expect.Expect.equals("abe", dart.toString(dart.const(new Conster("a" + "b" + "e"))));
-    expect.Expect.equals("a b e", dart.toString(dart.const(new Conster("a" + " b" + " e"))));
-    expect.Expect.equals("abe", dart.toString(dart.const(new Conster("a" + "b" + "e"))));
+    expect.Expect.equals("abe", dart.const(new Conster("a" + "b" + "e")).toString());
+    expect.Expect.equals("a b e", dart.const(new Conster("a " + "b " + "e")).toString());
+    expect.Expect.equals("a b e", dart.const(new Conster("a" + " b" + " e")).toString());
+    expect.Expect.equals("abe", dart.const(new Conster("a" + "b" + "e")).toString());
+    expect.Expect.equals("a b e", dart.const(new Conster("a" + " b" + " e")).toString());
+    expect.Expect.equals("abe", dart.const(new Conster("a" + "b" + "e")).toString());
   }
   dart.fn(testMultiline);
   // Exports:
@@ -18245,10 +18245,10 @@ dart_library.library('language/bool_test', null, /* Imports */[
       expect.Expect.isFalse(core.identical(true, false));
       expect.Expect.isTrue(core.identical(false, false));
       expect.Expect.isFalse(core.identical(false, true));
-      expect.Expect.isFalse(!dart.notNull(core.identical(true, true)));
-      expect.Expect.isTrue(!dart.notNull(core.identical(true, false)));
-      expect.Expect.isFalse(!dart.notNull(core.identical(false, false)));
-      expect.Expect.isTrue(!dart.notNull(core.identical(false, true)));
+      expect.Expect.isFalse(!core.identical(true, true));
+      expect.Expect.isTrue(!core.identical(true, false));
+      expect.Expect.isFalse(!core.identical(false, false));
+      expect.Expect.isTrue(!core.identical(false, true));
       expect.Expect.isTrue(true == true);
       expect.Expect.isFalse(true == false);
       expect.Expect.isTrue(false == false);
@@ -18261,28 +18261,28 @@ dart_library.library('language/bool_test', null, /* Imports */[
       expect.Expect.isTrue(core.identical(false, true == false));
       expect.Expect.isTrue(core.identical(true, false == false));
       expect.Expect.isTrue(core.identical(false, false == true));
-      expect.Expect.isFalse(!dart.notNull(core.identical(true, true == true)));
-      expect.Expect.isFalse(!dart.notNull(core.identical(false, true == false)));
-      expect.Expect.isFalse(!dart.notNull(core.identical(true, false == false)));
-      expect.Expect.isFalse(!dart.notNull(core.identical(false, false == true)));
+      expect.Expect.isFalse(!core.identical(true, true == true));
+      expect.Expect.isFalse(!core.identical(false, true == false));
+      expect.Expect.isFalse(!core.identical(true, false == false));
+      expect.Expect.isFalse(!core.identical(false, false == true));
       expect.Expect.isFalse(core.identical(false, true == true));
       expect.Expect.isFalse(core.identical(true, true == false));
       expect.Expect.isFalse(core.identical(false, false == false));
       expect.Expect.isFalse(core.identical(true, false == true));
-      expect.Expect.isTrue(!dart.notNull(core.identical(false, true == true)));
-      expect.Expect.isTrue(!dart.notNull(core.identical(true, true == false)));
-      expect.Expect.isTrue(!dart.notNull(core.identical(false, false == false)));
-      expect.Expect.isTrue(!dart.notNull(core.identical(true, false == true)));
+      expect.Expect.isTrue(!core.identical(false, true == true));
+      expect.Expect.isTrue(!core.identical(true, true == false));
+      expect.Expect.isTrue(!core.identical(false, false == false));
+      expect.Expect.isTrue(!core.identical(true, false == true));
       if (true == false) {
         dart.throw("Expect.equals broken");
       }
       if (false == true) {
         dart.throw("Expect.equals broken");
       }
-      if (dart.notNull(core.identical(true, false))) {
+      if (core.identical(true, false)) {
         dart.throw("Expect.equals broken");
       }
-      if (dart.notNull(core.identical(false, true))) {
+      if (core.identical(false, true)) {
         dart.throw("Expect.equals broken");
       }
       if (true == true) {
@@ -18293,11 +18293,11 @@ dart_library.library('language/bool_test', null, /* Imports */[
       } else {
         dart.throw("Expect.equals broken");
       }
-      if (dart.notNull(core.identical(true, true))) {
+      if (core.identical(true, true)) {
       } else {
         dart.throw("Expect.equals broken");
       }
-      if (dart.notNull(core.identical(false, false))) {
+      if (core.identical(false, false)) {
       } else {
         dart.throw("Expect.equals broken");
       }
@@ -18309,11 +18309,11 @@ dart_library.library('language/bool_test', null, /* Imports */[
       } else {
         dart.throw("Expect.equals broken");
       }
-      if (!dart.notNull(core.identical(true, false))) {
+      if (!core.identical(true, false)) {
       } else {
         dart.throw("Expect.equals broken");
       }
-      if (!dart.notNull(core.identical(false, true))) {
+      if (!core.identical(false, true)) {
       } else {
         dart.throw("Expect.equals broken");
       }
@@ -18323,10 +18323,10 @@ dart_library.library('language/bool_test', null, /* Imports */[
       if (false != false) {
         dart.throw("Expect.equals broken");
       }
-      if (!dart.notNull(core.identical(true, true))) {
+      if (!core.identical(true, true)) {
         dart.throw("Expect.equals broken");
       }
-      if (!dart.notNull(core.identical(false, false))) {
+      if (!core.identical(false, false)) {
         dart.throw("Expect.equals broken");
       }
     }
@@ -19588,7 +19588,7 @@ dart_library.library('language/call_operator_test', null, /* Imports */[
           buffer.write(":");
         }
       }
-      return dart.toString(buffer);
+      return buffer.toString();
     }
   }
   dart.setSignature(E, {
@@ -29682,7 +29682,7 @@ dart_library.library('language/comparison_test', null, /* Imports */[
       return core.identical(a, b);
     }
     static STRICT_NE(a, b) {
-      return !dart.notNull(core.identical(a, b));
+      return !core.identical(a, b);
     }
     static EQ(a, b) {
       return dart.equals(a, b);
@@ -32471,7 +32471,7 @@ dart_library.library('language/conditional_method_invocation_test_02_multi', nul
   dart.fn(nullC, C, []);
   function main() {
     dart.nullSafe(nullC(), _ => _.f(null));
-    expect.Expect.equals(1, dart.nullSafe(new C(), _ => _.f(dart.fn(() => 1, core.int, []))));
+    expect.Expect.equals(1, new C().f(dart.fn(() => 1, core.int, [])));
   }
   dart.fn(main);
   // Exports:
@@ -32594,7 +32594,7 @@ dart_library.library('language/conditional_method_invocation_test_04_multi', nul
   function main() {
     dart.nullSafe(nullC(), _ => _.f(null));
     {
-      let i = dart.nullSafe(new C(), _ => _.g(dart.fn(() => 1, core.int, [])));
+      let i = new C().g(dart.fn(() => 1, core.int, []));
       expect.Expect.equals(1, i);
     }
   }
@@ -32715,7 +32715,7 @@ dart_library.library('language/conditional_method_invocation_test_15_multi', nul
   dart.fn(nullC, C, []);
   function main() {
     dart.nullSafe(nullC(), _ => _.f(null));
-    expect.Expect.equals(1, dart.nullSafe(conditional_access_helper.C, _ => _.staticF(dart.fn(() => 1, core.int, []))));
+    expect.Expect.equals(1, conditional_access_helper.C.staticF(dart.fn(() => 1, core.int, [])));
   }
   dart.fn(main);
   // Exports:
@@ -32838,7 +32838,7 @@ dart_library.library('language/conditional_method_invocation_test_17_multi', nul
   function main() {
     dart.nullSafe(nullC(), _ => _.f(null));
     {
-      let i = dart.nullSafe(conditional_access_helper.C, _ => _.staticG(dart.fn(() => 1, core.int, [])));
+      let i = conditional_access_helper.C.staticG(dart.fn(() => 1, core.int, []));
       expect.Expect.equals(1, i);
     }
   }
@@ -32975,7 +32975,7 @@ dart_library.library('language/conditional_property_access_test_02_multi', null,
   dart.fn(nullC, C, []);
   function main() {
     dart.nullSafe(nullC(), _ => _.v);
-    expect.Expect.equals(1, dart.nullSafe(new C(1), _ => _.v));
+    expect.Expect.equals(1, new C(1).v);
   }
   dart.fn(main);
   // Exports:
@@ -33014,7 +33014,7 @@ dart_library.library('language/conditional_property_access_test_03_multi', null,
   function main() {
     dart.nullSafe(nullC(), _ => _.v);
     {
-      let i = dart.nullSafe(new C(1), _ => _.v);
+      let i = new C(1).v;
       expect.Expect.equals(1, i);
     }
   }
@@ -33098,7 +33098,7 @@ dart_library.library('language/conditional_property_access_test_13_multi', null,
     dart.nullSafe(nullC(), _ => _.v);
     {
       conditional_access_helper.C.staticInt = 1;
-      expect.Expect.equals(1, dart.nullSafe(conditional_access_helper.C, _ => _.staticInt));
+      expect.Expect.equals(1, conditional_access_helper.C.staticInt);
     }
   }
   dart.fn(main);
@@ -33182,7 +33182,7 @@ dart_library.library('language/conditional_property_access_test_15_multi', null,
     dart.nullSafe(nullC(), _ => _.v);
     {
       conditional_access_helper.C.staticInt = 1;
-      let i = dart.nullSafe(conditional_access_helper.C, _ => _.staticInt);
+      let i = conditional_access_helper.C.staticInt;
       expect.Expect.equals(1, i);
     }
   }
@@ -33596,7 +33596,7 @@ dart_library.library('language/conditional_property_assignment_test_08_multi', n
     {
       let c = new C(1);
       expect.Expect.equals(3, ((() => {
-        return c == null ? null : c.v = dart.notNull(dart.nullSafe(c, _ => _.v)) + 2;
+        return c == null ? null : c.v = dart.notNull(c.v) + 2;
       })()));
       expect.Expect.equals(3, c.v);
     }
@@ -33675,7 +33675,7 @@ dart_library.library('language/conditional_property_assignment_test_09_multi', n
     {
       let d = new D(new E());
       let f = ((() => {
-        return d == null ? null : d.v = dart.nullSafe(d, _ => _.v)['+'](1);
+        return d == null ? null : d.v = d.v['+'](1);
       })());
       expect.Expect.identical(d.v, f);
     }
@@ -34459,7 +34459,7 @@ dart_library.library('language/conditional_property_increment_decrement_test_02_
     {
       let c = new C(1);
       expect.Expect.equals(1, (() => {
-        let x = dart.nullSafe(c, _ => _.v);
+        let x = c.v;
         c == null ? null : c.v = dart.notNull(x) + 1;
         return x;
       })());
@@ -34534,7 +34534,7 @@ dart_library.library('language/conditional_property_increment_decrement_test_03_
     {
       let e1 = new E();
       let d = new D(e1);
-      let e2 = dart.nullSafe(d, _ => _.v);
+      let e2 = d.v;
       d == null ? null : d.v = e2['+'](1);
       expect.Expect.identical(e1, e2);
     }
@@ -34678,7 +34678,7 @@ dart_library.library('language/conditional_property_increment_decrement_test_06_
     {
       let c = new C(1);
       expect.Expect.equals(1, (() => {
-        let x = dart.nullSafe(c, _ => _.v);
+        let x = c.v;
         c == null ? null : c.v = dart.notNull(x) - 1;
         return x;
       })());
@@ -34753,7 +34753,7 @@ dart_library.library('language/conditional_property_increment_decrement_test_07_
     {
       let e1 = new E();
       let d = new D(e1);
-      let e2 = dart.nullSafe(d, _ => _.v);
+      let e2 = d.v;
       d == null ? null : d.v = e2['-'](1);
       expect.Expect.identical(e1, e2);
     }
@@ -34896,7 +34896,7 @@ dart_library.library('language/conditional_property_increment_decrement_test_10_
     {
       let c = new C(1);
       expect.Expect.equals(2, ((() => {
-        return c == null ? null : c.v = dart.notNull(dart.nullSafe(c, _ => _.v)) + 1;
+        return c == null ? null : c.v = dart.notNull(c.v) + 1;
       })()));
       expect.Expect.equals(2, c.v);
     }
@@ -34969,7 +34969,7 @@ dart_library.library('language/conditional_property_increment_decrement_test_11_
     {
       let d = new D(new E());
       let f = ((() => {
-        return d == null ? null : d.v = dart.nullSafe(d, _ => _.v)['+'](1);
+        return d == null ? null : d.v = d.v['+'](1);
       })());
       expect.Expect.identical(d.v, f);
     }
@@ -35112,7 +35112,7 @@ dart_library.library('language/conditional_property_increment_decrement_test_14_
     {
       let c = new C(1);
       expect.Expect.equals(0, ((() => {
-        return c == null ? null : c.v = dart.notNull(dart.nullSafe(c, _ => _.v)) - 1;
+        return c == null ? null : c.v = dart.notNull(c.v) - 1;
       })()));
       expect.Expect.equals(0, c.v);
     }
@@ -35185,7 +35185,7 @@ dart_library.library('language/conditional_property_increment_decrement_test_15_
     {
       let d = new D(new E());
       let f = ((() => {
-        return d == null ? null : d.v = dart.nullSafe(d, _ => _.v)['-'](1);
+        return d == null ? null : d.v = d.v['-'](1);
       })());
       expect.Expect.identical(d.v, f);
     }
@@ -40081,7 +40081,7 @@ dart_library.library('language/ct_const_test', null, /* Imports */[
       let l3 = new Line(dart.const(new Point(0, 0)), dart.const(new Point(1, 1)));
       expect.Expect.equals(true, core.identical(l1, l2));
       let evenNumbers = dart.const(dart.list([2, 2 * 2, 2 * 3, 2 * 4, 2 * 5], core.int));
-      expect.Expect.equals(true, !dart.notNull(core.identical(evenNumbers, dart.const([2, 4, 6, 8, 10]))));
+      expect.Expect.equals(true, !core.identical(evenNumbers, dart.const([2, 4, 6, 8, 10])));
       let c11dGermany1 = dart.const(dart.map({black: 1, red: 2, yellow: 3}));
       expect.Expect.equals(true, core.identical(c11dGermany1, dart.const(dart.map({black: 1, red: 2, yellow: 3}))));
       let c11dGermany2 = dart.const(dart.map({black: 1, red: 2, yellow: 3}));
@@ -48159,13 +48159,13 @@ dart_library.library('language/f_bounded_equality_test', null, /* Imports */[
   Bar.prototype.__proto__ = FBound$(Bar).prototype;
   function main() {
     let r = new Real();
-    expect.Expect.equals(dart.runtimeType(r), Real);
+    expect.Expect.equals(r.runtimeType, Real);
     expect.Expect.equals(r.t, Real);
-    expect.Expect.equals(dart.runtimeType(r), r.t);
+    expect.Expect.equals(r.runtimeType, r.t);
     let b = new Bar();
-    expect.Expect.equals(dart.runtimeType(b), Bar);
+    expect.Expect.equals(b.runtimeType, Bar);
     expect.Expect.equals(b.f, Bar);
-    expect.Expect.equals(dart.runtimeType(b), b.f);
+    expect.Expect.equals(b.runtimeType, b.f);
   }
   dart.fn(main);
   // Exports:
@@ -49980,7 +49980,7 @@ dart_library.library('language/first_class_types_literals_test_01_multi', null, 
     expect.Expect.equals(core.String, dart.runtimeType('hest'));
     expect.Expect.equals(core.double, dart.runtimeType(0.5));
     expect.Expect.equals(core.bool, dart.runtimeType(true));
-    expect.Expect.equals(C, dart.runtimeType(new C()));
+    expect.Expect.equals(C, new C().runtimeType);
     expect.Expect.equals(D.runtimeType, dart.runtimeType(D.runtimeType));
     expect.Expect.equals(dart.toString(dart.dynamic), 'dynamic');
   }
@@ -50033,7 +50033,7 @@ dart_library.library('language/first_class_types_literals_test_02_multi', null, 
     expect.Expect.equals(core.String, dart.runtimeType('hest'));
     expect.Expect.equals(core.double, dart.runtimeType(0.5));
     expect.Expect.equals(core.bool, dart.runtimeType(true));
-    expect.Expect.equals(D, dart.runtimeType(new D()));
+    expect.Expect.equals(D, new D().runtimeType);
     expect.Expect.equals(D.runtimeType, dart.runtimeType(D.runtimeType));
     expect.Expect.equals(dart.toString(dart.dynamic), 'dynamic');
   }
@@ -57261,7 +57261,7 @@ dart_library.library('language/function_syntax_test_none_multi', null, /* Import
       expectEvaluatesTo(true, dart.fn(() => 1 == 1, core.bool, []));
       expectEvaluatesTo(false, dart.fn(() => 1 != 1, core.bool, []));
       expectEvaluatesTo(true, dart.fn(() => core.identical(1, 1), core.bool, []));
-      expectEvaluatesTo(false, dart.fn(() => !dart.notNull(core.identical(1, 1)), core.bool, []));
+      expectEvaluatesTo(false, dart.fn(() => !core.identical(1, 1), core.bool, []));
       expectEvaluatesTo(true, dart.fn(() => 1 <= 1, core.bool, []));
       expectEvaluatesTo(false, dart.fn(() => 1 < 1, core.bool, []));
       expectEvaluatesTo(false, dart.fn(() => 1 > 1, core.bool, []));
@@ -60245,10 +60245,10 @@ dart_library.library('language/hash_code_mangling_test', null, /* Imports */[
     let foo = new Foo();
     foo.$identityHash = 'fisk';
     expect.Expect.isTrue(typeof foo.$identityHash == 'string');
-    let hash = dart.hashCode(foo);
+    let hash = foo.hashCode;
     expect.Expect.isTrue(typeof hash == 'number');
     expect.Expect.isTrue(typeof foo.$identityHash == 'string');
-    expect.Expect.equals(hash, dart.hashCode(foo));
+    expect.Expect.equals(hash, foo.hashCode);
   }
   dart.fn(main, dart.void, []);
   // Exports:
@@ -60646,7 +60646,7 @@ dart_library.library('language/identical_test', null, /* Imports */[
   'use strict';
   let dartx = dart.dartx;
   function notIdenticalTest1(a) {
-    if (!dart.notNull(core.identical("ho", a))) {
+    if (!core.identical("ho", a)) {
       return 2;
     } else {
       return 1;
@@ -60655,7 +60655,7 @@ dart_library.library('language/identical_test', null, /* Imports */[
   dart.fn(notIdenticalTest1);
   function notIdenticalTest2(a) {
     let x = core.identical("ho", a);
-    if (!dart.notNull(x)) {
+    if (!x) {
       expect.Expect.equals(false, x);
       return x;
     } else {
@@ -60666,7 +60666,7 @@ dart_library.library('language/identical_test', null, /* Imports */[
   dart.fn(notIdenticalTest2);
   function notIdenticalTest3(a) {
     let x = core.identical("ho", a);
-    return !dart.notNull(x);
+    return !x;
   }
   dart.fn(notIdenticalTest3);
   function main() {
@@ -66897,10 +66897,7 @@ dart_library.library('language/if_null_behavior_test_05_multi', null, /* Imports
       let l = null;
       return l != null ? l : null;
     })();
-    expect.Expect.equals('B', (() => {
-      let l = new B('B');
-      return l != null ? l : new C('C');
-    })().a);
+    expect.Expect.equals('B', new B('B').a);
   }
   dart.fn(main);
   // Exports:
@@ -66963,10 +66960,7 @@ dart_library.library('language/if_null_behavior_test_08_multi', null, /* Imports
       let l = null;
       return l != null ? l : null;
     })();
-    expect.Expect.equals('B', (() => {
-      let l = new B('B');
-      return l != null ? l : nullC();
-    })().a);
+    expect.Expect.equals('B', new B('B').a);
   }
   dart.fn(main);
   // Exports:
@@ -68864,7 +68858,7 @@ dart_library.library('language/inline_test', null, /* Imports */[
   class X extends core.Object {
     x(a, b) {
       do {
-        if (dart.notNull(core.identical(a, b))) {
+        if (core.identical(a, b)) {
           break;
         }
       } while (dart.notNull(this.p(a, b)));
@@ -68905,9 +68899,9 @@ dart_library.library('language/inlined_conditional_test', null, /* Imports */[
     let b = new core.Object();
     function f() {
       if (foo(exports.topLevel) == null) {
-        return dart.toString(b);
+        return b.toString();
       } else {
-        return dart.hashCode(b);
+        return b.hashCode;
       }
     }
     dart.fn(f);
@@ -108981,7 +108975,7 @@ dart_library.library('language/mixin_regress_13688_test', null, /* Imports */[
   class KUID extends dart.mixin(core.Object, ComparableMixin$(KUID)) {}
   function main() {
     let kuid = new KUID();
-    expect.Expect.equals(dart.toString(dart.runtimeType(kuid)), dart.toString(kuid.e()));
+    expect.Expect.equals(dart.toString(kuid.runtimeType), dart.toString(kuid.e()));
   }
   dart.fn(main);
   // Exports:
@@ -112947,7 +112941,7 @@ dart_library.library('language/nullaware_opt_test', null, /* Imports */[
     expect.Expect.equals(null, dart.nullSafe(c, _ => dart.dsend(_, 'm', bomb())));
     expect.Expect.equals(null, dart.nullSafe(getNull(), _ => dart.dsend(_, 'anything', bomb())));
     expect.Expect.equals(1, dart.nullSafe(d, _ => _.m(1)));
-    expect.Expect.equals(1, dart.nullSafe(new C(1), _ => _.f));
+    expect.Expect.equals(1, new C(1).f);
     expect.Expect.equals(null, dart.nullSafe(c, _ => dart.dload(_, 'v')));
     expect.Expect.equals(10, (c != null ? c : 10));
     expect.Expect.equals(d, (d != null ? d : bomb()));
@@ -118452,7 +118446,7 @@ dart_library.library('language/pure_function_test', null, /* Imports */[
     let t1 = foo(trace);
     let t2 = bar(trace);
     let a = new A(t1, t2);
-    trace[dartx.add](dart.toString(a));
+    trace[dartx.add](a.toString());
     expect.Expect.listEquals(["foo", "bar", "a"], trace);
   }
   dart.fn(main);
@@ -121207,7 +121201,7 @@ dart_library.library('language/reify_typevar_test', null, /* Imports */[
   let Foo = Foo$();
   function main() {
     expect.Expect.equals(core.int, new (Foo$(core.int))().reify());
-    expect.Expect.equals(Foo, dart.runtimeType(new Foo()));
+    expect.Expect.equals(Foo, new Foo().runtimeType);
   }
   dart.fn(main);
   // Exports:
@@ -122961,8 +122955,8 @@ dart_library.library('language/savannah_test', null, /* Imports */[
       let giraffe2 = new Giraffe("Rose");
       savannah[dartx.set](giraffe1, giraffe1.name);
       savannah[dartx.set](giraffe2, giraffe2.name);
-      core.print(`giraffe1 hash: ${dart.hashCode(giraffe1)}`);
-      core.print(`giraffe2 hash: ${dart.hashCode(giraffe2)}`);
+      core.print(`giraffe1 hash: ${giraffe1.hashCode}`);
+      core.print(`giraffe2 hash: ${giraffe2.hashCode}`);
       let count = savannah[dartx.length];
       core.print(`getCount is ${count}`);
       expect.Expect.equals(2, count);
@@ -122974,8 +122968,8 @@ dart_library.library('language/savannah_test', null, /* Imports */[
       let zebra2 = new Zebra("Zeeta");
       savannah[dartx.set](zebra1, zebra1.name);
       savannah[dartx.set](zebra2, zebra2.name);
-      core.print(`zebra1 hash: ${dart.hashCode(zebra1)}`);
-      core.print(`zebra2 hash: ${dart.hashCode(zebra2)}`);
+      core.print(`zebra1 hash: ${zebra1.hashCode}`);
+      core.print(`zebra2 hash: ${zebra2.hashCode}`);
       count = savannah[dartx.length];
       core.print(`getCount is ${count}`);
       expect.Expect.equals(4, count);
@@ -125736,10 +125730,10 @@ dart_library.library('language/static_closure_identical_test', null, /* Imports 
   function main() {
     expect.Expect.equals(main, main);
     expect.Expect.identical(main, main);
-    expect.Expect.equals(dart.hashCode(main), dart.hashCode(main));
+    expect.Expect.equals(main.hashCode, main.hashCode);
     expect.Expect.equals(main, exports.foo);
     expect.Expect.identical(main, exports.foo);
-    expect.Expect.equals(dart.hashCode(main), dart.hashCode(exports.foo));
+    expect.Expect.equals(main.hashCode, dart.hashCode(exports.foo));
   }
   dart.fn(main);
   exports.foo = main;
@@ -126370,11 +126364,11 @@ dart_library.library('language/strict_equal_test', null, /* Imports */[
   }
   dart.fn(test1);
   function test2(a) {
-    return !dart.notNull(core.identical(a, 3));
+    return !core.identical(a, 3);
   }
   dart.fn(test2);
   function test2r(a) {
-    return !dart.notNull(core.identical(3, a));
+    return !core.identical(3, a);
   }
   dart.fn(test2r);
   function test3() {
@@ -126382,7 +126376,7 @@ dart_library.library('language/strict_equal_test', null, /* Imports */[
   }
   dart.fn(test3);
   function test4(a) {
-    if (dart.notNull(core.identical(a, 3))) {
+    if (core.identical(a, 3)) {
       return 1;
     } else {
       return 2;
@@ -126390,7 +126384,7 @@ dart_library.library('language/strict_equal_test', null, /* Imports */[
   }
   dart.fn(test4);
   function test5(a) {
-    if (!dart.notNull(core.identical(a, 3))) {
+    if (!core.identical(a, 3)) {
       return 1;
     } else {
       return 2;
@@ -126398,7 +126392,7 @@ dart_library.library('language/strict_equal_test', null, /* Imports */[
   }
   dart.fn(test5);
   function test6() {
-    if (dart.notNull(core.identical(get5(), 5))) {
+    if (core.identical(get5(), 5)) {
       return 1;
     } else {
       return 2;
@@ -126430,22 +126424,22 @@ dart_library.library('language/strict_equal_test', null, /* Imports */[
   }
   dart.fn(test9r);
   function test10(a) {
-    return !dart.notNull(core.identical(a, 0));
+    return !core.identical(a, 0);
   }
   dart.fn(test10);
   function test10r(a) {
-    return !dart.notNull(core.identical(0, a));
+    return !core.identical(0, a);
   }
   dart.fn(test10r);
   function test11(a) {
-    if (dart.notNull(core.identical(a, 0))) {
+    if (core.identical(a, 0)) {
       expect.Expect.isTrue(core.identical(0, a));
-      expect.Expect.isFalse(!dart.notNull(core.identical(a, 0)));
-      expect.Expect.isFalse(!dart.notNull(core.identical(0, a)));
+      expect.Expect.isFalse(!core.identical(a, 0));
+      expect.Expect.isFalse(!core.identical(0, a));
     } else {
       expect.Expect.isFalse(core.identical(0, a));
-      expect.Expect.isTrue(!dart.notNull(core.identical(a, 0)));
-      expect.Expect.isTrue(!dart.notNull(core.identical(0, a)));
+      expect.Expect.isTrue(!core.identical(a, 0));
+      expect.Expect.isTrue(!core.identical(0, a));
     }
   }
   dart.fn(test11);
@@ -131660,7 +131654,7 @@ dart_library.library('language/try_catch_optimized4_test', null, /* Imports */[
           throw e;
       }
 
-      if (!dart.notNull(core.identical(failed, false))) {
+      if (!core.identical(failed, false)) {
         expect.Expect.fail("");
       }
     }
@@ -134026,7 +134020,7 @@ dart_library.library('language/typed_equality_test', null, /* Imports */[
   'use strict';
   let dartx = dart.dartx;
   function foo(a, b) {
-    if (dart.notNull(core.identical(a, b))) return;
+    if (core.identical(a, b)) return;
     dart.throw('broken');
   }
   dart.fn(foo);

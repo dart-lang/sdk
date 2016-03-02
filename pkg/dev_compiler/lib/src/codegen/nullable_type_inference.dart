@@ -7,7 +7,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/dart/ast/visitor.dart' show RecursiveAstVisitor;
 import 'package:analyzer/src/generated/element.dart';
-import 'package:func/func.dart';
 import '../utils.dart' show getStaticType, isInlineJS;
 
 /// An inference engine for nullable types.
@@ -20,20 +19,22 @@ import '../utils.dart' show getStaticType, isInlineJS;
 /// optimize some patterns.
 // TODO(vsm): Revisit whether we really need this when we get
 // better non-nullability in the type system.
-class NullableTypeInference {
-  final Func1<DartType, bool> _isPrimitiveType;
+abstract class NullableTypeInference {
+  bool isPrimitiveType(DartType type);
+  bool isObjectProperty(String name);
 
   /// Known non-null local variables.
   HashSet<LocalVariableElement> _notNullLocals;
 
-  NullableTypeInference.forLibrary(
-      this._isPrimitiveType, Iterable<CompilationUnit> units) {
+  void inferNullableTypesInLibrary(Iterable<CompilationUnit> units) {
     var visitor = new _NullableLocalInference(this);
     for (var unit in units) unit.accept(visitor);
     _notNullLocals = visitor.computeNotNullLocals();
   }
 
-  void addVariable(LocalVariableElement local, {bool nullable: true}) {
+  /// Adds a new variable, typically a compiler generated temporary, and record
+  /// whether its type is nullable.
+  void addTemporaryVariable(LocalVariableElement local, {bool nullable: true}) {
     if (!nullable) _notNullLocals.add(local);
   }
 
@@ -51,19 +52,28 @@ class NullableTypeInference {
     // leads to O(depth) cost for calling this function. We could store the
     // resulting value if that becomes an issue, so we maintain the invariant
     // that each node is visited once.
-
-    if (expr is SimpleIdentifier) {
+    Element element = null;
+    if (expr is PropertyAccess) {
+      element = expr.propertyName.staticElement;
+    } else if (expr is Identifier) {
+      element = expr.staticElement;
+    }
+    if (element != null) {
       // Type literals are not null.
-      var e = expr.staticElement;
-      if (e is ClassElement || e is FunctionTypeAliasElement) {
+      if (element is ClassElement || element is FunctionTypeAliasElement) {
         return false;
       }
 
-      if (e is LocalVariableElement) {
+      if (element is LocalVariableElement) {
         if (localIsNullable != null) {
-          return localIsNullable(e);
+          return localIsNullable(element);
         }
-        return !_notNullLocals.contains(e);
+        return !_notNullLocals.contains(element);
+      }
+
+      if (element is FunctionElement || element is MethodElement) {
+        // A function or method. This can't be null.
+        return false;
       }
 
       // Other types of identifiers are nullable (parameters, fields).
@@ -75,13 +85,52 @@ class NullableTypeInference {
     if (expr is FunctionExpression) return false;
     if (expr is ThisExpression) return false;
     if (expr is SuperExpression) return false;
-    if (expr is CascadeExpression) return false;
+    if (expr is CascadeExpression) {
+      // Cascades normally can't return `null`, because if the target is null,
+      // they will throw noSuchMethod.
+      // The only properties/methods on `null` are those on Object itself.
+      for (var section in expr.cascadeSections) {
+        Element e = null;
+        if (section is PropertyAccess) {
+          e = section.propertyName.staticElement;
+        } else if (section is MethodInvocation) {
+          e = section.methodName.staticElement;
+        } else if (section is IndexExpression) {
+          // Object does not have operator []=.
+          return false;
+        }
+        // We encountered a non-Object method/property.
+        if (e != null && !isObjectProperty(e.name)) {
+          return false;
+        }
+      }
+      return _isNullable(expr.target, localIsNullable);
+    }
     if (expr is ConditionalExpression) {
       return _isNullable(expr.thenExpression, localIsNullable) ||
           _isNullable(expr.elseExpression, localIsNullable);
     }
     if (expr is ParenthesizedExpression) {
       return _isNullable(expr.expression, localIsNullable);
+    }
+    if (expr is InstanceCreationExpression) {
+      var e = expr.staticElement;
+      if (e == null) return true;
+
+      // Follow redirects.
+      while (e.redirectedConstructor != null) {
+        e = e.redirectedConstructor;
+      }
+
+      // Generative constructors are not nullable.
+      if (!e.isFactory) return false;
+
+      // Factory constructors are nullable. However it is a bad pattern and
+      // our own SDK will never do this.
+      // TODO(jmesserly): we could enforce this for user-defined constructors.
+      if (e.library.source.isInSystemLibrary) return false;
+
+      return true;
     }
 
     DartType type = null;
@@ -103,7 +152,7 @@ class NullableTypeInference {
     } else if (expr is PostfixExpression) {
       type = getStaticType(expr.operand);
     }
-    if (type != null && _isPrimitiveType(type)) {
+    if (type != null && isPrimitiveType(type)) {
       return false;
     }
     if (expr is MethodInvocation) {
@@ -127,12 +176,16 @@ class NullableTypeInference {
           }
         }
       }
-      // TODO(ochafik): Handle `identical` invocations.
+
+      if (e != null &&
+          e.name == 'identical' &&
+          e.library.source.uri.toString() == 'dart:core') {
+        return false;
+      }
     }
 
-    // TODO(ochafik): Handle PrefixedIdentifier, refs to top-level finals
-    // that have been assigned non-nullable values, non-generative constructor
-    // calls, refs to local functions...
+    // TODO(ochafik,jmesserly): handle other cases such as: refs to top-level
+    // finals that have been assigned non-nullable values.
 
     // Failed to recognize a non-nullable case: assume it can be null.
     return true;

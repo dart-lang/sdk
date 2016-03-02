@@ -281,7 +281,7 @@ dart_library.library('dart/html_common', null, /* Imports */[
     findSlot(value) {
       let length = this.values[dartx.length];
       for (let i = 0; i < dart.notNull(length); i++) {
-        if (dart.notNull(core.identical(this.values[dartx.get](i), value))) return i;
+        if (core.identical(this.values[dartx.get](i), value)) return i;
       }
       this.values[dartx.add](value);
       this.copies[dartx.add](null);

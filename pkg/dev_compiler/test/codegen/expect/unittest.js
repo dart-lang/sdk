@@ -80,7 +80,7 @@ dart_library.library('unittest', null, /* Imports */[
       description.add(`   Which: ${mismatchDescription}\n`);
     }
     if (reason != null) description.add(reason).add('\n');
-    return dart.toString(description);
+    return description.toString();
   }
   dart.fn(_defaultFailFormatter, core.String, [dart.dynamic, interfaces.Matcher, core.String, core.Map, core.bool]);
   // Exports:

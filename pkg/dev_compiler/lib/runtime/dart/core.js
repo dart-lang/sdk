@@ -874,7 +874,7 @@ dart_library.library('dart/core', null, /* Imports */[
       if (this[_existingArgumentNames] == null) {
         return `NoSuchMethodError : method not found: '${this[_memberName]}'\n` + `Receiver: ${Error.safeToString(this[_receiver])}\n` + `Arguments: [${sb}]`;
       } else {
-        let actualParameters = dart.toString(sb);
+        let actualParameters = sb.toString();
         sb = new StringBuffer();
         for (let i = 0; i < dart.notNull(this[_existingArgumentNames][dartx.length]); i++) {
           if (i > 0) {
@@ -882,7 +882,7 @@ dart_library.library('dart/core', null, /* Imports */[
           }
           sb.write(this[_existingArgumentNames][dartx.get](i));
         }
-        let formalParameters = dart.toString(sb);
+        let formalParameters = sb.toString();
         return "NoSuchMethodError: incorrect number of arguments passed to " + `method named '${this[_memberName]}'\n` + `Receiver: ${Error.safeToString(this[_receiver])}\n` + `Tried calling: ${this[_memberName]}(${actualParameters})\n` + `Found: ${this[_memberName]}(${formalParameters})`;
       }
     }
@@ -1227,7 +1227,7 @@ dart_library.library('dart/core', null, /* Imports */[
         if (separator === void 0) separator = "";
         let buffer = new StringBuffer();
         buffer.writeAll(this, separator);
-        return dart.toString(buffer);
+        return buffer.toString();
       }
     }
     dart.setSignature(Iterable, {
@@ -1899,7 +1899,7 @@ dart_library.library('dart/core', null, /* Imports */[
       if (!dart.notNull(this.hasAuthority)) return "";
       let sb = new StringBuffer();
       this[_writeAuthority](sb);
-      return dart.toString(sb);
+      return sb.toString();
     }
     get userInfo() {
       return this[_userInfo];
@@ -2221,9 +2221,9 @@ dart_library.library('dart/core', null, /* Imports */[
         return;
       }
       if (dart.notNull(argumentError)) {
-        dart.throw(new ArgumentError("Illegal drive letter " + dart.notNull(String.fromCharCode(charCode))));
+        dart.throw(new ArgumentError("Illegal drive letter " + String.fromCharCode(charCode)));
       } else {
-        dart.throw(new UnsupportedError("Illegal drive letter " + dart.notNull(String.fromCharCode(charCode))));
+        dart.throw(new UnsupportedError("Illegal drive letter " + String.fromCharCode(charCode)));
       }
     }
     static _makeFileUri(path) {
@@ -2502,7 +2502,7 @@ dart_library.library('dart/core', null, /* Imports */[
           result.write(Uri.encodeQueryComponent(value));
         }
       }, dart.void, [String, String]));
-      return dart.toString(result);
+      return result.toString();
     }
     static _makeFragment(fragment, start, end) {
       if (fragment == null) return null;
@@ -2785,7 +2785,7 @@ dart_library.library('dart/core', null, /* Imports */[
       let result = new StringBuffer();
       if (dart.notNull(this[_isPathAbsolute])) result.write("/");
       result.writeAll(this.pathSegments, "/");
-      return dart.toString(result);
+      return result.toString();
     }
     [_toWindowsFilePath]() {
       let hasDriveLetter = false;
@@ -2806,7 +2806,7 @@ dart_library.library('dart/core', null, /* Imports */[
       }
       result.writeAll(segments, "\\");
       if (hasDriveLetter && segments[dartx.length] == 1) result.write("\\");
-      return dart.toString(result);
+      return result.toString();
     }
     get [_isPathAbsolute]() {
       if (this.path == null || dart.notNull(this.path[dartx.isEmpty])) return false;
@@ -2839,7 +2839,7 @@ dart_library.library('dart/core', null, /* Imports */[
         sb.write("#");
         sb.write(this[_fragment]);
       }
-      return dart.toString(sb);
+      return sb.toString();
     }
     ['=='](other) {
       if (!dart.is(other, Uri)) return false;
@@ -3025,7 +3025,7 @@ dart_library.library('dart/core', null, /* Imports */[
           byteToHex(byte, result);
         }
       }
-      return dart.toString(result);
+      return result.toString();
     }
     static _hexCharPairToByte(s, pos) {
       let byte = 0;

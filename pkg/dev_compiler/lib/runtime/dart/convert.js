@@ -260,7 +260,7 @@ dart_library.library('dart/convert', null, /* Imports */[
         if ((dart.notNull(value) & ~dart.notNull(this[_subsetMask])) != 0) value = 65533;
         buffer.writeCharCode(value);
       }
-      return dart.toString(buffer);
+      return buffer.toString();
     }
     bind(stream) {
       return super.bind(stream);
@@ -1146,7 +1146,7 @@ dart_library.library('dart/convert', null, /* Imports */[
     }
     [_checkCycle](object) {
       for (let i = 0; i < dart.notNull(this[_seen][dartx.length]); i++) {
-        if (dart.notNull(core.identical(object, this[_seen][dartx.get](i)))) {
+        if (core.identical(object, this[_seen][dartx.get](i))) {
           dart.throw(new JsonCyclicError(object));
         }
       }
@@ -1176,10 +1176,10 @@ dart_library.library('dart/convert', null, /* Imports */[
         if (!dart.notNull(object[dartx.isFinite])) return false;
         this.writeNumber(object);
         return true;
-      } else if (dart.notNull(core.identical(object, true))) {
+      } else if (core.identical(object, true)) {
         this.writeString('true');
         return true;
-      } else if (dart.notNull(core.identical(object, false))) {
+      } else if (core.identical(object, false)) {
         this.writeString('false');
         return true;
       } else if (object == null) {
@@ -1320,7 +1320,7 @@ dart_library.library('dart/convert', null, /* Imports */[
     static stringify(object, toEncodable, indent) {
       let output = new core.StringBuffer();
       _JsonStringStringifier.printOn(object, output, toEncodable, indent);
-      return dart.toString(output);
+      return output.toString();
     }
     static printOn(object, output, toEncodable, indent) {
       let stringifier = null;
@@ -2284,7 +2284,7 @@ dart_library.library('dart/convert', null, /* Imports */[
       let decoder = new _Utf8Decoder(buffer, this[_allowMalformed]);
       decoder.convert(codeUnits, start, end);
       decoder.close();
-      return dart.toString(buffer);
+      return buffer.toString();
     }
     startChunkedConversion(sink) {
       let stringSink = null;
@@ -2585,7 +2585,7 @@ dart_library.library('dart/convert', null, /* Imports */[
         let processed = this[_processed];
         _JsonMap._setProperty(processed, dart.as(key, core.String), value);
         let original = this[_original];
-        if (!dart.notNull(core.identical(original, processed))) {
+        if (!core.identical(original, processed)) {
           _JsonMap._setProperty(original, dart.as(key, core.String), null);
         }
       } else {
@@ -2644,7 +2644,7 @@ dart_library.library('dart/convert', null, /* Imports */[
           _JsonMap._setProperty(this[_processed], key, value);
         }
         dart.dcall(f, key, value);
-        if (!dart.notNull(core.identical(keys, this[_data]))) {
+        if (!core.identical(keys, this[_data])) {
           dart.throw(new core.ConcurrentModificationError(this));
         }
       }

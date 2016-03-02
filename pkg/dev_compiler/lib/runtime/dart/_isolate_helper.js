@@ -621,7 +621,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
     }
     handleUncaughtError(error, stackTrace) {
       if (dart.notNull(this.errorPorts.isEmpty)) {
-        if (dart.notNull(this.errorsAreFatal) && dart.notNull(core.identical(this, exports._globalState.rootContext))) {
+        if (dart.notNull(this.errorsAreFatal) && core.identical(this, exports._globalState.rootContext)) {
           return;
         }
         if (self.console && self.console.error) {
@@ -651,7 +651,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
         this.handleUncaughtError(e, s);
         if (dart.notNull(this.errorsAreFatal)) {
           this.kill();
-          if (dart.notNull(core.identical(this, exports._globalState.rootContext))) {
+          if (core.identical(this, exports._globalState.rootContext)) {
             throw e;
           }
         }
@@ -1487,7 +1487,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       return hash;
     }
     ['=='](other) {
-      if (dart.notNull(core.identical(other, this))) return true;
+      if (core.identical(other, this)) return true;
       if (dart.is(other, CapabilityImpl)) {
         return core.identical(this[_id], other[_id]);
       }

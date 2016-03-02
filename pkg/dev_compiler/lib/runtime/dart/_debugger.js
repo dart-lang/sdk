@@ -197,7 +197,7 @@ dart_library.library('dart/_debugger', null, /* Imports */[
       this[_simpleFormatter] = simpleFormatter;
     }
     header(object, config) {
-      if (dart.notNull(core.identical(config, skipDartConfig))) return null;
+      if (core.identical(config, skipDartConfig)) return null;
       let c = this[_simpleFormatter].preview(object);
       if (c == null) return null;
       let element = new JsonMLElement('span');

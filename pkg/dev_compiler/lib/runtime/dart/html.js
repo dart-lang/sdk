@@ -164,7 +164,7 @@ dart_library.library('dart/html', null, /* Imports */[
     [dartx.insertAllBefore](newNodes, refChild) {
       if (dart.is(newNodes, _ChildNodeListLazy)) {
         let otherList = newNodes;
-        if (dart.notNull(core.identical(otherList[_this], this))) {
+        if (core.identical(otherList[_this], this)) {
           dart.throw(new core.ArgumentError(newNodes));
         }
         for (let i = 0, len = otherList.length; i < dart.notNull(len); ++i) {
@@ -896,8 +896,8 @@ dart_library.library('dart/html', null, /* Imports */[
     }
     static _offsetToHelper(current, parent) {
       let sameAsParent = core.identical(current, parent);
-      let foundAsParent = dart.notNull(sameAsParent) || parent[dartx.tagName] == 'HTML';
-      if (current == null || dart.notNull(sameAsParent)) {
+      let foundAsParent = sameAsParent || parent[dartx.tagName] == 'HTML';
+      if (current == null || sameAsParent) {
         if (foundAsParent) return new math.Point(0, 0);
         dart.throw(new core.ArgumentError("Specified element is not a transitive offset " + "parent of this element."));
       }
@@ -13122,7 +13122,7 @@ dart_library.library('dart/html', null, /* Imports */[
     remove(object) {
       if (dart.is(object, Element)) {
         let element = object;
-        if (dart.notNull(core.identical(element[dartx.parentNode], this[_element]))) {
+        if (core.identical(element[dartx.parentNode], this[_element])) {
           this[_element][_removeChild](element);
           return true;
         }
@@ -20659,7 +20659,7 @@ dart_library.library('dart/html', null, /* Imports */[
     addAll(iterable) {
       if (dart.is(iterable, _ChildNodeListLazy)) {
         let otherList = iterable;
-        if (!dart.notNull(core.identical(otherList[_this], this[_this]))) {
+        if (!core.identical(otherList[_this], this[_this])) {
           for (let i = 0, len = otherList.length; i < dart.notNull(len); ++i) {
             this[_this][dartx.append](otherList[_this][dartx.firstChild]);
           }
@@ -20708,7 +20708,7 @@ dart_library.library('dart/html', null, /* Imports */[
     remove(object) {
       if (!dart.is(object, Node)) return false;
       let node = dart.as(object, Node);
-      if (!dart.notNull(core.identical(this[_this], node[dartx.parentNode]))) return false;
+      if (!core.identical(this[_this], node[dartx.parentNode])) return false;
       this[_this][_removeChild](node);
       return true;
     }
@@ -31384,7 +31384,7 @@ dart_library.library('dart/html', null, /* Imports */[
         if (word[dartx.get](i) != lower && i > 0) sb.write('-');
         sb.write(lower);
       }
-      return dart.toString(sb);
+      return sb.toString();
     }
   }
   _DataAttributeMap[dart.implements] = () => [core.Map$(core.String, core.String)];
@@ -32324,7 +32324,7 @@ dart_library.library('dart/html', null, /* Imports */[
         for (let i = 0; i < 4 - dart.notNull(hex[dartx.length]); i++)
           sb.write('0');
         sb.write(hex);
-        return dart.toString(sb);
+        return sb.toString();
       } else {
         return KeyCode._convertKeyCodeToKeyName(keyCode);
       }
@@ -34052,7 +34052,7 @@ dart_library.library('dart/html', null, /* Imports */[
       this[_window] = window;
     }
     static _createSafe(w) {
-      if (dart.notNull(core.identical(w, exports.window))) {
+      if (core.identical(w, exports.window)) {
         return dart.as(w, WindowBase);
       } else {
         return new _DOMWindowCrossFrame(w);
@@ -34127,7 +34127,7 @@ dart_library.library('dart/html', null, /* Imports */[
       this[_location] = location;
     }
     static _createSafe(location) {
-      if (dart.notNull(core.identical(location, exports.window[dartx.location]))) {
+      if (core.identical(location, exports.window[dartx.location])) {
         return dart.as(location, LocationBase);
       } else {
         return new _LocationCrossFrame(location);
@@ -34159,7 +34159,7 @@ dart_library.library('dart/html', null, /* Imports */[
       this[_history] = history;
     }
     static _createSafe(h) {
-      if (dart.notNull(core.identical(h, exports.window[dartx.history]))) {
+      if (core.identical(h, exports.window[dartx.history])) {
         return dart.as(h, HistoryBase);
       } else {
         return new _HistoryCrossFrame(h);

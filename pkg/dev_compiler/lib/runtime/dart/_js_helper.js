@@ -387,7 +387,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
             result.write(dart.dindex(receiver, i));
             result.write(to);
           }
-          return dart.toString(result);
+          return result.toString();
         }
       } else {
         let quoter = new RegExp(ESCAPE_REGEXP, 'g');
@@ -429,7 +429,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
       startIndex = match.end;
     }
     buffer.write(dart.dcall(onNonMatch, dart.dsend(receiver, 'substring', startIndex)));
-    return dart.toString(buffer);
+    return buffer.toString();
   }
   dart.fn(stringReplaceAllFuncUnchecked);
   function stringReplaceAllEmptyFuncUnchecked(receiver, onMatch, onNonMatch) {
@@ -453,7 +453,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
     }
     buffer.write(dart.dcall(onMatch, new StringMatch(i, dart.as(receiver, core.String), "")));
     buffer.write(dart.dcall(onNonMatch, ""));
-    return dart.toString(buffer);
+    return buffer.toString();
   }
   dart.fn(stringReplaceAllEmptyFuncUnchecked);
   function stringReplaceAllStringFuncUnchecked(receiver, pattern, onMatch, onNonMatch) {
@@ -474,7 +474,7 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
       startIndex = dart.notNull(position) + dart.notNull(patternLength);
     }
     buffer.write(dart.dcall(onNonMatch, dart.dsend(receiver, 'substring', startIndex)));
-    return dart.toString(buffer);
+    return buffer.toString();
   }
   dart.fn(stringReplaceAllStringFuncUnchecked);
   function stringReplaceFirstUnchecked(receiver, from, to, startIndex) {

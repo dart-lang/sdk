@@ -224,6 +224,21 @@ dart_library.library('notnull', null, /* Imports */[
 
   }
   dart.fn(controlFlow);
+  function cascadesOnNull() {
+    let x = null;
+    core.print(dart.hashCode(((() => {
+      dart.toString(x);
+      dart.runtimeType(x);
+      return x;
+    })())));
+    let y = null;
+    core.print(dart.hashCode(((() => {
+      dart.toString(y);
+      dart.runtimeType(y);
+      return y;
+    })())));
+  }
+  dart.fn(cascadesOnNull);
   function main() {
     intAssignments();
     doubleAssignments();
@@ -237,6 +252,7 @@ dart_library.library('notnull', null, /* Imports */[
     calls();
     localEscapes();
     controlFlow();
+    cascadesOnNull();
     nullableCycle();
     nonNullableCycle();
   }
@@ -258,5 +274,6 @@ dart_library.library('notnull', null, /* Imports */[
   exports.calls = calls;
   exports.localEscapes = localEscapes;
   exports.controlFlow = controlFlow;
+  exports.cascadesOnNull = cascadesOnNull;
   exports.main = main;
 });

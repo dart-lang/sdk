@@ -94,7 +94,7 @@ void optParams([int x, int y = 1]) {
   print(x + y);
 }
 
-void namedParams({int x, int y : 1}) {
+void namedParams({int x, int y: 1}) {
   print(x + y);
 }
 
@@ -203,6 +203,20 @@ controlFlow() {
   }
 }
 
+cascadesOnNull() {
+  dynamic x = null;
+  print((x
+    ..toString()
+    ..runtimeType)
+      .hashCode);
+
+  Object y = null;
+  print((y
+    ..toString()
+    ..runtimeType)
+      .hashCode);
+}
+
 main() {
   intAssignments();
   doubleAssignments();
@@ -216,6 +230,7 @@ main() {
   calls();
   localEscapes();
   controlFlow();
+  cascadesOnNull();
 
   nullableCycle();
   nonNullableCycle();

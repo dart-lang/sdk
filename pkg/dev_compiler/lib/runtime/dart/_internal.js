@@ -144,7 +144,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
               dart.throw(new core.ConcurrentModificationError(this));
             }
           }
-          return dart.toString(buffer);
+          return buffer.toString();
         } else {
           let buffer = new core.StringBuffer();
           for (let i = 0; i < dart.notNull(length); i++) {
@@ -153,7 +153,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
               dart.throw(new core.ConcurrentModificationError(this));
             }
           }
-          return dart.toString(buffer);
+          return buffer.toString();
         }
       }
       where(test) {
@@ -1229,7 +1229,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
         if (separator === void 0) separator = null;
         let buffer = new core.StringBuffer();
         buffer.writeAll(iterable, separator);
-        return dart.toString(buffer);
+        return buffer.toString();
       }
       static joinList(list, separator) {
         if (separator === void 0) separator = null;
@@ -1247,7 +1247,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
             buffer.write(list[dartx.get](i));
           }
         }
-        return dart.toString(buffer);
+        return buffer.toString();
       }
       where(iterable, f) {
         dart.as(iterable, core.Iterable$(T));
@@ -1929,12 +1929,12 @@ dart_library.library('dart/_internal', null, /* Imports */[
       }
     }
     static areEqual(a, b) {
-      if (dart.notNull(core.identical(a, b))) return true;
+      if (core.identical(a, b)) return true;
       if (!dart.is(b, core.List)) return false;
       let length = a[dartx.length];
       if (!dart.equals(length, dart.dload(b, 'length'))) return false;
       for (let i = 0; i < dart.notNull(length); i++) {
-        if (!dart.notNull(core.identical(a[dartx.get](i), dart.dindex(b, i)))) return false;
+        if (!core.identical(a[dartx.get](i), dart.dindex(b, i))) return false;
       }
       return true;
     }

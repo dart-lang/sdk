@@ -56,7 +56,7 @@ const DCALL = 'dcall';
 const DSEND = 'dsend';
 
 class JSCodegenVisitor extends GeneralizingAstVisitor
-    with ClosureAnnotator, JsTypeRefCodegen {
+    with ClosureAnnotator, JsTypeRefCodegen, NullableTypeInference {
   final AbstractCompiler compiler;
   final CodegenOptions options;
   final LibraryElement currentLibrary;
@@ -111,8 +111,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
   bool _isDartRuntime;
 
-  NullableTypeInference _nullInference;
-
   JSCodegenVisitor(AbstractCompiler compiler, this.rules, this.currentLibrary,
       this._extensionTypes, this._fieldsNeedingStorage)
       : compiler = compiler,
@@ -155,8 +153,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     // TODO(jmesserly): ideally we could do this at a smaller granularity.
     // We'll need to be consistent about when we're generating functions, and
     // only run this on the outermost function.
-    _nullInference =
-        new NullableTypeInference.forLibrary(_isPrimitiveType, units);
+    inferNullableTypesInLibrary(units);
 
     _constField = new ConstFieldVisitor(types, library.library.element.source);
 
@@ -2640,7 +2637,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   /// For these types we generate a calling convention via static
   /// "extension methods". This allows types to be extended without adding
   /// extensions directly on the prototype.
-  bool _isPrimitiveType(DartType t) =>
+  bool isPrimitiveType(DartType t) =>
       typeIsPrimitiveInJS(t) || t == _types.stringType;
 
   bool typeIsPrimitiveInJS(DartType t) =>
@@ -2654,16 +2651,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   JS.Expression notNull(Expression expr) {
     if (expr == null) return null;
     var jsExpr = _visit(expr);
-    if (!_isNullable(expr)) return jsExpr;
+    if (!isNullable(expr)) return jsExpr;
     return js.call('dart.notNull(#)', jsExpr);
   }
-
-  /// Returns true if [expr] can be null, optionally using [localIsNullable]
-  /// for locals.
-  ///
-  /// This analysis is conservative and incomplete, but it can optimize many
-  /// common patterns.
-  bool _isNullable(Expression expr) => _nullInference.isNullable(expr);
 
   @override
   JS.Expression visitBinaryExpression(BinaryExpression node) {
@@ -2692,7 +2682,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     if (op.type.lexeme == '??') {
       // TODO(jmesserly): leave RHS for debugging?
       // This should be a hint or warning for dead code.
-      if (!_isNullable(left)) return _visit(left);
+      if (!isNullable(left)) return _visit(left);
 
       var vars = <String, JS.Expression>{};
       // Desugar `l ?? r` as `l != null ? l : r`
@@ -2737,7 +2727,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
     var leftType = _canonicalizeNumTypes(getStaticType(left));
     var rightType = _canonicalizeNumTypes(getStaticType(right));
-    return _isPrimitiveType(leftType) && leftType == rightType;
+    return isPrimitiveType(leftType) && leftType == rightType;
   }
 
   bool _isNull(Expression expr) => expr is NullLiteral;
@@ -2756,7 +2746,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     id.staticElement = new TemporaryVariableElement.forNode(id);
     id.staticType = type;
     DynamicInvoke.set(id, type.isDynamic);
-    _nullInference.addVariable(id.staticElement, nullable: nullable);
+    addTemporaryVariable(id.staticElement, nullable: nullable);
     return id;
   }
 
@@ -2863,7 +2853,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
     var dispatchType = getStaticType(expr);
     if (unaryOperationIsPrimitive(dispatchType)) {
-      if (!_isNullable(expr)) {
+      if (!isNullable(expr)) {
         return js.call('#$op', _visit(expr));
       }
     }
@@ -2895,7 +2885,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
     var dispatchType = getStaticType(expr);
     if (unaryOperationIsPrimitive(dispatchType)) {
-      if (!_isNullable(expr)) {
+      if (!isNullable(expr)) {
         return js.call('$op#', _visit(expr));
       } else if (op.lexeme == '++' || op.lexeme == '--') {
         // We need a null check, so the increment must be expanded out.
@@ -2994,7 +2984,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       var op = _getOperator(node);
       if (op != null && op.lexeme == '?.') {
         var nodeTarget = _getTarget(node);
-        if (!_isNullable(nodeTarget)) {
+        if (!isNullable(nodeTarget)) {
           node = _stripNullAwareOp(node, nodeTarget);
           break;
         }
@@ -3031,14 +3021,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
   bool _requiresStaticDispatch(Expression target, String memberName) {
     var type = getStaticType(target);
-    if (!_isObjectProperty(memberName)) {
+    if (!isObjectProperty(memberName)) {
       return false;
     }
 
     // If the target could be `null`, we need static dispatch.
     // If the target may be an extension type, we also use static dispatch
     // as we don't symbolize object properties like hashCode.
-    return _isNullable(target) ||
+    return isNullable(target) ||
         (_extensionTypes.contains(type.element) && target is! SuperExpression);
   }
 
@@ -3629,7 +3619,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     if (allowExtensions &&
         baseType != null &&
         _extensionTypes.contains(baseType.element) &&
-        !_isObjectProperty(name)) {
+        !isObjectProperty(name)) {
       return js.call('dartx.#', _propertyName(name));
     }
 
@@ -3678,7 +3668,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     return (element != null && !element.isStatic);
   }
 
-  bool _isObjectProperty(String name) {
+  bool isObjectProperty(String name) {
     return _isObjectGetter(name) || _isObjectMethod(name);
   }
 
