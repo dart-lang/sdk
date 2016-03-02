@@ -20,7 +20,7 @@ main() {
 
 @reflectiveTest
 class Index2Test extends AbstractSingleUnitTest {
-  Index2 index = createMemoryIndex();
+  Index2 index = createMemoryIndex2();
 
   /**
    * Return the [Location] with given properties, or fail.

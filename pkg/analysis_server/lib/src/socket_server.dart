@@ -10,6 +10,7 @@ import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_file_index.dart';
+import 'package:analysis_server/src/services/index2/index2.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/plugin/embedded_resolver_provider.dart';
@@ -92,11 +93,14 @@ class SocketServer {
       index.run();
     }
 
+    Index2 index2 = createMemoryIndex2();
+
     analysisServer = new AnalysisServer(
         serverChannel,
         resourceProvider,
         new PubPackageMapProvider(resourceProvider, defaultSdk),
         index,
+        index2,
         serverPlugin,
         analysisServerOptions,
         defaultSdkCreator,

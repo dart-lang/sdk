@@ -459,6 +459,7 @@ class _DartIndexOperation extends _SingleFileOperation {
         Index index = server.index;
         AnalysisContext context = unit.element.context;
         index.index(context, unit);
+        server.index2?.indexUnit(unit);
       } catch (exception, stackTrace) {
         server.sendServerErrorNotification(
             'Failed to index: $file', exception, stackTrace);

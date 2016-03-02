@@ -15,7 +15,7 @@ import 'package:collection/collection.dart';
 /**
  * Return a new [Index2] instance that keeps information in memory.
  */
-Index2 createMemoryIndex() {
+Index2 createMemoryIndex2() {
   _MemoryPackageIndexStore store = new _MemoryPackageIndexStore();
   return new Index2(store);
 }

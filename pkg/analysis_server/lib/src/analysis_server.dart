@@ -20,6 +20,7 @@ import 'package:analysis_server/src/operation/operation_queue.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
+import 'package:analysis_server/src/services/index2/index2.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -104,6 +105,11 @@ class AnalysisServer {
    * The [Index] for this server, may be `null` if indexing is disabled.
    */
   final Index index;
+
+  /**
+   * The [Index2] for this server, may be `null` if indexing is disabled.
+   */
+  final Index2 index2;
 
   /**
    * The [SearchEngine] for this server, may be `null` if indexing is disabled.
@@ -305,6 +311,7 @@ class AnalysisServer {
       this.resourceProvider,
       PubPackageMapProvider packageMapProvider,
       Index _index,
+      Index2 _index2,
       this.serverPlugin,
       this.options,
       this.defaultSdkCreator,
@@ -313,6 +320,7 @@ class AnalysisServer {
       EmbeddedResolverProvider embeddedResolverProvider: null,
       this.rethrowExceptions: true})
       : index = _index,
+        index2 = _index2,
         searchEngine = _index != null ? createSearchEngine(_index) : null {
     _performance = performanceDuringStartup;
     defaultContextOptions.incremental = true;
