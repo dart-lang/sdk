@@ -88,10 +88,10 @@ Future<Isolate> hasPausedFor(Isolate isolate, String kind) {
     var subscription;
     subscription = stream.listen((ServiceEvent event) {
         if (event.kind == kind) {
-          print('Paused with $kind');
-          subscription.cancel();
           if (completer != null) {
             // Reload to update isolate.pauseEvent.
+            print('Paused with $kind');
+            subscription.cancel();
             completer.complete(isolate.reload());
             completer = null;
           }
@@ -103,9 +103,9 @@ Future<Isolate> hasPausedFor(Isolate isolate, String kind) {
       if ((isolate.pauseEvent != null) &&
          (isolate.pauseEvent.kind == kind)) {
         // Already waiting at a breakpoint.
-        print('Paused with $kind');
-        subscription.cancel();
         if (completer != null) {
+          print('Paused with $kind');
+          subscription.cancel();
           completer.complete(isolate);
           completer = null;
         }

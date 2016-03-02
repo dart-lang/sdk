@@ -3,55 +3,28 @@
 // BSD-style license that can be found in the LICENSE file.
 // VMOptions=--error_on_bad_type --error_on_bad_override
 
-import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
-import 'test_helper.dart';
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 import 'dart:isolate' show ReceivePort;
+import 'package:observatory/service_io.dart';
+import 'package:unittest/unittest.dart';
+import 'service_test_common.dart';
+import 'test_helper.dart';
 
 var receivePort;
 
 void testMain() {
   receivePort = new ReceivePort();
+  debugger();
 }
 
 var tests = [
 
+hasStoppedAtBreakpoint,
+
 (Isolate isolate) async {
-  Completer completer = new Completer();
-  var stream = await isolate.vm.getEventStream(VM.kDebugStream);
-  var subscription;
-  subscription = stream.listen((ServiceEvent event) {
-    if (event.kind == ServiceEvent.kPauseStart) {
-      print('Received $event');
-      subscription.cancel();
-      completer.complete();
-    }
-  });
-
-  if (isolate.pauseEvent != null &&
-      isolate.pauseEvent.kind == ServiceEvent.kPauseStart) {
-    // Wait for the isolate to hit PauseStart.
-    subscription.cancel();
-  } else {
-    await completer.future;
-  }
-  print('Done waiting for pause event.');
-
-  // Wait for the isolate to pause due to interruption.
-  completer = new Completer();
-  stream = await isolate.vm.getEventStream(VM.kDebugStream);
-  bool receivedInterrupt = false;
-  subscription = stream.listen((ServiceEvent event) {
-    print('Received $event');
-    if (event.kind == ServiceEvent.kPauseInterrupted) {
-      receivedInterrupt = true;
-      subscription.cancel();
-      completer.complete();
-    }
-  });
-
+  print('Resuming...');
   await isolate.resume();
 
   // Wait for the isolate to become idle.  We detect this by querying
@@ -60,21 +33,24 @@ var tests = [
   do {
     var stack = await isolate.getStack();
     frameCount = stack['frames'].length;
-    print('frames: $frameCount');
+    print('Frames: $frameCount');
     sleep(const Duration(milliseconds:10));
   } while (frameCount > 0);
+  print('Isolate is idle.');
+  await isolate.reload();
+  expect(isolate.pauseEvent.kind, equals(ServiceEvent.kResume));
 
   // Make sure that the isolate receives an interrupt even when it is
   // idle. (https://github.com/dart-lang/sdk/issues/24349)
+  var interruptFuture = hasPausedFor(isolate, ServiceEvent.kPauseInterrupted);
+  print('Pausing...');
   await isolate.pause();
-  await completer.future;
-  expect(receivedInterrupt, isTrue);
+  await interruptFuture;
 },
 
 ];
 
 main(args) => runIsolateTests(args, tests,
                               testeeConcurrent: testMain,
-                              pause_on_start: true,
                               trace_service: true,
                               verbose_vm: true);
