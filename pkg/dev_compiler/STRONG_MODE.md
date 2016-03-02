@@ -5,6 +5,7 @@ Strong mode applies a more restrictive type system to Dart to address its unsoun
 Strong mode helps with:
 
 - [Stronger static checking](doc/STATIC_SAFETY.md) to find more errors during static analysis or compilation.
+  - This includes a [prototype of generic methods](doc/GENERIC_METHODS.md) for better expressiveness and checking.
 - [Stronger runtime checking](doc/RUNTIME_SAFETY.md) in the Dart Dev Compiler (DDC) to find errors at runtime.
 - [Idiomatic JavaScript code generation](doc/JS_CODEGEN.md) via DDC for more readable output and better interoperability.
 
