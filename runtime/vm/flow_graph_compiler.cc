@@ -278,9 +278,7 @@ void FlowGraphCompiler::InitCompiler() {
   block_info_.Clear();
   // Conservative detection of leaf routines used to remove the stack check
   // on function entry.
-  bool is_leaf = !parsed_function().function().IsClosureFunction()
-      && is_optimizing()
-      && !flow_graph().IsCompiledForOsr();
+  bool is_leaf = is_optimizing() && !flow_graph().IsCompiledForOsr();
   // Initialize block info and search optimized (non-OSR) code for calls
   // indicating a non-leaf routine and calls without IC data indicating
   // possible reoptimization.
