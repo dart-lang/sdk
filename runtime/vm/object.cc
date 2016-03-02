@@ -9403,8 +9403,7 @@ void Library::AddObject(const Object& obj, const String& name) const {
 }
 
 
-// Lookup a name in the library's re-export namespace. The name is
-// unmangled, i.e. no getter or setter names should be looked up.
+// Lookup a name in the library's re-export namespace.
 RawObject* Library::LookupReExport(const String& name) const {
   if (HasExports()) {
     const Array& exports = Array::Handle(this->exports());
@@ -9416,7 +9415,13 @@ RawObject* Library::LookupReExport(const String& name) const {
       ns ^= exports.At(i);
       obj = ns.Lookup(name);
       if (!obj.IsNull()) {
-        break;
+        // The Lookup call above may return a setter x= when we are looking
+        // for the name x. Make sure we only return when a matching name
+        // is found.
+        String& obj_name = String::Handle(obj.DictionaryName());
+        if (Field::IsSetterName(obj_name) == Field::IsSetterName(name)) {
+          break;
+        }
       }
     }
     StorePointer(&raw_ptr()->exports_, exports.raw());
@@ -9731,6 +9736,14 @@ RawObject* Library::LookupImportedObject(const String& name) const {
           // The newly found object is exported from a Dart system
           // library. It is hidden by the previously found object.
           // We continue to search.
+        } else if (Field::IsSetterName(found_obj_name) &&
+                   !Field::IsSetterName(name)) {
+          // We are looking for an unmangled name or a getter, but
+          // the first object we found is a setter. Replace the first
+          // object with the one we just found.
+          first_import_lib_url = import_lib.url();
+          found_obj = obj.raw();
+          found_obj_name = found_obj.DictionaryName();
         } else {
           // We found two different objects with the same name.
           // Note that we need to compare the names again because
@@ -10341,6 +10354,7 @@ RawObject* LibraryPrefix::LookupObject(const String& name) const {
   String& import_lib_url = String::Handle();
   String& first_import_lib_url = String::Handle();
   Object& found_obj = Object::Handle();
+  String& found_obj_name = String::Handle();
   for (intptr_t i = 0; i < num_imports(); i++) {
     import ^= imports.At(i);
     obj = import.Lookup(name);
@@ -10356,13 +10370,36 @@ RawObject* LibraryPrefix::LookupObject(const String& name) const {
           // from the Dart library.
           first_import_lib_url = import_lib.url();
           found_obj = obj.raw();
+          found_obj_name = found_obj.DictionaryName();
         } else if (import_lib_url.StartsWith(Symbols::DartScheme())) {
           // The newly found object is exported from a Dart system
           // library. It is hidden by the previously found object.
           // We continue to search.
+        } else if (Field::IsSetterName(found_obj_name) &&
+                   !Field::IsSetterName(name)) {
+          // We are looking for an unmangled name or a getter, but
+          // the first object we found is a setter. Replace the first
+          // object with the one we just found.
+          first_import_lib_url = import_lib.url();
+          found_obj = obj.raw();
+          found_obj_name = found_obj.DictionaryName();
         } else {
           // We found two different objects with the same name.
-          return Object::null();
+          // Note that we need to compare the names again because
+          // looking up an unmangled name can return a getter or a
+          // setter. A getter name is the same as the unmangled name,
+          // but a setter name is different from an unmangled name or a
+          // getter name.
+          if (Field::IsGetterName(found_obj_name)) {
+            found_obj_name = Field::NameFromGetter(found_obj_name);
+          }
+          String& second_obj_name = String::Handle(obj.DictionaryName());
+          if (Field::IsGetterName(second_obj_name)) {
+            second_obj_name = Field::NameFromGetter(second_obj_name);
+          }
+          if (found_obj_name.Equals(second_obj_name)) {
+            return Object::null();
+          }
         }
       }
     }
