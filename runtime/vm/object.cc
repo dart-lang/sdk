@@ -11666,6 +11666,7 @@ bool ExceptionHandlers::HasCatchAll(intptr_t try_index) const {
 void ExceptionHandlers::SetHandledTypes(intptr_t try_index,
                                         const Array& handled_types) const {
   ASSERT((try_index >= 0) && (try_index < num_entries()));
+  ASSERT(!handled_types.IsNull());
   const Array& handled_types_data =
       Array::Handle(raw_ptr()->handled_types_data_);
   handled_types_data.SetAt(try_index, handled_types);

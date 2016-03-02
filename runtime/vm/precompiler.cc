@@ -581,11 +581,9 @@ void Precompiler::AddTypesOf(const Function& function) {
       Array& types = Array::Handle(Z);
       for (intptr_t i = 0; i < handlers.num_entries(); i++) {
         types = handlers.GetHandledTypes(i);
-        if (!types.IsNull()) {
-          for (intptr_t j = 0; j < types.Length(); j++) {
-            type ^= types.At(j);
-            AddType(type);
-          }
+        for (intptr_t j = 0; j < types.Length(); j++) {
+          type ^= types.At(j);
+          AddType(type);
         }
       }
     }
