@@ -115,7 +115,7 @@ class _ReturnedDictionary {
 
   Map get toMap => _values;
 
-  _ReturnedDictionary(Map value): _values = value ? value != null : {};
+  _ReturnedDictionary(Map value): _values = value != null ? value : {};
 }
 
 // Helper function to wrapped a returned dictionary from blink to a Dart looking
