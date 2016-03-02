@@ -12833,6 +12833,15 @@ bool Code::HasBreakpoint() const {
 }
 
 
+TokenPosition Code::GetTokenPositionAt(intptr_t offset) const {
+  const CodeSourceMap& map = CodeSourceMap::Handle(code_source_map());
+  if (map.IsNull()) {
+    return TokenPosition::kNoSource;
+  }
+  return map.TokenPositionForPCOffset(offset);
+}
+
+
 RawTypedData* Code::GetDeoptInfoAtPc(uword pc,
                                      ICData::DeoptReasonId* deopt_reason,
                                      uint32_t* deopt_flags) const {
@@ -13437,8 +13446,13 @@ intptr_t Code::GetCallerId(intptr_t inlined_id) const {
 
 
 void Code::GetInlinedFunctionsAt(
-    intptr_t offset, GrowableArray<Function*>* fs) const {
+    intptr_t offset,
+    GrowableArray<Function*>* fs,
+    GrowableArray<TokenPosition>* token_positions) const {
   fs->Clear();
+  if (token_positions != NULL) {
+    token_positions->Clear();
+  }
   const Array& intervals = Array::Handle(GetInlinedIntervals());
   if (intervals.IsNull() || (intervals.Length() == 0)) {
     // E.g., for code stubs.
@@ -13463,6 +13477,7 @@ void Code::GetInlinedFunctionsAt(
 
   // Find all functions.
   const Array& id_map = Array::Handle(GetInlinedIdToFunction());
+  const Array& token_pos_map = Array::Handle(GetInlinedIdToTokenPos());
   Smi& temp_smi = Smi::Handle();
   temp_smi ^= intervals.At(found_interval_ix + Code::kInlIntInliningId);
   intptr_t inlining_id = temp_smi.Value();
@@ -13470,8 +13485,12 @@ void Code::GetInlinedFunctionsAt(
   intptr_t caller_id = GetCallerId(inlining_id);
   while (inlining_id >= 0) {
     Function& function = Function::ZoneHandle();
-    function  ^= id_map.At(inlining_id);
+    function ^= id_map.At(inlining_id);
     fs->Add(&function);
+    if ((token_positions != NULL) && (inlining_id < token_pos_map.Length())) {
+      temp_smi ^= token_pos_map.At(inlining_id);
+      token_positions->Add(TokenPosition(temp_smi.Value()));
+    }
     inlining_id = caller_id;
     caller_id = GetCallerId(inlining_id);
   }

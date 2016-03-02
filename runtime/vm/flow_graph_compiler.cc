@@ -540,7 +540,13 @@ void FlowGraphCompiler::VisitBlocks() {
               IntervalStruct(prev_offset, prev_inlining_pos, prev_inlining_id));
           prev_offset = assembler()->CodeSize();
           prev_inlining_id = instr->inlining_id();
-          prev_inlining_pos = inline_id_to_token_pos_[prev_inlining_id];
+          if (prev_inlining_id < inline_id_to_token_pos_.length()) {
+            prev_inlining_pos = inline_id_to_token_pos_[prev_inlining_id];
+          } else {
+            // We will add this token position later when generating the
+            // profile.
+            prev_inlining_pos = TokenPosition::kNoSource;
+          }
           if (prev_inlining_id > max_inlining_id) {
             max_inlining_id = prev_inlining_id;
           }

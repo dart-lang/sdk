@@ -4370,6 +4370,8 @@ class Code : public Object {
     StorePointer(&raw_ptr()->code_source_map_, code_source_map.raw());
   }
 
+  TokenPosition GetTokenPositionAt(intptr_t offset) const;
+
   // Array of DeoptInfo objects.
   RawArray* deopt_info_array() const {
     return raw_ptr()->deopt_info_array_;
@@ -4468,8 +4470,12 @@ class Code : public Object {
   RawArray* GetInlinedCallerIdMap() const;
   void SetInlinedCallerIdMap(const Array& value) const;
 
+  // If |token_positions| is not NULL it will be populated with the token
+  // positions of the inlined calls.
   void GetInlinedFunctionsAt(
-      intptr_t offset, GrowableArray<Function*>* fs) const;
+      intptr_t offset,
+      GrowableArray<Function*>* fs,
+      GrowableArray<TokenPosition>* token_positions = NULL) const;
 
   void DumpInlinedIntervals() const;
 
