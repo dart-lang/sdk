@@ -397,6 +397,8 @@ abstract class CycleAwareDependencyWalker<Node> {
     while (_currentIndices.isNotEmpty) {
       Node nextUnevaluatedInput = getNextInput(_path[_currentIndices.last],
           _provisionalDependencies[_currentIndices.last]);
+      // If the assertion below fails, it indicates that [getNextInput] did not
+      // skip an input that we asked it to skip.
       assert(!_provisionalDependencies[_currentIndices.last]
           .contains(nextUnevaluatedInput));
       if (nextUnevaluatedInput != null) {
@@ -683,12 +685,7 @@ class WorkItem {
       inputTargetedResults.add(new TargetedResult(inputTarget, inputResult));
       CacheEntry inputEntry = context.getCacheEntry(inputTarget);
       CacheState inputState = inputEntry.getState(inputResult);
-      if (skipInputs.any((WorkItem item) =>
-          item.target == inputTarget && item.spawningResult == inputResult)) {
-        // This input is being skipped due to a circular dependency.  Tell the
-        // builder that it's not available so we can move on to other inputs.
-        builder.currentValueNotAvailable();
-      } else if (inputState == CacheState.ERROR) {
+      if (inputState == CacheState.ERROR) {
         exception = inputEntry.exception;
         return null;
       } else if (inputState == CacheState.IN_PROCESS) {
@@ -716,8 +713,16 @@ class WorkItem {
               throw new AnalysisException(
                   'Cannot find task to build $inputResult for $inputTarget');
             }
-            return new WorkItem(context, inputTarget, descriptor, inputResult,
-                level + 1, workOrder);
+            if (skipInputs.any((WorkItem item) =>
+                item.target == inputTarget && item.descriptor == descriptor)) {
+              // This input is being skipped due to a circular dependency.  Tell
+              // the builder that it's not available so we can move on to other
+              // inputs.
+              builder.currentValueNotAvailable();
+            } else {
+              return new WorkItem(context, inputTarget, descriptor, inputResult,
+                  level + 1, workOrder);
+            }
           } on AnalysisException catch (exception, stackTrace) {
             this.exception = new CaughtException(exception, stackTrace);
             return null;
