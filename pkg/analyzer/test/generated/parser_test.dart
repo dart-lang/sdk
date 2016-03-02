@@ -4474,20 +4474,16 @@ class ResolutionCopierTest extends EngineTestCase {
     MethodElement propagatedElement = ElementFactory.methodElement(
         "m", ElementFactory.classElement2("C").type);
     fromNode.propagatedElement = propagatedElement;
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
     MethodElement staticElement = ElementFactory.methodElement(
         "m", ElementFactory.classElement2("C").type);
     fromNode.staticElement = staticElement;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
     FunctionExpressionInvocation toNode =
         AstFactory.functionExpressionInvocation(AstFactory.identifier3("f"));
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
+
+    _copyAndVerifyInvocation(fromNode, toNode);
+
     expect(toNode.propagatedElement, same(propagatedElement));
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticElement, same(staticElement));
-    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitImportDirective() {
@@ -4609,14 +4605,8 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitMethodInvocation() {
     MethodInvocation fromNode = AstFactory.methodInvocation2("m");
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
     MethodInvocation toNode = AstFactory.methodInvocation2("m");
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticType, same(staticType));
+    _copyAndVerifyInvocation(fromNode, toNode);
   }
 
   void test_visitNamedExpression() {
@@ -4892,6 +4882,25 @@ class ResolutionCopierTest extends EngineTestCase {
     TypeName toNode = AstFactory.typeName4("C");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect(toNode.type, same(type));
+  }
+
+  void _copyAndVerifyInvocation(
+      InvocationExpression fromNode, InvocationExpression toNode) {
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    fromNode.staticType = staticType;
+
+    DartType propagatedInvokeType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedInvokeType = propagatedInvokeType;
+    DartType staticInvokeType = ElementFactory.classElement2("C").type;
+    fromNode.staticInvokeType = staticInvokeType;
+
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
+    expect(toNode.propagatedInvokeType, same(propagatedInvokeType));
+    expect(toNode.staticInvokeType, same(staticInvokeType));
   }
 }
 

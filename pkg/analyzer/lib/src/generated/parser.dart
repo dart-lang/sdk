@@ -10511,7 +10511,9 @@ class ResolutionCopier implements AstVisitor<bool> {
     if (_and(_isEqualNodes(node.function, toNode.function),
         _isEqualNodes(node.argumentList, toNode.argumentList))) {
       toNode.propagatedElement = node.propagatedElement;
+      toNode.propagatedInvokeType = node.propagatedInvokeType;
       toNode.propagatedType = node.propagatedType;
+      toNode.staticInvokeType = node.staticInvokeType;
       toNode.staticElement = node.staticElement;
       toNode.staticType = node.staticType;
       return true;
@@ -10773,7 +10775,9 @@ class ResolutionCopier implements AstVisitor<bool> {
         _isEqualTokens(node.operator, toNode.operator),
         _isEqualNodes(node.methodName, toNode.methodName),
         _isEqualNodes(node.argumentList, toNode.argumentList))) {
+      toNode.propagatedInvokeType = node.propagatedInvokeType;
       toNode.propagatedType = node.propagatedType;
+      toNode.staticInvokeType = node.staticInvokeType;
       toNode.staticType = node.staticType;
       return true;
     }
