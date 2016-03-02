@@ -26,13 +26,13 @@ function run() {
 
 # TODO(ochafik): Add full language tests (in separate Travis env/matrix config).
 
-echo "Compiling SDK for node to $output_dir"
+echo "*** Compiling SDK for node to $output_dir"
 ./tool/build_sdk.sh "${ddc_options[@]}"
 
-echo "Now compiling hello_dart_test"
+echo "*** Compiling hello_dart_test"
 compile test/codegen/language/hello_dart_test.dart
 run hello_dart_test
 
-echo "Now compiling DeltaBlue"
+echo "*** Compiling DeltaBlue"
 compile test/codegen/DeltaBlue.dart
 run DeltaBlue

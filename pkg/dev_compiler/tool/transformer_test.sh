@@ -4,14 +4,17 @@ cd $( dirname "${BASH_SOURCE[0]}" )/..
 
 export CHROME_CANARY_BIN=`./tool/get_chrome_canary.sh`
 
-echo "*** Testing pub serve + DDC transformer"
-# TODO(ochafik,vsm): This is breaking on travis.
+# TODO(vsm): Re-enable when this is addressed:
+# https://github.com/dart-lang/dev_compiler/issues/467
+# echo "*** Testing pub serve + DDC transformer"
 # pub run test --timeout 120s test/transformer_e2e_test.dart
+# echo "*** Pub serve e2e test finished"
 
 echo "*** Testing pub build + DDC transformer"
 cd test/transformer/hello_app
 pub get
 pub build
+echo "*** Pub build finished"
 
 expected_files=(
   build/web/hello_app/web/index.html
