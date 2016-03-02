@@ -4249,6 +4249,24 @@ class C {
 
 @reflectiveTest
 class ResolutionCopierTest extends EngineTestCase {
+  void test_visitAdjacentStrings() {
+    AdjacentStrings createNode() => new AdjacentStrings([
+          new SimpleStringLiteral(null, 'hello'),
+          new SimpleStringLiteral(null, 'world')
+        ]);
+
+    AdjacentStrings fromNode = createNode();
+    DartType propagatedType = ElementFactory.classElement2("A").type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("B").type;
+    fromNode.staticType = staticType;
+
+    AdjacentStrings toNode = createNode();
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
+  }
+
   void test_visitAnnotation() {
     String annotationName = "proxy";
     Annotation fromNode =

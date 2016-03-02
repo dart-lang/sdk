@@ -9956,7 +9956,12 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitAdjacentStrings(AdjacentStrings node) {
     AdjacentStrings toNode = this._toNode as AdjacentStrings;
-    return _isEqualNodeLists(node.strings, toNode.strings);
+    if (_isEqualNodeLists(node.strings, toNode.strings)) {
+      toNode.staticType = node.staticType;
+      toNode.propagatedType = node.propagatedType;
+      return true;
+    }
+    return false;
   }
 
   @override
