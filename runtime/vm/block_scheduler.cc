@@ -12,7 +12,7 @@
 namespace dart {
 
 static intptr_t GetEdgeCount(const Array& edge_counters, intptr_t edge_id) {
-  if (!FLAG_emit_edge_counters) {
+  if (!FLAG_reorder_basic_blocks) {
     // Assume everything was visited once.
     return 1;
   }
@@ -53,7 +53,7 @@ static void SetEdgeWeight(BlockEntryInstr* block,
 
 
 void BlockScheduler::AssignEdgeWeights() const {
-  if (!FLAG_emit_edge_counters) {
+  if (!FLAG_reorder_basic_blocks) {
     return;
   }
 

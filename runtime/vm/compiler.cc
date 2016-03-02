@@ -61,7 +61,6 @@ DEFINE_FLAG(bool, print_ic_data_map, false,
     "Print the deopt-id to ICData map in optimizing compiler.");
 DEFINE_FLAG(bool, print_code_source_map, false, "Print code source map.");
 DEFINE_FLAG(bool, range_analysis, true, "Enable range analysis");
-DEFINE_FLAG(bool, reorder_basic_blocks, true, "Enable basic-block reordering.");
 DEFINE_FLAG(bool, trace_compiler, false, "Trace compiler operations.");
 DEFINE_FLAG(bool, trace_optimizing_compiler, false,
     "Trace only optimizing compiler operations.");

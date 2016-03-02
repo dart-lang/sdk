@@ -340,10 +340,7 @@ static bool ProcessGenPrecompiledSnapshotOption(
     precompiled_snapshot_directory = arg;
   }
   gen_precompiled_snapshot = true;
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // The precompiled runtime has FLAG_precompilation set as const.
   vm_options->AddArgument("--precompilation");
-#endif
   return true;
 }
 
@@ -358,10 +355,7 @@ static bool ProcessRunPrecompiledSnapshotOption(
     precompiled_snapshot_directory = &precompiled_snapshot_directory[1];
   }
   run_precompiled_snapshot = true;
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // The precompiled runtime has FLAG_precompilation set as const.
   vm_options->AddArgument("--precompilation");
-#endif
   return true;
 }
 

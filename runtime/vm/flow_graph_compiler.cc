@@ -59,17 +59,11 @@ DECLARE_FLAG(int, inlining_caller_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_max_size_threshold);
 DECLARE_FLAG(int, inlining_constant_arguments_min_size_threshold);
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
 static void PrecompilationModeHandler(bool value) {
   if (value) {
 #if defined(TARGET_ARCH_IA32)
     FATAL("Precompilation not supported on IA32");
 #endif
-
-#if defined(PRODUCT)
-    FATAL("dart_noopt not supported in product mode");
-#else
-    FLAG_support_debugger = false;
 
     // Flags affecting compilation only:
     // There is no counter feedback in precompilation, so ignore the counter
@@ -87,27 +81,31 @@ static void PrecompilationModeHandler(bool value) {
 
     FLAG_allow_absolute_addresses = false;
     FLAG_always_megamorphic_calls = true;
-    FLAG_background_compilation = false;
-    FLAG_collect_code = false;
     FLAG_collect_dynamic_function_names = true;
-    FLAG_deoptimize_alot = false;  // Used in some tests.
-    FLAG_deoptimize_every = 0;     // Used in some tests.
-    FLAG_emit_edge_counters = false;
-    FLAG_enable_mirrors = false;
     FLAG_fields_may_be_reset = true;
     FLAG_ic_range_profiling = false;
     FLAG_interpret_irregexp = true;
     FLAG_lazy_dispatchers = false;
     FLAG_link_natives_lazily = true;
-    FLAG_load_deferred_eagerly = true;
     FLAG_optimization_counter_threshold = -1;
     FLAG_polymorphic_with_deopt = false;
     FLAG_precompiled_mode = true;
-    FLAG_print_stop_message = false;
-    FLAG_use_cha_deopt = false;
+    FLAG_reorder_basic_blocks = false;
     FLAG_use_field_guards = false;
+    FLAG_use_cha_deopt = false;
+
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    // Set flags affecting runtime accordingly for dart_noopt.
+    FLAG_background_compilation = false;
+    FLAG_collect_code = false;
+    FLAG_support_debugger = false;
+    FLAG_deoptimize_alot = false;  // Used in some tests.
+    FLAG_deoptimize_every = 0;     // Used in some tests.
+    FLAG_enable_mirrors = false;
+    FLAG_load_deferred_eagerly = true;
+    FLAG_print_stop_message = false;
     FLAG_use_osr = false;
-#endif  // PRODUCT
+#endif
   }
 }
 
@@ -115,30 +113,17 @@ DEFINE_FLAG_HANDLER(PrecompilationModeHandler,
                     precompilation,
                     "Precompilation mode");
 
-#else  // DART_PRECOMPILED_RUNTIME
+#ifdef DART_PRECOMPILED_RUNTIME
 
-COMPILE_ASSERT(!FLAG_allow_absolute_addresses);
 COMPILE_ASSERT(!FLAG_background_compilation);
 COMPILE_ASSERT(!FLAG_collect_code);
 COMPILE_ASSERT(!FLAG_deoptimize_alot);  // Used in some tests.
-COMPILE_ASSERT(!FLAG_emit_edge_counters);
 COMPILE_ASSERT(!FLAG_enable_mirrors);
-COMPILE_ASSERT(!FLAG_ic_range_profiling);
-COMPILE_ASSERT(!FLAG_lazy_dispatchers);
-COMPILE_ASSERT(!FLAG_polymorphic_with_deopt);
+COMPILE_ASSERT(FLAG_precompiled_runtime);
 COMPILE_ASSERT(!FLAG_print_stop_message);
-COMPILE_ASSERT(!FLAG_use_cha_deopt);
-COMPILE_ASSERT(!FLAG_use_field_guards);
 COMPILE_ASSERT(!FLAG_use_osr);
-COMPILE_ASSERT(FLAG_always_megamorphic_calls);
-COMPILE_ASSERT(FLAG_collect_dynamic_function_names);
 COMPILE_ASSERT(FLAG_deoptimize_every == 0);  // Used in some tests.
-COMPILE_ASSERT(FLAG_fields_may_be_reset);
-COMPILE_ASSERT(FLAG_interpret_irregexp);
-COMPILE_ASSERT(FLAG_link_natives_lazily);
 COMPILE_ASSERT(FLAG_load_deferred_eagerly);
-COMPILE_ASSERT(FLAG_optimization_counter_threshold == -1);
-COMPILE_ASSERT(FLAG_precompiled_mode);
 
 #endif  // DART_PRECOMPILED_RUNTIME
 
@@ -1308,7 +1293,7 @@ void FlowGraphCompiler::EmitComment(Instruction* instr) {
 bool FlowGraphCompiler::NeedsEdgeCounter(TargetEntryInstr* block) {
   // Only emit an edge counter if there is not goto at the end of the block,
   // except for the entry block.
-  return (FLAG_emit_edge_counters
+  return (FLAG_reorder_basic_blocks
       && (!block->last_instruction()->IsGoto()
           || (block == flow_graph().graph_entry()->normal_entry())));
 }

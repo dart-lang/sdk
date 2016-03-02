@@ -21523,7 +21523,9 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
       code = CodeAtFrame(i);
       ASSERT(function.raw() == code.function());
       uword pc = code.EntryPoint() + Smi::Value(PcOffsetAtFrame(i));
-      if (code.is_optimized() && expand_inlined() && !FLAG_precompiled_mode) {
+      if (code.is_optimized() &&
+          expand_inlined() &&
+          !FLAG_precompiled_runtime) {
         // Traverse inlined frames.
         for (InlinedFunctionsIterator it(code, pc);
              !it.Done() && (*frame_index < max_frames); it.Advance()) {

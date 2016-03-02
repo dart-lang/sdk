@@ -5383,7 +5383,7 @@ LocationSummary* GotoInstr::MakeLocationSummary(Zone* zone,
 void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ Comment("GotoInstr");
   if (!compiler->is_optimizing()) {
-    if (FLAG_emit_edge_counters) {
+    if (FLAG_reorder_basic_blocks) {
       compiler->EmitEdgeCounter(block()->preorder_number());
     }
     // Add a deoptimization descriptor for deoptimizing instructions that

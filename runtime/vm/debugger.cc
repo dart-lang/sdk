@@ -1519,7 +1519,7 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
     }
     if (frame->IsDartFrame()) {
       code = frame->LookupDartCode();
-      if (code.is_optimized() && !FLAG_precompiled_mode) {
+      if (code.is_optimized() && !FLAG_precompiled_runtime) {
         deopt_frame = DeoptimizeToArray(thread, frame, code);
         for (InlinedFunctionsIterator it(code, frame->pc());
              !it.Done();

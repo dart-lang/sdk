@@ -1145,7 +1145,7 @@ DART_EXPORT char* Dart_Initialize(
     Dart_FileCloseCallback file_close,
     Dart_EntropySource entropy_source,
     Dart_GetVMServiceAssetsArchive get_service_assets) {
-  if ((instructions_snapshot != NULL) && !FLAG_precompiled_mode) {
+  if ((instructions_snapshot != NULL) && !FLAG_precompiled_runtime) {
     return strdup("Flag --precompilation was not specified.");
   }
   if (interrupt != NULL) {

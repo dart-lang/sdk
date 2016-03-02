@@ -1349,7 +1349,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
       ActivationFrame* frame = stack->FrameAt(i);
       // Variable locations and number are unknown when precompiling.
       const int num_vars =
-         FLAG_precompiled_mode ? 0 : frame->NumLocalVariables();
+         FLAG_precompiled_runtime ? 0 : frame->NumLocalVariables();
       TokenPosition unused = TokenPosition::kNoSource;
       for (intptr_t v = 0; v < num_vars; v++) {
         frame->VariableAt(v, &var_name, &unused, &unused, &var_value);
