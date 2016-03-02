@@ -1291,8 +1291,7 @@ static bool GetStack(Thread* thread, JSONStream* js) {
   }
 
   {
-    MessageHandler::AcquiredQueues aq;
-    isolate->message_handler()->AcquireQueues(&aq);
+    MessageHandler::AcquiredQueues aq(isolate->message_handler());
     jsobj.AddProperty("messages", aq.queue());
   }
 
@@ -1679,8 +1678,7 @@ static RawObject* LookupHeapObjectMessage(Thread* thread,
   if (!GetUnsignedIntegerId(parts[1], &message_id, 16)) {
     return Object::sentinel().raw();
   }
-  MessageHandler::AcquiredQueues aq;
-  thread->isolate()->message_handler()->AcquireQueues(&aq);
+  MessageHandler::AcquiredQueues aq(thread->isolate()->message_handler());
   Message* message = aq.queue()->FindMessageById(message_id);
   if (message == NULL) {
     // The user may try to load an expired message.

@@ -98,7 +98,7 @@ void ThreadInterrupter::Shutdown() {
     }
     shutdown_ = true;
     // Notify.
-    monitor_->Notify();
+    shutdown_ml.Notify();
     ASSERT(initialized_);
     if (FLAG_trace_thread_interrupter) {
       OS::Print("ThreadInterrupter shutting down.\n");
@@ -183,7 +183,7 @@ void ThreadInterrupter::ThreadMain(uword parameters) {
       interrupted_thread_count = 0;
 
       // Temporarily drop the monitor while we interrupt threads.
-      monitor_->Exit();
+      wait_ml.Exit();
 
       {
         OSThreadIterator it;
@@ -197,7 +197,7 @@ void ThreadInterrupter::ThreadMain(uword parameters) {
       }
 
       // Take the monitor lock again.
-      monitor_->Enter();
+      wait_ml.Enter();
 
       // Now that we have the lock, check if we were signaled to wake up while
       // interrupting threads.

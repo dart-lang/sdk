@@ -325,7 +325,7 @@ void MessageHandler::TaskCallback() {
     MonitorLocker ml(&monitor_);
     if (ShouldPauseOnStart(kOK)) {
       if (!is_paused_on_start()) {
-        PausedOnStartLocked(true);
+        PausedOnStartLocked(&ml, true);
       }
       // More messages may have come in before we (re)acquired the monitor.
       status = HandleMessages(&ml, false, false);
@@ -335,7 +335,7 @@ void MessageHandler::TaskCallback() {
         task_ = NULL;  // No task in queue.
         return;
       } else {
-        PausedOnStartLocked(false);
+        PausedOnStartLocked(&ml, false);
       }
     }
 
@@ -368,7 +368,7 @@ void MessageHandler::TaskCallback() {
             OS::PrintErr("Isolate %s paused before exiting. "
                          "Use the Observatory to release it.\n", name());
           }
-          PausedOnExitLocked(true);
+          PausedOnExitLocked(&ml, true);
           // More messages may have come in while we released the monitor.
           status = HandleMessages(&ml, false, false);
         }
@@ -378,7 +378,7 @@ void MessageHandler::TaskCallback() {
           task_ = NULL;  // No task in queue.
           return;
         } else {
-          PausedOnExitLocked(false);
+          PausedOnExitLocked(&ml, false);
         }
       }
       if (FLAG_trace_isolates) {
@@ -454,11 +454,11 @@ void MessageHandler::decrement_live_ports() {
 
 void MessageHandler::PausedOnStart(bool paused) {
   MonitorLocker ml(&monitor_);
-  PausedOnStartLocked(paused);
+  PausedOnStartLocked(&ml, paused);
 }
 
 
-void MessageHandler::PausedOnStartLocked(bool paused) {
+void MessageHandler::PausedOnStartLocked(MonitorLocker* ml, bool paused) {
   if (paused) {
     ASSERT(!is_paused_on_start_);
     is_paused_on_start_ = true;
@@ -473,9 +473,9 @@ void MessageHandler::PausedOnStartLocked(bool paused) {
     // NotifyPauseOnStart.  This avoids a dead lock that can occur
     // when this message handler tries to post a message while a
     // message is being posted to it.
-    monitor_.Exit();
+    ml->Exit();
     NotifyPauseOnStart();
-    monitor_.Enter();
+    ml->Enter();
   } else {
     // Resumed. Clear the resume request of the owning isolate.
     Isolate* owning_isolate = isolate();
@@ -488,11 +488,11 @@ void MessageHandler::PausedOnStartLocked(bool paused) {
 
 void MessageHandler::PausedOnExit(bool paused) {
   MonitorLocker ml(&monitor_);
-  PausedOnExitLocked(paused);
+  PausedOnExitLocked(&ml, paused);
 }
 
 
-void MessageHandler::PausedOnExitLocked(bool paused) {
+void MessageHandler::PausedOnExitLocked(MonitorLocker* ml, bool paused) {
   if (paused) {
     ASSERT(!is_paused_on_exit_);
     is_paused_on_exit_ = true;
@@ -507,9 +507,9 @@ void MessageHandler::PausedOnExitLocked(bool paused) {
     // NotifyPauseOnExit.  This avoids a dead lock that can
     // occur when this message handler tries to post a message
     // while a message is being posted to it.
-    monitor_.Exit();
+    ml->Exit();
     NotifyPauseOnExit();
-    monitor_.Enter();
+    ml->Enter();
   } else {
     // Resumed. Clear the resume request of the owning isolate.
     Isolate* owning_isolate = isolate();
@@ -520,38 +520,16 @@ void MessageHandler::PausedOnExitLocked(bool paused) {
 }
 
 
-MessageHandler::AcquiredQueues::AcquiredQueues()
-    : handler_(NULL) {
+MessageHandler::AcquiredQueues::AcquiredQueues(MessageHandler* handler)
+    : handler_(handler), ml_(&handler->monitor_) {
+  ASSERT(handler != NULL);
+  handler_->oob_message_handling_allowed_ = false;
 }
 
 
 MessageHandler::AcquiredQueues::~AcquiredQueues() {
-  Reset(NULL);
-}
-
-
-void MessageHandler::AcquiredQueues::Reset(MessageHandler* handler) {
-  if (handler_ != NULL) {
-    // Release ownership. The OOB flag is set without holding the monitor.
-    handler_->monitor_.Exit();
-    handler_->oob_message_handling_allowed_ = true;
-  }
-  handler_ = handler;
-  if (handler_ == NULL) {
-    return;
-  }
   ASSERT(handler_ != NULL);
-  // Take ownership. The OOB flag is set without holding the monitor.
-  handler_->oob_message_handling_allowed_ = false;
-  handler_->monitor_.Enter();
-}
-
-
-void MessageHandler::AcquireQueues(AcquiredQueues* acquired_queues) {
-  ASSERT(acquired_queues != NULL);
-  // No double dipping.
-  ASSERT(acquired_queues->handler_ == NULL);
-  acquired_queues->Reset(this);
+  handler_->oob_message_handling_allowed_ = true;
 }
 
 }  // namespace dart
