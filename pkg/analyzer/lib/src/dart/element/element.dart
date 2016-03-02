@@ -1735,6 +1735,17 @@ abstract class ElementImpl implements Element {
   int _docRangeLength;
 
   /**
+   * The offset of the beginning of the element's code in the file that contains
+   * the element, or `null` if the element is synthetic.
+   */
+  int _codeOffset;
+
+  /**
+   * The length of the element's code, or `null` if the element is synthetic.
+   */
+  int _codeLength;
+
+  /**
    * Initialize a newly created element to have the given [name] at the given
    * [_nameOffset].
    */
@@ -1747,6 +1758,17 @@ abstract class ElementImpl implements Element {
    */
   ElementImpl.forNode(Identifier name)
       : this(name == null ? "" : name.name, name == null ? -1 : name.offset);
+
+  /**
+   * The length of the element's code, or `null` if the element is synthetic.
+   */
+  int get codeLength => _codeLength;
+
+  /**
+   * The offset of the beginning of the element's code in the file that contains
+   * the element, or `null` if the element is synthetic.
+   */
+  int get codeOffset => _codeOffset;
 
   @override
   AnalysisContext get context {
@@ -2025,6 +2047,14 @@ abstract class ElementImpl implements Element {
         child.accept(visitor);
       }
     }
+  }
+
+  /**
+   * Set the code range for this element.
+   */
+  void setCodeRange(int offset, int length) {
+    _codeOffset = offset;
+    _codeLength = length;
   }
 
   /**
@@ -3105,6 +3135,24 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   LibraryElementImpl.forNode(this.context, LibraryIdentifier name)
       : super.forNode(name),
         nameLength = name != null ? name.length : 0;
+
+  @override
+  int get codeLength {
+    if (_definingCompilationUnit is CompilationUnitElementImpl) {
+      return (_definingCompilationUnit as CompilationUnitElementImpl)
+          .codeLength;
+    }
+    return null;
+  }
+
+  @override
+  int get codeOffset {
+    if (_definingCompilationUnit is CompilationUnitElementImpl) {
+      return (_definingCompilationUnit as CompilationUnitElementImpl)
+          .codeOffset;
+    }
+    return null;
+  }
 
   @override
   CompilationUnitElement get definingCompilationUnit =>
