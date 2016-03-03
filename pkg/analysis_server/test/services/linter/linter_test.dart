@@ -21,7 +21,7 @@ main() {
 
 @reflectiveTest
 class LinterRuleOptionsValidatorTest {
-  final LinterRuleOptionsValidator validator= new LinterRuleOptionsValidator();
+  final LinterRuleOptionsValidator validator = new LinterRuleOptionsValidator();
   final AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
 
   RecordingErrorListener recorder;
@@ -49,6 +49,17 @@ linter:
         '''
 linter:
   rules:
+    ''',
+        []);
+  }
+
+  test_linter_null_rule() {
+    validate(
+        '''
+linter:
+  rules:
+    -
+
     ''',
         []);
   }
