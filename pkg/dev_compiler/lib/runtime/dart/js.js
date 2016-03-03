@@ -226,7 +226,7 @@ dart_library.library('dart/js', null, /* Imports */[
       }
       add(value) {
         dart.as(value, E);
-        this.callMethod('push', [value]);
+        this.callMethod('push', dart.list([value], E));
       }
       addAll(iterable) {
         dart.as(iterable, core.Iterable$(E));
@@ -236,11 +236,11 @@ dart_library.library('dart/js', null, /* Imports */[
       insert(index, element) {
         dart.as(element, E);
         this[_checkInsertIndex](index);
-        this.callMethod('splice', [index, 0, element]);
+        this.callMethod('splice', dart.list([index, 0, element], core.Object));
       }
       removeAt(index) {
         this[_checkIndex](index);
-        return dart.as(dart.dindex(this.callMethod('splice', [index, 1]), 0), E);
+        return dart.as(dart.dindex(this.callMethod('splice', dart.list([index, 1], core.int)), 0), E);
       }
       removeLast() {
         if (this.length == 0) dart.throw(new core.RangeError(-1));
@@ -248,7 +248,7 @@ dart_library.library('dart/js', null, /* Imports */[
       }
       removeRange(start, end) {
         JsArray$()._checkRange(start, end, this.length);
-        this.callMethod('splice', [start, dart.notNull(end) - dart.notNull(start)]);
+        this.callMethod('splice', dart.list([start, dart.notNull(end) - dart.notNull(start)], core.int));
       }
       setRange(start, end, iterable, skipCount) {
         dart.as(iterable, core.Iterable$(E));
@@ -257,14 +257,14 @@ dart_library.library('dart/js', null, /* Imports */[
         let length = dart.notNull(end) - dart.notNull(start);
         if (length == 0) return;
         if (dart.notNull(skipCount) < 0) dart.throw(new core.ArgumentError(skipCount));
-        let args = [start, length];
+        let args = dart.list([start, length], core.int);
         args[dartx.addAll](iterable[dartx.skip](skipCount)[dartx.take](length));
         this.callMethod('splice', args);
       }
       sort(compare) {
         if (compare === void 0) compare = null;
         dart.as(compare, dart.functionType(core.int, [E, E]));
-        this.callMethod('sort', compare == null ? [] : [compare]);
+        this.callMethod('sort', dart.as(compare == null ? [] : dart.list([compare], dart.functionType(core.int, [E, E])), core.List));
       }
     }
     dart.defineNamedConstructor(JsArray, 'from');

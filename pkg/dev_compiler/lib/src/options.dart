@@ -16,6 +16,20 @@ import 'utils.dart' show parseEnum, getEnumName;
 
 const String _V8_BINARY_DEFAULT = 'node';
 const bool _CLOSURE_DEFAULT = false;
+
+/// Older V8 versions do not accept default values with destructuring in
+/// arrow functions yet (e.g. `({a} = {}) => 1`) but happily accepts them
+/// with regular functions (e.g. `function({a} = {}) { return 1 }`).
+///
+/// Supporting the syntax:
+/// * Chrome Canary (51)
+/// * Firefox
+///
+/// Not yet supporting:
+/// * Atom (1.5.4)
+/// * Electron (0.36.3)
+///
+// TODO(ochafik): Simplify this code when our target platforms catch up.
 const bool _DESTRUCTURE_NAMED_PARAMS_DEFAULT = false;
 
 /// Options used to set up Source URI resolution in the analysis context.

@@ -5,7 +5,9 @@
 /// Defines static information collected by the type checker and used later by
 /// emitters to generate code.
 
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/parser.dart';
 
@@ -90,13 +92,21 @@ class _AstCloner extends AstCloner {
     return clone;
   }
 
-  // TODO(vsm): ResolutionCopier is apparently not copying the type here
-  // either.
+  // TODO(jmesserly): ResolutionCopier is not copying this yet.
   @override
-  AdjacentStrings visitAdjacentStrings(AdjacentStrings node) {
-    var clone = super.visitAdjacentStrings(node);
-    clone.staticType = node.staticType;
-    clone.propagatedType = node.propagatedType;
+  BlockFunctionBody visitBlockFunctionBody(BlockFunctionBody node) {
+    var clone = super.visitBlockFunctionBody(node);
+    (clone as FunctionBodyImpl).localVariableInfo =
+        (node as FunctionBodyImpl).localVariableInfo;
+    return clone;
+  }
+
+  @override
+  ExpressionFunctionBody visitExpressionFunctionBody(
+      ExpressionFunctionBody node) {
+    var clone = super.visitExpressionFunctionBody(node);
+    (clone as FunctionBodyImpl).localVariableInfo =
+        (node as FunctionBodyImpl).localVariableInfo;
     return clone;
   }
 }

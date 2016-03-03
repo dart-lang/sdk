@@ -40,10 +40,10 @@ dart_library.library('syncstar_syntax', null, /* Imports */[
       }, core.int);
     }
     dart.fn(qux, core.Iterable$(core.int), []);
-    expect.Expect.listEquals([1, 2, 3], foo()[dartx.toList]());
-    expect.Expect.listEquals([1, 2, 3], new Class().bar()[dartx.toList]());
-    expect.Expect.listEquals([1, 2, 3], Class.baz()[dartx.toList]());
-    expect.Expect.listEquals([1, 2, 3], qux()[dartx.toList]());
+    expect.Expect.listEquals(dart.list([1, 2, 3], core.int), foo()[dartx.toList]());
+    expect.Expect.listEquals(dart.list([1, 2, 3], core.int), new Class().bar()[dartx.toList]());
+    expect.Expect.listEquals(dart.list([1, 2, 3], core.int), Class.baz()[dartx.toList]());
+    expect.Expect.listEquals(dart.list([1, 2, 3], core.int), qux()[dartx.toList]());
   }
   dart.fn(main);
   // Exports:

@@ -370,7 +370,7 @@ dart_library.library('lib/typed_data/float32x4_list_test', null, /* Imports */[
       testLoadStoreDeopt(list, 0, value);
     }
     try {
-      testLoadStoreDeopt([typed_data.Float32x4.new(2.0, 3.0, 4.0, 5.0)], 0, value);
+      testLoadStoreDeopt(dart.list([typed_data.Float32x4.new(2.0, 3.0, 4.0, 5.0)], typed_data.Float32x4), 0, value);
     } catch (_) {
     }
 
@@ -435,39 +435,37 @@ dart_library.library('lib/typed_data/float32x4_list_test', null, /* Imports */[
       }
     }
     dart.fn(checkEquals, dart.void, [dart.dynamic, dart.dynamic]);
-    let pairs = [[0.0, 0.0], [5e-324, 0.0], [2.225073858507201e-308, 0.0], [2.2250738585072014e-308, 0.0], [0.9999999999999999, 1.0], [1.0, 1.0], [1.0000000000000002, 1.0], [4294967295.0, 4294967296.0], [4294967296.0, 4294967296.0], [4503599627370495.5, 4503599627370496.0], [9007199254740992.0, 9007199254740992.0], [1.7976931348623157e+308, core.double.INFINITY], [0.49999999999999994, 0.5], [4503599627370497.0, 4503599627370496.0], [9007199254740991.0, 9007199254740992.0], [core.double.INFINITY, core.double.INFINITY], [core.double.NAN, core.double.NAN]];
-    let conserved = [1.401298464324817e-45, 1.1754942106924411e-38, 1.1754943508222875e-38, 0.9999999403953552, 1.0000001192092896, 8388607.5, 8388608.0, 3.4028234663852886e+38, 8388609.0, 16777215.0];
-    let minusPairs = pairs[dartx.map](dart.fn(pair => {
-      return [dart.dsend(dart.dindex(pair, 0), 'unary-'), dart.dsend(dart.dindex(pair, 1), 'unary-')];
-    }));
-    let conservedPairs = conserved[dartx.map](dart.fn(value => [value, value], core.List, [dart.dynamic]));
-    let allTests = [pairs, minusPairs, conservedPairs][dartx.expand](dart.fn(x => dart.as(x, core.Iterable), core.Iterable, [dart.dynamic]));
+    let pairs = dart.list([dart.list([0.0, 0.0], core.double), dart.list([5e-324, 0.0], core.double), dart.list([2.225073858507201e-308, 0.0], core.double), dart.list([2.2250738585072014e-308, 0.0], core.double), dart.list([0.9999999999999999, 1.0], core.double), dart.list([1.0, 1.0], core.double), dart.list([1.0000000000000002, 1.0], core.double), dart.list([4294967295.0, 4294967296.0], core.double), dart.list([4294967296.0, 4294967296.0], core.double), dart.list([4503599627370495.5, 4503599627370496.0], core.double), dart.list([9007199254740992.0, 9007199254740992.0], core.double), dart.list([1.7976931348623157e+308, core.double.INFINITY], core.double), dart.list([0.49999999999999994, 0.5], core.double), dart.list([4503599627370497.0, 4503599627370496.0], core.double), dart.list([9007199254740991.0, 9007199254740992.0], core.double), dart.list([core.double.INFINITY, core.double.INFINITY], core.double), dart.list([core.double.NAN, core.double.NAN], core.double)], core.List$(core.double));
+    let conserved = dart.list([1.401298464324817e-45, 1.1754942106924411e-38, 1.1754943508222875e-38, 0.9999999403953552, 1.0000001192092896, 8388607.5, 8388608.0, 3.4028234663852886e+38, 8388609.0, 16777215.0], core.double);
+    let minusPairs = pairs[dartx.map](dart.fn(pair => dart.list([-dart.notNull(pair[dartx.get](0)), -dart.notNull(pair[dartx.get](1))], core.double), core.List$(core.double), [core.List$(core.double)]));
+    let conservedPairs = conserved[dartx.map](dart.fn(value => dart.list([value, value], core.double), core.List$(core.double), [core.double]));
+    let allTests = dart.list([pairs, minusPairs, conservedPairs], core.Iterable$(core.List$(core.double)))[dartx.expand](dart.fn(x => x, core.Iterable$(core.List$(core.double)), [core.Iterable$(core.List$(core.double))]));
     for (let pair of allTests) {
-      let input = dart.dindex(pair, 0);
-      let expected = dart.dindex(pair, 1);
+      let input = pair[dartx.get](0);
+      let expected = pair[dartx.get](1);
       let f = null;
-      f = typed_data.Float32x4.new(dart.as(input, core.double), 2.0, 3.0, 4.0);
+      f = typed_data.Float32x4.new(input, 2.0, 3.0, 4.0);
       dart.dsetindex(array, 0, f);
       f = dart.dindex(array, 0);
       checkEquals(expected, dart.dload(f, 'x'));
       expect.Expect.equals(2.0, dart.dload(f, 'y'));
       expect.Expect.equals(3.0, dart.dload(f, 'z'));
       expect.Expect.equals(4.0, dart.dload(f, 'w'));
-      f = typed_data.Float32x4.new(1.0, dart.as(input, core.double), 3.0, 4.0);
+      f = typed_data.Float32x4.new(1.0, input, 3.0, 4.0);
       dart.dsetindex(array, 1, f);
       f = dart.dindex(array, 1);
       expect.Expect.equals(1.0, dart.dload(f, 'x'));
       checkEquals(expected, dart.dload(f, 'y'));
       expect.Expect.equals(3.0, dart.dload(f, 'z'));
       expect.Expect.equals(4.0, dart.dload(f, 'w'));
-      f = typed_data.Float32x4.new(1.0, 2.0, dart.as(input, core.double), 4.0);
+      f = typed_data.Float32x4.new(1.0, 2.0, input, 4.0);
       dart.dsetindex(array, 2, f);
       f = dart.dindex(array, 2);
       expect.Expect.equals(1.0, dart.dload(f, 'x'));
       expect.Expect.equals(2.0, dart.dload(f, 'y'));
       checkEquals(expected, dart.dload(f, 'z'));
       expect.Expect.equals(4.0, dart.dload(f, 'w'));
-      f = typed_data.Float32x4.new(1.0, 2.0, 3.0, dart.as(input, core.double));
+      f = typed_data.Float32x4.new(1.0, 2.0, 3.0, input);
       dart.dsetindex(array, 3, f);
       f = dart.dindex(array, 3);
       expect.Expect.equals(1.0, dart.dload(f, 'x'));
@@ -2566,7 +2564,7 @@ dart_library.library('lib/typed_data/int32x4_list_test', null, /* Imports */[
       testLoadStoreDeopt(list, 0, value);
     }
     try {
-      testLoadStoreDeopt([typed_data.Int32x4.new(2, 3, 4, 5)], 0, value);
+      testLoadStoreDeopt(dart.list([typed_data.Int32x4.new(2, 3, 4, 5)], typed_data.Int32x4), 0, value);
     } catch (_) {
     }
 
@@ -2621,33 +2619,33 @@ dart_library.library('lib/typed_data/int32x4_list_test', null, /* Imports */[
   }
   dart.fn(testSublist);
   function testSpecialValues(array) {
-    let tests = [[2410207675578512, 878082192], [2410209554626704, -1537836912], [2147483648, -2147483648], [-2147483648, -2147483648], [2147483647, 2147483647], [-2147483647, -2147483647]];
+    let tests = dart.list([dart.list([2410207675578512, 878082192], core.int), dart.list([2410209554626704, -1537836912], core.int), dart.list([2147483648, -2147483648], core.int), dart.list([-2147483648, -2147483648], core.int), dart.list([2147483647, 2147483647], core.int), dart.list([-2147483647, -2147483647], core.int)], core.List$(core.int));
     let int32x4 = null;
     for (let test of tests) {
-      let input = dart.dindex(test, 0);
-      let expected = dart.dindex(test, 1);
-      int32x4 = typed_data.Int32x4.new(dart.as(input, core.int), 2, 3, 4);
+      let input = test[dartx.get](0);
+      let expected = test[dartx.get](1);
+      int32x4 = typed_data.Int32x4.new(input, 2, 3, 4);
       dart.dsetindex(array, 0, int32x4);
       int32x4 = dart.dindex(array, 0);
       expect.Expect.equals(expected, dart.dload(int32x4, 'x'));
       expect.Expect.equals(2, dart.dload(int32x4, 'y'));
       expect.Expect.equals(3, dart.dload(int32x4, 'z'));
       expect.Expect.equals(4, dart.dload(int32x4, 'w'));
-      int32x4 = typed_data.Int32x4.new(1, dart.as(input, core.int), 3, 4);
+      int32x4 = typed_data.Int32x4.new(1, input, 3, 4);
       dart.dsetindex(array, 0, int32x4);
       int32x4 = dart.dindex(array, 0);
       expect.Expect.equals(1, dart.dload(int32x4, 'x'));
       expect.Expect.equals(expected, dart.dload(int32x4, 'y'));
       expect.Expect.equals(3, dart.dload(int32x4, 'z'));
       expect.Expect.equals(4, dart.dload(int32x4, 'w'));
-      int32x4 = typed_data.Int32x4.new(1, 2, dart.as(input, core.int), 4);
+      int32x4 = typed_data.Int32x4.new(1, 2, input, 4);
       dart.dsetindex(array, 0, int32x4);
       int32x4 = dart.dindex(array, 0);
       expect.Expect.equals(1, dart.dload(int32x4, 'x'));
       expect.Expect.equals(2, dart.dload(int32x4, 'y'));
       expect.Expect.equals(expected, dart.dload(int32x4, 'z'));
       expect.Expect.equals(4, dart.dload(int32x4, 'w'));
-      int32x4 = typed_data.Int32x4.new(1, 2, 3, dart.as(input, core.int));
+      int32x4 = typed_data.Int32x4.new(1, 2, 3, input);
       dart.dsetindex(array, 0, int32x4);
       int32x4 = dart.dindex(array, 0);
       expect.Expect.equals(1, dart.dload(int32x4, 'x'));
@@ -3126,14 +3124,14 @@ dart_library.library('lib/typed_data/simd_store_to_load_forward_test', null, /* 
 dart_library.library('lib/typed_data/typed_data_from_list_test', null, /* Imports */[
   'dart/_runtime',
   'dart/collection',
-  'dart/typed_data',
-  'dart/core'
+  'dart/core',
+  'dart/typed_data'
 ], /* Lazy imports */[
-], function(exports, dart, collection, typed_data, core) {
+], function(exports, dart, collection, core, typed_data) {
   'use strict';
   let dartx = dart.dartx;
   function main() {
-    let list = new collection.UnmodifiableListView([1, 2]);
+    let list = new collection.UnmodifiableListView(dart.list([1, 2], core.int));
     let typed = typed_data.Uint8List.fromList(dart.as(list, core.List$(core.int)));
     if (typed[dartx.get](0) != 1 || typed[dartx.get](1) != 2 || typed[dartx.length] != 2) {
       dart.throw('Test failed');
@@ -3253,10 +3251,10 @@ dart_library.library('lib/typed_data/typed_data_list_test', null, /* Imports */[
       index = dart.notNull(index) - 1;
     }
     expect.Expect.throws(dart.fn(() => dart.dsend(list, 'add', 0), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
-    expect.Expect.throws(dart.fn(() => dart.dsend(list, 'addAll', [1, 2]), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
+    expect.Expect.throws(dart.fn(() => dart.dsend(list, 'addAll', dart.list([1, 2], core.int)), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
     expect.Expect.throws(dart.fn(() => dart.dsend(list, 'clear'), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
     expect.Expect.throws(dart.fn(() => dart.dsend(list, 'insert', 0, 0), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
-    expect.Expect.throws(dart.fn(() => dart.dsend(list, 'insertAll', 0, [1, 2]), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
+    expect.Expect.throws(dart.fn(() => dart.dsend(list, 'insertAll', 0, dart.list([1, 2], core.int)), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
     expect.Expect.throws(dart.fn(() => dart.dsend(list, 'remove', 0), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
     expect.Expect.throws(dart.fn(() => dart.dsend(list, 'removeAt', 0), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
     expect.Expect.throws(dart.fn(() => dart.dsend(list, 'removeLast'), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
@@ -3332,10 +3330,10 @@ dart_library.library('lib/typed_data/typed_data_list_test', null, /* Imports */[
     let reversed = dart.dload(list, 'reversed');
     expect.Expect.listEquals(dart.as(list, core.List), dart.as(dart.dsend(dart.dload(dart.dsend(reversed, 'toList'), 'reversed'), 'toList'), core.List));
     expect.Expect.throws(dart.fn(() => dart.dsend(list, 'add', 0), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
-    expect.Expect.throws(dart.fn(() => dart.dsend(list, 'addAll', [1, 2]), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
+    expect.Expect.throws(dart.fn(() => dart.dsend(list, 'addAll', dart.list([1, 2], core.int)), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
     expect.Expect.throws(dart.fn(() => dart.dsend(list, 'clear'), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
     expect.Expect.throws(dart.fn(() => dart.dsend(list, 'insert', 0, 0), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
-    expect.Expect.throws(dart.fn(() => dart.dsend(list, 'insertAll', 0, [1, 2]), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
+    expect.Expect.throws(dart.fn(() => dart.dsend(list, 'insertAll', 0, dart.list([1, 2], core.int)), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
     expect.Expect.throws(dart.fn(() => dart.dsend(list, 'remove', 0), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
     expect.Expect.throws(dart.fn(() => dart.dsend(list, 'removeAt', 0), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
     expect.Expect.throws(dart.fn(() => dart.dsend(list, 'removeLast'), dart.void, []), dart.fn(e => dart.is(e, core.UnsupportedError), core.bool, [dart.dynamic]));
@@ -3355,7 +3353,7 @@ dart_library.library('lib/typed_data/typed_data_list_test', null, /* Imports */[
     let copy = dart.dsend(list, 'toList');
     dart.dsend(list, 'fillRange', 0, 0);
     expect.Expect.listEquals([], dart.as(dart.dsend(dart.dsend(list, 'getRange', 0, 0), 'toList'), core.List));
-    dart.dsend(list, 'setRange', 0, 0, [1, 2]);
+    dart.dsend(list, 'setRange', 0, 0, dart.list([1, 2], core.int));
     dart.dsend(list, 'sort');
     expect.Expect.listEquals([], dart.as(dart.dsend(list, 'sublist', 0, 0), core.List));
   }
@@ -3584,7 +3582,7 @@ dart_library.library('lib/typed_data/typed_data_sublist_type_test', null, /* Imp
     let isIntList = new (Is$(core.List$(core.int)))('List<int>');
     let isDoubleList = new (Is$(core.List$(core.double)))('List<double>');
     let isNumList = new (Is$(core.List$(core.num)))('List<num>');
-    let allChecks = [isFloat32list, isFloat64list, isInt8List, isInt16List, isInt32List, isUint8List, isUint16List, isUint32List, isUint8ClampedList];
+    let allChecks = dart.list([isFloat32list, isFloat64list, isInt8List, isInt16List, isInt32List, isUint8List, isUint16List, isUint32List, isUint8ClampedList], core.Object);
     function testInt(list, check) {
       testSublistType(list, [check, isIntList, isNumList], allChecks);
     }
@@ -3643,7 +3641,7 @@ dart_library.library('lib/typed_data/typed_list_iterable_test', null, /* Imports
           return true;
         }
         return false;
-      })));
+      }, core.bool, [dart.dynamic])));
     }
     expect.Expect.isFalse(dart.dload(list, 'isEmpty'));
     let i = 0;
@@ -3689,7 +3687,7 @@ dart_library.library('lib/typed_data/typed_list_iterable_test', null, /* Imports
     let whereList = dart.dsend(list, 'where', dart.fn(x => {
       whereCount++;
       return true;
-    }));
+    }, core.bool, [dart.dynamic]));
     expect.Expect.equals(0, whereCount);
     expect.Expect.equals(dart.dload(list, 'length'), dart.dload(whereList, 'length'));
     expect.Expect.equals(dart.dload(list, 'length'), whereCount);
@@ -3756,7 +3754,7 @@ dart_library.library('lib/typed_data/typed_list_iterable_test', null, /* Imports
     let whereList = dart.dsend(list, 'where', dart.fn(x => {
       whereCount++;
       return true;
-    }));
+    }, core.bool, [dart.dynamic]));
     expect.Expect.equals(0, whereCount);
     expect.Expect.equals(dart.dload(list, 'length'), dart.dload(whereList, 'length'));
     expect.Expect.equals(dart.dload(list, 'length'), whereCount);

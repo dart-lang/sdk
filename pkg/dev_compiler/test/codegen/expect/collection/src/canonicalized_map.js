@@ -42,7 +42,11 @@ dart_library.library('collection/src/canonicalized_map', null, /* Imports */[
       }
       addAll(other) {
         dart.as(other, core.Map$(K, V));
-        other[dartx.forEach](dart.fn((key, value) => this.set(key, value), V, [K, V]));
+        other[dartx.forEach](dart.fn((key, value) => {
+          dart.as(key, K);
+          dart.as(value, V);
+          return this.set(key, value);
+        }, V, [K, V]));
       }
       clear() {
         this[_base][dartx.clear]();
@@ -52,11 +56,18 @@ dart_library.library('collection/src/canonicalized_map', null, /* Imports */[
         return this[_base][dartx.containsKey](dart.dcall(this[_canonicalize], key));
       }
       containsValue(value) {
-        return this[_base][dartx.values][dartx.any](dart.fn(pair => dart.equals(pair.last, value), core.bool, [utils.Pair$(K, V)]));
+        return this[_base][dartx.values][dartx.any](dart.fn(pair => {
+          dart.as(pair, utils.Pair$(K, V));
+          return dart.equals(pair.last, value);
+        }, core.bool, [utils.Pair$(K, V)]));
       }
       forEach(f) {
         dart.as(f, dart.functionType(dart.void, [K, V]));
-        this[_base][dartx.forEach](dart.fn((key, pair) => f(pair.first, pair.last), dart.void, [C, utils.Pair$(K, V)]));
+        this[_base][dartx.forEach](dart.fn((key, pair) => {
+          dart.as(key, C);
+          dart.as(pair, utils.Pair$(K, V));
+          return f(pair.first, pair.last);
+        }, dart.void, [C, utils.Pair$(K, V)]));
       }
       get isEmpty() {
         return this[_base][dartx.isEmpty];
@@ -65,7 +76,10 @@ dart_library.library('collection/src/canonicalized_map', null, /* Imports */[
         return this[_base][dartx.isNotEmpty];
       }
       get keys() {
-        return this[_base][dartx.values][dartx.map](dart.fn(pair => pair.first, K, [utils.Pair$(K, V)]));
+        return this[_base][dartx.values][dartx.map](dart.fn(pair => {
+          dart.as(pair, utils.Pair$(K, V));
+          return pair.first;
+        }, K, [utils.Pair$(K, V)]));
       }
       get length() {
         return this[_base][dartx.length];
@@ -81,7 +95,10 @@ dart_library.library('collection/src/canonicalized_map', null, /* Imports */[
         return pair == null ? null : pair.last;
       }
       get values() {
-        return this[_base][dartx.values][dartx.map](dart.fn(pair => pair.last, V, [utils.Pair$(K, V)]));
+        return this[_base][dartx.values][dartx.map](dart.fn(pair => {
+          dart.as(pair, utils.Pair$(K, V));
+          return pair.last;
+        }, V, [utils.Pair$(K, V)]));
       }
       toString() {
         return collection.Maps.mapToString(this);

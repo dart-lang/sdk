@@ -1893,7 +1893,7 @@ dart_library.library('dart/async', null, /* Imports */[
         return Future$().doWhile(dart.fn(() => {
           if (!dart.notNull(iterator.moveNext())) return false;
           return Future$().sync(dart.fn(() => dart.dcall(f, iterator.current))).then(dart.fn(_ => true, core.bool, [dart.dynamic]));
-        }));
+        }, core.Object, []));
       }
       static doWhile(f) {
         let doneSignal = new _Future();

@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/ast/token.dart'
     show StringToken, Token, TokenType;
 import 'package:analyzer/src/generated/type_system.dart'
     show StrongTypeSystemImpl;
-import 'package:analyzer/src/task/dart.dart' show PublicNamespaceBuilder;
 
 import 'ast_builder.dart' show AstBuilder;
 import 'reify_coercions.dart' show CoercionReifier, Tuple2;
@@ -106,6 +105,9 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   /// _interceptors.JSArray<E>, used for List literals.
   ClassElement _jsArray;
 
+  /// The current function body being compiled.
+  FunctionBody _currentFunction;
+
   /// The default value of the module object. See [visitLibraryDirective].
   String _jsModuleValue;
 
@@ -130,13 +132,6 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   JS.Program emitLibrary(LibraryUnit library) {
     // Modify the AST to make coercions explicit.
     new CoercionReifier(library, rules).reify();
-
-    // Build the public namespace for this library. This allows us to do
-    // constant time lookups (contrast with `Element.getChild(name)`).
-    if (currentLibrary.publicNamespace == null) {
-      (currentLibrary as LibraryElementImpl).publicNamespace =
-          new PublicNamespaceBuilder().build(currentLibrary);
-    }
 
     library.library.directives.forEach(_visit);
 
@@ -1110,7 +1105,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
         return result === void 0 ? this : result;
       }''') as JS.Block;
     } else {
+      var savedFunction = _currentFunction;
+      _currentFunction = node.body;
       body = _emitConstructorBody(node, fields);
+      _currentFunction = savedFunction;
     }
 
     // We generate constructors as initializer methods in the class;
@@ -1590,39 +1588,24 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   }
 
   JS.ArrowFun _emitArrowFunction(FunctionExpression node) {
-    List<JS.Parameter> params;
+    JS.Fun f = _emitFunctionBody(node.element, node.parameters, node.body);
+    var body = f.body;
 
-    var body = node.body;
-    var type = node.element.type;
-
-    JS.Node jsBody;
-    if (body.isGenerator || body.isAsynchronous) {
-      params = visitFormalParameterList(node.parameters, destructure: false);
-      jsBody = _emitGeneratorFunctionBody(node.element, node.parameters, body);
-    } else {
-      params = visitFormalParameterList(node.parameters);
-
-      // Chrome Canary does not accept default values with destructuring in
-      // arrow functions yet (e.g. `({a} = {}) => 1`) but happily accepts them
-      // with regular functions (e.g. `function({a} = {}) { return 1 }`).
-      // Note that Firefox accepts both syntaxes just fine.
-      // TODO(ochafik): Simplify this code when Chrome Canary catches up.
-      bool destructureNamed = params.any((p) =>
-          p is JS.DestructuredVariable &&
-          p.structure is JS.ObjectBindingPattern);
-
-      if (body is ExpressionFunctionBody && !destructureNamed) {
-        // An arrow function can use the expression directly.
-        jsBody = _visit(body.expression);
-      } else {
-        jsBody = _visit(body);
+    // Simplify `=> { return e; }` to `=> e`
+    if (body is JS.Block) {
+      JS.Block block = body;
+      if (block.statements.length == 1) {
+        JS.Statement s = block.statements[0];
+        if (s is JS.Return) body = s.value;
       }
     }
 
-    var fn = new JS.ArrowFun(params, jsBody,
-        typeParams: _emitTypeFormals(type.typeFormals),
-        returnType: emitTypeRef(type.returnType));
-    return annotate(fn, node);
+    // Convert `function(...) { ... }` to `(...) => ...`
+    // This is for readability, but it also ensures correct `this` binding.
+    return annotate(
+        new JS.ArrowFun(f.params, body,
+            typeParams: f.typeParams, returnType: f.returnType),
+        node);
   }
 
   /// Emits a non-arrow FunctionExpression node.
@@ -2074,8 +2057,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
   @override
   JS.Block visitExpressionFunctionBody(ExpressionFunctionBody node) {
+    var savedFunction = _currentFunction;
+    _currentFunction = node;
     var initArgs = _emitArgumentInitializers(node.parent);
     var ret = new JS.Return(_visit(node.expression));
+    _currentFunction = savedFunction;
     return new JS.Block(initArgs != null ? [initArgs, ret] : [ret]);
   }
 
@@ -2084,9 +2070,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
   @override
   JS.Block visitBlockFunctionBody(BlockFunctionBody node) {
+    var savedFunction = _currentFunction;
+    _currentFunction = node;
     var initArgs = _emitArgumentInitializers(node.parent);
     var stmts = _visitList(node.block.statements) as List<JS.Statement>;
     if (initArgs != null) stmts.insert(0, initArgs);
+    _currentFunction = savedFunction;
     return new JS.Block(stmts);
   }
 
@@ -2821,7 +2810,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       Map<String, JS.Expression> scope, String name, Expression expr,
       {Expression context}) {
     // No need to do anything for stateless expressions.
-    if (isStateless(expr, context)) return expr;
+    if (isStateless(_currentFunction, expr, context)) return expr;
 
     var t = _createTemporary('#$name', getStaticType(expr));
     scope[name] = _visit(expr);
@@ -3407,7 +3396,10 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
           _visitList(node.elements) as List<JS.Expression>);
       ParameterizedType type = node.staticType;
       var elementType = type.typeArguments.single;
-      if (elementType != types.dynamicType) {
+      // TODO(jmesserly): analyzer will usually infer `List<Object>` because
+      // that is the least upper bound of the element types. So we rarely
+      // generate a plain `List<dynamic>` anymore.
+      if (!elementType.isDynamic) {
         // dart.list helper internally depends on _interceptors.JSArray.
         _loader.declareBeforeUse(_jsArray);
         list = js.call('dart.list(#, #)', [list, _emitTypeName(elementType)]);

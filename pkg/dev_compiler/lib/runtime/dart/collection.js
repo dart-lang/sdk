@@ -1363,7 +1363,10 @@ dart_library.library('dart/collection', null, /* Imports */[
       }
       addAll(entries) {
         dart.as(entries, core.Iterable$(E));
-        entries[dartx.forEach](dart.fn(entry => this[_insertAfter](this[_previous], entry), dart.void, [E]));
+        entries[dartx.forEach](dart.fn(entry => {
+          dart.as(entry, E);
+          return this[_insertAfter](this[_previous], entry);
+        }, dart.void, [E]));
       }
       remove(entry) {
         dart.as(entry, E);
@@ -4055,7 +4058,10 @@ dart_library.library('dart/collection', null, /* Imports */[
         return new (HashMapKeyIterable$(K))(this);
       }
       get values() {
-        return _internal.MappedIterable$(K, V).new(this.keys, dart.fn(each => this.get(each), V, [K]));
+        return _internal.MappedIterable$(K, V).new(this.keys, dart.fn(each => {
+          dart.as(each, K);
+          return this.get(each);
+        }, V, [K]));
       }
       containsKey(key) {
         if (dart.notNull(_HashMap$()._isStringKey(key))) {
@@ -4532,7 +4538,10 @@ dart_library.library('dart/collection', null, /* Imports */[
         return new (LinkedHashMapKeyIterable$(K))(this);
       }
       get values() {
-        return _internal.MappedIterable$(K, V).new(this.keys, dart.fn(each => this.get(each), V, [K]));
+        return _internal.MappedIterable$(K, V).new(this.keys, dart.fn(each => {
+          dart.as(each, K);
+          return this.get(each);
+        }, V, [K]));
       }
       containsKey(key) {
         if (dart.notNull(_LinkedHashMap$()._isStringKey(key))) {
@@ -4556,7 +4565,10 @@ dart_library.library('dart/collection', null, /* Imports */[
         return dart.notNull(this[_findBucketIndex](bucket, key)) >= 0;
       }
       containsValue(value) {
-        return this.keys[dartx.any](dart.fn(each => dart.equals(this.get(each), value), core.bool, [K]));
+        return this.keys[dartx.any](dart.fn(each => {
+          dart.as(each, K);
+          return dart.equals(this.get(each), value);
+        }, core.bool, [K]));
       }
       addAll(other) {
         dart.as(other, core.Map$(K, V));

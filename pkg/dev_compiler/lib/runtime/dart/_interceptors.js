@@ -141,7 +141,10 @@ dart_library.library('dart/_interceptors', null, /* Imports */[
       }
       [dartx.retainWhere](test) {
         dart.as(test, dart.functionType(core.bool, [E]));
-        _internal.IterableMixinWorkaround.removeWhereList(this, dart.fn(element => !dart.notNull(test(element)), core.bool, [E]));
+        _internal.IterableMixinWorkaround.removeWhereList(this, dart.fn(element => {
+          dart.as(element, E);
+          return !dart.notNull(test(element));
+        }, core.bool, [E]));
       }
       [dartx.where](f) {
         dart.as(f, dart.functionType(core.bool, [E]));

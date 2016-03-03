@@ -1931,7 +1931,7 @@ dart_library.library('dart/core', null, /* Imports */[
     }
     static parse(uri) {
       function isRegName(ch) {
-        return dart.notNull(ch) < 128 && !dart.equals(dart.dsend(Uri._regNameTable[dartx.get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0);
+        return dart.notNull(ch) < 128 && (dart.notNull(Uri._regNameTable[dartx.get](dart.notNull(ch) >> 4)) & 1 << (dart.notNull(ch) & 15)) != 0;
       }
       dart.fn(isRegName, bool, [int]);
       let EOI = -1;
@@ -2373,7 +2373,7 @@ dart_library.library('dart/core', null, /* Imports */[
       return Uri._normalizeRegName(host, start, end);
     }
     static _isRegNameChar(char) {
-      return dart.notNull(char) < 127 && !dart.equals(dart.dsend(Uri._regNameTable[dartx.get](dart.notNull(char) >> 4), '&', 1 << (dart.notNull(char) & 15)), 0);
+      return dart.notNull(char) < 127 && (dart.notNull(Uri._regNameTable[dartx.get](dart.notNull(char) >> 4)) & 1 << (dart.notNull(char) & 15)) != 0;
     }
     static _normalizeRegName(host, start, end) {
       let buffer = null;
@@ -2463,7 +2463,7 @@ dart_library.library('dart/core', null, /* Imports */[
     }
     static _makeUserInfo(userInfo, start, end) {
       if (userInfo == null) return "";
-      return Uri._normalize(userInfo, start, end, dart.as(Uri._userinfoTable, List$(int)));
+      return Uri._normalize(userInfo, start, end, Uri._userinfoTable);
     }
     static _makePath(path, start, end, pathSegments, ensureLeadingSlash, isFile) {
       if (path == null && pathSegments == null) return dart.notNull(isFile) ? "/" : "";
@@ -2472,9 +2472,9 @@ dart_library.library('dart/core', null, /* Imports */[
       }
       let result = null;
       if (path != null) {
-        result = Uri._normalize(path, start, end, dart.as(Uri._pathCharOrSlashTable, List$(int)));
+        result = Uri._normalize(path, start, end, Uri._pathCharOrSlashTable);
       } else {
-        result = pathSegments[dartx.map](dart.fn(s => Uri._uriEncode(dart.as(Uri._pathCharTable, List$(int)), s), String, [String]))[dartx.join]("/");
+        result = pathSegments[dartx.map](dart.fn(s => Uri._uriEncode(Uri._pathCharTable, s), String, [String]))[dartx.join]("/");
       }
       if (dart.notNull(dart.as(dart.dload(result, 'isEmpty'), bool))) {
         if (dart.notNull(isFile)) return "/";
@@ -2488,7 +2488,7 @@ dart_library.library('dart/core', null, /* Imports */[
       if (query != null && queryParameters != null) {
         dart.throw(new ArgumentError('Both query and queryParameters specified'));
       }
-      if (query != null) return Uri._normalize(query, start, end, dart.as(Uri._queryCharTable, List$(int)));
+      if (query != null) return Uri._normalize(query, start, end, Uri._queryCharTable);
       let result = new StringBuffer();
       let first = true;
       queryParameters[dartx.forEach](dart.fn((key, value) => {
@@ -2506,7 +2506,7 @@ dart_library.library('dart/core', null, /* Imports */[
     }
     static _makeFragment(fragment, start, end) {
       if (fragment == null) return null;
-      return Uri._normalize(fragment, start, end, dart.as(Uri._queryCharTable, List$(int)));
+      return Uri._normalize(fragment, start, end, Uri._queryCharTable);
     }
     static _stringOrNullLength(s) {
       return s == null ? 0 : s[dartx.length];
@@ -2545,7 +2545,7 @@ dart_library.library('dart/core', null, /* Imports */[
       return null;
     }
     static _isUnreservedChar(ch) {
-      return dart.notNull(ch) < 127 && !dart.equals(dart.dsend(Uri._unreservedTable[dartx.get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0);
+      return dart.notNull(ch) < 127 && (dart.notNull(Uri._unreservedTable[dartx.get](dart.notNull(ch) >> 4)) & 1 << (dart.notNull(ch) & 15)) != 0;
     }
     static _escapeChar(char) {
       dart.assert(dart.dsend(char, '<=', 1114111));
@@ -2634,10 +2634,10 @@ dart_library.library('dart/core', null, /* Imports */[
       return dart.toString(buffer);
     }
     static _isSchemeCharacter(ch) {
-      return dart.notNull(ch) < 128 && !dart.equals(dart.dsend(Uri._schemeTable[dartx.get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0);
+      return dart.notNull(ch) < 128 && (dart.notNull(Uri._schemeTable[dartx.get](dart.notNull(ch) >> 4)) & 1 << (dart.notNull(ch) & 15)) != 0;
     }
     static _isGeneralDelimiter(ch) {
-      return dart.notNull(ch) <= dart.notNull(Uri._RIGHT_BRACKET) && !dart.equals(dart.dsend(Uri._genDelimitersTable[dartx.get](dart.notNull(ch) >> 4), '&', 1 << (dart.notNull(ch) & 15)), 0);
+      return dart.notNull(ch) <= dart.notNull(Uri._RIGHT_BRACKET) && (dart.notNull(Uri._genDelimitersTable[dartx.get](dart.notNull(ch) >> 4)) & 1 << (dart.notNull(ch) & 15)) != 0;
     }
     get isAbsolute() {
       return this.scheme != "" && this.fragment == "";
@@ -2860,11 +2860,11 @@ dart_library.library('dart/core', null, /* Imports */[
       }
     }
     static encodeComponent(component) {
-      return Uri._uriEncode(dart.as(Uri._unreserved2396Table, List$(int)), component);
+      return Uri._uriEncode(Uri._unreserved2396Table, component);
     }
     static encodeQueryComponent(component, opts) {
       let encoding = opts && 'encoding' in opts ? opts.encoding : convert.UTF8;
-      return Uri._uriEncode(dart.as(Uri._unreservedTable, List$(int)), component, {encoding: encoding, spaceToPlus: true});
+      return Uri._uriEncode(Uri._unreservedTable, component, {encoding: encoding, spaceToPlus: true});
     }
     static decodeComponent(encodedComponent) {
       return Uri._uriDecode(encodedComponent);
@@ -2874,26 +2874,26 @@ dart_library.library('dart/core', null, /* Imports */[
       return Uri._uriDecode(encodedComponent, {plusToSpace: true, encoding: encoding});
     }
     static encodeFull(uri) {
-      return Uri._uriEncode(dart.as(Uri._encodeFullTable, List$(int)), uri);
+      return Uri._uriEncode(Uri._encodeFullTable, uri);
     }
     static decodeFull(uri) {
       return Uri._uriDecode(uri);
     }
     static splitQueryString(query, opts) {
       let encoding = opts && 'encoding' in opts ? opts.encoding : convert.UTF8;
-      return dart.as(query[dartx.split]("&")[dartx.fold](dart.map(), dart.fn((map, element) => {
+      return query[dartx.split]("&")[dartx.fold](dart.map(), dart.fn((map, element) => {
         let index = element[dartx.indexOf]("=");
         if (index == -1) {
           if (element != "") {
-            dart.dsetindex(map, Uri.decodeQueryComponent(element, {encoding: encoding}), "");
+            map[dartx.set](Uri.decodeQueryComponent(element, {encoding: encoding}), "");
           }
         } else if (index != 0) {
           let key = element[dartx.substring](0, index);
           let value = element[dartx.substring](dart.notNull(index) + 1);
-          dart.dsetindex(map, Uri.decodeQueryComponent(key, {encoding: encoding}), Uri.decodeQueryComponent(value, {encoding: encoding}));
+          map[dartx.set](Uri.decodeQueryComponent(key, {encoding: encoding}), Uri.decodeQueryComponent(value, {encoding: encoding}));
         }
         return map;
-      }, dart.dynamic, [dart.dynamic, String])), Map$(String, String));
+      }, Map$(String, String), [Map$(String, String), String]));
     }
     static parseIPv4Address(host) {
       function error(msg) {
@@ -2904,13 +2904,13 @@ dart_library.library('dart/core', null, /* Imports */[
       if (bytes[dartx.length] != 4) {
         error('IPv4 address should contain exactly 4 parts');
       }
-      return dart.as(bytes[dartx.map](dart.fn(byteString => {
+      return bytes[dartx.map](dart.fn(byteString => {
         let byte = int.parse(byteString);
         if (dart.notNull(byte) < 0 || dart.notNull(byte) > 255) {
           error('each part must be in the range of `0..255`');
         }
         return byte;
-      }, dart.dynamic, [String]))[dartx.toList](), List$(int));
+      }, int, [String]))[dartx.toList]();
     }
     static parseIPv6Address(host, start, end) {
       if (start === void 0) start = 0;
@@ -3176,18 +3176,44 @@ dart_library.library('dart/core', null, /* Imports */[
   Uri._LOWER_CASE_F = 102;
   Uri._LOWER_CASE_Z = 122;
   Uri._BAR = 124;
-  Uri._unreservedTable = dart.const([0, 0, 24576, 1023, 65534, 34815, 65534, 18431]);
-  Uri._unreserved2396Table = dart.const([0, 0, 26498, 1023, 65534, 34815, 65534, 18431]);
-  Uri._encodeFullTable = dart.const([0, 0, 65498, 45055, 65535, 34815, 65534, 18431]);
-  Uri._schemeTable = dart.const([0, 0, 26624, 1023, 65534, 2047, 65534, 2047]);
-  Uri._schemeLowerTable = dart.const([0, 0, 26624, 1023, 0, 0, 65534, 2047]);
-  Uri._subDelimitersTable = dart.const([0, 0, 32722, 11263, 65534, 34815, 65534, 18431]);
-  Uri._genDelimitersTable = dart.const([0, 0, 32776, 33792, 1, 10240, 0, 0]);
-  Uri._userinfoTable = dart.const([0, 0, 32722, 12287, 65534, 34815, 65534, 18431]);
-  Uri._regNameTable = dart.const([0, 0, 32754, 11263, 65534, 34815, 65534, 18431]);
-  Uri._pathCharTable = dart.const([0, 0, 32722, 12287, 65535, 34815, 65534, 18431]);
-  Uri._pathCharOrSlashTable = dart.const([0, 0, 65490, 12287, 65535, 34815, 65534, 18431]);
-  Uri._queryCharTable = dart.const([0, 0, 65490, 45055, 65535, 34815, 65534, 18431]);
+  dart.defineLazyProperties(Uri, {
+    get _unreservedTable() {
+      return dart.const(dart.list([0, 0, 24576, 1023, 65534, 34815, 65534, 18431], int));
+    },
+    get _unreserved2396Table() {
+      return dart.const(dart.list([0, 0, 26498, 1023, 65534, 34815, 65534, 18431], int));
+    },
+    get _encodeFullTable() {
+      return dart.const(dart.list([0, 0, 65498, 45055, 65535, 34815, 65534, 18431], int));
+    },
+    get _schemeTable() {
+      return dart.const(dart.list([0, 0, 26624, 1023, 65534, 2047, 65534, 2047], int));
+    },
+    get _schemeLowerTable() {
+      return dart.const(dart.list([0, 0, 26624, 1023, 0, 0, 65534, 2047], int));
+    },
+    get _subDelimitersTable() {
+      return dart.const(dart.list([0, 0, 32722, 11263, 65534, 34815, 65534, 18431], int));
+    },
+    get _genDelimitersTable() {
+      return dart.const(dart.list([0, 0, 32776, 33792, 1, 10240, 0, 0], int));
+    },
+    get _userinfoTable() {
+      return dart.const(dart.list([0, 0, 32722, 12287, 65534, 34815, 65534, 18431], int));
+    },
+    get _regNameTable() {
+      return dart.const(dart.list([0, 0, 32754, 11263, 65534, 34815, 65534, 18431], int));
+    },
+    get _pathCharTable() {
+      return dart.const(dart.list([0, 0, 32722, 12287, 65535, 34815, 65534, 18431], int));
+    },
+    get _pathCharOrSlashTable() {
+      return dart.const(dart.list([0, 0, 65490, 12287, 65535, 34815, 65534, 18431], int));
+    },
+    get _queryCharTable() {
+      return dart.const(dart.list([0, 0, 65490, 45055, 65535, 34815, 65534, 18431], int));
+    }
+  });
   function _symbolToString(symbol) {
     return _internal.Symbol.getName(dart.as(symbol, _internal.Symbol));
   }

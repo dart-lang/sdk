@@ -20,7 +20,8 @@ class A {
 }
 
 main() {
-  var foo = [42, 0];
+  // Strong mode change: add explicit <dynamic>
+  var foo = <dynamic>[42, 0];
   var a = new A();
   var bar = a..add(foo)('WHAT');
   a..foo[0] = new Object();

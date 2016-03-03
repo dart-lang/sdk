@@ -110,7 +110,7 @@ dart_library.library('dart/isolate', null, /* Imports */[
     }
     kill(priority) {
       if (priority === void 0) priority = Isolate.BEFORE_NEXT_EVENT;
-      this.controlPort.send(["kill", this.terminateCapability, priority]);
+      this.controlPort.send(dart.list(["kill", this.terminateCapability, priority], core.Object));
     }
     ping(responsePort, pingType) {
       if (pingType === void 0) pingType = Isolate.IMMEDIATE;

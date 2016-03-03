@@ -1613,7 +1613,7 @@ dart_library.library('dart/html', null, /* Imports */[
   Element._parseRange = null;
   Element._defaultValidator = null;
   Element._defaultSanitizer = null;
-  Element._tagsForWhichCreateContextualFragmentIsNotSupported = dart.const(['HEAD', 'AREA', 'BASE', 'BASEFONT', 'BR', 'COL', 'COLGROUP', 'EMBED', 'FRAME', 'FRAMESET', 'HR', 'IMAGE', 'IMG', 'INPUT', 'ISINDEX', 'LINK', 'META', 'PARAM', 'SOURCE', 'STYLE', 'TITLE', 'WBR']);
+  Element._tagsForWhichCreateContextualFragmentIsNotSupported = dart.const(dart.list(['HEAD', 'AREA', 'BASE', 'BASEFONT', 'BR', 'COL', 'COLGROUP', 'EMBED', 'FRAME', 'FRAMESET', 'HR', 'IMAGE', 'IMG', 'INPUT', 'ISINDEX', 'LINK', 'META', 'PARAM', 'SOURCE', 'STYLE', 'TITLE', 'WBR'], core.String));
   dart.defineLazyProperties(Element, {
     get mouseWheelEvent() {
       return dart.const(new (_CustomEventStreamProvider$(WheelEvent))(Element._determineMouseWheelEventType));
@@ -9546,7 +9546,7 @@ dart_library.library('dart/html', null, /* Imports */[
     _CssStyleDeclarationSet(elementIterable) {
       this[_elementIterable] = elementIterable;
       this[_elementCssStyleDeclarationSetIterable] = null;
-      this[_elementCssStyleDeclarationSetIterable] = dart.as(core.List.from(this[_elementIterable])[dartx.map](dart.fn(e => dart.dload(e, 'style'))), core.Iterable$(CssStyleDeclaration));
+      this[_elementCssStyleDeclarationSetIterable] = core.List.from(this[_elementIterable])[dartx.map](dart.fn(e => dart.as(dart.dload(e, 'style'), CssStyleDeclaration), CssStyleDeclaration, [dart.dynamic]));
     }
     getPropertyValue(propertyName) {
       return this[_elementCssStyleDeclarationSetIterable][dartx.first][dartx.getPropertyValue](propertyName);
@@ -16147,9 +16147,7 @@ dart_library.library('dart/html', null, /* Imports */[
       let method = opts && 'method' in opts ? opts.method : null;
       let sendData = opts && 'sendData' in opts ? opts.sendData : null;
       if (dart.notNull(HttpRequest.supportsCrossOrigin)) {
-        return dart.as(HttpRequest.request(url, {method: method, sendData: sendData}).then(dart.fn(xhr => {
-          return xhr[dartx.responseText];
-        }, dart.dynamic, [HttpRequest])), async.Future$(core.String));
+        return HttpRequest.request(url, {method: method, sendData: sendData}).then(dart.fn(xhr => xhr[dartx.responseText], core.String, [HttpRequest]));
       }
       let completer = async.Completer$(core.String).new();
       if (method == null) {
@@ -23028,7 +23026,7 @@ dart_library.library('dart/html', null, /* Imports */[
     }
     static get supported() {
       try {
-        RtcPeerConnection.new(dart.map({iceServers: [dart.map({url: "stun:localhost"})]}));
+        RtcPeerConnection.new(dart.map({iceServers: dart.list([dart.map({url: "stun:localhost"})], core.Map$(core.String, core.String))}));
         return true;
       } catch (_) {
         return false;
@@ -31468,10 +31466,10 @@ dart_library.library('dart/html', null, /* Imports */[
       super.CssRect(dart.as(element, Element));
     }
     get height() {
-      return dart.notNull(this[_element][dartx.offsetHeight]) + dart.notNull(this[_addOrSubtractToBoxModel](dart.as(exports._HEIGHT, core.List$(core.String)), exports._CONTENT));
+      return dart.notNull(this[_element][dartx.offsetHeight]) + dart.notNull(this[_addOrSubtractToBoxModel](exports._HEIGHT, exports._CONTENT));
     }
     get width() {
-      return dart.notNull(this[_element][dartx.offsetWidth]) + dart.notNull(this[_addOrSubtractToBoxModel](dart.as(exports._WIDTH, core.List$(core.String)), exports._CONTENT));
+      return dart.notNull(this[_element][dartx.offsetWidth]) + dart.notNull(this[_addOrSubtractToBoxModel](exports._WIDTH, exports._CONTENT));
     }
     set height(newHeight) {
       if (dart.is(newHeight, Dimension)) {
@@ -31524,10 +31522,10 @@ dart_library.library('dart/html', null, /* Imports */[
       super.CssRect(dart.as(element, Element));
     }
     get height() {
-      return dart.notNull(this[_element][dartx.offsetHeight]) + dart.notNull(this[_addOrSubtractToBoxModel](dart.as(exports._HEIGHT, core.List$(core.String)), exports._PADDING));
+      return dart.notNull(this[_element][dartx.offsetHeight]) + dart.notNull(this[_addOrSubtractToBoxModel](exports._HEIGHT, exports._PADDING));
     }
     get width() {
-      return dart.notNull(this[_element][dartx.offsetWidth]) + dart.notNull(this[_addOrSubtractToBoxModel](dart.as(exports._WIDTH, core.List$(core.String)), exports._PADDING));
+      return dart.notNull(this[_element][dartx.offsetWidth]) + dart.notNull(this[_addOrSubtractToBoxModel](exports._WIDTH, exports._PADDING));
     }
     get left() {
       return dart.as(dart.dsend(this[_element][dartx.getBoundingClientRect]()[dartx.left], '-', this[_addOrSubtractToBoxModel](dart.list(['left'], core.String), exports._PADDING)), core.num);
@@ -31566,10 +31564,10 @@ dart_library.library('dart/html', null, /* Imports */[
       super.CssRect(dart.as(element, Element));
     }
     get height() {
-      return dart.notNull(this[_element][dartx.offsetHeight]) + dart.notNull(this[_addOrSubtractToBoxModel](dart.as(exports._HEIGHT, core.List$(core.String)), exports._MARGIN));
+      return dart.notNull(this[_element][dartx.offsetHeight]) + dart.notNull(this[_addOrSubtractToBoxModel](exports._HEIGHT, exports._MARGIN));
     }
     get width() {
-      return dart.notNull(this[_element][dartx.offsetWidth]) + dart.notNull(this[_addOrSubtractToBoxModel](dart.as(exports._WIDTH, core.List$(core.String)), exports._MARGIN));
+      return dart.notNull(this[_element][dartx.offsetWidth]) + dart.notNull(this[_addOrSubtractToBoxModel](exports._WIDTH, exports._MARGIN));
     }
     get left() {
       return dart.as(dart.dsend(this[_element][dartx.getBoundingClientRect]()[dartx.left], '-', this[_addOrSubtractToBoxModel](dart.list(['left'], core.String), exports._MARGIN)), core.num);
@@ -31584,12 +31582,12 @@ dart_library.library('dart/html', null, /* Imports */[
   dart.defineExtensionMembers(_MarginCssRect, ['height', 'width', 'left', 'top']);
   dart.defineLazyProperties(exports, {
     get _HEIGHT() {
-      return ['top', 'bottom'];
+      return dart.list(['top', 'bottom'], core.String);
     }
   });
   dart.defineLazyProperties(exports, {
     get _WIDTH() {
-      return ['right', 'left'];
+      return dart.list(['right', 'left'], core.String);
     }
   });
   exports._CONTENT = 'content';
@@ -31986,11 +31984,14 @@ dart_library.library('dart/html', null, /* Imports */[
         super._EventStream(dart.as(target, EventTarget), dart.as(eventType, core.String), dart.as(useCapture, core.bool));
       }
       matches(selector) {
-        return dart.as(this.where(dart.fn(event => dart.as(dart.dcall(event[dartx.target][dartx.matchesWithAncestors], selector), core.bool), core.bool, [T])).map(dart.fn(e => {
+        return this.where(dart.fn(event => {
+          dart.as(event, T);
+          return dart.as(dart.dcall(event[dartx.target][dartx.matchesWithAncestors], selector), core.bool);
+        }, core.bool, [T])).map(dart.fn(e => {
           dart.as(e, T);
           e[_selector] = selector;
           return e;
-        }, dart.dynamic, [T])), async.Stream$(T));
+        }, T, [T]));
       }
       capture(onData) {
         dart.as(onData, dart.functionType(dart.void, [T]));
@@ -32018,11 +32019,14 @@ dart_library.library('dart/html', null, /* Imports */[
         super.Stream();
       }
       matches(selector) {
-        return dart.as(this.where(dart.fn(event => dart.as(dart.dcall(event[dartx.target][dartx.matchesWithAncestors], selector), core.bool), core.bool, [T])).map(dart.fn(e => {
+        return this.where(dart.fn(event => {
+          dart.as(event, T);
+          return dart.as(dart.dcall(event[dartx.target][dartx.matchesWithAncestors], selector), core.bool);
+        }, core.bool, [T])).map(dart.fn(e => {
           dart.as(e, T);
           e[_selector] = selector;
           return e;
-        }, dart.dynamic, [T])), async.Stream$(T));
+        }, T, [T]));
       }
       listen(onData, opts) {
         dart.as(onData, dart.functionType(dart.void, [T]));

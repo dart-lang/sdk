@@ -531,7 +531,7 @@ dart_library.library('dart/_debugger', null, /* Imports */[
     })
   });
   function registerDevtoolsFormatter() {
-    let formatters = [exports._devtoolsFormatter];
+    let formatters = dart.list([exports._devtoolsFormatter], JsonMLFormatter);
     dart.global.devtoolsFormatters = formatters;
   }
   dart.fn(registerDevtoolsFormatter);

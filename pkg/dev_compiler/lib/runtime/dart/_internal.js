@@ -2292,7 +2292,11 @@ dart_library.library('dart/_internal', null, /* Imports */[
       return core.RegExp.new(`^(?:${Symbol.operatorRE}\$|${Symbol.identifierRE}(?:=?\$|[.](?!\$)))+?\$`);
     }
   });
-  const POWERS_OF_TEN = dart.const([1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, 10000000.0, 100000000.0, 1000000000.0, 10000000000.0, 100000000000.0, 1000000000000.0, 10000000000000.0, 100000000000000.0, 1000000000000000.0, 10000000000000000.0, 100000000000000000.0, 1000000000000000000.0, 10000000000000000000.0, 100000000000000000000.0, 1e+21, 1e+22]);
+  dart.defineLazyProperties(exports, {
+    get POWERS_OF_TEN() {
+      return dart.const(dart.list([1.0, 10.0, 100.0, 1000.0, 10000.0, 100000.0, 1000000.0, 10000000.0, 100000000.0, 1000000000.0, 10000000000.0, 100000000000.0, 1000000000000.0, 10000000000000.0, 100000000000000.0, 1000000000000000.0, 10000000000000000.0, 100000000000000000.0, 1000000000000000000.0, 10000000000000000000.0, 100000000000000000000.0, 1e+21, 1e+22], core.double));
+    }
+  });
   // Exports:
   exports.EfficientLength = EfficientLength;
   exports.ListIterable$ = ListIterable$;
@@ -2365,5 +2369,4 @@ dart_library.library('dart/_internal', null, /* Imports */[
   exports.printToConsole = printToConsole;
   exports.Sort = Sort;
   exports.Symbol = Symbol;
-  exports.POWERS_OF_TEN = POWERS_OF_TEN;
 });

@@ -30,10 +30,10 @@ import 'package:analyzer/src/generated/source.dart' show Source;
 /// certain the [node] is stateless, because generated code may rely on the
 /// correctness of a `true` value. However it may return `false` for things
 /// that are in fact, stateless.
-bool isStateless(Expression node, [AstNode context]) {
+bool isStateless(FunctionBody function, Expression node, [AstNode context]) {
   // `this` and `super` cannot be reassigned.
   if (node is ThisExpression || node is SuperExpression) return true;
-  if (node is SimpleIdentifier) {
+  if (node is Identifier) {
     var e = node.staticElement;
     if (e is PropertyAccessorElement) {
       e = e.variable;
@@ -42,7 +42,7 @@ bool isStateless(Expression node, [AstNode context]) {
       if (e.isFinal) return true;
       if (e is LocalVariableElement || e is ParameterElement) {
         // make sure the local isn't mutated in the context.
-        return !_isPotentiallyMutated(e, context);
+        return !_isPotentiallyMutated(function, e, context);
       }
     }
   }
@@ -51,9 +51,9 @@ bool isStateless(Expression node, [AstNode context]) {
 
 /// Returns true if the local variable is potentially mutated within [context].
 /// This accounts for closures that may have been created outside of [context].
-bool _isPotentiallyMutated(VariableElement e, [AstNode context]) {
-  if (e.isPotentiallyMutatedInClosure) return true;
-  if (e.isPotentiallyMutatedInScope) {
+bool _isPotentiallyMutated(FunctionBody function, VariableElement e, [AstNode context]) {
+  if (function.isPotentiallyMutatedInClosure(e)) return true;
+  if (function.isPotentiallyMutatedInScope(e)) {
     // Need to visit the context looking for assignment to this local.
     if (context != null) {
       var visitor = new _AssignmentFinder(e);
