@@ -15,7 +15,7 @@ by emailing our [list][].
 
 ## Configuring the analyzer
 
-Both the dartanalyzer and Dart Analysis Server can be configured
+Both `dartanalyzer` and Dart Analysis Server can be configured
 with a `.analysis_options` file. This YAML file can control which files
 and paths are analyzed, which lints are applied, and more.
 
@@ -25,14 +25,14 @@ and configuring the analyzer.
 
 The `.analysis_options` file should live
 at the root of your project (for example, next to your `pubspec.yaml`).
-Different embedders of analyzer, such as dartanalyzer or Dart Analysis Server,
+Different embedders of analyzer, such as `dartanalyzer` or Dart Analysis Server,
 may choose to find the file in various different ways. Consult their
 documentation to learn more.
 
 Here is an example file that instructs the analyzer
 to ignore two files:
 
-```
+```yaml
 analyzer:
   exclude:
     - test/_data/p4/lib/lib1.dart
@@ -45,14 +45,14 @@ Note that you can use globs, as defined by the [glob package][glob].
 
 Here is an example file that enables the analyzer's [strong mode][strongmode]:
 
-```
+```yaml
 analyzer:
   strong-mode: true
 ```
 
 Here is an example file that enables two lint rules:
 
-```
+```yaml
 linter:
   rules:
     - camel_case_types
@@ -64,7 +64,7 @@ Check out all the available [Dart lint rules][lintrules].
 You can combine the `analyzer` section and the `linter` section into a single
 configuration. Here is an example:
 
-```
+```yaml
 analyzer:
   exclude:
     - test/_data/p4/lib/lib1.dart
@@ -77,17 +77,16 @@ linter:
 
 Many tools embed this library, such as:
 
-* dartfmt - a formatter for Dart code
-* dartdoc - a documentation generator for Dart code
-* Dart Analysis Server - a stateful server that supports IDEs and editors
+* [dartfmt] - a formatter for Dart code
+* [dartdoc] - a documentation generator for Dart code
+* [Dart Analysis Server][analysis_sever] - a stateful server that supports IDEs and editors
 
 ## Support
 
-Questions and requests for additional functionality are welcome.
-Please open an issue at
-[http://dartbug.com](http://dartbug.com)
-or by email
-[analyzer-discuss@dartlang.org][list].
+Post issues and feature requests at https://github.com/dart-lang/sdk/issues
+
+Questions and discussions are welcome at the
+[Dart Analyzer Discussion Group][list].
 
 ## Background
 
@@ -103,11 +102,15 @@ this causes for our clients, but some pain is inevitable.
 
 ## License
 
-See the LICENSE file.
+See the [LICENSE] file.
 
-[serverapi]: http://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/master/pkg/analysis_server/doc/api.html
-[analyzercli]: https://github.com/dart-lang/analyzer_cli
+[serverapi]: https://htmlpreview.github.io/?https://github.com/dart-lang/sdk/blob/master/pkg/analysis_server/doc/api.html
+[analyzercli]: https://github.com/dart-lang/sdk/tree/master/pkg/analyzer_cli
 [list]: https://groups.google.com/a/dartlang.org/forum/#!forum/analyzer-discuss
 [lintrules]: http://dart-lang.github.io/linter/lints/
 [strongmode]: https://github.com/dart-lang/dev_compiler/blob/master/STRONG_MODE.md
 [glob]: https://pub.dartlang.org/packages/glob
+[LICENSE]: https://github.com/dart-lang/sdk/blob/master/pkg/analyzer/LICENSE
+[dartfmt]: https://github.com/dart-lang/dart_style
+[dartdoc]: https://github.com/dart-lang/dartdoc
+[analysis_sever]: https://github.com/dart-lang/sdk/tree/master/pkg/analysis_server
