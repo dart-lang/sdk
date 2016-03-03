@@ -394,6 +394,7 @@ class AnimationEffectTiming extends Interceptor {
   @DomName('AnimationEffectTiming.duration')
   @DocsEditable()
   @Experimental() // untriaged
+  @Creates('Null')
   Object duration;
 
   @DomName('AnimationEffectTiming.easing')
@@ -3763,6 +3764,7 @@ class CryptoKey extends Interceptor {
   @DomName('CryptoKey.algorithm')
   @DocsEditable()
   @Experimental() // untriaged
+  @Creates('Null')
   final Object algorithm;
 
   @DomName('CryptoKey.extractable')
@@ -4178,6 +4180,7 @@ class CssStyleDeclaration  extends Interceptor with
   @DomName('CSSStyleDeclaration.__getter__')
   @DocsEditable()
   @Experimental() // untriaged
+  @Creates('Null')
   Object __getter__(String name) native;
 
   @DomName('CSSStyleDeclaration.__setter__')
@@ -29912,6 +29915,8 @@ class ServiceWorkerMessageEvent extends Event {
   @DomName('ServiceWorkerMessageEvent.data')
   @DocsEditable()
   @Experimental() // untriaged
+  // TODO(jacobr): we need to actually convert to a SerializedScriptValue
+  @Creates('=Object')
   final Object data;
 
   @DomName('ServiceWorkerMessageEvent.lastEventId')
@@ -29932,6 +29937,9 @@ class ServiceWorkerMessageEvent extends Event {
   @DomName('ServiceWorkerMessageEvent.source')
   @DocsEditable()
   @Experimental() // untriaged
+  // TODO(jacobr): this isn't quite right.
+  @Creates('Null')
+  @Returns('EventTarget|=Object')
   final Object source;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -34139,12 +34147,12 @@ class VttCue extends TextTrackCue {
   @DomName('VTTCue.line')
   @DocsEditable()
   @Experimental() // untriaged
-  Object line;
+  num line;
 
   @DomName('VTTCue.position')
   @DocsEditable()
   @Experimental() // untriaged
-  Object position;
+  num position;
 
   @DomName('VTTCue.regionId')
   @DocsEditable()
