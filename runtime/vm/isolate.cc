@@ -1950,7 +1950,13 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   jsobj.AddProperty("pauseOnExit", message_handler()->should_pause_on_exit());
 
   if (debugger() != NULL) {
-    if (message_handler()->is_paused_on_start()) {
+    if (!is_runnable()) {
+      // Isolate is not yet runnable.
+      ASSERT(debugger()->PauseEvent() == NULL);
+      ServiceEvent pause_event(this, ServiceEvent::kNone);
+      jsobj.AddProperty("pauseEvent", &pause_event);
+    } else if (message_handler()->is_paused_on_start() ||
+               message_handler()->should_pause_on_start()) {
       ASSERT(debugger()->PauseEvent() == NULL);
       ServiceEvent pause_event(this, ServiceEvent::kPauseStart);
       jsobj.AddProperty("pauseEvent", &pause_event);

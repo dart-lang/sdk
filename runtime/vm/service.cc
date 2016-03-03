@@ -3014,6 +3014,16 @@ static bool Resume(Thread* thread, JSONStream* js) {
     PrintSuccess(js);
     return true;
   }
+  if (isolate->message_handler()->should_pause_on_start()) {
+    isolate->message_handler()->set_should_pause_on_start(false);
+    isolate->SetResumeRequest();
+    if (Service::debug_stream.enabled()) {
+      ServiceEvent event(isolate, ServiceEvent::kResume);
+      Service::HandleEvent(&event);
+    }
+    PrintSuccess(js);
+    return true;
+  }
   if (isolate->message_handler()->is_paused_on_exit()) {
     isolate->message_handler()->set_should_pause_on_exit(false);
     isolate->SetResumeRequest();

@@ -769,7 +769,7 @@ streamId | event types provided
 -------- | -----------
 VM | VMUpdate
 Isolate | IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate, ServiceExtensionAdded
-Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect
+Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect, None
 GC | GC
 Extension | Extension
 
@@ -1270,6 +1270,10 @@ enum EventKind {
 
   // An isolate has started or resumed execution.
   Resume,
+
+  // Indicates an isolate is not yet runnable. Only appears in an Isolate's
+  // pauseEvent. Never sent over a stream.
+  None,
 
   // A breakpoint has been added for an isolate.
   BreakpointAdded,

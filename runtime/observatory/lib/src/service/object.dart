@@ -1512,6 +1512,7 @@ class Isolate extends ServiceObjectOwner {
       case ServiceEvent.kPauseBreakpoint:
       case ServiceEvent.kPauseInterrupted:
       case ServiceEvent.kPauseException:
+      case ServiceEvent.kNone:
       case ServiceEvent.kResume:
         assert((pauseEvent == null) ||
                !event.timestamp.isBefore(pauseEvent.timestamp));
@@ -1821,6 +1822,7 @@ class ServiceEvent extends ServiceObject {
   static const kPauseBreakpoint        = 'PauseBreakpoint';
   static const kPauseInterrupted       = 'PauseInterrupted';
   static const kPauseException         = 'PauseException';
+  static const kNone                   = 'None';
   static const kResume                 = 'Resume';
   static const kBreakpointAdded        = 'BreakpointAdded';
   static const kBreakpointResolved     = 'BreakpointResolved';
@@ -1863,7 +1865,8 @@ class ServiceEvent extends ServiceObject {
             kind == kPauseExit ||
             kind == kPauseBreakpoint ||
             kind == kPauseInterrupted ||
-            kind == kPauseException);
+            kind == kPauseException ||
+            kind == kNone);
   }
 
   void _update(ObservableMap map, bool mapIsRef) {

@@ -28,6 +28,7 @@ class ServiceEvent {
     kPauseBreakpoint,
     kPauseInterrupted,
     kPauseException,
+    kNone,               // isolate has not been made runnable yet.
     kResume,
     kBreakpointAdded,
     kBreakpointResolved,
