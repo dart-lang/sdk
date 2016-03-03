@@ -1990,13 +1990,17 @@ class FixProcessor {
         }
         ClassElement targetClassElement = targetType.element as ClassElement;
         targetElement = targetClassElement;
-        // may be static
+        // prepare target ClassDeclaration
+        AstNode targetTypeNode = getParsedClassElementNode(targetClassElement);
+        if (targetTypeNode is! ClassDeclaration) {
+          return;
+        }
+        ClassDeclaration targetClassNode = targetTypeNode;
+        // maybe static
         if (target is Identifier) {
           staticModifier = target.bestElement.kind == ElementKind.CLASS;
         }
         // prepare insert offset
-        ClassDeclaration targetClassNode =
-            getParsedClassElementNode(targetClassElement);
         prefix = '  ';
         insertOffset = targetClassNode.end - 1;
         if (targetClassNode.members.isEmpty) {
