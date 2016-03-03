@@ -1278,6 +1278,14 @@ class AnalysisServer {
         // Protocol parsing should have ensured that we never get here.
         throw new AnalysisException('Illegal change type');
       }
+
+      AnalysisContext containingContext = getContainingContext(file);
+
+      // Check for an implicitly added but missing source.
+      // (For example, the target of an import might not exist yet.)
+      // We need to do this before setContents, which changes the stamp.
+      bool wasMissing = containingContext?.getModificationStamp(source) == -1;
+
       overlayState.setContents(source, newContents);
       // If the source does not exist, then it was an overlay-only one.
       // Remove it from contexts.
@@ -1297,6 +1305,11 @@ class AnalysisServer {
         List<Source> sources = context.getSourcesWithFullName(file);
         sources.forEach((Source source) {
           anyContextUpdated = true;
+          if (context == containingContext && wasMissing) {
+            // Promote missing source to an explicitly added Source.
+            context.applyChanges(new ChangeSet()..addedSource(source));
+            schedulePerformAnalysisOperation(context);
+          }
           if (context.handleContentsChanged(
               source, oldContents, newContents, true)) {
             schedulePerformAnalysisOperation(context);
