@@ -1030,11 +1030,12 @@ void Service::HandleEvent(ServiceEvent* event) {
     params.AddProperty("streamId", stream_id);
     params.AddProperty("event", event);
   }
-  PostEvent(stream_id, event->KindAsCString(), &js);
+  PostEvent(event->isolate(), stream_id, event->KindAsCString(), &js);
 }
 
 
-void Service::PostEvent(const char* stream_id,
+void Service::PostEvent(Isolate* isolate,
+                        const char* stream_id,
                         const char* kind,
                         JSONStream* event) {
   ASSERT(stream_id != NULL);
@@ -1063,7 +1064,6 @@ void Service::PostEvent(const char* stream_id,
   list_values[1] = &json_cobj;
 
   if (FLAG_trace_service) {
-    Isolate* isolate = Isolate::Current();
     const char* isolate_name = "<no current isolate>";
     if (isolate != NULL) {
       isolate_name = isolate->name();

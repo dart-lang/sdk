@@ -184,7 +184,8 @@ class Service : public AllStatic {
                                 const uint8_t* data,
                                 intptr_t size);
 
-  static void PostEvent(const char* stream_id,
+  static void PostEvent(Isolate* isolate,
+                        const char* stream_id,
                         const char* kind,
                         JSONStream* event);
 

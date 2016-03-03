@@ -275,37 +275,39 @@ class _ServiceTesterRunner {
       serviceWebsocketAddress = 'ws://localhost:$port/ws';
       serviceHttpAddress = 'http://localhost:$port';
       var name = Platform.script.pathSegments.last;
-      runZoned(() {
-        new WebSocketVM(new WebSocketVMTarget(serviceWebsocketAddress)).load()
-            .then((VM vm) async {
+      runZoned(() async {
+        var vm =
+            new WebSocketVM(new WebSocketVMTarget(serviceWebsocketAddress));
+        print('Loading VM...');
+        await vm.load();
+        print('Done loading VM');
 
-              // Run vm tests.
-              if (vmTests != null) {
-                var testIndex = 1;
-                var totalTests = vmTests.length;
-                for (var test in vmTests) {
-                  vm.verbose = verbose_vm;
-                  print('Running $name [$testIndex/$totalTests]');
-                  testIndex++;
-                  await test(vm);
-                }
-              }
+        // Run vm tests.
+        if (vmTests != null) {
+          var testIndex = 1;
+          var totalTests = vmTests.length;
+          for (var test in vmTests) {
+            vm.verbose = verbose_vm;
+            print('Running $name [$testIndex/$totalTests]');
+            testIndex++;
+            await test(vm);
+          }
+        }
 
-              // Run isolate tests.
-              if (isolateTests != null) {
-                var isolate = await vm.isolates.first.load();
-                var testIndex = 1;
-                var totalTests = isolateTests.length;
-                for (var test in isolateTests) {
-                  vm.verbose = verbose_vm;
-                  print('Running $name [$testIndex/$totalTests]');
-                  testIndex++;
-                  await test(isolate);
-                }
-              }
+        // Run isolate tests.
+        if (isolateTests != null) {
+          var isolate = await vm.isolates.first.load();
+          var testIndex = 1;
+          var totalTests = isolateTests.length;
+          for (var test in isolateTests) {
+            vm.verbose = verbose_vm;
+            print('Running $name [$testIndex/$totalTests]');
+            testIndex++;
+            await test(isolate);
+          }
+        }
 
-              await process.requestExit();
-            });
+        await process.requestExit();
       }, onError: (e, st) {
         process.requestExit();
         if (!_isWebSocketDisconnect(e)) {
