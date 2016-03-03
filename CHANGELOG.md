@@ -35,6 +35,11 @@
     `SecurityContext.usePrivateKeyBytes`, for use as the password for PKCS12
     data.
 
+### Service protocol changes
+
+* Fixed a documentation bug where the field `extensionRPCs` in `Isolate`
+  was not marked optional.
+
 ## 1.14.2 - 2016-02-09
 
 * Fixes a bug where pub would download packages from pub.dartlang.org even when
