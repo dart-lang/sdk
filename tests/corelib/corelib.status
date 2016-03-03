@@ -192,8 +192,10 @@ package_resource_test: Crash # Issue 25911
 stacktrace_current_test: Pass, RuntimeError
 error_stack_trace1_test: Pass, RuntimeError
 
+[ $noopt || $compiler == precompiler || $mode == product ]
+apply3_test: SkipByDesign # Imports dart:mirrors
+
 [ $noopt || $compiler == precompiler ]
-apply3_test: CompileTimeError # Imports dart:mirrors
 regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter
 big_integer_huge_mul_vm_test: Pass, Timeout # --no_intrinsify
 big_integer_parsed_mul_div_vm_test: Pass, Timeout # --no_intrinsify
@@ -202,4 +204,3 @@ int_parse_radix_test: Pass, Timeout # --no_intrinsify
 [ $runtime == dart_product ]
 data_resource_test: Skip # Resolve URI not supported yet in product mode.
 package_resource_test: Skip # Resolve URI not supported yet in product mode.
-apply3_test: SkipByDesign # Imports dart:mirrors

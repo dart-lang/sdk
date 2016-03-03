@@ -124,7 +124,7 @@ stacktrace_rethrow_error_test: Pass, RuntimeError
 stacktrace_rethrow_nonerror_test: Pass, RuntimeError
 stacktrace_test: Pass, RuntimeError
 
-[ $noopt || $compiler == precompiler || $runtime == dart_product ]
+[ $noopt || $compiler == precompiler || $mode == product ]
 # Imports dart:mirrors
 const_evaluation_test: SkipByDesign
 deferred_constraints_constants_test: SkipByDesign

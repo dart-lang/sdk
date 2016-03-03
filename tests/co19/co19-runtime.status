@@ -142,8 +142,21 @@ Language/Errors_and_Warnings/static_warning_t04: RuntimeError # co19 issue 45
 Language/Errors_and_Warnings/static_warning_t05: RuntimeError # co19 issue 45
 Language/Errors_and_Warnings/static_warning_t06: RuntimeError # co19 issue 45
 
-[ $noopt || $compiler == precompiler ]
+[ $noopt || $compiler == precompiler || $mode == product ]
 Language/Metadata/*: SkipByDesign # Uses dart:mirrors
+
+[ $runtime == dart_precompiled || $runtime == dart_product ]
+LibTest/isolate/Isolate/spawnUri*: Skip # Isolate.spawnUri
+
+[ $runtime == dart_precompiled ]
+Language/Expressions/Constants/identifier_denotes_a_constant_t05: Crash # Issue 25892
+Language/Expressions/Constants/static_method_t01: Crash # Issue 25892
+
+[ $noopt || $compiler == precompiler ]
+LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Timeout
+LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Timeout
+LibTest/core/Map/Map_class_A01_t04: Pass, Timeout
+LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Timeout
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Timeout
 LibTest/core/Map/Map_class_A01_t04: Pass, Timeout
@@ -151,15 +164,6 @@ LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Timeout
 Language/Mixins/Mixin_Application/error_t01: Pass
 Language/Mixins/Mixin_Application/error_t02: Pass
 Language/Mixins/declaring_constructor_t01: Pass
-
-[ $runtime == dart_precompiled ]
-LibTest/isolate/Isolate/spawnUri*: RuntimeError # Isolate.spawnUri
-Language/Expressions/Constants/identifier_denotes_a_constant_t05: Crash # Issue 25892
-Language/Expressions/Constants/static_method_t01: Crash # Issue 25892
-
-[ $runtime == dart_product ]
-LibTest/isolate/Isolate/spawnUri*: Skip # Isolate.spawnUri
-Language/Metadata/*: SkipByDesign # Uses dart:mirrors
 
 [ $runtime == vm && $mode == product ]
 LibTest/typed_data/Float32List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.

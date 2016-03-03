@@ -354,11 +354,9 @@ async/dart2js_uncaught_error_test: Skip  # JS-integration only test
 [ $noopt && $arch == simarm64 ]
 async/slow_consumer2_test: Pass, RuntimeError # Issue 25726
 
-[ $noopt || $compiler == precompiler ]
+[ $noopt || $compiler == precompiler || $mode == product ]
 mirrors/*: SkipByDesign
+
+[ $noopt || $compiler == precompiler ]
 convert/chunked_conversion_utf88_test: Pass, Timeout
 convert/utf85_test: Pass, Timeout
-
-[ $runtime == vm && $mode == product ]
-mirrors/mirrors_reader_test: Fail,OK  # Expects exact type name.
-

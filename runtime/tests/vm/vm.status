@@ -84,7 +84,7 @@ cc/CodeImmutability: Fail,OK # Address Sanitizer turns a crash into a failure.
 [ $noopt ]
 dart/byte_array_test: Crash # Incompatible flag --disable_alloc_stubs_after_gc
 
-[ $noopt || $compiler == precompiler || $compiler == dart2app ]
+[ $noopt || $compiler == precompiler || $mode == product ]
 dart/redirection_type_shuffling_test: CompileTimeError # Imports dart:mirrors
 
 [ $noopt || $runtime == dart_precompiled ]

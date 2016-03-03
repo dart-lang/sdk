@@ -139,7 +139,7 @@ package_resolve_test: SkipByDesign  # Uses Isolate.resolvePackageUri
 spawn_uri_fail_test: SkipByDesign  # Uses dart:io.
 scenarios/*: SkipByDesign  # Use automatic package resolution, spawnFunction and .dart URIs.
 
-[ $noopt || $compiler == precompiler || $runtime == dart_product ]
+[ $noopt || $compiler == precompiler || $mode == product ]
 # Imports dart:mirrors
 count_test: SkipByDesign
 cross_isolate_message_test: SkipByDesign

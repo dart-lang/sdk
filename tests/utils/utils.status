@@ -15,9 +15,8 @@ source_mirrors_test: Slow, Pass
 [ ($compiler == none || $compiler == precompiler) && $runtime != vm ]
 dart2js_test: SkipByDesign # Uses dart:io.
 
-
 [ $compiler == dart2js && $mode == debug ]
 dummy_compiler_test: Slow, Pass
 
-[ $noopt || $compiler == precompiler || $compiler == dart2app ]
+[ $noopt || $compiler == precompiler || $mode == product ]
 source_mirrors_test: SkipByDesign # Imports dart:mirrors
