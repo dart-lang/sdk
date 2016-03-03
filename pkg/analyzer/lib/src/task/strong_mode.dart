@@ -11,11 +11,11 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/resolver.dart'
     show TypeProvider, InheritanceManager;
 import 'package:analyzer/src/generated/type_system.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 
 /**
  * Sets the type of the field. This is stored in the field itself, and the
