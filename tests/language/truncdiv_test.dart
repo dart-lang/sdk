@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Dart test optimization of modulo operator on Smi.
-// VMOptions=--optimization-counter-threshold=10 --no-use-osr
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation
 
 import "package:expect/expect.dart";
 
@@ -24,7 +24,7 @@ main() {
 foo(i, x) => i % x;
 
 foo2(i) {
-  // Make sure x has a range computed. 
+  // Make sure x has a range computed.
   var x = 0;
   if (i < 0) {
     x = -i;

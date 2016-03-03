@@ -1,7 +1,7 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--optimization-counter-threshold=100
+// VMOptions=--optimization-counter-threshold=100 --no-background-compilation
 
 // Test lazy deoptimization at field guards with deferred loading.
 

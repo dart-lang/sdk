@@ -5,7 +5,7 @@
 // Testing Bigints with and without intrinsics.
 // VMOptions=
 // VMOptions=--no_intrinsify
-// VMOptions=--optimization_counter_threshold=10
+// VMOptions=--optimization_counter_threshold=10 --no-background_compilation
 
 library big_integer_test;
 import "package:expect/expect.dart";

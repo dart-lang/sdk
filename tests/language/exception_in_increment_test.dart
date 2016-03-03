@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test throws exception in the middle of the increment operation, the setter
 // part of the instance field increment never completes.
-// VMOptions=--optimization-counter-threshold=10
+// VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
 main() {
   var a = new A();

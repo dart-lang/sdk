@@ -4,7 +4,7 @@
 // Test correctness of side effects tracking used by load to load forwarding.
 // Should be merged into load_to_load_forwarding once Issue 22151 is fixed.
 
-// VMOptions=--optimization-counter-threshold=10
+// VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
 import "package:expect/expect.dart";
 import "dart:typed_data";

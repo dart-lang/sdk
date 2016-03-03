@@ -1,7 +1,7 @@
 // Copyright (c) 2014, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--optimization-counter-threshold=5
+// VMOptions=--optimization-counter-threshold=5 --no-background-compilation
 // Test correct OSR (issue 16151).
 
 import "dart:collection";
@@ -9,18 +9,18 @@ import "package:expect/expect.dart";
 
 List create([int length]) {
   return new MyList(length);
-}  
+}
 
 main() {
-  test(create);  
+  test(create);
 }
 
 
 class MyList<E> extends ListBase<E> {
   List<E> _list;
-  
+
   MyList([int length]): _list = (length==null ? new List() : new List(length));
-  
+
   E operator [](int index) => _list[index];
 
   void operator []=(int index, E value) {
@@ -36,7 +36,7 @@ class MyList<E> extends ListBase<E> {
 
 
 test(List create([int length])) {
-  sort_A01_t02_test(create);  
+  sort_A01_t02_test(create);
 }
 
 //  From library co19 sort_A01_t02.

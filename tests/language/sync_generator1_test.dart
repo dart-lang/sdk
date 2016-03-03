@@ -4,7 +4,7 @@
 
 // Simple test program for sync* generator functions.
 
-// VMOptions=--optimization_counter_threshold=10
+// VMOptions=--optimization_counter_threshold=10 --no-background_compilation
 
 import "package:expect/expect.dart";
 

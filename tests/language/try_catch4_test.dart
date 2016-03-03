@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Check that our SSA graph does have the try body a predecessor of a
 // try/finally.
-// VMOptions=--optimization-counter-threshold=10
+// VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
 import "package:expect/expect.dart";
 
