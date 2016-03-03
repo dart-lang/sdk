@@ -22,6 +22,8 @@ transferables_test: RuntimeError # Dartium JSInterop failure
 worker_api_test: Fail # Issue 10223
 resource_http_test: Fail # Issue 24203
 js_function_getter_trust_types_test: Skip # dartium doesn't support trust types.
+canvasrenderingcontext2d_test/fillText: RuntimeError, OK # Dartium 45 roll
+html/websocket_test/supported: Skip # Dartium 45 roll timesout
 
 [ $compiler == none && $mode == debug && ($runtime == drt || $runtime == dartium ) ]
 datalistelement_test: Skip # Issue 20540
@@ -122,9 +124,6 @@ request_animation_frame_test: Skip # Times out. Issue 22167
 
 [$runtime == drt || $runtime == dartium || $runtime == chrome || $runtime == chromeOnAndroid ]
 webgl_1_test: Pass, Fail # Issue 8219
-element_animate_test/omit_timing: RuntimeError # Dartium 45 roll. Issue 25786
-element_animate_test/simple_timing: RuntimeError # Dartium 45 roll. Issue 25786
-element_animate_test/timing_dict: RuntimeError # Dartium 45 roll. Issue 25786
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $system == windows ]
 websql_test: Skip # Issue 4941: stderr contains a backtrace.
