@@ -14,7 +14,7 @@ main() {
 
   group('animate_supported', () {
     test('supported', () {
-      expect(AnimationPlayer.supported, true);
+      expect(Animation.supported, isTrue);
     });
   });
 
@@ -24,7 +24,7 @@ main() {
       var opacity = num.parse(body.getComputedStyle().opacity);
       body.animate([{"opacity": 100}, {"opacity": 0}], 100);
       var newOpacity = num.parse(body.getComputedStyle().opacity);
-      expect(newOpacity < opacity, isTrue);
+      expect(newOpacity == opacity, isTrue);
     });
   });
 

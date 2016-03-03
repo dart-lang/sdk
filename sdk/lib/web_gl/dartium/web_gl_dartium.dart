@@ -23,10 +23,12 @@ import 'dart:js' as js;
 @Deprecated("Internal Use Only")
 final web_glBlinkMap = {
   'ANGLEInstancedArrays': () => AngleInstancedArrays,
+  'CHROMIUMSubscribeUniform': () => ChromiumSubscribeUniform,
   'EXTBlendMinMax': () => ExtBlendMinMax,
   'EXTFragDepth': () => ExtFragDepth,
   'EXTShaderTextureLOD': () => ExtShaderTextureLod,
   'EXTTextureFilterAnisotropic': () => ExtTextureFilterAnisotropic,
+  'EXTsRGB': () => EXTsRgb,
   'OESElementIndexUint': () => OesElementIndexUint,
   'OESStandardDerivatives': () => OesStandardDerivatives,
   'OESTextureFloat': () => OesTextureFloat,
@@ -34,13 +36,14 @@ final web_glBlinkMap = {
   'OESTextureHalfFloat': () => OesTextureHalfFloat,
   'OESTextureHalfFloatLinear': () => OesTextureHalfFloatLinear,
   'OESVertexArrayObject': () => OesVertexArrayObject,
+  'WebGL2RenderingContext': () => RenderingContext2,
+  'WebGL2RenderingContextBase': () => _WebGL2RenderingContextBase,
   'WebGLActiveInfo': () => ActiveInfo,
   'WebGLBuffer': () => Buffer,
   'WebGLCompressedTextureATC': () => CompressedTextureAtc,
   'WebGLCompressedTextureETC1': () => CompressedTextureETC1,
   'WebGLCompressedTexturePVRTC': () => CompressedTexturePvrtc,
   'WebGLCompressedTextureS3TC': () => CompressedTextureS3TC,
-  'WebGLContextAttributes': () => ContextAttributes,
   'WebGLContextEvent': () => ContextEvent,
   'WebGLDebugRendererInfo': () => DebugRendererInfo,
   'WebGLDebugShaders': () => DebugShaders,
@@ -49,14 +52,19 @@ final web_glBlinkMap = {
   'WebGLFramebuffer': () => Framebuffer,
   'WebGLLoseContext': () => LoseContext,
   'WebGLProgram': () => Program,
+  'WebGLQuery': () => Query,
   'WebGLRenderbuffer': () => Renderbuffer,
   'WebGLRenderingContext': () => RenderingContext,
   'WebGLRenderingContextBase': () => _WebGLRenderingContextBase,
+  'WebGLSampler': () => Sampler,
   'WebGLShader': () => Shader,
   'WebGLShaderPrecisionFormat': () => ShaderPrecisionFormat,
+  'WebGLSync': () => Sync,
   'WebGLTexture': () => Texture,
+  'WebGLTransformFeedback': () => TransformFeedback,
   'WebGLUniformLocation': () => UniformLocation,
-  'WebGLVertexArrayObjectOES': () => VertexArrayObject,
+  'WebGLVertexArrayObject': () => VertexArrayObject,
+  'WebGLVertexArrayObjectOES': () => VertexArrayObjectOes,
 
 };
 
@@ -64,10 +72,12 @@ final web_glBlinkMap = {
 @Deprecated("Internal Use Only")
 final web_glBlinkFunctionMap = {
   'ANGLEInstancedArrays': () => AngleInstancedArrays.internalCreateAngleInstancedArrays,
+  'CHROMIUMSubscribeUniform': () => ChromiumSubscribeUniform.internalCreateChromiumSubscribeUniform,
   'EXTBlendMinMax': () => ExtBlendMinMax.internalCreateExtBlendMinMax,
   'EXTFragDepth': () => ExtFragDepth.internalCreateExtFragDepth,
   'EXTShaderTextureLOD': () => ExtShaderTextureLod.internalCreateExtShaderTextureLod,
   'EXTTextureFilterAnisotropic': () => ExtTextureFilterAnisotropic.internalCreateExtTextureFilterAnisotropic,
+  'EXTsRGB': () => EXTsRgb.internalCreateEXTsRgb,
   'OESElementIndexUint': () => OesElementIndexUint.internalCreateOesElementIndexUint,
   'OESStandardDerivatives': () => OesStandardDerivatives.internalCreateOesStandardDerivatives,
   'OESTextureFloat': () => OesTextureFloat.internalCreateOesTextureFloat,
@@ -75,13 +85,14 @@ final web_glBlinkFunctionMap = {
   'OESTextureHalfFloat': () => OesTextureHalfFloat.internalCreateOesTextureHalfFloat,
   'OESTextureHalfFloatLinear': () => OesTextureHalfFloatLinear.internalCreateOesTextureHalfFloatLinear,
   'OESVertexArrayObject': () => OesVertexArrayObject.internalCreateOesVertexArrayObject,
+  'WebGL2RenderingContext': () => RenderingContext2.internalCreateRenderingContext2,
+  'WebGL2RenderingContextBase': () => _WebGL2RenderingContextBase.internalCreate_WebGL2RenderingContextBase,
   'WebGLActiveInfo': () => ActiveInfo.internalCreateActiveInfo,
   'WebGLBuffer': () => Buffer.internalCreateBuffer,
   'WebGLCompressedTextureATC': () => CompressedTextureAtc.internalCreateCompressedTextureAtc,
   'WebGLCompressedTextureETC1': () => CompressedTextureETC1.internalCreateCompressedTextureETC1,
   'WebGLCompressedTexturePVRTC': () => CompressedTexturePvrtc.internalCreateCompressedTexturePvrtc,
   'WebGLCompressedTextureS3TC': () => CompressedTextureS3TC.internalCreateCompressedTextureS3TC,
-  'WebGLContextAttributes': () => ContextAttributes.internalCreateContextAttributes,
   'WebGLContextEvent': () => ContextEvent.internalCreateContextEvent,
   'WebGLDebugRendererInfo': () => DebugRendererInfo.internalCreateDebugRendererInfo,
   'WebGLDebugShaders': () => DebugShaders.internalCreateDebugShaders,
@@ -90,13 +101,18 @@ final web_glBlinkFunctionMap = {
   'WebGLFramebuffer': () => Framebuffer.internalCreateFramebuffer,
   'WebGLLoseContext': () => LoseContext.internalCreateLoseContext,
   'WebGLProgram': () => Program.internalCreateProgram,
+  'WebGLQuery': () => Query.internalCreateQuery,
   'WebGLRenderbuffer': () => Renderbuffer.internalCreateRenderbuffer,
   'WebGLRenderingContext': () => RenderingContext.internalCreateRenderingContext,
+  'WebGLSampler': () => Sampler.internalCreateSampler,
   'WebGLShader': () => Shader.internalCreateShader,
   'WebGLShaderPrecisionFormat': () => ShaderPrecisionFormat.internalCreateShaderPrecisionFormat,
+  'WebGLSync': () => Sync.internalCreateSync,
   'WebGLTexture': () => Texture.internalCreateTexture,
+  'WebGLTransformFeedback': () => TransformFeedback.internalCreateTransformFeedback,
   'WebGLUniformLocation': () => UniformLocation.internalCreateUniformLocation,
-  'WebGLVertexArrayObjectOES': () => VertexArrayObject.internalCreateVertexArrayObject,
+  'WebGLVertexArrayObject': () => VertexArrayObject.internalCreateVertexArrayObject,
+  'WebGLVertexArrayObjectOES': () => VertexArrayObjectOes.internalCreateVertexArrayObjectOes,
 
 };
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
@@ -530,6 +546,81 @@ class Buffer extends DartHtmlDomObject {
 
 
 @DocsEditable()
+@DomName('CHROMIUMSubscribeUniform')
+@Experimental() // untriaged
+class ChromiumSubscribeUniform extends DartHtmlDomObject {
+  // To suppress missing implicit constructor warnings.
+  factory ChromiumSubscribeUniform._() { throw new UnsupportedError("Not supported"); }
+
+  @Deprecated("Internal Use Only")
+  static ChromiumSubscribeUniform internalCreateChromiumSubscribeUniform() {
+    return new ChromiumSubscribeUniform._internalWrap();
+  }
+
+  factory ChromiumSubscribeUniform._internalWrap() {
+    return new ChromiumSubscribeUniform.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  ChromiumSubscribeUniform.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
+  @DomName('CHROMIUMSubscribeUniform.MOUSE_POSITION_CHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MOUSE_POSITION_CHROMIUM = 0x924C;
+
+  @DomName('CHROMIUMSubscribeUniform.SUBSCRIBED_VALUES_BUFFER_CHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SUBSCRIBED_VALUES_BUFFER_CHROMIUM = 0x924B;
+
+  @DomName('CHROMIUMSubscribeUniform.bindValuebufferCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bindValuebufferChromium(int target, ChromiumValuebuffer buffer) => _blink.BlinkCHROMIUMSubscribeUniform.instance.bindValuebufferCHROMIUM_Callback_2_(unwrap_jso(this), target, unwrap_jso(buffer));
+  
+  @DomName('CHROMIUMSubscribeUniform.createValuebufferCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ChromiumValuebuffer createValuebufferChromium() => wrap_jso(_blink.BlinkCHROMIUMSubscribeUniform.instance.createValuebufferCHROMIUM_Callback_0_(unwrap_jso(this)));
+  
+  @DomName('CHROMIUMSubscribeUniform.deleteValuebufferCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deleteValuebufferChromium(ChromiumValuebuffer buffer) => _blink.BlinkCHROMIUMSubscribeUniform.instance.deleteValuebufferCHROMIUM_Callback_1_(unwrap_jso(this), unwrap_jso(buffer));
+  
+  @DomName('CHROMIUMSubscribeUniform.isValuebufferCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isValuebufferChromium(ChromiumValuebuffer buffer) => _blink.BlinkCHROMIUMSubscribeUniform.instance.isValuebufferCHROMIUM_Callback_1_(unwrap_jso(this), unwrap_jso(buffer));
+  
+  @DomName('CHROMIUMSubscribeUniform.populateSubscribedValuesCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void populateSubscribedValuesChromium(int target) => _blink.BlinkCHROMIUMSubscribeUniform.instance.populateSubscribedValuesCHROMIUM_Callback_1_(unwrap_jso(this), target);
+  
+  @DomName('CHROMIUMSubscribeUniform.subscribeValueCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void subscribeValueChromium(int target, int subscriptions) => _blink.BlinkCHROMIUMSubscribeUniform.instance.subscribeValueCHROMIUM_Callback_2_(unwrap_jso(this), target, subscriptions);
+  
+  @DomName('CHROMIUMSubscribeUniform.uniformValuebufferCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniformValuebufferChromium(UniformLocation location, int target, int subscription) => _blink.BlinkCHROMIUMSubscribeUniform.instance.uniformValuebufferCHROMIUM_Callback_3_(unwrap_jso(this), unwrap_jso(location), target, subscription);
+  
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('WebGLCompressedTextureATC')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_compressed_texture_atc/
 @Experimental()
@@ -702,121 +793,21 @@ class CompressedTextureS3TC extends DartHtmlDomObject {
 
 
 @DocsEditable()
-/**
- * The properties of a WebGL rendering context.
- *
- * If [alpha] is `true`, then the context has an alpha channel.
- *
- * If [antialias] is `true`, then antialiasing is performed by the browser, but
- * only if the browser's implementation of WebGL supports antialiasing.
- *
- * If [depth] is `true`, then the context has a depth buffer of at least 16
- * bits.
- *
- * If [premultipliedAlpha] is `true`, then the context's colors are assumed to
- * be premultiplied. This means that color values are assumed to have  been
- * multiplied by their alpha values. If [alpha] is `false`, then this flag is
- * ignored.
- *
- * If [preserveDrawingBuffer] is `false`, then all contents of the context are
- * cleared. If `true`, then all values will remain until changed or cleared.
- *
- * If [stencil] is `true`, then the context has a stencil buffer of at least 8
- * bits.
- */
-@DomName('WebGLContextAttributes')
-@Unstable()
-class ContextAttributes extends DartHtmlDomObject {
-  // To suppress missing implicit constructor warnings.
-  factory ContextAttributes._() { throw new UnsupportedError("Not supported"); }
-
-  @Deprecated("Internal Use Only")
-  static ContextAttributes internalCreateContextAttributes() {
-    return new ContextAttributes._internalWrap();
-  }
-
-  factory ContextAttributes._internalWrap() {
-    return new ContextAttributes.internal_();
-  }
-
-  @Deprecated("Internal Use Only")
-  ContextAttributes.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
-  @DomName('WebGLContextAttributes.alpha')
-  @DocsEditable()
-  bool get alpha => _blink.BlinkWebGLContextAttributes.instance.alpha_Getter_(unwrap_jso(this));
-  
-  @DomName('WebGLContextAttributes.alpha')
-  @DocsEditable()
-  set alpha(bool value) => _blink.BlinkWebGLContextAttributes.instance.alpha_Setter_(unwrap_jso(this), value);
-  
-  @DomName('WebGLContextAttributes.antialias')
-  @DocsEditable()
-  bool get antialias => _blink.BlinkWebGLContextAttributes.instance.antialias_Getter_(unwrap_jso(this));
-  
-  @DomName('WebGLContextAttributes.antialias')
-  @DocsEditable()
-  set antialias(bool value) => _blink.BlinkWebGLContextAttributes.instance.antialias_Setter_(unwrap_jso(this), value);
-  
-  @DomName('WebGLContextAttributes.depth')
-  @DocsEditable()
-  bool get depth => _blink.BlinkWebGLContextAttributes.instance.depth_Getter_(unwrap_jso(this));
-  
-  @DomName('WebGLContextAttributes.depth')
-  @DocsEditable()
-  set depth(bool value) => _blink.BlinkWebGLContextAttributes.instance.depth_Setter_(unwrap_jso(this), value);
-  
-  @DomName('WebGLContextAttributes.failIfMajorPerformanceCaveat')
-  @DocsEditable()
-  @Experimental() // untriaged
-  bool get failIfMajorPerformanceCaveat => _blink.BlinkWebGLContextAttributes.instance.failIfMajorPerformanceCaveat_Getter_(unwrap_jso(this));
-  
-  @DomName('WebGLContextAttributes.failIfMajorPerformanceCaveat')
-  @DocsEditable()
-  @Experimental() // untriaged
-  set failIfMajorPerformanceCaveat(bool value) => _blink.BlinkWebGLContextAttributes.instance.failIfMajorPerformanceCaveat_Setter_(unwrap_jso(this), value);
-  
-  @DomName('WebGLContextAttributes.premultipliedAlpha')
-  @DocsEditable()
-  bool get premultipliedAlpha => _blink.BlinkWebGLContextAttributes.instance.premultipliedAlpha_Getter_(unwrap_jso(this));
-  
-  @DomName('WebGLContextAttributes.premultipliedAlpha')
-  @DocsEditable()
-  set premultipliedAlpha(bool value) => _blink.BlinkWebGLContextAttributes.instance.premultipliedAlpha_Setter_(unwrap_jso(this), value);
-  
-  @DomName('WebGLContextAttributes.preserveDrawingBuffer')
-  @DocsEditable()
-  bool get preserveDrawingBuffer => _blink.BlinkWebGLContextAttributes.instance.preserveDrawingBuffer_Getter_(unwrap_jso(this));
-  
-  @DomName('WebGLContextAttributes.preserveDrawingBuffer')
-  @DocsEditable()
-  set preserveDrawingBuffer(bool value) => _blink.BlinkWebGLContextAttributes.instance.preserveDrawingBuffer_Setter_(unwrap_jso(this), value);
-  
-  @DomName('WebGLContextAttributes.stencil')
-  @DocsEditable()
-  bool get stencil => _blink.BlinkWebGLContextAttributes.instance.stencil_Getter_(unwrap_jso(this));
-  
-  @DomName('WebGLContextAttributes.stencil')
-  @DocsEditable()
-  set stencil(bool value) => _blink.BlinkWebGLContextAttributes.instance.stencil_Setter_(unwrap_jso(this), value);
-  
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DocsEditable()
 @DomName('WebGLContextEvent')
 @Unstable()
 class ContextEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory ContextEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('WebGLContextEvent.WebGLContextEvent')
+  @DocsEditable()
+  factory ContextEvent(String type, [Map eventInit]) {
+    if (eventInit != null) {
+      var eventInit_1 = convertDartToNative_Dictionary(eventInit);
+      return wrap_jso(_blink.BlinkWebGLContextEvent.instance.constructorCallback_2_(type, eventInit_1));
+    }
+    return wrap_jso(_blink.BlinkWebGLContextEvent.instance.constructorCallback_1_(type));
+  }
 
 
   @Deprecated("Internal Use Only")
@@ -1114,6 +1105,56 @@ class DrawBuffers extends DartHtmlDomObject {
   @DocsEditable()
   void drawBuffersWebgl(List<int> buffers) => _blink.BlinkWebGLDrawBuffers.instance.drawBuffersWEBGL_Callback_1_(unwrap_jso(this), buffers);
   
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('EXTsRGB')
+@Experimental() // untriaged
+class EXTsRgb extends DartHtmlDomObject {
+  // To suppress missing implicit constructor warnings.
+  factory EXTsRgb._() { throw new UnsupportedError("Not supported"); }
+
+  @Deprecated("Internal Use Only")
+  static EXTsRgb internalCreateEXTsRgb() {
+    return new EXTsRgb._internalWrap();
+  }
+
+  factory EXTsRgb._internalWrap() {
+    return new EXTsRgb.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  EXTsRgb.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
+  @DomName('EXTsRGB.FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING_EXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING_EXT = 0x8210;
+
+  @DomName('EXTsRGB.SRGB8_ALPHA8_EXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SRGB8_ALPHA8_EXT = 0x8C43;
+
+  @DomName('EXTsRGB.SRGB_ALPHA_EXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SRGB_ALPHA_EXT = 0x8C42;
+
+  @DomName('EXTsRGB.SRGB_EXT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SRGB_EXT = 0x8C40;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1554,19 +1595,19 @@ class OesVertexArrayObject extends DartHtmlDomObject {
 
   @DomName('OESVertexArrayObject.bindVertexArrayOES')
   @DocsEditable()
-  void bindVertexArray(VertexArrayObject arrayObject) => _blink.BlinkOESVertexArrayObject.instance.bindVertexArrayOES_Callback_1_(unwrap_jso(this), unwrap_jso(arrayObject));
+  void bindVertexArray(VertexArrayObjectOes arrayObject) => _blink.BlinkOESVertexArrayObject.instance.bindVertexArrayOES_Callback_1_(unwrap_jso(this), unwrap_jso(arrayObject));
   
   @DomName('OESVertexArrayObject.createVertexArrayOES')
   @DocsEditable()
-  VertexArrayObject createVertexArray() => wrap_jso(_blink.BlinkOESVertexArrayObject.instance.createVertexArrayOES_Callback_0_(unwrap_jso(this)));
+  VertexArrayObjectOes createVertexArray() => wrap_jso(_blink.BlinkOESVertexArrayObject.instance.createVertexArrayOES_Callback_0_(unwrap_jso(this)));
   
   @DomName('OESVertexArrayObject.deleteVertexArrayOES')
   @DocsEditable()
-  void deleteVertexArray(VertexArrayObject arrayObject) => _blink.BlinkOESVertexArrayObject.instance.deleteVertexArrayOES_Callback_1_(unwrap_jso(this), unwrap_jso(arrayObject));
+  void deleteVertexArray(VertexArrayObjectOes arrayObject) => _blink.BlinkOESVertexArrayObject.instance.deleteVertexArrayOES_Callback_1_(unwrap_jso(this), unwrap_jso(arrayObject));
   
   @DomName('OESVertexArrayObject.isVertexArrayOES')
   @DocsEditable()
-  bool isVertexArray(VertexArrayObject arrayObject) => _blink.BlinkOESVertexArrayObject.instance.isVertexArrayOES_Callback_1_(unwrap_jso(this), unwrap_jso(arrayObject));
+  bool isVertexArray(VertexArrayObjectOes arrayObject) => _blink.BlinkOESVertexArrayObject.instance.isVertexArrayOES_Callback_1_(unwrap_jso(this), unwrap_jso(arrayObject));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1594,6 +1635,36 @@ class Program extends DartHtmlDomObject {
 
   @Deprecated("Internal Use Only")
   Program.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('WebGLQuery')
+@Experimental() // untriaged
+class Query extends DartHtmlDomObject {
+  // To suppress missing implicit constructor warnings.
+  factory Query._() { throw new UnsupportedError("Not supported"); }
+
+  @Deprecated("Internal Use Only")
+  static Query internalCreateQuery() {
+    return new Query._internalWrap();
+  }
+
+  factory Query._internalWrap() {
+    return new Query.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  Query.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
   int get hashCode => unwrap_jso(this).hashCode;
@@ -2912,10 +2983,6 @@ class RenderingContext extends DartHtmlDomObject implements CanvasRenderingConte
   @DocsEditable()
   void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) => _blink.BlinkWebGLRenderingContext.instance.blendFuncSeparate_Callback_4_(unwrap_jso(this), srcRGB, dstRGB, srcAlpha, dstAlpha);
   
-  @DomName('WebGLRenderingContext.bufferByteData')
-  @DocsEditable()
-  void bufferByteData(int target, ByteBuffer data, int usage) => _blink.BlinkWebGLRenderingContext.instance.bufferData_Callback_3_(unwrap_jso(this), target, data, usage);
-  
   void bufferData(int target, data_OR_size, int usage) {
     if ((usage is int) && (data_OR_size is int) && (target is int)) {
       _blink.BlinkWebGLRenderingContext.instance.bufferData_Callback_3_(unwrap_jso(this), target, unwrap_jso(data_OR_size), usage);
@@ -2932,14 +2999,6 @@ class RenderingContext extends DartHtmlDomObject implements CanvasRenderingConte
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('WebGLRenderingContext.bufferDataTyped')
-  @DocsEditable()
-  void bufferDataTyped(int target, TypedData data, int usage) => _blink.BlinkWebGLRenderingContext.instance.bufferData_Callback_3_(unwrap_jso(this), target, unwrap_jso(data), usage);
-  
-  @DomName('WebGLRenderingContext.bufferSubByteData')
-  @DocsEditable()
-  void bufferSubByteData(int target, int offset, ByteBuffer data) => _blink.BlinkWebGLRenderingContext.instance.bufferSubData_Callback_3_(unwrap_jso(this), target, offset, data);
-  
   void bufferSubData(int target, int offset, data) {
     if ((data is TypedData) && (offset is int) && (target is int)) {
       _blink.BlinkWebGLRenderingContext.instance.bufferSubData_Callback_3_(unwrap_jso(this), target, offset, unwrap_jso(data));
@@ -2952,10 +3011,6 @@ class RenderingContext extends DartHtmlDomObject implements CanvasRenderingConte
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('WebGLRenderingContext.bufferSubDataTyped')
-  @DocsEditable()
-  void bufferSubDataTyped(int target, int offset, TypedData data) => _blink.BlinkWebGLRenderingContext.instance.bufferSubData_Callback_3_(unwrap_jso(this), target, offset, unwrap_jso(data));
-  
   @DomName('WebGLRenderingContext.checkFramebufferStatus')
   @DocsEditable()
   int checkFramebufferStatus(int target) => _blink.BlinkWebGLRenderingContext.instance.checkFramebufferStatus_Callback_1_(unwrap_jso(this), target);
@@ -3138,7 +3193,7 @@ class RenderingContext extends DartHtmlDomObject implements CanvasRenderingConte
   
   @DomName('WebGLRenderingContext.getContextAttributes')
   @DocsEditable()
-  ContextAttributes getContextAttributes() => wrap_jso(_blink.BlinkWebGLRenderingContext.instance.getContextAttributes_Callback_0_(unwrap_jso(this)));
+   getContextAttributes() => convertNativeDictionaryToDartDictionary(wrap_jso(_blink.BlinkWebGLRenderingContext.instance.getContextAttributes_Callback_0_(unwrap_jso(this))));
   
   @DomName('WebGLRenderingContext.getError')
   @DocsEditable()
@@ -3328,22 +3383,6 @@ class RenderingContext extends DartHtmlDomObject implements CanvasRenderingConte
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('WebGLRenderingContext.texImage2DCanvas')
-  @DocsEditable()
-  void texImage2DCanvas(int target, int level, int internalformat, int format, int type, CanvasElement canvas) => _blink.BlinkWebGLRenderingContext.instance.texImage2D_Callback_6_(unwrap_jso(this), target, level, internalformat, format, type, unwrap_jso(canvas));
-  
-  @DomName('WebGLRenderingContext.texImage2DImage')
-  @DocsEditable()
-  void texImage2DImage(int target, int level, int internalformat, int format, int type, ImageElement image) => _blink.BlinkWebGLRenderingContext.instance.texImage2D_Callback_6_(unwrap_jso(this), target, level, internalformat, format, type, unwrap_jso(image));
-  
-  @DomName('WebGLRenderingContext.texImage2DImageData')
-  @DocsEditable()
-  void texImage2DImageData(int target, int level, int internalformat, int format, int type, ImageData pixels) => _blink.BlinkWebGLRenderingContext.instance.texImage2D_Callback_6_(unwrap_jso(this), target, level, internalformat, format, type, unwrap_jso(pixels));
-  
-  @DomName('WebGLRenderingContext.texImage2DVideo')
-  @DocsEditable()
-  void texImage2DVideo(int target, int level, int internalformat, int format, int type, VideoElement video) => _blink.BlinkWebGLRenderingContext.instance.texImage2D_Callback_6_(unwrap_jso(this), target, level, internalformat, format, type, unwrap_jso(video));
-  
   @DomName('WebGLRenderingContext.texParameterf')
   @DocsEditable()
   void texParameterf(int target, int pname, num param) => _blink.BlinkWebGLRenderingContext.instance.texParameterf_Callback_3_(unwrap_jso(this), target, pname, param);
@@ -3376,98 +3415,170 @@ class RenderingContext extends DartHtmlDomObject implements CanvasRenderingConte
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('WebGLRenderingContext.texSubImage2DCanvas')
-  @DocsEditable()
-  void texSubImage2DCanvas(int target, int level, int xoffset, int yoffset, int format, int type, CanvasElement canvas) => _blink.BlinkWebGLRenderingContext.instance.texSubImage2D_Callback_7_(unwrap_jso(this), target, level, xoffset, yoffset, format, type, unwrap_jso(canvas));
-  
-  @DomName('WebGLRenderingContext.texSubImage2DImage')
-  @DocsEditable()
-  void texSubImage2DImage(int target, int level, int xoffset, int yoffset, int format, int type, ImageElement image) => _blink.BlinkWebGLRenderingContext.instance.texSubImage2D_Callback_7_(unwrap_jso(this), target, level, xoffset, yoffset, format, type, unwrap_jso(image));
-  
-  @DomName('WebGLRenderingContext.texSubImage2DImageData')
-  @DocsEditable()
-  void texSubImage2DImageData(int target, int level, int xoffset, int yoffset, int format, int type, ImageData pixels) => _blink.BlinkWebGLRenderingContext.instance.texSubImage2D_Callback_7_(unwrap_jso(this), target, level, xoffset, yoffset, format, type, unwrap_jso(pixels));
-  
-  @DomName('WebGLRenderingContext.texSubImage2DVideo')
-  @DocsEditable()
-  void texSubImage2DVideo(int target, int level, int xoffset, int yoffset, int format, int type, VideoElement video) => _blink.BlinkWebGLRenderingContext.instance.texSubImage2D_Callback_7_(unwrap_jso(this), target, level, xoffset, yoffset, format, type, unwrap_jso(video));
-  
   @DomName('WebGLRenderingContext.uniform1f')
   @DocsEditable()
   void uniform1f(UniformLocation location, num x) => _blink.BlinkWebGLRenderingContext.instance.uniform1f_Callback_2_(unwrap_jso(this), unwrap_jso(location), x);
   
-  @DomName('WebGLRenderingContext.uniform1fv')
-  @DocsEditable()
-  void uniform1fv(UniformLocation location, Float32List v) => _blink.BlinkWebGLRenderingContext.instance.uniform1fv_Callback_2_(unwrap_jso(this), unwrap_jso(location), v);
-  
+  void uniform1fv(UniformLocation location, v) {
+    if ((v is Float32List) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGLRenderingContext.instance.uniform1fv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    if ((v is List<num>) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGLRenderingContext.instance.uniform1fv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
   @DomName('WebGLRenderingContext.uniform1i')
   @DocsEditable()
   void uniform1i(UniformLocation location, int x) => _blink.BlinkWebGLRenderingContext.instance.uniform1i_Callback_2_(unwrap_jso(this), unwrap_jso(location), x);
   
-  @DomName('WebGLRenderingContext.uniform1iv')
-  @DocsEditable()
-  void uniform1iv(UniformLocation location, Int32List v) => _blink.BlinkWebGLRenderingContext.instance.uniform1iv_Callback_2_(unwrap_jso(this), unwrap_jso(location), v);
-  
+  void uniform1iv(UniformLocation location, v) {
+    if ((v is Int32List) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGLRenderingContext.instance.uniform1iv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    if ((v is List<int>) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGLRenderingContext.instance.uniform1iv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
   @DomName('WebGLRenderingContext.uniform2f')
   @DocsEditable()
   void uniform2f(UniformLocation location, num x, num y) => _blink.BlinkWebGLRenderingContext.instance.uniform2f_Callback_3_(unwrap_jso(this), unwrap_jso(location), x, y);
   
-  @DomName('WebGLRenderingContext.uniform2fv')
-  @DocsEditable()
-  void uniform2fv(UniformLocation location, Float32List v) => _blink.BlinkWebGLRenderingContext.instance.uniform2fv_Callback_2_(unwrap_jso(this), unwrap_jso(location), v);
-  
+  void uniform2fv(UniformLocation location, v) {
+    if ((v is Float32List) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGLRenderingContext.instance.uniform2fv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    if ((v is List<num>) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGLRenderingContext.instance.uniform2fv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
   @DomName('WebGLRenderingContext.uniform2i')
   @DocsEditable()
   void uniform2i(UniformLocation location, int x, int y) => _blink.BlinkWebGLRenderingContext.instance.uniform2i_Callback_3_(unwrap_jso(this), unwrap_jso(location), x, y);
   
-  @DomName('WebGLRenderingContext.uniform2iv')
-  @DocsEditable()
-  void uniform2iv(UniformLocation location, Int32List v) => _blink.BlinkWebGLRenderingContext.instance.uniform2iv_Callback_2_(unwrap_jso(this), unwrap_jso(location), v);
-  
+  void uniform2iv(UniformLocation location, v) {
+    if ((v is Int32List) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGLRenderingContext.instance.uniform2iv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    if ((v is List<int>) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGLRenderingContext.instance.uniform2iv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
   @DomName('WebGLRenderingContext.uniform3f')
   @DocsEditable()
   void uniform3f(UniformLocation location, num x, num y, num z) => _blink.BlinkWebGLRenderingContext.instance.uniform3f_Callback_4_(unwrap_jso(this), unwrap_jso(location), x, y, z);
   
-  @DomName('WebGLRenderingContext.uniform3fv')
-  @DocsEditable()
-  void uniform3fv(UniformLocation location, Float32List v) => _blink.BlinkWebGLRenderingContext.instance.uniform3fv_Callback_2_(unwrap_jso(this), unwrap_jso(location), v);
-  
+  void uniform3fv(UniformLocation location, v) {
+    if ((v is Float32List) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGLRenderingContext.instance.uniform3fv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    if ((v is List<num>) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGLRenderingContext.instance.uniform3fv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
   @DomName('WebGLRenderingContext.uniform3i')
   @DocsEditable()
   void uniform3i(UniformLocation location, int x, int y, int z) => _blink.BlinkWebGLRenderingContext.instance.uniform3i_Callback_4_(unwrap_jso(this), unwrap_jso(location), x, y, z);
   
-  @DomName('WebGLRenderingContext.uniform3iv')
-  @DocsEditable()
-  void uniform3iv(UniformLocation location, Int32List v) => _blink.BlinkWebGLRenderingContext.instance.uniform3iv_Callback_2_(unwrap_jso(this), unwrap_jso(location), v);
-  
+  void uniform3iv(UniformLocation location, v) {
+    if ((v is Int32List) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGLRenderingContext.instance.uniform3iv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    if ((v is List<int>) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGLRenderingContext.instance.uniform3iv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
   @DomName('WebGLRenderingContext.uniform4f')
   @DocsEditable()
   void uniform4f(UniformLocation location, num x, num y, num z, num w) => _blink.BlinkWebGLRenderingContext.instance.uniform4f_Callback_5_(unwrap_jso(this), unwrap_jso(location), x, y, z, w);
   
-  @DomName('WebGLRenderingContext.uniform4fv')
-  @DocsEditable()
-  void uniform4fv(UniformLocation location, Float32List v) => _blink.BlinkWebGLRenderingContext.instance.uniform4fv_Callback_2_(unwrap_jso(this), unwrap_jso(location), v);
-  
+  void uniform4fv(UniformLocation location, v) {
+    if ((v is Float32List) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGLRenderingContext.instance.uniform4fv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    if ((v is List<num>) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGLRenderingContext.instance.uniform4fv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
   @DomName('WebGLRenderingContext.uniform4i')
   @DocsEditable()
   void uniform4i(UniformLocation location, int x, int y, int z, int w) => _blink.BlinkWebGLRenderingContext.instance.uniform4i_Callback_5_(unwrap_jso(this), unwrap_jso(location), x, y, z, w);
   
-  @DomName('WebGLRenderingContext.uniform4iv')
-  @DocsEditable()
-  void uniform4iv(UniformLocation location, Int32List v) => _blink.BlinkWebGLRenderingContext.instance.uniform4iv_Callback_2_(unwrap_jso(this), unwrap_jso(location), v);
-  
-  @DomName('WebGLRenderingContext.uniformMatrix2fv')
-  @DocsEditable()
-  void uniformMatrix2fv(UniformLocation location, bool transpose, Float32List array) => _blink.BlinkWebGLRenderingContext.instance.uniformMatrix2fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, array);
-  
-  @DomName('WebGLRenderingContext.uniformMatrix3fv')
-  @DocsEditable()
-  void uniformMatrix3fv(UniformLocation location, bool transpose, Float32List array) => _blink.BlinkWebGLRenderingContext.instance.uniformMatrix3fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, array);
-  
-  @DomName('WebGLRenderingContext.uniformMatrix4fv')
-  @DocsEditable()
-  void uniformMatrix4fv(UniformLocation location, bool transpose, Float32List array) => _blink.BlinkWebGLRenderingContext.instance.uniformMatrix4fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, array);
-  
+  void uniform4iv(UniformLocation location, v) {
+    if ((v is Int32List) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGLRenderingContext.instance.uniform4iv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    if ((v is List<int>) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGLRenderingContext.instance.uniform4iv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  void uniformMatrix2fv(UniformLocation location, bool transpose, array) {
+    if ((array is Float32List) && (transpose is bool) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGLRenderingContext.instance.uniformMatrix2fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, unwrap_jso(array));
+      return;
+    }
+    if ((array is List<num>) && (transpose is bool) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGLRenderingContext.instance.uniformMatrix2fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, unwrap_jso(array));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  void uniformMatrix3fv(UniformLocation location, bool transpose, array) {
+    if ((array is Float32List) && (transpose is bool) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGLRenderingContext.instance.uniformMatrix3fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, unwrap_jso(array));
+      return;
+    }
+    if ((array is List<num>) && (transpose is bool) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGLRenderingContext.instance.uniformMatrix3fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, unwrap_jso(array));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  void uniformMatrix4fv(UniformLocation location, bool transpose, array) {
+    if ((array is Float32List) && (transpose is bool) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGLRenderingContext.instance.uniformMatrix4fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, unwrap_jso(array));
+      return;
+    }
+    if ((array is List<num>) && (transpose is bool) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGLRenderingContext.instance.uniformMatrix4fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, unwrap_jso(array));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
   @DomName('WebGLRenderingContext.useProgram')
   @DocsEditable()
   void useProgram(Program program) => _blink.BlinkWebGLRenderingContext.instance.useProgram_Callback_1_(unwrap_jso(this), unwrap_jso(program));
@@ -3480,34 +3591,66 @@ class RenderingContext extends DartHtmlDomObject implements CanvasRenderingConte
   @DocsEditable()
   void vertexAttrib1f(int indx, num x) => _blink.BlinkWebGLRenderingContext.instance.vertexAttrib1f_Callback_2_(unwrap_jso(this), indx, x);
   
-  @DomName('WebGLRenderingContext.vertexAttrib1fv')
-  @DocsEditable()
-  void vertexAttrib1fv(int indx, Float32List values) => _blink.BlinkWebGLRenderingContext.instance.vertexAttrib1fv_Callback_2_(unwrap_jso(this), indx, values);
-  
+  void vertexAttrib1fv(int indx, values) {
+    if ((values is Float32List) && (indx is int)) {
+      _blink.BlinkWebGLRenderingContext.instance.vertexAttrib1fv_Callback_2_(unwrap_jso(this), indx, unwrap_jso(values));
+      return;
+    }
+    if ((values is List<num>) && (indx is int)) {
+      _blink.BlinkWebGLRenderingContext.instance.vertexAttrib1fv_Callback_2_(unwrap_jso(this), indx, unwrap_jso(values));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
   @DomName('WebGLRenderingContext.vertexAttrib2f')
   @DocsEditable()
   void vertexAttrib2f(int indx, num x, num y) => _blink.BlinkWebGLRenderingContext.instance.vertexAttrib2f_Callback_3_(unwrap_jso(this), indx, x, y);
   
-  @DomName('WebGLRenderingContext.vertexAttrib2fv')
-  @DocsEditable()
-  void vertexAttrib2fv(int indx, Float32List values) => _blink.BlinkWebGLRenderingContext.instance.vertexAttrib2fv_Callback_2_(unwrap_jso(this), indx, values);
-  
+  void vertexAttrib2fv(int indx, values) {
+    if ((values is Float32List) && (indx is int)) {
+      _blink.BlinkWebGLRenderingContext.instance.vertexAttrib2fv_Callback_2_(unwrap_jso(this), indx, unwrap_jso(values));
+      return;
+    }
+    if ((values is List<num>) && (indx is int)) {
+      _blink.BlinkWebGLRenderingContext.instance.vertexAttrib2fv_Callback_2_(unwrap_jso(this), indx, unwrap_jso(values));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
   @DomName('WebGLRenderingContext.vertexAttrib3f')
   @DocsEditable()
   void vertexAttrib3f(int indx, num x, num y, num z) => _blink.BlinkWebGLRenderingContext.instance.vertexAttrib3f_Callback_4_(unwrap_jso(this), indx, x, y, z);
   
-  @DomName('WebGLRenderingContext.vertexAttrib3fv')
-  @DocsEditable()
-  void vertexAttrib3fv(int indx, Float32List values) => _blink.BlinkWebGLRenderingContext.instance.vertexAttrib3fv_Callback_2_(unwrap_jso(this), indx, values);
-  
+  void vertexAttrib3fv(int indx, values) {
+    if ((values is Float32List) && (indx is int)) {
+      _blink.BlinkWebGLRenderingContext.instance.vertexAttrib3fv_Callback_2_(unwrap_jso(this), indx, unwrap_jso(values));
+      return;
+    }
+    if ((values is List<num>) && (indx is int)) {
+      _blink.BlinkWebGLRenderingContext.instance.vertexAttrib3fv_Callback_2_(unwrap_jso(this), indx, unwrap_jso(values));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
   @DomName('WebGLRenderingContext.vertexAttrib4f')
   @DocsEditable()
   void vertexAttrib4f(int indx, num x, num y, num z, num w) => _blink.BlinkWebGLRenderingContext.instance.vertexAttrib4f_Callback_5_(unwrap_jso(this), indx, x, y, z, w);
   
-  @DomName('WebGLRenderingContext.vertexAttrib4fv')
-  @DocsEditable()
-  void vertexAttrib4fv(int indx, Float32List values) => _blink.BlinkWebGLRenderingContext.instance.vertexAttrib4fv_Callback_2_(unwrap_jso(this), indx, values);
-  
+  void vertexAttrib4fv(int indx, values) {
+    if ((values is Float32List) && (indx is int)) {
+      _blink.BlinkWebGLRenderingContext.instance.vertexAttrib4fv_Callback_2_(unwrap_jso(this), indx, unwrap_jso(values));
+      return;
+    }
+    if ((values is List<num>) && (indx is int)) {
+      _blink.BlinkWebGLRenderingContext.instance.vertexAttrib4fv_Callback_2_(unwrap_jso(this), indx, unwrap_jso(values));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
   @DomName('WebGLRenderingContext.vertexAttribPointer')
   @DocsEditable()
   void vertexAttribPointer(int indx, int size, int type, bool normalized, int stride, int offset) => _blink.BlinkWebGLRenderingContext.instance.vertexAttribPointer_Callback_6_(unwrap_jso(this), indx, size, type, normalized, stride, offset);
@@ -3576,6 +3719,2929 @@ class RenderingContext extends DartHtmlDomObject implements CanvasRenderingConte
     texSubImage2D(targetTexture, levelOfDetail, xOffset, yOffset,
         width, height, format, type, data);
   }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('WebGL2RenderingContext')
+@Experimental() // untriaged
+class RenderingContext2 extends DartHtmlDomObject implements _WebGL2RenderingContextBase, _WebGLRenderingContextBase {
+  // To suppress missing implicit constructor warnings.
+  factory RenderingContext2._() { throw new UnsupportedError("Not supported"); }
+
+  @Deprecated("Internal Use Only")
+  static RenderingContext2 internalCreateRenderingContext2() {
+    return new RenderingContext2._internalWrap();
+  }
+
+  factory RenderingContext2._internalWrap() {
+    return new RenderingContext2.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  RenderingContext2.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
+  @DomName('WebGL2RenderingContext.ACTIVE_ATTRIBUTES')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ACTIVE_ATTRIBUTES = 0x8B89;
+
+  @DomName('WebGL2RenderingContext.ACTIVE_TEXTURE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ACTIVE_TEXTURE = 0x84E0;
+
+  @DomName('WebGL2RenderingContext.ACTIVE_UNIFORMS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ACTIVE_UNIFORMS = 0x8B86;
+
+  @DomName('WebGL2RenderingContext.ALIASED_LINE_WIDTH_RANGE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ALIASED_LINE_WIDTH_RANGE = 0x846E;
+
+  @DomName('WebGL2RenderingContext.ALIASED_POINT_SIZE_RANGE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ALIASED_POINT_SIZE_RANGE = 0x846D;
+
+  @DomName('WebGL2RenderingContext.ALPHA')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ALPHA = 0x1906;
+
+  @DomName('WebGL2RenderingContext.ALPHA_BITS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ALPHA_BITS = 0x0D55;
+
+  @DomName('WebGL2RenderingContext.ALWAYS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ALWAYS = 0x0207;
+
+  @DomName('WebGL2RenderingContext.ARRAY_BUFFER')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ARRAY_BUFFER = 0x8892;
+
+  @DomName('WebGL2RenderingContext.ARRAY_BUFFER_BINDING')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ARRAY_BUFFER_BINDING = 0x8894;
+
+  @DomName('WebGL2RenderingContext.ATTACHED_SHADERS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ATTACHED_SHADERS = 0x8B85;
+
+  @DomName('WebGL2RenderingContext.BACK')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BACK = 0x0405;
+
+  @DomName('WebGL2RenderingContext.BLEND')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BLEND = 0x0BE2;
+
+  @DomName('WebGL2RenderingContext.BLEND_COLOR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BLEND_COLOR = 0x8005;
+
+  @DomName('WebGL2RenderingContext.BLEND_DST_ALPHA')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BLEND_DST_ALPHA = 0x80CA;
+
+  @DomName('WebGL2RenderingContext.BLEND_DST_RGB')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BLEND_DST_RGB = 0x80C8;
+
+  @DomName('WebGL2RenderingContext.BLEND_EQUATION')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BLEND_EQUATION = 0x8009;
+
+  @DomName('WebGL2RenderingContext.BLEND_EQUATION_ALPHA')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BLEND_EQUATION_ALPHA = 0x883D;
+
+  @DomName('WebGL2RenderingContext.BLEND_EQUATION_RGB')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BLEND_EQUATION_RGB = 0x8009;
+
+  @DomName('WebGL2RenderingContext.BLEND_SRC_ALPHA')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BLEND_SRC_ALPHA = 0x80CB;
+
+  @DomName('WebGL2RenderingContext.BLEND_SRC_RGB')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BLEND_SRC_RGB = 0x80C9;
+
+  @DomName('WebGL2RenderingContext.BLUE_BITS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BLUE_BITS = 0x0D54;
+
+  @DomName('WebGL2RenderingContext.BOOL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BOOL = 0x8B56;
+
+  @DomName('WebGL2RenderingContext.BOOL_VEC2')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BOOL_VEC2 = 0x8B57;
+
+  @DomName('WebGL2RenderingContext.BOOL_VEC3')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BOOL_VEC3 = 0x8B58;
+
+  @DomName('WebGL2RenderingContext.BOOL_VEC4')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BOOL_VEC4 = 0x8B59;
+
+  @DomName('WebGL2RenderingContext.BROWSER_DEFAULT_WEBGL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BROWSER_DEFAULT_WEBGL = 0x9244;
+
+  @DomName('WebGL2RenderingContext.BUFFER_SIZE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BUFFER_SIZE = 0x8764;
+
+  @DomName('WebGL2RenderingContext.BUFFER_USAGE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BUFFER_USAGE = 0x8765;
+
+  @DomName('WebGL2RenderingContext.BYTE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int BYTE = 0x1400;
+
+  @DomName('WebGL2RenderingContext.CCW')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int CCW = 0x0901;
+
+  @DomName('WebGL2RenderingContext.CLAMP_TO_EDGE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int CLAMP_TO_EDGE = 0x812F;
+
+  @DomName('WebGL2RenderingContext.COLOR_ATTACHMENT0')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COLOR_ATTACHMENT0 = 0x8CE0;
+
+  @DomName('WebGL2RenderingContext.COLOR_BUFFER_BIT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COLOR_BUFFER_BIT = 0x00004000;
+
+  @DomName('WebGL2RenderingContext.COLOR_CLEAR_VALUE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COLOR_CLEAR_VALUE = 0x0C22;
+
+  @DomName('WebGL2RenderingContext.COLOR_WRITEMASK')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COLOR_WRITEMASK = 0x0C23;
+
+  @DomName('WebGL2RenderingContext.COMPILE_STATUS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPILE_STATUS = 0x8B81;
+
+  @DomName('WebGL2RenderingContext.COMPRESSED_TEXTURE_FORMATS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int COMPRESSED_TEXTURE_FORMATS = 0x86A3;
+
+  @DomName('WebGL2RenderingContext.CONSTANT_ALPHA')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int CONSTANT_ALPHA = 0x8003;
+
+  @DomName('WebGL2RenderingContext.CONSTANT_COLOR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int CONSTANT_COLOR = 0x8001;
+
+  @DomName('WebGL2RenderingContext.CONTEXT_LOST_WEBGL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int CONTEXT_LOST_WEBGL = 0x9242;
+
+  @DomName('WebGL2RenderingContext.CULL_FACE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int CULL_FACE = 0x0B44;
+
+  @DomName('WebGL2RenderingContext.CULL_FACE_MODE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int CULL_FACE_MODE = 0x0B45;
+
+  @DomName('WebGL2RenderingContext.CURRENT_PROGRAM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int CURRENT_PROGRAM = 0x8B8D;
+
+  @DomName('WebGL2RenderingContext.CURRENT_VERTEX_ATTRIB')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int CURRENT_VERTEX_ATTRIB = 0x8626;
+
+  @DomName('WebGL2RenderingContext.CW')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int CW = 0x0900;
+
+  @DomName('WebGL2RenderingContext.DECR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DECR = 0x1E03;
+
+  @DomName('WebGL2RenderingContext.DECR_WRAP')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DECR_WRAP = 0x8508;
+
+  @DomName('WebGL2RenderingContext.DELETE_STATUS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DELETE_STATUS = 0x8B80;
+
+  @DomName('WebGL2RenderingContext.DEPTH_ATTACHMENT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DEPTH_ATTACHMENT = 0x8D00;
+
+  @DomName('WebGL2RenderingContext.DEPTH_BITS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DEPTH_BITS = 0x0D56;
+
+  @DomName('WebGL2RenderingContext.DEPTH_BUFFER_BIT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DEPTH_BUFFER_BIT = 0x00000100;
+
+  @DomName('WebGL2RenderingContext.DEPTH_CLEAR_VALUE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DEPTH_CLEAR_VALUE = 0x0B73;
+
+  @DomName('WebGL2RenderingContext.DEPTH_COMPONENT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DEPTH_COMPONENT = 0x1902;
+
+  @DomName('WebGL2RenderingContext.DEPTH_COMPONENT16')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DEPTH_COMPONENT16 = 0x81A5;
+
+  @DomName('WebGL2RenderingContext.DEPTH_FUNC')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DEPTH_FUNC = 0x0B74;
+
+  @DomName('WebGL2RenderingContext.DEPTH_RANGE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DEPTH_RANGE = 0x0B70;
+
+  @DomName('WebGL2RenderingContext.DEPTH_STENCIL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DEPTH_STENCIL = 0x84F9;
+
+  @DomName('WebGL2RenderingContext.DEPTH_STENCIL_ATTACHMENT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DEPTH_STENCIL_ATTACHMENT = 0x821A;
+
+  @DomName('WebGL2RenderingContext.DEPTH_TEST')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DEPTH_TEST = 0x0B71;
+
+  @DomName('WebGL2RenderingContext.DEPTH_WRITEMASK')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DEPTH_WRITEMASK = 0x0B72;
+
+  @DomName('WebGL2RenderingContext.DITHER')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DITHER = 0x0BD0;
+
+  @DomName('WebGL2RenderingContext.DONT_CARE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DONT_CARE = 0x1100;
+
+  @DomName('WebGL2RenderingContext.DST_ALPHA')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DST_ALPHA = 0x0304;
+
+  @DomName('WebGL2RenderingContext.DST_COLOR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DST_COLOR = 0x0306;
+
+  @DomName('WebGL2RenderingContext.DYNAMIC_DRAW')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int DYNAMIC_DRAW = 0x88E8;
+
+  @DomName('WebGL2RenderingContext.ELEMENT_ARRAY_BUFFER')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ELEMENT_ARRAY_BUFFER = 0x8893;
+
+  @DomName('WebGL2RenderingContext.ELEMENT_ARRAY_BUFFER_BINDING')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ELEMENT_ARRAY_BUFFER_BINDING = 0x8895;
+
+  @DomName('WebGL2RenderingContext.EQUAL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int EQUAL = 0x0202;
+
+  @DomName('WebGL2RenderingContext.FASTEST')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FASTEST = 0x1101;
+
+  @DomName('WebGL2RenderingContext.FLOAT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FLOAT = 0x1406;
+
+  @DomName('WebGL2RenderingContext.FLOAT_MAT2')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FLOAT_MAT2 = 0x8B5A;
+
+  @DomName('WebGL2RenderingContext.FLOAT_MAT3')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FLOAT_MAT3 = 0x8B5B;
+
+  @DomName('WebGL2RenderingContext.FLOAT_MAT4')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FLOAT_MAT4 = 0x8B5C;
+
+  @DomName('WebGL2RenderingContext.FLOAT_VEC2')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FLOAT_VEC2 = 0x8B50;
+
+  @DomName('WebGL2RenderingContext.FLOAT_VEC3')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FLOAT_VEC3 = 0x8B51;
+
+  @DomName('WebGL2RenderingContext.FLOAT_VEC4')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FLOAT_VEC4 = 0x8B52;
+
+  @DomName('WebGL2RenderingContext.FRAGMENT_SHADER')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRAGMENT_SHADER = 0x8B30;
+
+  @DomName('WebGL2RenderingContext.FRAMEBUFFER')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRAMEBUFFER = 0x8D40;
+
+  @DomName('WebGL2RenderingContext.FRAMEBUFFER_ATTACHMENT_OBJECT_NAME')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRAMEBUFFER_ATTACHMENT_OBJECT_NAME = 0x8CD1;
+
+  @DomName('WebGL2RenderingContext.FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE = 0x8CD0;
+
+  @DomName('WebGL2RenderingContext.FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE = 0x8CD3;
+
+  @DomName('WebGL2RenderingContext.FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL = 0x8CD2;
+
+  @DomName('WebGL2RenderingContext.FRAMEBUFFER_BINDING')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRAMEBUFFER_BINDING = 0x8CA6;
+
+  @DomName('WebGL2RenderingContext.FRAMEBUFFER_COMPLETE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRAMEBUFFER_COMPLETE = 0x8CD5;
+
+  @DomName('WebGL2RenderingContext.FRAMEBUFFER_INCOMPLETE_ATTACHMENT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRAMEBUFFER_INCOMPLETE_ATTACHMENT = 0x8CD6;
+
+  @DomName('WebGL2RenderingContext.FRAMEBUFFER_INCOMPLETE_DIMENSIONS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRAMEBUFFER_INCOMPLETE_DIMENSIONS = 0x8CD9;
+
+  @DomName('WebGL2RenderingContext.FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT = 0x8CD7;
+
+  @DomName('WebGL2RenderingContext.FRAMEBUFFER_UNSUPPORTED')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRAMEBUFFER_UNSUPPORTED = 0x8CDD;
+
+  @DomName('WebGL2RenderingContext.FRONT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRONT = 0x0404;
+
+  @DomName('WebGL2RenderingContext.FRONT_AND_BACK')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRONT_AND_BACK = 0x0408;
+
+  @DomName('WebGL2RenderingContext.FRONT_FACE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FRONT_FACE = 0x0B46;
+
+  @DomName('WebGL2RenderingContext.FUNC_ADD')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FUNC_ADD = 0x8006;
+
+  @DomName('WebGL2RenderingContext.FUNC_REVERSE_SUBTRACT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FUNC_REVERSE_SUBTRACT = 0x800B;
+
+  @DomName('WebGL2RenderingContext.FUNC_SUBTRACT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int FUNC_SUBTRACT = 0x800A;
+
+  @DomName('WebGL2RenderingContext.GENERATE_MIPMAP_HINT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int GENERATE_MIPMAP_HINT = 0x8192;
+
+  @DomName('WebGL2RenderingContext.GEQUAL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int GEQUAL = 0x0206;
+
+  @DomName('WebGL2RenderingContext.GREATER')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int GREATER = 0x0204;
+
+  @DomName('WebGL2RenderingContext.GREEN_BITS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int GREEN_BITS = 0x0D53;
+
+  @DomName('WebGL2RenderingContext.HIGH_FLOAT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int HIGH_FLOAT = 0x8DF2;
+
+  @DomName('WebGL2RenderingContext.HIGH_INT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int HIGH_INT = 0x8DF5;
+
+  @DomName('WebGL2RenderingContext.IMPLEMENTATION_COLOR_READ_FORMAT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int IMPLEMENTATION_COLOR_READ_FORMAT = 0x8B9B;
+
+  @DomName('WebGL2RenderingContext.IMPLEMENTATION_COLOR_READ_TYPE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int IMPLEMENTATION_COLOR_READ_TYPE = 0x8B9A;
+
+  @DomName('WebGL2RenderingContext.INCR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int INCR = 0x1E02;
+
+  @DomName('WebGL2RenderingContext.INCR_WRAP')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int INCR_WRAP = 0x8507;
+
+  @DomName('WebGL2RenderingContext.INT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int INT = 0x1404;
+
+  @DomName('WebGL2RenderingContext.INT_VEC2')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int INT_VEC2 = 0x8B53;
+
+  @DomName('WebGL2RenderingContext.INT_VEC3')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int INT_VEC3 = 0x8B54;
+
+  @DomName('WebGL2RenderingContext.INT_VEC4')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int INT_VEC4 = 0x8B55;
+
+  @DomName('WebGL2RenderingContext.INVALID_ENUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int INVALID_ENUM = 0x0500;
+
+  @DomName('WebGL2RenderingContext.INVALID_FRAMEBUFFER_OPERATION')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int INVALID_FRAMEBUFFER_OPERATION = 0x0506;
+
+  @DomName('WebGL2RenderingContext.INVALID_OPERATION')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int INVALID_OPERATION = 0x0502;
+
+  @DomName('WebGL2RenderingContext.INVALID_VALUE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int INVALID_VALUE = 0x0501;
+
+  @DomName('WebGL2RenderingContext.INVERT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int INVERT = 0x150A;
+
+  @DomName('WebGL2RenderingContext.KEEP')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int KEEP = 0x1E00;
+
+  @DomName('WebGL2RenderingContext.LEQUAL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int LEQUAL = 0x0203;
+
+  @DomName('WebGL2RenderingContext.LESS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int LESS = 0x0201;
+
+  @DomName('WebGL2RenderingContext.LINEAR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int LINEAR = 0x2601;
+
+  @DomName('WebGL2RenderingContext.LINEAR_MIPMAP_LINEAR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int LINEAR_MIPMAP_LINEAR = 0x2703;
+
+  @DomName('WebGL2RenderingContext.LINEAR_MIPMAP_NEAREST')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int LINEAR_MIPMAP_NEAREST = 0x2701;
+
+  @DomName('WebGL2RenderingContext.LINES')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int LINES = 0x0001;
+
+  @DomName('WebGL2RenderingContext.LINE_LOOP')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int LINE_LOOP = 0x0002;
+
+  @DomName('WebGL2RenderingContext.LINE_STRIP')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int LINE_STRIP = 0x0003;
+
+  @DomName('WebGL2RenderingContext.LINE_WIDTH')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int LINE_WIDTH = 0x0B21;
+
+  @DomName('WebGL2RenderingContext.LINK_STATUS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int LINK_STATUS = 0x8B82;
+
+  @DomName('WebGL2RenderingContext.LOW_FLOAT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int LOW_FLOAT = 0x8DF0;
+
+  @DomName('WebGL2RenderingContext.LOW_INT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int LOW_INT = 0x8DF3;
+
+  @DomName('WebGL2RenderingContext.LUMINANCE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int LUMINANCE = 0x1909;
+
+  @DomName('WebGL2RenderingContext.LUMINANCE_ALPHA')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int LUMINANCE_ALPHA = 0x190A;
+
+  @DomName('WebGL2RenderingContext.MAX_COMBINED_TEXTURE_IMAGE_UNITS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MAX_COMBINED_TEXTURE_IMAGE_UNITS = 0x8B4D;
+
+  @DomName('WebGL2RenderingContext.MAX_CUBE_MAP_TEXTURE_SIZE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MAX_CUBE_MAP_TEXTURE_SIZE = 0x851C;
+
+  @DomName('WebGL2RenderingContext.MAX_FRAGMENT_UNIFORM_VECTORS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MAX_FRAGMENT_UNIFORM_VECTORS = 0x8DFD;
+
+  @DomName('WebGL2RenderingContext.MAX_RENDERBUFFER_SIZE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MAX_RENDERBUFFER_SIZE = 0x84E8;
+
+  @DomName('WebGL2RenderingContext.MAX_TEXTURE_IMAGE_UNITS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MAX_TEXTURE_IMAGE_UNITS = 0x8872;
+
+  @DomName('WebGL2RenderingContext.MAX_TEXTURE_SIZE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MAX_TEXTURE_SIZE = 0x0D33;
+
+  @DomName('WebGL2RenderingContext.MAX_VARYING_VECTORS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MAX_VARYING_VECTORS = 0x8DFC;
+
+  @DomName('WebGL2RenderingContext.MAX_VERTEX_ATTRIBS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MAX_VERTEX_ATTRIBS = 0x8869;
+
+  @DomName('WebGL2RenderingContext.MAX_VERTEX_TEXTURE_IMAGE_UNITS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MAX_VERTEX_TEXTURE_IMAGE_UNITS = 0x8B4C;
+
+  @DomName('WebGL2RenderingContext.MAX_VERTEX_UNIFORM_VECTORS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MAX_VERTEX_UNIFORM_VECTORS = 0x8DFB;
+
+  @DomName('WebGL2RenderingContext.MAX_VIEWPORT_DIMS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MAX_VIEWPORT_DIMS = 0x0D3A;
+
+  @DomName('WebGL2RenderingContext.MEDIUM_FLOAT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MEDIUM_FLOAT = 0x8DF1;
+
+  @DomName('WebGL2RenderingContext.MEDIUM_INT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MEDIUM_INT = 0x8DF4;
+
+  @DomName('WebGL2RenderingContext.MIRRORED_REPEAT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MIRRORED_REPEAT = 0x8370;
+
+  @DomName('WebGL2RenderingContext.NEAREST')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int NEAREST = 0x2600;
+
+  @DomName('WebGL2RenderingContext.NEAREST_MIPMAP_LINEAR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int NEAREST_MIPMAP_LINEAR = 0x2702;
+
+  @DomName('WebGL2RenderingContext.NEAREST_MIPMAP_NEAREST')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int NEAREST_MIPMAP_NEAREST = 0x2700;
+
+  @DomName('WebGL2RenderingContext.NEVER')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int NEVER = 0x0200;
+
+  @DomName('WebGL2RenderingContext.NICEST')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int NICEST = 0x1102;
+
+  @DomName('WebGL2RenderingContext.NONE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int NONE = 0;
+
+  @DomName('WebGL2RenderingContext.NOTEQUAL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int NOTEQUAL = 0x0205;
+
+  @DomName('WebGL2RenderingContext.NO_ERROR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int NO_ERROR = 0;
+
+  @DomName('WebGL2RenderingContext.ONE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ONE = 1;
+
+  @DomName('WebGL2RenderingContext.ONE_MINUS_CONSTANT_ALPHA')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ONE_MINUS_CONSTANT_ALPHA = 0x8004;
+
+  @DomName('WebGL2RenderingContext.ONE_MINUS_CONSTANT_COLOR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ONE_MINUS_CONSTANT_COLOR = 0x8002;
+
+  @DomName('WebGL2RenderingContext.ONE_MINUS_DST_ALPHA')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ONE_MINUS_DST_ALPHA = 0x0305;
+
+  @DomName('WebGL2RenderingContext.ONE_MINUS_DST_COLOR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ONE_MINUS_DST_COLOR = 0x0307;
+
+  @DomName('WebGL2RenderingContext.ONE_MINUS_SRC_ALPHA')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ONE_MINUS_SRC_ALPHA = 0x0303;
+
+  @DomName('WebGL2RenderingContext.ONE_MINUS_SRC_COLOR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ONE_MINUS_SRC_COLOR = 0x0301;
+
+  @DomName('WebGL2RenderingContext.OUT_OF_MEMORY')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int OUT_OF_MEMORY = 0x0505;
+
+  @DomName('WebGL2RenderingContext.PACK_ALIGNMENT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int PACK_ALIGNMENT = 0x0D05;
+
+  @DomName('WebGL2RenderingContext.POINTS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int POINTS = 0x0000;
+
+  @DomName('WebGL2RenderingContext.POLYGON_OFFSET_FACTOR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int POLYGON_OFFSET_FACTOR = 0x8038;
+
+  @DomName('WebGL2RenderingContext.POLYGON_OFFSET_FILL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int POLYGON_OFFSET_FILL = 0x8037;
+
+  @DomName('WebGL2RenderingContext.POLYGON_OFFSET_UNITS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int POLYGON_OFFSET_UNITS = 0x2A00;
+
+  @DomName('WebGL2RenderingContext.RED_BITS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RED_BITS = 0x0D52;
+
+  @DomName('WebGL2RenderingContext.RENDERBUFFER')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RENDERBUFFER = 0x8D41;
+
+  @DomName('WebGL2RenderingContext.RENDERBUFFER_ALPHA_SIZE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RENDERBUFFER_ALPHA_SIZE = 0x8D53;
+
+  @DomName('WebGL2RenderingContext.RENDERBUFFER_BINDING')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RENDERBUFFER_BINDING = 0x8CA7;
+
+  @DomName('WebGL2RenderingContext.RENDERBUFFER_BLUE_SIZE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RENDERBUFFER_BLUE_SIZE = 0x8D52;
+
+  @DomName('WebGL2RenderingContext.RENDERBUFFER_DEPTH_SIZE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RENDERBUFFER_DEPTH_SIZE = 0x8D54;
+
+  @DomName('WebGL2RenderingContext.RENDERBUFFER_GREEN_SIZE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RENDERBUFFER_GREEN_SIZE = 0x8D51;
+
+  @DomName('WebGL2RenderingContext.RENDERBUFFER_HEIGHT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RENDERBUFFER_HEIGHT = 0x8D43;
+
+  @DomName('WebGL2RenderingContext.RENDERBUFFER_INTERNAL_FORMAT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RENDERBUFFER_INTERNAL_FORMAT = 0x8D44;
+
+  @DomName('WebGL2RenderingContext.RENDERBUFFER_RED_SIZE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RENDERBUFFER_RED_SIZE = 0x8D50;
+
+  @DomName('WebGL2RenderingContext.RENDERBUFFER_STENCIL_SIZE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RENDERBUFFER_STENCIL_SIZE = 0x8D55;
+
+  @DomName('WebGL2RenderingContext.RENDERBUFFER_WIDTH')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RENDERBUFFER_WIDTH = 0x8D42;
+
+  @DomName('WebGL2RenderingContext.RENDERER')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RENDERER = 0x1F01;
+
+  @DomName('WebGL2RenderingContext.REPEAT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int REPEAT = 0x2901;
+
+  @DomName('WebGL2RenderingContext.REPLACE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int REPLACE = 0x1E01;
+
+  @DomName('WebGL2RenderingContext.RGB')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RGB = 0x1907;
+
+  @DomName('WebGL2RenderingContext.RGB565')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RGB565 = 0x8D62;
+
+  @DomName('WebGL2RenderingContext.RGB5_A1')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RGB5_A1 = 0x8057;
+
+  @DomName('WebGL2RenderingContext.RGBA')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RGBA = 0x1908;
+
+  @DomName('WebGL2RenderingContext.RGBA4')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int RGBA4 = 0x8056;
+
+  @DomName('WebGL2RenderingContext.SAMPLER_2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SAMPLER_2D = 0x8B5E;
+
+  @DomName('WebGL2RenderingContext.SAMPLER_CUBE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SAMPLER_CUBE = 0x8B60;
+
+  @DomName('WebGL2RenderingContext.SAMPLES')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SAMPLES = 0x80A9;
+
+  @DomName('WebGL2RenderingContext.SAMPLE_ALPHA_TO_COVERAGE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SAMPLE_ALPHA_TO_COVERAGE = 0x809E;
+
+  @DomName('WebGL2RenderingContext.SAMPLE_BUFFERS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SAMPLE_BUFFERS = 0x80A8;
+
+  @DomName('WebGL2RenderingContext.SAMPLE_COVERAGE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SAMPLE_COVERAGE = 0x80A0;
+
+  @DomName('WebGL2RenderingContext.SAMPLE_COVERAGE_INVERT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SAMPLE_COVERAGE_INVERT = 0x80AB;
+
+  @DomName('WebGL2RenderingContext.SAMPLE_COVERAGE_VALUE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SAMPLE_COVERAGE_VALUE = 0x80AA;
+
+  @DomName('WebGL2RenderingContext.SCISSOR_BOX')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SCISSOR_BOX = 0x0C10;
+
+  @DomName('WebGL2RenderingContext.SCISSOR_TEST')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SCISSOR_TEST = 0x0C11;
+
+  @DomName('WebGL2RenderingContext.SHADER_TYPE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SHADER_TYPE = 0x8B4F;
+
+  @DomName('WebGL2RenderingContext.SHADING_LANGUAGE_VERSION')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SHADING_LANGUAGE_VERSION = 0x8B8C;
+
+  @DomName('WebGL2RenderingContext.SHORT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SHORT = 0x1402;
+
+  @DomName('WebGL2RenderingContext.SRC_ALPHA')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SRC_ALPHA = 0x0302;
+
+  @DomName('WebGL2RenderingContext.SRC_ALPHA_SATURATE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SRC_ALPHA_SATURATE = 0x0308;
+
+  @DomName('WebGL2RenderingContext.SRC_COLOR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SRC_COLOR = 0x0300;
+
+  @DomName('WebGL2RenderingContext.STATIC_DRAW')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STATIC_DRAW = 0x88E4;
+
+  @DomName('WebGL2RenderingContext.STENCIL_ATTACHMENT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_ATTACHMENT = 0x8D20;
+
+  @DomName('WebGL2RenderingContext.STENCIL_BACK_FAIL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_BACK_FAIL = 0x8801;
+
+  @DomName('WebGL2RenderingContext.STENCIL_BACK_FUNC')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_BACK_FUNC = 0x8800;
+
+  @DomName('WebGL2RenderingContext.STENCIL_BACK_PASS_DEPTH_FAIL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_BACK_PASS_DEPTH_FAIL = 0x8802;
+
+  @DomName('WebGL2RenderingContext.STENCIL_BACK_PASS_DEPTH_PASS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_BACK_PASS_DEPTH_PASS = 0x8803;
+
+  @DomName('WebGL2RenderingContext.STENCIL_BACK_REF')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_BACK_REF = 0x8CA3;
+
+  @DomName('WebGL2RenderingContext.STENCIL_BACK_VALUE_MASK')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_BACK_VALUE_MASK = 0x8CA4;
+
+  @DomName('WebGL2RenderingContext.STENCIL_BACK_WRITEMASK')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_BACK_WRITEMASK = 0x8CA5;
+
+  @DomName('WebGL2RenderingContext.STENCIL_BITS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_BITS = 0x0D57;
+
+  @DomName('WebGL2RenderingContext.STENCIL_BUFFER_BIT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_BUFFER_BIT = 0x00000400;
+
+  @DomName('WebGL2RenderingContext.STENCIL_CLEAR_VALUE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_CLEAR_VALUE = 0x0B91;
+
+  @DomName('WebGL2RenderingContext.STENCIL_FAIL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_FAIL = 0x0B94;
+
+  @DomName('WebGL2RenderingContext.STENCIL_FUNC')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_FUNC = 0x0B92;
+
+  @DomName('WebGL2RenderingContext.STENCIL_INDEX')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_INDEX = 0x1901;
+
+  @DomName('WebGL2RenderingContext.STENCIL_INDEX8')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_INDEX8 = 0x8D48;
+
+  @DomName('WebGL2RenderingContext.STENCIL_PASS_DEPTH_FAIL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_PASS_DEPTH_FAIL = 0x0B95;
+
+  @DomName('WebGL2RenderingContext.STENCIL_PASS_DEPTH_PASS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_PASS_DEPTH_PASS = 0x0B96;
+
+  @DomName('WebGL2RenderingContext.STENCIL_REF')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_REF = 0x0B97;
+
+  @DomName('WebGL2RenderingContext.STENCIL_TEST')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_TEST = 0x0B90;
+
+  @DomName('WebGL2RenderingContext.STENCIL_VALUE_MASK')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_VALUE_MASK = 0x0B93;
+
+  @DomName('WebGL2RenderingContext.STENCIL_WRITEMASK')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STENCIL_WRITEMASK = 0x0B98;
+
+  @DomName('WebGL2RenderingContext.STREAM_DRAW')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int STREAM_DRAW = 0x88E0;
+
+  @DomName('WebGL2RenderingContext.SUBPIXEL_BITS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SUBPIXEL_BITS = 0x0D50;
+
+  @DomName('WebGL2RenderingContext.TEXTURE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE = 0x1702;
+
+  @DomName('WebGL2RenderingContext.TEXTURE0')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE0 = 0x84C0;
+
+  @DomName('WebGL2RenderingContext.TEXTURE1')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE1 = 0x84C1;
+
+  @DomName('WebGL2RenderingContext.TEXTURE10')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE10 = 0x84CA;
+
+  @DomName('WebGL2RenderingContext.TEXTURE11')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE11 = 0x84CB;
+
+  @DomName('WebGL2RenderingContext.TEXTURE12')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE12 = 0x84CC;
+
+  @DomName('WebGL2RenderingContext.TEXTURE13')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE13 = 0x84CD;
+
+  @DomName('WebGL2RenderingContext.TEXTURE14')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE14 = 0x84CE;
+
+  @DomName('WebGL2RenderingContext.TEXTURE15')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE15 = 0x84CF;
+
+  @DomName('WebGL2RenderingContext.TEXTURE16')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE16 = 0x84D0;
+
+  @DomName('WebGL2RenderingContext.TEXTURE17')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE17 = 0x84D1;
+
+  @DomName('WebGL2RenderingContext.TEXTURE18')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE18 = 0x84D2;
+
+  @DomName('WebGL2RenderingContext.TEXTURE19')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE19 = 0x84D3;
+
+  @DomName('WebGL2RenderingContext.TEXTURE2')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE2 = 0x84C2;
+
+  @DomName('WebGL2RenderingContext.TEXTURE20')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE20 = 0x84D4;
+
+  @DomName('WebGL2RenderingContext.TEXTURE21')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE21 = 0x84D5;
+
+  @DomName('WebGL2RenderingContext.TEXTURE22')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE22 = 0x84D6;
+
+  @DomName('WebGL2RenderingContext.TEXTURE23')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE23 = 0x84D7;
+
+  @DomName('WebGL2RenderingContext.TEXTURE24')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE24 = 0x84D8;
+
+  @DomName('WebGL2RenderingContext.TEXTURE25')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE25 = 0x84D9;
+
+  @DomName('WebGL2RenderingContext.TEXTURE26')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE26 = 0x84DA;
+
+  @DomName('WebGL2RenderingContext.TEXTURE27')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE27 = 0x84DB;
+
+  @DomName('WebGL2RenderingContext.TEXTURE28')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE28 = 0x84DC;
+
+  @DomName('WebGL2RenderingContext.TEXTURE29')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE29 = 0x84DD;
+
+  @DomName('WebGL2RenderingContext.TEXTURE3')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE3 = 0x84C3;
+
+  @DomName('WebGL2RenderingContext.TEXTURE30')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE30 = 0x84DE;
+
+  @DomName('WebGL2RenderingContext.TEXTURE31')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE31 = 0x84DF;
+
+  @DomName('WebGL2RenderingContext.TEXTURE4')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE4 = 0x84C4;
+
+  @DomName('WebGL2RenderingContext.TEXTURE5')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE5 = 0x84C5;
+
+  @DomName('WebGL2RenderingContext.TEXTURE6')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE6 = 0x84C6;
+
+  @DomName('WebGL2RenderingContext.TEXTURE7')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE7 = 0x84C7;
+
+  @DomName('WebGL2RenderingContext.TEXTURE8')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE8 = 0x84C8;
+
+  @DomName('WebGL2RenderingContext.TEXTURE9')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE9 = 0x84C9;
+
+  @DomName('WebGL2RenderingContext.TEXTURE_2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE_2D = 0x0DE1;
+
+  @DomName('WebGL2RenderingContext.TEXTURE_BINDING_2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE_BINDING_2D = 0x8069;
+
+  @DomName('WebGL2RenderingContext.TEXTURE_BINDING_CUBE_MAP')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE_BINDING_CUBE_MAP = 0x8514;
+
+  @DomName('WebGL2RenderingContext.TEXTURE_CUBE_MAP')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE_CUBE_MAP = 0x8513;
+
+  @DomName('WebGL2RenderingContext.TEXTURE_CUBE_MAP_NEGATIVE_X')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE_CUBE_MAP_NEGATIVE_X = 0x8516;
+
+  @DomName('WebGL2RenderingContext.TEXTURE_CUBE_MAP_NEGATIVE_Y')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE_CUBE_MAP_NEGATIVE_Y = 0x8518;
+
+  @DomName('WebGL2RenderingContext.TEXTURE_CUBE_MAP_NEGATIVE_Z')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE_CUBE_MAP_NEGATIVE_Z = 0x851A;
+
+  @DomName('WebGL2RenderingContext.TEXTURE_CUBE_MAP_POSITIVE_X')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE_CUBE_MAP_POSITIVE_X = 0x8515;
+
+  @DomName('WebGL2RenderingContext.TEXTURE_CUBE_MAP_POSITIVE_Y')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE_CUBE_MAP_POSITIVE_Y = 0x8517;
+
+  @DomName('WebGL2RenderingContext.TEXTURE_CUBE_MAP_POSITIVE_Z')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE_CUBE_MAP_POSITIVE_Z = 0x8519;
+
+  @DomName('WebGL2RenderingContext.TEXTURE_MAG_FILTER')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE_MAG_FILTER = 0x2800;
+
+  @DomName('WebGL2RenderingContext.TEXTURE_MIN_FILTER')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE_MIN_FILTER = 0x2801;
+
+  @DomName('WebGL2RenderingContext.TEXTURE_WRAP_S')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE_WRAP_S = 0x2802;
+
+  @DomName('WebGL2RenderingContext.TEXTURE_WRAP_T')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TEXTURE_WRAP_T = 0x2803;
+
+  @DomName('WebGL2RenderingContext.TRIANGLES')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TRIANGLES = 0x0004;
+
+  @DomName('WebGL2RenderingContext.TRIANGLE_FAN')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TRIANGLE_FAN = 0x0006;
+
+  @DomName('WebGL2RenderingContext.TRIANGLE_STRIP')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int TRIANGLE_STRIP = 0x0005;
+
+  @DomName('WebGL2RenderingContext.UNPACK_ALIGNMENT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int UNPACK_ALIGNMENT = 0x0CF5;
+
+  @DomName('WebGL2RenderingContext.UNPACK_COLORSPACE_CONVERSION_WEBGL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int UNPACK_COLORSPACE_CONVERSION_WEBGL = 0x9243;
+
+  @DomName('WebGL2RenderingContext.UNPACK_FLIP_Y_WEBGL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int UNPACK_FLIP_Y_WEBGL = 0x9240;
+
+  @DomName('WebGL2RenderingContext.UNPACK_PREMULTIPLY_ALPHA_WEBGL')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int UNPACK_PREMULTIPLY_ALPHA_WEBGL = 0x9241;
+
+  @DomName('WebGL2RenderingContext.UNSIGNED_BYTE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int UNSIGNED_BYTE = 0x1401;
+
+  @DomName('WebGL2RenderingContext.UNSIGNED_INT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int UNSIGNED_INT = 0x1405;
+
+  @DomName('WebGL2RenderingContext.UNSIGNED_SHORT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int UNSIGNED_SHORT = 0x1403;
+
+  @DomName('WebGL2RenderingContext.UNSIGNED_SHORT_4_4_4_4')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int UNSIGNED_SHORT_4_4_4_4 = 0x8033;
+
+  @DomName('WebGL2RenderingContext.UNSIGNED_SHORT_5_5_5_1')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int UNSIGNED_SHORT_5_5_5_1 = 0x8034;
+
+  @DomName('WebGL2RenderingContext.UNSIGNED_SHORT_5_6_5')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int UNSIGNED_SHORT_5_6_5 = 0x8363;
+
+  @DomName('WebGL2RenderingContext.VALIDATE_STATUS')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int VALIDATE_STATUS = 0x8B83;
+
+  @DomName('WebGL2RenderingContext.VENDOR')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int VENDOR = 0x1F00;
+
+  @DomName('WebGL2RenderingContext.VERSION')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int VERSION = 0x1F02;
+
+  @DomName('WebGL2RenderingContext.VERTEX_ATTRIB_ARRAY_BUFFER_BINDING')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int VERTEX_ATTRIB_ARRAY_BUFFER_BINDING = 0x889F;
+
+  @DomName('WebGL2RenderingContext.VERTEX_ATTRIB_ARRAY_ENABLED')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int VERTEX_ATTRIB_ARRAY_ENABLED = 0x8622;
+
+  @DomName('WebGL2RenderingContext.VERTEX_ATTRIB_ARRAY_NORMALIZED')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int VERTEX_ATTRIB_ARRAY_NORMALIZED = 0x886A;
+
+  @DomName('WebGL2RenderingContext.VERTEX_ATTRIB_ARRAY_POINTER')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int VERTEX_ATTRIB_ARRAY_POINTER = 0x8645;
+
+  @DomName('WebGL2RenderingContext.VERTEX_ATTRIB_ARRAY_SIZE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int VERTEX_ATTRIB_ARRAY_SIZE = 0x8623;
+
+  @DomName('WebGL2RenderingContext.VERTEX_ATTRIB_ARRAY_STRIDE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int VERTEX_ATTRIB_ARRAY_STRIDE = 0x8624;
+
+  @DomName('WebGL2RenderingContext.VERTEX_ATTRIB_ARRAY_TYPE')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int VERTEX_ATTRIB_ARRAY_TYPE = 0x8625;
+
+  @DomName('WebGL2RenderingContext.VERTEX_SHADER')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int VERTEX_SHADER = 0x8B31;
+
+  @DomName('WebGL2RenderingContext.VIEWPORT')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int VIEWPORT = 0x0BA2;
+
+  @DomName('WebGL2RenderingContext.ZERO')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int ZERO = 0;
+
+  @DomName('WebGL2RenderingContext.beginQuery')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void beginQuery(int target, Query query) => _blink.BlinkWebGL2RenderingContext.instance.beginQuery_Callback_2_(unwrap_jso(this), target, unwrap_jso(query));
+  
+  @DomName('WebGL2RenderingContext.beginTransformFeedback')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void beginTransformFeedback(int primitiveMode) => _blink.BlinkWebGL2RenderingContext.instance.beginTransformFeedback_Callback_1_(unwrap_jso(this), primitiveMode);
+  
+  @DomName('WebGL2RenderingContext.bindBufferBase')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bindBufferBase(int target, int index, Buffer buffer) => _blink.BlinkWebGL2RenderingContext.instance.bindBufferBase_Callback_3_(unwrap_jso(this), target, index, unwrap_jso(buffer));
+  
+  @DomName('WebGL2RenderingContext.bindBufferRange')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bindBufferRange(int target, int index, Buffer buffer, int offset, int size) => _blink.BlinkWebGL2RenderingContext.instance.bindBufferRange_Callback_5_(unwrap_jso(this), target, index, unwrap_jso(buffer), offset, size);
+  
+  @DomName('WebGL2RenderingContext.bindSampler')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bindSampler(int unit, Sampler sampler) => _blink.BlinkWebGL2RenderingContext.instance.bindSampler_Callback_2_(unwrap_jso(this), unit, unwrap_jso(sampler));
+  
+  @DomName('WebGL2RenderingContext.bindTransformFeedback')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bindTransformFeedback(int target, TransformFeedback feedback) => _blink.BlinkWebGL2RenderingContext.instance.bindTransformFeedback_Callback_2_(unwrap_jso(this), target, unwrap_jso(feedback));
+  
+  @DomName('WebGL2RenderingContext.bindVertexArray')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bindVertexArray(VertexArrayObject vertexArray) => _blink.BlinkWebGL2RenderingContext.instance.bindVertexArray_Callback_1_(unwrap_jso(this), unwrap_jso(vertexArray));
+  
+  @DomName('WebGL2RenderingContext.blitFramebuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void blitFramebuffer(int srcX0, int srcY0, int srcX1, int srcY1, int dstX0, int dstY0, int dstX1, int dstY1, int mask, int filter) => _blink.BlinkWebGL2RenderingContext.instance.blitFramebuffer_Callback_10_(unwrap_jso(this), srcX0, srcY0, srcX1, srcY1, dstX0, dstY0, dstX1, dstY1, mask, filter);
+  
+  @DomName('WebGL2RenderingContext.clearBufferfi')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void clearBufferfi(int buffer, int drawbuffer, num depth, int stencil) => _blink.BlinkWebGL2RenderingContext.instance.clearBufferfi_Callback_4_(unwrap_jso(this), buffer, drawbuffer, depth, stencil);
+  
+  void clearBufferfv(int buffer, int drawbuffer, value) {
+    if ((value is Float32List) && (drawbuffer is int) && (buffer is int)) {
+      _blink.BlinkWebGL2RenderingContext.instance.clearBufferfv_Callback_3_(unwrap_jso(this), buffer, drawbuffer, unwrap_jso(value));
+      return;
+    }
+    if ((value is List<num>) && (drawbuffer is int) && (buffer is int)) {
+      _blink.BlinkWebGL2RenderingContext.instance.clearBufferfv_Callback_3_(unwrap_jso(this), buffer, drawbuffer, unwrap_jso(value));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  void clearBufferiv(int buffer, int drawbuffer, value) {
+    if ((value is Int32List) && (drawbuffer is int) && (buffer is int)) {
+      _blink.BlinkWebGL2RenderingContext.instance.clearBufferiv_Callback_3_(unwrap_jso(this), buffer, drawbuffer, unwrap_jso(value));
+      return;
+    }
+    if ((value is List<int>) && (drawbuffer is int) && (buffer is int)) {
+      _blink.BlinkWebGL2RenderingContext.instance.clearBufferiv_Callback_3_(unwrap_jso(this), buffer, drawbuffer, unwrap_jso(value));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  void clearBufferuiv(int buffer, int drawbuffer, value) {
+    if ((value is Uint32List) && (drawbuffer is int) && (buffer is int)) {
+      _blink.BlinkWebGL2RenderingContext.instance.clearBufferuiv_Callback_3_(unwrap_jso(this), buffer, drawbuffer, unwrap_jso(value));
+      return;
+    }
+    if ((value is List<int>) && (drawbuffer is int) && (buffer is int)) {
+      _blink.BlinkWebGL2RenderingContext.instance.clearBufferuiv_Callback_3_(unwrap_jso(this), buffer, drawbuffer, unwrap_jso(value));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @DomName('WebGL2RenderingContext.clientWaitSync')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int clientWaitSync(Sync sync, int flags, int timeout) => _blink.BlinkWebGL2RenderingContext.instance.clientWaitSync_Callback_3_(unwrap_jso(this), unwrap_jso(sync), flags, timeout);
+  
+  @DomName('WebGL2RenderingContext.compressedTexImage3D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void compressedTexImage3D(int target, int level, int internalformat, int width, int height, int depth, int border, TypedData data) => _blink.BlinkWebGL2RenderingContext.instance.compressedTexImage3D_Callback_8_(unwrap_jso(this), target, level, internalformat, width, height, depth, border, unwrap_jso(data));
+  
+  @DomName('WebGL2RenderingContext.compressedTexSubImage3D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void compressedTexSubImage3D(int target, int level, int xoffset, int yoffset, int zoffset, int width, int height, int depth, int format, TypedData data) => _blink.BlinkWebGL2RenderingContext.instance.compressedTexSubImage3D_Callback_10_(unwrap_jso(this), target, level, xoffset, yoffset, zoffset, width, height, depth, format, unwrap_jso(data));
+  
+  @DomName('WebGL2RenderingContext.copyBufferSubData')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void copyBufferSubData(int readTarget, int writeTarget, int readOffset, int writeOffset, int size) => _blink.BlinkWebGL2RenderingContext.instance.copyBufferSubData_Callback_5_(unwrap_jso(this), readTarget, writeTarget, readOffset, writeOffset, size);
+  
+  @DomName('WebGL2RenderingContext.copyTexSubImage3D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void copyTexSubImage3D(int target, int level, int xoffset, int yoffset, int zoffset, int x, int y, int width, int height) => _blink.BlinkWebGL2RenderingContext.instance.copyTexSubImage3D_Callback_9_(unwrap_jso(this), target, level, xoffset, yoffset, zoffset, x, y, width, height);
+  
+  @DomName('WebGL2RenderingContext.createQuery')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Query createQuery() => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.createQuery_Callback_0_(unwrap_jso(this)));
+  
+  @DomName('WebGL2RenderingContext.createSampler')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Sampler createSampler() => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.createSampler_Callback_0_(unwrap_jso(this)));
+  
+  @DomName('WebGL2RenderingContext.createTransformFeedback')
+  @DocsEditable()
+  @Experimental() // untriaged
+  TransformFeedback createTransformFeedback() => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.createTransformFeedback_Callback_0_(unwrap_jso(this)));
+  
+  @DomName('WebGL2RenderingContext.createVertexArray')
+  @DocsEditable()
+  @Experimental() // untriaged
+  VertexArrayObject createVertexArray() => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.createVertexArray_Callback_0_(unwrap_jso(this)));
+  
+  @DomName('WebGL2RenderingContext.deleteQuery')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deleteQuery(Query query) => _blink.BlinkWebGL2RenderingContext.instance.deleteQuery_Callback_1_(unwrap_jso(this), unwrap_jso(query));
+  
+  @DomName('WebGL2RenderingContext.deleteSampler')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deleteSampler(Sampler sampler) => _blink.BlinkWebGL2RenderingContext.instance.deleteSampler_Callback_1_(unwrap_jso(this), unwrap_jso(sampler));
+  
+  @DomName('WebGL2RenderingContext.deleteSync')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deleteSync(Sync sync) => _blink.BlinkWebGL2RenderingContext.instance.deleteSync_Callback_1_(unwrap_jso(this), unwrap_jso(sync));
+  
+  @DomName('WebGL2RenderingContext.deleteTransformFeedback')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deleteTransformFeedback(TransformFeedback feedback) => _blink.BlinkWebGL2RenderingContext.instance.deleteTransformFeedback_Callback_1_(unwrap_jso(this), unwrap_jso(feedback));
+  
+  @DomName('WebGL2RenderingContext.deleteVertexArray')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deleteVertexArray(VertexArrayObject vertexArray) => _blink.BlinkWebGL2RenderingContext.instance.deleteVertexArray_Callback_1_(unwrap_jso(this), unwrap_jso(vertexArray));
+  
+  @DomName('WebGL2RenderingContext.drawArraysInstanced')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void drawArraysInstanced(int mode, int first, int count, int instanceCount) => _blink.BlinkWebGL2RenderingContext.instance.drawArraysInstanced_Callback_4_(unwrap_jso(this), mode, first, count, instanceCount);
+  
+  @DomName('WebGL2RenderingContext.drawBuffers')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void drawBuffers(List<int> buffers) => _blink.BlinkWebGL2RenderingContext.instance.drawBuffers_Callback_1_(unwrap_jso(this), buffers);
+  
+  @DomName('WebGL2RenderingContext.drawElementsInstanced')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void drawElementsInstanced(int mode, int count, int type, int offset, int instanceCount) => _blink.BlinkWebGL2RenderingContext.instance.drawElementsInstanced_Callback_5_(unwrap_jso(this), mode, count, type, offset, instanceCount);
+  
+  @DomName('WebGL2RenderingContext.drawRangeElements')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void drawRangeElements(int mode, int start, int end, int count, int type, int offset) => _blink.BlinkWebGL2RenderingContext.instance.drawRangeElements_Callback_6_(unwrap_jso(this), mode, start, end, count, type, offset);
+  
+  @DomName('WebGL2RenderingContext.endQuery')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void endQuery(int target) => _blink.BlinkWebGL2RenderingContext.instance.endQuery_Callback_1_(unwrap_jso(this), target);
+  
+  @DomName('WebGL2RenderingContext.endTransformFeedback')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void endTransformFeedback() => _blink.BlinkWebGL2RenderingContext.instance.endTransformFeedback_Callback_0_(unwrap_jso(this));
+  
+  @DomName('WebGL2RenderingContext.fenceSync')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Sync fenceSync(int condition, int flags) => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.fenceSync_Callback_2_(unwrap_jso(this), condition, flags));
+  
+  @DomName('WebGL2RenderingContext.framebufferTextureLayer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void framebufferTextureLayer(int target, int attachment, Texture texture, int level, int layer) => _blink.BlinkWebGL2RenderingContext.instance.framebufferTextureLayer_Callback_5_(unwrap_jso(this), target, attachment, unwrap_jso(texture), level, layer);
+  
+  @DomName('WebGL2RenderingContext.getActiveUniformBlockName')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String getActiveUniformBlockName(Program program, int uniformBlockIndex) => _blink.BlinkWebGL2RenderingContext.instance.getActiveUniformBlockName_Callback_2_(unwrap_jso(this), unwrap_jso(program), uniformBlockIndex);
+  
+  @DomName('WebGL2RenderingContext.getActiveUniformBlockParameter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getActiveUniformBlockParameter(Program program, int uniformBlockIndex, int pname) => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.getActiveUniformBlockParameter_Callback_3_(unwrap_jso(this), unwrap_jso(program), uniformBlockIndex, pname));
+  
+  @DomName('WebGL2RenderingContext.getActiveUniforms')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<int> getActiveUniforms(Program program, List<int> uniformIndices, int pname) => _blink.BlinkWebGL2RenderingContext.instance.getActiveUniforms_Callback_3_(unwrap_jso(this), unwrap_jso(program), uniformIndices, pname);
+  
+  @DomName('WebGL2RenderingContext.getBufferSubData')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void getBufferSubData(int target, int offset, ByteBuffer returnedData) => _blink.BlinkWebGL2RenderingContext.instance.getBufferSubData_Callback_3_(unwrap_jso(this), target, offset, unwrap_jso(returnedData));
+  
+  @DomName('WebGL2RenderingContext.getFragDataLocation')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int getFragDataLocation(Program program, String name) => _blink.BlinkWebGL2RenderingContext.instance.getFragDataLocation_Callback_2_(unwrap_jso(this), unwrap_jso(program), name);
+  
+  @DomName('WebGL2RenderingContext.getIndexedParameter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getIndexedParameter(int target, int index) => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.getIndexedParameter_Callback_2_(unwrap_jso(this), target, index));
+  
+  @DomName('WebGL2RenderingContext.getInternalformatParameter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getInternalformatParameter(int target, int internalformat, int pname) => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.getInternalformatParameter_Callback_3_(unwrap_jso(this), target, internalformat, pname));
+  
+  @DomName('WebGL2RenderingContext.getQuery')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Query getQuery(int target, int pname) => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.getQuery_Callback_2_(unwrap_jso(this), target, pname));
+  
+  @DomName('WebGL2RenderingContext.getQueryParameter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getQueryParameter(Query query, int pname) => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.getQueryParameter_Callback_2_(unwrap_jso(this), unwrap_jso(query), pname));
+  
+  @DomName('WebGL2RenderingContext.getSamplerParameter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getSamplerParameter(Sampler sampler, int pname) => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.getSamplerParameter_Callback_2_(unwrap_jso(this), unwrap_jso(sampler), pname));
+  
+  @DomName('WebGL2RenderingContext.getSyncParameter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getSyncParameter(Sync sync, int pname) => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.getSyncParameter_Callback_2_(unwrap_jso(this), unwrap_jso(sync), pname));
+  
+  @DomName('WebGL2RenderingContext.getTransformFeedbackVarying')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ActiveInfo getTransformFeedbackVarying(Program program, int index) => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.getTransformFeedbackVarying_Callback_2_(unwrap_jso(this), unwrap_jso(program), index));
+  
+  @DomName('WebGL2RenderingContext.getUniformBlockIndex')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int getUniformBlockIndex(Program program, String uniformBlockName) => _blink.BlinkWebGL2RenderingContext.instance.getUniformBlockIndex_Callback_2_(unwrap_jso(this), unwrap_jso(program), uniformBlockName);
+  
+  @DomName('WebGL2RenderingContext.getUniformIndices')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<int> getUniformIndices(Program program, List<String> uniformNames) => _blink.BlinkWebGL2RenderingContext.instance.getUniformIndices_Callback_2_(unwrap_jso(this), unwrap_jso(program), uniformNames);
+  
+  @DomName('WebGL2RenderingContext.invalidateFramebuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void invalidateFramebuffer(int target, List<int> attachments) => _blink.BlinkWebGL2RenderingContext.instance.invalidateFramebuffer_Callback_2_(unwrap_jso(this), target, attachments);
+  
+  @DomName('WebGL2RenderingContext.invalidateSubFramebuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void invalidateSubFramebuffer(int target, List<int> attachments, int x, int y, int width, int height) => _blink.BlinkWebGL2RenderingContext.instance.invalidateSubFramebuffer_Callback_6_(unwrap_jso(this), target, attachments, x, y, width, height);
+  
+  @DomName('WebGL2RenderingContext.isQuery')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isQuery(Query query) => _blink.BlinkWebGL2RenderingContext.instance.isQuery_Callback_1_(unwrap_jso(this), unwrap_jso(query));
+  
+  @DomName('WebGL2RenderingContext.isSampler')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isSampler(Sampler sampler) => _blink.BlinkWebGL2RenderingContext.instance.isSampler_Callback_1_(unwrap_jso(this), unwrap_jso(sampler));
+  
+  @DomName('WebGL2RenderingContext.isSync')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isSync(Sync sync) => _blink.BlinkWebGL2RenderingContext.instance.isSync_Callback_1_(unwrap_jso(this), unwrap_jso(sync));
+  
+  @DomName('WebGL2RenderingContext.isTransformFeedback')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isTransformFeedback(TransformFeedback feedback) => _blink.BlinkWebGL2RenderingContext.instance.isTransformFeedback_Callback_1_(unwrap_jso(this), unwrap_jso(feedback));
+  
+  @DomName('WebGL2RenderingContext.isVertexArray')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isVertexArray(VertexArrayObject vertexArray) => _blink.BlinkWebGL2RenderingContext.instance.isVertexArray_Callback_1_(unwrap_jso(this), unwrap_jso(vertexArray));
+  
+  @DomName('WebGL2RenderingContext.pauseTransformFeedback')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void pauseTransformFeedback() => _blink.BlinkWebGL2RenderingContext.instance.pauseTransformFeedback_Callback_0_(unwrap_jso(this));
+  
+  @DomName('WebGL2RenderingContext.readBuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void readBuffer(int mode) => _blink.BlinkWebGL2RenderingContext.instance.readBuffer_Callback_1_(unwrap_jso(this), mode);
+  
+  @DomName('WebGL2RenderingContext.renderbufferStorageMultisample')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void renderbufferStorageMultisample(int target, int samples, int internalformat, int width, int height) => _blink.BlinkWebGL2RenderingContext.instance.renderbufferStorageMultisample_Callback_5_(unwrap_jso(this), target, samples, internalformat, width, height);
+  
+  @DomName('WebGL2RenderingContext.resumeTransformFeedback')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void resumeTransformFeedback() => _blink.BlinkWebGL2RenderingContext.instance.resumeTransformFeedback_Callback_0_(unwrap_jso(this));
+  
+  @DomName('WebGL2RenderingContext.samplerParameterf')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void samplerParameterf(Sampler sampler, int pname, num param) => _blink.BlinkWebGL2RenderingContext.instance.samplerParameterf_Callback_3_(unwrap_jso(this), unwrap_jso(sampler), pname, param);
+  
+  @DomName('WebGL2RenderingContext.samplerParameteri')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void samplerParameteri(Sampler sampler, int pname, int param) => _blink.BlinkWebGL2RenderingContext.instance.samplerParameteri_Callback_3_(unwrap_jso(this), unwrap_jso(sampler), pname, param);
+  
+  @DomName('WebGL2RenderingContext.texImage3D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void texImage3D(int target, int level, int internalformat, int width, int height, int depth, int border, int format, int type, TypedData pixels) => _blink.BlinkWebGL2RenderingContext.instance.texImage3D_Callback_10_(unwrap_jso(this), target, level, internalformat, width, height, depth, border, format, type, unwrap_jso(pixels));
+  
+  @DomName('WebGL2RenderingContext.texStorage2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void texStorage2D(int target, int levels, int internalformat, int width, int height) => _blink.BlinkWebGL2RenderingContext.instance.texStorage2D_Callback_5_(unwrap_jso(this), target, levels, internalformat, width, height);
+  
+  @DomName('WebGL2RenderingContext.texStorage3D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void texStorage3D(int target, int levels, int internalformat, int width, int height, int depth) => _blink.BlinkWebGL2RenderingContext.instance.texStorage3D_Callback_6_(unwrap_jso(this), target, levels, internalformat, width, height, depth);
+  
+  void texSubImage3D(int target, int level, int xoffset, int yoffset, int zoffset, int format_OR_width, int height_OR_type, canvas_OR_data_OR_depth_OR_image_OR_video, [int format, int type, TypedData pixels]) {
+    if ((pixels is TypedData || pixels == null) && (type is int) && (format is int) && (canvas_OR_data_OR_depth_OR_image_OR_video is int) && (height_OR_type is int) && (format_OR_width is int) && (zoffset is int) && (yoffset is int) && (xoffset is int) && (level is int) && (target is int)) {
+      _blink.BlinkWebGL2RenderingContext.instance.texSubImage3D_Callback_11_(unwrap_jso(this), target, level, xoffset, yoffset, zoffset, format_OR_width, height_OR_type, unwrap_jso(canvas_OR_data_OR_depth_OR_image_OR_video), format, type, unwrap_jso(pixels));
+      return;
+    }
+    if ((canvas_OR_data_OR_depth_OR_image_OR_video is ImageData || canvas_OR_data_OR_depth_OR_image_OR_video == null) && (height_OR_type is int) && (format_OR_width is int) && (zoffset is int) && (yoffset is int) && (xoffset is int) && (level is int) && (target is int) && format == null && type == null && pixels == null) {
+      _blink.BlinkWebGL2RenderingContext.instance.texSubImage3D_Callback_8_(unwrap_jso(this), target, level, xoffset, yoffset, zoffset, format_OR_width, height_OR_type, unwrap_jso(canvas_OR_data_OR_depth_OR_image_OR_video));
+      return;
+    }
+    if ((canvas_OR_data_OR_depth_OR_image_OR_video is ImageElement || canvas_OR_data_OR_depth_OR_image_OR_video == null) && (height_OR_type is int) && (format_OR_width is int) && (zoffset is int) && (yoffset is int) && (xoffset is int) && (level is int) && (target is int) && format == null && type == null && pixels == null) {
+      _blink.BlinkWebGL2RenderingContext.instance.texSubImage3D_Callback_8_(unwrap_jso(this), target, level, xoffset, yoffset, zoffset, format_OR_width, height_OR_type, unwrap_jso(canvas_OR_data_OR_depth_OR_image_OR_video));
+      return;
+    }
+    if ((canvas_OR_data_OR_depth_OR_image_OR_video is CanvasElement || canvas_OR_data_OR_depth_OR_image_OR_video == null) && (height_OR_type is int) && (format_OR_width is int) && (zoffset is int) && (yoffset is int) && (xoffset is int) && (level is int) && (target is int) && format == null && type == null && pixels == null) {
+      _blink.BlinkWebGL2RenderingContext.instance.texSubImage3D_Callback_8_(unwrap_jso(this), target, level, xoffset, yoffset, zoffset, format_OR_width, height_OR_type, unwrap_jso(canvas_OR_data_OR_depth_OR_image_OR_video));
+      return;
+    }
+    if ((canvas_OR_data_OR_depth_OR_image_OR_video is VideoElement || canvas_OR_data_OR_depth_OR_image_OR_video == null) && (height_OR_type is int) && (format_OR_width is int) && (zoffset is int) && (yoffset is int) && (xoffset is int) && (level is int) && (target is int) && format == null && type == null && pixels == null) {
+      _blink.BlinkWebGL2RenderingContext.instance.texSubImage3D_Callback_8_(unwrap_jso(this), target, level, xoffset, yoffset, zoffset, format_OR_width, height_OR_type, unwrap_jso(canvas_OR_data_OR_depth_OR_image_OR_video));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @DomName('WebGL2RenderingContext.transformFeedbackVaryings')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void transformFeedbackVaryings(Program program, List<String> varyings, int bufferMode) => _blink.BlinkWebGL2RenderingContext.instance.transformFeedbackVaryings_Callback_3_(unwrap_jso(this), unwrap_jso(program), varyings, bufferMode);
+  
+  @DomName('WebGL2RenderingContext.uniform1ui')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform1ui(UniformLocation location, int v0) => _blink.BlinkWebGL2RenderingContext.instance.uniform1ui_Callback_2_(unwrap_jso(this), unwrap_jso(location), v0);
+  
+  @DomName('WebGL2RenderingContext.uniform1uiv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform1uiv(UniformLocation location, List<int> value) => _blink.BlinkWebGL2RenderingContext.instance.uniform1uiv_Callback_2_(unwrap_jso(this), unwrap_jso(location), value);
+  
+  @DomName('WebGL2RenderingContext.uniform2ui')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform2ui(UniformLocation location, int v0, int v1) => _blink.BlinkWebGL2RenderingContext.instance.uniform2ui_Callback_3_(unwrap_jso(this), unwrap_jso(location), v0, v1);
+  
+  @DomName('WebGL2RenderingContext.uniform2uiv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform2uiv(UniformLocation location, List<int> value) => _blink.BlinkWebGL2RenderingContext.instance.uniform2uiv_Callback_2_(unwrap_jso(this), unwrap_jso(location), value);
+  
+  @DomName('WebGL2RenderingContext.uniform3ui')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform3ui(UniformLocation location, int v0, int v1, int v2) => _blink.BlinkWebGL2RenderingContext.instance.uniform3ui_Callback_4_(unwrap_jso(this), unwrap_jso(location), v0, v1, v2);
+  
+  @DomName('WebGL2RenderingContext.uniform3uiv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform3uiv(UniformLocation location, List<int> value) => _blink.BlinkWebGL2RenderingContext.instance.uniform3uiv_Callback_2_(unwrap_jso(this), unwrap_jso(location), value);
+  
+  @DomName('WebGL2RenderingContext.uniform4ui')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform4ui(UniformLocation location, int v0, int v1, int v2, int v3) => _blink.BlinkWebGL2RenderingContext.instance.uniform4ui_Callback_5_(unwrap_jso(this), unwrap_jso(location), v0, v1, v2, v3);
+  
+  @DomName('WebGL2RenderingContext.uniform4uiv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform4uiv(UniformLocation location, List<int> value) => _blink.BlinkWebGL2RenderingContext.instance.uniform4uiv_Callback_2_(unwrap_jso(this), unwrap_jso(location), value);
+  
+  @DomName('WebGL2RenderingContext.uniformBlockBinding')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniformBlockBinding(Program program, int uniformBlockIndex, int uniformBlockBinding) => _blink.BlinkWebGL2RenderingContext.instance.uniformBlockBinding_Callback_3_(unwrap_jso(this), unwrap_jso(program), uniformBlockIndex, uniformBlockBinding);
+  
+  void uniformMatrix2x3fv(UniformLocation location, bool transpose, value) {
+    if ((value is Float32List) && (transpose is bool) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniformMatrix2x3fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, unwrap_jso(value));
+      return;
+    }
+    if ((value is List<num>) && (transpose is bool) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniformMatrix2x3fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, unwrap_jso(value));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  void uniformMatrix2x4fv(UniformLocation location, bool transpose, value) {
+    if ((value is Float32List) && (transpose is bool) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniformMatrix2x4fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, unwrap_jso(value));
+      return;
+    }
+    if ((value is List<num>) && (transpose is bool) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniformMatrix2x4fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, unwrap_jso(value));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  void uniformMatrix3x2fv(UniformLocation location, bool transpose, value) {
+    if ((value is Float32List) && (transpose is bool) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniformMatrix3x2fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, unwrap_jso(value));
+      return;
+    }
+    if ((value is List<num>) && (transpose is bool) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniformMatrix3x2fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, unwrap_jso(value));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  void uniformMatrix3x4fv(UniformLocation location, bool transpose, value) {
+    if ((value is Float32List) && (transpose is bool) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniformMatrix3x4fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, unwrap_jso(value));
+      return;
+    }
+    if ((value is List<num>) && (transpose is bool) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniformMatrix3x4fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, unwrap_jso(value));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  void uniformMatrix4x2fv(UniformLocation location, bool transpose, value) {
+    if ((value is Float32List) && (transpose is bool) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniformMatrix4x2fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, unwrap_jso(value));
+      return;
+    }
+    if ((value is List<num>) && (transpose is bool) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniformMatrix4x2fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, unwrap_jso(value));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  void uniformMatrix4x3fv(UniformLocation location, bool transpose, value) {
+    if ((value is Float32List) && (transpose is bool) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniformMatrix4x3fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, unwrap_jso(value));
+      return;
+    }
+    if ((value is List<num>) && (transpose is bool) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniformMatrix4x3fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, unwrap_jso(value));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @DomName('WebGL2RenderingContext.vertexAttribDivisor')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void vertexAttribDivisor(int index, int divisor) => _blink.BlinkWebGL2RenderingContext.instance.vertexAttribDivisor_Callback_2_(unwrap_jso(this), index, divisor);
+  
+  @DomName('WebGL2RenderingContext.vertexAttribI4i')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void vertexAttribI4i(int index, int x, int y, int z, int w) => _blink.BlinkWebGL2RenderingContext.instance.vertexAttribI4i_Callback_5_(unwrap_jso(this), index, x, y, z, w);
+  
+  @DomName('WebGL2RenderingContext.vertexAttribI4iv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void vertexAttribI4iv(int index, List<int> v) => _blink.BlinkWebGL2RenderingContext.instance.vertexAttribI4iv_Callback_2_(unwrap_jso(this), index, v);
+  
+  @DomName('WebGL2RenderingContext.vertexAttribI4ui')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void vertexAttribI4ui(int index, int x, int y, int z, int w) => _blink.BlinkWebGL2RenderingContext.instance.vertexAttribI4ui_Callback_5_(unwrap_jso(this), index, x, y, z, w);
+  
+  @DomName('WebGL2RenderingContext.vertexAttribI4uiv')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void vertexAttribI4uiv(int index, List<int> v) => _blink.BlinkWebGL2RenderingContext.instance.vertexAttribI4uiv_Callback_2_(unwrap_jso(this), index, v);
+  
+  @DomName('WebGL2RenderingContext.vertexAttribIPointer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void vertexAttribIPointer(int index, int size, int type, int stride, int offset) => _blink.BlinkWebGL2RenderingContext.instance.vertexAttribIPointer_Callback_5_(unwrap_jso(this), index, size, type, stride, offset);
+  
+  @DomName('WebGL2RenderingContext.waitSync')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void waitSync(Sync sync, int flags, int timeout) => _blink.BlinkWebGL2RenderingContext.instance.waitSync_Callback_3_(unwrap_jso(this), unwrap_jso(sync), flags, timeout);
+  
+  @DomName('WebGL2RenderingContext.canvas')
+  @DocsEditable()
+  @Experimental() // untriaged
+  CanvasElement get canvas => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.canvas_Getter_(unwrap_jso(this)));
+  
+  @DomName('WebGL2RenderingContext.drawingBufferHeight')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int get drawingBufferHeight => _blink.BlinkWebGL2RenderingContext.instance.drawingBufferHeight_Getter_(unwrap_jso(this));
+  
+  @DomName('WebGL2RenderingContext.drawingBufferWidth')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int get drawingBufferWidth => _blink.BlinkWebGL2RenderingContext.instance.drawingBufferWidth_Getter_(unwrap_jso(this));
+  
+  @DomName('WebGL2RenderingContext.activeTexture')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void activeTexture(int texture) => _blink.BlinkWebGL2RenderingContext.instance.activeTexture_Callback_1_(unwrap_jso(this), texture);
+  
+  @DomName('WebGL2RenderingContext.attachShader')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void attachShader(Program program, Shader shader) => _blink.BlinkWebGL2RenderingContext.instance.attachShader_Callback_2_(unwrap_jso(this), unwrap_jso(program), unwrap_jso(shader));
+  
+  @DomName('WebGL2RenderingContext.bindAttribLocation')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bindAttribLocation(Program program, int index, String name) => _blink.BlinkWebGL2RenderingContext.instance.bindAttribLocation_Callback_3_(unwrap_jso(this), unwrap_jso(program), index, name);
+  
+  @DomName('WebGL2RenderingContext.bindBuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bindBuffer(int target, Buffer buffer) => _blink.BlinkWebGL2RenderingContext.instance.bindBuffer_Callback_2_(unwrap_jso(this), target, unwrap_jso(buffer));
+  
+  @DomName('WebGL2RenderingContext.bindFramebuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bindFramebuffer(int target, Framebuffer framebuffer) => _blink.BlinkWebGL2RenderingContext.instance.bindFramebuffer_Callback_2_(unwrap_jso(this), target, unwrap_jso(framebuffer));
+  
+  @DomName('WebGL2RenderingContext.bindRenderbuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bindRenderbuffer(int target, Renderbuffer renderbuffer) => _blink.BlinkWebGL2RenderingContext.instance.bindRenderbuffer_Callback_2_(unwrap_jso(this), target, unwrap_jso(renderbuffer));
+  
+  @DomName('WebGL2RenderingContext.bindTexture')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bindTexture(int target, Texture texture) => _blink.BlinkWebGL2RenderingContext.instance.bindTexture_Callback_2_(unwrap_jso(this), target, unwrap_jso(texture));
+  
+  @DomName('WebGL2RenderingContext.blendColor')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void blendColor(num red, num green, num blue, num alpha) => _blink.BlinkWebGL2RenderingContext.instance.blendColor_Callback_4_(unwrap_jso(this), red, green, blue, alpha);
+  
+  @DomName('WebGL2RenderingContext.blendEquation')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void blendEquation(int mode) => _blink.BlinkWebGL2RenderingContext.instance.blendEquation_Callback_1_(unwrap_jso(this), mode);
+  
+  @DomName('WebGL2RenderingContext.blendEquationSeparate')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void blendEquationSeparate(int modeRGB, int modeAlpha) => _blink.BlinkWebGL2RenderingContext.instance.blendEquationSeparate_Callback_2_(unwrap_jso(this), modeRGB, modeAlpha);
+  
+  @DomName('WebGL2RenderingContext.blendFunc')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void blendFunc(int sfactor, int dfactor) => _blink.BlinkWebGL2RenderingContext.instance.blendFunc_Callback_2_(unwrap_jso(this), sfactor, dfactor);
+  
+  @DomName('WebGL2RenderingContext.blendFuncSeparate')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void blendFuncSeparate(int srcRGB, int dstRGB, int srcAlpha, int dstAlpha) => _blink.BlinkWebGL2RenderingContext.instance.blendFuncSeparate_Callback_4_(unwrap_jso(this), srcRGB, dstRGB, srcAlpha, dstAlpha);
+  
+  void bufferData(int target, data_OR_size, int usage) {
+    if ((usage is int) && (data_OR_size is int) && (target is int)) {
+      _blink.BlinkWebGL2RenderingContext.instance.bufferData_Callback_3_(unwrap_jso(this), target, unwrap_jso(data_OR_size), usage);
+      return;
+    }
+    if ((usage is int) && (data_OR_size is TypedData) && (target is int)) {
+      _blink.BlinkWebGL2RenderingContext.instance.bufferData_Callback_3_(unwrap_jso(this), target, unwrap_jso(data_OR_size), usage);
+      return;
+    }
+    if ((usage is int) && (data_OR_size is ByteBuffer || data_OR_size == null) && (target is int)) {
+      _blink.BlinkWebGL2RenderingContext.instance.bufferData_Callback_3_(unwrap_jso(this), target, unwrap_jso(data_OR_size), usage);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  void bufferSubData(int target, int offset, data) {
+    if ((data is TypedData) && (offset is int) && (target is int)) {
+      _blink.BlinkWebGL2RenderingContext.instance.bufferSubData_Callback_3_(unwrap_jso(this), target, offset, unwrap_jso(data));
+      return;
+    }
+    if ((data is ByteBuffer || data == null) && (offset is int) && (target is int)) {
+      _blink.BlinkWebGL2RenderingContext.instance.bufferSubData_Callback_3_(unwrap_jso(this), target, offset, unwrap_jso(data));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @DomName('WebGL2RenderingContext.checkFramebufferStatus')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int checkFramebufferStatus(int target) => _blink.BlinkWebGL2RenderingContext.instance.checkFramebufferStatus_Callback_1_(unwrap_jso(this), target);
+  
+  @DomName('WebGL2RenderingContext.clear')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void clear(int mask) => _blink.BlinkWebGL2RenderingContext.instance.clear_Callback_1_(unwrap_jso(this), mask);
+  
+  @DomName('WebGL2RenderingContext.clearColor')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void clearColor(num red, num green, num blue, num alpha) => _blink.BlinkWebGL2RenderingContext.instance.clearColor_Callback_4_(unwrap_jso(this), red, green, blue, alpha);
+  
+  @DomName('WebGL2RenderingContext.clearDepth')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void clearDepth(num depth) => _blink.BlinkWebGL2RenderingContext.instance.clearDepth_Callback_1_(unwrap_jso(this), depth);
+  
+  @DomName('WebGL2RenderingContext.clearStencil')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void clearStencil(int s) => _blink.BlinkWebGL2RenderingContext.instance.clearStencil_Callback_1_(unwrap_jso(this), s);
+  
+  @DomName('WebGL2RenderingContext.colorMask')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void colorMask(bool red, bool green, bool blue, bool alpha) => _blink.BlinkWebGL2RenderingContext.instance.colorMask_Callback_4_(unwrap_jso(this), red, green, blue, alpha);
+  
+  @DomName('WebGL2RenderingContext.compileShader')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void compileShader(Shader shader) => _blink.BlinkWebGL2RenderingContext.instance.compileShader_Callback_1_(unwrap_jso(this), unwrap_jso(shader));
+  
+  @DomName('WebGL2RenderingContext.compressedTexImage2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void compressedTexImage2D(int target, int level, int internalformat, int width, int height, int border, TypedData data) => _blink.BlinkWebGL2RenderingContext.instance.compressedTexImage2D_Callback_7_(unwrap_jso(this), target, level, internalformat, width, height, border, unwrap_jso(data));
+  
+  @DomName('WebGL2RenderingContext.compressedTexSubImage2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void compressedTexSubImage2D(int target, int level, int xoffset, int yoffset, int width, int height, int format, TypedData data) => _blink.BlinkWebGL2RenderingContext.instance.compressedTexSubImage2D_Callback_8_(unwrap_jso(this), target, level, xoffset, yoffset, width, height, format, unwrap_jso(data));
+  
+  @DomName('WebGL2RenderingContext.copyTexImage2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void copyTexImage2D(int target, int level, int internalformat, int x, int y, int width, int height, int border) => _blink.BlinkWebGL2RenderingContext.instance.copyTexImage2D_Callback_8_(unwrap_jso(this), target, level, internalformat, x, y, width, height, border);
+  
+  @DomName('WebGL2RenderingContext.copyTexSubImage2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void copyTexSubImage2D(int target, int level, int xoffset, int yoffset, int x, int y, int width, int height) => _blink.BlinkWebGL2RenderingContext.instance.copyTexSubImage2D_Callback_8_(unwrap_jso(this), target, level, xoffset, yoffset, x, y, width, height);
+  
+  @DomName('WebGL2RenderingContext.createBuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Buffer createBuffer() => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.createBuffer_Callback_0_(unwrap_jso(this)));
+  
+  @DomName('WebGL2RenderingContext.createFramebuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Framebuffer createFramebuffer() => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.createFramebuffer_Callback_0_(unwrap_jso(this)));
+  
+  @DomName('WebGL2RenderingContext.createProgram')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Program createProgram() => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.createProgram_Callback_0_(unwrap_jso(this)));
+  
+  @DomName('WebGL2RenderingContext.createRenderbuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Renderbuffer createRenderbuffer() => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.createRenderbuffer_Callback_0_(unwrap_jso(this)));
+  
+  @DomName('WebGL2RenderingContext.createShader')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Shader createShader(int type) => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.createShader_Callback_1_(unwrap_jso(this), type));
+  
+  @DomName('WebGL2RenderingContext.createTexture')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Texture createTexture() => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.createTexture_Callback_0_(unwrap_jso(this)));
+  
+  @DomName('WebGL2RenderingContext.cullFace')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void cullFace(int mode) => _blink.BlinkWebGL2RenderingContext.instance.cullFace_Callback_1_(unwrap_jso(this), mode);
+  
+  @DomName('WebGL2RenderingContext.deleteBuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deleteBuffer(Buffer buffer) => _blink.BlinkWebGL2RenderingContext.instance.deleteBuffer_Callback_1_(unwrap_jso(this), unwrap_jso(buffer));
+  
+  @DomName('WebGL2RenderingContext.deleteFramebuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deleteFramebuffer(Framebuffer framebuffer) => _blink.BlinkWebGL2RenderingContext.instance.deleteFramebuffer_Callback_1_(unwrap_jso(this), unwrap_jso(framebuffer));
+  
+  @DomName('WebGL2RenderingContext.deleteProgram')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deleteProgram(Program program) => _blink.BlinkWebGL2RenderingContext.instance.deleteProgram_Callback_1_(unwrap_jso(this), unwrap_jso(program));
+  
+  @DomName('WebGL2RenderingContext.deleteRenderbuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deleteRenderbuffer(Renderbuffer renderbuffer) => _blink.BlinkWebGL2RenderingContext.instance.deleteRenderbuffer_Callback_1_(unwrap_jso(this), unwrap_jso(renderbuffer));
+  
+  @DomName('WebGL2RenderingContext.deleteShader')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deleteShader(Shader shader) => _blink.BlinkWebGL2RenderingContext.instance.deleteShader_Callback_1_(unwrap_jso(this), unwrap_jso(shader));
+  
+  @DomName('WebGL2RenderingContext.deleteTexture')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deleteTexture(Texture texture) => _blink.BlinkWebGL2RenderingContext.instance.deleteTexture_Callback_1_(unwrap_jso(this), unwrap_jso(texture));
+  
+  @DomName('WebGL2RenderingContext.depthFunc')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void depthFunc(int func) => _blink.BlinkWebGL2RenderingContext.instance.depthFunc_Callback_1_(unwrap_jso(this), func);
+  
+  @DomName('WebGL2RenderingContext.depthMask')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void depthMask(bool flag) => _blink.BlinkWebGL2RenderingContext.instance.depthMask_Callback_1_(unwrap_jso(this), flag);
+  
+  @DomName('WebGL2RenderingContext.depthRange')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void depthRange(num zNear, num zFar) => _blink.BlinkWebGL2RenderingContext.instance.depthRange_Callback_2_(unwrap_jso(this), zNear, zFar);
+  
+  @DomName('WebGL2RenderingContext.detachShader')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void detachShader(Program program, Shader shader) => _blink.BlinkWebGL2RenderingContext.instance.detachShader_Callback_2_(unwrap_jso(this), unwrap_jso(program), unwrap_jso(shader));
+  
+  @DomName('WebGL2RenderingContext.disable')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void disable(int cap) => _blink.BlinkWebGL2RenderingContext.instance.disable_Callback_1_(unwrap_jso(this), cap);
+  
+  @DomName('WebGL2RenderingContext.disableVertexAttribArray')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void disableVertexAttribArray(int index) => _blink.BlinkWebGL2RenderingContext.instance.disableVertexAttribArray_Callback_1_(unwrap_jso(this), index);
+  
+  @DomName('WebGL2RenderingContext.drawArrays')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void drawArrays(int mode, int first, int count) => _blink.BlinkWebGL2RenderingContext.instance.drawArrays_Callback_3_(unwrap_jso(this), mode, first, count);
+  
+  @DomName('WebGL2RenderingContext.drawElements')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void drawElements(int mode, int count, int type, int offset) => _blink.BlinkWebGL2RenderingContext.instance.drawElements_Callback_4_(unwrap_jso(this), mode, count, type, offset);
+  
+  @DomName('WebGL2RenderingContext.enable')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void enable(int cap) => _blink.BlinkWebGL2RenderingContext.instance.enable_Callback_1_(unwrap_jso(this), cap);
+  
+  @DomName('WebGL2RenderingContext.enableVertexAttribArray')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void enableVertexAttribArray(int index) => _blink.BlinkWebGL2RenderingContext.instance.enableVertexAttribArray_Callback_1_(unwrap_jso(this), index);
+  
+  @DomName('WebGL2RenderingContext.finish')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void finish() => _blink.BlinkWebGL2RenderingContext.instance.finish_Callback_0_(unwrap_jso(this));
+  
+  @DomName('WebGL2RenderingContext.flush')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void flush() => _blink.BlinkWebGL2RenderingContext.instance.flush_Callback_0_(unwrap_jso(this));
+  
+  @DomName('WebGL2RenderingContext.framebufferRenderbuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void framebufferRenderbuffer(int target, int attachment, int renderbuffertarget, Renderbuffer renderbuffer) => _blink.BlinkWebGL2RenderingContext.instance.framebufferRenderbuffer_Callback_4_(unwrap_jso(this), target, attachment, renderbuffertarget, unwrap_jso(renderbuffer));
+  
+  @DomName('WebGL2RenderingContext.framebufferTexture2D')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void framebufferTexture2D(int target, int attachment, int textarget, Texture texture, int level) => _blink.BlinkWebGL2RenderingContext.instance.framebufferTexture2D_Callback_5_(unwrap_jso(this), target, attachment, textarget, unwrap_jso(texture), level);
+  
+  @DomName('WebGL2RenderingContext.frontFace')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void frontFace(int mode) => _blink.BlinkWebGL2RenderingContext.instance.frontFace_Callback_1_(unwrap_jso(this), mode);
+  
+  @DomName('WebGL2RenderingContext.generateMipmap')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void generateMipmap(int target) => _blink.BlinkWebGL2RenderingContext.instance.generateMipmap_Callback_1_(unwrap_jso(this), target);
+  
+  @DomName('WebGL2RenderingContext.getActiveAttrib')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ActiveInfo getActiveAttrib(Program program, int index) => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.getActiveAttrib_Callback_2_(unwrap_jso(this), unwrap_jso(program), index));
+  
+  @DomName('WebGL2RenderingContext.getActiveUniform')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ActiveInfo getActiveUniform(Program program, int index) => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.getActiveUniform_Callback_2_(unwrap_jso(this), unwrap_jso(program), index));
+  
+  @DomName('WebGL2RenderingContext.getAttachedShaders')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<Shader> getAttachedShaders(Program program) => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.getAttachedShaders_Callback_1_(unwrap_jso(this), unwrap_jso(program)));
+  
+  @DomName('WebGL2RenderingContext.getAttribLocation')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int getAttribLocation(Program program, String name) => _blink.BlinkWebGL2RenderingContext.instance.getAttribLocation_Callback_2_(unwrap_jso(this), unwrap_jso(program), name);
+  
+  @DomName('WebGL2RenderingContext.getBufferParameter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getBufferParameter(int target, int pname) => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.getBufferParameter_Callback_2_(unwrap_jso(this), target, pname));
+  
+  @DomName('WebGL2RenderingContext.getContextAttributes')
+  @DocsEditable()
+  @Experimental() // untriaged
+   getContextAttributes() => convertNativeDictionaryToDartDictionary(wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.getContextAttributes_Callback_0_(unwrap_jso(this))));
+  
+  @DomName('WebGL2RenderingContext.getError')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int getError() => _blink.BlinkWebGL2RenderingContext.instance.getError_Callback_0_(unwrap_jso(this));
+  
+  @DomName('WebGL2RenderingContext.getExtension')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getExtension(String name) => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.getExtension_Callback_1_(unwrap_jso(this), name));
+  
+  @DomName('WebGL2RenderingContext.getFramebufferAttachmentParameter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getFramebufferAttachmentParameter(int target, int attachment, int pname) => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.getFramebufferAttachmentParameter_Callback_3_(unwrap_jso(this), target, attachment, pname));
+  
+  @DomName('WebGL2RenderingContext.getParameter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getParameter(int pname) => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.getParameter_Callback_1_(unwrap_jso(this), pname));
+  
+  @DomName('WebGL2RenderingContext.getProgramInfoLog')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String getProgramInfoLog(Program program) => _blink.BlinkWebGL2RenderingContext.instance.getProgramInfoLog_Callback_1_(unwrap_jso(this), unwrap_jso(program));
+  
+  @DomName('WebGL2RenderingContext.getProgramParameter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getProgramParameter(Program program, int pname) => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.getProgramParameter_Callback_2_(unwrap_jso(this), unwrap_jso(program), pname));
+  
+  @DomName('WebGL2RenderingContext.getRenderbufferParameter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getRenderbufferParameter(int target, int pname) => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.getRenderbufferParameter_Callback_2_(unwrap_jso(this), target, pname));
+  
+  @DomName('WebGL2RenderingContext.getShaderInfoLog')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String getShaderInfoLog(Shader shader) => _blink.BlinkWebGL2RenderingContext.instance.getShaderInfoLog_Callback_1_(unwrap_jso(this), unwrap_jso(shader));
+  
+  @DomName('WebGL2RenderingContext.getShaderParameter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getShaderParameter(Shader shader, int pname) => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.getShaderParameter_Callback_2_(unwrap_jso(this), unwrap_jso(shader), pname));
+  
+  @DomName('WebGL2RenderingContext.getShaderPrecisionFormat')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ShaderPrecisionFormat getShaderPrecisionFormat(int shadertype, int precisiontype) => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.getShaderPrecisionFormat_Callback_2_(unwrap_jso(this), shadertype, precisiontype));
+  
+  @DomName('WebGL2RenderingContext.getShaderSource')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String getShaderSource(Shader shader) => _blink.BlinkWebGL2RenderingContext.instance.getShaderSource_Callback_1_(unwrap_jso(this), unwrap_jso(shader));
+  
+  @DomName('WebGL2RenderingContext.getSupportedExtensions')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<String> getSupportedExtensions() => _blink.BlinkWebGL2RenderingContext.instance.getSupportedExtensions_Callback_0_(unwrap_jso(this));
+  
+  @DomName('WebGL2RenderingContext.getTexParameter')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getTexParameter(int target, int pname) => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.getTexParameter_Callback_2_(unwrap_jso(this), target, pname));
+  
+  @DomName('WebGL2RenderingContext.getUniform')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getUniform(Program program, UniformLocation location) => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.getUniform_Callback_2_(unwrap_jso(this), unwrap_jso(program), unwrap_jso(location)));
+  
+  @DomName('WebGL2RenderingContext.getUniformLocation')
+  @DocsEditable()
+  @Experimental() // untriaged
+  UniformLocation getUniformLocation(Program program, String name) => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.getUniformLocation_Callback_2_(unwrap_jso(this), unwrap_jso(program), name));
+  
+  @DomName('WebGL2RenderingContext.getVertexAttrib')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object getVertexAttrib(int index, int pname) => wrap_jso(_blink.BlinkWebGL2RenderingContext.instance.getVertexAttrib_Callback_2_(unwrap_jso(this), index, pname));
+  
+  @DomName('WebGL2RenderingContext.getVertexAttribOffset')
+  @DocsEditable()
+  @Experimental() // untriaged
+  int getVertexAttribOffset(int index, int pname) => _blink.BlinkWebGL2RenderingContext.instance.getVertexAttribOffset_Callback_2_(unwrap_jso(this), index, pname);
+  
+  @DomName('WebGL2RenderingContext.hint')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void hint(int target, int mode) => _blink.BlinkWebGL2RenderingContext.instance.hint_Callback_2_(unwrap_jso(this), target, mode);
+  
+  @DomName('WebGL2RenderingContext.isBuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isBuffer(Buffer buffer) => _blink.BlinkWebGL2RenderingContext.instance.isBuffer_Callback_1_(unwrap_jso(this), unwrap_jso(buffer));
+  
+  @DomName('WebGL2RenderingContext.isContextLost')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isContextLost() => _blink.BlinkWebGL2RenderingContext.instance.isContextLost_Callback_0_(unwrap_jso(this));
+  
+  @DomName('WebGL2RenderingContext.isEnabled')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isEnabled(int cap) => _blink.BlinkWebGL2RenderingContext.instance.isEnabled_Callback_1_(unwrap_jso(this), cap);
+  
+  @DomName('WebGL2RenderingContext.isFramebuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isFramebuffer(Framebuffer framebuffer) => _blink.BlinkWebGL2RenderingContext.instance.isFramebuffer_Callback_1_(unwrap_jso(this), unwrap_jso(framebuffer));
+  
+  @DomName('WebGL2RenderingContext.isProgram')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isProgram(Program program) => _blink.BlinkWebGL2RenderingContext.instance.isProgram_Callback_1_(unwrap_jso(this), unwrap_jso(program));
+  
+  @DomName('WebGL2RenderingContext.isRenderbuffer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isRenderbuffer(Renderbuffer renderbuffer) => _blink.BlinkWebGL2RenderingContext.instance.isRenderbuffer_Callback_1_(unwrap_jso(this), unwrap_jso(renderbuffer));
+  
+  @DomName('WebGL2RenderingContext.isShader')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isShader(Shader shader) => _blink.BlinkWebGL2RenderingContext.instance.isShader_Callback_1_(unwrap_jso(this), unwrap_jso(shader));
+  
+  @DomName('WebGL2RenderingContext.isTexture')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isTexture(Texture texture) => _blink.BlinkWebGL2RenderingContext.instance.isTexture_Callback_1_(unwrap_jso(this), unwrap_jso(texture));
+  
+  @DomName('WebGL2RenderingContext.lineWidth')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void lineWidth(num width) => _blink.BlinkWebGL2RenderingContext.instance.lineWidth_Callback_1_(unwrap_jso(this), width);
+  
+  @DomName('WebGL2RenderingContext.linkProgram')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void linkProgram(Program program) => _blink.BlinkWebGL2RenderingContext.instance.linkProgram_Callback_1_(unwrap_jso(this), unwrap_jso(program));
+  
+  @DomName('WebGL2RenderingContext.pixelStorei')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void pixelStorei(int pname, int param) => _blink.BlinkWebGL2RenderingContext.instance.pixelStorei_Callback_2_(unwrap_jso(this), pname, param);
+  
+  @DomName('WebGL2RenderingContext.polygonOffset')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void polygonOffset(num factor, num units) => _blink.BlinkWebGL2RenderingContext.instance.polygonOffset_Callback_2_(unwrap_jso(this), factor, units);
+  
+  @DomName('WebGL2RenderingContext.readPixels')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void readPixels(int x, int y, int width, int height, int format, int type, TypedData pixels) => _blink.BlinkWebGL2RenderingContext.instance.readPixels_Callback_7_(unwrap_jso(this), x, y, width, height, format, type, unwrap_jso(pixels));
+  
+  @DomName('WebGL2RenderingContext.renderbufferStorage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void renderbufferStorage(int target, int internalformat, int width, int height) => _blink.BlinkWebGL2RenderingContext.instance.renderbufferStorage_Callback_4_(unwrap_jso(this), target, internalformat, width, height);
+  
+  @DomName('WebGL2RenderingContext.sampleCoverage')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void sampleCoverage(num value, bool invert) => _blink.BlinkWebGL2RenderingContext.instance.sampleCoverage_Callback_2_(unwrap_jso(this), value, invert);
+  
+  @DomName('WebGL2RenderingContext.scissor')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void scissor(int x, int y, int width, int height) => _blink.BlinkWebGL2RenderingContext.instance.scissor_Callback_4_(unwrap_jso(this), x, y, width, height);
+  
+  @DomName('WebGL2RenderingContext.shaderSource')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void shaderSource(Shader shader, String string) => _blink.BlinkWebGL2RenderingContext.instance.shaderSource_Callback_2_(unwrap_jso(this), unwrap_jso(shader), string);
+  
+  @DomName('WebGL2RenderingContext.stencilFunc')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void stencilFunc(int func, int ref, int mask) => _blink.BlinkWebGL2RenderingContext.instance.stencilFunc_Callback_3_(unwrap_jso(this), func, ref, mask);
+  
+  @DomName('WebGL2RenderingContext.stencilFuncSeparate')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void stencilFuncSeparate(int face, int func, int ref, int mask) => _blink.BlinkWebGL2RenderingContext.instance.stencilFuncSeparate_Callback_4_(unwrap_jso(this), face, func, ref, mask);
+  
+  @DomName('WebGL2RenderingContext.stencilMask')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void stencilMask(int mask) => _blink.BlinkWebGL2RenderingContext.instance.stencilMask_Callback_1_(unwrap_jso(this), mask);
+  
+  @DomName('WebGL2RenderingContext.stencilMaskSeparate')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void stencilMaskSeparate(int face, int mask) => _blink.BlinkWebGL2RenderingContext.instance.stencilMaskSeparate_Callback_2_(unwrap_jso(this), face, mask);
+  
+  @DomName('WebGL2RenderingContext.stencilOp')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void stencilOp(int fail, int zfail, int zpass) => _blink.BlinkWebGL2RenderingContext.instance.stencilOp_Callback_3_(unwrap_jso(this), fail, zfail, zpass);
+  
+  @DomName('WebGL2RenderingContext.stencilOpSeparate')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void stencilOpSeparate(int face, int fail, int zfail, int zpass) => _blink.BlinkWebGL2RenderingContext.instance.stencilOpSeparate_Callback_4_(unwrap_jso(this), face, fail, zfail, zpass);
+  
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, TypedData pixels]) {
+    if ((pixels is TypedData || pixels == null) && (type is int) && (format is int) && (border_OR_canvas_OR_image_OR_pixels_OR_video is int) && (height_OR_type is int) && (format_OR_width is int) && (internalformat is int) && (level is int) && (target is int)) {
+      _blink.BlinkWebGL2RenderingContext.instance.texImage2D_Callback_9_(unwrap_jso(this), target, level, internalformat, format_OR_width, height_OR_type, unwrap_jso(border_OR_canvas_OR_image_OR_pixels_OR_video), format, type, unwrap_jso(pixels));
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageData || border_OR_canvas_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int) && (format_OR_width is int) && (internalformat is int) && (level is int) && (target is int) && format == null && type == null && pixels == null) {
+      _blink.BlinkWebGL2RenderingContext.instance.texImage2D_Callback_6_(unwrap_jso(this), target, level, internalformat, format_OR_width, height_OR_type, unwrap_jso(border_OR_canvas_OR_image_OR_pixels_OR_video));
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is ImageElement) && (height_OR_type is int) && (format_OR_width is int) && (internalformat is int) && (level is int) && (target is int) && format == null && type == null && pixels == null) {
+      _blink.BlinkWebGL2RenderingContext.instance.texImage2D_Callback_6_(unwrap_jso(this), target, level, internalformat, format_OR_width, height_OR_type, unwrap_jso(border_OR_canvas_OR_image_OR_pixels_OR_video));
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is CanvasElement) && (height_OR_type is int) && (format_OR_width is int) && (internalformat is int) && (level is int) && (target is int) && format == null && type == null && pixels == null) {
+      _blink.BlinkWebGL2RenderingContext.instance.texImage2D_Callback_6_(unwrap_jso(this), target, level, internalformat, format_OR_width, height_OR_type, unwrap_jso(border_OR_canvas_OR_image_OR_pixels_OR_video));
+      return;
+    }
+    if ((border_OR_canvas_OR_image_OR_pixels_OR_video is VideoElement) && (height_OR_type is int) && (format_OR_width is int) && (internalformat is int) && (level is int) && (target is int) && format == null && type == null && pixels == null) {
+      _blink.BlinkWebGL2RenderingContext.instance.texImage2D_Callback_6_(unwrap_jso(this), target, level, internalformat, format_OR_width, height_OR_type, unwrap_jso(border_OR_canvas_OR_image_OR_pixels_OR_video));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @DomName('WebGL2RenderingContext.texParameterf')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void texParameterf(int target, int pname, num param) => _blink.BlinkWebGL2RenderingContext.instance.texParameterf_Callback_3_(unwrap_jso(this), target, pname, param);
+  
+  @DomName('WebGL2RenderingContext.texParameteri')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void texParameteri(int target, int pname, int param) => _blink.BlinkWebGL2RenderingContext.instance.texParameteri_Callback_3_(unwrap_jso(this), target, pname, param);
+  
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, TypedData pixels]) {
+    if ((pixels is TypedData || pixels == null) && (type is int) && (canvas_OR_format_OR_image_OR_pixels_OR_video is int) && (height_OR_type is int) && (format_OR_width is int) && (yoffset is int) && (xoffset is int) && (level is int) && (target is int)) {
+      _blink.BlinkWebGL2RenderingContext.instance.texSubImage2D_Callback_9_(unwrap_jso(this), target, level, xoffset, yoffset, format_OR_width, height_OR_type, unwrap_jso(canvas_OR_format_OR_image_OR_pixels_OR_video), type, unwrap_jso(pixels));
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageData || canvas_OR_format_OR_image_OR_pixels_OR_video == null) && (height_OR_type is int) && (format_OR_width is int) && (yoffset is int) && (xoffset is int) && (level is int) && (target is int) && type == null && pixels == null) {
+      _blink.BlinkWebGL2RenderingContext.instance.texSubImage2D_Callback_7_(unwrap_jso(this), target, level, xoffset, yoffset, format_OR_width, height_OR_type, unwrap_jso(canvas_OR_format_OR_image_OR_pixels_OR_video));
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is ImageElement) && (height_OR_type is int) && (format_OR_width is int) && (yoffset is int) && (xoffset is int) && (level is int) && (target is int) && type == null && pixels == null) {
+      _blink.BlinkWebGL2RenderingContext.instance.texSubImage2D_Callback_7_(unwrap_jso(this), target, level, xoffset, yoffset, format_OR_width, height_OR_type, unwrap_jso(canvas_OR_format_OR_image_OR_pixels_OR_video));
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is CanvasElement) && (height_OR_type is int) && (format_OR_width is int) && (yoffset is int) && (xoffset is int) && (level is int) && (target is int) && type == null && pixels == null) {
+      _blink.BlinkWebGL2RenderingContext.instance.texSubImage2D_Callback_7_(unwrap_jso(this), target, level, xoffset, yoffset, format_OR_width, height_OR_type, unwrap_jso(canvas_OR_format_OR_image_OR_pixels_OR_video));
+      return;
+    }
+    if ((canvas_OR_format_OR_image_OR_pixels_OR_video is VideoElement) && (height_OR_type is int) && (format_OR_width is int) && (yoffset is int) && (xoffset is int) && (level is int) && (target is int) && type == null && pixels == null) {
+      _blink.BlinkWebGL2RenderingContext.instance.texSubImage2D_Callback_7_(unwrap_jso(this), target, level, xoffset, yoffset, format_OR_width, height_OR_type, unwrap_jso(canvas_OR_format_OR_image_OR_pixels_OR_video));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @DomName('WebGL2RenderingContext.uniform1f')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform1f(UniformLocation location, num x) => _blink.BlinkWebGL2RenderingContext.instance.uniform1f_Callback_2_(unwrap_jso(this), unwrap_jso(location), x);
+  
+  void uniform1fv(UniformLocation location, v) {
+    if ((v is Float32List) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniform1fv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    if ((v is List<num>) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniform1fv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @DomName('WebGL2RenderingContext.uniform1i')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform1i(UniformLocation location, int x) => _blink.BlinkWebGL2RenderingContext.instance.uniform1i_Callback_2_(unwrap_jso(this), unwrap_jso(location), x);
+  
+  void uniform1iv(UniformLocation location, v) {
+    if ((v is Int32List) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniform1iv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    if ((v is List<int>) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniform1iv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @DomName('WebGL2RenderingContext.uniform2f')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform2f(UniformLocation location, num x, num y) => _blink.BlinkWebGL2RenderingContext.instance.uniform2f_Callback_3_(unwrap_jso(this), unwrap_jso(location), x, y);
+  
+  void uniform2fv(UniformLocation location, v) {
+    if ((v is Float32List) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniform2fv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    if ((v is List<num>) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniform2fv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @DomName('WebGL2RenderingContext.uniform2i')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform2i(UniformLocation location, int x, int y) => _blink.BlinkWebGL2RenderingContext.instance.uniform2i_Callback_3_(unwrap_jso(this), unwrap_jso(location), x, y);
+  
+  void uniform2iv(UniformLocation location, v) {
+    if ((v is Int32List) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniform2iv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    if ((v is List<int>) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniform2iv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @DomName('WebGL2RenderingContext.uniform3f')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform3f(UniformLocation location, num x, num y, num z) => _blink.BlinkWebGL2RenderingContext.instance.uniform3f_Callback_4_(unwrap_jso(this), unwrap_jso(location), x, y, z);
+  
+  void uniform3fv(UniformLocation location, v) {
+    if ((v is Float32List) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniform3fv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    if ((v is List<num>) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniform3fv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @DomName('WebGL2RenderingContext.uniform3i')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform3i(UniformLocation location, int x, int y, int z) => _blink.BlinkWebGL2RenderingContext.instance.uniform3i_Callback_4_(unwrap_jso(this), unwrap_jso(location), x, y, z);
+  
+  void uniform3iv(UniformLocation location, v) {
+    if ((v is Int32List) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniform3iv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    if ((v is List<int>) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniform3iv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @DomName('WebGL2RenderingContext.uniform4f')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform4f(UniformLocation location, num x, num y, num z, num w) => _blink.BlinkWebGL2RenderingContext.instance.uniform4f_Callback_5_(unwrap_jso(this), unwrap_jso(location), x, y, z, w);
+  
+  void uniform4fv(UniformLocation location, v) {
+    if ((v is Float32List) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniform4fv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    if ((v is List<num>) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniform4fv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @DomName('WebGL2RenderingContext.uniform4i')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniform4i(UniformLocation location, int x, int y, int z, int w) => _blink.BlinkWebGL2RenderingContext.instance.uniform4i_Callback_5_(unwrap_jso(this), unwrap_jso(location), x, y, z, w);
+  
+  void uniform4iv(UniformLocation location, v) {
+    if ((v is Int32List) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniform4iv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    if ((v is List<int>) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniform4iv_Callback_2_(unwrap_jso(this), unwrap_jso(location), unwrap_jso(v));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  void uniformMatrix2fv(UniformLocation location, bool transpose, array) {
+    if ((array is Float32List) && (transpose is bool) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniformMatrix2fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, unwrap_jso(array));
+      return;
+    }
+    if ((array is List<num>) && (transpose is bool) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniformMatrix2fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, unwrap_jso(array));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  void uniformMatrix3fv(UniformLocation location, bool transpose, array) {
+    if ((array is Float32List) && (transpose is bool) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniformMatrix3fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, unwrap_jso(array));
+      return;
+    }
+    if ((array is List<num>) && (transpose is bool) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniformMatrix3fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, unwrap_jso(array));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  void uniformMatrix4fv(UniformLocation location, bool transpose, array) {
+    if ((array is Float32List) && (transpose is bool) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniformMatrix4fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, unwrap_jso(array));
+      return;
+    }
+    if ((array is List<num>) && (transpose is bool) && (location is UniformLocation || location == null)) {
+      _blink.BlinkWebGL2RenderingContext.instance.uniformMatrix4fv_Callback_3_(unwrap_jso(this), unwrap_jso(location), transpose, unwrap_jso(array));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @DomName('WebGL2RenderingContext.useProgram')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void useProgram(Program program) => _blink.BlinkWebGL2RenderingContext.instance.useProgram_Callback_1_(unwrap_jso(this), unwrap_jso(program));
+  
+  @DomName('WebGL2RenderingContext.validateProgram')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void validateProgram(Program program) => _blink.BlinkWebGL2RenderingContext.instance.validateProgram_Callback_1_(unwrap_jso(this), unwrap_jso(program));
+  
+  @DomName('WebGL2RenderingContext.vertexAttrib1f')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void vertexAttrib1f(int indx, num x) => _blink.BlinkWebGL2RenderingContext.instance.vertexAttrib1f_Callback_2_(unwrap_jso(this), indx, x);
+  
+  void vertexAttrib1fv(int indx, values) {
+    if ((values is Float32List) && (indx is int)) {
+      _blink.BlinkWebGL2RenderingContext.instance.vertexAttrib1fv_Callback_2_(unwrap_jso(this), indx, unwrap_jso(values));
+      return;
+    }
+    if ((values is List<num>) && (indx is int)) {
+      _blink.BlinkWebGL2RenderingContext.instance.vertexAttrib1fv_Callback_2_(unwrap_jso(this), indx, unwrap_jso(values));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @DomName('WebGL2RenderingContext.vertexAttrib2f')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void vertexAttrib2f(int indx, num x, num y) => _blink.BlinkWebGL2RenderingContext.instance.vertexAttrib2f_Callback_3_(unwrap_jso(this), indx, x, y);
+  
+  void vertexAttrib2fv(int indx, values) {
+    if ((values is Float32List) && (indx is int)) {
+      _blink.BlinkWebGL2RenderingContext.instance.vertexAttrib2fv_Callback_2_(unwrap_jso(this), indx, unwrap_jso(values));
+      return;
+    }
+    if ((values is List<num>) && (indx is int)) {
+      _blink.BlinkWebGL2RenderingContext.instance.vertexAttrib2fv_Callback_2_(unwrap_jso(this), indx, unwrap_jso(values));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @DomName('WebGL2RenderingContext.vertexAttrib3f')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void vertexAttrib3f(int indx, num x, num y, num z) => _blink.BlinkWebGL2RenderingContext.instance.vertexAttrib3f_Callback_4_(unwrap_jso(this), indx, x, y, z);
+  
+  void vertexAttrib3fv(int indx, values) {
+    if ((values is Float32List) && (indx is int)) {
+      _blink.BlinkWebGL2RenderingContext.instance.vertexAttrib3fv_Callback_2_(unwrap_jso(this), indx, unwrap_jso(values));
+      return;
+    }
+    if ((values is List<num>) && (indx is int)) {
+      _blink.BlinkWebGL2RenderingContext.instance.vertexAttrib3fv_Callback_2_(unwrap_jso(this), indx, unwrap_jso(values));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @DomName('WebGL2RenderingContext.vertexAttrib4f')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void vertexAttrib4f(int indx, num x, num y, num z, num w) => _blink.BlinkWebGL2RenderingContext.instance.vertexAttrib4f_Callback_5_(unwrap_jso(this), indx, x, y, z, w);
+  
+  void vertexAttrib4fv(int indx, values) {
+    if ((values is Float32List) && (indx is int)) {
+      _blink.BlinkWebGL2RenderingContext.instance.vertexAttrib4fv_Callback_2_(unwrap_jso(this), indx, unwrap_jso(values));
+      return;
+    }
+    if ((values is List<num>) && (indx is int)) {
+      _blink.BlinkWebGL2RenderingContext.instance.vertexAttrib4fv_Callback_2_(unwrap_jso(this), indx, unwrap_jso(values));
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
+  @DomName('WebGL2RenderingContext.vertexAttribPointer')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void vertexAttribPointer(int indx, int size, int type, bool normalized, int stride, int offset) => _blink.BlinkWebGL2RenderingContext.instance.vertexAttribPointer_Callback_6_(unwrap_jso(this), indx, size, type, normalized, stride, offset);
+  
+  @DomName('WebGL2RenderingContext.viewport')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void viewport(int x, int y, int width, int height) => _blink.BlinkWebGL2RenderingContext.instance.viewport_Callback_4_(unwrap_jso(this), x, y, width, height);
+  
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('WebGLSampler')
+@Experimental() // untriaged
+class Sampler extends DartHtmlDomObject {
+  // To suppress missing implicit constructor warnings.
+  factory Sampler._() { throw new UnsupportedError("Not supported"); }
+
+  @Deprecated("Internal Use Only")
+  static Sampler internalCreateSampler() {
+    return new Sampler._internalWrap();
+  }
+
+  factory Sampler._internalWrap() {
+    return new Sampler.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  Sampler.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -3655,6 +6721,36 @@ class ShaderPrecisionFormat extends DartHtmlDomObject {
 
 
 @DocsEditable()
+@DomName('WebGLSync')
+@Experimental() // untriaged
+class Sync extends DartHtmlDomObject {
+  // To suppress missing implicit constructor warnings.
+  factory Sync._() { throw new UnsupportedError("Not supported"); }
+
+  @Deprecated("Internal Use Only")
+  static Sync internalCreateSync() {
+    return new Sync._internalWrap();
+  }
+
+  factory Sync._internalWrap() {
+    return new Sync.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  Sync.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('WebGLTexture')
 class Texture extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
@@ -3671,6 +6767,36 @@ class Texture extends DartHtmlDomObject {
 
   @Deprecated("Internal Use Only")
   Texture.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('WebGLTransformFeedback')
+@Experimental() // untriaged
+class TransformFeedback extends DartHtmlDomObject {
+  // To suppress missing implicit constructor warnings.
+  factory TransformFeedback._() { throw new UnsupportedError("Not supported"); }
+
+  @Deprecated("Internal Use Only")
+  static TransformFeedback internalCreateTransformFeedback() {
+    return new TransformFeedback._internalWrap();
+  }
+
+  factory TransformFeedback._internalWrap() {
+    return new TransformFeedback.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  TransformFeedback.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
   int get hashCode => unwrap_jso(this).hashCode;
@@ -3713,9 +6839,8 @@ class UniformLocation extends DartHtmlDomObject {
 
 
 @DocsEditable()
-@DomName('WebGLVertexArrayObjectOES')
-// http://www.khronos.org/registry/webgl/extensions/OES_vertex_array_object/
-@Experimental() // experimental
+@DomName('WebGLVertexArrayObject')
+@Experimental() // untriaged
 class VertexArrayObject extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory VertexArrayObject._() { throw new UnsupportedError("Not supported"); }
@@ -3731,6 +6856,67 @@ class VertexArrayObject extends DartHtmlDomObject {
 
   @Deprecated("Internal Use Only")
   VertexArrayObject.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('WebGLVertexArrayObjectOES')
+// http://www.khronos.org/registry/webgl/extensions/OES_vertex_array_object/
+@Experimental() // experimental
+class VertexArrayObjectOes extends DartHtmlDomObject {
+  // To suppress missing implicit constructor warnings.
+  factory VertexArrayObjectOes._() { throw new UnsupportedError("Not supported"); }
+
+  @Deprecated("Internal Use Only")
+  static VertexArrayObjectOes internalCreateVertexArrayObjectOes() {
+    return new VertexArrayObjectOes._internalWrap();
+  }
+
+  factory VertexArrayObjectOes._internalWrap() {
+    return new VertexArrayObjectOes.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  VertexArrayObjectOes.internal_() { }
+
+  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
+  int get hashCode => unwrap_jso(this).hashCode;
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('WebGL2RenderingContextBase')
+@Experimental() // untriaged
+class _WebGL2RenderingContextBase extends DartHtmlDomObject implements _WebGLRenderingContextBase {
+  // To suppress missing implicit constructor warnings.
+  factory _WebGL2RenderingContextBase._() { throw new UnsupportedError("Not supported"); }
+
+  @Deprecated("Internal Use Only")
+  static _WebGL2RenderingContextBase internalCreate_WebGL2RenderingContextBase() {
+    return new _WebGL2RenderingContextBase._internalWrap();
+  }
+
+  factory _WebGL2RenderingContextBase._internalWrap() {
+    return new _WebGL2RenderingContextBase.internal_();
+  }
+
+  @Deprecated("Internal Use Only")
+  _WebGL2RenderingContextBase.internal_() { }
 
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
   int get hashCode => unwrap_jso(this).hashCode;

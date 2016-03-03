@@ -101,6 +101,16 @@ class AudioBuffer extends Interceptor {
   @DocsEditable()
   final double sampleRate;
 
+  @DomName('AudioBuffer.copyFromChannel')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void copyFromChannel(Float32List destination, int channelNumber, [int startInChannel]) native;
+
+  @DomName('AudioBuffer.copyToChannel')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void copyToChannel(Float32List source, int channelNumber, [int startInChannel]) native;
+
   @DomName('AudioBuffer.getChannelData')
   @DocsEditable()
   Float32List getChannelData(int channelIndex) native;
@@ -176,6 +186,11 @@ class AudioBufferSourceNode extends AudioSourceNode {
   @DocsEditable()
   AudioBuffer buffer;
 
+  @DomName('AudioBufferSourceNode.detune')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final AudioParam detune;
+
   @DomName('AudioBufferSourceNode.loop')
   @DocsEditable()
   bool loop;
@@ -214,16 +229,6 @@ class AudioContext extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory AudioContext._() { throw new UnsupportedError("Not supported"); }
 
-  /**
-   * Static factory designed to expose `complete` events to event
-   * handlers that are not necessarily instances of [AudioContext].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('AudioContext.completeEvent')
-  @DocsEditable()
-  static const EventStreamProvider<Event> completeEvent = const EventStreamProvider<Event>('complete');
-
   /// Checks if this type is supported on the current platform.
   static bool get supported => JS('bool', '!!(window.AudioContext || window.webkitAudioContext)');
 
@@ -242,6 +247,16 @@ class AudioContext extends EventTarget {
   @DomName('AudioContext.sampleRate')
   @DocsEditable()
   final double sampleRate;
+
+  @DomName('AudioContext.state')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String state;
+
+  @DomName('AudioContext.close')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future close() native;
 
   @DomName('AudioContext.createAnalyser')
   @DocsEditable()
@@ -304,6 +319,11 @@ class AudioContext extends EventTarget {
   @Experimental() // untriaged
   PeriodicWave createPeriodicWave(Float32List real, Float32List imag) native;
 
+  @DomName('AudioContext.createStereoPanner')
+  @DocsEditable()
+  @Experimental() // untriaged
+  StereoPannerNode createStereoPanner() native;
+
   @DomName('AudioContext.createWaveShaper')
   @DocsEditable()
   WaveShaperNode createWaveShaper() native;
@@ -313,14 +333,15 @@ class AudioContext extends EventTarget {
   @DocsEditable()
   void _decodeAudioData(ByteBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) native;
 
-  @DomName('AudioContext.startRendering')
+  @DomName('AudioContext.resume')
   @DocsEditable()
-  void startRendering() native;
+  @Experimental() // untriaged
+  Future resume() native;
 
-  /// Stream of `complete` events handled by this [AudioContext].
-  @DomName('AudioContext.oncomplete')
+  @DomName('AudioContext.suspend')
   @DocsEditable()
-  Stream<Event> get onComplete => completeEvent.forTarget(this);
+  @Experimental() // untriaged
+  Future suspend() native;
 
   factory AudioContext() => JS('AudioContext',
       'new (window.AudioContext || window.webkitAudioContext)()');
@@ -455,11 +476,11 @@ class AudioNode extends EventTarget {
   @JSName('connect')
   @DomName('AudioNode.connect')
   @DocsEditable()
-  void _connect(destination, int output, [int input]) native;
+  void _connect(destination, [int output, int input]) native;
 
   @DomName('AudioNode.disconnect')
   @DocsEditable()
-  void disconnect(int output) native;
+  void disconnect([destination_OR_output, int output, int input]) native;
 
   @DomName('AudioNode.connect')
   void connectNode(AudioNode destination, [int output = 0, int input = 0]) =>
@@ -811,6 +832,11 @@ class OfflineAudioContext extends AudioContext {
     return OfflineAudioContext._create_1(numberOfChannels, numberOfFrames, sampleRate);
   }
   static OfflineAudioContext _create_1(numberOfChannels, numberOfFrames, sampleRate) => JS('OfflineAudioContext', 'new OfflineAudioContext(#,#,#)', numberOfChannels, numberOfFrames, sampleRate);
+
+  @DomName('OfflineAudioContext.startRendering')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future startRendering() native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -848,14 +874,6 @@ class OscillatorNode extends AudioSourceNode {
   @DomName('OscillatorNode.type')
   @DocsEditable()
   String type;
-
-  @DomName('OscillatorNode.noteOff')
-  @DocsEditable()
-  void noteOff(num when) native;
-
-  @DomName('OscillatorNode.noteOn')
-  @DocsEditable()
-  void noteOn(num when) native;
 
   @DomName('OscillatorNode.setPeriodicWave')
   @DocsEditable()
@@ -993,6 +1011,24 @@ class ScriptProcessorNode extends AudioNode {
   @DocsEditable()
   @Experimental() // untriaged
   Stream<AudioProcessingEvent> get onAudioProcess => audioProcessEvent.forTarget(this);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('StereoPannerNode')
+@Experimental() // untriaged
+@Native("StereoPannerNode")
+class StereoPannerNode extends AudioNode {
+  // To suppress missing implicit constructor warnings.
+  factory StereoPannerNode._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('StereoPannerNode.pan')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final AudioParam pan;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
