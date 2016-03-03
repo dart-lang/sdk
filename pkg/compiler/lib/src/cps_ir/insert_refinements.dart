@@ -73,10 +73,6 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
     let.insertAbove(use);
   }
 
-  Primitive unfoldInterceptor(Primitive prim) {
-    return prim is Interceptor ? prim.input : prim;
-  }
-
   /// Sets [refined] to be the current refinement for its value, and pushes an
   /// action that will restore the original scope again.
   ///
@@ -140,7 +136,7 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
 
     // If the call is intercepted, we want to refine the actual receiver,
     // not the interceptor.
-    Primitive receiver = unfoldInterceptor(node.receiver);
+    Primitive receiver = node.dartReceiver;
 
     // Do not try to refine the receiver of closure calls; the class world
     // does not know about closure classes.
