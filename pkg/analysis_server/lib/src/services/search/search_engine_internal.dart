@@ -119,8 +119,14 @@ class SearchEngineImpl implements SearchEngine {
         _index.getTopLevelDeclarations((String name) => regExp.hasMatch(name));
     List<SearchMatch> matches = <SearchMatch>[];
     for (Element element in elements) {
-      matches.add(new SearchMatch(MatchKind.DECLARATION, element,
-          rangeElementName(element), true, false));
+      matches.add(new SearchMatch(
+          element.context,
+          element.library.source.uri.toString(),
+          element.source.uri.toString(),
+          MatchKind.DECLARATION,
+          rangeElementName(element),
+          true,
+          false));
     }
     return new Future.value(matches);
   }
@@ -230,9 +236,12 @@ class _Requestor {
       for (LocationImpl location in locations) {
         IndexableObject indexable = location.indexable;
         if (indexable is IndexableElement) {
+          Element element = indexable.element;
           matches.add(new SearchMatch(
+              element.context,
+              element.library.source.uri.toString(),
+              element.source.uri.toString(),
               kind,
-              indexable.element,
               new SourceRange(location.offset, location.length),
               location.isResolved,
               location.isQualified));

@@ -9,6 +9,9 @@ import 'dart:async';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
 
@@ -125,14 +128,24 @@ abstract class SearchEngine {
  */
 class SearchMatch {
   /**
+   * The [AnalysisContext] containing the match.
+   */
+  final AnalysisContext context;
+
+  /**
+   * The URI of the source of the library containing the match.
+   */
+  final String libraryUri;
+
+  /**
+   * The URI of the source of the unit containing the match.
+   */
+  final String unitUri;
+
+  /**
    * The kind of the match.
    */
   final MatchKind kind;
-
-  /**
-   * The element containing the source range that was matched.
-   */
-  final Element element;
 
   /**
    * The source range that was matched.
@@ -149,11 +162,61 @@ class SearchMatch {
    */
   final bool isQualified;
 
-  SearchMatch(this.kind, this.element, this.sourceRange, this.isResolved,
-      this.isQualified);
+  Source _librarySource;
+  Source _unitSource;
+  LibraryElement _libraryElement;
+  Element _element;
+
+  SearchMatch(this.context, this.libraryUri, this.unitUri, this.kind,
+      this.sourceRange, this.isResolved, this.isQualified);
+
+  /**
+   * Return the [Element] containing the match.
+   */
+  Element get element {
+    if (_element == null) {
+      CompilationUnitElement unitElement =
+          context.getCompilationUnitElement(unitSource, librarySource);
+      _ContainingElementFinder finder =
+          new _ContainingElementFinder(sourceRange.offset);
+      unitElement.accept(finder);
+      _element = finder.containingElement;
+    }
+    return _element;
+  }
+
+  /**
+   * The absolute path of the file containing the match.
+   */
+  String get file => unitSource.fullName;
 
   @override
-  int get hashCode => JavaArrays.makeHashCode([element, sourceRange, kind]);
+  int get hashCode =>
+      JavaArrays.makeHashCode([libraryUri, unitUri, kind, sourceRange]);
+
+  /**
+   * Return the [LibraryElement] for the [libraryUri] in the [context].
+   */
+  LibraryElement get libraryElement {
+    _libraryElement ??= context.getLibraryElement(librarySource);
+    return _libraryElement;
+  }
+
+  /**
+   * The library [Source] of the reference.
+   */
+  Source get librarySource {
+    _librarySource ??= context.sourceFactory.forUri(libraryUri);
+    return _librarySource;
+  }
+
+  /**
+   * The unit [Source] of the reference.
+   */
+  Source get unitSource {
+    _unitSource ??= context.sourceFactory.forUri(unitUri);
+    return _unitSource;
+  }
 
   @override
   bool operator ==(Object object) {
@@ -162,10 +225,11 @@ class SearchMatch {
     }
     if (object is SearchMatch) {
       return kind == object.kind &&
+          libraryUri == object.libraryUri &&
+          unitUri == object.unitUri &&
           isResolved == object.isResolved &&
           isQualified == object.isQualified &&
-          sourceRange == object.sourceRange &&
-          element == object.element;
+          sourceRange == object.sourceRange;
     }
     return false;
   }
@@ -175,8 +239,10 @@ class SearchMatch {
     StringBuffer buffer = new StringBuffer();
     buffer.write("SearchMatch(kind=");
     buffer.write(kind);
-    buffer.write(", element=");
-    buffer.write(element.displayName);
+    buffer.write(", libraryUri=");
+    buffer.write(libraryUri);
+    buffer.write(", unitUri=");
+    buffer.write(unitUri);
     buffer.write(", range=");
     buffer.write(sourceRange);
     buffer.write(", isResolved=");
@@ -185,5 +251,26 @@ class SearchMatch {
     buffer.write(isQualified);
     buffer.write(")");
     return buffer.toString();
+  }
+}
+
+/**
+ * A visitor that finds the deep-most [Element] that contains the [offset].
+ */
+class _ContainingElementFinder extends GeneralizingElementVisitor {
+  final int offset;
+  Element containingElement;
+
+  _ContainingElementFinder(this.offset);
+
+  visitElement(Element element) {
+    if (element is ElementImpl) {
+      if (element.codeOffset != null &&
+          element.codeOffset <= offset &&
+          offset <= element.codeOffset + element.codeLength) {
+        containingElement = element;
+        super.visitElement(element);
+      }
+    }
   }
 }

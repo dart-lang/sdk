@@ -906,7 +906,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       SimpleIdentifier labelName = label.label;
       LabelElementImpl element =
           new LabelElementImpl.forNode(labelName, onSwitchStatement, false);
-      _setCodeRange(element, node);
       _currentHolder.addLabel(element);
       labelName.staticElement = element;
     }
