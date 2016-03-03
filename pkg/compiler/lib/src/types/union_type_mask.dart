@@ -43,7 +43,7 @@ class UnionTypeMask implements TypeMask {
       if (mask.isUnion) {
         UnionTypeMask union = mask;
         unionOfHelper(union.disjointMasks, disjoint, classWorld);
-      } else if (mask.isEmpty && !mask.isNullable) {
+      } else if (mask.isEmpty) {
         continue;
       } else {
         FlatTypeMask flatMask = mask;
@@ -192,7 +192,9 @@ class UnionTypeMask implements TypeMask {
     return new UnionTypeMask._internal(newIterable);
   }
 
+  bool get isEmptyOrNull => false;
   bool get isEmpty => false;
+  bool get isNull => false;
   bool get isNullable => disjointMasks.any((e) => e.isNullable);
   bool get isExact => false;
   bool get isUnion => true;

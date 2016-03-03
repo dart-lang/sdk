@@ -31,7 +31,7 @@ class ValueTypeMask extends ForwardingTypeMask {
 
   TypeMask intersection(TypeMask other, ClassWorld classWorld) {
     TypeMask forwardIntersection = forwardTo.intersection(other, classWorld);
-    if (forwardIntersection.isEmpty) return forwardIntersection;
+    if (forwardIntersection.isEmptyOrNull) return forwardIntersection;
     return forwardIntersection.isNullable
         ? nullable()
         : nonNullable();

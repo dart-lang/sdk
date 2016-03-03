@@ -135,7 +135,7 @@ class SsaSimplifyInterceptors extends HBaseVisitor
       Set<ClassElement> interceptedClasses) {
 
     if (type.isNullable) {
-      if (type.isEmpty) {
+      if (type.isNull) {
         return helpers.jsNullClass;
       }
     } else if (type.containsOnlyInt(classWorld)) {

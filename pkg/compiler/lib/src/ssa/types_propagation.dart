@@ -178,7 +178,7 @@ class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
     }
 
     TypeMask outputType = checkedType.intersection(inputType, classWorld);
-    if (outputType.isEmpty && !outputType.isNullable) {
+    if (outputType.isEmpty) {
       // Intersection of double and integer conflicts (is empty), but JS numbers
       // can be both int and double at the same time.  For example, the input
       // can be a literal double '8.0' that is marked as an integer (because 'is

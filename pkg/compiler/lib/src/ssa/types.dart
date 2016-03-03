@@ -48,7 +48,7 @@ class TypeMaskFactory {
     TypeMask result = nativeBehavior.typesReturned
         .map((type) => fromNativeType(type, compiler))
         .reduce((t1, t2) => t1.union(t2, classWorld));
-    assert(!(result.isEmpty && !result.isNullable));
+    assert(!result.isEmpty);
     return result;
   }
 

@@ -204,7 +204,7 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
   static String getNotNormalizedReason(TypeMask mask, ClassWorld classWorld) {
     mask = nonForwardingMask(mask);
     if (mask is FlatTypeMask) {
-      if (mask.isEmpty) return null;
+      if (mask.isEmptyOrNull) return null;
       if (mask.isExact) {
         if (!classWorld.isInstantiated(mask.base)) {
           return 'Exact ${mask.base} is not instantiated.';
@@ -247,8 +247,20 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
    */
   TypeMask nonNullable();
 
+  /// Whether nothing matches this mask, not even null.
   bool get isEmpty;
+
+  /// Whether null is a valid value of this mask.
   bool get isNullable;
+
+  /// Whether the only possible value in this mask is Null.
+  bool get isNull;
+
+  /// Whether [isEmpty] or [isNull] is true.
+  bool get isEmptyOrNull;
+
+  /// Whether this mask only includes instances of an exact class, and none of
+  /// it's subclasses or subtypes.
   bool get isExact;
 
   /// Returns true if this mask is a union type.

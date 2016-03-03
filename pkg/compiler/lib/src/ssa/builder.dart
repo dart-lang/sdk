@@ -1401,9 +1401,7 @@ class SsaBuilder extends ast.Visitor
         // This means that the function always throws an exception.
         TypeMask returnType =
             compiler.typesTask.getGuaranteedReturnTypeOfElement(element);
-        if (returnType != null
-            && returnType.isEmpty
-            && !returnType.isNullable) {
+        if (returnType != null && returnType.isEmpty) {
           isReachable = false;
           return false;
         }
@@ -1688,8 +1686,8 @@ class SsaBuilder extends ast.Visitor
       }
     }
     if (const bool.fromEnvironment('unreachable-throw') == true) {
-      var emptyParameters = parameters.values.where((p) =>
-          p.instructionType.isEmpty && !p.instructionType.isNullable);
+      var emptyParameters = parameters.values
+          .where((p) => p.instructionType.isEmpty);
       if (emptyParameters.length > 0) {
         addComment('${emptyParameters} inferred as [empty]');
         pushInvokeStatic(function.body, helpers.assertUnreachableMethod, []);

@@ -281,7 +281,7 @@ class TypeMaskSystem implements AbstractValueDomain {
       TypeMask computed = computeTypeMask(inferrer.compiler, constant);
       TypeMask inferred = inferrer.getGuaranteedTypeOfElement(element);
       TypeMask best = intersection(inferred, computed);
-      assert(!best.isEmpty);
+      assert(!best.isEmptyOrNull);
       _constantMasks[constant] = best;
     }
   }

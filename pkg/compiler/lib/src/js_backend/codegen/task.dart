@@ -216,9 +216,8 @@ class CpsFunctionCompiler implements FunctionCompiler {
     if (type is UnionTypeMask) {
       return '[${type.disjointMasks.map(formatTypeMask).join(', ')}]';
     } else if (type is FlatTypeMask) {
-      if (type.isEmpty) {
-        return "null";
-      }
+      if (type.isEmpty) return "empty";
+      if (type.isNull) return "null";
       String suffix = (type.isExact ? "" : "+") + (type.isNullable ? "?" : "!");
       return '${type.base.name}$suffix';
     } else if (type is ForwardingTypeMask) {

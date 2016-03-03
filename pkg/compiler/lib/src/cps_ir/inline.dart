@@ -431,7 +431,7 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
 
     // Don't inline methods that never return. They are usually helper functions
     // that throw an exception.
-    if (invoke.type.isEmpty && !invoke.type.isNullable) {
+    if (invoke.type.isEmpty) {
       // TODO(sra): It would be ok to inline if doing so was shrinking.
       return null;
     }
@@ -451,7 +451,7 @@ class InliningVisitor extends TrampolineRecursiveVisitor {
     // to be `null` (isEmpty covers `null` and unreachable).
     TypeMask abstractReceiverInMethod = abstractReceiver == null
         ? null
-        : abstractReceiver.isEmpty
+        : abstractReceiver.isEmptyOrNull
             ? abstractReceiver
             : abstractReceiver.nonNullable();
     List<TypeMask> abstractArguments =

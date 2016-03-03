@@ -968,7 +968,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     }
     // If a primitive has a value, but can't return anything, it must throw
     // or diverge.
-    return prim.hasValue && prim.type.isEmpty && !prim.type.isNullable;
+    return prim.hasValue && prim.type.isEmpty;
   }
 
   void visitContinuation(Continuation node) {
@@ -2709,9 +2709,7 @@ class TypePropagationVisitor implements Visitor {
             ? typeSystem.getParameterType(param.hint)
             : typeSystem.dynamicType;
         setValue(param, lattice.fromMask(type));
-        if (type.isEmpty && !type.isNullable) {
-          hasParameterWithoutValue = true;
-        }
+        if (type.isEmpty) hasParameterWithoutValue = true;
       }
     }
     if (!hasParameterWithoutValue) { // Don't analyze unreachable code.
@@ -3383,11 +3381,10 @@ class AbstractConstantValue {
 
   factory AbstractConstantValue.nonConstant(TypeMask type) {
     if (type.isEmpty) {
-      if (type.isNullable)
-        return new AbstractConstantValue.constantValue(
-            new NullConstantValue(), type);
-      else
-        return new AbstractConstantValue.nothing();
+      return new AbstractConstantValue.nothing();
+    } else if (type.isNull) {
+      return new AbstractConstantValue.constantValue(
+          new NullConstantValue(), type);
     } else {
       return new AbstractConstantValue._internal(NONCONST, null, type);
     }
