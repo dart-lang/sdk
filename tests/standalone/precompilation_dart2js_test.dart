@@ -49,7 +49,7 @@ main(List args) {
   Directory tmp;
   try {
     tmp = Directory.current.createTempSync("temp_precompilation_test");
-    var exec = "${dart_executable}_no_snapshot";
+    var exec = "${dart_executable}_bootstrap";
     var args = ["--package-root=$abs_package_root",
                 "--gen-precompiled-snapshot",
                 "${abs_package_root}compiler/src/dart2js.dart"];
