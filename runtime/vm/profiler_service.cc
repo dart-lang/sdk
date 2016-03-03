@@ -1453,6 +1453,11 @@ class ProfileBuilder : public ValueObject {
         // Allocation samples skip the top frame, so the top frame's pc is
         // also a call's return address.
         offset--;
+      } else if (!sample->first_frame_executing()) {
+        // If the first frame wasn't executing code (i.e. we started to collect
+        // the stack trace at an exit frame), the top frame's pc is also a
+        // call's return address.
+        offset--;
       }
       code.GetInlinedFunctionsAt(offset,
                                  &inlined_functions,
