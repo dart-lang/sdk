@@ -312,7 +312,12 @@ class Isolate : public BaseIsolate {
   void set_message_handler(MessageHandler* value) { message_handler_ = value; }
 
   bool is_runnable() const { return is_runnable_; }
-  void set_is_runnable(bool value) { is_runnable_ = value; }
+  void set_is_runnable(bool value) {
+    is_runnable_ = value;
+    if (is_runnable_) {
+      set_last_resume_timestamp();
+    }
+  }
 
   IsolateSpawnState* spawn_state() const { return spawn_state_; }
   void set_spawn_state(IsolateSpawnState* value) { spawn_state_ = value; }
