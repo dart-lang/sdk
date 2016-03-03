@@ -25,7 +25,7 @@ P(allow_absolute_addresses, bool, true,                                        \
   "Allow embedding absolute addresses in generated code.")                     \
 P(always_megamorphic_calls, bool, false,                                       \
   "Instance call always as megamorphic.")                                      \
-C(background_compilation, false, false, bool, false,                           \
+C(background_compilation, false, true, bool, true,                             \
   "Run optimizing compilation in background")                                  \
 C(collect_code, false, true, bool, true,                                       \
   "Attempt to GC infrequently used code.")                                     \

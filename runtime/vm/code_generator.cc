@@ -32,6 +32,10 @@ DEFINE_FLAG(int, max_subtype_cache_entries, 100,
 DEFINE_FLAG(int, regexp_optimization_counter_threshold, 1000,
     "RegExp's usage-counter value before it is optimized, -1 means never");
 DEFINE_FLAG(charp, optimization_filter, NULL, "Optimize only named function");
+// TODO(srdjan): Remove this flag once background compilation of regular
+// expressions is possible.
+DEFINE_FLAG(bool, regexp_opt_in_background, false,
+    "Optimize reg-exp functions in background");
 DEFINE_FLAG(int, reoptimization_counter_threshold, 4000,
     "Counter threshold before a function gets reoptimized.");
 DEFINE_FLAG(bool, stop_on_excessive_deoptimization, false,
@@ -1461,7 +1465,8 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
       }
     }
     // TODO(srdjan): Fix background compilation of regular expressions.
-    if (FLAG_background_compilation) {
+    if (FLAG_background_compilation &&
+        (!function.IsIrregexpFunction() || FLAG_regexp_opt_in_background)) {
       if (FLAG_enable_inlining_annotations) {
         FATAL("Cannot enable inlining annotations and background compilation");
       }

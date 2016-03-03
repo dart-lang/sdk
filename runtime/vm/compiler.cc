@@ -106,6 +106,7 @@ void IrregexpCompilationPipeline::ParseFunction(
   // Variables are allocated after compilation.
 }
 
+
 FlowGraph* IrregexpCompilationPipeline::BuildFlowGraph(
     Zone* zone,
     ParsedFunction* parsed_function,
@@ -132,9 +133,11 @@ FlowGraph* IrregexpCompilationPipeline::BuildFlowGraph(
                              result.num_blocks);
 }
 
+
 void IrregexpCompilationPipeline::FinalizeCompilation() {
   backtrack_goto_->ComputeOffsetTable();
 }
+
 
 CompilationPipeline* CompilationPipeline::New(Zone* zone,
                                               const Function& function) {
@@ -1291,8 +1294,11 @@ RawError* Compiler::CompileOptimizedFunction(Thread* thread,
 
   // Optimization must happen in non-mutator/Dart thread if background
   // compilation is on. OSR compilation still occurs in the main thread.
+  // TODO(Srdjan): Remove assert allowance for regular expression functions
+  // once they can be compiled in background.
   ASSERT((osr_id != kNoOSRDeoptId) || !FLAG_background_compilation ||
-         !thread->IsMutatorThread());
+         !thread->IsMutatorThread() ||
+         function.IsIrregexpFunction());
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
   return CompileFunctionHelper(pipeline,

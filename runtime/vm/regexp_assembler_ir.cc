@@ -435,6 +435,7 @@ ConstantInstr* IRRegExpMacroAssembler::WordCharacterMapConstant() const {
   ASSERT(!word_character_field.IsNull());
 
   if (word_character_field.IsUninitialized()) {
+    ASSERT(!Compiler::IsBackgroundCompilation());
     word_character_field.EvaluateInitializer();
   }
   ASSERT(!word_character_field.IsUninitialized());
