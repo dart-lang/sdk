@@ -2,10 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == dart2js && $host_checked ]
-dummy_compiler_test: Crash # Issue 22809
-
-[ $compiler == dart2js && $host_checked == false ]
+[ $compiler == dart2js ]
 dummy_compiler_test: Slow, Pass
 
 [ $compiler == dart2js ]
