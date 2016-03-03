@@ -15,7 +15,7 @@ $!MEMBERS
   @DocsEditable()
   ImageData createImageDataFromImageData(ImageData imagedata) =>
 $if DART2JS
-    JS('ImageData', '#.createImageData(#, #, null)', this, imagedata);
+    JS('ImageData', '#.createImageData(#)', this, imagedata);
 $else
     this.createImageData(imagedata);
 $endif
