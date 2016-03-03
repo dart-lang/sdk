@@ -1139,6 +1139,7 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
 
   List<LinkedReferenceBuilder> _references;
   List<EntityRefBuilder> _types;
+  List<int> _constCycles;
 
   @override
   List<LinkedReferenceBuilder> get references => _references ??= <LinkedReferenceBuilder>[];
@@ -1168,20 +1169,38 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
     _types = _value;
   }
 
-  LinkedUnitBuilder({List<LinkedReferenceBuilder> references, List<EntityRefBuilder> types})
+  @override
+  List<int> get constCycles => _constCycles ??= <int>[];
+
+  /**
+   * List of slot ids (referring to [UnlinkedExecutable.constCycleSlot])
+   * corresponding to const constructors that are part of cycles.
+   */
+  void set constCycles(List<int> _value) {
+    assert(!_finished);
+    assert(_value == null || _value.every((e) => e >= 0));
+    _constCycles = _value;
+  }
+
+  LinkedUnitBuilder({List<LinkedReferenceBuilder> references, List<EntityRefBuilder> types, List<int> constCycles})
     : _references = references,
-      _types = types;
+      _types = types,
+      _constCycles = constCycles;
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
     fb.Offset offset_references;
     fb.Offset offset_types;
+    fb.Offset offset_constCycles;
     if (!(_references == null || _references.isEmpty)) {
       offset_references = fbBuilder.writeList(_references.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_types == null || _types.isEmpty)) {
       offset_types = fbBuilder.writeList(_types.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (!(_constCycles == null || _constCycles.isEmpty)) {
+      offset_constCycles = fbBuilder.writeListUint32(_constCycles);
     }
     fbBuilder.startTable();
     if (offset_references != null) {
@@ -1189,6 +1208,9 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
     }
     if (offset_types != null) {
       fbBuilder.addOffset(1, offset_types);
+    }
+    if (offset_constCycles != null) {
+      fbBuilder.addOffset(2, offset_constCycles);
     }
     return fbBuilder.endTable();
   }
@@ -1208,6 +1230,7 @@ class _LinkedUnitImpl extends Object with _LinkedUnitMixin implements idl.Linked
 
   List<idl.LinkedReference> _references;
   List<idl.EntityRef> _types;
+  List<int> _constCycles;
 
   @override
   List<idl.LinkedReference> get references {
@@ -1220,6 +1243,12 @@ class _LinkedUnitImpl extends Object with _LinkedUnitMixin implements idl.Linked
     _types ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bp, 1, const <idl.EntityRef>[]);
     return _types;
   }
+
+  @override
+  List<int> get constCycles {
+    _constCycles ??= const fb.Uint32ListReader().vTableGet(_bp, 2, const <int>[]);
+    return _constCycles;
+  }
 }
 
 abstract class _LinkedUnitMixin implements idl.LinkedUnit {
@@ -1228,6 +1257,7 @@ abstract class _LinkedUnitMixin implements idl.LinkedUnit {
     Map<String, Object> _result = <String, Object>{};
     if (references.isNotEmpty) _result["references"] = references.map((_value) => _value.toJson()).toList();
     if (types.isNotEmpty) _result["types"] = types.map((_value) => _value.toJson()).toList();
+    if (constCycles.isNotEmpty) _result["constCycles"] = constCycles;
     return _result;
   }
 
@@ -1235,6 +1265,7 @@ abstract class _LinkedUnitMixin implements idl.LinkedUnit {
   Map<String, Object> toMap() => {
     "references": references,
     "types": types,
+    "constCycles": constCycles,
   };
 
   @override
@@ -3588,6 +3619,7 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   List<UnlinkedTypeParamBuilder> _typeParameters;
   int _visibleLength;
   int _visibleOffset;
+  int _constCycleSlot;
 
   @override
   List<UnlinkedConstBuilder> get annotations => _annotations ??= <UnlinkedConstBuilder>[];
@@ -3898,7 +3930,24 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     _visibleOffset = _value;
   }
 
-  UnlinkedExecutableBuilder({List<UnlinkedConstBuilder> annotations, List<UnlinkedConstructorInitializerBuilder> constantInitializers, UnlinkedDocumentationCommentBuilder documentationComment, int inferredReturnTypeSlot, bool isAbstract, bool isConst, bool isExternal, bool isFactory, bool isRedirectedConstructor, bool isStatic, idl.UnlinkedExecutableKind kind, List<UnlinkedExecutableBuilder> localFunctions, List<UnlinkedLabelBuilder> localLabels, List<UnlinkedVariableBuilder> localVariables, String name, int nameEnd, int nameOffset, List<UnlinkedParamBuilder> parameters, int periodOffset, EntityRefBuilder redirectedConstructor, String redirectedConstructorName, EntityRefBuilder returnType, List<UnlinkedTypeParamBuilder> typeParameters, int visibleLength, int visibleOffset})
+  @override
+  int get constCycleSlot => _constCycleSlot ??= 0;
+
+  /**
+   * If [kind] is [UnlinkedExecutableKind.constructor] and [isConst] is `true`,
+   * a nonzero slot id which is unique within this compilation unit.  If this id
+   * is found in [LinkedUnit.constCycles], then this constructor is part of a
+   * cycle.
+   *
+   * Otherwise, zero.
+   */
+  void set constCycleSlot(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _constCycleSlot = _value;
+  }
+
+  UnlinkedExecutableBuilder({List<UnlinkedConstBuilder> annotations, List<UnlinkedConstructorInitializerBuilder> constantInitializers, UnlinkedDocumentationCommentBuilder documentationComment, int inferredReturnTypeSlot, bool isAbstract, bool isConst, bool isExternal, bool isFactory, bool isRedirectedConstructor, bool isStatic, idl.UnlinkedExecutableKind kind, List<UnlinkedExecutableBuilder> localFunctions, List<UnlinkedLabelBuilder> localLabels, List<UnlinkedVariableBuilder> localVariables, String name, int nameEnd, int nameOffset, List<UnlinkedParamBuilder> parameters, int periodOffset, EntityRefBuilder redirectedConstructor, String redirectedConstructorName, EntityRefBuilder returnType, List<UnlinkedTypeParamBuilder> typeParameters, int visibleLength, int visibleOffset, int constCycleSlot})
     : _annotations = annotations,
       _constantInitializers = constantInitializers,
       _documentationComment = documentationComment,
@@ -3923,7 +3972,8 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
       _returnType = returnType,
       _typeParameters = typeParameters,
       _visibleLength = visibleLength,
-      _visibleOffset = visibleOffset;
+      _visibleOffset = visibleOffset,
+      _constCycleSlot = constCycleSlot;
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -4052,6 +4102,9 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     if (_visibleOffset != null && _visibleOffset != 0) {
       fbBuilder.addUint32(21, _visibleOffset);
     }
+    if (_constCycleSlot != null && _constCycleSlot != 0) {
+      fbBuilder.addUint32(25, _constCycleSlot);
+    }
     return fbBuilder.endTable();
   }
 }
@@ -4093,6 +4146,7 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
   List<idl.UnlinkedTypeParam> _typeParameters;
   int _visibleLength;
   int _visibleOffset;
+  int _constCycleSlot;
 
   @override
   List<idl.UnlinkedConst> get annotations {
@@ -4243,6 +4297,12 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
     _visibleOffset ??= const fb.Uint32Reader().vTableGet(_bp, 21, 0);
     return _visibleOffset;
   }
+
+  @override
+  int get constCycleSlot {
+    _constCycleSlot ??= const fb.Uint32Reader().vTableGet(_bp, 25, 0);
+    return _constCycleSlot;
+  }
 }
 
 abstract class _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
@@ -4274,6 +4334,7 @@ abstract class _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
     if (typeParameters.isNotEmpty) _result["typeParameters"] = typeParameters.map((_value) => _value.toJson()).toList();
     if (visibleLength != 0) _result["visibleLength"] = visibleLength;
     if (visibleOffset != 0) _result["visibleOffset"] = visibleOffset;
+    if (constCycleSlot != 0) _result["constCycleSlot"] = constCycleSlot;
     return _result;
   }
 
@@ -4304,6 +4365,7 @@ abstract class _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
     "typeParameters": typeParameters,
     "visibleLength": visibleLength,
     "visibleOffset": visibleOffset,
+    "constCycleSlot": constCycleSlot,
   };
 
   @override

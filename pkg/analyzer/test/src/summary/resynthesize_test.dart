@@ -39,12 +39,6 @@ class ResynthTest extends ResolverTestCase {
   Set<Source> otherLibrarySources = new Set<Source>();
   bool constantInitializersAreInvalid = false;
 
-  /**
-   * Determine the analysis options that should be used for this test.
-   */
-  AnalysisOptionsImpl createOptions() =>
-      new AnalysisOptionsImpl()..enableGenericMethods = true;
-
   void addLibrary(String uri) {
     otherLibrarySources.add(analysisContext2.sourceFactory.forUri(uri));
   }
@@ -458,7 +452,12 @@ class ResynthTest extends ResolverTestCase {
         ConstructorName rConstructor = r.constructorName;
         expect(oConstructor, isNotNull, reason: desc);
         expect(rConstructor, isNotNull, reason: desc);
-        compareConstructorElements(
+        // Note: just compare rConstructor.staticElement and
+        // oConstructor.staticElement as elements, because we just want to
+        // check that they're pointing to the correct elements; we don't want
+        // to check that their constructor initializers match, because that
+        // could lead to infinite regress.
+        compareElements(
             rConstructor.staticElement, oConstructor.staticElement, desc);
         TypeName oType = oConstructor.type;
         TypeName rType = rConstructor.type;
@@ -517,10 +516,10 @@ class ResynthTest extends ResolverTestCase {
       return;
     }
     compareExecutableElements(resynthesized, original, desc);
+    ConstructorElementImpl resynthesizedImpl =
+        getActualElement(resynthesized, desc);
+    ConstructorElementImpl originalImpl = getActualElement(original, desc);
     if (original.isConst) {
-      ConstructorElementImpl resynthesizedImpl =
-          getActualElement(resynthesized, desc);
-      ConstructorElementImpl originalImpl = getActualElement(original, desc);
       compareConstAstLists(resynthesizedImpl.constantInitializers,
           originalImpl.constantInitializers, desc);
     }
@@ -533,6 +532,8 @@ class ResynthTest extends ResolverTestCase {
     checkPossibleMember(resynthesized, original, desc);
     expect(resynthesized.nameEnd, original.nameEnd, reason: desc);
     expect(resynthesized.periodOffset, original.periodOffset, reason: desc);
+    expect(resynthesizedImpl.isCycleFree, originalImpl.isCycleFree,
+        reason: desc);
   }
 
   void compareConstValues(
@@ -1029,6 +1030,12 @@ class ResynthTest extends ResolverTestCase {
     checkPossibleMember(resynthesized, original, desc);
     checkPossibleLocalElements(resynthesized, original);
   }
+
+  /**
+   * Determine the analysis options that should be used for this test.
+   */
+  AnalysisOptionsImpl createOptions() =>
+      new AnalysisOptionsImpl()..enableGenericMethods = true;
 
   /**
    * Serialize the given [library] into a summary.  Then create a
@@ -2509,6 +2516,32 @@ class C {
 class C<T> {
   C();
   C.named() : this();
+}
+''');
+  }
+
+  test_constructor_withCycles_const() {
+    checkLibrary('''
+class C {
+  final x;
+  const C() : x = const D();
+}
+class D {
+  final x;
+  const D() : x = const C();
+}
+''');
+  }
+
+  test_constructor_withCycles_nonConst() {
+    checkLibrary('''
+class C {
+  final x;
+  C() : x = new D();
+}
+class D {
+  final x;
+  D() : x = new C();
 }
 ''');
   }

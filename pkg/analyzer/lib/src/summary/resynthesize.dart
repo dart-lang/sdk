@@ -845,6 +845,12 @@ class _LibraryResynthesizer {
   Map<int, EntityRef> linkedTypeMap;
 
   /**
+   * Set of slot ids corresponding to const constructors that are part of
+   * cycles.
+   */
+  Set<int> constCycles;
+
+  /**
    * The [CompilationUnitElementImpl] for the compilation unit currently being
    * resynthesized.
    */
@@ -1076,6 +1082,8 @@ class _LibraryResynthesizer {
     assert(serializedExecutable.kind == UnlinkedExecutableKind.constructor);
     currentConstructor = new ConstructorElementImpl(
         serializedExecutable.name, serializedExecutable.nameOffset);
+    currentConstructor.isCycleFree = serializedExecutable.isConst &&
+        !constCycles.contains(serializedExecutable.constCycleSlot);
     if (serializedExecutable.name.isEmpty) {
       currentConstructor.nameEnd =
           serializedExecutable.nameOffset + classType.name.length;
@@ -1961,6 +1969,7 @@ class _LibraryResynthesizer {
     linkedUnit = null;
     unlinkedUnit = null;
     linkedTypeMap = null;
+    constCycles = null;
     referenceInfos = null;
     currentCompilationUnit = null;
   }
@@ -2211,6 +2220,7 @@ class _LibraryResynthesizer {
     for (EntityRef t in linkedUnit.types) {
       linkedTypeMap[t.slot] = t;
     }
+    constCycles = linkedUnit.constCycles.toSet();
     populateReferenceInfos();
     unitHolder = new ElementHolder();
   }

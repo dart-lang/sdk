@@ -445,6 +445,13 @@ abstract class LinkedUnit extends base.SummaryClass {
    */
   @Id(1)
   List<EntityRef> get types;
+
+  /**
+   * List of slot ids (referring to [UnlinkedExecutable.constCycleSlot])
+   * corresponding to const constructors that are part of cycles.
+   */
+  @Id(2)
+  List<int> get constCycles;
 }
 
 /**
@@ -1521,6 +1528,17 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
    */
   @Id(21)
   int get visibleOffset;
+
+  /**
+   * If [kind] is [UnlinkedExecutableKind.constructor] and [isConst] is `true`,
+   * a nonzero slot id which is unique within this compilation unit.  If this id
+   * is found in [LinkedUnit.constCycles], then this constructor is part of a
+   * cycle.
+   *
+   * Otherwise, zero.
+   */
+  @Id(25)
+  int get constCycleSlot;
 }
 
 /**

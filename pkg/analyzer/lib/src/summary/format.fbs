@@ -791,6 +791,12 @@ table LinkedUnit {
    * compilation unit with propagated and inferred types.
    */
   types:[EntityRef] (id: 1);
+
+  /**
+   * List of slot ids (referring to [UnlinkedExecutable.constCycleSlot])
+   * corresponding to const constructors that are part of cycles.
+   */
+  constCycles:[uint] (id: 2);
 }
 
 /**
@@ -1380,6 +1386,16 @@ table UnlinkedExecutable {
    * If a local function, the beginning of the visible range; zero otherwise.
    */
   visibleOffset:uint (id: 21);
+
+  /**
+   * If [kind] is [UnlinkedExecutableKind.constructor] and [isConst] is `true`,
+   * a nonzero slot id which is unique within this compilation unit.  If this id
+   * is found in [LinkedUnit.constCycles], then this constructor is part of a
+   * cycle.
+   *
+   * Otherwise, zero.
+   */
+  constCycleSlot:uint (id: 25);
 }
 
 /**

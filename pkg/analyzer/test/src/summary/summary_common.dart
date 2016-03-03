@@ -3800,6 +3800,49 @@ class C {
     expect(executable.returnType, isNull);
   }
 
+  test_constructor_withCycles_const() {
+    serializeLibraryText('''
+class C {
+  final x;
+  const C() : x = const D();
+}
+class D {
+  final x;
+  const D() : x = const C();
+}
+class E {
+  final x;
+  const E() : x = null;
+}
+''');
+    int classCConstCycleSlot = findClass('C').executables[0].constCycleSlot;
+    expect(classCConstCycleSlot, isNot(0));
+    int classDConstCycleSlot = findClass('D').executables[0].constCycleSlot;
+    expect(classDConstCycleSlot, isNot(0));
+    int classEConstCycleSlot = findClass('E').executables[0].constCycleSlot;
+    expect(classEConstCycleSlot, isNot(0));
+    if (!skipFullyLinkedData) {
+      expect(definingUnit.constCycles, contains(classCConstCycleSlot));
+      expect(definingUnit.constCycles, contains(classDConstCycleSlot));
+      expect(definingUnit.constCycles, isNot(contains(classEConstCycleSlot)));
+    }
+  }
+
+  test_constructor_withCycles_nonConst() {
+    serializeLibraryText('''
+class C {
+  final x;
+  C() : x = new D();
+}
+class D {
+  final x;
+  D() : x = new C();
+}
+''');
+    expect(findClass('C').executables[0].constCycleSlot, 0);
+    expect(findClass('D').executables[0].constCycleSlot, 0);
+  }
+
   test_dependencies_export_to_export_unused() {
     addNamedSource('/a.dart', 'export "b.dart";');
     addNamedSource('/b.dart', '');

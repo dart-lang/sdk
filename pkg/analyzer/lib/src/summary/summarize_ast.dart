@@ -296,9 +296,10 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   Block enclosingBlock = null;
 
   /**
-   * Create a slot id for storing a propagated or inferred type.
+   * Create a slot id for storing a propagated or inferred type or const cycle
+   * info.
    */
-  int assignTypeSlot() => ++numSlots;
+  int assignSlot() => ++numSlots;
 
   /**
    * Build a [_Scope] object containing the names defined within the body of a
@@ -529,7 +530,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         for (int i = 0; i < formalParameters.parameters.length; i++) {
           if (!b.parameters[i].isFunctionTyped &&
               b.parameters[i].type == null) {
-            b.parameters[i].inferredTypeSlot = assignTypeSlot();
+            b.parameters[i].inferredTypeSlot = assignSlot();
           }
         }
       }
@@ -537,7 +538,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.documentationComment = serializeDocumentation(documentationComment);
     b.annotations = serializeAnnotations(annotations);
     if (returnType == null && !isSemanticallyStatic) {
-      b.inferredReturnTypeSlot = assignTypeSlot();
+      b.inferredReturnTypeSlot = assignSlot();
     }
     b.visibleOffset = enclosingBlock?.offset;
     b.visibleLength = enclosingBlock?.length;
@@ -601,7 +602,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     UnlinkedExecutableBuilder initializer =
         new UnlinkedExecutableBuilder(nameOffset: expression.offset);
     serializeFunctionBody(initializer, expression);
-    initializer.inferredReturnTypeSlot = assignTypeSlot();
+    initializer.inferredReturnTypeSlot = assignSlot();
     return initializer;
   }
 
@@ -780,12 +781,12 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       }
       if (variable.initializer != null &&
           (variables.isFinal || variables.isConst)) {
-        b.propagatedTypeSlot = assignTypeSlot();
+        b.propagatedTypeSlot = assignSlot();
       }
       bool isSemanticallyStatic = !isField || isDeclaredStatic;
       if (variables.type == null &&
           (variable.initializer != null || !isSemanticallyStatic)) {
-        b.inferredTypeSlot = assignTypeSlot();
+        b.inferredTypeSlot = assignSlot();
       }
       b.visibleOffset = enclosingBlock?.offset;
       b.visibleLength = enclosingBlock?.length;
@@ -867,7 +868,10 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         }
       }
     }
-    b.isConst = node.constKeyword != null;
+    if (node.constKeyword != null) {
+      b.isConst = true;
+      b.constCycleSlot = assignSlot();
+    }
     b.isExternal = node.externalKeyword != null;
     b.documentationComment = serializeDocumentation(node.documentationComment);
     b.annotations = serializeAnnotations(node.metadata);

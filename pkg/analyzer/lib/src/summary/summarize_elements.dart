@@ -246,6 +246,11 @@ class _CompilationUnitSerializer {
   final List<_SerializeTypeRef> deferredLinkedTypes = <_SerializeTypeRef>[];
 
   /**
+   * List which should be stored in [LinkedUnit.constCycles].
+   */
+  final List<int> constCycles = <int>[];
+
+  /**
    * Index into the "references table" representing an unresolved reference, if
    * such an index exists.  `null` if no such entry has been made in the
    * references table yet.
@@ -394,13 +399,15 @@ class _CompilationUnitSerializer {
 
   /**
    * Create the [LinkedUnit.types] table based on deferred types that were
-   * found during [addCompilationUnitElements].
+   * found during [addCompilationUnitElements].  Also populate
+   * [LinkedUnit.constCycles].
    */
-  void createLinkedTypes() {
+  void createLinkedInfo() {
     buildingLinkedReferences = true;
     linkedUnit.types = deferredLinkedTypes
         .map((_SerializeTypeRef closure) => closure())
         .toList();
+    linkedUnit.constCycles = constCycles;
     buildingLinkedReferences = false;
   }
 
@@ -706,17 +713,19 @@ class _CompilationUnitSerializer {
           b.redirectedConstructorName = redirectedConstructor.name;
         }
       }
-      if (executableElement.isConst &&
-          executableElement.constantInitializers != null) {
-        Set<String> constructorParameterNames =
-            executableElement.parameters.map((p) => p.name).toSet();
-        b.constantInitializers = executableElement.constantInitializers
-            .map((ConstructorInitializer initializer) =>
-                serializeConstructorInitializer(
-                    initializer,
-                    (expr) =>
-                        serializeConstExpr(expr, constructorParameterNames)))
-            .toList();
+      if (executableElement.isConst) {
+        b.constCycleSlot = storeConstCycle(!executableElement.isCycleFree);
+        if (executableElement.constantInitializers != null) {
+          Set<String> constructorParameterNames =
+              executableElement.parameters.map((p) => p.name).toSet();
+          b.constantInitializers = executableElement.constantInitializers
+              .map((ConstructorInitializer initializer) =>
+                  serializeConstructorInitializer(
+                      initializer,
+                      (expr) =>
+                          serializeConstExpr(expr, constructorParameterNames)))
+              .toList();
+        }
       }
     } else {
       b.kind = UnlinkedExecutableKind.functionOrMethod;
@@ -1101,6 +1110,18 @@ class _CompilationUnitSerializer {
    */
   int storeInferredType(DartType type, Element context) {
     return storeLinkedType(type.isDynamic ? null : type, context);
+  }
+
+  /**
+   * Create a new slot id and return it.  If [hasCycle] is `true`, arrange for
+   * the slot id to be included in [LinkedUnit.constCycles].
+   */
+  int storeConstCycle(bool hasCycle) {
+    int slot = ++numSlots;
+    if (hasCycle) {
+      constCycles.add(slot);
+    }
+    return slot;
   }
 
   /**
@@ -1522,7 +1543,7 @@ class _LibrarySerializer {
     pb.numPrelinkedDependencies = dependencies.length;
     for (_CompilationUnitSerializer compilationUnitSerializer
         in compilationUnitSerializers) {
-      compilationUnitSerializer.createLinkedTypes();
+      compilationUnitSerializer.createLinkedInfo();
     }
     pb.importDependencies = linkedImports;
     List<String> exportedNames =
