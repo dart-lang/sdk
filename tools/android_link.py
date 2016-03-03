@@ -48,9 +48,9 @@ def main():
   link_args = sys.argv[4:]
 
   # Check arguments.
-  if target_arch not in ['arm', 'arm64', 'ia32']:
+  if target_arch not in ['arm', 'arm64', 'ia32', 'x64']:
     raise Exception(sys.argv[0] +
-        " first argument must be 'arm', 'arm64', or 'ia32'")
+        " first argument must be 'arm', 'arm64', 'ia32', or 'x64'")
   if link_type not in ['executable', 'library', 'shared_library']:
     raise Exception(sys.argv[0] +
                     " second argument must be 'executable' or 'library'")
@@ -81,6 +81,8 @@ def main():
     toolchain_arch = 'aarch64-linux-android-4.9'
   if target_arch == 'ia32':
     toolchain_arch = 'x86-4.9'
+  if target_arch == 'x64':
+    toolchain_arch = 'x86_64-4.9'
   toolchain_dir = 'linux-x86_64'
   android_toolchain = os.path.join(android_ndk_root,
       'toolchains', toolchain_arch,
@@ -94,6 +96,8 @@ def main():
         android_toolchain, 'aarch64-linux-android-c++')
   if target_arch == 'ia32':
     android_linker = os.path.join(android_toolchain, 'i686-linux-android-g++')
+  if target_arch == 'x64':
+    android_linker = os.path.join(android_toolchain, 'x86_64-linux-android-g++')
 
   # Grab the path to libgcc.a, which we must explicitly add to the link,
   # by invoking the cross-compiler with the -print-libgcc-file-name flag.
@@ -102,6 +106,8 @@ def main():
     android_gcc = os.path.join(android_toolchain, 'aarch64-linux-android-gcc')
   if target_arch == 'ia32':
     android_gcc = os.path.join(android_toolchain, 'i686-linux-android-gcc')
+  if target_arch == 'x64':
+    android_gcc = os.path.join(android_toolchain, 'x86_64-linux-android-gcc')
   android_libgcc = subprocess.check_output(
       [android_gcc, '-print-libgcc-file-name']).strip()
 
@@ -109,14 +115,19 @@ def main():
   # Android specific system includes and libraries.
   android_ndk_sysroot = os.path.join(android_ndk_root,
       'platforms', 'android-14', 'arch-arm')
+  libdir = 'lib'
   if target_arch == 'arm64':
     android_ndk_sysroot = os.path.join(android_ndk_root,
       'platforms', 'android-21', 'arch-arm64')
   if target_arch == 'ia32':
     android_ndk_sysroot = os.path.join(android_ndk_root,
         'platforms', 'android-14', 'arch-x86')
+  if target_arch == 'x64':
+    android_ndk_sysroot = os.path.join(android_ndk_root,
+        'platforms', 'android-21', 'arch-x86_64')
+    libdir = 'lib64'
   CheckDirExists(android_ndk_sysroot, 'Android sysroot')
-  android_ndk_lib = os.path.join(android_ndk_sysroot,'usr','lib')
+  android_ndk_lib = os.path.join(android_ndk_sysroot, 'usr', libdir)
   crtend_android = os.path.join(android_ndk_lib, 'crtend_android.o')
 
   if link_target == 'target':
