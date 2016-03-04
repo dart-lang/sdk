@@ -635,9 +635,12 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         _resolver.inferenceContext.recordInference(node, contextType);
       } else if (node.elements.isNotEmpty) {
         // Infer the list type from the arguments.
+        // TODO(jmesserly): record inference here?
         staticType =
             node.elements.map((e) => e.staticType).reduce(_leastUpperBound);
-        // TODO(jmesserly): record inference here?
+        if (staticType.isBottom) {
+          staticType = _dynamicType;
+        }
       }
     }
     _recordStaticType(
@@ -686,12 +689,18 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
         _resolver.inferenceContext.recordInference(node, contextType);
       } else if (node.entries.isNotEmpty) {
         // Infer the list type from the arguments.
+        // TODO(jmesserly): record inference here?
         staticKeyType =
             node.entries.map((e) => e.key.staticType).reduce(_leastUpperBound);
         staticValueType = node.entries
             .map((e) => e.value.staticType)
             .reduce(_leastUpperBound);
-        // TODO(jmesserly): record inference here?
+        if (staticKeyType.isBottom) {
+          staticKeyType = _dynamicType;
+        }
+        if (staticValueType.isBottom) {
+          staticValueType = _dynamicType;
+        }
       }
     }
     _recordStaticType(

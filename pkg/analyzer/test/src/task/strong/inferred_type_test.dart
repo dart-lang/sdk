@@ -1939,6 +1939,17 @@ test2() {
     ''');
   });
 
+  test('list literals should not infer bottom', () {
+    var unit = checkFile(r'''
+test1() {
+  var x = [null];
+  x.add(42);
+}
+    ''');
+    var x = unit.element.functions[0].localVariables[0];
+    expect(x.type.toString(), 'List<dynamic>');
+  });
+
   test('map literals', () {
     checkFile(r'''
 test1() {
@@ -1963,6 +1974,17 @@ test2() {
     ''');
   });
 
+  test('map literals should not infer bottom', () {
+    var unit = checkFile(r'''
+test1() {
+  var x = { null: null };
+  x[3] = 'z';
+}
+
+    ''');
+    var x = unit.element.functions[0].localVariables[0];
+    expect(x.type.toString(), 'Map<dynamic, dynamic>');
+  });
 
   group('block bodied lambdas', () {
     // Original feature request: https://github.com/dart-lang/sdk/issues/25487
