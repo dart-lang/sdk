@@ -2712,41 +2712,6 @@ void AotOptimizer::VisitStaticCall(StaticCallInstr* call) {
 }
 
 
-void AotOptimizer::VisitAllocateContext(AllocateContextInstr* instr) {
-  // Replace generic allocation with a sequence of inlined allocation and
-  // explicit initalizing stores.
-  AllocateUninitializedContextInstr* replacement =
-      new AllocateUninitializedContextInstr(instr->token_pos(),
-                                            instr->num_context_variables());
-  instr->ReplaceWith(replacement, current_iterator());
-
-  StoreInstanceFieldInstr* store =
-      new(Z) StoreInstanceFieldInstr(Context::parent_offset(),
-                                     new Value(replacement),
-                                     new Value(flow_graph_->constant_null()),
-                                     kNoStoreBarrier,
-                                     instr->token_pos());
-  // Storing into uninitialized memory; remember to prevent dead store
-  // elimination and ensure proper GC barrier.
-  store->set_is_object_reference_initialization(true);
-  flow_graph_->InsertAfter(replacement, store, NULL, FlowGraph::kEffect);
-  Definition* cursor = store;
-  for (intptr_t i = 0; i < instr->num_context_variables(); ++i) {
-    store =
-        new(Z) StoreInstanceFieldInstr(Context::variable_offset(i),
-                                       new Value(replacement),
-                                       new Value(flow_graph_->constant_null()),
-                                       kNoStoreBarrier,
-                                       instr->token_pos());
-    // Storing into uninitialized memory; remember to prevent dead store
-    // elimination and ensure proper GC barrier.
-    store->set_is_object_reference_initialization(true);
-    flow_graph_->InsertAfter(cursor, store, NULL, FlowGraph::kEffect);
-    cursor = store;
-  }
-}
-
-
 void AotOptimizer::VisitLoadCodeUnits(LoadCodeUnitsInstr* instr) {
   // TODO(zerny): Use kUnboxedUint32 once it is fully supported/optimized.
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_ARM)

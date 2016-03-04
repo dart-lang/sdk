@@ -48,7 +48,6 @@ class AotOptimizer : public FlowGraphVisitor {
 
   virtual void VisitStaticCall(StaticCallInstr* instr);
   virtual void VisitInstanceCall(InstanceCallInstr* instr);
-  virtual void VisitAllocateContext(AllocateContextInstr* instr);
   virtual void VisitLoadCodeUnits(LoadCodeUnitsInstr* instr);
 
   void InsertBefore(Instruction* next,
