@@ -13,14 +13,8 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, trace_ast_visitor, false,
-            "Trace AstVisitor.");
-
 #define DEFINE_VISIT_FUNCTION(BaseName)                                        \
 void BaseName##Node::Visit(AstNodeVisitor* visitor) {                          \
-  if (FLAG_trace_ast_visitor) {                                                \
-    THR_Print("Visiting %s\n", Name());                                        \
-  }                                                                            \
   visitor->Visit##BaseName##Node(this);                                        \
 }
 

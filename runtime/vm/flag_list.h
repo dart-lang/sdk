@@ -97,6 +97,10 @@ P(pretenure_interval, int, 10,                                                 \
   "Back off pretenuring after this many cycles.")                              \
 P(pretenure_threshold, int, 98,                                                \
   "Trigger pretenuring when this many percent are promoted.")                  \
+R(print_ssa_liveness, false, bool, false,                                      \
+  "Print liveness for ssa variables.")                                         \
+R(print_ssa_liveranges, false, bool, false,                                    \
+  "Print live ranges after allocation.")                                       \
 C(print_stop_message, false, false, bool, false,                               \
   "Print stop message.")                                                       \
 R(profiler, false, bool, true,                                                 \
@@ -127,6 +131,8 @@ D(trace_handles, bool, false,                                                  \
   "Traces allocation of handles.")                                             \
 D(trace_optimization, bool, false,                                             \
   "Print optimization details.");                                              \
+D(trace_ssa_allocator, bool, false,                                            \
+  "Trace register allocation over SSA.")                                       \
 D(trace_zones, bool, false,                                                    \
   "Traces allocation sizes in the zone.")                                      \
 P(truncating_left_shift, bool, true,                                           \
@@ -145,5 +151,7 @@ R(verify_after_gc, false, bool, false,                                         \
   "Enables heap verification after GC.")                                       \
 R(verify_before_gc, false, bool, false,                                        \
   "Enables heap verification before GC.")                                      \
+D(verify_on_transition, bool, false,                                           \
+  "Verify on dart <==> VM.")                                                   \
 
 #endif  // VM_FLAG_LIST_H_
