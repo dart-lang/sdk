@@ -262,15 +262,12 @@ class Object {
         &raw()->ptr()->tags_, old_tags, new_tags);
   }
   bool IsCanonical() const {
-    ASSERT(!IsNull());
     return raw()->IsCanonical();
   }
   void SetCanonical() const {
-    ASSERT(!IsNull());
     raw()->SetCanonical();
   }
   void ClearCanonical() const {
-    ASSERT(!IsNull());
     raw()->ClearCanonical();
   }
   intptr_t GetClassId() const {

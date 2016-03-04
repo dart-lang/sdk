@@ -194,6 +194,7 @@ void Disassembler::DisassembleCode(const Function& function, bool optimized) {
   code.Disassemble();
   THR_Print("}\n");
 
+#if defined(TARGET_ARCH_IA32)
   THR_Print("Pointer offsets for function: {\n");
   // Pointer offsets are stored in descending order.
   Object& obj = Object::Handle();
@@ -204,6 +205,14 @@ void Disassembler::DisassembleCode(const Function& function, bool optimized) {
               code.GetPointerOffsetAt(i), addr, obj.ToCString());
   }
   THR_Print("}\n");
+
+  ASSERT(ObjectPool::Handle(code.GetObjectPool()).Length() == 0);
+#else
+  ASSERT(code.pointer_offsets_length() == 0);
+
+  const ObjectPool& object_pool = ObjectPool::Handle(code.GetObjectPool());
+  object_pool.DebugPrint();
+#endif
 
   THR_Print("PC Descriptors for function '%s' {\n", function_fullname);
   PcDescriptors::PrintHeaderString();
@@ -233,9 +242,6 @@ void Disassembler::DisassembleCode(const Function& function, bool optimized) {
     }
     THR_Print("}\n");
   }
-
-  const ObjectPool& object_pool = ObjectPool::Handle(code.GetObjectPool());
-  object_pool.DebugPrint();
 
   THR_Print("Stackmaps for function '%s' {\n", function_fullname);
   if (code.stackmaps() != Array::null()) {

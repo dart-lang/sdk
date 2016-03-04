@@ -145,15 +145,7 @@ Language/Metadata/*: SkipByDesign # Uses dart:mirrors
 [ $runtime == dart_precompiled || $runtime == dart_product ]
 LibTest/isolate/Isolate/spawnUri*: Skip # Isolate.spawnUri
 
-[ $runtime == dart_precompiled ]
-Language/Expressions/Constants/identifier_denotes_a_constant_t05: Crash # Issue 25892
-Language/Expressions/Constants/static_method_t01: Crash # Issue 25892
-
 [ $noopt || $compiler == precompiler ]
-LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Timeout
-LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Timeout
-LibTest/core/Map/Map_class_A01_t04: Pass, Timeout
-LibTest/core/Uri/encodeQueryComponent_A01_t02: Pass, Timeout
 LibTest/collection/ListBase/ListBase_class_A01_t02: Pass, Timeout
 LibTest/collection/ListMixin/ListMixin_class_A01_t02: Pass, Timeout
 LibTest/core/Map/Map_class_A01_t04: Pass, Timeout
