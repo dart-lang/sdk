@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_single_unit.dart';
@@ -63,8 +62,6 @@ class ExpectedMatch {
     return buffer.toString();
   }
 }
-
-class MockIndex extends TypedMock implements Index {}
 
 @reflectiveTest
 class SearchEngineImplTest extends AbstractSingleUnitTest {
