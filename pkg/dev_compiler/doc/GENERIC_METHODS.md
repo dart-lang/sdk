@@ -1,5 +1,7 @@
 # Prototype Syntax for Generic Methods
 
+Generic methods are a [proposed addition to the Dart language](https://github.com/leafpetersen/dep-generic-methods/blob/master/proposal.md).
+
 This is a summary of the current (as of January 2016) comment-based generic
 method syntax supported by the analyzer strong mode and the Dart Dev Compiler.
 The comment-based syntax essentially uses the proposed actual generic method
