@@ -44,10 +44,10 @@ void testUsePrivateKeyArguments() {
         tlsException);
     Expect.throws(() => c.setClientAuthorities(
         localFile('certificates/server_key.p12')),
-        argumentError);
+        tlsException);
     Expect.throws(() => c.setClientAuthorities(
         localFile('certificates/server_key.p12'), password: "iHackSites"),
-        argumentError);
+        tlsException);
 
     // File does not exist
     Expect.throws(() => c.usePrivateKey(
@@ -97,7 +97,7 @@ void testUsePrivateKeyArguments() {
         tlsException);
     Expect.throws(() => c.setTrustedCertificatesBytes([]), tlsException);
     Expect.throws(() => c.useCertificateChainBytes([]), tlsException);
-    Expect.throws(() => c.setClientAuthoritiesBytes([]), argumentError);
+    Expect.throws(() => c.setClientAuthoritiesBytes([]), tlsException);
 
     // Malformed PEM certs.
     Expect.throws(() => c.usePrivateKey(
@@ -115,7 +115,7 @@ void testUsePrivateKeyArguments() {
         tlsException);
     Expect.throws(() => c.setClientAuthorities(
         localFile('certificates/client_authority_malformed.pem')),
-        argumentError);
+        tlsException);
 
     c.usePrivateKey(
         localFile('certificates/server_key.pem'), password: "dartdart");
