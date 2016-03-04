@@ -45,7 +45,9 @@ class PackageAnalyzer {
    * Perform package analysis according to the given [options].
    */
   ErrorSeverity analyze() {
-    packagePath = options.packageModePath;
+    packagePath = resourceProvider.pathContext.normalize(resourceProvider
+        .pathContext
+        .join(io.Directory.current.absolute.path, options.packageModePath));
     packageLibPath = resourceProvider.pathContext.join(packagePath, 'lib');
     if (packageLibPath == null) {
       errorSink.writeln('--package-mode-path must be set to the root '
@@ -66,7 +68,6 @@ class PackageAnalyzer {
     ChangeSet changeSet = new ChangeSet();
     for (String path in options.sourceFiles) {
       if (AnalysisEngine.isDartFileName(path)) {
-        path = resourceProvider.pathContext.absolute(path);
         File file = resourceProvider.getFile(path);
         if (!file.exists) {
           errorSink.writeln('File not found: $path');
