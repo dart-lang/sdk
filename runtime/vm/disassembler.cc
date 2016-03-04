@@ -205,14 +205,12 @@ void Disassembler::DisassembleCode(const Function& function, bool optimized) {
               code.GetPointerOffsetAt(i), addr, obj.ToCString());
   }
   THR_Print("}\n");
-
-  ASSERT(ObjectPool::Handle(code.GetObjectPool()).Length() == 0);
 #else
   ASSERT(code.pointer_offsets_length() == 0);
+#endif
 
   const ObjectPool& object_pool = ObjectPool::Handle(code.GetObjectPool());
   object_pool.DebugPrint();
-#endif
 
   THR_Print("PC Descriptors for function '%s' {\n", function_fullname);
   PcDescriptors::PrintHeaderString();
