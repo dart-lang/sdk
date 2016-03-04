@@ -406,7 +406,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       recordRelationOffset(
           element, IndexRelationKind.IS_REFERENCED_BY, offset, 0, true);
     }
-    super.visitConstructorName(node);
+    node.type.accept(this);
   }
 
   @override

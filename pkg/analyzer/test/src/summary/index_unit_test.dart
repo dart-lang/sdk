@@ -540,6 +540,22 @@ main() {
     // No additional validation, but it should not fail with stack overflow.
   }
 
+  void test_isReferencedBy_ConstructorElement_namedOnlyWithDot() {
+    _indexTestUnit('''
+class A {
+  A.named() {}
+}
+main() {
+  new A.named();
+}
+''');
+    // has ".named()", but does not have "named()"
+    int offsetWithoutDot = findOffset('named();');
+    int offsetWithDot = findOffset('.named();');
+    expect(unitIndex.usedElementOffsets, isNot(contains(offsetWithoutDot)));
+    expect(unitIndex.usedElementOffsets, contains(offsetWithDot));
+  }
+
   void test_isReferencedBy_ConstructorElement_redirection() {
     _indexTestUnit('''
 class A {
