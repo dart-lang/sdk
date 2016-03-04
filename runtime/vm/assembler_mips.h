@@ -585,6 +585,12 @@ class Assembler : public ValueObject {
     EmitRType(SPECIAL2, rs, rd, rd, 0, CLZ);
   }
 
+  // Convert a double in ds to a 32-bit signed int in fd rounding towards 0.
+  void truncwd(FRegister fd, DRegister ds) {
+    FRegister fs = static_cast<FRegister>(ds * 2);
+    EmitFpuRType(COP1, FMT_D, F0, fs, fd, COP1_TRUNC_W);
+  }
+
   // Convert a 32-bit float in fs to a 64-bit double in dd.
   void cvtds(DRegister dd, FRegister fs) {
     FRegister fd = static_cast<FRegister>(dd * 2);
@@ -597,21 +603,10 @@ class Assembler : public ValueObject {
     EmitFpuRType(COP1, FMT_W, F0, fs, fd, COP1_CVT_D);
   }
 
-  // Converts a 64-bit signed int in fs to a double in fd.
-  void cvtdl(DRegister dd, DRegister ds) {
-    FRegister fs = static_cast<FRegister>(ds * 2);
-    FRegister fd = static_cast<FRegister>(dd * 2);
-    EmitFpuRType(COP1, FMT_L, F0, fs, fd, COP1_CVT_D);
-  }
-
+  // Convert a 64-bit double in ds to a 32-bit float in fd.
   void cvtsd(FRegister fd, DRegister ds) {
     FRegister fs = static_cast<FRegister>(ds * 2);
     EmitFpuRType(COP1, FMT_D, F0, fs, fd, COP1_CVT_S);
-  }
-
-  void cvtwd(FRegister fd, DRegister ds) {
-    FRegister fs = static_cast<FRegister>(ds * 2);
-    EmitFpuRType(COP1, FMT_D, F0, fs, fd, COP1_CVT_W);
   }
 
   void div(Register rs, Register rt) {

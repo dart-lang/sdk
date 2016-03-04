@@ -59,9 +59,6 @@ LibTest/core/List/List_class_A01_t02: Pass, Slow
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && ($arch != x64 && $arch != simarm64 && $arch != arm64) ]
 LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && $arch == mips ]
-LibTest/core/double/toInt_A01_t01: Fail # Issue 25900
-
 [ ($compiler == none || $compiler == precompiler) && ($runtime == vm || $runtime == dart_precompiled) && ($arch == mips || $arch == arm64) ]
 # These tests take too much memory (300 MB) for our 1 GB test machine.
 # co19 issue 673. http://code.google.com/p/co19/issues/detail?id=673

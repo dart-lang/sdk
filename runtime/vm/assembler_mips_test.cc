@@ -1976,6 +1976,101 @@ ASSEMBLER_TEST_RUN(Cop1COLE_not_taken, test) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(Cop1TruncWD, assembler) {
+  __ LoadImmediate(D1, 42.9);
+  __ truncwd(F0, D1);
+  __ mfc1(V0, F0);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Cop1TruncWD, test) {
+  typedef int (*SimpleCode)() DART_UNUSED;
+  EXPECT(test != NULL);
+  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Cop1TruncWD_neg, assembler) {
+  __ LoadImmediate(D1, -42.9);
+  __ truncwd(F0, D1);
+  __ mfc1(V0, F0);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Cop1TruncWD_neg, test) {
+  typedef int (*SimpleCode)() DART_UNUSED;
+  EXPECT(test != NULL);
+  EXPECT_EQ(-42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Cop1TruncWD_NaN, assembler) {
+  // Double non-signaling NaN is 0x7FF8000000000000.
+  __ LoadImmediate(T0, 0x7FF80000);
+  __ mtc1(ZR, F2);  // Load upper bits of NaN.
+  __ mtc1(T0, F3);  // Load lower bits of NaN.
+  __ truncwd(F0, D1);
+  __ mfc1(V0, F0);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Cop1TruncWD_NaN, test) {
+  typedef double (*SimpleCode)() DART_UNUSED;
+  EXPECT(test != NULL);
+  EXPECT_EQ(kMaxInt32, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Cop1TruncWD_Inf, assembler) {
+  __ LoadImmediate(T0, 0x7FF00000);  // +inf
+  __ mtc1(ZR, F2);
+  __ mtc1(T0, F3);
+  __ truncwd(F0, D1);
+  __ mfc1(V0, F0);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Cop1TruncWD_Inf, test) {
+  typedef double (*SimpleCode)() DART_UNUSED;
+  EXPECT(test != NULL);
+  EXPECT_EQ(kMaxInt32, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Cop1TruncWD_Overflow, assembler) {
+  __ LoadImmediate(D1, 2.0*kMaxInt32);
+  __ truncwd(F0, D1);
+  __ mfc1(V0, F0);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Cop1TruncWD_Overflow, test) {
+  typedef double (*SimpleCode)() DART_UNUSED;
+  EXPECT(test != NULL);
+  EXPECT_EQ(kMaxInt32, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
+ASSEMBLER_TEST_GENERATE(Cop1TruncWD_Underflow, assembler) {
+  __ LoadImmediate(D1, 2.0*kMinInt32);
+  __ truncwd(F0, D1);
+  __ mfc1(V0, F0);
+  __ Ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Cop1TruncWD_Underflow, test) {
+  typedef double (*SimpleCode)() DART_UNUSED;
+  EXPECT(test != NULL);
+  EXPECT_EQ(kMaxInt32, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
+}
+
+
 ASSEMBLER_TEST_GENERATE(Cop1CvtDW, assembler) {
   __ LoadImmediate(T0, 42);
   __ mtc1(T0, F2);
@@ -2005,78 +2100,6 @@ ASSEMBLER_TEST_RUN(Cop1CvtDW_neg, test) {
   EXPECT(test != NULL);
   double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
   EXPECT_FLOAT_EQ(-42.0, res, 0.001);
-}
-
-
-ASSEMBLER_TEST_GENERATE(Cop1CvtDL, assembler) {
-  if (TargetCPUFeatures::mips_version() == MIPS32r2) {
-    __ LoadImmediate(T0, 0x1);
-    __ mtc1(ZR, F2);
-    __ mtc1(T0, F3);  // D0 <- 0x100000000 = 4294967296
-    __ cvtdl(D0, D1);
-  } else {
-    __ LoadImmediate(D0, 4294967296.0);
-  }
-  __ Ret();
-}
-
-
-ASSEMBLER_TEST_RUN(Cop1CvtDL, test) {
-  typedef double (*SimpleCode)() DART_UNUSED;
-  EXPECT(test != NULL);
-  double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
-  EXPECT_FLOAT_EQ(4294967296.0, res, 0.001);
-}
-
-
-ASSEMBLER_TEST_GENERATE(Cop1CvtDL_neg, assembler) {
-  if (TargetCPUFeatures::mips_version() == MIPS32r2) {
-    __ LoadImmediate(T0, 0xffffffff);
-    __ mtc1(T0, F2);
-    __ mtc1(T0, F3);  // D0 <- 0xffffffffffffffff = -1
-    __ cvtdl(D0, D1);
-  } else {
-    __ LoadImmediate(D0, -1.0);
-  }
-  __ Ret();
-}
-
-
-ASSEMBLER_TEST_RUN(Cop1CvtDL_neg, test) {
-  typedef double (*SimpleCode)() DART_UNUSED;
-  EXPECT(test != NULL);
-  double res = EXECUTE_TEST_CODE_DOUBLE(SimpleCode, test->entry());
-  EXPECT_FLOAT_EQ(-1.0, res, 0.001);
-}
-
-
-ASSEMBLER_TEST_GENERATE(Cop1CvtWD, assembler) {
-  __ LoadImmediate(D1, 42.0);
-  __ cvtwd(F0, D1);
-  __ mfc1(V0, F0);
-  __ Ret();
-}
-
-
-ASSEMBLER_TEST_RUN(Cop1CvtWD, test) {
-  typedef int (*SimpleCode)() DART_UNUSED;
-  EXPECT(test != NULL);
-  EXPECT_EQ(42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
-}
-
-
-ASSEMBLER_TEST_GENERATE(Cop1CvtWD_neg, assembler) {
-  __ LoadImmediate(D1, -42.0);
-  __ cvtwd(F0, D1);
-  __ mfc1(V0, F0);
-  __ Ret();
-}
-
-
-ASSEMBLER_TEST_RUN(Cop1CvtWD_neg, test) {
-  typedef int (*SimpleCode)() DART_UNUSED;
-  EXPECT(test != NULL);
-  EXPECT_EQ(-42, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
 
 

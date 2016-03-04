@@ -4206,7 +4206,7 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(result == V0);
   ASSERT(result != value_obj);
   __ LoadDFromOffset(DTMP, value_obj, Double::value_offset() - kHeapObjectTag);
-  __ cvtwd(STMP1, DTMP);
+  __ truncwd(STMP1, DTMP);
   __ mfc1(result, STMP1);
 
   // Overflow is signaled with minint.
@@ -4229,7 +4229,7 @@ void DoubleToIntegerInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                instance_call()->token_pos(),
                                target,
                                kNumberOfArguments,
-                               Object::null_array(),  // No argument names.,
+                               Object::null_array(),  // No argument names.
                                locs(),
                                ICData::Handle());
   __ Bind(&done);
@@ -4252,7 +4252,7 @@ void DoubleToSmiInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(deopt_id(), ICData::kDeoptDoubleToSmi);
   Register result = locs()->out(0).reg();
   DRegister value = locs()->in(0).fpu_reg();
-  __ cvtwd(STMP1, value);
+  __ truncwd(STMP1, value);
   __ mfc1(result, STMP1);
 
   // Check for overflow and that it fits into Smi.
