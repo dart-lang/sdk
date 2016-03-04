@@ -122,6 +122,7 @@ StreamInfo Service::echo_stream("_Echo");
 StreamInfo Service::graph_stream("_Graph");
 StreamInfo Service::logging_stream("_Logging");
 StreamInfo Service::extension_stream("Extension");
+StreamInfo Service::timeline_stream("Timeline");
 
 static StreamInfo* streams_[] = {
   &Service::vm_stream,
@@ -132,6 +133,7 @@ static StreamInfo* streams_[] = {
   &Service::graph_stream,
   &Service::logging_stream,
   &Service::extension_stream,
+  &Service::timeline_stream,
 };
 
 

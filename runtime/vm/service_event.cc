@@ -42,6 +42,7 @@ ServiceEvent::ServiceEvent(Isolate* isolate, EventKind event_kind)
       embedder_stream_id_(NULL),
       breakpoint_(NULL),
       top_frame_(NULL),
+      timeline_event_block_(NULL),
       extension_rpc_(NULL),
       exception_(NULL),
       at_async_jump_(false),
@@ -64,6 +65,7 @@ ServiceEvent::ServiceEvent(const DebuggerEvent* debugger_event)
       kind_(TranslateEventKind(debugger_event->type())),
       breakpoint_(NULL),
       top_frame_(NULL),
+      timeline_event_block_(NULL),
       extension_rpc_(NULL),
       exception_(NULL),
       at_async_jump_(false),
@@ -139,6 +141,8 @@ const char* ServiceEvent::KindAsCString() const {
       return "Illegal";
     case kExtension:
       return "Extension";
+    case kTimelineEvents:
+      return "TimelineEvents";
     default:
       UNREACHABLE();
       return "Unknown";
@@ -184,6 +188,9 @@ const char* ServiceEvent::stream_id() const {
     case kExtension:
       return Service::extension_stream.id();
 
+    case kTimelineEvents:
+      return Service::timeline_stream.id();
+
     default:
       UNREACHABLE();
       return NULL;
@@ -209,6 +216,9 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
     if (breakpoint() != NULL) {
       jsobj.AddProperty("breakpoint", breakpoint());
     }
+  }
+  if (kind() == kTimelineEvents) {
+    jsobj.AddProperty("timelineEvents", timeline_event_block_);
   }
   if (kind() == kDebuggerSettingsUpdate) {
     JSONObject jssettings(&jsobj, "_debuggerSettings");
@@ -264,7 +274,7 @@ void ServiceEvent::PrintJSONHeader(JSONObject* jsobj) const {
     jsobj->AddProperty("extensionKind",
                        extension_event_.event_kind->ToCString());
   }
-  if (kind() == kVMUpdate) {
+  if (isolate() == NULL) {
     jsobj->AddPropertyVM("vm");
   } else {
     jsobj->AddProperty("isolate", isolate());

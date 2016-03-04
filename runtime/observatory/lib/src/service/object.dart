@@ -849,6 +849,7 @@ abstract class VM extends ServiceObjectOwner {
   // Well-known stream ids.
   static const kVMStream = 'VM';
   static const kIsolateStream = 'Isolate';
+  static const kTimelineStream = 'Timeline';
   static const kDebugStream = 'Debug';
   static const kGCStream = 'GC';
   static const kStdoutStream = 'Stdout';
@@ -1857,6 +1858,7 @@ class ServiceEvent extends ServiceObject {
   @observable Map logRecord;
   @observable String extensionKind;
   @observable Map extensionData;
+  @observable List timelineEvents;
 
   int chunkIndex, chunkCount, nodeCount;
 
@@ -1934,6 +1936,9 @@ class ServiceEvent extends ServiceObject {
     if (map['extensionKind'] != null) {
       extensionKind = map['extensionKind'];
       extensionData = map['extensionData'];
+    }
+    if (map['timelineEvents'] != null) {
+      timelineEvents = map['timelineEvents'];
     }
   }
 

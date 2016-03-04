@@ -11,6 +11,22 @@ import 'package:unittest/unittest.dart';
 typedef Future IsolateTest(Isolate isolate);
 typedef Future VMTest(VM vm);
 
+Map<String, StreamSubscription> streamSubscriptions = {};
+
+Future subscribeToStream(VM vm, String streamName, onEvent) async {
+  assert(streamSubscriptions[streamName] == null);
+
+  Stream stream = await vm.getEventStream(streamName);
+  StreamSubscription subscription = stream.listen(onEvent);
+  streamSubscriptions[streamName] = subscription;
+}
+
+Future cancelStreamSubscription(String streamName) async {
+  StreamSubscription subscription = streamSubscriptions[streamName];
+  subscription.cancel();
+  streamSubscriptions.remove(streamName);
+}
+
 Future asyncStepOver(Isolate isolate) async {
   final Completer pausedAtSyntheticBreakpoint = new Completer();
   StreamSubscription subscription;

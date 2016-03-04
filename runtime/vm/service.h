@@ -144,6 +144,7 @@ class Service : public AllStatic {
   static StreamInfo graph_stream;
   static StreamInfo logging_stream;
   static StreamInfo extension_stream;
+  static StreamInfo timeline_stream;
 
   static bool ListenStream(const char* stream_id);
   static void CancelStream(const char* stream_id);
