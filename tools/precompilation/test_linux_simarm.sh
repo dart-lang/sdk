@@ -8,7 +8,7 @@ set -ex
 
 ./tools/build.py -mdebug -asimarm runtime
 
-./out/DebugSIMARM/dart_no_snapshot --gen-precompiled-snapshot --package-root=out/DebugX64/packages/ "$1"
+./out/DebugSIMARM/dart_bootstrap --gen-precompiled-snapshot --package-root=out/DebugX64/packages/ "$1"
 
 gcc -nostartfiles -m32 -shared -Wl,-soname,libprecompiled.so -o libprecompiled.so precompiled.S
 
