@@ -1076,6 +1076,11 @@ class E {}
     expect(cls.hasNoSupertype, isFalse);
   }
 
+  test_class_codeRange() {
+    UnlinkedClass cls = serializeClassText(' class C {}');
+    _assertCodeRange(cls.codeRange, 1, 10);
+  }
+
   test_class_concrete() {
     UnlinkedClass cls = serializeClassText('class C {}');
     expect(cls.isAbstract, false);
@@ -4010,6 +4015,7 @@ typedef F();
     expect(e.values, hasLength(1));
     expect(e.values[0].name, 'v1');
     expect(e.values[0].nameOffset, text.indexOf('v1'));
+    _assertCodeRange(e.codeRange, 0, 13);
     expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
     expect(unlinkedUnits[0].publicNamespace.names[0].kind,
         ReferenceKind.classOrEnum);
@@ -4410,6 +4416,7 @@ get g { // 1
     expect(executable.isExternal, isFalse);
     expect(executable.visibleOffset, 0);
     expect(executable.visibleLength, 0);
+    _assertCodeRange(executable.codeRange, 10, 6);
   }
 
   test_executable_member_function_explicit_return() {
@@ -4433,6 +4440,7 @@ get g { // 1
     expect(executable.kind, UnlinkedExecutableKind.getter);
     expect(executable.returnType, isNotNull);
     expect(executable.isExternal, isFalse);
+    _assertCodeRange(executable.codeRange, 10, 15);
     expect(findVariable('f', variables: cls.fields), isNull);
     expect(findExecutable('f=', executables: cls.executables), isNull);
   }
@@ -4451,6 +4459,7 @@ get g { // 1
     expect(executable.kind, UnlinkedExecutableKind.setter);
     expect(executable.returnType, isNotNull);
     expect(executable.isExternal, isFalse);
+    _assertCodeRange(executable.codeRange, 10, 20);
     expect(findVariable('f', variables: cls.fields), isNull);
     expect(findExecutable('f', executables: cls.executables), isNull);
   }
@@ -4570,6 +4579,12 @@ get g { // 1
         serializeClassText('class C { bool operator<=(C other) => false; }')
             .executables[0];
     expect(executable.name, '<=');
+  }
+
+  test_executable_param_codeRange() {
+    UnlinkedExecutable executable = serializeExecutableText('f(int x) {}');
+    UnlinkedParam parameter = executable.parameters[0];
+    _assertCodeRange(parameter.codeRange, 2, 5);
   }
 
   test_executable_param_function_typed() {
@@ -6794,6 +6809,13 @@ bool f() => true;
     checkDynamicTypeRef(serializeTypeText('dynamic'));
   }
 
+  test_type_param_codeRange() {
+    UnlinkedClass cls =
+        serializeClassText('class A {} class C<T extends A> {}');
+    UnlinkedTypeParam typeParameter = cls.typeParameters[0];
+    _assertCodeRange(typeParameter.codeRange, 19, 11);
+  }
+
   test_type_param_not_shadowed_by_constructor() {
     UnlinkedClass cls =
         serializeClassText('class C<D> { D x; C.D(); } class D {}');
@@ -7052,6 +7074,11 @@ b.C c4;''');
     checkUnresolvedTypeRef(typeRef, null, 'Foo');
   }
 
+  test_typedef_codeRange() {
+    UnlinkedTypedef type = serializeTypedefText('typedef F();');
+    _assertCodeRange(type.codeRange, 0, 12);
+  }
+
   test_typedef_documented() {
     String text = '''
 // Extra comment so doc comment offset != 0
@@ -7136,6 +7163,12 @@ typedef F();''';
     expect(type.typeParameters[1].name, 'U');
   }
 
+  test_unit_codeRange() {
+    serializeLibraryText('  int a = 1;  ');
+    UnlinkedUnit unit = unlinkedUnits[0];
+    _assertCodeRange(unit.codeRange, 0, 14);
+  }
+
   test_unresolved_reference_in_multiple_parts() {
     addNamedSource('/a.dart', 'part of foo; int x; Unresolved y;');
     serializeLibraryText('library foo; part "a.dart"; Unresolved z;',
@@ -7175,6 +7208,13 @@ typedef F();''';
         ReferenceKind.topLevelPropertyAccessor);
     expect(unlinkedUnits[0].publicNamespace.names[1].name, 'i=');
     expect(unlinkedUnits[0].publicNamespace.names[1].numTypeParameters, 0);
+  }
+
+  test_variable_codeRange() {
+    serializeLibraryText(' int a = 1, b = 22;');
+    List<UnlinkedVariable> variables = unlinkedUnits[0].variables;
+    _assertCodeRange(variables[0].codeRange, 1, 18);
+    _assertCodeRange(variables[1].codeRange, 1, 18);
   }
 
   test_variable_const() {
@@ -7424,6 +7464,12 @@ var v;''';
         }
       }
     }
+  }
+
+  void _assertCodeRange(CodeRange codeRange, int offset, int length) {
+    expect(codeRange, isNotNull);
+    expect(codeRange.offset, offset);
+    expect(codeRange.length, length);
   }
 
   void _assertExecutableVisible(String code, UnlinkedExecutable f,

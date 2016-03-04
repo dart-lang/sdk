@@ -369,6 +369,7 @@ class _CompilationUnitSerializer {
       unlinkedUnit.publicNamespace =
           new UnlinkedPublicNamespaceBuilder(names: names);
     }
+    unlinkedUnit.codeRange = serializeCodeRange(compilationUnit);
     unlinkedUnit.classes = compilationUnit.types.map(serializeClass).toList();
     unlinkedUnit.enums = compilationUnit.enums.map(serializeEnum).toList();
     unlinkedUnit.typedefs =
@@ -537,6 +538,7 @@ class _CompilationUnitSerializer {
     b.isMixinApplication = classElement.isMixinApplication;
     b.documentationComment = serializeDocumentation(classElement);
     b.annotations = serializeAnnotations(classElement);
+    b.codeRange = serializeCodeRange(classElement);
     return b;
   }
 
@@ -582,6 +584,13 @@ class _CompilationUnitSerializer {
         }
       }
       return bs;
+    }
+    return null;
+  }
+
+  CodeRangeBuilder serializeCodeRange(Element element) {
+    if (element is ElementImpl && element.codeOffset != null) {
+      return new CodeRangeBuilder(offset: element.codeOffset, length: element.codeLength);
     }
     return null;
   }
@@ -648,6 +657,7 @@ class _CompilationUnitSerializer {
     b.values = values;
     b.documentationComment = serializeDocumentation(enumElement);
     b.annotations = serializeAnnotations(enumElement);
+    b.codeRange = serializeCodeRange(enumElement);
     return b;
   }
 
@@ -736,6 +746,7 @@ class _CompilationUnitSerializer {
     b.isExternal = executableElement.isExternal;
     b.documentationComment = serializeDocumentation(executableElement);
     b.annotations = serializeAnnotations(executableElement);
+    b.codeRange = serializeCodeRange(executableElement);
     if (executableElement is FunctionElement) {
       SourceRange visibleRange = executableElement.visibleRange;
       if (visibleRange != null) {
@@ -832,6 +843,7 @@ class _CompilationUnitSerializer {
         break;
     }
     b.annotations = serializeAnnotations(parameter);
+    b.codeRange = serializeCodeRange(parameter);
     b.isInitializingFormal = parameter.isInitializingFormal;
     DartType type = parameter.type;
     if (parameter.hasImplicitType) {
@@ -921,6 +933,7 @@ class _CompilationUnitSerializer {
     b.parameters = typedefElement.parameters.map(serializeParam).toList();
     b.documentationComment = serializeDocumentation(typedefElement);
     b.annotations = serializeAnnotations(typedefElement);
+    b.codeRange = serializeCodeRange(typedefElement);
     return b;
   }
 
@@ -936,6 +949,7 @@ class _CompilationUnitSerializer {
       b.bound = serializeTypeRef(typeParameter.bound, typeParameter);
     }
     b.annotations = serializeAnnotations(typeParameter);
+    b.codeRange = serializeCodeRange(typeParameter);
     return b;
   }
 
@@ -1085,6 +1099,7 @@ class _CompilationUnitSerializer {
         (variable.initializer != null || !variable.isStatic)) {
       b.inferredTypeSlot = storeInferredType(variable.type, variable);
     }
+    b.codeRange = serializeCodeRange(variable);
     if (variable is LocalVariableElement) {
       SourceRange visibleRange = variable.visibleRange;
       if (visibleRange != null) {
@@ -1100,6 +1115,18 @@ class _CompilationUnitSerializer {
   }
 
   /**
+   * Create a new slot id and return it.  If [hasCycle] is `true`, arrange for
+   * the slot id to be included in [LinkedUnit.constCycles].
+   */
+  int storeConstCycle(bool hasCycle) {
+    int slot = ++numSlots;
+    if (hasCycle) {
+      constCycles.add(slot);
+    }
+    return slot;
+  }
+
+  /**
    * Create a slot id for the given [type] (which is an inferred type).  If
    * [type] is not `dynamic`, it is stored in [linkedTypes] so that once the
    * compilation unit has been fully visited, it will be serialized into
@@ -1110,18 +1137,6 @@ class _CompilationUnitSerializer {
    */
   int storeInferredType(DartType type, Element context) {
     return storeLinkedType(type.isDynamic ? null : type, context);
-  }
-
-  /**
-   * Create a new slot id and return it.  If [hasCycle] is `true`, arrange for
-   * the slot id to be included in [LinkedUnit.constCycles].
-   */
-  int storeConstCycle(bool hasCycle) {
-    int slot = ++numSlots;
-    if (hasCycle) {
-      constCycles.add(slot);
-    }
-    return slot;
   }
 
   /**

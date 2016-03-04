@@ -93,9 +93,8 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
     Expression target = access.target;
     if (target is Identifier) {
       EntityRefBuilder targetRef = serializeIdentifier(target);
-      return new EntityRefBuilder(
-          reference: visitor.serializeReference(
-              targetRef.reference, access.propertyName.name));
+      return new EntityRefBuilder(reference: visitor.serializeReference(
+          targetRef.reference, access.propertyName.name));
     } else {
       // TODO(scheglov) should we handle other targets in malformed constants?
       throw new StateError('Unexpected target type: ${target.runtimeType}');
@@ -349,6 +348,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
    * and store the result in [classes].
    */
   void serializeClass(
+      AstNode node,
       Token abstractKeyword,
       String name,
       int nameOffset,
@@ -395,11 +395,19 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.isAbstract = abstractKeyword != null;
     b.documentationComment = serializeDocumentation(documentationComment);
     b.annotations = serializeAnnotations(annotations);
+    b.codeRange = serializeCodeRange(node);
     classes.add(b);
     scopes.removeLast();
     assert(scopes.length == oldScopesLength);
     executables = oldExecutables;
     variables = oldVariables;
+  }
+
+  /**
+   * Create a [CodeRangeBuilder] for the given [node].
+   */
+  CodeRangeBuilder serializeCodeRange(AstNode node) {
+    return new CodeRangeBuilder(offset: node.offset, length: node.length);
   }
 
   /**
@@ -438,6 +446,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.libraryNameLength = libraryNameLength;
     b.libraryDocumentationComment = libraryDocumentationComment;
     b.libraryAnnotations = libraryAnnotations;
+    b.codeRange = serializeCodeRange(compilationUnit);
     b.classes = classes;
     b.enums = enums;
     b.executables = executables;
@@ -485,6 +494,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
    * [UnlinkedExecutable].
    */
   UnlinkedExecutableBuilder serializeExecutable(
+      AstNode node,
       String name,
       int nameOffset,
       bool isGetter,
@@ -537,6 +547,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     }
     b.documentationComment = serializeDocumentation(documentationComment);
     b.annotations = serializeAnnotations(annotations);
+    b.codeRange = serializeCodeRange(node);
     if (returnType == null && !isSemanticallyStatic) {
       b.inferredReturnTypeSlot = assignSlot();
     }
@@ -615,6 +626,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.name = node.identifier.name;
     b.nameOffset = node.identifier.offset;
     b.annotations = serializeAnnotations(node.metadata);
+    b.codeRange = serializeCodeRange(node);
     switch (node.kind) {
       case ParameterKind.REQUIRED:
         b.kind = UnlinkedParamKind.required;
@@ -772,6 +784,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       b.type = serializeTypeName(variables.type);
       b.documentationComment = serializeDocumentation(documentationComment);
       b.annotations = serializeAnnotations(annotations);
+      b.codeRange = serializeCodeRange(variables.parent);
       if (variable.isConst ||
           variable.isFinal && isField && !isDeclaredStatic) {
         Expression initializer = variable.initializer;
@@ -808,6 +821,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     TypeName superclass =
         node.extendsClause == null ? null : node.extendsClause.superclass;
     serializeClass(
+        node,
         node.abstractKeyword,
         node.name.name,
         node.name.offset,
@@ -824,6 +838,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   @override
   void visitClassTypeAlias(ClassTypeAlias node) {
     serializeClass(
+        node,
         node.abstractKeyword,
         node.name.name,
         node.name.offset,
@@ -915,6 +930,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         .toList();
     b.documentationComment = serializeDocumentation(node.documentationComment);
     b.annotations = serializeAnnotations(node.metadata);
+    b.codeRange = serializeCodeRange(node);
     enums.add(b);
   }
 
@@ -950,6 +966,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     executables.add(serializeExecutable(
+        node,
         node.name.name,
         node.name.offset,
         node.isGetter,
@@ -969,6 +986,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   void visitFunctionExpression(FunctionExpression node) {
     if (node.parent is! FunctionDeclaration) {
       executables.add(serializeExecutable(
+          node,
           null,
           node.offset,
           false,
@@ -1004,6 +1022,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         .toList();
     b.documentationComment = serializeDocumentation(node.documentationComment);
     b.annotations = serializeAnnotations(node.metadata);
+    b.codeRange = serializeCodeRange(node);
     typedefs.add(b);
     scopes.removeLast();
     assert(scopes.length == oldScopesLength);
@@ -1063,6 +1082,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   @override
   void visitMethodDeclaration(MethodDeclaration node) {
     executables.add(serializeExecutable(
+        node,
         node.name.name,
         node.name.offset,
         node.isGetter,
@@ -1111,6 +1131,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       b.bound = serializeTypeName(node.bound);
     }
     b.annotations = serializeAnnotations(node.metadata);
+    b.codeRange = serializeCodeRange(node);
     return b;
   }
 

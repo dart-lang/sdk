@@ -619,6 +619,8 @@ class ResynthTest extends ResolverTestCase {
     expect(resynthesized.location, original.location, reason: desc);
     expect(resynthesized.name, original.name);
     expect(resynthesized.nameOffset, original.nameOffset, reason: desc);
+    expect(rImpl.codeOffset, oImpl.codeOffset, reason: desc);
+    expect(rImpl.codeLength, oImpl.codeLength, reason: desc);
     expect(resynthesized.documentationComment, original.documentationComment,
         reason: desc);
     expect(resynthesized.docRange, original.docRange, reason: desc);

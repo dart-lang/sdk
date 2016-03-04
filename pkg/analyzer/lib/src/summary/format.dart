@@ -115,6 +115,101 @@ class _UnlinkedParamKindReader extends fb.Reader<idl.UnlinkedParamKind> {
   }
 }
 
+class CodeRangeBuilder extends Object with _CodeRangeMixin implements idl.CodeRange {
+  bool _finished = false;
+
+  int _length;
+  int _offset;
+
+  @override
+  int get length => _length ??= 0;
+
+  /**
+   * Length of the element code.
+   */
+  void set length(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _length = _value;
+  }
+
+  @override
+  int get offset => _offset ??= 0;
+
+  /**
+   * Offset of the element code relative to the beginning of the file.
+   */
+  void set offset(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _offset = _value;
+  }
+
+  CodeRangeBuilder({int length, int offset})
+    : _length = length,
+      _offset = offset;
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    assert(!_finished);
+    _finished = true;
+    fbBuilder.startTable();
+    if (_length != null && _length != 0) {
+      fbBuilder.addUint32(1, _length);
+    }
+    if (_offset != null && _offset != 0) {
+      fbBuilder.addUint32(0, _offset);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+class _CodeRangeReader extends fb.TableReader<_CodeRangeImpl> {
+  const _CodeRangeReader();
+
+  @override
+  _CodeRangeImpl createObject(fb.BufferPointer bp) => new _CodeRangeImpl(bp);
+}
+
+class _CodeRangeImpl extends Object with _CodeRangeMixin implements idl.CodeRange {
+  final fb.BufferPointer _bp;
+
+  _CodeRangeImpl(this._bp);
+
+  int _length;
+  int _offset;
+
+  @override
+  int get length {
+    _length ??= const fb.Uint32Reader().vTableGet(_bp, 1, 0);
+    return _length;
+  }
+
+  @override
+  int get offset {
+    _offset ??= const fb.Uint32Reader().vTableGet(_bp, 0, 0);
+    return _offset;
+  }
+}
+
+abstract class _CodeRangeMixin implements idl.CodeRange {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (length != 0) _result["length"] = length;
+    if (offset != 0) _result["offset"] = offset;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+    "length": length,
+    "offset": offset,
+  };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
+}
+
 class EntityRefBuilder extends Object with _EntityRefMixin implements idl.EntityRef {
   bool _finished = false;
 
@@ -1137,9 +1232,22 @@ abstract class _LinkedReferenceMixin implements idl.LinkedReference {
 class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.LinkedUnit {
   bool _finished = false;
 
+  List<int> _constCycles;
   List<LinkedReferenceBuilder> _references;
   List<EntityRefBuilder> _types;
-  List<int> _constCycles;
+
+  @override
+  List<int> get constCycles => _constCycles ??= <int>[];
+
+  /**
+   * List of slot ids (referring to [UnlinkedExecutable.constCycleSlot])
+   * corresponding to const constructors that are part of cycles.
+   */
+  void set constCycles(List<int> _value) {
+    assert(!_finished);
+    assert(_value == null || _value.every((e) => e >= 0));
+    _constCycles = _value;
+  }
 
   @override
   List<LinkedReferenceBuilder> get references => _references ??= <LinkedReferenceBuilder>[];
@@ -1169,48 +1277,35 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
     _types = _value;
   }
 
-  @override
-  List<int> get constCycles => _constCycles ??= <int>[];
-
-  /**
-   * List of slot ids (referring to [UnlinkedExecutable.constCycleSlot])
-   * corresponding to const constructors that are part of cycles.
-   */
-  void set constCycles(List<int> _value) {
-    assert(!_finished);
-    assert(_value == null || _value.every((e) => e >= 0));
-    _constCycles = _value;
-  }
-
-  LinkedUnitBuilder({List<LinkedReferenceBuilder> references, List<EntityRefBuilder> types, List<int> constCycles})
-    : _references = references,
-      _types = types,
-      _constCycles = constCycles;
+  LinkedUnitBuilder({List<int> constCycles, List<LinkedReferenceBuilder> references, List<EntityRefBuilder> types})
+    : _constCycles = constCycles,
+      _references = references,
+      _types = types;
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
+    fb.Offset offset_constCycles;
     fb.Offset offset_references;
     fb.Offset offset_types;
-    fb.Offset offset_constCycles;
+    if (!(_constCycles == null || _constCycles.isEmpty)) {
+      offset_constCycles = fbBuilder.writeListUint32(_constCycles);
+    }
     if (!(_references == null || _references.isEmpty)) {
       offset_references = fbBuilder.writeList(_references.map((b) => b.finish(fbBuilder)).toList());
     }
     if (!(_types == null || _types.isEmpty)) {
       offset_types = fbBuilder.writeList(_types.map((b) => b.finish(fbBuilder)).toList());
     }
-    if (!(_constCycles == null || _constCycles.isEmpty)) {
-      offset_constCycles = fbBuilder.writeListUint32(_constCycles);
-    }
     fbBuilder.startTable();
+    if (offset_constCycles != null) {
+      fbBuilder.addOffset(2, offset_constCycles);
+    }
     if (offset_references != null) {
       fbBuilder.addOffset(0, offset_references);
     }
     if (offset_types != null) {
       fbBuilder.addOffset(1, offset_types);
-    }
-    if (offset_constCycles != null) {
-      fbBuilder.addOffset(2, offset_constCycles);
     }
     return fbBuilder.endTable();
   }
@@ -1228,9 +1323,15 @@ class _LinkedUnitImpl extends Object with _LinkedUnitMixin implements idl.Linked
 
   _LinkedUnitImpl(this._bp);
 
+  List<int> _constCycles;
   List<idl.LinkedReference> _references;
   List<idl.EntityRef> _types;
-  List<int> _constCycles;
+
+  @override
+  List<int> get constCycles {
+    _constCycles ??= const fb.Uint32ListReader().vTableGet(_bp, 2, const <int>[]);
+    return _constCycles;
+  }
 
   @override
   List<idl.LinkedReference> get references {
@@ -1243,29 +1344,23 @@ class _LinkedUnitImpl extends Object with _LinkedUnitMixin implements idl.Linked
     _types ??= const fb.ListReader<idl.EntityRef>(const _EntityRefReader()).vTableGet(_bp, 1, const <idl.EntityRef>[]);
     return _types;
   }
-
-  @override
-  List<int> get constCycles {
-    _constCycles ??= const fb.Uint32ListReader().vTableGet(_bp, 2, const <int>[]);
-    return _constCycles;
-  }
 }
 
 abstract class _LinkedUnitMixin implements idl.LinkedUnit {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
+    if (constCycles.isNotEmpty) _result["constCycles"] = constCycles;
     if (references.isNotEmpty) _result["references"] = references.map((_value) => _value.toJson()).toList();
     if (types.isNotEmpty) _result["types"] = types.map((_value) => _value.toJson()).toList();
-    if (constCycles.isNotEmpty) _result["constCycles"] = constCycles;
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
+    "constCycles": constCycles,
     "references": references,
     "types": types,
-    "constCycles": constCycles,
   };
 
   @override
@@ -2207,6 +2302,7 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
   bool _finished = false;
 
   List<UnlinkedConstBuilder> _annotations;
+  CodeRangeBuilder _codeRange;
   UnlinkedDocumentationCommentBuilder _documentationComment;
   List<UnlinkedExecutableBuilder> _executables;
   List<UnlinkedVariableBuilder> _fields;
@@ -2229,6 +2325,17 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
   void set annotations(List<UnlinkedConstBuilder> _value) {
     assert(!_finished);
     _annotations = _value;
+  }
+
+  @override
+  CodeRangeBuilder get codeRange => _codeRange;
+
+  /**
+   * Code range of the class.
+   */
+  void set codeRange(CodeRangeBuilder _value) {
+    assert(!_finished);
+    _codeRange = _value;
   }
 
   @override
@@ -2368,8 +2475,9 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
     _typeParameters = _value;
   }
 
-  UnlinkedClassBuilder({List<UnlinkedConstBuilder> annotations, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedExecutableBuilder> executables, List<UnlinkedVariableBuilder> fields, bool hasNoSupertype, List<EntityRefBuilder> interfaces, bool isAbstract, bool isMixinApplication, List<EntityRefBuilder> mixins, String name, int nameOffset, EntityRefBuilder supertype, List<UnlinkedTypeParamBuilder> typeParameters})
+  UnlinkedClassBuilder({List<UnlinkedConstBuilder> annotations, CodeRangeBuilder codeRange, UnlinkedDocumentationCommentBuilder documentationComment, List<UnlinkedExecutableBuilder> executables, List<UnlinkedVariableBuilder> fields, bool hasNoSupertype, List<EntityRefBuilder> interfaces, bool isAbstract, bool isMixinApplication, List<EntityRefBuilder> mixins, String name, int nameOffset, EntityRefBuilder supertype, List<UnlinkedTypeParamBuilder> typeParameters})
     : _annotations = annotations,
+      _codeRange = codeRange,
       _documentationComment = documentationComment,
       _executables = executables,
       _fields = fields,
@@ -2387,6 +2495,7 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
     assert(!_finished);
     _finished = true;
     fb.Offset offset_annotations;
+    fb.Offset offset_codeRange;
     fb.Offset offset_documentationComment;
     fb.Offset offset_executables;
     fb.Offset offset_fields;
@@ -2397,6 +2506,9 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
     fb.Offset offset_typeParameters;
     if (!(_annotations == null || _annotations.isEmpty)) {
       offset_annotations = fbBuilder.writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (_codeRange != null) {
+      offset_codeRange = _codeRange.finish(fbBuilder);
     }
     if (_documentationComment != null) {
       offset_documentationComment = _documentationComment.finish(fbBuilder);
@@ -2425,6 +2537,9 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
     fbBuilder.startTable();
     if (offset_annotations != null) {
       fbBuilder.addOffset(5, offset_annotations);
+    }
+    if (offset_codeRange != null) {
+      fbBuilder.addOffset(13, offset_codeRange);
     }
     if (offset_documentationComment != null) {
       fbBuilder.addOffset(6, offset_documentationComment);
@@ -2479,6 +2594,7 @@ class _UnlinkedClassImpl extends Object with _UnlinkedClassMixin implements idl.
   _UnlinkedClassImpl(this._bp);
 
   List<idl.UnlinkedConst> _annotations;
+  idl.CodeRange _codeRange;
   idl.UnlinkedDocumentationComment _documentationComment;
   List<idl.UnlinkedExecutable> _executables;
   List<idl.UnlinkedVariable> _fields;
@@ -2496,6 +2612,12 @@ class _UnlinkedClassImpl extends Object with _UnlinkedClassMixin implements idl.
   List<idl.UnlinkedConst> get annotations {
     _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 5, const <idl.UnlinkedConst>[]);
     return _annotations;
+  }
+
+  @override
+  idl.CodeRange get codeRange {
+    _codeRange ??= const _CodeRangeReader().vTableGet(_bp, 13, null);
+    return _codeRange;
   }
 
   @override
@@ -2576,6 +2698,7 @@ abstract class _UnlinkedClassMixin implements idl.UnlinkedClass {
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (annotations.isNotEmpty) _result["annotations"] = annotations.map((_value) => _value.toJson()).toList();
+    if (codeRange != null) _result["codeRange"] = codeRange.toJson();
     if (documentationComment != null) _result["documentationComment"] = documentationComment.toJson();
     if (executables.isNotEmpty) _result["executables"] = executables.map((_value) => _value.toJson()).toList();
     if (fields.isNotEmpty) _result["fields"] = fields.map((_value) => _value.toJson()).toList();
@@ -2594,6 +2717,7 @@ abstract class _UnlinkedClassMixin implements idl.UnlinkedClass {
   @override
   Map<String, Object> toMap() => {
     "annotations": annotations,
+    "codeRange": codeRange,
     "documentationComment": documentationComment,
     "executables": executables,
     "fields": fields,
@@ -3281,6 +3405,7 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.
   bool _finished = false;
 
   List<UnlinkedConstBuilder> _annotations;
+  CodeRangeBuilder _codeRange;
   UnlinkedDocumentationCommentBuilder _documentationComment;
   String _name;
   int _nameOffset;
@@ -3295,6 +3420,17 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.
   void set annotations(List<UnlinkedConstBuilder> _value) {
     assert(!_finished);
     _annotations = _value;
+  }
+
+  @override
+  CodeRangeBuilder get codeRange => _codeRange;
+
+  /**
+   * Code range of the enum.
+   */
+  void set codeRange(CodeRangeBuilder _value) {
+    assert(!_finished);
+    _codeRange = _value;
   }
 
   @override
@@ -3343,8 +3479,9 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.
     _values = _value;
   }
 
-  UnlinkedEnumBuilder({List<UnlinkedConstBuilder> annotations, UnlinkedDocumentationCommentBuilder documentationComment, String name, int nameOffset, List<UnlinkedEnumValueBuilder> values})
+  UnlinkedEnumBuilder({List<UnlinkedConstBuilder> annotations, CodeRangeBuilder codeRange, UnlinkedDocumentationCommentBuilder documentationComment, String name, int nameOffset, List<UnlinkedEnumValueBuilder> values})
     : _annotations = annotations,
+      _codeRange = codeRange,
       _documentationComment = documentationComment,
       _name = name,
       _nameOffset = nameOffset,
@@ -3354,11 +3491,15 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.
     assert(!_finished);
     _finished = true;
     fb.Offset offset_annotations;
+    fb.Offset offset_codeRange;
     fb.Offset offset_documentationComment;
     fb.Offset offset_name;
     fb.Offset offset_values;
     if (!(_annotations == null || _annotations.isEmpty)) {
       offset_annotations = fbBuilder.writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (_codeRange != null) {
+      offset_codeRange = _codeRange.finish(fbBuilder);
     }
     if (_documentationComment != null) {
       offset_documentationComment = _documentationComment.finish(fbBuilder);
@@ -3372,6 +3513,9 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.
     fbBuilder.startTable();
     if (offset_annotations != null) {
       fbBuilder.addOffset(4, offset_annotations);
+    }
+    if (offset_codeRange != null) {
+      fbBuilder.addOffset(5, offset_codeRange);
     }
     if (offset_documentationComment != null) {
       fbBuilder.addOffset(3, offset_documentationComment);
@@ -3402,6 +3546,7 @@ class _UnlinkedEnumImpl extends Object with _UnlinkedEnumMixin implements idl.Un
   _UnlinkedEnumImpl(this._bp);
 
   List<idl.UnlinkedConst> _annotations;
+  idl.CodeRange _codeRange;
   idl.UnlinkedDocumentationComment _documentationComment;
   String _name;
   int _nameOffset;
@@ -3411,6 +3556,12 @@ class _UnlinkedEnumImpl extends Object with _UnlinkedEnumMixin implements idl.Un
   List<idl.UnlinkedConst> get annotations {
     _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 4, const <idl.UnlinkedConst>[]);
     return _annotations;
+  }
+
+  @override
+  idl.CodeRange get codeRange {
+    _codeRange ??= const _CodeRangeReader().vTableGet(_bp, 5, null);
+    return _codeRange;
   }
 
   @override
@@ -3443,6 +3594,7 @@ abstract class _UnlinkedEnumMixin implements idl.UnlinkedEnum {
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (annotations.isNotEmpty) _result["annotations"] = annotations.map((_value) => _value.toJson()).toList();
+    if (codeRange != null) _result["codeRange"] = codeRange.toJson();
     if (documentationComment != null) _result["documentationComment"] = documentationComment.toJson();
     if (name != '') _result["name"] = name;
     if (nameOffset != 0) _result["nameOffset"] = nameOffset;
@@ -3453,6 +3605,7 @@ abstract class _UnlinkedEnumMixin implements idl.UnlinkedEnum {
   @override
   Map<String, Object> toMap() => {
     "annotations": annotations,
+    "codeRange": codeRange,
     "documentationComment": documentationComment,
     "name": name,
     "nameOffset": nameOffset,
@@ -3595,7 +3748,9 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   bool _finished = false;
 
   List<UnlinkedConstBuilder> _annotations;
+  CodeRangeBuilder _codeRange;
   List<UnlinkedConstructorInitializerBuilder> _constantInitializers;
+  int _constCycleSlot;
   UnlinkedDocumentationCommentBuilder _documentationComment;
   int _inferredReturnTypeSlot;
   bool _isAbstract;
@@ -3619,7 +3774,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   List<UnlinkedTypeParamBuilder> _typeParameters;
   int _visibleLength;
   int _visibleOffset;
-  int _constCycleSlot;
 
   @override
   List<UnlinkedConstBuilder> get annotations => _annotations ??= <UnlinkedConstBuilder>[];
@@ -3633,6 +3787,17 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   }
 
   @override
+  CodeRangeBuilder get codeRange => _codeRange;
+
+  /**
+   * Code range of the executable.
+   */
+  void set codeRange(CodeRangeBuilder _value) {
+    assert(!_finished);
+    _codeRange = _value;
+  }
+
+  @override
   List<UnlinkedConstructorInitializerBuilder> get constantInitializers => _constantInitializers ??= <UnlinkedConstructorInitializerBuilder>[];
 
   /**
@@ -3642,6 +3807,23 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
   void set constantInitializers(List<UnlinkedConstructorInitializerBuilder> _value) {
     assert(!_finished);
     _constantInitializers = _value;
+  }
+
+  @override
+  int get constCycleSlot => _constCycleSlot ??= 0;
+
+  /**
+   * If [kind] is [UnlinkedExecutableKind.constructor] and [isConst] is `true`,
+   * a nonzero slot id which is unique within this compilation unit.  If this id
+   * is found in [LinkedUnit.constCycles], then this constructor is part of a
+   * cycle.
+   *
+   * Otherwise, zero.
+   */
+  void set constCycleSlot(int _value) {
+    assert(!_finished);
+    assert(_value == null || _value >= 0);
+    _constCycleSlot = _value;
   }
 
   @override
@@ -3930,26 +4112,11 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     _visibleOffset = _value;
   }
 
-  @override
-  int get constCycleSlot => _constCycleSlot ??= 0;
-
-  /**
-   * If [kind] is [UnlinkedExecutableKind.constructor] and [isConst] is `true`,
-   * a nonzero slot id which is unique within this compilation unit.  If this id
-   * is found in [LinkedUnit.constCycles], then this constructor is part of a
-   * cycle.
-   *
-   * Otherwise, zero.
-   */
-  void set constCycleSlot(int _value) {
-    assert(!_finished);
-    assert(_value == null || _value >= 0);
-    _constCycleSlot = _value;
-  }
-
-  UnlinkedExecutableBuilder({List<UnlinkedConstBuilder> annotations, List<UnlinkedConstructorInitializerBuilder> constantInitializers, UnlinkedDocumentationCommentBuilder documentationComment, int inferredReturnTypeSlot, bool isAbstract, bool isConst, bool isExternal, bool isFactory, bool isRedirectedConstructor, bool isStatic, idl.UnlinkedExecutableKind kind, List<UnlinkedExecutableBuilder> localFunctions, List<UnlinkedLabelBuilder> localLabels, List<UnlinkedVariableBuilder> localVariables, String name, int nameEnd, int nameOffset, List<UnlinkedParamBuilder> parameters, int periodOffset, EntityRefBuilder redirectedConstructor, String redirectedConstructorName, EntityRefBuilder returnType, List<UnlinkedTypeParamBuilder> typeParameters, int visibleLength, int visibleOffset, int constCycleSlot})
+  UnlinkedExecutableBuilder({List<UnlinkedConstBuilder> annotations, CodeRangeBuilder codeRange, List<UnlinkedConstructorInitializerBuilder> constantInitializers, int constCycleSlot, UnlinkedDocumentationCommentBuilder documentationComment, int inferredReturnTypeSlot, bool isAbstract, bool isConst, bool isExternal, bool isFactory, bool isRedirectedConstructor, bool isStatic, idl.UnlinkedExecutableKind kind, List<UnlinkedExecutableBuilder> localFunctions, List<UnlinkedLabelBuilder> localLabels, List<UnlinkedVariableBuilder> localVariables, String name, int nameEnd, int nameOffset, List<UnlinkedParamBuilder> parameters, int periodOffset, EntityRefBuilder redirectedConstructor, String redirectedConstructorName, EntityRefBuilder returnType, List<UnlinkedTypeParamBuilder> typeParameters, int visibleLength, int visibleOffset})
     : _annotations = annotations,
+      _codeRange = codeRange,
       _constantInitializers = constantInitializers,
+      _constCycleSlot = constCycleSlot,
       _documentationComment = documentationComment,
       _inferredReturnTypeSlot = inferredReturnTypeSlot,
       _isAbstract = isAbstract,
@@ -3972,13 +4139,13 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
       _returnType = returnType,
       _typeParameters = typeParameters,
       _visibleLength = visibleLength,
-      _visibleOffset = visibleOffset,
-      _constCycleSlot = constCycleSlot;
+      _visibleOffset = visibleOffset;
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
     fb.Offset offset_annotations;
+    fb.Offset offset_codeRange;
     fb.Offset offset_constantInitializers;
     fb.Offset offset_documentationComment;
     fb.Offset offset_localFunctions;
@@ -3992,6 +4159,9 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     fb.Offset offset_typeParameters;
     if (!(_annotations == null || _annotations.isEmpty)) {
       offset_annotations = fbBuilder.writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (_codeRange != null) {
+      offset_codeRange = _codeRange.finish(fbBuilder);
     }
     if (!(_constantInitializers == null || _constantInitializers.isEmpty)) {
       offset_constantInitializers = fbBuilder.writeList(_constantInitializers.map((b) => b.finish(fbBuilder)).toList());
@@ -4030,8 +4200,14 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     if (offset_annotations != null) {
       fbBuilder.addOffset(6, offset_annotations);
     }
+    if (offset_codeRange != null) {
+      fbBuilder.addOffset(26, offset_codeRange);
+    }
     if (offset_constantInitializers != null) {
       fbBuilder.addOffset(14, offset_constantInitializers);
+    }
+    if (_constCycleSlot != null && _constCycleSlot != 0) {
+      fbBuilder.addUint32(25, _constCycleSlot);
     }
     if (offset_documentationComment != null) {
       fbBuilder.addOffset(7, offset_documentationComment);
@@ -4102,9 +4278,6 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     if (_visibleOffset != null && _visibleOffset != 0) {
       fbBuilder.addUint32(21, _visibleOffset);
     }
-    if (_constCycleSlot != null && _constCycleSlot != 0) {
-      fbBuilder.addUint32(25, _constCycleSlot);
-    }
     return fbBuilder.endTable();
   }
 }
@@ -4122,7 +4295,9 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
   _UnlinkedExecutableImpl(this._bp);
 
   List<idl.UnlinkedConst> _annotations;
+  idl.CodeRange _codeRange;
   List<idl.UnlinkedConstructorInitializer> _constantInitializers;
+  int _constCycleSlot;
   idl.UnlinkedDocumentationComment _documentationComment;
   int _inferredReturnTypeSlot;
   bool _isAbstract;
@@ -4146,7 +4321,6 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
   List<idl.UnlinkedTypeParam> _typeParameters;
   int _visibleLength;
   int _visibleOffset;
-  int _constCycleSlot;
 
   @override
   List<idl.UnlinkedConst> get annotations {
@@ -4155,9 +4329,21 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
   }
 
   @override
+  idl.CodeRange get codeRange {
+    _codeRange ??= const _CodeRangeReader().vTableGet(_bp, 26, null);
+    return _codeRange;
+  }
+
+  @override
   List<idl.UnlinkedConstructorInitializer> get constantInitializers {
     _constantInitializers ??= const fb.ListReader<idl.UnlinkedConstructorInitializer>(const _UnlinkedConstructorInitializerReader()).vTableGet(_bp, 14, const <idl.UnlinkedConstructorInitializer>[]);
     return _constantInitializers;
+  }
+
+  @override
+  int get constCycleSlot {
+    _constCycleSlot ??= const fb.Uint32Reader().vTableGet(_bp, 25, 0);
+    return _constCycleSlot;
   }
 
   @override
@@ -4297,12 +4483,6 @@ class _UnlinkedExecutableImpl extends Object with _UnlinkedExecutableMixin imple
     _visibleOffset ??= const fb.Uint32Reader().vTableGet(_bp, 21, 0);
     return _visibleOffset;
   }
-
-  @override
-  int get constCycleSlot {
-    _constCycleSlot ??= const fb.Uint32Reader().vTableGet(_bp, 25, 0);
-    return _constCycleSlot;
-  }
 }
 
 abstract class _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
@@ -4310,7 +4490,9 @@ abstract class _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (annotations.isNotEmpty) _result["annotations"] = annotations.map((_value) => _value.toJson()).toList();
+    if (codeRange != null) _result["codeRange"] = codeRange.toJson();
     if (constantInitializers.isNotEmpty) _result["constantInitializers"] = constantInitializers.map((_value) => _value.toJson()).toList();
+    if (constCycleSlot != 0) _result["constCycleSlot"] = constCycleSlot;
     if (documentationComment != null) _result["documentationComment"] = documentationComment.toJson();
     if (inferredReturnTypeSlot != 0) _result["inferredReturnTypeSlot"] = inferredReturnTypeSlot;
     if (isAbstract != false) _result["isAbstract"] = isAbstract;
@@ -4334,14 +4516,15 @@ abstract class _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
     if (typeParameters.isNotEmpty) _result["typeParameters"] = typeParameters.map((_value) => _value.toJson()).toList();
     if (visibleLength != 0) _result["visibleLength"] = visibleLength;
     if (visibleOffset != 0) _result["visibleOffset"] = visibleOffset;
-    if (constCycleSlot != 0) _result["constCycleSlot"] = constCycleSlot;
     return _result;
   }
 
   @override
   Map<String, Object> toMap() => {
     "annotations": annotations,
+    "codeRange": codeRange,
     "constantInitializers": constantInitializers,
+    "constCycleSlot": constCycleSlot,
     "documentationComment": documentationComment,
     "inferredReturnTypeSlot": inferredReturnTypeSlot,
     "isAbstract": isAbstract,
@@ -4365,7 +4548,6 @@ abstract class _UnlinkedExecutableMixin implements idl.UnlinkedExecutable {
     "typeParameters": typeParameters,
     "visibleLength": visibleLength,
     "visibleOffset": visibleOffset,
-    "constCycleSlot": constCycleSlot,
   };
 
   @override
@@ -5095,6 +5277,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
   bool _finished = false;
 
   List<UnlinkedConstBuilder> _annotations;
+  CodeRangeBuilder _codeRange;
   UnlinkedConstBuilder _defaultValue;
   String _defaultValueCode;
   int _inferredTypeSlot;
@@ -5118,6 +5301,17 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
   void set annotations(List<UnlinkedConstBuilder> _value) {
     assert(!_finished);
     _annotations = _value;
+  }
+
+  @override
+  CodeRangeBuilder get codeRange => _codeRange;
+
+  /**
+   * Code range of the parameter.
+   */
+  void set codeRange(CodeRangeBuilder _value) {
+    assert(!_finished);
+    _codeRange = _value;
   }
 
   @override
@@ -5282,8 +5476,9 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     _visibleOffset = _value;
   }
 
-  UnlinkedParamBuilder({List<UnlinkedConstBuilder> annotations, UnlinkedConstBuilder defaultValue, String defaultValueCode, int inferredTypeSlot, UnlinkedExecutableBuilder initializer, bool isFunctionTyped, bool isInitializingFormal, idl.UnlinkedParamKind kind, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder type, int visibleLength, int visibleOffset})
+  UnlinkedParamBuilder({List<UnlinkedConstBuilder> annotations, CodeRangeBuilder codeRange, UnlinkedConstBuilder defaultValue, String defaultValueCode, int inferredTypeSlot, UnlinkedExecutableBuilder initializer, bool isFunctionTyped, bool isInitializingFormal, idl.UnlinkedParamKind kind, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder type, int visibleLength, int visibleOffset})
     : _annotations = annotations,
+      _codeRange = codeRange,
       _defaultValue = defaultValue,
       _defaultValueCode = defaultValueCode,
       _inferredTypeSlot = inferredTypeSlot,
@@ -5302,6 +5497,7 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     assert(!_finished);
     _finished = true;
     fb.Offset offset_annotations;
+    fb.Offset offset_codeRange;
     fb.Offset offset_defaultValue;
     fb.Offset offset_defaultValueCode;
     fb.Offset offset_initializer;
@@ -5310,6 +5506,9 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     fb.Offset offset_type;
     if (!(_annotations == null || _annotations.isEmpty)) {
       offset_annotations = fbBuilder.writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (_codeRange != null) {
+      offset_codeRange = _codeRange.finish(fbBuilder);
     }
     if (_defaultValue != null) {
       offset_defaultValue = _defaultValue.finish(fbBuilder);
@@ -5332,6 +5531,9 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
     fbBuilder.startTable();
     if (offset_annotations != null) {
       fbBuilder.addOffset(9, offset_annotations);
+    }
+    if (offset_codeRange != null) {
+      fbBuilder.addOffset(14, offset_codeRange);
     }
     if (offset_defaultValue != null) {
       fbBuilder.addOffset(7, offset_defaultValue);
@@ -5389,6 +5591,7 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.
   _UnlinkedParamImpl(this._bp);
 
   List<idl.UnlinkedConst> _annotations;
+  idl.CodeRange _codeRange;
   idl.UnlinkedConst _defaultValue;
   String _defaultValueCode;
   int _inferredTypeSlot;
@@ -5407,6 +5610,12 @@ class _UnlinkedParamImpl extends Object with _UnlinkedParamMixin implements idl.
   List<idl.UnlinkedConst> get annotations {
     _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 9, const <idl.UnlinkedConst>[]);
     return _annotations;
+  }
+
+  @override
+  idl.CodeRange get codeRange {
+    _codeRange ??= const _CodeRangeReader().vTableGet(_bp, 14, null);
+    return _codeRange;
   }
 
   @override
@@ -5493,6 +5702,7 @@ abstract class _UnlinkedParamMixin implements idl.UnlinkedParam {
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (annotations.isNotEmpty) _result["annotations"] = annotations.map((_value) => _value.toJson()).toList();
+    if (codeRange != null) _result["codeRange"] = codeRange.toJson();
     if (defaultValue != null) _result["defaultValue"] = defaultValue.toJson();
     if (defaultValueCode != '') _result["defaultValueCode"] = defaultValueCode;
     if (inferredTypeSlot != 0) _result["inferredTypeSlot"] = inferredTypeSlot;
@@ -5512,6 +5722,7 @@ abstract class _UnlinkedParamMixin implements idl.UnlinkedParam {
   @override
   Map<String, Object> toMap() => {
     "annotations": annotations,
+    "codeRange": codeRange,
     "defaultValue": defaultValue,
     "defaultValueCode": defaultValueCode,
     "inferredTypeSlot": inferredTypeSlot,
@@ -6067,6 +6278,7 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
   bool _finished = false;
 
   List<UnlinkedConstBuilder> _annotations;
+  CodeRangeBuilder _codeRange;
   UnlinkedDocumentationCommentBuilder _documentationComment;
   String _name;
   int _nameOffset;
@@ -6083,6 +6295,17 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
   void set annotations(List<UnlinkedConstBuilder> _value) {
     assert(!_finished);
     _annotations = _value;
+  }
+
+  @override
+  CodeRangeBuilder get codeRange => _codeRange;
+
+  /**
+   * Code range of the typedef.
+   */
+  void set codeRange(CodeRangeBuilder _value) {
+    assert(!_finished);
+    _codeRange = _value;
   }
 
   @override
@@ -6153,8 +6376,9 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
     _typeParameters = _value;
   }
 
-  UnlinkedTypedefBuilder({List<UnlinkedConstBuilder> annotations, UnlinkedDocumentationCommentBuilder documentationComment, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder returnType, List<UnlinkedTypeParamBuilder> typeParameters})
+  UnlinkedTypedefBuilder({List<UnlinkedConstBuilder> annotations, CodeRangeBuilder codeRange, UnlinkedDocumentationCommentBuilder documentationComment, String name, int nameOffset, List<UnlinkedParamBuilder> parameters, EntityRefBuilder returnType, List<UnlinkedTypeParamBuilder> typeParameters})
     : _annotations = annotations,
+      _codeRange = codeRange,
       _documentationComment = documentationComment,
       _name = name,
       _nameOffset = nameOffset,
@@ -6166,6 +6390,7 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
     assert(!_finished);
     _finished = true;
     fb.Offset offset_annotations;
+    fb.Offset offset_codeRange;
     fb.Offset offset_documentationComment;
     fb.Offset offset_name;
     fb.Offset offset_parameters;
@@ -6173,6 +6398,9 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
     fb.Offset offset_typeParameters;
     if (!(_annotations == null || _annotations.isEmpty)) {
       offset_annotations = fbBuilder.writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (_codeRange != null) {
+      offset_codeRange = _codeRange.finish(fbBuilder);
     }
     if (_documentationComment != null) {
       offset_documentationComment = _documentationComment.finish(fbBuilder);
@@ -6192,6 +6420,9 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
     fbBuilder.startTable();
     if (offset_annotations != null) {
       fbBuilder.addOffset(4, offset_annotations);
+    }
+    if (offset_codeRange != null) {
+      fbBuilder.addOffset(7, offset_codeRange);
     }
     if (offset_documentationComment != null) {
       fbBuilder.addOffset(6, offset_documentationComment);
@@ -6228,6 +6459,7 @@ class _UnlinkedTypedefImpl extends Object with _UnlinkedTypedefMixin implements 
   _UnlinkedTypedefImpl(this._bp);
 
   List<idl.UnlinkedConst> _annotations;
+  idl.CodeRange _codeRange;
   idl.UnlinkedDocumentationComment _documentationComment;
   String _name;
   int _nameOffset;
@@ -6239,6 +6471,12 @@ class _UnlinkedTypedefImpl extends Object with _UnlinkedTypedefMixin implements 
   List<idl.UnlinkedConst> get annotations {
     _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 4, const <idl.UnlinkedConst>[]);
     return _annotations;
+  }
+
+  @override
+  idl.CodeRange get codeRange {
+    _codeRange ??= const _CodeRangeReader().vTableGet(_bp, 7, null);
+    return _codeRange;
   }
 
   @override
@@ -6283,6 +6521,7 @@ abstract class _UnlinkedTypedefMixin implements idl.UnlinkedTypedef {
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (annotations.isNotEmpty) _result["annotations"] = annotations.map((_value) => _value.toJson()).toList();
+    if (codeRange != null) _result["codeRange"] = codeRange.toJson();
     if (documentationComment != null) _result["documentationComment"] = documentationComment.toJson();
     if (name != '') _result["name"] = name;
     if (nameOffset != 0) _result["nameOffset"] = nameOffset;
@@ -6295,6 +6534,7 @@ abstract class _UnlinkedTypedefMixin implements idl.UnlinkedTypedef {
   @override
   Map<String, Object> toMap() => {
     "annotations": annotations,
+    "codeRange": codeRange,
     "documentationComment": documentationComment,
     "name": name,
     "nameOffset": nameOffset,
@@ -6312,6 +6552,7 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
 
   List<UnlinkedConstBuilder> _annotations;
   EntityRefBuilder _bound;
+  CodeRangeBuilder _codeRange;
   String _name;
   int _nameOffset;
 
@@ -6339,6 +6580,17 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
   }
 
   @override
+  CodeRangeBuilder get codeRange => _codeRange;
+
+  /**
+   * Code range of the type parameter.
+   */
+  void set codeRange(CodeRangeBuilder _value) {
+    assert(!_finished);
+    _codeRange = _value;
+  }
+
+  @override
   String get name => _name ??= '';
 
   /**
@@ -6361,9 +6613,10 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
     _nameOffset = _value;
   }
 
-  UnlinkedTypeParamBuilder({List<UnlinkedConstBuilder> annotations, EntityRefBuilder bound, String name, int nameOffset})
+  UnlinkedTypeParamBuilder({List<UnlinkedConstBuilder> annotations, EntityRefBuilder bound, CodeRangeBuilder codeRange, String name, int nameOffset})
     : _annotations = annotations,
       _bound = bound,
+      _codeRange = codeRange,
       _name = name,
       _nameOffset = nameOffset;
 
@@ -6372,12 +6625,16 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
     _finished = true;
     fb.Offset offset_annotations;
     fb.Offset offset_bound;
+    fb.Offset offset_codeRange;
     fb.Offset offset_name;
     if (!(_annotations == null || _annotations.isEmpty)) {
       offset_annotations = fbBuilder.writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
     }
     if (_bound != null) {
       offset_bound = _bound.finish(fbBuilder);
+    }
+    if (_codeRange != null) {
+      offset_codeRange = _codeRange.finish(fbBuilder);
     }
     if (_name != null) {
       offset_name = fbBuilder.writeString(_name);
@@ -6388,6 +6645,9 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
     }
     if (offset_bound != null) {
       fbBuilder.addOffset(2, offset_bound);
+    }
+    if (offset_codeRange != null) {
+      fbBuilder.addOffset(4, offset_codeRange);
     }
     if (offset_name != null) {
       fbBuilder.addOffset(0, offset_name);
@@ -6413,6 +6673,7 @@ class _UnlinkedTypeParamImpl extends Object with _UnlinkedTypeParamMixin impleme
 
   List<idl.UnlinkedConst> _annotations;
   idl.EntityRef _bound;
+  idl.CodeRange _codeRange;
   String _name;
   int _nameOffset;
 
@@ -6426,6 +6687,12 @@ class _UnlinkedTypeParamImpl extends Object with _UnlinkedTypeParamMixin impleme
   idl.EntityRef get bound {
     _bound ??= const _EntityRefReader().vTableGet(_bp, 2, null);
     return _bound;
+  }
+
+  @override
+  idl.CodeRange get codeRange {
+    _codeRange ??= const _CodeRangeReader().vTableGet(_bp, 4, null);
+    return _codeRange;
   }
 
   @override
@@ -6447,6 +6714,7 @@ abstract class _UnlinkedTypeParamMixin implements idl.UnlinkedTypeParam {
     Map<String, Object> _result = <String, Object>{};
     if (annotations.isNotEmpty) _result["annotations"] = annotations.map((_value) => _value.toJson()).toList();
     if (bound != null) _result["bound"] = bound.toJson();
+    if (codeRange != null) _result["codeRange"] = codeRange.toJson();
     if (name != '') _result["name"] = name;
     if (nameOffset != 0) _result["nameOffset"] = nameOffset;
     return _result;
@@ -6456,6 +6724,7 @@ abstract class _UnlinkedTypeParamMixin implements idl.UnlinkedTypeParam {
   Map<String, Object> toMap() => {
     "annotations": annotations,
     "bound": bound,
+    "codeRange": codeRange,
     "name": name,
     "nameOffset": nameOffset,
   };
@@ -6468,6 +6737,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   bool _finished = false;
 
   List<UnlinkedClassBuilder> _classes;
+  CodeRangeBuilder _codeRange;
   List<UnlinkedEnumBuilder> _enums;
   List<UnlinkedExecutableBuilder> _executables;
   List<UnlinkedExportNonPublicBuilder> _exports;
@@ -6492,6 +6762,17 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   void set classes(List<UnlinkedClassBuilder> _value) {
     assert(!_finished);
     _classes = _value;
+  }
+
+  @override
+  CodeRangeBuilder get codeRange => _codeRange;
+
+  /**
+   * Code range of the unit.
+   */
+  void set codeRange(CodeRangeBuilder _value) {
+    assert(!_finished);
+    _codeRange = _value;
   }
 
   @override
@@ -6659,8 +6940,9 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     _variables = _value;
   }
 
-  UnlinkedUnitBuilder({List<UnlinkedClassBuilder> classes, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportNonPublicBuilder> exports, List<UnlinkedImportBuilder> imports, List<UnlinkedConstBuilder> libraryAnnotations, UnlinkedDocumentationCommentBuilder libraryDocumentationComment, String libraryName, int libraryNameLength, int libraryNameOffset, List<UnlinkedPartBuilder> parts, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables})
+  UnlinkedUnitBuilder({List<UnlinkedClassBuilder> classes, CodeRangeBuilder codeRange, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportNonPublicBuilder> exports, List<UnlinkedImportBuilder> imports, List<UnlinkedConstBuilder> libraryAnnotations, UnlinkedDocumentationCommentBuilder libraryDocumentationComment, String libraryName, int libraryNameLength, int libraryNameOffset, List<UnlinkedPartBuilder> parts, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables})
     : _classes = classes,
+      _codeRange = codeRange,
       _enums = enums,
       _executables = executables,
       _exports = exports,
@@ -6685,6 +6967,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     assert(!_finished);
     _finished = true;
     fb.Offset offset_classes;
+    fb.Offset offset_codeRange;
     fb.Offset offset_enums;
     fb.Offset offset_executables;
     fb.Offset offset_exports;
@@ -6699,6 +6982,9 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     fb.Offset offset_variables;
     if (!(_classes == null || _classes.isEmpty)) {
       offset_classes = fbBuilder.writeList(_classes.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (_codeRange != null) {
+      offset_codeRange = _codeRange.finish(fbBuilder);
     }
     if (!(_enums == null || _enums.isEmpty)) {
       offset_enums = fbBuilder.writeList(_enums.map((b) => b.finish(fbBuilder)).toList());
@@ -6739,6 +7025,9 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     fbBuilder.startTable();
     if (offset_classes != null) {
       fbBuilder.addOffset(2, offset_classes);
+    }
+    if (offset_codeRange != null) {
+      fbBuilder.addOffset(15, offset_codeRange);
     }
     if (offset_enums != null) {
       fbBuilder.addOffset(12, offset_enums);
@@ -6804,6 +7093,7 @@ class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements idl.Un
   _UnlinkedUnitImpl(this._bp);
 
   List<idl.UnlinkedClass> _classes;
+  idl.CodeRange _codeRange;
   List<idl.UnlinkedEnum> _enums;
   List<idl.UnlinkedExecutable> _executables;
   List<idl.UnlinkedExportNonPublic> _exports;
@@ -6823,6 +7113,12 @@ class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements idl.Un
   List<idl.UnlinkedClass> get classes {
     _classes ??= const fb.ListReader<idl.UnlinkedClass>(const _UnlinkedClassReader()).vTableGet(_bp, 2, const <idl.UnlinkedClass>[]);
     return _classes;
+  }
+
+  @override
+  idl.CodeRange get codeRange {
+    _codeRange ??= const _CodeRangeReader().vTableGet(_bp, 15, null);
+    return _codeRange;
   }
 
   @override
@@ -6915,6 +7211,7 @@ abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (classes.isNotEmpty) _result["classes"] = classes.map((_value) => _value.toJson()).toList();
+    if (codeRange != null) _result["codeRange"] = codeRange.toJson();
     if (enums.isNotEmpty) _result["enums"] = enums.map((_value) => _value.toJson()).toList();
     if (executables.isNotEmpty) _result["executables"] = executables.map((_value) => _value.toJson()).toList();
     if (exports.isNotEmpty) _result["exports"] = exports.map((_value) => _value.toJson()).toList();
@@ -6935,6 +7232,7 @@ abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
   @override
   Map<String, Object> toMap() => {
     "classes": classes,
+    "codeRange": codeRange,
     "enums": enums,
     "executables": executables,
     "exports": exports,
@@ -6959,6 +7257,7 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   bool _finished = false;
 
   List<UnlinkedConstBuilder> _annotations;
+  CodeRangeBuilder _codeRange;
   UnlinkedConstBuilder _constExpr;
   UnlinkedDocumentationCommentBuilder _documentationComment;
   int _inferredTypeSlot;
@@ -6982,6 +7281,17 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
   void set annotations(List<UnlinkedConstBuilder> _value) {
     assert(!_finished);
     _annotations = _value;
+  }
+
+  @override
+  CodeRangeBuilder get codeRange => _codeRange;
+
+  /**
+   * Code range of the variable.
+   */
+  void set codeRange(CodeRangeBuilder _value) {
+    assert(!_finished);
+    _codeRange = _value;
   }
 
   @override
@@ -7148,8 +7458,9 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     _visibleOffset = _value;
   }
 
-  UnlinkedVariableBuilder({List<UnlinkedConstBuilder> annotations, UnlinkedConstBuilder constExpr, UnlinkedDocumentationCommentBuilder documentationComment, int inferredTypeSlot, UnlinkedExecutableBuilder initializer, bool isConst, bool isFinal, bool isStatic, String name, int nameOffset, int propagatedTypeSlot, EntityRefBuilder type, int visibleLength, int visibleOffset})
+  UnlinkedVariableBuilder({List<UnlinkedConstBuilder> annotations, CodeRangeBuilder codeRange, UnlinkedConstBuilder constExpr, UnlinkedDocumentationCommentBuilder documentationComment, int inferredTypeSlot, UnlinkedExecutableBuilder initializer, bool isConst, bool isFinal, bool isStatic, String name, int nameOffset, int propagatedTypeSlot, EntityRefBuilder type, int visibleLength, int visibleOffset})
     : _annotations = annotations,
+      _codeRange = codeRange,
       _constExpr = constExpr,
       _documentationComment = documentationComment,
       _inferredTypeSlot = inferredTypeSlot,
@@ -7168,6 +7479,7 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     assert(!_finished);
     _finished = true;
     fb.Offset offset_annotations;
+    fb.Offset offset_codeRange;
     fb.Offset offset_constExpr;
     fb.Offset offset_documentationComment;
     fb.Offset offset_initializer;
@@ -7175,6 +7487,9 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     fb.Offset offset_type;
     if (!(_annotations == null || _annotations.isEmpty)) {
       offset_annotations = fbBuilder.writeList(_annotations.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (_codeRange != null) {
+      offset_codeRange = _codeRange.finish(fbBuilder);
     }
     if (_constExpr != null) {
       offset_constExpr = _constExpr.finish(fbBuilder);
@@ -7194,6 +7509,9 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     fbBuilder.startTable();
     if (offset_annotations != null) {
       fbBuilder.addOffset(8, offset_annotations);
+    }
+    if (offset_codeRange != null) {
+      fbBuilder.addOffset(14, offset_codeRange);
     }
     if (offset_constExpr != null) {
       fbBuilder.addOffset(5, offset_constExpr);
@@ -7251,6 +7569,7 @@ class _UnlinkedVariableImpl extends Object with _UnlinkedVariableMixin implement
   _UnlinkedVariableImpl(this._bp);
 
   List<idl.UnlinkedConst> _annotations;
+  idl.CodeRange _codeRange;
   idl.UnlinkedConst _constExpr;
   idl.UnlinkedDocumentationComment _documentationComment;
   int _inferredTypeSlot;
@@ -7269,6 +7588,12 @@ class _UnlinkedVariableImpl extends Object with _UnlinkedVariableMixin implement
   List<idl.UnlinkedConst> get annotations {
     _annotations ??= const fb.ListReader<idl.UnlinkedConst>(const _UnlinkedConstReader()).vTableGet(_bp, 8, const <idl.UnlinkedConst>[]);
     return _annotations;
+  }
+
+  @override
+  idl.CodeRange get codeRange {
+    _codeRange ??= const _CodeRangeReader().vTableGet(_bp, 14, null);
+    return _codeRange;
   }
 
   @override
@@ -7355,6 +7680,7 @@ abstract class _UnlinkedVariableMixin implements idl.UnlinkedVariable {
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (annotations.isNotEmpty) _result["annotations"] = annotations.map((_value) => _value.toJson()).toList();
+    if (codeRange != null) _result["codeRange"] = codeRange.toJson();
     if (constExpr != null) _result["constExpr"] = constExpr.toJson();
     if (documentationComment != null) _result["documentationComment"] = documentationComment.toJson();
     if (inferredTypeSlot != 0) _result["inferredTypeSlot"] = inferredTypeSlot;
@@ -7374,6 +7700,7 @@ abstract class _UnlinkedVariableMixin implements idl.UnlinkedVariable {
   @override
   Map<String, Object> toMap() => {
     "annotations": annotations,
+    "codeRange": codeRange,
     "constExpr": constExpr,
     "documentationComment": documentationComment,
     "inferredTypeSlot": inferredTypeSlot,
