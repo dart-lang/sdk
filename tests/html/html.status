@@ -22,7 +22,6 @@ transferables_test: RuntimeError # Dartium JSInterop failure
 worker_api_test: Fail # Issue 10223
 resource_http_test: Fail # Issue 24203
 js_function_getter_trust_types_test: Skip # dartium doesn't support trust types.
-canvasrenderingcontext2d_test/fillText: RuntimeError, OK # Dartium 45 roll
 html/websocket_test/supported: Skip # Dartium 45 roll timesout
 
 [ $compiler == none && $mode == debug && ($runtime == drt || $runtime == dartium ) ]
