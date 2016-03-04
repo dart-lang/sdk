@@ -36,7 +36,7 @@ class IncrementalResolutionMismatch {
 class _SameResolutionValidator implements AstVisitor {
   final bool validateTypes;
 
-  /// The expected node to compare with the visted node.
+  /// The expected node to compare with the visited node.
   AstNode other;
 
   _SameResolutionValidator(this.validateTypes, this.other);
@@ -848,13 +848,19 @@ class _SameResolutionValidator implements AstVisitor {
     if (a == null && b == null) {
       return;
     }
-    if (a.nameOffset != b.nameOffset) {
-      _fail('Expected: ${b.nameOffset}\n  Actual: ${a.nameOffset}');
+    _verifyEqual('nameOffset', a.nameOffset, b.nameOffset);
+    if (a is ElementImpl && b is ElementImpl) {
+      _verifyEqual('codeOffset', a.codeOffset, b.codeOffset);
+      _verifyEqual('codeLength', a.codeLength, b.codeLength);
     }
     if (a is LocalElement && b is LocalElement) {
-      if (a.visibleRange != b.visibleRange) {
-        _fail('Expected: ${b.visibleRange}\nActual: ${a.visibleRange}');
-      }
+      _verifyEqual('visibleRange', a.visibleRange, b.visibleRange);
+    }
+  }
+
+  void _verifyEqual(String name, actual, expected) {
+    if (actual != expected) {
+      _fail('$name\nExpected: $expected\n  Actual: $actual');
     }
   }
 
