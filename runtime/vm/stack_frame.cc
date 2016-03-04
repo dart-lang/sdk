@@ -112,19 +112,15 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
       // visit frame slots which are marked as having objects.
       //
       // The layout of the frame is (lower addresses to the right):
-      // | spill slots | outgoing arguments | saved registers |
-      // |XXXXXXXXXXXXX|--------------------|XXXXXXXXXXXXXXXXX|
+      // | spill slots | outgoing arguments | saved registers | slow-path args |
+      // |XXXXXXXXXXXXX|--------------------|XXXXXXXXXXXXXXXXX|XXXXXXXXXXXXXXXX|
       //
       // The spill slots and any saved registers are described in the stack
       // map.  The outgoing arguments are assumed to be tagged; the number
       // of outgoing arguments is not explicitly tracked.
-      //
-      // TODO(kmillikin): This does not handle slow path calls with
-      // arguments, where the arguments are pushed after the live registers.
-      // Enable such calls.
       intptr_t length = map.Length();
       // Spill slots are at the 'bottom' of the frame.
-      intptr_t spill_slot_count = length - map.RegisterBitCount();
+      intptr_t spill_slot_count = length - map.SlowPathBitCount();
       for (intptr_t bit = 0; bit < spill_slot_count; ++bit) {
         if (map.IsObject(bit)) {
           visitor->VisitPointer(last);

@@ -66,7 +66,6 @@ class AotOptimizer : public FlowGraphVisitor {
 
   bool TryReplaceWithIndexedOp(InstanceCallInstr* call);
 
-
   bool TryReplaceWithBinaryOp(InstanceCallInstr* call, Token::Kind op_kind);
   bool TryReplaceWithUnaryOp(InstanceCallInstr* call, Token::Kind op_kind);
 
@@ -157,8 +156,6 @@ class AotOptimizer : public FlowGraphVisitor {
   void AppendExtractNthOutputForMerged(Definition* instr, intptr_t ix,
                                        Representation rep, intptr_t cid);
   bool TryStringLengthOneEquality(InstanceCallInstr* call, Token::Kind op_kind);
-
-  void InstanceCallNoopt(InstanceCallInstr* instr);
 
   RawField* GetField(intptr_t class_id, const String& field_name);
 

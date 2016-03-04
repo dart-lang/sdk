@@ -2885,6 +2885,91 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
 }
 
 
+class CheckedSmiSlowPath : public SlowPathCode {
+ public:
+  CheckedSmiSlowPath(CheckedSmiOpInstr* instruction, intptr_t try_index)
+      : instruction_(instruction), try_index_(try_index) { }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    if (Assembler::EmittingComments()) {
+      __ Comment("slow path smi operation");
+    }
+    __ Bind(entry_label());
+    LocationSummary* locs = instruction_->locs();
+    Register result = locs->out(0).reg();
+    locs->live_registers()->Remove(Location::RegisterLocation(result));
+
+    compiler->SaveLiveRegisters(locs);
+    __ Push(locs->in(0).reg());
+    __ Push(locs->in(1).reg());
+    compiler->EmitMegamorphicInstanceCall(
+        *instruction_->call()->ic_data(),
+        instruction_->call()->ArgumentCount(),
+        instruction_->call()->deopt_id(),
+        instruction_->call()->token_pos(),
+        locs,
+        try_index_,
+        /* slow_path_argument_count = */ 2);
+    __ mov(result, V0);
+    compiler->RestoreLiveRegisters(locs);
+    __ b(exit_label());
+  }
+
+ private:
+  CheckedSmiOpInstr* instruction_;
+  intptr_t try_index_;
+};
+
+
+LocationSummary* CheckedSmiOpInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new(zone) LocationSummary(
+      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_in(1, Location::RequiresRegister());
+  summary->set_out(0, Location::RequiresRegister());
+  return summary;
+}
+
+
+void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  CheckedSmiSlowPath* slow_path =
+      new CheckedSmiSlowPath(this, compiler->CurrentTryIndex());
+  compiler->AddSlowPathCode(slow_path);
+  // Test operands if necessary.
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  Register result = locs()->out(0).reg();
+  __ or_(result, left, right);
+  __ andi(CMPRES1, result, Immediate(kSmiTagMask));
+  __ bne(CMPRES1, ZR, slow_path->entry_label());
+  switch (op_kind()) {
+    case Token::kADD:
+      __ AdduDetectOverflow(result, left, right, CMPRES1);
+      __ bltz(CMPRES1, slow_path->entry_label());
+      break;
+    case Token::kSUB:
+      __ SubuDetectOverflow(result, left, right, CMPRES1);
+      __ bltz(CMPRES1, slow_path->entry_label());
+      break;
+    case Token::kBIT_OR:
+      // Operation part of combined smi check.
+      break;
+    case Token::kBIT_AND:
+      __ and_(result, left, right);
+      break;
+    case Token::kBIT_XOR:
+      __ xor_(result, left, right);
+      break;
+    default:
+      UNIMPLEMENTED();
+  }
+  __ Bind(slow_path->exit_label());
+}
+
+
 LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
   const intptr_t kNumInputs = 2;

@@ -2406,8 +2406,11 @@ bool AotOptimizer::IsBlackListedForInlining(intptr_t call_deopt_id) {
   return false;
 }
 
-// Special optimizations when running in --noopt mode.
-void AotOptimizer::InstanceCallNoopt(InstanceCallInstr* instr) {
+
+// Tries to optimize instance call by replacing it with a faster instruction
+// (e.g, binary op, field load, ..).
+void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
+  ASSERT(FLAG_precompiled_mode);
   // TODO(srdjan): Investigate other attempts, as they are not allowed to
   // deoptimize.
 
@@ -2484,6 +2487,28 @@ void AotOptimizer::InstanceCallNoopt(InstanceCallInstr* instr) {
       return;
     }
   }
+  switch (instr->token_kind()) {
+    case Token::kBIT_OR:
+    case Token::kBIT_XOR:
+    case Token::kBIT_AND:
+    case Token::kADD:
+    case Token::kSUB: {
+      if (HasOnlyTwoOf(*instr->ic_data(), kSmiCid)) {
+        Definition* left = instr->ArgumentAt(0);
+        Definition* right = instr->ArgumentAt(1);
+        CheckedSmiOpInstr* smi_op =
+            new(Z) CheckedSmiOpInstr(instr->token_kind(),
+                                     new(Z) Value(left),
+                                     new(Z) Value(right),
+                                     instr);
+
+        ReplaceCall(instr, smi_op);
+        return;
+      }
+    }
+    default:
+      break;
+  }
 
   // More than one targets. Generate generic polymorphic call without
   // deoptimization.
@@ -2539,16 +2564,7 @@ void AotOptimizer::InstanceCallNoopt(InstanceCallInstr* instr) {
         new(Z) PolymorphicInstanceCallInstr(instr, ic_data,
                                             /* with_checks = */ false);
     instr->ReplaceWith(call, current_iterator());
-    return;
   }
-}
-
-
-// Tries to optimize instance call by replacing it with a faster instruction
-// (e.g, binary op, field load, ..).
-void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
-  ASSERT(FLAG_precompiled_mode);
-  InstanceCallNoopt(instr);
 }
 
 

@@ -808,7 +808,8 @@ void FlowGraphCompiler::AddDeoptIndexAtCall(intptr_t deopt_id,
 // and FlowGraphCompiler::SlowPathEnvironmentFor.
 // See StackFrame::VisitObjectPointers for the details of how stack map is
 // interpreted.
-void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs) {
+void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs,
+                                        intptr_t slow_path_argument_count) {
   if (is_optimizing() || locs->live_registers()->HasUntaggedValues()) {
     const intptr_t spill_area_size = is_optimizing() ?
         flow_graph_.graph_entry()->spill_slot_count() : 0;
@@ -868,10 +869,17 @@ void FlowGraphCompiler::RecordSafepoint(LocationSummary* locs) {
       }
     }
 
-    intptr_t register_bit_count = bitmap->Length() - spill_area_size;
+    // Arguments pushed on top of live registers in the slow path are tagged.
+    for (intptr_t i = 0; i < slow_path_argument_count; ++i) {
+      bitmap->Set(bitmap->Length(), true);
+    }
+
+    // The slow path area Outside the spill area contains are live registers
+    // and pushed arguments for calls inside the slow path.
+    intptr_t slow_path_bit_count = bitmap->Length() - spill_area_size;
     stackmap_table_builder()->AddEntry(assembler()->CodeSize(),
                                        bitmap,
-                                       register_bit_count);
+                                       slow_path_bit_count);
   }
 }
 
@@ -1153,7 +1161,8 @@ void FlowGraphCompiler::GenerateInstanceCall(
   }
   if (FLAG_always_megamorphic_calls) {
     EmitMegamorphicInstanceCall(ic_data, argument_count,
-                                deopt_id, token_pos, locs);
+                                deopt_id, token_pos, locs,
+                                CatchClauseNode::kInvalidTryIndex);
     return;
   }
   ASSERT(!ic_data.IsNull());
@@ -1180,7 +1189,8 @@ void FlowGraphCompiler::GenerateInstanceCall(
 
   if (is_optimizing()) {
     EmitMegamorphicInstanceCall(ic_data, argument_count,
-                                deopt_id, token_pos, locs);
+                                deopt_id, token_pos, locs,
+                                CatchClauseNode::kInvalidTryIndex);
     return;
   }
 

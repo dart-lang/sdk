@@ -460,7 +460,8 @@ class FlowGraphCompiler : public ValueObject {
       intptr_t deopt_id,
       TokenPosition token_pos,
       LocationSummary* locs,
-      intptr_t try_index = CatchClauseNode::kInvalidTryIndex);
+      intptr_t try_index,
+      intptr_t slow_path_argument_count = 0);
 
   void EmitSwitchableInstanceCall(const ICData& ic_data,
                                   intptr_t argument_count,
@@ -514,7 +515,8 @@ class FlowGraphCompiler : public ValueObject {
                             intptr_t deopt_id,
                             TokenPosition token_pos);
 
-  void RecordSafepoint(LocationSummary* locs);
+  void RecordSafepoint(LocationSummary* locs,
+                       intptr_t slow_path_argument_count = 0);
 
   Label* AddDeoptStub(intptr_t deopt_id,
                       ICData::DeoptReasonId reason,

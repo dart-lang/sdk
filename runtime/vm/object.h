@@ -4164,10 +4164,10 @@ class Stackmap : public Object {
     StoreNonPointer(&raw_ptr()->pc_offset_, value);
   }
 
-  intptr_t RegisterBitCount() const { return raw_ptr()->register_bit_count_; }
-  void SetRegisterBitCount(intptr_t register_bit_count) const {
-    ASSERT(register_bit_count < kMaxInt32);
-    StoreNonPointer(&raw_ptr()->register_bit_count_, register_bit_count);
+  intptr_t SlowPathBitCount() const { return raw_ptr()->slow_path_bit_count_; }
+  void SetSlowPathBitCount(intptr_t bit_count) const {
+    ASSERT(bit_count < kMaxInt32);
+    StoreNonPointer(&raw_ptr()->slow_path_bit_count_, bit_count);
   }
 
   bool Equals(const Stackmap& other) const {

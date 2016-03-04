@@ -665,6 +665,15 @@ void UnaryIntegerOpInstr::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void CheckedSmiOpInstr::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s", Token::Str(op_kind()));
+  f->Print(", ");
+  left()->PrintTo(f);
+  f->Print(", ");
+  right()->PrintTo(f);
+}
+
+
 void BinaryIntegerOpInstr::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", Token::Str(op_kind()));
   if (is_truncating()) {

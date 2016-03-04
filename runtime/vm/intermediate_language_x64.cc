@@ -2793,6 +2793,109 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
 }
 
 
+class CheckedSmiSlowPath : public SlowPathCode {
+ public:
+  CheckedSmiSlowPath(CheckedSmiOpInstr* instruction, intptr_t try_index)
+      : instruction_(instruction), try_index_(try_index) { }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    if (Assembler::EmittingComments()) {
+      __ Comment("slow path smi operation");
+    }
+    __ Bind(entry_label());
+    LocationSummary* locs = instruction_->locs();
+    Register result = locs->out(0).reg();
+    locs->live_registers()->Remove(Location::RegisterLocation(result));
+
+    compiler->SaveLiveRegisters(locs);
+    __ pushq(locs->in(0).reg());
+    __ pushq(locs->in(1).reg());
+    compiler->EmitMegamorphicInstanceCall(
+        *instruction_->call()->ic_data(),
+        instruction_->call()->ArgumentCount(),
+        instruction_->call()->deopt_id(),
+        instruction_->call()->token_pos(),
+        locs,
+        try_index_,
+        /* slow_path_argument_count = */ 2);
+    __ MoveRegister(result, RAX);
+    compiler->RestoreLiveRegisters(locs);
+    __ jmp(exit_label());
+  }
+
+ private:
+  CheckedSmiOpInstr* instruction_;
+  intptr_t try_index_;
+};
+
+
+LocationSummary* CheckedSmiOpInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new(zone) LocationSummary(
+      zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_in(1, Location::RequiresRegister());
+  switch (op_kind()) {
+    case Token::kADD:
+    case Token::kSUB:
+      summary->set_out(0, Location::RequiresRegister());
+      break;
+    case Token::kBIT_OR:
+    case Token::kBIT_AND:
+    case Token::kBIT_XOR:
+      summary->set_out(0, Location::SameAsFirstInput());
+      break;
+    default:
+      UNIMPLEMENTED();
+  }
+  return summary;
+}
+
+
+void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  CheckedSmiSlowPath* slow_path =
+      new CheckedSmiSlowPath(this, compiler->CurrentTryIndex());
+  compiler->AddSlowPathCode(slow_path);
+  // Test operands if necessary.
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  Register result = locs()->out(0).reg();
+  __ movq(TMP, left);
+  __ orq(TMP, right);
+  __ testq(TMP, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, slow_path->entry_label());
+  switch (op_kind()) {
+    case Token::kADD:
+      __ movq(result, left);
+      __ addq(result, right);
+      __ j(OVERFLOW, slow_path->entry_label());
+      break;
+    case Token::kSUB:
+      __ movq(result, left);
+      __ subq(result, right);
+      __ j(OVERFLOW, slow_path->entry_label());
+      break;
+    case Token::kBIT_OR:
+      ASSERT(left == result);
+      __ orq(result, right);
+      break;
+    case Token::kBIT_AND:
+      ASSERT(left == result);
+      __ andq(result, right);
+      break;
+    case Token::kBIT_XOR:
+      ASSERT(left == result);
+      __ xorq(result, right);
+      break;
+    default:
+      UNIMPLEMENTED();
+  }
+  __ Bind(slow_path->exit_label());
+}
+
+
 static bool CanBeImmediate(const Object& constant) {
   return constant.IsSmi() &&
     Immediate(reinterpret_cast<int64_t>(constant.raw())).is_int32();

@@ -479,6 +479,7 @@ class EmbeddedArray<T, 0> {
   M(AllocateUninitializedContext)                                              \
   M(CloneContext)                                                              \
   M(BinarySmiOp)                                                               \
+  M(CheckedSmiOp)                                                              \
   M(BinaryInt32Op)                                                             \
   M(UnarySmiOp)                                                                \
   M(UnaryDoubleOp)                                                             \
@@ -2066,7 +2067,6 @@ class PushArgumentInstr : public TemplateDefinition<1, NoThrow> {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual EffectSet Effects() const { return EffectSet::None(); }
-
 
   virtual TokenPosition token_pos() const {
     return TokenPosition::kPushArgument;
@@ -6865,6 +6865,39 @@ class UnaryMintOpInstr : public UnaryIntegerOpInstr {
 
  private:
   DISALLOW_COPY_AND_ASSIGN(UnaryMintOpInstr);
+};
+
+
+class CheckedSmiOpInstr : public TemplateDefinition<2, Throws> {
+ public:
+  CheckedSmiOpInstr(Token::Kind op_kind,
+                    Value* left,
+                    Value* right,
+                    InstanceCallInstr* call)
+      : TemplateDefinition(call->deopt_id()),
+        call_(call),
+        op_kind_(op_kind) {
+    SetInputAt(0, left);
+    SetInputAt(1, right);
+  }
+
+  InstanceCallInstr* call() const { return call_; }
+  Token::Kind op_kind() const { return op_kind_; }
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
+
+  virtual bool CanDeoptimize() const { return true; }
+
+  virtual EffectSet Effects() const { return EffectSet::All(); }
+
+  PRINT_OPERANDS_TO_SUPPORT
+
+  DECLARE_INSTRUCTION(CheckedSmiOp)
+
+ private:
+  InstanceCallInstr* call_;
+  const Token::Kind op_kind_;
+  DISALLOW_COPY_AND_ASSIGN(CheckedSmiOpInstr);
 };
 
 

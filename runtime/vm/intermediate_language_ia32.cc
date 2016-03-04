@@ -2764,6 +2764,19 @@ static void EmitSmiShiftLeft(FlowGraphCompiler* compiler,
 }
 
 
+LocationSummary* CheckedSmiOpInstr::MakeLocationSummary(Zone* zone,
+                                                        bool opt) const {
+  // Only for precompiled code, not on ia32 currently.
+  UNIMPLEMENTED();
+  return NULL;
+}
+
+
+void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // Only for precompiled code, not on ia32 currently.
+  UNIMPLEMENTED();
+}
+
 LocationSummary* BinarySmiOpInstr::MakeLocationSummary(Zone* zone,
                                                        bool opt) const {
   const intptr_t kNumInputs = 2;

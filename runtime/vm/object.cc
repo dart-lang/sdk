@@ -11501,7 +11501,7 @@ void Stackmap::SetBit(intptr_t bit_index, bool value) const {
 
 RawStackmap* Stackmap::New(intptr_t pc_offset,
                            BitmapBuilder* bmap,
-                           intptr_t register_bit_count) {
+                           intptr_t slow_path_bit_count) {
   ASSERT(Object::stackmap_class() != Class::null());
   ASSERT(bmap != NULL);
   Stackmap& result = Stackmap::Handle();
@@ -11533,13 +11533,13 @@ RawStackmap* Stackmap::New(intptr_t pc_offset,
   for (intptr_t i = 0; i < length; ++i) {
     result.SetBit(i, bmap->Get(i));
   }
-  result.SetRegisterBitCount(register_bit_count);
+  result.SetSlowPathBitCount(slow_path_bit_count);
   return result.raw();
 }
 
 
 RawStackmap* Stackmap::New(intptr_t length,
-                           intptr_t register_bit_count,
+                           intptr_t slow_path_bit_count,
                            intptr_t pc_offset) {
   ASSERT(Object::stackmap_class() != Class::null());
   Stackmap& result = Stackmap::Handle();
@@ -11567,7 +11567,7 @@ RawStackmap* Stackmap::New(intptr_t length,
   // address.
   ASSERT(pc_offset >= 0);
   result.SetPcOffset(pc_offset);
-  result.SetRegisterBitCount(register_bit_count);
+  result.SetSlowPathBitCount(slow_path_bit_count);
   return result.raw();
 }
 
