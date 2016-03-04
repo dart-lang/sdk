@@ -105,20 +105,13 @@ element_types_test/supported_meter: RuntimeError # Issue 18573
 
 [ $runtime == chrome ]
 touchevent_test/supported: Fail # Touch events are only supported on touch devices
-element_animate_test/simple_timing: RuntimeError # Please triage this failure
 element_types_test/supported_object: RuntimeError # Issue 25155
 element_types_test/supported_embed: RuntimeError # Issue 25155
 svgelement_test/PathElement: RuntimeError # Issue 25665
 
-[ $runtime == chrome && $cps_ir == false ]
-element_animate_test/omit_timing: RuntimeError # Also timing out on MacOS. Issue 23507
-element_animate_test/timing_dict: RuntimeError # Also timing out on MacOS. Issue 23507
-
 [ $runtime == chrome && $system == macos ]
 canvasrenderingcontext2d_test/drawImage_video_element: Skip # Times out. Please triage this failure.
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Skip # Times out. Please triage this failure.
-element_animate_test/omit_timing: Skip # Timing out on MacOS. Issue 23507
-element_animate_test/timing_dict: Skip # Timing out on MacOS. Issue 23507
 transition_event_test/functional: Skip # Times out. Issue 22167
 request_animation_frame_test: Skip # Times out. Issue 22167
 
