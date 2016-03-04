@@ -744,6 +744,7 @@
         'libdart_builtin',
         'libdart_io',
         'generate_resources_cc_file#host',
+        'bin/zlib.gyp:zlib_dart',
       ],
       'include_dirs': [
         '..',
