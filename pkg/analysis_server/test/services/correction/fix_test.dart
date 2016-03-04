@@ -252,6 +252,22 @@ class Test {
 ''');
   }
 
+  test_addIgnoreWarning() async {
+    resolveTestUnit('''
+main() {
+  int x = ''; //invalid_assignment
+}
+''');
+    await assertHasFix(
+        DartFixKind.IGNORE_ERROR,
+        '''
+main() {
+  //ignore: invalid_assignment
+  int x = ''; //invalid_assignment
+}
+''');
+  }
+
   test_addMissingParameter_function_positional_hasNamed() async {
     resolveTestUnit('''
 test({int a}) {}
@@ -473,6 +489,8 @@ main() {
       }
       if (error.message == message2) {
         List<Fix> fixes = await _computeFixes(error);
+        // remove ignore fix
+        fixes.removeWhere((Fix fix) => fix.kind == DartFixKind.IGNORE_ERROR);
         // has exactly one fix
         expect(fixes, hasLength(1));
         Fix fix = fixes[0];

@@ -143,6 +143,15 @@ class FixProcessor {
         new NodeLocator2(errorOffset, errorEnd - 1).searchWithin(unit);
     // analyze ErrorCode
     ErrorCode errorCode = error.errorCode;
+    // add ignore fix for ignorable errors.
+    // note that this fix needs to be added before fixes that side-effect
+    // the utils instance.
+    if (errorCode is StaticWarningCode ||
+        errorCode is StaticTypeWarningCode ||
+        errorCode is HintCode ||
+        errorCode is LintCode) {
+      _addFix_ignore(errorCode);
+    }
     if (errorCode == StaticWarningCode.UNDEFINED_CLASS_BOOLEAN) {
       _addFix_boolInsteadOfBoolean();
     }
@@ -1381,6 +1390,18 @@ class FixProcessor {
         _addFix(DartFixKind.CREATE_FILE, [source.shortName]);
       }
     }
+  }
+
+  void _addFix_ignore(ErrorCode errorCode) {
+    int offset = node.offset;
+    int lineOffset = utils.getLineThis(offset);
+
+    exitPosition = new Position(file, lineOffset - 1);
+    String indent = utils.getLinePrefix(offset);
+    String errorCodeName = errorCode.name.toLowerCase();
+    String content = '$indent//ignore: $errorCodeName$eol';
+    _addReplaceEdit(rf.rangeStartLength(lineOffset, 0), content);
+    _addFix(DartFixKind.IGNORE_ERROR, [errorCodeName]);
   }
 
   void _addFix_illegalAsyncReturnType() {

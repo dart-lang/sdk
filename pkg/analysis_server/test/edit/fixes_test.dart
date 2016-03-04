@@ -9,6 +9,7 @@ import 'dart:async';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
+import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:plugin/manager.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart' hide ERROR;
@@ -37,6 +38,7 @@ class FixesTest extends AbstractAnalysisTest {
     addTestFile('''
 main() {
   Future<String> x = null;
+  print(x);
 }
 ''');
     await waitForTasksFinished();
@@ -46,9 +48,11 @@ main() {
     expect(error.severity, AnalysisErrorSeverity.WARNING);
     expect(error.type, AnalysisErrorType.STATIC_WARNING);
     List<SourceChange> fixes = errorFixes[0].fixes;
-    expect(fixes, hasLength(2));
+    expect(fixes, hasLength(3));
     expect(fixes[0].message, matches('Import library'));
     expect(fixes[1].message, matches('Create class'));
+    expect(
+        fixes[2].message, matches("Ignore error with code 'undefined_class'"));
   }
 
   test_hasFixes() async {
