@@ -23,6 +23,17 @@
     `SecurityContext.usePrivateKeyBytes`, for use as the password for PKCS12
     data.
 
+### Dartium
+
+  * The Chrome-based tools that ship as part of the Dart SDK – Dartium and
+    content shell – are now based on Chrome version 45 (instead of Chrome 39).
+  * Dart browser libraries (`dart:html`, `dart:svg`, etc) have not been updated.
+    * These are still based on Chrome 39.
+    * These APIs will be updated in a future release.
+  * Note that there are experimental APIs which have changed in the underlying
+    browser, and will not work with the older libraries.
+    For example, `Element.animate`.
+
 ### Service protocol changes
 
 * Fixed a documentation bug where the field `extensionRPCs` in `Isolate`
