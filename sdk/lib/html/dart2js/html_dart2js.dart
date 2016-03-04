@@ -395,7 +395,6 @@ class AnimationEffectTiming extends Interceptor {
   @DocsEditable()
   @Experimental() // untriaged
   @Creates('Null')
-  @Returns('num|String')
   Object duration;
 
   @DomName('AnimationEffectTiming.easing')
@@ -2454,7 +2453,7 @@ class CanvasRenderingContext2D extends Interceptor implements CanvasRenderingCon
   @DomName('CanvasRenderingContext2D.createImageDataFromImageData')
   @DocsEditable()
   ImageData createImageDataFromImageData(ImageData imagedata) =>
-    JS('ImageData', '#.createImageData(#)', this, imagedata);
+    JS('ImageData', '#.createImageData(#, #)', this, imagedata);
 
   /**
    * Sets the color used inside shapes.
@@ -2832,6 +2831,71 @@ abstract class ChildNode extends Interceptor {
   void before(Object nodes);
 
   void remove();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
+@DomName('CHROMIUMSubscribeUniform')
+@Experimental() // untriaged
+@Native("CHROMIUMSubscribeUniform")
+class ChromiumSubscribeUniform extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory ChromiumSubscribeUniform._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('CHROMIUMSubscribeUniform.MOUSE_POSITION_CHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MOUSE_POSITION_CHROMIUM = 0x924C;
+
+  @DomName('CHROMIUMSubscribeUniform.SUBSCRIBED_VALUES_BUFFER_CHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SUBSCRIBED_VALUES_BUFFER_CHROMIUM = 0x924B;
+
+  @JSName('bindValuebufferCHROMIUM')
+  @DomName('CHROMIUMSubscribeUniform.bindValuebufferCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bindValuebufferChromium(int target, ChromiumValuebuffer buffer) native;
+
+  @JSName('createValuebufferCHROMIUM')
+  @DomName('CHROMIUMSubscribeUniform.createValuebufferCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ChromiumValuebuffer createValuebufferChromium() native;
+
+  @JSName('deleteValuebufferCHROMIUM')
+  @DomName('CHROMIUMSubscribeUniform.deleteValuebufferCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deleteValuebufferChromium(ChromiumValuebuffer buffer) native;
+
+  @JSName('isValuebufferCHROMIUM')
+  @DomName('CHROMIUMSubscribeUniform.isValuebufferCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isValuebufferChromium(ChromiumValuebuffer buffer) native;
+
+  @JSName('populateSubscribedValuesCHROMIUM')
+  @DomName('CHROMIUMSubscribeUniform.populateSubscribedValuesCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void populateSubscribedValuesChromium(int target) native;
+
+  @JSName('subscribeValueCHROMIUM')
+  @DomName('CHROMIUMSubscribeUniform.subscribeValueCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void subscribeValueChromium(int target, int subscriptions) native;
+
+  @JSName('uniformValuebufferCHROMIUM')
+  @DomName('CHROMIUMSubscribeUniform.uniformValuebufferCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniformValuebufferChromium(UniformLocation location, int target, int subscription) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4112,6 +4176,16 @@ class CssStyleDeclaration  extends Interceptor with
   @DomName('CSSStyleDeclaration.parentRule')
   @DocsEditable()
   final CssRule parentRule;
+
+  @DomName('CSSStyleDeclaration.__getter__')
+  @DocsEditable()
+  @Experimental() // untriaged
+  @Creates('Null')
+  Object __getter__(String name) native;
+
+  @DomName('CSSStyleDeclaration.__setter__')
+  @DocsEditable()
+  void __setter__(String property, String propertyValue) native;
 
   @DomName('CSSStyleDeclaration.getPropertyPriority')
   @DocsEditable()
@@ -25754,6 +25828,8 @@ class Notification extends EventTarget {
   @DomName('Notification.data')
   @DocsEditable()
   @Experimental() // untriaged
+  @annotation_Creates_SerializedScriptValue
+  @annotation_Returns_SerializedScriptValue
   final Object data;
 
   @DomName('Notification.dir')
@@ -26473,6 +26549,24 @@ class Performance extends EventTarget {
   // https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/UserTiming/Overview.html#extensions-performance-interface
   @Experimental()
   void clearMeasures(String measureName) native;
+
+  @DomName('Performance.getEntries')
+  @DocsEditable()
+  // http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute
+  @Experimental()
+  List<PerformanceEntry> getEntries() native;
+
+  @DomName('Performance.getEntriesByName')
+  @DocsEditable()
+  // http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute
+  @Experimental()
+  List<PerformanceEntry> getEntriesByName(String name, String entryType) native;
+
+  @DomName('Performance.getEntriesByType')
+  @DocsEditable()
+  // http://www.w3.org/TR/performance-timeline/#sec-window.performance-attribute
+  @Experimental()
+  List<PerformanceEntry> getEntriesByType(String entryType) native;
 
   @DomName('Performance.mark')
   @DocsEditable()
@@ -27726,6 +27820,11 @@ class PushMessageData extends Interceptor {
   @Experimental() // untriaged
   Blob blob() native;
 
+  @DomName('PushMessageData.json')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Object json() native;
+
   @DomName('PushMessageData.text')
   @DocsEditable()
   @Experimental() // untriaged
@@ -28125,15 +28224,6 @@ class RelatedEvent extends Event {
   @Experimental() // untriaged
   final dynamic _get_relatedTarget;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-
-@DomName('RequestAnimationFrameCallback')
-typedef void RequestAnimationFrameCallback(num highResTime);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -29797,34 +29887,16 @@ class ServiceWorkerGlobalScope extends WorkerGlobalScope {
   @Experimental() // untriaged
   Stream<MessageEvent> get onMessage => messageEvent.forTarget(this);
 }
-// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
 
-
-// TODO(alanknight): Provide a nicer constructor that uses named parameters
-// rather than an initialization map.
+@DocsEditable()
 @DomName('ServiceWorkerMessageEvent')
 @Experimental() // untriaged
 @Native("ServiceWorkerMessageEvent")
 class ServiceWorkerMessageEvent extends Event {
-
-  // TODO(alanknight): This really should be generated by the
-  // _OutputConversion in the systemnative.py script, but that doesn't
-  // use those conversions right now, so do this as a one-off.
-  @DomName('ServiceWorkerMessageEvent.data')
-  @DocsEditable()
-  dynamic get data => convertNativeToDart_SerializedScriptValue(this._get_data);
-
-  @JSName('data')
-  @DomName('ServiceWorkerMessageEvent.data')
-  @DocsEditable()
-  @annotation_Creates_SerializedScriptValue
-  @annotation_Returns_SerializedScriptValue
-  final dynamic _get_data;
-
   // To suppress missing implicit constructor warnings.
   factory ServiceWorkerMessageEvent._() { throw new UnsupportedError("Not supported"); }
 
@@ -29839,6 +29911,13 @@ class ServiceWorkerMessageEvent extends Event {
   }
   static ServiceWorkerMessageEvent _create_1(type, eventInitDict) => JS('ServiceWorkerMessageEvent', 'new ServiceWorkerMessageEvent(#,#)', type, eventInitDict);
   static ServiceWorkerMessageEvent _create_2(type) => JS('ServiceWorkerMessageEvent', 'new ServiceWorkerMessageEvent(#)', type);
+
+  @DomName('ServiceWorkerMessageEvent.data')
+  @DocsEditable()
+  @Experimental() // untriaged
+  // TODO(jacobr): we need to actually convert to a SerializedScriptValue
+  @Creates('=Object')
+  final Object data;
 
   @DomName('ServiceWorkerMessageEvent.lastEventId')
   @DocsEditable()
@@ -29858,10 +29937,10 @@ class ServiceWorkerMessageEvent extends Event {
   @DomName('ServiceWorkerMessageEvent.source')
   @DocsEditable()
   @Experimental() // untriaged
+  // TODO(jacobr): this isn't quite right.
   @Creates('Null')
-  @Returns('ServiceWorker|MessagePort')
+  @Returns('EventTarget|=Object')
   final Object source;
-
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34068,14 +34147,12 @@ class VttCue extends TextTrackCue {
   @DomName('VTTCue.line')
   @DocsEditable()
   @Experimental() // untriaged
-  @Returns('num|String')
-  Object line;
+  num line;
 
   @DomName('VTTCue.position')
   @DocsEditable()
   @Experimental() // untriaged
-  @Returns('num|String')
-  Object position;
+  num position;
 
   @DomName('VTTCue.regionId')
   @DocsEditable()
@@ -37160,6 +37237,21 @@ class WorkerPerformance extends EventTarget {
   @Experimental() // untriaged
   void clearMeasures(String measureName) native;
 
+  @DomName('WorkerPerformance.getEntries')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<PerformanceEntry> getEntries() native;
+
+  @DomName('WorkerPerformance.getEntriesByName')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<PerformanceEntry> getEntriesByName(String name, String entryType) native;
+
+  @DomName('WorkerPerformance.getEntriesByType')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<PerformanceEntry> getEntriesByType(String entryType) native;
+
   @DomName('WorkerPerformance.mark')
   @DocsEditable()
   @Experimental() // untriaged
@@ -37169,6 +37261,11 @@ class WorkerPerformance extends EventTarget {
   @DocsEditable()
   @Experimental() // untriaged
   void measure(String measureName, String startMark, String endMark) native;
+
+  @DomName('WorkerPerformance.now')
+  @DocsEditable()
+  @Experimental() // untriaged
+  double now() native;
 
   @JSName('webkitClearResourceTimings')
   @DomName('WorkerPerformance.webkitClearResourceTimings')
