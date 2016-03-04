@@ -1142,6 +1142,11 @@ int main(int argc, char** argv) {
     SetupForGenericSnapshotCreation();
     CreateAndWriteSnapshot();
   }
+  error = Dart_Cleanup();
+  if (error != NULL) {
+    Log::PrintErr("VM cleanup failed: %s\n", error);
+    free(error);
+  }
   EventHandler::Stop();
   return 0;
 }

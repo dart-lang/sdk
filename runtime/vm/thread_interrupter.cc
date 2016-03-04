@@ -163,8 +163,8 @@ void ThreadInterrupter::ThreadMain(uword parameters) {
   }
   {
     intptr_t interrupted_thread_count = 0;
-    current_wait_time_ = interrupt_period_;
     MonitorLocker wait_ml(monitor_);
+    current_wait_time_ = interrupt_period_;
     while (!shutdown_) {
       intptr_t r = wait_ml.WaitMicros(current_wait_time_);
 
