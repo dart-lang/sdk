@@ -11822,18 +11822,6 @@ class BlinkPerformance extends BlinkEventTarget {
 
   clearMeasures_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "clearMeasures", [__arg_0]);
 
-  getEntries_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getEntries", []);
-
-  getEntriesByName_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getEntriesByName", []);
-
-  getEntriesByName_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getEntriesByName", [__arg_0]);
-
-  getEntriesByName_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "getEntriesByName", [__arg_0, __arg_1]);
-
-  getEntriesByType_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getEntriesByType", []);
-
-  getEntriesByType_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getEntriesByType", [__arg_0]);
-
   mark_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "mark", []);
 
   mark_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "mark", [__arg_0]);
@@ -12331,8 +12319,6 @@ class BlinkPushMessageData {
   arrayBuffer_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "arrayBuffer", []);
 
   blob_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "blob", []);
-
-  json_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "json", []);
 
   text_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "text", []);
 
@@ -22959,18 +22945,6 @@ class BlinkWorkerPerformance extends BlinkEventTarget {
 
   clearMeasures_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "clearMeasures", [__arg_0]);
 
-  getEntries_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getEntries", []);
-
-  getEntriesByName_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getEntriesByName", []);
-
-  getEntriesByName_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getEntriesByName", [__arg_0]);
-
-  getEntriesByName_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "getEntriesByName", [__arg_0, __arg_1]);
-
-  getEntriesByType_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "getEntriesByType", []);
-
-  getEntriesByType_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "getEntriesByType", [__arg_0]);
-
   mark_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "mark", []);
 
   mark_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "mark", [__arg_0]);
@@ -22980,8 +22954,6 @@ class BlinkWorkerPerformance extends BlinkEventTarget {
   measure_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "measure", [__arg_0, __arg_1]);
 
   measure_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "measure", [__arg_0, __arg_1, __arg_2]);
-
-  now_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "now", []);
 
   webkitClearResourceTimings_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "webkitClearResourceTimings", []);
 

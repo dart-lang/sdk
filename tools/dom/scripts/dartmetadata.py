@@ -29,6 +29,11 @@ _logger = logging.getLogger('dartmetadata')
 
 _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
 
+    'AnimationEffectTiming.duration': [
+      "@Creates('Null')",
+      "@Returns('num|String')",
+     ],
+
     'ArrayBufferView': [
       "@Creates('TypedData')",
       "@Returns('TypedData|Null')",
@@ -54,6 +59,10 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
     'CanvasRenderingContext2D.strokeStyle': [
       "@Creates('String|CanvasGradient|CanvasPattern')",
       "@Returns('String|CanvasGradient|CanvasPattern')",
+    ],
+
+    'CryptoKey.algorithm': [
+      "@Creates('Null')",
     ],
 
     'CustomEvent._detail': [
@@ -290,6 +299,16 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@annotation_Returns_SerializedScriptValue",
     ],
 
+    'ServiceWorkerMessageEvent.data': [
+      "@annotation_Creates_SerializedScriptValue",
+      "@annotation_Returns_SerializedScriptValue",
+    ],
+
+    'ServiceWorkerMessageEvent.source': [
+      "@Creates('Null')",
+      "@Returns('ServiceWorker|MessagePort')",
+     ],
+
     'ShadowRoot.getElementsByClassName': [
       "@Creates('NodeList|HtmlCollection')",
       "@Returns('NodeList|HtmlCollection')",
@@ -315,6 +334,14 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
 
     'TrackEvent.track': [
       "@Creates('Null')",
+    ],
+
+    'VTTCue.line': [
+       "@Returns('num|String')",
+    ],
+
+    'VTTCue.position': [
+       "@Returns('num|String')",
     ],
 
     'WebGLRenderingContext.getBufferParameter': [

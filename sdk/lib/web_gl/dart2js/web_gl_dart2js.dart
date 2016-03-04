@@ -401,6 +401,71 @@ class Buffer extends Interceptor {
 
 
 @DocsEditable()
+@DomName('CHROMIUMSubscribeUniform')
+@Experimental() // untriaged
+@Native("CHROMIUMSubscribeUniform")
+class ChromiumSubscribeUniform extends Interceptor {
+  // To suppress missing implicit constructor warnings.
+  factory ChromiumSubscribeUniform._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('CHROMIUMSubscribeUniform.MOUSE_POSITION_CHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int MOUSE_POSITION_CHROMIUM = 0x924C;
+
+  @DomName('CHROMIUMSubscribeUniform.SUBSCRIBED_VALUES_BUFFER_CHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static const int SUBSCRIBED_VALUES_BUFFER_CHROMIUM = 0x924B;
+
+  @JSName('bindValuebufferCHROMIUM')
+  @DomName('CHROMIUMSubscribeUniform.bindValuebufferCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void bindValuebufferChromium(int target, ChromiumValuebuffer buffer) native;
+
+  @JSName('createValuebufferCHROMIUM')
+  @DomName('CHROMIUMSubscribeUniform.createValuebufferCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  ChromiumValuebuffer createValuebufferChromium() native;
+
+  @JSName('deleteValuebufferCHROMIUM')
+  @DomName('CHROMIUMSubscribeUniform.deleteValuebufferCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void deleteValuebufferChromium(ChromiumValuebuffer buffer) native;
+
+  @JSName('isValuebufferCHROMIUM')
+  @DomName('CHROMIUMSubscribeUniform.isValuebufferCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  bool isValuebufferChromium(ChromiumValuebuffer buffer) native;
+
+  @JSName('populateSubscribedValuesCHROMIUM')
+  @DomName('CHROMIUMSubscribeUniform.populateSubscribedValuesCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void populateSubscribedValuesChromium(int target) native;
+
+  @JSName('subscribeValueCHROMIUM')
+  @DomName('CHROMIUMSubscribeUniform.subscribeValueCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void subscribeValueChromium(int target, int subscriptions) native;
+
+  @JSName('uniformValuebufferCHROMIUM')
+  @DomName('CHROMIUMSubscribeUniform.uniformValuebufferCHROMIUM')
+  @DocsEditable()
+  @Experimental() // untriaged
+  void uniformValuebufferChromium(UniformLocation location, int target, int subscription) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
 @DomName('WebGLCompressedTextureATC')
 // http://www.khronos.org/registry/webgl/extensions/WEBGL_compressed_texture_atc/
 @Experimental()
