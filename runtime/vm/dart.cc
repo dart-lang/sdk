@@ -472,7 +472,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     }
   }
 
-  I->heap()->EnableGrowthControl();
+  I->heap()->InitGrowthControl();
   I->set_init_callback_data(data);
   Api::SetupAcquiredError(I);
   if (FLAG_print_class_table) {

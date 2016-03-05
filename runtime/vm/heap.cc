@@ -491,6 +491,11 @@ void Heap::UpdateGlobalMaxUsed() {
 }
 
 
+void Heap::InitGrowthControl() {
+  old_space_.InitGrowthControl();
+}
+
+
 void Heap::SetGrowthControlState(bool state) {
   old_space_.SetGrowthControlState(state);
 }

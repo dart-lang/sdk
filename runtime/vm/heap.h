@@ -126,6 +126,7 @@ class Heap {
 
   // Enables growth control on the page space heaps.  This should be
   // called before any user code is executed.
+  void InitGrowthControl();
   void EnableGrowthControl() { SetGrowthControlState(true); }
   void DisableGrowthControl() { SetGrowthControlState(false); }
   void SetGrowthControlState(bool state);
