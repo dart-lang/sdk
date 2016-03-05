@@ -2176,8 +2176,13 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
     }
     Goto(loop_entry);
     exit_ = loop_entry;
+    // Note: the stack overflow check happens on the back branch that jumps
+    // to the increment instruction. The token position for the overflow
+    // check must match the position of the increment expression, so that
+    // the context level (if any) matches the that of the increment
+    // expression.
     AddInstruction(
-        new(Z) CheckStackOverflowInstr(node->token_pos(),
+        new(Z) CheckStackOverflowInstr(node->increment()->token_pos(),
                                        owner()->loop_depth()));
   }
 

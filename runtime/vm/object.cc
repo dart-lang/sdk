@@ -13712,7 +13712,12 @@ void Context::Dump(int indent) const {
   for (intptr_t i = 0; i < num_variables(); i++) {
     IndentN(indent + 2);
     obj = At(i);
-    THR_Print("[%" Pd "] = %s\n", i, obj.ToCString());
+    const char* s = obj.ToCString();
+    if (strlen(s) > 50) {
+      THR_Print("[%" Pd "] = [first 50 chars:] %.50s...\n", i, s);
+    } else {
+      THR_Print("[%" Pd "] = %s\n", i, s);
+    }
   }
 
   const Context& parent_ctx = Context::Handle(parent());
