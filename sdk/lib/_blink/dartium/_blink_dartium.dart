@@ -1588,6 +1588,8 @@ class BlinkBluetoothDevice {
 class BlinkBluetoothGATTCharacteristic {
   static final instance = new BlinkBluetoothGATTCharacteristic();
 
+  uuid_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "uuid");
+
   readValue_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "readValue", []);
 
   writeValue_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "writeValue", []);
@@ -1622,6 +1624,22 @@ class BlinkBluetoothGATTService {
 
 class BlinkBluetoothUUID {
   static final instance = new BlinkBluetoothUUID();
+
+  canonicalUUID_Callback_0_() => Blink_JsNative_DomException.callMethod(Blink_JsNative_DomException.getProperty(js.context, "BluetoothUUID"), "canonicalUUID", []);
+
+  canonicalUUID_Callback_1_(__arg_0) => Blink_JsNative_DomException.callMethod(Blink_JsNative_DomException.getProperty(js.context, "BluetoothUUID"), "canonicalUUID", [__arg_0]);
+
+  getCharacteristic_Callback_0_() => Blink_JsNative_DomException.callMethod(Blink_JsNative_DomException.getProperty(js.context, "BluetoothUUID"), "getCharacteristic", []);
+
+  getCharacteristic_Callback_1_(__arg_0) => Blink_JsNative_DomException.callMethod(Blink_JsNative_DomException.getProperty(js.context, "BluetoothUUID"), "getCharacteristic", [__arg_0]);
+
+  getDescriptor_Callback_0_() => Blink_JsNative_DomException.callMethod(Blink_JsNative_DomException.getProperty(js.context, "BluetoothUUID"), "getDescriptor", []);
+
+  getDescriptor_Callback_1_(__arg_0) => Blink_JsNative_DomException.callMethod(Blink_JsNative_DomException.getProperty(js.context, "BluetoothUUID"), "getDescriptor", [__arg_0]);
+
+  getService_Callback_0_() => Blink_JsNative_DomException.callMethod(Blink_JsNative_DomException.getProperty(js.context, "BluetoothUUID"), "getService", []);
+
+  getService_Callback_1_(__arg_0) => Blink_JsNative_DomException.callMethod(Blink_JsNative_DomException.getProperty(js.context, "BluetoothUUID"), "getService", [__arg_0]);
 
 }
 
@@ -16851,6 +16869,12 @@ class BlinkSubtleCrypto {
 
   encrypt_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "encrypt", [__arg_0, __arg_1, __arg_2]);
 
+  exportKey_Callback_0_(mthis) => Blink_JsNative_DomException.callMethod(mthis, "exportKey", []);
+
+  exportKey_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "exportKey", [__arg_0]);
+
+  exportKey_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "exportKey", [__arg_0, __arg_1]);
+
   sign_Callback_1_(mthis, __arg_0) => Blink_JsNative_DomException.callMethod(mthis, "sign", [__arg_0]);
 
   sign_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "sign", [__arg_0, __arg_1]);
@@ -16862,6 +16886,12 @@ class BlinkSubtleCrypto {
   verify_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "verify", [__arg_0, __arg_1, __arg_2]);
 
   verify_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "verify", [__arg_0, __arg_1, __arg_2, __arg_3]);
+
+  wrapKey_Callback_2_(mthis, __arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(mthis, "wrapKey", [__arg_0, __arg_1]);
+
+  wrapKey_Callback_3_(mthis, __arg_0, __arg_1, __arg_2) => Blink_JsNative_DomException.callMethod(mthis, "wrapKey", [__arg_0, __arg_1, __arg_2]);
+
+  wrapKey_Callback_4_(mthis, __arg_0, __arg_1, __arg_2, __arg_3) => Blink_JsNative_DomException.callMethod(mthis, "wrapKey", [__arg_0, __arg_1, __arg_2, __arg_3]);
 
 }
 

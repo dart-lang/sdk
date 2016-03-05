@@ -3059,6 +3059,11 @@ class BluetoothGattCharacteristic extends DartHtmlDomObject {
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
   int get hashCode => unwrap_jso(this).hashCode;
 
+  @DomName('BluetoothGATTCharacteristic.uuid')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get uuid => _blink.BlinkBluetoothGATTCharacteristic.instance.uuid_Getter_(unwrap_jso(this));
+  
   @DomName('BluetoothGATTCharacteristic.readValue')
   @DocsEditable()
   @Experimental() // untriaged
@@ -3184,6 +3189,26 @@ class BluetoothUuid extends DartHtmlDomObject {
   bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
   int get hashCode => unwrap_jso(this).hashCode;
 
+  @DomName('BluetoothUUID.canonicalUUID')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static String canonicalUuid(int alias) => _blink.BlinkBluetoothUUID.instance.canonicalUUID_Callback_1_(alias);
+  
+  @DomName('BluetoothUUID.getCharacteristic')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static String getCharacteristic(Object name) => _blink.BlinkBluetoothUUID.instance.getCharacteristic_Callback_1_(name);
+  
+  @DomName('BluetoothUUID.getDescriptor')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static String getDescriptor(Object name) => _blink.BlinkBluetoothUUID.instance.getDescriptor_Callback_1_(name);
+  
+  @DomName('BluetoothUUID.getService')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static String getService(Object name) => _blink.BlinkBluetoothUUID.instance.getService_Callback_1_(name);
+  
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -40353,10 +40378,10 @@ class Url extends DartHtmlDomObject implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");

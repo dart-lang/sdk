@@ -1378,11 +1378,6 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     'SVGTransform': TypeData(clazz='SVGTearOff', native_type="SVGPropertyTearOff<SVGTransform>"),
     'SVGTransformList': TypeData(clazz='SVGTearOff', item_type='SVGTransform',
         native_type='SVGTransformListPropertyTearOff'),
-
-    # TODO(alanknight): A better way to handle typedef ordering issues.
-    'DOMHighResTimeStamp': TypeData(clazz='Primitive', dart_type='num', native_type='double'),
-    'PerformanceEntryList': TypeData(clazz='Interface', dart_type='List<PerformanceEntry>'),
-    'JSON': TypeData(clazz='Primitive', dart_type='Object'),
 })
 
 _svg_supplemental_includes = [

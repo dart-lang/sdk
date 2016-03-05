@@ -1321,6 +1321,11 @@ class BluetoothGattCharacteristic extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory BluetoothGattCharacteristic._() { throw new UnsupportedError("Not supported"); }
 
+  @DomName('BluetoothGATTCharacteristic.uuid')
+  @DocsEditable()
+  @Experimental() // untriaged
+  final String uuid;
+
   @DomName('BluetoothGATTCharacteristic.readValue')
   @DocsEditable()
   @Experimental() // untriaged
@@ -1394,6 +1399,27 @@ class BluetoothGattService extends Interceptor {
 class BluetoothUuid extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory BluetoothUuid._() { throw new UnsupportedError("Not supported"); }
+
+  @JSName('canonicalUUID')
+  @DomName('BluetoothUUID.canonicalUUID')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static String canonicalUuid(int alias) native;
+
+  @DomName('BluetoothUUID.getCharacteristic')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static String getCharacteristic(Object name) native;
+
+  @DomName('BluetoothUUID.getDescriptor')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static String getDescriptor(Object name) native;
+
+  @DomName('BluetoothUUID.getService')
+  @DocsEditable()
+  @Experimental() // untriaged
+  static String getService(Object name) native;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

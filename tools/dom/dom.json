@@ -767,6 +767,9 @@
       "readValue": {
         "support_level": "untriaged"
       },
+      "uuid": {
+        "support_level": "untriaged"
+      },
       "writeValue": {
         "support_level": "untriaged"
       }
@@ -799,7 +802,20 @@
     "support_level": "untriaged"
   },
   "BluetoothUUID": {
-    "members": {},
+    "members": {
+      "canonicalUUID": {
+        "support_level": "untriaged"
+      },
+      "getCharacteristic": {
+        "support_level": "untriaged"
+      },
+      "getDescriptor": {
+        "support_level": "untriaged"
+      },
+      "getService": {
+        "support_level": "untriaged"
+      }
+    },
     "support_level": "untriaged"
   },
   "Body": {

@@ -26,16 +26,19 @@ def report_unions_to_any():
 
 # Ugly but Chrome IDLs can reference typedefs in any IDL w/o an include.  So we
 # need to remember any typedef seen then alias any reference to a typedef.
-typeDefsFixup = []
+_typeDefsFixup = []
 
-def _resolveTypedef(type):
+def _addTypedef(typedef):
+  _typeDefsFixup.append(typedef)
+
+def resolveTypedef(type):
   """ Given a type if it's a known typedef (only typedef's that aren't union)
       are remembered for fixup.  typedefs that are union type are mapped to
       any so those we don't need to alias.  typedefs referenced in the file
       where the typedef was defined are automatically aliased to the real type.
       This resolves typedef where the declaration is in another IDL file.
   """
-  for typedef in typeDefsFixup:
+  for typedef in _typeDefsFixup:
     if typedef.id == type.id:
       return typedef.type
 
@@ -439,7 +442,7 @@ class IDLFile(IDLNode):
         self.dictionaries.append(dictionary)
       else:
         # All other typedefs we record
-        typeDefsFixup.append(IDLTypeDef(typedef_type))
+        _addTypedef(IDLTypeDef(typedef_type))
 
     self.enums = self._convert_all(ast, 'Enum', IDLEnum)
 
@@ -787,7 +790,7 @@ class IDLMember(IDLNode):
     IDLNode.__init__(self, ast)
 
     self.type = self._convert_first(ast, 'Type', IDLType)
-    self.type = _resolveTypedef(self.type)
+    self.type = resolveTypedef(self.type)
 
     self._convert_ext_attrs(ast)
     self._convert_annotations(ast)
@@ -803,7 +806,8 @@ class IDLOperation(IDLMember):
     IDLMember.__init__(self, ast, doc_js_interface_name)
 
     self.type = self._convert_first(ast, 'ReturnType', IDLType)
-    self.type = _resolveTypedef(self.type)
+    self.type = resolveTypedef(self.type)
+
     self.arguments = self._convert_all(ast, 'Argument', IDLArgument)
     self.specials = self._find_all(ast, 'Special')
     # Special case: there are getters of the form
@@ -881,7 +885,7 @@ class IDLArgument(IDLNode):
         self.default_value_is_null = False
 
     self.type = self._convert_first(ast, 'Type', IDLType)
-    self.type = _resolveTypedef(self.type)
+    self.type = resolveTypedef(self.type)
 
     self.optional = self._has(ast, 'Optional')
     self._convert_ext_attrs(ast)
