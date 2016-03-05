@@ -8,10 +8,12 @@ import 'dart:async';
 
 import 'package:analysis_server/src/services/index2/index2.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
-import 'package:analyzer/src/generated/source.dart' show SourceRange;
+import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
 
 /**
@@ -61,21 +63,26 @@ class SearchEngineImpl2 implements SearchEngine {
         kind == ElementKind.TOP_LEVEL_VARIABLE) {
       return _searchReferences_Field(element as PropertyInducingElement);
     } else if (kind == ElementKind.FUNCTION || kind == ElementKind.METHOD) {
+      if (element.enclosingElement is ExecutableElement) {
+        return _searchReferences_Local(element, (n) => n is Block);
+      }
       return _searchReferences_Function(element);
     } else if (kind == ElementKind.IMPORT) {
+      // TODO(scheglov) implement whole library search
       return _searchReferences(element);
-    } else if (kind == ElementKind.LABEL) {
-      return _searchReferences(element);
+    } else if (kind == ElementKind.LABEL ||
+        kind == ElementKind.LOCAL_VARIABLE) {
+      return _searchReferences_Local(element, (n) => n is Block);
     } else if (kind == ElementKind.LIBRARY) {
+      // TODO(scheglov) implement whole library search
       return _searchReferences(element);
-    } else if (kind == ElementKind.LOCAL_VARIABLE) {
-      return _searchReferences_LocalVariable(element as LocalVariableElement);
     } else if (kind == ElementKind.PARAMETER) {
-      return _searchReferences_Parameter(element as ParameterElement);
+      return _searchReferences_Parameter(element);
     } else if (kind == ElementKind.PREFIX) {
+      // TODO(scheglov) implement whole library search
       return _searchReferences(element);
     } else if (kind == ElementKind.TYPE_PARAMETER) {
-      return _searchReferences_TypeParameter(element);
+      return _searchReferences_Local(element, (n) => n is ClassDeclaration);
     }
     return new Future.value(<SearchMatch>[]);
   }
@@ -92,128 +99,134 @@ class SearchEngineImpl2 implements SearchEngine {
     throw new UnimplementedError();
   }
 
-  Future<List<SearchMatch>> _searchReferences(Element element) {
-    _Requestor requestor = new _Requestor(context, _index);
-    requestor.addElement(
-        element, IndexRelationKind.IS_REFERENCED_BY, MatchKind.REFERENCE);
-    return requestor.merge();
+  _addMatches(List<SearchMatch> matches, Element element,
+      IndexRelationKind relationKind, MatchKind kind) async {
+    List<Location> locations = await _index.getRelations(element, relationKind);
+    for (Location location in locations) {
+      matches.add(new SearchMatch(
+          context,
+          location.libraryUri,
+          location.unitUri,
+          kind,
+          new SourceRange(location.offset, location.length),
+          true,
+          location.isQualified));
+    }
+  }
+
+  Future<List<SearchMatch>> _searchReferences(Element element) async {
+    List<SearchMatch> matches = <SearchMatch>[];
+    await _addMatches(matches, element, IndexRelationKind.IS_REFERENCED_BY,
+        MatchKind.REFERENCE);
+    return matches;
   }
 
   Future<List<SearchMatch>> _searchReferences_Field(
-      PropertyInducingElement field) {
+      PropertyInducingElement field) async {
+    List<SearchMatch> matches = <SearchMatch>[];
     PropertyAccessorElement getter = field.getter;
     PropertyAccessorElement setter = field.setter;
-    _Requestor requestor = new _Requestor(context, _index);
     // field itself
-    requestor.addElement(
-        field, IndexRelationKind.IS_REFERENCED_BY, MatchKind.REFERENCE);
+    await _addMatches(matches, field, IndexRelationKind.IS_REFERENCED_BY,
+        MatchKind.REFERENCE);
     // getter
     if (getter != null) {
-      requestor.addElement(
-          getter, IndexRelationKind.IS_REFERENCED_BY, MatchKind.READ);
-      requestor.addElement(
-          getter, IndexRelationKind.IS_INVOKED_BY, MatchKind.INVOCATION);
+      await _addMatches(
+          matches, getter, IndexRelationKind.IS_REFERENCED_BY, MatchKind.READ);
+      await _addMatches(matches, getter, IndexRelationKind.IS_INVOKED_BY,
+          MatchKind.INVOCATION);
     }
     // setter
     if (setter != null) {
-      requestor.addElement(
-          setter, IndexRelationKind.IS_REFERENCED_BY, MatchKind.WRITE);
+      await _addMatches(
+          matches, setter, IndexRelationKind.IS_REFERENCED_BY, MatchKind.WRITE);
     }
     // done
-    return requestor.merge();
+    return matches;
   }
 
-  Future<List<SearchMatch>> _searchReferences_Function(Element element) {
+  Future<List<SearchMatch>> _searchReferences_Function(Element element) async {
     if (element is Member) {
       element = (element as Member).baseElement;
     }
-    _Requestor requestor = new _Requestor(context, _index);
-    requestor.addElement(
-        element, IndexRelationKind.IS_REFERENCED_BY, MatchKind.REFERENCE);
-    requestor.addElement(
-        element, IndexRelationKind.IS_INVOKED_BY, MatchKind.INVOCATION);
-    return requestor.merge();
+    List<SearchMatch> matches = <SearchMatch>[];
+    await _addMatches(matches, element, IndexRelationKind.IS_REFERENCED_BY,
+        MatchKind.REFERENCE);
+    await _addMatches(matches, element, IndexRelationKind.IS_INVOKED_BY,
+        MatchKind.INVOCATION);
+    return matches;
   }
 
-  Future<List<SearchMatch>> _searchReferences_LocalVariable(
-      LocalVariableElement variable) {
-    // TODO(scheglov) implement using AST visitor
-    throw new UnimplementedError();
-//    _Requestor requestor = new _Requestor(context, _index);
-//    requestor.addElement(variable, IndexRelationKind.IS_READ_BY, MatchKind.READ);
-//    requestor.addElement(
-//        variable, IndexRelationKind.IS_READ_WRITTEN_BY, MatchKind.READ_WRITE);
-//    requestor.addElement(
-//        variable, IndexRelationKind.IS_WRITTEN_BY, MatchKind.WRITE);
-//    requestor.addElement(
-//        variable, IndexRelationKind.IS_INVOKED_BY, MatchKind.INVOCATION);
-//    return requestor.merge();
+  Future<List<SearchMatch>> _searchReferences_Local(
+      Element element, bool isRootNode(AstNode n)) async {
+    AstNode node = element.computeNode();
+    AstNode enclosingNode = node.getAncestor(isRootNode);
+    _LocalReferencesVisitor visitor = new _LocalReferencesVisitor(element);
+    enclosingNode.accept(visitor);
+    return visitor.matches;
   }
 
   Future<List<SearchMatch>> _searchReferences_Parameter(
-      ParameterElement parameter) {
-    // TODO(scheglov) implement using AST visitor
-    throw new UnimplementedError();
-//    _Requestor requestor = new _Requestor(context, _index);
-//    requestor.addElement(parameter, IndexRelationKind.IS_READ_BY, MatchKind.READ);
-//    requestor.addElement(
-//        parameter, IndexRelationKind.IS_READ_WRITTEN_BY, MatchKind.READ_WRITE);
-//    requestor.addElement(
-//        parameter, IndexRelationKind.IS_WRITTEN_BY, MatchKind.WRITE);
-//    requestor.addElement(
-//        parameter, IndexRelationKind.IS_REFERENCED_BY, MatchKind.REFERENCE);
-//    requestor.addElement(
-//        parameter, IndexRelationKind.IS_INVOKED_BY, MatchKind.INVOCATION);
-//    return requestor.merge();
-  }
-
-  Future<List<SearchMatch>> _searchReferences_TypeParameter(
-      ParameterElement parameter) {
-    // TODO(scheglov) implement using AST visitor
-    throw new UnimplementedError();
+      ParameterElement parameter) async {
+    List<SearchMatch> matches = <SearchMatch>[];
+    matches.addAll(await _searchReferences(parameter));
+    matches.addAll(await _searchReferences_Local(
+        parameter, (n) => n is MethodDeclaration || n is FunctionExpression));
+    return matches;
   }
 }
 
-class _Requestor {
+/**
+ * Visitor that adds [SearchMatch]es for local elements - labels, local
+ * functions, local variables and parameters.
+ */
+class _LocalReferencesVisitor extends RecursiveAstVisitor {
+  final List<SearchMatch> matches = <SearchMatch>[];
+
+  final Element element;
   final AnalysisContext context;
-  final Index2 index;
-  final List<Future<List<SearchMatch>>> futures = <Future<List<SearchMatch>>>[];
+  final String libraryUri;
+  final String unitUri;
 
-  _Requestor(this.context, this.index);
+  _LocalReferencesVisitor(Element element)
+      : element = element,
+        context = element.context,
+        libraryUri = element.library.source.uri.toString(),
+        unitUri = element.source.uri.toString();
 
-  void addElement(
-      Element element, IndexRelationKind relationKind, MatchKind kind) {
-    Future relationsFuture = index.getRelations(element, relationKind);
-    Future matchesFuture = relationsFuture.then((List<Location> locations) {
-      List<SearchMatch> matches = <SearchMatch>[];
-      for (Location location in locations) {
-        matches.add(_convertLocation(location, kind));
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.inDeclarationContext()) {
+      return;
+    }
+    if (node.bestElement == element) {
+      AstNode parent = node.parent;
+      MatchKind kind = MatchKind.REFERENCE;
+      if (element is FunctionElement) {
+        if (parent is MethodInvocation && parent.methodName == node) {
+          kind = MatchKind.INVOCATION;
+        }
+      } else if (element is VariableElement) {
+        bool isGet = node.inGetterContext();
+        bool isSet = node.inSetterContext();
+        if (isGet && isSet) {
+          kind = MatchKind.READ_WRITE;
+        } else if (isGet) {
+          if (parent is MethodInvocation && parent.methodName == node) {
+            kind = MatchKind.INVOCATION;
+          } else {
+            kind = MatchKind.READ;
+          }
+        } else if (isSet) {
+          kind = MatchKind.WRITE;
+        }
       }
-      return matches;
-    });
-    futures.add(matchesFuture);
+      _addMatch(node, kind);
+    }
   }
 
-//  void addElement(
-//      Element element, RelationshipImpl relationship, MatchKind kind) {
-//    IndexableElement indexable = new IndexableElement(element);
-//    add(indexable, relationship, kind);
-//  }
-
-  Future<List<SearchMatch>> merge() {
-    return Future.wait(futures).then((List<List<SearchMatch>> matchesList) {
-      return matchesList.expand((matches) => matches).toList();
-    });
-  }
-
-  SearchMatch _convertLocation(Location location, MatchKind kind) {
-    return new SearchMatch(
-        context,
-        location.libraryUri,
-        location.unitUri,
-        kind,
-        new SourceRange(location.offset, location.length),
-        true,
-        location.isQualified);
+  void _addMatch(SimpleIdentifier node, MatchKind kind) {
+    matches.add(new SearchMatch(context, libraryUri, unitUri, kind,
+        new SourceRange(node.offset, node.length), true, node.isQualified));
   }
 }

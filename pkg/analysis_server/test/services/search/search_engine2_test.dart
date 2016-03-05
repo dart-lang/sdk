@@ -292,6 +292,23 @@ main() {
     await _verifyReferences(element, expected);
   }
 
+  test_searchReferences_FunctionElement_local() async {
+    _indexTestUnit('''
+main() {
+  test() {}
+  test();
+  print(test);
+}
+''');
+    FunctionElement element = findElement('test');
+    Element mainElement = findElement('main');
+    var expected = [
+      _expectId(mainElement, MatchKind.INVOCATION, 'test();'),
+      _expectId(mainElement, MatchKind.REFERENCE, 'test);')
+    ];
+    await _verifyReferences(element, expected);
+  }
+
   test_searchReferences_FunctionTypeAliasElement() async {
     _indexTestUnit('''
 typedef Test();
@@ -339,28 +356,28 @@ main() {
 //    ];
 //    return _verifyReferences(element, expected);
 //  }
-//
-//  Future test_searchReferences_LabelElement() {
-//    _indexTestUnit('''
-//main() {
-//label:
-//  while (true) {
-//    if (true) {
-//      break label; // 1
-//    }
-//    break label; // 2
-//  }
-//}
-//''');
-//    LabelElement element = findElement('label');
-//    Element mainElement = findElement('main');
-//    var expected = [
-//      _expectId(mainElement, MatchKind.REFERENCE, 'label; // 1'),
-//      _expectId(mainElement, MatchKind.REFERENCE, 'label; // 2')
-//    ];
-//    return _verifyReferences(element, expected);
-//  }
-//
+
+  test_searchReferences_LabelElement() async {
+    _indexTestUnit('''
+main() {
+label:
+  while (true) {
+    if (true) {
+      break label; // 1
+    }
+    break label; // 2
+  }
+}
+''');
+    LabelElement element = findElement('label');
+    Element mainElement = findElement('main');
+    var expected = [
+      _expectId(mainElement, MatchKind.REFERENCE, 'label; // 1'),
+      _expectId(mainElement, MatchKind.REFERENCE, 'label; // 2')
+    ];
+    await _verifyReferences(element, expected);
+  }
+
 //  Future test_searchReferences_LibraryElement() {
 //    var codeA = 'part of lib; // A';
 //    var codeB = 'part of lib; // B';
@@ -384,27 +401,27 @@ main() {
 //    ];
 //    return _verifyReferences(element, expected);
 //  }
-//
-//  Future test_searchReferences_LocalVariableElement() {
-//    _indexTestUnit('''
-//main() {
-//  var v;
-//  v = 1;
-//  v += 2;
-//  print(v);
-//  v();
-//}
-//''');
-//    LocalVariableElement element = findElement('v');
-//    Element mainElement = findElement('main');
-//    var expected = [
-//      _expectId(mainElement, MatchKind.WRITE, 'v = 1;'),
-//      _expectId(mainElement, MatchKind.READ_WRITE, 'v += 2;'),
-//      _expectId(mainElement, MatchKind.READ, 'v);'),
-//      _expectId(mainElement, MatchKind.INVOCATION, 'v();')
-//    ];
-//    return _verifyReferences(element, expected);
-//  }
+
+  test_searchReferences_LocalVariableElement() async {
+    _indexTestUnit('''
+main() {
+  var v;
+  v = 1;
+  v += 2;
+  print(v);
+  v();
+}
+''');
+    LocalVariableElement element = findElement('v');
+    Element mainElement = findElement('main');
+    var expected = [
+      _expectId(mainElement, MatchKind.WRITE, 'v = 1;'),
+      _expectId(mainElement, MatchKind.READ_WRITE, 'v += 2;'),
+      _expectId(mainElement, MatchKind.READ, 'v);'),
+      _expectId(mainElement, MatchKind.INVOCATION, 'v();')
+    ];
+    await _verifyReferences(element, expected);
+  }
 
   test_searchReferences_MethodElement() async {
     _indexTestUnit('''
@@ -446,31 +463,31 @@ main(A<int> a) {
     await _verifyReferences(method, expected);
   }
 
-//  Future test_searchReferences_ParameterElement() {
-//    _indexTestUnit('''
-//foo({p}) {
-//  p = 1;
-//  p += 2;
-//  print(p);
-//  p();
-//}
-//main() {
-//  foo(p: 42);
-//}
-//''');
-//    ParameterElement element = findElement('p');
-//    Element fooElement = findElement('foo');
-//    Element mainElement = findElement('main');
-//    var expected = [
-//      _expectId(fooElement, MatchKind.WRITE, 'p = 1;'),
-//      _expectId(fooElement, MatchKind.READ_WRITE, 'p += 2;'),
-//      _expectId(fooElement, MatchKind.READ, 'p);'),
-//      _expectId(fooElement, MatchKind.INVOCATION, 'p();'),
-//      _expectId(mainElement, MatchKind.REFERENCE, 'p: 42')
-//    ];
-//    return _verifyReferences(element, expected);
-//  }
-//
+  test_searchReferences_ParameterElement() async {
+    _indexTestUnit('''
+foo({p}) {
+  p = 1;
+  p += 2;
+  print(p);
+  p();
+}
+main() {
+  foo(p: 42);
+}
+''');
+    ParameterElement element = findElement('p');
+    Element fooElement = findElement('foo');
+    Element mainElement = findElement('main');
+    var expected = [
+      _expectId(fooElement, MatchKind.WRITE, 'p = 1;'),
+      _expectId(fooElement, MatchKind.READ_WRITE, 'p += 2;'),
+      _expectId(fooElement, MatchKind.READ, 'p);'),
+      _expectId(fooElement, MatchKind.INVOCATION, 'p();'),
+      _expectIdQ(mainElement, MatchKind.REFERENCE, 'p: 42')
+    ];
+    await _verifyReferences(element, expected);
+  }
+
 //  Future test_searchReferences_PrefixElement() {
 //    _indexTestUnit('''
 //import 'dart:async' as ppp;
@@ -563,21 +580,21 @@ main() {
     await _verifyReferences(variable, expected);
   }
 
-//  Future test_searchReferences_TypeParameterElement() {
-//    _indexTestUnit('''
-//class A<T> {
-//  main(T a, T b) {}
-//}
-//''');
-//    TypeParameterElement element = findElement('T');
-//    Element aElement = findElement('a');
-//    Element bElement = findElement('b');
-//    var expected = [
-//      _expectId(aElement, MatchKind.REFERENCE, 'T a'),
-//      _expectId(bElement, MatchKind.REFERENCE, 'T b')
-//    ];
-//    return _verifyReferences(element, expected);
-//  }
+  test_searchReferences_TypeParameterElement() async {
+    _indexTestUnit('''
+class A<T> {
+  main(T a, T b) {}
+}
+''');
+    TypeParameterElement element = findElement('T');
+    Element aElement = findElement('a');
+    Element bElement = findElement('b');
+    var expected = [
+      _expectId(aElement, MatchKind.REFERENCE, 'T a'),
+      _expectId(bElement, MatchKind.REFERENCE, 'T b')
+    ];
+    await _verifyReferences(element, expected);
+  }
 
 //  Future test_searchSubtypes() {
 //    _indexTestUnit('''
