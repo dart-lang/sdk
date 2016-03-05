@@ -11,6 +11,8 @@ import 'package:path/path.dart';
 
 import 'codegen_analysis_server.dart' as codegen_analysis_server;
 import 'codegen_dart_protocol.dart' as codegen_dart_protocol;
+import 'codegen_python_protocol.dart' as codegen_python_protocol;
+import 'codegen_python_core.dart' as codegen_python_core;
 import 'codegen_inttest_methods.dart' as codegen_inttest_methods;
 import 'codegen_java_types.dart' as codegen_java_types;
 import 'codegen_matchers.dart' as codegen_matchers;
@@ -32,6 +34,8 @@ List<GeneratedContent> get allTargets {
   List<GeneratedContent> targets = <GeneratedContent>[];
   targets.add(codegen_analysis_server.target);
   targets.add(codegen_dart_protocol.target);
+  targets.add(codegen_python_protocol.target);
+  targets.add(codegen_python_core.target);
   targets.add(codegen_java_types.targetDir);
   targets.add(codegen_inttest_methods.target);
   targets.add(codegen_matchers.target);
