@@ -45,7 +45,7 @@ extern const uint8_t* isolate_snapshot_buffer;
  * A full application snapshot can be generated and run using the following
  * commands
  * - Generating a full application snapshot :
- * dart_no_snapshot --full-snapshot-after-run=<filename> --package-root=<dirs>
+ * dart_bootstrap --full-snapshot-after-run=<filename> --package-root=<dirs>
  *   <script_uri> [<script_options>]
  * - Running the full application snapshot generated above :
  * dart --run-full-snapshot=<filename> <script_uri> [<script_options>]
@@ -327,12 +327,11 @@ static bool ProcessCompileAllOption(const char* arg,
 static bool ProcessGenPrecompiledSnapshotOption(
     const char* arg,
     CommandLineOptions* vm_options) {
-  // Ensure that we are not already running using a full snapshot.
-  if (isolate_snapshot_buffer != NULL) {
-    Log::PrintErr("Precompiled snapshots must be generated with"
-                  " dart_no_snapshot.\n");
-    return false;
-  }
+#if !defined(DART_PRECOMPILER)
+  Log::PrintErr("Precompiled snapshots must be generated with "
+                "dart_bootstrap.\n");
+  return false;
+#else  // defined(DART_PRECOMPILER)
   ASSERT(arg != NULL);
   if ((arg[0] == '=') || (arg[0] == ':')) {
     precompiled_snapshot_directory = &arg[1];
@@ -342,6 +341,7 @@ static bool ProcessGenPrecompiledSnapshotOption(
   gen_precompiled_snapshot = true;
   vm_options->AddArgument("--precompilation");
   return true;
+#endif  // defined(DART_PRECOMPILER)
 }
 
 
@@ -395,10 +395,10 @@ static bool ProcessFullSnapshotAfterRunOption(
   if ((filename == NULL) || (strlen(filename) == 0)) {
     return false;
   }
-  // Ensure that we are running 'dart_no_snapshot'.
+  // Ensure that we are running 'dart_bootstrap'.
   if (isolate_snapshot_buffer != NULL) {
     Log::PrintErr("Full Application snapshots must be generated with"
-                  " dart_no_snapshot\n");
+                  " dart_bootstrap\n");
     return false;
   }
   return ProcessSnapshotOptionHelper(filename,
@@ -1421,6 +1421,9 @@ bool RunMainIsolate(const char* script_name,
 
 #undef CHECK_RESULT
 
+
+// Observatory assets are only needed in the regular dart binary.
+#if !defined(DART_PRECOMPILER)
 extern unsigned int observatory_assets_archive_len;
 extern const uint8_t* observatory_assets_archive;
 
@@ -1502,6 +1505,9 @@ Dart_Handle GetVMServiceAssetsArchiveCallback() {
   free(decompressed);
   return tar_file;
 }
+#else  // !defined(DART_PRECOMPILER)
+static Dart_GetVMServiceAssetsArchive GetVMServiceAssetsArchiveCallback = NULL;
+#endif  // !defined(DART_PRECOMPILER)
 
 
 void main(int argc, char** argv) {

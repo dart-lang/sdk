@@ -6096,7 +6096,7 @@ DART_EXPORT Dart_Handle Dart_TimelineAsyncEnd(const char* label,
 }
 
 
-// The precompiler is included in dart_no_snapshot and dart_noopt, and
+// The precompiler is included in dart_bootstrap and dart_noopt, and
 // excluded from dart and dart_precompiled_runtime.
 #if !defined(DART_PRECOMPILER)
 
