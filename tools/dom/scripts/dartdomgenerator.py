@@ -29,6 +29,14 @@ if not os.path.exists(ply_dir):
   # location is dartium-git/src/third_party 
   third_party_dir = os.path.join(dart_dir, '..', 'third_party')
   assert(os.path.exists(third_party_dir))
+else:
+  # It's Dart we need to make sure that tools in injected in our search path
+  # because this is where idl_parser is located for a Dart enlistment.  Dartium
+  # can firgure out the tools directory because of the location of where the
+  # scripts blink scripts are located.
+  tools_dir = os.path.join(dart_dir, 'tools')
+  sys.path.insert(1, tools_dir)
+
 sys.path.insert(1, third_party_dir)
 
 sys.path.insert(1, os.path.join(dart_dir, 'tools/dom/scripts'))
