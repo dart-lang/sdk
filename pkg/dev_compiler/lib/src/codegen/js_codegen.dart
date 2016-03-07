@@ -3206,7 +3206,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
         .computeLibraryElement(context.sourceFactory.forUri('dart:async'));
     var T = node.loopVariable.element.type;
     var StreamIterator_T =
-        dart_async.getType('StreamIterator').type.substitute4([T]);
+        dart_async.getType('StreamIterator').type.instantiate([T]);
 
     var createStreamIter = _emitInstanceCreationExpression(
         StreamIterator_T.element.unnamedConstructor,

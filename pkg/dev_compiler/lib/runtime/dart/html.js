@@ -691,10 +691,10 @@ dart_library.library('dart/html', null, /* Imports */[
       return exports.window[_getComputedStyle](this, pseudoElement);
     }
     get [dartx.client]() {
-      return new math.Rectangle(this[dartx.clientLeft], this[dartx.clientTop], this[dartx.clientWidth], this[dartx.clientHeight]);
+      return new (math.Rectangle$(core.num))(this[dartx.clientLeft], this[dartx.clientTop], this[dartx.clientWidth], this[dartx.clientHeight]);
     }
     get [dartx.offset]() {
-      return new math.Rectangle(this[dartx.offsetLeft], this[dartx.offsetTop], this[dartx.offsetWidth], this[dartx.offsetHeight]);
+      return new (math.Rectangle$(core.num))(this[dartx.offsetLeft], this[dartx.offsetTop], this[dartx.offsetWidth], this[dartx.offsetHeight]);
     }
     [dartx.appendText](text) {
       this[dartx.append](Text.new(text));
@@ -898,12 +898,12 @@ dart_library.library('dart/html', null, /* Imports */[
       let sameAsParent = core.identical(current, parent);
       let foundAsParent = sameAsParent || parent[dartx.tagName] == 'HTML';
       if (current == null || sameAsParent) {
-        if (foundAsParent) return new math.Point(0, 0);
+        if (foundAsParent) return new (math.Point$(core.num))(0, 0);
         dart.throw(new core.ArgumentError("Specified element is not a transitive offset " + "parent of this element."));
       }
       let parentOffset = current[dartx.offsetParent];
       let p = Element._offsetToHelper(parentOffset, parent);
-      return new math.Point(dart.dsend(p.x, '+', current[dartx.offsetLeft]), dart.dsend(p.y, '+', current[dartx.offsetTop]));
+      return new (math.Point$(core.num))(dart.notNull(p.x) + dart.notNull(current[dartx.offsetLeft]), dart.notNull(p.y) + dart.notNull(current[dartx.offsetTop]));
     }
     [dartx.createFragment](html, opts) {
       let validator = opts && 'validator' in opts ? opts.validator : null;
@@ -1570,7 +1570,7 @@ dart_library.library('dart/html', null, /* Imports */[
       [dartx.matches]: [core.bool, [core.String]],
       [dartx.matchesWithAncestors]: [core.bool, [core.String]],
       [dartx.createShadowRoot]: [ShadowRoot, []],
-      [dartx.offsetTo]: [math.Point, [Element]],
+      [dartx.offsetTo]: [math.Point$(core.num), [Element]],
       [dartx.createFragment]: [DocumentFragment, [core.String], {validator: NodeValidator, treeSanitizer: NodeTreeSanitizer}],
       [dartx.setInnerHtml]: [dart.void, [core.String], {validator: NodeValidator, treeSanitizer: NodeTreeSanitizer}],
       [dartx.click]: [dart.void, []],
@@ -1579,8 +1579,8 @@ dart_library.library('dart/html', null, /* Imports */[
       [dartx.getAnimationPlayers]: [core.List$(AnimationPlayer), []],
       [dartx.getAttribute]: [core.String, [core.String]],
       [dartx.getAttributeNS]: [core.String, [core.String, core.String]],
-      [dartx.getBoundingClientRect]: [math.Rectangle, []],
-      [dartx.getClientRects]: [core.List$(math.Rectangle), []],
+      [dartx.getBoundingClientRect]: [math.Rectangle$(core.num), []],
+      [dartx.getClientRects]: [core.List$(math.Rectangle$(core.num)), []],
       [dartx.getDestinationInsertionPoints]: [core.List$(Node), []],
       [dartx.getElementsByClassName]: [core.List$(Node), [core.String]],
       [_getElementsByTagName]: [core.List$(Node), [core.String]],
@@ -1601,7 +1601,7 @@ dart_library.library('dart/html', null, /* Imports */[
       isTagSupported: [core.bool, [core.String]],
       _determineMouseWheelEventType: [core.String, [EventTarget]],
       _determineTransitionEventType: [core.String, [EventTarget]],
-      _offsetToHelper: [math.Point, [Element, Element]],
+      _offsetToHelper: [math.Point$(core.num), [Element, Element]],
       _hasCorruptedAttributes: [core.bool, [Element]],
       _hasCorruptedAttributesAdditionalCheck: [core.bool, [Element]],
       _safeTagName: [core.String, [dart.dynamic]]
@@ -4315,9 +4315,9 @@ dart_library.library('dart/html', null, /* Imports */[
     [dartx.drawImageToRect](source, destRect, opts) {
       let sourceRect = opts && 'sourceRect' in opts ? opts.sourceRect : null;
       if (sourceRect == null) {
-        this[dartx.drawImageScaled](source, dart.as(destRect[dartx.left], core.num), dart.as(destRect[dartx.top], core.num), dart.as(destRect[dartx.width], core.num), dart.as(destRect[dartx.height], core.num));
+        this[dartx.drawImageScaled](source, destRect[dartx.left], destRect[dartx.top], destRect[dartx.width], destRect[dartx.height]);
       } else {
-        this[dartx.drawImageScaledFromSource](source, dart.as(sourceRect[dartx.left], core.num), dart.as(sourceRect[dartx.top], core.num), dart.as(sourceRect[dartx.width], core.num), dart.as(sourceRect[dartx.height], core.num), dart.as(destRect[dartx.left], core.num), dart.as(destRect[dartx.top], core.num), dart.as(destRect[dartx.width], core.num), dart.as(destRect[dartx.height], core.num));
+        this[dartx.drawImageScaledFromSource](source, sourceRect[dartx.left], sourceRect[dartx.top], sourceRect[dartx.width], sourceRect[dartx.height], destRect[dartx.left], destRect[dartx.top], destRect[dartx.width], destRect[dartx.height]);
       }
     }
     [dartx.drawImage](source, destX, destY) {
@@ -4424,7 +4424,7 @@ dart_library.library('dart/html', null, /* Imports */[
       [dartx.setStrokeColorRgb]: [dart.void, [core.int, core.int, core.int], [core.num]],
       [dartx.setStrokeColorHsl]: [dart.void, [core.int, core.num, core.num], [core.num]],
       [dartx.arc]: [dart.void, [core.num, core.num, core.num, core.num, core.num], [core.bool]],
-      [dartx.drawImageToRect]: [dart.void, [CanvasImageSource, math.Rectangle], {sourceRect: math.Rectangle}],
+      [dartx.drawImageToRect]: [dart.void, [CanvasImageSource, math.Rectangle$(core.num)], {sourceRect: math.Rectangle$(core.num)}],
       [dartx.drawImage]: [dart.void, [CanvasImageSource, core.num, core.num]],
       [dartx.drawImageScaled]: [dart.void, [CanvasImageSource, core.num, core.num, core.num, core.num]],
       [dartx.drawImageScaledFromSource]: [dart.void, [CanvasImageSource, core.num, core.num, core.num, core.num, core.num, core.num, core.num, core.num]],
@@ -4618,10 +4618,10 @@ dart_library.library('dart/html', null, /* Imports */[
       return this.initUIEvent(type, canBubble, cancelable, view, detail);
     }
     get [dartx.layer]() {
-      return new math.Point(this[_layerX], this[_layerY]);
+      return new (math.Point$(core.num))(this[_layerX], this[_layerY]);
     }
     get [dartx.page]() {
-      return new math.Point(this[_pageX], this[_pageY]);
+      return new (math.Point$(core.num))(this[_pageX], this[_pageY]);
     }
   }
   dart.setSignature(UIEvent, {
@@ -12680,20 +12680,20 @@ dart_library.library('dart/html', null, /* Imports */[
       return `Rectangle (${this[dartx.left]}, ${this[dartx.top]}) ${this[dartx.width]} x ${this[dartx.height]}`;
     }
     ['=='](other) {
-      if (!dart.is(other, math.Rectangle)) return false;
+      if (!dart.is(other, math.Rectangle$(core.num))) return false;
       return dart.equals(this[dartx.left], dart.dload(other, 'left')) && dart.equals(this[dartx.top], dart.dload(other, 'top')) && dart.equals(this[dartx.width], dart.dload(other, 'width')) && dart.equals(this[dartx.height], dart.dload(other, 'height'));
     }
     get hashCode() {
       return _JenkinsSmiHash.hash4(dart.hashCode(this[dartx.left]), dart.hashCode(this[dartx.top]), dart.hashCode(this[dartx.width]), dart.hashCode(this[dartx.height]));
     }
     [dartx.intersection](other) {
-      let x0 = math.max(this[dartx.left], dart.as(other[dartx.left], core.num));
-      let x1 = math.min(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.as(dart.dsend(other[dartx.left], '+', other[dartx.width]), core.num));
+      let x0 = math.max(this[dartx.left], other[dartx.left]);
+      let x1 = math.min(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]));
       if (dart.notNull(x0) <= dart.notNull(x1)) {
-        let y0 = math.max(this[dartx.top], dart.as(other[dartx.top], core.num));
-        let y1 = math.min(dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]), dart.as(dart.dsend(other[dartx.top], '+', other[dartx.height]), core.num));
+        let y0 = math.max(this[dartx.top], other[dartx.top]);
+        let y1 = math.min(dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]), dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]));
         if (dart.notNull(y0) <= dart.notNull(y1)) {
-          return new math.Rectangle(x0, y0, dart.notNull(x1) - dart.notNull(x0), dart.notNull(y1) - dart.notNull(y0));
+          return new (math.Rectangle$(core.num))(x0, y0, dart.notNull(x1) - dart.notNull(x0), dart.notNull(y1) - dart.notNull(y0));
         }
       }
       return null;
@@ -12702,11 +12702,11 @@ dart_library.library('dart/html', null, /* Imports */[
       return dart.notNull(this[dartx.left]) <= dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]) && dart.notNull(other[dartx.left]) <= dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]) && dart.notNull(this[dartx.top]) <= dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]) && dart.notNull(other[dartx.top]) <= dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]);
     }
     [dartx.boundingBox](other) {
-      let right = math.max(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.as(dart.dsend(other[dartx.left], '+', other[dartx.width]), core.num));
-      let bottom = math.max(dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]), dart.as(dart.dsend(other[dartx.top], '+', other[dartx.height]), core.num));
-      let left = math.min(this[dartx.left], dart.as(other[dartx.left], core.num));
-      let top = math.min(this[dartx.top], dart.as(other[dartx.top], core.num));
-      return new math.Rectangle(left, top, dart.notNull(right) - dart.notNull(left), dart.notNull(bottom) - dart.notNull(top));
+      let right = math.max(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]));
+      let bottom = math.max(dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]), dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]));
+      let left = math.min(this[dartx.left], other[dartx.left]);
+      let top = math.min(this[dartx.top], other[dartx.top]);
+      return new (math.Rectangle$(core.num))(left, top, dart.notNull(right) - dart.notNull(left), dart.notNull(bottom) - dart.notNull(top));
     }
     [dartx.containsRectangle](another) {
       return dart.notNull(this[dartx.left]) <= dart.notNull(another[dartx.left]) && dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]) >= dart.notNull(another[dartx.left]) + dart.notNull(another[dartx.width]) && dart.notNull(this[dartx.top]) <= dart.notNull(another[dartx.top]) && dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]) >= dart.notNull(another[dartx.top]) + dart.notNull(another[dartx.height]);
@@ -12715,16 +12715,16 @@ dart_library.library('dart/html', null, /* Imports */[
       return dart.notNull(another.x) >= dart.notNull(this[dartx.left]) && dart.notNull(another.x) <= dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]) && dart.notNull(another.y) >= dart.notNull(this[dartx.top]) && dart.notNull(another.y) <= dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]);
     }
     get [dartx.topLeft]() {
-      return new math.Point(this[dartx.left], this[dartx.top]);
+      return new (math.Point$(core.num))(this[dartx.left], this[dartx.top]);
     }
     get [dartx.topRight]() {
-      return new math.Point(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), this[dartx.top]);
+      return new (math.Point$(core.num))(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), this[dartx.top]);
     }
     get [dartx.bottomRight]() {
-      return new math.Point(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]));
+      return new (math.Point$(core.num))(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]));
     }
     get [dartx.bottomLeft]() {
-      return new math.Point(this[dartx.left], dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]));
+      return new (math.Point$(core.num))(this[dartx.left], dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]));
     }
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -12760,16 +12760,16 @@ dart_library.library('dart/html', null, /* Imports */[
       return this.y;
     }
   }
-  DomRectReadOnly[dart.implements] = () => [math.Rectangle];
+  DomRectReadOnly[dart.implements] = () => [math.Rectangle$(core.num)];
   dart.setSignature(DomRectReadOnly, {
     constructors: () => ({
       _: [DomRectReadOnly, []],
       new: [DomRectReadOnly, [core.num, core.num, core.num, core.num]]
     }),
     methods: () => ({
-      [dartx.intersection]: [math.Rectangle, [math.Rectangle]],
+      [dartx.intersection]: [math.Rectangle$(core.num), [math.Rectangle$(core.num)]],
       [dartx.intersects]: [core.bool, [math.Rectangle$(core.num)]],
-      [dartx.boundingBox]: [math.Rectangle, [math.Rectangle]],
+      [dartx.boundingBox]: [math.Rectangle$(core.num), [math.Rectangle$(core.num)]],
       [dartx.containsRectangle]: [core.bool, [math.Rectangle$(core.num)]],
       [dartx.containsPoint]: [core.bool, [math.Point$(core.num)]]
     }),
@@ -13268,10 +13268,10 @@ dart_library.library('dart/html', null, /* Imports */[
       return dart.as(this[_nodeList][dartx.single], Element);
     }
     get classes() {
-      return exports._MultiElementCssClassSet.new(dart.as(this, core.Iterable$(Element)));
+      return exports._MultiElementCssClassSet.new(this);
     }
     get style() {
-      return new _CssStyleDeclarationSet(dart.as(this, core.Iterable$(Element)));
+      return new _CssStyleDeclarationSet(this);
     }
     set classes(value) {
       this[_nodeList][dartx.forEach](dart.fn(e => dart.dput(e, 'classes', value), core.Iterable$(core.String), [Node]));
@@ -13499,7 +13499,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return Element.fullscreenErrorEvent[_forElementList](this);
     }
   }
-  _FrozenElementList[dart.implements] = () => [ElementList, html_common.NodeListWrapper];
+  _FrozenElementList[dart.implements] = () => [ElementList$(Element), html_common.NodeListWrapper];
   dart.defineNamedConstructor(_FrozenElementList, '_wrap');
   dart.setSignature(_FrozenElementList, {
     constructors: () => ({_wrap: [_FrozenElementList, [core.List$(Node)]]}),
@@ -20151,27 +20151,27 @@ dart_library.library('dart/html', null, /* Imports */[
       return this.initMouseEvent(type, canBubble, cancelable, view, detail, screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey, button, relatedTarget);
     }
     get [dartx.client]() {
-      return new math.Point(this[_clientX], this[_clientY]);
+      return new (math.Point$(core.num))(this[_clientX], this[_clientY]);
     }
     get [dartx.movement]() {
-      return new math.Point(this[_webkitMovementX], this[_webkitMovementY]);
+      return new (math.Point$(core.num))(this[_webkitMovementX], this[_webkitMovementY]);
     }
     get [dartx.offset]() {
       if (!!this.offsetX) {
         let x = this.offsetX;
         let y = this.offsetY;
-        return new math.Point(x, y);
+        return new (math.Point$(core.num))(x, y);
       } else {
         if (!dart.is(this[dartx.target], Element)) {
           dart.throw(new core.UnsupportedError('offsetX is only supported on elements'));
         }
         let target = dart.as(this[dartx.target], Element);
         let point = this[dartx.client]['-'](target[dartx.getBoundingClientRect]()[dartx.topLeft]);
-        return new math.Point(dart.dsend(point.x, 'toInt'), dart.dsend(point.y, 'toInt'));
+        return new (math.Point$(core.num))(point.x[dartx.toInt](), point.y[dartx.toInt]());
       }
     }
     get [dartx.screen]() {
-      return new math.Point(this[_screenX], this[_screenY]);
+      return new (math.Point$(core.num))(this[_screenX], this[_screenY]);
     }
   }
   dart.setSignature(MouseEvent, {
@@ -22503,7 +22503,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return exports.document[dartx.createRange]();
     }
     static fromPoint(point) {
-      return exports.document[_caretRangeFromPoint](dart.as(point.x, core.int), dart.as(point.y, core.int));
+      return exports.document[_caretRangeFromPoint](dart.asInt(point.x), dart.asInt(point.y));
     }
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -22602,7 +22602,7 @@ dart_library.library('dart/html', null, /* Imports */[
   dart.setSignature(Range, {
     constructors: () => ({
       new: [Range, []],
-      fromPoint: [Range, [math.Point]],
+      fromPoint: [Range, [math.Point$(core.num)]],
       _: [Range, []]
     }),
     methods: () => ({
@@ -22616,8 +22616,8 @@ dart_library.library('dart/html', null, /* Imports */[
       [dartx.detach]: [dart.void, []],
       [dartx.expand]: [dart.void, [core.String]],
       [dartx.extractContents]: [DocumentFragment, []],
-      [dartx.getBoundingClientRect]: [math.Rectangle, []],
-      [dartx.getClientRects]: [core.List$(math.Rectangle), []],
+      [dartx.getBoundingClientRect]: [math.Rectangle$(core.num), []],
+      [dartx.getClientRects]: [core.List$(math.Rectangle$(core.num)), []],
       [dartx.insertNode]: [dart.void, [Node]],
       [dartx.isPointInRange]: [core.bool, [Node, core.int]],
       [dartx.selectNode]: [dart.void, [Node]],
@@ -23426,7 +23426,7 @@ dart_library.library('dart/html', null, /* Imports */[
   ]);
   class Screen extends _interceptors.Interceptor {
     get [dartx.available]() {
-      return new math.Rectangle(this[_availLeft], this[_availTop], this[_availWidth], this[_availHeight]);
+      return new (math.Rectangle$(core.num))(this[_availLeft], this[_availTop], this[_availWidth], this[_availHeight]);
     }
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -26831,13 +26831,13 @@ dart_library.library('dart/html', null, /* Imports */[
       return this.radiusY[dartx.round]();
     }
     get [dartx.client]() {
-      return new math.Point(this[__clientX], this[__clientY]);
+      return new (math.Point$(core.num))(this[__clientX], this[__clientY]);
     }
     get [dartx.page]() {
-      return new math.Point(this[__pageX], this[__pageY]);
+      return new (math.Point$(core.num))(this[__pageX], this[__pageY]);
     }
     get [dartx.screen]() {
-      return new math.Point(this[__screenX], this[__screenY]);
+      return new (math.Point$(core.num))(this[__screenX], this[__screenY]);
     }
     get [dartx.radiusX]() {
       return this[__radiusX];
@@ -29033,7 +29033,7 @@ dart_library.library('dart/html', null, /* Imports */[
       return Window.beforeUnloadEvent.forTarget(this);
     }
     [dartx.moveTo](p) {
-      this[_moveTo](dart.as(p.x, core.num), dart.as(p.y, core.num));
+      this[_moveTo](p.x, p.y);
     }
     get [dartx.pageXOffset]() {
       return this.pageXOffset[dartx.round]();
@@ -29108,7 +29108,7 @@ dart_library.library('dart/html', null, /* Imports */[
       [_clearTimeout]: [dart.void, [core.int]],
       [_setInterval]: [core.int, [core.Object, core.int]],
       [_setTimeout]: [core.int, [core.Object, core.int]],
-      [dartx.moveTo]: [dart.void, [math.Point]]
+      [dartx.moveTo]: [dart.void, [math.Point$(core.num)]]
     })
   });
   Window[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('Window')), dart.const(new _js_helper.Native("Window,DOMWindow"))];
@@ -29315,7 +29315,7 @@ dart_library.library('dart/html', null, /* Imports */[
     }
     [_forElementList](e, opts) {
       let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
-      return new (_ElementListEventStreamImpl$(BeforeUnloadEvent))(dart.as(e, core.Iterable$(Element)), this[_eventType], useCapture);
+      return new (_ElementListEventStreamImpl$(BeforeUnloadEvent))(e, this[_eventType], useCapture);
     }
   }
   _BeforeUnloadEventStreamProvider[dart.implements] = () => [EventStreamProvider$(BeforeUnloadEvent)];
@@ -29325,7 +29325,7 @@ dart_library.library('dart/html', null, /* Imports */[
       forTarget: [async.Stream$(BeforeUnloadEvent), [EventTarget], {useCapture: core.bool}],
       getEventType: [core.String, [EventTarget]],
       forElement: [ElementStream$(BeforeUnloadEvent), [Element], {useCapture: core.bool}],
-      [_forElementList]: [ElementStream$(BeforeUnloadEvent), [ElementList], {useCapture: core.bool}]
+      [_forElementList]: [ElementStream$(BeforeUnloadEvent), [ElementList$(Element)], {useCapture: core.bool}]
     })
   });
   class WindowBase64 extends _interceptors.Interceptor {
@@ -29848,20 +29848,20 @@ dart_library.library('dart/html', null, /* Imports */[
       return `Rectangle (${this[dartx.left]}, ${this[dartx.top]}) ${this[dartx.width]} x ${this[dartx.height]}`;
     }
     ['=='](other) {
-      if (!dart.is(other, math.Rectangle)) return false;
+      if (!dart.is(other, math.Rectangle$(core.num))) return false;
       return dart.equals(this[dartx.left], dart.dload(other, 'left')) && dart.equals(this[dartx.top], dart.dload(other, 'top')) && dart.equals(this[dartx.width], dart.dload(other, 'width')) && dart.equals(this[dartx.height], dart.dload(other, 'height'));
     }
     get hashCode() {
       return _JenkinsSmiHash.hash4(dart.hashCode(this[dartx.left]), dart.hashCode(this[dartx.top]), dart.hashCode(this[dartx.width]), dart.hashCode(this[dartx.height]));
     }
     [dartx.intersection](other) {
-      let x0 = math.max(this[dartx.left], dart.as(other[dartx.left], core.num));
-      let x1 = math.min(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.as(dart.dsend(other[dartx.left], '+', other[dartx.width]), core.num));
+      let x0 = math.max(this[dartx.left], other[dartx.left]);
+      let x1 = math.min(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]));
       if (dart.notNull(x0) <= dart.notNull(x1)) {
-        let y0 = math.max(this[dartx.top], dart.as(other[dartx.top], core.num));
-        let y1 = math.min(dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]), dart.as(dart.dsend(other[dartx.top], '+', other[dartx.height]), core.num));
+        let y0 = math.max(this[dartx.top], other[dartx.top]);
+        let y1 = math.min(dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]), dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]));
         if (dart.notNull(y0) <= dart.notNull(y1)) {
-          return new math.Rectangle(x0, y0, dart.notNull(x1) - dart.notNull(x0), dart.notNull(y1) - dart.notNull(y0));
+          return new (math.Rectangle$(core.num))(x0, y0, dart.notNull(x1) - dart.notNull(x0), dart.notNull(y1) - dart.notNull(y0));
         }
       }
       return null;
@@ -29870,11 +29870,11 @@ dart_library.library('dart/html', null, /* Imports */[
       return dart.notNull(this[dartx.left]) <= dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]) && dart.notNull(other[dartx.left]) <= dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]) && dart.notNull(this[dartx.top]) <= dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]) && dart.notNull(other[dartx.top]) <= dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]);
     }
     [dartx.boundingBox](other) {
-      let right = math.max(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.as(dart.dsend(other[dartx.left], '+', other[dartx.width]), core.num));
-      let bottom = math.max(dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]), dart.as(dart.dsend(other[dartx.top], '+', other[dartx.height]), core.num));
-      let left = math.min(this[dartx.left], dart.as(other[dartx.left], core.num));
-      let top = math.min(this[dartx.top], dart.as(other[dartx.top], core.num));
-      return new math.Rectangle(left, top, dart.notNull(right) - dart.notNull(left), dart.notNull(bottom) - dart.notNull(top));
+      let right = math.max(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(other[dartx.left]) + dart.notNull(other[dartx.width]));
+      let bottom = math.max(dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]), dart.notNull(other[dartx.top]) + dart.notNull(other[dartx.height]));
+      let left = math.min(this[dartx.left], other[dartx.left]);
+      let top = math.min(this[dartx.top], other[dartx.top]);
+      return new (math.Rectangle$(core.num))(left, top, dart.notNull(right) - dart.notNull(left), dart.notNull(bottom) - dart.notNull(top));
     }
     [dartx.containsRectangle](another) {
       return dart.notNull(this[dartx.left]) <= dart.notNull(another[dartx.left]) && dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]) >= dart.notNull(another[dartx.left]) + dart.notNull(another[dartx.width]) && dart.notNull(this[dartx.top]) <= dart.notNull(another[dartx.top]) && dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]) >= dart.notNull(another[dartx.top]) + dart.notNull(another[dartx.height]);
@@ -29883,16 +29883,16 @@ dart_library.library('dart/html', null, /* Imports */[
       return dart.notNull(another.x) >= dart.notNull(this[dartx.left]) && dart.notNull(another.x) <= dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]) && dart.notNull(another.y) >= dart.notNull(this[dartx.top]) && dart.notNull(another.y) <= dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]);
     }
     get [dartx.topLeft]() {
-      return new math.Point(this[dartx.left], this[dartx.top]);
+      return new (math.Point$(core.num))(this[dartx.left], this[dartx.top]);
     }
     get [dartx.topRight]() {
-      return new math.Point(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), this[dartx.top]);
+      return new (math.Point$(core.num))(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), this[dartx.top]);
     }
     get [dartx.bottomRight]() {
-      return new math.Point(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]));
+      return new (math.Point$(core.num))(dart.notNull(this[dartx.left]) + dart.notNull(this[dartx.width]), dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]));
     }
     get [dartx.bottomLeft]() {
-      return new math.Point(this[dartx.left], dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]));
+      return new (math.Point$(core.num))(this[dartx.left], dart.notNull(this[dartx.top]) + dart.notNull(this[dartx.height]));
     }
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
@@ -29916,13 +29916,13 @@ dart_library.library('dart/html', null, /* Imports */[
       return this.width;
     }
   }
-  _ClientRect[dart.implements] = () => [math.Rectangle];
+  _ClientRect[dart.implements] = () => [math.Rectangle$(core.num)];
   dart.setSignature(_ClientRect, {
     constructors: () => ({_: [_ClientRect, []]}),
     methods: () => ({
-      [dartx.intersection]: [math.Rectangle, [math.Rectangle]],
+      [dartx.intersection]: [math.Rectangle$(core.num), [math.Rectangle$(core.num)]],
       [dartx.intersects]: [core.bool, [math.Rectangle$(core.num)]],
-      [dartx.boundingBox]: [math.Rectangle, [math.Rectangle]],
+      [dartx.boundingBox]: [math.Rectangle$(core.num), [math.Rectangle$(core.num)]],
       [dartx.containsRectangle]: [core.bool, [math.Rectangle$(core.num)]],
       [dartx.containsPoint]: [core.bool, [math.Point$(core.num)]]
     })
@@ -29967,7 +29967,7 @@ dart_library.library('dart/html', null, /* Imports */[
     'elementAt',
     'item'
   ]);
-  class _ClientRectList extends dart.mixin(_interceptors.Interceptor, collection.ListMixin$(math.Rectangle), ImmutableListMixin$(math.Rectangle)) {
+  class _ClientRectList extends dart.mixin(_interceptors.Interceptor, collection.ListMixin$(math.Rectangle$(core.num)), ImmutableListMixin$(math.Rectangle$(core.num))) {
     static _() {
       dart.throw(new core.UnsupportedError("Not supported"));
     }
@@ -29976,7 +29976,7 @@ dart_library.library('dart/html', null, /* Imports */[
     }
     [dartx.get](index) {
       if (index >>> 0 !== index || index >= this[dartx.length]) dart.throw(core.RangeError.index(index, this));
-      return dart.as(this[index], math.Rectangle);
+      return dart.as(this[index], math.Rectangle$(core.num));
     }
     [dartx.set](index, value) {
       dart.throw(new core.UnsupportedError("Cannot assign element of immutable List."));
@@ -29987,21 +29987,21 @@ dart_library.library('dart/html', null, /* Imports */[
     }
     get [dartx.first]() {
       if (dart.notNull(this[dartx.length]) > 0) {
-        return dart.as(this[0], math.Rectangle);
+        return dart.as(this[0], math.Rectangle$(core.num));
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.last]() {
       let len = this[dartx.length];
       if (dart.notNull(len) > 0) {
-        return dart.as(this[dart.notNull(len) - 1], math.Rectangle);
+        return dart.as(this[dart.notNull(len) - 1], math.Rectangle$(core.num));
       }
       dart.throw(new core.StateError("No elements"));
     }
     get [dartx.single]() {
       let len = this[dartx.length];
       if (len == 1) {
-        return dart.as(this[0], math.Rectangle);
+        return dart.as(this[0], math.Rectangle$(core.num));
       }
       if (len == 0) dart.throw(new core.StateError("No elements"));
       dart.throw(new core.StateError("More than one element"));
@@ -30013,14 +30013,14 @@ dart_library.library('dart/html', null, /* Imports */[
       return this.item(index);
     }
   }
-  _ClientRectList[dart.implements] = () => [core.List$(math.Rectangle), _js_helper.JavaScriptIndexingBehavior];
+  _ClientRectList[dart.implements] = () => [core.List$(math.Rectangle$(core.num)), _js_helper.JavaScriptIndexingBehavior];
   dart.setSignature(_ClientRectList, {
     constructors: () => ({_: [_ClientRectList, []]}),
     methods: () => ({
-      [dartx.get]: [math.Rectangle, [core.int]],
-      [dartx.set]: [dart.void, [core.int, math.Rectangle]],
-      [dartx.elementAt]: [math.Rectangle, [core.int]],
-      [dartx.item]: [math.Rectangle, [core.int]]
+      [dartx.get]: [math.Rectangle$(core.num), [core.int]],
+      [dartx.set]: [dart.void, [core.int, math.Rectangle$(core.num)]],
+      [dartx.elementAt]: [math.Rectangle$(core.num), [core.int]],
+      [dartx.item]: [math.Rectangle$(core.num), [core.int]]
     })
   });
   _ClientRectList[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('ClientRectList')), dart.const(new _js_helper.Native("ClientRectList,DOMRectList"))];
@@ -31490,10 +31490,10 @@ dart_library.library('dart/html', null, /* Imports */[
       }
     }
     get left() {
-      return dart.as(dart.dsend(this[_element][dartx.getBoundingClientRect]()[dartx.left], '-', this[_addOrSubtractToBoxModel](dart.list(['left'], core.String), exports._CONTENT)), core.num);
+      return dart.notNull(this[_element][dartx.getBoundingClientRect]()[dartx.left]) - dart.notNull(this[_addOrSubtractToBoxModel](dart.list(['left'], core.String), exports._CONTENT));
     }
     get top() {
-      return dart.as(dart.dsend(this[_element][dartx.getBoundingClientRect]()[dartx.top], '-', this[_addOrSubtractToBoxModel](dart.list(['top'], core.String), exports._CONTENT)), core.num);
+      return dart.notNull(this[_element][dartx.getBoundingClientRect]()[dartx.top]) - dart.notNull(this[_addOrSubtractToBoxModel](dart.list(['top'], core.String), exports._CONTENT));
     }
   }
   dart.setSignature(_ContentCssRect, {
@@ -31528,10 +31528,10 @@ dart_library.library('dart/html', null, /* Imports */[
       return dart.notNull(this[_element][dartx.offsetWidth]) + dart.notNull(this[_addOrSubtractToBoxModel](exports._WIDTH, exports._PADDING));
     }
     get left() {
-      return dart.as(dart.dsend(this[_element][dartx.getBoundingClientRect]()[dartx.left], '-', this[_addOrSubtractToBoxModel](dart.list(['left'], core.String), exports._PADDING)), core.num);
+      return dart.notNull(this[_element][dartx.getBoundingClientRect]()[dartx.left]) - dart.notNull(this[_addOrSubtractToBoxModel](dart.list(['left'], core.String), exports._PADDING));
     }
     get top() {
-      return dart.as(dart.dsend(this[_element][dartx.getBoundingClientRect]()[dartx.top], '-', this[_addOrSubtractToBoxModel](dart.list(['top'], core.String), exports._PADDING)), core.num);
+      return dart.notNull(this[_element][dartx.getBoundingClientRect]()[dartx.top]) - dart.notNull(this[_addOrSubtractToBoxModel](dart.list(['top'], core.String), exports._PADDING));
     }
   }
   dart.setSignature(_PaddingCssRect, {
@@ -31549,10 +31549,10 @@ dart_library.library('dart/html', null, /* Imports */[
       return this[_element][dartx.offsetWidth];
     }
     get left() {
-      return dart.as(this[_element][dartx.getBoundingClientRect]()[dartx.left], core.num);
+      return this[_element][dartx.getBoundingClientRect]()[dartx.left];
     }
     get top() {
-      return dart.as(this[_element][dartx.getBoundingClientRect]()[dartx.top], core.num);
+      return this[_element][dartx.getBoundingClientRect]()[dartx.top];
     }
   }
   dart.setSignature(_BorderCssRect, {
@@ -31570,10 +31570,10 @@ dart_library.library('dart/html', null, /* Imports */[
       return dart.notNull(this[_element][dartx.offsetWidth]) + dart.notNull(this[_addOrSubtractToBoxModel](exports._WIDTH, exports._MARGIN));
     }
     get left() {
-      return dart.as(dart.dsend(this[_element][dartx.getBoundingClientRect]()[dartx.left], '-', this[_addOrSubtractToBoxModel](dart.list(['left'], core.String), exports._MARGIN)), core.num);
+      return dart.notNull(this[_element][dartx.getBoundingClientRect]()[dartx.left]) - dart.notNull(this[_addOrSubtractToBoxModel](dart.list(['left'], core.String), exports._MARGIN));
     }
     get top() {
-      return dart.as(dart.dsend(this[_element][dartx.getBoundingClientRect]()[dartx.top], '-', this[_addOrSubtractToBoxModel](dart.list(['top'], core.String), exports._MARGIN)), core.num);
+      return dart.notNull(this[_element][dartx.getBoundingClientRect]()[dartx.top]) - dart.notNull(this[_addOrSubtractToBoxModel](dart.list(['top'], core.String), exports._MARGIN));
     }
   }
   dart.setSignature(_MarginCssRect, {
@@ -31915,7 +31915,7 @@ dart_library.library('dart/html', null, /* Imports */[
       }
       [_forElementList](e, opts) {
         let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
-        return new (_ElementListEventStreamImpl$(T))(dart.as(e, core.Iterable$(Element)), this[_eventType], useCapture);
+        return new (_ElementListEventStreamImpl$(T))(e, this[_eventType], useCapture);
       }
       getEventType(target) {
         return this[_eventType];
@@ -31926,7 +31926,7 @@ dart_library.library('dart/html', null, /* Imports */[
       methods: () => ({
         forTarget: [async.Stream$(T), [EventTarget], {useCapture: core.bool}],
         forElement: [ElementStream$(T), [Element], {useCapture: core.bool}],
-        [_forElementList]: [ElementStream$(T), [ElementList], {useCapture: core.bool}],
+        [_forElementList]: [ElementStream$(T), [ElementList$(Element)], {useCapture: core.bool}],
         getEventType: [core.String, [EventTarget]]
       })
     });
@@ -32036,7 +32036,7 @@ dart_library.library('dart/html', null, /* Imports */[
         let cancelOnError = opts && 'cancelOnError' in opts ? opts.cancelOnError : null;
         let pool = new _StreamPool.broadcast();
         for (let target of this[_targetList]) {
-          pool.add(new _EventStream(target, this[_eventType], this[_useCapture]));
+          pool.add(new (_EventStream$(Event))(target, this[_eventType], this[_useCapture]));
         }
         return dart.as(pool.stream.listen(onData, {onError: onError, onDone: onDone, cancelOnError: cancelOnError}), async.StreamSubscription$(T));
       }
@@ -32044,7 +32044,7 @@ dart_library.library('dart/html', null, /* Imports */[
         dart.as(onData, dart.functionType(dart.void, [T]));
         let pool = new _StreamPool.broadcast();
         for (let target of this[_targetList]) {
-          pool.add(new _EventStream(target, this[_eventType], true));
+          pool.add(new (_EventStream$(Event))(target, this[_eventType], true));
         }
         return dart.as(pool.stream.listen(onData), async.StreamSubscription$(T));
       }
@@ -32534,15 +32534,15 @@ dart_library.library('dart/html', null, /* Imports */[
       }
       forTarget(e, opts) {
         let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
-        return new (_EventStream$(T))(e, dart.as(dart.dcall(this[_eventTypeGetter], e), core.String), useCapture);
+        return new (_EventStream$(Event))(e, dart.as(dart.dcall(this[_eventTypeGetter], e), core.String), useCapture);
       }
       forElement(e, opts) {
         let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
-        return new (_ElementEventStreamImpl$(T))(e, dart.dcall(this[_eventTypeGetter], e), useCapture);
+        return new (_ElementEventStreamImpl$(Event))(e, dart.dcall(this[_eventTypeGetter], e), useCapture);
       }
       [_forElementList](e, opts) {
         let useCapture = opts && 'useCapture' in opts ? opts.useCapture : false;
-        return new (_ElementListEventStreamImpl$(T))(dart.as(e, core.Iterable$(Element)), dart.as(dart.dcall(this[_eventTypeGetter], e), core.String), useCapture);
+        return new (_ElementListEventStreamImpl$(Event))(e, dart.as(dart.dcall(this[_eventTypeGetter], e), core.String), useCapture);
       }
       getEventType(target) {
         return dart.as(dart.dcall(this[_eventTypeGetter], target), core.String);
@@ -32557,7 +32557,7 @@ dart_library.library('dart/html', null, /* Imports */[
       methods: () => ({
         forTarget: [async.Stream$(T), [EventTarget], {useCapture: core.bool}],
         forElement: [ElementStream$(T), [Element], {useCapture: core.bool}],
-        [_forElementList]: [ElementStream$(T), [ElementList], {useCapture: core.bool}],
+        [_forElementList]: [ElementStream$(T), [ElementList$(Element)], {useCapture: core.bool}],
         getEventType: [core.String, [EventTarget]]
       })
     });

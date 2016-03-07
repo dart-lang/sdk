@@ -43,7 +43,7 @@ dart_library.library('dart/math', null, /* Imports */[
         return `Point(${this.x}, ${this.y})`;
       }
       ['=='](other) {
-        if (!dart.is(other, Point$())) return false;
+        if (!dart.is(other, Point$(core.num))) return false;
         return dart.equals(this.x, dart.dload(other, 'x')) && dart.equals(this.y, dart.dload(other, 'y'));
       }
       get hashCode() {
