@@ -284,11 +284,13 @@ class InstanceMemberInferrer {
     List<FunctionType> overriddenTypes = new List<FunctionType>();
     for (ExecutableElement overriddenMethod in overriddenMethods) {
       FunctionType overriddenType = overriddenMethod.type;
-      if (overriddenType.typeFormals.isNotEmpty &&
-          overriddenType.typeFormals.length != typeFormals.length) {
-        return;
+      if (overriddenType.typeFormals.isNotEmpty) {
+        if (overriddenType.typeFormals.length != typeFormals.length) {
+          return;
+        }
+        overriddenType = overriddenType.instantiate(typeFormals);
       }
-      overriddenTypes.add(overriddenType.instantiate(typeFormals));
+      overriddenTypes.add(overriddenType);
     }
 
     //

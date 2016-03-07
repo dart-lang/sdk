@@ -1714,7 +1714,6 @@ main() {
     ''');
     });
 
-
     test('inferred generic instantiation', () {
       checkFile('''
 import 'dart:math' as math;
@@ -1836,6 +1835,22 @@ main() {
     ''');
     });
 
+    // Regression test for crash when adding genericity
+    test('handle override of non-generic with generic', () {
+      checkFile('''
+class C {
+  m(x) => x;
+}
+class D extends C {
+  /*=T*/ m/*<T>*/(/*=T*/ x) => x;
+}
+main() {
+  int y = /*info:DYNAMIC_CAST*/(new D() as C).m(42);
+  print(y);
+}
+    ''');
+    });
+
     test('correctly recognize generic upper bound', () {
       // Regression test for https://github.com/dart-lang/sdk/issues/25740.
       checkFile(r'''
@@ -1893,7 +1908,6 @@ void functionExpressionInvocation() {
 }
       ''');
     });
-
   });
 
   // Regression test for https://github.com/dart-lang/dev_compiler/issues/47
