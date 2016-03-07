@@ -146,7 +146,6 @@ io/signals_test: Fail # Issue 17440
 io/file_stat_test: Fail # Issue 17440
 io/process_sync_test: Skip # Starts 10 dart subprocesses, uses too much memory.
 io/signals_test: Skip # Starts 10 dart subprocesses, uses too much memory
-io/file_read_special_device_test: Fail # Issue 17440
 io/socket_source_address_test: Fail # Issue 22597
 
 [ $arch == mips && $mode == debug ]
