@@ -928,6 +928,13 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   Source librarySource;
 
   /**
+   * A table mapping the offset of a directive to the annotations associated
+   * with that directive, or `null` if none of the annotations in the
+   * compilation unit have annotations.
+   */
+  Map<int, List<ElementAnnotation>> annotationMap = null;
+
+  /**
    * A list containing all of the top-level accessors (getters and setters)
    * contained in this compilation unit.
    */
@@ -1103,6 +1110,18 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   @override
   CompilationUnit computeNode() => unit;
 
+  /**
+   * Return the annotations associated with the directive at the given [offset],
+   * or an empty list if the directive has no annotations or if there is no
+   * directive at the given offset.
+   */
+  List<ElementAnnotation> getAnnotations(int offset) {
+    if (annotationMap == null) {
+      return ElementAnnotation.EMPTY_LIST;
+    }
+    return annotationMap[offset] ?? ElementAnnotation.EMPTY_LIST;
+  }
+
   @override
   ElementImpl getChild(String identifier) {
     //
@@ -1179,6 +1198,15 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       TopLevelVariableElement from, TopLevelVariableElement to) {
     int index = _variables.indexOf(from);
     _variables[index] = to;
+  }
+
+  /**
+   * Set the annotations associated with the directive at the given [offset] to
+   * the given list of [annotations].
+   */
+  void setAnnotations(int offset, List<ElementAnnotation> annotations) {
+    annotationMap ??= new HashMap<int, List<ElementAnnotation>>();
+    annotationMap[offset] = annotations;
   }
 
   @override

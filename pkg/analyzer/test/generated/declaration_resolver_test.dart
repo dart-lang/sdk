@@ -10,6 +10,9 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/task/dart.dart';
+import 'package:analyzer/task/dart.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
@@ -142,6 +145,17 @@ class DeclarationResolverMetadataTest extends ResolverTestCase {
   void test_metadata_importDirective() {
     addNamedSource('/foo.dart', 'class C {}');
     setupCode('@a import "foo.dart";');
+    checkMetadata('import');
+  }
+
+  void test_metadata_importDirective_partiallyResolved() {
+    addNamedSource('/foo.dart', 'class C {}');
+    this.code = 'const a = null; @a import "foo.dart";';
+    Source source = addNamedSource('/test.dart', code);
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    analysisContext.computeResult(source, LIBRARY_ELEMENT1);
+    unit = analysisContext.computeResult(target, RESOLVED_UNIT1);
+    unit2 = _cloneResolveUnit(unit);
     checkMetadata('import');
   }
 

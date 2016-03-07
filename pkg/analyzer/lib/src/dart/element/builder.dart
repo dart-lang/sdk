@@ -204,11 +204,6 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
   Object visitImportDirective(ImportDirective node) {
     // Remove previous element. (It will remain null if the target is missing.)
     node.element = null;
-
-    String uriContent = node.uriContent;
-    if (DartUriResolver.isDartExtUri(uriContent)) {
-      libraryElement.hasExtUri = true;
-    }
     Source importedSource = node.source;
     if (importedSource != null && context.exists(importedSource)) {
       // The imported source will be null if the URI in the import
@@ -225,7 +220,7 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
           importElement.uriOffset = uriLiteral.offset;
           importElement.uriEnd = uriLiteral.end;
         }
-        importElement.uri = uriContent;
+        importElement.uri = node.uriContent;
         importElement.deferred = node.deferredKeyword != null;
         importElement.combinators = _buildCombinators(node);
         importElement.importedLibrary = importedLibrary;
@@ -312,7 +307,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
    * The compilation unit element into which the elements being built will be
    * stored.
    */
-  final CompilationUnitElement compilationUnitElement;
+  final CompilationUnitElementImpl compilationUnitElement;
 
   /**
    * The element holder associated with the element that is currently being built.
@@ -339,9 +334,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   HashMap<String, FieldElement> _fieldMap;
 
   /**
-   * Initialize a newly created element builder to build the elements for a compilation unit.
-   *
-   * @param initialHolder the element holder associated with the compilation unit being built
+   * Initialize a newly created element builder to build the elements for a
+   * compilation unit. The [initialHolder] is the element holder to which the
+   * children of the visited compilation unit node will be added.
    */
   ElementBuilder(ElementHolder initialHolder, this.compilationUnitElement) {
     _currentHolder = initialHolder;
@@ -484,7 +479,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   @override
   Object visitCompilationUnit(CompilationUnit node) {
     if (compilationUnitElement is ElementImpl) {
-      _setCodeRange(compilationUnitElement as ElementImpl, node);
+      _setCodeRange(compilationUnitElement, node);
     }
     return super.visitCompilationUnit(node);
   }
@@ -633,7 +628,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitExportDirective(ExportDirective node) {
-    _createElementAnnotations(node.metadata);
+    List<ElementAnnotation> annotations =
+        _createElementAnnotations(node.metadata);
+    compilationUnitElement.setAnnotations(node.offset, annotations);
     return super.visitExportDirective(node);
   }
 
@@ -895,7 +892,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitImportDirective(ImportDirective node) {
-    _createElementAnnotations(node.metadata);
+    List<ElementAnnotation> annotations =
+        _createElementAnnotations(node.metadata);
+    compilationUnitElement.setAnnotations(node.offset, annotations);
     return super.visitImportDirective(node);
   }
 
@@ -914,7 +913,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitLibraryDirective(LibraryDirective node) {
-    _createElementAnnotations(node.metadata);
+    List<ElementAnnotation> annotations =
+        _createElementAnnotations(node.metadata);
+    compilationUnitElement.setAnnotations(node.offset, annotations);
     return super.visitLibraryDirective(node);
   }
 
@@ -1077,7 +1078,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitPartDirective(PartDirective node) {
-    _createElementAnnotations(node.metadata);
+    List<ElementAnnotation> annotations =
+        _createElementAnnotations(node.metadata);
+    compilationUnitElement.setAnnotations(node.offset, annotations);
     return super.visitPartDirective(node);
   }
 

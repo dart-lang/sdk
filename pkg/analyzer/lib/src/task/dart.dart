@@ -1004,24 +1004,46 @@ class BuildDirectiveElementsTask extends SourceBasedAnalysisTask {
     Map<Source, SourceKind> exportSourceKindMap =
         getRequiredInput(EXPORTS_SOURCE_KIND_INPUT_NAME);
     //
-    // Build elements.
+    // Try to get the existing LibraryElement.
     //
-    DirectiveElementBuilder builder = new DirectiveElementBuilder(
-        context,
-        libraryElement,
-        importLibraryMap,
-        importSourceKindMap,
-        exportLibraryMap,
-        exportSourceKindMap);
-    libraryUnit.accept(builder);
-    // See commentary in the computation of the LIBRARY_CYCLE result
-    // for details on library cycle invalidation.
-    libraryElement.invalidateLibraryCycles();
+    LibraryElement element;
+    {
+      InternalAnalysisContext internalContext =
+          context as InternalAnalysisContext;
+      AnalysisCache analysisCache = internalContext.analysisCache;
+      CacheEntry cacheEntry = internalContext.getCacheEntry(target);
+      element = analysisCache.getValue(target, LIBRARY_ELEMENT2);
+      if (element == null &&
+          internalContext.aboutToComputeResult(cacheEntry, LIBRARY_ELEMENT2)) {
+        element = analysisCache.getValue(target, LIBRARY_ELEMENT2);
+      }
+    }
+    //
+    // Build or reuse the directive elements.
+    //
+    List<AnalysisError> errors;
+    if (element == null) {
+      DirectiveElementBuilder builder = new DirectiveElementBuilder(
+          context,
+          libraryElement,
+          importLibraryMap,
+          importSourceKindMap,
+          exportLibraryMap,
+          exportSourceKindMap);
+      libraryUnit.accept(builder);
+      // See the commentary in the computation of the LIBRARY_CYCLE result
+      // for details on library cycle invalidation.
+      libraryElement.invalidateLibraryCycles();
+      errors = builder.errors;
+    } else {
+      DirectiveResolver resolver = new DirectiveResolver();
+      libraryUnit.accept(resolver);
+    }
     //
     // Record outputs.
     //
     outputs[LIBRARY_ELEMENT2] = libraryElement;
-    outputs[BUILD_DIRECTIVES_ERRORS] = builder.errors;
+    outputs[BUILD_DIRECTIVES_ERRORS] = errors;
   }
 
   /**
@@ -1383,9 +1405,7 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
       libraryElement.definingCompilationUnit = definingCompilationUnitElement;
       libraryElement.entryPoint = entryPoint;
       libraryElement.parts = sourcedCompilationUnits;
-      for (Directive directive in directivesToResolve) {
-        directive.element = libraryElement;
-      }
+      libraryElement.hasExtUri = _hasExtUri(definingCompilationUnit);
       BuildLibraryElementUtils.patchTopLevelAccessors(libraryElement);
       // set the library documentation to the docs associated with the first
       // directive in the compilation unit.
@@ -1393,6 +1413,15 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
         setElementDocumentationComment(
             libraryElement, definingCompilationUnit.directives.first);
       }
+    }
+    //
+    // Resolve the relevant directives to the library element.
+    //
+    // TODO(brianwilkerson) This updates the state of the AST structures but
+    // does not associate a new result with it.
+    //
+    for (Directive directive in directivesToResolve) {
+      directive.element = libraryElement;
     }
     //
     // Record outputs.
@@ -1431,6 +1460,21 @@ class BuildLibraryElementTask extends SourceBasedAnalysisTask {
       }
     }
     return null;
+  }
+
+  /**
+   * Return `true` if the given compilation [unit] contains at least one
+   * import directive with a `dart-ext:` URI.
+   */
+  bool _hasExtUri(CompilationUnit unit) {
+    for (Directive directive in unit.directives) {
+      if (directive is ImportDirective) {
+        if (DartUriResolver.isDartExtUri(directive.uriContent)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   /**
