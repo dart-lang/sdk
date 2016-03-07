@@ -100,14 +100,17 @@ class Message {
   /// This id just needs to be unique within the same [id].
   final int subId;
 
-  /// The error sub-id of which this message is a specialization.
+  /// The error of which this message is a specialization.
   ///
   /// For example, "Const is not allowed on getters" may be a specialization of
   /// "The 'const' keyword is not allowed here".
   ///
   /// Examples of the specialized message, should trigger for the more generic
   /// message, when the platform doesn't support the more specialized message.
-  final int specializationOf;
+  ///
+  /// Specializations must have the same error-id (but not sub-id) as the more
+  /// generic message.
+  final String specializationOf;
 
   final Category category;
   final String template;
@@ -127,7 +130,7 @@ class Message {
   Message(
       {this.id,
       this.subId: 0,
-      this.specializationOf: -1,
+      this.specializationOf: null,
       this.category,
       this.template,
       this.templateHoleOrder,
@@ -204,7 +207,7 @@ final Map<String, Message> MESSAGES = {
   'CONST_CONSTRUCTOR_WITH_BODY': new Message(
       id: 'LGJGHW',
       subId: 1,
-      specializationOf: 0,
+      specializationOf: "CONST_CONSTRUCTOR_OR_FACTORY_WITH_BODY",
       category: Category.parserError,
       template: "Const constructor can't have a body.",
       howToFix: "Try removing the 'const' keyword or the body.",
@@ -223,7 +226,7 @@ final Map<String, Message> MESSAGES = {
   'CONST_FACTORY': new Message(
       id: 'LGJGHW',
       subId: 2,
-      specializationOf: 0,
+      specializationOf: "CONST_CONSTRUCTOR_OR_FACTORY_WITH_BODY",
       category: Category.parserError,
       template: "Only redirecting factory constructors can be declared to "
           "be 'const'.",
@@ -291,8 +294,9 @@ final Map<String, Message> MESSAGES = {
   'CONST_CLASS': new Message(
       id: 'GRKIQE',
       subId: 2,
-      // The specialization could also be 1, but the example below triggers 0.
-      specializationOf: 0,
+      // The specialization could also be 'EXTRANEOUS_MODIFIER_REPLACE', but the
+      // example below triggers 'EXTRANEOUS_MODIFIER'.
+      specializationOf: 'EXTRANEOUS_MODIFIER',
       category: Category.parserError,
       template: "Classes can't be declared to be 'const'",
       howToFix: "Try removing the 'const' keyword or moving to the class'"
@@ -311,8 +315,9 @@ final Map<String, Message> MESSAGES = {
   'CONST_METHOD': new Message(
       id: 'GRKIQE',
       subId: 3,
-      // The specialization could also be 1, but the example below triggers 0.
-      specializationOf: 0,
+      // The specialization could also be 'EXTRANEOUS_MODIFIER_REPLACE', but the
+      // example below triggers 'EXTRANEOUS_MODIFIER'.
+      specializationOf: 'EXTRANEOUS_MODIFIER',
       category: Category.parserError,
       template: "Getters, setters and methods can't be declared to be 'const'",
       howToFix: "Try removing the 'const' keyword.",
@@ -331,8 +336,9 @@ final Map<String, Message> MESSAGES = {
   'CONST_ENUM': new Message(
       id: 'GRKIQE',
       subId: 4,
-      // The specialization could also be 1, but the example below triggers 0.
-      specializationOf: 0,
+      // The specialization could also be 'EXTRANEOUS_MODIFIER_REPLACE', but the
+      // example below triggers 'EXTRANEOUS_MODIFIER'.
+      specializationOf: 'EXTRANEOUS_MODIFIER',
       category: Category.parserError,
       template: "Enums can't be declared to be 'const'",
       howToFix: "Try removing the 'const' keyword.",
@@ -342,8 +348,9 @@ final Map<String, Message> MESSAGES = {
   'CONST_TYPEDEF': new Message(
       id: 'GRKIQE',
       subId: 5,
-      // The specialization could also be 1, but the example below triggers 0.
-      specializationOf: 0,
+      // The specialization could also be 'EXTRANEOUS_MODIFIER_REPLACE', but the
+      // example below triggers 'EXTRANEOUS_MODIFIER'.
+      specializationOf: 'EXTRANEOUS_MODIFIER',
       category: Category.parserError,
       template: "Type aliases can't be declared to be 'const'",
       howToFix: "Try removing the 'const' keyword.",
@@ -353,8 +360,9 @@ final Map<String, Message> MESSAGES = {
   'CONST_AND_FINAL': new Message(
       id: 'GRKIQE',
       subId: 6,
-      // The specialization could also be 1, but the example below triggers 0.
-      specializationOf: 0,
+      // The specialization could also be 'EXTRANEOUS_MODIFIER_REPLACE', but the
+      // example below triggers 'EXTRANEOUS_MODIFIER'.
+      specializationOf: 'EXTRANEOUS_MODIFIER',
       category: Category.parserError,
       template: "Members can't be declared to be both 'const' and 'final'",
       howToFix: "Try removing either the 'const' or 'final' keyword.",
@@ -371,8 +379,9 @@ final Map<String, Message> MESSAGES = {
   'CONST_AND_VAR': new Message(
       id: 'GRKIQE',
       subId: 7,
-      // The specialization could also be 1, but the example below triggers 0.
-      specializationOf: 0,
+      // The specialization could also be 'EXTRANEOUS_MODIFIER_REPLACE', but the
+      // example below triggers 'EXTRANEOUS_MODIFIER'.
+      specializationOf: 'EXTRANEOUS_MODIFIER',
       category: Category.parserError,
       template: "Members can't be declared to be both 'const' and 'var'",
       howToFix: "Try removing either the 'const' or 'var' keyword.",
