@@ -183,8 +183,8 @@ class B extends A {} // 2
 ''');
     ClassElement elementA = findElement('A');
     assertThat(elementA)
-      ..isExtendedAt('A {} // 2', true)
-      ..isReferencedAt('A {} // 2', true);
+      ..isExtendedAt('A {} // 2', false)
+      ..isReferencedAt('A {} // 2', false);
   }
 
   void test_isExtendedBy_ClassDeclaration_isQualified() {
@@ -218,6 +218,23 @@ class C = A with B;
 ''');
     ClassElement elementA = findElement('A');
     assertThat(elementA)
+      ..isExtendedAt('A with', false)
+      ..isReferencedAt('A with', false);
+  }
+
+  void test_isExtendedBy_ClassTypeAlias_isQualified() {
+    addSource(
+        '/lib.dart',
+        '''
+class A {}
+''');
+    _indexTestUnit('''
+import 'lib.dart' as p;
+class B {}
+class C = p.A with B;
+''');
+    ClassElement elementA = importedUnit().getType('A');
+    assertThat(elementA)
       ..isExtendedAt('A with', true)
       ..isReferencedAt('A with', true);
   }
@@ -229,8 +246,8 @@ class B implements A {} // 2
 ''');
     ClassElement elementA = findElement('A');
     assertThat(elementA)
-      ..isImplementedAt('A {} // 2', true)
-      ..isReferencedAt('A {} // 2', true);
+      ..isImplementedAt('A {} // 2', false)
+      ..isReferencedAt('A {} // 2', false);
   }
 
   void test_isImplementedBy_ClassDeclaration_isQualified() {
@@ -257,8 +274,8 @@ class C = Object with A implements B; // 3
 ''');
     ClassElement elementB = findElement('B');
     assertThat(elementB)
-      ..isImplementedAt('B; // 3', true)
-      ..isReferencedAt('B; // 3', true);
+      ..isImplementedAt('B; // 3', false)
+      ..isReferencedAt('B; // 3', false);
   }
 
   void test_isInvokedBy_FieldElement() {
@@ -382,8 +399,8 @@ class B extends Object with A {} // 2
 ''');
     ClassElement elementA = findElement('A');
     assertThat(elementA)
-      ..isMixedInAt('A {} // 2', true)
-      ..isReferencedAt('A {} // 2', true);
+      ..isMixedInAt('A {} // 2', false)
+      ..isReferencedAt('A {} // 2', false);
   }
 
   void test_isMixedInBy_ClassDeclaration_isQualified() {
@@ -406,7 +423,7 @@ class A {} // 1
 class B = Object with A; // 2
 ''');
     ClassElement elementA = findElement('A');
-    assertThat(elementA).isMixedInAt('A; // 2', true);
+    assertThat(elementA).isMixedInAt('A; // 2', false);
   }
 
   void test_isReferencedBy_ClassElement() {

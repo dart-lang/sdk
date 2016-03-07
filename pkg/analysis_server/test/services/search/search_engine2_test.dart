@@ -73,26 +73,25 @@ class SearchEngineImpl2Test extends AbstractSingleUnitTest {
     searchEngine = new SearchEngineImpl2(context, index);
   }
 
-//  Future test_searchAllSubtypes() {
-//    _indexTestUnit('''
-//class T {}
-//class A extends T {}
-//class B extends A {}
-//class C implements B {}
-//''');
-//    ClassElement element = findElement('T');
-//    ClassElement elementA = findElement('A');
-//    ClassElement elementB = findElement('B');
-//    ClassElement elementC = findElement('C');
-//    var expected = [
-//      _expectId(elementA, MatchKind.DECLARATION, 'A extends T'),
-//      _expectId(elementB, MatchKind.DECLARATION, 'B extends A'),
-//      _expectId(elementC, MatchKind.DECLARATION, 'C implements B')
-//    ];
-//    return searchEngine.searchAllSubtypes(element).then((matches) {
-//      _assertMatches(matches, expected);
-//    });
-//  }
+  test_searchAllSubtypes() async {
+    _indexTestUnit('''
+class T {}
+class A extends T {}
+class B extends A {}
+class C implements B {}
+''');
+    ClassElement element = findElement('T');
+    ClassElement elementA = findElement('A');
+    ClassElement elementB = findElement('B');
+    ClassElement elementC = findElement('C');
+    var expected = [
+      _expectId(elementA, MatchKind.DECLARATION, 'A extends T'),
+      _expectId(elementB, MatchKind.DECLARATION, 'B extends A'),
+      _expectId(elementC, MatchKind.DECLARATION, 'C implements B')
+    ];
+    List<SearchMatch> matches = await searchEngine.searchAllSubtypes(element);
+    _assertMatches(matches, expected);
+  }
 
   test_searchMemberDeclarations() async {
     _indexTestUnit('''
@@ -640,26 +639,25 @@ class A<T> {
     await _verifyReferences(element, expected);
   }
 
-//  Future test_searchSubtypes() {
-//    _indexTestUnit('''
-//class T {}
-//class A extends T {} // A
-//class B = Object with T; // B
-//class C implements T {} // C
-//''');
-//    ClassElement element = findElement('T');
-//    ClassElement elementA = findElement('A');
-//    ClassElement elementB = findElement('B');
-//    ClassElement elementC = findElement('C');
-//    var expected = [
-//      _expectId(elementA, MatchKind.REFERENCE, 'T {} // A'),
-//      _expectId(elementB, MatchKind.REFERENCE, 'T; // B'),
-//      _expectId(elementC, MatchKind.REFERENCE, 'T {} // C')
-//    ];
-//    return searchEngine.searchSubtypes(element).then((matches) {
-//      _assertMatches(matches, expected);
-//    });
-//  }
+  test_searchSubtypes() async {
+    _indexTestUnit('''
+class T {}
+class A extends T {} // A
+class B = Object with T; // B
+class C implements T {} // C
+''');
+    ClassElement element = findElement('T');
+    ClassElement elementA = findElement('A');
+    ClassElement elementB = findElement('B');
+    ClassElement elementC = findElement('C');
+    var expected = [
+      _expectId(elementA, MatchKind.REFERENCE, 'T {} // A'),
+      _expectId(elementB, MatchKind.REFERENCE, 'T; // B'),
+      _expectId(elementC, MatchKind.REFERENCE, 'T {} // C')
+    ];
+    List<SearchMatch> matches = await searchEngine.searchSubtypes(element);
+    _assertMatches(matches, expected);
+  }
 
   test_searchTopLevelDeclarations() async {
     _indexTestUnit('''

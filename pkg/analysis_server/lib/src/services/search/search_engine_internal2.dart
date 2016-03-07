@@ -28,9 +28,11 @@ class SearchEngineImpl2 implements SearchEngine {
   SearchEngineImpl2(this.context, this._index);
 
   @override
-  Future<List<SearchMatch>> searchAllSubtypes(ClassElement type) {
-    // TODO: implement searchAllSubtypes
-    throw new UnimplementedError();
+  Future<List<SearchMatch>> searchAllSubtypes(ClassElement type) async {
+    List<SearchMatch> matches = <SearchMatch>[];
+    await _addMatches(
+        matches, type, IndexRelationKind.IS_ANCESTOR_OF, MatchKind.DECLARATION);
+    return matches;
   }
 
   @override
@@ -80,9 +82,15 @@ class SearchEngineImpl2 implements SearchEngine {
   }
 
   @override
-  Future<List<SearchMatch>> searchSubtypes(ClassElement type) {
-    // TODO: implement searchSubtypes
-    throw new UnimplementedError();
+  Future<List<SearchMatch>> searchSubtypes(ClassElement type) async {
+    List<SearchMatch> matches = <SearchMatch>[];
+    await _addMatches(
+        matches, type, IndexRelationKind.IS_EXTENDED_BY, MatchKind.REFERENCE);
+    await _addMatches(
+        matches, type, IndexRelationKind.IS_MIXED_IN_BY, MatchKind.REFERENCE);
+    await _addMatches(matches, type, IndexRelationKind.IS_IMPLEMENTED_BY,
+        MatchKind.REFERENCE);
+    return matches;
   }
 
   @override
@@ -94,7 +102,8 @@ class SearchEngineImpl2 implements SearchEngine {
       IndexRelationKind relationKind, MatchKind kind) async {
     List<Location> locations = await _index.getRelations(element, relationKind);
     for (Location location in locations) {
-      matches.add(_newMatchForLocation(location, kind));
+      SearchMatch match = _newMatchForLocation(location, kind);
+      matches.add(match);
     }
   }
 

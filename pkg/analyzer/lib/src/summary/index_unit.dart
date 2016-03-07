@@ -349,11 +349,18 @@ class _IndexContributor extends GeneralizingAstVisitor {
     Identifier name = typeName?.name;
     if (name != null) {
       Element element = name.staticElement;
-      SimpleIdentifier relNode =
-          name is PrefixedIdentifier ? name.identifier : name;
-      recordRelation(element, kind, relNode, true);
+      bool isQualified;
+      SimpleIdentifier relNode;
+      if (name is PrefixedIdentifier) {
+        isQualified = true;
+        relNode = name.identifier;
+      } else {
+        isQualified = false;
+        relNode = name;
+      }
+      recordRelation(element, kind, relNode, isQualified);
       recordRelation(
-          element, IndexRelationKind.IS_REFERENCED_BY, relNode, true);
+          element, IndexRelationKind.IS_REFERENCED_BY, relNode, isQualified);
       typeName.typeArguments?.accept(this);
     }
   }
