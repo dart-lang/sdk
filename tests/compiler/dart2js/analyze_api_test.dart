@@ -6,8 +6,8 @@ library analyze_api;
 
 import 'package:sdk_library_metadata/libraries.dart';
 import 'analyze_helper.dart';
-import "package:async_helper/async_helper.dart";
-
+import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/diagnostics/messages.dart' show MessageKind;
 /**
  * Map of white-listed warnings and errors.
  *
@@ -17,9 +17,20 @@ import "package:async_helper/async_helper.dart";
  * Use an identifiable suffix of the file uri as key. Use a fixed substring of
  * the error/warning message in the list of white-listings for each file.
  */
-// TODO(johnniwinther): Support canonical URIs as keys and message kinds as
-// values.
+// TODO(johnniwinther): Support canonical URIs as keys.
 const Map<String, List<String>> WHITE_LIST = const {
+  "html_dart2js.dart": const [
+    // These suppressions are tracked by issue 25928.
+    "'KeyEvent' doesn't implement the getter 'sourceDevice'",
+    "'KeyEvent' doesn't implement the getter 'code'",
+    "'KeyEvent' doesn't implement the getter 'key'",
+    "No member named '_pageX' in class 'UIEvent'.",
+    "No member named '_pageY' in class 'UIEvent'.",
+    "No member named '_layerX' in class 'UIEvent'.",
+    "No member named '_layerY' in class 'UIEvent'.",
+    "No member named 'clipboardData' in class 'KeyboardEvent'.",
+    "No member named 'clipboardData' in class 'Event'."
+  ]
 };
 
 void main() {
