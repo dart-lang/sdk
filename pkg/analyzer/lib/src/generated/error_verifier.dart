@@ -5802,12 +5802,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   MethodElement _findOverriddenMemberThatMustCallSuper(MethodDeclaration node) {
     ExecutableElement overriddenMember = _getOverriddenMember(node.element);
-    while (overriddenMember is MethodElement) {
+    List<ExecutableElement> seen = <ExecutableElement>[];
+    while (
+        overriddenMember is MethodElement && !seen.contains(overriddenMember)) {
       for (ElementAnnotation annotation in overriddenMember.metadata) {
         if (annotation.isMustCallSuper) {
           return overriddenMember;
         }
       }
+      seen.add(overriddenMember);
       // Keep looking up the chain.
       overriddenMember = _getOverriddenMember(overriddenMember);
     }
