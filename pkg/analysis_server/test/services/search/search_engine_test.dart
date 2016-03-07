@@ -95,31 +95,6 @@ class C implements B {}
     });
   }
 
-  Future test_searchElementDeclarations() {
-    _indexTestUnit('''
-class A {
-  test() {}
-}
-class B {
-  int test = 1;
-  main() {
-    int test = 2;
-  }
-}
-''');
-    ClassElement elementA = findElement('A');
-    ClassElement elementB = findElement('B');
-    Element element_test = findElement('test', ElementKind.LOCAL_VARIABLE);
-    var expected = [
-      _expectId(elementA.methods[0], MatchKind.DECLARATION, 'test() {}'),
-      _expectId(elementB.fields[0], MatchKind.DECLARATION, 'test = 1;'),
-      _expectId(element_test, MatchKind.DECLARATION, 'test = 2;'),
-    ];
-    return searchEngine.searchElementDeclarations('test').then((matches) {
-      _assertMatches(matches, expected);
-    });
-  }
-
   Future test_searchMemberDeclarations() {
     _indexTestUnit('''
 class A {

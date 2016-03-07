@@ -192,13 +192,27 @@ class _ClassMemberValidator {
             newLocation_fromElement(elementClass));
       }
     }
-    // check shadowing in hierarchy
+    // usage of the renamed Element is shadowed by a local element
+    {
+      _MatchShadowedByLocal conflict = _getShadowingLocalElement();
+      if (conflict != null) {
+        LocalElement localElement = conflict.localElement;
+        result.addError(
+            format(
+                "Usage of renamed {0} will be shadowed by {1} '{2}'.",
+                elementKind.displayName,
+                getElementKindName(localElement),
+                localElement.displayName),
+            newLocation_fromMatch(conflict.match));
+      }
+    }
+    // check shadowing in the hierarchy
     List<SearchMatch> declarations =
-        await searchEngine.searchElementDeclarations(name);
+        await searchEngine.searchMemberDeclarations(name);
     for (SearchMatch declaration in declarations) {
       Element nameElement = getSyntheticAccessorVariable(declaration.element);
       Element nameClass = nameElement.enclosingElement;
-      // renamed Element shadows member of superclass
+      // the renamed Element shadows a member of a superclass
       if (superClasses.contains(nameClass)) {
         result.addError(
             format(
@@ -210,7 +224,7 @@ class _ClassMemberValidator {
                 getElementQualifiedName(nameElement)),
             newLocation_fromElement(nameElement));
       }
-      // renamed Element is shadowed by member of subclass
+      // the renamed Element is shadowed by a member of a subclass
       if (isRename && subClasses.contains(nameClass)) {
         result.addError(
             format(
@@ -220,26 +234,6 @@ class _ClassMemberValidator {
                 getElementQualifiedName(nameElement)),
             newLocation_fromElement(nameElement));
       }
-      // renamed Element is shadowed by local
-      if (nameElement is LocalElement) {
-        LocalElement localElement = nameElement;
-        ClassElement enclosingClass =
-            nameElement.getAncestor((element) => element is ClassElement);
-        if (enclosingClass == elementClass ||
-            subClasses.contains(enclosingClass)) {
-          for (SearchMatch reference in references) {
-            if (isReferenceInLocalRange(localElement, reference)) {
-              result.addError(
-                  format(
-                      "Usage of renamed {0} will be shadowed by {1} '{2}'.",
-                      elementKind.displayName,
-                      getElementKindName(localElement),
-                      localElement.displayName),
-                  newLocation_fromMatch(reference));
-            }
-          }
-        }
-      }
     }
     // visibility
     if (isRename) {
@@ -247,6 +241,31 @@ class _ClassMemberValidator {
     }
     // done
     return result;
+  }
+
+  _MatchShadowedByLocal _getShadowingLocalElement() {
+    for (SearchMatch match in references) {
+      // qualified reference cannot be shadowed by a local element
+      if (match.isQualified) {
+        continue;
+      }
+      // check local elements of the enclosing executable
+      Element containingElement = match.element;
+      if (containingElement is ExecutableElement) {
+        Iterable<LocalElement> localElements = <Iterable<LocalElement>>[
+          containingElement.functions,
+          containingElement.localVariables,
+          containingElement.parameters
+        ].expand((Iterable<LocalElement> x) => x);
+        for (LocalElement localElement in localElements) {
+          if (localElement.displayName == name &&
+              localElement.visibleRange.intersects(match.sourceRange)) {
+            return new _MatchShadowedByLocal(match, localElement);
+          }
+        }
+      }
+    }
+    return null;
   }
 
   /**
@@ -292,4 +311,11 @@ class _ClassMemberValidator {
       }
     }
   }
+}
+
+class _MatchShadowedByLocal {
+  final SearchMatch match;
+  final LocalElement localElement;
+
+  _MatchShadowedByLocal(this.match, this.localElement);
 }

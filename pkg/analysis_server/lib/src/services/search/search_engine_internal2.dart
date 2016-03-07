@@ -34,12 +34,6 @@ class SearchEngineImpl2 implements SearchEngine {
   }
 
   @override
-  Future<List<SearchMatch>> searchElementDeclarations(String name) {
-    // TODO: implement searchElementDeclarations
-    throw new UnimplementedError();
-  }
-
-  @override
   Future<List<SearchMatch>> searchMemberDeclarations(String name) {
     // TODO: implement searchMemberDeclarations
     throw new UnimplementedError();

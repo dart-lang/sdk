@@ -32,21 +32,18 @@ class SearchEngineImpl implements SearchEngine {
   }
 
   @override
-  Future<List<SearchMatch>> searchElementDeclarations(String name) {
-    IndexableName indexableName = new IndexableName(name);
-    _Requestor requestor = new _Requestor(_index);
-    requestor.add(indexableName, IndexConstants.NAME_IS_DEFINED_BY,
-        MatchKind.DECLARATION);
-    return requestor.merge();
-  }
-
-  @override
-  Future<List<SearchMatch>> searchMemberDeclarations(String name) {
-    return searchElementDeclarations(name).then((matches) {
-      return matches.where((match) {
-        return match.element.enclosingElement is ClassElement;
-      }).toList();
-    });
+  Future<List<SearchMatch>> searchMemberDeclarations(String name) async {
+    List<SearchMatch> matches;
+    {
+      IndexableName indexableName = new IndexableName(name);
+      _Requestor requestor = new _Requestor(_index);
+      requestor.add(indexableName, IndexConstants.NAME_IS_DEFINED_BY,
+          MatchKind.DECLARATION);
+      matches = await requestor.merge();
+    }
+    return matches.where((match) {
+      return match.element.enclosingElement is ClassElement;
+    }).toList();
   }
 
   @override
