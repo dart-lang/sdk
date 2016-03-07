@@ -19,18 +19,6 @@ import 'package:compiler/src/diagnostics/messages.dart' show MessageKind;
  */
 // TODO(johnniwinther): Support canonical URIs as keys.
 const Map<String, List<String>> WHITE_LIST = const {
-  "html_dart2js.dart": const [
-    // These suppressions are tracked by issue 25928.
-    "'KeyEvent' doesn't implement the getter 'sourceDevice'",
-    "'KeyEvent' doesn't implement the getter 'code'",
-    "'KeyEvent' doesn't implement the getter 'key'",
-    "No member named '_pageX' in class 'UIEvent'.",
-    "No member named '_pageY' in class 'UIEvent'.",
-    "No member named '_layerX' in class 'UIEvent'.",
-    "No member named '_layerY' in class 'UIEvent'.",
-    "No member named 'clipboardData' in class 'KeyboardEvent'.",
-    "No member named 'clipboardData' in class 'Event'."
-  ]
 };
 
 void main() {
