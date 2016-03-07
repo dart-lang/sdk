@@ -317,3 +317,6 @@ execute_finally9_test: Crash # Issue 24485
 regress_21795_test: Crash # Issue 24485
 regress_23537_test: Crash # Issue 24485
 try_finally_regress_25333_test: Crash # Issue 24485
+
+[ $compiler == dart2js && $cps_ir && $checked ]
+*: Skip # `assert` not implemented

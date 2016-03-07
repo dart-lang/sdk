@@ -180,3 +180,6 @@ error_at_spawnuri_test: Skip # Isolate.spawnUri
 [ $runtime == dart_product ]
 spawn_uri_missing_from_isolate_test: Skip # SpawnUri in product mode
 spawn_uri_missing_test: Skip # SpawnUri in product mode
+
+[ $compiler == dart2js && $cps_ir && $checked ]
+*: Skip # `assert` not implemented

@@ -9635,3 +9635,6 @@ LibTest/core/Invocation/memberName_A01_t01: RuntimeError # Expect.equals(expecte
 
 [ $compiler == dart2js && $cps_ir && $host_checked ]
 LayoutTests/fast/canvas/webgl/gl-uniformmatrix4fv_t01: Crash # CPS integrity violation After 'GVN' on function(main) Referenced out of scope: Instance of 'ReceiverCheck'
+
+[ $compiler == dart2js && $cps_ir && $checked ]
+*: Skip # `assert` not implemented, about 75% tests crash

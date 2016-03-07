@@ -443,3 +443,6 @@ js_test/Dart_functions: RuntimeError # Tree-shaking an escaping closure #25720
 js_typed_interop_default_arg_test/none: Crash # Issue 25911
 js_typed_interop_default_arg_test/default_value: Crash # Issue 25911
 js_typed_interop_default_arg_test/explicit_argument: Crash # Issue 25911
+
+[ $compiler == dart2js && $cps_ir && $checked ]
+*: Skip # `assert` not implemented
