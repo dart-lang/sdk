@@ -187,11 +187,17 @@ analyzer/test/src/summary/resynthesize_test: Pass, Slow # Times out due to inlin
 analyzer/test/src/task/strong_mode_test: Pass, Slow # Times out due to inlining, but see issue 24485
 
 [ $compiler == dart2js && $cps_ir && $host_checked ]
+analyzer/test/dart/ast/ast_test: Crash # Issue 24485
+analyzer/test/dart/ast/visitor_test: Crash # Issue 24485
+analyzer/test/dart/element/element_test: Crash # Issue 24485
 analyzer/test/enum_test: Crash # Issue 24485
 analyzer/test/generated/all_the_rest_test: Crash # Issue 24485
 analyzer/test/generated/ast_test: Crash # Issue 24485
 analyzer/test/generated/compile_time_error_code_test: Crash # Issue 24485
+analyzer/test/generated/constant_test: Crash # Issue 24485
+analyzer/test/generated/declaration_resolver_test: Crash # Issue 24485
 analyzer/test/generated/element_test: Crash # Issue 24485
+analyzer/test/generated/error_suppression_test: Crash # Issue 24485
 analyzer/test/generated/incremental_resolver_test: Crash # Issue 24485
 analyzer/test/generated/incremental_scanner_test: Crash # Issue 24485
 analyzer/test/generated/non_error_resolver_test: Crash # Issue 24485
@@ -204,6 +210,15 @@ analyzer/test/generated/static_warning_code_test: Crash # Issue 24485
 analyzer/test/generated/utilities_test: Crash # Issue 24485
 analyzer/test/src/context/cache_test: Crash # Issue 24485
 analyzer/test/src/context/context_test: Crash # Issue 24485
+analyzer/test/src/dart/ast/utilities_test: Crash # Issue 24485
+analyzer/test/src/dart/element/element_test: Crash # Issue 24485
+analyzer/test/src/summary/index_unit_test: Crash # Issue 24485
+analyzer/test/src/summary/prelinker_test: Crash # Issue 24485
+analyzer/test/src/summary/resynthesize_test: Crash # Issue 24485
+analyzer/test/src/summary/resynthesize_strong_test: Crash # Issue 24485
+analyzer/test/src/summary/summarize_ast_test: Crash # Issue 24485
+analyzer/test/src/summary/summarize_elements_test: Crash # Issue 24485
+analyzer/test/src/summary/summarize_elements_strong_test: Crash # Issue 24485
 analyzer/test/src/task/dart_test: Crash # Issue 24485
 analyzer/test/src/task/dart_work_manager_test: Crash # Issue 24485
 analyzer/test/src/task/driver_test: Crash # Issue 24485
@@ -214,9 +229,12 @@ analyzer/test/src/task/incremental_element_builder_test: Crash # Issue 24485
 analyzer/test/src/task/inputs_test: Crash # Issue 24485
 analyzer/test/src/task/manager_test: Crash # Issue 24485
 analyzer/test/src/task/model_test: Crash # Issue 24485
-analyzer/test/src/task/strong/checker_test: Crash # t: Failed assertion: line 88 pos 12: '!variable2index.containsKey(element)' is not true.
-analyzer/test/src/task/strong/inferred_type_test: Crash # t: Failed assertion: line 88 pos 12: '!variable2index.containsKey(element)' is not true.
+analyzer/test/src/task/options_test: Crash # Issue 24485
+analyzer/test/src/task/options_work_manager_test: Crash # Issue 24485
+analyzer/test/src/task/strong/checker_test: Crash # Issue 24485
+analyzer/test/src/task/strong/inferred_type_test: Crash # Issue 24485
 analyzer/test/src/task/strong_mode_test: Crash # Issue 24485
+analyzer/test/src/task/yaml_test: Crash # Issue 24485
 
 [ $noopt || $runtime == dart_precompiled || $runtime == dart_product ]
 *: SkipByDesign # The pkg test framework imports dart:mirrors.

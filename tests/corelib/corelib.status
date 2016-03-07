@@ -186,6 +186,7 @@ regexp/pcre_test: Crash # Stack Overflow
 
 [ $compiler == dart2js && $host_checked ]
 package_resource_test: Crash # Issue 25911
+collection_removes_test: Crash # Issue 25911
 
 [ $noopt || $compiler == precompiler ]
 # Stacktraces in precompilation omit inlined frames.
