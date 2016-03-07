@@ -116,48 +116,39 @@ class B {
     _assertMatches(matches, expected);
   }
 
-//  Future test_searchMemberReferences() {
-//    _indexTestUnit('''
-//class A {
-//  var test; // A
-//  mainA() {
-//    test(); // a-inv-r-nq
-//    test = 1; // a-write-r-nq
-//    test += 2; // a-read-write-r-nq
-//    print(test); // a-read-r-nq
-//  }
-//}
-//main(A a, p) {
-//  a.test(); // a-inv-r-q
-//  a.test = 1; // a-write-r-q
-//  a.test += 2; // a-read-write-r-q
-//  print(a.test); // a-read-r-q
-//  p.test(); // p-inv-ur-q
-//  p.test = 1; // p-write-ur-q
-//  p.test += 2; // p-read-write-ur-q
-//  print(p.test); // p-read-ur-q
-//}
-//''');
-//    Element mainA = findElement('mainA');
-//    Element main = findElement('main');
-//    var expected = [
-//      _expectId(mainA, MatchKind.INVOCATION, 'test(); // a-inv-r-nq'),
-//      _expectId(mainA, MatchKind.WRITE, 'test = 1; // a-write-r-nq'),
-//      _expectId(mainA, MatchKind.READ_WRITE, 'test += 2; // a-read-write-r-nq'),
-//      _expectId(mainA, MatchKind.READ, 'test); // a-read-r-nq'),
-//      _expectIdQ(main, MatchKind.INVOCATION, 'test(); // a-inv-r-q'),
-//      _expectIdQ(main, MatchKind.WRITE, 'test = 1; // a-write-r-q'),
-//      _expectIdQ(main, MatchKind.READ_WRITE, 'test += 2; // a-read-write-r-q'),
-//      _expectIdQ(main, MatchKind.READ, 'test); // a-read-r-q'),
-//      _expectIdU(main, MatchKind.INVOCATION, 'test(); // p-inv-ur-q'),
-//      _expectIdU(main, MatchKind.WRITE, 'test = 1; // p-write-ur-q'),
-//      _expectIdU(main, MatchKind.READ_WRITE, 'test += 2; // p-read-write-ur-q'),
-//      _expectIdU(main, MatchKind.READ, 'test); // p-read-ur-q'),
-//    ];
-//    return searchEngine.searchMemberReferences('test').then((matches) {
-//      _assertMatches(matches, expected);
-//    });
-//  }
+  test_searchMemberReferences() async {
+    _indexTestUnit('''
+class A {
+  var test; // A
+  mainA() {
+    test(); // a-inv-r-nq
+    test = 1; // a-ref-r-nq
+    test += 2; // a-ref-r-nq
+    print(test); // a-ref-r-nq
+  }
+}
+main(A a, p) {
+  a.test(); // a-inv-r-q
+  a.test = 1; // a-ref-r-q
+  a.test += 2; // a-ref-r-q
+  print(a.test); // a-ref-r-q
+  p.test(); // p-inv-ur-q
+  p.test = 1; // p-ref-ur-q
+  p.test += 2; // p-ref-ur-q
+  print(p.test); // p-ref-ur-q
+}
+''');
+    Element main = findElement('main');
+    var expected = [
+      _expectIdQ(main, MatchKind.REFERENCE, 'test(); // p-inv-ur-q'),
+      _expectIdQ(main, MatchKind.REFERENCE, 'test = 1; // p-ref-ur-q'),
+      _expectIdQ(main, MatchKind.REFERENCE, 'test += 2; // p-ref-ur-q'),
+      _expectIdQ(main, MatchKind.REFERENCE, 'test); // p-ref-ur-q'),
+    ];
+    List<SearchMatch> matches =
+        await searchEngine.searchMemberReferences('test');
+    _assertMatches(matches, expected);
+  }
 
   test_searchReferences_ClassElement() async {
     _indexTestUnit('''

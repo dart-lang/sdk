@@ -148,6 +148,37 @@ main(int a, int b) {
     findLocationTest(locations, 'int b');
   }
 
+  test_getUnresolvedMemberReferences() async {
+    _indexTestUnit('''
+class A {
+  var test; // A
+  mainA() {
+    test(); // a-inv-r-nq
+    test = 1; // a-ref-r-nq
+    test += 2; // a-ref-r-nq
+    print(test); // a-ref-r-nq
+  }
+}
+main(A a, p) {
+  a.test(); // a-inv-r-q
+  a.test = 1; // a-ref-r-q
+  a.test += 2; // a-ref-r-q
+  print(a.test); // a-ref-r-q
+  p.test(); // p-inv-ur-q
+  p.test = 1; // p-ref-ur-q
+  p.test += 2; // p-ref-ur-q
+  print(p.test); // p-ref-ur-q
+}
+''');
+    List<Location> locations =
+        await index.getUnresolvedMemberReferences('test');
+    expect(locations, hasLength(4));
+    findLocationTest(locations, 'test(); // p-inv-ur-q');
+    findLocationTest(locations, 'test = 1; // p-ref-ur-q');
+    findLocationTest(locations, 'test += 2; // p-ref-ur-q');
+    findLocationTest(locations, 'test); // p-ref-ur-q');
+  }
+
   /**
    * Assert that the given list of [locations] has a [Location] corresponding
    * to the [element].

@@ -41,9 +41,11 @@ class SearchEngineImpl2 implements SearchEngine {
   }
 
   @override
-  Future<List<SearchMatch>> searchMemberReferences(String name) {
-    // TODO: implement searchMemberReferences
-    throw new UnimplementedError();
+  Future<List<SearchMatch>> searchMemberReferences(String name) async {
+    List<Location> locations = await _index.getUnresolvedMemberReferences(name);
+    return locations.map((location) {
+      return _newMatchForLocation(location, MatchKind.REFERENCE);
+    }).toList();
   }
 
   @override

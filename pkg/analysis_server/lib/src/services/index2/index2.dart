@@ -80,6 +80,23 @@ class Index2 {
   }
 
   /**
+   * Complete with a list of locations where a class members with the given
+   * [name] is referenced with a qualifier, but is not resolved.
+   */
+  Future<List<Location>> getUnresolvedMemberReferences(String name) async {
+    List<Location> locations = <Location>[];
+    Iterable<PackageIndexId> ids = await _store.getIds();
+    for (PackageIndexId id in ids) {
+      PackageIndex index = await _store.getIndex(id);
+      _PackageIndexRequester requester = new _PackageIndexRequester(index);
+      List<Location> packageLocations =
+          requester.getUnresolvedMemberReferences(name);
+      locations.addAll(packageLocations);
+    }
+    return locations;
+  }
+
+  /**
    * Index the given fully resolved [unit].
    */
   void indexUnit(CompilationUnit unit) {
@@ -314,6 +331,21 @@ class _PackageIndexRequester {
   }
 
   /**
+   * Complete with a list of locations where a class members with the given
+   * [name] is referenced with a qualifier, but is not resolved.
+   */
+  List<Location> getUnresolvedMemberReferences(String name) {
+    List<Location> locations = <Location>[];
+    for (UnitIndex unitIndex in index.units) {
+      _UnitIndexRequester requester = new _UnitIndexRequester(this, unitIndex);
+      List<Location> unitLocations =
+          requester.getUnresolvedMemberReferences(name);
+      locations.addAll(unitLocations);
+    }
+    return locations;
+  }
+
+  /**
    * Return the identifier of the [uri] in the [index] or `-1` if the [uri] is
    * not used in the [index].
    */
@@ -382,6 +414,26 @@ class _UnitIndexRequester {
             unitIndex.usedElementOffsets[i],
             unitIndex.usedElementLengths[i],
             unitIndex.usedElementIsQualifiedFlags[i]));
+      }
+    }
+    return locations;
+  }
+
+  /**
+   * Complete with a list of locations where a class members with the given
+   * [name] is referenced with a qualifier, but is not resolved.
+   */
+  List<Location> getUnresolvedMemberReferences(String name) {
+    List<Location> locations = <Location>[];
+    String unitLibraryUri = null;
+    String unitUnitUri = null;
+    for (int i = 0; i < unitIndex.usedNames.length; i++) {
+      int nameIndex = unitIndex.usedNames[i];
+      if (packageRequester.index.strings[nameIndex] == name) {
+        unitLibraryUri ??= packageRequester.getUnitLibraryUri(unitIndex.unit);
+        unitUnitUri ??= packageRequester.getUnitUnitUri(unitIndex.unit);
+        locations.add(new Location(unitLibraryUri, unitUnitUri,
+            unitIndex.usedNameOffsets[i], name.length, true));
       }
     }
     return locations;
