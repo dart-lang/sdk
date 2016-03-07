@@ -380,6 +380,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'UIEvent.layerY',
   'UIEvent.pageX',
   'UIEvent.pageY',
+  'UIEvent.which',
   'WheelEvent.initWebKitWheelEvent',
   'WheelEvent.deltaX',
   'WheelEvent.deltaY',
@@ -796,6 +797,9 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'HTMLUListElement.compact',
     'HTMLUListElement.type',
     'IDBDatabase.transaction', # We do this in a template without the generated implementation at all.
+    'KeyboardEvent.charCode',
+    'KeyboardEvent.keyCode',
+    'KeyboardEvent.which',
     'Location.valueOf',
     'MessageEvent.data',
     'MessageEvent.ports',

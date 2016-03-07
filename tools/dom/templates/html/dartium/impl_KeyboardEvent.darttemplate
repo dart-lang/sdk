@@ -24,5 +24,8 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
 
   @DomName('KeyboardEvent.charCode')
   int get charCode => _charCode;
+
+  @DomName('KeyboardEvent.which')
+  int get which => _which;
 $!MEMBERS
 }

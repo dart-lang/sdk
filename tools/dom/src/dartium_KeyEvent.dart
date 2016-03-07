@@ -43,22 +43,22 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** The "fixed" value of whether the alt key is being pressed. */
   bool _shadowAltKey;
 
-  /** Caculated value of what the estimated charCode is for this event. */
+  /** Calculated value of what the estimated charCode is for this event. */
   int _shadowCharCode;
 
-  /** Caculated value of what the estimated keyCode is for this event. */
+  /** Calculated value of what the estimated keyCode is for this event. */
   int _shadowKeyCode;
 
-  /** Caculated value of what the estimated keyCode is for this event. */
+  /** Calculated value of what the estimated keyCode is for this event. */
   int get keyCode => _shadowKeyCode;
 
-  /** Caculated value of what the estimated charCode is for this event. */
+  /** Calculated value of what the estimated charCode is for this event. */
   int get charCode => this.type == 'keypress' ? _shadowCharCode : 0;
 
-  /** Caculated value of whether the alt key is pressed is for this event. */
+  /** Calculated value of whether the alt key is pressed is for this event. */
   bool get altKey => _shadowAltKey;
 
-  /** Caculated value of what the estimated keyCode is for this event. */
+  /** Calculated value of what the estimated keyCode is for this event. */
   int get which => keyCode;
 
   /** Accessor to the underlying keyCode value is the parent event. */
@@ -139,6 +139,7 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
 
   int get _charCode => charCode;
   int get _keyCode => keyCode;
+  int get _which => which;
   String get _keyIdentifier {
     throw new UnsupportedError("keyIdentifier is unsupported.");
   }
@@ -148,10 +149,6 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
     throw new UnsupportedError(
         "Cannot initialize a KeyboardEvent from a KeyEvent.");
   }
-  int get _layerX => throw new UnsupportedError('Not applicable to KeyEvent');
-  int get _layerY => throw new UnsupportedError('Not applicable to KeyEvent');
-  int get _pageX => throw new UnsupportedError('Not applicable to KeyEvent');
-  int get _pageY => throw new UnsupportedError('Not applicable to KeyEvent');
   @Experimental() // untriaged
   bool getModifierState(String keyArgument) => throw new UnimplementedError();
   @Experimental() // untriaged
