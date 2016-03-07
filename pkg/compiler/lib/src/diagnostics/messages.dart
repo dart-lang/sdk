@@ -518,15 +518,6 @@ class MessageTemplate {
       MessageKind.GENERIC:
         const MessageTemplate(MessageKind.GENERIC, '#{text}'),
 
-      MessageKind.NOT_ASSIGNABLE:
-        const MessageTemplate(MessageKind.NOT_ASSIGNABLE,
-          "'#{fromType}' is not assignable to '#{toType}'."),
-
-      MessageKind.FORIN_NOT_ASSIGNABLE:
-        const MessageTemplate(MessageKind.FORIN_NOT_ASSIGNABLE,
-          "The element type '#{currentType}' of '#{expressionType}' "
-          "is not assignable to '#{elementType}'."),
-
       MessageKind.VOID_EXPRESSION:
         const MessageTemplate(MessageKind.VOID_EXPRESSION,
           "Expression does not yield a value."),

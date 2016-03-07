@@ -3435,9 +3435,8 @@ class HintCode extends ErrorCode {
    * 0: the name of the actual argument type
    * 1: the name of the expected type
    */
-  static const HintCode ARGUMENT_TYPE_NOT_ASSIGNABLE = const HintCode(
-      'ARGUMENT_TYPE_NOT_ASSIGNABLE',
-      "The argument type '{0}' cannot be assigned to the parameter type '{1}'");
+  static const HintCode ARGUMENT_TYPE_NOT_ASSIGNABLE =
+      shared_messages.ARGUMENT_TYPE_NOT_ASSIGNABLE_HINT;
 
   /**
    * When the target expression uses '?.' operator, it can be `null`, so all the
@@ -4125,8 +4124,7 @@ class StaticTypeWarningCode extends ErrorCode {
    * 2: the name of the method
    */
   static const StaticTypeWarningCode RETURN_OF_INVALID_TYPE =
-      const StaticTypeWarningCode('RETURN_OF_INVALID_TYPE',
-          "The return type '{0}' is not a '{1}', as defined by the method '{2}'");
+      shared_messages.RETURN_OF_INVALID_TYPE;
 
   /**
    * 12.11 Instance Creation: It is a static type warning if any of the type
@@ -4472,8 +4470,7 @@ class StaticWarningCode extends ErrorCode {
    * 1: the name of the expected type
    */
   static const StaticWarningCode ARGUMENT_TYPE_NOT_ASSIGNABLE =
-      const StaticWarningCode('ARGUMENT_TYPE_NOT_ASSIGNABLE',
-          "The argument type '{0}' cannot be assigned to the parameter type '{1}'");
+      shared_messages.ARGUMENT_TYPE_NOT_ASSIGNABLE_STATIC_WARNING;
 
   /**
    * 5 Variables: Attempting to assign to a final variable elsewhere will cause

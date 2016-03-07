@@ -81,3 +81,18 @@ const CompileTimeErrorCode RETURN_IN_GENERATOR = const CompileTimeErrorCode(
     'RETURN_IN_GENERATOR',
     "Can't return a value from a generator function (using the '{0}' modifier).",
     "Try removing the value, replacing 'return' with 'yield' or changing the method body modifier");  // Generated. Don't edit.
+
+const StaticTypeWarningCode RETURN_OF_INVALID_TYPE = const StaticTypeWarningCode(
+    'RETURN_OF_INVALID_TYPE',
+    "The return type '{0}' is not a '{1}', as defined by the method '{2}'.",
+    null);  // Generated. Don't edit.
+
+const HintCode ARGUMENT_TYPE_NOT_ASSIGNABLE_HINT = const HintCode(
+    'ARGUMENT_TYPE_NOT_ASSIGNABLE',
+    "The argument type '{0}' cannot be assigned to the parameter type '{1}'.",
+    null);  // Generated. Don't edit.
+
+const StaticWarningCode ARGUMENT_TYPE_NOT_ASSIGNABLE_STATIC_WARNING = const StaticWarningCode(
+    'ARGUMENT_TYPE_NOT_ASSIGNABLE',
+    "The argument type '{0}' cannot be assigned to the parameter type '{1}'.",
+    null);  // Generated. Don't edit.

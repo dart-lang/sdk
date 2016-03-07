@@ -120,4 +120,19 @@ const Map<MessageKind, MessageTemplate> TEMPLATES = const <MessageKind, MessageT
         """,
     ]
   ),  // Generated. Don't edit.
+  MessageKind.NOT_ASSIGNABLE: const MessageTemplate(
+    MessageKind.NOT_ASSIGNABLE,
+    "'#{fromType}' is not assignable to '#{toType}'."  ),  // Generated. Don't edit.
+  MessageKind.FORIN_NOT_ASSIGNABLE: const MessageTemplate(
+    MessageKind.FORIN_NOT_ASSIGNABLE,
+    "The element type '#{currentType}' of '#{expressionType}' is not assignable to '#{elementType}'.",
+    examples: const [
+      r"""
+        main() {
+          List<int> list = <int>[1, 2];
+          for (String x in list) x;
+        }
+        """,
+    ]
+  ),  // Generated. Don't edit.
 };
