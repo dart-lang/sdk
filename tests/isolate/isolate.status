@@ -161,10 +161,6 @@ stacktrace_message_test: SkipByDesign
 static_function_test: SkipByDesign
 unresolved_ports_test: SkipByDesign
 
-[ $compiler == precompiler ]
-function_send_test: RuntimeError # Issue 25892
-message3_test/fun: RuntimeError # Issue 25892
-
 [ $runtime == dart_precompiled || $runtime == dart_product ]
 deferred_in_isolate_test: Skip # Isolate.spawnUri
 deferred_in_isolate2_test: Skip # Isolate.spawnUri
