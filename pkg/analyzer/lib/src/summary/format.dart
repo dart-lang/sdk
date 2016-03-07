@@ -33,7 +33,7 @@ class _IndexRelationKindReader extends fb.Reader<idl.IndexRelationKind> {
   @override
   idl.IndexRelationKind read(fb.BufferPointer bp) {
     int index = const fb.Uint8Reader().read(bp);
-    return index < idl.IndexRelationKind.values.length ? idl.IndexRelationKind.values[index] : idl.IndexRelationKind.IS_EXTENDED_BY;
+    return index < idl.IndexRelationKind.values.length ? idl.IndexRelationKind.values[index] : idl.IndexRelationKind.IS_ANCESTOR_OF;
   }
 }
 

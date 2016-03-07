@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
@@ -272,6 +273,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
   }
 
+  void recordIsAncestorOf(Element descendant) {
+    _recordIsAncestorOf(descendant, descendant, false, <ClassElement>[]);
+  }
+
   /**
    * Record that the name [node] has a relation of the given [kind].
    */
@@ -377,7 +382,14 @@ class _IndexContributor extends GeneralizingAstVisitor {
       recordRelationOffset(objectElement, IndexRelationKind.IS_EXTENDED_BY,
           node.name.offset, 0, true);
     }
+    recordIsAncestorOf(node.element);
     super.visitClassDeclaration(node);
+  }
+
+  @override
+  visitClassTypeAlias(ClassTypeAlias node) {
+    recordIsAncestorOf(node.element);
+    super.visitClassTypeAlias(node);
   }
 
   @override
@@ -589,6 +601,37 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
     AstNode parent = node.parent;
     return parent is Combinator || parent is Label;
+  }
+
+  void _recordIsAncestorOf(Element descendant, ClassElement ancestor,
+      bool includeThis, List<ClassElement> visitedElements) {
+    if (ancestor == null) {
+      return;
+    }
+    if (visitedElements.contains(ancestor)) {
+      return;
+    }
+    visitedElements.add(ancestor);
+    if (includeThis) {
+      int offset = descendant.nameOffset;
+      int length = descendant.nameLength;
+      assembler.addElementRelation(
+          ancestor, IndexRelationKind.IS_ANCESTOR_OF, offset, length, false);
+    }
+    {
+      InterfaceType superType = ancestor.supertype;
+      if (superType != null) {
+        _recordIsAncestorOf(
+            descendant, superType.element, true, visitedElements);
+      }
+    }
+    for (InterfaceType mixinType in ancestor.mixins) {
+      _recordIsAncestorOf(descendant, mixinType.element, true, visitedElements);
+    }
+    for (InterfaceType implementedType in ancestor.interfaces) {
+      _recordIsAncestorOf(
+          descendant, implementedType.element, true, visitedElements);
+    }
   }
 }
 

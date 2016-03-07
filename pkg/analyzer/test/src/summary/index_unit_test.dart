@@ -139,6 +139,43 @@ int set s (_) {}
     _assertDefinedName('V', IndexNameKind.topLevel, 'V = 42;');
   }
 
+  void test_hasAncestor_ClassDeclaration() {
+    _indexTestUnit('''
+class A {}
+class B1 extends A {}
+class B2 implements A {}
+class C1 extends B1 {}
+class C2 extends B2 {}
+class C3 implements B1 {}
+class C4 implements B2 {}
+class M extends Object with A {}
+''');
+    ClassElement classElementA = findElement("A");
+    assertThat(classElementA)
+      ..isAncestorOf('B1 extends A')
+      ..isAncestorOf('B2 implements A')
+      ..isAncestorOf('C1 extends B1')
+      ..isAncestorOf('C2 extends B2')
+      ..isAncestorOf('C3 implements B1')
+      ..isAncestorOf('C4 implements B2')
+      ..isAncestorOf('M extends Object with A');
+  }
+
+  void test_hasAncestor_ClassTypeAlias() {
+    _indexTestUnit('''
+class A {}
+class B extends A {}
+class C1 = Object with A;
+class C2 = Object with B;
+''');
+    ClassElement classElementA = findElement('A');
+    ClassElement classElementB = findElement('B');
+    assertThat(classElementA)
+      ..isAncestorOf('C1 = Object with A')
+      ..isAncestorOf('C2 = Object with B');
+    assertThat(classElementB)..isAncestorOf('C2 = Object with B');
+  }
+
   void test_isExtendedBy_ClassDeclaration() {
     _indexTestUnit('''
 class A {} // 1
@@ -897,6 +934,11 @@ class _ElementIndexAssert {
   final Element element;
 
   _ElementIndexAssert(this.test, this.element);
+
+  void isAncestorOf(String search, {int length}) {
+    test._assertHasRelation(element, IndexRelationKind.IS_ANCESTOR_OF,
+        test._expectedLocation(search, false, length: length));
+  }
 
   void isExtendedAt(String search, bool isQualified, {int length}) {
     test._assertHasRelation(element, IndexRelationKind.IS_EXTENDED_BY,
