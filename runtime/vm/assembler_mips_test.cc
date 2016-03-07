@@ -2018,7 +2018,7 @@ ASSEMBLER_TEST_GENERATE(Cop1TruncWD_NaN, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Cop1TruncWD_NaN, test) {
-  typedef double (*SimpleCode)() DART_UNUSED;
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT(test != NULL);
   EXPECT_EQ(kMaxInt32, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
@@ -2035,7 +2035,7 @@ ASSEMBLER_TEST_GENERATE(Cop1TruncWD_Inf, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Cop1TruncWD_Inf, test) {
-  typedef double (*SimpleCode)() DART_UNUSED;
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT(test != NULL);
   EXPECT_EQ(kMaxInt32, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
@@ -2050,7 +2050,7 @@ ASSEMBLER_TEST_GENERATE(Cop1TruncWD_Overflow, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Cop1TruncWD_Overflow, test) {
-  typedef double (*SimpleCode)() DART_UNUSED;
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT(test != NULL);
   EXPECT_EQ(kMaxInt32, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
@@ -2065,7 +2065,7 @@ ASSEMBLER_TEST_GENERATE(Cop1TruncWD_Underflow, assembler) {
 
 
 ASSEMBLER_TEST_RUN(Cop1TruncWD_Underflow, test) {
-  typedef double (*SimpleCode)() DART_UNUSED;
+  typedef int (*SimpleCode)() DART_UNUSED;
   EXPECT(test != NULL);
   EXPECT_EQ(kMaxInt32, EXECUTE_TEST_CODE_INT32(SimpleCode, test->entry()));
 }
