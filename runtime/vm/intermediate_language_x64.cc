@@ -479,8 +479,7 @@ static void EmitBranchOnCondition(FlowGraphCompiler* compiler,
 
 static Condition EmitInt64ComparisonOp(FlowGraphCompiler* compiler,
                                        const LocationSummary& locs,
-                                       Token::Kind kind,
-                                       BranchLabels labels) {
+                                       Token::Kind kind) {
   Location left = locs.in(0);
   Location right = locs.in(1);
   ASSERT(!left.IsConstant() || !right.IsConstant());
@@ -536,7 +535,7 @@ static Condition EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
 Condition EqualityCompareInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                                    BranchLabels labels) {
   if ((operation_cid() == kSmiCid) || (operation_cid() == kMintCid)) {
-    return EmitInt64ComparisonOp(compiler, *locs(), kind(), labels);
+    return EmitInt64ComparisonOp(compiler, *locs(), kind());
   } else {
     ASSERT(operation_cid() == kDoubleCid);
     return EmitDoubleComparisonOp(compiler, *locs(), kind(), labels);
@@ -727,7 +726,7 @@ LocationSummary* RelationalOpInstr::MakeLocationSummary(Zone* zone,
 Condition RelationalOpInstr::EmitComparisonCode(FlowGraphCompiler* compiler,
                                                 BranchLabels labels) {
   if ((operation_cid() == kSmiCid) || (operation_cid() == kMintCid)) {
-    return EmitInt64ComparisonOp(compiler, *locs(), kind(), labels);
+    return EmitInt64ComparisonOp(compiler, *locs(), kind());
   } else {
     ASSERT(operation_cid() == kDoubleCid);
     return EmitDoubleComparisonOp(compiler, *locs(), kind(), labels);
@@ -2838,6 +2837,11 @@ LocationSummary* CheckedSmiOpInstr::MakeLocationSummary(Zone* zone,
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, Location::RequiresRegister());
   switch (op_kind()) {
+    case Token::kEQ:
+    case Token::kLT:
+    case Token::kLTE:
+    case Token::kGT:
+    case Token::kGTE:
     case Token::kADD:
     case Token::kSUB:
       summary->set_out(0, Location::RequiresRegister());
@@ -2889,6 +2893,24 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(left == result);
       __ xorq(result, right);
       break;
+    case Token::kEQ:
+    case Token::kLT:
+    case Token::kLTE:
+    case Token::kGT:
+    case Token::kGTE: {
+      Label true_label, false_label, done;
+      BranchLabels labels = { &true_label, &false_label, &false_label };
+      Condition true_condition =
+          EmitInt64ComparisonOp(compiler, *locs(), op_kind());
+      EmitBranchOnCondition(compiler, true_condition, labels);
+      __ Bind(&false_label);
+      __ LoadObject(result, Bool::False());
+      __ jmp(&done);
+      __ Bind(&true_label);
+      __ LoadObject(result, Bool::True());
+      __ Bind(&done);
+      break;
+    }
     default:
       UNIMPLEMENTED();
   }

@@ -2488,6 +2488,11 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     }
   }
   switch (instr->token_kind()) {
+    case Token::kEQ:
+    case Token::kLT:
+    case Token::kLTE:
+    case Token::kGT:
+    case Token::kGTE:
     case Token::kBIT_OR:
     case Token::kBIT_XOR:
     case Token::kBIT_AND:
