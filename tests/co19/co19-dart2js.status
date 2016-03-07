@@ -609,7 +609,6 @@ LibTest/typed_data/Int8List/sublist_A02_t01: Pass, Slow # Please triage this fai
 LibTest/typed_data/Uint8ClampedList/map_A02_t01: Pass, Slow # Please triage this failure.
 
 [ $compiler == dart2js && $runtime == chrome ]
-
 LayoutTests/fast/alignment/parse-align-items_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-align-self_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/alignment/parse-justify-self_t01: RuntimeError # Please triage this failure
@@ -1656,6 +1655,10 @@ LayoutTests/fast/shapes/shape-outside-floats/shape-outside-rounded-boxes_t02: Ru
 LayoutTests/fast/text/line-break-after-question-mark_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/regional-indicator-symobls_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/text/text-combine-shrink-to-fit_t01: RuntimeError # Please triage this failure
+
+[ $compiler == dart2js && $runtime == chrome && $system == windows ]
+Language/Expressions/Bitwise_Expressions/method_invocation_super_t01: Pass, Slow # Issue 25940
+Language/Classes/Constructors/Generative_Constructors/execution_of_an_initializer_t04: Pass, Slow # Issue 25940
 
 [ $compiler == dart2js && $runtime == chrome && $system != linux ]
 LayoutTests/fast/multicol/hit-test-gap-between-pages-flipped_t01: RuntimeError # Please triage this failure
@@ -3169,6 +3172,11 @@ WebPlatformTest/webstorage/storage_session_setitem_quotaexceedederr_t01: Skip # 
 [ $compiler == dart2js && $runtime == ff && $system == windows ]
 LayoutTests/fast/css/font-face-multiple-ranges-for-unicode-range_t01: RuntimeError # Please triage this failure
 WebPlatformTest/html/syntax/parsing/math-parse_t03: RuntimeError # Issue 22564
+Language/Classes/Getters/type_object_t02: RuntimeError, Slow # Issue 25940
+Language/Classes/Abstract_Instance_Members/override_no_named_parameters_t06: Pass, Slow # Issue 25940
+Language/Classes/Constructors/Factories/return_type_t03: Pass, Slow # Issue 25940
+Language/Classes/Constructors/Factories/return_wrong_type_t02: Pass, Slow # Issue 25940
+Language/Classes/Constructors/Factories/return_type_t05: Pass, Slow # Issue 25940
 
 [ $compiler == dart2js && $runtime == ff && $system != windows ]
 LayoutTests/fast/canvas/canvas-resetTransform_t01: RuntimeError # Please triage this failure
@@ -3728,6 +3736,7 @@ LayoutTests/fast/dynamic/crash-generated-text_t01: RuntimeError # Please triage 
 LayoutTests/fast/dynamic/insertAdjacentElement_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dynamic/insertAdjacentHTML_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dynamic/recursive-layout_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/encoding/css-charset-dom_t01: RuntimeError # Issue 25941
 LayoutTests/fast/events/add-event-without-document_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/clipboard-clearData_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/events/clipboard-dataTransferItemList_t01: Skip # Times out. Please triage this failure
@@ -3865,6 +3874,7 @@ LayoutTests/fast/inline/out-of-flow-objects-and-whitespace-after-empty-inline_t0
 LayoutTests/fast/inline/parent-inline-element-padding-contributes-width_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/inline/positioned-element-padding-contributes-width_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/innerHTML/innerHTML-custom-tag_t01: RuntimeError # Please triage this failure
+LayoutTests/fast/innerHTML/innerHTML-svg-write_t01: RuntimeError # Issue 25941
 LayoutTests/fast/layers/normal-flow-hit-test_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/loader/about-blank-hash-change_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/loader/about-blank-hash-kept_t01: Skip # Times out. Please triage this failure

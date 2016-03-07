@@ -31,7 +31,9 @@ datalistelement_test: Skip # Issue 20540
 input_element_test/attributes: Fail # Issue 21555
 wrapping_collections_test: SkipByDesign # Testing an issue that is only relevant to Dartium
 js_typed_interop_default_arg_test/default_value: MissingCompileTimeError # Issue #25759
-websql_test/functional: RuntimeError # Issue 25927
+
+[ $compiler == dart2js && $runtime != ie10 ]
+websql_test/functional: RuntimeError, Slow # Issue 25927
 
 [ $compiler == dart2js && $checked ]
 js_function_getter_trust_types_test: Skip # --trust-type-annotations incompatible with --checked
