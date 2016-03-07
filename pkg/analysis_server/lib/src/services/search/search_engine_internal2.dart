@@ -6,14 +6,16 @@ library services.src.search.search_engine2;
 
 import 'dart:async';
 
+import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/index2/index2.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
-import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
+import 'package:analyzer/src/generated/resolver.dart' show NamespaceBuilder;
+import 'package:analyzer/src/generated/source.dart' show Source, SourceRange;
 import 'package:analyzer/src/summary/idl.dart';
 
 /**
@@ -61,26 +63,23 @@ class SearchEngineImpl2 implements SearchEngine {
       return _searchReferences(element);
     } else if (kind == ElementKind.FIELD ||
         kind == ElementKind.TOP_LEVEL_VARIABLE) {
-      return _searchReferences_Field(element as PropertyInducingElement);
+      return _searchReferences_Field(element);
     } else if (kind == ElementKind.FUNCTION || kind == ElementKind.METHOD) {
       if (element.enclosingElement is ExecutableElement) {
         return _searchReferences_Local(element, (n) => n is Block);
       }
       return _searchReferences_Function(element);
     } else if (kind == ElementKind.IMPORT) {
-      // TODO(scheglov) implement whole library search
-      return _searchReferences(element);
+      return _searchReferences_Import(element);
     } else if (kind == ElementKind.LABEL ||
         kind == ElementKind.LOCAL_VARIABLE) {
       return _searchReferences_Local(element, (n) => n is Block);
     } else if (kind == ElementKind.LIBRARY) {
-      // TODO(scheglov) implement whole library search
-      return _searchReferences(element);
+      return _searchReferences_Library(element);
     } else if (kind == ElementKind.PARAMETER) {
       return _searchReferences_Parameter(element);
     } else if (kind == ElementKind.PREFIX) {
-      // TODO(scheglov) implement whole library search
-      return _searchReferences(element);
+      return _searchReferences_Prefix(element);
     } else if (kind == ElementKind.TYPE_PARAMETER) {
       return _searchReferences_Local(element, (n) => n is ClassDeclaration);
     }
@@ -157,12 +156,55 @@ class SearchEngineImpl2 implements SearchEngine {
     return matches;
   }
 
+  Future<List<SearchMatch>> _searchReferences_Import(
+      ImportElement element) async {
+    List<SearchMatch> matches = <SearchMatch>[];
+    LibraryElement libraryElement = element.library;
+    Source librarySource = libraryElement.source;
+    for (CompilationUnitElement unitElement in libraryElement.units) {
+      Source unitSource = unitElement.source;
+      CompilationUnit unit =
+          context.resolveCompilationUnit2(unitSource, librarySource);
+      _ImportElementReferencesVisitor visitor =
+          new _ImportElementReferencesVisitor(
+              element, unitSource.uri.toString());
+      unit.accept(visitor);
+      matches.addAll(visitor.matches);
+    }
+    return matches;
+  }
+
+  Future<List<SearchMatch>> _searchReferences_Library(Element element) async {
+    List<SearchMatch> matches = <SearchMatch>[];
+    LibraryElement libraryElement = element.library;
+    Source librarySource = libraryElement.source;
+    for (CompilationUnitElement unitElement in libraryElement.parts) {
+      Source unitSource = unitElement.source;
+      CompilationUnit unit =
+          context.resolveCompilationUnit2(unitSource, librarySource);
+      for (Directive directive in unit.directives) {
+        if (directive is PartOfDirective &&
+            directive.element == libraryElement) {
+          matches.add(new SearchMatch(
+              context,
+              librarySource.uri.toString(),
+              unitSource.uri.toString(),
+              MatchKind.REFERENCE,
+              rangeNode(directive.libraryName),
+              true,
+              false));
+        }
+      }
+    }
+    return matches;
+  }
+
   Future<List<SearchMatch>> _searchReferences_Local(
       Element element, bool isRootNode(AstNode n)) async {
-    AstNode node = element.computeNode();
-    AstNode enclosingNode = node.getAncestor(isRootNode);
     _LocalReferencesVisitor visitor = new _LocalReferencesVisitor(element);
-    enclosingNode.accept(visitor);
+    AstNode node = element.computeNode();
+    AstNode enclosingNode = node?.getAncestor(isRootNode);
+    enclosingNode?.accept(visitor);
     return visitor.matches;
   }
 
@@ -174,11 +216,91 @@ class SearchEngineImpl2 implements SearchEngine {
         parameter, (n) => n is MethodDeclaration || n is FunctionExpression));
     return matches;
   }
+
+  Future<List<SearchMatch>> _searchReferences_Prefix(
+      PrefixElement element) async {
+    List<SearchMatch> matches = <SearchMatch>[];
+    LibraryElement libraryElement = element.library;
+    Source librarySource = libraryElement.source;
+    for (CompilationUnitElement unitElement in libraryElement.units) {
+      Source unitSource = unitElement.source;
+      CompilationUnit unit =
+          context.resolveCompilationUnit2(unitSource, librarySource);
+      _LocalReferencesVisitor visitor =
+          new _LocalReferencesVisitor(element, unitSource.uri.toString());
+      unit.accept(visitor);
+      matches.addAll(visitor.matches);
+    }
+    return matches;
+  }
 }
 
 /**
- * Visitor that adds [SearchMatch]es for local elements - labels, local
- * functions, local variables and parameters.
+ * Visitor that adds [SearchMatch]es for [importElement], both with an explicit
+ * prefix or an implicit one.
+ */
+class _ImportElementReferencesVisitor extends RecursiveAstVisitor {
+  final List<SearchMatch> matches = <SearchMatch>[];
+
+  final ImportElement importElement;
+  final AnalysisContext context;
+  final String libraryUri;
+  final String unitUri;
+  Set<Element> importedElements;
+
+  _ImportElementReferencesVisitor(ImportElement element, this.unitUri)
+      : importElement = element,
+        context = element.context,
+        libraryUri = element.library.source.uri.toString() {
+    importedElements = new NamespaceBuilder()
+        .createImportNamespaceForDirective(element)
+        .definedNames
+        .values
+        .toSet();
+  }
+
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.inDeclarationContext()) {
+      return;
+    }
+    if (importElement.prefix != null) {
+      if (node.staticElement == importElement.prefix) {
+        AstNode parent = node.parent;
+        if (parent is PrefixedIdentifier && parent.prefix == node) {
+          if (importedElements.contains(parent.staticElement)) {
+            _addMatchForPrefix(node, parent.identifier);
+          }
+        }
+        if (parent is MethodInvocation && parent.target == node) {
+          if (importedElements.contains(parent.methodName.staticElement)) {
+            _addMatchForPrefix(node, parent.methodName);
+          }
+        }
+      }
+    } else {
+      if (importedElements.contains(node.staticElement)) {
+        SourceRange range = rangeStartLength(node, 0);
+        _addMatchForRange(range);
+      }
+    }
+  }
+
+  void _addMatchForPrefix(SimpleIdentifier prefixNode, AstNode nextNode) {
+    SourceRange range = rangeStartStart(prefixNode, nextNode);
+    _addMatchForRange(range);
+  }
+
+  void _addMatchForRange(SourceRange range) {
+    matches.add(new SearchMatch(
+        context, libraryUri, unitUri, MatchKind.REFERENCE, range, true, false));
+  }
+}
+
+/**
+ * Visitor that adds [SearchMatch]es for local elements of a block, method,
+ * class or a library - labels, local functions, local variables and parameters,
+ * type parameters, import prefixes.
  */
 class _LocalReferencesVisitor extends RecursiveAstVisitor {
   final List<SearchMatch> matches = <SearchMatch>[];
@@ -188,11 +310,11 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor {
   final String libraryUri;
   final String unitUri;
 
-  _LocalReferencesVisitor(Element element)
+  _LocalReferencesVisitor(Element element, [String unitUri])
       : element = element,
         context = element.context,
         libraryUri = element.library.source.uri.toString(),
-        unitUri = element.source.uri.toString();
+        unitUri = unitUri ?? element.source.uri.toString();
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
@@ -225,8 +347,9 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor {
     }
   }
 
-  void _addMatch(SimpleIdentifier node, MatchKind kind) {
+  void _addMatch(AstNode node, MatchKind kind) {
+    bool isQualified = node is SimpleIdentifier && node.isQualified;
     matches.add(new SearchMatch(context, libraryUri, unitUri, kind,
-        new SourceRange(node.offset, node.length), true, node.isQualified));
+        rangeNode(node), true, isQualified));
   }
 }

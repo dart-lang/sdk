@@ -327,35 +327,52 @@ main() {
     await _verifyReferences(element, expected);
   }
 
-//  Future test_searchReferences_ImportElement_noPrefix() {
-//    _indexTestUnit('''
-//import 'dart:math';
-//main() {
-//  print(E);
-//}
-//''');
-//    ImportElement element = testLibraryElement.imports[0];
-//    Element mainElement = findElement('main');
-//    var kind = MatchKind.REFERENCE;
-//    var expected = [_expectId(mainElement, kind, 'E);', length: 0)];
-//    return _verifyReferences(element, expected);
-//  }
-//
-//  Future test_searchReferences_ImportElement_withPrefix() {
-//    _indexTestUnit('''
-//import 'dart:math' as math;
-//main() {
-//  print(math.PI);
-//}
-//''');
-//    ImportElement element = testLibraryElement.imports[0];
-//    Element mainElement = findElement('main');
-//    var kind = MatchKind.REFERENCE;
-//    var expected = [
-//      _expectId(mainElement, kind, 'math.PI);', length: 'math.'.length)
-//    ];
-//    return _verifyReferences(element, expected);
-//  }
+  test_searchReferences_ImportElement_noPrefix() async {
+    _indexTestUnit('''
+import 'dart:math';
+main() {
+  print(PI);
+  print(new Random());
+  print(max(1, 2));
+}
+Random bar() => null;
+''');
+    ImportElement element = testLibraryElement.imports[0];
+    Element mainElement = findElement('main');
+    Element barElement = findElement('bar');
+    var kind = MatchKind.REFERENCE;
+    var expected = [
+      _expectId(mainElement, kind, 'PI);', length: 0),
+      _expectId(mainElement, kind, 'Random()', length: 0),
+      _expectId(mainElement, kind, 'max(', length: 0),
+      _expectId(barElement, kind, 'Random bar()', length: 0),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ImportElement_withPrefix() async {
+    _indexTestUnit('''
+import 'dart:math' as math;
+main() {
+  print(math.PI);
+  print(new math.Random());
+  print(math.max(1, 2));
+}
+math.Random bar() => null;
+''');
+    ImportElement element = testLibraryElement.imports[0];
+    Element mainElement = findElement('main');
+    Element barElement = findElement('bar');
+    var kind = MatchKind.REFERENCE;
+    var length = 'math.'.length;
+    var expected = [
+      _expectId(mainElement, kind, 'math.PI);', length: length),
+      _expectId(mainElement, kind, 'math.Random()', length: length),
+      _expectId(mainElement, kind, 'math.max(', length: length),
+      _expectId(barElement, kind, 'math.Random bar()', length: length),
+    ];
+    await _verifyReferences(element, expected);
+  }
 
   test_searchReferences_LabelElement() async {
     _indexTestUnit('''
@@ -378,29 +395,29 @@ label:
     await _verifyReferences(element, expected);
   }
 
-//  Future test_searchReferences_LibraryElement() {
-//    var codeA = 'part of lib; // A';
-//    var codeB = 'part of lib; // B';
-//    addSource('/unitA.dart', codeA);
-//    addSource('/unitB.dart', codeB);
-//    _indexTestUnit('''
-//library lib;
-//part 'unitA.dart';
-//part 'unitB.dart';
-//''');
-//    LibraryElement element = testLibraryElement;
-//    CompilationUnitElement elementA = element.parts[0];
-//    CompilationUnitElement elementB = element.parts[1];
-//    index.index(context, elementA.computeNode());
-//    index.index(context, elementB.computeNode());
-//    var expected = [
-//      new ExpectedMatch(elementA, MatchKind.REFERENCE,
-//          codeA.indexOf('lib; // A'), 'lib'.length),
-//      new ExpectedMatch(elementB, MatchKind.REFERENCE,
-//          codeB.indexOf('lib; // B'), 'lib'.length),
-//    ];
-//    return _verifyReferences(element, expected);
-//  }
+  test_searchReferences_LibraryElement() async {
+    var codeA = 'part of lib; // A';
+    var codeB = 'part of lib; // B';
+    addSource('/unitA.dart', codeA);
+    addSource('/unitB.dart', codeB);
+    _indexTestUnit('''
+library lib;
+part 'unitA.dart';
+part 'unitB.dart';
+''');
+    LibraryElement element = testLibraryElement;
+    CompilationUnitElement unitElementA = element.parts[0];
+    CompilationUnitElement unitElementB = element.parts[1];
+    index.indexUnit(unitElementA.computeNode());
+    index.indexUnit(unitElementB.computeNode());
+    var expected = [
+      new ExpectedMatch(unitElementA, MatchKind.REFERENCE,
+          codeA.indexOf('lib; // A'), 'lib'.length),
+      new ExpectedMatch(unitElementB, MatchKind.REFERENCE,
+          codeB.indexOf('lib; // B'), 'lib'.length),
+    ];
+    await _verifyReferences(element, expected);
+  }
 
   test_searchReferences_LocalVariableElement() async {
     _indexTestUnit('''
@@ -463,7 +480,59 @@ main(A<int> a) {
     await _verifyReferences(method, expected);
   }
 
-  test_searchReferences_ParameterElement() async {
+  test_searchReferences_ParameterElement_ofLocalFunction() async {
+    _indexTestUnit('''
+main() {
+  foo({p}) {
+    p = 1;
+    p += 2;
+    print(p);
+    p();
+  }
+  foo(p: 42);
+}
+''');
+    ParameterElement element = findElement('p');
+    Element fooElement = findElement('foo');
+    Element mainElement = findElement('main');
+    var expected = [
+      _expectId(fooElement, MatchKind.WRITE, 'p = 1;'),
+      _expectId(fooElement, MatchKind.READ_WRITE, 'p += 2;'),
+      _expectId(fooElement, MatchKind.READ, 'p);'),
+      _expectId(fooElement, MatchKind.INVOCATION, 'p();'),
+      _expectIdQ(mainElement, MatchKind.REFERENCE, 'p: 42')
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ParameterElement_ofMethod() async {
+    _indexTestUnit('''
+class C {
+  foo({p}) {
+    p = 1;
+    p += 2;
+    print(p);
+    p();
+  }
+}
+main(C c) {
+  c.foo(p: 42);
+}
+''');
+    ParameterElement element = findElement('p');
+    Element fooElement = findElement('foo');
+    Element mainElement = findElement('main');
+    var expected = [
+      _expectId(fooElement, MatchKind.WRITE, 'p = 1;'),
+      _expectId(fooElement, MatchKind.READ_WRITE, 'p += 2;'),
+      _expectId(fooElement, MatchKind.READ, 'p);'),
+      _expectId(fooElement, MatchKind.INVOCATION, 'p();'),
+      _expectIdQ(mainElement, MatchKind.REFERENCE, 'p: 42')
+    ];
+    await _verifyReferences(element, expected);
+  }
+
+  test_searchReferences_ParameterElement_ofTopLevelFunction() async {
     _indexTestUnit('''
 foo({p}) {
   p = 1;
@@ -488,23 +557,23 @@ main() {
     await _verifyReferences(element, expected);
   }
 
-//  Future test_searchReferences_PrefixElement() {
-//    _indexTestUnit('''
-//import 'dart:async' as ppp;
-//main() {
-//  ppp.Future a;
-//  ppp.Stream b;
-//}
-//''');
-//    PrefixElement element = findNodeElementAtString('ppp;');
-//    Element elementA = findElement('a');
-//    Element elementB = findElement('b');
-//    var expected = [
-//      _expectId(elementA, MatchKind.REFERENCE, 'ppp.Future'),
-//      _expectId(elementB, MatchKind.REFERENCE, 'ppp.Stream')
-//    ];
-//    return _verifyReferences(element, expected);
-//  }
+  test_searchReferences_PrefixElement() async {
+    _indexTestUnit('''
+import 'dart:async' as ppp;
+main() {
+  ppp.Future a;
+  ppp.Stream b;
+}
+''');
+    PrefixElement element = findNodeElementAtString('ppp;');
+    Element elementA = findElement('a');
+    Element elementB = findElement('b');
+    var expected = [
+      _expectId(elementA, MatchKind.REFERENCE, 'ppp.Future'),
+      _expectId(elementB, MatchKind.REFERENCE, 'ppp.Stream')
+    ];
+    await _verifyReferences(element, expected);
+  }
 
   test_searchReferences_PropertyAccessorElement_getter() async {
     _indexTestUnit('''
