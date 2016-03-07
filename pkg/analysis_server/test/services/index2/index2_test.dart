@@ -73,6 +73,51 @@ class Index2Test extends AbstractSingleUnitTest {
     index = null;
   }
 
+  test_getDefinedNames_classMember() async {
+    _indexTestUnit('''
+class A {
+  test() {}
+}
+class B {
+  int test = 1;
+  main() {
+    int test = 2;
+  }
+}
+''');
+    ClassElement classA = findElement('A');
+    ClassElement classB = findElement('B');
+    List<Location> locations = await index.getDefinedNames(
+        new RegExp(r'^test$'), IndexNameKind.classMember);
+    expect(locations, hasLength(2));
+    _assertHasDefinedName(locations, classA.methods[0]);
+    _assertHasDefinedName(locations, classB.fields[0]);
+  }
+
+  test_getDefinedNames_topLevel() async {
+    _indexTestUnit('''
+class A {} // A
+class B = Object with A;
+typedef C();
+D() {}
+var E = null;
+class NoMatchABCDE {}
+''');
+    Element topA = findElement('A');
+    Element topB = findElement('B');
+    Element topC = findElement('C');
+    Element topD = findElement('D');
+    Element topE = findElement('E');
+    List<Location> locations = await index.getDefinedNames(
+        new RegExp(r'^[A-E]$'), IndexNameKind.topLevel);
+    expect(locations, hasLength(5));
+    _assertHasDefinedName(locations, topA);
+    _assertHasDefinedName(locations, topB);
+    _assertHasDefinedName(locations, topC);
+    _assertHasDefinedName(locations, topD);
+    _assertHasDefinedName(locations, topE);
+  }
+
   test_getRelations_isExtendedBy() async {
     _indexTestUnit(r'''
 class A {}
@@ -101,6 +146,25 @@ main(int a, int b) {
         intElement, IndexRelationKind.IS_REFERENCED_BY);
     findLocationTest(locations, 'int a');
     findLocationTest(locations, 'int b');
+  }
+
+  /**
+   * Assert that the given list of [locations] has a [Location] corresponding
+   * to the [element].
+   */
+  void _assertHasDefinedName(List<Location> locations, Element element) {
+    String libraryUri = element.library.source.uri.toString();
+    String unitUri = element.source.uri.toString();
+    for (Location location in locations) {
+      if (location.libraryUri == libraryUri &&
+          location.unitUri == unitUri &&
+          location.offset == element.nameOffset &&
+          location.length == 0) {
+        return;
+      }
+    }
+    fail('No declaration of $element at ${element.nameOffset} in\n'
+        '${locations.join('\n')}');
   }
 
   void _indexTestUnit(String code) {

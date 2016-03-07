@@ -46,6 +46,23 @@ class Index2 {
   Index2(this._store);
 
   /**
+   * Complete with a list of locations where elements of the given [kind] with
+   * names satisfying the given [regExp] are defined.
+   */
+  Future<List<Location>> getDefinedNames(
+      RegExp regExp, IndexNameKind kind) async {
+    List<Location> locations = <Location>[];
+    Iterable<PackageIndexId> ids = await _store.getIds();
+    for (PackageIndexId id in ids) {
+      PackageIndex index = await _store.getIndex(id);
+      _PackageIndexRequester requester = new _PackageIndexRequester(index);
+      List<Location> packageLocations = requester.getDefinedNames(regExp, kind);
+      locations.addAll(packageLocations);
+    }
+    return locations;
+  }
+
+  /**
    * Complete with a list of locations where the given [element] has relation
    * of the given [kind].
    */
@@ -223,6 +240,20 @@ class _PackageIndexRequester {
   }
 
   /**
+   * Complete with a list of locations where elements of the given [kind] with
+   * names satisfying the given [regExp] are defined.
+   */
+  List<Location> getDefinedNames(RegExp regExp, IndexNameKind kind) {
+    List<Location> locations = <Location>[];
+    for (UnitIndex unitIndex in index.units) {
+      _UnitIndexRequester requester = new _UnitIndexRequester(this, unitIndex);
+      List<Location> unitLocations = requester.getDefinedNames(regExp, kind);
+      locations.addAll(unitLocations);
+    }
+    return locations;
+  }
+
+  /**
    * Complete with a list of locations where the given [element] has relation
    * of the given [kind].
    */
@@ -300,6 +331,29 @@ class _UnitIndexRequester {
   final UnitIndex unitIndex;
 
   _UnitIndexRequester(this.packageRequester, this.unitIndex);
+
+  /**
+   * Complete with a list of locations where elements of the given [kind] with
+   * names satisfying the given [regExp] are defined.
+   */
+  List<Location> getDefinedNames(RegExp regExp, IndexNameKind kind) {
+    List<Location> locations = <Location>[];
+    String unitLibraryUri = null;
+    String unitUnitUri = null;
+    for (int i = 0; i < unitIndex.definedNames.length; i++) {
+      if (unitIndex.definedNameKinds[i] == kind) {
+        int nameIndex = unitIndex.definedNames[i];
+        String name = packageRequester.index.strings[nameIndex];
+        if (regExp.matchAsPrefix(name) != null) {
+          unitLibraryUri ??= packageRequester.getUnitLibraryUri(unitIndex.unit);
+          unitUnitUri ??= packageRequester.getUnitUnitUri(unitIndex.unit);
+          locations.add(new Location(unitLibraryUri, unitUnitUri,
+              unitIndex.definedNameOffsets[i], 0, false));
+        }
+      }
+    }
+    return locations;
+  }
 
   /**
    * Return a list of locations where an element with the given [elementId] has
