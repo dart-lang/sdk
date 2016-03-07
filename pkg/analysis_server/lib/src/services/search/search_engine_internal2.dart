@@ -34,9 +34,8 @@ class SearchEngineImpl2 implements SearchEngine {
   }
 
   @override
-  Future<List<SearchMatch>> searchMemberDeclarations(String name) {
-    // TODO: implement searchMemberDeclarations
-    throw new UnimplementedError();
+  Future<List<SearchMatch>> searchMemberDeclarations(String pattern) {
+    return _searchDefinedNames(pattern, IndexNameKind.classMember);
   }
 
   @override
@@ -88,23 +87,34 @@ class SearchEngineImpl2 implements SearchEngine {
 
   @override
   Future<List<SearchMatch>> searchTopLevelDeclarations(String pattern) {
-    // TODO: implement searchTopLevelDeclarations
-    throw new UnimplementedError();
+    return _searchDefinedNames(pattern, IndexNameKind.topLevel);
   }
 
   _addMatches(List<SearchMatch> matches, Element element,
       IndexRelationKind relationKind, MatchKind kind) async {
     List<Location> locations = await _index.getRelations(element, relationKind);
     for (Location location in locations) {
-      matches.add(new SearchMatch(
+      matches.add(_newMatchForLocation(location, kind));
+    }
+  }
+
+  SearchMatch _newMatchForLocation(Location location, MatchKind kind) =>
+      new SearchMatch(
           context,
           location.libraryUri,
           location.unitUri,
           kind,
           new SourceRange(location.offset, location.length),
           true,
-          location.isQualified));
-    }
+          location.isQualified);
+
+  Future<List<SearchMatch>> _searchDefinedNames(
+      String pattern, IndexNameKind nameKind) async {
+    RegExp regExp = new RegExp(pattern);
+    List<Location> locations = await _index.getDefinedNames(regExp, nameKind);
+    return locations.map((location) {
+      return _newMatchForLocation(location, MatchKind.DECLARATION);
+    }).toList();
   }
 
   Future<List<SearchMatch>> _searchReferences(Element element) async {

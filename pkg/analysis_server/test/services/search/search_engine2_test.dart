@@ -93,30 +93,30 @@ class SearchEngineImpl2Test extends AbstractSingleUnitTest {
 //      _assertMatches(matches, expected);
 //    });
 //  }
-//
-//  Future test_searchMemberDeclarations() {
-//    _indexTestUnit('''
-//class A {
-//  test() {}
-//}
-//class B {
-//  int test = 1;
-//  main() {
-//    int test = 2;
-//  }
-//}
-//''');
-//    ClassElement elementA = findElement('A');
-//    ClassElement elementB = findElement('B');
-//    var expected = [
-//      _expectId(elementA.methods[0], MatchKind.DECLARATION, 'test() {}'),
-//      _expectId(elementB.fields[0], MatchKind.DECLARATION, 'test = 1;')
-//    ];
-//    return searchEngine.searchMemberDeclarations('test').then((matches) {
-//      _assertMatches(matches, expected);
-//    });
-//  }
-//
+
+  test_searchMemberDeclarations() async {
+    _indexTestUnit('''
+class A {
+  test() {}
+}
+class B {
+  int test = 1;
+  main() {
+    int test = 2;
+  }
+}
+''');
+    ClassElement elementA = findElement('A');
+    ClassElement elementB = findElement('B');
+    var expected = [
+      _expectId(elementA.methods[0], MatchKind.DECLARATION, 'test() {}'),
+      _expectId(elementB.fields[0], MatchKind.DECLARATION, 'test = 1;')
+    ];
+    List<SearchMatch> matches =
+        await searchEngine.searchMemberDeclarations('test');
+    _assertMatches(matches, expected);
+  }
+
 //  Future test_searchMemberReferences() {
 //    _indexTestUnit('''
 //class A {
@@ -660,30 +660,32 @@ class A<T> {
 //      _assertMatches(matches, expected);
 //    });
 //  }
-//
-//  Future test_searchTopLevelDeclarations() {
-//    _indexTestUnit('''
-//class A {} // A
-//class B = Object with A;
-//typedef C();
-//D() {}
-//var E = null;
-//class NoMatchABCDE {}
-//''');
-//    Element topA = findElement('A');
-//    Element topB = findElement('B');
-//    Element topC = findElement('C');
-//    Element topD = findElement('D');
-//    Element topE = findElement('E');
-//    var expected = [
-//      _expectId(topA, MatchKind.DECLARATION, 'A {} // A'),
-//      _expectId(topB, MatchKind.DECLARATION, 'B ='),
-//      _expectId(topC, MatchKind.DECLARATION, 'C()'),
-//      _expectId(topD, MatchKind.DECLARATION, 'D() {}'),
-//      _expectId(topE, MatchKind.DECLARATION, 'E = null')
-//    ];
-//    return _verifyTopLevelDeclarations('^[A-E]\$', expected);
-//  }
+
+  test_searchTopLevelDeclarations() async {
+    _indexTestUnit('''
+class A {} // A
+class B = Object with A;
+typedef C();
+D() {}
+var E = null;
+class NoMatchABCDE {}
+''');
+    Element topA = findElement('A');
+    Element topB = findElement('B');
+    Element topC = findElement('C');
+    Element topD = findElement('D');
+    Element topE = findElement('E');
+    var expected = [
+      _expectId(topA, MatchKind.DECLARATION, 'A {} // A'),
+      _expectId(topB, MatchKind.DECLARATION, 'B ='),
+      _expectId(topC, MatchKind.DECLARATION, 'C()'),
+      _expectId(topD, MatchKind.DECLARATION, 'D() {}'),
+      _expectId(topE, MatchKind.DECLARATION, 'E = null')
+    ];
+    List<SearchMatch> matches =
+        await searchEngine.searchTopLevelDeclarations(r'^[A-E]$');
+    _assertMatches(matches, expected);
+  }
 
   ExpectedMatch _expectId(Element element, MatchKind kind, String search,
       {int length, bool isResolved: true, bool isQualified: false}) {
@@ -715,15 +717,6 @@ class A<T> {
     List<SearchMatch> matches = await searchEngine.searchReferences(element);
     _assertMatches(matches, expectedMatches);
   }
-
-//  Future _verifyTopLevelDeclarations(
-//      String pattern, List<ExpectedMatch> expectedMatches) {
-//    return searchEngine
-//        .searchTopLevelDeclarations(pattern)
-//        .then((List<SearchMatch> matches) {
-//      _assertMatches(matches, expectedMatches);
-//    });
-//  }
 
   static void _assertMatches(
       List<SearchMatch> matches, List<ExpectedMatch> expectedMatches) {

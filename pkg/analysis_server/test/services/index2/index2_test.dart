@@ -159,7 +159,7 @@ main(int a, int b) {
       if (location.libraryUri == libraryUri &&
           location.unitUri == unitUri &&
           location.offset == element.nameOffset &&
-          location.length == 0) {
+          location.length == element.nameLength) {
         return;
       }
     }

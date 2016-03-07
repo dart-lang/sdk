@@ -348,7 +348,7 @@ class _UnitIndexRequester {
           unitLibraryUri ??= packageRequester.getUnitLibraryUri(unitIndex.unit);
           unitUnitUri ??= packageRequester.getUnitUnitUri(unitIndex.unit);
           locations.add(new Location(unitLibraryUri, unitUnitUri,
-              unitIndex.definedNameOffsets[i], 0, false));
+              unitIndex.definedNameOffsets[i], name.length, false));
         }
       }
     }
