@@ -300,7 +300,7 @@ final Map<String, Message> MESSAGES = {
       // example below triggers 'EXTRANEOUS_MODIFIER'.
       specializationOf: 'EXTRANEOUS_MODIFIER',
       categories: [Category.parserError],
-      template: "Classes can't be declared to be 'const'",
+      template: "Classes can't be declared to be 'const'.",
       howToFix: "Try removing the 'const' keyword or moving to the class'"
           " constructor(s).",
       usedBy: [analyzer],
@@ -319,7 +319,7 @@ final Map<String, Message> MESSAGES = {
       // example below triggers 'EXTRANEOUS_MODIFIER'.
       specializationOf: 'EXTRANEOUS_MODIFIER',
       categories: [Category.parserError],
-      template: "Getters, setters and methods can't be declared to be 'const'",
+      template: "Getters, setters and methods can't be declared to be 'const'.",
       howToFix: "Try removing the 'const' keyword.",
       usedBy: [analyzer],
       examples: const [
@@ -338,7 +338,7 @@ final Map<String, Message> MESSAGES = {
       // example below triggers 'EXTRANEOUS_MODIFIER'.
       specializationOf: 'EXTRANEOUS_MODIFIER',
       categories: [Category.parserError],
-      template: "Enums can't be declared to be 'const'",
+      template: "Enums can't be declared to be 'const'.",
       howToFix: "Try removing the 'const' keyword.",
       usedBy: [analyzer],
       examples: const ["const enum Foo { x } main() {}",]),
@@ -350,7 +350,7 @@ final Map<String, Message> MESSAGES = {
       // example below triggers 'EXTRANEOUS_MODIFIER'.
       specializationOf: 'EXTRANEOUS_MODIFIER',
       categories: [Category.parserError],
-      template: "Type aliases can't be declared to be 'const'",
+      template: "Type aliases can't be declared to be 'const'.",
       howToFix: "Try removing the 'const' keyword.",
       usedBy: [analyzer],
       examples: const ["const typedef void Foo(); main() {}",]),
@@ -362,7 +362,7 @@ final Map<String, Message> MESSAGES = {
       // example below triggers 'EXTRANEOUS_MODIFIER'.
       specializationOf: 'EXTRANEOUS_MODIFIER',
       categories: [Category.parserError],
-      template: "Members can't be declared to be both 'const' and 'final'",
+      template: "Members can't be declared to be both 'const' and 'final'.",
       howToFix: "Try removing either the 'const' or 'final' keyword.",
       usedBy: [analyzer],
       examples: const [
@@ -379,7 +379,7 @@ final Map<String, Message> MESSAGES = {
       // example below triggers 'EXTRANEOUS_MODIFIER'.
       specializationOf: 'EXTRANEOUS_MODIFIER',
       categories: [Category.parserError],
-      template: "Members can't be declared to be both 'const' and 'var'",
+      template: "Members can't be declared to be both 'const' and 'var'.",
       howToFix: "Try removing either the 'const' or 'var' keyword.",
       usedBy: [analyzer],
       examples: const [
@@ -402,7 +402,7 @@ final Map<String, Message> MESSAGES = {
   'CONSTRUCTOR_WITH_RETURN_TYPE': new Message(
       id: 'VOJBWY',
       categories: [Category.parserError],
-      template: "Constructors can't have a return type",
+      template: "Constructors can't have a return type.",
       howToFix: "Try removing the return type.",
       usedBy: [analyzer, dart2js],
       examples: const ["class A { int A() {} } main() { new A(); }",]),
@@ -426,7 +426,7 @@ final Map<String, Message> MESSAGES = {
   'RETHROW_OUTSIDE_CATCH': new Message(
       id: 'MWETLC',
       categories: [Category.compileTimeError],
-      template: 'Rethrow must be inside of catch clause',
+      template: 'Rethrow must be inside of catch clause.',
       howToFix: "Try moving the expression into a catch clause, or "
           "using a 'throw' expression.",
       usedBy: [analyzer, dart2js],
@@ -465,7 +465,7 @@ final Map<String, Message> MESSAGES = {
       template: "Can't return a value from a generator function "
           "(using the '#{modifier}' modifier).",
       howToFix: "Try removing the value, replacing 'return' with 'yield' or"
-          " changing the method body modifier",
+          " changing the method body modifier.",
       usedBy: [analyzer, dart2js],
       examples: const [
         """
@@ -552,4 +552,352 @@ final Map<String, Message> MESSAGES = {
       // TODO(floitsch): support hint warnings and ways to specify which
       // category an example should trigger for.
       examples: const ["foo(int x) => x; main() { foo('bar'); }"]),
+
+  'CANNOT_RESOLVE': new Message(
+      id: 'ERUSKD',
+      subId: 0,
+      categories: [Category.staticTypeWarning],
+      template: "Can't resolve '#{name}'.",
+      usedBy: [dart2js]),
+
+  /**
+   * 12.15.1 Ordinary Invocation: Let <i>T</i> be the static type of <i>o</i>.
+   * It is a static type warning if <i>T</i> does not have an accessible
+   * instance member named <i>m</i>.
+   */
+  'UNDEFINED_METHOD': new Message(
+      id: 'ERUSKD',
+      subId: 1,
+      categories: [Category.staticTypeWarning, Category.hint],
+      template: "The method '#{memberName}' is not defined for the class"
+          " '#{className}'.",
+      usedBy: [dart2js, analyzer],
+      examples: const [
+        """
+        class A {
+          foo() { bar(); }
+        }
+        main() { new A().foo(); }
+        """,
+      ]),
+
+  /**
+   * 12.15.1 Ordinary Invocation: Let <i>T</i> be the static type of <i>o</i>.
+   * It is a static type warning if <i>T</i> does not have an accessible
+   * instance member named <i>m</i>.
+   */
+  'UNDEFINED_METHOD_WITH_CONSTRUCTOR': new Message(
+      id: 'ERUSKD',
+      subId: 2,
+      specializationOf: "UNDEFINED_METHOD",
+      categories: [Category.staticTypeWarning],
+      template: "The method '#{memberName}' is not defined for the class"
+          " '#{className}', but a constructor with that name is defined.",
+      howToFix: "Try adding 'new' or 'const' to invoke the constuctor, or "
+          "change the method name.",
+      usedBy: [analyzer],
+      examples: const [
+        """
+        class A {
+          A.bar() {}
+        }
+        main() { A.bar(); }
+        """,
+      ]),
+
+  /**
+   * 12.17 Getter Invocation: Let <i>T</i> be the static type of <i>e</i>. It is
+   * a static type warning if <i>T</i> does not have a getter named <i>m</i>.
+   */
+  'UNDEFINED_GETTER': new Message(
+      id: 'ERUSKD',
+      subId: 3,
+      categories: [
+        Category.staticTypeWarning,
+        Category.staticWarning,
+        Category.hint
+      ],
+      template: "The getter '#{memberName}' is not defined for the "
+          "class '#{className}'.",
+      usedBy: [dart2js, analyzer],
+      examples: const [
+        "class A {} main() { new A().x; }",
+        "class A {} main() { A.x; }"
+      ]),
+
+  /**
+   * 12.17 Getter Invocation: It is a static warning if there is no class
+   * <i>C</i> in the enclosing lexical scope of <i>i</i>, or if <i>C</i> does
+   * not declare, implicitly or explicitly, a getter named <i>m</i>.
+   */
+  'UNDEFINED_ENUM_CONSTANT': new Message(
+      id: 'ERUSKD',
+      subId: 4,
+      specializationOf: 'UNDEFINED_GETTER',
+      categories: [Category.staticTypeWarning],
+      template: "There is no constant named '#{memberName}' in '#{className}'.",
+      usedBy: [analyzer],
+      examples: const [
+        """
+        enum E { ONE }
+        E e() { return E.TWO; }
+        main() { e(); }
+       """
+      ]),
+
+  'UNDEFINED_INSTANCE_GETTER_BUT_SETTER': new Message(
+      id: 'ERUSKD',
+      subId: 5,
+      specializationOf: 'UNDEFINED_GETTER',
+      categories: [Category.staticTypeWarning,],
+      template: "The setter '#{memberName}' in class '#{className}' can"
+          " not be used as a getter.",
+      usedBy: [dart2js],
+      examples: const ["class A { set x(y) {} } main() { new A().x; }",]),
+
+  /**
+   * 12.18 Assignment: Evaluation of an assignment of the form
+   * <i>e<sub>1</sub></i>[<i>e<sub>2</sub></i>] = <i>e<sub>3</sub></i> is
+   * equivalent to the evaluation of the expression (a, i, e){a.[]=(i, e);
+   * return e;} (<i>e<sub>1</sub></i>, <i>e<sub>2</sub></i>,
+   * <i>e<sub>2</sub></i>).
+   *
+   * 12.29 Assignable Expressions: An assignable expression of the form
+   * <i>e<sub>1</sub></i>[<i>e<sub>2</sub></i>] is evaluated as a method
+   * invocation of the operator method [] on <i>e<sub>1</sub></i> with argument
+   * <i>e<sub>2</sub></i>.
+   *
+   * 12.15.1 Ordinary Invocation: Let <i>T</i> be the static type of <i>o</i>.
+   * It is a static type warning if <i>T</i> does not have an accessible
+   * instance member named <i>m</i>.
+   */
+  'UNDEFINED_OPERATOR': new Message(
+      id: 'ERUSKD',
+      subId: 6,
+      categories: [Category.staticTypeWarning, Category.hint],
+      template: "The operator '#{memberName}' is not defined for the "
+          "class '#{className}'.",
+      usedBy: [dart2js, analyzer],
+      examples: const ["class A {} main() { new A() + 3; }",]),
+
+  /**
+   * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>.
+   * It is a static type warning if <i>T</i> does not have an accessible
+   * instance setter named <i>v=</i>.
+   *
+   * 12.18 Assignment: It is as static warning if an assignment of the form
+   * <i>v = e</i> occurs inside a top level or static function (be it function,
+   * method, getter, or setter) or variable initializer and there is no
+   * declaration <i>d</i> with name <i>v=</i> in the lexical scope enclosing the
+   * assignment.
+   *
+   * 12.18 Assignment: It is a static warning if there is no class <i>C</i> in
+   * the enclosing lexical scope of the assignment, or if <i>C</i> does not
+   * declare, implicitly or explicitly, a setter <i>v=</i>.
+   */
+  'UNDEFINED_SETTER': new Message(
+      id: 'ERUSKD',
+      subId: 7,
+      categories: [
+        Category.staticTypeWarning,
+        Category.staticWarning,
+        Category.hint
+      ],
+      template: "The setter '#{memberName}' is not defined for the "
+          "class '#{className}'.",
+      usedBy: [dart2js, analyzer],
+      examples: const ["class A {} main() { new A().x = 499; }",]),
+
+  'NO_SUCH_SUPER_MEMBER': new Message(
+      id: 'ERUSKD',
+      subId: 8,
+      categories: [Category.staticTypeWarning],
+      template:
+          "Can't resolve '#{memberName}' in a superclass of '#{className}'.",
+      usedBy: [dart2js]),
+
+  /**
+   * 12.17 Getter Invocation: Let <i>T</i> be the static type of <i>e</i>. It is
+   * a static type warning if <i>T</i> does not have a getter named <i>m</i>.
+   *
+   * 12.17 Getter Invocation: It is a static warning if there is no class
+   * <i>C</i> in the enclosing lexical scope of <i>i</i>, or if <i>C</i> does
+   * not declare, implicitly or explicitly, a getter named <i>m</i>.
+   */
+  'UNDEFINED_SUPER_GETTER': new Message(
+      id: 'ERUSKD',
+      subId: 9,
+      specializationOf: 'NO_SUCH_SUPER_MEMBER',
+      categories: [Category.staticTypeWarning, Category.staticWarning],
+      template: "The getter '#{memberName}' is not defined in a superclass "
+          "of '#{className}'.",
+      usedBy: [analyzer],
+      examples: const [
+        """
+        class A {}
+        class B extends A {
+          foo() => super.x;
+        }
+        main() { new B().foo(); }
+        """
+      ]),
+
+  /**
+   * 12.15.4 Super Invocation: A super method invocation <i>i</i> has the form
+   * <i>super.m(a<sub>1</sub>, &hellip;, a<sub>n</sub>, x<sub>n+1</sub>:
+   * a<sub>n+1</sub>, &hellip; x<sub>n+k</sub>: a<sub>n+k</sub>)</i>. It is a
+   * static type warning if <i>S</i> does not have an accessible instance member
+   * named <i>m</i>.
+   */
+  'UNDEFINED_SUPER_METHOD': new Message(
+      id: 'ERUSKD',
+      subId: 10,
+      specializationOf: 'NO_SUCH_SUPER_MEMBER',
+      categories: [Category.staticTypeWarning],
+      template: "The method '#{memberName}' is not defined in a superclass "
+          "of '#{className}'.",
+      usedBy: [analyzer],
+      examples: const [
+        """
+        class A {}
+        class B extends A {
+          foo() => super.x();
+        }
+        main() { new B().foo(); }
+        """
+      ]),
+
+  /**
+   * 12.18 Assignment: Evaluation of an assignment of the form
+   * <i>e<sub>1</sub></i>[<i>e<sub>2</sub></i>] = <i>e<sub>3</sub></i> is
+   * equivalent to the evaluation of the expression (a, i, e){a.[]=(i, e);
+   * return e;} (<i>e<sub>1</sub></i>, <i>e<sub>2</sub></i>,
+   * <i>e<sub>2</sub></i>).
+   *
+   * 12.29 Assignable Expressions: An assignable expression of the form
+   * <i>e<sub>1</sub></i>[<i>e<sub>2</sub></i>] is evaluated as a method
+   * invocation of the operator method [] on <i>e<sub>1</sub></i> with argument
+   * <i>e<sub>2</sub></i>.
+   *
+   * 12.15.1 Ordinary Invocation: Let <i>T</i> be the static type of <i>o</i>.
+   * It is a static type warning if <i>T</i> does not have an accessible
+   * instance member named <i>m</i>.
+   */
+  'UNDEFINED_SUPER_OPERATOR': new Message(
+      id: 'ERUSKD',
+      subId: 11,
+      specializationOf: 'NO_SUCH_SUPER_MEMBER',
+      categories: [Category.staticTypeWarning],
+      template: "The operator '#{memberName}' is not defined in a superclass "
+          "of '#{className}'.",
+      usedBy: [analyzer],
+      examples: const [
+        """
+        class A {}
+        class B extends A {
+          foo() => super + 499;
+        }
+        main() { new B().foo(); }
+        """
+      ]),
+
+  /**
+   * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>.
+   * It is a static type warning if <i>T</i> does not have an accessible
+   * instance setter named <i>v=</i>.
+   *
+   * 12.18 Assignment: It is as static warning if an assignment of the form
+   * <i>v = e</i> occurs inside a top level or static function (be it function,
+   * method, getter, or setter) or variable initializer and there is no
+   * declaration <i>d</i> with name <i>v=</i> in the lexical scope enclosing the
+   * assignment.
+   *
+   * 12.18 Assignment: It is a static warning if there is no class <i>C</i> in
+   * the enclosing lexical scope of the assignment, or if <i>C</i> does not
+   * declare, implicitly or explicitly, a setter <i>v=</i>.
+
+   */
+  'UNDEFINED_SUPER_SETTER': new Message(
+      id: 'ERUSKD',
+      subId: 12,
+      categories: [Category.staticTypeWarning, Category.staticWarning],
+      template: "The setter '#{memberName}' is not defined in a superclass "
+          "of '#{className}'.",
+      usedBy: [analyzer, dart2js,],
+      examples: const [
+        """
+        class A {}
+        class B extends A {
+          foo() { super.x = 499; }
+        }
+        main() { new B().foo(); }
+        """,
+        """
+        main() => new B().m();
+        class A {
+          get x => 1;
+        }
+        class B extends A {
+          m() { super.x = 2; }
+        }
+        """
+      ]),
+
+  /**
+   * 12.15.3 Unqualified Invocation: If there exists a lexically visible
+   * declaration named <i>id</i>, let <i>f<sub>id</sub></i> be the innermost
+   * such declaration. Then: [skip]. Otherwise, <i>f<sub>id</sub></i> is
+   * considered equivalent to the ordinary method invocation
+   * <b>this</b>.<i>id</i>(<i>a<sub>1</sub></i>, ..., <i>a<sub>n</sub></i>,
+   * <i>x<sub>n+1</sub></i> : <i>a<sub>n+1</sub></i>, ...,
+   * <i>x<sub>n+k</sub></i> : <i>a<sub>n+k</sub></i>).
+   */
+  'UNDEFINED_FUNCTION': new Message(
+      id: 'ERUSKD',
+      subId: 13,
+      specializationOf: 'CANNOT_RESOLVE',
+      categories: [Category.staticTypeWarning],
+      template: "The function '#{memberName}' is not defined.",
+      usedBy: [analyzer],
+      examples: const ["main() { foo(); }",]),
+
+  'UNDEFINED_STATIC_GETTER_BUT_SETTER': new Message(
+      id: 'ERUSKD',
+      subId: 14,
+      specializationOf: 'CANNOT_RESOLVE',
+      categories: [Category.staticTypeWarning],
+      template: "Cannot resolve getter '#{name}'.",
+      usedBy: [dart2js],
+      examples: const ["set foo(x) {}  main() { foo; }",]),
+
+  'UNDEFINED_STATIC_SETTER_BUT_GETTER': new Message(
+      id: 'ERUSKD',
+      subId: 15,
+      specializationOf: 'CANNOT_RESOLVE',
+      categories: [Category.staticTypeWarning],
+      template: "Cannot resolve setter '#{name}'.",
+      usedBy: [dart2js],
+      examples: const [
+        """
+        main() {
+          final x = 1;
+          x = 2;
+        }""",
+        """
+        main() {
+          const x = 1;
+          x = 2;
+        }
+        """,
+        """
+        final x = 1;
+        main() { x = 3; }
+        """,
+        """
+        const x = 1;
+        main() { x = 3; }
+        """,
+        "get foo => null  main() { foo = 5; }",
+        "const foo = 0  main() { foo = 5; }",
+      ]),
 };

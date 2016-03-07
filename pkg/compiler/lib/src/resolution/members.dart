@@ -1024,7 +1024,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       Element error;
       if (selector.isSetter) {
         error = reportAndCreateErroneousElement(
-          node, name.text, MessageKind.SETTER_NOT_FOUND_IN_SUPER,
+          node, name.text, MessageKind.UNDEFINED_SUPER_SETTER,
           {'className': currentClass.name, 'name': name});
       } else {
         error = reportAndCreateErroneousElement(
@@ -1760,7 +1760,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     // [resolveSend] to select better warning messages for getters and
     // setters.
     ErroneousElement error = reportAndCreateErroneousElement(
-        node, name.text, MessageKind.MEMBER_NOT_FOUND,
+        node, name.text, MessageKind.UNDEFINED_GETTER,
         {'className': receiverClass.name, 'memberName': name.text});
     // TODO(johnniwinther): Add an [AccessSemantics] for unresolved static
     // member access.
@@ -1784,7 +1784,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
 
     // TODO(johnniwinther): Produce a different error for complex update.
     ErroneousElement error = reportAndCreateErroneousElement(
-        node, name.text, MessageKind.MEMBER_NOT_FOUND,
+        node, name.text, MessageKind.UNDEFINED_GETTER,
         {'className': receiverClass.name, 'memberName': name.text});
     // TODO(johnniwinther): Add an [AccessSemantics] for unresolved static
     // member access.
@@ -2654,7 +2654,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       if (element.isFinal) {
         error = reportAndCreateErroneousElement(
             node.selector, name.text,
-            MessageKind.CANNOT_RESOLVE_SETTER, const {});
+            MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER,
+            {'name': name});
         semantics = new StaticAccess.finalParameter(element);
       } else {
         semantics = new StaticAccess.parameter(element);
@@ -2663,7 +2664,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       if (element.isFinal || element.isConst) {
         error = reportAndCreateErroneousElement(
             node.selector, name.text,
-            MessageKind.CANNOT_RESOLVE_SETTER, const {});
+            MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER,
+            {'name': name});
         semantics = new StaticAccess.finalLocalVariable(element);
       } else {
         semantics = new StaticAccess.localVariable(element);
@@ -2775,7 +2777,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
           member = reportAndCreateErroneousElement(
               node.selector, name.text,
-              MessageKind.CANNOT_RESOLVE_GETTER, const {});
+              MessageKind.UNDEFINED_STATIC_GETTER_BUT_SETTER,
+              {'name': name});
           break;
         default:
           reporter.internalError(node,
@@ -2809,7 +2812,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
           member = reportAndCreateErroneousElement(
               node.selector, name.text,
-              MessageKind.CANNOT_RESOLVE_GETTER, const {});
+              MessageKind.UNDEFINED_STATIC_GETTER_BUT_SETTER,
+              {'name': name});
           break;
         default:
           reporter.internalError(node,
@@ -2843,7 +2847,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       if (abstractField.setter == null) {
         ErroneousElement error = reportAndCreateErroneousElement(
             node.selector, name.text,
-            MessageKind.CANNOT_RESOLVE_SETTER, const {});
+            MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER,
+            {'name': name});
         registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
 
         if (node.isComplex) {
@@ -2866,7 +2871,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         if (abstractField.getter == null) {
           ErroneousElement error = reportAndCreateErroneousElement(
               node.selector, name.text,
-              MessageKind.CANNOT_RESOLVE_GETTER, const {});
+              MessageKind.UNDEFINED_STATIC_GETTER_BUT_SETTER,
+              {'name': name});
           registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
           // `a++` or `a += b` where `a` has no getter.
           semantics = new CompoundAccessSemantics(
@@ -2931,7 +2937,8 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         if (member.isFinal || member.isConst) {
           ErroneousElement error = reportAndCreateErroneousElement(
                node.selector, name.text,
-               MessageKind.CANNOT_RESOLVE_SETTER, const {});
+               MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER,
+               {'name': name});
           registry.registerFeature(Feature.THROW_NO_SUCH_METHOD);
           semantics = member.isTopLevel
               ? new StaticAccess.finalTopLevelField(member)

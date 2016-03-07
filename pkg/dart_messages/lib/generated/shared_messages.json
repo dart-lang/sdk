@@ -132,7 +132,7 @@
     "categories": [
       "ParserError"
     ],
-    "template": "Classes can't be declared to be 'const'",
+    "template": "Classes can't be declared to be 'const'.",
     "templateHoleOrder": null,
     "howToFix": "Try removing the 'const' keyword or moving to the class' constructor(s).",
     "options": null,
@@ -149,7 +149,7 @@
     "categories": [
       "ParserError"
     ],
-    "template": "Getters, setters and methods can't be declared to be 'const'",
+    "template": "Getters, setters and methods can't be declared to be 'const'.",
     "templateHoleOrder": null,
     "howToFix": "Try removing the 'const' keyword.",
     "options": null,
@@ -171,7 +171,7 @@
     "categories": [
       "ParserError"
     ],
-    "template": "Enums can't be declared to be 'const'",
+    "template": "Enums can't be declared to be 'const'.",
     "templateHoleOrder": null,
     "howToFix": "Try removing the 'const' keyword.",
     "options": null,
@@ -188,7 +188,7 @@
     "categories": [
       "ParserError"
     ],
-    "template": "Type aliases can't be declared to be 'const'",
+    "template": "Type aliases can't be declared to be 'const'.",
     "templateHoleOrder": null,
     "howToFix": "Try removing the 'const' keyword.",
     "options": null,
@@ -205,7 +205,7 @@
     "categories": [
       "ParserError"
     ],
-    "template": "Members can't be declared to be both 'const' and 'final'",
+    "template": "Members can't be declared to be both 'const' and 'final'.",
     "templateHoleOrder": null,
     "howToFix": "Try removing either the 'const' or 'final' keyword.",
     "options": null,
@@ -225,7 +225,7 @@
     "categories": [
       "ParserError"
     ],
-    "template": "Members can't be declared to be both 'const' and 'var'",
+    "template": "Members can't be declared to be both 'const' and 'var'.",
     "templateHoleOrder": null,
     "howToFix": "Try removing either the 'const' or 'var' keyword.",
     "options": null,
@@ -262,7 +262,7 @@
     "categories": [
       "ParserError"
     ],
-    "template": "Constructors can't have a return type",
+    "template": "Constructors can't have a return type.",
     "templateHoleOrder": null,
     "howToFix": "Try removing the return type.",
     "options": null,
@@ -299,7 +299,7 @@
     "categories": [
       "CompileTimeError"
     ],
-    "template": "Rethrow must be inside of catch clause",
+    "template": "Rethrow must be inside of catch clause.",
     "templateHoleOrder": null,
     "howToFix": "Try moving the expression into a catch clause, or using a 'throw' expression.",
     "options": null,
@@ -337,7 +337,7 @@
     ],
     "template": "Can't return a value from a generator function (using the '#{modifier}' modifier).",
     "templateHoleOrder": null,
-    "howToFix": "Try removing the value, replacing 'return' with 'yield' or changing the method body modifier",
+    "howToFix": "Try removing the value, replacing 'return' with 'yield' or changing the method body modifier.",
     "options": null,
     "usedBy": [
       "Platform.analyzer",
@@ -413,6 +413,294 @@
     ],
     "examples": [
       "foo(int x) => x; main() { foo('bar'); }"
+    ]
+  },
+  "CANNOT_RESOLVE": {
+    "id": "ERUSKD",
+    "subId": 0,
+    "categories": [
+      "StaticTypeWarning"
+    ],
+    "template": "Can't resolve '#{name}'.",
+    "templateHoleOrder": null,
+    "howToFix": null,
+    "options": null,
+    "usedBy": [
+      "Platform.dart2js"
+    ],
+    "examples": null
+  },
+  "UNDEFINED_METHOD": {
+    "id": "ERUSKD",
+    "subId": 1,
+    "categories": [
+      "StaticTypeWarning",
+      "Hint"
+    ],
+    "template": "The method '#{memberName}' is not defined for the class '#{className}'.",
+    "templateHoleOrder": null,
+    "howToFix": null,
+    "options": null,
+    "usedBy": [
+      "Platform.dart2js",
+      "Platform.analyzer"
+    ],
+    "examples": [
+      "        class A {\n          foo() { bar(); }\n        }\n        main() { new A().foo(); }\n        "
+    ]
+  },
+  "UNDEFINED_METHOD_WITH_CONSTRUCTOR": {
+    "id": "ERUSKD",
+    "subId": 2,
+    "categories": [
+      "StaticTypeWarning"
+    ],
+    "template": "The method '#{memberName}' is not defined for the class '#{className}', but a constructor with that name is defined.",
+    "templateHoleOrder": null,
+    "howToFix": "Try adding 'new' or 'const' to invoke the constuctor, or change the method name.",
+    "options": null,
+    "usedBy": [
+      "Platform.analyzer"
+    ],
+    "examples": [
+      "        class A {\n          A.bar() {}\n        }\n        main() { A.bar(); }\n        "
+    ]
+  },
+  "UNDEFINED_GETTER": {
+    "id": "ERUSKD",
+    "subId": 3,
+    "categories": [
+      "StaticTypeWarning",
+      "StaticWarning",
+      "Hint"
+    ],
+    "template": "The getter '#{memberName}' is not defined for the class '#{className}'.",
+    "templateHoleOrder": null,
+    "howToFix": null,
+    "options": null,
+    "usedBy": [
+      "Platform.dart2js",
+      "Platform.analyzer"
+    ],
+    "examples": [
+      "class A {} main() { new A().x; }",
+      "class A {} main() { A.x; }"
+    ]
+  },
+  "UNDEFINED_ENUM_CONSTANT": {
+    "id": "ERUSKD",
+    "subId": 4,
+    "categories": [
+      "StaticTypeWarning"
+    ],
+    "template": "There is no constant named '#{memberName}' in '#{className}'.",
+    "templateHoleOrder": null,
+    "howToFix": null,
+    "options": null,
+    "usedBy": [
+      "Platform.analyzer"
+    ],
+    "examples": [
+      "        enum E { ONE }\n        E e() { return E.TWO; }\n        main() { e(); }\n       "
+    ]
+  },
+  "UNDEFINED_INSTANCE_GETTER_BUT_SETTER": {
+    "id": "ERUSKD",
+    "subId": 5,
+    "categories": [
+      "StaticTypeWarning"
+    ],
+    "template": "The setter '#{memberName}' in class '#{className}' can not be used as a getter.",
+    "templateHoleOrder": null,
+    "howToFix": null,
+    "options": null,
+    "usedBy": [
+      "Platform.dart2js"
+    ],
+    "examples": [
+      "class A { set x(y) {} } main() { new A().x; }"
+    ]
+  },
+  "UNDEFINED_OPERATOR": {
+    "id": "ERUSKD",
+    "subId": 6,
+    "categories": [
+      "StaticTypeWarning",
+      "Hint"
+    ],
+    "template": "The operator '#{memberName}' is not defined for the class '#{className}'.",
+    "templateHoleOrder": null,
+    "howToFix": null,
+    "options": null,
+    "usedBy": [
+      "Platform.dart2js",
+      "Platform.analyzer"
+    ],
+    "examples": [
+      "class A {} main() { new A() + 3; }"
+    ]
+  },
+  "UNDEFINED_SETTER": {
+    "id": "ERUSKD",
+    "subId": 7,
+    "categories": [
+      "StaticTypeWarning",
+      "StaticWarning",
+      "Hint"
+    ],
+    "template": "The setter '#{memberName}' is not defined for the class '#{className}'.",
+    "templateHoleOrder": null,
+    "howToFix": null,
+    "options": null,
+    "usedBy": [
+      "Platform.dart2js",
+      "Platform.analyzer"
+    ],
+    "examples": [
+      "class A {} main() { new A().x = 499; }"
+    ]
+  },
+  "NO_SUCH_SUPER_MEMBER": {
+    "id": "ERUSKD",
+    "subId": 8,
+    "categories": [
+      "StaticTypeWarning"
+    ],
+    "template": "Can't resolve '#{memberName}' in a superclass of '#{className}'.",
+    "templateHoleOrder": null,
+    "howToFix": null,
+    "options": null,
+    "usedBy": [
+      "Platform.dart2js"
+    ],
+    "examples": null
+  },
+  "UNDEFINED_SUPER_GETTER": {
+    "id": "ERUSKD",
+    "subId": 9,
+    "categories": [
+      "StaticTypeWarning",
+      "StaticWarning"
+    ],
+    "template": "The getter '#{memberName}' is not defined in a superclass of '#{className}'.",
+    "templateHoleOrder": null,
+    "howToFix": null,
+    "options": null,
+    "usedBy": [
+      "Platform.analyzer"
+    ],
+    "examples": [
+      "        class A {}\n        class B extends A {\n          foo() => super.x;\n        }\n        main() { new B().foo(); }\n        "
+    ]
+  },
+  "UNDEFINED_SUPER_METHOD": {
+    "id": "ERUSKD",
+    "subId": 10,
+    "categories": [
+      "StaticTypeWarning"
+    ],
+    "template": "The method '#{memberName}' is not defined in a superclass of '#{className}'.",
+    "templateHoleOrder": null,
+    "howToFix": null,
+    "options": null,
+    "usedBy": [
+      "Platform.analyzer"
+    ],
+    "examples": [
+      "        class A {}\n        class B extends A {\n          foo() => super.x();\n        }\n        main() { new B().foo(); }\n        "
+    ]
+  },
+  "UNDEFINED_SUPER_OPERATOR": {
+    "id": "ERUSKD",
+    "subId": 11,
+    "categories": [
+      "StaticTypeWarning"
+    ],
+    "template": "The operator '#{memberName}' is not defined in a superclass of '#{className}'.",
+    "templateHoleOrder": null,
+    "howToFix": null,
+    "options": null,
+    "usedBy": [
+      "Platform.analyzer"
+    ],
+    "examples": [
+      "        class A {}\n        class B extends A {\n          foo() => super + 499;\n        }\n        main() { new B().foo(); }\n        "
+    ]
+  },
+  "UNDEFINED_SUPER_SETTER": {
+    "id": "ERUSKD",
+    "subId": 12,
+    "categories": [
+      "StaticTypeWarning",
+      "StaticWarning"
+    ],
+    "template": "The setter '#{memberName}' is not defined in a superclass of '#{className}'.",
+    "templateHoleOrder": null,
+    "howToFix": null,
+    "options": null,
+    "usedBy": [
+      "Platform.analyzer",
+      "Platform.dart2js"
+    ],
+    "examples": [
+      "        class A {}\n        class B extends A {\n          foo() { super.x = 499; }\n        }\n        main() { new B().foo(); }\n        ",
+      "        main() => new B().m();\n        class A {\n          get x => 1;\n        }\n        class B extends A {\n          m() { super.x = 2; }\n        }\n        "
+    ]
+  },
+  "UNDEFINED_FUNCTION": {
+    "id": "ERUSKD",
+    "subId": 13,
+    "categories": [
+      "StaticTypeWarning"
+    ],
+    "template": "The function '#{memberName}' is not defined.",
+    "templateHoleOrder": null,
+    "howToFix": null,
+    "options": null,
+    "usedBy": [
+      "Platform.analyzer"
+    ],
+    "examples": [
+      "main() { foo(); }"
+    ]
+  },
+  "UNDEFINED_STATIC_GETTER_BUT_SETTER": {
+    "id": "ERUSKD",
+    "subId": 14,
+    "categories": [
+      "StaticTypeWarning"
+    ],
+    "template": "Cannot resolve getter '#{name}'.",
+    "templateHoleOrder": null,
+    "howToFix": null,
+    "options": null,
+    "usedBy": [
+      "Platform.dart2js"
+    ],
+    "examples": [
+      "set foo(x) {}  main() { foo; }"
+    ]
+  },
+  "UNDEFINED_STATIC_SETTER_BUT_GETTER": {
+    "id": "ERUSKD",
+    "subId": 15,
+    "categories": [
+      "StaticTypeWarning"
+    ],
+    "template": "Cannot resolve setter '#{name}'.",
+    "templateHoleOrder": null,
+    "howToFix": null,
+    "options": null,
+    "usedBy": [
+      "Platform.dart2js"
+    ],
+    "examples": [
+      "        main() {\n          final x = 1;\n          x = 2;\n        }",
+      "        main() {\n          const x = 1;\n          x = 2;\n        }\n        ",
+      "        final x = 1;\n        main() { x = 3; }\n        ",
+      "        const x = 1;\n        main() { x = 3; }\n        ",
+      "get foo => null  main() { foo = 5; }",
+      "const foo = 0  main() { foo = 5; }"
     ]
   }
 }

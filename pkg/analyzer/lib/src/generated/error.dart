@@ -3629,8 +3629,8 @@ class HintCode extends ErrorCode {
    * 0: the name of the getter
    * 1: the name of the enclosing type where the getter is being looked for
    */
-  static const HintCode UNDEFINED_GETTER = const HintCode('UNDEFINED_GETTER',
-      "The getter '{0}' is not defined for the class '{1}'");
+  static const HintCode UNDEFINED_GETTER =
+      shared_messages.UNDEFINED_GETTER_HINT;
 
   /**
    * This hint is generated anywhere where the
@@ -3641,8 +3641,8 @@ class HintCode extends ErrorCode {
    * 0: the name of the method that is undefined
    * 1: the resolved type name that the method lookup is happening on
    */
-  static const HintCode UNDEFINED_METHOD = const HintCode('UNDEFINED_METHOD',
-      "The method '{0}' is not defined for the class '{1}'");
+  static const HintCode UNDEFINED_METHOD =
+      shared_messages.UNDEFINED_METHOD_HINT;
 
   /**
    * This hint is generated anywhere where the
@@ -3653,9 +3653,8 @@ class HintCode extends ErrorCode {
    * 0: the name of the operator
    * 1: the name of the enclosing type where the operator is being looked for
    */
-  static const HintCode UNDEFINED_OPERATOR = const HintCode(
-      'UNDEFINED_OPERATOR',
-      "The operator '{0}' is not defined for the class '{1}'");
+  static const HintCode UNDEFINED_OPERATOR =
+      shared_messages.UNDEFINED_OPERATOR_HINT;
 
   /**
    * This hint is generated anywhere where the
@@ -3667,8 +3666,8 @@ class HintCode extends ErrorCode {
    * 0: the name of the setter
    * 1: the name of the enclosing type where the setter is being looked for
    */
-  static const HintCode UNDEFINED_SETTER = const HintCode('UNDEFINED_SETTER',
-      "The setter '{0}' is not defined for the class '{1}'");
+  static const HintCode UNDEFINED_SETTER =
+      shared_messages.UNDEFINED_SETTER_HINT;
 
   /**
    * Unnecessary cast.
@@ -4181,8 +4180,7 @@ class StaticTypeWarningCode extends ErrorCode {
    * 1: the name of the enumeration used to access the constant
    */
   static const StaticTypeWarningCode UNDEFINED_ENUM_CONSTANT =
-      const StaticTypeWarningCode('UNDEFINED_ENUM_CONSTANT',
-          "There is no constant named '{0}' in '{1}'");
+      shared_messages.UNDEFINED_ENUM_CONSTANT;
 
   /**
    * 12.15.3 Unqualified Invocation: If there exists a lexically visible
@@ -4197,8 +4195,7 @@ class StaticTypeWarningCode extends ErrorCode {
    * 0: the name of the method that is undefined
    */
   static const StaticTypeWarningCode UNDEFINED_FUNCTION =
-      const StaticTypeWarningCode(
-          'UNDEFINED_FUNCTION', "The function '{0}' is not defined");
+      shared_messages.UNDEFINED_FUNCTION;
 
   /**
    * 12.17 Getter Invocation: Let <i>T</i> be the static type of <i>e</i>. It is
@@ -4209,8 +4206,7 @@ class StaticTypeWarningCode extends ErrorCode {
    * 1: the name of the enclosing type where the getter is being looked for
    */
   static const StaticTypeWarningCode UNDEFINED_GETTER =
-      const StaticTypeWarningCode('UNDEFINED_GETTER',
-          "The getter '{0}' is not defined for the class '{1}'");
+      shared_messages.UNDEFINED_GETTER_STATIC_TYPE_WARNING;
 
   /**
    * 12.15.1 Ordinary Invocation: Let <i>T</i> be the static type of <i>o</i>.
@@ -4222,8 +4218,7 @@ class StaticTypeWarningCode extends ErrorCode {
    * 1: the resolved type name that the method lookup is happening on
    */
   static const StaticTypeWarningCode UNDEFINED_METHOD =
-      const StaticTypeWarningCode('UNDEFINED_METHOD',
-          "The method '{0}' is not defined for the class '{1}'");
+      shared_messages.UNDEFINED_METHOD_STATIC_TYPE_WARNING;
 
   /**
    * 12.15.1 Ordinary Invocation: Let <i>T</i> be the static type of <i>o</i>.
@@ -4235,10 +4230,7 @@ class StaticTypeWarningCode extends ErrorCode {
    * 1: the resolved type name that the method lookup is happening on
    */
   static const StaticTypeWarningCode UNDEFINED_METHOD_WITH_CONSTRUCTOR =
-      const StaticTypeWarningCode(
-          'UNDEFINED_METHOD_WITH_CONSTRUCTOR',
-          "The method '{0}' is not defined for the class '{1}', but a constructor with that name is defined",
-          "Add 'new' or 'const' to invoke the constuctor, or change the method name.");
+      shared_messages.UNDEFINED_METHOD_WITH_CONSTRUCTOR;
 
   /**
    * 12.18 Assignment: Evaluation of an assignment of the form
@@ -4261,8 +4253,7 @@ class StaticTypeWarningCode extends ErrorCode {
    * 1: the name of the enclosing type where the operator is being looked for
    */
   static const StaticTypeWarningCode UNDEFINED_OPERATOR =
-      const StaticTypeWarningCode('UNDEFINED_OPERATOR',
-          "The operator '{0}' is not defined for the class '{1}'");
+      shared_messages.UNDEFINED_OPERATOR_STATIC_TYPE_WARNING;
 
   /**
    * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>.
@@ -4276,8 +4267,7 @@ class StaticTypeWarningCode extends ErrorCode {
    * See [INACCESSIBLE_SETTER].
    */
   static const StaticTypeWarningCode UNDEFINED_SETTER =
-      const StaticTypeWarningCode('UNDEFINED_SETTER',
-          "The setter '{0}' is not defined for the class '{1}'");
+      shared_messages.UNDEFINED_SETTER_STATIC_TYPE_WARNING;
 
   /**
    * 12.17 Getter Invocation: Let <i>T</i> be the static type of <i>e</i>. It is
@@ -4288,8 +4278,7 @@ class StaticTypeWarningCode extends ErrorCode {
    * 1: the name of the enclosing type where the getter is being looked for
    */
   static const StaticTypeWarningCode UNDEFINED_SUPER_GETTER =
-      const StaticTypeWarningCode('UNDEFINED_SUPER_GETTER',
-          "The getter '{0}' is not defined in a superclass of '{1}'");
+      shared_messages.UNDEFINED_SUPER_GETTER_STATIC_TYPE_WARNING;
 
   /**
    * 12.15.4 Super Invocation: A super method invocation <i>i</i> has the form
@@ -4303,8 +4292,7 @@ class StaticTypeWarningCode extends ErrorCode {
    * 1: the resolved type name that the method lookup is happening on
    */
   static const StaticTypeWarningCode UNDEFINED_SUPER_METHOD =
-      const StaticTypeWarningCode('UNDEFINED_SUPER_METHOD',
-          "The method '{0}' is not defined in a superclass of '{1}'");
+      shared_messages.UNDEFINED_SUPER_METHOD;
 
   /**
    * 12.18 Assignment: Evaluation of an assignment of the form
@@ -4327,8 +4315,7 @@ class StaticTypeWarningCode extends ErrorCode {
    * 1: the name of the enclosing type where the operator is being looked for
    */
   static const StaticTypeWarningCode UNDEFINED_SUPER_OPERATOR =
-      const StaticTypeWarningCode('UNDEFINED_SUPER_OPERATOR',
-          "The operator '{0}' is not defined in a superclass of '{1}'");
+      shared_messages.UNDEFINED_SUPER_OPERATOR;
 
   /**
    * 12.18 Assignment: Let <i>T</i> be the static type of <i>e<sub>1</sub></i>.
@@ -4342,8 +4329,7 @@ class StaticTypeWarningCode extends ErrorCode {
    * See [INACCESSIBLE_SETTER].
    */
   static const StaticTypeWarningCode UNDEFINED_SUPER_SETTER =
-      const StaticTypeWarningCode('UNDEFINED_SUPER_SETTER',
-          "The setter '{0}' is not defined in a superclass of '{1}'");
+      shared_messages.UNDEFINED_SUPER_SETTER_STATIC_TYPE_WARNING;
 
   /**
    * 12.15.1 Ordinary Invocation: It is a static type warning if <i>T</i> does
@@ -5544,9 +5530,8 @@ class StaticWarningCode extends ErrorCode {
    * 0: the name of the getter
    * 1: the name of the enclosing type where the getter is being looked for
    */
-  static const StaticWarningCode UNDEFINED_GETTER = const StaticWarningCode(
-      'UNDEFINED_GETTER',
-      "The getter '{0}' is not defined for the class '{1}'");
+  static const StaticWarningCode UNDEFINED_GETTER =
+      shared_messages.UNDEFINED_GETTER_STATIC_WARNING;
 
   /**
    * 12.30 Identifier Reference: It is as static warning if an identifier
@@ -5589,9 +5574,8 @@ class StaticWarningCode extends ErrorCode {
    * 0: the name of the getter
    * 1: the name of the enclosing type where the setter is being looked for
    */
-  static const StaticWarningCode UNDEFINED_SETTER = const StaticWarningCode(
-      'UNDEFINED_SETTER',
-      "The setter '{0}' is not defined for the class '{1}'");
+  static const StaticWarningCode UNDEFINED_SETTER =
+      shared_messages.UNDEFINED_SETTER_STATIC_WARNING;
 
   /**
    * 12.16.3 Static Invocation: It is a static warning if <i>C</i> does not
@@ -5615,8 +5599,7 @@ class StaticWarningCode extends ErrorCode {
    * 1: the name of the enclosing type where the getter is being looked for
    */
   static const StaticWarningCode UNDEFINED_SUPER_GETTER =
-      const StaticWarningCode('UNDEFINED_SUPER_GETTER',
-          "The getter '{0}' is not defined in a superclass of '{1}'");
+      shared_messages.UNDEFINED_SUPER_GETTER_STATIC_WARNING;
 
   /**
    * 12.18 Assignment: It is as static warning if an assignment of the form
@@ -5634,8 +5617,7 @@ class StaticWarningCode extends ErrorCode {
    * 1: the name of the enclosing type where the setter is being looked for
    */
   static const StaticWarningCode UNDEFINED_SUPER_SETTER =
-      const StaticWarningCode('UNDEFINED_SUPER_SETTER',
-          "The setter '{0}' is not defined in a superclass of '{1}'");
+      shared_messages.UNDEFINED_SUPER_SETTER_STATIC_WARNING;
 
   /**
    * 7.2 Getters: It is a static warning if the return type of a getter is void.

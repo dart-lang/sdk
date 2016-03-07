@@ -829,12 +829,12 @@ class TypeCheckerVisitor extends Visitor<DartType> {
       if (!foundPrivateMember) {
         switch (memberKind) {
           case MemberKind.METHOD:
-            reportMessage(node, MessageKind.METHOD_NOT_FOUND,
+            reportMessage(node, MessageKind.UNDEFINED_METHOD,
                 {'className': receiverType.name, 'memberName': name},
                 isHint: isHint);
             break;
           case MemberKind.OPERATOR:
-            reportMessage(node, MessageKind.OPERATOR_NOT_FOUND,
+            reportMessage(node, MessageKind.UNDEFINED_OPERATOR,
                 {'className': receiverType.name, 'memberName': name},
                 isHint: isHint);
             break;
@@ -842,7 +842,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
             if (lookupMemberSignature(memberName.setter, interface) != null) {
               // A setter is present so warn explicitly about the missing
               // getter.
-              reportMessage(node, MessageKind.GETTER_NOT_FOUND,
+              reportMessage(node, MessageKind.UNDEFINED_INSTANCE_GETTER_BUT_SETTER,
                   {'className': receiverType.name, 'memberName': name},
                   isHint: isHint);
             } else if (name == 'await') {
@@ -857,13 +857,13 @@ class TypeCheckerVisitor extends Visitor<DartType> {
               }
               reportMessage(node, kind, arguments, isHint: isHint);
             } else {
-              reportMessage(node, MessageKind.MEMBER_NOT_FOUND,
+              reportMessage(node, MessageKind.UNDEFINED_GETTER,
                   {'className': receiverType.name, 'memberName': name},
                   isHint: isHint);
             }
             break;
           case MemberKind.SETTER:
-            reportMessage(node, MessageKind.SETTER_NOT_FOUND,
+            reportMessage(node, MessageKind.UNDEFINED_SETTER,
                 {'className': receiverType.name, 'memberName': name},
                 isHint: isHint);
             break;
