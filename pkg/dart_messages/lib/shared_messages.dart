@@ -832,6 +832,8 @@ final Map<String, Message> MESSAGES = {
         }
         main() { new B().foo(); }
         """,
+        // TODO(floitsch): reenable this test.
+        /*
         """
         main() => new B().m();
         class A {
@@ -841,6 +843,7 @@ final Map<String, Message> MESSAGES = {
           m() { super.x = 2; }
         }
         """
+        */
       ]),
 
   /**

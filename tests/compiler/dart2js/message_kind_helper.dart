@@ -57,7 +57,6 @@ final Set<MessageKind> kindsWithPendingClasses = new Set<MessageKind>.from([
 ]);
 
 Future<Compiler> check(MessageTemplate template, Compiler cachedCompiler) {
-  Expect.isNotNull(template.howToFix);
   Expect.isFalse(template.examples.isEmpty);
 
   return Future.forEach(template.examples, (example) {

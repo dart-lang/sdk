@@ -643,8 +643,7 @@
       "Platform.dart2js"
     ],
     "examples": [
-      "        class A {}\n        class B extends A {\n          foo() { super.x = 499; }\n        }\n        main() { new B().foo(); }\n        ",
-      "        main() => new B().m();\n        class A {\n          get x => 1;\n        }\n        class B extends A {\n          m() { super.x = 2; }\n        }\n        "
+      "        class A {}\n        class B extends A {\n          foo() { super.x = 499; }\n        }\n        main() { new B().foo(); }\n        "
     ]
   },
   "UNDEFINED_FUNCTION": {

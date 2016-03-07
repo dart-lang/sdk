@@ -193,15 +193,6 @@ const Map<MessageKind, MessageTemplate> TEMPLATES = const <MessageKind, MessageT
         }
         main() { new B().foo(); }
         """,
-      r"""
-        main() => new B().m();
-        class A {
-          get x => 1;
-        }
-        class B extends A {
-          m() { super.x = 2; }
-        }
-        """,
     ]
   ),  // Generated. Don't edit.
   MessageKind.UNDEFINED_STATIC_GETTER_BUT_SETTER: const MessageTemplate(

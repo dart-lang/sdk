@@ -842,7 +842,8 @@ class TypeCheckerVisitor extends Visitor<DartType> {
             if (lookupMemberSignature(memberName.setter, interface) != null) {
               // A setter is present so warn explicitly about the missing
               // getter.
-              reportMessage(node, MessageKind.UNDEFINED_INSTANCE_GETTER_BUT_SETTER,
+              reportMessage(node,
+                  MessageKind.UNDEFINED_INSTANCE_GETTER_BUT_SETTER,
                   {'className': receiverType.name, 'memberName': name},
                   isHint: isHint);
             } else if (name == 'await') {

@@ -1025,7 +1025,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       if (selector.isSetter) {
         error = reportAndCreateErroneousElement(
           node, name.text, MessageKind.UNDEFINED_SUPER_SETTER,
-          {'className': currentClass.name, 'name': name});
+          {'className': currentClass.name, 'memberName': name});
       } else {
         error = reportAndCreateErroneousElement(
           node, name.text, MessageKind.NO_SUCH_SUPER_MEMBER,
