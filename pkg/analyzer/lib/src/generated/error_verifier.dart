@@ -896,6 +896,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _checkForAllInvalidOverrideErrorCodesForMethod(node);
       _checkForTypeAnnotationDeferredClass(returnTypeName);
       _checkForIllegalReturnType(returnTypeName);
+      _checkForMustCallSuper(node);
       return super.visitMethodDeclaration(node);
     } finally {
       _enclosingFunction = previousFunction;
@@ -4416,6 +4417,18 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return numSuperInitializers > 0;
   }
 
+  void _checkForMustCallSuper(MethodDeclaration node) {
+    MethodElement element = _findOverriddenMemberThatMustCallSuper(node);
+    if (element != null) {
+      _InvocationCollector collector = new _InvocationCollector();
+      node.accept(collector);
+      if (!collector.superCalls.contains(element.name)) {
+        _errorReporter.reportErrorForNode(HintCode.MUST_CALL_SUPER, node.name,
+            [element.enclosingElement.name]);
+      }
+    }
+  }
+
   /**
    * Checks to ensure that the given native function [body] is in SDK code.
    *
@@ -5787,6 +5800,20 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return staticReturnType;
   }
 
+  MethodElement _findOverriddenMemberThatMustCallSuper(MethodDeclaration node) {
+    ExecutableElement overriddenMember = _getOverriddenMember(node.element);
+    while (overriddenMember is MethodElement) {
+      for (ElementAnnotation annotation in overriddenMember.metadata) {
+        if (annotation.isMustCallSuper) {
+          return overriddenMember;
+        }
+      }
+      // Keep looking up the chain.
+      overriddenMember = _getOverriddenMember(overriddenMember);
+    }
+    return null;
+  }
+
   /**
    * Return the error code that should be used when the given class [element]
    * references itself directly.
@@ -5835,6 +5862,19 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     } else {
       return null;
     }
+  }
+
+  ExecutableElement _getOverriddenMember(Element member) {
+    if (member == null || _inheritanceManager == null) {
+      return null;
+    }
+
+    ClassElement classElement =
+        member.getAncestor((element) => element is ClassElement);
+    if (classElement == null) {
+      return null;
+    }
+    return _inheritanceManager.lookupInheritance(classElement, member.name);
   }
 
   /**
@@ -6217,6 +6257,20 @@ class GeneralizingElementVisitor_ErrorVerifier_hasTypedefSelfReference
       for (DartType typeArgument in interfaceType.typeArguments) {
         _addTypeToCheck(typeArgument);
       }
+    }
+  }
+}
+
+/**
+ * Recursively visits an AST, looking for method invocations.
+ */
+class _InvocationCollector extends RecursiveAstVisitor {
+  final List<String> superCalls = <String>[];
+
+  @override
+  visitMethodInvocation(MethodInvocation node) {
+    if (node.target is SuperExpression) {
+      superCalls.add(node.methodName.name);
     }
   }
 }

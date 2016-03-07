@@ -3567,6 +3567,18 @@ class HintCode extends ErrorCode {
       "Either add a return statement or change the return type to 'void'");
 
   /**
+   * Generate a hint for methods that override methods annotated `@mustCallSuper`
+   * that do not invoke the overridden super method.
+   *
+   * Parameters:
+   * 0: the name of the class declaring the overriden method
+   */
+  static const HintCode MUST_CALL_SUPER = const HintCode(
+      'MUST_CALL_SUPER',
+      "This method overrides a method annotated as @mustCall super in '{0}', "
+          "but does invoke the overriden method");
+
+  /**
    * A condition in a control flow statement could evaluate to `null` because it
    * uses the null-aware '?.' operator.
    */

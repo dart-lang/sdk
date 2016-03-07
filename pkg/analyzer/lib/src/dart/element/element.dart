@@ -1601,6 +1601,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
   static String _META_LIB_NAME = "meta";
 
   /**
+   * The name of the top-level variable used to mark a method as requiring
+   * overriders to call super.
+   */
+  static String _MUST_CALL_SUPER_VARIABLE_NAME = "mustCallSuper";
+
+  /**
    * The name of the top-level variable used to mark a method as being expected
    * to override an inherited method.
    */
@@ -1665,6 +1671,12 @@ class ElementAnnotationImpl implements ElementAnnotation {
     }
     return false;
   }
+
+  @override
+  bool get isMustCallSuper =>
+      element is PropertyAccessorElement &&
+      element.name == _MUST_CALL_SUPER_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
 
   @override
   bool get isOverride =>

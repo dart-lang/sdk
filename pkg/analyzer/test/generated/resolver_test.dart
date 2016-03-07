@@ -2487,10 +2487,31 @@ class B {}''');
       'package:meta/meta.dart': r'''
 library meta;
 
+const _Factory factory = const _Factory();
+const _Literal literal = const _Literal();
+const _MustCallSuper mustCallSuper = const _MustCallSuper();
+const _Override override = const _Override();
 const _Protected protected = const _Protected();
+const _Required required = const _Required();
 
+class _Factory {
+  const _Factory();
+}
+class _Literal {
+  const _Literal();
+}
+class _MustCallSuper {
+  const _MustCallSuper();
+}
+class _Override {
+  const _Override();
+}
 class _Protected {
   const _Protected();
+}
+class _Required {
+  final String reason;
+  const _Required([this.reason]));
 }
 '''
     });
@@ -2988,10 +3009,10 @@ f(A a) {
     verify([source]);
   }
 
-  void test_deprecatedAnnotationUse_deprecated() {
+  void test_deprecatedAnnotationUse_Deprecated() {
     Source source = addSource(r'''
 class A {
-  @deprecated
+  @Deprecated('0.9')
   m() {}
   n() {m();}
 }''');
@@ -3000,10 +3021,10 @@ class A {
     verify([source]);
   }
 
-  void test_deprecatedAnnotationUse_Deprecated() {
+  void test_deprecatedAnnotationUse_deprecated() {
     Source source = addSource(r'''
 class A {
-  @Deprecated('0.9')
+  @deprecated
   m() {}
   n() {m();}
 }''');
@@ -3614,6 +3635,67 @@ class A {
     verify([source]);
   }
 
+  void test_mustCallSuper() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @mustCallSuper
+  void a() {}
+}
+class B extends A {
+  @override
+  void a()
+  {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.MUST_CALL_SUPER]);
+    verify([source]);
+  }
+
+  void test_mustCallSuper_indirect() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @mustCallSuper
+  void a() {}
+}
+class C extends A {
+  @override
+  void a() {
+    super.a();
+  }
+}
+class D extends C {
+  @override
+  void a() {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.MUST_CALL_SUPER]);
+    verify([source]);
+  }
+
+  void test_mustCallSuper_OK() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @mustCallSuper
+  void a() {}
+}
+class C extends A {
+  @override
+  void a() {
+    super.a(); //OK
+  }
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
+  @override
   void test_nullAwareInCondition_assert() {
     Source source = addSource(r'''
 m(x) {
