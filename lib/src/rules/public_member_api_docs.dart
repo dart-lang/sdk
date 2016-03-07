@@ -8,7 +8,7 @@ import 'package:analyzer/src/generated/ast.dart';
 import 'package:linter/src/ast.dart';
 import 'package:linter/src/linter.dart';
 
-const desc = r'Document all public memmbers';
+const desc = r'Document all public members';
 
 const details = r'''
 **DO** document all public members.
