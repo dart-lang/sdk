@@ -8761,9 +8761,7 @@ class ResolverVisitor extends ScopedVisitor {
         InterfaceType wrapperType = _enclosingFunction.isSynchronous
             ? typeProvider.iterableType
             : typeProvider.streamType;
-        List<DartType> candidates =
-            _findImplementedTypeArgument(type, wrapperType);
-        type = InterfaceTypeImpl.findMostSpecificType(candidates, typeSystem);
+        type = typeSystem.mostSpecificTypeArgument(type, wrapperType);
       }
       if (type != null) {
         inferenceContext.addReturnOrYieldType(type);
@@ -8832,39 +8830,6 @@ class ResolverVisitor extends ScopedVisitor {
     }
     // Must be asynchronous to reach here, so strip off any layers of Future
     return declaredType.flattenFutures(typeSystem);
-  }
-
-  /**
-   * Starting from t1, search its class hierarchy for types of the form
-   * `t2<R>`, and return a list of the resulting R's.
-   *
-   * For example, given t1 = `List<int>` and t2 = `Iterable<T>`, this will
-   * return [int].
-   */
-  // TODO(jmesserly): this is very similar to code used for flattening futures.
-  // The only difference is, because of a lack of TypeProvider, the other method
-  // has to match the Future type by its name and library. Here was are passed
-  // in the correct type.
-  List<DartType> _findImplementedTypeArgument(DartType t1, InterfaceType t2) {
-    List<DartType> result = <DartType>[];
-    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
-    void recurse(InterfaceTypeImpl type) {
-      if (type.element == t2.element && type.typeArguments.isNotEmpty) {
-        result.add(type.typeArguments[0]);
-      }
-      if (visitedClasses.add(type.element)) {
-        if (type.superclass != null) {
-          recurse(type.superclass);
-        }
-        type.mixins.forEach(recurse);
-        type.interfaces.forEach(recurse);
-        visitedClasses.remove(type.element);
-      }
-    }
-    if (t1 is InterfaceType) {
-      recurse(t1);
-    }
-    return result;
   }
 
   /**

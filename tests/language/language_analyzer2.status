@@ -517,3 +517,6 @@ accessor_conflict_import2_test: StaticWarning # Issue 25624
 accessor_conflict_import_prefixed2_test: StaticWarning # Issue 25624
 accessor_conflict_import_prefixed_test: StaticWarning # Issue 25624
 accessor_conflict_import_test: StaticWarning # Issue 25624
+
+for_in3_test: StaticWarning, OK # Test should have warning by design.
+for_in_side_effects_test: StaticWarning, OK # Test uses custom class that does not implement Iterable in for-in.

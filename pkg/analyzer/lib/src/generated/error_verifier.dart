@@ -689,6 +689,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitForEachStatement(ForEachStatement node) {
+    _checkForInIterable(node);
+    return super.visitForEachStatement(node);
+  }
+
+  @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
     try {
@@ -5663,16 +5669,65 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
+   * Check for a type mis-match between the iterable expression and the
+   * assigned variable in a for-in statement.
+   */
+  void _checkForInIterable(ForEachStatement node) {
+    // Ignore malformed for statements.
+    if (node.identifier == null && node.loopVariable == null) {
+      return;
+    }
+
+    DartType iterableType = getStaticType(node.iterable);
+    if (iterableType.isDynamic) {
+      return;
+    }
+
+    // The type of the loop variable.
+    SimpleIdentifier variable = node.identifier != null
+        ? node.identifier
+        : node.loopVariable.identifier;
+    DartType variableType = getStaticType(variable);
+
+    DartType loopType = node.awaitKeyword != null
+        ? _typeProvider.streamType
+        : _typeProvider.iterableType;
+
+    // Use an explicit string instead of [loopType] to remove the "<E>".
+    String loopTypeName = node.awaitKeyword != null
+        ? "Stream"
+        : "Iterable";
+
+    // The object being iterated has to implement Iterable<T> for some T that
+    // is assignable to the variable's type.
+    // TODO(rnystrom): Move this into mostSpecificTypeArgument()?
+    iterableType = iterableType.resolveToBound(_typeProvider.objectType);
+    DartType bestIterableType = _typeSystem.mostSpecificTypeArgument(
+        iterableType, loopType);
+    if (bestIterableType == null) {
+      _errorReporter.reportTypeErrorForNode(
+          StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE,
+          node,
+          [iterableType, loopTypeName]);
+    } else if (!_typeSystem.isAssignableTo(bestIterableType, variableType)) {
+      _errorReporter.reportTypeErrorForNode(
+          StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
+          node,
+          [iterableType, loopTypeName, variableType]);
+    }
+  }
+
+  /**
    * Check for a type mis-match between the yielded type and the declared
    * return type of a generator function.
    *
    * This method should only be called in generator functions.
    */
-  bool _checkForYieldOfInvalidType(
+  void _checkForYieldOfInvalidType(
       Expression yieldExpression, bool isYieldEach) {
     assert(_inGenerator);
     if (_enclosingFunction == null) {
-      return false;
+      return;
     }
     DartType declaredReturnType = _enclosingFunction.returnType;
     DartType staticYieldedType = getStaticType(yieldExpression);
@@ -5691,7 +5746,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
           yieldExpression,
           [impliedReturnType, declaredReturnType]);
-      return true;
+      return;
     }
     if (isYieldEach) {
       // Since the declared return type might have been "dynamic", we need to
@@ -5708,10 +5763,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
             StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
             yieldExpression,
             [impliedReturnType, requiredReturnType]);
-        return true;
+        return;
       }
     }
-    return false;
   }
 
   /**

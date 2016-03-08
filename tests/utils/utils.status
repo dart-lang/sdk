@@ -21,6 +21,12 @@ dummy_compiler_test: Slow, Pass
 [ $noopt || $compiler == precompiler || $mode == product ]
 source_mirrors_test: SkipByDesign # Imports dart:mirrors
 
+[ $compiler == dart2analyzer ]
+dart2js_test: StaticWarning # https://github.com/dart-lang/sdk/issues/25943
+recursive_import_test: StaticWarning # https://github.com/dart-lang/sdk/issues/25943
+dummy_compiler_test: StaticWarning # https://github.com/dart-lang/sdk/issues/25943
+source_mirrors_test: StaticWarning # https://github.com/dart-lang/sdk/issues/25943
+
 [ $compiler == dart2js && $cps_ir && $host_checked ]
 dummy_compiler_test: Crash # Issue 24485
 recursive_import_test: Crash # Issue 24485

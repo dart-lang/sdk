@@ -2743,6 +2743,8 @@ abstract class ErrorCode {
     StaticTypeWarningCode.UNQUALIFIED_REFERENCE_TO_NON_LOCAL_STATIC_MEMBER,
     StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,
     StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
+    StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE,
+    StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
     StaticWarningCode.AMBIGUOUS_IMPORT,
     StaticWarningCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
     StaticWarningCode.ASSIGNMENT_TO_CONST,
@@ -4394,6 +4396,32 @@ class StaticTypeWarningCode extends ErrorCode {
   static const StaticTypeWarningCode YIELD_OF_INVALID_TYPE =
       const StaticTypeWarningCode('YIELD_OF_INVALID_TYPE',
           "The type '{0}' implied by the 'yield' expression must be assignable to '{1}'");
+
+  /**
+   * 17.6.2 For-in. If the iterable expression does not implement Iterable,
+   * this warning is reported.
+   *
+   * Parameters:
+   * 0: The type of the iterable expression.
+   * 1: The sequence type -- Iterable for `for` or Stream for `await for`.
+   */
+  static const StaticTypeWarningCode FOR_IN_OF_INVALID_TYPE =
+  const StaticTypeWarningCode('FOR_IN_OF_INVALID_TYPE',
+      "The type '{0}' used in the 'for' loop must implement {1}");
+
+  /**
+   * 17.6.2 For-in. It the iterable expression does not implement Iterable with
+   * a type argument that can be assigned to the for-in variable's type, this
+   * warning is reported.
+   *
+   * Parameters:
+   * 0: The type of the iterable expression.
+   * 1: The sequence type -- Iterable for `for` or Stream for `await for`.
+   * 2: The loop variable type.
+   */
+  static const StaticTypeWarningCode FOR_IN_OF_INVALID_ELEMENT_TYPE =
+      const StaticTypeWarningCode('FOR_IN_OF_INVALID_ELEMENT_TYPE',
+          "The type '{0}' used in the 'for' loop must implement {1} with a type argument that can be assigned to '{2}'");
 
   /**
    * Initialize a newly created error code to have the given [name]. The message

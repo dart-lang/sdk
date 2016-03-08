@@ -8371,6 +8371,19 @@ class ResolverTestCase extends EngineTestCase {
   }
 
   /**
+   * Asserts that [code] has errors with the given error codes.
+   *
+   * Like [assertErrors], but takes a string of source code.
+   */
+  // TODO(rnystrom): Use this in more tests that have the same structure.
+  void assertErrorsInCode(String code, List<ErrorCode> errors) {
+    Source source = addSource(code);
+    computeLibrarySourceErrors(source);
+    assertErrors(source, errors);
+    verify([source]);
+  }
+
+  /**
    * Assert that no errors have been reported against the given source.
    *
    * @param source the source against which no errors should have been reported
@@ -8379,6 +8392,17 @@ class ResolverTestCase extends EngineTestCase {
    */
   void assertNoErrors(Source source) {
     assertErrors(source);
+  }
+
+  /**
+   * Asserts that [code] has no errors or warnings.
+   */
+  // TODO(rnystrom): Use this in more tests that have the same structure.
+  void assertNoErrorsInCode(String code) {
+    Source source = addSource(code);
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
   }
 
   /**
