@@ -207,9 +207,8 @@ $compilerMessages''';
 
       test('devc dart:core', () {
         var testSdkContext = createAnalysisContextWithSources(
-            new SourceResolverOptions(
-                dartSdkPath:
-                    path.join(testDirectory, '..', 'tool', 'generated_sdk')));
+            new SourceResolverOptions(dartSdkPath: path.join(
+                testDirectory, '..', 'tool', 'generated_sdk')));
 
         // Get the test SDK. We use a checked in copy so test expectations can
         // be generated against a specific SDK version.
@@ -261,7 +260,8 @@ $compilerMessages''';
 
 /// An implementation of analysis engine's [Logger] that prints.
 class PrintLogger implements Logger {
-  @override void logError(String message, [CaughtException exception]) {
+  @override
+  void logError(String message, [CaughtException exception]) {
     print('[AnalysisEngine] error $message $exception');
   }
 

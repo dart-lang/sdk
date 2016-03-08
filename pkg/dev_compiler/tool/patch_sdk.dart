@@ -188,7 +188,8 @@ class PatchApplier extends GeneralizingAstVisitor {
 
   PatchApplier(this.edits, this.patch);
 
-  @override visitCompilationUnit(CompilationUnit node) {
+  @override
+  visitCompilationUnit(CompilationUnit node) {
     super.visitCompilationUnit(node);
     if (_isLibrary) _mergeUnpatched(node);
   }
@@ -224,16 +225,19 @@ class PatchApplier extends GeneralizingAstVisitor {
     }
   }
 
-  @override visitPartOfDirective(PartOfDirective node) {
+  @override
+  visitPartOfDirective(PartOfDirective node) {
     _isLibrary = false;
   }
 
-  @override visitFunctionDeclaration(FunctionDeclaration node) {
+  @override
+  visitFunctionDeclaration(FunctionDeclaration node) {
     _maybePatch(node);
   }
 
   /// Merge patches and extensions into the class
-  @override visitClassDeclaration(ClassDeclaration node) {
+  @override
+  visitClassDeclaration(ClassDeclaration node) {
     node.members.forEach(_maybePatch);
 
     var mergeMembers = patch.mergeMembers[_qualifiedName(node)];
@@ -285,11 +289,13 @@ class PatchFinder extends GeneralizingAstVisitor {
     visitCompilationUnit(unit);
   }
 
-  @override visitCompilationUnitMember(CompilationUnitMember node) {
+  @override
+  visitCompilationUnitMember(CompilationUnitMember node) {
     mergeDeclarations.add(node);
   }
 
-  @override visitClassDeclaration(ClassDeclaration node) {
+  @override
+  visitClassDeclaration(ClassDeclaration node) {
     if (_isPatch(node)) {
       var members = <ClassMember>[];
       for (var member in node.members) {
@@ -307,7 +313,8 @@ class PatchFinder extends GeneralizingAstVisitor {
     }
   }
 
-  @override visitFunctionDeclaration(FunctionDeclaration node) {
+  @override
+  visitFunctionDeclaration(FunctionDeclaration node) {
     if (_isPatch(node)) {
       patches[_qualifiedName(node)] = node;
     } else {
@@ -315,7 +322,8 @@ class PatchFinder extends GeneralizingAstVisitor {
     }
   }
 
-  @override visitFunctionBody(node) {} // skip method bodies
+  @override
+  visitFunctionBody(node) {} // skip method bodies
 }
 
 String _qualifiedName(Declaration node) {

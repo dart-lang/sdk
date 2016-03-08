@@ -274,7 +274,8 @@ class MetaLet extends Expression {
 
 class _VariableUseCounter extends BaseVisitor {
   final counts = <String, int>{};
-  @override visitInterpolatedExpression(InterpolatedExpression node) {
+  @override
+  visitInterpolatedExpression(InterpolatedExpression node) {
     int n = counts[node.nameOrPosition];
     counts[node.nameOrPosition] = n == null ? 1 : n + 1;
   }
@@ -285,11 +286,13 @@ class _IdentFinder extends BaseVisitor {
   bool found = false;
   _IdentFinder(this.name);
 
-  @override visitIdentifier(Identifier node) {
+  @override
+  visitIdentifier(Identifier node) {
     if (node.name == name) found = true;
   }
 
-  @override visitNode(Node node) {
+  @override
+  visitNode(Node node) {
     if (!found) super.visitNode(node);
   }
 }
@@ -298,22 +301,26 @@ class _YieldFinder extends BaseVisitor {
   bool hasYield = false;
   bool hasThis = false;
   bool _nestedFunction = false;
-  @override visitThis(This node) {
+  @override
+  visitThis(This node) {
     hasThis = true;
   }
 
-  @override visitFunctionExpression(FunctionExpression node) {
+  @override
+  visitFunctionExpression(FunctionExpression node) {
     var savedNested = _nestedFunction;
     _nestedFunction = true;
     super.visitFunctionExpression(node);
     _nestedFunction = savedNested;
   }
 
-  @override visitYield(Yield node) {
+  @override
+  visitYield(Yield node) {
     if (!_nestedFunction) hasYield = true;
   }
 
-  @override visitNode(Node node) {
+  @override
+  visitNode(Node node) {
     if (!hasYield) super.visitNode(node);
   }
 }

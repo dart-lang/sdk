@@ -6,7 +6,6 @@
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:convert' show JSON;
 import 'dart:math' as math;
 import 'dart:io';
 
@@ -70,13 +69,9 @@ bool compile(CompilerOptions options) {
 
   if (reporter is HtmlReporter) {
     reporter.finish(options);
-  } else if (options.dumpInfo && reporter is SummaryReporter) {
+  } else if (reporter is SummaryReporter) {
     var result = reporter.result;
     print(summaryToString(result));
-    if (options.dumpInfoFile != null) {
-      var file = new File(options.dumpInfoFile);
-      file.writeAsStringSync(JSON.encode(result.toJsonMap()));
-    }
   }
 
   return status;
@@ -481,7 +476,7 @@ AnalysisErrorListener createErrorReporter(
     AnalysisContext context, CompilerOptions options) {
   return options.htmlReport
       ? new HtmlReporter(context)
-      : options.dumpInfo
+      : options.serverMode
           ? new SummaryReporter(context, options.logLevel)
           : new LogReporter(context, useColors: options.useColors);
 }

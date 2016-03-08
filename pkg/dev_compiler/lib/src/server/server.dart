@@ -86,7 +86,6 @@ class ServerCompiler extends AbstractCompiler {
     // dependency_graph.dart). Such failures should be reported back
     // here so we can mark failure=true in the CheckerResults.
     rebuild(_entryNode, _buildSource);
-    _dumpInfoIfRequested();
     clock.stop();
     var time = (clock.elapsedMilliseconds / 1000).toStringAsFixed(2);
     _log.fine('Compiled ${_libraries.length} libraries in ${time} s\n');
@@ -196,17 +195,17 @@ class ServerCompiler extends AbstractCompiler {
   }
 
   _dumpInfoIfRequested() {
+    var reporter = this.reporter;
     if (reporter is HtmlReporter) {
-      (reporter as HtmlReporter).finish(options);
-    } else {
-      if (!options.dumpInfo || reporter is! SummaryReporter) return;
-      var result = (reporter as SummaryReporter).result;
-      if (!options.serverMode) print(summaryToString(result));
-      var filepath = options.serverMode
-          ? path.join(outputDir, 'messages.json')
-          : options.dumpInfoFile;
-      if (filepath == null) return;
-      new File(filepath).writeAsStringSync(JSON.encode(result.toJsonMap()));
+      reporter.finish(options);
+    } else if (reporter is SummaryReporter) {
+      var result = reporter.result;
+      if (outputDir != null) {
+        var filepath = path.join(outputDir, 'messages.json');
+        new File(filepath).writeAsStringSync(JSON.encode(result.toJsonMap()));
+      } else {
+        print(summaryToString(result));
+      }
     }
   }
 }

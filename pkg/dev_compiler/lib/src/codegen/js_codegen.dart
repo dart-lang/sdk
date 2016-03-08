@@ -3499,7 +3499,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
   // TODO(jmesserly): this will need to be a generic method, if we ever want to
   // self-host strong mode.
-  List /*<T>*/ _visitList /*<T>*/ (Iterable<AstNode> nodes) {
+  List/*<T>*/ _visitList/*<T>*/(Iterable<AstNode> nodes) {
     if (nodes == null) return null;
     var result = /*<T>*/ [];
     for (var node in nodes) result.add(_visit(node));

@@ -51,7 +51,8 @@ bool isStateless(FunctionBody function, Expression node, [AstNode context]) {
 
 /// Returns true if the local variable is potentially mutated within [context].
 /// This accounts for closures that may have been created outside of [context].
-bool _isPotentiallyMutated(FunctionBody function, VariableElement e, [AstNode context]) {
+bool _isPotentiallyMutated(FunctionBody function, VariableElement e,
+    [AstNode context]) {
   if (function.isPotentiallyMutatedInClosure(e)) return true;
   if (function.isPotentiallyMutatedInScope(e)) {
     // Need to visit the context looking for assignment to this local.

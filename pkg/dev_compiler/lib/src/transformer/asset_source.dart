@@ -13,7 +13,8 @@ class AssetSource implements Source {
   final String contentString;
   AssetSource(this.uri, this.asset, this.contentString);
 
-  @override toString() => 'AssetSource($uri, ${asset.id})';
+  @override
+  toString() => 'AssetSource($uri, ${asset.id})';
 
   @override
   TimestampedData<String> get contents =>

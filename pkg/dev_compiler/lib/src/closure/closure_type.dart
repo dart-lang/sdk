@@ -22,7 +22,8 @@ class ClosureType {
   bool get isAll => _representation == "*";
   bool get isUnknown => _representation == "?";
 
-  @override toString() => _representation;
+  @override
+  toString() => _representation;
 
   factory ClosureType.all() => _ALL;
   factory ClosureType.unknown() => _UNKNOWN;

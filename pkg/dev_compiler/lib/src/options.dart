@@ -123,14 +123,7 @@ class CompilerOptions {
   /// Whether to check the sdk libraries.
   final bool checkSdk;
 
-  /// Whether to dump summary information on the console.
-  final bool dumpInfo;
-
   final bool htmlReport;
-
-  /// If not null, path to a file that will store a json representation of the
-  /// summary information (only used if [dumpInfo] is true).
-  final String dumpInfoFile;
 
   /// Whether to use colors when interacting on the console.
   final bool useColors;
@@ -176,9 +169,7 @@ class CompilerOptions {
       this.codegenOptions: const CodegenOptions(),
       this.runnerOptions: const RunnerOptions(),
       this.checkSdk: false,
-      this.dumpInfo: false,
       this.htmlReport: false,
-      this.dumpInfoFile,
       this.useColors: true,
       this.help: false,
       this.version: false,
@@ -224,9 +215,6 @@ CompilerOptions parseOptions(List<String> argv, {bool forceOutDir: false}) {
   if (outputDir == null && (serverMode || forceOutDir)) {
     outputDir = Directory.systemTemp.createTempSync("dev_compiler_out_").path;
   }
-  var dumpInfo = args['dump-info'];
-  if (dumpInfo == null) dumpInfo = serverMode;
-
   var htmlReport = args['html-report'];
 
   var v8Binary = args['v8-binary'];
@@ -264,9 +252,7 @@ CompilerOptions parseOptions(List<String> argv, {bool forceOutDir: false}) {
               args['resources'].split(',').where((s) => s.isNotEmpty).toList()),
       runnerOptions: new RunnerOptions(v8Binary: v8Binary),
       checkSdk: args['sdk-check'],
-      dumpInfo: dumpInfo,
       htmlReport: htmlReport,
-      dumpInfoFile: args['dump-info-file'],
       useColors: useColors,
       help: showUsage,
       version: showVersion,
