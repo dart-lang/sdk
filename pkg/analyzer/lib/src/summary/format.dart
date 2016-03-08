@@ -1677,7 +1677,9 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
   List<String> get strings => _strings ??= <String>[];
 
   /**
-   * List of unique element strings used in this [PackageIndex].
+   * List of unique element strings used in this [PackageIndex].  The list is
+   * sorted in ascending order, so that the client can quickly check the
+   * presence of a string in this [PackageIndex].
    */
   void set strings(List<String> _value) {
     assert(!_finished);

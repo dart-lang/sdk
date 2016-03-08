@@ -891,7 +891,9 @@ table PackageIndex {
   elementUnits:[uint] (id: 0);
 
   /**
-   * List of unique element strings used in this [PackageIndex].
+   * List of unique element strings used in this [PackageIndex].  The list is
+   * sorted in ascending order, so that the client can quickly check the
+   * presence of a string in this [PackageIndex].
    */
   strings:[string] (id: 6);
 

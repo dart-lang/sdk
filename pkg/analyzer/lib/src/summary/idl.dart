@@ -566,7 +566,9 @@ abstract class PackageIndex extends base.SummaryClass {
   List<int> get elementUnits;
 
   /**
-   * List of unique element strings used in this [PackageIndex].
+   * List of unique element strings used in this [PackageIndex].  The list is
+   * sorted in ascending order, so that the client can quickly check the
+   * presence of a string in this [PackageIndex].
    */
   @Id(6)
   List<String> get strings;
