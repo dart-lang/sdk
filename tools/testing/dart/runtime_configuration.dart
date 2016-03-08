@@ -270,11 +270,10 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
     augmentedArgs.add("--run-precompiled-snapshot=${artifact.filename}");
     augmentedArgs.addAll(arguments);
 
-    var augmentedEnv = new Map.from(environmentOverrides);
-    augmentedEnv['LD_LIBRARY_PATH'] = artifact.filename;
-
     return <Command>[commandBuilder.getVmCommand(
-          suite.dartPrecompiledBinaryFileName, augmentedArgs, augmentedEnv)];
+        suite.dartPrecompiledBinaryFileName,
+        augmentedArgs,
+        environmentOverrides)];
   }
 }
 

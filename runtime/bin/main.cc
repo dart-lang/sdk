@@ -1142,16 +1142,31 @@ static void ReadSnapshotFile(const char* snapshot_directory,
 }
 
 
-static void* LoadLibrarySymbol(const char* libname, const char* symname) {
-  void* library = Extensions::LoadExtensionLibrary(libname);
+static void* LoadLibrarySymbol(const char* snapshot_directory,
+                               const char* libname,
+                               const char* symname) {
+  char* concat = NULL;
+  const char* qualified_libname;
+  if ((snapshot_directory != NULL) && strlen(snapshot_directory) > 0) {
+    intptr_t len = snprintf(NULL, 0, "%s/%s", snapshot_directory, libname);
+    concat = new char[len + 1];
+    snprintf(concat, len + 1, "%s/%s", snapshot_directory, libname);
+    qualified_libname = concat;
+  } else {
+    qualified_libname = libname;
+  }
+  void* library = Extensions::LoadExtensionLibrary(qualified_libname);
   if (library == NULL) {
-    Log::PrintErr("Error: Failed to load library '%s'\n", libname);
+    Log::PrintErr("Error: Failed to load library '%s'\n", qualified_libname);
     Platform::Exit(kErrorExitCode);
   }
   void* symbol = Extensions::ResolveSymbol(library, symname);
   if (symbol == NULL) {
     Log::PrintErr("Error: Failed to load symbol '%s'\n", symname);
     Platform::Exit(kErrorExitCode);
+  }
+  if (concat != NULL) {
+    delete concat;
   }
   return symbol;
 }
@@ -1587,10 +1602,12 @@ void main(int argc, char** argv) {
   const uint8_t* data_snapshot = NULL;
   if (run_precompiled_snapshot) {
     instructions_snapshot = reinterpret_cast<const uint8_t*>(
-        LoadLibrarySymbol(kPrecompiledLibraryName,
+        LoadLibrarySymbol(precompiled_snapshot_directory,
+                          kPrecompiledLibraryName,
                           kPrecompiledInstructionsSymbolName));
     data_snapshot = reinterpret_cast<const uint8_t*>(
-        LoadLibrarySymbol(kPrecompiledLibraryName,
+        LoadLibrarySymbol(precompiled_snapshot_directory,
+                          kPrecompiledLibraryName,
                           kPrecompiledDataSymbolName));
     ReadSnapshotFile(precompiled_snapshot_directory,
                      kPrecompiledVmIsolateName,
