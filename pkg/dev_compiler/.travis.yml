@@ -30,3 +30,4 @@ env:
 matrix:
   allow_failures:
     - env: ANALYZER=master
+    - env: TEST=transformer
