@@ -158,6 +158,7 @@ final htmlBlinkMap = {
   'CDATASection': () => CDataSection,
   'CHROMIUMValuebuffer': () => ChromiumValuebuffer,
   'CSS': () => Css,
+  'CSSCharsetRule': () => CssCharsetRule,
   'CSSFontFaceRule': () => CssFontFaceRule,
   'CSSGroupingRule': () => CssGroupingRule,
   'CSSImportRule': () => CssImportRule,
@@ -699,6 +700,7 @@ final htmlBlinkFunctionMap = {
   'CDATASection': () => CDataSection.internalCreateCDataSection,
   'CHROMIUMValuebuffer': () => ChromiumValuebuffer.internalCreateChromiumValuebuffer,
   'CSS': () => Css.internalCreateCss,
+  'CSSCharsetRule': () => CssCharsetRule.internalCreateCssCharsetRule,
   'CSSFontFaceRule': () => CssFontFaceRule.internalCreateCssFontFaceRule,
   'CSSGroupingRule': () => CssGroupingRule.internalCreateCssGroupingRule,
   'CSSImportRule': () => CssImportRule.internalCreateCssImportRule,
@@ -6097,6 +6099,42 @@ class Css extends DartHtmlDomObject {
   @DomName('CSS.supportsCondition')
   @DocsEditable()
   static bool supportsCondition(String conditionText) => _blink.BlinkCSS.instance.supports_Callback_1_(conditionText);
+  
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
+@DomName('CSSCharsetRule')
+// http://dev.w3.org/csswg/cssom/#the-csscharsetrule-interface
+@Experimental()
+class CssCharsetRule extends CssRule {
+  // To suppress missing implicit constructor warnings.
+  factory CssCharsetRule._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static CssCharsetRule internalCreateCssCharsetRule() {
+    return new CssCharsetRule._internalWrap();
+  }
+
+  external factory CssCharsetRule._internalWrap();
+
+  @Deprecated("Internal Use Only")
+  CssCharsetRule.internal_() : super.internal_();
+
+
+  @DomName('CSSCharsetRule.encoding')
+  @DocsEditable()
+  String get encoding => _blink.BlinkCSSCharsetRule.instance.encoding_Getter_(unwrap_jso(this));
+  
+  @DomName('CSSCharsetRule.encoding')
+  @DocsEditable()
+  set encoding(String value) => _blink.BlinkCSSCharsetRule.instance.encoding_Setter_(unwrap_jso(this), value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40366,10 +40404,10 @@ class Url extends DartHtmlDomObject implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(unwrap_jso(blob_OR_source_OR_stream));
     }
     throw new ArgumentError("Incorrect number or type of arguments");

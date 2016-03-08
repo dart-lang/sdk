@@ -423,3 +423,10 @@ interface MIDIOutput : MIDIPort {
 };
 
 Element implements GlobalEventHandlers;
+
+
+// This only exists in Safari, and is deprecated there. But include it anyway
+// because otherwise iterating CSSRules in Safari can yield unknown JS objects.
+interface CSSCharsetRule : CSSRule {
+    [MeasureAs=CSSCharsetRuleEncoding] attribute DOMString encoding;
+};

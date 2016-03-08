@@ -3736,7 +3736,6 @@ LayoutTests/fast/dynamic/crash-generated-text_t01: RuntimeError # Please triage 
 LayoutTests/fast/dynamic/insertAdjacentElement_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dynamic/insertAdjacentHTML_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/dynamic/recursive-layout_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/encoding/css-charset-dom_t01: RuntimeError # Issue 25941
 LayoutTests/fast/events/add-event-without-document_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/events/clipboard-clearData_t01: Skip # Times out. Please triage this failure
 LayoutTests/fast/events/clipboard-dataTransferItemList_t01: Skip # Times out. Please triage this failure

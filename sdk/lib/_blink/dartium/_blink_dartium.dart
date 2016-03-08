@@ -60,6 +60,7 @@ dynamic resolver(String s) {
   if (s == "CHROMIUMSubscribeUniform") return BlinkCHROMIUMSubscribeUniform.instance;
   if (s == "CHROMIUMValuebuffer") return BlinkCHROMIUMValuebuffer.instance;
   if (s == "CSS") return BlinkCSS.instance;
+  if (s == "CSSCharsetRule") return BlinkCSSCharsetRule.instance;
   if (s == "CSSFontFaceRule") return BlinkCSSFontFaceRule.instance;
   if (s == "CSSGroupingRule") return BlinkCSSGroupingRule.instance;
   if (s == "CSSImportRule") return BlinkCSSImportRule.instance;
@@ -1713,6 +1714,15 @@ class BlinkCSS {
   supports_Callback_1_(__arg_0) => Blink_JsNative_DomException.callMethod(Blink_JsNative_DomException.getProperty(js.context, "CSS"), "supports", [__arg_0]);
 
   supports_Callback_2_(__arg_0, __arg_1) => Blink_JsNative_DomException.callMethod(Blink_JsNative_DomException.getProperty(js.context, "CSS"), "supports", [__arg_0, __arg_1]);
+
+}
+
+class BlinkCSSCharsetRule extends BlinkCSSRule {
+  static final instance = new BlinkCSSCharsetRule();
+
+  encoding_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis, "encoding");
+
+  encoding_Setter_(mthis, __arg_0) => mthis["encoding"] = __arg_0;
 
 }
 

@@ -3773,6 +3773,24 @@ class Css extends Interceptor {
 
 
 @DocsEditable()
+@DomName('CSSCharsetRule')
+// http://dev.w3.org/csswg/cssom/#the-csscharsetrule-interface
+@Experimental()
+@Native("CSSCharsetRule")
+class CssCharsetRule extends CssRule {
+  // To suppress missing implicit constructor warnings.
+  factory CssCharsetRule._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('CSSCharsetRule.encoding')
+  @DocsEditable()
+  String encoding;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+
+@DocsEditable()
 @DomName('CSSFontFaceRule')
 @Native("CSSFontFaceRule")
 class CssFontFaceRule extends CssRule {
