@@ -19,6 +19,7 @@
             '../../sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart',
             '<(SHARED_INTERMEDIATE_DIR)/packages.stamp',
             '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../pkg/analyzer_cli"])',
+            '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../pkg/analyzer"])',
           ],
           'outputs': [
             '<(SHARED_INTERMEDIATE_DIR)/dartanalyzer.dart.snapshot',
