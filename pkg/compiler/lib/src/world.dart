@@ -99,7 +99,8 @@ abstract class ClassWorld {
 
   /// Applies [f] to each live class that extend [cls] _not_ including [cls]
   /// itself.
-  void forEachStrictSubclassOf(ClassElement cls, ForEach f(ClassElement cls));
+  void forEachStrictSubclassOf(ClassElement cls,
+                               IterationStep f(ClassElement cls));
 
   /// Returns `true` if [predicate] applies to any live class that extend [cls]
   /// _not_ including [cls] itself.
@@ -119,7 +120,8 @@ abstract class ClassWorld {
 
   /// Applies [f] to each live class that implements [cls] _not_ including [cls]
   /// itself.
-  void forEachStrictSubtypeOf(ClassElement cls, ForEach f(ClassElement cls));
+  void forEachStrictSubtypeOf(ClassElement cls,
+                              IterationStep f(ClassElement cls));
 
   /// Returns `true` if [predicate] applies to any live class that implements
   /// [cls] _not_ including [cls] itself.
@@ -282,7 +284,8 @@ class World implements ClassWorld {
 
   /// Applies [f] to each live class that extend [cls] _not_ including [cls]
   /// itself.
-  void forEachStrictSubclassOf(ClassElement cls, ForEach f(ClassElement cls)) {
+  void forEachStrictSubclassOf(ClassElement cls,
+                               IterationStep f(ClassElement cls)) {
     ClassHierarchyNode subclasses = _classHierarchyNodes[cls.declaration];
     if (subclasses == null) return;
     subclasses.forEachSubclass(
@@ -336,7 +339,8 @@ class World implements ClassWorld {
 
   /// Applies [f] to each live class that implements [cls] _not_ including [cls]
   /// itself.
-  void forEachStrictSubtypeOf(ClassElement cls, ForEach f(ClassElement cls)) {
+  void forEachStrictSubtypeOf(ClassElement cls,
+                              IterationStep f(ClassElement cls)) {
     ClassSet classSet = _classSets[cls.declaration];
     if (classSet == null) return;
     classSet.forEachSubtype(

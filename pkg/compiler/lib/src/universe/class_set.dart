@@ -221,10 +221,10 @@ class ClassHierarchyNode {
       EnumSet<Instantiation> mask,
       {bool strict: false}) {
 
-    ForEach wrapper(ClassElement cls) {
-      return predicate(cls) ? ForEach.STOP : ForEach.CONTINUE;
+    IterationStep wrapper(ClassElement cls) {
+      return predicate(cls) ? IterationStep.STOP : IterationStep.CONTINUE;
     }
-    return forEachSubclass(wrapper, mask, strict: strict) == ForEach.STOP;
+    return forEachSubclass(wrapper, mask, strict: strict) == IterationStep.STOP;
   }
 
   /// Applies [f] to each subclass of [cls] matching the criteria specified by
@@ -241,31 +241,31 @@ class ClassHierarchyNode {
   /// continues. The return value of the function is either [ForEach.STOP], if
   /// visitation was stopped, or [ForEach.CONTINUE] if visitation continued to
   /// the end.
-  ForEach forEachSubclass(
+  IterationStep forEachSubclass(
       ForEachFunction f,
       EnumSet<Instantiation> mask,
       {bool strict: false}) {
-    ForEach forEach;
+    IterationStep nextStep;
     if (!strict && mask.intersects(_mask)) {
-      forEach = f(cls);
+      nextStep = f(cls);
     }
     // Interpret `forEach == null` as `forEach == ForEach.CONTINUE`.
-    forEach ??= ForEach.CONTINUE;
+    nextStep ??= IterationStep.CONTINUE;
 
-    if (forEach == ForEach.CONTINUE) {
+    if (nextStep == IterationStep.CONTINUE) {
       if (mask.contains(Instantiation.UNINSTANTIATED) || isInstantiated) {
         for (ClassHierarchyNode subclass in _directSubclasses) {
-          ForEach subForEach = subclass.forEachSubclass(f, mask);
-          if (subForEach == ForEach.STOP) {
+          IterationStep subForEach = subclass.forEachSubclass(f, mask);
+          if (subForEach == IterationStep.STOP) {
             return subForEach;
           }
         }
       }
     }
-    if (forEach == ForEach.STOP) {
-      return forEach;
+    if (nextStep == IterationStep.STOP) {
+      return nextStep;
     }
-    return ForEach.CONTINUE;
+    return IterationStep.CONTINUE;
   }
 
   /// Returns the most specific subclass of [cls] (including [cls]) that is
@@ -425,7 +425,23 @@ class ClassSet {
   final ClassHierarchyNode node;
   ClassElement _leastUpperInstantiatedSubtype;
 
-  List<ClassHierarchyNode> _directSubtypes;
+  /// A list of the class hierarchy nodes for the subtypes that declare a
+  /// subtype relationship to [cls] either directly or indirectly.
+  ///
+  /// For instance
+  ///
+  ///     class A {}
+  ///     class B extends A {}
+  ///     class C implements B {}
+  ///     class D implements A {}
+  ///     class E extends D {}
+  ///
+  /// The class hierarchy nodes for classes `C` and `D` are in [_subtypes]. `C`
+  /// because it implements `A` through `B` and `D` because it implements `A`
+  /// directly. `E` also implements `A` through its extension of `D` and it is
+  /// therefore included through the class hierarchy node for `D`.
+  ///
+  List<ClassHierarchyNode> _subtypes;
 
   ClassSet(this.node);
 
@@ -434,8 +450,8 @@ class ClassSet {
   /// Returns the number of directly instantiated subtypes of [cls].
   int get instantiatedSubtypeCount {
     int count = node.instantiatedSubclassCount;
-    if (_directSubtypes != null) {
-      for (ClassHierarchyNode subtypeNode in _directSubtypes) {
+    if (_subtypes != null) {
+      for (ClassHierarchyNode subtypeNode in _subtypes) {
         if (subtypeNode.isDirectlyInstantiated) {
           count++;
         }
@@ -448,8 +464,8 @@ class ClassSet {
   /// Returns `true` if all instantiated subtypes of [cls] are subclasses of
   /// [cls].
   bool get hasOnlyInstantiatedSubclasses {
-    if (_directSubtypes != null) {
-      for (ClassHierarchyNode subtypeNode in _directSubtypes) {
+    if (_subtypes != null) {
+      for (ClassHierarchyNode subtypeNode in _subtypes) {
         if (subtypeNode.isInstantiated) {
           return false;
         }
@@ -495,7 +511,7 @@ class ClassSet {
   Iterable<ClassElement> subtypesByMask(
       EnumSet<Instantiation> mask,
       {bool strict: false}) {
-    if (_directSubtypes == null) {
+    if (_subtypes == null) {
       return node.subclassesByMask(
           mask,
           strict: strict);
@@ -534,7 +550,7 @@ class ClassSet {
   /// continues. The return value of the function is either [ForEach.STOP], if
   /// visitation was stopped, or [ForEach.CONTINUE] if visitation continued to
   /// the end.
-  ForEach forEachSubclass(
+  IterationStep forEachSubclass(
       ForEachFunction f,
       EnumSet<Instantiation> mask,
       {bool strict: false}) {
@@ -553,10 +569,10 @@ class ClassSet {
       EnumSet<Instantiation> mask,
       {bool strict: false}) {
 
-    ForEach wrapper(ClassElement cls) {
-      return predicate(cls) ? ForEach.STOP : ForEach.CONTINUE;
+    IterationStep wrapper(ClassElement cls) {
+      return predicate(cls) ? IterationStep.STOP : IterationStep.CONTINUE;
     }
-    return forEachSubtype(wrapper, mask, strict: strict) == ForEach.STOP;
+    return forEachSubtype(wrapper, mask, strict: strict) == IterationStep.STOP;
   }
 
   /// Applies [f] to each subtype of [cls] matching the criteria specified by
@@ -573,22 +589,22 @@ class ClassSet {
   /// continues. The return value of the function is either [ForEach.STOP], if
   /// visitation was stopped, or [ForEach.CONTINUE] if visitation continued to
   /// the end.
-  ForEach forEachSubtype(
+  IterationStep forEachSubtype(
       ForEachFunction f,
       EnumSet<Instantiation> mask,
       {bool strict: false}) {
-    ForEach forEach = node.forEachSubclass(f, mask, strict: strict);
-    forEach ??= ForEach.CONTINUE;
-    if (forEach == ForEach.CONTINUE && _directSubtypes != null) {
-      for (ClassHierarchyNode subclass in _directSubtypes) {
-        ForEach subForEach = subclass.forEachSubclass(f, mask);
-        if (subForEach == ForEach.STOP) {
+    IterationStep nextStep =
+        node.forEachSubclass(f, mask, strict: strict) ?? IterationStep.CONTINUE;
+    if (nextStep == IterationStep.CONTINUE && _subtypes != null) {
+      for (ClassHierarchyNode subclass in _subtypes) {
+        IterationStep subForEach = subclass.forEachSubclass(f, mask);
+        if (subForEach == IterationStep.STOP) {
           return subForEach;
         }
       }
     }
-    assert(forEach != ForEach.SKIP_SUBCLASSES);
-    return forEach;
+    assert(nextStep != IterationStep.SKIP_SUBCLASSES);
+    return nextStep;
   }
 
   /// Adds [subtype] as a subtype of [cls].
@@ -596,13 +612,13 @@ class ClassSet {
     if (node.contains(subtype.cls)) {
       return;
     }
-    if (_directSubtypes == null) {
-      _directSubtypes = <ClassHierarchyNode>[subtype];
+    if (_subtypes == null) {
+      _subtypes = <ClassHierarchyNode>[subtype];
     } else {
       int hierarchyDepth = subtype.cls.hierarchyDepth;
       List<ClassHierarchyNode> newSubtypes = <ClassHierarchyNode>[];
       bool added = false;
-      for (ClassHierarchyNode otherSubtype in _directSubtypes) {
+      for (ClassHierarchyNode otherSubtype in _subtypes) {
         int otherHierarchyDepth = otherSubtype.cls.hierarchyDepth;
         if (hierarchyDepth == otherHierarchyDepth) {
           if (subtype == otherSubtype) {
@@ -637,7 +653,7 @@ class ClassSet {
       if (!added) {
         newSubtypes.add(subtype);
       }
-      _directSubtypes = newSubtypes;
+      _subtypes = newSubtypes;
     }
   }
 
@@ -655,14 +671,14 @@ class ClassSet {
     if (node.isDirectlyInstantiated) {
       return cls;
     }
-    if (_directSubtypes == null) {
+    if (_subtypes == null) {
       return node.getLubOfInstantiatedSubclasses();
     }
     ClassHierarchyNode subtype;
     if (node.isInstantiated) {
       subtype = node;
     }
-    for (ClassHierarchyNode subnode in _directSubtypes) {
+    for (ClassHierarchyNode subnode in _subtypes) {
       if (subnode.isInstantiated) {
         if (subtype == null) {
           subtype = subnode;
@@ -682,8 +698,8 @@ class ClassSet {
     sb.write('[\n');
     node.printOn(sb, '  ');
     sb.write('\n');
-    if (_directSubtypes != null) {
-      for (ClassHierarchyNode node in _directSubtypes) {
+    if (_subtypes != null) {
+      for (ClassHierarchyNode node in _subtypes) {
         node.printOn(sb, '  ');
         sb.write('\n');
       }
@@ -841,7 +857,7 @@ class SubtypesIterator extends Iterator<ClassElement> {
     }
     if (hierarchyNodes == null) {
       // Start iterating through subtypes.
-      hierarchyNodes = iterable.subtypeSet._directSubtypes.iterator;
+      hierarchyNodes = iterable.subtypeSet._subtypes.iterator;
     }
     while (hierarchyNodes.moveNext()) {
       elements = hierarchyNodes.current.subclassesByMask(mask).iterator;
@@ -856,7 +872,7 @@ class SubtypesIterator extends Iterator<ClassElement> {
 /// Enum values returned from the [ForEachFunction] provided to the `forEachX`
 /// functions of [ClassHierarchyNode] and [ClassSet]. The value is used to
 /// control the continued iteration.
-enum ForEach {
+enum IterationStep {
   /// Iteration continues.
   CONTINUE,
   /// Iteration stops immediately.
@@ -868,4 +884,4 @@ enum ForEach {
 /// Visiting function used for the `forEachX` functions of [ClassHierarchyNode]
 /// and [ClassSet]. The return value controls the continued iteration. If `null`
 /// is returned, iteration continues to the end.
-typedef ForEach ForEachFunction(ClassElement cls);
+typedef IterationStep ForEachFunction(ClassElement cls);
