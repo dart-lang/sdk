@@ -142,7 +142,6 @@ out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
 
 [ $arch == mips ]
-io/signals_test: Fail # Issue 17440
 io/file_stat_test: Fail # Issue 17440
 io/process_sync_test: Skip # Starts 10 dart subprocesses, uses too much memory.
 io/signals_test: Skip # Starts 10 dart subprocesses, uses too much memory
