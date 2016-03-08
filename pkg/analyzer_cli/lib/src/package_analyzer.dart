@@ -81,11 +81,13 @@ class PackageAnalyzer {
     }
     context.applyChanges(changeSet);
 
-    // Perform full analysis.
-    while (true) {
-      AnalysisResult analysisResult = context.performAnalysisTask();
-      if (!analysisResult.hasMoreWork) {
-        break;
+    if (!options.packageSummaryOnly) {
+      // Perform full analysis.
+      while (true) {
+        AnalysisResult analysisResult = context.performAnalysisTask();
+        if (!analysisResult.hasMoreWork) {
+          break;
+        }
       }
     }
 
@@ -94,7 +96,7 @@ class PackageAnalyzer {
       PackageBundleAssembler assembler = new PackageBundleAssembler();
       for (Source source in context.librarySources) {
         if (pathos.isWithin(packageLibPath, source.fullName)) {
-          LibraryElement libraryElement = context.getLibraryElement(source);
+          LibraryElement libraryElement = context.computeLibraryElement(source);
           if (libraryElement != null) {
             assembler.serializeLibraryElement(libraryElement);
           }
@@ -106,9 +108,13 @@ class PackageAnalyzer {
       file.writeAsBytesSync(sdkBundle.toBuffer(), mode: io.FileMode.WRITE_ONLY);
     }
 
-    // Process errors.
-    _printErrors();
-    return _computeMaxSeverity();
+    if (options.packageSummaryOnly) {
+      return ErrorSeverity.NONE;
+    } else {
+      // Process errors.
+      _printErrors();
+      return _computeMaxSeverity();
+    }
   }
 
   ErrorSeverity _computeMaxSeverity() {

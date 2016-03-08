@@ -86,6 +86,9 @@ class CommandLineOptions {
   /// Mapping of package names to package summary file paths.
   final Map<String, String> packageSummaryInputs;
 
+  /// Whether to skip analysis when creating summaries.
+  final bool packageSummaryOnly;
+
   /// The path to find the package summary.
   final String packageSummaryOutput;
 
@@ -138,6 +141,7 @@ class CommandLineOptions {
         packageModePath = args['package-mode-path'],
         packageName = args['package-name'],
         packageSummaryInputs = _parsePackageSummaryInputs(args),
+        packageSummaryOnly = args['package-summary-only'],
         packageSummaryOutput = args['package-summary-output'],
         packageConfigPath = args['packages'],
         packageRootPath = args['package-root'],
@@ -312,6 +316,11 @@ class CommandLineOptions {
       ..addOption('package-summary-output',
           help: 'Specifies the path to the file where the summary information '
               'about the package should be written to.',
+          hide: true)
+      ..addFlag('package-summary-only',
+          help: 'Disable analysis (only generate summaries).',
+          defaultsTo: false,
+          negatable: false,
           hide: true)
       //
       // Hidden flags.
