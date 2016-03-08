@@ -210,7 +210,7 @@ const Map<String, LibraryInfo> LIBRARIES = const {
       platforms: DART2JS_PLATFORM),
 
   "_runtime": const LibraryInfo(
-      "_internal/compiler/js_lib/runtime.dart",
+      "_internal/compiler/js_lib/ddc_runtime/runtime.dart",
       category: "Internal",
       documented: false,
       platforms: DART2JS_PLATFORM),
