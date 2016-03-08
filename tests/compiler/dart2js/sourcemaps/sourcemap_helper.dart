@@ -510,10 +510,10 @@ class CodePointComputer extends TraceListener {
   /// Called when [node] defines a step of the given [kind] at the given
   /// [offset] when the generated JavaScript code.
   void onStep(js.Node node, Offset offset, StepKind kind) {
-    register('$kind', node);
+    register(kind, node);
   }
 
-  void register(String kind, js.Node node, {bool expectInfo: true}) {
+  void register(StepKind kind, js.Node node, {bool expectInfo: true}) {
 
     String dartCodeFromSourceLocation(SourceLocation sourceLocation) {
       SourceFile sourceFile =
@@ -560,7 +560,7 @@ class CodePointComputer extends TraceListener {
 
 /// A JavaScript code point and its mapped dart source location.
 class CodePoint {
-  final String kind;
+  final StepKind kind;
   final String jsCode;
   final SourceLocation sourceLocation;
   final String dartCode;
