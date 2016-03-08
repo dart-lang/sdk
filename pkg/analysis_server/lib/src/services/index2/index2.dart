@@ -222,14 +222,14 @@ class _PackageIndexRequester {
   _PackageIndexRequester(this.index);
 
   /**
-   * Return the [element]'s identifier in the [index] or `null` if the
+   * Return the [element]'s identifier in the [index] or `-1` if the
    * [element] is not referenced in the [index].
    */
   int findElementId(Element element) {
     // Find the id of the element's unit.
     int unitId = getUnitId(element);
-    if (unitId == null) {
-      return null;
+    if (unitId == -1) {
+      return -1;
     }
     // Prepare the offset of the element.
     int offset = element.nameOffset;
@@ -239,7 +239,7 @@ class _PackageIndexRequester {
     // Find the first occurrence of an element with the same offset.
     int elementId = _findFirstOccurrence(index.elementOffsets, offset);
     if (elementId == -1) {
-      return null;
+      return -1;
     }
     // Try to find the element id using offset, unit and kind.
     IndexSyntheticElementKind kind =
@@ -253,7 +253,7 @@ class _PackageIndexRequester {
         return elementId;
       }
     }
-    return null;
+    return -1;
   }
 
   /**
@@ -276,7 +276,7 @@ class _PackageIndexRequester {
    */
   List<Location> getRelations(Element element, IndexRelationKind kind) {
     int elementId = findElementId(element);
-    if (elementId == null) {
+    if (elementId == -1) {
       return const <Location>[];
     }
     List<Location> locations = <Location>[];
@@ -293,7 +293,7 @@ class _PackageIndexRequester {
    * in the [index].
    */
   int getStringId(String str) {
-    return index.strings.indexOf(str);
+    return binarySearch(index.strings, str);
   }
 
   /**
@@ -304,7 +304,13 @@ class _PackageIndexRequester {
     CompilationUnitElement unitElement =
         PackageIndexAssembler.getUnitElement(element);
     int libraryUriId = getUriId(unitElement.library.source.uri);
+    if (libraryUriId == -1) {
+      return -1;
+    }
     int unitUriId = getUriId(unitElement.source.uri);
+    if (unitUriId == -1) {
+      return -1;
+    }
     for (int i = 0; i < index.unitLibraryUris.length; i++) {
       if (index.unitLibraryUris[i] == libraryUriId &&
           index.unitUnitUris[i] == unitUriId) {
@@ -424,17 +430,26 @@ class _UnitIndexRequester {
    * [name] is referenced with a qualifier, but is not resolved.
    */
   List<Location> getUnresolvedMemberReferences(String name) {
+    // Find the name ID in the package index.
+    int nameId = packageRequester.getStringId(name);
+    if (nameId == -1) {
+      return const <Location>[];
+    }
+    // Find the first usage of the name.
+    int i =_findFirstOccurrence(unitIndex.usedNames, nameId);
+    if (i == -1) {
+      return const <Location>[];
+    }
+    // Create locations for every usage of the name.
     List<Location> locations = <Location>[];
     String unitLibraryUri = null;
     String unitUnitUri = null;
-    for (int i = 0; i < unitIndex.usedNames.length; i++) {
-      int nameIndex = unitIndex.usedNames[i];
-      if (packageRequester.index.strings[nameIndex] == name) {
-        unitLibraryUri ??= packageRequester.getUnitLibraryUri(unitIndex.unit);
-        unitUnitUri ??= packageRequester.getUnitUnitUri(unitIndex.unit);
-        locations.add(new Location(unitLibraryUri, unitUnitUri,
-            unitIndex.usedNameOffsets[i], name.length, true));
-      }
+    for (; i < unitIndex.usedNames.length &&
+        unitIndex.usedNames[i] == nameId; i++) {
+      unitLibraryUri ??= packageRequester.getUnitLibraryUri(unitIndex.unit);
+      unitUnitUri ??= packageRequester.getUnitUnitUri(unitIndex.unit);
+      locations.add(new Location(unitLibraryUri, unitUnitUri,
+          unitIndex.usedNameOffsets[i], name.length, true));
     }
     return locations;
   }

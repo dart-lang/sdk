@@ -168,6 +168,7 @@ main(A a, p) {
   p.test = 1; // p-ref-ur-q
   p.test += 2; // p-ref-ur-q
   print(p.test); // p-ref-ur-q
+  print(p.test2); // not requested
 }
 ''');
     List<Location> locations =
