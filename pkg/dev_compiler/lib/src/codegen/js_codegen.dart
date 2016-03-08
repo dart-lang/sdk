@@ -377,11 +377,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       }
     }
 
-    var classExpr = new JS.ClassExpression(
-        new JS.Identifier(element.name), _classHeritage(element), body);
-
-    return _finishClassDef(
-        element.type, _emitClassHeritageWorkaround(classExpr));
+    var cls = _emitClassDeclaration(element, body);
+    return _finishClassDef(element.type, cls);
   }
 
   JS.Statement _emitJsType(String dartClassName, DartObject jsName) {
@@ -421,11 +418,11 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       }
     }
 
-    var classExpr = new JS.ClassExpression(new JS.Identifier(type.name),
-        _classHeritage(classElem), _emitClassMethods(node, ctors, fields),
-        typeParams: _emitTypeFormals(classElem.typeParameters),
-        fields:
-            _emitFieldDeclarations(classElem, fields, staticFields).toList());
+    var allFields = new List.from(fields)..addAll(staticFields);
+
+    var classDecl = _emitClassDeclaration(
+        classElem, _emitClassMethods(node, ctors, fields),
+        fields: allFields);
 
     String jsPeerName;
     var jsPeer = findAnnotation(classElem, isJsPeerInterface);
@@ -442,7 +439,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       }
     }
 
-    var body = _finishClassMembers(classElem, classExpr, ctors, fields,
+    var body = _finishClassMembers(classElem, classDecl, ctors, fields,
         staticFields, methods, node.metadata, jsPeerName);
 
     var result = _finishClassDef(type, body);
@@ -467,36 +464,24 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   }
 
   List<JS.Identifier> _emitTypeFormals(List<TypeParameterElement> typeFormals) {
-    if (!options.closure) return null;
     return typeFormals
         .map((t) => new JS.Identifier(t.name))
         .toList(growable: false);
   }
 
-  /// Emit field declarations for TypeScript & Closure's ES6_TYPED
+  /// Emits a field declaration for TypeScript & Closure's ES6_TYPED
   /// (e.g. `class Foo { i: string; }`)
-  Iterable<JS.VariableDeclarationList> _emitFieldDeclarations(
-      ClassElement classElem,
-      List<FieldDeclaration> fields,
-      List<FieldDeclaration> staticFields) sync* {
-    if (!options.closure) return;
-
-    makeInitialization(VariableDeclaration decl) =>
-        new JS.VariableInitialization(
-            new JS.Identifier(
-                // TODO(ochafik): use a refactored _emitMemberName instead.
-                decl.name.name,
-                type: emitTypeRef(decl.element.type)),
-            null);
-
-    for (var field in fields) {
-      yield new JS.VariableDeclarationList(
-          null, field.fields.variables.map(makeInitialization).toList());
-    }
-    for (var field in staticFields) {
-      yield new JS.VariableDeclarationList(
-          'static', field.fields.variables.map(makeInitialization).toList());
-    }
+  JS.VariableDeclarationList _emitTypeScriptField(FieldDeclaration field) {
+    return new JS.VariableDeclarationList(
+        field.isStatic ? 'static' : null,
+        field.fields.variables
+            .map((decl) => new JS.VariableInitialization(
+                new JS.Identifier(
+                    // TODO(ochafik): use a refactored _emitMemberName instead.
+                    decl.name.name,
+                    type: emitTypeRef(decl.element.type)),
+                null))
+            .toList(growable: false));
   }
 
   @override
@@ -527,7 +512,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
     // Create enum class
     var classExpr = new JS.ClassExpression(
-        id, _classHeritage(element), [constructor, toStringF]);
+        id, _emitClassHeritage(element), [constructor, toStringF]);
     var result = <JS.Statement>[js.statement('#', classExpr)];
 
     // Create static fields for each enum value
@@ -608,7 +593,33 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     return false;
   }
 
-  JS.Expression _classHeritage(ClassElement element) {
+  JS.Statement _emitClassDeclaration(
+      ClassElement element, List<JS.Method> methods,
+      {List<FieldDeclaration> fields}) {
+    String name = element.name;
+    var heritage = _emitClassHeritage(element);
+    var typeParams = _emitTypeFormals(element.typeParameters);
+    var jsFields = fields?.map(_emitTypeScriptField)?.toList();
+
+    // Workaround for Closure: super classes must be qualified paths.
+    // TODO(jmesserly): is there a bug filed? we need to get out of the business
+    // of working around bugs in other transpilers...
+    JS.Statement workaroundSuper = null;
+    if (options.closure && heritage is JS.Call) {
+      var superVar = new JS.TemporaryId('$name\$super');
+      workaroundSuper = js.statement('const # = #;', [superVar, heritage]);
+      heritage = superVar;
+    }
+    var decl = new JS.ClassDeclaration(new JS.ClassExpression(
+        new JS.Identifier(name), heritage, methods,
+        typeParams: typeParams, fields: jsFields));
+    if (workaroundSuper != null) {
+      return new JS.Block([workaroundSuper, decl]);
+    }
+    return decl;
+  }
+
+  JS.Expression _emitClassHeritage(ClassElement element) {
     var type = element.type;
     if (type.isObject) return null;
 
@@ -758,34 +769,12 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     }
   }
 
-  _isQualifiedPath(JS.Expression node) =>
-      node is JS.Identifier ||
-      node is JS.PropertyAccess &&
-          _isQualifiedPath(node.receiver) &&
-          node.selector is JS.LiteralString;
-
-  /// Workaround for Closure: super classes must be qualified paths.
-  JS.Statement _emitClassHeritageWorkaround(JS.ClassExpression cls) {
-    if (options.closure &&
-        cls.heritage != null &&
-        !_isQualifiedPath(cls.heritage)) {
-      var superVar = new JS.TemporaryId(cls.name.name + r'$super');
-      return _statement([
-        js.statement('const # = #;', [superVar, cls.heritage]),
-        new JS.ClassDeclaration(new JS.ClassExpression(
-            cls.name, superVar, cls.methods,
-            typeParams: cls.typeParams, fields: cls.fields))
-      ]);
-    }
-    return new JS.ClassDeclaration(cls);
-  }
-
   /// Emit class members that need to come after the class declaration, such
   /// as static fields. See [_emitClassMethods] for things that are emitted
   /// inside the ES6 `class { ... }` node.
   JS.Statement _finishClassMembers(
       ClassElement classElem,
-      JS.ClassExpression cls,
+      JS.Statement classDecl,
       List<ConstructorDeclaration> ctors,
       List<FieldDeclaration> fields,
       List<FieldDeclaration> staticFields,
@@ -818,7 +807,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
       }
     }
 
-    body.add(_emitClassHeritageWorkaround(cls));
+    body.add(classDecl);
 
     // TODO(jmesserly): we should really just extend native Array.
     if (jsPeerName != null && classElem.typeParameters.isNotEmpty) {
@@ -3820,6 +3809,7 @@ class JSGenerator extends CodeGenerator {
         ? Uri.parse('http://${flags.host}:${flags.port}/')
         : null;
     return writeJsLibrary(module, out, compiler.inputBaseDir, serverUri,
+        emitTypes: options.closure,
         emitSourceMaps: options.emitSourceMaps,
         fileSystem: compiler.fileSystem);
   }

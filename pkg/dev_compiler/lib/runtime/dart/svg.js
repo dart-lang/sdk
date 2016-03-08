@@ -1,14 +1,14 @@
 dart_library.library('dart/svg', null, /* Imports */[
   'dart/_runtime',
-  'dart/core',
   'dart/html',
+  'dart/core',
   'dart/html_common',
   'dart/_metadata',
   'dart/_js_helper',
   'dart/_interceptors',
   'dart/collection'
 ], /* Lazy imports */[
-], function(exports, dart, core, html$, html_common, _metadata, _js_helper, _interceptors, collection) {
+], function(exports, dart, html$, core, html_common, _metadata, _js_helper, _interceptors, collection) {
   'use strict';
   let dartx = dart.dartx;
   class _SvgElementFactoryProvider extends core.Object {

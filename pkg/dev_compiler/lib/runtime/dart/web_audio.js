@@ -1,14 +1,14 @@
 dart_library.library('dart/web_audio', null, /* Imports */[
   'dart/_runtime',
-  'dart/html',
   'dart/core',
+  'dart/html',
   'dart/_metadata',
   'dart/_js_helper',
   'dart/typed_data',
   'dart/_interceptors',
   'dart/async'
 ], /* Lazy imports */[
-], function(exports, dart, html, core, _metadata, _js_helper, typed_data, _interceptors, async) {
+], function(exports, dart, core, html, _metadata, _js_helper, typed_data, _interceptors, async) {
   'use strict';
   let dartx = dart.dartx;
   const _connect = Symbol('_connect');

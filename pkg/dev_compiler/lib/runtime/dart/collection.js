@@ -113,6 +113,7 @@ dart_library.library('dart/collection', null, /* Imports */[
     return HashMap;
   });
   let HashMap = HashMap$();
+  const _newSet = Symbol('_newSet');
   const SetMixin$ = dart.generic(function(E) {
     class SetMixin extends core.Object {
       [Symbol.iterator]() {
@@ -434,7 +435,6 @@ dart_library.library('dart/collection', null, /* Imports */[
     return SetBase;
   });
   let SetBase = SetBase$();
-  const _newSet = Symbol('_newSet');
   const _HashSetBase$ = dart.generic(function(E) {
     class _HashSetBase extends SetBase$(E) {
       difference(other) {

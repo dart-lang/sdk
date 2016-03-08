@@ -3,12 +3,12 @@ dart_library.library('dart/indexed_db', null, /* Imports */[
   'dart/core',
   'dart/html_common',
   'dart/_js_helper',
-  'dart/_interceptors',
   'dart/async',
+  'dart/_interceptors',
   'dart/_metadata',
   'dart/html'
 ], /* Lazy imports */[
-], function(exports, dart, core, html_common, _js_helper, _interceptors, async, _metadata, html) {
+], function(exports, dart, core, html_common, _js_helper, async, _interceptors, _metadata, html) {
   'use strict';
   let dartx = dart.dartx;
   class _KeyRangeFactoryProvider extends core.Object {

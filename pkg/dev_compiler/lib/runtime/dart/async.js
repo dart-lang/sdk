@@ -62,6 +62,10 @@ dart_library.library('dart/async', null, /* Imports */[
     names: ['_getBestStackTrace']
   });
   const __CastType0 = dart.typedef('__CastType0', () => dart.functionType(dart.dynamic, [dart.dynamic]));
+  const _controller = Symbol('_controller');
+  const _subscribe = Symbol('_subscribe');
+  const _createSubscription = Symbol('_createSubscription');
+  const _onListen = Symbol('_onListen');
   const _add = Symbol('_add');
   const _closeUnchecked = Symbol('_closeUnchecked');
   const _addError = Symbol('_addError');
@@ -754,8 +758,6 @@ dart_library.library('dart/async', null, /* Imports */[
     return Stream;
   });
   let Stream = Stream$();
-  const _createSubscription = Symbol('_createSubscription');
-  const _onListen = Symbol('_onListen');
   const _StreamImpl$ = dart.generic(function(T) {
     class _StreamImpl extends Stream$(T) {
       _StreamImpl() {
@@ -789,8 +791,6 @@ dart_library.library('dart/async', null, /* Imports */[
     return _StreamImpl;
   });
   let _StreamImpl = _StreamImpl$();
-  const _controller = Symbol('_controller');
-  const _subscribe = Symbol('_subscribe');
   const _ControllerStream$ = dart.generic(function(T) {
     class _ControllerStream extends _StreamImpl$(T) {
       _ControllerStream(controller) {
@@ -844,6 +844,18 @@ dart_library.library('dart/async', null, /* Imports */[
       this[_previous] = null;
     }
   }
+  const _eventState = Symbol('_eventState');
+  const _expectsEvent = Symbol('_expectsEvent');
+  const _toggleEventId = Symbol('_toggleEventId');
+  const _isFiring = Symbol('_isFiring');
+  const _setRemoveAfterFiring = Symbol('_setRemoveAfterFiring');
+  const _removeAfterFiring = Symbol('_removeAfterFiring');
+  const _onPause = Symbol('_onPause');
+  const _onResume = Symbol('_onResume');
+  const _recordCancel = Symbol('_recordCancel');
+  const _onCancel = Symbol('_onCancel');
+  const _recordPause = Symbol('_recordPause');
+  const _recordResume = Symbol('_recordResume');
   const _zone = Symbol('_zone');
   const _state = Symbol('_state');
   const _onData = Symbol('_onData');
@@ -858,17 +870,14 @@ dart_library.library('dart/async', null, /* Imports */[
   const _isInputPaused = Symbol('_isInputPaused');
   const _inCallback = Symbol('_inCallback');
   const _guardCallback = Symbol('_guardCallback');
-  const _onPause = Symbol('_onPause');
   const _decrementPauseCount = Symbol('_decrementPauseCount');
   const _hasPending = Symbol('_hasPending');
   const _mayResumeInput = Symbol('_mayResumeInput');
-  const _onResume = Symbol('_onResume');
   const _cancel = Symbol('_cancel');
   const _isClosed = Symbol('_isClosed');
   const _waitsForCancel = Symbol('_waitsForCancel');
   const _canFire = Symbol('_canFire');
   const _cancelOnError = Symbol('_cancelOnError');
-  const _onCancel = Symbol('_onCancel');
   const _incrementPauseCount = Symbol('_incrementPauseCount');
   const _sendData = Symbol('_sendData');
   const _addPending = Symbol('_addPending');
@@ -1197,9 +1206,6 @@ dart_library.library('dart/async', null, /* Imports */[
     return _BufferingStreamSubscription;
   });
   let _BufferingStreamSubscription = _BufferingStreamSubscription$();
-  const _recordCancel = Symbol('_recordCancel');
-  const _recordPause = Symbol('_recordPause');
-  const _recordResume = Symbol('_recordResume');
   const _ControllerSubscription$ = dart.generic(function(T) {
     class _ControllerSubscription extends _BufferingStreamSubscription$(T) {
       _ControllerSubscription(controller, onData, onError, onDone, cancelOnError) {
@@ -1222,12 +1228,6 @@ dart_library.library('dart/async', null, /* Imports */[
     return _ControllerSubscription;
   });
   let _ControllerSubscription = _ControllerSubscription$();
-  const _eventState = Symbol('_eventState');
-  const _expectsEvent = Symbol('_expectsEvent');
-  const _toggleEventId = Symbol('_toggleEventId');
-  const _isFiring = Symbol('_isFiring');
-  const _setRemoveAfterFiring = Symbol('_setRemoveAfterFiring');
-  const _removeAfterFiring = Symbol('_removeAfterFiring');
   const _BroadcastSubscription$ = dart.generic(function(T) {
     class _BroadcastSubscription extends _ControllerSubscription$(T) {
       _BroadcastSubscription(controller, onData, onError, onDone, cancelOnError) {
@@ -3464,6 +3464,7 @@ dart_library.library('dart/async', null, /* Imports */[
     return _GeneratedStreamImpl;
   });
   let _GeneratedStreamImpl = _GeneratedStreamImpl$();
+  const _iterator = Symbol('_iterator');
   const _eventScheduled = Symbol('_eventScheduled');
   class _PendingEvents extends core.Object {
     _PendingEvents() {
@@ -3504,7 +3505,6 @@ dart_library.library('dart/async', null, /* Imports */[
   _PendingEvents._STATE_UNSCHEDULED = 0;
   _PendingEvents._STATE_SCHEDULED = 1;
   _PendingEvents._STATE_CANCELED = 3;
-  const _iterator = Symbol('_iterator');
   const _IterablePendingEvents$ = dart.generic(function(T) {
     class _IterablePendingEvents extends _PendingEvents {
       _IterablePendingEvents(data) {

@@ -1,14 +1,14 @@
 dart_library.library('dart/web_gl', null, /* Imports */[
   'dart/_runtime',
-  'dart/_interceptors',
   'dart/core',
   'dart/html_common',
   'dart/html',
+  'dart/_interceptors',
   'dart/typed_data',
   'dart/_metadata',
   'dart/_js_helper'
 ], /* Lazy imports */[
-], function(exports, dart, _interceptors, core, html_common, html, typed_data, _metadata, _js_helper) {
+], function(exports, dart, core, html_common, html, _interceptors, typed_data, _metadata, _js_helper) {
   'use strict';
   let dartx = dart.dartx;
   const _getContextAttributes_1 = Symbol('_getContextAttributes_1');

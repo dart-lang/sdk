@@ -7,11 +7,11 @@ dart_library.library('dart/html_common', null, /* Imports */[
   'dart/_js_helper',
   'dart/_native_typed_data',
   'dart/async',
-  'dart/collection',
-  'dart/_internal'
+  'dart/_internal',
+  'dart/collection'
 ], /* Lazy imports */[
   'dart/web_gl'
-], function(exports, dart, _metadata, core, html, typed_data, _js_helper, _native_typed_data, async, collection, _internal, web_gl) {
+], function(exports, dart, _metadata, core, html, typed_data, _js_helper, _native_typed_data, async, _internal, collection, web_gl) {
   'use strict';
   let dartx = dart.dartx;
   dart.export(exports, _metadata);

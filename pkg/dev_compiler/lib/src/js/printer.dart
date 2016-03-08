@@ -9,7 +9,7 @@ class JavaScriptPrintingOptions {
   final bool shouldCompressOutput;
   final bool minifyLocalVariables;
   final bool preferSemicolonToNewlineInMinifiedOutput;
-  final bool shouldEmitTypes;
+  final bool emitTypes;
   final bool allowSingleLineIfStatements;
 
   /// True to allow keywords in properties, such as `obj.var` or `obj.function`
@@ -20,7 +20,7 @@ class JavaScriptPrintingOptions {
       {this.shouldCompressOutput: false,
        this.minifyLocalVariables: false,
        this.preferSemicolonToNewlineInMinifiedOutput: false,
-       this.shouldEmitTypes: false,
+       this.emitTypes: false,
        this.allowKeywordsInProperties: false,
        this.allowSingleLineIfStatements: false});
 }
@@ -945,7 +945,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
   visitArrowFun(ArrowFun fun) {
     localNamer.enterScope(fun);
     if (fun.params.length == 1 &&
-        (fun.params.single.type == null || !options.shouldEmitTypes)) {
+        (fun.params.single.type == null || !options.emitTypes)) {
       visitNestedExpression(fun.params.single, SPREAD,
           newInForInit: false, newAtStatementBegin: false);
     } else {
@@ -1094,7 +1094,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
   }
 
   void outTypeParams(Iterable<Identifier> typeParams) {
-    if (typeParams != null && options.shouldEmitTypes && typeParams.isNotEmpty) {
+    if (typeParams != null && options.emitTypes && typeParams.isNotEmpty) {
       out("<");
       var first = true;
       for (var typeParam in typeParams) {
@@ -1119,7 +1119,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
       out('{');
       lineOut();
       indentMore();
-      if (options.shouldEmitTypes && node.fields != null) {
+      if (options.emitTypes && node.fields != null) {
         for (var field in node.fields) {
           indent();
           visit(field);
@@ -1360,7 +1360,7 @@ class Printer extends TypeScriptTypePrinter implements NodeVisitor {
   }
 
   void outTypeAnnotation(TypeRef node) {
-    if (node == null || !options.shouldEmitTypes || node.isUnknown) return;
+    if (node == null || !options.emitTypes || node.isUnknown) return;
 
     if (node is OptionalTypeRef) {
       out("?: ");

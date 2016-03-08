@@ -1,14 +1,14 @@
 dart_library.library('dart/_native_typed_data', null, /* Imports */[
   'dart/_runtime',
-  'dart/core',
   'dart/typed_data',
+  'dart/core',
   'dart/_js_helper',
   'dart/collection',
   'dart/_internal',
   'dart/_interceptors',
   'dart/math'
 ], /* Lazy imports */[
-], function(exports, dart, core, typed_data, _js_helper, collection, _internal, _interceptors, math) {
+], function(exports, dart, typed_data, core, _js_helper, collection, _internal, _interceptors, math) {
   'use strict';
   let dartx = dart.dartx;
   dart.defineExtensionNames([

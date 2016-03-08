@@ -3515,11 +3515,11 @@ dart_library.library('lib/typed_data/typed_data_load_test', null, /* Imports */[
 });
 dart_library.library('lib/typed_data/typed_data_sublist_type_test', null, /* Imports */[
   'dart/_runtime',
-  'dart/core',
   'expect/expect',
+  'dart/core',
   'dart/typed_data'
 ], /* Lazy imports */[
-], function(exports, dart, core, expect, typed_data) {
+], function(exports, dart, expect, core, typed_data) {
   'use strict';
   let dartx = dart.dartx;
   exports.inscrutable = null;

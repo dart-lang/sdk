@@ -1,14 +1,14 @@
 dart_library.library('dart/web_sql', null, /* Imports */[
   'dart/_runtime',
-  'dart/_interceptors',
   'dart/core',
+  'dart/_interceptors',
   'dart/html',
   'dart/_metadata',
   'dart/_js_helper',
-  'dart/collection',
-  'dart/html_common'
+  'dart/html_common',
+  'dart/collection'
 ], /* Lazy imports */[
-], function(exports, dart, _interceptors, core, html, _metadata, _js_helper, collection, html_common) {
+], function(exports, dart, core, _interceptors, html, _metadata, _js_helper, html_common, collection) {
   'use strict';
   let dartx = dart.dartx;
   const SqlStatementCallback = dart.typedef('SqlStatementCallback', () => dart.functionType(dart.void, [SqlTransaction, SqlResultSet]));

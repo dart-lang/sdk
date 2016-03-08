@@ -18,7 +18,9 @@ import 'js_names.dart' show TemporaryNamer;
 
 String writeJsLibrary(
     JS.Program jsTree, String outputPath, String inputDir, Uri serverUri,
-    {bool emitSourceMaps: false, FileSystem fileSystem}) {
+    {bool emitSourceMaps: false,
+    bool emitTypes: false,
+    FileSystem fileSystem}) {
   var outFilename = path.basename(outputPath);
   var outDir = path.dirname(outputPath);
 
@@ -32,7 +34,7 @@ String writeJsLibrary(
   }
 
   var opts = new JS.JavaScriptPrintingOptions(
-      shouldEmitTypes: true,
+      emitTypes: emitTypes,
       allowKeywordsInProperties: true,
       allowSingleLineIfStatements: true);
   var jsNamer = new TemporaryNamer(jsTree);
@@ -45,6 +47,8 @@ String writeJsLibrary(
     // Write output file and source map
     text = printer.text;
     var sourceMap = JSON.decode(printer.map);
+    // TODO(jmesserly): I'm not sure where this logic came from, but we should
+    // upstream this, rather than workaround source_map's formatting ourselves.
     var sourceMapText = new JsonEncoder.withIndent('  ').convert(sourceMap);
     // Convert:
     //   "names": [
