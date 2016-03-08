@@ -149,7 +149,7 @@ class TestSetAnalysisDomainPlugin implements Plugin {
   }
 
   void _setAnalysisDomain(AnalysisDomain domain) {
-    domain.onResultComputed(PARSED_UNIT).listen((result) {
+    domain.onResultChanged(PARSED_UNIT).listen((result) {
       expect(result.context, isNotNull);
       expect(result.target, isNotNull);
       expect(result.value, isNotNull);

@@ -44,11 +44,11 @@ class AnalysisDriver {
   final InternalAnalysisContext context;
 
   /**
-   * The map of [ComputedResult] controllers.
+   * The map of [ResultChangedEvent] controllers.
    */
-  final Map<ResultDescriptor, StreamController<ComputedResult>>
+  final Map<ResultDescriptor, StreamController<ResultChangedEvent>>
       resultComputedControllers =
-      <ResultDescriptor, StreamController<ComputedResult>>{};
+      <ResultDescriptor, StreamController<ResultChangedEvent>>{};
 
   /**
    * The work order that was previously computed but that has not yet been
@@ -208,11 +208,10 @@ class AnalysisDriver {
    * Return the stream that is notified when a new value for the given
    * [descriptor] is computed.
    */
-  Stream<ComputedResult> onResultComputed(ResultDescriptor descriptor) {
-    return resultComputedControllers
-        .putIfAbsent(descriptor,
-            () => new StreamController<ComputedResult>.broadcast(sync: true))
-        .stream;
+  Stream<ResultChangedEvent> onResultComputed(ResultDescriptor descriptor) {
+    return resultComputedControllers.putIfAbsent(descriptor, () {
+      return new StreamController<ResultChangedEvent>.broadcast(sync: true);
+    }).stream;
   }
 
   /**
@@ -284,11 +283,11 @@ class AnalysisDriver {
           entry.setValue(result, outputs[result], dependedOn);
         }
         outputs.forEach((ResultDescriptor descriptor, value) {
-          StreamController<ComputedResult> controller =
+          StreamController<ResultChangedEvent> controller =
               resultComputedControllers[descriptor];
           if (controller != null) {
-            ComputedResult event =
-                new ComputedResult(context, descriptor, target, value);
+            ResultChangedEvent event = new ResultChangedEvent(
+                context, target, descriptor, value, true);
             controller.add(event);
           }
         });

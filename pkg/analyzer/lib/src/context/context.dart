@@ -194,6 +194,13 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   ResultProvider resultProvider;
 
   /**
+   * The map of [ResultChangedEvent] controllers.
+   */
+  final Map<ResultDescriptor, StreamController<ResultChangedEvent>>
+      _resultChangedControllers =
+      <ResultDescriptor, StreamController<ResultChangedEvent>>{};
+
+  /**
    * The most recently incrementally resolved source, or `null` when it was
    * already validated, or the most recent change was not incrementally resolved.
    */
@@ -682,10 +689,19 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     if (sdk == null) {
       return new AnalysisCache(<CachePartition>[_privatePartition]);
     }
-    return new AnalysisCache(<CachePartition>[
+    AnalysisCache cache = new AnalysisCache(<CachePartition>[
       AnalysisEngine.instance.partitionManager.forSdk(sdk),
       _privatePartition
     ]);
+    cache.onResultInvalidated.listen((InvalidatedResult event) {
+      StreamController<ResultChangedEvent> controller =
+          _resultChangedControllers[event.descriptor];
+      if (controller != null) {
+        controller.add(new ResultChangedEvent(
+            this, event.entry.target, event.descriptor, event.value, false));
+      }
+    });
+    return cache;
   }
 
   /**
@@ -1099,8 +1115,24 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
+  Stream<ResultChangedEvent> onResultChanged(ResultDescriptor descriptor) {
+    driver.onResultComputed(descriptor).listen((ResultChangedEvent event) {
+      _resultChangedControllers[descriptor]?.add(event);
+    });
+    return _resultChangedControllers.putIfAbsent(descriptor, () {
+      return new StreamController<ResultChangedEvent>.broadcast(sync: true);
+    }).stream;
+  }
+
+  @override
+  @deprecated
   Stream<ComputedResult> onResultComputed(ResultDescriptor descriptor) {
-    return driver.onResultComputed(descriptor);
+    return onResultChanged(descriptor)
+        .where((event) => event.wasComputed)
+        .map((event) {
+      return new ComputedResult(
+          event.context, event.descriptor, event.target, event.value);
+    });
   }
 
   @override

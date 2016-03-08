@@ -600,6 +600,12 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
+  Stream<ResultChangedEvent> onResultChanged(ResultDescriptor descriptor) {
+    fail("Unexpected invocation of onResultChanged");
+    return null;
+  }
+
+  @override
   Stream<ComputedResult> onResultComputed(ResultDescriptor descriptor) {
     fail("Unexpected invocation of onResultComputed");
     return null;
