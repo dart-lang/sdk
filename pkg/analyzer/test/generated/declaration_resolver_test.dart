@@ -258,6 +258,18 @@ class DeclarationResolverTest extends ResolverTestCase {
     super.setUp();
   }
 
+  void test_enumConstant_partiallyResolved() {
+    String code = r'''
+enum Fruit {apple, pear}
+''';
+    Source source = addNamedSource('/test.dart', code);
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    analysisContext.computeResult(source, LIBRARY_ELEMENT1);
+    CompilationUnit unit =
+        analysisContext.computeResult(target, RESOLVED_UNIT1);
+    CompilationUnit unit2 = _cloneResolveUnit(unit);
+  }
+
   void test_functionDeclaration_getter() {
     String code = r'''
 int get zzz => 42;

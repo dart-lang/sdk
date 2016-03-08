@@ -3408,13 +3408,7 @@ class EnumMemberBuilder extends RecursiveAstVisitor<Object> {
     int constantCount = constants.length;
     for (int i = 0; i < constantCount; i++) {
       EnumConstantDeclaration constant = constants[i];
-      SimpleIdentifier constantName = constant.name;
-      FieldElementImpl constantField =
-          new ConstFieldElementImpl.forNode(constantName);
-      constantField.static = true;
-      constantField.const3 = true;
-      constantField.type = enumType;
-      setElementDocumentationComment(constantField, constant);
+      FieldElementImpl constantField = constant.name.staticElement;
       //
       // Create a value for the constant.
       //
@@ -3426,8 +3420,7 @@ class EnumMemberBuilder extends RecursiveAstVisitor<Object> {
       constantValues.add(value);
       constantField.evaluationResult = new EvaluationResultImpl(value);
       fields.add(constantField);
-      getters.add(_createGetter(constantField));
-      constantName.staticElement = constantField;
+      getters.add(constantField.getter);
     }
     //
     // Build the value of the 'values' field.

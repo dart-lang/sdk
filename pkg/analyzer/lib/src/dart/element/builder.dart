@@ -621,6 +621,27 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     // to subclass, mix-in, implement, or explicitly instantiate an enum).  So
     // we represent this as having no constructors.
     enumElement.constructors = ConstructorElement.EMPTY_LIST;
+    //
+    // Build the elements for the constants. These are minimal elements; the
+    // rest of the constant elements (and elements for other fields) must be
+    // built later after we can access the type provider.
+    //
+    List<FieldElement> fields = new List<FieldElement>();
+    NodeList<EnumConstantDeclaration> constants = node.constants;
+    for (EnumConstantDeclaration constant in constants) {
+      SimpleIdentifier constantName = constant.name;
+      FieldElementImpl constantField =
+          new ConstFieldElementImpl.forNode(constantName);
+      constantField.static = true;
+      constantField.const3 = true;
+      constantField.type = enumType;
+      setElementDocumentationComment(constantField, constant);
+      fields.add(constantField);
+      _createGetter(constantField);
+      constantName.staticElement = constantField;
+    }
+    enumElement.fields = fields;
+
     _currentHolder.addEnum(enumElement);
     enumName.staticElement = enumElement;
     return super.visitEnumDeclaration(node);
@@ -1313,6 +1334,18 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       a.elementAnnotation = elementAnnotation;
       return elementAnnotation;
     }).toList();
+  }
+
+  /**
+   * Create a getter that corresponds to the given [field].
+   */
+  void _createGetter(FieldElementImpl field) {
+    PropertyAccessorElementImpl getter =
+        new PropertyAccessorElementImpl.forVariable(field);
+    getter.getter = true;
+    getter.returnType = field.type;
+    getter.type = new FunctionTypeImpl(getter);
+    field.getter = getter;
   }
 
   /**
