@@ -387,17 +387,22 @@ class SourceMapProcessor {
     }
 
     return new SourceMaps(
-        sourceFileManager, mainSourceMapInfo, elementSourceMapInfos);
+        compiler,
+        sourceFileManager,
+        mainSourceMapInfo,
+        elementSourceMapInfos);
   }
 }
 
 class SourceMaps {
+  final api.CompilerImpl compiler;
   final SourceFileManager sourceFileManager;
   // TODO(johnniwinther): Supported multiple output units.
   final SourceMapInfo mainSourceMapInfo;
   final Map<Element, SourceMapInfo> elementSourceMapInfos;
 
   SourceMaps(
+      this.compiler,
       this.sourceFileManager,
       this.mainSourceMapInfo,
           this.elementSourceMapInfos);
