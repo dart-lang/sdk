@@ -21,13 +21,8 @@ import 'package:compiler/src/diagnostics/messages.dart' show MessageKind;
 const Map<String, List<String>> WHITE_LIST = const {
   "html_dart2js.dart": const [
     // These suppressions are tracked by issue 25928.
-    "The getter '_layerX' is not defined for the class 'UIEvent'",
-    "The getter '_layerY' is not defined for the class 'UIEvent'",
-    "The getter '_pageX' is not defined for the class 'UIEvent'",
-    "The getter '_pageY' is not defined for the class 'UIEvent'",
     "The getter 'clipboardData' is not defined for the class 'Event'",
     "The getter 'clipboardData' is not defined for the class 'KeyboardEvent'",
-    "The getter 'parent' is not defined for the class 'KeyEvent'",
   ]
 };
 

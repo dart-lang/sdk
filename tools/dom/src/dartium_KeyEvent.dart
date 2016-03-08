@@ -124,10 +124,8 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
    * KeyLocation.NUMPAD, KeyLocation.MOBILE, KeyLocation.JOYSTICK).
    */
   int get keyLocation => _parent.keyLocation;
-  Point get layer => _parent.layer;
   /** True if the Meta (or Mac command) key is pressed during this event. */
   bool get metaKey => _parent.metaKey;
-  Point get page => _parent.page;
   /** True if the shift key was pressed during this event. */
   bool get shiftKey => _parent.shiftKey;
   Window get view => _parent.view;

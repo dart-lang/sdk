@@ -28676,6 +28676,14 @@ class MouseEvent extends UIEvent {
   @DomName('MouseEvent.screenX')
   @DomName('MouseEvent.screenY')
   Point get screen => new Point(_screenX, _screenY);
+
+  @DomName('MouseEvent.layerX')
+  @DomName('MouseEvent.layerY')
+  Point get layer => new Point(_layerX, _layerY);
+
+  @DomName('MouseEvent.pageX')
+  @DomName('MouseEvent.pageY')
+  Point get page => new Point(_pageX, _pageY);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -40257,14 +40265,6 @@ class UIEvent extends Event {
   @DocsEditable()
   void _initUIEvent(String type, bool bubbles, bool cancelable, Window view, int detail) => _blink.BlinkUIEvent.instance.initUIEvent_Callback_5_(unwrap_jso(this), type, bubbles, cancelable, unwrap_jso(view), detail);
   
-
-  @DomName('UIEvent.layerX')
-  @DomName('UIEvent.layerY')
-  Point get layer => new Point(_layerX, _layerY);
-
-  @DomName('UIEvent.pageX')
-  @DomName('UIEvent.pageY')
-  Point get page => new Point(_pageX, _pageY);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -50750,10 +50750,8 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
    * KeyLocation.NUMPAD, KeyLocation.MOBILE, KeyLocation.JOYSTICK).
    */
   int get keyLocation => _parent.keyLocation;
-  Point get layer => _parent.layer;
   /** True if the Meta (or Mac command) key is pressed during this event. */
   bool get metaKey => _parent.metaKey;
-  Point get page => _parent.page;
   /** True if the shift key was pressed during this event. */
   bool get shiftKey => _parent.shiftKey;
   Window get view => _parent.view;

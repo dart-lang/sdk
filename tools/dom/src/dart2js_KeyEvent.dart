@@ -187,24 +187,22 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
 
   /** Accessor to the clipboardData available for this event. */
   DataTransfer get clipboardData => _parent.clipboardData;
-  String get code => parent.code;
+  String get code => _parent.code;
   /** True if the ctrl key is pressed during this event. */
   bool get ctrlKey => _parent.ctrlKey;
   int get detail => _parent.detail;
-  String get key => parent.key;
+  String get key => _parent.key;
   /**
    * Accessor to the part of the keyboard that the key was pressed from (one of
    * KeyLocation.STANDARD, KeyLocation.RIGHT, KeyLocation.LEFT,
    * KeyLocation.NUMPAD, KeyLocation.MOBILE, KeyLocation.JOYSTICK).
    */
   int get keyLocation => _parent.keyLocation;
-  Point get layer => _parent.layer;
   /** True if the Meta (or Mac command) key is pressed during this event. */
   bool get metaKey => _parent.metaKey;
-  Point get page => _parent.page;
   /** True if the shift key was pressed during this event. */
   bool get shiftKey => _parent.shiftKey;
-  InputDevice get sourceDevice => parent.sourceDevice;
+  InputDevice get sourceDevice => _parent.sourceDevice;
   Window get view => _parent.view;
   void _initUIEvent(String type, bool canBubble, bool cancelable,
       Window view, int detail) {
