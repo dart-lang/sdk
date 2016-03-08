@@ -94,12 +94,13 @@ class PackageAnalyzer {
     // Write summary for Dart libraries.
     if (options.packageSummaryOutput != null) {
       PackageBundleAssembler assembler = new PackageBundleAssembler();
-      for (Source source in context.librarySources) {
+      for (Source source in explicitSources) {
+        if (context.computeKindOf(source) != SourceKind.LIBRARY) {
+          continue;
+        }
         if (pathos.isWithin(packageLibPath, source.fullName)) {
           LibraryElement libraryElement = context.computeLibraryElement(source);
-          if (libraryElement != null) {
-            assembler.serializeLibraryElement(libraryElement);
-          }
+          assembler.serializeLibraryElement(libraryElement);
         }
       }
       // Write the whole package bundle.
