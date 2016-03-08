@@ -632,9 +632,9 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
       // was not rewritten to GetLength.  But if we can prove that the call only
       // succeeds for indexables, we can trust that it returns the length.
       TypeMask successType =
-          types.receiverTypeFor(node.selector, node.dartReceiver.type);
+          types.receiverTypeFor(node.selector, node.receiver.type);
       if (types.isDefinitelyIndexable(successType)) {
-        valueOf[node] = getLength(node.dartReceiver, currentEffectNumber);
+        valueOf[node] = getLength(node.receiver, currentEffectNumber);
       }
     }
   }

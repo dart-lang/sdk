@@ -9,6 +9,7 @@ import '../constants/values.dart';
 import '../cps_ir/cps_ir_nodes.dart' as cps_ir;
 import '../elements/elements.dart';
 import 'package:js_ast/js_ast.dart' as js;
+import '../js_backend/codegen/glue.dart';
 
 import 'tree_ir_nodes.dart';
 
@@ -48,6 +49,7 @@ typedef Statement NodeCallback(Statement next);
  */
 class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   final InternalErrorFunction internalError;
+  final Glue glue;
 
   final Map<cps_ir.Primitive, Variable> primitive2variable =
       <cps_ir.Primitive, Variable>{};
@@ -60,17 +62,12 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   final Map<cps_ir.Continuation, Label> labels = <cps_ir.Continuation, Label>{};
 
   ExecutableElement currentElement;
-  /// The 'this' Parameter for currentElement or the enclosing method.
+  /// The parameter to be translated to 'this'.  This can either be the receiver
+  /// parameter, the interceptor parameter, or null if the method has neither.
   cps_ir.Parameter thisParameter;
   cps_ir.Continuation returnContinuation;
 
-  Builder parent;
-
-  Builder(this.internalError, [this.parent]);
-
-  Builder createInnerBuilder() {
-    return new Builder(internalError, this);
-  }
+  Builder(this.internalError, this.glue);
 
   /// Variable used in [buildPhiAssignments] as a temporary when swapping
   /// variables.
@@ -84,9 +81,6 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   }
 
   Variable getMutableVariable(cps_ir.MutableVariable mutableVariable) {
-    if (!mutable2variable.containsKey(mutableVariable)) {
-      return parent.getMutableVariable(mutableVariable)..isCaptured = true;
-    }
     return mutable2variable[mutableVariable];
   }
 
@@ -128,20 +122,17 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     return labels.putIfAbsent(cont, () => new Label());
   }
 
-  Variable addFunctionParameter(cps_ir.Parameter parameter) {
-    return getVariable(parameter);
-  }
-
   FunctionDefinition buildFunction(cps_ir.FunctionDefinition node) {
     currentElement = node.element;
-    if (parent != null) {
-      // Local function's 'this' refers to enclosing method's 'this'
-      thisParameter = parent.thisParameter;
+    List<Variable> parameters = node.parameters.map(getVariable).toList();
+    if (node.interceptorParameter != null) {
+      parameters.insert(0, getVariable(node.receiverParameter));
+      thisParameter = glue.methodUsesReceiverArgument(node.element)
+          ? node.interceptorParameter
+          : node.receiverParameter;
     } else {
-      thisParameter = node.thisParameter;
+      thisParameter = node.receiverParameter;
     }
-    List<Variable> parameters =
-        node.parameters.map(addFunctionParameter).toList();
     returnContinuation = node.returnContinuation;
     phiTempVar = new Variable(node.element, null);
     Statement body = translateExpression(node.body);
@@ -621,38 +612,86 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
                                          node.sourceInformation);
   }
 
+  List<Expression> insertReceiverArgument(Expression receiver,
+        List<Expression> arguments) {
+    return new List<Expression>.generate(arguments.length + 1,
+        (n) => n == 0 ? receiver : arguments[n - 1],
+        growable: false);
+  }
+
   Expression visitInvokeMethod(cps_ir.InvokeMethod node) {
-    if (node.callingConvention == cps_ir.CallingConvention.OneShotIntercepted) {
-      List<Expression> arguments = new List.generate(
-          1 + node.argumentRefs.length,
-          (n) => getVariableUse(n == 0 ? node.receiverRef : node.argumentRefs[n - 1]),
-          growable: false);
-      return new OneShotInterceptor(node.selector, node.mask, arguments,
-          node.sourceInformation);
+    switch (node.callingConvention) {
+      case cps_ir.CallingConvention.Normal:
+        InvokeMethod invoke = new InvokeMethod(
+            getVariableUse(node.receiverRef),
+            node.selector,
+            node.mask,
+            translateArguments(node.argumentRefs),
+            node.sourceInformation);
+        invoke.receiverIsNotNull = !node.receiver.type.isNullable;
+        return invoke;
+
+      case cps_ir.CallingConvention.Intercepted:
+        List<Expression> arguments = insertReceiverArgument(
+            getVariableUse(node.receiverRef),
+            translateArguments(node.argumentRefs));
+        InvokeMethod invoke = new InvokeMethod(
+            getVariableUse(node.interceptorRef),
+            node.selector,
+            node.mask,
+            arguments,
+            node.sourceInformation);
+        // Sometimes we know the Dart receiver is non-null because it has been
+        // refined, which implies that the JS receiver also can not be null at
+        // the use-site.  Interceptors are not refined, so this information is
+        // not always available on the JS receiver.
+        // Also check the JS receiver's type, however, because sometimes we know
+        // an interceptor is non-null because it intercepts JSNull.
+        invoke.receiverIsNotNull =
+            !node.receiver.type.isNullable ||
+            !node.interceptor.type.isNullable;
+        return invoke;
+
+      case cps_ir.CallingConvention.DummyIntercepted:
+        List<Expression> arguments = insertReceiverArgument(
+            new Constant(new IntConstantValue(0)),
+            translateArguments(node.argumentRefs));
+        InvokeMethod invoke = new InvokeMethod(
+            getVariableUse(node.receiverRef),
+            node.selector,
+            node.mask,
+            arguments,
+            node.sourceInformation);
+        invoke.receiverIsNotNull = !node.receiver.type.isNullable;
+        return invoke;
+
+      case cps_ir.CallingConvention.OneShotIntercepted:
+        List<Expression> arguments = insertReceiverArgument(
+            getVariableUse(node.receiverRef),
+            translateArguments(node.argumentRefs));
+        return new OneShotInterceptor(
+            node.selector,
+            node.mask,
+            arguments,
+            node.sourceInformation);
     }
-    InvokeMethod invoke = new InvokeMethod(
-        getVariableUse(node.receiverRef),
-        node.selector,
-        node.mask,
-        translateArguments(node.argumentRefs),
-        node.sourceInformation);
-    // Sometimes we know the Dart receiver is non-null because it has been
-    // refined, which implies that the JS receiver also can not be null at the
-    // use-site.  Interceptors are not refined, so this information is not
-    // always available on the JS receiver.
-    // Also check the JS receiver's type, however, because sometimes we know an
-    // interceptor is non-null because it intercepts JSNull.
-    invoke.receiverIsNotNull =
-        !node.dartReceiver.type.isNullable ||
-        !node.receiver.type.isNullable;
-    return invoke;
   }
 
   Expression visitInvokeMethodDirectly(cps_ir.InvokeMethodDirectly node) {
-    Expression receiver = getVariableUse(node.receiverRef);
-    List<Expression> arguments = translateArguments(node.argumentRefs);
-    return new InvokeMethodDirectly(receiver, node.target,
-        node.selector, arguments, node.sourceInformation);
+    if (node.interceptorRef != null) {
+      return new InvokeMethodDirectly(getVariableUse(node.interceptorRef),
+          node.target,
+          node.selector,
+          insertReceiverArgument(getVariableUse(node.receiverRef),
+              translateArguments(node.argumentRefs)),
+          node.sourceInformation);
+    } else {
+      return new InvokeMethodDirectly(getVariableUse(node.receiverRef),
+          node.target,
+          node.selector,
+          translateArguments(node.argumentRefs),
+          node.sourceInformation);
+    }
   }
 
   Expression visitTypeCast(cps_ir.TypeCast node) {

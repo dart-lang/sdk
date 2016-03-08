@@ -111,7 +111,7 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
 
     // Note: node.dartArgumentsLength is shorter when the call doesn't include
     // some optional arguments.
-    int length = min(argumentSuccessTypes.length, node.dartArgumentsLength);
+    int length = min(argumentSuccessTypes.length, node.argumentRefs.length);
     for (int i = 0; i < length; i++) {
       TypeMask argSuccessType = argumentSuccessTypes[i];
 
@@ -119,7 +119,7 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
       if (argSuccessType == types.dynamicType) continue;
 
       applyRefinement(node.parent,
-          new Refinement(node.dartArgument(i), argSuccessType));
+          new Refinement(node.argument(i), argSuccessType));
     }
   }
 
@@ -136,7 +136,7 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
 
     // If the call is intercepted, we want to refine the actual receiver,
     // not the interceptor.
-    Primitive receiver = node.dartReceiver;
+    Primitive receiver = node.receiver;
 
     // Do not try to refine the receiver of closure calls; the class world
     // does not know about closure classes.
@@ -233,8 +233,8 @@ class InsertRefinements extends TrampolineRecursiveVisitor implements Pass {
     }
 
     if (condition is InvokeMethod && condition.selector == Selectors.equals) {
-      refineEquality(condition.dartReceiver,
-                     condition.dartArgument(0),
+      refineEquality(condition.receiver,
+                     condition.argument(0),
                      trueCont,
                      falseCont);
       return;

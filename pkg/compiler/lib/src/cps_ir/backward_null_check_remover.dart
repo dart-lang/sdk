@@ -59,7 +59,7 @@ class BackwardNullCheckRemover extends BlockVisitor implements Pass {
     if (prim is SetField) return prim.object;
     if (prim is SetIndex) return prim.object;
     if (prim is InvokeMethod && !selectorsOnNull.contains(prim.selector)) {
-      return prim.dartReceiver;
+      return prim.receiver;
     }
     if (prim is ForeignCode) {
       return prim.isNullGuardOnNullFirstArgument() ? prim.argument(0) : null;

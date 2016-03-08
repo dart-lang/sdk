@@ -104,7 +104,7 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
     for (Reference ref = interceptor.firstRef; ref != null; ref = ref.next) {
       Node use = ref.parent;
       if (use is InvokeMethod) {
-        TypeMask type = use.dartReceiver.type;
+        TypeMask type = use.receiver.type;
         bool canOccurAsReceiver(ClassElement elem) {
           return classWorld.isInstantiated(elem) &&
               !typeSystem.areDisjoint(type,
@@ -137,7 +137,7 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
     for (Reference ref = node.firstRef; ref != null; ref = ref.next) {
       if (ref.parent is InvokeMethod) {
         InvokeMethod invoke = ref.parent;
-        if (invoke.receiverRef != ref) return false;
+        if (invoke.interceptorRef != ref) return false;
         var interceptedClasses =
             backend.getInterceptedClassesOn(invoke.selector.name);
         if (interceptedClasses.contains(helpers.jsDoubleClass)) return false;
@@ -157,7 +157,7 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
       Node use = ref.parent;
       if (use is InvokeMethod) {
         if (selectorsOnNull.contains(use.selector) &&
-            use.dartReceiver.type.isNullable) {
+            use.receiver.type.isNullable) {
           return true;
         }
       } else {
@@ -261,7 +261,7 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
   @override
   void visitInvokeMethod(InvokeMethod node) {
     if (node.callingConvention != CallingConvention.Intercepted) return;
-    Primitive interceptor = node.receiver;
+    Primitive interceptor = node.interceptor;
     if (interceptor is! Interceptor ||
         interceptor.hasMultipleUses ||
         loopHeaderFor[interceptor] != currentLoopHeader) {
@@ -269,8 +269,7 @@ class OptimizeInterceptors extends TrampolineRecursiveVisitor implements Pass {
     }
     // TODO(asgerf): Consider heuristics for when to use one-shot interceptors.
     //   E.g. using only one-shot interceptors with a fast path.
-    node.callingConvention = CallingConvention.OneShotIntercepted;
-    node..receiverRef.unlink()..receiverRef = node.argumentRefs.removeAt(0);
+    node.makeOneShotIntercepted();
   }
 
   @override

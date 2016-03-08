@@ -1160,7 +1160,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
   /// Returns `true` if the node was replaced.
   specializeOperatorCall(InvokeMethod node) {
     if (!backend.isInterceptedSelector(node.selector)) return null;
-    if (node.dartArgumentsLength > 1) return null;
+    if (node.argumentRefs.length > 1) return null;
     if (node.callingConvention == CallingConvention.OneShotIntercepted) {
       return null;
     }
@@ -1178,11 +1178,11 @@ class TransformingVisitor extends DeepRecursiveVisitor {
 
       // Determine which guards are needed.
       ChecksNeeded receiverChecks =
-          receiverGuard.getChecksNeeded(node.dartReceiver, classWorld);
+          receiverGuard.getChecksNeeded(node.receiver, classWorld);
       bool needReceiverGuard = receiverChecks != ChecksNeeded.None;
       bool needArgumentGuard =
           argumentGuard != null &&
-          argumentGuard.needsCheck(node.dartArgument(0), classWorld);
+          argumentGuard.needsCheck(node.argument(0), classWorld);
 
       if (!needReceiverGuard && !needArgumentGuard) return cps;
 
@@ -1193,9 +1193,9 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       //   if (typeof receiver !== "number") return receiver.$lt();
       //
       if (!needArgumentGuard) {
-        Primitive condition = receiverGuard.makeCheck(cps, node.dartReceiver);
+        Primitive condition = receiverGuard.makeCheck(cps, node.receiver);
         cps.letPrim(new ReceiverCheck(
-            node.dartReceiver,
+            node.receiver,
             node.selector,
             node.sourceInformation,
             condition: condition,
@@ -1214,9 +1214,9 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       //   if (typeof argument !== "number") return H.iae(argument);
       //
       if (!needReceiverGuard) {
-        cps.ifTruthy(argumentGuard.makeCheck(cps, node.dartArgument(0)))
+        cps.ifTruthy(argumentGuard.makeCheck(cps, node.argument(0)))
            .invokeStaticThrower(helpers.throwIllegalArgumentException,
-              [node.dartArgument(0)]);
+              [node.argument(0)]);
         return cps;
       }
 
@@ -1228,14 +1228,15 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       //       return J.$lt(receiver, argument);
       //
       Continuation fail = cps.letCont();
-      cps.ifTruthy(receiverGuard.makeCheck(cps, node.dartReceiver))
+      cps.ifTruthy(receiverGuard.makeCheck(cps, node.receiver))
          .invokeContinuation(fail);
-      cps.ifTruthy(argumentGuard.makeCheck(cps, node.dartArgument(0)))
+      cps.ifTruthy(argumentGuard.makeCheck(cps, node.argument(0)))
          .invokeContinuation(fail);
 
       cps.insideContinuation(fail)
-         ..invokeMethod(node.dartReceiver, node.selector, node.mask,
-             [node.dartArgument(0)], CallingConvention.OneShotIntercepted)
+         ..invokeMethod(node.receiver, node.selector, node.mask,
+             [node.argument(0)],
+             callingConvention: CallingConvention.OneShotIntercepted)
          ..put(new Unreachable());
 
       return cps;
@@ -1249,9 +1250,9 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     CpsFragment makeBinary(BuiltinOperator operator,
                            {TypeCheckOperator guard: TypeCheckOperator.none}) {
       CpsFragment cps = makeGuard(guard, guard);
-      Primitive left = guard.makeRefinement(cps, node.dartReceiver, classWorld);
+      Primitive left = guard.makeRefinement(cps, node.receiver, classWorld);
       Primitive right =
-          guard.makeRefinement(cps, node.dartArgument(0), classWorld);
+          guard.makeRefinement(cps, node.argument(0), classWorld);
       Primitive result = cps.applyBuiltin(operator, [left, right]);
       result.hint = node.hint;
       node.replaceUsesWith(result);
@@ -1264,7 +1265,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
                           {TypeCheckOperator guard: TypeCheckOperator.none}) {
       CpsFragment cps = makeGuard(guard);
       Primitive argument =
-          guard.makeRefinement(cps, node.dartReceiver, classWorld);
+          guard.makeRefinement(cps, node.receiver, classWorld);
       Primitive result = cps.applyBuiltin(operator, [argument]);
       result.hint = node.hint;
       node.replaceUsesWith(result);
@@ -1284,15 +1285,16 @@ class TransformingVisitor extends DeepRecursiveVisitor {
           node.mask,
           node.arguments.toList(),
           sourceInformation: node.sourceInformation,
-          callingConvention: node.callingConvention);
+          callingConvention: node.callingConvention,
+          interceptor: node.interceptor);
     }
 
     TypeMask successType =
-        typeSystem.receiverTypeFor(node.selector, node.dartReceiver.type);
+        typeSystem.receiverTypeFor(node.selector, node.receiver.type);
 
-    if (node.selector.isOperator && node.dartArgumentsLength == 1) {
-      Primitive leftArg = node.dartReceiver;
-      Primitive rightArg = node.dartArgument(0);
+    if (node.selector.isOperator && node.argumentRefs.length == 1) {
+      Primitive leftArg = node.receiver;
+      Primitive rightArg = node.argument(0);
       AbstractConstantValue left = getValue(leftArg);
       AbstractConstantValue right = getValue(rightArg);
 
@@ -1383,7 +1385,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         }
       }
     }
-    if (node.selector.isOperator && node.dartArgumentsLength == 0) {
+    if (node.selector.isOperator && node.argumentRefs.length == 0) {
       if (typeSystem.isDefinitelyNum(successType)) {
         String opname = node.selector.name;
         if (opname == '~') {
@@ -1396,11 +1398,11 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     }
     if (node.selector.isCall) {
       String name = node.selector.name;
-      Primitive receiver = node.dartReceiver;
+      Primitive receiver = node.receiver;
       AbstractConstantValue receiverValue = getValue(receiver);
       if (name == 'remainder') {
-        if (node.dartArgumentsLength == 1) {
-          Primitive arg = node.dartArgument(0);
+        if (node.argumentRefs.length == 1) {
+          Primitive arg = node.argument(0);
           AbstractConstantValue argValue = getValue(arg);
           if (lattice.isDefinitelyInt(receiverValue, allowNull: true) &&
               lattice.isDefinitelyInt(argValue) &&
@@ -1410,8 +1412,8 @@ class TransformingVisitor extends DeepRecursiveVisitor {
           }
         }
       } else if (name == 'codeUnitAt') {
-        if (node.dartArgumentsLength == 1) {
-          Primitive index = node.dartArgument(0);
+        if (node.argumentRefs.length == 1) {
+          Primitive index = node.argument(0);
           if (lattice.isDefinitelyString(receiverValue) &&
               lattice.isDefinitelyInt(getValue(index))) {
             CpsFragment cps = new CpsFragment(node.sourceInformation);
@@ -1445,7 +1447,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
   /// Returns `true` if the node was replaced.
   Primitive specializeFieldAccess(InvokeMethod node) {
     if (!node.selector.isGetter && !node.selector.isSetter) return null;
-    AbstractConstantValue receiver = getValue(node.dartReceiver);
+    AbstractConstantValue receiver = getValue(node.receiver);
     Element target =
         typeSystem.locateSingleElement(receiver.type, node.selector);
     if (target is! FieldElement) return null;
@@ -1455,13 +1457,13 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       return null;
     }
     if (node.selector.isGetter) {
-      return new GetField(node.dartReceiver, target);
+      return new GetField(node.receiver, target);
     } else {
       if (target.isFinal) return null;
       assert(node.hasNoUses);
-      return new SetField(node.dartReceiver,
+      return new SetField(node.receiver,
                           target,
-                          node.dartArgument(0));
+                          node.argument(0));
     }
   }
 
@@ -1515,7 +1517,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
   ///
   /// Returns `true` if the node was replaced.
   specializeIndexableAccess(InvokeMethod node) {
-    Primitive receiver = node.dartReceiver;
+    Primitive receiver = node.receiver;
     AbstractConstantValue receiverValue = getValue(receiver);
     if (!typeSystem.isDefinitelyIndexable(receiverValue.type,
             allowNull: true)) {
@@ -1532,7 +1534,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
             return null;
           }
           CpsFragment cps = new CpsFragment(node.sourceInformation);
-          Primitive newLength = node.dartArgument(0);
+          Primitive newLength = node.argument(0);
           if (!typeSystem.isDefinitelyUint(newLength.type)) {
             // TODO(asgerf): We could let the SetLength instruction throw for
             // negative right-hand sides (see length setter in js_array.dart).
@@ -1557,7 +1559,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         return null;
 
       case '[]':
-        Primitive index = node.dartArgument(0);
+        Primitive index = node.argument(0);
         CpsFragment cps = new CpsFragment(node.sourceInformation);
         receiver = makeBoundsCheck(cps, receiver, index);
         GetIndex get = cps.letPrim(new GetIndex(receiver, index));
@@ -1571,8 +1573,8 @@ class TransformingVisitor extends DeepRecursiveVisitor {
                 allowNull: true)) {
           return null;
         }
-        Primitive index = node.dartArgument(0);
-        Primitive value = node.dartArgument(1);
+        Primitive index = node.argument(0);
+        Primitive value = node.argument(1);
         CpsFragment cps = new CpsFragment(node.sourceInformation);
         receiver = makeBoundsCheck(cps, receiver, index);
         cps.letPrim(new SetIndex(receiver, index, value));
@@ -1610,7 +1612,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
   ///
   /// Returns `true` if the node was replaced.
   CpsFragment specializeArrayAccess(InvokeMethod node) {
-    Primitive list = node.dartReceiver;
+    Primitive list = node.receiver;
     AbstractConstantValue listValue = getValue(list);
     // Ensure that the object is a native list or null.
     if (!lattice.isDefinitelyArray(listValue, allowNull: true)) {
@@ -1629,7 +1631,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
           return null;
         }
         if (!isExtendable) return null;
-        Primitive addedItem = node.dartArgument(0);
+        Primitive addedItem = node.argument(0);
         CpsFragment cps = new CpsFragment(sourceInfo);
         cps.invokeBuiltin(BuiltinMethod.Push,
             list,
@@ -1661,7 +1663,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
           return null;
         }
         if (!isExtendable) return null;
-        Primitive addedList = node.dartArgument(0);
+        Primitive addedList = node.argument(0);
         // Rewrite addAll([x1, ..., xN]) to push(x1), ..., push(xN).
         // Ensure that the list is not mutated between creation and use.
         // We aim for the common case where this is the only use of the list,
@@ -1688,7 +1690,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
           return null;
         }
         if (listValue.isNullable) return null;
-        Primitive index = node.dartArgument(0);
+        Primitive index = node.argument(0);
         if (!lattice.isDefinitelyInt(getValue(index))) return null;
         CpsFragment cps = new CpsFragment(node.sourceInformation);
         list = makeBoundsCheck(cps, list, index);
@@ -1711,6 +1713,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         Primitive result = cps.inlineFunction(target,
             node.receiver,
             node.arguments.toList(),
+            interceptor: node.interceptor,
             hint: node.hint);
         node.replaceUsesWith(result);
         return cps;
@@ -1898,7 +1901,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     assert(!isInterceptedSelector(call));
     assert(call.argumentCount == node.argumentRefs.length);
 
-    Primitive tearOff = node.dartReceiver.effectiveDefinition;
+    Primitive tearOff = node.receiver.effectiveDefinition;
     // Note: We don't know if [tearOff] is actually a tear-off.
     // We name variables based on the pattern we are trying to match.
 
@@ -2028,7 +2031,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     // Accesses to closed-over values are field access primitives.  We we don't
     // inline if there are other uses of 'this' since that could be an escape or
     // a recursive call.
-    for (Reference ref = target.thisParameter.firstRef;
+    for (Reference ref = target.receiverParameter.firstRef;
          ref != null;
          ref = ref.next) {
       Node use = ref.parent;
@@ -2074,13 +2077,13 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     }
     node.effects =
         Effects.from(compiler.world.getSideEffectsOfElement(target));
-    TypeMask receiverType = node.dartReceiver.type;
+    TypeMask receiverType = node.receiver.type;
     if (node.callingConvention == CallingConvention.Intercepted &&
         typeSystem.areDisjoint(receiverType, typeSystem.interceptorType)) {
       // Some direct calls take an interceptor because the target class is
       // mixed into a native class.  If it is known at the call site that the
       // receiver is non-intercepted, get rid of the interceptor.
-      node.receiverRef.changeTo(node.dartReceiver);
+      node.interceptorRef.changeTo(node.receiver);
     }
   }
 
@@ -2094,7 +2097,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         specializeClosureCall(node);
     if (specialized != null) return specialized;
 
-    TypeMask receiverType = node.dartReceiver.type;
+    TypeMask receiverType = node.receiver.type;
     node.mask = typeSystem.intersection(node.mask, receiverType);
 
     node.effects = Effects.from(
@@ -2109,16 +2112,13 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         typeSystem.areDisjoint(receiverType, typeSystem.interceptorType)) {
       // Use the Dart receiver as the JS receiver. This changes the wording of
       // the error message when the receiver is null, but we accept this.
-      node.receiverRef.changeTo(node.dartReceiver);
+      node.interceptorRef.changeTo(node.receiver);
 
       // Replace the extra receiver argument with a dummy value if the
       // target definitely does not use it.
       if (typeSystem.targetIgnoresReceiverArgument(receiverType,
             node.selector)) {
-        Constant dummy = makeConstantPrimitive(new IntConstantValue(0));
-        new LetPrim(dummy).insertAbove(node.parent);
-        node.argumentRefs[0].changeTo(dummy);
-        node.callingConvention = CallingConvention.DummyIntercepted;
+        node.makeDummyIntercepted();
       }
     }
   }
@@ -2155,11 +2155,12 @@ class TransformingVisitor extends DeepRecursiveVisitor {
             Selectors.toString_, value.type);
         if (typeSystem.isDefinitelyString(toStringReturn)) {
           CpsFragment cps = new CpsFragment(node.sourceInformation);
-          Primitive invoke = cps.invokeMethod(argument,
+          Primitive invoke = cps.invokeMethod(
+              argument,
               Selectors.toString_,
               value.type,
-              [cps.makeZero()],
-              CallingConvention.DummyIntercepted);
+              [],
+              callingConvention: CallingConvention.DummyIntercepted);
           node.replaceUsesWith(invoke);
           return cps;
         }
@@ -2680,30 +2681,19 @@ class TypePropagationVisitor implements Visitor {
   void visit(Node node) { node.accept(this); }
 
   void visitFunctionDefinition(FunctionDefinition node) {
-    bool isIntercepted = backend.isInterceptedMethod(node.element);
-
+    if (node.interceptorParameter != null) {
+      setValue(node.interceptorParameter, nonConstant(typeSystem.nonNullType));
+    }
     // If the abstract value of the function parameters is Nothing, use the
     // inferred parameter type.  Otherwise (e.g., when inlining) do not
     // change the abstract value.
-    if (node.thisParameter != null && getValue(node.thisParameter).isNothing) {
-      if (isIntercepted &&
-          !typeSystem.methodIgnoresReceiverArgument(node.element)) {
-        setValue(node.thisParameter, nonConstant(typeSystem.nonNullType));
-      } else {
-        setValue(node.thisParameter,
-            nonConstant(typeSystem.getReceiverType(node.element)));
-      }
-    }
-    if (isIntercepted && getValue(node.parameters[0]).isNothing) {
-      if (typeSystem.methodIgnoresReceiverArgument(node.element)) {
-        setValue(node.parameters[0], nonConstant());
-      } else {
-        setValue(node.parameters[0],
-            nonConstant(typeSystem.getReceiverType(node.element)));
-      }
+    if (node.receiverParameter != null &&
+        getValue(node.receiverParameter).isNothing) {
+      setValue(node.receiverParameter,
+          nonConstant(typeSystem.getReceiverType(node.element)));
     }
     bool hasParameterWithoutValue = false;
-    for (Parameter param in node.parameters.skip(isIntercepted ? 1 : 0)) {
+    for (Parameter param in node.parameters) {
       if (getValue(param).isNothing) {
         TypeMask type = param.hint is ParameterElement
             ? typeSystem.getParameterType(param.hint)
@@ -2773,7 +2763,7 @@ class TypePropagationVisitor implements Visitor {
   }
 
   void visitInvokeMethod(InvokeMethod node) {
-    AbstractConstantValue receiver = getValue(node.dartReceiver);
+    AbstractConstantValue receiver = getValue(node.receiver);
     if (receiver.isNothing) {
       return setResult(node, lattice.nothing);
     }
@@ -2799,7 +2789,7 @@ class TypePropagationVisitor implements Visitor {
 
     if (node.selector.isCall) {
       if (node.selector == Selectors.codeUnitAt) {
-        AbstractConstantValue right = getValue(node.dartArgument(0));
+        AbstractConstantValue right = getValue(node.argument(0));
         AbstractConstantValue result =
             lattice.codeUnitAtSpecial(receiver, right);
         return finish(result, canReplace: !receiver.isNullable);
@@ -2808,7 +2798,7 @@ class TypePropagationVisitor implements Visitor {
     }
 
     if (node.selector == Selectors.index) {
-      AbstractConstantValue right = getValue(node.dartArgument(0));
+      AbstractConstantValue right = getValue(node.argument(0));
       AbstractConstantValue result = lattice.indexSpecial(receiver, right);
       return finish(result, canReplace: !receiver.isNullable);
     }
@@ -2819,7 +2809,7 @@ class TypePropagationVisitor implements Visitor {
 
     // Calculate the resulting constant if possible.
     String opname = node.selector.name;
-    if (node.dartArgumentsLength == 0) {
+    if (node.argumentRefs.length == 0) {
       // Unary operator.
       if (opname == "unary-") {
         opname = "-";
@@ -2827,9 +2817,9 @@ class TypePropagationVisitor implements Visitor {
       UnaryOperator operator = UnaryOperator.parse(opname);
       AbstractConstantValue result = lattice.unaryOp(operator, receiver);
       return finish(result, canReplace: !receiver.isNullable);
-    } else if (node.dartArgumentsLength == 1) {
+    } else if (node.argumentRefs.length == 1) {
       // Binary operator.
-      AbstractConstantValue right = getValue(node.dartArgument(0));
+      AbstractConstantValue right = getValue(node.argument(0));
       BinaryOperator operator = BinaryOperator.parse(opname);
       AbstractConstantValue result =
           lattice.binaryOp(operator, receiver, right);

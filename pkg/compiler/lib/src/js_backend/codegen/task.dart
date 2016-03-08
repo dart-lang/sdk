@@ -295,7 +295,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
   tree_ir.FunctionDefinition compileToTreeIr(cps.FunctionDefinition cpsNode) {
     applyCpsPass(new Finalize(backend), cpsNode);
     tree_builder.Builder builder = new tree_builder.Builder(
-        reporter.internalError);
+        reporter.internalError, glue);
     tree_ir.FunctionDefinition treeNode =
         treeBuilderTask.measure(() => builder.buildFunction(cpsNode));
     assert(treeNode != null);

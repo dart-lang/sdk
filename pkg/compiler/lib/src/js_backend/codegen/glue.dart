@@ -299,4 +299,10 @@ class Glue {
   bool mayGenerateInstanceofCheck(DartType type) {
     return _backend.mayGenerateInstanceofCheck(type);
   }
+
+  bool methodUsesReceiverArgument(FunctionElement function) {
+    assert(isInterceptedMethod(function));
+    ClassElement class_ = function.enclosingClass.declaration;
+    return isInterceptorClass(class_) || isUsedAsMixin(class_);
+  }
 }

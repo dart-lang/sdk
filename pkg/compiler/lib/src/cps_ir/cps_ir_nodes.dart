@@ -65,14 +65,15 @@ abstract class Node {
   ///
   /// Avoid using nodes as keys if there is a chance that two keys are the
   /// same node.
-  String debugString([Map annotations]) {
+  String debugString([Map annotations = const {}]) {
     return new SExpressionStringifier()
         .withAnnotations(annotations)
+        .withTypes()
         .visit(this);
   }
 
   /// Prints the result of [debugString].
-  void debugPrint([Map annotations]) {
+  void debugPrint([Map annotations = const {}]) {
     print(debugString(annotations));
   }
 }
@@ -416,18 +417,20 @@ class MutableVariable extends Variable<MutableVariable> {
 /// continuation to invoke when returning from the function.
 class FunctionDefinition extends InteriorNode {
   final ExecutableElement element;
-  final Parameter thisParameter;
+  Parameter interceptorParameter;
+  final Parameter receiverParameter;
   final List<Parameter> parameters;
   final Continuation returnContinuation;
   Expression body;
 
-  FunctionDefinition(this.element, this.thisParameter, this.parameters,
-      this.returnContinuation, this.body);
+  FunctionDefinition(this.element, this.receiverParameter, this.parameters,
+      this.returnContinuation, this.body, {this.interceptorParameter});
 
   accept(BlockVisitor visitor) => visitor.visitFunctionDefinition(this);
 
   void setParentPointers() {
-    if (thisParameter != null) thisParameter.parent = this;
+    if (interceptorParameter != null) interceptorParameter.parent = this;
+    if (receiverParameter != null) receiverParameter.parent = this;
     _setParentsOnNodes(parameters, this);
     returnContinuation.parent = this;
     if (body != null) body.parent = this;
@@ -491,6 +494,9 @@ enum CallingConvention {
 ///
 /// This class defines the common interface of function invocations.
 abstract class InvocationPrimitive extends UnsafePrimitive {
+  Reference<Primitive> get interceptorRef => null;
+  Primitive get interceptor => interceptorRef?.definition;
+
   Reference<Primitive> get receiverRef => null;
   Primitive get receiver => receiverRef?.definition;
 
@@ -498,29 +504,7 @@ abstract class InvocationPrimitive extends UnsafePrimitive {
   Primitive argument(int n) => argumentRefs[n].definition;
   Iterable<Primitive> get arguments => _dereferenceList(argumentRefs);
 
-  Reference<Primitive> get dartReceiverRef => null;
-  Primitive get dartReceiver => dartReceiverRef?.definition;
-
   CallingConvention get callingConvention => CallingConvention.Normal;
-
-  Reference<Primitive> dartArgumentReference(int n) {
-    switch (callingConvention) {
-      case CallingConvention.Normal:
-      case CallingConvention.OneShotIntercepted:
-        return argumentRefs[n];
-
-      case CallingConvention.Intercepted:
-      case CallingConvention.DummyIntercepted:
-        return argumentRefs[n + 1];
-    }
-  }
-
-  Primitive dartArgument(int n) => dartArgumentReference(n).definition;
-
-  int get dartArgumentsLength =>
-      argumentRefs.length -
-      (callingConvention == CallingConvention.Intercepted ||
-          callingConvention == CallingConvention.DummyIntercepted ? 1 : 0);
 
   SourceInformation get sourceInformation;
 }
@@ -565,34 +549,55 @@ class InvokeStatic extends InvocationPrimitive {
 /// The [selector] records the names of named arguments. The value of named
 /// arguments occur at the end of the [arguments] list, in normalized order.
 class InvokeMethod extends InvocationPrimitive {
+  Reference<Primitive> interceptorRef;
   Reference<Primitive> receiverRef;
   Selector selector;
   TypeMask mask;
   final List<Reference<Primitive>> argumentRefs;
   final SourceInformation sourceInformation;
+  CallingConvention _callingConvention;
 
-  CallingConvention callingConvention = CallingConvention.Normal;
-
-  Reference<Primitive> get dartReceiverRef {
-    return callingConvention == CallingConvention.Intercepted
-        ? argumentRefs[0]
-        : receiverRef;
-  }
+  CallingConvention get callingConvention => _callingConvention;
 
   InvokeMethod(
       Primitive receiver, this.selector, this.mask, List<Primitive> arguments,
       {this.sourceInformation,
-      this.callingConvention: CallingConvention.Normal})
+       CallingConvention callingConvention,
+       Primitive interceptor})
       : this.receiverRef = new Reference<Primitive>(receiver),
-        this.argumentRefs = _referenceList(arguments);
+        this.argumentRefs = _referenceList(arguments),
+        this.interceptorRef = _optionalReference(interceptor),
+        this._callingConvention = callingConvention ??
+            (interceptor != null
+                ? CallingConvention.Intercepted
+                : CallingConvention.Normal);
 
   accept(Visitor visitor) => visitor.visitInvokeMethod(this);
 
   bool get hasValue => true;
 
   void setParentPointers() {
+    interceptorRef?.parent = this;
     receiverRef.parent = this;
     _setParentsOnList(argumentRefs, this);
+  }
+
+  void makeIntercepted(Primitive interceptor) {
+    interceptorRef?.unlink();
+    interceptorRef = new Reference<Primitive>(interceptor)..parent = this;
+    _callingConvention = CallingConvention.Intercepted;
+  }
+
+  void makeOneShotIntercepted() {
+    interceptorRef?.unlink();
+    interceptorRef = null;
+    _callingConvention = CallingConvention.OneShotIntercepted;
+  }
+
+  void makeDummyIntercepted() {
+    interceptorRef?.unlink();
+    interceptorRef = null;
+    _callingConvention = CallingConvention.DummyIntercepted;
   }
 }
 
@@ -616,37 +621,37 @@ class InvokeMethod extends InvocationPrimitive {
 /// All optional arguments declared by [target] are passed in explicitly, and
 /// occur at the end of [arguments] list, in normalized order.
 class InvokeMethodDirectly extends InvocationPrimitive {
+  Reference<Primitive> interceptorRef;
   Reference<Primitive> receiverRef;
   final FunctionElement target;
   final Selector selector;
   final List<Reference<Primitive>> argumentRefs;
   final SourceInformation sourceInformation;
 
-  CallingConvention callingConvention;
-
-  Reference<Primitive> get dartReceiverRef {
-    return callingConvention == CallingConvention.Intercepted
-        ? argumentRefs[0]
-        : receiverRef;
-  }
-
   InvokeMethodDirectly(Primitive receiver, this.target, this.selector,
       List<Primitive> arguments, this.sourceInformation,
-      {this.callingConvention: CallingConvention.Normal})
+      {Primitive interceptor})
       : this.receiverRef = new Reference<Primitive>(receiver),
-        this.argumentRefs = _referenceList(arguments);
+        this.argumentRefs = _referenceList(arguments),
+        this.interceptorRef = _optionalReference(interceptor);
 
   accept(Visitor visitor) => visitor.visitInvokeMethodDirectly(this);
 
   bool get hasValue => true;
 
   void setParentPointers() {
+    interceptorRef?.parent = this;
     receiverRef.parent = this;
     _setParentsOnList(argumentRefs, this);
   }
 
   bool get isConstructorBodyCall => target is ConstructorBodyElement;
   bool get isTearOff => selector.isGetter && !target.isGetter;
+
+  void makeIntercepted(Primitive interceptor) {
+    interceptorRef?.unlink();
+    interceptorRef = new Reference<Primitive>(interceptor)..parent = this;
+  }
 }
 
 /// Non-const call to a constructor.
@@ -2273,7 +2278,8 @@ class DeepRecursiveVisitor implements Visitor {
   processFunctionDefinition(FunctionDefinition node) {}
   visitFunctionDefinition(FunctionDefinition node) {
     processFunctionDefinition(node);
-    if (node.thisParameter != null) visit(node.thisParameter);
+    if (node.interceptorParameter != null) visit(node.interceptorParameter);
+    if (node.receiverParameter != null) visit(node.receiverParameter);
     node.parameters.forEach(visit);
     visit(node.body);
   }
@@ -2331,6 +2337,9 @@ class DeepRecursiveVisitor implements Visitor {
   processInvokeMethod(InvokeMethod node) {}
   visitInvokeMethod(InvokeMethod node) {
     processInvokeMethod(node);
+    if (node.interceptorRef != null) {
+      processReference(node.interceptorRef);
+    }
     processReference(node.receiverRef);
     node.argumentRefs.forEach(processReference);
   }
@@ -2338,6 +2347,9 @@ class DeepRecursiveVisitor implements Visitor {
   processInvokeMethodDirectly(InvokeMethodDirectly node) {}
   visitInvokeMethodDirectly(InvokeMethodDirectly node) {
     processInvokeMethodDirectly(node);
+    if (node.interceptorRef != null) {
+      processReference(node.interceptorRef);
+    }
     processReference(node.receiverRef);
     node.argumentRefs.forEach(processReference);
   }
@@ -2626,7 +2638,8 @@ class TrampolineRecursiveVisitor extends DeepRecursiveVisitor {
 
   visitFunctionDefinition(FunctionDefinition node) {
     processFunctionDefinition(node);
-    if (node.thisParameter != null) visit(node.thisParameter);
+    if (node.interceptorParameter != null) visit(node.interceptorParameter);
+    if (node.receiverParameter != null) visit(node.receiverParameter);
     node.parameters.forEach(visit);
     visit(node.body);
   }
@@ -2775,13 +2788,14 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
     return new InvokeMethod(getCopy(node.receiverRef), node.selector, node.mask,
         getList(node.argumentRefs),
         sourceInformation: node.sourceInformation,
-        callingConvention: node.callingConvention);
+        callingConvention: node.callingConvention,
+        interceptor: getCopyOrNull(node.interceptorRef));
   }
 
   Definition visitInvokeMethodDirectly(InvokeMethodDirectly node) {
     return new InvokeMethodDirectly(getCopy(node.receiverRef), node.target,
         node.selector, getList(node.argumentRefs), node.sourceInformation,
-        callingConvention: node.callingConvention);
+        interceptor: getCopyOrNull(node.interceptorRef));
   }
 
   Definition visitInvokeConstructor(InvokeConstructor node) {
@@ -3007,9 +3021,12 @@ class CopyingVisitor extends TrampolineRecursiveVisitor {
     _first = _current = null;
     // Definitions are copied where they are bound, before processing
     // expressions in the scope of their binding.
-    Parameter thisParameter = node.thisParameter == null
+    Parameter thisParameter = node.receiverParameter == null
         ? null
-        : _definitions.copy(node.thisParameter);
+        : _definitions.copy(node.receiverParameter);
+    Parameter interceptorParameter = node.interceptorParameter == null
+        ? null
+        : _definitions.copy(node.interceptorParameter);
     List<Parameter> parameters =
         node.parameters.map(_definitions.copy).toList();
     // Though the return continuation's parameter does not have any uses,
@@ -3022,7 +3039,8 @@ class CopyingVisitor extends TrampolineRecursiveVisitor {
 
     visit(node.body);
     FunctionDefinition copy = new FunctionDefinition(
-        node.element, thisParameter, parameters, returnContinuation, _first);
+        node.element, thisParameter, parameters, returnContinuation, _first,
+        interceptorParameter: interceptorParameter);
     _first = _current = null;
     return copy;
   }
