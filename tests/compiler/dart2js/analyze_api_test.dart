@@ -19,11 +19,6 @@ import 'package:compiler/src/diagnostics/messages.dart' show MessageKind;
  */
 // TODO(johnniwinther): Support canonical URIs as keys.
 const Map<String, List<String>> WHITE_LIST = const {
-  "html_dart2js.dart": const [
-    // These suppressions are tracked by issue 25928.
-    "The getter 'clipboardData' is not defined for the class 'Event'",
-    "The getter 'clipboardData' is not defined for the class 'KeyboardEvent'",
-  ]
 };
 
 void main() {

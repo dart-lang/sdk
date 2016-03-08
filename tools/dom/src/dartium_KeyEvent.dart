@@ -113,8 +113,6 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** The currently registered target for this event. */
   EventTarget get currentTarget => _currentTarget;
 
-  /** Accessor to the clipboardData available for this event. */
-  DataTransfer get clipboardData => _parent.clipboardData;
   /** True if the ctrl key is pressed during this event. */
   bool get ctrlKey => _parent.ctrlKey;
   int get detail => _parent.detail;

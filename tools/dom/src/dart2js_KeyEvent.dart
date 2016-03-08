@@ -185,8 +185,6 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   static EventStreamProvider<KeyEvent> keyPressEvent =
       new _KeyboardEventHandler('keypress');
 
-  /** Accessor to the clipboardData available for this event. */
-  DataTransfer get clipboardData => _parent.clipboardData;
   String get code => _parent.code;
   /** True if the ctrl key is pressed during this event. */
   bool get ctrlKey => _parent.ctrlKey;

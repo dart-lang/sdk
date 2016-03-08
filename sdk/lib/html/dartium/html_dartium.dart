@@ -11614,12 +11614,12 @@ class Document extends Node
   /// Stream of `copy` events handled by this [Document].
   @DomName('Document.oncopy')
   @DocsEditable()
-  Stream<Event> get onCopy => Element.copyEvent.forTarget(this);
+  Stream<ClipboardEvent> get onCopy => Element.copyEvent.forTarget(this);
 
   /// Stream of `cut` events handled by this [Document].
   @DomName('Document.oncut')
   @DocsEditable()
-  Stream<Event> get onCut => Element.cutEvent.forTarget(this);
+  Stream<ClipboardEvent> get onCut => Element.cutEvent.forTarget(this);
 
   /// Stream of `doubleclick` events handled by this [Document].
   @DomName('Document.ondblclick')
@@ -11771,7 +11771,7 @@ class Document extends Node
   /// Stream of `paste` events handled by this [Document].
   @DomName('Document.onpaste')
   @DocsEditable()
-  Stream<Event> get onPaste => Element.pasteEvent.forTarget(this);
+  Stream<ClipboardEvent> get onPaste => Element.pasteEvent.forTarget(this);
 
   @DomName('Document.onpause')
   @DocsEditable()
@@ -13850,12 +13850,12 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
   /// Stream of `copy` events handled by this [Element].
   @DomName('Element.oncopy')
   @DocsEditable()
-  ElementStream<Event> get onCopy;
+  ElementStream<ClipboardEvent> get onCopy;
 
   /// Stream of `cut` events handled by this [Element].
   @DomName('Element.oncut')
   @DocsEditable()
-  ElementStream<Event> get onCut;
+  ElementStream<ClipboardEvent> get onCut;
 
   /// Stream of `doubleclick` events handled by this [Element].
   @DomName('Element.ondblclick')
@@ -14103,7 +14103,7 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
   /// Stream of `paste` events handled by this [Element].
   @DomName('Element.onpaste')
   @DocsEditable()
-  ElementStream<Event> get onPaste;
+  ElementStream<ClipboardEvent> get onPaste;
 
   @DomName('Element.onpause')
   @DocsEditable()
@@ -14386,12 +14386,12 @@ class _FrozenElementList extends ListBase
   /// Stream of `copy` events handled by this [Element].
   @DomName('Element.oncopy')
   @DocsEditable()
-  ElementStream<Event> get onCopy => Element.copyEvent._forElementList(this);
+  ElementStream<ClipboardEvent> get onCopy => Element.copyEvent._forElementList(this);
 
   /// Stream of `cut` events handled by this [Element].
   @DomName('Element.oncut')
   @DocsEditable()
-  ElementStream<Event> get onCut => Element.cutEvent._forElementList(this);
+  ElementStream<ClipboardEvent> get onCut => Element.cutEvent._forElementList(this);
 
   /// Stream of `doubleclick` events handled by this [Element].
   @DomName('Element.ondblclick')
@@ -14639,7 +14639,7 @@ class _FrozenElementList extends ListBase
   /// Stream of `paste` events handled by this [Element].
   @DomName('Element.onpaste')
   @DocsEditable()
-  ElementStream<Event> get onPaste => Element.pasteEvent._forElementList(this);
+  ElementStream<ClipboardEvent> get onPaste => Element.pasteEvent._forElementList(this);
 
   @DomName('Element.onpause')
   @DocsEditable()
@@ -15926,7 +15926,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    */
   @DomName('Element.copyEvent')
   @DocsEditable()
-  static const EventStreamProvider<Event> copyEvent = const EventStreamProvider<Event>('copy');
+  static const EventStreamProvider<ClipboardEvent> copyEvent = const EventStreamProvider<ClipboardEvent>('copy');
 
   /**
    * Static factory designed to expose `cut` events to event
@@ -15936,7 +15936,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    */
   @DomName('Element.cutEvent')
   @DocsEditable()
-  static const EventStreamProvider<Event> cutEvent = const EventStreamProvider<Event>('cut');
+  static const EventStreamProvider<ClipboardEvent> cutEvent = const EventStreamProvider<ClipboardEvent>('cut');
 
   /**
    * Static factory designed to expose `doubleclick` events to event
@@ -16267,7 +16267,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
    */
   @DomName('Element.pasteEvent')
   @DocsEditable()
-  static const EventStreamProvider<Event> pasteEvent = const EventStreamProvider<Event>('paste');
+  static const EventStreamProvider<ClipboardEvent> pasteEvent = const EventStreamProvider<ClipboardEvent>('paste');
 
   @DomName('Element.pauseEvent')
   @DocsEditable()
@@ -16980,12 +16980,12 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
   /// Stream of `copy` events handled by this [Element].
   @DomName('Element.oncopy')
   @DocsEditable()
-  ElementStream<Event> get onCopy => copyEvent.forElement(this);
+  ElementStream<ClipboardEvent> get onCopy => copyEvent.forElement(this);
 
   /// Stream of `cut` events handled by this [Element].
   @DomName('Element.oncut')
   @DocsEditable()
-  ElementStream<Event> get onCut => cutEvent.forElement(this);
+  ElementStream<ClipboardEvent> get onCut => cutEvent.forElement(this);
 
   /// Stream of `doubleclick` events handled by this [Element].
   @DomName('Element.ondblclick')
@@ -17233,7 +17233,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
   /// Stream of `paste` events handled by this [Element].
   @DomName('Element.onpaste')
   @DocsEditable()
-  ElementStream<Event> get onPaste => pasteEvent.forElement(this);
+  ElementStream<ClipboardEvent> get onPaste => pasteEvent.forElement(this);
 
   @DomName('Element.onpause')
   @DocsEditable()
@@ -50739,8 +50739,6 @@ class KeyEvent extends _WrappedEvent implements KeyboardEvent {
   /** The currently registered target for this event. */
   EventTarget get currentTarget => _currentTarget;
 
-  /** Accessor to the clipboardData available for this event. */
-  DataTransfer get clipboardData => _parent.clipboardData;
   /** True if the ctrl key is pressed during this event. */
   bool get ctrlKey => _parent.ctrlKey;
   int get detail => _parent.detail;
@@ -50827,8 +50825,6 @@ class _WrappedEvent implements Event {
   bool get bubbles => wrapped.bubbles;
 
   bool get cancelable => wrapped.cancelable;
-
-  DataTransfer get clipboardData => wrapped.clipboardData;
 
   EventTarget get currentTarget => wrapped.currentTarget;
 
