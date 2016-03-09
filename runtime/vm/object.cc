@@ -6154,11 +6154,15 @@ bool Function::HasCompatibleParametersWith(const Function& other,
         Report::kError,
         Heap::kNew,
         "signature type '%s' of function '%s' is not a subtype of signature "
-        "type '%s' of function '%s'",
+        "type '%s' of function '%s' where\n%s%s",
         String::Handle(UserVisibleSignature()).ToCString(),
         String::Handle(UserVisibleName()).ToCString(),
         String::Handle(other.UserVisibleSignature()).ToCString(),
-        String::Handle(other.UserVisibleName()).ToCString());
+        String::Handle(other.UserVisibleName()).ToCString(),
+        String::Handle(FunctionType::Handle(
+            SignatureType()).EnumerateURIs()).ToCString(),
+        String::Handle(FunctionType::Handle(
+            other.SignatureType()).EnumerateURIs()).ToCString());
     return false;
   }
   // We should also check that if the other function explicitly specifies a
@@ -7966,7 +7970,7 @@ RawString* TokenStream::GenerateSource(TokenPosition start_pos,
         }
       }
       if ((prev != Token::kINTERPOL_VAR) && (prev != Token::kINTERPOL_END)) {
-        literals.Add(Symbols::DoubleQuotes());
+        literals.Add(Symbols::DoubleQuote());
       }
       if (escape_characters) {
         literal = String::EscapeSpecialCharacters(literal);
@@ -7975,7 +7979,7 @@ RawString* TokenStream::GenerateSource(TokenPosition start_pos,
         literals.Add(literal);
       }
       if ((next != Token::kINTERPOL_VAR) && (next != Token::kINTERPOL_START)) {
-        literals.Add(Symbols::DoubleQuotes());
+        literals.Add(Symbols::DoubleQuote());
       }
     } else if (curr == Token::kINTERPOL_VAR) {
       literals.Add(Symbols::Dollar());
@@ -15328,8 +15332,10 @@ RawString* AbstractType::UserVisibleNameWithURI() const {
   Zone* zone = Thread::Current()->zone();
   GrowableHandlePtrArray<const String> pieces(zone, 3);
   pieces.Add(String::Handle(zone, BuildName(kUserVisibleName)));
-  pieces.Add(Symbols::SpaceWhereNewLine());
-  pieces.Add(String::Handle(zone, EnumerateURIs()));
+  if (!IsDynamicType() && !IsVoidType()) {
+    pieces.Add(Symbols::SpaceWhereNewLine());
+    pieces.Add(String::Handle(zone, EnumerateURIs()));
+  }
   return Symbols::FromConcatAll(pieces);
 }
 
@@ -16050,7 +16056,7 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
 
 
 RawString* Type::EnumerateURIs() const {
-  if (IsDynamicType()) {
+  if (IsDynamicType() || IsVoidType()) {
     return Symbols::Empty().raw();
   }
   Zone* zone = Thread::Current()->zone();
@@ -16540,9 +16546,7 @@ RawString* FunctionType::EnumerateURIs() const {
   }
   // Handle result type last, since it appears last in the user visible name.
   type = sig_fun.result_type();
-  if (!type.IsDynamicType() && !type.IsVoidType()) {
-    pieces.Add(String::Handle(zone, type.EnumerateURIs()));
-  }
+  pieces.Add(String::Handle(zone, type.EnumerateURIs()));
   return Symbols::FromConcatAll(pieces);
 }
 
@@ -16751,7 +16755,20 @@ RawAbstractType* TypeRef::Canonicalize(TrailPtr trail) const {
 
 
 RawString* TypeRef::EnumerateURIs() const {
-  return Symbols::Empty().raw();  // Break cycle.
+  const AbstractType& ref_type = AbstractType::Handle(type());
+  ASSERT(!ref_type.IsDynamicType() && !ref_type.IsVoidType());
+  Zone* zone = Thread::Current()->zone();
+  GrowableHandlePtrArray<const String> pieces(zone, 6);
+  const Class& cls = Class::Handle(zone, ref_type.type_class());
+  pieces.Add(Symbols::TwoSpaces());
+  pieces.Add(String::Handle(zone, cls.UserVisibleName()));
+  // Break cycle by not printing type arguments, but '<optimized out>' instead.
+  pieces.Add(Symbols::OptimizedOut());
+  pieces.Add(Symbols::SpaceIsFromSpace());
+  const Library& library = Library::Handle(zone, cls.library());
+  pieces.Add(String::Handle(zone, library.url()));
+  pieces.Add(Symbols::NewLine());
+  return Symbols::FromConcatAll(pieces);
 }
 
 
@@ -16920,12 +16937,14 @@ bool TypeParameter::CheckBound(const AbstractType& bounded_type,
           Report::kMalboundedType,
           Heap::kNew,
           "type parameter '%s' of class '%s' must extend bound '%s', "
-          "but type argument '%s' is not a subtype of '%s'\n",
+          "but type argument '%s' is not a subtype of '%s' where\n%s%s",
           type_param_name.ToCString(),
           class_name.ToCString(),
           declared_bound_name.ToCString(),
           bounded_type_name.ToCString(),
-          upper_bound_name.ToCString());
+          upper_bound_name.ToCString(),
+          String::Handle(bounded_type.EnumerateURIs()).ToCString(),
+          String::Handle(upper_bound.EnumerateURIs()).ToCString());
     }
   }
   return false;

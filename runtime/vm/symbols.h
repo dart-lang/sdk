@@ -309,8 +309,6 @@ class ObjectPointerVisitor;
   V(NullThrownError, "NullThrownError")                                        \
   V(IsolateSpawnException, "IsolateSpawnException")                            \
   V(BooleanExpression, "boolean expression")                                   \
-  V(Malformed, "malformed")                                                    \
-  V(Malbounded, "malbounded")                                                  \
   V(MegamorphicMiss, "megamorphic_miss")                                       \
   V(CommaSpace, ", ")                                                          \
   V(ColonSpace, ": ")                                                          \
@@ -318,6 +316,9 @@ class ObjectPointerVisitor;
   V(SpaceExtendsSpace, " extends ")                                            \
   V(SpaceWhereNewLine, " where\n")                                             \
   V(SpaceIsFromSpace, " is from ")                                             \
+  V(InTypeCast, " in type cast")                                               \
+  V(TypeQuote, "type '")                                                       \
+  V(QuoteIsNotASubtypeOf, "' is not a subtype of ")                            \
   V(SpaceOfSpace, " of ")                                                      \
   V(SwitchExpr, ":switch_expr")                                                \
   V(TwoNewlines, "\n\n")                                                       \
@@ -499,8 +500,11 @@ class Symbols : public AllStatic {
   static const String& NewLine() {
     return *(symbol_handles_[kNullCharId + '\n']);
   }
-  static const String& DoubleQuotes() {
+  static const String& DoubleQuote() {
     return *(symbol_handles_[kNullCharId + '"']);
+  }
+  static const String& SingleQuote() {
+    return *(symbol_handles_[kNullCharId + '\'']);
   }
   static const String& LowercaseR() {
     return *(symbol_handles_[kNullCharId + 'r']);

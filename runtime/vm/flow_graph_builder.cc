@@ -1684,12 +1684,10 @@ void EffectGraphVisitor::BuildTypeCast(ComparisonNode* node) {
   ValueGraphVisitor for_value(owner());
   node->left()->Visit(&for_value);
   Append(for_value);
-  const String& dst_name = String::ZoneHandle(
-      Z, Symbols::New(Exceptions::kCastErrorDstName));
   if (CanSkipTypeCheck(node->token_pos(),
                        for_value.value(),
                        type,
-                       dst_name)) {
+                       Symbols::InTypeCast())) {
     ReturnValue(for_value.value());
     return;
   }
