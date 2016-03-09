@@ -813,6 +813,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       object_id_ring_(NULL),
       tag_table_(GrowableObjectArray::null()),
       deoptimized_code_array_(GrowableObjectArray::null()),
+      sticky_error_(Error::null()),
       background_compiler_(NULL),
       pending_service_extension_calls_(GrowableObjectArray::null()),
       registered_service_extension_handlers_(GrowableObjectArray::null()),
@@ -1864,6 +1865,9 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&deoptimized_code_array_));
 
+  visitor->VisitPointer(
+        reinterpret_cast<RawObject**>(&sticky_error_));
+
   // Visit the pending service extension calls.
   visitor->VisitPointer(
       reinterpret_cast<RawObject**>(&pending_service_extension_calls_));
@@ -2078,6 +2082,11 @@ void Isolate::TrackDeoptimizedCode(const Code& code) {
   // TODO(johnmccutchan): Scan this array and the isolate's profile before
   // old space GC and remove the keep_code flag.
   deoptimized_code.Add(code);
+}
+
+
+void Isolate::clear_sticky_error() {
+  sticky_error_ = Error::null();
 }
 
 
@@ -2592,6 +2601,13 @@ void Isolate::UnscheduleThread(Thread* thread,
   // so we create a MonitorLocker object which does not do any
   // no_safepoint_scope_depth increments/decrements.
   MonitorLocker ml(threads_lock(), false);
+  if (is_mutator) {
+    if (thread->sticky_error() != Error::null()) {
+      ASSERT(sticky_error_ == Error::null());
+      sticky_error_ = thread->sticky_error();
+      thread->clear_sticky_error();
+    }
+  }
   if (!bypass_safepoint) {
     // Ensure that the thread reports itself as being at a safepoint.
     thread->EnterSafepoint();

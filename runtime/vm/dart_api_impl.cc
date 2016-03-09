@@ -1605,10 +1605,13 @@ static void RunLoopDone(uword param) {
 
 
 DART_EXPORT Dart_Handle Dart_RunLoop() {
-  Thread* T = Thread::Current();
-  Isolate* I = T->isolate();
-  CHECK_API_SCOPE(T);
-  CHECK_CALLBACK_STATE(T);
+  Isolate* I;
+  {
+    Thread* T = Thread::Current();
+    I = T->isolate();
+    CHECK_API_SCOPE(T);
+    CHECK_CALLBACK_STATE(T);
+  }
   API_TIMELINE_BEGIN_END;
   // The message handler run loop does not expect to have a current isolate
   // so we exit the isolate here and enter it again after the runloop is done.
@@ -1627,13 +1630,14 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
     }
   }
   ::Dart_EnterIsolate(Api::CastIsolate(I));
-  if (T->sticky_error() != Object::null()) {
-    Dart_Handle error = Api::NewHandle(T, T->sticky_error());
-    T->clear_sticky_error();
+  if (I->sticky_error() != Object::null()) {
+    Dart_Handle error =
+        Api::NewHandle(Thread::Current(), I->sticky_error());
+    I->clear_sticky_error();
     return error;
   }
   if (FLAG_print_class_table) {
-    HANDLESCOPE(T);
+    HANDLESCOPE(Thread::Current());
     I->class_table()->Print();
   }
   return Api::Success();
