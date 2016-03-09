@@ -8371,7 +8371,7 @@ class ResolverTestCase extends EngineTestCase {
   }
 
   /**
-   * Asserts that [code] has errors with the given error codes.
+   * Asserts that [code] verifies, but has errors with the given error codes.
    *
    * Like [assertErrors], but takes a string of source code.
    */
@@ -8381,6 +8381,17 @@ class ResolverTestCase extends EngineTestCase {
     computeLibrarySourceErrors(source);
     assertErrors(source, errors);
     verify([source]);
+  }
+
+  /**
+   * Asserts that [code] has errors with the given error codes.
+   *
+   * Like [assertErrors], but takes a string of source code.
+   */
+  void assertErrorsInUnverifiedCode(String code, List<ErrorCode> errors) {
+    Source source = addSource(code);
+    computeLibrarySourceErrors(source);
+    assertErrors(source, errors);
   }
 
   /**
