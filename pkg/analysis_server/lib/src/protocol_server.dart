@@ -111,16 +111,17 @@ AnalysisError newAnalysisError_fromEngine(
     location = new Location(file, offset, length, startLine, startColumn);
   }
 
-  // Deafult to the error's severity if none is specified.
+  // Default to the error's severity if none is specified.
   errorSeverity ??= errorCode.errorSeverity;
 
   // done
   var severity = new AnalysisErrorSeverity(errorSeverity.name);
   var type = new AnalysisErrorType(errorCode.type.name);
   String message = error.message;
+  String code = errorCode.name.toLowerCase();
   String correction = error.correction;
   bool fix = hasFix(error.errorCode);
-  return new AnalysisError(severity, type, location, message,
+  return new AnalysisError(severity, type, location, message, code,
       correction: correction, hasFix: fix);
 }
 

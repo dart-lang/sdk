@@ -69,6 +69,7 @@ class AnalysisErrorTest {
       },
       MESSAGE: 'my message',
       CORRECTION: 'my correction',
+      CODE: 'ambiguous_export',
       HAS_FIX: false
     });
   }
@@ -87,6 +88,7 @@ class AnalysisErrorTest {
         START_COLUMN: 2
       },
       MESSAGE: 'my message',
+      CODE: 'ambiguous_export',
       HAS_FIX: false
     });
   }
@@ -105,6 +107,7 @@ class AnalysisErrorTest {
         START_COLUMN: -1
       },
       MESSAGE: 'my message',
+      CODE: 'ambiguous_export',
       HAS_FIX: false
     });
   }
