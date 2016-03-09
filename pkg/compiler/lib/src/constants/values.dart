@@ -389,6 +389,7 @@ class StringConstantValue extends PrimitiveConstantValue {
   DartType getType(CoreTypes types) => types.stringType;
 
   bool operator ==(var other) {
+    if (identical(this, other)) return true;
     if (other is !StringConstantValue) return false;
     StringConstantValue otherString = other;
     return hashCode == otherString.hashCode &&
@@ -461,6 +462,7 @@ class ListConstantValue extends ObjectConstantValue {
   bool get isList => true;
 
   bool operator ==(var other) {
+    if (identical(this, other)) return true;
     if (other is !ListConstantValue) return false;
     ListConstantValue otherList = other;
     if (hashCode != otherList.hashCode) return false;
@@ -525,6 +527,7 @@ class MapConstantValue extends ObjectConstantValue {
   bool get isMap => true;
 
   bool operator ==(var other) {
+    if (identical(this, other)) return true;
     if (other is !MapConstantValue) return false;
     MapConstantValue otherMap = other;
     if (hashCode != otherMap.hashCode) return false;
@@ -661,6 +664,7 @@ class ConstructedConstantValue extends ObjectConstantValue {
   bool get isConstructedObject => true;
 
   bool operator ==(var otherVar) {
+    if (identical(this, otherVar)) return true;
     if (otherVar is !ConstructedConstantValue) return false;
     ConstructedConstantValue other = otherVar;
     if (hashCode != other.hashCode) return false;
