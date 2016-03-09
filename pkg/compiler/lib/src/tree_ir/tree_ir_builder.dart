@@ -136,7 +136,8 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     returnContinuation = node.returnContinuation;
     phiTempVar = new Variable(node.element, null);
     Statement body = translateExpression(node.body);
-    return new FunctionDefinition(node.element, parameters, body);
+    return new FunctionDefinition(node.element, parameters, body,
+        sourceInformation: node.sourceInformation);
   }
 
   /// Returns a list of variables corresponding to the arguments to a method

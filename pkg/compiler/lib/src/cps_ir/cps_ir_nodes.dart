@@ -421,10 +421,17 @@ class FunctionDefinition extends InteriorNode {
   final Parameter receiverParameter;
   final List<Parameter> parameters;
   final Continuation returnContinuation;
+  final SourceInformation sourceInformation;
   Expression body;
 
-  FunctionDefinition(this.element, this.receiverParameter, this.parameters,
-      this.returnContinuation, this.body, {this.interceptorParameter});
+  FunctionDefinition(
+      this.element,
+      this.receiverParameter,
+      this.parameters,
+      this.returnContinuation,
+      this.body,
+      {this.interceptorParameter,
+       this.sourceInformation});
 
   accept(BlockVisitor visitor) => visitor.visitFunctionDefinition(this);
 
@@ -3040,7 +3047,8 @@ class CopyingVisitor extends TrampolineRecursiveVisitor {
     visit(node.body);
     FunctionDefinition copy = new FunctionDefinition(
         node.element, thisParameter, parameters, returnContinuation, _first,
-        interceptorParameter: interceptorParameter);
+        interceptorParameter: interceptorParameter,
+        sourceInformation: node.sourceInformation);
     _first = _current = null;
     return copy;
   }

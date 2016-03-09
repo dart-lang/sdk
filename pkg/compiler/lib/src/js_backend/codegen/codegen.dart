@@ -184,7 +184,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
     if (jsVariables.length > 0) {
       // Would be nice to avoid inserting at the beginning of list.
       accumulator.insert(0, new js.ExpressionStatement(
-          new js.VariableDeclarationList(jsVariables)));
+          new js.VariableDeclarationList(jsVariables)
+              .withSourceInformation(function.sourceInformation)));
     }
     return new js.Fun(parameters, new js.Block(accumulator));
   }
