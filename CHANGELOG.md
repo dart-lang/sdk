@@ -1,5 +1,17 @@
 ## 1.15.0
 
+### Analyzer
+
+*   Static checking of `for in` statements. These will now produce static
+    warnings:
+
+    ```dart
+    // Not Iterable.
+    for (var i in 1234) { ... }
+
+    // String cannot be assigned to int.
+    for (int n in <String>["a", "b"]) { ... }
+
 ### Core library changes
 
 * `dart:async`
