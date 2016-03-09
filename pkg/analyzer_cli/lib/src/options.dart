@@ -45,6 +45,9 @@ class CommandLineOptions {
   /// Whether to display version information
   final bool displayVersion;
 
+  /// Whether to enable conditional directives (DEP 40).
+  final bool enableConditionalDirectives;
+
   /// Whether to enable null-aware operators (DEP 9).
   final bool enableNullAwareOperators;
 
@@ -128,6 +131,7 @@ class CommandLineOptions {
         analysisOptionsFile = args['options'],
         disableHints = args['no-hints'],
         displayVersion = args['version'],
+        enableConditionalDirectives = args['enable-conditional-directives'],
         enableNullAwareOperators = args['enable-null-aware-operators'],
         enableStrictCallChecks = args['enable-strict-call-checks'],
         enableSuperMixins = args['supermixin'],
@@ -332,6 +336,11 @@ class CommandLineOptions {
           hide: true)
       ..addFlag('enable-enum',
           help: 'Enable support for the proposed enum feature.',
+          defaultsTo: false,
+          negatable: false,
+          hide: true)
+      ..addFlag('enable-conditional-directives',
+          help: 'Enable support for conditional directives (DEP 40).',
           defaultsTo: false,
           negatable: false,
           hide: true)
