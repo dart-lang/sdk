@@ -5,6 +5,8 @@
 library linter.src.rules.public_member_api_docs;
 
 import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/src/generated/resolver.dart';
 import 'package:linter/src/ast.dart';
 import 'package:linter/src/linter.dart';
 
@@ -13,7 +15,8 @@ const desc = r'Document all public members';
 const details = r'''
 **DO** document all public members.
 
-All public members should be documented with `///` doc-style comments.
+All non-overriding public members should be documented with `///` doc-style
+comments.
 
 **Good:**
 ```
@@ -29,7 +32,26 @@ abstract class Good {
 **Bad:**
 ```
 class Bad {
-  void meh();
+  void meh() { }
+}
+```
+
+In case a public member overrides a member it is up to the declaring member
+to provide documentation.  For example, in the following, `Sub` needn't
+document `init` (though it certainly may, if there's need).
+
+**Good:**
+```
+/// Base of all things.
+abstract class Base {
+  /// Initialize the base.
+  void init();
+}
+
+/// A sub base.
+class Sub extends Base {
+  @override
+  void init() { ... }
 }
 ```
 ''';
@@ -47,13 +69,31 @@ class PublicMemberApiDocs extends LintRule {
 }
 
 class Visitor extends GeneralizingAstVisitor {
+  InheritanceManager manager;
+
   final LintRule rule;
   Visitor(this.rule);
 
   void check(Declaration node) {
-    if (node.documentationComment == null && !hasOverrideAnnotation(node)) {
+    if (node.documentationComment == null && !isOverridingMember(node)) {
       rule.reportLint(getNodeToAnnotate(node));
     }
+  }
+
+  bool isOverridingMember(Declaration node) =>
+      getOverriddenMember(node.element) != null;
+
+  ExecutableElement getOverriddenMember(Element member) {
+    if (member == null || manager == null) {
+      return null;
+    }
+
+    ClassElement classElement =
+        member.getAncestor((element) => element is ClassElement);
+    if (classElement == null) {
+      return null;
+    }
+    return manager.lookupInheritance(classElement, member.name);
   }
 
   @override
@@ -68,6 +108,13 @@ class Visitor extends GeneralizingAstVisitor {
     if (!isPrivate(node.name)) {
       check(node);
     }
+  }
+
+  @override
+  visitCompilationUnit(CompilationUnit node) {
+    LibraryElement library = node?.element?.library;
+    manager = library == null ? null : new InheritanceManager(library);
+    super.visitCompilationUnit(node);
   }
 
   @override

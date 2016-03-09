@@ -50,6 +50,8 @@ abstract class D extends A {
 
   @override
   a() => null; //OK
+
+  c() => null; // Un-annotated override -- OK!
 }
 
 foo() => null; //LINT
