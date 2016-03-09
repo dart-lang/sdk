@@ -22,10 +22,9 @@ import 'package:analyzer/src/summary/idl.dart';
  * A [SearchEngine] implementation.
  */
 class SearchEngineImpl2 implements SearchEngine {
-  final AnalysisContext context;
   final Index2 _index;
 
-  SearchEngineImpl2(this.context, this._index);
+  SearchEngineImpl2(this._index);
 
   @override
   Future<List<SearchMatch>> searchAllSubtypes(ClassElement type) async {
@@ -111,7 +110,7 @@ class SearchEngineImpl2 implements SearchEngine {
 
   SearchMatch _newMatchForLocation(Location location, MatchKind kind) =>
       new SearchMatch(
-          context,
+          location.context,
           location.libraryUri,
           location.unitUri,
           kind,
@@ -176,6 +175,7 @@ class SearchEngineImpl2 implements SearchEngine {
     List<SearchMatch> matches = <SearchMatch>[];
     LibraryElement libraryElement = element.library;
     Source librarySource = libraryElement.source;
+    AnalysisContext context = libraryElement.context;
     for (CompilationUnitElement unitElement in libraryElement.units) {
       Source unitSource = unitElement.source;
       CompilationUnit unit =
@@ -193,6 +193,7 @@ class SearchEngineImpl2 implements SearchEngine {
     List<SearchMatch> matches = <SearchMatch>[];
     LibraryElement libraryElement = element.library;
     Source librarySource = libraryElement.source;
+    AnalysisContext context = libraryElement.context;
     for (CompilationUnitElement unitElement in libraryElement.parts) {
       Source unitSource = unitElement.source;
       CompilationUnit unit =
@@ -237,6 +238,7 @@ class SearchEngineImpl2 implements SearchEngine {
     List<SearchMatch> matches = <SearchMatch>[];
     LibraryElement libraryElement = element.library;
     Source librarySource = libraryElement.source;
+    AnalysisContext context = libraryElement.context;
     for (CompilationUnitElement unitElement in libraryElement.units) {
       Source unitSource = unitElement.source;
       CompilationUnit unit =

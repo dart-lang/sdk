@@ -95,6 +95,14 @@ class Index2 {
   }
 
   /**
+   * Remove index information about the unit in the given [context].
+   */
+  void removeUnit(
+      AnalysisContext context, Source librarySource, Source unitSource) {
+    _contextIndexMap[context]?.removeUnit(librarySource, unitSource);
+  }
+
+  /**
    * Return the [_ContextIndex] instance for the given [context].
    */
   _ContextIndex _getContextIndex(AnalysisContext context) {
@@ -207,8 +215,7 @@ class _ContextIndex {
    */
   Future<List<Location>> getDefinedNames(
       RegExp regExp, IndexNameKind kind) async {
-    return _mergeLocations((PackageIndex index) {
-      _PackageIndexRequester requester = new _PackageIndexRequester(index);
+    return _mergeLocations((_PackageIndexRequester requester) {
       return requester.getDefinedNames(context, regExp, kind);
     });
   }
@@ -218,8 +225,7 @@ class _ContextIndex {
    * of the given [kind].
    */
   Future<List<Location>> getRelations(Element element, IndexRelationKind kind) {
-    return _mergeLocations((PackageIndex index) {
-      _PackageIndexRequester requester = new _PackageIndexRequester(index);
+    return _mergeLocations((_PackageIndexRequester requester) {
       return requester.getRelations(context, element, kind);
     });
   }
@@ -229,8 +235,7 @@ class _ContextIndex {
    * [name] is referenced with a qualifier, but is not resolved.
    */
   Future<List<Location>> getUnresolvedMemberReferences(String name) async {
-    return _mergeLocations((PackageIndex index) {
-      _PackageIndexRequester requester = new _PackageIndexRequester(index);
+    return _mergeLocations((_PackageIndexRequester requester) {
       return requester.getUnresolvedMemberReferences(context, name);
     });
   }
@@ -250,6 +255,14 @@ class _ContextIndex {
     indexMap[key] = index;
   }
 
+  /**
+   * Remove index information about the unit.
+   */
+  void removeUnit(Source librarySource, Source unitSource) {
+    String key = _getUnitKeyForSource(librarySource, unitSource);
+    indexMap.remove(key);
+  }
+
   String _getUnitKeyForElement(CompilationUnitElement unitElement) {
     Source librarySource = unitElement.library.source;
     Source unitSource = unitElement.source;
@@ -263,10 +276,11 @@ class _ContextIndex {
   }
 
   Future<List<Location>> _mergeLocations(
-      List<Location> callback(PackageIndex index)) async {
+      List<Location> callback(_PackageIndexRequester requester)) async {
     List<Location> locations = <Location>[];
     for (PackageIndex index in indexMap.values) {
-      List<Location> indexLocations = callback(index);
+      _PackageIndexRequester requester = new _PackageIndexRequester(index);
+      List<Location> indexLocations = callback(requester);
       locations.addAll(indexLocations);
     }
     return locations;

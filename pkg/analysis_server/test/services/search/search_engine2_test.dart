@@ -70,7 +70,7 @@ class SearchEngineImpl2Test extends AbstractSingleUnitTest {
   void setUp() {
     super.setUp();
     index = createMemoryIndex2();
-    searchEngine = new SearchEngineImpl2(context, index);
+    searchEngine = new SearchEngineImpl2(index);
   }
 
   test_searchAllSubtypes() async {

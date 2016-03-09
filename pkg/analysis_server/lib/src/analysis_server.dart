@@ -39,6 +39,7 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/util/glob.dart';
+import 'package:analyzer/task/dart.dart';
 import 'package:plugin/plugin.dart';
 
 typedef void OptionUpdater(AnalysisOptionsImpl options);
@@ -83,7 +84,7 @@ class AnalysisServer {
    * a 1 millisecond delay so that the VM and dart:io can deliver content
    * to stdin. This should be removed once the underlying problem is fixed.
    */
-  static int performOperationDelayFreqency = 25;
+  static int performOperationDelayFrequency = 25;
 
   /**
    * The options of this server instance.
@@ -354,6 +355,7 @@ class AnalysisServer {
         _performance = performanceAfterStartup;
       });
     });
+    _setupIndexInvalidation();
     Notification notification =
         new ServerConnectedParams(VERSION).toNotification();
     channel.sendNotification(notification);
@@ -675,23 +677,6 @@ class AnalysisServer {
     return context.getErrors(source);
   }
 
-// TODO(brianwilkerson) Add the following method after 'prioritySources' has
-// been added to InternalAnalysisContext.
-//  /**
-//   * Return a list containing the full names of all of the sources that are
-//   * priority sources.
-//   */
-//  List<String> getPriorityFiles() {
-//    List<String> priorityFiles = new List<String>();
-//    folderMap.values.forEach((ContextDirectory directory) {
-//      InternalAnalysisContext context = directory.context;
-//      context.prioritySources.forEach((Source source) {
-//        priorityFiles.add(source.fullName);
-//      });
-//    });
-//    return priorityFiles;
-//  }
-
   /**
    * Returns resolved [AstNode]s at the given [offset] of the given [file].
    *
@@ -708,6 +693,23 @@ class AnalysisServer {
     }
     return nodes;
   }
+
+// TODO(brianwilkerson) Add the following method after 'prioritySources' has
+// been added to InternalAnalysisContext.
+//  /**
+//   * Return a list containing the full names of all of the sources that are
+//   * priority sources.
+//   */
+//  List<String> getPriorityFiles() {
+//    List<String> priorityFiles = new List<String>();
+//    folderMap.values.forEach((ContextDirectory directory) {
+//      InternalAnalysisContext context = directory.context;
+//      context.prioritySources.forEach((Source source) {
+//        priorityFiles.add(source.fullName);
+//      });
+//    });
+//    return priorityFiles;
+//  }
 
   /**
    * Returns resolved [CompilationUnit]s of the Dart file with the given [path].
@@ -1452,13 +1454,41 @@ class AnalysisServer {
      */
     int now = new DateTime.now().millisecondsSinceEpoch;
     if (now > _nextPerformOperationDelayTime &&
-        performOperationDelayFreqency > 0) {
-      _nextPerformOperationDelayTime = now + performOperationDelayFreqency;
+        performOperationDelayFrequency > 0) {
+      _nextPerformOperationDelayTime = now + performOperationDelayFrequency;
       new Future.delayed(new Duration(milliseconds: 1), performOperation);
     } else {
       new Future(performOperation);
     }
     performOperationPending = true;
+  }
+
+  /**
+   * Listen for context events and invalidate index.
+   *
+   * It is possible that this method will do more in the future, e.g. listening
+   * for summary information and linking pre-indexed packages into the index,
+   * but for now we only invalidate project specific index information.
+   */
+  void _setupIndexInvalidation() {
+    if (index2 == null) {
+      return;
+    }
+    onContextsChanged.listen((ContextsChangedEvent event) {
+      for (AnalysisContext context in event.added) {
+        context
+            .onResultChanged(RESOLVED_UNIT)
+            .listen((ResultChangedEvent event) {
+          if (event.wasInvalidated) {
+            LibrarySpecificUnit target = event.target;
+            index2.removeUnit(event.context, target.library, target.unit);
+          }
+        });
+      }
+      for (AnalysisContext context in event.removed) {
+        index2.removeContext(context);
+      }
+    });
   }
 }
 
@@ -1662,7 +1692,7 @@ class ServerPerformance {
   int slowRequestCount = 0;
 
   /**
-   * Log performation information about the given request.
+   * Log performance information about the given request.
    */
   void logRequest(Request request) {
     ++requestCount;

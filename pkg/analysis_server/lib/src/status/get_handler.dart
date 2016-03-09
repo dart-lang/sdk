@@ -1707,7 +1707,7 @@ class GetHandler {
       // TODO(brianwilkerson) Add items for the SDK contexts (currently only one).
       buffer.write('</p>');
 
-      int freq = AnalysisServer.performOperationDelayFreqency;
+      int freq = AnalysisServer.performOperationDelayFrequency;
       String delay = freq > 0 ? '1 ms every $freq ms' : 'off';
 
       buffer.write('<p><b>Performance Data</b></p>');

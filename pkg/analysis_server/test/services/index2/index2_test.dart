@@ -197,10 +197,36 @@ class A {}
     RegExp regExp = new RegExp(r'^A$');
     expect(await index.getDefinedNames(regExp, IndexNameKind.topLevel),
         hasLength(1));
-    // remove the context - no
+    // remove the context - no top-level declarations
     index.removeContext(context);
     expect(
         await index.getDefinedNames(regExp, IndexNameKind.topLevel), isEmpty);
+  }
+
+  test_removeUnit() async {
+    RegExp regExp = new RegExp(r'^[AB]$');
+    Source sourceA = addSource('/a.dart', 'class A {}');
+    Source sourceB = addSource('/b.dart', 'class B {}');
+    CompilationUnit unitA = resolveLibraryUnit(sourceA);
+    CompilationUnit unitB = resolveLibraryUnit(sourceB);
+    index.indexUnit(unitA);
+    index.indexUnit(unitB);
+    {
+      List<Location> locations =
+          await index.getDefinedNames(regExp, IndexNameKind.topLevel);
+      expect(locations, hasLength(2));
+      expect(locations.map((l) => l.libraryUri),
+          unorderedEquals([sourceA.uri.toString(), sourceB.uri.toString()]));
+    }
+    // remove a.dart - no a.dart location
+    index.removeUnit(context, sourceA, sourceA);
+    {
+      List<Location> locations =
+          await index.getDefinedNames(regExp, IndexNameKind.topLevel);
+      expect(locations, hasLength(1));
+      expect(locations.map((l) => l.libraryUri),
+          unorderedEquals([sourceB.uri.toString()]));
+    }
   }
 
   /**
