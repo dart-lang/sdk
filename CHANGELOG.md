@@ -1,3 +1,10 @@
+# 0.1.13
+
+* Fix to skip overriding members in API doc checks (`public_member_api_docs`).
+* Fix to suppress lints on synthetic nodes/tokens (#193).
+* Message fixes (`annotate_overrides`, `public_member_api_docs`).
+* Fix to exclude setters from return type checks (#192).
+
 # 0.1.12
 
 * Fix to address `LibraryNames` regexp that in pathological cases went exponential.
