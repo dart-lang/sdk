@@ -3345,7 +3345,7 @@ void Class::set_token_pos(TokenPosition token_pos) const {
 
 TokenPosition Class::ComputeEndTokenPos() const {
   // Return the begin token for synthetic classes.
-  if (IsMixinApplication() || IsTopLevel()) {
+  if (is_synthesized_class() || IsMixinApplication() || IsTopLevel()) {
     return token_pos();
   }
   const Script& scr = Script::Handle(script());
