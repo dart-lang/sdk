@@ -1445,8 +1445,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
   /// invocation with a direct access to a field.
   ///
   /// Returns `true` if the node was replaced.
-  Primitive specializeFieldAccess(InvokeMethod node) {
-    if (!node.selector.isGetter && !node.selector.isSetter) return null;
+  specializeFieldAccess(InvokeMethod node) {
     AbstractConstantValue receiver = getValue(node.receiver);
     Element target =
         typeSystem.locateSingleElement(receiver.type, node.selector);
@@ -1458,12 +1457,24 @@ class TransformingVisitor extends DeepRecursiveVisitor {
     }
     if (node.selector.isGetter) {
       return new GetField(node.receiver, target);
-    } else {
+    } else if (node.selector.isSetter) {
       if (target.isFinal) return null;
       assert(node.hasNoUses);
       return new SetField(node.receiver,
                           target,
                           node.argument(0));
+    } else if (node.selector.isCall) {
+      CpsFragment cps = new CpsFragment(node.sourceInformation);
+      Primitive fieldValue = cps.letPrim(new GetField(node.receiver, target));
+      Primitive result = cps.invokeMethod(
+          fieldValue,
+          new Selector.callClosureFrom(node.selector),
+          typeSystem.getFieldType(target),
+          node.arguments.toList());
+      node.replaceUsesWith(result);
+      return cps;
+    } else {
+      return null;
     }
   }
 
