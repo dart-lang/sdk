@@ -1287,14 +1287,28 @@ class TypeGraphInferrerEngine
   }
 
   void clear() {
+    void cleanup(TypeInformation info) => info.cleanup();
+
+    allocatedCalls.forEach(cleanup);
     allocatedCalls.clear();
+
     defaultTypeOfParameter.clear();
-    types.typeInformations.values.forEach((info) => info.clear());
+
+    types.typeInformations.values.forEach(cleanup);
+
+    types.allocatedTypes.forEach(cleanup);
     types.allocatedTypes.clear();
+
     types.concreteTypes.clear();
+
+    types.allocatedClosures.forEach(cleanup);
     types.allocatedClosures.clear();
+
     analyzedElements.clear();
     generativeConstructorsExposingThis.clear();
+   
+    types.allocatedMaps.values.forEach(cleanup);
+    types.allocatedLists.values.forEach(cleanup);
   }
 
   Iterable<Element> getCallersOf(Element element) {
