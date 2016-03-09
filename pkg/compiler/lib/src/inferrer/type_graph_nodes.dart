@@ -237,12 +237,6 @@ abstract class TypeInformation {
     abandonInferencing = false;
     doNotEnqueue = false;
   }
-
-  /// Destroys information not needed after type inference.
-  void cleanup() {
-    users = null;
-    _assignments = null;
-  }
 }
 
 abstract class ApplyableTypeInformation implements TypeInformation {
@@ -391,10 +385,6 @@ class MemberTypeInformation extends ElementTypeInformation
    */
   int closurizedCount = 0;
 
-  // Strict `bool` value is computed in cleanup(). Also used as a flag to see if
-  // cleanup has been called.
-  bool _isCalledOnce = null;
-
   /**
    * This map contains the callers of [element]. It stores all unique call sites
    * to enable counting the global number of call sites of [element].
@@ -402,23 +392,18 @@ class MemberTypeInformation extends ElementTypeInformation
    * A call site is either an AST [ast.Node], a [cps_ir.Node] or in the case of
    * synthesized calls, an [Element] (see uses of [synthesizeForwardingCall]
    * in [SimpleTypeInferrerVisitor]).
-   *
-   * The global information is summarized in [cleanup], after which [_callers]
-   * is set to `null`.
    */
-  Map<Element, Setlet<Spannable>> _callers;
+  final Map<Element, Setlet<Spannable>> _callers = new Map<Element, Setlet>();
 
   MemberTypeInformation._internal(Element element)
       : super._internal(null, element);
 
   void addCall(Element caller, Spannable node) {
     assert(node is ast.Node || node is cps_ir.Node || node is Element);
-    _callers ??= <Element, Setlet>{};
     _callers.putIfAbsent(caller, () => new Setlet()).add(node);
   }
 
   void removeCall(Element caller, node) {
-    if (_callers == null) return;
     Setlet calls = _callers[caller];
     if (calls == null) return;
     calls.remove(node);
@@ -427,20 +412,9 @@ class MemberTypeInformation extends ElementTypeInformation
     }
   }
 
-  Iterable<Element> get callers {
-    // TODO(sra): This is called only from an unused API. If it becomes used,
-    // [cleanup] will need to copy `_caller.keys`.
-    assert(false); // Unused.
-    return _callers.keys;
-  }
+  Iterable<Element> get callers => _callers.keys;
 
   bool isCalledOnce() {
-    assert(_isCalledOnce != null);
-    return _isCalledOnce;
-  }
-
-  bool _computeIsCalledOnce() {
-    if (_callers == null) return false;
     int count = 0;
     for (var set in _callers.values) {
       count += set.length;
@@ -555,13 +529,6 @@ class MemberTypeInformation extends ElementTypeInformation
     if (element.isFunction) return false;
 
     return super.hasStableType(inferrer);
-  }
-
-  void cleanup() {
-    if (_isCalledOnce != null) return;
-    _isCalledOnce = _computeIsCalledOnce();
-    _callers = null;
-    super.cleanup();
   }
 }
 
@@ -1352,12 +1319,6 @@ class ListTypeInformation extends TypeInformation
   }
 
   TypeMask safeType(TypeGraphInferrerEngine inferrer) => originalType;
-
-  void cleanup() {
-    super.cleanup();
-    elementType.cleanup();
-    _flowsInto = null;
-  }
 }
 
 /**
@@ -1519,16 +1480,6 @@ class MapTypeInformation extends TypeInformation
     return keyType.isStable &&
            valueType.isStable &&
            super.hasStableType(inferrer);
-  }
-
-  void cleanup() {
-    super.cleanup();
-    keyType.cleanup();
-    valueType.cleanup();
-    for (TypeInformation info in typeInfoMap.values) {
-      info.cleanup();
-    }
-    _flowsInto = null;
   }
 
   String toString() {
