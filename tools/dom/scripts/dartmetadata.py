@@ -329,8 +329,6 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
       "@Returns('NodeList|HtmlCollection')",
     ],
 
-    'SQLResultSetRowList.item': ["@Creates('=Object')"],
-
     # Touch targets are Elements in a Document, or the Document.
     'Touch.target': [
       "@Creates('Element|Document')",

@@ -15095,6 +15095,12 @@
       },
       "encoding": {
         "support_level": "untriaged"
+      },
+      "fatal": {
+        "support_level": "untriaged"
+      },
+      "ignoreBOM": {
+        "support_level": "untriaged"
       }
     },
     "support_level": "untriaged"
