@@ -1289,6 +1289,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     dart2jsHint = options.dart2jsHint;
     enableAssertMessage = options.enableAssertMessage;
     enableAsync = options.enableAsync;
+    enableConditionalDirectives = options.enableConditionalDirectives;
     enableStrictCallChecks = options.enableStrictCallChecks;
     enableGenericMethods = options.enableGenericMethods;
     enableSuperMixins = options.enableSuperMixins;

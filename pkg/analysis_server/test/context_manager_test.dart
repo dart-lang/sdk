@@ -392,6 +392,7 @@ analyzer:
   language:
     enableGenericMethods: true
     enableAsync: false
+    enableConditionalDirectives: true
   errors:
     unused_local_variable: false
 linter:
@@ -417,6 +418,8 @@ linter:
     expect(context.analysisOptions.enableAsync, isFalse);
     // * from `.analysis_options`:
     expect(context.analysisOptions.enableGenericMethods, isTrue);
+    expect(context.analysisOptions.enableConditionalDirectives, isTrue);
+
     // * verify tests are excluded
     expect(
         callbacks.currentContextFilePaths[projPath].keys,
