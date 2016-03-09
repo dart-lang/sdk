@@ -428,7 +428,11 @@ class FixProcessor {
             .takeWhile((p) => p.parameterKind == ParameterKind.REQUIRED);
         Iterable<ParameterElement> optionalParameters = parameters
             .skipWhile((p) => p.parameterKind == ParameterKind.REQUIRED);
+        // prepare the argument to add a new parameter for
         int numRequired = requiredParameters.length;
+        if (numRequired >= arguments.length) {
+          return;
+        }
         Expression argument = arguments[numRequired];
         // prepare target
         int targetOffset;
