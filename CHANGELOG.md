@@ -1,4 +1,4 @@
-## 1.15.0
+## 1.16.0
 
 ### Analyzer
 
@@ -11,6 +11,8 @@
 
     // String cannot be assigned to int.
     for (int n in <String>["a", "b"]) { ... }
+
+## 1.15.0
 
 ### Core library changes
 
