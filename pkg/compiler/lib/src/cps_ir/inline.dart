@@ -185,6 +185,11 @@ class Inliner implements Pass {
   Inliner(this.functionCompiler);
 
   bool isCalledOnce(Element element) {
+    if (element is ConstructorBodyElement) {
+      ClassElement class_ = element.enclosingClass;
+      return !functionCompiler.compiler.world.hasAnyStrictSubclass(class_) &&
+          class_.constructors.tail?.isEmpty ?? false;
+    }
     return functionCompiler.compiler.typesTask.typesInferrer.isCalledOnce(
         element);
   }
