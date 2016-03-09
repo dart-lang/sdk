@@ -23,7 +23,7 @@ import 'package:analyzer/src/summary/summarize_elements.dart'
     as summarize_elements;
 import 'package:unittest/unittest.dart';
 
-import '../../generated/resolver_test.dart';
+import '../../generated/analysis_context_factory.dart';
 
 /**
  * The public namespaces of the sdk are computed once so that we don't bog

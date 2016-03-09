@@ -5193,7 +5193,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
-   * Check the given [typeReference] and that the [name] is not the reference to
+   * Check the given [typeReference] and that the [name] is not a reference to
    * an instance member.
    *
    * See [StaticWarningCode.STATIC_ACCESS_TO_INSTANCE_MEMBER].

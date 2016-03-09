@@ -25,7 +25,7 @@ import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../generated/resolver_test.dart';
+import '../../generated/resolver_test_case.dart';
 import '../../reflective_tests.dart';
 import 'summary_common.dart' show canonicalize;
 

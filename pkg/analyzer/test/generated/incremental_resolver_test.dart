@@ -31,7 +31,8 @@ import 'package:analyzer/task/model.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
-import 'resolver_test.dart';
+import 'analysis_context_factory.dart';
+import 'resolver_test_case.dart';
 import 'test_support.dart';
 
 main() {

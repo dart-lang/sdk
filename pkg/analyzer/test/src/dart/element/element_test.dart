@@ -18,8 +18,8 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../../generated/resolver_test.dart'
-    show TestTypeProvider, AnalysisContextHelper;
+import '../../../generated/analysis_context_factory.dart'
+    show AnalysisContextHelper;
 import '../../../generated/test_support.dart';
 import '../../../reflective_tests.dart';
 import '../../../utils.dart';
