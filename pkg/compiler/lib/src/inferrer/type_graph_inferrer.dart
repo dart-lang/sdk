@@ -553,7 +553,7 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
     }
 
     TypeMask newType = null;
-    for (TypeMask mask in masks) {
+    for (TypeMask mask in list) {
       newType = newType == null ? mask : newType.union(mask, classWorld);
       // Likewise - stop early if we already reach dynamic.
       if (newType.containsAll(classWorld)) return dynamicType;

@@ -832,7 +832,6 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
                                             TypeGraphInferrerEngine inferrer) {
     ClassWorld classWorld = inferrer.classWorld;
     if (!classWorld.backend.intImplementation.isResolved) return null;
-    TypeMask emptyType = const TypeMask.nonNullEmpty();
     if (mask == null) return null;
     if (!mask.containsOnlyInt(classWorld)) {
       return null;
@@ -843,7 +842,7 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
 
     ClassElement uint31Implementation = classWorld.backend.uint31Implementation;
     bool isInt(info) => info.type.containsOnlyInt(classWorld);
-    bool isEmpty(info) => info.type == emptyType;
+    bool isEmpty(info) => info.type.isEmpty;
     bool isUInt31(info) {
       return info.type.satisfies(uint31Implementation, classWorld);
     }

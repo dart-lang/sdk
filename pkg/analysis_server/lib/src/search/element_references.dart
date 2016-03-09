@@ -91,8 +91,14 @@ class ElementReferencesComputer {
   SearchResult _newDeclarationResult(Element refElement) {
     int nameOffset = refElement.nameOffset;
     int nameLength = refElement.nameLength;
-    SearchMatch searchMatch = new SearchMatch(MatchKind.DECLARATION, refElement,
-        new SourceRange(nameOffset, nameLength), true, false);
+    SearchMatch searchMatch = new SearchMatch(
+        refElement.context,
+        refElement.library.source.uri.toString(),
+        refElement.source.uri.toString(),
+        MatchKind.DECLARATION,
+        new SourceRange(nameOffset, nameLength),
+        true,
+        false);
     return newSearchResult_fromMatch(searchMatch);
   }
 

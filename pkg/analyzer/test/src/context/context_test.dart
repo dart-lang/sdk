@@ -1463,6 +1463,46 @@ main() {}''');
     expect(context.isServerLibrary(source), isFalse);
   }
 
+  void test_onResultInvalidated_removeSource() {
+    Source source = addSource('/test.dart', 'main() {}');
+    _analyzeAll_assertFinished();
+    // listen for changes
+    bool listenerInvoked = false;
+    context.onResultChanged(RESOLVED_UNIT).listen((ResultChangedEvent event) {
+      Source eventSource = event.target.source;
+      expect(event.wasComputed, isFalse);
+      expect(event.wasInvalidated, isTrue);
+      expect(event.descriptor, RESOLVED_UNIT);
+      expect(eventSource, source);
+      listenerInvoked = true;
+    });
+    // apply changes
+    expect(listenerInvoked, false);
+    context.applyChanges(new ChangeSet()..removedSource(source));
+    // verify
+    expect(listenerInvoked, isTrue);
+  }
+
+  void test_onResultInvalidated_setContents() {
+    Source source = addSource('/test.dart', 'main() {}');
+    _analyzeAll_assertFinished();
+    // listen for changes
+    bool listenerInvoked = false;
+    context.onResultChanged(RESOLVED_UNIT).listen((ResultChangedEvent event) {
+      Source eventSource = event.target.source;
+      expect(event.wasComputed, isFalse);
+      expect(event.wasInvalidated, isTrue);
+      expect(event.descriptor, RESOLVED_UNIT);
+      expect(eventSource, source);
+      listenerInvoked = true;
+    });
+    // apply changes
+    expect(listenerInvoked, false);
+    context.setContents(source, 'class B {}');
+    // verify
+    expect(listenerInvoked, isTrue);
+  }
+
   void test_parseCompilationUnit_errors() {
     Source source = addSource("/lib.dart", "library {");
     CompilationUnit compilationUnit = context.parseCompilationUnit(source);
@@ -1930,20 +1970,26 @@ library expectedToFindSemicolon
 //    JUnitTestCase.assertNotNullMsg("performAnalysisTask failed to compute an element model", _context.getLibraryElement(source));
   }
 
-  void test_performAnalysisTask_onResultComputed() {
+  void test_performAnalysisTask_onResultChanged() {
     Set<String> libraryElementUris = new Set<String>();
     Set<String> parsedUnitUris = new Set<String>();
     Set<String> resolvedUnitUris = new Set<String>();
     // listen
-    context.onResultComputed(LIBRARY_ELEMENT).listen((event) {
+    context.onResultChanged(LIBRARY_ELEMENT).listen((event) {
+      expect(event.wasComputed, isTrue);
+      expect(event.wasInvalidated, isFalse);
       Source librarySource = event.target;
       libraryElementUris.add(librarySource.uri.toString());
     });
-    context.onResultComputed(PARSED_UNIT).listen((event) {
+    context.onResultChanged(PARSED_UNIT).listen((event) {
+      expect(event.wasComputed, isTrue);
+      expect(event.wasInvalidated, isFalse);
       Source source = event.target;
       parsedUnitUris.add(source.uri.toString());
     });
-    context.onResultComputed(RESOLVED_UNIT).listen((event) {
+    context.onResultChanged(RESOLVED_UNIT).listen((event) {
+      expect(event.wasComputed, isTrue);
+      expect(event.wasInvalidated, isFalse);
       LibrarySpecificUnit target = event.target;
       Source librarySource = target.library;
       resolvedUnitUris.add(librarySource.uri.toString());

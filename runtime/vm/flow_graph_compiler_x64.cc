@@ -1320,7 +1320,8 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
     intptr_t deopt_id,
     TokenPosition token_pos,
     LocationSummary* locs,
-    intptr_t try_index) {
+    intptr_t try_index,
+    intptr_t slow_path_argument_count) {
   const String& name = String::Handle(zone(), ic_data.target_name());
   const Array& arguments_descriptor =
       Array::ZoneHandle(zone(), ic_data.arguments_descriptor());
@@ -1338,7 +1339,7 @@ void FlowGraphCompiler::EmitMegamorphicInstanceCall(
   }
   __ call(RCX);
 
-  RecordSafepoint(locs);
+  RecordSafepoint(locs, slow_path_argument_count);
   const intptr_t deopt_id_after = Thread::ToDeoptAfter(deopt_id);
   if (FLAG_precompiled_mode) {
     // Megamorphic calls may occur in slow path stubs.

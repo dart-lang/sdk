@@ -132,11 +132,13 @@ class CpsFragment {
       Selector selector,
       TypeMask mask,
       List<Primitive> arguments,
-      [CallingConvention callingConvention = CallingConvention.Normal]) {
+      {Primitive interceptor,
+       CallingConvention callingConvention}) {
     InvokeMethod invoke =
         new InvokeMethod(receiver, selector, mask, arguments,
                          sourceInformation: sourceInformation,
-                         callingConvention: callingConvention);
+                         callingConvention: callingConvention,
+                         interceptor: interceptor);
     return letPrim(invoke);
   }
 
@@ -276,11 +278,15 @@ class CpsFragment {
   ///
   /// The [target] function is destroyed and should not be reused.
   Primitive inlineFunction(FunctionDefinition target,
-                           Primitive thisArgument,
+                           Primitive receiver,
                            List<Primitive> arguments,
-                           {Entity hint}) {
-    if (thisArgument != null) {
-      target.thisParameter.replaceUsesWith(thisArgument);
+                           {Entity hint,
+                            Primitive interceptor}) {
+    if (interceptor != null) {
+      target.interceptorParameter.replaceUsesWith(interceptor);
+    }
+    if (receiver != null) {
+      target.receiverParameter.replaceUsesWith(receiver);
     }
     for (int i = 0; i < arguments.length; ++i) {
       target.parameters[i].replaceUsesWith(arguments[i]);

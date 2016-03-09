@@ -700,10 +700,14 @@ class FixProcessor {
       return;
     }
     ClassElement targetElement = constructorElement.enclosingElement;
-    String targetFile = targetElement.source.fullName;
-    ClassDeclaration targetClass = getParsedClassElementNode(targetElement);
+    // prepare location for a new constructor
+    AstNode targetTypeNode = getParsedClassElementNode(targetElement);
+    if (targetTypeNode is! ClassDeclaration) {
+      return;
+    }
     _ConstructorLocation targetLocation =
-        _prepareNewConstructorLocation(targetClass);
+        _prepareNewConstructorLocation(targetTypeNode);
+    String targetFile = targetElement.source.fullName;
     // build method source
     SourceBuilder sb = new SourceBuilder(targetFile, targetLocation.offset);
     {
@@ -753,11 +757,15 @@ class FixProcessor {
     if (targetType is! InterfaceType) {
       return;
     }
+    // prepare location for a new constructor
     ClassElement targetElement = targetType.element as ClassElement;
-    String targetFile = targetElement.source.fullName;
-    ClassDeclaration targetClass = getParsedClassElementNode(targetElement);
+    AstNode targetTypeNode = getParsedClassElementNode(targetElement);
+    if (targetTypeNode is! ClassDeclaration) {
+      return;
+    }
     _ConstructorLocation targetLocation =
-        _prepareNewConstructorLocation(targetClass);
+        _prepareNewConstructorLocation(targetTypeNode);
+    String targetFile = targetElement.source.fullName;
     // build method source
     SourceBuilder sb = new SourceBuilder(targetFile, targetLocation.offset);
     {
@@ -1990,13 +1998,17 @@ class FixProcessor {
         }
         ClassElement targetClassElement = targetType.element as ClassElement;
         targetElement = targetClassElement;
-        // may be static
+        // prepare target ClassDeclaration
+        AstNode targetTypeNode = getParsedClassElementNode(targetClassElement);
+        if (targetTypeNode is! ClassDeclaration) {
+          return;
+        }
+        ClassDeclaration targetClassNode = targetTypeNode;
+        // maybe static
         if (target is Identifier) {
           staticModifier = target.bestElement.kind == ElementKind.CLASS;
         }
         // prepare insert offset
-        ClassDeclaration targetClassNode =
-            getParsedClassElementNode(targetClassElement);
         prefix = '  ';
         insertOffset = targetClassNode.end - 1;
         if (targetClassNode.members.isEmpty) {

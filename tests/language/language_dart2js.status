@@ -309,8 +309,14 @@ switch8_test: Crash # Pending statics: JSArray
 regress_21795_test: Pass, RuntimeError # Due to inlining?
 
 [ $compiler == dart2js && $cps_ir && $host_checked ]
+accessor_conflict_export2_test: Crash # Duplicate export of 'x'
+accessor_conflict_export_test: Crash # Duplicate export of 'x'
 async_throw_in_catch_test/forceAwait: Crash # Issue 24485
 async_throw_in_catch_test/none: Crash # Issue 24485
 execute_finally9_test: Crash # Issue 24485
 regress_21795_test: Crash # Issue 24485
 regress_23537_test: Crash # Issue 24485
+try_finally_regress_25333_test: Crash # Issue 24485
+
+[ $compiler == dart2js && $cps_ir && $checked ]
+*: Skip # `assert` not implemented

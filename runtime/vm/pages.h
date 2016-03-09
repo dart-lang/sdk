@@ -141,8 +141,11 @@ class PageSpaceController {
     last_code_collection_in_us_ = t;
   }
 
-  void Enable(SpaceUsage current) {
+  void set_last_usage(SpaceUsage current) {
     last_usage_ = current;
+  }
+
+  void Enable() {
     is_enabled_ = true;
   }
   void Disable() {
@@ -265,9 +268,14 @@ class PageSpace {
 
   void StartEndAddress(uword* start, uword* end) const;
 
+  void InitGrowthControl() {
+    page_space_controller_.set_last_usage(usage_);
+    page_space_controller_.Enable();
+  }
+
   void SetGrowthControlState(bool state) {
     if (state) {
-      page_space_controller_.Enable(usage_);
+      page_space_controller_.Enable();
     } else {
       page_space_controller_.Disable();
     }

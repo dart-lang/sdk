@@ -524,7 +524,6 @@ class ScopedMemBIO {
   DISALLOW_COPY_AND_ASSIGN(ScopedMemBIO);
 };
 
-
 template<typename T, void (*free_func)(T*)>
 class ScopedSSLType {
  public:
@@ -582,20 +581,12 @@ class ScopedSSLStackType {
 
 typedef ScopedSSLType<PKCS12, PKCS12_free> ScopedPKCS12;
 typedef ScopedSSLType<X509, X509_free> ScopedX509;
-
 typedef ScopedSSLStackType<STACK_OF(X509), X509, X509_free> ScopedX509Stack;
-typedef ScopedSSLStackType<STACK_OF(X509_NAME), X509_NAME, X509_NAME_free>
-    ScopedX509NAMEStack;
 
-
-// We try reading data as PKCS12 only if reading as PEM was unsuccessful and
-// if there is no indication that the data is malformed PEM. We assume the data
-// is malformed PEM if it contains the start line, i.e. a line with ----- BEGIN.
-static bool TryPKCS12(bool pem_success) {
+static bool NoPEMStartLine() {
   uint32_t last_error = ERR_peek_last_error();
-  return !pem_success &&
-      (ERR_GET_LIB(last_error) == ERR_LIB_PEM) &&
-      (ERR_GET_REASON(last_error) == PEM_R_NO_START_LINE);
+  return (ERR_GET_LIB(last_error) == ERR_LIB_PEM) &&
+         (ERR_GET_REASON(last_error) == PEM_R_NO_START_LINE);
 }
 
 
@@ -623,13 +614,19 @@ static EVP_PKEY* GetPrivateKeyPKCS12(BIO* bio, const char* password) {
 static EVP_PKEY* GetPrivateKey(BIO* bio, const char* password) {
   EVP_PKEY *key = PEM_read_bio_PrivateKey(
       bio, NULL, PasswordCallback, const_cast<char*>(password));
-  if (TryPKCS12(key != NULL)) {
-    // Reset the bio, and clear the error from trying to read as PEM.
-    ERR_clear_error();
-    BIO_reset(bio);
+  if (key == NULL) {
+    // We try reading data as PKCS12 only if reading as PEM was unsuccessful and
+    // if there is no indication that the data is malformed PEM. We assume the
+    // data is malformed PEM if it contains the start line, i.e. a line
+    // with ----- BEGIN.
+    if (NoPEMStartLine()) {
+      // Reset the bio, and clear the error from trying to read as PEM.
+      ERR_clear_error();
+      BIO_reset(bio);
 
-    // Try to decode as PKCS12
-    key = GetPrivateKeyPKCS12(bio, password);
+      // Try to decode as PKCS12.
+      key = GetPrivateKeyPKCS12(bio, password);
+    }
   }
   return key;
 }
@@ -725,17 +722,12 @@ static int SetTrustedCertificatesBytesPEM(SSL_CTX* context, BIO* bio) {
     }
   }
 
-  // If bio does not contain PEM data, the first call to PEM_read_bio_X509 will
-  // return NULL, and the while-loop will exit while status is still 0.
-  uint32_t err = ERR_peek_last_error();
-  if ((ERR_GET_LIB(err) != ERR_LIB_PEM) ||
-      (ERR_GET_REASON(err) != PEM_R_NO_START_LINE)) {
-    // If bio contains data that is trying to be PEM but is malformed, then
-    // this case will be triggered.
-    status = 0;
-  }
-
-  return status;
+  // If no PEM start line is found, it means that we read to the end of the
+  // file, or that the file isn't PEM. In the first case, status will be
+  // non-zero indicating success. In the second case, status will be 0,
+  // indicating that we should try to read as PKCS12. If there is some other
+  // error, we return it up to the caller.
+  return NoPEMStartLine() ? status : 0;
 }
 
 
@@ -743,11 +735,13 @@ static int SetTrustedCertificatesBytes(SSL_CTX* context,
                                        BIO* bio,
                                        const char* password) {
   int status = SetTrustedCertificatesBytesPEM(context, bio);
-  if (TryPKCS12(status != 0)) {
-    ERR_clear_error();
-    BIO_reset(bio);
-    status = SetTrustedCertificatesBytesPKCS12(context, bio, password);
-  } else if (status != 0) {
+  if (status == 0) {
+    if (NoPEMStartLine()) {
+      ERR_clear_error();
+      BIO_reset(bio);
+      status = SetTrustedCertificatesBytesPKCS12(context, bio, password);
+    }
+  } else {
     // The PEM file was successfully parsed.
     ERR_clear_error();
   }
@@ -860,27 +854,19 @@ static int UseChainBytesPEM(SSL_CTX* context, BIO* bio) {
     // count is increased by SSL_CTX_use_certificate.
   }
 
-  // If bio does not contain PEM data, the first call to PEM_read_bio_X509 will
-  // return NULL, and the while-loop will exit while status is still 0.
-  uint32_t err = ERR_peek_last_error();
-  if ((ERR_GET_LIB(err) != ERR_LIB_PEM) ||
-      (ERR_GET_REASON(err) != PEM_R_NO_START_LINE)) {
-    // If bio contains data that is trying to be PEM but is malformed, then
-    // this case will be triggered.
-    status = 0;
-  }
-
-  return status;
+  return NoPEMStartLine() ? status : 0;
 }
 
 
 static int UseChainBytes(SSL_CTX* context, BIO* bio, const char* password) {
   int status = UseChainBytesPEM(context, bio);
-  if (TryPKCS12(status != 0)) {
-    ERR_clear_error();
-    BIO_reset(bio);
-    status = UseChainBytesPKCS12(context, bio, password);
-  } else if (status != 0) {
+  if (status == 0) {
+    if (NoPEMStartLine()) {
+      ERR_clear_error();
+      BIO_reset(bio);
+      status = UseChainBytesPKCS12(context, bio, password);
+    }
+  } else {
     // The PEM file was successfully read.
     ERR_clear_error();
   }
@@ -903,16 +889,12 @@ void FUNCTION_NAME(SecurityContext_UseCertificateChainBytes)(
 }
 
 
-static STACK_OF(X509_NAME)* GetCertificateNamesPKCS12(BIO* bio,
-                                                      const char* password) {
+static int SetClientAuthoritiesPKCS12(SSL_CTX* context,
+                                      BIO* bio,
+                                      const char* password) {
   ScopedPKCS12 p12(d2i_PKCS12_bio(bio, NULL));
   if (p12.get() == NULL) {
-    return NULL;
-  }
-
-  ScopedX509NAMEStack result(sk_X509_NAME_new_null());
-  if (result.get() == NULL) {
-    return NULL;
+    return 0;
   }
 
   EVP_PKEY* key = NULL;
@@ -920,99 +902,58 @@ static STACK_OF(X509_NAME)* GetCertificateNamesPKCS12(BIO* bio,
   STACK_OF(X509) *ca_certs = NULL;
   int status = PKCS12_parse(p12.get(), password, &key, &cert, &ca_certs);
   if (status == 0) {
-    return NULL;
+    return status;
   }
 
-  ScopedX509 x509(cert);
-  ScopedX509Stack certs(ca_certs);
-  X509_NAME* x509_name = X509_get_subject_name(x509.get());
-  if (x509_name == NULL) {
-    return NULL;
+  ScopedX509Stack cert_stack(ca_certs);
+  status = SSL_CTX_add_client_CA(context, cert);
+  if (status == 0) {
+    X509_free(cert);
+    return status;
   }
 
-  x509_name = X509_NAME_dup(x509_name);
-  if (x509_name == NULL) {
-    return NULL;
-  }
-
-  sk_X509_NAME_push(result.get(), x509_name);
-
-  while (true) {
-    ScopedX509 ca(sk_X509_shift(certs.get()));
-    if (ca.get() == NULL) {
-      break;
+  X509* ca;
+  while ((ca = sk_X509_shift(cert_stack.get())) != NULL) {
+    status = SSL_CTX_add_client_CA(context, ca);
+    X509_free(ca);  // The name has been extracted.
+    if (status == 0) {
+      return status;
     }
-
-    X509_NAME* x509_name = X509_get_subject_name(ca.get());
-    if (x509_name == NULL) {
-      return NULL;
-    }
-
-    x509_name = X509_NAME_dup(x509_name);
-    if (x509_name == NULL) {
-      return NULL;
-    }
-
-    sk_X509_NAME_push(result.get(), x509_name);
   }
 
-  return result.release();
+  return status;
 }
 
 
-static STACK_OF(X509_NAME)* GetCertificateNamesPEM(BIO* bio) {
-  ScopedX509NAMEStack result(sk_X509_NAME_new_null());
-  if (result.get() == NULL) {
-    return NULL;
-  }
-
-  while (true) {
-    ScopedX509 x509(PEM_read_bio_X509(bio, NULL, NULL, NULL));
-    if (x509.get() == NULL) {
-      break;
+static int SetClientAuthoritiesPEM(SSL_CTX* context, BIO* bio) {
+  int status = 0;
+  X509* cert = NULL;
+  while ((cert = PEM_read_bio_X509(bio, NULL, NULL, NULL)) != NULL) {
+    status = SSL_CTX_add_client_CA(context, cert);
+    X509_free(cert);  // The name has been extracted.
+    if (status == 0) {
+      return status;
     }
-
-    X509_NAME* x509_name = X509_get_subject_name(x509.get());
-    if (x509_name == NULL) {
-      return NULL;
-    }
-
-    // Duplicate the name to put it on the stack.
-    x509_name = X509_NAME_dup(x509_name);
-    if (x509_name == NULL) {
-      return NULL;
-    }
-    sk_X509_NAME_push(result.get(), x509_name);
   }
-
-  if (sk_X509_NAME_num(result.get()) == 0) {
-    // The data was not PEM.
-    return NULL;
-  }
-
-  uint32_t err = ERR_peek_last_error();
-  if ((ERR_GET_LIB(err) != ERR_LIB_PEM) ||
-      (ERR_GET_REASON(err) != PEM_R_NO_START_LINE)) {
-    // The data was trying to be PEM, but was malformed.
-    return NULL;
-  }
-
-  return result.release();
+  return NoPEMStartLine() ? status : 0;
 }
 
 
-static STACK_OF(X509_NAME)* GetCertificateNames(BIO* bio,
-                                                const char* password) {
-  STACK_OF(X509_NAME)* result = GetCertificateNamesPEM(bio);
-  if (TryPKCS12(result != NULL)) {
-    ERR_clear_error();
-    BIO_reset(bio);
-    result = GetCertificateNamesPKCS12(bio, password);
-  } else if (result != NULL) {
+static int SetClientAuthorities(SSL_CTX* context,
+                                BIO* bio,
+                                const char* password) {
+  int status = SetClientAuthoritiesPEM(context, bio);
+  if (status == 0) {
+    if (NoPEMStartLine()) {
+      ERR_clear_error();
+      BIO_reset(bio);
+      status = SetClientAuthoritiesPKCS12(context, bio, password);
+    }
+  } else {
     // The PEM file was successfully parsed.
     ERR_clear_error();
   }
-  return result;
+  return status;
 }
 
 
@@ -1020,19 +961,16 @@ void FUNCTION_NAME(SecurityContext_SetClientAuthoritiesBytes)(
     Dart_NativeArguments args) {
   SSL_CTX* context = GetSecurityContext(args);
   const char* password = GetPasswordArgument(args, 2);
-  STACK_OF(X509_NAME)* certificate_names;
 
+  int status;
   {
     ScopedMemBIO bio(ThrowIfError(Dart_GetNativeArgument(args, 1)));
-    certificate_names = GetCertificateNames(bio.bio(), password);
+    status = SetClientAuthorities(context, bio.bio(), password);
   }
 
-  if (certificate_names != NULL) {
-    SSL_CTX_set_client_CA_list(context, certificate_names);
-  } else {
-    Dart_ThrowException(DartUtils::NewDartArgumentError(
-        "Could not load certificate names from file in SetClientAuthorities"));
-  }
+  CheckStatus(status,
+      "TlsException",
+      "Failure in setClientAuthoritiesBytes");
 }
 
 

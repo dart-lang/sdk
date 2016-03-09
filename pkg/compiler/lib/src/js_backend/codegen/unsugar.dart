@@ -7,7 +7,6 @@ import '../../constants/values.dart';
 import '../../elements/elements.dart';
 import '../../js_backend/codegen/glue.dart';
 import '../../universe/selector.dart' show Selector;
-import '../../cps_ir/cps_ir_builder.dart' show ThisParameterLocal;
 import '../../cps_ir/cps_fragment.dart';
 import '../../common/names.dart';
 
@@ -38,8 +37,13 @@ class InterceptorEntity extends Entity {
 class UnsugarVisitor extends TrampolineRecursiveVisitor implements Pass {
   Glue _glue;
 
-  Parameter thisParameter;
-  Parameter explicitReceiverParameter;
+  FunctionDefinition function;
+
+  Parameter get receiverParameter => function.receiverParameter;
+
+  /// The interceptor of the receiver.  For some methods, this is the receiver
+  /// itself, for others, it is the interceptor parameter.
+  Parameter receiverInterceptor;
 
   // In a catch block, rethrow implicitly throws the block's exception
   // parameter.  This is the exception parameter when nested in a catch
@@ -50,15 +54,8 @@ class UnsugarVisitor extends TrampolineRecursiveVisitor implements Pass {
 
   String get passName => 'Unsugaring';
 
-  bool methodUsesReceiverArgument(FunctionElement function) {
-    assert(_glue.isInterceptedMethod(function));
-    ClassElement clazz = function.enclosingClass.declaration;
-    return _glue.isInterceptorClass(clazz) ||
-           _glue.isUsedAsMixin(clazz);
-  }
-
   void rewrite(FunctionDefinition function) {
-    thisParameter = function.thisParameter;
+    this.function = function;
     bool inInterceptedMethod = _glue.isInterceptedMethod(function.element);
 
     if (function.element.name == '==' &&
@@ -70,15 +67,16 @@ class UnsugarVisitor extends TrampolineRecursiveVisitor implements Pass {
     }
 
     if (inInterceptedMethod) {
-      ThisParameterLocal holder = thisParameter.hint;
-      explicitReceiverParameter = new Parameter(
-          new ExplicitReceiverParameterEntity(holder.executableContext));
-      explicitReceiverParameter.parent = function;
-      function.parameters.insert(0, explicitReceiverParameter);
-    }
-
-    if (inInterceptedMethod && methodUsesReceiverArgument(function.element)) {
-      thisParameter.replaceUsesWith(explicitReceiverParameter);
+      function.interceptorParameter = new Parameter(null)..parent = function;
+      // Since the receiver won't be compiled to "this", set a hint on it
+      // so the parameter gets a meaningful name.
+      function.receiverParameter.hint =
+          new ExplicitReceiverParameterEntity(function.element);
+      // If we need an interceptor for the receiver, use the receiver itself
+      // if possible, otherwise the interceptor argument.
+      receiverInterceptor = _glue.methodUsesReceiverArgument(function.element)
+          ? function.interceptorParameter
+          : receiverParameter;
     }
 
     visit(function);
@@ -211,45 +209,44 @@ class UnsugarVisitor extends TrampolineRecursiveVisitor implements Pass {
     }
 
     Primitive receiver = node.receiver;
-    Primitive newReceiver;
+    Primitive interceptor;
 
-    if (receiver == explicitReceiverParameter) {
-      // If the receiver is the explicit receiver, we are calling a method in
+    if (receiver == receiverParameter && receiverInterceptor != null) {
+      // TODO(asgerf): This could be done by GVN.
+      // If the receiver is 'this', we are calling a method in
       // the same interceptor:
       //  Change 'receiver.foo()'  to  'this.foo(receiver)'.
-      newReceiver = thisParameter;
+      interceptor = receiverInterceptor;
     } else {
-      newReceiver = new Interceptor(receiver, node.sourceInformation);
+      interceptor = new Interceptor(receiver, node.sourceInformation);
       if (receiver.hint != null) {
-        newReceiver.hint = new InterceptorEntity(receiver.hint);
+        interceptor.hint = new InterceptorEntity(receiver.hint);
       }
-      new LetPrim(newReceiver).insertAbove(node.parent);
+      new LetPrim(interceptor).insertAbove(node.parent);
     }
-    node.argumentRefs.insert(0, node.receiverRef);
-    node.receiverRef = new Reference<Primitive>(newReceiver)..parent = node;
-    node.callingConvention = CallingConvention.Intercepted;
+    assert(node.interceptorRef == null);
+    node.makeIntercepted(interceptor);
   }
 
   processInvokeMethodDirectly(InvokeMethodDirectly node) {
     if (!_glue.isInterceptedMethod(node.target)) return;
 
     Primitive receiver = node.receiver;
-    Primitive newReceiver;
+    Primitive interceptor;
 
-    if (receiver == explicitReceiverParameter) {
-      // If the receiver is the explicit receiver, we are calling a method in
+    if (receiver == receiverParameter && receiverInterceptor != null) {
+      // If the receiver is 'this', we are calling a method in
       // the same interceptor:
       //  Change 'receiver.foo()'  to  'this.foo(receiver)'.
-      newReceiver = thisParameter;
+      interceptor = receiverInterceptor;
     } else {
-      newReceiver = new Interceptor(receiver, node.sourceInformation);
+      interceptor = new Interceptor(receiver, node.sourceInformation);
       if (receiver.hint != null) {
-        newReceiver.hint = new InterceptorEntity(receiver.hint);
+        interceptor.hint = new InterceptorEntity(receiver.hint);
       }
-      new LetPrim(newReceiver).insertAbove(node.parent);
+      new LetPrim(interceptor).insertAbove(node.parent);
     }
-    node.argumentRefs.insert(0, node.receiverRef);
-    node.receiverRef = new Reference<Primitive>(newReceiver)..parent = node;
-    node.callingConvention = CallingConvention.Intercepted;
+    assert(node.interceptorRef == null);
+    node.makeIntercepted(interceptor);
   }
 }

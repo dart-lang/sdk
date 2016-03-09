@@ -5,6 +5,7 @@
 #include "vm/profiler_service.h"
 
 #include "vm/growable_array.h"
+#include "vm/log.h"
 #include "vm/native_symbol.h"
 #include "vm/object.h"
 #include "vm/os.h"
@@ -89,6 +90,23 @@ class DeoptimizedCodeSet : public ZoneAllocated {
 };
 
 
+ProfileFunctionSourcePosition::ProfileFunctionSourcePosition(
+    TokenPosition token_pos)
+    : token_pos_(token_pos),
+      exclusive_ticks_(0),
+      inclusive_ticks_(0) {
+}
+
+
+void ProfileFunctionSourcePosition::Tick(bool exclusive) {
+  if (exclusive) {
+    exclusive_ticks_++;
+  } else {
+    inclusive_ticks_++;
+  }
+}
+
+
 ProfileFunction::ProfileFunction(Kind kind,
                   const char* name,
                   const Function& function,
@@ -98,6 +116,7 @@ ProfileFunction::ProfileFunction(Kind kind,
       function_(Function::ZoneHandle(function.raw())),
       table_index_(table_index),
       profile_codes_(0),
+      source_position_ticks_(0),
       exclusive_ticks_(0),
       inclusive_ticks_(0),
       inclusive_serial_(-1) {
@@ -117,9 +136,13 @@ const char* ProfileFunction::Name() const {
   return func_name.ToCString();
 }
 
-void ProfileFunction::Tick(bool exclusive, intptr_t inclusive_serial) {
+
+void ProfileFunction::Tick(bool exclusive,
+                           intptr_t inclusive_serial,
+                           TokenPosition token_position) {
   if (exclusive) {
     exclusive_ticks_++;
+    TickSourcePosition(token_position, exclusive);
   }
   // Fall through and tick inclusive count too.
   if (inclusive_serial_ == inclusive_serial) {
@@ -128,6 +151,24 @@ void ProfileFunction::Tick(bool exclusive, intptr_t inclusive_serial) {
   }
   inclusive_serial_ = inclusive_serial;
   inclusive_ticks_++;
+  TickSourcePosition(token_position, false);
+}
+
+
+void ProfileFunction::TickSourcePosition(TokenPosition token_position,
+                                         bool exclusive) {
+  for (intptr_t i = 0; i < source_position_ticks_.length(); i++) {
+    ProfileFunctionSourcePosition& position = source_position_ticks_[i];
+    if (position.token_pos() == token_position) {
+      // Found existing position, tick it.
+      position.Tick(exclusive);
+      return;
+    }
+  }
+  // Add new one.
+  ProfileFunctionSourcePosition pfsp(token_position);
+  pfsp.Tick(exclusive);
+  source_position_ticks_.Add(pfsp);
 }
 
 
@@ -186,6 +227,18 @@ void ProfileFunction::AddProfileCode(intptr_t code_table_index) {
     }
   }
   profile_codes_.Add(code_table_index);
+}
+
+
+bool ProfileFunction::GetSinglePosition(ProfileFunctionSourcePosition* pfsp) {
+  if (pfsp == NULL) {
+    return false;
+  }
+  if (source_position_ticks_.length() != 1) {
+    return false;
+  }
+  *pfsp = source_position_ticks_[0];
+  return true;
 }
 
 
@@ -1388,14 +1441,45 @@ class ProfileBuilder : public ValueObject {
     ASSERT(profile_code != NULL);
     const Code& code = Code::ZoneHandle(profile_code->code());
     GrowableArray<Function*> inlined_functions;
+    GrowableArray<TokenPosition> inlined_token_positions;
+    TokenPosition token_position = TokenPosition::kNoSource;
     if (!code.IsNull()) {
       intptr_t offset = pc - code.EntryPoint();
       if (frame_index != 0) {
         // The PC of frames below the top frame is a call's return address,
         // which can belong to a different inlining interval than the call.
         offset--;
+      } else if (sample->IsAllocationSample()) {
+        // Allocation samples skip the top frame, so the top frame's pc is
+        // also a call's return address.
+        offset--;
+      } else if (!sample->first_frame_executing()) {
+        // If the first frame wasn't executing code (i.e. we started to collect
+        // the stack trace at an exit frame), the top frame's pc is also a
+        // call's return address.
+        offset--;
       }
-      code.GetInlinedFunctionsAt(offset, &inlined_functions);
+      code.GetInlinedFunctionsAt(offset,
+                                 &inlined_functions,
+                                 &inlined_token_positions);
+      token_position = code.GetTokenPositionAt(offset);
+      if (inlined_functions.length() > 0) {
+        // The inlined token position table does not include the token position
+        // of the final call. Insert it at the beginning because the table.
+        // is reversed.
+        inlined_token_positions.InsertAt(0, token_position);
+      }
+      ASSERT(inlined_functions.length() <= inlined_token_positions.length());
+      if (FLAG_trace_profiler) {
+        for (intptr_t i = 0; i < inlined_functions.length(); i++) {
+          const String& name =
+              String::Handle(inlined_functions[i]->QualifiedScrubbedName());
+          THR_Print("InlinedFunction[%" Pd "] = {%s, %s}\n",
+                    i,
+                    name.ToCString(),
+                    inlined_token_positions[i].ToCString());
+        }
+      }
     }
     if (code.IsNull() || (inlined_functions.length() == 0)) {
       // No inlined functions.
@@ -1407,6 +1491,7 @@ class ProfileBuilder : public ValueObject {
                                 sample,
                                 frame_index,
                                 function,
+                                token_position,
                                 code_index);
       if (!inclusive_tree_) {
         current = AppendKind(code, current);
@@ -1421,6 +1506,7 @@ class ProfileBuilder : public ValueObject {
         Function* inlined_function = inlined_functions[i];
         ASSERT(inlined_function != NULL);
         ASSERT(!inlined_function->IsNull());
+        TokenPosition inlined_token_position = inlined_token_positions[i];
         const bool inliner = i == (inlined_functions.length() - 1);
         if (inliner) {
           current = AppendKind(code, current);
@@ -1430,6 +1516,7 @@ class ProfileBuilder : public ValueObject {
                                          sample,
                                          frame_index,
                                          inlined_function,
+                                         inlined_token_position,
                                          code_index);
         if (inliner) {
           current = AppendKind(kInlineStart, current);
@@ -1443,6 +1530,7 @@ class ProfileBuilder : public ValueObject {
         Function* inlined_function = inlined_functions[i];
         ASSERT(inlined_function != NULL);
         ASSERT(!inlined_function->IsNull());
+        TokenPosition inlined_token_position = inlined_token_positions[i];
         const bool inliner = i == (inlined_functions.length() - 1);
         if (inliner) {
           current = AppendKind(kInlineStart, current);
@@ -1452,6 +1540,7 @@ class ProfileBuilder : public ValueObject {
                                          sample,
                                          frame_index + i,
                                          inlined_function,
+                                         inlined_token_position,
                                          code_index);
         if (inliner) {
           current = AppendKind(code, current);
@@ -1468,6 +1557,7 @@ class ProfileBuilder : public ValueObject {
       ProcessedSample* sample,
       intptr_t frame_index,
       Function* inlined_function,
+      TokenPosition inlined_token_position,
       intptr_t code_index) {
     ProfileFunctionTable* function_table = profile_->functions_;
     ProfileFunction* function = function_table->LookupOrAdd(*inlined_function);
@@ -1477,6 +1567,7 @@ class ProfileBuilder : public ValueObject {
                            sample,
                            frame_index,
                            function,
+                           inlined_token_position,
                            code_index);
   }
 
@@ -1494,9 +1585,18 @@ class ProfileBuilder : public ValueObject {
                                            ProcessedSample* sample,
                                            intptr_t frame_index,
                                            ProfileFunction* function,
+                                           TokenPosition token_position,
                                            intptr_t code_index) {
+    if (FLAG_trace_profiler) {
+      THR_Print("S[%" Pd "]F[%" Pd "] %s %s\n",
+                sample_index,
+                frame_index,
+                function->Name(), token_position.ToCString());
+    }
     if (tick_functions_) {
-      function->Tick(IsExecutingFrame(sample, frame_index), sample_index);
+      function->Tick(IsExecutingFrame(sample, frame_index),
+                     sample_index,
+                     token_position);
     }
     function->AddProfileCode(code_index);
     current = current->GetChild(function->table_index());
@@ -2243,6 +2343,50 @@ intptr_t ProfileTrieWalker::CurrentExclusiveTicks() {
   UNREACHABLE();
 }
 
+
+const char* ProfileTrieWalker::CurrentToken() {
+  if (current_ == NULL) {
+    return NULL;
+  }
+  if (code_trie_) {
+    return NULL;
+  }
+  ProfileFunction* func = profile_->GetFunction(current_->table_index());
+  const Function& function = Function::Handle(func->function());
+  if (function.IsNull()) {
+    // No function.
+    return NULL;
+  }
+  const Script& script = Script::Handle(function.script());
+  if (script.IsNull()) {
+    // No script.
+    return NULL;
+  }
+  const TokenStream& token_stream = TokenStream::Handle(script.tokens());
+  if (token_stream.IsNull()) {
+    // No token position.
+    return NULL;
+  }
+  ProfileFunctionSourcePosition pfsp(TokenPosition::kNoSource);
+  if (!func->GetSinglePosition(&pfsp)) {
+    // Not exactly one source position.
+    return NULL;
+  }
+  TokenPosition token_pos = pfsp.token_pos();
+  if (!token_pos.IsReal() && !token_pos.IsSynthetic()) {
+    // Not a location in a script.
+    return NULL;
+  }
+  if (token_pos.IsSynthetic()) {
+    token_pos = token_pos.FromSynthetic();
+  }
+  TokenStream::Iterator iterator(token_stream, token_pos);
+  const String& str = String::Handle(iterator.CurrentLiteral());
+  if (str.IsNull()) {
+    return NULL;
+  }
+  return str.ToCString();
+}
 
 bool ProfileTrieWalker::Down() {
   if ((current_ == NULL) || (current_->NumChildren() == 0)) {

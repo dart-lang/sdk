@@ -88,7 +88,7 @@ DEFINE_NATIVE_ENTRY(JSSyntaxRegExp_ExecuteMatch, 3) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, subject, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(Smi, start_index, arguments->NativeArgAt(2));
 
-  if (FLAG_interpret_irregexp) {
+  if (FLAG_interpret_irregexp || FLAG_precompiled_runtime) {
     return BytecodeRegExpMacroAssembler::Interpret(regexp, subject, start_index,
                                                    zone);
   }

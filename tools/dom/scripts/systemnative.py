@@ -7,12 +7,14 @@
 native binding from the IDL database."""
 
 import emitter
+import logging
 import os
 from generator import *
 from htmldartgenerator import *
 from idlnode import IDLArgument, IDLAttribute, IDLEnum, IDLMember
 from systemhtml import js_support_checks, GetCallbackInfo, HTML_LIBRARY_NAMES
 
+_logger = logging.getLogger('systemnative')
 
 # TODO(vsm): This should be recoverable from IDL, but we appear to not
 # track the necessary info.
@@ -76,9 +78,8 @@ def EncodeType(t):
 class DartiumBackend(HtmlDartGenerator):
   """Generates Dart implementation for one DOM IDL interface."""
 
-  def __init__(self, interface,
-               cpp_library_emitter, options):
-    super(DartiumBackend, self).__init__(interface, options, True)
+  def __init__(self, interface, cpp_library_emitter, options, loggerParent):
+    super(DartiumBackend, self).__init__(interface, options, True, loggerParent)
 
     self._interface = interface
     self._cpp_library_emitter = cpp_library_emitter
@@ -96,6 +97,7 @@ class DartiumBackend(HtmlDartGenerator):
     self._cpp_definitions_emitter = None
     self._cpp_resolver_emitter = None
     self._dart_js_interop = options.dart_js_interop
+    _logger.setLevel(loggerParent.level)
 
   def ImplementsMergedMembers(self):
     # We could not add merged functions to implementation class because

@@ -45,6 +45,9 @@ class CommandLineOptions {
   /// Whether to display version information
   final bool displayVersion;
 
+  /// Whether to enable conditional directives (DEP 40).
+  final bool enableConditionalDirectives;
+
   /// Whether to enable null-aware operators (DEP 9).
   final bool enableNullAwareOperators;
 
@@ -86,6 +89,9 @@ class CommandLineOptions {
   /// Mapping of package names to package summary file paths.
   final Map<String, String> packageSummaryInputs;
 
+  /// Whether to skip analysis when creating summaries.
+  final bool packageSummaryOnly;
+
   /// The path to find the package summary.
   final String packageSummaryOutput;
 
@@ -125,6 +131,7 @@ class CommandLineOptions {
         analysisOptionsFile = args['options'],
         disableHints = args['no-hints'],
         displayVersion = args['version'],
+        enableConditionalDirectives = args['enable-conditional-directives'],
         enableNullAwareOperators = args['enable-null-aware-operators'],
         enableStrictCallChecks = args['enable-strict-call-checks'],
         enableSuperMixins = args['supermixin'],
@@ -138,6 +145,7 @@ class CommandLineOptions {
         packageModePath = args['package-mode-path'],
         packageName = args['package-name'],
         packageSummaryInputs = _parsePackageSummaryInputs(args),
+        packageSummaryOnly = args['package-summary-only'],
         packageSummaryOutput = args['package-summary-output'],
         packageConfigPath = args['packages'],
         packageRootPath = args['package-root'],
@@ -313,6 +321,11 @@ class CommandLineOptions {
           help: 'Specifies the path to the file where the summary information '
               'about the package should be written to.',
           hide: true)
+      ..addFlag('package-summary-only',
+          help: 'Disable analysis (only generate summaries).',
+          defaultsTo: false,
+          negatable: false,
+          hide: true)
       //
       // Hidden flags.
       //
@@ -323,6 +336,11 @@ class CommandLineOptions {
           hide: true)
       ..addFlag('enable-enum',
           help: 'Enable support for the proposed enum feature.',
+          defaultsTo: false,
+          negatable: false,
+          hide: true)
+      ..addFlag('enable-conditional-directives',
+          help: 'Enable support for conditional directives (DEP 40).',
           defaultsTo: false,
           negatable: false,
           hide: true)

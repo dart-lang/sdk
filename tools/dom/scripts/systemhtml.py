@@ -737,7 +737,7 @@ class Dart2JSBackend(HtmlDartGenerator):
   """
 
   def __init__(self, interface, options, logging_level=logging.WARNING):
-    super(Dart2JSBackend, self).__init__(interface, options, False)
+    super(Dart2JSBackend, self).__init__(interface, options, False, _logger)
 
     self._database = options.database
     self._template_loader = options.templates
@@ -747,7 +747,6 @@ class Dart2JSBackend(HtmlDartGenerator):
     self._interface_type_info = self._type_registry.TypeInfo(self._interface.id)
     self._current_secondary_parent = None
     self._library_name = self._renamer.GetLibraryName(self._interface)
-
     _logger.setLevel(logging_level)
 
   def ImplementsMergedMembers(self):

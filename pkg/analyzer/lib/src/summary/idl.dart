@@ -53,6 +53,23 @@ import 'format.dart' as generated;
 const informative = null;
 
 /**
+ * Information about an element code range.
+ */
+abstract class CodeRange extends base.SummaryClass {
+  /**
+   * Length of the element code.
+   */
+  @Id(1)
+  int get length;
+
+  /**
+   * Offset of the element code relative to the beginning of the file.
+   */
+  @Id(0)
+  int get offset;
+}
+
+/**
  * Summary information about a reference to a an entity such as a type, top
  * level executable, or executable within a class.
  */
@@ -167,6 +184,13 @@ enum IndexNameKind {
  * Enum used to indicate the kind of an index relation.
  */
 enum IndexRelationKind {
+  /**
+   * Left: class.
+   *   Is ancestor of (is extended or implemented, directly or indirectly).
+   * Right: other class declaration.
+   */
+  IS_ANCESTOR_OF,
+
   /**
    * Left: class.
    *   Is extended by.
@@ -429,6 +453,13 @@ abstract class LinkedReference extends base.SummaryClass {
  */
 abstract class LinkedUnit extends base.SummaryClass {
   /**
+   * List of slot ids (referring to [UnlinkedExecutable.constCycleSlot])
+   * corresponding to const constructors that are part of cycles.
+   */
+  @Id(2)
+  List<int> get constCycles;
+
+  /**
    * Information about the resolution of references within the compilation
    * unit.  Each element of [UnlinkedUnit.references] has a corresponding
    * element in this list (at the same index).  If this list has additional
@@ -535,7 +566,9 @@ abstract class PackageIndex extends base.SummaryClass {
   List<int> get elementUnits;
 
   /**
-   * List of unique element strings used in this [PackageIndex].
+   * List of unique element strings used in this [PackageIndex].  The list is
+   * sorted in ascending order, so that the client can quickly check the
+   * presence of a string in this [PackageIndex].
    */
   @Id(6)
   List<String> get strings;
@@ -729,6 +762,12 @@ abstract class UnlinkedClass extends base.SummaryClass {
    */
   @Id(5)
   List<UnlinkedConst> get annotations;
+
+  /**
+   * Code range of the class.
+   */
+  @Id(13)
+  CodeRange get codeRange;
 
   /**
    * Documentation comment for the class, or `null` if there is no
@@ -1281,6 +1320,12 @@ abstract class UnlinkedEnum extends base.SummaryClass {
   List<UnlinkedConst> get annotations;
 
   /**
+   * Code range of the enum.
+   */
+  @Id(5)
+  CodeRange get codeRange;
+
+  /**
    * Documentation comment for the enum, or `null` if there is no documentation
    * comment.
    */
@@ -1347,11 +1392,28 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
   List<UnlinkedConst> get annotations;
 
   /**
+   * Code range of the executable.
+   */
+  @Id(26)
+  CodeRange get codeRange;
+
+  /**
    * If a constant [UnlinkedExecutableKind.constructor], the constructor
    * initializers.  Otherwise empty.
    */
   @Id(14)
   List<UnlinkedConstructorInitializer> get constantInitializers;
+
+  /**
+   * If [kind] is [UnlinkedExecutableKind.constructor] and [isConst] is `true`,
+   * a nonzero slot id which is unique within this compilation unit.  If this id
+   * is found in [LinkedUnit.constCycles], then this constructor is part of a
+   * cycle.
+   *
+   * Otherwise, zero.
+   */
+  @Id(25)
+  int get constCycleSlot;
 
   /**
    * Documentation comment for the executable, or `null` if there is no
@@ -1719,6 +1781,12 @@ abstract class UnlinkedParam extends base.SummaryClass {
   List<UnlinkedConst> get annotations;
 
   /**
+   * Code range of the parameter.
+   */
+  @Id(14)
+  CodeRange get codeRange;
+
+  /**
    * If the parameter has a default value, the constant expression in the
    * default value.  Note that the presence of this expression does not mean
    * that it is a valid, check [UnlinkedConst.isInvalid].
@@ -1969,6 +2037,12 @@ abstract class UnlinkedTypedef extends base.SummaryClass {
   List<UnlinkedConst> get annotations;
 
   /**
+   * Code range of the typedef.
+   */
+  @Id(7)
+  CodeRange get codeRange;
+
+  /**
    * Documentation comment for the typedef, or `null` if there is no
    * documentation comment.
    */
@@ -2026,6 +2100,12 @@ abstract class UnlinkedTypeParam extends base.SummaryClass {
   EntityRef get bound;
 
   /**
+   * Code range of the type parameter.
+   */
+  @Id(4)
+  CodeRange get codeRange;
+
+  /**
    * Name of the type parameter.
    */
   @Id(0)
@@ -2052,6 +2132,12 @@ abstract class UnlinkedUnit extends base.SummaryClass {
    */
   @Id(2)
   List<UnlinkedClass> get classes;
+
+  /**
+   * Code range of the unit.
+   */
+  @Id(15)
+  CodeRange get codeRange;
 
   /**
    * Enums declared in the compilation unit.
@@ -2160,6 +2246,12 @@ abstract class UnlinkedVariable extends base.SummaryClass {
    */
   @Id(8)
   List<UnlinkedConst> get annotations;
+
+  /**
+   * Code range of the variable.
+   */
+  @Id(14)
+  CodeRange get codeRange;
 
   /**
    * If [isConst] is true, and the variable has an initializer, the constant

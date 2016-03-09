@@ -109,6 +109,9 @@ precompilation_test: Skip # Standalone only test.
 precompilation_dart2js_test: Skip # Standalone only test.
 regress_25335_test: Skip # Int64List not supported.
 
+[ $compiler == dart2js && $cps_ir && $checked ]
+*: Skip # `assert` not implemented
+
 [ ($runtime == vm || $runtime == dart_product) && $mode == debug ]
 precompilation_dart2js_test: Pass, Slow
 
@@ -139,11 +142,9 @@ out_of_memory_test: Skip # passes on Mac, crashes on Linux
 oom_error_stacktrace_test: Skip # Fails on Linux
 
 [ $arch == mips ]
-io/signals_test: Fail # Issue 17440
 io/file_stat_test: Fail # Issue 17440
 io/process_sync_test: Skip # Starts 10 dart subprocesses, uses too much memory.
 io/signals_test: Skip # Starts 10 dart subprocesses, uses too much memory
-io/file_read_special_device_test: Fail # Issue 17440
 io/socket_source_address_test: Fail # Issue 22597
 
 [ $arch == mips && $mode == debug ]
@@ -156,7 +157,7 @@ io/http_client_stays_alive_test: Skip # Timing dependent test, MIPS machine too 
 assert_test: Fail # Issue 14651.
 
 [ $compiler == none && $runtime == drt ]
-map_literal_oom_test: RuntimeError # Issue 24571
+map_insert_remove_oom_test: RuntimeError # Issue 24571
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 io/directory_invalid_arguments_test: StaticWarning
@@ -216,7 +217,7 @@ link_natives_lazily_test: SkipByDesign # Not supported.
 assert_test: Pass, RuntimeError
 
 [ $noopt || $compiler == precompiler ]
-map_literal_oom_test: Pass, Crash # Issue 24678
+map_insert_remove_oom_test: Skip # Heap limit too low. Increasing iteration count to make a higher limit a meaningful test makes it too slow for simarm[64] bots.
 io/web_socket_test: Pass, RuntimeError # Issue 24674
 precompilation_test: Skip # Platform.executable
 precompilation_dart2js_test: Skip  # Platform.executable

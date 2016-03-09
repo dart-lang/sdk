@@ -3345,7 +3345,7 @@ void Class::set_token_pos(TokenPosition token_pos) const {
 
 TokenPosition Class::ComputeEndTokenPos() const {
   // Return the begin token for synthetic classes.
-  if (IsMixinApplication() || IsTopLevel()) {
+  if (is_synthesized_class() || IsMixinApplication() || IsTopLevel()) {
     return token_pos();
   }
   const Script& scr = Script::Handle(script());
@@ -4214,6 +4214,104 @@ const char* Class::ToCString() const {
   const char* class_name = String::Handle(Name()).ToCString();
   return OS::SCreate(Thread::Current()->zone(),
       "%s %sClass: %s", library_name, patch_prefix, class_name);
+}
+
+
+// Returns an instance of Double or Double::null().
+// 'index' points to either:
+// - constants_list_ position of found element, or
+// - constants_list_ position where new canonical can be inserted.
+RawDouble* Class::LookupCanonicalDouble(
+    Zone* zone, double value, intptr_t* index) const {
+  ASSERT(this->raw() == Isolate::Current()->object_store()->double_class());
+  const Array& constants = Array::Handle(zone, this->constants());
+  const intptr_t constants_len = constants.Length();
+  // Linear search to see whether this value is already present in the
+  // list of canonicalized constants.
+  Double& canonical_value = Double::Handle(zone);
+  while (*index < constants_len) {
+    canonical_value ^= constants.At(*index);
+    if (canonical_value.IsNull()) {
+      break;
+    }
+    if (canonical_value.BitwiseEqualsToDouble(value)) {
+      ASSERT(canonical_value.IsCanonical());
+      return canonical_value.raw();
+    }
+    *index = *index + 1;
+  }
+  return Double::null();
+}
+
+
+RawMint* Class::LookupCanonicalMint(
+    Zone* zone, int64_t value, intptr_t* index) const {
+  ASSERT(this->raw() == Isolate::Current()->object_store()->mint_class());
+  const Array& constants = Array::Handle(zone, this->constants());
+  const intptr_t constants_len = constants.Length();
+  // Linear search to see whether this value is already present in the
+  // list of canonicalized constants.
+  Mint& canonical_value = Mint::Handle(zone);
+  while (*index < constants_len) {
+    canonical_value ^= constants.At(*index);
+    if (canonical_value.IsNull()) {
+      break;
+    }
+    if (canonical_value.value() == value) {
+      ASSERT(canonical_value.IsCanonical());
+      return canonical_value.raw();
+    }
+    *index = *index + 1;
+  }
+  return Mint::null();
+}
+
+
+RawBigint* Class::LookupCanonicalBigint(Zone* zone,
+                                        const Bigint& value,
+                                        intptr_t* index) const {
+  ASSERT(this->raw() == Isolate::Current()->object_store()->bigint_class());
+  const Array& constants = Array::Handle(zone, this->constants());
+  const intptr_t constants_len = constants.Length();
+  // Linear search to see whether this value is already present in the
+  // list of canonicalized constants.
+  Bigint& canonical_value = Bigint::Handle(zone);
+  while (*index < constants_len) {
+    canonical_value ^= constants.At(*index);
+    if (canonical_value.IsNull()) {
+      break;
+    }
+    if (canonical_value.Equals(value)) {
+      ASSERT(canonical_value.IsCanonical());
+      return canonical_value.raw();
+    }
+    *index = *index + 1;
+  }
+  return Bigint::null();
+}
+
+
+RawInstance* Class::LookupCanonicalInstance(Zone* zone,
+                                            const Instance& value,
+                                            intptr_t* index) const {
+  ASSERT(this->raw() == value.clazz());
+  const Array& constants = Array::Handle(zone, this->constants());
+  const intptr_t constants_len = constants.Length();
+  // Linear search to see whether this value is already present in the
+  // list of canonicalized constants.
+  Instance& canonical_value = Instance::Handle(zone);
+  while (*index < constants_len) {
+    canonical_value ^= constants.At(*index);
+    if (canonical_value.IsNull()) {
+      break;
+    }
+    if (value.CanonicalizeEquals(canonical_value)) {
+      ASSERT(canonical_value.IsCanonical());
+      return canonical_value.raw();
+    }
+    *index = *index + 1;
+  }
+  return Instance::null();
 }
 
 
@@ -9403,8 +9501,7 @@ void Library::AddObject(const Object& obj, const String& name) const {
 }
 
 
-// Lookup a name in the library's re-export namespace. The name is
-// unmangled, i.e. no getter or setter names should be looked up.
+// Lookup a name in the library's re-export namespace.
 RawObject* Library::LookupReExport(const String& name) const {
   if (HasExports()) {
     const Array& exports = Array::Handle(this->exports());
@@ -9416,7 +9513,13 @@ RawObject* Library::LookupReExport(const String& name) const {
       ns ^= exports.At(i);
       obj = ns.Lookup(name);
       if (!obj.IsNull()) {
-        break;
+        // The Lookup call above may return a setter x= when we are looking
+        // for the name x. Make sure we only return when a matching name
+        // is found.
+        String& obj_name = String::Handle(obj.DictionaryName());
+        if (Field::IsSetterName(obj_name) == Field::IsSetterName(name)) {
+          break;
+        }
       }
     }
     StorePointer(&raw_ptr()->exports_, exports.raw());
@@ -9731,6 +9834,14 @@ RawObject* Library::LookupImportedObject(const String& name) const {
           // The newly found object is exported from a Dart system
           // library. It is hidden by the previously found object.
           // We continue to search.
+        } else if (Field::IsSetterName(found_obj_name) &&
+                   !Field::IsSetterName(name)) {
+          // We are looking for an unmangled name or a getter, but
+          // the first object we found is a setter. Replace the first
+          // object with the one we just found.
+          first_import_lib_url = import_lib.url();
+          found_obj = obj.raw();
+          found_obj_name = found_obj.DictionaryName();
         } else {
           // We found two different objects with the same name.
           // Note that we need to compare the names again because
@@ -10341,6 +10452,7 @@ RawObject* LibraryPrefix::LookupObject(const String& name) const {
   String& import_lib_url = String::Handle();
   String& first_import_lib_url = String::Handle();
   Object& found_obj = Object::Handle();
+  String& found_obj_name = String::Handle();
   for (intptr_t i = 0; i < num_imports(); i++) {
     import ^= imports.At(i);
     obj = import.Lookup(name);
@@ -10356,13 +10468,36 @@ RawObject* LibraryPrefix::LookupObject(const String& name) const {
           // from the Dart library.
           first_import_lib_url = import_lib.url();
           found_obj = obj.raw();
+          found_obj_name = found_obj.DictionaryName();
         } else if (import_lib_url.StartsWith(Symbols::DartScheme())) {
           // The newly found object is exported from a Dart system
           // library. It is hidden by the previously found object.
           // We continue to search.
+        } else if (Field::IsSetterName(found_obj_name) &&
+                   !Field::IsSetterName(name)) {
+          // We are looking for an unmangled name or a getter, but
+          // the first object we found is a setter. Replace the first
+          // object with the one we just found.
+          first_import_lib_url = import_lib.url();
+          found_obj = obj.raw();
+          found_obj_name = found_obj.DictionaryName();
         } else {
           // We found two different objects with the same name.
-          return Object::null();
+          // Note that we need to compare the names again because
+          // looking up an unmangled name can return a getter or a
+          // setter. A getter name is the same as the unmangled name,
+          // but a setter name is different from an unmangled name or a
+          // getter name.
+          if (Field::IsGetterName(found_obj_name)) {
+            found_obj_name = Field::NameFromGetter(found_obj_name);
+          }
+          String& second_obj_name = String::Handle(obj.DictionaryName());
+          if (Field::IsGetterName(second_obj_name)) {
+            second_obj_name = Field::NameFromGetter(second_obj_name);
+          }
+          if (found_obj_name.Equals(second_obj_name)) {
+            return Object::null();
+          }
         }
       }
     }
@@ -11366,7 +11501,7 @@ void Stackmap::SetBit(intptr_t bit_index, bool value) const {
 
 RawStackmap* Stackmap::New(intptr_t pc_offset,
                            BitmapBuilder* bmap,
-                           intptr_t register_bit_count) {
+                           intptr_t slow_path_bit_count) {
   ASSERT(Object::stackmap_class() != Class::null());
   ASSERT(bmap != NULL);
   Stackmap& result = Stackmap::Handle();
@@ -11398,13 +11533,13 @@ RawStackmap* Stackmap::New(intptr_t pc_offset,
   for (intptr_t i = 0; i < length; ++i) {
     result.SetBit(i, bmap->Get(i));
   }
-  result.SetRegisterBitCount(register_bit_count);
+  result.SetSlowPathBitCount(slow_path_bit_count);
   return result.raw();
 }
 
 
 RawStackmap* Stackmap::New(intptr_t length,
-                           intptr_t register_bit_count,
+                           intptr_t slow_path_bit_count,
                            intptr_t pc_offset) {
   ASSERT(Object::stackmap_class() != Class::null());
   Stackmap& result = Stackmap::Handle();
@@ -11432,7 +11567,7 @@ RawStackmap* Stackmap::New(intptr_t length,
   // address.
   ASSERT(pc_offset >= 0);
   result.SetPcOffset(pc_offset);
-  result.SetRegisterBitCount(register_bit_count);
+  result.SetSlowPathBitCount(slow_path_bit_count);
   return result.raw();
 }
 
@@ -11666,6 +11801,7 @@ bool ExceptionHandlers::HasCatchAll(intptr_t try_index) const {
 void ExceptionHandlers::SetHandledTypes(intptr_t try_index,
                                         const Array& handled_types) const {
   ASSERT((try_index >= 0) && (try_index < num_entries()));
+  ASSERT(!handled_types.IsNull());
   const Array& handled_types_data =
       Array::Handle(raw_ptr()->handled_types_data_);
   handled_types_data.SetAt(try_index, handled_types);
@@ -12795,6 +12931,15 @@ bool Code::HasBreakpoint() const {
 }
 
 
+TokenPosition Code::GetTokenPositionAt(intptr_t offset) const {
+  const CodeSourceMap& map = CodeSourceMap::Handle(code_source_map());
+  if (map.IsNull()) {
+    return TokenPosition::kNoSource;
+  }
+  return map.TokenPositionForPCOffset(offset);
+}
+
+
 RawTypedData* Code::GetDeoptInfoAtPc(uword pc,
                                      ICData::DeoptReasonId* deopt_reason,
                                      uint32_t* deopt_flags) const {
@@ -13399,8 +13544,13 @@ intptr_t Code::GetCallerId(intptr_t inlined_id) const {
 
 
 void Code::GetInlinedFunctionsAt(
-    intptr_t offset, GrowableArray<Function*>* fs) const {
+    intptr_t offset,
+    GrowableArray<Function*>* fs,
+    GrowableArray<TokenPosition>* token_positions) const {
   fs->Clear();
+  if (token_positions != NULL) {
+    token_positions->Clear();
+  }
   const Array& intervals = Array::Handle(GetInlinedIntervals());
   if (intervals.IsNull() || (intervals.Length() == 0)) {
     // E.g., for code stubs.
@@ -13425,6 +13575,7 @@ void Code::GetInlinedFunctionsAt(
 
   // Find all functions.
   const Array& id_map = Array::Handle(GetInlinedIdToFunction());
+  const Array& token_pos_map = Array::Handle(GetInlinedIdToTokenPos());
   Smi& temp_smi = Smi::Handle();
   temp_smi ^= intervals.At(found_interval_ix + Code::kInlIntInliningId);
   intptr_t inlining_id = temp_smi.Value();
@@ -13432,8 +13583,12 @@ void Code::GetInlinedFunctionsAt(
   intptr_t caller_id = GetCallerId(inlining_id);
   while (inlining_id >= 0) {
     Function& function = Function::ZoneHandle();
-    function  ^= id_map.At(inlining_id);
+    function ^= id_map.At(inlining_id);
     fs->Add(&function);
+    if ((token_positions != NULL) && (inlining_id < token_pos_map.Length())) {
+      temp_smi ^= token_pos_map.At(inlining_id);
+      token_positions->Add(TokenPosition(temp_smi.Value()));
+    }
     inlining_id = caller_id;
     caller_id = GetCallerId(inlining_id);
   }
@@ -13557,7 +13712,12 @@ void Context::Dump(int indent) const {
   for (intptr_t i = 0; i < num_variables(); i++) {
     IndentN(indent + 2);
     obj = At(i);
-    THR_Print("[%" Pd "] = %s\n", i, obj.ToCString());
+    const char* s = obj.ToCString();
+    if (strlen(s) > 50) {
+      THR_Print("[%" Pd "] = [first 50 chars:] %.50s...\n", i, s);
+    } else {
+      THR_Print("[%" Pd "] = %s\n", i, s);
+    }
   }
 
   const Context& parent_ctx = Context::Handle(parent());
@@ -14355,49 +14515,51 @@ RawInstance* Instance::CheckAndCanonicalize(const char** error_str) const {
   Isolate* isolate = thread->isolate();
   Instance& result = Instance::Handle(zone);
   const Class& cls = Class::Handle(zone, this->clazz());
-  Array& constants = Array::Handle(zone, cls.constants());
-  const intptr_t constants_len = constants.Length();
-  // Linear search to see whether this value is already present in the
-  // list of canonicalized constants.
   intptr_t index = 0;
-  while (index < constants_len) {
-    result ^= constants.At(index);
-    if (result.IsNull()) {
-      break;
-    }
-    if (this->CanonicalizeEquals(result)) {
-      ASSERT(result.IsCanonical());
-      return result.raw();
-    }
-    index++;
+  result ^= cls.LookupCanonicalInstance(zone, *this, &index);
+  if (!result.IsNull()) {
+    return result.raw();
   }
-  // The value needs to be added to the list. Grow the list if
-  // it is full.
-  result ^= this->raw();
-  if (result.IsNew() ||
-      (result.InVMHeap() && (isolate != Dart::vm_isolate()))) {
-    /**
-     * When a snapshot is generated on a 64 bit architecture and then read
-     * into a 32 bit architecture, values which are Smi on the 64 bit
-     * architecture could potentially be converted to Mint objects, however
-     * since Smi values do not have any notion of canonical bits we lose
-     * that information when the object becomes a Mint.
-     * Some of these values could be literal values and end up in the
-     * VM isolate heap. Later when these values are referenced in a
-     * constant list we try to ensure that all the objects in the list
-     * are canonical and try to canonicalize them. When these Mint objects
-     * are encountered they do not have the canonical bit set and
-     * canonicalizing them won't work as the VM heap is read only now.
-     * In these cases we clone the object into the isolate and then
-     * canonicalize it.
-     */
-    // Create a canonical object in old space.
-    result ^= Object::Clone(result, Heap::kOld);
+  {
+    SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
+    // Retry lookup.
+    {
+      Instance& temp_result = Instance::Handle(zone,
+          cls.LookupCanonicalInstance(zone, *this, &index));
+      if (!temp_result.IsNull()) {
+        return temp_result.raw();
+      }
+    }
+
+    // The value needs to be added to the list. Grow the list if
+    // it is full.
+    result ^= this->raw();
+    if (result.IsNew() ||
+        (result.InVMHeap() && (isolate != Dart::vm_isolate()))) {
+      /**
+       * When a snapshot is generated on a 64 bit architecture and then read
+       * into a 32 bit architecture, values which are Smi on the 64 bit
+       * architecture could potentially be converted to Mint objects, however
+       * since Smi values do not have any notion of canonical bits we lose
+       * that information when the object becomes a Mint.
+       * Some of these values could be literal values and end up in the
+       * VM isolate heap. Later when these values are referenced in a
+       * constant list we try to ensure that all the objects in the list
+       * are canonical and try to canonicalize them. When these Mint objects
+       * are encountered they do not have the canonical bit set and
+       * canonicalizing them won't work as the VM heap is read only now.
+       * In these cases we clone the object into the isolate and then
+       * canonicalize it.
+       */
+      // Create a canonical object in old space.
+      result ^= Object::Clone(result, Heap::kOld);
+    }
+    ASSERT(result.IsOld());
+
+    result.SetCanonical();
+    cls.InsertCanonicalConstant(index, result);
+    return result.raw();
   }
-  ASSERT(result.IsOld());
-  cls.InsertCanonicalConstant(index, result);
-  result.SetCanonical();
-  return result.raw();
 }
 
 
@@ -17602,31 +17764,33 @@ RawMint* Mint::New(int64_t val, Heap::Space space) {
 RawMint* Mint::NewCanonical(int64_t value) {
   // Do not allocate a Mint if Smi would do.
   ASSERT(!Smi::IsValid(value));
-  const Class& cls =
-      Class::Handle(Isolate::Current()->object_store()->mint_class());
-  const Array& constants = Array::Handle(cls.constants());
-  const intptr_t constants_len = constants.Length();
-  // Linear search to see whether this value is already present in the
-  // list of canonicalized constants.
-  Mint& canonical_value = Mint::Handle();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
+  const Class& cls = Class::Handle(zone, isolate->object_store()->mint_class());
+  Mint& canonical_value = Mint::Handle(zone);
   intptr_t index = 0;
-  while (index < constants_len) {
-    canonical_value ^= constants.At(index);
-    if (canonical_value.IsNull()) {
-      break;
-    }
-    if (canonical_value.value() == value) {
-      ASSERT(canonical_value.IsCanonical());
-      return canonical_value.raw();
-    }
-    index++;
+  canonical_value ^= cls.LookupCanonicalMint(zone, value, &index);
+  if (!canonical_value.IsNull()) {
+    return canonical_value.raw();
   }
-  // The value needs to be added to the constants list. Grow the list if
-  // it is full.
-  canonical_value = Mint::New(value, Heap::kOld);
-  cls.InsertCanonicalConstant(index, canonical_value);
-  canonical_value.SetCanonical();
-  return canonical_value.raw();
+  {
+    SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
+    // Retry lookup.
+    {
+      const Mint& result =
+          Mint::Handle(zone, cls.LookupCanonicalMint(zone, value, &index));
+      if (!result.IsNull()) {
+        return result.raw();
+      }
+    }
+    canonical_value = Mint::New(value, Heap::kOld);
+    canonical_value.SetCanonical();
+    // The value needs to be added to the constants list. Grow the list if
+    // it is full.
+    cls.InsertCanonicalConstant(index, canonical_value);
+    return canonical_value.raw();
+  }
 }
 
 
@@ -17750,30 +17914,36 @@ RawDouble* Double::New(const String& str, Heap::Space space) {
 
 
 RawDouble* Double::NewCanonical(double value) {
-  const Class& cls =
-      Class::Handle(Isolate::Current()->object_store()->double_class());
-  const Array& constants = Array::Handle(cls.constants());
-  const intptr_t constants_len = constants.Length();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
+  const Class& cls = Class::Handle(isolate->object_store()->double_class());
   // Linear search to see whether this value is already present in the
   // list of canonicalized constants.
-  Double& canonical_value = Double::Handle();
+  Double& canonical_value = Double::Handle(zone);
   intptr_t index = 0;
-  while (index < constants_len) {
-    canonical_value ^= constants.At(index);
-    if (canonical_value.IsNull()) {
-      break;
-    }
-    if (canonical_value.BitwiseEqualsToDouble(value)) {
-      return canonical_value.raw();
-    }
-    index++;
+
+  canonical_value ^= cls.LookupCanonicalDouble(zone, value, &index);
+  if (!canonical_value.IsNull()) {
+    return canonical_value.raw();
   }
-  // The value needs to be added to the constants list. Grow the list if
-  // it is full.
-  canonical_value = Double::New(value, Heap::kOld);
-  cls.InsertCanonicalConstant(index, canonical_value);
-  canonical_value.SetCanonical();
-  return canonical_value.raw();
+  {
+    SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
+    // Retry lookup.
+    {
+      const Double& result =
+          Double::Handle(zone, cls.LookupCanonicalDouble(zone, value, &index));
+      if (!result.IsNull()) {
+        return result.raw();
+      }
+    }
+    canonical_value = Double::New(value, Heap::kOld);
+    canonical_value.SetCanonical();
+    // The value needs to be added to the constants list. Grow the list if
+    // it is full.
+    cls.InsertCanonicalConstant(index, canonical_value);
+    return canonical_value.raw();
+  }
 }
 
 
@@ -18054,31 +18224,35 @@ RawBigint* Bigint::NewFromCString(const char* str, Heap::Space space) {
 
 
 RawBigint* Bigint::NewCanonical(const String& str) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Isolate* isolate = thread->isolate();
   const Bigint& value = Bigint::Handle(
-      Bigint::NewFromCString(str.ToCString(), Heap::kOld));
+      zone, Bigint::NewFromCString(str.ToCString(), Heap::kOld));
   const Class& cls =
-      Class::Handle(Isolate::Current()->object_store()->bigint_class());
-  const Array& constants = Array::Handle(cls.constants());
-  const intptr_t constants_len = constants.Length();
-  // Linear search to see whether this value is already present in the
-  // list of canonicalized constants.
-  Bigint& canonical_value = Bigint::Handle();
+      Class::Handle(zone, isolate->object_store()->bigint_class());
   intptr_t index = 0;
-  while (index < constants_len) {
-    canonical_value ^= constants.At(index);
-    if (canonical_value.IsNull()) {
-      break;
-    }
-    if (canonical_value.Equals(value)) {
-      return canonical_value.raw();
-    }
-    index++;
+  const Bigint& canonical_value =
+      Bigint::Handle(zone, cls.LookupCanonicalBigint(zone, value, &index));
+  if (!canonical_value.IsNull()) {
+    return canonical_value.raw();
   }
-  // The value needs to be added to the constants list. Grow the list if
-  // it is full.
-  cls.InsertCanonicalConstant(index, value);
-  value.SetCanonical();
-  return value.raw();
+  {
+    SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
+    // Retry lookup.
+    {
+      const Bigint& result =
+          Bigint::Handle(zone, cls.LookupCanonicalBigint(zone, value, &index));
+      if (!result.IsNull()) {
+        return result.raw();
+      }
+    }
+    value.SetCanonical();
+    // The value needs to be added to the constants list. Grow the list if
+    // it is full.
+    cls.InsertCanonicalConstant(index, value);
+    return value.raw();
+  }
 }
 
 
@@ -21354,7 +21528,9 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
       code = CodeAtFrame(i);
       ASSERT(function.raw() == code.function());
       uword pc = code.EntryPoint() + Smi::Value(PcOffsetAtFrame(i));
-      if (code.is_optimized() && expand_inlined() && !FLAG_precompiled_mode) {
+      if (code.is_optimized() &&
+          expand_inlined() &&
+          !FLAG_precompiled_runtime) {
         // Traverse inlined frames.
         for (InlinedFunctionsIterator it(code, pc);
              !it.Done() && (*frame_index < max_frames); it.Advance()) {

@@ -731,10 +731,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
 
   @override
   bool isSubtypeOf(DartType type) {
-    return relate(
-        this,
-        type,
-        (DartType t, DartType s) => t.isAssignableTo(s),
+    return relate(this, type, (DartType t, DartType s) => t.isAssignableTo(s),
         new TypeSystemImpl().instantiateToBounds);
   }
 
@@ -854,56 +851,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
   }
 
   /**
-   * Given two functions [f1] and [f2] where f1 and f2 are known to be
-   * generic function types (both have type formals), this checks that they
-   * have the same number of formals, and that those formals have bounds
-   * (e.g. `<T extends LowerBound>`) that satisfy [relation].
-   *
-   * The return value will be a new list of fresh type variables, that can be
-   * used to instantiate both function types, allowing further comparison.
-   * For example, given `<T>T -> T` and `<U>U -> U` we can instantiate them with
-   * `F` to get `F -> F` and `F -> F`, which we can see are equal.
-   */
-  static List<DartType> relateTypeFormals(
-      FunctionType f1, FunctionType f2, bool relation(DartType t, DartType s)) {
-    List<TypeParameterElement> params1 = f1.typeFormals;
-    List<TypeParameterElement> params2 = f2.typeFormals;
-    int count = params1.length;
-    if (params2.length != count) {
-      return null;
-    }
-    // We build up a substitution matching up the type parameters
-    // from the two types, {variablesFresh/variables1} and
-    // {variablesFresh/variables2}
-    List<DartType> variables1 = <DartType>[];
-    List<DartType> variables2 = <DartType>[];
-    List<DartType> variablesFresh = <DartType>[];
-    for (int i = 0; i < count; i++) {
-      TypeParameterElement p1 = params1[i];
-      TypeParameterElement p2 = params2[i];
-      TypeParameterElementImpl pFresh =
-          new TypeParameterElementImpl.synthetic(p2.name);
-
-      DartType variable1 = p1.type;
-      DartType variable2 = p2.type;
-      DartType variableFresh = new TypeParameterTypeImpl(pFresh);
-
-      variables1.add(variable1);
-      variables2.add(variable2);
-      variablesFresh.add(variableFresh);
-      DartType bound1 = p1.bound ?? DynamicTypeImpl.instance;
-      DartType bound2 = p2.bound ?? DynamicTypeImpl.instance;
-      bound1 = bound1.substitute2(variablesFresh, variables1);
-      bound2 = bound2.substitute2(variablesFresh, variables2);
-      pFresh.bound = bound2;
-      if (!relation(bound2, bound1)) {
-        return null;
-      }
-    }
-    return variablesFresh;
-  }
-
-  /**
    * Compares two function types [t] and [s] to see if their corresponding
    * parameter types match [parameterRelation] and their return types match
    * [returnRelation].
@@ -920,7 +867,6 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       bool parameterRelation(DartType t, DartType s),
       FunctionType instantiateToBounds(FunctionType t),
       {bool returnRelation(DartType t, DartType s)}) {
-
     returnRelation ??= parameterRelation;
 
     // Trivial base cases.
@@ -1021,6 +967,56 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     }
 
     return true;
+  }
+
+  /**
+   * Given two functions [f1] and [f2] where f1 and f2 are known to be
+   * generic function types (both have type formals), this checks that they
+   * have the same number of formals, and that those formals have bounds
+   * (e.g. `<T extends LowerBound>`) that satisfy [relation].
+   *
+   * The return value will be a new list of fresh type variables, that can be
+   * used to instantiate both function types, allowing further comparison.
+   * For example, given `<T>T -> T` and `<U>U -> U` we can instantiate them with
+   * `F` to get `F -> F` and `F -> F`, which we can see are equal.
+   */
+  static List<DartType> relateTypeFormals(
+      FunctionType f1, FunctionType f2, bool relation(DartType t, DartType s)) {
+    List<TypeParameterElement> params1 = f1.typeFormals;
+    List<TypeParameterElement> params2 = f2.typeFormals;
+    int count = params1.length;
+    if (params2.length != count) {
+      return null;
+    }
+    // We build up a substitution matching up the type parameters
+    // from the two types, {variablesFresh/variables1} and
+    // {variablesFresh/variables2}
+    List<DartType> variables1 = <DartType>[];
+    List<DartType> variables2 = <DartType>[];
+    List<DartType> variablesFresh = <DartType>[];
+    for (int i = 0; i < count; i++) {
+      TypeParameterElement p1 = params1[i];
+      TypeParameterElement p2 = params2[i];
+      TypeParameterElementImpl pFresh =
+          new TypeParameterElementImpl.synthetic(p2.name);
+
+      DartType variable1 = p1.type;
+      DartType variable2 = p2.type;
+      DartType variableFresh = new TypeParameterTypeImpl(pFresh);
+
+      variables1.add(variable1);
+      variables2.add(variable2);
+      variablesFresh.add(variableFresh);
+      DartType bound1 = p1.bound ?? DynamicTypeImpl.instance;
+      DartType bound2 = p2.bound ?? DynamicTypeImpl.instance;
+      bound1 = bound1.substitute2(variablesFresh, variables1);
+      bound2 = bound2.substitute2(variablesFresh, variables2);
+      pFresh.bound = bound2;
+      if (!relation(bound2, bound1)) {
+        return null;
+      }
+    }
+    return variablesFresh;
   }
 
   /**
@@ -1311,6 +1307,10 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   @override
   PropertyAccessorElement getSetter(String setterName) =>
       PropertyAccessorMember.from(element.getSetter(setterName), this);
+
+  @override
+  InterfaceTypeImpl instantiate(List<DartType> argumentTypes) =>
+      substitute2(argumentTypes, typeArguments);
 
   @override
   bool isDirectSupertypeOf(InterfaceType type) {
@@ -1732,9 +1732,10 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     return newType;
   }
 
+  @deprecated
   @override
   InterfaceTypeImpl substitute4(List<DartType> argumentTypes) =>
-      substitute2(argumentTypes, typeArguments);
+      instantiate(argumentTypes);
 
   /**
    * Starting from this type, search its class hierarchy for types of the form
@@ -1827,6 +1828,62 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       _computeSuperinterfaceSet(type, new HashSet<InterfaceType>());
 
   /**
+   * If there is a single type which is at least as specific as all of the
+   * types in [types], return it.  Otherwise return `null`.
+   */
+  static DartType findMostSpecificType(
+      List<DartType> types, TypeSystem typeSystem) {
+    // The << relation ("more specific than") is a partial ordering on types,
+    // so to find the most specific type of a set, we keep a bucket of the most
+    // specific types seen so far such that no type in the bucket is more
+    // specific than any other type in the bucket.
+    List<DartType> bucket = <DartType>[];
+
+    // Then we consider each type in turn.
+    for (DartType type in types) {
+      // If any existing type in the bucket is more specific than this type,
+      // then we can ignore this type.
+      if (bucket.any((DartType t) => typeSystem.isMoreSpecificThan(t, type))) {
+        continue;
+      }
+      // Otherwise, we need to add this type to the bucket and remove any types
+      // that are less specific than it.
+      bool added = false;
+      int i = 0;
+      while (i < bucket.length) {
+        if (typeSystem.isMoreSpecificThan(type, bucket[i])) {
+          if (added) {
+            if (i < bucket.length - 1) {
+              bucket[i] = bucket.removeLast();
+            } else {
+              bucket.removeLast();
+            }
+          } else {
+            bucket[i] = type;
+            i++;
+            added = true;
+          }
+        } else {
+          i++;
+        }
+      }
+      if (!added) {
+        bucket.add(type);
+      }
+    }
+
+    // Now that we are finished, if there is exactly one type left in the
+    // bucket, it is the most specific type.
+    if (bucket.length == 1) {
+      return bucket[0];
+    }
+
+    // Otherwise, there is no single type that is more specific than the
+    // others.
+    return null;
+  }
+
+  /**
    * Returns a "smart" version of the "least upper bound" of the given types.
    *
    * If these types have the same element and differ only in terms of the type
@@ -1917,62 +1974,6 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       }
     }
     return set;
-  }
-
-  /**
-   * If there is a single type which is at least as specific as all of the
-   * types in [types], return it.  Otherwise return `null`.
-   */
-  static DartType findMostSpecificType(
-      List<DartType> types, TypeSystem typeSystem) {
-    // The << relation ("more specific than") is a partial ordering on types,
-    // so to find the most specific type of a set, we keep a bucket of the most
-    // specific types seen so far such that no type in the bucket is more
-    // specific than any other type in the bucket.
-    List<DartType> bucket = <DartType>[];
-
-    // Then we consider each type in turn.
-    for (DartType type in types) {
-      // If any existing type in the bucket is more specific than this type,
-      // then we can ignore this type.
-      if (bucket.any((DartType t) => typeSystem.isMoreSpecificThan(t, type))) {
-        continue;
-      }
-      // Otherwise, we need to add this type to the bucket and remove any types
-      // that are less specific than it.
-      bool added = false;
-      int i = 0;
-      while (i < bucket.length) {
-        if (typeSystem.isMoreSpecificThan(type, bucket[i])) {
-          if (added) {
-            if (i < bucket.length - 1) {
-              bucket[i] = bucket.removeLast();
-            } else {
-              bucket.removeLast();
-            }
-          } else {
-            bucket[i] = type;
-            i++;
-            added = true;
-          }
-        } else {
-          i++;
-        }
-      }
-      if (!added) {
-        bucket.add(type);
-      }
-    }
-
-    // Now that we are finished, if there is exactly one type left in the
-    // bucket, it is the most specific type.
-    if (bucket.length == 1) {
-      return bucket[0];
-    }
-
-    // Otherwise, there is no single type that is more specific than the
-    // others.
-    return null;
   }
 
   /**
@@ -2217,6 +2218,9 @@ abstract class TypeImpl implements DartType {
    */
   TypeImpl pruned(List<FunctionTypeAliasElement> prune);
 
+  @override
+  DartType resolveToBound(DartType objectType) => this;
+
   /**
    * Return the type resulting from substituting the given [argumentTypes] for
    * the given [parameterTypes] in this type.
@@ -2230,9 +2234,6 @@ abstract class TypeImpl implements DartType {
   DartType substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes,
       [List<FunctionTypeAliasElement> prune]);
-
-  @override
-  DartType resolveToBound(DartType objectType) => this;
 
   @override
   String toString() {
@@ -2372,6 +2373,15 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
   TypeImpl pruned(List<FunctionTypeAliasElement> prune) => this;
 
   @override
+  DartType resolveToBound(DartType objectType) {
+    if (element.bound == null) {
+      return objectType;
+    }
+
+    return element.bound.resolveToBound(objectType);
+  }
+
+  @override
   DartType substitute2(
       List<DartType> argumentTypes, List<DartType> parameterTypes,
       [List<FunctionTypeAliasElement> prune]) {
@@ -2399,15 +2409,6 @@ class TypeParameterTypeImpl extends TypeImpl implements TypeParameterType {
       types[i] = typeParameters[i].type;
     }
     return types;
-  }
-
-  @override
-  DartType resolveToBound(DartType objectType) {
-    if (element.bound == null) {
-      return objectType;
-    }
-
-    return element.bound.resolveToBound(objectType);
   }
 }
 

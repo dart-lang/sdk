@@ -21,15 +21,15 @@
 //   R(name, product_value, type, default_value, comment)
 //   C(name, precompiled_value, product_value, type, default_value, comment)
 #define FLAG_LIST(P, R, D, C)                                                  \
-C(allow_absolute_addresses, false, true, bool, true,                           \
+P(allow_absolute_addresses, bool, true,                                        \
   "Allow embedding absolute addresses in generated code.")                     \
-C(always_megamorphic_calls, true, false, bool, false,                          \
+P(always_megamorphic_calls, bool, false,                                       \
   "Instance call always as megamorphic.")                                      \
 C(background_compilation, false, false, bool, false,                           \
   "Run optimizing compilation in background")                                  \
 C(collect_code, false, true, bool, true,                                       \
   "Attempt to GC infrequently used code.")                                     \
-C(collect_dynamic_function_names, true, false, bool, false,                    \
+P(collect_dynamic_function_names, bool, false,                                 \
   "Collects all dynamic function names to identify unique targets")            \
 R(dedup_instructions, true, bool, false,                                       \
   "Canonicalize instructions when precompiling.")                              \
@@ -45,8 +45,6 @@ R(disassemble_optimized, false, bool, false,                                   \
   "Disassemble optimized code.")                                               \
 R(dump_symbol_stats, false, bool, false,                                       \
   "Dump symbol table statistics")                                              \
-C(emit_edge_counters, false, true, bool, true,                                 \
-  "Emit edge counters")                                                        \
 R(enable_asserts, false, bool, false,                                          \
   "Enable assert statements.")                                                 \
 C(enable_mirrors, false, false, bool, true,                                    \
@@ -57,7 +55,7 @@ R(error_on_bad_override, false, bool, false,                                   \
   "Report error for bad overrides.")                                           \
 R(error_on_bad_type, false, bool, false,                                       \
   "Report error for malformed types.")                                         \
-C(fields_may_be_reset, true, false, bool, false,                               \
+P(fields_may_be_reset, bool, false,                                            \
   "Don't optimize away static field initialization")                           \
 C(force_clone_compiler_objects, false, false, bool, false,                     \
   "Force cloning of objects needed in compiler (ICData and Field).")           \
@@ -67,13 +65,13 @@ P(getter_setter_ratio, int, 13,                                                \
   "Ratio of getter/setter usage used for double field unboxing heuristics")    \
 P(guess_icdata_cid, bool, true,                                                \
   "Artificially create type feedback for arithmetic etc. operations")          \
-C(ic_range_profiling, false, true, bool, true,                                 \
+P(ic_range_profiling, bool, true,                                              \
   "Generate special IC stubs collecting range information ")                   \
-C(interpret_irregexp, true, false, bool, false,                                \
+P(interpret_irregexp, bool, false,                                             \
   "Use irregexp bytecode interpreter")                                         \
-C(lazy_dispatchers, false, true, bool, true,                                   \
+P(lazy_dispatchers, bool, true,                                                \
   "Generate dispatchers lazily")                                               \
-C(link_natives_lazily, true, false, bool, false,                               \
+P(link_natives_lazily, bool, false,                                            \
   "Link native calls lazily")                                                  \
 C(load_deferred_eagerly, true, true, bool, false,                              \
   "Load deferred libraries eagerly.")                                          \
@@ -85,22 +83,30 @@ P(merge_sin_cos, bool, false,                                                  \
   "Merge sin/cos into sincos")                                                 \
 P(new_gen_ext_limit, int, 64,                                                  \
   "maximum total external size (MB) in new gen before triggering GC")          \
-C(optimization_counter_threshold, -1, 30000, int, 30000,                       \
+P(optimization_counter_threshold, int, 30000,                                  \
   "Function's usage-counter value before it is optimized, -1 means never")     \
-C(polymorphic_with_deopt, false, true, bool, true,                             \
+P(polymorphic_with_deopt, bool, true,                                          \
   "Polymorphic calls with deoptimization / megamorphic call")                  \
-C(precompiled_mode, true, false, bool, false,                                  \
-  "Precompilation compiler/runtime mode")                                      \
+P(precompiled_mode, bool, false,                                               \
+  "Precompilation compiler mode")                                              \
+C(precompiled_runtime, true, false, bool, false,                               \
+  "Precompiled runtime mode")                                                  \
 R(pretenure_all, false, bool, false,                                           \
   "Global pretenuring (for testing).")                                         \
 P(pretenure_interval, int, 10,                                                 \
   "Back off pretenuring after this many cycles.")                              \
 P(pretenure_threshold, int, 98,                                                \
   "Trigger pretenuring when this many percent are promoted.")                  \
+R(print_ssa_liveness, false, bool, false,                                      \
+  "Print liveness for ssa variables.")                                         \
+R(print_ssa_liveranges, false, bool, false,                                    \
+  "Print live ranges after allocation.")                                       \
 C(print_stop_message, false, false, bool, false,                               \
   "Print stop message.")                                                       \
 R(profiler, false, bool, true,                                                 \
   "Enable the profiler.")                                                      \
+P(reorder_basic_blocks, bool, true,                                            \
+  "Reorder basic blocks")                                                      \
 R(support_ast_printer, false, bool, true,                                      \
   "Support the AST printer.")                                                  \
 R(support_compiler_stats, false, bool, true,                                   \
@@ -125,13 +131,15 @@ D(trace_handles, bool, false,                                                  \
   "Traces allocation of handles.")                                             \
 D(trace_optimization, bool, false,                                             \
   "Print optimization details.");                                              \
+D(trace_ssa_allocator, bool, false,                                            \
+  "Trace register allocation over SSA.")                                       \
 D(trace_zones, bool, false,                                                    \
   "Traces allocation sizes in the zone.")                                      \
 P(truncating_left_shift, bool, true,                                           \
   "Optimize left shift to truncate if possible")                               \
-C(use_cha_deopt, false, true, bool, true,                                      \
+P(use_cha_deopt, bool, true,                                                   \
   "Use class hierarchy analysis even if it can cause deoptimization.")         \
-C(use_field_guards, false, true, bool, true,                                   \
+P(use_field_guards, bool, true,                                                \
   "Use field guards and track field types")                                    \
 C(use_osr, false, true, bool, true,                                            \
   "Use OSR")                                                                   \
@@ -143,5 +151,7 @@ R(verify_after_gc, false, bool, false,                                         \
   "Enables heap verification after GC.")                                       \
 R(verify_before_gc, false, bool, false,                                        \
   "Enables heap verification before GC.")                                      \
+D(verify_on_transition, bool, false,                                           \
+  "Verify on dart <==> VM.")                                                   \
 
 #endif  // VM_FLAG_LIST_H_

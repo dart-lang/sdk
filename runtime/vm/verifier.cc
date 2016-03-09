@@ -17,9 +17,6 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, verify_on_transition, false, "Verify on dart <==> VM.");
-
-
 void VerifyObjectVisitor::VisitObject(RawObject* raw_obj) {
   if (raw_obj->IsHeapObject()) {
     uword raw_addr = RawObject::ToAddr(raw_obj);

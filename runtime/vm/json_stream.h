@@ -29,6 +29,7 @@ class Script;
 class ServiceEvent;
 class String;
 class TimelineEvent;
+class TimelineEventBlock;
 class Zone;
 
 
@@ -162,7 +163,8 @@ class JSONStream : ValueObject {
   void PrintValue(MessageQueue* queue);
   void PrintValue(Isolate* isolate, bool ref = true);
   bool PrintValueStr(const String& s, intptr_t offset, intptr_t count);
-  void PrintValue(TimelineEvent* timeline_event);
+  void PrintValue(const TimelineEvent* timeline_event);
+  void PrintValue(const TimelineEventBlock* timeline_event_block);
   void PrintValueVM(bool ref = true);
 
   void PrintServiceId(const Object& o);
@@ -189,7 +191,9 @@ class JSONStream : ValueObject {
   void PrintProperty(const char* name, Metric* metric);
   void PrintProperty(const char* name, MessageQueue* queue);
   void PrintProperty(const char* name, Isolate* isolate);
-  void PrintProperty(const char* name, TimelineEvent* timeline_event);
+  void PrintProperty(const char* name, const TimelineEvent* timeline_event);
+  void PrintProperty(const char* name,
+                     const TimelineEventBlock* timeline_event_block);
   void PrintPropertyVM(const char* name, bool ref = true);
   void PrintPropertyName(const char* name);
   void PrintCommaIfNeeded();
@@ -309,8 +313,13 @@ class JSONObject : public ValueObject {
   void AddProperty(const char* name, Isolate* isolate) const {
     stream_->PrintProperty(name, isolate);
   }
-  void AddProperty(const char* name, TimelineEvent* timeline_event) const {
+  void AddProperty(const char* name,
+                   const TimelineEvent* timeline_event) const {
     stream_->PrintProperty(name, timeline_event);
+  }
+  void AddProperty(const char* name,
+                   const TimelineEventBlock* timeline_event_block) const {
+    stream_->PrintProperty(name, timeline_event_block);
   }
   void AddPropertyVM(const char* name, bool ref = true) const {
     stream_->PrintPropertyVM(name, ref);
@@ -376,8 +385,11 @@ class JSONArray : public ValueObject {
   void AddValue(MessageQueue* queue) const {
     stream_->PrintValue(queue);
   }
-  void AddValue(TimelineEvent* timeline_event) const {
+  void AddValue(const TimelineEvent* timeline_event) const {
     stream_->PrintValue(timeline_event);
+  }
+  void AddValue(const TimelineEventBlock* timeline_event_block) const {
+    stream_->PrintValue(timeline_event_block);
   }
   void AddValueVM(bool ref = true) const {
     stream_->PrintValueVM(ref);

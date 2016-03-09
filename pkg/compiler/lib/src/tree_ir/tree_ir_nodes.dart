@@ -654,10 +654,15 @@ class Unreachable extends Statement {
 class FunctionDefinition extends Node {
   final ExecutableElement element;
   final List<Variable> parameters;
+  final SourceInformation sourceInformation;
   Statement body;
 
   /// Creates a function definition and updates `writeCount` for [parameters].
-  FunctionDefinition(this.element, this.parameters, this.body) {
+  FunctionDefinition(
+      this.element,
+      this.parameters,
+      this.body,
+      {this.sourceInformation}) {
     for (Variable param in parameters) {
       param.writeCount++; // Being a parameter counts as a write.
     }

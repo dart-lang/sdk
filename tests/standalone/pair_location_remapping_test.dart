@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Test that pair locations are remaped in slow path environments.
-// VMOptions=--optimization_counter_threshold=10 --no-use-osr
+// VMOptions=--optimization_counter_threshold=10 --no-use-osr --no-background_compilation
 
 import "package:expect/expect.dart";
 

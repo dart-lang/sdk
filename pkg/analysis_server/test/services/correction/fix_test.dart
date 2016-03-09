@@ -4341,6 +4341,16 @@ main() {
     await assertNoFix(DartFixKind.CREATE_METHOD);
   }
 
+  test_undefinedMethod_create_BAD_targetIsEnum() async {
+    resolveTestUnit('''
+enum MyEnum {A, B}
+main() {
+  MyEnum.foo();
+}
+''');
+    await assertNoFix(DartFixKind.CREATE_METHOD);
+  }
+
   test_undefinedMethod_create_generic_BAD_argumentType() async {
     resolveTestUnit('''
 class A<T> {

@@ -4,6 +4,7 @@
 
 library analyzer.test.generated.compile_time_error_code_test;
 
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/source_io.dart';
@@ -12,7 +13,6 @@ import 'package:unittest/unittest.dart' show expect;
 import '../reflective_tests.dart';
 import '../utils.dart';
 import 'resolver_test.dart';
-import 'package:analyzer/src/generated/engine.dart';
 
 main() {
   initializeTestEnvironment();

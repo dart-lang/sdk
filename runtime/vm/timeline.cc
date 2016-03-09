@@ -10,6 +10,7 @@
 #include "vm/lockers.h"
 #include "vm/log.h"
 #include "vm/object.h"
+#include "vm/service_event.h"
 #include "vm/thread.h"
 #include "vm/timeline.h"
 
@@ -1218,15 +1219,15 @@ void TimelineEventRingRecorder::CompleteEvent(TimelineEvent* event) {
 }
 
 
-TimelineEventStreamingRecorder::TimelineEventStreamingRecorder() {
+TimelineEventCallbackRecorder::TimelineEventCallbackRecorder() {
 }
 
 
-TimelineEventStreamingRecorder::~TimelineEventStreamingRecorder() {
+TimelineEventCallbackRecorder::~TimelineEventCallbackRecorder() {
 }
 
 
-void TimelineEventStreamingRecorder::PrintJSON(JSONStream* js,
+void TimelineEventCallbackRecorder::PrintJSON(JSONStream* js,
                                                TimelineEventFilter* filter) {
   if (!FLAG_support_service) {
     return;
@@ -1240,7 +1241,7 @@ void TimelineEventStreamingRecorder::PrintJSON(JSONStream* js,
 }
 
 
-void TimelineEventStreamingRecorder::PrintTraceEvent(
+void TimelineEventCallbackRecorder::PrintTraceEvent(
     JSONStream* js,
     TimelineEventFilter* filter) {
   if (!FLAG_support_service) {
@@ -1250,14 +1251,14 @@ void TimelineEventStreamingRecorder::PrintTraceEvent(
 }
 
 
-TimelineEvent* TimelineEventStreamingRecorder::StartEvent() {
+TimelineEvent* TimelineEventCallbackRecorder::StartEvent() {
   TimelineEvent* event = new TimelineEvent();
   return event;
 }
 
 
-void TimelineEventStreamingRecorder::CompleteEvent(TimelineEvent* event) {
-  StreamEvent(event);
+void TimelineEventCallbackRecorder::CompleteEvent(TimelineEvent* event) {
+  OnEvent(event);
   delete event;
 }
 
@@ -1396,6 +1397,16 @@ TimelineEventBlock::~TimelineEventBlock() {
 }
 
 
+void TimelineEventBlock::PrintJSON(JSONStream* js) const {
+  ASSERT(!in_use());
+  JSONArray events(js);
+  for (intptr_t i = 0; i < length(); i++) {
+    const TimelineEvent* event = At(i);
+    events.AddValue(event);
+  }
+}
+
+
 TimelineEvent* TimelineEventBlock::StartEvent() {
   ASSERT(!IsFull());
   if (FLAG_trace_timeline) {
@@ -1465,6 +1476,11 @@ void TimelineEventBlock::Finish() {
     OS::Print("Finish block %p\n", this);
   }
   in_use_ = false;
+  if (Service::timeline_stream.enabled()) {
+    ServiceEvent service_event(NULL, ServiceEvent::kTimelineEvents);
+    service_event.set_timeline_event_block(this);
+    Service::HandleEvent(&service_event);
+  }
 }
 
 

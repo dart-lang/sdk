@@ -41,7 +41,14 @@ class RefactoringLocationTest extends AbstractSingleUnitTest {
     resolveTestUnit('class MyClass {}');
     Element element = findElement('MyClass');
     SourceRange range = rangeElementName(element);
-    SearchMatch match = new SearchMatch(null, element, range, true, false);
+    SearchMatch match = new SearchMatch(
+        context,
+        element.library.source.uri.toString(),
+        element.source.uri.toString(),
+        null,
+        range,
+        true,
+        false);
     // check
     Location location = newLocation_fromMatch(match);
     expect(location.file, '/test.dart');

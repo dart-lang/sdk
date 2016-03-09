@@ -855,14 +855,16 @@ class IrBuilder {
   /// 1. Call [buildFunctionHeader].
   /// 2. Call `buildXXX` methods to build the body.
   /// 3. Call [makeFunctionDefinition] to finish.
-  ir.FunctionDefinition makeFunctionDefinition() {
+  ir.FunctionDefinition makeFunctionDefinition(
+      SourceInformation sourceInformation) {
     _ensureReturn();
     return new ir.FunctionDefinition(
         state.currentElement,
         state.thisParameter,
         state.functionParameters,
         state.returnContinuation,
-        root);
+        root,
+        sourceInformation: sourceInformation);
   }
 
   /// Create a invocation of the [method] on the super class where the call

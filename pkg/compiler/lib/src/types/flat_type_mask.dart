@@ -67,7 +67,9 @@ class FlatTypeMask implements TypeMask {
         () => new FlatTypeMask.internal(base, flags));
   }
 
-  bool get isEmpty => (flags >> 1) == EMPTY;
+  bool get isEmpty => isEmptyOrNull && !isNullable;
+  bool get isNull => isEmptyOrNull && isNullable;
+  bool get isEmptyOrNull => (flags >> 1) == EMPTY;
   bool get isExact => (flags >> 1) == EXACT;
   bool get isNullable => (flags & 1) != 0;
 
@@ -94,7 +96,7 @@ class FlatTypeMask implements TypeMask {
 
   bool contains(ClassElement type, ClassWorld classWorld) {
     assert(type.isDeclaration);
-    if (isEmpty) {
+    if (isEmptyOrNull) {
       return false;
     } else if (identical(base, type)) {
       return true;
@@ -137,10 +139,9 @@ class FlatTypeMask implements TypeMask {
   }
 
   bool isInMask(TypeMask other, ClassWorld classWorld) {
-    // null is treated separately, so the empty mask might still contain it.
-    if (isEmpty) return isNullable ? other.isNullable : true;
+    if (isEmptyOrNull) return isNullable ? other.isNullable : true;
     // The empty type contains no classes.
-    if (other.isEmpty) return false;
+    if (other.isEmptyOrNull) return false;
     // Quick check whether to handle null.
     if (isNullable && !other.isNullable) return false;
     other = TypeMask.nonForwardingMask(other);
@@ -215,7 +216,7 @@ class FlatTypeMask implements TypeMask {
 
   bool satisfies(ClassElement cls, ClassWorld classWorld) {
     assert(cls.isDeclaration);
-    if (isEmpty) return false;
+    if (isEmptyOrNull) return false;
     if (classWorld.isSubtypeOf(base, cls)) return true;
     return false;
   }
@@ -225,7 +226,7 @@ class FlatTypeMask implements TypeMask {
    * otherwise returns `null`.  This method is conservative.
    */
   ClassElement singleClass(ClassWorld classWorld) {
-    if (isEmpty) return null;
+    if (isEmptyOrNull) return null;
     if (isNullable) return null;  // It is Null and some other class.
     if (isExact) {
       return base;
@@ -241,7 +242,7 @@ class FlatTypeMask implements TypeMask {
    * Returns whether or not this type mask contains all types.
    */
   bool containsAll(ClassWorld classWorld) {
-    if (isEmpty || isExact) return false;
+    if (isEmptyOrNull || isExact) return false;
     return identical(base, classWorld.objectClass);
   }
 
@@ -251,9 +252,9 @@ class FlatTypeMask implements TypeMask {
     assert(TypeMask.assertIsNormalized(other, classWorld));
     if (other is! FlatTypeMask) return other.union(this, classWorld);
     FlatTypeMask flatOther = other;
-    if (isEmpty) {
+    if (isEmptyOrNull) {
       return isNullable ? flatOther.nullable() : flatOther;
-    } else if (flatOther.isEmpty) {
+    } else if (flatOther.isEmptyOrNull) {
       return flatOther.isNullable ? nullable() : this;
     } else if (base == flatOther.base) {
       return unionSame(flatOther, classWorld);
@@ -339,9 +340,9 @@ class FlatTypeMask implements TypeMask {
     assert(TypeMask.assertIsNormalized(this, classWorld));
     assert(TypeMask.assertIsNormalized(other, classWorld));
     FlatTypeMask flatOther = other;
-    if (isEmpty) {
+    if (isEmptyOrNull) {
       return flatOther.isNullable ? this : nonNullable();
-    } else if (flatOther.isEmpty) {
+    } else if (flatOther.isEmptyOrNull) {
       return isNullable ? flatOther : other.nonNullable();
     } else if (base == flatOther.base) {
       return intersectionSame(flatOther, classWorld);
@@ -363,7 +364,7 @@ class FlatTypeMask implements TypeMask {
     FlatTypeMask flatOther = other;
 
     if (isNullable && flatOther.isNullable) return false;
-    if (isEmpty || flatOther.isEmpty) return true;
+    if (isEmptyOrNull || flatOther.isEmptyOrNull) return true;
     if (base == flatOther.base) return false;
     if (isExact && flatOther.isExact) return true;
 
@@ -539,8 +540,8 @@ class FlatTypeMask implements TypeMask {
   bool canHit(Element element, Selector selector, ClassWorld classWorld) {
     Backend backend = classWorld.backend;
     assert(element.name == selector.name);
-    if (isEmpty) {
-      if (!isNullable) return false;
+    if (isEmpty) return false;
+    if (isNull) {
       return hasElementIn(backend.nullImplementation, selector, element);
     }
 
@@ -603,7 +604,7 @@ class FlatTypeMask implements TypeMask {
   bool needsNoSuchMethodHandling(Selector selector, ClassWorld classWorld) {
     // A call on an empty type mask is either dead code, or a call on
     // `null`.
-    if (isEmpty) return false;
+    if (isEmptyOrNull) return false;
     // A call on an exact mask for an abstract class is dead code.
     if (isExact && base.isAbstract) return false;
     // If the receiver is guaranteed to have a member that
@@ -684,7 +685,7 @@ class FlatTypeMask implements TypeMask {
   Element locateSingleElement(Selector selector,
                               TypeMask mask,
                               Compiler compiler) {
-    if (isEmpty) return null;
+    if (isEmptyOrNull) return null;
     Iterable<Element> targets =
         compiler.world.allFunctions.filter(selector, mask);
     if (targets.length != 1) return null;
@@ -709,7 +710,7 @@ class FlatTypeMask implements TypeMask {
   }
 
   String toString() {
-    if (isEmpty) return isNullable ? '[null]' : '[empty]';
+    if (isEmptyOrNull) return isNullable ? '[null]' : '[empty]';
     StringBuffer buffer = new StringBuffer();
     if (isNullable) buffer.write('null|');
     if (isExact) buffer.write('exact=');

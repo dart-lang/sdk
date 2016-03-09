@@ -45,7 +45,7 @@ extern const uint8_t* isolate_snapshot_buffer;
  * A full application snapshot can be generated and run using the following
  * commands
  * - Generating a full application snapshot :
- * dart_no_snapshot --full-snapshot-after-run=<filename> --package-root=<dirs>
+ * dart_bootstrap --full-snapshot-after-run=<filename> --package-root=<dirs>
  *   <script_uri> [<script_options>]
  * - Running the full application snapshot generated above :
  * dart --run-full-snapshot=<filename> <script_uri> [<script_options>]
@@ -327,12 +327,11 @@ static bool ProcessCompileAllOption(const char* arg,
 static bool ProcessGenPrecompiledSnapshotOption(
     const char* arg,
     CommandLineOptions* vm_options) {
-  // Ensure that we are not already running using a full snapshot.
-  if (isolate_snapshot_buffer != NULL) {
-    Log::PrintErr("Precompiled snapshots must be generated with"
-                  " dart_no_snapshot.\n");
-    return false;
-  }
+#if !defined(DART_PRECOMPILER)
+  Log::PrintErr("Precompiled snapshots must be generated with "
+                "dart_bootstrap.\n");
+  return false;
+#else  // defined(DART_PRECOMPILER)
   ASSERT(arg != NULL);
   if ((arg[0] == '=') || (arg[0] == ':')) {
     precompiled_snapshot_directory = &arg[1];
@@ -340,11 +339,9 @@ static bool ProcessGenPrecompiledSnapshotOption(
     precompiled_snapshot_directory = arg;
   }
   gen_precompiled_snapshot = true;
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // The precompiled runtime has FLAG_precompilation set as const.
   vm_options->AddArgument("--precompilation");
-#endif
   return true;
+#endif  // defined(DART_PRECOMPILER)
 }
 
 
@@ -358,10 +355,7 @@ static bool ProcessRunPrecompiledSnapshotOption(
     precompiled_snapshot_directory = &precompiled_snapshot_directory[1];
   }
   run_precompiled_snapshot = true;
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  // The precompiled runtime has FLAG_precompilation set as const.
   vm_options->AddArgument("--precompilation");
-#endif
   return true;
 }
 
@@ -401,10 +395,10 @@ static bool ProcessFullSnapshotAfterRunOption(
   if ((filename == NULL) || (strlen(filename) == 0)) {
     return false;
   }
-  // Ensure that we are running 'dart_no_snapshot'.
+  // Ensure that we are running 'dart_bootstrap'.
   if (isolate_snapshot_buffer != NULL) {
     Log::PrintErr("Full Application snapshots must be generated with"
-                  " dart_no_snapshot\n");
+                  " dart_bootstrap\n");
     return false;
   }
   return ProcessSnapshotOptionHelper(filename,
@@ -1148,16 +1142,31 @@ static void ReadSnapshotFile(const char* snapshot_directory,
 }
 
 
-static void* LoadLibrarySymbol(const char* libname, const char* symname) {
-  void* library = Extensions::LoadExtensionLibrary(libname);
+static void* LoadLibrarySymbol(const char* snapshot_directory,
+                               const char* libname,
+                               const char* symname) {
+  char* concat = NULL;
+  const char* qualified_libname;
+  if ((snapshot_directory != NULL) && strlen(snapshot_directory) > 0) {
+    intptr_t len = snprintf(NULL, 0, "%s/%s", snapshot_directory, libname);
+    concat = new char[len + 1];
+    snprintf(concat, len + 1, "%s/%s", snapshot_directory, libname);
+    qualified_libname = concat;
+  } else {
+    qualified_libname = libname;
+  }
+  void* library = Extensions::LoadExtensionLibrary(qualified_libname);
   if (library == NULL) {
-    Log::PrintErr("Error: Failed to load library '%s'\n", libname);
+    Log::PrintErr("Error: Failed to load library '%s'\n", qualified_libname);
     Platform::Exit(kErrorExitCode);
   }
   void* symbol = Extensions::ResolveSymbol(library, symname);
   if (symbol == NULL) {
     Log::PrintErr("Error: Failed to load symbol '%s'\n", symname);
     Platform::Exit(kErrorExitCode);
+  }
+  if (concat != NULL) {
+    delete concat;
   }
   return symbol;
 }
@@ -1427,6 +1436,9 @@ bool RunMainIsolate(const char* script_name,
 
 #undef CHECK_RESULT
 
+
+// Observatory assets are only needed in the regular dart binary.
+#if !defined(DART_PRECOMPILER)
 extern unsigned int observatory_assets_archive_len;
 extern const uint8_t* observatory_assets_archive;
 
@@ -1508,6 +1520,9 @@ Dart_Handle GetVMServiceAssetsArchiveCallback() {
   free(decompressed);
   return tar_file;
 }
+#else  // !defined(DART_PRECOMPILER)
+static Dart_GetVMServiceAssetsArchive GetVMServiceAssetsArchiveCallback = NULL;
+#endif  // !defined(DART_PRECOMPILER)
 
 
 void main(int argc, char** argv) {
@@ -1587,10 +1602,12 @@ void main(int argc, char** argv) {
   const uint8_t* data_snapshot = NULL;
   if (run_precompiled_snapshot) {
     instructions_snapshot = reinterpret_cast<const uint8_t*>(
-        LoadLibrarySymbol(kPrecompiledLibraryName,
+        LoadLibrarySymbol(precompiled_snapshot_directory,
+                          kPrecompiledLibraryName,
                           kPrecompiledInstructionsSymbolName));
     data_snapshot = reinterpret_cast<const uint8_t*>(
-        LoadLibrarySymbol(kPrecompiledLibraryName,
+        LoadLibrarySymbol(precompiled_snapshot_directory,
+                          kPrecompiledLibraryName,
                           kPrecompiledDataSymbolName));
     ReadSnapshotFile(precompiled_snapshot_directory,
                      kPrecompiledVmIsolateName,

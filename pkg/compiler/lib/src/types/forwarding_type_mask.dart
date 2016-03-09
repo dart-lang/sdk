@@ -14,8 +14,10 @@ abstract class ForwardingTypeMask implements TypeMask {
 
   ForwardingTypeMask();
 
+  bool get isEmptyOrNull => forwardTo.isEmptyOrNull;
   bool get isEmpty => forwardTo.isEmpty;
   bool get isNullable => forwardTo.isNullable;
+  bool get isNull => forwardTo.isNull;
   bool get isExact => forwardTo.isExact;
 
   bool get isUnion => false;
@@ -78,7 +80,7 @@ abstract class ForwardingTypeMask implements TypeMask {
       return this;
     } else if (equalsDisregardNull(other)) {
       return other.isNullable ? other : this;
-    } else if (other.isEmpty) {
+    } else if (other.isEmptyOrNull) {
       return other.isNullable ? this.nullable() : this;
     }
     return forwardTo.union(other, classWorld);

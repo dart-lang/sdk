@@ -2087,6 +2087,22 @@ class _ElementOffsetUpdater extends GeneralizingElementVisitor {
         }
       }
     }
+    // code range
+    if (element is ElementImpl) {
+      int oldOffset = element.codeOffset;
+      int oldLength = element.codeLength;
+      if (oldOffset != null) {
+        int newOffset = oldOffset;
+        int newLength = oldLength;
+        newOffset += oldOffset > updateOffset ? updateDelta : 0;
+        if (oldOffset <= updateOffset && updateOffset < oldOffset + oldLength) {
+          newLength += updateDelta;
+        }
+        if (newOffset != oldOffset || newLength != oldLength) {
+          element.setCodeRange(newOffset, newLength);
+        }
+      }
+    }
     // visible range
     if (element is LocalElement) {
       SourceRange visibleRange = element.visibleRange;

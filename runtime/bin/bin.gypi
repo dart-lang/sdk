@@ -15,8 +15,6 @@
     'isolate_snapshot_bin_file': '<(gen_source_dir)/isolate_snapshot_gen.bin',
     'gen_snapshot_stamp_file': '<(gen_source_dir)/gen_snapshot.stamp',
     'resources_cc_file': '<(gen_source_dir)/resources_gen.cc',
-    'bootstrap_resources_cc_file':
-        '<(gen_source_dir)/bootstrap_resources_gen.cc',
     'snapshot_cc_file': '<(gen_source_dir)/snapshot_gen.cc',
     'observatory_assets_cc_file': '<(gen_source_dir)/observatory_assets.cc',
     'observatory_assets_tar_file': '<(gen_source_dir)/observatory_assets.tar',
@@ -543,41 +541,6 @@
       ]
     },
     {
-      'target_name': 'generate_bootstrap_resources_cc_file',
-      'type': 'none',
-      'dependencies': [
-        'bin/zlib.gyp:zlib_dart',
-      ],
-      'toolsets':['host'],
-      'includes': [
-        'vmservice/vmservice_sources.gypi',
-      ],
-      'actions': [
-        {
-          'action_name': 'generate_resources_cc',
-          'inputs': [
-            '../tools/create_resources.py',
-            '<@(_sources)',
-          ],
-          'outputs': [
-            '<(bootstrap_resources_cc_file)',
-          ],
-          'action': [
-            'python',
-            'tools/create_resources.py',
-            '--output', '<(bootstrap_resources_cc_file)',
-            '--outer_namespace', 'dart',
-            '--inner_namespace', 'bin',
-            '--table_name', 'service_bin',
-            '--root_prefix', 'bin/',
-            '<@(_sources)'
-          ],
-          'message':
-              'Generating ''<(bootstrap_resources_cc_file)'' file.'
-        },
-      ]
-    },
-    {
       # dart_product binary.
       'target_name': 'dart_product',
       'type': 'executable',
@@ -780,63 +743,7 @@
         'libdart_nosnapshot',
         'libdart_builtin',
         'libdart_io',
-        'generate_bootstrap_resources_cc_file#host',
-      ],
-      'include_dirs': [
-        '..',
-        '../../third_party/', # Zlib
-      ],
-      'sources': [
-        'main.cc',
-        'builtin_common.cc',
-        'builtin_natives.cc',
-        'builtin.cc',
-        'builtin.h',
-        'io_natives.h',
-        'vmservice_impl.cc',
-        'vmservice_impl.h',
-        # Include generated source files.
-        '<(builtin_cc_file)',
-        '<(io_cc_file)',
-        '<(io_patch_cc_file)',
-        '<(bootstrap_resources_cc_file)',
-        'observatory_assets_empty.cc',
-        'snapshot_empty.cc',
-      ],
-      'conditions': [
-        ['OS=="win"', {
-          'link_settings': {
-            'libraries': [ '-lws2_32.lib', '-lRpcrt4.lib', '-lwinmm.lib' ],
-          },
-          # Generate an import library on Windows, by exporting a function.
-          # Extensions use this import library to link to the API in dart.exe.
-          'msvs_settings': {
-            'VCLinkerTool': {
-              'AdditionalOptions': [ '/EXPORT:Dart_True' ],
-            },
-          },
-        }],
-      ],
-      'configurations': {
-        'Dart_Linux_Base': {
-          # Have the linker add all symbols to the dynamic symbol table
-          # so that extensions can look them up dynamically in the binary.
-          'ldflags': [
-            '-rdynamic',
-          ],
-        },
-      },
-    },
-    {
-      # dart binary without any snapshot built in.
-      'target_name': 'dart_no_snapshot',
-      'type': 'executable',
-      'dependencies': [
-        'libdart_nosnapshot',
-        'libdart_builtin',
-        'libdart_io',
         'generate_resources_cc_file#host',
-        'generate_observatory_assets_cc_file#host',
       ],
       'include_dirs': [
         '..',
@@ -856,7 +763,7 @@
         '<(io_cc_file)',
         '<(io_patch_cc_file)',
         '<(resources_cc_file)',
-        '<(observatory_assets_cc_file)',
+        'observatory_assets_empty.cc',
         'snapshot_empty.cc',
       ],
       'defines': [

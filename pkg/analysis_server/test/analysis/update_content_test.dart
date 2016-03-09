@@ -42,7 +42,8 @@ class UpdateContentTest extends AbstractAnalysisTest {
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_ERRORS) {
       var decoded = new AnalysisErrorsParams.fromNotification(notification);
-      filesErrors[decoded.file] = decoded.errors;
+      _format(AnalysisError e) => "${e.location.startLine}: ${e.message}";
+      filesErrors[decoded.file] = decoded.errors.map(_format).toList();
     }
     if (notification.event == ANALYSIS_NAVIGATION) {
       navigationCount++;
@@ -186,6 +187,29 @@ f() {}
     server.updateContent('2', {filePath: new RemoveContentOverlay()});
     expect(_getUserSources(context1), isEmpty);
     expect(_getUserSources(context2), isEmpty);
+  }
+
+  test_overlay_addPreviouslyImported() async {
+    Folder project = resourceProvider.newFolder('/project');
+    handleSuccessfulRequest(
+        new AnalysisSetAnalysisRootsParams([project.path], []).toRequest('0'));
+
+    server.updateContent('1',
+        {'/project/main.dart': new AddContentOverlay('import "target.dart";')});
+    await server.onAnalysisComplete;
+    expect(filesErrors, {
+      '/project/main.dart': ["1: Target of URI does not exist: 'target.dart'"],
+      '/project/target.dart': []
+    });
+
+    server.updateContent('1',
+        {'/project/target.dart': new AddContentOverlay('import "none.dart";')});
+    await server.onAnalysisComplete;
+    expect(filesErrors, {
+      '/project/main.dart': ["1: Unused import"],
+      '/project/target.dart': ["1: Target of URI does not exist: 'none.dart'"],
+      '/project/none.dart': []
+    });
   }
 
   test_removeOverlay_incrementalChange() async {

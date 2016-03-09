@@ -704,6 +704,20 @@ class Index extends DartHtmlDomObject {
   @DocsEditable()
   Request _get(Object key) => wrap_jso(_blink.BlinkIDBIndex.instance.get_Callback_1_(unwrap_jso(this), key));
   
+  Request getAll(Object range, [int maxCount]) {
+    if (maxCount != null) {
+      return wrap_jso(_blink.BlinkIDBIndex.instance.getAll_Callback_2_(unwrap_jso(this), range, maxCount));
+    }
+    return wrap_jso(_blink.BlinkIDBIndex.instance.getAll_Callback_1_(unwrap_jso(this), range));
+  }
+
+  Request getAllKeys(Object range, [int maxCount]) {
+    if (maxCount != null) {
+      return wrap_jso(_blink.BlinkIDBIndex.instance.getAllKeys_Callback_2_(unwrap_jso(this), range, maxCount));
+    }
+    return wrap_jso(_blink.BlinkIDBIndex.instance.getAllKeys_Callback_1_(unwrap_jso(this), range));
+  }
+
   @DomName('IDBIndex.getKey')
   @DocsEditable()
   Request _getKey(Object key) => wrap_jso(_blink.BlinkIDBIndex.instance.getKey_Callback_1_(unwrap_jso(this), key));
@@ -1001,20 +1015,11 @@ class ObjectStore extends DartHtmlDomObject {
   @DocsEditable()
   Request _count(Object key) => wrap_jso(_blink.BlinkIDBObjectStore.instance.count_Callback_1_(unwrap_jso(this), key));
   
-  Index _createIndex(String name, keyPath, [Map options]) {
-    if ((keyPath is String || keyPath == null) && (name is String || name == null) && options == null) {
-      return wrap_jso(_blink.BlinkIDBObjectStore.instance.createIndex_Callback_2_(unwrap_jso(this), name, unwrap_jso(keyPath)));
+  Index _createIndex(String name, Object keyPath, [Map options]) {
+    if (options != null) {
+      return wrap_jso(_blink.BlinkIDBObjectStore.instance.createIndex_Callback_3_(unwrap_jso(this), name, keyPath, convertDartToNative_Dictionary(options)));
     }
-    if ((options is Map || options == null) && (keyPath is String || keyPath == null) && (name is String || name == null)) {
-      return wrap_jso(_blink.BlinkIDBObjectStore.instance.createIndex_Callback_3_(unwrap_jso(this), name, unwrap_jso(keyPath), convertDartToNative_Dictionary(options)));
-    }
-    if ((keyPath is List<String> || keyPath == null) && (name is String || name == null) && options == null) {
-      return wrap_jso(_blink.BlinkIDBObjectStore.instance.createIndex_Callback_2_(unwrap_jso(this), name, unwrap_jso(keyPath)));
-    }
-    if ((options is Map || options == null) && (keyPath is List<String> || keyPath == null) && (name is String || name == null)) {
-      return wrap_jso(_blink.BlinkIDBObjectStore.instance.createIndex_Callback_3_(unwrap_jso(this), name, unwrap_jso(keyPath), convertDartToNative_Dictionary(options)));
-    }
-    throw new ArgumentError("Incorrect number or type of arguments");
+    return wrap_jso(_blink.BlinkIDBObjectStore.instance.createIndex_Callback_2_(unwrap_jso(this), name, keyPath));
   }
 
   @DomName('IDBObjectStore.delete')
@@ -1029,6 +1034,20 @@ class ObjectStore extends DartHtmlDomObject {
   @DocsEditable()
   Request _get(Object key) => wrap_jso(_blink.BlinkIDBObjectStore.instance.get_Callback_1_(unwrap_jso(this), key));
   
+  Request getAll(Object range, [int maxCount]) {
+    if (maxCount != null) {
+      return wrap_jso(_blink.BlinkIDBObjectStore.instance.getAll_Callback_2_(unwrap_jso(this), range, maxCount));
+    }
+    return wrap_jso(_blink.BlinkIDBObjectStore.instance.getAll_Callback_1_(unwrap_jso(this), range));
+  }
+
+  Request getAllKeys(Object range, [int maxCount]) {
+    if (maxCount != null) {
+      return wrap_jso(_blink.BlinkIDBObjectStore.instance.getAllKeys_Callback_2_(unwrap_jso(this), range, maxCount));
+    }
+    return wrap_jso(_blink.BlinkIDBObjectStore.instance.getAllKeys_Callback_1_(unwrap_jso(this), range));
+  }
+
   @DomName('IDBObjectStore.index')
   @DocsEditable()
   Index index(String name) => wrap_jso(_blink.BlinkIDBObjectStore.instance.index_Callback_1_(unwrap_jso(this), name));
@@ -1310,6 +1329,11 @@ class Transaction extends EventTarget {
   @DocsEditable()
   String get mode => _blink.BlinkIDBTransaction.instance.mode_Getter_(unwrap_jso(this));
   
+  @DomName('IDBTransaction.objectStoreNames')
+  @DocsEditable()
+  @Experimental() // untriaged
+  List<String> get objectStoreNames => wrap_jso(_blink.BlinkIDBTransaction.instance.objectStoreNames_Getter_(unwrap_jso(this)));
+  
   @DomName('IDBTransaction.abort')
   @DocsEditable()
   void abort() => _blink.BlinkIDBTransaction.instance.abort_Callback_0_(unwrap_jso(this));
@@ -1347,6 +1371,16 @@ class Transaction extends EventTarget {
 class VersionChangeEvent extends Event {
   // To suppress missing implicit constructor warnings.
   factory VersionChangeEvent._() { throw new UnsupportedError("Not supported"); }
+
+  @DomName('IDBVersionChangeEvent.IDBVersionChangeEvent')
+  @DocsEditable()
+  factory VersionChangeEvent(String type, [Map eventInitDict]) {
+    if (eventInitDict != null) {
+      var eventInitDict_1 = convertDartToNative_Dictionary(eventInitDict);
+      return wrap_jso(_blink.BlinkIDBVersionChangeEvent.instance.constructorCallback_2_(type, eventInitDict_1));
+    }
+    return wrap_jso(_blink.BlinkIDBVersionChangeEvent.instance.constructorCallback_1_(type));
+  }
 
 
   @Deprecated("Internal Use Only")

@@ -64,4 +64,12 @@ $!MEMBERS
   @DomName('MouseEvent.screenX')
   @DomName('MouseEvent.screenY')
   Point get screen => new Point(_screenX, _screenY);
+
+  @DomName('MouseEvent.layerX')
+  @DomName('MouseEvent.layerY')
+  Point get layer => new Point(_layerX, _layerY);
+
+  @DomName('MouseEvent.pageX')
+  @DomName('MouseEvent.pageY')
+  Point get page => new Point(_pageX, _pageY);
 }

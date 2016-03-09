@@ -4,7 +4,7 @@
 //
 // We are using --complete-timeline below to ensure that we get timeline events
 // generated during all phases of compilation and deoptimization.
-// VMOptions=--optimization_counter_threshold=10 --no-use-osr --complete-timeline
+// VMOptions=--optimization_counter_threshold=10 --no-use-osr --complete-timeline --no-background_compilation
 
 import "package:expect/expect.dart";
 

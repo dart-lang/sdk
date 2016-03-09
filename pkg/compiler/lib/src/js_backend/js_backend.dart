@@ -62,8 +62,7 @@ import '../enqueue.dart' show
     ResolutionEnqueuer;
 import '../io/code_output.dart';
 import '../io/source_information.dart' show
-    SourceInformationStrategy,
-    useNewSourceInfo;
+    SourceInformationStrategy;
 import '../io/position_information.dart' show
     PositionSourceInformationStrategy;
 import '../io/start_end_information.dart' show

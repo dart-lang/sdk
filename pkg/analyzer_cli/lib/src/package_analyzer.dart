@@ -45,7 +45,9 @@ class PackageAnalyzer {
    * Perform package analysis according to the given [options].
    */
   ErrorSeverity analyze() {
-    packagePath = options.packageModePath;
+    packagePath = resourceProvider.pathContext.normalize(resourceProvider
+        .pathContext
+        .join(io.Directory.current.absolute.path, options.packageModePath));
     packageLibPath = resourceProvider.pathContext.join(packagePath, 'lib');
     if (packageLibPath == null) {
       errorSink.writeln('--package-mode-path must be set to the root '
@@ -66,7 +68,6 @@ class PackageAnalyzer {
     ChangeSet changeSet = new ChangeSet();
     for (String path in options.sourceFiles) {
       if (AnalysisEngine.isDartFileName(path)) {
-        path = resourceProvider.pathContext.absolute(path);
         File file = resourceProvider.getFile(path);
         if (!file.exists) {
           errorSink.writeln('File not found: $path');
@@ -80,23 +81,26 @@ class PackageAnalyzer {
     }
     context.applyChanges(changeSet);
 
-    // Perform full analysis.
-    while (true) {
-      AnalysisResult analysisResult = context.performAnalysisTask();
-      if (!analysisResult.hasMoreWork) {
-        break;
+    if (!options.packageSummaryOnly) {
+      // Perform full analysis.
+      while (true) {
+        AnalysisResult analysisResult = context.performAnalysisTask();
+        if (!analysisResult.hasMoreWork) {
+          break;
+        }
       }
     }
 
     // Write summary for Dart libraries.
     if (options.packageSummaryOutput != null) {
       PackageBundleAssembler assembler = new PackageBundleAssembler();
-      for (Source source in context.librarySources) {
+      for (Source source in explicitSources) {
+        if (context.computeKindOf(source) != SourceKind.LIBRARY) {
+          continue;
+        }
         if (pathos.isWithin(packageLibPath, source.fullName)) {
-          LibraryElement libraryElement = context.getLibraryElement(source);
-          if (libraryElement != null) {
-            assembler.serializeLibraryElement(libraryElement);
-          }
+          LibraryElement libraryElement = context.computeLibraryElement(source);
+          assembler.serializeLibraryElement(libraryElement);
         }
       }
       // Write the whole package bundle.
@@ -105,9 +109,13 @@ class PackageAnalyzer {
       file.writeAsBytesSync(sdkBundle.toBuffer(), mode: io.FileMode.WRITE_ONLY);
     }
 
-    // Process errors.
-    _printErrors();
-    return _computeMaxSeverity();
+    if (options.packageSummaryOnly) {
+      return ErrorSeverity.NONE;
+    } else {
+      // Process errors.
+      _printErrors();
+      return _computeMaxSeverity();
+    }
   }
 
   ErrorSeverity _computeMaxSeverity() {

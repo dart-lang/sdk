@@ -139,7 +139,7 @@ package_resolve_test: SkipByDesign  # Uses Isolate.resolvePackageUri
 spawn_uri_fail_test: SkipByDesign  # Uses dart:io.
 scenarios/*: SkipByDesign  # Use automatic package resolution, spawnFunction and .dart URIs.
 
-[ $noopt || $compiler == precompiler || $runtime == dart_product ]
+[ $noopt || $compiler == precompiler || $mode == product ]
 # Imports dart:mirrors
 count_test: SkipByDesign
 cross_isolate_message_test: SkipByDesign
@@ -161,10 +161,6 @@ stacktrace_message_test: SkipByDesign
 static_function_test: SkipByDesign
 unresolved_ports_test: SkipByDesign
 
-[ $compiler == precompiler ]
-function_send_test: RuntimeError # Issue 25892
-message3_test/fun: RuntimeError # Issue 25892
-
 [ $runtime == dart_precompiled || $runtime == dart_product ]
 deferred_in_isolate_test: Skip # Isolate.spawnUri
 deferred_in_isolate2_test: Skip # Isolate.spawnUri
@@ -184,3 +180,6 @@ error_at_spawnuri_test: Skip # Isolate.spawnUri
 [ $runtime == dart_product ]
 spawn_uri_missing_from_isolate_test: Skip # SpawnUri in product mode
 spawn_uri_missing_test: Skip # SpawnUri in product mode
+
+[ $compiler == dart2js && $cps_ir && $checked ]
+*: Skip # `assert` not implemented

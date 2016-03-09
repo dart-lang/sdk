@@ -246,6 +246,11 @@ class _CompilationUnitSerializer {
   final List<_SerializeTypeRef> deferredLinkedTypes = <_SerializeTypeRef>[];
 
   /**
+   * List which should be stored in [LinkedUnit.constCycles].
+   */
+  final List<int> constCycles = <int>[];
+
+  /**
    * Index into the "references table" representing an unresolved reference, if
    * such an index exists.  `null` if no such entry has been made in the
    * references table yet.
@@ -364,6 +369,7 @@ class _CompilationUnitSerializer {
       unlinkedUnit.publicNamespace =
           new UnlinkedPublicNamespaceBuilder(names: names);
     }
+    unlinkedUnit.codeRange = serializeCodeRange(compilationUnit);
     unlinkedUnit.classes = compilationUnit.types.map(serializeClass).toList();
     unlinkedUnit.enums = compilationUnit.enums.map(serializeEnum).toList();
     unlinkedUnit.typedefs =
@@ -394,13 +400,15 @@ class _CompilationUnitSerializer {
 
   /**
    * Create the [LinkedUnit.types] table based on deferred types that were
-   * found during [addCompilationUnitElements].
+   * found during [addCompilationUnitElements].  Also populate
+   * [LinkedUnit.constCycles].
    */
-  void createLinkedTypes() {
+  void createLinkedInfo() {
     buildingLinkedReferences = true;
     linkedUnit.types = deferredLinkedTypes
         .map((_SerializeTypeRef closure) => closure())
         .toList();
+    linkedUnit.constCycles = constCycles;
     buildingLinkedReferences = false;
   }
 
@@ -530,6 +538,7 @@ class _CompilationUnitSerializer {
     b.isMixinApplication = classElement.isMixinApplication;
     b.documentationComment = serializeDocumentation(classElement);
     b.annotations = serializeAnnotations(classElement);
+    b.codeRange = serializeCodeRange(classElement);
     return b;
   }
 
@@ -575,6 +584,13 @@ class _CompilationUnitSerializer {
         }
       }
       return bs;
+    }
+    return null;
+  }
+
+  CodeRangeBuilder serializeCodeRange(Element element) {
+    if (element is ElementImpl && element.codeOffset != null) {
+      return new CodeRangeBuilder(offset: element.codeOffset, length: element.codeLength);
     }
     return null;
   }
@@ -641,6 +657,7 @@ class _CompilationUnitSerializer {
     b.values = values;
     b.documentationComment = serializeDocumentation(enumElement);
     b.annotations = serializeAnnotations(enumElement);
+    b.codeRange = serializeCodeRange(enumElement);
     return b;
   }
 
@@ -706,17 +723,19 @@ class _CompilationUnitSerializer {
           b.redirectedConstructorName = redirectedConstructor.name;
         }
       }
-      if (executableElement.isConst &&
-          executableElement.constantInitializers != null) {
-        Set<String> constructorParameterNames =
-            executableElement.parameters.map((p) => p.name).toSet();
-        b.constantInitializers = executableElement.constantInitializers
-            .map((ConstructorInitializer initializer) =>
-                serializeConstructorInitializer(
-                    initializer,
-                    (expr) =>
-                        serializeConstExpr(expr, constructorParameterNames)))
-            .toList();
+      if (executableElement.isConst) {
+        b.constCycleSlot = storeConstCycle(!executableElement.isCycleFree);
+        if (executableElement.constantInitializers != null) {
+          Set<String> constructorParameterNames =
+              executableElement.parameters.map((p) => p.name).toSet();
+          b.constantInitializers = executableElement.constantInitializers
+              .map((ConstructorInitializer initializer) =>
+                  serializeConstructorInitializer(
+                      initializer,
+                      (expr) =>
+                          serializeConstExpr(expr, constructorParameterNames)))
+              .toList();
+        }
       }
     } else {
       b.kind = UnlinkedExecutableKind.functionOrMethod;
@@ -727,6 +746,7 @@ class _CompilationUnitSerializer {
     b.isExternal = executableElement.isExternal;
     b.documentationComment = serializeDocumentation(executableElement);
     b.annotations = serializeAnnotations(executableElement);
+    b.codeRange = serializeCodeRange(executableElement);
     if (executableElement is FunctionElement) {
       SourceRange visibleRange = executableElement.visibleRange;
       if (visibleRange != null) {
@@ -823,6 +843,7 @@ class _CompilationUnitSerializer {
         break;
     }
     b.annotations = serializeAnnotations(parameter);
+    b.codeRange = serializeCodeRange(parameter);
     b.isInitializingFormal = parameter.isInitializingFormal;
     DartType type = parameter.type;
     if (parameter.hasImplicitType) {
@@ -912,6 +933,7 @@ class _CompilationUnitSerializer {
     b.parameters = typedefElement.parameters.map(serializeParam).toList();
     b.documentationComment = serializeDocumentation(typedefElement);
     b.annotations = serializeAnnotations(typedefElement);
+    b.codeRange = serializeCodeRange(typedefElement);
     return b;
   }
 
@@ -927,6 +949,7 @@ class _CompilationUnitSerializer {
       b.bound = serializeTypeRef(typeParameter.bound, typeParameter);
     }
     b.annotations = serializeAnnotations(typeParameter);
+    b.codeRange = serializeCodeRange(typeParameter);
     return b;
   }
 
@@ -1076,6 +1099,7 @@ class _CompilationUnitSerializer {
         (variable.initializer != null || !variable.isStatic)) {
       b.inferredTypeSlot = storeInferredType(variable.type, variable);
     }
+    b.codeRange = serializeCodeRange(variable);
     if (variable is LocalVariableElement) {
       SourceRange visibleRange = variable.visibleRange;
       if (visibleRange != null) {
@@ -1088,6 +1112,18 @@ class _CompilationUnitSerializer {
       b.initializer = serializeExecutable(variable.initializer);
     }
     return b;
+  }
+
+  /**
+   * Create a new slot id and return it.  If [hasCycle] is `true`, arrange for
+   * the slot id to be included in [LinkedUnit.constCycles].
+   */
+  int storeConstCycle(bool hasCycle) {
+    int slot = ++numSlots;
+    if (hasCycle) {
+      constCycles.add(slot);
+    }
+    return slot;
   }
 
   /**
@@ -1522,7 +1558,7 @@ class _LibrarySerializer {
     pb.numPrelinkedDependencies = dependencies.length;
     for (_CompilationUnitSerializer compilationUnitSerializer
         in compilationUnitSerializers) {
-      compilationUnitSerializer.createLinkedTypes();
+      compilationUnitSerializer.createLinkedInfo();
     }
     pb.importDependencies = linkedImports;
     List<String> exportedNames =

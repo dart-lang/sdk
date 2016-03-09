@@ -1254,7 +1254,7 @@ class RawStackmap : public RawObject {
   // as large as ~33 million entries. If that is sufficient, then these two
   // fields can be merged into a BitField.
   int32_t length_;  // Length of payload, in bits.
-  int32_t register_bit_count_;  // Live register bits, included in length_.
+  int32_t slow_path_bit_count_;  // Slow path live values, included in length_.
 
   // Offset from code entry point corresponding to this stack map
   // representation.
@@ -1455,7 +1455,7 @@ class RawICData : public RawObject {
   }
   int32_t deopt_id_;     // Deoptimization id corresponding to this IC.
   uint32_t state_bits_;  // Number of arguments tested in IC, deopt reasons,
-                         // is closure call, JS warning issued, range feedback.
+                         // range feedback.
 };
 
 

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Test deoptimization caused by running code that did not collect type
 // feedback before.
-// VMOptions=--optimization-counter-threshold=10 --no-use-osr
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation
 
 import "package:expect/expect.dart";
 

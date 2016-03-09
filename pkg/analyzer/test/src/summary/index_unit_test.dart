@@ -139,6 +139,43 @@ int set s (_) {}
     _assertDefinedName('V', IndexNameKind.topLevel, 'V = 42;');
   }
 
+  void test_hasAncestor_ClassDeclaration() {
+    _indexTestUnit('''
+class A {}
+class B1 extends A {}
+class B2 implements A {}
+class C1 extends B1 {}
+class C2 extends B2 {}
+class C3 implements B1 {}
+class C4 implements B2 {}
+class M extends Object with A {}
+''');
+    ClassElement classElementA = findElement("A");
+    assertThat(classElementA)
+      ..isAncestorOf('B1 extends A')
+      ..isAncestorOf('B2 implements A')
+      ..isAncestorOf('C1 extends B1')
+      ..isAncestorOf('C2 extends B2')
+      ..isAncestorOf('C3 implements B1')
+      ..isAncestorOf('C4 implements B2')
+      ..isAncestorOf('M extends Object with A');
+  }
+
+  void test_hasAncestor_ClassTypeAlias() {
+    _indexTestUnit('''
+class A {}
+class B extends A {}
+class C1 = Object with A;
+class C2 = Object with B;
+''');
+    ClassElement classElementA = findElement('A');
+    ClassElement classElementB = findElement('B');
+    assertThat(classElementA)
+      ..isAncestorOf('C1 = Object with A')
+      ..isAncestorOf('C2 = Object with B');
+    assertThat(classElementB)..isAncestorOf('C2 = Object with B');
+  }
+
   void test_isExtendedBy_ClassDeclaration() {
     _indexTestUnit('''
 class A {} // 1
@@ -146,8 +183,8 @@ class B extends A {} // 2
 ''');
     ClassElement elementA = findElement('A');
     assertThat(elementA)
-      ..isExtendedAt('A {} // 2', true)
-      ..isReferencedAt('A {} // 2', true);
+      ..isExtendedAt('A {} // 2', false)
+      ..isReferencedAt('A {} // 2', false);
   }
 
   void test_isExtendedBy_ClassDeclaration_isQualified() {
@@ -181,6 +218,23 @@ class C = A with B;
 ''');
     ClassElement elementA = findElement('A');
     assertThat(elementA)
+      ..isExtendedAt('A with', false)
+      ..isReferencedAt('A with', false);
+  }
+
+  void test_isExtendedBy_ClassTypeAlias_isQualified() {
+    addSource(
+        '/lib.dart',
+        '''
+class A {}
+''');
+    _indexTestUnit('''
+import 'lib.dart' as p;
+class B {}
+class C = p.A with B;
+''');
+    ClassElement elementA = importedUnit().getType('A');
+    assertThat(elementA)
       ..isExtendedAt('A with', true)
       ..isReferencedAt('A with', true);
   }
@@ -192,8 +246,8 @@ class B implements A {} // 2
 ''');
     ClassElement elementA = findElement('A');
     assertThat(elementA)
-      ..isImplementedAt('A {} // 2', true)
-      ..isReferencedAt('A {} // 2', true);
+      ..isImplementedAt('A {} // 2', false)
+      ..isReferencedAt('A {} // 2', false);
   }
 
   void test_isImplementedBy_ClassDeclaration_isQualified() {
@@ -220,8 +274,8 @@ class C = Object with A implements B; // 3
 ''');
     ClassElement elementB = findElement('B');
     assertThat(elementB)
-      ..isImplementedAt('B; // 3', true)
-      ..isReferencedAt('B; // 3', true);
+      ..isImplementedAt('B; // 3', false)
+      ..isReferencedAt('B; // 3', false);
   }
 
   void test_isInvokedBy_FieldElement() {
@@ -345,8 +399,8 @@ class B extends Object with A {} // 2
 ''');
     ClassElement elementA = findElement('A');
     assertThat(elementA)
-      ..isMixedInAt('A {} // 2', true)
-      ..isReferencedAt('A {} // 2', true);
+      ..isMixedInAt('A {} // 2', false)
+      ..isReferencedAt('A {} // 2', false);
   }
 
   void test_isMixedInBy_ClassDeclaration_isQualified() {
@@ -369,7 +423,7 @@ class A {} // 1
 class B = Object with A; // 2
 ''');
     ClassElement elementA = findElement('A');
-    assertThat(elementA).isMixedInAt('A; // 2', true);
+    assertThat(elementA).isMixedInAt('A; // 2', false);
   }
 
   void test_isReferencedBy_ClassElement() {
@@ -538,6 +592,22 @@ main() {
 }
 ''');
     // No additional validation, but it should not fail with stack overflow.
+  }
+
+  void test_isReferencedBy_ConstructorElement_namedOnlyWithDot() {
+    _indexTestUnit('''
+class A {
+  A.named() {}
+}
+main() {
+  new A.named();
+}
+''');
+    // has ".named()", but does not have "named()"
+    int offsetWithoutDot = findOffset('named();');
+    int offsetWithDot = findOffset('.named();');
+    expect(unitIndex.usedElementOffsets, isNot(contains(offsetWithoutDot)));
+    expect(unitIndex.usedElementOffsets, contains(offsetWithDot));
   }
 
   void test_isReferencedBy_ConstructorElement_redirection() {
@@ -881,6 +951,11 @@ class _ElementIndexAssert {
   final Element element;
 
   _ElementIndexAssert(this.test, this.element);
+
+  void isAncestorOf(String search, {int length}) {
+    test._assertHasRelation(element, IndexRelationKind.IS_ANCESTOR_OF,
+        test._expectedLocation(search, false, length: length));
+  }
 
   void isExtendedAt(String search, bool isQualified, {int length}) {
     test._assertHasRelation(element, IndexRelationKind.IS_EXTENDED_BY,

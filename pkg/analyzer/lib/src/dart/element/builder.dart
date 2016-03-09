@@ -204,11 +204,6 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
   Object visitImportDirective(ImportDirective node) {
     // Remove previous element. (It will remain null if the target is missing.)
     node.element = null;
-
-    String uriContent = node.uriContent;
-    if (DartUriResolver.isDartExtUri(uriContent)) {
-      libraryElement.hasExtUri = true;
-    }
     Source importedSource = node.source;
     if (importedSource != null && context.exists(importedSource)) {
       // The imported source will be null if the URI in the import
@@ -225,7 +220,7 @@ class DirectiveElementBuilder extends SimpleAstVisitor<Object> {
           importElement.uriOffset = uriLiteral.offset;
           importElement.uriEnd = uriLiteral.end;
         }
-        importElement.uri = uriContent;
+        importElement.uri = node.uriContent;
         importElement.deferred = node.deferredKeyword != null;
         importElement.combinators = _buildCombinators(node);
         importElement.importedLibrary = importedLibrary;
@@ -312,7 +307,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
    * The compilation unit element into which the elements being built will be
    * stored.
    */
-  final CompilationUnitElement compilationUnitElement;
+  final CompilationUnitElementImpl compilationUnitElement;
 
   /**
    * The element holder associated with the element that is currently being built.
@@ -339,9 +334,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   HashMap<String, FieldElement> _fieldMap;
 
   /**
-   * Initialize a newly created element builder to build the elements for a compilation unit.
-   *
-   * @param initialHolder the element holder associated with the compilation unit being built
+   * Initialize a newly created element builder to build the elements for a
+   * compilation unit. The [initialHolder] is the element holder to which the
+   * children of the visited compilation unit node will be added.
    */
   ElementBuilder(ElementHolder initialHolder, this.compilationUnitElement) {
     _currentHolder = initialHolder;
@@ -484,7 +479,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
   @override
   Object visitCompilationUnit(CompilationUnit node) {
     if (compilationUnitElement is ElementImpl) {
-      _setCodeRange(compilationUnitElement as ElementImpl, node);
+      _setCodeRange(compilationUnitElement, node);
     }
     return super.visitCompilationUnit(node);
   }
@@ -626,6 +621,27 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     // to subclass, mix-in, implement, or explicitly instantiate an enum).  So
     // we represent this as having no constructors.
     enumElement.constructors = ConstructorElement.EMPTY_LIST;
+    //
+    // Build the elements for the constants. These are minimal elements; the
+    // rest of the constant elements (and elements for other fields) must be
+    // built later after we can access the type provider.
+    //
+    List<FieldElement> fields = new List<FieldElement>();
+    NodeList<EnumConstantDeclaration> constants = node.constants;
+    for (EnumConstantDeclaration constant in constants) {
+      SimpleIdentifier constantName = constant.name;
+      FieldElementImpl constantField =
+          new ConstFieldElementImpl.forNode(constantName);
+      constantField.static = true;
+      constantField.const3 = true;
+      constantField.type = enumType;
+      setElementDocumentationComment(constantField, constant);
+      fields.add(constantField);
+      _createGetter(constantField);
+      constantName.staticElement = constantField;
+    }
+    enumElement.fields = fields;
+
     _currentHolder.addEnum(enumElement);
     enumName.staticElement = enumElement;
     return super.visitEnumDeclaration(node);
@@ -633,7 +649,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitExportDirective(ExportDirective node) {
-    _createElementAnnotations(node.metadata);
+    List<ElementAnnotation> annotations =
+        _createElementAnnotations(node.metadata);
+    compilationUnitElement.setAnnotations(node.offset, annotations);
     return super.visitExportDirective(node);
   }
 
@@ -895,7 +913,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitImportDirective(ImportDirective node) {
-    _createElementAnnotations(node.metadata);
+    List<ElementAnnotation> annotations =
+        _createElementAnnotations(node.metadata);
+    compilationUnitElement.setAnnotations(node.offset, annotations);
     return super.visitImportDirective(node);
   }
 
@@ -906,7 +926,6 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       SimpleIdentifier labelName = label.label;
       LabelElementImpl element =
           new LabelElementImpl.forNode(labelName, onSwitchStatement, false);
-      _setCodeRange(element, node);
       _currentHolder.addLabel(element);
       labelName.staticElement = element;
     }
@@ -915,7 +934,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitLibraryDirective(LibraryDirective node) {
-    _createElementAnnotations(node.metadata);
+    List<ElementAnnotation> annotations =
+        _createElementAnnotations(node.metadata);
+    compilationUnitElement.setAnnotations(node.offset, annotations);
     return super.visitLibraryDirective(node);
   }
 
@@ -1078,7 +1099,9 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitPartDirective(PartDirective node) {
-    _createElementAnnotations(node.metadata);
+    List<ElementAnnotation> annotations =
+        _createElementAnnotations(node.metadata);
+    compilationUnitElement.setAnnotations(node.offset, annotations);
     return super.visitPartDirective(node);
   }
 
@@ -1311,6 +1334,18 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       a.elementAnnotation = elementAnnotation;
       return elementAnnotation;
     }).toList();
+  }
+
+  /**
+   * Create a getter that corresponds to the given [field].
+   */
+  void _createGetter(FieldElementImpl field) {
+    PropertyAccessorElementImpl getter =
+        new PropertyAccessorElementImpl.forVariable(field);
+    getter.getter = true;
+    getter.returnType = field.type;
+    getter.type = new FunctionTypeImpl(getter);
+    field.getter = getter;
   }
 
   /**

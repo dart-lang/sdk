@@ -11632,7 +11632,14 @@ AstNode* Parser::ParseClosurization(AstNode* primary) {
       // In the pathological case where a library imports itself with
       // a prefix, the name mangling does not help in hiding the private
       // name, so we explicitly prevent lookup of private names here.
-      obj = prefix.LookupObject(extractor_name);
+      if (is_setter_name) {
+        String& setter_name =
+            String::Handle(Z, Field::SetterName(extractor_name));
+        obj = prefix.LookupObject(setter_name);
+      }
+      if (obj.IsNull()) {
+        obj = prefix.LookupObject(extractor_name);
+      }
     }
     if (!prefix.is_loaded() && (parsed_function() != NULL)) {
       // Remember that this function depends on an import prefix of an

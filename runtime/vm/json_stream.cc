@@ -475,9 +475,15 @@ void JSONStream::PrintValue(Isolate* isolate, bool ref) {
 }
 
 
-void JSONStream::PrintValue(TimelineEvent* timeline_event) {
+void JSONStream::PrintValue(const TimelineEvent* timeline_event) {
   PrintCommaIfNeeded();
   timeline_event->PrintJSON(this);
+}
+
+
+void JSONStream::PrintValue(const TimelineEventBlock* timeline_event_block) {
+  PrintCommaIfNeeded();
+  timeline_event_block->PrintJSON(this);
 }
 
 
@@ -593,9 +599,16 @@ void JSONStream::PrintProperty(const char* name, Isolate* isolate) {
 
 
 void JSONStream::PrintProperty(const char* name,
-                               TimelineEvent* timeline_event) {
+                               const TimelineEvent* timeline_event) {
   PrintPropertyName(name);
   PrintValue(timeline_event);
+}
+
+
+void JSONStream::PrintProperty(const char* name,
+                               const TimelineEventBlock* timeline_event_block) {
+  PrintPropertyName(name);
+  PrintValue(timeline_event_block);
 }
 
 

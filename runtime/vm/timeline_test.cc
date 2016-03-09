@@ -237,7 +237,7 @@ TEST_CASE(TimelineEventBufferPrintJSON) {
 
 
 // Count the number of each event type seen.
-class EventCounterRecorder : public TimelineEventStreamingRecorder {
+class EventCounterRecorder : public TimelineEventCallbackRecorder {
  public:
   EventCounterRecorder() {
     for (intptr_t i = 0; i < TimelineEvent::kNumEventTypes; i++) {
@@ -245,7 +245,7 @@ class EventCounterRecorder : public TimelineEventStreamingRecorder {
     }
   }
 
-  void StreamEvent(TimelineEvent* event) {
+  void OnEvent(TimelineEvent* event) {
     counts_[event->event_type()]++;
   }
 
@@ -258,7 +258,7 @@ class EventCounterRecorder : public TimelineEventStreamingRecorder {
 };
 
 
-TEST_CASE(TimelineEventStreamingRecorderBasic) {
+TEST_CASE(TimelineEventCallbackRecorderBasic) {
   EventCounterRecorder* recorder = new EventCounterRecorder();
   TimelineRecorderOverride override(recorder);
 

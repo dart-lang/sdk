@@ -72,7 +72,7 @@ hasStoppedAtBreakpoint,
   // Full script
   var params = { 'reports' : ['Coverage'],
                  'scriptId' : func.location.script.id };
-  var coverage = await isolate.invokeRpcNoUpgrade('_getSourceReport', params);
+  var coverage = await isolate.invokeRpcNoUpgrade('getSourceReport', params);
   expect(coverage['type'], equals('SourceReport'));
   expect(coverage['ranges'].length, 6);
   expect(coverage['ranges'][0], equals(expectedRange));
@@ -85,7 +85,7 @@ hasStoppedAtBreakpoint,
   params = { 'reports' : ['Coverage'],
              'scriptId' : func.location.script.id,
              'forceCompile' : true };
-  coverage = await isolate.invokeRpcNoUpgrade('_getSourceReport', params);
+  coverage = await isolate.invokeRpcNoUpgrade('getSourceReport', params);
   expect(coverage['type'], equals('SourceReport'));
   expect(coverage['ranges'].length, 6);
   expect(allRangesCompiled(coverage), isTrue);
@@ -95,7 +95,7 @@ hasStoppedAtBreakpoint,
              'scriptId' : func.location.script.id,
              'tokenPos' : func.location.tokenPos,
              'endTokenPos' : func.location.endTokenPos };
-  coverage = await isolate.invokeRpcNoUpgrade('_getSourceReport', params);
+  coverage = await isolate.invokeRpcNoUpgrade('getSourceReport', params);
   expect(coverage['type'], equals('SourceReport'));
   expect(coverage['ranges'].length, 1);
   expect(coverage['ranges'][0], equals(expectedRange));
@@ -105,7 +105,7 @@ hasStoppedAtBreakpoint,
 
   // Full isolate
   params = { 'reports' : ['Coverage'] };
-  coverage = await isolate.invokeRpcNoUpgrade('_getSourceReport', params);
+  coverage = await isolate.invokeRpcNoUpgrade('getSourceReport', params);
   expect(coverage['type'], equals('SourceReport'));
   expect(coverage['ranges'].length, greaterThan(1));
   expect(coverage['scripts'].length, greaterThan(1));
@@ -115,7 +115,7 @@ hasStoppedAtBreakpoint,
              'scriptId' : func.location.script.id,
              'tokenPos' : func.location.tokenPos,
              'endTokenPos' : func.location.endTokenPos };
-  coverage = await isolate.invokeRpcNoUpgrade('_getSourceReport', params);
+  coverage = await isolate.invokeRpcNoUpgrade('getSourceReport', params);
   expect(coverage['type'], equals('SourceReport'));
   expect(coverage['ranges'].length, 1);
   var range = coverage['ranges'][0];
@@ -128,12 +128,12 @@ hasStoppedAtBreakpoint,
   try {
     params = { 'reports' : ['Coverage'],
                'tokenPos' : func.location.tokenPos };
-    coverage = await isolate.invokeRpcNoUpgrade('_getSourceReport', params);
+    coverage = await isolate.invokeRpcNoUpgrade('getSourceReport', params);
   } on ServerRpcException catch(e) {
     caughtException = true;
     expect(e.code, equals(ServerRpcException.kInvalidParams));
     expect(e.message,
-           "_getSourceReport: the 'tokenPos' parameter requires the "
+           "getSourceReport: the 'tokenPos' parameter requires the "
            "\'scriptId\' parameter");
   }
   expect(caughtException, isTrue);
@@ -143,12 +143,12 @@ hasStoppedAtBreakpoint,
   try {
     params = { 'reports' : ['Coverage'],
                'endTokenPos' : func.location.endTokenPos };
-    coverage = await isolate.invokeRpcNoUpgrade('_getSourceReport', params);
+    coverage = await isolate.invokeRpcNoUpgrade('getSourceReport', params);
   } on ServerRpcException catch(e) {
     caughtException = true;
     expect(e.code, equals(ServerRpcException.kInvalidParams));
     expect(e.message,
-           "_getSourceReport: the 'endTokenPos' parameter requires the "
+           "getSourceReport: the 'endTokenPos' parameter requires the "
            "\'scriptId\' parameter");
   }
   expect(caughtException, isTrue);

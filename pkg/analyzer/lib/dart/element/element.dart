@@ -813,6 +813,11 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
    */
   bool get isOverride;
 
+  /**
+   * Return `true` if this annotation marks the associated member as requiring
+   * overriding methods to call super.
+   */
+  bool get isMustCallSuper;
 
   /**
    * Return `true` if this annotation marks the associated member as being

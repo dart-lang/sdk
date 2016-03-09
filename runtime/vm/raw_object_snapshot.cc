@@ -732,9 +732,8 @@ void RawClosureData::WriteTo(SnapshotWriter* writer,
   // Signature type.
   writer->WriteObjectImpl(ptr()->signature_type_, kAsInlinedObject);
 
-  // Static closure/Closure allocation stub.
-  // We don't write the closure or allocation stub in the snapshot.
-  writer->WriteVMIsolateObject(kNullObject);
+  // Canonical static closure.
+  writer->WriteObjectImpl(ptr()->closure_, kAsInlinedObject);
 }
 
 

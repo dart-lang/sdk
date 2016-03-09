@@ -4,7 +4,7 @@
 //
 // Test named arguments work as expected regardless of whether the function or
 // method is called via function call syntax or method call syntax.
-// VMOptions=--optimization-counter-threshold=10
+// VMOptions=--optimization-counter-threshold=10 --no-background-compilation
 
 import "package:expect/expect.dart";
 

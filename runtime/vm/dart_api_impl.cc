@@ -1145,7 +1145,7 @@ DART_EXPORT char* Dart_Initialize(
     Dart_FileCloseCallback file_close,
     Dart_EntropySource entropy_source,
     Dart_GetVMServiceAssetsArchive get_service_assets) {
-  if ((instructions_snapshot != NULL) && !FLAG_precompiled_mode) {
+  if ((instructions_snapshot != NULL) && !FLAG_precompiled_runtime) {
     return strdup("Flag --precompilation was not specified.");
   }
   if (interrupt != NULL) {
@@ -6096,7 +6096,7 @@ DART_EXPORT Dart_Handle Dart_TimelineAsyncEnd(const char* label,
 }
 
 
-// The precompiler is included in dart_no_snapshot and dart_noopt, and
+// The precompiler is included in dart_bootstrap and dart_noopt, and
 // excluded from dart and dart_precompiled_runtime.
 #if !defined(DART_PRECOMPILER)
 

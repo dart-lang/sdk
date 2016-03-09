@@ -5,7 +5,7 @@
 // Smi arguments. We convert Smi to doubles and to the operation. This is
 // not correct in 64-bit mode where not every Smi can be converted to a
 // double without loss of precision.
-// VMOptions=--optimization-counter-threshold=10 --no-use-osr
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation
 
 import "package:expect/expect.dart";
 

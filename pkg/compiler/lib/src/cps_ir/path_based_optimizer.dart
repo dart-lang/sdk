@@ -157,27 +157,23 @@ class PathBasedOptimizer extends TrampolineRecursiveVisitor
   }
 
   void visitInvokeMethod(InvokeMethod node) {
-    int receiverValue = valueOf[node.dartReceiver] ?? ANY;
+    int receiverValue = valueOf[node.receiver] ?? ANY;
     if (!backend.isInterceptedSelector(node.selector)) {
       // Only self-interceptors can respond to a non-intercepted selector.
-      valueOf[node.dartReceiver] = receiverValue & SELF_INTERCEPTOR;
+      valueOf[node.receiver] = receiverValue & SELF_INTERCEPTOR;
     } else if (receiverValue & ~SELF_INTERCEPTOR == 0 &&
                node.callingConvention == CallingConvention.Intercepted) {
       // This is an intercepted call whose receiver is definitely a
       // self-interceptor.
       // TODO(25646): If TypeMasks could represent "any self-interceptor" this
       //   optimization should be subsumed by type propagation.
-      node.receiverRef.changeTo(node.dartReceiver);
+      node.interceptorRef.changeTo(node.receiver);
 
       // Replace the extra receiver argument with a dummy value if the
       // target definitely does not use it.
-      if (typeSystem.targetIgnoresReceiverArgument(node.dartReceiver.type,
+      if (typeSystem.targetIgnoresReceiverArgument(node.receiver.type,
             node.selector)) {
-        Constant dummy = new Constant(new IntConstantValue(0))
-            ..type = typeSystem.intType;
-        new LetPrim(dummy).insertAbove(node.parent);
-        node.argumentRefs[0].changeTo(dummy);
-        node.callingConvention = CallingConvention.DummyIntercepted;
+        node.makeDummyIntercepted();
       }
     }
   }

@@ -2406,8 +2406,11 @@ bool AotOptimizer::IsBlackListedForInlining(intptr_t call_deopt_id) {
   return false;
 }
 
-// Special optimizations when running in --noopt mode.
-void AotOptimizer::InstanceCallNoopt(InstanceCallInstr* instr) {
+
+// Tries to optimize instance call by replacing it with a faster instruction
+// (e.g, binary op, field load, ..).
+void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
+  ASSERT(FLAG_precompiled_mode);
   // TODO(srdjan): Investigate other attempts, as they are not allowed to
   // deoptimize.
 
@@ -2484,6 +2487,33 @@ void AotOptimizer::InstanceCallNoopt(InstanceCallInstr* instr) {
       return;
     }
   }
+  switch (instr->token_kind()) {
+    case Token::kEQ:
+    case Token::kLT:
+    case Token::kLTE:
+    case Token::kGT:
+    case Token::kGTE:
+    case Token::kBIT_OR:
+    case Token::kBIT_XOR:
+    case Token::kBIT_AND:
+    case Token::kADD:
+    case Token::kSUB: {
+      if (HasOnlyTwoOf(*instr->ic_data(), kSmiCid)) {
+        Definition* left = instr->ArgumentAt(0);
+        Definition* right = instr->ArgumentAt(1);
+        CheckedSmiOpInstr* smi_op =
+            new(Z) CheckedSmiOpInstr(instr->token_kind(),
+                                     new(Z) Value(left),
+                                     new(Z) Value(right),
+                                     instr);
+
+        ReplaceCall(instr, smi_op);
+        return;
+      }
+    }
+    default:
+      break;
+  }
 
   // More than one targets. Generate generic polymorphic call without
   // deoptimization.
@@ -2539,16 +2569,7 @@ void AotOptimizer::InstanceCallNoopt(InstanceCallInstr* instr) {
         new(Z) PolymorphicInstanceCallInstr(instr, ic_data,
                                             /* with_checks = */ false);
     instr->ReplaceWith(call, current_iterator());
-    return;
   }
-}
-
-
-// Tries to optimize instance call by replacing it with a faster instruction
-// (e.g, binary op, field load, ..).
-void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
-  ASSERT(FLAG_precompiled_mode);
-  InstanceCallNoopt(instr);
 }
 
 
@@ -2708,41 +2729,6 @@ void AotOptimizer::VisitStaticCall(StaticCallInstr* call) {
         }
       }
     }
-  }
-}
-
-
-void AotOptimizer::VisitAllocateContext(AllocateContextInstr* instr) {
-  // Replace generic allocation with a sequence of inlined allocation and
-  // explicit initalizing stores.
-  AllocateUninitializedContextInstr* replacement =
-      new AllocateUninitializedContextInstr(instr->token_pos(),
-                                            instr->num_context_variables());
-  instr->ReplaceWith(replacement, current_iterator());
-
-  StoreInstanceFieldInstr* store =
-      new(Z) StoreInstanceFieldInstr(Context::parent_offset(),
-                                     new Value(replacement),
-                                     new Value(flow_graph_->constant_null()),
-                                     kNoStoreBarrier,
-                                     instr->token_pos());
-  // Storing into uninitialized memory; remember to prevent dead store
-  // elimination and ensure proper GC barrier.
-  store->set_is_object_reference_initialization(true);
-  flow_graph_->InsertAfter(replacement, store, NULL, FlowGraph::kEffect);
-  Definition* cursor = store;
-  for (intptr_t i = 0; i < instr->num_context_variables(); ++i) {
-    store =
-        new(Z) StoreInstanceFieldInstr(Context::variable_offset(i),
-                                       new Value(replacement),
-                                       new Value(flow_graph_->constant_null()),
-                                       kNoStoreBarrier,
-                                       instr->token_pos());
-    // Storing into uninitialized memory; remember to prevent dead store
-    // elimination and ensure proper GC barrier.
-    store->set_is_object_reference_initialization(true);
-    flow_graph_->InsertAfter(cursor, store, NULL, FlowGraph::kEffect);
-    cursor = store;
   }
 }
 

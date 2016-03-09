@@ -122,6 +122,7 @@ StreamInfo Service::echo_stream("_Echo");
 StreamInfo Service::graph_stream("_Graph");
 StreamInfo Service::logging_stream("_Logging");
 StreamInfo Service::extension_stream("Extension");
+StreamInfo Service::timeline_stream("Timeline");
 
 static StreamInfo* streams_[] = {
   &Service::vm_stream,
@@ -132,6 +133,7 @@ static StreamInfo* streams_[] = {
   &Service::graph_stream,
   &Service::logging_stream,
   &Service::extension_stream,
+  &Service::timeline_stream,
 };
 
 
@@ -1030,11 +1032,12 @@ void Service::HandleEvent(ServiceEvent* event) {
     params.AddProperty("streamId", stream_id);
     params.AddProperty("event", event);
   }
-  PostEvent(stream_id, event->KindAsCString(), &js);
+  PostEvent(event->isolate(), stream_id, event->KindAsCString(), &js);
 }
 
 
-void Service::PostEvent(const char* stream_id,
+void Service::PostEvent(Isolate* isolate,
+                        const char* stream_id,
                         const char* kind,
                         JSONStream* event) {
   ASSERT(stream_id != NULL);
@@ -1063,7 +1066,6 @@ void Service::PostEvent(const char* stream_id,
   list_values[1] = &json_cobj;
 
   if (FLAG_trace_service) {
-    Isolate* isolate = Isolate::Current();
     const char* isolate_name = "<no current isolate>";
     if (isolate != NULL) {
       isolate_name = isolate->name();
@@ -1291,8 +1293,7 @@ static bool GetStack(Thread* thread, JSONStream* js) {
   }
 
   {
-    MessageHandler::AcquiredQueues aq;
-    isolate->message_handler()->AcquireQueues(&aq);
+    MessageHandler::AcquiredQueues aq(isolate->message_handler());
     jsobj.AddProperty("messages", aq.queue());
   }
 
@@ -1679,8 +1680,7 @@ static RawObject* LookupHeapObjectMessage(Thread* thread,
   if (!GetUnsignedIntegerId(parts[1], &message_id, 16)) {
     return Object::sentinel().raw();
   }
-  MessageHandler::AcquiredQueues aq;
-  thread->isolate()->message_handler()->AcquireQueues(&aq);
+  MessageHandler::AcquiredQueues aq(thread->isolate()->message_handler());
   Message* message = aq.queue()->FindMessageById(message_id);
   if (message == NULL) {
     // The user may try to load an expired message.
@@ -3016,6 +3016,16 @@ static bool Resume(Thread* thread, JSONStream* js) {
     PrintSuccess(js);
     return true;
   }
+  if (isolate->message_handler()->should_pause_on_start()) {
+    isolate->message_handler()->set_should_pause_on_start(false);
+    isolate->SetResumeRequest();
+    if (Service::debug_stream.enabled()) {
+      ServiceEvent event(isolate, ServiceEvent::kResume);
+      Service::HandleEvent(&event);
+    }
+    PrintSuccess(js);
+    return true;
+  }
   if (isolate->message_handler()->is_paused_on_exit()) {
     isolate->message_handler()->set_should_pause_on_exit(false);
     isolate->SetResumeRequest();
@@ -4043,7 +4053,7 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_retained_size_params },
   { "_getRetainingPath", GetRetainingPath,
     get_retaining_path_params },
-  { "_getSourceReport", GetSourceReport,
+  { "getSourceReport", GetSourceReport,
     get_source_report_params },
   { "getStack", GetStack,
     get_stack_params },

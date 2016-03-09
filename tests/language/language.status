@@ -45,11 +45,6 @@ async_star_regression_2238_test: CompileTimeError, RuntimeError # drt only runti
 async_star_cancel_while_paused_test: RuntimeError
 async_star_await_pauses_test: Skip # Times out. Issue 23996
 
-accessor_conflict_export2_test: RuntimeError # Issue 25625
-accessor_conflict_import2_test: RuntimeError # Issue 25625
-accessor_conflict_import_prefixed2_test: RuntimeError # Issue 25625
-accessor_conflict_import_prefixed_test: RuntimeError # Issue 25625
-
 [ ($compiler == none || $compiler == precompiler || $compiler == dart2app) && ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) ]
 
 class_keyword_test/02: MissingCompileTimeError # Issue 13627
@@ -96,12 +91,7 @@ issue_22780_test/01 : Pass, Timeout # Issue 24473
 [ $compiler == none && $runtime == drt ]
 disassemble_test: Pass, Fail # Issue 18122
 
-[ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && $arch == mips && $checked ]
-generic_instanceof3_test: Pass, Crash # Issue 17440.
-
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && $arch == mips && $mode == debug ]
-stack_overflow_test: Skip # Crashes. Issue 17440.
-stack_overflow_stacktrace_test: Skip # Crashes. Issue 17440.
 large_class_declaration_test: SkipSlow # Times out. Issue 20352
 
 [ ($runtime == vm || $runtime == dart_precompiled || $runtime == dart_product) && $arch == arm64 ]
@@ -129,7 +119,7 @@ stacktrace_rethrow_error_test: Pass, RuntimeError
 stacktrace_rethrow_nonerror_test: Pass, RuntimeError
 stacktrace_test: Pass, RuntimeError
 
-[ $noopt || $compiler == precompiler || $runtime == dart_product ]
+[ $noopt || $compiler == precompiler || $mode == product ]
 # Imports dart:mirrors
 const_evaluation_test: SkipByDesign
 deferred_constraints_constants_test: SkipByDesign

@@ -24,8 +24,7 @@ import 'memory_compiler.dart';
  * Use an identifiable suffix of the file uri as key. Use a fixed substring of
  * the error/warning message in the list of white-listings for each file.
  */
-// TODO(johnniwinther): Support canonical URIs as keys and message kinds as
-// values.
+// TODO(johnniwinther): Support canonical URIs as keys.
 const Map<String, List/*<String|MessageKind>*/> WHITE_LIST = const {
   // Several tests import mirrors; any of these might trigger the warning.
   ".dart": const [

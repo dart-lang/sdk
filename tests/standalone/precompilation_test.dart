@@ -49,7 +49,7 @@ main(List args) {
   try {
     tmp = Directory.current.createTempSync("temp_precompilation_test");
     var result = Process.runSync(
-       "${dart_executable}_no_snapshot",
+       "${dart_executable}_bootstrap",
        ["--gen-precompiled-snapshot", Platform.script.path],
        workingDirectory: tmp.path);
     if (result.exitCode != 0) {

@@ -881,10 +881,9 @@ abstract class HInstruction implements Spannable {
 
   bool canBeNull() => instructionType.isNullable;
 
-  bool isNull() => instructionType.isEmpty && instructionType.isNullable;
-  bool isConflicting() {
-    return instructionType.isEmpty && !instructionType.isNullable;
-  }
+  bool isNull() => instructionType.isNull;
+
+  bool isConflicting() => instructionType.isEmpty;
 
   /// Returns `true` if [typeMask] contains [cls].
   static bool containsType(

@@ -20,6 +20,7 @@ import 'package:analysis_server/src/operation/operation_queue.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
+import 'package:analysis_server/src/services/index2/index2.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -104,6 +105,11 @@ class AnalysisServer {
    * The [Index] for this server, may be `null` if indexing is disabled.
    */
   final Index index;
+
+  /**
+   * The [Index2] for this server, may be `null` if indexing is disabled.
+   */
+  final Index2 index2;
 
   /**
    * The [SearchEngine] for this server, may be `null` if indexing is disabled.
@@ -305,6 +311,7 @@ class AnalysisServer {
       this.resourceProvider,
       PubPackageMapProvider packageMapProvider,
       Index _index,
+      Index2 _index2,
       this.serverPlugin,
       this.options,
       this.defaultSdkCreator,
@@ -313,6 +320,7 @@ class AnalysisServer {
       EmbeddedResolverProvider embeddedResolverProvider: null,
       this.rethrowExceptions: true})
       : index = _index,
+        index2 = _index2,
         searchEngine = _index != null ? createSearchEngine(_index) : null {
     _performance = performanceDuringStartup;
     defaultContextOptions.incremental = true;
@@ -1270,6 +1278,14 @@ class AnalysisServer {
         // Protocol parsing should have ensured that we never get here.
         throw new AnalysisException('Illegal change type');
       }
+
+      AnalysisContext containingContext = getContainingContext(file);
+
+      // Check for an implicitly added but missing source.
+      // (For example, the target of an import might not exist yet.)
+      // We need to do this before setContents, which changes the stamp.
+      bool wasMissing = containingContext?.getModificationStamp(source) == -1;
+
       overlayState.setContents(source, newContents);
       // If the source does not exist, then it was an overlay-only one.
       // Remove it from contexts.
@@ -1289,6 +1305,11 @@ class AnalysisServer {
         List<Source> sources = context.getSourcesWithFullName(file);
         sources.forEach((Source source) {
           anyContextUpdated = true;
+          if (context == containingContext && wasMissing) {
+            // Promote missing source to an explicitly added Source.
+            context.applyChanges(new ChangeSet()..addedSource(source));
+            schedulePerformAnalysisOperation(context);
+          }
           if (context.handleContentsChanged(
               source, oldContents, newContents, true)) {
             schedulePerformAnalysisOperation(context);

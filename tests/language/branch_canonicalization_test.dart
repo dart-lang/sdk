@@ -4,7 +4,7 @@
 
 // Test that branch fusion correctly sets branch environment for comparisons
 // that require unboxing and does not fuse branches that can deoptimize.
-// VMOptions=--optimization-counter-threshold=10 --no-use-osr
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation
 
 import "package:expect/expect.dart";
 

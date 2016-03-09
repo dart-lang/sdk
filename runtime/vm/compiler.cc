@@ -61,7 +61,6 @@ DEFINE_FLAG(bool, print_ic_data_map, false,
     "Print the deopt-id to ICData map in optimizing compiler.");
 DEFINE_FLAG(bool, print_code_source_map, false, "Print code source map.");
 DEFINE_FLAG(bool, range_analysis, true, "Enable range analysis");
-DEFINE_FLAG(bool, reorder_basic_blocks, true, "Enable basic-block reordering.");
 DEFINE_FLAG(bool, trace_compiler, false, "Trace compiler operations.");
 DEFINE_FLAG(bool, trace_optimizing_compiler, false,
     "Trace only optimizing compiler operations.");
@@ -107,6 +106,7 @@ void IrregexpCompilationPipeline::ParseFunction(
   // Variables are allocated after compilation.
 }
 
+
 FlowGraph* IrregexpCompilationPipeline::BuildFlowGraph(
     Zone* zone,
     ParsedFunction* parsed_function,
@@ -133,9 +133,11 @@ FlowGraph* IrregexpCompilationPipeline::BuildFlowGraph(
                              result.num_blocks);
 }
 
+
 void IrregexpCompilationPipeline::FinalizeCompilation() {
   backtrack_goto_->ComputeOffsetTable();
 }
+
 
 CompilationPipeline* CompilationPipeline::New(Zone* zone,
                                               const Function& function) {
@@ -701,8 +703,12 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
                                                  compiler_timeline,
                                                  "OptimizationPasses"));
         inline_id_to_function.Add(&function);
-        inline_id_to_token_pos.Add(function.token_pos());
-        // Top scope function has no caller (-1).
+        // We do not add the token position now because we don't know the
+        // position of the inlined call until later. A side effect of this
+        // is that the length of |inline_id_to_function| is always larger
+        // than the length of |inline_id_to_token_pos| by one.
+        // Top scope function has no caller (-1). We do this because we expect
+        // all token positions to be at an inlined call.
         caller_inline_id.Add(-1);
         CSTAT_TIMER_SCOPE(thread(), graphoptimizer_timer);
 
@@ -1288,8 +1294,11 @@ RawError* Compiler::CompileOptimizedFunction(Thread* thread,
 
   // Optimization must happen in non-mutator/Dart thread if background
   // compilation is on. OSR compilation still occurs in the main thread.
+  // TODO(Srdjan): Remove assert allowance for regular expression functions
+  // once they can be compiled in background.
   ASSERT((osr_id != kNoOSRDeoptId) || !FLAG_background_compilation ||
-         !thread->IsMutatorThread());
+         !thread->IsMutatorThread() ||
+         function.IsIrregexpFunction());
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
   return CompileFunctionHelper(pipeline,

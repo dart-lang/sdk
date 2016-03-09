@@ -236,6 +236,29 @@ class TypeArgumentsKeyValueTrait {
 typedef DirectChainedHashMap<TypeArgumentsKeyValueTrait> TypeArgumentsSet;
 
 
+class InstanceKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const Instance* Key;
+  typedef const Instance* Value;
+  typedef const Instance* Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline intptr_t Hashcode(Key key) {
+    return key->GetClassId();
+  }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) {
+    return pair->raw() == key->raw();
+  }
+};
+
+typedef DirectChainedHashMap<InstanceKeyValueTrait> InstanceSet;
+
+
 class Precompiler : public ValueObject {
  public:
   static RawError* CompileAll(
@@ -284,6 +307,7 @@ class Precompiler : public ValueObject {
 
   void ProcessFunction(const Function& function);
   void CheckForNewDynamicFunctions();
+  void TraceConstFunctions();
 
   void DropFunctions();
   void DropFields();
@@ -340,6 +364,7 @@ class Precompiler : public ValueObject {
   ClassSet classes_to_retain_;
   TypeArgumentsSet typeargs_to_retain_;
   AbstractTypeSet types_to_retain_;
+  InstanceSet consts_to_retain_;
   Error& error_;
 };
 

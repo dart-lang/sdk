@@ -12,6 +12,7 @@
 #include "vm/object.h"
 #include "vm/tags.h"
 #include "vm/thread_interrupter.h"
+#include "vm/token_position.h"
 
 // CPU Profile model and service protocol bits.
 // NOTE: For sampling and stack walking related code, see profiler.h.
@@ -29,6 +30,25 @@ class RawCode;
 class RawFunction;
 class SampleFilter;
 class ProcessedSampleBuffer;
+
+class ProfileFunctionSourcePosition {
+ public:
+  explicit ProfileFunctionSourcePosition(TokenPosition token_pos);
+
+  void Tick(bool exclusive);
+
+  TokenPosition token_pos() const { return token_pos_; }
+  intptr_t exclusive_ticks() const { return exclusive_ticks_; }
+  intptr_t inclusive_ticks() const { return inclusive_ticks_; }
+
+ private:
+  TokenPosition token_pos_;
+  intptr_t exclusive_ticks_;
+  intptr_t inclusive_ticks_;
+
+  DISALLOW_ALLOCATION();
+};
+
 
 // Profile data related to a |Function|.
 class ProfileFunction : public ZoneAllocated {
@@ -72,11 +92,18 @@ class ProfileFunction : public ZoneAllocated {
     inclusive_ticks_++;
   }
 
-  void Tick(bool exclusive, intptr_t inclusive_serial);
+  void Tick(bool exclusive,
+            intptr_t inclusive_serial,
+            TokenPosition token_position);
 
   static const char* KindToCString(Kind kind);
 
   void PrintToJSONArray(JSONArray* functions);
+
+  // Returns true if the call was successful and |pfsp| is set.
+  bool GetSinglePosition(ProfileFunctionSourcePosition* pfsp);
+
+  void TickSourcePosition(TokenPosition token_position, bool exclusive);
 
  private:
   const Kind kind_;
@@ -84,6 +111,7 @@ class ProfileFunction : public ZoneAllocated {
   const Function& function_;
   const intptr_t table_index_;
   ZoneGrowableArray<intptr_t> profile_codes_;
+  ZoneGrowableArray<ProfileFunctionSourcePosition> source_position_ticks_;
 
   intptr_t exclusive_ticks_;
   intptr_t inclusive_ticks_;
@@ -375,6 +403,12 @@ class ProfileTrieWalker : public ValueObject {
   intptr_t CurrentNodeTickCount();
   // Return the number siblings (including yourself).
   intptr_t SiblingCount();
+
+  // If the following conditions are met returns the current token:
+  // 1) This is a function trie.
+  // 2) There is only one token position for a given function.
+  // Will return NULL otherwise.
+  const char* CurrentToken();
 
   bool Down();
   bool NextSibling();

@@ -769,9 +769,10 @@ streamId | event types provided
 -------- | -----------
 VM | VMUpdate
 Isolate | IsolateStart, IsolateRunnable, IsolateExit, IsolateUpdate, ServiceExtensionAdded
-Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect
+Debug | PauseStart, PauseExit, PauseBreakpoint, PauseInterrupted, PauseException, Resume, BreakpointAdded, BreakpointResolved, BreakpointRemoved, Inspect, None
 GC | GC
 Extension | Extension
+Timeline | TimelineEvents
 
 Additionally, some embedders provide the _Stdout_ and _Stderr_
 streams.  These streams allow the client to subscribe to writes to
@@ -1213,6 +1214,11 @@ class Event extends Response {
   // This is provided for the Extension event.
   ExtensionData extensionData [optional];
 
+  // An array of TimelineEvents
+  //
+  // This is provided for the TimelineEvents event.
+  TimelineEvent[] timelineEvents [optional];
+
   // Is the isolate paused at an await, yield, or yield* statement?
   //
   // This is provided for the event kinds:
@@ -1270,6 +1276,10 @@ enum EventKind {
 
   // An isolate has started or resumed execution.
   Resume,
+
+  // Indicates an isolate is not yet runnable. Only appears in an Isolate's
+  // pauseEvent. Never sent over a stream.
+  None,
 
   // A breakpoint has been added for an isolate.
   BreakpointAdded,
@@ -2360,6 +2370,15 @@ class Success extends Response {
 ```
 
 The _Success_ type is used to indicate that an operation completed successfully.
+
+### TimelineEvent
+
+```
+class TimelineEvent {
+}
+```
+
+An _TimelineEvent_ is an arbitrary map that contains a [Trace Event Format](https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/preview) event.
 
 ### TypeArguments
 

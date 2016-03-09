@@ -98,18 +98,21 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     return decorator(node, s);
   }
 
-  String formatThisParameter(Parameter thisParameter) {
-    return thisParameter == null ? '()' : '(${visit(thisParameter)})';
+  String formatOptionalParameter(Parameter parameter) {
+    return parameter == null ? '()' : '(${visit(parameter)})';
   }
 
   String visitFunctionDefinition(FunctionDefinition node) {
     String name = node.element.name;
-    String thisParameter = formatThisParameter(node.thisParameter);
+    String interceptorParameter =
+        formatOptionalParameter(node.interceptorParameter);
+    String thisParameter = formatOptionalParameter(node.receiverParameter);
     String parameters = node.parameters.map(visit).join(' ');
     namer.setReturnContinuation(node.returnContinuation);
     String body = indentBlock(() => visit(node.body));
     return '$indentation'
-        '(FunctionDefinition $name $thisParameter ($parameters) return\n'
+        '(FunctionDefinition $name $interceptorParameter $thisParameter '
+        '($parameters) return\n'
         '$body)';
   }
 
@@ -179,10 +182,6 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
       List<Reference<Primitive>> arguments,
       [CallingConvention callingConvention = CallingConvention.Normal]) {
     int positionalArgumentCount = call.positionalArgumentCount;
-    if (callingConvention == CallingConvention.Intercepted ||
-        callingConvention == CallingConvention.DummyIntercepted) {
-      ++positionalArgumentCount;
-    }
     List<String> args =
         arguments.take(positionalArgumentCount).map(access).toList();
     List<String> argumentNames = call.getOrderedNamedArguments();
@@ -206,18 +205,20 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
 
   String visitInvokeMethod(InvokeMethod node) {
     String name = node.selector.name;
-    String rcv = access(node.receiverRef);
-    String args = formatArguments(node.selector.callStructure, node.argumentRefs,
-        node.callingConvention);
-    return '(InvokeMethod $rcv $name $args)';
+    String interceptor = optionalAccess(node.interceptorRef);
+    String receiver = access(node.receiverRef);
+    String arguments = formatArguments(node.selector.callStructure,
+        node.argumentRefs, node.callingConvention);
+    return '(InvokeMethod $interceptor $receiver $name $arguments)';
   }
 
   String visitInvokeMethodDirectly(InvokeMethodDirectly node) {
+    String interceptor = optionalAccess(node.interceptorRef);
     String receiver = access(node.receiverRef);
     String name = node.selector.name;
-    String args = formatArguments(node.selector.callStructure, node.argumentRefs,
-        node.callingConvention);
-    return '(InvokeMethodDirectly $receiver $name $args)';
+    String arguments = formatArguments(node.selector.callStructure,
+        node.argumentRefs, node.callingConvention);
+    return '(InvokeMethodDirectly $interceptor $receiver $name $arguments)';
   }
 
   String visitInvokeConstructor(InvokeConstructor node) {

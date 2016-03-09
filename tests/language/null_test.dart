@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 // Second dart test program.
 
-// VMOptions=--optimization-counter-threshold=5
+// VMOptions=--optimization-counter-threshold=5 --no-background-compilation
 
 import "dart:mirrors";
 import "package:expect/expect.dart";

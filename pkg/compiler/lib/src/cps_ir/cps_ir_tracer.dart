@@ -84,11 +84,14 @@ class IRTracer extends TracerUtil implements cps_ir.Visitor {
           return '${names.name(param)} ${param.type}';
         }
         if (entryPoint != null) {
-          String thisParam = entryPoint.thisParameter != null
-              ? formatParameter(entryPoint.thisParameter)
+          String thisParam = entryPoint.receiverParameter != null
+              ? formatParameter(entryPoint.receiverParameter)
               : 'no receiver';
+          String interceptorParam = entryPoint.interceptorParameter != null
+              ? formatParameter(entryPoint.interceptorParameter)
+              : 'no interceptor';
           String params = entryPoint.parameters.map(formatParameter).join(', ');
-          printStmt('x0', 'Entry ($thisParam) ($params)');
+          printStmt('x0', 'Entry ($interceptorParam) ($thisParam) ($params)');
         }
         String params = block.parameters.map(formatParameter).join(', ');
         printStmt('x0', 'Parameters ($params)');

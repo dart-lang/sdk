@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Test deoptimziation caused by lazy finalization.
-// VMOptions=--optimization-counter-threshold=10 --no-use-osr
+// VMOptions=--optimization-counter-threshold=10 --no-use-osr --no-background-compilation
 
 import "package:expect/expect.dart";
 
@@ -29,7 +29,7 @@ part2() {
 
 class A {
   foo() => 2;
-  
+
   loop() {
     var sum = 0;
     for (int i = 0; i < 10000; i++) {

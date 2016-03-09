@@ -371,9 +371,9 @@ class SummaryTypeProvider implements TypeProvider {
     _isAsyncInitialized = true;
     _futureType = _getType(library, "Future");
     _streamType = _getType(library, "Stream");
-    _futureDynamicType = _futureType.substitute4(<DartType>[dynamicType]);
-    _futureNullType = _futureType.substitute4(<DartType>[_nullType]);
-    _streamDynamicType = _streamType.substitute4(<DartType>[dynamicType]);
+    _futureDynamicType = _futureType.instantiate(<DartType>[dynamicType]);
+    _futureNullType = _futureType.instantiate(<DartType>[_nullType]);
+    _streamDynamicType = _streamType.instantiate(<DartType>[dynamicType]);
   }
 
   /**
@@ -398,7 +398,7 @@ class SummaryTypeProvider implements TypeProvider {
     _stringType = _getType(library, "String");
     _symbolType = _getType(library, "Symbol");
     _typeType = _getType(library, "Type");
-    _iterableDynamicType = _iterableType.substitute4(<DartType>[dynamicType]);
+    _iterableDynamicType = _iterableType.instantiate(<DartType>[dynamicType]);
   }
 
   /**

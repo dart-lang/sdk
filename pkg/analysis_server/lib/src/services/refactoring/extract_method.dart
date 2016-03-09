@@ -667,7 +667,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
       variableType = _getTypeCode(_returnType);
       if (_hasAwait) {
         if (_returnType.element != futureType.element) {
-          returnType = _getTypeCode(futureType.substitute4([_returnType]));
+          returnType = _getTypeCode(futureType.instantiate([_returnType]));
         }
       } else {
         returnType = variableType;

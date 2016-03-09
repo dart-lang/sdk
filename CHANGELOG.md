@@ -1,3 +1,18 @@
+## 1.16.0
+
+### Analyzer
+
+*   Static checking of `for in` statements. These will now produce static
+    warnings:
+
+    ```dart
+    // Not Iterable.
+    for (var i in 1234) { ... }
+
+    // String cannot be assigned to int.
+    for (int n in <String>["a", "b"]) { ... }
+    ```
+
 ## 1.15.0 - 2016-03-09
 
 ### Core library changes
@@ -54,10 +69,18 @@
 
 [configuring the analyzer]: https://github.com/dart-lang/sdk/tree/master/pkg/analyzer#configuring-the-analyzer
 
-## 1.14.2 - 2016-02-09
+## 1.14.2 - 2016-02-10
 
-* Fixes a bug where pub would download packages from pub.dartlang.org even when
-  a different hosted URL was specified.
+Patch release, resolves three issues:
+
+* VM: Fixed a code generation bug on x64.
+  (SDK commit [834b3f02](https://github.com/dart-lang/sdk/commit/834b3f02b6ab740a213fd808e6c6f3269bed80e5))
+
+* `dart:io`: Fixed EOF detection when reading some special device files.
+  (SDK issue [25596](https://github.com/dart-lang/sdk/issues/25596))
+
+* Pub: Fixed an error using hosted dependencies in SDK version 1.14.
+  (Pub issue [1386](https://github.com/dart-lang/pub/issues/1386))
 
 ## 1.14.1 - 2016-02-04
 

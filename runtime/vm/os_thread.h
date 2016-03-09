@@ -266,10 +266,6 @@ class Mutex {
   Mutex();
   ~Mutex();
 
-  void Lock();
-  bool TryLock();  // Returns false if lock is busy and locking failed.
-  void Unlock();
-
 #if defined(DEBUG)
   bool IsOwnedByCurrentThread() const {
     return owner_ == OSThread::GetCurrentThreadId();
@@ -282,11 +278,22 @@ class Mutex {
 #endif
 
  private:
+  void Lock();
+  bool TryLock();  // Returns false if lock is busy and locking failed.
+  void Unlock();
+
   MutexData data_;
 #if defined(DEBUG)
   ThreadId owner_;
 #endif  // defined(DEBUG)
 
+  friend class MutexLocker;
+  friend class SafepointMutexLocker;
+  friend class OSThreadIterator;
+  friend class TimelineEventBlockIterator;
+  friend class TimelineEventRecorder;
+  friend class PageSpace;
+  friend void Dart_TestMutex();
   DISALLOW_COPY_AND_ASSIGN(Mutex);
 };
 
@@ -303,18 +310,6 @@ class Monitor {
   Monitor();
   ~Monitor();
 
-  bool TryEnter();  // Returns false if lock is busy and locking failed.
-  void Enter();
-  void Exit();
-
-  // Wait for notification or timeout.
-  WaitResult Wait(int64_t millis);
-  WaitResult WaitMicros(int64_t micros);
-
-  // Notify waiting threads.
-  void Notify();
-  void NotifyAll();
-
 #if defined(DEBUG)
   bool IsOwnedByCurrentThread() const {
     return owner_ == OSThread::GetCurrentThreadId();
@@ -327,11 +322,26 @@ class Monitor {
 #endif
 
  private:
+  bool TryEnter();  // Returns false if lock is busy and locking failed.
+  void Enter();
+  void Exit();
+
+  // Wait for notification or timeout.
+  WaitResult Wait(int64_t millis);
+  WaitResult WaitMicros(int64_t micros);
+
+  // Notify waiting threads.
+  void Notify();
+  void NotifyAll();
+
   MonitorData data_;  // OS-specific data.
 #if defined(DEBUG)
   ThreadId owner_;
 #endif  // defined(DEBUG)
 
+  friend class MonitorLocker;
+  friend class SafepointMonitorLocker;
+  friend void Dart_TestMonitor();
   DISALLOW_COPY_AND_ASSIGN(Monitor);
 };
 

@@ -48,8 +48,8 @@ $else
   @JSName('data')
   @DomName('MessageEvent.data')
   @DocsEditable()
-  @Creates('Null')
-  @Returns('Object|Null')
+  @annotation_Creates_SerializedScriptValue
+  @annotation_Returns_SerializedScriptValue
   final dynamic _get_data;
 
 $endif

@@ -5,7 +5,9 @@
 [ $compiler == dart2analyzer ]
 
 WebPlatformTest/html/semantics/forms/the-textarea-element/textarea-type_t01: fail
+LayoutTests/fast/events/event-creation_t01: Skip # Roll 45 OverflowEvent removed
 LayoutTests/fast/forms/checkValidity-001_t01: fail
+LayoutTests/fast/xmlhttprequest/xmlhttprequest-get_t01: Skip # Roll 45 clipboardData changed
 Language/Expressions/Assignable_Expressions/syntax_t08: StaticWarning
 Language/Libraries_and_Scripts/Parts/compilation_t15: fail, pass # Issue 23595
 

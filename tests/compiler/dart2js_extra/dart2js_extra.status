@@ -69,3 +69,18 @@ big_allocation_expression_test: Crash # Issue 24635
 
 [ $compiler == dart2js && $cps_ir ]
 async_stacktrace_test/asyncStar: Crash # (foo()async*{try {tr...  cannot handle sync*/async* functions
+
+[ $compiler == dart2js && $cps_ir && $checked ]
+*: Skip # `assert` not implemented, 75% of the tests fail.
+
+[ $compiler == dart2js && $runtime == chrome && $system == windows ]
+class_test: Pass, Slow # Issue 25940
+consistent_codeUnitAt_error_test: Pass, Slow # Issue 25940
+closure_capture3_test: Pass, Slow # Issue 25940
+deferred_split_test: Pass, Slow # Issue 25940
+closure_capture5_test: Pass, Slow # Issue 25940
+conditional_test: Pass, Slow # Issue 25940
+constant_javascript_semantics2_test: Pass, Slow # Issue 25940
+
+[ $compiler == dart2js && $runtime == ff && $system == windows ]
+consistent_index_error_string_test: Pass, Slow # Issue 25940

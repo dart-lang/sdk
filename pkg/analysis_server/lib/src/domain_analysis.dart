@@ -362,9 +362,9 @@ class AnalysisDomainHandler implements RequestHandler {
 class AnalysisDomainImpl implements AnalysisDomain {
   final AnalysisServer server;
 
-  final Map<ResultDescriptor, StreamController<engine.ComputedResult>>
+  final Map<ResultDescriptor, StreamController<engine.ResultChangedEvent>>
       controllers =
-      <ResultDescriptor, StreamController<engine.ComputedResult>>{};
+      <ResultDescriptor, StreamController<engine.ResultChangedEvent>>{};
 
   AnalysisDomainImpl(this.server) {
     server.onContextsChanged.listen((ContextsChangedEvent event) {
@@ -373,11 +373,12 @@ class AnalysisDomainImpl implements AnalysisDomain {
   }
 
   @override
-  Stream<engine.ComputedResult> onResultComputed(ResultDescriptor descriptor) {
-    Stream<engine.ComputedResult> stream = controllers
-        .putIfAbsent(descriptor,
-            () => new StreamController<engine.ComputedResult>.broadcast())
-        .stream;
+  Stream<engine.ResultChangedEvent> onResultChanged(
+      ResultDescriptor descriptor) {
+    Stream<engine.ResultChangedEvent> stream =
+        controllers.putIfAbsent(descriptor, () {
+      return new StreamController<engine.ResultChangedEvent>.broadcast();
+    }).stream;
     server.analysisContexts.forEach(_subscribeForContext);
     return stream;
   }
@@ -398,8 +399,8 @@ class AnalysisDomainImpl implements AnalysisDomain {
 
   void _subscribeForContext(engine.AnalysisContext context) {
     for (ResultDescriptor descriptor in controllers.keys) {
-      context.onResultComputed(descriptor).listen((result) {
-        StreamController<engine.ComputedResult> controller =
+      context.onResultChanged(descriptor).listen((result) {
+        StreamController<engine.ResultChangedEvent> controller =
             controllers[result.descriptor];
         if (controller != null) {
           controller.add(result);

@@ -1960,8 +1960,10 @@ intptr_t FlowGraphInliner::NextInlineId(const Function& function,
   ASSERT(tp.IsReal() || tp.IsSynthetic() || tp.IsNoSource());
   inline_id_to_function_->Add(&function);
   inline_id_to_token_pos_->Add(tp);
-  ASSERT(inline_id_to_token_pos_->length() == inline_id_to_function_->length());
   caller_inline_id_->Add(parent_id);
+  // We always have one less token position than functions.
+  ASSERT(inline_id_to_token_pos_->length() ==
+         (inline_id_to_function_->length() - 1));
   return id;
 }
 

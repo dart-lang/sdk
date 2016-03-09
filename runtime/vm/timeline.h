@@ -526,6 +526,8 @@ class TimelineEventBlock {
   }
 
  protected:
+  void PrintJSON(JSONStream* stream) const;
+
   TimelineEvent* StartEvent();
 
   TimelineEvent events_[kBlockSize];
@@ -545,6 +547,7 @@ class TimelineEventBlock {
   friend class TimelineEventRingRecorder;
   friend class TimelineEventEndlessRecorder;
   friend class TimelineTestHelper;
+  friend class JSONStream;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(TimelineEventBlock);
@@ -687,21 +690,22 @@ class TimelineEventRingRecorder : public TimelineEventRecorder {
 };
 
 
-// An abstract recorder that calls |StreamEvent| whenever an event is complete.
-class TimelineEventStreamingRecorder : public TimelineEventRecorder {
+// An abstract recorder that calls |OnEvent| whenever an event is complete.
+// This should only be used for testing.
+class TimelineEventCallbackRecorder : public TimelineEventRecorder {
  public:
-  TimelineEventStreamingRecorder();
-  ~TimelineEventStreamingRecorder();
+  TimelineEventCallbackRecorder();
+  ~TimelineEventCallbackRecorder();
 
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
   void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
 
-  // Called when |event| is ready to be streamed. It is unsafe to keep a
-  // reference to |event| as it may be freed as soon as this function returns.
-  virtual void StreamEvent(TimelineEvent* event) = 0;
+  // Called when |event| is completed. It is unsafe to keep a reference to
+  // |event| as it may be freed as soon as this function returns.
+  virtual void OnEvent(TimelineEvent* event) = 0;
 
   const char* name() const {
-    return "streaming";
+    return "callback";
   }
 
  protected:

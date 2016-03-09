@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_single_unit.dart';
@@ -64,8 +63,6 @@ class ExpectedMatch {
   }
 }
 
-class MockIndex extends TypedMock implements Index {}
-
 @reflectiveTest
 class SearchEngineImplTest extends AbstractSingleUnitTest {
   Index index;
@@ -94,31 +91,6 @@ class C implements B {}
       _expectId(elementC, MatchKind.DECLARATION, 'C implements B')
     ];
     return searchEngine.searchAllSubtypes(element).then((matches) {
-      _assertMatches(matches, expected);
-    });
-  }
-
-  Future test_searchElementDeclarations() {
-    _indexTestUnit('''
-class A {
-  test() {}
-}
-class B {
-  int test = 1;
-  main() {
-    int test = 2;
-  }
-}
-''');
-    ClassElement elementA = findElement('A');
-    ClassElement elementB = findElement('B');
-    Element element_test = findElement('test', ElementKind.LOCAL_VARIABLE);
-    var expected = [
-      _expectId(elementA.methods[0], MatchKind.DECLARATION, 'test() {}'),
-      _expectId(elementB.fields[0], MatchKind.DECLARATION, 'test = 1;'),
-      _expectId(element_test, MatchKind.DECLARATION, 'test = 2;'),
-    ];
-    return searchEngine.searchElementDeclarations('test').then((matches) {
       _assertMatches(matches, expected);
     });
   }

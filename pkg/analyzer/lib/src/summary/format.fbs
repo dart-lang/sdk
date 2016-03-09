@@ -27,6 +27,13 @@ enum IndexNameKind : byte {
 enum IndexRelationKind : byte {
   /**
    * Left: class.
+   *   Is ancestor of (is extended or implemented, directly or indirectly).
+   * Right: other class declaration.
+   */
+  IS_ANCESTOR_OF,
+
+  /**
+   * Left: class.
    *   Is extended by.
    * Right: other class declaration.
    */
@@ -512,6 +519,21 @@ enum UnlinkedParamKind : byte {
 }
 
 /**
+ * Information about an element code range.
+ */
+table CodeRange {
+  /**
+   * Length of the element code.
+   */
+  length:uint (id: 1);
+
+  /**
+   * Offset of the element code relative to the beginning of the file.
+   */
+  offset:uint (id: 0);
+}
+
+/**
  * Summary information about a reference to a an entity such as a type, top
  * level executable, or executable within a class.
  */
@@ -777,6 +799,12 @@ table LinkedReference {
  */
 table LinkedUnit {
   /**
+   * List of slot ids (referring to [UnlinkedExecutable.constCycleSlot])
+   * corresponding to const constructors that are part of cycles.
+   */
+  constCycles:[uint] (id: 2);
+
+  /**
    * Information about the resolution of references within the compilation
    * unit.  Each element of [UnlinkedUnit.references] has a corresponding
    * element in this list (at the same index).  If this list has additional
@@ -863,7 +891,9 @@ table PackageIndex {
   elementUnits:[uint] (id: 0);
 
   /**
-   * List of unique element strings used in this [PackageIndex].
+   * List of unique element strings used in this [PackageIndex].  The list is
+   * sorted in ascending order, so that the client can quickly check the
+   * presence of a string in this [PackageIndex].
    */
   strings:[string] (id: 6);
 
@@ -972,6 +1002,11 @@ table UnlinkedClass {
    * Annotations for this class.
    */
   annotations:[UnlinkedConst] (id: 5);
+
+  /**
+   * Code range of the class.
+   */
+  codeRange:CodeRange (id: 13);
 
   /**
    * Documentation comment for the class, or `null` if there is no
@@ -1180,6 +1215,11 @@ table UnlinkedEnum {
   annotations:[UnlinkedConst] (id: 4);
 
   /**
+   * Code range of the enum.
+   */
+  codeRange:CodeRange (id: 5);
+
+  /**
    * Documentation comment for the enum, or `null` if there is no documentation
    * comment.
    */
@@ -1234,10 +1274,25 @@ table UnlinkedExecutable {
   annotations:[UnlinkedConst] (id: 6);
 
   /**
+   * Code range of the executable.
+   */
+  codeRange:CodeRange (id: 26);
+
+  /**
    * If a constant [UnlinkedExecutableKind.constructor], the constructor
    * initializers.  Otherwise empty.
    */
   constantInitializers:[UnlinkedConstructorInitializer] (id: 14);
+
+  /**
+   * If [kind] is [UnlinkedExecutableKind.constructor] and [isConst] is `true`,
+   * a nonzero slot id which is unique within this compilation unit.  If this id
+   * is found in [LinkedUnit.constCycles], then this constructor is part of a
+   * cycle.
+   *
+   * Otherwise, zero.
+   */
+  constCycleSlot:uint (id: 25);
 
   /**
    * Documentation comment for the executable, or `null` if there is no
@@ -1524,6 +1579,11 @@ table UnlinkedParam {
   annotations:[UnlinkedConst] (id: 9);
 
   /**
+   * Code range of the parameter.
+   */
+  codeRange:CodeRange (id: 14);
+
+  /**
    * If the parameter has a default value, the constant expression in the
    * default value.  Note that the presence of this expression does not mean
    * that it is a valid, check [UnlinkedConst.isInvalid].
@@ -1720,6 +1780,11 @@ table UnlinkedTypedef {
   annotations:[UnlinkedConst] (id: 4);
 
   /**
+   * Code range of the typedef.
+   */
+  codeRange:CodeRange (id: 7);
+
+  /**
    * Documentation comment for the typedef, or `null` if there is no
    * documentation comment.
    */
@@ -1767,6 +1832,11 @@ table UnlinkedTypeParam {
   bound:EntityRef (id: 2);
 
   /**
+   * Code range of the type parameter.
+   */
+  codeRange:CodeRange (id: 4);
+
+  /**
    * Name of the type parameter.
    */
   name:string (id: 0);
@@ -1785,6 +1855,11 @@ table UnlinkedUnit {
    * Classes declared in the compilation unit.
    */
   classes:[UnlinkedClass] (id: 2);
+
+  /**
+   * Code range of the unit.
+   */
+  codeRange:CodeRange (id: 15);
 
   /**
    * Enums declared in the compilation unit.
@@ -1875,6 +1950,11 @@ table UnlinkedVariable {
    * Annotations for this variable.
    */
   annotations:[UnlinkedConst] (id: 8);
+
+  /**
+   * Code range of the variable.
+   */
+  codeRange:CodeRange (id: 14);
 
   /**
    * If [isConst] is true, and the variable has an initializer, the constant

@@ -1095,7 +1095,7 @@ enum DeltaResult {
 /**
  * [InvalidatedResult] describes an invalidated result.
  */
-class InvalidatedResult {
+class InvalidatedResult<V> {
   /**
    * The target in which the result was invalidated.
    */
@@ -1104,12 +1104,13 @@ class InvalidatedResult {
   /**
    * The descriptor of the result which was invalidated.
    */
-  final ResultDescriptor descriptor;
+  final ResultDescriptor<V> descriptor;
 
   /**
-   * The value of the result which was invalidated.
+   * The value of the result before it was invalidated, may be the default
+   * value if the result was flushed.
    */
-  final Object value;
+  final V value;
 
   InvalidatedResult(this.entry, this.descriptor, this.value);
 

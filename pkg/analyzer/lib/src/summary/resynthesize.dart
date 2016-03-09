@@ -845,6 +845,12 @@ class _LibraryResynthesizer {
   Map<int, EntityRef> linkedTypeMap;
 
   /**
+   * Set of slot ids corresponding to const constructors that are part of
+   * cycles.
+   */
+  Set<int> constCycles;
+
+  /**
    * The [CompilationUnitElementImpl] for the compilation unit currently being
    * resynthesized.
    */
@@ -1014,12 +1020,19 @@ class _LibraryResynthesizer {
     classElement.type = correspondingType;
     buildDocumentation(classElement, serializedClass.documentationComment);
     buildAnnotations(classElement, serializedClass.annotations);
+    buildCodeRange(classElement, serializedClass.codeRange);
     resolveConstructorInitializers(classElement);
     unitHolder.addType(classElement);
     currentTypeParameters.removeLast();
     assert(currentTypeParameters.isEmpty);
     fields = null;
     constructors = null;
+  }
+
+  void buildCodeRange(ElementImpl element, CodeRange codeRange) {
+    if (codeRange != null) {
+      element.setCodeRange(codeRange.offset, codeRange.length);
+    }
   }
 
   /**
@@ -1076,6 +1089,8 @@ class _LibraryResynthesizer {
     assert(serializedExecutable.kind == UnlinkedExecutableKind.constructor);
     currentConstructor = new ConstructorElementImpl(
         serializedExecutable.name, serializedExecutable.nameOffset);
+    currentConstructor.isCycleFree = serializedExecutable.isConst &&
+        !constCycles.contains(serializedExecutable.constCycleSlot);
     if (serializedExecutable.name.isEmpty) {
       currentConstructor.nameEnd =
           serializedExecutable.nameOffset + classType.name.length;
@@ -1143,6 +1158,7 @@ class _LibraryResynthesizer {
     classElement.supertype = summaryResynthesizer.typeProvider.objectType;
     buildDocumentation(classElement, serializedEnum.documentationComment);
     buildAnnotations(classElement, serializedEnum.annotations);
+    buildCodeRange(classElement, serializedEnum.codeRange);
     ElementHolder memberHolder = new ElementHolder();
     // Build the 'index' field.
     FieldElementImpl indexField = new FieldElementImpl('index', -1);
@@ -1157,7 +1173,7 @@ class _LibraryResynthesizer {
     valuesField.const3 = true;
     valuesField.static = true;
     valuesField.type = summaryResynthesizer.typeProvider.listType
-        .substitute4(<DartType>[enumType]);
+        .instantiate(<DartType>[enumType]);
     memberHolder.addField(valuesField);
     buildImplicitAccessors(valuesField, memberHolder);
     // Build fields for all enum constants.
@@ -1298,6 +1314,7 @@ class _LibraryResynthesizer {
     buildDocumentation(
         executableElement, serializedExecutable.documentationComment);
     buildAnnotations(executableElement, serializedExecutable.annotations);
+    buildCodeRange(executableElement, serializedExecutable.codeRange);
     executableElement.functions =
         serializedExecutable.localFunctions.map(buildLocalFunction).toList();
     executableElement.labels =
@@ -1699,6 +1716,7 @@ class _LibraryResynthesizer {
     }
     parameterElement.synthetic = synthetic;
     buildAnnotations(parameterElement, serializedParameter.annotations);
+    buildCodeRange(parameterElement, serializedParameter.codeRange);
     if (serializedParameter.isFunctionTyped) {
       FunctionElementImpl parameterTypeElement =
           new FunctionElementImpl('', -1);
@@ -1832,6 +1850,7 @@ class _LibraryResynthesizer {
     buildDocumentation(
         functionTypeAliasElement, serializedTypedef.documentationComment);
     buildAnnotations(functionTypeAliasElement, serializedTypedef.annotations);
+    buildCodeRange(functionTypeAliasElement, serializedTypedef.codeRange);
     unitHolder.addTypeAlias(functionTypeAliasElement);
     currentTypeParameters.removeLast();
     assert(currentTypeParameters.isEmpty);
@@ -1852,6 +1871,7 @@ class _LibraryResynthesizer {
             serializedTypeParameter.name, serializedTypeParameter.nameOffset);
     typeParameterElement.type = new TypeParameterTypeImpl(typeParameterElement);
     buildAnnotations(typeParameterElement, serializedTypeParameter.annotations);
+    buildCodeRange(typeParameterElement, serializedTypeParameter.codeRange);
     return typeParameterElement;
   }
 
@@ -1925,6 +1945,7 @@ class _LibraryResynthesizer {
     buildVariableInitializer(element, serializedVariable.initializer);
     buildDocumentation(element, serializedVariable.documentationComment);
     buildAnnotations(element, serializedVariable.annotations);
+    buildCodeRange(element, serializedVariable.codeRange);
   }
 
   /**
@@ -1939,6 +1960,7 @@ class _LibraryResynthesizer {
     FunctionElementImpl initializerElement =
         buildLocalFunction(serializedInitializer);
     initializerElement.synthetic = true;
+    initializerElement.setCodeRange(null, null);
     variable.initializer = initializerElement;
   }
 
@@ -1961,6 +1983,7 @@ class _LibraryResynthesizer {
     linkedUnit = null;
     unlinkedUnit = null;
     linkedTypeMap = null;
+    constCycles = null;
     referenceInfos = null;
     currentCompilationUnit = null;
   }
@@ -2195,6 +2218,7 @@ class _LibraryResynthesizer {
     for (PropertyAccessorElementImpl accessor in unit.accessors) {
       elementMap[accessor.identifier] = accessor;
     }
+    buildCodeRange(unit, unlinkedUnit.codeRange);
     resynthesizedUnits[absoluteUri] = unit;
     resynthesizedElements[absoluteUri] = elementMap;
     assert(currentTypeParameters.isEmpty);
@@ -2211,6 +2235,7 @@ class _LibraryResynthesizer {
     for (EntityRef t in linkedUnit.types) {
       linkedTypeMap[t.slot] = t;
     }
+    constCycles = linkedUnit.constCycles.toSet();
     populateReferenceInfos();
     unitHolder = new ElementHolder();
   }

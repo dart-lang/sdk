@@ -514,9 +514,16 @@ abstract class AnalysisContext {
   bool isServerLibrary(Source librarySource);
 
   /**
+   * Return the stream that is notified when a result with the given
+   * [descriptor] is changed, e.g. computed or invalidated.
+   */
+  Stream<ResultChangedEvent> onResultChanged(ResultDescriptor descriptor);
+
+  /**
    * Return the stream that is notified when a new value for the given
    * [descriptor] is computed.
    */
+  @deprecated
   Stream<ComputedResult> onResultComputed(ResultDescriptor descriptor);
 
   /**
@@ -545,7 +552,7 @@ abstract class AnalysisContext {
    * analysis results. This method can be long running.
    *
    * The implementation that uses the task model notifies subscribers of
-   * [onResultComputed] about computed results.
+   * [onResultChanged] about computed results.
    *
    * The following results are computed for Dart sources.
    *
@@ -1282,6 +1289,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     dart2jsHint = options.dart2jsHint;
     enableAssertMessage = options.enableAssertMessage;
     enableAsync = options.enableAsync;
+    enableConditionalDirectives = options.enableConditionalDirectives;
     enableStrictCallChecks = options.enableStrictCallChecks;
     enableGenericMethods = options.enableGenericMethods;
     enableSuperMixins = options.enableSuperMixins;
@@ -1841,6 +1849,7 @@ class ChangeSet_ContentChange {
 /**
  * [ComputedResult] describes a value computed for a [ResultDescriptor].
  */
+@deprecated
 class ComputedResult<V> {
   /**
    * The context in which the value was computed.
@@ -1865,7 +1874,7 @@ class ComputedResult<V> {
   ComputedResult(this.context, this.descriptor, this.target, this.value);
 
   @override
-  String toString() => '$descriptor of $target in $context';
+  String toString() => 'Computed $descriptor of $target in $context';
 }
 
 /**
@@ -2404,6 +2413,57 @@ class ResolutionEraser extends GeneralizingAstVisitor<Object> {
     ResolutionEraser eraser = new ResolutionEraser();
     eraser.eraseDeclarations = eraseDeclarations;
     node.accept(eraser);
+  }
+}
+
+/**
+ * [ResultChangedEvent] describes a change to an analysis result.
+ */
+class ResultChangedEvent<V> {
+  /**
+   * The context in which the result was changed.
+   */
+  final AnalysisContext context;
+
+  /**
+   * The target for which the result was changed.
+   */
+  final AnalysisTarget target;
+
+  /**
+   * The descriptor of the result which was changed.
+   */
+  final ResultDescriptor<V> descriptor;
+
+  /**
+   * If the result [wasComputed], the new value of the result. If the result
+   * [wasInvalidated], the value of before it was invalidated, may be the
+   * default value if the result was flushed.
+   */
+  final V value;
+
+  /**
+   * Is `true` if the result was computed, or `false` is is was invalidated.
+   */
+  final bool _wasComputed;
+
+  ResultChangedEvent(this.context, this.target, this.descriptor, this.value,
+      this._wasComputed);
+
+  /**
+   * Returns `true` if the result was computed.
+   */
+  bool get wasComputed => _wasComputed;
+
+  /**
+   * Returns `true` if the result was invalidated.
+   */
+  bool get wasInvalidated => !_wasComputed;
+
+  @override
+  String toString() {
+    String operation = _wasComputed ? 'Computed' : 'Invalidated';
+    return '$operation $descriptor of $target in $context';
   }
 }
 

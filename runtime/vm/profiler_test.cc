@@ -17,6 +17,26 @@ namespace dart {
 
 DECLARE_FLAG(bool, profile_vm);
 DECLARE_FLAG(int, max_profile_depth);
+DECLARE_FLAG(bool, enable_inlining_annotations);
+DECLARE_FLAG(int, optimization_counter_threshold);
+
+template<typename T>
+class SetFlagScope : public ValueObject {
+ public:
+  SetFlagScope(T* flag, T value)
+      : flag_(flag),
+        original_value_(*flag) {
+    *flag_ = value;
+  }
+
+  ~SetFlagScope() {
+    *flag_ = original_value_;
+  }
+
+ private:
+  T* flag_;
+  T original_value_;
+};
 
 // Some tests are written assuming native stack trace profiling is disabled.
 class DisableNativeProfileScope : public ValueObject {
@@ -1654,6 +1674,629 @@ TEST_CASE(Profiler_ChainedSamples) {
     EXPECT_STREQ("go", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("main", walker.CurrentName());
+    EXPECT(!walker.Down());
+  }
+}
+
+
+TEST_CASE(Profiler_BasicSourcePosition) {
+  DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
+  const char* kScript =
+      "const AlwaysInline = 'AlwaysInline';\n"
+      "const NeverInline = 'NeverInline';\n"
+      "class A {\n"
+      "  var a;\n"
+      "  var b;\n"
+      "  @NeverInline A() { }\n"
+      "}\n"
+      "class B {\n"
+      "  @AlwaysInline\n"
+      "  static boo() {\n"
+      "    return new A();\n"
+      "  }\n"
+      "}\n"
+      "main() {\n"
+      "  B.boo();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& root_library = Library::Handle();
+  root_library ^= Api::UnwrapHandle(lib);
+
+  const Class& class_a = Class::Handle(GetClass(root_library, "A"));
+  EXPECT(!class_a.IsNull());
+
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+  // Turn on allocation tracing for A.
+  class_a.SetTraceAllocation(true);
+
+  // Allocate one time.
+  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, class_a.id());
+    profile.Build(thread, &filter, Profile::kNoTags);
+    // We should have one allocation samples.
+    EXPECT_EQ(1, profile.sample_count());
+    ProfileTrieWalker walker(&profile);
+
+    // Exclusive function: B.boo -> main.
+    walker.Reset(Profile::kExclusiveFunction);
+    // Move down from the root.
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT_EQ(1, walker.CurrentNodeTickCount());
+    EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(1, walker.CurrentExclusiveTicks());
+    EXPECT_STREQ("A", walker.CurrentToken());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("main", walker.CurrentName());
+    EXPECT_EQ(1, walker.CurrentNodeTickCount());
+    EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT_STREQ("boo", walker.CurrentToken());
+    EXPECT(!walker.Down());
+  }
+}
+
+
+TEST_CASE(Profiler_BasicSourcePositionOptimized) {
+  DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
+  // We use the AlwaysInline and NeverInline annotations in this test.
+  SetFlagScope<bool> sfs(&FLAG_enable_inlining_annotations, true);
+  // Optimize quickly.
+  SetFlagScope<int> sfs2(&FLAG_optimization_counter_threshold, 5);
+  const char* kScript =
+      "const AlwaysInline = 'AlwaysInline';\n"
+      "const NeverInline = 'NeverInline';\n"
+      "class A {\n"
+      "  var a;\n"
+      "  var b;\n"
+      "  @NeverInline A() { }\n"
+      "}\n"
+      "class B {\n"
+      "  @AlwaysInline\n"
+      "  static boo() {\n"
+      "    return new A();\n"
+      "  }\n"
+      "}\n"
+      "main() {\n"
+      "  B.boo();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& root_library = Library::Handle();
+  root_library ^= Api::UnwrapHandle(lib);
+
+  const Class& class_a = Class::Handle(GetClass(root_library, "A"));
+  EXPECT(!class_a.IsNull());
+
+  const Function& main = Function::Handle(GetFunction(root_library, "main"));
+  EXPECT(!main.IsNull());
+
+  // Warm up function.
+  while (true) {
+    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+    EXPECT_VALID(result);
+    const Code& code = Code::Handle(main.CurrentCode());
+    if (code.is_optimized()) {
+      // Warmed up.
+      break;
+    }
+  }
+
+  // Turn on allocation tracing for A.
+  class_a.SetTraceAllocation(true);
+
+  // Allocate one time.
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+  // Still optimized.
+  const Code& code = Code::Handle(main.CurrentCode());
+  EXPECT(code.is_optimized());
+
+  {
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, class_a.id());
+    profile.Build(thread, &filter, Profile::kNoTags);
+    // We should have one allocation samples.
+    EXPECT_EQ(1, profile.sample_count());
+    ProfileTrieWalker walker(&profile);
+
+    // Exclusive function: B.boo -> main.
+    walker.Reset(Profile::kExclusiveFunction);
+    // Move down from the root.
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT_EQ(1, walker.CurrentNodeTickCount());
+    EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(1, walker.CurrentExclusiveTicks());
+    EXPECT_STREQ("A", walker.CurrentToken());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("main", walker.CurrentName());
+    EXPECT_EQ(1, walker.CurrentNodeTickCount());
+    EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT_STREQ("boo", walker.CurrentToken());
+    EXPECT(!walker.Down());
+  }
+}
+
+
+TEST_CASE(Profiler_SourcePosition) {
+  DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
+  const char* kScript =
+      "const AlwaysInline = 'AlwaysInline';\n"
+      "const NeverInline = 'NeverInline';\n"
+      "class A {\n"
+      "  var a;\n"
+      "  var b;\n"
+      "  @NeverInline A() { }\n"
+      "}\n"
+      "class B {\n"
+      "  @NeverInline\n"
+      "  static oats() {\n"
+      "    return boo();\n"
+      "  }\n"
+      "  @AlwaysInline\n"
+      "  static boo() {\n"
+      "    return new A();\n"
+      "  }\n"
+      "}\n"
+      "class C {\n"
+      "  @NeverInline bacon() {\n"
+      "    return fox();\n"
+      "  }\n"
+      "  @AlwaysInline fox() {\n"
+      "    return B.oats();\n"
+      "  }\n"
+      "}\n"
+      "main() {\n"
+      "  new C()..bacon();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& root_library = Library::Handle();
+  root_library ^= Api::UnwrapHandle(lib);
+
+  const Class& class_a = Class::Handle(GetClass(root_library, "A"));
+  EXPECT(!class_a.IsNull());
+
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+  // Turn on allocation tracing for A.
+  class_a.SetTraceAllocation(true);
+
+  // Allocate one time.
+  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, class_a.id());
+    profile.Build(thread, &filter, Profile::kNoTags);
+    // We should have one allocation samples.
+    EXPECT_EQ(1, profile.sample_count());
+    ProfileTrieWalker walker(&profile);
+
+    // Exclusive function: B.boo -> main.
+    walker.Reset(Profile::kExclusiveFunction);
+    // Move down from the root.
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT_EQ(1, walker.CurrentNodeTickCount());
+    EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(1, walker.CurrentExclusiveTicks());
+    EXPECT_STREQ("A", walker.CurrentToken());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.oats", walker.CurrentName());
+    EXPECT_EQ(1, walker.CurrentNodeTickCount());
+    EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT_STREQ("boo", walker.CurrentToken());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("C.fox", walker.CurrentName());
+    EXPECT_EQ(1, walker.CurrentNodeTickCount());
+    EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT_STREQ("oats", walker.CurrentToken());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("C.bacon", walker.CurrentName());
+    EXPECT_EQ(1, walker.CurrentNodeTickCount());
+    EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT_STREQ("fox", walker.CurrentToken());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("main", walker.CurrentName());
+    EXPECT_EQ(1, walker.CurrentNodeTickCount());
+    EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT_STREQ("bacon", walker.CurrentToken());
+    EXPECT(!walker.Down());
+  }
+}
+
+
+TEST_CASE(Profiler_SourcePositionOptimized) {
+  DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
+  // We use the AlwaysInline and NeverInline annotations in this test.
+  SetFlagScope<bool> sfs(&FLAG_enable_inlining_annotations, true);
+  // Optimize quickly.
+  SetFlagScope<int> sfs2(&FLAG_optimization_counter_threshold, 5);
+
+  const char* kScript =
+      "const AlwaysInline = 'AlwaysInline';\n"
+      "const NeverInline = 'NeverInline';\n"
+      "class A {\n"
+      "  var a;\n"
+      "  var b;\n"
+      "  @NeverInline A() { }\n"
+      "}\n"
+      "class B {\n"
+      "  @NeverInline\n"
+      "  static oats() {\n"
+      "    return boo();\n"
+      "  }\n"
+      "  @AlwaysInline\n"
+      "  static boo() {\n"
+      "    return new A();\n"
+      "  }\n"
+      "}\n"
+      "class C {\n"
+      "  @NeverInline bacon() {\n"
+      "    return fox();\n"
+      "  }\n"
+      "  @AlwaysInline fox() {\n"
+      "    return B.oats();\n"
+      "  }\n"
+      "}\n"
+      "main() {\n"
+      "  new C()..bacon();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& root_library = Library::Handle();
+  root_library ^= Api::UnwrapHandle(lib);
+
+  const Class& class_a = Class::Handle(GetClass(root_library, "A"));
+  EXPECT(!class_a.IsNull());
+
+  const Function& main = Function::Handle(GetFunction(root_library, "main"));
+  EXPECT(!main.IsNull());
+
+  // Warm up function.
+  while (true) {
+    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+    EXPECT_VALID(result);
+    const Code& code = Code::Handle(main.CurrentCode());
+    if (code.is_optimized()) {
+      // Warmed up.
+      break;
+    }
+  }
+
+  // Turn on allocation tracing for A.
+  class_a.SetTraceAllocation(true);
+
+  // Allocate one time.
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+  // Still optimized.
+  const Code& code = Code::Handle(main.CurrentCode());
+  EXPECT(code.is_optimized());
+
+  {
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, class_a.id());
+    profile.Build(thread, &filter, Profile::kNoTags);
+    // We should have one allocation samples.
+    EXPECT_EQ(1, profile.sample_count());
+    ProfileTrieWalker walker(&profile);
+
+    // Exclusive function: B.boo -> main.
+    walker.Reset(Profile::kExclusiveFunction);
+    // Move down from the root.
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT_EQ(1, walker.CurrentNodeTickCount());
+    EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(1, walker.CurrentExclusiveTicks());
+    EXPECT_STREQ("A", walker.CurrentToken());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.oats", walker.CurrentName());
+    EXPECT_EQ(1, walker.CurrentNodeTickCount());
+    EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT_STREQ("boo", walker.CurrentToken());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("C.fox", walker.CurrentName());
+    EXPECT_EQ(1, walker.CurrentNodeTickCount());
+    EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT_STREQ("oats", walker.CurrentToken());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("C.bacon", walker.CurrentName());
+    EXPECT_EQ(1, walker.CurrentNodeTickCount());
+    EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT_STREQ("fox", walker.CurrentToken());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("main", walker.CurrentName());
+    EXPECT_EQ(1, walker.CurrentNodeTickCount());
+    EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT_STREQ("bacon", walker.CurrentToken());
+    EXPECT(!walker.Down());
+  }
+}
+
+
+TEST_CASE(Profiler_BinaryOperatorSourcePosition) {
+  DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
+  const char* kScript =
+      "const AlwaysInline = 'AlwaysInline';\n"
+      "const NeverInline = 'NeverInline';\n"
+      "class A {\n"
+      "  var a;\n"
+      "  var b;\n"
+      "  @NeverInline A() { }\n"
+      "}\n"
+      "class B {\n"
+      "  @NeverInline\n"
+      "  static oats() {\n"
+      "    return boo();\n"
+      "  }\n"
+      "  @AlwaysInline\n"
+      "  static boo() {\n"
+      "    return new A();\n"
+      "  }\n"
+      "}\n"
+      "class C {\n"
+      "  @NeverInline bacon() {\n"
+      "    return this + this;\n"
+      "  }\n"
+      "  @AlwaysInline operator+(C other) {\n"
+      "    return fox();\n"
+      "  }\n"
+      "  @AlwaysInline fox() {\n"
+      "    return B.oats();\n"
+      "  }\n"
+      "}\n"
+      "main() {\n"
+      "  new C()..bacon();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& root_library = Library::Handle();
+  root_library ^= Api::UnwrapHandle(lib);
+
+  const Class& class_a = Class::Handle(GetClass(root_library, "A"));
+  EXPECT(!class_a.IsNull());
+
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+  // Turn on allocation tracing for A.
+  class_a.SetTraceAllocation(true);
+
+  // Allocate one time.
+  result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, class_a.id());
+    profile.Build(thread, &filter, Profile::kNoTags);
+    // We should have one allocation samples.
+    EXPECT_EQ(1, profile.sample_count());
+    ProfileTrieWalker walker(&profile);
+
+    // Exclusive function: B.boo -> main.
+    walker.Reset(Profile::kExclusiveFunction);
+    // Move down from the root.
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT_EQ(1, walker.CurrentNodeTickCount());
+    EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(1, walker.CurrentExclusiveTicks());
+    EXPECT_STREQ("A", walker.CurrentToken());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.oats", walker.CurrentName());
+    EXPECT_EQ(1, walker.CurrentNodeTickCount());
+    EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT_STREQ("boo", walker.CurrentToken());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("C.fox", walker.CurrentName());
+    EXPECT_EQ(1, walker.CurrentNodeTickCount());
+    EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT_STREQ("oats", walker.CurrentToken());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("C.+", walker.CurrentName());
+    EXPECT_EQ(1, walker.CurrentNodeTickCount());
+    EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT_STREQ("fox", walker.CurrentToken());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("C.bacon", walker.CurrentName());
+    EXPECT_EQ(1, walker.CurrentNodeTickCount());
+    EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT_STREQ("+", walker.CurrentToken());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("main", walker.CurrentName());
+    EXPECT_EQ(1, walker.CurrentNodeTickCount());
+    EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT_STREQ("bacon", walker.CurrentToken());
+    EXPECT(!walker.Down());
+  }
+}
+
+
+TEST_CASE(Profiler_BinaryOperatorSourcePositionOptimized) {
+  DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
+  // We use the AlwaysInline and NeverInline annotations in this test.
+  SetFlagScope<bool> sfs(&FLAG_enable_inlining_annotations, true);
+  // Optimize quickly.
+  SetFlagScope<int> sfs2(&FLAG_optimization_counter_threshold, 5);
+
+  const char* kScript =
+      "const AlwaysInline = 'AlwaysInline';\n"
+      "const NeverInline = 'NeverInline';\n"
+      "class A {\n"
+      "  var a;\n"
+      "  var b;\n"
+      "  @NeverInline A() { }\n"
+      "}\n"
+      "class B {\n"
+      "  @NeverInline\n"
+      "  static oats() {\n"
+      "    return boo();\n"
+      "  }\n"
+      "  @AlwaysInline\n"
+      "  static boo() {\n"
+      "    return new A();\n"
+      "  }\n"
+      "}\n"
+      "class C {\n"
+      "  @NeverInline bacon() {\n"
+      "    return this + this;\n"
+      "  }\n"
+      "  @AlwaysInline operator+(C other) {\n"
+      "    return fox();\n"
+      "  }\n"
+      "  @AlwaysInline fox() {\n"
+      "    return B.oats();\n"
+      "  }\n"
+      "}\n"
+      "main() {\n"
+      "  new C()..bacon();\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& root_library = Library::Handle();
+  root_library ^= Api::UnwrapHandle(lib);
+
+  const Class& class_a = Class::Handle(GetClass(root_library, "A"));
+  EXPECT(!class_a.IsNull());
+
+  const Function& main = Function::Handle(GetFunction(root_library, "main"));
+  EXPECT(!main.IsNull());
+
+  // Warm up function.
+  while (true) {
+    Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+    EXPECT_VALID(result);
+    const Code& code = Code::Handle(main.CurrentCode());
+    if (code.is_optimized()) {
+      // Warmed up.
+      break;
+    }
+  }
+
+  // Turn on allocation tracing for A.
+  class_a.SetTraceAllocation(true);
+
+  // Allocate one time.
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+  // Still optimized.
+  const Code& code = Code::Handle(main.CurrentCode());
+  EXPECT(code.is_optimized());
+
+  {
+    Thread* thread = Thread::Current();
+    Isolate* isolate = thread->isolate();
+    StackZone zone(thread);
+    HANDLESCOPE(thread);
+    Profile profile(isolate);
+    AllocationFilter filter(isolate, class_a.id());
+    profile.Build(thread, &filter, Profile::kNoTags);
+    // We should have one allocation samples.
+    EXPECT_EQ(1, profile.sample_count());
+    ProfileTrieWalker walker(&profile);
+
+    // Exclusive function: B.boo -> main.
+    walker.Reset(Profile::kExclusiveFunction);
+    // Move down from the root.
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.boo", walker.CurrentName());
+    EXPECT_EQ(1, walker.CurrentNodeTickCount());
+    EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(1, walker.CurrentExclusiveTicks());
+    EXPECT_STREQ("A", walker.CurrentToken());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("B.oats", walker.CurrentName());
+    EXPECT_EQ(1, walker.CurrentNodeTickCount());
+    EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT_STREQ("boo", walker.CurrentToken());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("C.fox", walker.CurrentName());
+    EXPECT_EQ(1, walker.CurrentNodeTickCount());
+    EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT_STREQ("oats", walker.CurrentToken());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("C.+", walker.CurrentName());
+    EXPECT_EQ(1, walker.CurrentNodeTickCount());
+    EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT_STREQ("fox", walker.CurrentToken());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("C.bacon", walker.CurrentName());
+    EXPECT_EQ(1, walker.CurrentNodeTickCount());
+    EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT_STREQ("+", walker.CurrentToken());
+    EXPECT(walker.Down());
+    EXPECT_STREQ("main", walker.CurrentName());
+    EXPECT_EQ(1, walker.CurrentNodeTickCount());
+    EXPECT_EQ(1, walker.CurrentInclusiveTicks());
+    EXPECT_EQ(0, walker.CurrentExclusiveTicks());
+    EXPECT_STREQ("bacon", walker.CurrentToken());
     EXPECT(!walker.Down());
   }
 }

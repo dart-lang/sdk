@@ -216,9 +216,8 @@ class CpsFunctionCompiler implements FunctionCompiler {
     if (type is UnionTypeMask) {
       return '[${type.disjointMasks.map(formatTypeMask).join(', ')}]';
     } else if (type is FlatTypeMask) {
-      if (type.isEmpty) {
-        return "null";
-      }
+      if (type.isEmpty) return "empty";
+      if (type.isNull) return "null";
       String suffix = (type.isExact ? "" : "+") + (type.isNullable ? "?" : "!");
       return '${type.base.name}$suffix';
     } else if (type is ForwardingTypeMask) {
@@ -296,7 +295,7 @@ class CpsFunctionCompiler implements FunctionCompiler {
   tree_ir.FunctionDefinition compileToTreeIr(cps.FunctionDefinition cpsNode) {
     applyCpsPass(new Finalize(backend), cpsNode);
     tree_builder.Builder builder = new tree_builder.Builder(
-        reporter.internalError);
+        reporter.internalError, glue);
     tree_ir.FunctionDefinition treeNode =
         treeBuilderTask.measure(() => builder.buildFunction(cpsNode));
     assert(treeNode != null);

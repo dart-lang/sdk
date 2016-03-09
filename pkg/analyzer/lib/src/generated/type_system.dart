@@ -21,10 +21,8 @@ typedef bool _GuardedSubtypeChecker<T>(T t1, T t2, Set<Element> visited);
  * Implementation of [TypeSystem] using the strong mode rules.
  * https://github.com/dart-lang/dev_compiler/blob/master/STRONG_MODE.md
  */
-class StrongTypeSystemImpl implements TypeSystem {
+class StrongTypeSystemImpl extends TypeSystem {
   final _specTypeSystem = new TypeSystemImpl();
-
-  StrongTypeSystemImpl();
 
   bool anyParameterType(FunctionType ft, bool predicate(DartType t)) {
     return ft.parameters.any((p) => predicate(p.type));
@@ -50,6 +48,51 @@ class StrongTypeSystemImpl implements TypeSystem {
       TypeProvider typeProvider, DartType type1, DartType type2) {
     // TODO(leafp): Implement a strong mode version of this.
     return _specTypeSystem.getLeastUpperBound(typeProvider, type1, type2);
+  }
+
+  /**
+   * Given a generic function type `F<T0, T1, ... Tn>` and a context type C,
+   * infer an instantiation of F, such that `F<S0, S1, ..., Sn>` <: C.
+   *
+   * This is similar to [inferGenericFunctionCall], but the return type is also
+   * considered as part of the solution.
+   *
+   * If this function is called with a [contextType] that is also
+   * uninstantiated, or a [fnType] that is already instantiated, it will have
+   * no effect and return [fnType].
+   */
+  FunctionType inferFunctionTypeInstantiation(TypeProvider typeProvider,
+      FunctionType contextType, FunctionType fnType) {
+    if (contextType.typeFormals.isNotEmpty || fnType.typeFormals.isEmpty) {
+      return fnType;
+    }
+
+    // Create a TypeSystem that will allow certain type parameters to be
+    // inferred. It will optimistically assume these type parameters can be
+    // subtypes (or supertypes) as necessary, and track the constraints that
+    // are implied by this.
+    var inferringTypeSystem =
+        new _StrongInferenceTypeSystem(typeProvider, fnType.typeFormals);
+
+    // Since we're trying to infer the instantiation, we want to ignore type
+    // formals as we check the parameters and return type.
+    var inferFnType =
+        fnType.instantiate(TypeParameterTypeImpl.getTypes(fnType.typeFormals));
+    if (!inferringTypeSystem.isSubtypeOf(inferFnType, contextType)) {
+      return fnType;
+    }
+
+    // Try to infer and instantiate the resulting type.
+    var resultType =
+        inferringTypeSystem._infer(fnType, allowPartialSolution: false);
+
+    // If the instantiation failed (because some type variable constraints
+    // could not be solved, in other words, we could not find a valid subtype),
+    // then return the original type, so the error is in terms of it.
+    //
+    // It would be safe to return a partial solution here, but the user
+    // experience may be better if we simply do not infer in this case.
+    return resultType ?? fnType;
   }
 
   /// Given a function type with generic type parameters, infer the type
@@ -107,71 +150,31 @@ class StrongTypeSystemImpl implements TypeSystem {
   }
 
   /**
-   * Given a generic function type `F<T0, T1, ... Tn>` and a context type C,
-   * infer an instantiation of F, such that `F<S0, S1, ..., Sn>` <: C.
-   *
-   * This is similar to [inferGenericFunctionCall], but the return type is also
-   * considered as part of the solution.
-   *
-   * If this function is called with a [contextType] that is also
-   * uninstantiated, or a [fnType] that is already instantiated, it will have
-   * no effect and return [fnType].
-   */
-  FunctionType inferFunctionTypeInstantiation(TypeProvider typeProvider,
-      FunctionType contextType, FunctionType fnType) {
-    if (contextType.typeFormals.isNotEmpty || fnType.typeFormals.isEmpty) {
-      return fnType;
-    }
-
-    // Create a TypeSystem that will allow certain type parameters to be
-    // inferred. It will optimistically assume these type parameters can be
-    // subtypes (or supertypes) as necessary, and track the constraints that
-    // are implied by this.
-    var inferringTypeSystem =
-        new _StrongInferenceTypeSystem(typeProvider, fnType.typeFormals);
-
-    // Since we're trying to infer the instantiation, we want to ignore type
-    // formals as we check the parameters and return type.
-    var inferFnType =
-        fnType.instantiate(TypeParameterTypeImpl.getTypes(fnType.typeFormals));
-    if (!inferringTypeSystem.isSubtypeOf(inferFnType, contextType)) {
-      return fnType;
-    }
-
-    // Try to infer and instantiate the resulting type.
-    var resultType =
-        inferringTypeSystem._infer(fnType, allowPartialSolution: false);
-
-    // If the instantiation failed (because some type variable constraints
-    // could not be solved, in other words, we could not find a valid subtype),
-    // then return the original type, so the error is in terms of it.
-    //
-    // It would be safe to return a partial solution here, but the user
-    // experience may be better if we simply do not infer in this case.
-    return resultType ?? fnType;
-  }
-
-  /**
-   * Given a [FunctionType] [function], of the form
-   * <T0 extends B0, ... Tn extends Bn>.F (where Bi is implicitly
-   * dynamic if absent, and F is a non-generic function type)
-   * compute {I0/T0, ..., In/Tn}F
+   * Given a [DartType] [type], if [type] is an uninstantiated
+   * parameterized type then instantiate the parameters to their
+   * bounds. Specifically, if [type] is of the form
+   * `<T0 extends B0, ... Tn extends Bn>.F` or
+   * `class C<T0 extends B0, ... Tn extends Bn> {...}`
+   * (where Bi is implicitly dynamic if absent),
+   * compute `{I0/T0, ..., In/Tn}F or C<I0, ..., In>` respectively
    * where I_(i+1) = {I0/T0, ..., Ii/Ti, dynamic/T_(i+1)}B_(i+1).
    * That is, we instantiate the generic with its bounds, replacing
    * each Ti in Bi with dynamic to get Ii, and then replacing Ti with
    * Ii in all of the remaining bounds.
    */
-  DartType instantiateToBounds(FunctionType function) {
-    int count = function.typeFormals.length;
+  DartType instantiateToBounds(DartType type) {
+    List<TypeParameterElement> typeFormals = typeFormalsAsElements(type);
+    int count = typeFormals.length;
     if (count == 0) {
-      return function;
+      return type;
     }
+
     // We build up a substitution replacing bound parameters with
     // their instantiated bounds, {substituted/variables}
     List<DartType> substituted = new List<DartType>();
     List<DartType> variables = new List<DartType>();
     for (int i = 0; i < count; i++) {
-      TypeParameterElement param = function.typeFormals[i];
+      TypeParameterElement param = typeFormals[i];
       DartType bound = param.bound ?? DynamicTypeImpl.instance;
       DartType variable = param.type;
       // For each Ti extends Bi, first compute Ii by replacing
@@ -183,7 +186,8 @@ class StrongTypeSystemImpl implements TypeSystem {
       // of dynamic in subsequent rounds.
       substituted[i] = bound.substitute2(substituted, variables);
     }
-    return function.instantiate(substituted);
+
+    return instantiateType(type, substituted);
   }
 
   @override
@@ -460,13 +464,27 @@ abstract class TypeSystem {
       TypeProvider typeProvider, DartType type1, DartType type2);
 
   /**
-   * Given a [function] type, instantiate it with its bounds.
+   * Given a [DartType] [type], instantiate it with its bounds.
    *
    * The behavior of this method depends on the type system, for example, in
    * classic Dart `dynamic` will be used for all type arguments, whereas
    * strong mode prefers the actual bound type if it was specified.
    */
-  FunctionType instantiateToBounds(FunctionType function);
+  DartType instantiateToBounds(DartType type);
+
+  /**
+   * Given a [DartType] [type] and a list of types
+   * [typeArguments], instantiate the type formals with the
+   * provided actuals.  If [type] is not a parameterized type,
+   * no instantiation is done.
+   */
+  DartType instantiateType(DartType type, List<DartType> typeArguments) {
+    if (type is ParameterizedType) {
+      return type.instantiate(typeArguments);
+    } else {
+      return type;
+    }
+  }
 
   /**
    * Return `true` if the [leftType] is assignable to the [rightType] (that is,
@@ -489,6 +507,74 @@ abstract class TypeSystem {
   bool isSubtypeOf(DartType leftType, DartType rightType);
 
   /**
+   * Searches the superinterfaces of [type] for implementations of [genericType]
+   * and returns the most specific type argument used for that generic type.
+   *
+   * For example, given [type] `List<int>` and [genericType] `Iterable<T>`,
+   * returns [int].
+   *
+   * Returns `null` if [type] does not implement [genericType].
+   */
+  // TODO(jmesserly): this is very similar to code used for flattening futures.
+  // The only difference is, because of a lack of TypeProvider, the other method
+  // has to match the Future type by its name and library. Here was are passed
+  // in the correct type.
+  DartType mostSpecificTypeArgument(DartType type, DartType genericType) {
+    if (type is! InterfaceType) return null;
+
+    // Walk the superinterface hierarchy looking for [genericType].
+    List<DartType> candidates = <DartType>[];
+    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
+    void recurse(InterfaceTypeImpl interface) {
+      if (interface.element == genericType.element &&
+          interface.typeArguments.isNotEmpty) {
+        candidates.add(interface.typeArguments[0]);
+      }
+      if (visitedClasses.add(interface.element)) {
+        if (interface.superclass != null) {
+          recurse(interface.superclass);
+        }
+        interface.mixins.forEach(recurse);
+        interface.interfaces.forEach(recurse);
+        visitedClasses.remove(interface.element);
+      }
+    }
+
+    recurse(type);
+
+    // Since the interface may be implemented multiple times with different
+    // type arguments, choose the best one.
+    return InterfaceTypeImpl.findMostSpecificType(candidates, this);
+  }
+
+  /**
+   * Given a [DartType] type, return the [TypeParameterElement]s corresponding
+   * to its formal type parameters (if any).
+   *
+   * @param type the type whose type arguments are to be returned
+   * @return the type arguments associated with the given type
+   */
+  List<TypeParameterElement> typeFormalsAsElements(DartType type) {
+    if (type is FunctionType) {
+      return type.typeFormals;
+    } else if (type is InterfaceType) {
+      return type.typeParameters;
+    } else {
+      return TypeParameterElement.EMPTY_LIST;
+    }
+  }
+
+  /**
+   * Given a [DartType] type, return the [DartType]s corresponding
+   * to its formal type parameters (if any).
+   *
+   * @param type the type whose type arguments are to be returned
+   * @return the type arguments associated with the given type
+   */
+  List<DartType> typeFormalsAsTypes(DartType type) =>
+      TypeParameterTypeImpl.getTypes(typeFormalsAsElements(type));
+
+  /**
    * Create either a strong mode or regular type system based on context.
    */
   static TypeSystem create(AnalysisContext context) {
@@ -501,7 +587,7 @@ abstract class TypeSystem {
 /**
  * Implementation of [TypeSystem] using the rules in the Dart specification.
  */
-class TypeSystemImpl implements TypeSystem {
+class TypeSystemImpl extends TypeSystem {
   TypeSystemImpl();
 
   @override
@@ -574,15 +660,18 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   /**
-   * Instantiate the function type using `dynamic` for all generic parameters.
+   * Instantiate a parameterized type using `dynamic` for all generic
+   * parameters.  Returns the type unchanged if there are no parameters.
    */
-  FunctionType instantiateToBounds(FunctionType function) {
-    int count = function.typeFormals.length;
-    if (count == 0) {
-      return function;
+  DartType instantiateToBounds(DartType type) {
+    List<DartType> typeFormals = typeFormalsAsTypes(type);
+    int count = typeFormals.length;
+    if (count > 0) {
+      List<DartType> typeArguments =
+          new List<DartType>.filled(count, DynamicTypeImpl.instance);
+      return instantiateType(type, typeArguments);
     }
-    return function.instantiate(
-        new List<DartType>.filled(count, DynamicTypeImpl.instance));
+    return type;
   }
 
   @override

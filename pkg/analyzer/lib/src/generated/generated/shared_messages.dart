@@ -24,32 +24,32 @@ const ParserErrorCode CONST_FACTORY = const ParserErrorCode(
 
 const ParserErrorCode CONST_CLASS = const ParserErrorCode(
     'CONST_CLASS',
-    "Classes can't be declared to be 'const'",
+    "Classes can't be declared to be 'const'.",
     "Try removing the 'const' keyword or moving to the class' constructor(s).");  // Generated. Don't edit.
 
 const ParserErrorCode CONST_METHOD = const ParserErrorCode(
     'CONST_METHOD',
-    "Getters, setters and methods can't be declared to be 'const'",
+    "Getters, setters and methods can't be declared to be 'const'.",
     "Try removing the 'const' keyword.");  // Generated. Don't edit.
 
 const ParserErrorCode CONST_ENUM = const ParserErrorCode(
     'CONST_ENUM',
-    "Enums can't be declared to be 'const'",
+    "Enums can't be declared to be 'const'.",
     "Try removing the 'const' keyword.");  // Generated. Don't edit.
 
 const ParserErrorCode CONST_TYPEDEF = const ParserErrorCode(
     'CONST_TYPEDEF',
-    "Type aliases can't be declared to be 'const'",
+    "Type aliases can't be declared to be 'const'.",
     "Try removing the 'const' keyword.");  // Generated. Don't edit.
 
 const ParserErrorCode CONST_AND_FINAL = const ParserErrorCode(
     'CONST_AND_FINAL',
-    "Members can't be declared to be both 'const' and 'final'",
+    "Members can't be declared to be both 'const' and 'final'.",
     "Try removing either the 'const' or 'final' keyword.");  // Generated. Don't edit.
 
 const ParserErrorCode CONST_AND_VAR = const ParserErrorCode(
     'CONST_AND_VAR',
-    "Members can't be declared to be both 'const' and 'var'",
+    "Members can't be declared to be both 'const' and 'var'.",
     "Try removing either the 'const' or 'var' keyword.");  // Generated. Don't edit.
 
 const ParserErrorCode CLASS_IN_CLASS = const ParserErrorCode(
@@ -59,7 +59,7 @@ const ParserErrorCode CLASS_IN_CLASS = const ParserErrorCode(
 
 const ParserErrorCode CONSTRUCTOR_WITH_RETURN_TYPE = const ParserErrorCode(
     'CONSTRUCTOR_WITH_RETURN_TYPE',
-    "Constructors can't have a return type",
+    "Constructors can't have a return type.",
     "Try removing the return type.");  // Generated. Don't edit.
 
 const ParserErrorCode MISSING_EXPRESSION_IN_THROW = const ParserErrorCode(
@@ -69,7 +69,7 @@ const ParserErrorCode MISSING_EXPRESSION_IN_THROW = const ParserErrorCode(
 
 const CompileTimeErrorCode RETHROW_OUTSIDE_CATCH = const CompileTimeErrorCode(
     'RETHROW_OUTSIDE_CATCH',
-    "Rethrow must be inside of catch clause",
+    "Rethrow must be inside of catch clause.",
     "Try moving the expression into a catch clause, or using a 'throw' expression.");  // Generated. Don't edit.
 
 const CompileTimeErrorCode RETURN_IN_GENERATIVE_CONSTRUCTOR = const CompileTimeErrorCode(
@@ -80,4 +80,114 @@ const CompileTimeErrorCode RETURN_IN_GENERATIVE_CONSTRUCTOR = const CompileTimeE
 const CompileTimeErrorCode RETURN_IN_GENERATOR = const CompileTimeErrorCode(
     'RETURN_IN_GENERATOR',
     "Can't return a value from a generator function (using the '{0}' modifier).",
-    "Try removing the value, replacing 'return' with 'yield' or changing the method body modifier");  // Generated. Don't edit.
+    "Try removing the value, replacing 'return' with 'yield' or changing the method body modifier.");  // Generated. Don't edit.
+
+const StaticTypeWarningCode RETURN_OF_INVALID_TYPE = const StaticTypeWarningCode(
+    'RETURN_OF_INVALID_TYPE',
+    "The return type '{0}' is not a '{1}', as defined by the method '{2}'.",
+    null);  // Generated. Don't edit.
+
+const HintCode ARGUMENT_TYPE_NOT_ASSIGNABLE_HINT = const HintCode(
+    'ARGUMENT_TYPE_NOT_ASSIGNABLE',
+    "The argument type '{0}' cannot be assigned to the parameter type '{1}'.",
+    null);  // Generated. Don't edit.
+
+const StaticWarningCode ARGUMENT_TYPE_NOT_ASSIGNABLE_STATIC_WARNING = const StaticWarningCode(
+    'ARGUMENT_TYPE_NOT_ASSIGNABLE',
+    "The argument type '{0}' cannot be assigned to the parameter type '{1}'.",
+    null);  // Generated. Don't edit.
+
+const StaticTypeWarningCode UNDEFINED_METHOD_STATIC_TYPE_WARNING = const StaticTypeWarningCode(
+    'UNDEFINED_METHOD',
+    "The method '{0}' is not defined for the class '{1}'.",
+    null);  // Generated. Don't edit.
+
+const HintCode UNDEFINED_METHOD_HINT = const HintCode(
+    'UNDEFINED_METHOD',
+    "The method '{0}' is not defined for the class '{1}'.",
+    null);  // Generated. Don't edit.
+
+const StaticTypeWarningCode UNDEFINED_METHOD_WITH_CONSTRUCTOR = const StaticTypeWarningCode(
+    'UNDEFINED_METHOD_WITH_CONSTRUCTOR',
+    "The method '{0}' is not defined for the class '{1}', but a constructor with that name is defined.",
+    "Try adding 'new' or 'const' to invoke the constuctor, or change the method name.");  // Generated. Don't edit.
+
+const StaticTypeWarningCode UNDEFINED_GETTER_STATIC_TYPE_WARNING = const StaticTypeWarningCode(
+    'UNDEFINED_GETTER',
+    "The getter '{0}' is not defined for the class '{1}'.",
+    null);  // Generated. Don't edit.
+
+const StaticWarningCode UNDEFINED_GETTER_STATIC_WARNING = const StaticWarningCode(
+    'UNDEFINED_GETTER',
+    "The getter '{0}' is not defined for the class '{1}'.",
+    null);  // Generated. Don't edit.
+
+const HintCode UNDEFINED_GETTER_HINT = const HintCode(
+    'UNDEFINED_GETTER',
+    "The getter '{0}' is not defined for the class '{1}'.",
+    null);  // Generated. Don't edit.
+
+const StaticTypeWarningCode UNDEFINED_ENUM_CONSTANT = const StaticTypeWarningCode(
+    'UNDEFINED_ENUM_CONSTANT',
+    "There is no constant named '{0}' in '{1}'.",
+    null);  // Generated. Don't edit.
+
+const StaticTypeWarningCode UNDEFINED_OPERATOR_STATIC_TYPE_WARNING = const StaticTypeWarningCode(
+    'UNDEFINED_OPERATOR',
+    "The operator '{0}' is not defined for the class '{1}'.",
+    null);  // Generated. Don't edit.
+
+const HintCode UNDEFINED_OPERATOR_HINT = const HintCode(
+    'UNDEFINED_OPERATOR',
+    "The operator '{0}' is not defined for the class '{1}'.",
+    null);  // Generated. Don't edit.
+
+const StaticTypeWarningCode UNDEFINED_SETTER_STATIC_TYPE_WARNING = const StaticTypeWarningCode(
+    'UNDEFINED_SETTER',
+    "The setter '{0}' is not defined for the class '{1}'.",
+    null);  // Generated. Don't edit.
+
+const StaticWarningCode UNDEFINED_SETTER_STATIC_WARNING = const StaticWarningCode(
+    'UNDEFINED_SETTER',
+    "The setter '{0}' is not defined for the class '{1}'.",
+    null);  // Generated. Don't edit.
+
+const HintCode UNDEFINED_SETTER_HINT = const HintCode(
+    'UNDEFINED_SETTER',
+    "The setter '{0}' is not defined for the class '{1}'.",
+    null);  // Generated. Don't edit.
+
+const StaticTypeWarningCode UNDEFINED_SUPER_GETTER_STATIC_TYPE_WARNING = const StaticTypeWarningCode(
+    'UNDEFINED_SUPER_GETTER',
+    "The getter '{0}' is not defined in a superclass of '{1}'.",
+    null);  // Generated. Don't edit.
+
+const StaticWarningCode UNDEFINED_SUPER_GETTER_STATIC_WARNING = const StaticWarningCode(
+    'UNDEFINED_SUPER_GETTER',
+    "The getter '{0}' is not defined in a superclass of '{1}'.",
+    null);  // Generated. Don't edit.
+
+const StaticTypeWarningCode UNDEFINED_SUPER_METHOD = const StaticTypeWarningCode(
+    'UNDEFINED_SUPER_METHOD',
+    "The method '{0}' is not defined in a superclass of '{1}'.",
+    null);  // Generated. Don't edit.
+
+const StaticTypeWarningCode UNDEFINED_SUPER_OPERATOR = const StaticTypeWarningCode(
+    'UNDEFINED_SUPER_OPERATOR',
+    "The operator '{0}' is not defined in a superclass of '{1}'.",
+    null);  // Generated. Don't edit.
+
+const StaticTypeWarningCode UNDEFINED_SUPER_SETTER_STATIC_TYPE_WARNING = const StaticTypeWarningCode(
+    'UNDEFINED_SUPER_SETTER',
+    "The setter '{0}' is not defined in a superclass of '{1}'.",
+    null);  // Generated. Don't edit.
+
+const StaticWarningCode UNDEFINED_SUPER_SETTER_STATIC_WARNING = const StaticWarningCode(
+    'UNDEFINED_SUPER_SETTER',
+    "The setter '{0}' is not defined in a superclass of '{1}'.",
+    null);  // Generated. Don't edit.
+
+const StaticTypeWarningCode UNDEFINED_FUNCTION = const StaticTypeWarningCode(
+    'UNDEFINED_FUNCTION',
+    "The function '{0}' is not defined.",
+    null);  // Generated. Don't edit.

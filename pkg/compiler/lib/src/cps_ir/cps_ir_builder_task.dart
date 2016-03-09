@@ -487,7 +487,8 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
           sourceInformation:
           sourceInformationBuilder.buildImplicitReturn(constructor));
 
-      return irBuilder.makeFunctionDefinition();
+      return irBuilder.makeFunctionDefinition(
+          sourceInformationBuilder.buildVariableDeclaration());
     });
   }
 
@@ -738,7 +739,8 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       irBuilder.buildConstructorBodyHeader(getConstructorBodyParameters(body),
           getClosureScopeForNode(node));
       visit(node.body);
-      return irBuilder.makeFunctionDefinition();
+      return irBuilder.makeFunctionDefinition(
+          sourceInformationBuilder.buildVariableDeclaration());
     });
   }
 
@@ -781,7 +783,8 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
           value: initialValue,
           sourceInformation:
           sourceInformationBuilder.buildReturn(sendSet.assignmentOperator));
-      return irBuilder.makeFunctionDefinition();
+      return irBuilder.makeFunctionDefinition(
+          sourceInformationBuilder.buildVariableDeclaration());
     });
   }
 
@@ -952,7 +955,8 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     } else {
       visit(node.body);
     }
-    return irBuilder.makeFunctionDefinition();
+    return irBuilder.makeFunctionDefinition(
+        sourceInformationBuilder.buildVariableDeclaration());
   }
 
   /// Builds the IR for creating an instance of the closure class corresponding

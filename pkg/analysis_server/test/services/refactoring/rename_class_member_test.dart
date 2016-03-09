@@ -135,7 +135,27 @@ main(A a) {
         expectedMessage: "Renamed method will be invisible in 'my.lib'.");
   }
 
-  test_checkFinalConditions_shadowed_byLocal_inSameClass() async {
+  test_checkFinalConditions_shadowed_byLocalFunction_inSameClass() async {
+    indexTestUnit('''
+class A {
+  test() {}
+  main() {
+    newName() {}
+    test(); // marker
+  }
+}
+''');
+    createRenameRefactoringAtString('test() {}');
+    // check status
+    refactoring.newName = 'newName';
+    RefactoringStatus status = await refactoring.checkFinalConditions();
+    assertRefactoringStatus(status, RefactoringProblemSeverity.ERROR,
+        expectedMessage:
+            "Usage of renamed method will be shadowed by function 'newName'.",
+        expectedContextSearch: 'test(); // marker');
+  }
+
+  test_checkFinalConditions_shadowed_byLocalVariable_inSameClass() async {
     indexTestUnit('''
 class A {
   test() {}
@@ -155,7 +175,7 @@ class A {
         expectedContextSearch: 'test(); // marker');
   }
 
-  test_checkFinalConditions_shadowed_byLocal_inSubClass() async {
+  test_checkFinalConditions_shadowed_byLocalVariable_inSubClass() async {
     indexTestUnit('''
 class A {
   test() {}
@@ -177,7 +197,7 @@ class B extends A {
         expectedContextSearch: 'test(); // marker');
   }
 
-  test_checkFinalConditions_shadowed_byLocal_OK_qualifiedReference() async {
+  test_checkFinalConditions_shadowed_byLocalVariable_OK_qualifiedReference() async {
     indexTestUnit('''
 class A {
   test() {}
@@ -194,7 +214,7 @@ class A {
     assertRefactoringStatusOK(status);
   }
 
-  test_checkFinalConditions_shadowed_byLocal_OK_renamedNotUsed() async {
+  test_checkFinalConditions_shadowed_byLocalVariable_OK_renamedNotUsed() async {
     indexTestUnit('''
 class A {
   test() {}

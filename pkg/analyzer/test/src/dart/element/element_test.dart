@@ -1969,7 +1969,7 @@ class FunctionTypeImplTest extends EngineTestCase {
     FunctionTypeAliasElementImpl f =
         ElementFactory.functionTypeAliasElement('f');
     ClassElementImpl c = ElementFactory.classElement2('C', ['T']);
-    f.returnType = c.type.substitute4([f.type]);
+    f.returnType = c.type.instantiate([f.type]);
     expect(f.type.toString(), '() \u2192 C<...>');
   }
 
@@ -2757,8 +2757,8 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement classB = ElementFactory.classElement2("B");
     DartType dynamicType = DynamicTypeImpl.instance;
     InterfaceType typeAOfDynamic =
-        classA.type.substitute4(<DartType>[dynamicType]);
-    InterfaceType typeAOfB = classA.type.substitute4(<DartType>[classB.type]);
+        classA.type.instantiate(<DartType>[dynamicType]);
+    InterfaceType typeAOfB = classA.type.instantiate(<DartType>[classB.type]);
     expect(typeAOfDynamic.isMoreSpecificThan(typeAOfB), isFalse);
     expect(typeAOfB.isMoreSpecificThan(typeAOfDynamic), isTrue);
   }
@@ -2895,8 +2895,8 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement classB = ElementFactory.classElement2("B");
     DartType dynamicType = DynamicTypeImpl.instance;
     InterfaceType typeAOfDynamic =
-        classA.type.substitute4(<DartType>[dynamicType]);
-    InterfaceType typeAOfB = classA.type.substitute4(<DartType>[classB.type]);
+        classA.type.instantiate(<DartType>[dynamicType]);
+    InterfaceType typeAOfB = classA.type.instantiate(<DartType>[classB.type]);
     expect(typeAOfDynamic.isSubtypeOf(typeAOfB), isTrue);
     expect(typeAOfB.isSubtypeOf(typeAOfDynamic), isTrue);
   }
@@ -2982,7 +2982,7 @@ class InterfaceTypeImplTest extends EngineTestCase {
     ClassElement classJ = ElementFactory.classElement("J", classI.type);
     ClassElement classK = ElementFactory.classElement2("K");
     InterfaceType typeA = classA.type;
-    InterfaceType typeA_dynamic = typeA.substitute4(<DartType>[dynamicType]);
+    InterfaceType typeA_dynamic = typeA.instantiate(<DartType>[dynamicType]);
     InterfaceTypeImpl typeAI = new InterfaceTypeImpl(classA);
     InterfaceTypeImpl typeAJ = new InterfaceTypeImpl(classA);
     InterfaceTypeImpl typeAK = new InterfaceTypeImpl(classA);
@@ -3963,7 +3963,7 @@ class TypeParameterTypeImplTest extends EngineTestCase {
   void test_resolveToBound_bound() {
     ClassElementImpl classS = ElementFactory.classElement2("A");
     TypeParameterElementImpl element =
-    new TypeParameterElementImpl.forNode(AstFactory.identifier3("E"));
+        new TypeParameterElementImpl.forNode(AstFactory.identifier3("E"));
     element.bound = classS.type;
     TypeParameterTypeImpl type = new TypeParameterTypeImpl(element);
     expect(type.resolveToBound(null), same(classS.type));
@@ -3972,11 +3972,11 @@ class TypeParameterTypeImplTest extends EngineTestCase {
   void test_resolveToBound_nestedBound() {
     ClassElementImpl classS = ElementFactory.classElement2("A");
     TypeParameterElementImpl elementE =
-    new TypeParameterElementImpl.forNode(AstFactory.identifier3("E"));
+        new TypeParameterElementImpl.forNode(AstFactory.identifier3("E"));
     elementE.bound = classS.type;
     TypeParameterTypeImpl typeE = new TypeParameterTypeImpl(elementE);
     TypeParameterElementImpl elementF =
-    new TypeParameterElementImpl.forNode(AstFactory.identifier3("F"));
+        new TypeParameterElementImpl.forNode(AstFactory.identifier3("F"));
     elementF.bound = typeE;
     TypeParameterTypeImpl typeF = new TypeParameterTypeImpl(elementE);
     expect(typeF.resolveToBound(null), same(classS.type));

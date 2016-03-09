@@ -48,11 +48,11 @@ vars = {
   "http_multi_server_tag" : "@2.0.0",
   "http_parser_tag" : "@1.1.0",
   "http_throttle_rev" : "@a81f08be942cdd608883c7b67795c12226abc235",
-  "idl_parser_rev": "@6316d5982dc24b34d09dd8b10fbeaaff28d83a48",
+  "idl_parser_rev": "@7fbe68cab90c38147dee4f48c30ad0d496c17915",
   "intl_rev": "@a8b480b9c436f6c0ec16730804c914bdb4e30d53",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@1.1.1",
-  "linter_rev": "@ce7aa0ec03ee738f4d314138228e0b4742845810",
+  "linter_rev": "@f90572f9be203a0ec9744aa3fb3b9509e3ca143d",
   "logging_rev": "@85d83e002670545e9039ad3985f0018ab640e597",
   "markdown_rev": "@4aaadf3d940bb172e1f6285af4d2b1710d309982",
   "matcher_tag": "@0.12.0",
@@ -92,7 +92,7 @@ vars = {
   "when_tag": "@0.2.0+2",
   "which_tag": "@0.1.3+1",
   "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
-  "WebCore_rev": "@5ecb723fd9ffcc0d108f5e0e24d12b8b3df7b200",
+  "WebCore_rev": "@a86fe28efadcfc781f836037a80f27e22a5dad17",
   "yaml_tag": "@2.1.5",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
   "barback-0.13.0_rev": "@34853",
@@ -129,7 +129,7 @@ deps = {
       Var("chromium_git") + "/chromium/src/third_party/ply.git" +
       Var("ply_rev"),
 
-  Var("dart_root") + "/third_party/idl_parser":
+  Var("dart_root") + "/tools/idl_parser":
       Var("chromium_git") + "/chromium/src/tools/idl_parser.git" +
       Var("idl_parser_rev"),
 

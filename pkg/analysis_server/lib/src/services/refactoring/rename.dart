@@ -98,7 +98,7 @@ bool isReferenceInLocalRange(LocalElement localElement, SearchMatch reference) {
     return false;
   }
   Source localSource = localElement.source;
-  Source referenceSource = reference.element.source;
+  Source referenceSource = reference.unitSource;
   SourceRange localRange = localElement.visibleRange;
   SourceRange referenceRange = reference.sourceRange;
   return referenceSource == localSource &&

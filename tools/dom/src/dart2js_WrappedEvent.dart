@@ -19,8 +19,6 @@ class _WrappedEvent implements Event {
 
   bool get cancelable => wrapped.cancelable;
 
-  DataTransfer get clipboardData => wrapped.clipboardData;
-
   EventTarget get currentTarget => wrapped.currentTarget;
 
   bool get defaultPrevented => wrapped.defaultPrevented;

@@ -736,16 +736,16 @@ class Uint8Reader extends Reader<int> {
  * List of booleans backed by 8-bit unsigned integers.
  */
 class _FbBoolList extends Object with ListMixin<bool> implements List<bool> {
-  final List<int> uint8List;
+  final BufferPointer bp;
   int _length;
 
-  _FbBoolList(BufferPointer bp)
-      : uint8List = new _FbGenericList<int>(const Uint8Reader(), bp);
+  _FbBoolList(this.bp);
 
   @override
   int get length {
     if (_length == null) {
-      _length = (uint8List.length - 1) * 8 - uint8List.last;
+      int byteLength = bp._getUint32();
+      _length = (byteLength - 1) * 8 - _getByte(byteLength - 1);
     }
     return _length;
   }
@@ -758,32 +758,25 @@ class _FbBoolList extends Object with ListMixin<bool> implements List<bool> {
   bool operator [](int i) {
     int index = i ~/ 8;
     int mask = 1 << i % 8;
-    return uint8List[index] & mask != 0;
+    return _getByte(index) & mask != 0;
   }
 
   @override
   void operator []=(int i, bool e) =>
       throw new StateError('Attempt to modify immutable list');
+
+  int _getByte(int index) => bp._getUint8(4 + index);
 }
 
 /**
  * The list backed by 64-bit values - Uint64 length and Float64.
  */
 class _FbFloat64List extends _FbList<double> {
-  List<double> _items;
-
   _FbFloat64List(BufferPointer bp) : super(bp);
 
   @override
   double operator [](int i) {
-    _items ??= new List<double>(length);
-    double item = _items[i];
-    if (item == null) {
-      BufferPointer ref = bp._advance(8 + 8 * i);
-      item = ref._getFloat64();
-      _items[i] = item;
-    }
-    return item;
+    return bp._getFloat64(8 + 8 * i);
   }
 }
 
@@ -838,19 +831,11 @@ abstract class _FbList<E> extends Object with ListMixin<E> implements List<E> {
  * List backed by 32-bit unsigned integers.
  */
 class _FbUint32List extends _FbList<int> {
-  List<int> _items;
-
   _FbUint32List(BufferPointer bp) : super(bp);
 
   @override
   int operator [](int i) {
-    _items ??= new List<int>(length);
-    int item = _items[i];
-    if (item == null) {
-      item = bp._getUint32(4 + 4 * i);
-      _items[i] = item;
-    }
-    return item;
+    return bp._getUint32(4 + 4 * i);
   }
 }
 

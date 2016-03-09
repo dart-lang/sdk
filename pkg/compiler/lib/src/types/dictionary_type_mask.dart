@@ -59,7 +59,7 @@ class DictionaryTypeMask extends MapTypeMask {
 
   TypeMask intersection(TypeMask other, ClassWorld classWorld) {
     TypeMask forwardIntersection = forwardTo.intersection(other, classWorld);
-    if (forwardIntersection.isEmpty) return forwardIntersection;
+    if (forwardIntersection.isEmptyOrNull) return forwardIntersection;
     return forwardIntersection.isNullable
         ? nullable()
         : nonNullable();
@@ -70,7 +70,7 @@ class DictionaryTypeMask extends MapTypeMask {
       return this;
     } else if (equalsDisregardNull(other)) {
       return other.isNullable ? other : this;
-    } else if (other.isEmpty) {
+    } else if (other.isEmptyOrNull) {
       return other.isNullable ? this.nullable() : this;
     } else if (other.isDictionary) {
       TypeMask newForwardTo = forwardTo.union(other.forwardTo, classWorld);

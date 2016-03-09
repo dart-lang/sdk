@@ -134,9 +134,13 @@ class CheckCpsIntegrity extends TrampolineRecursiveVisitor {
 
   @override
   visitFunctionDefinition(FunctionDefinition node) {
-    if (node.thisParameter != null) {
-      handleDeclaration(node.thisParameter);
-      enterScope([node.thisParameter]);
+    if (node.interceptorParameter != null) {
+      handleDeclaration(node.interceptorParameter);
+      enterScope([node.interceptorParameter]);
+    }
+    if (node.receiverParameter != null) {
+      handleDeclaration(node.receiverParameter);
+      enterScope([node.receiverParameter]);
     }
     node.parameters.forEach(handleDeclaration);
     enterScope(node.parameters);
@@ -178,6 +182,19 @@ class CheckCpsIntegrity extends TrampolineRecursiveVisitor {
     }
     if (node.argumentRefs.length != target.parameters.length) {
       error('Arity mismatch in InvokeContinuation', node);
+    }
+  }
+
+  @override
+  processInvokeMethod(InvokeMethod node) {
+    if (node.callingConvention == CallingConvention.Intercepted) {
+      if (node.interceptorRef == null) {
+        error('No interceptor on intercepted call', node);
+      }
+    } else {
+      if (node.interceptorRef != null) {
+        error('Interceptor on call with ${node.callingConvention}', node);
+      }
     }
   }
 

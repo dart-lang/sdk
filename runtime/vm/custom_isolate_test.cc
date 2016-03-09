@@ -321,7 +321,9 @@ UNIT_TEST_CASE(CustomIsolates) {
   bool saved_flag = FLAG_trace_shutdown;
   FLAG_trace_shutdown = true;
   FLAG_verify_handles = true;
+#ifdef DEBUG
   FLAG_verify_on_transition = true;
+#endif
   event_queue = new EventQueue();
 
   Dart_Isolate dart_isolate = TestCase::CreateTestIsolate();

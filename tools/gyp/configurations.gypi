@@ -660,6 +660,33 @@
         ],
       },
 
+      'DebugAndroidX64': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_x64_Base', 'Dart_Debug',
+          'Dart_Android_Base',
+          'Dart_Android_x64_Base',
+          'Dart_Android_Debug',
+        ],
+      },
+
+      'ReleaseAndroidX64': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_x64_Base', 'Dart_Release',
+          'Dart_Android_Base',
+          'Dart_Android_x64_Base',
+          'Dart_Android_Release',
+        ],
+      },
+
+      'ProductAndroidX64': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_x64_Base', 'Dart_Product',
+          'Dart_Android_Base',
+          'Dart_Android_x64_Base',
+          'Dart_Android_Product',
+        ],
+      },
+
       'DebugAndroidARM': {
         'inherit_from': [
           'Dart_Base', 'Dart_arm_Base', 'Dart_Debug',

@@ -380,6 +380,7 @@ private_html_members = monitored.Set('htmlrenamer.private_html_members', [
   'UIEvent.layerY',
   'UIEvent.pageX',
   'UIEvent.pageY',
+  'UIEvent.which',
   'WheelEvent.initWebKitWheelEvent',
   'WheelEvent.deltaX',
   'WheelEvent.deltaY',
@@ -563,6 +564,8 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'CanvasRenderingContext2D.webkitImageSmoothingEnabled',
     'CharacterData.remove',
     'ChildNode.replaceWith',
+    'CSSStyleDeclaration.__getter__',
+    'CSSStyleDeclaration.__setter__',
     'Window.call:blur',
     'Window.call:focus',
     'Window.clientInformation',
@@ -794,6 +797,9 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'HTMLUListElement.compact',
     'HTMLUListElement.type',
     'IDBDatabase.transaction', # We do this in a template without the generated implementation at all.
+    'KeyboardEvent.charCode',
+    'KeyboardEvent.keyCode',
+    'KeyboardEvent.which',
     'Location.valueOf',
     'MessageEvent.data',
     'MessageEvent.ports',
@@ -828,6 +834,7 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
     'NodeList.item',
     'ParentNode.append',
     'ParentNode.prepend',
+    'ServiceWorkerMessageEvent.data',
     'ShadowRoot.getElementsByTagNameNS',
     'SVGElement.getPresentationAttribute',
     'SVGElementInstance.on:wheel',
@@ -850,6 +857,7 @@ removed_html_members = monitored.Set('htmlrenamer.removed_html_members', [
 # Manual dart: library name lookup.
 _library_names = monitored.Dict('htmlrenamer._library_names', {
   'ANGLEInstancedArrays': 'web_gl',
+  'CHROMIUMSubscribeUniform': 'web_gl',
   'Database': 'web_sql',
   'Navigator': 'html',
   'Window': 'html',
@@ -857,6 +865,7 @@ _library_names = monitored.Dict('htmlrenamer._library_names', {
 
 _library_ids = monitored.Dict('htmlrenamer._library_names', {
   'ANGLEInstancedArrays': 'WebGl',
+  'CHROMIUMSubscribeUniform': 'WebGl',
   'Database': 'WebSql',
   'Navigator': 'Html',
   'Window': 'Html',

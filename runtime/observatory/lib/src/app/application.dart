@@ -87,6 +87,8 @@ class ObservatoryApplication extends Observable {
   }
 
   void _onEvent(ServiceEvent event) {
+    assert(event.kind != ServiceEvent.kNone);
+
     switch(event.kind) {
       case ServiceEvent.kVMUpdate:
       case ServiceEvent.kIsolateStart:

@@ -66,7 +66,7 @@ void WeakCodeReferences::DisableCode() {
   if (code_objects.IsNull()) {
     return;
   }
-  ASSERT(!FLAG_precompiled_mode);
+  ASSERT(!FLAG_precompiled_runtime);
   UpdateArrayTo(Object::null_array());
   // Disable all code on stack.
   Code& code = Code::Handle();

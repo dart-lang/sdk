@@ -12,8 +12,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/context/context.dart';
-import 'package:analyzer/src/dart/ast/ast.dart'
-    show SimpleIdentifierImpl, PrefixedIdentifierImpl;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -237,7 +235,7 @@ class AnalysisContextFactory {
           'onValue', futureThenR, [futureElement.typeParameters[0]], null);
       thenOnValue.synthetic = true;
 
-      DartType futureRType = futureElement.type.substitute4([futureThenR.type]);
+      DartType futureRType = futureElement.type.instantiate([futureThenR.type]);
       MethodElementImpl thenMethod = ElementFactory
           .methodElementWithParameters(futureElement, "then", futureRType, [
         ElementFactory.requiredParameter2("onValue", thenOnValue.type),
@@ -271,7 +269,7 @@ class AnalysisContextFactory {
         ElementFactory.constructorElement2(streamElement, null)
       ];
       DartType returnType = streamSubscriptionElement.type
-          .substitute4(streamElement.type.typeArguments);
+          .instantiate(streamElement.type.typeArguments);
       FunctionElementImpl listenOnData = ElementFactory.functionElement3(
           'onData',
           VoidTypeImpl.instance.element,
@@ -2489,10 +2487,31 @@ class B {}''');
       'package:meta/meta.dart': r'''
 library meta;
 
+const _Factory factory = const _Factory();
+const _Literal literal = const _Literal();
+const _MustCallSuper mustCallSuper = const _MustCallSuper();
+const _Override override = const _Override();
 const _Protected protected = const _Protected();
+const _Required required = const _Required();
 
+class _Factory {
+  const _Factory();
+}
+class _Literal {
+  const _Literal();
+}
+class _MustCallSuper {
+  const _MustCallSuper();
+}
+class _Override {
+  const _Override();
+}
 class _Protected {
   const _Protected();
+}
+class _Required {
+  final String reason;
+  const _Required([this.reason]));
 }
 '''
     });
@@ -2990,10 +3009,10 @@ f(A a) {
     verify([source]);
   }
 
-  void test_deprecatedAnnotationUse_deprecated() {
+  void test_deprecatedAnnotationUse_Deprecated() {
     Source source = addSource(r'''
 class A {
-  @deprecated
+  @Deprecated('0.9')
   m() {}
   n() {m();}
 }''');
@@ -3002,10 +3021,10 @@ class A {
     verify([source]);
   }
 
-  void test_deprecatedAnnotationUse_Deprecated() {
+  void test_deprecatedAnnotationUse_deprecated() {
     Source source = addSource(r'''
 class A {
-  @Deprecated('0.9')
+  @deprecated
   m() {}
   n() {m();}
 }''');
@@ -3616,6 +3635,67 @@ class A {
     verify([source]);
   }
 
+  void test_mustCallSuper() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @mustCallSuper
+  void a() {}
+}
+class B extends A {
+  @override
+  void a()
+  {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.MUST_CALL_SUPER]);
+    verify([source]);
+  }
+
+  void test_mustCallSuper_indirect() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @mustCallSuper
+  void a() {}
+}
+class C extends A {
+  @override
+  void a() {
+    super.a();
+  }
+}
+class D extends C {
+  @override
+  void a() {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.MUST_CALL_SUPER]);
+    verify([source]);
+  }
+
+  void test_mustCallSuper_OK() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @mustCallSuper
+  void a() {}
+}
+class C extends A {
+  @override
+  void a() {
+    super.a(); //OK
+  }
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
+  @override
   void test_nullAwareInCondition_assert() {
     Source source = addSource(r'''
 m(x) {
@@ -8291,6 +8371,30 @@ class ResolverTestCase extends EngineTestCase {
   }
 
   /**
+   * Asserts that [code] verifies, but has errors with the given error codes.
+   *
+   * Like [assertErrors], but takes a string of source code.
+   */
+  // TODO(rnystrom): Use this in more tests that have the same structure.
+  void assertErrorsInCode(String code, List<ErrorCode> errors) {
+    Source source = addSource(code);
+    computeLibrarySourceErrors(source);
+    assertErrors(source, errors);
+    verify([source]);
+  }
+
+  /**
+   * Asserts that [code] has errors with the given error codes.
+   *
+   * Like [assertErrors], but takes a string of source code.
+   */
+  void assertErrorsInUnverifiedCode(String code, List<ErrorCode> errors) {
+    Source source = addSource(code);
+    computeLibrarySourceErrors(source);
+    assertErrors(source, errors);
+  }
+
+  /**
    * Assert that no errors have been reported against the given source.
    *
    * @param source the source against which no errors should have been reported
@@ -8299,6 +8403,17 @@ class ResolverTestCase extends EngineTestCase {
    */
   void assertNoErrors(Source source) {
     assertErrors(source);
+  }
+
+  /**
+   * Asserts that [code] has no errors or warnings.
+   */
+  // TODO(rnystrom): Use this in more tests that have the same structure.
+  void assertNoErrorsInCode(String code) {
+    Source source = addSource(code);
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
   }
 
   /**
@@ -10594,21 +10709,21 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     ClassElementImpl derivedClass =
         ElementFactory.classElement2('Derived', ['T']);
     derivedClass.supertype = _typeProvider.futureType
-        .substitute4([derivedClass.typeParameters[0].type]);
+        .instantiate([derivedClass.typeParameters[0].type]);
     InterfaceType intType = _typeProvider.intType;
     DartType dynamicType = _typeProvider.dynamicType;
-    InterfaceType derivedIntType = derivedClass.type.substitute4([intType]);
+    InterfaceType derivedIntType = derivedClass.type.instantiate([intType]);
     // flatten(Derived) = dynamic
     InterfaceType derivedDynamicType =
-        derivedClass.type.substitute4([dynamicType]);
+        derivedClass.type.instantiate([dynamicType]);
     expect(_flatten(derivedDynamicType), dynamicType);
     // flatten(Derived<int>) = int
     expect(_flatten(derivedIntType), intType);
     // flatten(Derived<Derived>) = Derived
-    expect(_flatten(derivedClass.type.substitute4([derivedDynamicType])),
+    expect(_flatten(derivedClass.type.instantiate([derivedDynamicType])),
         derivedDynamicType);
     // flatten(Derived<Derived<int>>) = Derived<int>
-    expect(_flatten(derivedClass.type.substitute4([derivedIntType])),
+    expect(_flatten(derivedClass.type.instantiate([derivedIntType])),
         derivedIntType);
   }
 
@@ -10633,19 +10748,19 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     ClassElementImpl derivedClass =
         ElementFactory.classElement2('Derived', ['T']);
     derivedClass.supertype = _typeProvider.futureType
-        .substitute4([derivedClass.typeParameters[0].type]);
+        .instantiate([derivedClass.typeParameters[0].type]);
     InterfaceType derivedType = derivedClass.type;
     // class A extends Derived<int> implements Derived<num> { ... }
     ClassElementImpl classA =
-        ElementFactory.classElement('A', derivedType.substitute4([intType]));
+        ElementFactory.classElement('A', derivedType.instantiate([intType]));
     classA.interfaces = <InterfaceType>[
-      derivedType.substitute4([numType])
+      derivedType.instantiate([numType])
     ];
     // class B extends Future<num> implements Future<int> { ... }
     ClassElementImpl classB =
-        ElementFactory.classElement('B', derivedType.substitute4([numType]));
+        ElementFactory.classElement('B', derivedType.instantiate([numType]));
     classB.interfaces = <InterfaceType>[
-      derivedType.substitute4([intType])
+      derivedType.instantiate([intType])
     ];
     // flatten(A) = flatten(B) = int, since int is more specific than num.
     // The code in flatten() that inhibits infinite recursion shouldn't be
@@ -10660,15 +10775,15 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     InterfaceType numType = _typeProvider.numType;
     // class A extends Future<int> implements Future<num> { ... }
     ClassElementImpl classA =
-        ElementFactory.classElement('A', futureType.substitute4([intType]));
+        ElementFactory.classElement('A', futureType.instantiate([intType]));
     classA.interfaces = <InterfaceType>[
-      futureType.substitute4([numType])
+      futureType.instantiate([numType])
     ];
     // class B extends Future<num> implements Future<int> { ... }
     ClassElementImpl classB =
-        ElementFactory.classElement('B', futureType.substitute4([numType]));
+        ElementFactory.classElement('B', futureType.instantiate([numType]));
     classB.interfaces = <InterfaceType>[
-      futureType.substitute4([intType])
+      futureType.instantiate([intType])
     ];
     // flatten(A) = flatten(B) = int, since int is more specific than num.
     expect(_flatten(classA.type), intType);
@@ -10680,11 +10795,11 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     DartType dynamicType = _typeProvider.dynamicType;
     InterfaceType futureDynamicType = _typeProvider.futureDynamicType;
     InterfaceType futureIntType =
-        _typeProvider.futureType.substitute4([intType]);
+        _typeProvider.futureType.instantiate([intType]);
     InterfaceType futureFutureDynamicType =
-        _typeProvider.futureType.substitute4([futureDynamicType]);
+        _typeProvider.futureType.instantiate([futureDynamicType]);
     InterfaceType futureFutureIntType =
-        _typeProvider.futureType.substitute4([futureIntType]);
+        _typeProvider.futureType.instantiate([futureIntType]);
     // flatten(int) = int
     expect(_flatten(intType), intType);
     // flatten(dynamic) = dynamic
@@ -10705,15 +10820,15 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     InterfaceType stringType = _typeProvider.stringType;
     // class A extends Future<int> implements Future<String> { ... }
     ClassElementImpl classA =
-        ElementFactory.classElement('A', futureType.substitute4([intType]));
+        ElementFactory.classElement('A', futureType.instantiate([intType]));
     classA.interfaces = <InterfaceType>[
-      futureType.substitute4([stringType])
+      futureType.instantiate([stringType])
     ];
     // class B extends Future<String> implements Future<int> { ... }
     ClassElementImpl classB =
-        ElementFactory.classElement('B', futureType.substitute4([stringType]));
+        ElementFactory.classElement('B', futureType.instantiate([stringType]));
     classB.interfaces = <InterfaceType>[
-      futureType.substitute4([intType])
+      futureType.instantiate([intType])
     ];
     // flatten(A) = A and flatten(B) = B, since neither string nor int is more
     // specific than the other.
@@ -10786,9 +10901,9 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     // await e, where e has type Future<Future<int>>
     InterfaceType intType = _typeProvider.intType;
     InterfaceType futureIntType =
-        _typeProvider.futureType.substitute4(<DartType>[intType]);
+        _typeProvider.futureType.instantiate(<DartType>[intType]);
     InterfaceType futureFutureIntType =
-        _typeProvider.futureType.substitute4(<DartType>[futureIntType]);
+        _typeProvider.futureType.instantiate(<DartType>[futureIntType]);
     Expression node =
         AstFactory.awaitExpression(_resolvedVariable(futureFutureIntType, 'e'));
     expect(_analyze(node), same(intType));
@@ -10799,7 +10914,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     // await e, where e has type Future<int>
     InterfaceType intType = _typeProvider.intType;
     InterfaceType futureIntType =
-        _typeProvider.futureType.substitute4(<DartType>[intType]);
+        _typeProvider.futureType.instantiate(<DartType>[intType]);
     Expression node =
         AstFactory.awaitExpression(_resolvedVariable(futureIntType, 'e'));
     expect(_analyze(node), same(intType));
@@ -10995,7 +11110,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     // () async => e, where e has type int
     InterfaceType intType = _typeProvider.intType;
     InterfaceType futureIntType =
-        _typeProvider.futureType.substitute4(<DartType>[intType]);
+        _typeProvider.futureType.instantiate(<DartType>[intType]);
     Expression expression = _resolvedVariable(intType, 'e');
     ExpressionFunctionBody body = AstFactory.expressionFunctionBody(expression);
     body.keyword = TokenFactory.tokenFromString('async');
@@ -11010,7 +11125,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     // () async => e, where e has type Future<int>
     InterfaceType intType = _typeProvider.intType;
     InterfaceType futureIntType =
-        _typeProvider.futureType.substitute4(<DartType>[intType]);
+        _typeProvider.futureType.instantiate(<DartType>[intType]);
     Expression expression = _resolvedVariable(futureIntType, 'e');
     ExpressionFunctionBody body = AstFactory.expressionFunctionBody(expression);
     body.keyword = TokenFactory.tokenFromString('async');
@@ -11025,9 +11140,9 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     // () async => e, where e has type Future<Future<int>>
     InterfaceType intType = _typeProvider.intType;
     InterfaceType futureIntType =
-        _typeProvider.futureType.substitute4(<DartType>[intType]);
+        _typeProvider.futureType.instantiate(<DartType>[intType]);
     InterfaceType futureFutureIntType =
-        _typeProvider.futureType.substitute4(<DartType>[futureIntType]);
+        _typeProvider.futureType.instantiate(<DartType>[futureIntType]);
     Expression expression = _resolvedVariable(futureFutureIntType, 'e');
     ExpressionFunctionBody body = AstFactory.expressionFunctionBody(expression);
     body.keyword = TokenFactory.tokenFromString('async');
@@ -11288,7 +11403,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     MethodElement methodElement = getMethod(listType, "[]");
     // "list" has type List<int>
     SimpleIdentifier identifier = AstFactory.identifier3("list");
-    InterfaceType listOfIntType = listType.substitute4(<DartType>[intType]);
+    InterfaceType listOfIntType = listType.instantiate(<DartType>[intType]);
     identifier.staticType = listOfIntType;
     // list[0] has MethodElement element (int) -> E
     IndexExpression indexExpression =
@@ -11309,7 +11424,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     MethodElement methodElement = getMethod(listType, "[]=");
     // "list" has type List<int>
     SimpleIdentifier identifier = AstFactory.identifier3("list");
-    InterfaceType listOfIntType = listType.substitute4(<DartType>[intType]);
+    InterfaceType listOfIntType = listType.instantiate(<DartType>[intType]);
     identifier.staticType = listOfIntType;
     // list[0] has MethodElement element (int) -> E
     IndexExpression indexExpression =
@@ -11355,7 +11470,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     constructor.type = constructorType;
     TypeName typeName =
         AstFactory.typeName(elementC, [AstFactory.typeName(elementI)]);
-    typeName.type = elementC.type.substitute4(<DartType>[elementI.type]);
+    typeName.type = elementC.type.instantiate(<DartType>[elementI.type]);
     InstanceCreationExpression node =
         AstFactory.instanceCreationExpression2(null, typeName);
     node.staticElement = constructor;
@@ -11411,7 +11526,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     DartType resultType = _analyze(node);
     _assertType2(
         _typeProvider.listType
-            .substitute4(<DartType>[_typeProvider.dynamicType]),
+            .instantiate(<DartType>[_typeProvider.dynamicType]),
         resultType);
     _listener.assertNoErrors();
   }
@@ -11422,7 +11537,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     DartType resultType = _analyze(node);
     _assertType2(
         _typeProvider.listType
-            .substitute4(<DartType>[_typeProvider.dynamicType]),
+            .instantiate(<DartType>[_typeProvider.dynamicType]),
         resultType);
     _listener.assertNoErrors();
   }
@@ -11432,7 +11547,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     Expression node = AstFactory.mapLiteral2();
     DartType resultType = _analyze(node);
     _assertType2(
-        _typeProvider.mapType.substitute4(
+        _typeProvider.mapType.instantiate(
             <DartType>[_typeProvider.dynamicType, _typeProvider.dynamicType]),
         resultType);
     _listener.assertNoErrors();
@@ -11444,7 +11559,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
         .mapLiteral2([AstFactory.mapLiteralEntry("k", _resolvedInteger(0))]);
     DartType resultType = _analyze(node);
     _assertType2(
-        _typeProvider.mapType.substitute4(
+        _typeProvider.mapType.instantiate(
             <DartType>[_typeProvider.dynamicType, _typeProvider.dynamicType]),
         resultType);
     _listener.assertNoErrors();
@@ -13766,7 +13881,7 @@ main() {
 
     SimpleIdentifier x = _findIdentifier('x');
     expect(x.staticType,
-        typeProvider.listType.substitute4([typeProvider.intType]));
+        typeProvider.listType.instantiate([typeProvider.intType]));
   }
 
   void test_genericMethod_functionExpressionInvocation_explicit() {
@@ -14226,6 +14341,33 @@ void main() {
     // This should produce no hints or warnings.
     _resolveTestUnit(code);
     _expectInitializerType('foo', 'Future<String>', isNull);
+  }
+
+  void test_implicitBounds() {
+    String code = r'''
+class A<T> {}
+
+class B<T extends num> {}
+
+class C<S extends int, T extends B<S>, U extends B> {}
+
+void test() {
+//
+  A ai;
+  B bi;
+  C ci;
+  var aa = new A();
+  var bb = new B();
+  var cc = new C();
+}
+''';
+    _resolveTestUnit(code);
+    _expectIdentifierType('ai', "A<dynamic>");
+    _expectIdentifierType('bi', "B<num>");
+    _expectIdentifierType('ci', "C<int, B<int>, B<num>>");
+    _expectIdentifierType('aa', "A<dynamic>");
+    _expectIdentifierType('bb', "B<num>");
+    _expectIdentifierType('cc', "C<int, B<int>, B<num>>");
   }
 
   void test_setterWithDynamicTypeIsError() {
@@ -15229,7 +15371,7 @@ f(MyCustomStream<String> stream) async {
     verify([source]);
     CompilationUnit unit = resolveCompilationUnit(source, library);
     InterfaceType listOfStringType =
-        typeProvider.listType.substitute4([typeProvider.stringType]);
+        typeProvider.listType.instantiate([typeProvider.stringType]);
     // in the declaration
     {
       SimpleIdentifier identifier = EngineTestCase.findNode(
@@ -17087,20 +17229,6 @@ class TypeResolverVisitorTest {
     _listener.assertErrorsWithCodes([StaticWarningCode.UNDEFINED_CLASS]);
   }
 
-  void test_visitTypeName_prefixed_noParameters_noArguments_undefined() {
-    SimpleIdentifier prefix = AstFactory.identifier3("unknownPrefix")
-      ..staticElement = new _StaleElement();
-    SimpleIdentifier suffix = AstFactory.identifier3("unknownSuffix")
-      ..staticElement = new _StaleElement();
-    TypeName typeName =
-        new TypeName(AstFactory.identifier(prefix, suffix), null);
-    _resolveNode(typeName, []);
-    expect(typeName.type, UndefinedTypeImpl.instance);
-    expect(prefix.staticElement, null);
-    expect(suffix.staticElement, null);
-    _listener.assertErrorsWithCodes([StaticWarningCode.UNDEFINED_CLASS]);
-  }
-
   void test_visitTypeName_parameters_arguments() {
     ClassElement classA = ElementFactory.classElement2("A", ["E"]);
     ClassElement classB = ElementFactory.classElement2("B");
@@ -17127,6 +17255,20 @@ class TypeResolverVisitorTest {
     expect(resultArguments, hasLength(1));
     expect(resultArguments[0], same(DynamicTypeImpl.instance));
     _listener.assertNoErrors();
+  }
+
+  void test_visitTypeName_prefixed_noParameters_noArguments_undefined() {
+    SimpleIdentifier prefix = AstFactory.identifier3("unknownPrefix")
+      ..staticElement = new _StaleElement();
+    SimpleIdentifier suffix = AstFactory.identifier3("unknownSuffix")
+      ..staticElement = new _StaleElement();
+    TypeName typeName =
+        new TypeName(AstFactory.identifier(prefix, suffix), null);
+    _resolveNode(typeName, []);
+    expect(typeName.type, UndefinedTypeImpl.instance);
+    expect(prefix.staticElement, null);
+    expect(suffix.staticElement, null);
+    _listener.assertErrorsWithCodes([StaticWarningCode.UNDEFINED_CLASS]);
   }
 
   void test_visitTypeName_void() {
@@ -17269,10 +17411,10 @@ class _StaleElement extends ElementImpl {
   _StaleElement() : super("_StaleElement", -1);
 
   @override
-  accept(_) => throw "_StaleElement shouldn't be visited";
+  get kind => throw "_StaleElement's kind shouldn't be accessed";
 
   @override
-  get kind => throw "_StaleElement's kind shouldn't be accessed";
+  accept(_) => throw "_StaleElement shouldn't be visited";
 }
 
 /**

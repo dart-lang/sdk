@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
@@ -32,26 +33,20 @@ class PackageIndexAssembler {
 
   /**
    * Each item of this list corresponds to the library URI of a unique
-   * [CompilationUnitElement].  It is an index into [_strings].
+   * [CompilationUnitElement].
    */
-  final List<int> _unitLibraryUris = <int>[];
+  final List<_StringInfo> _unitLibraryUris = <_StringInfo>[];
 
   /**
    * Each item of this list corresponds to the unit URI of a unique
-   * [CompilationUnitElement].  It is an index into [_strings].
+   * [CompilationUnitElement].
    */
-  final List<int> _unitUnitUris = <int>[];
+  final List<_StringInfo> _unitUnitUris = <_StringInfo>[];
 
   /**
-   * Map associating strings with their identifiers, which are indices
-   * into [_strings].
+   * Map associating strings with their [_StringInfo]s.
    */
-  final Map<String, int> _stringMap = <String, int>{};
-
-  /**
-   * List of unique strings used in this index.
-   */
-  final List<String> _strings = <String>[];
+  final Map<String, _StringInfo> _stringMap = <String, _StringInfo>{};
 
   /**
    * List of information about each unit indexed in this index.
@@ -63,6 +58,15 @@ class PackageIndexAssembler {
    * [index].
    */
   PackageIndexBuilder assemble() {
+    // sort strings end set IDs
+    List<_StringInfo> stringInfoList = _stringMap.values.toList();
+    stringInfoList.sort((a, b) {
+      return a.value.compareTo(b.value);
+    });
+    for (int i = 0; i < stringInfoList.length; i++) {
+      stringInfoList[i].id = i;
+    }
+    // sort elements and set IDs
     List<_ElementInfo> elementInfoList = _elementMap.values.toList();
     elementInfoList.sort((a, b) {
       return a.offset - b.offset;
@@ -71,12 +75,12 @@ class PackageIndexAssembler {
       elementInfoList[i].id = i;
     }
     return new PackageIndexBuilder(
-        unitLibraryUris: _unitLibraryUris,
-        unitUnitUris: _unitUnitUris,
+        unitLibraryUris: _unitLibraryUris.map((s) => s.id).toList(),
+        unitUnitUris: _unitUnitUris.map((s) => s.id).toList(),
         elementUnits: elementInfoList.map((e) => e.unitId).toList(),
         elementOffsets: elementInfoList.map((e) => e.offset).toList(),
         elementKinds: elementInfoList.map((e) => e.kind).toList(),
-        strings: _strings,
+        strings: stringInfoList.map((s) => s.value).toList(),
         units: _units.map((unit) => unit.assemble()).toList());
   }
 
@@ -111,14 +115,12 @@ class PackageIndexAssembler {
   }
 
   /**
-   * Add information about [str] to [_strings] if necessary, and return the
-   * location in this array representing [str].
+   * Return the unique [_StringInfo] corresponding the [str].  The field
+   * [_StringInfo.id] is filled by [assemble] during final sorting.
    */
-  int _getStringId(String str) {
+  _StringInfo _getStringInfo(String str) {
     return _stringMap.putIfAbsent(str, () {
-      int id = _strings.length;
-      _strings.add(str);
-      return id;
+      return new _StringInfo(str);
     });
   }
 
@@ -131,18 +133,19 @@ class PackageIndexAssembler {
     return _unitMap.putIfAbsent(unitElement, () {
       assert(_unitLibraryUris.length == _unitUnitUris.length);
       int id = _unitUnitUris.length;
-      _unitLibraryUris.add(_getUriId(unitElement.library.source.uri));
-      _unitUnitUris.add(_getUriId(unitElement.source.uri));
+      _unitLibraryUris.add(_getUriInfo(unitElement.library.source.uri));
+      _unitUnitUris.add(_getUriInfo(unitElement.source.uri));
       return id;
     });
   }
 
   /**
-   * Return the identifier corresponding to [uri].
+   * Return the unique [_StringInfo] corresponding [uri].  The field
+   * [_StringInfo.id] is filled by [assemble] during final sorting.
    */
-  int _getUriId(Uri uri) {
+  _StringInfo _getUriInfo(Uri uri) {
     String str = uri.toString();
-    return _getStringId(str);
+    return _getStringInfo(str);
   }
 
   /**
@@ -186,9 +189,10 @@ class PackageIndexAssembler {
  */
 class _DefinedNameInfo {
   /**
-   * The identifier of the name returned [PackageIndexAssembler._getStringId].
+   * The information about the name returned from
+   * [PackageIndexAssembler._getStringInfo].
    */
-  final int nameId;
+  final _StringInfo nameInfo;
 
   /**
    * The coarse-grained kind of the defined name.
@@ -200,7 +204,7 @@ class _DefinedNameInfo {
    */
   final int offset;
 
-  _DefinedNameInfo(this.nameId, this.kind, this.offset);
+  _DefinedNameInfo(this.nameInfo, this.kind, this.offset);
 }
 
 /**
@@ -229,6 +233,24 @@ class _ElementInfo {
   int id;
 
   _ElementInfo(this.unitId, this.offset, this.kind);
+}
+
+/**
+ * Information about a string referenced in the index.
+ */
+class _StringInfo {
+  /**
+   * The value of the string.
+   */
+  final String value;
+
+  /**
+   * The unique id of the string.  It is set after indexing of the whole
+   * package is done and we are assembling the full package index.
+   */
+  int id;
+
+  _StringInfo(this.value);
 }
 
 /**
@@ -270,6 +292,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
         assembler.defineName(name, IndexNameKind.classMember, offset);
       }
     }
+  }
+
+  void recordIsAncestorOf(Element descendant) {
+    _recordIsAncestorOf(descendant, descendant, false, <ClassElement>[]);
   }
 
   /**
@@ -344,11 +370,18 @@ class _IndexContributor extends GeneralizingAstVisitor {
     Identifier name = typeName?.name;
     if (name != null) {
       Element element = name.staticElement;
-      SimpleIdentifier relNode =
-          name is PrefixedIdentifier ? name.identifier : name;
-      recordRelation(element, kind, relNode, true);
+      bool isQualified;
+      SimpleIdentifier relNode;
+      if (name is PrefixedIdentifier) {
+        isQualified = true;
+        relNode = name.identifier;
+      } else {
+        isQualified = false;
+        relNode = name;
+      }
+      recordRelation(element, kind, relNode, isQualified);
       recordRelation(
-          element, IndexRelationKind.IS_REFERENCED_BY, relNode, true);
+          element, IndexRelationKind.IS_REFERENCED_BY, relNode, isQualified);
       typeName.typeArguments?.accept(this);
     }
   }
@@ -377,7 +410,14 @@ class _IndexContributor extends GeneralizingAstVisitor {
       recordRelationOffset(objectElement, IndexRelationKind.IS_EXTENDED_BY,
           node.name.offset, 0, true);
     }
+    recordIsAncestorOf(node.element);
     super.visitClassDeclaration(node);
+  }
+
+  @override
+  visitClassTypeAlias(ClassTypeAlias node) {
+    recordIsAncestorOf(node.element);
+    super.visitClassTypeAlias(node);
   }
 
   @override
@@ -406,7 +446,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       recordRelationOffset(
           element, IndexRelationKind.IS_REFERENCED_BY, offset, 0, true);
     }
-    super.visitConstructorName(node);
+    node.type.accept(this);
   }
 
   @override
@@ -517,6 +557,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
           element.field, IndexRelationKind.IS_REFERENCED_BY, node, true);
       return;
     }
+    // ignore a local reference to a parameter
+    if (element is ParameterElement && node.parent is! Label) {
+      return;
+    }
     // record specific relations
     recordRelation(
         element, IndexRelationKind.IS_REFERENCED_BY, node, isQualified);
@@ -586,6 +630,37 @@ class _IndexContributor extends GeneralizingAstVisitor {
     AstNode parent = node.parent;
     return parent is Combinator || parent is Label;
   }
+
+  void _recordIsAncestorOf(Element descendant, ClassElement ancestor,
+      bool includeThis, List<ClassElement> visitedElements) {
+    if (ancestor == null) {
+      return;
+    }
+    if (visitedElements.contains(ancestor)) {
+      return;
+    }
+    visitedElements.add(ancestor);
+    if (includeThis) {
+      int offset = descendant.nameOffset;
+      int length = descendant.nameLength;
+      assembler.addElementRelation(
+          ancestor, IndexRelationKind.IS_ANCESTOR_OF, offset, length, false);
+    }
+    {
+      InterfaceType superType = ancestor.supertype;
+      if (superType != null) {
+        _recordIsAncestorOf(
+            descendant, superType.element, true, visitedElements);
+      }
+    }
+    for (InterfaceType mixinType in ancestor.mixins) {
+      _recordIsAncestorOf(descendant, mixinType.element, true, visitedElements);
+    }
+    for (InterfaceType implementedType in ancestor.interfaces) {
+      _recordIsAncestorOf(
+          descendant, implementedType.element, true, visitedElements);
+    }
+  }
 }
 
 /**
@@ -595,13 +670,14 @@ class _IndexContributor extends GeneralizingAstVisitor {
  */
 class _NameRelationInfo {
   /**
-   * The identifier of the name returned [PackageIndexAssembler._getStringId].
+   * The information about the name returned from
+   * [PackageIndexAssembler._getStringInfo].
    */
-  final int nameId;
+  final _StringInfo nameInfo;
   final IndexRelationKind kind;
   final int offset;
 
-  _NameRelationInfo(this.nameId, this.kind, this.offset);
+  _NameRelationInfo(this.nameInfo, this.kind, this.offset);
 }
 
 /**
@@ -635,7 +711,7 @@ class _UnitIndexAssembler {
   }
 
   void addNameRelation(String name, IndexRelationKind kind, int offset) {
-    int nameId = pkg._getStringId(name);
+    _StringInfo nameId = pkg._getStringInfo(name);
     nameRelations.add(new _NameRelationInfo(nameId, kind, offset));
   }
 
@@ -645,17 +721,17 @@ class _UnitIndexAssembler {
    */
   UnitIndexBuilder assemble() {
     definedNames.sort((a, b) {
-      return a.nameId - b.nameId;
+      return a.nameInfo.id - b.nameInfo.id;
     });
     elementRelations.sort((a, b) {
       return a.elementInfo.id - b.elementInfo.id;
     });
     nameRelations.sort((a, b) {
-      return a.nameId - b.nameId;
+      return a.nameInfo.id - b.nameInfo.id;
     });
     return new UnitIndexBuilder(
         unit: unitId,
-        definedNames: definedNames.map((n) => n.nameId).toList(),
+        definedNames: definedNames.map((n) => n.nameInfo.id).toList(),
         definedNameKinds: definedNames.map((n) => n.kind).toList(),
         definedNameOffsets: definedNames.map((n) => n.offset).toList(),
         usedElements: elementRelations.map((r) => r.elementInfo.id).toList(),
@@ -664,13 +740,13 @@ class _UnitIndexAssembler {
         usedElementLengths: elementRelations.map((r) => r.length).toList(),
         usedElementIsQualifiedFlags:
             elementRelations.map((r) => r.isQualified).toList(),
-        usedNames: nameRelations.map((r) => r.nameId).toList(),
+        usedNames: nameRelations.map((r) => r.nameInfo.id).toList(),
         usedNameKinds: nameRelations.map((r) => r.kind).toList(),
         usedNameOffsets: nameRelations.map((r) => r.offset).toList());
   }
 
   void defineName(String name, IndexNameKind kind, int offset) {
-    int nameId = pkg._getStringId(name);
-    definedNames.add(new _DefinedNameInfo(nameId, kind, offset));
+    _StringInfo nameInfo = pkg._getStringInfo(name);
+    definedNames.add(new _DefinedNameInfo(nameInfo, kind, offset));
   }
 }

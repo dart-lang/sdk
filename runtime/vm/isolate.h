@@ -312,7 +312,12 @@ class Isolate : public BaseIsolate {
   void set_message_handler(MessageHandler* value) { message_handler_ = value; }
 
   bool is_runnable() const { return is_runnable_; }
-  void set_is_runnable(bool value) { is_runnable_ = value; }
+  void set_is_runnable(bool value) {
+    is_runnable_ = value;
+    if (is_runnable_) {
+      set_last_resume_timestamp();
+    }
+  }
 
   IsolateSpawnState* spawn_state() const { return spawn_state_; }
   void set_spawn_state(IsolateSpawnState* value) { spawn_state_ = value; }
@@ -321,6 +326,9 @@ class Isolate : public BaseIsolate {
   Mutex* symbols_mutex() const { return symbols_mutex_; }
   Mutex* type_canonicalization_mutex() const {
     return type_canonicalization_mutex_;
+  }
+  Mutex* constant_canonicalization_mutex() const {
+    return constant_canonicalization_mutex_;
   }
 
   Debugger* debugger() const {
@@ -758,6 +766,7 @@ class Isolate : public BaseIsolate {
   Mutex* mutex_;  // Protects stack_limit_, saved_stack_limit_, compiler stats.
   Mutex* symbols_mutex_;  // Protects concurrent access to the symbol table.
   Mutex* type_canonicalization_mutex_;  // Protects type canonicalization.
+  Mutex* constant_canonicalization_mutex_;  // Protects const canonicalization.
   uword saved_stack_limit_;
   uword deferred_interrupts_mask_;
   uword deferred_interrupts_;

@@ -32,21 +32,18 @@ class SearchEngineImpl implements SearchEngine {
   }
 
   @override
-  Future<List<SearchMatch>> searchElementDeclarations(String name) {
-    IndexableName indexableName = new IndexableName(name);
-    _Requestor requestor = new _Requestor(_index);
-    requestor.add(indexableName, IndexConstants.NAME_IS_DEFINED_BY,
-        MatchKind.DECLARATION);
-    return requestor.merge();
-  }
-
-  @override
-  Future<List<SearchMatch>> searchMemberDeclarations(String name) {
-    return searchElementDeclarations(name).then((matches) {
-      return matches.where((match) {
-        return match.element.enclosingElement is ClassElement;
-      }).toList();
-    });
+  Future<List<SearchMatch>> searchMemberDeclarations(String name) async {
+    List<SearchMatch> matches;
+    {
+      IndexableName indexableName = new IndexableName(name);
+      _Requestor requestor = new _Requestor(_index);
+      requestor.add(indexableName, IndexConstants.NAME_IS_DEFINED_BY,
+          MatchKind.DECLARATION);
+      matches = await requestor.merge();
+    }
+    return matches.where((match) {
+      return match.element.enclosingElement is ClassElement;
+    }).toList();
   }
 
   @override
@@ -119,8 +116,14 @@ class SearchEngineImpl implements SearchEngine {
         _index.getTopLevelDeclarations((String name) => regExp.hasMatch(name));
     List<SearchMatch> matches = <SearchMatch>[];
     for (Element element in elements) {
-      matches.add(new SearchMatch(MatchKind.DECLARATION, element,
-          rangeElementName(element), true, false));
+      matches.add(new SearchMatch(
+          element.context,
+          element.library.source.uri.toString(),
+          element.source.uri.toString(),
+          MatchKind.DECLARATION,
+          rangeElementName(element),
+          true,
+          false));
     }
     return new Future.value(matches);
   }
@@ -230,9 +233,12 @@ class _Requestor {
       for (LocationImpl location in locations) {
         IndexableObject indexable = location.indexable;
         if (indexable is IndexableElement) {
+          Element element = indexable.element;
           matches.add(new SearchMatch(
+              element.context,
+              element.library.source.uri.toString(),
+              element.source.uri.toString(),
               kind,
-              indexable.element,
               new SourceRange(location.offset, location.length),
               location.isResolved,
               location.isQualified));

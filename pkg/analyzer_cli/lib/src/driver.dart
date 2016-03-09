@@ -271,6 +271,10 @@ class Driver implements CommandLineStarter {
     if (options.enableSuperMixins != _previousOptions.enableSuperMixins) {
       return false;
     }
+    if (options.enableConditionalDirectives !=
+        _previousOptions.enableConditionalDirectives) {
+      return false;
+    }
     return true;
   }
 
@@ -579,6 +583,8 @@ class Driver implements CommandLineStarter {
     contextOptions.hint = !options.disableHints;
     contextOptions.enableStrictCallChecks = options.enableStrictCallChecks;
     contextOptions.enableSuperMixins = options.enableSuperMixins;
+    contextOptions.enableConditionalDirectives =
+        options.enableConditionalDirectives;
     contextOptions.generateImplicitErrors = options.showPackageWarnings;
     contextOptions.generateSdkErrors = options.showSdkWarnings;
     contextOptions.lint = options.lints;

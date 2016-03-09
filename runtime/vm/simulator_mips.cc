@@ -1888,6 +1888,28 @@ void Simulator::DecodeCop1(Instr* instr) {
             (fs_val <= ft_val) || isnan(fs_val) || isnan(ft_val));
         break;
       }
+      case COP1_TRUNC_W: {
+        switch (instr->FormatField()) {
+          case FMT_D: {
+            double fs_dbl = get_fregister_double(instr->FsField());
+            int32_t fs_int;
+            if (isnan(fs_dbl) || isinf(fs_dbl) || (fs_dbl > kMaxInt32) ||
+                (fs_dbl < kMinInt32)) {
+              fs_int = kMaxInt32;
+            } else {
+              fs_int = static_cast<int32_t>(fs_dbl);
+            }
+            set_fregister(instr->FdField(), fs_int);
+            break;
+          }
+          default: {
+            OS::PrintErr("DecodeCop1: 0x%x\n", instr->InstructionBits());
+            UnimplementedInstruction(instr);
+            break;
+          }
+        }
+        break;
+      }
       case COP1_CVT_D: {
         switch (instr->FormatField()) {
           case FMT_W: {
@@ -1900,34 +1922,6 @@ void Simulator::DecodeCop1(Instr* instr) {
             float fs_flt = get_fregister_float(instr->FsField());
             double fs_dbl = static_cast<double>(fs_flt);
             set_fregister_double(instr->FdField(), fs_dbl);
-            break;
-          }
-          case FMT_L: {
-            int64_t fs_int = get_fregister_long(instr->FsField());
-            double fs_dbl = static_cast<double>(fs_int);
-            set_fregister_double(instr->FdField(), fs_dbl);
-            break;
-          }
-          default: {
-            OS::PrintErr("DecodeCop1: 0x%x\n", instr->InstructionBits());
-            UnimplementedInstruction(instr);
-            break;
-          }
-        }
-        break;
-      }
-      case COP1_CVT_W: {
-        switch (instr->FormatField()) {
-          case FMT_D: {
-            double fs_dbl = get_fregister_double(instr->FsField());
-            int32_t fs_int;
-            if (isnan(fs_dbl) || isinf(fs_dbl) || (fs_dbl > INT_MAX) ||
-                (fs_dbl < INT_MIN)) {
-              fs_int = INT_MIN;
-            } else {
-              fs_int = static_cast<int32_t>(fs_dbl);
-            }
-            set_fregister(instr->FdField(), fs_int);
             break;
           }
           default: {

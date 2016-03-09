@@ -132,9 +132,9 @@ enum MessageKind {
   CANNOT_RESOLVE_AWAIT_IN_CLOSURE,
   CANNOT_RESOLVE_CONSTRUCTOR,
   CANNOT_RESOLVE_CONSTRUCTOR_FOR_IMPLICIT,
-  CANNOT_RESOLVE_GETTER,
+  UNDEFINED_STATIC_GETTER_BUT_SETTER,
   CANNOT_RESOLVE_IN_INITIALIZER,
-  CANNOT_RESOLVE_SETTER,
+  UNDEFINED_STATIC_SETTER_BUT_GETTER,
   CANNOT_RESOLVE_TYPE,
   RETURN_IN_GENERATIVE_CONSTRUCTOR,
   CLASS_NAME_EXPECTED,
@@ -212,7 +212,7 @@ enum MessageKind {
   FUNCTION_WITH_INITIALIZER,
   GENERIC,
   GETTER_MISMATCH,
-  GETTER_NOT_FOUND,
+  UNDEFINED_INSTANCE_GETTER_BUT_SETTER,
   HEX_DIGIT_EXPECTED,
   HIDDEN_HINTS,
   HIDDEN_IMPLICIT_IMPORT,
@@ -300,10 +300,10 @@ enum MessageKind {
   MAIN_NOT_A_FUNCTION,
   MAIN_WITH_EXTRA_PARAMETER,
   MALFORMED_STRING_LITERAL,
-  MEMBER_NOT_FOUND,
+  UNDEFINED_GETTER,
   MEMBER_NOT_STATIC,
   MEMBER_USES_CLASS_NAME,
-  METHOD_NOT_FOUND,
+  UNDEFINED_METHOD,
   MINUS_OPERATOR_BAD_ARITY,
   MIRROR_BLOAT,
   MIRROR_IMPORT,
@@ -359,7 +359,7 @@ enum MessageKind {
   NULL_NOT_ALLOWED,
   ONLY_ONE_LIBRARY_TAG,
   OPERATOR_NAMED_PARAMETERS,
-  OPERATOR_NOT_FOUND,
+  UNDEFINED_OPERATOR,
   OPERATOR_OPTIONAL_PARAMETERS,
   OPTIONAL_PARAMETER_IN_CATCH,
   OVERRIDE_EQUALS_NOT_HASH_CODE,
@@ -412,8 +412,8 @@ enum MessageKind {
   RETURN_NOTHING,
   RETURN_VALUE_IN_VOID,
   SETTER_MISMATCH,
-  SETTER_NOT_FOUND,
-  SETTER_NOT_FOUND_IN_SUPER,
+  UNDEFINED_SETTER,
+  UNDEFINED_SUPER_SETTER,
   STATIC_FUNCTION_BLOAT,
   STRING_EXPECTED,
   SUPER_CALL_TO_FACTORY,
@@ -518,15 +518,6 @@ class MessageTemplate {
       MessageKind.GENERIC:
         const MessageTemplate(MessageKind.GENERIC, '#{text}'),
 
-      MessageKind.NOT_ASSIGNABLE:
-        const MessageTemplate(MessageKind.NOT_ASSIGNABLE,
-          "'#{fromType}' is not assignable to '#{toType}'."),
-
-      MessageKind.FORIN_NOT_ASSIGNABLE:
-        const MessageTemplate(MessageKind.FORIN_NOT_ASSIGNABLE,
-          "The element type '#{currentType}' of '#{expressionType}' "
-          "is not assignable to '#{elementType}'."),
-
       MessageKind.VOID_EXPRESSION:
         const MessageTemplate(MessageKind.VOID_EXPRESSION,
           "Expression does not yield a value."),
@@ -555,10 +546,6 @@ class MessageTemplate {
         const MessageTemplate(MessageKind.NAMED_ARGUMENT_NOT_FOUND,
           "No named argument '#{argumentName}' found on method."),
 
-      MessageKind.MEMBER_NOT_FOUND:
-        const MessageTemplate(MessageKind.MEMBER_NOT_FOUND,
-          "No member named '#{memberName}' in class '#{className}'."),
-
       MessageKind.AWAIT_MEMBER_NOT_FOUND:
         const MessageTemplate(MessageKind.AWAIT_MEMBER_NOT_FOUND,
           "No member named 'await' in class '#{className}'.",
@@ -582,26 +569,6 @@ class A {
 }
 main() => new A().m();
 """]),
-
-      MessageKind.METHOD_NOT_FOUND:
-        const MessageTemplate(MessageKind.METHOD_NOT_FOUND,
-          "No method named '#{memberName}' in class '#{className}'."),
-
-      MessageKind.OPERATOR_NOT_FOUND:
-        const MessageTemplate(MessageKind.OPERATOR_NOT_FOUND,
-          "No operator '#{memberName}' in class '#{className}'."),
-
-      MessageKind.SETTER_NOT_FOUND:
-        const MessageTemplate(MessageKind.SETTER_NOT_FOUND,
-          "No setter named '#{memberName}' in class '#{className}'."),
-
-      MessageKind.SETTER_NOT_FOUND_IN_SUPER:
-        const MessageTemplate(MessageKind.SETTER_NOT_FOUND_IN_SUPER,
-          "No setter named '#{name}' in superclass of '#{className}'."),
-
-      MessageKind.GETTER_NOT_FOUND:
-        const MessageTemplate(MessageKind.GETTER_NOT_FOUND,
-          "No getter named '#{memberName}' in class '#{className}'."),
 
       MessageKind.NOT_CALLABLE:
         const MessageTemplate(MessageKind.NOT_CALLABLE,
@@ -1652,10 +1619,6 @@ main() {
         const MessageTemplate(MessageKind.ILLEGAL_SUPER_SEND,
           "'#{name}' cannot be called on super."),
 
-      MessageKind.NO_SUCH_SUPER_MEMBER:
-        const MessageTemplate(MessageKind.NO_SUCH_SUPER_MEMBER,
-          "Cannot resolve '#{memberName}' in a superclass of '#{className}'."),
-
       MessageKind.ADDITIONAL_TYPE_ARGUMENT:
         const MessageTemplate(MessageKind.ADDITIONAL_TYPE_ARGUMENT,
           "Additional type argument."),
@@ -1896,12 +1859,8 @@ main() => new C();"""]),
         const MessageTemplate(MessageKind.PARAMETER_NAME_EXPECTED,
           "parameter name expected."),
 
-      MessageKind.CANNOT_RESOLVE_GETTER:
-        const MessageTemplate(MessageKind.CANNOT_RESOLVE_GETTER,
-          "Cannot resolve getter."),
-
-      MessageKind.CANNOT_RESOLVE_SETTER:
-        const MessageTemplate(MessageKind.CANNOT_RESOLVE_SETTER,
+      MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER:
+        const MessageTemplate(MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER,
           "Cannot resolve setter."),
 
       MessageKind.ASSIGNING_FINAL_FIELD_IN_SUPER:

@@ -47,6 +47,7 @@ final web_audioBlinkMap = {
   'PannerNode': () => PannerNode,
   'PeriodicWave': () => PeriodicWave,
   'ScriptProcessorNode': () => ScriptProcessorNode,
+  'StereoPannerNode': () => StereoPannerNode,
   'WaveShaperNode': () => WaveShaperNode,
 
 };
@@ -80,6 +81,7 @@ final web_audioBlinkFunctionMap = {
   'PannerNode': () => PannerNode.internalCreatePannerNode,
   'PeriodicWave': () => PeriodicWave.internalCreatePeriodicWave,
   'ScriptProcessorNode': () => ScriptProcessorNode.internalCreateScriptProcessorNode,
+  'StereoPannerNode': () => StereoPannerNode.internalCreateStereoPannerNode,
   'WaveShaperNode': () => WaveShaperNode.internalCreateWaveShaperNode,
 
 };
@@ -148,20 +150,20 @@ class AnalyserNode extends AudioNode {
   
   @DomName('AnalyserNode.getByteFrequencyData')
   @DocsEditable()
-  void getByteFrequencyData(Uint8List array) => _blink.BlinkAnalyserNode.instance.getByteFrequencyData_Callback_1_(unwrap_jso(this), array);
+  void getByteFrequencyData(Uint8List array) => _blink.BlinkAnalyserNode.instance.getByteFrequencyData_Callback_1_(unwrap_jso(this), unwrap_jso(array));
   
   @DomName('AnalyserNode.getByteTimeDomainData')
   @DocsEditable()
-  void getByteTimeDomainData(Uint8List array) => _blink.BlinkAnalyserNode.instance.getByteTimeDomainData_Callback_1_(unwrap_jso(this), array);
+  void getByteTimeDomainData(Uint8List array) => _blink.BlinkAnalyserNode.instance.getByteTimeDomainData_Callback_1_(unwrap_jso(this), unwrap_jso(array));
   
   @DomName('AnalyserNode.getFloatFrequencyData')
   @DocsEditable()
-  void getFloatFrequencyData(Float32List array) => _blink.BlinkAnalyserNode.instance.getFloatFrequencyData_Callback_1_(unwrap_jso(this), array);
+  void getFloatFrequencyData(Float32List array) => _blink.BlinkAnalyserNode.instance.getFloatFrequencyData_Callback_1_(unwrap_jso(this), unwrap_jso(array));
   
   @DomName('AnalyserNode.getFloatTimeDomainData')
   @DocsEditable()
   @Experimental() // untriaged
-  void getFloatTimeDomainData(Float32List array) => _blink.BlinkAnalyserNode.instance.getFloatTimeDomainData_Callback_1_(unwrap_jso(this), array);
+  void getFloatTimeDomainData(Float32List array) => _blink.BlinkAnalyserNode.instance.getFloatTimeDomainData_Callback_1_(unwrap_jso(this), unwrap_jso(array));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -210,9 +212,27 @@ class AudioBuffer extends DartHtmlDomObject {
   @DocsEditable()
   num get sampleRate => _blink.BlinkAudioBuffer.instance.sampleRate_Getter_(unwrap_jso(this));
   
+  void copyFromChannel(Float32List destination, int channelNumber, [int startInChannel]) {
+    if (startInChannel != null) {
+      _blink.BlinkAudioBuffer.instance.copyFromChannel_Callback_3_(unwrap_jso(this), unwrap_jso(destination), channelNumber, startInChannel);
+      return;
+    }
+    _blink.BlinkAudioBuffer.instance.copyFromChannel_Callback_2_(unwrap_jso(this), unwrap_jso(destination), channelNumber);
+    return;
+  }
+
+  void copyToChannel(Float32List source, int channelNumber, [int startInChannel]) {
+    if (startInChannel != null) {
+      _blink.BlinkAudioBuffer.instance.copyToChannel_Callback_3_(unwrap_jso(this), unwrap_jso(source), channelNumber, startInChannel);
+      return;
+    }
+    _blink.BlinkAudioBuffer.instance.copyToChannel_Callback_2_(unwrap_jso(this), unwrap_jso(source), channelNumber);
+    return;
+  }
+
   @DomName('AudioBuffer.getChannelData')
   @DocsEditable()
-  Float32List getChannelData(int channelIndex) => _blink.BlinkAudioBuffer.instance.getChannelData_Callback_1_(unwrap_jso(this), channelIndex);
+  Float32List getChannelData(int channelIndex) => wrap_jso(_blink.BlinkAudioBuffer.instance.getChannelData_Callback_1_(unwrap_jso(this), channelIndex));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -273,6 +293,11 @@ class AudioBufferSourceNode extends AudioSourceNode {
   @DomName('AudioBufferSourceNode.buffer')
   @DocsEditable()
   set buffer(AudioBuffer value) => _blink.BlinkAudioBufferSourceNode.instance.buffer_Setter_(unwrap_jso(this), unwrap_jso(value));
+  
+  @DomName('AudioBufferSourceNode.detune')
+  @DocsEditable()
+  @Experimental() // untriaged
+  AudioParam get detune => wrap_jso(_blink.BlinkAudioBufferSourceNode.instance.detune_Getter_(unwrap_jso(this)));
   
   @DomName('AudioBufferSourceNode.loop')
   @DocsEditable()
@@ -349,16 +374,6 @@ class AudioContext extends EventTarget {
   // To suppress missing implicit constructor warnings.
   factory AudioContext._() { throw new UnsupportedError("Not supported"); }
 
-  /**
-   * Static factory designed to expose `complete` events to event
-   * handlers that are not necessarily instances of [AudioContext].
-   *
-   * See [EventStreamProvider] for usage information.
-   */
-  @DomName('AudioContext.completeEvent')
-  @DocsEditable()
-  static const EventStreamProvider<Event> completeEvent = const EventStreamProvider<Event>('complete');
-
   @DomName('AudioContext.AudioContext')
   @DocsEditable()
   factory AudioContext() {
@@ -395,6 +410,16 @@ class AudioContext extends EventTarget {
   @DomName('AudioContext.sampleRate')
   @DocsEditable()
   num get sampleRate => _blink.BlinkAudioContext.instance.sampleRate_Getter_(unwrap_jso(this));
+  
+  @DomName('AudioContext.state')
+  @DocsEditable()
+  @Experimental() // untriaged
+  String get state => _blink.BlinkAudioContext.instance.state_Getter_(unwrap_jso(this));
+  
+  @DomName('AudioContext.close')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future close() => wrap_jso(_blink.BlinkAudioContext.instance.close_Callback_0_(unwrap_jso(this)));
   
   @DomName('AudioContext.createAnalyser')
   @DocsEditable()
@@ -468,7 +493,7 @@ class AudioContext extends EventTarget {
   @DomName('AudioContext.createPeriodicWave')
   @DocsEditable()
   @Experimental() // untriaged
-  PeriodicWave createPeriodicWave(Float32List real, Float32List imag) => wrap_jso(_blink.BlinkAudioContext.instance.createPeriodicWave_Callback_2_(unwrap_jso(this), real, imag));
+  PeriodicWave createPeriodicWave(Float32List real, Float32List imag) => wrap_jso(_blink.BlinkAudioContext.instance.createPeriodicWave_Callback_2_(unwrap_jso(this), unwrap_jso(real), unwrap_jso(imag)));
   
   ScriptProcessorNode createScriptProcessor([int bufferSize, int numberOfInputChannels, int numberOfOutputChannels]) {
     if (numberOfOutputChannels != null) {
@@ -483,23 +508,34 @@ class AudioContext extends EventTarget {
     return wrap_jso(_blink.BlinkAudioContext.instance.createScriptProcessor_Callback_0_(unwrap_jso(this)));
   }
 
+  @DomName('AudioContext.createStereoPanner')
+  @DocsEditable()
+  @Experimental() // untriaged
+  StereoPannerNode createStereoPanner() => wrap_jso(_blink.BlinkAudioContext.instance.createStereoPanner_Callback_0_(unwrap_jso(this)));
+  
   @DomName('AudioContext.createWaveShaper')
   @DocsEditable()
   WaveShaperNode createWaveShaper() => wrap_jso(_blink.BlinkAudioContext.instance.createWaveShaper_Callback_0_(unwrap_jso(this)));
   
-  @DomName('AudioContext.decodeAudioData')
-  @DocsEditable()
-  void _decodeAudioData(ByteBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) => _blink.BlinkAudioContext.instance.decodeAudioData_Callback_3_(unwrap_jso(this), audioData, unwrap_jso((audioBuffer) => successCallback(wrap_jso(audioBuffer))), unwrap_jso((audioBuffer) => errorCallback(wrap_jso(audioBuffer))));
-  
-  @DomName('AudioContext.startRendering')
-  @DocsEditable()
-  void startRendering() => _blink.BlinkAudioContext.instance.startRendering_Callback_0_(unwrap_jso(this));
-  
-  /// Stream of `complete` events handled by this [AudioContext].
-  @DomName('AudioContext.oncomplete')
-  @DocsEditable()
-  Stream<Event> get onComplete => completeEvent.forTarget(this);
+  void _decodeAudioData(ByteBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) {
+    if (errorCallback != null) {
+      _blink.BlinkAudioContext.instance.decodeAudioData_Callback_3_(unwrap_jso(this), unwrap_jso(audioData), unwrap_jso((audioBuffer) => successCallback(wrap_jso(audioBuffer))), unwrap_jso((audioBuffer) => errorCallback(wrap_jso(audioBuffer))));
+      return;
+    }
+    _blink.BlinkAudioContext.instance.decodeAudioData_Callback_2_(unwrap_jso(this), unwrap_jso(audioData), unwrap_jso((audioBuffer) => successCallback(wrap_jso(audioBuffer))));
+    return;
+  }
 
+  @DomName('AudioContext.resume')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future resume() => wrap_jso(_blink.BlinkAudioContext.instance.resume_Callback_0_(unwrap_jso(this)));
+  
+  @DomName('AudioContext.suspend')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future suspend() => wrap_jso(_blink.BlinkAudioContext.instance.suspend_Callback_0_(unwrap_jso(this)));
+  
   @DomName('AudioContext.decodeAudioData')
   Future<AudioBuffer> decodeAudioData(ByteBuffer audioData) {
     var completer = new Completer<AudioBuffer>();
@@ -666,22 +702,62 @@ class AudioNode extends EventTarget {
   @DocsEditable()
   int get numberOfOutputs => _blink.BlinkAudioNode.instance.numberOfOutputs_Getter_(unwrap_jso(this));
   
-  void _connect(destination, int output, [int input]) {
-    if ((input is int || input == null) && (output is int || output == null) && (destination is AudioNode || destination == null)) {
+  void _connect(destination, [int output, int input]) {
+    if ((destination is AudioNode) && output == null && input == null) {
+      _blink.BlinkAudioNode.instance.connect_Callback_1_(unwrap_jso(this), unwrap_jso(destination));
+      return;
+    }
+    if ((output is int || output == null) && (destination is AudioNode) && input == null) {
+      _blink.BlinkAudioNode.instance.connect_Callback_2_(unwrap_jso(this), unwrap_jso(destination), output);
+      return;
+    }
+    if ((input is int || input == null) && (output is int || output == null) && (destination is AudioNode)) {
       _blink.BlinkAudioNode.instance.connect_Callback_3_(unwrap_jso(this), unwrap_jso(destination), output, input);
       return;
     }
-    if ((output is int || output == null) && (destination is AudioParam || destination == null) && input == null) {
+    if ((destination is AudioParam) && output == null && input == null) {
+      _blink.BlinkAudioNode.instance.connect_Callback_1_(unwrap_jso(this), unwrap_jso(destination));
+      return;
+    }
+    if ((output is int || output == null) && (destination is AudioParam) && input == null) {
       _blink.BlinkAudioNode.instance.connect_Callback_2_(unwrap_jso(this), unwrap_jso(destination), output);
       return;
     }
     throw new ArgumentError("Incorrect number or type of arguments");
   }
 
-  @DomName('AudioNode.disconnect')
-  @DocsEditable()
-  void disconnect(int output) => _blink.BlinkAudioNode.instance.disconnect_Callback_1_(unwrap_jso(this), output);
-  
+  void disconnect([destination_OR_output, int output, int input]) {
+    if (destination_OR_output == null && output == null && input == null) {
+      _blink.BlinkAudioNode.instance.disconnect_Callback_0_(unwrap_jso(this));
+      return;
+    }
+    if ((destination_OR_output is int) && output == null && input == null) {
+      _blink.BlinkAudioNode.instance.disconnect_Callback_1_(unwrap_jso(this), unwrap_jso(destination_OR_output));
+      return;
+    }
+    if ((destination_OR_output is AudioNode) && output == null && input == null) {
+      _blink.BlinkAudioNode.instance.disconnect_Callback_1_(unwrap_jso(this), unwrap_jso(destination_OR_output));
+      return;
+    }
+    if ((output is int) && (destination_OR_output is AudioNode) && input == null) {
+      _blink.BlinkAudioNode.instance.disconnect_Callback_2_(unwrap_jso(this), unwrap_jso(destination_OR_output), output);
+      return;
+    }
+    if ((input is int) && (output is int) && (destination_OR_output is AudioNode)) {
+      _blink.BlinkAudioNode.instance.disconnect_Callback_3_(unwrap_jso(this), unwrap_jso(destination_OR_output), output, input);
+      return;
+    }
+    if ((destination_OR_output is AudioParam) && output == null && input == null) {
+      _blink.BlinkAudioNode.instance.disconnect_Callback_1_(unwrap_jso(this), unwrap_jso(destination_OR_output));
+      return;
+    }
+    if ((output is int) && (destination_OR_output is AudioParam) && input == null) {
+      _blink.BlinkAudioNode.instance.disconnect_Callback_2_(unwrap_jso(this), unwrap_jso(destination_OR_output), output);
+      return;
+    }
+    throw new ArgumentError("Incorrect number or type of arguments");
+  }
+
   @DomName('AudioNode.connect')
   void connectNode(AudioNode destination, [int output = 0, int input = 0]) =>
       _connect(destination, output, input);
@@ -754,7 +830,7 @@ class AudioParam extends DartHtmlDomObject {
   
   @DomName('AudioParam.setValueCurveAtTime')
   @DocsEditable()
-  void setValueCurveAtTime(Float32List values, num time, num duration) => _blink.BlinkAudioParam.instance.setValueCurveAtTime_Callback_3_(unwrap_jso(this), values, time, duration);
+  void setValueCurveAtTime(Float32List values, num time, num duration) => _blink.BlinkAudioParam.instance.setValueCurveAtTime_Callback_3_(unwrap_jso(this), unwrap_jso(values), time, duration);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -879,7 +955,7 @@ class BiquadFilterNode extends AudioNode {
   
   @DomName('BiquadFilterNode.getFrequencyResponse')
   @DocsEditable()
-  void getFrequencyResponse(Float32List frequencyHz, Float32List magResponse, Float32List phaseResponse) => _blink.BlinkBiquadFilterNode.instance.getFrequencyResponse_Callback_3_(unwrap_jso(this), frequencyHz, magResponse, phaseResponse);
+  void getFrequencyResponse(Float32List frequencyHz, Float32List magResponse, Float32List phaseResponse) => _blink.BlinkBiquadFilterNode.instance.getFrequencyResponse_Callback_3_(unwrap_jso(this), unwrap_jso(frequencyHz), unwrap_jso(magResponse), unwrap_jso(phaseResponse));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1260,6 +1336,11 @@ class OfflineAudioContext extends AudioContext {
   OfflineAudioContext.internal_() : super.internal_();
 
 
+  @DomName('OfflineAudioContext.startRendering')
+  @DocsEditable()
+  @Experimental() // untriaged
+  Future startRendering() => wrap_jso(_blink.BlinkOfflineAudioContext.instance.startRendering_Callback_0_(unwrap_jso(this)));
+  
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -1314,14 +1395,6 @@ class OscillatorNode extends AudioSourceNode {
   @DomName('OscillatorNode.type')
   @DocsEditable()
   set type(String value) => _blink.BlinkOscillatorNode.instance.type_Setter_(unwrap_jso(this), value);
-  
-  @DomName('OscillatorNode.noteOff')
-  @DocsEditable()
-  void noteOff(num when) => _blink.BlinkOscillatorNode.instance.noteOff_Callback_1_(unwrap_jso(this), when);
-  
-  @DomName('OscillatorNode.noteOn')
-  @DocsEditable()
-  void noteOn(num when) => _blink.BlinkOscillatorNode.instance.noteOn_Callback_1_(unwrap_jso(this), when);
   
   @DomName('OscillatorNode.setPeriodicWave')
   @DocsEditable()
@@ -1556,6 +1629,38 @@ class ScriptProcessorNode extends AudioNode {
 
 
 @DocsEditable()
+@DomName('StereoPannerNode')
+@Experimental() // untriaged
+class StereoPannerNode extends AudioNode {
+  // To suppress missing implicit constructor warnings.
+  factory StereoPannerNode._() { throw new UnsupportedError("Not supported"); }
+
+
+  @Deprecated("Internal Use Only")
+  static StereoPannerNode internalCreateStereoPannerNode() {
+    return new StereoPannerNode._internalWrap();
+  }
+
+  external factory StereoPannerNode._internalWrap();
+
+  @Deprecated("Internal Use Only")
+  StereoPannerNode.internal_() : super.internal_();
+
+
+  @DomName('StereoPannerNode.pan')
+  @DocsEditable()
+  @Experimental() // untriaged
+  AudioParam get pan => wrap_jso(_blink.BlinkStereoPannerNode.instance.pan_Getter_(unwrap_jso(this)));
+  
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+
+@DocsEditable()
 @DomName('WaveShaperNode')
 // https://dvcs.w3.org/hg/audio/raw-file/tip/webaudio/specification.html#dfn-WaveShaperNode
 @Experimental()
@@ -1577,7 +1682,7 @@ class WaveShaperNode extends AudioNode {
 
   @DomName('WaveShaperNode.curve')
   @DocsEditable()
-  Float32List get curve => _blink.BlinkWaveShaperNode.instance.curve_Getter_(unwrap_jso(this));
+  Float32List get curve => wrap_jso(_blink.BlinkWaveShaperNode.instance.curve_Getter_(unwrap_jso(this)));
   
   @DomName('WaveShaperNode.curve')
   @DocsEditable()

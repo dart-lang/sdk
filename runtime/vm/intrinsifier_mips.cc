@@ -1538,7 +1538,7 @@ void Intrinsifier::DoubleToInteger(Assembler* assembler) {
   __ lw(T0, Address(SP, 0 * kWordSize));
   __ LoadDFromOffset(D0, T0, Double::value_offset() - kHeapObjectTag);
 
-  __ cvtwd(F2, D0);
+  __ truncwd(F2, D0);
   __ mfc1(V0, F2);
 
   // Overflow is signaled with minint.

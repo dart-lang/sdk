@@ -791,6 +791,7 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       mutex_(new Mutex()),
       symbols_mutex_(new Mutex()),
       type_canonicalization_mutex_(new Mutex()),
+      constant_canonicalization_mutex_(new Mutex()),
       saved_stack_limit_(0),
       deferred_interrupts_mask_(0),
       deferred_interrupts_(0),
@@ -856,6 +857,8 @@ Isolate::~Isolate() {
   symbols_mutex_ = NULL;
   delete type_canonicalization_mutex_;
   type_canonicalization_mutex_ = NULL;
+  delete constant_canonicalization_mutex_;
+  constant_canonicalization_mutex_ = NULL;
   delete message_handler_;
   message_handler_ = NULL;  // Fail fast if we send messages to a dead isolate.
   ASSERT(deopt_context_ == NULL);  // No deopt in progress when isolate deleted.
@@ -1947,7 +1950,13 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   jsobj.AddProperty("pauseOnExit", message_handler()->should_pause_on_exit());
 
   if (debugger() != NULL) {
-    if (message_handler()->is_paused_on_start()) {
+    if (!is_runnable()) {
+      // Isolate is not yet runnable.
+      ASSERT(debugger()->PauseEvent() == NULL);
+      ServiceEvent pause_event(this, ServiceEvent::kNone);
+      jsobj.AddProperty("pauseEvent", &pause_event);
+    } else if (message_handler()->is_paused_on_start() ||
+               message_handler()->should_pause_on_start()) {
       ASSERT(debugger()->PauseEvent() == NULL);
       ServiceEvent pause_event(this, ServiceEvent::kPauseStart);
       jsobj.AddProperty("pauseEvent", &pause_event);
@@ -2600,6 +2609,7 @@ void Isolate::UnscheduleThread(Thread* thread,
   thread->set_os_thread(NULL);
   thread->set_execution_state(Thread::kThreadInVM);
   thread->set_safepoint_state(0);
+  thread->clear_pending_functions();
   ASSERT(thread->no_safepoint_scope_depth() == 0);
   // Return thread structure.
   thread_registry()->ReturnThreadLocked(is_mutator, thread);

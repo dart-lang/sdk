@@ -57,7 +57,7 @@ class DartCompletionPlugin implements Plugin {
   /**
    * Return a list containing all of the Dart specific completion contributors.
    */
-  Iterable<DartCompletionContributorFactory> get contributors =>
+  Iterable<DartCompletionContributor> get contributors =>
       _contributorExtensionPoint.extensions
           .map((DartCompletionContributorFactory factory) => factory());
 

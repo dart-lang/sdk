@@ -172,6 +172,19 @@ String convertToAnalyzerTemplate(String template, holeOrder) {
   });
 }
 
+String camlToAllCaps(String input) {
+  StringBuffer out = new StringBuffer();
+  for (int i = 0; i < input.length; i++) {
+    String c = input[i];
+    if (c.toUpperCase() == c) {
+      out.write("_$c");
+    } else {
+      out.write(c.toUpperCase());
+    }
+  }
+  return out.toString();
+}
+
 /// Emits the messages in analyzer format.
 ///
 /// Messages are encoded as instances of `ErrorCode` classes where the
@@ -200,21 +213,25 @@ void emitAnalyzer() {
       "show ParserErrorCode;");
   input.forEach((name, message) {
     if (!message.usedBy.contains(Platform.analyzer)) return;
+    List<Category> categories = message.categories;
+    bool hasMultipleCategories = categories.length != 1;
+    for (Category category in categories) {
+      String className = category.name + "Code";
+      String analyzerName =
+          hasMultipleCategories ? "$name${camlToAllCaps(category.name)}" : name;
+      out.writeln();
+      out.writeln("const $className $analyzerName = const $className(");
+      out.writeln("    '$name',");
 
-    Category category = message.category;
-    String className = category.name + "Code";
-    out.writeln();
-    out.writeln("const $className $name = const $className(");
-    out.writeln("    '$name',");
-
-    String template = message.template;
-    List holeOrder = message.templateHoleOrder;
-    String analyzerTemplate = convertToAnalyzerTemplate(template, holeOrder);
-    out.write("    ");
-    out.write(escapeString(analyzerTemplate));
-    out.write(",\n    ");
-    out.write(escapeString(message.howToFix));
-    out.writeln(");  // Generated. Don't edit.");
+      String template = message.template;
+      List holeOrder = message.templateHoleOrder;
+      String analyzerTemplate = convertToAnalyzerTemplate(template, holeOrder);
+      out.write("    ");
+      out.write(escapeString(analyzerTemplate));
+      out.write(",\n    ");
+      out.write(escapeString(message.howToFix));
+      out.writeln(");  // Generated. Don't edit.");
+    }
   });
 
   new io.File(outPath).writeAsStringSync(out.toString());

@@ -858,7 +858,7 @@ Future testEnumDeclaration() {
       DiagnosticCollector collector = compiler.diagnosticCollector;
       Expect.equals(1, collector.warnings.length,
                     'Unexpected warnings: ${collector.warnings}');
-      Expect.equals(MessageKind.MEMBER_NOT_FOUND,
+      Expect.equals(MessageKind.UNDEFINED_GETTER,
                     collector.warnings.first.message.kind);
       Expect.equals(0, collector.errors.length,
                     'Unexpected errors: ${collector.errors}');
@@ -1265,7 +1265,7 @@ testCantAssignMethods() {
           mname = () => null;
         }
       }
-      ''', [MessageKind.SETTER_NOT_FOUND]);
+      ''', [MessageKind.UNDEFINED_SETTER]);
   checkWarningOn('''
       main() { new B().bar(); }
       class B {
@@ -1274,7 +1274,7 @@ testCantAssignMethods() {
           this.mname = () => null;
         }
       }
-      ''', [MessageKind.SETTER_NOT_FOUND]);
+      ''', [MessageKind.UNDEFINED_SETTER]);
 
   // Can't override super methods
   checkWarningOn('''
@@ -1289,7 +1289,7 @@ testCantAssignMethods() {
       }
       ''', [MessageKind.ASSIGNING_METHOD_IN_SUPER,
             // TODO(johnniwinther): Avoid duplicate warnings.
-            MessageKind.SETTER_NOT_FOUND]);
+            MessageKind.UNDEFINED_SETTER]);
 
   // But index operators should be OK
   checkWarningOn('''
@@ -1321,22 +1321,22 @@ testCantAssignFinalAndConsts() {
         final x = 1;
         x = 2;
       }
-      ''', [MessageKind.CANNOT_RESOLVE_SETTER]);
+      ''', [MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER]);
   checkWarningOn('''
       main() {
         const x = 1;
         x = 2;
       }
-      ''', [MessageKind.CANNOT_RESOLVE_SETTER]);
+      ''', [MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER]);
   checkWarningOn('''
       final x = 1;
       main() { x = 3; }
-      ''', [MessageKind.CANNOT_RESOLVE_SETTER]);
+      ''', [MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER]);
 
   checkWarningOn('''
       const x = 1;
       main() { x = 3; }
-      ''', [MessageKind.CANNOT_RESOLVE_SETTER]);
+      ''', [MessageKind.UNDEFINED_STATIC_SETTER_BUT_GETTER]);
 
   // Detect assignments to final fields:
   checkWarningOn('''
@@ -1345,7 +1345,7 @@ testCantAssignFinalAndConsts() {
         final x = 1;
         m() { x = 2; }
       }
-      ''', [MessageKind.SETTER_NOT_FOUND]);
+      ''', [MessageKind.UNDEFINED_SETTER]);
 
   // ... even if 'this' is explicit:
   checkWarningOn('''
@@ -1354,7 +1354,7 @@ testCantAssignFinalAndConsts() {
         final x = 1;
         m() { this.x = 2; }
       }
-      ''', [MessageKind.SETTER_NOT_FOUND]);
+      ''', [MessageKind.UNDEFINED_SETTER]);
 
   // ... and in super class:
   checkWarningOn('''
@@ -1367,7 +1367,7 @@ testCantAssignFinalAndConsts() {
       }
       ''', [MessageKind.ASSIGNING_FINAL_FIELD_IN_SUPER,
             // TODO(johnniwinther): Avoid duplicate warnings.
-            MessageKind.SETTER_NOT_FOUND]);
+            MessageKind.UNDEFINED_SETTER]);
 
   // But non-final fields are OK:
   checkWarningOn('''
@@ -1389,9 +1389,9 @@ testCantAssignFinalAndConsts() {
       class B extends A {
         m() { super.x = 2; }
       }
-      ''', [MessageKind.SETTER_NOT_FOUND_IN_SUPER,
+      ''', [MessageKind.UNDEFINED_SUPER_SETTER,
             // TODO(johnniwinther): Avoid duplicate warnings.
-            MessageKind.SETTER_NOT_FOUND]);
+            MessageKind.UNDEFINED_SETTER]);
 }
 
 /// Helper to test that [script] produces all the given [warnings].

@@ -249,8 +249,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // there is a throw expression in a short-circuit conditional.  Removing the
     // unreachable HBoolify makes it easier to reconstruct the short-circuit
     // operation.
-    if (input.instructionType.isEmpty && !input.instructionType.isNullable)
-      return input;
+    if (input.instructionType.isEmpty) return input;
 
     // All values that cannot be 'true' are boolified to false.
     TypeMask mask = input.instructionType;

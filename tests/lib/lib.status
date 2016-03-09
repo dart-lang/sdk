@@ -336,11 +336,17 @@ async/async_await_zones_test: Crash # (await for(var x in bar().take(100)){sum+=
 async/stream_iterator_test: Crash # (Stream createCancel...  cannot handle sync*/async* functions
 mirrors/parameter_annotation_mirror_test: Pass, Fail # Issue 25501.  Depends on inlining.
 
-[ $compiler == dart2js && $cps_ir && $host_checked ]
-mirrors/circular_factory_redirection_test/02: Crash # Assertion failure: Constant constructor already computed for generative_constructor(A#circular2)
-mirrors/mirrors_used_typedef_declaration_test/01: Crash # Assertion failure: typedef(Foo) has not been checked for cycles.
-mirrors/mirrors_used_typedef_declaration_test/none: Crash # Assertion failure: typedef(Foo) has not been checked for cycles.
-mirrors/typedef_library_test: Crash # Assertion failure: typedef(G) has not been checked for cycles.
+[ $compiler == dart2js && $host_checked ]
+mirrors/circular_factory_redirection_test/02: Crash # Assertion failure: Constant constructor already computed for generative_constructor(A#circular2).  Issue 25911
+mirrors/metadata_allowed_values_test/28: Crash # Issue 25911
+mirrors/metadata_allowed_values_test/29: Crash # Issue 25911
+mirrors/metadata_allowed_values_test/30: Crash # Issue 25911
+mirrors/metadata_allowed_values_test/31: Crash # Issue 25911
+
+[ $compiler == dart2js && $host_checked && $unchecked ]
+mirrors/mirrors_used_typedef_declaration_test/01: Crash # Assertion failure: typedef(Foo) has not been checked for cycles. Issue 25911
+mirrors/mirrors_used_typedef_declaration_test/none: Crash # Assertion failure: typedef(Foo) has not been checked for cycles. Issue 25911
+mirrors/typedef_library_test: Crash # Assertion failure: typedef(G) has not been checked for cycles. Issue 25911
 
 [ $compiler != dart2js ]
 async/dart2js_uncaught_error_test: Skip  # JS-integration only test
@@ -348,11 +354,9 @@ async/dart2js_uncaught_error_test: Skip  # JS-integration only test
 [ $noopt && $arch == simarm64 ]
 async/slow_consumer2_test: Pass, RuntimeError # Issue 25726
 
-[ $noopt || $compiler == precompiler ]
+[ $noopt || $compiler == precompiler || $mode == product ]
 mirrors/*: SkipByDesign
+
+[ $noopt || $compiler == precompiler ]
 convert/chunked_conversion_utf88_test: Pass, Timeout
 convert/utf85_test: Pass, Timeout
-
-[ $runtime == vm && $mode == product ]
-mirrors/mirrors_reader_test: Fail,OK  # Expects exact type name.
-

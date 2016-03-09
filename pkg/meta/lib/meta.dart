@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/// Constants for use in metadata annotations such as `@protected`.
+/// Constants for use in metadata annotations.
 ///
 /// See also `@deprecated` and `@override` in the `dart:core` library.
 ///
@@ -84,7 +84,26 @@ const _Protected protected = const _Protected();
 ///   name that does not have this annotation, or
 /// * an invocation of a method or function does not include an argument
 ///   corresponding to a named parameter that has this annotation.
-const _Required required = const _Required();
+const Required required = const Required();
+
+/// Used to annotate a named parameter `p` in a method or function `f`.
+///
+/// See [required] for more details.
+class Required {
+  /// A human-readable explanation of the reason why the annotated parameter is
+  /// required. For example, the annotation might look like:
+  ///
+  ///     ButtonWidget({
+  ///         Function onHover,
+  ///         @Required('Buttons must do something when pressed')
+  ///         Function onPressed,
+  ///         ...
+  ///     }) ...
+  final String reason;
+
+  /// Initialize a newly created instance to have the given [reason].
+  const Required([this.reason]);
+}
 
 class _Factory {
   const _Factory();
@@ -100,8 +119,4 @@ class _MustCallSuper {
 
 class _Protected {
   const _Protected();
-}
-
-class _Required {
-  const _Required();
 }
