@@ -33,8 +33,8 @@ class GetTypeHierarchyTest extends AbstractAnalysisTest {
   @override
   void setUp() {
     super.setUp();
-    server.handlers = [new SearchDomainHandler(server),];
     createProject();
+    server.handlers = [new SearchDomainHandler(server),];
   }
 
   test_bad_function() async {

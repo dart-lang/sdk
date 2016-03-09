@@ -94,8 +94,8 @@ class AbstractSearchDomainTest extends AbstractAnalysisTest {
   @override
   void setUp() {
     super.setUp();
-    server.handlers = [new SearchDomainHandler(server),];
     createProject();
+    server.handlers = [new SearchDomainHandler(server),];
   }
 
   Future waitForSearchResults() {

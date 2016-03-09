@@ -1528,7 +1528,7 @@ class FixProcessor {
         }
         // prepare LibraryElement
         LibraryElement libraryElement =
-            context.getResult(librarySource, LIBRARY_ELEMENT8);
+            context.getResult(librarySource, LIBRARY_ELEMENT4);
         if (libraryElement == null) {
           continue;
         }
