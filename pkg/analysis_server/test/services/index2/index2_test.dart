@@ -180,6 +180,29 @@ main(A a, p) {
     findLocationTest(locations, 'test); // p-ref-ur-q');
   }
 
+  test_indexUnit_nullUnit() async {
+    index.indexUnit(null);
+  }
+
+  test_indexUnit_nullUnitElement() async {
+    resolveTestUnit('');
+    testUnit.element = null;
+    index.indexUnit(testUnit);
+  }
+
+  test_removeContext() async {
+    _indexTestUnit('''
+class A {}
+''');
+    RegExp regExp = new RegExp(r'^A$');
+    expect(await index.getDefinedNames(regExp, IndexNameKind.topLevel),
+        hasLength(1));
+    // remove the context - no
+    index.removeContext(context);
+    expect(
+        await index.getDefinedNames(regExp, IndexNameKind.topLevel), isEmpty);
+  }
+
   /**
    * Assert that the given list of [locations] has a [Location] corresponding
    * to the [element].
