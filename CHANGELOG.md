@@ -1,16 +1,4 @@
-## 1.15.0
-
-### Language features
-* Added support for [configuration-specific imports](https://github.com/munificent/dep-interface-libraries/blob/master/Proposal.md).
-  On the VM and dart2js, they can be enabled with `--conditional-directives`.
-
-  The analyzer requires an additional option in an `options` file:
-  ```yaml
-  analyzer:
-    language:
-      enableConditionalDirectives: true
-  ```
-  Then run the analyzer with `--options=<path-to-options-file>`.
+## 1.15.0 - 2016-03-09
 
 ### Core library changes
 
@@ -34,6 +22,37 @@
     optional named parameter `password`, similar to
     `SecurityContext.usePrivateKeyBytes`, for use as the password for PKCS12
     data.
+
+### Dartium
+
+  * The Chrome-based tools that ship as part of the Dart SDK – Dartium and
+    content shell – are now based on Chrome version 45 (instead of Chrome 39).
+  * Dart browser libraries (`dart:html`, `dart:svg`, etc) have not been updated.
+    * These are still based on Chrome 39.
+    * These APIs will be updated in a future release.
+  * Note that there are experimental APIs which have changed in the underlying
+    browser, and will not work with the older libraries.
+    For example, `Element.animate`.
+
+### Service protocol changes
+
+* Fixed a documentation bug where the field `extensionRPCs` in `Isolate`
+  was not marked optional.
+
+### Experimental language features
+  * Added support for [configuration-specific imports](https://github.com/munificent/dep-interface-libraries/blob/master/Proposal.md).
+    On the VM and `dart2js`, they can be enabled with `--conditional-directives`.
+
+    The analyzer requires additional configuration:
+    ```yaml
+    analyzer:
+      language:
+        enableConditionalDirectives: true
+    ```
+
+    Read about [configuring the analyzer] for more details.
+
+[configuring the analyzer]: https://github.com/dart-lang/sdk/tree/master/pkg/analyzer#configuring-the-analyzer
 
 ## 1.14.2 - 2016-02-09
 
