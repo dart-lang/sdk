@@ -275,7 +275,7 @@ class Page extends HtmlGen {
     endTag();
   }
 
-  void navItems(String category, List<SummaryInfo> infos) {
+  void navItems(String category, Iterable<SummaryInfo> infos) {
     if (infos.isEmpty) return;
 
     span(c: "menu-heading", text: category);

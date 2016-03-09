@@ -12,6 +12,7 @@ export CHROME_CANARY_BIN=`./tool/get_chrome_canary.sh`
 
 echo "*** Testing pub build + DDC transformer"
 cd test/transformer/hello_app
+rm -f pubspec.lock
 pub get
 pub build
 echo "*** Pub build finished"

@@ -272,7 +272,10 @@ class BatchCompiler extends AbstractCompiler {
 
     var loadedLibs = new LinkedHashSet<Uri>();
 
-    var htmlOutDir = path.dirname(getOutputPath(source.uri));
+    // If we're generating code, convert the HTML file as well.
+    // Otherwise, just search for Dart sources to analyze.
+    var htmlOutDir =
+        _jsGen != null ? path.dirname(getOutputPath(source.uri)) : null;
     for (var script in scripts) {
       Source scriptSource = null;
       var srcAttr = script.attributes['src'];
@@ -295,12 +298,16 @@ class BatchCompiler extends AbstractCompiler {
       if (scriptSource != null) {
         var lib = context.computeLibraryElement(scriptSource);
         _compileLibrary(lib, notifier);
-        script.replaceWith(_linkLibraries(lib, loadedLibs, from: htmlOutDir));
+        if (htmlOutDir != null) {
+          script.replaceWith(_linkLibraries(lib, loadedLibs, from: htmlOutDir));
+        }
       }
     }
 
-    fileSystem.writeAsStringSync(
-        getOutputPath(source.uri), document.outerHtml + '\n');
+    if (htmlOutDir != null) {
+      fileSystem.writeAsStringSync(
+          getOutputPath(source.uri), document.outerHtml + '\n');
+    }
   }
 
   html.DocumentFragment _linkLibraries(
