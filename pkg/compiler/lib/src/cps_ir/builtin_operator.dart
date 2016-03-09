@@ -5,6 +5,8 @@ library builtin_operator;
 // This is shared by the CPS and Tree IRs.
 // Both cps_ir_nodes and tree_ir_nodes import and re-export this file.
 
+import 'effects.dart';
+
 /// An operator supported natively in the CPS and Tree IRs using the
 /// `ApplyBuiltinOperator` instructions.
 ///
@@ -18,7 +20,7 @@ library builtin_operator;
 /// In all cases, the word "null" refers to the Dart null object, corresponding
 /// to both JS null and JS undefined.
 ///
-/// Some operators, notably [IsFloor] and [IsNumberAndFloor], take "repeated"
+/// Some operators, notably [IsFloor] and [IsInteger], take "repeated"
 /// arguments to reflect the number of times the given value is referenced
 /// by the generated code. The tree IR needs to know the number of references
 /// to safely propagate assignments.
@@ -133,7 +135,28 @@ enum BuiltinOperator {
   /// The argument must be repeated 3 times.
   ///
   /// Compiles to `typeof x === 'number' && Math.floor(x) === x`
-  IsNumberAndFloor,
+  IsInteger,
+
+  /// Returns true if the argument is not an integer.
+  ///
+  /// The argument must be repeated 3 times.
+  ///
+  /// Compiles to `typeof x !== 'number' || Math.floor(x) !== x`
+  IsNotInteger,
+
+  /// Returns true if `x` is an unsigned 32-bit integer.
+  ///
+  /// The argument must be repeated 2 times.
+  ///
+  /// Compiles to `x >>> 0 === x`
+  IsUnsigned32BitInteger,
+
+  /// Returns false if `x` is an unsigned 32-bit integer.
+  ///
+  /// The argument must be repeated 2 times.
+  ///
+  /// Compiles to `x >>> 0 !== x`
+  IsNotUnsigned32BitInteger,
 
   /// Returns true if the argument is a fixed length Array.
   ///
@@ -166,7 +189,7 @@ enum BuiltinOperator {
 /// but may not depend on or mutate any other state. An exception is thrown
 /// if the object is null, but otherwise they cannot throw or diverge.
 enum BuiltinMethod {
-  /// Add an item to a native list.
+  /// Add an item to an array.
   ///
   /// Takes any number of arguments, each argument will be added to the
   /// list on the order given (as per the JS `push` method).
@@ -174,12 +197,17 @@ enum BuiltinMethod {
   /// Compiles to `object.push(x1, ..., xN)`.
   Push,
 
-  /// Remove and return the last item from a native list.
+  /// Remove and return the last item from an array.
   ///
   /// Takes no arguments.
   ///
   /// Compiles to `object.pop()`.
   Pop,
+
+  /// Sets the length of the array.
+  ///
+  /// Compiles to `object.length = x1`.
+  SetLength,
 }
 
 /// True for the built-in operators that may be used in a compound assignment.
@@ -194,5 +222,19 @@ bool isCompoundableOperator(BuiltinOperator operator) {
       return true;
     default:
       return false;
+  }
+}
+
+int getEffectsOfBuiltinMethod(BuiltinMethod method) {
+  switch (method) {
+    case BuiltinMethod.Push:
+      return Effects.changesIndexableContent |
+             Effects.changesIndexableLength;
+    case BuiltinMethod.Pop:
+      return Effects.dependsOnIndexableContent |
+             Effects.dependsOnIndexableLength |
+             Effects.changesIndexableLength;
+    case BuiltinMethod.SetLength:
+      return Effects.changesIndexableLength;
   }
 }

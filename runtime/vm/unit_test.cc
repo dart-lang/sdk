@@ -8,8 +8,10 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/isolate_data.h"
 
 #include "platform/globals.h"
+
 #include "vm/assembler.h"
 #include "vm/ast_printer.h"
 #include "vm/compiler.h"
@@ -24,8 +26,6 @@ using dart::bin::Builtin;
 using dart::bin::DartUtils;
 
 namespace dart {
-
-DECLARE_FLAG(bool, disassemble);
 
 TestCaseBase* TestCaseBase::first_ = NULL;
 TestCaseBase* TestCaseBase::tail_ = NULL;
@@ -49,6 +49,21 @@ void TestCaseBase::RunAll() {
   }
 }
 
+
+Dart_Isolate TestCase::CreateIsolate(const uint8_t* buffer, const char* name) {
+  bin::IsolateData* isolate_data = new bin::IsolateData(name, NULL, NULL);
+  char* err;
+  Dart_Isolate isolate = Dart_CreateIsolate(
+      name, NULL, buffer, NULL, isolate_data, &err);
+  if (isolate == NULL) {
+    OS::Print("Creation of isolate failed '%s'\n", err);
+    free(err);
+  }
+  EXPECT(isolate != NULL);
+  return isolate;
+}
+
+
 static const char* kPackageScheme = "package:";
 
 static bool IsPackageSchemeURL(const char* url_name) {
@@ -56,12 +71,11 @@ static bool IsPackageSchemeURL(const char* url_name) {
   return (strncmp(url_name, kPackageScheme, kPackageSchemeLen) == 0);
 }
 
-static Dart_Handle ResolvePackageUri(Dart_Handle builtin_lib,
-                                     const char* uri_chars) {
+static Dart_Handle ResolvePackageUri(const char* uri_chars) {
   const int kNumArgs = 1;
   Dart_Handle dart_args[kNumArgs];
   dart_args[0] = DartUtils::NewString(uri_chars);
-  return Dart_Invoke(builtin_lib,
+  return Dart_Invoke(DartUtils::BuiltinLib(),
                      DartUtils::NewString("_filePathFromUri"),
                      kNumArgs,
                      dart_args);
@@ -88,10 +102,6 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     return result;
   }
 
-  Dart_Handle builtin_lib =
-      Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
-  DART_CHECK_VALID(builtin_lib);
-
   bool is_dart_scheme_url = DartUtils::IsDartSchemeURL(url_chars);
   bool is_io_library = DartUtils::IsDartIOLibURL(library_url_string);
   if (tag == Dart_kCanonicalizeUrl) {
@@ -105,7 +115,7 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     if (Dart_IsError(library_url)) {
       return library_url;
     }
-    return DartUtils::ResolveUri(library_url, url, builtin_lib);
+    return DartUtils::ResolveUri(library_url, url);
   }
   if (is_dart_scheme_url) {
     ASSERT(tag == Dart_kImportTag);
@@ -113,7 +123,7 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
     if (DartUtils::IsDartIOLibURL(url_chars)) {
       return Builtin::LoadAndCheckLibrary(Builtin::kIOLibrary);
     } else if (DartUtils::IsDartBuiltinLibURL(url_chars)) {
-      return builtin_lib;
+      return Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
     } else {
       return DartUtils::NewError("Do not know how to load '%s'", url_chars);
     }
@@ -127,7 +137,7 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
                            0, 0);
   }
   if (IsPackageSchemeURL(url_chars)) {
-    Dart_Handle resolved_uri = ResolvePackageUri(builtin_lib, url_chars);
+    Dart_Handle resolved_uri = ResolvePackageUri(url_chars);
     DART_CHECK_VALID(resolved_uri);
     url_chars = NULL;
     Dart_Handle result = Dart_StringToCString(resolved_uri, &url_chars);
@@ -200,12 +210,15 @@ char* TestCase::BigintToHexValue(Dart_CObject* bigint) {
 void AssemblerTest::Assemble() {
   const String& function_name = String::ZoneHandle(Symbols::New(name_));
   const Class& cls = Class::ZoneHandle(
-      Class::New(function_name, Script::Handle(), 0));
+      Class::New(function_name,
+                 Script::Handle(),
+                 TokenPosition::kMinSource));
   const Library& lib = Library::ZoneHandle(Library::New(function_name));
   cls.set_library(lib);
   Function& function = Function::ZoneHandle(
       Function::New(function_name, RawFunction::kRegularFunction,
-                    true, false, false, false, false, cls, 0));
+                    true, false, false, false, false, cls,
+                    TokenPosition::kMinSource));
   code_ = Code::FinalizeCode(function, assembler_);
   if (FLAG_disassemble) {
     OS::Print("Code for test '%s' {\n", name_);
@@ -220,7 +233,7 @@ void AssemblerTest::Assemble() {
 
 CodeGenTest::CodeGenTest(const char* name)
   : function_(Function::ZoneHandle()),
-    node_sequence_(new SequenceNode(0,
+    node_sequence_(new SequenceNode(TokenPosition::kMinSource,
                                     new LocalScope(NULL, 0, 0))),
     default_parameter_values_(new ZoneGrowableArray<const Instance*> ()) {
   ASSERT(name != NULL);
@@ -228,10 +241,11 @@ CodeGenTest::CodeGenTest(const char* name)
   // Add function to a class and that class to the class dictionary so that
   // frame walking can be used.
   const Class& cls = Class::ZoneHandle(
-       Class::New(function_name, Script::Handle(), 0));
+       Class::New(function_name, Script::Handle(),
+                  TokenPosition::kMinSource));
   function_ = Function::New(
       function_name, RawFunction::kRegularFunction,
-      true, false, false, false, false, cls, 0);
+      true, false, false, false, false, cls, TokenPosition::kMinSource);
   function_.set_result_type(Type::Handle(Type::DynamicType()));
   const Array& functions = Array::Handle(Array::New(1));
   functions.SetAt(0, function_);

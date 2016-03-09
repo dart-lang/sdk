@@ -4,8 +4,6 @@
 
 library analyzer.src.generated.java_core;
 
-const int LONG_MAX_VALUE = 0x7fffffffffffffff;
-
 final Stopwatch nanoTimeStopwatch = new Stopwatch();
 
 /**
@@ -17,6 +15,8 @@ final Stopwatch nanoTimeStopwatch = new Stopwatch();
  */
 String format(String pattern,
     [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7]) {
+  // TODO(rnystrom): This is not used by analyzer, but is called by
+  // analysis_server. Move this code there and remove it from here.
   return formatList(pattern, [arg0, arg1, arg2, arg3, arg4, arg5, arg6, arg7]);
 }
 
@@ -39,35 +39,6 @@ String formatList(String pattern, List<Object> arguments) {
     assert(arg != null);
     return arg != null ? arg.toString() : null;
   });
-}
-
-bool javaCollectionContainsAll(Iterable list, Iterable c) {
-  return c.fold(true, (bool prev, e) => prev && list.contains(e));
-}
-
-javaListSet(List list, int index, newValue) {
-  var oldValue = list[index];
-  list[index] = newValue;
-  return oldValue;
-}
-
-bool javaSetEquals(Set a, Set b) {
-  return a.containsAll(b) && b.containsAll(a);
-}
-
-bool javaStringEqualsIgnoreCase(String a, String b) {
-  return a.toLowerCase() == b.toLowerCase();
-}
-
-bool javaStringRegionMatches(
-    String t, int toffset, String o, int ooffset, int len) {
-  if (toffset < 0) return false;
-  if (ooffset < 0) return false;
-  var tend = toffset + len;
-  var oend = ooffset + len;
-  if (tend > t.length) return false;
-  if (oend > o.length) return false;
-  return t.substring(toffset, tend) == o.substring(ooffset, oend);
 }
 
 /// Parses given string to [Uri], throws [URISyntaxException] if invalid.
@@ -130,6 +101,7 @@ class Character {
   static const int MIN_SUPPLEMENTARY_CODE_POINT = 0x010000;
   static const int MIN_LOW_SURROGATE = 0xDC00;
   static const int MIN_HIGH_SURROGATE = 0xD800;
+
   static int digit(int codePoint, int radix) {
     if (radix != 16) {
       throw new ArgumentError("only radix == 16 is supported");
@@ -146,29 +118,15 @@ class Character {
     return -1;
   }
 
-  static bool isDigit(int c) {
-    return c >= 0x30 && c <= 0x39;
-  }
+  static bool isDigit(int c) => c >= 0x30 && c <= 0x39;
 
-  static bool isLetter(int c) {
-    return c >= 0x41 && c <= 0x5A || c >= 0x61 && c <= 0x7A;
-  }
+  static bool isLetter(int c) =>
+      c >= 0x41 && c <= 0x5A || c >= 0x61 && c <= 0x7A;
 
-  static bool isLetterOrDigit(int c) {
-    return isLetter(c) || isDigit(c);
-  }
+  static bool isLetterOrDigit(int c) => isLetter(c) || isDigit(c);
 
-  static bool isLowerCase(int c) {
-    return c >= 0x61 && c <= 0x7A;
-  }
-
-  static bool isUpperCase(int c) {
-    return c >= 0x41 && c <= 0x5A;
-  }
-
-  static bool isWhitespace(int c) {
-    return c == 0x09 || c == 0x20 || c == 0x0A || c == 0x0D;
-  }
+  static bool isWhitespace(int c) =>
+      c == 0x09 || c == 0x20 || c == 0x0A || c == 0x0D;
 
   static String toChars(int codePoint) {
     if (codePoint < 0 || codePoint > MAX_CODE_POINT) {
@@ -181,20 +139,6 @@ class Character {
     int c0 = ((offset & 0x7FFFFFFF) >> 10) + MIN_HIGH_SURROGATE;
     int c1 = (offset & 0x3ff) + MIN_LOW_SURROGATE;
     return new String.fromCharCodes([c0, c1]);
-  }
-
-  static int toLowerCase(int c) {
-    if (c >= 0x41 && c <= 0x5A) {
-      return 0x61 + (c - 0x41);
-    }
-    return c;
-  }
-
-  static int toUpperCase(int c) {
-    if (c >= 0x61 && c <= 0x7A) {
-      return 0x41 + (c - 0x61);
-    }
-    return c;
   }
 }
 
@@ -220,23 +164,9 @@ class IllegalStateException extends JavaException {
 }
 
 class JavaArrays {
-  static bool equals(List a, List b) {
-    if (identical(a, b)) {
-      return true;
-    }
-    if (a.length != b.length) {
-      return false;
-    }
-    var len = a.length;
-    for (int i = 0; i < len; i++) {
-      if (a[i] != b[i]) {
-        return false;
-      }
-    }
-    return true;
-  }
-
   static int makeHashCode(List a) {
+    // TODO(rnystrom): This is not used by analyzer, but is called by
+    // analysis_server. Move this code there and remove it from here.
     if (a == null) {
       return 0;
     }
@@ -250,7 +180,7 @@ class JavaArrays {
 
 class JavaException implements Exception {
   final String message;
-  final Exception cause;
+  final Object cause;
   JavaException([this.message = "", this.cause = null]);
   JavaException.withCause(this.cause) : message = null;
   String toString() => "$runtimeType: $message $cause";
@@ -291,10 +221,6 @@ class JavaString {
     if (fromIndex > target.length) return -1;
     if (fromIndex < 0) fromIndex = 0;
     return target.lastIndexOf(str, fromIndex);
-  }
-
-  static bool startsWithBefore(String s, String other, int start) {
-    return s.indexOf(other, start) != -1;
   }
 }
 

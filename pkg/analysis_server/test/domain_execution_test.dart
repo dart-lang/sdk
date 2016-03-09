@@ -48,7 +48,7 @@ main() {
           null,
           serverPlugin,
           new AnalysisServerOptions(),
-          new MockSdk(),
+          () => new MockSdk(),
           InstrumentationService.NULL_SERVICE);
       handler = new ExecutionDomainHandler(server);
     });
@@ -124,8 +124,9 @@ main() {
 
       group('file to URI', () {
         test('does not exist', () {
-          Request request = new ExecutionMapUriParams(contextId,
-              file: '/a/c.dart').toRequest('2');
+          Request request =
+              new ExecutionMapUriParams(contextId, file: '/a/c.dart')
+                  .toRequest('2');
           Response response = handler.handleRequest(request);
           expect(response, isResponseFailure('2'));
         });
@@ -141,8 +142,9 @@ main() {
 
       group('URI to file', () {
         test('invalid', () {
-          Request request = new ExecutionMapUriParams(contextId,
-              uri: 'foo:///a/b.dart').toRequest('2');
+          Request request =
+              new ExecutionMapUriParams(contextId, uri: 'foo:///a/b.dart')
+                  .toRequest('2');
           Response response = handler.handleRequest(request);
           expect(response, isResponseFailure('2'));
         });
@@ -221,7 +223,7 @@ main() {
       when(manager.isInAnalysisRoot(anyString)).thenReturn(true);
 
       AnalysisServer server = new AnalysisServerMock();
-      when(server.getAnalysisContexts()).thenReturn([context]);
+      when(server.analysisContexts).thenReturn([context]);
       when(server.contextManager).thenReturn(manager);
 
       StreamController controller = new StreamController.broadcast(sync: true);
@@ -299,7 +301,7 @@ class ExecutionDomainTest extends AbstractAnalysisTest {
   }
 
   void test_mapUri_file_dartUriKind() {
-    String path = server.defaultSdk.mapDartUri('dart:async').fullName;
+    String path = server.findSdk().mapDartUri('dart:async').fullName;
     // hack - pretend that the SDK file exists in the project FS
     resourceProvider.newFile(path, '// hack');
     // map file

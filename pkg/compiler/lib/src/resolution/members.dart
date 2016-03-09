@@ -665,8 +665,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       if (identical(string, '!') ||
           identical(string, '&&') || identical(string, '||') ||
           identical(string, 'is') || identical(string, 'as') ||
-          identical(string, '?') || identical(string, '??') ||
-          identical(string, '>>>')) {
+          identical(string, '?') || identical(string, '??')) {
         return null;
       }
       String op = source;
@@ -3658,9 +3657,9 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitRethrow(Rethrow node) {
-    if (!inCatchBlock) {
+    if (!inCatchBlock && node.throwToken.stringValue == 'rethrow') {
       reporter.reportErrorMessage(
-          node, MessageKind.THROW_WITHOUT_EXPRESSION);
+          node, MessageKind.RETHROW_OUTSIDE_CATCH);
     }
     return const NoneResult();
   }
@@ -3674,7 +3673,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         // Specification 13.12.)
         reporter.reportErrorMessage(
             expression,
-            MessageKind.CANNOT_RETURN_FROM_CONSTRUCTOR);
+            MessageKind.RETURN_IN_GENERATIVE_CONSTRUCTOR);
       } else if (!node.isArrowBody && currentAsyncMarker.isYielding) {
         reporter.reportErrorMessage(
             node,

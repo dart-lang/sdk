@@ -372,6 +372,7 @@ class StatementRewriter extends Transformer implements Pass {
            exp is CreateInvocationMirror ||
            exp is CreateInstance ||
            exp is CreateBox ||
+           exp is TypeExpression ||
            exp is GetStatic && exp.element.isFunction ||
            exp is Interceptor ||
            exp is ApplyBuiltinOperator ||
@@ -579,13 +580,11 @@ class StatementRewriter extends Transformer implements Pass {
   }
 
   Expression visitLogicalOperator(LogicalOperator node) {
-    node.left = visitExpression(node.left);
-
     // Impure expressions may not propagate across the branch.
     inEmptyEnvironment(() {
       node.right = visitExpression(node.right);
     });
-
+    node.left = visitExpression(node.left);
     return node;
   }
 
@@ -739,29 +738,30 @@ class StatementRewriter extends Transformer implements Pass {
     return node;
   }
 
-  Expression visitLiteralMap(LiteralMap node) {
-    // Process arguments right-to-left, the opposite of evaluation order.
-    for (LiteralMapEntry entry in node.entries.reversed) {
-      entry.value = visitExpression(entry.value);
-      entry.key = visitExpression(entry.key);
-    }
-    return node;
-  }
-
   Expression visitTypeOperator(TypeOperator node) {
     _rewriteList(node.typeArguments);
     node.value = visitExpression(node.value);
     return node;
   }
 
-  bool sameVariable(Expression e1, Expression e2) {
-    return e1 is VariableUse && e2 is VariableUse && e1.variable == e2.variable;
-  }
-
   bool isCompoundableBuiltin(Expression e) {
     return e is ApplyBuiltinOperator &&
-           e.arguments.length == 2 &&
+           e.arguments.length >= 2 &&
            isCompoundableOperator(e.operator);
+  }
+
+  /// Converts a compoundable operator application into the right-hand side for
+  /// use in a compound assignment, discarding the left-hand value.
+  ///
+  /// For example, for `x + y + z` it returns `y + z`.
+  Expression contractCompoundableBuiltin(ApplyBuiltinOperator e) {
+    assert(isCompoundableBuiltin(e));
+    if (e.arguments.length > 2) {
+      assert(e.operator == BuiltinOperator.StringConcatenate);
+      return new ApplyBuiltinOperator(e.operator, e.arguments.skip(1).toList());
+    } else {
+      return e.arguments[1];
+    }
   }
 
   void destroyVariableUse(VariableUse node) {
@@ -774,13 +774,12 @@ class StatementRewriter extends Transformer implements Pass {
     if (isCompoundableBuiltin(node.value)) {
       ApplyBuiltinOperator rhs = node.value;
       Expression left = rhs.arguments[0];
-      Expression right = rhs.arguments[1];
       if (left is GetField &&
           left.field == node.field &&
-          sameVariable(left.object, node.object)) {
-        destroyVariableUse(left.object);
+          samePrimary(left.object, node.object)) {
+        destroyPrimaryExpression(left.object);
         node.compound = rhs.operator;
-        node.value = right;
+        node.value = contractCompoundableBuiltin(rhs);
       }
     }
     node.object = visitExpression(node.object);
@@ -800,6 +799,16 @@ class StatementRewriter extends Transformer implements Pass {
   Expression visitSetStatic(SetStatic node) {
     allowRhsPropagation.add(true);
     node.value = visitExpression(node.value);
+    if (isCompoundableBuiltin(node.value)) {
+      ApplyBuiltinOperator rhs = node.value;
+      Expression left = rhs.arguments[0];
+      if (left is GetStatic &&
+          left.element == node.element &&
+          !left.useLazyGetter) {
+        node.compound = rhs.operator;
+        node.value = contractCompoundableBuiltin(rhs);
+      }
+    }
     allowRhsPropagation.removeLast();
     return node;
   }
@@ -814,6 +823,9 @@ class StatementRewriter extends Transformer implements Pass {
   }
 
   Expression visitCreateInstance(CreateInstance node) {
+    if (node.typeInformation != null) {
+      node.typeInformation = visitExpression(node.typeInformation);
+    }
     _rewriteList(node.arguments);
     return node;
   }
@@ -859,14 +871,13 @@ class StatementRewriter extends Transformer implements Pass {
     if (isCompoundableBuiltin(node.value)) {
       ApplyBuiltinOperator rhs = node.value;
       Expression left = rhs.arguments[0];
-      Expression right = rhs.arguments[1];
       if (left is GetIndex &&
-          sameVariable(left.object, node.object) &&
-          sameVariable(left.index, node.index)) {
-        destroyVariableUse(left.object);
-        destroyVariableUse(left.index);
+          samePrimary(left.object, node.object) &&
+          samePrimary(left.index, node.index)) {
+        destroyPrimaryExpression(left.object);
+        destroyPrimaryExpression(left.index);
         node.compound = rhs.operator;
-        node.value = right;
+        node.value = contractCompoundableBuiltin(rhs);
       }
     }
     node.index = visitExpression(node.index);
@@ -1244,13 +1255,13 @@ class StatementRewriter extends Transformer implements Pass {
 
   @override
   Statement visitYield(Yield node) {
-    node.input = visitExpression(node.input);
     node.next = visitStatement(node.next);
+    node.input = visitExpression(node.input);
     return node;
   }
 
   @override
-  Statement visitNullCheck(NullCheck node) {
+  Statement visitReceiverCheck(ReceiverCheck node) {
     inEmptyEnvironment(() {
       node.next = visitStatement(node.next);
     });
@@ -1356,5 +1367,24 @@ class VariableUseVisitor extends RecursiveVisitor {
 
   static void visit(Expression node, VariableUseCallback callback) {
     new VariableUseVisitor(callback).visitExpression(node);
+  }
+}
+
+bool sameVariable(Expression e1, Expression e2) {
+  return e1 is VariableUse && e2 is VariableUse && e1.variable == e2.variable;
+}
+
+/// True if [e1] and [e2] are primary expressions (expressions without
+/// subexpressions) with the same value.
+bool samePrimary(Expression e1, Expression e2) {
+  return sameVariable(e1, e2) || (e1 is This && e2 is This);
+}
+
+/// Decrement the reference count for [e] if it is a variable use.
+void destroyPrimaryExpression(Expression e) {
+  if (e is VariableUse) {
+    --e.variable.readCount;
+  } else {
+    assert(e is This);
   }
 }

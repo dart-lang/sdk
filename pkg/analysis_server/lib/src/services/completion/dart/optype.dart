@@ -4,10 +4,11 @@
 
 library services.completion.dart.optype;
 
-import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
-import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/generated/ast.dart';
 
 /**
  * An [AstVisitor] for determining whether top level suggestions or invocation

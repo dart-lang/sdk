@@ -181,6 +181,9 @@ Message* MessageQueue::FindMessageById(intptr_t id) {
 
 
 void MessageQueue::PrintJSON(JSONStream* stream) {
+  if (!FLAG_support_service) {
+    return;
+  }
   JSONArray messages(stream);
 
   Object& msg_handler = Object::Handle();
@@ -203,9 +206,9 @@ void MessageQueue::PrintJSON(JSONStream* stream) {
     // TODO(johnmccutchan): Move port -> handler map out of Dart and into the
     // VM, that way we can lookup the handler without invoking Dart code.
     msg_handler = DartLibraryCalls::LookupHandler(current->dest_port());
-    if (msg_handler.IsInstance() && Instance::Cast(msg_handler).IsClosure()) {
+    if (msg_handler.IsClosure()) {
       // Grab function from closure.
-      msg_handler = Closure::function(Instance::Cast(msg_handler));
+      msg_handler = Closure::Cast(msg_handler).function();
     }
     if (msg_handler.IsFunction()) {
       const Function& function = Function::Cast(msg_handler);

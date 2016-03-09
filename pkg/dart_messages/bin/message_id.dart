@@ -23,13 +23,13 @@ String computeId() {
 /// Computes a random message ID that hasn't been used before.
 void main() {
   var usedIds =
-      shared_messages.MESSAGES.values.map((entry) => entry['id']).toSet();
+      shared_messages.MESSAGES.values.map((entry) => entry.id).toSet();
 
   print("${usedIds.length} existing ids");
 
   var newId;
   do {
     newId = computeId();
-  } while (!usedIds.contains(newId));
+  } while (usedIds.contains(newId));
   print("Available id: $newId");
 }

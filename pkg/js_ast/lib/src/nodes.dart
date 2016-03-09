@@ -81,6 +81,8 @@ abstract class NodeVisitor<T> {
 }
 
 class BaseVisitor<T> implements NodeVisitor<T> {
+  const BaseVisitor();
+
   T visitNode(Node node) {
     node.visitChildren(this);
     return null;
@@ -195,7 +197,9 @@ class BaseVisitor<T> implements NodeVisitor<T> {
 
 /// This tag interface has no behaviour but must be implemented by any class
 /// that is to be stored on a [Node] as source information.
-abstract class JavaScriptNodeSourceInformation {}
+abstract class JavaScriptNodeSourceInformation {
+  const JavaScriptNodeSourceInformation();
+}
 
 abstract class Node {
   JavaScriptNodeSourceInformation get sourceInformation => _sourceInformation;
@@ -900,7 +904,7 @@ class NamedFunction extends Expression {
   }
   NamedFunction _clone() => new NamedFunction(name, function);
 
-  int get precedenceLevel => CALL;
+  int get precedenceLevel => LEFT_HAND_SIDE;
 }
 
 class Fun extends Expression {
@@ -919,7 +923,7 @@ class Fun extends Expression {
 
   Fun _clone() => new Fun(params, body, asyncModifier: asyncModifier);
 
-  int get precedenceLevel => CALL;
+  int get precedenceLevel => LEFT_HAND_SIDE;
 }
 
 class AsyncModifier {
@@ -965,7 +969,7 @@ class PropertyAccess extends Expression {
 
   PropertyAccess _clone() => new PropertyAccess(receiver, selector);
 
-  int get precedenceLevel => CALL;
+  int get precedenceLevel => LEFT_HAND_SIDE;
 }
 
 /// A [DeferredToken] is a placeholder for some [Expression] that is not known
@@ -1075,7 +1079,7 @@ class LiteralNumber extends Literal {
   LiteralNumber(this.value);
 
   int get precedenceLevel => value.startsWith('-') ? UNARY : PRIMARY;
-  
+
   accept(NodeVisitor visitor) => visitor.visitLiteralNumber(this);
   LiteralNumber _clone() => new LiteralNumber(value);
 }

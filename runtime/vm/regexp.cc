@@ -19,8 +19,6 @@
 namespace dart {
 
 DECLARE_FLAG(bool, trace_irregexp);
-DEFINE_FLAG(bool, interpret_irregexp, false,
-            "Use irregexp bytecode interpreter");
 
 // Default to generating optimized regexp code.
 static const bool kRegexpOptimization = true;
@@ -5267,14 +5265,14 @@ static void CreateSpecializedFunction(Zone* zone,
       false,  // Not external.
       false,  // Not native.
       owner,
-      0));  // No token position.
+      TokenPosition::kMinSource));
 
   // TODO(zerny): Share these arrays between all irregexp functions.
   fn.set_num_fixed_parameters(kParamCount);
   fn.set_parameter_types(Array::Handle(zone, Array::New(kParamCount,
-                                                           Heap::kOld)));
+                                                        Heap::kOld)));
   fn.set_parameter_names(Array::Handle(zone, Array::New(kParamCount,
-                                                           Heap::kOld)));
+                                                        Heap::kOld)));
   fn.SetParameterTypeAt(RegExpMacroAssembler::kParamRegExpIndex,
                         Object::dynamic_type());
   fn.SetParameterNameAt(RegExpMacroAssembler::kParamRegExpIndex,

@@ -13,7 +13,8 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, background_compilation);
+#ifndef PRODUCT
+
 DECLARE_FLAG(bool, profile_vm);
 DECLARE_FLAG(int, max_profile_depth);
 
@@ -853,7 +854,7 @@ TEST_CASE(Profiler_ContextAllocation) {
 }
 
 
-TEST_CASE(Profiler_ClassAllocation) {
+TEST_CASE(Profiler_ClosureAllocation) {
   DisableNativeProfileScope dnps;
   const char* kScript =
       "var msg1 = 'a';\n"
@@ -875,12 +876,12 @@ TEST_CASE(Profiler_ClassAllocation) {
   root_library ^= Api::UnwrapHandle(lib);
   Isolate* isolate = thread->isolate();
 
-  const Class& class_class =
-      Class::Handle(Object::class_class());
-  EXPECT(!class_class.IsNull());
-  class_class.SetTraceAllocation(true);
+  const Class& closure_class =
+      Class::Handle(Isolate::Current()->object_store()->closure_class());
+  EXPECT(!closure_class.IsNull());
+  closure_class.SetTraceAllocation(true);
 
-  // Invoke "foo" which during compilation, triggers a closure class allocation.
+  // Invoke "foo" which during compilation, triggers a closure allocation.
   Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
   EXPECT_VALID(result);
 
@@ -888,7 +889,7 @@ TEST_CASE(Profiler_ClassAllocation) {
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
-    AllocationFilter filter(isolate, class_class.id());
+    AllocationFilter filter(isolate, closure_class.id());
     filter.set_enable_vm_ticks(true);
     profile.Build(thread, &filter, Profile::kNoTags);
     // We should have one allocation sample.
@@ -897,19 +898,14 @@ TEST_CASE(Profiler_ClassAllocation) {
 
     walker.Reset(Profile::kExclusiveCode);
     EXPECT(walker.Down());
-#if defined(TARGET_OS_WINDOWS)
-    // TODO(johnmccutchan): Hookup native symbol resolver on Windows.
-    EXPECT_SUBSTRING("[Native]", walker.CurrentName());
-#else
-    EXPECT_SUBSTRING("dart::Profiler::SampleAllocation", walker.CurrentName());
-#endif
+    EXPECT_SUBSTRING("foo", walker.CurrentName());
     EXPECT(!walker.Down());
   }
 
-  // Disable allocation tracing for Class.
-  class_class.SetTraceAllocation(false);
+  // Disable allocation tracing for Closure.
+  closure_class.SetTraceAllocation(false);
 
-  // Invoke "bar" which during compilation, triggers a closure class allocation.
+  // Invoke "bar" which during compilation, triggers a closure allocation.
   result = Dart_Invoke(lib, NewString("bar"), 0, NULL);
   EXPECT_VALID(result);
 
@@ -917,7 +913,7 @@ TEST_CASE(Profiler_ClassAllocation) {
     StackZone zone(thread);
     HANDLESCOPE(thread);
     Profile profile(isolate);
-    AllocationFilter filter(isolate, class_class.id());
+    AllocationFilter filter(isolate, closure_class.id());
     filter.set_enable_vm_ticks(true);
     profile.Build(thread, &filter, Profile::kNoTags);
     // We should still only have one allocation sample.
@@ -1662,5 +1658,6 @@ TEST_CASE(Profiler_ChainedSamples) {
   }
 }
 
-}  // namespace dart
+#endif  // !PRODUCT
 
+}  // namespace dart

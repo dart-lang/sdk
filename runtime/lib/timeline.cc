@@ -16,13 +16,14 @@ namespace dart {
 // Native implementations for the dart:developer library.
 
 DEFINE_NATIVE_ENTRY(Timeline_getIsolateNum, 0) {
-  return Integer::New(static_cast<int64_t>(isolate->main_port()),
-                      Heap::kOld,
-                      true);
+  return Integer::New(static_cast<int64_t>(isolate->main_port()), Heap::kOld);
 }
 
 
 DEFINE_NATIVE_ENTRY(Timeline_getNextAsyncId, 0) {
+  if (!FLAG_support_timeline) {
+    return Integer::New(0);
+  }
   TimelineEventRecorder* recorder = Timeline::recorder();
   if (recorder == NULL) {
     return Integer::New(0);
@@ -32,11 +33,14 @@ DEFINE_NATIVE_ENTRY(Timeline_getNextAsyncId, 0) {
 
 
 DEFINE_NATIVE_ENTRY(Timeline_getTraceClock, 0) {
-  return Integer::New(OS::GetCurrentMonotonicMicros(), Heap::kNew, true);
+  return Integer::New(OS::GetCurrentMonotonicMicros(), Heap::kNew);
 }
 
 
 DEFINE_NATIVE_ENTRY(Timeline_reportTaskEvent, 6) {
+  if (!FLAG_support_timeline) {
+    return Object::null();
+  }
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, start, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, id, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(String, phase, arguments->NativeArgAt(2));
@@ -100,6 +104,9 @@ DEFINE_NATIVE_ENTRY(Timeline_reportTaskEvent, 6) {
 
 
 DEFINE_NATIVE_ENTRY(Timeline_reportCompleteEvent, 5) {
+  if (!FLAG_support_timeline) {
+    return Object::null();
+  }
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, start, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, end, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(String, category, arguments->NativeArgAt(2));
@@ -143,6 +150,9 @@ DEFINE_NATIVE_ENTRY(Timeline_reportCompleteEvent, 5) {
 
 
 DEFINE_NATIVE_ENTRY(Timeline_reportInstantEvent, 4) {
+  if (!FLAG_support_timeline) {
+    return Object::null();
+  }
   GET_NON_NULL_NATIVE_ARGUMENT(Integer, start, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, category, arguments->NativeArgAt(1));
   GET_NON_NULL_NATIVE_ARGUMENT(String, name, arguments->NativeArgAt(2));

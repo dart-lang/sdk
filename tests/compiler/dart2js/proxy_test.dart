@@ -15,6 +15,9 @@ import 'warnings_checker.dart';
 const Map<String, dynamic> TESTS = const {
     'language/proxy_test.dart': null,
     'language/proxy2_test.dart': null,
+    'language/proxy3_test.dart': null,
+    'language/proxy4_test.dart': null,
+    'language/proxy5_test.dart': null,
 };
 
 void main(List<String> args) {

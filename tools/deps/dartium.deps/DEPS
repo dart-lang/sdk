@@ -8,13 +8,9 @@ execfile(os.path.join(path, 'src', 'dart', 'tools', 'deps', 'dartium.deps', 'DEP
 # Now we need to override some settings and add some new ones.
 
 vars.update({
-  "chromium_url": "http://src.chromium.org/svn",
-  "dartium_base": "http://src.chromium.org",
-  "dartium_chromium_branch": "master",
-  "dartium_chromium_commit": "62a7524d4f71c9e0858d24b0aa1bbff3a2d09bff",
-  "chromium_base_revision": "297060",
-  "dartium_webkit_branch": "/blink/branches/dart/dartium",
-  "dartium_webkit_revision": "202748",
+  "dartium_chromium_commit": "8df9de5a8f073d9c0feadf8d652408807e4a254e",
+  "dartium_webkit_commit": "28b9a6c03797eaecf6c92677cba747eb9df0787c",
+  "chromium_base_revision": "338390",
 
   # We use mirrors of all github repos to guarantee reproducibility and
   # consistency between what users see and what the bots see.
@@ -69,30 +65,10 @@ vars.update({
   "yaml_rev": "@563a5ffd4a800a2897b8f4dd6b19f2a370df2f2b",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
   "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
-  "WebCore_rev": "@4f90b41b0165f23f412cecdba07b7d81d3fbb5b5",
+  "WebCore_rev": "@a86fe28efadcfc781f836037a80f27e22a5dad17",
 
   "co19_rev": "@3ed795ea02e022ef19c77cf1b6095b7c8f5584d0",
 })
-
-def massage_deps(deps):
-  for key, value in deps.items():
-    if value is None: continue
-
-    if value.startswith('/trunk'):
-      deps[key] = Var("chromium_url") + value
-      continue
-
-    if value.startswith(Var("webkit_trunk")):
-      path, revision = value.split('@') # and svn revision.
-      path = path[len(Var("webkit_trunk")):]  # Strip WebKit repo.
-      value = (Var("dartium_base") + Var("dartium_webkit_branch") + path +
-               '@' + Var("dartium_webkit_revision"))
-      deps[key] = value
-      continue
-
-massage_deps(deps)
-for os_deps in deps_os.values():
-  massage_deps(os_deps)
 
 deps.update({
   "src":
@@ -100,8 +76,8 @@ deps.update({
         Var("dartium_chromium_commit"),
 
   "src/third_party/WebKit":
-    Var("dartium_base") + Var("dartium_webkit_branch") + "@" +
-        Var("dartium_webkit_revision"),
+    Var("chromium_git") + "/dart/dartium/blink.git" + "@" +
+        Var("dartium_webkit_commit"),
 
   "src/dart/third_party/pkg/args":
       (Var("github_mirror") % "args") + Var("args_tag"),
@@ -230,20 +206,6 @@ hooks.append({
   "action": ["python", "-c",
       "f=open('src/build/util/LASTCHANGE.blink','w'); f.write('LASTCHANGE=" +
       Var('webkit_revision') + "\\n')" ],
-})
-hooks.append({
-  "name": "checked_in_dart_binaries",
-  "pattern": ".",
-  "action": [
-    "download_from_google_storage",
-    "--no_auth",
-    "--no_resume",
-    "--bucket",
-    "dart-dependencies",
-    "--recursive",
-    "--directory",
-    "src/dart/tools/testing/bin",
-  ],
 })
 hooks.append({
   "name": "checked_in_dart_sdks",

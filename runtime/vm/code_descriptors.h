@@ -26,7 +26,7 @@ class DescriptorList : public ZoneAllocated {
   void AddDescriptor(RawPcDescriptors::Kind kind,
                      intptr_t pc_offset,
                      intptr_t deopt_id,
-                     intptr_t token_pos,
+                     TokenPosition token_pos,
                      intptr_t try_index);
 
   RawPcDescriptors* FinalizePcDescriptors(uword entry_point);
@@ -39,6 +39,29 @@ class DescriptorList : public ZoneAllocated {
   intptr_t prev_token_pos;
 
   DISALLOW_COPY_AND_ASSIGN(DescriptorList);
+};
+
+
+class CodeSourceMapBuilder : public ZoneAllocated {
+ public:
+  explicit CodeSourceMapBuilder(intptr_t initial_capacity = 64)
+    : encoded_data_(initial_capacity),
+      prev_pc_offset(0),
+      prev_token_pos(0) {}
+
+  ~CodeSourceMapBuilder() { }
+
+  void AddEntry(intptr_t pc_offset, TokenPosition token_pos);
+
+  RawCodeSourceMap* Finalize();
+
+ private:
+  GrowableArray<uint8_t> encoded_data_;
+
+  intptr_t prev_pc_offset;
+  intptr_t prev_token_pos;
+
+  DISALLOW_COPY_AND_ASSIGN(CodeSourceMapBuilder);
 };
 
 

@@ -237,7 +237,7 @@ DEFINE_NATIVE_ENTRY(Integer_fromEnvironment, 3) {
   GET_NATIVE_ARGUMENT(Integer, default_value, arguments->NativeArgAt(2));
   // Call the embedder to supply us with the environment.
   const String& env_value =
-      String::Handle(Api::CallEnvironmentCallback(thread, name));
+      String::Handle(Api::GetEnvironmentValue(thread, name));
   if (!env_value.IsNull()) {
     const Integer& result = Integer::Handle(ParseInteger(env_value));
     if (!result.IsNull()) {
@@ -251,17 +251,15 @@ DEFINE_NATIVE_ENTRY(Integer_fromEnvironment, 3) {
 }
 
 
-// Passing true for 'silent' prevents throwing JavascriptIntegerOverflow.
 static RawInteger* ShiftOperationHelper(Token::Kind kind,
                                         const Integer& value,
-                                        const Smi& amount,
-                                        const bool silent = false) {
+                                        const Smi& amount) {
   if (amount.Value() < 0) {
     Exceptions::ThrowArgumentError(amount);
   }
   if (value.IsSmi()) {
     const Smi& smi_value = Smi::Cast(value);
-    return smi_value.ShiftOp(kind, amount, Heap::kNew, silent);
+    return smi_value.ShiftOp(kind, amount, Heap::kNew);
   }
   if (value.IsMint()) {
     const int64_t mint_value = value.AsInt64Value();
@@ -273,11 +271,11 @@ static RawInteger* ShiftOperationHelper(Token::Kind kind,
     if ((count + shift_count) < Mint::kBits) {
       switch (kind) {
         case Token::kSHL:
-          return Integer::New(mint_value << shift_count, Heap::kNew, silent);
+          return Integer::New(mint_value << shift_count, Heap::kNew);
         case Token::kSHR:
           shift_count =
               (-shift_count > Mint::kBits) ? Mint::kBits : -shift_count;
-          return Integer::New(mint_value >> shift_count, Heap::kNew, silent);
+          return Integer::New(mint_value >> shift_count, Heap::kNew);
         default:
           UNIMPLEMENTED();
       }
@@ -307,7 +305,7 @@ DEFINE_NATIVE_ENTRY(Integer_leftShiftWithMask32, 3) {
   }
   const Smi& smi_shift_count = Smi::Cast(shift_count);
   const Integer& shift_result = Integer::Handle(
-      ShiftOperationHelper(Token::kSHL, value, smi_shift_count, true));
+      ShiftOperationHelper(Token::kSHL, value, smi_shift_count));
   const Integer& result =
       Integer::Handle(shift_result.BitOp(Token::kBIT_AND, mask));
   return result.AsValidInteger();

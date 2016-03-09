@@ -329,6 +329,10 @@ abstract class TypeMask implements ReceiverConstraint, AbstractValue {
    */
   TypeMask union(TypeMask other, ClassWorld classWorld);
 
+
+  /// Returns whether the intersection of this and [other] is empty.
+  bool isDisjoint(TypeMask other, ClassWorld classWorld);
+
   /**
    * Returns a type mask representing the intersection of [this] and [other].
    */

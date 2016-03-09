@@ -58,7 +58,7 @@ class SetPriorityFilesTest extends AbstractAnalysisTest {
     Response response = await _setPriorityFile(filePath);
     expect(response, isResponseSuccess('0'));
     // verify
-    InternalAnalysisContext sdkContext = server.defaultSdk.context;
+    InternalAnalysisContext sdkContext = server.findSdk().context;
     List<Source> prioritySources = sdkContext.prioritySources;
     expect(prioritySources, hasLength(1));
     expect(prioritySources.first.fullName, filePath);

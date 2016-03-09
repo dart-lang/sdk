@@ -7,19 +7,21 @@ library analyzer.src.dart.element.element;
 import 'dart:collection';
 import 'dart:math' show min;
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart'
     show DartObject, EvaluationResultImpl;
+import 'package:analyzer/src/generated/element_handle.dart';
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisEngine, AnalysisException;
+    show AnalysisContext, AnalysisEngine;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart' show Keyword;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
@@ -84,11 +86,13 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
    * A list containing all of the mixins that are applied to the class being
    * extended in order to derive the superclass of this class.
    */
+  @override
   List<InterfaceType> mixins = InterfaceType.EMPTY_LIST;
 
   /**
    * A list containing all of the interfaces that are implemented by this class.
    */
+  @override
   List<InterfaceType> interfaces = InterfaceType.EMPTY_LIST;
 
   /**
@@ -100,22 +104,19 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
    * The superclass of the class, or `null` if the class does not have an
    * explicit superclass.
    */
+  @override
   InterfaceType supertype;
 
   /**
    * The type defined by the class.
    */
+  @override
   InterfaceType type;
 
   /**
    * A list containing all of the type parameters defined for this class.
    */
   List<TypeParameterElement> _typeParameters = TypeParameterElement.EMPTY_LIST;
-
-  /**
-   * The [SourceRange] of the `with` clause, `null` if there is no one.
-   */
-  SourceRange withClauseRange;
 
   /**
    * A flag indicating whether the types associated with the instance members of
@@ -335,7 +336,22 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   @override
-  bool get isValidMixin => hasModifier(Modifier.MIXIN);
+  bool get isValidMixin {
+    if (!context.analysisOptions.enableSuperMixins) {
+      if (hasReferenceToSuper) {
+        return false;
+      }
+      if (!supertype.isObject) {
+        return false;
+      }
+    }
+    for (ConstructorElement constructor in constructors) {
+      if (!constructor.isSynthetic && !constructor.isFactory) {
+        return false;
+      }
+    }
+    return true;
+  }
 
   @override
   ElementKind get kind => ElementKind.CLASS;
@@ -383,13 +399,6 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
       }
     }
     return null;
-  }
-
-  /**
-   * Set whether this class is a valid mixin.
-   */
-  void set validMixin(bool isValidMixin) {
-    setModifier(Modifier.MIXIN, isValidMixin);
   }
 
   @override
@@ -701,7 +710,6 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
           new ConstructorElementImpl(superclassConstructor.name, -1);
       implicitConstructor.synthetic = true;
       implicitConstructor.redirectedConstructor = superclassConstructor;
-      implicitConstructor.const2 = superclassConstructor.isConst;
       implicitConstructor.returnType = type;
       List<ParameterElement> superParameters = superclassConstructor.parameters;
       int count = superParameters.length;
@@ -907,6 +915,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /**
    * The source that corresponds to this compilation unit.
    */
+  @override
   Source source;
 
   /**
@@ -1212,7 +1221,7 @@ class ConstFieldElementImpl extends FieldElementImpl with ConstVariableElement {
   ConstFieldElementImpl.forNode(Identifier name) : super.forNode(name);
 
   @override
-  DartObject get constantValue => _result.value;
+  DartObject get constantValue => _result?.value;
 
   @override
   EvaluationResultImpl get evaluationResult => _result;
@@ -1246,7 +1255,7 @@ class ConstLocalVariableElementImpl extends LocalVariableElementImpl
   ConstLocalVariableElementImpl.forNode(Identifier name) : super.forNode(name);
 
   @override
-  DartObject get constantValue => _result.value;
+  DartObject get constantValue => _result?.value;
 
   @override
   EvaluationResultImpl get evaluationResult => _result;
@@ -1391,13 +1400,21 @@ class ConstTopLevelVariableElementImpl extends TopLevelVariableElementImpl
   EvaluationResultImpl _result;
 
   /**
+   * Initialize a newly created synthetic top-level variable element to have the
+   * given [name] and [offset].
+   */
+  ConstTopLevelVariableElementImpl(String name, int offset)
+      : super(name, offset);
+
+  /**
    * Initialize a newly created top-level variable element to have the given
    * [name].
    */
-  ConstTopLevelVariableElementImpl(Identifier name) : super.forNode(name);
+  ConstTopLevelVariableElementImpl.forNode(Identifier name)
+      : super.forNode(name);
 
   @override
-  DartObject get constantValue => _result.value;
+  DartObject get constantValue => _result?.value;
 
   @override
   EvaluationResultImpl get evaluationResult => _result;
@@ -1443,12 +1460,20 @@ class DefaultFieldFormalParameterElementImpl
   EvaluationResultImpl _result;
 
   /**
+   * Initialize a newly created parameter element to have the given [name] and
+   * [nameOffset].
+   */
+  DefaultFieldFormalParameterElementImpl(String name, int nameOffset)
+      : super(name, nameOffset);
+
+  /**
    * Initialize a newly created parameter element to have the given [name].
    */
-  DefaultFieldFormalParameterElementImpl(Identifier name) : super(name);
+  DefaultFieldFormalParameterElementImpl.forNode(Identifier name)
+      : super.forNode(name);
 
   @override
-  DartObject get constantValue => _result.value;
+  DartObject get constantValue => _result?.value;
 
   @override
   EvaluationResultImpl get evaluationResult => _result;
@@ -1470,12 +1495,19 @@ class DefaultParameterElementImpl extends ParameterElementImpl
   EvaluationResultImpl _result;
 
   /**
+   * Initialize a newly created parameter element to have the given [name] and
+   * [nameOffset].
+   */
+  DefaultParameterElementImpl(String name, int nameOffset)
+      : super(name, nameOffset);
+
+  /**
    * Initialize a newly created parameter element to have the given [name].
    */
-  DefaultParameterElementImpl(Identifier name) : super.forNode(name);
+  DefaultParameterElementImpl.forNode(Identifier name) : super.forNode(name);
 
   @override
-  DartObject get constantValue => _result.value;
+  DartObject get constantValue => _result?.value;
 
   @override
   EvaluationResultImpl get evaluationResult => _result;
@@ -1536,10 +1568,21 @@ class ElementAnnotationImpl implements ElementAnnotation {
   static String _DEPRECATED_VARIABLE_NAME = "deprecated";
 
   /**
+   * The name of `meta` library, used to define analysis annotations.
+   */
+  static String _META_LIB_NAME = "meta";
+
+  /**
    * The name of the top-level variable used to mark a method as being expected
    * to override an inherited method.
    */
   static String _OVERRIDE_VARIABLE_NAME = "override";
+
+  /**
+   * The name of the top-level variable used to mark a method as being
+   * protected.
+   */
+  static String _PROTECTED_VARIABLE_NAME = "protected";
 
   /**
    * The name of the top-level variable used to mark a class as implementing a
@@ -1551,7 +1594,18 @@ class ElementAnnotationImpl implements ElementAnnotation {
    * The element representing the field, variable, or constructor being used as
    * an annotation.
    */
-  final Element element;
+  Element element;
+
+  /**
+   * The compilation unit in which this annotation appears.
+   */
+  final CompilationUnitElementImpl compilationUnit;
+
+  /**
+   * The AST of the annotation itself, cloned from the resolved AST for the
+   * source code.
+   */
+  Annotation annotationAst;
 
   /**
    * The result of evaluating this annotation as a compile-time constant
@@ -1561,62 +1615,54 @@ class ElementAnnotationImpl implements ElementAnnotation {
   EvaluationResultImpl evaluationResult;
 
   /**
-   * Initialize a newly created annotation. The given [element] is the element
-   * representing the field, variable, or constructor being used as an
-   * annotation.
+   * Initialize a newly created annotation. The given [compilationUnit] is the
+   * compilation unit in which the annotation appears.
    */
-  ElementAnnotationImpl(this.element);
+  ElementAnnotationImpl(this.compilationUnit);
 
   @override
-  DartObject get constantValue => evaluationResult.value;
+  DartObject get constantValue => evaluationResult?.value;
+
+  @override
+  AnalysisContext get context => compilationUnit.library.context;
 
   @override
   bool get isDeprecated {
-    if (element != null) {
-      LibraryElement library = element.library;
-      if (library != null && library.isDartCore) {
-        if (element is ConstructorElement) {
-          ConstructorElement constructorElement = element as ConstructorElement;
-          if (constructorElement.enclosingElement.name ==
-              _DEPRECATED_CLASS_NAME) {
-            return true;
-          }
-        } else if (element is PropertyAccessorElement &&
-            element.name == _DEPRECATED_VARIABLE_NAME) {
-          return true;
-        }
+    if (element?.library?.isDartCore == true) {
+      if (element is ConstructorElement) {
+        return element.enclosingElement.name == _DEPRECATED_CLASS_NAME;
+      } else if (element is PropertyAccessorElement) {
+        return element.name == _DEPRECATED_VARIABLE_NAME;
       }
     }
     return false;
   }
 
   @override
-  bool get isOverride {
-    if (element != null) {
-      LibraryElement library = element.library;
-      if (library != null && library.isDartCore) {
-        if (element is PropertyAccessorElement &&
-            element.name == _OVERRIDE_VARIABLE_NAME) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
+  bool get isOverride =>
+      element is PropertyAccessorElement &&
+      element.name == _OVERRIDE_VARIABLE_NAME &&
+      element.library?.isDartCore == true;
 
   @override
-  bool get isProxy {
-    if (element != null) {
-      LibraryElement library = element.library;
-      if (library != null && library.isDartCore) {
-        if (element is PropertyAccessorElement &&
-            element.name == PROXY_VARIABLE_NAME) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
+  bool get isProtected =>
+      element is PropertyAccessorElement &&
+      element.name == _PROTECTED_VARIABLE_NAME &&
+      element.library?.name == _META_LIB_NAME;
+
+  @override
+  bool get isProxy =>
+      element is PropertyAccessorElement &&
+      element.name == PROXY_VARIABLE_NAME &&
+      element.library?.isDartCore == true;
+
+  /**
+   * Get the library containing this annotation.
+   */
+  Source get librarySource => compilationUnit.librarySource;
+
+  @override
+  Source get source => compilationUnit.source;
 
   @override
   String toString() => '@$element';
@@ -1689,6 +1735,17 @@ abstract class ElementImpl implements Element {
   int _docRangeLength;
 
   /**
+   * The offset of the beginning of the element's code in the file that contains
+   * the element, or `null` if the element is synthetic.
+   */
+  int _codeOffset;
+
+  /**
+   * The length of the element's code, or `null` if the element is synthetic.
+   */
+  int _codeLength;
+
+  /**
    * Initialize a newly created element to have the given [name] at the given
    * [_nameOffset].
    */
@@ -1701,6 +1758,17 @@ abstract class ElementImpl implements Element {
    */
   ElementImpl.forNode(Identifier name)
       : this(name == null ? "" : name.name, name == null ? -1 : name.offset);
+
+  /**
+   * The length of the element's code, or `null` if the element is synthetic.
+   */
+  int get codeLength => _codeLength;
+
+  /**
+   * The offset of the beginning of the element's code in the file that contains
+   * the element, or `null` if the element is synthetic.
+   */
+  int get codeOffset => _codeOffset;
 
   @override
   AnalysisContext get context {
@@ -1736,11 +1804,12 @@ abstract class ElementImpl implements Element {
 
   /**
    * Set the enclosing element of this element to the given [element].
+   *
+   * Throws [FrozenHashCodeException] if the hashCode can't be changed.
    */
   void set enclosingElement(Element element) {
     _enclosingElement = element as ElementImpl;
-    _cachedLocation = null;
-    _cachedHashCode = null;
+    _updateCaches();
   }
 
   @override
@@ -1748,13 +1817,7 @@ abstract class ElementImpl implements Element {
     // TODO: We might want to re-visit this optimization in the future.
     // We cache the hash code value as this is a very frequently called method.
     if (_cachedHashCode == null) {
-      int hashIdentifier = identifier.hashCode;
-      Element enclosing = enclosingElement;
-      if (enclosing != null) {
-        _cachedHashCode = hashIdentifier + enclosing.hashCode;
-      } else {
-        _cachedHashCode = hashIdentifier;
-      }
+      _cachedHashCode = location.hashCode;
     }
     return _cachedHashCode;
   }
@@ -1795,6 +1858,16 @@ abstract class ElementImpl implements Element {
   }
 
   @override
+  bool get isProtected {
+    for (ElementAnnotation annotation in metadata) {
+      if (annotation.isProtected) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
   bool get isPublic => !isPrivate;
 
   @override
@@ -1818,10 +1891,14 @@ abstract class ElementImpl implements Element {
   @override
   String get name => _name;
 
+  /**
+   * Changes the name of this element.
+   *
+   * Throws [FrozenHashCodeException] if the hashCode can't be changed.
+   */
   void set name(String name) {
     this._name = name;
-    _cachedLocation = null;
-    _cachedHashCode = null;
+    _updateCaches();
   }
 
   @override
@@ -1833,11 +1910,12 @@ abstract class ElementImpl implements Element {
   /**
    * Sets the offset of the name of this element in the file that contains the
    * declaration of this element.
+   *
+   * Throws [FrozenHashCodeException] if the hashCode can't be changed.
    */
   void set nameOffset(int offset) {
     _nameOffset = offset;
-    _cachedHashCode = null;
-    _cachedLocation = null;
+    _updateCaches();
   }
 
   @override
@@ -1972,6 +2050,14 @@ abstract class ElementImpl implements Element {
   }
 
   /**
+   * Set the code range for this element.
+   */
+  void setCodeRange(int offset, int length) {
+    _codeOffset = offset;
+    _codeLength = length;
+  }
+
+  /**
    * Set the documentation comment source range for this element.
    */
   void setDocRange(int offset, int length) {
@@ -1997,6 +2083,35 @@ abstract class ElementImpl implements Element {
   @override
   void visitChildren(ElementVisitor visitor) {
     // There are no children to visit
+  }
+
+  /**
+   *  Updates cached values after an input changed.
+   *
+   *  Throws [FrozenHashCodeException] if not allowed.
+   */
+  void _updateCaches() {
+    if (!hasModifier(Modifier.CACHE_KEY)) {
+      // Fast path.
+      _cachedLocation = null;
+      _cachedHashCode = null;
+      return;
+    }
+
+    // Save originals.
+    ElementLocation oldLocation = _cachedLocation;
+    int oldHashCode = _cachedHashCode;
+
+    _cachedLocation = null;
+    _cachedHashCode = null;
+
+    if (oldHashCode != hashCode) {
+      // Prevent cache corruption by restoring originals.
+      _cachedLocation = oldLocation;
+      _cachedHashCode = oldHashCode;
+      throw new FrozenHashCodeException(
+          "can't update hashCode for a cache key: $this ($runtimeType)");
+    }
   }
 }
 
@@ -2507,9 +2622,17 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
   FieldElement field;
 
   /**
+   * Initialize a newly created parameter element to have the given [name] and
+   * [nameOffset].
+   */
+  FieldFormalParameterElementImpl(String name, int nameOffset)
+      : super(name, nameOffset);
+
+  /**
    * Initialize a newly created parameter element to have the given [name].
    */
-  FieldFormalParameterElementImpl(Identifier name) : super.forNode(name);
+  FieldFormalParameterElementImpl.forNode(Identifier name)
+      : super.forNode(name);
 
   @override
   bool get isInitializingFormal => true;
@@ -2517,6 +2640,18 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
   @override
   accept(ElementVisitor visitor) =>
       visitor.visitFieldFormalParameterElement(this);
+}
+
+/**
+ * Indicates that an ElementImpl's hashCode cannot currently be changed.
+ */
+class FrozenHashCodeException implements Exception {
+  final String _message;
+
+  FrozenHashCodeException(this._message);
+
+  @override
+  String toString() => "FrozenHashCodeException($_message)";
 }
 
 /**
@@ -2880,7 +3015,17 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
    * `switch` statement and [onSwitchMember] should be `true` if this label is
    * associated with a `switch` member.
    */
-  LabelElementImpl(
+  LabelElementImpl(String name, int nameOffset, this._onSwitchStatement,
+      this._onSwitchMember)
+      : super(name, nameOffset);
+
+  /**
+   * Initialize a newly created label element to have the given [name].
+   * [onSwitchStatement] should be `true` if this label is associated with a
+   * `switch` statement and [onSwitchMember] should be `true` if this label is
+   * associated with a `switch` member.
+   */
+  LabelElementImpl.forNode(
       Identifier name, this._onSwitchStatement, this._onSwitchMember)
       : super.forNode(name);
 
@@ -2992,6 +3137,24 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
         nameLength = name != null ? name.length : 0;
 
   @override
+  int get codeLength {
+    if (_definingCompilationUnit is CompilationUnitElementImpl) {
+      return (_definingCompilationUnit as CompilationUnitElementImpl)
+          .codeLength;
+    }
+    return null;
+  }
+
+  @override
+  int get codeOffset {
+    if (_definingCompilationUnit is CompilationUnitElementImpl) {
+      return (_definingCompilationUnit as CompilationUnitElementImpl)
+          .codeOffset;
+    }
+    return null;
+  }
+
+  @override
   CompilationUnitElement get definingCompilationUnit =>
       _definingCompilationUnit;
 
@@ -3040,9 +3203,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   void set hasExtUri(bool hasExtUri) {
     setModifier(Modifier.HAS_EXT_URI, hasExtUri);
   }
-
-  @override
-  int get hashCode => _definingCompilationUnit.hashCode;
 
   @override
   bool get hasLoadLibraryFunction {
@@ -3095,6 +3255,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       entryPoint != null && isOrImportsBrowserLibrary;
 
   @override
+  bool get isDartAsync => name == "dart.async";
+
+  @override
   bool get isDartCore => name == "dart.core";
 
   @override
@@ -3135,6 +3298,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @override
   LibraryElement get library => this;
 
+  @override
   List<LibraryElement> get libraryCycle {
     if (_libraryCycle != null) {
       return _libraryCycle;
@@ -3156,6 +3320,17 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       indices[library] = index;
       active.add(library);
       stack.add(library);
+      LibraryElementImpl getActualLibrary(LibraryElement lib) {
+        // TODO(paulberry): this means that computing a library cycle will be
+        // expensive for libraries resynthesized from summaries, since it will
+        // require fully resynthesizing all the libraries in the cycle as well
+        // as any libraries they import or export.  Try to find a better way.
+        if (lib is LibraryElementHandle) {
+          return lib.actualElement;
+        } else {
+          return lib;
+        }
+      }
       void recurse(LibraryElementImpl child) {
         if (!indices.containsKey(child)) {
           // We haven't visited this child yet, so recurse on the child,
@@ -3173,9 +3348,11 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
       // Recurse on all of the children in the import/export graph, filtering
       // out those for which library cycles have already been computed.
       library.exportedLibraries
+          .map(getActualLibrary)
           .where((l) => l._libraryCycle == null)
           .forEach(recurse);
       library.importedLibraries
+          .map(getActualLibrary)
           .where((l) => l._libraryCycle == null)
           .forEach(recurse);
 
@@ -3254,11 +3431,6 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     _addVisibleLibraries(visibleLibraries, false);
     return new List.from(visibleLibraries);
   }
-
-  @override
-  bool operator ==(Object object) =>
-      object is LibraryElementImpl &&
-      _definingCompilationUnit == object.definingCompilationUnit;
 
   @override
   accept(ElementVisitor visitor) => visitor.visitLibraryElement(this);
@@ -3499,12 +3671,10 @@ class LocalVariableElementImpl extends VariableElementImpl
   }
 
   @override
-  bool get isPotentiallyMutatedInClosure =>
-      hasModifier(Modifier.POTENTIALLY_MUTATED_IN_CONTEXT);
+  bool get isPotentiallyMutatedInClosure => true;
 
   @override
-  bool get isPotentiallyMutatedInScope =>
-      hasModifier(Modifier.POTENTIALLY_MUTATED_IN_SCOPE);
+  bool get isPotentiallyMutatedInScope => true;
 
   @override
   ElementKind get kind => ElementKind.LOCAL_VARIABLE;
@@ -3530,20 +3700,6 @@ class LocalVariableElementImpl extends VariableElementImpl
   @override
   VariableDeclaration computeNode() =>
       getNodeMatching((node) => node is VariableDeclaration);
-
-  /**
-   * Specifies that this variable is potentially mutated somewhere in closure.
-   */
-  void markPotentiallyMutatedInClosure() {
-    setModifier(Modifier.POTENTIALLY_MUTATED_IN_CONTEXT, true);
-  }
-
-  /**
-   * Specifies that this variable is potentially mutated somewhere in its scope.
-   */
-  void markPotentiallyMutatedInScope() {
-    setModifier(Modifier.POTENTIALLY_MUTATED_IN_SCOPE, true);
-  }
 
   /**
    * Set the visible range for this element to the range starting at the given
@@ -3641,6 +3797,142 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
 }
 
 /**
+ * The enumeration `Modifier` defines constants for all of the modifiers defined
+ * by the Dart language and for a few additional flags that are useful.
+ *
+ * Clients may not extend, implement or mix-in this class.
+ */
+class Modifier extends Enum<Modifier> {
+  /**
+   * Indicates that the modifier 'abstract' was applied to the element.
+   */
+  static const Modifier ABSTRACT = const Modifier('ABSTRACT', 0);
+
+  /**
+   * Indicates that an executable element has a body marked as being
+   * asynchronous.
+   */
+  static const Modifier ASYNCHRONOUS = const Modifier('ASYNCHRONOUS', 1);
+
+  /**
+   * Indicates that the modifier 'const' was applied to the element.
+   */
+  static const Modifier CONST = const Modifier('CONST', 2);
+
+  /**
+   * Indicates that the import element represents a deferred library.
+   */
+  static const Modifier DEFERRED = const Modifier('DEFERRED', 3);
+
+  /**
+   * Indicates that a class element was defined by an enum declaration.
+   */
+  static const Modifier ENUM = const Modifier('ENUM', 4);
+
+  /**
+   * Indicates that a class element was defined by an enum declaration.
+   */
+  static const Modifier EXTERNAL = const Modifier('EXTERNAL', 5);
+
+  /**
+   * Indicates that the modifier 'factory' was applied to the element.
+   */
+  static const Modifier FACTORY = const Modifier('FACTORY', 6);
+
+  /**
+   * Indicates that the modifier 'final' was applied to the element.
+   */
+  static const Modifier FINAL = const Modifier('FINAL', 7);
+
+  /**
+   * Indicates that an executable element has a body marked as being a
+   * generator.
+   */
+  static const Modifier GENERATOR = const Modifier('GENERATOR', 8);
+
+  /**
+   * Indicates that the pseudo-modifier 'get' was applied to the element.
+   */
+  static const Modifier GETTER = const Modifier('GETTER', 9);
+
+  /**
+   * A flag used for libraries indicating that the defining compilation unit
+   * contains at least one import directive whose URI uses the "dart-ext"
+   * scheme.
+   */
+  static const Modifier HAS_EXT_URI = const Modifier('HAS_EXT_URI', 10);
+
+  /**
+   * Indicates that the associated element did not have an explicit type
+   * associated with it. If the element is an [ExecutableElement], then the
+   * type being referred to is the return type.
+   */
+  static const Modifier IMPLICIT_TYPE = const Modifier('IMPLICIT_TYPE', 11);
+
+  /**
+   * Indicates that a class is a mixin application.
+   */
+  static const Modifier MIXIN_APPLICATION =
+      const Modifier('MIXIN_APPLICATION', 12);
+
+  /**
+   * Indicates that a class contains an explicit reference to 'super'.
+   */
+  static const Modifier REFERENCES_SUPER =
+      const Modifier('REFERENCES_SUPER', 13);
+
+  /**
+   * Indicates that the pseudo-modifier 'set' was applied to the element.
+   */
+  static const Modifier SETTER = const Modifier('SETTER', 14);
+
+  /**
+   * Indicates that the modifier 'static' was applied to the element.
+   */
+  static const Modifier STATIC = const Modifier('STATIC', 15);
+
+  /**
+   * Indicates that the element does not appear in the source code but was
+   * implicitly created. For example, if a class does not define any
+   * constructors, an implicit zero-argument constructor will be created and it
+   * will be marked as being synthetic.
+   */
+  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 16);
+
+  /**
+   * Indicates that this element is being used as an analyzer cache key.
+   */
+  static const Modifier CACHE_KEY = const Modifier('CACHE_KEY', 17);
+
+  static const List<Modifier> persistedValues = const [
+    ABSTRACT,
+    ASYNCHRONOUS,
+    CONST,
+    DEFERRED,
+    ENUM,
+    EXTERNAL,
+    FACTORY,
+    FINAL,
+    GENERATOR,
+    GETTER,
+    HAS_EXT_URI,
+    IMPLICIT_TYPE,
+    MIXIN_APPLICATION,
+    REFERENCES_SUPER,
+    SETTER,
+    STATIC,
+    SYNTHETIC
+  ];
+
+  static const List<Modifier> transientValues = const [CACHE_KEY];
+
+  static final values = new List.unmodifiable(
+      []..addAll(persistedValues)..addAll(transientValues));
+
+  const Modifier(String name, int ordinal) : super(name, ordinal);
+}
+
+/**
  * A concrete implementation of a [MultiplyDefinedElement].
  */
 class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
@@ -3698,6 +3990,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
     }
     return Identifier.isPrivateName(name);
   }
+
+  @override
+  bool get isProtected => false;
 
   @override
   bool get isPublic => !isPrivate;
@@ -3926,7 +4221,7 @@ class ParameterElementImpl extends VariableElementImpl
 
   /**
    * Initialize a newly created parameter element to have the given [name] and
-   * [offset].
+   * [nameOffset].
    */
   ParameterElementImpl(String name, int nameOffset) : super(name, nameOffset);
 
@@ -3934,6 +4229,18 @@ class ParameterElementImpl extends VariableElementImpl
    * Initialize a newly created parameter element to have the given [name].
    */
   ParameterElementImpl.forNode(Identifier name) : super.forNode(name);
+
+  /**
+   * Creates a synthetic parameter with [name], [type] and [kind].
+   */
+  factory ParameterElementImpl.synthetic(
+      String name, DartType type, ParameterKind kind) {
+    ParameterElementImpl element = new ParameterElementImpl(name, -1);
+    element.type = type;
+    element.synthetic = true;
+    element.parameterKind = kind;
+    return element;
+  }
 
   @override
   String get defaultValueCode => _defaultValueCode;
@@ -3949,12 +4256,10 @@ class ParameterElementImpl extends VariableElementImpl
   bool get isInitializingFormal => false;
 
   @override
-  bool get isPotentiallyMutatedInClosure =>
-      hasModifier(Modifier.POTENTIALLY_MUTATED_IN_CONTEXT);
+  bool get isPotentiallyMutatedInClosure => true;
 
   @override
-  bool get isPotentiallyMutatedInScope =>
-      hasModifier(Modifier.POTENTIALLY_MUTATED_IN_SCOPE);
+  bool get isPotentiallyMutatedInScope => true;
 
   @override
   ElementKind get kind => ElementKind.PARAMETER;
@@ -4032,20 +4337,6 @@ class ParameterElementImpl extends VariableElementImpl
   }
 
   /**
-   * Specifies that this variable is potentially mutated somewhere in closure.
-   */
-  void markPotentiallyMutatedInClosure() {
-    setModifier(Modifier.POTENTIALLY_MUTATED_IN_CONTEXT, true);
-  }
-
-  /**
-   * Specifies that this variable is potentially mutated somewhere in its scope.
-   */
-  void markPotentiallyMutatedInScope() {
-    setModifier(Modifier.POTENTIALLY_MUTATED_IN_SCOPE, true);
-  }
-
-  /**
    * Set the visible range for this element to the range starting at the given
    * [offset] with the given [length].
    */
@@ -4088,11 +4379,6 @@ abstract class ParameterElementMixin implements ParameterElement {
  */
 class PrefixElementImpl extends ElementImpl implements PrefixElement {
   /**
-   * A list containing all of the libraries that are imported using this prefix.
-   */
-  List<LibraryElement> _importedLibraries = LibraryElement.EMPTY_LIST;
-
-  /**
    * Initialize a newly created method element to have the given [name] and
    * [offset].
    */
@@ -4111,18 +4397,7 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   String get identifier => "_${super.identifier}";
 
   @override
-  List<LibraryElement> get importedLibraries => _importedLibraries;
-
-  /**
-   * Set the libraries that are imported using this prefix to the given
-   * [libraries].
-   */
-  void set importedLibraries(List<LibraryElement> libraries) {
-    for (LibraryElement library in libraries) {
-      (library as LibraryElementImpl).enclosingElement = this;
-    }
-    _importedLibraries = libraries;
-  }
+  List<LibraryElement> get importedLibraries => LibraryElement.EMPTY_LIST;
 
   @override
   ElementKind get kind => ElementKind.PREFIX;
@@ -4407,6 +4682,14 @@ class TypeParameterElementImpl extends ElementImpl
    * Initialize a newly created type parameter element to have the given [name].
    */
   TypeParameterElementImpl.forNode(Identifier name) : super.forNode(name);
+
+  /**
+   * Initialize a newly created synthetic type parameter element to have the
+   * given [name], and with [synthetic] set to true.
+   */
+  TypeParameterElementImpl.synthetic(String name) : super(name, -1) {
+    synthetic = true;
+  }
 
   @override
   ElementKind get kind => ElementKind.TYPE_PARAMETER;

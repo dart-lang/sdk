@@ -13,6 +13,8 @@ import '../compiler.dart' show
 import '../constants/constant_constructors.dart';
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
+import '../core_types.dart' show
+    CoreClasses;
 import '../dart_types.dart';
 import '../diagnostics/messages.dart' show
     MessageTemplate;
@@ -2113,14 +2115,7 @@ abstract class FunctionElementX extends BaseFunctionElementX
     if (span != null && hasNode) {
       FunctionExpression functionExpression = node.asFunctionExpression();
       if (functionExpression != null) {
-        Token begin = functionExpression.getBeginToken();
-        Token end;
-        if (functionExpression.parameters != null) {
-          end = functionExpression.parameters.getEndToken();
-        } else {
-          end = functionExpression.name.getEndToken();
-        }
-        span = new SourceSpan.fromTokens(span.uri, begin, end);
+        span = new SourceSpan.fromNode(span.uri, functionExpression);
       }
     }
     return span;
@@ -2706,8 +2701,8 @@ abstract class BaseClassElementX extends ElementX
     backendMembers.forEach(f);
   }
 
-  bool implementsFunction(Compiler compiler) {
-    return asInstanceOf(compiler.coreClasses.functionClass) != null ||
+  bool implementsFunction(CoreClasses coreClasses) {
+    return asInstanceOf(coreClasses.functionClass) != null ||
         callType != null;
   }
 

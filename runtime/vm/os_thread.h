@@ -237,9 +237,9 @@ class OSThread : public BaseThread {
   static OSThread* thread_list_head_;
   static bool creation_enabled_;
 
+  friend class Isolate;  // to access set_thread(Thread*).
   friend class OSThreadIterator;
   friend class ThreadInterrupterWin;
-  friend class ThreadRegistry;
 };
 
 
@@ -267,7 +267,7 @@ class Mutex {
   ~Mutex();
 
   void Lock();
-  bool TryLock();
+  bool TryLock();  // Returns false if lock is busy and locking failed.
   void Unlock();
 
 #if defined(DEBUG)
@@ -303,6 +303,7 @@ class Monitor {
   Monitor();
   ~Monitor();
 
+  bool TryEnter();  // Returns false if lock is busy and locking failed.
   void Enter();
   void Exit();
 

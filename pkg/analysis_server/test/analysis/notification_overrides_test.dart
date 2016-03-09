@@ -229,6 +229,24 @@ class B extends A {
     assertNoOverride('fff(x) {} // B');
   }
 
+  test_BAD_privateByPrivate_inDifferentLib() async {
+    addFile(
+        '$testFolder/lib.dart',
+        r'''
+class A {
+  void _m() {}
+}
+''');
+    addTestFile('''
+import 'lib.dart';
+class B extends A {
+  void _m() {} // in B
+}
+''');
+    await prepareOverrides();
+    assertNoOverride('_m() {} // in B');
+  }
+
   test_BAD_setterByGetter() async {
     addTestFile('''
 class A {
@@ -352,7 +370,7 @@ class C implements B {
 ''');
     await prepareOverrides();
     assertHasOverride('m() {} // in C');
-    expect(override.interfaceMembers, hasLength(1));
+    expect(override.interfaceMembers, hasLength(2));
     assertHasInterfaceMember('m() {} // in B');
   }
 
@@ -511,6 +529,21 @@ class C extends B {
     await prepareOverrides();
     assertHasOverride('m() {} // in C');
     assertHasSuperElement('m() {} // in A');
+    assertNoInterfaceMembers();
+  }
+
+  test_super_method_privateByPrivate() async {
+    addTestFile('''
+class A {
+  _m() {} // in A
+}
+class B extends A {
+  _m() {} // in B
+}
+''');
+    await prepareOverrides();
+    assertHasOverride('_m() {} // in B');
+    assertHasSuperElement('_m() {} // in A');
     assertNoInterfaceMembers();
   }
 

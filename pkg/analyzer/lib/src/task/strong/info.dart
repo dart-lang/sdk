@@ -8,10 +8,10 @@
 // refactored to fit into analyzer.
 library analyzer.src.task.strong.info;
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/type_system.dart';
 
@@ -95,18 +95,19 @@ abstract class DownCast extends CoercionInfo {
             baseType.isAssignableTo(_cast.toType)));
   }
 
-  @override List<Object> get arguments => [node, baseType, convertedType];
+  @override
+  List<Object> get arguments => [baseType, convertedType];
 
   Cast get cast => _cast;
 
   DartType get convertedType => _cast.toType;
-  @override String get message => '{0} ({1}) will need runtime check '
-      'to cast to type {2}';
+
+  @override
+  String get message => 'Unsound implicit cast from {0} to {1}';
 
   // Factory to create correct DownCast variant.
   static StaticInfo create(
-      StrongTypeSystemImpl rules, Expression expression, Cast cast,
-      {String reason}) {
+      StrongTypeSystemImpl rules, Expression expression, Cast cast) {
     final fromT = cast.fromType;
     final toT = cast.toType;
 
@@ -122,20 +123,23 @@ abstract class DownCast extends CoercionInfo {
     }
 
     // Inference "casts":
-    if (expression is Literal) {
+    if (expression is Literal || expression is FunctionExpression) {
       // fromT should be an exact type - this will almost certainly fail at
       // runtime.
-      return new StaticTypeError(rules, expression, toT, reason: reason);
+      return new StaticTypeError(rules, expression, toT);
     }
-    if (expression is FunctionExpression) {
-      // fromT should be an exact type - this will almost certainly fail at
-      // runtime.
-      return new UninferredClosure(rules, expression, cast);
-    }
+
     if (expression is InstanceCreationExpression) {
-      // fromT should be an exact type - this will almost certainly fail at
-      // runtime.
-      return new StaticTypeError(rules, expression, toT, reason: reason);
+      ConstructorElement e = expression.staticElement;
+      if (e == null || !e.isFactory) {
+        // fromT should be an exact type - this will almost certainly fail at
+        // runtime.
+        return new StaticTypeError(rules, expression, toT);
+      }
+    }
+
+    if (StaticInfo.isKnownFunction(expression)) {
+      return new StaticTypeError(rules, expression, toT);
     }
 
     // TODO(vsm): Change this to an assert when we have generic methods and
@@ -292,9 +296,11 @@ abstract class InferredTypeBase extends CoercionInfo {
       TypeSystem rules, Expression expression, this._type)
       : super(rules, expression);
 
-  @override List get arguments => [node, type];
+  @override
+  List get arguments => [node, type];
   DartType get convertedType => type;
-  @override String get message => '{0} has inferred type {1}';
+  @override
+  String get message => '{0} has inferred type {1}';
   DartType get type => _type;
 
   toErrorCode() => new HintCode(name, message);
@@ -370,7 +376,8 @@ abstract class InvalidOverride extends StaticError {
         fromMixin = node.parent is WithClause,
         super(node);
 
-  @override List<Object> get arguments =>
+  @override
+  List<Object> get arguments =>
       [parent.name, element.name, subType, base, baseType];
 
   ClassElement get parent => element.enclosingElement;
@@ -392,8 +399,10 @@ class InvalidParameterDeclaration extends StaticError {
       TypeSystem rules, FormalParameter declaration, this.expectedType)
       : super(declaration);
 
-  @override List<Object> get arguments => [node, expectedType];
-  @override String get message => 'Type check failed: {0} is not of type {1}';
+  @override
+  List<Object> get arguments => [node, expectedType];
+  @override
+  String get message => 'Type check failed: {0} is not of type {1}';
   @override
   String get name => 'STRONG_MODE_INVALID_PARAMETER_DECLARATION';
 }
@@ -424,14 +433,15 @@ class InvalidParameterDeclaration extends StaticError {
 /// could be if initializers have side effects.
 ///
 /// Better to have `super` at the end, as required by the Dart style guide:
-/// <http://goo.gl/q1T4BB>
+/// <https://goo.gl/EY6hDP>
 ///
 /// For now this is the only pattern we support.
 class InvalidSuperInvocation extends StaticError {
   InvalidSuperInvocation(SuperConstructorInvocation node) : super(node);
 
-  @override String get message => "super call must be last in an initializer "
-      "list (see http://goo.gl/q1T4BB): {0}";
+  @override
+  String get message => "super call must be last in an initializer "
+      "list (see https://goo.gl/EY6hDP): {0}";
 
   @override
   String get name => 'STRONG_MODE_INVALID_SUPER_INVOCATION';
@@ -444,8 +454,10 @@ class InvalidVariableDeclaration extends StaticError {
       TypeSystem rules, AstNode declaration, this.expectedType)
       : super(declaration);
 
-  @override List<Object> get arguments => [expectedType];
-  @override String get message => 'Type check failed: null is not of type {0}';
+  @override
+  List<Object> get arguments => [expectedType];
+  @override
+  String get message => 'Type check failed: null is not of type {0}';
 
   @override
   String get name => 'STRONG_MODE_INVALID_VARIABLE_DECLARATION';
@@ -459,7 +471,8 @@ class NonGroundTypeCheckInfo extends StaticInfo {
     assert(node is IsExpression || node is AsExpression);
   }
 
-  @override List<Object> get arguments => [type];
+  @override
+  List<Object> get arguments => [type];
   String get message =>
       "Runtime check on non-ground type {0} may throw StrongModeError";
 
@@ -529,43 +542,34 @@ abstract class StaticInfo {
   // TODO(jmesserly): review the usage of error codes. We probably want our own,
   // as well as some DDC specific [ErrorType]s.
   ErrorCode toErrorCode();
+
+  static bool isKnownFunction(Expression expression) {
+    Element element = null;
+    if (expression is PropertyAccess) {
+      element = expression.propertyName.staticElement;
+    } else if (expression is Identifier) {
+      element = expression.staticElement;
+    }
+    // First class functions and static methods, where we know the original
+    // declaration, will have an exact type, so we know a downcast will fail.
+    return element is FunctionElement ||
+        element is MethodElement && element.isStatic;
+  }
 }
 
 class StaticTypeError extends StaticError {
   final DartType baseType;
   final DartType expectedType;
-  String reason = null;
 
-  StaticTypeError(TypeSystem rules, Expression expression, this.expectedType,
-      {this.reason})
+  StaticTypeError(TypeSystem rules, Expression expression, this.expectedType)
       : baseType = expression.staticType ?? DynamicTypeImpl.instance,
         super(expression);
 
-  @override List<Object> get arguments => [node, baseType, expectedType];
-  @override String get message =>
-      'Type check failed: {0} ({1}) is not of type {2}' +
-      ((reason == null) ? '' : ' because $reason');
+  @override
+  List<Object> get arguments => [node, baseType, expectedType];
+  @override
+  String get message => 'Type check failed: {0} ({1}) is not of type {2}';
 
   @override
   String get name => 'STRONG_MODE_STATIC_TYPE_ERROR';
-}
-
-//
-// Temporary "casts" of allocation sites - literals, constructor invocations,
-// and closures.  These should be handled by contextual inference.  In most
-// cases, inference will be sufficient, though in some it may unmask an actual
-// error: e.g.,
-//   List<int> l = [1, 2, 3]; // Inference succeeds
-//   List<String> l = [1, 2, 3]; // Inference reveals static type error
-// We're marking all as warnings for now.
-//
-// TODO(vsm,leafp): Remove this.
-class UninferredClosure extends DownCast {
-  UninferredClosure(TypeSystem rules, FunctionExpression expression, Cast cast)
-      : super._internal(rules, expression, cast);
-
-  @override
-  String get name => 'STRONG_MODE_UNINFERRED_CLOSURE';
-
-  toErrorCode() => new StaticTypeWarningCode(name, message);
 }

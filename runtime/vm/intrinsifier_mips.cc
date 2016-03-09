@@ -17,8 +17,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, interpret_irregexp);
-
 // When entering intrinsics code:
 // S4: Arguments descriptor
 // RA: Return address
@@ -36,7 +34,7 @@ intptr_t Intrinsifier::ParameterSlotFromSp() { return -1; }
 // Intrinsify only for Smi value and index. Non-smi values need a store buffer
 // update. Array length is always a Smi.
 void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
-  if (Isolate::Current()->flags().type_checks()) {
+  if (Isolate::Current()->type_checks()) {
     return;
   }
 
@@ -108,7 +106,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
 // On stack: growable array (+1), value (+0).
 void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   // In checked mode we need to type-check the incoming argument.
-  if (Isolate::Current()->flags().type_checks()) return;
+  if (Isolate::Current()->type_checks()) return;
   Label fall_through;
   __ lw(T0, Address(SP, 1 * kWordSize));  // Array.
   __ lw(T1, FieldAddress(T0, GrowableObjectArray::length_offset()));
@@ -1646,11 +1644,9 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   Label fall_through;
   __ lw(T0, Address(SP, 0 * kWordSize));
   __ LoadClassIdMayBeSmi(T1, T0);
+  __ BranchEqual(T1, Immediate(kClosureCid), &fall_through);
   __ LoadClassById(T2, T1);
   // T2: class of instance (T0).
-
-  __ lw(T1, FieldAddress(T2, Class::signature_function_offset()));
-  __ BranchNotEqual(T1, Object::null_object(), &fall_through);
 
   __ lhu(T1, FieldAddress(T2, Class::num_type_arguments_offset()));
   __ BranchNotEqual(T1, Immediate(0), &fall_through);

@@ -8,7 +8,7 @@
 // }
 
 function() {
-  var line = H.S(new V.A_b_closure(V.A$()).call$0());
+  var line = H.S(V.A$().a$0());
   if (typeof dartPrint == "function")
     dartPrint(line);
   else if (typeof console == "object" && typeof console.log != "undefined")

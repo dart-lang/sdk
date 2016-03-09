@@ -21,7 +21,7 @@ SecurityContext serverContext = new SecurityContext()
                   password: 'dartdart');
 
 SecurityContext clientContext = new SecurityContext()
-  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
+  ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
 
 main() async {
   List<int> message = "GET / HTTP/1.0\r\nHost: localhost\r\n\r\n".codeUnits;

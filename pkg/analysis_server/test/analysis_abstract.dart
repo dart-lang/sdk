@@ -32,7 +32,8 @@ int findIdentifierLength(String search) {
     int c = search.codeUnitAt(length);
     if (!(c >= 'a'.codeUnitAt(0) && c <= 'z'.codeUnitAt(0) ||
         c >= 'A'.codeUnitAt(0) && c <= 'Z'.codeUnitAt(0) ||
-        c >= '0'.codeUnitAt(0) && c <= '9'.codeUnitAt(0))) {
+        c >= '0'.codeUnitAt(0) && c <= '9'.codeUnitAt(0) ||
+        c == '_'.codeUnitAt(0))) {
       break;
     }
     length++;
@@ -125,7 +126,7 @@ class AbstractAnalysisTest {
         index,
         serverPlugin,
         new AnalysisServerOptions(),
-        new MockSdk(),
+        () => new MockSdk(),
         InstrumentationService.NULL_SERVICE);
   }
 
@@ -170,7 +171,7 @@ class AbstractAnalysisTest {
    */
   Response handleSuccessfulRequest(Request request) {
     Response response = handler.handleRequest(request);
-    expect(response, isResponseSuccess('0'));
+    expect(response, isResponseSuccess(request.id));
     return response;
   }
 

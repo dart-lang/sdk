@@ -19,11 +19,7 @@ void PrintUtf16(uint16_t c);
 class BlockLabel : public ValueObject {
   // Used by the IR assembler.
  public:
-  BlockLabel()
-    : block_(new JoinEntryInstr(-1, -1)),
-      is_bound_(false),
-      is_linked_(false),
-      pos_(-1) { }
+  BlockLabel();
 
   JoinEntryInstr* block() const { return block_; }
 

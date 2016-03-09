@@ -593,8 +593,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // Intersection of int and double return conflicting, so
     // we don't optimize on numbers to preserve the runtime semantics.
     if (!(left.isNumberOrNull(compiler) && right.isNumberOrNull(compiler))) {
-      TypeMask intersection = leftType.intersection(rightType, compiler.world);
-      if (intersection.isEmpty && !intersection.isNullable) {
+      if (leftType.isDisjoint(rightType, compiler.world)) {
         return makeFalse();
       }
     }
@@ -737,8 +736,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
           : new TypeMask.nonNullSubtype(element, classWorld);
       if (expressionMask.union(typeMask, classWorld) == typeMask) {
         return graph.addConstantBool(true, compiler);
-      } else if (expressionMask.intersection(typeMask,
-                                             compiler.world).isEmpty) {
+      } else if (expressionMask.isDisjoint(typeMask, compiler.world)) {
         return graph.addConstantBool(false, compiler);
       }
     }
@@ -2154,10 +2152,8 @@ class MemorySet {
     if (nonEscapingReceivers.contains(second)) return false;
     // Typed arrays of different types might have a shared buffer.
     if (couldBeTypedArray(first) && couldBeTypedArray(second)) return true;
-    TypeMask intersection = first.instructionType.intersection(
+    return !first.instructionType.isDisjoint(
         second.instructionType, compiler.world);
-    if (intersection.isEmpty) return false;
-    return true;
   }
 
   bool isFinal(Element element) {

@@ -21,6 +21,8 @@ bool useNewSourceInfo =
 /// Interface for passing source information, for instance for use in source
 /// maps, through the backend.
 abstract class SourceInformation extends JavaScriptNodeSourceInformation {
+  const SourceInformation();
+
   SourceSpan get sourceSpan;
 
   /// The source location associated with the start of the JS node.
@@ -47,6 +49,12 @@ class SourceInformationStrategy {
   SourceInformationBuilder createBuilderForContext(AstElement element) {
     return const SourceInformationBuilder();
   }
+
+  /// Generate [SourceInformation] marker for non-preamble code.
+  SourceInformation buildSourceMappedMarker() => null;
+
+  /// Called when compilation has completed.
+  void onComplete() {}
 }
 
 /// Interface for generating [SourceInformation].
@@ -96,6 +104,10 @@ class SourceInformationBuilder {
 
   /// Generate [SourceInformation] for the assignment in [node].
   SourceInformation buildAssignment(Node node) => null;
+
+  /// Generate [SourceInformation] for the variable declaration inserted as
+  /// first statement of a function.
+  SourceInformation buildVariableDeclaration() => null;
 }
 
 /// A location in a source file.

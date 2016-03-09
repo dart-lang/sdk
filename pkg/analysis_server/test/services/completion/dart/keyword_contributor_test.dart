@@ -7,7 +7,7 @@ library test.services.completion.dart.keyword;
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/dart/keyword_contributor.dart';
-import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
@@ -269,6 +269,11 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     }
   }
 
+  @override
+  DartCompletionContributor createContributor() {
+    return new KeywordContributor();
+  }
+
   fail_import_partial() async {
     addTestSource('imp^ import "package:foo/foo.dart"; import "bar.dart";');
     await computeSuggestions();
@@ -296,11 +301,6 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     await computeSuggestions();
     // TODO(danrubel) should not suggest declaration keywords
     assertNotSuggested('class');
-  }
-
-  @override
-  DartCompletionContributor createContributor() {
-    return new KeywordContributor();
   }
 
   test_after_class() async {
@@ -1238,13 +1238,6 @@ class A {
     assertSuggestKeywords(STMT_START_IN_CLASS, pseudoKeywords: ['await']);
   }
 
-  test_method_body_async_star() async {
-    addTestSource('class A { foo() async* {^}}');
-    await computeSuggestions();
-    assertSuggestKeywords(STMT_START_IN_CLASS,
-        pseudoKeywords: ['await', 'yield', 'yield*']);
-  }
-
   test_method_body_async2() async {
     addTestSource('class A { foo() async => ^}');
     await computeSuggestions();
@@ -1261,6 +1254,13 @@ class A {
     addTestSource('class A { foo() async => ^;}');
     await computeSuggestions();
     assertSuggestKeywords(EXPRESSION_START_INSTANCE, pseudoKeywords: ['await']);
+  }
+
+  test_method_body_async_star() async {
+    addTestSource('class A { foo() async* {^}}');
+    await computeSuggestions();
+    assertSuggestKeywords(STMT_START_IN_CLASS,
+        pseudoKeywords: ['await', 'yield', 'yield*']);
   }
 
   test_method_body_expression1() async {

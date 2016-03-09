@@ -7,12 +7,14 @@
 library analyzer.src.task.strong.checker;
 
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
-import 'package:analyzer/src/generated/scanner.dart' show Token, TokenType;
 import 'package:analyzer/src/generated/type_system.dart';
 
 import 'info.dart';
@@ -129,14 +131,9 @@ class CodeChecker extends RecursiveAstVisitor {
       Expression arg = list[i];
       ParameterElement element = arg.staticParameterElement;
       if (element == null) {
-        if (type.parameters.length < len) {
-          // We found an argument mismatch, the analyzer will report this too,
-          // so no need to insert an error for this here.
-          continue;
-        }
-        element = type.parameters[i];
-        // TODO(vsm): When can this happen?
-        assert(element != null);
+        // We found an argument mismatch, the analyzer will report this too,
+        // so no need to insert an error for this here.
+        continue;
       }
       DartType expectedType = _elementType(element);
       if (expectedType == null) expectedType = DynamicTypeImpl.instance;
@@ -569,19 +566,11 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   StaticInfo _checkAssignment(Expression expr, DartType toT) {
-    final fromT = expr.staticType ?? DynamicTypeImpl.instance;
+    final fromT = _getStaticType(expr);
     final Coercion c = _coerceTo(fromT, toT);
     if (c is Identity) return null;
     if (c is CoercionError) return new StaticTypeError(rules, expr, toT);
-    var reason = null;
-
-    var errors = <String>[];
-
-    var ok = _inferExpression(expr, toT, errors);
-    if (ok) return InferredType.create(rules, expr, toT);
-    reason = (errors.isNotEmpty) ? errors.first : null;
-
-    if (c is Cast) return DownCast.create(rules, expr, c, reason: reason);
+    if (c is Cast) return DownCast.create(rules, expr, c);
     assert(false);
     return null;
   }
@@ -782,7 +771,63 @@ class CodeChecker extends RecursiveAstVisitor {
   }
 
   DartType _getStaticType(Expression expr) {
-    return expr.staticType ?? DynamicTypeImpl.instance;
+    DartType t = expr.staticType ?? DynamicTypeImpl.instance;
+
+    // Remove fuzzy arrow if possible.
+    if (t is FunctionType && StaticInfo.isKnownFunction(expr)) {
+      t = _removeFuzz(t);
+    }
+
+    return t;
+  }
+
+  /// Remove "fuzzy arrow" in this function type.
+  ///
+  /// Normally we treat dynamically typed parameters as bottom for function
+  /// types. This allows type tests such as `if (f is SingleArgFunction)`.
+  /// It also requires a dynamic check on the parameter type to call these
+  /// functions.
+  ///
+  /// When we convert to a strict arrow, dynamically typed parameters become
+  /// top. This is safe to do for known functions, like top-level or local
+  /// functions and static methods. Those functions must already be essentially
+  /// treating dynamic as top.
+  ///
+  /// Only the outer-most arrow can be strict. Any others must be fuzzy, because
+  /// we don't know what function value will be passed there.
+  // TODO(jmesserly): should we use a real "fuzzyArrow" bit on the function
+  // type? That would allow us to implement this in the subtype relation.
+  // TODO(jmesserly): we'll need to factor this differently if we want to
+  // move CodeChecker's functionality into existing analyzer. Likely we can
+  // let the Expression have a strict arrow, then in places were we do
+  // inference, convert back to a fuzzy arrow.
+  FunctionType _removeFuzz(FunctionType t) {
+    bool foundFuzz = false;
+    List<ParameterElement> parameters = <ParameterElement>[];
+    for (ParameterElement p in t.parameters) {
+      ParameterElement newP = _removeParameterFuzz(p);
+      parameters.add(newP);
+      if (p != newP) foundFuzz = true;
+    }
+    if (!foundFuzz) {
+      return t;
+    }
+
+    FunctionElementImpl function = new FunctionElementImpl("", -1);
+    function.synthetic = true;
+    function.returnType = t.returnType;
+    function.shareTypeParameters(t.typeFormals);
+    function.shareParameters(parameters);
+    return function.type = new FunctionTypeImpl(function);
+  }
+
+  /// Removes fuzzy arrow, see [_removeFuzz].
+  ParameterElement _removeParameterFuzz(ParameterElement p) {
+    if (p.type.isDynamic) {
+      return new ParameterElementImpl.synthetic(
+          p.name, typeProvider.objectType, p.parameterKind);
+    }
+    return p;
   }
 
   /// Given an expression, return its type assuming it is
@@ -802,17 +847,6 @@ class CodeChecker extends RecursiveAstVisitor {
     }
     if (t is FunctionType) return t;
     return null;
-  }
-
-  /// Checks if we can perform downwards inference on [e] tp get type [t].
-  /// If it is not possible, this will add a message to [errors].
-  bool _inferExpression(Expression e, DartType t, List<String> errors) {
-    DartType staticType = e.staticType ?? DynamicTypeImpl.instance;
-    if (rules.isSubtypeOf(staticType, t)) {
-      return true;
-    }
-    errors.add("$e cannot be typed as $t");
-    return false;
   }
 
   /// Returns `true` if the expression is a dynamic function call or method

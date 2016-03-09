@@ -1,6 +1,6 @@
 class Base {
   m(x) {
-    print(x+1);
+    try { print(x+1); } finally { }
   }
 }
 class Sub extends Base {

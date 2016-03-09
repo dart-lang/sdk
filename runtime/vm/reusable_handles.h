@@ -11,9 +11,9 @@
 
 namespace dart {
 
-// Classes registered in REUSABLE_HANDLE_LIST have an isolate specific reusable
+// Classes registered in REUSABLE_HANDLE_LIST have an thread specific reusable
 // handle. A guard class (Reusable*ClassName*HandleScope) should be used in
-// regions of the virtual machine where the isolate specific reusable handle
+// regions of the virtual machine where the thread specific reusable handle
 // of that type is used. The class asserts that we do not add code that will
 // result in recursive uses of the class's reusable handle.
 //
@@ -21,7 +21,7 @@ namespace dart {
 // REUSABLE_*CLASSNAME*_HANDLESCOPE macro:
 //
 // {
-//   REUSABLE_ARRAY_HANDLESCOPE(isolate);
+//   REUSABLE_ARRAY_HANDLESCOPE(thread);
 //   ....
 //   ....
 //   Array& funcs = reused_array_handle.Handle();

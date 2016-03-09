@@ -10,8 +10,11 @@ import 'dart:io';
 
 import 'package:analyzer/file_system/file_system.dart' as fileSystem;
 import 'package:analyzer/file_system/physical_file_system.dart';
+import 'package:analyzer/plugin/embedded_resolver_provider.dart';
 import 'package:analyzer/plugin/options.dart';
+import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
+import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
@@ -31,7 +34,9 @@ import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/options.dart';
+import 'package:analyzer_cli/src/package_analyzer.dart';
 import 'package:analyzer_cli/src/perf_report.dart';
+import 'package:analyzer_cli/starter.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:package_config/discovery.dart' as pkgDiscovery;
 import 'package:package_config/packages.dart' show Packages;
@@ -60,7 +65,7 @@ bool containsLintRuleEntry(Map<String, YamlNode> options) {
 
 typedef ErrorSeverity _BatchRunnerHandler(List<String> args);
 
-class Driver {
+class Driver implements CommandLineStarter {
   static final PerformanceTag _analyzeAllTag =
       new PerformanceTag("Driver._analyzeAll");
 
@@ -78,17 +83,23 @@ class Driver {
   /// creation.
   CommandLineOptions _previousOptions;
 
+  @override
+  EmbeddedResolverProvider embeddedUriResolverProvider;
+
+  @override
+  ResolverProvider packageResolverProvider;
+
   /// This Driver's current analysis context.
   ///
   /// *Visible for testing.*
   AnalysisContext get context => _context;
 
-  /// Set the [plugins] that are defined outside the `analyzer_cli` package.
+  @override
   void set userDefinedPlugins(List<Plugin> plugins) {
     _userDefinedPlugins = plugins == null ? <Plugin>[] : plugins;
   }
 
-  /// Use the given command-line [args] to start this analysis driver.
+  @override
   void start(List<String> args) {
     int startTime = new DateTime.now().millisecondsSinceEpoch;
 
@@ -103,7 +114,13 @@ class Driver {
     _setupEnv(options);
 
     // Do analysis.
-    if (_isBatch) {
+    if (options.packageMode) {
+      ErrorSeverity severity = _analyzePackage(options);
+      // In case of error propagate exit code.
+      if (severity == ErrorSeverity.ERROR) {
+        exitCode = severity.ordinal;
+      }
+    } else if (_isBatch) {
       _BatchRunner.runAsBatch(args, (List<String> args) {
         CommandLineOptions options = CommandLineOptions.parse(args);
         return _analyzeAll(options);
@@ -205,6 +222,13 @@ class Driver {
     return allResult;
   }
 
+  /// Perform package analysis according to the given [options].
+  ErrorSeverity _analyzePackage(CommandLineOptions options) {
+    return _analyzeAllTag.makeCurrentWhile(() {
+      return new PackageAnalyzer(options).analyze();
+    });
+  }
+
   /// Determine whether the context created during a previous call to
   /// [_analyzeAll] can be re-used in order to analyze using [options].
   bool _canContextBeReused(CommandLineOptions options) {
@@ -280,7 +304,9 @@ class Driver {
       packagesRequiringFullParse = null;
     }
     return (Source source) {
-      if (source.uri.scheme == 'dart') {
+      if (options.sourceFiles.contains(source.fullName)) {
+        return true;
+      } else if (source.uri.scheme == 'dart') {
         return options.showSdkWarnings;
       } else if (source.uri.scheme == 'package') {
         if (packagesRequiringFullParse == null) {
@@ -302,11 +328,41 @@ class Driver {
   /// Decide on the appropriate method for resolving URIs based on the given
   /// [options] and [customUrlMappings] settings, and return a
   /// [SourceFactory] that has been configured accordingly.
-  SourceFactory _chooseUriResolutionPolicy(CommandLineOptions options) {
+  SourceFactory _chooseUriResolutionPolicy(
+      CommandLineOptions options, EmbedderYamlLocator yamlLocator) {
     Packages packages;
     Map<String, List<fileSystem.Folder>> packageMap;
     UriResolver packageUriResolver;
 
+    // Create a custom package resolver if one has been specified.
+    if (packageResolverProvider != null) {
+      fileSystem.Folder folder =
+          PhysicalResourceProvider.INSTANCE.getResource('.');
+      UriResolver resolver = packageResolverProvider(folder);
+      if (resolver != null) {
+        UriResolver sdkResolver;
+
+        // Check for a resolver provider.
+        if (embeddedUriResolverProvider != null) {
+          EmbedderUriResolver embedderUriResolver =
+              embeddedUriResolverProvider(folder);
+          if (embedderUriResolver != null && embedderUriResolver.length != 0) {
+            sdkResolver = embedderUriResolver;
+          }
+        }
+
+        // Default to a Dart URI resolver if no embedder is found.
+        sdkResolver ??= new DartUriResolver(sdk);
+
+        // TODO(brianwilkerson) This doesn't sdk extensions.
+        List<UriResolver> resolvers = <UriResolver>[
+          sdkResolver,
+          resolver,
+          new FileUriResolver()
+        ];
+        return new SourceFactory(resolvers);
+      }
+    }
     // Process options, caching package resolution details.
     if (options.packageConfigPath != null) {
       String packageConfigPath = options.packageConfigPath;
@@ -356,9 +412,24 @@ class Driver {
     }
 
     // Now, build our resolver list.
+    List<UriResolver> resolvers = [];
 
     // 'dart:' URIs come first.
-    List<UriResolver> resolvers = [new DartUriResolver(sdk)];
+
+    // Setup embedding.
+    yamlLocator.refresh(packageMap);
+
+    EmbedderUriResolver embedderUriResolver =
+        new EmbedderUriResolver(yamlLocator.embedderYamls);
+    if (embedderUriResolver.length == 0) {
+      // The embedder uri resolver has no mappings. Use the default Dart SDK
+      // uri resolver.
+      resolvers.add(new DartUriResolver(sdk));
+    } else {
+      // The embedder uri resolver has mappings, use it instead of the default
+      // Dart SDK uri resolver.
+      resolvers.add(embedderUriResolver);
+    }
 
     // Next SdkExts.
     if (packageMap != null) {
@@ -401,43 +472,24 @@ class Driver {
       return;
     }
     _previousOptions = options;
+
+    // Create a context.
+    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
+    _context = context;
+
     // Choose a package resolution policy and a diet parsing policy based on
     // the command-line options.
-    SourceFactory sourceFactory = _chooseUriResolutionPolicy(options);
+    SourceFactory sourceFactory = _chooseUriResolutionPolicy(
+        options, (context as InternalAnalysisContext).embedderYamlLocator);
     AnalyzeFunctionBodiesPredicate dietParsingPolicy =
         _chooseDietParsingPolicy(options);
-    // Create a context using these policies.
-    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
 
     context.sourceFactory = sourceFactory;
 
-    Map<String, String> definedVariables = options.definedVariables;
-    if (!definedVariables.isEmpty) {
-      DeclaredVariables declaredVariables = context.declaredVariables;
-      definedVariables.forEach((String variableName, String value) {
-        declaredVariables.define(variableName, value);
-      });
-    }
-
-    if (options.log) {
-      AnalysisEngine.instance.logger = new StdLogger();
-    }
-
-    // Set context options.
-    AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
-    contextOptions.hint = !options.disableHints;
-    contextOptions.enableStrictCallChecks = options.enableStrictCallChecks;
-    contextOptions.enableSuperMixins = options.enableSuperMixins;
-    contextOptions.analyzeFunctionBodiesPredicate = dietParsingPolicy;
-    contextOptions.generateImplicitErrors = options.showPackageWarnings;
-    contextOptions.generateSdkErrors = options.showSdkWarnings;
-    contextOptions.lint = options.lints;
-    contextOptions.strongMode = options.strongMode;
-    context.analysisOptions = contextOptions;
-    _context = context;
-
-    // Process analysis options file (and notify all interested parties).
-    _processAnalysisOptions(options, context);
+    setAnalysisContextOptions(_context, options,
+        (AnalysisOptionsImpl contextOptions) {
+      contextOptions.analyzeFunctionBodiesPredicate = dietParsingPolicy;
+    });
   }
 
   /// Return discovered packagespec, or `null` if none is found.
@@ -454,22 +506,6 @@ class Driver {
     return null;
   }
 
-  fileSystem.File _getOptionsFile(CommandLineOptions options) {
-    fileSystem.File file;
-    String filePath = options.analysisOptionsFile;
-    if (filePath != null) {
-      file = PhysicalResourceProvider.INSTANCE.getFile(filePath);
-      if (!file.exists) {
-        printAndFail('Options file not found: $filePath',
-            exitCode: ErrorSeverity.ERROR.ordinal);
-      }
-    } else {
-      filePath = AnalysisEngine.ANALYSIS_OPTIONS_FILE;
-      file = PhysicalResourceProvider.INSTANCE.getFile(filePath);
-    }
-    return file;
-  }
-
   Map<String, List<fileSystem.Folder>> _getPackageMap(Packages packages) {
     if (packages == null) {
       return null;
@@ -483,34 +519,6 @@ class Driver {
       ];
     });
     return folderMap;
-  }
-
-  void _processAnalysisOptions(
-      CommandLineOptions options, AnalysisContext context) {
-    fileSystem.File file = _getOptionsFile(options);
-    List<OptionsProcessor> optionsProcessors =
-        AnalysisEngine.instance.optionsPlugin.optionsProcessors;
-    try {
-      AnalysisOptionsProvider analysisOptionsProvider =
-          new AnalysisOptionsProvider();
-      Map<String, YamlNode> optionMap =
-          analysisOptionsProvider.getOptionsFromFile(file);
-      optionsProcessors.forEach(
-          (OptionsProcessor p) => p.optionsProcessed(context, optionMap));
-
-      // Fill in lint rule defaults in case lints are enabled and rules are
-      // not specified in an options file.
-      if (options.lints && !containsLintRuleEntry(optionMap)) {
-        setLints(context, linterPlugin.contributedRules);
-      }
-
-      // Ask engine to further process options.
-      if (optionMap != null) {
-        configureContextOptions(context, optionMap);
-      }
-    } on Exception catch (e) {
-      optionsProcessors.forEach((OptionsProcessor p) => p.onError(e));
-    }
   }
 
   void _processPlugins() {
@@ -550,6 +558,41 @@ class Driver {
     _isBatch = options.shouldBatch;
   }
 
+  static void setAnalysisContextOptions(
+      AnalysisContext context,
+      CommandLineOptions options,
+      void configureContextOptions(AnalysisOptionsImpl contextOptions)) {
+    Map<String, String> definedVariables = options.definedVariables;
+    if (!definedVariables.isEmpty) {
+      DeclaredVariables declaredVariables = context.declaredVariables;
+      definedVariables.forEach((String variableName, String value) {
+        declaredVariables.define(variableName, value);
+      });
+    }
+
+    if (options.log) {
+      AnalysisEngine.instance.logger = new StdLogger();
+    }
+
+    // Prepare context options.
+    AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
+    contextOptions.hint = !options.disableHints;
+    contextOptions.enableStrictCallChecks = options.enableStrictCallChecks;
+    contextOptions.enableSuperMixins = options.enableSuperMixins;
+    contextOptions.generateImplicitErrors = options.showPackageWarnings;
+    contextOptions.generateSdkErrors = options.showSdkWarnings;
+    contextOptions.lint = options.lints;
+    contextOptions.strongMode = options.strongMode;
+    configureContextOptions(contextOptions);
+
+    // Set context options.
+    context.analysisOptions = contextOptions;
+    context.sourceFactory.dartSdk.context.analysisOptions = contextOptions;
+
+    // Process analysis options file (and notify all interested parties).
+    _processAnalysisOptions(context, options);
+  }
+
   /// Perform a deep comparison of two string maps.
   static bool _equalMaps(Map<String, String> m1, Map<String, String> m2) {
     if (m1.length != m2.length) {
@@ -563,9 +606,53 @@ class Driver {
     return true;
   }
 
+  static fileSystem.File _getOptionsFile(CommandLineOptions options) {
+    fileSystem.File file;
+    String filePath = options.analysisOptionsFile;
+    if (filePath != null) {
+      file = PhysicalResourceProvider.INSTANCE.getFile(filePath);
+      if (!file.exists) {
+        printAndFail('Options file not found: $filePath',
+            exitCode: ErrorSeverity.ERROR.ordinal);
+      }
+    } else {
+      filePath = AnalysisEngine.ANALYSIS_OPTIONS_FILE;
+      file = PhysicalResourceProvider.INSTANCE.getFile(filePath);
+    }
+    return file;
+  }
+
   /// Convert [sourcePath] into an absolute path.
   static String _normalizeSourcePath(String sourcePath) =>
       path.normalize(new File(sourcePath).absolute.path);
+
+  static void _processAnalysisOptions(
+      AnalysisContext context, CommandLineOptions options) {
+    fileSystem.File file = _getOptionsFile(options);
+    List<OptionsProcessor> optionsProcessors =
+        AnalysisEngine.instance.optionsPlugin.optionsProcessors;
+    try {
+      AnalysisOptionsProvider analysisOptionsProvider =
+          new AnalysisOptionsProvider();
+      Map<String, YamlNode> optionMap =
+          analysisOptionsProvider.getOptionsFromFile(file);
+      optionsProcessors.forEach(
+          (OptionsProcessor p) => p.optionsProcessed(context, optionMap));
+
+      // Fill in lint rule defaults in case lints are enabled and rules are
+      // not specified in an options file.
+      if (options.lints && !containsLintRuleEntry(optionMap)) {
+        setLints(context, linterPlugin.contributedRules);
+      }
+
+      // Ask engine to further process options.
+      if (optionMap != null) {
+        configureContextOptions(context, optionMap);
+      }
+    } on Exception catch (e) {
+      optionsProcessors.forEach((OptionsProcessor p) => p.onError(e));
+    }
+  }
 }
 
 /// Provides a framework to read command line options from stdin and feed them

@@ -72,7 +72,8 @@ class TypeMemberContributor extends DartCompletionContributor {
         } else if (elem is LocalVariableElement) {
           type = elem.type;
         }
-        if (type.isDynamic && expression is SimpleIdentifier) {
+        if ((type == null || type.isDynamic) &&
+            expression is SimpleIdentifier) {
           // If the element does not provide a good type
           // then attempt to get a better type from a local declaration
           _LocalBestTypeVisitor visitor =

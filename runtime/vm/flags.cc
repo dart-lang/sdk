@@ -14,6 +14,73 @@ DEFINE_FLAG(bool, print_flags, false, "Print flags as they are being parsed.");
 DEFINE_FLAG(bool, ignore_unrecognized_flags, false,
     "Ignore unrecognized flags.");
 
+#define PRODUCT_FLAG_MARCO(name, type, default_value, comment) \
+  type FLAG_##name = Flags::Register_##type(&FLAG_##name,                      \
+                                            #name,                             \
+                                            default_value,                     \
+                                            comment);
+
+#if defined(DEBUG)
+#define DEBUG_FLAG_MARCO(name, type, default_value, comment) \
+  type FLAG_##name = Flags::Register_##type(&FLAG_##name,                      \
+                                            #name,                             \
+                                            default_value,                     \
+                                            comment);
+#else  // defined(DEBUG)
+#define DEBUG_FLAG_MARCO(name, type, default_value, comment)
+#endif  // defined(DEBUG)
+
+#if defined(PRODUCT) && defined(DART_PRECOMPILED_RUNTIME)
+// Nothing to be done for the product flag definitions.
+#define RELEASE_FLAG_MARCO(name, product_value, type, default_value, comment)
+// Nothing to be done for the precompilation flag definitions.
+#define PRECOMPILE_FLAG_MARCO(name, pre_value, product_value, type,            \
+                              default_value, comment)
+
+#elif defined(PRODUCT)  // !PRECOMPILED
+// Nothing to be done for the product flag definitions.
+#define RELEASE_FLAG_MARCO(name, product_value, type, default_value, comment)
+// Nothing to be done for the precompilation flag definitions.
+#define PRECOMPILE_FLAG_MARCO(name, pre_value, product_value, type,            \
+                              default_value, comment)
+
+#elif defined(DART_PRECOMPILED_RUNTIME)  // !PRODUCT
+#define RELEASE_FLAG_MARCO(name, product_value, type, default_value, comment)  \
+  type FLAG_##name = Flags::Register_##type(&FLAG_##name,                      \
+                                            #name,                             \
+                                            default_value,                     \
+                                            comment);
+// Nothing to be done for the precompilation flag definitions.
+#define PRECOMPILE_FLAG_MARCO(name, pre_value, product_value, type,            \
+                              default_value, comment)
+
+#else  // !PRODUCT && !PRECOMPILED
+#define RELEASE_FLAG_MARCO(name, product_value, type, default_value, comment)  \
+  type FLAG_##name = Flags::Register_##type(&FLAG_##name,                      \
+                                            #name,                             \
+                                            default_value,                     \
+                                            comment);
+#define PRECOMPILE_FLAG_MARCO(name, pre_value, product_value, type,            \
+                              default_value, comment)                          \
+  type FLAG_##name = Flags::Register_##type(&FLAG_##name,                      \
+                                            #name,                             \
+                                            default_value,                     \
+                                            comment);
+#endif
+
+
+// Define all of the non-product flags here.
+FLAG_LIST(PRODUCT_FLAG_MARCO,
+          RELEASE_FLAG_MARCO,
+          DEBUG_FLAG_MARCO,
+          PRECOMPILE_FLAG_MARCO)
+
+#undef RELEASE_FLAG_MARCO
+#undef DEBUG_FLAG_MARCO
+#undef PRODUCT_FLAG_MARCO
+#undef PRECOMPILE_FLAG_MARCO
+
+
 bool Flags::initialized_ = false;
 
 // List of registered flags.
@@ -421,6 +488,9 @@ void Flags::PrintFlags() {
 
 
 void Flags::PrintFlagToJSONArray(JSONArray* jsarr, const Flag* flag) {
+  if (!FLAG_support_service) {
+    return;
+  }
   if (flag->IsUnrecognized() || flag->type_ == Flag::kFunc) {
     return;
   }
@@ -462,6 +532,9 @@ void Flags::PrintFlagToJSONArray(JSONArray* jsarr, const Flag* flag) {
 
 
 void Flags::PrintJSON(JSONStream* js) {
+  if (!FLAG_support_service) {
+    return;
+  }
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "FlagList");
   JSONArray jsarr(&jsobj, "flags");

@@ -1619,6 +1619,10 @@ class _StatsVisitor<T> extends Visitor
     handleNSMSuper(node, element.enclosingClass);
   }
 
+  void visitUnresolvedSuperSet(Send node, Element element, Node rhs, T arg) {
+    handleNSMSuper(node, element.enclosingClass);
+  }
+
   void visitUnresolvedSuperSetIfNull(
       Send node, Element element, Node rhs, T arg) {
     handleNSMSuper(node, element.enclosingClass);

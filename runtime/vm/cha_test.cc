@@ -98,10 +98,9 @@ TEST_CASE(ClassHierarchyAnalysis) {
   EXPECT(ContainsCid(cha.leaf_classes(), class_c.id()));
   EXPECT(ContainsCid(cha.leaf_classes(), class_d.id()));
 
-  const Class& function_impl_class =
-      Class::Handle(Type::Handle(Isolate::Current()->object_store()->
-          function_impl_type()).type_class());
-  EXPECT(cha.HasSubclasses(function_impl_class.id()));
+  const Class& closure_class =
+      Class::Handle(Isolate::Current()->object_store()->closure_class());
+  EXPECT(!cha.HasSubclasses(closure_class.id()));
 }
 
 }  // namespace dart

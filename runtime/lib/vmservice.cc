@@ -6,6 +6,7 @@
 #include "vm/dart_api_impl.h"
 #include "vm/datastream.h"
 #include "vm/exceptions.h"
+#include "vm/flags.h"
 #include "vm/growable_array.h"
 #include "vm/message.h"
 #include "vm/native_entry.h"
@@ -24,6 +25,7 @@ static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
 }
 
 
+#ifndef PRODUCT
 class RegisterRunningIsolatesVisitor : public IsolateVisitor {
  public:
   explicit RegisterRunningIsolatesVisitor(Thread* thread)
@@ -78,9 +80,12 @@ class RegisterRunningIsolatesVisitor : public IsolateVisitor {
   Function& register_function_;
   Isolate* service_isolate_;
 };
-
+#endif  // !PRODUCT
 
 DEFINE_NATIVE_ENTRY(VMService_SendIsolateServiceMessage, 2) {
+  if (!FLAG_support_service) {
+    return Bool::Get(false).raw();
+  }
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, sp, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, message, arguments->NativeArgAt(1));
 
@@ -103,7 +108,9 @@ DEFINE_NATIVE_ENTRY(VMService_SendIsolateServiceMessage, 2) {
 
 DEFINE_NATIVE_ENTRY(VMService_SendRootServiceMessage, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(Array, message, arguments->NativeArgAt(0));
-  Service::HandleRootMessage(message);
+  if (FLAG_support_service) {
+    Service::HandleRootMessage(message);
+  }
   return Object::null();
 }
 
@@ -114,14 +121,17 @@ DEFINE_NATIVE_ENTRY(VMService_OnStart, 0) {
   }
   // Boot the dart:vmservice library.
   ServiceIsolate::BootVmServiceLibrary();
-
+  if (!FLAG_support_service) {
+    return Object::null();
+  }
+#ifndef PRODUCT
   // Register running isolates with service.
   RegisterRunningIsolatesVisitor register_isolates(thread);
   if (FLAG_trace_service) {
     OS::Print("vm-service: Registering running isolates.\n");
   }
   Isolate::VisitIsolates(&register_isolates);
-
+#endif
   return Object::null();
 }
 
@@ -134,25 +144,48 @@ DEFINE_NATIVE_ENTRY(VMService_OnExit, 0) {
 }
 
 
+DEFINE_NATIVE_ENTRY(VMService_OnServerAddressChange, 1) {
+  if (!FLAG_support_service) {
+    return Object::null();
+  }
+  GET_NATIVE_ARGUMENT(String, address, arguments->NativeArgAt(0));
+  if (address.IsNull()) {
+    ServiceIsolate::SetServerAddress(NULL);
+  } else {
+    ServiceIsolate::SetServerAddress(address.ToCString());
+  }
+  return Object::null();
+}
+
+
 DEFINE_NATIVE_ENTRY(VMService_ListenStream, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, stream_id, arguments->NativeArgAt(0));
-  bool result = Service::ListenStream(stream_id.ToCString());
+  bool result = false;
+  if (FLAG_support_service) {
+    result = Service::ListenStream(stream_id.ToCString());
+  }
   return Bool::Get(result).raw();
 }
 
 
 DEFINE_NATIVE_ENTRY(VMService_CancelStream, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, stream_id, arguments->NativeArgAt(0));
-  Service::CancelStream(stream_id.ToCString());
+  if (FLAG_support_service) {
+    Service::CancelStream(stream_id.ToCString());
+  }
   return Object::null();
 }
 
 
 DEFINE_NATIVE_ENTRY(VMService_RequestAssets, 0) {
+  if (!FLAG_support_service) {
+    return Object::null();
+  }
   return Service::RequestAssets();
 }
 
 
+#ifndef PRODUCT
 // TODO(25041): When reading, this class copies out the filenames and contents
 // into new buffers. It does this because the lifetime of |bytes| is uncertain.
 // If |bytes| is pinned in memory, then we could instead load up
@@ -340,8 +373,16 @@ static void FilenameFinalizer(void* peer) {
 }
 
 
+#endif
+
+
 DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 1) {
+#ifndef PRODUCT
+  if (!FLAG_support_service) {
+    return Object::null();
+  }
   GET_NON_NULL_NATIVE_ARGUMENT(TypedData, data, arguments->NativeArgAt(0));
+  TransitionVMToNative transition(thread);
   Api::Scope scope(thread);
 
   Dart_Handle data_handle = Api::NewHandle(thread, data.raw());
@@ -391,6 +432,9 @@ DEFINE_NATIVE_ENTRY(VMService_DecodeAssets, 1) {
   }
 
   return result_list.raw();
+#else
+  return Object::null();
+#endif
 }
 
 }  // namespace dart

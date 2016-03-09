@@ -144,6 +144,7 @@ void ClassTable::Register(const Class& cls) {
 
 
 void ClassTable::RegisterAt(intptr_t index, const Class& cls) {
+  ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(index != kIllegalCid);
   ASSERT(index >= kNumPredefinedCids);
   if (index >= capacity_) {
@@ -177,6 +178,13 @@ void ClassTable::RegisterAt(intptr_t index, const Class& cls) {
     top_ = index + 1;
   }
 }
+
+
+#if defined(DEBUG)
+void ClassTable::Unregister(intptr_t index) {
+  table_[index] = 0;
+}
+#endif
 
 
 void ClassTable::VisitObjectPointers(ObjectPointerVisitor* visitor) {
@@ -224,6 +232,9 @@ void ClassTable::Print() {
 
 
 void ClassTable::PrintToJSONObject(JSONObject* object) {
+  if (!FLAG_support_service) {
+    return;
+  }
   Class& cls = Class::Handle();
   object->AddProperty("type", "ClassList");
   {
@@ -317,6 +328,9 @@ void ClassHeapStats::UpdatePromotedAfterNewGC() {
 
 void ClassHeapStats::PrintToJSONObject(const Class& cls,
                                        JSONObject* obj) const {
+  if (!FLAG_support_service) {
+    return;
+  }
   obj->AddProperty("type", "ClassHeapStats");
   obj->AddProperty("class", cls);
   {
@@ -472,6 +486,9 @@ intptr_t ClassTable::SizeOffsetFor(intptr_t cid, bool is_new_space) {
 
 
 void ClassTable::AllocationProfilePrintJSON(JSONStream* stream) {
+  if (!FLAG_support_service) {
+    return;
+  }
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   Heap* heap = isolate->heap();

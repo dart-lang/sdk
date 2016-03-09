@@ -26,9 +26,6 @@ DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
 DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
-DECLARE_FLAG(int, optimization_counter_threshold);
-DECLARE_FLAG(bool, support_debugger);
-DECLARE_FLAG(bool, lazy_dispatchers);
 
 // Input parameters:
 //   LR : return address.
@@ -1455,9 +1452,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Pop returned function object into R0.
   // Restore arguments descriptor array and IC data array.
   __ PopList((1 << R0) | (1 << R4) | (1 << R9));
-  if (range_collection_mode == kCollectRanges) {
-    __ RestoreCodePointer();
-  }
+  __ RestoreCodePointer();
   __ LeaveStubFrame();
   Label call_target_function;
   if (!FLAG_lazy_dispatchers) {
@@ -1804,8 +1799,12 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // R3: instance class id.
   // R4: instance type arguments.
   __ SmiTag(R3);
+  __ CompareImmediate(R3, Smi::RawValue(kClosureCid));
+  __ ldr(R3, FieldAddress(R0, Closure::function_offset()), EQ);
+  // R3: instance class id as Smi or function.
   __ Bind(&loop);
-  __ ldr(R9, Address(R2, kWordSize * SubtypeTestCache::kInstanceClassId));
+  __ ldr(R9,
+         Address(R2, kWordSize * SubtypeTestCache::kInstanceClassIdOrFunction));
   __ CompareObject(R9, Object::null_object());
   __ b(&not_found, EQ);
   __ cmp(R9, Operand(R3));

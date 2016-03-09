@@ -10,14 +10,18 @@
 
 namespace dart {
 
+class Definition;
 class Field;
 class FlowGraph;
 class Function;
+class Instruction;
+class TargetEntryInstr;
 
 class FlowGraphInliner : ValueObject {
  public:
   FlowGraphInliner(FlowGraph* flow_graph,
                    GrowableArray<const Function*>* inline_id_to_function,
+                   GrowableArray<TokenPosition>* inline_id_to_token_pos,
                    GrowableArray<intptr_t>* caller_inline_id,
                    bool use_speculative_inlining,
                    GrowableArray<intptr_t>* inlining_black_list);
@@ -32,15 +36,28 @@ class FlowGraphInliner : ValueObject {
   bool AlwaysInline(const Function& function);
 
   FlowGraph* flow_graph() const { return flow_graph_; }
-  intptr_t NextInlineId(const Function& function, intptr_t caller_id);
+  intptr_t NextInlineId(const Function& function,
+                        TokenPosition tp,
+                        intptr_t caller_id);
 
   bool trace_inlining() const { return trace_inlining_; }
+
+  static bool TryInlineRecognizedMethod(FlowGraph* flow_graph,
+                                        intptr_t receiver_cid,
+                                        const Function& target,
+                                        Instruction* call,
+                                        Definition* receiver,
+                                        TokenPosition token_pos,
+                                        const ICData& ic_data,
+                                        TargetEntryInstr** entry,
+                                        Definition** last);
 
  private:
   friend class CallSiteInliner;
 
   FlowGraph* flow_graph_;
   GrowableArray<const Function*>* inline_id_to_function_;
+  GrowableArray<TokenPosition>* inline_id_to_token_pos_;
   GrowableArray<intptr_t>* caller_inline_id_;
   const bool trace_inlining_;
   const bool use_speculative_inlining_;

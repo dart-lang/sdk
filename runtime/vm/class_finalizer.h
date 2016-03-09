@@ -42,7 +42,7 @@ class ClassFinalizer : public AllStatic {
   // string and its arguments.
   static RawType* NewFinalizedMalformedType(const Error& prev_error,
                                             const Script& script,
-                                            intptr_t type_pos,
+                                            TokenPosition type_pos,
                                             const char* format, ...)
        PRINTF_ATTRIBUTE(4, 5);
 
@@ -60,7 +60,7 @@ class ClassFinalizer : public AllStatic {
   // string and its arguments.
   static void FinalizeMalboundedType(const Error& prev_error,
                                      const Script& script,
-                                     const Type& type,
+                                     const AbstractType& type,
                                      const char* format, ...)
        PRINTF_ATTRIBUTE(4, 5);
 
@@ -89,7 +89,8 @@ class ClassFinalizer : public AllStatic {
 #endif  // defined(DART_NO_SNAPSHOT).
 
   // Resolve the class of the type, but not the type's type arguments.
-  static void ResolveTypeClass(const Class& cls, const AbstractType& type);
+  // May promote the type from Type to FunctionType.
+  static RawAbstractType* ResolveTypeClass(const Class& cls, const Type& type);
 
   // Resolve the type and target of the redirecting factory.
   static void ResolveRedirectingFactory(const Class& cls,
@@ -102,17 +103,16 @@ class ClassFinalizer : public AllStatic {
  private:
   static void AllocateEnumValues(const Class& enum_cls);
   static bool IsSuperCycleFree(const Class& cls);
-  static bool IsTypeCycleFree(const Class& cls,
-                              const AbstractType& type,
-                              GrowableArray<intptr_t>* visited);
-  static bool IsAliasCycleFree(const Class& cls,
-                               GrowableArray<intptr_t>* visited);
+  static bool IsTypedefCycleFree(const Class& cls,
+                                 const AbstractType& type,
+                                 GrowableArray<intptr_t>* visited);
   static bool IsMixinCycleFree(const Class& cls,
                                GrowableArray<intptr_t>* visited);
   static void CheckForLegalConstClass(const Class& cls);
   static RawClass* ResolveClass(const Class& cls,
                                 const UnresolvedClass& unresolved_class);
-  static void ResolveType(const Class& cls, const AbstractType& type);
+  static RawAbstractType* ResolveType(const Class& cls,
+                                      const AbstractType& type);
   static void ResolveRedirectingFactoryTarget(
       const Class& cls,
       const Function& factory,
@@ -134,6 +134,9 @@ class ClassFinalizer : public AllStatic {
                                             GrowableArray<intptr_t>* visited);
   static void FinalizeTypeParameters(const Class& cls,
                                      PendingTypes* pending_types = NULL);
+  static intptr_t ExpandAndFinalizeTypeArguments(const Class& cls,
+                                                 const AbstractType& type,
+                                                 PendingTypes* pending_types);
   static void FinalizeTypeArguments(const Class& cls,
                                     const TypeArguments& arguments,
                                     intptr_t num_uninitialized_arguments,
@@ -141,16 +144,17 @@ class ClassFinalizer : public AllStatic {
                                     PendingTypes* pending_types,
                                     TrailPtr trail);
   static void CheckRecursiveType(const Class& cls,
-                                 const Type& type,
+                                 const AbstractType& type,
                                  PendingTypes* pending_types);
-  static void CheckTypeBounds(const Class& cls, const Type& type);
+  static void CheckTypeBounds(const Class& cls, const AbstractType& type);
   static void CheckTypeArgumentBounds(const Class& cls,
                                       const TypeArguments& arguments,
                                       Error* bound_error);
   static void ResolveUpperBounds(const Class& cls);
-  static void FinalizeUpperBounds(const Class& cls);
-  static void ResolveAndFinalizeSignature(const Class& cls,
-                                          const Function& function);
+  static void FinalizeUpperBounds(const Class& cls,
+                                  FinalizationKind finalization);
+  static void ResolveSignature(const Class& cls, const Function& function);
+  static void FinalizeSignature(const Class& cls, const Function& function);
   static void ResolveAndFinalizeMemberTypes(const Class& cls);
   static void PrintClassInformation(const Class& cls);
   static void CollectInterfaces(
@@ -163,11 +167,11 @@ class ClassFinalizer : public AllStatic {
                                 va_list args);
   static void ReportError(const Error& error);
   static void ReportError(const Class& cls,
-                          intptr_t token_pos,
+                          TokenPosition token_pos,
                           const char* format, ...) PRINTF_ATTRIBUTE(3, 4);
   static void ReportErrors(const Error& prev_error,
                            const Class& cls,
-                           intptr_t token_pos,
+                           TokenPosition token_pos,
                            const char* format, ...) PRINTF_ATTRIBUTE(4, 5);
 
   // Verify implicit offsets recorded in the VM for direct access to fields of

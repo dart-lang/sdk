@@ -33,7 +33,7 @@ class TokenStreamVisitor : public ObjectVisitor {
     obj_ = raw_obj;
     if (obj_.GetClassId() == TokenStream::kClassId) {
       TokenStream::Iterator tkit(TokenStream::Cast(obj_),
-                                 0,
+                                 TokenPosition::kMinSource,
                                  TokenStream::Iterator::kNoNewlines);
       Token::Kind kind = tkit.CurrentTokenKind();
       while (kind != Token::kEOS) {
@@ -88,6 +88,8 @@ CompilerStats::CompilerStats(Isolate* isolate)
       use_benchmark_output(false) {
 }
 
+
+#ifndef PRODUCT
 
 // This function is used as a callback in the log object to which the
 // compiler stats are printed. It will be called only once, to print
@@ -285,5 +287,7 @@ char* CompilerStats::PrintToZone() {
   text = NULL;
   return stats_text;
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

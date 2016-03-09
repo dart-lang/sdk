@@ -12,8 +12,10 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 TEST_CASE(AstPrinter) {
-  const intptr_t kPos = Scanner::kNoSourcePos;
+  const TokenPosition kPos = TokenPosition::kNoSource;
   LocalVariable* v =
       new LocalVariable(kPos,
                         String::ZoneHandle(Symbols::New("wurscht")),
@@ -35,5 +37,7 @@ TEST_CASE(AstPrinter) {
                           new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(5)))));
   AstPrinter::PrintNode(new UnaryOpNode(kPos, Token::kNEGATE, ll));
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

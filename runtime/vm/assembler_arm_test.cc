@@ -1798,10 +1798,20 @@ ASSEMBLER_TEST_GENERATE(IntDiv_supported, assembler) {
 
 ASSEMBLER_TEST_RUN(IntDiv_supported, test) {
   EXPECT(test != NULL);
+#if defined(USING_SIMULATOR)
+  bool orig = TargetCPUFeatures::integer_division_supported();
+  HostCPUFeatures::set_integer_division_supported(true);
   if (TargetCPUFeatures::can_divide()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(3, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
+  HostCPUFeatures::set_integer_division_supported(orig);
+#else
+  if (TargetCPUFeatures::can_divide()) {
+    typedef int (*Tst)() DART_UNUSED;
+    EXPECT_EQ(3, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+  }
+#endif
 }
 
 
@@ -1829,10 +1839,20 @@ ASSEMBLER_TEST_GENERATE(IntDiv_unsupported, assembler) {
 
 ASSEMBLER_TEST_RUN(IntDiv_unsupported, test) {
   EXPECT(test != NULL);
+#if defined(USING_SIMULATOR)
+  bool orig = TargetCPUFeatures::integer_division_supported();
+  HostCPUFeatures::set_integer_division_supported(false);
   if (TargetCPUFeatures::can_divide()) {
     typedef int (*Tst)() DART_UNUSED;
     EXPECT_EQ(3, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
   }
+  HostCPUFeatures::set_integer_division_supported(orig);
+#else
+  if (TargetCPUFeatures::can_divide()) {
+    typedef int (*Tst)() DART_UNUSED;
+    EXPECT_EQ(3, EXECUTE_TEST_CODE_INT32(Tst, test->entry()));
+  }
+#endif
 }
 
 

@@ -66,8 +66,6 @@ LibTest/collection/Queue/Queue_class_A01_t01: Fail, OK
 
 
 Language/Expressions/Method_Invocation/Cascaded_Invocations/syntax_t19: MissingStaticWarning
-Language/Statements/For/For_Loop/execution_t07: MissingStaticWarning
-Language/Statements/For/For_Loop/execution_t08: MissingStaticWarning
 Language/Statements/Switch/last_statement_t03: MissingStaticWarning
 Language/Statements/Assert/type_t04: MissingStaticWarning
 
@@ -288,7 +286,6 @@ Language/Types/Interface_Types/subtype_t19: StaticWarning # co19 issue 745
 Language/Types/Interface_Types/subtype_t22: StaticWarning # co19 issue 745
 Language/Types/Interface_Types/subtype_t24: StaticWarning # co19 issue 745
 Language/Statements/Assert/type_t07: StaticWarning # Issue 23663
-Language/Statements/Assert/execution_t08: StaticWarning # Issue 23663
 
 # isProtocolHandlerRegistered and unregisterProtocolHandler don't exist
 LayoutTests/fast/dom/navigatorcontentutils/is-protocol-handler-registered_t01: Skip # Please triage this failure.

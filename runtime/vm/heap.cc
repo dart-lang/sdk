@@ -26,28 +26,13 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, disable_alloc_stubs_after_gc, false, "Stress testing flag.");
-DEFINE_FLAG(bool, gc_at_alloc, false, "GC at every allocation.");
-DEFINE_FLAG(int, new_gen_ext_limit, 64,
-            "maximum total external size (MB) in new gen before triggering GC");
-DEFINE_FLAG(int, pretenure_interval, 10,
-            "Back off pretenuring after this many cycles.");
-DEFINE_FLAG(int, pretenure_threshold, 98,
-            "Trigger pretenuring when this many percent are promoted.");
-DEFINE_FLAG(bool, verbose_gc, false, "Enables verbose GC.");
-DEFINE_FLAG(int, verbose_gc_hdr, 40, "Print verbose GC header interval.");
-DEFINE_FLAG(bool, verify_after_gc, false,
-            "Enables heap verification after GC.");
-DEFINE_FLAG(bool, verify_before_gc, false,
-            "Enables heap verification before GC.");
-DEFINE_FLAG(bool, pretenure_all, false, "Global pretenuring (for testing).");
-
-
 Heap::Heap(Isolate* isolate,
            intptr_t max_new_gen_semi_words,
            intptr_t max_old_gen_words,
            intptr_t max_external_words)
     : isolate_(isolate),
+      barrier_(new Monitor()),
+      barrier_done_(new Monitor()),
       new_space_(this, max_new_gen_semi_words, kNewObjectAlignmentOffset),
       old_space_(this, max_old_gen_words, max_external_words),
       read_only_(false),
@@ -65,6 +50,9 @@ Heap::Heap(Isolate* isolate,
 
 
 Heap::~Heap() {
+  delete barrier_;
+  delete barrier_done_;
+
   for (int sel = 0;
        sel < kNumWeakSelectors;
        sel++) {
@@ -99,20 +87,20 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
   if (addr != 0) {
     return addr;
   }
-  // If we are in the process of running a sweep wait for the sweeper to free
+  // If we are in the process of running a sweep, wait for the sweeper to free
   // memory.
+  Thread* thread = Thread::Current();
   {
     MonitorLocker ml(old_space_.tasks_lock());
     addr = old_space_.TryAllocate(size, type);
     while ((addr == 0) && (old_space_.tasks() > 0)) {
-      ml.Wait();
+      ml.WaitWithSafepointCheck(thread);
       addr = old_space_.TryAllocate(size, type);
     }
   }
   if (addr != 0) {
     return addr;
   }
-  Thread* thread = Thread::Current();
   if (thread->CanCollectGarbage()) {
     // All GC tasks finished without allocating successfully. Run a full GC.
     CollectAllGarbage();
@@ -125,7 +113,7 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
       MonitorLocker ml(old_space_.tasks_lock());
       addr = old_space_.TryAllocate(size, type);
       while ((addr == 0) && (old_space_.tasks() > 0)) {
-        ml.Wait();
+        ml.WaitWithSafepointCheck(thread);
         addr = old_space_.TryAllocate(size, type);
       }
     }
@@ -142,7 +130,7 @@ uword Heap::AllocateOld(intptr_t size, HeapPage::PageType type) {
     {
       MonitorLocker ml(old_space_.tasks_lock());
       while (old_space_.tasks() > 0) {
-        ml.Wait();
+        ml.WaitWithSafepointCheck(thread);
       }
     }
   }
@@ -314,13 +302,13 @@ RawObject* Heap::FindObject(FindObjectVisitor* visitor) const {
 }
 
 
-bool Heap::BeginNewSpaceGC() {
+bool Heap::BeginNewSpaceGC(Thread* thread) {
   MonitorLocker ml(&gc_in_progress_monitor_);
   bool start_gc_on_thread = true;
   while (gc_new_space_in_progress_ ||
          gc_old_space_in_progress_) {
     start_gc_on_thread = !gc_new_space_in_progress_;
-    ml.Wait();
+    ml.WaitWithSafepointCheck(thread);
   }
   if (start_gc_on_thread) {
     gc_new_space_in_progress_ = true;
@@ -338,13 +326,13 @@ void Heap::EndNewSpaceGC() {
 }
 
 
-bool Heap::BeginOldSpaceGC() {
+bool Heap::BeginOldSpaceGC(Thread* thread) {
   MonitorLocker ml(&gc_in_progress_monitor_);
   bool start_gc_on_thread = true;
   while (gc_new_space_in_progress_ ||
          gc_old_space_in_progress_) {
     start_gc_on_thread = !gc_old_space_in_progress_;
-    ml.Wait();
+    ml.WaitWithSafepointCheck(thread);
   }
   if (start_gc_on_thread) {
     gc_old_space_in_progress_ = true;
@@ -375,13 +363,15 @@ void Heap::UpdateClassHeapStatsBeforeGC(Heap::Space space) {
 void Heap::CollectNewSpaceGarbage(Thread* thread,
                                   ApiCallbacks api_callbacks,
                                   GCReason reason) {
-  if (BeginNewSpaceGC()) {
+  if (BeginNewSpaceGC(thread)) {
     bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
     RecordBeforeGC(kNew, reason);
     VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
+#ifndef PRODUCT
     TimelineDurationScope tds(thread,
                               isolate()->GetGCStream(),
                               "CollectNewGeneration");
+#endif  // !PRODUCT
     UpdateClassHeapStatsBeforeGC(kNew);
     new_space_.Scavenge(invoke_api_callbacks);
     isolate()->class_table()->UpdatePromoted();
@@ -400,13 +390,15 @@ void Heap::CollectNewSpaceGarbage(Thread* thread,
 void Heap::CollectOldSpaceGarbage(Thread* thread,
                                   ApiCallbacks api_callbacks,
                                   GCReason reason) {
-  if (BeginOldSpaceGC()) {
+  if (BeginOldSpaceGC(thread)) {
     bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
     RecordBeforeGC(kOld, reason);
     VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId);
+#ifndef PRODUCT
     TimelineDurationScope tds(thread,
                               isolate()->GetGCStream(),
                               "CollectOldGeneration");
+#endif  // !PRODUCT
     UpdateClassHeapStatsBeforeGC(kOld);
     old_space_.MarkSweep(invoke_api_callbacks);
     RecordAfterGC(kOld);
@@ -762,7 +754,7 @@ void Heap::RecordAfterGC(Space space) {
   stats_.after_.old_ = old_space_.GetCurrentUsage();
   ASSERT((space == kNew && gc_new_space_in_progress_) ||
          (space == kOld && gc_old_space_in_progress_));
-  if (Service::gc_stream.enabled()) {
+  if (FLAG_support_service && Service::gc_stream.enabled()) {
     ServiceEvent event(Isolate::Current(), ServiceEvent::kGC);
     event.set_gc_stats(&stats_);
     Service::HandleEvent(&event);

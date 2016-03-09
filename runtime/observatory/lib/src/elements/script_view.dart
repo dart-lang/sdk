@@ -20,8 +20,4 @@ class ScriptViewElement extends ObservatoryElement {
   Future refresh() {
     return script.reload();
   }
-
-  Future refreshCoverage() {
-    return script.refreshCoverage();
-  }
 }

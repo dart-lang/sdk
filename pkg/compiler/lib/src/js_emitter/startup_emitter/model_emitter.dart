@@ -252,10 +252,9 @@ class ModelEmitter {
   }
 
   js.Statement buildDeferredInitializerGlobal() {
-    String global = deferredInitializersGlobal;
-    return js.js.statement(
-        "if (typeof($global) === 'undefined') var # = Object.create(null);",
-        new js.VariableDeclaration(global, allowRename: false));
+    return js.js.statement('self.#deferredInitializers = '
+        'self.#deferredInitializers || Object.create(null);',
+        {'deferredInitializers': deferredInitializersGlobal});
   }
 
   // Writes the given [fragment]'s [code] into a file.
@@ -281,7 +280,7 @@ class ModelEmitter {
         isSplit ? buildDeferredInitializerGlobal() : new js.Block.empty(),
         code]);
 
-    mainOutput.addBuffer(js.prettyPrint(program, compiler,
+    mainOutput.addBuffer(js.createCodeBuffer(program, compiler,
         monitor: compiler.dumpInfoTask));
 
     if (shouldGenerateSourceMap) {
@@ -335,7 +334,7 @@ class ModelEmitter {
         buildDeferredInitializerGlobal(),
         js.js.statement('$deferredInitializersGlobal.current = #', code)]);
 
-    output.addBuffer(js.prettyPrint(program, compiler,
+    output.addBuffer(js.createCodeBuffer(program, compiler,
         monitor: compiler.dumpInfoTask));
 
     // Make a unique hash of the code (before the sourcemaps are added)

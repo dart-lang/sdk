@@ -96,6 +96,71 @@ main() {
     expect(hover.dartdoc, '''doc aaa\ndoc bbb''');
   }
 
+  test_dartdoc_inherited_methodByMethod_fromInterface() async {
+    addTestFile('''
+class A {
+  /// my doc
+  m() {} // in A
+}
+
+class B implements A {
+  m() {} // in B
+}
+''');
+    HoverInformation hover = await prepareHover('m() {} // in B');
+    expect(hover.dartdoc, '''my doc\n\nCopied from `A`.''');
+  }
+
+  test_dartdoc_inherited_methodByMethod_fromSuper_direct() async {
+    addTestFile('''
+class A {
+  /// my doc
+  m() {} // in A
+}
+
+class B extends A {
+  m() {} // in B
+}
+''');
+    HoverInformation hover = await prepareHover('m() {} // in B');
+    expect(hover.dartdoc, '''my doc\n\nCopied from `A`.''');
+  }
+
+  test_dartdoc_inherited_methodByMethod_fromSuper_indirect() async {
+    addTestFile('''
+class A {
+  /// my doc
+  m() {}
+}
+class B extends A {
+  m() {}
+}
+class C extends B {
+  m() {} // in C
+}''');
+    HoverInformation hover = await prepareHover('m() {} // in C');
+    expect(hover.dartdoc, '''my doc\n\nCopied from `A`.''');
+  }
+
+  test_dartdoc_inherited_methodByMethod_preferSuper() async {
+    addTestFile('''
+class A {
+  /// my doc
+  m() {}
+}
+class B extends A {
+}
+class I {
+  // wrong doc
+  m() {}
+}
+class C extends B implements I {
+  m() {} // in C
+}''');
+    HoverInformation hover = await prepareHover('m() {} // in C');
+    expect(hover.dartdoc, '''my doc\n\nCopied from `A`.''');
+  }
+
   test_enum() async {
     addTestFile('''
 enum MyEnum {AAA, BBB, CCC}

@@ -12,8 +12,6 @@
 
 namespace dart {
 
-class JSONObject;
-
 // Timer class allows timing of specific operations in the VM.
 class Timer : public ValueObject {
  public:

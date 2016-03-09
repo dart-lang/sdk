@@ -6,7 +6,7 @@ library services.src.refactoring.naming_conventions;
 
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
-import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/dart/ast/token.dart';
 
 /**
  * Returns the [RefactoringStatus] with severity:

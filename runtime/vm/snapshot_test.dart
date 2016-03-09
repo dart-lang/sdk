@@ -1313,11 +1313,8 @@ message_test_main() {
     // Send objects and receive them back.
     for (int i = 0; i < MessageTest.elms.length; i++) {
       var sentObject = MessageTest.elms[i];
-      // TODO(asiva): remove this local var idx once thew new for-loop
-      // semantics for closures is implemented.
-      var idx = i;
       remote.call(sentObject).then(expectAsync1((var receivedObject) {
-        MessageTest.VerifyObject(idx, receivedObject);
+        MessageTest.VerifyObject(i, receivedObject);
       }));
     }
 

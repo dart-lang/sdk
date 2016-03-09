@@ -67,9 +67,9 @@ class ObjectStore {
     function_type_ = value.raw();
   }
 
-  RawType* function_impl_type() const { return function_impl_type_; }
-  void set_function_impl_type(const Type& value) {
-    function_impl_type_ = value.raw();
+  RawClass* closure_class() const { return closure_class_; }
+  void set_closure_class(const Class& value) {
+    closure_class_ = value.raw();
   }
 
   RawType* number_type() const { return number_type_; }
@@ -365,15 +365,6 @@ class ObjectStore {
     return error_listeners_;
   }
 
-  RawError* sticky_error() const { return sticky_error_; }
-  void set_sticky_error(const Error& value) {
-    // TODO(asiva): Move sticky_error_ into thread specific area.
-    ASSERT(Thread::Current()->IsMutatorThread());
-    ASSERT(!value.IsNull());
-    sticky_error_ = value.raw();
-  }
-  void clear_sticky_error() { sticky_error_ = Error::null(); }
-
   RawContext* empty_context() const { return empty_context_; }
   void set_empty_context(const Context& value) {
     empty_context_ = value.raw();
@@ -487,9 +478,9 @@ class ObjectStore {
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
   // Called to initialize objects required by the vm but which invoke
-  // dart code.  If an error occurs then false is returned and error
-  // information is stored in sticky_error().
-  bool PreallocateObjects();
+  // dart code.  If an error occurs the error object is returned otherwise
+  // a null object is returned.
+  RawError* PreallocateObjects();
 
   void InitKnownObjects();
 
@@ -504,7 +495,7 @@ class ObjectStore {
   RawClass* null_class_;
   RawType* null_type_;
   RawType* function_type_;
-  RawType* function_impl_type_;
+  RawClass* closure_class_;
   RawType* number_type_;
   RawType* int_type_;
   RawClass* integer_implementation_class_;
@@ -563,7 +554,6 @@ class ObjectStore {
   RawGrowableObjectArray* resume_capabilities_;
   RawGrowableObjectArray* exit_listeners_;
   RawGrowableObjectArray* error_listeners_;
-  RawError* sticky_error_;
   RawContext* empty_context_;
   RawInstance* stack_overflow_;
   RawInstance* out_of_memory_;

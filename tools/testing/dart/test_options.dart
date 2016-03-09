@@ -50,7 +50,7 @@ class TestOptionsParser {
               'mode',
               'Mode in which to run the tests',
               ['-m', '--mode'],
-              ['all', 'debug', 'release'],
+              ['all', 'debug', 'release', 'product'],
               'debug'),
           new _TestOptionSpecification(
               'compiler',
@@ -65,9 +65,13 @@ class TestOptionsParser {
          none (compile only)),
 
    dart2analyzer: Perform static analysis on Dart code by running the analyzer
-          (only valid with the following runtimes: none)''',
+          (only valid with the following runtimes: none)
+
+   dart2app: Compile the Dart code into an app snapshot before running the test
+          (only valid with the following runtimes: dart_product)''',
               ['-c', '--compiler'],
-              ['none', 'precompiler', 'dart2js', 'dart2analyzer'],
+              ['none', 'precompiler', 'dart2js', 'dart2analyzer',
+               'dart2app'],
               'none'),
           // TODO(antonm): fix the option drt.
           new _TestOptionSpecification(
@@ -77,6 +81,8 @@ class TestOptionsParser {
 
     dart_precompiled: Run a precompiled snapshot on a variant of the standalone
                       dart vm lacking a JIT.
+
+    dart_product: Run a full app snapshot in product mode.
 
     d8: Run JavaScript from the command line using v8.
 
@@ -98,7 +104,8 @@ class TestOptionsParser {
     none: No runtime, compile only (for example, used for dart2analyzer static
           analysis tests).''',
               ['-r', '--runtime'],
-              ['vm', 'dart_precompiled', 'd8', 'jsshell', 'drt', 'dartium',
+              ['vm', 'dart_precompiled', 'dart_product',
+               'd8', 'jsshell', 'drt', 'dartium',
                'ff', 'firefox',
                'chrome', 'safari', 'ie9', 'ie10', 'ie11', 'opera',
                'chromeOnAndroid', 'safarimobilesim',
@@ -108,8 +115,8 @@ class TestOptionsParser {
               'arch',
               'The architecture to run tests for',
               ['-a', '--arch'],
-              ['all', 'ia32', 'x64', 'arm', 'armv5te', 'arm64', 'mips',
-               'simarm', 'simarmv5te', 'simarm64', 'simmips'],
+              ['all', 'ia32', 'x64', 'arm', 'armv6', 'armv5te', 'arm64', 'mips',
+               'simarm', 'simarmv6', 'simarmv5te', 'simarm64', 'simmips'],
               'x64'),
           new _TestOptionSpecification(
               'system',
@@ -648,6 +655,9 @@ Note: currently only implemented for dart2js.''',
       case 'dart2analyzer':
         validRuntimes = const ['none'];
         break;
+      case 'dart2app':
+        validRuntimes = const ['dart_product'];
+        break;
       case 'precompiler':
         validRuntimes = const ['dart_precompiled'];
         break;
@@ -692,7 +702,7 @@ Note: currently only implemented for dart2js.''',
       configuration['arch'] = 'ia32,x64,simarm,simarm64,simmips';
     }
     if (configuration['mode'] == 'all') {
-      configuration['mode'] = 'debug,release';
+      configuration['mode'] = 'debug,release,product';
     }
 
     if (configuration['report_in_json']) {
@@ -808,7 +818,7 @@ Note: currently only implemented for dart2js.''',
           new CompilerConfiguration(configuration).computeTimeoutMultiplier();
       int runtimeMultiplier =
           new RuntimeConfiguration(configuration).computeTimeoutMultiplier(
-              isDebug: configuration['mode'] == 'debug',
+              mode: configuration['mode'],
               isChecked: configuration['checked'],
               arch: configuration['arch']);
       configuration['timeout'] = 60 * compilerMulitiplier * runtimeMultiplier;

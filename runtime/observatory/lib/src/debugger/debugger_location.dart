@@ -401,13 +401,14 @@ class DebuggerLocation {
         // Complete the line.
         var sharedPrefix = '${script.name}:';
         List completions = [];
-        for (var line in script.lines) {
-          if (line.possibleBpt) {
-            var currentLineStr = line.line.toString();
-            if (currentLineStr.startsWith(lineStr)) {
-              completions.add('${sharedPrefix}${currentLineStr} ');
-              completions.add('${sharedPrefix}${currentLineStr}:');
-            }
+        var report = await script.isolate.getSourceReport(
+            [Isolate.kPossibleBreakpointsReport], script);
+        Set<int> possibleBpts = getPossibleBreakpointLines(report, script);
+        for (var line in possibleBpts) {
+          var currentLineStr = line.toString();
+          if (currentLineStr.startsWith(lineStr)) {
+            completions.add('${sharedPrefix}${currentLineStr} ');
+            completions.add('${sharedPrefix}${currentLineStr}:');
           }
         }
         return completions;
@@ -416,9 +417,6 @@ class DebuggerLocation {
         // Complete the column.
         int lineNum = int.parse(lineStr);
         var scriptLine = script.getLine(lineNum);
-        if (!scriptLine.possibleBpt) {
-          return [];
-        }
         var sharedPrefix = '${script.name}:${lineStr}:';
         List completions = [];
         int maxCol = scriptLine.text.trimRight().runes.length;

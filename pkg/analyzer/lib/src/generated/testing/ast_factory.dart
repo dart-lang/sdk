@@ -4,9 +4,10 @@
 
 library analyzer.src.generated.testing.ast_factory;
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -34,7 +35,9 @@ class AstFactory {
       new Annotation(
           TokenFactory.tokenFromType(TokenType.AT),
           name,
-          TokenFactory.tokenFromType(TokenType.PERIOD),
+          constructorName == null
+              ? null
+              : TokenFactory.tokenFromType(TokenType.PERIOD),
           constructorName,
           arguments);
 
@@ -798,6 +801,10 @@ class AstFactory {
   static MapLiteralEntry mapLiteralEntry(String key, Expression value) =>
       new MapLiteralEntry(
           string2(key), TokenFactory.tokenFromType(TokenType.COLON), value);
+
+  static MapLiteralEntry mapLiteralEntry2(Expression key, Expression value) =>
+      new MapLiteralEntry(
+          key, TokenFactory.tokenFromType(TokenType.COLON), value);
 
   static MethodDeclaration methodDeclaration(
           Keyword modifier,

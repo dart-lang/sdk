@@ -43,12 +43,15 @@ void VmServiceServer::Bootstrap() {
 Dart_Isolate VmServiceServer::CreateIsolate(const uint8_t* snapshot_buffer) {
   ASSERT(snapshot_buffer != NULL);
   // Create the isolate.
+  IsolateData* isolate_data = new IsolateData(DART_VM_SERVICE_ISOLATE_NAME,
+                                              NULL,
+                                              NULL);
   char* error = 0;
   Dart_Isolate isolate = Dart_CreateIsolate(DART_VM_SERVICE_ISOLATE_NAME,
                                             "main",
                                             snapshot_buffer,
                                             NULL,
-                                            NULL,
+                                            isolate_data,
                                             &error);
   if (!isolate) {
     fprintf(stderr, "Dart_CreateIsolate failed: %s\n", error);
@@ -58,18 +61,6 @@ Dart_Isolate VmServiceServer::CreateIsolate(const uint8_t* snapshot_buffer) {
   Dart_EnterScope();
   Builtin::SetNativeResolver(Builtin::kBuiltinLibrary);
   Builtin::SetNativeResolver(Builtin::kIOLibrary);
-
-  Dart_Handle builtin_lib =
-      Builtin::LoadAndCheckLibrary(Builtin::kBuiltinLibrary);
-  CHECK_RESULT(builtin_lib);
-
-  Dart_Handle result;
-
-  // Prepare for script loading by setting up the 'print' and 'timer'
-  // closures and setting up 'package root' for URI resolution.
-  result = DartUtils::PrepareForScriptLoading(
-      NULL, NULL, true, false, builtin_lib);
-  CHECK_RESULT(result);
 
   ASSERT(Dart_IsServiceIsolate(isolate));
   if (!VmService::Setup(DEFAULT_VM_SERVICE_SERVER_IP,

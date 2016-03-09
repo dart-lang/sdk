@@ -6,6 +6,7 @@ library analyzer.src.summary.public_namespace_visitor;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/idl.dart';
 
 /**
  * Compute the public namespace portion of the summary for the given [unit],
@@ -14,7 +15,7 @@ import 'package:analyzer/src/summary/format.dart';
 UnlinkedPublicNamespaceBuilder computePublicNamespace(CompilationUnit unit) {
   _PublicNamespaceVisitor visitor = new _PublicNamespaceVisitor();
   unit.accept(visitor);
-  return encodeUnlinkedPublicNamespace(
+  return new UnlinkedPublicNamespaceBuilder(
       names: visitor.names, exports: visitor.exports, parts: visitor.parts);
 }
 
@@ -26,12 +27,15 @@ class _CombinatorEncoder extends SimpleAstVisitor<UnlinkedCombinatorBuilder> {
 
   @override
   UnlinkedCombinatorBuilder visitHideCombinator(HideCombinator node) {
-    return encodeUnlinkedCombinator(hides: encodeNames(node.hiddenNames));
+    return new UnlinkedCombinatorBuilder(hides: encodeNames(node.hiddenNames));
   }
 
   @override
   UnlinkedCombinatorBuilder visitShowCombinator(ShowCombinator node) {
-    return encodeUnlinkedCombinator(shows: encodeNames(node.shownNames));
+    return new UnlinkedCombinatorBuilder(
+        shows: encodeNames(node.shownNames),
+        offset: node.offset,
+        end: node.end);
   }
 }
 
@@ -43,36 +47,81 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
 
   _PublicNamespaceVisitor();
 
-  void addNameIfPublic(
-      String name, PrelinkedReferenceKind kind, int numTypeParameters) {
+  UnlinkedPublicNameBuilder addNameIfPublic(
+      String name, ReferenceKind kind, int numTypeParameters) {
     if (isPublic(name)) {
-      names.add(encodeUnlinkedPublicName(
-          name: name, kind: kind, numTypeParameters: numTypeParameters));
+      UnlinkedPublicNameBuilder b = new UnlinkedPublicNameBuilder(
+          name: name, kind: kind, numTypeParameters: numTypeParameters);
+      names.add(b);
+      return b;
     }
+    return null;
   }
 
   bool isPublic(String name) => !name.startsWith('_');
 
   @override
   visitClassDeclaration(ClassDeclaration node) {
-    addNameIfPublic(node.name.name, PrelinkedReferenceKind.classOrEnum,
+    UnlinkedPublicNameBuilder cls = addNameIfPublic(
+        node.name.name,
+        ReferenceKind.classOrEnum,
         node.typeParameters?.typeParameters?.length ?? 0);
+    if (cls != null) {
+      for (ClassMember member in node.members) {
+        if (member is FieldDeclaration &&
+            member.isStatic &&
+            member.fields.isConst) {
+          for (VariableDeclaration field in member.fields.variables) {
+            String name = field.name.name;
+            if (isPublic(name)) {
+              cls.members.add(new UnlinkedPublicNameBuilder(
+                  name: name,
+                  kind: ReferenceKind.propertyAccessor,
+                  numTypeParameters: 0));
+            }
+          }
+        }
+        if (member is MethodDeclaration &&
+            member.isStatic &&
+            !member.isGetter &&
+            !member.isSetter &&
+            !member.isOperator) {
+          String name = member.name.name;
+          if (isPublic(name)) {
+            cls.members.add(new UnlinkedPublicNameBuilder(
+                name: name,
+                kind: ReferenceKind.method,
+                numTypeParameters:
+                    member.typeParameters?.typeParameters?.length ?? 0));
+          }
+        }
+        if (member is ConstructorDeclaration && member.name != null) {
+          String name = member.name.name;
+          if (isPublic(name)) {
+            cls.members.add(new UnlinkedPublicNameBuilder(
+                name: name,
+                kind: ReferenceKind.constructor,
+                numTypeParameters: 0));
+          }
+        }
+      }
+    }
   }
 
   @override
   visitClassTypeAlias(ClassTypeAlias node) {
-    addNameIfPublic(node.name.name, PrelinkedReferenceKind.classOrEnum,
+    addNameIfPublic(node.name.name, ReferenceKind.classOrEnum,
         node.typeParameters?.typeParameters?.length ?? 0);
   }
 
   @override
   visitEnumDeclaration(EnumDeclaration node) {
-    addNameIfPublic(node.name.name, PrelinkedReferenceKind.classOrEnum, 0);
+    addNameIfPublic(node.name.name, ReferenceKind.classOrEnum, 0);
   }
 
   @override
   visitExportDirective(ExportDirective node) {
-    exports.add(encodeUnlinkedExportPublic(
+    exports.add(new UnlinkedExportPublicBuilder(
         uri: node.uri.stringValue,
         combinators: node.combinators
             .map((Combinator c) => c.accept(new _CombinatorEncoder()))
@@ -85,13 +134,17 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
     if (node.isSetter) {
       name += '=';
     }
-    addNameIfPublic(name, PrelinkedReferenceKind.other,
+    addNameIfPublic(
+        name,
+        node.isGetter || node.isSetter
+            ? ReferenceKind.topLevelPropertyAccessor
+            : ReferenceKind.topLevelFunction,
         node.functionExpression.typeParameters?.typeParameters?.length ?? 0);
   }
 
   @override
   visitFunctionTypeAlias(FunctionTypeAlias node) {
-    addNameIfPublic(node.name.name, PrelinkedReferenceKind.typedef,
+    addNameIfPublic(node.name.name, ReferenceKind.typedef,
         node.typeParameters?.typeParameters?.length ?? 0);
   }
 
@@ -103,9 +156,9 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
   @override
   visitVariableDeclaration(VariableDeclaration node) {
     String name = node.name.name;
-    addNameIfPublic(name, PrelinkedReferenceKind.other, 0);
+    addNameIfPublic(name, ReferenceKind.topLevelPropertyAccessor, 0);
     if (!node.isFinal && !node.isConst) {
-      addNameIfPublic('$name=', PrelinkedReferenceKind.other, 0);
+      addNameIfPublic('$name=', ReferenceKind.topLevelPropertyAccessor, 0);
     }
   }
 }

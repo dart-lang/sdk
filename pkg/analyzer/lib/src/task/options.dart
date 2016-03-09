@@ -30,6 +30,11 @@ final ListResultDescriptor<AnalysisError> ANALYSIS_OPTIONS_ERRORS =
 
 final _OptionsProcessor _processor = new _OptionsProcessor();
 
+void applyToAnalysisOptions(
+    AnalysisOptionsImpl options, Map<String, Object> optionMap) {
+  _processor.applyToAnalysisOptions(options, optionMap);
+}
+
 /// Configure this [context] based on configuration details specified in
 /// the given [options].  If [options] is `null`, default values are applied.
 void configureContextOptions(
@@ -42,6 +47,8 @@ class AnalyzerOptions {
   static const String enableAsync = 'enableAsync';
   static const String enableGenericMethods = 'enableGenericMethods';
   static const String enableSuperMixins = 'enableSuperMixins';
+  static const String enableConditionalDirectives =
+      "enableConditionalDirectives";
   static const String errors = 'errors';
   static const String exclude = 'exclude';
   static const String language = 'language';
@@ -74,7 +81,8 @@ class AnalyzerOptions {
   static const List<String> languageOptions = const [
     enableAsync,
     enableGenericMethods,
-    enableSuperMixins
+    enableSuperMixins,
+    enableConditionalDirectives,
   ];
 }
 
@@ -202,7 +210,8 @@ class GenerateOptionsErrorsTask extends SourceBasedAnalysisTask {
       'GenerateOptionsErrorsTask',
       createTask,
       buildInputs,
-      <ResultDescriptor>[ANALYSIS_OPTIONS_ERRORS, LINE_INFO]);
+      <ResultDescriptor>[ANALYSIS_OPTIONS_ERRORS, LINE_INFO],
+      suitabilityFor: suitabilityFor);
 
   final AnalysisOptionsProvider optionsProvider = new AnalysisOptionsProvider();
 
@@ -257,6 +266,17 @@ class GenerateOptionsErrorsTask extends SourceBasedAnalysisTask {
   static GenerateOptionsErrorsTask createTask(
           AnalysisContext context, AnalysisTarget target) =>
       new GenerateOptionsErrorsTask(context, target);
+
+  /**
+   * Return an indication of how suitable this task is for the given [target].
+   */
+  static TaskSuitability suitabilityFor(AnalysisTarget target) {
+    if (target is Source &&
+        target.shortName == AnalysisEngine.ANALYSIS_OPTIONS_FILE) {
+      return TaskSuitability.HIGHEST;
+    }
+    return TaskSuitability.NONE;
+  }
 }
 
 /// Validates `analyzer` language configuration options.
@@ -400,6 +420,28 @@ class TrueOrFalseValueErrorBuilder extends ErrorBuilder {
 class _OptionsProcessor {
   static final Map<String, Object> defaults = {'analyzer': {}};
 
+  /**
+   * Apply the options in the given [optionMap] to the given analysis [options].
+   */
+  void applyToAnalysisOptions(
+      AnalysisOptionsImpl options, Map<String, Object> optionMap) {
+    if (optionMap == null) {
+      return;
+    }
+    var analyzer = optionMap[AnalyzerOptions.analyzer];
+    if (analyzer is! Map) {
+      return;
+    }
+    // Process strong mode option.
+    var strongMode = analyzer[AnalyzerOptions.strong_mode];
+    if (strongMode is bool) {
+      options.strongMode = strongMode;
+    }
+    // Process language options.
+    var language = analyzer[AnalyzerOptions.language];
+    _applyLanguageOptions(options, language);
+  }
+
   /// Configure [context] based on the given [options] (which can be `null`
   /// to restore [defaults]).
   void configure(AnalysisContext context, Map<String, Object> options) {
@@ -451,6 +493,14 @@ class _OptionsProcessor {
         context.analysisOptions = options;
       }
     }
+    if (feature == AnalyzerOptions.enableConditionalDirectives) {
+      if (isTrue(value)) {
+        AnalysisOptionsImpl options =
+            new AnalysisOptionsImpl.from(context.analysisOptions);
+        options.enableConditionalDirectives = true;
+        context.analysisOptions = options;
+      }
+    }
   }
 
   void setLanguageOptions(AnalysisContext context, Object configs) {
@@ -479,6 +529,36 @@ class _OptionsProcessor {
           new AnalysisOptionsImpl.from(context.analysisOptions);
       options.strongMode = strong;
       context.analysisOptions = options;
+    }
+  }
+
+  void _applyLanguageOption(
+      AnalysisOptionsImpl options, Object feature, Object value) {
+    bool boolValue = toBool(value);
+    if (boolValue != null) {
+      if (feature == AnalyzerOptions.enableAsync) {
+        options.enableAsync = boolValue;
+      }
+      if (feature == AnalyzerOptions.enableSuperMixins) {
+        options.enableSuperMixins = boolValue;
+      }
+      if (feature == AnalyzerOptions.enableGenericMethods) {
+        options.enableGenericMethods = boolValue;
+      }
+    }
+  }
+
+  void _applyLanguageOptions(AnalysisOptionsImpl options, Object configs) {
+    if (configs is YamlMap) {
+      configs.nodes.forEach((key, value) {
+        if (key is YamlScalar && value is YamlScalar) {
+          String feature = key.value?.toString();
+          _applyLanguageOption(options, feature, value.value);
+        }
+      });
+    } else if (configs is Map) {
+      configs
+          .forEach((key, value) => _applyLanguageOption(options, key, value));
     }
   }
 }

@@ -4,11 +4,11 @@
 
 library analyzer.src.generated.incremental_resolution_validator;
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
-import 'package:analyzer/src/generated/ast.dart';
 
 /**
  * Validates that the [actual] and the [expected] units have the same structure
@@ -28,10 +28,15 @@ void assertSameResolution(CompilationUnit actual, CompilationUnit expected,
 class IncrementalResolutionMismatch {
   final String message;
   IncrementalResolutionMismatch(this.message);
+
+  @override
+  String toString() => "IncrementalResolutionMismatch: $message";
 }
 
 class _SameResolutionValidator implements AstVisitor {
   final bool validateTypes;
+
+  /// The expected node to compare with the visted node.
   AstNode other;
 
   _SameResolutionValidator(this.validateTypes, this.other);
@@ -887,11 +892,11 @@ class _SameResolutionValidator implements AstVisitor {
     _assertNode(a, b);
   }
 
-  void _visitList(NodeList nodeList, NodeList otherList) {
+  void _visitList(NodeList nodeList, NodeList expected) {
     int length = nodeList.length;
-    _expectLength(otherList, length);
+    _expectLength(nodeList, expected.length);
     for (int i = 0; i < length; i++) {
-      _visitNode(nodeList[i], otherList[i]);
+      _visitNode(nodeList[i], expected[i]);
     }
   }
 

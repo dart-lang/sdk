@@ -105,6 +105,85 @@ function fetchTimeline(vmAddress, isolateIds) {
   }
 }
 
+function saveTimeline() {
+  if (pendingRequests > 0) {
+    var overlay = new tr.ui.b.Overlay();
+    overlay.textContent = 'Cannot save timeline while fetching one.';
+    overlay.title = 'Save error';
+    overlay.visible = true;
+    console.log('cannot save timeline while fetching one.');
+    return;
+  }
+  if (!traceObject ||
+      !traceObject.traceEvents ||
+      (traceObject.traceEvents.length == 0)) {
+    var overlay = new tr.ui.b.Overlay();
+    overlay.textContent = 'Cannot save an empty timeline.';
+    overlay.title = 'Save error';
+    overlay.visible = true;
+    console.log('Cannot save an empty timeline.');
+    return;
+  }
+  var blob = new Blob([JSON.stringify(traceObject)],
+                      {type: 'application/json'});
+  var blobUrl = URL.createObjectURL(blob);
+  var link = document.createElementNS('http://www.w3.org/1999/xhtml', 'a');
+  link.href = blobUrl;
+  var now = new Date();
+  var defaultFilename = "dart-timeline-" +
+                        now.getFullYear() +
+                        "-" +
+                        now.getMonth() +
+                        "-" +
+                        now.getDate() +
+                        ".json";
+  var filename = window.prompt('Save as', defaultFilename);
+  if (filename) {
+    link.download = filename;
+    link.click();
+  }
+}
+
+function loadTimeline() {
+  if (pendingRequests > 0) {
+    var overlay = new tr.ui.b.Overlay();
+    overlay.textContent = 'Cannot load timeline while fetching one.';
+    overlay.title = 'Save error';
+    overlay.visible = true;
+    console.log('Cannot load timeline while fetching one.');
+    return;
+  }
+  var inputElement = document.createElement('input');
+  inputElement.type = 'file';
+  inputElement.multiple = false;
+
+  var changeFired = false;
+  inputElement.addEventListener('change', function(e) {
+    if (changeFired)
+      return;
+    changeFired = true;
+
+    var file = inputElement.files[0];
+    var reader = new FileReader();
+    reader.onload = function(event) {
+      try {
+        traceObject = JSON.parse(event.target.result);
+        updateTimeline(traceObject);
+      } catch (error) {
+        tr.ui.b.Overlay.showError('Error while loading file: ' + error);
+      }
+    };
+    reader.onerror = function(event) {
+      tr.ui.b.Overlay.showError('Error while loading file: ' + event);
+    };
+    reader.onabort = function(event) {
+      tr.ui.b.Overlay.showError('Error while loading file: ' + event);
+    }
+    reader.readAsText(file);
+  });
+  inputElement.click();
+}
+
 function onMessage(event) {
   var request = JSON.parse(event.data);
   var method = request['method'];
@@ -115,6 +194,12 @@ function onMessage(event) {
     break;
     case 'clear':
       clearTimeline();
+    break;
+    case 'save':
+      saveTimeline();
+    break;
+    case 'load':
+      loadTimeline();
     break;
     default:
       console.log('Unknown method:' + method + '.');

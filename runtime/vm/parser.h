@@ -36,6 +36,7 @@ struct MemberDesc;
 struct ParamList;
 struct QualIdent;
 class TopLevel;
+class RecursionChecker;
 
 // The class ParsedFunction holds the result of parsing a function.
 class ParsedFunction : public ZoneAllocated {
@@ -165,6 +166,10 @@ class ParsedFunction : public ZoneAllocated {
   Isolate* isolate() const { return thread_->isolate(); }
   Zone* zone() const { return thread_->zone(); }
 
+  // Adds only relevant fields: field must be unique and its guarded_cid()
+  // relevant.
+  void AddToGuardedFields(const Field* field) const;
+
  private:
   Thread* thread_;
   const Function& function_;
@@ -232,8 +237,12 @@ class Parser : public ValueObject {
   struct Block;
   class TryStack;
 
-  Parser(const Script& script, const Library& library, intptr_t token_pos);
-  Parser(const Script& script, ParsedFunction* function, intptr_t token_pos);
+  Parser(const Script& script,
+         const Library& library,
+         TokenPosition token_pos);
+  Parser(const Script& script,
+         ParsedFunction* function,
+         TokenPosition token_pos);
   ~Parser();
 
   // The function for which we will generate code.
@@ -273,7 +282,7 @@ class Parser : public ValueObject {
   }
 
   const Script& script() const { return script_; }
-  void SetScript(const Script& script, intptr_t token_pos);
+  void SetScript(const Script& script, TokenPosition token_pos);
 
   const Library& library() const { return library_; }
   void set_library(const Library& value) const { library_ = value.raw(); }
@@ -293,7 +302,10 @@ class Parser : public ValueObject {
     return script_.kind() == RawScript::kPatchTag;
   }
 
-  intptr_t TokenPos() const { return tokens_iterator_.CurrentPosition(); }
+  TokenPosition TokenPos() const {
+    return tokens_iterator_.CurrentPosition();
+  }
+  TokenPosition PrevTokenPos() const { return prev_token_pos_; }
 
   Token::Kind CurrentToken() {
     if (token_kind_ == Token::kILLEGAL) {
@@ -312,10 +324,11 @@ class Parser : public ValueObject {
   RawInteger* CurrentIntegerLiteral() const;
 
   // Sets parser to given token position in the stream.
-  void SetPosition(intptr_t position);
+  void SetPosition(TokenPosition position);
 
   void ConsumeToken() {
     // Reset cache and advance the token.
+    prev_token_pos_ = tokens_iterator_.CurrentPosition();
     token_kind_ = Token::kILLEGAL;
     tokens_iterator_.Advance();
     INC_STAT(thread(), num_tokens_consumed, 1);
@@ -334,7 +347,7 @@ class Parser : public ValueObject {
   void SkipToMatching();
   void SkipToMatchingParenthesis();
   void SkipBlock();
-  intptr_t SkipMetadata();
+  TokenPosition SkipMetadata();
   void SkipTypeArguments();
   void SkipType(bool allow_void);
   void SkipInitializers();
@@ -359,78 +372,83 @@ class Parser : public ValueObject {
 
   AstNode* DartPrint(const char* str);
 
-  void CheckConstructorCallTypeArguments(intptr_t pos,
+  void CheckConstructorCallTypeArguments(TokenPosition pos,
                                          const Function& constructor,
                                          const TypeArguments& type_arguments);
+
+  // Report error if parsed code is too deeply nested; avoid stack overflow.
+  void CheckStack();
 
   // Report already formatted error.
   static void ReportError(const Error& error);
 
   // Concatenate and report an already formatted error and a new error message.
   static void ReportErrors(const Error& prev_error,
-                           const Script& script, intptr_t token_pos,
+                           const Script& script, TokenPosition token_pos,
                            const char* format, ...) PRINTF_ATTRIBUTE(4, 5);
 
   // Report error message at location of current token in current script.
   void ReportError(const char* msg, ...) const PRINTF_ATTRIBUTE(2, 3);
 
+  void ReportErrorBefore(const char* format, ...) PRINTF_ATTRIBUTE(2, 3);
+
   // Report error message at given location in current script.
-  void ReportError(intptr_t token_pos,
+  void ReportError(TokenPosition token_pos,
                    const char* msg, ...) const PRINTF_ATTRIBUTE(3, 4);
 
   // Report warning message at location of current token in current script.
   void ReportWarning(const char* msg, ...) const PRINTF_ATTRIBUTE(2, 3);
 
   // Report warning message at given location in current script.
-  void ReportWarning(intptr_t token_pos,
+  void ReportWarning(TokenPosition token_pos,
                      const char* msg, ...) const PRINTF_ATTRIBUTE(3, 4);
 
   void CheckRecursiveInvocation();
 
-  const Instance& EvaluateConstExpr(intptr_t expr_pos, AstNode* expr);
+  const Instance& EvaluateConstExpr(TokenPosition expr_pos, AstNode* expr);
   StaticGetterNode* RunStaticFieldInitializer(const Field& field,
-                                              intptr_t field_ref_pos);
+                                              TokenPosition field_ref_pos);
   RawObject* EvaluateConstConstructorCall(const Class& type_class,
                                           const TypeArguments& type_arguments,
                                           const Function& constructor,
                                           ArgumentListNode* arguments);
-  LiteralNode* FoldConstExpr(intptr_t expr_pos, AstNode* expr);
+  LiteralNode* FoldConstExpr(TokenPosition expr_pos, AstNode* expr);
 
   // Support for parsing of scripts.
   void ParseTopLevel();
   void ParseEnumDeclaration(const GrowableObjectArray& pending_classes,
                             const Object& tl_owner,
-                            intptr_t metadata_pos);
+                            TokenPosition metadata_pos);
   void ParseEnumDefinition(const Class& cls);
   void ParseClassDeclaration(const GrowableObjectArray& pending_classes,
                              const Object& tl_owner,
-                             intptr_t metadata_pos);
+                             TokenPosition metadata_pos);
   void ParseClassDefinition(const Class& cls);
   void ParseMixinAppAlias(const GrowableObjectArray& pending_classes,
                           const Object& tl_owner,
-                          intptr_t metadata_pos);
+                          TokenPosition metadata_pos);
   void ParseTypedef(const GrowableObjectArray& pending_classes,
                     const Object& tl_owner,
-                    intptr_t metadata_pos);
+                    TokenPosition metadata_pos);
   void ParseTopLevelVariable(TopLevel* top_level,
-                             const Object& owner, intptr_t metadata_pos);
+                             const Object& owner, TokenPosition metadata_pos);
   void ParseTopLevelFunction(TopLevel* top_level,
-                             const Object& owner, intptr_t metadata_pos);
+                             const Object& owner, TokenPosition metadata_pos);
   void ParseTopLevelAccessor(TopLevel* top_level,
-                             const Object& owner, intptr_t metadata_pos);
+                             const Object& owner, TokenPosition metadata_pos);
   RawArray* EvaluateMetadata();
 
   RawFunction::AsyncModifier ParseFunctionModifier();
 
   // Support for parsing libraries.
   RawObject* CallLibraryTagHandler(Dart_LibraryTag tag,
-                                   intptr_t token_pos,
+                                   TokenPosition token_pos,
                                    const String& url);
   void ParseIdentList(GrowableObjectArray* names);
   void ParseLibraryDefinition(const Object& tl_owner);
   void ParseLibraryName();
   void ParseLibraryImportExport(const Object& tl_owner,
-                                intptr_t metadata_pos);
+                                TokenPosition metadata_pos);
   void ParseLibraryPart();
   void ParsePartHeader();
   void ParseLibraryNameObsoleteSyntax();
@@ -456,7 +474,7 @@ class Parser : public ValueObject {
   void ParseFieldDefinition(ClassDesc* members, MemberDesc* field);
   void CheckMemberNameConflict(ClassDesc* members, MemberDesc* member);
   void ParseClassMemberDefinition(ClassDesc* members,
-                                  intptr_t metadata_pos);
+                                  TokenPosition metadata_pos);
   void ParseFormalParameter(bool allow_explicit_default_value,
                             bool evaluate_metadata,
                             ParamList* params);
@@ -475,14 +493,14 @@ class Parser : public ValueObject {
       LocalVariable* receiver,
       GrowableArray<Field*>* initialized_fields);
   AstNode* CheckDuplicateFieldInit(
-      intptr_t init_pos,
+      TokenPosition init_pos,
       GrowableArray<Field*>* initialized_fields,
       AstNode* instance,
       Field* field,
       AstNode* init_value);
   StaticCallNode* GenerateSuperConstructorCall(
       const Class& cls,
-      intptr_t supercall_pos,
+      TokenPosition supercall_pos,
       LocalVariable* receiver,
       ArgumentListNode* forwarding_args);
   StaticCallNode* ParseSuperInitializer(
@@ -499,7 +517,7 @@ class Parser : public ValueObject {
   void ParseInterfaceList(const Class& cls);
   RawAbstractType* ParseMixins(const AbstractType& super_type);
   static StaticCallNode* BuildInvocationMirrorAllocation(
-      intptr_t call_pos,
+      TokenPosition call_pos,
       const String& function_name,
       const ArgumentListNode& function_args,
       const LocalVariable* temp,
@@ -507,18 +525,19 @@ class Parser : public ValueObject {
   // Build arguments for a NoSuchMethodCall. If LocalVariable temp is not NULL,
   // the last argument is stored in temp.
   static ArgumentListNode* BuildNoSuchMethodArguments(
-      intptr_t call_pos,
+      TokenPosition call_pos,
       const String& function_name,
       const ArgumentListNode& function_args,
       const LocalVariable* temp,
       bool is_super_invocation);
-  RawFunction* GetSuperFunction(intptr_t token_pos,
+  RawFunction* GetSuperFunction(TokenPosition token_pos,
                                 const String& name,
                                 ArgumentListNode* arguments,
                                 bool resolve_getter,
                                 bool* is_no_such_method);
   AstNode* ParseSuperCall(const String& function_name);
-  AstNode* ParseSuperFieldAccess(const String& field_name, intptr_t field_pos);
+  AstNode* ParseSuperFieldAccess(const String& field_name,
+                                 TokenPosition field_pos);
   AstNode* ParseSuperOperator();
   AstNode* BuildUnarySuperOperator(Token::Kind op, PrimaryNode* super);
 
@@ -526,14 +545,14 @@ class Parser : public ValueObject {
 
   void SetupDefaultsForOptionalParams(const ParamList& params);
   ClosureNode* CreateImplicitClosureNode(const Function& func,
-                                         intptr_t token_pos,
+                                         TokenPosition token_pos,
                                          AstNode* receiver);
   static void AddFormalParamsToFunction(const ParamList* params,
                                         const Function& func);
   void AddFormalParamsToScope(const ParamList* params, LocalScope* scope);
 
   SequenceNode* ParseConstructor(const Function& func);
-  SequenceNode* ParseFunc(const Function& func);
+  SequenceNode* ParseFunc(const Function& func, bool check_semicolon);
 
   void ParseNativeFunctionBlock(const ParamList* params, const Function& func);
 
@@ -550,21 +569,21 @@ class Parser : public ValueObject {
   void BuildDispatcherScope(const Function& func,
                             const ArgumentsDescriptor& desc);
 
-  void EnsureHasReturnStatement(SequenceNode* seq, intptr_t return_pos);
+  void EnsureHasReturnStatement(SequenceNode* seq, TokenPosition return_pos);
   void ChainNewBlock(LocalScope* outer_scope);
   void OpenBlock();
   void OpenLoopBlock();
   void OpenFunctionBlock(const Function& func);
   void OpenAsyncClosure();
-  RawFunction* OpenAsyncFunction(intptr_t formal_param_pos);
-  RawFunction* OpenSyncGeneratorFunction(intptr_t func_pos);
+  RawFunction* OpenAsyncFunction(TokenPosition formal_param_pos);
+  RawFunction* OpenSyncGeneratorFunction(TokenPosition func_pos);
   SequenceNode* CloseSyncGenFunction(const Function& closure,
                                      SequenceNode* closure_node);
   void AddSyncGenClosureParameters(ParamList* params);
   void AddAsyncGenClosureParameters(ParamList* params);
 
   // Support for async* functions.
-  RawFunction* OpenAsyncGeneratorFunction(intptr_t func_pos);
+  RawFunction* OpenAsyncGeneratorFunction(TokenPosition func_pos);
   SequenceNode* CloseAsyncGeneratorFunction(const Function& closure,
                                             SequenceNode* closure_node);
   void OpenAsyncGeneratorClosure();
@@ -588,10 +607,10 @@ class Parser : public ValueObject {
   LocalVariable* LookupTypeArgumentsParameter(LocalScope* from_scope,
                                               bool test_only);
   void CaptureInstantiator();
-  AstNode* LoadReceiver(intptr_t token_pos);
+  AstNode* LoadReceiver(TokenPosition token_pos);
   AstNode* LoadFieldIfUnresolved(AstNode* node);
   AstNode* LoadClosure(PrimaryNode* primary);
-  InstanceGetterNode* CallGetter(intptr_t token_pos,
+  InstanceGetterNode* CallGetter(TokenPosition token_pos,
                                  AstNode* object,
                                  const String& name);
 
@@ -602,7 +621,7 @@ class Parser : public ValueObject {
   AstNode* ParseDoWhileStatement(String* label_name);
   AstNode* ParseForStatement(String* label_name);
   AstNode* ParseAwaitForStatement(String* label_name);
-  AstNode* ParseForInStatement(intptr_t forin_pos, SourceLabel* label);
+  AstNode* ParseForInStatement(TokenPosition forin_pos, SourceLabel* label);
   RawClass* CheckCaseExpressions(const GrowableArray<LiteralNode*>& values);
   CaseNode* ParseCaseClause(LocalVariable* switch_expr_value,
                             GrowableArray<LiteralNode*>* case_expr_values,
@@ -626,7 +645,7 @@ class Parser : public ValueObject {
                                   LocalVariable* saved_exception_var,
                                   LocalVariable* saved_stack_trace_var);
   // Parse all the catch clause of a try.
-  SequenceNode* ParseCatchClauses(intptr_t handler_pos,
+  SequenceNode* ParseCatchClauses(TokenPosition handler_pos,
                                   bool is_async,
                                   LocalVariable* exception_var,
                                   LocalVariable* stack_trace_var,
@@ -709,15 +728,15 @@ class Parser : public ValueObject {
   String* ParseImportStringLiteral();
   AstNode* ParseCompoundLiteral();
   AstNode* ParseSymbolLiteral();
-  AstNode* ParseListLiteral(intptr_t type_pos,
+  AstNode* ParseListLiteral(TokenPosition type_pos,
                             bool is_const,
                             const TypeArguments& type_arguments);
-  AstNode* ParseMapLiteral(intptr_t type_pos,
+  AstNode* ParseMapLiteral(TokenPosition type_pos,
                            bool is_const,
                            const TypeArguments& type_arguments);
 
   RawFunction* BuildConstructorClosureFunction(const Function& ctr,
-                                               intptr_t token_pos);
+                                               TokenPosition token_pos);
   AstNode* ParseNewOperator(Token::Kind op_kind);
   void ParseConstructorClosurization(Function* constructor,
                                      TypeArguments* type_arguments);
@@ -727,24 +746,25 @@ class Parser : public ValueObject {
                                           bool require_const);
   AstNode* ParseStaticCall(const Class& cls,
                            const String& method_name,
-                           intptr_t ident_pos);
+                           TokenPosition ident_pos);
   AstNode* ParseInstanceCall(AstNode* receiver,
                              const String& method_name,
-                             intptr_t ident_pos,
+                             TokenPosition ident_pos,
                              bool is_conditional);
   AstNode* ParseClosureCall(AstNode* closure);
   AstNode* GenerateStaticFieldLookup(const Field& field,
-                                     intptr_t ident_pos);
+                                     TokenPosition ident_pos);
   AstNode* GenerateStaticFieldAccess(const Class& cls,
                                      const String& field_name,
-                                     intptr_t ident_pos);
+                                     TokenPosition ident_pos);
 
   LocalVariable* LookupLocalScope(const String& ident);
-  void CheckInstanceFieldAccess(intptr_t field_pos, const String& field_name);
+  void CheckInstanceFieldAccess(TokenPosition field_pos,
+                                const String& field_name);
   bool ParsingStaticMember() const;
   const AbstractType* ReceiverType(const Class& cls);
   bool IsInstantiatorRequired() const;
-  bool ResolveIdentInLocalScope(intptr_t ident_pos,
+  bool ResolveIdentInLocalScope(TokenPosition ident_pos,
                                 const String &ident,
                                 AstNode** node);
   static const bool kResolveLocally = true;
@@ -752,28 +772,29 @@ class Parser : public ValueObject {
 
   // Resolve a primary identifier in the library or prefix scope and
   // generate the corresponding AstNode.
-  AstNode* ResolveIdentInCurrentLibraryScope(intptr_t ident_pos,
+  AstNode* ResolveIdentInCurrentLibraryScope(TokenPosition ident_pos,
                                              const String& ident);
-  AstNode* ResolveIdentInPrefixScope(intptr_t ident_pos,
+  AstNode* ResolveIdentInPrefixScope(TokenPosition ident_pos,
                                      const LibraryPrefix& prefix,
                                      const String& ident);
 
-  AstNode* ResolveIdent(intptr_t ident_pos,
+  AstNode* ResolveIdent(TokenPosition ident_pos,
                         const String& ident,
                         bool allow_closure_names);
-  RawString* ResolveImportVar(intptr_t ident_pos, const String& ident);
-  AstNode* OptimizeBinaryOpNode(intptr_t op_pos,
+  RawString* ResolveImportVar(TokenPosition ident_pos, const String& ident);
+  AstNode* OptimizeBinaryOpNode(TokenPosition op_pos,
                                 Token::Kind binary_op,
                                 AstNode* lhs,
                                 AstNode* rhs);
-  AstNode* ExpandAssignableOp(intptr_t op_pos,
+  AstNode* ExpandAssignableOp(TokenPosition op_pos,
                               Token::Kind assignment_op,
                               AstNode* lhs,
                               AstNode* rhs);
   LetNode* PrepareCompoundAssignmentNodes(AstNode** expr);
-  LocalVariable* CreateTempConstVariable(intptr_t token_pos, const char* s);
+  LocalVariable* CreateTempConstVariable(TokenPosition token_pos,
+                                         const char* s);
 
-  static SequenceNode* NodeAsSequenceNode(intptr_t sequence_pos,
+  static SequenceNode* NodeAsSequenceNode(TokenPosition sequence_pos,
                                           AstNode* node,
                                           LocalScope* scope);
 
@@ -782,10 +803,11 @@ class Parser : public ValueObject {
                           const String& func_name,
                           ArgumentListNode* arguments);
   String& Interpolate(const GrowableArray<AstNode*>& values);
-  AstNode* MakeAssertCall(intptr_t begin, intptr_t end);
-  AstNode* ThrowTypeError(intptr_t type_pos, const AbstractType& type,
-                           LibraryPrefix* prefix = NULL);
-  AstNode* ThrowNoSuchMethodError(intptr_t call_pos,
+  AstNode* MakeAssertCall(TokenPosition begin, TokenPosition end);
+  AstNode* ThrowTypeError(TokenPosition type_pos,
+                          const AbstractType& type,
+                          LibraryPrefix* prefix = NULL);
+  AstNode* ThrowNoSuchMethodError(TokenPosition call_pos,
                                   const Class& cls,
                                   const String& function_name,
                                   ArgumentListNode* function_arguments,
@@ -799,29 +821,30 @@ class Parser : public ValueObject {
   void CheckOperatorArity(const MemberDesc& member);
 
   void EnsureExpressionTemp();
-  bool IsLegalAssignableSyntax(AstNode* expr, intptr_t end_pos);
+  bool IsLegalAssignableSyntax(AstNode* expr, TokenPosition end_pos);
   AstNode* CreateAssignmentNode(AstNode* original,
                                 AstNode* rhs,
                                 const String* left_ident,
-                                intptr_t left_pos,
+                                TokenPosition left_pos,
                                 bool is_compound = false);
   AstNode* InsertClosureCallNodes(AstNode* condition);
 
   ConstructorCallNode* CreateConstructorCallNode(
-      intptr_t token_pos,
+      TokenPosition token_pos,
       const TypeArguments& type_arguments,
       const Function& constructor,
       ArgumentListNode* arguments);
 
   void AddEqualityNullCheck();
 
-  AstNode* BuildClosureCall(intptr_t token_pos,
+  AstNode* BuildClosureCall(TokenPosition token_pos,
                             AstNode* closure,
                             ArgumentListNode* arguments);
 
-  RawInstance* TryCanonicalize(const Instance& instance, intptr_t token_pos);
-  void CacheConstantValue(intptr_t token_pos, const Instance& value);
-  bool GetCachedConstant(intptr_t token_pos, Instance* value);
+  RawInstance* TryCanonicalize(const Instance& instance,
+                               TokenPosition token_pos);
+  void CacheConstantValue(TokenPosition token_pos, const Instance& value);
+  bool GetCachedConstant(TokenPosition token_pos, Instance* value);
 
   Thread* thread() const { return thread_; }
   Isolate* isolate() const { return isolate_; }
@@ -833,6 +856,7 @@ class Parser : public ValueObject {
   Script& script_;
   TokenStream::Iterator tokens_iterator_;
   Token::Kind token_kind_;  // Cached token kind for current token.
+  TokenPosition prev_token_pos_;
   Block* current_block_;
 
   // is_top_level_ is true if parsing the "top level" of a compilation unit,
@@ -888,6 +912,9 @@ class Parser : public ValueObject {
 
   // Indentation of parser trace.
   intptr_t trace_indent_;
+
+  intptr_t recursion_counter_;
+  friend class RecursionChecker;
 
   DISALLOW_COPY_AND_ASSIGN(Parser);
 };

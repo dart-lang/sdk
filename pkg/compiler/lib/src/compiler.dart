@@ -1073,6 +1073,8 @@ abstract class Compiler {
       dumpInfoTask.dumpInfo();
     }
 
+    backend.sourceInformationStrategy.onComplete();
+
     checkQueues();
   }
 
@@ -1793,6 +1795,17 @@ class _CompilerDiagnosticReporter extends DiagnosticReporter {
       uri = currentElement.compilationUnit.script.resourceUri;
       assert(invariant(currentElement, () {
 
+        bool sameToken(Token token, Token sought) {
+          if (token == sought) return true;
+          if (token.stringValue == '>>') {
+            // `>>` is converted to `>` in the parser when needed.
+            return sought.stringValue == '>' &&
+                token.charOffset <= sought.charOffset &&
+                sought.charOffset < token.charEnd;
+          }
+          return false;
+        }
+
         /// Check that [begin] and [end] can be found between [from] and [to].
         validateToken(Token from, Token to) {
           if (from == null || to == null) return true;
@@ -1800,10 +1813,10 @@ class _CompilerDiagnosticReporter extends DiagnosticReporter {
           bool foundEnd = false;
           Token token = from;
           while (true) {
-            if (token == begin) {
+            if (sameToken(token, begin)) {
               foundBegin = true;
             }
-            if (token == end) {
+            if (sameToken(token, end)) {
               foundEnd = true;
             }
             if (foundBegin && foundEnd) {
@@ -1857,7 +1870,7 @@ class _CompilerDiagnosticReporter extends DiagnosticReporter {
   }
 
   SourceSpan spanFromNode(Node node) {
-    return spanFromTokens(node.getBeginToken(), node.getEndToken());
+    return spanFromTokens(node.getBeginToken(), node.getPrefixEndToken());
   }
 
   SourceSpan spanFromElement(Element element) {

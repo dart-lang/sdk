@@ -197,7 +197,7 @@ class _Utils {
 
   // TODO(vsm): Make this API compatible with spawnUri.  It should also
   // return a Future<Isolate>.
-  static spawnDomUri(String uri) => _blink.Blink_Utils.spawnDomUri(uri);
+  static spawnDomUri(String uri) => wrap_jso(_blink.Blink_Utils.spawnDomUri(uri));
 
   // The following methods were added for debugger integration to make working
   // with the Dart C mirrors API simpler.
@@ -774,7 +774,7 @@ class _Utils {
     return [
         "inspect",
         (o) {
-          host.callMethod("inspect", [o]);
+          host.callMethod("_inspect", [unwrap_jso(o)]);
           return o;
         },
         "dir",
@@ -807,10 +807,10 @@ class _Utils {
     String extendsTagName) => _blink.Blink_Utils.register(unwrap_jso(document), tag, customType, extendsTagName);
 
   static Element createElement(Document document, String tagName) =>
-    wrap_jso(_blink.Blink_Utils.createElement(unwrap_jso(document), tagName));
+      wrap_jso(_blink.Blink_Utils.createElement(unwrap_jso(document), tagName));
 
   static Element changeElementWrapper(HtmlElement element, Type type) =>
-    _blink.Blink_Utils.changeElementWrapper(unwrap_jso(element), type);
+      wrap_jso(_blink.Blink_Utils.changeElementWrapper(unwrap_jso(element), type));
 }
 
 class _DOMWindowCrossFrame extends DartHtmlDomObject implements
@@ -825,17 +825,18 @@ class _DOMWindowCrossFrame extends DartHtmlDomObject implements
   _DOMWindowCrossFrame.internal();
 
   // Fields.
-  HistoryBase get history => _blink.Blink_DOMWindowCrossFrame.get_history(this);
-  LocationBase get location => _blink.Blink_DOMWindowCrossFrame.get_location(this);
-  bool get closed => _blink.Blink_DOMWindowCrossFrame.get_closed(this);
-  WindowBase get opener => _blink.Blink_DOMWindowCrossFrame.get_opener(this);
-  WindowBase get parent => _blink.Blink_DOMWindowCrossFrame.get_parent(this);
-  WindowBase get top => _blink.Blink_DOMWindowCrossFrame.get_top(this);
+  HistoryBase get history => wrap_jso(_blink.Blink_DOMWindowCrossFrame.get_history(unwrap_jso(this)));
+  LocationBase get location => wrap_jso(_blink.Blink_DOMWindowCrossFrame.get_location(unwrap_jso(this)));
+  bool get closed => wrap_jso(_blink.Blink_DOMWindowCrossFrame.get_closed(unwrap_jso(this)));
+  WindowBase get opener => wrap_jso(_blink.Blink_DOMWindowCrossFrame.get_opener(unwrap_jso(this)));
+  WindowBase get parent => wrap_jso(_blink.Blink_DOMWindowCrossFrame.get_parent(unwrap_jso(this)));
+  WindowBase get top => wrap_jso(_blink.Blink_DOMWindowCrossFrame.get_top(unwrap_jso(this)));
 
   // Methods.
-  void close() => _blink.Blink_DOMWindowCrossFrame.close(this);
+  void close() => _blink.Blink_DOMWindowCrossFrame.close(unwrap_jso(this));
   void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) =>
-    _blink.Blink_DOMWindowCrossFrame.postMessage(this, message, targetOrigin, messagePorts);
+      _blink.Blink_DOMWindowCrossFrame.postMessage(unwrap_jso(this),
+         convertDartToNative_SerializedScriptValue(message), targetOrigin, messagePorts);
 
   // Implementation support.
   String get typeName => "Window";
@@ -868,9 +869,9 @@ class _HistoryCrossFrame extends DartHtmlDomObject implements HistoryBase {
   _HistoryCrossFrame.internal();
 
   // Methods.
-  void back() => _blink.Blink_HistoryCrossFrame.back(this);
-  void forward() => _blink.Blink_HistoryCrossFrame.forward(this);
-  void go(int distance) => _blink.Blink_HistoryCrossFrame.go(this, distance);
+  void back() => _blink.Blink_HistoryCrossFrame.back(unwrap_jso(this));
+  void forward() => _blink.Blink_HistoryCrossFrame.forward(unwrap_jso(this));
+  void go(int distance) => _blink.Blink_HistoryCrossFrame.go(unwrap_jso(this), distance);
 
   // Implementation support.
   String get typeName => "History";
@@ -880,31 +881,10 @@ class _LocationCrossFrame extends DartHtmlDomObject implements LocationBase {
   _LocationCrossFrame.internal();
 
   // Fields.
-  set href(String h) => _blink.Blink_LocationCrossFrame.set_href(this, h);
+  set href(String h) => _blink.Blink_LocationCrossFrame.set_href(unwrap_jso(this), h);
 
   // Implementation support.
   String get typeName => "Location";
-}
-
-class _DOMStringMap extends DartHtmlDomObject implements Map<String, String> {
-  _DOMStringMap.internal();
-
-  bool containsValue(String value) => Maps.containsValue(this, value);
-  bool containsKey(String key) => _blink.Blink_DOMStringMap.containsKey(this, key);
-  String operator [](String key) => _blink.Blink_DOMStringMap.item(this, key);
-  void operator []=(String key, String value) => _blink.Blink_DOMStringMap.setItem(this, key, value);
-  String putIfAbsent(String key, String ifAbsent()) => Maps.putIfAbsent(this, key, ifAbsent);
-  String remove(String key) => _blink.Blink_DOMStringMap.remove(this, key);
-  void clear() => Maps.clear(this);
-  void forEach(void f(String key, String value)) => Maps.forEach(this, f);
-  Iterable<String> get keys => _blink.Blink_DOMStringMap.get_keys(this);
-  Iterable<String> get values => Maps.getValues(this);
-  int get length => Maps.length(this);
-  bool get isEmpty => Maps.isEmpty(this);
-  bool get isNotEmpty => Maps.isNotEmpty(this);
-  void addAll(Map<String, String> other) {
-    other.forEach((key, value) => this[key] = value);
-  }
 }
 
 // TODO(vsm): Remove DOM isolate code once we have Dartium isolates

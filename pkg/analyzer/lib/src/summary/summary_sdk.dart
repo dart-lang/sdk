@@ -8,56 +8,55 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/context/cache.dart' show CacheEntry;
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/source.dart' show Source, SourceKind;
-import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/generated/source.dart'
+    show DartUriResolver, Source, SourceFactory, SourceKind;
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
-import 'package:analyzer/src/task/dart.dart'
-    show
-        LIBRARY_ELEMENT1,
-        LIBRARY_ELEMENT2,
-        LIBRARY_ELEMENT3,
-        LIBRARY_ELEMENT4,
-        LIBRARY_ELEMENT5,
-        LIBRARY_ELEMENT6,
-        LIBRARY_ELEMENT7,
-        LIBRARY_ELEMENT8,
-        READY_LIBRARY_ELEMENT2,
-        READY_LIBRARY_ELEMENT5,
-        READY_LIBRARY_ELEMENT6,
-        TYPE_PROVIDER;
+import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:analyzer/task/model.dart'
     show AnalysisTarget, ResultDescriptor, TargetedResult;
 
-/**
- * An [SdkAnalysisContext] for Dart SDK with a summary [SdkBundle].
- */
-class SummarySdkAnalysisContext extends SdkAnalysisContext {
-  final SdkBundle bundle;
+class SdkSummaryResultProvider implements SummaryResultProvider {
+  final InternalAnalysisContext context;
+  final PackageBundle bundle;
   final SummaryTypeProvider typeProvider = new SummaryTypeProvider();
 
+  @override
   SummaryResynthesizer resynthesizer;
 
-  SummarySdkAnalysisContext(this.bundle);
+  SdkSummaryResultProvider(this.context, this.bundle) {
+    resynthesizer = new SdkSummaryResynthesizer(
+        context, typeProvider, context.sourceFactory, bundle);
+    _buildCoreLibrary();
+    _buildAsyncLibrary();
+    resynthesizer.finalizeCoreAsyncLibraries();
+    context.typeProvider = typeProvider;
+  }
 
   @override
-  bool aboutToComputeResult(CacheEntry entry, ResultDescriptor result) {
-    if (resynthesizer == null) {
-      resynthesizer = new SummaryResynthesizer(this, typeProvider,
-          _getPrelinkedSummary, _getUnlinkedSummary, sourceFactory);
-      _buildCoreLibrary();
-      _buildAsyncLibrary();
-    }
+  bool compute(CacheEntry entry, ResultDescriptor result) {
     if (result == TYPE_PROVIDER) {
       entry.setValue(result, typeProvider, TargetedResult.EMPTY_LIST);
       return true;
     }
     AnalysisTarget target = entry.target;
-//    print('SummarySdkAnalysisContext: $result of $target');
-    if (target is Source && target.isInSystemLibrary) {
+    // Only SDK sources after this point.
+    if (target.source == null || !target.source.isInSystemLibrary) {
+      return false;
+    }
+    // Constant expressions are always resolved in summaries.
+    if (result == CONSTANT_EXPRESSION_RESOLVED &&
+        target is ConstantEvaluationTarget) {
+      entry.setValue(result, true, TargetedResult.EMPTY_LIST);
+      return true;
+    }
+    if (target is Source) {
       if (result == LIBRARY_ELEMENT1 ||
           result == LIBRARY_ELEMENT2 ||
           result == LIBRARY_ELEMENT3 ||
@@ -80,17 +79,29 @@ class SummarySdkAnalysisContext extends SdkAnalysisContext {
         return true;
       } else if (result == SOURCE_KIND) {
         String uri = target.uri.toString();
-        if (bundle.prelinkedLibraryUris.contains(uri)) {
-          entry.setValue(result, SourceKind.LIBRARY, TargetedResult.EMPTY_LIST);
-          return true;
-        }
-        if (bundle.unlinkedUnitUris.contains(uri)) {
-          entry.setValue(result, SourceKind.PART, TargetedResult.EMPTY_LIST);
+        SourceKind kind = _getSourceKind(uri);
+        if (kind != null) {
+          entry.setValue(result, kind, TargetedResult.EMPTY_LIST);
           return true;
         }
         return false;
       } else {
 //        throw new UnimplementedError('$result of $target');
+      }
+    }
+    if (target is LibrarySpecificUnit) {
+      if (target.library == null || !target.library.isInSystemLibrary) {
+        return false;
+      }
+      if (result == COMPILATION_UNIT_ELEMENT) {
+        String libraryUri = target.library.uri.toString();
+        String unitUri = target.unit.uri.toString();
+        CompilationUnitElement unit = resynthesizer.getElement(
+            new ElementLocationImpl.con3(<String>[libraryUri, unitUri]));
+        if (unit != null) {
+          entry.setValue(result, unit, TargetedResult.EMPTY_LIST);
+          return true;
+        }
       }
     }
     return false;
@@ -106,23 +117,65 @@ class SummarySdkAnalysisContext extends SdkAnalysisContext {
     typeProvider.initializeCore(library);
   }
 
-  PrelinkedLibrary _getPrelinkedSummary(String uri) {
-    for (int i = 0; i < bundle.prelinkedLibraryUris.length; i++) {
-      if (bundle.prelinkedLibraryUris[i] == uri) {
-        return bundle.prelinkedLibraries[i];
-      }
+  /**
+   * Return the [SourceKind] of the given [uri] or `null` if it is unknown.
+   */
+  SourceKind _getSourceKind(String uri) {
+    if (bundle.linkedLibraryUris.contains(uri)) {
+      return SourceKind.LIBRARY;
     }
-    throw new StateError('Unable to find prelinked summary for $uri');
+    if (bundle.unlinkedUnitUris.contains(uri)) {
+      return SourceKind.PART;
+    }
+    return null;
+  }
+}
+
+/**
+ * The implementation of [SummaryResynthesizer] for Dart SDK.
+ */
+class SdkSummaryResynthesizer extends SummaryResynthesizer {
+  final PackageBundle bundle;
+  final Map<String, UnlinkedUnit> unlinkedSummaries = <String, UnlinkedUnit>{};
+  final Map<String, LinkedLibrary> linkedSummaries = <String, LinkedLibrary>{};
+
+  SdkSummaryResynthesizer(AnalysisContext context, TypeProvider typeProvider,
+      SourceFactory sourceFactory, this.bundle)
+      : super(null, context, typeProvider, sourceFactory, false) {
+    // TODO(paulberry): we always resynthesize the summary in weak mode.  Is
+    // this ok?
+    for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
+      unlinkedSummaries[bundle.unlinkedUnitUris[i]] = bundle.unlinkedUnits[i];
+    }
+    for (int i = 0; i < bundle.linkedLibraryUris.length; i++) {
+      linkedSummaries[bundle.linkedLibraryUris[i]] = bundle.linkedLibraries[i];
+    }
   }
 
-  UnlinkedUnit _getUnlinkedSummary(String uri) {
-    for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
-      if (bundle.unlinkedUnitUris[i] == uri) {
-        return bundle.unlinkedUnits[i];
-      }
-    }
-    throw new StateError('Unable to find unlinked summary for $uri');
+  @override
+  LinkedLibrary getLinkedSummary(String uri) {
+    return linkedSummaries[uri];
   }
+
+  @override
+  UnlinkedUnit getUnlinkedSummary(String uri) {
+    return unlinkedSummaries[uri];
+  }
+
+  @override
+  bool hasLibrarySummary(String uri) {
+    return uri.startsWith('dart:');
+  }
+}
+
+/**
+ * Provider for analysis results.
+ */
+abstract class SummaryResultProvider extends ResultProvider {
+  /**
+   * The [SummaryResynthesizer] of this context, maybe `null`.
+   */
+  SummaryResynthesizer get resynthesizer;
 }
 
 /**

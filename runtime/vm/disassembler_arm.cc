@@ -12,6 +12,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 class ARMDecoder : public ValueObject {
  public:
   ARMDecoder(char* buffer, size_t buffer_size)
@@ -1539,6 +1541,8 @@ void Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
     *out_instr_size = Instr::kInstrSize;
   }
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart
 

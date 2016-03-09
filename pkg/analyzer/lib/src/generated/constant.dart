@@ -6,18 +6,22 @@ library analyzer.src.generated.constant;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/generated/element_handle.dart'
+    show ConstructorElementHandle;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, RecordingErrorListener;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
-import 'package:analyzer/src/generated/scanner.dart' show Token, TokenType;
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/type_system.dart'
     show TypeSystem, TypeSystemImpl;
@@ -25,6 +29,16 @@ import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart' show ParameterKind;
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/dart.dart';
+
+ConstructorElementImpl _getConstructorImpl(ConstructorElement constructor) {
+  while (constructor is ConstructorMember) {
+    constructor = (constructor as ConstructorMember).baseElement;
+  }
+  if (constructor is ConstructorElementHandle) {
+    constructor = (constructor as ConstructorElementHandle).actualElement;
+  }
+  return constructor;
+}
 
 /**
  * Callback used by [ReferenceFinder] to report that a dependency was found.
@@ -157,6 +171,13 @@ class ConstantAstCloner extends AstCloner {
   ConstantAstCloner() : super(true);
 
   @override
+  ConstructorName visitConstructorName(ConstructorName node) {
+    ConstructorName name = super.visitConstructorName(node);
+    name.staticElement = node.staticElement;
+    return name;
+  }
+
+  @override
   InstanceCreationExpression visitInstanceCreationExpression(
       InstanceCreationExpression node) {
     InstanceCreationExpression expression =
@@ -228,7 +249,7 @@ class ConstantEvaluationEngine {
   final TypeProvider typeProvider;
 
   /**
-   * The type system.  This is used to gues the types of constants when their
+   * The type system.  This is used to guess the types of constants when their
    * exact value is unknown.
    */
   final TypeSystem typeSystem;
@@ -330,17 +351,15 @@ class ConstantEvaluationEngine {
   void computeConstantValue(ConstantEvaluationTarget constant) {
     validator.beforeComputeValue(constant);
     if (constant is ParameterElementImpl) {
-      if (constant.initializer != null) {
-        Expression defaultValue = constant.constantInitializer;
-        if (defaultValue != null) {
-          RecordingErrorListener errorListener = new RecordingErrorListener();
-          ErrorReporter errorReporter =
-              new ErrorReporter(errorListener, constant.source);
-          DartObjectImpl dartObject =
-              defaultValue.accept(new ConstantVisitor(this, errorReporter));
-          constant.evaluationResult =
-              new EvaluationResultImpl(dartObject, errorListener.errors);
-        }
+      Expression defaultValue = constant.constantInitializer;
+      if (defaultValue != null) {
+        RecordingErrorListener errorListener = new RecordingErrorListener();
+        ErrorReporter errorReporter =
+            new ErrorReporter(errorListener, constant.source);
+        DartObjectImpl dartObject =
+            defaultValue.accept(new ConstantVisitor(this, errorReporter));
+        constant.evaluationResult =
+            new EvaluationResultImpl(dartObject, errorListener.errors);
       }
     } else if (constant is VariableElementImpl) {
       Expression constantInitializer = constant.constantInitializer;
@@ -375,57 +394,49 @@ class ConstantEvaluationEngine {
         // code will know that it is safe to evaluate.
         (constant as ConstructorElementImpl).isCycleFree = true;
       }
-    } else if (constant is ConstantEvaluationTarget_Annotation) {
-      Annotation constNode = constant.annotation;
-      ElementAnnotationImpl elementAnnotation = constNode.elementAnnotation;
-      // elementAnnotation is null if the annotation couldn't be resolved, in
-      // which case we skip it.
-      if (elementAnnotation != null) {
-        Element element = elementAnnotation.element;
-        if (element is PropertyAccessorElement &&
-            element.variable is VariableElementImpl) {
-          // The annotation is a reference to a compile-time constant variable.
-          // Just copy the evaluation result.
-          VariableElementImpl variableElement =
-              element.variable as VariableElementImpl;
-          if (variableElement.evaluationResult != null) {
-            elementAnnotation.evaluationResult =
-                variableElement.evaluationResult;
-          } else {
-            // This could happen in the event that the annotation refers to a
-            // non-constant.  The error is detected elsewhere, so just silently
-            // ignore it here.
-            elementAnnotation.evaluationResult = new EvaluationResultImpl(null);
-          }
-        } else if (element is ConstructorElementImpl &&
-            element.isConst &&
-            constNode.arguments != null) {
-          RecordingErrorListener errorListener = new RecordingErrorListener();
-          CompilationUnit sourceCompilationUnit =
-              constNode.getAncestor((node) => node is CompilationUnit);
-          ErrorReporter errorReporter = new ErrorReporter(
-              errorListener, sourceCompilationUnit.element.source);
-          ConstantVisitor constantVisitor =
-              new ConstantVisitor(this, errorReporter);
-          DartObjectImpl result = evaluateConstructorCall(
-              constNode,
-              constNode.arguments.arguments,
-              element,
-              constantVisitor,
-              errorReporter);
-          elementAnnotation.evaluationResult =
-              new EvaluationResultImpl(result, errorListener.errors);
+    } else if (constant is ElementAnnotationImpl) {
+      Annotation constNode = constant.annotationAst;
+      Element element = constant.element;
+      if (element is PropertyAccessorElement &&
+          element.variable is VariableElementImpl) {
+        // The annotation is a reference to a compile-time constant variable.
+        // Just copy the evaluation result.
+        VariableElementImpl variableElement =
+            element.variable as VariableElementImpl;
+        if (variableElement.evaluationResult != null) {
+          constant.evaluationResult = variableElement.evaluationResult;
         } else {
-          // This may happen for invalid code (e.g. failing to pass arguments
-          // to an annotation which references a const constructor).  The error
-          // is detected elsewhere, so just silently ignore it here.
-          elementAnnotation.evaluationResult = new EvaluationResultImpl(null);
+          // This could happen in the event that the annotation refers to a
+          // non-constant.  The error is detected elsewhere, so just silently
+          // ignore it here.
+          constant.evaluationResult = new EvaluationResultImpl(null);
         }
+      } else if (element is ConstructorElementImpl &&
+          element.isConst &&
+          constNode.arguments != null) {
+        RecordingErrorListener errorListener = new RecordingErrorListener();
+        ErrorReporter errorReporter =
+            new ErrorReporter(errorListener, constant.source);
+        ConstantVisitor constantVisitor =
+            new ConstantVisitor(this, errorReporter);
+        DartObjectImpl result = evaluateConstructorCall(
+            constNode,
+            constNode.arguments.arguments,
+            element,
+            constantVisitor,
+            errorReporter);
+        constant.evaluationResult =
+            new EvaluationResultImpl(result, errorListener.errors);
+      } else {
+        // This may happen for invalid code (e.g. failing to pass arguments
+        // to an annotation which references a const constructor).  The error
+        // is detected elsewhere, so just silently ignore it here.
+        constant.evaluationResult = new EvaluationResultImpl(null);
       }
     } else if (constant is VariableElement) {
       // constant is a VariableElement but not a VariableElementImpl.  This can
       // happen sometimes in the case of invalid user code (for example, a
-      // constant expression that refers to a nonstatic field inside a generic
+      // constant expression that refers to a non-static field inside a generic
       // class will wind up referring to a FieldMember).  The error is detected
       // elsewhere, so just silently ignore it here.
     } else {
@@ -441,25 +452,14 @@ class ConstantEvaluationEngine {
    * Determine which constant elements need to have their values computed
    * prior to computing the value of [constant], and report them using
    * [callback].
-   *
-   * Note that it's possible (in erroneous code) for a constant to depend on a
-   * non-constant.  When this happens, we report the dependency anyhow so that
-   * if the non-constant changes to a constant, we will know to recompute the
-   * thing that depends on it.  [computeDependencies] and
-   * [computeConstantValue] are responsible for ignoring the request if they
-   * are asked to act on a non-constant target.
    */
   void computeDependencies(
       ConstantEvaluationTarget constant, ReferenceFinderCallback callback) {
     ReferenceFinder referenceFinder = new ReferenceFinder(callback);
-    if (constant is ParameterElementImpl) {
-      if (constant.initializer != null) {
-        Expression defaultValue = constant.constantInitializer;
-        if (defaultValue != null) {
-          defaultValue.accept(referenceFinder);
-        }
-      }
-    } else if (constant is VariableElementImpl) {
+    if (constant is ConstructorElement) {
+      constant = _getConstructorImpl(constant);
+    }
+    if (constant is VariableElementImpl) {
       Expression initializer = constant.constantInitializer;
       if (initializer != null) {
         initializer.accept(referenceFinder);
@@ -471,8 +471,7 @@ class ConstantEvaluationEngine {
             getConstRedirectedConstructor(constant);
         if (redirectedConstructor != null) {
           ConstructorElement redirectedConstructorBase =
-              ConstantEvaluationEngine
-                  ._getConstructorBase(redirectedConstructor);
+              _getConstructorImpl(redirectedConstructor);
           callback(redirectedConstructorBase);
           return;
         } else if (constant.isFactory) {
@@ -500,8 +499,8 @@ class ConstantEvaluationEngine {
           InterfaceType superclass =
               (constant.returnType as InterfaceType).superclass;
           if (superclass != null && !superclass.isObject) {
-            ConstructorElement unnamedConstructor = ConstantEvaluationEngine
-                ._getConstructorBase(superclass.element.unnamedConstructor);
+            ConstructorElement unnamedConstructor =
+                _getConstructorImpl(superclass.element.unnamedConstructor);
             if (unnamedConstructor != null) {
               callback(unnamedConstructor);
             }
@@ -520,26 +519,21 @@ class ConstantEvaluationEngine {
           callback(parameterElement);
         }
       }
-    } else if (constant is ConstantEvaluationTarget_Annotation) {
-      Annotation constNode = constant.annotation;
-      ElementAnnotationImpl elementAnnotation = constNode.elementAnnotation;
-      // elementAnnotation is null if the annotation couldn't be resolved, in
-      // which case we skip it.
-      if (elementAnnotation != null) {
-        Element element = elementAnnotation.element;
-        if (element is PropertyAccessorElement &&
-            element.variable is VariableElementImpl) {
-          // The annotation is a reference to a compile-time constant variable,
-          // so it depends on the variable.
-          callback(element.variable);
-        } else if (element is ConstructorElementImpl) {
-          // The annotation is a constructor invocation, so it depends on the
-          // constructor.
-          callback(element);
-        } else {
-          // This could happen in the event of invalid code.  The error will be
-          // reported at constant evaluation time.
-        }
+    } else if (constant is ElementAnnotationImpl) {
+      Annotation constNode = constant.annotationAst;
+      Element element = constant.element;
+      if (element is PropertyAccessorElement &&
+          element.variable is VariableElementImpl) {
+        // The annotation is a reference to a compile-time constant variable,
+        // so it depends on the variable.
+        callback(element.variable);
+      } else if (element is ConstructorElementImpl) {
+        // The annotation is a constructor invocation, so it depends on the
+        // constructor.
+        callback(element);
+      } else {
+        // This could happen in the event of invalid code.  The error will be
+        // reported at constant evaluation time.
       }
       if (constNode.arguments != null) {
         constNode.arguments.accept(referenceFinder);
@@ -547,7 +541,7 @@ class ConstantEvaluationEngine {
     } else if (constant is VariableElement) {
       // constant is a VariableElement but not a VariableElementImpl.  This can
       // happen sometimes in the case of invalid user code (for example, a
-      // constant expression that refers to a nonstatic field inside a generic
+      // constant expression that refers to a non-static field inside a generic
       // class will wind up referring to a FieldMember).  So just don't bother
       // computing any dependencies.
     } else {
@@ -601,7 +595,7 @@ class ConstantEvaluationEngine {
       ConstructorElement constructor,
       ConstantVisitor constantVisitor,
       ErrorReporter errorReporter) {
-    if (!_getConstructorBase(constructor).isCycleFree) {
+    if (!_getConstructorImpl(constructor).isCycleFree) {
       // It's not safe to evaluate this constructor, so bail out.
       // TODO(paulberry): ensure that a reasonable error message is produced
       // in this case, as well as other cases involving constant expression
@@ -691,7 +685,7 @@ class ConstantEvaluationEngine {
       // it an unknown value will suppress further errors.
       return new DartObjectImpl.validWithUnknownValue(definingClass);
     }
-    ConstructorElementImpl constructorBase = _getConstructorBase(constructor);
+    ConstructorElementImpl constructorBase = _getConstructorImpl(constructor);
     validator.beforeGetConstantInitializers(constructorBase);
     List<ConstructorInitializer> initializers =
         constructorBase.constantInitializers;
@@ -909,10 +903,10 @@ class ConstantEvaluationEngine {
       if (redirectedConstructor == null) {
         break;
       } else {
-        ConstructorElement constructorBase = _getConstructorBase(constructor);
+        ConstructorElement constructorBase = _getConstructorImpl(constructor);
         constructorsVisited.add(constructorBase);
         ConstructorElement redirectedConstructorBase =
-            _getConstructorBase(redirectedConstructor);
+            _getConstructorImpl(redirectedConstructor);
         if (constructorsVisited.contains(redirectedConstructorBase)) {
           // Cycle in redirecting factory constructors--this is not allowed
           // and is checked elsewhere--see
@@ -1010,47 +1004,6 @@ class ConstantEvaluationEngine {
       name.isEmpty ||
       name == "void" ||
       new JavaPatternMatcher(_PUBLIC_SYMBOL_PATTERN, name).matches();
-
-  static ConstructorElementImpl _getConstructorBase(
-      ConstructorElement constructor) {
-    while (constructor is ConstructorMember) {
-      constructor = (constructor as ConstructorMember).baseElement;
-    }
-    return constructor;
-  }
-}
-
-/**
- * Wrapper around an [Annotation] which can be used as a
- * [ConstantEvaluationTarget].
- */
-class ConstantEvaluationTarget_Annotation implements ConstantEvaluationTarget {
-  final AnalysisContext context;
-  final Source source;
-  final Source librarySource;
-  final Annotation annotation;
-
-  ConstantEvaluationTarget_Annotation(
-      this.context, this.source, this.librarySource, this.annotation);
-
-  @override
-  int get hashCode => JenkinsSmiHash.hash3(
-      source.hashCode, librarySource.hashCode, annotation.hashCode);
-
-  @override
-  bool operator ==(other) {
-    if (other is ConstantEvaluationTarget_Annotation) {
-      return this.context == other.context &&
-          this.source == other.source &&
-          this.librarySource == other.librarySource &&
-          this.annotation == other.annotation;
-    } else {
-      return false;
-    }
-  }
-
-  @override
-  String toString() => 'Constant: $annotation';
 }
 
 /**
@@ -1295,8 +1248,8 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
   /**
    * The elements and AST nodes whose constant values need to be computed.
    */
-  HashSet<ConstantEvaluationTarget> constantsToCompute =
-      new HashSet<ConstantEvaluationTarget>();
+  List<ConstantEvaluationTarget> constantsToCompute =
+      <ConstantEvaluationTarget>[];
 
   /**
    * True if instance variables marked as "final" should be treated as "const".
@@ -1308,9 +1261,13 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
   @override
   Object visitAnnotation(Annotation node) {
     super.visitAnnotation(node);
-    AnalysisContext owningContext = _getOwningContext();
-    constantsToCompute.add(new ConstantEvaluationTarget_Annotation(
-        owningContext, source, librarySource, node));
+    ElementAnnotation elementAnnotation = node.elementAnnotation;
+    if (elementAnnotation == null) {
+      // Analyzer ignores annotations on "part of" directives.
+      assert(node.parent is PartOfDirective);
+    } else {
+      constantsToCompute.add(elementAnnotation);
+    }
     return null;
   }
 
@@ -1369,14 +1326,6 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
       }
     }
     return null;
-  }
-
-  AnalysisContext _getOwningContext() {
-    if (context is InternalAnalysisContext) {
-      InternalAnalysisContext internalContext = context;
-      return internalContext.getContextFor(librarySource);
-    }
-    return context;
   }
 }
 
@@ -1616,7 +1565,9 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
     DartObjectImpl rightResult = node.rightOperand.accept(this);
     TokenType operatorType = node.operator.type;
     // 'null' is almost never good operand
-    if (operatorType != TokenType.BANG_EQ && operatorType != TokenType.EQ_EQ) {
+    if (operatorType != TokenType.BANG_EQ &&
+        operatorType != TokenType.EQ_EQ &&
+        operatorType != TokenType.QUESTION_QUESTION) {
       if (leftResult != null && leftResult.isNull ||
           rightResult != null && rightResult.isNull) {
         _error(node, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
@@ -1665,6 +1616,9 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
         return _dartObjectComputer.divide(node, leftResult, rightResult);
       } else if (operatorType == TokenType.TILDE_SLASH) {
         return _dartObjectComputer.integerDivide(node, leftResult, rightResult);
+      } else if (operatorType == TokenType.QUESTION_QUESTION) {
+        return _dartObjectComputer.questionQuestion(
+            node, leftResult, rightResult);
       } else {
         // TODO(brianwilkerson) Figure out which error to report.
         _error(node, null);
@@ -1792,8 +1746,8 @@ class ConstantVisitor extends UnifyingAstVisitor<DartObjectImpl> {
       return null;
     }
     bool errorOccurred = false;
-    HashMap<DartObjectImpl, DartObjectImpl> map =
-        new HashMap<DartObjectImpl, DartObjectImpl>();
+    LinkedHashMap<DartObjectImpl, DartObjectImpl> map =
+        new LinkedHashMap<DartObjectImpl, DartObjectImpl>();
     for (MapLiteralEntry entry in node.entries) {
       DartObjectImpl keyResult = entry.key.accept(this);
       DartObjectImpl valueResult = entry.value.accept(this);
@@ -2461,6 +2415,17 @@ class DartObjectComputer {
     return null;
   }
 
+  DartObjectImpl questionQuestion(Expression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
+    if (leftOperand != null && rightOperand != null) {
+      if (leftOperand.isNull) {
+        return rightOperand;
+      }
+      return leftOperand;
+    }
+    return null;
+  }
+
   DartObjectImpl remainder(BinaryExpression node, DartObjectImpl leftOperand,
       DartObjectImpl rightOperand) {
     if (leftOperand != null && rightOperand != null) {
@@ -2540,6 +2505,7 @@ class DartObjectImpl implements DartObject {
   /**
    * The run-time type of this object.
    */
+  @override
   final ParameterizedType type;
 
   /**
@@ -5195,8 +5161,7 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
   @override
   Object visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (node.isConst) {
-      ConstructorElement constructor =
-          ConstantEvaluationEngine._getConstructorBase(node.staticElement);
+      ConstructorElement constructor = _getConstructorImpl(node.staticElement);
       if (constructor != null) {
         _callback(constructor);
       }
@@ -5218,8 +5183,7 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
   Object visitRedirectingConstructorInvocation(
       RedirectingConstructorInvocation node) {
     super.visitRedirectingConstructorInvocation(node);
-    ConstructorElement target =
-        ConstantEvaluationEngine._getConstructorBase(node.staticElement);
+    ConstructorElement target = _getConstructorImpl(node.staticElement);
     if (target != null) {
       _callback(target);
     }
@@ -5232,7 +5196,7 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
     if (element is PropertyAccessorElement) {
       element = (element as PropertyAccessorElement).variable;
     }
-    if (element is VariableElement) {
+    if (element is VariableElement && element.isConst) {
       _callback(element);
     }
     return null;
@@ -5241,8 +5205,7 @@ class ReferenceFinder extends RecursiveAstVisitor<Object> {
   @override
   Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
     super.visitSuperConstructorInvocation(node);
-    ConstructorElement constructor =
-        ConstantEvaluationEngine._getConstructorBase(node.staticElement);
+    ConstructorElement constructor = _getConstructorImpl(node.staticElement);
     if (constructor != null) {
       _callback(constructor);
     }

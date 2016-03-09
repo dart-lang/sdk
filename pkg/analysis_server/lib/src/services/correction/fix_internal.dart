@@ -24,9 +24,11 @@ import 'package:analysis_server/src/services/correction/source_range.dart'
 import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -35,7 +37,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -148,6 +149,9 @@ class FixProcessor {
     if (errorCode ==
         CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE) {
       _addFix_replaceWithConstInstanceCreation();
+    }
+    if (errorCode == CompileTimeErrorCode.ASYNC_FOR_IN_WRONG_CONTEXT) {
+      _addFix_addAsync_asyncFor();
     }
     if (errorCode == CompileTimeErrorCode.INVALID_ANNOTATION) {
       if (node is Annotation) {
@@ -339,6 +343,12 @@ class FixProcessor {
       _addFix_undefinedClassAccessor_useSimilar();
       _addFix_createField();
     }
+    // lints
+    if (errorCode is LintCode) {
+      if (errorCode.name == LintNames.annotate_overrides) {
+        _addLintFixAddOverrideAnnotation();
+      }
+    }
     // done
     return fixes;
   }
@@ -387,11 +397,21 @@ class FixProcessor {
       FunctionBody body = node.getAncestor((n) => n is FunctionBody);
       if (body != null && body.keyword == null) {
         _addReplaceEdit(rf.rangeStartLength(body, 0), 'async ');
+        _replaceReturnTypeWithFuture(body);
         _addFix(DartFixKind.ADD_ASYNC, []);
         return true;
       }
     }
     return false;
+  }
+
+  void _addFix_addAsync_asyncFor() {
+    FunctionBody body = node.getAncestor((n) => n is FunctionBody);
+    if (body != null && body.keyword == null) {
+      _addReplaceEdit(rf.rangeStartLength(body, 0), 'async ');
+      _replaceReturnTypeWithFuture(body);
+      _addFix(DartFixKind.ADD_ASYNC, []);
+    }
   }
 
   void _addFix_addMissingParameter() {
@@ -434,7 +454,8 @@ class FixProcessor {
           if (numRequired != 0) {
             sb.append(', ');
           }
-          _appendParameterForArgument(sb, numRequired, argument);
+          _appendParameterForArgument(
+              sb, new Set<String>(), numRequired, argument);
           if (numRequired != numParameters) {
             sb.append(', ');
           }
@@ -450,7 +471,8 @@ class FixProcessor {
             sb.append(', ');
           }
           sb.append('[');
-          _appendParameterForArgument(sb, numRequired, argument);
+          _appendParameterForArgument(
+              sb, new Set<String>(), numRequired, argument);
           sb.append(']');
           // add proposal
           _insertBuilder(sb, targetElement);
@@ -1223,6 +1245,7 @@ class FixProcessor {
       isFirst = false;
     }
     // merge getter/setter pairs into fields
+    String prefix = utils.getIndent(1);
     for (int i = 0; i < elements.length; i++) {
       ExecutableElement element = elements[i];
       if (element.kind == ElementKind.GETTER && i + 1 < elements.length) {
@@ -1233,10 +1256,17 @@ class FixProcessor {
           elements.removeAt(i);
           i--;
           numElements--;
-          // add field
+          // separator
           addEolIfNotFirst();
-          sb.append(utils.getIndent(1));
-          _appendType(sb, element.type.returnType);
+          // @override
+          {
+            sb.append(prefix);
+            sb.append('@override');
+            sb.append(eol);
+          }
+          // add field
+          sb.append(prefix);
+          _appendType(sb, element.type.returnType, orVar: true);
           sb.append(element.name);
           sb.append(';');
           sb.append(eol);
@@ -1346,19 +1376,9 @@ class FixProcessor {
   }
 
   void _addFix_illegalAsyncReturnType() {
-    InterfaceType futureType = context.typeProvider.futureType;
-    String futureTypeCode = utils.getTypeSource(futureType, librariesToImport);
     // prepare the existing type
     TypeName typeName = node.getAncestor((n) => n is TypeName);
-    String nodeCode = utils.getNodeText(typeName);
-    // wrap the existing type with Future
-    String returnTypeCode;
-    if (nodeCode == 'void') {
-      returnTypeCode = futureTypeCode;
-    } else {
-      returnTypeCode = '$futureTypeCode<$nodeCode>';
-    }
-    _addReplaceEdit(rf.rangeNode(typeName), returnTypeCode);
+    _replaceTypeWithFuture(typeName);
     // add proposal
     _addFix(DartFixKind.REPLACE_RETURN_TYPE_FUTURE, []);
   }
@@ -2029,6 +2049,7 @@ class FixProcessor {
 
   void _addFix_undefinedMethod_create_parameters(
       SourceBuilder sb, ArgumentList argumentList) {
+    Set<String> usedNames = new Set<String>();
     // append parameters
     sb.append('(');
     List<Expression> arguments = argumentList.arguments;
@@ -2044,7 +2065,7 @@ class FixProcessor {
         hasNamedParameters = true;
         sb.append('{');
       }
-      _appendParameterForArgument(sb, i, argument);
+      _appendParameterForArgument(sb, usedNames, i, argument);
     }
     if (hasNamedParameters) {
       sb.append('}');
@@ -2187,6 +2208,26 @@ class FixProcessor {
     group.addPosition(position, range.length);
   }
 
+  void _addLintFixAddOverrideAnnotation() {
+    ClassMember member = node.getAncestor((n) => n is ClassMember);
+    if (member == null) {
+      return;
+    }
+
+    //TODO(pq): migrate annotation edit building to change_builder
+
+    // Handle doc comments.
+    Token token = member.beginToken;
+    if (token is CommentToken) {
+      token = (token as CommentToken).parent;
+    }
+
+    exitPosition = new Position(file, token.offset - 1);
+    String indent = utils.getIndent(1);
+    _addReplaceEdit(rf.rangeStartLength(token, 0), '@override$eol$indent');
+    _addFix(DartFixKind.LINT_ADD_OVERRIDE, []);
+  }
+
   /**
    * Prepares proposal for creating function corresponding to the given
    * [FunctionType].
@@ -2235,7 +2276,7 @@ class FixProcessor {
           {
             sb.startPosition('TYPE$i');
             sb.append(typeSource);
-            _addSuperTypeProposals(sb, new Set(), type);
+            _addSuperTypeProposals(sb, type);
             sb.endPosition();
           }
           sb.append(' ');
@@ -2330,14 +2371,14 @@ class FixProcessor {
   }
 
   void _appendParameterForArgument(
-      SourceBuilder sb, int index, Expression argument) {
+      SourceBuilder sb, Set<String> excluded, int index, Expression argument) {
     // append type name
     DartType type = argument.bestType;
     String typeSource = utils.getTypeSource(type, librariesToImport);
     if (typeSource != 'dynamic') {
       sb.startPosition('TYPE$index');
       sb.append(typeSource);
-      _addSuperTypeProposals(sb, new Set(), type);
+      _addSuperTypeProposals(sb, type);
       sb.endPosition();
       sb.append(' ');
     }
@@ -2345,7 +2386,6 @@ class FixProcessor {
     if (argument is NamedExpression) {
       sb.append(argument.name.label.name);
     } else {
-      Set<String> excluded = new Set<String>();
       List<String> suggestions =
           _getArgumentNameSuggestions(excluded, type, argument, index);
       String favorite = suggestions[0];
@@ -2776,6 +2816,40 @@ class FixProcessor {
     }
   }
 
+  void _replaceReturnTypeWithFuture(AstNode node) {
+    for (; node != null; node = node.parent) {
+      if (node is FunctionDeclaration) {
+        _replaceTypeWithFuture(node.returnType);
+        return;
+      } else if (node is MethodDeclaration) {
+        _replaceTypeWithFuture(node.returnType);
+        return;
+      }
+    }
+  }
+
+  void _replaceTypeWithFuture(TypeName typeName) {
+    InterfaceType futureType = context.typeProvider.futureType;
+    // validate the type
+    DartType type = typeName?.type;
+    if (type == null ||
+        type.isDynamic ||
+        type is InterfaceType && type.element == futureType.element) {
+      return;
+    }
+    // prepare code for the types
+    String futureTypeCode = utils.getTypeSource(futureType, librariesToImport);
+    String nodeCode = utils.getNodeText(typeName);
+    // wrap the existing type with Future
+    String returnTypeCode;
+    if (nodeCode == 'void') {
+      returnTypeCode = futureTypeCode;
+    } else {
+      returnTypeCode = '$futureTypeCode<$nodeCode>';
+    }
+    _addReplaceEdit(rf.rangeNode(typeName), returnTypeCode);
+  }
+
   void _updateFinderWithClassMembers(
       _ClosestElementFinder finder, ClassElement clazz) {
     if (clazz != null) {
@@ -2784,16 +2858,14 @@ class FixProcessor {
     }
   }
 
-  static void _addSuperTypeProposals(
-      SourceBuilder sb, Set<DartType> alreadyAdded, DartType type) {
-    if (type != null &&
-        type.element is ClassElement &&
-        alreadyAdded.add(type)) {
-      ClassElement element = type.element as ClassElement;
-      sb.addSuggestion(LinkedEditSuggestionKind.TYPE, element.name);
-      _addSuperTypeProposals(sb, alreadyAdded, element.supertype);
-      for (InterfaceType interfaceType in element.interfaces) {
-        _addSuperTypeProposals(sb, alreadyAdded, interfaceType);
+  static void _addSuperTypeProposals(SourceBuilder sb, DartType type,
+      [Set<DartType> alreadyAdded]) {
+    alreadyAdded ??= new Set<DartType>();
+    if (type is InterfaceType && alreadyAdded.add(type)) {
+      sb.addSuggestion(LinkedEditSuggestionKind.TYPE, type.displayName);
+      _addSuperTypeProposals(sb, type.superclass, alreadyAdded);
+      for (InterfaceType interfaceType in type.interfaces) {
+        _addSuperTypeProposals(sb, interfaceType, alreadyAdded);
       }
     }
   }
@@ -2835,6 +2907,13 @@ class FixProcessor {
     }
     return false;
   }
+}
+
+/**
+ * An enumeration of lint names.
+ */
+class LintNames {
+  static const String annotate_overrides = 'annotate_overrides';
 }
 
 /**

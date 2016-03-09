@@ -1472,6 +1472,9 @@ class _TestSource implements Source {
   _TestSource(this.fullName);
 
   @override
+  String get encoding => fullName;
+
+  @override
   bool get isInSystemLibrary => false;
 
   @override

@@ -17,6 +17,8 @@
 
     'libdart_deps': ['libdart_lib_nosnapshot', 'libdart_lib',
                      'libdart_vm_nosnapshot', 'libdart_vm',
+                     'libdart_vm_noopt',
+                     'libdart_vm_precompiled_runtime',
                      'libdouble_conversion',],
   },
   'targets': [
@@ -55,11 +57,11 @@
       },
     },
     {
-      'target_name': 'libdart_precompiled',
+      'target_name': 'libdart_noopt',
       'type': 'static_library',
       'dependencies': [
         'libdart_lib',
-        'libdart_vm_precompiled',
+        'libdart_vm_noopt',
         'libdouble_conversion',
         'generate_version_cc_file#host',
       ],
@@ -81,7 +83,42 @@
       'defines': [
         # The only effect of DART_SHARED_LIB is to export the Dart API entries.
         'DART_SHARED_LIB',
-        'DART_PRECOMPILED',
+        'DART_PRECOMPILER',
+      ],
+      'direct_dependent_settings': {
+        'include_dirs': [
+          'include',
+        ],
+      },
+    },
+    {
+      'target_name': 'libdart_precompiled_runtime',
+      'type': 'static_library',
+      'dependencies': [
+        'libdart_lib_precompiled_runtime',
+        'libdart_vm_precompiled_runtime',
+        'libdouble_conversion',
+        'generate_version_cc_file#host',
+      ],
+      'include_dirs': [
+        '.',
+      ],
+      'sources': [
+        'include/dart_api.h',
+        'include/dart_mirrors_api.h',
+        'include/dart_native_api.h',
+        'include/dart_tools_api.h',
+        'vm/dart_api_impl.cc',
+        'vm/debugger_api_impl.cc',
+        'vm/mirrors_api_impl.cc',
+        'vm/native_api_impl.cc',
+        'vm/version.h',
+        '<(version_cc_file)',
+      ],
+      'defines': [
+        # The only effect of DART_SHARED_LIB is to export the Dart API entries.
+        'DART_SHARED_LIB',
+        'DART_PRECOMPILED_RUNTIME',
       ],
       'direct_dependent_settings': {
         'include_dirs': [

@@ -68,9 +68,16 @@ abstract class StreamController<T> implements StreamSink<T> {
    * If [sync] is true, the returned stream controller is a
    * [SynchronousStreamController], and must be used with the care
    * and attention necessary to not break the [Stream] contract.
+   * See [Completer.sync] for some explanations on when a synchronous
+   * dispatching can be used.
+   * If in doubt, keep the controller non-sync.
    *
-   * The controller will buffer all incoming events until the subscriber is
-   * registered.
+   * A Stream should be inert until a subscriber starts listening on it (using
+   * the [onListen] callback to start producing events). Streams should not
+   * leak resources (like websockets) when no user ever listens on the stream.
+   *
+   * The controller buffers all incoming events until a subscriber is
+   * registered, but this feature should only be used in rare circumstances.
    *
    * The [onPause] function is called when the stream becomes
    * paused. [onResume] is called when the stream resumed.
@@ -100,6 +107,12 @@ abstract class StreamController<T> implements StreamSink<T> {
    * The [Stream] returned by [stream] is a broadcast stream.
    * It can be listened to more than once.
    *
+   * A Stream should be inert until a subscriber starts listening on it (using
+   * the [onListen] callback to start producing events). Streams should not
+   * leak resources (like websockets) when no user ever listens on the stream.
+   *
+   * Broadcast streams do not buffer events when there is no listener.
+   *
    * The controller distributes any events to all currently subscribed
    * listeners at the time when [add], [addError] or [close] is called.
    * It is not allowed to call `add`, `addError`, or `close` before a previous
@@ -116,6 +129,9 @@ abstract class StreamController<T> implements StreamSink<T> {
    * The returned stream controller is a [SynchronousStreamController],
    * and must be used with the care and attention necessary to not break
    * the [Stream] contract.
+   * See [Completer.sync] for some explanations on when a synchronous
+   * dispatching can be used.
+   * If in doubt, keep the controller non-sync.
    *
    * If [sync] is false, the event will always be fired at a later time,
    * after the code adding the event has completed.

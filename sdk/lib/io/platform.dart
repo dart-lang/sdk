@@ -181,20 +181,20 @@ class Platform {
   static List<String> get executableArguments => _Platform.executableArguments;
 
   /**
-   * Returns the value of the --package-root flag passed to the executable
+   * Returns the value of the `--package-root` flag passed to the executable
    * used to run the script in this isolate.  This is the directory in which
    * Dart packages are looked up.
    *
-   * If there is no --package-root flag, then null is returned.
+   * If there is no `--package-root` flag, `null` is returned.
    */
   static String get packageRoot => _Platform.packageRoot;
 
 /**
- * Returns the value of the --packages flag passed to the executable
- * used to run the script in this isolate.  This is the configuration which
+ * Returns the value of the `--packages` flag passed to the executable
+ * used to run the script in this isolate. This is the configuration which
  * specifies how Dart packages are looked up.
  *
- * If there is no --packages flag, then the null is returned.
+ * If there is no `--packages` flag, `null` is returned.
  */
   static String get packageConfig => _Platform.packageConfig;
 

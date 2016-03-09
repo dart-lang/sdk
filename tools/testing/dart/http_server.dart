@@ -172,7 +172,7 @@ class TestingServers {
   }
 
   String httpServerCommandline() {
-    var dart = TestUtils.dartTestExecutable.toNativePath();
+    var dart = Platform.resolvedExecutable;
     var dartDir = TestUtils.dartDir;
     var script = dartDir.join(new Path("tools/testing/dart/http_server.dart"));
     var buildDirectory = _buildDirectory.toNativePath();

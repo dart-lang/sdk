@@ -41,10 +41,13 @@ static void ComputeTokenPosToLineNumberMap(const Script& script,
     (*map)[i] = -1;
   }
 #endif
-  TokenStream::Iterator tkit(tkns, 0, TokenStream::Iterator::kAllTokens);
+  TokenStream::Iterator tkit(tkns,
+                             TokenPosition::kMinSource,
+                             TokenStream::Iterator::kAllTokens);
   intptr_t cur_line = script.line_offset() + 1;
   while (tkit.CurrentTokenKind() != Token::kEOS) {
-    (*map)[tkit.CurrentPosition()] = cur_line;
+    const intptr_t position = tkit.CurrentPosition().Pos();
+    (*map)[position] = cur_line;
     if (tkit.CurrentTokenKind() == Token::kNEWLINE) {
       cur_line++;
     }
@@ -57,6 +60,9 @@ void CodeCoverage::CompileAndAdd(const Function& function,
                                  const JSONArray& hits_or_sites,
                                  const GrowableArray<intptr_t>& pos_to_line,
                                  bool as_call_sites) {
+  if (!FLAG_support_coverage) {
+    return;
+  }
   // If the function should not be compiled for coverage analysis, then just
   // skip this method.
   // TODO(iposva): Maybe we should skip synthesized methods in general too.
@@ -83,12 +89,12 @@ void CodeCoverage::CompileAndAdd(const Function& function,
   // Print the hit counts for all IC datas.
   ZoneGrowableArray<const ICData*>* ic_data_array =
       new(zone) ZoneGrowableArray<const ICData*>();
-  function.RestoreICDataMap(ic_data_array, false /* clone descriptors */);
+  function.RestoreICDataMap(ic_data_array, false /* clone ic-data */);
   const PcDescriptors& descriptors = PcDescriptors::Handle(
       zone, code.pc_descriptors());
 
-  const intptr_t begin_pos = function.token_pos();
-  const intptr_t end_pos = function.end_token_pos();
+  const TokenPosition begin_pos = function.token_pos();
+  const TokenPosition end_pos = function.end_token_pos();
   intptr_t last_line = -1;
   intptr_t last_count = 0;
   // Only IC based calls have counting.
@@ -98,16 +104,18 @@ void CodeCoverage::CompileAndAdd(const Function& function,
     HANDLESCOPE(thread);
     const ICData* ic_data = (*ic_data_array)[iter.DeoptId()];
     if (!ic_data->IsNull()) {
-      const intptr_t token_pos = iter.TokenPos();
+      const TokenPosition token_pos = iter.TokenPos();
       // Filter out descriptors that do not map to tokens in the source code.
       if ((token_pos < begin_pos) || (token_pos > end_pos)) {
         continue;
       }
       if (as_call_sites) {
         bool is_static_call = iter.Kind() == RawPcDescriptors::kUnoptStaticCall;
-        ic_data->PrintToJSONArray(hits_or_sites, token_pos, is_static_call);
+        ic_data->PrintToJSONArray(hits_or_sites,
+                                  token_pos,
+                                  is_static_call);
       } else {
-        intptr_t line = pos_to_line[token_pos];
+        intptr_t line = pos_to_line[token_pos.Pos()];
 #if defined(DEBUG)
         const Script& script = Script::Handle(zone, function.script());
         intptr_t test_line = -1;
@@ -141,6 +149,9 @@ void CodeCoverage::PrintClass(const Library& lib,
                               const JSONArray& jsarr,
                               CoverageFilter* filter,
                               bool as_call_sites) {
+  if (!FLAG_support_coverage) {
+    return;
+  }
   Thread* thread = Thread::Current();
   if (cls.EnsureIsFinalized(thread) != Error::null()) {
     // Only classes that have been finalized do have a meaningful list of
@@ -235,6 +246,9 @@ void CodeCoverage::PrintClass(const Library& lib,
 
 
 void CodeCoverage::Write(Thread* thread) {
+  if (!FLAG_support_coverage) {
+    return;
+  }
   if (FLAG_coverage_dir == NULL) {
     return;
   }
@@ -267,6 +281,9 @@ void CodeCoverage::PrintJSON(Thread* thread,
                              JSONStream* stream,
                              CoverageFilter* filter,
                              bool as_call_sites) {
+  if (!FLAG_support_coverage) {
+    return;
+  }
   CoverageFilterAll default_filter;
   if (filter == NULL) {
     filter = &default_filter;

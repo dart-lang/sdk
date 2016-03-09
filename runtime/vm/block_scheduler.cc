@@ -6,11 +6,10 @@
 
 #include "vm/allocation.h"
 #include "vm/code_patcher.h"
+#include "vm/compiler.h"
 #include "vm/flow_graph.h"
 
 namespace dart {
-
-DEFINE_FLAG(bool, emit_edge_counters, true, "Emit edge counters at targets.");
 
 static intptr_t GetEdgeCount(const Array& edge_counters, intptr_t edge_id) {
   if (!FLAG_emit_edge_counters) {
@@ -60,6 +59,11 @@ void BlockScheduler::AssignEdgeWeights() const {
 
   const Array& ic_data_array = Array::Handle(flow_graph()->zone(),
       flow_graph()->parsed_function().function().ic_data_array());
+  if (Compiler::IsBackgroundCompilation() && ic_data_array.IsNull()) {
+    // Deferred loading cleared ic_data_array.
+    Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId);
+  }
+  ASSERT(!ic_data_array.IsNull());
   Array& edge_counters = Array::Handle();
   edge_counters ^= ic_data_array.At(0);
 

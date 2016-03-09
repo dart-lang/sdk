@@ -4,16 +4,21 @@
 // VMOptions=--error_on_bad_type --error_on_bad_override  --verbose_debug
 
 import 'package:observatory/service_io.dart';
+import 'service_test_common.dart';
 import 'test_helper.dart';
 import 'dart:developer';
+
+const int LINE_A = 19;
+const int LINE_B = 20;
+const int LINE_C = 21;
 
 foo() async { }
 
 doAsync(stop) async {
   if (stop) debugger();
-  await foo(); // Line 14.
-  await foo(); // Line 15.
-  await foo(); // Line 16.
+  await foo(); // Line A.
+  await foo(); // Line B.
+  await foo(); // Line C.
   return null;
 }
 
@@ -26,18 +31,20 @@ testMain() {
 
 asyncNext(Isolate isolate) async {
   print('asyncNext');
-  return isolate.asyncStepOver()[Isolate.kSecondResume];
+  return asyncStepOver(isolate);
 }
 
 var tests = [
   hasStoppedAtBreakpoint,
-  stoppedAtLine(14),
+  stoppedAtLine(LINE_A),
+  stepOver, // foo()
   asyncNext,
   hasStoppedAtBreakpoint,
-  stoppedAtLine(15),
+  stoppedAtLine(LINE_B),
+  stepOver, // foo()
   asyncNext,
   hasStoppedAtBreakpoint,
-  stoppedAtLine(16),
+  stoppedAtLine(LINE_C),
   resumeIsolate,
 ];
 

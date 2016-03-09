@@ -6,6 +6,7 @@
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
+import 'service_test_common.dart';
 import 'dart:developer';
 
 int globalVar = 100;
@@ -62,10 +63,10 @@ hasStoppedAtBreakpoint,
 
   var expectedRange = {
     'scriptIndex': 0,
-    'startPos': 33,
-    'endPos': 82,
+    'startPos': 38,
+    'endPos': 87,
     'compiled': true,
-    'coverage': {'hits': [48, 66, 76], 'misses': [54]}
+    'coverage': {'hits': [53, 71, 81], 'misses': [59]}
   };
 
   // Full script
@@ -110,7 +111,7 @@ hasStoppedAtBreakpoint,
   expect(coverage['scripts'].length, greaterThan(1));
 
   // Multiple reports (make sure enum list parameter parsing works).
-  params = { 'reports' : ['CallSites', 'Coverage'],
+  params = { 'reports' : ['_CallSites', 'Coverage', 'PossibleBreakpoints'],
              'scriptId' : func.location.script.id,
              'tokenPos' : func.location.tokenPos,
              'endTokenPos' : func.location.endTokenPos };
@@ -120,6 +121,7 @@ hasStoppedAtBreakpoint,
   var range = coverage['ranges'][0];
   expect(range.containsKey('callSites'), isTrue);
   expect(range.containsKey('coverage'), isTrue);
+  expect(range.containsKey('possibleBreakpoints'), isTrue);
 
   // missing scriptId with tokenPos.
   bool caughtException = false;

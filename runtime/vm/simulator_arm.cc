@@ -95,11 +95,11 @@ class SimulatorDebugger {
   bool GetFValue(char* desc, float* value);
   bool GetDValue(char* desc, double* value);
 
-  static intptr_t GetApproximateTokenIndex(const Code& code, uword pc);
+  static TokenPosition GetApproximateTokenIndex(const Code& code, uword pc);
 
   static void PrintDartFrame(uword pc, uword fp, uword sp,
                              const Function& function,
-                             intptr_t token_pos,
+                             TokenPosition token_pos,
                              bool is_optimized,
                              bool is_inlined);
   void PrintBacktrace();
@@ -245,9 +245,9 @@ bool SimulatorDebugger::GetDValue(char* desc, double* value) {
 }
 
 
-intptr_t SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
-                                                     uword pc) {
-  intptr_t token_pos = -1;
+TokenPosition SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
+                                                            uword pc) {
+  TokenPosition token_pos = TokenPosition::kNoSource;
   uword pc_offset = pc - code.EntryPoint();
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
@@ -255,7 +255,7 @@ intptr_t SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
   while (iter.MoveNext()) {
     if (iter.PcOffset() == pc_offset) {
       return iter.TokenPos();
-    } else if ((token_pos <= 0) && (iter.PcOffset() > pc_offset)) {
+    } else if (!token_pos.IsReal() && (iter.PcOffset() > pc_offset)) {
       token_pos = iter.TokenPos();
     }
   }
@@ -265,15 +265,15 @@ intptr_t SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
 
 void SimulatorDebugger::PrintDartFrame(uword pc, uword fp, uword sp,
                                        const Function& function,
-                                       intptr_t token_pos,
+                                       TokenPosition token_pos,
                                        bool is_optimized,
                                        bool is_inlined) {
   const Script& script = Script::Handle(function.script());
-  const String& func_name = String::Handle(function.QualifiedUserVisibleName());
+  const String& func_name = String::Handle(function.QualifiedScrubbedName());
   const String& url = String::Handle(script.url());
   intptr_t line = -1;
   intptr_t column = -1;
-  if (token_pos >= 0) {
+  if (token_pos.IsReal()) {
     script.GetTokenLocation(token_pos, &line, &column);
   }
   OS::Print("pc=0x%" Px " fp=0x%" Px " sp=0x%" Px " %s%s (%s:%" Pd
@@ -407,7 +407,11 @@ void SimulatorDebugger::Debug() {
       if (Simulator::IsIllegalAddress(last_pc)) {
         OS::Print("pc is out of bounds: 0x%" Px "\n", last_pc);
       } else {
-        Disassembler::Disassemble(last_pc, last_pc + Instr::kInstrSize);
+        if (FLAG_support_disassembler) {
+          Disassembler::Disassemble(last_pc, last_pc + Instr::kInstrSize);
+        } else {
+          OS::Print("Disassembler not supported in this mode.\n");
+        }
       }
     }
     char* line = ReadLine("sim> ");
@@ -546,7 +550,11 @@ void SimulatorDebugger::Debug() {
           }
         }
         if ((start > 0) && (end > start)) {
-          Disassembler::Disassemble(start, end);
+          if (FLAG_support_disassembler) {
+            Disassembler::Disassemble(start, end);
+          } else {
+            OS::Print("Disassembler not supported in this mode.\n");
+          }
         } else {
           OS::Print("disasm [<address> [<number_of_instructions>]]\n");
         }
@@ -3603,7 +3611,11 @@ void Simulator::InstructionDecode(Instr* instr) {
     OS::Print("%" Pu64 " ", icount_);
     const uword start = reinterpret_cast<uword>(instr);
     const uword end = start + Instr::kInstrSize;
-    Disassembler::Disassemble(start, end);
+    if (FLAG_support_disassembler) {
+      Disassembler::Disassemble(start, end);
+    } else {
+      OS::Print("Disassembler not supported in this mode.\n");
+    }
   }
   if (instr->ConditionField() == kSpecialCondition) {
     if (instr->InstructionBits() == static_cast<int32_t>(0xf57ff01f)) {

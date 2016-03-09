@@ -19,7 +19,7 @@ SecurityContext serverContext = new SecurityContext()
 // TODO: Specify which client certificate roots to trust.
 
 SecurityContext clientContext = new SecurityContext()
-  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'))
+  ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'))
 // TODO: Set a client certificate here.
   ..useCertificateChain(localFile('certificates/server_chain.pem'))
   ..usePrivateKey(localFile('certificates/server_key.pem'),

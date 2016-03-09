@@ -330,6 +330,8 @@ enum SystemOp {
   SystemMask = 0xffc00000,
   SystemFixed = CompareBranchFixed | B31 | B30 | B24,
   HINT = SystemFixed | B17 | B16 | B13 | B4 | B3 | B2 | B1 | B0,
+  CLREX = SystemFixed | B17 | B16 | B13 | B12 | B11 | B10 | B9 | B8 |
+      B6 | B4 | B3 | B2 | B1 | B0,
 };
 
 // C3.2.5
@@ -362,6 +364,14 @@ enum LoadRegLiteralOp {
   LoadRegLiteralMask = 0x3b000000,
   LoadRegLiteralFixed = LoadStoreFixed | B28,
   LDRpc = LoadRegLiteralFixed,
+};
+
+// C3.3.6
+enum LoadStoreExclusiveOp {
+  LoadStoreExclusiveMask = 0x3f000000,
+  LoadStoreExclusiveFixed = B27,
+  LDXR = LoadStoreExclusiveFixed | B22,
+  STXR = LoadStoreExclusiveFixed,
 };
 
 // C3.3.7-10
@@ -616,6 +626,7 @@ _V(UnconditionalBranchReg)                                                     \
 _V(LoadStoreReg)                                                               \
 _V(LoadStoreRegPair)                                                           \
 _V(LoadRegLiteral)                                                             \
+_V(LoadStoreExclusive)                                                         \
 _V(AddSubImm)                                                                  \
 _V(LogicalImm)                                                                 \
 _V(MoveWide)                                                                   \
@@ -692,6 +703,8 @@ enum InstructionFields {
   kRtBits = 5,
   kRt2Shift = 10,
   kRt2Bits = 5,
+  kRsShift = 16,
+  kRsBits = 5,
 
   // V Registers.
   kVdShift = 0,
@@ -892,6 +905,8 @@ class Instr {
                                         Bits(kRtShift, kRtBits)); }
   inline Register Rt2Field() const { return static_cast<Register>(
                                         Bits(kRt2Shift, kRt2Bits)); }
+  inline Register RsField() const { return static_cast<Register>(
+                                        Bits(kRsShift, kRsBits)); }
 
   inline VRegister VdField() const { return static_cast<VRegister>(
                                         Bits(kVdShift, kVdBits)); }

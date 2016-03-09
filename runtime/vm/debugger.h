@@ -30,7 +30,8 @@ class Breakpoint {
       kind_(Breakpoint::kNone),
       next_(NULL),
       closure_(Instance::null()),
-      bpt_location_(bpt_location) {}
+      bpt_location_(bpt_location),
+      is_synthetic_async_(false) {}
 
   intptr_t id() const { return id_; }
   Breakpoint* next() const { return next_; }
@@ -60,6 +61,14 @@ class Breakpoint {
     closure_ = closure.raw();
   }
 
+  // Mark that this breakpoint is a result of a step OverAwait request.
+  void set_is_synthetic_async(bool is_synthetic_async) {
+    is_synthetic_async_ = is_synthetic_async;
+  }
+  bool is_synthetic_async() const {
+    return is_synthetic_async_;
+  }
+
   void PrintJSON(JSONStream* stream);
 
  private:
@@ -77,6 +86,7 @@ class Breakpoint {
   Breakpoint* next_;
   RawInstance* closure_;
   BreakpointLocation* bpt_location_;
+  bool is_synthetic_async_;
 
   friend class BreakpointLocation;
   DISALLOW_COPY_AND_ASSIGN(Breakpoint);
@@ -98,8 +108,8 @@ class BreakpointLocation {
  public:
   // Create a new unresolved breakpoint.
   BreakpointLocation(const Script& script,
-                     intptr_t token_pos,
-                     intptr_t end_token_pos,
+                     TokenPosition token_pos,
+                     TokenPosition end_token_pos,
                      intptr_t requested_line_number,
                      intptr_t requested_column_number);
   // Create a new latent breakpoint.
@@ -110,8 +120,8 @@ class BreakpointLocation {
   ~BreakpointLocation();
 
   RawFunction* function() const { return function_; }
-  intptr_t token_pos() const { return token_pos_; }
-  intptr_t end_token_pos() const { return end_token_pos_; }
+  TokenPosition token_pos() const { return token_pos_; }
+  TokenPosition end_token_pos() const { return end_token_pos_; }
 
   RawScript* script() const { return script_; }
   RawString* url() const { return url_; }
@@ -124,20 +134,22 @@ class BreakpointLocation {
 
   void GetCodeLocation(Library* lib,
                        Script* script,
-                       intptr_t* token_pos) const;
+                       TokenPosition* token_pos) const;
 
   Breakpoint* AddRepeated(Debugger* dbg);
   Breakpoint* AddSingleShot(Debugger* dbg);
-  Breakpoint* AddPerClosure(Debugger* dbg, const Instance& closure);
+  Breakpoint* AddPerClosure(Debugger* dbg,
+                            const Instance& closure,
+                            bool for_over_await);
 
   bool AnyEnabled() const;
   bool IsResolved() const { return is_resolved_; }
-  bool IsLatent() const { return token_pos_ < 0; }
+  bool IsLatent() const { return !token_pos_.IsReal(); }
 
  private:
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
-  void SetResolved(const Function& func, intptr_t token_pos);
+  void SetResolved(const Function& func, TokenPosition token_pos);
 
   BreakpointLocation* next() const { return this->next_; }
   void set_next(BreakpointLocation* value) { next_ = value; }
@@ -149,8 +161,8 @@ class BreakpointLocation {
 
   RawScript* script_;
   RawString* url_;
-  intptr_t token_pos_;
-  intptr_t end_token_pos_;
+  TokenPosition token_pos_;
+  TokenPosition end_token_pos_;
   bool is_resolved_;
   BreakpointLocation* next_;
   Breakpoint* conditions_;
@@ -173,14 +185,14 @@ class BreakpointLocation {
 class CodeBreakpoint {
  public:
   CodeBreakpoint(const Code& code,
-                 intptr_t token_pos,
+                 TokenPosition token_pos,
                  uword pc,
                  RawPcDescriptors::Kind kind);
   ~CodeBreakpoint();
 
   RawFunction* function() const;
   uword pc() const { return pc_; }
-  intptr_t token_pos() const { return token_pos_; }
+  TokenPosition token_pos() const { return token_pos_; }
   bool IsInternal() const { return bpt_location_ == NULL; }
 
   RawScript* SourceCode();
@@ -206,7 +218,7 @@ class CodeBreakpoint {
   void RestoreCode();
 
   RawCode* code_;
-  intptr_t token_pos_;
+  TokenPosition token_pos_;
   uword pc_;
   intptr_t line_number_;
   bool is_enabled_;
@@ -245,7 +257,7 @@ class ActivationFrame : public ZoneAllocated {
   RawString* SourceUrl();
   RawScript* SourceScript();
   RawLibrary* Library();
-  intptr_t TokenPos();
+  TokenPosition TokenPos();
   intptr_t LineNumber();
   intptr_t ColumnNumber();
 
@@ -264,8 +276,8 @@ class ActivationFrame : public ZoneAllocated {
 
   void VariableAt(intptr_t i,
                   String* name,
-                  intptr_t* token_pos,
-                  intptr_t* end_pos,
+                  TokenPosition* token_pos,
+                  TokenPosition* end_pos,
                   Object* value);
 
   RawArray* GetLocalVariables();
@@ -305,7 +317,7 @@ class ActivationFrame : public ZoneAllocated {
   const Code& code_;
   const Function& function_;
   bool token_pos_initialized_;
-  intptr_t token_pos_;
+  TokenPosition token_pos_;
   intptr_t try_index_;
 
   intptr_t line_number_;
@@ -467,7 +479,8 @@ class Debugger {
   // Set breakpoint at closest location to function entry.
   Breakpoint* SetBreakpointAtEntry(const Function& target_function,
                                    bool single_shot);
-  Breakpoint* SetBreakpointAtActivation(const Instance& closure);
+  Breakpoint* SetBreakpointAtActivation(const Instance& closure,
+                                        bool for_over_await);
   Breakpoint* BreakpointAtActivation(const Instance& closure);
 
   // TODO(turnidge): script_url may no longer be specific enough.
@@ -486,6 +499,8 @@ class Debugger {
   void RemoveBreakpoint(intptr_t bp_id);
   Breakpoint* GetBreakpointById(intptr_t id);
 
+  // Will return false if we are not at an await.
+  bool SetupStepOverAsyncSuspension();
   void SetStepOver();
   void SetSingleStep();
   void SetStepOut();
@@ -587,22 +602,22 @@ class Debugger {
   static bool HasAnyEventHandler();
   static bool HasDebugEventHandler();
   void InvokeEventHandler(DebuggerEvent* event);
-
+  bool IsAtAsyncJump(ActivationFrame* top_frame);
   void FindCompiledFunctions(const Script& script,
-                             intptr_t start_pos,
-                             intptr_t end_pos,
+                             TokenPosition start_pos,
+                             TokenPosition end_pos,
                              GrowableObjectArray* function_list);
-  RawFunction* FindBestFit(const Script& script, intptr_t token_pos);
+  RawFunction* FindBestFit(const Script& script, TokenPosition token_pos);
   RawFunction* FindInnermostClosure(const Function& function,
-                                    intptr_t token_pos);
-  intptr_t ResolveBreakpointPos(const Function& func,
-                                intptr_t requested_token_pos,
-                                intptr_t last_token_pos,
-                                intptr_t requested_column);
+                                    TokenPosition token_pos);
+  TokenPosition ResolveBreakpointPos(const Function& func,
+                                       TokenPosition requested_token_pos,
+                                       TokenPosition last_token_pos,
+                                       intptr_t requested_column);
   void DeoptimizeWorld();
   BreakpointLocation* SetBreakpoint(const Script& script,
-                                    intptr_t token_pos,
-                                    intptr_t last_token_pos,
+                                    TokenPosition token_pos,
+                                    TokenPosition last_token_pos,
                                     intptr_t requested_line,
                                     intptr_t requested_column);
   void RemoveInternalBreakpoints();
@@ -613,7 +628,7 @@ class Debugger {
   void RegisterBreakpointLocation(BreakpointLocation* bpt);
   void RegisterCodeBreakpoint(CodeBreakpoint* bpt);
   BreakpointLocation* GetBreakpointLocation(const Script& script,
-                                            intptr_t token_pos,
+                                            TokenPosition token_pos,
                                             intptr_t requested_column);
   void MakeCodeBreakpointAt(const Function& func,
                             BreakpointLocation* bpt);
@@ -651,7 +666,8 @@ class Debugger {
   // interrupts, etc.
   void Pause(DebuggerEvent* event);
 
-  void HandleSteppingRequest(DebuggerStackTrace* stack_trace);
+  void HandleSteppingRequest(DebuggerStackTrace* stack_trace,
+                             bool skip_next_step = false);
 
   Isolate* isolate_;
   Dart_Port isolate_id_;  // A unique ID for the isolate in the debugger.
@@ -689,6 +705,16 @@ class Debugger {
   // frame corresponds to this fp value, or if the top frame is
   // lower on the stack.
   uword stepping_fp_;
+
+  // If we step while at a breakpoint, we would hit the same pc twice.
+  // We use this field to let us skip the next single-step after a
+  // breakpoint.
+  bool skip_next_step_;
+
+  // We keep this breakpoint alive until after the debugger does the step over
+  // async continuation machinery so that we can report that we've stopped
+  // at the breakpoint.
+  Breakpoint* synthetic_async_breakpoint_;
 
   Dart_ExceptionPauseInfo exc_pause_info_;
 

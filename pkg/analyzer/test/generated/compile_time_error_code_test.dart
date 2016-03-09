@@ -7,10 +7,12 @@ library analyzer.test.generated.compile_time_error_code_test;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:unittest/unittest.dart' show expect;
 
 import '../reflective_tests.dart';
 import '../utils.dart';
 import 'resolver_test.dart';
+import 'package:analyzer/src/generated/engine.dart';
 
 main() {
   initializeTestEnvironment();
@@ -897,7 +899,8 @@ int f() {
     // TODO(paulberry): the error CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE is
     // redundant and ought to be suppressed.
     assertErrors(source, [
-      CompileTimeErrorCode.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
+      CompileTimeErrorCode
+          .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
       CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
     ]);
     verify([source]);
@@ -1265,6 +1268,20 @@ f(p) {
     verify([source]);
   }
 
+  void test_constInitializedWithNonConstValue_finalField() {
+    // Regression test for bug #25526 which previously
+    // caused two errors to be reported.
+    Source source = addSource(r'''
+class Foo {
+  final field = [];
+  foo([int x = field]) {}
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE]);
+    verify([source]);
+  }
+
   void test_constInitializedWithNonConstValue_missingConstInListLiteral() {
     Source source = addSource("const List L = [0];");
     computeLibrarySourceErrors(source);
@@ -1291,7 +1308,8 @@ library root;
 import 'lib1.dart' deferred as a;
 const B = a.V;'''
     ], <ErrorCode>[
-      CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY
+      CompileTimeErrorCode
+          .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY
     ]);
   }
 
@@ -1305,7 +1323,8 @@ library root;
 import 'lib1.dart' deferred as a;
 const B = a.V + 1;'''
     ], <ErrorCode>[
-      CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY
+      CompileTimeErrorCode
+          .CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE_FROM_DEFERRED_LIBRARY
     ]);
   }
 
@@ -1440,6 +1459,23 @@ class T {
   T(a, b, {c, d}) {}
 }
 f() { return const T(0, 1, c: 2, d: 3); }''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.CONST_WITH_NON_CONST]);
+    verify([source]);
+  }
+
+  void test_constWithNonConst_with() {
+    Source source = addSource(r'''
+class B {
+  const B();
+}
+class C = B with M;
+class M {}
+const x = const C();
+main() {
+  print(x);
+}
+''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [CompileTimeErrorCode.CONST_WITH_NON_CONST]);
     verify([source]);
@@ -1652,24 +1688,6 @@ class A {}''');
     verify([librarySource, sourceA, sourceB]);
   }
 
-  void test_duplicateDefinition_inPart() {
-    Source librarySource = addNamedSource(
-        "/lib.dart",
-        r'''
-library test;
-part 'a.dart';
-class A {}''');
-    Source sourceA = addNamedSource(
-        "/a.dart",
-        r'''
-part of test;
-class A {}''');
-    computeLibrarySourceErrors(librarySource);
-    assertErrors(sourceA, [CompileTimeErrorCode.DUPLICATE_DEFINITION]);
-    assertNoErrors(librarySource);
-    verify([librarySource, sourceA]);
-  }
-
   void test_duplicateDefinition_catch() {
     Source source = addSource(r'''
 main() {
@@ -1711,6 +1729,24 @@ class A {
     computeLibrarySourceErrors(source);
     assertErrors(source, [CompileTimeErrorCode.DUPLICATE_DEFINITION]);
     verify([source]);
+  }
+
+  void test_duplicateDefinition_inPart() {
+    Source librarySource = addNamedSource(
+        "/lib.dart",
+        r'''
+library test;
+part 'a.dart';
+class A {}''');
+    Source sourceA = addNamedSource(
+        "/a.dart",
+        r'''
+part of test;
+class A {}''');
+    computeLibrarySourceErrors(librarySource);
+    assertErrors(sourceA, [CompileTimeErrorCode.DUPLICATE_DEFINITION]);
+    assertNoErrors(librarySource);
+    verify([librarySource, sourceA]);
   }
 
   void test_duplicateDefinition_locals_inCase() {
@@ -1827,7 +1863,8 @@ class B extends A {
     verify([source]);
   }
 
-  void test_duplicateDefinitionInheritance_instanceGetterAbstract_staticGetter() {
+  void
+      test_duplicateDefinitionInheritance_instanceGetterAbstract_staticGetter() {
     Source source = addSource(r'''
 abstract class A {
   int get x;
@@ -1855,7 +1892,8 @@ class B extends A {
     verify([source]);
   }
 
-  void test_duplicateDefinitionInheritance_instanceMethodAbstract_staticMethod() {
+  void
+      test_duplicateDefinitionInheritance_instanceMethodAbstract_staticMethod() {
     Source source = addSource(r'''
 abstract class A {
   x();
@@ -1883,7 +1921,8 @@ class B extends A {
     verify([source]);
   }
 
-  void test_duplicateDefinitionInheritance_instanceSetterAbstract_staticSetter() {
+  void
+      test_duplicateDefinitionInheritance_instanceSetterAbstract_staticSetter() {
     Source source = addSource(r'''
 abstract class A {
   set x(value);
@@ -1967,9 +2006,7 @@ class C = a.A with M;'''
   void test_extendsDisallowedClass_class_double() {
     Source source = addSource("class A extends double {}");
     computeLibrarySourceErrors(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
-    ]);
+    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -1996,9 +2033,7 @@ class C = a.A with M;'''
   void test_extendsDisallowedClass_class_num() {
     Source source = addSource("class A extends num {}");
     computeLibrarySourceErrors(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS
-    ]);
+    assertErrors(source, [CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS]);
     verify([source]);
   }
 
@@ -2638,7 +2673,8 @@ class A {
     verify([source]);
   }
 
-  void test_implicitThisReferenceInInitializer_redirectingConstructorInvocation() {
+  void
+      test_implicitThisReferenceInInitializer_redirectingConstructorInvocation() {
     Source source = addSource(r'''
 class A {
   A(p) {}
@@ -3004,7 +3040,8 @@ main() {
     verify([source]);
   }
 
-  void test_invalidAnnotation_importWithPrefix_notVariableOrConstructorInvocation() {
+  void
+      test_invalidAnnotation_importWithPrefix_notVariableOrConstructorInvocation() {
     addNamedSource(
         "/lib.dart",
         r'''
@@ -3526,24 +3563,6 @@ class A {
     computeLibrarySourceErrors(source);
     assertErrors(
         source, [CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME]);
-    verify([source]);
-  }
-
-  void test_missingEnumConstantInSwitch() {
-    Source source = addSource(r'''
-enum E { ONE, TWO, THREE, FOUR }
-bool odd(E e) {
-  switch (e) {
-    case E.ONE:
-    case E.THREE: return true;
-  }
-  return false;
-}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [
-      CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
-      CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH
-    ]);
     verify([source]);
   }
 
@@ -4653,7 +4672,8 @@ class A {
   const A() : x = a.c;
 }'''
     ], <ErrorCode>[
-      CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY
+      CompileTimeErrorCode
+          .NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY
     ]);
   }
 
@@ -4670,7 +4690,8 @@ class A {
   const A() : x = a.c + 1;
 }'''
     ], <ErrorCode>[
-      CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY
+      CompileTimeErrorCode
+          .NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY
     ]);
   }
 
@@ -4687,7 +4708,8 @@ class A {
   const A() : this.named(a.c);
 }'''
     ], <ErrorCode>[
-      CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY
+      CompileTimeErrorCode
+          .NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY
     ]);
   }
 
@@ -4706,7 +4728,8 @@ class B extends A {
   const B() : super(a.c);
 }'''
     ], <ErrorCode>[
-      CompileTimeErrorCode.NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY
+      CompileTimeErrorCode
+          .NON_CONSTANT_VALUE_IN_INITIALIZER_FROM_DEFERRED_LIBRARY
     ]);
   }
 
@@ -6020,6 +6043,41 @@ main() {
     Source source = addSource("import 'unknown.dart';");
     computeLibrarySourceErrors(source);
     assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
+  }
+
+  void test_uriDoesNotExist_import_disappears_when_fixed() {
+    Source source = addSource("import 'target.dart';");
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
+
+    // Check that the file is represented as missing.
+    Source target =
+        analysisContext2.getSourcesWithFullName("/target.dart").first;
+    expect(analysisContext2.getModificationStamp(target), -1);
+
+    // Add an overlay in the same way as AnalysisServer.
+    analysisContext2
+      ..setContents(target, "")
+      ..handleContentsChanged(target, null, "", true);
+
+    // Make sure the error goes away.
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.UNUSED_IMPORT]);
+  }
+
+  void test_uriDoesNotExist_import_appears_after_deleting_target() {
+    Source test = addSource("import 'target.dart';");
+    Source target = addNamedSource("/target.dart", "");
+    computeLibrarySourceErrors(test);
+    assertErrors(test, [HintCode.UNUSED_IMPORT]);
+
+    // Remove the overlay in the same way as AnalysisServer.
+    analysisContext2.setContents(target, null);
+    ChangeSet changeSet = new ChangeSet()..removedSource(target);
+    analysisContext2.applyChanges(changeSet);
+
+    computeLibrarySourceErrors(test);
+    assertErrors(test, [CompileTimeErrorCode.URI_DOES_NOT_EXIST]);
   }
 
   void test_uriDoesNotExist_part() {

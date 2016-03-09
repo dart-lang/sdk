@@ -24,9 +24,6 @@
 
 namespace dart {
 
-DECLARE_DEBUG_FLAG(bool, trace_zones);
-DECLARE_DEBUG_FLAG(bool, trace_handles);
-
 // Implementation of Zone support for very fast allocation of small chunks
 // of memory. The chunks cannot be deallocated individually, but instead
 // zones support deallocating all chunks in one fast operation when the
@@ -41,13 +38,11 @@ class ApiZone {
     if (thread != NULL) {
       thread->set_zone(&zone_);
     }
-#ifdef DEBUG
     if (FLAG_trace_zones) {
       OS::PrintErr("*** Starting a new Api zone 0x%" Px "(0x%" Px ")\n",
                    reinterpret_cast<intptr_t>(this),
                    reinterpret_cast<intptr_t>(&zone_));
     }
-#endif
   }
 
   // Delete all memory associated with the zone.
@@ -62,13 +57,11 @@ class ApiZone {
     if ((thread != NULL) && (thread->zone() == &zone_)) {
       thread->set_zone(zone_.previous_);
     }
-#ifdef DEBUG
     if (FLAG_trace_zones) {
       OS::PrintErr("*** Deleting Api zone 0x%" Px "(0x%" Px ")\n",
                    reinterpret_cast<intptr_t>(this),
                    reinterpret_cast<intptr_t>(&zone_));
     }
-#endif
   }
 
   // Allocates an array sized to hold 'len' elements of type
@@ -220,6 +213,10 @@ class FinalizablePersistentHandle {
     return reinterpret_cast<Dart_WeakPersistentHandle>(this);
   }
 
+  intptr_t external_size() const {
+    return ExternalSizeBits::decode(external_data_);
+  }
+
   void SetExternalSize(intptr_t size, Isolate* isolate) {
     ASSERT(size >= 0);
     set_external_size(Utils::RoundUp(size, kObjectAlignment));
@@ -261,12 +258,14 @@ class FinalizablePersistentHandle {
 
   // This part of external_data_ is the number of externally allocated bytes.
   // TODO(koda): Measure size in words instead.
-  class ExternalSizeBits : public BitField<intptr_t,
+  class ExternalSizeBits : public BitField<uword,
+                                           intptr_t,
                                            kExternalSizeBits,
-                                           kExternalSizeBitsSize> {};  // NOLINT
+                                           kExternalSizeBitsSize> {};
   // This bit of external_data_ is true if the referent was created in new
   // space and UpdateRelocated has not yet detected any promotion.
-  class ExternalNewSpaceBit : public BitField<bool, kExternalNewSpaceBit, 1> {};
+  class ExternalNewSpaceBit :
+      public BitField<uword, bool, kExternalNewSpaceBit, 1> {};
 
   friend class FinalizablePersistentHandles;
 
@@ -308,10 +307,6 @@ class FinalizablePersistentHandle {
 
   void set_callback(Dart_WeakPersistentHandleFinalizer callback) {
     callback_ = callback;
-  }
-
-  intptr_t external_size() const {
-    return ExternalSizeBits::decode(external_data_);
   }
 
   void set_external_size(intptr_t size) {
@@ -358,15 +353,12 @@ class LocalHandles : Handles<kLocalHandleSizeInWords,
   LocalHandles() : Handles<kLocalHandleSizeInWords,
                            kLocalHandlesPerChunk,
                            kOffsetOfRawPtrInLocalHandle>() {
-#ifdef DEBUG
     if (FLAG_trace_handles) {
       OS::PrintErr("*** Starting a new Local handle block 0x%" Px "\n",
                    reinterpret_cast<intptr_t>(this));
     }
-#endif
   }
   ~LocalHandles() {
-#ifdef DEBUG
     if (FLAG_trace_handles) {
       OS::PrintErr("***   Handle Counts for 0x(%" Px "):Scoped = %d\n",
                    reinterpret_cast<intptr_t>(this),
@@ -374,7 +366,6 @@ class LocalHandles : Handles<kLocalHandleSizeInWords,
       OS::PrintErr("*** Deleting Local handle block 0x%" Px "\n",
                    reinterpret_cast<intptr_t>(this));
     }
-#endif
   }
 
 
@@ -427,16 +418,13 @@ class PersistentHandles : Handles<kPersistentHandleSizeInWords,
                                 kPersistentHandlesPerChunk,
                                 kOffsetOfRawPtrInPersistentHandle>(),
         free_list_(NULL) {
-#ifdef DEBUG
     if (FLAG_trace_handles) {
       OS::PrintErr("*** Starting a new Persistent handle block 0x%" Px "\n",
                    reinterpret_cast<intptr_t>(this));
     }
-#endif
   }
   ~PersistentHandles() {
     free_list_ = NULL;
-#ifdef DEBUG
     if (FLAG_trace_handles) {
       OS::PrintErr("***   Handle Counts for 0x(%" Px "):Scoped = %d\n",
                    reinterpret_cast<intptr_t>(this),
@@ -444,7 +432,6 @@ class PersistentHandles : Handles<kPersistentHandleSizeInWords,
       OS::PrintErr("*** Deleting Persistent handle block 0x%" Px "\n",
                    reinterpret_cast<intptr_t>(this));
     }
-#endif
   }
 
   // Accessors.
@@ -456,6 +443,13 @@ class PersistentHandles : Handles<kPersistentHandleSizeInWords,
     Handles<kPersistentHandleSizeInWords,
             kPersistentHandlesPerChunk,
             kOffsetOfRawPtrInPersistentHandle>::VisitObjectPointers(visitor);
+  }
+
+  // Visit all the handles.
+  void Visit(HandleVisitor* visitor) {
+    Handles<kPersistentHandleSizeInWords,
+            kPersistentHandlesPerChunk,
+            kOffsetOfRawPtrInPersistentHandle>::Visit(visitor);
   }
 
   // Allocates a persistent handle, these have to be destroyed explicitly

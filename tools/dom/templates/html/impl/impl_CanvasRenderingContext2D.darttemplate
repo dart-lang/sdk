@@ -11,6 +11,15 @@ abstract class CanvasRenderingContext {
 $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS implements CanvasRenderingContext {
 $!MEMBERS
 
+  @DomName('CanvasRenderingContext2D.createImageDataFromImageData')
+  @DocsEditable()
+  ImageData createImageDataFromImageData(ImageData imagedata) =>
+$if DART2JS
+    JS('ImageData', '#.createImageData(#, #)', this, imagedata);
+$else
+    this.createImageData(imagedata);
+$endif
+
   /**
    * Sets the color used inside shapes.
    * [r], [g], [b] are 0-255, [a] is 0-1.
@@ -58,6 +67,14 @@ $else
     _arc(x, y, radius, startAngle, endAngle, anticlockwise);
 $endif
   }
+
+  @DomName('CanvasRenderingContext2D.createPatternFromImage')
+  CanvasPattern createPatternFromImage(ImageElement image, String repetitionType) =>
+$if DART2JS
+    JS('CanvasPattern', '#.createPattern(#, #)', this, image, repetitionType);
+$else
+    createPattern(image, repetitionType);
+$endif
 
   /**
    * Draws an image from a CanvasImageSource to an area of this canvas.

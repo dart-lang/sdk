@@ -502,7 +502,7 @@ class JavaScriptBackend extends Backend {
 
   bool enabledNoSuchMethod = false;
 
-  final SourceInformationStrategy sourceInformationStrategy;
+  SourceInformationStrategy sourceInformationStrategy;
 
   final BackendHelpers helpers;
   final BackendImpacts impacts;
@@ -520,7 +520,7 @@ class JavaScriptBackend extends Backend {
         this.sourceInformationStrategy =
             generateSourceMap
                 ? (useNewSourceInfo
-                     ? const PositionSourceInformationStrategy()
+                     ? new PositionSourceInformationStrategy()
                      : const StartEndSourceInformationStrategy())
                 : const JavaScriptSourceInformationStrategy(),
         helpers = new BackendHelpers(compiler),
@@ -559,8 +559,18 @@ class JavaScriptBackend extends Backend {
     return constantCompilerTask.jsConstantCompiler;
   }
 
-  FunctionElement resolveExternalFunction(FunctionElement element) {
-    if (isForeign(element) || isJsInterop(element)) return element;
+  MethodElement resolveExternalFunction(MethodElement element) {
+    if (isForeign(element)) {
+      return element;
+    }
+    if (isJsInterop(element))  {
+      if (element.memberName == const PublicName('[]') ||
+          element.memberName == const PublicName('[]=')) {
+        reporter.reportErrorMessage(element,
+            MessageKind.JS_INTEROP_INDEX_NOT_SUPPORTED);
+      }
+      return element;
+    }
     return patchResolverTask.measure(() {
       return patchResolverTask.resolveExternalFunction(element);
     });
@@ -940,14 +950,14 @@ class JavaScriptBackend extends Backend {
 
   final Map<String, Set<ClassElement>> interceptedClassesCache =
       new Map<String, Set<ClassElement>>();
+  final Set<ClassElement> _noClasses = new Set<ClassElement>();
 
-  /**
-   * Returns a set of interceptor classes that contain a member named
-   * [name]. Returns [:null:] if there is no class.
-   */
+  /// Returns a set of interceptor classes that contain a member named [name]
+  ///
+  /// Returns an empty set if there is no class. Do not modify the returned set.
   Set<ClassElement> getInterceptedClassesOn(String name) {
     Set<Element> intercepted = interceptedElements[name];
-    if (intercepted == null) return null;
+    if (intercepted == null) return _noClasses;
     return interceptedClassesCache.putIfAbsent(name, () {
       // Populate the cache by running through all the elements and
       // determine if the given selector applies to them.
@@ -974,13 +984,12 @@ class JavaScriptBackend extends Backend {
     Iterable<MixinApplicationElement> uses = classWorld.mixinUsesOf(mixin);
     Set<ClassElement> result = null;
     for (MixinApplicationElement use in uses) {
-      Iterable<ClassElement> subclasses = classWorld.strictSubclassesOf(use);
-      for (ClassElement subclass in subclasses) {
+      classWorld.forEachStrictSubclassOf(use, (ClassElement subclass) {
         if (isNativeOrExtendsNative(subclass)) {
           if (result == null) result = new Set<ClassElement>();
           result.add(subclass);
         }
-      }
+      });
     }
     return result;
   }
@@ -1251,6 +1260,10 @@ class JavaScriptBackend extends Backend {
       addInterceptors(helpers.jsFixedArrayClass, enqueuer, registry);
       addInterceptors(helpers.jsExtendableArrayClass, enqueuer, registry);
       addInterceptors(helpers.jsUnmodifiableArrayClass, enqueuer, registry);
+      // Literal lists can be translated into calls to these functions:
+      enqueueInResolution(helpers.jsArrayTypedConstructor, registry);
+      enqueueInResolution(helpers.setRuntimeTypeInfo, registry);
+      enqueueInResolution(helpers.getTypeArgumentByIndex, registry);
     } else if (cls == coreClasses.intClass ||
                cls == helpers.jsIntClass) {
       addInterceptors(helpers.jsIntClass, enqueuer, registry);
@@ -1630,7 +1643,12 @@ class JavaScriptBackend extends Backend {
       }
     }
 
-    generatedCode[element] = functionCompiler.compile(work);
+    jsAst.Fun function = functionCompiler.compile(work);
+    if (function.sourceInformation == null) {
+      function = function.withSourceInformation(
+          sourceInformationStrategy.buildSourceMappedMarker());
+    }
+    generatedCode[element] = function;
     WorldImpact worldImpact =
         impactTransformer.transformCodegenImpact(work.registry.worldImpact);
     compiler.dumpInfoTask.registerImpact(element, worldImpact);
@@ -1661,7 +1679,7 @@ class JavaScriptBackend extends Backend {
    */
   String getGeneratedCode(Element element) {
     assert(invariant(element, element.isDeclaration));
-    return jsAst.prettyPrint(generatedCode[element], compiler).getText();
+    return jsAst.prettyPrint(generatedCode[element], compiler);
   }
 
   int assembleProgram() {
@@ -2191,7 +2209,7 @@ class JavaScriptBackend extends Backend {
         });
         // 4) all overriding members of subclasses/subtypes (should be resolved)
         if (compiler.world.hasAnyStrictSubtype(cls)) {
-          for (ClassElement subcls in compiler.world.strictSubtypesOf(cls)) {
+          compiler.world.forEachStrictSubtypeOf(cls, (ClassElement subcls) {
             subcls.forEachClassMember((Member member) {
               if (memberNames.contains(member.name)) {
                 // TODO(20993): find out why this assertion fails.
@@ -2202,7 +2220,7 @@ class JavaScriptBackend extends Backend {
                 }
               }
             });
-          }
+          });
         }
         // 5) all its closures
         List<LocalFunctionElement> closures = closureMap[cls];
@@ -2509,13 +2527,13 @@ class JavaScriptBackend extends Backend {
       compiler.enabledInvokeOn = true;
     }
   }
-
+/*
   CodeBuffer codeOf(Element element) {
     return generatedCode.containsKey(element)
         ? jsAst.prettyPrint(generatedCode[element], compiler)
         : null;
   }
-
+*/
   FunctionElement helperForBadMain() => helpers.badMain;
 
   FunctionElement helperForMissingMain() => helpers.missingMain;
@@ -2559,6 +2577,7 @@ class JavaScriptBackend extends Backend {
   @override
   bool enableCodegenWithErrorsIfSupported(Spannable node) {
     if (compiler.useCpsIr) {
+      // TODO(25747): Support code generation with compile-time errors.
       reporter.reportHintMessage(
           node,
           MessageKind.GENERIC,

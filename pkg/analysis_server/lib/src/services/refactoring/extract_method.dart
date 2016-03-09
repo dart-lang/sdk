@@ -20,16 +20,26 @@ import 'package:analysis_server/src/services/refactoring/rename_class_member.dar
 import 'package:analysis_server/src/services/refactoring/rename_unit_member.dart';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart' show ExitDetector;
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 
 const String _TOKEN_SEPARATOR = '\uFFFF';
+
+Element _getLocalElement(SimpleIdentifier node) {
+  Element element = node.staticElement;
+  if (element is LocalVariableElement ||
+      element is ParameterElement ||
+      element is FunctionElement && element.visibleRange != null) {
+    return element;
+  }
+  return null;
+}
 
 /**
  * Returns the "normalized" version of the given source, which is reconstructed
@@ -161,6 +171,10 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
         }
         // name
         sb.write(parameter.name);
+        // optional function-typed parameter parameters
+        if (parameter.parameters != null) {
+          sb.write(parameter.parameters);
+        }
       }
       sb.write(')');
     }
@@ -662,9 +676,9 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   }
 
   /**
-   * Checks if the given [VariableElement] is declared in [selectionRange].
+   * Checks if the given [element] is declared in [selectionRange].
    */
-  bool _isDeclaredInSelection(VariableElement element) {
+  bool _isDeclaredInSelection(Element element) {
     return selectionRange.contains(element.nameOffset);
   }
 
@@ -700,7 +714,7 @@ class ExtractMethodRefactoringImpl extends RefactoringImpl
   /**
    * Checks if [element] is referenced after [selectionRange].
    */
-  bool _isUsedAfterSelection(VariableElement element) {
+  bool _isUsedAfterSelection(Element element) {
     var visitor = new _IsUsedAfterSelectionVisitor(this, element);
     _parentMember.accept(visitor);
     return visitor.result;
@@ -907,18 +921,18 @@ class _GetSourcePatternVisitor extends GeneralizingAstVisitor {
   visitSimpleIdentifier(SimpleIdentifier node) {
     SourceRange nodeRange = rangeNode(node);
     if (partRange.covers(nodeRange)) {
-      VariableElement variableElement =
-          getLocalOrParameterVariableElement(node);
-      if (variableElement != null) {
+      Element element = _getLocalElement(node);
+      if (element != null) {
         // name of a named expression
         if (isNamedExpressionName(node)) {
           return;
         }
         // continue
-        String originalName = variableElement.displayName;
+        String originalName = element.displayName;
         String patternName = pattern.originalToPatternNames[originalName];
         if (patternName == null) {
-          pattern.parameterTypes.add(variableElement.type);
+          DartType parameterType = _getElementType(element);
+          pattern.parameterTypes.add(parameterType);
           patternName = '__refVar${pattern.originalToPatternNames.length}';
           pattern.originalToPatternNames[originalName] = patternName;
         }
@@ -926,6 +940,16 @@ class _GetSourcePatternVisitor extends GeneralizingAstVisitor {
             nodeRange.length, patternName));
       }
     }
+  }
+
+  DartType _getElementType(Element element) {
+    if (element is VariableElement) {
+      return element.type;
+    }
+    if (element is FunctionElement) {
+      return element.type;
+    }
+    throw new StateError('Unknown element type: ${element?.runtimeType}');
   }
 }
 
@@ -1077,23 +1101,28 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor {
       return;
     }
     String name = node.name;
-    // analyze local variable
-    VariableElement variableElement = getLocalOrParameterVariableElement(node);
-    if (variableElement != null) {
+    // analyze local element
+    Element element = _getLocalElement(node);
+    if (element != null) {
       // name of the named expression
       if (isNamedExpressionName(node)) {
         return;
       }
       // if declared outside, add parameter
-      if (!ref._isDeclaredInSelection(variableElement)) {
+      if (!ref._isDeclaredInSelection(element)) {
         // add parameter
         RefactoringMethodParameter parameter = ref._parametersMap[name];
         if (parameter == null) {
           DartType parameterType = node.bestType;
-          String parameterTypeCode = ref._getTypeCode(parameterType);
+          StringBuffer parametersBuffer = new StringBuffer();
+          String parameterTypeCode = ref.utils.getTypeSource(
+              parameterType, ref.librariesToImport,
+              parametersBuffer: parametersBuffer);
+          String parametersCode =
+              parametersBuffer.isNotEmpty ? parametersBuffer.toString() : null;
           parameter = new RefactoringMethodParameter(
               RefactoringMethodParameterKind.REQUIRED, parameterTypeCode, name,
-              id: name);
+              parameters: parametersCode, id: name);
           ref._parameters.add(parameter);
           ref._parametersMap[name] = parameter;
         }
@@ -1101,20 +1130,18 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor {
         ref._addParameterReference(name, nodeRange);
       }
       // remember, if assigned and used after selection
-      if (isLeftHandOfAssignment(node) &&
-          ref._isUsedAfterSelection(variableElement)) {
-        if (!assignedUsedVariables.contains(variableElement)) {
-          assignedUsedVariables.add(variableElement);
+      if (isLeftHandOfAssignment(node) && ref._isUsedAfterSelection(element)) {
+        if (!assignedUsedVariables.contains(element)) {
+          assignedUsedVariables.add(element);
         }
       }
     }
     // remember information for conflicts checking
-    if (variableElement is LocalElement) {
+    if (element is LocalElement) {
       // declared local elements
-      LocalElement localElement = variableElement as LocalElement;
       if (node.inDeclarationContext()) {
         ref._localNames.putIfAbsent(name, () => <SourceRange>[]);
-        ref._localNames[name].add(localElement.visibleRange);
+        ref._localNames[name].add(element.visibleRange);
       }
     } else {
       // unqualified non-local names
@@ -1127,14 +1154,14 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor {
 
 class _IsUsedAfterSelectionVisitor extends GeneralizingAstVisitor {
   final ExtractMethodRefactoringImpl ref;
-  final VariableElement element;
+  final Element element;
   bool result = false;
 
   _IsUsedAfterSelectionVisitor(this.ref, this.element);
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
-    VariableElement nodeElement = getLocalVariableElement(node);
+    Element nodeElement = node.staticElement;
     if (identical(nodeElement, element)) {
       int nodeOffset = node.offset;
       if (nodeOffset > ref.selectionRange.end) {

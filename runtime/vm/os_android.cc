@@ -21,9 +21,7 @@
 #include "platform/utils.h"
 #include "vm/code_observers.h"
 #include "vm/dart.h"
-#include "vm/debuginfo.h"
 #include "vm/isolate.h"
-#include "vm/vtune.h"
 #include "vm/zone.h"
 
 
@@ -31,11 +29,10 @@ namespace dart {
 
 // Android CodeObservers.
 
-DEFINE_FLAG(bool, generate_gdb_symbols, false,
-    "Generate symbols of generated dart functions for debugging with GDB");
+#ifndef PRODUCT
+
 DEFINE_FLAG(bool, generate_perf_events_symbols, false,
     "Generate events symbols for profiling with perf");
-
 
 class PerfCodeObserver : public CodeObserver {
  public:
@@ -83,41 +80,7 @@ class PerfCodeObserver : public CodeObserver {
   DISALLOW_COPY_AND_ASSIGN(PerfCodeObserver);
 };
 
-
-class GdbCodeObserver : public CodeObserver {
- public:
-  GdbCodeObserver() { }
-
-  virtual bool IsActive() const {
-    return FLAG_generate_gdb_symbols;
-  }
-
-  virtual void Notify(const char* name,
-                      uword base,
-                      uword prologue_offset,
-                      uword size,
-                      bool optimized) {
-    if (prologue_offset > 0) {
-      // In order to ensure that gdb sees the first instruction of a function
-      // as the prologue sequence we register two symbols for the cases when
-      // the prologue sequence is not the first instruction:
-      // <name>_entry is used for code preceding the prologue sequence.
-      // <name> for rest of the code (first instruction is prologue sequence).
-      char* pname = OS::SCreate(Thread::Current()->zone(),
-          "%s_%s", name, "entry");
-      DebugInfo::RegisterSection(pname, base, size);
-      DebugInfo::RegisterSection(name,
-                                 (base + prologue_offset),
-                                 (size - prologue_offset));
-    } else {
-      DebugInfo::RegisterSection(name, base, size);
-    }
-  }
-
- private:
-  DISALLOW_COPY_AND_ASSIGN(GdbCodeObserver);
-};
-
+#endif  // !PRODUCT
 
 const char* OS::Name() {
   return "android";
@@ -427,15 +390,11 @@ bool OS::StringToInt64(const char* str, int64_t* value) {
 
 
 void OS::RegisterCodeObservers() {
+#ifndef PRODUCT
   if (FLAG_generate_perf_events_symbols) {
     CodeObservers::Register(new PerfCodeObserver);
   }
-  if (FLAG_generate_gdb_symbols) {
-    CodeObservers::Register(new GdbCodeObserver);
-  }
-#if defined(DART_VTUNE_SUPPORT)
-  CodeObservers::Register(new VTuneCodeObserver);
-#endif
+#endif  // !PRODUCT
 }
 
 

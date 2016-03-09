@@ -10,6 +10,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 class MIPSDecoder : public ValueObject {
  public:
   MIPSDecoder(char* buffer, size_t buffer_size)
@@ -710,6 +712,10 @@ void MIPSDecoder::InstructionDecode(Instr* instr) {
       Format(instr, "lui 'rt, 'immu");
       break;
     }
+    case LL: {
+      Format(instr, "ll 'rt, 'imms('rs)");
+      break;
+    }
     case LW: {
       Format(instr, "lw 'rt, 'imms('rs)");
       break;
@@ -724,6 +730,10 @@ void MIPSDecoder::InstructionDecode(Instr* instr) {
     }
     case SB: {
       Format(instr, "sb 'rt, 'imms('rs)");
+      break;
+    }
+    case SC: {
+      Format(instr, "sc 'rt, 'imms('rs)");
       break;
     }
     case SLTI: {
@@ -773,6 +783,8 @@ void Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
     *out_instr_len = Instr::kInstrSize;
   }
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart
 

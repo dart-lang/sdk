@@ -95,11 +95,11 @@ class SimulatorDebugger {
   bool GetDValue(char* desc, uint64_t* value);
   bool GetQValue(char* desc, simd_value_t* value);
 
-  static intptr_t GetApproximateTokenIndex(const Code& code, uword pc);
+  static TokenPosition GetApproximateTokenIndex(const Code& code, uword pc);
 
   static void PrintDartFrame(uword pc, uword fp, uword sp,
                              const Function& function,
-                             intptr_t token_pos,
+                             TokenPosition token_pos,
                              bool is_optimized,
                              bool is_inlined);
   void PrintBacktrace();
@@ -263,9 +263,9 @@ bool SimulatorDebugger::GetQValue(char* desc, simd_value_t* value) {
 }
 
 
-intptr_t SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
-                                                     uword pc) {
-  intptr_t token_pos = -1;
+TokenPosition SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
+                                                            uword pc) {
+  TokenPosition token_pos = TokenPosition::kNoSource;
   uword pc_offset = pc - code.EntryPoint();
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
@@ -273,7 +273,7 @@ intptr_t SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
   while (iter.MoveNext()) {
     if (iter.PcOffset() == pc_offset) {
       return iter.TokenPos();
-    } else if ((token_pos <= 0) && (iter.PcOffset() > pc_offset)) {
+    } else if (!token_pos.IsReal() && (iter.PcOffset() > pc_offset)) {
       token_pos = iter.TokenPos();
     }
   }
@@ -283,15 +283,15 @@ intptr_t SimulatorDebugger::GetApproximateTokenIndex(const Code& code,
 
 void SimulatorDebugger::PrintDartFrame(uword pc, uword fp, uword sp,
                                        const Function& function,
-                                       intptr_t token_pos,
+                                       TokenPosition token_pos,
                                        bool is_optimized,
                                        bool is_inlined) {
   const Script& script = Script::Handle(function.script());
-  const String& func_name = String::Handle(function.QualifiedUserVisibleName());
+  const String& func_name = String::Handle(function.QualifiedScrubbedName());
   const String& url = String::Handle(script.url());
   intptr_t line = -1;
   intptr_t column = -1;
-  if (token_pos >= 0) {
+  if (token_pos.IsReal()) {
     script.GetTokenLocation(token_pos, &line, &column);
   }
   OS::Print("pc=0x%" Px " fp=0x%" Px " sp=0x%" Px " %s%s (%s:%" Pd
@@ -425,7 +425,11 @@ void SimulatorDebugger::Debug() {
       if (Simulator::IsIllegalAddress(last_pc)) {
         OS::Print("pc is out of bounds: 0x%" Px "\n", last_pc);
       } else {
-        Disassembler::Disassemble(last_pc, last_pc + Instr::kInstrSize);
+        if (FLAG_support_disassembler) {
+          Disassembler::Disassemble(last_pc, last_pc + Instr::kInstrSize);
+        } else {
+          OS::Print("Disassembler not supported in this mode.\n");
+        }
       }
     }
     char* line = ReadLine("sim> ");
@@ -597,7 +601,11 @@ void SimulatorDebugger::Debug() {
           }
         }
         if ((start > 0) && (end > start)) {
-          Disassembler::Disassemble(start, end);
+          if (FLAG_support_disassembler) {
+            Disassembler::Disassemble(start, end);
+          } else {
+            OS::Print("Disassembler not supported in this mode.\n");
+          }
         } else {
           OS::Print("disasm [<address> [<number_of_instructions>]]\n");
         }
@@ -1215,18 +1223,18 @@ void Simulator::ClearExclusive() {
 }
 
 
-intptr_t Simulator::ReadExclusiveW(uword addr, Instr* instr) {
+intptr_t Simulator::ReadExclusiveX(uword addr, Instr* instr) {
   MutexLocker ml(exclusive_access_lock_);
   SetExclusiveAccess(addr);
-  return ReadW(addr, instr);
+  return ReadX(addr, instr);
 }
 
 
-intptr_t Simulator::WriteExclusiveW(uword addr, intptr_t value, Instr* instr) {
+intptr_t Simulator::WriteExclusiveX(uword addr, intptr_t value, Instr* instr) {
   MutexLocker ml(exclusive_access_lock_);
   bool write_allowed = HasExclusiveAccessAndOpen(addr);
   if (write_allowed) {
-    WriteW(addr, value, instr);
+    WriteX(addr, value, instr);
     return 0;  // Success.
   }
   return 1;  // Failure.
@@ -1741,6 +1749,12 @@ void Simulator::DecodeExceptionGen(Instr* instr) {
 
 
 void Simulator::DecodeSystem(Instr* instr) {
+  if (instr->InstructionBits() == CLREX) {
+    // Format(instr, "clrex");
+    ClearExclusive();
+    return;
+  }
+
   if ((instr->Bits(0, 8) == 0x1f) && (instr->Bits(12, 4) == 2) &&
       (instr->Bits(16, 3) == 3) && (instr->Bits(19, 2) == 0) &&
       (instr->Bit(21) == 0)) {
@@ -2156,6 +2170,36 @@ void Simulator::DecodeLoadRegLiteral(Instr* instr) {
 }
 
 
+void Simulator::DecodeLoadStoreExclusive(Instr* instr) {
+  if ((instr->Bit(23) != 0) ||
+      (instr->Bit(21) != 0) ||
+      (instr->Bit(15) != 0)) {
+    UNIMPLEMENTED();
+  }
+  const int32_t size = instr->Bits(30, 2);
+  if (size != 3) {
+    UNIMPLEMENTED();
+  }
+
+  const Register rs = instr->RsField();
+  const Register rn = instr->RnField();
+  const Register rt = instr->RtField();
+  const bool is_load = instr->Bit(22) == 1;
+  if (is_load) {
+    // Format(instr, "ldxr 'rt, 'rn");
+    const int64_t addr = get_register(rn, R31IsSP);
+    intptr_t value = ReadExclusiveX(addr, instr);
+    set_register(instr, rt, value, R31IsSP);
+  } else {
+    // Format(instr, "stxr 'rs, 'rt, 'rn");
+    uword value = get_register(rt, R31IsSP);
+    uword addr = get_register(rn, R31IsSP);
+    intptr_t status = WriteExclusiveX(addr, value, instr);
+    set_register(instr, rs, status, R31IsSP);
+  }
+}
+
+
 void Simulator::DecodeLoadStore(Instr* instr) {
   if (instr->IsLoadStoreRegOp()) {
     DecodeLoadStoreReg(instr);
@@ -2163,6 +2207,8 @@ void Simulator::DecodeLoadStore(Instr* instr) {
     DecodeLoadStoreRegPair(instr);
   } else if (instr->IsLoadRegLiteralOp()) {
     DecodeLoadRegLiteral(instr);
+  } else if (instr->IsLoadStoreExclusiveOp()) {
+    DecodeLoadStoreExclusive(instr);
   } else {
     UnimplementedInstruction(instr);
   }
@@ -3364,7 +3410,11 @@ void Simulator::InstructionDecode(Instr* instr) {
     OS::Print("%" Pu64 " ", icount_);
     const uword start = reinterpret_cast<uword>(instr);
     const uword end = start + Instr::kInstrSize;
-    Disassembler::Disassemble(start, end);
+    if (FLAG_support_disassembler) {
+      Disassembler::Disassemble(start, end);
+    } else {
+      OS::Print("Disassembler not supported in this mode.\n");
+    }
   }
 
   if (instr->IsDPImmediateOp()) {

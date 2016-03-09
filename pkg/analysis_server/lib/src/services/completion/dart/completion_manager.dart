@@ -18,17 +18,20 @@ import 'package:analysis_server/src/services/completion/dart/common_usage_sorter
 import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart/optype.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart'
     show AnalysisFutureHelper, AnalysisContextImpl;
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisContextImpl;
-import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/task/dart.dart';
+import 'package:analyzer/task/model.dart';
 
 /**
  * [DartCompletionManager] determines if a completion request is Dart specific
@@ -44,17 +47,15 @@ class DartCompletionManager implements CompletionContributor {
   @override
   Future<List<CompletionSuggestion>> computeSuggestions(
       CompletionRequest request) async {
+    request.checkAborted();
     if (!AnalysisEngine.isDartFileName(request.source.shortName)) {
       return EMPTY_LIST;
     }
 
     CompletionPerformance performance =
         (request as CompletionRequestImpl).performance;
-    const BUILD_REQUEST_TAG = 'build DartCompletionRequestImpl';
-    performance.logStartTime(BUILD_REQUEST_TAG);
     DartCompletionRequestImpl dartRequest =
         await DartCompletionRequestImpl.from(request);
-    performance.logElapseTime(BUILD_REQUEST_TAG);
 
     // Don't suggest in comments.
     if (dartRequest.target.isCommentText) {
@@ -78,6 +79,7 @@ class DartCompletionManager implements CompletionContributor {
       List<CompletionSuggestion> contributorSuggestions =
           await contributor.computeSuggestions(dartRequest);
       performance.logElapseTime(contributorTag);
+      request.checkAborted();
 
       for (CompletionSuggestion newSuggestion in contributorSuggestions) {
         var oldSuggestion = suggestionMap.putIfAbsent(
@@ -95,6 +97,7 @@ class DartCompletionManager implements CompletionContributor {
     performance.logStartTime(SORT_TAG);
     await contributionSorter.sort(dartRequest, suggestions);
     performance.logElapseTime(SORT_TAG);
+    request.checkAborted();
     return suggestions;
   }
 }
@@ -137,7 +140,21 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
    */
   InterfaceType _objectType;
 
+  /**
+   * A list of resolved [ImportElement]s for the imported libraries
+   * or `null` if not computed.
+   */
+  List<ImportElement> _resolvedImports;
+
+  /**
+   * The resolved [CompilationUnitElement]s comprising the library
+   * or `null` if not computed.
+   */
+  List<CompilationUnitElement> _resolvedUnits;
+
   OpType _opType;
+
+  final CompletionRequest _originalRequest;
 
   final CompletionPerformance performance;
 
@@ -149,6 +166,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
       this.source,
       this.offset,
       CompilationUnit unit,
+      this._originalRequest,
       this.performance) {
     _updateTargets(unit);
   }
@@ -200,26 +218,17 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     return _opType;
   }
 
-  // For internal use only
-  @override
-  Future<List<Directive>> resolveDirectives() async {
-    CompilationUnit libUnit;
-    if (librarySource != null) {
-      // TODO(danrubel) only resolve the directives
-      const RESOLVE_DIRECTIVES_TAG = 'resolve directives';
-      performance.logStartTime(RESOLVE_DIRECTIVES_TAG);
-      libUnit = await new AnalysisFutureHelper<CompilationUnit>(
-              context,
-              new LibrarySpecificUnit(librarySource, librarySource),
-              RESOLVED_UNIT3)
-          .computeAsync();
-      performance.logElapseTime(RESOLVE_DIRECTIVES_TAG);
-    }
-    return libUnit?.directives;
+  /**
+   * Throw [AbortCompletion] if the completion request has been aborted.
+   */
+  void checkAborted() {
+    _originalRequest.checkAborted();
   }
 
   @override
   Future resolveExpression(Expression expression) async {
+    checkAborted();
+
     // Return immediately if the expression has already been resolved
     if (expression.propagatedType != null) {
       return;
@@ -233,13 +242,12 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
     // Resolve declarations in the target unit
     // TODO(danrubel) resolve the expression or containing method
     // rather than the entire complilation unit
-    const RESOLVE_EXPRESSION_TAG = 'resolve expression';
-    performance.logStartTime(RESOLVE_EXPRESSION_TAG);
-    CompilationUnit resolvedUnit =
-        await new AnalysisFutureHelper<CompilationUnit>(context,
-                new LibrarySpecificUnit(librarySource, source), RESOLVED_UNIT)
-            .computeAsync();
-    performance.logElapseTime(RESOLVE_EXPRESSION_TAG);
+    CompilationUnit resolvedUnit = await _computeAsync(
+        this,
+        new LibrarySpecificUnit(librarySource, source),
+        RESOLVED_UNIT,
+        performance,
+        'resolve expression');
 
     // TODO(danrubel) determine if the underlying source has been modified
     // in a way that invalidates the completion request
@@ -252,6 +260,55 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
 
     // Recompute the target for the newly resolved unit
     _updateTargets(resolvedUnit);
+  }
+
+  @override
+  Future<List<ImportElement>> resolveImports() async {
+    checkAborted();
+    if (_resolvedImports != null) {
+      return _resolvedImports;
+    }
+    LibraryElement libElem = libraryElement;
+    if (libElem == null) {
+      return null;
+    }
+    _resolvedImports = <ImportElement>[];
+    for (ImportElement importElem in libElem.imports) {
+      if (importElem.importedLibrary.exportNamespace == null) {
+        await _computeAsync(this, importElem.importedLibrary.source,
+            LIBRARY_ELEMENT4, performance, 'resolve imported library');
+        checkAborted();
+      }
+      _resolvedImports.add(importElem);
+    }
+    return _resolvedImports;
+  }
+
+  @override
+  Future<List<CompilationUnitElement>> resolveUnits() async {
+    checkAborted();
+    if (_resolvedUnits != null) {
+      return _resolvedUnits;
+    }
+    LibraryElement libElem = libraryElement;
+    if (libElem == null) {
+      return null;
+    }
+    _resolvedUnits = <CompilationUnitElement>[];
+    for (CompilationUnitElement unresolvedUnit in libElem.units) {
+      CompilationUnit unit = await _computeAsync(
+          this,
+          new LibrarySpecificUnit(libElem.source, unresolvedUnit.source),
+          RESOLVED_UNIT3,
+          performance,
+          'resolve library unit');
+      checkAborted();
+      CompilationUnitElement resolvedUnit = unit?.element;
+      if (resolvedUnit != null) {
+        _resolvedUnits.add(resolvedUnit);
+      }
+    }
+    return _resolvedUnits;
   }
 
   /**
@@ -285,9 +342,12 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
 
   /**
    * Return a [Future] that completes with a newly created completion request
-   * based on the given [request].
+   * based on the given [request]. This method will throw [AbortCompletion]
+   * if the completion request has been aborted.
    */
-  static Future<DartCompletionRequest> from(CompletionRequest request) async {
+  static Future<DartCompletionRequest> from(CompletionRequest request,
+      {ResultDescriptor resultDescriptor}) async {
+    request.checkAborted();
     CompletionPerformance performance =
         (request as CompletionRequestImpl).performance;
     const BUILD_REQUEST_TAG = 'build DartCompletionRequest';
@@ -313,12 +373,12 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
 
     // Most (all?) contributors need declarations in scope to be resolved
     if (libSource != null) {
-      const RESOLVE_DECLARATIONS_TAG = 'resolve declarations';
-      performance.logStartTime(RESOLVE_DECLARATIONS_TAG);
-      unit = await new AnalysisFutureHelper<CompilationUnit>(context,
-              new LibrarySpecificUnit(libSource, source), RESOLVED_UNIT3)
-          .computeAsync();
-      performance.logElapseTime(RESOLVE_DECLARATIONS_TAG);
+      unit = await _computeAsync(
+          request,
+          new LibrarySpecificUnit(libSource, source),
+          resultDescriptor ?? RESOLVED_UNIT3,
+          performance,
+          'resolve declarations');
     }
 
     DartCompletionRequestImpl dartRequest = new DartCompletionRequestImpl._(
@@ -329,6 +389,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
         request.source,
         request.offset,
         unit,
+        request,
         performance);
 
     // Resolve the expression in which the completion occurs
@@ -341,11 +402,36 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
         performance.logStartTime(FUNCTIONAL_ARG_TAG);
         await dartRequest.resolveExpression(node);
         performance.logElapseTime(FUNCTIONAL_ARG_TAG);
+        dartRequest.checkAborted();
       }
     }
 
     performance.logElapseTime(BUILD_REQUEST_TAG);
     return dartRequest;
+  }
+
+  static Future _computeAsync(
+      CompletionRequest request,
+      AnalysisTarget target,
+      ResultDescriptor descriptor,
+      CompletionPerformance performance,
+      String perfTag) async {
+    request.checkAborted();
+    performance.logStartTime(perfTag);
+    var result;
+    try {
+      result =
+          await new AnalysisFutureHelper(request.context, target, descriptor)
+              .computeAsync();
+    } catch (e, s) {
+      if (e is AnalysisNotScheduledError) {
+        request.checkAborted();
+      }
+      throw new AnalysisException(
+          'failed to $perfTag', new CaughtException(e, s));
+    }
+    request.checkAborted();
+    return result;
   }
 }
 

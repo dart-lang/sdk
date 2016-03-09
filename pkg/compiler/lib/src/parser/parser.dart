@@ -780,10 +780,6 @@ class Parser {
         token = new SymbolToken(GT_INFO, token.charOffset);
         token.next = new SymbolToken(GT_INFO, token.charOffset + 1);
         token.next.next = next;
-      } else if (identical(token.stringValue, '>>>')) {
-        token = new SymbolToken(GT_INFO, token.charOffset);
-        token.next = new SymbolToken(GT_GT_INFO, token.charOffset + 1);
-        token.next.next = next;
       }
       endStuff(count, begin, token);
       return expect('>', token);

@@ -390,6 +390,15 @@ main() {
     await assertNoAssistAt('var ', DartAssistKind.ADD_TYPE_ANNOTATION);
   }
 
+  test_addTypeAnnotation_local_BAD_onInitializer() async {
+    resolveTestUnit('''
+main() {
+  var abc = 0;
+}
+''');
+    await assertNoAssistAt('0;', DartAssistKind.ADD_TYPE_ANNOTATION);
+  }
+
   test_addTypeAnnotation_local_BAD_unknown() async {
     verifyNoTestUnitErrors = false;
     resolveTestUnit('''
@@ -623,22 +632,6 @@ main() {
 ''');
   }
 
-  test_addTypeAnnotation_local_OK_onInitializer() async {
-    resolveTestUnit('''
-main() {
-  var v = 123;
-}
-''');
-    await assertHasAssistAt(
-        '23',
-        DartAssistKind.ADD_TYPE_ANNOTATION,
-        '''
-main() {
-  int v = 123;
-}
-''');
-  }
-
   test_addTypeAnnotation_local_OK_onName() async {
     resolveTestUnit('''
 main() {
@@ -667,22 +660,6 @@ main() {
         '''
 main() {
   int v = 0;
-}
-''');
-  }
-
-  test_addTypeAnnotation_local_OK_onVariableDeclarationStatement() async {
-    resolveTestUnit('''
-main() {
-  var v = 123; // marker
-}
-''');
-    await assertHasAssistAt(
-        ' // marker',
-        DartAssistKind.ADD_TYPE_ANNOTATION,
-        '''
-main() {
-  int v = 123; // marker
 }
 ''');
   }
@@ -2379,6 +2356,15 @@ main(p) {
     await assertNoAssistAt('if (p', DartAssistKind.INTRODUCE_LOCAL_CAST_TYPE);
   }
 
+  test_introduceLocalTestedType_BAD_notStatement() async {
+    resolveTestUnit('''
+class C {
+  bool b;
+  C(v) : b = v is int;
+}''');
+    await assertNoAssistAt('is int', DartAssistKind.INTRODUCE_LOCAL_CAST_TYPE);
+  }
+
   test_introduceLocalTestedType_OK_if_is() async {
     resolveTestUnit('''
 class MyTypeName {}
@@ -3274,6 +3260,15 @@ class A {
 ''');
   }
 
+  test_removeTypeAnnotation_localVariable_BAD_onInitializer() async {
+    resolveTestUnit('''
+main() {
+  final int v = 1;
+}
+''');
+    await assertNoAssistAt('1;', DartAssistKind.REMOVE_TYPE_ANNOTATION);
+  }
+
   test_removeTypeAnnotation_localVariable_OK() async {
     resolveTestUnit('''
 main() {
@@ -3320,6 +3315,14 @@ main() {
   final v = 1;
 }
 ''');
+  }
+
+  test_removeTypeAnnotation_topLevelVariable_BAD_syntheticName() async {
+    verifyNoTestUnitErrors = false;
+    resolveTestUnit('''
+MyType
+''');
+    await assertNoAssistAt('MyType', DartAssistKind.REMOVE_TYPE_ANNOTATION);
   }
 
   test_removeTypeAnnotation_topLevelVariable_OK() async {

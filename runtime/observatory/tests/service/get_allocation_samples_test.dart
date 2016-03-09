@@ -7,7 +7,7 @@ import 'dart:developer';
 import 'package:observatory/service_io.dart';
 import 'package:observatory/cpu_profile.dart';
 import 'package:unittest/unittest.dart';
-
+import 'service_test_common.dart';
 import 'test_helper.dart';
 
 class Foo {
@@ -67,7 +67,7 @@ var tests = [
     var tree = cpuProfile.loadCodeTree('exclusive');
     var node = tree.root;
     var expected =
-        ['Root', 'test', 'test', '_FunctionImpl.call', 'runIsolateTests'];
+        ['Root', 'test', 'test', '_Closure.call'];
     for (var i = 0; i < expected.length; i++) {
       expect(node.profileCode.code.name, equals(expected[i]));
       // Depth first traversal.

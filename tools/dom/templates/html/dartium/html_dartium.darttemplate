@@ -158,9 +158,9 @@ final htmlBlinkMap = {
   '_DOMWindowCrossFrame': () => _DOMWindowCrossFrame,
   // FIXME: Move these to better locations.
   'DateTime': () => DateTime,
-  'JsObject': () => js.JsObjectImpl,
-  'JsFunction': () => js.JsFunctionImpl,
-  'JsArray': () => js.JsArrayImpl,
+  'JsObject': () => js.JsObject,
+  'JsFunction': () => js.JsFunction,
+  'JsArray': () => js.JsArray,
 $!TYPE_MAP
 };
 
@@ -373,7 +373,7 @@ String _getCustomElementName(element) {
   } else if (runtimeType == TemplateElement) {
     // Data binding with a Dart class.
     tag = element.attributes['is'];
-  } else if (runtimeType == js.JsObjectImpl) {
+  } else if (runtimeType == js.JsObject) {
     // It's a Polymer core element (written in JS).
     // Make sure it's an element anything else we can ignore.
     if (element.hasProperty('nodeType') && element['nodeType'] == 1) {
@@ -386,7 +386,7 @@ String _getCustomElementName(element) {
       }
     }
   } else {
-    throw new UnsupportedError('Element is incorrect type. Got ${runtimeType}, expected HtmlElement/HtmlTemplate/JsObjectImpl.');
+    throw new UnsupportedError('Element is incorrect type. Got ${runtimeType}, expected HtmlElement/HtmlTemplate/JsObject.');
   }
 
   return tag;
@@ -394,15 +394,9 @@ String _getCustomElementName(element) {
 
 /// An abstract class for all DOM objects we wrap in dart:html and related
 ///  libraries.
-///
-/// ** Internal Use Only **
 @Deprecated("Internal Use Only")
-class DartHtmlDomObject {
-
-  /// The underlying JS DOM object.
-  @Deprecated("Internal Use Only")
-  js.JsObject blink_jsObject;
-
+class DartHtmlDomObject extends js.JSObject {
+  DartHtmlDomObject() : super.internal();
 }
 
 @Deprecated("Internal Use Only")
@@ -416,24 +410,6 @@ debug_or_assert(message, expression) {
   if (!expression) {
     throw new DebugAssertException("$message");
   }
-}
-
-// TODO(terry): Manage JS interop JsFunctions for each listener used for add/
-//              removeEventListener.  These JsFunctions will leak look at
-//              fixing with weak-refs in C++.  The key are the hashcodes of the
-//              user's this (this is needed for futures) and listener function.
-Map<int, Map<int, js.JsFunction>> _knownListeners = {};
-
-@Deprecated("Internal Use Only")
-js.JsFunction wrap_event_listener(theObject, Function listener) {
-  var thisHashCode = theObject.hashCode;
-  var listenerHashCode = identityHashCode(listener);
-
-  _knownListeners.putIfAbsent(thisHashCode, () => new Map<int, js.JsFunction>());
-  _knownListeners[thisHashCode].putIfAbsent(listenerHashCode, () =>
-    new js.JsFunction.withThis((theObject, event) => listener(wrap_jso(event))));
-
-  return _knownListeners[thisHashCode][listenerHashCode];
 }
 
 @Deprecated("Internal Use Only")

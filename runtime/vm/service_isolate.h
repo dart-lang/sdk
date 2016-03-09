@@ -34,6 +34,13 @@ class ServiceIsolate : public AllStatic {
 
   static void BootVmServiceLibrary();
 
+  static void SetServerAddress(const char* address);
+
+  // Returns the server's web address or NULL if none is running.
+  static const char* server_address() {
+    return server_address_;
+  }
+
  private:
   static void KillServiceIsolate();
 
@@ -59,6 +66,7 @@ class ServiceIsolate : public AllStatic {
   static Dart_Port port_;
   static Dart_Port load_port_;
   static Dart_Port origin_;
+  static char* server_address_;
 
   friend class Dart;
   friend class RunServiceTask;

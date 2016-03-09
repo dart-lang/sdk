@@ -151,8 +151,8 @@ class SpawnIsolateTask : public ThreadPool::Task {
       return;
     }
 
-    Dart_IsolateFlags api_flags;
-    state_->isolate_flags()->CopyTo(&api_flags);
+    // Make a copy of the state's isolate flags and hand it to the callback.
+    Dart_IsolateFlags api_flags = *(state_->isolate_flags());
 
     Isolate* isolate = reinterpret_cast<Isolate*>(
         (callback)(state_->script_url(),
@@ -226,11 +226,11 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnFunction, 10) {
 
   if (closure.IsClosure()) {
     Function& func = Function::Handle();
-    func = Closure::function(closure);
+    func = Closure::Cast(closure).function();
     if (func.IsImplicitClosureFunction() && func.is_static()) {
 #if defined(DEBUG)
       Context& ctx = Context::Handle();
-      ctx = Closure::context(closure);
+      ctx = Closure::Cast(closure).context();
       ASSERT(ctx.num_variables() == 0);
 #endif
       // Get the parent function so that we get the right function name.
@@ -298,6 +298,7 @@ static const char* CanonicalizeUri(Thread* thread,
   Isolate* isolate = thread->isolate();
   Dart_LibraryTagHandler handler = isolate->library_tag_handler();
   if (handler != NULL) {
+    TransitionVMToNative transition(thread);
     Dart_EnterScope();
     Dart_Handle handle = handler(Dart_kCanonicalizeUrl,
                                  Api::NewHandle(thread, library.raw()),
@@ -390,7 +391,10 @@ DEFINE_NATIVE_ENTRY(Isolate_spawnUri, 12) {
   // If we were passed a value then override the default flags state for
   // checked mode.
   if (!checked.IsNull()) {
-    state->isolate_flags()->set_checked(checked.value());
+    bool val = checked.value();
+    Dart_IsolateFlags* flags = state->isolate_flags();
+    flags->enable_asserts = val;
+    flags->enable_type_checks = val;
   }
 
   ThreadPool::Task* spawn_task = new SpawnIsolateTask(state);

@@ -54,7 +54,6 @@ class Profiler : public AllStatic {
 
  private:
   static bool initialized_;
-  static Monitor* monitor_;
 
   static SampleBuffer* sample_buffer_;
 
@@ -340,17 +339,19 @@ class Sample {
     kClassAllocationSampleBit = 6,
     kContinuationSampleBit = 7,
   };
-  class HeadSampleBit : public BitField<bool, kHeadSampleBit, 1> {};
-  class LeafFrameIsDart : public BitField<bool, kLeafFrameIsDartBit, 1> {};
-  class IgnoreBit : public BitField<bool, kIgnoreBit, 1> {};
-  class ExitFrameBit : public BitField<bool, kExitFrameBit, 1> {};
+  class HeadSampleBit : public BitField<uword, bool, kHeadSampleBit, 1> {};
+  class LeafFrameIsDart :
+      public BitField<uword, bool, kLeafFrameIsDartBit, 1> {};
+  class IgnoreBit : public BitField<uword, bool, kIgnoreBit, 1> {};
+  class ExitFrameBit : public BitField<uword, bool, kExitFrameBit, 1> {};
   class MissingFrameInsertedBit
-      : public BitField<bool, kMissingFrameInsertedBit, 1> {};
-  class TruncatedTraceBit : public BitField<bool, kTruncatedTraceBit, 1> {};
+      : public BitField<uword, bool, kMissingFrameInsertedBit, 1> {};
+  class TruncatedTraceBit :
+      public BitField<uword, bool, kTruncatedTraceBit, 1> {};
   class ClassAllocationSampleBit
-      : public BitField<bool, kClassAllocationSampleBit, 1> {};
+      : public BitField<uword, bool, kClassAllocationSampleBit, 1> {};
   class ContinuationSampleBit
-      : public BitField<bool, kContinuationSampleBit, 1> {};
+      : public BitField<uword, bool, kContinuationSampleBit, 1> {};
 
   int64_t timestamp_;
   ThreadId tid_;

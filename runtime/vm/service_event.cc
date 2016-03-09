@@ -8,6 +8,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 // Translate from the legacy DebugEvent to a ServiceEvent.
 static ServiceEvent::EventKind TranslateEventKind(
     DebuggerEvent::EventType kind) {
@@ -42,7 +44,6 @@ ServiceEvent::ServiceEvent(Isolate* isolate, EventKind event_kind)
       top_frame_(NULL),
       extension_rpc_(NULL),
       exception_(NULL),
-      async_continuation_(NULL),
       at_async_jump_(false),
       inspectee_(NULL),
       gc_stats_(NULL),
@@ -65,7 +66,7 @@ ServiceEvent::ServiceEvent(const DebuggerEvent* debugger_event)
       top_frame_(NULL),
       extension_rpc_(NULL),
       exception_(NULL),
-      async_continuation_(NULL),
+      at_async_jump_(false),
       inspectee_(NULL),
       gc_stats_(NULL),
       bytes_(NULL),
@@ -74,7 +75,6 @@ ServiceEvent::ServiceEvent(const DebuggerEvent* debugger_event)
   DebuggerEvent::EventType type = debugger_event->type();
   if (type == DebuggerEvent::kBreakpointReached) {
     set_breakpoint(debugger_event->breakpoint());
-    set_async_continuation(debugger_event->async_continuation());
     set_at_async_jump(debugger_event->at_async_jump());
   }
   if (type == DebuggerEvent::kExceptionThrown) {
@@ -220,9 +220,8 @@ void ServiceEvent::PrintJSON(JSONStream* js) const {
   if (exception() != NULL) {
     jsobj.AddProperty("exception", *(exception()));
   }
-  if (async_continuation() != NULL && !async_continuation()->IsNull()) {
-    jsobj.AddProperty("_asyncContinuation", *(async_continuation()));
-    jsobj.AddProperty("_atAsyncJump", at_async_jump());
+  if (at_async_jump()) {
+    jsobj.AddProperty("atAsyncSuspension", true);
   }
   if (inspectee() != NULL) {
     jsobj.AddProperty("inspectee", *(inspectee()));
@@ -270,5 +269,7 @@ void ServiceEvent::PrintJSONHeader(JSONObject* jsobj) const {
   ASSERT(timestamp_ != -1);
   jsobj->AddPropertyTimeMillis("timestamp", timestamp_);
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

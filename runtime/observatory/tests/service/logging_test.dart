@@ -6,7 +6,7 @@ import 'dart:developer' as developer;
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'package:logging/logging.dart';
-
+import 'service_test_common.dart';
 import 'test_helper.dart';
 
 void init() {
@@ -40,6 +40,7 @@ var tests = [
     expect(event.logRecord['level'], equals(Level.FINE));
     expect(event.logRecord['time'], new isInstanceOf<DateTime>());
   }),
+  hasStoppedAtBreakpoint,
   resumeIsolateAndAwaitEvent(Isolate.kLoggingStream, (ServiceEvent event) {
     expect(event.kind, equals(ServiceEvent.kLogging));
     expect(event.logRecord['sequenceNumber'], equals(1));

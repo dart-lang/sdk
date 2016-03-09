@@ -8,7 +8,12 @@ abstract class _NamerName extends jsAst.Name {
   int get _kind;
   _NamerName get _target => this;
 
-  toString() => throw new UnsupportedError("Cannot convert a name to a string");
+  String toString() {
+    if (DEBUG_MODE) {
+      return 'Name($key)';
+    }
+    throw new UnsupportedError("Cannot convert a name to a string");
+  }
 }
 
 enum _NamerNameKinds {

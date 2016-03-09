@@ -2,17 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.src.generated.ast;
+library analyzer.src.dart.ast.utilities;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisEngine;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart' show TokenMap;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -29,12 +30,32 @@ class AstCloner implements AstVisitor<AstNode> {
   final bool cloneTokens;
 
   /**
+   * Mapping from original tokes to cloned.
+   */
+  final Map<Token, Token> _clonedTokens = new Map<Token, Token>.identity();
+
+  /**
+   * The next original token to clone.
+   */
+  Token _nextToClone;
+
+  /**
+   * The last cloned token.
+   */
+  Token _lastCloned;
+
+  /**
+   * The offset of the last cloned token.
+   */
+  int _lastClonedOffset = -1;
+
+  /**
    * Initialize a newly created AST cloner to optionally clone tokens while
    * cloning AST nodes if [cloneTokens] is `true`.
+   *
+   * TODO(brianwilkerson) Change this to be a named parameter.
    */
-  AstCloner(
-      [this.cloneTokens =
-          false]); // TODO(brianwilkerson) Change this to be a named parameter.
+  AstCloner([this.cloneTokens = false]);
 
   /**
    * Return a clone of the given [node].
@@ -64,7 +85,15 @@ class AstCloner implements AstVisitor<AstNode> {
    */
   Token cloneToken(Token token) {
     if (cloneTokens) {
-      return (token == null ? null : token.copy());
+      if (token == null) {
+        return null;
+      }
+      if (_lastClonedOffset <= token.offset) {
+        _cloneTokens(_nextToClone ?? token, token.offset);
+      }
+      Token clone = _clonedTokens[token];
+      assert(clone != null);
+      return clone;
     } else {
       return token;
     }
@@ -75,7 +104,7 @@ class AstCloner implements AstVisitor<AstNode> {
    */
   List<Token> cloneTokenList(List<Token> tokens) {
     if (cloneTokens) {
-      return tokens.map((Token token) => token.copy()).toList();
+      return tokens.map(cloneToken).toList();
     }
     return tokens;
   }
@@ -185,18 +214,21 @@ class AstCloner implements AstVisitor<AstNode> {
   }
 
   @override
-  ClassTypeAlias visitClassTypeAlias(ClassTypeAlias node) => new ClassTypeAlias(
-      cloneNode(node.documentationComment),
-      cloneNodeList(node.metadata),
-      cloneToken(node.typedefKeyword),
-      cloneNode(node.name),
-      cloneNode(node.typeParameters),
-      cloneToken(node.equals),
-      cloneToken(node.abstractKeyword),
-      cloneNode(node.superclass),
-      cloneNode(node.withClause),
-      cloneNode(node.implementsClause),
-      cloneToken(node.semicolon));
+  ClassTypeAlias visitClassTypeAlias(ClassTypeAlias node) {
+    cloneToken(node.abstractKeyword);
+    return new ClassTypeAlias(
+        cloneNode(node.documentationComment),
+        cloneNodeList(node.metadata),
+        cloneToken(node.typedefKeyword),
+        cloneNode(node.name),
+        cloneNode(node.typeParameters),
+        cloneToken(node.equals),
+        cloneToken(node.abstractKeyword),
+        cloneNode(node.superclass),
+        cloneNode(node.withClause),
+        cloneNode(node.implementsClause),
+        cloneToken(node.semicolon));
+  }
 
   @override
   Comment visitComment(Comment node) {
@@ -885,6 +917,58 @@ class AstCloner implements AstVisitor<AstNode> {
       cloneToken(node.star),
       cloneNode(node.expression),
       cloneToken(node.semicolon));
+
+  /**
+   * Clone all token starting from the given [token] up to a token that has
+   * offset greater then [stopAfter], and put mapping from originals to clones
+   * into [_clonedTokens].
+   *
+   * We cannot clone tokens as we visit nodes because not every token is a part
+   * of a node, E.g. commas in argument lists are not represented in AST. But
+   * we need to the sequence of tokens that is identical to the original one.
+   */
+  void _cloneTokens(Token token, int stopAfter) {
+    if (token == null) {
+      return;
+    }
+    if (token is CommentToken) {
+      token = (token as CommentToken).parent;
+    }
+    if (_lastCloned == null) {
+      _lastCloned = new Token(TokenType.EOF, -1);
+      _lastCloned.setNext(_lastCloned);
+    }
+    while (token != null) {
+      Token clone = token.copy();
+      {
+        CommentToken c1 = token.precedingComments;
+        CommentToken c2 = clone.precedingComments;
+        while (c1 != null && c2 != null) {
+          _clonedTokens[c1] = c2;
+          if (c1 is DocumentationCommentToken &&
+              c2 is DocumentationCommentToken) {
+            for (int i = 0; i < c1.references.length; i++) {
+              _clonedTokens[c1.references[i]] = c2.references[i];
+            }
+          }
+          c1 = c1.next;
+          c2 = c2.next;
+        }
+      }
+      _clonedTokens[token] = clone;
+      _lastCloned.setNext(clone);
+      _lastCloned = clone;
+      if (token.type == TokenType.EOF) {
+        break;
+      }
+      if (token.offset > stopAfter) {
+        _nextToClone = token.next;
+        _lastClonedOffset = token.offset;
+        break;
+      }
+      token = token.next;
+    }
+  }
 
   /**
    * Return a clone of the given [node].
@@ -4866,7 +4950,7 @@ class NodeReplacer implements AstVisitor<bool> {
     } else if (_replaceInList(node.variables)) {
       return true;
     }
-    return visitNode(node);
+    return visitAnnotatedNode(node);
   }
 
   @override

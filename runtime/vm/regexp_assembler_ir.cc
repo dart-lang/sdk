@@ -36,7 +36,6 @@ DEFINE_FLAG(bool, trace_irregexp, false, "Trace irregexps");
 
 
 static const intptr_t kInvalidTryIndex = CatchClauseNode::kInvalidTryIndex;
-static const intptr_t kNoSourcePos = Scanner::kNoSourcePos;
 static const intptr_t kMinStackSize = 512;
 
 
@@ -246,7 +245,8 @@ void IRRegExpMacroAssembler::GenerateSuccessBlock() {
   Value* type = Bind(new(Z) ConstantInstr(
       TypeArguments::ZoneHandle(Z, TypeArguments::null())));
   Value* length = Bind(Uint64Constant(saved_registers_count_));
-  Value* array = Bind(new(Z) CreateArrayInstr(kNoSourcePos, type, length));
+  Value* array = Bind(new(Z) CreateArrayInstr(
+      TokenPosition::kNoSource, type, length));
   StoreLocal(result_, array);
 
   // Store captured offsets in the `matches` parameter.
@@ -271,7 +271,8 @@ void IRRegExpMacroAssembler::GenerateSuccessBlock() {
   PRINT(PushLocal(result_));
 
   // Return true on success.
-  AppendInstruction(new(Z) ReturnInstr(kNoSourcePos, Bind(LoadLocal(result_))));
+  AppendInstruction(new(Z) ReturnInstr(
+      TokenPosition::kNoSource, Bind(LoadLocal(result_))));
 }
 
 
@@ -280,7 +281,8 @@ void IRRegExpMacroAssembler::GenerateExitBlock() {
   TAG();
 
   // Return false on failure.
-  AppendInstruction(new(Z) ReturnInstr(kNoSourcePos, Bind(LoadLocal(result_))));
+  AppendInstruction(new(Z) ReturnInstr(
+      TokenPosition::kNoSource, Bind(LoadLocal(result_))));
 }
 
 
@@ -382,8 +384,8 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(
 
 LocalVariable* IRRegExpMacroAssembler::Parameter(const String& name,
                                                  intptr_t index) const {
-  LocalVariable* local =
-      new(Z) LocalVariable(kNoSourcePos, name, Object::dynamic_type());
+  LocalVariable* local = new(Z) LocalVariable(
+      TokenPosition::kNoSource, name, Object::dynamic_type());
 
   intptr_t param_frame_index = kParamEndSlotFromFp + kParamCount - index;
   local->set_index(param_frame_index);
@@ -393,8 +395,8 @@ LocalVariable* IRRegExpMacroAssembler::Parameter(const String& name,
 
 
 LocalVariable* IRRegExpMacroAssembler::Local(const String& name) {
-  LocalVariable* local =
-      new(Z) LocalVariable(kNoSourcePos, name, Object::dynamic_type());
+  LocalVariable* local = new(Z) LocalVariable(
+      TokenPosition::kNoSource, name, Object::dynamic_type());
   local->set_index(GetNextLocalIndex());
 
   return local;
@@ -480,7 +482,7 @@ ComparisonInstr* IRRegExpMacroAssembler::Comparison(
   Value* rhs_value = Bind(BoolConstant(true));
 
   return new(Z) StrictCompareInstr(
-      kNoSourcePos, strict_comparison, lhs_value, rhs_value, true);
+      TokenPosition::kNoSource, strict_comparison, lhs_value, rhs_value, true);
 }
 
 ComparisonInstr* IRRegExpMacroAssembler::Comparison(
@@ -526,7 +528,7 @@ StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
 StaticCallInstr* IRRegExpMacroAssembler::StaticCall(
     const Function& function,
     ZoneGrowableArray<PushArgumentInstr*>* arguments) const {
-  return new(Z) StaticCallInstr(kNoSourcePos,
+  return new(Z) StaticCallInstr(TokenPosition::kNoSource,
                                 function,
                                 Object::null_array(),
                                 arguments,
@@ -577,7 +579,7 @@ InstanceCallInstr* IRRegExpMacroAssembler::InstanceCall(
     const InstanceCallDescriptor& desc,
     ZoneGrowableArray<PushArgumentInstr*> *arguments) const {
   return
-    new(Z) InstanceCallInstr(kNoSourcePos,
+    new(Z) InstanceCallInstr(TokenPosition::kNoSource,
                              desc.name,
                              desc.token_kind,
                              arguments,
@@ -588,13 +590,13 @@ InstanceCallInstr* IRRegExpMacroAssembler::InstanceCall(
 
 
 LoadLocalInstr* IRRegExpMacroAssembler::LoadLocal(LocalVariable* local) const {
-  return new(Z) LoadLocalInstr(*local);
+  return new(Z) LoadLocalInstr(*local, TokenPosition::kNoSource);
 }
 
 
 void IRRegExpMacroAssembler::StoreLocal(LocalVariable* local,
                                         Value* value) {
-  Do(new(Z) StoreLocalInstr(*local, value));
+  Do(new(Z) StoreLocalInstr(*local, value, TokenPosition::kNoSource));
 }
 
 
@@ -621,7 +623,7 @@ Value* IRRegExpMacroAssembler::BindLoadLocal(const LocalVariable& local) {
     return Bind(new(Z) ConstantInstr(*local.ConstValue()));
   }
   ASSERT(!local.is_captured());
-  return Bind(new(Z) LoadLocalInstr(local));
+  return Bind(new(Z) LoadLocalInstr(local, TokenPosition::kNoSource));
 }
 
 
@@ -1834,7 +1836,8 @@ IndirectEntryInstr* IRRegExpMacroAssembler::IndirectWithJoinGoto(
 
 void IRRegExpMacroAssembler::CheckPreemption() {
   TAG();
-  AppendInstruction(new(Z) CheckStackOverflowInstr(kNoSourcePos, 0));
+  AppendInstruction(new(Z) CheckStackOverflowInstr(
+      TokenPosition::kNoSource, 0));
 }
 
 
@@ -1924,7 +1927,7 @@ Value* IRRegExpMacroAssembler::LoadCodeUnitsAt(LocalVariable* index,
       index_val,
       characters,
       specialization_cid_,
-      Scanner::kNoSourcePos));
+      TokenPosition::kNoSource));
 }
 
 

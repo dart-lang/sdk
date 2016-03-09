@@ -19,11 +19,11 @@ import 'cps_fragment.dart';
 ///
 ///     print(x.length);
 ///
-/// `x.length` will throw when x is null, so the original [NullCheck] is not
+/// `x.length` will throw when x is null, so the original [ReceiverCheck] is not
 /// needed.  This changes the error message, but at least for now we are
 /// willing to accept this.
 ///
-/// Note that code motion may not occur after this pass, since the [NullCheck]
+/// Note that code motion may not occur after this pass, since the [ReceiverCheck]
 /// nodes are not there to restrict it.
 //
 // TODO(asgerf): It would be nice with a clear specification of when we allow
@@ -50,20 +50,19 @@ class BackwardNullCheckRemover extends BlockVisitor implements Pass {
     BlockVisitor.traverseInPostOrder(node, this);
   }
 
-  /// Returns a reference to an operand of [prim], where [prim] throws if null
-  /// is passed into that operand.
-  Reference<Primitive> getNullCheckedOperand(Primitive prim) {
-    if (prim is NullCheck) return prim.value;
+  /// Returns an operand of [prim] that throws if null is passed into it.
+  Primitive getNullCheckedOperand(Primitive prim) {
+    if (prim is ReceiverCheck) return prim.value;
     if (prim is GetLength) return prim.object;
     if (prim is GetField) return prim.object;
     if (prim is GetIndex) return prim.object;
     if (prim is SetField) return prim.object;
     if (prim is SetIndex) return prim.object;
     if (prim is InvokeMethod && !selectorsOnNull.contains(prim.selector)) {
-      return prim.dartReceiverReference;
+      return prim.dartReceiver;
     }
     if (prim is ForeignCode) {
-      return prim.isNullGuardOnNullFirstArgument() ? prim.arguments[0] : null;
+      return prim.isNullGuardOnNullFirstArgument() ? prim.argument(0) : null;
     }
     return null;
   }
@@ -71,13 +70,13 @@ class BackwardNullCheckRemover extends BlockVisitor implements Pass {
   /// It has been determined that the null check in [prim] made redundant by
   /// [newNullCheck].  Eliminate [prim] if it is not needed any more.
   void tryEliminateRedundantNullCheck(Primitive prim, Primitive newNullCheck) {
-    if (prim is NullCheck) {
-      Primitive value = prim.value.definition;
+    if (prim is ReceiverCheck && prim.isNullCheck) {
+      Primitive value = prim.value;
       LetPrim let = prim.parent;
       prim..replaceUsesWith(value)..destroy();
       let.remove();
     } else if (prim is GetLength || prim is GetField || prim is GetIndex) {
-      if (prim.hasNoEffectiveUses) {
+      if (prim.hasNoRefinedUses) {
         destroyRefinementsOfDeadPrimitive(prim);
         LetPrim let = prim.parent;
         prim..destroy();
@@ -99,7 +98,7 @@ class BackwardNullCheckRemover extends BlockVisitor implements Pass {
 
   void visitLetPrim(LetPrim node) {
     Primitive prim = node.primitive;
-    Primitive receiver = getNullCheckedOperand(prim)?.definition;
+    Primitive receiver = getNullCheckedOperand(prim);
     if (receiver != null) {
       if (nullCheckedValue != null && receiver.sameValue(nullCheckedValue)) {
         tryEliminateRedundantNullCheck(prim, nullCheckedValue);
@@ -123,7 +122,7 @@ class BackwardNullCheckRemover extends BlockVisitor implements Pass {
 
   visitInvokeContinuation(InvokeContinuation node) {
     if (!node.isRecursive) {
-      nullCheckedValue = nullCheckedValueAt[node.continuation.definition];
+      nullCheckedValue = nullCheckedValueAt[node.continuation];
     }
   }
 }

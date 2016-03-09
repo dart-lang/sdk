@@ -20,7 +20,6 @@
     'zlib_path': '../../third_party/zlib',
   },
   # Added by Dart.  We do not indent, so diffs with the original are clearer.
-  'conditions': [[ 'dart_io_support==1', {
   'targets': [
     {
       'target_name': 'zlib_dart',  # Added by Dart (the _dart postfix)
@@ -72,5 +71,4 @@
       ],
     },
   ],
-  }]],
 }

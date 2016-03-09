@@ -413,6 +413,9 @@ class SimpleTypeInferrerVisitor<T>
     FunctionSignature signature = function.functionSignature;
     signature.forEachOptionalParameter((ParameterElement element) {
       ast.Expression defaultValue = element.initializer;
+      // TODO(25566): The default value of a parameter of a redirecting factory
+      // constructor comes from the corresponding parameter of the target.
+
       // If this is a default value from a different context (because
       // the current function is synthetic, e.g., a constructor from
       // a mixin application), we have to start a new inferrer visitor
@@ -1309,6 +1312,24 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   @override
+  T visitSuperGetterSet(
+      ast.Send node,
+      MethodElement getter,
+      ast.Node rhs,
+      _) {
+    return handleErroneousSuperSend(node);
+  }
+
+  @override
+  T visitUnresolvedSuperSet(
+      ast.Send node,
+      Element element,
+      ast.Node rhs,
+      _) {
+    return handleErroneousSuperSend(node);
+  }
+
+  @override
   T visitUnresolvedSuperInvoke(
       ast.Send node,
       Element element,
@@ -1482,54 +1503,50 @@ class SimpleTypeInferrerVisitor<T>
     return super.handleTypeLiteralInvoke(arguments);
   }
 
-  /// Handle constructor invocation of [element].
-  T handleConstructorSend(ast.Send node, ConstructorElement element) {
+  /// Handle constructor invocation of [constructor].
+  T handleConstructorSend(ast.Send node, ConstructorElement constructor) {
+    ConstructorElement target = constructor.implementation;
     ArgumentsTypes arguments = analyzeArguments(node.arguments);
     if (visitingInitializers) {
       if (ast.Initializers.isConstructorRedirect(node)) {
         isConstructorRedirect = true;
       } else if (ast.Initializers.isSuperConstructorCall(node)) {
         seenSuperConstructorCall = true;
-        analyzeSuperConstructorCall(element, arguments);
+        analyzeSuperConstructorCall(constructor, arguments);
       }
     }
-    // If we are looking at a new expression on a forwarding factory,
-    // we have to forward the call to the effective target of the
-    // factory.
-    if (element.isFactoryConstructor) {
-      // TODO(herhut): Remove the while loop once effectiveTarget forwards to
-      //               patches.
-      while (element.isFactoryConstructor) {
-        ConstructorElement constructor = element;
-        if (!constructor.isRedirectingFactory) break;
-        element = constructor.effectiveTarget.implementation;
-      }
+    // If we are looking at a new expression on a forwarding factory, we have to
+    // forward the call to the effective target of the factory.
+    // TODO(herhut): Remove the loop once effectiveTarget forwards to patches.
+    while (target.isFactoryConstructor) {
+      if (!target.isRedirectingFactory) break;
+      target = target.effectiveTarget.implementation;
     }
-    if (compiler.backend.isForeign(element)) {
-      return handleForeignSend(node, element);
+    if (compiler.backend.isForeign(target)) {
+      return handleForeignSend(node, target);
     }
     Selector selector = elements.getSelector(node);
     TypeMask mask = elements.getTypeMask(node);
     // In erroneous code the number of arguments in the selector might not
     // match the function element.
     // TODO(polux): return nonNullEmpty and check it doesn't break anything
-    if (!selector.applies(element, compiler.world) ||
-        (mask != null && !mask.canHit(element, selector, compiler.world))) {
+    if (!selector.applies(target, compiler.world) ||
+        (mask != null && !mask.canHit(target, selector, compiler.world))) {
       return types.dynamicType;
     }
 
-    T returnType = handleStaticSend(node, selector, mask, element, arguments);
-    if (Elements.isGrowableListConstructorCall(element, node, compiler)) {
+    T returnType = handleStaticSend(node, selector, mask, target, arguments);
+    if (Elements.isGrowableListConstructorCall(constructor, node, compiler)) {
       return inferrer.concreteTypes.putIfAbsent(
           node, () => types.allocateList(
               types.growableListType, node, outermostElement,
               types.nonNullEmpty(), 0));
-    } else if (Elements.isFixedListConstructorCall(element, node, compiler)
-        || Elements.isFilledListConstructorCall(element, node, compiler)) {
+    } else if (Elements.isFixedListConstructorCall(constructor, node, compiler)
+        || Elements.isFilledListConstructorCall(constructor, node, compiler)) {
 
       int length = findLength(node);
       T elementType =
-          Elements.isFixedListConstructorCall(element, node, compiler)
+          Elements.isFixedListConstructorCall(constructor, node, compiler)
               ? types.nullType
               : arguments.positional[1];
 
@@ -1537,15 +1554,14 @@ class SimpleTypeInferrerVisitor<T>
           node, () => types.allocateList(
               types.fixedListType, node, outermostElement,
               elementType, length));
-    } else if (Elements.isConstructorOfTypedArraySubclass(element, compiler)) {
+    } else if (
+        Elements.isConstructorOfTypedArraySubclass(constructor, compiler)) {
       int length = findLength(node);
-      ConstructorElement constructor = element.implementation;
-      constructor = constructor.effectiveTarget;
       T elementType = inferrer.returnTypeOfElement(
-          constructor.enclosingClass.lookupMember('[]'));
+          target.enclosingClass.lookupMember('[]'));
       return inferrer.concreteTypes.putIfAbsent(
         node, () => types.allocateList(
-          types.nonNullExact(constructor.enclosingClass), node,
+          types.nonNullExact(target.enclosingClass), node,
           outermostElement, elementType, length));
     } else {
       return returnType;

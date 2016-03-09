@@ -9,6 +9,7 @@
 #include "vm/flags.h"
 #include "vm/native_arguments.h"
 #include "vm/runtime_entry_list.h"
+#include "vm/safepoint.h"
 #include "vm/tags.h"
 
 namespace dart {
@@ -75,6 +76,15 @@ class RuntimeEntry : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(RuntimeEntry);
 };
 
+#ifndef PRODUCT
+#define TRACE_RUNTIME_CALL(format, name)                                       \
+  if (FLAG_trace_runtime_calls) {                                              \
+    OS::Print("Runtime call: " format "\n", name);                             \
+  }
+#else
+#define TRACE_RUNTIME_CALL(format, name)                                       \
+  do { } while (0)
+#endif
 
 // Helper macros for declaring and defining runtime entries.
 
@@ -90,11 +100,12 @@ class RuntimeEntry : public ValueObject {
     CHECK_STACK_ALIGNMENT;                                                     \
     VERIFY_ON_TRANSITION;                                                      \
     ASSERT(arguments.ArgCount() == argument_count);                            \
-    if (FLAG_trace_runtime_calls) OS::Print("Runtime call: %s\n", ""#name);    \
+    TRACE_RUNTIME_CALL("%s", ""#name);                                         \
     {                                                                          \
       Thread* thread = arguments.thread();                                     \
       ASSERT(thread == Thread::Current());                                     \
       Isolate* isolate = thread->isolate();                                    \
+      TransitionGeneratedToVM transition(thread);                              \
       StackZone zone(thread);                                                  \
       HANDLESCOPE(thread);                                                     \
       DRT_Helper##name(isolate, thread, zone.GetZone(), arguments);            \

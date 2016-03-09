@@ -154,7 +154,7 @@ class AnalysisDriver {
   /**
    * Create a work order that will produce the given [result] for the given
    * [target]. Return the work order that was created, or `null` if the result
-   * has already been computed.
+   * has either already been computed or cannot be computed.
    */
   WorkOrder createWorkOrderForResult(
       AnalysisTarget target, ResultDescriptor result) {
@@ -166,6 +166,9 @@ class AnalysisDriver {
       return null;
     }
     TaskDescriptor taskDescriptor = taskManager.findTask(target, result);
+    if (taskDescriptor == null) {
+      return null;
+    }
     try {
       WorkItem workItem =
           new WorkItem(context, target, taskDescriptor, result, 0, null);
@@ -709,10 +712,20 @@ class WorkItem {
           try {
             TaskDescriptor descriptor =
                 taskManager.findTask(inputTarget, inputResult);
+            if (descriptor == null) {
+              throw new AnalysisException(
+                  'Cannot find task to build $inputResult for $inputTarget');
+            }
             return new WorkItem(context, inputTarget, descriptor, inputResult,
                 level + 1, workOrder);
           } on AnalysisException catch (exception, stackTrace) {
             this.exception = new CaughtException(exception, stackTrace);
+            return null;
+          } catch (exception, stackTrace) {
+            this.exception = new CaughtException(exception, stackTrace);
+            throw new AnalysisException(
+                'Cannot create work order to build $inputResult for $inputTarget',
+                this.exception);
             return null;
           }
         }

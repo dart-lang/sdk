@@ -325,6 +325,10 @@ abstract class Stream<T> {
    * two arguments it is called with the stack trace (which could be `null` if
    * the stream itself received an error without stack trace).
    * Otherwise it is called with just the error object.
+   * If [onError] is omitted, any errors on the stream are considered unhandled,
+   * and will be passed to the current [Zone]'s error handler.
+   * By default unhandled async errors are treated
+   * as if they were uncaught top-level errors.
    *
    * If this stream closes, the [onDone] handler is called.
    *
@@ -1374,20 +1378,24 @@ abstract class Stream<T> {
  */
 abstract class StreamSubscription<T> {
   /**
-   * Cancels this subscription. It will no longer receive events.
+   * Cancels this subscription.
    *
-   * May return a future which completes when the stream is done cleaning up.
-   * This can be used if the stream needs to release some resources
-   * that are needed for a following operation,
-   * for example a file being read, that should be deleted afterwards.
-   * In that case, the file may not be able to be deleted successfully
-   * until the returned future has completed.
+   * After this call, the subscription no longer receives events.
    *
-   * The future will be completed with a `null` value.
+   * The stream may need to shut down the source of events and clean up after
+   * the subscription is canceled.
+   *
+   * Returns a future that is completed once the stream has finished
+   * its cleanup. May also return `null` if no cleanup was necessary.
+   *
+   * Typically, futures are returned when the stream needs to release resources.
+   * For example, a stream might need to close an open file (as an asynchronous
+   * operation). If the listener wants to delete the file after having
+   * canceled the subscription, it must wait for the cleanup future to complete.
+   *
+   * A returned future completes with a `null` value.
    * If the cleanup throws, which it really shouldn't, the returned future
-   * will be completed with that error.
-   *
-   * Returns `null` if there is no need to wait.
+   * completes with that error.
    */
   Future cancel();
 
@@ -1487,7 +1495,7 @@ abstract class EventSink<T> implements Sink<T> {
 class StreamView<T> extends Stream<T> {
   final Stream<T> _stream;
 
-  StreamView(this._stream);
+  const StreamView(Stream<T> stream) : _stream = stream, super._internal();
 
   bool get isBroadcast => _stream.isBroadcast;
 

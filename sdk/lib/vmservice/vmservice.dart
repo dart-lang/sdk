@@ -21,8 +21,6 @@ part 'message_router.dart';
 final RawReceivePort isolateLifecyclePort = new RawReceivePort();
 final RawReceivePort scriptLoadPort = new RawReceivePort();
 
-typedef ShutdownCallback();
-
 // These must be kept in sync with the declarations in vm/json_stream.h.
 const kInvalidParams = -32602;
 const kInternalError = -32603;
@@ -62,6 +60,23 @@ String encodeResult(Message message, Map result) {
   return JSON.encode(response);
 }
 
+const shortDelay = const Duration(milliseconds: 10);
+
+/// Called when the server should be started.
+typedef Future ServerStartCallback();
+
+/// Called when the server should be stopped.
+typedef Future ServerStopCallback();
+
+/// Called when the service is exiting.
+typedef Future CleanupCallback();
+
+/// Hooks that are setup by the embedder.
+class VMServiceEmbedderHooks {
+  static ServerStartCallback serverStart;
+  static ServerStopCallback serverStop;
+  static CleanupCallback cleanup;
+}
 
 class VMService extends MessageRouter {
   static VMService _instance;
@@ -74,8 +89,6 @@ class VMService extends MessageRouter {
 
   /// A port used to receive events from the VM.
   final RawReceivePort eventPort;
-
-  ShutdownCallback onShutdown;
 
   void _addClient(Client client) {
     assert(client.streams.isEmpty);
@@ -115,19 +128,26 @@ class VMService extends MessageRouter {
     }
   }
 
-  void _exit() {
+  Future _exit() async {
+    // Stop the server.
+    if (VMServiceEmbedderHooks.serverStop != null) {
+      await VMServiceEmbedderHooks.serverStop();
+    }
+
+    // Close receive ports.
     isolateLifecyclePort.close();
     scriptLoadPort.close();
+
     // Create a copy of the set as a list because client.disconnect() will
     // alter the connected clients set.
     var clientsList = clients.toList();
     for (var client in clientsList) {
       client.disconnect();
     }
-    // Call embedder shutdown hook after the internal shutdown.
-    if (onShutdown != null) {
-      onShutdown();
+    if (VMServiceEmbedderHooks.cleanup != null) {
+      await VMServiceEmbedderHooks.cleanup();
     }
+    // Notify the VM that we have exited.
     _onExit();
   }
 
@@ -156,13 +176,8 @@ class VMService extends MessageRouter {
     print('Internal vm-service error: ignoring illegal message: $message');
   }
 
-  void _notSupported(_) {
-    throw new UnimplementedError('Service script loading not supported.');
-  }
-
   VMService._internal()
       : eventPort = isolateLifecyclePort {
-    scriptLoadPort.handler = _notSupported;
     eventPort.handler = messageHandler;
   }
 
@@ -172,17 +187,6 @@ class VMService extends MessageRouter {
       _onStart();
     }
     return _instance;
-  }
-
-  void _clientCollection(Message message) {
-    var members = [];
-    var result = {};
-    clients.forEach((client) {
-      members.add(client.toJson());
-    });
-    result['type'] = 'ClientList';
-    result['members'] = members;
-    message.setResponse(JSON.encode(result));
   }
 
   bool _isAnyClientSubscribed(String streamId) {
@@ -293,10 +297,6 @@ class VMService extends MessageRouter {
       return message.response;
     }
     // TODO(turnidge): Update to json rpc.  BEFORE SUBMIT.
-    if ((message.path.length == 1) && (message.path[0] == 'clients')) {
-      _clientCollection(message);
-      return message.response;
-    }
     if (message.method == '_getCrashDump') {
       return _getCrashDump(message);
     }
@@ -323,12 +323,20 @@ void _registerIsolate(int port_id, SendPort sp, String name) {
   service.runningIsolates.isolateStartup(port_id, sp, name);
 }
 
+/// Notify the VM that the service is running.
 external void _onStart();
 
+/// Notify the VM that the service is no longer running.
 external void _onExit();
 
+/// Notify the VM that the server's address has changed.
+external void onServerAddressChange(String address);
+
+/// Subscribe to a service stream.
 external bool _vmListenStream(String streamId);
 
+/// Cancel a subscription to a service stream.
 external void _vmCancelStream(String streamId);
 
+/// Get the bytes to the tar archive.
 external Uint8List _requestAssets();

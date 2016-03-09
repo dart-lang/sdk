@@ -33,6 +33,14 @@ import 'script.dart';
 const bool forceIncrementalSupport =
     const bool.fromEnvironment('DART2JS_EXPERIMENTAL_INCREMENTAL_SUPPORT');
 
+/// For every 'dart:' library, a corresponding environment variable is set
+/// to "true". The environment variable's name is the concatenation of
+/// this prefix and the name (without the 'dart:'.
+///
+/// For example 'dart:html' has the environment variable 'dart.library.html' set
+/// to "true".
+const String dartLibraryEnvironmentPrefix = 'dart.library.';
+
 /// Locations of the platform descriptor files relative to the library root.
 const String _clientPlatform = "lib/dart_client.platform";
 const String _serverPlatform = "lib/dart_server.platform";
@@ -580,7 +588,30 @@ class CompilerImpl extends Compiler {
     }
   }
 
-  fromEnvironment(String name) => environment[name];
+  fromEnvironment(String name) {
+    assert(invariant(NO_LOCATION_SPANNABLE,
+        sdkLibraries != null, message: "setupSdk() has not been run"));
+
+    var result = environment[name];
+    if (result != null || environment.containsKey(name)) return result;
+    if (!name.startsWith(dartLibraryEnvironmentPrefix)) return null;
+
+    String libraryName = name.substring(dartLibraryEnvironmentPrefix.length);
+
+    // Private libraries are not exposed to the users.
+    if (libraryName.startsWith("_")) return null;
+
+    if (sdkLibraries.containsKey(libraryName)) {
+      // Dart2js always "supports" importing 'dart:mirrors' but will abort
+      // the compilation at a later point if the backend doesn't support
+      // mirrors. In this case 'mirrors' should not be in the environment.
+      if (libraryName == 'mirrors') {
+        return backend.supportsReflection ? "true" : null;
+      }
+      return "true";
+    }
+    return null;
+  }
 
   Uri lookupLibraryUri(String libraryName) {
     assert(invariant(NO_LOCATION_SPANNABLE,

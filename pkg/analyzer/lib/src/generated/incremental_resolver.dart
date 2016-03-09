@@ -7,12 +7,19 @@ library analyzer.src.generated.incremental_resolver;
 import 'dart:collection';
 import 'dart:math' as math;
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/context/cache.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/builder.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/dart/scanner/reader.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -22,7 +29,6 @@ import 'package:analyzer/src/generated/incremental_logger.dart'
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/task/dart.dart';
@@ -112,12 +118,14 @@ class DeclarationMatcher extends RecursiveAstVisitor {
       _gatherElements(element);
       node.accept(this);
     } on _DeclarationMismatchException {
+      logger.log("mismatched");
       return DeclarationMatchKind.MISMATCH;
     } finally {
       logger.exit();
     }
     // no API changes
     if (_removedElements.isEmpty && _addedElements.isEmpty) {
+      logger.log("no API changes");
       return DeclarationMatchKind.MATCH;
     }
     // simple API change
@@ -474,7 +482,8 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   void _assertCompatibleParameter(
       FormalParameter node, ParameterElement element) {
     _assertEquals(node.kind, element.parameterKind);
-    if (node.kind == ParameterKind.NAMED) {
+    if (node.kind == ParameterKind.NAMED ||
+        element.enclosingElement is ConstructorElement) {
       _assertEquals(node.identifier.name, element.name);
     }
     // check parameter type specific properties
@@ -597,12 +606,12 @@ class DeclarationMatcher extends RecursiveAstVisitor {
   }
 
   void _assertSameAnnotations(AnnotatedNode node, Element element) {
-    List<Annotation> nodeAnnotaitons = node.metadata;
+    List<Annotation> nodeAnnotations = node.metadata;
     List<ElementAnnotation> elementAnnotations = element.metadata;
-    int length = nodeAnnotaitons.length;
+    int length = nodeAnnotations.length;
     _assertEquals(elementAnnotations.length, length);
     for (int i = 0; i < length; i++) {
-      _assertSameAnnotation(nodeAnnotaitons[i], elementAnnotations[i]);
+      _assertSameAnnotation(nodeAnnotations[i], elementAnnotations[i]);
     }
   }
 
@@ -905,8 +914,6 @@ class IncrementalBodyDelta extends Delta {
         isByTask(ReadyLibraryElement5Task.DESCRIPTOR) ||
         isByTask(ReadyLibraryElement6Task.DESCRIPTOR) ||
         isByTask(ReadyResolvedUnitTask.DESCRIPTOR) ||
-        isByTask(ReadyResolvedUnit10Task.DESCRIPTOR) ||
-        isByTask(ReadyResolvedUnit11Task.DESCRIPTOR) ||
         isByTask(EvaluateUnitConstantsTask.DESCRIPTOR) ||
         isByTask(GenerateHintsTask.DESCRIPTOR) ||
         isByTask(InferInstanceMembersInUnitTask.DESCRIPTOR) ||
@@ -920,6 +927,7 @@ class IncrementalBodyDelta extends Delta {
         isByTask(PropagateVariableTypesInUnitTask.DESCRIPTOR) ||
         isByTask(PropagateVariableTypeTask.DESCRIPTOR) ||
         isByTask(ScanDartTask.DESCRIPTOR) ||
+        isByTask(ResolveConstantExpressionTask.DESCRIPTOR) ||
         isByTask(ResolveInstanceFieldsInUnitTask.DESCRIPTOR) ||
         isByTask(ResolveLibraryReferencesTask.DESCRIPTOR) ||
         isByTask(ResolveLibraryTask.DESCRIPTOR) ||
@@ -949,42 +957,44 @@ class IncrementalResolver {
   /**
    * The context the compilation unit being resolved in.
    */
-  AnalysisContext _context;
+  final AnalysisContext _context;
 
   /**
    * The object used to access the types from the core library.
    */
-  TypeProvider _typeProvider;
+  final TypeProvider _typeProvider;
 
   /**
    * The type system primitives.
    */
-  TypeSystem _typeSystem;
+  final TypeSystem _typeSystem;
 
   /**
    * The element for the library containing the compilation unit being resolved.
    */
-  LibraryElementImpl _definingLibrary;
+  final LibraryElementImpl _definingLibrary;
+
+  final AnalysisCache _cache;
 
   /**
    * The [CacheEntry] corresponding to the source being resolved.
    */
-  CacheEntry newSourceEntry;
+  final CacheEntry newSourceEntry;
 
   /**
    * The [CacheEntry] corresponding to the [LibrarySpecificUnit] being resolved.
    */
-  CacheEntry newUnitEntry;
+  final CacheEntry newUnitEntry;
 
   /**
    * The source representing the compilation unit being visited.
    */
-  Source _source;
+  final Source _source;
 
   /**
    * The source representing the library of the compilation unit being visited.
    */
-  Source _librarySource;
+  final Source _librarySource;
 
   /**
    * The offset of the changed contents.
@@ -1004,14 +1014,14 @@ class IncrementalResolver {
   /**
    * The delta between [_updateEndNew] and [_updateEndOld].
    */
-  int _updateDelta;
+  final int _updateDelta;
 
   /**
    * The set of [AnalysisError]s that have been already shifted.
    */
-  Set<AnalysisError> _alreadyShiftedErrors = new HashSet.identity();
+  final Set<AnalysisError> _alreadyShiftedErrors = new HashSet.identity();
 
-  RecordingErrorListener errorListener = new RecordingErrorListener();
+  final RecordingErrorListener errorListener = new RecordingErrorListener();
   ResolutionContext _resolutionContext;
 
   List<AnalysisError> _resolveErrors = AnalysisError.NO_ERRORS;
@@ -1022,20 +1032,23 @@ class IncrementalResolver {
    * given source in the given library.
    */
   IncrementalResolver(
+      this._cache,
       this.newSourceEntry,
       this.newUnitEntry,
-      this._definingUnit,
+      CompilationUnitElementImpl definingUnit,
       this._updateOffset,
-      this._updateEndOld,
-      this._updateEndNew) {
-    _updateDelta = _updateEndNew - _updateEndOld;
-    _definingLibrary = _definingUnit.library;
-    _librarySource = _definingLibrary.source;
-    _source = _definingUnit.source;
-    _context = _definingUnit.context;
-    _typeProvider = _context.typeProvider;
-    _typeSystem = _context.typeSystem;
-  }
+      int updateEndOld,
+      int updateEndNew)
+      : _definingUnit = definingUnit,
+        _context = definingUnit.context,
+        _typeProvider = definingUnit.context.typeProvider,
+        _typeSystem = definingUnit.context.typeSystem,
+        _definingLibrary = definingUnit.library,
+        _source = definingUnit.source,
+        _librarySource = definingUnit.library.source,
+        _updateEndOld = updateEndOld,
+        _updateEndNew = updateEndNew,
+        _updateDelta = updateEndNew - updateEndOld;
 
   /**
    * Resolve [node], reporting any errors or warnings to the given listener.
@@ -1076,7 +1089,7 @@ class IncrementalResolver {
     LoggingTimer timer = logger.startTimer();
     try {
       ElementHolder holder = new ElementHolder();
-      ElementBuilder builder = new ElementBuilder(holder);
+      ElementBuilder builder = new ElementBuilder(holder, _definingUnit);
       if (_resolutionContext.enclosingClassDeclaration != null) {
         builder.visitClassDeclarationIncrementally(
             _resolutionContext.enclosingClassDeclaration);
@@ -1276,8 +1289,8 @@ class IncrementalResolver {
   void _updateElementNameOffsets() {
     LoggingTimer timer = logger.startTimer();
     try {
-      _definingUnit
-          .accept(new _ElementOffsetUpdater(_updateOffset, _updateDelta));
+      _definingUnit.accept(
+          new _ElementOffsetUpdater(_updateOffset, _updateDelta, _cache));
       _definingUnit.afterIncrementalResolution();
     } finally {
       timer.stop('update element offsets');
@@ -1355,16 +1368,17 @@ class IncrementalResolver {
 class PoorMansIncrementalResolver {
   final TypeProvider _typeProvider;
   final Source _unitSource;
+  final AnalysisCache _cache;
 
   /**
    * The [CacheEntry] corresponding to the source being resolved.
    */
-  CacheEntry _sourceEntry;
+  final CacheEntry _sourceEntry;
 
   /**
    * The [CacheEntry] corresponding to the [LibrarySpecificUnit] being resolved.
    */
-  CacheEntry _unitEntry;
+  final CacheEntry _unitEntry;
 
   final CompilationUnit _oldUnit;
   CompilationUnitElement _unitElement;
@@ -1381,6 +1395,7 @@ class PoorMansIncrementalResolver {
   PoorMansIncrementalResolver(
       this._typeProvider,
       this._unitSource,
+      this._cache,
       this._sourceEntry,
       this._unitEntry,
       this._oldUnit,
@@ -1441,6 +1456,7 @@ class PoorMansIncrementalResolver {
             _shiftTokens(firstPair.oldToken);
             {
               IncrementalResolver incrementalResolver = new IncrementalResolver(
+                  _cache,
                   _sourceEntry,
                   _unitEntry,
                   _unitElement,
@@ -1468,37 +1484,67 @@ class PoorMansIncrementalResolver {
         {
           List<AstNode> oldParents = _getParents(oldNode);
           List<AstNode> newParents = _getParents(newNode);
+          // fail if an initializer change
+          if (oldParents.any((n) => n is ConstructorInitializer) ||
+              newParents.any((n) => n is ConstructorInitializer)) {
+            logger.log('Failure: a change in a constructor initializer');
+            return false;
+          }
+          // find matching methods / bodies
           int length = math.min(oldParents.length, newParents.length);
           bool found = false;
           for (int i = 0; i < length; i++) {
             AstNode oldParent = oldParents[i];
             AstNode newParent = newParents[i];
-            if (oldParent is ConstructorInitializer ||
-                newParent is ConstructorInitializer) {
-              logger.log('Failure: changes in constant constructor initializers'
-                  ' may cause external changes in constant objects.');
-              return false;
-            }
-            if (oldParent is FunctionDeclaration &&
+            if (oldParent is CompilationUnit && newParent is CompilationUnit) {
+              int oldLength = oldParent.declarations.length;
+              int newLength = newParent.declarations.length;
+              if (oldLength != newLength) {
+                logger.log(
+                    'Failure: unit declarations mismatch $oldLength vs. $newLength');
+                return false;
+              }
+            } else if (oldParent is ClassDeclaration &&
+                newParent is ClassDeclaration) {
+              int oldLength = oldParent.members.length;
+              int newLength = newParent.members.length;
+              if (oldLength != newLength) {
+                logger.log(
+                    'Failure: class declarations mismatch $oldLength vs. $newLength');
+                return false;
+              }
+            } else if (oldParent is FunctionDeclaration &&
                     newParent is FunctionDeclaration ||
-                oldParent is MethodDeclaration &&
-                    newParent is MethodDeclaration ||
                 oldParent is ConstructorDeclaration &&
-                    newParent is ConstructorDeclaration) {
+                    newParent is ConstructorDeclaration ||
+                oldParent is MethodDeclaration &&
+                    newParent is MethodDeclaration) {
               Element oldElement = (oldParent as Declaration).element;
               if (new DeclarationMatcher().matches(newParent, oldElement) ==
                   DeclarationMatchKind.MATCH) {
                 oldNode = oldParent;
                 newNode = newParent;
                 found = true;
+              } else {
+                return false;
               }
-            }
-            if (oldParent is BlockFunctionBody &&
-                newParent is BlockFunctionBody) {
-              oldNode = oldParent;
-              newNode = newParent;
-              found = true;
-              break;
+            } else if (oldParent is FunctionBody && newParent is FunctionBody) {
+              if (oldParent is BlockFunctionBody &&
+                  newParent is BlockFunctionBody) {
+                oldNode = oldParent;
+                newNode = newParent;
+                found = true;
+                break;
+              }
+              logger.log('Failure: not a block function body.');
+              return false;
+            } else if (oldParent is FunctionExpression &&
+                newParent is FunctionExpression) {
+              // skip
+            } else {
+              logger.log('Failure: old and new parent mismatch'
+                  ' ${oldParent.runtimeType} vs. ${newParent.runtimeType}');
+              return false;
             }
           }
           if (!found) {
@@ -1537,6 +1583,7 @@ class PoorMansIncrementalResolver {
         }
         // perform incremental resolution
         IncrementalResolver incrementalResolver = new IncrementalResolver(
+            _cache,
             _sourceEntry,
             _unitEntry,
             _unitElement,
@@ -1555,9 +1602,12 @@ class PoorMansIncrementalResolver {
         return true;
       }
     } catch (e, st) {
-      logger.log(e);
-      logger.log(st);
+      logger.logException(e, st);
       logger.log('Failure: exception.');
+      // The incremental resolver log is usually turned off,
+      // so also log the exception to the instrumentation log.
+      AnalysisEngine.instance.logger.logError(
+          'Failure in incremental resolver', new CaughtException(e, st));
     } finally {
       logger.exit();
     }
@@ -1571,6 +1621,7 @@ class PoorMansIncrementalResolver {
       RecordingErrorListener errorListener = new RecordingErrorListener();
       Parser parser = new Parser(_unitSource, errorListener);
       AnalysisOptions options = _unitElement.context.analysisOptions;
+      parser.parseConditionalDirectives = options.enableConditionalDirectives;
       parser.parseGenericMethods = options.enableGenericMethods;
       CompilationUnit unit = parser.parseCompilationUnit(token);
       _newParseErrors = errorListener.errors;
@@ -1595,8 +1646,13 @@ class PoorMansIncrementalResolver {
     // find nodes
     int offset = oldComments.offset;
     logger.log('offset: $offset');
-    Comment oldComment = _findNodeCovering(_oldUnit, offset, offset);
-    Comment newComment = _findNodeCovering(newUnit, offset, offset);
+    AstNode oldNode = _findNodeCovering(_oldUnit, offset, offset);
+    AstNode newNode = _findNodeCovering(newUnit, offset, offset);
+    if (oldNode is! Comment || newNode is! Comment) {
+      return false;
+    }
+    Comment oldComment = oldNode;
+    Comment newComment = newNode;
     logger.log('oldComment.beginToken: ${oldComment.beginToken}');
     logger.log('newComment.beginToken: ${newComment.beginToken}');
     _updateOffset = oldToken.offset - 1;
@@ -1607,6 +1663,7 @@ class PoorMansIncrementalResolver {
     NodeReplacer.replace(oldComment, newComment);
     // update elements
     IncrementalResolver incrementalResolver = new IncrementalResolver(
+        _cache,
         _sourceEntry,
         _unitEntry,
         _unitElement,
@@ -1733,7 +1790,7 @@ class PoorMansIncrementalResolver {
         Token newComment = newToken.precedingComments;
         if (_compareToken(oldComment, newComment, 0, true) != null) {
           _TokenDifferenceKind diffKind = _TokenDifferenceKind.COMMENT;
-          if (oldComment is DocumentationCommentToken ||
+          if (oldComment is DocumentationCommentToken &&
               newComment is DocumentationCommentToken) {
             diffKind = _TokenDifferenceKind.COMMENT_DOC;
           }
@@ -1769,7 +1826,7 @@ class PoorMansIncrementalResolver {
         Token newComment = newToken.precedingComments;
         if (_compareToken(oldComment, newComment, delta, true) != null) {
           _TokenDifferenceKind diffKind = _TokenDifferenceKind.COMMENT;
-          if (oldComment is DocumentationCommentToken ||
+          if (oldComment is DocumentationCommentToken &&
               newComment is DocumentationCommentToken) {
             diffKind = _TokenDifferenceKind.COMMENT_DOC;
           }
@@ -1995,35 +2052,83 @@ class ResolutionContextBuilder {
  */
 class _DeclarationMismatchException {}
 
+/**
+ * Adjusts the location of each Element that moved.
+ *
+ * Since `==` and `hashCode` of a local variable or function Element are based
+ * on the element name offsets, we also need to remove these elements from the
+ * cache to avoid a memory leak. TODO(scheglov) fix and remove this
+ */
 class _ElementOffsetUpdater extends GeneralizingElementVisitor {
   final int updateOffset;
   final int updateDelta;
+  final AnalysisCache cache;
 
-  _ElementOffsetUpdater(this.updateOffset, this.updateDelta);
+  _ElementOffsetUpdater(this.updateOffset, this.updateDelta, this.cache);
 
   @override
   visitElement(Element element) {
     // name offset
     int nameOffset = element.nameOffset;
     if (nameOffset > updateOffset) {
-      (element as ElementImpl).nameOffset = nameOffset + updateDelta;
+      // TODO(scheglov) make sure that we don't put local variables
+      // and functions into the cache at all.
+      try {
+        (element as ElementImpl).nameOffset = nameOffset + updateDelta;
+      } on FrozenHashCodeException {
+        cache.remove(element);
+        (element as ElementImpl).nameOffset = nameOffset + updateDelta;
+      }
+      if (element is ConstVariableElement) {
+        ConstVariableElement constVariable = element as ConstVariableElement;
+        Expression initializer = constVariable.constantInitializer;
+        if (initializer != null) {
+          _shiftTokens(initializer.beginToken);
+        }
+      }
     }
     // visible range
     if (element is LocalElement) {
       SourceRange visibleRange = element.visibleRange;
-      if (visibleRange != null && visibleRange.offset > updateOffset) {
-        int newOffset = visibleRange.offset + updateDelta;
-        int length = visibleRange.length;
-        if (element is FunctionElementImpl) {
-          element.setVisibleRange(newOffset, length);
-        } else if (element is LocalVariableElementImpl) {
-          element.setVisibleRange(newOffset, length);
-        } else if (element is ParameterElementImpl) {
-          element.setVisibleRange(newOffset, length);
+      if (visibleRange != null) {
+        int oldOffset = visibleRange.offset;
+        int oldLength = visibleRange.length;
+        int newOffset = oldOffset;
+        int newLength = oldLength;
+        newOffset += oldOffset > updateOffset ? updateDelta : 0;
+        newLength += visibleRange.contains(updateOffset) ? updateDelta : 0;
+        if (newOffset != oldOffset || newLength != oldLength) {
+          if (element is FunctionElementImpl) {
+            element.setVisibleRange(newOffset, newLength);
+          } else if (element is LocalVariableElementImpl) {
+            element.setVisibleRange(newOffset, newLength);
+          } else if (element is ParameterElementImpl) {
+            element.setVisibleRange(newOffset, newLength);
+          }
         }
       }
     }
     super.visitElement(element);
+  }
+
+  void _shiftTokens(Token token) {
+    while (token != null) {
+      if (token.offset > updateOffset) {
+        token.offset += updateDelta;
+      }
+      // comments
+      _shiftTokens(token.precedingComments);
+      if (token is DocumentationCommentToken) {
+        for (Token reference in token.references) {
+          _shiftTokens(reference);
+        }
+      }
+      // next
+      if (token.type == TokenType.EOF) {
+        break;
+      }
+      token = token.next;
+    }
   }
 }
 

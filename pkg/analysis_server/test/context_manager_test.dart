@@ -14,9 +14,11 @@ import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/services/lint.dart';
+import 'package:analyzer/src/util/glob.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
 import 'package:linter/src/rules/avoid_as.dart';
 import 'package:package_config/packages.dart';
@@ -71,6 +73,8 @@ class AbstractContextManagerTest {
 
   UriResolver packageResolver = null;
 
+  UriResolver embeddedUriResolver = null;
+
   String projPath = '/my/proj';
 
   AnalysisError missing_return =
@@ -88,6 +92,18 @@ class AbstractContextManagerTest {
       new TestSource(), 0, 1, HintCode.UNUSED_LOCAL_VARIABLE, [
     ['x']
   ]);
+
+  List<Glob> get analysisFilesGlobs {
+    List<String> patterns = <String>[
+      '**/*.${AnalysisEngine.SUFFIX_DART}',
+      '**/*.${AnalysisEngine.SUFFIX_HTML}',
+      '**/*.${AnalysisEngine.SUFFIX_HTM}',
+      '**/${AnalysisEngine.ANALYSIS_OPTIONS_FILE}'
+    ];
+    return patterns
+        .map((pattern) => new Glob(JavaFile.pathContext.separator, pattern))
+        .toList();
+  }
 
   List<ErrorProcessor> get errorProcessors => callbacks.currentContext
       .getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
@@ -126,16 +142,22 @@ class AbstractContextManagerTest {
     manager.processPlugins(plugins);
   }
 
-  UriResolver providePackageResolver(Folder folder) {
-    return packageResolver;
-  }
+  UriResolver provideEmbeddedUriResolver(Folder folder) => embeddedUriResolver;
+
+  UriResolver providePackageResolver(Folder folder) => packageResolver;
 
   void setUp() {
     processRequiredPlugins();
     resourceProvider = new MemoryResourceProvider();
     packageMapProvider = new MockPackageMapProvider();
-    manager = new ContextManagerImpl(resourceProvider, providePackageResolver,
-        packageMapProvider, InstrumentationService.NULL_SERVICE);
+    manager = new ContextManagerImpl(
+        resourceProvider,
+        providePackageResolver,
+        provideEmbeddedUriResolver,
+        packageMapProvider,
+        analysisFilesGlobs,
+        InstrumentationService.NULL_SERVICE,
+        new AnalysisOptionsImpl());
     callbacks = new TestContextManagerCallbacks(resourceProvider);
     manager.callbacks = callbacks;
     resourceProvider.newFolder(projPath);
@@ -146,7 +168,7 @@ class AbstractContextManagerTest {
     newFile(
         [projPath, AnalysisEngine.ANALYSIS_OPTIONS_FILE],
         r'''
-embedder_libs:
+embedded_libs:
   "dart:foobar": "../sdk_ext/entry.dart"
 analyzer:
   language:
@@ -279,6 +301,59 @@ linter:
     expect(contexts, contains(subProjContextInfo.context));
   }
 
+  test_embedder_added() async {
+    // Create files.
+    String libPath = newFolder([projPath, LIB_NAME]);
+    newFile([libPath, 'main.dart']);
+    newFile([libPath, 'nope.dart']);
+    String embedderPath = newFolder([projPath, 'embedder']);
+    newFile([embedderPath, 'entry.dart']);
+    String embedderSrcPath = newFolder([projPath, 'embedder', 'src']);
+    newFile([embedderSrcPath, 'part.dart']);
+
+    // Setup _embedder.yaml.
+    newFile(
+        [libPath, '_embedder.yaml'],
+        r'''
+embedded_libs:
+  "dart:foobar": "../embedder/entry.dart"
+  "dart:typed_data": "../embedder/src/part"
+  ''');
+
+    Folder projectFolder = resourceProvider.newFolder(projPath);
+
+    // NOTE that this is Not in our package path yet.
+
+    // Setup context.
+    manager.setRoots(<String>[projPath], <String>[], <String, String>{});
+    await pumpEventQueue();
+    // Confirm that one context was created.
+    List<AnalysisContext> contexts =
+        manager.contextsInAnalysisRoot(projectFolder);
+    expect(contexts, isNotNull);
+    expect(contexts, hasLength(1));
+
+    // No embedded libs yet.
+    expect(contexts.first.sourceFactory.forUri('dart:typed_data'), isNull);
+
+    // Add .packages file that introduces a dependency with embedded libs.
+    newFile(
+        [projPath, '.packages'],
+        r'''
+test_pack:lib/''');
+
+    await pumpEventQueue();
+
+    contexts = manager.contextsInAnalysisRoot(projectFolder);
+
+    // Confirm that we still have just one context.
+    expect(contexts, isNotNull);
+    expect(contexts, hasLength(1));
+
+    // Embedded lib should be defined now.
+    expect(contexts.first.sourceFactory.forUri('dart:typed_data'), isNotNull);
+  }
+
   test_embedder_options() async {
     // Create files.
     String libPath = newFolder([projPath, LIB_NAME]);
@@ -289,7 +364,7 @@ linter:
     newFile(
         [libPath, '_embedder.yaml'],
         r'''
-embedder_libs:
+embedded_libs:
   "dart:foobar": "../sdk_ext/entry.dart"
 analyzer:
   strong-mode: true
@@ -343,8 +418,10 @@ linter:
     // * from `.analysis_options`:
     expect(context.analysisOptions.enableGenericMethods, isTrue);
     // * verify tests are excluded
-    expect(callbacks.currentContextFilePaths[projPath].keys,
-        ['/my/proj/sdk_ext/entry.dart']);
+    expect(
+        callbacks.currentContextFilePaths[projPath].keys,
+        unorderedEquals(
+            ['/my/proj/sdk_ext/entry.dart', '/my/proj/.analysis_options']));
 
     // Verify filter setup.
     expect(errorProcessors, hasLength(2));
@@ -366,7 +443,8 @@ linter:
     // Sanity check embedder libs.
     var source = context.sourceFactory.forUri('dart:foobar');
     expect(source, isNotNull);
-    expect(source.fullName, '/my/proj/sdk_ext/entry.dart');
+    expect(source.fullName,
+        '/my/proj/sdk_ext/entry.dart'.replaceAll('/', JavaFile.separator));
   }
 
   test_embedder_packagespec() async {
@@ -382,7 +460,7 @@ linter:
     newFile(
         [libPath, '_embedder.yaml'],
         r'''
-embedder_libs:
+embedded_libs:
   "dart:foobar": "../sdk_ext/entry.dart"
   "dart:typed_data": "../sdk_ext/src/part"
   ''');
@@ -403,12 +481,13 @@ test_pack:lib/''');
     var context = contexts[0];
     var source = context.sourceFactory.forUri('dart:foobar');
     expect(source, isNotNull);
-    expect(source.fullName, equals('/my/proj/sdk_ext/entry.dart'));
+    expect(source.fullName,
+        '/my/proj/sdk_ext/entry.dart'.replaceAll('/', JavaFile.separator));
     // We can't find dart:core because we didn't list it in our
-    // embedder_libs map.
+    // embedded_libs map.
     expect(context.sourceFactory.forUri('dart:core'), isNull);
     // We can find dart:typed_data because we listed it in our
-    // embedder_libs map.
+    // embedded_libs map.
     expect(context.sourceFactory.forUri('dart:typed_data'), isNotNull);
   }
 
@@ -594,8 +673,10 @@ analyzer:
         callbacks.currentContextFilePaths[projPath];
     expect(fileTimestamps, isNotEmpty);
     List<String> files = fileTimestamps.keys.toList();
-    expect(files.length, equals(1));
-    expect(files[0], equals('/my/proj/lib/main.dart'));
+    expect(
+        files,
+        unorderedEquals(
+            ['/my/proj/lib/main.dart', '/my/proj/.analysis_options']));
   }
 
   test_path_filter_child_contexts_option() async {
@@ -1289,8 +1370,8 @@ analyzer:
   exclude:
     - 'example'
 ''');
-    manager.setRoots(
-        <String>[project, example], <String>[], <String, String>{});
+    manager
+        .setRoots(<String>[project, example], <String>[], <String, String>{});
     // verify
     {
       ContextInfo rootInfo = manager.rootInfo;
@@ -1353,8 +1434,8 @@ analyzer:
     // create files
     resourceProvider.newFile(projectPubspec, 'name: project');
     resourceProvider.newFile(examplePubspec, 'name: example');
-    manager.setRoots(
-        <String>[example, project], <String>[], <String, String>{});
+    manager
+        .setRoots(<String>[example, project], <String>[], <String, String>{});
     // verify
     {
       ContextInfo rootInfo = manager.rootInfo;
@@ -1381,8 +1462,8 @@ analyzer:
     // create files
     resourceProvider.newFile(projectPubspec, 'name: project');
     resourceProvider.newFolder(example);
-    manager.setRoots(
-        <String>[project, example], <String>[], <String, String>{});
+    manager
+        .setRoots(<String>[project, example], <String>[], <String, String>{});
     // verify
     {
       ContextInfo rootInfo = manager.rootInfo;
@@ -1405,8 +1486,8 @@ analyzer:
     // create files
     resourceProvider.newFile(projectPubspec, 'name: project');
     resourceProvider.newFile(examplePubspec, 'name: example');
-    manager.setRoots(
-        <String>[project, example], <String>[], <String, String>{});
+    manager
+        .setRoots(<String>[project, example], <String>[], <String, String>{});
     // verify
     {
       ContextInfo rootInfo = manager.rootInfo;
@@ -1552,8 +1633,8 @@ analyzer:
     resourceProvider.newFile(subProjectA_file, '// sub-a');
     resourceProvider.newFile(subProjectB_file, '// sub-b');
     // set roots
-    manager.setRoots(
-        <String>[projectA, projectB], <String>[], <String, String>{});
+    manager
+        .setRoots(<String>[projectA, projectB], <String>[], <String, String>{});
     callbacks
         .assertContextPaths([projectA, subProjectA, projectB, subProjectB]);
     callbacks.assertContextFiles(projectA, [projectA_file]);
@@ -1600,8 +1681,8 @@ analyzer:
     resourceProvider.newFile(subProjectA_file, '// sub-a');
     resourceProvider.newFile(subProjectB_file, '// sub-b');
     // set roots
-    manager.setRoots(
-        <String>[projectA, projectB], <String>[], <String, String>{});
+    manager
+        .setRoots(<String>[projectA, projectB], <String>[], <String, String>{});
     callbacks
         .assertContextPaths([projectA, subProjectA, projectB, subProjectB]);
     callbacks.assertContextFiles(projectA, [projectA_file]);
@@ -2301,7 +2382,8 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   Iterable<String> get currentContextPaths => currentContextTimestamps.keys;
 
   @override
-  AnalysisContext addContext(Folder folder, FolderDisposition disposition) {
+  AnalysisContext addContext(
+      Folder folder, AnalysisOptions options, FolderDisposition disposition) {
     String path = folder.path;
     expect(currentContextPaths, isNot(contains(path)));
     currentContextTimestamps[path] = now;
@@ -2324,6 +2406,7 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
     }
     resolvers.addAll(disposition.createPackageUriResolvers(resourceProvider));
     resolvers.add(new FileUriResolver());
+    currentContext.analysisOptions = options;
     currentContext.sourceFactory =
         new SourceFactory(resolvers, disposition.packages);
     return currentContext;
@@ -2362,6 +2445,11 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
+  void computingPackageMap(bool computing) {
+    // Do nothing.
+  }
+
+  @override
   void removeContext(Folder folder, List<String> flushedFiles) {
     String path = folder.path;
     expect(currentContextPaths, contains(path));
@@ -2369,20 +2457,6 @@ class TestContextManagerCallbacks extends ContextManagerCallbacks {
     currentContextFilePaths.remove(path);
     currentContextSources.remove(path);
     currentContextDispositions.remove(path);
-  }
-
-  @override
-  bool shouldFileBeAnalyzed(File file) {
-    if (!(AnalysisEngine.isDartFileName(file.path) ||
-        AnalysisEngine.isHtmlFileName(file.path))) {
-      return false;
-    }
-    // Emacs creates dummy links to track the fact that a file is open for
-    // editing and has unsaved changes (e.g. having unsaved changes to
-    // 'foo.dart' causes a link '.#foo.dart' to be created, which points to the
-    // non-existent file 'username@hostname.pid'.  To avoid these dummy links
-    // causing the analyzer to thrash, just ignore links to non-existent files.
-    return file.exists;
   }
 
   @override

@@ -86,7 +86,7 @@ class _AsyncStarStreamController {
     scheduleMicrotask(runBody);
   }
 
-  // Adds element to steam, returns true if the caller should terminate
+  // Adds element to stream, returns true if the caller should terminate
   // execution of the generator.
   //
   // TODO(hausner): Per spec, the generator should be suspended before
@@ -177,7 +177,12 @@ class _AsyncStarStreamController {
     }
     if (cancellationCompleter == null) {
       cancellationCompleter = new Completer();
-      scheduleGenerator();
+      // Only resume the generator if it is suspended at a yield.
+      // Cancellation does not affect an async generator that is
+      // suspended at an await.
+      if (isSuspendedAtYield) {
+        scheduleGenerator();
+      }
     }
     return cancellationCompleter.future;
   }

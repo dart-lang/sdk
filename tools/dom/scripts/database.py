@@ -44,6 +44,8 @@ class Database(object):
     self._interfaces_to_delete = []
     self._enums = {}
     self._all_dictionaries = {}
+    # TODO(terry): Hack to remember all typedef unions.
+    self._all_type_defs = {}
 
   def Clone(self):
     new_database = Database(self._root_dir)
@@ -52,6 +54,7 @@ class Database(object):
         self._interfaces_to_delete)
     new_database._enums = copy.deepcopy(self._enums)
     new_database._all_dictionaries = copy.deepcopy(self._all_dictionaries)
+    new_database._all_type_defs = copy.deepcopy(self._all_type_defs)
 
     return new_database
 
@@ -282,30 +285,59 @@ class Database(object):
       res.append(dictionary)
     return res
 
+  def HasTypeDef(self, type_def_name):
+    """Returns True if the typedef is in memory"""
+    return type_def_name in self._all_type_defs
+
+  def GetTypeDef(self, type_def_name):
+    """Returns an IDLTypeDef corresponding to the type_def_name
+    from memory.
+
+    Args:
+      type_def_name -- the name of the typedef.
+    """
+    if type_def_name not in self._all_type_defs:
+      raise RuntimeError('Typedef %s is not loaded' % type_def_name)
+    return self._all_type_defs[type_def_name]
+
+  def AddTypeDef(self, type_def):
+    """Add only a typedef that a unions they map to any (no type)."""
+    type_def_name = type_def.id
+    if type_def_name in self._all_type_defs:
+      raise RuntimeError('Typedef %s already exists' % type_def_name)
+    self._all_type_defs[type_def_name] = type_def
+    print '  Added typedef %s' % type_def_name
+
   def TransitiveSecondaryParents(self, interface, propagate_event_target):
     """Returns a list of all non-primary parents.
 
     The list contains the interface objects for interfaces defined in the
     database, and the name for undefined interfaces.
     """
-    def walk(parents):
+    def walk(parents, walk_result):
       for parent in parents:
         parent_name = parent.type.id
         if IsDartCollectionType(parent_name):
-          result.append(parent_name)
+          if not(parent_name in walk_result):
+            walk_result.append(parent_name)
           continue
         if self.HasInterface(parent_name):
           parent_interface = self.GetInterface(parent_name)
-          result.append(parent_interface)
-          walk(parent_interface.parents)
+          if not(parent_interface in walk_result):
+            # Interface has multi-inherited don't add interfaces more than once
+            # to our parent result list.
+            walk_result.append(parent_interface)
+          walk(parent_interface.parents, walk_result)
+      return walk_result
 
     result = []
     if interface.parents:
       parent = interface.parents[0]
       if (IsPureInterface(parent.type.id) or
           (propagate_event_target and parent.type.id == 'EventTarget')):
-        walk(interface.parents)
+        result = walk(interface.parents, [])
       else:
-        walk(interface.parents[1:])
+        result = walk(interface.parents[1:], [])
+
     return result
 

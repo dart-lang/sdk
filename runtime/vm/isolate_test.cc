@@ -131,7 +131,9 @@ const intptr_t InterruptChecker::kIterations = 10;
 // round update *before* the interrupt is set.
 TEST_CASE(StackLimitInterrupts) {
   Isolate* isolate = Thread::Current()->isolate();
-  ThreadBarrier barrier(InterruptChecker::kTaskCount + 1);
+  ThreadBarrier barrier(InterruptChecker::kTaskCount + 1,
+                        isolate->heap()->barrier(),
+                        isolate->heap()->barrier_done());
   // Start all tasks. They will busy-wait until interrupted in the first round.
   for (intptr_t task = 0; task < InterruptChecker::kTaskCount; task++) {
     Dart::thread_pool()->Run(new InterruptChecker(isolate, &barrier));
@@ -147,6 +149,105 @@ TEST_CASE(StackLimitInterrupts) {
     EXPECT((interrupts & Isolate::kVMInterrupt) != 0);
   }
   barrier.Exit();
+}
+
+
+class IsolateTestHelper {
+ public:
+  static uword GetStackLimit(Isolate* isolate) {
+    return isolate->stack_limit_;
+  }
+  static uword GetSavedStackLimit(Isolate* isolate) {
+    return isolate->saved_stack_limit_;
+  }
+  static uword GetDeferredInterruptsMask(Isolate* isolate) {
+    return isolate->deferred_interrupts_mask_;
+  }
+  static uword GetDeferredInterrupts(Isolate* isolate) {
+    return isolate->deferred_interrupts_;
+  }
+};
+
+
+TEST_CASE(NoOOBMessageScope) {
+  // EXPECT_EQ is picky about type agreement for its arguments.
+  const uword kZero = 0;
+  const uword kMessageInterrupt = Isolate::kMessageInterrupt;
+  const uword kVMInterrupt = Isolate::kVMInterrupt;
+  uword stack_limit;
+  uword interrupt_bits;
+
+  // Initially no interrupts are scheduled or deferred.
+  Isolate* isolate = Thread::Current()->isolate();
+  EXPECT_EQ(IsolateTestHelper::GetStackLimit(isolate),
+            IsolateTestHelper::GetSavedStackLimit(isolate));
+  EXPECT_EQ(kZero, IsolateTestHelper::GetDeferredInterruptsMask(isolate));
+  EXPECT_EQ(kZero, IsolateTestHelper::GetDeferredInterrupts(isolate));
+
+  {
+    // Defer message interrupts.
+    NoOOBMessageScope no_msg_scope(Thread::Current());
+    EXPECT_EQ(IsolateTestHelper::GetStackLimit(isolate),
+              IsolateTestHelper::GetSavedStackLimit(isolate));
+    EXPECT_EQ(kMessageInterrupt,
+              IsolateTestHelper::GetDeferredInterruptsMask(isolate));
+    EXPECT_EQ(kZero, IsolateTestHelper::GetDeferredInterrupts(isolate));
+
+    // Schedule a message, it is deferred.
+    isolate->ScheduleInterrupts(Isolate::kMessageInterrupt);
+    EXPECT_EQ(IsolateTestHelper::GetStackLimit(isolate),
+              IsolateTestHelper::GetSavedStackLimit(isolate));
+    EXPECT_EQ(kMessageInterrupt,
+              IsolateTestHelper::GetDeferredInterruptsMask(isolate));
+    EXPECT_EQ(kMessageInterrupt,
+              IsolateTestHelper::GetDeferredInterrupts(isolate));
+
+    // Schedule a vm interrupt, it is not deferred.
+    isolate->ScheduleInterrupts(Isolate::kVMInterrupt);
+    stack_limit = IsolateTestHelper::GetStackLimit(isolate);
+    EXPECT_NE(stack_limit, IsolateTestHelper::GetSavedStackLimit(isolate));
+    EXPECT((stack_limit & Isolate::kVMInterrupt) != 0);
+    EXPECT_EQ(kMessageInterrupt,
+              IsolateTestHelper::GetDeferredInterruptsMask(isolate));
+    EXPECT_EQ(kMessageInterrupt,
+              IsolateTestHelper::GetDeferredInterrupts(isolate));
+
+    // Clear the vm interrupt.  Message is still deferred.
+    interrupt_bits = isolate->GetAndClearInterrupts();
+    EXPECT_EQ(kVMInterrupt, interrupt_bits);
+    EXPECT_EQ(IsolateTestHelper::GetStackLimit(isolate),
+              IsolateTestHelper::GetSavedStackLimit(isolate));
+    EXPECT_EQ(kMessageInterrupt,
+              IsolateTestHelper::GetDeferredInterruptsMask(isolate));
+    EXPECT_EQ(kMessageInterrupt,
+              IsolateTestHelper::GetDeferredInterrupts(isolate));
+  }
+
+  // Restore message interrupts.  Message is now pending.
+  stack_limit = IsolateTestHelper::GetStackLimit(isolate);
+  EXPECT_NE(stack_limit, IsolateTestHelper::GetSavedStackLimit(isolate));
+  EXPECT((stack_limit & Isolate::kMessageInterrupt) != 0);
+  EXPECT_EQ(kZero, IsolateTestHelper::GetDeferredInterruptsMask(isolate));
+  EXPECT_EQ(kZero, IsolateTestHelper::GetDeferredInterrupts(isolate));
+
+  {
+    // Defer message interrupts, again.  The pending interrupt is deferred.
+    NoOOBMessageScope no_msg_scope(Thread::Current());
+    EXPECT_EQ(IsolateTestHelper::GetStackLimit(isolate),
+              IsolateTestHelper::GetSavedStackLimit(isolate));
+    EXPECT_EQ(kMessageInterrupt,
+              IsolateTestHelper::GetDeferredInterruptsMask(isolate));
+    EXPECT_EQ(kMessageInterrupt,
+              IsolateTestHelper::GetDeferredInterrupts(isolate));
+  }
+
+  // Restore, then clear interrupts.  The world is as it was.
+  interrupt_bits = isolate->GetAndClearInterrupts();
+  EXPECT_EQ(kMessageInterrupt, interrupt_bits);
+  EXPECT_EQ(IsolateTestHelper::GetStackLimit(isolate),
+            IsolateTestHelper::GetSavedStackLimit(isolate));
+  EXPECT_EQ(kZero, IsolateTestHelper::GetDeferredInterruptsMask(isolate));
+  EXPECT_EQ(kZero, IsolateTestHelper::GetDeferredInterrupts(isolate));
 }
 
 }  // namespace dart

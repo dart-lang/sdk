@@ -19,9 +19,10 @@
 
 namespace dart {
 
-DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, verify_acquired_data);
 DECLARE_FLAG(bool, ignore_patch_signature_mismatch);
+
+#ifndef PRODUCT
 
 TEST_CASE(ErrorHandleBasics) {
   const char* kScriptChars =
@@ -374,7 +375,7 @@ void CurrentStackTraceNative(Dart_NativeArguments args) {
 static Dart_NativeFunction CurrentStackTraceNativeLookup(
     Dart_Handle name, int argument_count, bool* auto_setup_scope) {
   ASSERT(auto_setup_scope != NULL);
-  *auto_setup_scope = false;
+  *auto_setup_scope = true;
   return reinterpret_cast<Dart_NativeFunction>(&CurrentStackTraceNative);
 }
 
@@ -394,6 +395,9 @@ TEST_CASE(CurrentStacktraceInfo) {
   EXPECT_VALID(Dart_IntegerToInt64(result, &value));
   EXPECT_EQ(42, value);
 }
+
+
+#endif  // !PRODUCT
 
 
 TEST_CASE(ErrorHandleTypes) {
@@ -500,22 +504,36 @@ TEST_CASE(UnhandleExceptionError) {
 }
 
 
+// Should we propagate the error via Dart_SetReturnValue?
+static bool use_set_return = false;
+
+// Should we propagate the error via Dart_ThrowException?
+static bool use_throw_exception = false;
+
+
 void PropagateErrorNative(Dart_NativeArguments args) {
-  Dart_EnterScope();
   Dart_Handle closure = Dart_GetNativeArgument(args, 0);
   EXPECT(Dart_IsClosure(closure));
   Dart_Handle result = Dart_InvokeClosure(closure, 0, NULL);
   EXPECT(Dart_IsError(result));
-  result = Dart_PropagateError(result);
-  EXPECT_VALID(result);  // We do not expect to reach here.
-  UNREACHABLE();
+  if (use_set_return) {
+    Dart_SetReturnValue(args, result);
+  } else if (use_throw_exception) {
+    result = Dart_ThrowException(result);
+    EXPECT_VALID(result);  // We do not expect to reach here.
+    UNREACHABLE();
+  } else {
+    result = Dart_PropagateError(result);
+    EXPECT_VALID(result);  // We do not expect to reach here.
+    UNREACHABLE();
+  }
 }
 
 
 static Dart_NativeFunction PropagateError_native_lookup(
     Dart_Handle name, int argument_count, bool* auto_setup_scope) {
   ASSERT(auto_setup_scope != NULL);
-  *auto_setup_scope = false;
+  *auto_setup_scope = true;
   return reinterpret_cast<Dart_NativeFunction>(&PropagateErrorNative);
 }
 
@@ -542,6 +560,38 @@ TEST_CASE(Dart_PropagateError) {
   Dart_Handle lib = TestCase::LoadTestScript(
       kScriptChars, &PropagateError_native_lookup);
   Dart_Handle result;
+
+  // Use Dart_PropagateError to propagate the error.
+  use_throw_exception = false;
+  use_set_return = false;
+
+  result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
+  EXPECT(Dart_IsError(result));
+  EXPECT(!Dart_ErrorHasException(result));
+  EXPECT_SUBSTRING("semicolon expected", Dart_GetError(result));
+
+  result = Dart_Invoke(lib, NewString("Func2"), 0, NULL);
+  EXPECT(Dart_IsError(result));
+  EXPECT(Dart_ErrorHasException(result));
+  EXPECT_SUBSTRING("myException", Dart_GetError(result));
+
+  // Use Dart_SetReturnValue to propagate the error.
+  use_throw_exception = false;
+  use_set_return = true;
+
+  result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
+  EXPECT(Dart_IsError(result));
+  EXPECT(!Dart_ErrorHasException(result));
+  EXPECT_SUBSTRING("semicolon expected", Dart_GetError(result));
+
+  result = Dart_Invoke(lib, NewString("Func2"), 0, NULL);
+  EXPECT(Dart_IsError(result));
+  EXPECT(Dart_ErrorHasException(result));
+  EXPECT_SUBSTRING("myException", Dart_GetError(result));
+
+  // Use Dart_ThrowException to propagate the error.
+  use_throw_exception = true;
+  use_set_return = false;
 
   result = Dart_Invoke(lib, NewString("Func1"), 0, NULL);
   EXPECT(Dart_IsError(result));
@@ -615,7 +665,8 @@ TEST_CASE(IdentityEquals) {
 
   // Non-instance objects.
   {
-    DARTSCOPE(thread);
+    CHECK_API_SCOPE(thread);
+    HANDLESCOPE(thread);
     Dart_Handle lib1 = Dart_LookupLibrary(dart_core);
     Dart_Handle lib2 = Dart_LookupLibrary(dart_mirrors);
 
@@ -660,7 +711,8 @@ TEST_CASE(IdentityHash) {
 
   // Non-instance objects.
   {
-    DARTSCOPE(thread);
+    CHECK_API_SCOPE(thread);
+    HANDLESCOPE(thread);
     Dart_Handle lib1 = Dart_LookupLibrary(dart_core);
     Dart_Handle lib2 = Dart_LookupLibrary(dart_mirrors);
 
@@ -1182,14 +1234,17 @@ TEST_CASE(ExternalStringCallback) {
     Dart_ExitScope();
   }
 
-  EXPECT_EQ(40, peer8);
-  EXPECT_EQ(41, peer16);
-  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-  EXPECT_EQ(40, peer8);
-  EXPECT_EQ(41, peer16);
-  Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
-  EXPECT_EQ(80, peer8);
-  EXPECT_EQ(82, peer16);
+  {
+    TransitionNativeToVM transition(thread);
+    EXPECT_EQ(40, peer8);
+    EXPECT_EQ(41, peer16);
+    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+    EXPECT_EQ(40, peer8);
+    EXPECT_EQ(41, peer16);
+    Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+    EXPECT_EQ(80, peer8);
+    EXPECT_EQ(82, peer16);
+  }
 }
 
 
@@ -1224,7 +1279,8 @@ TEST_CASE(ExternalStringPretenure) {
         NULL);
     EXPECT_VALID(small16);
     {
-      DARTSCOPE(thread);
+      CHECK_API_SCOPE(thread);
+      HANDLESCOPE(thread);
       String& handle = String::Handle();
       handle ^= Api::UnwrapHandle(big8);
       EXPECT(handle.IsOld());
@@ -1258,7 +1314,8 @@ TEST_CASE(ExternalTypedDataPretenure) {
         kSmallLength);
     EXPECT_VALID(small);
     {
-      DARTSCOPE(thread);
+      CHECK_API_SCOPE(thread);
+      HANDLESCOPE(thread);
       ExternalTypedData& handle = ExternalTypedData::Handle();
       handle ^= Api::UnwrapHandle(big);
       EXPECT(handle.IsOld());
@@ -1733,7 +1790,7 @@ static Dart_NativeFunction ByteDataNativeResolver(Dart_Handle name,
                                                   int arg_count,
                                                   bool* auto_setup_scope) {
   ASSERT(auto_setup_scope != NULL);
-  *auto_setup_scope = false;
+  *auto_setup_scope = true;
   return &ByteDataNativeFunction;
 }
 
@@ -1795,7 +1852,7 @@ static void ExternalByteDataNativeFunction(Dart_NativeArguments args) {
 static Dart_NativeFunction ExternalByteDataNativeResolver(
     Dart_Handle name, int arg_count, bool* auto_setup_scope) {
   ASSERT(auto_setup_scope != NULL);
-  *auto_setup_scope = false;
+  *auto_setup_scope = true;
   return &ExternalByteDataNativeFunction;
 }
 
@@ -1848,6 +1905,9 @@ TEST_CASE(ExternalByteDataAccess) {
 }
 
 
+#ifndef PRODUCT
+
+
 static const intptr_t kOptExtLength = 16;
 static int8_t opt_data[kOptExtLength] = { 0x01, 0x02, 0x03, 0x04,
                                           0x05, 0x06, 0x07, 0x08,
@@ -1869,7 +1929,7 @@ static void OptExternalByteDataNativeFunction(Dart_NativeArguments args) {
 static Dart_NativeFunction OptExternalByteDataNativeResolver(
     Dart_Handle name, int arg_count, bool* auto_setup_scope) {
   ASSERT(auto_setup_scope != NULL);
-  *auto_setup_scope = false;
+  *auto_setup_scope = true;
   return &OptExternalByteDataNativeFunction;
 }
 
@@ -1914,6 +1974,9 @@ TEST_CASE(OptimizedExternalByteDataAccess) {
   EXPECT_VALID(result);
   FLAG_optimization_counter_threshold = old_oct;
 }
+
+
+#endif  // !PRODUCT
 
 
 static void TestTypedDataDirectAccess() {
@@ -2311,11 +2374,14 @@ TEST_CASE(ExternalTypedDataCallback) {
     EXPECT_VALID(obj);
     Dart_ExitScope();
   }
-  EXPECT(peer == 0);
-  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-  EXPECT(peer == 0);
-  Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
-  EXPECT(peer == 42);
+  {
+    TransitionNativeToVM transition(thread);
+    EXPECT(peer == 0);
+    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+    EXPECT(peer == 0);
+    Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+    EXPECT(peer == 42);
+  }
 }
 
 
@@ -2367,8 +2433,11 @@ TEST_CASE(Float32x4List) {
     CheckFloat32x4Data(lcl);
   }
   Dart_ExitScope();
-  Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
-  EXPECT(peer == 42);
+  {
+    TransitionNativeToVM transition(thread);
+    Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+    EXPECT(peer == 42);
+  }
 }
 
 
@@ -2383,7 +2452,7 @@ UNIT_TEST_CASE(EnterExitScope) {
   Dart_EnterScope();
   {
     EXPECT(thread->api_top_scope() != NULL);
-    DARTSCOPE(Thread::Current());
+    HANDLESCOPE(thread);
     const String& str1 = String::Handle(String::New("Test String"));
     Dart_Handle ref = Api::NewHandle(thread, str1.raw());
     String& str2 = String::Handle();
@@ -2409,7 +2478,8 @@ UNIT_TEST_CASE(PersistentHandles) {
   Dart_PersistentHandle handles[2000];
   Dart_EnterScope();
   {
-    DARTSCOPE(Thread::Current());
+    CHECK_API_SCOPE(thread);
+    HANDLESCOPE(thread);
     Dart_Handle ref1 = Api::NewHandle(thread, String::New(kTestString1));
     for (int i = 0; i < 1000; i++) {
       handles[i] = Dart_NewPersistentHandle(ref1);
@@ -2471,7 +2541,9 @@ UNIT_TEST_CASE(NewPersistentHandle_FromPersistentHandle) {
   EXPECT(isolate != NULL);
   ApiState* state = isolate->api_state();
   EXPECT(state != NULL);
-  DARTSCOPE(Thread::Current());
+  Thread* thread = Thread::Current();
+  CHECK_API_SCOPE(thread);
+  HANDLESCOPE(thread);
 
   // Start with a known persistent handle.
   Dart_PersistentHandle obj1 = Dart_NewPersistentHandle(Dart_True());
@@ -2498,7 +2570,9 @@ UNIT_TEST_CASE(AssignToPersistentHandle) {
   const char* kTestString2 = "Test String2";
   TestIsolateScope __test_isolate__;
 
-  DARTSCOPE(Thread::Current());
+  Thread* T = Thread::Current();
+  CHECK_API_SCOPE(T);
+  HANDLESCOPE(T);
   Isolate* isolate = T->isolate();
   EXPECT(isolate != NULL);
   ApiState* state = isolate->api_state();
@@ -2581,7 +2655,8 @@ TEST_CASE(WeakPersistentHandle) {
     // Create an object in old space.
     Dart_Handle old_ref;
     {
-      DARTSCOPE(Thread::Current());
+      CHECK_API_SCOPE(thread);
+      HANDLESCOPE(thread);
       old_ref = Api::NewHandle(thread, String::New("old string", Heap::kOld));
       EXPECT_VALID(old_ref);
     }
@@ -2602,8 +2677,11 @@ TEST_CASE(WeakPersistentHandle) {
     EXPECT_VALID(AsHandle(weak_old_ref));
     EXPECT(!Dart_IsNull(AsHandle(weak_old_ref)));
 
-    // Garbage collect new space.
-    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+    {
+      TransitionNativeToVM transition(thread);
+      // Garbage collect new space.
+      GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+    }
 
     // Nothing should be invalidated or cleared.
     EXPECT_VALID(new_ref);
@@ -2619,8 +2697,11 @@ TEST_CASE(WeakPersistentHandle) {
     EXPECT(!Dart_IsNull(AsHandle(weak_old_ref)));
     EXPECT(Dart_IdentityEquals(old_ref, AsHandle(weak_old_ref)));
 
-    // Garbage collect old space.
-    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+    {
+      TransitionNativeToVM transition(thread);
+      // Garbage collect old space.
+      Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+    }
 
     // Nothing should be invalidated or cleared.
     EXPECT_VALID(new_ref);
@@ -2640,8 +2721,11 @@ TEST_CASE(WeakPersistentHandle) {
     Dart_ExitScope();
   }
 
-  // Garbage collect new space again.
-  GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+  {
+    TransitionNativeToVM transition(thread);
+    // Garbage collect new space again.
+    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+  }
 
   {
     Dart_EnterScope();
@@ -2652,8 +2736,11 @@ TEST_CASE(WeakPersistentHandle) {
     Dart_ExitScope();
   }
 
-  // Garbage collect old space again.
-  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+  {
+    TransitionNativeToVM transition(thread);
+    // Garbage collect old space again.
+    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+  }
 
   {
     Dart_EnterScope();
@@ -2663,9 +2750,12 @@ TEST_CASE(WeakPersistentHandle) {
     Dart_ExitScope();
   }
 
-  // Garbage collect one last time to revisit deleted handles.
-  Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
-  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+  {
+    TransitionNativeToVM transition(thread);
+    // Garbage collect one last time to revisit deleted handles.
+    Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+  }
 }
 
 
@@ -2689,10 +2779,13 @@ TEST_CASE(WeakPersistentHandleCallback) {
     EXPECT(peer == 0);
     Dart_ExitScope();
   }
-  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-  EXPECT(peer == 0);
-  GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
-  EXPECT(peer == 42);
+  {
+    TransitionNativeToVM transition(thread);
+    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+    EXPECT(peer == 0);
+    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+    EXPECT(peer == 42);
+  }
 }
 
 
@@ -2712,10 +2805,13 @@ TEST_CASE(WeakPersistentHandleNoCallback) {
   Dart_Isolate isolate = reinterpret_cast<Dart_Isolate>(Isolate::Current());
   Dart_DeleteWeakPersistentHandle(isolate, weak_ref);
   EXPECT(peer == 0);
-  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-  EXPECT(peer == 0);
-  GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
-  EXPECT(peer == 0);
+  {
+    TransitionNativeToVM transition(thread);
+    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+    EXPECT(peer == 0);
+    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+    EXPECT(peer == 0);
+  }
 }
 
 
@@ -2728,6 +2824,7 @@ UNIT_TEST_CASE(WeakPersistentHandlesCallbackShutdown) {
                                &peer,
                                0,
                                WeakPersistentHandlePeerFinalizer);
+  Dart_ExitScope();
   Dart_ShutdownIsolate();
   EXPECT(peer == 42);
 }
@@ -2765,20 +2862,26 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSize) {
     EXPECT_VALID(AsHandle(strong_ref));
     Dart_ExitScope();
   }
-  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-  EXPECT(heap->ExternalInWords(Heap::kNew) ==
-         (kWeak1ExternalSize + kWeak2ExternalSize) / kWordSize);
-  // Collect weakly referenced string, and promote strongly referenced string.
-  GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
-  GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
-  EXPECT(heap->ExternalInWords(Heap::kNew) == 0);
-  EXPECT(heap->ExternalInWords(Heap::kOld) == kWeak2ExternalSize / kWordSize);
+  {
+    TransitionNativeToVM transition(thread);
+    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+    EXPECT(heap->ExternalInWords(Heap::kNew) ==
+           (kWeak1ExternalSize + kWeak2ExternalSize) / kWordSize);
+    // Collect weakly referenced string, and promote strongly referenced string.
+    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+    EXPECT(heap->ExternalInWords(Heap::kNew) == 0);
+    EXPECT(heap->ExternalInWords(Heap::kOld) == kWeak2ExternalSize / kWordSize);
+  }
   Dart_Isolate isolate = reinterpret_cast<Dart_Isolate>(Isolate::Current());
   Dart_DeleteWeakPersistentHandle(isolate, weak1);
   Dart_DeleteWeakPersistentHandle(isolate, weak2);
   Dart_DeletePersistentHandle(strong_ref);
-  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-  EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
+  {
+    TransitionNativeToVM transition(thread);
+    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+    EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
+  }
 }
 
 
@@ -2808,7 +2911,8 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSizeNewspaceGC) {
     // After the two scavenges above, 'obj' should now be promoted, hence its
     // external size charged to old space.
     {
-      DARTSCOPE(thread);
+      CHECK_API_SCOPE(thread);
+      HANDLESCOPE(thread);
       String& handle = String::Handle(thread->zone());
       handle ^= Api::UnwrapHandle(obj);
       EXPECT(handle.IsOld());
@@ -2818,8 +2922,11 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSizeNewspaceGC) {
     Dart_ExitScope();
   }
   Dart_DeleteWeakPersistentHandle(isolate, weak1);
-  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-  EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
+  {
+    TransitionNativeToVM transition(thread);
+    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+    EXPECT(heap->ExternalInWords(Heap::kOld) == 0);
+  }
 }
 
 
@@ -2886,8 +2993,11 @@ TEST_CASE(WeakPersistentHandleExternalAllocationSizeOddReferents) {
   Dart_Isolate isolate = reinterpret_cast<Dart_Isolate>(Isolate::Current());
   Dart_DeleteWeakPersistentHandle(isolate, weak1);
   Dart_DeleteWeakPersistentHandle(isolate, weak2);
-  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-  EXPECT_EQ(0, heap->ExternalInWords(Heap::kOld));
+  {
+    TransitionNativeToVM transition(thread);
+    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+    EXPECT_EQ(0, heap->ExternalInWords(Heap::kOld));
+  }
 }
 
 
@@ -2915,7 +3025,8 @@ TEST_CASE(ImplicitReferencesOldSpace) {
 
   Dart_EnterScope();
   {
-    DARTSCOPE(Thread::Current());
+    CHECK_API_SCOPE(thread);
+    HANDLESCOPE(thread);
 
     Dart_Handle local = Api::NewHandle(
         thread, String::New("strongly reachable", Heap::kOld));
@@ -2957,7 +3068,10 @@ TEST_CASE(ImplicitReferencesOldSpace) {
     Dart_ExitScope();
   }
 
-  GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+  {
+    TransitionNativeToVM transition(thread);
+    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+  }
 
   {
     Dart_EnterScope();
@@ -2978,7 +3092,8 @@ TEST_CASE(ImplicitReferencesNewSpace) {
 
   Dart_EnterScope();
   {
-    DARTSCOPE(Thread::Current());
+    CHECK_API_SCOPE(thread);
+    HANDLESCOPE(thread);
 
     Dart_Handle local = Api::NewHandle(
         thread, String::New("strongly reachable", Heap::kOld));
@@ -3020,7 +3135,10 @@ TEST_CASE(ImplicitReferencesNewSpace) {
     Dart_ExitScope();
   }
 
-  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+  {
+    TransitionNativeToVM transition(thread);
+    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+  }
 
   {
     Dart_EnterScope();
@@ -3098,99 +3216,109 @@ TEST_CASE(SingleGarbageCollectionCallback) {
   EXPECT_VALID(Dart_SetGcCallbacks(&PrologueCallbackTimes2,
                                    &EpilogueCallbackNOP));
 
-  // Garbage collect new space ignoring callbacks.  This should not
-  // invoke the prologue callback.  No status values should change.
-  global_prologue_callback_status = 3;
-  global_epilogue_callback_status = 7;
-  GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
-  EXPECT_EQ(3, global_prologue_callback_status);
-  EXPECT_EQ(7, global_epilogue_callback_status);
+  {
+    TransitionNativeToVM transition(thread);
 
-  // Garbage collect new space invoking callbacks.  This should
-  // invoke the prologue callback.  No status values should change.
-  global_prologue_callback_status = 3;
-  global_epilogue_callback_status = 7;
-  GCTestHelper::CollectNewSpace(Heap::kInvokeApiCallbacks);
-  EXPECT_EQ(6, global_prologue_callback_status);
-  EXPECT_EQ(7, global_epilogue_callback_status);
+    // Garbage collect new space ignoring callbacks.  This should not
+    // invoke the prologue callback.  No status values should change.
+    global_prologue_callback_status = 3;
+    global_epilogue_callback_status = 7;
+    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+    EXPECT_EQ(3, global_prologue_callback_status);
+    EXPECT_EQ(7, global_epilogue_callback_status);
+
+    // Garbage collect new space invoking callbacks.  This should
+    // invoke the prologue callback.  No status values should change.
+    global_prologue_callback_status = 3;
+    global_epilogue_callback_status = 7;
+    GCTestHelper::CollectNewSpace(Heap::kInvokeApiCallbacks);
+    EXPECT_EQ(6, global_prologue_callback_status);
+    EXPECT_EQ(7, global_epilogue_callback_status);
 
   // Garbage collect old space ignoring callbacks.  This should invoke
   // the prologue callback.  The prologue status value should change.
-  global_prologue_callback_status = 3;
-  global_epilogue_callback_status = 7;
-  Isolate::Current()->heap()->CollectGarbage(Heap::kOld,
-                                             Heap::kIgnoreApiCallbacks,
-                                             Heap::kGCTestCase);
-  EXPECT_EQ(3, global_prologue_callback_status);
-  EXPECT_EQ(7, global_epilogue_callback_status);
+    global_prologue_callback_status = 3;
+    global_epilogue_callback_status = 7;
+    Isolate::Current()->heap()->CollectGarbage(Heap::kOld,
+                                               Heap::kIgnoreApiCallbacks,
+                                               Heap::kGCTestCase);
+    EXPECT_EQ(3, global_prologue_callback_status);
+    EXPECT_EQ(7, global_epilogue_callback_status);
 
-  // Garbage collect old space.  This should invoke the prologue
-  // callback.  The prologue status value should change.
-  global_prologue_callback_status = 3;
-  global_epilogue_callback_status = 7;
-  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-  EXPECT_EQ(6, global_prologue_callback_status);
-  EXPECT_EQ(7, global_epilogue_callback_status);
+    // Garbage collect old space.  This should invoke the prologue
+    // callback.  The prologue status value should change.
+    global_prologue_callback_status = 3;
+    global_epilogue_callback_status = 7;
+    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+    EXPECT_EQ(6, global_prologue_callback_status);
+    EXPECT_EQ(7, global_epilogue_callback_status);
 
-  // Garbage collect old space again.  Callbacks are persistent so the
-  // prologue status value should change again.
-  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-  EXPECT_EQ(12, global_prologue_callback_status);
-  EXPECT_EQ(7, global_epilogue_callback_status);
+    // Garbage collect old space again.  Callbacks are persistent so the
+    // prologue status value should change again.
+    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+    EXPECT_EQ(12, global_prologue_callback_status);
+    EXPECT_EQ(7, global_epilogue_callback_status);
+  }
 
   // Add an epilogue callback.
   EXPECT_VALID(Dart_SetGcCallbacks(NULL, NULL));
   EXPECT_VALID(Dart_SetGcCallbacks(&PrologueCallbackTimes2,
                                    &EpilogueCallbackTimes4));
 
-  // Garbage collect new space.  This should not invoke the prologue
-  // or the epilogue callback.  No status values should change.
-  global_prologue_callback_status = 3;
-  global_epilogue_callback_status = 7;
-  GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
-  EXPECT_EQ(3, global_prologue_callback_status);
-  EXPECT_EQ(7, global_epilogue_callback_status);
+  {
+    TransitionNativeToVM transition(thread);
+    // Garbage collect new space.  This should not invoke the prologue
+    // or the epilogue callback.  No status values should change.
+    global_prologue_callback_status = 3;
+    global_epilogue_callback_status = 7;
+    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+    EXPECT_EQ(3, global_prologue_callback_status);
+    EXPECT_EQ(7, global_epilogue_callback_status);
 
-  // Garbage collect new space.  This should invoke the prologue and
-  // the epilogue callback.  The prologue and epilogue status values
-  // should change.
-  GCTestHelper::CollectNewSpace(Heap::kInvokeApiCallbacks);
-  EXPECT_EQ(6, global_prologue_callback_status);
-  EXPECT_EQ(28, global_epilogue_callback_status);
+    // Garbage collect new space.  This should invoke the prologue and
+    // the epilogue callback.  The prologue and epilogue status values
+    // should change.
+    GCTestHelper::CollectNewSpace(Heap::kInvokeApiCallbacks);
+    EXPECT_EQ(6, global_prologue_callback_status);
+    EXPECT_EQ(28, global_epilogue_callback_status);
 
-  // Garbage collect old space.  This should invoke the prologue and
-  // the epilogue callbacks.  The prologue and epilogue status values
-  // should change.
-  global_prologue_callback_status = 3;
-  global_epilogue_callback_status = 7;
-  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-  EXPECT_EQ(6, global_prologue_callback_status);
-  EXPECT_EQ(28, global_epilogue_callback_status);
+    // Garbage collect old space.  This should invoke the prologue and
+    // the epilogue callbacks.  The prologue and epilogue status values
+    // should change.
+    global_prologue_callback_status = 3;
+    global_epilogue_callback_status = 7;
+    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+    EXPECT_EQ(6, global_prologue_callback_status);
+    EXPECT_EQ(28, global_epilogue_callback_status);
 
-  // Garbage collect old space again without invoking callbacks.
-  // Nothing should change.
-  Isolate::Current()->heap()->CollectGarbage(Heap::kOld,
-                                             Heap::kIgnoreApiCallbacks,
-                                             Heap::kGCTestCase);
-  EXPECT_EQ(6, global_prologue_callback_status);
-  EXPECT_EQ(28, global_epilogue_callback_status);
+    // Garbage collect old space again without invoking callbacks.
+    // Nothing should change.
+    Isolate::Current()->heap()->CollectGarbage(Heap::kOld,
+                                               Heap::kIgnoreApiCallbacks,
+                                               Heap::kGCTestCase);
+    EXPECT_EQ(6, global_prologue_callback_status);
+    EXPECT_EQ(28, global_epilogue_callback_status);
 
-  // Garbage collect old space again.  Callbacks are persistent so the
-  // prologue and epilogue status values should change again.
-  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-  EXPECT_EQ(12, global_prologue_callback_status);
-  EXPECT_EQ(112, global_epilogue_callback_status);
+    // Garbage collect old space again.  Callbacks are persistent so the
+    // prologue and epilogue status values should change again.
+    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+    EXPECT_EQ(12, global_prologue_callback_status);
+    EXPECT_EQ(112, global_epilogue_callback_status);
+  }
 
   // Remove the prologue and epilogue callbacks
   EXPECT_VALID(Dart_SetGcCallbacks(NULL, NULL));
 
-  // Garbage collect old space.  No callbacks should be invoked.  No
-  // status values should change.
-  global_prologue_callback_status = 3;
-  global_epilogue_callback_status = 7;
-  Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
-  EXPECT_EQ(3, global_prologue_callback_status);
-  EXPECT_EQ(7, global_epilogue_callback_status);
+  {
+    TransitionNativeToVM transition(thread);
+    // Garbage collect old space.  No callbacks should be invoked.  No
+    // status values should change.
+    global_prologue_callback_status = 3;
+    global_epilogue_callback_status = 7;
+    Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
+    EXPECT_EQ(3, global_prologue_callback_status);
+    EXPECT_EQ(7, global_epilogue_callback_status);
+  }
 }
 
 
@@ -4001,7 +4129,8 @@ TEST_CASE(InjectNativeFields1) {
   // Invoke a function which returns an object of type NativeFields.
   result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
   EXPECT_VALID(result);
-  DARTSCOPE(Thread::Current());
+  CHECK_API_SCOPE(thread);
+  HANDLESCOPE(thread);
   Instance& obj = Instance::Handle();
   obj ^= Api::UnwrapHandle(result);
   const Class& cls = Class::Handle(obj.clazz());
@@ -4071,7 +4200,8 @@ TEST_CASE(InjectNativeFields3) {
   // Invoke a function which returns an object of type NativeFields.
   result = Dart_Invoke(lib, NewString("testMain"), 0, NULL);
   EXPECT_VALID(result);
-  DARTSCOPE(Thread::Current());
+  CHECK_API_SCOPE(thread);
+  HANDLESCOPE(thread);
   Instance& obj = Instance::Handle();
   obj ^= Api::UnwrapHandle(result);
   const Class& cls = Class::Handle(obj.clazz());
@@ -4415,7 +4545,8 @@ TEST_CASE(NegativeNativeFieldAccess) {
       "  return () {};\n"
       "}\n";
   Dart_Handle result;
-  DARTSCOPE(Thread::Current());
+  CHECK_API_SCOPE(thread);
+  HANDLESCOPE(thread);
 
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
@@ -4493,7 +4624,8 @@ TEST_CASE(NegativeNativeFieldInIsolateMessage) {
       "  };\n"
       "}\n";
 
-  DARTSCOPE(Thread::Current());
+  CHECK_API_SCOPE(thread);
+  HANDLESCOPE(thread);
 
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
@@ -5202,7 +5334,8 @@ TEST_CASE(InvokeClosure) {
       "  return InvokeClosure.method2(10);\n"
       "}\n";
   Dart_Handle result;
-  DARTSCOPE(Thread::Current());
+  CHECK_API_SCOPE(thread);
+  HANDLESCOPE(thread);
 
   // Create a test library and Load up a test script in it.
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
@@ -5255,7 +5388,7 @@ static Dart_NativeFunction native_lookup(Dart_Handle name,
                                          int argument_count,
                                          bool* auto_setup_scope) {
   ASSERT(auto_setup_scope != NULL);
-  *auto_setup_scope = false;
+  *auto_setup_scope = true;
   return reinterpret_cast<Dart_NativeFunction>(&ExceptionNative);
 }
 
@@ -5501,7 +5634,7 @@ static Dart_NativeFunction gnac_lookup(Dart_Handle name,
                                        int argument_count,
                                        bool* auto_setup_scope) {
   ASSERT(auto_setup_scope != NULL);
-  *auto_setup_scope = false;
+  *auto_setup_scope = true;
   return reinterpret_cast<Dart_NativeFunction>(&NativeArgumentCounter);
 }
 
@@ -5905,6 +6038,10 @@ TEST_CASE(LibraryName) {
   EXPECT_STREQ("library1_name", cstr);
 }
 
+
+#ifndef PRODUCT
+
+
 TEST_CASE(LibraryId) {
   const char* kLibrary1Chars =
       "library library1_name;";
@@ -5940,6 +6077,9 @@ TEST_CASE(LibraryId) {
   EXPECT_VALID(Dart_StringToCString(result, &cstr));
   EXPECT_STREQ("library1_name", cstr);
 }
+
+
+#endif  // !PRODUCT
 
 
 TEST_CASE(LibraryUrl) {
@@ -6762,9 +6902,9 @@ static Dart_NativeFunction MyNativeResolver2(Dart_Handle name,
 TEST_CASE(SetNativeResolver) {
   const char* kScriptChars =
       "class Test {"
-      "  static foo() native \"SomeNativeFunction\";"
-      "  static bar() native \"SomeNativeFunction2\";"
-      "  static baz() native \"SomeNativeFunction3\";"
+      "  static foo() native \"SomeNativeFunction\";\n"
+      "  static bar() native \"SomeNativeFunction2\";\n"
+      "  static baz() native \"SomeNativeFunction3\";\n"
       "}";
   Dart_Handle error = Dart_NewApiError("incoming error");
   Dart_Handle result;
@@ -7994,7 +8134,8 @@ TEST_CASE(CollectOneNewSpacePeer) {
   Isolate* isolate = Isolate::Current();
   Dart_EnterScope();
   {
-    DARTSCOPE(Thread::Current());
+    CHECK_API_SCOPE(thread);
+    HANDLESCOPE(thread);
     Dart_Handle str = NewString("a string");
     EXPECT_VALID(str);
     EXPECT(Dart_IsString(str));
@@ -8008,15 +8149,21 @@ TEST_CASE(CollectOneNewSpacePeer) {
     out = &out;
     EXPECT_VALID(Dart_GetPeer(str, &out));
     EXPECT(out == reinterpret_cast<void*>(&peer));
-    isolate->heap()->CollectGarbage(Heap::kNew);
-    EXPECT_EQ(1, isolate->heap()->PeerCount());
+    {
+      TransitionNativeToVM transition(thread);
+      isolate->heap()->CollectGarbage(Heap::kNew);
+      EXPECT_EQ(1, isolate->heap()->PeerCount());
+    }
     out = &out;
     EXPECT_VALID(Dart_GetPeer(str, &out));
     EXPECT(out == reinterpret_cast<void*>(&peer));
   }
   Dart_ExitScope();
-  isolate->heap()->CollectGarbage(Heap::kNew);
-  EXPECT_EQ(0, isolate->heap()->PeerCount());
+  {
+    TransitionNativeToVM transition(thread);
+    isolate->heap()->CollectGarbage(Heap::kNew);
+    EXPECT_EQ(0, isolate->heap()->PeerCount());
+  }
 }
 
 
@@ -8067,7 +8214,8 @@ TEST_CASE(CollectTwoNewSpacePeers) {
   Isolate* isolate = Isolate::Current();
   Dart_EnterScope();
   {
-    DARTSCOPE(Thread::Current());
+    CHECK_API_SCOPE(thread);
+    HANDLESCOPE(thread);
     Dart_Handle s1 = NewString("s1");
     EXPECT_VALID(s1);
     EXPECT(Dart_IsString(s1));
@@ -8094,8 +8242,11 @@ TEST_CASE(CollectTwoNewSpacePeers) {
     EXPECT(o2 == reinterpret_cast<void*>(&p2));
   }
   Dart_ExitScope();
-  isolate->heap()->CollectGarbage(Heap::kNew);
-  EXPECT_EQ(0, isolate->heap()->PeerCount());
+  {
+    TransitionNativeToVM transition(thread);
+    isolate->heap()->CollectGarbage(Heap::kNew);
+    EXPECT_EQ(0, isolate->heap()->PeerCount());
+  }
 }
 
 
@@ -8123,10 +8274,13 @@ TEST_CASE(CopyNewSpacePeers) {
     EXPECT(o == reinterpret_cast<void*>(&p[i]));
   }
   EXPECT_EQ(kPeerCount, isolate->heap()->PeerCount());
-  isolate->heap()->CollectGarbage(Heap::kNew);
-  EXPECT_EQ(kPeerCount, isolate->heap()->PeerCount());
-  isolate->heap()->CollectGarbage(Heap::kNew);
-  EXPECT_EQ(kPeerCount, isolate->heap()->PeerCount());
+  {
+    TransitionNativeToVM transition(thread);
+    isolate->heap()->CollectGarbage(Heap::kNew);
+    EXPECT_EQ(kPeerCount, isolate->heap()->PeerCount());
+    isolate->heap()->CollectGarbage(Heap::kNew);
+    EXPECT_EQ(kPeerCount, isolate->heap()->PeerCount());
+  }
 }
 
 
@@ -8148,10 +8302,14 @@ TEST_CASE(OnePromotedPeer) {
   EXPECT(Dart_GetPeer(str, &out));
   EXPECT(out == reinterpret_cast<void*>(&peer));
   EXPECT_EQ(1, isolate->heap()->PeerCount());
-  isolate->heap()->CollectGarbage(Heap::kNew);
-  isolate->heap()->CollectGarbage(Heap::kNew);
   {
-    DARTSCOPE(Thread::Current());
+    TransitionNativeToVM transition(thread);
+    isolate->heap()->CollectGarbage(Heap::kNew);
+    isolate->heap()->CollectGarbage(Heap::kNew);
+  }
+  {
+    CHECK_API_SCOPE(thread);
+    HANDLESCOPE(thread);
     String& handle = String::Handle();
     handle ^= Api::UnwrapHandle(str);
     EXPECT(handle.IsOld());
@@ -8185,8 +8343,11 @@ TEST_CASE(OneOldSpacePeer) {
   out = &out;
   EXPECT_VALID(Dart_GetPeer(str, &out));
   EXPECT(out == reinterpret_cast<void*>(&peer));
-  isolate->heap()->CollectGarbage(Heap::kOld);
-  EXPECT_EQ(1, isolate->heap()->PeerCount());
+  {
+    TransitionNativeToVM transition(thread);
+    isolate->heap()->CollectGarbage(Heap::kOld);
+    EXPECT_EQ(1, isolate->heap()->PeerCount());
+  }
   EXPECT_VALID(Dart_GetPeer(str, &out));
   EXPECT(out == reinterpret_cast<void*>(&peer));
   EXPECT_VALID(Dart_SetPeer(str, NULL));
@@ -8204,7 +8365,9 @@ TEST_CASE(CollectOneOldSpacePeer) {
   Isolate* isolate = Isolate::Current();
   Dart_EnterScope();
   {
-    DARTSCOPE(Thread::Current());
+    Thread* T = Thread::Current();
+    CHECK_API_SCOPE(T);
+    HANDLESCOPE(T);
     Dart_Handle str = Api::NewHandle(T, String::New("str", Heap::kOld));
     EXPECT_VALID(str);
     EXPECT(Dart_IsString(str));
@@ -8218,14 +8381,20 @@ TEST_CASE(CollectOneOldSpacePeer) {
     out = &out;
     EXPECT_VALID(Dart_GetPeer(str, &out));
     EXPECT(out == reinterpret_cast<void*>(&peer));
-    isolate->heap()->CollectGarbage(Heap::kOld);
-    EXPECT_EQ(1, isolate->heap()->PeerCount());
+    {
+      TransitionNativeToVM transition(thread);
+      isolate->heap()->CollectGarbage(Heap::kOld);
+      EXPECT_EQ(1, isolate->heap()->PeerCount());
+    }
     EXPECT_VALID(Dart_GetPeer(str, &out));
     EXPECT(out == reinterpret_cast<void*>(&peer));
   }
   Dart_ExitScope();
-  isolate->heap()->CollectGarbage(Heap::kOld);
-  EXPECT_EQ(0, isolate->heap()->PeerCount());
+  {
+    TransitionNativeToVM transition(thread);
+    isolate->heap()->CollectGarbage(Heap::kOld);
+    EXPECT_EQ(0, isolate->heap()->PeerCount());
+  }
 }
 
 
@@ -8280,7 +8449,9 @@ TEST_CASE(CollectTwoOldSpacePeers) {
   Isolate* isolate = Isolate::Current();
   Dart_EnterScope();
   {
-    DARTSCOPE(Thread::Current());
+    Thread* T = Thread::Current();
+    CHECK_API_SCOPE(T);
+    HANDLESCOPE(T);
     Dart_Handle s1 = Api::NewHandle(T, String::New("s1", Heap::kOld));
     EXPECT_VALID(s1);
     EXPECT(Dart_IsString(s1));
@@ -8309,8 +8480,11 @@ TEST_CASE(CollectTwoOldSpacePeers) {
     EXPECT(o2 == reinterpret_cast<void*>(&p2));
   }
   Dart_ExitScope();
-  isolate->heap()->CollectGarbage(Heap::kOld);
-  EXPECT_EQ(0, isolate->heap()->PeerCount());
+  {
+    TransitionNativeToVM transition(thread);
+    isolate->heap()->CollectGarbage(Heap::kOld);
+    EXPECT_EQ(0, isolate->heap()->PeerCount());
+  }
 }
 
 
@@ -8517,7 +8691,10 @@ TEST_CASE(MakeExternalString) {
   EXPECT_EQ(40, peer8);
   EXPECT_EQ(41, peer16);
   EXPECT_EQ(42, canonical_str_peer);
-  Isolate::Current()->heap()->CollectAllGarbage();
+  {
+    TransitionNativeToVM transition(thread);
+    Isolate::Current()->heap()->CollectAllGarbage();
+  }
   EXPECT_EQ(80, peer8);
   EXPECT_EQ(82, peer16);
   EXPECT_EQ(42, canonical_str_peer);  // "*" Symbol is not removed on GC.
@@ -8629,7 +8806,7 @@ static void A_change_str_native(Dart_NativeArguments args) {
 static Dart_NativeFunction ExternalStringDeoptimize_native_lookup(
     Dart_Handle name, int argument_count, bool* auto_setup_scope) {
   ASSERT(auto_setup_scope != NULL);
-  *auto_setup_scope = false;
+  *auto_setup_scope = true;
   return reinterpret_cast<Dart_NativeFunction>(&A_change_str_native);
 }
 
@@ -9005,6 +9182,9 @@ TEST_CASE(StringFromExternalTypedData) {
     EXPECT(Dart_IsString(result));
   }
 }
+
+
+#ifndef PRODUCT
 
 
 TEST_CASE(Timeline_Dart_TimelineDuration) {
@@ -9591,5 +9771,7 @@ TEST_CASE(Timeline_Dart_GlobalTimelineGetTrace_Threaded) {
   EXPECT_SUBSTRING("\"name\":\"TestVMDuration2\"", buffer);
   EXPECT_SUBSTRING("\"function\":\"::_bar\"", buffer);
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

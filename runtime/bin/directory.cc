@@ -18,9 +18,7 @@ void FUNCTION_NAME(Directory_Current)(Dart_NativeArguments args) {
     Dart_SetReturnValue(args, DartUtils::NewString(current));
     free(current);
   } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
@@ -37,9 +35,7 @@ void FUNCTION_NAME(Directory_SetCurrent)(Dart_NativeArguments args) {
     if (Directory::SetCurrent(DartUtils::GetStringValue(path))) {
       Dart_SetReturnValue(args, Dart_True());
     } else {
-      Dart_Handle err = DartUtils::NewDartOSError();
-      if (Dart_IsError(err)) Dart_PropagateError(err);
-      Dart_SetReturnValue(args, err);
+      Dart_SetReturnValue(args, DartUtils::NewDartOSError());
     }
   }
 }
@@ -56,9 +52,7 @@ void FUNCTION_NAME(Directory_Exists)(Dart_NativeArguments args) {
   } else if (result == Directory::DOES_NOT_EXIST) {
     Dart_SetReturnValue(args, Dart_NewInteger(kDoesNotExist));
   } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
@@ -68,9 +62,7 @@ void FUNCTION_NAME(Directory_Create)(Dart_NativeArguments args) {
   if (Directory::Create(DartUtils::GetStringValue(path))) {
     Dart_SetReturnValue(args, Dart_True());
   } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
@@ -95,9 +87,7 @@ void FUNCTION_NAME(Directory_CreateTemp)(Dart_NativeArguments args) {
     Dart_SetReturnValue(args, DartUtils::NewString(result));
     free(result);
   } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
@@ -109,9 +99,7 @@ void FUNCTION_NAME(Directory_Delete)(Dart_NativeArguments args) {
                         DartUtils::GetBooleanValue(recursive))) {
     Dart_SetReturnValue(args, Dart_True());
   } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 
@@ -123,9 +111,7 @@ void FUNCTION_NAME(Directory_Rename)(Dart_NativeArguments args) {
                         DartUtils::GetStringValue(newPath))) {
     Dart_SetReturnValue(args, Dart_True());
   } else {
-    Dart_Handle err = DartUtils::NewDartOSError();
-    if (Dart_IsError(err)) Dart_PropagateError(err);
-    Dart_SetReturnValue(args, err);
+    Dart_SetReturnValue(args, DartUtils::NewDartOSError());
   }
 }
 

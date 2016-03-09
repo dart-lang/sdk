@@ -8,15 +8,13 @@ import 'dart:collection';
 import "dart:math" as math;
 
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/source/package_map_resolver.dart';
+import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart' show JavaFile;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:analyzer/src/generated/source_io.dart' show FileBasedSource;
-import 'package:analyzer/src/generated/utilities_dart.dart' as utils;
 import 'package:analyzer/task/model.dart';
 import 'package:package_config/packages.dart';
 import 'package:path/path.dart' as pathos;
@@ -178,12 +176,12 @@ class DartUriResolver extends UriResolver {
 }
 
 /**
- * Instances of the class `LineInfo` encapsulate information about line and column information
- * within a source file.
+ * Information about line and column information within a source file.
  */
 class LineInfo {
   /**
-   * An array containing the offsets of the first character of each line in the source code.
+   * A list containing the offsets of the first character of each line in the
+   * source code.
    */
   final List<int> _lineStarts;
 
@@ -194,12 +192,23 @@ class LineInfo {
   int _previousLine = 0;
 
   /**
-   * Initialize a newly created set of line information to represent the data encoded in the given
-   * array.
-   *
-   * @param lineStarts the offsets of the first character of each line in the source code
+   * Initialize a newly created set of line information to represent the data
+   * encoded in the given list of [_lineStarts].
    */
-  LineInfo(this._lineStarts) {
+  factory LineInfo(List<int> _lineStarts) => new LineInfoWithCount(_lineStarts);
+
+  /**
+   * Initialize a newly created set of line information corresponding to the
+   * given file [content].
+   */
+  factory LineInfo.fromContent(String content) =>
+      new LineInfoWithCount(StringUtilities.computeLineStarts(content));
+
+  /**
+   * Initialize a newly created set of line information to represent the data
+   * encoded in the given list of [_lineStarts].
+   */
+  LineInfo._(this._lineStarts) {
     if (_lineStarts == null) {
       throw new IllegalArgumentException("lineStarts must be non-null");
     } else if (_lineStarts.length < 1) {
@@ -208,10 +217,7 @@ class LineInfo {
   }
 
   /**
-   * Return the location information for the character at the given offset.
-   *
-   * @param offset the offset of the character for which location information is to be returned
-   * @return the location information for the character at the given offset
+   * Return the location information for the character at the given [offset].
    */
   LineInfo_Location getLocation(int offset) {
     var min = 0;
@@ -288,6 +294,26 @@ class LineInfo_Location {
 }
 
 /**
+ * Information about line and column information within a source file,
+ * including a count of the total number of lines.
+ *
+ * TODO(paulberry): in the next major version roll of analyzer, merge this
+ * class into [LineInfo].
+ */
+class LineInfoWithCount extends LineInfo {
+  /**
+   * Initialize a newly created set of line information to represent the data
+   * encoded in the given list of [_lineStarts].
+   */
+  LineInfoWithCount(List<int> _lineStarts) : super._(_lineStarts);
+
+  /**
+   * Return the number of lines in the file.
+   */
+  int get lineCount => _lineStarts.length;
+}
+
+/**
  * Instances of interface `LocalSourcePredicate` are used to determine if the given
  * [Source] is "local" in some sense, so can be updated.
  */
@@ -343,6 +369,7 @@ class NonExistingSource extends Source {
   @override
   final Uri uri;
 
+  @override
   final UriKind uriKind;
 
   NonExistingSource(this.fullName, this.uri, this.uriKind);
@@ -353,9 +380,7 @@ class NonExistingSource extends Source {
   }
 
   @override
-  String get encoding {
-    throw new UnsupportedOperationException('$fullName does not exist.');
-  }
+  String get encoding => uri.toString();
 
   @override
   int get hashCode => fullName.hashCode;
@@ -575,159 +600,74 @@ abstract class SourceContainer {
  * Instances of the class `SourceFactory` resolve possibly relative URI's against an existing
  * [Source].
  */
-class SourceFactory {
+abstract class SourceFactory {
   /**
    * The analysis context that this source factory is associated with.
    */
   AnalysisContext context;
 
   /**
-   * URI processor used to find mappings for `package:` URIs found in a `.packages` config
-   * file.
+   * Initialize a newly created source factory with the given absolute URI
+   * [resolvers] and optional [packages] resolution helper.
    */
-  final Packages _packages;
+  factory SourceFactory(List<UriResolver> resolvers,
+      [Packages packages,
+      ResourceProvider resourceProvider]) = SourceFactoryImpl;
 
   /**
-   * Resource provider used in working with package maps.
-   */
-  final ResourceProvider _resourceProvider;
-
-  /**
-   * The resolvers used to resolve absolute URI's.
-   */
-  final List<UriResolver> _resolvers;
-
-  /**
-   * The predicate to determine is [Source] is local.
-   */
-  LocalSourcePredicate _localSourcePredicate = LocalSourcePredicate.NOT_SDK;
-
-  /**
-   * Initialize a newly created source factory with the given absolute URI [resolvers] and
-   * optional [packages] resolution helper.
-   */
-  SourceFactory(this._resolvers,
-      [this._packages, ResourceProvider resourceProvider])
-      : _resourceProvider = resourceProvider != null
-            ? resourceProvider
-            : PhysicalResourceProvider.INSTANCE;
-
-  /**
-   * Return the [DartSdk] associated with this [SourceFactory], or `null` if there
-   * is no such SDK.
+   * Return the [DartSdk] associated with this [SourceFactory], or `null` if
+   * there is no such SDK.
    *
    * @return the [DartSdk] associated with this [SourceFactory], or `null` if
    *         there is no such SDK
    */
-  DartSdk get dartSdk {
-    for (UriResolver resolver in _resolvers) {
-      if (resolver is DartUriResolver) {
-        DartUriResolver dartUriResolver = resolver;
-        return dartUriResolver.dartSdk;
-      }
-    }
-    return null;
-  }
+  DartSdk get dartSdk;
 
   /**
    * Sets the [LocalSourcePredicate].
    *
    * @param localSourcePredicate the predicate to determine is [Source] is local
    */
-  void set localSourcePredicate(LocalSourcePredicate localSourcePredicate) {
-    this._localSourcePredicate = localSourcePredicate;
-  }
+  void set localSourcePredicate(LocalSourcePredicate localSourcePredicate);
 
   /// A table mapping package names to paths of directories containing
   /// the package (or [null] if there is no registered package URI resolver).
-  Map<String, List<Folder>> get packageMap {
-    // Start by looking in .packages.
-    if (_packages != null) {
-      Map<String, List<Folder>> packageMap = <String, List<Folder>>{};
-      _packages.asMap().forEach((String name, Uri uri) {
-        if (uri.scheme == 'file' || uri.scheme == '' /* unspecified */) {
-          packageMap[name] = <Folder>[
-            _resourceProvider.getFolder(uri.toFilePath())
-          ];
-        }
-      });
-      return packageMap;
-    }
-
-    // Default to the PackageMapUriResolver.
-    PackageMapUriResolver resolver = _resolvers
-        .firstWhere((r) => r is PackageMapUriResolver, orElse: () => null);
-    return resolver != null ? resolver.packageMap : null;
-  }
+  Map<String, List<Folder>> get packageMap;
 
   /**
    * Return a source factory that will resolve URI's in the same way that this
    * source factory does.
    */
-  SourceFactory clone() {
-    SourceFactory factory =
-        new SourceFactory(_resolvers, _packages, _resourceProvider);
-    factory.localSourcePredicate = _localSourcePredicate;
-    return factory;
-  }
+  SourceFactory clone();
 
   /**
-   * Return a source object representing the given absolute URI, or `null` if the URI is not a
-   * valid URI or if it is not an absolute URI.
+   * Return a source object representing the given absolute URI, or `null` if
+   * the URI is not a valid URI or if it is not an absolute URI.
    *
    * @param absoluteUri the absolute URI to be resolved
    * @return a source object representing the absolute URI
    */
-  Source forUri(String absoluteUri) {
-    try {
-      Uri uri = parseUriWithException(absoluteUri);
-      if (uri.isAbsolute) {
-        return _internalResolveUri(null, uri);
-      }
-    } catch (exception, stackTrace) {
-      AnalysisEngine.instance.logger.logError(
-          "Could not resolve URI: $absoluteUri",
-          new CaughtException(exception, stackTrace));
-    }
-    return null;
-  }
+  Source forUri(String absoluteUri);
 
   /**
-   * Return a source object representing the given absolute URI, or `null` if the URI is not
-   * an absolute URI.
+   * Return a source object representing the given absolute URI, or `null` if
+   * the URI is not an absolute URI.
    *
    * @param absoluteUri the absolute URI to be resolved
    * @return a source object representing the absolute URI
    */
-  Source forUri2(Uri absoluteUri) {
-    if (absoluteUri.isAbsolute) {
-      try {
-        return _internalResolveUri(null, absoluteUri);
-      } on AnalysisException catch (exception, stackTrace) {
-        AnalysisEngine.instance.logger.logError(
-            "Could not resolve URI: $absoluteUri",
-            new CaughtException(exception, stackTrace));
-      }
-    }
-    return null;
-  }
+  Source forUri2(Uri absoluteUri);
 
   /**
-   * Return a source object that is equal to the source object used to obtain the given encoding.
+   * Return a source object that is equal to the source object used to obtain
+   * the given encoding.
    *
    * @param encoding the encoding of a source object
    * @return a source object that is described by the given encoding
    * @throws IllegalArgumentException if the argument is not a valid encoding
    * See [Source.encoding].
    */
-  Source fromEncoding(String encoding) {
-    Source source = forUri(encoding);
-    if (source == null) {
-      throw new IllegalArgumentException(
-          "Invalid source encoding: '$encoding'");
-    }
-    return source;
-  }
+  Source fromEncoding(String encoding);
 
   /**
    * Determines if the given [Source] is local.
@@ -735,7 +675,7 @@ class SourceFactory {
    * @param source the [Source] to analyze
    * @return `true` if the given [Source] is local
    */
-  bool isLocalSource(Source source) => _localSourcePredicate.isLocal(source);
+  bool isLocalSource(Source source);
 
   /**
    * Return a source representing the URI that results from resolving the given
@@ -744,127 +684,21 @@ class SourceFactory {
    * if either the [containedUri] is invalid or if it cannot be resolved against
    * the [containingSource]'s URI.
    */
-  Source resolveUri(Source containingSource, String containedUri) {
-    if (containedUri == null || containedUri.isEmpty) {
-      return null;
-    }
-    try {
-      // Force the creation of an escaped URI to deal with spaces, etc.
-      return _internalResolveUri(
-          containingSource, parseUriWithException(containedUri));
-    } on URISyntaxException {
-      return null;
-    } catch (exception, stackTrace) {
-      String containingFullName =
-          containingSource != null ? containingSource.fullName : '<null>';
-      AnalysisEngine.instance.logger.logInformation(
-          "Could not resolve URI ($containedUri) relative to source ($containingFullName)",
-          new CaughtException(exception, stackTrace));
-      return null;
-    }
-  }
+  Source resolveUri(Source containingSource, String containedUri);
 
   /**
-   * Return an absolute URI that represents the given source, or `null` if a valid URI cannot
-   * be computed.
+   * Return an absolute URI that represents the given source, or `null` if a
+   * valid URI cannot be computed.
    *
    * @param source the source to get URI for
    * @return the absolute URI representing the given source
    */
-  Uri restoreUri(Source source) {
-    // First see if a resolver can restore the URI.
-    for (UriResolver resolver in _resolvers) {
-      Uri uri = resolver.restoreAbsolute(source);
-      if (uri != null) {
-        // Now see if there's a package mapping.
-        Uri packageMappedUri = _getPackageMapping(uri);
-        if (packageMappedUri != null) {
-          return packageMappedUri;
-        }
-        // Fall back to the resolver's computed URI.
-        return uri;
-      }
-    }
-
-    return null;
-  }
-
-  Uri _getPackageMapping(Uri sourceUri) {
-    if (_packages == null) {
-      return null;
-    }
-    if (sourceUri.scheme != 'file') {
-      //TODO(pquitslund): verify this works for non-file URIs.
-      return null;
-    }
-
-    Uri packageUri;
-    _packages.asMap().forEach((String name, Uri uri) {
-      if (packageUri == null) {
-        if (utils.startsWith(sourceUri, uri)) {
-          packageUri = Uri.parse(
-              'package:$name/${sourceUri.path.substring(uri.path.length)}');
-        }
-      }
-    });
-    return packageUri;
-  }
-
-  /**
-   * Return a source object representing the URI that results from resolving the given (possibly
-   * relative) contained URI against the URI associated with an existing source object, or
-   * `null` if the URI could not be resolved.
-   *
-   * @param containingSource the source containing the given URI
-   * @param containedUri the (possibly relative) URI to be resolved against the containing source
-   * @return the source representing the contained URI
-   * @throws AnalysisException if either the contained URI is invalid or if it cannot be resolved
-   *           against the source object's URI
-   */
-  Source _internalResolveUri(Source containingSource, Uri containedUri) {
-    if (!containedUri.isAbsolute) {
-      if (containingSource == null) {
-        throw new AnalysisException(
-            "Cannot resolve a relative URI without a containing source: $containedUri");
-      }
-      containedUri = containingSource.resolveRelativeUri(containedUri);
-    }
-
-    Uri actualUri = containedUri;
-
-    // Check .packages and update target and actual URIs as appropriate.
-    if (_packages != null && containedUri.scheme == 'package') {
-      Uri packageUri = null;
-      try {
-        packageUri =
-            _packages.resolve(containedUri, notFound: (Uri packageUri) => null);
-      } on ArgumentError {
-        // Fall through to try resolvers.
-      }
-
-      if (packageUri != null) {
-        // Ensure scheme is set.
-        if (packageUri.scheme == '') {
-          packageUri = packageUri.replace(scheme: 'file');
-        }
-        containedUri = packageUri;
-      }
-    }
-
-    for (UriResolver resolver in _resolvers) {
-      Source result = resolver.resolveAbsolute(containedUri, actualUri);
-      if (result != null) {
-        return result;
-      }
-    }
-
-    return null;
-  }
+  Uri restoreUri(Source source);
 }
 
 /**
- * The enumeration `SourceKind` defines the different kinds of sources that are known to the
- * analysis engine.
+ * The enumeration `SourceKind` defines the different kinds of sources that are
+ * known to the analysis engine.
  */
 class SourceKind extends Enum<SourceKind> {
   /**
@@ -873,20 +707,22 @@ class SourceKind extends Enum<SourceKind> {
   static const SourceKind HTML = const SourceKind('HTML', 0);
 
   /**
-   * A Dart compilation unit that is not a part of another library. Libraries might or might not
-   * contain any directives, including a library directive.
+   * A Dart compilation unit that is not a part of another library. Libraries
+   * might or might not contain any directives, including a library directive.
    */
   static const SourceKind LIBRARY = const SourceKind('LIBRARY', 1);
 
   /**
-   * A Dart compilation unit that is part of another library. Parts contain a part-of directive.
+   * A Dart compilation unit that is part of another library. Parts contain a
+   * part-of directive.
    */
   static const SourceKind PART = const SourceKind('PART', 2);
 
   /**
-   * An unknown kind of source. Used both when it is not possible to identify the kind of a source
-   * and also when the kind of a source is not known without performing a computation and the client
-   * does not want to spend the time to identify the kind.
+   * An unknown kind of source. Used both when it is not possible to identify
+   * the kind of a source and also when the kind of a source is not known
+   * without performing a computation and the client does not want to spend the
+   * time to identify the kind.
    */
   static const SourceKind UNKNOWN = const SourceKind('UNKNOWN', 3);
 

@@ -209,6 +209,9 @@ static Dart_Handle BootstrapLibraryTagHandler(Dart_LibraryTag tag,
                                               Dart_Handle uri) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
+  // This handler calls into the VM directly and does not use the Dart
+  // API so we transition back to VM.
+  TransitionNativeToVM transition(thread);
   if (!Dart_IsLibrary(library)) {
     return Api::NewError("not a library");
   }
@@ -292,6 +295,11 @@ RawError* Bootstrap::LoadandCompileScripts() {
   for (intptr_t i = 0;
        bootstrap_libraries[i].index_ != ObjectStore::kNone;
        ++i) {
+#ifdef PRODUCT
+    if (bootstrap_libraries[i].index_ == ObjectStore::kMirrors) {
+      continue;
+    }
+#endif  // !PRODUCT
     uri = Symbols::New(bootstrap_libraries[i].uri_);
     lib = Library::LookupLibrary(uri);
     if (lib.IsNull()) {
@@ -307,6 +315,11 @@ RawError* Bootstrap::LoadandCompileScripts() {
   for (intptr_t i = 0;
        bootstrap_libraries[i].index_ != ObjectStore::kNone;
        ++i) {
+#ifdef PRODUCT
+    if (bootstrap_libraries[i].index_ == ObjectStore::kMirrors) {
+      continue;
+    }
+#endif  // PRODUCT
     uri = Symbols::New(bootstrap_libraries[i].uri_);
     lib = Library::LookupLibrary(uri);
     ASSERT(!lib.IsNull());
@@ -339,13 +352,11 @@ RawError* Bootstrap::LoadandCompileScripts() {
     SetupNativeResolver();
     ClassFinalizer::ProcessPendingClasses();
 
-    Class& cls = Class::Handle(zone);
-    // Eagerly compile the function implementation class as it is the super
-    // class of signature classes. This allows us to just finalize signature
-    // classes without going through the hoops of trying to compile them.
-    const Type& type =
-        Type::Handle(zone, isolate->object_store()->function_impl_type());
-    cls = type.type_class();
+    // Eagerly compile the _Closure class as it is the class of all closure
+    // instances. This allows us to just finalize function types
+    // without going through the hoops of trying to compile their scope class.
+    const Class& cls =
+        Class::Handle(zone, isolate->object_store()->closure_class());
     Compiler::CompileClass(cls);
   }
 

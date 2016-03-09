@@ -43,34 +43,9 @@ bool CpuInfo::FieldContains(CpuInfoIndices idx, const char* search_string) {
 }
 
 
-bool CpuInfo::FieldContainsByString(const char* field,
-                                    const char* search_string) {
-  ASSERT(method_ != kCpuInfoDefault);
-  for (int i = 0; i < kCpuInfoMax; i++) {
-    if (strcmp(field, fields_[i]) == 0) {
-      return FieldContains(static_cast<CpuInfoIndices>(i), search_string);
-    }
-  }
-  UNIMPLEMENTED();
-  return false;
-}
-
-
 const char* CpuInfo::ExtractField(CpuInfoIndices idx) {
   ASSERT(method_ != kCpuInfoDefault);
   return CpuId::field(idx);
-}
-
-
-const char* CpuInfo::ExtractFieldByString(const char* field) {
-  ASSERT(method_ != kCpuInfoDefault);
-  for (int i = 0; i < kCpuInfoMax; i++) {
-    if (strcmp(field, fields_[i]) == 0) {
-      return ExtractField(static_cast<CpuInfoIndices>(i));
-    }
-  }
-  UNIMPLEMENTED();
-  return NULL;
 }
 
 

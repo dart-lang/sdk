@@ -10,6 +10,8 @@
 #include "platform/assert.h"
 #include "vm/os.h"
 
+#include "vm/isolate.h"
+
 namespace dart {
 
 uword VirtualMemory::page_size_ = 0;
@@ -63,6 +65,8 @@ bool VirtualMemory::Commit(uword addr, intptr_t size, bool executable) {
 
 
 bool VirtualMemory::Protect(void* address, intptr_t size, Protection mode) {
+  ASSERT(Thread::Current()->IsMutatorThread() ||
+         Isolate::Current()->mutator_thread()->IsAtSafepoint());
   uword start_address = reinterpret_cast<uword>(address);
   uword end_address = start_address + size;
   uword page_address = Utils::RoundDown(start_address, PageSize());

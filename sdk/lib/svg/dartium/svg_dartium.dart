@@ -349,9 +349,7 @@ class AElement extends GraphicsElement implements UriReference {
     return new AElement._internalWrap();
   }
 
-  factory AElement._internalWrap() {
-    return new AElement.internal_();
-  }
+  external factory AElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   AElement.internal_() : super.internal_();
@@ -399,9 +397,7 @@ class AltGlyphElement extends TextPositioningElement implements UriReference {
     return new AltGlyphElement._internalWrap();
   }
 
-  factory AltGlyphElement._internalWrap() {
-    return new AltGlyphElement.internal_();
-  }
+  external factory AltGlyphElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   AltGlyphElement.internal_() : super.internal_();
@@ -550,9 +546,7 @@ class AnimateElement extends AnimationElement {
     return new AnimateElement._internalWrap();
   }
 
-  factory AnimateElement._internalWrap() {
-    return new AnimateElement.internal_();
-  }
+  external factory AnimateElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   AnimateElement.internal_() : super.internal_();
@@ -595,9 +589,7 @@ class AnimateMotionElement extends AnimationElement {
     return new AnimateMotionElement._internalWrap();
   }
 
-  factory AnimateMotionElement._internalWrap() {
-    return new AnimateMotionElement.internal_();
-  }
+  external factory AnimateMotionElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   AnimateMotionElement.internal_() : super.internal_();
@@ -640,9 +632,7 @@ class AnimateTransformElement extends AnimationElement {
     return new AnimateTransformElement._internalWrap();
   }
 
-  factory AnimateTransformElement._internalWrap() {
-    return new AnimateTransformElement.internal_();
-  }
+  external factory AnimateTransformElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   AnimateTransformElement.internal_() : super.internal_();
@@ -1158,9 +1148,7 @@ class AnimationElement extends SvgElement implements Tests {
     return new AnimationElement._internalWrap();
   }
 
-  factory AnimationElement._internalWrap() {
-    return new AnimationElement.internal_();
-  }
+  external factory AnimationElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   AnimationElement.internal_() : super.internal_();
@@ -1245,9 +1233,7 @@ class CircleElement extends GeometryElement {
     return new CircleElement._internalWrap();
   }
 
-  factory CircleElement._internalWrap() {
-    return new CircleElement.internal_();
-  }
+  external factory CircleElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   CircleElement.internal_() : super.internal_();
@@ -1296,9 +1282,7 @@ class ClipPathElement extends GraphicsElement {
     return new ClipPathElement._internalWrap();
   }
 
-  factory ClipPathElement._internalWrap() {
-    return new ClipPathElement.internal_();
-  }
+  external factory ClipPathElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   ClipPathElement.internal_() : super.internal_();
@@ -1339,9 +1323,7 @@ class DefsElement extends GraphicsElement {
     return new DefsElement._internalWrap();
   }
 
-  factory DefsElement._internalWrap() {
-    return new DefsElement.internal_();
-  }
+  external factory DefsElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   DefsElement.internal_() : super.internal_();
@@ -1378,9 +1360,7 @@ class DescElement extends SvgElement {
     return new DescElement._internalWrap();
   }
 
-  factory DescElement._internalWrap() {
-    return new DescElement.internal_();
-  }
+  external factory DescElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   DescElement.internal_() : super.internal_();
@@ -1413,9 +1393,7 @@ class DiscardElement extends SvgElement {
     return new DiscardElement._internalWrap();
   }
 
-  factory DiscardElement._internalWrap() {
-    return new DiscardElement.internal_();
-  }
+  external factory DiscardElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   DiscardElement.internal_() : super.internal_();
@@ -1452,9 +1430,7 @@ class EllipseElement extends GeometryElement {
     return new EllipseElement._internalWrap();
   }
 
-  factory EllipseElement._internalWrap() {
-    return new EllipseElement.internal_();
-  }
+  external factory EllipseElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   EllipseElement.internal_() : super.internal_();
@@ -1511,9 +1487,7 @@ class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttrib
     return new FEBlendElement._internalWrap();
   }
 
-  factory FEBlendElement._internalWrap() {
-    return new FEBlendElement.internal_();
-  }
+  external factory FEBlendElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEBlendElement.internal_() : super.internal_();
@@ -1613,9 +1587,7 @@ class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandard
     return new FEColorMatrixElement._internalWrap();
   }
 
-  factory FEColorMatrixElement._internalWrap() {
-    return new FEColorMatrixElement.internal_();
-  }
+  external factory FEColorMatrixElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEColorMatrixElement.internal_() : super.internal_();
@@ -1711,9 +1683,7 @@ class FEComponentTransferElement extends SvgElement implements FilterPrimitiveSt
     return new FEComponentTransferElement._internalWrap();
   }
 
-  factory FEComponentTransferElement._internalWrap() {
-    return new FEComponentTransferElement.internal_();
-  }
+  external factory FEComponentTransferElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEComponentTransferElement.internal_() : super.internal_();
@@ -1773,9 +1743,7 @@ class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAt
     return new FECompositeElement._internalWrap();
   }
 
-  factory FECompositeElement._internalWrap() {
-    return new FECompositeElement.internal_();
-  }
+  external factory FECompositeElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FECompositeElement.internal_() : super.internal_();
@@ -1892,9 +1860,7 @@ class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStand
     return new FEConvolveMatrixElement._internalWrap();
   }
 
-  factory FEConvolveMatrixElement._internalWrap() {
-    return new FEConvolveMatrixElement.internal_();
-  }
+  external factory FEConvolveMatrixElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEConvolveMatrixElement.internal_() : super.internal_();
@@ -2022,9 +1988,7 @@ class FEDiffuseLightingElement extends SvgElement implements FilterPrimitiveStan
     return new FEDiffuseLightingElement._internalWrap();
   }
 
-  factory FEDiffuseLightingElement._internalWrap() {
-    return new FEDiffuseLightingElement.internal_();
-  }
+  external factory FEDiffuseLightingElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEDiffuseLightingElement.internal_() : super.internal_();
@@ -2108,9 +2072,7 @@ class FEDisplacementMapElement extends SvgElement implements FilterPrimitiveStan
     return new FEDisplacementMapElement._internalWrap();
   }
 
-  factory FEDisplacementMapElement._internalWrap() {
-    return new FEDisplacementMapElement.internal_();
-  }
+  external factory FEDisplacementMapElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEDisplacementMapElement.internal_() : super.internal_();
@@ -2214,9 +2176,7 @@ class FEDistantLightElement extends SvgElement {
     return new FEDistantLightElement._internalWrap();
   }
 
-  factory FEDistantLightElement._internalWrap() {
-    return new FEDistantLightElement.internal_();
-  }
+  external factory FEDistantLightElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEDistantLightElement.internal_() : super.internal_();
@@ -2268,9 +2228,7 @@ class FEFloodElement extends SvgElement implements FilterPrimitiveStandardAttrib
     return new FEFloodElement._internalWrap();
   }
 
-  factory FEFloodElement._internalWrap() {
-    return new FEFloodElement.internal_();
-  }
+  external factory FEFloodElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEFloodElement.internal_() : super.internal_();
@@ -2334,9 +2292,7 @@ class FEFuncAElement extends _SVGComponentTransferFunctionElement {
     return new FEFuncAElement._internalWrap();
   }
 
-  factory FEFuncAElement._internalWrap() {
-    return new FEFuncAElement.internal_();
-  }
+  external factory FEFuncAElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEFuncAElement.internal_() : super.internal_();
@@ -2380,9 +2336,7 @@ class FEFuncBElement extends _SVGComponentTransferFunctionElement {
     return new FEFuncBElement._internalWrap();
   }
 
-  factory FEFuncBElement._internalWrap() {
-    return new FEFuncBElement.internal_();
-  }
+  external factory FEFuncBElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEFuncBElement.internal_() : super.internal_();
@@ -2426,9 +2380,7 @@ class FEFuncGElement extends _SVGComponentTransferFunctionElement {
     return new FEFuncGElement._internalWrap();
   }
 
-  factory FEFuncGElement._internalWrap() {
-    return new FEFuncGElement.internal_();
-  }
+  external factory FEFuncGElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEFuncGElement.internal_() : super.internal_();
@@ -2472,9 +2424,7 @@ class FEFuncRElement extends _SVGComponentTransferFunctionElement {
     return new FEFuncRElement._internalWrap();
   }
 
-  factory FEFuncRElement._internalWrap() {
-    return new FEFuncRElement.internal_();
-  }
+  external factory FEFuncRElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEFuncRElement.internal_() : super.internal_();
@@ -2518,9 +2468,7 @@ class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandar
     return new FEGaussianBlurElement._internalWrap();
   }
 
-  factory FEGaussianBlurElement._internalWrap() {
-    return new FEGaussianBlurElement.internal_();
-  }
+  external factory FEGaussianBlurElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEGaussianBlurElement.internal_() : super.internal_();
@@ -2600,9 +2548,7 @@ class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttrib
     return new FEImageElement._internalWrap();
   }
 
-  factory FEImageElement._internalWrap() {
-    return new FEImageElement.internal_();
-  }
+  external factory FEImageElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEImageElement.internal_() : super.internal_();
@@ -2674,9 +2620,7 @@ class FEMergeElement extends SvgElement implements FilterPrimitiveStandardAttrib
     return new FEMergeElement._internalWrap();
   }
 
-  factory FEMergeElement._internalWrap() {
-    return new FEMergeElement.internal_();
-  }
+  external factory FEMergeElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEMergeElement.internal_() : super.internal_();
@@ -2740,9 +2684,7 @@ class FEMergeNodeElement extends SvgElement {
     return new FEMergeNodeElement._internalWrap();
   }
 
-  factory FEMergeNodeElement._internalWrap() {
-    return new FEMergeNodeElement.internal_();
-  }
+  external factory FEMergeNodeElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEMergeNodeElement.internal_() : super.internal_();
@@ -2786,9 +2728,7 @@ class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardA
     return new FEMorphologyElement._internalWrap();
   }
 
-  factory FEMorphologyElement._internalWrap() {
-    return new FEMorphologyElement.internal_();
-  }
+  external factory FEMorphologyElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEMorphologyElement.internal_() : super.internal_();
@@ -2877,9 +2817,7 @@ class FEOffsetElement extends SvgElement implements FilterPrimitiveStandardAttri
     return new FEOffsetElement._internalWrap();
   }
 
-  factory FEOffsetElement._internalWrap() {
-    return new FEOffsetElement.internal_();
-  }
+  external factory FEOffsetElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEOffsetElement.internal_() : super.internal_();
@@ -2955,9 +2893,7 @@ class FEPointLightElement extends SvgElement {
     return new FEPointLightElement._internalWrap();
   }
 
-  factory FEPointLightElement._internalWrap() {
-    return new FEPointLightElement.internal_();
-  }
+  external factory FEPointLightElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FEPointLightElement.internal_() : super.internal_();
@@ -3013,9 +2949,7 @@ class FESpecularLightingElement extends SvgElement implements FilterPrimitiveSta
     return new FESpecularLightingElement._internalWrap();
   }
 
-  factory FESpecularLightingElement._internalWrap() {
-    return new FESpecularLightingElement.internal_();
-  }
+  external factory FESpecularLightingElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FESpecularLightingElement.internal_() : super.internal_();
@@ -3095,9 +3029,7 @@ class FESpotLightElement extends SvgElement {
     return new FESpotLightElement._internalWrap();
   }
 
-  factory FESpotLightElement._internalWrap() {
-    return new FESpotLightElement.internal_();
-  }
+  external factory FESpotLightElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FESpotLightElement.internal_() : super.internal_();
@@ -3173,9 +3105,7 @@ class FETileElement extends SvgElement implements FilterPrimitiveStandardAttribu
     return new FETileElement._internalWrap();
   }
 
-  factory FETileElement._internalWrap() {
-    return new FETileElement.internal_();
-  }
+  external factory FETileElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FETileElement.internal_() : super.internal_();
@@ -3243,9 +3173,7 @@ class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardA
     return new FETurbulenceElement._internalWrap();
   }
 
-  factory FETurbulenceElement._internalWrap() {
-    return new FETurbulenceElement.internal_();
-  }
+  external factory FETurbulenceElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FETurbulenceElement.internal_() : super.internal_();
@@ -3357,9 +3285,7 @@ class FilterElement extends SvgElement implements UriReference {
     return new FilterElement._internalWrap();
   }
 
-  factory FilterElement._internalWrap() {
-    return new FilterElement.internal_();
-  }
+  external factory FilterElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   FilterElement.internal_() : super.internal_();
@@ -3500,9 +3426,7 @@ class ForeignObjectElement extends GraphicsElement {
     return new ForeignObjectElement._internalWrap();
   }
 
-  factory ForeignObjectElement._internalWrap() {
-    return new ForeignObjectElement.internal_();
-  }
+  external factory ForeignObjectElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   ForeignObjectElement.internal_() : super.internal_();
@@ -3558,9 +3482,7 @@ class GElement extends GraphicsElement {
     return new GElement._internalWrap();
   }
 
-  factory GElement._internalWrap() {
-    return new GElement.internal_();
-  }
+  external factory GElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   GElement.internal_() : super.internal_();
@@ -3593,9 +3515,7 @@ class GeometryElement extends GraphicsElement {
     return new GeometryElement._internalWrap();
   }
 
-  factory GeometryElement._internalWrap() {
-    return new GeometryElement.internal_();
-  }
+  external factory GeometryElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   GeometryElement.internal_() : super.internal_();
@@ -3638,9 +3558,7 @@ class GraphicsElement extends SvgElement implements Tests {
     return new GraphicsElement._internalWrap();
   }
 
-  factory GraphicsElement._internalWrap() {
-    return new GraphicsElement.internal_();
-  }
+  external factory GraphicsElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   GraphicsElement.internal_() : super.internal_();
@@ -3732,9 +3650,7 @@ class ImageElement extends GraphicsElement implements UriReference {
     return new ImageElement._internalWrap();
   }
 
-  factory ImageElement._internalWrap() {
-    return new ImageElement.internal_();
-  }
+  external factory ImageElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   ImageElement.internal_() : super.internal_();
@@ -4021,9 +3937,7 @@ class LineElement extends GeometryElement {
     return new LineElement._internalWrap();
   }
 
-  factory LineElement._internalWrap() {
-    return new LineElement.internal_();
-  }
+  external factory LineElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   LineElement.internal_() : super.internal_();
@@ -4076,9 +3990,7 @@ class LinearGradientElement extends _GradientElement {
     return new LinearGradientElement._internalWrap();
   }
 
-  factory LinearGradientElement._internalWrap() {
-    return new LinearGradientElement.internal_();
-  }
+  external factory LinearGradientElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   LinearGradientElement.internal_() : super.internal_();
@@ -4131,9 +4043,7 @@ class MarkerElement extends SvgElement implements FitToViewBox {
     return new MarkerElement._internalWrap();
   }
 
-  factory MarkerElement._internalWrap() {
-    return new MarkerElement.internal_();
-  }
+  external factory MarkerElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   MarkerElement.internal_() : super.internal_();
@@ -4238,9 +4148,7 @@ class MaskElement extends SvgElement implements Tests {
     return new MaskElement._internalWrap();
   }
 
-  factory MaskElement._internalWrap() {
-    return new MaskElement.internal_();
-  }
+  external factory MaskElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   MaskElement.internal_() : super.internal_();
@@ -4435,9 +4343,7 @@ class MetadataElement extends SvgElement {
     return new MetadataElement._internalWrap();
   }
 
-  factory MetadataElement._internalWrap() {
-    return new MetadataElement.internal_();
-  }
+  external factory MetadataElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   MetadataElement.internal_() : super.internal_();
@@ -4628,9 +4534,7 @@ class PathElement extends GeometryElement {
     return new PathElement._internalWrap();
   }
 
-  factory PathElement._internalWrap() {
-    return new PathElement.internal_();
-  }
+  external factory PathElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathElement.internal_() : super.internal_();
@@ -4889,9 +4793,7 @@ class PathSegArcAbs extends PathSeg {
     return new PathSegArcAbs._internalWrap();
   }
 
-  factory PathSegArcAbs._internalWrap() {
-    return new PathSegArcAbs.internal_();
-  }
+  external factory PathSegArcAbs._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegArcAbs.internal_() : super.internal_();
@@ -4974,9 +4876,7 @@ class PathSegArcRel extends PathSeg {
     return new PathSegArcRel._internalWrap();
   }
 
-  factory PathSegArcRel._internalWrap() {
-    return new PathSegArcRel.internal_();
-  }
+  external factory PathSegArcRel._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegArcRel.internal_() : super.internal_();
@@ -5059,9 +4959,7 @@ class PathSegClosePath extends PathSeg {
     return new PathSegClosePath._internalWrap();
   }
 
-  factory PathSegClosePath._internalWrap() {
-    return new PathSegClosePath.internal_();
-  }
+  external factory PathSegClosePath._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegClosePath.internal_() : super.internal_();
@@ -5088,9 +4986,7 @@ class PathSegCurvetoCubicAbs extends PathSeg {
     return new PathSegCurvetoCubicAbs._internalWrap();
   }
 
-  factory PathSegCurvetoCubicAbs._internalWrap() {
-    return new PathSegCurvetoCubicAbs.internal_();
-  }
+  external factory PathSegCurvetoCubicAbs._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegCurvetoCubicAbs.internal_() : super.internal_();
@@ -5165,9 +5061,7 @@ class PathSegCurvetoCubicRel extends PathSeg {
     return new PathSegCurvetoCubicRel._internalWrap();
   }
 
-  factory PathSegCurvetoCubicRel._internalWrap() {
-    return new PathSegCurvetoCubicRel.internal_();
-  }
+  external factory PathSegCurvetoCubicRel._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegCurvetoCubicRel.internal_() : super.internal_();
@@ -5242,9 +5136,7 @@ class PathSegCurvetoCubicSmoothAbs extends PathSeg {
     return new PathSegCurvetoCubicSmoothAbs._internalWrap();
   }
 
-  factory PathSegCurvetoCubicSmoothAbs._internalWrap() {
-    return new PathSegCurvetoCubicSmoothAbs.internal_();
-  }
+  external factory PathSegCurvetoCubicSmoothAbs._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegCurvetoCubicSmoothAbs.internal_() : super.internal_();
@@ -5303,9 +5195,7 @@ class PathSegCurvetoCubicSmoothRel extends PathSeg {
     return new PathSegCurvetoCubicSmoothRel._internalWrap();
   }
 
-  factory PathSegCurvetoCubicSmoothRel._internalWrap() {
-    return new PathSegCurvetoCubicSmoothRel.internal_();
-  }
+  external factory PathSegCurvetoCubicSmoothRel._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegCurvetoCubicSmoothRel.internal_() : super.internal_();
@@ -5364,9 +5254,7 @@ class PathSegCurvetoQuadraticAbs extends PathSeg {
     return new PathSegCurvetoQuadraticAbs._internalWrap();
   }
 
-  factory PathSegCurvetoQuadraticAbs._internalWrap() {
-    return new PathSegCurvetoQuadraticAbs.internal_();
-  }
+  external factory PathSegCurvetoQuadraticAbs._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegCurvetoQuadraticAbs.internal_() : super.internal_();
@@ -5425,9 +5313,7 @@ class PathSegCurvetoQuadraticRel extends PathSeg {
     return new PathSegCurvetoQuadraticRel._internalWrap();
   }
 
-  factory PathSegCurvetoQuadraticRel._internalWrap() {
-    return new PathSegCurvetoQuadraticRel.internal_();
-  }
+  external factory PathSegCurvetoQuadraticRel._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegCurvetoQuadraticRel.internal_() : super.internal_();
@@ -5486,9 +5372,7 @@ class PathSegCurvetoQuadraticSmoothAbs extends PathSeg {
     return new PathSegCurvetoQuadraticSmoothAbs._internalWrap();
   }
 
-  factory PathSegCurvetoQuadraticSmoothAbs._internalWrap() {
-    return new PathSegCurvetoQuadraticSmoothAbs.internal_();
-  }
+  external factory PathSegCurvetoQuadraticSmoothAbs._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegCurvetoQuadraticSmoothAbs.internal_() : super.internal_();
@@ -5531,9 +5415,7 @@ class PathSegCurvetoQuadraticSmoothRel extends PathSeg {
     return new PathSegCurvetoQuadraticSmoothRel._internalWrap();
   }
 
-  factory PathSegCurvetoQuadraticSmoothRel._internalWrap() {
-    return new PathSegCurvetoQuadraticSmoothRel.internal_();
-  }
+  external factory PathSegCurvetoQuadraticSmoothRel._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegCurvetoQuadraticSmoothRel.internal_() : super.internal_();
@@ -5576,9 +5458,7 @@ class PathSegLinetoAbs extends PathSeg {
     return new PathSegLinetoAbs._internalWrap();
   }
 
-  factory PathSegLinetoAbs._internalWrap() {
-    return new PathSegLinetoAbs.internal_();
-  }
+  external factory PathSegLinetoAbs._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegLinetoAbs.internal_() : super.internal_();
@@ -5621,9 +5501,7 @@ class PathSegLinetoHorizontalAbs extends PathSeg {
     return new PathSegLinetoHorizontalAbs._internalWrap();
   }
 
-  factory PathSegLinetoHorizontalAbs._internalWrap() {
-    return new PathSegLinetoHorizontalAbs.internal_();
-  }
+  external factory PathSegLinetoHorizontalAbs._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegLinetoHorizontalAbs.internal_() : super.internal_();
@@ -5658,9 +5536,7 @@ class PathSegLinetoHorizontalRel extends PathSeg {
     return new PathSegLinetoHorizontalRel._internalWrap();
   }
 
-  factory PathSegLinetoHorizontalRel._internalWrap() {
-    return new PathSegLinetoHorizontalRel.internal_();
-  }
+  external factory PathSegLinetoHorizontalRel._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegLinetoHorizontalRel.internal_() : super.internal_();
@@ -5695,9 +5571,7 @@ class PathSegLinetoRel extends PathSeg {
     return new PathSegLinetoRel._internalWrap();
   }
 
-  factory PathSegLinetoRel._internalWrap() {
-    return new PathSegLinetoRel.internal_();
-  }
+  external factory PathSegLinetoRel._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegLinetoRel.internal_() : super.internal_();
@@ -5740,9 +5614,7 @@ class PathSegLinetoVerticalAbs extends PathSeg {
     return new PathSegLinetoVerticalAbs._internalWrap();
   }
 
-  factory PathSegLinetoVerticalAbs._internalWrap() {
-    return new PathSegLinetoVerticalAbs.internal_();
-  }
+  external factory PathSegLinetoVerticalAbs._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegLinetoVerticalAbs.internal_() : super.internal_();
@@ -5777,9 +5649,7 @@ class PathSegLinetoVerticalRel extends PathSeg {
     return new PathSegLinetoVerticalRel._internalWrap();
   }
 
-  factory PathSegLinetoVerticalRel._internalWrap() {
-    return new PathSegLinetoVerticalRel.internal_();
-  }
+  external factory PathSegLinetoVerticalRel._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegLinetoVerticalRel.internal_() : super.internal_();
@@ -5930,9 +5800,7 @@ class PathSegMovetoAbs extends PathSeg {
     return new PathSegMovetoAbs._internalWrap();
   }
 
-  factory PathSegMovetoAbs._internalWrap() {
-    return new PathSegMovetoAbs.internal_();
-  }
+  external factory PathSegMovetoAbs._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegMovetoAbs.internal_() : super.internal_();
@@ -5975,9 +5843,7 @@ class PathSegMovetoRel extends PathSeg {
     return new PathSegMovetoRel._internalWrap();
   }
 
-  factory PathSegMovetoRel._internalWrap() {
-    return new PathSegMovetoRel.internal_();
-  }
+  external factory PathSegMovetoRel._internalWrap();
 
   @Deprecated("Internal Use Only")
   PathSegMovetoRel.internal_() : super.internal_();
@@ -6024,9 +5890,7 @@ class PatternElement extends SvgElement implements FitToViewBox, UriReference, T
     return new PatternElement._internalWrap();
   }
 
-  factory PatternElement._internalWrap() {
-    return new PatternElement.internal_();
-  }
+  external factory PatternElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   PatternElement.internal_() : super.internal_();
@@ -6241,9 +6105,7 @@ class PolygonElement extends GeometryElement {
     return new PolygonElement._internalWrap();
   }
 
-  factory PolygonElement._internalWrap() {
-    return new PolygonElement.internal_();
-  }
+  external factory PolygonElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   PolygonElement.internal_() : super.internal_();
@@ -6288,9 +6150,7 @@ class PolylineElement extends GeometryElement {
     return new PolylineElement._internalWrap();
   }
 
-  factory PolylineElement._internalWrap() {
-    return new PolylineElement.internal_();
-  }
+  external factory PolylineElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   PolylineElement.internal_() : super.internal_();
@@ -6437,9 +6297,7 @@ class RadialGradientElement extends _GradientElement {
     return new RadialGradientElement._internalWrap();
   }
 
-  factory RadialGradientElement._internalWrap() {
-    return new RadialGradientElement.internal_();
-  }
+  external factory RadialGradientElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   RadialGradientElement.internal_() : super.internal_();
@@ -6562,9 +6420,7 @@ class RectElement extends GeometryElement {
     return new RectElement._internalWrap();
   }
 
-  factory RectElement._internalWrap() {
-    return new RectElement.internal_();
-  }
+  external factory RectElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   RectElement.internal_() : super.internal_();
@@ -6679,9 +6535,7 @@ class ScriptElement extends SvgElement implements UriReference {
     return new ScriptElement._internalWrap();
   }
 
-  factory ScriptElement._internalWrap() {
-    return new ScriptElement.internal_();
-  }
+  external factory ScriptElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   ScriptElement.internal_() : super.internal_();
@@ -6733,9 +6587,7 @@ class SetElement extends AnimationElement {
     return new SetElement._internalWrap();
   }
 
-  factory SetElement._internalWrap() {
-    return new SetElement.internal_();
-  }
+  external factory SetElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   SetElement.internal_() : super.internal_();
@@ -6775,9 +6627,7 @@ class StopElement extends SvgElement {
     return new StopElement._internalWrap();
   }
 
-  factory StopElement._internalWrap() {
-    return new StopElement.internal_();
-  }
+  external factory StopElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   StopElement.internal_() : super.internal_();
@@ -6935,9 +6785,7 @@ class StyleElement extends SvgElement {
     return new StyleElement._internalWrap();
   }
 
-  factory StyleElement._internalWrap() {
-    return new StyleElement.internal_();
-  }
+  external factory StyleElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   StyleElement.internal_() : super.internal_();
@@ -7416,9 +7264,7 @@ class SvgElement extends Element implements GlobalEventHandlers {
     return new SvgElement._internalWrap();
   }
 
-  factory SvgElement._internalWrap() {
-    return new SvgElement.internal_();
-  }
+  external factory SvgElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   SvgElement.internal_() : super.internal_();
@@ -7771,9 +7617,7 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ZoomAndPan 
     return new SvgSvgElement._internalWrap();
   }
 
-  factory SvgSvgElement._internalWrap() {
-    return new SvgSvgElement.internal_();
-  }
+  external factory SvgSvgElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   SvgSvgElement.internal_() : super.internal_();
@@ -7974,9 +7818,7 @@ class SwitchElement extends GraphicsElement {
     return new SwitchElement._internalWrap();
   }
 
-  factory SwitchElement._internalWrap() {
-    return new SwitchElement.internal_();
-  }
+  external factory SwitchElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   SwitchElement.internal_() : super.internal_();
@@ -8013,9 +7855,7 @@ class SymbolElement extends SvgElement implements FitToViewBox {
     return new SymbolElement._internalWrap();
   }
 
-  factory SymbolElement._internalWrap() {
-    return new SymbolElement.internal_();
-  }
+  external factory SymbolElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   SymbolElement.internal_() : super.internal_();
@@ -8060,9 +7900,7 @@ class TSpanElement extends TextPositioningElement {
     return new TSpanElement._internalWrap();
   }
 
-  factory TSpanElement._internalWrap() {
-    return new TSpanElement.internal_();
-  }
+  external factory TSpanElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   TSpanElement.internal_() : super.internal_();
@@ -8126,9 +7964,7 @@ class TextContentElement extends GraphicsElement {
     return new TextContentElement._internalWrap();
   }
 
-  factory TextContentElement._internalWrap() {
-    return new TextContentElement.internal_();
-  }
+  external factory TextContentElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   TextContentElement.internal_() : super.internal_();
@@ -8221,9 +8057,7 @@ class TextElement extends TextPositioningElement {
     return new TextElement._internalWrap();
   }
 
-  factory TextElement._internalWrap() {
-    return new TextElement.internal_();
-  }
+  external factory TextElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   TextElement.internal_() : super.internal_();
@@ -8256,9 +8090,7 @@ class TextPathElement extends TextContentElement implements UriReference {
     return new TextPathElement._internalWrap();
   }
 
-  factory TextPathElement._internalWrap() {
-    return new TextPathElement.internal_();
-  }
+  external factory TextPathElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   TextPathElement.internal_() : super.internal_();
@@ -8331,9 +8163,7 @@ class TextPositioningElement extends TextContentElement {
     return new TextPositioningElement._internalWrap();
   }
 
-  factory TextPositioningElement._internalWrap() {
-    return new TextPositioningElement.internal_();
-  }
+  external factory TextPositioningElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   TextPositioningElement.internal_() : super.internal_();
@@ -8390,9 +8220,7 @@ class TitleElement extends SvgElement {
     return new TitleElement._internalWrap();
   }
 
-  factory TitleElement._internalWrap() {
-    return new TitleElement.internal_();
-  }
+  external factory TitleElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   TitleElement.internal_() : super.internal_();
@@ -8708,9 +8536,7 @@ class UseElement extends GraphicsElement implements UriReference {
     return new UseElement._internalWrap();
   }
 
-  factory UseElement._internalWrap() {
-    return new UseElement.internal_();
-  }
+  external factory UseElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   UseElement.internal_() : super.internal_();
@@ -8767,9 +8593,7 @@ class ViewElement extends SvgElement implements FitToViewBox, ZoomAndPan {
     return new ViewElement._internalWrap();
   }
 
-  factory ViewElement._internalWrap() {
-    return new ViewElement.internal_();
-  }
+  external factory ViewElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   ViewElement.internal_() : super.internal_();
@@ -8931,9 +8755,7 @@ class ZoomEvent extends UIEvent {
     return new ZoomEvent._internalWrap();
   }
 
-  factory ZoomEvent._internalWrap() {
-    return new ZoomEvent.internal_();
-  }
+  external factory ZoomEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   ZoomEvent.internal_() : super.internal_();
@@ -8980,9 +8802,7 @@ class _GradientElement extends SvgElement implements UriReference {
     return new _GradientElement._internalWrap();
   }
 
-  factory _GradientElement._internalWrap() {
-    return new _GradientElement.internal_();
-  }
+  external factory _GradientElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   _GradientElement.internal_() : super.internal_();
@@ -9047,9 +8867,7 @@ class _SVGAltGlyphDefElement extends SvgElement {
     return new _SVGAltGlyphDefElement._internalWrap();
   }
 
-  factory _SVGAltGlyphDefElement._internalWrap() {
-    return new _SVGAltGlyphDefElement.internal_();
-  }
+  external factory _SVGAltGlyphDefElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   _SVGAltGlyphDefElement.internal_() : super.internal_();
@@ -9082,9 +8900,7 @@ class _SVGAltGlyphItemElement extends SvgElement {
     return new _SVGAltGlyphItemElement._internalWrap();
   }
 
-  factory _SVGAltGlyphItemElement._internalWrap() {
-    return new _SVGAltGlyphItemElement.internal_();
-  }
+  external factory _SVGAltGlyphItemElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   _SVGAltGlyphItemElement.internal_() : super.internal_();
@@ -9117,9 +8933,7 @@ class _SVGComponentTransferFunctionElement extends SvgElement {
     return new _SVGComponentTransferFunctionElement._internalWrap();
   }
 
-  factory _SVGComponentTransferFunctionElement._internalWrap() {
-    return new _SVGComponentTransferFunctionElement.internal_();
-  }
+  external factory _SVGComponentTransferFunctionElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   _SVGComponentTransferFunctionElement.internal_() : super.internal_();
@@ -9154,9 +8968,7 @@ class _SVGCursorElement extends SvgElement implements UriReference, Tests {
     return new _SVGCursorElement._internalWrap();
   }
 
-  factory _SVGCursorElement._internalWrap() {
-    return new _SVGCursorElement.internal_();
-  }
+  external factory _SVGCursorElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   _SVGCursorElement.internal_() : super.internal_();
@@ -9197,9 +9009,7 @@ class _SVGFEDropShadowElement extends SvgElement implements FilterPrimitiveStand
     return new _SVGFEDropShadowElement._internalWrap();
   }
 
-  factory _SVGFEDropShadowElement._internalWrap() {
-    return new _SVGFEDropShadowElement.internal_();
-  }
+  external factory _SVGFEDropShadowElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   _SVGFEDropShadowElement.internal_() : super.internal_();
@@ -9239,9 +9049,7 @@ class _SVGFontElement extends SvgElement {
     return new _SVGFontElement._internalWrap();
   }
 
-  factory _SVGFontElement._internalWrap() {
-    return new _SVGFontElement.internal_();
-  }
+  external factory _SVGFontElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   _SVGFontElement.internal_() : super.internal_();
@@ -9274,9 +9082,7 @@ class _SVGFontFaceElement extends SvgElement {
     return new _SVGFontFaceElement._internalWrap();
   }
 
-  factory _SVGFontFaceElement._internalWrap() {
-    return new _SVGFontFaceElement.internal_();
-  }
+  external factory _SVGFontFaceElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   _SVGFontFaceElement.internal_() : super.internal_();
@@ -9309,9 +9115,7 @@ class _SVGFontFaceFormatElement extends SvgElement {
     return new _SVGFontFaceFormatElement._internalWrap();
   }
 
-  factory _SVGFontFaceFormatElement._internalWrap() {
-    return new _SVGFontFaceFormatElement.internal_();
-  }
+  external factory _SVGFontFaceFormatElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   _SVGFontFaceFormatElement.internal_() : super.internal_();
@@ -9344,9 +9148,7 @@ class _SVGFontFaceNameElement extends SvgElement {
     return new _SVGFontFaceNameElement._internalWrap();
   }
 
-  factory _SVGFontFaceNameElement._internalWrap() {
-    return new _SVGFontFaceNameElement.internal_();
-  }
+  external factory _SVGFontFaceNameElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   _SVGFontFaceNameElement.internal_() : super.internal_();
@@ -9379,9 +9181,7 @@ class _SVGFontFaceSrcElement extends SvgElement {
     return new _SVGFontFaceSrcElement._internalWrap();
   }
 
-  factory _SVGFontFaceSrcElement._internalWrap() {
-    return new _SVGFontFaceSrcElement.internal_();
-  }
+  external factory _SVGFontFaceSrcElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   _SVGFontFaceSrcElement.internal_() : super.internal_();
@@ -9414,9 +9214,7 @@ class _SVGFontFaceUriElement extends SvgElement {
     return new _SVGFontFaceUriElement._internalWrap();
   }
 
-  factory _SVGFontFaceUriElement._internalWrap() {
-    return new _SVGFontFaceUriElement.internal_();
-  }
+  external factory _SVGFontFaceUriElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   _SVGFontFaceUriElement.internal_() : super.internal_();
@@ -9453,9 +9251,7 @@ class _SVGGlyphElement extends SvgElement {
     return new _SVGGlyphElement._internalWrap();
   }
 
-  factory _SVGGlyphElement._internalWrap() {
-    return new _SVGGlyphElement.internal_();
-  }
+  external factory _SVGGlyphElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   _SVGGlyphElement.internal_() : super.internal_();
@@ -9486,9 +9282,7 @@ class _SVGGlyphRefElement extends SvgElement implements UriReference {
     return new _SVGGlyphRefElement._internalWrap();
   }
 
-  factory _SVGGlyphRefElement._internalWrap() {
-    return new _SVGGlyphRefElement.internal_();
-  }
+  external factory _SVGGlyphRefElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   _SVGGlyphRefElement.internal_() : super.internal_();
@@ -9528,9 +9322,7 @@ class _SVGHKernElement extends SvgElement {
     return new _SVGHKernElement._internalWrap();
   }
 
-  factory _SVGHKernElement._internalWrap() {
-    return new _SVGHKernElement.internal_();
-  }
+  external factory _SVGHKernElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   _SVGHKernElement.internal_() : super.internal_();
@@ -9564,9 +9356,7 @@ class _SVGMPathElement extends SvgElement implements UriReference {
     return new _SVGMPathElement._internalWrap();
   }
 
-  factory _SVGMPathElement._internalWrap() {
-    return new _SVGMPathElement.internal_();
-  }
+  external factory _SVGMPathElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   _SVGMPathElement.internal_() : super.internal_();
@@ -9602,9 +9392,7 @@ class _SVGMissingGlyphElement extends SvgElement {
     return new _SVGMissingGlyphElement._internalWrap();
   }
 
-  factory _SVGMissingGlyphElement._internalWrap() {
-    return new _SVGMissingGlyphElement.internal_();
-  }
+  external factory _SVGMissingGlyphElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   _SVGMissingGlyphElement.internal_() : super.internal_();
@@ -9641,9 +9429,7 @@ class _SVGVKernElement extends SvgElement {
     return new _SVGVKernElement._internalWrap();
   }
 
-  factory _SVGVKernElement._internalWrap() {
-    return new _SVGVKernElement.internal_();
-  }
+  external factory _SVGVKernElement._internalWrap();
 
   @Deprecated("Internal Use Only")
   _SVGVKernElement.internal_() : super.internal_();

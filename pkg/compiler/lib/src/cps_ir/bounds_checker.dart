@@ -14,6 +14,7 @@ import '../types/types.dart';
 import '../world.dart';
 import '../elements/elements.dart';
 import 'loop_effects.dart';
+import 'effects.dart';
 
 /// Eliminates bounds checks when they can be proven safe.
 ///
@@ -268,9 +269,9 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
 
   @override
   void visitBranch(Branch node) {
-    Primitive condition = node.condition.definition;
-    Continuation trueCont = node.trueContinuation.definition;
-    Continuation falseCont = node.falseContinuation.definition;
+    Primitive condition = node.condition;
+    Continuation trueCont = node.trueContinuation;
+    Continuation falseCont = node.falseContinuation;
     effectNumberAt[trueCont] = currentEffectNumber;
     effectNumberAt[falseCont] = currentEffectNumber;
     pushAction(() {
@@ -300,11 +301,11 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
       });
     }
     if (condition is ApplyBuiltinOperator &&
-        condition.arguments.length == 2 &&
-        isInt(condition.arguments[0].definition) &&
-        isInt(condition.arguments[1].definition)) {
-      SignedVariable v1 = getValue(condition.arguments[0].definition);
-      SignedVariable v2 = getValue(condition.arguments[1].definition);
+        condition.argumentRefs.length == 2 &&
+        isInt(condition.argument(0)) &&
+        isInt(condition.argument(1))) {
+      SignedVariable v1 = getValue(condition.argument(0));
+      SignedVariable v2 = getValue(condition.argument(1));
       switch (condition.operator) {
         case BuiltinOperator.NumLe:
           pushTrue(() => makeLessThanOrEqual(v1, v2));
@@ -351,16 +352,16 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
   @override
   void visitApplyBuiltinOperator(ApplyBuiltinOperator node) {
     if (!isInt(node)) return;
-    if (node.arguments.length == 1) {
+    if (node.argumentRefs.length == 1) {
       applyUnaryOperator(node);
-    } else if (node.arguments.length == 2) {
+    } else if (node.argumentRefs.length == 2) {
       applyBinaryOperator(node);
     }
   }
 
   void applyBinaryOperator(ApplyBuiltinOperator node) {
-    Primitive left = node.arguments[0].definition;
-    Primitive right = node.arguments[1].definition;
+    Primitive left = node.argument(0);
+    Primitive right = node.argument(1);
     if (!isInt(left) || !isInt(right)) {
       return;
     }
@@ -461,7 +462,7 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
   }
 
   void applyUnaryOperator(ApplyBuiltinOperator node) {
-    Primitive argument = node.arguments[0].definition;
+    Primitive argument = node.argument(0);
     if (!isInt(argument)) return;
     if (node.operator == BuiltinOperator.NumNegate) {
       valueOf[node] = getValue(argument).negated;
@@ -486,17 +487,17 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
 
   @override
   void visitGetLength(GetLength node) {
-    valueOf[node] = getLength(node.object.definition, currentEffectNumber);
+    valueOf[node] = getLength(node.object, currentEffectNumber);
   }
 
   @override
   void visitBoundsCheck(BoundsCheck node) {
     if (node.checks == BoundsCheck.NONE) return;
-    assert(node.index != null); // Because there is at least one check.
-    SignedVariable length = node.length == null
+    assert(node.indexRef != null); // Because there is at least one check.
+    SignedVariable length = node.lengthRef == null
         ? null
-        : getValue(node.length.definition);
-    SignedVariable index = getValue(node.index.definition);
+        : getValue(node.length);
+    SignedVariable index = getValue(node.index);
     if (node.hasUpperBoundCheck) {
       if (isDefinitelyLessThan(index, length)) {
         node.checks &= ~BoundsCheck.UPPER_BOUND;
@@ -518,24 +519,24 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
         makeGreaterThanOrEqualToConstant(length, 1);
       }
     }
-    if (!node.lengthUsedInCheck && node.length != null) {
-      node..length.unlink()..length = null;
+    if (!node.lengthUsedInCheck && node.lengthRef != null) {
+      node..lengthRef.unlink()..lengthRef = null;
     }
     if (node.checks == BoundsCheck.NONE) {
       // We can't remove the bounds check node because it may still be used to
       // restrict code motion.  But the index is no longer needed.
-      node..index.unlink()..index = null;
+      node..indexRef.unlink()..indexRef = null;
     }
   }
 
   void analyzeLoopEntry(InvokeContinuation node) {
     foundLoop = true;
-    Continuation cont = node.continuation.definition;
+    Continuation cont = node.continuation;
     if (isStrongLoopPass) {
-      for (int i = 0; i < node.arguments.length; ++i) {
+      for (int i = 0; i < node.argumentRefs.length; ++i) {
         Parameter param = cont.parameters[i];
         if (!isInt(param)) continue;
-        Primitive initialValue = node.arguments[i].definition;
+        Primitive initialValue = node.argument(i);
         SignedVariable initialVariable = getValue(initialValue);
         Monotonicity mono = monotonicity[param];
         if (mono == null) {
@@ -548,14 +549,14 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
         }
       }
     }
-    if (loopEffects.loopChangesLength(cont)) {
+    if (loopEffects.changesIndexableLength(cont)) {
       currentEffectNumber = effectNumberAt[cont] = makeNewEffect();
     }
     push(cont);
   }
 
   void analyzeLoopContinue(InvokeContinuation node) {
-    Continuation cont = node.continuation.definition;
+    Continuation cont = node.continuation;
 
     // During the strong loop phase, there is no need to compute monotonicity,
     // and we already put bounds on the loop variables when we went into the
@@ -565,10 +566,10 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
     // For each loop parameter, try to prove that the new value is definitely
     // less/greater than its old value. When we fail to prove this, update the
     // monotonicity flag accordingly.
-    for (int i = 0; i < node.arguments.length; ++i) {
+    for (int i = 0; i < node.argumentRefs.length; ++i) {
       Parameter param = cont.parameters[i];
       if (!isInt(param)) continue;
-      SignedVariable arg = getValue(node.arguments[i].definition);
+      SignedVariable arg = getValue(node.argument(i));
       SignedVariable paramVar = getValue(param);
       if (!isDefinitelyLessThanOrEqualTo(arg, paramVar)) {
         // We couldn't prove that the value does not increase, so assume
@@ -594,7 +595,7 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
 
   @override
   void visitInvokeContinuation(InvokeContinuation node) {
-    Continuation cont = node.continuation.definition;
+    Continuation cont = node.continuation;
     if (node.isRecursive) {
       analyzeLoopContinue(node);
     } else if (cont.isRecursive) {
@@ -613,71 +614,34 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
   // ---------------- PRIMITIVES --------------------
 
   @override
+  Expression traverseLetPrim(LetPrim node) {
+    visit(node.primitive);
+    // visitApplyBuiltinMethod updates the effect number.
+    if (node.primitive is! ApplyBuiltinMethod) {
+      if (node.primitive.effects & Effects.changesIndexableLength != 0) {
+        currentEffectNumber = makeNewEffect();
+      }
+    }
+    return node.body;
+  }
+
+  @override
   void visitInvokeMethod(InvokeMethod node) {
-    // TODO(asgerf): What we really need is a "changes length" side effect flag.
-    if (world
-        .getSideEffectsOfSelector(node.selector, node.mask)
-        .changesIndex()) {
-      currentEffectNumber = makeNewEffect();
+    if (node.selector.isGetter && node.selector.name == 'length') {
+      // If the receiver type is not known to be indexable, the length call
+      // was not rewritten to GetLength.  But if we can prove that the call only
+      // succeeds for indexables, we can trust that it returns the length.
+      TypeMask successType =
+          types.receiverTypeFor(node.selector, node.dartReceiver.type);
+      if (types.isDefinitelyIndexable(successType)) {
+        valueOf[node] = getLength(node.dartReceiver, currentEffectNumber);
+      }
     }
-  }
-
-  @override
-  void visitInvokeStatic(InvokeStatic node) {
-    if (world.getSideEffectsOfElement(node.target).changesIndex()) {
-      currentEffectNumber = makeNewEffect();
-    }
-  }
-
-  @override
-  void visitInvokeMethodDirectly(InvokeMethodDirectly node) {
-    FunctionElement target = node.target;
-    if (target is ConstructorBodyElement) {
-      ConstructorBodyElement body = target;
-      target = body.constructor;
-    }
-    if (world.getSideEffectsOfElement(target).changesIndex()) {
-      currentEffectNumber = makeNewEffect();
-    }
-  }
-
-  @override
-  void visitInvokeConstructor(InvokeConstructor node) {
-    if (world.getSideEffectsOfElement(node.target).changesIndex()) {
-      currentEffectNumber = makeNewEffect();
-    }
-  }
-
-  @override
-  void visitTypeCast(TypeCast node) {
-  }
-
-  @override
-  void visitGetLazyStatic(GetLazyStatic node) {
-    // TODO(asgerf): How do we get the side effects of a lazy field initializer?
-    currentEffectNumber = makeNewEffect();
-  }
-
-  @override
-  void visitForeignCode(ForeignCode node) {
-    if (node.nativeBehavior.sideEffects.changesIndex()) {
-      currentEffectNumber = makeNewEffect();
-    }
-  }
-
-  @override
-  void visitAwait(Await node) {
-    currentEffectNumber = makeNewEffect();
-  }
-
-  @override
-  void visitYield(Yield node) {
-    currentEffectNumber = makeNewEffect();
   }
 
   @override
   void visitApplyBuiltinMethod(ApplyBuiltinMethod node) {
-    Primitive receiver = node.receiver.definition;
+    Primitive receiver = node.receiver;
     int effectBefore = currentEffectNumber;
     currentEffectNumber = makeNewEffect();
     int effectAfter = currentEffectNumber;
@@ -686,7 +650,7 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
     switch (node.method) {
       case BuiltinMethod.Push:
         // after = before + count
-        int count = node.arguments.length;
+        int count = node.argumentRefs.length;
         makeExactSum(lengthAfter, lengthBefore, count);
         break;
 
@@ -694,12 +658,16 @@ class BoundsChecker extends TrampolineRecursiveVisitor implements Pass {
         // after = before - 1
         makeExactSum(lengthAfter, lengthBefore, -1);
         break;
+
+      case BuiltinMethod.SetLength:
+        makeEqual(lengthAfter, getValue(node.argument(0)));
+        break;
     }
   }
 
   @override
   void visitLiteralList(LiteralList node) {
-    makeConstant(getLength(node, currentEffectNumber), node.values.length);
+    makeConstant(getLength(node, currentEffectNumber), node.valueRefs.length);
   }
 
   // ---------------- INTERIOR EXPRESSIONS --------------------

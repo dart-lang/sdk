@@ -406,7 +406,7 @@ _js_support_checks_additional_element = [
 ]
 
 js_support_checks = dict({
-    'AnimationPlayer': "JS('bool', '!!(document.body.animate)')",
+    'Animation': "JS('bool', '!!(document.body.animate)')",
     'AudioContext': "JS('bool', '!!(window.AudioContext ||"
         " window.webkitAudioContext)')",
     'Crypto':
@@ -614,9 +614,7 @@ class HtmlDartInterfaceGenerator(object):
     return new {0}._internalWrap();
   }}
 
-  factory {0}._internalWrap() {{
-    return new {0}.internal_();
-  }}
+  external factory {0}._internalWrap();
 
   @Deprecated("Internal Use Only")
   {0}.internal_() : super.internal_();
@@ -707,7 +705,7 @@ class HtmlDartInterfaceGenerator(object):
     merged_interface = self._interface_type_info.merged_interface()
     if merged_interface:
       self._backend.AddMembers(self._database.GetInterface(merged_interface),
-        not self._backend.ImplementsMergedMembers())
+                               not self._backend.ImplementsMergedMembers())
 
     self._backend.AddMembers(self._interface, False, self._options.dart_js_interop)
     self._backend.AddSecondaryMembers(self._interface)

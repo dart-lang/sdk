@@ -6,19 +6,23 @@
 import 'dart:developer';
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
+import 'service_test_common.dart';
 import 'test_helper.dart';
+
+const int LINE_A = 19;
+const int LINE_B = 25;
 
 foo() {}
 
 doAsync(param1) async {
   var local1 = param1 + 1;
-  foo(); // Line 15
+  foo(); // Line A.
   await local1;
 }
 
 doAsyncStar(param2) async* {
   var local2 = param2 + 1;
-  foo(); // Line 21
+  foo(); // Line B.
   yield local2;
 }
 
@@ -53,17 +57,17 @@ checkAsyncStarVarDescriptors(Isolate isolate) async {
 
 var tests = [
   hasStoppedAtBreakpoint, // debugger()
-  setBreakpointAtLine(15),
-  setBreakpointAtLine(21),
+  setBreakpointAtLine(LINE_A),
+  setBreakpointAtLine(LINE_B),
   resumeIsolate,
 
   hasStoppedAtBreakpoint,
-  stoppedAtLine(15),
+  stoppedAtLine(LINE_A),
   checkAsyncVarDescriptors,
   resumeIsolate,
 
   hasStoppedAtBreakpoint,
-  stoppedAtLine(21),
+  stoppedAtLine(LINE_B),
   checkAsyncStarVarDescriptors,
   resumeIsolate,
 ];

@@ -17,6 +17,9 @@ final String coverageScript =
     Platform.script.resolve('../../tools/full-coverage.dart').toFilePath();
 final String packageRoot = Platform.packageRoot;
 final List dartBaseArgs = ['--package-root=${packageRoot}', '--checked',];
+final Stopwatch sw = new Stopwatch();
+
+int elapsed() => sw.elapsedMilliseconds;
 
 // With line numbers starting at 0, the list of hits can be understood as
 // follows:
@@ -88,13 +91,14 @@ destroyEnv(base) => new Directory(base).deleteSync(recursive: true);
 
 generateCoverage(String workingDirectory) {
   for (var coverageProg in coverageTests) {
+    print('[+${elapsed()}ms] Generating data for ${coverageProg["name"]}');
     var progPath = path.join(workingDirectory, coverageProg['name']);
     var script = path.join(progPath, "${coverageProg['name']}.dart");
     var dartArgs = new List.from(dartBaseArgs)
       ..addAll(['--coverage-dir=${progPath}', '${script}']);
     var result = Process.runSync(Platform.executable, dartArgs);
     if (result.exitCode != 0) {
-      print("Coverage generator returned exitCode: ${result.exitCode}.");
+      print("[+${elapsed()}ms] Got exitCode: ${result.exitCode}.");
       print("stderr:\n${result.stderr}\n");
       expect(result.exitCode, 0);
     }
@@ -212,6 +216,7 @@ testCoverage(String programDir, String programPath, descriptor,
 
 main() {
   String testingDirectory;
+  sw.start();
 
   setUp(() {
     testingDirectory = prepareEnv();
@@ -220,17 +225,23 @@ main() {
   tearDown(() => destroyEnv(testingDirectory));
 
   test('CoverageTests', () {
+    print('[+${elapsed()}ms] Generating coverage data...');
     generateCoverage(testingDirectory);
+    print('[+${elapsed()}ms] Done Generating coverage data.');
 
+    print('[+${elapsed()}ms] Running tests...');
     coverageTests.forEach((cTest) {
       String programDir = path.join(testingDirectory, cTest['name']);
       String programPath = path.join(programDir, "${cTest['name']}.dart");
+      print('[+${elapsed()}ms] Testing lcov for ${cTest["name"]}');
       testCoverage(programDir, programPath,
                    new LcovDescriptor(programPath),
                    new List.from(cTest['expectedHits']));
+      print('[+${elapsed()}ms] Testing pretty print for ${cTest["name"]}');
       testCoverage(programDir, programPath,
                    new PrettyPrintDescriptor(programPath),
                    new List.from(cTest['expectedHits']));
     });
+    print('[+${elapsed()}ms] Done.');
   });
 }

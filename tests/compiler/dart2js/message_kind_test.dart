@@ -13,7 +13,7 @@ import 'message_kind_helper.dart';
 
 main(List<String> arguments) {
   List<MessageTemplate> examples = <MessageTemplate>[];
-  for (MessageKind kind in MessageKind.values) {
+  for (var kind in MessageKind.values) {
     MessageTemplate template = MessageTemplate.TEMPLATES[kind];
     Expect.isNotNull(template, "No template for $kind.");
     Expect.equals(kind, template.kind,

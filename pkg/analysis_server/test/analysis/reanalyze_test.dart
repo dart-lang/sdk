@@ -32,13 +32,13 @@ class ReanalyzeTest extends AbstractAnalysisTest {
 
   test_reanalyze() {
     createProject();
-    List<AnalysisContext> contexts = server.folderMap.values.toList();
+    List<AnalysisContext> contexts = server.analysisContexts.toList();
     expect(contexts, hasLength(1));
     AnalysisContext oldContext = contexts[0];
     // Reanalyze should cause a brand new context to be built.
     Request request = new Request("0", ANALYSIS_REANALYZE);
     handleSuccessfulRequest(request);
-    contexts = server.folderMap.values.toList();
+    contexts = server.analysisContexts.toList();
     expect(contexts, hasLength(1));
     AnalysisContext newContext = contexts[0];
     expect(newContext, isNot(same(oldContext)));

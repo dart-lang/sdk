@@ -50,6 +50,69 @@ config("dart_config") {
     defines += ["NDEBUG"]
   }
 
+  if (is_ios || is_mac) {
+    defines += ["DART_PRECOMPILER"]
+  }
+
+  cflags = [
+    "-Werror",
+    "-Wall",
+    "-Wextra", # Also known as -W.
+    "-Wno-unused-parameter",
+    "-Wnon-virtual-dtor",
+    "-Wvla",
+    "-Wno-conversion-null",
+    "-Woverloaded-virtual",
+    "-g3",
+    "-ggdb3",
+    "-fno-rtti",
+    "-fno-exceptions",
+  ]
+
+  if (dart_debug) {
+    cflags += [
+      "-O1",
+    ]
+  } else {
+    cflags += [
+      "-O3",
+    ]
+  }
+
+  if (is_asan) {
+    ldflags = [
+      "-Wl,-u_sanitizer_options_link_helper",
+      "-fsanitize=address",
+    ]
+  }
+}
+
+config("dart_config_no_precompiler") {
+  defines = []
+
+  if (dart_target_arch != "") {
+    if (dart_target_arch == "arm") {
+      defines += [ "TARGET_ARCH_ARM" ]
+    } else if (dart_target_arch == "arm64") {
+      defines += [ "TARGET_ARCH_ARM64" ]
+    } else if (dart_target_arch == "mips") {
+      defines += [ "TARGET_ARCH_MIPS" ]
+    } else if (dart_target_arch == "x64") {
+      defines += [ "TARGET_ARCH_X64" ]
+    } else if (dart_target_arch == "ia32") {
+      defines += [ "TARGET_ARCH_IA32" ]
+    } else  {
+      print("Invalid |dart_target_arch|")
+      assert(false)
+    }
+  }
+
+  if (dart_debug) {
+    defines += ["DEBUG"]
+  } else {
+    defines += ["NDEBUG"]
+  }
+
   cflags = [
     "-Werror",
     "-Wall",
@@ -111,6 +174,38 @@ static_library("libdart") {
   defines = [
     # Using DART_SHARED_LIB to export the Dart API entries.
     "DART_SHARED_LIB",
+  ]
+}
+
+
+static_library("libdart_precompiled_runtime") {
+  configs += [":dart_config_no_precompiler"]
+  deps = [
+    "vm:libdart_lib_precompiled_runtime",
+    "vm:libdart_vm_precompiled_runtime",
+    "third_party/double-conversion/src:libdouble_conversion",
+    ":generate_version_cc_file",
+  ]
+  include_dirs = [
+    ".",
+  ]
+  public_configs = [":dart_public_config"]
+  sources = [
+    "include/dart_api.h",
+    "include/dart_mirrors_api.h",
+    "include/dart_native_api.h",
+    "include/dart_tools_api.h",
+    "vm/dart_api_impl.cc",
+    "vm/debugger_api_impl.cc",
+    "vm/mirrors_api_impl.cc",
+    "vm/native_api_impl.cc",
+    "vm/version.h",
+    "$target_gen_dir/version.cc",
+  ]
+  defines = [
+    # Using DART_SHARED_LIB to export the Dart API entries.
+    "DART_SHARED_LIB",
+    "DART_PRECOMPILED_RUNTIME",
   ]
 }
 

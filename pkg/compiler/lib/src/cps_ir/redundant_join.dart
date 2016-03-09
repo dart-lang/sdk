@@ -8,18 +8,19 @@ import 'cps_ir_nodes.dart';
 import 'optimizers.dart';
 
 /// Eliminates redundant join points.
-/// 
+///
 /// A redundant join point is a continuation that immediately branches
 /// based on one of its parameters, and that parameter is a constant value
 /// at every invocation. Each invocation is redirected to jump directly
 /// to the branch target.
-/// 
+///
 /// Internally in this pass, parameters are treated as names with lexical
 /// scoping, and a given parameter "name" may be declared by more than
-/// one continuation. The reference chains for parameters are therefore 
+/// one continuation. The reference chains for parameters are therefore
 /// meaningless during this pass, until repaired by [AlphaRenamer] at
 /// the end.
-class RedundantJoinEliminator extends TrampolineRecursiveVisitor implements Pass {
+class RedundantJoinEliminator extends TrampolineRecursiveVisitor
+      implements Pass {
   String get passName => 'Redundant join elimination';
 
   final Set<Branch> workSet = new Set<Branch>();
@@ -80,7 +81,7 @@ class RedundantJoinEliminator extends TrampolineRecursiveVisitor implements Pass
     // enclosing continuation.
     // Note: Do not use the parent pointer for this check, because parameters
     // are temporarily shared between different continuations during this pass.
-    Primitive condition = branch.condition.definition;
+    Primitive condition = branch.condition;
     int parameterIndex = branchCont.parameters.indexOf(condition);
     if (parameterIndex == -1) return;
 
@@ -92,7 +93,7 @@ class RedundantJoinEliminator extends TrampolineRecursiveVisitor implements Pass
     InvokeContinuation trueCall, falseCall;
     for (Reference ref = branchCont.firstRef; ref != null; ref = ref.next) {
       InvokeContinuation invoke = ref.parent;
-      Primitive argument = invoke.arguments[parameterIndex].definition;
+      Primitive argument = invoke.argument(parameterIndex);
       if (argument is! Constant) return; // Branching condition is unknown.
       Constant constant = argument;
       if (isTruthyConstant(constant.value, strict: branch.isStrictCheck)) {
@@ -113,11 +114,11 @@ class RedundantJoinEliminator extends TrampolineRecursiveVisitor implements Pass
       return;
     }
 
-    // Lift any continuations bound inside branchCont so they are in scope at 
+    // Lift any continuations bound inside branchCont so they are in scope at
     // the call sites. When lifting, the parameters of branchCont fall out of
     // scope, so they are added as parameters on each lifted continuation.
     // Schematically:
-    // 
+    //
     //   (LetCont (branchCont (x1, x2, x3) =
     //        (LetCont (innerCont (y) = ...) in
     //        [... innerCont(y') ...]))
@@ -127,8 +128,8 @@ class RedundantJoinEliminator extends TrampolineRecursiveVisitor implements Pass
     //   (LetCont (innerCont (y, x1, x2, x3) = ...) in
     //   (LetCont (branchCont (x1, x2, x3) =
     //        [... innerCont(y', x1, x2, x3) ...])
-    // 
-    // Parameter objects become shared between branchCont and the lifted 
+    //
+    // Parameter objects become shared between branchCont and the lifted
     // continuations. [AlphaRenamer] will clean up at the end of this pass.
     LetCont outerLetCont = branchCont.parent;
     while (branchCont.body is LetCont) {
@@ -139,7 +140,8 @@ class RedundantJoinEliminator extends TrampolineRecursiveVisitor implements Pass
           Expression use = ref.parent;
           if (use is InvokeContinuation) {
             for (Parameter param in branchCont.parameters) {
-              use.arguments.add(new Reference<Primitive>(param)..parent = use);
+              use.argumentRefs.add(
+                  new Reference<Primitive>(param)..parent = use);
             }
           } else {
             // The branch will be eliminated, so don't worry about updating it.
@@ -153,8 +155,8 @@ class RedundantJoinEliminator extends TrampolineRecursiveVisitor implements Pass
 
     assert(branchCont.body == branch);
 
-    Continuation trueCont = branch.trueContinuation.definition;
-    Continuation falseCont = branch.falseContinuation.definition;
+    Continuation trueCont = branch.trueContinuation;
+    Continuation falseCont = branch.falseContinuation;
 
     assert(branchCont != trueCont);
     assert(branchCont != falseCont);
@@ -168,19 +170,19 @@ class RedundantJoinEliminator extends TrampolineRecursiveVisitor implements Pass
     while (branchCont.firstRef != null) {
       Reference reference = branchCont.firstRef;
       InvokeContinuation invoke = branchCont.firstRef.parent;
-      Constant condition = invoke.arguments[parameterIndex].definition;
+      Constant condition = invoke.argument(parameterIndex);
       if (isTruthyConstant(condition.value, strict: branch.isStrictCheck)) {
-        invoke.continuation.changeTo(trueCont);
+        invoke.continuationRef.changeTo(trueCont);
       } else {
-        invoke.continuation.changeTo(falseCont);
+        invoke.continuationRef.changeTo(falseCont);
       }
       assert(branchCont.firstRef != reference);
     }
 
     // Remove the now-unused branchCont continuation.
     assert(branchCont.hasNoUses);
-    branch.trueContinuation.unlink();
-    branch.falseContinuation.unlink();
+    branch.trueContinuationRef.unlink();
+    branch.falseContinuationRef.unlink();
     outerLetCont.continuations.remove(branchCont);
     if (outerLetCont.continuations.isEmpty) {
       outerLetCont.remove();
@@ -202,17 +204,17 @@ class RedundantJoinEliminator extends TrampolineRecursiveVisitor implements Pass
 /// Ensures parameter objects are not shared between different continuations,
 /// akin to alpha-renaming variables so every variable is named uniquely.
 /// For example:
-/// 
+///
 ///   LetCont (k1 x = (return x)) in
 ///   LetCont (k2 x = (InvokeContinuation k3 x)) in ...
-///     => 
+///     =>
 ///   LetCont (k1 x = (return x)) in
 ///   LetCont (k2 x' = (InvokeContinuation k3 x')) in ...
-/// 
+///
 /// After lifting LetConts in the main pass above, parameter objects can have
 /// multiple bindings. Each reference implicitly refers to the binding that
 /// is currently in scope.
-/// 
+///
 /// This returns the IR to its normal form after redundant joins have been
 /// eliminated.
 class AlphaRenamer extends TrampolineRecursiveVisitor {

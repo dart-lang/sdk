@@ -19,6 +19,8 @@ DECLARE_FLAG(int, profile_period);
 
 DEFINE_FLAG(bool, trace_profiler, false, "Trace profiler.");
 
+#ifndef PRODUCT
+
 class DeoptimizedCodeSet : public ZoneAllocated {
  public:
   explicit DeoptimizedCodeSet(Isolate* isolate)
@@ -551,17 +553,15 @@ ProfileFunction* ProfileCode::SetFunctionAndName(ProfileFunctionTable* table) {
     function = table->GetUnknown();
   } else if (kind() == kDartCode) {
     ASSERT(!code_.IsNull());
+    const String& name = String::Handle(code_.QualifiedName());
     const Object& obj = Object::Handle(code_.owner());
     if (obj.IsFunction()) {
-      const String& user_name = String::Handle(code_.PrettyName());
       function = table->LookupOrAdd(Function::Cast(obj));
-      SetName(user_name.ToCString());
     } else {
       // A stub.
-      const String& user_name = String::Handle(code_.PrettyName());
-      function = table->AddStub(start(), user_name.ToCString());
-      SetName(user_name.ToCString());
+      function = table->AddStub(start(), name.ToCString());
     }
+    SetName(name.ToCString());
   } else if (kind() == kNativeCode) {
     if (name() == NULL) {
       // Lazily set generated name.
@@ -2406,5 +2406,7 @@ void ProfilerService::ClearSamples() {
   ClearProfileVisitor clear_profile(isolate);
   sample_buffer->VisitSamples(&clear_profile);
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

@@ -17,8 +17,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, interpret_irregexp);
-
 // When entering intrinsics code:
 // R4: Arguments descriptor
 // LR: Return address
@@ -36,7 +34,7 @@ intptr_t Intrinsifier::ParameterSlotFromSp() { return -1; }
 // Intrinsify only for Smi value and index. Non-smi values need a store buffer
 // update. Array length is always a Smi.
 void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
-  if (Isolate::Current()->flags().type_checks()) {
+  if (Isolate::Current()->type_checks()) {
     return;
   }
 
@@ -109,7 +107,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
 // On stack: growable array (+1), value (+0).
 void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   // In checked mode we need to type-check the incoming argument.
-  if (Isolate::Current()->flags().type_checks()) {
+  if (Isolate::Current()->type_checks()) {
     return;
   }
   Label fall_through;
@@ -1614,11 +1612,10 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   Label fall_through;
   __ ldr(R0, Address(SP, 0 * kWordSize));
   __ LoadClassIdMayBeSmi(R1, R0);
+  __ CompareImmediate(R1, kClosureCid);
+  __ b(&fall_through, EQ);  // Instance is a closure.
   __ LoadClassById(R2, R1);
   // R2: class of instance (R0).
-  __ ldr(R3, FieldAddress(R2, Class::signature_function_offset()));
-  __ CompareObject(R3, Object::null_object());
-  __ b(&fall_through, NE);
 
   __ ldr(R3, FieldAddress(R2, Class::num_type_arguments_offset()), kHalfword);
   __ CompareImmediate(R3, 0);

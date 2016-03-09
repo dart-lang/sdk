@@ -9,7 +9,7 @@
 // }
 
 function() {
-  var line = 1 === 0 ? 1 / 1 < 0 ? "-0.0" : "" + 1 : "" + 1;
+  var line = H.S(1);
   if (typeof dartPrint == "function")
     dartPrint(line);
   else if (typeof console == "object" && typeof console.log != "undefined")

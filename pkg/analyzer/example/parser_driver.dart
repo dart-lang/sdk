@@ -5,10 +5,12 @@
 
 import 'dart:io';
 
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/dart/scanner/reader.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 
 main(List<String> args) {
   print('working dir ${new File('.').resolveSymbolicLinksSync()}');
@@ -41,6 +43,7 @@ _parse(File file) {
 }
 
 class _ASTVisitor extends GeneralizingAstVisitor {
+  @override
   visitNode(AstNode node) {
     print('${node.runtimeType} : <"$node">');
     return super.visitNode(node);
@@ -50,5 +53,6 @@ class _ASTVisitor extends GeneralizingAstVisitor {
 class _ErrorCollector extends AnalysisErrorListener {
   List<AnalysisError> errors;
   _ErrorCollector() : errors = new List<AnalysisError>();
+  @override
   onError(error) => errors.add(error);
 }

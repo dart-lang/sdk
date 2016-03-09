@@ -6,10 +6,10 @@ library analyzer.test.generated.test_support;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/ast/ast.dart' show AstNode, SimpleIdentifier;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/generated/ast.dart'
-    show AstNode, NodeLocator, SimpleIdentifier;
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -423,9 +423,9 @@ class GatheringErrorListener implements AnalysisErrorListener {
    */
   bool _equalErrors(AnalysisError firstError, AnalysisError secondError) =>
       identical(firstError.errorCode, secondError.errorCode) &&
-          firstError.offset == secondError.offset &&
-          firstError.length == secondError.length &&
-          _equalSources(firstError.source, secondError.source);
+      firstError.offset == secondError.offset &&
+      firstError.length == secondError.length &&
+      _equalSources(firstError.source, secondError.source);
 
   /**
    * Return `true` if the two sources are equivalent.
@@ -580,9 +580,7 @@ class TestSource extends Source {
     return new TimestampedData<String>(0, _contents);
   }
 
-  String get encoding {
-    throw new UnsupportedOperationException();
-  }
+  String get encoding => _name;
 
   String get fullName {
     return _name;
@@ -645,6 +643,8 @@ class TestSourceWithUri extends TestSource {
 
   TestSourceWithUri(String path, this.uri, [String content])
       : super(path, content);
+
+  String get encoding => uri.toString();
 
   UriKind get uriKind {
     if (uri == null) {

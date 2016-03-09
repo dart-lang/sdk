@@ -219,7 +219,7 @@ class MegamorphicSlowPath : public SlowPathCode {
   MegamorphicSlowPath(const ICData& ic_data,
                       intptr_t argument_count,
                       intptr_t deopt_id,
-                      intptr_t token_pos,
+                      TokenPosition token_pos,
                       LocationSummary* locs,
                       intptr_t try_index)
     : SlowPathCode(),
@@ -237,7 +237,7 @@ class MegamorphicSlowPath : public SlowPathCode {
   const ICData& ic_data_;
   intptr_t argument_count_;
   intptr_t deopt_id_;
-  intptr_t token_pos_;
+  TokenPosition token_pos_;
   LocationSummary* locs_;
   const intptr_t try_index_;  // For try/catch ranges.
 
@@ -302,6 +302,7 @@ class FlowGraphCompiler : public ValueObject {
       const ParsedFunction& parsed_function,
       bool is_optimizing,
       const GrowableArray<const Function*>& inline_id_to_function,
+      const GrowableArray<TokenPosition>& inline_id_to_token_pos,
       const GrowableArray<intptr_t>& caller_inline_id);
 
   ~FlowGraphCompiler();
@@ -311,6 +312,7 @@ class FlowGraphCompiler : public ValueObject {
   static bool SupportsSinCos();
   static bool SupportsUnboxedSimd128();
   static bool SupportsHardwareDivision();
+  static bool CanConvertUnboxedMintToDouble();
 
   static bool IsUnboxedField(const Field& field);
   static bool IsPotentialUnboxedField(const Field& field);
@@ -365,43 +367,49 @@ class FlowGraphCompiler : public ValueObject {
   // Returns 'true' if regular code generation should be skipped.
   bool TryIntrinsify();
 
-  void GenerateRuntimeCall(intptr_t token_pos,
+  void GenerateRuntimeCall(TokenPosition token_pos,
                            intptr_t deopt_id,
                            const RuntimeEntry& entry,
                            intptr_t argument_count,
                            LocationSummary* locs);
 
-  void GenerateCall(intptr_t token_pos,
+  void GenerateCall(TokenPosition token_pos,
                     const StubEntry& stub_entry,
                     RawPcDescriptors::Kind kind,
                     LocationSummary* locs);
 
   void GenerateDartCall(intptr_t deopt_id,
-                        intptr_t token_pos,
+                        TokenPosition token_pos,
                         const StubEntry& stub_entry,
                         RawPcDescriptors::Kind kind,
                         LocationSummary* locs);
+  void GenerateStaticDartCall(intptr_t deopt_id,
+                              TokenPosition token_pos,
+                              const StubEntry& stub_entry,
+                              RawPcDescriptors::Kind kind,
+                              LocationSummary* locs,
+                              const Function& target);
 
-  void GenerateAssertAssignable(intptr_t token_pos,
+  void GenerateAssertAssignable(TokenPosition token_pos,
                                 intptr_t deopt_id,
                                 const AbstractType& dst_type,
                                 const String& dst_name,
                                 LocationSummary* locs);
 
-  void GenerateInstanceOf(intptr_t token_pos,
+  void GenerateInstanceOf(TokenPosition token_pos,
                           intptr_t deopt_id,
                           const AbstractType& type,
                           bool negate_result,
                           LocationSummary* locs);
 
   void GenerateInstanceCall(intptr_t deopt_id,
-                            intptr_t token_pos,
+                            TokenPosition token_pos,
                             intptr_t argument_count,
                             LocationSummary* locs,
                             const ICData& ic_data);
 
   void GenerateStaticCall(intptr_t deopt_id,
-                          intptr_t token_pos,
+                          TokenPosition token_pos,
                           const Function& function,
                           intptr_t argument_count,
                           const Array& argument_names,
@@ -428,21 +436,21 @@ class FlowGraphCompiler : public ValueObject {
                                  const ICData& ic_data,
                                  intptr_t argument_count,
                                  intptr_t deopt_id,
-                                 intptr_t token_pos,
+                                 TokenPosition token_pos,
                                  LocationSummary* locs);
 
   void EmitInstanceCall(const StubEntry& stub_entry,
                         const ICData& ic_data,
                         intptr_t argument_count,
                         intptr_t deopt_id,
-                        intptr_t token_pos,
+                        TokenPosition token_pos,
                         LocationSummary* locs);
 
   void EmitPolymorphicInstanceCall(const ICData& ic_data,
                                    intptr_t argument_count,
                                    const Array& argument_names,
                                    intptr_t deopt_id,
-                                   intptr_t token_pos,
+                                   TokenPosition token_pos,
                                    LocationSummary* locs);
 
   // Pass a value for try-index where block is not available (e.g. slow path).
@@ -450,14 +458,14 @@ class FlowGraphCompiler : public ValueObject {
       const ICData& ic_data,
       intptr_t argument_count,
       intptr_t deopt_id,
-      intptr_t token_pos,
+      TokenPosition token_pos,
       LocationSummary* locs,
       intptr_t try_index = CatchClauseNode::kInvalidTryIndex);
 
   void EmitSwitchableInstanceCall(const ICData& ic_data,
                                   intptr_t argument_count,
                                   intptr_t deopt_id,
-                                  intptr_t token_pos,
+                                  TokenPosition token_pos,
                                   LocationSummary* locs);
 
   void EmitTestAndCall(const ICData& ic_data,
@@ -466,17 +474,17 @@ class FlowGraphCompiler : public ValueObject {
                        Label* failed,
                        Label* match_found,
                        intptr_t deopt_id,
-                       intptr_t token_index,
+                       TokenPosition token_index,
                        LocationSummary* locs);
 
   Condition EmitEqualityRegConstCompare(Register reg,
                                         const Object& obj,
                                         bool needs_number_check,
-                                        intptr_t token_pos);
+                                        TokenPosition token_pos);
   Condition EmitEqualityRegRegCompare(Register left,
                                       Register right,
                                       bool needs_number_check,
-                                      intptr_t token_pos);
+                                      TokenPosition token_pos);
 
   void EmitTrySync(Instruction* instr, intptr_t try_index);
 
@@ -504,7 +512,7 @@ class FlowGraphCompiler : public ValueObject {
   void SetNeedsStacktrace(intptr_t try_index);
   void AddCurrentDescriptor(RawPcDescriptors::Kind kind,
                             intptr_t deopt_id,
-                            intptr_t token_pos);
+                            TokenPosition token_pos);
 
   void RecordSafepoint(LocationSummary* locs);
 
@@ -512,7 +520,7 @@ class FlowGraphCompiler : public ValueObject {
                       ICData::DeoptReasonId reason,
                       uint32_t flags = 0);
 
-  void AddDeoptIndexAtCall(intptr_t deopt_id, intptr_t token_pos);
+  void AddDeoptIndexAtCall(intptr_t deopt_id, TokenPosition token_pos);
 
   void AddSlowPathCode(SlowPathCode* slow_path);
 
@@ -583,8 +591,19 @@ class FlowGraphCompiler : public ValueObject {
   }
 
   RawArray* InliningIdToFunction() const;
-
+  RawArray* InliningIdToTokenPos() const;
   RawArray* CallerInliningIdMap() const;
+
+  CodeSourceMapBuilder* code_source_map_builder() {
+    if (code_source_map_builder_ == NULL) {
+      code_source_map_builder_ = new CodeSourceMapBuilder();
+    }
+    ASSERT(code_source_map_builder_ != NULL);
+    return code_source_map_builder_;
+  }
+
+  void BeginCodeSourceRange();
+  bool EndCodeSourceRange(TokenPosition token_pos);
 
  private:
   friend class CheckStackOverflowSlowPath;  // For pending_deoptimization_env_.
@@ -605,12 +624,12 @@ class FlowGraphCompiler : public ValueObject {
                                const Array& arguments_descriptor,
                                intptr_t argument_count,
                                intptr_t deopt_id,
-                               intptr_t token_pos,
+                               TokenPosition token_pos,
                                LocationSummary* locs);
 
   void EmitUnoptimizedStaticCall(intptr_t argument_count,
                                  intptr_t deopt_id,
-                                 intptr_t token_pos,
+                                 TokenPosition token_pos,
                                  LocationSummary* locs,
                                  const ICData& ic_data);
 
@@ -620,30 +639,30 @@ class FlowGraphCompiler : public ValueObject {
                      Label* is_instance_lbl,
                      Label* is_not_instance_lbl);
 
-  RawSubtypeTestCache* GenerateInlineInstanceof(intptr_t token_pos,
+  RawSubtypeTestCache* GenerateInlineInstanceof(TokenPosition token_pos,
                                                 const AbstractType& type,
                                                 Label* is_instance_lbl,
                                                 Label* is_not_instance_lbl);
 
   RawSubtypeTestCache* GenerateInstantiatedTypeWithArgumentsTest(
-      intptr_t token_pos,
+      TokenPosition token_pos,
       const AbstractType& dst_type,
       Label* is_instance_lbl,
       Label* is_not_instance_lbl);
 
-  bool GenerateInstantiatedTypeNoArgumentsTest(intptr_t token_pos,
+  bool GenerateInstantiatedTypeNoArgumentsTest(TokenPosition token_pos,
                                                const AbstractType& dst_type,
                                                Label* is_instance_lbl,
                                                Label* is_not_instance_lbl);
 
   RawSubtypeTestCache* GenerateUninstantiatedTypeTest(
-      intptr_t token_pos,
+      TokenPosition token_pos,
       const AbstractType& dst_type,
       Label* is_instance_lbl,
       Label* is_not_instance_label);
 
   RawSubtypeTestCache* GenerateSubtype1TestCacheLookup(
-      intptr_t token_pos,
+      TokenPosition token_pos,
       const Class& type_class,
       Label* is_instance_lbl,
       Label* is_not_instance_lbl);
@@ -743,6 +762,8 @@ class FlowGraphCompiler : public ValueObject {
   ExceptionHandlerList* exception_handlers_list_;
   DescriptorList* pc_descriptors_list_;
   StackmapTableBuilder* stackmap_table_builder_;
+  CodeSourceMapBuilder* code_source_map_builder_;
+  intptr_t saved_code_size_;
   GrowableArray<BlockInfo*> block_info_;
   GrowableArray<CompilerDeoptInfo*> deopt_infos_;
   GrowableArray<SlowPathCode*> slow_path_code_;
@@ -780,6 +801,7 @@ class FlowGraphCompiler : public ValueObject {
 
   Array& inlined_code_intervals_;
   const GrowableArray<const Function*>& inline_id_to_function_;
+  const GrowableArray<TokenPosition>& inline_id_to_token_pos_;
   const GrowableArray<intptr_t>& caller_inline_id_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphCompiler);

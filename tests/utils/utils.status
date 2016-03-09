@@ -5,8 +5,10 @@
 [ $compiler == dart2js && $host_checked ]
 dummy_compiler_test: Crash # Issue 22809
 
-[ $compiler == dart2js ]
+[ $compiler == dart2js && $host_checked == false ]
 dummy_compiler_test: Slow, Pass
+
+[ $compiler == dart2js ]
 recursive_import_test: Slow, Pass
 source_mirrors_test: Slow, Pass
 
@@ -20,15 +22,5 @@ dart2js_test: SkipByDesign # Uses dart:io.
 [ $compiler == dart2js && $mode == debug ]
 dummy_compiler_test: Slow, Pass
 
-[ ($compiler == none || $compiler == precompiler) && $runtime == ContentShellOnAndroid ]
-dummy_compiler_test: Pass, RuntimeError # Issue 17662
-recursive_import_test: Pass, RuntimeError # Issue 17662
-source_mirrors_test: Pass, RuntimeError # Issue 17662
-
-[ $compiler == dart2js && $cps_ir ]
-dummy_compiler_test: Crash # (switch (function.na...  continue to a labeled switch case
-recursive_import_test: Crash # (switch (function.na...  continue to a labeled switch case
-source_mirrors_test: Crash, Slow # (switch (function.na...  continue to a labeled switch case
-
-[ ($noopt || $compiler == precompiler) ]
+[ $noopt || $compiler == precompiler || $compiler == dart2app ]
 source_mirrors_test: SkipByDesign # Imports dart:mirrors

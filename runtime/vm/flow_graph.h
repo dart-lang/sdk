@@ -144,6 +144,12 @@ class FlowGraph : public ZoneAllocated {
     return BlockIterator(postorder());
   }
 
+  void EnsureSSATempIndex(Definition* defn, Definition* replacement);
+
+  void ReplaceCurrentInstruction(ForwardInstructionIterator* iterator,
+                                 Instruction* current,
+                                 Instruction* replacement);
+
   intptr_t current_ssa_temp_index() const { return current_ssa_temp_index_; }
   void set_current_ssa_temp_index(intptr_t index) {
     current_ssa_temp_index_ = index;
@@ -271,17 +277,7 @@ class FlowGraph : public ZoneAllocated {
 
   bool IsCompiledForOsr() const { return graph_entry()->IsCompiledForOsr(); }
 
-  static void AddToGuardedFields(ZoneGrowableArray<const Field*>* array,
-                                 const Field* field);
   void AddToDeferredPrefixes(ZoneGrowableArray<const LibraryPrefix*>* from);
-
-  ZoneGrowableArray<const Field*>* guarded_fields() const {
-    return guarded_fields_;
-  }
-
-  GrowableArray<const Field*>& deoptimize_dependent_code() {
-    return deoptimize_dependent_code_;
-  }
 
   ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes() const {
     return deferred_prefixes_;
@@ -293,6 +289,16 @@ class FlowGraph : public ZoneAllocated {
 
   intptr_t inlining_id() const { return inlining_id_; }
   void set_inlining_id(intptr_t value) { inlining_id_ = value; }
+
+  // Returns true if any instructions were canonicalized away.
+  bool Canonicalize();
+
+  void SelectRepresentations();
+
+  void WidenSmiToInt32();
+
+  // Remove environments from the instructions which do not deoptimize.
+  void EliminateEnvironments();
 
  private:
   friend class IfConverter;
@@ -338,6 +344,14 @@ class FlowGraph : public ZoneAllocated {
   // indicates membership in the loop.
   BitVector* FindLoop(BlockEntryInstr* m, BlockEntryInstr* n) const;
 
+  void InsertConversionsFor(Definition* def);
+  void ConvertUse(Value* use, Representation from);
+  void ConvertEnvironmentUse(Value* use, Representation from);
+  void InsertConversion(Representation from,
+                        Representation to,
+                        Value* use,
+                        bool is_environment_use);
+
   Thread* thread_;
 
   // DiscoverBlocks computes parent_ and assigned_vars_ which are then used
@@ -366,8 +380,6 @@ class FlowGraph : public ZoneAllocated {
 
   ZoneGrowableArray<BlockEntryInstr*>* loop_headers_;
   ZoneGrowableArray<BitVector*>* loop_invariant_loads_;
-  ZoneGrowableArray<const Field*>* guarded_fields_;
-  GrowableArray<const Field*> deoptimize_dependent_code_;
   ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes_;
   DirectChainedHashMap<ConstantPoolTrait> constant_instr_pool_;
   BitVector* captured_parameters_;

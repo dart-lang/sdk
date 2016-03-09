@@ -13,5 +13,5 @@
 function(x) {
   V.Foo$();
   P.print("getter");
-  P.print(new V.Foo_getter_closure().call$1(123));
+  P.print(123);
 }

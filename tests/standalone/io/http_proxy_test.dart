@@ -17,7 +17,7 @@ SecurityContext serverContext = new SecurityContext()
                   password: 'dartdart');
 
 SecurityContext clientContext = new SecurityContext()
-  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
+  ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
 
 class Server {
   HttpServer server;

@@ -18,8 +18,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, enable_type_checks);
-DECLARE_FLAG(bool, load_deferred_eagerly);
 DECLARE_FLAG(bool, concurrent_sweep);
 
 // Check if serialized and deserialized objects are equal.
@@ -864,7 +862,9 @@ static void GenerateSourceAndCheck(const Script& script) {
   // the same.
   const TokenStream& expected_tokens = TokenStream::Handle(script.tokens());
   TokenStream::Iterator expected_iterator(
-      expected_tokens, 0, TokenStream::Iterator::kAllTokens);
+      expected_tokens,
+      TokenPosition::kMinSource,
+      TokenStream::Iterator::kAllTokens);
   const String& str = String::Handle(expected_tokens.GenerateSource());
   const String& private_key = String::Handle(expected_tokens.PrivateKey());
   Scanner scanner(str, private_key);
@@ -872,9 +872,11 @@ static void GenerateSourceAndCheck(const Script& script) {
       TokenStream::Handle(TokenStream::New(scanner.GetStream(),
                                            private_key,
                                            false));
-  expected_iterator.SetCurrentPosition(0);
+  expected_iterator.SetCurrentPosition(TokenPosition::kMinSource);
   TokenStream::Iterator reconstructed_iterator(
-      reconstructed_tokens, 0, TokenStream::Iterator::kAllTokens);
+      reconstructed_tokens,
+      TokenPosition::kMinSource,
+      TokenStream::Iterator::kAllTokens);
   Token::Kind expected_kind = expected_iterator.CurrentTokenKind();
   Token::Kind reconstructed_kind = reconstructed_iterator.CurrentTokenKind();
   String& expected_literal = String::Handle();
@@ -971,8 +973,10 @@ TEST_CASE(SerializeScript) {
   const ExternalTypedData& serialized_data =
       ExternalTypedData::Handle(serialized_tokens.GetStream());
   EXPECT_EQ(expected_data.Length(), serialized_data.Length());
-  TokenStream::Iterator expected_iterator(expected_tokens, 0);
-  TokenStream::Iterator serialized_iterator(serialized_tokens, 0);
+  TokenStream::Iterator expected_iterator(expected_tokens,
+                                          TokenPosition::kMinSource);
+  TokenStream::Iterator serialized_iterator(serialized_tokens,
+                                            TokenPosition::kMinSource);
   Token::Kind expected_kind = expected_iterator.CurrentTokenKind();
   Token::Kind serialized_kind = serialized_iterator.CurrentTokenKind();
   while (expected_kind != Token::kEOS && serialized_kind != Token::kEOS) {
@@ -995,6 +999,7 @@ TEST_CASE(SerializeScript) {
 }
 
 
+#if !defined(PRODUCT)  // Uses deferred loading.
 UNIT_TEST_CASE(CanonicalizationInScriptSnapshots) {
   const char* kScriptChars =
       "\n"
@@ -1025,10 +1030,6 @@ UNIT_TEST_CASE(CanonicalizationInScriptSnapshots) {
 
   bool saved_load_deferred_eagerly_mode = FLAG_load_deferred_eagerly;
   FLAG_load_deferred_eagerly = true;
-  // Workaround until issue 21620 is fixed.
-  // (https://github.com/dart-lang/sdk/issues/21620)
-  bool saved_concurrent_sweep_mode = FLAG_concurrent_sweep;
-  FLAG_concurrent_sweep = false;
   {
     // Start an Isolate, and create a full snapshot of it.
     TestIsolateScope __test_isolate__;
@@ -1045,7 +1046,6 @@ UNIT_TEST_CASE(CanonicalizationInScriptSnapshots) {
     Dart_ExitScope();
   }
   FLAG_load_deferred_eagerly = saved_load_deferred_eagerly_mode;
-  FLAG_concurrent_sweep = saved_concurrent_sweep_mode;
 
   {
     // Now Create an Isolate using the full snapshot and load the
@@ -1105,6 +1105,7 @@ UNIT_TEST_CASE(CanonicalizationInScriptSnapshots) {
   free(script_snapshot);
   free(full_snapshot);
 }
+#endif
 
 
 static void IterateScripts(const Library& lib) {
@@ -1120,7 +1121,7 @@ static void IterateScripts(const Library& lib) {
   }
 }
 
-TEST_CASE(GenerateSource) {
+VM_TEST_CASE(GenerateSource) {
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
   const GrowableObjectArray& libs = GrowableObjectArray::Handle(
@@ -1285,6 +1286,9 @@ UNIT_TEST_CASE(FullSnapshot1) {
 }
 
 
+#ifndef PRODUCT
+
+
 UNIT_TEST_CASE(ScriptSnapshot) {
   const char* kLibScriptChars =
       "library dart_import_lib;"
@@ -1341,10 +1345,6 @@ UNIT_TEST_CASE(ScriptSnapshot) {
 
   bool saved_load_deferred_eagerly_mode = FLAG_load_deferred_eagerly;
   FLAG_load_deferred_eagerly = true;
-  // Workaround until issue 21620 is fixed.
-  // (https://github.com/dart-lang/sdk/issues/21620)
-  bool saved_concurrent_sweep_mode = FLAG_concurrent_sweep;
-  FLAG_concurrent_sweep = false;
   {
     // Start an Isolate, and create a full snapshot of it.
     TestIsolateScope __test_isolate__;
@@ -1361,7 +1361,6 @@ UNIT_TEST_CASE(ScriptSnapshot) {
     Dart_ExitScope();
   }
   FLAG_load_deferred_eagerly = saved_load_deferred_eagerly_mode;
-  FLAG_concurrent_sweep = saved_concurrent_sweep_mode;
 
   // Test for Dart_CreateScriptSnapshot.
   {
@@ -1535,6 +1534,7 @@ UNIT_TEST_CASE(ScriptSnapshot1) {
     EXPECT(script_snapshot != NULL);
     result = Dart_LoadScriptFromSnapshot(script_snapshot, size);
     EXPECT_VALID(result);
+    Dart_ExitScope();
   }
 
   FLAG_load_deferred_eagerly = saved_load_deferred_eagerly_mode;
@@ -1578,7 +1578,7 @@ UNIT_TEST_CASE(ScriptSnapshot2) {
 
   // Force creation of snapshot in production mode.
   bool saved_enable_type_checks_mode = FLAG_enable_type_checks;
-  FLAG_enable_type_checks = false;
+  NOT_IN_PRODUCT(FLAG_enable_type_checks = false);
   bool saved_load_deferred_eagerly_mode = FLAG_load_deferred_eagerly;
   FLAG_load_deferred_eagerly = true;
   bool saved_concurrent_sweep_mode = FLAG_concurrent_sweep;
@@ -1630,7 +1630,7 @@ UNIT_TEST_CASE(ScriptSnapshot2) {
   }
 
   // Continue in originally saved mode.
-  FLAG_enable_type_checks = saved_enable_type_checks_mode;
+  NOT_IN_PRODUCT(FLAG_enable_type_checks = saved_enable_type_checks_mode);
   FLAG_load_deferred_eagerly = saved_load_deferred_eagerly_mode;
 
   {
@@ -1655,11 +1655,15 @@ UNIT_TEST_CASE(ScriptSnapshot2) {
     // Invoke the test_b function.
     result = Dart_Invoke(lib, NewString("test_b"), 0, NULL);
     EXPECT(Dart_IsError(result) == saved_enable_type_checks_mode);
+    Dart_ExitScope();
   }
   Dart_ShutdownIsolate();
   free(full_snapshot);
   free(script_snapshot);
 }
+
+
+#endif  // !PRODUCT
 
 
 TEST_CASE(IntArrayMessage) {
@@ -1841,10 +1845,12 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
   EXPECT(Dart_IsString(crappy_string_result));
 
   {
-    DARTSCOPE(Thread::Current());
+    Thread* thread = Thread::Current();
+    CHECK_API_SCOPE(thread);
+    HANDLESCOPE(thread);
 
     {
-      StackZone zone(Thread::Current());
+      StackZone zone(thread);
       Smi& smi = Smi::Handle();
       smi ^= Api::UnwrapHandle(smi_result);
       uint8_t* buffer;
@@ -1862,7 +1868,7 @@ UNIT_TEST_CASE(DartGeneratedMessages) {
       CheckEncodeDecodeMessage(root);
     }
     {
-      StackZone zone(Thread::Current());
+      StackZone zone(thread);
       Bigint& bigint = Bigint::Handle();
       bigint ^= Api::UnwrapHandle(bigint_result);
       uint8_t* buffer;
@@ -1933,7 +1939,8 @@ UNIT_TEST_CASE(DartGeneratedListMessages) {
   EXPECT_VALID(lib);
 
   {
-    DARTSCOPE(thread);
+    CHECK_API_SCOPE(thread);
+    HANDLESCOPE(thread);
     StackZone zone(thread);
     intptr_t buf_len = 0;
     {
@@ -2057,7 +2064,8 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessages) {
   EXPECT_VALID(lib);
 
   {
-    DARTSCOPE(thread);
+    CHECK_API_SCOPE(thread);
+    HANDLESCOPE(thread);
     StackZone zone(thread);
     intptr_t buf_len = 0;
     {
@@ -2296,7 +2304,8 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithBackref) {
   EXPECT_VALID(lib);
 
   {
-    DARTSCOPE(thread);
+    CHECK_API_SCOPE(thread);
+    HANDLESCOPE(thread);
     StackZone zone(thread);
     intptr_t buf_len = 0;
     {
@@ -2521,7 +2530,8 @@ UNIT_TEST_CASE(DartGeneratedArrayLiteralMessagesWithBackref) {
   EXPECT_VALID(lib);
 
   {
-    DARTSCOPE(thread);
+    CHECK_API_SCOPE(thread);
+    HANDLESCOPE(thread);
     StackZone zone(thread);
     intptr_t buf_len = 0;
     {
@@ -2762,7 +2772,8 @@ UNIT_TEST_CASE(DartGeneratedListMessagesWithTypedData) {
   EXPECT_VALID(lib);
 
   {
-    DARTSCOPE(thread);
+    CHECK_API_SCOPE(thread);
+    HANDLESCOPE(thread);
     StackZone zone(thread);
     intptr_t buf_len = 0;
     {

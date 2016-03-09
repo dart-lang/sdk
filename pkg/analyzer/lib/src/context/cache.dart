@@ -7,6 +7,8 @@ library analyzer.src.context.cache;
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analyzer/src/dart/element/element.dart'
+    show ElementImpl, Modifier;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -239,7 +241,11 @@ class AnalysisCache {
           AnalysisEngine.instance.logger
               .logInformation('Removed the cache entry for $target.');
         }
-        return partition.remove(target);
+        CacheEntry entry = partition.remove(target);
+        if (entry != null) {
+          entry.dispose();
+        }
+        return entry;
       }
     }
     return null;
@@ -307,7 +313,11 @@ class CacheEntry {
   Map<ResultDescriptor, ResultData> _resultMap =
       new HashMap<ResultDescriptor, ResultData>();
 
-  CacheEntry(this.target);
+  CacheEntry(this.target) {
+    if (target is ElementImpl) {
+      (target as ElementImpl).setModifier(Modifier.CACHE_KEY, true);
+    }
+  }
 
   /**
    * The exception that caused one or more values to have a state of
@@ -350,6 +360,9 @@ class CacheEntry {
       }
     });
     _resultMap.clear();
+    if (target is ElementImpl) {
+      (target as ElementImpl).setModifier(Modifier.CACHE_KEY, false);
+    }
   }
 
   /**
@@ -384,7 +397,7 @@ class CacheEntry {
    * Return the value of the result represented by the given [descriptor], or
    * the default value for the result if this entry does not have a valid value.
    */
-  dynamic /*=V*/ getValue /*<V>*/ (ResultDescriptor /*<V>*/ descriptor) {
+  dynamic/*=V*/ getValue/*<V>*/(ResultDescriptor/*<V>*/ descriptor) {
     ResultData data = _resultMap[descriptor];
     if (data == null) {
       return descriptor.defaultValue;
@@ -482,8 +495,8 @@ class CacheEntry {
    * Set the value of the result represented by the given [descriptor] to the
    * given [value].
    */
-  void setValue /*<V>*/ (ResultDescriptor /*<V>*/ descriptor,
-      dynamic /*=V*/ value, List<TargetedResult> dependedOn) {
+  void setValue/*<V>*/(ResultDescriptor/*<V>*/ descriptor, dynamic/*=V*/ value,
+      List<TargetedResult> dependedOn) {
 //    {
 //      String valueStr = '$value';
 //      if (valueStr.length > 20) {
@@ -581,7 +594,10 @@ class CacheEntry {
     _invalidateDependentResults(id, thisData, delta, level + 1);
     // If empty and not explicitly added, remove the entry altogether.
     if (_resultMap.isEmpty && !explicitlyAdded) {
-      _partition.entryMap.remove(target);
+      CacheEntry entry = _partition.entryMap.remove(target);
+      if (entry != null) {
+        entry.dispose();
+      }
       _partition._removeIfSource(target);
     }
     // Notify controller.

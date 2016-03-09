@@ -77,6 +77,8 @@ action("copy_observatory_deps") {
     "--silent=True",
     "--pub-executable",
     dart_host_pub_exe,
+    "--stamp",
+    rebase_path("$root_gen_dir/observatory_copy/dart/runtime/observatory/packages.stamp"),
     "--directory",
     rebase_path("$root_gen_dir/observatory_copy/dart/runtime/observatory/"),
     "--command",
@@ -84,7 +86,7 @@ action("copy_observatory_deps") {
   ]
 
   outputs = [
-    "$root_gen_dir/observatory_copy/dart/runtime/observatory/pubspec.lock",
+    "$root_gen_dir/observatory_copy/dart/runtime/observatory/packages.stamp",
   ]
 }
 
@@ -103,6 +105,7 @@ action("pub_build_observatory") {
 
   inputs = [
     script,
+    "$root_gen_dir/observatory_copy/dart/runtime/observatory/packages.stamp",
   ]
   inputs += sources
 
@@ -118,7 +121,6 @@ action("pub_build_observatory") {
   ]
 
   outputs = [
-    "$root_out_dir/observatory/build/web/index.html",
     "$root_out_dir/observatory/build/web/index.html.polymer.bootstrap.dart.js",
   ]
 }
@@ -132,7 +134,6 @@ action("deploy_observatory") {
 
   inputs = [
     script,
-    "$root_out_dir/observatory/build/web/index.html",
     "$root_out_dir/observatory/build/web/index.html.polymer.bootstrap.dart.js",
   ]
 
@@ -147,7 +148,6 @@ action("deploy_observatory") {
   ]
 
   outputs = [
-    "$root_out_dir/observatory/deployed/web/index.html",
     "$root_out_dir/observatory/deployed/web/index.html.polymer.bootstrap.dart.js",
   ]
 }
@@ -161,7 +161,6 @@ action("archive_observatory") {
 
   inputs = [
     script,
-    "$root_out_dir/observatory/deployed/web/index.html",
     "$root_out_dir/observatory/deployed/web/index.html.polymer.bootstrap.dart.js",
   ]
 

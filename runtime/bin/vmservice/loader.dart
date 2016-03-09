@@ -57,8 +57,7 @@ void _loadFile(SendPort sp, int id, Uri uri) {
     _sendResourceResponse(sp, id, data);
   },
   onError: (e) {
-    var err = "Error loading $uri:\n  $e";
-    _sendResourceResponse(sp, id, err);
+    _sendResourceResponse(sp, id, e.toString());
   });
 }
 

@@ -6,6 +6,7 @@
 #define VM_TOKEN_H_
 
 #include "platform/assert.h"
+#include "vm/allocation.h"
 
 namespace dart {
 
@@ -193,7 +194,6 @@ namespace dart {
   KW(kWHILE, "while", 0, kKeyword)                                             \
   KW(kWITH, "with", 0, kKeyword) /* == kLastKeyword */
 
-
 class String;
 
 class Token {
@@ -327,7 +327,6 @@ class Token {
   static const uint8_t precedence_[];
   static const Attribute attributes_[];
 };
-
 
 }  // namespace dart
 

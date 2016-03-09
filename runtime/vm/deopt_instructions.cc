@@ -138,23 +138,26 @@ DeoptContext::~DeoptContext() {
   delete[] deferred_objects_;
   deferred_objects_ = NULL;
   deferred_objects_count_ = 0;
-  if (deopt_start_micros_ != 0) {
+  if (FLAG_support_timeline && (deopt_start_micros_ != 0)) {
     Isolate* isolate = Isolate::Current();
     TimelineStream* compiler_stream = isolate->GetCompilerStream();
     ASSERT(compiler_stream != NULL);
     if (compiler_stream->Enabled()) {
+      // Allocate all Dart objects needed before calling StartEvent,
+      // which blocks safe points until Complete is called.
       const Code& code = Code::Handle(zone(), code_);
       const Function& function = Function::Handle(zone(), code.function());
-      const char* function_name = function.QualifiedUserVisibleNameCString();
+      const String& function_name =
+          String::Handle(zone(), function.QualifiedScrubbedName());
       const char* reason = DeoptReasonToCString(deopt_reason());
-      int counter = function.deoptimization_counter();
+      const int counter = function.deoptimization_counter();
       TimelineEvent* timeline_event = compiler_stream->StartEvent();
       if (timeline_event != NULL) {
         timeline_event->Duration("Deoptimize",
                                  deopt_start_micros_,
                                  OS::GetCurrentMonotonicMicros());
         timeline_event->SetNumArguments(3);
-        timeline_event->CopyArgument(0, "function", function_name);
+        timeline_event->CopyArgument(0, "function", function_name.ToCString());
         timeline_event->CopyArgument(1, "reason", reason);
         timeline_event->FormatArgument(2, "deoptimizationCount", "%d", counter);
         timeline_event->Complete();
@@ -356,7 +359,7 @@ intptr_t DeoptContext::MaterializeDeferredObjects() {
     const Code& code = Code::Handle(top_frame->LookupDartCode());
     const Function& top_function = Function::Handle(code.function());
     const Script& script = Script::Handle(top_function.script());
-    const intptr_t token_pos = code.GetTokenIndexOfPC(top_frame->pc());
+    const TokenPosition token_pos = code.GetTokenIndexOfPC(top_frame->pc());
     intptr_t line, column;
     script.GetTokenLocation(token_pos, &line, &column);
     String& line_string = String::Handle(script.GetLine(line));
@@ -423,8 +426,10 @@ class DeoptRetAddressInstr : public DeoptInstr {
 
  private:
   static const intptr_t kFieldWidth = kBitsPerWord / 2;
-  class ObjectTableIndex : public BitField<intptr_t, 0, kFieldWidth> { };
-  class DeoptId : public BitField<intptr_t, kFieldWidth, kFieldWidth> { };
+  class ObjectTableIndex :
+      public BitField<intptr_t, intptr_t, 0, kFieldWidth> { };
+  class DeoptId :
+      public BitField<intptr_t, intptr_t, kFieldWidth, kFieldWidth> { };
 
   const intptr_t object_table_index_;
   const intptr_t deopt_id_;
@@ -547,8 +552,9 @@ class DeoptMintPairInstr: public DeoptIntegerInstrBase {
 
  private:
   static const intptr_t kFieldWidth = kBitsPerWord / 2;
-  class LoRegister : public BitField<intptr_t, 0, kFieldWidth> { };
-  class HiRegister : public BitField<intptr_t, kFieldWidth, kFieldWidth> { };
+  class LoRegister : public BitField<intptr_t, intptr_t, 0, kFieldWidth> { };
+  class HiRegister :
+      public BitField<intptr_t, intptr_t, kFieldWidth, kFieldWidth> { };
 
   const CpuRegisterSource lo_;
   const CpuRegisterSource hi_;

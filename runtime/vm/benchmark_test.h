@@ -81,13 +81,7 @@ class Benchmark {
   int64_t score() const { return score_; }
   Isolate* isolate() const { return reinterpret_cast<Isolate*>(isolate_); }
 
-  Dart_Isolate CreateIsolate(const uint8_t* buffer) {
-    char* err = NULL;
-    isolate_ = Dart_CreateIsolate(NULL, NULL, buffer, NULL, NULL, &err);
-    EXPECT(isolate_ != NULL);
-    free(err);
-    return isolate_;
-  }
+  Dart_Isolate CreateIsolate(const uint8_t* buffer);
 
   void Run() { (*run_)(this); }
   void RunBenchmark();

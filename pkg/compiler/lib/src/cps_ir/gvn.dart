@@ -15,6 +15,7 @@ import '../compiler.dart' show Compiler;
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
 import '../constants/values.dart';
 import 'type_mask_system.dart';
+import 'effects.dart';
 
 /// Eliminates redundant primitives by reusing the value of another primitive
 /// that is known to have the same result.  Primitives are also hoisted out of
@@ -36,11 +37,6 @@ import 'type_mask_system.dart';
 //    - Since the new type may be worse, insert a refinement at the old
 //      definition site, so we do not degrade existing type information.
 //
-//  TODO(asgerf): Put this pass at a better place in the pipeline.  We currently
-//    cannot put it anywhere we want, because this pass relies on refinement
-//    nodes being present (for safety), whereas other passes rely on refinement
-//    nodes being absent (for simplicity & precision).
-//
 class GVN extends TrampolineRecursiveVisitor implements Pass {
   String get passName => 'GVN';
 
@@ -54,11 +50,13 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
   LoopHierarchy loopHierarchy;
   LoopSideEffects loopEffects;
 
+  final EffectNumberer effectNumberer = new EffectNumberer();
+
   /// Effect numbers at the given join point.
   Map<Continuation, EffectNumbers> effectsAt = <Continuation, EffectNumbers>{};
 
   /// The effect numbers at the current position (during traversal).
-  EffectNumbers effectNumbers = new EffectNumbers();
+  EffectNumbers effectNumbers;
 
   /// The loop currently enclosing the binding of a given primitive.
   final Map<Primitive, Continuation> loopHeaderFor =
@@ -80,10 +78,8 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
 
   GVN(this.compiler, this.types);
 
-  int _usedEffectNumbers = 0;
-  int makeNewEffect() => ++_usedEffectNumbers;
-
   void rewrite(FunctionDefinition node) {
+    effectNumbers = new EffectNumbers.fresh(effectNumberer);
     gvnVectorBuilder = new GvnVectorBuilder(gvnFor, compiler, types);
     loopHierarchy = new LoopHierarchy(node);
     loopEffects =
@@ -125,7 +121,7 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
     // GetLazyStatic is GVN'ed like a GetStatic, but the effects of the static
     // initializer occur before reading the field.
     if (prim is GetLazyStatic) {
-      visit(prim);
+      addSideEffectsOfPrimitive(prim);
     }
 
     // Compute the GVN vector for this computation.
@@ -135,7 +131,7 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
     // Do this after computing the GVN vector so the primitive's GVN is not
     // influenced by its own side effects, except in the case of GetLazyStatic.
     if (prim is! GetLazyStatic) {
-      visit(prim);
+      addSideEffectsOfPrimitive(prim);
     }
 
     if (vector == null) {
@@ -192,7 +188,7 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
 
   bool isHoistablePrimitive(Primitive prim) {
     if (prim.isSafeForElimination) return true;
-    if (prim is NullCheck ||
+    if (prim is ReceiverCheck ||
         prim is BoundsCheck ||
         prim is GetLength ||
         prim is GetField ||
@@ -347,18 +343,6 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
     return prim is Constant && (prim.value.isPrimitive || prim.value.isDummy);
   }
 
-  /// True if [element] is a final or constant field or a function.
-  bool isImmutable(Element element) {
-    if (element.isField && backend.isNative(element)) return false;
-    return element.isField && world.fieldNeverChanges(element) ||
-           element.isFunction;
-  }
-
-  bool isImmutableLength(GetLength length) {
-    return types.isDefinitelyFixedLengthIndexable(length.object.definition.type,
-        allowNull: true);
-  }
-
   /// Assuming [prim] has no side effects, returns true if it can safely
   /// be hoisted out of [loop] without changing its value or changing the timing
   /// of a thrown exception.
@@ -369,56 +353,26 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
     if (!prim.isSafeForElimination && loop != currentLoopHeader) {
       return false;
     }
-    if (prim is GetLength && !isImmutableLength(prim)) {
-      return !loopEffects.loopChangesLength(loop);
-    } else if (prim is GetField && !isImmutable(prim.field)) {
-      return !loopEffects.getSideEffectsInLoop(loop).changesInstanceProperty();
-    } else if (prim is GetStatic && !isImmutable(prim.element)) {
-      return !loopEffects.getSideEffectsInLoop(loop).changesStaticProperty();
-    } else if (prim is GetIndex) {
-      return !loopEffects.getSideEffectsInLoop(loop).changesIndex();
-    } else {
-      return true;
-    }
+    int effects = loopEffects.getSideEffectsInLoop(loop);
+    return Effects.changesToDepends(effects) & prim.effects == 0;
   }
 
   // ------------------ TRAVERSAL AND EFFECT NUMBERING ---------------------
   //
   // These methods traverse the IR while updating the current effect numbers.
   // They are not specific to GVN.
-  //
-  // TODO(asgerf): Avoid duplicated code for side effect analysis.
-  // Should be easier to fix once primitives and call expressions are the same.
 
-  void addSideEffects(SideEffects fx, {bool length: true}) {
-    if (fx.changesInstanceProperty()) {
-      effectNumbers.instanceField = makeNewEffect();
-    }
-    if (fx.changesStaticProperty()) {
-      effectNumbers.staticField = makeNewEffect();
-    }
-    if (fx.changesIndex()) {
-      effectNumbers.indexableContent = makeNewEffect();
-    }
-    if (length && fx.changesIndex()) {
-      effectNumbers.indexableLength = makeNewEffect();
-    }
+  void addSideEffectsOfPrimitive(Primitive prim) {
+    addSideEffects(prim.effects);
   }
 
-  void addAllSideEffects() {
-    effectNumbers.instanceField = makeNewEffect();
-    effectNumbers.staticField = makeNewEffect();
-    effectNumbers.indexableContent = makeNewEffect();
-    effectNumbers.indexableLength = makeNewEffect();
+  void addSideEffects(int effectFlags) {
+    effectNumbers.change(effectNumberer, effectFlags);
   }
 
   Expression traverseLetHandler(LetHandler node) {
     // Assume any kind of side effects may occur in the try block.
-    effectsAt[node.handler] = new EffectNumbers()
-      ..instanceField = makeNewEffect()
-      ..staticField = makeNewEffect()
-      ..indexableContent = makeNewEffect()
-      ..indexableLength = makeNewEffect();
+    effectsAt[node.handler] = new EffectNumbers.fresh(effectNumberer);
     push(node.handler);
     return node.body;
   }
@@ -433,10 +387,7 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
       loopHeaderFor[param] = currentLoopHeader;
     }
     if (cont.isRecursive) {
-      addSideEffects(loopEffects.getSideEffectsInLoop(cont), length: false);
-      if (loopEffects.loopChangesLength(cont)) {
-        effectNumbers.indexableLength = makeNewEffect();
-      }
+      addSideEffects(loopEffects.getSideEffectsInLoop(cont));
       pushAction(() {
         List<int> hoistedBindings = loopHoistedBindings[cont];
         if (hoistedBindings != null) {
@@ -444,123 +395,31 @@ class GVN extends TrampolineRecursiveVisitor implements Pass {
         }
       });
     } else {
-      EffectNumbers join = effectsAt[cont];
-      if (join != null) {
-        effectNumbers = join;
-      } else {
-        // This is a call continuation seen immediately after its use.
-        // Reuse the current effect numbers.
-      }
+      effectNumbers = effectsAt[cont];
+      assert(effectNumbers != null);
     }
 
     return cont.body;
   }
 
   void visitInvokeContinuation(InvokeContinuation node) {
-    Continuation cont = node.continuation.definition;
+    Continuation cont = node.continuation;
     if (cont.isRecursive) return;
     EffectNumbers join = effectsAt[cont];
     if (join == null) {
       effectsAt[cont] = effectNumbers.copy();
     } else {
-      if (effectNumbers.instanceField != join.instanceField) {
-        join.instanceField = makeNewEffect();
-      }
-      if (effectNumbers.staticField != join.staticField) {
-        join.staticField = makeNewEffect();
-      }
-      if (effectNumbers.indexableContent != join.indexableContent) {
-        join.indexableContent = makeNewEffect();
-      }
-      if (effectNumbers.indexableLength != join.indexableLength) {
-        join.indexableLength = makeNewEffect();
-      }
+      join.join(effectNumberer, effectNumbers);
     }
   }
 
   void visitBranch(Branch node) {
-    Continuation trueCont = node.trueContinuation.definition;
-    Continuation falseCont = node.falseContinuation.definition;
+    Continuation trueCont = node.trueContinuation;
+    Continuation falseCont = node.falseContinuation;
     // Copy the effect number vector once, so the analysis of one branch does
     // not influence the other.
     effectsAt[trueCont] = effectNumbers;
     effectsAt[falseCont] = effectNumbers.copy();
-  }
-
-  void visitInvokeMethod(InvokeMethod node) {
-    addSideEffects(world.getSideEffectsOfSelector(node.selector, node.mask));
-  }
-
-  void visitInvokeStatic(InvokeStatic node) {
-    addSideEffects(world.getSideEffectsOfElement(node.target));
-  }
-
-  void visitInvokeMethodDirectly(InvokeMethodDirectly node) {
-    FunctionElement target = node.target;
-    if (target is ConstructorBodyElement) {
-      ConstructorBodyElement body = target;
-      target = body.constructor;
-    }
-    addSideEffects(world.getSideEffectsOfElement(target));
-  }
-
-  void visitInvokeConstructor(InvokeConstructor node) {
-    addSideEffects(world.getSideEffectsOfElement(node.target));
-  }
-
-  void visitSetStatic(SetStatic node) {
-    effectNumbers.staticField = makeNewEffect();
-  }
-
-  void visitSetField(SetField node) {
-    effectNumbers.instanceField = makeNewEffect();
-  }
-
-  void visitSetIndex(SetIndex node) {
-    effectNumbers.indexableContent = makeNewEffect();
-  }
-
-  void visitForeignCode(ForeignCode node) {
-    addSideEffects(node.nativeBehavior.sideEffects);
-  }
-
-  void visitGetLazyStatic(GetLazyStatic node) {
-    // TODO(asgerf): How do we get the side effects of a lazy field initializer?
-    addAllSideEffects();
-  }
-
-  void visitAwait(Await node) {
-    addAllSideEffects();
-  }
-
-  void visitYield(Yield node) {
-    addAllSideEffects();
-  }
-
-  void visitApplyBuiltinMethod(ApplyBuiltinMethod node) {
-    // Push and pop.
-    effectNumbers.indexableContent = makeNewEffect();
-    effectNumbers.indexableLength = makeNewEffect();
-  }
-}
-
-/// For each of the four categories of heap locations, the IR is divided into
-/// regions wherein the given heap locations are known not to be modified.
-///
-/// Each region is identified by its "effect number".  Effect numbers from
-/// different categories have no relationship to each other.
-class EffectNumbers {
-  int indexableLength = 0;
-  int indexableContent = 0;
-  int staticField = 0;
-  int instanceField = 0;
-
-  EffectNumbers copy() {
-    return new EffectNumbers()
-      ..indexableLength = indexableLength
-      ..indexableContent = indexableContent
-      ..staticField = staticField
-      ..instanceField = instanceField;
   }
 }
 
@@ -659,7 +518,7 @@ class GvnVectorBuilder extends DeepRecursiveVisitor {
   }
 
   processGetLength(GetLength node) {
-    if (isImmutableLength(node)) {
+    if (node.isFinal) {
       // Omit the effect number for fixed-length lists.  Note that if a the list
       // gets refined to a fixed-length type, we still won't be able to GVN a
       // GetLength across the refinement, because the first GetLength uses an
@@ -670,16 +529,6 @@ class GvnVectorBuilder extends DeepRecursiveVisitor {
     }
   }
 
-  bool isImmutable(Element element) {
-    return element.isFunction ||
-           element.isField && world.fieldNeverChanges(element);
-  }
-
-  bool isImmutableLength(GetLength length) {
-    return types.isDefinitelyFixedLengthIndexable(length.object.definition.type,
-        allowNull: true);
-  }
-
   bool isNativeField(FieldElement field) {
     // TODO(asgerf): We should add a GetNativeField instruction.
     return backend.isNative(field);
@@ -688,7 +537,7 @@ class GvnVectorBuilder extends DeepRecursiveVisitor {
   processGetField(GetField node) {
     if (isNativeField(node.field)) {
       vector = null; // Native field access cannot be GVN'ed.
-    } else if (isImmutable(node.field)) {
+    } else if (node.isFinal) {
       vector = [GvnCode.GET_FIELD, node.field];
     } else {
       vector = [GvnCode.GET_FIELD, node.field, effectNumbers.instanceField];
@@ -700,7 +549,7 @@ class GvnVectorBuilder extends DeepRecursiveVisitor {
   }
 
   visitGetStatic(GetStatic node) {
-    if (isImmutable(node.element)) {
+    if (node.isFinal) {
       vector = [GvnCode.GET_STATIC, node.element];
     } else {
       vector = [GvnCode.GET_STATIC, node.element, effectNumbers.staticField];
@@ -709,7 +558,7 @@ class GvnVectorBuilder extends DeepRecursiveVisitor {
   }
 
   processGetLazyStatic(GetLazyStatic node) {
-    if (isImmutable(node.element)) {
+    if (node.isFinal) {
       vector = [GvnCode.GET_STATIC, node.element];
     } else {
       vector = [GvnCode.GET_STATIC, node.element, effectNumbers.staticField];

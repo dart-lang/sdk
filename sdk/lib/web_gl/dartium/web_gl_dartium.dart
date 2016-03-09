@@ -824,9 +824,7 @@ class ContextEvent extends Event {
     return new ContextEvent._internalWrap();
   }
 
-  factory ContextEvent._internalWrap() {
-    return new ContextEvent.internal_();
-  }
+  external factory ContextEvent._internalWrap();
 
   @Deprecated("Internal Use Only")
   ContextEvent.internal_() : super.internal_();

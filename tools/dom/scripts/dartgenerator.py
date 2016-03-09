@@ -12,6 +12,7 @@ import os
 import re
 import shutil
 from generator import *
+from idlnode import IDLType
 
 _logger = logging.getLogger('dartgenerator')
 
@@ -36,6 +37,10 @@ class DartGenerator(object):
 
   def _IsCompoundType(self, database, type_name):
     if IsRegisteredType(type_name):
+      return True
+
+    # References a typedef - normally a union type.
+    if database.HasTypeDef(type_name):
       return True
 
     if type_name.endswith('?'):
@@ -240,3 +245,18 @@ class DartGenerator(object):
 
         if 'ScriptArguments' in call_with:
           operation.arguments.append(ARG)
+
+  def CleanupOperationArguments(self, database):
+    for interface in database.GetInterfaces():
+      for operation in interface.operations:
+        # TODO(terry): Hack to remove 3rd arguments in setInterval/setTimeout.
+        if ((operation.id == 'setInterval' or operation.id == 'setTimeout') and \
+            operation.arguments[0].type.id == 'any'):
+          operation.arguments.pop(2)
+
+        # Massage any operation argument type that is IDLEnum to String.
+        for index, argument in enumerate(operation.arguments):
+          type_name = argument.type.id
+          if database.HasEnum(type_name):
+            operation.arguments[index].type = IDLType('DOMString')
+

@@ -240,10 +240,10 @@ bool StackFrame::FindExceptionHandler(Thread* thread,
 }
 
 
-intptr_t StackFrame::GetTokenPos() const {
+TokenPosition StackFrame::GetTokenPos() const {
   const Code& code = Code::Handle(LookupDartCode());
   if (code.IsNull()) {
-    return -1;  // Stub frames do not have token_pos.
+    return TokenPosition::kNoSource;  // Stub frames do not have token_pos.
   }
   uword pc_offset = pc() - code.EntryPoint();
   const PcDescriptors& descriptors =
@@ -252,10 +252,10 @@ intptr_t StackFrame::GetTokenPos() const {
   PcDescriptors::Iterator iter(descriptors, RawPcDescriptors::kAnyKind);
   while (iter.MoveNext()) {
     if (iter.PcOffset() == pc_offset) {
-      return iter.TokenPos();
+      return TokenPosition(iter.TokenPos());
     }
   }
-  return -1;
+  return TokenPosition::kNoSource;
 }
 
 

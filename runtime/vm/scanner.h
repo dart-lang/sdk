@@ -11,6 +11,7 @@
 
 #include "vm/growable_array.h"
 #include "vm/token.h"
+#include "vm/token_position.h"
 
 namespace dart {
 
@@ -44,13 +45,6 @@ class Scanner : ValueObject {
     const String* literal;    // Identifier, number or string literal.
   };
 
-  // Dummy token index reflecting an unknown source position.
-  static const intptr_t kNoSourcePos = -1;
-
-  static bool ValidSourcePosition(intptr_t token_pos) {
-    return (token_pos >= 0) || (token_pos == kNoSourcePos);
-  }
-
   typedef ZoneGrowableArray<TokenDescriptor> GrowableTokenStream;
 
   // Initializes scanner to scan string source.
@@ -62,7 +56,7 @@ class Scanner : ValueObject {
 
   // Scans to specified token position.
   // Use CurrentPosition() to extract position.
-  void ScanTo(intptr_t token_index);
+  void ScanTo(TokenPosition token_index);
 
   // Scans entire source and returns a stream of tokens.
   // Should be called only once.

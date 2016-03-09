@@ -4,8 +4,8 @@
 
 library analyzer.test.generated.non_error_resolver_test;
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
@@ -33,24 +33,6 @@ E e() {
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
-  }
-
-  void test_class_type_alias_documentationComment() {
-    Source source = addSource('''
-/**
- * Documentation
- */
-class C = D with E;
-
-class D {}
-class E {}''');
-    computeLibrarySourceErrors(source);
-    computeLibrarySourceErrors(source);
-    assertNoErrors(source);
-    verify([source]);
-    CompilationUnit unit = _getResolvedLibraryUnit(source);
-    ClassElement classC = unit.element.getType('C');
-    expect(classC.documentationComment, isNotNull);
   }
 
   void test_ambiguousExport() {
@@ -186,6 +168,14 @@ class N {}
 class N2 {}''');
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
+  }
+
+  void test_annotated_partOfDeclaration() {
+    Source source = addSource('library L; part "part.dart";');
+    addNamedSource('/part.dart', '@deprecated part of L;');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
   }
 
   void test_argumentTypeNotAssignable_classWithCall_Function() {
@@ -930,6 +920,24 @@ f(String s) {
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
     verify([source]);
+  }
+
+  void test_class_type_alias_documentationComment() {
+    Source source = addSource('''
+/**
+ * Documentation
+ */
+class C = D with E;
+
+class D {}
+class E {}''');
+    computeLibrarySourceErrors(source);
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+    CompilationUnit unit = _getResolvedLibraryUnit(source);
+    ClassElement classC = unit.element.getType('C');
+    expect(classC.documentationComment, isNotNull);
   }
 
   void test_commentReference_beforeConstructor() {

@@ -2,13 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _FunctionImpl implements Function {
+class _Closure implements Function {
 
-  bool operator ==(other) native "FunctionImpl_equals";
+  bool operator ==(other) native "Closure_equals";
 
-  int get hashCode native "FunctionImpl_hashCode";
+  int get hashCode native "Closure_hashCode";
 
-  _FunctionImpl get call => this;
+  _Closure get call => this;
 
-  _FunctionImpl _clone() native "FunctionImpl_clone";
+  _Closure _clone() native "Closure_clone";
+
+  // The type_arguments_, function_, and context_ fields are not declared here.
 }

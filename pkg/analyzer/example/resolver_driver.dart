@@ -5,8 +5,9 @@
 
 import 'dart:io';
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
@@ -56,6 +57,7 @@ const _usage =
     'Usage: resolve_driver <path_to_sdk> <file_to_resolve> [<packages_root>]';
 
 class _ASTVisitor extends GeneralizingAstVisitor {
+  @override
   visitNode(AstNode node) {
     var lines = <String>['${node.runtimeType} : <"$node">'];
     if (node is SimpleIdentifier) {

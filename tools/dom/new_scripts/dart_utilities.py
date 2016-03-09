@@ -156,7 +156,6 @@ DartUtilities.gc_type = v8_utilities.gc_type
 DartUtilities.has_extended_attribute = v8_utilities.has_extended_attribute
 DartUtilities.has_extended_attribute_value = v8_utilities.has_extended_attribute_value
 DartUtilities.measure_as = _measure_as
-DartUtilities.per_context_enabled_function_name = v8_utilities.per_context_enabled_function_name
 DartUtilities.runtime_enabled_function_name = v8_utilities.runtime_enabled_function_name
 DartUtilities.scoped_name = _scoped_name
 DartUtilities.strip_suffix = v8_utilities.strip_suffix

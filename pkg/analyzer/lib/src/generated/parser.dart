@@ -7,13 +7,21 @@ library analyzer.src.generated.parser;
 import 'dart:collection';
 import "dart:math" as math;
 
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/scanner/reader.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, AnalysisOptionsImpl;
 import 'package:analyzer/src/generated/error.dart';
+import 'package:analyzer/src/generated/generated/shared_messages.dart'
+    as shared_messages;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart' show TokenMap;
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -117,8 +125,6 @@ Map<String, MethodTrampoline> methodTable_Parser = <String, MethodTrampoline>{
   'expectGt_0': new MethodTrampoline(0, (Parser target) => target._expectGt()),
   'expectKeyword_1': new MethodTrampoline(
       1, (Parser target, arg0) => target._expectKeyword(arg0)),
-  'expectSemicolon_0':
-      new MethodTrampoline(0, (Parser target) => target._expectSemicolon()),
   'findRange_2': new MethodTrampoline(
       2, (Parser target, arg0, arg1) => target._findRange(arg0, arg1)),
   'getCodeBlockRanges_1': new MethodTrampoline(
@@ -2502,7 +2508,7 @@ class Parser {
             commentAndMetadata.metadata,
             null,
             new VariableDeclarationList(null, null, keyword, null, variables),
-            _expectSemicolon());
+            _expect(TokenType.SEMICOLON));
       }
       _reportErrorForToken(
           ParserErrorCode.EXPECTED_CLASS_MEMBER, _currentToken);
@@ -3789,17 +3795,15 @@ class Parser {
       }
       _reportErrorForToken(ParserErrorCode.EXPECTED_TOKEN,
           _currentToken.previous, [type.lexeme]);
-    } else {
-      _reportErrorForCurrentToken(
-          ParserErrorCode.EXPECTED_TOKEN, [type.lexeme]);
+      return _createSyntheticToken(TokenType.SEMICOLON);
     }
+    _reportErrorForCurrentToken(ParserErrorCode.EXPECTED_TOKEN, [type.lexeme]);
     return _currentToken;
   }
 
   /**
    * If the current token has the type [TokenType.GT], return it after advancing
-   * to the next token. Otherwise report an error and return the current token
-   * without advancing.
+   * to the next token. Otherwise report an error and create a synthetic token.
    */
   Token _expectGt() {
     if (_matchesGt()) {
@@ -3807,7 +3811,7 @@ class Parser {
     }
     _reportErrorForCurrentToken(
         ParserErrorCode.EXPECTED_TOKEN, [TokenType.GT.lexeme]);
-    return _currentToken;
+    return _createSyntheticToken(TokenType.GT);
   }
 
   /**
@@ -3824,21 +3828,6 @@ class Parser {
     _reportErrorForCurrentToken(
         ParserErrorCode.EXPECTED_TOKEN, [keyword.syntax]);
     return _currentToken;
-  }
-
-  /**
-   * If the current token is a semicolon, return it after advancing to the next
-   * token. Otherwise report an error and create a synthetic semicolon.
-   */
-  Token _expectSemicolon() {
-    // TODO(scheglov) consider pushing this behavior into [_expect]
-    if (_matches(TokenType.SEMICOLON)) {
-      return getAndAdvance();
-    } else {
-      _reportErrorForToken(
-          ParserErrorCode.EXPECTED_TOKEN, _currentToken.previous, [";"]);
-      return _createSyntheticToken(TokenType.SEMICOLON);
-    }
   }
 
   /**
@@ -3944,6 +3933,8 @@ class Parser {
           String comment = t.lexeme.substring(prefixLen, t.lexeme.length - 2);
           Token list = _scanGenericMethodComment(comment, t.offset + prefixLen);
           if (list != null) {
+            // Remove the token from the comment stream.
+            t.remove();
             // Insert the tokens into the stream.
             _injectTokenList(list);
             return true;
@@ -4167,7 +4158,7 @@ class Parser {
     return false;
   }
 
-  bool _isLikelyParameterList() {
+  bool _isLikelyArgumentList() {
     if (_matches(TokenType.OPEN_PAREN)) {
       return true;
     }
@@ -4235,7 +4226,7 @@ class Parser {
     if (!parseGenericMethods) {
       return false;
     }
-    Token token = _skipTypeArgumentList(_peek());
+    Token token = _skipTypeParameterList(_peek());
     return token != null && _tokenMatches(token, TokenType.OPEN_PAREN);
   }
 
@@ -4455,7 +4446,7 @@ class Parser {
     Expression expression = _parsePrimaryExpression();
     bool isOptional = primaryAllowed || expression is SimpleIdentifier;
     while (true) {
-      while (_isLikelyParameterList()) {
+      while (_isLikelyArgumentList()) {
         TypeArgumentList typeArguments = _parseOptionalTypeArguments();
         ArgumentList argumentList = parseArgumentList();
         if (expression is SimpleIdentifier) {
@@ -4663,8 +4654,8 @@ class Parser {
     }
     assert((expression == null && functionName != null) ||
         (expression != null && functionName == null));
-    if (_isLikelyParameterList()) {
-      while (_isLikelyParameterList()) {
+    if (_isLikelyArgumentList()) {
+      while (_isLikelyArgumentList()) {
         TypeArgumentList typeArguments = _parseOptionalTypeArguments();
         if (functionName != null) {
           expression = new MethodInvocation(expression, period, functionName,
@@ -4692,7 +4683,7 @@ class Parser {
       if (!identical(selector, expression)) {
         expression = selector;
         progress = true;
-        while (_isLikelyParameterList()) {
+        while (_isLikelyArgumentList()) {
           TypeArgumentList typeArguments = _parseOptionalTypeArguments();
           if (expression is PropertyAccess) {
             PropertyAccess propertyAccess = expression as PropertyAccess;
@@ -5232,7 +5223,7 @@ class Parser {
             commentAndMetadata.comment,
             commentAndMetadata.metadata,
             new VariableDeclarationList(null, null, keyword, null, variables),
-            _expectSemicolon());
+            _expect(TokenType.SEMICOLON));
       }
       _reportErrorForToken(ParserErrorCode.EXPECTED_EXECUTABLE, _currentToken);
       return null;
@@ -5369,12 +5360,13 @@ class Parser {
    */
   Expression _parseConstExpression() {
     Token keyword = _expectKeyword(Keyword.CONST);
-    if (_matches(TokenType.OPEN_SQUARE_BRACKET) || _matches(TokenType.INDEX)) {
+    if (_matches(TokenType.LT) || _injectGenericCommentTypeList()) {
+      return _parseListOrMapLiteral(keyword);
+    } else if (_matches(TokenType.OPEN_SQUARE_BRACKET) ||
+        _matches(TokenType.INDEX)) {
       return _parseListLiteral(keyword, null);
     } else if (_matches(TokenType.OPEN_CURLY_BRACKET)) {
       return _parseMapLiteral(keyword, null);
-    } else if (_matches(TokenType.LT)) {
-      return _parseListOrMapLiteral(keyword);
     }
     return _parseInstanceCreationExpression(keyword);
   }
@@ -5449,9 +5441,12 @@ class Parser {
         if (constKeyword != null) {
           _reportErrorForNode(
               ParserErrorCode.CONST_CONSTRUCTOR_WITH_BODY, body);
-        } else if (!bodyAllowed) {
+        } else if (externalKeyword != null) {
           _reportErrorForNode(
               ParserErrorCode.EXTERNAL_CONSTRUCTOR_WITH_BODY, body);
+        } else if (!bodyAllowed) {
+          _reportErrorForNode(
+              ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY, body);
         }
       }
     }
@@ -5804,7 +5799,7 @@ class Parser {
     StringLiteral libraryUri = _parseUri();
     List<Configuration> configurations = _parseConfigurations();
     List<Combinator> combinators = _parseCombinators();
-    Token semicolon = _expectSemicolon();
+    Token semicolon = _expect(TokenType.SEMICOLON);
     return new ExportDirective(
         commentAndMetadata.comment,
         commentAndMetadata.metadata,
@@ -6027,12 +6022,12 @@ class Parser {
         _reportErrorForToken(
             ParserErrorCode.INVALID_AWAIT_IN_FOR, awaitKeyword);
       }
-      Token leftSeparator = _expectSemicolon();
+      Token leftSeparator = _expect(TokenType.SEMICOLON);
       Expression condition = null;
       if (!_matches(TokenType.SEMICOLON)) {
         condition = parseExpression2();
       }
-      Token rightSeparator = _expectSemicolon();
+      Token rightSeparator = _expect(TokenType.SEMICOLON);
       List<Expression> updaters = null;
       if (!_matches(TokenType.CLOSE_PAREN)) {
         updaters = _parseExpressionList();
@@ -6507,7 +6502,7 @@ class Parser {
       }
     }
     List<Combinator> combinators = _parseCombinators();
-    Token semicolon = _expectSemicolon();
+    Token semicolon = _expect(TokenType.SEMICOLON);
     return new ImportDirective(
         commentAndMetadata.comment,
         commentAndMetadata.metadata,
@@ -7044,7 +7039,8 @@ class Parser {
             _peek().matchesAny([
               TokenType.OPEN_PAREN,
               TokenType.OPEN_CURLY_BRACKET,
-              TokenType.FUNCTION
+              TokenType.FUNCTION,
+              TokenType.LT
             ])) {
           return _parseFunctionDeclarationStatementAfterReturnType(
               commentAndMetadata, returnType);
@@ -7140,7 +7136,8 @@ class Parser {
       _reportErrorForCurrentToken(ParserErrorCode.MISSING_STATEMENT);
       return new EmptyStatement(_createSyntheticToken(TokenType.SEMICOLON));
     } else {
-      return new ExpressionStatement(parseExpression2(), _expectSemicolon());
+      return new ExpressionStatement(
+          parseExpression2(), _expect(TokenType.SEMICOLON));
     }
   }
 
@@ -7299,7 +7296,7 @@ class Parser {
         _matches(TokenType.OPEN_PAREN) ||
         (parseGenericMethods && _matches(TokenType.LT))) {
       do {
-        if (_isLikelyParameterList()) {
+        if (_isLikelyArgumentList()) {
           TypeArgumentList typeArguments = _parseOptionalTypeArguments();
           ArgumentList argumentList = parseArgumentList();
           if (operand is PropertyAccess) {
@@ -7394,11 +7391,6 @@ class Parser {
       return new IntegerLiteral(token, value);
     } else if (_matches(TokenType.STRING)) {
       return parseStringLiteral();
-    } else if (_matches(TokenType.OPEN_CURLY_BRACKET)) {
-      return _parseMapLiteral(null, null);
-    } else if (_matches(TokenType.OPEN_SQUARE_BRACKET) ||
-        _matches(TokenType.INDEX)) {
-      return _parseListLiteral(null, null);
     } else if (_matchesIdentifier()) {
       // TODO(brianwilkerson) The code below was an attempt to recover from an
       // error case, but it needs to be applied as a recovery only after we
@@ -7431,8 +7423,13 @@ class Parser {
       } finally {
         _inInitializer = wasInInitializer;
       }
-    } else if (_matches(TokenType.LT)) {
+    } else if (_matches(TokenType.LT) || _injectGenericCommentTypeList()) {
       return _parseListOrMapLiteral(null);
+    } else if (_matches(TokenType.OPEN_CURLY_BRACKET)) {
+      return _parseMapLiteral(null, null);
+    } else if (_matches(TokenType.OPEN_SQUARE_BRACKET) ||
+        _matches(TokenType.INDEX)) {
+      return _parseListLiteral(null, null);
     } else if (_matches(TokenType.QUESTION) &&
         _tokenMatches(_peek(), TokenType.IDENTIFIER)) {
       _reportErrorForCurrentToken(
@@ -9381,52 +9378,39 @@ class ParserErrorCode extends ErrorCode {
   /**
    * Some environments, such as Fletch, do not support async.
    */
-  static const CompileTimeErrorCode ASYNC_NOT_SUPPORTED =
-      const CompileTimeErrorCode('ASYNC_NOT_SUPPORTED',
-          "Async and sync are not supported in this environment.");
+  static const ParserErrorCode ASYNC_NOT_SUPPORTED = const ParserErrorCode(
+      'ASYNC_NOT_SUPPORTED',
+      "Async and sync are not supported in this environment.");
 
   static const ParserErrorCode BREAK_OUTSIDE_OF_LOOP = const ParserErrorCode(
       'BREAK_OUTSIDE_OF_LOOP',
       "A break statement cannot be used outside of a loop or switch statement");
 
-  static const ParserErrorCode CLASS_IN_CLASS = const ParserErrorCode(
-      'CLASS_IN_CLASS', "Classes cannot be declared inside other classes");
+  static const ParserErrorCode CLASS_IN_CLASS = shared_messages.CLASS_IN_CLASS;
 
   static const ParserErrorCode COLON_IN_PLACE_OF_IN = const ParserErrorCode(
       'COLON_IN_PLACE_OF_IN', "For-in loops use 'in' rather than a colon");
 
-  static const ParserErrorCode CONST_AND_FINAL = const ParserErrorCode(
-      'CONST_AND_FINAL',
-      "Members cannot be declared to be both 'const' and 'final'");
+  static const ParserErrorCode CONST_AND_FINAL =
+      shared_messages.CONST_AND_FINAL;
 
-  static const ParserErrorCode CONST_AND_VAR = const ParserErrorCode(
-      'CONST_AND_VAR',
-      "Members cannot be declared to be both 'const' and 'var'");
+  static const ParserErrorCode CONST_AND_VAR = shared_messages.CONST_AND_VAR;
 
-  static const ParserErrorCode CONST_CLASS = const ParserErrorCode(
-      'CONST_CLASS', "Classes cannot be declared to be 'const'");
+  static const ParserErrorCode CONST_CLASS = shared_messages.CONST_CLASS;
 
   static const ParserErrorCode CONST_CONSTRUCTOR_WITH_BODY =
-      const ParserErrorCode('CONST_CONSTRUCTOR_WITH_BODY',
-          "'const' constructors cannot have a body");
+      shared_messages.CONST_CONSTRUCTOR_WITH_BODY;
 
-  static const ParserErrorCode CONST_ENUM = const ParserErrorCode(
-      'CONST_ENUM', "Enums cannot be declared to be 'const'");
+  static const ParserErrorCode CONST_ENUM = shared_messages.CONST_ENUM;
 
-  static const ParserErrorCode CONST_FACTORY = const ParserErrorCode(
-      'CONST_FACTORY',
-      "Only redirecting factory constructors can be declared to be 'const'");
+  static const ParserErrorCode CONST_FACTORY = shared_messages.CONST_FACTORY;
 
-  static const ParserErrorCode CONST_METHOD = const ParserErrorCode(
-      'CONST_METHOD',
-      "Getters, setters and methods cannot be declared to be 'const'");
+  static const ParserErrorCode CONST_METHOD = shared_messages.CONST_METHOD;
 
-  static const ParserErrorCode CONST_TYPEDEF = const ParserErrorCode(
-      'CONST_TYPEDEF', "Type aliases cannot be declared to be 'const'");
+  static const ParserErrorCode CONST_TYPEDEF = shared_messages.CONST_TYPEDEF;
 
   static const ParserErrorCode CONSTRUCTOR_WITH_RETURN_TYPE =
-      const ParserErrorCode('CONSTRUCTOR_WITH_RETURN_TYPE',
-          "Constructors cannot have a return type");
+      shared_messages.CONSTRUCTOR_WITH_RETURN_TYPE;
 
   static const ParserErrorCode CONTINUE_OUTSIDE_OF_LOOP = const ParserErrorCode(
       'CONTINUE_OUTSIDE_OF_LOOP',
@@ -9686,8 +9670,7 @@ class ParserErrorCode extends ErrorCode {
           "Expected an expression after the assignment operator");
 
   static const ParserErrorCode MISSING_EXPRESSION_IN_THROW =
-      const ParserErrorCode('MISSING_EXPRESSION_IN_THROW',
-          "Throw expressions must compute the object to be thrown");
+      shared_messages.MISSING_EXPRESSION_IN_THROW;
 
   static const ParserErrorCode MISSING_FUNCTION_BODY = const ParserErrorCode(
       'MISSING_FUNCTION_BODY', "A function body must be provided");
@@ -9832,6 +9815,10 @@ class ParserErrorCode extends ErrorCode {
       const ParserErrorCode('POSITIONAL_PARAMETER_OUTSIDE_GROUP',
           "Positional parameters must be enclosed in square brackets ('[' and ']')");
 
+  static const ParserErrorCode REDIRECTING_CONSTRUCTOR_WITH_BODY =
+      const ParserErrorCode('REDIRECTING_CONSTRUCTOR_WITH_BODY',
+          "Redirecting constructors cannot have a body");
+
   static const ParserErrorCode REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR =
       const ParserErrorCode('REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR',
           "Only factory constructor can specify '=' redirection.");
@@ -9969,7 +9956,12 @@ class ResolutionCopier implements AstVisitor<bool> {
   @override
   bool visitAdjacentStrings(AdjacentStrings node) {
     AdjacentStrings toNode = this._toNode as AdjacentStrings;
-    return _isEqualNodeLists(node.strings, toNode.strings);
+    if (_isEqualNodeLists(node.strings, toNode.strings)) {
+      toNode.staticType = node.staticType;
+      toNode.propagatedType = node.propagatedType;
+      return true;
+    }
+    return false;
   }
 
   @override
@@ -10519,7 +10511,9 @@ class ResolutionCopier implements AstVisitor<bool> {
     if (_and(_isEqualNodes(node.function, toNode.function),
         _isEqualNodes(node.argumentList, toNode.argumentList))) {
       toNode.propagatedElement = node.propagatedElement;
+      toNode.propagatedInvokeType = node.propagatedInvokeType;
       toNode.propagatedType = node.propagatedType;
+      toNode.staticInvokeType = node.staticInvokeType;
       toNode.staticElement = node.staticElement;
       toNode.staticType = node.staticType;
       return true;
@@ -10781,7 +10775,9 @@ class ResolutionCopier implements AstVisitor<bool> {
         _isEqualTokens(node.operator, toNode.operator),
         _isEqualNodes(node.methodName, toNode.methodName),
         _isEqualNodes(node.argumentList, toNode.argumentList))) {
+      toNode.propagatedInvokeType = node.propagatedInvokeType;
       toNode.propagatedType = node.propagatedType;
+      toNode.staticInvokeType = node.staticInvokeType;
       toNode.staticType = node.staticType;
       return true;
     }

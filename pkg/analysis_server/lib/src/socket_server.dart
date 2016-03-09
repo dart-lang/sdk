@@ -4,7 +4,6 @@
 
 library socket.server;
 
-import 'package:analysis_server/plugin/analysis/resolver_provider.dart';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/channel/channel.dart';
@@ -13,7 +12,10 @@ import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/local_file_index.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/plugin/embedded_resolver_provider.dart';
+import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:plugin/plugin.dart';
 
@@ -25,9 +27,16 @@ import 'package:plugin/plugin.dart';
  */
 class SocketServer {
   final AnalysisServerOptions analysisServerOptions;
+
+  /**
+   * The function used to create a new SDK using the default SDK.
+   */
+  final SdkCreator defaultSdkCreator;
+
   final DirectoryBasedDartSdk defaultSdk;
   final InstrumentationService instrumentationService;
   final ServerPlugin serverPlugin;
+  final EmbeddedResolverProvider embeddedResolverProvider;
   final ResolverProvider packageResolverProvider;
 
   /**
@@ -43,10 +52,12 @@ class SocketServer {
 
   SocketServer(
       this.analysisServerOptions,
+      this.defaultSdkCreator,
       this.defaultSdk,
       this.instrumentationService,
       this.serverPlugin,
-      this.packageResolverProvider);
+      this.packageResolverProvider,
+      this.embeddedResolverProvider);
 
   /**
    * Create an analysis server which will communicate with the client using the
@@ -88,9 +99,10 @@ class SocketServer {
         index,
         serverPlugin,
         analysisServerOptions,
-        defaultSdk,
+        defaultSdkCreator,
         instrumentationService,
         packageResolverProvider: packageResolverProvider,
+        embeddedResolverProvider: embeddedResolverProvider,
         rethrowExceptions: false);
     analysisServer.userDefinedPlugins = userDefinedPlugins;
   }

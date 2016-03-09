@@ -173,11 +173,27 @@ class TypeMaskSystem implements AbstractValueDomain {
   }
 
   @override
-  bool methodUsesReceiverArgument(FunctionElement function) {
+  bool methodIgnoresReceiverArgument(FunctionElement function) {
     assert(backend.isInterceptedMethod(function));
     ClassElement clazz = function.enclosingClass.declaration;
-    return clazz.isSubclassOf(helpers.jsInterceptorClass) ||
-           classWorld.isUsedAsMixin(clazz);
+    return !clazz.isSubclassOf(helpers.jsInterceptorClass) &&
+           !classWorld.isUsedAsMixin(clazz);
+  }
+
+  @override
+  bool targetIgnoresReceiverArgument(TypeMask type, Selector selector) {
+    // Check if any of the possible targets depend on the extra receiver
+    // argument. Mixins do this, and tear-offs always needs the extra receiver
+    // argument because BoundClosure uses it for equality and hash code.
+    // TODO(15933): Make automatically generated property extraction
+    // closures work with the dummy receiver optimization.
+    bool needsReceiver(Element target) {
+      if (target is! FunctionElement) return false;
+      FunctionElement function = target;
+      return selector.isGetter && !function.isGetter ||
+             !methodIgnoresReceiverArgument(function);
+    }
+    return !classWorld.allFunctions.filter(selector, type).any(needsReceiver);
   }
 
   @override
@@ -434,6 +450,13 @@ class TypeMaskSystem implements AbstractValueDomain {
     return interceptedTypes.containsMask(t.nonNullable(), classWorld);
   }
 
+  @override
+  bool isDefinitelySelfInterceptor(TypeMask t, {bool allowNull: false}) {
+    assert(allowNull != null);
+    if (!allowNull && t.isNullable) return false;
+    return areDisjoint(t, interceptorType);
+  }
+
   /// Given a class from the interceptor hierarchy, returns a [TypeMask]
   /// matching all values with that interceptor (or a subtype thereof).
   @override
@@ -448,10 +471,8 @@ class TypeMaskSystem implements AbstractValueDomain {
   }
 
   @override
-  bool areDisjoint(TypeMask leftType, TypeMask rightType) {
-    TypeMask intersected = intersection(leftType, rightType);
-    return intersected.isEmpty && !intersected.isNullable;
-  }
+  bool areDisjoint(TypeMask leftType, TypeMask rightType) =>
+      leftType.isDisjoint(rightType, classWorld);
 
   @override
   bool isMorePreciseOrEqual(TypeMask t1, TypeMask t2) {
@@ -468,8 +489,8 @@ class TypeMaskSystem implements AbstractValueDomain {
     }
     if (type is types.InterfaceType) {
       TypeMask typeAsMask = allowNull
-      ? new TypeMask.subtype(type.element, classWorld)
-      : new TypeMask.nonNullSubtype(type.element, classWorld);
+          ? new TypeMask.subtype(type.element, classWorld)
+          : new TypeMask.nonNullSubtype(type.element, classWorld);
       if (areDisjoint(value, typeAsMask)) {
         // Disprove the subtype relation based on the class alone.
         return AbstractBool.False;
@@ -561,11 +582,8 @@ class TypeMaskSystem implements AbstractValueDomain {
     if (isDefinitelyString(type)) {
       return stringType;
     }
-    if (type.satisfies(helpers.typedArrayClass, classWorld)) {
-      if (type.satisfies(helpers.typedArrayOfIntClass, classWorld)) {
-        return intType;
-      }
-      return numType;
+    if (type.satisfies(helpers.jsIndexingBehaviorInterface, classWorld)) {
+      return getInvokeReturnType(new Selector.index(), type);
     }
     return dynamicType;
   }

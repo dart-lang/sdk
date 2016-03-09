@@ -18,7 +18,9 @@ namespace dart {
 DECLARE_FLAG(bool, show_invisible_frames);
 
 
-void DumpFunction(const Library& lib, const char* cname, const char* fname) {
+static void DumpFunction(const Library& lib,
+                         const char* cname,
+                         const char* fname) {
   const String& classname = String::Handle(Symbols::New(cname));
   String& funcname = String::Handle(String::New(fname));
 
@@ -36,7 +38,11 @@ void DumpFunction(const Library& lib, const char* cname, const char* fname) {
     Parser::ParseFunction(parsed_function);
     EXPECT(parsed_function->node_sequence() != NULL);
     printf("Class %s function %s:\n", cname, fname);
-    AstPrinter::PrintFunctionNodes(*parsed_function);
+    if (FLAG_support_ast_printer) {
+      AstPrinter::PrintFunctionNodes(*parsed_function);
+    } else {
+      OS::Print("AST printer not supported.");
+    }
     retval = true;
   } else {
     retval = false;
@@ -168,10 +174,13 @@ TEST_CASE(Parser_TopLevel) {
 }
 
 
-const char* saved_vars = NULL;
+#ifndef PRODUCT
 
 
-char* SkipIndex(const char* input) {
+static const char* saved_vars = NULL;
+
+
+static char* SkipIndex(const char* input) {
   char* output_buffer = new char[strlen(input)];
   char* output = output_buffer;
 
@@ -270,7 +279,7 @@ TEST_CASE(Parser_AllocateVariables_CapturedVar) {
       "   name=:current_context_var\n"
 
       // Closure call saves current context.
-      "_FunctionImpl.call\n"
+      "_Closure.call\n"
       " 0 StackVar      scope=1   begin=0   end=4   name=this\n"
       " 1 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
@@ -309,7 +318,7 @@ TEST_CASE(Parser_AllocateVariables_NestedCapturedVar) {
       "   name=:current_context_var\n"
 
       // Closure call saves current context.
-      "_FunctionImpl.call\n"
+      "_Closure.call\n"
       " 0 StackVar      scope=1   begin=0   end=4   name=this\n"
       " 1 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
@@ -325,7 +334,7 @@ TEST_CASE(Parser_AllocateVariables_NestedCapturedVar) {
       " 3 StackVar      scope=2   begin=18  end=38  name=c\n"
 
       // Closure call saves current context.
-      "_FunctionImpl.call\n"
+      "_Closure.call\n"
       " 0 StackVar      scope=1   begin=0   end=4   name=this\n"
       " 1 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
@@ -368,7 +377,7 @@ TEST_CASE(Parser_AllocateVariables_TwoChains) {
       "   name=:current_context_var\n"
 
       // Closure call saves current context.
-      "_FunctionImpl.call\n"
+      "_Closure.call\n"
       " 0 StackVar      scope=1   begin=0   end=4   name=this\n"
       " 1 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
@@ -384,7 +393,7 @@ TEST_CASE(Parser_AllocateVariables_TwoChains) {
       " 3 StackVar      scope=2   begin=30  end=52  name=bb\n"
 
       // Closure call saves current context.
-      "_FunctionImpl.call\n"
+      "_Closure.call\n"
       " 0 StackVar      scope=1   begin=0   end=4   name=this\n"
       " 1 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
@@ -397,7 +406,7 @@ TEST_CASE(Parser_AllocateVariables_TwoChains) {
       " 2 StackVar      scope=2   begin=18  end=62  name=aa\n"
 
       // Closure call saves current context.
-      "_FunctionImpl.call\n"
+      "_Closure.call\n"
       " 0 StackVar      scope=1   begin=0   end=4   name=this\n"
       " 1 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
@@ -450,7 +459,7 @@ TEST_CASE(Parser_AllocateVariables_Issue7681) {
       "   name=:current_context_var\n"
 
       // Closure call saves current context.
-      "_FunctionImpl.call\n"
+      "_Closure.call\n"
       " 0 StackVar      scope=1   begin=0   end=4   name=this\n"
       " 1 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
@@ -495,7 +504,7 @@ TEST_CASE(Parser_AllocateVariables_CaptureLoopVar) {
       "   name=:current_context_var\n"
 
       // Closure call saves current context.
-      "_FunctionImpl.call\n"
+      "_Closure.call\n"
       " 0 StackVar      scope=1   begin=0   end=4   name=this\n"
       " 1 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
@@ -536,7 +545,7 @@ TEST_CASE(Parser_AllocateVariables_MiddleChain) {
       " 0 ContextVar    level=0   begin=50  end=62  name=x\n"
       " 1 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
-      "_FunctionImpl.call\n"
+      "_Closure.call\n"
       " 0 StackVar      scope=1   begin=0   end=4   name=this\n"
       " 1 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
@@ -551,7 +560,7 @@ TEST_CASE(Parser_AllocateVariables_MiddleChain) {
       " 4 ContextVar    level=1   begin=22  end=47  name=i\n"
       " 5 StackVar      scope=4   begin=32  end=47  name=d\n"
 
-      "_FunctionImpl.call\n"
+      "_Closure.call\n"
       " 0 StackVar      scope=1   begin=0   end=4   name=this\n"
       " 1 CurrentCtx    scope=0   begin=0   end=0"
       "   name=:current_context_var\n"
@@ -564,5 +573,7 @@ TEST_CASE(Parser_AllocateVariables_MiddleChain) {
       " 3 StackVar      scope=2   begin=11  end=79  name=b\n",
       CaptureVarsAtLine(lib, "a", 10));
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

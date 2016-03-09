@@ -31,22 +31,6 @@
         },
       },
 
-      'Dart_Debug': {
-        'abstract': 1,
-        'defines': [
-          'DEBUG',
-        ],
-        'xcode_settings': {
-          'GCC_OPTIMIZATION_LEVEL': '<(dart_debug_optimization_level)',
-        },
-      },
-
-      'Debug': {
-        'defines': [
-          'DEBUG',
-        ],
-      },
-
       'Dart_ia32_Base': {
         'abstract': 1,
         'xcode_settings': {
@@ -92,6 +76,20 @@
         },
       },
 
+      'Dart_simarmv6_Base': {
+        'abstract': 1,
+        'xcode_settings': {
+          'ARCHS': [ 'i386' ],
+        },
+      },
+
+      'Dart_simarmv5te_Base': {
+        'abstract': 1,
+        'xcode_settings': {
+          'ARCHS': [ 'i386' ],
+        },
+      },
+
       'Dart_simmips_Base': {
         'abstract': 1,
         'xcode_settings': {
@@ -99,11 +97,34 @@
         },
       },
 
+      'Dart_Debug': {
+        'abstract': 1,
+        'defines': [
+          'DEBUG',
+        ],
+        'xcode_settings': {
+          'GCC_OPTIMIZATION_LEVEL': '<(dart_debug_optimization_level)',
+        },
+      },
+
+      'Debug': {
+        'defines': [
+          'DEBUG',
+        ],
+      },
+
       'Dart_Release': {
         'abstract': 1,
         'xcode_settings': {
           'GCC_OPTIMIZATION_LEVEL': '3',
         },
+      },
+
+      'Dart_Product' : {
+        'abstract': 1,
+        'xcode_settings': {
+          'GCC_OPTIMIZATION_LEVEL': '3',
+        }
       },
     },
   },

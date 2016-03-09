@@ -44,7 +44,7 @@ abstract class DartFixContributor implements FixContributor {
       return Fix.EMPTY_LIST;
     }
     CompilationUnit unit =
-        analysisContext.resolveCompilationUnit2(source, libraries[0]);
+        analysisContext.getResolvedCompilationUnit2(source, libraries[0]);
     if (unit == null) {
       return Fix.EMPTY_LIST;
     }

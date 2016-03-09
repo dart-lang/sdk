@@ -44,6 +44,7 @@ class PathFilter {
     }
   }
 
+  @override
   String toString() {
     StringBuffer sb = new StringBuffer();
     for (Glob pattern in _ignorePatterns) {

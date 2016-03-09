@@ -6,14 +6,16 @@ library analyzer.src.generated.error;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/ast/ast.dart' show AstNode;
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/error_processor.dart';
-import 'package:analyzer/src/generated/ast.dart' show AstNode;
+import 'package:analyzer/src/dart/scanner/scanner.dart' show ScannerErrorCode;
+import 'package:analyzer/src/generated/generated/shared_messages.dart'
+    as shared_messages;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
-import 'package:analyzer/src/generated/scanner.dart'
-    show ScannerErrorCode, Token;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/task/model.dart';
 import 'package:analyzer/task/model.dart';
@@ -83,7 +85,7 @@ class AnalysisError {
   /**
    * The source in which the error occurred, or `null` if unknown.
    */
-  Source source;
+  final Source source;
 
   /**
    * The character offset from the beginning of the source (zero based) where
@@ -1658,25 +1660,6 @@ class CompileTimeErrorCode extends ErrorCode {
           "Map literals must be prefixed with 'const' when used as a constant expression");
 
   /**
-   * Enum proposal: It is a static warning if all of the following conditions
-   * hold:
-   * * The switch statement does not have a 'default' clause.
-   * * The static type of <i>e</i> is an enumerated typed with elements
-   *   <i>id<sub>1</sub></i>, &hellip;, <i>id<sub>n</sub></i>.
-   * * The sets {<i>e<sub>1</sub></i>, &hellip;, <i>e<sub>k</sub></i>} and
-   *   {<i>id<sub>1</sub></i>, &hellip;, <i>id<sub>n</sub></i>} are not the
-   *   same.
-   *
-   * Parameters:
-   * 0: the name of the constant that is missing
-   */
-  static const CompileTimeErrorCode MISSING_ENUM_CONSTANT_IN_SWITCH =
-      const CompileTimeErrorCode(
-          'MISSING_ENUM_CONSTANT_IN_SWITCH',
-          "Missing case clause for '{0}'",
-          "Add a case clause for the missing constant or add a default clause.");
-
-  /**
    * 9 Mixins: It is a compile-time error if a declared or derived mixin
    * explicitly declares a constructor.
    *
@@ -2239,24 +2222,21 @@ class CompileTimeErrorCode extends ErrorCode {
    * <i>rethrow;</i> is not enclosed within a on-catch clause.
    */
   static const CompileTimeErrorCode RETHROW_OUTSIDE_CATCH =
-      const CompileTimeErrorCode(
-          'RETHROW_OUTSIDE_CATCH', "rethrow must be inside of a catch clause");
+      shared_messages.RETHROW_OUTSIDE_CATCH;
 
   /**
    * 13.12 Return: It is a compile-time error if a return statement of the form
    * <i>return e;</i> appears in a generative constructor.
    */
   static const CompileTimeErrorCode RETURN_IN_GENERATIVE_CONSTRUCTOR =
-      const CompileTimeErrorCode('RETURN_IN_GENERATIVE_CONSTRUCTOR',
-          "Constructors cannot return a value");
+      shared_messages.RETURN_IN_GENERATIVE_CONSTRUCTOR;
 
   /**
    * 13.12 Return: It is a compile-time error if a return statement of the form
    * <i>return e;</i> appears in a generator function.
    */
   static const CompileTimeErrorCode RETURN_IN_GENERATOR =
-      const CompileTimeErrorCode('RETURN_IN_GENERATOR',
-          "Cannot return a value from a generator function (one marked with either 'async*' or 'sync*')");
+      shared_messages.RETURN_IN_GENERATOR;
 
   /**
    * 14.1 Imports: It is a compile-time error if a prefix used in a deferred
@@ -2502,8 +2482,10 @@ abstract class ErrorCode {
     // error.dart:
     //
     AnalysisOptionsErrorCode.PARSE_ERROR,
-    AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE,
     AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES,
+    AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE,
+    AnalysisOptionsWarningCode.UNSUPPORTED_VALUE,
+    AnalysisOptionsWarningCode.UNRECOGNIZED_ERROR_CODE,
     CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
     CheckedModeCompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH,
     CheckedModeCompileTimeErrorCode.CONST_FIELD_INITIALIZER_NOT_ASSIGNABLE,
@@ -2569,6 +2551,7 @@ abstract class ErrorCode {
     CompileTimeErrorCode.EXTENDS_NON_CLASS,
     CompileTimeErrorCode.EXTENDS_DISALLOWED_CLASS,
     CompileTimeErrorCode.EXTENDS_DEFERRED_CLASS,
+    CompileTimeErrorCode.EXTRA_ARGUMENT_TO_ASSERT,
     CompileTimeErrorCode.EXTRA_POSITIONAL_ARGUMENTS,
     CompileTimeErrorCode.FIELD_INITIALIZED_BY_MULTIPLE_INITIALIZERS,
     CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
@@ -2613,7 +2596,6 @@ abstract class ErrorCode {
     CompileTimeErrorCode.METHOD_AND_GETTER_WITH_SAME_NAME,
     CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL,
     CompileTimeErrorCode.MISSING_CONST_IN_MAP_LITERAL,
-    CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
     CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR,
     CompileTimeErrorCode.MIXIN_DEFERRED_CLASS,
     CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS,
@@ -2685,6 +2667,7 @@ abstract class ErrorCode {
     CompileTimeErrorCode.YIELD_EACH_IN_NON_GENERATOR,
     CompileTimeErrorCode.YIELD_IN_NON_GENERATOR,
     HintCode.ARGUMENT_TYPE_NOT_ASSIGNABLE,
+    HintCode.CAN_BE_NULL_AFTER_NULL_AWARE,
     HintCode.DEAD_CODE,
     HintCode.DEAD_CODE_CATCH_FOLLOWING_CATCH,
     HintCode.DEAD_CODE_ON_CATCH_SUBTYPE,
@@ -2697,7 +2680,9 @@ abstract class ErrorCode {
     HintCode.IS_NOT_INT,
     HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION,
     HintCode.INVALID_ASSIGNMENT,
+    HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
     HintCode.MISSING_RETURN,
+    HintCode.NULL_AWARE_IN_CONDITION,
     HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER,
     HintCode.OVERRIDE_ON_NON_OVERRIDING_METHOD,
     HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER,
@@ -2709,6 +2694,7 @@ abstract class ErrorCode {
     HintCode.UNDEFINED_OPERATOR,
     HintCode.UNDEFINED_SETTER,
     HintCode.UNNECESSARY_CAST,
+    HintCode.UNNECESSARY_NO_SUCH_METHOD,
     HintCode.UNNECESSARY_TYPE_CHECK_FALSE,
     HintCode.UNNECESSARY_TYPE_CHECK_TRUE,
     HintCode.UNUSED_ELEMENT,
@@ -2720,7 +2706,6 @@ abstract class ErrorCode {
     HintCode.USE_OF_VOID_RESULT,
     HintCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE,
     HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE,
-    HintCode.NULL_AWARE_IN_CONDITION,
     HintCode.PACKAGE_IMPORT_CONTAINS_DOT_DOT,
     HtmlErrorCode.PARSE_ERROR,
     HtmlWarningCode.INVALID_URI,
@@ -2748,6 +2733,7 @@ abstract class ErrorCode {
     StaticTypeWarningCode.UNDEFINED_FUNCTION,
     StaticTypeWarningCode.UNDEFINED_GETTER,
     StaticTypeWarningCode.UNDEFINED_METHOD,
+    StaticTypeWarningCode.UNDEFINED_METHOD_WITH_CONSTRUCTOR,
     StaticTypeWarningCode.UNDEFINED_OPERATOR,
     StaticTypeWarningCode.UNDEFINED_SETTER,
     StaticTypeWarningCode.UNDEFINED_SUPER_GETTER,
@@ -2794,11 +2780,11 @@ abstract class ErrorCode {
     StaticWarningCode.INSTANCE_METHOD_NAME_COLLIDES_WITH_SUPERCLASS_STATIC,
     StaticWarningCode.INVALID_GETTER_OVERRIDE_RETURN_TYPE,
     StaticWarningCode.INVALID_METHOD_OVERRIDE_NAMED_PARAM_TYPE,
+    StaticWarningCode.INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS,
+    StaticWarningCode.INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND,
     StaticWarningCode.INVALID_METHOD_OVERRIDE_NORMAL_PARAM_TYPE,
     StaticWarningCode.INVALID_METHOD_OVERRIDE_OPTIONAL_PARAM_TYPE,
     StaticWarningCode.INVALID_METHOD_OVERRIDE_RETURN_TYPE,
-    StaticWarningCode.INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND,
-    StaticWarningCode.INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS,
     StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_NAMED,
     StaticWarningCode.INVALID_OVERRIDE_DIFFERENT_DEFAULT_VALUES_POSITIONAL,
     StaticWarningCode.INVALID_OVERRIDE_NAMED,
@@ -2848,6 +2834,7 @@ abstract class ErrorCode {
     StaticWarningCode.UNDEFINED_SUPER_GETTER,
     StaticWarningCode.UNDEFINED_SUPER_SETTER,
     StaticWarningCode.VOID_RETURN_FOR_GETTER,
+    StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
     TodoCode.TODO,
 
     //
@@ -2865,6 +2852,7 @@ abstract class ErrorCode {
     ParserErrorCode.ASSERT_DOES_NOT_TAKE_THROW,
     ParserErrorCode.ASSERT_DOES_NOT_TAKE_RETHROW,
     ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER,
+    ParserErrorCode.ASYNC_NOT_SUPPORTED,
     ParserErrorCode.BREAK_OUTSIDE_OF_LOOP,
     ParserErrorCode.CLASS_IN_CLASS,
     ParserErrorCode.COLON_IN_PLACE_OF_IN,
@@ -2928,6 +2916,7 @@ abstract class ErrorCode {
     ParserErrorCode.INVALID_CODE_POINT,
     ParserErrorCode.INVALID_COMMENT_REFERENCE,
     ParserErrorCode.INVALID_HEX_ESCAPE,
+    ParserErrorCode.INVALID_LITERAL_IN_CONFIGURATION,
     ParserErrorCode.INVALID_OPERATOR,
     ParserErrorCode.INVALID_OPERATOR_FOR_SUPER,
     ParserErrorCode.INVALID_STAR_AFTER_ASYNC,
@@ -2980,6 +2969,7 @@ abstract class ErrorCode {
     ParserErrorCode.NORMAL_BEFORE_OPTIONAL_PARAMETERS,
     ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT,
     ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP,
+    ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY,
     ParserErrorCode.REDIRECTION_IN_NON_FACTORY_CONSTRUCTOR,
     ParserErrorCode.SETTER_IN_FUNCTION,
     ParserErrorCode.STATIC_AFTER_CONST,
@@ -3550,6 +3540,18 @@ class HintCode extends ErrorCode {
   static const HintCode INVALID_ASSIGNMENT = const HintCode(
       'INVALID_ASSIGNMENT',
       "A value of type '{0}' cannot be assigned to a variable of type '{1}'");
+
+  /**
+   * This hint is generated anywhere where a member annotated with `@protected`
+   * is used outside an instance member of a subclass.
+   *
+   * Parameters:
+   * 0: the name of the member
+   * 1: the name of the defining class
+   */
+  static const HintCode INVALID_USE_OF_PROTECTED_MEMBER = const HintCode(
+      'INVALID_USE_OF_PROTECTED_MEMBER',
+      "The member '{0}' can only be used within instance members of subclasses of '{1}'");
 
   /**
    * Generate a hint for methods or functions that have a return type, but do
@@ -5644,6 +5646,25 @@ class StaticWarningCode extends ErrorCode {
   static const StaticWarningCode VOID_RETURN_FOR_GETTER =
       const StaticWarningCode('VOID_RETURN_FOR_GETTER',
           "The return type of the getter must not be 'void'");
+
+  /**
+   * 17.9 Switch: It is a static warning if all of the following conditions
+   * hold:
+   * * The switch statement does not have a 'default' clause.
+   * * The static type of <i>e</i> is an enumerated typed with elements
+   *   <i>id<sub>1</sub></i>, &hellip;, <i>id<sub>n</sub></i>.
+   * * The sets {<i>e<sub>1</sub></i>, &hellip;, <i>e<sub>k</sub></i>} and
+   *   {<i>id<sub>1</sub></i>, &hellip;, <i>id<sub>n</sub></i>} are not the
+   *   same.
+   *
+   * Parameters:
+   * 0: the name of the constant that is missing
+   */
+  static const StaticWarningCode MISSING_ENUM_CONSTANT_IN_SWITCH =
+      const StaticWarningCode(
+          'MISSING_ENUM_CONSTANT_IN_SWITCH',
+          "Missing case clause for '{0}'",
+          "Add a case clause for the missing constant or add a default clause.");
 
   /**
    * Initialize a newly created error code to have the given [name]. The message

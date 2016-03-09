@@ -16,6 +16,7 @@ library test_suite;
 
 import "dart:async";
 import "dart:io";
+import "dart:math";
 import "drt_updater.dart";
 import "html_test.dart" as htmlTest;
 import "path.dart";
@@ -212,13 +213,43 @@ abstract class TestSuite {
     return dartExecutable;
   }
 
+  String get dartVmNooptBinaryFileName {
+    // Controlled by user with the option "--dart".
+    String dartExecutable = configuration['dart'];
+
+    if (dartExecutable == '') {
+      String suffix = executableBinarySuffix;
+      dartExecutable = useSdk
+          ? '$buildDir/dart-sdk/bin/dart_noopt$suffix'
+          : '$buildDir/dart_noopt$suffix';
+    }
+
+    TestUtils.ensureExists(dartExecutable, configuration);
+    return dartExecutable;
+  }
+
   String get dartPrecompiledBinaryFileName {
     // Controlled by user with the option "--dart_precompiled".
     String dartExecutable = configuration['dart_precompiled'];
 
     if (dartExecutable == null || dartExecutable == '') {
       String suffix = executableBinarySuffix;
-      dartExecutable = '$buildDir/dart_precompiled$suffix';
+      dartExecutable = '$buildDir/dart_precompiled_runtime$suffix';
+    }
+
+    TestUtils.ensureExists(dartExecutable, configuration);
+    return dartExecutable;
+  }
+
+  String get dartVmProductBinaryFileName {
+    // Controlled by user with the option "--dart".
+    String dartExecutable = configuration['dart'];
+
+    if (dartExecutable == '') {
+      String suffix = executableBinarySuffix;
+      dartExecutable = useSdk
+          ? '$buildDir/dart-sdk/bin/dart_product$suffix'
+          : '$buildDir/dart_product$suffix';
     }
 
     TestUtils.ensureExists(dartExecutable, configuration);
@@ -987,14 +1018,18 @@ class StandardTestSuite extends TestSuite {
     List<List<String>> vmOptionsList = getVmOptions(info.optionsFromFile);
     assert(!vmOptionsList.isEmpty);
 
-    for (var vmOptions in vmOptionsList) {
+    for (var vmOptionsVarient = 0;
+         vmOptionsVarient < vmOptionsList.length;
+         vmOptionsVarient++) {
+      var vmOptions = vmOptionsList[vmOptionsVarient];
       var allVmOptions = vmOptions;
       if (!extraVmOptions.isEmpty) {
         allVmOptions = new List.from(vmOptions)..addAll(extraVmOptions);
       }
 
       var commands = []..addAll(baseCommands);
-      commands.addAll(makeCommands(info, allVmOptions, commonArguments));
+      commands.addAll(makeCommands(info, vmOptionsVarient,
+                                   allVmOptions, commonArguments));
       enqueueNewTestCase(
           new TestCase('$suiteName/$testName',
                        commands,
@@ -1019,7 +1054,10 @@ class StandardTestSuite extends TestSuite {
     return negative;
   }
 
-  List<Command> makeCommands(TestInformation info, var vmOptions, var args) {
+  List<Command> makeCommands(TestInformation info,
+                             int vmOptionsVarient,
+                             var vmOptions,
+                             var args) {
     List<Command> commands = <Command>[];
     CompilerConfiguration compilerConfiguration =
         new CompilerConfiguration(configuration);
@@ -1033,7 +1071,12 @@ class StandardTestSuite extends TestSuite {
                                                          sharedOptions,
                                                          args);
       // Avoid doing this for analyzer.
-      tempDir = createCompilationOutputDirectory(info.filePath);
+      var path = info.filePath;
+      if (vmOptionsVarient != 0) {
+        // Ensure a unique directory for each test case.
+        path = path.join(new Path(vmOptionsVarient.toString()));
+      }
+      tempDir = createCompilationOutputDirectory(path);
     }
 
     CommandArtifact compilationArtifact =
@@ -1792,8 +1835,9 @@ class StandardTestSuite extends TestSuite {
   }
 
   List<List<String>> getVmOptions(Map optionsFromFile) {
-    var COMPILERS = const ['none', 'precompiler'];
-    var RUNTIMES = const ['none', 'dart_precompiled', 'vm', 'drt', 'dartium',
+    var COMPILERS = const ['none', 'precompiler', 'dart2app'];
+    var RUNTIMES = const ['none', 'dart_precompiled', 'dart_product', 'vm',
+                          'drt', 'dartium',
                           'ContentShellOnAndroid', 'DartiumOnAndroid'];
     var needsVmOptions = COMPILERS.contains(configuration['compiler']) &&
                          RUNTIMES.contains(configuration['runtime']);
@@ -2118,12 +2162,20 @@ class TestUtils {
     dartDirUri = uri;
     dartDir = new Path(uri.toFilePath());
   }
+  static Random rand = new Random.secure();
   static Uri dartDirUri;
   static Path dartDir;
   static LastModifiedCache lastModifiedCache = new LastModifiedCache();
   static ExistsCache existsCache = new ExistsCache();
   static Path currentWorkingDirectory =
       new Path(Directory.current.path);
+
+  /**
+   * Generates a random number.
+   */
+  static int getRandomNumber() {
+    return rand.nextInt(0xffffffff);
+  }
 
   /**
    * Creates a directory using a [relativePath] to an existing
@@ -2198,6 +2250,22 @@ class TestUtils {
     } else {
       var dir = new Directory(path);
       return dir.delete(recursive: true);
+    }
+  }
+
+  static deleteTempSnapshotDirectory(Map configuration) {
+    if (configuration['compiler'] == 'dart2app') {
+      var checked = configuration['checked'] ? '-checked' : '';
+      var minified = configuration['minified'] ? '-minified' : '';
+      var csp = configuration['csp'] ? '-csp' : '';
+      var sdk = configuration['use_sdk'] ? '-sdk' : '';
+      var packages = configuration['use_public_packages']
+          ? '-public_packages' : '';
+      var dirName = "${configuration['compiler']}"
+          "$checked$minified$csp$packages$sdk";
+      String generatedPath = "${TestUtils.buildDir(configuration)}"
+          "/generated_compilations/$dirName";
+      TestUtils.deleteDirectory(generatedPath);
     }
   }
 
@@ -2325,7 +2393,20 @@ class TestUtils {
     // is an X in front of the arch. We don't allow both a cross compiled
     // and a normal version to be present (except if you specifically pass
     // in the build_directory).
-    var mode = (configuration['mode'] == 'debug') ? 'Debug' : 'Release';
+    var mode;
+    switch (configuration['mode']) {
+      case 'debug':
+        mode = 'Debug';
+        break;
+      case 'release':
+        mode = 'Release';
+        break;
+      case 'product':
+        mode = 'Product';
+        break;
+      default:
+        throw 'Unrecognized mode configuration: ${configuration['mode']}';
+    }
     var arch = configuration['arch'].toUpperCase();
     var normal = '$mode$arch';
     var cross = '${mode}X$arch';
@@ -2340,19 +2421,6 @@ class TestUtils {
       return cross;
     }
     return normal;
-  }
-
-  /**
-   * Returns the path to the dart binary checked into the repo, used for
-   * bootstrapping test.dart.
-   */
-  static Path get dartTestExecutable {
-    var path = '$dartDir/tools/testing/bin/'
-        '${Platform.operatingSystem}/dart';
-    if (Platform.operatingSystem == 'windows') {
-      path = '$path.exe';
-    }
-    return new Path(path);
   }
 
   /**

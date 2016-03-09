@@ -13,7 +13,8 @@ DEFINE_FLAG(bool, force_log_flush, false, "Always flush log messages.");
 
 DEFINE_FLAG(charp, isolate_log_filter, NULL,
             "Log isolates whose name include the filter. "
-            "Default: service isolate log messages are suppressed.");
+            "Default: service isolate log messages are suppressed "
+            "(specify 'vm-service' to log them).");
 
 Log::Log(LogPrinter printer)
     : printer_(printer),
@@ -140,16 +141,26 @@ Log* Log::NoOpLog() {
 
 
 void Log::TerminateString() {
+  if (this == NoOpLog()) {
+    return;
+  }
   buffer_.Add('\0');
 }
 
 
 void Log::EnableManualFlush() {
+  if (this == NoOpLog()) {
+    return;
+  }
   manual_flush_++;
 }
 
 
 void Log::DisableManualFlush() {
+  if (this == NoOpLog()) {
+    return;
+  }
+
   manual_flush_--;
   ASSERT(manual_flush_ >= 0);
   if (manual_flush_ == 0) {

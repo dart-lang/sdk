@@ -24,7 +24,7 @@ SecurityContext serverContext = new SecurityContext()
                   password: 'dartdart');
 
 SecurityContext clientContext = new SecurityContext()
-  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
+  ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
 
 Future startServer() {
   return SecureServerSocket.bind(HOST, 0, serverContext).then((server) {

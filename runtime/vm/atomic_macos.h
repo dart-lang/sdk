@@ -21,8 +21,18 @@ inline uintptr_t AtomicOperations::FetchAndIncrement(uintptr_t* p) {
 }
 
 
+inline void AtomicOperations::IncrementBy(intptr_t* p, intptr_t value) {
+  __sync_fetch_and_add(p, value);
+}
+
+
 inline uintptr_t AtomicOperations::FetchAndDecrement(uintptr_t* p) {
   return __sync_fetch_and_sub(p, 1);
+}
+
+
+inline void AtomicOperations::DecrementBy(intptr_t* p, intptr_t value) {
+  __sync_fetch_and_sub(p, value);
 }
 
 

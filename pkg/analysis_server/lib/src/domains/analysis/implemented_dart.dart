@@ -57,21 +57,23 @@ class ImplementedComputer {
     if (element.isSynthetic || _isStatic(element)) {
       return;
     }
-    String name = element.displayName;
-    if (name != null && _hasOverride(name)) {
+    if (_hasOverride(element)) {
       _addImplementedMember(element);
     }
   }
 
-  bool _hasOverride(String name) {
+  bool _hasOverride(Element element) {
+    String name = element.displayName;
+    LibraryElement library = element.library;
     for (ClassElement subtype in subtypes) {
-      MethodElement method = subtype.getMethod(name);
-      if (method != null) {
-        return !method.isStatic;
+      ClassMemberElement subElement = subtype.getMethod(name);
+      if (subElement == null) {
+        subElement = subtype.getField(name);
       }
-      FieldElement field = subtype.getField(name);
-      if (field != null) {
-        return !field.isStatic;
+      if (subElement != null &&
+          !subElement.isStatic &&
+          subElement.isAccessibleIn(library)) {
+        return true;
       }
     }
     return false;

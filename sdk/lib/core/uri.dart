@@ -76,6 +76,7 @@ class Uri {
    * Cache the computed return value of [queryParameters].
    */
   Map<String, String> _queryParameters;
+  Map<String, List<String>> _queryParameterLists;
 
   /// Internal non-verifying constructor. Only call with validated arguments.
   Uri._internal(this.scheme,
@@ -116,39 +117,46 @@ class Uri {
    * default port.
    *
    * If any of `userInfo`, `host` or `port` are provided,
-   * the URI will have an autority according to [hasAuthority].
+   * the URI has an autority according to [hasAuthority].
    *
    * The path component is set through either [path] or
-   * [pathSegments]. When [path] is used, it should be a valid URI path,
+   * [pathSegments].
+   * When [path] is used, it should be a valid URI path,
    * but invalid characters, except the general delimiters ':/@[]?#',
    * will be escaped if necessary.
    * When [pathSegments] is used, each of the provided segments
    * is first percent-encoded and then joined using the forward slash
-   * separator. The percent-encoding of the path segments encodes all
+   * separator.
+   *
+   * The percent-encoding of the path segments encodes all
    * characters except for the unreserved characters and the following
    * list of characters: `!$&'()*+,;=:@`. If the other components
-   * calls for an absolute path a leading slash `/` is prepended if
+   * necessitate an absolute path, a leading slash `/` is prepended if
    * not already there.
    *
-   * The query component is set through either [query] or
-   * [queryParameters]. When [query] is used the provided string should
-   * be a valid URI query, but invalid characters other than general delimiters,
+   * The query component is set through either [query] or [queryParameters].
+   * When [query] is used, the provided string should be a valid URI query,
+   * but invalid characters, other than general delimiters,
    * will be escaped if necessary.
    * When [queryParameters] is used the query is built from the
    * provided map. Each key and value in the map is percent-encoded
-   * and joined using equal and ampersand characters. The
-   * percent-encoding of the keys and values encodes all characters
-   * except for the unreserved characters.
+   * and joined using equal and ampersand characters.
+   * A value in the map must be either a string, or an [Iterable] of strings,
+   * where the latter corresponds to multiple values for the same key.
+   *
+   * The percent-encoding of the keys and values encodes all characters
+   * except for the unreserved characters, and replaces spaces with `+`.
    * If `query` is the empty string, it is equivalent to omitting it.
    * To have an actual empty query part,
    * use an empty list for `queryParameters`.
-   * If both `query` and `queryParameters` are omitted or `null`, the
-   * URI will have no query part.
+   *
+   * If both `query` and `queryParameters` are omitted or `null`,
+   * the URI has no query part.
    *
    * The fragment component is set through [fragment].
    * It should be a valid URI fragment, but invalid characters other than
-   * general delimiters, will be escaped if necessary.
-   * If `fragment` is omitted or `null`, the URI will have no fragment part.
+   * general delimiters, are escaped if necessary.
+   * If `fragment` is omitted or `null`, the URI has no fragment part.
    */
   factory Uri({String scheme : "",
                String userInfo : "",
@@ -157,7 +165,7 @@ class Uri {
                String path,
                Iterable<String> pathSegments,
                String query,
-               Map<String, String> queryParameters,
+               Map<String, dynamic> queryParameters,
                String fragment}) {
     scheme = _makeScheme(scheme, 0, _stringOrNullLength(scheme));
     userInfo = _makeUserInfo(userInfo, 0, _stringOrNullLength(userInfo));
@@ -207,7 +215,7 @@ class Uri {
    *
    * The `userInfo`, `host` and `port` components are set from the
    * [authority] argument. If `authority` is `null` or empty,
-   * the created `Uri` will have no authority, and will not be directly usable
+   * the created `Uri` has no authority, and isn't directly usable
    * as an HTTP URL, which must have a non-empty host.
    *
    * The `path` component is set from the [unencodedPath]
@@ -1104,20 +1112,50 @@ class Uri {
    * Returns the URI query split into a map according to the rules
    * specified for FORM post in the [HTML 4.01 specification section
    * 17.13.4](http://www.w3.org/TR/REC-html40/interact/forms.html#h-17.13.4 "HTML 4.01 section 17.13.4").
-   * Each key and value in the returned map has been decoded. If there is no
-   * query the empty map is returned.
+   * Each key and value in the returned map has been decoded.
+   * If there is no query the empty map is returned.
    *
    * Keys in the query string that have no value are mapped to the
    * empty string.
+   * If a key occurs more than once in the query string, it is mapped to
+   * an arbitrary choice of possible value.
+   * The [queryParametersAll] getter can provide a map
+   * that maps keys to all of their values.
    *
-   * The returned map is unmodifiable and will throw [UnsupportedError] on any
-   * calls that would mutate it.
+   * The returned map is unmodifiable.
    */
   Map<String, String> get queryParameters {
     if (_queryParameters == null) {
-      _queryParameters = new UnmodifiableMapView(splitQueryString(query));
+      _queryParameters =
+          new UnmodifiableMapView<String, String>(splitQueryString(query));
     }
     return _queryParameters;
+  }
+
+  /**
+   * Returns the URI query split into a map according to the rules
+   * specified for FORM post in the [HTML 4.01 specification section
+   * 17.13.4](http://www.w3.org/TR/REC-html40/interact/forms.html#h-17.13.4 "HTML 4.01 section 17.13.4").
+   * Each key and value in the returned map has been decoded. If there is no
+   * query the empty map is returned.
+   *
+   * Keys are mapped to lists of their values. If a key occurs only once,
+   * its value is a singleton list. If a key occurs with no value, the
+   * empty string is used as the value for that occurrence.
+   *
+   * The returned map and the lists it contains are unmodifiable.
+   */
+  Map<String, List<String>> get queryParametersAll {
+    if (_queryParameterLists == null) {
+      Map queryParameterLists = _splitQueryStringAll(query);
+      for (var key in queryParameterLists.keys) {
+        queryParameterLists[key] =
+            new List<String>.unmodifiable(queryParameterLists[key]);
+      }
+      _queryParameterLists =
+          new Map<String, List<String>>.unmodifiable(queryParameterLists);
+    }
+    return _queryParameterLists;
   }
 
   /**
@@ -1344,16 +1382,26 @@ class Uri {
     if (query != null) return _normalize(query, start, end, _queryCharTable);
 
     var result = new StringBuffer();
-    var first = true;
-    queryParameters.forEach((key, value) {
-      if (!first) {
-        result.write("&");
-      }
-      first = false;
+    var separator = "";
+
+    void writeParameter(String key, String value) {
+      result.write(separator);
+      separator = "&";
       result.write(Uri.encodeQueryComponent(key));
-      if (value != null && !value.isEmpty) {
+      if (value != null && value.isNotEmpty) {
         result.write("=");
         result.write(Uri.encodeQueryComponent(value));
+      }
+    }
+
+    queryParameters.forEach((key, value) {
+      if (value == null || value is String) {
+        writeParameter(key, value);
+      } else {
+        Iterable values = value;
+        for (String value in values) {
+          writeParameter(key, value);
+        }
       }
     });
     return result.toString();
@@ -2154,6 +2202,46 @@ class Uri {
       }
       return map;
     });
+  }
+
+  static List _createList() => [];
+
+  static Map _splitQueryStringAll(
+      String query, {Encoding encoding: UTF8}) {
+    Map result = {};
+    int i = 0;
+    int start = 0;
+    int equalsIndex = -1;
+
+    void parsePair(int start, int equalsIndex, int end) {
+      String key;
+      String value;
+      if (start == end) return;
+      if (equalsIndex < 0) {
+        key =  _uriDecode(query, start, end, encoding, true);
+        value = "";
+      } else {
+        key = _uriDecode(query, start, equalsIndex, encoding, true);
+        value = _uriDecode(query, equalsIndex + 1, end, encoding, true);
+      }
+      result.putIfAbsent(key, _createList).add(value);
+    }
+
+    const int _equals = 0x3d;
+    const int _ampersand = 0x26;
+    while (i < query.length) {
+      int char = query.codeUnitAt(i);
+      if (char == _equals) {
+        if (equalsIndex < 0) equalsIndex = i;
+      } else if (char == _ampersand) {
+        parsePair(start, equalsIndex, i);
+        start = i + 1;
+        equalsIndex = -1;
+      }
+      i++;
+    }
+    parsePair(start, equalsIndex, i);
+    return result;
   }
 
   /**

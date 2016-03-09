@@ -79,6 +79,7 @@ main(args) {
   runTest('closures_13.dart', update: true);
   runTest('closures_14.dart', update: true);
   runTest('closures_15.dart', update: true);
+  runTest('closures_16.dart', update: true);
   runTest('closures_2.dart', update: true);
   runTest('closures_3.dart', update: true);
   runTest('closures_4.dart', update: true);
@@ -95,6 +96,7 @@ main(args) {
   runTest('constructor_12.dart', update: true);
   runTest('constructor_13.dart', update: true);
   runTest('constructor_14.dart', update: true);
+  runTest('constructor_15.dart', update: true);
   runTest('constructor_2.dart', update: true);
   runTest('constructor_3.dart', update: true);
   runTest('constructor_4.dart', update: true);
@@ -132,6 +134,8 @@ main(args) {
   runTest('operators_6.dart', update: true);
   runTest('operators_7.dart', update: true);
   runTest('operators_8.dart', update: true);
+  runTest('optimize_indexers.dart', update: true);
+  runTest('redundant_condition.dart', update: true);
   runTest('runtime_types_1.dart', update: true);
   runTest('runtime_types_2.dart', update: true);
   runTest('runtime_types_3.dart', update: true);

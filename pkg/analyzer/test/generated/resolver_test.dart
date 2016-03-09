@@ -6,13 +6,17 @@ library analyzer.test.generated.resolver_test;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/ast/ast.dart'
+    show SimpleIdentifierImpl, PrefixedIdentifierImpl;
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -22,7 +26,6 @@ import 'package:analyzer/src/generated/java_engine_io.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
 import 'package:analyzer/src/generated/source_io.dart';
@@ -32,7 +35,7 @@ import 'package:analyzer/src/generated/testing/element_factory.dart';
 import 'package:analyzer/src/generated/testing/test_type_provider.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/task/dart.dart';
+import 'package:analyzer/src/string_source.dart';
 import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
@@ -43,29 +46,30 @@ main() {
   initializeTestEnvironment();
   runReflectiveTests(AnalysisDeltaTest);
   runReflectiveTests(ChangeSetTest);
-  runReflectiveTests(EnclosedScopeTest);
-  runReflectiveTests(LibraryImportScopeTest);
-  runReflectiveTests(LibraryScopeTest);
-  runReflectiveTests(ScopeTest);
-  runReflectiveTests(ElementResolverTest);
-  runReflectiveTests(InheritanceManagerTest);
-  runReflectiveTests(StaticTypeAnalyzerTest);
-  runReflectiveTests(StaticTypeAnalyzer2Test);
-  runReflectiveTests(SubtypeManagerTest);
-  runReflectiveTests(TypeOverrideManagerTest);
-  runReflectiveTests(TypeProviderImplTest);
-  runReflectiveTests(TypeResolverVisitorTest);
   runReflectiveTests(CheckedModeCompileTimeErrorCodeTest);
+  runReflectiveTests(DisableAsyncTestCase);
+  runReflectiveTests(ElementResolverTest);
+  runReflectiveTests(EnclosedScopeTest);
   runReflectiveTests(ErrorResolverTest);
   runReflectiveTests(HintCodeTest);
+  runReflectiveTests(InheritanceManagerTest);
+  runReflectiveTests(LibraryImportScopeTest);
+  runReflectiveTests(LibraryScopeTest);
   runReflectiveTests(MemberMapTest);
   runReflectiveTests(NonHintCodeTest);
+  runReflectiveTests(ScopeTest);
   runReflectiveTests(SimpleResolverTest);
+  runReflectiveTests(StaticTypeAnalyzerTest);
+  runReflectiveTests(StaticTypeAnalyzer2Test);
   runReflectiveTests(StrictModeTest);
-  runReflectiveTests(TypePropagationTest);
   runReflectiveTests(StrongModeDownwardsInferenceTest);
   runReflectiveTests(StrongModeStaticTypeAnalyzer2Test);
   runReflectiveTests(StrongModeTypePropagationTest);
+  runReflectiveTests(SubtypeManagerTest);
+  runReflectiveTests(TypeOverrideManagerTest);
+  runReflectiveTests(TypePropagationTest);
+  runReflectiveTests(TypeProviderImplTest);
+  runReflectiveTests(TypeResolverVisitorTest);
 }
 
 /**
@@ -99,6 +103,12 @@ class AnalysisContextFactory {
     return initContextWithCore(context);
   }
 
+  static InternalAnalysisContext contextWithCoreAndPackages(
+      Map<String, String> packages) {
+    AnalysisContextForTests context = new AnalysisContextForTests();
+    return initContextWithCore(context, new TestPackageUriResolver(packages));
+  }
+
   /**
    * Initialize the given analysis context with a fake core library already resolved.
    *
@@ -106,13 +116,23 @@ class AnalysisContextFactory {
    * @return the analysis context that was created
    */
   static InternalAnalysisContext initContextWithCore(
-      InternalAnalysisContext context) {
+      InternalAnalysisContext context,
+      [UriResolver contributedResolver]) {
     DirectoryBasedDartSdk sdk = new _AnalysisContextFactory_initContextWithCore(
-        new JavaFile("/fake/sdk"));
-    SourceFactory sourceFactory =
-        new SourceFactory([new DartUriResolver(sdk), new FileUriResolver()]);
+        new JavaFile("/fake/sdk"),
+        enableAsync: context.analysisOptions.enableAsync);
+    List<UriResolver> resolvers = <UriResolver>[
+      new DartUriResolver(sdk),
+      new FileUriResolver()
+    ];
+    if (contributedResolver != null) {
+      resolvers.add(contributedResolver);
+    }
+    SourceFactory sourceFactory = new SourceFactory(resolvers);
     context.sourceFactory = sourceFactory;
     AnalysisContext coreContext = sdk.context;
+    (coreContext.analysisOptions as AnalysisOptionsImpl).strongMode =
+        context.analysisOptions.strongMode;
     //
     // dart:core
     //
@@ -124,8 +144,9 @@ class AnalysisContextFactory {
     coreUnit.librarySource = coreUnit.source = coreSource;
     ClassElementImpl proxyClassElement = ElementFactory.classElement2("_Proxy");
     proxyClassElement.constructors = <ConstructorElement>[
-      ElementFactory.constructorElement(proxyClassElement, null, true)
+      ElementFactory.constructorElement(proxyClassElement, '', true)
         ..isCycleFree = true
+        ..constantInitializers = <ConstructorInitializer>[]
     ];
     ClassElement objectClassElement = provider.objectType.element;
     coreUnit.types = <ClassElement>[
@@ -158,11 +179,18 @@ class AnalysisContextFactory {
     ConstTopLevelVariableElementImpl deprecatedTopLevelVariableElt =
         ElementFactory.topLevelVariableElement3(
             "deprecated", true, false, provider.deprecatedType);
-    deprecatedTopLevelVariableElt.constantInitializer = AstFactory
-        .instanceCreationExpression2(
-            Keyword.CONST,
-            AstFactory.typeName(provider.deprecatedType.element),
-            [AstFactory.string2('next release')]);
+    {
+      ClassElement deprecatedElement = provider.deprecatedType.element;
+      InstanceCreationExpression initializer = AstFactory
+          .instanceCreationExpression2(
+              Keyword.CONST,
+              AstFactory.typeName(deprecatedElement),
+              [AstFactory.string2('next release')]);
+      ConstructorElement constructor = deprecatedElement.constructors.single;
+      initializer.staticElement = constructor;
+      initializer.constructorName.staticElement = constructor;
+      deprecatedTopLevelVariableElt.constantInitializer = initializer;
+    }
     coreUnit.accessors = <PropertyAccessorElement>[
       proxyTopLevelVariableElt.getter,
       deprecatedTopLevelVariableElt.getter
@@ -177,89 +205,99 @@ class AnalysisContextFactory {
     //
     // dart:async
     //
-    CompilationUnitElementImpl asyncUnit =
-        new CompilationUnitElementImpl("async.dart");
-    Source asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
-    coreContext.setContents(asyncSource, "");
-    asyncUnit.librarySource = asyncUnit.source = asyncSource;
-    // Future
-    ClassElementImpl futureElement =
-        ElementFactory.classElement2("Future", ["T"]);
-    //   factory Future.value([value])
-    ConstructorElementImpl futureConstructor =
-        ElementFactory.constructorElement2(futureElement, "value");
-    futureConstructor.parameters = <ParameterElement>[
-      ElementFactory.positionalParameter2("value", provider.dynamicType)
-    ];
-    futureConstructor.factory = true;
-    futureElement.constructors = <ConstructorElement>[futureConstructor];
-    //   Future then(onValue(T value), { Function onError });
-    TypeDefiningElement futureThenR = DynamicElementImpl.instance;
-    if (context.analysisOptions.strongMode) {
-      futureThenR = ElementFactory.typeParameterWithType('R');
+    Source asyncSource;
+    LibraryElementImpl asyncLibrary;
+    if (context.analysisOptions.enableAsync) {
+      asyncLibrary = new LibraryElementImpl.forNode(
+          coreContext, AstFactory.libraryIdentifier2(["dart", "async"]));
+      CompilationUnitElementImpl asyncUnit =
+          new CompilationUnitElementImpl("async.dart");
+      asyncSource = sourceFactory.forUri(DartSdk.DART_ASYNC);
+      coreContext.setContents(asyncSource, "");
+      asyncUnit.librarySource = asyncUnit.source = asyncSource;
+      asyncLibrary.definingCompilationUnit = asyncUnit;
+      // Future
+      ClassElementImpl futureElement =
+          ElementFactory.classElement2("Future", ["T"]);
+      futureElement.enclosingElement = asyncUnit;
+      //   factory Future.value([value])
+      ConstructorElementImpl futureConstructor =
+          ElementFactory.constructorElement2(futureElement, "value");
+      futureConstructor.parameters = <ParameterElement>[
+        ElementFactory.positionalParameter2("value", provider.dynamicType)
+      ];
+      futureConstructor.factory = true;
+      futureElement.constructors = <ConstructorElement>[futureConstructor];
+      //   Future then(onValue(T value), { Function onError });
+      TypeDefiningElement futureThenR = DynamicElementImpl.instance;
+      if (context.analysisOptions.strongMode) {
+        futureThenR = ElementFactory.typeParameterWithType('R');
+      }
+      FunctionElementImpl thenOnValue = ElementFactory.functionElement3(
+          'onValue', futureThenR, [futureElement.typeParameters[0]], null);
+      thenOnValue.synthetic = true;
+
+      DartType futureRType = futureElement.type.substitute4([futureThenR.type]);
+      MethodElementImpl thenMethod = ElementFactory
+          .methodElementWithParameters(futureElement, "then", futureRType, [
+        ElementFactory.requiredParameter2("onValue", thenOnValue.type),
+        ElementFactory.namedParameter2("onError", provider.functionType)
+      ]);
+      if (!futureThenR.type.isDynamic) {
+        thenMethod.typeParameters = [futureThenR];
+      }
+      thenOnValue.enclosingElement = thenMethod;
+      thenOnValue.type = new FunctionTypeImpl(thenOnValue);
+      (thenMethod.parameters[0] as ParameterElementImpl).type =
+          thenOnValue.type;
+      thenMethod.type = new FunctionTypeImpl(thenMethod);
+
+      futureElement.methods = <MethodElement>[thenMethod];
+      // Completer
+      ClassElementImpl completerElement =
+          ElementFactory.classElement2("Completer", ["T"]);
+      ConstructorElementImpl completerConstructor =
+          ElementFactory.constructorElement2(completerElement, null);
+      completerElement.constructors = <ConstructorElement>[
+        completerConstructor
+      ];
+      // StreamSubscription
+      ClassElementImpl streamSubscriptionElement =
+          ElementFactory.classElement2("StreamSubscription", ["T"]);
+      // Stream
+      ClassElementImpl streamElement =
+          ElementFactory.classElement2("Stream", ["T"]);
+      streamElement.constructors = <ConstructorElement>[
+        ElementFactory.constructorElement2(streamElement, null)
+      ];
+      DartType returnType = streamSubscriptionElement.type
+          .substitute4(streamElement.type.typeArguments);
+      FunctionElementImpl listenOnData = ElementFactory.functionElement3(
+          'onData',
+          VoidTypeImpl.instance.element,
+          <TypeDefiningElement>[streamElement.typeParameters[0]],
+          null);
+      listenOnData.synthetic = true;
+      List<DartType> parameterTypes = <DartType>[listenOnData.type,];
+      // TODO(brianwilkerson) This is missing the optional parameters.
+      MethodElementImpl listenMethod =
+          ElementFactory.methodElement('listen', returnType, parameterTypes);
+      streamElement.methods = <MethodElement>[listenMethod];
+      listenMethod.type = new FunctionTypeImpl(listenMethod);
+
+      FunctionElementImpl listenParamFunction = parameterTypes[0].element;
+      listenParamFunction.enclosingElement = listenMethod;
+      listenParamFunction.type = new FunctionTypeImpl(listenParamFunction);
+      ParameterElementImpl listenParam = listenMethod.parameters[0];
+      listenParam.type = listenParamFunction.type;
+
+      asyncUnit.types = <ClassElement>[
+        completerElement,
+        futureElement,
+        streamElement,
+        streamSubscriptionElement
+      ];
     }
-    FunctionElementImpl thenOnValue = ElementFactory.functionElement3(
-        'onValue', futureThenR, [futureElement.typeParameters[0]], null);
-
-    DartType futureRType = futureElement.type.substitute4([futureThenR.type]);
-    MethodElementImpl thenMethod = ElementFactory
-        .methodElementWithParameters(futureElement, "then", futureRType, [
-      ElementFactory.requiredParameter2("onValue", thenOnValue.type),
-      ElementFactory.namedParameter2("onError", provider.functionType)
-    ]);
-    if (!futureThenR.type.isDynamic) {
-      thenMethod.typeParameters = [futureThenR];
-    }
-    thenOnValue.enclosingElement = thenMethod;
-    thenOnValue.type = new FunctionTypeImpl(thenOnValue);
-    (thenMethod.parameters[0] as ParameterElementImpl).type = thenOnValue.type;
-    thenMethod.type = new FunctionTypeImpl(thenMethod);
-
-    futureElement.methods = <MethodElement>[thenMethod];
-    // Completer
-    ClassElementImpl completerElement =
-        ElementFactory.classElement2("Completer", ["T"]);
-    ConstructorElementImpl completerConstructor =
-        ElementFactory.constructorElement2(completerElement, null);
-    completerElement.constructors = <ConstructorElement>[completerConstructor];
-    // StreamSubscription
-    ClassElementImpl streamSubscriptionElement =
-        ElementFactory.classElement2("StreamSubscription", ["T"]);
-    // Stream
-    ClassElementImpl streamElement =
-        ElementFactory.classElement2("Stream", ["T"]);
-    streamElement.constructors = <ConstructorElement>[
-      ElementFactory.constructorElement2(streamElement, null)
-    ];
-    DartType returnType = streamSubscriptionElement.type
-        .substitute4(streamElement.type.typeArguments);
-    List<DartType> parameterTypes = <DartType>[
-      ElementFactory
-          .functionElement3('onData', VoidTypeImpl.instance.element,
-              <TypeDefiningElement>[streamElement.typeParameters[0]], null)
-          .type,
-    ];
-    // TODO(brianwilkerson) This is missing the optional parameters.
-    MethodElementImpl listenMethod =
-        ElementFactory.methodElement('listen', returnType, parameterTypes);
-    streamElement.methods = <MethodElement>[listenMethod];
-    listenMethod.type = new FunctionTypeImpl(listenMethod);
-
-    FunctionElementImpl listenParamFunction = parameterTypes[0].element;
-    listenParamFunction.enclosingElement = listenMethod;
-    listenParamFunction.type = new FunctionTypeImpl(listenParamFunction);
-    ParameterElementImpl listenParam = listenMethod.parameters[0];
-    listenParam.type = listenParamFunction.type;
-
-    asyncUnit.types = <ClassElement>[
-      completerElement,
-      futureElement,
-      streamElement,
-      streamSubscriptionElement
-    ];
-    LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
-        coreContext, AstFactory.libraryIdentifier2(["dart", "async"]));
-    asyncLibrary.definingCompilationUnit = asyncUnit;
     //
     // dart:html
     //
@@ -395,7 +433,9 @@ class AnalysisContextFactory {
     HashMap<Source, LibraryElement> elementMap =
         new HashMap<Source, LibraryElement>();
     elementMap[coreSource] = coreLibrary;
-    elementMap[asyncSource] = asyncLibrary;
+    if (asyncSource != null) {
+      elementMap[asyncSource] = asyncLibrary;
+    }
     elementMap[htmlSource] = htmlLibrary;
     elementMap[mathSource] = mathLibrary;
     //
@@ -403,10 +443,16 @@ class AnalysisContextFactory {
     // core library so public and export namespaces are the same.
     //
     for (LibraryElementImpl library in elementMap.values) {
-      library.exportNamespace =
-          library.publicNamespace = new PublicNamespaceBuilder().build(library);
+      Namespace namespace =
+          new NamespaceBuilder().createPublicNamespaceForLibrary(library);
+      library.exportNamespace = namespace;
+      library.publicNamespace = namespace;
     }
     context.recordLibraryElements(elementMap);
+    // Create the synthetic element for `loadLibrary`.
+    for (LibraryElementImpl library in elementMap.values) {
+      library.createLoadLibraryFunction(context.typeProvider);
+    }
     return context;
   }
 }
@@ -1206,6 +1252,51 @@ var v = const A.a1(0);''');
 }
 
 @reflectiveTest
+class DisableAsyncTestCase extends ResolverTestCase {
+  @override
+  void setUp() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableAsync = false;
+    resetWithOptions(options);
+  }
+
+  void test_resolve() {
+    Source source = addSource(r'''
+class C {
+  foo() {
+    bar();
+  }
+  bar() {
+    //
+  }
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, []);
+  }
+
+  void test_resolve_async() {
+    Source source = addSource(r'''
+class C {
+  Future foo() async {
+    await bar();
+    return null;
+  }
+  Future bar() {
+    return new Future.delayed(new Duration(milliseconds: 10));
+  }
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [
+      StaticWarningCode.UNDEFINED_CLASS,
+      StaticWarningCode.UNDEFINED_CLASS,
+      StaticWarningCode.UNDEFINED_CLASS,
+      StaticWarningCode.UNDEFINED_CLASS,
+      ParserErrorCode.ASYNC_NOT_SUPPORTED
+    ]);
+  }
+}
+
+@reflectiveTest
 class ElementResolverTest extends EngineTestCase {
   /**
    * The error listener to which errors will be reported.
@@ -1417,8 +1508,8 @@ class ElementResolverTest extends EngineTestCase {
     //   break loop;
     // }
     String label = "loop";
-    LabelElementImpl labelElement =
-        new LabelElementImpl(AstFactory.identifier3(label), false, false);
+    LabelElementImpl labelElement = new LabelElementImpl.forNode(
+        AstFactory.identifier3(label), false, false);
     BreakStatement breakStatement = AstFactory.breakStatement2(label);
     Expression condition = AstFactory.booleanLiteral(true);
     WhileStatement whileStatement =
@@ -1507,8 +1598,8 @@ class ElementResolverTest extends EngineTestCase {
     //   continue loop;
     // }
     String label = "loop";
-    LabelElementImpl labelElement =
-        new LabelElementImpl(AstFactory.identifier3(label), false, false);
+    LabelElementImpl labelElement = new LabelElementImpl.forNode(
+        AstFactory.identifier3(label), false, false);
     ContinueStatement continueStatement = AstFactory.continueStatement(label);
     Expression condition = AstFactory.booleanLiteral(true);
     WhileStatement whileStatement =
@@ -1526,17 +1617,24 @@ class ElementResolverTest extends EngineTestCase {
   }
 
   void test_visitEnumDeclaration() {
+    CompilationUnitElementImpl compilationUnitElement =
+        ElementFactory.compilationUnit('foo.dart');
     ClassElementImpl enumElement =
         ElementFactory.enumElement(_typeProvider, ('E'));
+    compilationUnitElement.enums = <ClassElement>[enumElement];
     EnumDeclaration enumNode = AstFactory.enumDeclaration2('E', []);
     Annotation annotationNode =
         AstFactory.annotation(AstFactory.identifier3('a'));
     annotationNode.element = ElementFactory.classElement2('A');
+    annotationNode.elementAnnotation =
+        new ElementAnnotationImpl(compilationUnitElement);
     enumNode.metadata.add(annotationNode);
     enumNode.name.staticElement = enumElement;
+    List<ElementAnnotation> metadata = <ElementAnnotation>[
+      annotationNode.elementAnnotation
+    ];
     _resolveNode(enumNode);
-    List<ElementAnnotation> metadata = enumElement.metadata;
-    expect(metadata, hasLength(1));
+    expect(metadata[0].element, annotationNode.element);
   }
 
   void test_visitExportDirective_noCombinators() {
@@ -2272,6 +2370,42 @@ class C {
   }
 }
 
+/**
+ * Tests for generic method and function resolution that do not use strong mode.
+ */
+@reflectiveTest
+class GenericMethodResolverTest extends _StaticTypeAnalyzer2TestShared {
+  void setUp() {
+    super.setUp();
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableGenericMethods = true;
+    resetWithOptions(options);
+  }
+
+  void test_genericMethod_propagatedType_promotion() {
+    // Regression test for:
+    // https://github.com/dart-lang/sdk/issues/25340
+    //
+    // Note, after https://github.com/dart-lang/sdk/issues/25486 the original
+    // strong mode example won't work, as we now compute a static type and
+    // therefore discard the propagated type.
+    //
+    // So this test does not use strong mode.
+    _resolveTestUnit(r'''
+abstract class Iter {
+  List<S> map<S>(S f(x));
+}
+class C {}
+C toSpan(dynamic element) {
+  if (element is Iter) {
+    var y = element.map(toSpan);
+  }
+  return null;
+}''');
+    _expectIdentifierType('y = ', 'dynamic', 'List<dynamic>');
+  }
+}
+
 @reflectiveTest
 class HintCodeTest extends ResolverTestCase {
   void fail_deadCode_statementAfterRehrow() {
@@ -2347,6 +2481,21 @@ class B {}''');
     assertNoErrors(source2);
     assertNoErrors(source3);
     verify([source, source2, source3]);
+  }
+
+  @override
+  void reset() {
+    analysisContext2 = AnalysisContextFactory.contextWithCoreAndPackages({
+      'package:meta/meta.dart': r'''
+library meta;
+
+const _Protected protected = const _Protected();
+
+class _Protected {
+  const _Protected();
+}
+'''
+    });
   }
 
   void test_argumentTypeNotAssignable_functionType() {
@@ -3182,6 +3331,241 @@ main() {
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.INVALID_ASSIGNMENT]);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_field() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  int a;
+}
+abstract class B implements A {
+  int b() => a;
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_function() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void a(){ }
+}
+main() {
+  new A().a();
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_getter() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  int get a => 42;
+}
+abstract class B implements A {
+  int b() => a;
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_message() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void a(){ }
+}
+class B {
+  void b() => new A().a();
+}''');
+    List<AnalysisError> errors = analysisContext2.computeErrors(source);
+    expect(errors, hasLength(1));
+    expect(errors[0].message,
+        "The member 'a' can only be used within instance members of subclasses of 'A'");
+  }
+
+  void test_invalidUseOfProtectedMember_method_1() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void a(){ }
+}
+class B {
+  void b() => new A().a();
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_method_2() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void a(){ }
+}
+abstract class B implements A {
+  void b() => a();
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_OK_1() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void a(){ }
+}
+class B extends A {
+  void b() => a();
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_OK_2() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void a(){ }
+}
+class B extends Object with A {
+  void b() => a();
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_OK_3() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected m1() {}
+}
+class B extends A {
+  static m2(A a) => a.m1();
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_OK_4() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void a(){ }
+}
+class B extends A {
+  void a() => a();
+}
+main() {
+  new B().a();
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_OK_field() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  int a = 42;
+}
+class B extends A {
+  int b() => a;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_OK_getter() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  int get a => 42;
+}
+class B extends A {
+  int b() => a;
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_OK_setter() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void set a(int i) { }
+}
+class B extends A {
+  void b(int i) {
+    a = i;
+  }
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, []);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_setter() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  @protected
+  void set a(int i) { }
+}
+abstract class B implements A {
+  b(int i) {
+    a = i;
+  }
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.INVALID_USE_OF_PROTECTED_MEMBER]);
+    verify([source]);
+  }
+
+  void test_invalidUseOfProtectedMember_topLevelVariable() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+@protected
+int x = 0;
+main() {
+  print(x);
+}''');
+    computeLibrarySourceErrors(source);
+    // TODO(brianwilkerson) This should produce a hint because the annotation is
+    // being applied to the wrong kind of declaration.
+    assertNoErrors(source);
     verify([source]);
   }
 
@@ -6546,6 +6930,18 @@ f() {
     verify([source]);
   }
 
+  void test_deprecatedAnnotationUse_classWithConstructor() {
+    Source source = addSource(r'''
+@deprecated
+class C {
+  C();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_divisionOptimization() {
     Source source = addSource(r'''
 f(int x, int y) {
@@ -7739,6 +8135,11 @@ class ResolutionVerifier extends RecursiveAstVisitor<Object> {
     if (node.name == "void") {
       return null;
     }
+    if (node.staticType != null &&
+        node.staticType.isDynamic &&
+        node.staticElement == null) {
+      return null;
+    }
     AstNode parent = node.parent;
     if (parent is MethodInvocation) {
       MethodInvocation invocation = parent;
@@ -7871,6 +8272,7 @@ class ResolverTestCase extends EngineTestCase {
       [List<ErrorCode> expectedErrorCodes = ErrorCode.EMPTY_LIST]) {
     GatheringErrorListener errorListener = new GatheringErrorListener();
     for (AnalysisError error in analysisContext2.computeErrors(source)) {
+      expect(error.source, source);
       ErrorCode errorCode = error.errorCode;
       if (!enableUnusedElement &&
           (errorCode == HintCode.UNUSED_ELEMENT ||
@@ -8095,6 +8497,7 @@ class ResolverTestCase extends EngineTestCase {
 
   @override
   void setUp() {
+    ElementFactory.flushStaticState();
     super.setUp();
     reset();
   }
@@ -9274,14 +9677,30 @@ class A {
   void test_isValidMixin_badSuperclass() {
     Source source = addSource(r'''
 class A extends B {}
-class B {}''');
+class B {}
+class C = Object with A;''');
     LibraryElement library = resolve2(source);
     expect(library, isNotNull);
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull);
-    List<ClassElement> classes = unit.types;
-    expect(classes, hasLength(2));
-    expect(classes[0].isValidMixin, isFalse);
+    ClassElement a = unit.getType('A');
+    expect(a.isValidMixin, isFalse);
+    assertErrors(source, [CompileTimeErrorCode.MIXIN_INHERITS_FROM_NOT_OBJECT]);
+    verify([source]);
+  }
+
+  void test_isValidMixin_badSuperclass_withSuperMixins() {
+    resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
+    Source source = addSource(r'''
+class A extends B {}
+class B {}
+class C = Object with A;''');
+    LibraryElement library = resolve2(source);
+    expect(library, isNotNull);
+    CompilationUnitElement unit = library.definingCompilationUnit;
+    expect(unit, isNotNull);
+    ClassElement a = unit.getType('A');
+    expect(a.isValidMixin, isTrue);
     assertNoErrors(source);
     verify([source]);
   }
@@ -9290,14 +9709,64 @@ class B {}''');
     Source source = addSource(r'''
 class A {
   A() {}
-}''');
+}
+class C = Object with A;''');
     LibraryElement library = resolve2(source);
     expect(library, isNotNull);
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull);
-    List<ClassElement> classes = unit.types;
-    expect(classes, hasLength(1));
-    expect(classes[0].isValidMixin, isFalse);
+    ClassElement a = unit.getType('A');
+    expect(a.isValidMixin, isFalse);
+    assertErrors(source, [CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR]);
+    verify([source]);
+  }
+
+  void test_isValidMixin_constructor_withSuperMixins() {
+    resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
+    Source source = addSource(r'''
+class A {
+  A() {}
+}
+class C = Object with A;''');
+    LibraryElement library = resolve2(source);
+    expect(library, isNotNull);
+    CompilationUnitElement unit = library.definingCompilationUnit;
+    expect(unit, isNotNull);
+    ClassElement a = unit.getType('A');
+    expect(a.isValidMixin, isFalse);
+    assertErrors(source, [CompileTimeErrorCode.MIXIN_DECLARES_CONSTRUCTOR]);
+    verify([source]);
+  }
+
+  void test_isValidMixin_factoryConstructor() {
+    Source source = addSource(r'''
+class A {
+  factory A() => null;
+}
+class C = Object with A;''');
+    LibraryElement library = resolve2(source);
+    expect(library, isNotNull);
+    CompilationUnitElement unit = library.definingCompilationUnit;
+    expect(unit, isNotNull);
+    ClassElement a = unit.getType('A');
+    expect(a.isValidMixin, isTrue);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_isValidMixin_factoryConstructor_withSuperMixins() {
+    resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
+    Source source = addSource(r'''
+class A {
+  factory A() => null;
+}
+class C = Object with A;''');
+    LibraryElement library = resolve2(source);
+    expect(library, isNotNull);
+    CompilationUnitElement unit = library.definingCompilationUnit;
+    expect(unit, isNotNull);
+    ClassElement a = unit.getType('A');
+    expect(a.isValidMixin, isTrue);
     assertNoErrors(source);
     verify([source]);
   }
@@ -9308,27 +9777,62 @@ class A {
   toString() {
     return super.toString();
   }
-}''');
+}
+class C = Object with A;''');
     LibraryElement library = resolve2(source);
     expect(library, isNotNull);
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull);
-    List<ClassElement> classes = unit.types;
-    expect(classes, hasLength(1));
-    expect(classes[0].isValidMixin, isFalse);
+    ClassElement a = unit.getType('A');
+    expect(a.isValidMixin, isFalse);
+    assertErrors(source, [CompileTimeErrorCode.MIXIN_REFERENCES_SUPER]);
+    verify([source]);
+  }
+
+  void test_isValidMixin_super_withSuperMixins() {
+    resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
+    Source source = addSource(r'''
+class A {
+  toString() {
+    return super.toString();
+  }
+}
+class C = Object with A;''');
+    LibraryElement library = resolve2(source);
+    expect(library, isNotNull);
+    CompilationUnitElement unit = library.definingCompilationUnit;
+    expect(unit, isNotNull);
+    ClassElement a = unit.getType('A');
+    expect(a.isValidMixin, isTrue);
     assertNoErrors(source);
     verify([source]);
   }
 
   void test_isValidMixin_valid() {
-    Source source = addSource("class A {}");
+    Source source = addSource('''
+class A {}
+class C = Object with A;''');
     LibraryElement library = resolve2(source);
     expect(library, isNotNull);
     CompilationUnitElement unit = library.definingCompilationUnit;
     expect(unit, isNotNull);
-    List<ClassElement> classes = unit.types;
-    expect(classes, hasLength(1));
-    expect(classes[0].isValidMixin, isTrue);
+    ClassElement a = unit.getType('A');
+    expect(a.isValidMixin, isTrue);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_isValidMixin_valid_withSuperMixins() {
+    resetWithOptions(new AnalysisOptionsImpl()..enableSuperMixins = true);
+    Source source = addSource('''
+class A {}
+class C = Object with A;''');
+    LibraryElement library = resolve2(source);
+    expect(library, isNotNull);
+    CompilationUnitElement unit = library.definingCompilationUnit;
+    expect(unit, isNotNull);
+    ClassElement a = unit.getType('A');
+    expect(a.isValidMixin, isTrue);
     assertNoErrors(source);
     verify([source]);
   }
@@ -9911,11 +10415,7 @@ main() {
 }
 ''';
     _resolveTestUnit(code);
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.isDynamic, isTrue);
-    expect(declaration.initializer.propagatedType, isNull);
+    _expectInitializerType('foo', 'dynamic', isNull);
   }
 
   void test_FunctionExpressionInvocation_curried() {
@@ -9927,11 +10427,7 @@ main() {
 }
 ''';
     _resolveTestUnit(code);
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'int');
-    expect(declaration.initializer.propagatedType, isNull);
+    _expectInitializerType('foo', 'int', isNull);
   }
 
   void test_FunctionExpressionInvocation_expression() {
@@ -9941,11 +10437,7 @@ main() {
 }
 ''';
     _resolveTestUnit(code);
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'int');
-    expect(declaration.initializer.propagatedType, isNull);
+    _expectInitializerType('foo', 'int', isNull);
   }
 
   void test_MethodInvocation_nameType_localVariable() {
@@ -9958,9 +10450,7 @@ main() {
 """;
     _resolveTestUnit(code);
     // "foo" should be resolved to the "Foo" type
-    SimpleIdentifier identifier = _findIdentifier("foo();");
-    DartType type = identifier.staticType;
-    expect(type, new isInstanceOf<FunctionType>());
+    _expectIdentifierType("foo();", new isInstanceOf<FunctionType>());
   }
 
   void test_MethodInvocation_nameType_parameter_FunctionTypeAlias() {
@@ -9972,9 +10462,7 @@ main(Foo foo) {
 """;
     _resolveTestUnit(code);
     // "foo" should be resolved to the "Foo" type
-    SimpleIdentifier identifier = _findIdentifier("foo();");
-    DartType type = identifier.staticType;
-    expect(type, new isInstanceOf<FunctionType>());
+    _expectIdentifierType("foo();", new isInstanceOf<FunctionType>());
   }
 
   void test_MethodInvocation_nameType_parameter_propagatedType() {
@@ -9987,12 +10475,67 @@ main(p) {
 }
 """;
     _resolveTestUnit(code);
-    SimpleIdentifier identifier = _findIdentifier("p()");
-    expect(identifier.staticType, DynamicTypeImpl.instance);
+    _expectIdentifierType("p()", DynamicTypeImpl.instance,
+        predicate((type) => type.name == 'Foo'));
+  }
+
+  void test_staticMethods_classTypeParameters() {
+    String code = r'''
+class C<T> {
+  static void m() => null;
+}
+main() {
+  print(C.m);
+}
+''';
+    _resolveTestUnit(code);
+    _expectFunctionType('m);', '() → void');
+  }
+
+  void test_staticMethods_classTypeParameters_genericMethod() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableGenericMethods = true;
+    resetWithOptions(options);
+    String code = r'''
+class C<T> {
+  static void m<S>(S s) {
+    void f<U>(S s, U u) {}
+    print(f);
+  }
+}
+main() {
+  print(C.m);
+}
+''';
+    _resolveTestUnit(code);
+    // C - m
+    TypeParameterType typeS;
     {
-      FunctionType type = identifier.propagatedType;
-      expect(type, isNotNull);
-      expect(type.name, 'Foo');
+      _expectFunctionType('m);', '<S>(S) → void',
+          elementTypeParams: '[S]', typeFormals: '[S]');
+
+      FunctionTypeImpl type = _findIdentifier('m);').staticType;
+      typeS = type.typeFormals[0].type;
+      type = type.instantiate([DynamicTypeImpl.instance]);
+      expect(type.toString(), '(dynamic) → void');
+      expect(type.typeParameters.toString(), '[S]');
+      expect(type.typeArguments, [DynamicTypeImpl.instance]);
+      expect(type.typeFormals, isEmpty);
+    }
+    // C - m - f
+    {
+      _expectFunctionType('f);', '<U>(S, U) → void',
+          elementTypeParams: '[U]',
+          typeParams: '[S]',
+          typeArgs: '[S]',
+          typeFormals: '[U]');
+
+      FunctionTypeImpl type = _findIdentifier('f);').staticType;
+      type = type.instantiate([DynamicTypeImpl.instance]);
+      expect(type.toString(), '(S, dynamic) → void');
+      expect(type.typeParameters.toString(), '[S, U]');
+      expect(type.typeArguments, [typeS, DynamicTypeImpl.instance]);
+      expect(type.typeFormals, isEmpty);
     }
   }
 }
@@ -10019,6 +10562,11 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
    */
   TestTypeProvider _typeProvider;
 
+  /**
+   * The type system used to analyze the test cases.
+   */
+  TypeSystem get _typeSystem => _visitor.typeSystem;
+
   void fail_visitFunctionExpressionInvocation() {
     fail("Not yet tested");
     _listener.assertNoErrors();
@@ -10038,7 +10586,6 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
   void setUp() {
     super.setUp();
     _listener = new GatheringErrorListener();
-    _typeProvider = new TestTypeProvider();
     _analyzer = _createAnalyzer();
   }
 
@@ -11304,6 +11851,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     LibraryElementImpl definingLibrary =
         new LibraryElementImpl.forNode(context, null);
     definingLibrary.definingCompilationUnit = definingCompilationUnit;
+    _typeProvider = new TestTypeProvider(context);
     _visitor = new ResolverVisitor(
         definingLibrary, source, _typeProvider, _listener,
         nameScope: new LibraryScope(definingLibrary, _listener));
@@ -11316,8 +11864,7 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     }
   }
 
-  DartType _flatten(DartType type) =>
-      StaticTypeAnalyzer.flattenFutures(_typeProvider, type);
+  DartType _flatten(DartType type) => type.flattenFutures(_typeSystem);
 
   /**
    * Return a simple identifier that has been resolved to a variable element with the given type.
@@ -13030,105 +13577,6 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
  */
 @reflectiveTest
 class StrongModeStaticTypeAnalyzer2Test extends _StaticTypeAnalyzer2TestShared {
-  void test_genericMethod_functionExpressionInvocation_explicit() {
-    _resolveTestUnit(r'''
-class C<E> {
-  /*=T*/ f/*<T>*/(/*=T*/ e) => null;
-  static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
-  static final h = g;
-}
-
-/*=T*/ topF/*<T>*/(/*=T*/ e) => null;
-var topG = topF;
-void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
-  var c = new C<int>();
-  /*=T*/ lf/*<T>*/(/*=T*/ e) => null;
-
-  var lambdaCall = (/*<E>*/(/*=E*/ e) => e)/*<int>*/(3);
-  var methodCall = (c.f)/*<int>*/(3);
-  var staticCall = (C.g)/*<int>*/(3);
-  var staticFieldCall = (C.h)/*<int>*/(3);
-  var topFunCall = (topF)/*<int>*/(3);
-  var topFieldCall = (topG)/*<int>*/(3);
-  var localCall = (lf)/*<int>*/(3);
-  var paramCall = (pf)/*<int>*/(3);
-}
-''');
-    expect(_findIdentifier('methodCall').staticType.toString(), "int");
-    expect(_findIdentifier('staticCall').staticType.toString(), "int");
-    expect(_findIdentifier('staticFieldCall').staticType.toString(), "int");
-    expect(_findIdentifier('topFunCall').staticType.toString(), "int");
-    expect(_findIdentifier('topFieldCall').staticType.toString(), "int");
-    expect(_findIdentifier('localCall').staticType.toString(), "int");
-    expect(_findIdentifier('paramCall').staticType.toString(), "int");
-    expect(_findIdentifier('lambdaCall').staticType.toString(), "int");
-  }
-
-  void fail_genericMethod_functionExpressionInvocation_inferred() {
-    _resolveTestUnit(r'''
-class C<E> {
-  /*=T*/ f/*<T>*/(/*=T*/ e) => null;
-  static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
-  static final h = g;
-}
-
-/*=T*/ topF/*<T>*/(/*=T*/ e) => null;
-var topG = topF;
-void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
-  var c = new C<int>();
-  /*=T*/ lf/*<T>*/(/*=T*/ e) => null;
-
-  var lambdaCall = (/*<E>*/(/*=E*/ e) => e)(3);
-  var methodCall = (c.f)(3);
-  var staticCall = (C.g)(3);
-  var staticFieldCall = (C.h)(3);
-  var topFunCall = (topF)(3);
-  var topFieldCall = (topG)(3);
-  var localCall = (lf)(3);
-  var paramCall = (pf)(3);
-}
-''');
-    expect(_findIdentifier('methodCall').staticType.toString(), "int");
-    expect(_findIdentifier('staticCall').staticType.toString(), "int");
-    expect(_findIdentifier('staticFieldCall').staticType.toString(), "int");
-    expect(_findIdentifier('topFunCall').staticType.toString(), "int");
-    expect(_findIdentifier('topFieldCall').staticType.toString(), "int");
-    expect(_findIdentifier('localCall').staticType.toString(), "int");
-    expect(_findIdentifier('paramCall').staticType.toString(), "int");
-    expect(_findIdentifier('lambdaCall').staticType.toString(), "int");
-  }
-
-  void fail_genericMethod_functionInvocation_inferred() {
-    _resolveTestUnit(r'''
-class C<E> {
-  /*=T*/ f/*<T>*/(/*=T*/ e) => null;
-  static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
-  static final h = g;
-}
-
-/*=T*/ topF/*<T>*/(/*=T*/ e) => null;
-var topG = topF;
-void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
-  var c = new C<int>();
-  /*=T*/ lf/*<T>*/(/*=T*/ e) => null;
-  var methodCall = c.f(3);
-  var staticCall = C.g(3);
-  var staticFieldCall = C.h(3);
-  var topFunCall = topF(3);
-  var topFieldCall = topG(3);
-  var localCall = lf(3);
-  var paramCall = pf(3);
-}
-''');
-    expect(_findIdentifier('methodCall').staticType.toString(), "int");
-    expect(_findIdentifier('staticCall').staticType.toString(), "int");
-    expect(_findIdentifier('staticFieldCall').staticType.toString(), "int");
-    expect(_findIdentifier('topFunCall').staticType.toString(), "int");
-    expect(_findIdentifier('topFieldCall').staticType.toString(), "int");
-    expect(_findIdentifier('localCall').staticType.toString(), "int");
-    expect(_findIdentifier('paramCall').staticType.toString(), "int");
-  }
-
   void fail_genericMethod_tearoff_instantiated() {
     _resolveTestUnit(r'''
 class C<E> {
@@ -13151,20 +13599,13 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   var paramTearOffInst = pf/*<int>*/;
 }
 ''');
-    expect(_findIdentifier('methodTearOffInst').staticType.toString(),
-        "(int) → int");
-    expect(_findIdentifier('staticTearOffInst').staticType.toString(),
-        "(int) → int");
-    expect(_findIdentifier('staticFieldTearOffInst').staticType.toString(),
-        "(int) → int");
-    expect(_findIdentifier('topFunTearOffInst').staticType.toString(),
-        "(int) → int");
-    expect(_findIdentifier('topFieldTearOffInst').staticType.toString(),
-        "(int) → int");
-    expect(_findIdentifier('localTearOffInst').staticType.toString(),
-        "(int) → int");
-    expect(_findIdentifier('paramTearOffInst').staticType.toString(),
-        "(int) → int");
+    _expectIdentifierType('methodTearOffInst', "(int) → int");
+    _expectIdentifierType('staticTearOffInst', "(int) → int");
+    _expectIdentifierType('staticFieldTearOffInst', "(int) → int");
+    _expectIdentifierType('topFunTearOffInst', "(int) → int");
+    _expectIdentifierType('topFieldTearOffInst', "(int) → int");
+    _expectIdentifierType('localTearOffInst', "(int) → int");
+    _expectIdentifierType('paramTearOffInst', "(int) → int");
   }
 
   void setUp() {
@@ -13182,12 +13623,7 @@ main() {
 }
 ''';
     _resolveTestUnit(code);
-
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'int');
-    expect(declaration.initializer.propagatedType, isNull);
+    _expectInitializerType('foo', 'int', isNull);
   }
 
   void test_dynamicObjectMethod_toString() {
@@ -13198,47 +13634,34 @@ main() {
 }
 ''';
     _resolveTestUnit(code);
-
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'String');
-    expect(declaration.initializer.propagatedType, isNull);
+    _expectInitializerType('foo', 'String', isNull);
   }
 
   void test_genericFunction() {
     _resolveTestUnit(r'/*=T*/ f/*<T>*/(/*=T*/ x) => null;');
+    _expectFunctionType('f', '<T>(T) → T',
+        elementTypeParams: '[T]', typeFormals: '[T]');
     SimpleIdentifier f = _findIdentifier('f');
     FunctionElementImpl e = f.staticElement;
-    expect(e.typeParameters.toString(), '[T]');
-    expect(e.type.typeFormals.toString(), '[T]');
-    expect(e.type.typeParameters.toString(), '[]');
-    expect(e.type.toString(), '<T>(T) → T');
-
     FunctionType ft = e.type.instantiate([typeProvider.stringType]);
     expect(ft.toString(), '(String) → String');
   }
 
   void test_genericFunction_bounds() {
     _resolveTestUnit(r'/*=T*/ f/*<T extends num>*/(/*=T*/ x) => null;');
-    SimpleIdentifier f = _findIdentifier('f');
-    FunctionElementImpl e = f.staticElement;
-    expect(e.typeParameters.toString(), '[T extends num]');
-    expect(e.type.typeFormals.toString(), '[T extends num]');
-    expect(e.type.typeParameters.toString(), '[]');
-    expect(e.type.toString(), '<T extends num>(T) → T');
+    _expectFunctionType('f', '<T extends num>(T) → T',
+        elementTypeParams: '[T extends num]', typeFormals: '[T extends num]');
   }
 
   void test_genericFunction_parameter() {
     _resolveTestUnit(r'''
 void g(/*=T*/ f/*<T>*/(/*=T*/ x)) {}
 ''');
+    _expectFunctionType('f', '<T>(T) → T',
+        elementTypeParams: '[T]', typeFormals: '[T]');
     SimpleIdentifier f = _findIdentifier('f');
     ParameterElementImpl e = f.staticElement;
     FunctionType type = e.type;
-    expect(e.typeParameters.toString(), '[T]');
-    expect(type.typeFormals.toString(), '[T]');
-    expect(type.toString(), '<T>(T) → T');
     FunctionType ft = type.instantiate([typeProvider.stringType]);
     expect(ft.toString(), '(String) → String');
   }
@@ -13249,17 +13672,10 @@ class C<E> {
   static /*=T*/ f/*<T>*/(/*=T*/ x) => null;
 }
 ''');
+    _expectFunctionType('f', '<T>(T) → T',
+        elementTypeParams: '[T]', typeFormals: '[T]');
     SimpleIdentifier f = _findIdentifier('f');
     MethodElementImpl e = f.staticElement;
-    expect(e.typeParameters.toString(), '[T]');
-    expect(e.type.typeFormals.toString(), '[T]');
-    // TODO(jmesserly): we could get rid of this {E/E} substitution, but it's
-    // probably harmless, as E won't be used in the function (error verifier
-    // checks this), and {E/E} is a no-op anyway.
-    expect(e.type.typeParameters.toString(), '[E]');
-    expect(e.type.typeArguments.toString(), '[E]');
-    expect(e.type.toString(), '<T>(T) → T');
-
     FunctionType ft = e.type.instantiate([typeProvider.stringType]);
     expect(ft.toString(), '(String) → String');
   }
@@ -13297,46 +13713,18 @@ class D<S> {
 ''';
     _resolveTestUnit(code);
 
-    {
+    checkBody(String className) {
       List<Statement> statements =
-          AstFinder.getStatementsInMethod(testUnit, "C", "g");
+          AstFinder.getStatementsInMethod(testUnit, className, "g");
 
-      ExpressionStatement exps0 = statements[1];
-      ExpressionStatement exps1 = statements[2];
-      ExpressionStatement exps2 = statements[3];
-      ExpressionStatement exps3 = statements[4];
-      ExpressionStatement exps4 = statements[5];
-      Expression exp0 = exps0.expression;
-      Expression exp1 = exps1.expression;
-      Expression exp2 = exps2.expression;
-      Expression exp3 = exps3.expression;
-      Expression exp4 = exps4.expression;
-      expect(exp0.staticType, typeProvider.dynamicType);
-      expect(exp1.staticType, typeProvider.dynamicType);
-      expect(exp2.staticType, typeProvider.dynamicType);
-      expect(exp3.staticType, typeProvider.dynamicType);
-      expect(exp4.staticType, typeProvider.dynamicType);
+      for (int i = 1; i <= 5; i++) {
+        Expression exp = (statements[i] as ExpressionStatement).expression;
+        expect(exp.staticType, typeProvider.dynamicType);
+      }
     }
-    {
-      List<Statement> statements =
-          AstFinder.getStatementsInMethod(testUnit, "D", "g");
 
-      ExpressionStatement exps0 = statements[1];
-      ExpressionStatement exps1 = statements[2];
-      ExpressionStatement exps2 = statements[3];
-      ExpressionStatement exps3 = statements[4];
-      ExpressionStatement exps4 = statements[5];
-      Expression exp0 = exps0.expression;
-      Expression exp1 = exps1.expression;
-      Expression exp2 = exps2.expression;
-      Expression exp3 = exps3.expression;
-      Expression exp4 = exps4.expression;
-      expect(exp0.staticType, typeProvider.dynamicType);
-      expect(exp1.staticType, typeProvider.dynamicType);
-      expect(exp2.staticType, typeProvider.dynamicType);
-      expect(exp3.staticType, typeProvider.dynamicType);
-      expect(exp4.staticType, typeProvider.dynamicType);
-    }
+    checkBody("C");
+    checkBody("D");
   }
 
   void test_genericMethod() {
@@ -13348,14 +13736,11 @@ main() {
   C<String> cOfString;
 }
 ''');
-    SimpleIdentifier f = _findIdentifier('f');
-    MethodElementImpl e = f.staticElement;
-    expect(e.typeParameters.toString(), '[T]');
-    expect(e.type.typeFormals.toString(), '[T]');
-    expect(e.type.typeParameters.toString(), '[E]');
-    expect(e.type.typeArguments.toString(), '[E]');
-    expect(e.type.toString(), '<T>(E) → List<T>');
-
+    _expectFunctionType('f', '<T>(E) → List<T>',
+        elementTypeParams: '[T]',
+        typeParams: '[E]',
+        typeArgs: '[E]',
+        typeFormals: '[T]');
     SimpleIdentifier c = _findIdentifier('cOfString');
     FunctionType ft = (c.staticType as InterfaceType).getMethod('f').type;
     expect(ft.toString(), '<T>(String) → List<T>');
@@ -13384,6 +13769,74 @@ main() {
         typeProvider.listType.substitute4([typeProvider.intType]));
   }
 
+  void test_genericMethod_functionExpressionInvocation_explicit() {
+    _resolveTestUnit(r'''
+class C<E> {
+  /*=T*/ f/*<T>*/(/*=T*/ e) => null;
+  static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
+  static final h = g;
+}
+
+/*=T*/ topF/*<T>*/(/*=T*/ e) => null;
+var topG = topF;
+void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
+  var c = new C<int>();
+  /*=T*/ lf/*<T>*/(/*=T*/ e) => null;
+
+  var lambdaCall = (/*<E>*/(/*=E*/ e) => e)/*<int>*/(3);
+  var methodCall = (c.f)/*<int>*/(3);
+  var staticCall = (C.g)/*<int>*/(3);
+  var staticFieldCall = (C.h)/*<int>*/(3);
+  var topFunCall = (topF)/*<int>*/(3);
+  var topFieldCall = (topG)/*<int>*/(3);
+  var localCall = (lf)/*<int>*/(3);
+  var paramCall = (pf)/*<int>*/(3);
+}
+''');
+    _expectIdentifierType('methodCall', "int");
+    _expectIdentifierType('staticCall', "int");
+    _expectIdentifierType('staticFieldCall', "int");
+    _expectIdentifierType('topFunCall', "int");
+    _expectIdentifierType('topFieldCall', "int");
+    _expectIdentifierType('localCall', "int");
+    _expectIdentifierType('paramCall', "int");
+    _expectIdentifierType('lambdaCall', "int");
+  }
+
+  void test_genericMethod_functionExpressionInvocation_inferred() {
+    _resolveTestUnit(r'''
+class C<E> {
+  /*=T*/ f/*<T>*/(/*=T*/ e) => null;
+  static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
+  static final h = g;
+}
+
+/*=T*/ topF/*<T>*/(/*=T*/ e) => null;
+var topG = topF;
+void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
+  var c = new C<int>();
+  /*=T*/ lf/*<T>*/(/*=T*/ e) => null;
+
+  var lambdaCall = (/*<E>*/(/*=E*/ e) => e)(3);
+  var methodCall = (c.f)(3);
+  var staticCall = (C.g)(3);
+  var staticFieldCall = (C.h)(3);
+  var topFunCall = (topF)(3);
+  var topFieldCall = (topG)(3);
+  var localCall = (lf)(3);
+  var paramCall = (pf)(3);
+}
+''');
+    _expectIdentifierType('methodCall', "int");
+    _expectIdentifierType('staticCall', "int");
+    _expectIdentifierType('staticFieldCall', "int");
+    _expectIdentifierType('topFunCall', "int");
+    _expectIdentifierType('topFieldCall', "int");
+    _expectIdentifierType('localCall', "int");
+    _expectIdentifierType('paramCall', "int");
+    _expectIdentifierType('lambdaCall', "int");
+  }
+
   void test_genericMethod_functionInvocation_explicit() {
     _resolveTestUnit(r'''
 class C<E> {
@@ -13406,13 +13859,44 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   var paramCall = pf/*<int>*/(3);
 }
 ''');
-    expect(_findIdentifier('methodCall').staticType.toString(), "int");
-    expect(_findIdentifier('staticCall').staticType.toString(), "int");
-    expect(_findIdentifier('staticFieldCall').staticType.toString(), "int");
-    expect(_findIdentifier('topFunCall').staticType.toString(), "int");
-    expect(_findIdentifier('topFieldCall').staticType.toString(), "int");
-    expect(_findIdentifier('localCall').staticType.toString(), "int");
-    expect(_findIdentifier('paramCall').staticType.toString(), "int");
+    _expectIdentifierType('methodCall', "int");
+    _expectIdentifierType('staticCall', "int");
+    _expectIdentifierType('staticFieldCall', "int");
+    _expectIdentifierType('topFunCall', "int");
+    _expectIdentifierType('topFieldCall', "int");
+    _expectIdentifierType('localCall', "int");
+    _expectIdentifierType('paramCall', "int");
+  }
+
+  void test_genericMethod_functionInvocation_inferred() {
+    _resolveTestUnit(r'''
+class C<E> {
+  /*=T*/ f/*<T>*/(/*=T*/ e) => null;
+  static /*=T*/ g/*<T>*/(/*=T*/ e) => null;
+  static final h = g;
+}
+
+/*=T*/ topF/*<T>*/(/*=T*/ e) => null;
+var topG = topF;
+void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
+  var c = new C<int>();
+  /*=T*/ lf/*<T>*/(/*=T*/ e) => null;
+  var methodCall = c.f(3);
+  var staticCall = C.g(3);
+  var staticFieldCall = C.h(3);
+  var topFunCall = topF(3);
+  var topFieldCall = topG(3);
+  var localCall = lf(3);
+  var paramCall = pf(3);
+}
+''');
+    _expectIdentifierType('methodCall', "int");
+    _expectIdentifierType('staticCall', "int");
+    _expectIdentifierType('staticFieldCall', "int");
+    _expectIdentifierType('topFunCall', "int");
+    _expectIdentifierType('topFieldCall', "int");
+    _expectIdentifierType('localCall', "int");
+    _expectIdentifierType('paramCall', "int");
   }
 
   void test_genericMethod_functionTypedParameter() {
@@ -13424,13 +13908,11 @@ main() {
   C<String> cOfString;
 }
 ''');
-    SimpleIdentifier f = _findIdentifier('f');
-    MethodElementImpl e = f.staticElement;
-    expect(e.typeParameters.toString(), '[T]');
-    expect(e.type.typeFormals.toString(), '[T]');
-    expect(e.type.typeParameters.toString(), '[E]');
-    expect(e.type.typeArguments.toString(), '[E]');
-    expect(e.type.toString(), '<T>((E) → T) → List<T>');
+    _expectFunctionType('f', '<T>((E) → T) → List<T>',
+        elementTypeParams: '[T]',
+        typeParams: '[E]',
+        typeArgs: '[E]',
+        typeFormals: '[T]');
 
     SimpleIdentifier c = _findIdentifier('cOfString');
     FunctionType ft = (c.staticType as InterfaceType).getMethod('f').type;
@@ -13452,17 +13934,80 @@ void foo() {
   list.map((e) => e);
   list.map((e) => 3);
 }''');
+    _expectIdentifierType('map((e) => e);', '<T>((dynamic) → T) → T', isNull);
+    _expectIdentifierType('map((e) => 3);', '<T>((dynamic) → T) → T', isNull);
 
-    SimpleIdentifier map1 = _findIdentifier('map((e) => e);');
-    MethodInvocation m1 = map1.parent;
+    MethodInvocation m1 = _findIdentifier('map((e) => e);').parent;
     expect(m1.staticInvokeType.toString(), '((dynamic) → dynamic) → dynamic');
-    expect(map1.staticType, isNull);
-    expect(map1.propagatedType, isNull);
-    SimpleIdentifier map2 = _findIdentifier('map((e) => 3);');
-    MethodInvocation m2 = map2.parent;
+    MethodInvocation m2 = _findIdentifier('map((e) => 3);').parent;
     expect(m2.staticInvokeType.toString(), '((dynamic) → int) → int');
-    expect(map2.staticType, isNull);
-    expect(map2.propagatedType, isNull);
+  }
+
+  void test_genericMethod_max_doubleDouble() {
+    String code = r'''
+import 'dart:math';
+main() {
+  var foo = max(1.0, 2.0);
+}
+''';
+    _resolveTestUnit(code);
+    _expectInitializerType('foo', 'double', isNull);
+  }
+
+  void test_genericMethod_max_doubleDouble_prefixed() {
+    String code = r'''
+import 'dart:math' as math;
+main() {
+  var foo = math.max(1.0, 2.0);
+}
+''';
+    _resolveTestUnit(code);
+    _expectInitializerType('foo', 'double', isNull);
+  }
+
+  void test_genericMethod_max_doubleInt() {
+    String code = r'''
+import 'dart:math';
+main() {
+  var foo = max(1.0, 2);
+}
+''';
+    _resolveTestUnit(code);
+    _expectInitializerType('foo', 'num', isNull);
+  }
+
+  void test_genericMethod_max_intDouble() {
+    String code = r'''
+import 'dart:math';
+main() {
+  var foo = max(1, 2.0);
+}
+''';
+    _resolveTestUnit(code);
+    _expectInitializerType('foo', 'num', isNull);
+  }
+
+  void test_genericMethod_max_intInt() {
+    String code = r'''
+import 'dart:math';
+main() {
+  var foo = max(1, 2);
+}
+''';
+    _resolveTestUnit(code);
+    _expectInitializerType('foo', 'int', isNull);
+  }
+
+  void test_genericMethod_nestedBound() {
+    String code = r'''
+class Foo<T extends num> {
+  void method/*<U extends T>*/(dynamic/*=U*/ u) {
+    u.abs();
+  }
+}
+''';
+    // Just validate that there is no warning on the call to `.abs()`.
+    _resolveTestUnit(code);
   }
 
   void test_genericMethod_nestedCapture() {
@@ -13480,8 +14025,7 @@ class C<T> {
     FunctionType ft = f.staticInvokeType;
     expect('${ft.typeArguments}/${ft.typeParameters}', '[S, int]/[T, S]');
 
-    SimpleIdentifier f2 = _findIdentifier('f;');
-    expect(f2.staticType.toString(), '<S₀>(S₀) → S');
+    _expectIdentifierType('f;', '<S₀>(S₀) → S');
   }
 
   void test_genericMethod_nestedFunctions() {
@@ -13491,10 +14035,8 @@ class C<T> {
   return null;
 }
 ''');
-    SimpleIdentifier g = _findIdentifier('f');
-    expect(g.staticType.toString(), '<S>(S) → S');
-    SimpleIdentifier f = _findIdentifier('g');
-    expect(f.staticType.toString(), '<S>(S) → dynamic');
+    _expectIdentifierType('f', '<S>(S) → S');
+    _expectIdentifierType('g', '<S>(S) → dynamic');
   }
 
   void test_genericMethod_override() {
@@ -13506,13 +14048,11 @@ class D extends C {
   /*=T*/ f/*<T>*/(/*=T*/ x) => null; // from D
 }
 ''');
+    _expectFunctionType('f/*<T>*/(/*=T*/ x) => null; // from D', '<T>(T) → T',
+        elementTypeParams: '[T]', typeFormals: '[T]');
     SimpleIdentifier f =
         _findIdentifier('f/*<T>*/(/*=T*/ x) => null; // from D');
     MethodElementImpl e = f.staticElement;
-    expect(e.typeParameters.toString(), '[T]');
-    expect(e.type.typeFormals.toString(), '[T]');
-    expect(e.type.toString(), '<T>(T) → T');
-
     FunctionType ft = e.type.instantiate([typeProvider.stringType]);
     expect(ft.toString(), '(String) → String');
   }
@@ -13541,6 +14081,11 @@ class D extends C {
     // TODO(jmesserly): we can't use assertErrors because STRONG_MODE_* errors
     // from CodeChecker don't have working equality.
     List<AnalysisError> errors = analysisContext2.computeErrors(source);
+
+    // Sort errors by name.
+    errors.sort((AnalysisError e1, AnalysisError e2) =>
+        e1.errorCode.name.compareTo(e2.errorCode.name));
+
     expect(errors.map((e) => e.errorCode.name), [
       'INVALID_METHOD_OVERRIDE_RETURN_TYPE',
       'STRONG_MODE_INVALID_METHOD_OVERRIDE'
@@ -13564,10 +14109,11 @@ class D extends C {
     // TODO(jmesserly): this is modified code from assertErrors, which we can't
     // use directly because STRONG_MODE_* errors don't have working equality.
     List<AnalysisError> errors = analysisContext2.computeErrors(source);
-    expect(errors.map((e) => e.errorCode.name), [
-      'STRONG_MODE_INVALID_METHOD_OVERRIDE',
-      'INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND'
-    ]);
+    List errorNames = errors.map((e) => e.errorCode.name).toList();
+    expect(errorNames, hasLength(2));
+    expect(errorNames, contains('STRONG_MODE_INVALID_METHOD_OVERRIDE'));
+    expect(
+        errorNames, contains('INVALID_METHOD_OVERRIDE_TYPE_PARAMETER_BOUND'));
     verify([source]);
   }
 
@@ -13587,6 +14133,28 @@ class D extends C {
       'INVALID_METHOD_OVERRIDE_TYPE_PARAMETERS'
     ]);
     verify([source]);
+  }
+
+  void test_genericMethod_propagatedType_promotion() {
+    // Regression test for:
+    // https://github.com/dart-lang/sdk/issues/25340
+
+    // Note, after https://github.com/dart-lang/sdk/issues/25486 the original
+    // example won't work, as we now compute a static type and therefore discard
+    // the propagated type. So a new test was created that doesn't run under
+    // strong mode.
+    _resolveTestUnit(r'''
+abstract class Iter {
+  List/*<S>*/ map/*<S>*/(/*=S*/ f(x));
+}
+class C {}
+C toSpan(dynamic element) {
+  if (element is Iter) {
+    var y = element.map(toSpan);
+  }
+  return null;
+}''');
+    _expectIdentifierType('y = ', 'List<C>', isNull);
   }
 
   void test_genericMethod_tearoff() {
@@ -13611,101 +14179,16 @@ void test/*<S>*/(/*=T*/ pf/*<T>*/(/*=T*/ e)) {
   var paramTearOff = pf;
 }
 ''');
-    expect(
-        _findIdentifier('methodTearOff').staticType.toString(), "<T>(int) → T");
-    expect(
-        _findIdentifier('staticTearOff').staticType.toString(), "<T>(T) → T");
-    expect(_findIdentifier('staticFieldTearOff').staticType.toString(),
-        "<T>(T) → T");
-    expect(
-        _findIdentifier('topFunTearOff').staticType.toString(), "<T>(T) → T");
-    expect(
-        _findIdentifier('topFieldTearOff').staticType.toString(), "<T>(T) → T");
-    expect(_findIdentifier('localTearOff').staticType.toString(), "<T>(T) → T");
-    expect(_findIdentifier('paramTearOff').staticType.toString(), "<T>(T) → T");
+    _expectIdentifierType('methodTearOff', "<T>(int) → T");
+    _expectIdentifierType('staticTearOff', "<T>(T) → T");
+    _expectIdentifierType('staticFieldTearOff', "<T>(T) → T");
+    _expectIdentifierType('topFunTearOff', "<T>(T) → T");
+    _expectIdentifierType('topFieldTearOff', "<T>(T) → T");
+    _expectIdentifierType('localTearOff', "<T>(T) → T");
+    _expectIdentifierType('paramTearOff', "<T>(T) → T");
   }
 
-  void test_pseudoGeneric_max_doubleDouble() {
-    String code = r'''
-import 'dart:math';
-main() {
-  var foo = max(1.0, 2.0);
-}
-''';
-    _resolveTestUnit(code);
-
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'double');
-    expect(declaration.initializer.propagatedType, isNull);
-  }
-
-  void test_pseudoGeneric_max_doubleDouble_prefixed() {
-    String code = r'''
-import 'dart:math' as math;
-main() {
-  var foo = math.max(1.0, 2.0);
-}
-''';
-    _resolveTestUnit(code);
-
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'double');
-    expect(declaration.initializer.propagatedType, isNull);
-  }
-
-  void test_pseudoGeneric_max_doubleInt() {
-    String code = r'''
-import 'dart:math';
-main() {
-  var foo = max(1.0, 2);
-}
-''';
-    _resolveTestUnit(code);
-
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'num');
-    expect(declaration.initializer.propagatedType, isNull);
-  }
-
-  void test_pseudoGeneric_max_intDouble() {
-    String code = r'''
-import 'dart:math';
-main() {
-  var foo = max(1, 2.0);
-}
-''';
-    _resolveTestUnit(code);
-
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'num');
-    expect(declaration.initializer.propagatedType, isNull);
-  }
-
-  void test_pseudoGeneric_max_intInt() {
-    String code = r'''
-import 'dart:math';
-main() {
-  var foo = max(1, 2);
-}
-''';
-    _resolveTestUnit(code);
-
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'int');
-    expect(declaration.initializer.propagatedType, isNull);
-  }
-
-  void test_pseudoGeneric_then() {
+  void test_genericMethod_then() {
     String code = r'''
 import 'dart:async';
 String toString(int x) => x.toString();
@@ -13715,16 +14198,10 @@ main() {
 }
 ''';
     _resolveTestUnit(code);
-
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-
-    expect(declaration.initializer.staticType.toString(), "Future<String>");
-    expect(declaration.initializer.propagatedType, isNull);
+    _expectInitializerType('foo', 'Future<String>', isNull);
   }
 
-  void test_pseudoGeneric_then_prefixed() {
+  void test_genericMethod_then_prefixed() {
     String code = r'''
 import 'dart:async' as async;
 String toString(int x) => x.toString();
@@ -13734,13 +14211,21 @@ main() {
 }
 ''';
     _resolveTestUnit(code);
+    _expectInitializerType('foo', 'Future<String>', isNull);
+  }
 
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-
-    expect(declaration.initializer.staticType.toString(), "Future<String>");
-    expect(declaration.initializer.propagatedType, isNull);
+  void test_genericMethod_then_propagatedType() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/25482.
+    String code = r'''
+import 'dart:async';
+void main() {
+  Future<String> p;
+  var foo = p.then((r) => new Future<String>.value(3));
+}
+''';
+    // This should produce no hints or warnings.
+    _resolveTestUnit(code);
+    _expectInitializerType('foo', 'Future<String>', isNull);
   }
 
   void test_setterWithDynamicTypeIsError() {
@@ -13823,12 +14308,7 @@ main() {
 }
 ''';
     _resolveTestUnit(code);
-
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'int');
-    expect(declaration.initializer.propagatedType, isNull);
+    _expectInitializerType('foo', 'int', isNull);
   }
 
   void test_ternaryOperator_null_right() {
@@ -13838,12 +14318,7 @@ main() {
 }
 ''';
     _resolveTestUnit(code);
-
-    SimpleIdentifier identifier = _findIdentifier('foo');
-    VariableDeclaration declaration =
-        identifier.getAncestor((node) => node is VariableDeclaration);
-    expect(declaration.initializer.staticType.name, 'int');
-    expect(declaration.initializer.propagatedType, isNull);
+    _expectInitializerType('foo', 'int', isNull);
   }
 }
 
@@ -14201,6 +14676,23 @@ class SubtypeManagerTest {
     expect(subtypesOfA, hasLength(1));
     expect(arraySubtypesOfA, unorderedEquals([classB]));
   }
+}
+
+class TestPackageUriResolver extends UriResolver {
+  Map<Uri, Source> sourceMap = new HashMap<Uri, Source>();
+
+  TestPackageUriResolver(Map<String, String> map) {
+    map.forEach((String uri, String contents) {
+      sourceMap[Uri.parse(uri)] =
+          new StringSource(contents, '/test_pkg_source.dart');
+    });
+  }
+
+  @override
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) => sourceMap[uri];
+
+  @override
+  Uri restoreAbsolute(Source source) => throw new UnimplementedError();
 }
 
 @reflectiveTest
@@ -15747,7 +16239,7 @@ main() {
 }''';
     SimpleIdentifier methodName = _findMarkedIdentifier(code, "(); // marker");
     MethodInvocation methodInvoke = methodName.parent;
-    expect(methodName.staticType, null, reason: 'library prefix has no type');
+    expect(methodName.staticType, typeProvider.dynamicType);
     expect(methodInvoke.staticType, typeProvider.dynamicType);
   }
 
@@ -15953,8 +16445,78 @@ class TypeProviderImplTest extends EngineTestCase {
     expect(provider.mapType, same(mapType));
     expect(provider.objectType, same(objectType));
     expect(provider.stackTraceType, same(stackTraceType));
+    expect(provider.streamType, same(streamType));
     expect(provider.stringType, same(stringType));
     expect(provider.symbolType, same(symbolType));
+    expect(provider.typeType, same(typeType));
+  }
+
+  void test_creation_no_async() {
+    //
+    // Create a mock library element with the types expected to be in dart:core.
+    // We cannot use either ElementFactory or TestTypeProvider (which uses
+    // ElementFactory) because we side-effect the elements in ways that would
+    // break other tests.
+    //
+    InterfaceType objectType = _classElement("Object", null).type;
+    InterfaceType boolType = _classElement("bool", objectType).type;
+    InterfaceType numType = _classElement("num", objectType).type;
+    InterfaceType doubleType = _classElement("double", numType).type;
+    InterfaceType functionType = _classElement("Function", objectType).type;
+    InterfaceType intType = _classElement("int", numType).type;
+    InterfaceType iterableType =
+        _classElement("Iterable", objectType, ["T"]).type;
+    InterfaceType listType = _classElement("List", objectType, ["E"]).type;
+    InterfaceType mapType = _classElement("Map", objectType, ["K", "V"]).type;
+    InterfaceType stackTraceType = _classElement("StackTrace", objectType).type;
+    InterfaceType stringType = _classElement("String", objectType).type;
+    InterfaceType symbolType = _classElement("Symbol", objectType).type;
+    InterfaceType typeType = _classElement("Type", objectType).type;
+    CompilationUnitElementImpl coreUnit =
+        new CompilationUnitElementImpl("core.dart");
+    coreUnit.types = <ClassElement>[
+      boolType.element,
+      doubleType.element,
+      functionType.element,
+      intType.element,
+      iterableType.element,
+      listType.element,
+      mapType.element,
+      objectType.element,
+      stackTraceType.element,
+      stringType.element,
+      symbolType.element,
+      typeType.element
+    ];
+    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
+    LibraryElementImpl coreLibrary = new LibraryElementImpl.forNode(
+        context, AstFactory.libraryIdentifier2(["dart.core"]));
+    coreLibrary.definingCompilationUnit = coreUnit;
+
+    LibraryElementImpl mockAsyncLib =
+        (context as AnalysisContextImpl).createMockAsyncLib(coreLibrary);
+    expect(mockAsyncLib.publicNamespace, isNotNull);
+
+    //
+    // Create a type provider and ensure that it can return the expected types.
+    //
+    TypeProviderImpl provider = new TypeProviderImpl(coreLibrary, mockAsyncLib);
+    expect(provider.boolType, same(boolType));
+    expect(provider.bottomType, isNotNull);
+    expect(provider.doubleType, same(doubleType));
+    expect(provider.dynamicType, isNotNull);
+    expect(provider.functionType, same(functionType));
+    InterfaceType mockFutureType = mockAsyncLib.getType('Future').type;
+    expect(provider.futureType, same(mockFutureType));
+    expect(provider.intType, same(intType));
+    expect(provider.listType, same(listType));
+    expect(provider.mapType, same(mapType));
+    expect(provider.objectType, same(objectType));
+    expect(provider.stackTraceType, same(stackTraceType));
+    expect(provider.stringType, same(stringType));
+    expect(provider.symbolType, same(symbolType));
+    InterfaceType mockStreamType = mockAsyncLib.getType('Stream').type;
+    expect(provider.streamType, same(mockStreamType));
     expect(provider.typeType, same(typeType));
   }
 
@@ -16515,6 +17077,30 @@ class TypeResolverVisitorTest {
     _listener.assertNoErrors();
   }
 
+  void test_visitTypeName_noParameters_noArguments_undefined() {
+    SimpleIdentifier id = AstFactory.identifier3("unknown")
+      ..staticElement = new _StaleElement();
+    TypeName typeName = new TypeName(id, null);
+    _resolveNode(typeName, []);
+    expect(typeName.type, UndefinedTypeImpl.instance);
+    expect(typeName.name.staticElement, null);
+    _listener.assertErrorsWithCodes([StaticWarningCode.UNDEFINED_CLASS]);
+  }
+
+  void test_visitTypeName_prefixed_noParameters_noArguments_undefined() {
+    SimpleIdentifier prefix = AstFactory.identifier3("unknownPrefix")
+      ..staticElement = new _StaleElement();
+    SimpleIdentifier suffix = AstFactory.identifier3("unknownSuffix")
+      ..staticElement = new _StaleElement();
+    TypeName typeName =
+        new TypeName(AstFactory.identifier(prefix, suffix), null);
+    _resolveNode(typeName, []);
+    expect(typeName.type, UndefinedTypeImpl.instance);
+    expect(prefix.staticElement, null);
+    expect(suffix.staticElement, null);
+    _listener.assertErrorsWithCodes([StaticWarningCode.UNDEFINED_CLASS]);
+  }
+
   void test_visitTypeName_parameters_arguments() {
     ClassElement classA = ElementFactory.classElement2("A", ["E"]);
     ClassElement classB = ElementFactory.classElement2("B");
@@ -16612,12 +17198,17 @@ class TypeResolverVisitorTest {
 
 class _AnalysisContextFactory_initContextWithCore
     extends DirectoryBasedDartSdk {
-  _AnalysisContextFactory_initContextWithCore(JavaFile arg0) : super(arg0);
+  final bool enableAsync;
+  _AnalysisContextFactory_initContextWithCore(JavaFile arg0,
+      {this.enableAsync: true})
+      : super(arg0);
 
   @override
   LibraryMap initialLibraryMap(bool useDart2jsPaths) {
     LibraryMap map = new LibraryMap();
-    _addLibrary(map, DartSdk.DART_ASYNC, false, "async.dart");
+    if (enableAsync) {
+      _addLibrary(map, DartSdk.DART_ASYNC, false, "async.dart");
+    }
     _addLibrary(map, DartSdk.DART_CORE, false, "core.dart");
     _addLibrary(map, DartSdk.DART_HTML, false, "html_dartium.dart");
     _addLibrary(map, AnalysisContextFactory._DART_MATH, false, "math.dart");
@@ -16670,6 +17261,21 @@ class _SimpleResolverTest_localVariable_types_invoked
 }
 
 /**
+ * Represents an element left over from a previous resolver run.
+ *
+ * A _StaleElement should always be replaced with either null or a new Element.
+ */
+class _StaleElement extends ElementImpl {
+  _StaleElement() : super("_StaleElement", -1);
+
+  @override
+  accept(_) => throw "_StaleElement shouldn't be visited";
+
+  @override
+  get kind => throw "_StaleElement's kind shouldn't be accessed";
+}
+
+/**
  * Shared infrastructure for [StaticTypeAnalyzer2Test] and
  * [StrongModeStaticTypeAnalyzer2Test].
  */
@@ -16677,6 +17283,81 @@ class _StaticTypeAnalyzer2TestShared extends ResolverTestCase {
   String testCode;
   Source testSource;
   CompilationUnit testUnit;
+
+  /**
+   * Looks up the identifier with [name] and validates that its type type
+   * stringifies to [type] and that its generics match the given stringified
+   * output.
+   */
+  _expectFunctionType(String name, String type,
+      {String elementTypeParams: '[]',
+      String typeParams: '[]',
+      String typeArgs: '[]',
+      String typeFormals: '[]'}) {
+    SimpleIdentifier identifier = _findIdentifier(name);
+    // Element is either ExecutableElement or ParameterElement.
+    var element = identifier.staticElement;
+    FunctionTypeImpl functionType = identifier.staticType;
+    expect(functionType.toString(), type);
+    expect(element.typeParameters.toString(), elementTypeParams);
+    expect(functionType.typeParameters.toString(), typeParams);
+    expect(functionType.typeArguments.toString(), typeArgs);
+    expect(functionType.typeFormals.toString(), typeFormals);
+  }
+
+  /**
+   * Looks up the identifier with [name] and validates its static [type].
+   *
+   * If [type] is a string, validates that the identifier's static type
+   * stringifies to that text. Otherwise, [type] is used directly a [Matcher]
+   * to match the type.
+   *
+   * If [propagatedType] is given, also validate's the identifier's propagated
+   * type.
+   */
+  void _expectIdentifierType(String name, type, [propagatedType]) {
+    SimpleIdentifier identifier = _findIdentifier(name);
+    _expectType(identifier.staticType, type);
+    if (propagatedType != null) {
+      _expectType(identifier.propagatedType, propagatedType);
+    }
+  }
+
+  /**
+   * Looks up the initializer for the declaration containing [identifier] and
+   * validates its static [type].
+   *
+   * If [type] is a string, validates that the identifier's static type
+   * stringifies to that text. Otherwise, [type] is used directly a [Matcher]
+   * to match the type.
+   *
+   * If [propagatedType] is given, also validate's the identifier's propagated
+   * type.
+   */
+  void _expectInitializerType(String name, type, [propagatedType]) {
+    SimpleIdentifier identifier = _findIdentifier(name);
+    VariableDeclaration declaration =
+        identifier.getAncestor((node) => node is VariableDeclaration);
+    Expression initializer = declaration.initializer;
+    _expectType(initializer.staticType, type);
+    if (propagatedType != null) {
+      _expectType(initializer.propagatedType, propagatedType);
+    }
+  }
+
+  /**
+   * Validates that [type] matches [expected].
+   *
+   * If [expected] is a string, validates that the type stringifies to that
+   * text. Otherwise, [expected] is used directly a [Matcher] to match the type.
+   */
+  _expectType(DartType type, expected) {
+    if (expected is String) {
+      expect(type.toString(), expected);
+    } else {
+      expect(type, expected);
+    }
+  }
 
   SimpleIdentifier _findIdentifier(String search) {
     SimpleIdentifier identifier = EngineTestCase.findNode(

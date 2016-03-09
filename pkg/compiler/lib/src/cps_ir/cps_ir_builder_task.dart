@@ -7,6 +7,7 @@ library dart2js.ir_builder_task;
 import '../closure.dart' as closure;
 import '../common.dart';
 import '../common/names.dart' show
+    Identifiers,
     Names,
     Selectors;
 import '../common/tasks.dart' show
@@ -382,7 +383,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     IrBuilder builder = getBuilderFor(constructor);
 
     final bool requiresTypeInformation =
-    builder.program.requiresRuntimeTypesFor(classElement);
+        builder.program.requiresRuntimeTypesFor(classElement);
 
     return withBuilder(builder, () {
       // Setup parameters and create a box if anything is captured.
@@ -410,11 +411,15 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
           closureScope: getClosureScopeForFunction(constructor));
 
       // Create a list of the values of all type argument parameters, if any.
-      List<ir.Primitive> typeInformation;
+      ir.Primitive typeInformation;
       if (requiresTypeInformation) {
-        typeInformation = irParameters.sublist(firstTypeArgumentParameterIndex);
+        typeInformation = new ir.TypeExpression(
+            ir.TypeExpressionKind.INSTANCE,
+            classElement.thisType,
+            irParameters.sublist(firstTypeArgumentParameterIndex));
+        irBuilder.add(new ir.LetPrim(typeInformation));
       } else {
-        typeInformation = const <ir.Primitive>[];
+        typeInformation = null;
       }
 
       // -- Load values for type variables declared on super classes --
@@ -426,7 +431,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
 
       /// Maps each field from this class or a superclass to its initial value.
       Map<FieldElement, ir.Primitive> fieldValues =
-      <FieldElement, ir.Primitive>{};
+          <FieldElement, ir.Primitive>{};
 
       // -- Evaluate field initializers ---
       // Evaluate field initializers in constructor and super constructors.
@@ -753,7 +758,8 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     TryBoxedVariables variables = _analyzeTryBoxedVariables(node);
     tryStatements = variables.tryStatements;
     IrBuilder builder = getBuilderFor(element);
-    return withBuilder(builder, () => _makeFunctionBody(element, node));
+    return withBuilder(builder,
+        () => _makeFunctionBody(builder, element, node));
   }
 
   ir.FunctionDefinition buildStaticFieldInitializer(FieldElement element) {
@@ -790,7 +796,10 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
 
   /// Creates a primitive for the default value of [parameter].
   ir.Primitive translateDefaultValue(ParameterElement parameter) {
-    if (parameter.initializer == null) {
+    if (parameter.initializer == null ||
+        // TODO(sigmund): JS doesn't support default values, so this should be
+        // reported as an error earlier (Issue #25759).
+        backend.isJsInterop(parameter.functionDeclaration)) {
       return irBuilder.buildNullConstant();
     } else {
       return inlineConstant(parameter.executableContext, parameter.initializer);
@@ -869,23 +878,34 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       typeMaskSystem.associateConstantValueWithElement(constant, field);
       return irBuilder.buildConstant(constant, sourceInformation: src);
     } else if (backend.constants.lazyStatics.contains(field)) {
-      return irBuilder.addPrimitive(new ir.GetLazyStatic(field, src));
+      return irBuilder.addPrimitive(new ir.GetLazyStatic(field,
+          sourceInformation: src,
+          isFinal: compiler.world.fieldNeverChanges(field)));
     } else {
-      return irBuilder.addPrimitive(new ir.GetStatic(field, src));
+      return irBuilder.addPrimitive(new ir.GetStatic(field,
+          sourceInformation: src,
+          isFinal: compiler.world.fieldNeverChanges(field)));
     }
   }
 
-  ir.FunctionDefinition _makeFunctionBody(FunctionElement element,
-                                          ast.FunctionExpression node) {
+  ir.FunctionDefinition _makeFunctionBody(
+      IrBuilder builder,
+      FunctionElement element,
+      ast.FunctionExpression node) {
     FunctionSignature signature = element.functionSignature;
     List<Local> parameters = <Local>[];
     signature.orderedForEachParameter(
         (LocalParameterElement e) => parameters.add(e));
 
+    bool requiresRuntimeTypes = false;
     if (element.isFactoryConstructor) {
-      // Type arguments are passed in as extra parameters.
-      for (DartType typeVariable in element.enclosingClass.typeVariables) {
-        parameters.add(new closure.TypeVariableLocal(typeVariable, element));
+      requiresRuntimeTypes =
+          builder.program.requiresRuntimeTypesFor(element.enclosingElement);
+      if (requiresRuntimeTypes) {
+        // Type arguments are passed in as extra parameters.
+        for (DartType typeVariable in element.enclosingClass.typeVariables) {
+          parameters.add(new closure.TypeVariableLocal(typeVariable, element));
+        }
       }
     }
 
@@ -893,7 +913,45 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
                                   closureScope: getClosureScopeForNode(node),
                                   env: getClosureEnvironment());
 
-    visit(node.body);
+    if (element == helpers.jsArrayTypedConstructor) {
+      // Generate a body for JSArray<E>.typed(allocation):
+      //
+      //    t1 = setRuntimeTypeInfo(allocation, TypeExpression($E));
+      //    return Refinement(t1, <JSArray>);
+      //
+      assert(parameters.length == 1 || parameters.length == 2);
+      ir.Primitive allocation = irBuilder.buildLocalGet(parameters[0]);
+      ClassElement classElement = element.enclosingElement;
+
+      // Only call setRuntimeTypeInfo if JSArray requires the type parameter.
+      if (requiresRuntimeTypes) {
+        assert(parameters.length == 2);
+        closure.TypeVariableLocal typeParameter = parameters[1];
+        ir.Primitive typeArgument =
+            irBuilder.buildTypeVariableAccess(typeParameter.typeVariable);
+
+        ir.Primitive typeInformation = irBuilder.addPrimitive(
+            new ir.TypeExpression(ir.TypeExpressionKind.INSTANCE,
+                                  element.enclosingClass.thisType,
+                                  <ir.Primitive>[typeArgument]));
+
+        MethodElement helper = helpers.setRuntimeTypeInfo;
+        CallStructure callStructure = CallStructure.TWO_ARGS;
+        Selector selector = new Selector.call(helper.memberName, callStructure);
+        allocation = irBuilder.buildInvokeStatic(
+            helper, selector, <ir.Primitive>[allocation, typeInformation],
+            sourceInformationBuilder.buildGeneric(node));
+      }
+
+      ir.Primitive refinement = irBuilder.addPrimitive(
+          new ir.Refinement(allocation, typeMaskSystem.arrayType));
+
+      irBuilder.buildReturn(value: refinement,
+          sourceInformation:
+              sourceInformationBuilder.buildImplicitReturn(element));
+    } else {
+      visit(node.body);
+    }
     return irBuilder.makeFunctionDefinition();
   }
 
@@ -1060,8 +1118,105 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   visitAsyncForIn(ast.AsyncForIn node) {
-    // await for is not yet implemented.
-    return giveup(node, 'await for');
+    // Translate await for into a loop over a StreamIterator.  The source
+    // statement:
+    //
+    // await for (<decl> in <stream>) <body>
+    //
+    // is translated as if it were:
+    //
+    // var iterator = new StreamIterator(<stream>);
+    // try {
+    //   while (await iterator.hasNext()) {
+    //     <decl> = await iterator.current;
+    //     <body>
+    //   }
+    // } finally {
+    //   await iterator.cancel();
+    // }
+    ir.Primitive stream = visit(node.expression);
+    ir.Primitive dummyTypeArgument = irBuilder.buildNullConstant();
+    ConstructorElement constructor = helpers.streamIteratorConstructor;
+    ir.Primitive iterator = irBuilder.addPrimitive(new ir.InvokeConstructor(
+        constructor.enclosingClass.thisType,
+        constructor,
+        new Selector.callConstructor(constructor.memberName, 1),
+        <ir.Primitive>[stream, dummyTypeArgument],
+        sourceInformationBuilder.buildGeneric(node)));
+
+    ir.Node buildTryBody(IrBuilder builder) {
+      ir.Node buildLoopCondition(IrBuilder builder) {
+        ir.Primitive moveNext = builder.buildDynamicInvocation(
+            iterator,
+            Selectors.moveNext,
+            elements.getMoveNextTypeMask(node),
+            <ir.Primitive>[]);
+        return builder.addPrimitive(new ir.Await(moveNext));
+      }
+
+      ir.Node buildLoopBody(IrBuilder builder) {
+        return withBuilder(builder, () {
+          ir.Primitive current = irBuilder.buildDynamicInvocation(
+              iterator,
+              Selectors.current,
+              elements.getCurrentTypeMask(node),
+              <ir.Primitive>[]);
+          Element variable = elements.getForInVariable(node);
+          if (Elements.isLocal(variable)) {
+            if (node.declaredIdentifier.asVariableDefinitions() != null) {
+              irBuilder.declareLocalVariable(variable);
+            }
+            irBuilder.buildLocalVariableSet(variable, current);
+          } else if (Elements.isError(variable) ||
+                     Elements.isMalformed(variable)) {
+            Selector selector =
+                new Selector.setter(new Name(variable.name, variable.library));
+            List<ir.Primitive> args = <ir.Primitive>[current];
+            // Note the comparison below.  It can be the case that an element
+            // isError and isMalformed.
+            if (Elements.isError(variable)) {
+              irBuilder.buildStaticNoSuchMethod(selector, args);
+            } else {
+              irBuilder.buildErroneousInvocation(variable, selector, args);
+            }
+          } else if (Elements.isStaticOrTopLevel(variable)) {
+            if (variable.isField) {
+              irBuilder.addPrimitive(new ir.SetStatic(variable, current));
+            } else {
+              irBuilder.buildStaticSetterSet(variable, current);
+            }
+          } else {
+            ir.Primitive receiver = irBuilder.buildThis();
+            ast.Node identifier = node.declaredIdentifier;
+            irBuilder.buildDynamicSet(
+                receiver,
+                elements.getSelector(identifier),
+                elements.getTypeMask(identifier),
+                current);
+          }
+          visit(node.body);
+        });
+      }
+
+      builder.buildWhile(
+          buildCondition: buildLoopCondition,
+          buildBody: buildLoopBody,
+          target: elements.getTargetDefinition(node),
+          closureScope: getClosureScopeForNode(node));
+    }
+
+    ir.Node buildFinallyBody(IrBuilder builder) {
+      ir.Primitive cancellation = builder.buildDynamicInvocation(
+          iterator,
+          Selectors.cancel,
+          backend.dynamicType,
+          <ir.Primitive>[],
+          sourceInformation: sourceInformationBuilder.buildGeneric(node));
+      return builder.addPrimitive(new ir.Await(cancellation));
+    }
+
+    irBuilder.buildTryFinally(new TryStatementInfo(), buildTryBody,
+        buildFinallyBody);
   }
 
   visitAwait(ast.Await node) {
@@ -1172,44 +1327,270 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   visitSwitchStatement(ast.SwitchStatement node) {
+    // Dart switch cases can be labeled and be the target of continue from
+    // within the switch.  Such cases are 'recursive'.  If there are any
+    // recursive cases, we implement the switch using a pair of switches with
+    // the second one switching over a state variable in a loop.  The first
+    // switch contains the non-recursive cases, and the second switch contains
+    // the recursive ones.
+    //
+    // For example, for the Dart switch:
+    //
+    // switch (E) {
+    //   case 0:
+    //     BODY0;
+    //     break;
+    //   LABEL0: case 1:
+    //     BODY1;
+    //     break;
+    //   case 2:
+    //     BODY2;
+    //     continue LABEL1;
+    //   LABEL1: case 3:
+    //     BODY3;
+    //     continue LABEL0;
+    //   default:
+    //     BODY4;
+    // }
+    //
+    // We translate it as if it were the JavaScript:
+    //
+    // var state = -1;
+    // switch (E) {
+    //   case 0:
+    //     BODY0;
+    //     break;
+    //   case 1:
+    //     state = 0;  // Recursive, label ID = 0.
+    //     break;
+    //   case 2:
+    //     BODY2;
+    //     state = 1;  // Continue to label ID = 1.
+    //     break;
+    //   case 3:
+    //     state = 1;  // Recursive, label ID = 1.
+    //     break;
+    //   default:
+    //     BODY4;
+    // }
+    // L: while (state != -1) {
+    //   case 0:
+    //     BODY1;
+    //     break L;  // Break from switch becomes break from loop.
+    //   case 1:
+    //     BODY2;
+    //     state = 0;  // Continue to label ID = 0.
+    //     break;
+    // }
     assert(irBuilder.isOpen);
-    // We do not handle switch statements with continue to labeled cases.
-    for (ast.SwitchCase switchCase in node.cases) {
+    // Preprocess: compute a list of cases that are the target of continue.
+    // These are the so-called 'recursive' cases.
+    List<JumpTarget> continueTargets = <JumpTarget>[];
+    List<ast.Node> switchCases = node.cases.nodes.toList();
+    for (ast.SwitchCase switchCase in switchCases) {
       for (ast.Node labelOrCase in switchCase.labelsAndCases) {
         if (labelOrCase is ast.Label) {
           LabelDefinition definition = elements.getLabelDefinition(labelOrCase);
           if (definition != null && definition.isContinueTarget) {
-            return giveup(node, "continue to a labeled switch case");
+            continueTargets.add(definition.target);
           }
         }
       }
     }
 
-    // Each switch case contains a list of interleaved labels and expressions
-    // and a non-empty body.  We can ignore the labels because they are not
-    // jump targets.
-    List<SwitchCaseInfo> cases = <SwitchCaseInfo>[];
-    SwitchCaseInfo defaultCase;
-    for (ast.SwitchCase switchCase in node.cases) {
-      SwitchCaseInfo caseInfo =
-          new SwitchCaseInfo(subbuildSequence(switchCase.statements));
-      if (switchCase.isDefaultCase) {
-        defaultCase = caseInfo;
-      } else {
-        cases.add(caseInfo);
-        for (ast.Node labelOrCase in switchCase.labelsAndCases) {
-          if (labelOrCase is ast.CaseMatch) {
-            ir.Primitive constant = translateConstant(labelOrCase.expression);
-            caseInfo.addConstant(constant);
-          }
-        }
-      }
+    // If any cases are continue targets, use an anonymous local value to
+    // implement a state machine.  The initial value is -1.
+    ir.Primitive initial;
+    int stateIndex;
+    if (continueTargets.isNotEmpty) {
+      initial = irBuilder.buildIntegerConstant(-1);
+      stateIndex = irBuilder.environment.length;
+      irBuilder.environment.extend(null, initial);
     }
+
+    // Use a simple switch for the non-recursive cases.  A break will go to the
+    // join-point after the switch.  A continue to a labeled case will assign
+    // to the state variable and go to the join-point.
     ir.Primitive value = visit(node.expression);
-    JumpTarget target = elements.getTargetDefinition(node);
-    Element error = helpers.fallThroughError;
-    irBuilder.buildSimpleSwitch(target, value, cases, defaultCase, error,
-        sourceInformationBuilder.buildGeneric(node));
+    JumpCollector join = new ForwardJumpCollector(irBuilder.environment,
+        target: elements.getTargetDefinition(node));
+    irBuilder.state.breakCollectors.add(join);
+    for (int i = 0; i < continueTargets.length; ++i) {
+      // The state value is i, the case's position in the list of recursive
+      // cases.
+      irBuilder.state.continueCollectors.add(new GotoJumpCollector(
+          continueTargets[i], stateIndex, i, join));
+    }
+
+    // For each non-default case use a pair of functions, one to translate the
+    // condition and one to translate the body.  For the default case use a
+    // function to translate the body.  Use continueTargetIterator as a pointer
+    // to the next recursive case.
+    Iterator<JumpTarget> continueTargetIterator = continueTargets.iterator;
+    continueTargetIterator.moveNext();
+    List<SwitchCaseInfo> cases = <SwitchCaseInfo>[];
+    SubbuildFunction buildDefaultBody;
+    for (ast.SwitchCase switchCase in switchCases) {
+      JumpTarget nextContinueTarget = continueTargetIterator.current;
+      if (switchCase.isDefaultCase) {
+        if (nextContinueTarget != null &&
+            switchCase == nextContinueTarget.statement) {
+          // In this simple switch, recursive cases are as if they immediately
+          // continued to themselves.
+          buildDefaultBody = nested(() {
+            irBuilder.buildContinue(nextContinueTarget);
+          });
+          continueTargetIterator.moveNext();
+        } else {
+          // Non-recursive cases consist of the translation of the body.
+          // For the default case, there is implicitly a break if control
+          // flow reaches the end.
+          buildDefaultBody = nested(() {
+            irBuilder.buildSequence(switchCase.statements, visit);
+            if (irBuilder.isOpen) irBuilder.jumpTo(join);
+          });
+        }
+        continue;
+      }
+
+      ir.Primitive buildCondition(IrBuilder builder) {
+        // There can be multiple cases sharing the same body, because empty
+        // cases are allowed to fall through to the next one.  Each case is
+        // a comparison, build a short-circuited disjunction of all of them.
+        return withBuilder(builder, () {
+          ir.Primitive condition;
+          for (ast.Node labelOrCase in switchCase.labelsAndCases) {
+            if (labelOrCase is ast.CaseMatch) {
+              ir.Primitive buildComparison() {
+                ir.Primitive constant =
+                    translateConstant(labelOrCase.expression);
+                return irBuilder.buildIdentical(value, constant);
+              }
+
+              if (condition == null) {
+                condition = buildComparison();
+              } else {
+                condition = irBuilder.buildLogicalOperator(condition,
+                    nested(buildComparison), isLazyOr: true);
+              }
+            }
+          }
+          return condition;
+        });
+      }
+
+      SubbuildFunction buildBody;
+      if (nextContinueTarget != null &&
+          switchCase == nextContinueTarget.statement) {
+        // Recursive cases are as if they immediately continued to themselves.
+        buildBody = nested(() {
+          irBuilder.buildContinue(nextContinueTarget);
+        });
+        continueTargetIterator.moveNext();
+      } else {
+        // Non-recursive cases consist of the translation of the body.  It is a
+        // runtime error if control-flow reaches the end of the body of any but
+        // the last case.
+        buildBody = (IrBuilder builder) {
+          withBuilder(builder, () {
+            irBuilder.buildSequence(switchCase.statements, visit);
+            if (irBuilder.isOpen) {
+              if (switchCase == switchCases.last) {
+                irBuilder.jumpTo(join);
+              } else {
+                Element error = helpers.fallThroughError;
+                ir.Primitive exception = irBuilder.buildInvokeStatic(
+                    error,
+                    new Selector.fromElement(error),
+                    <ir.Primitive>[],
+                    sourceInformationBuilder.buildGeneric(node));
+                irBuilder.buildThrow(exception);
+              }
+            }
+          });
+          return null;
+        };
+      }
+
+      cases.add(new SwitchCaseInfo(buildCondition, buildBody));
+    }
+
+    irBuilder.buildSimpleSwitch(join, cases, buildDefaultBody);
+    irBuilder.state.breakCollectors.removeLast();
+    irBuilder.state.continueCollectors.length -= continueTargets.length;
+    if (continueTargets.isEmpty) return;
+
+    // If there were recursive cases build a while loop whose body is a
+    // switch containing (only) the recursive cases.  The condition is
+    // 'state != initialValue' so the loop is not taken when the state variable
+    // has not been assigned.
+    //
+    // 'loop' is the join-point of the exits from the inner switch which will
+    // perform another iteration of the loop.  'exit' is the join-point of the
+    // breaks from the switch, outside the loop.
+    JumpCollector loop = new ForwardJumpCollector(irBuilder.environment);
+    JumpCollector exit = new ForwardJumpCollector(irBuilder.environment,
+        target: elements.getTargetDefinition(node));
+    irBuilder.state.breakCollectors.add(exit);
+    for (int i = 0; i < continueTargets.length; ++i) {
+      irBuilder.state.continueCollectors.add(new GotoJumpCollector(
+          continueTargets[i], stateIndex, i, loop));
+    }
+    cases.clear();
+    for (int i = 0; i < continueTargets.length; ++i) {
+      // The conditions compare to the recursive case index.
+      ir.Primitive buildCondition(IrBuilder builder) {
+        ir.Primitive constant = builder.buildIntegerConstant(i);
+        return builder.buildIdentical(
+            builder.environment.index2value[stateIndex], constant);
+      }
+
+      ir.Primitive buildBody(IrBuilder builder) {
+        withBuilder(builder, () {
+          ast.SwitchCase switchCase = continueTargets[i].statement;
+          irBuilder.buildSequence(switchCase.statements, visit);
+          if (irBuilder.isOpen) {
+            if (switchCase == switchCases.last) {
+              irBuilder.jumpTo(exit);
+            } else {
+              Element error = helpers.fallThroughError;
+              ir.Primitive exception = irBuilder.buildInvokeStatic(
+                  error,
+                  new Selector.fromElement(error),
+                  <ir.Primitive>[],
+                  sourceInformationBuilder.buildGeneric(node));
+              irBuilder.buildThrow(exception);
+            }
+          }
+        });
+        return null;
+      }
+
+      cases.add(new SwitchCaseInfo(buildCondition, buildBody));
+    }
+
+    // A loop with a simple switch in the body.
+    IrBuilder whileBuilder = irBuilder.makeDelimitedBuilder();
+    whileBuilder.buildWhile(
+        buildCondition: (IrBuilder builder) {
+          ir.Primitive condition = builder.buildIdentical(
+              builder.environment.index2value[stateIndex], initial);
+          return builder.buildNegation(condition);
+        },
+        buildBody: (IrBuilder builder) {
+          builder.buildSimpleSwitch(loop, cases, null);
+        });
+    // Jump to the exit continuation.  This jump is the body of the loop exit
+    // continuation, so the loop exit continuation can be eta-reduced.  The
+    // jump is here for simplicity because `buildWhile` does not expose the
+    // loop's exit continuation directly and has already emitted all jumps
+    // to it anyway.
+    whileBuilder.jumpTo(exit);
+    irBuilder.add(new ir.LetCont(exit.continuation, whileBuilder.root));
+    irBuilder.environment = exit.environment;
+    irBuilder.environment.discard(1);  // Discard the state variable.
+    irBuilder.state.breakCollectors.removeLast();
+    irBuilder.state.continueCollectors.length -= continueTargets.length;
   }
 
   visitTryStatement(ast.TryStatement node) {
@@ -1325,8 +1706,25 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     }
     List<ir.Primitive> values = node.elements.nodes.mapToList(visit);
     InterfaceType type = elements.getType(node);
-    return irBuilder.buildListLiteral(type, values,
-        allocationSiteType: getAllocationSiteType(node));
+    TypeMask allocationSiteType = getAllocationSiteType(node);
+    // TODO(sra): In checked mode, the elements must be checked as though
+    // operator[]= is called.
+    ir.Primitive list = irBuilder.buildListLiteral(type, values,
+          allocationSiteType: allocationSiteType);
+    if (type.treatAsRaw) return list;
+    // Call JSArray<E>.typed(allocation) to install the reified type.
+    ConstructorElement constructor = helpers.jsArrayTypedConstructor;
+    ir.Primitive tagged = irBuilder.buildConstructorInvocation(
+        constructor.effectiveTarget,
+        CallStructure.ONE_ARG,
+        constructor.computeEffectiveTargetType(type),
+        <ir.Primitive>[list],
+        sourceInformationBuilder.buildNew(node));
+
+    if (allocationSiteType == null) return tagged;
+
+    return irBuilder.addPrimitive(
+        new ir.Refinement(tagged, allocationSiteType));
   }
 
   ir.Primitive visitLiteralMap(ast.LiteralMap node) {
@@ -1334,12 +1732,48 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     if (node.isConst) {
       return translateConstant(node);
     }
+
     InterfaceType type = elements.getType(node);
-    List<ir.LiteralMapEntry> entries =
-        node.entries.nodes.mapToList((ast.LiteralMapEntry e) {
-          return new ir.LiteralMapEntry(visit(e.key), visit(e.value));
-        });
-    return irBuilder.addPrimitive(new ir.LiteralMap(type, entries));
+
+    if (node.entries.nodes.isEmpty) {
+      if (type.treatAsRaw) {
+        return irBuilder.buildStaticFunctionInvocation(
+            helpers.mapLiteralUntypedEmptyMaker,
+            <ir.Primitive>[],
+            sourceInformation: sourceInformationBuilder.buildNew(node));
+      } else {
+        ConstructorElement constructor = helpers.mapLiteralConstructorEmpty;
+        return irBuilder.buildConstructorInvocation(
+            constructor.effectiveTarget,
+            CallStructure.NO_ARGS,
+            constructor.computeEffectiveTargetType(type),
+            <ir.Primitive>[],
+            sourceInformationBuilder.buildNew(node));
+      }
+    }
+
+    List<ir.Primitive> keysAndValues = <ir.Primitive>[];
+    for (ast.LiteralMapEntry entry in node.entries.nodes.toList()) {
+      keysAndValues.add(visit(entry.key));
+      keysAndValues.add(visit(entry.value));
+    }
+    ir.Primitive keysAndValuesList =
+        irBuilder.buildListLiteral(null, keysAndValues);
+
+    if (type.treatAsRaw) {
+      return irBuilder.buildStaticFunctionInvocation(
+          helpers.mapLiteralUntypedMaker,
+          <ir.Primitive>[keysAndValuesList],
+          sourceInformation: sourceInformationBuilder.buildNew(node));
+    } else {
+      ConstructorElement constructor = helpers.mapLiteralConstructor;
+      return irBuilder.buildConstructorInvocation(
+          constructor.effectiveTarget,
+          CallStructure.ONE_ARG,
+          constructor.computeEffectiveTargetType(type),
+          <ir.Primitive>[keysAndValuesList],
+          sourceInformationBuilder.buildNew(node));
+    }
   }
 
   ir.Primitive visitLiteralSymbol(ast.LiteralSymbol node) {
@@ -1506,7 +1940,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.Send node,
       MethodElement function,
       _) {
-    return irBuilder.addPrimitive(new ir.GetStatic(function));
+    return irBuilder.addPrimitive(new ir.GetStatic(function, isFinal: true));
   }
 
   @override
@@ -1565,8 +1999,17 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive visitUnresolvedSuperGet(
       ast.Send node,
       Element element, _) {
-    return buildInstanceNoSuchMethod(
+    return buildSuperNoSuchMethod(
         elements.getSelector(node), elements.getTypeMask(node), []);
+  }
+
+  @override
+  ir.Primitive visitUnresolvedSuperSet(
+      ast.Send node,
+      Element element,
+      ast.Node rhs, _) {
+    return buildSuperNoSuchMethod(
+        elements.getSelector(node), elements.getTypeMask(node), [visit(rhs)]);
   }
 
   @override
@@ -1869,7 +2312,20 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
 
     List<ir.Primitive> arguments = argumentsNode.nodes.mapToList(visit);
     // Use default values from the effective target, not the immediate target.
-    ConstructorElement target = constructor.effectiveTarget;
+    ConstructorElement target;
+    if (constructor == compiler.symbolConstructor) {
+      // The Symbol constructor should perform validation of its argument
+      // which is not expressible as a Dart const constructor.  Instead, the
+      // libraries contain a dummy const constructor implementation that
+      // doesn't perform validation and the compiler compiles a call to
+      // (non-const) Symbol.validated when it sees new Symbol(...).
+      target = compiler.symbolValidatedConstructor;
+    } else {
+      target = constructor.implementation;
+    }
+    while (target.isRedirectingFactory && !target.isCyclicRedirection) {
+      target = target.effectiveTarget.implementation;
+    }
 
     callStructure = normalizeStaticArguments(callStructure, target, arguments);
     TypeMask allocationSiteType;
@@ -1880,10 +2336,11 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         Elements.isConstructorOfTypedArraySubclass(constructor, compiler)) {
       allocationSiteType = getAllocationSiteType(send);
     }
+    ConstructorElement constructorImplementation = constructor.implementation;
     return irBuilder.buildConstructorInvocation(
         target,
         callStructure,
-        constructor.computeEffectiveTargetType(type),
+        constructorImplementation.computeEffectiveTargetType(type),
         arguments,
         sourceInformationBuilder.buildNew(node),
         allocationSiteType: allocationSiteType);
@@ -2085,7 +2542,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     List<ir.Primitive> normalizedArguments = <ir.Primitive>[];
     CallStructure normalizedCallStructure =
       translateDynamicArguments(arguments, callStructure, normalizedArguments);
-    return buildInstanceNoSuchMethod(
+    return buildSuperNoSuchMethod(
         new Selector.call(method.memberName, normalizedCallStructure),
         elements.getTypeMask(node),
         normalizedArguments);
@@ -2102,7 +2559,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         argumentsNode, selector.callStructure, arguments);
     // TODO(johnniwinther): Supply a member name to the visit function instead
     // of looking it up in elements.
-    return buildInstanceNoSuchMethod(
+    return buildSuperNoSuchMethod(
         new Selector.call(elements.getSelector(node).memberName, callStructure),
         elements.getTypeMask(node),
         arguments);
@@ -2449,7 +2906,8 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         case CompoundGetter.GETTER:
           return buildStaticGetterGet(getter, node);
         case CompoundGetter.METHOD:
-          return irBuilder.addPrimitive(new ir.GetStatic(getter));
+          return irBuilder.addPrimitive(new ir.GetStatic(getter,
+              isFinal: true));
         case CompoundGetter.UNRESOLVED:
           return irBuilder.buildStaticNoSuchMethod(
               new Selector.getter(new Name(getter.name, getter.library)),
@@ -2489,7 +2947,8 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         case CompoundGetter.GETTER:
           return buildStaticGetterGet(getter, node);
         case CompoundGetter.METHOD:
-          return irBuilder.addPrimitive(new ir.GetStatic(getter));
+          return irBuilder.addPrimitive(new ir.GetStatic(getter,
+              isFinal: true));
         case CompoundGetter.UNRESOLVED:
           return irBuilder.buildStaticNoSuchMethod(
               new Selector.getter(new Name(getter.name, getter.library)),
@@ -2513,7 +2972,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   }
 
   ir.Primitive buildSuperNoSuchGetter(Element element, TypeMask mask) {
-    return buildInstanceNoSuchMethod(
+    return buildSuperNoSuchMethod(
         new Selector.getter(new Name(element.name, element.library)),
         mask,
         const <ir.Primitive>[]);
@@ -2522,7 +2981,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive buildSuperNoSuchSetter(Element element,
                                       TypeMask mask,
                                       ir.Primitive value) {
-    return buildInstanceNoSuchMethod(
+    return buildSuperNoSuchMethod(
         new Selector.setter(new Name(element.name, element.library)),
         mask,
         <ir.Primitive>[value]);
@@ -2675,7 +3134,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return translateCompounds(node, () {
       return isGetterValid
           ? irBuilder.buildSuperIndex(indexFunction, indexValue)
-          : buildInstanceNoSuchMethod(
+          : buildSuperNoSuchMethod(
               new Selector.index(),
               elements.getGetterTypeMaskInComplexSendSet(node),
               <ir.Primitive>[indexValue]);
@@ -2683,7 +3142,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       if (isSetterValid) {
         irBuilder.buildSuperIndexSet(indexSetFunction, indexValue, result);
       } else {
-        buildInstanceNoSuchMethod(
+        buildSuperNoSuchMethod(
             new Selector.indexSet(),
             elements.getTypeMask(node),
             <ir.Primitive>[indexValue, result]);
@@ -2900,7 +3359,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         return irBuilder.buildForeignCode(
             js.js.parseForeignJS(backend.namer.staticStateHolder),
             const <ir.Primitive>[],
-            NativeBehavior.PURE);
+            NativeBehavior.DEPENDS_OTHER);
 
       case 'JS_SET_STATIC_STATE':
         validateArgumentCount(exactly: 1);
@@ -2910,7 +3369,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         return irBuilder.buildForeignCode(
             js.js.parseForeignJS("$isolateName = #"),
             <ir.Primitive>[value],
-            NativeBehavior.PURE);
+            NativeBehavior.CHANGES_OTHER);
 
       case 'JS_CALL_IN_ISOLATE':
         validateArgumentCount(exactly: 2);
@@ -2984,13 +3443,18 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return irBuilder.buildNonTailThrow(visit(node.expression));
   }
 
-  ir.Primitive buildInstanceNoSuchMethod(Selector selector,
+  ir.Primitive buildSuperNoSuchMethod(Selector selector,
       TypeMask mask,
       List<ir.Primitive> arguments) {
-    return irBuilder.buildDynamicInvocation(
-        irBuilder.buildThis(),
-        Selectors.noSuchMethod_,
-        mask,
+    ClassElement cls = elements.analyzedElement.enclosingClass;
+    MethodElement element = cls.lookupSuperMember(Identifiers.noSuchMethod_);
+    if (!Selectors.noSuchMethod_.signatureApplies(element)) {
+      element = compiler.coreClasses.objectClass.lookupMember(
+          Identifiers.noSuchMethod_);
+    }
+    return irBuilder.buildSuperMethodInvocation(
+        element,
+        Selectors.noSuchMethod_.callStructure,
         [irBuilder.buildInvocationMirror(selector, arguments)]);
   }
 
@@ -3099,7 +3563,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       Element function,
       ast.Node index, _) {
     // Assume the index getter is missing.
-    return buildInstanceNoSuchMethod(
+    return buildSuperNoSuchMethod(
         new Selector.index(), elements.getTypeMask(node), [visit(index)]);
   }
 
@@ -3109,7 +3573,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       Element element,
       op.BinaryOperator operator,
       ast.Node argument, _) {
-    return buildInstanceNoSuchMethod(
+    return buildSuperNoSuchMethod(
         elements.getSelector(node),
         elements.getTypeMask(node),
         [visit(argument)]);
@@ -3120,7 +3584,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.Send node,
       op.UnaryOperator operator,
       Element element, _) {
-    return buildInstanceNoSuchMethod(
+    return buildSuperNoSuchMethod(
         elements.getSelector(node), elements.getTypeMask(node), []);
   }
 
@@ -3207,7 +3671,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.SendSet node,
       FieldElement field,
       ast.Node rhs, _) {
-    return buildInstanceNoSuchMethod(
+    return buildSuperNoSuchMethod(
         new Selector.setter(field.memberName),
         elements.getTypeMask(node),
         [visit(rhs)]);
@@ -3274,7 +3738,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       GetterElement getter,
       ast.Node rhs,
       _) {
-    return buildInstanceNoSuchMethod(
+    return buildSuperNoSuchMethod(
         new Selector.setter(getter.memberName),
         elements.getTypeMask(node),
         [visit(rhs)]);
@@ -3286,7 +3750,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       MethodElement method,
       ast.Node rhs,
       _) {
-    return buildInstanceNoSuchMethod(
+    return buildSuperNoSuchMethod(
         new Selector.setter(method.memberName),
         elements.getTypeMask(node),
         [visit(rhs)]);
@@ -3296,7 +3760,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   ir.Primitive visitSuperSetterGet(
       ast.Send node,
       SetterElement setter, _) {
-    return buildInstanceNoSuchMethod(
+    return buildSuperNoSuchMethod(
         new Selector.setter(setter.memberName),
         elements.getTypeMask(node),
         []);
@@ -3311,7 +3775,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     List<ir.Primitive> arguments = <ir.Primitive>[];
     callStructure =
         translateDynamicArguments(argumentsNode, callStructure, arguments);
-    return buildInstanceNoSuchMethod(
+    return buildSuperNoSuchMethod(
         new Selector.call(setter.memberName, callStructure),
         elements.getTypeMask(node),
         arguments);
@@ -3544,8 +4008,20 @@ class GlobalProgramInformation {
     return TypeMaskFactory.fromNativeBehavior(behavior, _compiler);
   }
 
+  bool isArrayType(TypeMask type) {
+    return type.satisfies(_backend.helpers.jsArrayClass, _compiler.world);
+  }
+
+  TypeMask getTypeMaskForNativeFunction(FunctionElement function) {
+    return  _compiler.typesTask.getGuaranteedReturnTypeOfElement(function);
+  }
+
   FieldElement locateSingleField(Selector selector, TypeMask type) {
     return _compiler.world.locateSingleField(selector, type);
+  }
+
+  bool fieldNeverChanges(FieldElement field) {
+    return _compiler.world.fieldNeverChanges(field);
   }
 
   Element get closureConverter {
@@ -3555,4 +4031,22 @@ class GlobalProgramInformation {
   void addNativeMethod(FunctionElement function) {
     _backend.emitter.nativeEmitter.nativeMethods.add(function);
   }
+
+  bool get trustJSInteropTypeAnnotations =>
+      _compiler.trustJSInteropTypeAnnotations;
+
+  bool isNative(ClassElement element) => _backend.isNative(element);
+
+  bool isJsInterop(FunctionElement element) => _backend.isJsInterop(element);
+
+  bool isJsInteropAnonymous(FunctionElement element) =>
+    _backend.jsInteropAnalysis.hasAnonymousAnnotation(element.contextClass);
+
+  String getJsInteropTargetPath(FunctionElement element) {
+    return '${_backend.namer.fixedBackendPath(element)}.'
+      '${_backend.getFixedBackendName(element)}';
+  }
+
+  DartType get jsJavascriptObjectType =>
+    _backend.helpers.jsJavaScriptObjectClass.thisType;
 }

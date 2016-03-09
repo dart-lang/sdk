@@ -28,11 +28,17 @@ void CpuInfo::InitOnce() {
   fields_[kCpuInfoFeatures] = "flags";
   method_ = kCpuInfoCpuId;
   CpuId::InitOnce();
-#elif defined(HOST_ARCH_ARM) || defined(HOST_ARCH_ARM64)
-  // TODO(zra): Verify that these field names are correct for arm64.
+#elif defined(HOST_ARCH_ARM)
   fields_[kCpuInfoProcessor] = "Processor";
   fields_[kCpuInfoModel] = "model name";
   fields_[kCpuInfoHardware] = "Hardware";
+  fields_[kCpuInfoFeatures] = "Features";
+  method_ = kCpuInfoSystem;
+  ProcCpuInfo::InitOnce();
+#elif defined(HOST_ARCH_ARM64)
+  fields_[kCpuInfoProcessor] = "Processor";
+  fields_[kCpuInfoModel] = "CPU implementer";
+  fields_[kCpuInfoHardware] = "CPU implementer";
   fields_[kCpuInfoFeatures] = "Features";
   method_ = kCpuInfoSystem;
   ProcCpuInfo::InitOnce();
@@ -61,27 +67,13 @@ void CpuInfo::Cleanup() {
 
 bool CpuInfo::FieldContains(CpuInfoIndices idx, const char* search_string) {
   if (method_ == kCpuInfoCpuId) {
-    return strstr(CpuId::field(idx), search_string);
+    const char* field = CpuId::field(idx);
+    bool contains = (strstr(field, search_string) != NULL);
+    free(const_cast<char*>(field));
+    return contains;
   } else {
     ASSERT(method_ == kCpuInfoSystem);
     return ProcCpuInfo::FieldContains(FieldName(idx), search_string);
-  }
-}
-
-
-bool CpuInfo::FieldContainsByString(const char* field,
-                                    const char* search_string) {
-  if (method_ == kCpuInfoCpuId) {
-    for (int i = 0; i < kCpuInfoMax; i++) {
-      if (strcmp(field, fields_[i]) == 0) {
-        return FieldContains(static_cast<CpuInfoIndices>(i), search_string);
-      }
-    }
-    UNIMPLEMENTED();
-    return false;
-  } else {
-    ASSERT(method_ == kCpuInfoSystem);
-    return ProcCpuInfo::FieldContains(field, search_string);
   }
 }
 
@@ -92,22 +84,6 @@ const char* CpuInfo::ExtractField(CpuInfoIndices idx) {
   } else {
     ASSERT(method_ == kCpuInfoSystem);
     return ProcCpuInfo::ExtractField(FieldName(idx));
-  }
-}
-
-
-const char* CpuInfo::ExtractFieldByString(const char* field) {
-  if (method_ == kCpuInfoCpuId) {
-    for (int i = 0; i < kCpuInfoMax; i++) {
-      if (strcmp(field, fields_[i]) == 0) {
-        return ExtractField(static_cast<CpuInfoIndices>(i));
-      }
-    }
-    UNIMPLEMENTED();
-    return NULL;
-  } else {
-    ASSERT(method_ == kCpuInfoSystem);
-    return ProcCpuInfo::ExtractField(field);
   }
 }
 

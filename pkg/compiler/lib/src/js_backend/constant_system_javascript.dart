@@ -274,8 +274,17 @@ class JavaScriptConstantSystem extends ConstantSystem {
         compiler.backend.typeImplementation.computeType(compiler.resolution));
   }
 
-  // Integer checks don't verify that the number is not -0.0.
-  bool isInt(ConstantValue constant) => constant.isInt || constant.isMinusZero;
+  // Integer checks report true for -0.0, INFINITY, and -INFINITY.  At
+  // runtime an 'X is int' check is implemented as:
+  //
+  // typeof(X) === "number" && Math.floor(X) === X
+  //
+  // We consistently match that runtime semantics at compile time as well.
+  bool isInt(ConstantValue constant) {
+    return constant.isInt || constant.isMinusZero ||
+        constant.isPositiveInfinity ||
+        constant.isNegativeInfinity;
+  }
   bool isDouble(ConstantValue constant)
       => constant.isDouble && !constant.isMinusZero;
   bool isString(ConstantValue constant) => constant.isString;

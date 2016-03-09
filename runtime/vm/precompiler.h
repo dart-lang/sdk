@@ -7,6 +7,7 @@
 
 #include "vm/allocation.h"
 #include "vm/hash_map.h"
+#include "vm/hash_table.h"
 #include "vm/object.h"
 
 namespace dart {
@@ -18,6 +19,7 @@ class Field;
 class Function;
 class GrowableObjectArray;
 class RawError;
+class SequenceNode;
 class String;
 
 class SymbolKeyValueTrait {
@@ -64,6 +66,61 @@ class StackmapKeyValueTrait {
 
 typedef DirectChainedHashMap<StackmapKeyValueTrait> StackmapSet;
 
+
+class ArrayKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const Array* Key;
+  typedef const Array* Value;
+  typedef const Array* Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline intptr_t Hashcode(Key key) {
+    return key->Length();
+  }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) {
+    if (pair->Length() != key->Length()) {
+      return false;
+    }
+    for (intptr_t i = 0; i < pair->Length(); i++) {
+      if (pair->At(i) != key->At(i)) {
+        return false;
+      }
+    }
+    return true;
+  }
+};
+
+typedef DirectChainedHashMap<ArrayKeyValueTrait> ArraySet;
+
+
+class InstructionsKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const Instructions* Key;
+  typedef const Instructions* Value;
+  typedef const Instructions* Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline intptr_t Hashcode(Key key) {
+    return key->size();
+  }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) {
+    return pair->Equals(*key);
+  }
+};
+
+typedef DirectChainedHashMap<InstructionsKeyValueTrait> InstructionsSet;
+
+
 class FunctionKeyValueTrait {
  public:
   // Typedefs needed for the DirectChainedHashMap template.
@@ -76,7 +133,7 @@ class FunctionKeyValueTrait {
   static Value ValueOf(Pair kv) { return kv; }
 
   static inline intptr_t Hashcode(Key key) {
-    return key->token_pos();
+    return key->token_pos().value();
   }
 
   static inline bool IsKeyEqual(Pair pair, Key key) {
@@ -85,6 +142,98 @@ class FunctionKeyValueTrait {
 };
 
 typedef DirectChainedHashMap<FunctionKeyValueTrait> FunctionSet;
+
+
+class FieldKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const Field* Key;
+  typedef const Field* Value;
+  typedef const Field* Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline intptr_t Hashcode(Key key) {
+    return key->token_pos().value();
+  }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) {
+    return pair->raw() == key->raw();
+  }
+};
+
+typedef DirectChainedHashMap<FieldKeyValueTrait> FieldSet;
+
+
+class ClassKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const Class* Key;
+  typedef const Class* Value;
+  typedef const Class* Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline intptr_t Hashcode(Key key) {
+    return key->token_pos().value();
+  }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) {
+    return pair->raw() == key->raw();
+  }
+};
+
+typedef DirectChainedHashMap<ClassKeyValueTrait> ClassSet;
+
+
+class AbstractTypeKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const AbstractType* Key;
+  typedef const AbstractType* Value;
+  typedef const AbstractType* Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline intptr_t Hashcode(Key key) {
+    return key->Hash();
+  }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) {
+    return pair->raw() == key->raw();
+  }
+};
+
+typedef DirectChainedHashMap<AbstractTypeKeyValueTrait> AbstractTypeSet;
+
+
+class TypeArgumentsKeyValueTrait {
+ public:
+  // Typedefs needed for the DirectChainedHashMap template.
+  typedef const TypeArguments* Key;
+  typedef const TypeArguments* Value;
+  typedef const TypeArguments* Pair;
+
+  static Key KeyOf(Pair kv) { return kv; }
+
+  static Value ValueOf(Pair kv) { return kv; }
+
+  static inline intptr_t Hashcode(Key key) {
+    return key->Hash();
+  }
+
+  static inline bool IsKeyEqual(Pair pair, Key key) {
+    return pair->raw() == key->raw();
+  }
+};
+
+typedef DirectChainedHashMap<TypeArgumentsKeyValueTrait> TypeArgumentsSet;
 
 
 class Precompiler : public ValueObject {
@@ -103,8 +252,16 @@ class Precompiler : public ValueObject {
                                      const String& fname,
                                      Object* function);
 
+  static RawError* CompileFunction(Thread* thread, const Function& function);
+
+  static RawObject* EvaluateStaticInitializer(const Field& field);
+  static RawObject* ExecuteOnce(SequenceNode* fragment);
+
  private:
   Precompiler(Thread* thread, bool reset_fields);
+
+
+  static RawFunction* CompileStaticInitializer(const Field& field);
 
   void DoCompileAll(Dart_QualifiedFunctionName embedder_entry_points[]);
   void ClearAllCode();
@@ -112,6 +269,10 @@ class Precompiler : public ValueObject {
   void AddEntryPoints(Dart_QualifiedFunctionName entry_points[]);
   void Iterate();
 
+  void AddType(const AbstractType& type);
+  void AddTypesOf(const Class& cls);
+  void AddTypesOf(const Function& function);
+  void AddTypeArguments(const TypeArguments& args);
   void AddCalleesOf(const Function& function);
   void AddConstObject(const Instance& instance);
   void AddClosureCall(const ICData& call_site);
@@ -124,11 +285,21 @@ class Precompiler : public ValueObject {
   void ProcessFunction(const Function& function);
   void CheckForNewDynamicFunctions();
 
-  void DropUncompiledFunctions();
-  void CollectDynamicFunctionNames();
+  void DropFunctions();
+  void DropFields();
+  void TraceTypesFromRetainedClasses();
+  void DropTypes();
+  void DropTypeArguments();
+  void DropClasses();
+  void DropLibraries();
+
   void BindStaticCalls();
   void DedupStackmaps();
+  void DedupStackmapLists();
+  void DedupInstructions();
   void ResetPrecompilerState();
+
+  void CollectDynamicFunctionNames();
 
   class FunctionVisitor : public ValueObject {
    public:
@@ -155,13 +326,50 @@ class Precompiler : public ValueObject {
   intptr_t class_count_;
   intptr_t selector_count_;
   intptr_t dropped_function_count_;
+  intptr_t dropped_field_count_;
+  intptr_t dropped_class_count_;
+  intptr_t dropped_typearg_count_;
+  intptr_t dropped_type_count_;
+  intptr_t dropped_library_count_;
 
-  const GrowableObjectArray& libraries_;
+  GrowableObjectArray& libraries_;
   const GrowableObjectArray& pending_functions_;
   SymbolSet sent_selectors_;
   FunctionSet enqueued_functions_;
+  FieldSet fields_to_retain_;
+  ClassSet classes_to_retain_;
+  TypeArgumentsSet typeargs_to_retain_;
+  AbstractTypeSet types_to_retain_;
   Error& error_;
 };
+
+
+class FunctionsTraits {
+ public:
+  static bool IsMatch(const Object& a, const Object& b) {
+    Zone* zone = Thread::Current()->zone();
+    String& a_s = String::Handle(zone);
+    String& b_s = String::Handle(zone);
+    a_s = a.IsFunction() ? Function::Cast(a).name() : String::Cast(a).raw();
+    b_s = b.IsFunction() ? Function::Cast(b).name() : String::Cast(b).raw();
+    ASSERT(a_s.IsSymbol() && b_s.IsSymbol());
+    return a_s.raw() == b_s.raw();
+  }
+  static uword Hash(const Object& obj) {
+    if (obj.IsFunction()) {
+      return String::Handle(Function::Cast(obj).name()).Hash();
+    } else {
+      ASSERT(String::Cast(obj).IsSymbol());
+      return String::Cast(obj).Hash();
+    }
+  }
+  static RawObject* NewKey(const Function& function) {
+    return function.raw();
+  }
+};
+
+typedef UnorderedHashSet<FunctionsTraits> UniqueFunctionsSet;
+
 
 }  // namespace dart
 

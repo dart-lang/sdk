@@ -28,8 +28,7 @@ void VirtualMemory::Truncate(intptr_t new_size, bool try_unmap) {
 }
 
 
-VirtualMemory* VirtualMemory::ForInstructionsSnapshot(void* pointer,
-                                                      uword size) {
+VirtualMemory* VirtualMemory::ForExternalPage(void* pointer, uword size) {
   // Memory for precompilated instructions was allocated by the embedder, so
   // create a VirtualMemory without allocating.
   MemoryRegion region(pointer, size);

@@ -26,6 +26,20 @@ UNIT_TEST_CASE(FetchAndDecrement) {
 }
 
 
+UNIT_TEST_CASE(IncrementBy) {
+  intptr_t v = 42;
+  AtomicOperations::IncrementBy(&v, 100);
+  EXPECT_EQ(static_cast<intptr_t>(142), v);
+}
+
+
+UNIT_TEST_CASE(DecrementBy) {
+  intptr_t v = 42;
+  AtomicOperations::DecrementBy(&v, 41);
+  EXPECT_EQ(static_cast<intptr_t>(1), v);
+}
+
+
 UNIT_TEST_CASE(LoadRelaxed) {
   uword v = 42;
   EXPECT_EQ(static_cast<uword>(42), AtomicOperations::LoadRelaxed(&v));

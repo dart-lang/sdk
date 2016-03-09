@@ -22,6 +22,7 @@ import '../common/codegen.dart' show
     CodegenWorkItem;
 import '../common/names.dart' show
     Identifiers,
+    Names,
     Selectors,
     Uris;
 import '../common/registry.dart' show
@@ -49,6 +50,8 @@ import '../core_types.dart' show
 import '../dart_types.dart';
 import '../deferred_load.dart' show
     DeferredLoadTask;
+import '../diagnostics/invariant.dart' show
+    DEBUG_MODE;
 import '../dump_info.dart' show
     DumpInfoTask;
 import '../elements/elements.dart';

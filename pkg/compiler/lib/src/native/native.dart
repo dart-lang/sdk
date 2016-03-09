@@ -63,6 +63,8 @@ bool maybeEnableNative(Compiler compiler,
   String libraryName = library.canonicalUri.toString();
   if (library.entryCompilationUnit.script.name.contains(
           'sdk/tests/compiler/dart2js_native')
+      || library.entryCompilationUnit.script.name.contains(
+          'sdk/tests/compiler/dart2js_extra')
       || libraryName == 'dart:async'
       || libraryName == 'dart:html'
       || libraryName == 'dart:html_common'

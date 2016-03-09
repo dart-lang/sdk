@@ -224,35 +224,8 @@ class AnalyzerImpl {
     formatter.formatErrors(errorInfos);
   }
 
-  /// Check various configuration options to get a desired severity for this
-  /// [error] (or `null` if it's to be suppressed).
-  ProcessedSeverity _processError(AnalysisError error) {
-    ErrorSeverity severity = computeSeverity(error, options, context);
-    bool isOverridden = false;
-
-    // First check for a filter.
-    if (severity == null) {
-      // Null severity means the error has been explicitly ignored.
-      return null;
-    } else {
-      isOverridden = true;
-    }
-
-    // If not overridden, some "natural" severities get globally filtered.
-    if (!isOverridden) {
-      // Check for global hint filtering.
-      if (severity == ErrorSeverity.INFO && options.disableHints) {
-        return null;
-      }
-
-      // Skip TODOs.
-      if (severity == ErrorType.TODO) {
-        return null;
-      }
-    }
-
-    return new ProcessedSeverity(severity, isOverridden);
-  }
+  ProcessedSeverity _processError(AnalysisError error) =>
+      processError(error, options, context);
 
   LibraryElement _resolveLibrary() {
     return _resolveLibraryTag.makeCurrentWhile(() {
@@ -302,6 +275,37 @@ class AnalyzerImpl {
     }
     // Not found.
     return null;
+  }
+
+  /// Check various configuration options to get a desired severity for this
+  /// [error] (or `null` if it's to be suppressed).
+  static ProcessedSeverity processError(AnalysisError error,
+      CommandLineOptions options, AnalysisContext context) {
+    ErrorSeverity severity = computeSeverity(error, options, context);
+    bool isOverridden = false;
+
+    // First check for a filter.
+    if (severity == null) {
+      // Null severity means the error has been explicitly ignored.
+      return null;
+    } else {
+      isOverridden = true;
+    }
+
+    // If not overridden, some "natural" severities get globally filtered.
+    if (!isOverridden) {
+      // Check for global hint filtering.
+      if (severity == ErrorSeverity.INFO && options.disableHints) {
+        return null;
+      }
+
+      // Skip TODOs.
+      if (severity == ErrorType.TODO) {
+        return null;
+      }
+    }
+
+    return new ProcessedSeverity(severity, isOverridden);
   }
 }
 

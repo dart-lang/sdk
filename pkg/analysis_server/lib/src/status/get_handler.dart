@@ -33,6 +33,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
+import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -65,10 +66,10 @@ class ElementCounter extends RecursiveElementVisitor {
   int totalDocSpan = 0;
 
   void visit(Element element) {
-    SourceRange docRange = element.docRange;
-    if (docRange != null) {
+    String comment = element.documentationComment;
+    if (comment != null) {
       ++elementsWithDocs;
-      totalDocSpan += docRange.length;
+      totalDocSpan += comment.length;
     }
 
     Type type = element.runtimeType;
@@ -639,8 +640,16 @@ class GetHandler {
           Set<AnalysisTarget> countedTargets = new HashSet<AnalysisTarget>();
           Map<String, int> sourceTypeCounts = new HashMap<String, int>();
           Map<String, int> typeCounts = new HashMap<String, int>();
-          analysisServer.folderMap
-              .forEach((Folder folder, InternalAnalysisContext context) {
+          int explicitSourceCount = 0;
+          int explicitLineInfoCount = 0;
+          int explicitLineCount = 0;
+          int implicitSourceCount = 0;
+          int implicitLineInfoCount = 0;
+          int implicitLineCount = 0;
+          for (InternalAnalysisContext context
+              in analysisServer.analysisContexts) {
+            Set<Source> explicitSources = new HashSet<Source>();
+            Set<Source> implicitSources = new HashSet<Source>();
             AnalysisCache cache = context.analysisCache;
             MapIterator<AnalysisTarget, CacheEntry> iterator = cache.iterator();
             while (iterator.moveNext()) {
@@ -651,8 +660,10 @@ class GetHandler {
                   String sourceName;
                   if (AnalysisEngine.isDartFileName(name)) {
                     if (iterator.value.explicitlyAdded) {
+                      explicitSources.add(target);
                       sourceName = 'Dart file (explicit)';
                     } else {
+                      implicitSources.add(target);
                       sourceName = 'Dart file (implicit)';
                     }
                   } else if (AnalysisEngine.isHtmlFileName(name)) {
@@ -677,7 +688,27 @@ class GetHandler {
                 }
               }
             }
-          });
+
+            int lineCount(Set<Source> sources, bool explicit) {
+              return sources.fold(0, (int previousTotal, Source source) {
+                LineInfo lineInfo = context.getLineInfo(source);
+                if (lineInfo is LineInfoWithCount) {
+                  if (explicit) {
+                    explicitLineInfoCount++;
+                  } else {
+                    implicitLineInfoCount++;
+                  }
+                  return previousTotal + lineInfo.lineCount;
+                } else {
+                  return previousTotal;
+                }
+              });
+            }
+            explicitSourceCount += explicitSources.length;
+            explicitLineCount += lineCount(explicitSources, true);
+            implicitSourceCount += implicitSources.length;
+            implicitLineCount += lineCount(implicitSources, false);
+          }
           List<String> sourceTypeNames = sourceTypeCounts.keys.toList();
           sourceTypeNames.sort();
           List<String> typeNames = typeCounts.keys.toList();
@@ -696,6 +727,37 @@ class GetHandler {
             _writeRow(buffer, [typeName, typeCounts[typeName]],
                 classes: [null, "right"]);
           }
+          buffer.write('</table>');
+
+          buffer.write('<p><b>Line counts</b></p>');
+          buffer.write(
+              '<table style="border-collapse: separate; border-spacing: 10px 5px;">');
+          _writeRow(buffer, ['Kind', 'Lines of Code', 'Source Counts'],
+              header: true);
+          _writeRow(buffer, [
+            'Explicit',
+            explicitLineCount.toString(),
+            '$explicitLineInfoCount / $explicitSourceCount'
+          ], classes: [
+            null,
+            "right"
+          ]);
+          _writeRow(buffer, [
+            'Implicit',
+            implicitLineCount.toString(),
+            '$implicitLineInfoCount / $implicitSourceCount'
+          ], classes: [
+            null,
+            "right"
+          ]);
+          _writeRow(buffer, [
+            'Total',
+            (explicitLineCount + implicitLineCount).toString(),
+            '${explicitLineInfoCount + implicitLineInfoCount} / ${explicitSourceCount + implicitSourceCount}'
+          ], classes: [
+            null,
+            "right"
+          ]);
           buffer.write('</table>');
         }, (StringBuffer buffer) {
           //
@@ -1293,9 +1355,26 @@ class GetHandler {
           buffer.write('<p><b>Error Processor count</b>: $processorCount</p>');
         });
 
-        _writeFiles(buffer, 'Priority Files', priorityNames);
-        _writeFiles(buffer, 'Explicitly Analyzed Files', explicitNames);
-        _writeFiles(buffer, 'Implicitly Analyzed Files', implicitNames);
+        SourceFactory sourceFactory = context.sourceFactory;
+        if (sourceFactory is SourceFactoryImpl) {
+          buffer.write('<h3>Resolvers</h3>');
+          for (UriResolver resolver in sourceFactory.resolvers) {
+            buffer.write('<p>');
+            buffer.write(resolver.runtimeType);
+            buffer.write('</p>');
+          }
+        }
+
+        _writeFiles(
+            buffer, 'Priority Files (${priorityNames.length})', priorityNames);
+        _writeFiles(
+            buffer,
+            'Explicitly Analyzed Files (${explicitNames.length})',
+            explicitNames);
+        _writeFiles(
+            buffer,
+            'Implicitly Analyzed Files (${implicitNames.length})',
+            implicitNames);
 
         buffer.write('<h3>Exceptions</h3>');
         if (exceptions.isEmpty) {
@@ -1598,6 +1677,9 @@ class GetHandler {
           buffer.write('<p>Status: Analyzing</p>');
         }
       }
+      buffer.write('<p>Using package resolver provider: ');
+      buffer.write(_server.packageResolverProvider != null);
+      buffer.write('</p>');
       buffer.write('<p>');
       buffer.write(makeLink(OVERLAYS_PATH, {}, 'All overlay information'));
       buffer.write('</p>');

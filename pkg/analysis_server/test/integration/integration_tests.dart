@@ -174,7 +174,7 @@ abstract class AbstractAnalysisServerIntegrationTest
     // doesn't exit, then forcibly terminate it.
     sendServerShutdown();
     return server.exitCode.timeout(SHUTDOWN_TIMEOUT, onTimeout: () {
-      return server.kill();
+      return server.kill('server failed to exit');
     });
   }
 
@@ -491,9 +491,9 @@ class Server {
   /**
    * Stop the server.
    */
-  Future kill() {
+  Future kill(String reason) {
     debugStdio();
-    _recordStdio('PROCESS FORCIBLY TERMINATED');
+    _recordStdio('FORCIBLY TERMINATING PROCESS: $reason');
     _process.kill();
     return _process.exitCode;
   }
@@ -514,7 +514,7 @@ class Server {
       try {
         message = JSON.decoder.convert(trimmedLine);
       } catch (exception) {
-        _badDataFromServer();
+        _badDataFromServer('JSON decode failure: $exception');
         return;
       }
       expect(message, isMap);
@@ -557,7 +557,7 @@ class Server {
         .listen((String line) {
       String trimmedLine = line.trim();
       _recordStdio('ERR:  $trimmedLine');
-      _badDataFromServer();
+      _badDataFromServer('Message received on stderr', silent: true);
     });
   }
 
@@ -630,9 +630,8 @@ class Server {
     return Process.start(dartBinary, arguments).then((Process process) {
       _process = process;
       process.exitCode.then((int code) {
-        _recordStdio('TERMINATED WITH EXIT CODE $code');
         if (code != 0) {
-          _badDataFromServer();
+          _badDataFromServer('server terminated with exit code $code');
         }
       });
     });
@@ -641,7 +640,10 @@ class Server {
   /**
    * Deal with bad data received from the server.
    */
-  void _badDataFromServer() {
+  void _badDataFromServer(String details, {bool silent: false}) {
+    if (!silent) {
+      _recordStdio('BAD DATA FROM SERVER: $details');
+    }
     if (_receivedBadDataFromServer) {
       // We're already dealing with it.
       return;
@@ -654,7 +656,7 @@ class Server {
     // entire stacktrace.  Use expectAsync() to prevent the test from
     // ending during this 1 second.
     new Future.delayed(new Duration(seconds: 1), expectAsync(() {
-      fail('Bad data received from server');
+      fail('Bad data received from server: $details');
     }));
   }
 

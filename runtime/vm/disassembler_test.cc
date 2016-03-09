@@ -9,6 +9,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 TEST_CASE(Disassembler) {
   Assembler assembler;
   // The used instructions work on all platforms.
@@ -21,5 +23,7 @@ TEST_CASE(Disassembler) {
   test.Assemble();
   Disassembler::Disassemble(test.entry(), test.entry() + assembler.CodeSize());
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

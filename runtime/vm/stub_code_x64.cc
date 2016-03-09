@@ -26,9 +26,6 @@ DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
 DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
-DECLARE_FLAG(int, optimization_counter_threshold);
-DECLARE_FLAG(bool, support_debugger);
-DECLARE_FLAG(bool, lazy_dispatchers);
 
 // Input parameters:
 //   RSP : points to return address.
@@ -1235,10 +1232,6 @@ static void EmitFastSmiOp(Assembler* assembler,
                           Label* not_smi_or_overflow,
                           bool should_update_result_range) {
   __ Comment("Fast Smi op");
-  if (FLAG_throw_on_javascript_int_overflow) {
-    // The overflow check is more complex than implemented below.
-    return;
-  }
   ASSERT(num_args == 2);
   __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Right
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Left.
@@ -1455,9 +1448,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   __ popq(RAX);  // Pop returned function object into RAX.
   __ popq(RBX);  // Restore IC data array.
   __ popq(R10);  // Restore arguments descriptor array.
-  if (range_collection_mode == kCollectRanges) {
-    __ RestoreCodePointer();
-  }
+  __ RestoreCodePointer();
   __ LeaveStubFrame();
   Label call_target_function;
   if (!FLAG_lazy_dispatchers) {
@@ -1841,8 +1832,14 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // R13: instance type arguments.
   Label loop, found, not_found, next_iteration;
   __ SmiTag(R10);
+  __ cmpq(R10, Immediate(Smi::RawValue(kClosureCid)));
+  __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
+  __ movq(R10, FieldAddress(RAX, Closure::function_offset()));
+  // R10: instance class id as Smi or function.
   __ Bind(&loop);
-  __ movq(RDI, Address(RDX, kWordSize * SubtypeTestCache::kInstanceClassId));
+  __ movq(RDI,
+          Address(RDX,
+                  kWordSize * SubtypeTestCache::kInstanceClassIdOrFunction));
   __ cmpq(RDI, R9);
   __ j(EQUAL, &not_found, Assembler::kNearJump);
   __ cmpq(RDI, R10);

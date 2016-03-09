@@ -10,7 +10,7 @@
 // }
 
 function() {
-  var line = "" + (10 + V.Sub$().field);
+  var line = H.S(10 + V.Sub$().field);
   if (typeof dartPrint == "function")
     dartPrint(line);
   else if (typeof console == "object" && typeof console.log != "undefined")

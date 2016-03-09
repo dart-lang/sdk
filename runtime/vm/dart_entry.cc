@@ -10,13 +10,12 @@
 #include "vm/debugger.h"
 #include "vm/object_store.h"
 #include "vm/resolver.h"
+#include "vm/safepoint.h"
 #include "vm/simulator.h"
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 
 namespace dart {
-
-DECLARE_FLAG(bool, lazy_dispatchers);
 
 // A cache of VM heap allocated arguments descriptors.
 RawArray* ArgumentsDescriptor::cached_args_descriptors_[kCachedDescriptorCount];
@@ -113,6 +112,7 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
   ASSERT(thread->no_callback_scope_depth() == 0);
   ScopedIsolateStackLimits stack_limit(thread);
   SuspendLongJumpScope suspend_long_jump_scope(thread);
+  TransitionToGenerated transition(thread);
 #if defined(USING_SIMULATOR)
   return bit_copy<RawObject*, int64_t>(Simulator::Current()->Call(
       reinterpret_cast<intptr_t>(entrypoint),
@@ -192,7 +192,12 @@ RawObject* DartEntry::InvokeClosure(const Array& arguments,
         ASSERT(getter_result.IsNull() || getter_result.IsInstance());
 
         arguments.SetAt(0, getter_result);
-        return InvokeClosure(arguments, arguments_descriptor);
+        // This otherwise unnecessary handle is used to prevent clang from
+        // doing tail call elimination, which would make the stack overflow
+        // check above ineffective.
+        Object& result = Object::Handle(InvokeClosure(arguments,
+                                                      arguments_descriptor));
+        return result.raw();
       }
       cls = cls.SuperClass();
     }
@@ -549,7 +554,7 @@ RawObject* DartLibraryCalls::HandleMessage(const Object& handler,
   const Array& args = Array::Handle(zone, Array::New(kNumArguments));
   args.SetAt(0, handler);
   args.SetAt(1, message);
-  if (isolate->debugger()->IsStepping()) {
+  if (FLAG_support_debugger && isolate->debugger()->IsStepping()) {
     // If the isolate is being debugged and the debugger was stepping
     // through code, enable single stepping so debugger will stop
     // at the first location the user is interested in.

@@ -28,12 +28,30 @@ runTest(String filename, {bool update: false}) {
       .readAsStringSync();
   var expectedFile =
       new File.fromUri(Platform.script.resolve('expected/$outputname'));
-  String expected = expectedFile.existsSync()
-    ? expectedFile.readAsStringSync() : '';
+  String expected = '';
+  if (expectedFile.existsSync()) {
+    expected = expectedFile.readAsStringSync()
+      .replaceAll(new RegExp('^//.*\n', multiLine: true), '')
+      .trim();
+  }
+
   var match = elementNameRegExp.firstMatch(source);
   var elementName = match?.group(1);
 
-  Map files = {TEST_MAIN_FILE: source};
+  Map files = {
+      TEST_MAIN_FILE: source,
+      'package:expect/expect.dart': '''
+          class NoInline {
+            const NoInline();
+          }
+          class TrustTypeAnnotations {
+            const TrustTypeAnnotations();
+          }
+          class AssumeDynamic {
+            const AssumeDynamic();
+          }
+       ''',
+   };
   asyncTest(() async {
     Uri uri = Uri.parse('memory:$TEST_MAIN_FILE');
     String found = null;
@@ -45,14 +63,9 @@ runTest(String filename, {bool update: false}) {
       Expect.isTrue(result.isSuccess);
       CompilerImpl compiler = result.compiler;
       if (expected != null) {
-        String output = elementName == null
+        found = elementName == null
             ? _getCodeForMain(compiler)
             : _getCodeForMethod(compiler, elementName);
-        // Include the input in a comment of the expected file to make it easier
-        // to see the relation between input and output in code reviews.
-        found = '// Expectation for test: \n'
-            '// ${source.trim().replaceAll('\n', '\n// ')}\n\n'
-            '$output\n';
       }
     } catch (e, st) {
       print(e);
@@ -68,12 +81,16 @@ runTest(String filename, {bool update: false}) {
     }
     if (expected != found) {
       if (update) {
-        expectedFile.writeAsStringSync(found);
+        // Include the input in a comment of the expected file to make it easier
+        // to see the relation between input and output in code reviews.
+        String comment = source.trim().replaceAll('\n', '\n// ');
+        expectedFile.writeAsStringSync('// Expectation for test: \n'
+            '// ${comment}\n\n${found}\n');
         print('INFO: $expectedFile was updated');
       } else {
         Expect.fail('Unexpected output for test:\n  '
             '${_formatTest(files).replaceAll('\n', '\n  ')}\n'
-            'Expected:\n  ${expected.replaceAll('\n', '\n  ')}\n'
+            'Expected:\n  ${expected.replaceAll('\n', '\n  ')}\n\n'
             'but found:\n  ${found?.replaceAll('\n', '\n  ')}\n'
             '$regenerateCommand');
       }
@@ -105,7 +122,7 @@ String _formatTest(Map test) {
 String _getCodeForMain(CompilerImpl compiler) {
   Element mainFunction = compiler.mainFunction;
   js.Node ast = compiler.enqueuer.codegen.generatedCode[mainFunction];
-  return js.prettyPrint(ast, compiler).getText();
+  return js.prettyPrint(ast, compiler);
 }
 
 String _getCodeForMethod(CompilerImpl compiler,
@@ -125,5 +142,5 @@ String _getCodeForMethod(CompilerImpl compiler,
   }
 
   js.Node ast = compiler.enqueuer.codegen.generatedCode[foundElement];
-  return js.prettyPrint(ast, compiler).getText();
+  return js.prettyPrint(ast, compiler);
 }

@@ -62,7 +62,9 @@ class SSLFilter {
         in_handshake_(false),
         hostname_(NULL) { }
 
-  void Init(Dart_Handle dart_this);
+  ~SSLFilter();
+
+  Dart_Handle Init(Dart_Handle dart_this);
   void Connect(const char* hostname,
                SSL_CTX* context,
                bool is_server,
@@ -116,12 +118,11 @@ class SSLFilter {
   bool in_handshake_;
   bool is_server_;
   char* hostname_;
-  X509_VERIFY_PARAM* certificate_checking_parameters_;
 
   static bool isBufferEncrypted(int i) {
     return static_cast<BufferIndex>(i) >= kFirstEncrypted;
   }
-  void InitializeBuffers(Dart_Handle dart_this);
+  Dart_Handle InitializeBuffers(Dart_Handle dart_this);
   void InitializePlatformData();
 
   DISALLOW_COPY_AND_ASSIGN(SSLFilter);

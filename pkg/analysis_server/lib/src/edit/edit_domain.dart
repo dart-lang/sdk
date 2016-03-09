@@ -20,11 +20,11 @@ import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart' as engine;
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart' as engine;
 import 'package:analyzer/src/generated/error.dart' as engine;
 import 'package:analyzer/src/generated/parser.dart' as engine;
-import 'package:analyzer/src/generated/scanner.dart' as engine;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:dart_style/dart_style.dart';
 

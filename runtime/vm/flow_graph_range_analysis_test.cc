@@ -7,7 +7,6 @@
 
 namespace dart {
 
-
 TEST_CASE(RangeTests) {
   Range* zero = new Range(
       RangeBoundary::FromConstant(0),
@@ -43,9 +42,13 @@ TEST_CASE(RangeTests) {
     min = Clamp(min);                                                          \
     max = Clamp(max);                                                          \
     EXPECT(min.Equals(res_min));                                               \
-    if (!min.Equals(res_min)) OS::Print("%s\n", min.ToCString());              \
+    if (FLAG_support_il_printer && !min.Equals(res_min)) {                     \
+      OS::Print("%s\n", min.ToCString());                                      \
+    }                                                                          \
     EXPECT(max.Equals(res_max));                                               \
-    if (!max.Equals(res_max)) OS::Print("%s\n", max.ToCString());              \
+    if (FLAG_support_il_printer && !max.Equals(res_max)) {                     \
+      OS::Print("%s\n", max.ToCString());                                      \
+    }                                                                          \
   }
 
 #define NO_CLAMP(b) (b)
@@ -327,11 +330,11 @@ TEST_CASE(RangeAdd) {
     EXPECT(right_range->max().ConstantValue() == r_max);                       \
     Range::Add(left_range, right_range, &min, &max, NULL);                     \
     EXPECT(min.Equals(result_min));                                            \
-    if (!min.Equals(result_min)) {                                             \
+    if (FLAG_support_il_printer && !min.Equals(result_min)) {                  \
       OS::Print("%s != %s\n", min.ToCString(), result_min.ToCString());        \
     }                                                                          \
     EXPECT(max.Equals(result_max));                                            \
-    if (!max.Equals(result_max)) {                                             \
+    if (FLAG_support_il_printer && !max.Equals(result_max)) {                  \
       OS::Print("%s != %s\n", max.ToCString(), result_max.ToCString());        \
     }                                                                          \
   }
@@ -422,11 +425,11 @@ TEST_CASE(RangeSub) {
     EXPECT(right_range->max().ConstantValue() == r_max);                       \
     Range::Sub(left_range, right_range, &min, &max, NULL);                     \
     EXPECT(min.Equals(result_min));                                            \
-    if (!min.Equals(result_min)) {                                             \
+    if (FLAG_support_il_printer && !min.Equals(result_min)) {                  \
       OS::Print("%s != %s\n", min.ToCString(), result_min.ToCString());        \
     }                                                                          \
     EXPECT(max.Equals(result_max));                                            \
-    if (!max.Equals(result_max)) {                                             \
+    if (FLAG_support_il_printer && !max.Equals(result_max)) {                  \
       OS::Print("%s != %s\n", max.ToCString(), result_max.ToCString());        \
     }                                                                          \
   }
@@ -485,11 +488,11 @@ TEST_CASE(RangeAnd) {
     EXPECT(right_range->max().ConstantValue() == r_max);                       \
     Range::And(left_range, right_range, &min, &max);                           \
     EXPECT(min.Equals(result_min));                                            \
-    if (!min.Equals(result_min)) {                                             \
+    if (FLAG_support_il_printer && !min.Equals(result_min)) {                  \
       OS::Print("%s != %s\n", min.ToCString(), result_min.ToCString());        \
     }                                                                          \
     EXPECT(max.Equals(result_max));                                            \
-    if (!max.Equals(result_max)) {                                             \
+    if (FLAG_support_il_printer && !max.Equals(result_max)) {                  \
       OS::Print("%s != %s\n", max.ToCString(), result_max.ToCString());        \
     }                                                                          \
   }

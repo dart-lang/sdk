@@ -21,7 +21,6 @@
 namespace dart {
 
 DEFINE_FLAG(bool, intrinsify, true, "Instrinsify when possible");
-DECLARE_FLAG(bool, throw_on_javascript_int_overflow);
 DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
@@ -68,19 +67,19 @@ void Intrinsifier::InitializeState() {
   ASSERT(!func.IsNull());                                                      \
   func.set_is_intrinsic(true);
 
-  // Set up all core lib functions that can be intrisified.
+  // Set up all core lib functions that can be intrinsified.
   lib = Library::CoreLibrary();
   ASSERT(!lib.IsNull());
   CORE_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
   CORE_INTEGER_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
   GRAPH_CORE_INTRINSICS_LIST(SETUP_FUNCTION);
 
-  // Set up all math lib functions that can be intrisified.
+  // Set up all math lib functions that can be intrinsified.
   lib = Library::MathLibrary();
   ASSERT(!lib.IsNull());
   MATH_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
 
-  // Set up all dart:typed_data lib functions that can be intrisified.
+  // Set up all dart:typed_data lib functions that can be intrinsified.
   lib = Library::TypedDataLibrary();
   ASSERT(!lib.IsNull());
   TYPED_DATA_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
@@ -156,7 +155,8 @@ bool Intrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
 #undef EMIT_CASE
   }
 
-  if (FLAG_print_flow_graph && FlowGraphPrinter::ShouldPrint(function)) {
+  if (FLAG_support_il_printer &&
+      FLAG_print_flow_graph && FlowGraphPrinter::ShouldPrint(function)) {
     THR_Print("Intrinsic graph before\n");
     FlowGraphPrinter printer(*graph);
     printer.PrintBlocks();
@@ -166,7 +166,8 @@ bool Intrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
   FlowGraphAllocator allocator(*graph, true);  // Intrinsic mode.
   allocator.AllocateRegisters();
 
-  if (FLAG_print_flow_graph && FlowGraphPrinter::ShouldPrint(function)) {
+  if (FLAG_support_il_printer &&
+      FLAG_print_flow_graph && FlowGraphPrinter::ShouldPrint(function)) {
     THR_Print("Intrinsic graph after\n");
     FlowGraphPrinter printer(*graph);
     printer.PrintBlocks();
@@ -199,15 +200,10 @@ void Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
     default:
       break;
   }
-  // Integer intrinsics are in the core library, but we don't want to
-  // intrinsify when Smi > 32 bits if we are looking for javascript integer
-  // overflow.
-  if (!(FLAG_throw_on_javascript_int_overflow && (Smi::kBits >= 32))) {
-    switch (function.recognized_kind()) {
-      CORE_INTEGER_LIB_INTRINSIC_LIST(EMIT_CASE)
-      default:
-        break;
-    }
+  switch (function.recognized_kind()) {
+    CORE_INTEGER_LIB_INTRINSIC_LIST(EMIT_CASE)
+    default:
+      break;
   }
 #undef EMIT_INTRINSIC
 }
@@ -264,7 +260,7 @@ class BlockBuilder : public ValueObject {
                          SPREG));
   }
 
-  intptr_t TokenPos() {
+  TokenPosition TokenPos() {
     return flow_graph_->function().token_pos();
   }
 
@@ -294,7 +290,7 @@ static void PrepareIndexedOp(BlockBuilder* builder,
                              Definition* array,
                              Definition* index,
                              intptr_t length_offset) {
-  intptr_t token_pos = builder->TokenPos();
+  TokenPosition token_pos = builder->TokenPos();
   builder->AddInstruction(
       new CheckSmiInstr(new Value(index),
                         Thread::kNoDeoptId,
@@ -304,7 +300,7 @@ static void PrepareIndexedOp(BlockBuilder* builder,
       new LoadFieldInstr(new Value(array),
                          length_offset,
                          Type::ZoneHandle(Type::SmiType()),
-                         Scanner::kNoSourcePos));
+                         TokenPosition::kNoSource));
   builder->AddInstruction(
       new CheckArrayBoundInstr(new Value(length),
                                new Value(index),
@@ -774,7 +770,7 @@ bool Intrinsifier::Build_GrowableArrayGetIndexed(FlowGraph* flow_graph) {
 
 
 bool Intrinsifier::Build_GrowableArraySetIndexed(FlowGraph* flow_graph) {
-  if (Isolate::Current()->flags().type_checks()) {
+  if (Isolate::Current()->type_checks()) {
     return false;
   }
 

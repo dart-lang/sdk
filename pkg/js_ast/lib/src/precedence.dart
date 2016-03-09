@@ -17,9 +17,6 @@ const SHIFT = RELATIONAL + 1;
 const ADDITIVE = SHIFT + 1;
 const MULTIPLICATIVE = ADDITIVE + 1;
 const UNARY = MULTIPLICATIVE + 1;
-const LEFT_HAND_SIDE = UNARY + 1;
-// We merge new, call and member expressions.
-// This means that we have to emit parenthesis for 'new's. For example `new X;`
-// should be printed as `new X();`. This simplifies the requirements.
-const CALL = LEFT_HAND_SIDE;
-const PRIMARY = CALL + 1;
+const CALL = UNARY + 1;
+const LEFT_HAND_SIDE = CALL + 1;
+const PRIMARY = LEFT_HAND_SIDE + 1;

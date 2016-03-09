@@ -24,11 +24,6 @@ class ObjectSet;
 class ServiceEvent;
 class VirtualMemory;
 
-DECLARE_FLAG(bool, verbose_gc);
-DECLARE_FLAG(bool, verify_before_gc);
-DECLARE_FLAG(bool, verify_after_gc);
-DECLARE_FLAG(bool, gc_at_alloc);
-
 class Heap {
  public:
   enum Space {
@@ -249,10 +244,13 @@ class Heap {
 
   Isolate* isolate() const { return isolate_; }
 
+  Monitor* barrier() const { return barrier_; }
+  Monitor* barrier_done() const { return barrier_done_; }
+
   bool ShouldPretenure(intptr_t class_id) const;
 
-  void SetupInstructionsSnapshotPage(void* pointer, uword size) {
-    old_space_.SetupInstructionsSnapshotPage(pointer, size);
+  void SetupExternalPage(void* pointer, uword size, bool is_executable) {
+    old_space_.SetupExternalPage(pointer, size, is_executable);
   }
 
  private:
@@ -323,9 +321,9 @@ class Heap {
   void UpdatePretenurePolicy();
 
   // Updates gc in progress flags.
-  bool BeginNewSpaceGC();
+  bool BeginNewSpaceGC(Thread* thread);
   void EndNewSpaceGC();
-  bool BeginOldSpaceGC();
+  bool BeginOldSpaceGC(Thread* thread);
   void EndOldSpaceGC();
 
   // If this heap is non-empty, updates start and end to the smallest range that
@@ -334,6 +332,8 @@ class Heap {
   void GetMergedAddressRange(uword* start, uword* end) const;
 
   Isolate* isolate_;
+  Monitor* barrier_;
+  Monitor* barrier_done_;
 
   // The different spaces used for allocation.
   Scavenger new_space_;

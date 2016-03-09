@@ -4,14 +4,17 @@
 
 library analyzer.src.generated.testing.test_type_provider;
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
+import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
+import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
 
@@ -150,6 +153,14 @@ class TestTypeProvider implements TypeProvider {
    */
   DartType _undefinedType;
 
+  /**
+   * The analysis context, if any. Used to create an appropriate 'dart:async'
+   * library to back `Future<T>`.
+   */
+  AnalysisContext _context;
+
+  TestTypeProvider([this._context]);
+
   @override
   InterfaceType get boolType {
     if (_boolType == null) {
@@ -159,7 +170,10 @@ class TestTypeProvider implements TypeProvider {
           .constructorElement(boolElement, "fromEnvironment", true);
       fromEnvironment.parameters = <ParameterElement>[
         ElementFactory.requiredParameter2("name", stringType),
-        ElementFactory.namedParameter2("defaultValue", _boolType)
+        ElementFactory.namedParameter3("defaultValue",
+            type: _boolType,
+            initializer: AstFactory.booleanLiteral(false),
+            initializerCode: 'false')
       ];
       fromEnvironment.factory = true;
       fromEnvironment.isCycleFree = true;
@@ -181,12 +195,22 @@ class TestTypeProvider implements TypeProvider {
     if (_deprecatedType == null) {
       ClassElementImpl deprecatedElement =
           ElementFactory.classElement2("Deprecated");
-      ConstructorElementImpl constructor = ElementFactory.constructorElement(
-          deprecatedElement, null, true, [stringType]);
-      constructor.constantInitializers = <ConstructorInitializer>[
-        AstFactory.constructorFieldInitializer(
-            true, 'expires', AstFactory.identifier3('expires'))
+      FieldElementImpl expiresField = ElementFactory.fieldElement(
+          'expires', false, true, false, stringType);
+      deprecatedElement.fields = <FieldElement>[expiresField];
+      deprecatedElement.accessors = <PropertyAccessorElement>[
+        expiresField.getter
       ];
+      ConstructorElementImpl constructor = ElementFactory
+          .constructorElement(deprecatedElement, '', true, [stringType]);
+      (constructor.parameters[0] as ParameterElementImpl).name = 'expires';
+      ConstructorFieldInitializer expiresInit =
+          AstFactory.constructorFieldInitializer(
+              true, 'expires', AstFactory.identifier3('expires'));
+      expiresInit.fieldName.staticElement = expiresField;
+      (expiresInit.expression as SimpleIdentifier).staticElement =
+          constructor.parameters[0];
+      constructor.constantInitializers = <ConstructorInitializer>[expiresInit];
       deprecatedElement.constructors = <ConstructorElement>[constructor];
       _deprecatedType = deprecatedElement.type;
     }
@@ -240,7 +264,18 @@ class TestTypeProvider implements TypeProvider {
   @override
   InterfaceType get futureType {
     if (_futureType == null) {
-      _futureType = ElementFactory.classElement2("Future", ["T"]).type;
+      Source asyncSource = _context.sourceFactory.forUri(DartSdk.DART_ASYNC);
+      _context.setContents(asyncSource, "");
+      CompilationUnitElementImpl asyncUnit =
+          new CompilationUnitElementImpl("async.dart");
+      LibraryElementImpl asyncLibrary = new LibraryElementImpl.forNode(
+          _context, AstFactory.libraryIdentifier2(["dart.async"]));
+      asyncLibrary.definingCompilationUnit = asyncUnit;
+      asyncUnit.librarySource = asyncUnit.source = asyncSource;
+
+      ClassElementImpl future = ElementFactory.classElement2("Future", ["T"]);
+      _futureType = future.type;
+      asyncUnit.types = <ClassElement>[future];
     }
     return _futureType;
   }
@@ -274,7 +309,7 @@ class TestTypeProvider implements TypeProvider {
         ElementFactory.getterElement("last", false, eType)
       ]);
       iterableElement.constructors = <ConstructorElement>[
-        ElementFactory.constructorElement(iterableElement, null, true)
+        ElementFactory.constructorElement(iterableElement, '', true)
           ..isCycleFree = true
       ];
       _propagateTypeArguments(iterableElement);
@@ -317,8 +352,8 @@ class TestTypeProvider implements TypeProvider {
       ]);
       listElement.methods = <MethodElement>[
         ElementFactory.methodElement("[]", eType, [intType]),
-        ElementFactory.methodElement(
-            "[]=", VoidTypeImpl.instance, [intType, eType]),
+        ElementFactory
+            .methodElement("[]=", VoidTypeImpl.instance, [intType, eType]),
         ElementFactory.methodElement("add", VoidTypeImpl.instance, [eType])
       ];
       _propagateTypeArguments(listElement);
@@ -339,11 +374,11 @@ class TestTypeProvider implements TypeProvider {
       ]);
       mapElement.methods = <MethodElement>[
         ElementFactory.methodElement("[]", vType, [objectType]),
-        ElementFactory.methodElement(
-            "[]=", VoidTypeImpl.instance, [kType, vType])
+        ElementFactory
+            .methodElement("[]=", VoidTypeImpl.instance, [kType, vType])
       ];
       mapElement.constructors = <ConstructorElement>[
-        ElementFactory.constructorElement(mapElement, null, false)
+        ElementFactory.constructorElement(mapElement, '', false)
           ..external = true
           ..factory = true
       ];
@@ -397,7 +432,7 @@ class TestTypeProvider implements TypeProvider {
       ClassElementImpl objectElement = ElementFactory.object;
       _objectType = objectElement.type;
       ConstructorElementImpl constructor =
-          ElementFactory.constructorElement(objectElement, null, true);
+          ElementFactory.constructorElement(objectElement, '', true);
       constructor.constantInitializers = <ConstructorInitializer>[];
       objectElement.constructors = <ConstructorElement>[constructor];
       objectElement.methods = <MethodElement>[
@@ -462,7 +497,7 @@ class TestTypeProvider implements TypeProvider {
           .constructorElement(stringElement, "fromEnvironment", true);
       fromEnvironment.parameters = <ParameterElement>[
         ElementFactory.requiredParameter2("name", stringType),
-        ElementFactory.namedParameter2("defaultValue", _stringType)
+        ElementFactory.namedParameter3("defaultValue", type: _stringType)
       ];
       fromEnvironment.factory = true;
       fromEnvironment.isCycleFree = true;
@@ -475,8 +510,8 @@ class TestTypeProvider implements TypeProvider {
   InterfaceType get symbolType {
     if (_symbolType == null) {
       ClassElementImpl symbolClass = ElementFactory.classElement2("Symbol");
-      ConstructorElementImpl constructor = ElementFactory.constructorElement(
-          symbolClass, null, true, [stringType]);
+      ConstructorElementImpl constructor = ElementFactory
+          .constructorElement(symbolClass, '', true, [stringType]);
       constructor.factory = true;
       constructor.isCycleFree = true;
       symbolClass.constructors = <ConstructorElement>[constructor];
@@ -555,10 +590,10 @@ class TestTypeProvider implements TypeProvider {
       ElementFactory.methodElement("toInt", _intType),
       ElementFactory.methodElement("toDouble", _doubleType),
       ElementFactory.methodElement("toStringAsFixed", _stringType, [_intType]),
-      ElementFactory.methodElement(
-          "toStringAsExponential", _stringType, [_intType]),
-      ElementFactory.methodElement(
-          "toStringAsPrecision", _stringType, [_intType]),
+      ElementFactory
+          .methodElement("toStringAsExponential", _stringType, [_intType]),
+      ElementFactory
+          .methodElement("toStringAsPrecision", _stringType, [_intType]),
       ElementFactory.methodElement("toRadixString", _stringType, [_intType])
     ];
     intElement.methods = <MethodElement>[
@@ -580,7 +615,7 @@ class TestTypeProvider implements TypeProvider {
         ElementFactory.constructorElement(intElement, "fromEnvironment", true);
     fromEnvironment.parameters = <ParameterElement>[
       ElementFactory.requiredParameter2("name", stringType),
-      ElementFactory.namedParameter2("defaultValue", _intType)
+      ElementFactory.namedParameter3("defaultValue", type: _intType)
     ];
     fromEnvironment.factory = true;
     fromEnvironment.isCycleFree = true;
@@ -593,18 +628,23 @@ class TestTypeProvider implements TypeProvider {
       ElementFactory.constructorElement(doubleElement, null, false)
         ..synthetic = true
     ];
-    ConstFieldElementImpl varINFINITY =
-        ElementFactory.fieldElement("INFINITY", true, false, true, _doubleType);
+    ConstFieldElementImpl varINFINITY = ElementFactory.fieldElement(
+        "INFINITY", true, false, true, _doubleType,
+        initializer: AstFactory.doubleLiteral(double.INFINITY));
     varINFINITY.constantInitializer = AstFactory.binaryExpression(
         AstFactory.integer(1), TokenType.SLASH, AstFactory.integer(0));
     List<FieldElement> fields = <FieldElement>[
-      ElementFactory.fieldElement("NAN", true, false, true, _doubleType),
+      ElementFactory.fieldElement("NAN", true, false, true, _doubleType,
+          initializer: AstFactory.doubleLiteral(double.NAN)),
       varINFINITY,
       ElementFactory.fieldElement(
-          "NEGATIVE_INFINITY", true, false, true, _doubleType),
+          "NEGATIVE_INFINITY", true, false, true, _doubleType,
+          initializer: AstFactory.doubleLiteral(double.NEGATIVE_INFINITY)),
       ElementFactory.fieldElement(
-          "MIN_POSITIVE", true, false, true, _doubleType),
-      ElementFactory.fieldElement("MAX_FINITE", true, false, true, _doubleType)
+          "MIN_POSITIVE", true, false, true, _doubleType,
+          initializer: AstFactory.doubleLiteral(double.MIN_POSITIVE)),
+      ElementFactory.fieldElement("MAX_FINITE", true, false, true, _doubleType,
+          initializer: AstFactory.doubleLiteral(double.MAX_FINITE))
     ];
     doubleElement.fields = fields;
     int fieldCount = fields.length;

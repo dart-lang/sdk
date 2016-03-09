@@ -10,6 +10,6 @@ set -ex
 
 ./xcodebuild/DebugX64/dart_no_snapshot --gen-precompiled-snapshot --package-root=xcodebuild/DebugX64/packages/ "$1"
 
-clang -m64 -dynamiclib -o libprecompiled.dylib precompiled.S
+clang -nostartfiles -m64 -dynamiclib -o libprecompiled.dylib precompiled.S
 
-LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$PWD" lldb -- ./xcodebuild/DebugX64/dart_precompiled --run-precompiled-snapshot not_used.dart
+LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$PWD" lldb -- ./xcodebuild/DebugX64/dart_precompiled_runtime --run-precompiled-snapshot not_used.dart

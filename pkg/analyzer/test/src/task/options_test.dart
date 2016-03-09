@@ -77,6 +77,16 @@ analyzer:
     expect(analysisOptions.enableGenericMethods, true);
   }
 
+  test_configure_enableConditionalDirectives() {
+    expect(analysisOptions.enableConditionalDirectives, false);
+    configureContext('''
+analyzer:
+  language:
+    enableConditionalDirectives: true
+''');
+    expect(analysisOptions.enableConditionalDirectives, true);
+  }
+
   test_configure_enableSuperMixins() {
     configureContext('''
 analyzer:

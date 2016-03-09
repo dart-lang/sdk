@@ -14,6 +14,7 @@
 #include "vm/lockers.h"
 #include "vm/object.h"
 #include "vm/object_id_ring.h"
+#include "vm/safepoint.h"
 #include "vm/stack_frame.h"
 #include "vm/store_buffer.h"
 #include "vm/thread_registry.h"
@@ -449,7 +450,7 @@ SemiSpace* Scavenger::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
   if (invoke_api_callbacks && (isolate->gc_prologue_callback() != NULL)) {
     (isolate->gc_prologue_callback())();
   }
-  isolate->thread_registry()->PrepareForGC();
+  isolate->PrepareForGC();
   // Flip the two semi-spaces so that to_ is always the space for allocating
   // objects.
   SemiSpace* from = to_;
@@ -545,6 +546,9 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
 
 void Scavenger::IterateObjectIdTable(Isolate* isolate,
                                      ScavengerVisitor* visitor) {
+  if (!FLAG_support_service) {
+    return;
+  }
   ObjectIdRing* ring = isolate->object_id_ring();
   if (ring == NULL) {
     // --gc_at_alloc can get us here before the ring has been initialized.
@@ -763,7 +767,7 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   // will continue with its scavenge after waiting for the winner to complete.
   // TODO(koda): Consider moving SafepointThreads into allocation failure/retry
   // logic to avoid needless collections.
-  isolate->thread_registry()->SafepointThreads();
+  SafepointOperationScope safepoint_scope(Thread::Current());
 
   // Scavenging is not reentrant. Make sure that is the case.
   ASSERT(!scavenging_);
@@ -823,8 +827,6 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   // Done scavenging. Reset the marker.
   ASSERT(scavenging_);
   scavenging_ = false;
-
-  isolate->thread_registry()->ResumeAllThreads();
 }
 
 
@@ -835,6 +837,9 @@ void Scavenger::WriteProtect(bool read_only) {
 
 
 void Scavenger::PrintToJSONObject(JSONObject* object) const {
+  if (!FLAG_support_service) {
+    return;
+  }
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   JSONObject space(object, "new");

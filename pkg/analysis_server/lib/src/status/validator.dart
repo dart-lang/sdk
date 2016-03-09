@@ -6,17 +6,17 @@ library analysis_server.src.status.validator;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, AnalysisResult, CacheState, ChangeSet;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/dart.dart';
@@ -708,24 +708,6 @@ class ElementComparator {
           (VariableElement element) =>
               element.isFinal ? 'a final $kind' : 'a non-final $kind');
     }
-    if (expected.isPotentiallyMutatedInClosure !=
-        actual.isPotentiallyMutatedInClosure) {
-      _writeMismatch(
-          expected,
-          actual,
-          (VariableElement element) => element.isPotentiallyMutatedInClosure
-              ? 'a $kind that is potentially mutated in a closure'
-              : 'a $kind that is not mutated in a closure');
-    }
-    if (expected.isPotentiallyMutatedInScope !=
-        actual.isPotentiallyMutatedInScope) {
-      _writeMismatch(
-          expected,
-          actual,
-          (VariableElement element) => element.isPotentiallyMutatedInScope
-              ? 'a $kind that is potentially mutated in its scope'
-              : 'a $kind that is not mutated in its scope');
-    }
     if (expected.isStatic != actual.isStatic) {
       _writeMismatch(
           expected,
@@ -756,8 +738,8 @@ class ElementComparator {
    * Write a simple message explaining that the [expected] and [actual] values
    * were different, using the [describe] function to describe the values.
    */
-  void _writeMismatch /*<E>*/ (Object /*=E*/ expected, Object /*=E*/ actual,
-      String describe(Object /*=E*/ value)) {
+  void _writeMismatch/*<E>*/(Object/*=E*/ expected, Object/*=E*/ actual,
+      String describe(Object/*=E*/ value)) {
     _write('Expected ');
     _write(describe(expected));
     _write('; found ');
@@ -1193,11 +1175,10 @@ class ValidationResults {
     //
     // Handle special cases.
     //
-    if (first is ConstantEvaluationTarget_Annotation &&
-        second is ConstantEvaluationTarget_Annotation) {
+    if (first is ElementAnnotationImpl && second is ElementAnnotationImpl) {
       return _equal(first.source, second.source) &&
           _equal(first.librarySource, second.librarySource) &&
-          _equal(first.annotation, second.annotation);
+          _equal(first.annotationAst, second.annotationAst);
     } else if (first is AstNode && second is AstNode) {
       return first.runtimeType == second.runtimeType &&
           first.offset == second.offset &&
@@ -1216,7 +1197,7 @@ class ValidationResults {
     //
     // Handle special cases.
     //
-    if (object is ConstantEvaluationTarget_Annotation) {
+    if (object is ElementAnnotation) {
       return object.source.hashCode;
     } else if (object is AstNode) {
       return object.offset;
@@ -1308,17 +1289,17 @@ class ValueComparison {
 
   bool _compareConstantEvaluationTargets(ConstantEvaluationTarget expected,
       ConstantEvaluationTarget actual, StringBuffer buffer) {
-    if (actual is ConstantEvaluationTarget_Annotation) {
-      ConstantEvaluationTarget_Annotation expectedAnnotation = expected;
-      ConstantEvaluationTarget_Annotation actualAnnotation = actual;
+    if (actual is ElementAnnotation) {
+      ElementAnnotationImpl expectedAnnotation = expected;
+      ElementAnnotationImpl actualAnnotation = actual;
       if (actualAnnotation.source == expectedAnnotation.source &&
           actualAnnotation.librarySource == expectedAnnotation.librarySource &&
-          actualAnnotation.annotation == expectedAnnotation.annotation) {
+          actualAnnotation.annotationAst == expectedAnnotation.annotationAst) {
         return true;
       }
       if (buffer != null) {
-        void write(ConstantEvaluationTarget_Annotation target) {
-          Annotation annotation = target.annotation;
+        void write(ElementAnnotationImpl target) {
+          Annotation annotation = target.annotationAst;
           buffer.write(annotation);
           buffer.write(' at ');
           buffer.write(annotation.offset);

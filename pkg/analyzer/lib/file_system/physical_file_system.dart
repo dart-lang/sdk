@@ -31,6 +31,7 @@ class PhysicalResourceProvider implements ResourceProvider {
    */
   static final String SERVER_DIR = ".dartServer";
 
+  @override
   final AbsolutePathContext absolutePathContext =
       new AbsolutePathContext(io.Platform.isWindows);
 

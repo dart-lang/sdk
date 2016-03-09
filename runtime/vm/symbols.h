@@ -34,6 +34,7 @@ class ObjectPointerVisitor;
   V(Other, "other")                                                            \
   V(Call, "call")                                                              \
   V(Current, "current")                                                        \
+  V(_current, "_current")                                                      \
   V(MoveNext, "moveNext")                                                      \
   V(IsYieldEach, "isYieldEach")                                                \
   V(Value, "value")                                                            \
@@ -55,6 +56,7 @@ class ObjectPointerVisitor;
   V(_EnumNames, "_enum_names")                                                 \
   V(ExprTemp, ":expr_temp")                                                    \
   V(AnonymousClosure, "<anonymous closure>")                                   \
+  V(AnonymousSignature, "<anonymous signature>")                               \
   V(ImplicitClosure, "<implicit closure>")                                     \
   V(ClosureParameter, ":closure")                                              \
   V(TypeArgumentsParameter, ":type_arguments")                                 \
@@ -135,6 +137,7 @@ class ObjectPointerVisitor;
   V(Dynamic, "dynamic")                                                        \
   V(UnresolvedClass, "UnresolvedClass")                                        \
   V(Type, "_Type")                                                             \
+  V(FunctionType, "_FunctionType")                                             \
   V(TypeRef, "_TypeRef")                                                       \
   V(TypeParameter, "_TypeParameter")                                           \
   V(BoundedType, "_BoundedType")                                               \
@@ -143,7 +146,7 @@ class ObjectPointerVisitor;
   V(Patch, "patch")                                                            \
   V(PatchClass, "PatchClass")                                                  \
   V(Function, "Function")                                                      \
-  V(FunctionImpl, "_FunctionImpl")                                             \
+  V(_Closure, "_Closure")                                                      \
   V(FunctionResult, "function result")                                         \
   V(FactoryResult, "factory result")                                           \
   V(ClosureData, "ClosureData")                                                \
@@ -159,6 +162,7 @@ class ObjectPointerVisitor;
   V(Instructions, "Instructions")                                              \
   V(ObjectPool, "ObjectPool")                                                  \
   V(PcDescriptors, "PcDescriptors")                                            \
+  V(CodeSourceMap, "CodeSourceMap")                                            \
   V(Stackmap, "Stackmap")                                                      \
   V(LocalVarDescriptors, "LocalVarDescriptors")                                \
   V(ExceptionHandlers, "ExceptionHandlers")                                    \
@@ -304,8 +308,6 @@ class ObjectPointerVisitor;
   V(OutOfMemoryError, "OutOfMemoryError")                                      \
   V(NullThrownError, "NullThrownError")                                        \
   V(IsolateSpawnException, "IsolateSpawnException")                            \
-  V(JavascriptIntegerOverflowError, "_JavascriptIntegerOverflowError")         \
-  V(JavascriptCompatibilityError, "_JavascriptCompatibilityError")             \
   V(BooleanExpression, "boolean expression")                                   \
   V(Malformed, "malformed")                                                    \
   V(Malbounded, "malbounded")                                                  \
@@ -314,6 +316,9 @@ class ObjectPointerVisitor;
   V(ColonSpace, ": ")                                                          \
   V(RParenArrow, ") => ")                                                      \
   V(SpaceExtendsSpace, " extends ")                                            \
+  V(SpaceWhereNewLine, " where\n")                                             \
+  V(SpaceIsFromSpace, " is from ")                                             \
+  V(SpaceOfSpace, " of ")                                                      \
   V(SwitchExpr, ":switch_expr")                                                \
   V(TwoNewlines, "\n\n")                                                       \
   V(TwoSpaces, "  ")                                                           \
@@ -399,6 +404,8 @@ class ObjectPointerVisitor;
   V(ConstructorClosurePrefix, "new#")                                          \
   V(_runExtension, "_runExtension")                                            \
   V(_runPendingImmediateCallback, "_runPendingImmediateCallback")              \
+  V(DartLibrary, "dart.library.")                                              \
+  V(DartLibraryMirrors, "dart.library.mirrors")                                \
 
 
 // Contains a list of frequently used strings in a canonicalized form. This
@@ -419,7 +426,7 @@ class Symbols : public AllStatic {
 
     kKwTableStart,  // First keyword at kKwTableStart + 1.
 
-#define DEFINE_KEYWORD_SYMBOL_INDEX(t, s, p, a)                            \
+#define DEFINE_KEYWORD_SYMBOL_INDEX(t, s, p, a)                                \
     t##Id,
     DART_KEYWORD_LIST(DEFINE_KEYWORD_SYMBOL_INDEX)
 #undef DEFINE_KEYWORD_SYMBOL_INDEX
@@ -568,6 +575,11 @@ class Symbols : public AllStatic {
 
   // Initialize and setup a symbol table for the isolate.
   static void SetupSymbolTable(Isolate* isolate);
+
+  // Treat the symbol table as weak and collect garbage. Answer the number of
+  // symbols deleted from the symbol table because they where not referenced
+  // from anywhere else.
+  static intptr_t Compact(Isolate* isolate);
 
   // Creates a Symbol given a C string that is assumed to contain
   // UTF-8 encoded characters and '\0' is considered a termination character.

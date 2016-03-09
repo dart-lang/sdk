@@ -7,18 +7,21 @@ import 'package:observatory/service_io.dart';
 import 'test_helper.dart';
 import 'dart:async';
 import 'dart:developer';
+import 'service_test_common.dart';
+
+const int LINE_A = 19;
 
 foo() async { }
 bar() { }
 
 doAsync(stop) async {
   if (stop) debugger();
-  await foo(); // Line 16.
-  bar();       // Line 17.
-  bar();       // Line 18.
-  await foo(); // Line 19.
-  await foo(); // Line 20.
-  bar();       // Line 21.
+  await foo(); // Line A.
+  bar();       // Line A + 1.
+  bar();       // Line A + 2.
+  await foo(); // Line A + 3.
+  await foo(); // Line A + 4.
+  bar();       // Line A + 5.
   return null;
 }
 
@@ -45,9 +48,9 @@ stepOverAwaitingResume(Isolate isolate) async {
 }
 
 smartNext(Isolate isolate) async {
-  if (isolate.pauseEvent.atAsyncJump) {
+  if (isolate.pauseEvent.atAsyncSuspension) {
     print("next-async");
-    return isolate.asyncStepOver()[Isolate.kSecondResume];
+    return asyncStepOver(isolate);
   } else {
     print("next-sync");
     return stepOverAwaitingResume(isolate);
@@ -55,15 +58,15 @@ smartNext(Isolate isolate) async {
 }
 
 var tests = [
-             hasStoppedAtBreakpoint, stoppedAtLine(16), // foo()
-  smartNext, hasStoppedAtBreakpoint, stoppedAtLine(16), // await
-  smartNext, hasStoppedAtBreakpoint, stoppedAtLine(17), // bar()
-  smartNext, hasStoppedAtBreakpoint, stoppedAtLine(18), // bar()
-  smartNext, hasStoppedAtBreakpoint, stoppedAtLine(19), // foo()
-  smartNext, hasStoppedAtBreakpoint, stoppedAtLine(19), // await
-  smartNext, hasStoppedAtBreakpoint, stoppedAtLine(20), // foo()
-  smartNext, hasStoppedAtBreakpoint, stoppedAtLine(20), // await
-  smartNext, hasStoppedAtBreakpoint, stoppedAtLine(21), // bar()
+             hasStoppedAtBreakpoint, stoppedAtLine(LINE_A), // foo()
+  smartNext, hasStoppedAtBreakpoint, stoppedAtLine(LINE_A), // await
+  smartNext, hasStoppedAtBreakpoint, stoppedAtLine(LINE_A + 1), // bar()
+  smartNext, hasStoppedAtBreakpoint, stoppedAtLine(LINE_A + 2), // bar()
+  smartNext, hasStoppedAtBreakpoint, stoppedAtLine(LINE_A + 3), // foo()
+  smartNext, hasStoppedAtBreakpoint, stoppedAtLine(LINE_A + 3), // await
+  smartNext, hasStoppedAtBreakpoint, stoppedAtLine(LINE_A + 4), // foo()
+  smartNext, hasStoppedAtBreakpoint, stoppedAtLine(LINE_A + 4), // await
+  smartNext, hasStoppedAtBreakpoint, stoppedAtLine(LINE_A + 5), // bar()
   resumeIsolate,
 ];
 

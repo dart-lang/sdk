@@ -10,6 +10,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 Mutex* CodeObservers::mutex_ = NULL;
 intptr_t CodeObservers::observers_length_ = 0;
 CodeObserver** CodeObservers::observers_ = NULL;
@@ -65,5 +67,7 @@ void CodeObservers::InitOnce() {
   OS::RegisterCodeObservers();
 }
 
+
+#endif  // !PRODUCT
 
 }  // namespace dart

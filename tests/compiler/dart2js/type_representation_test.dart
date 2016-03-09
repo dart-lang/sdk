@@ -50,7 +50,7 @@ void testTypeRepresentations() {
     }
 
     String stringify(Expression expression) {
-      return prettyPrint(expression, env.compiler).buffer.toString();
+      return prettyPrint(expression, env.compiler);
     }
 
     void expect(DartType type,

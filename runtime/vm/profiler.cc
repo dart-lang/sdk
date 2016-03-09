@@ -26,12 +26,9 @@
 
 namespace dart {
 
-
 static const intptr_t kSampleSize = 8;
 
 DECLARE_FLAG(bool, trace_profiler);
-
-DEFINE_FLAG(bool, profile, true, "Enable Sampling Profiler");
 DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
 
 #if defined(TARGET_OS_ANDROID) || defined(TARGET_ARCH_ARM64) ||                \
@@ -52,6 +49,8 @@ DEFINE_FLAG(bool, profile_vm, false,
             "Always collect native stack traces.");
 #endif
 
+#ifndef PRODUCT
+
 bool Profiler::initialized_ = false;
 SampleBuffer* Profiler::sample_buffer_ = NULL;
 
@@ -61,7 +60,7 @@ void Profiler::InitOnce() {
   SetSamplePeriod(FLAG_profile_period);
   SetSampleDepth(FLAG_max_profile_depth);
   Sample::InitOnce();
-  if (!FLAG_profile) {
+  if (!FLAG_profiler) {
     return;
   }
   ASSERT(!initialized_);
@@ -74,7 +73,7 @@ void Profiler::InitOnce() {
 
 
 void Profiler::Shutdown() {
-  if (!FLAG_profile) {
+  if (!FLAG_profiler) {
     return;
   }
   ASSERT(initialized_);
@@ -1384,5 +1383,7 @@ ProcessedSampleBuffer::ProcessedSampleBuffer()
     : code_lookup_table_(new CodeLookupTable(Thread::Current())) {
   ASSERT(code_lookup_table_ != NULL);
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

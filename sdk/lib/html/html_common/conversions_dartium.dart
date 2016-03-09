@@ -97,6 +97,31 @@ convertDartToNative_Dictionary(Map dict) {
   return jsObject;
 }
 
+// Creates a Dart class to allow members of the Map to be fetched (as if getters exist).
+// TODO(terry): Need to use package:js but that's a problem in dart:html. Talk to
+//              Jacob about how to do this properly using dart:js.
+class _ReturnedDictionary {
+  Map _values;
+
+  noSuchMethod(Invocation invocation) {
+    var key = MirrorSystem.getName(invocation.memberName);
+    if (invocation.isGetter) {
+      return _values[key];
+    } else if (invocation.isSetter && key.endsWith('=')) {
+      key = key.substring(0, key.length-1);
+      _values[key] = invocation.positionalArguments[0];
+    }
+  }
+
+  Map get toMap => _values;
+
+  _ReturnedDictionary(Map value): _values = value != null ? value : {};
+}
+
+// Helper function to wrapped a returned dictionary from blink to a Dart looking
+// class.
+convertNativeDictionaryToDartDictionary(Map values) => new _ReturnedDictionary(values);
+
 // Conversion function place holder (currently not used in dart2js or dartium).
 List convertDartToNative_StringArray(List<String> input) => input;
 
@@ -126,9 +151,14 @@ wrap_jso(jsObject) {
     }
 
     if (jsObject is js.JsArray) {
-      var wrappingList = new DartHtmlWrappingList(jsObject);
-      js.setDartHtmlWrapperFor(jsObject, wrappingList);
-      return wrappingList;
+      wrapper = new js.JSArray.create(jsObject);
+      js.setDartHtmlWrapperFor(jsObject, wrapper);
+      return wrapper;
+    }
+    if (jsObject is js.JsFunction) {
+      wrapper = new js.JSFunction.create(jsObject);
+      js.setDartHtmlWrapperFor(jsObject, wrapper);
+      return wrapper;
     }
 
     // Try the most general type conversions on it.
@@ -144,14 +174,15 @@ wrap_jso(jsObject) {
     if (constructor == null) {
       // Perfectly valid case for JavaScript objects where __proto__ has
       // intentionally been set to null.
-      js.setDartHtmlWrapperFor(jsObject, jsObject);
+      js.setDartHtmlWrapperFor(jsObject, new js.JSObject.create(jsObject));
       return jsObject;
     }
     var jsTypeName = js.JsNative.getProperty(constructor, 'name');
     if (jsTypeName is! String || jsTypeName.length == 0) {
       // Not an html type.
-      js.setDartHtmlWrapperFor(jsObject, jsObject);
-      return jsObject;
+      wrapper = new js.JSObject.create(jsObject);
+      js.setDartHtmlWrapperFor(jsObject, wrapper);
+      return wrapper;
     }
 
     var dartClass_instance;
@@ -204,12 +235,11 @@ wrap_jso(jsObject) {
 
     // TODO(jacobr): cache that this is not a dart:html JS class.
     return dartClass_instance;
-  } catch(e, stacktrace){
+  } catch (e, stacktrace) {
     if (interop_checks) {
-      if (e is DebugAssertException)
-        window.console.log("${e.message}\n ${stacktrace}");
-      else
-        window.console.log("${stacktrace}");
+      if (e is DebugAssertException) window.console
+          .log("${e.message}\n ${stacktrace}");
+      else window.console.log("${stacktrace}");
     }
   }
 
@@ -236,31 +266,30 @@ wrap_jso_no_SerializedScriptvalue(jsObject) {
       return wrapper;
     }
 
-    // TODO(jacobr): auomatically wrapping JsArray here is fundamentally broken
-    // as it hijacks adding custom methods on JS Array classes as part of the
-    // new typed DartJsInterop.
-    // To make this work we really need to make DartHtmlWrappingList extend
-    // JsArrayImpl. Fixing this issue needs to be part of a broader refactor
-    // that allows calling custom typed JS interop methods on all dart:html
-    // classes.
     if (jsObject is js.JsArray) {
-      var wrappingList = new DartHtmlWrappingList(jsObject);
-      js.setDartHtmlWrapperFor(jsObject, wrappingList);
-      return wrappingList;
+      wrapper = new js.JSArray.create(jsObject);
+      js.setDartHtmlWrapperFor(jsObject, wrapper);
+      return wrapper;
+    }
+    if (jsObject is js.JsFunction) {
+      wrapper = new js.JSFunction.create(jsObject);
+      js.setDartHtmlWrapperFor(jsObject, wrapper);
+      return wrapper;
     }
 
     var constructor = js.JsNative.getProperty(jsObject, 'constructor');
     if (constructor == null) {
       // Perfectly valid case for JavaScript objects where __proto__ has
       // intentionally been set to null.
-      js.setDartHtmlWrapperFor(jsObject, jsObject);
+      js.setDartHtmlWrapperFor(jsObject, new js.JSObject.create(jsObject));
       return jsObject;
     }
     var jsTypeName = js.JsNative.getProperty(constructor, 'name');
     if (jsTypeName is! String || jsTypeName.length == 0) {
       // Not an html type.
-      js.setDartHtmlWrapperFor(jsObject, jsObject);
-      return jsObject;
+      wrapper = new js.JSObject.create(jsObject);
+      js.setDartHtmlWrapperFor(jsObject, wrapper);
+      return wrapper;
     }
 
     var func = getHtmlCreateFunction(jsTypeName);
@@ -270,13 +299,14 @@ wrap_jso_no_SerializedScriptvalue(jsObject) {
       js.setDartHtmlWrapperFor(jsObject, dartClass_instance);
       return dartClass_instance;
     }
-    return jsObject;
-  } catch(e, stacktrace){
+    wrapper = new js.JSObject.create(jsObject);
+    js.setDartHtmlWrapperFor(jsObject, wrapper);
+    return wrapper;
+  } catch (e, stacktrace) {
     if (interop_checks) {
-      if (e is DebugAssertException)
-        window.console.log("${e.message}\n ${stacktrace}");
-      else
-        window.console.log("${stacktrace}");
+      if (e is DebugAssertException) window.console
+          .log("${e.message}\n ${stacktrace}");
+      else window.console.log("${stacktrace}");
     }
   }
 
@@ -333,7 +363,7 @@ getCustomElementEntry(element) {
   } else if (runtimeType == TemplateElement) {
     // Data binding with a Dart class.
     tag = element.attributes['is'];
-  } else if (runtimeType == js.JsObjectImpl) {
+  } else if (runtimeType == js.JsObject) {
     // It's a Polymer core element (written in JS).
     // Make sure it's an element anything else we can ignore.
     if (element.hasProperty('nodeType') && element['nodeType'] == 1) {
@@ -347,7 +377,8 @@ getCustomElementEntry(element) {
       }
     }
   } else {
-    throw new UnsupportedError('Element is incorrect type. Got ${runtimeType}, expected HtmlElement/HtmlTemplate/JsObjectImpl.');
+    throw new UnsupportedError(
+        'Element is incorrect type. Got ${runtimeType}, expected HtmlElement/HtmlTemplate/JsObject.');
   }
 
   var entry = _knownCustomElements[tag];
@@ -377,20 +408,4 @@ Type getCustomElementType(object) {
     return entry['type'];
   }
   return null;
-}
-
-/**
- * Wraps a JsArray and will call wrap_jso on its entries.
- */
-class DartHtmlWrappingList extends ListBase implements NativeFieldWrapperClass2 {
-  DartHtmlWrappingList(this.blink_jsObject);
-
-  final js.JsArray blink_jsObject;
-
-  operator [](int index) => wrap_jso_no_SerializedScriptvalue(js.JsNative.getArrayIndex(blink_jsObject, index));
-
-  operator []=(int index, value) => blink_jsObject[index] = value;
-
-  int get length => blink_jsObject.length;
-  int set length(int newLength) => blink_jsObject.length = newLength;
 }

@@ -4336,6 +4336,21 @@ abstract class SemanticSendVisitor<R, A> {
       Node rhs,
       A arg);
 
+  ///  Assignment of [rhs] to the unresolved super [element].
+  ///
+  /// For instance:
+  ///
+  ///     class B {}
+  ///     class C {
+  ///       m() => super.foo = 42;
+  ///     }
+  ///
+  R visitUnresolvedSuperSet(
+      Send node,
+      Element element,
+      Node rhs,
+      A arg);
+
   /// Invocation of the unresolved [element] with [arguments].
   ///
   /// For instance:

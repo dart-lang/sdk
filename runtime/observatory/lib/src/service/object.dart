@@ -389,44 +389,17 @@ abstract class HeapObject extends ServiceObject {
       clazz = map['class'];
     }
 
+    // Load the full class object if the isolate is runnable.
+    if (clazz != null) {
+      if (clazz.isolate.runnable) {
+        clazz.load();
+      }
+    }
+
     if (mapIsRef) {
       return;
     }
     size = map['size'];
-  }
-}
-
-abstract class Coverage {
-  // Following getters and functions will be provided by [ServiceObject].
-  String get id;
-  Isolate get isolate;
-
-  Future refreshCoverage() {
-    return refreshCallSiteData();
-  }
-
-  /// Default handler for coverage data.
-  void processCallSiteData(List coverageData) {
-    coverageData.forEach((scriptCoverage) {
-      assert(scriptCoverage['script'] != null);
-      scriptCoverage['script']._processCallSites(scriptCoverage['callSites']);
-    });
-  }
-
-  Future refreshCallSiteData() {
-    Map params = {};
-    if (this is! Isolate) {
-      params['targetId'] = id;
-    }
-    return isolate.invokeRpcNoUpgrade('_getCallSiteData', params).then(
-        (ObservableMap map) {
-          var coverage = new ServiceObject._fromMap(isolate, map);
-          assert(coverage.type == 'CodeCoverage');
-          var coverageList = coverage['coverage'];
-          assert(coverageList != null);
-          processCallSiteData(coverageList);
-          return this;
-        });
   }
 }
 
@@ -1136,7 +1109,7 @@ class HeapSnapshot {
 }
 
 /// State for a running isolate.
-class Isolate extends ServiceObjectOwner with Coverage {
+class Isolate extends ServiceObjectOwner {
   static const kLoggingStream = '_Logging';
   static const kExtensionStream = 'Extension';
 
@@ -1171,7 +1144,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
   @observable bool running = false;
   @observable bool idle = false;
   @observable bool loading = true;
-
+  @observable bool runnable = false;
   @observable bool ioEnabled = false;
 
   final List<String> extensionRPCs = new List<String>();
@@ -1195,6 +1168,26 @@ class Isolate extends ServiceObjectOwner with Coverage {
     });
   }
 
+  static const kCallSitesReport = '_CallSites';
+  static const kPossibleBreakpointsReport = 'PossibleBreakpoints';
+
+  Future<ServiceMap> getSourceReport(List<String> report_kinds,
+                                     [Script script,
+                                      int startPos,
+                                      int endPos]) {
+    var params = { 'reports' : report_kinds };
+    if (script != null) {
+      params['scriptId'] = script.id;
+    }
+    if (startPos != null) {
+      params['tokenPos'] = startPos;
+    }
+    if (endPos != null) {
+      params['endTokenPos'] = endPos;
+    }
+    return invokeRpc('_getSourceReport', params);
+  }
+
   /// Fetches and builds the class hierarchy for this isolate. Returns the
   /// Object class object.
   Future<Class> getClassHierarchy() {
@@ -1205,6 +1198,10 @@ class Isolate extends ServiceObjectOwner with Coverage {
 
   Future<ServiceObject> getPorts() {
     return invokeRpc('_getPorts', {});
+  }
+
+  Future<ServiceObject> getPersistentHandles() {
+    return invokeRpc('_getPersistentHandles', {});
   }
 
   Future<List<Class>> getClassRefs() async {
@@ -1389,7 +1386,7 @@ class Isolate extends ServiceObjectOwner with Coverage {
     }
     _loaded = true;
     loading = false;
-
+    runnable = map['runnable'] == true;
     _upgradeCollection(map, isolate);
     originNumber = int.parse(map['_originNumber'], onError:(_) => null);
     rootLibrary = map['rootLib'];
@@ -1537,34 +1534,15 @@ class Isolate extends ServiceObjectOwner with Coverage {
     }
   }
 
-  Future<ServiceObject> addBreakpoint(
-      Script script, int line, [int col]) async {
-    // TODO(turnidge): Pass line as an int instead of a string.
-    try {
-      Map params = {
-        'scriptId': script.id,
-        'line': line.toString(),
-      };
-      if (col != null) {
-        params['column'] = col.toString();
-      }
-      Breakpoint bpt = await invokeRpc('addBreakpoint', params);
-      if (bpt.resolved && script.loaded) {
-        SourceLocation loc = bpt.location;
-        if (script.tokenToLine(loc.tokenPos) != line) {
-          script.getLine(line).possibleBpt = false;
-        }
-      }
-      return bpt;
-    } on ServerRpcException catch(e) {
-      if (e.code == ServerRpcException.kCannotAddBreakpoint) {
-        // Unable to set a breakpoint at the desired line.
-        if (script.loaded) {
-          script.getLine(line).possibleBpt = false;
-        }
-      }
-      rethrow;
+  Future<ServiceObject> addBreakpoint(Script script, int line, [int col]) {
+    Map params = {
+      'scriptId': script.id,
+      'line': line,
+    };
+    if (col != null) {
+      params['column'] = col;
     }
+    return invokeRpc('addBreakpoint', params);
   }
 
   Future<ServiceObject> addBreakpointByScriptUri(
@@ -1610,69 +1588,12 @@ class Isolate extends ServiceObjectOwner with Coverage {
     return invokeRpc('resume', {'step': 'Over'});
   }
 
-  Future stepOut() {
-    return invokeRpc('resume', {'step': 'Out'});
+  Future stepOverAsyncSuspension() {
+    return invokeRpc('resume', {'step': 'OverAsyncSuspension'});
   }
 
-
-  static const int kFirstResume = 0;
-  static const int kSecondResume = 1;
-  /// result[kFirstResume] completes after the inital resume. The UI should
-  /// wait on this future because some other breakpoint may be hit before the
-  /// async continuation.
-  /// result[kSecondResume] completes after the second resume. Tests should
-  /// wait on this future to avoid confusing the pause event at the
-  /// state-machine switch with the pause event after the state-machine switch.
-  List<Future> asyncStepOver() {
-    Completer firstResume = new Completer();
-    Completer secondResume = new Completer();
-    var subscription;
-
-    handleError(error) {
-      if (subscription != null) {
-        subscription.cancel();
-        subscription = null;
-      }
-      firstResume.completeError(error);
-      secondResume.completeError(error);
-    }
-
-    if ((pauseEvent == null) ||
-        (pauseEvent.kind != ServiceEvent.kPauseBreakpoint) ||
-        (pauseEvent.asyncContinuation == null)) {
-      handleError(new Exception("No async continuation available"));
-    } else {
-      Instance continuation = pauseEvent.asyncContinuation;
-      assert(continuation.isClosure);
-      addBreakOnActivation(continuation).then((Breakpoint continuationBpt) {
-        vm.getEventStream(VM.kDebugStream).then((stream) {
-          var onResume = firstResume;
-          subscription = stream.listen((ServiceEvent event) {
-            if ((event.kind == ServiceEvent.kPauseBreakpoint) &&
-                (event.breakpoint == continuationBpt)) {
-              // We are stopped before state-machine dispatch; step-over to
-              // reach user code.
-              removeBreakpoint(continuationBpt).then((_) {
-                onResume = secondResume;
-                stepOver().catchError(handleError);
-              });
-            } else if (event.kind == ServiceEvent.kResume) {
-              if (onResume == secondResume) {
-                subscription.cancel();
-                subscription = null;
-              }
-              if (onResume != null) {
-                onResume.complete(this);
-                onResume = null;
-              }
-            }
-          });
-          resume().catchError(handleError);
-        }).catchError(handleError);
-      }).catchError(handleError);
-    }
-
-    return [firstResume.future, secondResume.future];
+  Future stepOut() {
+    return invokeRpc('resume', {'step': 'Out'});
   }
 
   Future setName(String newName) {
@@ -1924,8 +1845,7 @@ class ServiceEvent extends ServiceObject {
   @observable Frame topFrame;
   @observable String extensionRPC;
   @observable Instance exception;
-  @observable Instance asyncContinuation;
-  @observable bool atAsyncJump;
+  @observable bool atAsyncSuspension;
   @observable ServiceObject inspectee;
   @observable ByteData data;
   @observable int count;
@@ -1949,6 +1869,7 @@ class ServiceEvent extends ServiceObject {
   void _update(ObservableMap map, bool mapIsRef) {
     _loaded = true;
     _upgradeCollection(map, owner);
+
     assert(map['isolate'] == null || owner == map['isolate']);
     timestamp =
         new DateTime.fromMillisecondsSinceEpoch(map['timestamp']);
@@ -1974,12 +1895,7 @@ class ServiceEvent extends ServiceObject {
     if (map['exception'] != null) {
       exception = map['exception'];
     }
-    if (map['_asyncContinuation'] != null) {
-      asyncContinuation = map['_asyncContinuation'];
-      atAsyncJump = map['_atAsyncJump'];
-    } else {
-      atAsyncJump = false;
-    }
+    atAsyncSuspension = map['atAsyncSuspension'] != null;
     if (map['inspectee'] != null) {
       inspectee = map['inspectee'];
     }
@@ -2050,6 +1966,10 @@ class Breakpoint extends ServiceObject {
   // The breakpoint has been assigned to a final source location.
   @observable bool resolved;
 
+  // The breakpoint was synthetically created as part of an
+  // 'OverAsyncContinuation' resume request.
+  @observable bool isSyntheticAsyncContinuation;
+
   void _update(ObservableMap map, bool mapIsRef) {
     _loaded = true;
     _upgradeCollection(map, owner);
@@ -2076,6 +1996,8 @@ class Breakpoint extends ServiceObject {
       newScript._addBreakpoint(this);
     }
 
+    isSyntheticAsyncContinuation = map['isSyntheticAsyncContinuation'] != null;
+
     assert(resolved || location is UnresolvedSourceLocation);
   }
 
@@ -2091,7 +2013,11 @@ class Breakpoint extends ServiceObject {
 
   String toString() {
     if (number != null) {
-      return 'Breakpoint ${number} at ${location})';
+      if (isSyntheticAsyncContinuation) {
+        return 'Synthetic Async Continuation Breakpoint ${number}';
+      } else {
+        return 'Breakpoint ${number} at ${location}';
+      }
     } else {
       return 'Uninitialized breakpoint';
     }
@@ -2116,7 +2042,7 @@ class LibraryDependency {
 }
 
 
-class Library extends HeapObject with Coverage {
+class Library extends HeapObject {
   @observable String uri;
   @reflectable final dependencies = new ObservableList<LibraryDependency>();
   @reflectable final scripts = new ObservableList<Script>();
@@ -2126,6 +2052,10 @@ class Library extends HeapObject with Coverage {
 
   bool get canCache => true;
   bool get immutable => false;
+
+  bool isDart(String libraryName) {
+    return uri == 'dart:$libraryName';
+  }
 
   Library._empty(ServiceObjectOwner owner) : super._empty(owner);
 
@@ -2214,7 +2144,7 @@ class Allocations {
   bool get empty => accumulated.empty && current.empty;
 }
 
-class Class extends HeapObject with Coverage {
+class Class extends HeapObject {
   @observable Library library;
 
   @observable bool isAbstract;
@@ -2411,6 +2341,25 @@ class Instance extends HeapObject {
   bool get isWeakProperty => kind == 'WeakProperty';
   bool get isClosure => kind == 'Closure';
   bool get isStackTrace => kind == 'StackTrace';
+  bool get isStackOverflowError {
+    if (clazz == null) {
+      return false;
+    }
+    if (clazz.library == null) {
+      return false;
+    }
+    return (clazz.name == 'StackOverflowError') && clazz.library.isDart('core');
+  }
+
+  bool get isOutOfMemoryError {
+    if (clazz == null) {
+      return false;
+    }
+    if (clazz.library == null) {
+      return false;
+    }
+    return (clazz.name == 'OutOfMemoryError') && clazz.library.isDart('core');
+  }
 
   // TODO(turnidge): Is this properly backwards compatible when new
   // instance kinds are added?
@@ -2449,7 +2398,7 @@ class Instance extends HeapObject {
     elements = map['elements'];
     associations = map['associations'];
     if (map['bytes'] != null) {
-      var bytes = BASE64.decode(map['bytes']);
+      Uint8List bytes = BASE64.decode(map['bytes']);
       switch (map['kind']) {
         case "Uint8ClampedList":
           typedElements = bytes.buffer.asUint8ClampedList(); break;
@@ -2593,7 +2542,7 @@ class FunctionKind {
   static FunctionKind kUNKNOWN = new FunctionKind._internal('UNKNOWN');
 }
 
-class ServiceFunction extends HeapObject with Coverage {
+class ServiceFunction extends HeapObject {
   // owner is a Library, Class, or ServiceFunction.
   @observable ServiceObject dartOwner;
   @observable Library library;
@@ -2739,21 +2688,21 @@ class ScriptLine extends Observable {
   final Script script;
   final int line;
   final String text;
-  @observable int hits;
-  @observable bool possibleBpt = true;
-  @observable bool breakpointResolved = false;
   @observable Set<Breakpoint> breakpoints;
 
-  bool get isBlank {
-    // Compute isBlank on demand.
-    if (_isBlank == null) {
-      _isBlank = text.trim().isEmpty;
-    }
-    return _isBlank;
-  }
-  bool _isBlank;
+  ScriptLine(this.script, this.line, this.text);
 
-  bool get isTrivialLine => !possibleBpt;
+  bool get isBlank {
+    return text.isEmpty || text.trim().isEmpty;
+  }
+
+  bool _isTrivial = null;
+  bool get isTrivial {
+    if (_isTrivial == null) {
+      _isTrivial = _isTrivialLine(text);
+    }
+    return _isTrivial;
+  }
 
   static bool _isTrivialToken(String token) {
     if (token == 'else') {
@@ -2790,16 +2739,11 @@ class ScriptLine extends Observable {
     return true;
   }
 
-  ScriptLine(this.script, this.line, this.text) {
-    possibleBpt = !_isTrivialLine(text);
-  }
-
   void addBreakpoint(Breakpoint bpt) {
     if (breakpoints == null) {
       breakpoints = new Set<Breakpoint>();
     }
     breakpoints.add(bpt);
-    breakpointResolved = breakpointResolved || bpt.resolved;
   }
 
   void removeBreakpoint(Breakpoint bpt) {
@@ -2807,7 +2751,6 @@ class ScriptLine extends Observable {
     breakpoints.remove(bpt);
     if (breakpoints.isEmpty) {
       breakpoints = null;
-      breakpointResolved = false;
     }
   }
 }
@@ -2851,19 +2794,19 @@ class CallSite {
 }
 
 class CallSiteEntry {
-  final /* Class | Library */ receiverContainer;
+  final /* Class | Library */ receiver;
   final int count;
   final ServiceFunction target;
 
-  CallSiteEntry(this.receiverContainer, this.count, this.target);
+  CallSiteEntry(this.receiver, this.count, this.target);
 
   factory CallSiteEntry.fromMap(Map entryMap) {
-    return new CallSiteEntry(entryMap['receiverContainer'],
+    return new CallSiteEntry(entryMap['receiver'],
                              entryMap['count'],
                              entryMap['target']);
   }
 
-  String toString() => "CallSiteEntry(${receiverContainer.name}, $count)";
+  String toString() => "CallSiteEntry(${receiver.name}, $count)";
 }
 
 /// The location of a local variable reference in a script.
@@ -2874,10 +2817,8 @@ class LocalVarLocation {
   LocalVarLocation(this.line, this.column, this.endColumn);
 }
 
-class Script extends HeapObject with Coverage {
-  Set<CallSite> callSites = new Set<CallSite>();
+class Script extends HeapObject {
   final lines = new ObservableList<ScriptLine>();
-  final _hits = new Map<int, int>();
   @observable String uri;
   @observable String kind;
   @observable int firstTokenPos;
@@ -3022,36 +2963,6 @@ class Script extends HeapObject with Coverage {
         _tokenToCol[tokenOffset] = colNumber;
       }
     }
-
-    for (var line in lines) {
-      // Remove possible breakpoints on lines with no tokens.
-      if (!lineSet.contains(line.line)) {
-        line.possibleBpt = false;
-      }
-    }
-  }
-
-  void _processCallSites(List newCallSiteMaps) {
-    var mergedCallSites = new Set<CallSite>();
-    for (var callSiteMap in newCallSiteMaps) {
-      var newSite = new CallSite.fromMap(callSiteMap, this);
-      mergedCallSites.add(newSite);
-
-      var line = newSite.line;
-      var hit = newSite.aggregateCount;
-      assert(line >= 1); // Lines start at 1.
-      var oldHits = _hits[line];
-      if (oldHits != null) {
-        hit += oldHits;
-      }
-      _hits[line] = hit;
-    }
-
-    mergedCallSites.addAll(callSites);
-    callSites = mergedCallSites;
-    _applyHitsToLines();
-    // Notify any Observers that this Script's state has changed.
-    notifyChange(null);
   }
 
   void _processSource(String source) {
@@ -3073,16 +2984,8 @@ class Script extends HeapObject with Coverage {
       }
     }
 
-    _applyHitsToLines();
     // Notify any Observers that this Script's state has changed.
     notifyChange(null);
-  }
-
-  void _applyHitsToLines() {
-    for (var line in lines) {
-      var hits = _hits[line.line];
-      line.hits = hits;
-    }
   }
 
   void _addBreakpoint(Breakpoint bpt) {
@@ -3175,7 +3078,7 @@ class Script extends HeapObject with Coverage {
 
     if (line == lastLine) {
       // Only one line.
-      if (!getLine(line).isTrivialLine) {
+      if (!getLine(line).isTrivial) {
         // TODO(johnmccutchan): end token pos -> column can lie for snapshotted
         // code. e.g.:
         // io_sink.dart source line 23 ends at column 39
@@ -3191,7 +3094,7 @@ class Script extends HeapObject with Coverage {
     }
 
     // Scan first line.
-    if (!getLine(line).isTrivialLine) {
+    if (!getLine(line).isTrivial) {
       lineContents = getLine(line).text.substring(column);
       r.addAll(scanLineForLocalVariableLocations(pattern,
                                                   name,
@@ -3202,7 +3105,7 @@ class Script extends HeapObject with Coverage {
 
     // Scan middle lines.
     while (line < (lastLine - 1)) {
-      if (getLine(line).isTrivialLine) {
+      if (getLine(line).isTrivial) {
         line++;
         continue;
       }
@@ -3216,7 +3119,7 @@ class Script extends HeapObject with Coverage {
     }
 
     // Scan last line.
-    if (!getLine(line).isTrivialLine) {
+    if (!getLine(line).isTrivial) {
       // TODO(johnmccutchan): end token pos -> column can lie for snapshotted
       // code. e.g.:
       // io_sink.dart source line 23 ends at column 39
@@ -3713,7 +3616,7 @@ class Code extends HeapObject {
 
   @observable bool hasDisassembly = false;
 
-  void _processDisassembly(List<String> disassembly){
+  void _processDisassembly(List disassembly) {
     assert(disassembly != null);
     instructions.clear();
     instructionsByAddressOffset = new List(endAddress - startAddress);
@@ -4023,6 +3926,48 @@ class ServiceMessage extends ServiceObject {
     this.handler = map['handler'];
     this.location = map['location'];
   }
+}
+
+
+// Helper function to extract possible breakpoint locations from a
+// SourceReport for some script.
+Set<int> getPossibleBreakpointLines(ServiceMap report, Script script) {
+  var result = new Set<int>();
+  int scriptIndex;
+  int numScripts = report['scripts'].length;
+  for (scriptIndex = 0; scriptIndex < numScripts; scriptIndex++) {
+    if (report['scripts'][scriptIndex].id == script.id) {
+      break;
+    }
+  }
+  if (scriptIndex == numScripts) {
+    return result;
+  }
+  var ranges = report['ranges'];
+  if (ranges != null) {
+    for (var range in ranges) {
+      if (range['scriptIndex'] != scriptIndex) {
+        continue;
+      }
+      if (range['compiled']) {
+        var possibleBpts = range['possibleBreakpoints'];
+        if (possibleBpts != null) {
+          for (var tokenPos in possibleBpts) {
+            result.add(script.tokenToLine(tokenPos));
+          }
+        }
+      } else {
+        int startLine = script.tokenToLine(range['startPos']);
+        int endLine = script.tokenToLine(range['endPos']);
+        for (int line = startLine; line <= endLine; line++) {
+          if (!script.getLine(line).isTrivial) {
+            result.add(line);
+          }
+        }
+      }
+    }
+  }
+  return result;
 }
 
 

@@ -7,10 +7,10 @@ library analyzer.src.task.html;
 import 'dart:collection';
 
 import 'package:analyzer/src/context/cache.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/plugin/engine_plugin.dart';
 import 'package:analyzer/src/task/general.dart';
@@ -279,7 +279,8 @@ class ParseHtmlTask extends SourceBasedAnalysisTask {
       'ParseHtmlTask',
       createTask,
       buildInputs,
-      <ResultDescriptor>[HTML_DOCUMENT, HTML_DOCUMENT_ERRORS, LINE_INFO]);
+      <ResultDescriptor>[HTML_DOCUMENT, HTML_DOCUMENT_ERRORS, LINE_INFO],
+      suitabilityFor: suitabilityFor);
 
   /**
    * Initialize a newly created task to access the content of the source
@@ -355,6 +356,20 @@ class ParseHtmlTask extends SourceBasedAnalysisTask {
   static ParseHtmlTask createTask(
       AnalysisContext context, AnalysisTarget target) {
     return new ParseHtmlTask(context, target);
+  }
+
+  /**
+   * Return an indication of how suitable this task is for the given [target].
+   */
+  static TaskSuitability suitabilityFor(AnalysisTarget target) {
+    if (target is Source) {
+      String name = target.shortName;
+      if (name.endsWith(AnalysisEngine.SUFFIX_HTML) ||
+          name.endsWith(AnalysisEngine.SUFFIX_HTM)) {
+        return TaskSuitability.HIGHEST;
+      }
+    }
+    return TaskSuitability.NONE;
   }
 
   /**

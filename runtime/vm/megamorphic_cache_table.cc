@@ -16,7 +16,7 @@ RawMegamorphicCache* MegamorphicCacheTable::Lookup(Isolate* isolate,
                                                    const String& name,
                                                    const Array& descriptor) {
   // Multiple compilation threads could access this lookup.
-  MutexLocker ml(isolate->mutex());
+  SafepointMutexLocker ml(isolate->mutex());
   ASSERT(name.IsSymbol());
   // TODO(rmacnak): ASSERT(descriptor.IsCanonical());
 
@@ -71,7 +71,8 @@ void MegamorphicCacheTable::InitMissHandler(Isolate* isolate) {
                                      false,  // Not external.
                                      false,  // Not native.
                                      cls,
-                                     0));  // No token position.
+                                     TokenPosition::kNoSource));
+  function.set_result_type(Type::Handle(Type::DynamicType()));
   function.set_is_debuggable(false);
   function.set_is_visible(false);
   function.AttachCode(code);

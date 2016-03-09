@@ -77,5 +77,4 @@ bool Token::IsUnaryArithmeticOperator(Token::Kind token) {
   return (token == kBIT_NOT) || (token == kNEGATE);
 }
 
-
 }  // namespace dart

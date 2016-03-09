@@ -20,7 +20,7 @@ ObjectStore::ObjectStore()
     null_class_(Class::null()),
     null_type_(Type::null()),
     function_type_(Type::null()),
-    function_impl_type_(Type::null()),
+    closure_class_(Class::null()),
     number_type_(Type::null()),
     int_type_(Type::null()),
     integer_implementation_class_(Class::null()),
@@ -79,7 +79,6 @@ ObjectStore::ObjectStore()
     resume_capabilities_(GrowableObjectArray::null()),
     exit_listeners_(GrowableObjectArray::null()),
     error_listeners_(GrowableObjectArray::null()),
-    sticky_error_(Error::null()),
     empty_context_(Context::null()),
     stack_overflow_(Instance::null()),
     out_of_memory_(Instance::null()),
@@ -119,7 +118,7 @@ void ObjectStore::Init(Isolate* isolate) {
 }
 
 
-bool ObjectStore::PreallocateObjects() {
+RawError* ObjectStore::PreallocateObjects() {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   Zone* zone = thread->zone();
@@ -127,7 +126,7 @@ bool ObjectStore::PreallocateObjects() {
   if (this->stack_overflow() != Instance::null()) {
     ASSERT(this->out_of_memory() != Instance::null());
     ASSERT(this->preallocated_stack_trace() != Stacktrace::null());
-    return true;
+    return Error::null();
   }
   ASSERT(this->stack_overflow() == Instance::null());
   ASSERT(this->out_of_memory() == Instance::null());
@@ -148,7 +147,7 @@ bool ObjectStore::PreallocateObjects() {
                                             Symbols::Dot(),
                                             Object::empty_array());
   if (result.IsError()) {
-    return false;
+    return Error::Cast(result).raw();
   }
   set_stack_overflow(Instance::Cast(result));
 
@@ -157,7 +156,7 @@ bool ObjectStore::PreallocateObjects() {
                                             Symbols::Dot(),
                                             Object::empty_array());
   if (result.IsError()) {
-    return false;
+    return Error::Cast(result).raw();
   }
   set_out_of_memory(Instance::Cast(result));
 
@@ -179,7 +178,7 @@ bool ObjectStore::PreallocateObjects() {
   stack_trace.set_expand_inlined(false);
   set_preallocated_stack_trace(stack_trace);
 
-  return true;
+  return Error::null();
 }
 
 

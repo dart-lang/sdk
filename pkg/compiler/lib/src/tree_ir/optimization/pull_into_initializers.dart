@@ -168,7 +168,7 @@ class PullIntoInitializers extends RecursiveTransformer
     return node;
   }
 
-  Statement visitNullCheck(NullCheck node) {
+  Statement visitReceiverCheck(ReceiverCheck node) {
     if (node.condition != null) {
       node.condition = visitExpression(node.condition);
       // The value occurs in conditional context, so don't pull from that.
@@ -265,6 +265,12 @@ class PullIntoInitializers extends RecursiveTransformer
     return node;
   }
 
+  Expression visitAwait(Await node) {
+    super.visitAwait(node);
+    ++impureCounter;
+    return node;
+  }
+
   Expression visitConditional(Conditional node) {
     node.condition = visitExpression(node.condition);
     // Visit the branches to detect impure subexpressions, but do not pull
@@ -286,14 +292,6 @@ class PullIntoInitializers extends RecursiveTransformer
 
   Expression visitLiteralList(LiteralList node) {
     super.visitLiteralList(node);
-    if (node.type != null) {
-      ++impureCounter; // Type casts can throw.
-    }
-    return node;
-  }
-
-  Expression visitLiteralMap(LiteralMap node) {
-    super.visitLiteralMap(node);
     if (node.type != null) {
       ++impureCounter; // Type casts can throw.
     }

@@ -362,18 +362,3 @@ patch class NoSuchMethodError {
     return msg_buf.toString();
   }
 }
-
-class _JavascriptIntegerOverflowError extends Error {
-  final Object _value;
-
-  _JavascriptIntegerOverflowError(this._value);
-  String toString() => "Javascript Integer Overflow: $_value";
-}
-
-class _JavascriptCompatibilityError extends Error {
-  final String _msg;
-
-  _JavascriptCompatibilityError(this._msg);
-  String toString() => "Javascript Compatibility Error: $_msg";
-}
-

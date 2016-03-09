@@ -158,10 +158,11 @@ class Condition : public ValueObject {
     kImmSize = 16,
   };
 
-  class LeftBits : public BitField<Register, kLeftPos, kLeftSize> {};
-  class RightBits : public BitField<Register, kRightPos, kRightSize> {};
-  class RelOpBits : public BitField<RelationOperator, kRelOpPos, kRelOpSize> {};
-  class ImmBits : public BitField<uint16_t, kImmPos, kImmSize> {};
+  class LeftBits : public BitField<uword, Register, kLeftPos, kLeftSize> {};
+  class RightBits : public BitField<uword, Register, kRightPos, kRightSize> {};
+  class RelOpBits :
+      public BitField<uword, RelationOperator, kRelOpPos, kRelOpSize> {};
+  class ImmBits : public BitField<uword, uint16_t, kImmPos, kImmSize> {};
 
   Register left() const { return LeftBits::decode(bits_); }
   Register right() const { return RightBits::decode(bits_); }
@@ -662,6 +663,10 @@ class Assembler : public ValueObject {
     EmitLoadStore(LHU, rt, addr);
   }
 
+  void ll(Register rt, const Address& addr) {
+    EmitLoadStore(LL, rt, addr);
+  }
+
   void lui(Register rt, const Immediate& imm) {
     ASSERT(Utils::IsUint(kImmBits, imm.value()));
     const uint16_t imm_value = static_cast<uint16_t>(imm.value());
@@ -788,6 +793,11 @@ class Assembler : public ValueObject {
 
   void sb(Register rt, const Address& addr) {
     EmitLoadStore(SB, rt, addr);
+  }
+
+  // rt = 1 on success, 0 on failure.
+  void sc(Register rt, const Address& addr) {
+    EmitLoadStore(SC, rt, addr);
   }
 
   void sdc1(DRegister dt, const Address& addr) {
@@ -924,6 +934,11 @@ class Assembler : public ValueObject {
                   Patchability patchable = kNotPatchable);
 
   void BranchLinkPatchable(const StubEntry& stub_entry);
+
+  // Emit a call that shares its object pool entries with other calls
+  // that have the same equivalence marker.
+  void BranchLinkWithEquivalence(const StubEntry& stub_entry,
+                                 const Object& equivalence);
 
   void Drop(intptr_t stack_elements) {
     ASSERT(stack_elements >= 0);

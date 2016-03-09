@@ -236,8 +236,7 @@ class _RuntimeTypes implements RuntimeTypes {
       classesNeedingRti.add(cls);
 
       // TODO(ngeoffray): This should use subclasses, not subtypes.
-      Iterable<ClassElement> classes = compiler.world.strictSubtypesOf(cls);
-      classes.forEach((ClassElement sub) {
+      compiler.world.forEachStrictSubtypeOf(cls, (ClassElement sub) {
         potentiallyAddForRti(sub);
       });
 

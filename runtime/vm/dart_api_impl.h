@@ -8,6 +8,7 @@
 #include "vm/allocation.h"
 #include "vm/native_arguments.h"
 #include "vm/object.h"
+#include "vm/safepoint.h"
 
 namespace dart {
 
@@ -51,11 +52,12 @@ const char* CanonicalFunction(const char* func);
       FATAL1("%s expects to find a current scope. Did you forget to call "     \
            "Dart_EnterScope?", CURRENT_FUNC);                                  \
     }                                                                          \
-  } while (0)
+  } while (0);                                                                 \
 
 #define DARTSCOPE(thread)                                                      \
   Thread* T = (thread);                                                        \
   CHECK_API_SCOPE(T);                                                          \
+  TransitionNativeToVM trainsition(T);                                         \
   HANDLESCOPE(T);
 
 
@@ -160,6 +162,11 @@ class Api : AllStatic {
     return (ClassId(handle) >= kInstanceCid);
   }
 
+  // Returns true if the handle holds an Error.
+  static bool IsError(Dart_Handle handle) {
+    return RawObject::IsErrorClassId(ClassId(handle));
+  }
+
   // Returns the value of a Smi.
   static intptr_t SmiValue(Dart_Handle handle) {
     // TODO(turnidge): Assumes RawObject* is at offset zero.  Fix.
@@ -253,11 +260,12 @@ class Api : AllStatic {
   static void SetWeakHandleReturnValue(NativeArguments* args,
                                        Dart_WeakPersistentHandle retval);
 
-  static RawString* CallEnvironmentCallback(Thread* thread,
-                                            const String& name);
+  static RawString* GetEnvironmentValue(Thread* thread, const String& name);
 
  private:
   static Dart_Handle InitNewHandle(Thread* thread, RawObject* raw);
+
+  static RawString* CallEnvironmentCallback(Thread* thread, const String& name);
 
   // Thread local key used by the API. Currently holds the current
   // ApiNativeScope if any.

@@ -9,7 +9,7 @@ import 'dart:isolate' as I;
 
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
-
+import 'service_test_common.dart';
 import 'test_helper.dart';
 
 final spawnCount = 4;
@@ -131,7 +131,7 @@ var tests = [
   },
 
   (VM vm) async {
-    expect(numPaused(vm), spawnCount + 1 - resumeCount); 
+    expect(numPaused(vm), spawnCount + 1 - resumeCount);
   },
 ];
 

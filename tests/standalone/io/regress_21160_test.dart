@@ -18,7 +18,7 @@ SecurityContext serverContext = new SecurityContext()
                   password: 'dartdart');
 
 SecurityContext clientContext = new SecurityContext()
-  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
+  ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
 
 // 10 KiB of i%256 data.
 Uint8List DATA = new Uint8List.fromList(

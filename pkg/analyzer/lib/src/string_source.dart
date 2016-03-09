@@ -7,44 +7,65 @@ library analyzer.src.string_source;
 import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
 import 'package:analyzer/src/generated/source.dart';
 
-/// An implementation of [Source] that's based on an in-memory Dart string.
+/**
+ * An implementation of [Source] that's based on an in-memory Dart string.
+ */
 class StringSource extends Source {
+  /**
+   * The content of the source.
+   */
   final String _contents;
+
+  @override
   final String fullName;
+
+  @override
+  final Uri uri;
+
+  @override
   final int modificationStamp;
 
-  StringSource(this._contents, this.fullName)
-      : modificationStamp = new DateTime.now().millisecondsSinceEpoch;
+  StringSource(this._contents, String fullName)
+      : this.fullName = fullName,
+        uri = fullName == null ? null : new Uri.file(fullName),
+        modificationStamp = new DateTime.now().millisecondsSinceEpoch;
 
+  @override
   TimestampedData<String> get contents =>
       new TimestampedData(modificationStamp, _contents);
 
-  String get encoding =>
-      throw new UnsupportedError("StringSource doesn't support " "encoding.");
+  @override
+  String get encoding => uri.toString();
 
+  @override
   int get hashCode => _contents.hashCode ^ fullName.hashCode;
 
+  @override
   bool get isInSystemLibrary => false;
 
+  @override
   String get shortName => fullName;
 
   @override
-  Uri get uri =>
-      throw new UnsupportedError("StringSource doesn't support uri.");
+  UriKind get uriKind => UriKind.FILE_URI;
 
-  UriKind get uriKind =>
-      throw new UnsupportedError("StringSource doesn't support " "uriKind.");
-
+  /**
+   * Return `true` if the given [object] is a string source that is equal to
+   * this source.
+   */
+  @override
   bool operator ==(Object object) {
-    if (object is StringSource) {
-      StringSource ssObject = object;
-      return ssObject._contents == _contents && ssObject.fullName == fullName;
-    }
-    return false;
+    return object is StringSource &&
+        object._contents == _contents &&
+        object.fullName == fullName;
   }
 
+  @override
   bool exists() => true;
 
-  Uri resolveRelativeUri(Uri relativeUri) => throw new UnsupportedError(
-      "StringSource doesn't support resolveRelative.");
+  @override
+  Uri resolveRelativeUri(Uri relativeUri) => uri.resolveUri(relativeUri);
+
+  @override
+  String toString() => 'StringSource ($fullName)';
 }

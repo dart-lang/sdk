@@ -9,8 +9,8 @@ import 'dart:collection';
 import 'dart:core' hide Resource;
 import 'dart:math' show max;
 
-import 'package:analysis_server/plugin/analysis/resolver_provider.dart';
-import 'package:analysis_server/plugin/protocol/protocol.dart' hide Element;
+import 'package:analysis_server/plugin/protocol/protocol.dart'
+    hide AnalysisOptions, Element;
 import 'package:analysis_server/src/analysis_logger.dart';
 import 'package:analysis_server/src/channel/channel.dart';
 import 'package:analysis_server/src/context_manager.dart';
@@ -24,6 +24,8 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
+import 'package:analyzer/plugin/embedded_resolver_provider.dart';
+import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
 import 'package:analyzer/src/generated/ast.dart';
@@ -114,6 +116,12 @@ class AnalysisServer {
   final ServerPlugin serverPlugin;
 
   /**
+   * A list of the globs used to determine which files should be analyzed. The
+   * list is lazily created and should be accessed using [analyzedFilesGlobs].
+   */
+  List<Glob> _analyzedFilesGlobs = null;
+
+  /**
    * The [ContextManager] that handles the mapping from analysis roots to
    * context directories.
    */
@@ -139,20 +147,19 @@ class AnalysisServer {
   List<RequestHandler> handlers;
 
   /**
-   * The current default [DartSdk].
+   * The function used to create a new SDK using the default SDK.
    */
-  final DartSdk defaultSdk;
+  final SdkCreator defaultSdkCreator;
+
+  /**
+   * The object used to manage the SDK's known to this server.
+   */
+  DartSdkManager sdkManager;
 
   /**
    * The instrumentation service that is to be used by this analysis server.
    */
   final InstrumentationService instrumentationService;
-
-  /**
-   * A table mapping [Folder]s to the [AnalysisContext]s associated with them.
-   */
-  final Map<Folder, AnalysisContext> folderMap =
-      new HashMap<Folder, AnalysisContext>();
 
   /**
    * A queue of the operations to perform in this server.
@@ -273,9 +280,10 @@ class AnalysisServer {
   Set<String> prevAnalyzedFiles;
 
   /**
-   * The default options used to create new analysis contexts.
+   * The default options used to create new analysis contexts. This object is
+   * also referenced by the ContextManager.
    */
-  AnalysisOptionsImpl defaultContextOptions = new AnalysisOptionsImpl();
+  final AnalysisOptionsImpl defaultContextOptions = new AnalysisOptionsImpl();
 
   /**
    * The controller for sending [ContextsChangedEvent]s.
@@ -299,25 +307,32 @@ class AnalysisServer {
       Index _index,
       this.serverPlugin,
       this.options,
-      this.defaultSdk,
+      this.defaultSdkCreator,
       this.instrumentationService,
       {ResolverProvider packageResolverProvider: null,
+      EmbeddedResolverProvider embeddedResolverProvider: null,
       this.rethrowExceptions: true})
       : index = _index,
         searchEngine = _index != null ? createSearchEngine(_index) : null {
     _performance = performanceDuringStartup;
-    operationQueue = new ServerOperationQueue();
-    contextManager = new ContextManagerImpl(resourceProvider,
-        packageResolverProvider, packageMapProvider, instrumentationService);
-    ServerContextManagerCallbacks contextManagerCallbacks =
-        new ServerContextManagerCallbacks(this, resourceProvider);
-    contextManager.callbacks = contextManagerCallbacks;
     defaultContextOptions.incremental = true;
     defaultContextOptions.incrementalApi =
         options.enableIncrementalResolutionApi;
     defaultContextOptions.incrementalValidation =
         options.enableIncrementalResolutionValidation;
     defaultContextOptions.generateImplicitErrors = false;
+    operationQueue = new ServerOperationQueue();
+    contextManager = new ContextManagerImpl(
+        resourceProvider,
+        packageResolverProvider,
+        embeddedResolverProvider,
+        packageMapProvider,
+        analyzedFilesGlobs,
+        instrumentationService,
+        defaultContextOptions);
+    ServerContextManagerCallbacks contextManagerCallbacks =
+        new ServerContextManagerCallbacks(this, resourceProvider);
+    contextManager.callbacks = contextManagerCallbacks;
     _noErrorNotification = options.noErrorNotification;
     AnalysisEngine.instance.logger = new AnalysisLogger(this);
     _onAnalysisStartedController = new StreamController.broadcast();
@@ -336,7 +351,42 @@ class AnalysisServer {
     channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
     handlers = serverPlugin.createDomains(this);
+    sdkManager = new DartSdkManager(defaultSdkCreator);
   }
+
+  /**
+   * Return the [AnalysisContext]s that are being used to analyze the analysis
+   * roots.
+   */
+  Iterable<AnalysisContext> get analysisContexts =>
+      contextManager.analysisContexts;
+
+  /**
+   * Return a list of the globs used to determine which files should be analyzed.
+   */
+  List<Glob> get analyzedFilesGlobs {
+    if (_analyzedFilesGlobs == null) {
+      _analyzedFilesGlobs = <Glob>[];
+      List<String> patterns = serverPlugin.analyzedFilePatterns;
+      for (String pattern in patterns) {
+        try {
+          _analyzedFilesGlobs
+              .add(new Glob(JavaFile.pathContext.separator, pattern));
+        } catch (exception, stackTrace) {
+          AnalysisEngine.instance.logger.logError(
+              'Invalid glob pattern: "$pattern"',
+              new CaughtException(exception, stackTrace));
+        }
+      }
+    }
+    return _analyzedFilesGlobs;
+  }
+
+  /**
+   * Return a table mapping [Folder]s to the [AnalysisContext]s associated with
+   * them.
+   */
+  Map<Folder, AnalysisContext> get folderMap => contextManager.folderMap;
 
   /**
    * The [Future] that completes when analysis is complete.
@@ -421,6 +471,19 @@ class AnalysisServer {
   }
 
   /**
+   * Return one of the SDKs that has been created, or `null` if no SDKs have
+   * been created yet.
+   */
+  DartSdk findSdk() {
+    DartSdk sdk = sdkManager.anySdk;
+    if (sdk != null) {
+      return sdk;
+    }
+    // TODO(brianwilkerson) Should we create an SDK using the default options?
+    return null;
+  }
+
+  /**
    * Return the preferred [AnalysisContext] for analyzing the given [path].
    * This will be the context that explicitly contains the path, if any such
    * context exists, otherwise it will be the first analysis context that
@@ -436,21 +499,13 @@ class AnalysisServer {
    * explicitly or implicitly.  Return `null` if there is no such context.
    */
   AnalysisContext getAnalysisContextForSource(Source source) {
-    for (AnalysisContext context in folderMap.values) {
+    for (AnalysisContext context in analysisContexts) {
       SourceKind kind = context.getKindOf(source);
       if (kind != SourceKind.UNKNOWN) {
         return context;
       }
     }
     return null;
-  }
-
-  /**
-   * Return the [AnalysisContext]s that are being used to analyze the analysis
-   * roots.
-   */
-  Iterable<AnalysisContext> getAnalysisContexts() {
-    return folderMap.values;
   }
 
   CompilationUnitElement getCompilationUnitElement(String file) {
@@ -504,11 +559,13 @@ class AnalysisServer {
   ContextSourcePair getContextSourcePair(String path) {
     // try SDK
     {
-      Uri uri = resourceProvider.pathContext.toUri(path);
-      Source sdkSource = defaultSdk.fromFileUri(uri);
-      if (sdkSource != null) {
-        AnalysisContext sdkContext = defaultSdk.context;
-        return new ContextSourcePair(sdkContext, sdkSource);
+      DartSdk sdk = findSdk();
+      if (sdk != null) {
+        Uri uri = resourceProvider.pathContext.toUri(path);
+        Source sdkSource = sdk.fromFileUri(uri);
+        if (sdkSource != null) {
+          return new ContextSourcePair(sdk.context, sdkSource);
+        }
       }
     }
     // try to find the deep-most containing context
@@ -526,7 +583,7 @@ class AnalysisServer {
       }
     }
     // try to find a context that analysed the file
-    for (AnalysisContext context in folderMap.values) {
+    for (AnalysisContext context in analysisContexts) {
       Source source = ContextManagerImpl.createSourceInContext(context, file);
       SourceKind kind = context.getKindOf(source);
       if (kind != SourceKind.UNKNOWN) {
@@ -534,7 +591,7 @@ class AnalysisServer {
       }
     }
     // try to find a context for which the file is a priority source
-    for (InternalAnalysisContext context in folderMap.values) {
+    for (InternalAnalysisContext context in analysisContexts) {
       List<Source> sources = context.getSourcesWithFullName(path);
       if (sources.isNotEmpty) {
         Source source = sources.first;
@@ -584,23 +641,6 @@ class AnalysisServer {
     return elements;
   }
 
-// TODO(brianwilkerson) Add the following method after 'prioritySources' has
-// been added to InternalAnalysisContext.
-//  /**
-//   * Return a list containing the full names of all of the sources that are
-//   * priority sources.
-//   */
-//  List<String> getPriorityFiles() {
-//    List<String> priorityFiles = new List<String>();
-//    folderMap.values.forEach((ContextDirectory directory) {
-//      InternalAnalysisContext context = directory.context;
-//      context.prioritySources.forEach((Source source) {
-//        priorityFiles.add(source.fullName);
-//      });
-//    });
-//    return priorityFiles;
-//  }
-
   /**
    * Return an analysis error info containing the array of all of the errors and
    * the line info associated with [file].
@@ -626,6 +666,23 @@ class AnalysisServer {
     }
     return context.getErrors(source);
   }
+
+// TODO(brianwilkerson) Add the following method after 'prioritySources' has
+// been added to InternalAnalysisContext.
+//  /**
+//   * Return a list containing the full names of all of the sources that are
+//   * priority sources.
+//   */
+//  List<String> getPriorityFiles() {
+//    List<String> priorityFiles = new List<String>();
+//    folderMap.values.forEach((ContextDirectory directory) {
+//      InternalAnalysisContext context = directory.context;
+//      context.prioritySources.forEach((Source source) {
+//        priorityFiles.add(source.fullName);
+//      });
+//    });
+//    return priorityFiles;
+//  }
 
   /**
    * Returns resolved [AstNode]s at the given [offset] of the given [file].
@@ -1086,7 +1143,7 @@ class AnalysisServer {
       if (preferredContext == null) {
         Resource resource = resourceProvider.getResource(file);
         if (resource is File && resource.exists) {
-          for (AnalysisContext context in folderMap.values) {
+          for (AnalysisContext context in analysisContexts) {
             Uri uri = context.sourceFactory.restoreUri(source);
             if (uri.scheme != 'file') {
               preferredContext = context;
@@ -1103,7 +1160,7 @@ class AnalysisServer {
         sourceMap.putIfAbsent(preferredContext, () => <Source>[]).add(source);
         contextFound = true;
       }
-      for (AnalysisContext context in folderMap.values) {
+      for (AnalysisContext context in analysisContexts) {
         if (context != preferredContext &&
             context.getKindOf(source) != SourceKind.UNKNOWN) {
           sourceMap.putIfAbsent(context, () => <Source>[]).add(source);
@@ -1217,7 +1274,7 @@ class AnalysisServer {
       // If the source does not exist, then it was an overlay-only one.
       // Remove it from contexts.
       if (newContents == null && !source.exists()) {
-        for (InternalAnalysisContext context in folderMap.values) {
+        for (InternalAnalysisContext context in analysisContexts) {
           List<Source> sources = context.getSourcesWithFullName(file);
           ChangeSet changeSet = new ChangeSet();
           sources.forEach(changeSet.removedSource);
@@ -1228,7 +1285,7 @@ class AnalysisServer {
       }
       // Update all contexts.
       bool anyContextUpdated = false;
-      for (InternalAnalysisContext context in folderMap.values) {
+      for (InternalAnalysisContext context in analysisContexts) {
         List<Source> sources = context.getSourcesWithFullName(file);
         sources.forEach((Source source) {
           anyContextUpdated = true;
@@ -1285,7 +1342,7 @@ class AnalysisServer {
     //
     // Update existing contexts.
     //
-    folderMap.forEach((Folder folder, AnalysisContext context) {
+    for (AnalysisContext context in analysisContexts) {
       AnalysisOptionsImpl options =
           new AnalysisOptionsImpl.from(context.analysisOptions);
       optionUpdaters.forEach((OptionUpdater optionUpdater) {
@@ -1294,13 +1351,21 @@ class AnalysisServer {
       context.analysisOptions = options;
       // TODO(brianwilkerson) As far as I can tell, this doesn't cause analysis
       // to be scheduled for this context.
-    });
+    }
     //
     // Update the defaults used to create new contexts.
     //
     optionUpdaters.forEach((OptionUpdater optionUpdater) {
       optionUpdater(defaultContextOptions);
     });
+  }
+
+  void _computingPackageMap(bool computing) {
+    if (serverServices.contains(ServerService.STATUS)) {
+      PubStatus pubStatus = new PubStatus(computing);
+      ServerStatusParams params = new ServerStatusParams(pub: pubStatus);
+      sendNotification(params.toNotification());
+    }
   }
 
   /**
@@ -1423,45 +1488,19 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
    */
   final ResourceProvider resourceProvider;
 
-  /**
-   * A list of the globs used to determine which files should be analyzed. The
-   * list is lazily created and should be accessed using [analyzedFilesGlobs].
-   */
-  List<Glob> _analyzedFilesGlobs = null;
-
   ServerContextManagerCallbacks(this.analysisServer, this.resourceProvider);
 
-  /**
-   * Return a list of the globs used to determine which files should be analyzed.
-   */
-  List<Glob> get analyzedFilesGlobs {
-    if (_analyzedFilesGlobs == null) {
-      _analyzedFilesGlobs = <Glob>[];
-      List<String> patterns = analysisServer.serverPlugin.analyzedFilePatterns;
-      for (String pattern in patterns) {
-        try {
-          _analyzedFilesGlobs
-              .add(new Glob(JavaFile.pathContext.separator, pattern));
-        } catch (exception, stackTrace) {
-          AnalysisEngine.instance.logger.logError(
-              'Invalid glob pattern: "$pattern"',
-              new CaughtException(exception, stackTrace));
-        }
-      }
-    }
-    return _analyzedFilesGlobs;
-  }
-
   @override
-  AnalysisContext addContext(Folder folder, FolderDisposition disposition) {
+  AnalysisContext addContext(
+      Folder folder, AnalysisOptions options, FolderDisposition disposition) {
     InternalAnalysisContext context =
         AnalysisEngine.instance.createAnalysisContext();
     context.contentCache = analysisServer.overlayState;
     analysisServer.folderMap[folder] = context;
     _locateEmbedderYamls(context, disposition);
-    context.sourceFactory = _createSourceFactory(context, disposition);
-    context.analysisOptions =
-        new AnalysisOptionsImpl.from(analysisServer.defaultContextOptions);
+    context.sourceFactory =
+        _createSourceFactory(context, options, disposition, folder);
+    context.analysisOptions = options;
     analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(added: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
@@ -1485,14 +1524,8 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
-  void beginComputePackageMap() {
-    _computingPackageMap(true);
-  }
-
-  @override
-  void endComputePackageMap() {
-    _computingPackageMap(false);
-  }
+  void computingPackageMap(bool computing) =>
+      analysisServer._computingPackageMap(computing);
 
   @override
   void removeContext(Folder folder, List<String> flushedFiles) {
@@ -1511,59 +1544,52 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
-  bool shouldFileBeAnalyzed(File file) {
-    for (Glob glob in analyzedFilesGlobs) {
-      if (glob.matches(file.path)) {
-        // Emacs creates dummy links to track the fact that a file is open for
-        // editing and has unsaved changes (e.g. having unsaved changes to
-        // 'foo.dart' causes a link '.#foo.dart' to be created, which points to
-        // the non-existent file 'username@hostname.pid'. To avoid these dummy
-        // links causing the analyzer to thrash, just ignore links to
-        // non-existent files.
-        return file.exists;
-      }
-    }
-    return false;
-  }
-
-  @override
   void updateContextPackageUriResolver(
       Folder contextFolder, FolderDisposition disposition) {
     AnalysisContext context = analysisServer.folderMap[contextFolder];
-    context.sourceFactory = _createSourceFactory(context, disposition);
+    context.sourceFactory = _createSourceFactory(
+        context, context.analysisOptions, disposition, contextFolder);
     analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(changed: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
-  }
-
-  void _computingPackageMap(bool computing) {
-    if (analysisServer.serverServices.contains(ServerService.STATUS)) {
-      PubStatus pubStatus = new PubStatus(computing);
-      ServerStatusParams params = new ServerStatusParams(pub: pubStatus);
-      analysisServer.sendNotification(params.toNotification());
-    }
   }
 
   /**
    * Set up a [SourceFactory] that resolves packages as appropriate for the
    * given [disposition].
    */
-  SourceFactory _createSourceFactory(
-      InternalAnalysisContext context, FolderDisposition disposition) {
+  SourceFactory _createSourceFactory(InternalAnalysisContext context,
+      AnalysisOptions options, FolderDisposition disposition, Folder folder) {
     List<UriResolver> resolvers = [];
     List<UriResolver> packageUriResolvers =
         disposition.createPackageUriResolvers(resourceProvider);
-    EmbedderUriResolver embedderUriResolver =
+
+    EmbedderUriResolver embedderUriResolver;
+
+    // First check for a resolver provider.
+    ContextManager contextManager = analysisServer.contextManager;
+    if (contextManager is ContextManagerImpl) {
+      EmbeddedResolverProvider resolverProvider =
+          contextManager.embeddedUriResolverProvider;
+      if (resolverProvider != null) {
+        embedderUriResolver = resolverProvider(folder);
+      }
+    }
+
+    // If no embedded URI resolver was provided, defer to a locator-backed one.
+    embedderUriResolver ??=
         new EmbedderUriResolver(context.embedderYamlLocator.embedderYamls);
     if (embedderUriResolver.length == 0) {
       // The embedder uri resolver has no mappings. Use the default Dart SDK
       // uri resolver.
-      resolvers.add(new DartUriResolver(analysisServer.defaultSdk));
+      resolvers.add(new DartUriResolver(
+          analysisServer.sdkManager.getSdkForOptions(options)));
     } else {
       // The embedder uri resolver has mappings, use it instead of the default
       // Dart SDK uri resolver.
       resolvers.add(embedderUriResolver);
     }
+
     resolvers.addAll(packageUriResolvers);
     resolvers.add(new ResourceUriResolver(resourceProvider));
     return new SourceFactory(resolvers, disposition.packages);

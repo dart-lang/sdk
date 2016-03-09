@@ -6,13 +6,18 @@
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
 import 'test_helper.dart';
+import 'service_test_common.dart';
 import 'dart:developer';
+
+const int LINE_A = 20;
+const int LINE_B = 38;
+const int LINE_C = 136;
 
 int globalVar = 100;
 
 class MyClass {
   static void myFunction(int value) {
-    if (value < 0) {
+    if (value < 0) {  // Line A.
       print("negative");
     } else {
       print("positive");
@@ -30,7 +35,7 @@ class MyClass {
 }
 
 void testFunction() {
-  MyClass.otherFunction(-100);
+  MyClass.otherFunction(-100);  // Line B.
   MyClass.myFunction(10000);
 }
 
@@ -60,7 +65,10 @@ hasStoppedAtBreakpoint,
   expect(coverage['type'], equals('CodeCoverage'));
   expect(coverage['coverage'].length, equals(1));
   expect(coverage['coverage'][0]['hits'],
-         equals([15, 1, 16, 0, 18, 1, 20, 1]));
+         equals([LINE_A, 1,
+                 LINE_A + 1, 0,
+                 LINE_A + 3, 1,
+                 LINE_A + 5, 1]));
 
   // Class
   coverage = await isolate.invokeRpcNoUpgrade('_getCoverage',
@@ -68,8 +76,14 @@ hasStoppedAtBreakpoint,
   expect(coverage['type'], equals('CodeCoverage'));
   expect(coverage['coverage'].length, equals(1));
   expect(coverage['coverage'][0]['hits'],
-         equals([15, 1, 16, 0, 18, 1, 20, 1,
-                 24, 1, 25, 1, 27, 0]));
+         equals([LINE_A, 1,
+                 LINE_A + 1, 0,
+                 LINE_A + 3, 1,
+                 LINE_A + 5, 1,
+                 LINE_A + 9, 1,
+                 LINE_A + 10, 1,
+                 LINE_A + 12, 0,
+                 LINE_A - 2, 0]));
 
   // Library
   coverage = await isolate.invokeRpcNoUpgrade('_getCoverage',
@@ -77,10 +91,18 @@ hasStoppedAtBreakpoint,
   expect(coverage['type'], equals('CodeCoverage'));
   expect(coverage['coverage'].length, equals(4));
   expect(coverage['coverage'][0]['hits'],
-         equals([15, 1, 16, 0, 18, 1, 20, 1,
-                 24, 1, 25, 1, 27, 0]));
+         equals([LINE_A, 1,
+                 LINE_A + 1, 0,
+                 LINE_A + 3, 1,
+                 LINE_A + 5, 1,
+                 LINE_A + 9, 1,
+                 LINE_A + 10, 1,
+                 LINE_A + 12, 0,
+                 LINE_A - 2, 0]));
   expect(coverage['coverage'][1]['hits'],
-         equals([33, 1, 34, 1, 105, 2]));
+         equals([LINE_B, 1,
+                 LINE_B + 1, 1,
+                 LINE_C, 2]));
 
   // Script
   await cls.load();
@@ -89,17 +111,28 @@ hasStoppedAtBreakpoint,
   expect(coverage['type'], equals('CodeCoverage'));
   expect(coverage['coverage'].length, equals(4));
   expect(coverage['coverage'][0]['hits'],
-         equals([15, 1, 16, 0, 18, 1, 20, 1,
-                 24, 1, 25, 1, 27, 0]));
+         equals([LINE_A, 1,
+                 LINE_A + 1, 0,
+                 LINE_A + 3, 1,
+                 LINE_A + 5, 1,
+                 LINE_A + 9, 1,
+                 LINE_A + 10, 1,
+                 LINE_A + 12, 0,
+                 LINE_A - 2, 0]));
   expect(coverage['coverage'][1]['hits'],
-         equals([33, 1, 34, 1, 105, 2]));
+         equals([LINE_B, 1,
+                 LINE_B + 1, 1,
+                 LINE_C, 2]));
 
   // Isolate
   coverage = await isolate.invokeRpcNoUpgrade('_getCoverage', {});
+  print('Done processing _getCoverage for full isolate');
   expect(coverage['type'], equals('CodeCoverage'));
   expect(coverage['coverage'].length, greaterThan(100));
 },
 
 ];
 
-main(args) => runIsolateTests(args, tests, testeeConcurrent: testFunction);
+main(args) => runIsolateTests(args, tests,    // Line C.
+                              testeeConcurrent: testFunction,
+                              trace_service: true);

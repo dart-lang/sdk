@@ -10,6 +10,7 @@
 
 namespace dart {
 
+#ifndef PRODUCT
 
 TEST_CASE(JSON_TextBuffer) {
   TextBuffer w(5);  // Small enough to make buffer grow at least once.
@@ -236,9 +237,22 @@ TEST_CASE(JSON_JSONStream_DartString) {
     JSONStream js;
     {
       JSONObject jsobj(&js);
-      jsobj.AddPropertyStr("ascci", obj);;
+      EXPECT(!jsobj.AddPropertyStr("ascii", obj));
     }
-    EXPECT_STREQ("{\"ascci\":\"Hello, World!\"}", js.ToCString());
+    EXPECT_STREQ("{\"ascii\":\"Hello, World!\"}", js.ToCString());
+  }
+
+  {
+    result = Dart_GetField(lib, NewString("ascii"));
+    EXPECT_VALID(result);
+    obj ^= Api::UnwrapHandle(result);
+
+    JSONStream js;
+    {
+      JSONObject jsobj(&js);
+      EXPECT(jsobj.AddPropertyStr("subrange", obj, 1, 4));
+    }
+    EXPECT_STREQ("{\"subrange\":\"ello\"}", js.ToCString());
   }
 
   {
@@ -249,7 +263,7 @@ TEST_CASE(JSON_JSONStream_DartString) {
     JSONStream js;
     {
       JSONObject jsobj(&js);
-      jsobj.AddPropertyStr("unicode", obj);
+      EXPECT(!jsobj.AddPropertyStr("unicode", obj));
     }
     EXPECT_STREQ("{\"unicode\":\"\\u00CE\\u00F1\\u0163\\u00E9r\\u00F1\\u00E5"
                  "\\u0163\\u00EE\\u00F6\\u00F1\\u00E5\\u013C\\u00EE\\u017E"
@@ -264,7 +278,7 @@ TEST_CASE(JSON_JSONStream_DartString) {
     JSONStream js;
     {
       JSONObject jsobj(&js);
-      jsobj.AddPropertyStr("surrogates", obj);
+      EXPECT(!jsobj.AddPropertyStr("surrogates", obj));
     }
     EXPECT_STREQ("{\"surrogates\":\"\\uD834\\uDD1E\\uD834\\uDD1E\\uD834\\uDD1E"
                  "\\uD834\\uDD1E\\uD834\\uDD1E\"}", js.ToCString());
@@ -278,7 +292,7 @@ TEST_CASE(JSON_JSONStream_DartString) {
     JSONStream js;
     {
       JSONObject jsobj(&js);
-      jsobj.AddPropertyStr("nullInMiddle", obj);
+      EXPECT(!jsobj.AddPropertyStr("nullInMiddle", obj));
     }
     EXPECT_STREQ("{\"nullInMiddle\":\"This has\\u0000 four words.\"}",
                  js.ToCString());
@@ -300,5 +314,7 @@ TEST_CASE(JSON_JSONStream_Params) {
   EXPECT(js.ParamIs("cat", "banana"));
   EXPECT(!js.ParamIs("dog", "banana"));
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

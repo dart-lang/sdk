@@ -113,11 +113,6 @@ class FlowGraphBuilder : public ValueObject {
     return ic_data_array_;
   }
 
-  // Return true if a Javascript compatibility warning should be emitted at
-  // runtime for this type test.
-  bool WarnOnJSIntegralNumTypeTest(AstNode* node,
-                                   const AbstractType& type) const;
-
   void Bailout(const char* reason) const;
 
   intptr_t AllocateBlockId() { return ++last_used_block_id_; }
@@ -157,10 +152,6 @@ class FlowGraphBuilder : public ValueObject {
 
   bool IsInlining() const { return (exit_collector_ != NULL); }
   InlineExitCollector* exit_collector() const { return exit_collector_; }
-
-  ZoneGrowableArray<const Field*>* guarded_fields() const {
-    return parsed_function_.guarded_fields();
-  }
 
   ZoneGrowableArray<const LibraryPrefix*>* deferred_prefixes() const {
     return parsed_function_.deferred_prefixes();
@@ -288,7 +279,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
   // Append a 'while loop' test and back edge to this graph, depending on
   // which parts are reachable.  Afterward, the graph exit is the false
   // successor of the loop condition.
-  void TieLoop(intptr_t token_pos,
+  void TieLoop(TokenPosition token_pos,
                const TestGraphVisitor& test_fragment,
                const EffectGraphVisitor& body_fragment,
                const EffectGraphVisitor& test_preamble_fragment);
@@ -300,19 +291,22 @@ class EffectGraphVisitor : public AstNodeVisitor {
   // This implementation shares state among visitors by using the builder.
   // The implementation is incorrect if a visitor that hits a return is not
   // actually added to the graph.
-  void AddReturnExit(intptr_t token_pos, Value* value);
+  void AddReturnExit(TokenPosition token_pos, Value* value);
 
  protected:
-  Definition* BuildStoreTemp(const LocalVariable& local, Value* value);
-  Definition* BuildStoreExprTemp(Value* value);
-  Definition* BuildLoadExprTemp();
+  Definition* BuildStoreTemp(const LocalVariable& local,
+                             Value* value,
+                             TokenPosition token_pos);
+  Definition* BuildStoreExprTemp(Value* value, TokenPosition token_pos);
+  Definition* BuildLoadExprTemp(TokenPosition token_pos);
 
   Definition* BuildStoreLocal(const LocalVariable& local,
                               Value* value,
-                              intptr_t token_pos = Scanner::kNoSourcePos);
+                              TokenPosition token_pos);
   Definition* BuildLoadLocal(const LocalVariable& local,
-                             intptr_t token_pos = Scanner::kNoSourcePos);
-  LoadLocalInstr* BuildLoadThisVar(LocalScope* scope);
+                             TokenPosition token_pos);
+  LoadLocalInstr* BuildLoadThisVar(LocalScope* scope,
+                                   TokenPosition token_pos);
   LoadFieldInstr* BuildNativeGetter(
       NativeBodyNode* node,
       MethodRecognizer::Kind kind,
@@ -333,27 +327,27 @@ class EffectGraphVisitor : public AstNodeVisitor {
   // allocation call.
   // May be called only if allocating an object of a parameterized class.
   Value* BuildInstantiatedTypeArguments(
-      intptr_t token_pos,
+      TokenPosition token_pos,
       const TypeArguments& type_arguments);
 
   void BuildTypecheckPushArguments(
-      intptr_t token_pos,
+      TokenPosition token_pos,
       PushArgumentInstr** push_instantiator_type_arguments);
-  void BuildTypecheckArguments(intptr_t token_pos,
+  void BuildTypecheckArguments(TokenPosition token_pos,
                                Value** instantiator_type_arguments);
-  Value* BuildInstantiator(const Class& instantiator_class);
-  Value* BuildInstantiatorTypeArguments(intptr_t token_pos,
+  Value* BuildInstantiator(TokenPosition token_pos);
+  Value* BuildInstantiatorTypeArguments(TokenPosition token_pos,
                                         const Class& instantiator_class,
                                         Value* instantiator);
 
   // Perform a type check on the given value.
-  AssertAssignableInstr* BuildAssertAssignable(intptr_t token_pos,
+  AssertAssignableInstr* BuildAssertAssignable(TokenPosition token_pos,
                                                Value* value,
                                                const AbstractType& dst_type,
                                                const String& dst_name);
 
   // Perform a type check on the given value and return it.
-  Value* BuildAssignableValue(intptr_t token_pos,
+  Value* BuildAssignableValue(TokenPosition token_pos,
                               Value* value,
                               const AbstractType& dst_type,
                               const String& dst_name);
@@ -372,7 +366,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
   StrictCompareInstr* BuildStrictCompare(AstNode* left,
                                          AstNode* right,
                                          Token::Kind kind,
-                                         intptr_t token_pos);
+                                         TokenPosition token_pos);
 
   virtual void BuildTypeTest(ComparisonNode* node);
   virtual void BuildTypeCast(ComparisonNode* node);
@@ -397,12 +391,12 @@ class EffectGraphVisitor : public AstNodeVisitor {
                             PushArgumentInstr* alloc_value);
 
   void BuildSaveContext(const LocalVariable& variable,
-                        intptr_t token_pos);
+                        TokenPosition token_pos);
   void BuildRestoreContext(const LocalVariable& variable,
-                           intptr_t token_pos);
+                           TokenPosition token_pos);
 
-  Definition* BuildStoreContext(Value* value, intptr_t token_pos);
-  Definition* BuildCurrentContext(intptr_t token_pos);
+  Definition* BuildStoreContext(Value* value, TokenPosition token_pos);
+  Definition* BuildCurrentContext(TokenPosition token_pos);
 
   void BuildThrowNode(ThrowNode* node);
 
@@ -415,7 +409,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
       bool is_super_invocation);
 
   StaticCallInstr* BuildThrowNoSuchMethodError(
-      intptr_t token_pos,
+      TokenPosition token_pos,
       const Class& function_class,
       const String& function_name,
       ArgumentListNode* function_arguments,
@@ -424,22 +418,22 @@ class EffectGraphVisitor : public AstNodeVisitor {
   void BuildStaticSetter(StaticSetterNode* node, bool result_is_needed);
   Definition* BuildStoreStaticField(StoreStaticFieldNode* node,
                                     bool result_is_needed,
-                                    intptr_t token_pos);
+                                    TokenPosition token_pos);
 
   void BuildClosureCall(ClosureCallNode* node, bool result_needed);
 
-  Value* BuildNullValue();
+  Value* BuildNullValue(TokenPosition token_pos);
 
   // Returns true if the run-time type check can be eliminated.
-  bool CanSkipTypeCheck(intptr_t token_pos,
+  bool CanSkipTypeCheck(TokenPosition token_pos,
                         Value* value,
                         const AbstractType& dst_type,
                         const String& dst_name);
 
   // Helpers for allocating and deallocating temporary locals on top of the
   // expression stack.
-  LocalVariable* EnterTempLocalScope(Value* value);
-  Definition* ExitTempLocalScope(LocalVariable* var);
+  LocalVariable* EnterTempLocalScope(Value* value, TokenPosition token_pos);
+  Definition* ExitTempLocalScope(LocalVariable* var, TokenPosition token_pos);
 
   void BuildLetTempExpressions(LetNode* node);
 
@@ -543,7 +537,7 @@ class ValueGraphVisitor : public EffectGraphVisitor {
 class TestGraphVisitor : public ValueGraphVisitor {
  public:
   TestGraphVisitor(FlowGraphBuilder* owner,
-                   intptr_t condition_token_pos)
+                   TokenPosition condition_token_pos)
       : ValueGraphVisitor(owner),
         true_successor_addresses_(1),
         false_successor_addresses_(1),
@@ -557,7 +551,7 @@ class TestGraphVisitor : public ValueGraphVisitor {
 
   virtual void VisitBinaryOpNode(BinaryOpNode* node);
 
-  intptr_t condition_token_pos() const { return condition_token_pos_; }
+  TokenPosition condition_token_pos() const { return condition_token_pos_; }
 
  private:
   // Construct and concatenate a Branch instruction to this graph fragment.
@@ -582,7 +576,7 @@ class TestGraphVisitor : public ValueGraphVisitor {
   GrowableArray<TargetEntryInstr**> true_successor_addresses_;
   GrowableArray<TargetEntryInstr**> false_successor_addresses_;
 
-  intptr_t condition_token_pos_;
+  TokenPosition condition_token_pos_;
 };
 
 }  // namespace dart

@@ -5,6 +5,7 @@
 library analyzer.src.generated.type_system;
 
 import 'dart:collection';
+import 'dart:math' as math;
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -12,9 +13,9 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
+import 'package:analyzer/src/generated/utilities_dart.dart';
 
 typedef bool _GuardedSubtypeChecker<T>(T t1, T t2, Set<Element> visited);
-typedef bool _SubtypeChecker<T>(T t1, T t2);
 
 /**
  * Implementation of [TypeSystem] using the strong mode rules.
@@ -28,6 +29,9 @@ class StrongTypeSystemImpl implements TypeSystem {
   bool anyParameterType(FunctionType ft, bool predicate(DartType t)) {
     return ft.parameters.any((p) => predicate(p.type));
   }
+
+  @override
+  bool canPromoteToType(DartType to, DartType from) => isSubtypeOf(to, from);
 
   /**
    * Given a type t, if t is an interface type with a call method
@@ -49,39 +53,41 @@ class StrongTypeSystemImpl implements TypeSystem {
   }
 
   /// Given a function type with generic type parameters, infer the type
-  /// parameters from the actual argument types, and return it. If we can't.
-  /// returns the original function type.
+  /// parameters from the actual argument types, and return the instantiated
+  /// function type. If we can't, returns the original function type.
   ///
   /// Concretely, given a function type with parameter types P0, P1, ... Pn,
   /// result type R, and generic type parameters T0, T1, ... Tm, use the
   /// argument types A0, A1, ... An to solve for the type parameters.
   ///
   /// For each parameter Pi, we want to ensure that Ai <: Pi. We can do this by
-  /// running the subtype algorithm, and when we reach a type parameter Pj,
+  /// running the subtype algorithm, and when we reach a type parameter Tj,
   /// recording the lower or upper bound it must satisfy. At the end, all
   /// constraints can be combined to determine the type.
   ///
   /// As a simplification, we do not actually store all constraints on each type
-  /// parameter Pj. Instead we track Uj and Lj where U is the upper bound and
+  /// parameter Tj. Instead we track Uj and Lj where U is the upper bound and
   /// L is the lower bound of that type parameter.
-  FunctionType inferCallFromArguments(
+  FunctionType inferGenericFunctionCall(
       TypeProvider typeProvider,
-      FunctionTypeImpl fnType,
+      FunctionType fnType,
       List<DartType> correspondingParameterTypes,
-      List<DartType> argumentTypes) {
+      List<DartType> argumentTypes,
+      DartType returnContextType) {
     if (fnType.typeFormals.isEmpty) {
       return fnType;
     }
-
-    List<TypeParameterType> fnTypeParams =
-        TypeParameterTypeImpl.getTypes(fnType.typeFormals);
 
     // Create a TypeSystem that will allow certain type parameters to be
     // inferred. It will optimistically assume these type parameters can be
     // subtypes (or supertypes) as necessary, and track the constraints that
     // are implied by this.
     var inferringTypeSystem =
-        new _StrongInferenceTypeSystem(typeProvider, fnTypeParams);
+        new _StrongInferenceTypeSystem(typeProvider, fnType.typeFormals);
+
+    if (returnContextType != null) {
+      inferringTypeSystem.isSubtypeOf(fnType.returnType, returnContextType);
+    }
 
     for (int i = 0; i < argumentTypes.length; i++) {
       // Try to pass each argument to each parameter, recording any type
@@ -90,61 +96,59 @@ class StrongTypeSystemImpl implements TypeSystem {
           argumentTypes[i], correspondingParameterTypes[i]);
     }
 
-    var inferredTypes = new List<DartType>.from(fnTypeParams, growable: false);
-    for (int i = 0; i < fnTypeParams.length; i++) {
-      TypeParameterType typeParam = fnTypeParams[i];
-      _TypeParameterBound bound = inferringTypeSystem._bounds[typeParam];
+    // We are okay inferring some type variables and not others.
+    //
+    // This lets our return type be as precise as possible, which will help
+    // make any type information resulting from it more precise.
+    //
+    // This is simply a heuristic: the code is incorrect, and we'll issue an
+    // error on this call, to indicate that types don't match.
+    return inferringTypeSystem._infer(fnType, allowPartialSolution: true);
+  }
 
-      // Now we've computed lower and upper bounds for each type parameter.
-      //
-      // To decide on which type to assign, we look at the return type and see
-      // if the type parameter occurs in covariant or contravariant positions.
-      //
-      // If the type is "passed in" at all, or if our lower bound was bottom,
-      // we choose the upper bound as being the most useful.
-      //
-      // Otherwise we choose the more precise lower bound.
-      _TypeParameterVariance variance =
-          new _TypeParameterVariance.from(typeParam, fnType.returnType);
-
-      inferredTypes[i] =
-          variance.passedIn || bound.lower.isBottom ? bound.upper : bound.lower;
-
-      // Assumption: if the current type parameter has an "extends" clause
-      // that refers to another type variable we are inferring, it will appear
-      // before us or in this list position. For example:
-      //
-      //     <TFrom, TTo extends TFrom>
-      //
-      // We may infer TTo is TFrom. In that case, we already know what TFrom
-      // is inferred as, so we can substitute it now. This also handles more
-      // complex cases such as:
-      //
-      //     <TFrom, TTo extends Iterable<TFrom>>
-      //
-      // Or if the type parameter's bound depends on itself such as:
-      //
-      //     <T extends Clonable<T>>
-      inferredTypes[i] =
-          inferredTypes[i].substitute2(inferredTypes, fnTypeParams);
-
-      // See if this actually worked.
-      // If not, fall back to the known upper bound (if any) or `dynamic`.
-      if (inferredTypes[i].isBottom ||
-          !isSubtypeOf(inferredTypes[i],
-              bound.upper.substitute2(inferredTypes, fnTypeParams)) ||
-          !isSubtypeOf(bound.lower.substitute2(inferredTypes, fnTypeParams),
-              inferredTypes[i])) {
-        inferredTypes[i] = DynamicTypeImpl.instance;
-        if (typeParam.element.bound != null) {
-          inferredTypes[i] =
-              typeParam.element.bound.substitute2(inferredTypes, fnTypeParams);
-        }
-      }
+  /**
+   * Given a generic function type `F<T0, T1, ... Tn>` and a context type C,
+   * infer an instantiation of F, such that `F<S0, S1, ..., Sn>` <: C.
+   *
+   * This is similar to [inferGenericFunctionCall], but the return type is also
+   * considered as part of the solution.
+   *
+   * If this function is called with a [contextType] that is also
+   * uninstantiated, or a [fnType] that is already instantiated, it will have
+   * no effect and return [fnType].
+   */
+  FunctionType inferFunctionTypeInstantiation(TypeProvider typeProvider,
+      FunctionType contextType, FunctionType fnType) {
+    if (contextType.typeFormals.isNotEmpty || fnType.typeFormals.isEmpty) {
+      return fnType;
     }
 
-    // Return the instantiated type.
-    return fnType.instantiate(inferredTypes);
+    // Create a TypeSystem that will allow certain type parameters to be
+    // inferred. It will optimistically assume these type parameters can be
+    // subtypes (or supertypes) as necessary, and track the constraints that
+    // are implied by this.
+    var inferringTypeSystem =
+        new _StrongInferenceTypeSystem(typeProvider, fnType.typeFormals);
+
+    // Since we're trying to infer the instantiation, we want to ignore type
+    // formals as we check the parameters and return type.
+    var inferFnType =
+        fnType.instantiate(TypeParameterTypeImpl.getTypes(fnType.typeFormals));
+    if (!inferringTypeSystem.isSubtypeOf(inferFnType, contextType)) {
+      return fnType;
+    }
+
+    // Try to infer and instantiate the resulting type.
+    var resultType =
+        inferringTypeSystem._infer(fnType, allowPartialSolution: false);
+
+    // If the instantiation failed (because some type variable constraints
+    // could not be solved, in other words, we could not find a valid subtype),
+    // then return the original type, so the error is in terms of it.
+    //
+    // It would be safe to return a partial solution here, but the user
+    // experience may be better if we simply do not infer in this case.
+    return resultType ?? fnType;
   }
 
   /**
@@ -242,6 +246,9 @@ class StrongTypeSystemImpl implements TypeSystem {
   }
 
   @override
+  bool isMoreSpecificThan(DartType t1, DartType t2) => isSubtypeOf(t1, t2);
+
+  @override
   bool isSubtypeOf(DartType leftType, DartType rightType) {
     return _isSubtypeOf(leftType, rightType, null);
   }
@@ -281,145 +288,18 @@ class StrongTypeSystemImpl implements TypeSystem {
 
   /**
    * Check that [f1] is a subtype of [f2].
-   * [fuzzyArrows] indicates whether or not the f1 and f2 should be
-   * treated as fuzzy arrow types (and hence dynamic parameters to f2 treated
-   * as bottom).
+   *
+   * This will always assume function types use fuzzy arrows, in other words
+   * that dynamic parameters of f1 and f2 are treated as bottom.
    */
-  bool _isFunctionSubtypeOf(FunctionType f1, FunctionType f2,
-      {bool fuzzyArrows: true}) {
-    if (!f1.typeFormals.isEmpty) {
-      if (f2.typeFormals.isEmpty) {
-        f1 = instantiateToBounds(f1);
-        return _isFunctionSubtypeOf(f1, f2);
-      } else {
-        return _isGenericFunctionSubtypeOf(f1, f2, fuzzyArrows: fuzzyArrows);
-      }
-    }
-    final List<DartType> r1s = f1.normalParameterTypes;
-    final List<DartType> r2s = f2.normalParameterTypes;
-    final List<DartType> o1s = f1.optionalParameterTypes;
-    final List<DartType> o2s = f2.optionalParameterTypes;
-    final Map<String, DartType> n1s = f1.namedParameterTypes;
-    final Map<String, DartType> n2s = f2.namedParameterTypes;
-    final DartType ret1 = f1.returnType;
-    final DartType ret2 = f2.returnType;
-
-    // A -> B <: C -> D if C <: A and
-    // either D is void or B <: D
-    if (!ret2.isVoid && !isSubtypeOf(ret1, ret2)) {
-      return false;
-    }
-
-    // Reject if one has named and the other has optional
-    if (n1s.length > 0 && o2s.length > 0) {
-      return false;
-    }
-    if (n2s.length > 0 && o1s.length > 0) {
-      return false;
-    }
-
-    // Rebind _isSubtypeOf for convenience
-    _SubtypeChecker<DartType> parameterSubtype = (DartType t1, DartType t2) =>
-        _isSubtypeOf(t1, t2, null, dynamicIsBottom: fuzzyArrows);
-
-    // f2 has named parameters
-    if (n2s.length > 0) {
-      // Check that every named parameter in f2 has a match in f1
-      for (String k2 in n2s.keys) {
-        if (!n1s.containsKey(k2)) {
-          return false;
-        }
-        if (!parameterSubtype(n2s[k2], n1s[k2])) {
-          return false;
-        }
-      }
-    }
-    // If we get here, we either have no named parameters,
-    // or else the named parameters match and we have no optional
-    // parameters
-
-    // If f1 has more required parameters, reject
-    if (r1s.length > r2s.length) {
-      return false;
-    }
-
-    // If f2 has more required + optional parameters, reject
-    if (r2s.length + o2s.length > r1s.length + o1s.length) {
-      return false;
-    }
-
-    // The parameter lists must look like the following at this point
-    // where rrr is a region of required, and ooo is a region of optionals.
-    // f1: rrr ooo ooo ooo
-    // f2: rrr rrr ooo
-    int rr = r1s.length; // required in both
-    int or = r2s.length - r1s.length; // optional in f1, required in f2
-    int oo = o2s.length; // optional in both
-
-    for (int i = 0; i < rr; ++i) {
-      if (!parameterSubtype(r2s[i], r1s[i])) {
-        return false;
-      }
-    }
-    for (int i = 0, j = rr; i < or; ++i, ++j) {
-      if (!parameterSubtype(r2s[j], o1s[i])) {
-        return false;
-      }
-    }
-    for (int i = or, j = 0; i < oo; ++i, ++j) {
-      if (!parameterSubtype(o2s[j], o1s[i])) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  /**
-   * Check that [f1] is a subtype of [f2] where f1 and f2 are known
-   * to be generic function types (both have type parameters)
-   * [fuzzyArrows] indicates whether or not the f1 and f2 should be
-   * treated as fuzzy arrow types (and hence dynamic parameters to f2 treated
-   * as bottom).
-   */
-  bool _isGenericFunctionSubtypeOf(FunctionType f1, FunctionType f2,
-      {bool fuzzyArrows: true}) {
-    List<TypeParameterElement> params1 = f1.typeFormals;
-    List<TypeParameterElement> params2 = f2.typeFormals;
-    int count = params1.length;
-    if (params2.length != count) {
-      return false;
-    }
-    // We build up a substitution matching up the type parameters
-    // from the two types, {variablesFresh/variables1} and
-    // {variablesFresh/variables2}
-    List<DartType> variables1 = new List<DartType>();
-    List<DartType> variables2 = new List<DartType>();
-    List<DartType> variablesFresh = new List<DartType>();
-    for (int i = 0; i < count; i++) {
-      TypeParameterElement p1 = params1[i];
-      TypeParameterElement p2 = params2[i];
-      TypeParameterElementImpl pFresh =
-          new TypeParameterElementImpl(p2.name, -1);
-
-      DartType variable1 = p1.type;
-      DartType variable2 = p2.type;
-      DartType variableFresh = new TypeParameterTypeImpl(pFresh);
-
-      variables1.add(variable1);
-      variables2.add(variable2);
-      variablesFresh.add(variableFresh);
-      DartType bound1 = p1.bound ?? DynamicTypeImpl.instance;
-      DartType bound2 = p2.bound ?? DynamicTypeImpl.instance;
-      bound1 = bound1.substitute2(variablesFresh, variables1);
-      bound2 = bound2.substitute2(variablesFresh, variables2);
-      pFresh.bound = bound2;
-      if (!isSubtypeOf(bound2, bound1)) {
-        return false;
-      }
-    }
-    return _isFunctionSubtypeOf(
-        f1.instantiate(variablesFresh), f2.instantiate(variablesFresh),
-        fuzzyArrows: fuzzyArrows);
+  bool _isFunctionSubtypeOf(FunctionType f1, FunctionType f2) {
+    return FunctionTypeImpl.relate(
+        f1,
+        f2,
+        (DartType t1, DartType t2) =>
+            _isSubtypeOf(t2, t1, null, dynamicIsBottom: true),
+        instantiateToBounds,
+        returnRelation: isSubtypeOf);
   }
 
   bool _isInterfaceSubtypeOf(
@@ -563,6 +443,17 @@ class StrongTypeSystemImpl implements TypeSystem {
  */
 abstract class TypeSystem {
   /**
+   * Returns `true` if we can promote to the first type from the second type.
+   *
+   * In the standard Dart type system, it is not possible to promote from or to
+   * `dynamic`, and we must be promoting to a more specific type, see
+   * [isMoreSpecificThan].
+   *
+   * In strong mode, this is equivalent to [isSubtypeOf].
+   */
+  bool canPromoteToType(DartType to, DartType from);
+
+  /**
    * Compute the least upper bound of two types.
    */
   DartType getLeastUpperBound(
@@ -582,6 +473,14 @@ abstract class TypeSystem {
    * if leftType <==> rightType).
    */
   bool isAssignableTo(DartType leftType, DartType rightType);
+
+  /**
+   * Return `true` if the [leftType] is more specific than the [rightType]
+   * (that is, if leftType << rightType), as defined in the Dart language spec.
+   *
+   * In strong mode, this is equivalent to [isSubtypeOf].
+   */
+  bool isMoreSpecificThan(DartType leftType, DartType rightType);
 
   /**
    * Return `true` if the [leftType] is a subtype of the [rightType] (that is,
@@ -604,6 +503,14 @@ abstract class TypeSystem {
  */
 class TypeSystemImpl implements TypeSystem {
   TypeSystemImpl();
+
+  @override
+  bool canPromoteToType(DartType to, DartType from) {
+    // Declared type should not be "dynamic".
+    // Promoted type should not be "dynamic".
+    // Promoted type should be more specific than declared.
+    return !from.isDynamic && !to.isDynamic && to.isMoreSpecificThan(from);
+  }
 
   @override
   DartType getLeastUpperBound(
@@ -633,26 +540,12 @@ class TypeSystemImpl implements TypeSystem {
     if (type2.isBottom) {
       return type1;
     }
+
     // Let U be a type variable with upper bound B.  The least upper bound of U
     // and a type T is the least upper bound of B and T.
-    while (type1 is TypeParameterType) {
-      // TODO(paulberry): is this correct in the complex of F-bounded
-      // polymorphism?
-      DartType bound = (type1 as TypeParameterType).element.bound;
-      if (bound == null) {
-        bound = typeProvider.objectType;
-      }
-      type1 = bound;
-    }
-    while (type2 is TypeParameterType) {
-      // TODO(paulberry): is this correct in the context of F-bounded
-      // polymorphism?
-      DartType bound = (type2 as TypeParameterType).element.bound;
-      if (bound == null) {
-        bound = typeProvider.objectType;
-      }
-      type2 = bound;
-    }
+    type1 = type1.resolveToBound(typeProvider.objectType);
+    type2 = type2.resolveToBound(typeProvider.objectType);
+
     // The least upper bound of a function type and an interface type T is the
     // least upper bound of Function and T.
     if (type1 is FunctionType && type2 is InterfaceType) {
@@ -672,12 +565,7 @@ class TypeSystemImpl implements TypeSystem {
       }
       return result;
     } else if (type1 is FunctionType && type2 is FunctionType) {
-      FunctionType result =
-          FunctionTypeImpl.computeLeastUpperBound(type1, type2);
-      if (result == null) {
-        return typeProvider.functionType;
-      }
-      return result;
+      return _functionLeastUpperBound(typeProvider, type1, type2);
     } else {
       // Should never happen.  As a defensive measure, return the dynamic type.
       assert(false);
@@ -703,8 +591,90 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   @override
+  bool isMoreSpecificThan(DartType t1, DartType t2) =>
+      t1.isMoreSpecificThan(t2);
+
+  @override
   bool isSubtypeOf(DartType leftType, DartType rightType) {
     return leftType.isSubtypeOf(rightType);
+  }
+
+  /**
+   * Compute the least upper bound of function types [f] and [g].
+   *
+   * The spec rules for LUB on function types, informally, are pretty simple
+   * (though unsound):
+   *
+   * - If the functions don't have the same number of required parameters,
+   *   always return `Function`.
+   *
+   * - Discard any optional named or positional parameters the two types do not
+   *   have in common.
+   *
+   * - Compute the LUB of each corresponding pair of parameter and return types.
+   *   Return a function type with those types.
+   */
+  DartType _functionLeastUpperBound(
+      TypeProvider provider, FunctionType f, FunctionType g) {
+    // TODO(rnystrom): Right now, this assumes f and g do not have any type
+    // parameters. Revisit that in the presence of generic methods.
+    List<DartType> fRequired = f.normalParameterTypes;
+    List<DartType> gRequired = g.normalParameterTypes;
+
+    // We need some parameter names for in the synthesized function type, so
+    // arbitrarily use f's.
+    List<String> fRequiredNames = f.normalParameterNames;
+    List<String> fPositionalNames = f.optionalParameterNames;
+
+    // If F and G differ in their number of required parameters, then the
+    // least upper bound of F and G is Function.
+    if (fRequired.length != gRequired.length) {
+      return provider.functionType;
+    }
+
+    // Calculate the LUB of each corresponding pair of parameters.
+    List<ParameterElement> parameters = [];
+
+    for (int i = 0; i < fRequired.length; i++) {
+      parameters.add(new ParameterElementImpl.synthetic(
+          fRequiredNames[i],
+          getLeastUpperBound(provider, fRequired[i], gRequired[i]),
+          ParameterKind.REQUIRED));
+    }
+
+    List<DartType> fPositional = f.optionalParameterTypes;
+    List<DartType> gPositional = g.optionalParameterTypes;
+
+    // Ignore any extra optional positional parameters if one has more than the
+    // other.
+    int length = math.min(fPositional.length, gPositional.length);
+    for (int i = 0; i < length; i++) {
+      parameters.add(new ParameterElementImpl.synthetic(
+          fPositionalNames[i],
+          getLeastUpperBound(provider, fPositional[i], gPositional[i]),
+          ParameterKind.POSITIONAL));
+    }
+
+    Map<String, DartType> fNamed = f.namedParameterTypes;
+    Map<String, DartType> gNamed = g.namedParameterTypes;
+    for (String name in fNamed.keys.toSet()..retainAll(gNamed.keys)) {
+      parameters.add(new ParameterElementImpl.synthetic(
+          name,
+          getLeastUpperBound(provider, fNamed[name], gNamed[name]),
+          ParameterKind.NAMED));
+    }
+
+    // Calculate the LUB of the return type.
+    DartType returnType =
+        getLeastUpperBound(provider, f.returnType, g.returnType);
+
+    FunctionElementImpl function = new FunctionElementImpl("", -1);
+    function.synthetic = true;
+    function.returnType = returnType;
+    function.parameters = parameters;
+
+    function.type = new FunctionTypeImpl(function);
+    return function.type;
   }
 }
 
@@ -714,12 +684,85 @@ class _StrongInferenceTypeSystem extends StrongTypeSystemImpl {
   final Map<TypeParameterType, _TypeParameterBound> _bounds;
 
   _StrongInferenceTypeSystem(
-      this._typeProvider, Iterable<TypeParameterType> typeParams)
-      : _bounds = new Map.fromIterable(typeParams, value: (t) {
+      this._typeProvider, Iterable<TypeParameterElement> typeFormals)
+      : _bounds =
+            new Map.fromIterable(typeFormals, key: (t) => t.type, value: (t) {
           _TypeParameterBound bound = new _TypeParameterBound();
-          if (t.element.bound != null) bound.upper = t.element.bound;
+          if (t.bound != null) bound.upper = t.bound;
           return bound;
         });
+
+  /// Given the constraints that were given by calling [isSubtypeOf], find the
+  /// instantiation of the generic function that satisfies these constraints.
+  FunctionType _infer(FunctionType fnType, {bool allowPartialSolution: false}) {
+    List<TypeParameterType> fnTypeParams =
+        TypeParameterTypeImpl.getTypes(fnType.typeFormals);
+
+    var inferredTypes = new List<DartType>.from(fnTypeParams, growable: false);
+    for (int i = 0; i < fnTypeParams.length; i++) {
+      TypeParameterType typeParam = fnTypeParams[i];
+      _TypeParameterBound bound = _bounds[typeParam];
+
+      // Now we've computed lower and upper bounds for each type parameter.
+      //
+      // To decide on which type to assign, we look at the return type and see
+      // if the type parameter occurs in covariant or contravariant positions.
+      //
+      // If the type is "passed in" at all, or if our lower bound was bottom,
+      // we choose the upper bound as being the most useful.
+      //
+      // Otherwise we choose the more precise lower bound.
+      _TypeParameterVariance variance =
+          new _TypeParameterVariance.from(typeParam, fnType.returnType);
+
+      inferredTypes[i] =
+          variance.passedIn || bound.lower.isBottom ? bound.upper : bound.lower;
+
+      // Assumption: if the current type parameter has an "extends" clause
+      // that refers to another type variable we are inferring, it will appear
+      // before us or in this list position. For example:
+      //
+      //     <TFrom, TTo extends TFrom>
+      //
+      // We may infer TTo is TFrom. In that case, we already know what TFrom
+      // is inferred as, so we can substitute it now. This also handles more
+      // complex cases such as:
+      //
+      //     <TFrom, TTo extends Iterable<TFrom>>
+      //
+      // Or if the type parameter's bound depends on itself such as:
+      //
+      //     <T extends Clonable<T>>
+      inferredTypes[i] =
+          inferredTypes[i].substitute2(inferredTypes, fnTypeParams);
+
+      // See if the constraints on the type variable are satisfied.
+      //
+      // If not, bail out of the analysis, unless a partial solution was
+      // requested. If we are willing to accept a partial solution, fall back to
+      // the known upper bound (if any) or `dynamic` for this unsolvable type
+      // variable.
+      if (inferredTypes[i].isBottom ||
+          !isSubtypeOf(inferredTypes[i],
+              bound.upper.substitute2(inferredTypes, fnTypeParams)) ||
+          !isSubtypeOf(bound.lower.substitute2(inferredTypes, fnTypeParams),
+              inferredTypes[i])) {
+        // Unless a partial solution was requested, bail.
+        if (!allowPartialSolution) {
+          return null;
+        }
+
+        inferredTypes[i] = DynamicTypeImpl.instance;
+        if (typeParam.element.bound != null) {
+          inferredTypes[i] =
+              typeParam.element.bound.substitute2(inferredTypes, fnTypeParams);
+        }
+      }
+    }
+
+    // Return the instantiated type.
+    return fnType.instantiate(inferredTypes);
+  }
 
   @override
   bool _inferTypeParameterSubtypeOf(

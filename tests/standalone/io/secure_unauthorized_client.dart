@@ -11,7 +11,7 @@ import "dart:io";
 String localFile(path) => Platform.script.resolve(path).toFilePath();
 
 SecurityContext clientContext = new SecurityContext()
-  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
+  ..setTrustedCertificates(localFile('certificates/trusted_certs.pem'));
 
 class ExpectException implements Exception {
   ExpectException(this.message);

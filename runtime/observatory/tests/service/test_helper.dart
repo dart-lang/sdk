@@ -8,32 +8,102 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:observatory/service_io.dart';
-import 'package:unittest/unittest.dart';
+import 'service_test_common.dart';
+
+/// Will be set to the http address of the VM's service protocol before
+/// any tests are invoked.
+String serviceHttpAddress;
+String serviceWebsocketAddress;
 
 bool _isWebSocketDisconnect(e) {
   return e is NetworkRpcException;
 }
 
-// This invocation should set up the state being tested.
-const String _TESTEE_MODE_FLAG = "--testee-mode";
+const String _TESTEE_ENV_KEY = 'SERVICE_TEST_TESTEE';
+const Map<String, String> _TESTEE_SPAWN_ENV = const {
+  _TESTEE_ENV_KEY: 'true'
+};
+bool _isTestee() {
+  return Platform.environment.containsKey(_TESTEE_ENV_KEY);
+}
 
-class _TestLauncher {
+class _SerivceTesteeRunner {
+  Future run({testeeBefore(): null,
+              testeeConcurrent(): null,
+              bool pause_on_start: false,
+              bool pause_on_exit: false}) async {
+    if (!pause_on_start) {
+      if (testeeBefore != null) {
+        var result = testeeBefore();
+        if (result is Future) {
+          await result;
+        }
+      }
+      print(''); // Print blank line to signal that testeeBefore has run.
+    }
+    if (testeeConcurrent != null) {
+      var result = testeeConcurrent();
+      if (result is Future) {
+        await result;
+      }
+    }
+    if (!pause_on_exit) {
+      // Wait around for the process to be killed.
+      stdin.first.then((_) => exit(0));
+    }
+  }
+
+  void runSync({void testeeBeforeSync(): null,
+                void testeeConcurrentSync(): null,
+                bool pause_on_start: false,
+                bool pause_on_exit: false}) {
+    if (!pause_on_start) {
+      if (testeeBeforeSync != null) {
+        testeeBeforeSync();
+      }
+      print(''); // Print blank line to signal that testeeBefore has run.
+    }
+    if (testeeConcurrentSync != null) {
+      testeeConcurrentSync();
+    }
+    if (!pause_on_exit) {
+      // Wait around for the process to be killed.
+      stdin.first.then((_) => exit(0));
+    }
+  }
+}
+
+class _ServiceTesteeLauncher {
   Process process;
   final List<String> args;
   bool killedByTester = false;
 
-  _TestLauncher() : args = ['--enable-vm-service:0',
-                            Platform.script.toFilePath(),
-                            _TESTEE_MODE_FLAG] {}
+  _ServiceTesteeLauncher() :
+      args = ['--enable-vm-service:0',
+              Platform.script.toFilePath()] {}
 
-  Future<int> launch(bool pause_on_start, bool pause_on_exit, bool trace_service) {
+  String get executablePath => Platform.executable;
+
+  // Spawn the testee process.
+  Future<Process> _spawnProcess(bool pause_on_start,
+                                bool pause_on_exit,
+                                bool pause_on_unhandled_exceptions,
+                                bool trace_service,
+                                bool trace_compiler) {
     assert(pause_on_start != null);
     assert(pause_on_exit != null);
     assert(trace_service != null);
+    // TODO(turnidge): I have temporarily turned on service tracing for
+    // all tests to help diagnose flaky tests.
+    trace_service = true;
     String dartExecutable = Platform.executable;
     var fullArgs = [];
     if (trace_service) {
       fullArgs.add('--trace-service');
+      fullArgs.add('--trace-service-verbose');
+    }
+    if (trace_compiler) {
+      fullArgs.add('--trace-compiler');
     }
     if (pause_on_start) {
       fullArgs.add('--pause-isolates-on-start');
@@ -41,11 +111,27 @@ class _TestLauncher {
     if (pause_on_exit) {
       fullArgs.add('--pause-isolates-on-exit');
     }
+    if (pause_on_unhandled_exceptions) {
+      fullArgs.add('--pause-isolates-on-unhandled-exceptions');
+    }
     fullArgs.addAll(Platform.executableArguments);
     fullArgs.addAll(args);
     print('** Launching $dartExecutable ${fullArgs.join(' ')}');
-    return Process.start(dartExecutable, fullArgs).then((p) {
+    return Process.start(dartExecutable,
+                         fullArgs,
+                         environment: _TESTEE_SPAWN_ENV);
+  }
 
+  Future<int> launch(bool pause_on_start,
+                     bool pause_on_exit,
+                     bool pause_on_unhandled_exceptions,
+                     bool trace_service,
+                     bool trace_compiler) {
+    return _spawnProcess(pause_on_start,
+                  pause_on_exit,
+                  pause_on_unhandled_exceptions,
+                  trace_service,
+                  trace_compiler).then((p) {
       Completer completer = new Completer();
       process = p;
       var portNumber;
@@ -92,60 +178,57 @@ class _TestLauncher {
   }
 }
 
-typedef Future IsolateTest(Isolate isolate);
-typedef Future VMTest(VM vm);
-
-/// Will be set to the http address of the VM's service protocol before
-/// any tests are invoked.
-String serviceHttpAddress;
-
-/// Runs [tests] in sequence, each of which should take an [Isolate] and
-/// return a [Future]. Code for setting up state can run before and/or
-/// concurrently with the tests. Uses [mainArgs] to determine whether
-/// to run tests or testee in this invokation of the script.
-void runIsolateTests(List<String> mainArgs,
-                     List<IsolateTest> tests,
-                     {void testeeBefore(),
-                      void testeeConcurrent(),
-                      bool pause_on_start: false,
-                      bool pause_on_exit: false,
-                      bool trace_service: false,
-                      bool verbose_vm: false}) {
-  assert(!pause_on_start || testeeBefore == null);
-  if (mainArgs.contains(_TESTEE_MODE_FLAG)) {
-    if (!pause_on_start) {
-      if (testeeBefore != null) {
-        testeeBefore();
-      }
-      print(''); // Print blank line to signal that we are ready.
-    }
-    if (testeeConcurrent != null) {
-      testeeConcurrent();
-    }
-    if (!pause_on_exit) {
-      // Wait around for the process to be killed.
-      stdin.first.then((_) => exit(0));
-    }
-  } else {
-    var process = new _TestLauncher();
-    process.launch(pause_on_start, pause_on_exit, trace_service).then((port) {
+class _ServiceTesterRunner {
+  void run({List<String> mainArgs,
+            List<VMTest> vmTests,
+            List<IsolateTest> isolateTests,
+            bool pause_on_start: false,
+            bool pause_on_exit: false,
+            bool trace_service: false,
+            bool trace_compiler: false,
+            bool verbose_vm: false,
+            bool pause_on_unhandled_exceptions: false}) {
+    var process = new _ServiceTesteeLauncher();
+    process.launch(pause_on_start, pause_on_exit,
+                   pause_on_unhandled_exceptions,
+                   trace_service, trace_compiler).then((port) async {
       if (mainArgs.contains("--gdb")) {
         port = 8181;
       }
-      String addr = 'ws://localhost:$port/ws';
+      serviceWebsocketAddress = 'ws://localhost:$port/ws';
       serviceHttpAddress = 'http://localhost:$port';
-      var testIndex = 1;
-      var totalTests = tests.length;
       var name = Platform.script.pathSegments.last;
       runZoned(() {
-        new WebSocketVM(new WebSocketVMTarget(addr)).load()
-            .then((VM vm) => vm.isolates.first.load())
-            .then((Isolate isolate) => Future.forEach(tests, (test) {
-              isolate.vm.verbose = verbose_vm;
-              print('Running $name [$testIndex/$totalTests]');
-              testIndex++;
-              return test(isolate);
-            })).then((_) => process.requestExit());
+        new WebSocketVM(new WebSocketVMTarget(serviceWebsocketAddress)).load()
+            .then((VM vm) async {
+
+              // Run vm tests.
+              if (vmTests != null) {
+                var testIndex = 1;
+                var totalTests = vmTests.length;
+                for (var test in vmTests) {
+                  vm.verbose = verbose_vm;
+                  print('Running $name [$testIndex/$totalTests]');
+                  testIndex++;
+                  await test(vm);
+                }
+              }
+
+              // Run isolate tests.
+              if (isolateTests != null) {
+                var isolate = await vm.isolates.first.load();
+                var testIndex = 1;
+                var totalTests = isolateTests.length;
+                for (var test in isolateTests) {
+                  vm.verbose = verbose_vm;
+                  print('Running $name [$testIndex/$totalTests]');
+                  testIndex++;
+                  await test(isolate);
+                }
+              }
+
+              await process.requestExit();
+            });
       }, onError: (e, st) {
         process.requestExit();
         if (!_isWebSocketDisconnect(e)) {
@@ -157,176 +240,75 @@ void runIsolateTests(List<String> mainArgs,
   }
 }
 
-
-Future<Isolate> hasStoppedAtBreakpoint(Isolate isolate) {
-  // Set up a listener to wait for breakpoint events.
-  Completer completer = new Completer();
-  isolate.vm.getEventStream(VM.kDebugStream).then((stream) {
-    var subscription;
-    subscription = stream.listen((ServiceEvent event) {
-        if (event.kind == ServiceEvent.kPauseBreakpoint) {
-          print('Breakpoint reached');
-          subscription.cancel();
-          if (completer != null) {
-            // Reload to update isolate.pauseEvent.
-            completer.complete(isolate.reload());
-            completer = null;
-          }
-        }
-    });
-
-    // Pause may have happened before we subscribed.
-    isolate.reload().then((_) {
-      if ((isolate.pauseEvent != null) &&
-         (isolate.pauseEvent.kind == ServiceEvent.kPauseBreakpoint)) {
-        // Already waiting at a breakpoint.
-        print('Breakpoint reached');
-        subscription.cancel();
-        if (completer != null) {
-          completer.complete(isolate);
-          completer = null;
-        }
-      }
-    });
-  });
-
-  return completer.future;  // Will complete when breakpoint hit.
-}
-
-
-Future<Isolate> hasPausedAtStart(Isolate isolate) {
-  // Set up a listener to wait for breakpoint events.
-  Completer completer = new Completer();
-  isolate.vm.getEventStream(VM.kDebugStream).then((stream) {
-    var subscription;
-    subscription = stream.listen((ServiceEvent event) {
-        if (event.kind == ServiceEvent.kPauseStart) {
-          print('Paused at isolate start');
-          subscription.cancel();
-          if (completer != null) {
-            // Reload to update isolate.pauseEvent.
-            completer.complete(isolate.reload());
-            completer = null;
-          }
-        }
-    });
-
-    // Pause may have happened before we subscribed.
-    isolate.reload().then((_) {
-      if ((isolate.pauseEvent != null) &&
-         (isolate.pauseEvent.kind == ServiceEvent.kPauseStart)) {
-        print('Paused at isolate start');
-        subscription.cancel();
-        if (completer != null) {
-          completer.complete(isolate);
-          completer = null;
-        }
-      }
-    });
-  });
-
-  return completer.future;
-}
-
-
-// Currying is your friend.
-IsolateTest setBreakpointAtLine(int line) {
-  return (Isolate isolate) async {
-    print("Setting breakpoint for line $line");
-    Library lib = await isolate.rootLibrary.load();
-    Script script = lib.scripts.single;
-
-    Breakpoint bpt = await isolate.addBreakpoint(script, line);
-    print("Breakpoint is $bpt");
-    expect(bpt, isNotNull);
-    expect(bpt is Breakpoint, isTrue);
-  };
-}
-
-IsolateTest stoppedAtLine(int line) {
-  return (Isolate isolate) async {
-    print("Checking we are at line $line");
-
-    ServiceMap stack = await isolate.getStack();
-    expect(stack.type, equals('Stack'));
-
-    List<Frame> frames = stack['frames'];
-    expect(frames.length, greaterThanOrEqualTo(1));
-
-    Frame top = frames[0];
-    Script script = await top.location.script.load();
-    if (script.tokenToLine(top.location.tokenPos) != line) {
-      var sb = new StringBuffer();
-      sb.write("Expected to be at line $line, but got stack trace:\n");
-      for (Frame f in stack['frames']) {
-        sb.write(" $f\n");
-      }
-      throw sb.toString();
-    }
-  };
-}
-
-
-Future<Isolate> resumeIsolate(Isolate isolate) {
-  Completer completer = new Completer();
-  isolate.vm.getEventStream(VM.kDebugStream).then((stream) {
-    var subscription;
-    subscription = stream.listen((ServiceEvent event) {
-      if (event.kind == ServiceEvent.kResume) {
-        subscription.cancel();
-        completer.complete();
-      }
-    });
-  });
-  isolate.resume();
-  return completer.future;
-}
-
-
-Future resumeAndAwaitEvent(Isolate isolate, stream, onEvent) async {
-  Completer completer = new Completer();
-  var sub;
-  sub = await isolate.vm.listenEventStream(
-    stream,
-    (ServiceEvent event) {
-      var r = onEvent(event);
-      if (r is! Future) {
-        r = new Future.value(r);
-      }
-      r.then((x) => sub.cancel().then((_) {
-        completer.complete();
-      }));
-    });
-  await isolate.resume();
-  return completer.future;
-}
-
-IsolateTest resumeIsolateAndAwaitEvent(stream, onEvent) {
-  return (Isolate isolate) async =>
-      resumeAndAwaitEvent(isolate, stream, onEvent);
-}
-
-
-Future<Class> getClassFromRootLib(Isolate isolate, String className) async {
-  Library rootLib = await isolate.rootLibrary.load();
-  for (var i = 0; i < rootLib.classes.length; i++) {
-    Class cls = rootLib.classes[i];
-    if (cls.name == className) {
-      return cls;
-    }
+/// Runs [tests] in sequence, each of which should take an [Isolate] and
+/// return a [Future]. Code for setting up state can run before and/or
+/// concurrently with the tests. Uses [mainArgs] to determine whether
+/// to run tests or testee in this invokation of the script.
+Future runIsolateTests(List<String> mainArgs,
+                       List<IsolateTest> tests,
+                       {testeeBefore(),
+                        testeeConcurrent(),
+                        bool pause_on_start: false,
+                        bool pause_on_exit: false,
+                        bool trace_service: false,
+                        bool trace_compiler: false,
+                        bool verbose_vm: false,
+                        bool pause_on_unhandled_exceptions: false}) async {
+  assert(!pause_on_start || testeeBefore == null);
+  if (_isTestee()) {
+    new _SerivceTesteeRunner().run(testeeBefore: testeeBefore,
+                                   testeeConcurrent: testeeConcurrent,
+                                   pause_on_start: pause_on_start,
+                                   pause_on_exit: pause_on_exit);
+  } else {
+    new _ServiceTesterRunner().run(
+        mainArgs: mainArgs,
+        isolateTests: tests,
+        pause_on_start: pause_on_start,
+        pause_on_exit: pause_on_exit,
+        trace_service: trace_service,
+        trace_compiler: trace_compiler,
+        verbose_vm: verbose_vm,
+        pause_on_unhandled_exceptions: pause_on_unhandled_exceptions);
   }
-  return null;
 }
 
-
-Future<Instance> rootLibraryFieldValue(Isolate isolate,
-                                       String fieldName) async {
-  Library rootLib = await isolate.rootLibrary.load();
-  Field field = rootLib.variables.singleWhere((v) => v.name == fieldName);
-  await field.load();
-  Instance value = field.staticValue;
-  await value.load();
-  return value;
+/// Runs [tests] in sequence, each of which should take an [Isolate] and
+/// return a [Future]. Code for setting up state can run before and/or
+/// concurrently with the tests. Uses [mainArgs] to determine whether
+/// to run tests or testee in this invokation of the script.
+///
+/// This is a special version of this test harness specifically for the
+/// pause_on_unhandled_exceptions_test, which cannot properly function
+/// in an async context (because exceptions are *always* handled in async
+/// functions).
+void runIsolateTestsSynchronous(List<String> mainArgs,
+                                List<IsolateTest> tests,
+                                {void testeeBefore(),
+                                 void testeeConcurrent(),
+                                 bool pause_on_start: false,
+                                 bool pause_on_exit: false,
+                                 bool trace_service: false,
+                                 bool trace_compiler: false,
+                                 bool verbose_vm: false,
+                                 bool pause_on_unhandled_exceptions: false}) {
+  assert(!pause_on_start || testeeBefore == null);
+  if (_isTestee()) {
+    new _SerivceTesteeRunner().runSync(testeeBeforeSync: testeeBefore,
+                                       testeeConcurrentSync: testeeConcurrent,
+                                       pause_on_start: pause_on_start,
+                                       pause_on_exit: pause_on_exit);
+  } else {
+    new _ServiceTesterRunner().run(
+        mainArgs: mainArgs,
+        isolateTests: tests,
+        pause_on_start: pause_on_start,
+        pause_on_exit: pause_on_exit,
+        trace_service: trace_service,
+        trace_compiler: trace_compiler,
+        verbose_vm: verbose_vm,
+        pause_on_unhandled_exceptions: pause_on_unhandled_exceptions);
+  }
 }
 
 
@@ -336,54 +318,28 @@ Future<Instance> rootLibraryFieldValue(Isolate isolate,
 /// to run tests or testee in this invokation of the script.
 Future runVMTests(List<String> mainArgs,
                   List<VMTest> tests,
-                  {Future testeeBefore(),
-                   Future testeeConcurrent(),
+                  {testeeBefore(),
+                   testeeConcurrent(),
                    bool pause_on_start: false,
                    bool pause_on_exit: false,
                    bool trace_service: false,
-                   bool verbose_vm: false}) async {
-  if (mainArgs.contains(_TESTEE_MODE_FLAG)) {
-    if (!pause_on_start) {
-      if (testeeBefore != null) {
-        await testeeBefore();
-      }
-      print(''); // Print blank line to signal that we are ready.
-    }
-    if (testeeConcurrent != null) {
-      await testeeConcurrent();
-    }
-    if (!pause_on_exit) {
-      // Wait around for the process to be killed.
-      stdin.first.then((_) => exit(0));
-    }
+                   bool trace_compiler: false,
+                   bool verbose_vm: false,
+                   bool pause_on_unhandled_exceptions: false}) async {
+  if (_isTestee()) {
+    new _SerivceTesteeRunner().run(testeeBefore: testeeBefore,
+                                   testeeConcurrent: testeeConcurrent,
+                                   pause_on_start: pause_on_start,
+                                   pause_on_exit: pause_on_exit);
   } else {
-    var process = new _TestLauncher();
-    process.launch(pause_on_start,
-                   pause_on_exit,
-                   trace_service).then((port) async {
-      if (mainArgs.contains("--gdb")) {
-        port = 8181;
-      }
-      String addr = 'ws://localhost:$port/ws';
-      serviceHttpAddress = 'http://localhost:$port';
-      var testIndex = 1;
-      var totalTests = tests.length;
-      var name = Platform.script.pathSegments.last;
-      runZoned(() {
-        new WebSocketVM(new WebSocketVMTarget(addr)).load()
-            .then((VM vm) => Future.forEach(tests, (test) {
-              vm.verbose = verbose_vm;
-              print('Running $name [$testIndex/$totalTests]');
-              testIndex++;
-              return test(vm);
-            })).then((_) => process.requestExit());
-      }, onError: (e, st) {
-        process.requestExit();
-        if (!_isWebSocketDisconnect(e)) {
-          print('Unexpected exception in service tests: $e $st');
-          throw e;
-        }
-      });
-    });
+    new _ServiceTesterRunner().run(
+        mainArgs: mainArgs,
+        vmTests: tests,
+        pause_on_start: pause_on_start,
+        pause_on_exit: pause_on_exit,
+        trace_service: trace_service,
+        trace_compiler: trace_compiler,
+        verbose_vm: verbose_vm,
+        pause_on_unhandled_exceptions: pause_on_unhandled_exceptions);
   }
 }

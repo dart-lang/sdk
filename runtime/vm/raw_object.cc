@@ -144,6 +144,13 @@ intptr_t RawObject::SizeFromClass() const {
       instance_size = PcDescriptors::InstanceSize(length);
       break;
     }
+    case kCodeSourceMapCid: {
+      const RawCodeSourceMap* raw_code_source_map =
+          reinterpret_cast<const RawCodeSourceMap*>(this);
+      intptr_t length = raw_code_source_map->ptr()->length_;
+      instance_size = CodeSourceMap::InstanceSize(length);
+      break;
+    }
     case kStackmapCid: {
       const RawStackmap* map = reinterpret_cast<const RawStackmap*>(this);
       intptr_t length = map->ptr()->length_;
@@ -336,6 +343,13 @@ intptr_t RawType::VisitTypePointers(
 }
 
 
+intptr_t RawFunctionType::VisitFunctionTypePointers(
+    RawFunctionType* raw_obj, ObjectPointerVisitor* visitor) {
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return FunctionType::InstanceSize();
+}
+
+
 intptr_t RawTypeRef::VisitTypeRefPointers(
     RawTypeRef* raw_obj, ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
@@ -376,6 +390,13 @@ intptr_t RawPatchClass::VisitPatchClassPointers(RawPatchClass* raw_obj,
                                                 ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return PatchClass::InstanceSize();
+}
+
+
+intptr_t RawClosure::VisitClosurePointers(
+    RawClosure* raw_obj, ObjectPointerVisitor* visitor) {
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return Closure::InstanceSize();
 }
 
 
@@ -572,6 +593,12 @@ bool RawInstructions::ContainsPC(RawInstructions* raw_instr, uword pc) {
 intptr_t RawPcDescriptors::VisitPcDescriptorsPointers(
     RawPcDescriptors* raw_obj, ObjectPointerVisitor* visitor) {
   return PcDescriptors::InstanceSize(raw_obj->ptr()->length_);
+}
+
+
+intptr_t RawCodeSourceMap::VisitCodeSourceMapPointers(
+    RawCodeSourceMap* raw_obj, ObjectPointerVisitor* visitor) {
+  return CodeSourceMap::InstanceSize(raw_obj->ptr()->length_);
 }
 
 

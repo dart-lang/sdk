@@ -17,12 +17,13 @@ import 'package:analysis_server/src/services/correction/source_range.dart';
 import 'package:analysis_server/src/services/correction/statement_analyzer.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:path/path.dart';
 
@@ -286,10 +287,6 @@ class AssistProcessor {
 
   void _addProposal_addTypeAnnotation_VariableDeclaration() {
     AstNode node = this.node;
-    // check if "var v = 42;^"
-    if (node is VariableDeclarationStatement) {
-      node = (node as VariableDeclarationStatement).variables;
-    }
     // prepare VariableDeclarationList
     VariableDeclarationList declarationList =
         node.getAncestor((node) => node is VariableDeclarationList);
@@ -309,6 +306,11 @@ class AssistProcessor {
       return;
     }
     VariableDeclaration variable = variables[0];
+    // must be not after the name of the variable
+    if (selectionOffset > variable.name.end) {
+      _coverageMarker();
+      return;
+    }
     // we need an initializer to get the type from
     Expression initializer = variable.initializer;
     if (initializer == null) {
@@ -1092,17 +1094,15 @@ class AssistProcessor {
     Block targetBlock;
     {
       Statement statement = node.getAncestor((n) => n is Statement);
-      prefix = utils.getNodePrefix(statement);
       if (statement is IfStatement && statement.thenStatement is Block) {
         targetBlock = statement.thenStatement;
-      }
-      if (statement is WhileStatement && statement.body is Block) {
+      } else if (statement is WhileStatement && statement.body is Block) {
         targetBlock = statement.body;
+      } else {
+        _coverageMarker();
+        return;
       }
-    }
-    if (targetBlock == null) {
-      _coverageMarker();
-      return;
+      prefix = utils.getNodePrefix(statement);
     }
     // prepare location
     int offset;
@@ -1432,44 +1432,32 @@ class AssistProcessor {
   }
 
   void _addProposal_removeTypeAnnotation() {
-    VariableDeclarationList variableList;
-    // try top-level variable
-    {
-      TopLevelVariableDeclaration declaration =
-          node.getAncestor((node) => node is TopLevelVariableDeclaration);
-      if (declaration != null) {
-        variableList = declaration.variables;
-      }
-    }
-    // try class field
-    if (variableList == null) {
-      FieldDeclaration fieldDeclaration =
-          node.getAncestor((node) => node is FieldDeclaration);
-      if (fieldDeclaration != null) {
-        variableList = fieldDeclaration.fields;
-      }
-    }
-    // try local variable
-    if (variableList == null) {
-      VariableDeclarationStatement statement =
-          node.getAncestor((node) => node is VariableDeclarationStatement);
-      if (statement != null) {
-        variableList = statement.variables;
-      }
-    }
-    if (variableList == null) {
+    VariableDeclarationList declarationList =
+        node.getAncestor((n) => n is VariableDeclarationList);
+    if (declarationList == null) {
       _coverageMarker();
       return;
     }
     // we need a type
-    TypeName typeNode = variableList.type;
+    TypeName typeNode = declarationList.type;
     if (typeNode == null) {
       _coverageMarker();
       return;
     }
+    // ignore if an incomplete variable declaration
+    if (declarationList.variables.length == 1 &&
+        declarationList.variables[0].name.isSynthetic) {
+      _coverageMarker();
+      return;
+    }
+    // must be not after the name of the variable
+    VariableDeclaration firstVariable = declarationList.variables[0];
+    if (selectionOffset > firstVariable.name.end) {
+      _coverageMarker();
+      return;
+    }
     // add edit
-    Token keyword = variableList.keyword;
-    VariableDeclaration firstVariable = variableList.variables[0];
+    Token keyword = declarationList.keyword;
     SourceRange typeRange = rangeStartStart(typeNode, firstVariable);
     if (keyword != null && keyword.lexeme != 'var') {
       _addReplaceEdit(typeRange, '');

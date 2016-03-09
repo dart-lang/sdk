@@ -77,7 +77,7 @@ main(List args) {
 
     result = Process.runSync(
         cc,
-        [shared, cc_flags, "-o", libname, "precompiled.S"],
+        [shared, cc_flags, "-nostartfiles", "-o", libname, "precompiled.S"],
         workingDirectory: tmp.path);
     if (result.exitCode != 0) {
       print(result.stdout);
@@ -87,7 +87,7 @@ main(List args) {
 
     var ld_library_path = new String.fromEnvironment("LD_LIBRARY_PATH");
     ld_library_path = "${ld_library_path}:${tmp.path}";
-    exec = "${dart_executable}_precompiled";
+    exec = "${dart_executable}_precompiled_runtime";
     args = ["--run-precompiled-snapshot", "ignored_script", "--version"];
     print("LD_LIBRARY_PATH=$ld_library_path $exec ${args.join(' ')}");
     result = Process.runSync(exec, args,

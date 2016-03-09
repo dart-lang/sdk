@@ -7,6 +7,9 @@
 # Runtime negative test. No static errors or warnings.
 closure_call_wrong_argument_count_negative_test: skip
 
+deep_nesting1_negative_test: Crash # Issue 25558
+deep_nesting2_negative_test: Crash # Issue 25558
+
 enum_syntax_test/05: Fail # 21649
 enum_syntax_test/06: Fail # 21649
 
@@ -19,7 +22,6 @@ regress_25246_test: Skip
 getter_setter_in_lib_test: Fail # issue 23286
 
 # Test issue 12694 (was analyzer issue), (1) when "abstract" is import prefix using it as type is warning; (2) currently analyzer resolves prefix as field (don't ask)
-built_in_identifier_prefix_test: CompileTimeError # Issue 12694
 
 # TBF: we should check conflicts not only for methods, but for accessors too
 override_field_test/03: fail
@@ -305,11 +307,6 @@ mixin_with_two_implicit_constructors_test: StaticWarning
 mixin_invalid_bound_test/none: StaticWarning # legitimate StaticWarning, cannot be annotated
 mixin_invalid_bound2_test/none: StaticWarning # legitimate StaticWarning, cannot be annotated
 mixin_super_bound_test: StaticWarning # legitimate StaticWarning, cannot be annotated
-mixin_super_bound2_test: CompileTimeError # Issue 24478
-mixin_super_test: CompileTimeError # Issue 24478
-mixin_super_2_test: CompileTimeError # Issue 24478
-mixin_super_use_test: CompileTimeError # Issue 24478
-mixin_superclass_test: CompileTimeError # Issue 24478
 named_constructor_test/01: StaticWarning
 named_constructor_test/03: StaticWarning
 named_parameters2_test: StaticWarning
@@ -483,4 +480,40 @@ no_main_test/01: Fail # Issue 20030
 # intentionally referring to a variable that's not in scope.
 transitive_private_library_access_test: StaticWarning
 
-const_qq_test: Fail
+conflicting_type_variable_and_setter_test: CompileTimeError # Issue 25525
+
+mixin_supertype_subclass_test/02: MissingStaticWarning # Issue 25614
+mixin_supertype_subclass_test/05: MissingStaticWarning # Issue 25614
+mixin_supertype_subclass2_test/02: MissingStaticWarning # Issue 25614
+mixin_supertype_subclass2_test/05: MissingStaticWarning # Issue 25614
+mixin_supertype_subclass3_test/02: MissingStaticWarning # Issue 25614
+mixin_supertype_subclass3_test/05: MissingStaticWarning # Issue 25614
+mixin_supertype_subclass4_test/01: MissingStaticWarning # Issue 25614
+mixin_supertype_subclass4_test/02: MissingStaticWarning # Issue 25614
+mixin_supertype_subclass4_test/03: MissingStaticWarning # Issue 25614
+mixin_supertype_subclass4_test/04: MissingStaticWarning # Issue 25614
+mixin_supertype_subclass4_test/05: MissingStaticWarning # Issue 25614
+
+mixin_of_mixin_test/01: MissingStaticWarning # Issue 25605
+mixin_of_mixin_test/02: MissingStaticWarning # Issue 25605
+mixin_of_mixin_test/04: MissingStaticWarning # Issue 25605
+mixin_of_mixin_test/05: MissingStaticWarning # Issue 25605
+mixin_of_mixin_test/06: MissingStaticWarning # Issue 25605
+mixin_of_mixin_test/08: MissingStaticWarning # Issue 25605
+mixin_of_mixin_test/09: MissingStaticWarning # Issue 25605
+mixin_of_mixin_test/10: MissingStaticWarning # Issue 25605
+mixin_of_mixin_test/12: MissingStaticWarning # Issue 25605
+mixin_of_mixin_test/13: MissingStaticWarning # Issue 25605
+mixin_of_mixin_test/15: MissingStaticWarning # Issue 25605
+mixin_of_mixin_test/16: MissingStaticWarning # Issue 25605
+mixin_of_mixin_test/17: MissingStaticWarning # Issue 25605
+mixin_of_mixin_test/19: MissingStaticWarning # Issue 25605
+mixin_of_mixin_test/20: MissingStaticWarning # Issue 25605
+mixin_of_mixin_test/21: MissingStaticWarning # Issue 25605
+
+accessor_conflict_export2_test: StaticWarning # Issue 25624
+accessor_conflict_export_test: StaticWarning # Issue 25624
+accessor_conflict_import2_test: StaticWarning # Issue 25624
+accessor_conflict_import_prefixed2_test: StaticWarning # Issue 25624
+accessor_conflict_import_prefixed_test: StaticWarning # Issue 25624
+accessor_conflict_import_test: StaticWarning # Issue 25624

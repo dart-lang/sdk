@@ -8,7 +8,6 @@
 
 #include "vm/code_generator.h"
 #include "vm/code_patcher.h"
-#include "vm/compiler.h"
 #include "vm/object.h"
 #include "vm/stack_frame.h"
 
@@ -67,7 +66,7 @@ void WeakCodeReferences::DisableCode() {
   if (code_objects.IsNull()) {
     return;
   }
-  ASSERT(Compiler::allow_recompilation());
+  ASSERT(!FLAG_precompiled_mode);
   UpdateArrayTo(Object::null_array());
   // Disable all code on stack.
   Code& code = Code::Handle();
@@ -101,11 +100,9 @@ void WeakCodeReferences::DisableCode() {
     } else if (owner.IsClass()) {
       Class& cls = Class::Handle();
       cls ^= owner.raw();
-      OS::Print("Skipping code owned by class %s\n", cls.ToCString());
       cls.DisableAllocationStub();
       continue;
     } else if (owner.IsNull()) {
-      OS::Print("Skipping code owned by null: ");
       code.Print();
       continue;
     }

@@ -12,6 +12,7 @@
 #include "vm/coverage.h"
 #include "vm/cpu.h"
 #include "vm/dart_api_impl.h"
+#include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/isolate.h"
@@ -20,6 +21,7 @@
 #include "vm/message_handler.h"
 #include "vm/native_entry.h"
 #include "vm/native_arguments.h"
+#include "vm/native_symbol.h"
 #include "vm/object.h"
 #include "vm/object_graph.h"
 #include "vm/object_id_ring.h"
@@ -47,6 +49,11 @@ DEFINE_FLAG(charp, vm_name, "vm",
             "The default name of this vm as reported by the VM service "
             "protocol");
 
+DEFINE_FLAG(bool, warn_on_pause_with_no_debugger, false,
+            "Print a message when an isolate is paused but there is no "
+            "debugger attached.");
+
+#ifndef PRODUCT
 // The name of this of this vm as reported by the VM service protocol.
 static char* vm_name = NULL;
 
@@ -142,6 +149,8 @@ bool Service::ListenStream(const char* stream_id) {
     }
   }
   if (stream_listen_callback_) {
+    Thread* T = Thread::Current();
+    TransitionVMToNative transition(T);
     return (*stream_listen_callback_)(stream_id);
   }
   return false;
@@ -162,12 +171,15 @@ void Service::CancelStream(const char* stream_id) {
     }
   }
   if (stream_cancel_callback_) {
+    Thread* T = Thread::Current();
+    TransitionVMToNative transition(T);
     return (*stream_cancel_callback_)(stream_id);
   }
 }
 
 RawObject* Service::RequestAssets() {
   Thread* T = Thread::Current();
+  TransitionVMToNative transition(T);
   Api::Scope api_scope(T);
   if (get_service_assets_callback_ == NULL) {
     return Object::null();
@@ -637,7 +649,6 @@ class EnumListParameter : public MethodParameter {
   // Returns number of elements in the list.  -1 on parse error.
   intptr_t ElementCount(const char* value) const {
     const char* kJsonWhitespaceChars = " \t\r\n";
-
     if (value == NULL) {
       return -1;
     }
@@ -947,10 +958,63 @@ void Service::SendEventWithData(const char* stream_id,
 }
 
 
+static void ReportPauseOnConsole(ServiceEvent* event) {
+  const char* name = event->isolate()->debugger_name();
+  switch (event->kind())  {
+    case ServiceEvent::kPauseStart:
+      OS::PrintErr(
+          "vm-service: isolate '%s' has no debugger attached and is paused at "
+          "start.", name);
+      break;
+    case ServiceEvent::kPauseExit:
+      OS::PrintErr(
+          "vm-service: isolate '%s' has no debugger attached and is paused at "
+          "exit.", name);
+      break;
+    case ServiceEvent::kPauseException:
+      OS::PrintErr(
+          "vm-service: isolate '%s' has no debugger attached and is paused due "
+          "to exception.", name);
+      break;
+    case ServiceEvent::kPauseInterrupted:
+      OS::PrintErr(
+          "vm-service: isolate '%s' has no debugger attached and is paused due "
+          "to interrupt.", name);
+      break;
+    case ServiceEvent::kPauseBreakpoint:
+      OS::PrintErr(
+          "vm-service: isolate '%s' has no debugger attached and is paused.",
+          name);
+      break;
+    default:
+      UNREACHABLE();
+      break;
+  }
+  if (!ServiceIsolate::IsRunning()) {
+    OS::PrintErr("  Start the vm-service to debug.\n");
+  } else if (ServiceIsolate::server_address() == NULL) {
+    OS::PrintErr("  Connect to Observatory to debug.\n");
+  } else {
+    OS::PrintErr("  Connect to Observatory at %s to debug.\n",
+                 ServiceIsolate::server_address());
+  }
+  const Error& err = Error::Handle(Thread::Current()->sticky_error());
+  if (!err.IsNull()) {
+    OS::PrintErr("%s\n", err.ToErrorCString());
+  }
+}
+
+
 void Service::HandleEvent(ServiceEvent* event) {
   if (event->isolate() != NULL &&
       ServiceIsolate::IsServiceIsolateDescendant(event->isolate())) {
     return;
+  }
+  if (FLAG_warn_on_pause_with_no_debugger &&
+      event->IsPause() && !Service::debug_stream.enabled()) {
+    // If we are about to pause a running program which has no
+    // debugger connected, tell the user about it.
+    ReportPauseOnConsole(event);
   }
   if (!ServiceIsolate::IsRunning()) {
     return;
@@ -2336,24 +2400,22 @@ static bool GetCoverage(Thread* thread, JSONStream* js) {
 }
 
 
-static const char* kCallSitesStr = "CallSites";
+static const char* kCallSitesStr = "_CallSites";
 static const char* kCoverageStr = "Coverage";
+static const char* kPossibleBreakpointsStr = "PossibleBreakpoints";
 
 
 static const char* const report_enum_names[] = {
   kCallSitesStr,
   kCoverageStr,
+  kPossibleBreakpointsStr,
   NULL,
 };
 
 
-static const EnumListParameter* reports_parameter =
-    new EnumListParameter("reports", true, report_enum_names);
-
-
 static const MethodParameter* get_source_report_params[] = {
   RUNNABLE_ISOLATE_PARAMETER,
-  reports_parameter,
+  new EnumListParameter("reports", true, report_enum_names),
   new IdParameter("scriptId", false),
   new UIntParameter("tokenPos", false),
   new UIntParameter("endTokenPos", false),
@@ -2363,7 +2425,14 @@ static const MethodParameter* get_source_report_params[] = {
 
 
 static bool GetSourceReport(Thread* thread, JSONStream* js) {
+  if (!thread->isolate()->compilation_allowed()) {
+    js->PrintError(kFeatureDisabled,
+        "Cannot get source report when running a precompiled program.");
+    return true;
+  }
   const char* reports_str = js->LookupParam("reports");
+  const EnumListParameter* reports_parameter =
+      static_cast<const EnumListParameter*>(get_source_report_params[1]);
   const char** reports = reports_parameter->Parse(thread->zone(), reports_str);
   intptr_t report_set = 0;
   while (*reports != NULL) {
@@ -2371,6 +2440,8 @@ static bool GetSourceReport(Thread* thread, JSONStream* js) {
       report_set |= SourceReport::kCallSites;
     } else if (strcmp(*reports, kCoverageStr) == 0) {
       report_set |= SourceReport::kCoverage;
+    } else if (strcmp(*reports, kPossibleBreakpointsStr) == 0) {
+      report_set |= SourceReport::kPossibleBreakpoints;
     }
     reports++;
   }
@@ -2411,7 +2482,10 @@ static bool GetSourceReport(Thread* thread, JSONStream* js) {
     }
   }
   SourceReport report(report_set, compile_mode);
-  report.PrintJSON(js, script, start_pos, end_pos);
+  report.PrintJSON(js,
+                   script,
+                   TokenPosition(start_pos),
+                   TokenPosition(end_pos));
   return true;
 }
 
@@ -2566,7 +2640,7 @@ static bool AddBreakpointAtActivation(Thread* thread, JSONStream* js) {
   }
   const Instance& closure = Instance::Cast(obj);
   Breakpoint* bpt =
-      thread->isolate()->debugger()->SetBreakpointAtActivation(closure);
+      thread->isolate()->debugger()->SetBreakpointAtActivation(closure, false);
   if (bpt == NULL) {
     js->PrintError(kCannotAddBreakpoint,
                    "%s: Cannot add breakpoint at activation",
@@ -2794,27 +2868,58 @@ static bool GetVMMetric(Thread* thread, JSONStream* js) {
   return false;
 }
 
+static const char* const timeline_streams_enum_names[] = {
+  "all",
+#define DEFINE_NAME(name, unused)                                              \
+  #name,
+ISOLATE_TIMELINE_STREAM_LIST(DEFINE_NAME)
+#undef DEFINE_NAME
+  "VM",
+  NULL
+};
 
-static const MethodParameter* set_vm_timeline_flag_params[] = {
+static const MethodParameter* set_vm_timeline_flags_params[] = {
   NO_ISOLATE_PARAMETER,
-  new MethodParameter("_record", true),
+  new EnumListParameter("recordedStreams",
+                        false,
+                        timeline_streams_enum_names),
   NULL,
 };
 
 
-static bool SetVMTimelineFlag(Thread* thread, JSONStream* js) {
+static bool HasStream(const char** recorded_streams, const char* stream) {
+  while (*recorded_streams != NULL) {
+    if ((strstr(*recorded_streams, "all") != NULL) ||
+        (strstr(*recorded_streams, stream) != NULL)) {
+      return true;
+    }
+    recorded_streams++;
+  }
+  return false;
+}
+
+
+static bool SetVMTimelineFlags(Thread* thread, JSONStream* js) {
+  if (!FLAG_support_timeline) {
+    PrintSuccess(js);
+    return true;
+  }
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   StackZone zone(thread);
 
-  bool recording = strcmp(js->LookupParam("_record"), "all") == 0;
-  Timeline::SetStreamAPIEnabled(recording);
-  Timeline::SetStreamCompilerEnabled(recording);
-  Timeline::SetStreamDartEnabled(recording);
-  Timeline::SetStreamDebuggerEnabled(recording);
-  Timeline::SetStreamEmbedderEnabled(recording);
-  Timeline::SetStreamGCEnabled(recording);
-  Timeline::SetStreamIsolateEnabled(recording);
+  const EnumListParameter* recorded_streams_param =
+      static_cast<const EnumListParameter*>(set_vm_timeline_flags_params[1]);
+
+  const char* recorded_streams_str = js->LookupParam("recordedStreams");
+  const char** recorded_streams =
+      recorded_streams_param->Parse(thread->zone(), recorded_streams_str);
+
+#define SET_ENABLE_STREAM(name, unused)                                        \
+  Timeline::SetStream##name##Enabled(HasStream(recorded_streams, #name));
+ISOLATE_TIMELINE_STREAM_LIST(SET_ENABLE_STREAM);
+#undef SET_ENABLE_STREAM
+  Timeline::SetVMStreamEnabled(HasStream(recorded_streams, "VM"));
 
   PrintSuccess(js);
 
@@ -2822,19 +2927,22 @@ static bool SetVMTimelineFlag(Thread* thread, JSONStream* js) {
 }
 
 
-static const MethodParameter* get_vm_timeline_flag_params[] = {
+static const MethodParameter* get_vm_timeline_flags_params[] = {
   NO_ISOLATE_PARAMETER,
-  new MethodParameter("_record", false),
   NULL,
 };
 
 
-static bool GetVMTimelineFlag(Thread* thread, JSONStream* js) {
+static bool GetVMTimelineFlags(Thread* thread, JSONStream* js) {
+  if (!FLAG_support_timeline) {
+    JSONObject obj(js);
+    obj.AddProperty("type", "TimelineFlags");
+    return true;
+  }
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   StackZone zone(thread);
-
-  js->PrintError(kFeatureDisabled, "TODO(johnmccutchan)");
+  Timeline::PrintFlagsToJSON(js);
   return true;
 }
 
@@ -2893,14 +3001,14 @@ static const MethodParameter* resume_params[] = {
 static bool Resume(Thread* thread, JSONStream* js) {
   const char* step_param = js->LookupParam("step");
   Isolate* isolate = thread->isolate();
-  if (isolate->message_handler()->paused_on_start()) {
+  if (isolate->message_handler()->is_paused_on_start()) {
     // If the user is issuing a 'Over' or an 'Out' step, that is the
     // same as a regular resume request.
     if ((step_param != NULL) && (strcmp(step_param, "Into") == 0)) {
       isolate->debugger()->EnterSingleStepMode();
     }
-    isolate->message_handler()->set_pause_on_start(false);
-    isolate->set_last_resume_timestamp();
+    isolate->message_handler()->set_should_pause_on_start(false);
+    isolate->SetResumeRequest();
     if (Service::debug_stream.enabled()) {
       ServiceEvent event(isolate, ServiceEvent::kResume);
       Service::HandleEvent(&event);
@@ -2908,8 +3016,9 @@ static bool Resume(Thread* thread, JSONStream* js) {
     PrintSuccess(js);
     return true;
   }
-  if (isolate->message_handler()->paused_on_exit()) {
-    isolate->message_handler()->set_pause_on_exit(false);
+  if (isolate->message_handler()->is_paused_on_exit()) {
+    isolate->message_handler()->set_should_pause_on_exit(false);
+    isolate->SetResumeRequest();
     // We don't send a resume event because we will be exiting.
     PrintSuccess(js);
     return true;
@@ -2922,12 +3031,18 @@ static bool Resume(Thread* thread, JSONStream* js) {
         isolate->debugger()->SetStepOver();
       } else if (strcmp(step_param, "Out") == 0) {
         isolate->debugger()->SetStepOut();
+      } else if (strcmp(step_param, "OverAsyncSuspension") == 0) {
+        if (!isolate->debugger()->SetupStepOverAsyncSuspension()) {
+          js->PrintError(kInvalidParams,
+                         "Isolate must be paused at an async suspension point");
+          return true;
+        }
       } else {
         PrintInvalidParamError(js, "step");
         return true;
       }
     }
-    isolate->Resume();
+    isolate->SetResumeRequest();
     PrintSuccess(js);
     return true;
   }
@@ -3354,6 +3469,99 @@ static bool GetObjectByAddress(Thread* thread, JSONStream* js) {
 }
 
 
+static const MethodParameter* get_persistent_handles_params[] = {
+  ISOLATE_PARAMETER,
+  NULL,
+};
+
+
+template<typename T>
+class PersistentHandleVisitor : public HandleVisitor {
+ public:
+  PersistentHandleVisitor(Thread* thread, JSONArray* handles)
+      : HandleVisitor(thread),
+        handles_(handles) {
+    ASSERT(handles_ != NULL);
+  }
+
+  void Append(PersistentHandle* persistent_handle) {
+    JSONObject obj(handles_);
+    obj.AddProperty("type", "_PersistentHandle");
+    const Object& object = Object::Handle(persistent_handle->raw());
+    obj.AddProperty("object", object);
+  }
+
+  void Append(FinalizablePersistentHandle* weak_persistent_handle) {
+    JSONObject obj(handles_);
+    obj.AddProperty("type", "_WeakPersistentHandle");
+    const Object& object =
+        Object::Handle(weak_persistent_handle->raw());
+    obj.AddProperty("object", object);
+    obj.AddPropertyF(
+        "peer",
+        "0x%" Px "",
+        reinterpret_cast<uintptr_t>(weak_persistent_handle->peer()));
+    obj.AddPropertyF(
+        "callbackAddress",
+        "0x%" Px "",
+        reinterpret_cast<uintptr_t>(weak_persistent_handle->callback()));
+    // Attempt to include a native symbol name.
+    char* name = NativeSymbolResolver::LookupSymbolName(
+        reinterpret_cast<uintptr_t>(weak_persistent_handle->callback()),
+        NULL);
+    obj.AddProperty("callbackSymbolName",
+                    (name == NULL) ? "" : name);
+    if (name != NULL) {
+      NativeSymbolResolver::FreeSymbolName(name);
+    }
+    obj.AddPropertyF("externalSize",
+                     "%" Pd "",
+                     weak_persistent_handle->external_size());
+  }
+
+ protected:
+  virtual void VisitHandle(uword addr) {
+    T* handle = reinterpret_cast<T*>(addr);
+    Append(handle);
+  }
+
+  JSONArray* handles_;
+};
+
+
+static bool GetPersistentHandles(Thread* thread, JSONStream* js) {
+  Isolate* isolate = thread->isolate();
+  ASSERT(isolate != NULL);
+
+  ApiState* api_state = isolate->api_state();
+  ASSERT(api_state != NULL);
+
+  {
+    JSONObject obj(js);
+    obj.AddProperty("type", "_PersistentHandles");
+    // Persistent handles.
+    {
+      JSONArray persistent_handles(&obj, "persistentHandles");
+      PersistentHandles& handles = api_state->persistent_handles();
+      PersistentHandleVisitor<PersistentHandle> visitor(
+          thread, &persistent_handles);
+      handles.Visit(&visitor);
+    }
+    // Weak persistent handles.
+    {
+      JSONArray weak_persistent_handles(&obj, "weakPersistentHandles");
+      FinalizablePersistentHandles& handles =
+          api_state->weak_persistent_handles();
+      PersistentHandleVisitor<FinalizablePersistentHandle> visitor(
+          thread, &weak_persistent_handles);
+      handles.VisitHandles(&visitor);
+    }
+  }
+
+  return true;
+}
+
+
 static const MethodParameter* get_ports_params[] = {
   RUNNABLE_ISOLATE_PARAMETER,
   NULL,
@@ -3507,7 +3715,7 @@ static bool GetVersion(Thread* thread, JSONStream* js) {
   JSONObject jsobj(js);
   jsobj.AddProperty("type", "Version");
   jsobj.AddProperty("major", static_cast<intptr_t>(3));
-  jsobj.AddProperty("minor", static_cast<intptr_t>(0));
+  jsobj.AddProperty("minor", static_cast<intptr_t>(3));
   jsobj.AddProperty("_privateMajor", static_cast<intptr_t>(0));
   jsobj.AddProperty("_privateMinor", static_cast<intptr_t>(0));
   return true;
@@ -3825,6 +4033,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_object_params },
   { "_getObjectByAddress", GetObjectByAddress,
     get_object_by_address_params },
+  { "_getPersistentHandles", GetPersistentHandles,
+      get_persistent_handles_params, },
   { "_getPorts", GetPorts,
     get_ports_params },
   { "_getReachableSize", GetReachableSize,
@@ -3851,8 +4061,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_vm_metric_list_params },
   { "_getVMTimeline", GetVMTimeline,
     get_vm_timeline_params },
-  { "_getVMTimelineFlag", GetVMTimelineFlag,
-    get_vm_timeline_flag_params },
+  { "_getVMTimelineFlags", GetVMTimelineFlags,
+    get_vm_timeline_flags_params },
   { "pause", Pause,
     pause_params },
   { "removeBreakpoint", RemoveBreakpoint,
@@ -3875,8 +4085,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     set_trace_class_allocation_params },
   { "setVMName", SetVMName,
     set_vm_name_params },
-  { "_setVMTimelineFlag", SetVMTimelineFlag,
-    set_vm_timeline_flag_params },
+  { "_setVMTimelineFlags", SetVMTimelineFlags,
+    set_vm_timeline_flags_params },
 };
 
 
@@ -3892,5 +4102,6 @@ const ServiceMethodDescriptor* FindMethod(const char* method_name) {
   return NULL;
 }
 
+#endif  // !PRODUCT
 
 }  // namespace dart

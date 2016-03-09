@@ -121,7 +121,7 @@ class LoopInvariantBranchMotion extends BlockVisitor implements Pass {
       Node use = ref.parent;
       if (use is InvokeContinuation) {
         for (Parameter loopParam in parameters) {
-          use.arguments.add(new Reference<Primitive>(loopParam)..parent = use);
+          use.argumentRefs.add(new Reference<Primitive>(loopParam)..parent = use);
         }
       }
     }
@@ -134,11 +134,11 @@ class LoopInvariantBranchMotion extends BlockVisitor implements Pass {
     Branch branch = body;
 
     // Is the condition loop invariant?
-    Primitive condition = branch.condition.definition;
+    Primitive condition = branch.condition;
     if (loopHeaderFor[condition] == loop) return false;
 
-    Continuation trueCont = branch.trueContinuation.definition;
-    Continuation falseCont = branch.falseContinuation.definition;
+    Continuation trueCont = branch.trueContinuation;
+    Continuation falseCont = branch.falseContinuation;
     Continuation hoistedCase; // The branch to hoist.
     Continuation loopCase; // The branch that is part of the loop.
 
@@ -212,7 +212,7 @@ class LoopInvariantBranchMotion extends BlockVisitor implements Pass {
     //
     InvokeContinuation loopEntry = loopBinding.body;
     List<Primitive> loopArgs =
-        loopEntry.arguments.map((ref) => ref.definition).toList();
+        loopEntry.arguments.toList();
     CpsFragment cps = new CpsFragment();
     cps.branch(condition,
           strict: branch.isStrictCheck,

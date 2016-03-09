@@ -13,6 +13,8 @@ import '../universe/selector.dart' show Selector;
 
 import '../cps_ir/builtin_operator.dart';
 export '../cps_ir/builtin_operator.dart';
+import '../cps_ir/cps_ir_nodes.dart' show TypeExpressionKind;
+export '../cps_ir/cps_ir_nodes.dart' show TypeExpressionKind;
 
 // These imports are only used for the JavaScript specific nodes.  If we want to
 // support more than one native backend, we should probably create better
@@ -114,7 +116,8 @@ class Variable extends Node {
     assert(host != null);
   }
 
-  String toString() => element == null ? 'Variable' : element.toString();
+  String toString() =>
+      element == null ? 'Variable.${hashCode}' : element.toString();
 }
 
 /// Read the value of a variable.
@@ -309,25 +312,6 @@ class LiteralList extends Expression {
   accept(ExpressionVisitor visitor) => visitor.visitLiteralList(this);
   accept1(ExpressionVisitor1 visitor, arg) {
     return visitor.visitLiteralList(this, arg);
-  }
-}
-
-class LiteralMapEntry {
-  Expression key;
-  Expression value;
-
-  LiteralMapEntry(this.key, this.value);
-}
-
-class LiteralMap extends Expression {
-  final InterfaceType type;
-  final List<LiteralMapEntry> entries;
-
-  LiteralMap(this.type, this.entries);
-
-  accept(ExpressionVisitor visitor) => visitor.visitLiteralMap(this);
-  accept1(ExpressionVisitor1 visitor, arg) {
-    return visitor.visitLiteralMap(this, arg);
   }
 }
 
@@ -688,7 +672,7 @@ class CreateBox extends Expression {
 class CreateInstance extends Expression {
   ClassElement classElement;
   List<Expression> arguments;
-  List<Expression> typeInformation;
+  Expression typeInformation;
   SourceInformation sourceInformation;
 
   CreateInstance(this.classElement, this.arguments,
@@ -760,8 +744,9 @@ class SetStatic extends Expression {
   Element element;
   Expression value;
   SourceInformation sourceInformation;
+  BuiltinOperator compound;
 
-  SetStatic(this.element, this.value, this.sourceInformation);
+  SetStatic(this.element, this.value, this.sourceInformation, {this.compound});
 
   accept(ExpressionVisitor visitor) => visitor.visitSetStatic(this);
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitSetStatic(this, arg);
@@ -920,10 +905,11 @@ class ForeignStatement extends ForeignCode implements Statement {
 /// are replaced by the values in [arguments].
 /// (See documentation on the TypeExpression CPS node for more details.)
 class TypeExpression extends Expression {
+  final TypeExpressionKind kind;
   final DartType dartType;
   final List<Expression> arguments;
 
-  TypeExpression(this.dartType, this.arguments);
+  TypeExpression(this.kind, this.dartType, this.arguments);
 
   accept(ExpressionVisitor visitor) {
     return visitor.visitTypeExpression(this);
@@ -964,23 +950,24 @@ class Yield extends Statement {
   }
 }
 
-class NullCheck extends Statement {
+class ReceiverCheck extends Statement {
   Expression condition;
   Expression value;
   Selector selector;
   bool useSelector;
+  bool useInvoke;
   Statement next;
   SourceInformation sourceInformation;
 
-  NullCheck({this.condition, this.value, this.selector, this.useSelector,
-      this.next, this.sourceInformation});
+  ReceiverCheck({this.condition, this.value, this.selector, this.useSelector,
+      this.useInvoke, this.next, this.sourceInformation});
 
   accept(StatementVisitor visitor) {
-    return visitor.visitNullCheck(this);
+    return visitor.visitReceiverCheck(this);
   }
 
   accept1(StatementVisitor1 visitor, arg) {
-    return visitor.visitNullCheck(this, arg);
+    return visitor.visitReceiverCheck(this, arg);
   }
 }
 
@@ -999,7 +986,6 @@ abstract class ExpressionVisitor<E> {
   E visitLogicalOperator(LogicalOperator node);
   E visitNot(Not node);
   E visitLiteralList(LiteralList node);
-  E visitLiteralMap(LiteralMap node);
   E visitTypeOperator(TypeOperator node);
   E visitGetField(GetField node);
   E visitSetField(SetField node);
@@ -1037,7 +1023,6 @@ abstract class ExpressionVisitor1<E, A> {
   E visitLogicalOperator(LogicalOperator node, A arg);
   E visitNot(Not node, A arg);
   E visitLiteralList(LiteralList node, A arg);
-  E visitLiteralMap(LiteralMap node, A arg);
   E visitTypeOperator(TypeOperator node, A arg);
   E visitGetField(GetField node, A arg);
   E visitSetField(SetField node, A arg);
@@ -1075,7 +1060,7 @@ abstract class StatementVisitor<S> {
   S visitUnreachable(Unreachable node);
   S visitForeignStatement(ForeignStatement node);
   S visitYield(Yield node);
-  S visitNullCheck(NullCheck node);
+  S visitReceiverCheck(ReceiverCheck node);
 }
 
 abstract class StatementVisitor1<S, A> {
@@ -1093,7 +1078,7 @@ abstract class StatementVisitor1<S, A> {
   S visitUnreachable(Unreachable node, A arg);
   S visitForeignStatement(ForeignStatement node, A arg);
   S visitYield(Yield node, A arg);
-  S visitNullCheck(NullCheck node, A arg);
+  S visitReceiverCheck(ReceiverCheck node, A arg);
 }
 
 abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
@@ -1154,13 +1139,6 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
 
   visitLiteralList(LiteralList node) {
     node.values.forEach(visitExpression);
-  }
-
-  visitLiteralMap(LiteralMap node) {
-    node.entries.forEach((LiteralMapEntry entry) {
-      visitExpression(entry.key);
-      visitExpression(entry.value);
-    });
   }
 
   visitTypeOperator(TypeOperator node) {
@@ -1243,7 +1221,7 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
 
   visitCreateInstance(CreateInstance node) {
     node.arguments.forEach(visitExpression);
-    node.typeInformation.forEach(visitExpression);
+    if (node.typeInformation != null) visitExpression(node.typeInformation);
   }
 
   visitReifyRuntimeType(ReifyRuntimeType node) {
@@ -1309,7 +1287,7 @@ abstract class RecursiveVisitor implements StatementVisitor, ExpressionVisitor {
     visitStatement(node.next);
   }
 
-  visitNullCheck(NullCheck node) {
+  visitReceiverCheck(ReceiverCheck node) {
     if (node.condition != null) visitExpression(node.condition);
     visitExpression(node.value);
     visitStatement(node.next);
@@ -1387,14 +1365,6 @@ class RecursiveTransformer extends Transformer {
 
   visitLiteralList(LiteralList node) {
     _replaceExpressions(node.values);
-    return node;
-  }
-
-  visitLiteralMap(LiteralMap node) {
-    node.entries.forEach((LiteralMapEntry entry) {
-      entry.key = visitExpression(entry.key);
-      entry.value = visitExpression(entry.value);
-    });
     return node;
   }
 
@@ -1492,7 +1462,9 @@ class RecursiveTransformer extends Transformer {
 
   visitCreateInstance(CreateInstance node) {
     _replaceExpressions(node.arguments);
-    _replaceExpressions(node.typeInformation);
+    if (node.typeInformation != null) {
+      node.typeInformation = visitExpression(node.typeInformation);
+    }
     return node;
   }
 
@@ -1575,7 +1547,7 @@ class RecursiveTransformer extends Transformer {
     return node;
   }
 
-  visitNullCheck(NullCheck node) {
+  visitReceiverCheck(ReceiverCheck node) {
     if (node.condition != null) {
       node.condition = visitExpression(node.condition);
     }

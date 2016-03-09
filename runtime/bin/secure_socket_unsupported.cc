@@ -104,7 +104,8 @@ void FUNCTION_NAME(SecurityContext_Allocate)(Dart_NativeArguments args) {
       "Secure Sockets unsupported on this platform"));
 }
 
-void FUNCTION_NAME(SecurityContext_UsePrivateKey)(Dart_NativeArguments args) {
+void FUNCTION_NAME(SecurityContext_UsePrivateKeyBytes)(
+    Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewDartArgumentError(
       "Secure Sockets unsupported on this platform"));
 }
@@ -115,13 +116,13 @@ void FUNCTION_NAME(SecurityContext_SetAlpnProtocols)(
       "Secure Sockets unsupported on this platform"));
 }
 
-void FUNCTION_NAME(SecurityContext_SetClientAuthorities)(
+void FUNCTION_NAME(SecurityContext_SetClientAuthoritiesBytes)(
     Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewDartArgumentError(
       "Secure Sockets unsupported on this platform"));
 }
 
-void FUNCTION_NAME(SecurityContext_SetTrustedCertificates)(
+void FUNCTION_NAME(SecurityContext_SetTrustedCertificatesBytes)(
     Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewDartArgumentError(
       "Secure Sockets unsupported on this platform"));
@@ -133,7 +134,7 @@ void FUNCTION_NAME(SecurityContext_TrustBuiltinRoots)(
       "Secure Sockets unsupported on this platform"));
 }
 
-void FUNCTION_NAME(SecurityContext_UseCertificateChain)(
+void FUNCTION_NAME(SecurityContext_UseCertificateChainBytes)(
     Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewDartArgumentError(
       "Secure Sockets unsupported on this platform"));

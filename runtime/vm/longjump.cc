@@ -29,7 +29,10 @@ bool LongJumpScope::IsSafeToJump() {
   uword jumpbuf_addr = Isolate::GetCurrentStackPointer();
 #if defined(USING_SIMULATOR)
   Simulator* sim = Simulator::Current();
-  uword top_exit_frame_info = sim->top_exit_frame_info();
+  // When using simulator, only mutator thread should refer to Simulator
+  // since there can be only one per isolate.
+  uword top_exit_frame_info = thread->IsMutatorThread() ?
+      sim->top_exit_frame_info() : 0;
 #else
   uword top_exit_frame_info = thread->top_exit_frame_info();
 #endif
@@ -49,7 +52,6 @@ void LongJumpScope::Jump(int value, const Error& error) {
   ASSERT(IsSafeToJump());
 
   Thread* thread = Thread::Current();
-  Isolate* isolate = thread->isolate();
 
 #if defined(DEBUG)
 #define CHECK_REUSABLE_HANDLE(name)                                            \
@@ -59,7 +61,7 @@ REUSABLE_HANDLE_LIST(CHECK_REUSABLE_HANDLE)
 #endif  // defined(DEBUG)
 
   // Remember the error in the sticky error of this isolate.
-  isolate->object_store()->set_sticky_error(error);
+  thread->set_sticky_error(error);
 
   // Destruct all the active StackResource objects.
   StackResource::UnwindAbove(thread, top_);

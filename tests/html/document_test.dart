@@ -23,26 +23,6 @@ main() {
     expect(new Element.tag('bad_name'), isUnknownElement);
   });
 
-  group('supports_cssCanvasContext', () {
-    test('supports_cssCanvasContext', () {
-      expect(HtmlDocument.supportsCssCanvasContext, true);
-    });
-  });
-
-  group('getCssCanvasContext', () {
-    test('getCssCanvasContext 2d', () {
-      var expectation = HtmlDocument.supportsCssCanvasContext ?
-        returnsNormally : throws;
-
-      expect(() {
-        var context = document.getCssCanvasContext('2d', 'testContext', 10, 20);
-        expect(context is CanvasRenderingContext2D, true);
-        expect(context.canvas.width, 10);
-        expect(context.canvas.height, 20);
-      }, expectation);
-    });
-  });
-
   group('document', () {
     inscrutable = (x) => x;
 

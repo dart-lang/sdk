@@ -179,7 +179,7 @@ class BlockCollector extends StatementVisitor {
     visitStatement(node.next);
   }
 
-  visitNullCheck(NullCheck node) {
+  visitReceiverCheck(ReceiverCheck node) {
     _addStatement(node);
     visitStatement(node.next);
   }
@@ -345,7 +345,7 @@ class TreeTracer extends TracerUtil with StatementVisitor {
   }
 
   @override
-  visitNullCheck(NullCheck node) {
+  visitReceiverCheck(ReceiverCheck node) {
     printStatement(null, 'NullCheck ${expr(node.value)}');
   }
 }
@@ -412,16 +412,6 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
   String visitLiteralList(LiteralList node) {
     String values = node.values.map(visitExpression).join(', ');
     return "list [$values]";
-  }
-
-  String visitLiteralMap(LiteralMap node) {
-    List<String> entries = new List<String>();
-    node.entries.forEach((LiteralMapEntry entry) {
-      String key = visitExpression(entry.key);
-      String value = visitExpression(entry.value);
-      entries.add("$key: $value");
-    });
-    return "map [${entries.join(', ')}]";
   }
 
   String visitConstant(Constant node) {
@@ -533,7 +523,9 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
 
   @override
   String visitTypeExpression(TypeExpression node) {
-    return node.dartType.toString();
+    String kind = '${node.kind}'.split('.').last;
+    String args = node.arguments.map(visitExpression).join(', ');
+    return 'TypeExpression($kind, ${node.dartType}, $args)';
   }
 
   @override

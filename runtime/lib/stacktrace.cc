@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "lib/stacktrace.h"
 #include "vm/bootstrap_natives.h"
 #include "vm/exceptions.h"
 #include "vm/object_store.h"
@@ -36,7 +37,7 @@ static void IterateFrames(const GrowableObjectArray& code_list,
 // Creates a Stacktrace object from the current stack.
 //
 // Skips the first skip_frames Dart frames.
-static const Stacktrace& GetCurrentStacktrace(int skip_frames) {
+const Stacktrace& GetCurrentStacktrace(int skip_frames) {
   const GrowableObjectArray& code_list =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
   const GrowableObjectArray& pc_offset_list =

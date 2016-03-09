@@ -122,6 +122,8 @@ class VMPage extends SimplePage {
       }
     }).catchError((e, stack) {
       Logger.root.severe('VMPage visit error: $e');
+      // Reroute to vm-connect.
+      app.locationManager.go(app.locationManager.makeLink('/vm-connect'));
     });
   }
 }
@@ -258,6 +260,21 @@ class PortsPage extends SimplePage {
     getIsolate(uri).then((isolate) {
       if (element != null) {
         PortsPageElement page = element;
+        page.isolate = isolate;
+      }
+    });
+  }
+}
+
+class PersistentHandlesPage extends SimplePage {
+  PersistentHandlesPage(app)
+      : super('persistent-handles', 'persistent-handles-page', app);
+
+  void _visit(Uri uri) {
+    super._visit(uri);
+    getIsolate(uri).then((isolate) {
+      if (element != null) {
+        PersistentHandlesPageElement page = element;
         page.isolate = isolate;
       }
     });

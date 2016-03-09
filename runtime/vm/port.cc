@@ -305,12 +305,15 @@ void PortMap::InitOnce() {
 
 void PortMap::PrintPortsForMessageHandler(MessageHandler* handler,
                                           JSONStream* stream) {
+  if (!FLAG_support_service) {
+    return;
+  }
   JSONObject jsobj(stream);
   jsobj.AddProperty("type", "_Ports");
   Object& msg_handler = Object::Handle();
   {
     JSONArray ports(&jsobj, "ports");
-    MutexLocker ml(mutex_);
+    SafepointMutexLocker ml(mutex_);
     for (intptr_t i = 0; i < capacity_; i++) {
       if (map_[i].handler == handler) {
         if (map_[i].state == kLivePort) {

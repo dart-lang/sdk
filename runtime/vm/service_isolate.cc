@@ -30,6 +30,8 @@ DECLARE_FLAG(bool, shutdown);
 DEFINE_FLAG(bool, trace_service, false, "Trace VM service requests.");
 DEFINE_FLAG(bool, trace_service_pause_events, false,
             "Trace VM service isolate pause events.");
+DEFINE_FLAG(bool, trace_service_verbose, false,
+            "Provide extra service tracing information.");
 
 static uint8_t* allocator(uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
   void* new_ptr = realloc(reinterpret_cast<void*>(ptr), new_size);
@@ -78,6 +80,18 @@ intptr_t ServiceIsolate::exit_message_length_ = 0;
 Monitor* ServiceIsolate::monitor_ = NULL;
 bool ServiceIsolate::initializing_ = true;
 bool ServiceIsolate::shutting_down_ = false;
+char* ServiceIsolate::server_address_ = NULL;
+
+void ServiceIsolate::SetServerAddress(const char* address) {
+  if (server_address_ != NULL) {
+    free(server_address_);
+    server_address_ = NULL;
+  }
+  if (address == NULL) {
+    return;
+  }
+  server_address_ = strdup(address);
+}
 
 
 bool ServiceIsolate::NameEquals(const char* name) {
@@ -290,8 +304,10 @@ class RunServiceTask : public ThreadPool::Task {
  public:
   virtual void Run() {
     ASSERT(Isolate::Current() == NULL);
+#ifndef PRODUCT
     TimelineDurationScope tds(Timeline::GetVMStream(),
                               "ServiceIsolateStartup");
+#endif  // !PRODUCT
     char* error = NULL;
     Isolate* isolate = NULL;
 
@@ -304,9 +320,8 @@ class RunServiceTask : public ThreadPool::Task {
       return;
     }
 
-    Isolate::Flags default_flags;
     Dart_IsolateFlags api_flags;
-    default_flags.CopyTo(&api_flags);
+    Isolate::FlagsInitialize(&api_flags);
 
     isolate =
         reinterpret_cast<Isolate*>(create_callback(ServiceIsolate::kName,
@@ -355,7 +370,7 @@ class RunServiceTask : public ThreadPool::Task {
       StackZone zone(T);
       HandleScope handle_scope(T);
       Error& error = Error::Handle(Z);
-      error = I->object_store()->sticky_error();
+      error = T->sticky_error();
       if (!error.IsNull() && !error.IsUnwindError()) {
         OS::PrintErr("vm-service: Error: %s\n", error.ToErrorCString());
       }
@@ -466,6 +481,10 @@ void ServiceIsolate::Shutdown() {
     while (shutting_down_ && (port_ != ILLEGAL_PORT)) {
       ml.Wait();
     }
+  }
+  if (server_address_ != NULL) {
+    free(server_address_);
+    server_address_ = NULL;
   }
 }
 

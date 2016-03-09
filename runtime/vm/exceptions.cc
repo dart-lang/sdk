@@ -64,7 +64,8 @@ class PreallocatedStacktraceBuilder : public StacktraceBuilder {
  public:
   explicit PreallocatedStacktraceBuilder(const Instance& stacktrace)
   : stacktrace_(Stacktrace::Cast(stacktrace)),
-        cur_index_(0) {
+        cur_index_(0),
+        dropped_frames_(0) {
     ASSERT(stacktrace_.raw() ==
            Isolate::Current()->object_store()->preallocated_stack_trace());
   }
@@ -77,6 +78,7 @@ class PreallocatedStacktraceBuilder : public StacktraceBuilder {
 
   const Stacktrace& stacktrace_;
   intptr_t cur_index_;
+  intptr_t dropped_frames_;
 
   DISALLOW_COPY_AND_ASSIGN(PreallocatedStacktraceBuilder);
 };
@@ -90,11 +92,18 @@ void PreallocatedStacktraceBuilder::AddFrame(const Code& code,
     Smi& frame_offset = Smi::Handle();
     intptr_t start = Stacktrace::kPreallocatedStackdepth - (kNumTopframes - 1);
     intptr_t null_slot = start - 2;
+    // We are going to drop one frame.
+    dropped_frames_++;
     // Add an empty slot to indicate the overflow so that the toString
     // method can account for the overflow.
     if (stacktrace_.FunctionAtFrame(null_slot) != Function::null()) {
       stacktrace_.SetCodeAtFrame(null_slot, frame_code);
+      // We drop an extra frame here too.
+      dropped_frames_++;
     }
+    // Encode the number of dropped frames into the pc offset.
+    frame_offset ^= Smi::New(dropped_frames_);
+    stacktrace_.SetPcOffsetAtFrame(null_slot, frame_offset);
     // Move frames one slot down so that we can accomodate the new frame.
     for (intptr_t i = start; i < Stacktrace::kPreallocatedStackdepth; i++) {
       intptr_t prev = (i - 1);
@@ -424,7 +433,7 @@ RawInstance* Exceptions::NewInstance(const char* class_name) {
 
 // Allocate, initialize, and throw a TypeError or CastError.
 // If error_msg is not null, throw a TypeError, even for a type cast.
-void Exceptions::CreateAndThrowTypeError(intptr_t location,
+void Exceptions::CreateAndThrowTypeError(TokenPosition location,
                                          const String& src_type_name,
                                          const String& dst_type_name,
                                          const String& dst_name,
@@ -472,6 +481,7 @@ void Exceptions::CreateAndThrowTypeError(intptr_t location,
       OS::Print("type error.\n");
     }
   }
+
   // Throw TypeError or CastError instance.
   Exceptions::ThrowByType(exception_type, args);
   UNREACHABLE();
@@ -482,10 +492,12 @@ void Exceptions::Throw(Thread* thread, const Instance& exception) {
   // Do not notify debugger on stack overflow and out of memory exceptions.
   // The VM would crash when the debugger calls back into the VM to
   // get values of variables.
-  Isolate* isolate = thread->isolate();
-  if (exception.raw() != isolate->object_store()->out_of_memory() &&
-      exception.raw() != isolate->object_store()->stack_overflow()) {
-    isolate->debugger()->SignalExceptionThrown(exception);
+  if (FLAG_support_debugger) {
+    Isolate* isolate = thread->isolate();
+    if (exception.raw() != isolate->object_store()->out_of_memory() &&
+        exception.raw() != isolate->object_store()->stack_overflow()) {
+      isolate->debugger()->SignalExceptionThrown(exception);
+    }
   }
   // Null object is a valid exception object.
   ThrowExceptionHelper(thread, exception,
@@ -624,14 +636,6 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
       library = Library::IsolateLibrary();
       class_name = &Symbols::IsolateSpawnException();
       break;
-    case kJavascriptIntegerOverflowError:
-      library = Library::CoreLibrary();
-      class_name = &Symbols::JavascriptIntegerOverflowError();
-      break;
-    case kJavascriptCompatibilityError:
-      library = Library::CoreLibrary();
-      class_name = &Symbols::JavascriptCompatibilityError();
-      break;
     case kAssertion:
       library = Library::CoreLibrary();
       class_name = &Symbols::AssertionError();
@@ -668,13 +672,5 @@ RawObject* Exceptions::Create(ExceptionType type, const Array& arguments) {
                                           arguments);
 }
 
-
-// Throw JavascriptCompatibilityError exception.
-void Exceptions::ThrowJavascriptCompatibilityError(const char* msg) {
-  const Array& exc_args = Array::Handle(Array::New(1));
-  const String& msg_str = String::Handle(String::New(msg));
-  exc_args.SetAt(0, msg_str);
-  Exceptions::ThrowByType(Exceptions::kJavascriptCompatibilityError, exc_args);
-}
 
 }  // namespace dart

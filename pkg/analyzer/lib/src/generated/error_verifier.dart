@@ -7,13 +7,16 @@ library analyzer.src.generated.error_verifier;
 import 'dart:collection';
 import "dart:math" as math;
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
 import 'package:analyzer/src/generated/error.dart';
@@ -21,9 +24,7 @@ import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart'
     show Parser, ParserErrorCode;
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart' as sc;
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk, SdkLibrary;
-import 'package:analyzer/src/generated/static_type_analyzer.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
@@ -328,11 +329,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitAssignmentExpression(AssignmentExpression node) {
-    sc.TokenType operatorType = node.operator.type;
+    TokenType operatorType = node.operator.type;
     Expression lhs = node.leftHandSide;
     Expression rhs = node.rightHandSide;
-    if (operatorType == sc.TokenType.EQ ||
-        operatorType == sc.TokenType.QUESTION_QUESTION_EQ) {
+    if (operatorType == TokenType.EQ ||
+        operatorType == TokenType.QUESTION_QUESTION_EQ) {
       _checkForInvalidAssignment(lhs, rhs);
     } else {
       _checkForInvalidCompoundAssignment(node, lhs, rhs);
@@ -353,10 +354,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitBinaryExpression(BinaryExpression node) {
-    sc.Token operator = node.operator;
-    sc.TokenType type = operator.type;
-    if (type == sc.TokenType.AMPERSAND_AMPERSAND ||
-        type == sc.TokenType.BAR_BAR) {
+    Token operator = node.operator;
+    TokenType type = operator.type;
+    if (type == TokenType.AMPERSAND_AMPERSAND ||
+        type == TokenType.BAR_BAR) {
       String lexeme = operator.lexeme;
       _checkForAssignability(node.leftOperand, _boolType,
           StaticTypeWarningCode.NON_BOOL_OPERAND, [lexeme]);
@@ -681,6 +682,14 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitForStatement(ForStatement node) {
+    if (node.condition != null) {
+      _checkForNonBoolCondition(node.condition);
+    }
+    return super.visitForStatement(node);
+  }
+
+  @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
     ExecutableElement outerFunction = _enclosingFunction;
     try {
@@ -947,9 +956,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitPrefixExpression(PrefixExpression node) {
-    sc.TokenType operatorType = node.operator.type;
+    TokenType operatorType = node.operator.type;
     Expression operand = node.operand;
-    if (operatorType == sc.TokenType.BANG) {
+    if (operatorType == TokenType.BANG) {
       _checkForNonBoolNegationExpression(operand);
     } else if (operatorType.isIncrementOperator) {
       _checkForAssignmentToFinal(operand);
@@ -1285,27 +1294,27 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         }
       }
     });
+
     if (notInitFinalFields.isNotEmpty) {
       foundError = true;
       AnalysisErrorWithProperties analysisError;
-      if (notInitFinalFields.length == 1) {
+      List<String> names = notInitFinalFields.map((item) => item.name).toList();
+      names.sort();
+      if (names.length == 1) {
         analysisError = _errorReporter.newErrorWithProperties(
             StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1,
             constructor.returnType,
-            [notInitFinalFields[0].name]);
-      } else if (notInitFinalFields.length == 2) {
+            names);
+      } else if (names.length == 2) {
         analysisError = _errorReporter.newErrorWithProperties(
             StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_2,
             constructor.returnType,
-            [notInitFinalFields[0].name, notInitFinalFields[1].name]);
+            names);
       } else {
         analysisError = _errorReporter.newErrorWithProperties(
             StaticWarningCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_3_PLUS,
-            constructor.returnType, [
-          notInitFinalFields[0].name,
-          notInitFinalFields[1].name,
-          notInitFinalFields.length - 2
-        ]);
+            constructor.returnType,
+            [names[0], names[1], names.length - 2]);
       }
       analysisError.setProperty(
           ErrorProperty.NOT_INITIALIZED_FIELDS, notInitFinalFields);
@@ -1927,7 +1936,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     } else if (_inGenerator) {
       // RETURN_IN_GENERATOR
       _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.RETURN_IN_GENERATOR, statement);
+          CompileTimeErrorCode.RETURN_IN_GENERATOR,
+          statement,
+          [_inAsync ? "async*" : "sync*"]);
     }
     // RETURN_OF_INVALID_TYPE
     return _checkForReturnOfInvalidType(returnExpression, expectedReturnType);
@@ -2169,8 +2180,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   bool _checkForBuiltInIdentifierAsName(
       SimpleIdentifier identifier, ErrorCode errorCode) {
-    sc.Token token = identifier.token;
-    if (token.type == sc.TokenType.KEYWORD) {
+    Token token = identifier.token;
+    if (token.type == TokenType.KEYWORD) {
       _errorReporter
           .reportErrorForNode(errorCode, identifier, [identifier.name]);
       return true;
@@ -2831,8 +2842,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (type.element.isAbstract) {
       ConstructorElement element = expression.staticElement;
       if (element != null && !element.isFactory) {
-        if ((expression.keyword as sc.KeywordToken).keyword ==
-            sc.Keyword.CONST) {
+        if ((expression.keyword as KeywordToken).keyword ==
+            Keyword.CONST) {
           _errorReporter.reportErrorForNode(
               StaticWarningCode.CONST_WITH_ABSTRACT_CLASS, typeName);
         } else {
@@ -3981,7 +3992,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   bool _checkForInvalidModifierOnBody(
       FunctionBody body, CompileTimeErrorCode errorCode) {
-    sc.Token keyword = body.keyword;
+    Token keyword = body.keyword;
     if (keyword != null) {
       _errorReporter.reportErrorForToken(errorCode, keyword, [keyword.lexeme]);
       return true;
@@ -4280,7 +4291,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       int offset = statement.offset;
       int end = statement.rightParenthesis.end;
       _errorReporter.reportErrorForOffset(
-          CompileTimeErrorCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
+          StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
           offset,
           end - offset,
           [constantNames[i]]);
@@ -4642,6 +4653,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       stringMembersArrayListSet.add(newStrMember);
     }
     List<String> stringMembersArray = new List.from(stringMembersArrayListSet);
+    stringMembersArray.sort();
     AnalysisErrorWithProperties analysisError;
     if (stringMembersArray.length == 1) {
       analysisError = _errorReporter.newErrorWithProperties(
@@ -5771,9 +5783,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     DartType staticReturnType = getStaticType(returnExpression);
     if (staticReturnType != null && _enclosingFunction.isAsynchronous) {
-      return _typeProvider.futureType.substitute4(<DartType>[
-        StaticTypeAnalyzer.flattenFutures(_typeProvider, staticReturnType)
-      ]);
+      return _typeProvider.futureType.substitute4(
+          <DartType>[staticReturnType.flattenFutures(_typeSystem)]);
     }
     return staticReturnType;
   }
@@ -5852,7 +5863,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     int count = directives.length;
     if (count > 1) {
       for (int i = 0; i < count; i++) {
-        sc.Token deferredToken = directives[i].deferredKeyword;
+        Token deferredToken = directives[i].deferredKeyword;
         if (deferredToken != null) {
           _errorReporter.reportErrorForToken(
               CompileTimeErrorCode.SHARED_DEFERRED_PREFIX, deferredToken);

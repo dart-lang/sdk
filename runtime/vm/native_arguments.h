@@ -14,7 +14,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, deoptimize_alot);
 DECLARE_FLAG(bool, trace_natives);
 DECLARE_FLAG(bool, verify_on_transition);
 
@@ -62,11 +61,15 @@ class Thread;
 
 #endif
 
+#ifndef PRODUCT
 #define TRACE_NATIVE_CALL(format, name)                                        \
   if (FLAG_trace_natives) {                                                    \
     OS::Print("Calling native: " format "\n", name);                           \
   }
-
+#else
+#define TRACE_NATIVE_CALL(format, name)                                        \
+  do { } while (0)
+#endif
 
 // Class NativeArguments is used to access arguments passed in from
 // generated dart code to a runtime function or a dart library native
@@ -96,6 +99,10 @@ class NativeArguments {
     return *arg_ptr;
   }
 
+  bool IsNativeAutoSetupScope() const {
+    return AutoSetupScopeBits::decode(argc_tag_);
+  }
+
   int NativeArgCount() const {
     int function_bits = FunctionBits::decode(argc_tag_);
     return ArgCount() - NumHiddenArgs(function_bits);
@@ -107,7 +114,7 @@ class NativeArguments {
       // Retrieve the receiver from the context.
       const Object& closure = Object::Handle(ArgAt(0));
       const Context& context =
-          Context::Handle(Closure::context(Instance::Cast(closure)));
+          Context::Handle(Closure::Cast(closure).context());
       return context.At(0);
     }
     return ArgAt(NumHiddenArgs(function_bits));
@@ -125,6 +132,10 @@ class NativeArguments {
 
   void SetReturn(const Object& value) const {
     *retval_ = value.raw();
+  }
+
+  RawObject* ReturnValue() const {
+    return *retval_;
   }
 
   static intptr_t thread_offset() {
@@ -185,9 +196,11 @@ class NativeArguments {
     kFunctionSize = 2,
     kAutoSetupScopeBit = 26,
   };
-  class ArgcBits : public BitField<int, kArgcBit, kArgcSize> {};
-  class FunctionBits : public BitField<int, kFunctionBit, kFunctionSize> {};
-  class AutoSetupScopeBits : public BitField<int, kAutoSetupScopeBit, 1> {};
+  class ArgcBits : public BitField<intptr_t, int32_t, kArgcBit, kArgcSize> {};
+  class FunctionBits :
+      public BitField<intptr_t, int, kFunctionBit, kFunctionSize> {};
+  class AutoSetupScopeBits :
+      public BitField<intptr_t, int, kAutoSetupScopeBit, 1> {};
   friend class Api;
   friend class BootstrapNatives;
   friend class Simulator;
@@ -222,7 +235,7 @@ class NativeArguments {
   }
 
   Thread* thread_;  // Current thread pointer.
-  int argc_tag_;  // Encodes argument count and invoked native call type.
+  intptr_t argc_tag_;  // Encodes argument count and invoked native call type.
   RawObject*(*argv_)[];  // Pointer to an array of arguments to runtime call.
   RawObject** retval_;  // Pointer to the return value area.
 };

@@ -6,135 +6,112 @@
 // package:dev_compiler's tests
 library analyzer.test.src.task.strong.strong_test_helper;
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
-import 'package:analyzer/src/context/context.dart' show SdkAnalysisContext;
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
-import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/generated/type_system.dart';
-import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:logging/logging.dart';
 import 'package:source_span/source_span.dart';
 import 'package:unittest/unittest.dart';
 
-const String GREEN_COLOR = '\u001b[32m';
+import '../../context/mock_sdk.dart';
 
-const String NO_COLOR = '\u001b[0m';
+MemoryResourceProvider files;
+bool _checkCalled;
 
-const String _CYAN_COLOR = '\u001b[36m';
-
-const String _MAGENTA_COLOR = '\u001b[35m';
-
-const String _RED_COLOR = '\u001b[31m';
-
-/// Sample mock SDK sources.
-final Map<String, String> mockSdkSources = {
-  // The list of types below is derived from:
-  //   * types we use via our smoke queries, including HtmlElement and
-  //     types from `_typeHandlers` (deserialize.dart)
-  //   * types that are used internally by the resolver (see
-  //   _initializeFrom in resolver.dart).
-  'dart:core': '''
-        library dart.core;
-
-        void print(Object o) {}
-
-        class Object {
-          int get hashCode {}
-          Type get runtimeType {}
-          String toString(){}
-          bool ==(other){}
-        }
-        class Function {}
-        class StackTrace {}
-        class Symbol {}
-        class Type {}
-
-        class String {
-          String operator +(String other) {}
-          String substring(int len) {}
-        }
-        class bool {}
-        class num {
-          num operator +(num other) {}
-        }
-        class int extends num {
-          bool operator<(num other) {}
-          int operator-() {}
-        }
-        class double extends num {}
-        class DateTime {}
-        class Null {}
-
-        class Deprecated {
-          final String expires;
-          const Deprecated(this.expires);
-        }
-        const Object deprecated = const Deprecated("next release");
-        class _Override { const _Override(); }
-        const Object override = const _Override();
-        class _Proxy { const _Proxy(); }
-        const Object proxy = const _Proxy();
-
-        class Iterable<E> {
-          Iterable/*<R>*/ map/*<R>*/(/*=R*/ f(E e));
-
-          /*=R*/ fold/*<R>*/(/*=R*/ initialValue,
-              /*=R*/ combine(/*=R*/ previousValue, E element));
-        }
-        class List<E> implements Iterable<E> {
-          List([int length]);
-          List.filled(int length, E fill);
-        }
-        class Map<K, V> {
-          Iterable<K> get keys {}
-        }
-        ''',
-  'dart:async': '''
-        class Future<T> {
-          Future(computation()) {}
-          Future.value(T t) {}
-          static Future<List/*<T>*/> wait/*<T>*/(
-              Iterable<Future/*<T>*/> futures) => null;
-          Future/*<R>*/ then/*<R>*/(/*=R*/ onValue(T value)) => null;
-        }
-        class Stream<T> {}
-  ''',
-  'dart:html': '''
-        library dart.html;
-        class HtmlElement {}
-        ''',
-  'dart:math': '''
-        library dart.math;
-        class Random {
-          bool nextBool() {}
-        }
-        num/*=T*/ min/*<T extends num>*/(num/*=T*/ a, num/*=T*/ b) => null;
-        num/*=T*/ max/*<T extends num>*/(num/*=T*/ a, num/*=T*/ b) => null;
-        ''',
-};
-
-/// Returns an ANSII color escape sequence corresponding to [levelName]. Colors
-/// are defined for: severe, error, warning, or info. Returns null if the level
-/// name is not recognized.
-String colorOf(String levelName) {
-  levelName = levelName.toLowerCase();
-  if (levelName == 'shout' || levelName == 'severe' || levelName == 'error') {
-    return _RED_COLOR;
-  }
-  if (levelName == 'warning') return _MAGENTA_COLOR;
-  if (levelName == 'info') return _CYAN_COLOR;
-  return null;
+/// Adds a file to check. The file should contain:
+///
+///   * all expected failures are listed in the source code using comments
+///     immediately in front of the AST node that should contain the error.
+///
+///   * errors are formatted as a token `level:Type`, where `level` is the
+///     logging level were the error would be reported at, and `Type` is the
+///     concrete subclass of [StaticInfo] that denotes the error.
+///
+/// For example to check that an assignment produces a type error, you can
+/// create a file like:
+///
+///     addFile('''
+///       String x = /*severe:STATIC_TYPE_ERROR*/3;
+///     ''');
+///     check();
+///
+/// For a single file, you may also use [checkFile].
+void addFile(String content, {String name: '/main.dart'}) {
+  name = name.replaceFirst('^package:', '/packages/');
+  files.newFile(name, content);
 }
 
-SourceSpanWithContext createSpanHelper(
-    LineInfo lineInfo, int start, int end, Source source, String content) {
-  var startLoc = locationForOffset(lineInfo, source.uri, start);
-  var endLoc = locationForOffset(lineInfo, source.uri, end);
+/// Run the checker on a program, staring from '/main.dart', and verifies that
+/// errors/warnings/hints match the expected value.
+///
+/// See [addFile] for more information about how to encode expectations in
+/// the file text.
+///
+/// Returns the main resolved library. This can be used for further checks.
+CompilationUnit check() {
+  _checkCalled = true;
+
+  expect(files.getFile('/main.dart').exists, true,
+      reason: '`/main.dart` is missing');
+
+  var uriResolver = new _TestUriResolver(files);
+  // Enable task model strong mode
+  var context = AnalysisEngine.instance.createAnalysisContext();
+  context.analysisOptions.strongMode = true;
+  (context.analysisOptions as AnalysisOptionsImpl).strongModeHints = true;
+  context.sourceFactory =
+      new SourceFactory([new DartUriResolver(new MockSdk()), uriResolver]);
+
+  // Run the checker on /main.dart.
+  Source mainSource = uriResolver.resolveAbsolute(new Uri.file('/main.dart'));
+  var initialLibrary = context.resolveCompilationUnit2(mainSource, mainSource);
+
+  var collector = new _ErrorCollector();
+
+  // Extract expectations from the comments in the test files, and
+  // check that all errors we emit are included in the expected map.
+  var allLibraries = _reachableLibraries(initialLibrary.element.library);
+  for (var lib in allLibraries) {
+    for (var unit in lib.units) {
+      var errors = <AnalysisError>[];
+      collector.errors = errors;
+
+      var source = unit.source;
+      if (source.uri.scheme == 'dart') continue;
+
+      var librarySource = context.getLibrariesContaining(source).single;
+      var resolved = context.resolveCompilationUnit2(source, librarySource);
+      errors.addAll(context.getErrors(source).errors.where((e) =>
+          e.errorCode != HintCode.UNUSED_LOCAL_VARIABLE &&
+          // TODO(jmesserly): these are usually intentional dynamic calls.
+          e.errorCode.name != 'UNDEFINED_METHOD'));
+
+      _expectErrors(resolved, errors);
+    }
+  }
+
+  return initialLibrary;
+}
+
+/// Adds a file using [addFile] and calls [check].
+///
+/// Also returns the resolved compilation unit.
+CompilationUnit checkFile(String content) {
+  addFile(content);
+  return check();
+}
+
+SourceSpanWithContext _createSpanHelper(
+    LineInfo lineInfo, int start, Source source, String content,
+    {int end}) {
+  var startLoc = _locationForOffset(lineInfo, source.uri, start);
+  var endLoc = _locationForOffset(lineInfo, source.uri, end ?? start);
 
   var lineStart = startLoc.offset - startLoc.column;
   // Find the end of the line. This is not exposed directly on LineInfo, but
@@ -146,32 +123,48 @@ SourceSpanWithContext createSpanHelper(
   while (lineEnd < content.length &&
       lineInfo.getLocation(++lineEnd).lineNumber == lineNum);
 
+  if (end == null) {
+    end = lineEnd;
+    endLoc = _locationForOffset(lineInfo, source.uri, lineEnd);
+  }
+
   var text = content.substring(start, end);
   var lineText = content.substring(lineStart, lineEnd);
   return new SourceSpanWithContext(startLoc, endLoc, text, lineText);
 }
 
-String errorCodeName(ErrorCode errorCode) {
+String _errorCodeName(ErrorCode errorCode) {
   var name = errorCode.name;
   final prefix = 'STRONG_MODE_';
   if (name.startsWith(prefix)) {
     return name.substring(prefix.length);
   } else {
-    // TODO(jmesserly): this is for backwards compat, but not sure it's very
-    // useful to log this.
-    return 'AnalyzerMessage';
+    return name;
   }
 }
 
-// TODO(jmesserly): can we reuse the same mock SDK as Analyzer tests?
-SourceLocation locationForOffset(LineInfo lineInfo, Uri uri, int offset) {
+void initStrongModeTests() {
+  setUp(() {
+    AnalysisEngine.instance.processRequiredPlugins();
+    files = new MemoryResourceProvider();
+    _checkCalled = false;
+  });
+
+  tearDown(() {
+    // This is a sanity check, in case only addFile is called.
+    expect(_checkCalled, true, reason: 'must call check() method in test case');
+    files = null;
+  });
+}
+
+SourceLocation _locationForOffset(LineInfo lineInfo, Uri uri, int offset) {
   var loc = lineInfo.getLocation(offset);
   return new SourceLocation(offset,
       sourceUrl: uri, line: loc.lineNumber - 1, column: loc.columnNumber - 1);
 }
 
 /// Returns all libraries transitively imported or exported from [start].
-List<LibraryElement> reachableLibraries(LibraryElement start) {
+List<LibraryElement> _reachableLibraries(LibraryElement start) {
   var results = <LibraryElement>[];
   var seen = new Set();
   void find(LibraryElement lib) {
@@ -185,164 +178,143 @@ List<LibraryElement> reachableLibraries(LibraryElement start) {
   return results;
 }
 
-/// Run the checker on a program with files contents as indicated in
-/// [testFiles].
-///
-/// This function makes several assumptions to make it easier to describe error
-/// expectations:
-///
-///   * a file named `/main.dart` exists in [testFiles].
-///   * all expected failures are listed in the source code using comments
-///   immediately in front of the AST node that should contain the error.
-///   * errors are formatted as a token `level:Type`, where `level` is the
-///   logging level were the error would be reported at, and `Type` is the
-///   concrete subclass of [StaticInfo] that denotes the error.
-///
-/// For example, to check that an assignment produces a warning about a boxing
-/// conversion, you can describe the test as follows:
-///
-///     testChecker({
-///       '/main.dart': '''
-///           testMethod() {
-///             dynamic x = /*warning:Box*/3;
-///           }
-///       '''
-///     });
-///
-void testChecker(String name, Map<String, String> testFiles) {
-  test(name, () {
-    AnalysisEngine.instance.processRequiredPlugins();
-    expect(testFiles.containsKey('/main.dart'), isTrue,
-        reason: '`/main.dart` is missing in testFiles');
+Level _actualErrorLevel(AnalysisError actual) {
+  return const <ErrorSeverity, Level>{
+    ErrorSeverity.ERROR: Level.SEVERE,
+    ErrorSeverity.WARNING: Level.WARNING,
+    ErrorSeverity.INFO: Level.INFO
+  }[actual.errorCode.errorSeverity];
+}
 
-    var provider = new MemoryResourceProvider();
-    testFiles.forEach((key, value) {
-      var scheme = 'package:';
-      if (key.startsWith(scheme)) {
-        key = '/packages/${key.substring(scheme.length)}';
-      }
-      provider.newFile(key, value);
-    });
-    var uriResolver = new TestUriResolver(provider);
-    // Enable task model strong mode
-    var context = AnalysisEngine.instance.createAnalysisContext();
-    context.analysisOptions.strongMode = true;
-    context.analysisOptions.strongModeHints = true;
+void _expectErrors(CompilationUnit unit, List<AnalysisError> actualErrors) {
+  var expectedErrors = _findExpectedErrors(unit.beginToken);
 
-    context.sourceFactory = new SourceFactory([
-      new MockDartSdk(mockSdkSources, reportMissing: true).resolver,
-      uriResolver
-    ]);
+  // Sort both lists: by offset, then level, then name.
+  actualErrors.sort((x, y) {
+    int delta = x.offset.compareTo(y.offset);
+    if (delta != 0) return delta;
 
-    // Run the checker on /main.dart.
-    Source mainSource = uriResolver.resolveAbsolute(new Uri.file('/main.dart'));
-    var initialLibrary =
-        context.resolveCompilationUnit2(mainSource, mainSource);
+    delta = x.errorCode.errorSeverity.compareTo(y.errorCode.errorSeverity);
+    if (delta != 0) return delta;
 
-    var collector = new _ErrorCollector();
-    var checker = new CodeChecker(
-        context.typeProvider, new StrongTypeSystemImpl(), collector,
-        hints: true);
-
-    // Extract expectations from the comments in the test files, and
-    // check that all errors we emit are included in the expected map.
-    var allLibraries = reachableLibraries(initialLibrary.element.library);
-    for (var lib in allLibraries) {
-      for (var unit in lib.units) {
-        var errors = <AnalysisError>[];
-        collector.errors = errors;
-
-        var source = unit.source;
-        if (source.uri.scheme == 'dart') continue;
-
-        var librarySource = context.getLibrariesContaining(source).single;
-        var resolved = context.resolveCompilationUnit2(source, librarySource);
-        var analyzerErrors = context
-            .getErrors(source)
-            .errors
-            .where((error) =>
-                error.errorCode.name.startsWith('STRONG_MODE_INFERRED_TYPE'))
-            .toList();
-        errors.addAll(analyzerErrors);
-        checker.visitCompilationUnit(resolved);
-
-        new _ExpectedErrorVisitor(errors).validate(resolved);
-      }
-    }
+    return _errorCodeName(x.errorCode).compareTo(_errorCodeName(y.errorCode));
   });
+  expectedErrors.sort((x, y) {
+    int delta = x.offset.compareTo(y.offset);
+    if (delta != 0) return delta;
+
+    delta = x.level.compareTo(y.level);
+    if (delta != 0) return delta;
+
+    return x.typeName.compareTo(y.typeName);
+  });
+
+  // Categorize the differences, if any.
+  var unreported = <_ErrorExpectation>[];
+  var different = <_ErrorExpectation, AnalysisError>{};
+
+  for (var expected in expectedErrors) {
+    AnalysisError actual = expected._removeMatchingActual(actualErrors);
+    if (actual != null) {
+      if (_actualErrorLevel(actual) != expected.level ||
+          _errorCodeName(actual.errorCode) != expected.typeName) {
+        different[expected] = actual;
+      }
+    } else {
+      unreported.add(expected);
+    }
+  }
+
+  // Whatever is left was an unexpected error.
+  List<AnalysisError> unexpected = actualErrors;
+
+  if (unreported.isNotEmpty || unexpected.isNotEmpty || different.isNotEmpty) {
+    _reportFailure(unit, unreported, unexpected, different);
+  }
 }
 
-/// Dart SDK which contains a mock implementation of the SDK libraries. May be
-/// used to speed up execution when most of the core libraries is not needed.
-class MockDartSdk implements DartSdk {
-  final Map<Uri, _MockSdkSource> _sources = {};
-  final bool reportMissing;
-  final Map<String, SdkLibrary> _libs = {};
-  final String sdkVersion = '0';
-  final AnalysisContext context = new SdkAnalysisContext();
-  DartUriResolver _resolver;
-  MockDartSdk(Map<String, String> sources, {this.reportMissing}) {
-    sources.forEach((uriString, contents) {
-      var uri = Uri.parse(uriString);
-      _sources[uri] = new _MockSdkSource(uri, contents);
-      _libs[uriString] = new SdkLibraryImpl(uri.path)
-        ..setDart2JsLibrary()
-        ..setVmLibrary();
+List<_ErrorExpectation> _findExpectedErrors(Token beginToken) {
+  var expectedErrors = <_ErrorExpectation>[];
+
+  // Collect expectations like "severe:STATIC_TYPE_ERROR" from comment tokens.
+  for (Token t = beginToken; t.type != TokenType.EOF; t = t.next) {
+    for (CommentToken c = t.precedingComments; c != null; c = c.next) {
+      if (c.type == TokenType.MULTI_LINE_COMMENT) {
+        String value = c.lexeme.substring(2, c.lexeme.length - 2);
+        if (value.contains(':')) {
+          int offset = t.offset;
+          Token previous = t.previous;
+          while (previous != null && previous.offset > c.offset) {
+            offset = previous.offset;
+            previous = previous.previous;
+          }
+          for (var expectCode in value.split(',')) {
+            var expected = _ErrorExpectation.parse(offset, expectCode);
+            if (expected != null) {
+              expectedErrors.add(expected);
+            }
+          }
+        }
+      }
+    }
+  }
+  return expectedErrors;
+}
+
+void _reportFailure(
+    CompilationUnit unit,
+    List<_ErrorExpectation> unreported,
+    List<AnalysisError> unexpected,
+    Map<_ErrorExpectation, AnalysisError> different) {
+  // Get the source code. This reads the data again, but it's safe because
+  // all tests use memory file system.
+  var sourceCode = unit.element.source.contents.data;
+
+  String formatActualError(AnalysisError error) {
+    int offset = error.offset;
+    int length = error.length;
+    var span = _createSpanHelper(
+        unit.lineInfo, offset, unit.element.source, sourceCode,
+        end: offset + length);
+    var levelName = _actualErrorLevel(error).name.toLowerCase();
+    return '@$offset $levelName:${_errorCodeName(error.errorCode)}\n' +
+        span.message(error.message);
+  }
+
+  String formatExpectedError(_ErrorExpectation error) {
+    int offset = error.offset;
+    var span = _createSpanHelper(
+        unit.lineInfo, offset, unit.element.source, sourceCode);
+    var levelName = error.level.toString().toLowerCase();
+    return '@$offset $levelName:${error.typeName}\n' + span.message('');
+  }
+
+  var message = new StringBuffer();
+  if (unreported.isNotEmpty) {
+    message.writeln('Expected errors that were not reported:');
+    unreported.map(formatExpectedError).forEach(message.writeln);
+    message.writeln();
+  }
+  if (unexpected.isNotEmpty) {
+    message.writeln('Errors that were not expected:');
+    unexpected.map(formatActualError).forEach(message.writeln);
+    message.writeln();
+  }
+  if (different.isNotEmpty) {
+    message.writeln('Errors that were reported, but different than expected:');
+    different.forEach((expected, actual) {
+      message.writeln('Expected: ' + formatExpectedError(expected));
+      message.writeln('Actual: ' + formatActualError(actual));
     });
-    _resolver = new DartUriResolver(this);
-    context.sourceFactory = new SourceFactory([_resolver]);
+    message.writeln();
   }
-  DartUriResolver get resolver => _resolver;
-
-  List<SdkLibrary> get sdkLibraries => _libs.values.toList();
-
-  List<String> get uris => _sources.keys.map((uri) => '$uri').toList();
-  Source fromEncoding(UriKind kind, Uri uri) {
-    if (kind != UriKind.DART_URI) {
-      throw new UnsupportedError('expected dart: uri kind, got $kind.');
-    }
-    return _getSource(uri);
-  }
-
-  @override
-  Source fromFileUri(Uri uri) {
-    throw new UnsupportedError('MockDartSdk.fromFileUri');
-  }
-
-  SdkLibrary getSdkLibrary(String dartUri) => _libs[dartUri];
-
-  Source mapDartUri(String dartUri) => _getSource(Uri.parse(dartUri));
-
-  Source _getSource(Uri uri) {
-    var src = _sources[uri];
-    if (src == null) {
-      if (reportMissing) print('warning: missing mock for $uri.');
-      _sources[uri] =
-          src = new _MockSdkSource(uri, 'library dart.${uri.path};');
-    }
-    return src;
-  }
-}
-
-class TestUriResolver extends ResourceUriResolver {
-  final MemoryResourceProvider provider;
-  TestUriResolver(provider)
-      : provider = provider,
-        super(provider);
-
-  @override
-  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
-    if (uri.scheme == 'package') {
-      return (provider.getResource('/packages/' + uri.path) as File)
-          .createSource(uri);
-    }
-    return super.resolveAbsolute(uri, actualUri);
-  }
+  fail('Checker errors do not match expected errors:\n\n$message');
 }
 
 class _ErrorCollector implements AnalysisErrorListener {
   List<AnalysisError> errors;
   final bool hints;
+
   _ErrorCollector({this.hints: true});
 
   void onError(AnalysisError error) {
@@ -356,26 +328,39 @@ class _ErrorCollector implements AnalysisErrorListener {
 
 /// Describes an expected message that should be produced by the checker.
 class _ErrorExpectation {
+  final int offset;
   final Level level;
   final String typeName;
-  _ErrorExpectation(this.level, this.typeName);
 
-  String toString() => '$level $typeName';
+  _ErrorExpectation(this.offset, this.level, this.typeName);
 
-  static _ErrorExpectation parse(String descriptor) {
+  String toString() =>
+      '@$offset ${level.toString().toLowerCase()}: [$typeName]';
+
+  AnalysisError _removeMatchingActual(List<AnalysisError> actualErrors) {
+    for (var actual in actualErrors) {
+      if (actual.offset == offset) {
+        actualErrors.remove(actual);
+        return actual;
+      }
+    }
+    return null;
+  }
+
+  static _ErrorExpectation parse(int offset, String descriptor) {
     descriptor = descriptor.trim();
     var tokens = descriptor.split(' ');
-    if (tokens.length == 1) return _parse(tokens[0]);
+    if (tokens.length == 1) return _parse(offset, tokens[0]);
     expect(tokens.length, 4, reason: 'invalid error descriptor');
     expect(tokens[1], "should", reason: 'invalid error descriptor');
     expect(tokens[2], "be", reason: 'invalid error descriptor');
     if (tokens[0] == "pass") return null;
     // TODO(leafp) For now, we just use whatever the current expectation is,
     // eventually we could do more automated reporting here.
-    return _parse(tokens[0]);
+    return _parse(offset, tokens[0]);
   }
 
-  static _ErrorExpectation _parse(String descriptor) {
+  static _ErrorExpectation _parse(offset, String descriptor) {
     var tokens = descriptor.split(':');
     expect(tokens.length, 2, reason: 'invalid error descriptor');
     var name = tokens[0].toUpperCase();
@@ -387,137 +372,22 @@ class _ErrorExpectation {
         reason: 'invalid level in error descriptor: `${tokens[0]}`');
     expect(typeName, isNotNull,
         reason: 'invalid type in error descriptor: ${tokens[1]}');
-    return new _ErrorExpectation(level, typeName);
+    return new _ErrorExpectation(offset, level, typeName);
   }
 }
 
-class _ExpectedErrorVisitor extends UnifyingAstVisitor {
-  final Set<AnalysisError> _actualErrors;
-  CompilationUnit _unit;
-  String _unitSourceCode;
+class _TestUriResolver extends ResourceUriResolver {
+  final MemoryResourceProvider provider;
+  _TestUriResolver(provider)
+      : provider = provider,
+        super(provider);
 
-  _ExpectedErrorVisitor(List<AnalysisError> actualErrors)
-      : _actualErrors = new Set.from(actualErrors);
-
-  validate(CompilationUnit unit) {
-    _unit = unit;
-    // This reads the file. Only safe because tests use MemoryFileSystem.
-    _unitSourceCode = unit.element.source.contents.data;
-
-    // Visit the compilation unit.
-    unit.accept(this);
-
-    if (_actualErrors.isNotEmpty) {
-      var actualMsgs = _actualErrors.map(_formatActualError).join('\n');
-      fail('Unexpected errors reported by checker:\n\n$actualMsgs');
+  @override
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+    if (uri.scheme == 'package') {
+      return (provider.getResource('/packages/' + uri.path) as File)
+          .createSource(uri);
     }
+    return super.resolveAbsolute(uri, actualUri);
   }
-
-  visitNode(AstNode node) {
-    var token = node.beginToken;
-    var comment = token.precedingComments;
-    // Use error marker found in an immediately preceding comment,
-    // and attach it to the outermost expression that starts at that token.
-    if (comment != null) {
-      while (comment.next != null) {
-        comment = comment.next;
-      }
-      if (comment.end == token.offset && node.parent.beginToken != token) {
-        var commentText = '$comment';
-        var start = commentText.lastIndexOf('/*');
-        var end = commentText.lastIndexOf('*/');
-        if (start != -1 &&
-            end != -1 &&
-            !commentText.startsWith('/*<', start) &&
-            !commentText.startsWith('/*=', start)) {
-          expect(start, lessThan(end));
-          var errors = commentText.substring(start + 2, end).split(',');
-          var expectations =
-              errors.map(_ErrorExpectation.parse).where((x) => x != null);
-
-          for (var e in expectations) {
-            _expectError(node, e);
-          }
-        }
-      }
-    }
-    return super.visitNode(node);
-  }
-
-  Level _actualErrorLevel(AnalysisError actual) {
-    return const <ErrorSeverity, Level>{
-      ErrorSeverity.ERROR: Level.SEVERE,
-      ErrorSeverity.WARNING: Level.WARNING,
-      ErrorSeverity.INFO: Level.INFO
-    }[actual.errorCode.errorSeverity];
-  }
-
-  SourceSpan _createSpan(int offset, int len) {
-    return createSpanHelper(_unit.lineInfo, offset, offset + len,
-        _unit.element.source, _unitSourceCode);
-  }
-
-  void _expectError(AstNode node, _ErrorExpectation expected) {
-    // See if we can find the expected error in our actual errors
-    for (var actual in _actualErrors) {
-      if (actual.offset == node.offset && actual.length == node.length) {
-        var actualMsg = _formatActualError(actual);
-        expect(_actualErrorLevel(actual), expected.level,
-            reason: 'expected different error code at:\n\n$actualMsg');
-        expect(errorCodeName(actual.errorCode), expected.typeName,
-            reason: 'expected different error type at:\n\n$actualMsg');
-
-        // We found it. Stop the search.
-        _actualErrors.remove(actual);
-        return;
-      }
-    }
-
-    var span = _createSpan(node.offset, node.length);
-    var levelName = expected.level.name.toLowerCase();
-    var msg = span.message(expected.typeName, color: colorOf(levelName));
-    fail('expected error was not reported at:\n\n$levelName: $msg');
-  }
-
-  String _formatActualError(AnalysisError actual) {
-    var span = _createSpan(actual.offset, actual.length);
-    var levelName = _actualErrorLevel(actual).name.toLowerCase();
-    var msg = span.message(actual.message, color: colorOf(levelName));
-    return '$levelName: [${errorCodeName(actual.errorCode)}] $msg';
-  }
-}
-
-class _MockSdkSource implements Source {
-  /// Absolute URI which this source can be imported from.
-  final Uri uri;
-  final String _contents;
-
-  final int modificationStamp = 1;
-
-  _MockSdkSource(this.uri, this._contents);
-
-  TimestampedData<String> get contents =>
-      new TimestampedData(modificationStamp, _contents);
-
-  String get encoding => "${uriKind.encoding}$uri";
-
-  String get fullName => shortName;
-
-  int get hashCode => uri.hashCode;
-
-  bool get isInSystemLibrary => true;
-
-  String get shortName => uri.path;
-
-  Source get source => this;
-
-  UriKind get uriKind => UriKind.DART_URI;
-
-  bool exists() => true;
-
-  Source resolveRelative(Uri relativeUri) =>
-      throw new UnsupportedError('not expecting relative urls in dart: mocks');
-
-  Uri resolveRelativeUri(Uri relativeUri) =>
-      throw new UnsupportedError('not expecting relative urls in dart: mocks');
 }

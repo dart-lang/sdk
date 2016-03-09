@@ -53,7 +53,7 @@ main() {
         null,
         serverPlugin,
         new AnalysisServerOptions(),
-        new MockSdk(),
+        () => new MockSdk(),
         InstrumentationService.NULL_SERVICE);
     handler = new DiagnosticDomainHandler(server);
   });
@@ -71,14 +71,15 @@ main() {
       var request = new DiagnosticGetDiagnosticsParams().toRequest('0');
       var response = handler.handleRequest(request);
 
-      int fileCount = MockSdk.LIBRARIES.length + 1 /* test.dart */;
+      int fileCount = 1 /* test.dart */;
 
       var json = response.toJson()[Response.RESULT];
       expect(json['contexts'], hasLength(1));
       var context = json['contexts'][0];
       expect(context['name'], '/project');
       expect(context['explicitFileCount'], fileCount);
-      expect(context['implicitFileCount'], 0);
+      // dart:core dart:async dart:math dart:_internal
+      expect(context['implicitFileCount'], 4);
       expect(context['workItemQueueLength'], isNotNull);
     });
 

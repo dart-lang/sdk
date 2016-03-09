@@ -13,9 +13,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, disassemble);
-DECLARE_FLAG(bool, disassemble_optimized);
-
 DEFINE_FLAG(bool, check_code_pointer, false,
             "Verify instructions offset in code object."
             "NOTE: This breaks the profiler.");
@@ -247,16 +244,16 @@ const Code::Comments& Assembler::GetCodeComments() const {
 
 intptr_t ObjectPoolWrapper::AddObject(const Object& obj,
                                       Patchability patchable) {
-  return AddObject(ObjectPool::Entry(&obj), patchable);
+  return AddObject(ObjectPoolWrapperEntry(&obj), patchable);
 }
 
 
 intptr_t ObjectPoolWrapper::AddImmediate(uword imm) {
-  return AddObject(ObjectPool::Entry(imm, ObjectPool::kImmediate),
+  return AddObject(ObjectPoolWrapperEntry(imm, ObjectPool::kImmediate),
                    kNotPatchable);
 }
 
-intptr_t ObjectPoolWrapper::AddObject(ObjectPool::Entry entry,
+intptr_t ObjectPoolWrapper::AddObject(ObjectPoolWrapperEntry entry,
                                       Patchability patchable) {
   object_pool_.Add(entry);
   if (patchable == kNotPatchable) {
@@ -268,7 +265,7 @@ intptr_t ObjectPoolWrapper::AddObject(ObjectPool::Entry entry,
 }
 
 
-intptr_t ObjectPoolWrapper::FindObject(ObjectPool::Entry entry,
+intptr_t ObjectPoolWrapper::FindObject(ObjectPoolWrapperEntry entry,
                                        Patchability patchable) {
   // If the object is not patchable, check if we've already got it in the
   // object pool.
@@ -285,20 +282,27 @@ intptr_t ObjectPoolWrapper::FindObject(ObjectPool::Entry entry,
 
 intptr_t ObjectPoolWrapper::FindObject(const Object& obj,
                                        Patchability patchable) {
-  return FindObject(ObjectPool::Entry(&obj), patchable);
+  return FindObject(ObjectPoolWrapperEntry(&obj), patchable);
+}
+
+
+intptr_t ObjectPoolWrapper::FindObject(const Object& obj,
+                                       const Object& equivalence) {
+  return FindObject(ObjectPoolWrapperEntry(&obj, &equivalence),
+                    kNotPatchable);
 }
 
 
 intptr_t ObjectPoolWrapper::FindImmediate(uword imm) {
-  return FindObject(ObjectPool::Entry(imm, ObjectPool::kImmediate),
+  return FindObject(ObjectPoolWrapperEntry(imm, ObjectPool::kImmediate),
                     kNotPatchable);
 }
 
 
 intptr_t ObjectPoolWrapper::FindNativeEntry(const ExternalLabel* label,
                                             Patchability patchable) {
-  return FindObject(ObjectPool::Entry(label->address(),
-                                      ObjectPool::kNativeEntry),
+  return FindObject(ObjectPoolWrapperEntry(label->address(),
+                                           ObjectPool::kNativeEntry),
                     patchable);
 }
 

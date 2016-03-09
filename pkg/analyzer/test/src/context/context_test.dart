@@ -5,20 +5,22 @@
 library analyzer.test.src.context.context_test;
 
 import 'dart:async';
+import 'dart:collection';
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/task/dart.dart';
@@ -486,6 +488,13 @@ library lib;
 
   void test_computeDocumentationComment_null() {
     expect(context.computeDocumentationComment(null), isNull);
+  }
+
+  void test_computeErrors_dart_malformedCode() {
+    Source source = addSource("/lib.dart", "final int , = 42;");
+    List<AnalysisError> errors = context.computeErrors(source);
+    expect(errors, isNotNull);
+    expect(errors.length > 0, isTrue);
   }
 
   void test_computeErrors_dart_none() {
@@ -2002,6 +2011,72 @@ import 'package:crypto/crypto.dart';
     _assertNoExceptions();
   }
 
+  void test_resolveCompilationUnit_existingElementModel() {
+    Source source = addSource(
+        '/test.dart',
+        r'''
+library test;
+
+String topLevelVariable;
+int get topLevelGetter => 0;
+void set topLevelSetter(int value) {}
+String topLevelFunction(int i) => '';
+
+typedef String FunctionTypeAlias(int i);
+
+enum EnumeratedType {Invalid, Valid}
+
+class ClassOne {
+  int instanceField;
+  static int staticField;
+
+  ClassOne();
+  ClassOne.named();
+
+  int get instanceGetter => 0;
+  static String get staticGetter => '';
+
+  void set instanceSetter(int value) {}
+  static void set staticSetter(int value) {}
+
+  int instanceMethod(int first, [int second = 0]) {
+    int localVariable;
+    int localFunction(String s) {}
+  }
+  static String staticMethod(int first, {int second: 0}) => '';
+}
+
+class ClassTwo {
+  // Implicit no-argument constructor
+}
+''');
+    context.resolveCompilationUnit2(source, source);
+    LibraryElement firstElement = context.computeLibraryElement(source);
+    _ElementGatherer gatherer = new _ElementGatherer();
+    firstElement.accept(gatherer);
+
+    CacheEntry entry =
+        context.analysisCache.get(new LibrarySpecificUnit(source, source));
+    entry.setState(RESOLVED_UNIT1, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT2, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT3, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT4, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT5, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT6, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT7, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT8, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT9, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT10, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT11, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);
+
+    context.resolveCompilationUnit2(source, source);
+    LibraryElement secondElement = context.computeLibraryElement(source);
+    _ElementComparer comparer = new _ElementComparer(gatherer.elements);
+    secondElement.accept(comparer);
+    comparer.expectNoDifferences();
+  }
+
   void test_resolveCompilationUnit_import_relative() {
     Source sourceA =
         addSource("/libA.dart", "library libA; import 'libB.dart'; class A{}");
@@ -2473,7 +2548,7 @@ class B {
       expect(unitA.element, same(unitElementA));
       expect(unitElementA.library, same(libraryElementA));
     }
-    // Update a.dart, rename A to A2, invalidates b.dart, so
+    // Add method to a.dart. This invalidates b.dart, so
     // we know that the previous update did not damage dependencies.
     context.setContents(
         sourceA,
@@ -2685,8 +2760,10 @@ class A {
   }
 
   void _assertInvalid(AnalysisTarget target, ResultDescriptor descriptor) {
-    CacheState state = analysisCache.getState(target, descriptor);
-    expect(state, CacheState.INVALID);
+    CacheState actual = analysisCache.getState(target, descriptor);
+    if (actual != CacheState.INVALID) {
+      fail("cache state of $target $descriptor: wanted INVALID, got: $actual");
+    }
   }
 
   void _assertValid(AnalysisTarget target, ResultDescriptor descriptor) {
@@ -2730,4 +2807,83 @@ class _AnalysisContextImplTest_test_applyChanges_removeContainer
   _AnalysisContextImplTest_test_applyChanges_removeContainer(this.libB);
   @override
   bool contains(Source source) => source == libB;
+}
+
+/**
+ * A visitor that can be used to compare all of the elements in an element model
+ * with a previously created map of elements. The class [ElementGatherer] can be
+ * used to create the map of elements.
+ */
+class _ElementComparer extends GeneralizingElementVisitor {
+  /**
+   * The previously created map of elements.
+   */
+  final Map<Element, Element> previousElements;
+
+  /**
+   * The number of elements that were found to have been overwritten.
+   */
+  int overwrittenCount = 0;
+
+  /**
+   * A buffer to which a description of the overwritten elements will be written.
+   */
+  final StringBuffer buffer = new StringBuffer();
+
+  /**
+   * Initialize a newly created visitor.
+   */
+  _ElementComparer(this.previousElements);
+
+  /**
+   * Expect that no differences were found, causing the test to fail if that
+   * wasn't the case.
+   */
+  void expectNoDifferences() {
+    if (overwrittenCount > 0) {
+      fail('Found $overwrittenCount overwritten elements.$buffer');
+    }
+  }
+
+  @override
+  void visitElement(Element element) {
+    Element previousElement = previousElements[element];
+    if (!identical(previousElement, element)) {
+      if (overwrittenCount == 0) {
+        buffer.writeln();
+      }
+      overwrittenCount++;
+      buffer.writeln('Overwritten element:');
+      Element currentElement = element;
+      while (currentElement != null) {
+        buffer.write('  ');
+        buffer.writeln(currentElement.toString());
+        currentElement = currentElement.enclosingElement;
+      }
+    }
+    super.visitElement(element);
+  }
+}
+
+/**
+ * A visitor that can be used to collect all of the elements in an element
+ * model.
+ */
+class _ElementGatherer extends GeneralizingElementVisitor {
+  /**
+   * The map in which the elements are collected. The value of each key is the
+   * key itself.
+   */
+  Map<Element, Element> elements = new HashMap<Element, Element>();
+
+  /**
+   * Initialize the visitor.
+   */
+  _ElementGatherer();
+
+  @override
+  void visitElement(Element element) {
+    elements[element] = element;
+    super.visitElement(element);
+  }
 }

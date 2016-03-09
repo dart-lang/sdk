@@ -5,9 +5,13 @@
 
 import 'package:observatory/service_io.dart';
 import 'package:unittest/unittest.dart';
+import 'service_test_common.dart';
 import 'test_helper.dart';
 import 'deferred_library.dart' deferred as deferredLib;
 import 'dart:async';
+
+const int LINE_A = 24;
+const int LINE_B = 26;
 
 int value = 0;
 
@@ -17,9 +21,9 @@ int incValue(int amount) {
 }
 
 Future testMain() async {
-  incValue(incValue(1));  // line 20
+  incValue(incValue(1));  // line A.
 
-  incValue(incValue(1));  // line 22
+  incValue(incValue(1));  // line B.
 
   await deferredLib.loadLibrary();
   deferredLib.deferredTest();
@@ -35,17 +39,17 @@ var tests = [
     var script = rootLib.scripts[0];
 
     // Future breakpoint.
-    var futureBpt1 = await isolate.addBreakpoint(script, 20);
+    var futureBpt1 = await isolate.addBreakpoint(script, LINE_A);
     expect(futureBpt1.number, equals(1));
     expect(futureBpt1.resolved, isFalse);
-    expect(await futureBpt1.location.getLine(), equals(20));
+    expect(await futureBpt1.location.getLine(), equals(LINE_A));
     expect(await futureBpt1.location.getColumn(), equals(null));
 
     // Future breakpoint with specific column.
-    var futureBpt2 = await isolate.addBreakpoint(script, 20, 3);
+    var futureBpt2 = await isolate.addBreakpoint(script, LINE_A, 3);
     expect(futureBpt2.number, equals(2));
     expect(futureBpt2.resolved, isFalse);
-    expect(await futureBpt2.location.getLine(), equals(20));
+    expect(await futureBpt2.location.getLine(), equals(LINE_A));
     expect(await futureBpt2.location.getColumn(), equals(3));
 
     var stream = await isolate.vm.getEventStream(VM.kDebugStream);
@@ -67,10 +71,10 @@ var tests = [
     // After resolution the breakpoints have assigned line & column.
     expect(resolvedCount, equals(2));
     expect(futureBpt1.resolved, isTrue);
-    expect(await futureBpt1.location.getLine(), equals(20));
+    expect(await futureBpt1.location.getLine(), equals(LINE_A));
     expect(await futureBpt1.location.getColumn(), equals(12));
     expect(futureBpt2.resolved, isTrue);
-    expect(await futureBpt2.location.getLine(), equals(20));
+    expect(await futureBpt2.location.getLine(), equals(LINE_A));
     expect(await futureBpt2.location.getColumn(), equals(3));
 
     // The first breakpoint hits before value is modified.
@@ -176,19 +180,19 @@ var tests = [
     var script = isolate.rootLibrary.scripts[0];
     // Try all columns, including some columns that are too big.
     for (int col = 1; col <= 50; col++) {
-      var bpt = await isolate.addBreakpoint(script, 20, col);
+      var bpt = await isolate.addBreakpoint(script, LINE_A, col);
       expect(bpt.resolved, isTrue);
       int resolvedLine = await bpt.location.getLine();
       int resolvedCol = await bpt.location.getColumn();
       print('20:${col} -> ${resolvedLine}:${resolvedCol}');
       if (col <= 10) {
-        expect(resolvedLine, equals(20));
+        expect(resolvedLine, equals(LINE_A));
         expect(resolvedCol, equals(3));
       } else if (col <= 19) {
-        expect(resolvedLine, equals(20));
+        expect(resolvedLine, equals(LINE_A));
         expect(resolvedCol, equals(12));
       } else {
-        expect(resolvedLine, equals(22));
+        expect(resolvedLine, equals(LINE_B));
         expect(resolvedCol, equals(12));
       }
       expect((await isolate.removeBreakpoint(bpt)).type, equals('Success'));

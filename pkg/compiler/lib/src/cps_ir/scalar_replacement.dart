@@ -77,7 +77,7 @@ class ScalarReplacementVisitor extends TrampolineRecursiveVisitor {
     for (Reference ref = allocation.firstRef; ref != null; ref = ref.next) {
       Node use = ref.parent;
       if (use is GetField) continue;
-      if (use is SetField && use.object == ref) continue;
+      if (use is SetField && use.objectRef == ref) continue;
       return;
     }
 
@@ -102,7 +102,7 @@ class ScalarReplacementVisitor extends TrampolineRecursiveVisitor {
       int i = 0;
       allocation.classElement.forEachInstanceField(
         (ClassElement enclosingClass, FieldElement field) {
-          Primitive argument = allocation.arguments[i++].definition;
+          Primitive argument = allocation.argument(i++);
           fieldInitialValues[field] = argument;
         },
         includeSuperAndInjectedMembers: true);
@@ -127,7 +127,7 @@ class ScalarReplacementVisitor extends TrampolineRecursiveVisitor {
         insertionPoint = let..insertBelow(insertionPoint);
       }
       LetMutable let = new LetMutable(variable, initialValue);
-      let.value.parent = let;
+      let.valueRef.parent = let;
       insertionPoint = let..insertBelow(insertionPoint);
     }
 
@@ -141,7 +141,7 @@ class ScalarReplacementVisitor extends TrampolineRecursiveVisitor {
         if (variable != null) {
           GetMutable getter = new GetMutable(variable);
           getter.type = getField.type;
-          getter.variable.parent = getter;
+          getter.variableRef.parent = getter;
           getField.replaceUsesWith(getter);
           replacePrimitive(getField, getter);
           deletePrimitive(getField);
@@ -150,14 +150,14 @@ class ScalarReplacementVisitor extends TrampolineRecursiveVisitor {
           getField.replaceUsesWith(value);
           deleteLetPrimOf(getField);
         }
-      } else if (use is SetField && use.object == ref) {
+      } else if (use is SetField && use.objectRef == ref) {
         SetField setField = use;
         MutableVariable variable = cells[setField.field];
-        Primitive value = setField.value.definition;
+        Primitive value = setField.value;
         variable.type = variable.type.union(value.type, classWorld);
         SetMutable setter = new SetMutable(variable, value);
-        setter.variable.parent = setter;
-        setter.value.parent = setter;
+        setter.variableRef.parent = setter;
+        setter.valueRef.parent = setter;
         setField.replaceUsesWith(setter);
         replacePrimitive(setField, setter);
         deletePrimitive(setField);

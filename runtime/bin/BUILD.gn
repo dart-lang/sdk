@@ -10,9 +10,9 @@ declare_args() {
 
 resources_sources_gypi =
     exec_script("../../tools/gypi_to_gn.py",
-                [rebase_path("resources_sources.gypi")],
+                [rebase_path("vmservice/vmservice_sources.gypi")],
                 "scope",
-                ["resources_sources.gypi"])
+                ["vmservice/vmservice_sources.gypi"])
 
 # Generate a resources.cc file for the service isolate without Observatory.
 action("gen_resources_cc") {
@@ -21,7 +21,11 @@ action("gen_resources_cc") {
   inputs = [
     "../tools/create_resources.py",
   ]
-  sources = resources_sources_gypi.sources
+  # The path below is hard coded for the Mojo and Flutter trees. When moving
+  # the Dart runtime to gn, this path might need to be updated.
+  sources = rebase_path(resources_sources_gypi.sources,
+                        "",
+                        "//dart/runtime/bin/vmservice/")
   outputs = [ "$target_gen_dir/resources_gen.cc" ]
   args = [
     "--output",
@@ -72,17 +76,18 @@ gen_library_src_path("generate_builtin_cc_file") {
 }
 
 
-iolib_sources_gypi =
+sdk_io_sources_gypi =
     exec_script("../../tools/gypi_to_gn.py",
-                [rebase_path("../../sdk/lib/io/iolib_sources.gypi")],
+                [rebase_path("../../sdk/lib/io/io_sources.gypi")],
                 "scope",
-                ["../../sdk/lib/io/iolib_sources.gypi"])
-iolib_sources = rebase_path(iolib_sources_gypi.sources, ".", "../../sdk/lib/io")
+                ["../../sdk/lib/io/io_sources.gypi"])
+sdk_io_sources =
+    rebase_path(sdk_io_sources_gypi.sources, ".", "../../sdk/lib/io")
 
 gen_library_src_path("generate_io_cc_file") {
   name = "io"
   kind = "source"
-  sources = ["../../sdk/lib/io/io.dart"] + iolib_sources
+  sources = ["../../sdk/lib/io/io.dart"] + sdk_io_sources
   output = "$target_gen_dir/io_gen.cc"
 }
 
@@ -233,6 +238,7 @@ source_set("gen_snapshot_dart_io") {
   custom_sources_filter = [
     "*net/nss_memio.cc",
     "*net/nss_memio.h",
+    "*root_certificates.cc",
     "*secure_socket.cc",
     "*secure_socket.h",
     "filter.cc",
@@ -287,6 +293,7 @@ source_set("embedded_dart_io") {
   custom_sources_filter = [
     "*net/nss_memio.cc",
     "*net/nss_memio.h",
+    "*root_certificates.cc",
     "*secure_socket.cc",
     "*secure_socket.h",
     "*filter_unsupported.cc",

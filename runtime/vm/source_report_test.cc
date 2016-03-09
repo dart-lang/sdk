@@ -8,6 +8,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 static RawObject* ExecuteScript(const char* script) {
   Dart_Handle h_lib = TestCase::LoadTestScript(script, NULL);
   EXPECT_VALID(h_lib);
@@ -457,5 +459,52 @@ TEST_CASE(SourceReport_MultipleReports) {
       "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
       buffer);
 }
+
+
+TEST_CASE(SourceReport_PossibleBreakpoints_Simple) {
+  char buffer[1024];
+  const char* kScript =
+      "helper0() {}\n"
+      "helper1() {}\n"
+      "main() {\n"
+      "  if (true) {\n"
+      "    helper0();\n"
+      "  } else {\n"
+      "    helper1();\n"
+      "  }\n"
+      "}";
+
+  Library& lib = Library::Handle();
+  lib ^= ExecuteScript(kScript);
+  ASSERT(!lib.IsNull());
+  const Script& script = Script::Handle(lib.LookupScript(
+      String::Handle(String::New("test-lib"))));
+
+  SourceReport report(SourceReport::kPossibleBreakpoints);
+  JSONStream js;
+  report.PrintJSON(&js, script);
+  ElideJSONSubstring("classes", js.ToCString(), buffer);
+  ElideJSONSubstring("libraries", buffer, buffer);
+  EXPECT_STREQ(
+      "{\"type\":\"SourceReport\",\"ranges\":["
+
+      // helper0.
+      "{\"scriptIndex\":0,\"startPos\":0,\"endPos\":4,\"compiled\":true,"
+      "\"possibleBreakpoints\":[1,4]},"
+
+      // One range not compiled (helper1).
+      "{\"scriptIndex\":0,\"startPos\":6,\"endPos\":10,\"compiled\":false},"
+
+      // main.
+      "{\"scriptIndex\":0,\"startPos\":12,\"endPos\":39,\"compiled\":true,"
+      "\"possibleBreakpoints\":[13,23,32,39]}],"
+
+      // Only one script in the script table.
+      "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","
+      "\"uri\":\"test-lib\",\"_kind\":\"script\"}]}",
+      buffer);
+}
+
+#endif  // !PRODUCT
 
 }  // namespace dart

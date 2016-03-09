@@ -73,14 +73,15 @@ void runReflectiveTests(Type type) {
 
 Future _invokeSymbolIfExists(InstanceMirror instanceMirror, Symbol symbol) {
   var invocationResult = null;
+  InstanceMirror closure;
   try {
-    invocationResult = instanceMirror.invoke(symbol, []).reflectee;
+    closure = instanceMirror.getField(symbol);
   } on NoSuchMethodError {}
-  if (invocationResult is Future) {
-    return invocationResult;
-  } else {
-    return new Future.value(invocationResult);
+
+  if (closure is ClosureMirror) {
+    invocationResult = closure.apply([]).reflectee;
   }
+  return new Future.value(invocationResult);
 }
 
 /**

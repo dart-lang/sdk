@@ -38,9 +38,9 @@ vars = {
   "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
   "csslib_tag" : "@0.12.0",
   "dart2js_info_rev" : "@0a221eaf16aec3879c45719de656680ccb80d8a1",
-  "dartdoc_tag" : "@v0.8.5",
+  "dartdoc_tag" : "@v0.9.0",
   "dart_services_rev" : "@7aea2574e6f3924bf409a80afb8ad52aa2be4f97",
-  "dart_style_tag": "@0.2.2",
+  "dart_style_tag": "@0.2.4",
   "dev_compiler_rev": "@0.1.9",
   "glob_rev": "@704cf75e4f26b417505c5c611bdaacd8808467dd",
   "html_tag" : "@0.12.1+1",
@@ -52,7 +52,7 @@ vars = {
   "intl_rev": "@a8b480b9c436f6c0ec16730804c914bdb4e30d53",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@1.1.1",
-  "linter_rev": "@5a599fd32d3b6ef00ffa7c330d1f32bbad287228",
+  "linter_rev": "@ce7aa0ec03ee738f4d314138228e0b4742845810",
   "logging_rev": "@85d83e002670545e9039ad3985f0018ab640e597",
   "markdown_rev": "@4aaadf3d940bb172e1f6285af4d2b1710d309982",
   "matcher_tag": "@0.12.0",
@@ -67,10 +67,11 @@ vars = {
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "plugin_tag": "@0.1.0",
   "pool_tag": "@1.2.1",
-  "pub_rev": "@5738fb4592c96ffb0439e92ae8b823ccdc0a6623",
+  "pub_rev": "@bd5c77abcb609d95340632b96344b59035e70376",
   "pub_cache_tag": "@v0.1.0",
   "pub_semver_tag": "@1.2.1",
   "quiver_tag": "@0.21.4",
+  "resource_rev":"@a49101ba2deb29c728acba6fb86000a8f730f4b1",
   "root_certificates_rev": "@c3a41df63afacec62fcb8135196177e35fe72f71",
   "scheduled_test_tag": "@0.12.4+2",
   "shelf_tag": "@0.6.4+3",
@@ -86,13 +87,12 @@ vars = {
   "test_tag": "@0.12.6+1",
   "test_reflective_loader_tag": "@0.0.3",
   "utf_rev": "@1f55027068759e2d52f2c12de6a57cce5f3c5ee6",
-  "unittest_tag": "@0.11.6",
   "usage_rev": "@b5080dac0d26a5609b266f8fdb0d053bc4c1c638",
   "watcher_tag": "@0.9.7",
   "when_tag": "@0.2.0+2",
   "which_tag": "@0.1.3+1",
   "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
-  "WebCore_rev": "@4f90b41b0165f23f412cecdba07b7d81d3fbb5b5",
+  "WebCore_rev": "@5ecb723fd9ffcc0d108f5e0e24d12b8b3df7b200",
   "yaml_tag": "@2.1.5",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
   "barback-0.13.0_rev": "@34853",
@@ -225,6 +225,8 @@ deps = {
       Var("chromium_git")
       + "/external/github.com/google/quiver-dart.git"
       + Var("quiver_tag"),
+  Var("dart_root") + "/third_party/pkg/resource":
+    "https://github.com/dart-lang/resource.git" + Var("resource_rev"),
   Var("dart_root") + "/third_party/pkg/scheduled_test":
       (Var("github_mirror") % "scheduled_test") + Var("scheduled_test_tag"),
   Var("dart_root") + "/third_party/pkg/shelf":
@@ -256,8 +258,6 @@ deps = {
   Var("dart_root") + "/third_party/pkg/test_reflective_loader":
       (Var("github_mirror") % "test_reflective_loader") +
       Var("test_reflective_loader_tag"),
-  Var("dart_root") + "/third_party/pkg/unittest":
-      (Var("github_mirror") % "test") + Var("unittest_tag"),
   Var("dart_root") + "/third_party/pkg/usage":
       (Var("github_mirror") % "usage") + Var("usage_rev"),
   Var("dart_root") + "/third_party/pkg/utf":
@@ -291,24 +291,6 @@ deps_os = {
 # TODO(iposva): Move the necessary tools so that hooks can be run
 # without the runtime being available.
 hooks = [
-  {
-    "pattern": ".",
-    "action": ["python", Var("dart_root") + "/tools/gyp_dart.py"],
-  },
-  {
-    'name': 'checked_in_dart_binaries',
-    'pattern': '.',
-    'action': [
-      'download_from_google_storage',
-      '--no_auth',
-      '--no_resume',
-      '--bucket',
-      'dart-dependencies',
-      '--recursive',
-      '--directory',
-      Var('dart_root') + '/tools/testing/bin',
-    ],
-  },
   {
     'name': 'd8_testing_binaries',
     'pattern': '.',
@@ -384,6 +366,22 @@ hooks = [
     ],
   },
   {
+    "name": "unittest",
+    # Unittest is an early version, 0.11.6, of the package "test"
+    # Do not use it in any new tests.
+    "pattern": ".",
+    "action": [
+      "download_from_google_storage",
+      "--no_auth",
+      "--no_resume",
+      "--bucket",
+      "dart-dependencies",
+      "--extract",
+      "-s",
+      Var('dart_root') + "/third_party/pkg/unittest.tar.gz.sha1",
+    ],
+  },
+  {
     "name": "7zip",
     "pattern": ".",
     "action": [
@@ -426,5 +424,9 @@ hooks = [
       "-s",
       Var('dart_root') + "/third_party/clang.tar.gz.sha1",
     ],
+  },
+  {
+    "pattern": ".",
+    "action": ["python", Var("dart_root") + "/tools/gyp_dart.py"],
   },
 ]

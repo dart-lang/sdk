@@ -7,6 +7,7 @@
 // VMOptions=--short_socket_write
 // VMOptions=--short_socket_read --short_socket_write
 
+import "package:async_helper/async_helper.dart";
 import "package:expect/expect.dart";
 import "package:path/path.dart";
 import "dart:async";
@@ -14,19 +15,23 @@ import "dart:io";
 
 String localFile(path) => Platform.script.resolve(path).toFilePath();
 
-SecurityContext serverContext = new SecurityContext()
-  ..useCertificateChain(localFile('certificates/server_chain.pem'))
-  ..usePrivateKey(localFile('certificates/server_key.pem'),
-                  password: 'dartdart');
+SecurityContext serverContext(String certType, String password) =>
+    new SecurityContext()
+    ..useCertificateChain(localFile('certificates/server_chain.$certType'),
+                          password: password)
+    ..usePrivateKey(localFile('certificates/server_key.$certType'),
+                    password: password);
 
-SecurityContext clientContext = new SecurityContext()
-  ..setTrustedCertificates(file: localFile('certificates/trusted_certs.pem'));
+SecurityContext clientContext(String certType, String password) =>
+    new SecurityContext()
+    ..setTrustedCertificates(localFile('certificates/trusted_certs.$certType'),
+                             password: password);
 
-Future<HttpServer> startServer() {
+Future<HttpServer> startServer(String certType, String password) {
   return HttpServer.bindSecure(
       "localhost",
       0,
-      serverContext,
+      serverContext(certType, password),
       backlog: 5).then((server) {
     server.listen((HttpRequest request) {
       request.listen(
@@ -43,10 +48,11 @@ Future<HttpServer> startServer() {
   });
 }
 
-void main() {
+Future test(String certType, String password) {
   List<int> body = <int>[];
-  startServer().then((server) {
-    SecureSocket.connect("localhost", server.port, context: clientContext)
+  startServer(certType, password).then((server) {
+    SecureSocket.connect(
+        "localhost", server.port, context: clientContext(certType, password))
     .then((socket) {
       socket.write("GET / HTTP/1.0\r\nHost: localhost\r\n\r\n");
       socket.close();
@@ -67,4 +73,11 @@ void main() {
         });
     });
   });
+}
+
+main() async {
+  asyncStart();
+  await test('pem', 'dartdart');
+  await test('p12', 'dartdart');
+  asyncEnd();
 }

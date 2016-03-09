@@ -17,8 +17,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, interpret_irregexp);
-
 // When entering intrinsics code:
 // R10: Arguments descriptor
 // TOS: Return address
@@ -34,7 +32,7 @@ intptr_t Intrinsifier::ParameterSlotFromSp() { return 0; }
 
 
 void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
-  if (Isolate::Current()->flags().type_checks()) {
+  if (Isolate::Current()->type_checks()) {
     return;
   }
 
@@ -104,7 +102,7 @@ void Intrinsifier::GrowableArray_Allocate(Assembler* assembler) {
 // On stack: growable array (+2), value (+1), return-address (+0).
 void Intrinsifier::GrowableArray_add(Assembler* assembler) {
   // In checked mode we need to check the incoming argument.
-  if (Isolate::Current()->flags().type_checks()) return;
+  if (Isolate::Current()->type_checks()) return;
   Label fall_through;
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Array.
   __ movq(RCX, FieldAddress(RAX, GrowableObjectArray::length_offset()));
@@ -1536,11 +1534,11 @@ void Intrinsifier::ObjectRuntimeType(Assembler* assembler) {
   __ LoadClassIdMayBeSmi(RCX, RAX);
 
   // RCX: untagged cid of instance (RAX).
+  __ cmpq(RCX, Immediate(kClosureCid));
+  __ j(EQUAL, &fall_through, Assembler::kNearJump);  // Instance is a closure.
+
   __ LoadClassById(RDI, RCX);
   // RDI: class of instance (RAX).
-  __ movq(RCX, FieldAddress(RDI, Class::signature_function_offset()));
-  __ CompareObject(RCX, Object::null_object());
-  __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
 
   __ movzxw(RCX, FieldAddress(RDI, Class::num_type_arguments_offset()));
   __ cmpq(RCX, Immediate(0));

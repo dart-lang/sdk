@@ -10,6 +10,7 @@
 #include "vm/globals.h"
 #include "vm/snapshot.h"
 #include "vm/token.h"
+#include "vm/token_position.h"
 #include "vm/verified_memory.h"
 
 namespace dart {
@@ -33,6 +34,7 @@ namespace dart {
   V(Instructions)                                                              \
   V(ObjectPool)                                                                \
   V(PcDescriptors)                                                             \
+  V(CodeSourceMap)                                                             \
   V(Stackmap)                                                                  \
   V(LocalVarDescriptors)                                                       \
   V(ExceptionHandlers)                                                         \
@@ -50,10 +52,12 @@ namespace dart {
     V(LibraryPrefix)                                                           \
     V(AbstractType)                                                            \
       V(Type)                                                                  \
+      V(FunctionType)                                                          \
       V(TypeRef)                                                               \
       V(TypeParameter)                                                         \
       V(BoundedType)                                                           \
       V(MixinAppType)                                                          \
+    V(Closure)                                                                 \
     V(Number)                                                                  \
       V(Integer)                                                               \
         V(Smi)                                                                 \
@@ -145,8 +149,9 @@ CLASS_LIST_TYPED_DATA(DEFINE_OBJECT_KIND)
 #define DEFINE_OBJECT_KIND(clazz)                                              \
   kTypedData##clazz##ViewCid,
 CLASS_LIST_TYPED_DATA(DEFINE_OBJECT_KIND)
-  kByteDataViewCid,
 #undef DEFINE_OBJECT_KIND
+
+  kByteDataViewCid,
 
 #define DEFINE_OBJECT_KIND(clazz)                                              \
   kExternalTypedData##clazz##Cid,
@@ -280,7 +285,8 @@ class RawObject {
 
    private:
     // The actual unscaled bit field used within the tag field.
-    class SizeBits : public BitField<intptr_t, kSizeTagPos, kSizeTagSize> {};
+    class SizeBits :
+        public BitField<uword, intptr_t, kSizeTagPos, kSizeTagSize> {};
 
     static intptr_t SizeToTagValue(intptr_t size) {
       ASSERT(Utils::IsAligned(size, kObjectAlignment));
@@ -292,7 +298,7 @@ class RawObject {
   };
 
   class ClassIdTag :
-      public BitField<intptr_t, kClassIdTagPos, kClassIdTagSize> {};  // NOLINT
+      public BitField<uword, intptr_t, kClassIdTagPos, kClassIdTagSize> {};
 
   bool IsWellFormed() const {
     uword value = reinterpret_cast<uword>(this);
@@ -418,6 +424,9 @@ class RawObject {
   bool IsScript() {
     return ((GetClassId() == kScriptCid));
   }
+  bool IsField() {
+    return ((GetClassId() == kFieldCid));
+  }
   bool IsFunction() {
     return ((GetClassId() == kFunctionCid));
   }
@@ -426,6 +435,18 @@ class RawObject {
   }
   bool IsCode() {
     return ((GetClassId() == kCodeCid));
+  }
+  bool IsString() {
+    return IsStringClassId(GetClassId());
+  }
+  bool IsStackmap() {
+    return ((GetClassId() == kStackmapCid));
+  }
+  bool IsPcDescriptors() {
+    return ((GetClassId() == kPcDescriptorsCid));
+  }
+  bool IsOneByteString() {
+    return ((GetClassId() == kOneByteStringCid));
   }
 
   intptr_t Size() const {
@@ -489,18 +510,18 @@ class RawObject {
  private:
   uword tags_;  // Various object tags (bits).
 
-  class WatchedBit : public BitField<bool, kWatchedBit, 1> {};
+  class WatchedBit : public BitField<uword, bool, kWatchedBit, 1> {};
 
-  class MarkBit : public BitField<bool, kMarkBit, 1> {};
+  class MarkBit : public BitField<uword, bool, kMarkBit, 1> {};
 
-  class RememberedBit : public BitField<bool, kRememberedBit, 1> {};
+  class RememberedBit : public BitField<uword, bool, kRememberedBit, 1> {};
 
-  class CanonicalObjectTag : public BitField<bool, kCanonicalBit, 1> {};
+  class CanonicalObjectTag : public BitField<uword, bool, kCanonicalBit, 1> {};
 
-  class VMHeapObjectTag : public BitField<bool, kVMHeapObjectBit, 1> {};
+  class VMHeapObjectTag : public BitField<uword, bool, kVMHeapObjectBit, 1> {};
 
   class ReservedBits : public
-      BitField<intptr_t, kReservedTagPos, kReservedTagSize> {};  // NOLINT
+      BitField<uword, intptr_t, kReservedTagPos, kReservedTagSize> {};
 
   // TODO(koda): After handling tags_, return const*, like Object::raw_ptr().
   RawObject* ptr() const {
@@ -590,8 +611,8 @@ class RawObject {
   friend class Array;
   friend class Bigint;
   friend class ByteBuffer;
-  friend class Code;
   friend class Closure;
+  friend class Code;
   friend class Double;
   friend class FreeListElement;
   friend class Function;
@@ -628,6 +649,7 @@ class RawObject {
   friend class Instance;  // StorePointer
   friend class StackFrame;  // GetCodeObject assertion.
   friend class CodeLookupTableBuilder;  // profiler
+  friend class NativeEntry;  // GetClassId
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);
@@ -647,31 +669,31 @@ class RawClass : public RawObject {
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   RawString* name_;
-  RawString* user_name_;
+  NOT_IN_PRODUCT(RawString* user_name_);
   RawArray* functions_;
   RawArray* functions_hash_table_;
   RawArray* fields_;
   RawArray* offset_in_words_to_field_;
   RawArray* interfaces_;  // Array of AbstractType.
-  RawGrowableObjectArray* direct_subclasses_;  // Array of Class.
   RawScript* script_;
   RawLibrary* library_;
   RawTypeArguments* type_parameters_;  // Array of TypeParameter.
   RawAbstractType* super_type_;
   RawType* mixin_;  // Generic mixin type, e.g. M<T>, not M<int>.
-  RawFunction* signature_function_;  // Associated function for signature class.
+  RawFunction* signature_function_;  // Associated function for typedef class.
   RawArray* constants_;  // Canonicalized values of this class.
   RawObject* canonical_types_;  // An array of canonicalized types of this class
                                 // or the canonical type.
   RawArray* invocation_dispatcher_cache_;  // Cache for dispatcher functions.
-  RawArray* cha_codes_;  // CHA optimized codes.
   RawCode* allocation_stub_;  // Stub code for allocation of instances.
+  RawGrowableObjectArray* direct_subclasses_;  // Array of Class.
+  RawArray* cha_codes_;  // CHA optimized codes.
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->allocation_stub_);
+    return reinterpret_cast<RawObject**>(&ptr()->cha_codes_);
   }
 
   cpp_vtable handle_vtable_;
-  int32_t token_pos_;
+  TokenPosition token_pos_;
   int32_t instance_size_in_words_;  // Size if fixed len or 0 if variable len.
   int32_t type_arguments_field_offset_in_words_;  // Offset of type args fld.
   int32_t next_field_offset_in_words_;  // Offset of the next instance field.
@@ -700,7 +722,7 @@ class RawUnresolvedClass : public RawObject {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->ident_);
   }
-  int32_t token_pos_;
+  TokenPosition token_pos_;
 };
 
 
@@ -809,8 +831,8 @@ class RawFunction : public RawObject {
   }
   uword entry_point_;
 
-  int32_t token_pos_;
-  int32_t end_token_pos_;
+  TokenPosition token_pos_;
+  TokenPosition end_token_pos_;
   int32_t usage_counter_;  // Incremented while function is running.
   int16_t num_fixed_parameters_;
   int16_t num_optional_parameters_;  // > 0: positional; < 0: named.
@@ -830,7 +852,7 @@ class RawClosureData : public RawObject {
   }
   RawContextScope* context_scope_;
   RawFunction* parent_function_;  // Enclosing function of this local function.
-  RawClass* signature_class_;
+  RawFunctionType* signature_type_;
   RawInstance* closure_;  // Closure object for static implicit closures.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->closure_);
@@ -862,7 +884,7 @@ class RawField : public RawObject {
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   RawString* name_;
   RawObject* owner_;  // Class or patch class or mixin class
-                      // where this field is defined.
+                      // where this field is defined or original field.
   RawAbstractType* type_;
   union {
     RawInstance* static_value_;  // Value for static fields.
@@ -886,7 +908,7 @@ class RawField : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->guarded_list_length_);
   }
 
-  int32_t token_pos_;
+  TokenPosition token_pos_;
   classid_t guarded_cid_;
   classid_t is_nullable_;  // kNullCid if field can contain null value and
                            // any other value otherwise.
@@ -1033,7 +1055,8 @@ class RawCode : public RawObject {
     kInlinedIntervalsIndex = 0,
     kInlinedIdToFunctionIndex = 1,
     kInlinedCallerIdMapIndex = 2,
-    kInlinedMetadataSize = 3,
+    kInlinedIdToTokenPosIndex = 3,
+    kInlinedMetadataSize = 4,
   };
 
   RAW_HEAP_OBJECT_IMPLEMENTATION(Code);
@@ -1052,6 +1075,7 @@ class RawCode : public RawObject {
   RawObject* owner_;  // Function, Null, or a Class.
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
+  RawCodeSourceMap* code_source_map_;
   RawArray* stackmaps_;
   RawObject** to_snapshot() {
     return reinterpret_cast<RawObject**>(&ptr()->stackmaps_);
@@ -1199,6 +1223,23 @@ class RawPcDescriptors : public RawObject {
 };
 
 
+// CodeSourceMap stores a mapping between code PC ranges and source token
+// positions.
+class RawCodeSourceMap : public RawObject {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(CodeSourceMap);
+
+  int32_t length_;  // Number of entries.
+
+  // Variable length data follows here.
+  uint8_t* data() { OPEN_ARRAY_START(uint8_t, intptr_t); }
+  const uint8_t* data() const { OPEN_ARRAY_START(uint8_t, intptr_t); }
+
+  friend class Object;
+  friend class SnapshotReader;
+};
+
+
 // Stackmap is an immutable representation of the layout of the stack at a
 // PC. The stack map representation consists of a bit map which marks each
 // live object index starting from the base of the frame.
@@ -1248,14 +1289,14 @@ class RawLocalVarDescriptors : public RawObject {
     kMaxIndex = (1 << (kIndexSize - 1)) - 1,
   };
 
-  class IndexBits : public BitField<int32_t, kIndexPos, kIndexSize> {};
-  class KindBits : public BitField<int8_t, kKindPos, kKindSize>{};
+  class IndexBits : public BitField<int32_t, int32_t, kIndexPos, kIndexSize> {};
+  class KindBits : public BitField<int32_t, int8_t, kKindPos, kKindSize>{};
 
   struct VarInfo {
     int32_t index_kind;  // Bitfield for slot index on stack or in context,
                          // and Entry kind of type VarInfoKind.
-    int32_t begin_pos;   // Token position of scope start.
-    int32_t end_pos;     // Token position of scope end.
+    TokenPosition begin_pos;   // Token position of scope start.
+    TokenPosition end_pos;     // Token position of scope end.
     int16_t scope_id;    // Scope to which the variable belongs.
 
     VarInfoKind kind() const {
@@ -1400,14 +1441,17 @@ class RawICData : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ICData);
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->owner_);
+    return reinterpret_cast<RawObject**>(&ptr()->ic_data_);
   }
-  RawObject* owner_;  // Parent/calling function or original IC of cloned IC.
+  RawArray* ic_data_;  // Contains class-ids, target and count.
   RawString* target_name_;  // Name of target function.
   RawArray* args_descriptor_;  // Arguments descriptor.
-  RawArray* ic_data_;  // Contains class-ids, target and count.
+  RawObject** to_precompiled_snapshot() {
+    return reinterpret_cast<RawObject**>(&ptr()->args_descriptor_);
+  }
+  RawObject* owner_;  // Parent/calling function or original IC of cloned IC.
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->ic_data_);
+    return reinterpret_cast<RawObject**>(&ptr()->owner_);
   }
   int32_t deopt_id_;     // Deoptimization id corresponding to this IC.
   uint32_t state_bits_;  // Number of arguments tested in IC, deopt reasons,
@@ -1470,7 +1514,8 @@ class RawLanguageError : public RawError {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->formatted_message_);
   }
-  int32_t token_pos_;  // Source position in script_.
+  TokenPosition token_pos_;  // Source position in script_.
+  bool report_after_token_;  // Report message at or after the token.
   int8_t kind_;  // Of type LanguageError::Kind.
 };
 
@@ -1514,8 +1559,11 @@ class RawLibraryPrefix : public RawInstance {
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   RawString* name_;               // Library prefix name.
-  RawArray* imports_;             // Libraries imported with this prefix.
   RawLibrary* importer_;          // Library which declares this prefix.
+  RawObject** to_precompiled_snapshot() {
+    return reinterpret_cast<RawObject**>(&ptr()->importer_);
+  }
+  RawArray* imports_;             // Libraries imported with this prefix.
   RawArray* dependent_code_;      // Code that refers to deferred, unloaded
                                   // library prefix.
   RawObject** to() {
@@ -1557,7 +1605,26 @@ class RawType : public RawAbstractType {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->error_);
   }
-  int32_t token_pos_;
+  TokenPosition token_pos_;
+  int8_t type_state_;
+};
+
+
+class RawFunctionType : public RawAbstractType {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(FunctionType);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->scope_class_);
+  }
+  RawClass* scope_class_;
+  RawTypeArguments* arguments_;
+  RawFunction* signature_;
+  RawLanguageError* error_;  // Error object if type is malformed or malbounded.
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->error_);
+  }
+  TokenPosition token_pos_;
   int8_t type_state_;
 };
 
@@ -1587,7 +1654,7 @@ class RawTypeParameter : public RawAbstractType {
   RawString* name_;
   RawAbstractType* bound_;  // ObjectType if no explicit bound specified.
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->bound_); }
-  int32_t token_pos_;
+  TokenPosition token_pos_;
   int16_t index_;
   int8_t type_state_;
 };
@@ -1620,6 +1687,24 @@ class RawMixinAppType : public RawAbstractType {
   RawArray* mixin_types_;  // Array of AbstractType.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->mixin_types_);
+  }
+};
+
+
+class RawClosure : public RawInstance {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(Closure);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->type_arguments_);
+  }
+
+  RawTypeArguments* type_arguments_;
+  RawFunction* function_;
+  RawContext* context_;
+
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->context_);
   }
 };
 
@@ -2245,6 +2330,7 @@ inline bool RawObject::IsVariableSizeClassId(intptr_t index) {
          (index == kInstructionsCid) ||
          (index == kObjectPoolCid) ||
          (index == kPcDescriptorsCid) ||
+         (index == kCodeSourceMapCid) ||
          (index == kStackmapCid) ||
          (index == kLocalVarDescriptorsCid) ||
          (index == kExceptionHandlersCid) ||

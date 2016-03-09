@@ -6,6 +6,7 @@
 #define VM_EXCEPTIONS_H_
 
 #include "vm/allocation.h"
+#include "vm/token_position.h"
 
 namespace dart {
 
@@ -42,7 +43,7 @@ class Exceptions : AllStatic {
   static RawStacktrace* CurrentStacktrace();
   static RawScript* GetCallerScript(DartFrameIterator* iterator);
   static RawInstance* NewInstance(const char* class_name);
-  static void CreateAndThrowTypeError(intptr_t location,
+  static void CreateAndThrowTypeError(TokenPosition location,
                                       const String& src_type_name,
                                       const String& dst_type_name,
                                       const String& dst_name,
@@ -60,8 +61,6 @@ class Exceptions : AllStatic {
     kOutOfMemory,
     kNullThrown,
     kIsolateSpawn,
-    kJavascriptIntegerOverflowError,
-    kJavascriptCompatibilityError,
     kAssertion,
     kCast,
     kType,
@@ -80,7 +79,6 @@ class Exceptions : AllStatic {
                               const Integer& argument_value,
                               intptr_t expected_from,
                               intptr_t expected_to);
-  static void ThrowJavascriptCompatibilityError(const char* msg);
 
   // Returns a RawInstance if the exception is successfully created,
   // otherwise returns a RawError.

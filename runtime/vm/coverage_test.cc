@@ -8,7 +8,10 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 static RawObject* ExecuteScript(const char* script) {
+  TransitionVMToNative transition(Thread::Current());
   Dart_Handle h_lib = TestCase::LoadTestScript(script, NULL);
   EXPECT_VALID(h_lib);
   Library& lib = Library::Handle();
@@ -34,7 +37,7 @@ class FunctionCoverageFilter : public CoverageFilter {
 };
 
 
-TEST_CASE(Coverage_Empty) {
+VM_TEST_CASE(Coverage_Empty) {
   const char* kScript =
       "main() {\n"
       "}";
@@ -56,7 +59,7 @@ TEST_CASE(Coverage_Empty) {
 }
 
 
-TEST_CASE(Coverage_MainWithClass) {
+VM_TEST_CASE(Coverage_MainWithClass) {
   const char* kScript =
       "class Foo {\n"
       "  var x;\n"
@@ -100,7 +103,7 @@ TEST_CASE(Coverage_MainWithClass) {
 }
 
 
-TEST_CASE(Coverage_FilterFunction) {
+VM_TEST_CASE(Coverage_FilterFunction) {
   const char* kScript =
       "class Foo {\n"
       "  var x;\n"
@@ -135,5 +138,7 @@ TEST_CASE(Coverage_FilterFunction) {
       "\"_kind\":\"script\"},\"hits\":[6,0]}", lib.index());
   EXPECT_SUBSTRING(buf, js.ToCString());
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart

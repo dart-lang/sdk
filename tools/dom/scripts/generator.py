@@ -141,7 +141,7 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
         'ApplicationCache,DOMApplicationCache,OfflineResourceList',
 
     'Event':
-        'Event,InputEvent,ClipboardEvent',
+        'Event,InputEvent',
 
     'HTMLTableCellElement':
         'HTMLTableCellElement,HTMLTableDataCellElement,HTMLTableHeaderCellElement',
@@ -151,7 +151,7 @@ _dart2js_dom_custom_native_specs = monitored.Dict(
     'IDBOpenDBRequest':
         'IDBOpenDBRequest,IDBVersionChangeRequest',
 
-    'MouseEvent': 'MouseEvent,DragEvent,PointerEvent,MSPointerEvent',
+    'MouseEvent': 'MouseEvent,DragEvent',
 
     'MutationObserver': 'MutationObserver,WebKitMutationObserver',
 
@@ -294,7 +294,6 @@ def AnalyzeOperation(interface, operations):
 
   Returns: An OperationInfo object.
   """
-
   # split operations with optional args into multiple operations
   split_operations = []
   for operation in operations:
@@ -457,7 +456,14 @@ class OperationInfo(object):
         parameter declaration.
     """
     def FormatParam(param):
-      dart_type = rename_type(param.type_id) if param.type_id else 'dynamic'
+      # Is the type a typedef if so it's a union so it's dynamic.
+      # TODO(terry): This may have to change for dart2js for code shaking the
+      #              return types (unions) needs to be emitted with @create
+      #              annotations and/or with JS('type1|type2',...)
+      if hasattr(rename_type, 'im_self') and rename_type.im_self._database.HasTypeDef(param.type_id):
+        dart_type = 'dynamic'
+      else:
+        dart_type = rename_type(param.type_id) if param.type_id else 'dynamic'
       return (TypeOrNothing(dart_type, param.type_id), param.name)
     required = []
     optional = []
@@ -546,14 +552,10 @@ class OperationInfo(object):
         if (wrap_unwrap_type_blink(type_id, type_registry)):
           type_is_callback = self.isCallback(type_registry, type_id)
           if (dart_js_interop and type_id == 'EventListener' and
-              (self.name == 'addEventListener')):
+              self.name in ['addEventListener', 'removeEventListener']):
               # Events fired need use a JsFunction not a anonymous closure to
               # insure the event can really be removed.
-              parameters.append('wrap_event_listener(this, %s)' % p.name)
-          elif (dart_js_interop and type_id == 'EventListener' and
-              (self.name == 'removeEventListener')):
-              # Find the JsFunction that corresponds to this Dart function.
-              parameters.append('_knownListeners[this.hashCode][identityHashCode(%s)]' % p.name)
+              parameters.append('unwrap_jso(js.allowInterop(%s))' % p.name)
           elif dart_js_interop and type_id == 'FontFaceSetForEachCallback':
               # forEach is supported in the DOM for FontFaceSet as it iterates
               # over the Javascript Object the callback parameters are also
@@ -720,11 +722,12 @@ dart2js_conversions = monitored.Dict('generator.dart2js_conversions', {
     'any set IDBCursor.update': _serialize_SSV,
 
     # postMessage
+    'SerializedScriptValue set': _serialize_SSV,
+    'any set CompositorWorkerGlobalScope.postMessage': _serialize_SSV,
+    'any set DedicatedWorkerGlobalScope.postMessage': _serialize_SSV,
     'any set MessagePort.postMessage': _serialize_SSV,
-    'SerializedScriptValue set Window.postMessage': _serialize_SSV,
-    'SerializedScriptValue set Worker.postMessage': _serialize_SSV,
-    'any set DedicatedWorkerGlobalScope.postMessage' : _serialize_SSV,
-    'SerializedScriptValue set ServiceWorkerClient.postMessage': _serialize_SSV,
+    'any set Window.postMessage': _serialize_SSV,
+    'any set _DOMWindowCrossFrame.postMessage': _serialize_SSV,
 
     '* get CustomEvent.detail':
       Conversion('convertNativeToDart_SerializedScriptValue',
@@ -1261,6 +1264,9 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
     # TODO(vsm): This won't actually work until we convert the Map to
     # a native JS Map for JS DOM.
     'Dictionary': TypeData(clazz='Primitive', dart_type='Map'),
+    # TODO(terry): It's a dictionary but a very complex dictionary is multiple lists.
+    #              Need to investigate a 1-off solution probably.
+    'MediaKeySystemConfiguration': TypeData(clazz='Primitive', dart_type='Map'),
     'DOMTimeStamp': TypeData(clazz='Primitive', dart_type='int', native_type='unsigned long long'),
     'object': TypeData(clazz='Primitive', dart_type='Object', native_type='ScriptValue'),
     'ObjectArray': TypeData(clazz='Primitive', dart_type='List'),
@@ -1306,6 +1312,22 @@ _idl_type_registry = monitored.Dict('generator._idl_type_registry', {
         suppress_interface=True),
     'GLenum': TypeData(clazz='Primitive', dart_type='int',
         native_type='unsigned'),
+    'GLboolean': TypeData(clazz='Primitive', dart_type='bool',
+        native_type='bool'),
+    'GLbitfield': TypeData(clazz='Primitive', dart_type='int',
+        native_type='unsigned'),
+    'GLshort': TypeData(clazz='Primitive', dart_type='int', native_type='short'),
+    'GLint': TypeData(clazz='Primitive', dart_type='int',
+        native_type='long'),
+    'GLsizei': TypeData(clazz='Primitive', dart_type='int',
+        native_type='long'),
+    'GLintptr': TypeData(clazz='Primitive', dart_type='int'),
+    'GLsizeiptr': TypeData(clazz='Primitive', dart_type='int'),
+    'GLushort': TypeData(clazz='Primitive', dart_type='int', native_type='int'),
+    'GLuint': TypeData(clazz='Primitive', dart_type='int',
+        native_type='unsigned'),
+    'GLfloat': TypeData(clazz='Primitive', dart_type='num', native_type='float'),
+    'GLclampf': TypeData(clazz='Primitive', dart_type='num', native_type='float'),
     'HTMLCollection': TypeData(clazz='Interface', item_type='Node',
         dart_type='List<Node>'),
     'NamedNodeMap': TypeData(clazz='Interface', item_type='Node'),
@@ -1371,6 +1393,9 @@ class TypeRegistry(object):
   def HasInterface(self, type_name):
     return self._database.HasInterface(type_name)
 
+  def HasTypeDef(self, type_def_name):
+    return self._database.HasTypeDef(type_def_name)
+
   def TypeInfo(self, type_name):
     if not type_name in self._cache:
       self._cache[type_name] = self._TypeInfo(type_name)
@@ -1383,7 +1408,11 @@ class TypeRegistry(object):
     match = re.match(r'(?:sequence<([\w ]+)>|(\w+)\[\])$', type_name)
     if match:
       type_data = TypeData('Sequence')
-      item_info = self.TypeInfo(match.group(1) or match.group(2))
+      if self.HasTypeDef(match.group(1) or match.group(2)):
+        # It's a typedef (union)
+        item_info = self.TypeInfo('any')
+      else:
+        item_info = self.TypeInfo(match.group(1) or match.group(2))
       # TODO(vsm): Generalize this code.
       if 'SourceInfo' in type_name:
         type_data.native_type = 'const Vector<RefPtr<SourceInfo> >& '
@@ -1397,8 +1426,23 @@ class TypeRegistry(object):
 
       if self._database.HasInterface(type_name):
         interface = self._database.GetInterface(type_name)
-      else:
+      elif self._database.HasDictionary(type_name):
         interface = self._database.GetDictionary(type_name)
+      elif type_name.startswith('sequence<('):
+        if type_name.find(' or ') != -1:
+          # Union type of sequence is an any type (no type).
+          type_data = TypeData('Sequence')
+          item_info = self.TypeInfo('any')
+          return SequenceIDLTypeInfo(type_name, type_data, item_info)
+      elif type_name.startswith('sequence<sequence<'):
+        # TODO(terry): Cleanup up list of list, etc.
+        type_data = TypeData('Sequence')
+        item_info = self.TypeInfo('any')
+        return SequenceIDLTypeInfo(type_name, type_data, item_info)
+      elif self.HasTypeDef(type_name):
+        # It's a typedef (implied union)
+        return self.TypeInfo('any')
+
       if 'Callback' in interface.ext_attrs:
         return CallbackIDLTypeInfo(type_name, TypeData('Callback',
             self._renamer.DartifyTypeName(type_name)))
@@ -1441,9 +1485,20 @@ class TypeRegistry(object):
     class_name = '%sIDLTypeInfo' % type_data.clazz
     return globals()[class_name](type_name, type_data)
 
+def isList(return_type):
+  return return_type.startswith('List<') if return_type else False
+
+def get_list_type(return_type):
+  # Get the list type NNNN inside of List<NNNN>
+  return return_type[5:-1] if isList(return_type) else return_type
+
 def wrap_unwrap_list_blink(return_type, type_registry):
-    """Return True if the type is a List<Node>"""
-    return return_type.startswith('List<Node>')
+  """Return True if the type is the list type is a blink know
+     type e.g., List<Node>, List<FontFace>, etc."""
+  if isList(return_type):
+    list_type = get_list_type(return_type)
+    if type_registry.HasInterface(list_type):
+      return True;
 
 def wrap_unwrap_type_blink(return_type, type_registry):
     """Returns True if the type is a blink type that requires wrap_jso or

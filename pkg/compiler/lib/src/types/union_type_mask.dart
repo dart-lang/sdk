@@ -118,11 +118,11 @@ class UnionTypeMask implements TypeMask {
         // TODO(sigmund, johnniwinther): computing length here (and below) is
         // expensive. If we can't prevent `flatten` from being called a lot, it
         // might be worth caching results.
-        size = classWorld.strictSubclassesOf(candidate).length;
-        assert(size <= classWorld.strictSubtypesOf(candidate).length);
+        size = classWorld.strictSubclassCount(candidate);
+        assert(size <= classWorld.strictSubtypeCount(candidate));
       } else {
         kind = FlatTypeMask.SUBTYPE;
-        size = classWorld.strictSubtypesOf(candidate).length;
+        size = classWorld.strictSubtypeCount(candidate);
       }
       // Update the best candidate if the new one is better.
       if (bestElement == null || size < bestSize) {
@@ -152,18 +152,30 @@ class UnionTypeMask implements TypeMask {
   TypeMask intersection(var other, ClassWorld classWorld) {
     other = TypeMask.nonForwardingMask(other);
     if (!other.isUnion && disjointMasks.contains(other)) return other;
+    if (other.isUnion && this == other) return this;
 
     List<TypeMask> intersections = <TypeMask>[];
     for (TypeMask current in disjointMasks) {
       if (other.isUnion) {
-        for (FlatTypeMask flatOther in other.disjointMasks) {
-          intersections.add(current.intersection(flatOther, classWorld));
+        if (other.disjointMasks.contains(current)) {
+          intersections.add(current);
+        } else {
+          for (FlatTypeMask flatOther in other.disjointMasks) {
+            intersections.add(current.intersection(flatOther, classWorld));
+          }
         }
       } else {
         intersections.add(current.intersection(other, classWorld));
       }
     }
     return new TypeMask.unionOf(intersections, classWorld);
+  }
+
+  bool isDisjoint(TypeMask other, ClassWorld classWorld) {
+    for (var current in disjointMasks) {
+      if (!current.isDisjoint(other, classWorld)) return false;
+    }
+    return true;
   }
 
   TypeMask nullable() {

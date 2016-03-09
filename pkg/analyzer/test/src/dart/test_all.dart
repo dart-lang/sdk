@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.generated.test_all;
+library analyzer.test.src.dart.test_all;
 
 import 'package:unittest/unittest.dart';
 

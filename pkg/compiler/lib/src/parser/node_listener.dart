@@ -450,7 +450,7 @@ class NodeListener extends ElementListener {
     pushNode(new Rethrow(throwToken, endToken));
     if (identical(throwToken.stringValue, 'throw')) {
       reporter.reportErrorMessage(
-          throwToken, MessageKind.UNSUPPORTED_THROW_WITHOUT_EXP);
+          throwToken, MessageKind.MISSING_EXPRESSION_IN_THROW);
     }
   }
 

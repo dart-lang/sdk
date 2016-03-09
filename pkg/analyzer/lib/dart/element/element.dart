@@ -2,10 +2,42 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/**
+ * Defines the element model. The element model describes the semantic (as
+ * opposed to syntactic) structure of Dart code. The syntactic structure of the
+ * code is modeled by the [AST structure](../ast/ast.dart).
+ *
+ * The element model consists of two closely related kinds of objects: elements
+ * (instances of a subclass of [Element]) and types. This library defines the
+ * elements, the types are defined in [type.dart](type.dart).
+ *
+ * Generally speaking, an element represents something that is declared in the
+ * code, such as a class, method, or variable. Elements are organized in a tree
+ * structure in which the children of an element are the elements that are
+ * logically (and often syntactically) part of the declaration of the parent.
+ * For example, the elements representing the methods and fields in a class are
+ * children of the element representing the class.
+ *
+ * Every complete element structure is rooted by an instance of the class
+ * [LibraryElement]. A library element represents a single Dart library. Every
+ * library is defined by one or more compilation units (the library and all of
+ * its parts). The compilation units are represented by the class
+ * [CompilationUnitElement] and are children of the library that is defined by
+ * them. Each compilation unit can contain zero or more top-level declarations,
+ * such as classes, functions, and variables. Each of these is in turn
+ * represented as an element that is a child of the compilation unit. Classes
+ * contain methods and fields, methods can contain local variables, etc.
+ *
+ * The element model does not contain everything in the code, only those things
+ * that are declared by the code. For example, it does not include any
+ * representation of the statements in a method body, but if one of those
+ * statements declares a local variable then the local variable will be
+ * represented by an element.
+ */
 library analyzer.dart.element.element;
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart' show DartObject;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/java_core.dart';
@@ -603,6 +635,11 @@ abstract class Element implements AnalysisTarget {
   bool get isPrivate;
 
   /**
+   * Return `true` if this element has an annotation of the form '@protected'.
+   */
+  bool get isProtected;
+
+  /**
    * Return `true` if this element is public. Public elements are visible within
    * any library that imports the library in which they are declared.
    */
@@ -744,7 +781,7 @@ abstract class Element implements AnalysisTarget {
  *
  * Clients may not extend, implement or mix-in this class.
  */
-abstract class ElementAnnotation {
+abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /**
    * An empty list of annotations.
    */
@@ -775,6 +812,13 @@ abstract class ElementAnnotation {
    * expected to override an inherited method.
    */
   bool get isOverride;
+
+
+  /**
+   * Return `true` if this annotation marks the associated member as being
+   * protected.
+   */
+  bool get isProtected;
 
   /**
    * Return `true` if this annotation marks the associated class as implementing
@@ -1281,6 +1325,12 @@ abstract class LibraryElement implements Element {
   static const List<LibraryElement> EMPTY_LIST = const <LibraryElement>[];
 
   /**
+   * Return a list containing the strongly connected component in the
+   * import/export graph in which the current library resides.
+   */
+  List<LibraryElement> get libraryCycle;
+
+  /**
    * Return the compilation unit that defines this library.
    */
   CompilationUnitElement get definingCompilationUnit;
@@ -1345,6 +1395,11 @@ abstract class LibraryElement implements Element {
    * browser.
    */
   bool get isBrowserApplication;
+
+  /**
+   * Return `true` if this library is the dart:async library.
+   */
+  bool get isDartAsync;
 
   /**
    * Return `true` if this library is the dart:core library.
@@ -1427,14 +1482,12 @@ abstract class LocalElement implements Element {
    * which the name of this element is visible, or `null` if there is no single
    * range of characters within which the element name is visible.
    *
-   * * For a local variable, this includes everything from the end of the
-   *   variable's initializer to the end of the block that encloses the variable
-   *   declaration.
+   * * For a local variable, this is the source range of the block that
+   *   encloses the variable declaration.
    * * For a parameter, this includes the body of the method or function that
    *   declares the parameter.
-   * * For a local function, this includes everything from the beginning of the
-   *   function's body to the end of the block that encloses the function
-   *   declaration.
+   * * For a local function, this is the source range of the block that
+   *   encloses the variable declaration.
    * * For top-level functions, `null` will be returned because they are
    *   potentially visible in multiple sources.
    */
@@ -1467,154 +1520,6 @@ abstract class MethodElement implements ClassMemberElement, ExecutableElement {
 
   @override
   MethodDeclaration computeNode();
-}
-
-/**
- * The enumeration `Modifier` defines constants for all of the modifiers defined
- * by the Dart language and for a few additional flags that are useful.
- *
- * Clients may not extend, implement or mix-in this class.
- */
-class Modifier extends Enum<Modifier> {
-  /**
-   * Indicates that the modifier 'abstract' was applied to the element.
-   */
-  static const Modifier ABSTRACT = const Modifier('ABSTRACT', 0);
-
-  /**
-   * Indicates that an executable element has a body marked as being
-   * asynchronous.
-   */
-  static const Modifier ASYNCHRONOUS = const Modifier('ASYNCHRONOUS', 1);
-
-  /**
-   * Indicates that the modifier 'const' was applied to the element.
-   */
-  static const Modifier CONST = const Modifier('CONST', 2);
-
-  /**
-   * Indicates that the import element represents a deferred library.
-   */
-  static const Modifier DEFERRED = const Modifier('DEFERRED', 3);
-
-  /**
-   * Indicates that a class element was defined by an enum declaration.
-   */
-  static const Modifier ENUM = const Modifier('ENUM', 4);
-
-  /**
-   * Indicates that a class element was defined by an enum declaration.
-   */
-  static const Modifier EXTERNAL = const Modifier('EXTERNAL', 5);
-
-  /**
-   * Indicates that the modifier 'factory' was applied to the element.
-   */
-  static const Modifier FACTORY = const Modifier('FACTORY', 6);
-
-  /**
-   * Indicates that the modifier 'final' was applied to the element.
-   */
-  static const Modifier FINAL = const Modifier('FINAL', 7);
-
-  /**
-   * Indicates that an executable element has a body marked as being a
-   * generator.
-   */
-  static const Modifier GENERATOR = const Modifier('GENERATOR', 8);
-
-  /**
-   * Indicates that the pseudo-modifier 'get' was applied to the element.
-   */
-  static const Modifier GETTER = const Modifier('GETTER', 9);
-
-  /**
-   * A flag used for libraries indicating that the defining compilation unit
-   * contains at least one import directive whose URI uses the "dart-ext"
-   * scheme.
-   */
-  static const Modifier HAS_EXT_URI = const Modifier('HAS_EXT_URI', 10);
-
-  /**
-   * Indicates that the associated element did not have an explicit type
-   * associated with it. If the element is an [ExecutableElement], then the
-   * type being referred to is the return type.
-   */
-  static const Modifier IMPLICIT_TYPE = const Modifier('IMPLICIT_TYPE', 11);
-
-  /**
-   * Indicates that a class can validly be used as a mixin.
-   */
-  static const Modifier MIXIN = const Modifier('MIXIN', 12);
-
-  /**
-   * Indicates that a class is a mixin application.
-   */
-  static const Modifier MIXIN_APPLICATION =
-      const Modifier('MIXIN_APPLICATION', 13);
-
-  /**
-   * Indicates that the value of a parameter or local variable might be mutated
-   * within the context.
-   */
-  static const Modifier POTENTIALLY_MUTATED_IN_CONTEXT =
-      const Modifier('POTENTIALLY_MUTATED_IN_CONTEXT', 14);
-
-  /**
-   * Indicates that the value of a parameter or local variable might be mutated
-   * within the scope.
-   */
-  static const Modifier POTENTIALLY_MUTATED_IN_SCOPE =
-      const Modifier('POTENTIALLY_MUTATED_IN_SCOPE', 15);
-
-  /**
-   * Indicates that a class contains an explicit reference to 'super'.
-   */
-  static const Modifier REFERENCES_SUPER =
-      const Modifier('REFERENCES_SUPER', 16);
-
-  /**
-   * Indicates that the pseudo-modifier 'set' was applied to the element.
-   */
-  static const Modifier SETTER = const Modifier('SETTER', 17);
-
-  /**
-   * Indicates that the modifier 'static' was applied to the element.
-   */
-  static const Modifier STATIC = const Modifier('STATIC', 18);
-
-  /**
-   * Indicates that the element does not appear in the source code but was
-   * implicitly created. For example, if a class does not define any
-   * constructors, an implicit zero-argument constructor will be created and it
-   * will be marked as being synthetic.
-   */
-  static const Modifier SYNTHETIC = const Modifier('SYNTHETIC', 19);
-
-  static const List<Modifier> values = const [
-    ABSTRACT,
-    ASYNCHRONOUS,
-    CONST,
-    DEFERRED,
-    ENUM,
-    EXTERNAL,
-    FACTORY,
-    FINAL,
-    GENERATOR,
-    GETTER,
-    HAS_EXT_URI,
-    IMPLICIT_TYPE,
-    MIXIN,
-    MIXIN_APPLICATION,
-    POTENTIALLY_MUTATED_IN_CONTEXT,
-    POTENTIALLY_MUTATED_IN_SCOPE,
-    REFERENCES_SUPER,
-    SETTER,
-    STATIC,
-    SYNTHETIC
-  ];
-
-  const Modifier(String name, int ordinal) : super(name, ordinal);
 }
 
 /**
@@ -1732,9 +1637,13 @@ abstract class PrefixElement implements Element {
   LibraryElement get enclosingElement;
 
   /**
-   * Return a list containing all of the libraries that are imported using this
-   * prefix.
+   * Return the empty list.
+   *
+   * Deprecated: this getter was intended to return a list containing all of
+   * the libraries that are imported using this prefix, but it was never
+   * implemented.  Due to lack of demand, it is being removed.
    */
+  @deprecated
   List<LibraryElement> get importedLibraries;
 }
 
@@ -2020,7 +1929,12 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
    * closure. This information is only available for local variables (including
    * parameters) and only after the compilation unit containing the variable has
    * been resolved.
+   *
+   * This getter is deprecated--it now returns `true` for all local variables
+   * and parameters.  Please use [FunctionBody.isPotentiallyMutatedInClosure]
+   * instead.
    */
+  @deprecated
   bool get isPotentiallyMutatedInClosure;
 
   /**
@@ -2028,7 +1942,12 @@ abstract class VariableElement implements Element, ConstantEvaluationTarget {
    * scope. This information is only available for local variables (including
    * parameters) and only after the compilation unit containing the variable has
    * been resolved.
+   *
+   * This getter is deprecated--it now returns `true` for all local variables
+   * and parameters.  Please use [FunctionBody.isPotentiallyMutatedInClosure]
+   * instead.
    */
+  @deprecated
   bool get isPotentiallyMutatedInScope;
 
   /**

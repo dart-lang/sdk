@@ -28,6 +28,10 @@ part of dart.core;
  *     RegExp exp = new RegExp(r"(\w+)");
  *     String str = "Parse my string";
  *     Iterable<Match> matches = exp.allMatches(str);
+ * 
+ * Note the use of a _raw string_ (a string prefixed with `r`)
+ * in the example above. Use a raw string to treat each character in a string
+ * as a literal character.
  */
 abstract class RegExp implements Pattern {
   /**

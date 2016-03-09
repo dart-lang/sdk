@@ -134,7 +134,7 @@ void sendAnalysisNotificationAnalyzedFiles(AnalysisServer server) {
     // analysis engine to update this set incrementally as analysis is
     // performed.
     LibraryDependencyCollector collector =
-        new LibraryDependencyCollector(server.getAnalysisContexts().toList());
+        new LibraryDependencyCollector(server.analysisContexts.toList());
     Set<String> analyzedFiles = collector.collectLibraryDependencies();
     Set<String> prevAnalyzedFiles = server.prevAnalyzedFiles;
     if (prevAnalyzedFiles != null &&

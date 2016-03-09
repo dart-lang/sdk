@@ -796,7 +796,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    * on which the method is called, and calls the play() method of the
    * AnimationTimeline object of the document timeline of the node document
    * of the element, passing the newly created AnimationEffect as the argument
-   * to the method. Returns an AnimationPlayer for the effect.
+   * to the method. Returns an Animation for the effect.
    *
    * Examples
    *
@@ -815,7 +815,7 @@ $(ANNOTATIONS)$(NATIVESPEC)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   **/
   @Experimental()
   @SupportedBrowser(SupportedBrowser.CHROME, '36')
-  AnimationPlayer animate(Iterable<Map<String, dynamic>> frames, [timing]) {
+  Animation animate(Iterable<Map<String, dynamic>> frames, [timing]) {
     if (frames is! Iterable || !(frames.every((x) => x is Map))) {
       throw new ArgumentError("The frames parameter should be a List of Maps "
           "with frame information");
@@ -842,7 +842,7 @@ $if DART2JS
   @DomName('Element.animate')
   @JSName('animate')
   @Experimental() // untriaged
-  AnimationPlayer _animate(Object effect, [timing]) native;
+  Animation _animate(Object effect, [timing]) native;
 $endif
   /**
    * Called by the DOM whenever an attribute on this has been changed.
@@ -1520,6 +1520,10 @@ $endif
   }
 
 $if DART2JS
+  @DomName('Element.offsetParent')
+  @DocsEditable()
+  final Element offsetParent;
+
   @DomName('Element.offsetHeight')
   @DocsEditable()
   int get offsetHeight => JS('num', '#.offsetHeight', this).round();
@@ -1535,22 +1539,6 @@ $if DART2JS
   @DomName('Element.offsetWidth')
   @DocsEditable()
   int get offsetWidth => JS('num', '#.offsetWidth', this).round();
-
-  @DomName('Element.clientHeight')
-  @DocsEditable()
-  int get clientHeight => JS('num', '#.clientHeight', this).round();
-
-  @DomName('Element.clientLeft')
-  @DocsEditable()
-  int get clientLeft => JS('num', '#.clientLeft', this).round();
-
-  @DomName('Element.clientTop')
-  @DocsEditable()
-  int get clientTop => JS('num', '#.clientTop', this).round();
-
-  @DomName('Element.clientWidth')
-  @DocsEditable()
-  int get clientWidth => JS('num', '#.clientWidth', this).round();
 
   @DomName('Element.scrollHeight')
   @DocsEditable()
@@ -1581,42 +1569,29 @@ $if DART2JS
   int get scrollWidth => JS('num', '#.scrollWidth', this).round();
 
 $else
-  $if JSINTEROP
   // Need to explicitly delegate because Element is no longer abstract for Dartium.
   bool get isContentEditable => _blink.BlinkHTMLElement.instance.isContentEditable_Getter_(unwrap_jso(this));
   void click() => _blink.BlinkHTMLElement.instance.click_Callback_0_(unwrap_jso(this));
 
+  @DomName('Element.offsetParent')
+  @DocsEditable()
+  Element get offsetParent => wrap_jso(_blink.BlinkElement.instance.offsetParent_Getter_(unwrap_jso(this)));
+
   @DomName('Element.offsetHeight')
   @DocsEditable()
-  int get offsetHeight => _blink.BlinkElement.instance.offsetHeight_Getter_(unwrap_jso(this)).round();
+  int get offsetHeight => _blink.BlinkElement.instance.offsetHeight_Getter_(unwrap_jso(this));
 
   @DomName('Element.offsetLeft')
   @DocsEditable()
-  int get offsetLeft => _blink.BlinkElement.instance.offsetLeft_Getter_(unwrap_jso(this)).round();
+  int get offsetLeft => _blink.BlinkElement.instance.offsetLeft_Getter_(unwrap_jso(this));
 
   @DomName('Element.offsetTop')
   @DocsEditable()
-  int get offsetTop => _blink.BlinkElement.instance.offsetTop_Getter_(unwrap_jso(this)).round();
+  int get offsetTop => _blink.BlinkElement.instance.offsetTop_Getter_(unwrap_jso(this));
 
   @DomName('Element.offsetWidth')
   @DocsEditable()
-  int get offsetWidth => _blink.BlinkElement.instance.offsetWidth_Getter_(unwrap_jso(this)).round();
-
-  @DomName('Element.clientHeight')
-  @DocsEditable()
-  int get clientHeight => _blink.BlinkElement.instance.clientHeight_Getter_(unwrap_jso(this)).round();
-
-  @DomName('Element.clientLeft')
-  @DocsEditable()
-  int get clientLeft => _blink.BlinkElement.instance.clientLeft_Getter_(unwrap_jso(this)).round();
-
-  @DomName('Element.clientTop')
-  @DocsEditable()
-  int get clientTop => _blink.BlinkElement.instance.clientTop_Getter_(unwrap_jso(this)).round();
-
-  @DomName('Element.clientWidth')
-  @DocsEditable()
-  int get clientWidth => _blink.BlinkElement.instance.clientWidth_Getter_(unwrap_jso(this)).round();
+  int get offsetWidth => _blink.BlinkElement.instance.offsetWidth_Getter_(unwrap_jso(this));
 
   @DomName('Element.scrollHeight')
   @DocsEditable()
@@ -1641,63 +1616,6 @@ $else
   @DomName('Element.scrollWidth')
   @DocsEditable()
   int get scrollWidth => _blink.BlinkElement.instance.scrollWidth_Getter_(unwrap_jso(this)).round();
-  $else
-  @DomName('Element.offsetHeight')
-  @DocsEditable()
-  int get offsetHeight => _blink.BlinkElement.offsetHeight_Getter(this).round();
-
-  @DomName('Element.offsetLeft')
-  @DocsEditable()
-  int get offsetLeft => _blink.BlinkElement.offsetLeft_Getter(this).round();
-
-  @DomName('Element.offsetTop')
-  @DocsEditable()
-  int get offsetTop => _blink.BlinkElement.offsetTop_Getter(this).round();
-
-  @DomName('Element.offsetWidth')
-  @DocsEditable()
-  int get offsetWidth => _blink.BlinkElement.offsetWidth_Getter(this).round();
-
-  @DomName('Element.clientHeight')
-  @DocsEditable()
-  int get clientHeight => _blink.BlinkElement.clientHeight_Getter(this).round();
-
-  @DomName('Element.clientLeft')
-  @DocsEditable()
-  int get clientLeft => _blink.BlinkElement.clientLeft_Getter(this).round();
-
-  @DomName('Element.clientTop')
-  @DocsEditable()
-  int get clientTop => _blink.BlinkElement.clientTop_Getter(this).round();
-
-  @DomName('Element.clientWidth')
-  @DocsEditable()
-  int get clientWidth => _blink.BlinkElement.clientWidth_Getter(this).round();
-
-  @DomName('Element.scrollHeight')
-  @DocsEditable()
-  int get scrollHeight => _blink.BlinkElement.scrollHeight_Getter(this).round();
-
-  @DomName('Element.scrollLeft')
-  @DocsEditable()
-  int get scrollLeft => _blink.BlinkElement.scrollLeft_Getter(this).round();
-
-  @DomName('Element.scrollLeft')
-  @DocsEditable()
-  set scrollLeft(int value) => _blink.BlinkElement.scrollLeft_Setter(this, value.round());
-
-  @DomName('Element.scrollTop')
-  @DocsEditable()
-  int get scrollTop => _blink.BlinkElement.scrollTop_Getter(this).round();
-
-  @DomName('Element.scrollTop')
-  @DocsEditable()
-  set scrollTop(int value) => _blink.BlinkElement.scrollTop_Setter(this, value.round());
-
-  @DomName('Element.scrollWidth')
-  @DocsEditable()
-  int get scrollWidth => _blink.BlinkElement.scrollWidth_Getter(this).round();
-  $endif
 $endif
 
 $!MEMBERS

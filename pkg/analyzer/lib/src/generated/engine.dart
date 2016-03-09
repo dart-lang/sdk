@@ -7,13 +7,14 @@ library analyzer.src.generated.engine;
 import 'dart:async';
 import 'dart:collection';
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/src/cancelable_future.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_core.dart';
@@ -312,8 +313,8 @@ abstract class AnalysisContext {
    * Perform work until the given [result] has been computed for the given
    * [target]. Return the computed value.
    */
-  Object /*=V*/ computeResult /*<V>*/ (
-      AnalysisTarget target, ResultDescriptor /*<V>*/ result);
+  Object/*=V*/ computeResult/*<V>*/(
+      AnalysisTarget target, ResultDescriptor/*<V>*/ result);
 
   /**
    * Notifies the context that the client is going to stop using this context.
@@ -474,8 +475,8 @@ abstract class AnalysisContext {
    * If the corresponding [target] does not exist, or the [result] is not
    * computed yet, then the default value is returned.
    */
-  Object /*=V*/ getResult /*<V>*/ (
-      AnalysisTarget target, ResultDescriptor /*<V>*/ result);
+  Object/*=V*/ getResult/*<V>*/(
+      AnalysisTarget target, ResultDescriptor/*<V>*/ result);
 
   /**
    * Return a list of the sources being analyzed in this context whose full path
@@ -880,8 +881,8 @@ class AnalysisEngine {
     if (fileName == null) {
       return false;
     }
-    return javaStringEqualsIgnoreCase(
-        FileNameUtilities.getExtension(fileName), SUFFIX_DART);
+    String extension = FileNameUtilities.getExtension(fileName).toLowerCase();
+    return extension == SUFFIX_DART;
   }
 
   /**
@@ -891,9 +892,8 @@ class AnalysisEngine {
     if (fileName == null) {
       return false;
     }
-    String extension = FileNameUtilities.getExtension(fileName);
-    return javaStringEqualsIgnoreCase(extension, SUFFIX_HTML) ||
-        javaStringEqualsIgnoreCase(extension, SUFFIX_HTM);
+    String extension = FileNameUtilities.getExtension(fileName).toLowerCase();
+    return extension == SUFFIX_HTML || extension == SUFFIX_HTM;
   }
 }
 
@@ -922,6 +922,7 @@ class AnalysisErrorInfoImpl implements AnalysisErrorInfo {
    * The analysis errors associated with a source, or `null` if there are no
    * errors.
    */
+  @override
   final List<AnalysisError> errors;
 
   /**
@@ -1122,6 +1123,19 @@ abstract class AnalysisOptions {
    * Return `true` if strong mode analysis should be used.
    */
   bool get strongMode;
+
+  /**
+   * Return an integer encoding of the values of the options that need to be the
+   * same across all of the contexts associated with partitions that are to be
+   * shared by a single analysis context.
+   */
+  int encodeCrossContextOptions();
+
+  /**
+   * Set the values of the cross-context options to match those in the given set
+   * of [options].
+   */
+  void setCrossContextOptionsFrom(AnalysisOptions options);
 }
 
 /**
@@ -1133,6 +1147,14 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    * The maximum number of sources for which data should be kept in the cache.
    */
   static const int DEFAULT_CACHE_SIZE = 64;
+
+  static const int ENABLE_ASSERT_FLAG = 0x01;
+  static const int ENABLE_ASYNC_FLAG = 0x02;
+  static const int ENABLE_GENERIC_METHODS_FLAG = 0x04;
+  static const int ENABLE_STRICT_CALL_CHECKS_FLAG = 0x08;
+  static const int ENABLE_STRONG_MODE_FLAG = 0x10;
+  static const int ENABLE_STRONG_MODE_HINTS_FLAG = 0x20;
+  static const int ENABLE_SUPER_MIXINS_FLAG = 0x40;
 
   /**
    * A predicate indicating whether analysis is to parse and analyze function
@@ -1305,6 +1327,29 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       throw new ArgumentError.notNull('analyzeFunctionBodiesPredicate');
     }
     _analyzeFunctionBodiesPredicate = value;
+  }
+
+  @override
+  int encodeCrossContextOptions() =>
+      (enableAssertMessage ? ENABLE_ASSERT_FLAG : 0) |
+      (enableAsync ? ENABLE_ASYNC_FLAG : 0) |
+      (enableGenericMethods ? ENABLE_GENERIC_METHODS_FLAG : 0) |
+      (enableStrictCallChecks ? ENABLE_STRICT_CALL_CHECKS_FLAG : 0) |
+      (strongMode ? ENABLE_STRONG_MODE_FLAG : 0) |
+      (strongModeHints ? ENABLE_STRONG_MODE_HINTS_FLAG : 0) |
+      (enableSuperMixins ? ENABLE_SUPER_MIXINS_FLAG : 0);
+
+  @override
+  void setCrossContextOptionsFrom(AnalysisOptions options) {
+    enableAssertMessage = options.enableAssertMessage;
+    enableAsync = options.enableAsync;
+    enableGenericMethods = options.enableGenericMethods;
+    enableStrictCallChecks = options.enableStrictCallChecks;
+    enableSuperMixins = options.enableSuperMixins;
+    strongMode = options.strongMode;
+    if (options is AnalysisOptionsImpl) {
+      strongModeHints = options.strongModeHints;
+    }
   }
 
   /**
@@ -1484,18 +1529,21 @@ class ChangeNoticeImpl implements ChangeNotice {
   /**
    * The source for which the result is being reported.
    */
+  @override
   final Source source;
 
   /**
    * The parsed, but maybe not resolved Dart AST that changed as a result of
    * the analysis, or `null` if the AST was not changed.
    */
+  @override
   CompilationUnit parsedDartUnit;
 
   /**
    * The fully resolved Dart AST that changed as a result of the analysis, or
    * `null` if the AST was not changed.
    */
+  @override
   CompilationUnit resolvedDartUnit;
 
   /**
@@ -1589,6 +1637,7 @@ class ChangeSet {
   /**
    * A list containing the sources that have been deleted.
    */
+  @deprecated
   final List<Source> deletedSources = new List<Source>();
 
   /**
@@ -1651,6 +1700,7 @@ class ChangeSet {
   /**
    * Record that the specified [source] has been deleted.
    */
+  @deprecated
   void deletedSource(Source source) {
     deletedSources.add(source);
   }
@@ -1849,6 +1899,11 @@ class ImplicitAnalysisEvent {
  * users of the context.
  */
 abstract class InternalAnalysisContext implements AnalysisContext {
+  /**
+   * The result provider for [aboutToComputeResult].
+   */
+  ResultProvider resultProvider;
+
   /**
    * A table mapping the sources known to the context to the information known
    * about the source.

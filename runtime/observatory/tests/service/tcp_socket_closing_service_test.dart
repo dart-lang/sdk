@@ -54,13 +54,14 @@ Future setup() async {
 var tests = [
   // Initial.
   (Isolate isolate) async {
-    var result = await isolate.invokeRpcNoUpgrade('__getOpenSockets', {});
+    var result =
+        await isolate.invokeRpcNoUpgrade('ext.dart.io.getOpenSockets', {});
     expect(result['type'], equals('_opensockets'));
     // We expect only one socket to be open, the server socket create at the
     // end of test.
     expect(result['data'].length, equals(1));
     var server = await isolate.invokeRpcNoUpgrade(
-        '__getSocketByID', { 'id' : result['data'][0]['id'] });
+        'ext.dart.io.getSocketByID', { 'id' : result['data'][0]['id'] });
     expect(server['listening'], isTrue);
     expect(server['lastRead'], equals(0));
     expect(server['totalRead'], equals(0));

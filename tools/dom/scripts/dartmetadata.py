@@ -371,7 +371,7 @@ _dart2js_annotations = monitored.Dict('dartmetadata._dart2js_annotations', {
     ],
 
     'WebGLRenderingContext.getContextAttributes': [
-      "@Creates('ContextAttributes|=Object')",
+      "@Creates('ContextAttributes|Null')",
     ],
 
     'XMLHttpRequest.response': [

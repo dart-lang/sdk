@@ -4,15 +4,20 @@
 
 library analyzer.test.generated.parser_test;
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/dart/scanner/reader.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/incremental_scanner.dart';
 import 'package:analyzer/src/generated/parser.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/element_factory.dart';
@@ -503,6 +508,16 @@ class C {
         BinaryExpression, expression.leftOperand);
   }
 
+  void test_topLevelFunction_nestedGenericFunction() {
+    enableGenericMethods = true;
+    parseCompilationUnitWithOptions('''
+void f() {
+  void g<T>() {
+  }
+}
+''');
+  }
+
   void _validate_assignableExpression_arguments_normal_chain_typeArguments(
       String code) {
     PropertyAccess propertyAccess1 = parseExpression(code);
@@ -937,21 +952,42 @@ class ErrorParserTest extends ParserTestCase {
         [ParserErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT]);
   }
 
+  void test_emptyEnumBody() {
+    parse3("parseEnumDeclaration", <Object>[emptyCommentAndMetadata()],
+        "enum E {}", [ParserErrorCode.EMPTY_ENUM_BODY]);
+  }
+
   void test_enableAsync_false_1() {
     parseAsync = false;
-    parse4("parseFunctionDeclarationStatement",
-        "foo() async {}", [ParserErrorCode.ASYNC_NOT_SUPPORTED]);
+    FunctionDeclarationStatement stmt = parse4(
+        "parseFunctionDeclarationStatement",
+        "foo() async {}",
+        [ParserErrorCode.ASYNC_NOT_SUPPORTED]);
+    FunctionExpression expr = stmt.functionDeclaration.functionExpression;
+    expect(expr.body.isAsynchronous, isTrue);
+    expect(expr.body.isGenerator, isFalse);
   }
 
   void test_enableAsync_false_2() {
     parseAsync = false;
-    parse4("parseFunctionDeclarationStatement",
-        "foo() sync* {}", [ParserErrorCode.ASYNC_NOT_SUPPORTED]);
+    FunctionDeclarationStatement stmt = parse4(
+        "parseFunctionDeclarationStatement",
+        "foo() async => 0;",
+        [ParserErrorCode.ASYNC_NOT_SUPPORTED]);
+    FunctionExpression expr = stmt.functionDeclaration.functionExpression;
+    expect(expr.body.isAsynchronous, isTrue);
+    expect(expr.body.isGenerator, isFalse);
   }
 
-  void test_emptyEnumBody() {
-    parse3("parseEnumDeclaration", <Object>[emptyCommentAndMetadata()],
-        "enum E {}", [ParserErrorCode.EMPTY_ENUM_BODY]);
+  void test_enableAsync_false_3() {
+    parseAsync = false;
+    FunctionDeclarationStatement stmt = parse4(
+        "parseFunctionDeclarationStatement",
+        "foo() sync* {}",
+        [ParserErrorCode.ASYNC_NOT_SUPPORTED]);
+    FunctionExpression expr = stmt.functionDeclaration.functionExpression;
+    expect(expr.body.isAsynchronous, isFalse);
+    expect(expr.body.isGenerator, isTrue);
   }
 
   void test_enumInClass() {
@@ -1474,6 +1510,49 @@ class Foo {
         reason: 'parser recovers what it can');
   }
 
+  void test_method_invalidTypeParameterExtends() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/25739.
+
+    // TODO(jmesserly): ideally we'd be better at parser recovery here.
+    enableGenericMethods = true;
+    MethodDeclaration method = parse3(
+        "parseClassMember",
+        <Object>["C"],
+        "f<E>(E extends num p);",
+        [
+          ParserErrorCode.MISSING_IDENTIFIER, // `extends` is a keyword
+          ParserErrorCode.EXPECTED_TOKEN, // comma
+          ParserErrorCode.EXPECTED_TOKEN, // close paren
+          ParserErrorCode.MISSING_FUNCTION_BODY
+        ]);
+    expect(method.parameters.toString(), '(E, extends)',
+        reason: 'parser recovers what it can');
+  }
+
+  void test_method_invalidTypeParameterExtendsComment() {
+    // Regression test for https://github.com/dart-lang/sdk/issues/25739.
+
+    // TODO(jmesserly): ideally we'd be better at parser recovery here.
+    // Also, this behavior is slightly different from how we would parse a
+    // normal generic method, because we "discover" the comment at a different
+    // point in the parser. This has a slight effect on the AST that results
+    // from error recovery.
+    enableGenericMethodComments = true;
+    MethodDeclaration method = parse3(
+        "parseClassMember",
+        <Object>["C"],
+        "f/*<E>*/(dynamic/*=E extends num*/p);",
+        [
+          ParserErrorCode.MISSING_IDENTIFIER, // `extends` is a keyword
+          ParserErrorCode.EXPECTED_TOKEN, // comma
+          ParserErrorCode.MISSING_IDENTIFIER, // `extends` is a keyword
+          ParserErrorCode.EXPECTED_TOKEN, // close paren
+          ParserErrorCode.MISSING_FUNCTION_BODY
+        ]);
+    expect(method.parameters.toString(), '(E extends, extends)',
+        reason: 'parser recovers what it can');
+  }
+
   void test_method_invalidTypeParameters() {
     // TODO(jmesserly): ideally we'd be better at parser recovery here.
     // It doesn't try to advance past the invalid token `!` to find the
@@ -1866,6 +1945,16 @@ class Foo {
   void test_positionalParameterOutsideGroup() {
     parse4("parseFormalParameterList", "(a, b = 0)",
         [ParserErrorCode.POSITIONAL_PARAMETER_OUTSIDE_GROUP]);
+  }
+
+  void test_redirectingConstructorWithBody_named() {
+    parse3("parseClassMember", <Object>["C"], "C.x() : this() {}",
+        [ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY]);
+  }
+
+  void test_redirectingConstructorWithBody_unnamed() {
+    parse3("parseClassMember", <Object>["C"], "C() : this.x() {}",
+        [ParserErrorCode.REDIRECTING_CONSTRUCTOR_WITH_BODY]);
   }
 
   void test_redirectionInNonFactoryConstructor() {
@@ -2848,6 +2937,30 @@ class ParserTestCase extends EngineTestCase {
       parse3(methodName, _EMPTY_ARGUMENTS, source, errorCodes);
 
   /**
+   * Parse the given [source] as a compilation unit. Throw an exception if the
+   * source could not be parsed, if the compilation errors in the source do not
+   * match those that are expected, or if the result would have been `null`.
+   */
+  CompilationUnit parseCompilationUnitWithOptions(String source,
+      [List<ErrorCode> errorCodes = ErrorCode.EMPTY_LIST]) {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    Scanner scanner =
+        new Scanner(null, new CharSequenceReader(source), listener);
+    listener.setLineInfo(new TestSource(), scanner.lineStarts);
+    Token token = scanner.tokenize();
+    Parser parser = createParser(listener);
+    parser.parseAsync = parseAsync;
+    parser.parseFunctionBodies = parseFunctionBodies;
+    parser.parseConditionalDirectives = enableConditionalDirectives;
+    parser.parseGenericMethods = enableGenericMethods;
+    parser.parseGenericMethodComments = enableGenericMethodComments;
+    CompilationUnit unit = parser.parseCompilationUnit(token);
+    expect(unit, isNotNull);
+    listener.assertErrorsWithCodes(errorCodes);
+    return unit;
+  }
+
+  /**
    * Parse the given source as an expression.
    *
    * @param source the source to be parsed
@@ -3687,6 +3800,55 @@ class C {
     expect(statement.toSource(), 'List<String> v;');
   }
 
+  void test_incompleteTypeArguments_field() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(
+        r'''
+class C {
+  final List<int f;
+}''',
+        [ParserErrorCode.EXPECTED_TOKEN]);
+    // one class
+    List<CompilationUnitMember> declarations = unit.declarations;
+    expect(declarations, hasLength(1));
+    ClassDeclaration classDecl = declarations[0] as ClassDeclaration;
+    // one field declaration
+    List<ClassMember> members = classDecl.members;
+    expect(members, hasLength(1));
+    FieldDeclaration fieldDecl = members[0] as FieldDeclaration;
+    // one field
+    VariableDeclarationList fieldList = fieldDecl.fields;
+    List<VariableDeclaration> fields = fieldList.variables;
+    expect(fields, hasLength(1));
+    VariableDeclaration field = fields[0];
+    expect(field.name.name, 'f');
+    // validate the type
+    TypeArgumentList typeArguments = fieldList.type.typeArguments;
+    expect(typeArguments.arguments, hasLength(1));
+    // synthetic '>'
+    Token token = typeArguments.endToken;
+    expect(token.type, TokenType.GT);
+    expect(token.isSynthetic, isTrue);
+  }
+
+  void test_incompleteTypeParameters() {
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(
+        r'''
+class C<K {
+}''',
+        [ParserErrorCode.EXPECTED_TOKEN]);
+    // one class
+    List<CompilationUnitMember> declarations = unit.declarations;
+    expect(declarations, hasLength(1));
+    ClassDeclaration classDecl = declarations[0] as ClassDeclaration;
+    // validate the type parameters
+    TypeParameterList typeParameters = classDecl.typeParameters;
+    expect(typeParameters.typeParameters, hasLength(1));
+    // synthetic '>'
+    Token token = typeParameters.endToken;
+    expect(token.type, TokenType.GT);
+    expect(token.isSynthetic, isTrue);
+  }
+
   void test_invalidFunctionBodyModifier() {
     ParserTestCase.parseCompilationUnit(
         "f() sync {}", [ParserErrorCode.MISSING_STAR_AFTER_SYNC]);
@@ -3852,6 +4014,33 @@ class C {
     NodeList<Annotation> metadata = method.metadata;
     expect(metadata, hasLength(1));
     expect(metadata[0].name.name, "override");
+  }
+
+  void test_missingSemicolon_varialeDeclarationList() {
+    void verify(CompilationUnitMember member, String expectedTypeName,
+        String expectedName, String expectedSemicolon) {
+      expect(member, new isInstanceOf<TopLevelVariableDeclaration>());
+      TopLevelVariableDeclaration declaration = member;
+      VariableDeclarationList variableList = declaration.variables;
+      expect(variableList, isNotNull);
+      NodeList<VariableDeclaration> variables = variableList.variables;
+      expect(variables, hasLength(1));
+      VariableDeclaration variable = variables[0];
+      expect(variableList.type.toString(), expectedTypeName);
+      expect(variable.name.name, expectedName);
+      expect(declaration.semicolon.lexeme, expectedSemicolon);
+    }
+
+    CompilationUnit unit = ParserTestCase.parseCompilationUnit(
+        'String n x = "";', [
+      ParserErrorCode.EXPECTED_TOKEN,
+      ParserErrorCode.MISSING_CONST_FINAL_VAR_OR_TYPE
+    ]);
+    expect(unit, isNotNull);
+    NodeList<CompilationUnitMember> declarations = unit.declarations;
+    expect(declarations, hasLength(2));
+    verify(declarations[0], 'String', 'n', '');
+    verify(declarations[1], 'null', 'x', ';');
   }
 
   void test_multiplicativeExpression_missing_LHS() {
@@ -4060,6 +4249,24 @@ class C {
 
 @reflectiveTest
 class ResolutionCopierTest extends EngineTestCase {
+  void test_visitAdjacentStrings() {
+    AdjacentStrings createNode() => new AdjacentStrings([
+          new SimpleStringLiteral(null, 'hello'),
+          new SimpleStringLiteral(null, 'world')
+        ]);
+
+    AdjacentStrings fromNode = createNode();
+    DartType propagatedType = ElementFactory.classElement2("A").type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("B").type;
+    fromNode.staticType = staticType;
+
+    AdjacentStrings toNode = createNode();
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
+  }
+
   void test_visitAnnotation() {
     String annotationName = "proxy";
     Annotation fromNode =
@@ -4267,20 +4474,16 @@ class ResolutionCopierTest extends EngineTestCase {
     MethodElement propagatedElement = ElementFactory.methodElement(
         "m", ElementFactory.classElement2("C").type);
     fromNode.propagatedElement = propagatedElement;
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
     MethodElement staticElement = ElementFactory.methodElement(
         "m", ElementFactory.classElement2("C").type);
     fromNode.staticElement = staticElement;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
     FunctionExpressionInvocation toNode =
         AstFactory.functionExpressionInvocation(AstFactory.identifier3("f"));
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
+
+    _copyAndVerifyInvocation(fromNode, toNode);
+
     expect(toNode.propagatedElement, same(propagatedElement));
-    expect(toNode.propagatedType, same(propagatedType));
     expect(toNode.staticElement, same(staticElement));
-    expect(toNode.staticType, same(staticType));
   }
 
   void test_visitImportDirective() {
@@ -4402,14 +4605,8 @@ class ResolutionCopierTest extends EngineTestCase {
 
   void test_visitMethodInvocation() {
     MethodInvocation fromNode = AstFactory.methodInvocation2("m");
-    DartType propagatedType = ElementFactory.classElement2("C").type;
-    fromNode.propagatedType = propagatedType;
-    DartType staticType = ElementFactory.classElement2("C").type;
-    fromNode.staticType = staticType;
     MethodInvocation toNode = AstFactory.methodInvocation2("m");
-    ResolutionCopier.copyResolutionData(fromNode, toNode);
-    expect(toNode.propagatedType, same(propagatedType));
-    expect(toNode.staticType, same(staticType));
+    _copyAndVerifyInvocation(fromNode, toNode);
   }
 
   void test_visitNamedExpression() {
@@ -4685,6 +4882,25 @@ class ResolutionCopierTest extends EngineTestCase {
     TypeName toNode = AstFactory.typeName4("C");
     ResolutionCopier.copyResolutionData(fromNode, toNode);
     expect(toNode.type, same(type));
+  }
+
+  void _copyAndVerifyInvocation(
+      InvocationExpression fromNode, InvocationExpression toNode) {
+    DartType propagatedType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedType = propagatedType;
+    DartType staticType = ElementFactory.classElement2("C").type;
+    fromNode.staticType = staticType;
+
+    DartType propagatedInvokeType = ElementFactory.classElement2("C").type;
+    fromNode.propagatedInvokeType = propagatedInvokeType;
+    DartType staticInvokeType = ElementFactory.classElement2("C").type;
+    fromNode.staticInvokeType = staticInvokeType;
+
+    ResolutionCopier.copyResolutionData(fromNode, toNode);
+    expect(toNode.propagatedType, same(propagatedType));
+    expect(toNode.staticType, same(staticType));
+    expect(toNode.propagatedInvokeType, same(propagatedInvokeType));
+    expect(toNode.staticInvokeType, same(staticInvokeType));
   }
 }
 
@@ -7064,6 +7280,15 @@ void''');
     expect(declaration.functionExpression.typeParameters, isNotNull);
   }
 
+  void
+      test_parseCompilationUnitMember_function_generic_noReturnType_annotated() {
+    enableGenericMethods = true;
+    FunctionDeclaration declaration = parse("parseCompilationUnitMember",
+        <Object>[emptyCommentAndMetadata()], "f<@a E>() {}");
+    expect(declaration.returnType, isNull);
+    expect(declaration.functionExpression.typeParameters, isNotNull);
+  }
+
   void test_parseCompilationUnitMember_function_generic_returnType() {
     enableGenericMethods = true;
     FunctionDeclaration declaration = parse("parseCompilationUnitMember",
@@ -7334,6 +7559,16 @@ void''');
     expect(literal.rightBracket, isNotNull);
   }
 
+  void test_parseConstExpression_listLiteral_typed_genericComment() {
+    enableGenericMethodComments = true;
+    ListLiteral literal = parse4("parseConstExpression", "const /*<A>*/ []");
+    expect(literal.constKeyword, isNotNull);
+    expect(literal.typeArguments, isNotNull);
+    expect(literal.leftBracket, isNotNull);
+    expect(literal.elements, hasLength(0));
+    expect(literal.rightBracket, isNotNull);
+  }
+
   void test_parseConstExpression_listLiteral_untyped() {
     ListLiteral literal = parse4("parseConstExpression", "const []");
     expect(literal.constKeyword, isNotNull);
@@ -7345,6 +7580,15 @@ void''');
 
   void test_parseConstExpression_mapLiteral_typed() {
     MapLiteral literal = parse4("parseConstExpression", "const <A, B> {}");
+    expect(literal.leftBracket, isNotNull);
+    expect(literal.entries, hasLength(0));
+    expect(literal.rightBracket, isNotNull);
+    expect(literal.typeArguments, isNotNull);
+  }
+
+  void test_parseConstExpression_mapLiteral_typed_genericComment() {
+    enableGenericMethodComments = true;
+    MapLiteral literal = parse4("parseConstExpression", "const /*<A, B>*/ {}");
     expect(literal.leftBracket, isNotNull);
     expect(literal.entries, hasLength(0));
     expect(literal.rightBracket, isNotNull);
@@ -9856,6 +10100,13 @@ void''');
     expect(literal.typeArguments.arguments, hasLength(1));
   }
 
+  void test_parsePrimaryExpression_listLiteral_typed_genericComment() {
+    enableGenericMethodComments = true;
+    ListLiteral literal = parse4("parsePrimaryExpression", "/*<A>*/[ ]");
+    expect(literal.typeArguments, isNotNull);
+    expect(literal.typeArguments.arguments, hasLength(1));
+  }
+
   void test_parsePrimaryExpression_mapLiteral() {
     MapLiteral literal = parse4("parsePrimaryExpression", "{}");
     expect(literal, isNotNull);
@@ -9863,6 +10114,13 @@ void''');
 
   void test_parsePrimaryExpression_mapLiteral_typed() {
     MapLiteral literal = parse4("parsePrimaryExpression", "<A, B>{}");
+    expect(literal.typeArguments, isNotNull);
+    expect(literal.typeArguments.arguments, hasLength(2));
+  }
+
+  void test_parsePrimaryExpression_mapLiteral_typed_genericComment() {
+    enableGenericMethodComments = true;
+    MapLiteral literal = parse4("parsePrimaryExpression", "/*<A, B>*/{}");
     expect(literal.typeArguments, isNotNull);
     expect(literal.typeArguments.arguments, hasLength(2));
   }

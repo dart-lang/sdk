@@ -185,4 +185,14 @@ main() {
       expect(s, null);
     }));
   });
+
+  test("timeoutType", () {
+    Completer completer = new Completer<int>();
+    Future timedOut = completer.future.timeout(
+        const Duration(milliseconds: 5));
+    expect(timedOut, new isInstanceOf<Future<int>>());
+    expect(timedOut, isNot(new isInstanceOf<Future<String>>()));
+    timedOut.catchError((_) {});
+    completer.complete(499);
+  });
 }

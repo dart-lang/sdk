@@ -26,14 +26,14 @@ class CpuId : public AllStatic {
   static const char* field(CpuInfoIndices idx) { return NULL; }
 #endif
 
-  static bool sse2() { return sse2_; }
-  static bool sse41() { return sse41_; }
-
+ private:
   // Caller must free the result of id_string and brand_string.
   static const char* id_string();
   static const char* brand_string();
 
- private:
+  static bool sse2() { return sse2_; }
+  static bool sse41() { return sse41_; }
+
   static bool sse2_;
   static bool sse41_;
   static const char* id_string_;

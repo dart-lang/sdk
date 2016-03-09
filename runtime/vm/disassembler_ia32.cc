@@ -15,6 +15,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 // Tables used for decoding of x86 instructions.
 enum OperandOrder {
   UNSET_OP_ORDER = 0,
@@ -1861,6 +1863,8 @@ void Disassembler::DecodeInstruction(char* hex_buffer, intptr_t hex_size,
     *out_instr_len = instruction_length;
   }
 }
+
+#endif  // !PRODUCT
 
 }  // namespace dart
 

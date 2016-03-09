@@ -8,7 +8,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
 import 'observatory_element.dart';
-import 'package:observatory/app.dart';
 import 'package:observatory/service_html.dart';
 import 'package:polymer/polymer.dart';
 
@@ -57,15 +56,23 @@ class TimelinePageElement extends ObservatoryElement {
   }
 
   Future recordOn() async {
-    return app.vm.invokeRpc('_setVMTimelineFlag', {
-      '_record': 'all',
+    return app.vm.invokeRpc('_setVMTimelineFlags', {
+      'recordedStreams': ['all'],
     });
   }
 
   Future recordOff() async {
-    return app.vm.invokeRpc('_setVMTimelineFlag', {
-      '_record': 'none',
+    return app.vm.invokeRpc('_setVMTimelineFlags', {
+      'recordedStreams': [],
     });
+  }
+
+  Future saveTimeline() async {
+    return postMessage('save');
+  }
+
+  Future loadTimeline() async {
+    return postMessage('load');
   }
 
   _updateSize() {

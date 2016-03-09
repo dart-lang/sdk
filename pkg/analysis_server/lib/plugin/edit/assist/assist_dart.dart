@@ -61,7 +61,7 @@ abstract class DartAssistContributor implements AssistContributor {
       return Assist.EMPTY_LIST;
     }
     CompilationUnit unit =
-        analysisContext.resolveCompilationUnit2(source, libraries[0]);
+        analysisContext.getResolvedCompilationUnit2(source, libraries[0]);
     if (unit == null) {
       return Assist.EMPTY_LIST;
     }

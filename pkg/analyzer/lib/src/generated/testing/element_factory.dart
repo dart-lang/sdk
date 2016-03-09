@@ -6,16 +6,16 @@ library analyzer.src.generated.testing.element_factory;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/resolver.dart';
-import 'package:analyzer/src/generated/scanner.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -100,6 +100,15 @@ class ElementFactory {
     ConstructorElementImpl constructor = name == null
         ? new ConstructorElementImpl("", -1)
         : new ConstructorElementImpl(name, 0);
+    if (name != null) {
+      if (name.isEmpty) {
+        constructor.nameEnd = definingClass.name.length;
+      } else {
+        constructor.periodOffset = definingClass.name.length;
+        constructor.nameEnd = definingClass.name.length + name.length + 1;
+      }
+    }
+    constructor.synthetic = name == null;
     constructor.const2 = isConst;
     if (argumentTypes != null) {
       int count = argumentTypes.length;
@@ -117,6 +126,9 @@ class ElementFactory {
     constructor.returnType = type;
     constructor.enclosingElement = definingClass;
     constructor.type = new FunctionTypeImpl(constructor);
+    if (!constructor.isSynthetic) {
+      constructor.constantInitializers = <ConstructorInitializer>[];
+    }
     return constructor;
   }
 
@@ -198,7 +210,8 @@ class ElementFactory {
   }
 
   static FieldElementImpl fieldElement(
-      String name, bool isStatic, bool isFinal, bool isConst, DartType type) {
+      String name, bool isStatic, bool isFinal, bool isConst, DartType type,
+      {Expression initializer}) {
     FieldElementImpl field = isConst
         ? new ConstFieldElementImpl(name, 0)
         : new FieldElementImpl(name, 0);
@@ -206,6 +219,9 @@ class ElementFactory {
     field.final2 = isFinal;
     field.static = isStatic;
     field.type = type;
+    if (isConst) {
+      (field as ConstFieldElementImpl).constantInitializer = initializer;
+    }
     PropertyAccessorElementImpl getter =
         new PropertyAccessorElementImpl.forVariable(field);
     getter.getter = true;
@@ -233,7 +249,16 @@ class ElementFactory {
 
   static FieldFormalParameterElementImpl fieldFormalParameter(
           Identifier name) =>
-      new FieldFormalParameterElementImpl(name);
+      new FieldFormalParameterElementImpl.forNode(name);
+
+  /**
+   * Destroy any static state retained by [ElementFactory].  This should be
+   * called from the `setUp` method of any tests that use [ElementFactory], in
+   * order to ensure that state is not shared between multiple tests.
+   */
+  static void flushStaticState() {
+    _objectElement = null;
+  }
 
   static FunctionElementImpl functionElement(String functionName) =>
       functionElement4(functionName, null, null, null, null);
@@ -405,11 +430,12 @@ class ElementFactory {
     field.type = type;
     field.final2 = true;
     PropertyAccessorElementImpl getter =
-        new PropertyAccessorElementImpl.forVariable(field);
+        new PropertyAccessorElementImpl(name, 0);
     getter.synthetic = false;
     getter.getter = true;
     getter.variable = field;
     getter.returnType = type;
+    getter.static = isStatic;
     field.getter = getter;
     FunctionTypeImpl getterType = new FunctionTypeImpl(getter);
     getter.type = getterType;
@@ -491,6 +517,17 @@ class ElementFactory {
     return parameter;
   }
 
+  static ParameterElementImpl namedParameter3(String name,
+      {DartType type, Expression initializer, String initializerCode}) {
+    DefaultParameterElementImpl parameter =
+        new DefaultParameterElementImpl(name, 0);
+    parameter.parameterKind = ParameterKind.NAMED;
+    parameter.type = type;
+    parameter.constantInitializer = initializer;
+    parameter.defaultValueCode = initializerCode;
+    return parameter;
+  }
+
   static ParameterElementImpl positionalParameter(String name) {
     ParameterElementImpl parameter = new ParameterElementImpl(name, 0);
     parameter.parameterKind = ParameterKind.POSITIONAL;
@@ -558,9 +595,17 @@ class ElementFactory {
     TopLevelVariableElementImpl variable;
     if (isConst) {
       ConstTopLevelVariableElementImpl constant =
-          new ConstTopLevelVariableElementImpl(AstFactory.identifier3(name));
-      constant.constantInitializer = AstFactory.instanceCreationExpression2(
-          Keyword.CONST, AstFactory.typeName(type.element));
+          new ConstTopLevelVariableElementImpl.forNode(
+              AstFactory.identifier3(name));
+      InstanceCreationExpression initializer =
+          AstFactory.instanceCreationExpression2(
+              Keyword.CONST, AstFactory.typeName(type.element));
+      if (type is InterfaceType) {
+        ConstructorElement element = type.element.unnamedConstructor;
+        initializer.staticElement = element;
+        initializer.constructorName.staticElement = element;
+      }
+      constant.constantInitializer = initializer;
       variable = constant;
     } else {
       variable = new TopLevelVariableElementImpl(name, -1);

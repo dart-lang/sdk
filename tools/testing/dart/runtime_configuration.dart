@@ -52,6 +52,9 @@ class RuntimeConfiguration {
       case 'vm':
         return new StandaloneDartRuntimeConfiguration();
 
+      case 'dart_product':
+        return new DartProductRuntimeConfiguration();
+
       case 'dart_precompiled':
         return new DartPrecompiledRuntimeConfiguration();
 
@@ -66,7 +69,7 @@ class RuntimeConfiguration {
   RuntimeConfiguration._subclass();
 
   int computeTimeoutMultiplier({
-      bool isDebug: false,
+      String mode,
       bool isChecked: false,
       String arch}) {
     return 1;
@@ -165,13 +168,15 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
       : super._subclass();
 
   int computeTimeoutMultiplier({
-      bool isDebug: false,
+      String mode,
       bool isChecked: false,
       String arch}) {
     int multiplier = 1;
     switch (arch) {
       case 'simarm':
       case 'arm':
+      case 'simarmv6':
+      case 'armv6':
       case' simarmv5te':
       case 'armv5te':
       case 'simmips':
@@ -180,7 +185,7 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
         multiplier *= 4;
         break;
     }
-    if (isDebug) {
+    if (mode == 'debug') {
       multiplier *= 2;
     }
     return multiplier;
@@ -191,7 +196,7 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
 /// program named Dump Render Tree, hence the name.
 class DrtRuntimeConfiguration extends DartVmRuntimeConfiguration {
   int computeTimeoutMultiplier({
-      bool isDebug: false,
+      String mode,
       bool isChecked: false,
       String arch}) {
     return 4 // Allow additional time for browser testing to run.
@@ -199,7 +204,7 @@ class DrtRuntimeConfiguration extends DartVmRuntimeConfiguration {
         // JavaScript and Dart code.  I'm not convinced the inherited timeout
         // multiplier is relevant for JavaScript.
         * super.computeTimeoutMultiplier(
-            isDebug: isDebug, isChecked: isChecked);
+            mode: mode, isChecked: isChecked);
   }
 }
 
@@ -216,11 +221,37 @@ class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
     if (script != null && type != 'application/dart') {
       throw "Dart VM cannot run files of type '$type'.";
     }
+    String executable = suite.configuration['noopt']
+        ? suite.dartVmNooptBinaryFileName
+        : suite.dartVmBinaryFileName;
     return <Command>[commandBuilder.getVmCommand(
-          suite.dartVmBinaryFileName, arguments, environmentOverrides)];
+          executable, arguments, environmentOverrides)];
   }
 }
 
+class DartProductRuntimeConfiguration extends DartVmRuntimeConfiguration {
+  List<Command> computeRuntimeCommands(
+      TestSuite suite,
+      CommandBuilder commandBuilder,
+      CommandArtifact artifact,
+      List<String> arguments,
+      Map<String, String> environmentOverrides) {
+    String script = artifact.filename;
+    String type = artifact.mimeType;
+    if (script != null && type != 'application/dart-snapshot') {
+      throw "dart_product cannot run files of type '$type'.";
+    }
+
+    var augmentedArgs = new List();
+    augmentedArgs.add("--run-full-snapshot=${artifact.filename}");
+    augmentedArgs.addAll(arguments);
+
+    return <Command>[commandBuilder.getVmCommand(
+          suite.dartVmProductBinaryFileName,
+          augmentedArgs,
+          environmentOverrides)];
+  }
+}
 
 class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
   List<Command> computeRuntimeCommands(

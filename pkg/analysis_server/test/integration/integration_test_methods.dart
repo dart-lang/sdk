@@ -429,13 +429,20 @@ abstract class IntegrationTestMixin {
    *
    * packageRoots ( optional Map<FilePath, FilePath> )
    *
-   *   A mapping from source directories to target directories that should
-   *   override the normal package: URI resolution mechanism. The analyzer will
-   *   behave as though each source directory in the map contains a special
+   *   A mapping from source directories to package roots that should override
+   *   the normal package: URI resolution mechanism.
+   *
+   *   If a package root is a directory, then the analyzer will behave as
+   *   though the associated source directory in the map contains a special
    *   pubspec.yaml file which resolves any package: URI to the corresponding
-   *   path within the target directory. The effect is the same as specifying
-   *   the target directory as a "--package_root" parameter to the Dart VM when
-   *   executing any Dart file inside the source directory.
+   *   path within that package root directory. The effect is the same as
+   *   specifying the package root directory as a "--package_root" parameter to
+   *   the Dart VM when executing any Dart file inside the source directory.
+   *
+   *   If a package root is a file, then the analyzer will behave as though
+   *   that file is a ".packages" file in the source directory. The effect is
+   *   the same as specifying the file as a "--packages" parameter to the Dart
+   *   VM when executing any Dart file inside the source directory.
    *
    *   Files in any directories that are not overridden by this mapping have
    *   their package: URI's resolved using the normal pubspec.yaml mechanism.

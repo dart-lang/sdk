@@ -25,9 +25,6 @@ DEFINE_FLAG(bool, inline_alloc, true, "Inline allocation of objects.");
 DEFINE_FLAG(bool, use_slow_path, false,
     "Set to true for debugging & verifying the slow paths.");
 DECLARE_FLAG(bool, trace_optimized_ic_calls);
-DECLARE_FLAG(int, optimization_counter_threshold);
-DECLARE_FLAG(bool, support_debugger);
-DECLARE_FLAG(bool, lazy_dispatchers);
 
 // Input parameters:
 //   RA : return address.
@@ -1068,8 +1065,14 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ Ret();
 
   __ Bind(&add_to_buffer);
+  // Atomically set the remembered bit of the object header.
+  Label retry;
+  __ Bind(&retry);
+  __ ll(T2, FieldAddress(T0, Object::tags_offset()));
   __ ori(T2, T2, Immediate(1 << RawObject::kRememberedBit));
-  __ sw(T2, FieldAddress(T0, Object::tags_offset()));
+  __ sc(T2, FieldAddress(T0, Object::tags_offset()));
+  // T2 = 1 on success, 0 on failure.
+  __ beq(T2, ZR, &retry);
 
   // Load the StoreBuffer block out of the thread. Then load top_ out of the
   // StoreBufferBlock and add the address to the pointers_.
@@ -1556,9 +1559,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(
   // Remove the call arguments pushed earlier, including the IC data object
   // and the arguments descriptor array.
   __ addiu(SP, SP, Immediate(num_slots * kWordSize));
-  if (range_collection_mode == kCollectRanges) {
-    __ RestoreCodePointer();
-  }
+  __ RestoreCodePointer();
   __ LeaveStubFrame();
 
   Label call_target_function;
@@ -1943,8 +1944,12 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // T2: Entry start.
   // T7: null.
   __ SmiTag(T0);
+  __ BranchNotEqual(T0, Immediate(Smi::RawValue(kClosureCid)), &loop);
+  __ lw(T0, FieldAddress(A0, Closure::function_offset()));
+  // T0: instance class id as Smi or function.
   __ Bind(&loop);
-  __ lw(T3, Address(T2, kWordSize * SubtypeTestCache::kInstanceClassId));
+  __ lw(T3,
+        Address(T2, kWordSize * SubtypeTestCache::kInstanceClassIdOrFunction));
   __ beq(T3, T7, &not_found);
 
   if (n == 1) {

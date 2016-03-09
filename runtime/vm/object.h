@@ -11,6 +11,7 @@
 #include "vm/json_stream.h"
 #include "vm/bitmap.h"
 #include "vm/dart.h"
+#include "vm/flags.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/handles.h"
@@ -23,6 +24,7 @@
 #include "vm/scanner.h"
 #include "vm/tags.h"
 #include "vm/thread.h"
+#include "vm/token_position.h"
 #include "vm/verified_memory.h"
 
 namespace dart {
@@ -136,15 +138,7 @@ class Symbols;
     return reinterpret_cast<Raw##object*>(Object::null());                     \
   }                                                                            \
   virtual const char* ToCString() const;                                       \
-  /* Object is printed as JSON into stream. If ref is true only a header */    \
-  /* with an object id is printed. If ref is false the object is fully   */    \
-  /* printed.                                                            */    \
-  virtual const char* JSONType() const {                                       \
-    return ""#object;                                                          \
-  }                                                                            \
   static const ClassId kClassId = k##object##Cid;                              \
- protected:  /* NOLINT */                                                      \
-  virtual void PrintJSONImpl(JSONStream* stream, bool ref) const;              \
  private:  /* NOLINT */                                                        \
   /* Initialize the handle based on the raw_ptr in the presence of null. */    \
   static void initializeHandle(object* obj, RawObject* raw_ptr) {              \
@@ -168,6 +162,28 @@ class Symbols;
   void operator=(const object& value);                                         \
   void operator=(const super& value);                                          \
 
+// Conditionally include object_service.cc functionality in the vtable to avoid
+// link errors like the following:
+//
+// object.o:(.rodata._ZTVN4....E[_ZTVN4...E]+0x278):
+// undefined reference to
+// `dart::Instance::PrintSharedInstanceJSON(dart::JSONObject*, bool) const'.
+//
+#ifndef PRODUCT
+#define OBJECT_SERVICE_SUPPORT(object)                                         \
+   protected:  /* NOLINT */                                                    \
+  /* Object is printed as JSON into stream. If ref is true only a header */    \
+  /* with an object id is printed. If ref is false the object is fully   */    \
+  /* printed.                                                            */    \
+    virtual void PrintJSONImpl(JSONStream* stream, bool ref) const;            \
+    virtual const char* JSONType() const {                                     \
+      return ""#object;                                                        \
+    }
+#else
+#define OBJECT_SERVICE_SUPPORT(object)                                         \
+   protected:  /* NOLINT */
+#endif  // !PRODUCT
+
 #define SNAPSHOT_READER_SUPPORT(object)                                        \
   static Raw##object* ReadFrom(SnapshotReader* reader,                         \
                                intptr_t object_id,                             \
@@ -188,6 +204,7 @@ class Symbols;
  protected:  /* NOLINT */                                                      \
   object() : super() {}                                                        \
   BASE_OBJECT_IMPLEMENTATION(object, super)                                    \
+  OBJECT_SERVICE_SUPPORT(object)
 
 #define HEAP_OBJECT_IMPLEMENTATION(object, super)                              \
   OBJECT_IMPLEMENTATION(object, super);                                        \
@@ -213,6 +230,7 @@ class Symbols;
  private:  /* NOLINT */                                                        \
   object() : super() {}                                                        \
   BASE_OBJECT_IMPLEMENTATION(object, super)                                    \
+  OBJECT_SERVICE_SUPPORT(object)                                               \
   const Raw##object* raw_ptr() const {                                         \
     ASSERT(raw() != null());                                                   \
     return raw()->ptr();                                                       \
@@ -279,11 +297,13 @@ class Object {
     }
   }
 
+#ifndef PRODUCT
   void PrintJSON(JSONStream* stream, bool ref = true) const;
-
+  virtual void PrintJSONImpl(JSONStream* stream, bool ref) const;
   virtual const char* JSONType() const {
     return IsNull() ? "null" : "Object";
   }
+#endif
 
   // Returns the name that is used to identify an object in the
   // namespace dictionary.
@@ -294,15 +314,11 @@ class Object {
 
   bool IsNew() const { return raw()->IsNewObject(); }
   bool IsOld() const { return raw()->IsOldObject(); }
-  bool InVMHeap() const {
 #if defined(DEBUG)
-    if (raw()->IsVMHeapObject()) {
-      Heap* vm_isolate_heap = Dart::vm_isolate()->heap();
-      ASSERT(vm_isolate_heap->Contains(RawObject::ToAddr(raw())));
-    }
-#endif
-    return raw()->IsVMHeapObject();
-  }
+  bool InVMHeap() const;
+#else
+  bool InVMHeap() const { return raw()->IsVMHeapObject(); }
+#endif  // DEBUG
 
   // Print the object on stdout for debugging.
   void Print() const;
@@ -473,6 +489,11 @@ class Object {
     return *speculative_inlining_error_;
   }
 
+  static const LanguageError& background_compilation_error() {
+    ASSERT(background_compilation_error_ != NULL);
+    return *background_compilation_error_;
+  }
+
   static const Array& vm_isolate_snapshot_object_table() {
     ASSERT(vm_isolate_snapshot_object_table_ != NULL);
     return *vm_isolate_snapshot_object_table_;
@@ -507,6 +528,7 @@ class Object {
   static RawClass* instructions_class() { return instructions_class_; }
   static RawClass* object_pool_class() { return object_pool_class_; }
   static RawClass* pc_descriptors_class() { return pc_descriptors_class_; }
+  static RawClass* code_source_map_class() { return code_source_map_class_; }
   static RawClass* stackmap_class() { return stackmap_class_; }
   static RawClass* var_descriptors_class() { return var_descriptors_class_; }
   static RawClass* exception_handlers_class() {
@@ -563,13 +585,13 @@ class Object {
     // are preserved as well.
     //
     // e.g.
-    //   private getter             - get:foo@6be832b
-    //   private constructor        - _MyClass@6b3832b.
-    //   private named constructor  - _MyClass@6b3832b.named
-    //   core impl class name shown - _OneByteString
+    //   private getter             -> get:foo@6be832b
+    //   private constructor        -> _MyClass@6b3832b.
+    //   private named constructor  -> _MyClass@6b3832b.named
+    //   core impl class name shown -> _OneByteString
     kInternalName = 0,
 
-    // Pretty names drop privacy suffixes, getter prefixes, and
+    // Scrubbed names drop privacy suffixes, getter prefixes, and
     // trailing dots on unnamed constructors.  These names are used in
     // the vm service.
     //
@@ -577,11 +599,11 @@ class Object {
     //   get:foo@6be832b        -> foo
     //   _MyClass@6b3832b.      -> _MyClass
     //   _MyClass@6b3832b.named -> _MyClass.named
-    //   _OneByteString          -> _OneByteString (not remapped)
-    kPrettyName,
+    //   _OneByteString         -> _OneByteString (not remapped)
+    kScrubbedName,
 
     // User visible names are appropriate for reporting type errors
-    // directly to programmers.  The names have been "prettied" and
+    // directly to programmers.  The names have been scrubbed and
     // the names of core implementation classes are remapped to their
     // public interface names.
     //
@@ -589,7 +611,7 @@ class Object {
     //   get:foo@6be832b        -> foo
     //   _MyClass@6b3832b.      -> _MyClass
     //   _MyClass@6b3832b.named -> _MyClass.named
-    //   _OneByteString          -> String (remapped)
+    //   _OneByteString         -> String (remapped)
     kUserVisibleName
   };
 
@@ -706,8 +728,6 @@ class Object {
                                  const char* protocol_type,
                                  bool ref) const;
 
-  virtual void PrintJSONImpl(JSONStream* stream, bool ref) const;
-
  private:
   static intptr_t NextFieldOffset() {
     // Indicates this class cannot be extended by dart code.
@@ -768,6 +788,7 @@ class Object {
   static RawClass* instructions_class_;  // Class of the Instructions vm object.
   static RawClass* object_pool_class_;  // Class of the ObjectPool vm object.
   static RawClass* pc_descriptors_class_;  // Class of PcDescriptors vm object.
+  static RawClass* code_source_map_class_;  // Class of CodeSourceMap vm object.
   static RawClass* stackmap_class_;  // Class of Stackmap vm object.
   static RawClass* var_descriptors_class_;  // Class of LocalVarDescriptors.
   static RawClass* exception_handlers_class_;  // Class of ExceptionHandlers.
@@ -808,6 +829,7 @@ class Object {
   static LanguageError* snapshot_writer_error_;
   static LanguageError* branch_offset_error_;
   static LanguageError* speculative_inlining_error_;
+  static LanguageError* background_compilation_error_;
   static Array* vm_isolate_snapshot_object_table_;
   static Type* dynamic_type_;
   static Type* void_type_;
@@ -881,6 +903,10 @@ class PassiveObject : public Object {
 };
 
 
+typedef ZoneGrowableHandlePtrArray<const AbstractType> Trail;
+typedef ZoneGrowableHandlePtrArray<const AbstractType>* TrailPtr;
+
+
 class Class : public Object {
  public:
   intptr_t instance_size() const {
@@ -927,7 +953,7 @@ class Class : public Object {
   }
 
   RawString* Name() const;
-  RawString* PrettyName() const;
+  RawString* ScrubbedName() const;
   RawString* UserVisibleName() const;
   bool IsInFullSnapshot() const;
 
@@ -936,31 +962,16 @@ class Class : public Object {
   RawScript* script() const { return raw_ptr()->script_; }
   void set_script(const Script& value) const;
 
-  intptr_t token_pos() const { return raw_ptr()->token_pos_; }
-  void set_token_pos(intptr_t value) const;
+  TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
+  void set_token_pos(TokenPosition value) const;
 
-  intptr_t ComputeEndTokenPos() const;
+  TokenPosition ComputeEndTokenPos() const;
 
-  // This class represents the signature class of a closure function if
-  // signature_function() is not null.
-  // The associated function may be a closure function (with code) or a
-  // signature function (without code) solely describing the result type and
-  // parameter types of the signature.
+  // This class represents a typedef if the signature function is not null.
   RawFunction* signature_function() const {
     return raw_ptr()->signature_function_;
   }
-  static intptr_t signature_function_offset() {
-    return OFFSET_OF(RawClass, signature_function_);
-  }
-
-  // Return the signature type of this signature class.
-  // For example, if this class represents a signature of the form
-  // 'F<T, R>(T, [b: B, c: C]) => R', then its signature type is a parameterized
-  // type with this class as the type class and type parameters 'T' and 'R'
-  // as its type argument vector.
-  // SignatureType is used as the type of formal parameters representing a
-  // function.
-  RawType* SignatureType() const;
+  void set_signature_function(const Function& value) const;
 
   // Return the Type with type parameters declared by this class filled in with
   // dynamic and type parameters declared in superclasses filled in as declared
@@ -1004,6 +1015,7 @@ class Class : public Object {
   // not overlapping with the type arguments of the super class of this class.
   intptr_t NumOwnTypeArguments() const;
 
+  // Return true if this class declares type parameters.
   bool IsGeneric() const;
 
   // If this class is parameterized, each instance has a type_arguments field.
@@ -1078,6 +1090,7 @@ class Class : public Object {
     return raw_ptr()->direct_subclasses_;
   }
   void AddDirectSubclass(const Class& subclass) const;
+  void ClearDirectSubclasses() const;
 
   // Check if this class represents the class of null.
   bool IsNullClass() const { return id() == kNullCid; }
@@ -1094,33 +1107,36 @@ class Class : public Object {
   // Check if this class represents the 'Function' class.
   bool IsFunctionClass() const;
 
-  // Check if this class represents a signature class.
-  bool IsSignatureClass() const {
+  // Check if this class represents the 'Closure' class.
+  bool IsClosureClass() const  { return id() == kClosureCid; }
+  static bool IsClosureClass(RawClass* cls) {
+    NoSafepointScope no_safepoint;
+    return cls->ptr()->id_ == kClosureCid;
+  }
+
+  // Check if this class represents a typedef class.
+  bool IsTypedefClass() const {
     return signature_function() != Object::null();
   }
-  static bool IsSignatureClass(RawClass* cls) {
-    return cls->ptr()->signature_function_ != Object::null();
-  }
+
   static bool IsInFullSnapshot(RawClass* cls) {
     NoSafepointScope no_safepoint;
     return cls->ptr()->library_->ptr()->is_in_fullsnapshot_;
   }
-
-  // Check if this class represents a canonical signature class, i.e. not an
-  // alias as defined in a typedef.
-  bool IsCanonicalSignatureClass() const;
 
   // Check the subtype relationship.
   bool IsSubtypeOf(const TypeArguments& type_arguments,
                    const Class& other,
                    const TypeArguments& other_type_arguments,
                    Error* bound_error,
-                   Heap::Space space = Heap::kNew) const {
+                   TrailPtr bound_trail,
+                   Heap::Space space) const {
     return TypeTest(kIsSubtypeOf,
                     type_arguments,
                     other,
                     other_type_arguments,
                     bound_error,
+                    bound_trail,
                     space);
   }
 
@@ -1129,12 +1145,14 @@ class Class : public Object {
                           const Class& other,
                           const TypeArguments& other_type_arguments,
                           Error* bound_error,
-                          Heap::Space space = Heap::kNew) const {
+                          TrailPtr bound_trail,
+                          Heap::Space space) const {
     return TypeTest(kIsMoreSpecificThan,
                     type_arguments,
                     other,
                     other_type_arguments,
                     bound_error,
+                    bound_trail,
                     space);
   }
 
@@ -1165,6 +1183,7 @@ class Class : public Object {
   RawFunction* ImplicitClosureFunctionFromIndex(intptr_t idx) const;
 
   RawFunction* LookupDynamicFunction(const String& name) const;
+  RawFunction* LookupDynamicFunctionAllowAbstract(const String& name) const;
   RawFunction* LookupDynamicFunctionAllowPrivate(const String& name) const;
   RawFunction* LookupStaticFunction(const String& name) const;
   RawFunction* LookupStaticFunctionAllowPrivate(const String& name) const;
@@ -1184,8 +1203,8 @@ class Class : public Object {
 
   void InsertCanonicalConstant(intptr_t index, const Instance& constant) const;
 
-  intptr_t FindCanonicalTypeIndex(const Type& needle) const;
-  RawType* CanonicalTypeFromIndex(intptr_t idx) const;
+  intptr_t FindCanonicalTypeIndex(const AbstractType& needle) const;
+  RawAbstractType* CanonicalTypeFromIndex(intptr_t idx) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawClass));
@@ -1317,7 +1336,7 @@ class Class : public Object {
   // Allocate instance classes.
   static RawClass* New(const String& name,
                        const Script& script,
-                       intptr_t token_pos);
+                       TokenPosition token_pos);
   static RawClass* NewNativeWrapper(const Library& library,
                                     const String& name,
                                     int num_fields);
@@ -1333,21 +1352,6 @@ class Class : public Object {
 
   // Allocate the raw ExternalTypedData classes.
   static RawClass* NewExternalTypedDataClass(intptr_t class_id);
-
-  // Allocate a class representing a function signature described by
-  // signature_function, which must be a closure function or a signature
-  // function.
-  // The class may be type parameterized unless the signature_function is in a
-  // static scope. In that case, the type parameters are copied from the owner
-  // class of signature_function.
-  // A null signature function may be passed in and patched later. See below.
-  static RawClass* NewSignatureClass(const String& name,
-                                     const Function& signature_function,
-                                     const Script& script,
-                                     intptr_t token_pos);
-
-  // Patch the signature function of a signature class allocated without it.
-  void PatchSignatureFunction(const Function& signature_function) const;
 
   // Register code that has used CHA for optimization.
   // TODO(srdjan): Also register kind of CHA optimization (e.g.: leaf class,
@@ -1367,6 +1371,7 @@ class Class : public Object {
     kAny = 0,
     kStatic,
     kInstance,
+    kInstanceAllowAbstract,
     kConstructor,
     kFactory,
   };
@@ -1387,30 +1392,33 @@ class Class : public Object {
     kEnumBit = 13,
     kIsAllocatedBit = 15,
   };
-  class ConstBit : public BitField<bool, kConstBit, 1> {};
-  class ImplementedBit : public BitField<bool, kImplementedBit, 1> {};
-  class TypeFinalizedBit : public BitField<bool, kTypeFinalizedBit, 1> {};
-  class ClassFinalizedBits : public BitField<RawClass::ClassFinalizedState,
-      kClassFinalizedPos, kClassFinalizedSize> {};  // NOLINT
-  class AbstractBit : public BitField<bool, kAbstractBit, 1> {};
-  class PatchBit : public BitField<bool, kPatchBit, 1> {};
-  class SynthesizedClassBit : public BitField<bool, kSynthesizedClassBit, 1> {};
-  class MarkedForParsingBit : public BitField<bool, kMarkedForParsingBit, 1> {};
-  class MixinAppAliasBit : public BitField<bool, kMixinAppAliasBit, 1> {};
-  class MixinTypeAppliedBit : public BitField<bool, kMixinTypeAppliedBit, 1> {};
-  class FieldsMarkedNullableBit : public BitField<bool,
-      kFieldsMarkedNullableBit, 1> {};  // NOLINT
-  class CycleFreeBit : public BitField<bool, kCycleFreeBit, 1> {};
-  class EnumBit : public BitField<bool, kEnumBit, 1> {};
-  class IsAllocatedBit : public BitField<bool, kIsAllocatedBit, 1> {};
+  class ConstBit : public BitField<uint16_t, bool, kConstBit, 1> {};
+  class ImplementedBit : public BitField<uint16_t, bool, kImplementedBit, 1> {};
+  class TypeFinalizedBit :
+      public BitField<uint16_t, bool, kTypeFinalizedBit, 1> {};
+  class ClassFinalizedBits : public BitField<uint16_t,
+                                             RawClass::ClassFinalizedState,
+                                             kClassFinalizedPos,
+                                             kClassFinalizedSize> {};
+  class AbstractBit : public BitField<uint16_t, bool, kAbstractBit, 1> {};
+  class PatchBit : public BitField<uint16_t, bool, kPatchBit, 1> {};
+  class SynthesizedClassBit :
+      public BitField<uint16_t, bool, kSynthesizedClassBit, 1> {};
+  class MarkedForParsingBit :
+      public BitField<uint16_t, bool, kMarkedForParsingBit, 1> {};
+  class MixinAppAliasBit :
+      public BitField<uint16_t, bool, kMixinAppAliasBit, 1> {};
+  class MixinTypeAppliedBit :
+      public BitField<uint16_t, bool, kMixinTypeAppliedBit, 1> {};
+  class FieldsMarkedNullableBit :
+      public BitField<uint16_t, bool, kFieldsMarkedNullableBit, 1> {};
+  class CycleFreeBit : public BitField<uint16_t, bool, kCycleFreeBit, 1> {};
+  class EnumBit : public BitField<uint16_t, bool, kEnumBit, 1> {};
+  class IsAllocatedBit : public BitField<uint16_t, bool, kIsAllocatedBit, 1> {};
 
   void set_name(const String& value) const;
-  void set_pretty_name(const String& value) const;
   void set_user_name(const String& value) const;
-  RawString* GeneratePrettyName() const;
   RawString* GenerateUserVisibleName() const;
-  void set_signature_function(const Function& value) const;
-  void set_signature_type(const AbstractType& value) const;
   void set_state_bits(intptr_t bits) const;
 
   void set_constants(const Array& value) const;
@@ -1467,6 +1475,7 @@ class Class : public Object {
                 const Class& other,
                 const TypeArguments& other_type_arguments,
                 Error* bound_error,
+                TrailPtr bound_trail,
                 Heap::Space space) const;
 
   static bool TypeTestNonRecursive(
@@ -1476,13 +1485,24 @@ class Class : public Object {
       const Class& other,
       const TypeArguments& other_type_arguments,
       Error* bound_error,
+      TrailPtr bound_trail,
       Heap::Space space);
+
+  // Returns AbstractType::null() if type not found.
+  RawAbstractType* LookupCanonicalType(Zone* zone,
+                                       const AbstractType& type,
+                                       intptr_t* index) const;
+
+  // Returns canonical type. Thread safe.
+  RawAbstractType* LookupOrAddCanonicalType(const AbstractType& type,
+                                            intptr_t start_index) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Class, Object);
   friend class AbstractType;
   friend class Instance;
   friend class Object;
   friend class Type;
+  friend class FunctionType;
   friend class Intrinsifier;
   friend class Precompiler;
 };
@@ -1496,7 +1516,7 @@ class UnresolvedClass : public Object {
     return raw_ptr()->library_prefix_;
   }
   RawString* ident() const { return raw_ptr()->ident_; }
-  intptr_t token_pos() const { return raw_ptr()->token_pos_; }
+  TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
 
   RawString* Name() const;
 
@@ -1506,12 +1526,12 @@ class UnresolvedClass : public Object {
 
   static RawUnresolvedClass* New(const LibraryPrefix& library_prefix,
                                  const String& ident,
-                                 intptr_t token_pos);
+                                 TokenPosition token_pos);
 
  private:
   void set_library_prefix(const LibraryPrefix& library_prefix) const;
   void set_ident(const String& ident) const;
-  void set_token_pos(intptr_t token_pos) const;
+  void set_token_pos(TokenPosition token_pos) const;
 
   static RawUnresolvedClass* New();
 
@@ -1519,9 +1539,6 @@ class UnresolvedClass : public Object {
   friend class Class;
 };
 
-
-typedef ZoneGrowableHandlePtrArray<const AbstractType> Trail;
-typedef ZoneGrowableHandlePtrArray<const AbstractType>* TrailPtr;
 
 // A TypeArguments is an array of AbstractType.
 class TypeArguments : public Object {
@@ -1537,12 +1554,6 @@ class TypeArguments : public Object {
   // The name of this type argument vector, e.g. "<T, dynamic, List<T>, Smi>".
   RawString* Name() const {
     return SubvectorName(0, Length(), kInternalName);
-  }
-
-  // The name of this type argument vector, e.g. "<T, dynamic, List<T>, Smi>".
-  // Names of internal classes are not mapped to their public interfaces.
-  RawString* PrettyName() const {
-    return SubvectorName(0, Length(), kPrettyName);
   }
 
   // The name of this type argument vector, e.g. "<T, dynamic, List<T>, int>".
@@ -1571,8 +1582,10 @@ class TypeArguments : public Object {
                    intptr_t from_index,
                    intptr_t len,
                    Error* bound_error,
-                   Heap::Space space = Heap::kNew) const {
-    return TypeTest(kIsSubtypeOf, other, from_index, len, bound_error, space);
+                   TrailPtr bound_trail,
+                   Heap::Space space) const {
+    return TypeTest(kIsSubtypeOf, other, from_index, len,
+                    bound_error, bound_trail, space);
   }
 
   // Check the 'more specific' relationship, considering only a subvector of
@@ -1581,9 +1594,10 @@ class TypeArguments : public Object {
                           intptr_t from_index,
                           intptr_t len,
                           Error* bound_error,
-                          Heap::Space space = Heap::kNew) const {
-    return TypeTest(kIsMoreSpecificThan,
-        other, from_index, len, bound_error, space);
+                          TrailPtr bound_trail,
+                          Heap::Space space) const {
+    return TypeTest(kIsMoreSpecificThan, other, from_index, len,
+                    bound_error, bound_trail, space);
   }
 
   // Check if the vectors are equal (they may be null).
@@ -1631,6 +1645,9 @@ class TypeArguments : public Object {
   // Canonicalize only if instantiated, otherwise returns 'this'.
   RawTypeArguments* Canonicalize(TrailPtr trail = NULL) const;
 
+  // Returns a formatted list of occuring type arguments with their URI.
+  RawString* EnumerateURIs() const;
+
   // Return 'this' if this type argument vector is instantiated, i.e. if it does
   // not refer to type parameters. Otherwise, return a new type argument vector
   // where each reference to a type parameter is replaced with the corresponding
@@ -1639,8 +1656,9 @@ class TypeArguments : public Object {
   RawTypeArguments* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr trail = NULL,
-      Heap::Space space = Heap::kNew) const;
+      TrailPtr instantiation_trail,
+      TrailPtr bound_trail,
+      Heap::Space space) const;
 
   // Runtime instantiation with canonicalization. Not to be used during type
   // finalization at compile time.
@@ -1696,6 +1714,7 @@ class TypeArguments : public Object {
                 intptr_t from_index,
                 intptr_t len,
                 Error* bound_error,
+                TrailPtr bound_trail,
                 Heap::Space space) const;
 
   // Return the internal or public name of a subvector of this type argument
@@ -1823,13 +1842,6 @@ class ICData : public Object {
   bool HasDeoptReason(ICData::DeoptReasonId reason) const;
   void AddDeoptReason(ICData::DeoptReasonId reason) const;
 
-  bool IssuedJSWarning() const;
-  void SetIssuedJSWarning() const;
-
-  // Return true if the target function of this IC data may check for (and
-  // possibly issue) a Javascript compatibility warning.
-  bool MayCheckForJSWarning() const;
-
   intptr_t NumberOfChecks() const;
 
   // Discounts any checks with usage of zero.
@@ -1930,11 +1942,8 @@ class ICData : public Object {
                         intptr_t num_args_tested);
   static RawICData* NewFrom(const ICData& from, intptr_t num_args_tested);
 
-  // Generates a new ICData with descriptor data copied (shallow clone).
-  // Entry array of the result is the same as in 'from'. Once entry array is
-  // created, it can only change the 'count', all other properties are invariant
-  // (target, cids, number of checks).
-  static RawICData* CloneDescriptor(const ICData& from);
+  // Generates a new ICData with descriptor and data array copied (deep clone).
+  static RawICData* Clone(const ICData& from);
 
   static intptr_t TestEntryLengthFor(intptr_t num_args);
 
@@ -2018,16 +2027,16 @@ class ICData : public Object {
     }
   }
 
-  // It is only meaningful to interptret range feedback stored in the ICData
+  // It is only meaningful to interpret range feedback stored in the ICData
   // when all checks are Mint or Smi.
   bool HasRangeFeedback() const;
   RangeFeedback DecodeRangeFeedbackAt(intptr_t idx) const;
 
   void PrintToJSONArray(const JSONArray& jsarray,
-                        intptr_t token_pos,
+                        TokenPosition token_pos,
                         bool is_static_call) const;
   void PrintToJSONArrayNew(const JSONArray& jsarray,
-                           intptr_t token_pos,
+                           TokenPosition token_pos,
                            bool is_static_call) const;
 
   // Initialize the preallocated empty ICData entry arrays.
@@ -2057,18 +2066,22 @@ class ICData : public Object {
     kNumArgsTestedSize = 2,
     kDeoptReasonPos = kNumArgsTestedPos + kNumArgsTestedSize,
     kDeoptReasonSize = kLastRecordedDeoptReason + 1,
-    kIssuedJSWarningBit = kDeoptReasonPos + kDeoptReasonSize,
-    kRangeFeedbackPos = kIssuedJSWarningBit + 1,
+    kRangeFeedbackPos = kDeoptReasonPos + kDeoptReasonSize,
     kRangeFeedbackSize = kBitsPerRangeFeedback * kRangeFeedbackSlots
   };
 
   class NumArgsTestedBits : public BitField<uint32_t,
-      kNumArgsTestedPos, kNumArgsTestedSize> {};  // NOLINT
+                                            uint32_t,
+                                            kNumArgsTestedPos,
+                                            kNumArgsTestedSize> {};
   class DeoptReasonBits : public BitField<uint32_t,
-      ICData::kDeoptReasonPos, ICData::kDeoptReasonSize> {};  // NOLINT
-  class IssuedJSWarningBit : public BitField<bool, kIssuedJSWarningBit, 1> {};
+                                          uint32_t,
+                                          ICData::kDeoptReasonPos,
+                                          ICData::kDeoptReasonSize> {};
   class RangeFeedbackBits : public BitField<uint32_t,
-      ICData::kRangeFeedbackPos, ICData::kRangeFeedbackSize> {};  // NOLINT
+                                            uint32_t,
+                                            ICData::kRangeFeedbackPos,
+                                            ICData::kRangeFeedbackSize> {};
 
 #if defined(DEBUG)
   // Used in asserts to verify that a check is not added twice.
@@ -2099,14 +2112,27 @@ class ICData : public Object {
 class Function : public Object {
  public:
   RawString* name() const { return raw_ptr()->name_; }
-  RawString* PrettyName() const;
-  RawString* UserVisibleName() const;
-  RawString* QualifiedPrettyName() const;
-  RawString* QualifiedUserVisibleName() const;
-  const char* QualifiedUserVisibleNameCString() const;
+  RawString* UserVisibleName() const;  // Same as scrubbed name.
+  RawString* QualifiedScrubbedName() const {
+    return QualifiedName(kScrubbedName);
+  }
+  RawString* QualifiedUserVisibleName() const {
+    return QualifiedName(kUserVisibleName);
+  }
   virtual RawString* DictionaryName() const { return name(); }
 
   RawString* GetSource() const;
+
+  // Return the type of this function's signature. It may not be canonical yet.
+  // For example, if this function has a signature of the form
+  // '(T, [b: B, c: C]) => R', where 'T' and 'R' are type parameters of the
+  // owner class of this function, then its signature type is a parameterized
+  // FunctionType with uninstantiated type arguments 'T' and 'R' as elements of
+  // its type argument vector.
+  RawFunctionType* SignatureType() const;
+
+  // Update the signature type (with a canonical version).
+  void SetSignatureType(const FunctionType& value) const;
 
   // Build a string of the form 'C<T, R>(T, {b: B, c: C}) => R' representing the
   // internal signature of the given function. In this example, T and R are
@@ -2116,17 +2142,12 @@ class Function : public Object {
     return BuildSignature(instantiate, kInternalName, TypeArguments::Handle());
   }
 
-  RawString* PrettySignature() const {
-    const bool instantiate = false;
-    return BuildSignature(
-        instantiate, kPrettyName, TypeArguments::Handle());
-  }
-
   // Build a string of the form '(T, {b: B, c: C}) => R' representing the
   // user visible signature of the given function. In this example, T and R are
-  // type parameters of class C, the owner of the function.
+  // type parameters of class C, the owner of the function, also called the
+  // scope class of the function type.
   // Implicit parameters are hidden, as well as the prefix denoting the
-  // signature class and its type parameters.
+  // scope class and its type parameters.
   RawString* UserVisibleSignature() const {
     const bool instantiate = false;
     return BuildSignature(
@@ -2219,10 +2240,6 @@ class Function : public Object {
   // Enclosing function of this local function.
   RawFunction* parent_function() const;
 
-  // Signature class of this closure function or signature function.
-  RawClass* signature_class() const;
-  void set_signature_class(const Class& value) const;
-
   void set_extracted_method_closure(const Function& function) const;
   RawFunction* extracted_method_closure() const;
 
@@ -2284,8 +2301,8 @@ class Function : public Object {
   bool IsFactory() const {
     return (kind() == RawFunction::kConstructor) && is_static();
   }
-  bool IsDynamicFunction() const {
-    if (is_static() || is_abstract()) {
+  bool IsDynamicFunction(bool allow_abstract = false) const {
+    if (is_static() || (!allow_abstract && is_abstract())) {
       return false;
     }
     switch (kind()) {
@@ -2331,11 +2348,11 @@ class Function : public Object {
   }
   bool IsInFactoryScope() const;
 
-  intptr_t token_pos() const { return raw_ptr()->token_pos_; }
-  void set_token_pos(intptr_t value) const;
+  TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
+  void set_token_pos(TokenPosition value) const;
 
-  intptr_t end_token_pos() const { return raw_ptr()->end_token_pos_; }
-  void set_end_token_pos(intptr_t value) const {
+  TokenPosition end_token_pos() const { return raw_ptr()->end_token_pos_; }
+  void set_end_token_pos(TokenPosition value) const {
     StoreNonPointer(&raw_ptr()->end_token_pos_, value);
   }
 
@@ -2470,7 +2487,7 @@ class Function : public Object {
                    const Function& other,
                    const TypeArguments& other_type_arguments,
                    Error* bound_error,
-                   Heap::Space space = Heap::kNew) const {
+                   Heap::Space space) const {
     return TypeTest(kIsSubtypeOf,
                     type_arguments,
                     other,
@@ -2485,7 +2502,7 @@ class Function : public Object {
                           const Function& other,
                           const TypeArguments& other_type_arguments,
                           Error* bound_error,
-                   Heap::Space space = Heap::kNew) const {
+                          Heap::Space space) const {
     return TypeTest(kIsMoreSpecificThan,
                     type_arguments,
                     other,
@@ -2493,6 +2510,14 @@ class Function : public Object {
                     bound_error,
                     space);
   }
+
+  // Check the subtype or 'more specific' relationship.
+  bool TypeTest(TypeTestKind test_kind,
+                const TypeArguments& type_arguments,
+                const Function& other,
+                const TypeArguments& other_type_arguments,
+                Error* bound_error,
+                Heap::Space space) const;
 
   // Returns true if this function represents an explicit getter function.
   bool IsGetterFunction() const {
@@ -2538,7 +2563,7 @@ class Function : public Object {
   bool IsImplicitStaticClosureFunction() const {
     return is_static() && IsImplicitClosureFunction();
   }
-  bool static IsImplicitStaticClosureFunction(RawFunction* func);
+  static bool IsImplicitStaticClosureFunction(RawFunction* func);
 
   // Returns true if this function represents an implicit instance closure
   // function.
@@ -2556,6 +2581,11 @@ class Function : public Object {
   // Returns true if this function represents a signature function without code.
   bool IsSignatureFunction() const {
     return kind() == RawFunction::kSignatureFunction;
+  }
+  static bool IsSignatureFunction(RawFunction* function) {
+    NoSafepointScope no_safepoint;
+    return KindBits::decode(function->ptr()->kind_tag_) ==
+        RawFunction::kSignatureFunction;
   }
 
   bool IsAsyncFunction() const {
@@ -2610,15 +2640,17 @@ class Function : public Object {
                           bool is_external,
                           bool is_native,
                           const Object& owner,
-                          intptr_t token_pos);
+                          TokenPosition token_pos);
 
-  // Allocates a new Function object representing a closure function, as well as
-  // a new associated Class object representing the signature class of the
-  // function.
-  // The function and the class share the same given name.
+  // Allocates a new Function object representing a closure function.
   static RawFunction* NewClosureFunction(const String& name,
                                          const Function& parent,
-                                         intptr_t token_pos);
+                                         TokenPosition token_pos);
+
+  // Allocates a new Function object representing a signature function.
+  // The owner is the scope class of the function type.
+  static RawFunction* NewSignatureFunction(const Class& owner,
+                                           TokenPosition token_pos);
 
   static RawFunction* NewEvalFunction(const Class& owner,
                                       const Script& script,
@@ -2642,11 +2674,10 @@ class Function : public Object {
   void SaveICDataMap(
       const ZoneGrowableArray<const ICData*>& deopt_id_to_ic_data,
       const Array& edge_counters_array) const;
-  // Uses saved ICData to populate the table 'deopt_id_to_ic_data'. Clone
-  // descriptors if 'clone_descriptors' true.
-  void RestoreICDataMap(
-      ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data,
-      bool clone_descriptors) const;
+  // Uses 'ic_data_array' to populate the table 'deopt_id_to_ic_data'. Clone
+  // ic_data (array and descriptor) if 'clone_ic_data' is true.
+  void RestoreICDataMap(ZoneGrowableArray<const ICData*>* deopt_id_to_ic_data,
+                        bool clone_ic_data) const;
 
   RawArray* ic_data_array() const;
   void ClearICDataArray() const;
@@ -2735,18 +2766,19 @@ FOR_EACH_FUNCTION_KIND_BIT(DECLARE_BIT)
       (kBitsPerByte * sizeof(static_cast<RawFunction*>(0)->kind_tag_)));
 
   class KindBits :
-    public BitField<RawFunction::Kind, kKindTagPos, kKindTagSize> {};  // NOLINT
+    public BitField<uint32_t, RawFunction::Kind, kKindTagPos, kKindTagSize> {};
 
-  class RecognizedBits : public BitField<MethodRecognizer::Kind,
+  class RecognizedBits : public BitField<uint32_t,
+                                         MethodRecognizer::Kind,
                                          kRecognizedTagPos,
                                          kRecognizedTagSize> {};
-  class ModifierBits :
-    public BitField<RawFunction::AsyncModifier,
-                   kModifierPos,
-                   kModifierSize> {};  // NOLINT
+  class ModifierBits : public BitField<uint32_t,
+                                       RawFunction::AsyncModifier,
+                                       kModifierPos,
+                                       kModifierSize> {};
 
 #define DEFINE_BIT(name, _) \
-  class name##Bit : public BitField<bool, k##name##Bit, 1> {};
+  class name##Bit : public BitField<uint32_t, bool, k##name##Bit, 1> {};
 FOR_EACH_FUNCTION_KIND_BIT(DEFINE_BIT)
 #undef DEFINE_BIT
 
@@ -2766,6 +2798,8 @@ FOR_EACH_FUNCTION_KIND_BIT(DEFINE_BIT)
 
   static RawFunction* New();
 
+  RawString* QualifiedName(NameVisibility name_visibility) const;
+
   void BuildSignatureParameters(
       bool instantiate,
       NameVisibility name_visibility,
@@ -2774,14 +2808,6 @@ FOR_EACH_FUNCTION_KIND_BIT(DEFINE_BIT)
   RawString* BuildSignature(bool instantiate,
                             NameVisibility name_visibility,
                             const TypeArguments& instantiator) const;
-
-  // Check the subtype or 'more specific' relationship.
-  bool TypeTest(TypeTestKind test_kind,
-                const TypeArguments& type_arguments,
-                const Function& other,
-                const TypeArguments& other_type_arguments,
-                Error* bound_error,
-                Heap::Space space) const;
 
   // Checks the type of the formal parameter at the given position for
   // subtyping or 'more specific' relationship between the type of this function
@@ -2819,9 +2845,9 @@ class ClosureData: public Object {
   RawFunction* parent_function() const { return raw_ptr()->parent_function_; }
   void set_parent_function(const Function& value) const;
 
-  // Signature class of this closure function or signature function.
-  RawClass* signature_class() const { return raw_ptr()->signature_class_; }
-  void set_signature_class(const Class& value) const;
+  // Signature type of this closure function.
+  RawFunctionType* signature_type() const { return raw_ptr()->signature_type_; }
+  void set_signature_type(const FunctionType& value) const;
 
   RawInstance* implicit_static_closure() const {
     return raw_ptr()->closure_;
@@ -2867,9 +2893,22 @@ class RedirectionData: public Object {
 
 class Field : public Object {
  public:
+  RawField* Original() const;
+  void SetOriginal(const Field& value) const;
+  bool IsOriginal() const {
+    if (IsNull()) {
+      return true;
+    }
+    NoSafepointScope no_safepoint;
+    return !raw_ptr()->owner_->IsField();
+  }
+
+  // Returns a field cloned from 'this'. 'this' is set as the
+  // original field of result.
+  RawField* CloneFromOriginal() const;
+
   RawString* name() const { return raw_ptr()->name_; }
-  RawString* PrettyName() const;
-  RawString* UserVisibleName() const;
+  RawString* UserVisibleName() const;  // Same as scrubbed name.
   virtual RawString* DictionaryName() const { return name(); }
 
   bool is_static() const { return StaticBit::decode(raw_ptr()->kind_bits_); }
@@ -2879,6 +2918,7 @@ class Field : public Object {
     return ReflectableBit::decode(raw_ptr()->kind_bits_);
   }
   void set_is_reflectable(bool value) const {
+    ASSERT(IsOriginal());
     set_kind_bits(ReflectableBit::update(value, raw_ptr()->kind_bits_));
   }
   bool is_double_initialized() const {
@@ -2888,6 +2928,7 @@ class Field : public Object {
   // Marks fields that are initialized with a simple double constant.
   void set_is_double_initialized(bool value) const {
     ASSERT(Thread::Current()->IsMutatorThread());
+    ASSERT(IsOriginal());
     set_kind_bits(DoubleInitializedBit::update(value, raw_ptr()->kind_bits_));
   }
 
@@ -2899,10 +2940,10 @@ class Field : public Object {
   inline void SetStaticValue(const Instance& value,
                              bool save_initial_value = false) const;
 
-  RawClass* owner() const;
-  RawClass* origin() const;  // Either mixin class, or same as owner().
-  RawScript* script() const;
-  RawObject* RawOwner() const { return raw_ptr()->owner_; }
+  RawClass* Owner() const;
+  RawClass* Origin() const;  // Either mixin class, or same as owner().
+  RawScript* Script() const;
+  RawObject* RawOwner() const;
 
   RawAbstractType* type() const  { return raw_ptr()->type_; }
   // Used by class finalizer, otherwise initialized in constructor.
@@ -2919,17 +2960,20 @@ class Field : public Object {
                        bool is_reflectable,
                        const Class& owner,
                        const AbstractType& type,
-                       intptr_t token_pos);
+                       TokenPosition token_pos);
 
   static RawField* NewTopLevel(const String& name,
                                bool is_final,
                                bool is_const,
                                const Object& owner,
-                               intptr_t token_pos);
+                               TokenPosition token_pos);
 
   // Allocate new field object, clone values from this field. The
   // owner of the clone is new_owner.
   RawField* Clone(const Class& new_owner) const;
+  // Allocate new field object, clone values from this field. The
+  // original is specified.
+  RawField* Clone(const Field& original) const;
 
   static intptr_t instance_field_offset() {
     return OFFSET_OF(RawField, value_.offset_);
@@ -2940,13 +2984,14 @@ class Field : public Object {
 
   static intptr_t kind_bits_offset() { return OFFSET_OF(RawField, kind_bits_); }
 
-  intptr_t token_pos() const { return raw_ptr()->token_pos_; }
+  TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
 
   bool has_initializer() const {
     return HasInitializerBit::decode(raw_ptr()->kind_bits_);
   }
   // Called by parser after allocating field.
   void set_has_initializer(bool has_initializer) const {
+    ASSERT(IsOriginal());
     ASSERT(Thread::Current()->IsMutatorThread());
     set_kind_bits(HasInitializerBit::update(has_initializer,
                                             raw_ptr()->kind_bits_));
@@ -2997,6 +3042,7 @@ class Field : public Object {
   // Default 'true', set to false once optimizing compiler determines it should
   // be boxed.
   void set_is_unboxing_candidate(bool b) const {
+    ASSERT(IsOriginal());
     set_kind_bits(UnboxingCandidateBit::update(b, raw_ptr()->kind_bits_));
   }
 
@@ -3091,15 +3137,16 @@ class Field : public Object {
     kReflectableBit,
     kDoubleInitializedBit,
   };
-  class ConstBit : public BitField<bool, kConstBit, 1> {};
-  class StaticBit : public BitField<bool, kStaticBit, 1> {};
-  class FinalBit : public BitField<bool, kFinalBit, 1> {};
-  class HasInitializerBit : public BitField<bool, kHasInitializerBit, 1> {};
-  class UnboxingCandidateBit : public BitField<bool,
-                                               kUnboxingCandidateBit, 1> {};
-  class ReflectableBit : public BitField<bool, kReflectableBit, 1> {};
-  class DoubleInitializedBit : public BitField<bool,
-                                               kDoubleInitializedBit, 1> {};
+  class ConstBit : public BitField<uint8_t, bool, kConstBit, 1> {};
+  class StaticBit : public BitField<uint8_t, bool, kStaticBit, 1> {};
+  class FinalBit : public BitField<uint8_t, bool, kFinalBit, 1> {};
+  class HasInitializerBit :
+      public BitField<uint8_t, bool, kHasInitializerBit, 1> {};
+  class UnboxingCandidateBit :
+      public BitField<uint8_t, bool, kUnboxingCandidateBit, 1> {};
+  class ReflectableBit : public BitField<uint8_t, bool, kReflectableBit, 1> {};
+  class DoubleInitializedBit :
+      public BitField<uint8_t, bool, kDoubleInitializedBit, 1> {};
 
   // Update guarded cid and guarded length for this field. Returns true, if
   // deoptimization of dependent code is required.
@@ -3118,11 +3165,11 @@ class Field : public Object {
   void set_owner(const Object& value) const {
     StorePointer(&raw_ptr()->owner_, value.raw());
   }
-  void set_token_pos(intptr_t token_pos) const {
+  void set_token_pos(TokenPosition token_pos) const {
     StoreNonPointer(&raw_ptr()->token_pos_, token_pos);
   }
-  void set_kind_bits(intptr_t value) const {
-    StoreNonPointer(&raw_ptr()->kind_bits_, static_cast<uint8_t>(value));
+  void set_kind_bits(uint8_t value) const {
+    StoreNonPointer(&raw_ptr()->kind_bits_, value);
   }
 
   static RawField* New();
@@ -3168,8 +3215,9 @@ class TokenStream : public Object {
   void SetStream(const ExternalTypedData& stream) const;
 
   RawString* GenerateSource() const;
-  RawString* GenerateSource(intptr_t start, intptr_t end) const;
-  intptr_t ComputeSourcePosition(intptr_t tok_pos) const;
+  RawString* GenerateSource(TokenPosition start,
+                            TokenPosition end) const;
+  TokenPosition ComputeSourcePosition(TokenPosition tok_pos) const;
 
   RawString* PrivateKey() const;
 
@@ -3198,10 +3246,10 @@ class TokenStream : public Object {
     };
 
     Iterator(const TokenStream& tokens,
-             intptr_t token_pos,
+             TokenPosition token_pos,
              Iterator::StreamType stream_type = kNoNewlines);
 
-    void SetStream(const TokenStream& tokens, intptr_t token_pos);
+    void SetStream(const TokenStream& tokens, TokenPosition token_pos);
     bool IsValid() const;
 
     inline Token::Kind CurrentTokenKind() const {
@@ -3210,8 +3258,8 @@ class TokenStream : public Object {
 
     Token::Kind LookaheadTokenKind(intptr_t num_tokens);
 
-    intptr_t CurrentPosition() const;
-    void SetCurrentPosition(intptr_t value);
+    TokenPosition CurrentPosition() const;
+    void SetCurrentPosition(TokenPosition token_pos);
 
     void Advance();
 
@@ -3281,7 +3329,7 @@ class Script : public Object {
 
   void SetLocationOffset(intptr_t line_offset, intptr_t col_offset) const;
 
-  void GetTokenLocation(intptr_t token_pos,
+  void GetTokenLocation(TokenPosition token_pos,
                         intptr_t* line,
                         intptr_t* column,
                         intptr_t* token_len = NULL) const;
@@ -3291,8 +3339,8 @@ class Script : public Object {
   // after, but not on given line, returns in *first_token_index the index of
   // the first token after the line, and a negative value in *last_token_index.
   void TokenRangeAtLine(intptr_t line_number,
-                        intptr_t* first_token_index,
-                        intptr_t* last_token_index) const;
+                        TokenPosition* first_token_index,
+                        TokenPosition* last_token_index) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawScript));
@@ -3429,6 +3477,7 @@ class Library : public Object {
   void AddClass(const Class& cls) const;
   void AddObject(const Object& obj, const String& name) const;
   void ReplaceObject(const Object& obj, const String& name) const;
+  bool RemoveObject(const Object& obj, const String& name) const;
   RawObject* LookupReExport(const String& name) const;
   RawObject* LookupObjectAllowPrivate(const String& name) const;
   RawObject* LookupLocalObjectAllowPrivate(const String& name) const;
@@ -3460,12 +3509,14 @@ class Library : public Object {
 
   void AddClassMetadata(const Class& cls,
                         const Object& tl_owner,
-                        intptr_t token_pos) const;
-  void AddFieldMetadata(const Field& field, intptr_t token_pos) const;
-  void AddFunctionMetadata(const Function& func, intptr_t token_pos) const;
-  void AddLibraryMetadata(const Object& tl_owner, intptr_t token_pos) const;
+                        TokenPosition token_pos) const;
+  void AddFieldMetadata(const Field& field, TokenPosition token_pos) const;
+  void AddFunctionMetadata(const Function& func,
+                           TokenPosition token_pos) const;
+  void AddLibraryMetadata(const Object& tl_owner,
+                          TokenPosition token_pos) const;
   void AddTypeParameterMetadata(const TypeParameter& param,
-                                intptr_t token_pos) const;
+                                TokenPosition token_pos) const;
   RawObject* GetMetadata(const Object& obj) const;
 
   RawClass* toplevel_class() const {
@@ -3485,6 +3536,8 @@ class Library : public Object {
   RawNamespace* ImportAt(intptr_t index) const;
   RawLibrary* ImportLibraryAt(intptr_t index) const;
   bool ImportsCorelib() const;
+
+  void DropDependencies() const;
 
   // Resolving native methods for script loaded in the library.
   Dart_NativeEntryResolver native_entry_resolver() const {
@@ -3601,7 +3654,8 @@ class Library : public Object {
   void InitClassDictionary() const;
 
   RawArray* resolved_names() const { return raw_ptr()->resolved_names_; }
-  void InitResolvedNamesCache(intptr_t size) const;
+  void InitResolvedNamesCache(intptr_t size,
+                              SnapshotReader* reader = NULL) const;
   void GrowResolvedNamesCache() const;
   bool LookupResolvedNamesCache(const String& name, Object* obj) const;
   void AddToResolvedNamesCache(const String& name, const Object& obj) const;
@@ -3621,7 +3675,7 @@ class Library : public Object {
   RawField* GetMetadataField(const String& metaname) const;
   void AddMetadata(const Object& owner,
                    const String& name,
-                   intptr_t token_pos) const;
+                   TokenPosition token_pos) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Library, Object);
 
@@ -3642,7 +3696,7 @@ class Namespace : public Object {
   RawArray* show_names() const { return raw_ptr()->show_names_; }
   RawArray* hide_names() const { return raw_ptr()->hide_names_; }
 
-  void AddMetadata(const Object& owner, intptr_t token_pos);
+  void AddMetadata(const Object& owner, TokenPosition token_pos);
   RawObject* GetMetadata() const;
 
   static intptr_t InstanceSize() {
@@ -3813,6 +3867,14 @@ class Instructions : public Object {
         entry_point - HeaderSize() + kHeapObjectTag);
   }
 
+  bool Equals(const Instructions& other) const {
+    if (size() != other.size()) {
+      return false;
+    }
+    NoSafepointScope no_safepoint;
+    return memcmp(raw_ptr(), other.raw_ptr(), InstanceSize(size())) == 0;
+  }
+
  private:
   void set_size(intptr_t size) const {
     StoreNonPointer(&raw_ptr()->size_, size);
@@ -3939,7 +4001,7 @@ class PcDescriptors : public Object {
 
     uword PcOffset() const { return cur_pc_offset_; }
     intptr_t DeoptId() const { return cur_deopt_id_; }
-    intptr_t TokenPos() const { return cur_token_pos_; }
+    TokenPosition TokenPos() const { return TokenPosition(cur_token_pos_); }
     intptr_t TryIndex() const { return cur_try_index_; }
     RawPcDescriptors::Kind Kind() const {
       return static_cast<RawPcDescriptors::Kind>(cur_kind_);
@@ -3981,6 +4043,89 @@ class PcDescriptors : public Object {
   void CopyData(GrowableArray<uint8_t>* data);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(PcDescriptors, Object);
+  friend class Class;
+  friend class Object;
+};
+
+
+class CodeSourceMap : public Object {
+ public:
+  static const intptr_t kBytesPerElement = 1;
+  static const intptr_t kMaxElements = kMaxInt32 / kBytesPerElement;
+
+  static intptr_t InstanceSize() {
+    ASSERT(sizeof(RawCodeSourceMap) ==
+           OFFSET_OF_RETURNED_VALUE(RawCodeSourceMap, data));
+    return 0;
+  }
+  static intptr_t InstanceSize(intptr_t len) {
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(sizeof(RawCodeSourceMap) + len);
+  }
+
+  static RawCodeSourceMap* New(GrowableArray<uint8_t>* delta_encoded_data);
+
+  void PrintToJSONObject(JSONObject* jsobj, bool ref) const;
+
+  // Encode integer in SLEB128 format.
+  static void EncodeInteger(GrowableArray<uint8_t>* data, intptr_t value);
+
+  // Decode SLEB128 encoded integer. Update byte_index to the next integer.
+  intptr_t DecodeInteger(intptr_t* byte_index) const;
+
+  TokenPosition TokenPositionForPCOffset(uword pc_offset) const;
+  RawFunction* FunctionForPCOffset(const Code& code,
+                                   const Function& function,
+                                   uword pc_offset) const;
+  RawScript* ScriptForPCOffset(const Code& code,
+                               const Function& function,
+                               uword pc_offset) const;
+
+  static void Dump(const CodeSourceMap& code_source_map,
+                   const Code& code,
+                   const Function& function);
+
+  class Iterator : ValueObject {
+   public:
+    explicit Iterator(const CodeSourceMap& code_source_map)
+        : code_source_map_(code_source_map),
+          byte_index_(0),
+          cur_pc_offset_(0),
+          cur_token_pos_(0) {
+    }
+
+    bool MoveNext() {
+      // Moves to the next record.
+      while (byte_index_ < code_source_map_.Length()) {
+        cur_pc_offset_ += code_source_map_.DecodeInteger(&byte_index_);
+        cur_token_pos_ += code_source_map_.DecodeInteger(&byte_index_);
+
+        return true;
+      }
+      return false;
+    }
+
+    uword PcOffset() const { return cur_pc_offset_; }
+    TokenPosition TokenPos() const { return TokenPosition(cur_token_pos_); }
+
+   private:
+    friend class CodeSourceMap;
+
+    const CodeSourceMap& code_source_map_;
+    intptr_t byte_index_;
+
+    intptr_t cur_pc_offset_;
+    intptr_t cur_token_pos_;
+  };
+
+ private:
+  static RawCodeSourceMap* New(intptr_t length);
+
+  intptr_t Length() const;
+  void SetLength(intptr_t value) const;
+  void CopyData(GrowableArray<uint8_t>* data);
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(CodeSourceMap, Object);
   friend class Class;
   friend class Object;
 };
@@ -4216,6 +4361,15 @@ class Code : public Object {
     StorePointer(&raw_ptr()->pc_descriptors_, descriptors.raw());
   }
 
+  RawCodeSourceMap* code_source_map() const {
+    return raw_ptr()->code_source_map_;
+  }
+
+  void set_code_source_map(const CodeSourceMap& code_source_map) const {
+    ASSERT(code_source_map.IsOld());
+    StorePointer(&raw_ptr()->code_source_map_, code_source_map.raw());
+  }
+
   // Array of DeoptInfo objects.
   RawArray* deopt_info_array() const {
     return raw_ptr()->deopt_info_array_;
@@ -4308,6 +4462,9 @@ class Code : public Object {
   RawArray* GetInlinedIdToFunction() const;
   void SetInlinedIdToFunction(const Array& value) const;
 
+  RawArray* GetInlinedIdToTokenPos() const;
+  void SetInlinedIdToTokenPos(const Array& value) const;
+
   RawArray* GetInlinedCallerIdMap() const;
   void SetInlinedCallerIdMap(const Array& value) const;
 
@@ -4386,7 +4543,7 @@ class Code : public Object {
     NoSafepointScope no_safepoint;
     return *PointerOffsetAddrAt(index);
   }
-  intptr_t GetTokenIndexOfPC(uword pc) const;
+  TokenPosition GetTokenIndexOfPC(uword pc) const;
 
   enum {
     kInvalidPc = -1
@@ -4399,7 +4556,7 @@ class Code : public Object {
   intptr_t GetDeoptIdForOsr(uword pc) const;
 
   RawString* Name() const;
-  RawString* PrettyName() const;
+  RawString* QualifiedName() const;
 
   int64_t compile_timestamp() const {
     return raw_ptr()->compile_timestamp_;
@@ -4447,9 +4604,10 @@ class Code : public Object {
     kPtrOffSize = 30,
   };
 
-  class OptimizedBit : public BitField<bool, kOptimizedBit, 1> {};
-  class AliveBit : public BitField<bool, kAliveBit, 1> {};
-  class PtrOffBits : public BitField<intptr_t, kPtrOffBit, kPtrOffSize> {};
+  class OptimizedBit : public BitField<int32_t, bool, kOptimizedBit, 1> {};
+  class AliveBit : public BitField<int32_t, bool, kAliveBit, 1> {};
+  class PtrOffBits :
+      public BitField<int32_t, intptr_t, kPtrOffBit, kPtrOffSize> {};
 
   class SlowFindRawCodeVisitor : public FindObjectVisitor {
    public:
@@ -4515,6 +4673,7 @@ class Code : public Object {
   friend class Class;
   friend class SnapshotWriter;
   friend class CodePatcher;  // for set_instructions
+  friend class Precompiler;  // for set_instructions
   // So that the RawFunction pointer visitor can determine whether code the
   // function points to is optimized.
   friend class RawFunction;
@@ -4591,8 +4750,8 @@ class ContextScope : public Object {
  public:
   intptr_t num_variables() const { return raw_ptr()->num_variables_; }
 
-  intptr_t TokenIndexAt(intptr_t scope_index) const;
-  void SetTokenIndexAt(intptr_t scope_index, intptr_t token_pos) const;
+  TokenPosition TokenIndexAt(intptr_t scope_index) const;
+  void SetTokenIndexAt(intptr_t scope_index, TokenPosition token_pos) const;
 
   RawString* NameAt(intptr_t scope_index) const;
   void SetNameAt(intptr_t scope_index, const String& name) const;
@@ -4726,7 +4885,7 @@ class MegamorphicCache : public Object {
 class SubtypeTestCache : public Object {
  public:
   enum Entries {
-    kInstanceClassId = 0,
+    kInstanceClassIdOrFunction = 0,
     kInstanceTypeArguments = 1,
     kInstantiatorTypeArguments = 2,
     kTestResult = 3,
@@ -4734,12 +4893,12 @@ class SubtypeTestCache : public Object {
   };
 
   intptr_t NumberOfChecks() const;
-  void AddCheck(intptr_t class_id,
+  void AddCheck(const Object& instance_class_id_or_function,
                 const TypeArguments& instance_type_arguments,
                 const TypeArguments& instantiator_type_arguments,
                 const Bool& test_result) const;
   void GetCheck(intptr_t ix,
-                intptr_t* class_id,
+                Object* instance_class_id_or_function,
                 TypeArguments* instance_type_arguments,
                 TypeArguments* instantiator_type_arguments,
                 Bool* test_result) const;
@@ -4816,15 +4975,17 @@ class LanguageError : public Error {
   // A null script means no source and a negative token_pos means no position.
   static RawLanguageError* NewFormatted(const Error& prev_error,
                                         const Script& script,
-                                        intptr_t token_pos,
+                                        TokenPosition token_pos,
+                                        bool report_after_token,
                                         Report::Kind kind,
                                         Heap::Space space,
                                         const char* format, ...)
-    PRINTF_ATTRIBUTE(6, 7);
+    PRINTF_ATTRIBUTE(7, 8);
 
   static RawLanguageError* NewFormattedV(const Error& prev_error,
                                          const Script& script,
-                                         intptr_t token_pos,
+                                         TokenPosition token_pos,
+                                         bool report_after_token,
                                          Report::Kind kind,
                                          Heap::Space space,
                                          const char* format, va_list args);
@@ -4844,8 +5005,11 @@ class LanguageError : public Error {
   RawScript* script() const { return raw_ptr()->script_; }
   void set_script(const Script& value) const;
 
-  intptr_t token_pos() const { return raw_ptr()->token_pos_; }
-  void set_token_pos(intptr_t value) const;
+  TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
+  void set_token_pos(TokenPosition value) const;
+
+  bool report_after_token() const { return raw_ptr()->report_after_token_; }
+  void set_report_after_token(bool value);
 
   void set_kind(uint8_t value) const;
 
@@ -4957,7 +5121,7 @@ class Instance : public Object {
     StorePointer(FieldAddr(field), value.raw());
   }
 
-  RawType* GetType() const;
+  RawAbstractType* GetType() const;
 
   virtual RawTypeArguments* GetTypeArguments() const;
   virtual void SetTypeArguments(const TypeArguments& value) const;
@@ -4983,9 +5147,6 @@ class Instance : public Object {
   }
 
   void SetNativeField(int index, intptr_t value) const;
-
-  // Returns true if the instance is a closure object.
-  bool IsClosure() const;
 
   // If the instance is a callable object, i.e. a closure or the instance of a
   // class implementing a 'call' method, return true and set the function
@@ -5015,7 +5176,9 @@ class Instance : public Object {
   static intptr_t ElementSizeFor(intptr_t cid);
 
  protected:
+#ifndef PRODUCT
   virtual void PrintSharedInstanceJSON(JSONObject* jsobj, bool ref) const;
+#endif
 
  private:
   RawObject** FieldAddrAtOffset(intptr_t offset) const {
@@ -5113,18 +5276,22 @@ class LibraryPrefix : public Instance {
 class AbstractType : public Instance {
  public:
   virtual bool IsFinalized() const;
+  virtual void SetIsFinalized() const;
   virtual bool IsBeingFinalized() const;
+  virtual void SetIsBeingFinalized() const;
   virtual bool IsMalformed() const;
   virtual bool IsMalbounded() const;
   virtual bool IsMalformedOrMalbounded() const;
   virtual RawLanguageError* error() const;
   virtual void set_error(const LanguageError& value) const;
   virtual bool IsResolved() const;
+  virtual void SetIsResolved() const;
   virtual bool HasResolvedTypeClass() const;
   virtual RawClass* type_class() const;
   virtual RawUnresolvedClass* unresolved_class() const;
   virtual RawTypeArguments* arguments() const;
-  virtual intptr_t token_pos() const;
+  virtual void set_arguments(const TypeArguments& value) const;
+  virtual TokenPosition token_pos() const;
   virtual bool IsInstantiated(TrailPtr trail = NULL) const;
   virtual bool CanonicalizeEquals(const Instance& other) const {
     return Equals(other);
@@ -5141,8 +5308,9 @@ class AbstractType : public Instance {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr trail = NULL,
-      Heap::Space space = Heap::kNew) const;
+      TrailPtr instantiation_trail,
+      TrailPtr bound_trail,
+      Heap::Space space) const;
 
   // Return a clone of this unfinalized type or the type itself if it is
   // already finalized. Apply recursively to type arguments, i.e. finalized
@@ -5172,13 +5340,20 @@ class AbstractType : public Instance {
   // the trail. The receiver may only be added once with its only buddy.
   void AddOnlyBuddyToTrail(TrailPtr* trail, const AbstractType& buddy) const;
 
+  // Return true if the receiver is contained in the trail.
+  // Otherwise, if the trail is null, allocate a trail, then add the receiver to
+  // the trail and return false.
+  bool TestAndAddToTrail(TrailPtr* trail) const;
+
+  // Return true if the pair <receiver, buddy> is contained in the trail.
+  // Otherwise, if the trail is null, allocate a trail, add the pair <receiver,
+  // buddy> to the trail and return false.
+  // The receiver may be added several times, each time with a different buddy.
+  bool TestAndAddBuddyToTrail(TrailPtr* trail, const AbstractType& buddy) const;
+
   // The name of this type, including the names of its type arguments, if any.
   virtual RawString* Name() const {
     return BuildName(kInternalName);
-  }
-
-  virtual RawString* PrettyName() const {
-    return BuildName(kPrettyName);
   }
 
   // The name of this type, including the names of its type arguments, if any.
@@ -5186,6 +5361,13 @@ class AbstractType : public Instance {
   virtual RawString* UserVisibleName() const {
     return BuildName(kUserVisibleName);
   }
+
+  // Same as user visible name, but including the URI of each occuring type.
+  // Used to report errors involving types with identical names.
+  virtual RawString* UserVisibleNameWithURI() const;
+
+  // Returns a formatted list of occuring types with their URI.
+  virtual RawString* EnumerateURIs() const;
 
   virtual intptr_t Hash() const;
 
@@ -5238,21 +5420,24 @@ class AbstractType : public Instance {
   // Check if this type represents the 'String' type.
   bool IsStringType() const;
 
-  // Check if this type represents the 'Function' type.
-  bool IsFunctionType() const;
+  // Check if this type represents the Dart 'Function' type.
+  bool IsDartFunctionType() const;
 
   // Check the subtype relationship.
   bool IsSubtypeOf(const AbstractType& other,
                    Error* bound_error,
-                   Heap::Space space = Heap::kNew) const {
-    return TypeTest(kIsSubtypeOf, other, bound_error, space);
+                   TrailPtr bound_trail,
+                   Heap::Space space) const {
+    return TypeTest(kIsSubtypeOf, other, bound_error, bound_trail, space);
   }
 
   // Check the 'more specific' relationship.
   bool IsMoreSpecificThan(const AbstractType& other,
                           Error* bound_error,
-                          Heap::Space space = Heap::kNew) const {
-    return TypeTest(kIsMoreSpecificThan, other, bound_error, space);
+                          TrailPtr bound_trail,
+                          Heap::Space space) const {
+    return TypeTest(kIsMoreSpecificThan, other,
+                    bound_error, bound_trail, space);
   }
 
  private:
@@ -5260,6 +5445,7 @@ class AbstractType : public Instance {
   bool TypeTest(TypeTestKind test_kind,
                 const AbstractType& other,
                 Error* bound_error,
+                TrailPtr bound_trail,
                 Heap::Space space) const;
 
   // Return the internal or public name of this type, including the names of its
@@ -5291,12 +5477,11 @@ class Type : public AbstractType {
         (raw_ptr()->type_state_ == RawType::kFinalizedInstantiated) ||
         (raw_ptr()->type_state_ == RawType::kFinalizedUninstantiated);
   }
-  void SetIsFinalized() const;
-  void ResetIsFinalized() const;  // Ignore current state and set again.
+  virtual void SetIsFinalized() const;
   virtual bool IsBeingFinalized() const {
     return raw_ptr()->type_state_ == RawType::kBeingFinalized;
   }
-  void set_is_being_finalized() const;
+  virtual void SetIsBeingFinalized() const;
   virtual bool IsMalformed() const;
   virtual bool IsMalbounded() const;
   virtual bool IsMalformedOrMalbounded() const;
@@ -5305,27 +5490,29 @@ class Type : public AbstractType {
   virtual bool IsResolved() const {
     return raw_ptr()->type_state_ >= RawType::kResolved;
   }
-  void set_is_resolved() const;
+  virtual void SetIsResolved() const;
   virtual bool HasResolvedTypeClass() const;  // Own type class resolved.
   virtual RawClass* type_class() const;
   void set_type_class(const Object& value) const;
   virtual RawUnresolvedClass* unresolved_class() const;
-  virtual RawTypeArguments* arguments() const;
-  void set_arguments(const TypeArguments& value) const;
-  virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
+  virtual RawTypeArguments* arguments() const { return raw_ptr()->arguments_; }
+  virtual void set_arguments(const TypeArguments& value) const;
+  virtual TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated(TrailPtr trail = NULL) const;
   virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
   virtual bool IsRecursive() const;
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr trail = NULL,
-      Heap::Space space = Heap::kNew) const;
+      TrailPtr instantiation_trail,
+      TrailPtr bound_trail,
+      Heap::Space space) const;
   virtual RawAbstractType* CloneUnfinalized() const;
   virtual RawAbstractType* CloneUninstantiated(
       const Class& new_owner,
       TrailPtr trail = NULL) const;
   virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const;
+  virtual RawString* EnumerateURIs() const;
 
   virtual intptr_t Hash() const;
 
@@ -5386,16 +5573,116 @@ class Type : public AbstractType {
 
   static RawType* New(const Object& clazz,
                       const TypeArguments& arguments,
-                      intptr_t token_pos,
+                      TokenPosition token_pos,
                       Heap::Space space = Heap::kOld);
 
  private:
-  void set_token_pos(intptr_t token_pos) const;
+  void set_token_pos(TokenPosition token_pos) const;
   void set_type_state(int8_t state) const;
 
   static RawType* New(Heap::Space space = Heap::kOld);
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Type, AbstractType);
+  friend class Class;
+  friend class TypeArguments;
+};
+
+
+// TODO(regis): FunctionType is very similar to Type. Instead of a separate
+// class FunctionType, we could consider an object of class Type as representing
+// a function type if it has a non-null function (signature) field.
+// In order to save space, we could reuse the error_ field? A malformed or
+// malbounded function type would lose its function reference, but the error
+// string would contain relevant info.
+
+// A FunctionType describes the signature of a function, i.e. the result type
+// and formal parameter types of the function, as well as the names of optional
+// named formal parameters.
+// If these types refer to type parameters of a class in scope, the function
+// type is generic. A generic function type may be instantiated by a type
+// argument vector.
+// Therefore, a FunctionType consists of a scope class, a type argument vector,
+// and a signature.
+// The scope class is either a generic class (or generic typedef) declaring the
+// type parameters referred to by the signature, or class _Closure in the
+// non-generic case (including the non-generic typedef case).
+// The type arguments specify an instantiation of the generic signature (null in
+// the non-generic case).
+// The signature is a reference to an actual closure function (kClosureFunction)
+// or to a signature function (kSignatureFunction).
+// Since typedefs cannot refer to themselves, directly or indirectly, a
+// FunctionType cannot be recursive. Only individual formal parameter types can.
+class FunctionType : public AbstractType {
+ public:
+  virtual bool IsFinalized() const {
+    return
+        (raw_ptr()->type_state_ == RawFunctionType::kFinalizedInstantiated) ||
+        (raw_ptr()->type_state_ == RawFunctionType::kFinalizedUninstantiated);
+  }
+  virtual void SetIsFinalized() const;
+  void ResetIsFinalized() const;  // Ignore current state and set again.
+  virtual bool IsBeingFinalized() const {
+    return raw_ptr()->type_state_ == RawFunctionType::kBeingFinalized;
+  }
+  virtual void SetIsBeingFinalized() const;
+  virtual bool IsMalformed() const;
+  virtual bool IsMalbounded() const;
+  virtual bool IsMalformedOrMalbounded() const;
+  virtual RawLanguageError* error() const { return raw_ptr()->error_; }
+  virtual void set_error(const LanguageError& value) const;
+  virtual bool IsResolved() const {
+    return raw_ptr()->type_state_ >= RawFunctionType::kResolved;
+  }
+  virtual void SetIsResolved() const;
+  // The scope class of a FunctionType is always resolved. It has no actual
+  // type class. Returning false is important for the type testers to work, e.g.
+  // IsDynamicType(), IsBoolType(), etc...
+  virtual bool HasResolvedTypeClass() const { return false; }
+  // Return scope_class from virtual type_class() to factorize finalization
+  // with Type, also a parameterized type.
+  virtual RawClass* type_class() const { return scope_class(); }
+  RawClass* scope_class() const { return raw_ptr()->scope_class_; }
+  void set_scope_class(const Class& value) const;
+  virtual RawTypeArguments* arguments() const { return raw_ptr()->arguments_; }
+  virtual void set_arguments(const TypeArguments& value) const;
+  RawFunction* signature() const { return raw_ptr()->signature_; }
+  virtual TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
+  virtual bool IsInstantiated(TrailPtr trail = NULL) const;
+  virtual bool IsEquivalent(const Instance& other, TrailPtr trail = NULL) const;
+  virtual bool IsRecursive() const;
+  virtual RawAbstractType* InstantiateFrom(
+      const TypeArguments& instantiator_type_arguments,
+      Error* malformed_error,
+      TrailPtr instantiation_trail,
+      TrailPtr bound_trail,
+      Heap::Space space) const;
+  virtual RawAbstractType* CloneUnfinalized() const;
+  virtual RawAbstractType* CloneUninstantiated(
+      const Class& new_owner,
+      TrailPtr trail = NULL) const;
+  virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const;
+  virtual RawString* EnumerateURIs() const;
+
+  virtual intptr_t Hash() const;
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawFunctionType));
+  }
+
+  static RawFunctionType* New(const Class& scope_class,
+                              const TypeArguments& arguments,
+                              const Function& signature,
+                              TokenPosition token_pos,
+                              Heap::Space space = Heap::kOld);
+
+ private:
+  void set_signature(const Function& value) const;
+  void set_token_pos(TokenPosition token_pos) const;
+  void set_type_state(int8_t state) const;
+
+  static RawFunctionType* New(Heap::Space space = Heap::kOld);
+
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(FunctionType, AbstractType);
   friend class Class;
   friend class TypeArguments;
 };
@@ -5422,7 +5709,10 @@ class TypeRef : public AbstractType {
     return AbstractType::Handle(type()).IsMalformedOrMalbounded();
   }
   virtual bool IsResolved() const { return true; }
-  virtual bool HasResolvedTypeClass() const { return true; }
+  virtual bool HasResolvedTypeClass() const {
+    // Returns false if the ref type is a function type.
+    return AbstractType::Handle(type()).HasResolvedTypeClass();
+  }
   RawAbstractType* type() const { return raw_ptr()->type_; }
   void set_type(const AbstractType& value) const;
   virtual RawClass* type_class() const {
@@ -5431,7 +5721,7 @@ class TypeRef : public AbstractType {
   virtual RawTypeArguments* arguments() const {
     return AbstractType::Handle(type()).arguments();
   }
-  virtual intptr_t token_pos() const {
+  virtual TokenPosition token_pos() const {
     return AbstractType::Handle(type()).token_pos();
   }
   virtual bool IsInstantiated(TrailPtr trail = NULL) const;
@@ -5441,25 +5731,16 @@ class TypeRef : public AbstractType {
   virtual RawTypeRef* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr trail = NULL,
-      Heap::Space space = Heap::kNew) const;
+      TrailPtr instantiation_trail,
+      TrailPtr bound_trail,
+      Heap::Space space) const;
   virtual RawTypeRef* CloneUninstantiated(
       const Class& new_owner,
       TrailPtr trail = NULL) const;
   virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const;
+  virtual RawString* EnumerateURIs() const;
 
   virtual intptr_t Hash() const;
-
-  // Return true if the receiver is contained in the trail.
-  // Otherwise, if the trail is null, allocate a trail, then add the receiver to
-  // the trail and return false.
-  bool TestAndAddToTrail(TrailPtr* trail) const;
-
-  // Return true if the pair <receiver, buddy> is contained in the trail.
-  // Otherwise, if the trail is null, allocate a trail, add the pair <receiver,
-  // buddy> to the trail and return false.
-  // The receiver may be added several times, each time with a different buddy.
-  bool TestAndAddBuddyToTrail(TrailPtr* trail, const AbstractType& buddy) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawTypeRef));
@@ -5491,7 +5772,7 @@ class TypeParameter : public AbstractType {
     ASSERT(raw_ptr()->type_state_ != RawTypeParameter::kFinalizedInstantiated);
     return raw_ptr()->type_state_ == RawTypeParameter::kFinalizedUninstantiated;
   }
-  void set_is_finalized() const;
+  virtual void SetIsFinalized() const;
   virtual bool IsBeingFinalized() const { return false; }
   virtual bool IsMalformed() const { return false; }
   virtual bool IsMalbounded() const { return false; }
@@ -5513,8 +5794,9 @@ class TypeParameter : public AbstractType {
   bool CheckBound(const AbstractType& bounded_type,
                   const AbstractType& upper_bound,
                   Error* bound_error,
-                  Heap::Space space = Heap::kNew) const;
-  virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
+                  TrailPtr bound_trail,
+                  Heap::Space space) const;
+  virtual TokenPosition token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated(TrailPtr trail = NULL) const {
     return false;
   }
@@ -5523,14 +5805,16 @@ class TypeParameter : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr trail = NULL,
-      Heap::Space space = Heap::kNew) const;
+      TrailPtr instantiation_trail,
+      TrailPtr bound_trail,
+      Heap::Space space) const;
   virtual RawAbstractType* CloneUnfinalized() const;
   virtual RawAbstractType* CloneUninstantiated(
       const Class& new_owner, TrailPtr trail = NULL) const;
   virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const {
     return raw();
   }
+  virtual RawString* EnumerateURIs() const;
 
   virtual intptr_t Hash() const;
 
@@ -5542,12 +5826,12 @@ class TypeParameter : public AbstractType {
                                intptr_t index,
                                const String& name,
                                const AbstractType& bound,
-                               intptr_t token_pos);
+                               TokenPosition token_pos);
 
  private:
   void set_parameterized_class(const Class& value) const;
   void set_name(const String& value) const;
-  void set_token_pos(intptr_t token_pos) const;
+  void set_token_pos(TokenPosition token_pos) const;
   void set_type_state(int8_t state) const;
 
   static RawTypeParameter* New();
@@ -5593,7 +5877,7 @@ class BoundedType : public AbstractType {
   RawTypeParameter* type_parameter() const {
     return raw_ptr()->type_parameter_;
   }
-  virtual intptr_t token_pos() const {
+  virtual TokenPosition token_pos() const {
     return AbstractType::Handle(type()).token_pos();
   }
   virtual bool IsInstantiated(TrailPtr trail = NULL) const {
@@ -5608,14 +5892,16 @@ class BoundedType : public AbstractType {
   virtual RawAbstractType* InstantiateFrom(
       const TypeArguments& instantiator_type_arguments,
       Error* bound_error,
-      TrailPtr trail = NULL,
-      Heap::Space space = Heap::kNew) const;
+      TrailPtr instantiation_trail,
+      TrailPtr bound_trail,
+      Heap::Space space) const;
   virtual RawAbstractType* CloneUnfinalized() const;
   virtual RawAbstractType* CloneUninstantiated(
       const Class& new_owner, TrailPtr trail = NULL) const;
   virtual RawAbstractType* Canonicalize(TrailPtr trail = NULL) const {
     return raw();
   }
+  virtual RawString* EnumerateURIs() const;
 
   virtual intptr_t Hash() const;
 
@@ -5657,7 +5943,7 @@ class MixinAppType : public AbstractType {
   virtual bool IsResolved() const { return false; }
   virtual bool HasResolvedTypeClass() const { return false; }
   virtual RawString* Name() const;
-  virtual intptr_t token_pos() const;
+  virtual TokenPosition token_pos() const;
 
   // Returns the mixin composition depth of this mixin application type.
   intptr_t Depth() const;
@@ -5698,6 +5984,7 @@ class Number : public Instance {
 
  private:
   OBJECT_IMPLEMENTATION(Number, Instance);
+
   friend class Class;
 };
 
@@ -5711,10 +5998,7 @@ class Integer : public Number {
   // Returns a canonical Integer object allocated in the old gen space.
   static RawInteger* NewCanonical(const String& str);
 
-  // Do not throw JavascriptIntegerOverflow if 'silent' is true.
-  static RawInteger* New(int64_t value,
-                         Heap::Space space = Heap::kNew,
-                         const bool silent = false);
+  static RawInteger* New(int64_t value, Heap::Space space = Heap::kNew);
 
   virtual bool OperatorEquals(const Instance& other) const {
     return Equals(other);
@@ -5751,9 +6035,6 @@ class Integer : public Number {
   RawInteger* BitOp(Token::Kind operation,
                     const Integer& other,
                     Heap::Space space = Heap::kNew) const;
-
-  // Returns true if the Integer does not fit in a Javascript integer.
-  bool CheckJavascriptIntegerOverflow() const;
 
  private:
   OBJECT_IMPLEMENTATION(Integer, Number);
@@ -5811,8 +6092,7 @@ class Smi : public Integer {
 
   RawInteger* ShiftOp(Token::Kind kind,
                       const Smi& other,
-                      Heap::Space space = Heap::kNew,
-                      const bool silent = false) const;
+                      Heap::Space space = Heap::kNew) const;
 
   void operator=(RawSmi* value) {
     raw_ = value;
@@ -5839,7 +6119,7 @@ class Smi : public Integer {
 
   Smi() : Integer() {}
   BASE_OBJECT_IMPLEMENTATION(Smi, Integer);
-
+  OBJECT_SERVICE_SUPPORT(Smi);
   friend class Api;  // For ValueFromRaw
   friend class Class;
   friend class Object;
@@ -6091,6 +6371,7 @@ class String : public Instance {
     this->SetHash(result);
     return result;
   }
+
   bool HasHash() const {
     ASSERT(Smi::New(0) == NULL);
     return (raw_ptr()->hash_ != NULL);
@@ -6120,9 +6401,10 @@ class String : public Instance {
   intptr_t CharSize() const;
 
   inline bool Equals(const String& str) const;
-  inline bool Equals(const String& str,
-                     intptr_t begin_index,  // begin index on 'str'.
-                     intptr_t len) const;  // len on 'str'.
+
+  bool Equals(const String& str,
+              intptr_t begin_index,  // begin index on 'str'.
+              intptr_t len) const;  // len on 'str'.
 
   // Compares to a '\0' terminated array of UTF-8 encoded characters.
   bool Equals(const char* cstr) const;
@@ -6283,8 +6565,8 @@ class String : public Instance {
   static RawString* ToLowerCase(const String& str,
                                 Heap::Space space = Heap::kNew);
 
-  static RawString* IdentifierPrettyName(const String& name);
-  static RawString* IdentifierPrettyNameRetainPrivate(const String& name);
+  static RawString* ScrubName(const String& name);
+  static RawString* ScrubNameRetainPrivate(const String& name);
 
   static bool EqualsIgnoringPrivateKey(const String& str1,
                                        const String& str2);
@@ -6341,6 +6623,7 @@ class String : public Instance {
   friend class ExternalTwoByteString;
   // So that SkippedCodeFunctions can print a debug string from a NoHandleScope.
   friend class SkippedCodeFunctions;
+  friend class RawOneByteString;
 };
 
 
@@ -7667,86 +7950,45 @@ class LinkedHashMap : public Instance {
 };
 
 
-class Closure : public AllStatic {
+class Closure : public Instance {
  public:
-  static RawFunction* function(const Instance& closure) {
-    return *FunctionAddr(closure);
+  RawFunction* function() const { return raw_ptr()->function_; }
+  void set_function(const Function& function) const {
+    // TODO(regis): Only used from deferred_objects.cc. Remove once fixed.
+    StorePointer(&raw_ptr()->function_, function.raw());
   }
-  static intptr_t function_offset() {
-    return static_cast<intptr_t>(kFunctionOffset * kWordSize);
-  }
+  static intptr_t function_offset() { return OFFSET_OF(RawClosure, function_); }
 
-  static RawContext* context(const Instance& closure) {
-    return *ContextAddr(closure);
+  RawContext* context() const { return raw_ptr()->context_; }
+  void set_context(const Context& context) const {
+    // TODO(regis): Only used from deferred_objects.cc. Remove once fixed.
+    StorePointer(&raw_ptr()->context_, context.raw());
   }
-  static intptr_t context_offset() {
-    return static_cast<intptr_t>(kContextOffset * kWordSize);
-  }
+  static intptr_t context_offset() { return OFFSET_OF(RawClosure, context_); }
 
-  static RawTypeArguments* GetTypeArguments(const Instance& closure) {
-    return *TypeArgumentsAddr(closure);
-  }
-  static void SetTypeArguments(const Instance& closure,
-                               const TypeArguments& value) {
-    ASSERT(value.IsNull() || value.IsCanonical());
-    closure.StorePointer(TypeArgumentsAddr(closure), value.raw());
-  }
   static intptr_t type_arguments_offset() {
-    return static_cast<intptr_t>(kTypeArgumentsOffset * kWordSize);
+    return OFFSET_OF(RawClosure, type_arguments_);
   }
-
-  static const char* ToCString(const Instance& closure);
 
   static intptr_t InstanceSize() {
-    intptr_t size = sizeof(RawInstance) + (kNumFields * kWordSize);
-    ASSERT(size == Object::RoundedAllocationSize(size));
-    return size;
+    return RoundedAllocationSize(sizeof(RawClosure));
   }
 
-  static RawInstance* New(const Function& function,
-                          const Context& context,
-                          Heap::Space space = Heap::kNew);
+  // Returns true if all elements are OK for canonicalization.
+  virtual bool CheckAndCanonicalizeFields(const char** error_str) const {
+    // None of the fields of a closure are instances.
+    return true;
+  }
+
+  static RawClosure* New(const Function& function,
+                         const Context& context,
+                         Heap::Space space = Heap::kNew);
 
  private:
-  static const int kTypeArgumentsOffset = 1;
-  static const int kFunctionOffset = 2;
-  static const int kContextOffset = 3;
-  static const int kNumFields = 3;
+  static RawClosure* New();
 
-  static RawTypeArguments** TypeArgumentsAddr(const Instance& obj) {
-    ASSERT(obj.IsClosure());
-    return reinterpret_cast<RawTypeArguments**>(
-        reinterpret_cast<intptr_t>(obj.raw_ptr()) + type_arguments_offset());
-  }
-  static RawFunction** FunctionAddr(const Instance& obj) {
-    ASSERT(obj.IsClosure());
-    return reinterpret_cast<RawFunction**>(
-        reinterpret_cast<intptr_t>(obj.raw_ptr()) + function_offset());
-  }
-  static RawContext** ContextAddr(const Instance& obj) {
-    ASSERT(obj.IsClosure());
-    return reinterpret_cast<RawContext**>(
-        reinterpret_cast<intptr_t>(obj.raw_ptr()) + context_offset());
-  }
-  static void set_function(const Instance& closure,
-                           const Function& value) {
-    closure.StorePointer(FunctionAddr(closure), value.raw());
-  }
-  static void set_context(const Instance& closure,
-                          const Context& value) {
-    closure.StorePointer(ContextAddr(closure), value.raw());
-  }
-  static intptr_t NextFieldOffset() {
-    // Indicates this class cannot be extended by dart code.
-    return -kWordSize;
-  }
-  static RawFunction* GetFunction(RawObject* obj) {
-    return *(reinterpret_cast<RawFunction**>(
-        reinterpret_cast<intptr_t>(obj->ptr()) + function_offset()));
-  }
-
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(Closure, Instance);
   friend class Class;
-  friend class SnapshotWriter;
 };
 
 
@@ -7878,8 +8120,8 @@ class JSRegExp : public Instance {
     kFlagsSize = 4,
   };
 
-  class TypeBits : public BitField<RegExType, kTypePos, kTypeSize> {};
-  class FlagsBits : public BitField<intptr_t, kFlagsPos, kFlagsSize> {};
+  class TypeBits : public BitField<int8_t, RegExType, kTypePos, kTypeSize> {};
+  class FlagsBits : public BitField<int8_t, intptr_t, kFlagsPos, kFlagsSize> {};
 
   bool is_initialized() const { return (type() != kUnitialized); }
   bool is_simple() const { return (type() == kSimple); }
@@ -8198,26 +8440,13 @@ bool String::Equals(const String& str) const {
   if (str.IsNull()) {
     return false;
   }
+  if (IsCanonical() && str.IsCanonical()) {
+    return false;  // Two symbols that aren't identical aren't equal.
+  }
+  if (HasHash() && str.HasHash() && (Hash() != str.Hash())) {
+    return false;  // Both sides have hash codes and they do not match.
+  }
   return Equals(str, 0, str.Length());
-}
-
-
-bool String::Equals(const String& str,
-                    intptr_t begin_index,
-                    intptr_t len) const {
-  ASSERT(begin_index >= 0);
-  ASSERT((begin_index == 0) || (begin_index < str.Length()));
-  ASSERT(len >= 0);
-  ASSERT(len <= str.Length());
-  if (len != this->Length()) {
-    return false;  // Lengths don't match.
-  }
-  for (intptr_t i = 0; i < len; i++) {
-    if (this->CharAt(i) != str.CharAt(begin_index + i)) {
-      return false;
-    }
-  }
-  return true;
 }
 
 

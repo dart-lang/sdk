@@ -40,8 +40,12 @@ class _SyncIterable extends IterableBase {
 class _SyncIterator implements Iterator {
   bool isYieldEach;  // Set by generated code for the yield* statement.
   Iterator yieldEachIterator;
-  var current;  // Set by generated code for the yield and yield* statement.
+  var _current;  // Set by generated code for the yield and yield* statement.
   SyncGeneratorCallback moveNextFn;
+
+  get current => yieldEachIterator != null
+      ? yieldEachIterator.current
+      : _current;
 
   _SyncIterator(this.moveNextFn);
 
@@ -52,21 +56,22 @@ class _SyncIterator implements Iterator {
     while(true) {
       if (yieldEachIterator != null) {
         if (yieldEachIterator.moveNext()) {
-          current = yieldEachIterator.current;
           return true;
         }
         yieldEachIterator = null;
       }
       isYieldEach = false;
+      // moveNextFn() will update the values of isYieldEach and _current.
       if (!moveNextFn(this)) {
         moveNextFn = null;
-        current = null;
+        _current = null;
         return false;
       }
       if (isYieldEach) {
         // Spec mandates: it is a dynamic error if the class of [the object
         // returned by yield*] does not implement Iterable.
-        yieldEachIterator = (current as Iterable).iterator;
+        yieldEachIterator = (_current as Iterable).iterator;
+        _current = null;
         continue;
       }
       return true;

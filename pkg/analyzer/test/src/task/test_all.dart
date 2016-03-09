@@ -21,6 +21,7 @@ import 'model_test.dart' as model_test;
 import 'options_test.dart' as options_test;
 import 'options_work_manager_test.dart' as options_work_manager_test;
 import 'strong_mode_test.dart' as strong_mode_test;
+import 'yaml_test.dart' as yaml_test;
 
 /// Utility for manually running all tests.
 main() {
@@ -39,5 +40,6 @@ main() {
     options_test.main();
     options_work_manager_test.main();
     strong_mode_test.main();
+    yaml_test.main();
   });
 }

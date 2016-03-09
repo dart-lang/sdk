@@ -12,6 +12,8 @@
 
 namespace dart {
 
+#ifndef PRODUCT
+
 DECLARE_FLAG(bool, thread_interrupter);
 DECLARE_FLAG(bool, trace_thread_interrupter);
 
@@ -115,6 +117,7 @@ void ThreadInterrupter::RemoveSignalHandler() {
   // Nothing to do on Windows.
 }
 
+#endif  // !PRODUCT
 
 }  // namespace dart
 

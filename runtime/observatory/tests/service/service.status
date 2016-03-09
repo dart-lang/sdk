@@ -23,3 +23,14 @@ process_service_test: Pass, Fail # Issue 24344
 
 [ ($noopt || $compiler == precompiler) ]
 *: Skip # Issue 24651
+
+[ $runtime == vm ]
+coverage_test: Pass, Slow
+
+# Service protocol is not supported in product mode.
+[ $mode == product ]
+*: SkipByDesign
+
+# Service protocol is not supported when running a full application snapshot.
+[ ($runtime == dart_product) ]
+*: SkipByDesign

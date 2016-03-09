@@ -545,7 +545,7 @@ class DateTime implements Comparable {
    * * `HH` are hours in the range 00 to 23,
    * * `mm` are minutes in the range 00 to 59,
    * * `ss` are seconds in the range 00 to 59 (no leap seconds),
-   * * `mmm` are microseconds in the range 000 to 999, and
+   * * `mmm` are milliseconds in the range 000 to 999, and
    * * `uuu` are microseconds in the range 001 to 999. If [microsecond] equals
    *   0, then this part is omitted.
    *

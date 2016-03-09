@@ -682,6 +682,9 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     } else {
       constantNum = constant;
     }
+    if (constantNum.isPositiveInfinity || constantNum.isNegativeInfinity) {
+      return info.newUnboundRange();
+    }
     if (constantNum.isMinusZero) constantNum = new IntConstantValue(0);
     Value value = info.newIntValue(constantNum.primitiveValue);
     return info.newNormalizedRange(value, value);

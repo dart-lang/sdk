@@ -292,7 +292,7 @@ class BrowserTestCommand extends Command {
       retry == other.retry;
 
   String get reproductionCommand {
-    var parts = [TestUtils.dartTestExecutable.toString(),
+    var parts = [io.Platform.resolvedExecutable,
                 'tools/testing/dart/launch_browser.dart',
                 browser,
                 url];
@@ -1679,7 +1679,8 @@ CommandOutput createCommandOutput(Command command,
     return new VmCommandOutputImpl(
         command, exitCode, timedOut, stdout, stderr, time, pid);
   } else if (command is CompilationCommand) {
-    if (command.displayName == 'precompiler.dart') {
+    if (command.displayName == 'precompiler' ||
+        command.displayName == 'dart2snapshot') {
       return new VmCommandOutputImpl(
           command, exitCode, timedOut, stdout, stderr, time, pid);
     }

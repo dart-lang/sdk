@@ -6,10 +6,15 @@ library analyzer.test.generated.utilities_test;
 
 import 'dart:collection';
 
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/scanner/reader.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
-import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/generated/testing/token_factory.dart';
@@ -28,7 +33,6 @@ main() {
   runReflectiveTests(SourceRangeTest);
   runReflectiveTests(BooleanArrayTest);
   runReflectiveTests(DirectedGraphTest);
-  runReflectiveTests(ListUtilitiesTest);
   runReflectiveTests(MultipleMapIteratorTest);
   runReflectiveTests(SingleMapIteratorTest);
   runReflectiveTests(TokenMapTest);
@@ -62,1663 +66,1046 @@ class AstCloneComparator extends AstComparator {
 @reflectiveTest
 class AstClonerTest extends EngineTestCase {
   void test_visitAdjacentStrings() {
-    _assertClone(AstFactory
-        .adjacentStrings([AstFactory.string2("a"), AstFactory.string2("b")]));
+    _assertCloneExpression("'a' 'b'");
   }
 
   void test_visitAnnotation_constant() {
-    _assertClone(AstFactory.annotation(AstFactory.identifier3("A")));
+    _assertCloneUnitMember('@A main() {}');
   }
 
   void test_visitAnnotation_constructor() {
-    _assertClone(AstFactory.annotation2(AstFactory.identifier3("A"),
-        AstFactory.identifier3("c"), AstFactory.argumentList()));
+    _assertCloneUnitMember('@A.c() main() {}');
   }
 
   void test_visitArgumentList() {
-    _assertClone(AstFactory.argumentList(
-        [AstFactory.identifier3("a"), AstFactory.identifier3("b")]));
+    _assertCloneExpression('m(a, b)');
   }
 
   void test_visitAsExpression() {
-    _assertClone(AstFactory.asExpression(
-        AstFactory.identifier3("e"), AstFactory.typeName4("T")));
+    _assertCloneExpression('e as T');
   }
 
   void test_visitAssertStatement() {
-    _assertClone(AstFactory.assertStatement(AstFactory.identifier3("a")));
+    _assertCloneStatement('assert(a);');
   }
 
   void test_visitAssignmentExpression() {
-    _assertClone(AstFactory.assignmentExpression(AstFactory.identifier3("a"),
-        TokenType.EQ, AstFactory.identifier3("b")));
+    _assertCloneStatement('a = b;');
   }
 
   void test_visitAwaitExpression() {
-    _assertClone(AstFactory.awaitExpression(AstFactory.identifier3("a")));
+    _assertCloneStatement('await a;');
   }
 
   void test_visitBinaryExpression() {
-    _assertClone(AstFactory.binaryExpression(AstFactory.identifier3("a"),
-        TokenType.PLUS, AstFactory.identifier3("b")));
+    _assertCloneExpression('a + b');
   }
 
   void test_visitBlock_empty() {
-    _assertClone(AstFactory.block());
+    _assertCloneStatement('{}');
   }
 
   void test_visitBlock_nonEmpty() {
-    _assertClone(AstFactory
-        .block([AstFactory.breakStatement(), AstFactory.breakStatement()]));
+    _assertCloneStatement('{ print(1); print(2); }');
   }
 
   void test_visitBlockFunctionBody() {
-    _assertClone(AstFactory.blockFunctionBody2());
+    _assertCloneUnitMember('main() {}');
   }
 
   void test_visitBooleanLiteral_false() {
-    _assertClone(AstFactory.booleanLiteral(false));
+    _assertCloneExpression('false');
   }
 
   void test_visitBooleanLiteral_true() {
-    _assertClone(AstFactory.booleanLiteral(true));
+    _assertCloneExpression('true');
   }
 
   void test_visitBreakStatement_label() {
-    _assertClone(AstFactory.breakStatement2("l"));
+    _assertCloneStatement('l: while(true) { break l; }');
   }
 
   void test_visitBreakStatement_noLabel() {
-    _assertClone(AstFactory.breakStatement());
+    _assertCloneStatement('while(true) { break; }');
   }
 
   void test_visitCascadeExpression_field() {
-    _assertClone(AstFactory.cascadeExpression(AstFactory.identifier3("a"), [
-      AstFactory.cascadedPropertyAccess("b"),
-      AstFactory.cascadedPropertyAccess("c")
-    ]));
+    _assertCloneExpression('a..b..c');
   }
 
   void test_visitCascadeExpression_index() {
-    _assertClone(AstFactory.cascadeExpression(AstFactory.identifier3("a"), [
-      AstFactory.cascadedIndexExpression(AstFactory.integer(0)),
-      AstFactory.cascadedIndexExpression(AstFactory.integer(1))
-    ]));
+    _assertCloneExpression('a..[0]..[1]');
   }
 
   void test_visitCascadeExpression_method() {
-    _assertClone(AstFactory.cascadeExpression(AstFactory.identifier3("a"), [
-      AstFactory.cascadedMethodInvocation("b"),
-      AstFactory.cascadedMethodInvocation("c")
-    ]));
+    _assertCloneExpression('a..b()..c()');
   }
 
   void test_visitCatchClause_catch_noStack() {
-    _assertClone(AstFactory.catchClause("e"));
+    _assertCloneStatement('try {} catch (e) {}');
   }
 
   void test_visitCatchClause_catch_stack() {
-    _assertClone(AstFactory.catchClause2("e", "s"));
+    _assertCloneStatement('try {} catch (e, s) {}');
   }
 
   void test_visitCatchClause_on() {
-    _assertClone(AstFactory.catchClause3(AstFactory.typeName4("E")));
+    _assertCloneStatement('try {} on E {}');
   }
 
   void test_visitCatchClause_on_catch() {
-    _assertClone(AstFactory.catchClause4(AstFactory.typeName4("E"), "e"));
+    _assertCloneStatement('try {} on E catch (e) {}');
   }
 
   void test_visitClassDeclaration_abstract() {
-    _assertClone(AstFactory.classDeclaration(
-        Keyword.ABSTRACT, "C", null, null, null, null));
+    _assertCloneUnitMember('abstract class C {}');
   }
 
   void test_visitClassDeclaration_empty() {
-    _assertClone(
-        AstFactory.classDeclaration(null, "C", null, null, null, null));
+    _assertCloneUnitMember('class C {}');
   }
 
   void test_visitClassDeclaration_extends() {
-    _assertClone(AstFactory.classDeclaration(null, "C", null,
-        AstFactory.extendsClause(AstFactory.typeName4("A")), null, null));
+    _assertCloneUnitMember('class C extends A {}');
   }
 
   void test_visitClassDeclaration_extends_implements() {
-    _assertClone(AstFactory.classDeclaration(
-        null,
-        "C",
-        null,
-        AstFactory.extendsClause(AstFactory.typeName4("A")),
-        null,
-        AstFactory.implementsClause([AstFactory.typeName4("B")])));
+    _assertCloneUnitMember('class C extends A implements B {}');
   }
 
   void test_visitClassDeclaration_extends_with() {
-    _assertClone(AstFactory.classDeclaration(
-        null,
-        "C",
-        null,
-        AstFactory.extendsClause(AstFactory.typeName4("A")),
-        AstFactory.withClause([AstFactory.typeName4("M")]),
-        null));
+    _assertCloneUnitMember('class C extends A with M {}');
   }
 
   void test_visitClassDeclaration_extends_with_implements() {
-    _assertClone(AstFactory.classDeclaration(
-        null,
-        "C",
-        null,
-        AstFactory.extendsClause(AstFactory.typeName4("A")),
-        AstFactory.withClause([AstFactory.typeName4("M")]),
-        AstFactory.implementsClause([AstFactory.typeName4("B")])));
+    _assertCloneUnitMember('class C extends A with M implements B {}');
   }
 
   void test_visitClassDeclaration_implements() {
-    _assertClone(AstFactory.classDeclaration(null, "C", null, null, null,
-        AstFactory.implementsClause([AstFactory.typeName4("B")])));
+    _assertCloneUnitMember('class C implements B {}');
   }
 
   void test_visitClassDeclaration_multipleMember() {
-    _assertClone(
-        AstFactory.classDeclaration(null, "C", null, null, null, null, [
-      AstFactory.fieldDeclaration2(
-          false, Keyword.VAR, [AstFactory.variableDeclaration("a")]),
-      AstFactory.fieldDeclaration2(
-          false, Keyword.VAR, [AstFactory.variableDeclaration("b")])
-    ]));
+    _assertCloneUnitMember('class C { var a;  var b; }');
   }
 
   void test_visitClassDeclaration_parameters() {
-    _assertClone(AstFactory.classDeclaration(
-        null, "C", AstFactory.typeParameterList(["E"]), null, null, null));
+    _assertCloneUnitMember('class C<E> {}');
   }
 
   void test_visitClassDeclaration_parameters_extends() {
-    _assertClone(AstFactory.classDeclaration(
-        null,
-        "C",
-        AstFactory.typeParameterList(["E"]),
-        AstFactory.extendsClause(AstFactory.typeName4("A")),
-        null,
-        null));
+    _assertCloneUnitMember('class C<E> extends A {}');
   }
 
   void test_visitClassDeclaration_parameters_extends_implements() {
-    _assertClone(AstFactory.classDeclaration(
-        null,
-        "C",
-        AstFactory.typeParameterList(["E"]),
-        AstFactory.extendsClause(AstFactory.typeName4("A")),
-        null,
-        AstFactory.implementsClause([AstFactory.typeName4("B")])));
+    _assertCloneUnitMember('class C<E> extends A implements B {}');
   }
 
   void test_visitClassDeclaration_parameters_extends_with() {
-    _assertClone(AstFactory.classDeclaration(
-        null,
-        "C",
-        AstFactory.typeParameterList(["E"]),
-        AstFactory.extendsClause(AstFactory.typeName4("A")),
-        AstFactory.withClause([AstFactory.typeName4("M")]),
-        null));
+    _assertCloneUnitMember('class C<E> extends A with M {}');
   }
 
   void test_visitClassDeclaration_parameters_extends_with_implements() {
-    _assertClone(AstFactory.classDeclaration(
-        null,
-        "C",
-        AstFactory.typeParameterList(["E"]),
-        AstFactory.extendsClause(AstFactory.typeName4("A")),
-        AstFactory.withClause([AstFactory.typeName4("M")]),
-        AstFactory.implementsClause([AstFactory.typeName4("B")])));
+    _assertCloneUnitMember('class C<E> extends A with M implements B {}');
   }
 
   void test_visitClassDeclaration_parameters_implements() {
-    _assertClone(AstFactory.classDeclaration(
-        null,
-        "C",
-        AstFactory.typeParameterList(["E"]),
-        null,
-        null,
-        AstFactory.implementsClause([AstFactory.typeName4("B")])));
+    _assertCloneUnitMember('class C<E> implements B {}');
   }
 
   void test_visitClassDeclaration_singleMember() {
-    _assertClone(
-        AstFactory.classDeclaration(null, "C", null, null, null, null, [
-      AstFactory.fieldDeclaration2(
-          false, Keyword.VAR, [AstFactory.variableDeclaration("a")])
-    ]));
+    _assertCloneUnitMember('class C { var a; }');
   }
 
   void test_visitClassDeclaration_withMetadata() {
-    ClassDeclaration declaration =
-        AstFactory.classDeclaration(null, "C", null, null, null, null);
-    declaration.metadata
-        .add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
-    _assertClone(declaration);
+    _assertCloneUnitMember('@deprecated class C {}');
   }
 
   void test_visitClassTypeAlias_abstract() {
-    _assertClone(AstFactory.classTypeAlias(
-        "C",
-        null,
-        Keyword.ABSTRACT,
-        AstFactory.typeName4("S"),
-        AstFactory.withClause([AstFactory.typeName4("M1")]),
-        null));
+    _assertCloneUnitMember('abstract class C = S with M1;');
   }
 
   void test_visitClassTypeAlias_abstract_implements() {
-    _assertClone(AstFactory.classTypeAlias(
-        "C",
-        null,
-        Keyword.ABSTRACT,
-        AstFactory.typeName4("S"),
-        AstFactory.withClause([AstFactory.typeName4("M1")]),
-        AstFactory.implementsClause([AstFactory.typeName4("I")])));
+    _assertCloneUnitMember('abstract class C = S with M1 implements I;');
   }
 
   void test_visitClassTypeAlias_generic() {
-    _assertClone(AstFactory.classTypeAlias(
-        "C",
-        AstFactory.typeParameterList(["E"]),
-        null,
-        AstFactory.typeName4("S", [AstFactory.typeName4("E")]),
-        AstFactory.withClause([
-          AstFactory.typeName4("M1", [AstFactory.typeName4("E")])
-        ]),
-        null));
+    _assertCloneUnitMember('class C<E> = S<E> with M1<E>;');
   }
 
   void test_visitClassTypeAlias_implements() {
-    _assertClone(AstFactory.classTypeAlias(
-        "C",
-        null,
-        null,
-        AstFactory.typeName4("S"),
-        AstFactory.withClause([AstFactory.typeName4("M1")]),
-        AstFactory.implementsClause([AstFactory.typeName4("I")])));
+    _assertCloneUnitMember('class C = S with M1 implements I;');
   }
 
   void test_visitClassTypeAlias_minimal() {
-    _assertClone(AstFactory.classTypeAlias(
-        "C",
-        null,
-        null,
-        AstFactory.typeName4("S"),
-        AstFactory.withClause([AstFactory.typeName4("M1")]),
-        null));
+    _assertCloneUnitMember('class C = S with M1;');
   }
 
   void test_visitClassTypeAlias_parameters_abstract() {
-    _assertClone(AstFactory.classTypeAlias(
-        "C",
-        AstFactory.typeParameterList(["E"]),
-        Keyword.ABSTRACT,
-        AstFactory.typeName4("S"),
-        AstFactory.withClause([AstFactory.typeName4("M1")]),
-        null));
+    _assertCloneUnitMember('abstract class C = S<E> with M1;');
   }
 
   void test_visitClassTypeAlias_parameters_abstract_implements() {
-    _assertClone(AstFactory.classTypeAlias(
-        "C",
-        AstFactory.typeParameterList(["E"]),
-        Keyword.ABSTRACT,
-        AstFactory.typeName4("S"),
-        AstFactory.withClause([AstFactory.typeName4("M1")]),
-        AstFactory.implementsClause([AstFactory.typeName4("I")])));
+    _assertCloneUnitMember('abstract class C = S<E> with M1 implements I;');
   }
 
   void test_visitClassTypeAlias_parameters_implements() {
-    _assertClone(AstFactory.classTypeAlias(
-        "C",
-        AstFactory.typeParameterList(["E"]),
-        null,
-        AstFactory.typeName4("S"),
-        AstFactory.withClause([AstFactory.typeName4("M1")]),
-        AstFactory.implementsClause([AstFactory.typeName4("I")])));
+    _assertCloneUnitMember('class C = S<E> with M1 implements I;');
   }
 
   void test_visitClassTypeAlias_withMetadata() {
-    ClassTypeAlias declaration = AstFactory.classTypeAlias(
-        "C",
-        null,
-        null,
-        AstFactory.typeName4("S"),
-        AstFactory.withClause([AstFactory.typeName4("M1")]),
-        null);
-    declaration.metadata
-        .add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
-    _assertClone(declaration);
+    _assertCloneUnitMember('@deprecated class C = S with M;');
   }
 
   void test_visitComment() {
-    _assertClone(Comment.createBlockComment(
-        <Token>[TokenFactory.tokenFromString("/* comment */")]));
+    _assertCloneUnitMember('main() { print(1);  /* comment */  print(2); }');
+  }
+
+  void test_visitComment_beginToken() {
+    _assertCloneUnitMember('/** comment */ main() {}');
   }
 
   void test_visitCommentReference() {
-    _assertClone(new CommentReference(null, AstFactory.identifier3("a")));
+    _assertCloneUnitMember('/** ref [a]. */ main(a) {}');
   }
 
   void test_visitCompilationUnit_declaration() {
-    _assertClone(AstFactory.compilationUnit2([
-      AstFactory.topLevelVariableDeclaration2(
-          Keyword.VAR, [AstFactory.variableDeclaration("a")])
-    ]));
+    _assertCloneUnitMember('var a;');
   }
 
   void test_visitCompilationUnit_directive() {
-    _assertClone(
-        AstFactory.compilationUnit3([AstFactory.libraryDirective2("l")]));
+    _assertCloneUnit('library l;');
   }
 
   void test_visitCompilationUnit_directive_declaration() {
-    _assertClone(AstFactory.compilationUnit4([
-      AstFactory.libraryDirective2("l")
-    ], [
-      AstFactory.topLevelVariableDeclaration2(
-          Keyword.VAR, [AstFactory.variableDeclaration("a")])
-    ]));
+    _assertCloneUnit('library l;  var a;');
+  }
+
+  void test_visitCompilationUnit_directive_withComment() {
+    _assertCloneUnit(r'''
+/// aaa
+/// bbb
+library l;''');
   }
 
   void test_visitCompilationUnit_empty() {
-    _assertClone(AstFactory.compilationUnit());
+    _assertCloneUnit('');
   }
 
   void test_visitCompilationUnit_script() {
-    _assertClone(AstFactory.compilationUnit5("!#/bin/dartvm"));
+    _assertCloneUnit('#!/bin/dartvm');
   }
 
   void test_visitCompilationUnit_script_declaration() {
-    _assertClone(AstFactory.compilationUnit6("!#/bin/dartvm", [
-      AstFactory.topLevelVariableDeclaration2(
-          Keyword.VAR, [AstFactory.variableDeclaration("a")])
-    ]));
+    _assertCloneUnit('#!/bin/dartvm \n var a;');
   }
 
   void test_visitCompilationUnit_script_directive() {
-    _assertClone(AstFactory.compilationUnit7(
-        "!#/bin/dartvm", [AstFactory.libraryDirective2("l")]));
+    _assertCloneUnit('#!/bin/dartvm \n library l;');
   }
 
   void test_visitCompilationUnit_script_directives_declarations() {
-    _assertClone(AstFactory.compilationUnit8("!#/bin/dartvm", [
-      AstFactory.libraryDirective2("l")
-    ], [
-      AstFactory.topLevelVariableDeclaration2(
-          Keyword.VAR, [AstFactory.variableDeclaration("a")])
-    ]));
+    _assertCloneUnit('#!/bin/dartvm \n library l;  var a;');
   }
 
   void test_visitConditionalExpression() {
-    _assertClone(AstFactory.conditionalExpression(AstFactory.identifier3("a"),
-        AstFactory.identifier3("b"), AstFactory.identifier3("c")));
+    _assertCloneExpression('a ? b : c');
   }
 
   void test_visitConstructorDeclaration_const() {
-    _assertClone(AstFactory.constructorDeclaration2(
-        Keyword.CONST,
-        null,
-        AstFactory.identifier3("C"),
-        null,
-        AstFactory.formalParameterList(),
-        null,
-        AstFactory.blockFunctionBody2()));
+    _assertCloneUnitMember('class C { const C(); }');
   }
 
   void test_visitConstructorDeclaration_external() {
-    _assertClone(AstFactory.constructorDeclaration(AstFactory.identifier3("C"),
-        null, AstFactory.formalParameterList(), null));
+    _assertCloneUnitMember('class C { external C(); }');
   }
 
   void test_visitConstructorDeclaration_minimal() {
-    _assertClone(AstFactory.constructorDeclaration2(
-        null,
-        null,
-        AstFactory.identifier3("C"),
-        null,
-        AstFactory.formalParameterList(),
-        null,
-        AstFactory.blockFunctionBody2()));
+    _assertCloneUnitMember('class C { C() {} }');
   }
 
   void test_visitConstructorDeclaration_multipleInitializers() {
-    _assertClone(AstFactory.constructorDeclaration2(
-        null,
-        null,
-        AstFactory.identifier3("C"),
-        null,
-        AstFactory.formalParameterList(),
-        [
-          AstFactory.constructorFieldInitializer(
-              false, "a", AstFactory.identifier3("b")),
-          AstFactory.constructorFieldInitializer(
-              false, "c", AstFactory.identifier3("d"))
-        ],
-        AstFactory.blockFunctionBody2()));
+    _assertCloneUnitMember('class C { C() : a = b, c = d {} }');
   }
 
   void test_visitConstructorDeclaration_multipleParameters() {
-    _assertClone(AstFactory.constructorDeclaration2(
-        null,
-        null,
-        AstFactory.identifier3("C"),
-        null,
-        AstFactory.formalParameterList([
-          AstFactory.simpleFormalParameter(Keyword.VAR, "a"),
-          AstFactory.simpleFormalParameter(Keyword.VAR, "b")
-        ]),
-        null,
-        AstFactory.blockFunctionBody2()));
+    _assertCloneUnitMember('class C { C(var a, var b) {} }');
   }
 
   void test_visitConstructorDeclaration_named() {
-    _assertClone(AstFactory.constructorDeclaration2(
-        null,
-        null,
-        AstFactory.identifier3("C"),
-        "m",
-        AstFactory.formalParameterList(),
-        null,
-        AstFactory.blockFunctionBody2()));
+    _assertCloneUnitMember('class C { C.m() {} }');
   }
 
   void test_visitConstructorDeclaration_singleInitializer() {
-    _assertClone(AstFactory.constructorDeclaration2(
-        null,
-        null,
-        AstFactory.identifier3("C"),
-        null,
-        AstFactory.formalParameterList(),
-        [
-          AstFactory.constructorFieldInitializer(
-              false, "a", AstFactory.identifier3("b"))
-        ],
-        AstFactory.blockFunctionBody2()));
+    _assertCloneUnitMember('class C { C() : a = b {} }');
   }
 
   void test_visitConstructorDeclaration_withMetadata() {
-    ConstructorDeclaration declaration = AstFactory.constructorDeclaration2(
-        null,
-        null,
-        AstFactory.identifier3("C"),
-        null,
-        AstFactory.formalParameterList(),
-        null,
-        AstFactory.blockFunctionBody2());
-    declaration.metadata
-        .add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
-    _assertClone(declaration);
+    _assertCloneUnitMember('class C { @deprecated C() {} }');
   }
 
   void test_visitConstructorFieldInitializer_withoutThis() {
-    _assertClone(AstFactory.constructorFieldInitializer(
-        false, "a", AstFactory.identifier3("b")));
+    _assertCloneUnitMember('class C { C() : a = b {} }');
   }
 
   void test_visitConstructorFieldInitializer_withThis() {
-    _assertClone(AstFactory.constructorFieldInitializer(
-        true, "a", AstFactory.identifier3("b")));
+    _assertCloneUnitMember('class C { C() : this.a = b {} }');
   }
 
   void test_visitConstructorName_named_prefix() {
-    _assertClone(
-        AstFactory.constructorName(AstFactory.typeName4("p.C.n"), null));
+    _assertCloneExpression('new p.C.n()');
   }
 
   void test_visitConstructorName_unnamed_noPrefix() {
-    _assertClone(AstFactory.constructorName(AstFactory.typeName4("C"), null));
+    _assertCloneExpression('new C()');
   }
 
   void test_visitConstructorName_unnamed_prefix() {
-    _assertClone(AstFactory.constructorName(
-        AstFactory.typeName3(AstFactory.identifier5("p", "C")), null));
+    _assertCloneExpression('new p.C()');
   }
 
   void test_visitContinueStatement_label() {
-    _assertClone(AstFactory.continueStatement("l"));
+    _assertCloneStatement('l: while (true) { continue l; }');
   }
 
   void test_visitContinueStatement_noLabel() {
-    _assertClone(AstFactory.continueStatement());
+    _assertCloneStatement('while (true) { continue; }');
   }
 
   void test_visitDefaultFormalParameter_named_noValue() {
-    _assertClone(AstFactory.namedFormalParameter(
-        AstFactory.simpleFormalParameter3("p"), null));
+    _assertCloneUnitMember('main({p}) {}');
   }
 
   void test_visitDefaultFormalParameter_named_value() {
-    _assertClone(AstFactory.namedFormalParameter(
-        AstFactory.simpleFormalParameter3("p"), AstFactory.integer(0)));
+    _assertCloneUnitMember('main({p : 0}) {}');
   }
 
   void test_visitDefaultFormalParameter_positional_noValue() {
-    _assertClone(AstFactory.positionalFormalParameter(
-        AstFactory.simpleFormalParameter3("p"), null));
+    _assertCloneUnitMember('main([p]) {}');
   }
 
   void test_visitDefaultFormalParameter_positional_value() {
-    _assertClone(AstFactory.positionalFormalParameter(
-        AstFactory.simpleFormalParameter3("p"), AstFactory.integer(0)));
+    _assertCloneUnitMember('main([p = 0]) {}');
   }
 
   void test_visitDoStatement() {
-    _assertClone(AstFactory.doStatement(
-        AstFactory.block(), AstFactory.identifier3("c")));
+    _assertCloneStatement('do {} while (c);');
   }
 
   void test_visitDoubleLiteral() {
-    _assertClone(AstFactory.doubleLiteral(4.2));
+    _assertCloneExpression('4.2');
   }
 
   void test_visitEmptyFunctionBody() {
-    _assertClone(AstFactory.emptyFunctionBody());
+    _assertCloneUnitMember('main() {}');
   }
 
   void test_visitEmptyStatement() {
-    _assertClone(AstFactory.emptyStatement());
+    _assertCloneUnitMember('main() { ; }');
   }
 
   void test_visitExportDirective_combinator() {
-    _assertClone(AstFactory.exportDirective2("a.dart", [
-      AstFactory.showCombinator([AstFactory.identifier3("A")])
-    ]));
+    _assertCloneUnit('export "a.dart" show A;');
   }
 
   void test_visitExportDirective_combinators() {
-    _assertClone(AstFactory.exportDirective2("a.dart", [
-      AstFactory.showCombinator([AstFactory.identifier3("A")]),
-      AstFactory.hideCombinator([AstFactory.identifier3("B")])
-    ]));
+    _assertCloneUnit('export "a.dart" show A hide B;');
   }
 
   void test_visitExportDirective_minimal() {
-    _assertClone(AstFactory.exportDirective2("a.dart"));
+    _assertCloneUnit('export "a.dart";');
   }
 
   void test_visitExportDirective_withMetadata() {
-    ExportDirective directive = AstFactory.exportDirective2("a.dart");
-    directive.metadata
-        .add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
-    _assertClone(directive);
+    _assertCloneUnit('@deprecated export "a.dart";');
   }
 
   void test_visitExpressionFunctionBody() {
-    _assertClone(
-        AstFactory.expressionFunctionBody(AstFactory.identifier3("a")));
+    _assertCloneUnitMember('main() => a;');
   }
 
   void test_visitExpressionStatement() {
-    _assertClone(AstFactory.expressionStatement(AstFactory.identifier3("a")));
+    _assertCloneStatement('a;');
   }
 
   void test_visitExtendsClause() {
-    _assertClone(AstFactory.extendsClause(AstFactory.typeName4("C")));
+    _assertCloneUnitMember('class A extends B {}');
   }
 
   void test_visitFieldDeclaration_instance() {
-    _assertClone(AstFactory.fieldDeclaration2(
-        false, Keyword.VAR, [AstFactory.variableDeclaration("a")]));
+    _assertCloneUnitMember('class C { var a; }');
   }
 
   void test_visitFieldDeclaration_static() {
-    _assertClone(AstFactory.fieldDeclaration2(
-        true, Keyword.VAR, [AstFactory.variableDeclaration("a")]));
+    _assertCloneUnitMember('class C { static var a; }');
   }
 
   void test_visitFieldDeclaration_withMetadata() {
-    FieldDeclaration declaration = AstFactory.fieldDeclaration2(
-        false, Keyword.VAR, [AstFactory.variableDeclaration("a")]);
-    declaration.metadata
-        .add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
-    _assertClone(declaration);
+    _assertCloneUnitMember('class C { @deprecated var a; }');
   }
 
   void test_visitFieldFormalParameter_functionTyped() {
-    _assertClone(AstFactory.fieldFormalParameter(
-        null,
-        AstFactory.typeName4("A"),
-        "a",
-        AstFactory
-            .formalParameterList([AstFactory.simpleFormalParameter3("b")])));
+    _assertCloneUnitMember('class C { C(A this.a(b)); }');
   }
 
   void test_visitFieldFormalParameter_keyword() {
-    _assertClone(AstFactory.fieldFormalParameter(Keyword.VAR, null, "a"));
+    _assertCloneUnitMember('class C { C(var this.a); }');
   }
 
   void test_visitFieldFormalParameter_keywordAndType() {
-    _assertClone(AstFactory.fieldFormalParameter(
-        Keyword.FINAL, AstFactory.typeName4("A"), "a"));
+    _assertCloneUnitMember('class C { C(final A this.a); }');
   }
 
   void test_visitFieldFormalParameter_type() {
-    _assertClone(
-        AstFactory.fieldFormalParameter(null, AstFactory.typeName4("A"), "a"));
+    _assertCloneUnitMember('class C { C(A this.a); }');
   }
 
   void test_visitForEachStatement_declared() {
-    _assertClone(AstFactory.forEachStatement(
-        AstFactory.declaredIdentifier3("a"),
-        AstFactory.identifier3("b"),
-        AstFactory.block()));
+    _assertCloneStatement('for (var a in b) {}');
   }
 
   void test_visitForEachStatement_variable() {
-    _assertClone(new ForEachStatement.withReference(
-        null,
-        TokenFactory.tokenFromKeyword(Keyword.FOR),
-        TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-        AstFactory.identifier3("a"),
-        TokenFactory.tokenFromKeyword(Keyword.IN),
-        AstFactory.identifier3("b"),
-        TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-        AstFactory.block()));
+    _assertCloneStatement('for (a in b) {}');
   }
 
   void test_visitForEachStatement_variable_await() {
-    _assertClone(new ForEachStatement.withReference(
-        TokenFactory.tokenFromString("await"),
-        TokenFactory.tokenFromKeyword(Keyword.FOR),
-        TokenFactory.tokenFromType(TokenType.OPEN_PAREN),
-        AstFactory.identifier3("a"),
-        TokenFactory.tokenFromKeyword(Keyword.IN),
-        AstFactory.identifier3("b"),
-        TokenFactory.tokenFromType(TokenType.CLOSE_PAREN),
-        AstFactory.block()));
+    _assertCloneUnitMember('main(s) async { await for (a in s) {} }');
   }
 
   void test_visitFormalParameterList_empty() {
-    _assertClone(AstFactory.formalParameterList());
+    _assertCloneUnitMember('main() {}');
   }
 
   void test_visitFormalParameterList_n() {
-    _assertClone(AstFactory.formalParameterList([
-      AstFactory.namedFormalParameter(
-          AstFactory.simpleFormalParameter3("a"), AstFactory.integer(0))
-    ]));
+    _assertCloneUnitMember('main({a: 0}) {}');
   }
 
   void test_visitFormalParameterList_nn() {
-    _assertClone(AstFactory.formalParameterList([
-      AstFactory.namedFormalParameter(
-          AstFactory.simpleFormalParameter3("a"), AstFactory.integer(0)),
-      AstFactory.namedFormalParameter(
-          AstFactory.simpleFormalParameter3("b"), AstFactory.integer(1))
-    ]));
+    _assertCloneUnitMember('main({a: 0, b: 1}) {}');
   }
 
   void test_visitFormalParameterList_p() {
-    _assertClone(AstFactory.formalParameterList([
-      AstFactory.positionalFormalParameter(
-          AstFactory.simpleFormalParameter3("a"), AstFactory.integer(0))
-    ]));
+    _assertCloneUnitMember('main([a = 0]) {}');
   }
 
   void test_visitFormalParameterList_pp() {
-    _assertClone(AstFactory.formalParameterList([
-      AstFactory.positionalFormalParameter(
-          AstFactory.simpleFormalParameter3("a"), AstFactory.integer(0)),
-      AstFactory.positionalFormalParameter(
-          AstFactory.simpleFormalParameter3("b"), AstFactory.integer(1))
-    ]));
+    _assertCloneUnitMember('main([a = 0, b = 1]) {}');
   }
 
   void test_visitFormalParameterList_r() {
-    _assertClone(AstFactory
-        .formalParameterList([AstFactory.simpleFormalParameter3("a")]));
+    _assertCloneUnitMember('main(a) {}');
   }
 
   void test_visitFormalParameterList_rn() {
-    _assertClone(AstFactory.formalParameterList([
-      AstFactory.simpleFormalParameter3("a"),
-      AstFactory.namedFormalParameter(
-          AstFactory.simpleFormalParameter3("b"), AstFactory.integer(1))
-    ]));
+    _assertCloneUnitMember('main(a, {b: 1}) {}');
   }
 
   void test_visitFormalParameterList_rnn() {
-    _assertClone(AstFactory.formalParameterList([
-      AstFactory.simpleFormalParameter3("a"),
-      AstFactory.namedFormalParameter(
-          AstFactory.simpleFormalParameter3("b"), AstFactory.integer(1)),
-      AstFactory.namedFormalParameter(
-          AstFactory.simpleFormalParameter3("c"), AstFactory.integer(2))
-    ]));
+    _assertCloneUnitMember('main(a, {b: 1, c: 2}) {}');
   }
 
   void test_visitFormalParameterList_rp() {
-    _assertClone(AstFactory.formalParameterList([
-      AstFactory.simpleFormalParameter3("a"),
-      AstFactory.positionalFormalParameter(
-          AstFactory.simpleFormalParameter3("b"), AstFactory.integer(1))
-    ]));
+    _assertCloneUnitMember('main(a, [b = 1]) {}');
   }
 
   void test_visitFormalParameterList_rpp() {
-    _assertClone(AstFactory.formalParameterList([
-      AstFactory.simpleFormalParameter3("a"),
-      AstFactory.positionalFormalParameter(
-          AstFactory.simpleFormalParameter3("b"), AstFactory.integer(1)),
-      AstFactory.positionalFormalParameter(
-          AstFactory.simpleFormalParameter3("c"), AstFactory.integer(2))
-    ]));
+    _assertCloneUnitMember('main(a, [b = 1, c = 2]) {}');
   }
 
   void test_visitFormalParameterList_rr() {
-    _assertClone(AstFactory.formalParameterList([
-      AstFactory.simpleFormalParameter3("a"),
-      AstFactory.simpleFormalParameter3("b")
-    ]));
+    _assertCloneUnitMember('main(a, b) {}');
   }
 
   void test_visitFormalParameterList_rrn() {
-    _assertClone(AstFactory.formalParameterList([
-      AstFactory.simpleFormalParameter3("a"),
-      AstFactory.simpleFormalParameter3("b"),
-      AstFactory.namedFormalParameter(
-          AstFactory.simpleFormalParameter3("c"), AstFactory.integer(3))
-    ]));
+    _assertCloneUnitMember('main(a, b, {c: 3}) {}');
   }
 
   void test_visitFormalParameterList_rrnn() {
-    _assertClone(AstFactory.formalParameterList([
-      AstFactory.simpleFormalParameter3("a"),
-      AstFactory.simpleFormalParameter3("b"),
-      AstFactory.namedFormalParameter(
-          AstFactory.simpleFormalParameter3("c"), AstFactory.integer(3)),
-      AstFactory.namedFormalParameter(
-          AstFactory.simpleFormalParameter3("d"), AstFactory.integer(4))
-    ]));
+    _assertCloneUnitMember('main(a, b, {c: 3, d: 4}) {}');
   }
 
   void test_visitFormalParameterList_rrp() {
-    _assertClone(AstFactory.formalParameterList([
-      AstFactory.simpleFormalParameter3("a"),
-      AstFactory.simpleFormalParameter3("b"),
-      AstFactory.positionalFormalParameter(
-          AstFactory.simpleFormalParameter3("c"), AstFactory.integer(3))
-    ]));
+    _assertCloneUnitMember('main(a, b, [c = 3]) {}');
   }
 
   void test_visitFormalParameterList_rrpp() {
-    _assertClone(AstFactory.formalParameterList([
-      AstFactory.simpleFormalParameter3("a"),
-      AstFactory.simpleFormalParameter3("b"),
-      AstFactory.positionalFormalParameter(
-          AstFactory.simpleFormalParameter3("c"), AstFactory.integer(3)),
-      AstFactory.positionalFormalParameter(
-          AstFactory.simpleFormalParameter3("d"), AstFactory.integer(4))
-    ]));
+    _assertCloneUnitMember('main(a, b, [c = 3, d = 4]) {}');
   }
 
   void test_visitForStatement_c() {
-    _assertClone(AstFactory.forStatement(
-        null, AstFactory.identifier3("c"), null, AstFactory.block()));
+    _assertCloneStatement('for (; c;) {}');
   }
 
   void test_visitForStatement_cu() {
-    _assertClone(AstFactory.forStatement(null, AstFactory.identifier3("c"),
-        [AstFactory.identifier3("u")], AstFactory.block()));
+    _assertCloneStatement('for (; c; u) {}');
   }
 
   void test_visitForStatement_e() {
-    _assertClone(AstFactory.forStatement(
-        AstFactory.identifier3("e"), null, null, AstFactory.block()));
+    _assertCloneStatement('for (e; ;) {}');
   }
 
   void test_visitForStatement_ec() {
-    _assertClone(AstFactory.forStatement(AstFactory.identifier3("e"),
-        AstFactory.identifier3("c"), null, AstFactory.block()));
+    _assertCloneStatement('for (e; c;) {}');
   }
 
   void test_visitForStatement_ecu() {
-    _assertClone(AstFactory.forStatement(
-        AstFactory.identifier3("e"),
-        AstFactory.identifier3("c"),
-        [AstFactory.identifier3("u")],
-        AstFactory.block()));
+    _assertCloneStatement('for (e; c; u) {}');
   }
 
   void test_visitForStatement_eu() {
-    _assertClone(AstFactory.forStatement(AstFactory.identifier3("e"), null,
-        [AstFactory.identifier3("u")], AstFactory.block()));
+    _assertCloneStatement('for (e; ; u) {}');
   }
 
   void test_visitForStatement_i() {
-    _assertClone(AstFactory.forStatement2(
-        AstFactory.variableDeclarationList2(
-            Keyword.VAR, [AstFactory.variableDeclaration("i")]),
-        null,
-        null,
-        AstFactory.block()));
+    _assertCloneStatement('for (var i; ;) {}');
   }
 
   void test_visitForStatement_ic() {
-    _assertClone(AstFactory.forStatement2(
-        AstFactory.variableDeclarationList2(
-            Keyword.VAR, [AstFactory.variableDeclaration("i")]),
-        AstFactory.identifier3("c"),
-        null,
-        AstFactory.block()));
+    _assertCloneStatement('for (var i; c;) {}');
   }
 
   void test_visitForStatement_icu() {
-    _assertClone(AstFactory.forStatement2(
-        AstFactory.variableDeclarationList2(
-            Keyword.VAR, [AstFactory.variableDeclaration("i")]),
-        AstFactory.identifier3("c"),
-        [AstFactory.identifier3("u")],
-        AstFactory.block()));
+    _assertCloneStatement('for (var i; c; u) {}');
   }
 
   void test_visitForStatement_iu() {
-    _assertClone(AstFactory.forStatement2(
-        AstFactory.variableDeclarationList2(
-            Keyword.VAR, [AstFactory.variableDeclaration("i")]),
-        null,
-        [AstFactory.identifier3("u")],
-        AstFactory.block()));
+    _assertCloneStatement('for (var i; ; u) {}');
   }
 
   void test_visitForStatement_u() {
-    _assertClone(AstFactory.forStatement(
-        null, null, [AstFactory.identifier3("u")], AstFactory.block()));
+    _assertCloneStatement('for (; ; u) {}');
   }
 
   void test_visitFunctionDeclaration_getter() {
-    _assertClone(AstFactory.functionDeclaration(
-        null, Keyword.GET, "f", AstFactory.functionExpression()));
+    _assertCloneUnitMember('get f {}');
   }
 
   void test_visitFunctionDeclaration_normal() {
-    _assertClone(AstFactory.functionDeclaration(
-        null, null, "f", AstFactory.functionExpression()));
+    _assertCloneUnitMember('f() {}');
   }
 
   void test_visitFunctionDeclaration_setter() {
-    _assertClone(AstFactory.functionDeclaration(
-        null, Keyword.SET, "f", AstFactory.functionExpression()));
+    _assertCloneUnitMember('set f(x) {}');
   }
 
   void test_visitFunctionDeclaration_withMetadata() {
-    FunctionDeclaration declaration = AstFactory.functionDeclaration(
-        null, null, "f", AstFactory.functionExpression());
-    declaration.metadata
-        .add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
-    _assertClone(declaration);
+    _assertCloneUnitMember('@deprecated f() {}');
   }
 
   void test_visitFunctionDeclarationStatement() {
-    _assertClone(AstFactory.functionDeclarationStatement(
-        null, null, "f", AstFactory.functionExpression()));
-  }
-
-  void test_visitFunctionExpression() {
-    _assertClone(AstFactory.functionExpression());
+    _assertCloneStatement('f() {}');
   }
 
   void test_visitFunctionExpressionInvocation() {
-    _assertClone(
-        AstFactory.functionExpressionInvocation(AstFactory.identifier3("f")));
+    _assertCloneStatement('{ () {}(); }');
   }
 
   void test_visitFunctionTypeAlias_generic() {
-    _assertClone(AstFactory.typeAlias(AstFactory.typeName4("A"), "F",
-        AstFactory.typeParameterList(["B"]), AstFactory.formalParameterList()));
+    _assertCloneUnitMember('typedef A F<B>();');
   }
 
   void test_visitFunctionTypeAlias_nonGeneric() {
-    _assertClone(AstFactory.typeAlias(AstFactory.typeName4("A"), "F", null,
-        AstFactory.formalParameterList()));
+    _assertCloneUnitMember('typedef A F();');
   }
 
   void test_visitFunctionTypeAlias_withMetadata() {
-    FunctionTypeAlias declaration = AstFactory.typeAlias(
-        AstFactory.typeName4("A"), "F", null, AstFactory.formalParameterList());
-    declaration.metadata
-        .add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
-    _assertClone(declaration);
+    _assertCloneUnitMember('@deprecated typedef A F();');
   }
 
   void test_visitFunctionTypedFormalParameter_noType() {
-    _assertClone(AstFactory.functionTypedFormalParameter(null, "f"));
+    _assertCloneUnitMember('main( f() ) {}');
   }
 
   void test_visitFunctionTypedFormalParameter_type() {
-    _assertClone(AstFactory.functionTypedFormalParameter(
-        AstFactory.typeName4("T"), "f"));
+    _assertCloneUnitMember('main( T f() ) {}');
   }
 
   void test_visitIfStatement_withElse() {
-    _assertClone(AstFactory.ifStatement2(
-        AstFactory.identifier3("c"), AstFactory.block(), AstFactory.block()));
+    _assertCloneStatement('if (c) {} else {}');
   }
 
   void test_visitIfStatement_withoutElse() {
-    _assertClone(AstFactory.ifStatement(
-        AstFactory.identifier3("c"), AstFactory.block()));
+    _assertCloneStatement('if (c) {}');
   }
 
   void test_visitImplementsClause_multiple() {
-    _assertClone(AstFactory.implementsClause(
-        [AstFactory.typeName4("A"), AstFactory.typeName4("B")]));
+    _assertCloneUnitMember('class A implements B, C {}');
   }
 
   void test_visitImplementsClause_single() {
-    _assertClone(AstFactory.implementsClause([AstFactory.typeName4("A")]));
+    _assertCloneUnitMember('class A implements B {}');
   }
 
   void test_visitImportDirective_combinator() {
-    _assertClone(AstFactory.importDirective3("a.dart", null, [
-      AstFactory.showCombinator([AstFactory.identifier3("A")])
-    ]));
+    _assertCloneUnit('import "a.dart" show A;');
   }
 
   void test_visitImportDirective_combinators() {
-    _assertClone(AstFactory.importDirective3("a.dart", null, [
-      AstFactory.showCombinator([AstFactory.identifier3("A")]),
-      AstFactory.hideCombinator([AstFactory.identifier3("B")])
-    ]));
+    _assertCloneUnit('import "a.dart" show A hide B;');
   }
 
   void test_visitImportDirective_minimal() {
-    _assertClone(AstFactory.importDirective3("a.dart", null));
+    _assertCloneUnit('import "a.dart";');
   }
 
   void test_visitImportDirective_prefix() {
-    _assertClone(AstFactory.importDirective3("a.dart", "p"));
+    _assertCloneUnit('import "a.dart" as p;');
   }
 
   void test_visitImportDirective_prefix_combinator() {
-    _assertClone(AstFactory.importDirective3("a.dart", "p", [
-      AstFactory.showCombinator([AstFactory.identifier3("A")])
-    ]));
+    _assertCloneUnit('import "a.dart" as p show A;');
   }
 
   void test_visitImportDirective_prefix_combinators() {
-    _assertClone(AstFactory.importDirective3("a.dart", "p", [
-      AstFactory.showCombinator([AstFactory.identifier3("A")]),
-      AstFactory.hideCombinator([AstFactory.identifier3("B")])
-    ]));
+    _assertCloneUnit('import "a.dart" as p show A hide B;');
   }
 
   void test_visitImportDirective_withMetadata() {
-    ImportDirective directive = AstFactory.importDirective3("a.dart", null);
-    directive.metadata
-        .add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
-    _assertClone(directive);
+    _assertCloneUnit('@deprecated import "a.dart";');
   }
 
   void test_visitImportHideCombinator_multiple() {
-    _assertClone(AstFactory.hideCombinator(
-        [AstFactory.identifier3("a"), AstFactory.identifier3("b")]));
+    _assertCloneUnit('import "a.dart" hide a, b;');
   }
 
   void test_visitImportHideCombinator_single() {
-    _assertClone(AstFactory.hideCombinator([AstFactory.identifier3("a")]));
+    _assertCloneUnit('import "a.dart" hide a;');
   }
 
   void test_visitImportShowCombinator_multiple() {
-    _assertClone(AstFactory.showCombinator(
-        [AstFactory.identifier3("a"), AstFactory.identifier3("b")]));
+    _assertCloneUnit('import "a.dart" show a, b;');
   }
 
   void test_visitImportShowCombinator_single() {
-    _assertClone(AstFactory.showCombinator([AstFactory.identifier3("a")]));
+    _assertCloneUnit('import "a.dart" show a;');
   }
 
   void test_visitIndexExpression() {
-    _assertClone(AstFactory.indexExpression(
-        AstFactory.identifier3("a"), AstFactory.identifier3("i")));
+    _assertCloneExpression('a[i]');
   }
 
   void test_visitInstanceCreationExpression_const() {
-    _assertClone(AstFactory.instanceCreationExpression2(
-        Keyword.CONST, AstFactory.typeName4("C")));
+    _assertCloneExpression('const C()');
   }
 
   void test_visitInstanceCreationExpression_named() {
-    _assertClone(AstFactory.instanceCreationExpression3(
-        Keyword.NEW, AstFactory.typeName4("C"), "c"));
+    _assertCloneExpression('new C.c()');
   }
 
   void test_visitInstanceCreationExpression_unnamed() {
-    _assertClone(AstFactory.instanceCreationExpression2(
-        Keyword.NEW, AstFactory.typeName4("C")));
+    _assertCloneExpression('new C()');
   }
 
   void test_visitIntegerLiteral() {
-    _assertClone(AstFactory.integer(42));
+    _assertCloneExpression('42');
   }
 
   void test_visitInterpolationExpression_expression() {
-    _assertClone(
-        AstFactory.interpolationExpression(AstFactory.identifier3("a")));
+    _assertCloneExpression(r'"${c}"');
   }
 
   void test_visitInterpolationExpression_identifier() {
-    _assertClone(AstFactory.interpolationExpression2("a"));
-  }
-
-  void test_visitInterpolationString() {
-    _assertClone(AstFactory.interpolationString("'x", "x"));
+    _assertCloneExpression(r'"$c"');
   }
 
   void test_visitIsExpression_negated() {
-    _assertClone(AstFactory.isExpression(
-        AstFactory.identifier3("a"), true, AstFactory.typeName4("C")));
+    _assertCloneExpression('a is! C');
   }
 
   void test_visitIsExpression_normal() {
-    _assertClone(AstFactory.isExpression(
-        AstFactory.identifier3("a"), false, AstFactory.typeName4("C")));
+    _assertCloneExpression('a is C');
   }
 
   void test_visitLabel() {
-    _assertClone(AstFactory.label2("a"));
+    _assertCloneStatement('a: return;');
   }
 
   void test_visitLabeledStatement_multiple() {
-    _assertClone(AstFactory.labeledStatement(
-        [AstFactory.label2("a"), AstFactory.label2("b")],
-        AstFactory.returnStatement()));
+    _assertCloneStatement('a: b: return;');
   }
 
   void test_visitLabeledStatement_single() {
-    _assertClone(AstFactory.labeledStatement(
-        [AstFactory.label2("a")], AstFactory.returnStatement()));
+    _assertCloneStatement('a: return;');
   }
 
   void test_visitLibraryDirective() {
-    _assertClone(AstFactory.libraryDirective2("l"));
+    _assertCloneUnit('library l;');
   }
 
   void test_visitLibraryDirective_withMetadata() {
-    LibraryDirective directive = AstFactory.libraryDirective2("l");
-    directive.metadata
-        .add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
-    _assertClone(directive);
+    _assertCloneUnit('@deprecated library l;');
   }
 
   void test_visitLibraryIdentifier_multiple() {
-    _assertClone(AstFactory.libraryIdentifier([
-      AstFactory.identifier3("a"),
-      AstFactory.identifier3("b"),
-      AstFactory.identifier3("c")
-    ]));
+    _assertCloneUnit('library a.b.c;');
   }
 
   void test_visitLibraryIdentifier_single() {
-    _assertClone(AstFactory.libraryIdentifier([AstFactory.identifier3("a")]));
+    _assertCloneUnit('library a;');
   }
 
   void test_visitListLiteral_const() {
-    _assertClone(AstFactory.listLiteral2(Keyword.CONST, null));
+    _assertCloneExpression('const []');
   }
 
   void test_visitListLiteral_empty() {
-    _assertClone(AstFactory.listLiteral());
+    _assertCloneExpression('[]');
   }
 
   void test_visitListLiteral_nonEmpty() {
-    _assertClone(AstFactory.listLiteral([
-      AstFactory.identifier3("a"),
-      AstFactory.identifier3("b"),
-      AstFactory.identifier3("c")
-    ]));
+    _assertCloneExpression('[a, b, c]');
   }
 
   void test_visitMapLiteral_const() {
-    _assertClone(AstFactory.mapLiteral(Keyword.CONST, null));
+    _assertCloneExpression('const {}');
   }
 
   void test_visitMapLiteral_empty() {
-    _assertClone(AstFactory.mapLiteral2());
+    _assertCloneExpression('{}');
   }
 
   void test_visitMapLiteral_nonEmpty() {
-    _assertClone(AstFactory.mapLiteral2([
-      AstFactory.mapLiteralEntry("a", AstFactory.identifier3("a")),
-      AstFactory.mapLiteralEntry("b", AstFactory.identifier3("b")),
-      AstFactory.mapLiteralEntry("c", AstFactory.identifier3("c"))
-    ]));
-  }
-
-  void test_visitMapLiteralEntry() {
-    _assertClone(AstFactory.mapLiteralEntry("a", AstFactory.identifier3("b")));
+    _assertCloneExpression('{a: a, b: b, c: c}');
   }
 
   void test_visitMethodDeclaration_external() {
-    _assertClone(AstFactory.methodDeclaration(null, null, null, null,
-        AstFactory.identifier3("m"), AstFactory.formalParameterList()));
+    _assertCloneUnitMember('class C { external m(); }');
   }
 
   void test_visitMethodDeclaration_external_returnType() {
-    _assertClone(AstFactory.methodDeclaration(
-        null,
-        AstFactory.typeName4("T"),
-        null,
-        null,
-        AstFactory.identifier3("m"),
-        AstFactory.formalParameterList()));
+    _assertCloneUnitMember('class C { T m(); }');
   }
 
   void test_visitMethodDeclaration_getter() {
-    _assertClone(AstFactory.methodDeclaration2(null, null, Keyword.GET, null,
-        AstFactory.identifier3("m"), null, AstFactory.blockFunctionBody2()));
+    _assertCloneUnitMember('class C { get m {} }');
   }
 
   void test_visitMethodDeclaration_getter_returnType() {
-    _assertClone(AstFactory.methodDeclaration2(
-        null,
-        AstFactory.typeName4("T"),
-        Keyword.GET,
-        null,
-        AstFactory.identifier3("m"),
-        null,
-        AstFactory.blockFunctionBody2()));
-  }
-
-  void test_visitMethodDeclaration_getter_seturnType() {
-    _assertClone(AstFactory.methodDeclaration2(
-        null,
-        AstFactory.typeName4("T"),
-        Keyword.SET,
-        null,
-        AstFactory.identifier3("m"),
-        AstFactory.formalParameterList(
-            [AstFactory.simpleFormalParameter(Keyword.VAR, "v")]),
-        AstFactory.blockFunctionBody2()));
+    _assertCloneUnitMember('class C { T get m {} }');
   }
 
   void test_visitMethodDeclaration_minimal() {
-    _assertClone(AstFactory.methodDeclaration2(
-        null,
-        null,
-        null,
-        null,
-        AstFactory.identifier3("m"),
-        AstFactory.formalParameterList(),
-        AstFactory.blockFunctionBody2()));
+    _assertCloneUnitMember('class C { m() {} }');
   }
 
   void test_visitMethodDeclaration_multipleParameters() {
-    _assertClone(AstFactory.methodDeclaration2(
-        null,
-        null,
-        null,
-        null,
-        AstFactory.identifier3("m"),
-        AstFactory.formalParameterList([
-          AstFactory.simpleFormalParameter(Keyword.VAR, "a"),
-          AstFactory.simpleFormalParameter(Keyword.VAR, "b")
-        ]),
-        AstFactory.blockFunctionBody2()));
+    _assertCloneUnitMember('class C { m(var a, var b) {} }');
   }
 
   void test_visitMethodDeclaration_operator() {
-    _assertClone(AstFactory.methodDeclaration2(
-        null,
-        null,
-        null,
-        Keyword.OPERATOR,
-        AstFactory.identifier3("+"),
-        AstFactory.formalParameterList(),
-        AstFactory.blockFunctionBody2()));
+    _assertCloneUnitMember('class C { operator+() {} }');
   }
 
   void test_visitMethodDeclaration_operator_returnType() {
-    _assertClone(AstFactory.methodDeclaration2(
-        null,
-        AstFactory.typeName4("T"),
-        null,
-        Keyword.OPERATOR,
-        AstFactory.identifier3("+"),
-        AstFactory.formalParameterList(),
-        AstFactory.blockFunctionBody2()));
+    _assertCloneUnitMember('class C { T operator+() {} }');
   }
 
   void test_visitMethodDeclaration_returnType() {
-    _assertClone(AstFactory.methodDeclaration2(
-        null,
-        AstFactory.typeName4("T"),
-        null,
-        null,
-        AstFactory.identifier3("m"),
-        AstFactory.formalParameterList(),
-        AstFactory.blockFunctionBody2()));
+    _assertCloneUnitMember('class C { T m() {} }');
   }
 
   void test_visitMethodDeclaration_setter() {
-    _assertClone(AstFactory.methodDeclaration2(
-        null,
-        null,
-        Keyword.SET,
-        null,
-        AstFactory.identifier3("m"),
-        AstFactory.formalParameterList(
-            [AstFactory.simpleFormalParameter(Keyword.VAR, "v")]),
-        AstFactory.blockFunctionBody2()));
+    _assertCloneUnitMember('class C { set m(var v) {} }');
+  }
+
+  void test_visitMethodDeclaration_setter_returnType() {
+    _assertCloneUnitMember('class C { T set m(v) {} }');
   }
 
   void test_visitMethodDeclaration_static() {
-    _assertClone(AstFactory.methodDeclaration2(
-        Keyword.STATIC,
-        null,
-        null,
-        null,
-        AstFactory.identifier3("m"),
-        AstFactory.formalParameterList(),
-        AstFactory.blockFunctionBody2()));
+    _assertCloneUnitMember('class C { static m() {} }');
   }
 
   void test_visitMethodDeclaration_static_returnType() {
-    _assertClone(AstFactory.methodDeclaration2(
-        Keyword.STATIC,
-        AstFactory.typeName4("T"),
-        null,
-        null,
-        AstFactory.identifier3("m"),
-        AstFactory.formalParameterList(),
-        AstFactory.blockFunctionBody2()));
+    _assertCloneUnitMember('class C { static T m() {} }');
   }
 
   void test_visitMethodDeclaration_withMetadata() {
-    MethodDeclaration declaration = AstFactory.methodDeclaration2(
-        null,
-        null,
-        null,
-        null,
-        AstFactory.identifier3("m"),
-        AstFactory.formalParameterList(),
-        AstFactory.blockFunctionBody2());
-    declaration.metadata
-        .add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
-    _assertClone(declaration);
+    _assertCloneUnitMember('class C { @deprecated m() {} }');
   }
 
   void test_visitMethodInvocation_noTarget() {
-    _assertClone(AstFactory.methodInvocation2("m"));
+    _assertCloneExpression('m()');
   }
 
   void test_visitMethodInvocation_target() {
-    _assertClone(AstFactory.methodInvocation(AstFactory.identifier3("t"), "m"));
+    _assertCloneExpression('t.m()');
   }
 
   void test_visitNamedExpression() {
-    _assertClone(AstFactory.namedExpression2("a", AstFactory.identifier3("b")));
-  }
-
-  void test_visitNamedFormalParameter() {
-    _assertClone(AstFactory.namedFormalParameter(
-        AstFactory.simpleFormalParameter(Keyword.VAR, "a"),
-        AstFactory.integer(0)));
+    _assertCloneExpression('m(a: b)');
   }
 
   void test_visitNativeClause() {
-    _assertClone(AstFactory.nativeClause("code"));
+    _assertCloneUnitMember('f() native "code";');
   }
 
   void test_visitNativeFunctionBody() {
-    _assertClone(AstFactory.nativeFunctionBody("str"));
+    _assertCloneUnitMember('f() native "str";');
   }
 
   void test_visitNullLiteral() {
-    _assertClone(AstFactory.nullLiteral());
+    _assertCloneExpression('null');
   }
 
   void test_visitParenthesizedExpression() {
-    _assertClone(
-        AstFactory.parenthesizedExpression(AstFactory.identifier3("a")));
+    _assertCloneExpression('(a)');
   }
 
   void test_visitPartDirective() {
-    _assertClone(AstFactory.partDirective2("a.dart"));
+    _assertCloneUnit('part "a.dart";');
   }
 
   void test_visitPartDirective_withMetadata() {
-    PartDirective directive = AstFactory.partDirective2("a.dart");
-    directive.metadata
-        .add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
-    _assertClone(directive);
+    _assertCloneUnit('@deprecated part "a.dart";');
   }
 
   void test_visitPartOfDirective() {
-    _assertClone(
-        AstFactory.partOfDirective(AstFactory.libraryIdentifier2(["l"])));
+    _assertCloneUnit('part of l;');
   }
 
   void test_visitPartOfDirective_withMetadata() {
-    PartOfDirective directive =
-        AstFactory.partOfDirective(AstFactory.libraryIdentifier2(["l"]));
-    directive.metadata
-        .add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
-    _assertClone(directive);
+    _assertCloneUnit('@deprecated part of l;');
   }
 
   void test_visitPositionalFormalParameter() {
-    _assertClone(AstFactory.positionalFormalParameter(
-        AstFactory.simpleFormalParameter(Keyword.VAR, "a"),
-        AstFactory.integer(0)));
+    _assertCloneUnitMember('main([var p = 0]) {}');
   }
 
   void test_visitPostfixExpression() {
-    _assertClone(AstFactory.postfixExpression(
-        AstFactory.identifier3("a"), TokenType.PLUS_PLUS));
+    _assertCloneExpression('a++');
   }
 
   void test_visitPrefixedIdentifier() {
-    _assertClone(AstFactory.identifier5("a", "b"));
+    _assertCloneExpression('a.b');
   }
 
   void test_visitPrefixExpression() {
-    _assertClone(AstFactory.prefixExpression(
-        TokenType.MINUS, AstFactory.identifier3("a")));
+    _assertCloneExpression('-a');
   }
 
   void test_visitPropertyAccess() {
-    _assertClone(AstFactory.propertyAccess2(AstFactory.identifier3("a"), "b"));
+    _assertCloneExpression('a.b.c');
   }
 
   void test_visitRedirectingConstructorInvocation_named() {
-    _assertClone(AstFactory.redirectingConstructorInvocation2("c"));
+    _assertCloneUnitMember('class A { factory A() = B.b; }');
   }
 
   void test_visitRedirectingConstructorInvocation_unnamed() {
-    _assertClone(AstFactory.redirectingConstructorInvocation());
+    _assertCloneUnitMember('class A { factory A() = B; }');
   }
 
   void test_visitRethrowExpression() {
-    _assertClone(AstFactory.rethrowExpression());
+    _assertCloneExpression('rethrow');
   }
 
   void test_visitReturnStatement_expression() {
-    _assertClone(AstFactory.returnStatement2(AstFactory.identifier3("a")));
+    _assertCloneStatement('return a;');
   }
 
   void test_visitReturnStatement_noExpression() {
-    _assertClone(AstFactory.returnStatement());
+    _assertCloneStatement('return;');
   }
 
   void test_visitScriptTag() {
-    String scriptTag = "!#/bin/dart.exe";
-    _assertClone(AstFactory.scriptTag(scriptTag));
+    _assertCloneUnit('#!/bin/dart.exe');
   }
 
   void test_visitSimpleFormalParameter_keyword() {
-    _assertClone(AstFactory.simpleFormalParameter(Keyword.VAR, "a"));
+    _assertCloneUnitMember('main(var a) {}');
   }
 
   void test_visitSimpleFormalParameter_keyword_type() {
-    _assertClone(AstFactory.simpleFormalParameter2(
-        Keyword.FINAL, AstFactory.typeName4("A"), "a"));
+    _assertCloneUnitMember('main(final A a) {}');
   }
 
   void test_visitSimpleFormalParameter_type() {
-    _assertClone(
-        AstFactory.simpleFormalParameter4(AstFactory.typeName4("A"), "a"));
+    _assertCloneUnitMember('main(A a) {}');
   }
 
   void test_visitSimpleIdentifier() {
-    _assertClone(AstFactory.identifier3("a"));
+    _assertCloneExpression('a');
   }
 
   void test_visitSimpleStringLiteral() {
-    _assertClone(AstFactory.string2("a"));
+    _assertCloneExpression("'a'");
   }
 
   void test_visitStringInterpolation() {
-    _assertClone(AstFactory.string([
-      AstFactory.interpolationString("'a", "a"),
-      AstFactory.interpolationExpression(AstFactory.identifier3("e")),
-      AstFactory.interpolationString("b'", "b")
-    ]));
+    _assertCloneExpression(r"'a${e}b'");
   }
 
   void test_visitSuperConstructorInvocation() {
-    _assertClone(AstFactory.superConstructorInvocation());
+    _assertCloneUnitMember('class C { C() : super(); }');
   }
 
   void test_visitSuperConstructorInvocation_named() {
-    _assertClone(AstFactory.superConstructorInvocation2("c"));
+    _assertCloneUnitMember('class C { C() : super.c(); }');
   }
 
   void test_visitSuperExpression() {
-    _assertClone(AstFactory.superExpression());
+    _assertCloneUnitMember('class C { m() { super.m(); } }');
   }
 
   void test_visitSwitchCase_multipleLabels() {
-    _assertClone(AstFactory.switchCase2(
-        [AstFactory.label2("l1"), AstFactory.label2("l2")],
-        AstFactory.identifier3("a"),
-        [AstFactory.block()]));
+    _assertCloneStatement('switch (v) {l1: l2: case a: {} }');
   }
 
   void test_visitSwitchCase_multipleStatements() {
-    _assertClone(AstFactory.switchCase(
-        AstFactory.identifier3("a"), [AstFactory.block(), AstFactory.block()]));
+    _assertCloneStatement('switch (v) { case a: {} {} }');
   }
 
   void test_visitSwitchCase_noLabels() {
-    _assertClone(AstFactory.switchCase(
-        AstFactory.identifier3("a"), [AstFactory.block()]));
+    _assertCloneStatement('switch (v) { case a: {} }');
   }
 
   void test_visitSwitchCase_singleLabel() {
-    _assertClone(AstFactory.switchCase2([AstFactory.label2("l1")],
-        AstFactory.identifier3("a"), [AstFactory.block()]));
+    _assertCloneStatement('switch (v) { l1: case a: {} }');
   }
 
   void test_visitSwitchDefault_multipleLabels() {
-    _assertClone(AstFactory.switchDefault(
-        [AstFactory.label2("l1"), AstFactory.label2("l2")],
-        [AstFactory.block()]));
+    _assertCloneStatement('switch (v) { l1: l2: default: {} }');
   }
 
   void test_visitSwitchDefault_multipleStatements() {
-    _assertClone(
-        AstFactory.switchDefault2([AstFactory.block(), AstFactory.block()]));
+    _assertCloneStatement('switch (v) { default: {} {} }');
   }
 
   void test_visitSwitchDefault_noLabels() {
-    _assertClone(AstFactory.switchDefault2([AstFactory.block()]));
+    _assertCloneStatement('switch (v) { default: {} }');
   }
 
   void test_visitSwitchDefault_singleLabel() {
-    _assertClone(AstFactory.switchDefault(
-        [AstFactory.label2("l1")], [AstFactory.block()]));
+    _assertCloneStatement('switch (v) { l1: default: {} }');
   }
 
   void test_visitSwitchStatement() {
-    _assertClone(AstFactory.switchStatement(AstFactory.identifier3("a"), [
-      AstFactory.switchCase(AstFactory.string2("b"), [AstFactory.block()]),
-      AstFactory.switchDefault2([AstFactory.block()])
-    ]));
+    _assertCloneStatement('switch (a) { case b: {} default: {} }');
   }
 
   void test_visitSymbolLiteral_multiple() {
-    _assertClone(AstFactory.symbolLiteral(["a", "b", "c"]));
+    _assertCloneExpression('#a.b.c');
   }
 
   void test_visitSymbolLiteral_single() {
-    _assertClone(AstFactory.symbolLiteral(["a"]));
+    _assertCloneExpression('#a');
   }
 
   void test_visitThisExpression() {
-    _assertClone(AstFactory.thisExpression());
+    _assertCloneExpression('this');
   }
 
   void test_visitThrowStatement() {
-    _assertClone(AstFactory.throwExpression2(AstFactory.identifier3("e")));
+    _assertCloneStatement('throw e;');
   }
 
   void test_visitTopLevelVariableDeclaration_multiple() {
-    _assertClone(AstFactory.topLevelVariableDeclaration2(
-        Keyword.VAR, [AstFactory.variableDeclaration("a")]));
+    _assertCloneUnitMember('var a;');
   }
 
   void test_visitTopLevelVariableDeclaration_single() {
-    _assertClone(AstFactory.topLevelVariableDeclaration2(Keyword.VAR, [
-      AstFactory.variableDeclaration("a"),
-      AstFactory.variableDeclaration("b")
-    ]));
+    _assertCloneUnitMember('var a, b;');
   }
 
   void test_visitTryStatement_catch() {
-    _assertClone(AstFactory.tryStatement2(AstFactory.block(),
-        [AstFactory.catchClause3(AstFactory.typeName4("E"))]));
+    _assertCloneStatement('try {} on E {}');
   }
 
   void test_visitTryStatement_catches() {
-    _assertClone(AstFactory.tryStatement2(AstFactory.block(), [
-      AstFactory.catchClause3(AstFactory.typeName4("E")),
-      AstFactory.catchClause3(AstFactory.typeName4("F"))
-    ]));
+    _assertCloneStatement('try {} on E {} on F {}');
   }
 
   void test_visitTryStatement_catchFinally() {
-    _assertClone(AstFactory.tryStatement3(
-        AstFactory.block(),
-        [AstFactory.catchClause3(AstFactory.typeName4("E"))],
-        AstFactory.block()));
+    _assertCloneStatement('try {} on E {} finally {}');
   }
 
   void test_visitTryStatement_finally() {
-    _assertClone(
-        AstFactory.tryStatement(AstFactory.block(), AstFactory.block()));
-  }
-
-  void test_visitTypeArgumentList_multiple() {
-    _assertClone(AstFactory.typeArgumentList(
-        [AstFactory.typeName4("E"), AstFactory.typeName4("F")]));
-  }
-
-  void test_visitTypeArgumentList_single() {
-    _assertClone(AstFactory.typeArgumentList([AstFactory.typeName4("E")]));
+    _assertCloneStatement('try {} finally {}');
   }
 
   void test_visitTypeName_multipleArgs() {
-    _assertClone(AstFactory.typeName4(
-        "C", [AstFactory.typeName4("D"), AstFactory.typeName4("E")]));
+    _assertCloneExpression('new C<D, E>()');
   }
 
   void test_visitTypeName_nestedArg() {
-    _assertClone(AstFactory.typeName4("C", [
-      AstFactory.typeName4("D", [AstFactory.typeName4("E")])
-    ]));
+    _assertCloneExpression('new C<D<E>>()');
   }
 
   void test_visitTypeName_noArgs() {
-    _assertClone(AstFactory.typeName4("C"));
+    _assertCloneExpression('new C()');
   }
 
   void test_visitTypeName_singleArg() {
-    _assertClone(AstFactory.typeName4("C", [AstFactory.typeName4("D")]));
+    _assertCloneExpression('new C<D>()');
   }
 
   void test_visitTypeParameter_withExtends() {
-    _assertClone(AstFactory.typeParameter2("E", AstFactory.typeName4("C")));
+    _assertCloneUnitMember('class A<E extends C> {}');
   }
 
   void test_visitTypeParameter_withMetadata() {
-    TypeParameter parameter = AstFactory.typeParameter("E");
-    parameter.metadata
-        .add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
-    _assertClone(parameter);
+    _assertCloneUnitMember('class A<@deprecated E> {}');
   }
 
   void test_visitTypeParameter_withoutExtends() {
-    _assertClone(AstFactory.typeParameter("E"));
+    _assertCloneUnitMember('class A<E> {}');
   }
 
   void test_visitTypeParameterList_multiple() {
-    _assertClone(AstFactory.typeParameterList(["E", "F"]));
+    _assertCloneUnitMember('class A<E, F> {}');
   }
 
   void test_visitTypeParameterList_single() {
-    _assertClone(AstFactory.typeParameterList(["E"]));
+    _assertCloneUnitMember('class A<E> {}');
   }
 
   void test_visitVariableDeclaration_initialized() {
-    _assertClone(
-        AstFactory.variableDeclaration2("a", AstFactory.identifier3("b")));
+    _assertCloneStatement('var a = b;');
   }
 
   void test_visitVariableDeclaration_uninitialized() {
-    _assertClone(AstFactory.variableDeclaration("a"));
+    _assertCloneStatement('var a;');
   }
 
   void test_visitVariableDeclarationList_const_type() {
-    _assertClone(AstFactory.variableDeclarationList(
-        Keyword.CONST, AstFactory.typeName4("C"), [
-      AstFactory.variableDeclaration("a"),
-      AstFactory.variableDeclaration("b")
-    ]));
+    _assertCloneStatement('const C a, b;');
   }
 
   void test_visitVariableDeclarationList_final_noType() {
-    _assertClone(AstFactory.variableDeclarationList2(Keyword.FINAL, [
-      AstFactory.variableDeclaration("a"),
-      AstFactory.variableDeclaration("b")
-    ]));
+    _assertCloneStatement('final a, b;');
   }
 
   void test_visitVariableDeclarationList_final_withMetadata() {
-    VariableDeclarationList declarationList = AstFactory
-        .variableDeclarationList2(Keyword.FINAL, [
-      AstFactory.variableDeclaration("a"),
-      AstFactory.variableDeclaration("b")
-    ]);
-    declarationList.metadata
-        .add(AstFactory.annotation(AstFactory.identifier3("deprecated")));
-    _assertClone(declarationList);
+    _assertCloneStatement('@deprecated final a, b;');
   }
 
   void test_visitVariableDeclarationList_type() {
-    _assertClone(AstFactory.variableDeclarationList(
-        null, AstFactory.typeName4("C"), [
-      AstFactory.variableDeclaration("a"),
-      AstFactory.variableDeclaration("b")
-    ]));
+    _assertCloneStatement('C a, b;');
   }
 
   void test_visitVariableDeclarationList_var() {
-    _assertClone(AstFactory.variableDeclarationList2(Keyword.VAR, [
-      AstFactory.variableDeclaration("a"),
-      AstFactory.variableDeclaration("b")
-    ]));
+    _assertCloneStatement('var a, b;');
   }
 
   void test_visitVariableDeclarationStatement() {
-    _assertClone(AstFactory.variableDeclarationStatement(null,
-        AstFactory.typeName4("C"), [AstFactory.variableDeclaration("c")]));
+    _assertCloneStatement('C c;');
   }
 
   void test_visitWhileStatement() {
-    _assertClone(AstFactory.whileStatement(
-        AstFactory.identifier3("c"), AstFactory.block()));
+    _assertCloneStatement('while (c) {}');
   }
 
   void test_visitWithClause_multiple() {
-    _assertClone(AstFactory.withClause([
-      AstFactory.typeName4("A"),
-      AstFactory.typeName4("B"),
-      AstFactory.typeName4("C")
-    ]));
+    _assertCloneUnitMember('class X extends Y with A, B, C {}');
   }
 
   void test_visitWithClause_single() {
-    _assertClone(AstFactory.withClause([AstFactory.typeName4("A")]));
+    _assertCloneUnitMember('class X extends Y with A {}');
   }
 
   void test_visitYieldStatement() {
-    _assertClone(AstFactory.yieldStatement(AstFactory.identifier3("A")));
+    _assertCloneUnitMember('main() async* { yield 42; }');
   }
 
   /**
@@ -1729,16 +1116,143 @@ class AstClonerTest extends EngineTestCase {
    * @throws AFE if the visitor does not produce the expected source for the given node
    */
   void _assertClone(AstNode node) {
-    AstNode clone = node.accept(new AstCloner());
-    AstCloneComparator comparitor = new AstCloneComparator(false);
-    if (!comparitor.isEqualNodes(node, clone)) {
-      fail("Failed to clone ${node.runtimeType.toString()}");
+    {
+      AstNode clone = node.accept(new AstCloner());
+      AstCloneComparator comparator = new AstCloneComparator(false);
+      if (!comparator.isEqualNodes(node, clone)) {
+        fail("Failed to clone ${node.runtimeType.toString()}");
+      }
+      _assertEqualTokens(clone, node);
     }
+    {
+      AstNode clone = node.accept(new AstCloner(true));
+      AstCloneComparator comparator = new AstCloneComparator(true);
+      if (!comparator.isEqualNodes(node, clone)) {
+        fail("Failed to clone ${node.runtimeType.toString()}");
+      }
+      _assertEqualTokens(clone, node);
+    }
+  }
 
-    clone = node.accept(new AstCloner(true));
-    comparitor = new AstCloneComparator(true);
-    if (!comparitor.isEqualNodes(node, clone)) {
-      fail("Failed to clone ${node.runtimeType.toString()}");
+  void _assertCloneExpression(String code) {
+    AstNode node = _parseExpression(code);
+    _assertClone(node);
+  }
+
+  void _assertCloneStatement(String code) {
+    AstNode node = _parseStatement(code);
+    _assertClone(node);
+  }
+
+  void _assertCloneUnit(String code) {
+    AstNode node = _parseUnit(code);
+    _assertClone(node);
+  }
+
+  void _assertCloneUnitMember(String code) {
+    AstNode node = _parseUnitMember(code);
+    _assertClone(node);
+  }
+
+  Expression _parseExpression(String code) {
+    CompilationUnit unit = _parseUnit('var v = $code;');
+    TopLevelVariableDeclaration decl = unit.declarations.single;
+    return decl.variables.variables.single.initializer;
+  }
+
+  Statement _parseStatement(String code) {
+    CompilationUnit unit = _parseUnit('main() { $code }');
+    FunctionDeclaration main = unit.declarations.single;
+    BlockFunctionBody body = main.functionExpression.body;
+    return body.block.statements.single;
+  }
+
+  CompilationUnit _parseUnit(String code) {
+    GatheringErrorListener listener = new GatheringErrorListener();
+    CharSequenceReader reader = new CharSequenceReader(code);
+    Scanner scanner = new Scanner(null, reader, listener);
+    Token token = scanner.tokenize();
+    Parser parser = new Parser(null, listener);
+    CompilationUnit unit = parser.parseCompilationUnit(token);
+    expect(unit, isNotNull);
+    listener.assertNoErrors();
+    return unit;
+  }
+
+  CompilationUnitMember _parseUnitMember(String code) {
+    CompilationUnit unit = _parseUnit(code);
+    return unit.declarations.single;
+  }
+
+  static void _assertEqualToken(Token clone, Token original) {
+    expect(clone.type, original.type);
+    expect(clone.offset, original.offset);
+    expect(clone.length, original.length);
+    expect(clone.lexeme, original.lexeme);
+  }
+
+  static void _assertEqualTokens(AstNode cloneNode, AstNode originalNode) {
+    Token clone = cloneNode.beginToken;
+    Token original = originalNode.beginToken;
+    if (original is! CommentToken) {
+      _assertHasPrevious(original);
+      _assertHasPrevious(clone);
+    }
+    Token stopOriginalToken = originalNode.endToken.next;
+    Token skipCloneComment = null;
+    Token skipOriginalComment = null;
+    while (original != stopOriginalToken) {
+      expect(clone, isNotNull);
+      _assertEqualToken(clone, original);
+      // comments
+      {
+        Token cloneComment = clone.precedingComments;
+        Token originalComment = original.precedingComments;
+        if (cloneComment != skipCloneComment &&
+            originalComment != skipOriginalComment) {
+          while (true) {
+            if (originalComment == null) {
+              expect(cloneComment, isNull);
+              break;
+            }
+            expect(cloneComment, isNotNull);
+            _assertEqualToken(cloneComment, originalComment);
+            cloneComment = cloneComment.next;
+            originalComment = originalComment.next;
+          }
+        }
+      }
+      // next tokens
+      if (original is CommentToken) {
+        expect(clone, new isInstanceOf<CommentToken>());
+        skipOriginalComment = original;
+        skipCloneComment = clone;
+        original = (original as CommentToken).parent;
+        clone = (clone as CommentToken).parent;
+      } else {
+        clone = clone.next;
+        original = original.next;
+      }
+    }
+  }
+
+  /**
+   * Assert that the [token] has `previous` set, and if it `EOF`, then it
+   * points itself.
+   */
+  static void _assertHasPrevious(Token token) {
+    expect(token, isNotNull);
+    if (token.type == TokenType.EOF) {
+      return;
+    }
+    while (token != null) {
+      Token previous = token.previous;
+      expect(previous, isNotNull);
+      if (token.type == TokenType.EOF) {
+        expect(previous, same(token));
+        break;
+      }
+      token = previous;
     }
   }
 }
@@ -3275,39 +2789,6 @@ class ListGetter_NodeReplacerTest_testSwitchMember_2
 }
 
 @reflectiveTest
-class ListUtilitiesTest {
-  void test_addAll_emptyToEmpty() {
-    List<String> list = new List<String>();
-    List<String> elements = <String>[];
-    ListUtilities.addAll(list, elements);
-    expect(list.length, 0);
-  }
-
-  void test_addAll_emptyToNonEmpty() {
-    List<String> list = new List<String>();
-    list.add("a");
-    List<String> elements = <String>[];
-    ListUtilities.addAll(list, elements);
-    expect(list.length, 1);
-  }
-
-  void test_addAll_nonEmptyToEmpty() {
-    List<String> list = new List<String>();
-    List<String> elements = ["b", "c"];
-    ListUtilities.addAll(list, elements);
-    expect(list.length, 2);
-  }
-
-  void test_addAll_nonEmptyToNonEmpty() {
-    List<String> list = new List<String>();
-    list.add("a");
-    List<String> elements = ["b", "c"];
-    ListUtilities.addAll(list, elements);
-    expect(list.length, 3);
-  }
-}
-
-@reflectiveTest
 class MultipleMapIteratorTest extends EngineTestCase {
   void test_multipleMaps_firstEmpty() {
     Map<String, String> map1 = new HashMap<String, String>();
@@ -3534,8 +3015,8 @@ class NodeReplacerTest extends EngineTestCase {
         AstFactory.extendsClause(AstFactory.typeName4("B")),
         AstFactory.withClause([AstFactory.typeName4("C")]),
         AstFactory.implementsClause([AstFactory.typeName4("D")]), [
-      AstFactory.fieldDeclaration2(
-          false, null, [AstFactory.variableDeclaration("f")])
+      AstFactory
+          .fieldDeclaration2(false, null, [AstFactory.variableDeclaration("f")])
     ]);
     node.documentationComment =
         Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
@@ -3981,8 +3462,8 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_labeledStatement() {
-    LabeledStatement node = AstFactory.labeledStatement(
-        [AstFactory.label2("l")], AstFactory.block());
+    LabeledStatement node = AstFactory
+        .labeledStatement([AstFactory.label2("l")], AstFactory.block());
     _assertReplace(
         node, new ListGetter_NodeReplacerTest_test_labeledStatement(0));
     _assertReplace(node, new Getter_NodeReplacerTest_test_labeledStatement());
@@ -4181,8 +3662,8 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_switchDefault() {
-    SwitchDefault node = AstFactory.switchDefault(
-        [AstFactory.label2("l")], [AstFactory.block()]);
+    SwitchDefault node = AstFactory
+        .switchDefault([AstFactory.label2("l")], [AstFactory.block()]);
     _testSwitchMember(node);
   }
 
@@ -4235,8 +3716,8 @@ class NodeReplacerTest extends EngineTestCase {
   }
 
   void test_typeName() {
-    TypeName node = AstFactory.typeName4(
-        "T", [AstFactory.typeName4("E"), AstFactory.typeName4("F")]);
+    TypeName node = AstFactory
+        .typeName4("T", [AstFactory.typeName4("E"), AstFactory.typeName4("F")]);
     _assertReplace(node, new Getter_NodeReplacerTest_test_typeName_2());
     _assertReplace(node, new Getter_NodeReplacerTest_test_typeName());
   }
@@ -4270,10 +3751,14 @@ class NodeReplacerTest extends EngineTestCase {
   void test_variableDeclarationList() {
     VariableDeclarationList node = AstFactory.variableDeclarationList(
         null, AstFactory.typeName4("T"), [AstFactory.variableDeclaration("a")]);
+    node.documentationComment =
+        Comment.createEndOfLineComment(EMPTY_TOKEN_LIST);
+    node.metadata.add(AstFactory.annotation(AstFactory.identifier3("a")));
     _assertReplace(
         node, new Getter_NodeReplacerTest_test_variableDeclarationList());
     _assertReplace(
         node, new ListGetter_NodeReplacerTest_test_variableDeclarationList(0));
+    _testAnnotatedNode(node);
   }
 
   void test_variableDeclarationStatement() {
