@@ -111,7 +111,10 @@ class TreeElementMapping extends TreeElements {
   Map<Spannable, Selector> _selectors;
   Map<Spannable, TypeMask> _typeMasks;
   Map<Node, DartType> _types;
-  Map<Node, DartType> typesCache = <Node, DartType>{};
+
+  Map<Node, DartType> _typesCache;
+  Map<Node, DartType> get typesCache => _typesCache ??= <Node, DartType>{};
+
   Setlet<SourceSpan> _superUses;
   Map<Node, ConstantExpression> _constants;
   Map<VariableElement, List<Node>> _potentiallyMutated;
