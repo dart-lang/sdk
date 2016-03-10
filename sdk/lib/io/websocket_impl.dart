@@ -581,7 +581,6 @@ class _WebSocketPerMessageDeflate {
 
     if ((serverSide && clientNoContextTakeover) ||
         (!serverSide && serverNoContextTakeover)) {
-      decoder.end();
       decoder = null;
     }
 
@@ -614,7 +613,6 @@ class _WebSocketPerMessageDeflate {
 
     if ((!serverSide && clientNoContextTakeover) ||
         (serverSide && serverNoContextTakeover)) {
-      encoder.end();
       encoder = null;
     }
 
