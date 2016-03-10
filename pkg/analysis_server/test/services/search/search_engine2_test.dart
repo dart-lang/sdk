@@ -202,6 +202,23 @@ main() {
     await _verifyReferences(element, expected);
   }
 
+  test_searchReferences_ConstructorElement_synthetic() async {
+    _indexTestUnit('''
+class A {
+}
+main() {
+  new A();
+}
+''');
+    ClassElement classElement = findElement('A');
+    ConstructorElement element = classElement.unnamedConstructor;
+    Element mainElement = findElement('main');
+    var expected = [
+      _expectIdQ(mainElement, MatchKind.REFERENCE, '();', length: 0)
+    ];
+    await _verifyReferences(element, expected);
+  }
+
   test_searchReferences_Element_unknown() async {
     await _verifyReferences(DynamicElementImpl.instance, []);
   }
@@ -543,18 +560,22 @@ main() {
   test_searchReferences_PropertyAccessorElement_getter() async {
     _indexTestUnit('''
 class A {
-  get g => null;
+  get ggg => null;
   main() {
-    g; // 1
-    this.g; // 2
+    print(ggg); // ref-nq
+    print(this.ggg); // ref-q
+    ggg(); // inv-nq
+    this.ggg(); // inv-q
   }
 }
 ''');
-    PropertyAccessorElement element = findElement('g', ElementKind.GETTER);
-    Element mainElement = findElement('main');
+    PropertyAccessorElement element = findElement('ggg', ElementKind.GETTER);
+    Element main = findElement('main');
     var expected = [
-      _expectId(mainElement, MatchKind.REFERENCE, 'g; // 1'),
-      _expectIdQ(mainElement, MatchKind.REFERENCE, 'g; // 2')
+      _expectId(main, MatchKind.REFERENCE, 'ggg); // ref-nq'),
+      _expectIdQ(main, MatchKind.REFERENCE, 'ggg); // ref-q'),
+      _expectId(main, MatchKind.INVOCATION, 'ggg(); // inv-nq'),
+      _expectIdQ(main, MatchKind.INVOCATION, 'ggg(); // inv-q'),
     ];
     await _verifyReferences(element, expected);
   }

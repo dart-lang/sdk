@@ -392,6 +392,21 @@ main(A a) {
     assertThat(element).isInvokedAt('~a', true, length: 1);
   }
 
+  void test_isInvokedBy_PropertyAccessorElement_getter() {
+    _indexTestUnit('''
+class A {
+  get ggg => null;
+  main() {
+    this.ggg(); // q
+    ggg(); // nq
+  }
+}''');
+    PropertyAccessorElement element = findElement('ggg', ElementKind.GETTER);
+    assertThat(element)
+      ..isInvokedAt('ggg(); // q', true)
+      ..isInvokedAt('ggg(); // nq', false);
+  }
+
   void test_isMixedInBy_ClassDeclaration() {
     _indexTestUnit('''
 class A {} // 1
@@ -623,6 +638,19 @@ class A {
     ConstructorElement constA_bar = classA.constructors[2];
     assertThat(constA).isReferencedAt('(); // 2', true, length: 0);
     assertThat(constA_bar).isReferencedAt('.bar(); // 1', true, length: 4);
+  }
+
+  void test_isReferencedBy_ConstructorElement_synthetic() {
+    _indexTestUnit('''
+class A {}
+main() {
+  new A(); // 1
+}
+''');
+    ClassElement classA = findElement('A');
+    ConstructorElement constA = classA.constructors[0];
+    // A()
+    assertThat(constA)..isReferencedAt('(); // 1', true, length: 0);
   }
 
   void test_isReferencedBy_ConstructorFieldInitializer() {
@@ -884,18 +912,13 @@ main(C c) {
    */
   int _findElementId(Element element) {
     int unitId = _getUnitId(element);
-    int offset = element.nameOffset;
-    if (element is LibraryElement || element is CompilationUnitElement) {
-      offset = 0;
-    }
-    IndexSyntheticElementKind kind =
-        PackageIndexAssembler.getIndexElementKind(element);
+    ElementInfo info = PackageIndexAssembler.newElementInfo(unitId, element);
     for (int elementId = 0;
         elementId < packageIndex.elementUnits.length;
         elementId++) {
       if (packageIndex.elementUnits[elementId] == unitId &&
-          packageIndex.elementOffsets[elementId] == offset &&
-          packageIndex.elementKinds[elementId] == kind) {
+          packageIndex.elementOffsets[elementId] == info.offset &&
+          packageIndex.elementKinds[elementId] == info.kind) {
         return elementId;
       }
     }

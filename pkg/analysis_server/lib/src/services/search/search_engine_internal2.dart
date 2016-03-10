@@ -54,9 +54,10 @@ class SearchEngineImpl2 implements SearchEngine {
         kind == ElementKind.COMPILATION_UNIT ||
         kind == ElementKind.CONSTRUCTOR ||
         kind == ElementKind.FUNCTION_TYPE_ALIAS ||
-        kind == ElementKind.GETTER ||
         kind == ElementKind.SETTER) {
       return _searchReferences(element);
+    } else if (kind == ElementKind.GETTER) {
+      return _searchReferences_Getter(element);
     } else if (kind == ElementKind.FIELD ||
         kind == ElementKind.TOP_LEVEL_VARIABLE) {
       return _searchReferences_Field(element);
@@ -167,6 +168,16 @@ class SearchEngineImpl2 implements SearchEngine {
         MatchKind.REFERENCE);
     await _addMatches(matches, element, IndexRelationKind.IS_INVOKED_BY,
         MatchKind.INVOCATION);
+    return matches;
+  }
+
+  Future<List<SearchMatch>> _searchReferences_Getter(
+      PropertyAccessorElement getter) async {
+    List<SearchMatch> matches = <SearchMatch>[];
+    await _addMatches(matches, getter, IndexRelationKind.IS_REFERENCED_BY,
+        MatchKind.REFERENCE);
+    await _addMatches(
+        matches, getter, IndexRelationKind.IS_INVOKED_BY, MatchKind.INVOCATION);
     return matches;
   }
 

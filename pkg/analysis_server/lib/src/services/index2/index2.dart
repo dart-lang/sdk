@@ -305,25 +305,20 @@ class _PackageIndexRequester {
     if (unitId == -1) {
       return -1;
     }
-    // Prepare the offset of the element.
-    int offset = element.nameOffset;
-    if (element is LibraryElement || element is CompilationUnitElement) {
-      offset = 0;
-    }
+    // Prepare information about the element.
+    ElementInfo info = PackageIndexAssembler.newElementInfo(unitId, element);
     // Find the first occurrence of an element with the same offset.
-    int elementId = _findFirstOccurrence(index.elementOffsets, offset);
+    int elementId = _findFirstOccurrence(index.elementOffsets, info.offset);
     if (elementId == -1) {
       return -1;
     }
     // Try to find the element id using offset, unit and kind.
-    IndexSyntheticElementKind kind =
-        PackageIndexAssembler.getIndexElementKind(element);
     for (;
         elementId < index.elementOffsets.length &&
-            index.elementOffsets[elementId] == offset;
+            index.elementOffsets[elementId] == info.offset;
         elementId++) {
       if (index.elementUnits[elementId] == unitId &&
-          index.elementKinds[elementId] == kind) {
+          index.elementKinds[elementId] == info.kind) {
         return elementId;
       }
     }
