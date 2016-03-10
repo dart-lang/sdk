@@ -331,8 +331,10 @@ class AnalysisServer {
         options.enableIncrementalResolutionValidation;
     defaultContextOptions.generateImplicitErrors = false;
     operationQueue = new ServerOperationQueue();
+    sdkManager = new DartSdkManager(defaultSdkCreator);
     contextManager = new ContextManagerImpl(
         resourceProvider,
+        sdkManager,
         packageResolverProvider,
         embeddedResolverProvider,
         packageMapProvider,
@@ -361,7 +363,6 @@ class AnalysisServer {
     channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
     handlers = serverPlugin.createDomains(this);
-    sdkManager = new DartSdkManager(defaultSdkCreator);
   }
 
   /**
@@ -1595,11 +1596,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
-  void updateContextPackageUriResolver(
-      Folder contextFolder, FolderDisposition disposition) {
-    AnalysisContext context = analysisServer.folderMap[contextFolder];
-    context.sourceFactory = _createSourceFactory(
-        context, context.analysisOptions, disposition, contextFolder);
+  void updateContextPackageUriResolver(AnalysisContext context) {
     analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(changed: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
