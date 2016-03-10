@@ -171,10 +171,6 @@ static_library("libdart") {
     "vm/version.h",
     "$target_gen_dir/version.cc",
   ]
-  defines = [
-    # Using DART_SHARED_LIB to export the Dart API entries.
-    "DART_SHARED_LIB",
-  ]
 }
 
 
@@ -203,8 +199,6 @@ static_library("libdart_precompiled_runtime") {
     "$target_gen_dir/version.cc",
   ]
   defines = [
-    # Using DART_SHARED_LIB to export the Dart API entries.
-    "DART_SHARED_LIB",
     "DART_PRECOMPILED_RUNTIME",
   ]
 }
