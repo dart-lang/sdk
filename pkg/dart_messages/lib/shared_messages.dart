@@ -195,7 +195,6 @@ final Map<String, Message> MESSAGES = {
   'CONST_CONSTRUCTOR_WITH_BODY': new Message(
       id: 'LGJGHW',
       subId: 0,
-      specializationOf: "CONST_CONSTRUCTOR_OR_FACTORY_WITH_BODY",
       categories: [Category.parserError],
       template: "Const constructor can't have a body.",
       howToFix: "Try removing the 'const' keyword or the body.",
@@ -212,7 +211,6 @@ final Map<String, Message> MESSAGES = {
   'CONST_FACTORY': new Message(
       id: 'LGJGHW',
       subId: 1,
-      specializationOf: "CONST_CONSTRUCTOR_OR_FACTORY_WITH_BODY",
       categories: [Category.parserError],
       template: "Only redirecting factory constructors can be declared to "
           "be 'const'.",
