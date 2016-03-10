@@ -4,16 +4,15 @@
 
 library analyzer.test.source.analysis_options_provider_test;
 
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/source/analysis_options_provider.dart';
 import 'package:unittest/unittest.dart';
 import 'package:yaml/yaml.dart';
 
-import '../utils.dart';
+import '../resource_utils.dart';
 
 main() {
-  initializeTestEnvironment();
-
   group('AnalysisOptionsProvider', () {
     void expectMergesTo(String defaults, String overrides, String expected) {
       var optionsProvider = new AnalysisOptionsProvider();
@@ -77,7 +76,7 @@ linter:
     test('test_simple', () {
       var optionsProvider = new AnalysisOptionsProvider();
       Map<String, YamlNode> options =
-          optionsProvider.getOptions(resourceProvider.getFolder('/'));
+          optionsProvider.getOptions(pathTranslator.getResource('/'));
       expect(options, hasLength(1));
       expect(options['analyzer'], isNotNull);
       YamlMap analyzer = options['analyzer'];
@@ -91,7 +90,7 @@ linter:
     test('test_doesnotexist', () {
       var optionsProvider = new AnalysisOptionsProvider();
       Map<String, YamlNode> options =
-          optionsProvider.getOptions(resourceProvider.getFolder('/empty'));
+          optionsProvider.getOptions(pathTranslator.getResource('/empty'));
       expect(options, isEmpty);
     });
   });
@@ -105,7 +104,7 @@ linter:
     test('test_empty', () {
       var optionsProvider = new AnalysisOptionsProvider();
       Map<String, YamlNode> options =
-          optionsProvider.getOptions(resourceProvider.getFolder('/'));
+          optionsProvider.getOptions(pathTranslator.getResource('/'));
       expect(options, isNotNull);
     });
   });
@@ -121,7 +120,7 @@ linter:
       bool exceptionCaught = false;
       try {
         Map<String, YamlNode> options =
-            optionsProvider.getOptions(resourceProvider.getFolder('/'));
+            optionsProvider.getOptions(pathTranslator.getResource('/'));
         expect(options, isNotNull);
       } catch (e) {
         exceptionCaught = true;
@@ -156,19 +155,22 @@ analyzer:
   });
 }
 
-MemoryResourceProvider resourceProvider;
+ResourceProvider resourceProvider;
+TestPathTranslator pathTranslator;
 
 buildResourceProvider(
     {bool emptyAnalysisOptions: false, bool badAnalysisOptions: false}) {
-  resourceProvider = new MemoryResourceProvider();
-  resourceProvider.newFolder('/empty');
-  resourceProvider.newFolder('/tmp');
+  var rawProvider = new MemoryResourceProvider(isWindows: isWindows);
+  resourceProvider = new TestResourceProvider(rawProvider);
+  pathTranslator = new TestPathTranslator(rawProvider)
+    ..newFolder('/empty')
+    ..newFolder('/tmp');
   if (badAnalysisOptions) {
-    resourceProvider.newFile('/.analysis_options', r''':''');
+    pathTranslator.newFile('/.analysis_options', r''':''');
   } else if (emptyAnalysisOptions) {
-    resourceProvider.newFile('/.analysis_options', r'''#empty''');
+    pathTranslator.newFile('/.analysis_options', r'''#empty''');
   } else {
-    resourceProvider.newFile(
+    pathTranslator.newFile(
         '/.analysis_options',
         r'''
 analyzer:
@@ -181,8 +183,4 @@ analyzer:
 
 clearResourceProvider() {
   resourceProvider = null;
-}
-
-emptyResourceProvider() {
-  resourceProvider = new MemoryResourceProvider();
 }

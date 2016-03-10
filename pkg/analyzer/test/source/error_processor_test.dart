@@ -16,7 +16,6 @@ import 'package:unittest/unittest.dart';
 import 'package:yaml/src/yaml_node.dart';
 
 import '../generated/test_support.dart';
-import '../utils.dart';
 
 main() {
   AnalysisError invalid_assignment =
@@ -40,7 +39,6 @@ main() {
     ['x']
   ]);
 
-  initializeTestEnvironment();
   oneTimeSetup();
 
   setUp(() {
