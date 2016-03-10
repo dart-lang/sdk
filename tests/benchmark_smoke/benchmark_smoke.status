@@ -9,5 +9,4 @@
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
 [ $compiler == dart2js && $cps_ir && $checked ]
-benchmark_smoke: Crash # `assert` not implemented
-
+*: Skip # Issue 25761
