@@ -5890,7 +5890,8 @@ static void DataStreamToConsumer(Dart_StreamConsumer consumer,
 
 static bool StreamTraceEvents(Dart_StreamConsumer consumer,
                               void* user_data,
-                              JSONStream* js) {
+                              JSONStream* js,
+                              bool insert_comma) {
   ASSERT(js != NULL);
   // Steal output from JSONStream.
   char* output = NULL;
@@ -5907,23 +5908,24 @@ static bool StreamTraceEvents(Dart_StreamConsumer consumer,
   ASSERT(output[output_length - 1] == ']');
   // Replace the ']' with the null character.
   output[output_length - 1] = '\0';
-  // We are skipping the '['.
-  output_length -= 1;
-
-  // Start the stream.
-  StartStreamToConsumer(consumer, user_data, "timeline");
+  char* start = &output[1];
+  if (insert_comma) {
+    output[0] = ',';
+    start = &output[0];
+  } else {
+    // We are skipping the '['.
+    output_length -= 1;
+  }
 
   DataStreamToConsumer(consumer,
                        user_data,
-                       &output[1],
+                       start,
                        output_length,
                        "timeline");
 
   // We stole the JSONStream's output buffer, free it.
   free(output);
 
-  // Finish the stream.
-  FinishStreamToConsumer(consumer, user_data, "timeline");
   return true;
 }
 
@@ -5949,7 +5951,20 @@ DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
   JSONStream js;
   IsolateTimelineEventFilter filter(isolate->main_port());
   timeline_recorder->PrintTraceEvent(&js, &filter);
-  return StreamTraceEvents(consumer, user_data, &js);
+  StartStreamToConsumer(consumer, user_data, "timeline");
+  bool success = StreamTraceEvents(consumer, user_data, &js, false);
+  FinishStreamToConsumer(consumer, user_data, "timeline");
+  return success;
+}
+
+
+DART_EXPORT void Dart_SetEmbedderTimelineCallbacks(
+    Dart_EmbedderTimelineStartRecording start_recording,
+    Dart_EmbedderTimelineStopRecording stop_recording,
+    Dart_EmbedderTimelineGetTimeline get_timeline) {
+  Timeline::set_start_recording_cb(start_recording);
+  Timeline::set_stop_recording_cb(stop_recording);
+  Timeline::set_get_timeline_cb(get_timeline);
 }
 
 
@@ -5974,7 +5989,18 @@ DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
   JSONStream js;
   TimelineEventFilter filter;
   timeline_recorder->PrintTraceEvent(&js, &filter);
-  return StreamTraceEvents(consumer, user_data, &js);
+  StartStreamToConsumer(consumer, user_data, "timeline");
+  bool success = false;
+  if (Timeline::get_get_timeline_cb() != NULL) {
+    if (Timeline::get_get_timeline_cb()(consumer, user_data)) {
+      success = true;
+    }
+  }
+  if (StreamTraceEvents(consumer, user_data, &js, success)) {
+    success = true;
+  }
+  FinishStreamToConsumer(consumer, user_data, "timeline");
+  return success;
 }
 
 
@@ -6098,7 +6124,6 @@ DART_EXPORT Dart_Handle Dart_TimelineAsyncEnd(const char* label,
   }
   return Api::Success();
 }
-
 
 // The precompiler is included in dart_bootstrap and dart_noopt, and
 // excluded from dart and dart_precompiled_runtime.
