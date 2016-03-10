@@ -41,7 +41,8 @@ class PackageIndexAssemblerTest extends AbstractSingleUnitTest {
   UnitIndex unitIndex;
 
   _ElementIndexAssert assertThat(Element element) {
-    return new _ElementIndexAssert(this, element);
+    List<_Relation> relations = _getElementRelations(element);
+    return new _ElementIndexAssert(this, element, relations);
   }
 
   _NameIndexAssert assertThatName(String name) {
@@ -560,10 +561,12 @@ main() {
     ConstructorElement constA_foo = classA.constructors[1];
     // A()
     assertThat(constA)
+      ..hasRelationCount(2)
       ..isReferencedAt('(); // 1', true, length: 0)
       ..isReferencedAt('(); // 4', true, length: 0);
     // A.foo()
     assertThat(constA_foo)
+      ..hasRelationCount(3)
       ..isReferencedAt('.foo(); // 2', true, length: 4)
       ..isReferencedAt('.foo; // 3', true, length: 4)
       ..isReferencedAt('.foo(); // 5', true, length: 4);
@@ -856,16 +859,14 @@ main(C c) {
    */
   void _assertHasRelation(
       Element element,
+      List<_Relation> relations,
       IndexRelationKind expectedRelationKind,
       ExpectedLocation expectedLocation) {
-    int elementId = _findElementId(element);
-    for (int i = 0; i < unitIndex.usedElementOffsets.length; i++) {
-      if (unitIndex.usedElements[i] == elementId &&
-          unitIndex.usedElementKinds[i] == expectedRelationKind &&
-          unitIndex.usedElementOffsets[i] == expectedLocation.offset &&
-          unitIndex.usedElementLengths[i] == expectedLocation.length &&
-          unitIndex.usedElementIsQualifiedFlags[i] ==
-              expectedLocation.isQualified) {
+    for (var relation in relations) {
+      if (relation.kind == expectedRelationKind &&
+          relation.offset == expectedLocation.offset &&
+          relation.length == expectedLocation.length &&
+          relation.isQualified == expectedLocation.isQualified) {
         return;
       }
     }
@@ -926,6 +927,24 @@ main(C c) {
     return 0;
   }
 
+  /**
+   * Return all relations with [element] in [unitIndex].
+   */
+  List<_Relation> _getElementRelations(Element element) {
+    int elementId = _findElementId(element);
+    List<_Relation> relations = <_Relation>[];
+    for (int i = 0; i < unitIndex.usedElementOffsets.length; i++) {
+      if (unitIndex.usedElements[i] == elementId) {
+        relations.add(new _Relation(
+            unitIndex.usedElementKinds[i],
+            unitIndex.usedElementOffsets[i],
+            unitIndex.usedElementLengths[i],
+            unitIndex.usedElementIsQualifiedFlags[i]));
+      }
+    }
+    return relations;
+  }
+
   int _getStringId(String str) {
     int id = packageIndex.strings.indexOf(str);
     expect(id, isNonNegative);
@@ -972,36 +991,56 @@ main(C c) {
 class _ElementIndexAssert {
   final PackageIndexAssemblerTest test;
   final Element element;
+  final List<_Relation> relations;
 
-  _ElementIndexAssert(this.test, this.element);
+  _ElementIndexAssert(this.test, this.element, this.relations);
+
+  void hasRelationCount(int expectedCount) {
+    expect(relations, hasLength(expectedCount));
+  }
 
   void isAncestorOf(String search, {int length}) {
-    test._assertHasRelation(element, IndexRelationKind.IS_ANCESTOR_OF,
+    test._assertHasRelation(
+        element,
+        relations,
+        IndexRelationKind.IS_ANCESTOR_OF,
         test._expectedLocation(search, false, length: length));
   }
 
   void isExtendedAt(String search, bool isQualified, {int length}) {
-    test._assertHasRelation(element, IndexRelationKind.IS_EXTENDED_BY,
+    test._assertHasRelation(
+        element,
+        relations,
+        IndexRelationKind.IS_EXTENDED_BY,
         test._expectedLocation(search, isQualified, length: length));
   }
 
   void isImplementedAt(String search, bool isQualified, {int length}) {
-    test._assertHasRelation(element, IndexRelationKind.IS_IMPLEMENTED_BY,
+    test._assertHasRelation(
+        element,
+        relations,
+        IndexRelationKind.IS_IMPLEMENTED_BY,
         test._expectedLocation(search, isQualified, length: length));
   }
 
   void isInvokedAt(String search, bool isQualified, {int length}) {
-    test._assertHasRelation(element, IndexRelationKind.IS_INVOKED_BY,
+    test._assertHasRelation(element, relations, IndexRelationKind.IS_INVOKED_BY,
         test._expectedLocation(search, isQualified, length: length));
   }
 
   void isMixedInAt(String search, bool isQualified, {int length}) {
-    test._assertHasRelation(element, IndexRelationKind.IS_MIXED_IN_BY,
+    test._assertHasRelation(
+        element,
+        relations,
+        IndexRelationKind.IS_MIXED_IN_BY,
         test._expectedLocation(search, isQualified, length: length));
   }
 
   void isReferencedAt(String search, bool isQualified, {int length}) {
-    test._assertHasRelation(element, IndexRelationKind.IS_REFERENCED_BY,
+    test._assertHasRelation(
+        element,
+        relations,
+        IndexRelationKind.IS_REFERENCED_BY,
         test._expectedLocation(search, isQualified, length: length));
   }
 }
@@ -1030,5 +1069,20 @@ class _NameIndexAssert {
   void isReferencedAt(String search, {int length}) {
     test._assertUsedName(name, IndexRelationKind.IS_REFERENCED_BY,
         test._expectedLocation(search, true, length: length), false);
+  }
+}
+
+class _Relation {
+  final IndexRelationKind kind;
+  final int offset;
+  final int length;
+  final bool isQualified;
+
+  _Relation(this.kind, this.offset, this.length, this.isQualified);
+
+  @override
+  String toString() {
+    return '_Relation{kind: $kind, offset: $offset, length: $length, '
+        'isQualified: $isQualified}';
   }
 }

@@ -574,7 +574,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       recordRelationOffset(
           element, IndexRelationKind.IS_REFERENCED_BY, offset, 0, true);
     }
-    super.visitSuperConstructorInvocation(node);
+    node.argumentList?.accept(this);
   }
 
   @override

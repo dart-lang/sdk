@@ -141,8 +141,10 @@ class SearchEngineImpl2 implements SearchEngine {
     PropertyAccessorElement getter = field.getter;
     PropertyAccessorElement setter = field.setter;
     // field itself
-    await _addMatches(matches, field, IndexRelationKind.IS_REFERENCED_BY,
-        MatchKind.REFERENCE);
+    if (!field.isSynthetic) {
+      await _addMatches(matches, field, IndexRelationKind.IS_REFERENCED_BY,
+          MatchKind.REFERENCE);
+    }
     // getter
     if (getter != null) {
       await _addMatches(
@@ -286,6 +288,12 @@ class _ImportElementReferencesVisitor extends RecursiveAstVisitor {
         .values
         .toSet();
   }
+
+  @override
+  visitExportDirective(ExportDirective node) {}
+
+  @override
+  visitImportDirective(ImportDirective node) {}
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {

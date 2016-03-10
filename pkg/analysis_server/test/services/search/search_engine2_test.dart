@@ -257,6 +257,36 @@ class A {
     await _verifyReferences(element, expected);
   }
 
+  test_searchReferences_FieldElement_synthetic() async {
+    _indexTestUnit('''
+class A {
+  get field => null;
+  set field(x) {}
+  main() {
+    // getter
+    print(field); // ref-nq
+    print(this.field); // ref-q
+    field(); // inv-nq
+    this.field(); // inv-q
+    // setter
+    field = 2; // ref-nq;
+    this.field = 3; // ref-q;
+  }
+}
+''');
+    FieldElement element = findElement('field', ElementKind.FIELD);
+    Element main = findElement('main');
+    var expected = [
+      _expectId(main, MatchKind.READ, 'field); // ref-nq'),
+      _expectIdQ(main, MatchKind.READ, 'field); // ref-q'),
+      _expectId(main, MatchKind.INVOCATION, 'field(); // inv-nq'),
+      _expectIdQ(main, MatchKind.INVOCATION, 'field(); // inv-q'),
+      _expectId(main, MatchKind.WRITE, 'field = 2; // ref-nq'),
+      _expectIdQ(main, MatchKind.WRITE, 'field = 3; // ref-q'),
+    ];
+    await _verifyReferences(element, expected);
+  }
+
   test_searchReferences_FunctionElement() async {
     _indexTestUnit('''
 test() {}
@@ -311,7 +341,8 @@ main() {
 
   test_searchReferences_ImportElement_noPrefix() async {
     _indexTestUnit('''
-import 'dart:math';
+import 'dart:math' show max, PI, Random hide min;
+export 'dart:math' show max, PI, Random hide min;
 main() {
   print(PI);
   print(new Random());
@@ -334,7 +365,8 @@ Random bar() => null;
 
   test_searchReferences_ImportElement_withPrefix() async {
     _indexTestUnit('''
-import 'dart:math' as math;
+import 'dart:math' as math show max, PI, Random hide min;
+export 'dart:math' show max, PI, Random hide min;
 main() {
   print(math.PI);
   print(new math.Random());
@@ -712,11 +744,6 @@ class NoMatchABCDE {}
     return _expectId(element, kind, search, isQualified: true, length: length);
   }
 
-//  ExpectedMatch _expectIdU(Element element, MatchKind kind, String search) {
-//    return _expectId(element, kind, search,
-//        isQualified: true, isResolved: false);
-//  }
-
   void _indexTestUnit(String code) {
     resolveTestUnit(code);
     index.indexUnit(testUnit);
@@ -726,6 +753,7 @@ class NoMatchABCDE {}
       Element element, List<ExpectedMatch> expectedMatches) async {
     List<SearchMatch> matches = await searchEngine.searchReferences(element);
     _assertMatches(matches, expectedMatches);
+    expect(matches, hasLength(expectedMatches.length));
   }
 
   static void _assertMatches(
