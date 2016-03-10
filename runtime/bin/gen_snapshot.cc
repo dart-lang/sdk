@@ -1031,12 +1031,14 @@ int main(int argc, char** argv) {
 
   // Initialize the Dart VM.
   // Note: We don't expect isolates to be created from dart code during
-  // snapshot generation.
+  // core library snapshot generation. However for the case when a full
+  // snasphot is generated from a script (app_script_name != NULL) we will
+  // need the service isolate to resolve URI and load code.
   char* error = Dart_Initialize(
       NULL,
       NULL,
       NULL,
-      CreateServiceIsolate,
+      (app_script_name != NULL) ? CreateServiceIsolate : NULL,
       NULL,
       NULL,
       NULL,
