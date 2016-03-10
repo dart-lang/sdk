@@ -15451,6 +15451,7 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
   if (other.IsObjectType() || other.IsDynamicType()) {
     return true;
   }
+  Zone* zone = Thread::Current()->zone();
   if (IsBoundedType() || other.IsBoundedType()) {
     if (Equals(other)) {
       return true;
@@ -15460,9 +15461,30 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
         AbstractType::Handle(BoundedType::Cast(*this).bound()).Equals(other)) {
       return true;
     }
-    return false;  // TODO(regis): We should return "maybe after instantiation".
+    // Bound checking at run time occurs when allocating an instance of a
+    // generic bounded type using a valid instantiator. The instantiator is
+    // the type of an instance successfully allocated, i.e. not containing
+    // unchecked bounds anymore.
+    // Therefore, when performing a type test at compile time (what is happening
+    // here), it is safe to ignore the bounds, since they will not exist at run
+    // time anymore.
+    if (IsBoundedType()) {
+      const AbstractType& bounded_type =
+          AbstractType::Handle(zone, BoundedType::Cast(*this).type());
+      return bounded_type.TypeTest(test_kind,
+                                   other,
+                                   bound_error,
+                                   bound_trail,
+                                   space);
+    }
+    const AbstractType& other_bounded_type =
+        AbstractType::Handle(zone, BoundedType::Cast(other).type());
+    return TypeTest(test_kind,
+                    other_bounded_type,
+                    bound_error,
+                    bound_trail,
+                    space);
   }
-  Zone* zone = Thread::Current()->zone();
   // Type parameters cannot be handled by Class::TypeTest().
   // When comparing two uninstantiated function types, one returning type
   // parameter K, the other returning type parameter V, we cannot assume that K

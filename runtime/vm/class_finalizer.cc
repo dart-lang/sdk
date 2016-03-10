@@ -1065,7 +1065,7 @@ void ClassFinalizer::CheckTypeBounds(const Class& cls,
       if (FLAG_trace_type_finalization) {
         THR_Print("Marking type '%s' as malbounded: %s\n",
                   String::Handle(Z, type.Name()).ToCString(),
-                  bound_error.ToCString());
+                  bound_error.ToErrorCString());
       }
     }
   }
