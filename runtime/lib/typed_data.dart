@@ -927,10 +927,7 @@ abstract class _TypedList extends _TypedListBase {
 class _Int8Array extends _TypedList with _IntListMixin implements Int8List {
   // Factory constructors.
 
-  factory _Int8Array(int length) {
-    return _new(length);
-  }
-
+  factory _Int8Array(int length) native "TypedData_Int8Array_new";
 
   // Method(s) implementing List interface.
 
@@ -959,20 +956,15 @@ class _Int8Array extends _TypedList with _IntListMixin implements Int8List {
   // Internal utility methods.
 
   _Int8Array _createList(int length) {
-    return _new(length);
+    return new _Int8Array(length);
   }
-
-  static _Int8Array _new(int length) native "TypedData_Int8Array_new";
 }
 
 
 class _Uint8Array extends _TypedList with _IntListMixin implements Uint8List {
   // Factory constructors.
 
-  factory _Uint8Array(int length) {
-    return _new(length);
-  }
-
+  factory _Uint8Array(int length) native "TypedData_Uint8Array_new";
 
   // Methods implementing List interface.
   int operator[](int index) {
@@ -999,19 +991,15 @@ class _Uint8Array extends _TypedList with _IntListMixin implements Uint8List {
   // Internal utility methods.
 
   _Uint8Array _createList(int length) {
-    return _new(length);
+    return new _Uint8Array(length);
   }
-
-  static _Uint8Array _new(int length) native "TypedData_Uint8Array_new";
 }
 
 
 class _Uint8ClampedArray extends _TypedList with _IntListMixin implements Uint8ClampedList {
   // Factory constructors.
 
-  factory _Uint8ClampedArray(int length) {
-    return _new(length);
-  }
+  factory _Uint8ClampedArray(int length) native "TypedData_Uint8ClampedArray_new";
 
   // Methods implementing List interface.
 
@@ -1039,21 +1027,15 @@ class _Uint8ClampedArray extends _TypedList with _IntListMixin implements Uint8C
   // Internal utility methods.
 
   _Uint8ClampedArray _createList(int length) {
-    return _new(length);
+    return new _Uint8ClampedArray(length);
   }
-
-  static _Uint8ClampedArray _new(int length)
-      native "TypedData_Uint8ClampedArray_new";
 }
 
 
 class _Int16Array extends _TypedList with _IntListMixin implements Int16List {
   // Factory constructors.
 
-  factory _Int16Array(int length) {
-    return _new(length);
-  }
-
+  factory _Int16Array(int length) native "TypedData_Int16Array_new";
 
   // Method(s) implementing List interface.
 
@@ -1092,7 +1074,7 @@ class _Int16Array extends _TypedList with _IntListMixin implements Int16List {
   // Internal utility methods.
 
   _Int16Array _createList(int length) {
-    return _new(length);
+    return new _Int16Array(length);
   }
 
   int _getIndexedInt16(int index) {
@@ -1102,18 +1084,13 @@ class _Int16Array extends _TypedList with _IntListMixin implements Int16List {
   void _setIndexedInt16(int index, int value) {
     _setInt16(index * Int16List.BYTES_PER_ELEMENT, value);
   }
-
-  static _Int16Array _new(int length) native "TypedData_Int16Array_new";
 }
 
 
 class _Uint16Array extends _TypedList with _IntListMixin implements Uint16List {
   // Factory constructors.
 
-  factory _Uint16Array(int length) {
-    return _new(length);
-  }
-
+  factory _Uint16Array(int length) native "TypedData_Uint16Array_new";
 
   // Method(s) implementing the List interface.
 
@@ -1152,7 +1129,7 @@ class _Uint16Array extends _TypedList with _IntListMixin implements Uint16List {
   // Internal utility methods.
 
   _Uint16Array _createList(int length) {
-    return _new(length);
+    return new _Uint16Array(length);
   }
 
   int _getIndexedUint16(int index) {
@@ -1162,18 +1139,13 @@ class _Uint16Array extends _TypedList with _IntListMixin implements Uint16List {
   void _setIndexedUint16(int index, int value) {
     _setUint16(index * Uint16List.BYTES_PER_ELEMENT, value);
   }
-
-  static _Uint16Array _new(int length) native "TypedData_Uint16Array_new";
 }
 
 
 class _Int32Array extends _TypedList with _IntListMixin implements Int32List {
   // Factory constructors.
 
-  factory _Int32Array(int length) {
-    return _new(length);
-  }
-
+  factory _Int32Array(int length) native "TypedData_Int32Array_new";
 
   // Method(s) implementing the List interface.
 
@@ -1202,7 +1174,7 @@ class _Int32Array extends _TypedList with _IntListMixin implements Int32List {
   // Internal utility methods.
 
   _Int32Array _createList(int length) {
-    return _new(length);
+    return new _Int32Array(length);
   }
 
   int _getIndexedInt32(int index) {
@@ -1213,17 +1185,13 @@ class _Int32Array extends _TypedList with _IntListMixin implements Int32List {
     _setInt32(index * Int32List.BYTES_PER_ELEMENT, value);
   }
 
-  static _Int32Array _new(int length) native "TypedData_Int32Array_new";
 }
 
 
 class _Uint32Array extends _TypedList with _IntListMixin implements Uint32List {
   // Factory constructors.
 
-  factory _Uint32Array(int length) {
-    return _new(length);
-  }
-
+  factory _Uint32Array(int length) native "TypedData_Uint32Array_new";
 
   // Method(s) implementing the List interface.
 
@@ -1252,7 +1220,7 @@ class _Uint32Array extends _TypedList with _IntListMixin implements Uint32List {
   // Internal utility methods.
 
   _Uint32Array _createList(int length) {
-    return _new(length);
+    return new _Uint32Array(length);
   }
 
   int _getIndexedUint32(int index) {
@@ -1262,18 +1230,13 @@ class _Uint32Array extends _TypedList with _IntListMixin implements Uint32List {
   void _setIndexedUint32(int index, int value) {
     _setUint32(index * Uint32List.BYTES_PER_ELEMENT, value);
   }
-
-  static _Uint32Array _new(int length) native "TypedData_Uint32Array_new";
 }
 
 
 class _Int64Array extends _TypedList with _IntListMixin implements Int64List {
   // Factory constructors.
 
-  factory _Int64Array(int length) {
-    return _new(length);
-  }
-
+  factory _Int64Array(int length) native "TypedData_Int64Array_new";
 
   // Method(s) implementing the List interface.
 
@@ -1302,7 +1265,7 @@ class _Int64Array extends _TypedList with _IntListMixin implements Int64List {
   // Internal utility methods.
 
   _Int64Array _createList(int length) {
-    return _new(length);
+    return new _Int64Array(length);
   }
 
   int _getIndexedInt64(int index) {
@@ -1312,18 +1275,13 @@ class _Int64Array extends _TypedList with _IntListMixin implements Int64List {
   void _setIndexedInt64(int index, int value) {
     _setInt64(index * Int64List.BYTES_PER_ELEMENT, value);
   }
-
-  static _Int64Array _new(int length) native "TypedData_Int64Array_new";
 }
 
 
 class _Uint64Array extends _TypedList with _IntListMixin implements Uint64List {
   // Factory constructors.
 
-  factory _Uint64Array(int length) {
-    return _new(length);
-  }
-
+  factory _Uint64Array(int length) native "TypedData_Uint64Array_new";
 
   // Method(s) implementing the List interface.
 
@@ -1352,7 +1310,7 @@ class _Uint64Array extends _TypedList with _IntListMixin implements Uint64List {
   // Internal utility methods.
 
   _Uint64Array _createList(int length) {
-    return _new(length);
+    return new _Uint64Array(length);
   }
 
   int _getIndexedUint64(int index) {
@@ -1362,18 +1320,13 @@ class _Uint64Array extends _TypedList with _IntListMixin implements Uint64List {
   void _setIndexedUint64(int index, int value) {
     _setUint64(index * Uint64List.BYTES_PER_ELEMENT, value);
   }
-
-  static _Uint64Array _new(int length) native "TypedData_Uint64Array_new";
 }
 
 
 class _Float32Array extends _TypedList with _DoubleListMixin implements Float32List {
   // Factory constructors.
 
-  factory _Float32Array(int length) {
-    return _new(length);
-  }
-
+  factory _Float32Array(int length) native "TypedData_Float32Array_new";
 
   // Method(s) implementing the List interface.
 
@@ -1402,7 +1355,7 @@ class _Float32Array extends _TypedList with _DoubleListMixin implements Float32L
   // Internal utility methods.
 
   _Float32Array _createList(int length) {
-    return _new(length);
+    return new _Float32Array(length);
   }
 
   double _getIndexedFloat32(int index) {
@@ -1412,18 +1365,13 @@ class _Float32Array extends _TypedList with _DoubleListMixin implements Float32L
   void _setIndexedFloat32(int index, double value) {
     _setFloat32(index * Float32List.BYTES_PER_ELEMENT, value);
   }
-
-  static _Float32Array _new(int length) native "TypedData_Float32Array_new";
 }
 
 
 class _Float64Array extends _TypedList with _DoubleListMixin implements Float64List {
   // Factory constructors.
 
-  factory _Float64Array(int length) {
-    return _new(length);
-  }
-
+  factory _Float64Array(int length) native "TypedData_Float64Array_new";
 
   // Method(s) implementing the List interface.
 
@@ -1452,7 +1400,7 @@ class _Float64Array extends _TypedList with _DoubleListMixin implements Float64L
   // Internal utility methods.
 
   _Float64Array _createList(int length) {
-    return _new(length);
+    return new _Float64Array(length);
   }
 
   double _getIndexedFloat64(int index) {
@@ -1462,18 +1410,13 @@ class _Float64Array extends _TypedList with _DoubleListMixin implements Float64L
   void _setIndexedFloat64(int index, double value) {
     _setFloat64(index * Float64List.BYTES_PER_ELEMENT, value);
   }
-
-  static _Float64Array _new(int length) native "TypedData_Float64Array_new";
 }
 
 
 class _Float32x4Array extends _TypedList with _Float32x4ListMixin implements Float32x4List {
   // Factory constructors.
 
-  factory _Float32x4Array(int length) {
-    return _new(length);
-  }
-
+  factory _Float32x4Array(int length) native "TypedData_Float32x4Array_new";
 
   Float32x4 operator[](int index) {
     if (index < 0 || index >= length) {
@@ -1500,7 +1443,7 @@ class _Float32x4Array extends _TypedList with _Float32x4ListMixin implements Flo
   // Internal utility methods.
 
   _Float32x4Array _createList(int length) {
-    return _new(length);
+    return new _Float32x4Array(length);
   }
 
   Float32x4 _getIndexedFloat32x4(int index) {
@@ -1510,18 +1453,13 @@ class _Float32x4Array extends _TypedList with _Float32x4ListMixin implements Flo
   void _setIndexedFloat32x4(int index, Float32x4 value) {
     _setFloat32x4(index * Float32x4List.BYTES_PER_ELEMENT, value);
   }
-
-  static _Float32x4Array _new(int length) native "TypedData_Float32x4Array_new";
 }
 
 
 class _Int32x4Array extends _TypedList with _Int32x4ListMixin implements Int32x4List {
   // Factory constructors.
 
-  factory _Int32x4Array(int length) {
-    return _new(length);
-  }
-
+  factory _Int32x4Array(int length) native "TypedData_Int32x4Array_new";
 
   Int32x4 operator[](int index) {
     if (index < 0 || index >= length) {
@@ -1548,7 +1486,7 @@ class _Int32x4Array extends _TypedList with _Int32x4ListMixin implements Int32x4
   // Internal utility methods.
 
   _Int32x4Array _createList(int length) {
-    return _new(length);
+    return new _Int32x4Array(length);
   }
 
   Int32x4 _getIndexedInt32x4(int index) {
@@ -1558,18 +1496,13 @@ class _Int32x4Array extends _TypedList with _Int32x4ListMixin implements Int32x4
   void _setIndexedInt32x4(int index, Int32x4 value) {
     _setInt32x4(index * Int32x4List.BYTES_PER_ELEMENT, value);
   }
-
-  static _Int32x4Array _new(int length) native "TypedData_Int32x4Array_new";
 }
 
 
 class _Float64x2Array extends _TypedList with _Float64x2ListMixin implements Float64x2List {
   // Factory constructors.
 
-  factory _Float64x2Array(int length) {
-    return _new(length);
-  }
-
+  factory _Float64x2Array(int length) native "TypedData_Float64x2Array_new";
 
   Float64x2 operator[](int index) {
     if (index < 0 || index >= length) {
@@ -1596,7 +1529,7 @@ class _Float64x2Array extends _TypedList with _Float64x2ListMixin implements Flo
   // Internal utility methods.
 
   _Float64x2Array _createList(int length) {
-    return _new(length);
+    return new _Float64x2Array(length);
   }
 
   Float64x2 _getIndexedFloat64x2(int index) {
@@ -1606,18 +1539,13 @@ class _Float64x2Array extends _TypedList with _Float64x2ListMixin implements Flo
   void _setIndexedFloat64x2(int index, Float64x2 value) {
     _setFloat64x2(index * Float64x2List.BYTES_PER_ELEMENT, value);
   }
-
-  static _Float64x2Array _new(int length) native "TypedData_Float64x2Array_new";
 }
 
 
 class _ExternalInt8Array extends _TypedList with _IntListMixin implements Int8List {
   // Factory constructors.
 
-  factory _ExternalInt8Array(int length) {
-    return _new(length);
-  }
-
+  factory _ExternalInt8Array(int length) native "ExternalTypedData_Int8Array_new";
 
   // Method(s) implementing the List interface.
   int operator[](int index) {
@@ -1647,19 +1575,13 @@ class _ExternalInt8Array extends _TypedList with _IntListMixin implements Int8Li
   Int8List _createList(int length) {
     return new Int8List(length);
   }
-
-  static _ExternalInt8Array _new(int length) native
-      "ExternalTypedData_Int8Array_new";
 }
 
 
 class _ExternalUint8Array extends _TypedList with _IntListMixin implements Uint8List {
   // Factory constructors.
 
-  factory _ExternalUint8Array(int length) {
-    return _new(length);
-  }
-
+  factory _ExternalUint8Array(int length) native "ExternalTypedData_Uint8Array_new";
 
   // Method(s) implementing the List interface.
 
@@ -1690,18 +1612,13 @@ class _ExternalUint8Array extends _TypedList with _IntListMixin implements Uint8
   Uint8List _createList(int length) {
     return new Uint8List(length);
   }
-
-  static _ExternalUint8Array _new(int length) native
-      "ExternalTypedData_Uint8Array_new";
 }
 
 
 class _ExternalUint8ClampedArray extends _TypedList with _IntListMixin implements Uint8ClampedList {
   // Factory constructors.
 
-  factory _ExternalUint8ClampedArray(int length) {
-    return _new(length);
-  }
+  factory _ExternalUint8ClampedArray(int length) native "ExternalTypedData_Uint8ClampedArray_new";
 
   // Method(s) implementing the List interface.
 
@@ -1732,19 +1649,13 @@ class _ExternalUint8ClampedArray extends _TypedList with _IntListMixin implement
   Uint8ClampedList _createList(int length) {
     return new Uint8ClampedList(length);
   }
-
-  static _ExternalUint8ClampedArray _new(int length) native
-      "ExternalTypedData_Uint8ClampedArray_new";
 }
 
 
 class _ExternalInt16Array extends _TypedList with _IntListMixin implements Int16List {
   // Factory constructors.
 
-  factory _ExternalInt16Array(int length) {
-    return _new(length);
-  }
-
+  factory _ExternalInt16Array(int length) native "ExternalTypedData_Int16Array_new";
 
   // Method(s) implementing the List interface.
 
@@ -1783,19 +1694,13 @@ class _ExternalInt16Array extends _TypedList with _IntListMixin implements Int16
   void _setIndexedInt16(int index, int value) {
     _setInt16(index * Int16List.BYTES_PER_ELEMENT, value);
   }
-
-  static _ExternalInt16Array _new(int length) native
-      "ExternalTypedData_Int16Array_new";
 }
 
 
 class _ExternalUint16Array extends _TypedList with _IntListMixin implements Uint16List {
   // Factory constructors.
 
-  factory _ExternalUint16Array(int length) {
-    return _new(length);
-  }
-
+  factory _ExternalUint16Array(int length) native "ExternalTypedData_Uint16Array_new";
 
   // Method(s) implementing the List interface.
 
@@ -1834,19 +1739,13 @@ class _ExternalUint16Array extends _TypedList with _IntListMixin implements Uint
   void _setIndexedUint16(int index, int value) {
     _setUint16(index * Uint16List.BYTES_PER_ELEMENT, value);
   }
-
-  static _ExternalUint16Array _new(int length) native
-      "ExternalTypedData_Uint16Array_new";
 }
 
 
 class _ExternalInt32Array extends _TypedList with _IntListMixin implements Int32List {
   // Factory constructors.
 
-  factory _ExternalInt32Array(int length) {
-    return _new(length);
-  }
-
+  factory _ExternalInt32Array(int length) native "ExternalTypedData_Int32Array_new";
 
   // Method(s) implementing the List interface.
 
@@ -1885,19 +1784,13 @@ class _ExternalInt32Array extends _TypedList with _IntListMixin implements Int32
   void _setIndexedInt32(int index, int value) {
     _setInt32(index * Int32List.BYTES_PER_ELEMENT, value);
   }
-
-  static _ExternalInt32Array _new(int length) native
-      "ExternalTypedData_Int32Array_new";
 }
 
 
 class _ExternalUint32Array extends _TypedList with _IntListMixin implements Uint32List {
   // Factory constructors.
 
-  factory _ExternalUint32Array(int length) {
-    return _new(length);
-  }
-
+  factory _ExternalUint32Array(int length) native "ExternalTypedData_Uint32Array_new";
 
   // Method(s) implementing the List interface.
 
@@ -1936,19 +1829,13 @@ class _ExternalUint32Array extends _TypedList with _IntListMixin implements Uint
   void _setIndexedUint32(int index, int value) {
     _setUint32(index * Uint32List.BYTES_PER_ELEMENT, value);
   }
-
-  static _ExternalUint32Array _new(int length) native
-      "ExternalTypedData_Uint32Array_new";
 }
 
 
 class _ExternalInt64Array extends _TypedList with _IntListMixin implements Int64List {
   // Factory constructors.
 
-  factory _ExternalInt64Array(int length) {
-    return _new(length);
-  }
-
+  factory _ExternalInt64Array(int length) native "ExternalTypedData_Int64Array_new";
 
   // Method(s) implementing the List interface.
 
@@ -1987,19 +1874,13 @@ class _ExternalInt64Array extends _TypedList with _IntListMixin implements Int64
   void _setIndexedInt64(int index, int value) {
     _setInt64(index * Int64List.BYTES_PER_ELEMENT, value);
   }
-
-  static _ExternalInt64Array _new(int length) native
-      "ExternalTypedData_Int64Array_new";
 }
 
 
 class _ExternalUint64Array extends _TypedList with _IntListMixin implements Uint64List {
   // Factory constructors.
 
-  factory _ExternalUint64Array(int length) {
-    return _new(length);
-  }
-
+  factory _ExternalUint64Array(int length) native "ExternalTypedData_Uint64Array_new";
 
   // Method(s) implementing the List interface.
 
@@ -2038,19 +1919,13 @@ class _ExternalUint64Array extends _TypedList with _IntListMixin implements Uint
   void _setIndexedUint64(int index, int value) {
     _setUint64(index * Uint64List.BYTES_PER_ELEMENT, value);
   }
-
-  static _ExternalUint64Array _new(int length) native
-      "ExternalTypedData_Uint64Array_new";
 }
 
 
 class _ExternalFloat32Array extends _TypedList with _DoubleListMixin implements Float32List {
   // Factory constructors.
 
-  factory _ExternalFloat32Array(int length) {
-    return _new(length);
-  }
-
+  factory _ExternalFloat32Array(int length) native "ExternalTypedData_Float32Array_new";
 
   // Method(s) implementing the List interface.
 
@@ -2089,19 +1964,13 @@ class _ExternalFloat32Array extends _TypedList with _DoubleListMixin implements 
   void _setIndexedFloat32(int index, double value) {
     _setFloat32(index * Float32List.BYTES_PER_ELEMENT, value);
   }
-
-  static _ExternalFloat32Array _new(int length) native
-      "ExternalTypedData_Float32Array_new";
 }
 
 
 class _ExternalFloat64Array extends _TypedList with _DoubleListMixin implements Float64List {
   // Factory constructors.
 
-  factory _ExternalFloat64Array(int length) {
-    return _new(length);
-  }
-
+  factory _ExternalFloat64Array(int length) native "ExternalTypedData_Float64Array_new";
 
   // Method(s) implementing the List interface.
 
@@ -2140,19 +2009,13 @@ class _ExternalFloat64Array extends _TypedList with _DoubleListMixin implements 
   void _setIndexedFloat64(int index, double value) {
     _setFloat64(index * Float64List.BYTES_PER_ELEMENT, value);
   }
-
-  static _ExternalFloat64Array _new(int length) native
-      "ExternalTypedData_Float64Array_new";
 }
 
 
 class _ExternalFloat32x4Array extends _TypedList with _Float32x4ListMixin implements Float32x4List {
   // Factory constructors.
 
-  factory _ExternalFloat32x4Array(int length) {
-    return _new(length);
-  }
-
+  factory _ExternalFloat32x4Array(int length) native "ExternalTypedData_Float32x4Array_new";
 
   // Method(s) implementing the List interface.
 
@@ -2191,19 +2054,13 @@ class _ExternalFloat32x4Array extends _TypedList with _Float32x4ListMixin implem
   void _setIndexedFloat32x4(int index, Float32x4 value) {
     _setFloat32x4(index * Float32x4List.BYTES_PER_ELEMENT, value);
   }
-
-  static _ExternalFloat32x4Array _new(int length) native
-      "ExternalTypedData_Float32x4Array_new";
 }
 
 
 class _ExternalInt32x4Array extends _TypedList with _Int32x4ListMixin implements Int32x4List {
   // Factory constructors.
 
-  factory _ExternalInt32x4Array(int length) {
-    return _new(length);
-  }
-
+  factory _ExternalInt32x4Array(int length) native "ExternalTypedData_Int32x4Array_new";
 
   // Method(s) implementing the List interface.
 
@@ -2242,19 +2099,13 @@ class _ExternalInt32x4Array extends _TypedList with _Int32x4ListMixin implements
   void _setIndexedInt32x4(int index, Int32x4 value) {
     _setInt32x4(index * Int32x4List.BYTES_PER_ELEMENT, value);
   }
-
-  static _ExternalInt32x4Array _new(int length) native
-      "ExternalTypedData_Int32x4Array_new";
 }
 
 
 class _ExternalFloat64x2Array extends _TypedList with _Float64x2ListMixin implements Float64x2List {
   // Factory constructors.
 
-  factory _ExternalFloat64x2Array(int length) {
-    return _new(length);
-  }
-
+  factory _ExternalFloat64x2Array(int length) native "ExternalTypedData_Float64x2Array_new";
 
   // Method(s) implementing the List interface.
 
@@ -2293,9 +2144,6 @@ class _ExternalFloat64x2Array extends _TypedList with _Float64x2ListMixin implem
   void _setIndexedFloat64x2(int index, Float64x2 value) {
     _setFloat64x2(index * Float64x2List.BYTES_PER_ELEMENT, value);
   }
-
-  static _ExternalFloat64x2Array _new(int length) native
-      "ExternalTypedData_Float64x2Array_new";
 }
 
 

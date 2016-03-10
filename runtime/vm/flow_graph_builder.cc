@@ -2673,30 +2673,37 @@ void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
 
 
 static intptr_t GetResultCidOfNativeFactory(const Function& function) {
-  const Class& function_class = Class::Handle(function.Owner());
-  if (function_class.library() == Library::TypedDataLibrary()) {
-    const String& function_name = String::Handle(function.name());
-    if (!String::EqualsIgnoringPrivateKey(function_name, Symbols::_New())) {
-      return kDynamicCid;
-    }
-    switch (function_class.id()) {
-      case kTypedDataInt8ArrayCid:
-      case kTypedDataUint8ArrayCid:
-      case kTypedDataUint8ClampedArrayCid:
-      case kTypedDataInt16ArrayCid:
-      case kTypedDataUint16ArrayCid:
-      case kTypedDataInt32ArrayCid:
-      case kTypedDataUint32ArrayCid:
-      case kTypedDataInt64ArrayCid:
-      case kTypedDataUint64ArrayCid:
-      case kTypedDataFloat32ArrayCid:
-      case kTypedDataFloat64ArrayCid:
-      case kTypedDataFloat32x4ArrayCid:
-      case kTypedDataInt32x4ArrayCid:
-        return function_class.id();
-      default:
-        return kDynamicCid;  // Unknown.
-    }
+  switch (function.recognized_kind()) {
+    case MethodRecognizer::kTypedData_Int8Array_factory:
+      return kTypedDataInt8ArrayCid;
+    case MethodRecognizer::kTypedData_Uint8Array_factory:
+      return kTypedDataUint8ArrayCid;
+    case MethodRecognizer::kTypedData_Uint8ClampedArray_factory:
+      return kTypedDataUint8ClampedArrayCid;
+    case MethodRecognizer::kTypedData_Int16Array_factory:
+      return kTypedDataInt16ArrayCid;
+    case MethodRecognizer::kTypedData_Uint16Array_factory:
+      return kTypedDataUint16ArrayCid;
+    case MethodRecognizer::kTypedData_Int32Array_factory:
+      return kTypedDataInt32ArrayCid;
+    case MethodRecognizer::kTypedData_Uint32Array_factory:
+      return kTypedDataUint32ArrayCid;
+    case MethodRecognizer::kTypedData_Int64Array_factory:
+      return kTypedDataInt64ArrayCid;
+    case MethodRecognizer::kTypedData_Uint64Array_factory:
+      return kTypedDataUint64ArrayCid;
+    case MethodRecognizer::kTypedData_Float32Array_factory:
+      return kTypedDataFloat32ArrayCid;
+    case MethodRecognizer::kTypedData_Float64Array_factory:
+      return kTypedDataFloat64ArrayCid;
+    case MethodRecognizer::kTypedData_Float32x4Array_factory:
+      return kTypedDataFloat32x4ArrayCid;
+    case MethodRecognizer::kTypedData_Int32x4Array_factory:
+      return kTypedDataInt32x4ArrayCid;
+    case MethodRecognizer::kTypedData_Float64x2Array_factory:
+      return kTypedDataFloat64x2ArrayCid;
+    default:
+      break;
   }
   return kDynamicCid;
 }

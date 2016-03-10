@@ -238,12 +238,6 @@ static ScaleFactor GetScaleFactor(intptr_t size) {
 
 
 #define TYPED_DATA_ALLOCATOR(clazz)                                            \
-void Intrinsifier::TypedData_##clazz##_new(Assembler* assembler) {             \
-  intptr_t size = TypedData::ElementSizeInBytes(kTypedData##clazz##Cid);       \
-  intptr_t max_len = TypedData::MaxElements(kTypedData##clazz##Cid);           \
-  ScaleFactor scale = GetScaleFactor(size);                                    \
-  TYPED_ARRAY_ALLOCATION(TypedData, kTypedData##clazz##Cid, max_len, scale);   \
-}                                                                              \
 void Intrinsifier::TypedData_##clazz##_factory(Assembler* assembler) {         \
   intptr_t size = TypedData::ElementSizeInBytes(kTypedData##clazz##Cid);       \
   intptr_t max_len = TypedData::MaxElements(kTypedData##clazz##Cid);           \

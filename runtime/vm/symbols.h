@@ -334,7 +334,6 @@ class ObjectPointerVisitor;
   V(ClosurizePrefix, "get:#")                                                  \
   V(SetterPrefix, "set:")                                                      \
   V(InitPrefix, "init:")                                                       \
-  V(_New, "_new")                                                              \
   V(Index, "index")                                                            \
   V(DartScheme, "dart:")                                                       \
   V(DartSchemePrivate, "dart:_")                                               \

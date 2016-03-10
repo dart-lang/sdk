@@ -989,8 +989,6 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
 
     walker.Reset(Profile::kExclusiveCode);
     EXPECT(walker.Down());
-    EXPECT_STREQ("_Float32Array._new", walker.CurrentName());
-    EXPECT(walker.Down());
     EXPECT_STREQ("_Float32Array._Float32Array", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("Float32List.Float32List", walker.CurrentName());
