@@ -1533,10 +1533,17 @@ class SsaBuilder extends ast.Visitor
     return inliningStack.isEmpty || inliningStack.last.allFunctionsCalledOnce;
   }
 
-  bool isCalledOnce(Element element) {
-    if (!allInlinedFunctionsCalledOnce) return false;
+  bool isFunctionCalledOnce(Element element) {
+    if (element is ConstructorBodyElement) {
+      // ConstructorBodyElements are not in the type inference graph.
+      return false;
+    }
     TypesInferrer inferrer = compiler.typesTask.typesInferrer;
     return inferrer.isCalledOnce(element);
+  }
+
+  bool isCalledOnce(Element element) {
+    return allInlinedFunctionsCalledOnce && isFunctionCalledOnce(element);
   }
 
   inlinedFrom(Element element, f()) {
@@ -8526,11 +8533,10 @@ class SsaBuilder extends ast.Visitor
                           ast.Node _,
                           List<HInstruction> compiledArguments,
                           {InterfaceType instanceType}) {
-    TypesInferrer inferrer = compiler.typesTask.typesInferrer;
     AstInliningState state = new AstInliningState(
         function, returnLocal, returnType, elements, stack, localsHandler,
         inTryStatement,
-        allInlinedFunctionsCalledOnce && inferrer.isCalledOnce(function));
+        allInlinedFunctionsCalledOnce && isFunctionCalledOnce(function));
     inliningStack.add(state);
 
     // Setting up the state of the (AST) builder is performed even when the
