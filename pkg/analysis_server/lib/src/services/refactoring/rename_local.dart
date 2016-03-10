@@ -150,7 +150,8 @@ class _ConflictValidatorVisitor extends RecursiveAstVisitor {
         return;
       }
       // shadowing referenced element
-      if (elementRange.contains(node.offset) &&
+      if (elementRange != null &&
+          elementRange.contains(node.offset) &&
           !node.isQualified &&
           !_isNamedExpressionName(node)) {
         nodeElement = getSyntheticAccessorVariable(nodeElement);
