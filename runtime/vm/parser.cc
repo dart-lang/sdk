@@ -13294,7 +13294,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   if (FLAG_load_deferred_eagerly &&
       !prefix.IsNull() && prefix.is_deferred_load() && !prefix.is_loaded()) {
     // Add runtime check.
-    Type& malformed_type = Type::Handle(Z);
+    Type& malformed_type = Type::ZoneHandle(Z);
     malformed_type = ClassFinalizer::NewFinalizedMalformedType(
         Error::Handle(Z),  // No previous error.
         script_,
