@@ -840,9 +840,9 @@ class FunctionExpression extends Expression with StoredTreeElementMixin {
     if (body != null) body.accept(visitor);
   }
 
-  bool hasBody() => body.asEmptyStatement() == null;
+  bool get hasBody => body.asEmptyStatement() == null;
 
-  bool hasEmptyBody() {
+  bool get hasEmptyBody {
     Block block = body.asBlock();
     if (block == null) return false;
     return block.statements.isEmpty;
@@ -2476,8 +2476,8 @@ class ErrorNode
   get initializers => null;
   get getOrSet => null;
   get isRedirectingFactory => false;
-  bool hasBody() => false;
-  bool hasEmptyBody() => false;
+  bool get hasBody => false;
+  bool get hasEmptyBody => false;
 
   // VariableDefinitions.
   get metadata => null;

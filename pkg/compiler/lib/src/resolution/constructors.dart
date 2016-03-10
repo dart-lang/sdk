@@ -406,7 +406,7 @@ class InitializerResolver {
           // Check that there is no body (Language specification 7.5.1).  If the
           // constructor is also const, we already reported an error in
           // [resolveMethodElement].
-          if (functionNode.hasBody() && !constructor.isConst) {
+          if (functionNode.hasBody && !constructor.isConst) {
             reporter.reportErrorMessage(
                 functionNode, MessageKind.REDIRECTING_CONSTRUCTOR_HAS_BODY);
           }

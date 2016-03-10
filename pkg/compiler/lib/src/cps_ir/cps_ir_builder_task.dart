@@ -308,8 +308,8 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     if (constructor.isSynthesized) return null;
     ast.FunctionExpression node = constructor.node;
     // If we know the body doesn't have any code, we don't generate it.
-    if (!node.hasBody()) return null;
-    if (node.hasEmptyBody()) return null;
+    if (!node.hasBody) return null;
+    if (node.hasEmptyBody) return null;
     ClassElement classElement = constructor.enclosingClass;
     ConstructorBodyElement bodyElement;
     classElement.forEachBackendMember((Element backendMember) {

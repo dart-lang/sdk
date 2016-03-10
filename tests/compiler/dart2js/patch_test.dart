@@ -57,7 +57,7 @@ void expectHasBody(compiler, ElementX element) {
 void expectHasNoBody(compiler, ElementX element) {
     var node = element.parseNode(compiler.parsing);
     Expect.isNotNull(node, "Element isn't parseable, when a body was expected");
-    Expect.isFalse(node.hasBody());
+    Expect.isFalse(node.hasBody);
 }
 
 Element ensure(compiler,

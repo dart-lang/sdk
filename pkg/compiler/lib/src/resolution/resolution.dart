@@ -224,7 +224,7 @@ class ResolverTask extends CompilerTask {
   WorldImpact resolveMethodElementImplementation(
       FunctionElement element, FunctionExpression tree) {
     return reporter.withCurrentElement(element, () {
-      if (element.isExternal && tree.hasBody()) {
+      if (element.isExternal && tree.hasBody) {
         reporter.reportErrorMessage(
             element,
             MessageKind.EXTERNAL_WITH_BODY,
@@ -235,11 +235,14 @@ class ResolverTask extends CompilerTask {
           reporter.reportErrorMessage(
               tree, MessageKind.CONSTRUCTOR_WITH_RETURN_TYPE);
         }
-        if (element.isConst &&
-            tree.hasBody() &&
-            !tree.isRedirectingFactory) {
-          reporter.reportErrorMessage(
-              tree, MessageKind.CONST_CONSTRUCTOR_OR_FACTORY_WITH_BODY);
+        if (tree.hasBody && element.isConst) {
+          if (element.isGenerativeConstructor) {
+            reporter.reportErrorMessage(
+                tree, MessageKind.CONST_CONSTRUCTOR_WITH_BODY);
+          } else if (!tree.isRedirectingFactory) {
+            reporter.reportErrorMessage(
+                tree, MessageKind.CONST_FACTORY);
+          }
         }
       }
 

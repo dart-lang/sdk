@@ -22,27 +22,9 @@
       }
     ]
   },
-  "CONST_CONSTRUCTOR_OR_FACTORY_WITH_BODY": {
-    "id": "LGJGHW",
-    "subId": 0,
-    "categories": [
-      "ParserError"
-    ],
-    "template": "Const constructor or factory can't have a body.",
-    "templateHoleOrder": null,
-    "howToFix": "Remove the 'const' keyword or the body.",
-    "options": null,
-    "usedBy": [
-      "Platform.dart2js"
-    ],
-    "examples": [
-      "         class C {\n           const C() {}\n         }\n\n         main() => new C();",
-      "         class C {\n           const factory C() {}\n         }\n\n         main() => new C();"
-    ]
-  },
   "CONST_CONSTRUCTOR_WITH_BODY": {
     "id": "LGJGHW",
-    "subId": 1,
+    "subId": 0,
     "categories": [
       "ParserError"
     ],
@@ -51,7 +33,8 @@
     "howToFix": "Try removing the 'const' keyword or the body.",
     "options": null,
     "usedBy": [
-      "Platform.analyzer"
+      "Platform.analyzer",
+      "Platform.dart2js"
     ],
     "examples": [
       "         class C {\n           const C() {}\n         }\n\n         main() => new C();"
@@ -59,7 +42,7 @@
   },
   "CONST_FACTORY": {
     "id": "LGJGHW",
-    "subId": 2,
+    "subId": 1,
     "categories": [
       "ParserError"
     ],
@@ -68,7 +51,8 @@
     "howToFix": "Try removing the 'const' keyword or replacing the body with '=' followed by a valid target.",
     "options": null,
     "usedBy": [
-      "Platform.analyzer"
+      "Platform.analyzer",
+      "Platform.dart2js"
     ],
     "examples": [
       "         class C {\n           const factory C() {}\n         }\n\n         main() => new C();"
