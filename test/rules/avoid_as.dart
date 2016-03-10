@@ -6,10 +6,12 @@ main() {
   var pm;
   try {
     (pm as Person).firstName = 'Seth'; //LINT
-  } on CastError { }
+  } on CastError {}
 
   Person person = pm;
   person.firstName = 'Seth';
+
+  Person p = person as dynamic; //OK #195
 }
 
 class Person {

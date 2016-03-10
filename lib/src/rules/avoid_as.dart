@@ -50,6 +50,15 @@ try {
 } on CastError { }
 
 ```
+
+Note that an exception is made in the case of `dynamic` since the cast has no
+performance impact.
+
+**OK:**
+```
+HasScrollDirection scrollable = renderObject as dynamic;
+```
+
 ''';
 
 class AvoidAs extends LintRule {
@@ -70,6 +79,8 @@ class Visitor extends SimpleAstVisitor {
 
   @override
   visitAsExpression(AsExpression node) {
-    rule.reportLint(node);
+    if (node.type.name.name != 'dynamic') {
+      rule.reportLint(node);
+    }
   }
 }
