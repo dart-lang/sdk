@@ -267,7 +267,7 @@ enum Fruit {apple, pear}
     analysisContext.computeResult(source, LIBRARY_ELEMENT1);
     CompilationUnit unit =
         analysisContext.computeResult(target, RESOLVED_UNIT1);
-    CompilationUnit unit2 = _cloneResolveUnit(unit);
+    _cloneResolveUnit(unit);
   }
 
   void test_functionDeclaration_getter() {

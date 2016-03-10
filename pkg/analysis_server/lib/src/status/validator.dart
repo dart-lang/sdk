@@ -422,14 +422,14 @@ class ElementComparator {
       _write('; found ');
       _writeln(actual.nameOffset);
     }
-    SourceRange expectedRange = expected.docRange;
-    SourceRange actualRange = actual.docRange;
-    if (expectedRange.offset != actualRange.offset ||
-        expectedRange.length != actualRange.length) {
-      _write('Expected documentation range of ');
-      _write(expectedRange);
-      _write('; found ');
-      _writeln(actualRange);
+    String expectedComment = expected.documentationComment;
+    String actualComment = actual.documentationComment;
+    if (expectedComment != actualComment) {
+      _write('Expected documentation comment of "');
+      _write(expectedComment);
+      _write('"; found "');
+      _write(actualComment);
+      _writeln('"');
     }
   }
 
