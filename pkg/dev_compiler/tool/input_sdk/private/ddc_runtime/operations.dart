@@ -74,9 +74,12 @@ checkApply(type, actuals) => JS('', '''(() => {
   return true;
 })()''');
 
+_dartSymbol(name) => JS('', '''
+  $const_($Symbol.new($name.toString()))
+''');
 
 throwNoSuchMethod(obj, name, pArgs, nArgs, extras) => JS('', '''(() => {
-  $throw_(new $NoSuchMethodError($obj, $name, $pArgs, $nArgs, $extras));
+  $throw_(new $NoSuchMethodError($obj, $_dartSymbol($name), $pArgs, $nArgs, $extras));
 })()''');
 
 throwNoSuchMethodFunc(obj, name, pArgs, opt_func) => JS('', '''(() => {

@@ -426,8 +426,11 @@ dart_library.library('dart/_runtime', null, /* Imports */[
     }
     return true;
   }
+  function _dartSymbol(name) {
+    return const_(core.Symbol.new(name.toString()));
+  }
   function throwNoSuchMethod(obj, name, pArgs, nArgs, extras) {
-    throw_(new core.NoSuchMethodError(obj, name, pArgs, nArgs, extras));
+    throw_(new core.NoSuchMethodError(obj, _dartSymbol(name), pArgs, nArgs, extras));
   }
   function throwNoSuchMethodFunc(obj, name, pArgs, opt_func) {
     if (obj === void 0) obj = opt_func;
