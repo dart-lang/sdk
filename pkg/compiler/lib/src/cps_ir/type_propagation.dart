@@ -2518,12 +2518,12 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         TypeExpression typeExpression = instance.typeInformation;
         assert(typeExpression.kind == TypeExpressionKind.INSTANCE);
         ClassElement context = node.variable.element.enclosingClass;
+        ClassElement createdClass = instance.classElement;
         // In the general case, a substitution could generate a large type
         // term. Avoid this by restricting to direct indexing.
         // TODO(sra): Also include cases that require substitution but the end
         // result is the same as some indexing or a simple constant type.
-        if (!functionCompiler.glue.needsSubstitutionForTypeVariableAccess(
-                context)) {
+        if (backend.rti.isTrivialSubstitution(createdClass, context)) {
           int index = functionCompiler.glue.getTypeVariableIndex(node.variable);
           if (0 <= index && index < typeExpression.argumentRefs.length) {
             node.replaceUsesWith(typeExpression.argument(index));
@@ -2533,6 +2533,16 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       }
     }
     return null;
+  }
+
+  bool isNullConstant(Primitive prim) => prim is Constant && prim.value.isNull;
+
+  visitCreateInstance(CreateInstance node) {
+    Primitive typeInformation = node.typeInformation;
+    if (typeInformation is TypeExpression &&
+        typeInformation.arguments.every(isNullConstant)) {
+      node..typeInformationRef.unlink()..typeInformationRef = null;
+    }
   }
 }
 

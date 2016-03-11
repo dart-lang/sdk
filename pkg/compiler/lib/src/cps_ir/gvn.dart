@@ -578,7 +578,7 @@ class GvnVectorBuilder extends DeepRecursiveVisitor {
   }
 
   processTypeExpression(TypeExpression node) {
-    vector = [GvnCode.TYPE_EXPRESSION, node.dartType];
+    vector = [GvnCode.TYPE_EXPRESSION, node.kind.index, node.dartType];
   }
 
   processInterceptor(Interceptor node) {

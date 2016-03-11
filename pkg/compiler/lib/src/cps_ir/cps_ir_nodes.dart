@@ -1434,7 +1434,7 @@ class CreateInstance extends Primitive {
   /// May be `null` to indicate that no type information is needed because the
   /// compiler determined that the type information for instances of this class
   /// is not needed at runtime.
-  final Reference<Primitive> typeInformationRef;
+  Reference<Primitive> typeInformationRef;
 
   final SourceInformation sourceInformation;
 
