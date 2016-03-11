@@ -1171,7 +1171,7 @@ class JSArray extends JSObject with ListMixin {
   operator []=(int index, value) => blink_jsObject[index] = value;
 
   int get length => blink_jsObject.length;
-  int set length(int newLength) => blink_jsObject.length = newLength;
+  set length(int newLength) => blink_jsObject.length = newLength;
 }
 
 @Deprecated("Internal Use Only")
