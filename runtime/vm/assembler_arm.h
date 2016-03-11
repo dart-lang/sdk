@@ -675,6 +675,7 @@ class Assembler : public ValueObject {
   void BranchLink(const StubEntry& stub_entry,
                   Patchability patchable = kNotPatchable);
   void BranchLink(const Code& code, Patchability patchable);
+  void BranchLinkToRuntime();
 
   // Branch and link to an entry address. Call sequence can be patched.
   void BranchLinkPatchable(const StubEntry& stub_entry);

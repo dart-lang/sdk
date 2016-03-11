@@ -2645,6 +2645,12 @@ void Assembler::Call(const StubEntry& stub_entry) {
 }
 
 
+void Assembler::CallToRuntime() {
+  movl(CODE_REG, Address(THR, Thread::call_to_runtime_stub_offset()));
+  call(Address(THR, Thread::call_to_runtime_entry_point_offset()));
+}
+
+
 void Assembler::Jmp(const StubEntry& stub_entry) {
   const ExternalLabel label(stub_entry.EntryPoint());
   jmp(&label);

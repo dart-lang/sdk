@@ -82,10 +82,14 @@ class Zone;
     StubCode::FixAllocationStubTarget_entry()->code(), NULL)                   \
   V(RawCode*, invoke_dart_code_stub_,                                          \
     StubCode::InvokeDartCode_entry()->code(), NULL)                            \
+  V(RawCode*, call_to_runtime_stub_,                                           \
+    StubCode::CallToRuntime_entry()->code(), NULL)                             \
 
 #define CACHED_ADDRESSES_LIST(V)                                               \
   V(uword, update_store_buffer_entry_point_,                                   \
     StubCode::UpdateStoreBuffer_entry()->EntryPoint(), 0)                      \
+  V(uword, call_to_runtime_entry_point_,                                       \
+    StubCode::CallToRuntime_entry()->EntryPoint(), 0)                          \
   V(uword, native_call_wrapper_entry_point_,                                   \
     NativeEntry::NativeCallWrapperEntry(), 0)                                  \
   V(RawString**, predefined_symbols_address_,                                  \

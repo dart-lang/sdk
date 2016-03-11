@@ -773,6 +773,7 @@ class Assembler : public ValueObject {
   void J(Condition condition, const StubEntry& stub_entry, Register pp);
   void CallPatchable(const StubEntry& stub_entry);
   void Call(const StubEntry& stub_entry);
+  void CallToRuntime();
   // Emit a call that shares its object pool entries with other calls
   // that have the same equivalence marker.
   void CallWithEquivalence(const StubEntry& stub_entry,
