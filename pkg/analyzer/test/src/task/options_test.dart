@@ -96,6 +96,15 @@ analyzer:
     expect(analysisOptions.enableSuperMixins, true);
   }
 
+  test_configure_enableStrictCallChecks() {
+    configureContext('''
+analyzer:
+  language:
+    enableStrictCallChecks: true
+''');
+    expect(analysisOptions.enableStrictCallChecks, true);
+  }
+
   test_configure_error_processors() {
     configureContext('''
 analyzer:
