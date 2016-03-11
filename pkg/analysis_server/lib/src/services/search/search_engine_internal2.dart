@@ -43,7 +43,7 @@ class SearchEngineImpl2 implements SearchEngine {
   Future<List<SearchMatch>> searchMemberReferences(String name) async {
     List<Location> locations = await _index.getUnresolvedMemberReferences(name);
     return locations.map((location) {
-      return _newMatchForLocation(location, MatchKind.REFERENCE);
+      return _newMatchForLocation(location, null);
     }).toList();
   }
 
@@ -109,15 +109,32 @@ class SearchEngineImpl2 implements SearchEngine {
     }
   }
 
-  SearchMatch _newMatchForLocation(Location location, MatchKind kind) =>
-      new SearchMatch(
-          location.context,
-          location.libraryUri,
-          location.unitUri,
-          kind,
-          new SourceRange(location.offset, location.length),
-          true,
-          location.isQualified);
+  SearchMatch _newMatchForLocation(Location location, MatchKind kind) {
+    if (kind == null) {
+      IndexRelationKind relationKind = location.kind;
+      if (relationKind == IndexRelationKind.IS_INVOKED_BY) {
+        kind = MatchKind.INVOCATION;
+      } else if (relationKind == IndexRelationKind.IS_REFERENCED_BY) {
+        kind = MatchKind.REFERENCE;
+      } else if (relationKind == IndexRelationKind.IS_READ_BY) {
+        kind = MatchKind.READ;
+      } else if (relationKind == IndexRelationKind.IS_READ_WRITTEN_BY) {
+        kind = MatchKind.READ_WRITE;
+      } else if (relationKind == IndexRelationKind.IS_WRITTEN_BY) {
+        kind = MatchKind.WRITE;
+      } else {
+        throw new ArgumentError('Unsupported relation kind $relationKind');
+      }
+    }
+    return new SearchMatch(
+        location.context,
+        location.libraryUri,
+        location.unitUri,
+        kind,
+        new SourceRange(location.offset, location.length),
+        location.isResolved,
+        location.isQualified);
+  }
 
   Future<List<SearchMatch>> _searchDefinedNames(
       String pattern, IndexNameKind nameKind) async {
@@ -142,6 +159,8 @@ class SearchEngineImpl2 implements SearchEngine {
     PropertyAccessorElement setter = field.setter;
     // field itself
     if (!field.isSynthetic) {
+      await _addMatches(
+          matches, field, IndexRelationKind.IS_WRITTEN_BY, MatchKind.WRITE);
       await _addMatches(matches, field, IndexRelationKind.IS_REFERENCED_BY,
           MatchKind.REFERENCE);
     }

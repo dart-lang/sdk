@@ -224,7 +224,28 @@ enum IndexRelationKind {
    *   Is referenced (and not invoked, read/written) at.
    * Right: location.
    */
-  IS_REFERENCED_BY
+  IS_REFERENCED_BY,
+
+  /**
+   * Left: unresolved member name.
+   *   Is read at.
+   * Right: location.
+   */
+  IS_READ_BY,
+
+  /**
+   * Left: unresolved member name.
+   *   Is both read and written at.
+   * Right: location.
+   */
+  IS_READ_WRITTEN_BY,
+
+  /**
+   * Left: unresolved member name.
+   *   Is written at.
+   * Right: location.
+   */
+  IS_WRITTEN_BY
 }
 
 /**

@@ -151,6 +151,11 @@ class Location {
   final String unitUri;
 
   /**
+   * The kind of usage at this location.
+   */
+  final IndexRelationKind kind;
+
+  /**
    * The offset of this location within the [unitUri].
    */
   final int offset;
@@ -165,13 +170,18 @@ class Location {
    */
   final bool isQualified;
 
-  Location(this.context, this.libraryUri, this.unitUri, this.offset,
-      this.length, this.isQualified);
+  /**
+   * Is `true` if this location is resolved.
+   */
+  final bool isResolved;
+
+  Location(this.context, this.libraryUri, this.unitUri, this.kind, this.offset,
+      this.length, this.isQualified, this.isResolved);
 
   @override
   String toString() => 'Location{librarySourceUri: $libraryUri, '
       'unitSourceUri: $unitUri, offset: $offset, length: $length, '
-      'isQualified: $isQualified}';
+      'isQualified: $isQualified}, isResolved: $isResolved}';
 }
 
 /**
@@ -460,8 +470,8 @@ class _UnitIndexRequester {
         if (regExp.matchAsPrefix(name) != null) {
           unitLibraryUri ??= packageRequester.getUnitLibraryUri(unitIndex.unit);
           unitUnitUri ??= packageRequester.getUnitUnitUri(unitIndex.unit);
-          locations.add(new Location(context, unitLibraryUri, unitUnitUri,
-              unitIndex.definedNameOffsets[i], name.length, false));
+          locations.add(new Location(context, unitLibraryUri, unitUnitUri, null,
+              unitIndex.definedNameOffsets[i], name.length, false, true));
         }
       }
     }
@@ -494,9 +504,11 @@ class _UnitIndexRequester {
             context,
             unitLibraryUri,
             unitUnitUri,
+            kind,
             unitIndex.usedElementOffsets[i],
             unitIndex.usedElementLengths[i],
-            unitIndex.usedElementIsQualifiedFlags[i]));
+            unitIndex.usedElementIsQualifiedFlags[i],
+            true));
       }
     }
     return locations;
@@ -527,8 +539,15 @@ class _UnitIndexRequester {
         i++) {
       unitLibraryUri ??= packageRequester.getUnitLibraryUri(unitIndex.unit);
       unitUnitUri ??= packageRequester.getUnitUnitUri(unitIndex.unit);
-      locations.add(new Location(context, unitLibraryUri, unitUnitUri,
-          unitIndex.usedNameOffsets[i], name.length, true));
+      locations.add(new Location(
+          context,
+          unitLibraryUri,
+          unitUnitUri,
+          unitIndex.usedNameKinds[i],
+          unitIndex.usedNameOffsets[i],
+          name.length,
+          true,
+          false));
     }
     return locations;
   }

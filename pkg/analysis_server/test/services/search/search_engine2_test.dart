@@ -128,22 +128,22 @@ class A {
   }
 }
 main(A a, p) {
-  a.test(); // a-inv-r-q
-  a.test = 1; // a-ref-r-q
-  a.test += 2; // a-ref-r-q
-  print(a.test); // a-ref-r-q
-  p.test(); // p-inv-ur-q
-  p.test = 1; // p-ref-ur-q
-  p.test += 2; // p-ref-ur-q
-  print(p.test); // p-ref-ur-q
+  print(a.test); // r
+  a.test = 1; // r
+  a.test += 2; // r
+  a.test(); // r
+  print(p.test); // ur
+  p.test = 1; // ur
+  p.test += 2; // ur
+  p.test(); // ur
 }
 ''');
     Element main = findElement('main');
     var expected = [
-      _expectIdQ(main, MatchKind.REFERENCE, 'test(); // p-inv-ur-q'),
-      _expectIdQ(main, MatchKind.REFERENCE, 'test = 1; // p-ref-ur-q'),
-      _expectIdQ(main, MatchKind.REFERENCE, 'test += 2; // p-ref-ur-q'),
-      _expectIdQ(main, MatchKind.REFERENCE, 'test); // p-ref-ur-q'),
+      _expectIdQU(main, MatchKind.READ, 'test); // ur'),
+      _expectIdQU(main, MatchKind.WRITE, 'test = 1; // ur'),
+      _expectIdQU(main, MatchKind.READ_WRITE, 'test += 2; // ur'),
+      _expectIdQU(main, MatchKind.INVOCATION, 'test(); // ur'),
     ];
     List<SearchMatch> matches =
         await searchEngine.searchMemberReferences('test');
@@ -245,7 +245,7 @@ class A {
     Element main = findElement('main');
     Element fieldParameter = findElement('field', ElementKind.PARAMETER);
     var expected = [
-      _expectIdQ(fieldParameter, MatchKind.REFERENCE, 'field}'),
+      _expectIdQ(fieldParameter, MatchKind.WRITE, 'field}'),
       _expectIdQ(main, MatchKind.REFERENCE, 'field: 1'),
       _expectId(main, MatchKind.READ, 'field); // ref-nq'),
       _expectIdQ(main, MatchKind.READ, 'field); // ref-q'),
@@ -739,9 +739,21 @@ class NoMatchABCDE {}
         isResolved: isResolved, isQualified: isQualified);
   }
 
+  /**
+   * Create [ExpectedMatch] for a qualified and resolved match.
+   */
   ExpectedMatch _expectIdQ(Element element, MatchKind kind, String search,
-      {int length}) {
+      {int length, bool isResolved: true}) {
     return _expectId(element, kind, search, isQualified: true, length: length);
+  }
+
+  /**
+   * Create [ExpectedMatch] for a qualified and unresolved match.
+   */
+  ExpectedMatch _expectIdQU(Element element, MatchKind kind, String search,
+      {int length}) {
+    return _expectId(element, kind, search,
+        isQualified: true, isResolved: false, length: length);
   }
 
   void _indexTestUnit(String code) {

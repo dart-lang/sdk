@@ -420,8 +420,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     SimpleIdentifier fieldName = node.fieldName;
     if (fieldName != null) {
       Element element = fieldName.staticElement;
-      recordRelation(
-          element, IndexRelationKind.IS_REFERENCED_BY, fieldName, true);
+      recordRelation(element, IndexRelationKind.IS_WRITTEN_BY, fieldName, true);
     }
     node.expression?.accept(this);
   }
@@ -544,12 +543,26 @@ class _IndexContributor extends GeneralizingAstVisitor {
     // record qualified unresolved name reference
     bool isQualified = _isQualified(node);
     if (isQualified && element == null) {
-      recordNameRelation(node, IndexRelationKind.IS_REFERENCED_BY);
+      bool inGetterContext = node.inGetterContext();
+      bool inSetterContext = node.inSetterContext();
+      IndexRelationKind kind;
+      if (inGetterContext && inSetterContext) {
+        kind = IndexRelationKind.IS_READ_WRITTEN_BY;
+      } else if (inGetterContext) {
+        kind = IndexRelationKind.IS_READ_BY;
+      } else {
+        kind = IndexRelationKind.IS_WRITTEN_BY;
+      }
+      recordNameRelation(node, kind);
     }
     // this.field parameter
     if (element is FieldFormalParameterElement) {
-      recordRelation(
-          element.field, IndexRelationKind.IS_REFERENCED_BY, node, true);
+      AstNode parent = node.parent;
+      IndexRelationKind kind =
+          parent is FieldFormalParameter && parent.identifier == node
+              ? IndexRelationKind.IS_WRITTEN_BY
+              : IndexRelationKind.IS_REFERENCED_BY;
+      recordRelation(element.field, kind, node, true);
       return;
     }
     // ignore a local reference to a parameter
