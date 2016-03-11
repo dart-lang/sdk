@@ -60,6 +60,7 @@ analyzer/test/generated/error_suppression_test: Pass, Slow # Issue 21628
 analyzer/test/generated/engine_test: SkipSlow
 analyzer/test/generated/incremental_resolver_test: Pass, Slow # Issue 21628
 analyzer/test/generated/incremental_scanner_test: Pass, Slow # Issue 21628
+analyzer/test/generated/inheritance_manager_test: Pass, Slow # Issue 21628
 analyzer/test/generated/non_error_resolver_test: Pass, Slow # Issue 21628
 analyzer/test/generated/parser_test: Pass, Slow # Issue 21628
 analyzer/test/generated/resolver_test: Pass, Slow # Issue 21628
