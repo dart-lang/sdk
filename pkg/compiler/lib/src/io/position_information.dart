@@ -304,6 +304,12 @@ class PositionSourceInformationBuilder implements SourceInformationBuilder {
 
   @override
   SourceInformation buildAs(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildSwitch(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildSwitchCase(Node node) => buildBegin(node);
 }
 
 /// The start, end and closing offsets for a [js.Node].

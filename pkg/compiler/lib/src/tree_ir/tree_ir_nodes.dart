@@ -349,8 +349,9 @@ class TypeOperator extends Expression {
 class ApplyBuiltinOperator extends Expression {
   BuiltinOperator operator;
   List<Expression> arguments;
+  SourceInformation sourceInformation;
 
-  ApplyBuiltinOperator(this.operator, this.arguments);
+  ApplyBuiltinOperator(this.operator, this.arguments, this.sourceInformation);
 
   accept(ExpressionVisitor visitor) {
     return visitor.visitApplyBuiltinOperator(this);
@@ -602,11 +603,15 @@ class If extends Statement {
   Expression condition;
   Statement thenStatement;
   Statement elseStatement;
+  SourceInformation sourceInformation;
 
   Statement get next => null;
   void set next(Statement s) => throw 'UNREACHABLE';
 
-  If(this.condition, this.thenStatement, this.elseStatement);
+  If(this.condition,
+     this.thenStatement,
+     this.elseStatement,
+     this.sourceInformation);
 
   accept(StatementVisitor visitor) => visitor.visitIf(this);
   accept1(StatementVisitor1 visitor, arg) => visitor.visitIf(this, arg);

@@ -200,7 +200,8 @@ class CpsFragment {
     Continuation trueCont = new Continuation(<Parameter>[]);
     Continuation falseCont = new Continuation(<Parameter>[]);
     put(new LetCont.two(trueCont, falseCont,
-            new Branch(condition, trueCont, falseCont, strict: strict)));
+            new Branch(condition, trueCont, falseCont,
+                       sourceInformation, strict: strict)));
     if (negate) {
       context = trueCont;
       return new CpsFragment(sourceInformation, falseCont);

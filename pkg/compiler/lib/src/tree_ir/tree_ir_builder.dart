@@ -105,7 +105,8 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   /// referred to by [reference].
   /// This increments the reference count for the given variable, so the
   /// returned expression must be used in the tree.
-  Expression getVariableUse(cps_ir.Reference<cps_ir.Primitive> reference) {
+  Expression getVariableUse(cps_ir.Reference<cps_ir.Primitive> reference,
+                            {SourceInformation sourceInformation}) {
     cps_ir.Primitive prim = reference.definition.effectiveDefinition;
     if (prim is cps_ir.Constant && inlinedConstants.contains(prim)) {
       return new Constant(prim.value);
@@ -113,7 +114,8 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     if (thisParameter != null && prim == thisParameter) {
       return new This();
     }
-    return new VariableUse(getVariable(prim));
+    return new VariableUse(
+        getVariable(prim), sourceInformation: sourceInformation);
   }
 
   Expression getVariableUseOrNull(
@@ -451,11 +453,13 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
 
   /// Translates a branch condition to a tree expression.
   Expression translateCondition(cps_ir.Branch branch) {
-    Expression value = getVariableUse(branch.conditionRef);
+    Expression value = getVariableUse(
+        branch.conditionRef, sourceInformation: branch.sourceInformation);
     if (branch.isStrictCheck) {
       return new ApplyBuiltinOperator(
           BuiltinOperator.StrictEq,
-          <Expression>[value, new Constant(new TrueConstantValue())]);
+          <Expression>[value, new Constant(new TrueConstantValue())],
+          branch.sourceInformation);
     } else {
       return value;
     }
@@ -474,7 +478,8 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     elseStatement = cont.hasExactlyOneUse
         ? translateExpression(cont.body)
         : new Break(labels[cont]);
-    return new If(condition, thenStatement, elseStatement);
+    return new If(
+        condition, thenStatement, elseStatement, node.sourceInformation);
   }
 
 
@@ -586,8 +591,10 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     if (node.operator == BuiltinOperator.IsFalsy) {
       return new Not(getVariableUse(node.argumentRefs.single));
     }
-    return new ApplyBuiltinOperator(node.operator,
-                                    translateArguments(node.argumentRefs));
+    return new ApplyBuiltinOperator(
+        node.operator,
+        translateArguments(node.argumentRefs),
+        node.sourceInformation);
   }
 
   Expression visitApplyBuiltinMethod(cps_ir.ApplyBuiltinMethod node) {

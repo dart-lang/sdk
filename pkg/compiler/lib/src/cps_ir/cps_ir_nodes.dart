@@ -2072,6 +2072,7 @@ class Branch extends TailExpression {
   final Reference<Primitive> conditionRef;
   final Reference<Continuation> trueContinuationRef;
   final Reference<Continuation> falseContinuationRef;
+  final SourceInformation sourceInformation;
 
   Primitive get condition => conditionRef.definition;
   Continuation get trueContinuation => trueContinuationRef.definition;
@@ -2084,7 +2085,11 @@ class Branch extends TailExpression {
   /// boolean.
   bool isStrictCheck;
 
-  Branch(Primitive condition, Continuation trueCont, Continuation falseCont,
+  Branch(
+      Primitive condition,
+      Continuation trueCont,
+      Continuation falseCont,
+      this.sourceInformation,
       {bool strict})
       : this.conditionRef = new Reference<Primitive>(condition),
         trueContinuationRef = new Reference<Continuation>(trueCont),
@@ -2094,12 +2099,18 @@ class Branch extends TailExpression {
   }
 
   Branch.strict(
-      Primitive condition, Continuation trueCont, Continuation falseCont)
-      : this(condition, trueCont, falseCont, strict: true);
+      Primitive condition,
+      Continuation trueCont,
+      Continuation falseCont,
+      SourceInformation sourceInformation)
+      : this(condition, trueCont, falseCont, sourceInformation, strict: true);
 
   Branch.loose(
-      Primitive condition, Continuation trueCont, Continuation falseCont)
-      : this(condition, trueCont, falseCont, strict: false);
+      Primitive condition,
+      Continuation trueCont,
+      Continuation falseCont,
+      SourceInformation sourceInformation)
+      : this(condition, trueCont, falseCont, sourceInformation, strict: false);
 
   accept(BlockVisitor visitor) => visitor.visitBranch(this);
 
@@ -3134,7 +3145,8 @@ class CopyingVisitor extends TrampolineRecursiveVisitor {
     plug(new Branch.loose(
         _definitions.getCopy(node.conditionRef),
         _copies[node.trueContinuation],
-        _copies[node.falseContinuation])..isStrictCheck = node.isStrictCheck);
+        _copies[node.falseContinuation],
+        node.sourceInformation)..isStrictCheck = node.isStrictCheck);
   }
 
   visitUnreachable(Unreachable node) {

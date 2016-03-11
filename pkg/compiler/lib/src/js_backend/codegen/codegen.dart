@@ -659,12 +659,14 @@ class CodeGenerator extends tree_ir.StatementVisitor
     bool thenHasFallthrough = (fallthrough.useCount > usesBefore);
     if (thenHasFallthrough) {
       js.Statement elseBody = buildBodyStatement(node.elseStatement);
-      accumulator.add(new js.If(condition, thenBody, elseBody));
+      accumulator.add(new js.If(condition, thenBody, elseBody)
+          .withSourceInformation(node.sourceInformation));
       return null;
     } else {
       // The 'then' body cannot complete normally, so emit a short 'if'
       // and put the 'else' body after it.
-      accumulator.add(new js.If.noElse(condition, thenBody));
+      accumulator.add(new js.If.noElse(condition, thenBody)
+          .withSourceInformation(node.sourceInformation));
       return node.elseStatement;
     }
   }
@@ -1079,86 +1081,91 @@ class CodeGenerator extends tree_ir.StatementVisitor
   @override
   js.Expression visitApplyBuiltinOperator(tree_ir.ApplyBuiltinOperator node) {
     List<js.Expression> args = visitExpressionList(node.arguments);
-    switch (node.operator) {
-      case BuiltinOperator.NumAdd:
-        return new js.Binary('+', args[0], args[1]);
-      case BuiltinOperator.NumSubtract:
-        return new js.Binary('-', args[0], args[1]);
-      case BuiltinOperator.NumMultiply:
-        return new js.Binary('*', args[0], args[1]);
-      case BuiltinOperator.NumDivide:
-        return new js.Binary('/', args[0], args[1]);
-      case BuiltinOperator.NumRemainder:
-        return new js.Binary('%', args[0], args[1]);
-      case BuiltinOperator.NumTruncatingDivideToSigned32:
-        return js.js('(# / #) | 0', args);
-      case BuiltinOperator.NumAnd:
-        return normalizeBitOp(js.js('# & #', args), node);
-      case BuiltinOperator.NumOr:
-        return normalizeBitOp(js.js('# | #', args), node);
-      case BuiltinOperator.NumXor:
-        return normalizeBitOp(js.js('# ^ #', args), node);
-      case BuiltinOperator.NumLt:
-        return new js.Binary('<', args[0], args[1]);
-      case BuiltinOperator.NumLe:
-        return new js.Binary('<=', args[0], args[1]);
-      case BuiltinOperator.NumGt:
-        return new js.Binary('>', args[0], args[1]);
-      case BuiltinOperator.NumGe:
-        return new js.Binary('>=', args[0], args[1]);
-      case BuiltinOperator.NumShl:
-        return normalizeBitOp(js.js('# << #', args), node);
-      case BuiltinOperator.NumShr:
-        // No normalization required since output is always uint32.
-        return js.js('# >>> #', args);
-      case BuiltinOperator.NumBitNot:
-        return js.js('(~#) >>> 0', args);
-      case BuiltinOperator.NumNegate:
-        return js.js('-#', args);
-      case BuiltinOperator.StringConcatenate:
-        if (args.isEmpty) return js.string('');
-        return args.reduce((e1,e2) => new js.Binary('+', e1, e2));
-      case BuiltinOperator.CharCodeAt:
-        return js.js('#.charCodeAt(#)', args);
-      case BuiltinOperator.Identical:
-        registry.registerStaticUse(new StaticUse.staticInvoke(
-            glue.identicalFunction, new CallStructure.unnamed(args.length)));
-        return buildStaticHelperInvocation(glue.identicalFunction, args);
-      case BuiltinOperator.StrictEq:
-        return new js.Binary('===', args[0], args[1]);
-      case BuiltinOperator.StrictNeq:
-        return new js.Binary('!==', args[0], args[1]);
-      case BuiltinOperator.LooseEq:
-        return new js.Binary('==', args[0], args[1]);
-      case BuiltinOperator.LooseNeq:
-        return new js.Binary('!=', args[0], args[1]);
-      case BuiltinOperator.IsFalsy:
-        return new js.Prefix('!', args[0]);
-      case BuiltinOperator.IsNumber:
-        return js.js('typeof # === "number"', args);
-      case BuiltinOperator.IsNotNumber:
-        return js.js('typeof # !== "number"', args);
-      case BuiltinOperator.IsFloor:
-        return js.js('Math.floor(#) === #', args);
-      case BuiltinOperator.IsInteger:
-        return js.js('typeof # === "number" && Math.floor(#) === #', args);
-      case BuiltinOperator.IsNotInteger:
-        return js.js('typeof # !== "number" || Math.floor(#) !== #', args);
-      case BuiltinOperator.IsUnsigned32BitInteger:
-        return js.js('# >>> 0 === #', args);
-      case BuiltinOperator.IsNotUnsigned32BitInteger:
-        return js.js('# >>> 0 !== #', args);
-      case BuiltinOperator.IsFixedLengthJSArray:
-        // TODO(sra): Remove boolify (i.e. !!).
-        return js.js(r'!!#.fixed$length', args);
-      case BuiltinOperator.IsExtendableJSArray:
-        return js.js(r'!#.fixed$length', args);
-      case BuiltinOperator.IsModifiableJSArray:
-        return js.js(r'!#.immutable$list', args);
-      case BuiltinOperator.IsUnmodifiableJSArray:
-        // TODO(sra): Remove boolify (i.e. !!).
-        return js.js(r'!!#.immutable$list', args);
+
+    js.Expression createExpression() {
+      switch (node.operator) {
+        case BuiltinOperator.NumAdd:
+          return new js.Binary('+', args[0], args[1]);
+        case BuiltinOperator.NumSubtract:
+          return new js.Binary('-', args[0], args[1]);
+        case BuiltinOperator.NumMultiply:
+          return new js.Binary('*', args[0], args[1]);
+        case BuiltinOperator.NumDivide:
+          return new js.Binary('/', args[0], args[1]);
+        case BuiltinOperator.NumRemainder:
+          return new js.Binary('%', args[0], args[1]);
+        case BuiltinOperator.NumTruncatingDivideToSigned32:
+          return js.js('(# / #) | 0', args);
+        case BuiltinOperator.NumAnd:
+          return normalizeBitOp(js.js('# & #', args), node);
+        case BuiltinOperator.NumOr:
+          return normalizeBitOp(js.js('# | #', args), node);
+        case BuiltinOperator.NumXor:
+          return normalizeBitOp(js.js('# ^ #', args), node);
+        case BuiltinOperator.NumLt:
+          return new js.Binary('<', args[0], args[1]);
+        case BuiltinOperator.NumLe:
+          return new js.Binary('<=', args[0], args[1]);
+        case BuiltinOperator.NumGt:
+          return new js.Binary('>', args[0], args[1]);
+        case BuiltinOperator.NumGe:
+          return new js.Binary('>=', args[0], args[1]);
+        case BuiltinOperator.NumShl:
+          return normalizeBitOp(js.js('# << #', args), node);
+        case BuiltinOperator.NumShr:
+          // No normalization required since output is always uint32.
+          return js.js('# >>> #', args);
+        case BuiltinOperator.NumBitNot:
+          return js.js('(~#) >>> 0', args);
+        case BuiltinOperator.NumNegate:
+          return js.js('-#', args);
+        case BuiltinOperator.StringConcatenate:
+          if (args.isEmpty) return js.string('');
+          return args.reduce((e1,e2) => new js.Binary('+', e1, e2));
+        case BuiltinOperator.CharCodeAt:
+          return js.js('#.charCodeAt(#)', args);
+        case BuiltinOperator.Identical:
+          registry.registerStaticUse(new StaticUse.staticInvoke(
+              glue.identicalFunction, new CallStructure.unnamed(args.length)));
+          return buildStaticHelperInvocation(glue.identicalFunction, args);
+        case BuiltinOperator.StrictEq:
+          return new js.Binary('===', args[0], args[1]);
+        case BuiltinOperator.StrictNeq:
+          return new js.Binary('!==', args[0], args[1]);
+        case BuiltinOperator.LooseEq:
+          return new js.Binary('==', args[0], args[1]);
+        case BuiltinOperator.LooseNeq:
+          return new js.Binary('!=', args[0], args[1]);
+        case BuiltinOperator.IsFalsy:
+          return new js.Prefix('!', args[0]);
+        case BuiltinOperator.IsNumber:
+          return js.js('typeof # === "number"', args);
+        case BuiltinOperator.IsNotNumber:
+          return js.js('typeof # !== "number"', args);
+        case BuiltinOperator.IsFloor:
+          return js.js('Math.floor(#) === #', args);
+        case BuiltinOperator.IsInteger:
+          return js.js('typeof # === "number" && Math.floor(#) === #', args);
+        case BuiltinOperator.IsNotInteger:
+          return js.js('typeof # !== "number" || Math.floor(#) !== #', args);
+        case BuiltinOperator.IsUnsigned32BitInteger:
+          return js.js('# >>> 0 === #', args);
+        case BuiltinOperator.IsNotUnsigned32BitInteger:
+          return js.js('# >>> 0 !== #', args);
+        case BuiltinOperator.IsFixedLengthJSArray:
+          // TODO(sra): Remove boolify (i.e. !!).
+          return js.js(r'!!#.fixed$length', args);
+        case BuiltinOperator.IsExtendableJSArray:
+          return js.js(r'!#.fixed$length', args);
+        case BuiltinOperator.IsModifiableJSArray:
+          return js.js(r'!#.immutable$list', args);
+        case BuiltinOperator.IsUnmodifiableJSArray:
+          // TODO(sra): Remove boolify (i.e. !!).
+          return js.js(r'!!#.immutable$list', args);
+      }
     }
+
+    return createExpression().withSourceInformation(node.sourceInformation);
   }
 
   /// Add a uint32 normalization `op >>> 0` to [op] if it is not in 31-bit

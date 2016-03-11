@@ -801,7 +801,8 @@ class IrBuilder {
   ir.Primitive buildConditional(
       ir.Primitive condition,
       ir.Primitive buildThenExpression(IrBuilder builder),
-      ir.Primitive buildElseExpression(IrBuilder builder)) {
+      ir.Primitive buildElseExpression(IrBuilder builder),
+      SourceInformation sourceInformation) {
     assert(isOpen);
 
     // The then and else expressions are delimited.
@@ -835,7 +836,8 @@ class IrBuilder {
             new ir.LetCont.two(thenContinuation, elseContinuation,
                 new ir.Branch.strict(condition,
                                      thenContinuation,
-                                     elseContinuation))));
+                                     elseContinuation,
+                                     sourceInformation))));
     environment = join.environment;
     return environment.discard(1);
   }
@@ -1102,7 +1104,8 @@ class IrBuilder {
   // [_buildLogicalOperator].
   void buildIf(ir.Primitive condition,
                void buildThenPart(IrBuilder builder),
-               void buildElsePart(IrBuilder builder)) {
+               void buildElsePart(IrBuilder builder),
+               SourceInformation sourceInformation) {
     assert(isOpen);
 
     // The then and else parts are delimited.
@@ -1130,7 +1133,8 @@ class IrBuilder {
         new ir.LetCont.many(arms,
             new ir.Branch.strict(condition,
                                  thenContinuation,
-                                 elseContinuation));
+                                 elseContinuation,
+                                 sourceInformation));
 
     JumpCollector join;  // Null if there is no join.
     if (thenBuilder.isOpen && elseBuilder.isOpen) {
@@ -1198,6 +1202,7 @@ class IrBuilder {
   /// initializer.
   void buildFor({SubbuildFunction buildInitializer,
                  SubbuildFunction buildCondition,
+                 SourceInformation conditionSourceInformation,
                  SubbuildFunction buildBody,
                  SubbuildFunction buildUpdate,
                  JumpTarget target,
@@ -1302,7 +1307,8 @@ class IrBuilder {
         new ir.LetCont.two(exitContinuation, bodyContinuation,
             new ir.Branch.strict(condition,
                                  bodyContinuation,
-                                 exitContinuation));
+                                 exitContinuation,
+                                 conditionSourceInformation));
     // If there are breaks in the body, then there must be a join-point
     // continuation for the normal exit and the breaks.  Otherwise, the
     // successor is translated in the hole in the exit continuation.
@@ -1350,7 +1356,8 @@ class IrBuilder {
                    SourceInformation moveNextSourceInformation,
                    SubbuildFunction buildBody,
                    JumpTarget target,
-                   ClosureScope closureScope}) {
+                   ClosureScope closureScope,
+                   SourceInformation conditionSourceInformation}) {
     // The for-in loop
     //
     // for (a in e) s;
@@ -1474,7 +1481,8 @@ class IrBuilder {
         new ir.LetCont.two(exitContinuation, bodyContinuation,
             new ir.Branch.strict(condition,
                                  bodyContinuation,
-                                 exitContinuation));
+                                 exitContinuation,
+                                 conditionSourceInformation));
     // If there are breaks in the body, then there must be a join-point
     // continuation for the normal exit and the breaks.  Otherwise, the
     // successor is translated in the hole in the exit continuation.
@@ -1500,7 +1508,8 @@ class IrBuilder {
   void buildWhile({SubbuildFunction buildCondition,
                    SubbuildFunction buildBody,
                    JumpTarget target,
-                   ClosureScope closureScope}) {
+                   ClosureScope closureScope,
+                   SourceInformation sourceInformation}) {
     assert(isOpen);
     // While loops use four named continuations: the entry to the body, the
     // loop exit, the loop back edge (continue), and the loop exit (break).
@@ -1549,7 +1558,8 @@ class IrBuilder {
         new ir.LetCont.two(exitContinuation, bodyContinuation,
             new ir.Branch.strict(condition,
                                  bodyContinuation,
-                                 exitContinuation));
+                                 exitContinuation,
+                                 sourceInformation));
     // If there are breaks in the body, then there must be a join-point
     // continuation for the normal exit and the breaks.  Otherwise, the
     // successor is translated in the hole in the exit continuation.
@@ -1578,7 +1588,8 @@ class IrBuilder {
   void buildDoWhile({SubbuildFunction buildBody,
                      SubbuildFunction buildCondition,
                      JumpTarget target,
-                     ClosureScope closureScope}) {
+                     ClosureScope closureScope,
+                     SourceInformation sourceInformation}) {
     assert(isOpen);
     // The CPS translation of [[do body; while (condition); successor]] is:
     //
@@ -1635,7 +1646,8 @@ class IrBuilder {
         new ir.LetCont.two(exitContinuation, repeatContinuation,
             new ir.Branch.strict(condition,
                                  repeatContinuation,
-                                 exitContinuation)));
+                                 exitContinuation,
+                                 sourceInformation)));
     continueCollector.continuation.body = continueBuilder.root;
 
     // Construct the loop continuation (i.e., the body and condition).
@@ -1670,7 +1682,8 @@ class IrBuilder {
           new ir.LetCont.two(elseContinuation, thenContinuation,
               new ir.Branch.strict(condition,
                                    thenContinuation,
-                                   elseContinuation)));
+                                   elseContinuation,
+                                   caseInfo.sourceInformation)));
     }
 
     if (buildDefaultBody == null) {
@@ -1879,7 +1892,8 @@ class IrBuilder {
         checkBuilder.add(new ir.LetCont.two(thenContinuation, elseContinuation,
             new ir.Branch.strict(typeMatches,
                                  thenContinuation,
-                                 elseContinuation)));
+                                 elseContinuation,
+                                 clause.sourceInformation)));
         catchBody = checkBuilder.root;
       }
       builder.add(catchBody);
@@ -2276,7 +2290,9 @@ class IrBuilder {
   }
 
   /// Create a negation of [condition].
-  ir.Primitive buildNegation(ir.Primitive condition) {
+  ir.Primitive buildNegation(
+      ir.Primitive condition,
+      SourceInformation sourceInformation) {
     // ! e is translated as e ? false : true
 
     // Add a continuation parameter for the result of the expression.
@@ -2302,7 +2318,8 @@ class IrBuilder {
           new ir.LetCont.two(thenContinuation, elseContinuation,
               new ir.Branch.strict(condition,
                                    thenContinuation,
-                                   elseContinuation))));
+                                   elseContinuation,
+                                   sourceInformation))));
     return resultParameter;
   }
 
@@ -2312,6 +2329,7 @@ class IrBuilder {
   ir.Primitive buildLogicalOperator(
       ir.Primitive leftValue,
       ir.Primitive buildRightValue(IrBuilder builder),
+      SourceInformation sourceInformation,
       {bool isLazyOr: false}) {
     // e0 && e1 is translated as if e0 ? (e1 == true) : false.
     // e0 || e1 is translated as if e0 ? true : (e1 == true).
@@ -2362,7 +2380,8 @@ class IrBuilder {
         new ir.LetCont.two(rightTrueContinuation, rightFalseContinuation,
             new ir.Branch.strict(rightValue,
                                  rightTrueContinuation,
-                                 rightFalseContinuation)));
+                                 rightFalseContinuation,
+                                 sourceInformation)));
     // Depending on the operator, the left subexpression's continuations are
     // either the right subexpression or an invocation of the join-point
     // continuation.
@@ -2378,7 +2397,8 @@ class IrBuilder {
             new ir.LetCont.two(leftTrueContinuation, leftFalseContinuation,
                 new ir.Branch.strict(leftValue,
                                      leftTrueContinuation,
-                                     leftFalseContinuation))));
+                                     leftFalseContinuation,
+                                     sourceInformation))));
     environment = join.environment;
     return environment.discard(1);
   }
@@ -2855,7 +2875,7 @@ class IrBuilder {
       }
       if (type is InterfaceType && type.element == program.nullClass) {
         // `x is Null` is true if and only if x is null.
-        return _buildCheckNull(value);
+        return _buildCheckNull(value, sourceInformation);
       }
       return addPrimitive(new ir.TypeTest(value, type, typeArguments));
     } else {
@@ -2873,10 +2893,11 @@ class IrBuilder {
   /// evaluated to produce the `right` value.
   ir.Primitive buildIfNull(ir.Primitive value,
                            ir.Primitive buildRight(IrBuilder builder),
-                           {SourceInformation sourceInformation}) {
+                           SourceInformation sourceInformation) {
     ir.Primitive condition =
-        _buildCheckNull(value, sourceInformation: sourceInformation);
-    return buildConditional(condition, buildRight, (_) => value);
+        _buildCheckNull(value, sourceInformation);
+    return buildConditional(
+        condition, buildRight, (_) => value, sourceInformation);
   }
 
   /// Create a conditional send. This is equivalent to a conditional expression
@@ -2884,15 +2905,16 @@ class IrBuilder {
   /// evaluates the [buildSend] expression.
   ir.Primitive buildIfNotNullSend(ir.Primitive receiver,
                                   ir.Primitive buildSend(IrBuilder builder),
-                                  {SourceInformation sourceInformation}) {
+                                  SourceInformation sourceInformation) {
     ir.Primitive condition =
-        _buildCheckNull(receiver, sourceInformation: sourceInformation);
-    return buildConditional(condition, (_) => receiver, buildSend);
+        _buildCheckNull(receiver, sourceInformation);
+    return buildConditional(
+        condition, (_) => receiver, buildSend, sourceInformation);
   }
 
   /// Creates a type test checking whether [value] is null.
   ir.Primitive _buildCheckNull(ir.Primitive value,
-                               {SourceInformation sourceInformation}) {
+                               SourceInformation sourceInformation) {
     assert(isOpen);
     return buildIdentical(value, buildNullConstant(),
         sourceInformation: sourceInformation);
@@ -3005,6 +3027,7 @@ class CatchClauseInfo {
 class SwitchCaseInfo {
   final SubbuildFunction buildCondition;
   final SubbuildFunction buildBody;
+  final SourceInformation sourceInformation;
 
-  SwitchCaseInfo(this.buildCondition, this.buildBody);
+  SwitchCaseInfo(this.buildCondition, this.buildBody, this.sourceInformation);
 }

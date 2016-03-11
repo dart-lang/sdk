@@ -1090,7 +1090,8 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     irBuilder.buildIf(
         build(node.condition),
         subbuild(node.thenPart),
-        subbuild(node.elsePart));
+        subbuild(node.elsePart),
+        sourceInformationBuilder.buildIf(node));
   }
 
   visitLabeledStatement(ast.LabeledStatement node) {
@@ -1493,7 +1494,9 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
                 condition = buildComparison();
               } else {
                 condition = irBuilder.buildLogicalOperator(condition,
-                    nested(buildComparison), isLazyOr: true);
+                    nested(buildComparison),
+                    sourceInformationBuilder.buildSwitchCase(switchCase),
+                    isLazyOr: true);
               }
             }
           }
@@ -1534,7 +1537,8 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         };
       }
 
-      cases.add(new SwitchCaseInfo(buildCondition, buildBody));
+      cases.add(new SwitchCaseInfo(buildCondition, buildBody,
+          sourceInformationBuilder.buildSwitchCase(switchCase)));
     }
 
     irBuilder.buildSimpleSwitch(join, cases, buildDefaultBody);
@@ -1588,7 +1592,8 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         return null;
       }
 
-      cases.add(new SwitchCaseInfo(buildCondition, buildBody));
+      cases.add(new SwitchCaseInfo(buildCondition, buildBody,
+          sourceInformationBuilder.buildSwitch(node)));
     }
 
     // A loop with a simple switch in the body.
@@ -1597,7 +1602,8 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         buildCondition: (IrBuilder builder) {
           ir.Primitive condition = builder.buildIdentical(
               builder.environment.index2value[stateIndex], initial);
-          return builder.buildNegation(condition);
+          return builder.buildNegation(condition,
+              sourceInformationBuilder.buildSwitch(node));
         },
         buildBody: (IrBuilder builder) {
           builder.buildSimpleSwitch(loop, cases, null);
@@ -1668,7 +1674,8 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return irBuilder.buildConditional(
         build(node.condition),
         subbuild(node.thenExpression),
-        subbuild(node.elseExpression));
+        subbuild(node.elseExpression),
+        sourceInformationBuilder.buildIf(node));
   }
 
   // For all simple literals:
@@ -1927,7 +1934,8 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
             target,
             new Selector.getter(name),
             elements.getTypeMask(node),
-            sourceInformationBuilder.buildGet(node))));
+            sourceInformationBuilder.buildGet(node))),
+        sourceInformationBuilder.buildIf(node));
   }
 
   @override
@@ -2066,6 +2074,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
 
   ir.Primitive translateLogicalOperator(ast.Expression left,
                                         ast.Expression right,
+                                        SourceInformation sourceInformation,
                                         {bool isLazyOr}) {
     ir.Primitive leftValue = visit(left);
 
@@ -2074,25 +2083,28 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     }
 
     return irBuilder.buildLogicalOperator(
-        leftValue, buildRightValue, isLazyOr: isLazyOr);
+        leftValue, buildRightValue, sourceInformation, isLazyOr: isLazyOr);
   }
 
   @override
   ir.Primitive visitIfNull(
       ast.Send node, ast.Node left, ast.Node right, _) {
-    return irBuilder.buildIfNull(build(left), subbuild(right));
+    return irBuilder.buildIfNull(build(left), subbuild(right),
+        sourceInformationBuilder.buildIf(node));
   }
 
   @override
   ir.Primitive visitLogicalAnd(
       ast.Send node, ast.Node left, ast.Node right, _) {
-    return translateLogicalOperator(left, right, isLazyOr: false);
+    return translateLogicalOperator(left, right,
+        sourceInformationBuilder.buildIf(node), isLazyOr: false);
   }
 
   @override
   ir.Primitive visitLogicalOr(
       ast.Send node, ast.Node left, ast.Node right, _) {
-    return translateLogicalOperator(left, right, isLazyOr: true);
+    return translateLogicalOperator(left, right,
+        sourceInformationBuilder.buildIf(node), isLazyOr: true);
   }
 
   @override
@@ -2132,7 +2144,8 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         type,
         sourceInformationBuilder.buildIs(node),
         isTypeTest: true);
-    return irBuilder.buildNegation(check);
+    return irBuilder.buildNegation(check,
+        sourceInformationBuilder.buildIf(node));
   }
 
   ir.Primitive translateBinary(ast.Send node,
@@ -2231,7 +2244,8 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.Send node,
       ast.Node expression,
       _) {
-    return irBuilder.buildNegation(visit(expression));
+    return irBuilder.buildNegation(visit(expression),
+        sourceInformationBuilder.buildIf(node));
   }
 
   @override
@@ -2241,7 +2255,8 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.Node right,
       _) {
     return irBuilder.buildNegation(
-        translateBinary(node, left, op.BinaryOperator.NOT_EQ, right));
+        translateBinary(node, left, op.BinaryOperator.NOT_EQ, right),
+        sourceInformationBuilder.buildIf(node));
   }
 
   @override
@@ -2252,7 +2267,8 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       _) {
     return irBuilder.buildNegation(
         translateSuperBinary(function, op.BinaryOperator.NOT_EQ, argument,
-            sourceInformationBuilder.buildBinary(node)));
+            sourceInformationBuilder.buildBinary(node)),
+        sourceInformationBuilder.buildIf(node));
   }
 
   @override
@@ -2427,7 +2443,8 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
               elements.getTypeMask(node),
               arguments,
               sourceInformationBuilder.buildCall(node, node.selector));
-        }));
+        }),
+        sourceInformationBuilder.buildIf(node));
   }
 
   ir.Primitive handleLocalInvoke(
@@ -2681,7 +2698,8 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         ir.Primitive newValue = build(rhs.rhs);
         setValue(newValue);
         return newValue;
-      }));
+      }),
+      sourceInformationBuilder.buildIf(node));
     }
 
     Selector operatorSelector =
@@ -2722,7 +2740,8 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ir.Primitive newValue = build(rhs);
       setValue(newValue);
       return newValue;
-    }));
+    }),
+    sourceInformationBuilder.buildIf(node));
   }
 
   @override
@@ -2755,7 +2774,8 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
             new Selector.setter(name),
             elements.getTypeMask(node),
             visit(rhs),
-            sourceInformationBuilder.buildAssignment(node))));
+            sourceInformationBuilder.buildAssignment(node))),
+        sourceInformationBuilder.buildIf(node));
   }
 
   @override
@@ -2872,7 +2892,8 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       });
     }
     return node.isConditional
-        ? irBuilder.buildIfNotNullSend(target, nested(helper))
+        ? irBuilder.buildIfNotNullSend(
+            target, nested(helper), sourceInformationBuilder.buildIf(node))
         : helper();
   }
 
@@ -2901,7 +2922,8 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       });
     }
     return node.isConditional
-        ? irBuilder.buildIfNotNullSend(target, nested(helper))
+        ? irBuilder.buildIfNotNullSend(
+            target, nested(helper), sourceInformationBuilder.buildIf(node))
         : helper();
   }
 

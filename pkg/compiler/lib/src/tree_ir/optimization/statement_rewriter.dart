@@ -758,7 +758,10 @@ class StatementRewriter extends Transformer implements Pass {
     assert(isCompoundableBuiltin(e));
     if (e.arguments.length > 2) {
       assert(e.operator == BuiltinOperator.StringConcatenate);
-      return new ApplyBuiltinOperator(e.operator, e.arguments.skip(1).toList());
+      return new ApplyBuiltinOperator(
+          e.operator,
+          e.arguments.skip(1).toList(),
+          e.sourceInformation);
     } else {
       return e.arguments[1];
     }

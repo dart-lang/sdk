@@ -141,6 +141,12 @@ class SourceInformationBuilder {
 
   /// Generate [SourceInformation] for the as-cast in [node].
   SourceInformation buildAs(Node node) => null;
+
+  /// Generate [SourceInformation] for the switch statement [node].
+  SourceInformation buildSwitch(Node node) => null;
+
+  /// Generate [SourceInformation] for the switch case in [node].
+  SourceInformation buildSwitchCase(Node node) => null;
 }
 
 /// A location in a source file.

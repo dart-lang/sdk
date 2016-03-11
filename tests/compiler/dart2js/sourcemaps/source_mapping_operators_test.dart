@@ -4,7 +4,6 @@
 
 import 'source_mapping_tester.dart';
 import 'sourcemap_helper.dart';
-import 'package:compiler/src/io/position_information.dart';
 
 void main() {
   test(['operators'], whiteListFunction: (String config, String file) {
@@ -13,20 +12,6 @@ void main() {
       return codePoint.jsCode.contains(r'.$gt()'); // # Issue 25304
     }
 
-    if (config == 'cps') {
-      return (CodePoint codePoint) {
-        // Temporarily allow missing code points on expression statements.
-        if (codePoint.kind == StepKind.EXPRESSION_STATEMENT ||
-            codePoint.kind == StepKind.IF_CONDITION) {
-          return true;
-        }
-        if (codePoint.jsCode.contains(r'H.iae(')) {
-          // Allow missing code points for bailout calls.
-          return true;
-        }
-        return allowGtOptimization(codePoint);
-      };
-    }
     return allowGtOptimization;
   });
 }
