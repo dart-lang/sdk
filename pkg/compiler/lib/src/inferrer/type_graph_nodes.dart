@@ -966,28 +966,34 @@ class DynamicCallSiteTypeInformation extends CallSiteTypeInformation {
         ? compiler.world.allFunctions.filter(selector, typeMask)
         : targets;
 
-    // Add calls to new targets to the graph.
-    targets.where((target) => !oldTargets.contains(target)).forEach((element) {
-      MemberTypeInformation callee =
-          inferrer.types.getInferredTypeOf(element);
-      callee.addCall(caller, call);
-      callee.addUser(this);
-      inferrer.updateParameterAssignments(
-          this, element, arguments, selector, typeMask, remove: false,
-          addToQueue: true);
-    });
+    // Update the call graph if the targets could have changed.
+    if (!identical(targets, oldTargets)) {
+      // Add calls to new targets to the graph.
+      targets
+          .where((target) => !oldTargets.contains(target))
+          .forEach((element) {
+            MemberTypeInformation callee =
+                inferrer.types.getInferredTypeOf(element);
+            callee.addCall(caller, call);
+            callee.addUser(this);
+            inferrer.updateParameterAssignments(
+                this, element, arguments, selector, typeMask, remove: false,
+                addToQueue: true);
+          });
 
-    // Walk over the old targets, and remove calls that cannot happen
-    // anymore.
-    oldTargets.where((target) => !targets.contains(target)).forEach((element) {
-      MemberTypeInformation callee =
-          inferrer.types.getInferredTypeOf(element);
-      callee.removeCall(caller, call);
-      callee.removeUser(this);
-      inferrer.updateParameterAssignments(
-          this, element, arguments, selector, typeMask, remove: true,
-          addToQueue: true);
-    });
+      // Walk over the old targets, and remove calls that cannot happen anymore.
+      oldTargets
+          .where((target) => !targets.contains(target))
+          .forEach((element) {
+            MemberTypeInformation callee =
+                inferrer.types.getInferredTypeOf(element);
+            callee.removeCall(caller, call);
+            callee.removeUser(this);
+            inferrer.updateParameterAssignments(
+                this, element, arguments, selector, typeMask, remove: true,
+            addToQueue: true);
+          });
+    }
 
     // Walk over the found targets, and compute the joined union type mask
     // for all these targets.
