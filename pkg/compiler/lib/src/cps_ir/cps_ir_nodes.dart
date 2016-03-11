@@ -1113,10 +1113,11 @@ class ApplyBuiltinMethod extends Primitive {
 ///
 class GetMutable extends Primitive {
   final Reference<MutableVariable> variableRef;
+  final SourceInformation sourceInformation;
 
   MutableVariable get variable => variableRef.definition;
 
-  GetMutable(MutableVariable variable)
+  GetMutable(MutableVariable variable, {this.sourceInformation})
       : this.variableRef = new Reference<MutableVariable>(variable);
 
   accept(Visitor visitor) => visitor.visitGetMutable(this);
@@ -1139,11 +1140,15 @@ class GetMutable extends Primitive {
 class SetMutable extends Primitive {
   final Reference<MutableVariable> variableRef;
   final Reference<Primitive> valueRef;
+  final SourceInformation sourceInformation;
 
   MutableVariable get variable => variableRef.definition;
   Primitive get value => valueRef.definition;
 
-  SetMutable(MutableVariable variable, Primitive value)
+  SetMutable(
+      MutableVariable variable,
+      Primitive value,
+      {this.sourceInformation})
       : this.variableRef = new Reference<MutableVariable>(variable),
         this.valueRef = new Reference<Primitive>(value);
 
@@ -1165,6 +1170,7 @@ class SetMutable extends Primitive {
 class GetField extends Primitive {
   final Reference<Primitive> objectRef;
   FieldElement field;
+  final SourceInformation sourceInformation;
 
   /// True if the field never changes value.
   final bool isFinal;
@@ -1176,7 +1182,11 @@ class GetField extends Primitive {
 
   Primitive get object => objectRef.definition;
 
-  GetField(Primitive object, this.field, {this.isFinal: false})
+  GetField(
+      Primitive object,
+      this.field,
+      {this.sourceInformation,
+       this.isFinal: false})
       : this.objectRef = new Reference<Primitive>(object);
 
   accept(Visitor visitor) => visitor.visitGetField(this);
@@ -1199,11 +1209,16 @@ class SetField extends Primitive {
   final Reference<Primitive> objectRef;
   FieldElement field;
   final Reference<Primitive> valueRef;
+  final SourceInformation sourceInformation;
 
   Primitive get object => objectRef.definition;
   Primitive get value => valueRef.definition;
 
-  SetField(Primitive object, this.field, Primitive value)
+  SetField(
+      Primitive object,
+      this.field,
+      Primitive value,
+      {this.sourceInformation})
       : this.objectRef = new Reference<Primitive>(object),
         this.valueRef = new Reference<Primitive>(value);
 
@@ -1528,13 +1543,18 @@ class ForeignCode extends UnsafePrimitive {
   final TypeMask storedType;
   final List<Reference<Primitive>> argumentRefs;
   final native.NativeBehavior nativeBehavior;
+  final SourceInformation sourceInformation;
   final FunctionElement dependency;
 
   Primitive argument(int n) => argumentRefs[n].definition;
   Iterable<Primitive> get arguments => _dereferenceList(argumentRefs);
 
-  ForeignCode(this.codeTemplate, this.storedType, List<Primitive> arguments,
+  ForeignCode(
+      this.codeTemplate,
+      this.storedType,
+      List<Primitive> arguments,
       this.nativeBehavior,
+      this.sourceInformation,
       {this.dependency})
       : this.argumentRefs = _referenceList(arguments) {
     effects = Effects.from(nativeBehavior.sideEffects);
@@ -2820,7 +2840,8 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   }
 
   Definition visitSetMutable(SetMutable node) {
-    return new SetMutable(getCopy(node.variableRef), getCopy(node.valueRef));
+    return new SetMutable(getCopy(node.variableRef), getCopy(node.valueRef),
+        sourceInformation: node.sourceInformation);
   }
 
   Definition visitSetStatic(SetStatic node) {
@@ -2830,7 +2851,8 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
 
   Definition visitSetField(SetField node) {
     return new SetField(
-        getCopy(node.objectRef), node.field, getCopy(node.valueRef));
+        getCopy(node.objectRef), node.field, getCopy(node.valueRef),
+        sourceInformation: node.sourceInformation);
   }
 
   Definition visitGetLazyStatic(GetLazyStatic node) {
@@ -2856,7 +2878,8 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   }
 
   Definition visitGetMutable(GetMutable node) {
-    return new GetMutable(getCopy(node.variableRef));
+    return new GetMutable(
+        getCopy(node.variableRef), sourceInformation: node.sourceInformation);
   }
 
   Definition visitParameter(Parameter node) {
@@ -2972,6 +2995,7 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   Definition visitForeignCode(ForeignCode node) {
     return new ForeignCode(node.codeTemplate, node.storedType,
         getList(node.argumentRefs), node.nativeBehavior,
+        node.sourceInformation,
         dependency: node.dependency);
   }
 }

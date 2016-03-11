@@ -497,7 +497,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   js.Expression visitVariableUse(tree_ir.VariableUse node) {
-    return buildVariableAccess(node.variable);
+    return buildVariableAccess(node.variable)
+        .withSourceInformation(node.sourceInformation);
   }
 
   js.Expression buildVariableAccess(tree_ir.Variable variable) {
@@ -537,20 +538,25 @@ class CodeGenerator extends tree_ir.StatementVisitor
   js.Expression makeAssignment(
       js.Expression leftHand,
       tree_ir.Expression value,
-      {BuiltinOperator compound}) {
+      {SourceInformation sourceInformation,
+       BuiltinOperator compound}) {
     if (isOneConstant(value)) {
       if (compound == BuiltinOperator.NumAdd) {
-        return new js.Prefix('++', leftHand);
+        return new js.Prefix('++', leftHand)
+            .withSourceInformation(sourceInformation);
       }
       if (compound == BuiltinOperator.NumSubtract) {
-        return new js.Prefix('--', leftHand);
+        return new js.Prefix('--', leftHand)
+            .withSourceInformation(sourceInformation);
       }
     }
     if (compound != null) {
       return new js.Assignment.compound(leftHand,
-          getAsCompoundOperator(compound), visitExpression(value));
+          getAsCompoundOperator(compound), visitExpression(value))
+          .withSourceInformation(sourceInformation);
     }
-    return new js.Assignment(leftHand, visitExpression(value));
+    return new js.Assignment(leftHand, visitExpression(value))
+        .withSourceInformation(sourceInformation);
   }
 
   @override
@@ -561,10 +567,12 @@ class CodeGenerator extends tree_ir.StatementVisitor
       tree_ir.Expression left = rhs.arguments[0];
       tree_ir.Expression right = rhs.arguments[1];
       if (left is tree_ir.VariableUse && left.variable == node.variable) {
-        return makeAssignment(variable, right, compound: rhs.operator);
+        return makeAssignment(variable, right, compound: rhs.operator,
+            sourceInformation: node.sourceInformation);
       }
     }
-    return makeAssignment(variable, node.value);
+    return makeAssignment(
+        variable, node.value, sourceInformation: node.sourceInformation);
   }
 
   @override
@@ -620,7 +628,9 @@ class CodeGenerator extends tree_ir.StatementVisitor
     js.Expression exp = visitExpression(node.expression);
     if (node.next is tree_ir.Unreachable && emitUnreachableAsReturn.last) {
       // Emit as 'return exp' to assist local analysis in the VM.
-      accumulator.add(new js.Return(exp));
+      SourceInformation sourceInformation = node.expression.sourceInformation;
+      accumulator.add(
+          new js.Return(exp).withSourceInformation(sourceInformation));
       return null;
     } else {
       accumulator.add(new js.ExpressionStatement(exp));
@@ -880,7 +890,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
     registry.registerStaticUse(new StaticUse.fieldGet(node.field));
     return new js.PropertyAccess(
         visitExpression(node.object),
-        glue.instanceFieldPropertyName(node.field));
+        glue.instanceFieldPropertyName(node.field))
+        .withSourceInformation(node.sourceInformation);
   }
 
   @override
@@ -890,7 +901,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
         new js.PropertyAccess(
             visitExpression(node.object),
             glue.instanceFieldPropertyName(node.field));
-    return makeAssignment(field, node.value, compound: node.compound);
+    return makeAssignment(field, node.value, compound: node.compound,
+        sourceInformation: node.sourceInformation);
   }
 
   @override
@@ -900,7 +912,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
       // Tear off a method.
       registry.registerStaticUse(
           new StaticUse.staticTearOff(node.element.declaration));
-      return glue.isolateStaticClosureAccess(node.element);
+      return glue.isolateStaticClosureAccess(node.element)
+        .withSourceInformation(node.sourceInformation);
     }
     if (node.useLazyGetter) {
       // Read a lazily initialized field.
@@ -913,7 +926,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
     // Read an eagerly initialized field.
     registry.registerStaticUse(
         new StaticUse.staticGet(node.element.declaration));
-    return glue.staticFieldAccess(node.element);
+    return glue.staticFieldAccess(node.element)
+        .withSourceInformation(node.sourceInformation);
   }
 
   @override
@@ -922,7 +936,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
     registry.registerStaticUse(
         new StaticUse.staticSet(node.element.declaration));
     js.Expression field = glue.staticFieldAccess(node.element);
-    return makeAssignment(field, node.value, compound: node.compound);
+    return makeAssignment(field, node.value, compound: node.compound,
+        sourceInformation: node.sourceInformation);
   }
 
   @override
@@ -1011,7 +1026,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
     }
     // TODO(sra,johnniwinther): Should this be in CodegenRegistry?
     glue.registerNativeBehavior(node.nativeBehavior, node);
-    return node.codeTemplate.instantiate(visitExpressionList(node.arguments));
+    return node.codeTemplate.instantiate(visitExpressionList(node.arguments))
+        .withSourceInformation(node.sourceInformation);
   }
 
   @override

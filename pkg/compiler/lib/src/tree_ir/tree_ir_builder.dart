@@ -4,11 +4,13 @@
 
 library tree_ir_builder;
 
+import 'package:js_ast/js_ast.dart' as js;
+
 import '../common.dart';
 import '../constants/values.dart';
 import '../cps_ir/cps_ir_nodes.dart' as cps_ir;
 import '../elements/elements.dart';
-import 'package:js_ast/js_ast.dart' as js;
+import '../io/source_information.dart';
 import '../js_backend/codegen/glue.dart';
 
 import 'tree_ir_nodes.dart';
@@ -85,9 +87,10 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   }
 
   VariableUse getMutableVariableUse(
-        cps_ir.Reference<cps_ir.MutableVariable> reference) {
+        cps_ir.Reference<cps_ir.MutableVariable> reference,
+        SourceInformation sourceInformation) {
     Variable variable = getMutableVariable(reference.definition);
-    return new VariableUse(variable);
+    return new VariableUse(variable, sourceInformation: sourceInformation);
   }
 
   /// Obtains the variable representing the given primitive. Returns null for
@@ -483,7 +486,8 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   Expression visitSetField(cps_ir.SetField node) {
     return new SetField(getVariableUse(node.objectRef),
                         node.field,
-                        getVariableUse(node.valueRef));
+                        getVariableUse(node.valueRef),
+                        node.sourceInformation);
   }
 
   Expression visitInterceptor(cps_ir.Interceptor node) {
@@ -502,7 +506,7 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
 
   Expression visitGetField(cps_ir.GetField node) {
     return new GetField(getVariableUse(node.objectRef), node.field,
-        objectIsNotNull: !node.object.type.isNullable);
+        node.sourceInformation, objectIsNotNull: !node.object.type.isNullable);
   }
 
   Expression visitCreateBox(cps_ir.CreateBox node) {
@@ -516,13 +520,14 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   }
 
   Expression visitGetMutable(cps_ir.GetMutable node) {
-    return getMutableVariableUse(node.variableRef);
+    return getMutableVariableUse(node.variableRef, node.sourceInformation);
   }
 
   Expression visitSetMutable(cps_ir.SetMutable node) {
     Variable variable = getMutableVariable(node.variable);
     Expression value = getVariableUse(node.valueRef);
-    return new Assign(variable, value);
+    return new Assign(
+        variable, value, sourceInformation: node.sourceInformation);
   }
 
   Expression visitConstant(cps_ir.Constant node) {
@@ -724,7 +729,8 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
           arguments,
           node.nativeBehavior,
           nullableArguments,
-          node.dependency);
+          node.dependency,
+          node.sourceInformation);
     } else {
       return (Statement next) {
         assert(next is Unreachable); // We are not using the `next` statement.
@@ -734,7 +740,8 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
             arguments,
             node.nativeBehavior,
             nullableArguments,
-            node.dependency);
+            node.dependency,
+            node.sourceInformation);
       };
     }
   }

@@ -222,6 +222,8 @@ class PositionSourceInformationBuilder implements SourceInformationBuilder {
             sourceFile, right.getBeginToken().charOffset, name));
   }
 
+  // TODO(johnniwinther): Clean up the use of this and [buildBinary],
+  // [buildIndex], etc.
   @override
   SourceInformation buildCall(Node receiver, Node call) {
     return new PositionSourceInformation(
@@ -266,6 +268,42 @@ class PositionSourceInformationBuilder implements SourceInformationBuilder {
   SourceInformationBuilder forContext(AstElement element) {
     return new PositionSourceInformationBuilder(element);
   }
+
+  @override
+  SourceInformation buildForeignCode(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildStringInterpolation(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildForInIterator(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildForInMoveNext(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildForInCurrent(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildForInSet(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildIndex(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildIndexSet(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildBinary(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildCatch(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildIs(Node node) => buildBegin(node);
+
+  @override
+  SourceInformation buildAs(Node node) => buildBegin(node);
 }
 
 /// The start, end and closing offsets for a [js.Node].
