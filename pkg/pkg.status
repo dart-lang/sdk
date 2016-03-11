@@ -49,6 +49,8 @@ analyzer/test/dart/ast/ast_test: Pass, Slow # Issue 19756, 21628
 analyzer/test/dart/ast/utilities_test: Pass, Slow # Issue 19756, 21628
 analyzer/test/dart/ast/visitor_test: Pass, Slow # Issue 19756, 21628
 analyzer/test/enum_test: Slow, Pass, Fail # Issue 21323
+analyzer/test/non_hint_code_test: Pass, Slow # Issue 21628
+analyzer/test/strong_mode_test: Pass, Slow # Issue 21628
 analyzer/test/generated/all_the_rest_test: Pass, Slow # Issue 21628
 analyzer/test/generated/ast_test: Pass, Slow # Issue 21628
 analyzer/test/generated/compile_time_error_code_test: Pass, Slow
@@ -66,6 +68,7 @@ analyzer/test/generated/parser_test: Pass, Slow # Issue 21628
 analyzer/test/generated/resolver_test: Pass, Slow # Issue 21628
 analyzer/test/generated/scanner_test: Pass, Slow # Issue 21628
 analyzer/test/generated/source_factory_test: Pass, Slow # Issue 21628
+analyzer/test/generated/static_type_analyzer_test: Pass, Slow # Issue 21628
 analyzer/test/generated/static_type_warning_code_test: Pass, Slow
 analyzer/test/generated/static_type_warning_code_test: Pass, Slow # Issue 21628
 analyzer/test/generated/static_warning_code_test: Pass, Slow # Issue 21628
