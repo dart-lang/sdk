@@ -2952,12 +2952,33 @@ abstract class InferStaticVariableTask extends ConstantEvaluationAnalysisTask {
   VariableDeclaration getDeclaration(CompilationUnit unit) {
     VariableElement variable = target;
     AstNode node = new NodeLocator2(variable.nameOffset).searchWithin(unit);
+    if (node == null) {
+      Source variableSource = variable.source;
+      Source unitSource = unit.element.source;
+      if (variableSource != unitSource) {
+        throw new AnalysisException(
+            "Failed to find the AST node for the variable "
+            "${variable.displayName} in $variableSource "
+            "because we were looking in $unitSource");
+      }
+      throw new AnalysisException(
+          "Failed to find the AST node for the variable "
+          "${variable.displayName} in $variableSource");
+    }
     VariableDeclaration declaration =
         node.getAncestor((AstNode ancestor) => ancestor is VariableDeclaration);
     if (declaration == null || declaration.name != node) {
+      Source variableSource = variable.source;
+      Source unitSource = unit.element.source;
+      if (variableSource != unitSource) {
+        throw new AnalysisException(
+            "Failed to find the declaration of the variable "
+            "${variable.displayName} in $variableSource"
+            "because we were looking in $unitSource");
+      }
       throw new AnalysisException(
           "Failed to find the declaration of the variable "
-          "${variable.displayName} in ${variable.source}");
+          "${variable.displayName} in $variableSource");
     }
     return declaration;
   }
@@ -3911,6 +3932,15 @@ class PropagateVariableTypeTask extends InferStaticVariableTask {
    */
   static Map<String, TaskInput> buildInputs(AnalysisTarget target) {
     VariableElement variable = target;
+    if (variable.library == null) {
+      StringBuffer buffer = new StringBuffer();
+      buffer.write(
+          'PropagateVariableTypeTask building inputs for a variable with no library. Variable name = "');
+      buffer.write(variable.name);
+      buffer.write('". Path = ');
+      (variable as ElementImpl).appendPathTo(buffer);
+      throw new AnalysisException(buffer.toString());
+    }
     LibrarySpecificUnit unit =
         new LibrarySpecificUnit(variable.library.source, variable.source);
     return <String, TaskInput>{
@@ -5119,6 +5149,11 @@ class VerifyUnitTask extends SourceBasedAnalysisTask {
     CompilationUnit unit = getRequiredInput(UNIT_INPUT);
     CompilationUnitElement unitElement = unit.element;
     LibraryElement libraryElement = unitElement.library;
+    if (libraryElement == null) {
+      throw new AnalysisException(
+          'VerifyUnitTask verifying a unit with no library: '
+          '${unitElement.source.fullName}');
+    }
     //
     // Validate the directives.
     //

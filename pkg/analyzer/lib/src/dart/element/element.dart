@@ -1987,6 +1987,27 @@ abstract class ElementImpl implements Element {
   }
 
   /**
+   * Append to the given [buffer] a comma-separated list of the names of the
+   * types of this element and every enclosing element.
+   */
+  void appendPathTo(StringBuffer buffer) {
+    Element element = this;
+    while (element != null) {
+      if (element != this) {
+        buffer.write(', ');
+      }
+      buffer.write(element.runtimeType);
+      String name = element.name;
+      if (name != null) {
+        buffer.write(' (');
+        buffer.write(name);
+        buffer.write(')');
+      }
+      element = element.enclosingElement;
+    }
+  }
+
+  /**
    * Append a textual representation of this element to the given [buffer].
    */
   void appendTo(StringBuffer buffer) {
