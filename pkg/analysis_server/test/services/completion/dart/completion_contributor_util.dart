@@ -13,17 +13,16 @@ import 'package:analysis_server/plugin/protocol/protocol.dart'
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
+import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
     show DartCompletionRequestImpl, ReplacementRange;
-import 'package:analysis_server/src/services/index/index.dart';
-import 'package:analysis_server/src/services/index/local_memory_index.dart';
-import 'package:analysis_server/src/services/search/search_engine_internal.dart';
+import 'package:analysis_server/src/services/index2/index2.dart';
+import 'package:analysis_server/src/services/search/search_engine_internal2.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../../abstract_context.dart';
-import 'package:analysis_server/src/services/completion/completion_performance.dart';
 
 int suggestionComparator(CompletionSuggestion s1, CompletionSuggestion s2) {
   String c1 = s1.completion.toLowerCase();
@@ -32,8 +31,8 @@ int suggestionComparator(CompletionSuggestion s1, CompletionSuggestion s2) {
 }
 
 abstract class DartCompletionContributorTest extends AbstractContextTest {
-  Index index;
-  SearchEngineImpl searchEngine;
+  Index2 index;
+  SearchEngineImpl2 searchEngine;
   String testFile = '/completionTest.dart';
   Source testSource;
   int completionOffset;
@@ -541,8 +540,8 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    index = createLocalMemoryIndex();
-    searchEngine = new SearchEngineImpl(index);
+    index = createMemoryIndex2();
+    searchEngine = new SearchEngineImpl2(index);
     contributor = createContributor();
   }
 }

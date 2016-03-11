@@ -739,7 +739,7 @@ main(A a, p) {
     }
   }
 
-  test_potential_method_definedInSubclass() async {
+  fail_potential_method_definedInSubclass() async {
     addTestFile('''
 class Base {
   methodInBase() {

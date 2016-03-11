@@ -96,10 +96,6 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
         await searchEngine.searchMemberReferences(oldName);
     List<SourceReference> nameRefs = getSourceReferences(nameMatches);
     for (SourceReference reference in nameRefs) {
-      // ignore resolved reference, we have already updated it
-      if (reference.isResolved) {
-        continue;
-      }
       // ignore references from SDK and pub cache
       if (isElementInSdkOrPubCache(reference.element)) {
         continue;

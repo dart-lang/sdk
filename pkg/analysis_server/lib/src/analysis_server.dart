@@ -22,6 +22,7 @@ import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index2/index2.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analysis_server/src/services/search/search_engine_internal2.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -322,7 +323,7 @@ class AnalysisServer {
       this.rethrowExceptions: true})
       : index = _index,
         index2 = _index2,
-        searchEngine = _index != null ? createSearchEngine(_index) : null {
+        searchEngine = _index != null ? new SearchEngineImpl2(_index2) : null {
     _performance = performanceDuringStartup;
     defaultContextOptions.incremental = true;
     defaultContextOptions.incrementalApi =

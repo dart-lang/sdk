@@ -109,7 +109,7 @@ int myFunc() {}
     expect(suggestion.docComplete,
         'My function.\nShort description.\n\nLonger description.');
   }
-  
+
   test_enum() async {
     addSource('/libA.dart', 'library A; enum E { one, two }');
     addTestSource('import "/libA.dart"; main() {^}');
@@ -499,7 +499,7 @@ class C extends B with M1, M2 {
       result.changeNotices.forEach((ChangeNotice notice) {
         CompilationUnit unit = notice.resolvedDartUnit;
         if (unit != null) {
-          index.index(context2, unit);
+          index.indexUnit(unit);
         }
       });
       result = context2.performAnalysisTask();
