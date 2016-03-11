@@ -701,6 +701,40 @@ main(A a) {
     assertThat(field)..isReferencedAt('field: 4', true);
   }
 
+  void test_isReferencedBy_FieldElement_multiple() {
+    _indexTestUnit('''
+class A {
+  var aaa;
+  var bbb;
+  A(this.aaa, this.bbb) {}
+  m() {
+    print(aaa);
+    aaa = 1;
+    print(bbb);
+    bbb = 2;
+  }
+}
+''');
+    // aaa
+    {
+      FieldElement field = findElement('aaa');
+      PropertyAccessorElement getter = field.getter;
+      PropertyAccessorElement setter = field.setter;
+      assertThat(field)..isWrittenAt('aaa, ', true);
+      assertThat(getter)..isReferencedAt('aaa);', false);
+      assertThat(setter)..isReferencedAt('aaa = 1;', false);
+    }
+    // bbb
+    {
+      FieldElement field = findElement('bbb');
+      PropertyAccessorElement getter = field.getter;
+      PropertyAccessorElement setter = field.setter;
+      assertThat(field)..isWrittenAt('bbb) {}', true);
+      assertThat(getter)..isReferencedAt('bbb);', false);
+      assertThat(setter)..isReferencedAt('bbb = 2;', false);
+    }
+  }
+
   void test_isReferencedBy_FunctionElement() {
     _indexTestUnit('''
 foo() {}

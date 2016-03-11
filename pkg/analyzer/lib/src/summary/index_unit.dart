@@ -212,7 +212,7 @@ class PackageIndexAssembler {
         kind = accessor.isGetter
             ? IndexSyntheticElementKind.getter
             : IndexSyntheticElementKind.setter;
-        element = element.enclosingElement;
+        element = accessor.variable;
       } else if (element is TopLevelVariableElement) {
         TopLevelVariableElement property = element;
         kind = IndexSyntheticElementKind.topLevelVariable;
