@@ -29,7 +29,8 @@ process_service_test: Pass, Fail # Issue 24344
 *: Skip # Issue 24651
 
 [ $runtime == vm ]
-coverage_test: Pass, Slow
+coverage_test: Pass, Slow, Timeout
+vm_timeline_events_test: Pass, Slow, Timeout
 
 # Service protocol is not supported in product mode.
 [ $mode == product ]
