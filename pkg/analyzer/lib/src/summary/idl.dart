@@ -272,7 +272,17 @@ enum IndexSyntheticElementKind {
   /**
    * The synthetic setter of a property introducing element.
    */
-  setter
+  setter,
+
+  /**
+   * The synthetic top-level variable element.
+   */
+  topLevelVariable,
+
+  /**
+   * The synthetic `loadLibrary` element.
+   */
+  loadLibrary
 }
 
 /**

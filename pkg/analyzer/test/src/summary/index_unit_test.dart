@@ -314,6 +314,21 @@ main() {
       ..isInvokedAt('foo(); // nq', false);
   }
 
+  void test_isInvokedBy_FunctionElement_synthetic_loadLibrary() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+import 'dart:math' deferred as math;
+main() {
+  math.loadLibrary(); // 1
+  math.loadLibrary(); // 2
+}
+''');
+    LibraryElement mathLib = testLibraryElement.imports[0].importedLibrary;
+    FunctionElement element = mathLib.loadLibraryFunction;
+    assertThat(element).isInvokedAt('loadLibrary(); // 1', true);
+    assertThat(element).isInvokedAt('loadLibrary(); // 2', true);
+  }
+
   void test_isInvokedBy_MethodElement() {
     _indexTestUnit('''
 class A {
@@ -779,6 +794,35 @@ main() {
       ..isReferencedAt('V = 5; // nq', false);
   }
 
+  void test_isReferencedBy_TopLevelVariableElement_synthetic_hasGetterSetter() {
+    verifyNoTestUnitErrors = false;
+    addSource(
+        '/lib.dart',
+        '''
+int get V => 0;
+void set V(_) {}
+''');
+    _indexTestUnit('''
+import 'lib.dart' show V;
+''');
+    TopLevelVariableElement element = importedUnit().topLevelVariables[0];
+    assertThat(element).isReferencedAt('V;', true);
+  }
+
+  void test_isReferencedBy_TopLevelVariableElement_synthetic_hasSetter() {
+    verifyNoTestUnitErrors = false;
+    addSource(
+        '/lib.dart',
+        '''
+void set V(_) {}
+''');
+    _indexTestUnit('''
+import 'lib.dart' show V;
+''');
+    TopLevelVariableElement element = importedUnit().topLevelVariables[0];
+    assertThat(element).isReferencedAt('V;', true);
+  }
+
   void test_isReferencedBy_typeInVariableList() {
     _indexTestUnit('''
 class A {}
@@ -880,7 +924,7 @@ main() {
       List<_Relation> relations,
       IndexRelationKind expectedRelationKind,
       ExpectedLocation expectedLocation) {
-    for (var relation in relations) {
+    for (_Relation relation in relations) {
       if (relation.kind == expectedRelationKind &&
           relation.offset == expectedLocation.offset &&
           relation.length == expectedLocation.length &&

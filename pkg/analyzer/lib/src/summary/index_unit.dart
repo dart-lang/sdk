@@ -204,12 +204,20 @@ class PackageIndexAssembler {
       if (element is ConstructorElement) {
         kind = IndexSyntheticElementKind.constructor;
         element = element.enclosingElement;
+      } else if (element is FunctionElement && element.name == 'loadLibrary') {
+        kind = IndexSyntheticElementKind.loadLibrary;
+        element = element.library;
       } else if (element is PropertyAccessorElement) {
-        PropertyAccessorElement property = element;
-        kind = property.isGetter
+        PropertyAccessorElement accessor = element;
+        kind = accessor.isGetter
             ? IndexSyntheticElementKind.getter
             : IndexSyntheticElementKind.setter;
         element = element.enclosingElement;
+      } else if (element is TopLevelVariableElement) {
+        TopLevelVariableElement property = element;
+        kind = IndexSyntheticElementKind.topLevelVariable;
+        element = property.getter;
+        element ??= property.setter;
       } else {
         throw new ArgumentError(
             'Unsupported synthetic element ${element.runtimeType}');
