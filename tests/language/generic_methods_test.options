@@ -1,0 +1,3 @@
+analyzer:
+  language:
+    enableGenericMethods: true
