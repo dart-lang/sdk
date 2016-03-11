@@ -1023,6 +1023,12 @@ table UnitIndex {
    * quickly find name uses in this [UnitIndex].
    */
   usedNames:[uint] (id: 8);
+
+  /**
+   * Each item of this list is the `true` if the corresponding name usage
+   * is qualified with some prefix.
+   */
+  usedNameIsQualifiedFlags:[ubyte] (id: 12);
 }
 
 /**

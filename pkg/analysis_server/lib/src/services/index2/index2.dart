@@ -546,7 +546,7 @@ class _UnitIndexRequester {
           unitIndex.usedNameKinds[i],
           unitIndex.usedNameOffsets[i],
           name.length,
-          true,
+          unitIndex.usedNameIsQualifiedFlags[i],
           false));
     }
     return locations;

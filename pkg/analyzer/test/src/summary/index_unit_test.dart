@@ -911,18 +911,35 @@ main(p) {
 }
 ''');
     assertThatName('x')
-      ..isUsed('x;', IndexRelationKind.IS_READ_BY)
-      ..isUsed('x = 1;', IndexRelationKind.IS_WRITTEN_BY)
-      ..isUsed('x += 2;', IndexRelationKind.IS_READ_WRITTEN_BY)
-      ..isUsed('x();', IndexRelationKind.IS_INVOKED_BY);
+      ..isUsedQ('x;', IndexRelationKind.IS_READ_BY)
+      ..isUsedQ('x = 1;', IndexRelationKind.IS_WRITTEN_BY)
+      ..isUsedQ('x += 2;', IndexRelationKind.IS_READ_WRITTEN_BY)
+      ..isUsedQ('x();', IndexRelationKind.IS_INVOKED_BY);
   }
 
-  void test_usedName_unqualified() {
+  void test_usedName_unqualified_resolved() {
     verifyNoTestUnitErrors = false;
     _indexTestUnit('''
 class C {
   var x;
+  m() {
+    x;
+    x = 1;
+    x += 2;
+    x();
+  }
 }
+''');
+    assertThatName('x')
+      ..isNotUsed('x;', IndexRelationKind.IS_READ_BY)
+      ..isNotUsed('x = 1;', IndexRelationKind.IS_WRITTEN_BY)
+      ..isNotUsed('x += 2;', IndexRelationKind.IS_READ_WRITTEN_BY)
+      ..isNotUsed('x();', IndexRelationKind.IS_INVOKED_BY);
+  }
+
+  void test_usedName_unqualified_unresolved() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
 main() {
   x;
   x = 1;
@@ -931,10 +948,10 @@ main() {
 }
 ''');
     assertThatName('x')
-      ..isNotUsed('x;', IndexRelationKind.IS_READ_BY)
-      ..isNotUsed('x = 1;', IndexRelationKind.IS_WRITTEN_BY)
-      ..isNotUsed('x += 2;', IndexRelationKind.IS_READ_WRITTEN_BY)
-      ..isNotUsed('x();', IndexRelationKind.IS_INVOKED_BY);
+      ..isUsed('x;', IndexRelationKind.IS_READ_BY)
+      ..isUsed('x = 1;', IndexRelationKind.IS_WRITTEN_BY)
+      ..isUsed('x += 2;', IndexRelationKind.IS_READ_WRITTEN_BY)
+      ..isUsed('x();', IndexRelationKind.IS_INVOKED_BY);
   }
 
   void _assertDefinedName(String name, IndexNameKind kind, String search) {
@@ -976,7 +993,9 @@ main() {
     for (int i = 0; i < unitIndex.usedNames.length; i++) {
       if (unitIndex.usedNames[i] == nameId &&
           unitIndex.usedNameKinds[i] == kind &&
-          unitIndex.usedNameOffsets[i] == expectedLocation.offset) {
+          unitIndex.usedNameOffsets[i] == expectedLocation.offset &&
+          unitIndex.usedNameIsQualifiedFlags[i] ==
+              expectedLocation.isQualified) {
         if (isNot) {
           _failWithIndexDump('Unexpected $name $kind at $expectedLocation');
         }
@@ -1158,6 +1177,11 @@ class _NameIndexAssert {
   }
 
   void isUsed(String search, IndexRelationKind kind) {
+    test._assertUsedName(
+        name, kind, test._expectedLocation(search, false), false);
+  }
+
+  void isUsedQ(String search, IndexRelationKind kind) {
     test._assertUsedName(
         name, kind, test._expectedLocation(search, true), false);
   }

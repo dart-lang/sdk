@@ -33,7 +33,8 @@ class ElementReferencesTest extends AbstractSearchDomainTest {
     int offset = findOffset(search);
     await waitForTasksFinished();
     Request request = new SearchFindElementReferencesParams(
-        testFile, offset, includePotential).toRequest('0');
+            testFile, offset, includePotential)
+        .toRequest('0');
     Response response = await waitResponse(request);
     var result = new SearchFindElementReferencesResult.fromResponse(response);
     searchId = result.id;
@@ -739,7 +740,7 @@ main(A a, p) {
     }
   }
 
-  fail_potential_method_definedInSubclass() async {
+  test_potential_method_definedInSubclass() async {
     addTestFile('''
 class Base {
   methodInBase() {

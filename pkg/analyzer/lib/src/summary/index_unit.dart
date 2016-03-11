@@ -304,9 +304,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
   /**
    * Record that the name [node] has a relation of the given [kind].
    */
-  void recordNameRelation(SimpleIdentifier node, IndexRelationKind kind) {
+  void recordNameRelation(
+      SimpleIdentifier node, IndexRelationKind kind, bool isQualified) {
     if (node != null) {
-      assembler.addNameRelation(node.name, kind, node.offset);
+      assembler.addNameRelation(node.name, kind, node.offset, isQualified);
     }
   }
 
@@ -491,10 +492,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
   visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier name = node.methodName;
     Element element = name.bestElement;
-    // qualified unresolved name invocation
+    // unresolved name invocation
     bool isQualified = node.realTarget != null;
-    if (isQualified && element == null) {
-      recordNameRelation(name, IndexRelationKind.IS_INVOKED_BY);
+    if (element == null) {
+      recordNameRelation(name, IndexRelationKind.IS_INVOKED_BY, isQualified);
     }
     // element invocation
     IndexRelationKind kind = element is ClassElement
@@ -548,9 +549,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
       recordDefinedElement(element);
       return;
     }
-    // record qualified unresolved name reference
+    // record unresolved name reference
     bool isQualified = _isQualified(node);
-    if (isQualified && element == null) {
+    if (element == null) {
       bool inGetterContext = node.inGetterContext();
       bool inSetterContext = node.inSetterContext();
       IndexRelationKind kind;
@@ -561,7 +562,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       } else {
         kind = IndexRelationKind.IS_WRITTEN_BY;
       }
-      recordNameRelation(node, kind);
+      recordNameRelation(node, kind, isQualified);
     }
     // this.field parameter
     if (element is FieldFormalParameterElement) {
@@ -692,8 +693,9 @@ class _NameRelationInfo {
   final _StringInfo nameInfo;
   final IndexRelationKind kind;
   final int offset;
+  final bool isQualified;
 
-  _NameRelationInfo(this.nameInfo, this.kind, this.offset);
+  _NameRelationInfo(this.nameInfo, this.kind, this.offset, this.isQualified);
 }
 
 /**
@@ -744,9 +746,10 @@ class _UnitIndexAssembler {
     } on StateError {}
   }
 
-  void addNameRelation(String name, IndexRelationKind kind, int offset) {
+  void addNameRelation(
+      String name, IndexRelationKind kind, int offset, bool isQualified) {
     _StringInfo nameId = pkg._getStringInfo(name);
-    nameRelations.add(new _NameRelationInfo(nameId, kind, offset));
+    nameRelations.add(new _NameRelationInfo(nameId, kind, offset, isQualified));
   }
 
   /**
@@ -776,7 +779,9 @@ class _UnitIndexAssembler {
             elementRelations.map((r) => r.isQualified).toList(),
         usedNames: nameRelations.map((r) => r.nameInfo.id).toList(),
         usedNameKinds: nameRelations.map((r) => r.kind).toList(),
-        usedNameOffsets: nameRelations.map((r) => r.offset).toList());
+        usedNameOffsets: nameRelations.map((r) => r.offset).toList(),
+        usedNameIsQualifiedFlags:
+            nameRelations.map((r) => r.isQualified).toList());
   }
 
   void defineName(String name, IndexNameKind kind, int offset) {

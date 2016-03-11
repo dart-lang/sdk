@@ -116,34 +116,79 @@ class B {
     _assertMatches(matches, expected);
   }
 
-  test_searchMemberReferences() async {
+  test_searchMemberReferences_qualified_resolved() async {
     _indexTestUnit('''
-class A {
-  var test; // A
-  mainA() {
-    test(); // a-inv-r-nq
-    test = 1; // a-ref-r-nq
-    test += 2; // a-ref-r-nq
-    print(test); // a-ref-r-nq
-  }
+class C {
+  var test;
 }
-main(A a, p) {
-  print(a.test); // r
-  a.test = 1; // r
-  a.test += 2; // r
-  a.test(); // r
-  print(p.test); // ur
-  p.test = 1; // ur
-  p.test += 2; // ur
-  p.test(); // ur
+main(C c) {
+  print(c.test);
+  c.test = 1;
+  c.test += 2;
+  c.test();
+}
+''');
+    List<SearchMatch> matches =
+        await searchEngine.searchMemberReferences('test');
+    expect(matches, isEmpty);
+  }
+
+  test_searchMemberReferences_qualified_unresolved() async {
+    _indexTestUnit('''
+main(p) {
+  print(p.test);
+  p.test = 1;
+  p.test += 2;
+  p.test();
 }
 ''');
     Element main = findElement('main');
     var expected = [
-      _expectIdQU(main, MatchKind.READ, 'test); // ur'),
-      _expectIdQU(main, MatchKind.WRITE, 'test = 1; // ur'),
-      _expectIdQU(main, MatchKind.READ_WRITE, 'test += 2; // ur'),
-      _expectIdQU(main, MatchKind.INVOCATION, 'test(); // ur'),
+      _expectIdQU(main, MatchKind.READ, 'test);'),
+      _expectIdQU(main, MatchKind.WRITE, 'test = 1;'),
+      _expectIdQU(main, MatchKind.READ_WRITE, 'test += 2;'),
+      _expectIdQU(main, MatchKind.INVOCATION, 'test();'),
+    ];
+    List<SearchMatch> matches =
+        await searchEngine.searchMemberReferences('test');
+    _assertMatches(matches, expected);
+  }
+
+  test_searchMemberReferences_unqualified_resolved() async {
+    _indexTestUnit('''
+class C {
+  var test;
+  main() {
+    print(test);
+    test = 1;
+    test += 2;
+    test();
+  }
+}
+''');
+    List<SearchMatch> matches =
+        await searchEngine.searchMemberReferences('test');
+    expect(matches, isEmpty);
+  }
+
+  test_searchMemberReferences_unqualified_unresolved() async {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+class C {
+  main() {
+    print(test);
+    test = 1;
+    test += 2;
+    test();
+  }
+}
+''');
+    Element main = findElement('main');
+    var expected = [
+      _expectIdU(main, MatchKind.READ, 'test);'),
+      _expectIdU(main, MatchKind.WRITE, 'test = 1;'),
+      _expectIdU(main, MatchKind.READ_WRITE, 'test += 2;'),
+      _expectIdU(main, MatchKind.INVOCATION, 'test();'),
     ];
     List<SearchMatch> matches =
         await searchEngine.searchMemberReferences('test');
@@ -754,6 +799,15 @@ class NoMatchABCDE {}
       {int length}) {
     return _expectId(element, kind, search,
         isQualified: true, isResolved: false, length: length);
+  }
+
+  /**
+   * Create [ExpectedMatch] for a unqualified and unresolved match.
+   */
+  ExpectedMatch _expectIdU(Element element, MatchKind kind, String search,
+      {int length}) {
+    return _expectId(element, kind, search,
+        isQualified: false, isResolved: false, length: length);
   }
 
   void _indexTestUnit(String code) {
