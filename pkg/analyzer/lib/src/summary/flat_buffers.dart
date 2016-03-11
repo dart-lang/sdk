@@ -720,6 +720,21 @@ class Uint32Reader extends Reader<int> {
 }
 
 /**
+ * Reader of lists of unsigned 8-bit integer values.
+ *
+ * The returned unmodifiable lists lazily read values on access.
+ */
+class Uint8ListReader extends Reader<List<int>> {
+  const Uint8ListReader();
+
+  @override
+  int get size => 4;
+
+  @override
+  List<int> read(BufferPointer bp) => new _FbUint8List(bp.derefObject());
+}
+
+/**
  * The reader of unsigned 8-bit integers.
  */
 class Uint8Reader extends Reader<int> {
@@ -836,6 +851,18 @@ class _FbUint32List extends _FbList<int> {
   @override
   int operator [](int i) {
     return bp._getUint32(4 + 4 * i);
+  }
+}
+
+/**
+ * List backed by 8-bit unsigned integers.
+ */
+class _FbUint8List extends _FbList<int> {
+  _FbUint8List(BufferPointer bp) : super(bp);
+
+  @override
+  int operator [](int i) {
+    return bp._getUint8(4 + i);
   }
 }
 

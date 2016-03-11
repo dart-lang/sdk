@@ -133,10 +133,9 @@ _Output _buildMultipleOutputs(String sdkPath) {
  */
 void _extractSingleOutput(String inputPath, int field, String outputPath) {
   List<int> bytes = new File(inputPath).readAsBytesSync();
-  fb.BufferPointer bp = new fb.BufferPointer.fromBytes(bytes);
-  fb.BufferPointer table = bp.derefObject();
-  List<int> fieldBytes =
-      const fb.ListReader(const fb.Uint8Reader()).vTableGet(table, field);
+  fb.BufferPointer root = new fb.BufferPointer.fromBytes(bytes);
+  fb.BufferPointer table = root.derefObject();
+  List<int> fieldBytes = const fb.Uint8ListReader().vTableGet(table, field);
   new File(outputPath).writeAsBytesSync(fieldBytes, mode: FileMode.WRITE_ONLY);
 }
 
