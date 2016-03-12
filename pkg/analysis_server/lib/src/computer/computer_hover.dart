@@ -11,7 +11,6 @@ import 'package:analysis_server/src/utilities/documentation.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/generated/element.dart';
 
 /**
  * A computer for the hover at the specified offset of a Dart [CompilationUnit].

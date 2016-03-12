@@ -11,40 +11,12 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analysis_server/src/services/completion/dart/optype.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart'
     show createSuggestion, ElementSuggestionBuilder;
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/visitor.dart';
 
 import '../../../protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
-
-/**
- * A contributor for calculating suggestions for top level members
- * in the library in which the completion is requested
- * but outside the file in which the completion is requested.
- */
-class LocalLibraryContributor extends DartCompletionContributor {
-  @override
-  Future<List<CompletionSuggestion>> computeSuggestions(
-      DartCompletionRequest request) async {
-    if (!request.includeIdentifiers) {
-      return EMPTY_LIST;
-    }
-
-    List<CompilationUnitElement> libraryUnits = await request.resolveUnits();
-    if (libraryUnits == null) {
-      return EMPTY_LIST;
-    }
-
-    OpType optype = (request as DartCompletionRequestImpl).opType;
-    LibraryElementSuggestionBuilder visitor =
-        new LibraryElementSuggestionBuilder(request, optype);
-    for (CompilationUnitElement unit in libraryUnits) {
-      if (unit != null && unit.source != request.source) {
-        unit.accept(visitor);
-      }
-    }
-    return visitor.suggestions;
-  }
-}
 
 /**
  * A visitor for building suggestions based upon the elements defined by
@@ -174,5 +146,35 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
         }
       }
     }
+  }
+}
+
+/**
+ * A contributor for calculating suggestions for top level members
+ * in the library in which the completion is requested
+ * but outside the file in which the completion is requested.
+ */
+class LocalLibraryContributor extends DartCompletionContributor {
+  @override
+  Future<List<CompletionSuggestion>> computeSuggestions(
+      DartCompletionRequest request) async {
+    if (!request.includeIdentifiers) {
+      return EMPTY_LIST;
+    }
+
+    List<CompilationUnitElement> libraryUnits = await request.resolveUnits();
+    if (libraryUnits == null) {
+      return EMPTY_LIST;
+    }
+
+    OpType optype = (request as DartCompletionRequestImpl).opType;
+    LibraryElementSuggestionBuilder visitor =
+        new LibraryElementSuggestionBuilder(request, optype);
+    for (CompilationUnitElement unit in libraryUnits) {
+      if (unit != null && unit.source != request.source) {
+        unit.accept(visitor);
+      }
+    }
+    return visitor.suggestions;
   }
 }

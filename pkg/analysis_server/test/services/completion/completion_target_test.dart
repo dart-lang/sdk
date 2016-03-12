@@ -5,7 +5,7 @@
 library test.services.completion.target;
 
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
@@ -201,7 +201,7 @@ class CompletionTargetTest extends AbstractContextTest {
   test_FunctionDeclaration_inLineComment4() {
     // Comment  CompilationUnit
     addTestSource('''
-      // normal comment 
+      // normal comment
       // normal comment 2^
       zoo(z) { } String name;''');
     assertTarget('// normal comment 2', 'zoo(z) {} String name;');
@@ -386,7 +386,7 @@ class CompletionTargetTest extends AbstractContextTest {
     // Comment  ClassDeclaration  CompilationUnit
     addTestSource('''
       class C2 {
-        // normal comment 
+        // normal comment
         // normal comment 2^
         zoo(z) { } String name; }''');
     assertTarget('// normal comment 2', 'class C2 {zoo(z) {} String name;}');
