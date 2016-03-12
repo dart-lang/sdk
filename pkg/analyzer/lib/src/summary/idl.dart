@@ -282,7 +282,17 @@ enum IndexSyntheticElementKind {
   /**
    * The synthetic `loadLibrary` element.
    */
-  loadLibrary
+  loadLibrary,
+
+  /**
+   * The synthetic `index` getter of an enum.
+   */
+  enumIndex,
+
+  /**
+   * The synthetic `values` getter of an enum.
+   */
+  enumValues
 }
 
 /**

@@ -209,10 +209,20 @@ class PackageIndexAssembler {
         element = element.library;
       } else if (element is PropertyAccessorElement) {
         PropertyAccessorElement accessor = element;
-        kind = accessor.isGetter
-            ? IndexSyntheticElementKind.getter
-            : IndexSyntheticElementKind.setter;
-        element = accessor.variable;
+        Element enclosing = element.enclosingElement;
+        bool isEnumGetter = enclosing is ClassElement && enclosing.isEnum;
+        if (isEnumGetter && accessor.name == 'index') {
+          kind = IndexSyntheticElementKind.enumIndex;
+          element = enclosing;
+        } else if (isEnumGetter && accessor.name == 'values') {
+          kind = IndexSyntheticElementKind.enumValues;
+          element = enclosing;
+        } else {
+          kind = accessor.isGetter
+              ? IndexSyntheticElementKind.getter
+              : IndexSyntheticElementKind.setter;
+          element = accessor.variable;
+        }
       } else if (element is TopLevelVariableElement) {
         TopLevelVariableElement property = element;
         kind = IndexSyntheticElementKind.topLevelVariable;

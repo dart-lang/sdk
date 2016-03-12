@@ -735,6 +735,27 @@ class A {
     }
   }
 
+  void test_isReferencedBy_FieldElement_ofEnum() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+enum MyEnum {
+  A, B, C
+}
+main() {
+  print(MyEnum.values);
+  print(MyEnum.A.index);
+  print(MyEnum.A);
+  print(MyEnum.B);
+}
+''');
+    ClassElement enumElement = findElement('MyEnum');
+    assertThat(enumElement.getGetter('values'))
+      ..isReferencedAt('values);', true);
+    assertThat(enumElement.getGetter('index'))..isReferencedAt('index);', true);
+    assertThat(enumElement.getGetter('A'))..isReferencedAt('A);', true);
+    assertThat(enumElement.getGetter('B'))..isReferencedAt('B);', true);
+  }
+
   void test_isReferencedBy_FunctionElement() {
     _indexTestUnit('''
 foo() {}

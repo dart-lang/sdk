@@ -302,6 +302,32 @@ class A {
     await _verifyReferences(element, expected);
   }
 
+  test_searchReferences_FieldElement_ofEnum() async {
+    _indexTestUnit('''
+enum MyEnum {
+  A, B, C
+}
+main() {
+  print(MyEnum.A.index);
+  print(MyEnum.values);
+  print(MyEnum.A);
+  print(MyEnum.B);
+}
+''');
+    ClassElement enumElement = findElement('MyEnum');
+    Element mainElement = findElement('main');
+    await _verifyReferences(enumElement.getField('index'),
+        [_expectIdQ(mainElement, MatchKind.READ, 'index);')]);
+    await _verifyReferences(enumElement.getField('values'),
+        [_expectIdQ(mainElement, MatchKind.READ, 'values);')]);
+    await _verifyReferences(enumElement.getField('A'), [
+      _expectIdQ(mainElement, MatchKind.READ, 'A.index);'),
+      _expectIdQ(mainElement, MatchKind.READ, 'A);')
+    ]);
+    await _verifyReferences(enumElement.getField('B'),
+        [_expectIdQ(mainElement, MatchKind.READ, 'B);')]);
+  }
+
   test_searchReferences_FieldElement_synthetic() async {
     _indexTestUnit('''
 class A {
