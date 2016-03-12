@@ -572,7 +572,7 @@ class NewExpression extends Expression {
   Token getEndToken() => send.getEndToken();
 }
 
-class NodeList extends Node {
+class NodeList extends Node with IterableMixin<Node> {
   final Link<Node> nodes;
   final Token beginToken;
   final Token endToken;
@@ -587,6 +587,13 @@ class NodeList extends Node {
   NodeList.empty() : this(null, const Link<Node>());
 
   NodeList asNodeList() => this;
+
+  // Override [IterableMixin.toString] with same code as [Node.toString].
+  toString() => unparse(this);
+
+  get length {
+    throw new UnsupportedError('use slowLength() instead of get:length');
+  }
 
   int slowLength() {
     int result = 0;

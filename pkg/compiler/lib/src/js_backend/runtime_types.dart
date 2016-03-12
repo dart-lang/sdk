@@ -8,8 +8,8 @@ part of js_backend;
 abstract class TypeChecks {
   /// Get the set of checks required for class [element].
   Iterable<TypeCheck> operator[](ClassElement element);
-  /// Get the iterator for all classes that need type checks.
-  Iterator<ClassElement> get iterator;
+  /// Get the iterable for all classes that need type checks.
+  Iterable<ClassElement> get classes;
 }
 
 typedef jsAst.Expression OnVariableCallback(TypeVariableType variable);
@@ -478,7 +478,7 @@ class _RuntimeTypes implements RuntimeTypes {
                                                   TypeChecks checks) {
     Set<ClassElement> instantiated = new Set<ClassElement>();
     ArgumentCollector collector = new ArgumentCollector(backend);
-    for (ClassElement target in checks) {
+    for (ClassElement target in checks.classes) {
       instantiated.add(target);
       for (TypeCheck check in checks[target]) {
         Substitution substitution = check.substitution;
@@ -937,11 +937,11 @@ class TypeCheckMapping implements TypeChecks {
     map[cls].add(new TypeCheck(check, substitution));
   }
 
-  Iterator<ClassElement> get iterator => map.keys.iterator;
+  Iterable<ClassElement> get classes => map.keys;
 
   String toString() {
     StringBuffer sb = new StringBuffer();
-    for (ClassElement holder in this) {
+    for (ClassElement holder in classes) {
       for (ClassElement check in [holder]) {
         sb.write('${holder.name}.' '${check.name}, ');
       }

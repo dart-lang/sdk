@@ -4,7 +4,7 @@
 
 part of dart2js.util;
 
-class Link<T> {
+class Link<T> implements Iterable<T> {
   T get head => throw new StateError("no elements");
   Link<T> get tail => null;
 
@@ -120,6 +120,27 @@ class Link<T> {
   }
 
   Link copyWithout(e) => this;
+
+  //
+  // Unsupported Iterable<T> methods.
+  //
+  bool any(bool f(T e)) => _unsupported('any');
+  T elementAt(int i) =>  _unsupported('elementAt');
+  Iterable expand(Iterable f(T e)) => _unsupported('expand');
+  T firstWhere(bool f(T e), {T orElse()}) => _unsupported('firstWhere');
+  fold(initialValue, combine(value, T element)) => _unsupported('fold');
+  T get last => _unsupported('get:last');
+  T lastWhere(bool f(T e), {T orElse()}) => _unsupported('lastWhere');
+  String join([separator = '']) => _unsupported('join');
+  T reduce(T combine(T a, T b)) => _unsupported('reduce');
+  T singleWhere(bool f(T e)) => _unsupported('singleWhere');
+  Iterable<T> skipWhile(bool f(T e)) => _unsupported('skipWhile');
+  Iterable<T> take(int n) => _unsupported('take');
+  Iterable<T> takeWhile(bool f(T e)) => _unsupported('takeWhile');
+  Set<T> toSet() => _unsupported('toSet');
+  Iterable<T> where(bool f(T e)) => _unsupported('where');
+
+  _unsupported(String method) => throw new UnsupportedError(method);
 }
 
 /// Builder object for creating linked lists using [Link] or fixed-length [List]
