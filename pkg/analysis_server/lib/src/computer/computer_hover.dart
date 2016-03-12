@@ -8,8 +8,9 @@ import 'package:analysis_server/plugin/protocol/protocol.dart'
     show HoverInformation;
 import 'package:analysis_server/src/computer/computer_overrides.dart';
 import 'package:analysis_server/src/utilities/documentation.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/element.dart';
 
 /**

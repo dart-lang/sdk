@@ -12,6 +12,7 @@
  * contact the analyzer team to either find an alternate API or have the API you
  * depend on added to the public API.
  */
+@deprecated
 library analyzer.src.generated.ast;
 
 export 'package:analyzer/dart/ast/ast.dart';

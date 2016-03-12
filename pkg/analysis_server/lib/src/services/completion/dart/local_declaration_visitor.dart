@@ -6,7 +6,8 @@ library services.completion.dart.local.declaration.visitor;
 
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 
 /**
  * `LocalDeclarationCollector` visits an [AstNode] and its parent recursively

@@ -6,12 +6,12 @@ library serialization.elements;
 
 import 'dart:convert';
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
@@ -590,7 +590,8 @@ class _CompilationUnitSerializer {
 
   CodeRangeBuilder serializeCodeRange(Element element) {
     if (element is ElementImpl && element.codeOffset != null) {
-      return new CodeRangeBuilder(offset: element.codeOffset, length: element.codeLength);
+      return new CodeRangeBuilder(
+          offset: element.codeOffset, length: element.codeLength);
     }
     return null;
   }

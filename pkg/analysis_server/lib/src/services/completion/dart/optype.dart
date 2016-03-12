@@ -6,9 +6,10 @@ library services.completion.dart.optype;
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/generated/ast.dart';
 
 /**
  * An [AstVisitor] for determining whether top level suggestions or invocation
@@ -83,7 +84,8 @@ class OpType {
   /**
    * Indicate whether only type names should be suggested
    */
-  bool get includeOnlyTypeNameSuggestions => includeTypeNameSuggestions &&
+  bool get includeOnlyTypeNameSuggestions =>
+      includeTypeNameSuggestions &&
       !includeReturnValueSuggestions &&
       !includeVoidReturnSuggestions;
 }
@@ -136,7 +138,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     }
   }
 
-@override
+  @override
   void visitAssertStatement(AssertStatement node) {
     if (identical(entity, node.condition)) {
       optype.includeReturnValueSuggestions = true;

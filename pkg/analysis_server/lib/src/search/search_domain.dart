@@ -15,8 +15,8 @@ import 'package:analysis_server/src/search/type_hierarchy.dart';
 import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/index/indexable_file.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/ast.dart';
 
 /**
  * Instances of the class [SearchDomainHandler] implement a [RequestHandler]
