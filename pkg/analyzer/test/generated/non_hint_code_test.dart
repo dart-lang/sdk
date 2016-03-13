@@ -158,11 +158,66 @@ f() {
     verify([source]);
   }
 
-  void test_deprecatedAnnotationUse_classWithConstructor() {
+  void test_deprecatedMemberUse_inDeprecatedClass() {
     Source source = addSource(r'''
 @deprecated
+f() {}
+
+@deprecated
 class C {
-  C();
+  m() {
+    f();
+  }
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_deprecatedMemberUse_inDeprecatedFunction() {
+    Source source = addSource(r'''
+@deprecated
+f() {}
+
+@deprecated
+g() {
+  f();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_deprecatedMemberUse_inDeprecatedMethod() {
+    Source source = addSource(r'''
+@deprecated
+f() {}
+
+class C {
+  @deprecated
+  m() {
+    f();
+  }
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_deprecatedMemberUse_inDeprecatedMethod_inDeprecatedClass() {
+    Source source = addSource(r'''
+@deprecated
+f() {}
+
+@deprecated
+class C {
+  @deprecated
+  m() {
+    f();
+  }
 }
 ''');
     computeLibrarySourceErrors(source);
@@ -1095,7 +1150,7 @@ class PubSuggestionCodeTest extends ResolverTestCase {
     cacheSource("/myproj/pubspec.yaml", "");
     cacheSource("/myproj/lib/other.dart", "");
     Source source =
-    addNamedSource("/myproj/web/test.dart", "import '../lib/other.dart';");
+        addNamedSource("/myproj/web/test.dart", "import '../lib/other.dart';");
     computeLibrarySourceErrors(source);
     assertErrors(
         source, [HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE]);
@@ -1104,7 +1159,7 @@ class PubSuggestionCodeTest extends ResolverTestCase {
   void test_import_referenceIntoLibDirectory_no_pubspec() {
     cacheSource("/myproj/lib/other.dart", "");
     Source source =
-    addNamedSource("/myproj/web/test.dart", "import '../lib/other.dart';");
+        addNamedSource("/myproj/web/test.dart", "import '../lib/other.dart';");
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
@@ -1113,7 +1168,7 @@ class PubSuggestionCodeTest extends ResolverTestCase {
     cacheSource("/myproj/pubspec.yaml", "");
     cacheSource("/myproj/web/other.dart", "");
     Source source =
-    addNamedSource("/myproj/lib/test.dart", "import '../web/other.dart';");
+        addNamedSource("/myproj/lib/test.dart", "import '../web/other.dart';");
     computeLibrarySourceErrors(source);
     assertErrors(
         source, [HintCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE]);
@@ -1122,7 +1177,7 @@ class PubSuggestionCodeTest extends ResolverTestCase {
   void test_import_referenceOutOfLibDirectory_no_pubspec() {
     cacheSource("/myproj/web/other.dart", "");
     Source source =
-    addNamedSource("/myproj/lib/test.dart", "import '../web/other.dart';");
+        addNamedSource("/myproj/lib/test.dart", "import '../web/other.dart';");
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
@@ -1131,7 +1186,7 @@ class PubSuggestionCodeTest extends ResolverTestCase {
     cacheSource("/myproj/pubspec.yaml", "");
     cacheSource("/myproj/lib/other.dart", "");
     Source source =
-    addNamedSource("/myproj/lib/test.dart", "import 'other.dart';");
+        addNamedSource("/myproj/lib/test.dart", "import 'other.dart';");
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
@@ -1149,7 +1204,7 @@ class PubSuggestionCodeTest extends ResolverTestCase {
     cacheSource("/myproj/pubspec.yaml", "");
     cacheSource("/myproj/web/other.dart", "");
     Source source =
-    addNamedSource("/myproj/lib2/test.dart", "import '../web/other.dart';");
+        addNamedSource("/myproj/lib2/test.dart", "import '../web/other.dart';");
     computeLibrarySourceErrors(source);
     assertNoErrors(source);
   }
