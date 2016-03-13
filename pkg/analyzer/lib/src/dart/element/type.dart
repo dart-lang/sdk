@@ -270,66 +270,8 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     if (name == null || name.length == 0) {
       // Function types have an empty name when they are defined implicitly by
       // either a closure or as part of a parameter declaration.
-      List<DartType> normalParameterTypes = this.normalParameterTypes;
-      List<DartType> optionalParameterTypes = this.optionalParameterTypes;
-      Map<String, DartType> namedParameterTypes = this.namedParameterTypes;
-      DartType returnType = this.returnType;
       StringBuffer buffer = new StringBuffer();
-      buffer.write("(");
-      bool needsComma = false;
-      if (normalParameterTypes.length > 0) {
-        for (DartType type in normalParameterTypes) {
-          if (needsComma) {
-            buffer.write(", ");
-          } else {
-            needsComma = true;
-          }
-          buffer.write(type.displayName);
-        }
-      }
-      if (optionalParameterTypes.length > 0) {
-        if (needsComma) {
-          buffer.write(", ");
-          needsComma = false;
-        }
-        buffer.write("[");
-        for (DartType type in optionalParameterTypes) {
-          if (needsComma) {
-            buffer.write(", ");
-          } else {
-            needsComma = true;
-          }
-          buffer.write(type.displayName);
-        }
-        buffer.write("]");
-        needsComma = true;
-      }
-      if (namedParameterTypes.length > 0) {
-        if (needsComma) {
-          buffer.write(", ");
-          needsComma = false;
-        }
-        buffer.write("{");
-        namedParameterTypes.forEach((String name, DartType type) {
-          if (needsComma) {
-            buffer.write(", ");
-          } else {
-            needsComma = true;
-          }
-          buffer.write(name);
-          buffer.write(": ");
-          buffer.write(type.displayName);
-        });
-        buffer.write("}");
-        needsComma = true;
-      }
-      buffer.write(")");
-      buffer.write(ElementImpl.RIGHT_ARROW);
-      if (returnType == null) {
-        buffer.write("null");
-      } else {
-        buffer.write(returnType.displayName);
-      }
+      appendTo(buffer);
       name = buffer.toString();
     }
     return name;
@@ -627,47 +569,44 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
     List<DartType> optionalParameterTypes = this.optionalParameterTypes;
     Map<String, DartType> namedParameterTypes = this.namedParameterTypes;
     DartType returnType = this.returnType;
-    buffer.write("(");
+
     bool needsComma = false;
-    if (normalParameterTypes.isNotEmpty) {
-      for (DartType type in normalParameterTypes) {
-        if (needsComma) {
-          buffer.write(", ");
-        } else {
-          needsComma = true;
-        }
-        (type as TypeImpl).appendTo(buffer);
+    void writeSeparator() {
+      if (needsComma) {
+        buffer.write(", ");
+      } else {
+        needsComma = true;
       }
     }
-    if (optionalParameterTypes.isNotEmpty) {
+    void startOptionalParameters() {
       if (needsComma) {
         buffer.write(", ");
         needsComma = false;
       }
+    }
+
+    buffer.write("(");
+    if (normalParameterTypes.isNotEmpty) {
+      for (DartType type in normalParameterTypes) {
+        writeSeparator();
+        (type as TypeImpl).appendTo(buffer);
+      }
+    }
+    if (optionalParameterTypes.isNotEmpty) {
+      startOptionalParameters();
       buffer.write("[");
       for (DartType type in optionalParameterTypes) {
-        if (needsComma) {
-          buffer.write(", ");
-        } else {
-          needsComma = true;
-        }
+        writeSeparator();
         (type as TypeImpl).appendTo(buffer);
       }
       buffer.write("]");
       needsComma = true;
     }
     if (namedParameterTypes.isNotEmpty) {
-      if (needsComma) {
-        buffer.write(", ");
-        needsComma = false;
-      }
+      startOptionalParameters();
       buffer.write("{");
       namedParameterTypes.forEach((String name, DartType type) {
-        if (needsComma) {
-          buffer.write(", ");
-        } else {
-          needsComma = true;
-        }
+        writeSeparator();
         buffer.write(name);
         buffer.write(": ");
         (type as TypeImpl).appendTo(buffer);

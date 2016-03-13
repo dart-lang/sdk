@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart' show ScannerErrorCode;
 import 'package:analyzer/src/generated/generated/shared_messages.dart'
     as shared_messages;
@@ -3239,6 +3240,18 @@ class ErrorReporter {
    * clarify the message.
    */
   void _convertTypeNames(List<Object> arguments) {
+    String displayName(DartType type) {
+      if (type is FunctionType) {
+        String name = type.name;
+        if (name != null && name.length > 0) {
+          StringBuffer buffer = new StringBuffer();
+          buffer.write(name);
+          (type as TypeImpl).appendTo(buffer);
+          return buffer.toString();
+        }
+      }
+      return type.displayName;
+    }
     if (_hasEqualTypeNames(arguments)) {
       int count = arguments.length;
       for (int i = 0; i < count; i++) {
@@ -3247,9 +3260,9 @@ class ErrorReporter {
           DartType type = argument;
           Element element = type.element;
           if (element == null) {
-            arguments[i] = type.displayName;
+            arguments[i] = displayName(type);
           } else {
-            arguments[i] = element.getExtendedDisplayName(type.displayName);
+            arguments[i] = element.getExtendedDisplayName(displayName(type));
           }
         }
       }
@@ -3258,7 +3271,7 @@ class ErrorReporter {
       for (int i = 0; i < count; i++) {
         Object argument = arguments[i];
         if (argument is DartType) {
-          arguments[i] = argument.displayName;
+          arguments[i] = displayName(argument);
         }
       }
     }
@@ -3578,7 +3591,7 @@ class HintCode extends ErrorCode {
   static const HintCode MUST_CALL_SUPER = const HintCode(
       'MUST_CALL_SUPER',
       "This method overrides a method annotated as @mustCall super in '{0}', "
-          "but does invoke the overriden method");
+      "but does invoke the overriden method");
 
   /**
    * A condition in a control flow statement could evaluate to `null` because it
@@ -4406,8 +4419,8 @@ class StaticTypeWarningCode extends ErrorCode {
    * 1: The sequence type -- Iterable for `for` or Stream for `await for`.
    */
   static const StaticTypeWarningCode FOR_IN_OF_INVALID_TYPE =
-  const StaticTypeWarningCode('FOR_IN_OF_INVALID_TYPE',
-      "The type '{0}' used in the 'for' loop must implement {1}");
+      const StaticTypeWarningCode('FOR_IN_OF_INVALID_TYPE',
+          "The type '{0}' used in the 'for' loop must implement {1}");
 
   /**
    * 17.6.2 For-in. It the iterable expression does not implement Iterable with
