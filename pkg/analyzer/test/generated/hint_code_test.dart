@@ -624,10 +624,10 @@ f(A a) {
     verify([source]);
   }
 
-  void test_deprecatedAnnotationUse_Deprecated() {
+  void test_deprecatedAnnotationUse_deprecated() {
     Source source = addSource(r'''
 class A {
-  @Deprecated('0.9')
+  @deprecated
   m() {}
   n() {m();}
 }''');
@@ -636,10 +636,10 @@ class A {
     verify([source]);
   }
 
-  void test_deprecatedAnnotationUse_deprecated() {
+  void test_deprecatedAnnotationUse_Deprecated() {
     Source source = addSource(r'''
 class A {
-  @deprecated
+  @Deprecated('0.9')
   m() {}
   n() {m();}
 }''');
@@ -656,6 +656,20 @@ class A {
 @deprecated
 library deprecated_library;
 class A {}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
+    verify([source]);
+  }
+
+  void test_deprecatedAnnotationUse_field() {
+    Source source = addSource(r'''
+class A {
+  @deprecated
+  int x = 1;
+}
+f(A a) {
+  return a.x;
+}''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.DEPRECATED_MEMBER_USE]);
     verify([source]);

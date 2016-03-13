@@ -535,7 +535,18 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    * See [HintCode.DEPRECATED_MEMBER_USE].
    */
   void _checkForDeprecatedMemberUse(Element element, AstNode node) {
-    if (element != null && element.isDeprecated && !inDeprecatedMember) {
+    bool isDeprecated(Element element) {
+      if (element == null) {
+        return false;
+      } else if (element is PropertyAccessorElement && element.isSynthetic) {
+        element = (element as PropertyAccessorElement).variable;
+        if (element == null) {
+          return false;
+        }
+      }
+      return element.isDeprecated;
+    }
+    if (!inDeprecatedMember && isDeprecated(element)) {
       String displayName = element.displayName;
       if (element is ConstructorElement) {
         // TODO(jwren) We should modify ConstructorElement.getDisplayName(),
