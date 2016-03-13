@@ -527,6 +527,7 @@ class FinalConstVarOrType {
  * the methods will throw an [IncrementalParseException] if the node could not
  * be parsed for some reason.
  */
+@deprecated
 class IncrementalParseDispatcher implements AstVisitor<AstNode> {
   /**
    * The parser used to parse the replacement for the node.
@@ -1664,6 +1665,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
  * An exception that occurred while attempting to parse a replacement for a
  * specified node in an existing AST structure.
  */
+@deprecated
 class IncrementalParseException extends RuntimeException {
   /**
    * Initialize a newly created exception to have no message and to be its own
@@ -1688,6 +1690,7 @@ class IncrementalParseException extends RuntimeException {
  * An object used to re-parse a single AST structure within a larger AST
  * structure.
  */
+@deprecated
 class IncrementalParser {
   /**
    * The source being parsed.
@@ -1859,6 +1862,7 @@ class IncrementalParser {
  * given parent.  Once it has visited all of these relationships, the parser
  * will be in the correct state for reparsing the node to be replaced.
  */
+@deprecated
 class IncrementalParseStateBuilder extends SimpleAstVisitor {
   // TODO(paulberry): add support for other pieces of parser state (_inAsync,
   // _inGenerator, _inLoop, and _inSwitch).  Note that _inLoop and _inSwitch
@@ -1950,6 +1954,7 @@ class IncrementalParseStateBuilder extends SimpleAstVisitor {
  * not enough context to know how to re-parse the node. Clients can attempt to
  * re-parse the parent of the node.
  */
+@deprecated
 class InsufficientContextException extends IncrementalParseException {
   /**
    * Initialize a newly created exception to have no message and to be its own

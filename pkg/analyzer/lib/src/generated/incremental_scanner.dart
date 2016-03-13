@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+@deprecated
 library analyzer.src.generated.incremental_scanner;
 
 import "dart:math" as math;
@@ -18,6 +19,7 @@ import 'package:analyzer/src/generated/utilities_collection.dart' show TokenMap;
  * An `IncrementalScanner` is a scanner that scans a subset of a string and
  * inserts the resulting tokens into the middle of an existing token stream.
  */
+@deprecated
 class IncrementalScanner {
   /**
    * The source being scanned.
