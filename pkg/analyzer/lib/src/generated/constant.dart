@@ -1321,8 +1321,8 @@ class ConstantFinder extends RecursiveAstVisitor<Object> {
                 element is FieldElement &&
                 node.isFinal &&
                 !element.isStatic)) {
-      if (node.element != null) {
-        constantsToCompute.add(node.element);
+      if (element != null) {
+        constantsToCompute.add(element);
       }
     }
     return null;

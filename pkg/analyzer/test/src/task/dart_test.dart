@@ -4794,6 +4794,42 @@ main(int p) {
     ]);
   }
 
+  test_perform_ConstantValidator_declaredIdentifier() {
+    Source source = newSource(
+        '/test.dart',
+        '''
+void main() {
+  for (const foo in []) {
+    print(foo);
+  }
+}
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, VERIFY_ERRORS, matcher: isVerifyUnitTask);
+    // validate
+    _fillErrorListener(VERIFY_ERRORS);
+    errorListener.assertNoErrors();
+  }
+
+  test_perform_ConstantValidator_dependencyCycle() {
+    Source source = newSource(
+        '/test.dart',
+        '''
+const int a = b;
+const int b = c;
+const int c = a;
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, VERIFY_ERRORS, matcher: isVerifyUnitTask);
+    // validate
+    _fillErrorListener(VERIFY_ERRORS);
+    errorListener.assertErrorsWithCodes(<ErrorCode>[
+      CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
+      CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT,
+      CompileTimeErrorCode.RECURSIVE_COMPILE_TIME_CONSTANT
+    ]);
+  }
+
   test_perform_ConstantValidator_duplicateFields() {
     Source source = newSource(
         '/test.dart',
@@ -4813,6 +4849,38 @@ main() {
     // validate
     _fillErrorListener(VERIFY_ERRORS);
     errorListener.assertNoErrors();
+  }
+
+  test_perform_ConstantValidator_noInitializer() {
+    Source source = newSource(
+        '/test.dart',
+        '''
+const x;
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, VERIFY_ERRORS, matcher: isVerifyUnitTask);
+    // validate
+    _fillErrorListener(VERIFY_ERRORS);
+    errorListener.assertErrorsWithCodes(
+        <ErrorCode>[CompileTimeErrorCode.CONST_NOT_INITIALIZED]);
+  }
+
+  test_perform_ConstantValidator_unknownValue() {
+    Source source = newSource(
+        '/test.dart',
+        '''
+import 'no-such-file.dart' as p;
+
+const int x = p.y;
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, VERIFY_ERRORS, matcher: isVerifyUnitTask);
+    // validate
+    _fillErrorListener(VERIFY_ERRORS);
+    errorListener.assertErrorsWithCodes(<ErrorCode>[
+      CompileTimeErrorCode.URI_DOES_NOT_EXIST,
+      CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+    ]);
   }
 
   test_perform_directiveError() {

@@ -3060,6 +3060,9 @@ abstract class ErrorCode {
    * The unique name of this error code.
    */
   String get uniqueName => "$runtimeType.$name";
+
+  @override
+  String toString() => uniqueName;
 }
 
 /**
