@@ -971,7 +971,7 @@ class FixProcessor {
       // maybe static
       if (target is Identifier) {
         Identifier targetIdentifier = target;
-        Element targetElement = targetIdentifier.staticElement;
+        Element targetElement = targetIdentifier.bestElement;
         if (targetElement == null) {
           return;
         }
@@ -1107,7 +1107,7 @@ class FixProcessor {
       // maybe static
       if (target is Identifier) {
         Identifier targetIdentifier = target;
-        Element targetElement = targetIdentifier.staticElement;
+        Element targetElement = targetIdentifier.bestElement;
         staticModifier = targetElement.kind == ElementKind.CLASS;
       }
     } else {
