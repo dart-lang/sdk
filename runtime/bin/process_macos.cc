@@ -19,6 +19,7 @@
 #include <string.h>  // NOLINT
 #include <unistd.h>  // NOLINT
 
+#include "bin/dartutils.h"
 #include "bin/fdutils.h"
 #include "bin/lockers.h"
 #include "bin/log.h"
@@ -292,7 +293,9 @@ class ProcessStarter {
   int Start() {
     // Create pipes required.
     int err = CreatePipes();
-    if (err != 0) return err;
+    if (err != 0) {
+      return err;
+    }
 
     // Fork to create the new process.
     pid_t pid = TEMP_FAILURE_RETRY(fork());
@@ -312,7 +315,9 @@ class ProcessStarter {
     // Register the child process if not detached.
     if (mode_ == kNormal) {
       err = RegisterProcess(pid);
-      if (err != 0) return err;
+      if (err != 0) {
+        return err;
+      }
     }
 
     // Notify child process to start. This is done to delay the call to exec
@@ -651,7 +656,9 @@ class ProcessStarter {
     int actual_errno = errno;
     // If CleanupAndReturnError is called without an actual errno make
     // sure to return an error anyway.
-    if (actual_errno == 0) actual_errno = EPERM;
+    if (actual_errno == 0) {
+      actual_errno = EPERM;
+    }
     SetChildOsErrorMessage();
     CloseAllPipes();
     return actual_errno;
@@ -660,9 +667,9 @@ class ProcessStarter {
 
   void SetChildOsErrorMessage() {
     const int kBufferSize = 1024;
-    char error_message[kBufferSize];
+    char* error_message = DartUtils::ScopedCString(kBufferSize);
     Utils::StrError(errno, error_message, kBufferSize);
-    *os_error_message_ = strdup(error_message);
+    *os_error_message_ = error_message;
   }
 
 
@@ -697,7 +704,7 @@ class ProcessStarter {
 
   void ReadChildError() {
     const int kMaxMessageSize = 256;
-    char* message = static_cast<char*>(malloc(kMaxMessageSize));
+    char* message = DartUtils::ScopedCString(kMaxMessageSize);
     if (message != NULL) {
       FDUtils::ReadFromBlocking(exec_control_[0], message, kMaxMessageSize);
       message[kMaxMessageSize - 1] = '\0';

@@ -1675,7 +1675,9 @@ void main(int argc, char** argv) {
 
   // Free copied argument strings if converted.
   if (argv_converted) {
-    for (int i = 0; i < argc; i++) free(argv[i]);
+    for (int i = 0; i < argc; i++) {
+      free(argv[i]);
+    }
   }
 
   // Free environment if any.

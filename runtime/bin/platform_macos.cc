@@ -89,9 +89,12 @@ char** Platform::Environment(intptr_t* count) {
   char** environ = *(_NSGetEnviron());
   intptr_t i = 0;
   char** tmp = environ;
-  while (*(tmp++) != NULL) i++;
+  while (*(tmp++) != NULL) {
+    i++;
+  }
   *count = i;
-  char** result = new char*[i];
+  char** result;
+  result = reinterpret_cast<char**>(Dart_ScopeAllocate(i * sizeof(*result)));
   for (intptr_t current = 0; current < i; current++) {
     result[current] = environ[current];
   }
@@ -100,29 +103,22 @@ char** Platform::Environment(intptr_t* count) {
 }
 
 
-void Platform::FreeEnvironment(char** env, intptr_t count) {
-  delete[] env;
-}
-
-
-char* Platform::ResolveExecutablePath() {
+const char* Platform::ResolveExecutablePath() {
   // Get the required length of the buffer.
   uint32_t path_size = 0;
-  char* path = NULL;
-  if (_NSGetExecutablePath(path, &path_size) == 0) {
+  if (_NSGetExecutablePath(NULL, &path_size) == 0) {
     return NULL;
   }
   // Allocate buffer and get executable path.
-  path = reinterpret_cast<char*>(malloc(path_size));
+  char* path = DartUtils::ScopedCString(path_size);
   if (_NSGetExecutablePath(path, &path_size) != 0) {
-    free(path);
     return NULL;
   }
   // Return the canonical path as the returned path might contain symlinks.
-  char* canon_path = File::GetCanonicalPath(path);
-  free(path);
+  const char* canon_path = File::GetCanonicalPath(path);
   return canon_path;
 }
+
 
 void Platform::Exit(int exit_code) {
   exit(exit_code);

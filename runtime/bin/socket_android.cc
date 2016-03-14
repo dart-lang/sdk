@@ -5,6 +5,9 @@
 #include "platform/globals.h"
 #if defined(TARGET_OS_ANDROID)
 
+#include "bin/socket.h"
+#include "bin/socket_android.h"
+
 #include <errno.h>  // NOLINT
 #include <stdio.h>  // NOLINT
 #include <stdlib.h>  // NOLINT
@@ -15,10 +18,7 @@
 
 #include "bin/fdutils.h"
 #include "bin/file.h"
-#include "bin/socket.h"
-
 #include "platform/signal_blocker.h"
-
 
 namespace dart {
 namespace bin {

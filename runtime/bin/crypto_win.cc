@@ -11,7 +11,6 @@
 
 #include "bin/crypto.h"
 
-
 namespace dart {
 namespace bin {
 

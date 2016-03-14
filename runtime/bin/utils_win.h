@@ -12,6 +12,11 @@ namespace bin {
 
 void FormatMessageIntoBuffer(DWORD code, wchar_t* buffer, int buffer_length);
 
+// These string utility functions return strings that have been allocated with
+// Dart_ScopeAllocate(). They should be used only when we are inside an API
+// scope. If a string returned by one of these functions must persist beyond
+// the scope, then copy the results into a suitable buffer that you have
+// allocated.
 class StringUtilsWin {
  public:
   static char* WideToUtf8(wchar_t* wide,

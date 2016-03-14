@@ -49,7 +49,6 @@ intptr_t FileSystemWatcher::WatchPath(intptr_t id,
                            OPEN_EXISTING,
                            FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
                            NULL);
-  free(const_cast<wchar_t*>(name));
 
   if (dir == INVALID_HANDLE_VALUE) {
     return -1;
@@ -93,7 +92,7 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
   intptr_t available = dir->Available();
   intptr_t max_count = available / kEventSize + 1;
   Dart_Handle events = Dart_NewList(max_count);
-  uint8_t* buffer = new uint8_t[available];
+  uint8_t* buffer = Dart_ScopeAllocate(available);
   intptr_t bytes = dir->Read(buffer, available);
   intptr_t offset = 0;
   intptr_t i = 0;
@@ -120,7 +119,6 @@ Dart_Handle FileSystemWatcher::ReadEvents(intptr_t id, intptr_t path_id) {
     if (e->NextEntryOffset == 0) break;
     offset += e->NextEntryOffset;
   }
-  delete[] buffer;
   return events;
 }
 
