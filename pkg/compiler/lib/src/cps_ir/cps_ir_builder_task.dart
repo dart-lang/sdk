@@ -59,6 +59,15 @@ import 'type_mask_system.dart' show
 
 typedef void IrBuilderCallback(Element element, ir.FunctionDefinition irNode);
 
+class ExplicitReceiverParameter implements Local {
+  final ExecutableElement executableContext;
+
+  ExplicitReceiverParameter(this.executableContext);
+
+  String get name => 'receiver';
+  String toString() => 'ExplicitReceiverParameter($executableContext)';
+}
+
 /// This task provides the interface to build IR nodes from [ast.Node]s, which
 /// is used from the [CpsFunctionCompiler] to generate code.
 ///
@@ -388,6 +397,10 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     return withBuilder(builder, () {
       // Setup parameters and create a box if anything is captured.
       List<Local> parameters = <Local>[];
+      if (constructor.isGenerativeConstructor &&
+          backend.isNativeOrExtendsNative(classElement)) {
+        parameters.add(new ExplicitReceiverParameter(constructor));
+      }
       constructor.functionSignature.orderedForEachParameter(
           (ParameterElement p) => parameters.add(p));
 
@@ -446,9 +459,11 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       // --- Create the object ---
       // Get the initial field values in the canonical order.
       List<ir.Primitive> instanceArguments = <ir.Primitive>[];
+      List<FieldElement> fields = <FieldElement>[];
       classElement.forEachInstanceField((ClassElement c, FieldElement field) {
         ir.Primitive value = fieldValues[field];
         if (value != null) {
+          fields.add(field);
           instanceArguments.add(value);
         } else {
           assert(backend.isNativeOrExtendsNative(c));
@@ -456,16 +471,30 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         }
       }, includeSuperAndInjectedMembers: true);
 
-      ir.Primitive instance = new ir.CreateInstance(
+      ir.Primitive instance;
+      if (constructor.isGenerativeConstructor &&
+          backend.isNativeOrExtendsNative(classElement)) {
+        instance = irParameters.first;
+        instance.type =
+            new TypeMask.exact(classElement, typeMaskSystem.classWorld);
+        irBuilder.addPrimitive(new ir.ReceiverCheck.nullCheck(
+            instance, Selectors.toString_, null));
+        for (int i = 0; i < fields.length; i++) {
+          irBuilder.addPrimitive(
+              new ir.SetField(instance, fields[i], instanceArguments[i]));
+        }
+      } else {
+        instance = new ir.CreateInstance(
           classElement,
           instanceArguments,
           typeInformation,
           constructor.hasNode
               ? sourceInformationBuilder.buildCreate(constructor.node)
-          // TODO(johnniwinther): Provide source information for creation
-          // through synthetic constructors.
+              // TODO(johnniwinther): Provide source information for creation
+              // through synthetic constructors.
               : null);
-      irBuilder.add(new ir.LetPrim(instance));
+        irBuilder.add(new ir.LetPrim(instance));
+      }
 
       // --- Call constructor bodies ---
       for (ConstructorElement target in constructorList) {
@@ -2369,6 +2398,10 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     }
 
     List<ir.Primitive> arguments = argumentsNode.nodes.mapToList(visit);
+    if (constructor.isGenerativeConstructor &&
+        backend.isNativeOrExtendsNative(constructor.enclosingClass)) {
+      arguments.insert(0, irBuilder.buildNullConstant());
+    }
     // Use default values from the effective target, not the immediate target.
     ConstructorElement target;
     if (constructor == compiler.symbolConstructor) {
