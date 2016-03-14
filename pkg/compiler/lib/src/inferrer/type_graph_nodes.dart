@@ -69,7 +69,7 @@ abstract class TypeInformation {
   final MemberTypeInformation context;
 
   /// The element this [TypeInformation] node belongs to.
-  MemberElement get contextMember => context == null ? null : context.element;
+  TypedElement get contextMember => context == null ? null : context.element;
 
   Iterable<TypeInformation> get assignments => _assignments;
 
