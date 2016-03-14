@@ -48,7 +48,7 @@ import '../native/native.dart' show
 
 // TODO(karlklose): remove.
 import '../js/js.dart' as js show js, Template, Expression, Name;
-import '../ssa/ssa.dart' show TypeMaskFactory;
+import '../ssa/types.dart' show TypeMaskFactory;
 import '../util/util.dart';
 
 import 'package:js_runtime/shared/embedded_names.dart'

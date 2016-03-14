@@ -12,7 +12,6 @@ import '../elements/elements.dart';
 import '../io/source_information.dart' show SourceInformation;
 import '../types/types.dart' show TypeMask;
 import '../universe/selector.dart' show Selector;
-import '../universe/side_effects.dart';
 
 import 'builtin_operator.dart';
 export 'builtin_operator.dart';

@@ -2,7 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of ssa;
+import '../compiler.dart' show Compiler;
+import '../constants/constant_system.dart';
+import '../constants/values.dart';
+import '../elements/elements.dart';
+import '../js_backend/js_backend.dart';
+import '../types/types.dart';
+import '../universe/selector.dart';
+import '../universe/call_structure.dart';
+import '../world.dart' show ClassWorld, World;
+
+import 'nodes.dart';
+import 'types.dart';
 
 /**
  * [InvokeDynamicSpecializer] and its subclasses are helpers to

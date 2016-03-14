@@ -2,8 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of ssa;
+import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
+import '../compiler.dart' show Compiler;
+import '../constant_system_dart.dart';
+import '../constants/constant_system.dart';
+import '../constants/values.dart';
+import '../js_backend/js_backend.dart';
 
+import 'nodes.dart';
+import 'optimize.dart';
 
 class ValueRangeInfo {
   final ConstantSystem constantSystem;

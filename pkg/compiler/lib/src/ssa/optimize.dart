@@ -2,7 +2,41 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of ssa;
+import '../common/codegen.dart' show
+    CodegenRegistry,
+    CodegenWorkItem;
+import '../common/tasks.dart' show
+    CompilerTask;
+import '../compiler.dart' show
+    Compiler;
+import '../constants/constant_system.dart';
+import '../constants/values.dart';
+import '../core_types.dart' show
+    CoreClasses;
+import '../dart_types.dart';
+import '../elements/elements.dart';
+import '../js/js.dart' as js;
+import '../js_backend/backend_helpers.dart' show
+    BackendHelpers;
+import '../js_backend/js_backend.dart';
+import '../native/native.dart' as native;
+import '../tree/tree.dart' as ast;
+import '../types/types.dart';
+import '../universe/selector.dart' show
+    Selector;
+import '../universe/side_effects.dart' show
+    SideEffects;
+import '../util/util.dart';
+import '../world.dart' show
+    ClassWorld,
+    World;
+
+import 'nodes.dart';
+import 'types_propagation.dart';
+import 'types.dart';
+import 'value_range_analyzer.dart';
+import 'value_set.dart';
+import 'interceptor_simplifier.dart';
 
 abstract class OptimizationPhase {
   String get name;
@@ -376,8 +410,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
           HInstruction argument = node.inputs[2];
           if (argument.isString(compiler)
               && !input.canBeNull()) {
-            return new HStringConcat(input, argument, null,
-                                     node.instructionType);
+            return new HStringConcat(input, argument, node.instructionType);
           }
         } else if (applies(helpers.jsStringToString)
                    && !input.canBeNull()) {
@@ -962,7 +995,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
             leftString.primitiveValue, rightString.primitiveValue)),
         compiler);
     if (prefix == null) return folded;
-    return new HStringConcat(prefix, folded, node.node, backend.stringType);
+    return new HStringConcat(prefix, folded, backend.stringType);
   }
 
   HInstruction visitStringify(HStringify node) {

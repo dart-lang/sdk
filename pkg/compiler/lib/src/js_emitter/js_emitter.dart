@@ -69,7 +69,6 @@ import '../js_backend/js_backend.dart' show
     TypeCheck,
     TypeChecks,
     TypeVariableHandler;
-import '../native/native.dart' as native;
 import '../universe/call_structure.dart' show
     CallStructure;
 import '../universe/selector.dart' show

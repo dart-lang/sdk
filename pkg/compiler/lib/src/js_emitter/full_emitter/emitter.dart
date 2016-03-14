@@ -74,7 +74,6 @@ import '../../js_backend/js_backend.dart' show
     TypeCheck,
     TypeChecks,
     TypeVariableHandler;
-import '../../js/js_debug.dart';
 import '../../universe/call_structure.dart' show
     CallStructure;
 import '../../universe/selector.dart' show

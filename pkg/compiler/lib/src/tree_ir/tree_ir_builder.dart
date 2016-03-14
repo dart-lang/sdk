@@ -4,8 +4,6 @@
 
 library tree_ir_builder;
 
-import 'package:js_ast/js_ast.dart' as js;
-
 import '../common.dart';
 import '../constants/values.dart';
 import '../cps_ir/cps_ir_nodes.dart' as cps_ir;

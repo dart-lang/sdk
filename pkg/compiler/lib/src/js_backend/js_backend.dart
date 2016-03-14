@@ -82,7 +82,13 @@ import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
 import '../native/native.dart' as native;
 import '../resolution/tree_elements.dart' show
     TreeElements;
-import '../ssa/ssa.dart';
+import '../ssa/builder.dart' show
+    SsaFunctionCompiler;
+import '../ssa/nodes.dart' show
+    HTypeConversion,
+    HInstruction;
+import '../ssa/codegen.dart' show
+    SsaCodeGenerator;
 import '../tree/tree.dart';
 import '../types/types.dart';
 import '../universe/call_structure.dart' show

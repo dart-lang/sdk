@@ -2,7 +2,46 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of ssa;
+import '../common.dart';
+import '../common/codegen.dart' show
+    CodegenRegistry,
+    CodegenWorkItem;
+import '../common/tasks.dart' show
+    CompilerTask;
+import '../compiler.dart' show
+    Compiler;
+import '../constants/constant_system.dart';
+import '../constants/values.dart';
+import '../core_types.dart' show
+    CoreClasses;
+import '../dart_types.dart';
+import '../elements/elements.dart';
+import '../io/source_information.dart';
+import '../js/js.dart' as js;
+import '../js_backend/backend_helpers.dart' show
+    BackendHelpers;
+import '../js_backend/js_backend.dart';
+import '../js_emitter/js_emitter.dart' show
+    CodeEmitterTask,
+    NativeEmitter;
+import '../native/native.dart' as native;
+import '../types/types.dart';
+import '../universe/call_structure.dart' show
+    CallStructure;
+import '../universe/selector.dart' show
+    Selector;
+import '../universe/use.dart' show
+    DynamicUse,
+    StaticUse,
+    TypeUse;
+import '../util/util.dart';
+import '../world.dart' show
+    ClassWorld,
+    World;
+
+import 'nodes.dart';
+import 'codegen_helpers.dart';
+import 'variable_allocator.dart';
 
 class SsaCodeGeneratorTask extends CompilerTask {
 
@@ -413,7 +452,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (len == 0) return new js.EmptyStatement();
     if (len == 1) {
       js.Statement result = block.statements[0];
-      if (result is ast.Block) return unwrapStatement(result);
+      if (result is js.Block) return unwrapStatement(result);
       return result;
     }
     return block;
@@ -1417,7 +1456,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       JumpTarget target = node.target;
       if (!tryCallAction(continueAction, target)) {
-        if (target.statement is ast.SwitchStatement) {
+        if (target.isSwitch) {
           pushStatement(
               new js.Continue(backend.namer.implicitContinueLabelName(target))
                   .withSourceInformation(node.sourceInformation));

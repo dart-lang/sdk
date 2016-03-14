@@ -10,7 +10,8 @@ import 'common/work.dart' show
     ItemCompilationContext;
 import 'compiler.dart' show
     Compiler;
-import 'ssa/ssa.dart' as ssa;
+import 'ssa/nodes.dart' as ssa show
+    HGraph;
 import 'ssa/ssa_tracer.dart' show
     HTracer;
 import 'cps_ir/cps_ir_nodes.dart' as cps_ir;

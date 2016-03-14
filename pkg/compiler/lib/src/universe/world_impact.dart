@@ -4,9 +4,6 @@
 
 library dart2js.universe.world_impact;
 
-import '../dart_types.dart' show
-    DartType,
-    InterfaceType;
 import '../elements/elements.dart' show
     Element,
     LocalFunctionElement,

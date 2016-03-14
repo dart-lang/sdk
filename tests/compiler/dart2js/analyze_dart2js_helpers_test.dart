@@ -105,7 +105,7 @@ class HelperAnalyzer extends TraversalVisitor {
 
   bool isHelper(Element element) {
     Uri uri = element.library.canonicalUri;
-    return uri.path.endsWith('src/helpers/helpers.dart');
+    return '$uri'.startsWith('package:compiler/src/helpers/');
   }
 
   void checkAccess(Node node, MemberElement element) {

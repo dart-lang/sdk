@@ -2,7 +2,28 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of native;
+import '../common.dart';
+import '../common/backend_api.dart' show
+    ForeignResolver;
+import '../common/resolution.dart' show
+    Parsing,
+    Resolution;
+import '../compiler.dart' show
+    Compiler;
+import '../constants/values.dart';
+import '../core_types.dart' show
+    CoreTypes;
+import '../dart_types.dart';
+import '../elements/elements.dart';
+import '../js/js.dart' as js;
+import '../js_backend/js_backend.dart';
+import '../tree/tree.dart';
+import '../universe/side_effects.dart' show
+    SideEffects;
+import '../util/util.dart';
+
+import 'enqueue.dart';
+import 'js.dart';
 
 /// This class is a temporary work-around until we get a more powerful DartType.
 class SpecialType {

@@ -2,7 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of ssa;
+import '../common/codegen.dart' show CodegenRegistry, CodegenWorkItem;
+import '../compiler.dart' show Compiler;
+import '../constants/constant_system.dart';
+import '../constants/values.dart';
+import '../elements/elements.dart';
+import '../js_backend/backend_helpers.dart' show BackendHelpers;
+import '../js_backend/js_backend.dart';
+import '../types/types.dart';
+import '../universe/selector.dart' show Selector;
+import '../world.dart' show ClassWorld, World;
+
+import 'nodes.dart';
+import 'optimize.dart';
 
 /**
  * This phase simplifies interceptors in multiple ways:

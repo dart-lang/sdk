@@ -2,7 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of ssa;
+import '../compiler.dart' show Compiler;
+import '../core_types.dart' show CoreClasses;
+import '../elements/elements.dart';
+import '../js_backend/js_backend.dart';
+import '../native/native.dart' as native;
+import '../tree/tree.dart' as ast;
+import '../types/types.dart';
+import '../universe/selector.dart' show Selector;
+import '../world.dart' show ClassWorld, World;
 
 class TypeMaskFactory {
   static TypeMask fromInferredType(TypeMask mask, Compiler compiler) {

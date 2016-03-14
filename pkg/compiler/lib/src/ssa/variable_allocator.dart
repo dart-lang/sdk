@@ -2,7 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of ssa;
+import '../common.dart';
+import '../compiler.dart' show Compiler;
+import '../js_backend/js_backend.dart';
+
+import 'nodes.dart';
 
 /**
  * The [LiveRange] class covers a range where an instruction is live.

@@ -2,7 +2,29 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of ssa;
+
+import '../closure.dart';
+import '../common.dart';
+import '../compiler.dart' show Compiler;
+import '../constants/constant_system.dart';
+import '../constants/values.dart';
+import '../dart_types.dart';
+import '../elements/elements.dart';
+import '../io/source_information.dart';
+import '../js/js.dart' as js;
+import '../js_backend/backend_helpers.dart' show BackendHelpers;
+import '../js_backend/js_backend.dart';
+import '../native/native.dart' as native;
+import '../tree/dartstring.dart' as ast;
+import '../types/constants.dart' show computeTypeMask;
+import '../types/types.dart';
+import '../universe/selector.dart' show Selector;
+import '../universe/side_effects.dart' show SideEffects;
+import '../util/util.dart';
+import '../world.dart' show ClassWorld, World;
+
+import 'validate.dart';
+import 'invoke_dynamic_specializers.dart';
 
 abstract class HVisitor<R> {
   R visitAdd(HAdd node);
@@ -2893,8 +2915,7 @@ class HRangeConversion extends HCheck {
 }
 
 class HStringConcat extends HInstruction {
-  final ast.Node node;
-  HStringConcat(HInstruction left, HInstruction right, this.node, TypeMask type)
+  HStringConcat(HInstruction left, HInstruction right, TypeMask type)
       : super(<HInstruction>[left, right], type) {
     // TODO(sra): Until Issue 9293 is fixed, this false dependency keeps the
     // concats bunched with stringified inputs for much better looking code with
@@ -2914,8 +2935,7 @@ class HStringConcat extends HInstruction {
  * into a String value.
  */
 class HStringify extends HInstruction {
-  final ast.Node node;
-  HStringify(HInstruction input, this.node, TypeMask type)
+  HStringify(HInstruction input, TypeMask type)
       : super(<HInstruction>[input], type) {
     sideEffects.setAllSideEffects();
     sideEffects.setDependsOnSomething();
@@ -3098,18 +3118,6 @@ class HLabeledBlockInformation implements HStatementInformation {
     visitor.visitLabeledBlockInfo(this);
 }
 
-class LoopTypeVisitor extends ast.Visitor {
-  const LoopTypeVisitor();
-  int visitNode(ast.Node node) => HLoopBlockInformation.NOT_A_LOOP;
-  int visitWhile(ast.While node) => HLoopBlockInformation.WHILE_LOOP;
-  int visitFor(ast.For node) => HLoopBlockInformation.FOR_LOOP;
-  int visitDoWhile(ast.DoWhile node) => HLoopBlockInformation.DO_WHILE_LOOP;
-  int visitAsyncForIn(ast.AsyncForIn node) => HLoopBlockInformation.FOR_IN_LOOP;
-  int visitSyncForIn(ast.SyncForIn node) => HLoopBlockInformation.FOR_IN_LOOP;
-  int visitSwitchStatement(ast.SwitchStatement node) =>
-      HLoopBlockInformation.SWITCH_CONTINUE_LOOP;
-}
-
 class HLoopBlockInformation implements HStatementInformation {
   static const int WHILE_LOOP = 0;
   static const int FOR_LOOP = 1;
@@ -3157,10 +3165,6 @@ class HLoopBlockInformation implements HStatementInformation {
       return condition.end;
     }
     return body.end;
-  }
-
-  static int loopType(ast.Node node) {
-    return node.accept(const LoopTypeVisitor());
   }
 
   bool accept(HStatementInformationVisitor visitor) =>

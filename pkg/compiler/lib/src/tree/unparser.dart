@@ -2,7 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of tree;
+import '../tokens/token.dart' show BeginGroupToken, Token;
+import '../tokens/token_constants.dart' as Tokens show IDENTIFIER_TOKEN, KEYWORD_TOKEN, PLUS_TOKEN;
+import '../util/util.dart';
+import 'nodes.dart';
 
 String unparse(Node node, {minify: true}) {
   Unparser unparser = new Unparser(minify: minify);

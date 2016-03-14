@@ -25,9 +25,7 @@ import '../js_backend/js_backend.dart' show
     JavaScriptBackend;
 import '../js_backend/codegen/task.dart' show
     CpsFunctionCompiler;
-import '../resolution/access_semantics.dart';
 import '../resolution/operators.dart';
-import '../resolution/send_structure.dart';
 import '../tree/tree.dart' as ast;
 import '../types/types.dart';
 import '../types/abstract_value_domain.dart' show

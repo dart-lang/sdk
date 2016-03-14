@@ -2,7 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of tree;
+import 'dart:collection';
+import '../util/characters.dart';
 
 /**
  * The [DartString] type represents a Dart string value as a sequence of Unicode
@@ -248,4 +249,3 @@ class StringEscapeIterator implements Iterator<int>{
     return true;
   }
 }
-

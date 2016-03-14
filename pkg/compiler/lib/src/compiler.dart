@@ -109,7 +109,7 @@ import 'serialization/task.dart' show
     SerializationTask;
 import 'script.dart' show
     Script;
-import 'ssa/ssa.dart' show
+import 'ssa/nodes.dart' show
     HInstruction;
 import 'tracer.dart' show
     Tracer;

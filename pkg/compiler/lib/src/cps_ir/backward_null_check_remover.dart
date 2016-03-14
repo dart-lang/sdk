@@ -2,8 +2,6 @@ library dart2js.cps_ir.backward_null_check_remover;
 
 import 'cps_ir_nodes.dart';
 import 'optimizers.dart';
-import '../common/names.dart';
-import '../universe/selector.dart';
 import 'type_mask_system.dart';
 import 'cps_fragment.dart';
 

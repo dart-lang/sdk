@@ -2,7 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of dart2js.helpers;
+import 'dart:async' show
+    EventSink;
+import 'dart:collection';
+import 'dart:convert';
+
+import '../../compiler.dart';
+import '../common.dart';
+import '../compiler.dart' show
+    Compiler;
+import '../util/util.dart';
+
 
 // Helper methods for statistics.
 

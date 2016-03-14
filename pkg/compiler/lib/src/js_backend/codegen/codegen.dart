@@ -8,7 +8,6 @@ import 'glue.dart';
 
 import '../../closure.dart' show
     ClosureClassElement;
-import '../../common.dart';
 import '../../common/codegen.dart' show
     CodegenRegistry;
 import '../../constants/values.dart';

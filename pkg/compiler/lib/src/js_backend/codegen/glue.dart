@@ -9,8 +9,6 @@ import '../backend_helpers.dart' show
 import '../js_backend.dart';
 
 import '../../common.dart';
-import '../../common/registry.dart' show
-    Registry;
 import '../../common/codegen.dart' show
     CodegenRegistry;
 import '../../compiler.dart' show

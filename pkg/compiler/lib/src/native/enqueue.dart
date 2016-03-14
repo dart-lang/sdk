@@ -2,7 +2,46 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of native;
+import 'dart:collection' show Queue;
+
+import '../common.dart';
+import '../common/backend_api.dart' show
+    ForeignResolver;
+import '../common/registry.dart' show
+    Registry;
+import '../common/resolution.dart' show
+    Parsing,
+    Resolution;
+import '../compiler.dart' show
+    Compiler;
+import '../constants/values.dart';
+import '../core_types.dart' show
+    CoreTypes;
+import '../dart_types.dart';
+import '../enqueue.dart' show
+    Enqueuer,
+    ResolutionEnqueuer;
+import '../elements/elements.dart';
+import '../elements/modelx.dart' show
+    BaseClassElementX,
+    ElementX,
+    FunctionElementX,
+    LibraryElementX;
+import '../js_backend/backend_helpers.dart' show
+    BackendHelpers;
+import '../js_backend/js_backend.dart';
+import '../js_emitter/js_emitter.dart' show
+    CodeEmitterTask,
+    NativeEmitter;
+import '../tokens/token.dart' show
+    BeginGroupToken,
+    Token;
+import '../tokens/token_constants.dart' as Tokens show
+    EOF_TOKEN,
+    STRING_TOKEN;
+import '../tree/tree.dart';
+
+import 'behavior.dart';
 
 /**
  * This could be an abstract class but we use it as a stub for the dart_backend.

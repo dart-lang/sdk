@@ -2,7 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of tree;
+import 'dart:collection' show IterableMixin;
+
+import '../common.dart';
+import '../tokens/precedence_constants.dart' as Precedence show FUNCTION_INFO;
+import '../tokens/token.dart' show BeginGroupToken, Token;
+import '../tokens/token_constants.dart' as Tokens show IDENTIFIER_TOKEN, KEYWORD_TOKEN, PLUS_TOKEN;
+import '../util/util.dart';
+import '../util/characters.dart';
+import '../resolution/secret_tree_element.dart' show NullTreeElementMixin, StoredTreeElementMixin;
+import '../elements/elements.dart' show MetadataAnnotation;
+import 'dartstring.dart';
+import 'prettyprint.dart';
+import 'unparser.dart';
 
 abstract class Visitor<R> {
   const Visitor();
