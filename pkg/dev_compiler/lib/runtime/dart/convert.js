@@ -819,7 +819,7 @@ dart_library.library('dart/convert', null, /* Imports */[
       let toEncodable = opts && 'toEncodable' in opts ? opts.toEncodable : null;
       if (toEncodable == null) toEncodable = this[_toEncodable$];
       if (toEncodable == null) return this.encoder.convert(value);
-      return new JsonEncoder(dart.as(toEncodable, __CastType0)).convert(value);
+      return new JsonEncoder(dart.as(toEncodable, dart.functionType(core.Object, [core.Object]))).convert(value);
     }
     get encoder() {
       if (this[_toEncodable$] == null) return dart.const(new JsonEncoder());
@@ -858,7 +858,7 @@ dart_library.library('dart/convert', null, /* Imports */[
       super.Converter();
     }
     convert(object) {
-      return _JsonStringStringifier.stringify(object, dart.as(this[_toEncodable$], __CastType2), this.indent);
+      return _JsonStringStringifier.stringify(object, dart.as(this[_toEncodable$], dart.functionType(dart.dynamic, [dart.dynamic])), this.indent);
     }
     startChunkedConversion(sink) {
       if (!dart.is(sink, StringConversionSink)) {
@@ -873,7 +873,7 @@ dart_library.library('dart/convert', null, /* Imports */[
     }
     fuse(other) {
       if (dart.is(other, Utf8Encoder)) {
-        return new JsonUtf8Encoder(this.indent, dart.as(this[_toEncodable$], __CastType4));
+        return new JsonUtf8Encoder(this.indent, dart.as(this[_toEncodable$], dart.functionType(dart.dynamic, [core.Object])));
       }
       return super.fuse(other);
     }
@@ -1521,9 +1521,6 @@ dart_library.library('dart/convert', null, /* Imports */[
     constructors: () => ({_JsonUtf8StringifierPretty: [_JsonUtf8StringifierPretty, [dart.dynamic, core.List$(core.int), dart.dynamic, dart.dynamic]]}),
     methods: () => ({writeIndentation: [dart.void, [core.int]]})
   });
-  const __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.Object, [core.Object]));
-  const __CastType2 = dart.typedef('__CastType2', () => dart.functionType(dart.dynamic, [dart.dynamic]));
-  const __CastType4 = dart.typedef('__CastType4', () => dart.functionType(dart.dynamic, [core.Object]));
   class Latin1Codec extends Encoding {
     Latin1Codec(opts) {
       let allowInvalid = opts && 'allowInvalid' in opts ? opts.allowInvalid : false;

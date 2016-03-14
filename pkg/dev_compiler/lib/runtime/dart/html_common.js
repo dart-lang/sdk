@@ -109,7 +109,7 @@ dart_library.library('dart/html_common', null, /* Imports */[
       this.modify(dart.fn(s => s.addAll(iterable[dartx.map](dart.bind(this, _validateToken))), dart.void, [core.Set$(core.String)]));
     }
     removeAll(iterable) {
-      this.modify(dart.fn(s => s.removeAll(iterable[dartx.map](dart.as(dart.bind(this, _validateToken), __CastType0))), dart.void, [core.Set$(core.String)]));
+      this.modify(dart.fn(s => s.removeAll(iterable[dartx.map](dart.as(dart.bind(this, _validateToken), dart.functionType(core.String, [core.Object])))), dart.void, [core.Set$(core.String)]));
     }
     toggleAll(iterable, shouldAdd) {
       if (shouldAdd === void 0) shouldAdd = null;
@@ -264,7 +264,6 @@ dart_library.library('dart/html_common', null, /* Imports */[
       return core.RegExp.new('^\\S+$');
     }
   });
-  const __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.String, [core.Object]));
   function convertDartToNative_SerializedScriptValue(value) {
     return convertDartToNative_PrepareForStructuredClone(value);
   }

@@ -382,7 +382,7 @@ dart_library.library('dart/indexed_db', null, /* Imports */[
       try {
         let request = this[_deleteDatabase](name);
         if (onBlocked != null) {
-          request[dartx.onBlocked].listen(dart.as(onBlocked, __CastType0));
+          request[dartx.onBlocked].listen(dart.as(onBlocked, dart.functionType(dart.void, [html.Event])));
         }
         let completer = async.Completer.sync();
         request[dartx.onSuccess].listen(dart.fn(e => {
@@ -1111,7 +1111,6 @@ dart_library.library('dart/indexed_db', null, /* Imports */[
   });
   VersionChangeEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('IDBVersionChangeEvent')), dart.const(new _metadata.Unstable()), dart.const(new _js_helper.Native("IDBVersionChangeEvent"))];
   dart.registerExtension(dart.global.IDBVersionChangeEvent, VersionChangeEvent);
-  const __CastType0 = dart.typedef('__CastType0', () => dart.functionType(dart.void, [html.Event]));
   // Exports:
   exports.Cursor = Cursor;
   exports.CursorWithValue = CursorWithValue;

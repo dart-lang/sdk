@@ -105,7 +105,7 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
     }
     serializeMap(x) {
       let serializeTearOff = dart.bind(this, 'serialize');
-      return dart.list(['map', x[dartx.keys][dartx.map](dart.as(serializeTearOff, __CastType0))[dartx.toList](), x[dartx.values][dartx.map](dart.as(serializeTearOff, dart.functionType(dart.dynamic, [dart.dynamic])))[dartx.toList]()], core.Object);
+      return dart.list(['map', x[dartx.keys][dartx.map](dart.as(serializeTearOff, dart.functionType(dart.dynamic, [dart.dynamic])))[dartx.toList](), x[dartx.values][dartx.map](dart.as(serializeTearOff, dart.functionType(dart.dynamic, [dart.dynamic])))[dartx.toList]()], core.Object);
     }
     serializeJSObject(x) {
       if (!!x.constructor && x.constructor !== Object) {
@@ -382,7 +382,6 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       deserializeDartObject: [dart.dynamic, [dart.dynamic]]
     })
   });
-  const __CastType0 = dart.typedef('__CastType0', () => dart.functionType(dart.dynamic, [dart.dynamic]));
   function _callInIsolate(isolate, func) {
     let result = isolate.eval(func);
     exports._globalState.topEventLoop.run();

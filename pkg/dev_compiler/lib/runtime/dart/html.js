@@ -13103,7 +13103,7 @@ dart_library.library('dart/html', null, /* Imports */[
       if (dart.notNull(retainMatching)) {
         removed = this[_element][dartx.children][dartx.where](dart.fn(e => !dart.notNull(dart.dcall(test, e)), core.bool, [Element]));
       } else {
-        removed = this[_element][dartx.children][dartx.where](dart.as(test, __CastType0));
+        removed = this[_element][dartx.children][dartx.where](dart.as(test, dart.functionType(core.bool, [Element])));
       }
       for (let e of dart.as(removed, core.Iterable))
         dart.dsend(e, 'remove');
@@ -32083,7 +32083,7 @@ dart_library.library('dart/html', null, /* Imports */[
         this[_target] = target;
         this[_eventType] = eventType;
         this[_useCapture] = useCapture;
-        this[_onData] = _wrapZone(dart.as(onData, __CastType2));
+        this[_onData] = _wrapZone(dart.as(onData, dart.functionType(dart.dynamic, [dart.dynamic])));
         this[_pauseCount] = 0;
         this[_tryResume]();
       }
@@ -34426,8 +34426,6 @@ dart_library.library('dart/html', null, /* Imports */[
       sanitizeNode: [dart.void, [Node, Node]]
     })
   });
-  const __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.bool, [Element]));
-  const __CastType2 = dart.typedef('__CastType2', () => dart.functionType(dart.dynamic, [dart.dynamic]));
   // Exports:
   exports.EventTarget = EventTarget;
   exports.Node = Node;

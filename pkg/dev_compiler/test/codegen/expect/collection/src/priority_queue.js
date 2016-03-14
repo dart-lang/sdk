@@ -100,7 +100,7 @@ dart_library.library('collection/src/priority_queue', null, /* Imports */[
         let list = core.List$(E).new();
         list[dartx.length] = this[_length];
         list[dartx.setRange](0, this[_length], this[_queue]);
-        list[dartx.sort](dart.as(this.comparison, __CastType0));
+        list[dartx.sort](dart.as(this.comparison, dart.functionType(core.int, [E, E])));
         return list;
       }
       toSet() {
@@ -235,11 +235,6 @@ dart_library.library('collection/src/priority_queue', null, /* Imports */[
     return HeapPriorityQueue;
   });
   let HeapPriorityQueue = HeapPriorityQueue$();
-  const __CastType0$ = dart.generic(function(E) {
-    const __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.int, [E, E]));
-    return __CastType0;
-  });
-  let __CastType0 = __CastType0$();
   // Exports:
   exports.PriorityQueue$ = PriorityQueue$;
   exports.PriorityQueue = PriorityQueue;

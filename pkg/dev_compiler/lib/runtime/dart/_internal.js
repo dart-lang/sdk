@@ -598,7 +598,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
         super.IterableBase();
       }
       get iterator() {
-        return new (ExpandIterator$(S, T))(this[_iterable][dartx.iterator], dart.as(this[_f], __CastType0));
+        return new (ExpandIterator$(S, T))(this[_iterable][dartx.iterator], dart.as(this[_f], dart.functionType(core.Iterable$(T), [S])));
       }
     }
     dart.setSignature(ExpandIterable, {
@@ -1268,7 +1268,7 @@ dart_library.library('dart/_internal', null, /* Imports */[
       }
       takeWhile(iterable, test) {
         dart.as(test, dart.functionType(core.bool, [dart.dynamic]));
-        return new (TakeWhileIterable$(T))(dart.as(iterable, core.Iterable$(T)), dart.as(test, __CastType2));
+        return new (TakeWhileIterable$(T))(dart.as(iterable, core.Iterable$(T)), dart.as(test, dart.functionType(core.bool, [T])));
       }
       skipList(list, n) {
         return new (SubListIterable$(T))(dart.as(list, core.Iterable$(T)), n, null);
@@ -1497,16 +1497,6 @@ dart_library.library('dart/_internal', null, /* Imports */[
     }),
     names: ['noElement', 'tooMany', 'tooFew']
   });
-  const __CastType0$ = dart.generic(function(S, T) {
-    const __CastType0 = dart.typedef('__CastType0', () => dart.functionType(core.Iterable$(T), [S]));
-    return __CastType0;
-  });
-  let __CastType0 = __CastType0$();
-  const __CastType2$ = dart.generic(function(T) {
-    const __CastType2 = dart.typedef('__CastType2', () => dart.functionType(core.bool, [T]));
-    return __CastType2;
-  });
-  let __CastType2 = __CastType2$();
   const FixedLengthListMixin$ = dart.generic(function(E) {
     dart.defineExtensionNames([
       'length',

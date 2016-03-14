@@ -474,3 +474,10 @@ class FileSystem {
 
 DartType getStaticType(Expression e) =>
     e.staticType ?? DynamicTypeImpl.instance;
+
+// TODO(leafp) Factor this out or use an existing library
+class Tuple2<T0, T1> {
+  final T0 e0;
+  final T1 e1;
+  Tuple2(this.e0, this.e1);
+}
