@@ -1480,9 +1480,7 @@ class C {
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
     expect(parameter.parameterKind, ParameterKind.REQUIRED);
-    SourceRange visibleRange = parameter.visibleRange;
-    expect(100, visibleRange.offset);
-    expect(110, visibleRange.end);
+    _assertVisibleRange(parameter, 100, 110);
   }
 
   void test_visitFunctionTypedFormalParameter_withTypeParameters() {
@@ -1505,9 +1503,7 @@ class C {
     expect(parameter.isSynthetic, isFalse);
     expect(parameter.parameterKind, ParameterKind.REQUIRED);
     expect(parameter.typeParameters, hasLength(1));
-    SourceRange visibleRange = parameter.visibleRange;
-    expect(100, visibleRange.offset);
-    expect(110, visibleRange.end);
+    _assertVisibleRange(parameter, 100, 110);
   }
 
   void test_visitLabeledStatement() {
@@ -2051,11 +2047,7 @@ class C {
     expect(parameter.isFinal, isFalse);
     expect(parameter.isSynthetic, isFalse);
     expect(parameter.parameterKind, ParameterKind.NAMED);
-    {
-      SourceRange visibleRange = parameter.visibleRange;
-      expect(100, visibleRange.offset);
-      expect(110, visibleRange.end);
-    }
+    _assertVisibleRange(parameter, 100, 110);
     expect(parameter.defaultValueCode, "42");
     FunctionElement initializer = parameter.initializer;
     expect(initializer, isNotNull);
@@ -2083,11 +2075,7 @@ class C {
     expect(parameter.isSynthetic, isFalse);
     expect(parameter.name, parameterName);
     expect(parameter.parameterKind, ParameterKind.REQUIRED);
-    {
-      SourceRange visibleRange = parameter.visibleRange;
-      expect(100, visibleRange.offset);
-      expect(110, visibleRange.end);
-    }
+    _assertVisibleRange(parameter, 100, 110);
   }
 
   void test_visitSimpleFormalParameter_type() {
@@ -2110,11 +2098,7 @@ class C {
     expect(parameter.isSynthetic, isFalse);
     expect(parameter.name, parameterName);
     expect(parameter.parameterKind, ParameterKind.REQUIRED);
-    {
-      SourceRange visibleRange = parameter.visibleRange;
-      expect(100, visibleRange.offset);
-      expect(110, visibleRange.end);
-    }
+    _assertVisibleRange(parameter, 100, 110);
   }
 
   void test_visitTypeAlias_minimal() {
@@ -2233,6 +2217,7 @@ class C {
         AstFactory.blockFunctionBody2([statement]));
     statement.beginToken.offset = 50;
     statement.endToken.offset = 80;
+    _setBlockBodySourceRange(constructor.body, 100, 110);
     constructor.accept(builder);
 
     List<ConstructorElement> constructors = holder.constructors;
@@ -2244,6 +2229,73 @@ class C {
     _assertHasCodeRange(variableElement, 50, 31);
     expect(variableElement.hasImplicitType, isTrue);
     expect(variableElement.name, variableName);
+    _assertVisibleRange(variableElement, 100, 110);
+  }
+
+  void test_visitVariableDeclaration_inForEachStatement() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = _makeBuilder(holder);
+    //
+    // m() { for (var v in []) }
+    //
+    String variableName = "v";
+    Statement statement = AstFactory.forEachStatement(
+        AstFactory.declaredIdentifier3('v'),
+        AstFactory.listLiteral(),
+        AstFactory.block());
+    _setNodeSourceRange(statement, 100, 110);
+    MethodDeclaration method = AstFactory.methodDeclaration2(
+        null,
+        null,
+        null,
+        null,
+        AstFactory.identifier3("m"),
+        AstFactory.formalParameterList(),
+        AstFactory.blockFunctionBody2([statement]));
+    _setBlockBodySourceRange(method.body, 200, 220);
+    method.accept(builder);
+
+    List<MethodElement> methods = holder.methods;
+    expect(methods, hasLength(1));
+    List<LocalVariableElement> variableElements = methods[0].localVariables;
+    expect(variableElements, hasLength(1));
+    LocalVariableElement variableElement = variableElements[0];
+    expect(variableElement.name, variableName);
+    _assertVisibleRange(variableElement, 100, 110);
+  }
+
+  void test_visitVariableDeclaration_inForStatement() {
+    ElementHolder holder = new ElementHolder();
+    ElementBuilder builder = _makeBuilder(holder);
+    //
+    // m() { for (T v;;) }
+    //
+    String variableName = "v";
+    ForStatement statement = AstFactory.forStatement2(
+        AstFactory.variableDeclarationList(null, AstFactory.typeName4('T'),
+            [AstFactory.variableDeclaration('v')]),
+        null,
+        null,
+        AstFactory.block());
+    _setNodeSourceRange(statement, 100, 110);
+    MethodDeclaration method = AstFactory.methodDeclaration2(
+        null,
+        null,
+        null,
+        null,
+        AstFactory.identifier3("m"),
+        AstFactory.formalParameterList(),
+        AstFactory.blockFunctionBody2([statement]));
+    _setBlockBodySourceRange(method.body, 200, 220);
+    method.accept(builder);
+
+    List<MethodElement> methods = holder.methods;
+    expect(methods, hasLength(1));
+    List<LocalVariableElement> variableElements = methods[0].localVariables;
+    expect(variableElements, hasLength(1));
+    LocalVariableElement variableElement = variableElements[0];
+    expect(variableElement.name, variableName);
+    _assertVisibleRange(variableElement, 100, 110);
   }
 
   void test_visitVariableDeclaration_inMethod() {
@@ -2265,6 +2317,7 @@ class C {
         AstFactory.identifier3("m"),
         AstFactory.formalParameterList(),
         AstFactory.blockFunctionBody2([statement]));
+    _setBlockBodySourceRange(method.body, 100, 110);
     method.accept(builder);
 
     List<MethodElement> methods = holder.methods;
@@ -2274,6 +2327,7 @@ class C {
     LocalVariableElement variableElement = variableElements[0];
     expect(variableElement.hasImplicitType, isFalse);
     expect(variableElement.name, variableName);
+    _assertVisibleRange(variableElement, 100, 110);
   }
 
   void test_visitVariableDeclaration_localNestedInFunction() {
@@ -2435,8 +2489,24 @@ class C {
     expect(docRange.length, expectedLength);
   }
 
+  void _assertVisibleRange(LocalElement element, int offset, int end) {
+    SourceRange visibleRange = element.visibleRange;
+    expect(visibleRange.offset, offset);
+    expect(visibleRange.end, end);
+  }
+
   ElementBuilder _makeBuilder(ElementHolder holder) =>
       new ElementBuilder(holder, new CompilationUnitElementImpl('test.dart'));
+
+  void _setBlockBodySourceRange(BlockFunctionBody body, int offset, int end) {
+    _setNodeSourceRange(body.block, offset, end);
+  }
+
+  void _setNodeSourceRange(AstNode node, int offset, int end) {
+    node.beginToken.offset = offset;
+    Token endToken = node.endToken;
+    endToken.offset = end - endToken.length;
+  }
 
   void _useParameterInMethod(
       FormalParameter formalParameter, int blockOffset, int blockEnd) {

@@ -543,9 +543,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     _setCodeRange(element, node);
     element.metadata = _createElementAnnotations(node.metadata);
     ForEachStatement statement = node.parent as ForEachStatement;
-    int declarationEnd = node.offset + node.length;
-    int statementEnd = statement.offset + statement.length;
-    element.setVisibleRange(declarationEnd, statementEnd - declarationEnd - 1);
+    element.setVisibleRange(statement.offset, statement.length);
     element.const3 = node.isConst;
     element.final2 = node.isFinal;
     if (node.type == null) {
@@ -1201,10 +1199,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       }
       element = variable;
       _setCodeRange(element, node);
-      Block enclosingBlock = node.getAncestor((node) => node is Block);
-      // TODO(brianwilkerson) This isn't right for variables declared in a for
-      // loop.
-      variable.setVisibleRange(enclosingBlock.offset, enclosingBlock.length);
+      _setVariableVisibleRange(variable, node);
       variable.hasImplicitType = varList.type == null;
       _currentHolder.addLocalVariable(variable);
       variableName.staticElement = element;
@@ -1399,6 +1394,18 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
     if (body is BlockFunctionBody || body is ExpressionFunctionBody) {
       element.setVisibleRange(body.offset, body.length);
     }
+  }
+
+  void _setVariableVisibleRange(
+      LocalVariableElementImpl element, VariableDeclaration node) {
+    AstNode scopeNode;
+    AstNode parent2 = node.parent.parent;
+    if (parent2 is ForStatement) {
+      scopeNode = parent2;
+    } else {
+      scopeNode = node.getAncestor((node) => node is Block);
+    }
+    element.setVisibleRange(scopeNode.offset, scopeNode.length);
   }
 
   /**
