@@ -192,11 +192,18 @@ defineRuleUnitTests() {
       testEach(bad, isLowerCaseUnderScoreWithDots, isFalse);
     });
     group('lowerCamelCase', () {
-      var good = ['fooBar', 'foo', 'f', 'f1', '_f', '_foo', '_'];
+      var good = ['fooBar', 'foo', 'f', 'f1', '_f', '_foo', '_', 'F'];
       testEach(good, isLowerCamelCase, isTrue);
 
       var bad = ['Foo', 'foo_', 'foo_bar'];
       testEach(bad, isLowerCamelCase, isFalse);
+    });
+    group('isUpperCase', () {
+      var caps = new List<int>.generate(26, (i) => 'A'.codeUnitAt(0) + i);
+      testEach(caps, isUpperCase, isTrue);
+
+      var bad = ['a', '1', 'z'].map((c) => c.codeUnitAt(0));
+      testEach(bad, isUpperCase, isFalse);
     });
     group('libary_name_prefixes', () {
       testEach(
@@ -336,7 +343,7 @@ AnnotationMatcher matchesAnnotation(
         String message, ErrorType type, int lineNumber) =>
     new AnnotationMatcher(new Annotation(message, type, lineNumber));
 
-testEach(Iterable<String> values, dynamic f(String s), Matcher m) {
+testEach(Iterable<Object> values, dynamic f(Object s), Matcher m) {
   values.forEach((s) => test('"$s"', () => expect(f(s), m)));
 }
 

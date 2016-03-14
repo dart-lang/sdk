@@ -2,16 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-int Y; //LINT
+int YO; //LINT
 const Z = 4; //OK
 
 abstract class A {
-  int X; //LINT
+  int X; //OK
   static const Y = 3; // OK
 
   foo_bar(); //LINT
 
-  baz(var B); //LINT
+  baz(var Boo); //LINT
 
   bar({String Name}); //LINT
 

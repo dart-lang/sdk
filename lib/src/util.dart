@@ -58,7 +58,10 @@ bool isIdentifier(String name) => _identifier.hasMatch(name);
 bool isJustUnderscores(String name) => _underscores.hasMatch(name);
 
 /// Returns `true` if this [id] is `lowerCamelCase`.
-bool isLowerCamelCase(String id) => _lowerCamelCase.hasMatch(id) || id == '_';
+bool isLowerCamelCase(String id) =>
+    id.length == 1 && isUpperCase(id.codeUnitAt(0)) ||
+    id == '_' ||
+    _lowerCamelCase.hasMatch(id);
 
 /// Returns `true` if this [id] is `lower_camel_case_with_underscores`.
 bool isLowerCaseUnderScore(String id) => _lowerCaseUnderScore.hasMatch(id);
@@ -69,6 +72,9 @@ bool isLowerCaseUnderScoreWithDots(String id) =>
 
 /// Returns `true` if this [fileName] is a Pubspec file.
 bool isPubspecFileName(String fileName) => _pubspec.hasMatch(fileName);
+
+/// Returns `true` if the given code unit [c] is upper case.
+bool isUpperCase(int c) => c >= 0x40 && c <= 0x5A;
 
 class Spelunker {
   final String path;
