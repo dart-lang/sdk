@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/index2/index2.dart';
+import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -15,12 +15,12 @@ import '../../utils.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(Index2Test);
+  defineReflectiveTests(IndexTest);
 }
 
 @reflectiveTest
-class Index2Test extends AbstractSingleUnitTest {
-  Index2 index = createMemoryIndex2();
+class IndexTest extends AbstractSingleUnitTest {
+  Index index = createMemoryIndex();
 
   /**
    * Return the [Location] with given properties, or fail.

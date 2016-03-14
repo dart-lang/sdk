@@ -20,9 +20,8 @@ import 'package:analysis_server/src/operation/operation_queue.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
-import 'package:analysis_server/src/services/index2/index2.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analysis_server/src/services/search/search_engine_internal2.dart';
+import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
@@ -108,11 +107,6 @@ class AnalysisServer {
    * The [Index] for this server, may be `null` if indexing is disabled.
    */
   final Index index;
-
-  /**
-   * The [Index2] for this server, may be `null` if indexing is disabled.
-   */
-  final Index2 index2;
 
   /**
    * The [SearchEngine] for this server, may be `null` if indexing is disabled.
@@ -314,7 +308,6 @@ class AnalysisServer {
       this.resourceProvider,
       PubPackageMapProvider packageMapProvider,
       Index _index,
-      Index2 _index2,
       this.serverPlugin,
       this.options,
       this.defaultSdkCreator,
@@ -323,8 +316,7 @@ class AnalysisServer {
       EmbeddedResolverProvider embeddedResolverProvider: null,
       this.rethrowExceptions: true})
       : index = _index,
-        index2 = _index2,
-        searchEngine = _index != null ? new SearchEngineImpl2(_index2) : null {
+        searchEngine = _index != null ? new SearchEngineImpl(_index) : null {
     _performance = performanceDuringStartup;
     defaultContextOptions.incremental = true;
     defaultContextOptions.incrementalApi =
@@ -1214,7 +1206,6 @@ class AnalysisServer {
   void shutdown() {
     running = false;
     if (index != null) {
-      index.clear();
       index.stop();
     }
     // Defer closing the channel and shutting down the instrumentation server so
@@ -1439,7 +1430,7 @@ class AnalysisServer {
   }
 
   /**
-   * Schedules [performOperation] exection.
+   * Schedules [performOperation] execution.
    */
   void _schedulePerformOperation() {
     if (performOperationPending) {
@@ -1453,7 +1444,7 @@ class AnalysisServer {
      * every 25 milliseconds.
      *
      * To disable this workaround and see the underlying problem,
-     * set performOperationDelayFreqency to zero
+     * set performOperationDelayFrequency to zero
      */
     int now = new DateTime.now().millisecondsSinceEpoch;
     if (now > _nextPerformOperationDelayTime &&
@@ -1474,7 +1465,7 @@ class AnalysisServer {
    * but for now we only invalidate project specific index information.
    */
   void _setupIndexInvalidation() {
-    if (index2 == null) {
+    if (index == null) {
       return;
     }
     onContextsChanged.listen((ContextsChangedEvent event) {
@@ -1484,12 +1475,12 @@ class AnalysisServer {
             .listen((ResultChangedEvent event) {
           if (event.wasInvalidated) {
             LibrarySpecificUnit target = event.target;
-            index2.removeUnit(event.context, target.library, target.unit);
+            index.removeUnit(event.context, target.library, target.unit);
           }
         });
       }
       for (AnalysisContext context in event.removed) {
-        index2.removeContext(context);
+        index.removeContext(context);
       }
     });
   }
@@ -1586,9 +1577,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     AnalysisContext context = analysisServer.folderMap.remove(folder);
     sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
 
-    if (analysisServer.index != null) {
-      analysisServer.index.removeContext(context);
-    }
     analysisServer.operationQueue.contextRemoved(context);
     analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(removed: [context]));
@@ -1746,7 +1734,7 @@ class ServerPerformanceStatistics {
   static PerformanceTag pub = new PerformanceTag('pub');
 
   /**
-   * The [PerformanceTag] for time spent in server comminication channels.
+   * The [PerformanceTag] for time spent in server communication channels.
    */
   static PerformanceTag serverChannel = new PerformanceTag('serverChannel');
 

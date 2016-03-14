@@ -8,7 +8,6 @@ import 'package:unittest/unittest.dart';
 
 import '../../utils.dart';
 import 'hierarchy_test.dart' as hierarchy_test;
-import 'search_engine2_test.dart' as search_engine2_test;
 import 'search_engine_test.dart' as search_engine_test;
 
 /**
@@ -18,7 +17,6 @@ main() {
   initializeTestEnvironment();
   group('search', () {
     hierarchy_test.main();
-    search_engine2_test.main();
     search_engine_test.main();
   });
 }

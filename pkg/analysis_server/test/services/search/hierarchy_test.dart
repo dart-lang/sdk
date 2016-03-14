@@ -6,9 +6,9 @@ library test.services.src.search.hierarchy;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/services/index2/index2.dart';
+import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
-import 'package:analysis_server/src/services/search/search_engine_internal2.dart';
+import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
@@ -23,13 +23,13 @@ main() {
 
 @reflectiveTest
 class HierarchyTest extends AbstractSingleUnitTest {
-  Index2 index;
-  SearchEngineImpl2 searchEngine;
+  Index index;
+  SearchEngineImpl searchEngine;
 
   void setUp() {
     super.setUp();
-    index = createMemoryIndex2();
-    searchEngine = new SearchEngineImpl2(index);
+    index = createMemoryIndex();
+    searchEngine = new SearchEngineImpl(index);
   }
 
   void test_getClassMembers() {

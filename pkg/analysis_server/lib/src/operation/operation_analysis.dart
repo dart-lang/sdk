@@ -15,7 +15,6 @@ import 'package:analysis_server/src/domains/analysis/occurrences.dart';
 import 'package:analysis_server/src/operation/operation.dart';
 import 'package:analysis_server/src/protocol_server.dart' as protocol;
 import 'package:analysis_server/src/services/dependencies/library_dependencies.dart';
-import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -456,10 +455,7 @@ class _DartIndexOperation extends _SingleFileOperation {
   void perform(AnalysisServer server) {
     ServerPerformanceStatistics.indexOperation.makeCurrentWhile(() {
       try {
-        Index index = server.index;
-        AnalysisContext context = unit.element.context;
-        index.index(context, unit);
-        server.index2?.indexUnit(unit);
+        server.index?.indexUnit(unit);
       } catch (exception, stackTrace) {
         server.sendServerErrorNotification(
             'Failed to index: $file', exception, stackTrace);

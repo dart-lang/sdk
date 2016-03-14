@@ -142,7 +142,6 @@ import "../foo/foo.dart";
         resourceProvider,
         packageMapProvider,
         null,
-        null,
         plugin,
         new AnalysisServerOptions(),
         () => new MockSdk(),

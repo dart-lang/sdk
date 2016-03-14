@@ -8,9 +8,9 @@ import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
-import 'package:analysis_server/src/services/index2/index2.dart';
+import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
-import 'package:analysis_server/src/services/search/search_engine_internal2.dart';
+import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -36,8 +36,8 @@ int findIdentifierLength(String search) {
  * The base class for all [Refactoring] tests.
  */
 abstract class RefactoringTest extends AbstractSingleUnitTest {
-  Index2 index;
-  SearchEngineImpl2 searchEngine;
+  Index index;
+  SearchEngineImpl searchEngine;
 
   SourceChange refactoringChange;
 
@@ -158,7 +158,7 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
 
   void setUp() {
     super.setUp();
-    index = createMemoryIndex2();
-    searchEngine = new SearchEngineImpl2(index);
+    index = createMemoryIndex();
+    searchEngine = new SearchEngineImpl(index);
   }
 }
