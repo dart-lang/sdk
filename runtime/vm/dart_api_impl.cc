@@ -5962,6 +5962,9 @@ DART_EXPORT void Dart_SetEmbedderTimelineCallbacks(
     Dart_EmbedderTimelineStartRecording start_recording,
     Dart_EmbedderTimelineStopRecording stop_recording,
     Dart_EmbedderTimelineGetTimeline get_timeline) {
+  if (!FLAG_support_timeline) {
+    return;
+  }
   Timeline::set_start_recording_cb(start_recording);
   Timeline::set_stop_recording_cb(stop_recording);
   Timeline::set_get_timeline_cb(get_timeline);
