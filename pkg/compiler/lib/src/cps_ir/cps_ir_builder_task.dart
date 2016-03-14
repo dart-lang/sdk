@@ -3940,7 +3940,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       ast.Send node,
       SetterElement setter, _) {
     return buildSuperNoSuchMethod(
-        new Selector.setter(setter.memberName),
+        new Selector.getter(setter.memberName),
         elements.getTypeMask(node),
         [],
         sourceInformationBuilder.buildGet(node));
