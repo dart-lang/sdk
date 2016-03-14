@@ -565,6 +565,36 @@ main(A<int> a) {
     await _verifyReferences(method, expected);
   }
 
+  test_searchReferences_ParameterElement_ofConstructor() async {
+    _indexTestUnit('''
+class C {
+  var f;
+  C({p}) : f = p + 1 {
+    p = 2;
+    p += 3;
+    print(p);
+    p();
+  }
+}
+main() {
+  new C(p: 42);
+}
+''');
+    ParameterElement element = findElement('p');
+    ClassElement classC = findElement('C');
+    ConstructorElement constructorA = classC.unnamedConstructor;
+    Element mainElement = findElement('main');
+    var expected = [
+      _expectId(constructorA, MatchKind.READ, 'p + 1 {'),
+      _expectId(constructorA, MatchKind.WRITE, 'p = 2;'),
+      _expectId(constructorA, MatchKind.READ_WRITE, 'p += 3;'),
+      _expectId(constructorA, MatchKind.READ, 'p);'),
+      _expectId(constructorA, MatchKind.INVOCATION, 'p();'),
+      _expectIdQ(mainElement, MatchKind.REFERENCE, 'p: 42')
+    ];
+    await _verifyReferences(element, expected);
+  }
+
   test_searchReferences_ParameterElement_ofLocalFunction() async {
     _indexTestUnit('''
 main() {

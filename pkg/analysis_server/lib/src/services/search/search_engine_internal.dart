@@ -261,7 +261,11 @@ class SearchEngineImpl implements SearchEngine {
     List<SearchMatch> matches = <SearchMatch>[];
     matches.addAll(await _searchReferences(parameter));
     matches.addAll(await _searchReferences_Local(
-        parameter, (n) => n is MethodDeclaration || n is FunctionExpression));
+        parameter,
+        (n) =>
+            n is ConstructorDeclaration ||
+            n is MethodDeclaration ||
+            n is FunctionExpression));
     return matches;
   }
 
