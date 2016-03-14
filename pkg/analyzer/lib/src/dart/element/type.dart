@@ -739,7 +739,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
         TypeParameterTypeImpl.getTypes(this.typeParameters);
     for (ParameterElement parameter in baseParameters) {
       if (parameter.parameterKind == kind) {
-        TypeImpl type = parameter.type;
+        TypeImpl type = parameter.type ?? DynamicTypeImpl.instance;
         if (typeArguments.length != 0 &&
             typeArguments.length == typeParameters.length) {
           type = type.substitute2(typeArguments, typeParameters, newPrune);
