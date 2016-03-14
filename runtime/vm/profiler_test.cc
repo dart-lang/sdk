@@ -9,6 +9,7 @@
 #include "vm/globals.h"
 #include "vm/profiler.h"
 #include "vm/profiler_service.h"
+#include "vm/source_report.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -2297,6 +2298,204 @@ TEST_CASE(Profiler_BinaryOperatorSourcePositionOptimized) {
     EXPECT_STREQ("bacon", walker.CurrentToken());
     EXPECT(!walker.Down());
   }
+}
+
+
+static void InsertFakeSample(SampleBuffer* sample_buffer,
+                             uword* pc_offsets) {
+  ASSERT(sample_buffer != NULL);
+  Isolate* isolate = Isolate::Current();
+  Sample* sample = sample_buffer->ReserveSample();
+  ASSERT(sample != NULL);
+  sample->Init(isolate,
+               OS::GetCurrentMonotonicMicros(),
+               OSThread::Current()->trace_id());
+
+  intptr_t i = 0;
+  while (pc_offsets[i] != 0) {
+    // When we collect a real stack trace, all PCs collected aside from the
+    // executing one (i == 0) are actually return addresses. Return addresses
+    // are one byte beyond the call instruction that is executing. The profiler
+    // accounts for this and subtracts one from these addresses when querying
+    // inline and token position ranges. To be consistent with real stack
+    // traces, we add one byte to all PCs except the executing one.
+    // See OffsetForPC in profiler_service.cc for more context.
+    const intptr_t return_address_offset = i > 0 ? 1 : 0;
+    sample->SetAt(i, pc_offsets[i] + return_address_offset);
+    i++;
+  }
+  sample->SetAt(i, NULL);
+}
+
+
+static uword FindPCForTokenPosition(const Code& code,
+                                    const CodeSourceMap& code_source_map,
+                                    TokenPosition tp) {
+  CodeSourceMap::Iterator it(code_source_map);
+
+  while (it.MoveNext()) {
+    if (it.TokenPos() == tp) {
+      return it.PcOffset() + code.EntryPoint();
+    }
+  }
+
+  return 0;
+}
+
+
+TEST_CASE(Profiler_GetSourceReport) {
+  const char* kScript =
+      "doWork(i) => i * i;\n"
+      "main() {\n"
+      "  var sum = 0;\n"
+      "  for (var i = 0; i < 100; i++) {\n"
+      "     sum += doWork(i);\n"
+      "  }\n"
+      "  return sum;\n"
+      "}\n";
+
+  // Token position of * in `i * i`.
+  const TokenPosition squarePosition = TokenPosition(6);
+
+  // Token position of the call to `doWork`.
+  const TokenPosition callPosition = TokenPosition(39);
+
+  DisableNativeProfileScope dnps;
+  // Disable profiling for this thread.
+  DisableThreadInterruptsScope dtis(Thread::Current());
+
+  SampleBuffer* sample_buffer = Profiler::sample_buffer();
+  EXPECT(sample_buffer != NULL);
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
+  EXPECT_VALID(lib);
+  Library& root_library = Library::Handle();
+  root_library ^= Api::UnwrapHandle(lib);
+
+  // Invoke main so that it gets compiled.
+  Dart_Handle result = Dart_Invoke(lib, NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+
+  {
+    // Clear the profile for this isolate.
+    ClearProfileVisitor cpv(Isolate::Current());
+    sample_buffer->VisitSamples(&cpv);
+  }
+
+  // Query the code object for main and determine the PC at some token
+  // positions.
+  const Function& main = Function::Handle(GetFunction(root_library, "main"));
+  EXPECT(!main.IsNull());
+
+  const Function& do_work =
+      Function::Handle(GetFunction(root_library, "doWork"));
+  EXPECT(!do_work.IsNull());
+
+  const Script& script = Script::Handle(main.script());
+  EXPECT(!script.IsNull());
+
+  const Code& main_code = Code::Handle(main.CurrentCode());
+  EXPECT(!main_code.IsNull());
+
+  const Code& do_work_code = Code::Handle(do_work.CurrentCode());
+  EXPECT(!do_work_code.IsNull());
+
+  const CodeSourceMap& main_code_source_map =
+      CodeSourceMap::Handle(main_code.code_source_map());
+  EXPECT(!main_code_source_map.IsNull());
+
+  const CodeSourceMap& do_work_code_source_map =
+      CodeSourceMap::Handle(do_work_code.code_source_map());
+  EXPECT(!do_work_code_source_map.IsNull());
+
+  // Dump code source map.
+  CodeSourceMap::Dump(do_work_code_source_map, do_work_code, main);
+  CodeSourceMap::Dump(main_code_source_map, main_code, main);
+
+  // Look up some source token position's pc.
+  uword squarePositionPc =
+      FindPCForTokenPosition(do_work_code,
+                             do_work_code_source_map,
+                             squarePosition);
+  EXPECT(squarePositionPc != 0);
+
+  uword callPositionPc =
+      FindPCForTokenPosition(main_code, main_code_source_map, callPosition);
+  EXPECT(callPositionPc != 0);
+
+  // Look up some classifying token position's pc.
+  uword controlFlowPc =
+      FindPCForTokenPosition(do_work_code,
+                             do_work_code_source_map,
+                             TokenPosition::kControlFlow);
+  EXPECT(controlFlowPc != 0);
+
+  uword tempMovePc =
+      FindPCForTokenPosition(main_code,
+                             main_code_source_map,
+                             TokenPosition::kTempMove);
+  EXPECT(tempMovePc != 0);
+
+  // Insert fake samples.
+
+  // Sample 1:
+  // squarePositionPc exclusive.
+  // callPositionPc inclusive.
+  uword sample1[] = {
+    squarePositionPc,  // doWork.
+    callPositionPc,    // main.
+    0
+  };
+
+  // Sample 2:
+  // squarePositionPc exclusive.
+  uword sample2[] = {
+    squarePositionPc,  // doWork.
+    0,
+  };
+
+  // Sample 3:
+  // controlFlowPc exclusive.
+  // callPositionPc inclusive.
+  uword sample3[] = {
+    controlFlowPc,   // doWork.
+    callPositionPc,  // main.
+    0
+  };
+
+  // Sample 4:
+  // tempMovePc exclusive.
+  uword sample4[] = {
+    tempMovePc,  // main.
+    0
+  };
+
+  InsertFakeSample(sample_buffer, &sample1[0]);
+  InsertFakeSample(sample_buffer, &sample2[0]);
+  InsertFakeSample(sample_buffer, &sample3[0]);
+  InsertFakeSample(sample_buffer, &sample4[0]);
+
+  // Generate source report for main.
+  SourceReport sourceReport(SourceReport::kProfile);
+  JSONStream js;
+  sourceReport.PrintJSON(&js,
+                         script,
+                         do_work.token_pos(),
+                         main.end_token_pos());
+
+  // Verify positions in do_work.
+  EXPECT_SUBSTRING("\"positions\":[\"ControlFlow\",6]", js.ToCString());
+  // Verify exclusive ticks in do_work.
+  EXPECT_SUBSTRING("\"exclusiveTicks\":[1,2]", js.ToCString());
+  // Verify inclusive ticks in do_work.
+  EXPECT_SUBSTRING("\"inclusiveTicks\":[1,2]", js.ToCString());
+
+  // Verify positions in main.
+  EXPECT_SUBSTRING("\"positions\":[\"TempMove\",39]", js.ToCString());
+  // Verify exclusive ticks in main.
+  EXPECT_SUBSTRING("\"exclusiveTicks\":[1,0]", js.ToCString());
+  // Verify inclusive ticks in main.
+  EXPECT_SUBSTRING("\"inclusiveTicks\":[1,2]", js.ToCString());
 }
 
 #endif  // !PRODUCT
