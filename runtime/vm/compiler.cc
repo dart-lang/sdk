@@ -1157,6 +1157,11 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     const bool success = helper.Compile(pipeline);
     if (!success) {
       if (optimized) {
+        if (Compiler::IsBackgroundCompilation()) {
+          // Try again later, background compilation may abort because of
+          // state change during compilation.
+          return Error::null();
+        }
         // Optimizer bailed out. Disable optimizations and never try again.
         if (trace_compiler) {
           THR_Print("--> disabling optimizations for '%s'\n",
@@ -1501,7 +1506,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
 
 void Compiler::AbortBackgroundCompilation(intptr_t deopt_id) {
   if (FLAG_trace_compiler) {
-    THR_Print("ABORT background compilation.");
+    THR_Print("ABORT background compilation\n");
   }
   ASSERT(Compiler::IsBackgroundCompilation());
   Thread::Current()->long_jump_base()->Jump(
