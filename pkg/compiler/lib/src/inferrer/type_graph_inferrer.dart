@@ -59,6 +59,7 @@ import 'closure_tracer.dart';
 import 'list_tracer.dart';
 import 'map_tracer.dart';
 import 'type_graph_nodes.dart';
+import 'type_graph_dump.dart';
 import 'debug.dart' as debug;
 
 
@@ -88,6 +89,14 @@ class TypeInformationSystem extends TypeSystem<TypeInformation> {
   /// List of [TypeInformation]s allocated inside method bodies (calls,
   /// narrowing, phis, and containers).
   final List<TypeInformation> allocatedTypes = <TypeInformation>[];
+
+  Iterable<TypeInformation> get allTypes =>
+      [typeInformations.values,
+       allocatedLists.values,
+       allocatedMaps.values,
+       allocatedClosures,
+       concreteTypes.values,
+       allocatedTypes].expand((x) => x);
 
   TypeInformationSystem(Compiler compiler)
       : this.compiler = compiler,
@@ -715,6 +724,9 @@ class TypeGraphInferrerEngine
     });
     reporter.log('Added $addedInGraph elements in inferencing graph.');
 
+    TypeGraphDump dump = debug.PRINT_GRAPH ? new TypeGraphDump(this) : null;
+
+    dump?.beforeAnalysis();
     buildWorkQueue();
     refine();
 
@@ -799,6 +811,8 @@ class TypeGraphInferrerEngine
       }
     });
 
+    dump?.beforeTracing();
+
     // Reset all nodes that use lists/maps that have been inferred, as well
     // as nodes that use elements fetched from these lists/maps. The
     // workset for a new run of the analysis will be these nodes.
@@ -856,6 +870,7 @@ class TypeGraphInferrerEngine
         print('${elem} :: ${type} from ${type.assignments} ');
       });
     }
+    dump?.afterAnalysis();
 
     reporter.log('Inferred $overallRefineCount types.');
 
@@ -1306,7 +1321,7 @@ class TypeGraphInferrerEngine
 
     analyzedElements.clear();
     generativeConstructorsExposingThis.clear();
-   
+
     types.allocatedMaps.values.forEach(cleanup);
     types.allocatedLists.values.forEach(cleanup);
   }
