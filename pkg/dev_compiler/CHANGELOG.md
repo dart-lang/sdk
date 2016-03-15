@@ -1,5 +1,10 @@
 # dev_compiler changelog
 
+## 0.1.22
+- fixes to support the latest analyzer
+- improvements in compile speed
+- bug fixes on function / closure handling
+
 ## 0.1.21
 - bug fix for dart:js constructor invocation
 
