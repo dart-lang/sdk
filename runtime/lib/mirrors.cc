@@ -840,9 +840,29 @@ DEFINE_NATIVE_ENTRY(Mirrors_makeLocalClassMirror, 1) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Mirrors_makeLocalTypeMirror, 1) {
+DEFINE_NATIVE_ENTRY(Mirrors_makeLocalTypeMirror, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(AbstractType, type, arguments->NativeArgAt(0));
-  return CreateTypeMirror(type);
+  GET_NON_NULL_NATIVE_ARGUMENT(Array, args, arguments->NativeArgAt(1));
+
+  intptr_t num_expected_type_arguments = args.Length();
+  if (args.Length() > 0) {
+    TypeArguments& type_args_obj = TypeArguments::Handle();
+    type_args_obj ^= TypeArguments::New(num_expected_type_arguments);
+    AbstractType& type_arg = AbstractType::Handle();
+    for (intptr_t i = 0; i < args.Length(); i++) {
+      type_arg ^= args.At(i);
+      type_args_obj.SetTypeAt(i, type_arg);
+    }
+    const Class& clz = Class::Handle(type.type_class());
+    Type& instantiated_type = Type::Handle(
+        Type::New(clz, type_args_obj, TokenPosition::kNoSource));
+    instantiated_type ^= ClassFinalizer::FinalizeType(
+        clz, instantiated_type, ClassFinalizer::kCanonicalize);
+
+    return CreateTypeMirror(instantiated_type);
+  } else {
+    return CreateTypeMirror(type);
+  }
 }
 
 

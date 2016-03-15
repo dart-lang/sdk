@@ -31,8 +31,8 @@ patch ClassMirror reflectClass(Type key) {
   return _Mirrors.reflectClass(key);
 }
 
-patch TypeMirror reflectType(Type key) {
-  return _Mirrors.reflectType(key);
+patch TypeMirror reflectType(Type key, [Iterable<Type> typeArguments]) {
+  return _Mirrors.reflectType(key, typeArguments);
 }
 
 patch class MirrorSystem {
