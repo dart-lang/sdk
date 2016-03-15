@@ -351,15 +351,20 @@ class _IndexContributor extends GeneralizingAstVisitor {
   void recordRelationOffset(Element element, IndexRelationKind kind, int offset,
       int length, bool isQualified) {
     // Ignore elements that can't be referenced outside of the unit.
-    if (element == null ||
-        element is FunctionElement &&
+    ElementKind elementKind = element?.kind;
+    if (elementKind == null ||
+        elementKind == ElementKind.DYNAMIC ||
+        elementKind == ElementKind.LABEL ||
+        elementKind == ElementKind.LOCAL_VARIABLE ||
+        elementKind == ElementKind.PREFIX ||
+        elementKind == ElementKind.TYPE_PARAMETER ||
+        elementKind == ElementKind.FUNCTION &&
+            element is FunctionElement &&
             element.enclosingElement is ExecutableElement ||
-        element is LabelElement ||
-        element is LocalVariableElement ||
-        element is ParameterElement &&
+        elementKind == ElementKind.PARAMETER &&
+            element is ParameterElement &&
             element.parameterKind != ParameterKind.NAMED ||
-        element is PrefixElement ||
-        element is TypeParameterElement) {
+        false) {
       return;
     }
     // Add the relation.

@@ -671,6 +671,13 @@ main() {
     assertThat(constA)..isReferencedAt('(); // 1', true, length: 0);
   }
 
+  void test_isReferencedBy_DynamicElement() {
+    _indexTestUnit('''
+dynamic f() {
+}''');
+    expect(unitIndex.usedElementOffsets, isEmpty);
+  }
+
   void test_isReferencedBy_FieldElement() {
     _indexTestUnit('''
 class A {
