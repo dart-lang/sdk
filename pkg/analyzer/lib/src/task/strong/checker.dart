@@ -596,7 +596,7 @@ class CodeChecker extends RecursiveAstVisitor {
           // This is also slightly different from spec, but allows us to keep
           // compound operators in the int += num and num += dynamic cases.
           staticInfo = DownCast.create(
-              rules, expr.rightHandSide, new Cast(rhsType, lhsType));
+              rules, expr.rightHandSide, rhsType, lhsType);
           rhsType = lhsType;
         } else {
           staticInfo = new StaticTypeError(rules, expr, lhsType);
@@ -689,7 +689,7 @@ class CodeChecker extends RecursiveAstVisitor {
 
     // Downcast if toT <: fromT
     if (rules.isSubtypeOf(toT, fromT)) {
-      _recordMessage(DownCast.create(rules, expr, new Cast(fromT, toT)));
+      _recordMessage(DownCast.create(rules, expr, fromT, toT));
       return;
     }
 
@@ -704,7 +704,7 @@ class CodeChecker extends RecursiveAstVisitor {
     // Iterable<T> for some concrete T (e.g. Object).  These are unrelated
     // in the restricted system, but List<dynamic> <: Iterable<T> in dart.
     if (fromT.isAssignableTo(toT)) {
-      _recordMessage(DownCast.create(rules, expr, new Cast(fromT, toT)));
+      _recordMessage(DownCast.create(rules, expr, fromT, toT));
     }
   }
 
