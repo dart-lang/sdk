@@ -15,5 +15,4 @@ class G {}
 
 main() {
   expectReflectedType(reflectType(A, [G]), new A<G>().runtimeType);
-  expectReflectedType(reflectType(A, [G]), new A<G>().runtimeType);
 }
