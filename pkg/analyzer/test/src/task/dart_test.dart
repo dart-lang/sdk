@@ -2651,6 +2651,9 @@ class GenerateLintsTaskTest_AstVisitor extends SimpleAstVisitor {
 
 class GenerateLintsTaskTest_TestLinter extends Linter {
   @override
+  String get name => 'GenerateLintsTaskTest_TestLinter';
+
+  @override
   AstVisitor getVisitor() => new GenerateLintsTaskTest_AstVisitor(this);
 }
 
