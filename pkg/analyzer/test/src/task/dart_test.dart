@@ -4760,10 +4760,9 @@ void main() {
     AnalysisTarget source = newSource(
         '/test.dart',
         '''
-int topLevel = 3;
-class C {
-  String field = topLevel;
-}
+class A {}
+class B extends A {}
+B b = new A();
 ''');
     computeResult(new LibrarySpecificUnit(source, source), STRONG_MODE_ERRORS);
     // validate

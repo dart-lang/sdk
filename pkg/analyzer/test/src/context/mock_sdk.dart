@@ -151,18 +151,19 @@ abstract class Iterable<E> {
       /*=R*/ combine(/*=R*/ previousValue, E element));
 }
 
-abstract class List<E> implements Iterable<E> {
-  void add(E value);
-  E operator [](int index);
-  void operator []=(int index, E value);
+class List<E> implements Iterable<E> {
+  List();
+  void add(E value) {}
+  E operator [](int index) => null;
+  void operator []=(int index, E value) {}
   Iterator<E> get iterator => null;
-  void clear();
+  void clear() {}
 }
 
-abstract class Map<K, V> extends Object {
-  Iterable<K> get keys;
-  V operator [](K key);
-  void operator []=(K key, V value);
+class Map<K, V> extends Object {
+  Iterable<K> get keys => null;
+  V operator [](K key) => null;
+  void operator []=(K key, V value) {}
 }
 
 external bool identical(Object a, Object b);

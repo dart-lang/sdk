@@ -34,6 +34,9 @@ class Cast extends Coercion {
   Cast(DartType fromType, DartType toType) : super(fromType, toType);
 }
 
+
+// TODO(rnystrom): Analyzer no longer produces or uses anything except Cast,
+// so this should be eliminated once DDC no longer uses it.
 // The abstract type of coercions mapping one type to another.
 // This class also exposes static builder functions which
 // check for errors and reduce redundant coercions to the identity.

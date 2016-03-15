@@ -45,7 +45,7 @@ main() {
     context = new TestContext();
   });
 
-  group('ErrorProcessorTest', () {
+  group('ErrorProcessor', () {
     test('configureOptions', () {
       configureOptions('''
 analyzer:
@@ -60,9 +60,17 @@ analyzer:
       expect(getProcessor(unused_local_variable), isNull);
       expect(getProcessor(use_of_void_result), isNull);
     });
+
+    test('upgrades static type warnings to errors in strong mode', () {
+      configureOptions('''
+analyzer:
+  strong-mode: true
+''');
+      expect(getProcessor(invalid_assignment).severity, ErrorSeverity.ERROR);
+    });
   });
 
-  group('ErrorConfigTest', () {
+  group('ErrorConfig', () {
     var config = '''
 analyzer:
   errors:
