@@ -5890,8 +5890,7 @@ static void DataStreamToConsumer(Dart_StreamConsumer consumer,
 
 static bool StreamTraceEvents(Dart_StreamConsumer consumer,
                               void* user_data,
-                              JSONStream* js,
-                              bool insert_comma) {
+                              JSONStream* js) {
   ASSERT(js != NULL);
   // Steal output from JSONStream.
   char* output = NULL;
@@ -5909,13 +5908,8 @@ static bool StreamTraceEvents(Dart_StreamConsumer consumer,
   // Replace the ']' with the null character.
   output[output_length - 1] = '\0';
   char* start = &output[1];
-  if (insert_comma) {
-    output[0] = ',';
-    start = &output[0];
-  } else {
-    // We are skipping the '['.
-    output_length -= 1;
-  }
+  // We are skipping the '['.
+  output_length -= 1;
 
   DataStreamToConsumer(consumer,
                        user_data,
@@ -5952,7 +5946,7 @@ DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
   IsolateTimelineEventFilter filter(isolate->main_port());
   timeline_recorder->PrintTraceEvent(&js, &filter);
   StartStreamToConsumer(consumer, user_data, "timeline");
-  bool success = StreamTraceEvents(consumer, user_data, &js, false);
+  bool success = StreamTraceEvents(consumer, user_data, &js);
   FinishStreamToConsumer(consumer, user_data, "timeline");
   return success;
 }
@@ -5989,17 +5983,12 @@ DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
     return false;
   }
   Timeline::ReclaimCachedBlocksFromThreads();
+  bool success = false;
   JSONStream js;
   TimelineEventFilter filter;
   timeline_recorder->PrintTraceEvent(&js, &filter);
   StartStreamToConsumer(consumer, user_data, "timeline");
-  bool success = false;
-  if (Timeline::get_get_timeline_cb() != NULL) {
-    if (Timeline::get_get_timeline_cb()(consumer, user_data)) {
-      success = true;
-    }
-  }
-  if (StreamTraceEvents(consumer, user_data, &js, success)) {
+  if (StreamTraceEvents(consumer, user_data, &js)) {
     success = true;
   }
   FinishStreamToConsumer(consumer, user_data, "timeline");

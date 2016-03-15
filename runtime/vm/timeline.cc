@@ -1027,6 +1027,14 @@ void TimelineEventRecorder::ThreadBlockCompleteEvent(TimelineEvent* event) {
 }
 
 
+void TimelineEventRecorder::PrintEmbedderJSONEvents(JSONStream* events) {
+  if (Timeline::get_get_timeline_cb() != NULL) {
+    events->PrintCommaIfNeeded();
+    Timeline::get_get_timeline_cb()(AppendJSONStreamConsumer, events);
+  }
+}
+
+
 void TimelineEventRecorder::WriteTo(const char* directory) {
   if (!FLAG_support_service) {
     return;
@@ -1166,6 +1174,7 @@ void TimelineEventRingRecorder::PrintJSON(JSONStream* js,
     JSONArray events(&topLevel, "traceEvents");
     PrintJSONMeta(&events);
     PrintJSONEvents(&events, filter);
+    PrintEmbedderJSONEvents(js);
   }
 }
 
@@ -1177,6 +1186,7 @@ void TimelineEventRingRecorder::PrintTraceEvent(JSONStream* js,
   }
   JSONArray events(js);
   PrintJSONEvents(&events, filter);
+  PrintEmbedderJSONEvents(js);
 }
 
 
@@ -1299,6 +1309,7 @@ void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
     JSONArray events(&topLevel, "traceEvents");
     PrintJSONMeta(&events);
     PrintJSONEvents(&events, filter);
+    PrintEmbedderJSONEvents(js);
   }
 }
 
@@ -1311,6 +1322,7 @@ void TimelineEventEndlessRecorder::PrintTraceEvent(
   }
   JSONArray events(js);
   PrintJSONEvents(&events, filter);
+  PrintEmbedderJSONEvents(js);
 }
 
 

@@ -678,6 +678,7 @@ class TimelineEventRecorder {
   void PrintJSONMeta(JSONArray* array) const;
   TimelineEvent* ThreadBlockStartEvent();
   void ThreadBlockCompleteEvent(TimelineEvent* event);
+  void PrintEmbedderJSONEvents(JSONStream* events);
 
   Mutex lock_;
   uintptr_t async_id_;

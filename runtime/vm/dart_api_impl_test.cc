@@ -9827,7 +9827,7 @@ TEST_CASE(Timeline_Dart_EmbedderTimelineGetTimeline) {
   bool success = Dart_GlobalTimelineGetTrace(AppendStreamConsumer, &data);
   EXPECT(success);
 
-  EXPECT_SUBSTRING("HELLO FROM EMBEDDER,{\"name\":\"testDurationEvent\"",
+  EXPECT_SUBSTRING("}},HELLO FROM EMBEDDER",
                    data.buffer);
 
   // Free buffer allocated by AppendStreamConsumer
