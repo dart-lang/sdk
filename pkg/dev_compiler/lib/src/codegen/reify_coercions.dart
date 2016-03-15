@@ -9,11 +9,11 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart' show NodeReplacer;
 import 'package:analyzer/src/generated/type_system.dart'
     show StrongTypeSystemImpl;
+import 'package:analyzer/src/task/strong/info.dart';
 import 'package:logging/logging.dart' as logger;
 
-import '../info.dart';
-import '../utils.dart' show getStaticType;
 import 'ast_builder.dart';
+import '../utils.dart' show getStaticType;
 
 final _log = new logger.Logger('dev_compiler.reify_coercions');
 
@@ -33,17 +33,18 @@ class NewTypeIdDesc {
 // This class implements a pass which modifies (in place) the ast replacing
 // abstract coercion nodes with their dart implementations.
 class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
-  final LibraryUnit _library;
   final StrongTypeSystemImpl _typeSystem;
 
-  CoercionReifier(this._library, this._typeSystem);
+  CoercionReifier(this._typeSystem);
 
-  // This should be the entry point for this class.  Entering via the
-  // visit functions directly may not do the right thing with respect
-  // to discharging the collected definitions.
-  // Returns the set of new type identifiers added by the reifier
-  void reify() {
-    _library.partsThenLibrary.forEach(visitCompilationUnit);
+  /// This should be the entry point for this class.
+  ///
+  /// Entering via the visit functions directly may not do the right
+  /// thing with respect to discharging the collected definitions.
+  ///
+  /// Returns the set of new type identifiers added by the reifier
+  void reify(List<CompilationUnit> units) {
+    units.forEach(visitCompilationUnit);
   }
 
   @override

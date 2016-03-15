@@ -12,17 +12,11 @@ import 'closure/closure_type_test.dart' as closure_type_test;
 import 'codegen_test.dart' as codegen_test;
 import 'js/builder_test.dart' as builder_test;
 import 'end_to_end_test.dart' as e2e;
-import 'report_test.dart' as report_test;
-import 'dependency_graph_test.dart' as dependency_graph_test;
-import 'transformer_test.dart' as transformer_test;
 import 'utils_test.dart' as utils_test;
 
 void main() {
   group('end-to-end', e2e.main);
-  group('report', report_test.main);
-  group('dependency_graph', dependency_graph_test.main);
   group('codegen', () => codegen_test.main([]));
-  group('transformer', transformer_test.main);
   group('closure', () {
     closure_annotation_test.main();
     closure_type_test.main();

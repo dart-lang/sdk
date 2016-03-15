@@ -26,11 +26,8 @@ import 'package:path/path.dart' as path;
 import 'analysis_context.dart';
 import 'codegen/html_codegen.dart' as html_codegen;
 import 'codegen/js_codegen.dart';
-import 'info.dart'
-    show AnalyzerMessage, CheckerResults, LibraryInfo, LibraryUnit;
 import 'options.dart';
 import 'report.dart';
-import 'report/html_reporter.dart';
 import 'utils.dart' show FileSystem, isStrongModeError;
 
 /// Sets up the type checker logger to print a span that highlights error
@@ -61,20 +58,9 @@ CompilerOptions validateOptions(List<String> args, {bool forceOutDir: false}) {
 
 /// Compile with the given options and return success or failure.
 bool compile(CompilerOptions options) {
-  assert(!options.serverMode);
-
   var context = createAnalysisContextWithSources(options.sourceOptions);
-  var reporter = createErrorReporter(context, options);
-  bool status = new BatchCompiler(context, options, reporter: reporter).run();
-
-  if (reporter is HtmlReporter) {
-    reporter.finish(options);
-  } else if (reporter is SummaryReporter) {
-    var result = reporter.result;
-    print(summaryToString(result));
-  }
-
-  return status;
+  var reporter = new LogReporter(context, useColors: options.useColors);
+  return new BatchCompiler(context, options, reporter: reporter).run();
 }
 
 // Callback on each individual compiled library
@@ -92,7 +78,7 @@ class BatchCompiler extends AbstractCompiler {
   bool _failure = false;
   bool get failure => _failure;
 
-  final _pendingLibraries = <LibraryUnit>[];
+  final _pendingLibraries = <List<CompilationUnit>>[];
 
   BatchCompiler(AnalysisContext context, CompilerOptions options,
       {AnalysisErrorListener reporter,
@@ -157,7 +143,7 @@ class BatchCompiler extends AbstractCompiler {
 
     while (_pendingLibraries.isNotEmpty) {
       var unit = _pendingLibraries.removeLast();
-      var library = unit.library.element.enclosingElement;
+      var library = unit.first.element.library;
       assert(_compilationRecord[library] == true ||
           options.codegenOptions.forceCompile);
 
@@ -214,7 +200,8 @@ class BatchCompiler extends AbstractCompiler {
     }
 
     // Check this library's own code
-    var unitElements = [library.definingCompilationUnit]..addAll(library.parts);
+    var unitElements = new List.from(library.parts)
+      ..add(library.definingCompilationUnit);
     var units = <CompilationUnit>[];
 
     bool failureInLib = false;
@@ -240,9 +227,7 @@ class BatchCompiler extends AbstractCompiler {
     // server/dependency_graph and perhaps the analyzer itself.
     success = _compilationRecord[library];
     if (success || options.codegenOptions.forceCompile) {
-      var unit = units.first;
-      var parts = units.skip(1).toList();
-      _pendingLibraries.add(new LibraryUnit(unit, parts));
+      _pendingLibraries.add(units);
     }
 
     // Return tentative success status.
@@ -477,15 +462,6 @@ abstract class AbstractCompiler {
     }
     return failure;
   }
-}
-
-AnalysisErrorListener createErrorReporter(
-    AnalysisContext context, CompilerOptions options) {
-  return options.htmlReport
-      ? new HtmlReporter(context)
-      : options.serverMode
-          ? new SummaryReporter(context, options.logLevel)
-          : new LogReporter(context, useColors: options.useColors);
 }
 
 // TODO(jmesserly): find a better home for these.

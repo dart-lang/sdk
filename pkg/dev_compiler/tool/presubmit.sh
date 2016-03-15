@@ -8,6 +8,5 @@ $DIR/analyze.sh
 $DIR/format.sh
 if [[ "$TRAVIS" != true ]]; then
   $DIR/node_test.sh
-  $DIR/transformer_test.sh
 fi
 echo "*** Presubmit finished"

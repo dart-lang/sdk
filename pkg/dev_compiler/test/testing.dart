@@ -14,9 +14,6 @@ import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:path/path.dart' as path;
 
 import 'package:dev_compiler/src/analysis_context.dart';
-
-import 'package:dev_compiler/src/server/dependency_graph.dart'
-    show runtimeFilesForServerMode;
 import 'package:dev_compiler/src/options.dart';
 
 /// Shared analysis context used for compilation.
@@ -41,24 +38,6 @@ final String testDirectory =
     path.dirname((reflectClass(_TestUtils).owner as LibraryMirror).uri.path);
 
 class _TestUtils {}
-
-/// Creates a [MemoryResourceProvider] with test data
-MemoryResourceProvider createTestResourceProvider(
-    Map<String, String> testFiles) {
-  var provider = new MemoryResourceProvider();
-  runtimeFilesForServerMode.forEach((filepath) {
-    testFiles['/dev_compiler_runtime/$filepath'] =
-        '/* test contents of $filepath */';
-  });
-  testFiles.forEach((key, value) {
-    var scheme = 'package:';
-    if (key.startsWith(scheme)) {
-      key = '/packages/${key.substring(scheme.length)}';
-    }
-    provider.newFile(key, value);
-  });
-  return provider;
-}
 
 class TestUriResolver extends ResourceUriResolver {
   final MemoryResourceProvider provider;

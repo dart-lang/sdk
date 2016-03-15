@@ -46,13 +46,6 @@ class SourceResolverOptions {
   /// List of paths used for the multi-package resolver.
   final List<String> packagePaths;
 
-  /// List of additional non-Dart resources to resolve and serve.
-  final List<String> resources;
-
-  // True if the resolver should implicitly provide an html entry point.
-  final bool useImplicitHtml;
-  static const String implicitHtmlFile = 'index.html';
-
   /// Whether to use a mock-sdk during compilation.
   final bool useMockSdk;
 
@@ -66,9 +59,7 @@ class SourceResolverOptions {
       this.useMultiPackage: false,
       this.customUrlMappings: const {},
       this.packageRoot: 'packages/',
-      this.packagePaths: const <String>[],
-      this.resources: const <String>[],
-      this.useImplicitHtml: false});
+      this.packagePaths: const <String>[]});
 }
 
 enum ModuleFormat { es6, legacy, node }
@@ -123,8 +114,6 @@ class CompilerOptions {
   /// Whether to check the sdk libraries.
   final bool checkSdk;
 
-  final bool htmlReport;
-
   /// Whether to use colors when interacting on the console.
   final bool useColors;
 
@@ -136,21 +125,6 @@ class CompilerOptions {
 
   /// Minimum log-level reported on the command-line.
   final Level logLevel;
-
-  /// Whether to run as a development server.
-  final bool serverMode;
-
-  /// Whether to enable hash-based caching of files.
-  final bool enableHashing;
-
-  /// Whether to serve the error / warning widget.
-  final bool widget;
-
-  /// Port used for the HTTP server when [serverMode] is on.
-  final int port;
-
-  /// Host name or address for HTTP server when [serverMode] is on.
-  final String host;
 
   /// Location for runtime files, such as `dart_runtime.js`. By default this is
   /// inferred to be under `lib/runtime/` in the location of the `dev_compiler`
@@ -169,16 +143,10 @@ class CompilerOptions {
       this.codegenOptions: const CodegenOptions(),
       this.runnerOptions: const RunnerOptions(),
       this.checkSdk: false,
-      this.htmlReport: false,
       this.useColors: true,
       this.help: false,
       this.version: false,
       this.logLevel: Level.WARNING,
-      this.serverMode: false,
-      this.enableHashing: false,
-      this.widget: true,
-      this.host: 'localhost',
-      this.port: 8080,
       this.runtimeDir,
       this.inputs,
       this.inputBaseDir});
@@ -190,11 +158,6 @@ CompilerOptions parseOptions(List<String> argv, {bool forceOutDir: false}) {
   bool showUsage = args['help'];
   bool showVersion = args['version'];
 
-  var serverMode = args['server'];
-  var enableHashing = args['hashing'];
-  if (enableHashing == null) {
-    enableHashing = serverMode;
-  }
   var logLevel = Level.WARNING;
   var levelName = args['log'];
   if (levelName != null) {
@@ -212,10 +175,9 @@ CompilerOptions parseOptions(List<String> argv, {bool forceOutDir: false}) {
     runtimeDir = _computeRuntimeDir();
   }
   var outputDir = args['out'];
-  if (outputDir == null && (serverMode || forceOutDir)) {
+  if (outputDir == null && forceOutDir) {
     outputDir = Directory.systemTemp.createTempSync("dev_compiler_out_").path;
   }
-  var htmlReport = args['html-report'];
 
   var v8Binary = args['v8-binary'];
   if (v8Binary == null) v8Binary = _V8_BINARY_DEFAULT;
@@ -233,7 +195,7 @@ CompilerOptions parseOptions(List<String> argv, {bool forceOutDir: false}) {
   return new CompilerOptions(
       codegenOptions: new CodegenOptions(
           emitSourceMaps: args['source-maps'],
-          forceCompile: args['force-compile'] || serverMode,
+          forceCompile: args['force-compile'],
           closure: args['closure'],
           destructureNamedParams: args['destructure-named-params'],
           outputDir: outputDir,
@@ -241,27 +203,16 @@ CompilerOptions parseOptions(List<String> argv, {bool forceOutDir: false}) {
       sourceOptions: new SourceResolverOptions(
           useMockSdk: args['mock-sdk'],
           dartSdkPath: sdkPath,
-          useImplicitHtml: serverMode &&
-              args.rest.length == 1 &&
-              args.rest[0].endsWith('.dart'),
           customUrlMappings: customUrlMappings,
           useMultiPackage: args['use-multi-package'],
           packageRoot: args['package-root'],
-          packagePaths: args['package-paths'].split(','),
-          resources:
-              args['resources'].split(',').where((s) => s.isNotEmpty).toList()),
+          packagePaths: args['package-paths'].split(',')),
       runnerOptions: new RunnerOptions(v8Binary: v8Binary),
       checkSdk: args['sdk-check'],
-      htmlReport: htmlReport,
       useColors: useColors,
       help: showUsage,
       version: showVersion,
       logLevel: logLevel,
-      serverMode: serverMode,
-      enableHashing: enableHashing,
-      widget: args['widget'],
-      host: args['host'],
-      port: int.parse(args['port']),
       runtimeDir: runtimeDir,
       inputs: args.rest);
 }
@@ -275,7 +226,6 @@ final ArgParser argParser = new ArgParser()
   // input/output options
   ..addOption('out', abbr: 'o', help: 'Output directory', defaultsTo: null)
   ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null)
-  ..addOption('dump-src-to', help: 'Dump dart src code', defaultsTo: null)
   ..addOption('package-root',
       abbr: 'p',
       help: 'Package root to resolve "package:" imports',
@@ -292,8 +242,6 @@ final ArgParser argParser = new ArgParser()
       help: 'if using the multi-package resolver, the list of directories to\n'
           'look for packages in.',
       defaultsTo: '')
-  ..addOption('resources',
-      help: 'Additional resources to serve', defaultsTo: '')
   ..addFlag('source-maps',
       help: 'Whether to emit source map files', defaultsTo: true)
   ..addOption('runtime-dir',
@@ -314,19 +262,6 @@ final ArgParser argParser = new ArgParser()
   ..addFlag('help', abbr: 'h', help: 'Display this message')
   ..addFlag('version',
       negatable: false, help: 'Display the Dev Compiler verion')
-  ..addFlag('server', help: 'Run as a development server.', defaultsTo: false)
-  ..addFlag('hashing',
-      help: 'Enable hash-based file caching.', defaultsTo: null)
-  ..addFlag('widget',
-      help: 'Serve embedded widget with static errors and warnings.',
-      defaultsTo: true)
-  ..addOption('host',
-      help: 'Host name or address to serve files from, e.g. --host=0.0.0.0\n'
-          'to listen on all interfaces (used only when --serve is on)',
-      defaultsTo: 'localhost')
-  ..addOption('port',
-      help: 'Port to serve files from (used only when --serve is on)',
-      defaultsTo: '8080')
   ..addFlag('closure',
       help: 'Emit Closure Compiler-friendly code (experimental)',
       defaultsTo: _CLOSURE_DEFAULT)
@@ -336,15 +271,9 @@ final ArgParser argParser = new ArgParser()
   ..addFlag('force-compile',
       abbr: 'f', help: 'Compile code with static errors', defaultsTo: false)
   ..addOption('log', abbr: 'l', help: 'Logging level (defaults to warning)')
-  ..addFlag('dump-info',
-      abbr: 'i', help: 'Dump summary information', defaultsTo: null)
-  ..addFlag('html-report',
-      help: 'Output compilation results to html', defaultsTo: false)
   ..addOption('v8-binary',
       help: 'V8-based binary to run JavaScript output with (iojs, node, d8)',
-      defaultsTo: _V8_BINARY_DEFAULT)
-  ..addOption('dump-info-file',
-      help: 'Dump info json file (requires dump-info)', defaultsTo: null);
+      defaultsTo: _V8_BINARY_DEFAULT);
 
 // TODO: Switch over to the `pub_cache` package (or the Resource API)?
 

@@ -19,15 +19,12 @@ before_script:
 script:
   - if [[ -z "$TEST" ]]; then ./tool/presubmit.sh ; fi
   - if [[ "$TEST" == coverage ]]; then ./tool/build_sdk.sh && ./tool/coverage.sh ; fi
-  - if [[ "$TEST" == transformer ]]; then ./tool/transformer_test.sh ; fi
   - if [[ "$TEST" == node ]]; then ./tool/node_test.sh ; fi
 env:
   - ANALYZER=stable
   - ANALYZER=master
   - TEST=coverage
-  - TEST=transformer
   - TEST=node
 matrix:
   allow_failures:
     - env: ANALYZER=master
-    - env: TEST=transformer

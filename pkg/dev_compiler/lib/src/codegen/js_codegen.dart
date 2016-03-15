@@ -15,12 +15,16 @@ import 'package:analyzer/src/generated/constant.dart';
 //ignore: DEPRECATED_MEMBER_USE
 import 'package:analyzer/src/generated/element.dart'
     show DynamicElementImpl, DynamicTypeImpl, LocalVariableElementImpl;
+// TODO(jmesserly): we can remove this when ResolutionCopier is fixed.
+import 'package:analyzer/src/dart/ast/ast.dart' show FunctionBodyImpl;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
+import 'package:analyzer/src/generated/parser.dart' show ResolutionCopier;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/dart/ast/token.dart'
     show StringToken, Token, TokenType;
 import 'package:analyzer/src/generated/type_system.dart'
     show StrongTypeSystemImpl;
+import 'package:analyzer/src/task/strong/info.dart';
 
 import 'ast_builder.dart' show AstBuilder;
 import 'reify_coercions.dart' show CoercionReifier, Tuple2;
@@ -31,11 +35,9 @@ import '../js/js_ast.dart' show js;
 import '../closure/closure_annotator.dart' show ClosureAnnotator;
 import '../compiler.dart'
     show AbstractCompiler, corelibOrder, getCorelibModuleName;
-import '../info.dart';
 import '../options.dart' show CodegenOptions;
 import '../utils.dart';
 
-import 'code_generator.dart';
 import 'js_field_storage.dart';
 import 'js_interop.dart';
 import 'js_names.dart' as JS;
@@ -135,13 +137,14 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
 
   TypeProvider get types => _types;
 
-  JS.Program emitLibrary(LibraryUnit library) {
+  JS.Program emitLibrary(List<CompilationUnit> units) {
+    // Copy the AST before modifying it.
+    units = units.map(_cloneCompilationUnit).toList();
+
     // Modify the AST to make coercions explicit.
-    new CoercionReifier(library, rules).reify();
+    new CoercionReifier(rules).reify(units);
 
-    library.library.directives.forEach(_visit);
-
-    var units = library.partsThenLibrary;
+    units.last.directives.forEach(_visit);
 
     // Rather than directly visit declarations, we instead use [_loader] to
     // visit them. It has the ability to sort elements on demand, so
@@ -156,7 +159,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     // only run this on the outermost function.
     inferNullableTypesInLibrary(units);
 
-    _constField = new ConstFieldVisitor(types, library.library.element.source);
+    _constField = new ConstFieldVisitor(types, currentLibrary.source);
 
     for (var unit in units) {
       for (var decl in unit.declarations) {
@@ -3760,14 +3763,15 @@ class ExtensionTypeSet extends GeneralizingElementVisitor {
   }
 }
 
-class JSGenerator extends CodeGenerator {
+class JSGenerator {
+  final AbstractCompiler compiler;
   final ExtensionTypeSet _extensionTypes;
   final TypeProvider _types;
 
   JSGenerator(AbstractCompiler compiler)
-      : _types = compiler.context.typeProvider,
-        _extensionTypes = new ExtensionTypeSet(compiler),
-        super(compiler) {
+      : compiler = compiler,
+        _types = compiler.context.typeProvider,
+        _extensionTypes = new ExtensionTypeSet(compiler) {
     // TODO(vsm): Eventually, we want to make this extensible - i.e., find
     // annotations in user code as well.  It would need to be summarized in
     // the element model - not searched this way on every compile.  To make this
@@ -3798,21 +3802,17 @@ class JSGenerator extends CodeGenerator {
     _extensionTypes._addPendingExtensionTypes('dart:web_sql');
   }
 
-  String generateLibrary(LibraryUnit unit) {
-    // Clone the AST first, so we can mutate it.
-    unit = unit.clone();
-    var library = unit.library.element.library;
-    var fields = findFieldsNeedingStorage(unit, _extensionTypes);
+  void generateLibrary(List<CompilationUnit> units) {
+    var library = units.first.element.library;
+    var fields =
+        findFieldsNeedingStorage(units.map((c) => c.element), _extensionTypes);
     var rules = new StrongTypeSystemImpl();
     var codegen =
         new JSCodegenVisitor(compiler, rules, library, _extensionTypes, fields);
-    var module = codegen.emitLibrary(unit);
+    var module = codegen.emitLibrary(units);
     var out = compiler.getOutputPath(library.source.uri);
-    var flags = compiler.options;
-    var serverUri = flags.serverMode
-        ? Uri.parse('http://${flags.host}:${flags.port}/')
-        : null;
-    return writeJsLibrary(module, out, compiler.inputBaseDir, serverUri,
+    var options = compiler.options.codegenOptions;
+    writeJsLibrary(module, out, compiler.inputBaseDir,
         emitTypes: options.closure,
         emitSourceMaps: options.emitSourceMaps,
         fileSystem: compiler.fileSystem);
@@ -3843,4 +3843,53 @@ class TemporaryVariableElement extends LocalVariableElementImpl {
 
   int get hashCode => identityHashCode(this);
   bool operator ==(Object other) => identical(this, other);
+}
+
+CompilationUnit _cloneCompilationUnit(CompilationUnit unit) {
+  var result = new _TreeCloner().visitCompilationUnit(unit);
+  ResolutionCopier.copyResolutionData(unit, result);
+  return result;
+}
+
+class _TreeCloner extends AstCloner {
+  void _cloneProperties(AstNode clone, AstNode node) {
+    if (clone != null) {
+      CoercionInfo.set(clone, CoercionInfo.get(node));
+      DynamicInvoke.set(clone, DynamicInvoke.get(node));
+    }
+  }
+
+  @override
+  AstNode cloneNode(AstNode node) {
+    var clone = super.cloneNode(node);
+    _cloneProperties(clone, node);
+    return clone;
+  }
+
+  @override
+  List cloneNodeList(List list) {
+    var clone = super.cloneNodeList(list);
+    for (int i = 0, len = list.length; i < len; i++) {
+      _cloneProperties(clone[i], list[i]);
+    }
+    return clone;
+  }
+
+  // TODO(jmesserly): ResolutionCopier is not copying this yet.
+  @override
+  BlockFunctionBody visitBlockFunctionBody(BlockFunctionBody node) {
+    var clone = super.visitBlockFunctionBody(node);
+    (clone as FunctionBodyImpl).localVariableInfo =
+        (node as FunctionBodyImpl).localVariableInfo;
+    return clone;
+  }
+
+  @override
+  ExpressionFunctionBody visitExpressionFunctionBody(
+      ExpressionFunctionBody node) {
+    var clone = super.visitExpressionFunctionBody(node);
+    (clone as FunctionBodyImpl).localVariableInfo =
+        (node as FunctionBodyImpl).localVariableInfo;
+    return clone;
+  }
 }

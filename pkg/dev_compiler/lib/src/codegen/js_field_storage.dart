@@ -7,15 +7,14 @@ import 'package:analyzer/dart/ast/ast.dart' show Identifier;
 import 'package:analyzer/dart/element/element.dart';
 
 import 'js_codegen.dart' show ExtensionTypeSet;
-import '../info.dart' show LibraryUnit;
 
 /// We use a storage slot for fields that override or can be overridden by
 /// getter/setter pairs.
 HashSet<FieldElement> findFieldsNeedingStorage(
-    LibraryUnit library, ExtensionTypeSet extensionTypes) {
+    Iterable<CompilationUnitElement> units, ExtensionTypeSet extensionTypes) {
   var overrides = new HashSet<FieldElement>();
-  for (var unit in library.partsThenLibrary) {
-    for (var cls in unit.element.types) {
+  for (var unit in units) {
+    for (var cls in unit.types) {
       var superclasses = getSuperclasses(cls);
       for (var field in cls.fields) {
         if (!field.isSynthetic && !overrides.contains(field)) {

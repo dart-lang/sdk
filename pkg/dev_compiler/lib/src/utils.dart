@@ -30,7 +30,6 @@ import 'package:analyzer/src/task/dart.dart' show ParseDartTask;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
 import 'package:analyzer/analyzer.dart' show parseDirectives;
-import 'package:crypto/crypto.dart' show CryptoUtils, MD5;
 import 'package:source_span/source_span.dart';
 
 import 'codegen/js_names.dart' show invalidVariableName;
@@ -298,18 +297,6 @@ SourceLocation locationForOffset(LineInfo lineInfo, Uri uri, int offset) {
   var loc = lineInfo.getLocation(offset);
   return new SourceLocation(offset,
       sourceUrl: uri, line: loc.lineNumber - 1, column: loc.columnNumber - 1);
-}
-
-/// Computes a hash for the given contents.
-String computeHash(String contents) {
-  if (contents == null || contents == '') return null;
-  return CryptoUtils.bytesToHex((new MD5()..add(contents.codeUnits)).close());
-}
-
-/// Computes a hash for the given file path (reads the contents in binary form).
-String computeHashFromFile(String filepath) {
-  var bytes = new File(filepath).readAsBytesSync();
-  return CryptoUtils.bytesToHex((new MD5()..add(bytes)).close());
 }
 
 String resourceOutputPath(Uri resourceUri, Uri entryUri, String runtimeDir) {

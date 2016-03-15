@@ -13,7 +13,6 @@ import 'package:dev_compiler/devc.dart' show devCompilerVersion;
 import 'package:dev_compiler/src/compiler.dart'
     show validateOptions, compile, setupLogger;
 import 'package:dev_compiler/src/options.dart';
-import 'package:dev_compiler/src/server/server.dart' show DevServer;
 
 const String _appName = 'dartdevc';
 
@@ -42,10 +41,6 @@ main(List<String> args) {
   }
 
   setupLogger(options.logLevel, print);
-
-  if (options.serverMode) {
-    new DevServer(options).start();
-  } else {
-    exit(compile(options) ? 0 : 1);
-  }
+  bool success = compile(options);
+  exit(success ? 0 : 1);
 }

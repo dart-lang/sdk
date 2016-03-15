@@ -19,6 +19,7 @@ import 'package:test/test.dart';
 import 'package:dev_compiler/devc.dart';
 import 'package:dev_compiler/src/compiler.dart' show defaultRuntimeFiles;
 import 'package:dev_compiler/src/options.dart';
+import 'package:dev_compiler/src/report.dart' show LogReporter;
 
 import 'testing.dart' show realSdkContext, testDirectory;
 import 'multitest.dart';
@@ -85,7 +86,7 @@ main(arguments) {
         checkSdk: checkSdk,
         runtimeDir: runtimeDir,
         inputBaseDir: inputDir);
-    var reporter = createErrorReporter(context, options);
+    var reporter = new LogReporter(context);
     return new BatchCompiler(context, options, reporter: reporter);
   }
 
