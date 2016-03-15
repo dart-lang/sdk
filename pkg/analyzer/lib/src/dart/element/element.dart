@@ -2250,10 +2250,10 @@ class ElementLocationImpl implements ElementLocation {
 
   @override
   int get hashCode {
-    int result = 1;
+    int result = 0;
     for (int i = 0; i < _components.length; i++) {
       String component = _components[i];
-      result = 31 * result + component.hashCode;
+      result = JenkinsSmiHash.combine(result, component.hashCode);
     }
     return result;
   }
