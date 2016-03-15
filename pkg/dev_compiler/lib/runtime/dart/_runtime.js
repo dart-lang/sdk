@@ -91,7 +91,10 @@ dart_library.library('dart/_runtime', null, /* Imports */[
   function getMethodType(obj, name) {
     if (obj === void 0) return void 0;
     if (obj == null) return void 0;
-    let sigObj = obj.__proto__.constructor[_methodSig];
+    return getMethodTypeFromType(obj.__proto__.constructor, name);
+  }
+  function getMethodTypeFromType(type, name) {
+    let sigObj = type[_methodSig];
     if (sigObj === void 0) return void 0;
     let parts = sigObj[name];
     if (parts === void 0) return void 0;
@@ -950,6 +953,10 @@ dart_library.library('dart/_runtime', null, /* Imports */[
     if (tag) return "Not a type: " + tag.name;
     return "JSObject<" + type.name + ">";
   }
+  function getImplicitFunctionType(type) {
+    if (isFunctionType(type)) return type;
+    return getMethodTypeFromType(type, 'call');
+  }
   function isFunctionType(type) {
     return type instanceof AbstractFunctionType || type == core.Function;
   }
@@ -1048,6 +1055,8 @@ dart_library.library('dart/_runtime', null, /* Imports */[
     if (isClassSubType(t1, t2)) {
       return true;
     }
+    t1 = getImplicitFunctionType(t1);
+    if (!t1) return false;
     if (isFunctionType(t1) && isFunctionType(t2)) {
       return isFunctionSubType(t1, t2);
     }
@@ -1211,6 +1220,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
   exports.getGenericClass = getGenericClass;
   exports.getGenericArgs = getGenericArgs;
   exports.getMethodType = getMethodType;
+  exports.getMethodTypeFromType = getMethodTypeFromType;
   exports.classGetConstructorType = classGetConstructorType;
   exports.bind = bind;
   exports.setSignature = setSignature;
@@ -1295,6 +1305,7 @@ dart_library.library('dart/_runtime', null, /* Imports */[
   exports.typedef = typedef;
   exports.isDartType = isDartType;
   exports.typeName = typeName;
+  exports.getImplicitFunctionType = getImplicitFunctionType;
   exports.isFunctionType = isFunctionType;
   exports.isFunctionSubType = isFunctionSubType;
   exports.canonicalType = canonicalType;

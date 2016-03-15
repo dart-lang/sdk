@@ -304,6 +304,13 @@ typeName(type) => JS('', '''(() => {
   return "JSObject<" + $type.name + ">";
 })()''');
 
+/// Get the underlying function type, potentially from the call method
+/// for a class type.
+getImplicitFunctionType(type) => JS('', '''(() => {
+  if ($isFunctionType($type)) return $type;
+  return $getMethodTypeFromType(type, 'call');
+})()''');
+
 isFunctionType(type) => JS('', '''(() => {
   return $type instanceof $AbstractFunctionType || $type == $Function;
 })()''');
@@ -444,8 +451,12 @@ isSubtype_(t1, t2) => JS('', '''(() => {
   }
 
   // Function subtyping.
-  // TODO(vsm): Handle Objects with call methods.  Those are functions
+
+  // Handle Objects with call methods.  Those are functions
   // even if they do not *nominally* subtype core.Function.
+  t1 = $getImplicitFunctionType(t1);
+  if (!t1) return false;
+
   if ($isFunctionType($t1) &&
       $isFunctionType($t2)) {
     return $isFunctionSubType($t1, $t2);

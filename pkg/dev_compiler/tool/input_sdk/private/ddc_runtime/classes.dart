@@ -122,11 +122,16 @@ final _constructorSig = JS('', 'Symbol("sigCtor")');
 final _methodSig = JS('', 'Symbol("sig")');
 final _staticSig = JS('', 'Symbol("sigStatic")');
 
-/// Get the type of a method using the stored signature
+/// Get the type of a method from an object using the stored signature
 getMethodType(obj, name) => JS('', '''(() => {
   if ($obj === void 0) return void 0;
   if ($obj == null) return void 0;
-  let sigObj = $obj.__proto__.constructor[$_methodSig];
+  return $getMethodTypeFromType($obj.__proto__.constructor, $name);
+})()''');
+
+/// Get the type of a method from a type using the stored signature
+getMethodTypeFromType(type, name) => JS('', '''(() => {
+  let sigObj = $type[$_methodSig];
   if (sigObj === void 0) return void 0;
   let parts = sigObj[$name];
   if (parts === void 0) return void 0;
