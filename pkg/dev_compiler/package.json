@@ -1,6 +1,6 @@
 {
   "name": "dev_compiler",
-  "version": "0.1.21",
+  "version": "0.1.22",
   "description": "Dart Development Compiler",
   "homepage": "https://github.com/dart-lang/dev_compiler",
   "bugs": "https://github.com/dart-lang/dev_compiler/issues",
