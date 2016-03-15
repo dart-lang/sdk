@@ -6,12 +6,13 @@
 /// emitters to generate code.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/parser.dart';
 
 import 'utils.dart' as utils;
+
 import 'package:analyzer/src/task/strong/info.dart';
 export 'package:analyzer/src/task/strong/info.dart';
 

@@ -6,7 +6,7 @@
 
 import 'dart:io';
 import 'package:path/path.dart' as path;
-import 'package:analyzer/src/generated/ast.dart'
+import 'package:analyzer/dart/ast/ast.dart'
     show
         ImportDirective,
         ExportDirective,
@@ -18,8 +18,12 @@ import 'package:analyzer/src/generated/ast.dart'
         Expression,
         SimpleIdentifier,
         MethodInvocation;
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart' show DartObject;
-import 'package:analyzer/src/generated/element.dart';
+//TODO(leafp): Remove deprecated dependency
+//ignore: DEPRECATED_MEMBER_USE
+import 'package:analyzer/src/generated/element.dart' show DynamicTypeImpl;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/error.dart' show ErrorCode;
 import 'package:analyzer/src/task/dart.dart' show ParseDartTask;
@@ -472,6 +476,9 @@ class FileSystem {
   }
 }
 
+//TODO(leafp): Is this really necessary?  In theory I think
+// the static type should always be filled in for resolved
+// ASTs.  This may be a vestigial workaround.
 DartType getStaticType(Expression e) =>
     e.staticType ?? DynamicTypeImpl.instance;
 

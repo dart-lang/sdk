@@ -2,9 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/error.dart'
     show AnalysisErrorListener, ErrorReporter;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
@@ -114,9 +115,9 @@ class ConstFieldVisitor {
 
   DartObject computeConstant(VariableDeclaration field) {
     // If the constant is already computed by ConstantEvaluator, just return it.
-    VariableElementImpl element = field.element;
-    var result = element.evaluationResult;
-    if (result != null) return result.value;
+    VariableElement element = field.element;
+    var result = element.constantValue;
+    if (result != null) return result;
 
     // ConstantEvaluator will not compute constants for non-const fields,
     // so run ConstantVisitor for those to figure out if the initializer is

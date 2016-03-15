@@ -4,8 +4,8 @@
 
 import 'dart:collection' show HashMap;
 
-import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import '../compiler.dart' show corelibOrder;
 

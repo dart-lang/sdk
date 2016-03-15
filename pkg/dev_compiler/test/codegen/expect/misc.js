@@ -18,7 +18,13 @@ dart_library.library('misc', null, /* Imports */[
       get type() {
         return Generic$();
       }
+      m() {
+        return core.print(T);
+      }
     }
+    dart.setSignature(Generic, {
+      methods: () => ({m: [dart.dynamic, []]})
+    });
     return Generic;
   });
   let Generic = Generic$();
@@ -54,6 +60,7 @@ dart_library.library('misc', null, /* Imports */[
     core.print(dart.equals(x, Generic));
     core.print(new (Generic$(core.int))().type);
     core.print(dart.equals(new Derived(), new Derived()));
+    new (Generic$(core.int))().m();
   }
   dart.fn(main);
   // Exports:

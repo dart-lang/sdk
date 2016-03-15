@@ -9,6 +9,8 @@ class _Uninitialized { const _Uninitialized(); }
 
 class Generic<T> {
   Type get type => Generic;
+  // type parameter type literals
+  m() => print(T);
 }
 
 // super ==
@@ -59,4 +61,6 @@ main() {
   print(new Generic<int>().type);
 
   print(new Derived() == new Derived()); // true
+
+  new Generic<int>().m();
 }

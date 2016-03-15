@@ -3,14 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/analyzer.dart' as analyzer;
-import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart' show NodeReplacer;
 import 'package:analyzer/src/generated/type_system.dart'
     show StrongTypeSystemImpl;
 import 'package:logging/logging.dart' as logger;
 
 import '../info.dart';
-
+import '../utils.dart' show getStaticType;
 import 'ast_builder.dart';
 
 final _log = new logger.Logger('dev_compiler.reify_coercions');
@@ -59,8 +61,8 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
 
   Object _visitInferredTypeBase(InferredTypeBase node, Expression expr) {
     DartType t = node.type;
-    if (!_typeSystem.isSubtypeOf(_getStaticType(expr), t)) {
-      if (_getStaticType(expr).isDynamic) {
+    if (!_typeSystem.isSubtypeOf(getStaticType(expr), t)) {
+      if (getStaticType(expr).isDynamic) {
         var cast = Coercion.cast(expr.staticType, t);
         var info = new DynamicCast(_typeSystem, expr, cast);
         CoercionInfo.set(expr, info);
@@ -81,10 +83,6 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
       assert(replaced);
     }
     return null;
-  }
-
-  DartType _getStaticType(Expression expr) {
-    return expr.staticType ?? DynamicTypeImpl.instance;
   }
 
   /// Coerce [e] using [c], returning a new expression.

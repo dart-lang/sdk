@@ -5,7 +5,7 @@
 import 'dart:convert' show JSON, JsonEncoder;
 import 'dart:io' show Directory, File, Platform, Process;
 
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:path/path.dart' as path;
 import 'package:source_maps/source_maps.dart' as srcmaps show Printer;
 import 'package:source_maps/source_maps.dart' show SourceMapSpan;

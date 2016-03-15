@@ -6,9 +6,15 @@ import 'dart:collection' show HashSet, HashMap, SplayTreeSet;
 
 import 'package:analyzer/analyzer.dart' hide ConstantEvaluator;
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/src/generated/ast.dart' hide ConstantEvaluator;
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/ast/ast.dart' hide ConstantEvaluator;
 import 'package:analyzer/src/generated/constant.dart';
-import 'package:analyzer/src/generated/element.dart';
+//TODO(leafp): Remove deprecated dependency
+//ignore: DEPRECATED_MEMBER_USE
+import 'package:analyzer/src/generated/element.dart'
+    show DynamicElementImpl, DynamicTypeImpl, LocalVariableElementImpl;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/dart/ast/token.dart'
@@ -497,7 +503,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     // Create constructor and initialize index
     var constructor = new JS.Method(
         name, js.call('function(index) { this.index = index; }') as JS.Fun);
-    var fields = new List<ConstFieldElementImpl>.from(
+    var fields = new List<FieldElement>.from(
         element.fields.where((f) => f.type == type));
 
     // Create toString() method
@@ -1732,9 +1738,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     _loader.declareBeforeUse(element);
 
     // type literal
-    if (element is ClassElement ||
-        element is DynamicElementImpl ||
-        element is FunctionTypeAliasElement) {
+    if (element is TypeDefiningElement) {
       return _emitTypeName(
           fillDynamicTypeArgs((element as dynamic).type, types));
     }

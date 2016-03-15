@@ -7,7 +7,7 @@
 import 'dart:collection' show HashSet, HashMap;
 
 import 'package:analyzer/analyzer.dart' show parseDirectives;
-import 'package:analyzer/src/generated/ast.dart'
+import 'package:analyzer/dart/ast/ast.dart'
     show
         AstNode,
         CompilationUnit,
@@ -19,9 +19,9 @@ import 'package:analyzer/src/generated/ast.dart'
         PartOfDirective,
         UriBasedDirective;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
-import 'package:analyzer/src/task/dart.dart' show ParseDartTask;
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/source.dart' show Source, SourceKind;
+import 'package:analyzer/src/task/dart.dart' show ParseDartTask;
 import 'package:html/dom.dart' show Document, Node, Element;
 import 'package:html/parser.dart' as html;
 import 'package:logging/logging.dart' show Logger, Level;

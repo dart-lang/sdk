@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:collection' show HashMap, HashSet;
-import 'package:analyzer/src/generated/ast.dart' show Identifier;
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/ast/ast.dart' show Identifier;
+import 'package:analyzer/dart/element/element.dart';
 
 import 'js_codegen.dart' show ExtensionTypeSet;
 import '../info.dart' show LibraryUnit;
