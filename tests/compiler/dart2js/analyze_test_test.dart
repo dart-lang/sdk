@@ -26,9 +26,17 @@ import 'memory_compiler.dart';
  */
 // TODO(johnniwinther): Support canonical URIs as keys.
 const Map<String, List/*<String|MessageKind>*/> WHITE_LIST = const {
+  // Several tests import mirrors; any of these might trigger the warning.
+  ".dart": const [
+      MessageKind.IMPORT_EXPERIMENTAL_MIRRORS,
+  ],
   "/test/src/util/": const [
       "Library 'package:async/async.dart' doesn't export a "
       "'ForkableStream' declaration.",
+  ],
+  "mirrors_test.dart": const [
+      MessageKind.INVALID_SYMBOL,
+      MessageKind.PRIVATE_IDENTIFIER,
   ],
 };
 
@@ -36,6 +44,7 @@ const List<String> SKIP_LIST = const <String>[
   // Helper files:
   "dart2js_batch2_run.dart",
   "http_launch_data/",
+  "mirrors_helper.dart",
   "path%20with%20spaces/",
   "one_line_dart_program.dart",
   "sourcemaps/invokes_test_file.dart",
