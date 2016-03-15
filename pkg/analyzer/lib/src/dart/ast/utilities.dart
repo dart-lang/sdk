@@ -3690,8 +3690,6 @@ class NodeLocator extends UnifyingAstVisitor<Object> {
     }
     try {
       node.accept(this);
-    } on NodeLocator_NodeFoundException {
-      // A node with the right source position was found.
     } catch (exception, stackTrace) {
       AnalysisEngine.instance.logger.logInformation(
           "Unable to locate element at offset ($_startOffset - $_endOffset)",
@@ -3703,6 +3701,11 @@ class NodeLocator extends UnifyingAstVisitor<Object> {
 
   @override
   Object visitNode(AstNode node) {
+    // Don't visit a new tree if the result has been already found.
+    if (_foundNode != null) {
+      return null;
+    }
+    // Check whether the current node covers the selection.
     Token beginToken = node.beginToken;
     Token endToken = node.endToken;
     // Don't include synthetic tokens.
@@ -3720,10 +3723,9 @@ class NodeLocator extends UnifyingAstVisitor<Object> {
     if (start > _endOffset) {
       return null;
     }
+    // Check children.
     try {
       node.visitChildren(this);
-    } on NodeLocator_NodeFoundException {
-      rethrow;
     } catch (exception, stackTrace) {
       // Ignore the exception and proceed in order to visit the rest of the
       // structure.
@@ -3731,9 +3733,13 @@ class NodeLocator extends UnifyingAstVisitor<Object> {
           "Exception caught while traversing an AST structure.",
           new CaughtException(exception, stackTrace));
     }
+    // Found a child.
+    if (_foundNode != null) {
+      return null;
+    }
+    // Check this node.
     if (start <= _startOffset && _endOffset <= end) {
       _foundNode = node;
-      throw new NodeLocator_NodeFoundException();
     }
     return null;
   }
@@ -3781,7 +3787,7 @@ class NodeLocator2 extends UnifyingAstVisitor<Object> {
     }
     try {
       node.accept(this);
-    } on NodeLocator_NodeFoundException {} catch (exception, stackTrace) {
+    } catch (exception, stackTrace) {
       AnalysisEngine.instance.logger.logInformation(
           "Unable to locate element at offset ($_startOffset - $_endOffset)",
           new CaughtException(exception, stackTrace));
@@ -3792,6 +3798,11 @@ class NodeLocator2 extends UnifyingAstVisitor<Object> {
 
   @override
   Object visitNode(AstNode node) {
+    // Don't visit a new tree if the result has been already found.
+    if (_foundNode != null) {
+      return null;
+    }
+    // Check whether the current node covers the selection.
     Token beginToken = node.beginToken;
     Token endToken = node.endToken;
     // Don't include synthetic tokens.
@@ -3809,10 +3820,9 @@ class NodeLocator2 extends UnifyingAstVisitor<Object> {
     if (start > _endOffset) {
       return null;
     }
+    // Check children.
     try {
       node.visitChildren(this);
-    } on NodeLocator_NodeFoundException {
-      rethrow;
     } catch (exception, stackTrace) {
       // Ignore the exception and proceed in order to visit the rest of the
       // structure.
@@ -3820,19 +3830,17 @@ class NodeLocator2 extends UnifyingAstVisitor<Object> {
           "Exception caught while traversing an AST structure.",
           new CaughtException(exception, stackTrace));
     }
+    // Found a child.
+    if (_foundNode != null) {
+      return null;
+    }
+    // Check this node.
     if (start <= _startOffset && _endOffset < end) {
       _foundNode = node;
-      throw new NodeLocator_NodeFoundException();
     }
     return null;
   }
 }
-
-/**
- * An exception used by [NodeLocator] to cancel visiting after a node has been
- * found.
- */
-class NodeLocator_NodeFoundException extends RuntimeException {}
 
 /**
  * An object that will replace one child node in an AST node with another node.
