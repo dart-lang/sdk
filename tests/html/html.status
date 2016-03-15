@@ -55,6 +55,7 @@ element_animate_test: Fail # Element.animate not supported on these browsers.
 
 [ $compiler == none && $runtime == dartium && $system == macos]
 canvasrenderingcontext2d_test/drawImage_video_element_dataUrl: Pass,Fail # Issue 11834
+canvasrenderingcontext2d_test/fillText: RuntimeError # Roll 45 bot error
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium ) ]
 # postMessage in dartium always transfers the typed array buffer, never a view
