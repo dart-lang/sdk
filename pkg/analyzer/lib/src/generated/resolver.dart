@@ -36,26 +36,6 @@ import 'package:analyzer/src/task/strong/info.dart'
 export 'package:analyzer/src/generated/type_system.dart';
 
 /**
- * Throw an [ElementMismatchException] to report that the element model and the
- * AST do not match. The [message] will have the path to the given [node]
- * appended to it.
- */
-void _mismatch(String message, AstNode node) {
-  StringBuffer buffer = new StringBuffer();
-  buffer.writeln(message);
-  buffer.write('Path to root:');
-  String separator = ' ';
-  AstNode parent = node;
-  while (parent != null) {
-    buffer.write(separator);
-    buffer.write(parent.runtimeType.toString());
-    separator = ', ';
-    parent = parent.parent;
-  }
-  throw new ElementMismatchException(buffer.toString());
-}
-
-/**
  * Instances of the class `BestPracticesVerifier` traverse an AST structure looking for
  * violations of Dart best practices.
  */
@@ -2173,7 +2153,8 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
  * This class must not assume that the [CompilationUnitElement] passed to it is
  * any more complete than a [COMPILATION_UNIT_ELEMENT].
  */
-class DeclarationResolver extends RecursiveAstVisitor<Object> {
+class DeclarationResolver extends RecursiveAstVisitor<Object>
+    with ExistingElementResolver {
   /**
    * The analysis context containing the sources to be analyzed.
    */
@@ -2184,11 +2165,6 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
    * compilation unit has been resolved, this set should be empty.
    */
   Set<Element> _expectedElements;
-
-  /**
-   * The compilation unit containing the AST nodes being visited.
-   */
-  CompilationUnitElementImpl _enclosingUnit;
 
   /**
    * The function type alias containing the AST nodes being visited, or `null`
@@ -2822,9 +2798,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
  * The resulting AST must have everything resolved that would have been resolved
  * by a [DirectiveElementBuilder].
  */
-class DirectiveResolver extends SimpleAstVisitor {
-  CompilationUnitElementImpl _enclosingUnit;
-
+class DirectiveResolver extends SimpleAstVisitor with ExistingElementResolver {
   @override
   void visitCompilationUnit(CompilationUnit node) {
     _enclosingUnit = node.element;
@@ -3479,6 +3453,41 @@ class EnumMemberBuilder extends RecursiveAstVisitor<Object> {
     getter.type = new FunctionTypeImpl(getter);
     field.getter = getter;
     return getter;
+  }
+}
+
+/**
+ * A mixin for classes that use an existing element model to resolve a portion
+ * of an AST structure.
+ */
+class ExistingElementResolver {
+  /**
+   * The compilation unit containing the AST nodes being visited.
+   */
+  CompilationUnitElementImpl _enclosingUnit;
+
+  /**
+   * Throw an [ElementMismatchException] to report that the element model and the
+   * AST do not match. The [message] will have the path to the given [node]
+   * appended to it.
+   */
+  void _mismatch(String message, AstNode node) {
+    StringBuffer buffer = new StringBuffer();
+    buffer.write('Mismatch in ');
+    buffer.write(runtimeType);
+    buffer.write(' while resolving ');
+    buffer.writeln(_enclosingUnit?.source?.fullName);
+    buffer.writeln(message);
+    buffer.write('Path to root:');
+    String separator = ' ';
+    AstNode parent = node;
+    while (parent != null) {
+      buffer.write(separator);
+      buffer.write(parent.runtimeType.toString());
+      separator = ', ';
+      parent = parent.parent;
+    }
+    throw new ElementMismatchException(buffer.toString());
   }
 }
 
