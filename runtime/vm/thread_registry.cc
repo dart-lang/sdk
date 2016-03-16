@@ -65,12 +65,16 @@ void ThreadRegistry::ReturnThreadLocked(bool is_mutator, Thread* thread) {
 void ThreadRegistry::VisitObjectPointers(ObjectPointerVisitor* visitor,
                                          bool validate_frames) {
   MonitorLocker ml(threads_lock());
+  bool mutator_thread_visited = false;
   Thread* thread = active_list_;
   while (thread != NULL) {
     if (thread->zone() != NULL) {
       thread->zone()->VisitObjectPointers(visitor);
     }
     thread->VisitObjectPointers(visitor);
+    if (mutator_thread_ == thread) {
+      mutator_thread_visited = true;
+    }
     // Iterate over all the stack frames and visit objects on the stack.
     StackFrameIterator frames_iterator(thread->top_exit_frame_info(),
                                        validate_frames);
@@ -80,6 +84,11 @@ void ThreadRegistry::VisitObjectPointers(ObjectPointerVisitor* visitor,
       frame = frames_iterator.NextFrame();
     }
     thread = thread->next_;
+  }
+  // Visit mutator thread even if it is not in the active list because of
+  // api handles.
+  if (!mutator_thread_visited && (mutator_thread_ != NULL)) {
+    mutator_thread_->VisitObjectPointers(visitor);
   }
 }
 

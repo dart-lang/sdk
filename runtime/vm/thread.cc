@@ -262,6 +262,8 @@ void Thread::ExitIsolateAsHelper(bool bypass_safepoint) {
   ASSERT(thread != NULL);
   ASSERT(!thread->IsMutatorThread());
   ASSERT(thread->execution_state() == Thread::kThreadInVM);
+  // Clear since GC will not visit the thread once it is unscheduled.
+  thread->ClearReusableHandles();
   thread->StoreBufferRelease();
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
