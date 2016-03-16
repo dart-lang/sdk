@@ -91,9 +91,6 @@ abstract class ElementZ extends Element with ElementCommon {
   }
 
   @override
-  String get fixedBackendName => _unsupported('fixedBackendName');
-
-  @override
   LibraryElement get implementationLibrary => library;
 
   @override
@@ -975,6 +972,10 @@ class GenerativeConstructorElementZ extends ConstructorElementZ {
 
   @override
   ElementKind get kind => ElementKind.GENERATIVE_CONSTRUCTOR;
+
+  @override
+  bool get isEffectiveTargetMalformed =>
+      _unsupported('isEffectiveTargetMalformed');
 }
 
 class FactoryConstructorElementZ extends ConstructorElementZ {
@@ -984,6 +985,10 @@ class FactoryConstructorElementZ extends ConstructorElementZ {
 
   @override
   ElementKind get kind => ElementKind.FACTORY_CONSTRUCTOR;
+
+  @override
+  bool get isEffectiveTargetMalformed =>
+      _unsupported('isEffectiveTargetMalformed');
 }
 
 abstract class MemberElementMixin
