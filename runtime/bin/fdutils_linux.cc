@@ -5,14 +5,14 @@
 #include "platform/globals.h"
 #if defined(TARGET_OS_LINUX)
 
+#include "bin/fdutils.h"
+
 #include <errno.h>  // NOLINT
 #include <fcntl.h>  // NOLINT
-#include <unistd.h>  // NOLINT
 #include <sys/ioctl.h>  // NOLINT
+#include <unistd.h>  // NOLINT
 
-#include "bin/fdutils.h"
 #include "platform/signal_blocker.h"
-
 
 namespace dart {
 namespace bin {
@@ -72,9 +72,7 @@ intptr_t FDUtils::AvailableBytes(intptr_t fd) {
   if (result < 0) {
     return result;
   }
-#ifdef DEBUG
   ASSERT(available >= 0);
-#endif
   return static_cast<intptr_t>(available);
 }
 
@@ -98,7 +96,7 @@ ssize_t FDUtils::ReadFromBlocking(int fd, void* buffer, size_t count) {
       ASSERT(errno != EWOULDBLOCK);
       return -1;
     } else {
-      ASSERT((bytes_read > 0));
+      ASSERT(bytes_read > 0);
       remaining -= bytes_read;
       buffer_pos += bytes_read;
     }

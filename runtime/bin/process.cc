@@ -34,7 +34,7 @@ static char** ExtractCStringList(Dart_Handle strings,
   }
   // Protect against user-defined list implementations that can have
   // arbitrary length.
-  if (len < 0 || len > kMaxArgumentListLength) {
+  if ((len < 0) || (len > kMaxArgumentListLength)) {
     result = DartUtils::SetIntegerField(status_handle, "_errorCode", 0);
     if (Dart_IsError(result)) {
       Dart_PropagateError(result);

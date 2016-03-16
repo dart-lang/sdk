@@ -565,7 +565,9 @@ void FUNCTION_NAME(File_ResolveSymbolicLinks)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_OpenStdio)(Dart_NativeArguments args) {
   int64_t fd = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
-  ASSERT(fd == STDIN_FILENO || fd == STDOUT_FILENO || fd == STDERR_FILENO);
+  ASSERT((fd == STDIN_FILENO) ||
+         (fd == STDOUT_FILENO) ||
+         (fd == STDERR_FILENO));
   File* file = File::OpenStdio(static_cast<int>(fd));
   Dart_SetReturnValue(args, Dart_NewInteger(reinterpret_cast<intptr_t>(file)));
 }
@@ -573,7 +575,9 @@ void FUNCTION_NAME(File_OpenStdio)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(File_GetStdioHandleType)(Dart_NativeArguments args) {
   int64_t fd = DartUtils::GetIntegerValue(Dart_GetNativeArgument(args, 0));
-  ASSERT(fd == STDIN_FILENO || fd == STDOUT_FILENO || fd == STDERR_FILENO);
+  ASSERT((fd == STDIN_FILENO) ||
+         (fd == STDOUT_FILENO) ||
+         (fd == STDERR_FILENO));
   File::StdioHandleType type = File::GetStdioHandleType(static_cast<int>(fd));
   Dart_SetReturnValue(args, Dart_NewInteger(type));
 }

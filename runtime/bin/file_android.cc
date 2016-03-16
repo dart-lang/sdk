@@ -9,18 +9,17 @@
 
 #include <errno.h>  // NOLINT
 #include <fcntl.h>  // NOLINT
+#include <libgen.h>  // NOLINT
+#include <sys/sendfile.h>  // NOLINT
 #include <sys/stat.h>  // NOLINT
 #include <sys/types.h>  // NOLINT
-#include <sys/sendfile.h>  // NOLINT
 #include <unistd.h>  // NOLINT
-#include <libgen.h>  // NOLINT
 
 #include "bin/builtin.h"
 #include "bin/log.h"
 
 #include "platform/signal_blocker.h"
 #include "platform/utils.h"
-
 
 namespace dart {
 namespace bin {
@@ -114,7 +113,7 @@ bool File::Flush() {
 
 bool File::Lock(File::LockType lock, int64_t start, int64_t end) {
   ASSERT(handle_->fd() >= 0);
-  ASSERT(end == -1 || end > start);
+  ASSERT((end == -1) || (end > start));
   struct flock fl;
   switch (lock) {
     case File::kLockUnlock:
@@ -399,7 +398,7 @@ const char* File::LinkTarget(const char* pathname) {
 
 
 bool File::IsAbsolutePath(const char* pathname) {
-  return (pathname != NULL && pathname[0] == '/');
+  return ((pathname != NULL) && (pathname[0] == '/'));
 }
 
 

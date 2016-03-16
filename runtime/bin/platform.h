@@ -7,7 +7,6 @@
 
 #include "bin/builtin.h"
 
-
 namespace dart {
 namespace bin {
 

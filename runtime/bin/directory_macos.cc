@@ -369,15 +369,17 @@ char* Directory::CurrentNoScope() {
 
 
 const char* Directory::Current() {
-  char* result = DartUtils::ScopedCString(PATH_MAX);
-  ASSERT(result != NULL);
-  return getcwd(result, PATH_MAX);
+  char buffer[PATH_MAX];
+  if (getcwd(buffer, PATH_MAX) == NULL) {
+    return NULL;
+  }
+  return DartUtils::ScopedCopyCString(buffer);
 }
 
 
 bool Directory::SetCurrent(const char* path) {
   int result = NO_RETRY_EXPECTED(chdir(path));
-  return result == 0;
+  return (result == 0);
 }
 
 

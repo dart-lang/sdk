@@ -83,6 +83,10 @@ class StringUtils {
   static char* Utf8ToConsoleString(char* utf8,
                                    intptr_t len = -1,
                                    intptr_t* result_len = NULL);
+
+ private:
+  DISALLOW_ALLOCATION();
+  DISALLOW_IMPLICIT_CONSTRUCTORS(StringUtils);
 };
 
 
@@ -94,7 +98,12 @@ class ShellUtils {
   // Returns true if the arguments are converted. In that case
   // each of the arguments need to be deallocated using free.
   static bool GetUtf8Argv(int argc, char** argv);
+
+ private:
+  DISALLOW_ALLOCATION();
+  DISALLOW_IMPLICIT_CONSTRUCTORS(ShellUtils);
 };
+
 
 class TimerUtils {
  public:
@@ -102,6 +111,10 @@ class TimerUtils {
   static int64_t GetCurrentMonotonicMicros();
   static int64_t GetCurrentMonotonicMillis();
   static void Sleep(int64_t millis);
+
+ private:
+  DISALLOW_ALLOCATION();
+  DISALLOW_IMPLICIT_CONSTRUCTORS(TimerUtils);
 };
 
 }  // namespace bin

@@ -5,9 +5,9 @@
 #ifndef BIN_SOCKET_WIN_H_
 #define BIN_SOCKET_WIN_H_
 
-#include <winsock2.h>
 #include <iphlpapi.h>
-#include <ws2tcpip.h>
 #include <mswsock.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
 
 #endif  // BIN_SOCKET_WIN_H_

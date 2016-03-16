@@ -4,8 +4,8 @@
 
 #include <stdio.h>
 
-#include "bin/file.h"
 #include "bin/dartutils.h"
+#include "bin/file.h"
 #include "bin/platform.h"
 
 #include "vm/benchmark_test.h"

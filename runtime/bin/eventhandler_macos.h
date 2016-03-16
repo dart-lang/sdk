@@ -47,6 +47,9 @@ class DescriptorInfo : public DescriptorInfoBase {
 
  protected:
   bool tracked_by_kqueue_;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(DescriptorInfo);
 };
 
 
@@ -56,6 +59,9 @@ class DescriptorInfoSingle
   explicit DescriptorInfoSingle(intptr_t fd)
       : DescriptorInfoSingleMixin(fd, false) {}
   virtual ~DescriptorInfoSingle() {}
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(DescriptorInfoSingle);
 };
 
 
@@ -65,6 +71,9 @@ class DescriptorInfoMultiple
   explicit DescriptorInfoMultiple(intptr_t fd)
       : DescriptorInfoMultipleMixin(fd, false) {}
   virtual ~DescriptorInfoMultiple() {}
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(DescriptorInfoMultiple);
 };
 
 
@@ -99,6 +108,8 @@ class EventHandlerImplementation {
   bool shutdown_;
   int interrupt_fds_[2];
   int kqueue_fd_;
+
+  DISALLOW_COPY_AND_ASSIGN(EventHandlerImplementation);
 };
 
 }  // namespace bin

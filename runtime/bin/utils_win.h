@@ -31,6 +31,10 @@ class StringUtilsWin {
   static const wchar_t* Utf8ToWide(const char* utf8,
                                    intptr_t len = -1,
                                    intptr_t* result_len = NULL);
+
+ private:
+  DISALLOW_ALLOCATION();
+  DISALLOW_IMPLICIT_CONSTRUCTORS(StringUtilsWin);
 };
 
 }  // namespace bin

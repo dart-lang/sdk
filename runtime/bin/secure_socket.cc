@@ -6,9 +6,9 @@
 
 #include <errno.h>
 #include <fcntl.h>
-#include <sys/stat.h>
 #include <stdio.h>
 #include <string.h>
+#include <sys/stat.h>
 
 #include <openssl/bio.h>
 #include <openssl/err.h>
@@ -83,8 +83,7 @@ static void FetchErrorString(char* buffer, int length) {
 /* Handle an error reported from the BoringSSL library. */
 static void ThrowIOException(int status,
                              const char* exception_type,
-                             const char* message,
-                             bool free_message = false) {
+                             const char* message) {
   char error_string[SSL_ERROR_MESSAGE_BUFFER_SIZE];
   FetchErrorString(error_string, SSL_ERROR_MESSAGE_BUFFER_SIZE);
   OSError os_error_struct(status, error_string, OSError::kBoringSSL);
@@ -92,9 +91,6 @@ static void ThrowIOException(int status,
   Dart_Handle exception =
       DartUtils::NewDartIOException(exception_type, message, os_error);
   ASSERT(!Dart_IsError(exception));
-  if (free_message) {
-    free(const_cast<char*>(message));
-  }
   Dart_ThrowException(exception);
   UNREACHABLE();
 }
@@ -677,7 +673,7 @@ static int SetTrustedCertificatesBytesPKCS12(SSL_CTX* context,
                                              const char* password) {
   ScopedPKCS12 p12(d2i_PKCS12_bio(bio, NULL));
   if (p12.get() == NULL) {
-    return NULL;
+    return 0;
   }
 
   EVP_PKEY* key = NULL;
@@ -787,7 +783,7 @@ static int UseChainBytesPKCS12(SSL_CTX* context,
                                const char* password) {
   ScopedPKCS12 p12(d2i_PKCS12_bio(bio, NULL));
   if (p12.get() == NULL) {
-    return NULL;
+    return 0;
   }
 
   EVP_PKEY* key = NULL;

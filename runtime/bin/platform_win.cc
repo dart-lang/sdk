@@ -6,12 +6,11 @@
 #if defined(TARGET_OS_WINDOWS)
 
 #include "bin/file.h"
-#include "bin/platform.h"
 #include "bin/log.h"
+#include "bin/platform.h"
 #include "bin/socket.h"
 #include "bin/utils.h"
 #include "bin/utils_win.h"
-
 
 namespace dart {
 

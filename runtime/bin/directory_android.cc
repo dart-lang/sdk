@@ -366,9 +366,8 @@ Directory::ExistsResult Directory::Exists(const char* dir_name) {
 char* Directory::CurrentNoScope() {
   // Android's getcwd adheres closely to the POSIX standard. It won't
   // allocate memory. We need to make our own copy.
-
   char buffer[PATH_MAX];
-  if (NULL == getcwd(buffer, PATH_MAX)) {
+  if (getcwd(buffer, PATH_MAX) == NULL) {
     return NULL;
   }
 
@@ -377,15 +376,17 @@ char* Directory::CurrentNoScope() {
 
 
 const char* Directory::Current() {
-  char* result = DartUtils::ScopedCString(PATH_MAX);
-  ASSERT(result != NULL);
-  return getcwd(result, PATH_MAX);
+  char buffer[PATH_MAX];
+  if (getcwd(buffer, PATH_MAX) == NULL) {
+    return NULL;
+  }
+  return DartUtils::ScopedCopyCString(buffer);
 }
 
 
 bool Directory::SetCurrent(const char* path) {
   int result = NO_RETRY_EXPECTED(chdir(path));
-  return result == 0;
+  return (result == 0);
 }
 
 

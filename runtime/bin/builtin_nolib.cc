@@ -10,7 +10,6 @@
 #include "bin/dartutils.h"
 #include "bin/io_natives.h"
 
-
 namespace dart {
 namespace bin {
 

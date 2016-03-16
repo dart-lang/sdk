@@ -7,7 +7,6 @@
 #include "platform/globals.h"
 #include "vm/unit_test.h"
 
-
 namespace dart {
 namespace bin {
 

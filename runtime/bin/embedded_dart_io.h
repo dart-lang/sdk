@@ -23,7 +23,6 @@ bool ShouldCaptureStdout();
 // Should Stderr events be captured?
 bool ShouldCaptureStderr();
 
-
 }  // namespace bin
 }  // namespace dart
 

@@ -9,7 +9,6 @@
 
 #include "platform/globals.h"
 
-
 namespace dart {
 namespace bin {
 
@@ -34,6 +33,7 @@ class Log {
 
   static void VPrintErr(const char* format, va_list args);
 
+ private:
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Log);
 };

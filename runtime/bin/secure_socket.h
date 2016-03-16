@@ -9,14 +9,14 @@
 #error "secure_socket.h can only be included on builds with SSL enabled"
 #endif
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 #include <sys/types.h>
 
 #include <openssl/bio.h>
-#include <openssl/ssl.h>
 #include <openssl/err.h>
+#include <openssl/ssl.h>
 #include <openssl/x509.h>
 
 #include "bin/builtin.h"
@@ -101,7 +101,6 @@ class SSLFilter {
   // TODO(whesse): make private:
   SSL* ssl_;
   BIO* socket_side_;
-
 
  private:
   static bool library_initialized_;

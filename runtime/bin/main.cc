@@ -218,7 +218,7 @@ static bool ProcessPackageRootOption(const char* arg,
 static bool ProcessPackagesOption(const char* arg,
                                      CommandLineOptions* vm_options) {
   ASSERT(arg != NULL);
-  if (*arg == '\0' || *arg == '-') {
+  if ((*arg == '\0') || (*arg == '-')) {
     return false;
   }
   commandline_packages_file = arg;
@@ -1076,7 +1076,7 @@ static void WriteSnapshotFile(const char* snapshot_directory,
                               const intptr_t size) {
   char* concat = NULL;
   const char* qualified_filename;
-  if ((snapshot_directory != NULL) && strlen(snapshot_directory) > 0) {
+  if ((snapshot_directory != NULL) && (strlen(snapshot_directory) > 0)) {
     intptr_t len = snprintf(NULL, 0, "%s/%s", snapshot_directory, filename);
     concat = new char[len + 1];
     snprintf(concat, len + 1, "%s/%s", snapshot_directory, filename);
@@ -1110,7 +1110,7 @@ static void ReadSnapshotFile(const char* snapshot_directory,
                              const uint8_t** buffer) {
   char* concat = NULL;
   const char* qualified_filename;
-  if ((snapshot_directory != NULL) && strlen(snapshot_directory) > 0) {
+  if ((snapshot_directory != NULL) && (strlen(snapshot_directory) > 0)) {
     intptr_t len = snprintf(NULL, 0, "%s/%s", snapshot_directory, filename);
     concat = new char[len + 1];
     snprintf(concat, len + 1, "%s/%s", snapshot_directory, filename);
@@ -1129,7 +1129,7 @@ static void ReadSnapshotFile(const char* snapshot_directory,
   }
   intptr_t len = -1;
   DartUtils::ReadFile(buffer, &len, file);
-  if (*buffer == NULL || len == -1) {
+  if ((*buffer == NULL) || (len == -1)) {
     fprintf(stderr,
             "Error: Unable to read snapshot file %s\n", qualified_filename);
     fflush(stderr);
@@ -1147,7 +1147,7 @@ static void* LoadLibrarySymbol(const char* snapshot_directory,
                                const char* symname) {
   char* concat = NULL;
   const char* qualified_libname;
-  if ((snapshot_directory != NULL) && strlen(snapshot_directory) > 0) {
+  if ((snapshot_directory != NULL) && (strlen(snapshot_directory) > 0)) {
     intptr_t len = snprintf(NULL, 0, "%s/%s", snapshot_directory, libname);
     concat = new char[len + 1];
     snprintf(concat, len + 1, "%s/%s", snapshot_directory, libname);

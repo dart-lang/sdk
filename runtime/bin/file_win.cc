@@ -20,7 +20,6 @@
 #include "bin/utils_win.h"
 #include "platform/utils.h"
 
-
 namespace dart {
 namespace bin {
 
@@ -110,7 +109,7 @@ bool File::Flush() {
 
 bool File::Lock(File::LockType lock, int64_t start, int64_t end) {
   ASSERT(handle_->fd() >= 0);
-  ASSERT(end == -1 || end > start);
+  ASSERT((end == -1) || (end > start));
   HANDLE handle = reinterpret_cast<HANDLE>(_get_osfhandle(handle_->fd()));
   OVERLAPPED overlapped;
   ZeroMemory(&overlapped, sizeof(OVERLAPPED));
@@ -124,7 +123,6 @@ bool File::Lock(File::LockType lock, int64_t start, int64_t end) {
   }
   int32_t length_low = Utils::Low32Bits(length);
   int32_t length_high = Utils::High32Bits(length);
-
 
   BOOL rc;
   switch (lock) {
@@ -549,9 +547,9 @@ bool File::IsAbsolutePath(const char* pathname) {
   if (pathname == NULL) {
     return false;
   }
-  return (strlen(pathname) > 2) &&
+  return ((strlen(pathname) > 2) &&
       (pathname[1] == ':') &&
-      (pathname[2] == '\\' || pathname[2] == '/');
+      ((pathname[2] == '\\') || (pathname[2] == '/')));
 }
 
 
