@@ -504,6 +504,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
+  visitLibraryIdentifier(LibraryIdentifier node) {}
+
+  @override
   visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier name = node.methodName;
     Element element = name.bestElement;
