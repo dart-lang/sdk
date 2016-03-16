@@ -524,6 +524,7 @@ abstract class Member implements Element {
   /**
    * If the given [child] is not `null`, use the given [visitor] to visit it.
    */
+  @deprecated
   void safelyVisitChild(Element child, ElementVisitor visitor) {
     // TODO(brianwilkerson) Make this private
     if (child != null) {
@@ -1017,10 +1018,12 @@ abstract class VariableMember extends Member implements VariableElement {
   bool get isFinal => baseElement.isFinal;
 
   @override
+  @deprecated
   bool get isPotentiallyMutatedInClosure =>
       baseElement.isPotentiallyMutatedInClosure;
 
   @override
+  @deprecated
   bool get isPotentiallyMutatedInScope =>
       baseElement.isPotentiallyMutatedInScope;
 
@@ -1032,6 +1035,6 @@ abstract class VariableMember extends Member implements VariableElement {
     // TODO(brianwilkerson) We need to finish implementing the accessors used
     // below so that we can safely invoke them.
     super.visitChildren(visitor);
-    safelyVisitChild(baseElement.initializer, visitor);
+    baseElement.initializer?.accept(visitor);
   }
 }

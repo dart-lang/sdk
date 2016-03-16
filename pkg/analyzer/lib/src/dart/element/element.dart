@@ -2091,15 +2091,6 @@ abstract class ElementImpl implements Element {
   }
 
   /**
-   * If the given [child] is not `null`, use the given [visitor] to visit it.
-   */
-  void safelyVisitChild(Element child, ElementVisitor visitor) {
-    if (child != null) {
-      child.accept(visitor);
-    }
-  }
-
-  /**
    * Use the given [visitor] to visit all of the [children] in the given array.
    */
   void safelyVisitChildren(List<Element> children, ElementVisitor visitor) {
@@ -3048,7 +3039,7 @@ class ImportElementImpl extends UriReferencedElementImpl
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
-    safelyVisitChild(prefix, visitor);
+    prefix?.accept(visitor);
   }
 }
 
@@ -3621,7 +3612,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
-    safelyVisitChild(_definingCompilationUnit, visitor);
+    _definingCompilationUnit?.accept(visitor);
     safelyVisitChildren(_exports, visitor);
     safelyVisitChildren(_imports, visitor);
     safelyVisitChildren(_parts, visitor);
@@ -4917,7 +4908,7 @@ abstract class VariableElementImpl extends ElementImpl
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
-    safelyVisitChild(_initializer, visitor);
+    _initializer?.accept(visitor);
   }
 }
 
