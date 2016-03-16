@@ -33,7 +33,6 @@ import 'package:analyzer/src/generated/utilities_general.dart'
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
-import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:analyzer_cli/src/package_analyzer.dart';
 import 'package:analyzer_cli/src/perf_report.dart';
@@ -90,9 +89,6 @@ class Driver implements CommandLineStarter {
   @override
   ResolverProvider packageResolverProvider;
 
-  /// Collected analysis statistics.
-  final AnalysisStats stats = new AnalysisStats();
-
   /// This Driver's current analysis context.
   ///
   /// *Visible for testing.*
@@ -100,7 +96,7 @@ class Driver implements CommandLineStarter {
 
   @override
   void set userDefinedPlugins(List<Plugin> plugins) {
-    _userDefinedPlugins = plugins ?? <Plugin>[];
+    _userDefinedPlugins = plugins == null ? <Plugin>[] : plugins;
   }
 
   @override
@@ -166,32 +162,32 @@ class Driver implements CommandLineStarter {
     // Add all the files to be analyzed en masse to the context.  Skip any
     // files that were added earlier (whether explicitly or implicitly) to
     // avoid causing those files to be unnecessarily re-read.
-    Set<Source> knownSources = context.sources.toSet();
+    Set<Source> knownSources = _context.sources.toSet();
     List<Source> sourcesToAnalyze = <Source>[];
     ChangeSet changeSet = new ChangeSet();
     for (String sourcePath in options.sourceFiles) {
       sourcePath = sourcePath.trim();
-
-      // Collect files for analysis.
-      // Note that these files will all be analyzed in the same context.
-      // This should be updated when the ContextManager re-work is complete
-      // (See: https://github.com/dart-lang/sdk/issues/24133)
-      Iterable<File> files = _collectFiles(sourcePath);
-      if (files.isEmpty) {
-        errorSink.writeln('No dart files found at: $sourcePath');
+      // Check that file exists.
+      if (!new File(sourcePath).existsSync()) {
+        errorSink.writeln('File not found: $sourcePath');
         exitCode = ErrorSeverity.ERROR.ordinal;
+        //Fail fast; don't analyze more files
         return ErrorSeverity.ERROR;
       }
-
-      for (File file in files) {
-        Source source = _computeLibrarySource(file.absolute.path);
-        if (!knownSources.contains(source)) {
-          changeSet.addedSource(source);
-          sourcesToAnalyze.add(source);
-        }
+      // Check that file is Dart file.
+      if (!AnalysisEngine.isDartFileName(sourcePath)) {
+        errorSink.writeln('$sourcePath is not a Dart file');
+        exitCode = ErrorSeverity.ERROR.ordinal;
+        // Fail fast; don't analyze more files.
+        return ErrorSeverity.ERROR;
       }
+      Source source = _computeLibrarySource(sourcePath);
+      if (!knownSources.contains(source)) {
+        changeSet.addedSource(source);
+      }
+      sourcesToAnalyze.add(source);
     }
-    context.applyChanges(changeSet);
+    _context.applyChanges(changeSet);
 
     // Analyze the libraries.
     ErrorSeverity allResult = ErrorSeverity.NONE;
@@ -223,17 +219,13 @@ class Driver implements CommandLineStarter {
       }
     }
 
-    if (!options.machineFormat) {
-      stats.print(outSink);
-    }
-
     return allResult;
   }
 
   /// Perform package analysis according to the given [options].
   ErrorSeverity _analyzePackage(CommandLineOptions options) {
     return _analyzeAllTag.makeCurrentWhile(() {
-      return new PackageAnalyzer(options, stats).analyze();
+      return new PackageAnalyzer(options).analyze();
     });
   }
 
@@ -459,29 +451,6 @@ class Driver implements CommandLineStarter {
     return new SourceFactory(resolvers, packages);
   }
 
-  /// Collect all analyzable files at [filePath], recursively if it's a
-  /// directory, ignoring links.
-  Iterable<File> _collectFiles(String filePath) {
-    List<File> files = <File>[];
-    File file = new File(filePath);
-    if (file.existsSync()) {
-      files.add(file);
-    } else {
-      Directory directory = new Directory(filePath);
-      if (directory.existsSync()) {
-        for (FileSystemEntity entry
-            in directory.listSync(recursive: true, followLinks: false)) {
-          String relative = path.relative(entry.path, from: directory.path);
-          if (AnalysisEngine.isDartFileName(entry.path) &&
-              !_isInHiddenDir(relative)) {
-            files.add(entry);
-          }
-        }
-      }
-    }
-    return files;
-  }
-
   /// Convert the given [sourcePath] (which may be relative to the current
   /// working directory) to a [Source] object that can be fed to the analysis
   /// context.
@@ -556,10 +525,6 @@ class Driver implements CommandLineStarter {
     return folderMap;
   }
 
-  /// Returns `true` if this relative path is a hidden directory.
-  bool _isInHiddenDir(String relative) =>
-      path.split(relative).any((part) => part.startsWith("."));
-
   void _processPlugins() {
     List<Plugin> plugins = <Plugin>[];
     plugins.addAll(AnalysisEngine.instance.requiredPlugins);
@@ -576,7 +541,7 @@ class Driver implements CommandLineStarter {
   ErrorSeverity _runAnalyzer(Source source, CommandLineOptions options) {
     int startTime = currentTimeMillis();
     AnalyzerImpl analyzer =
-        new AnalyzerImpl(_context, source, options, stats, startTime);
+        new AnalyzerImpl(_context, source, options, startTime);
     var errorSeverity = analyzer.analyzeSync();
     if (errorSeverity == ErrorSeverity.ERROR) {
       exitCode = errorSeverity.ordinal;

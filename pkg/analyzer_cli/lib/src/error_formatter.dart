@@ -13,86 +13,9 @@ import 'package:analyzer_cli/src/options.dart';
 ProcessedSeverity _identity(AnalysisError error) =>
     new ProcessedSeverity(error.errorCode.errorSeverity);
 
-String _pluralize(String word, int count) => count == 1 ? word : word + "s";
-
 /// Returns desired severity for the given [error] (or `null` if it's to be
 /// suppressed).
 typedef ProcessedSeverity _SeverityProcessor(AnalysisError error);
-
-/// Analysis statistics counter.
-class AnalysisStats {
-  int errorCount;
-  int hintCount;
-  int lintCount;
-  int warnCount;
-
-  AnalysisStats() {
-    init();
-  }
-
-  /// (Re)set initial values.
-  void init() {
-    errorCount = 0;
-    hintCount = 0;
-    lintCount = 0;
-    warnCount = 0;
-  }
-
-  /// Print statistics to [out].
-  void print(StringSink out) {
-    var hasErrors = errorCount != 0;
-    var hasWarns = warnCount != 0;
-    var hasHints = hintCount != 0;
-    var hasLints = lintCount != 0;
-    bool hasContent = false;
-    if (hasErrors) {
-      out.write(errorCount);
-      out.write(' ');
-      out.write(_pluralize("error", errorCount));
-      hasContent = true;
-    }
-    if (hasWarns) {
-      if (hasContent) {
-        if (!hasHints && !hasLints) {
-          out.write(' and ');
-        } else {
-          out.write(", ");
-        }
-      }
-      out.write(warnCount);
-      out.write(' ');
-      out.write(_pluralize("warning", warnCount));
-      hasContent = true;
-    }
-    if (hasHints) {
-      if (hasContent) {
-        if (!hasLints) {
-          out.write(' and ');
-        } else {
-          out.write(", ");
-        }
-      }
-      out.write(hintCount);
-      out.write(' ');
-      out.write(_pluralize("hint", hintCount));
-      hasContent = true;
-    }
-    if (hasLints) {
-      if (hasContent) {
-        out.write(" and ");
-      }
-      out.write(lintCount);
-      out.write(' ');
-      out.write(_pluralize("lint", lintCount));
-      hasContent = true;
-    }
-    if (hasContent) {
-      out.writeln(" found.");
-    } else {
-      out.writeln("No issues found");
-    }
-  }
-}
 
 /// Helper for formatting [AnalysisError]s.
 /// The two format options are a user consumable format and a machine consumable
@@ -100,11 +23,9 @@ class AnalysisStats {
 class ErrorFormatter {
   final StringSink out;
   final CommandLineOptions options;
-  final AnalysisStats stats;
   final _SeverityProcessor processSeverity;
 
-  ErrorFormatter(this.out, this.options, this.stats,
-      [this.processSeverity = _identity]);
+  ErrorFormatter(this.out, this.options, [this.processSeverity = _identity]);
 
   /// Compute the severity for this [error] or `null` if this error should be
   /// filtered.
@@ -191,25 +112,83 @@ class ErrorFormatter {
       return error1.offset - error2.offset;
     });
     // Format errors.
+    int errorCount = 0;
+    int warnCount = 0;
+    int hintCount = 0;
+    int lintCount = 0;
     for (AnalysisError error in errors) {
       ProcessedSeverity processedSeverity = processSeverity(error);
       ErrorSeverity severity = processedSeverity.severity;
       if (severity == ErrorSeverity.ERROR) {
-        stats.errorCount++;
+        errorCount++;
       } else if (severity == ErrorSeverity.WARNING) {
         /// Only treat a warning as an error if it's not been set by a
         /// proccesser.
         if (!processedSeverity.overridden && options.warningsAreFatal) {
-          stats.errorCount++;
+          errorCount++;
         } else {
-          stats.warnCount++;
+          warnCount++;
         }
       } else if (error.errorCode.type == ErrorType.HINT) {
-        stats.hintCount++;
+        hintCount++;
       } else if (error.errorCode.type == ErrorType.LINT) {
-        stats.lintCount++;
+        lintCount++;
       }
       formatError(errorToLine, error);
+    }
+    // Print statistics.
+    if (!options.machineFormat) {
+      var hasErrors = errorCount != 0;
+      var hasWarns = warnCount != 0;
+      var hasHints = hintCount != 0;
+      var hasLints = lintCount != 0;
+      bool hasContent = false;
+      if (hasErrors) {
+        out.write(errorCount);
+        out.write(' ');
+        out.write(pluralize("error", errorCount));
+        hasContent = true;
+      }
+      if (hasWarns) {
+        if (hasContent) {
+          if (!hasHints && !hasLints) {
+            out.write(' and ');
+          } else {
+            out.write(", ");
+          }
+        }
+        out.write(warnCount);
+        out.write(' ');
+        out.write(pluralize("warning", warnCount));
+        hasContent = true;
+      }
+      if (hasHints) {
+        if (hasContent) {
+          if (!hasLints) {
+            out.write(' and ');
+          } else {
+            out.write(", ");
+          }
+        }
+        out.write(hintCount);
+        out.write(' ');
+        out.write(pluralize("hint", hintCount));
+        hasContent = true;
+      }
+      if (hasLints) {
+        if (hasContent) {
+          out.write(" and ");
+        }
+        out.write(lintCount);
+        out.write(' ');
+        out.write(pluralize("lint", lintCount));
+        hasContent = true;
+      }
+      if (hasContent) {
+        out.writeln(" found.");
+      } else {
+        out.writeln("No issues found");
+      }
     }
   }
 
@@ -223,9 +202,17 @@ class ErrorFormatter {
     }
     return result.toString();
   }
+
+  static String pluralize(String word, int count) {
+    if (count == 1) {
+      return word;
+    } else {
+      return word + "s";
+    }
+  }
 }
 
-/// A severity with awareness of whether it was overridden by a processor.
+/// A severity with awareness of whether it was overriden by a processor.
 class ProcessedSeverity {
   ErrorSeverity severity;
   bool overridden;

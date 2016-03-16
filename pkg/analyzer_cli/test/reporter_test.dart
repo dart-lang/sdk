@@ -14,9 +14,7 @@ import 'mocks.dart';
 main() {
   group('reporter', () {
     var out = new StringBuffer();
-    var stats = new AnalysisStats();
 
-    setUp(() => stats.init());
     tearDown(() => out.clear());
 
     // Options
@@ -25,32 +23,28 @@ main() {
     when(options.hintsAreFatal).thenReturn(false);
     when(options.machineFormat).thenReturn(false);
 
-    var reporter = new ErrorFormatter(out, options, stats);
+    var reporter = new ErrorFormatter(out, options);
 
     test('error', () {
       var error = mockError(ErrorType.SYNTACTIC_ERROR, ErrorSeverity.ERROR);
       reporter.formatErrors([error]);
 
-      expect(out.toString().trim(),
-          '[error] MSG (/foo/bar/baz.dart, line 3, col 3)');
+      expect(
+          out.toString(),
+          '''[error] MSG (/foo/bar/baz.dart, line 3, col 3)
+1 error found.
+''');
     });
 
     test('hint', () {
       var error = mockError(ErrorType.HINT, ErrorSeverity.INFO);
       reporter.formatErrors([error]);
 
-      expect(out.toString().trim(),
-          '[hint] MSG (/foo/bar/baz.dart, line 3, col 3)');
-    });
-
-    test('stats', () {
-      var error = mockError(ErrorType.HINT, ErrorSeverity.INFO);
-      reporter.formatErrors([error]);
-      stats.print(out);
       expect(
-          out.toString().trim(),
+          out.toString(),
           '''[hint] MSG (/foo/bar/baz.dart, line 3, col 3)
-1 hint found.''');
+1 hint found.
+''');
     });
   });
 }

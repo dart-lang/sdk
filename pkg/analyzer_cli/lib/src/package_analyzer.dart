@@ -31,7 +31,6 @@ import 'package:path/path.dart' as pathos;
  */
 class PackageAnalyzer {
   final CommandLineOptions options;
-  final AnalysisStats stats;
 
   String packagePath;
   String packageLibPath;
@@ -40,7 +39,7 @@ class PackageAnalyzer {
   InternalAnalysisContext context;
   final List<Source> explicitSources = <Source>[];
 
-  PackageAnalyzer(this.options, this.stats);
+  PackageAnalyzer(this.options);
 
   /**
    * Perform package analysis according to the given [options].
@@ -182,13 +181,11 @@ class PackageAnalyzer {
     ErrorFormatter formatter = new ErrorFormatter(
         sink,
         options,
-        stats,
         (AnalysisError error) =>
             AnalyzerImpl.processError(error, options, context));
     for (Source source in explicitSources) {
       AnalysisErrorInfo errorInfo = context.getErrors(source);
       formatter.formatErrors([errorInfo]);
     }
-    stats.print(sink);
   }
 }
