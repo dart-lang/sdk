@@ -155,7 +155,7 @@ abstract class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
   @override
   void visitChildren(AstVisitor visitor) {
     if (_commentIsBeforeAnnotations()) {
-      _safelyVisitChild(_comment, visitor);
+      _comment?.accept(visitor);
       _metadata.accept(visitor);
     } else {
       for (AstNode child in sortedCommentAndAnnotations) {
@@ -309,9 +309,9 @@ class AnnotationImpl extends AstNodeImpl implements Annotation {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_name, visitor);
-    _safelyVisitChild(_constructorName, visitor);
-    _safelyVisitChild(_arguments, visitor);
+    _name?.accept(visitor);
+    _constructorName?.accept(visitor);
+    _arguments?.accept(visitor);
   }
 }
 
@@ -535,8 +535,8 @@ class AsExpressionImpl extends ExpressionImpl implements AsExpression {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_expression, visitor);
-    _safelyVisitChild(_type, visitor);
+    _expression?.accept(visitor);
+    _type?.accept(visitor);
   }
 }
 
@@ -640,8 +640,8 @@ class AssertStatementImpl extends StatementImpl implements AssertStatement {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_condition, visitor);
-    _safelyVisitChild(message, visitor);
+    _condition?.accept(visitor);
+    message?.accept(visitor);
   }
 }
 
@@ -827,8 +827,8 @@ class AssignmentExpressionImpl extends ExpressionImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_leftHandSide, visitor);
-    _safelyVisitChild(_rightHandSide, visitor);
+    _leftHandSide?.accept(visitor);
+    _rightHandSide?.accept(visitor);
   }
 }
 
@@ -941,15 +941,6 @@ abstract class AstNodeImpl implements AstNode {
     }
     return child;
   }
-
-  /**
-   * If the given [child] is not `null`, use the given [visitor] to visit it.
-   */
-  void _safelyVisitChild(AstNode child, AstVisitor visitor) {
-    if (child != null) {
-      child.accept(visitor);
-    }
-  }
 }
 
 /**
@@ -1008,7 +999,7 @@ class AwaitExpressionImpl extends ExpressionImpl implements AwaitExpression {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_expression, visitor);
+    _expression?.accept(visitor);
   }
 }
 
@@ -1138,8 +1129,8 @@ class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_leftOperand, visitor);
-    _safelyVisitChild(_rightOperand, visitor);
+    _leftOperand?.accept(visitor);
+    _rightOperand?.accept(visitor);
   }
 }
 
@@ -1217,7 +1208,7 @@ class BlockFunctionBodyImpl extends FunctionBodyImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_block, visitor);
+    _block?.accept(visitor);
   }
 }
 
@@ -1389,7 +1380,7 @@ class BreakStatementImpl extends StatementImpl implements BreakStatement {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_label, visitor);
+    _label?.accept(visitor);
   }
 }
 
@@ -1460,7 +1451,7 @@ class CascadeExpressionImpl extends ExpressionImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_target, visitor);
+    _target?.accept(visitor);
     _cascadeSections.accept(visitor);
   }
 }
@@ -1614,10 +1605,10 @@ class CatchClauseImpl extends AstNodeImpl implements CatchClause {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_exceptionType, visitor);
-    _safelyVisitChild(_exceptionParameter, visitor);
-    _safelyVisitChild(_stackTraceParameter, visitor);
-    _safelyVisitChild(_body, visitor);
+    _exceptionType?.accept(visitor);
+    _exceptionParameter?.accept(visitor);
+    _stackTraceParameter?.accept(visitor);
+    _body?.accept(visitor);
   }
 }
 
@@ -1884,12 +1875,12 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_name, visitor);
-    _safelyVisitChild(_typeParameters, visitor);
-    _safelyVisitChild(_extendsClause, visitor);
-    _safelyVisitChild(_withClause, visitor);
-    _safelyVisitChild(_implementsClause, visitor);
-    _safelyVisitChild(_nativeClause, visitor);
+    _name?.accept(visitor);
+    _typeParameters?.accept(visitor);
+    _extendsClause?.accept(visitor);
+    _withClause?.accept(visitor);
+    _implementsClause?.accept(visitor);
+    _nativeClause?.accept(visitor);
     members.accept(visitor);
   }
 }
@@ -2044,11 +2035,11 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_name, visitor);
-    _safelyVisitChild(_typeParameters, visitor);
-    _safelyVisitChild(_superclass, visitor);
-    _safelyVisitChild(_withClause, visitor);
-    _safelyVisitChild(_implementsClause, visitor);
+    _name?.accept(visitor);
+    _typeParameters?.accept(visitor);
+    _superclass?.accept(visitor);
+    _withClause?.accept(visitor);
+    _implementsClause?.accept(visitor);
   }
 }
 
@@ -2230,7 +2221,7 @@ class CommentReferenceImpl extends AstNodeImpl implements CommentReference {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_identifier, visitor);
+    _identifier?.accept(visitor);
   }
 }
 
@@ -2415,7 +2406,7 @@ class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_scriptTag, visitor);
+    _scriptTag?.accept(visitor);
     if (_directivesAreBeforeDeclarations) {
       _directives.accept(visitor);
       _declarations.accept(visitor);
@@ -2541,9 +2532,9 @@ class ConditionalExpressionImpl extends ExpressionImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_condition, visitor);
-    _safelyVisitChild(_thenExpression, visitor);
-    _safelyVisitChild(_elseExpression, visitor);
+    _condition?.accept(visitor);
+    _thenExpression?.accept(visitor);
+    _elseExpression?.accept(visitor);
   }
 }
 
@@ -2630,9 +2621,9 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_name, visitor);
-    _safelyVisitChild(_value, visitor);
-    _safelyVisitChild(_libraryUri, visitor);
+    _name?.accept(visitor);
+    _value?.accept(visitor);
+    _libraryUri?.accept(visitor);
   }
 }
 
@@ -2858,12 +2849,12 @@ class ConstructorDeclarationImpl extends ClassMemberImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_returnType, visitor);
-    _safelyVisitChild(_name, visitor);
-    _safelyVisitChild(_parameters, visitor);
+    _returnType?.accept(visitor);
+    _name?.accept(visitor);
+    _parameters?.accept(visitor);
     _initializers.accept(visitor);
-    _safelyVisitChild(_redirectedConstructor, visitor);
-    _safelyVisitChild(_body, visitor);
+    _redirectedConstructor?.accept(visitor);
+    _body?.accept(visitor);
   }
 }
 
@@ -2955,8 +2946,8 @@ class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_fieldName, visitor);
-    _safelyVisitChild(_expression, visitor);
+    _fieldName?.accept(visitor);
+    _expression?.accept(visitor);
   }
 }
 
@@ -3049,8 +3040,8 @@ class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_type, visitor);
-    _safelyVisitChild(_name, visitor);
+    _type?.accept(visitor);
+    _name?.accept(visitor);
   }
 }
 
@@ -3120,7 +3111,7 @@ class ContinueStatementImpl extends StatementImpl implements ContinueStatement {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_label, visitor);
+    _label?.accept(visitor);
   }
 }
 
@@ -3235,8 +3226,8 @@ class DeclaredIdentifierImpl extends DeclarationImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_type, visitor);
-    _safelyVisitChild(_identifier, visitor);
+    _type?.accept(visitor);
+    _identifier?.accept(visitor);
   }
 }
 
@@ -3335,8 +3326,8 @@ class DefaultFormalParameterImpl extends FormalParameterImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_parameter, visitor);
-    _safelyVisitChild(_defaultValue, visitor);
+    _parameter?.accept(visitor);
+    _defaultValue?.accept(visitor);
   }
 }
 
@@ -3465,8 +3456,8 @@ class DoStatementImpl extends StatementImpl implements DoStatement {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_body, visitor);
-    _safelyVisitChild(_condition, visitor);
+    _body?.accept(visitor);
+    _condition?.accept(visitor);
   }
 }
 
@@ -3680,7 +3671,7 @@ class EnumConstantDeclarationImpl extends DeclarationImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_name, visitor);
+    _name?.accept(visitor);
   }
 }
 
@@ -3761,7 +3752,7 @@ class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_name, visitor);
+    _name?.accept(visitor);
     _constants.accept(visitor);
   }
 }
@@ -3914,7 +3905,7 @@ class ExpressionFunctionBodyImpl extends FunctionBodyImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_expression, visitor);
+    _expression?.accept(visitor);
   }
 }
 
@@ -4077,7 +4068,7 @@ class ExpressionStatementImpl extends StatementImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_expression, visitor);
+    _expression?.accept(visitor);
   }
 }
 
@@ -4129,7 +4120,7 @@ class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_superclass, visitor);
+    _superclass?.accept(visitor);
   }
 }
 
@@ -4205,7 +4196,7 @@ class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_fieldList, visitor);
+    _fieldList?.accept(visitor);
   }
 }
 
@@ -4347,10 +4338,10 @@ class FieldFormalParameterImpl extends NormalFormalParameterImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_type, visitor);
-    _safelyVisitChild(identifier, visitor);
-    _safelyVisitChild(_typeParameters, visitor);
-    _safelyVisitChild(_parameters, visitor);
+    _type?.accept(visitor);
+    identifier?.accept(visitor);
+    _typeParameters?.accept(visitor);
+    _parameters?.accept(visitor);
   }
 }
 
@@ -4507,10 +4498,10 @@ class ForEachStatementImpl extends StatementImpl implements ForEachStatement {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_loopVariable, visitor);
-    _safelyVisitChild(_identifier, visitor);
-    _safelyVisitChild(_iterable, visitor);
-    _safelyVisitChild(_body, visitor);
+    _loopVariable?.accept(visitor);
+    _identifier?.accept(visitor);
+    _iterable?.accept(visitor);
+    _body?.accept(visitor);
   }
 }
 
@@ -4808,11 +4799,11 @@ class ForStatementImpl extends StatementImpl implements ForStatement {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_variableList, visitor);
-    _safelyVisitChild(_initialization, visitor);
-    _safelyVisitChild(_condition, visitor);
+    _variableList?.accept(visitor);
+    _initialization?.accept(visitor);
+    _condition?.accept(visitor);
     _updaters.accept(visitor);
-    _safelyVisitChild(_body, visitor);
+    _body?.accept(visitor);
   }
 }
 
@@ -4999,9 +4990,9 @@ class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_returnType, visitor);
-    _safelyVisitChild(_name, visitor);
-    _safelyVisitChild(_functionExpression, visitor);
+    _returnType?.accept(visitor);
+    _name?.accept(visitor);
+    _functionExpression?.accept(visitor);
   }
 }
 
@@ -5044,7 +5035,7 @@ class FunctionDeclarationStatementImpl extends StatementImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_functionDeclaration, visitor);
+    _functionDeclaration?.accept(visitor);
   }
 }
 
@@ -5151,9 +5142,9 @@ class FunctionExpressionImpl extends ExpressionImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_typeParameters, visitor);
-    _safelyVisitChild(_parameters, visitor);
-    _safelyVisitChild(_body, visitor);
+    _typeParameters?.accept(visitor);
+    _parameters?.accept(visitor);
+    _body?.accept(visitor);
   }
 }
 
@@ -5233,9 +5224,9 @@ class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_function, visitor);
-    _safelyVisitChild(_typeArguments, visitor);
-    _safelyVisitChild(_argumentList, visitor);
+    _function?.accept(visitor);
+    _typeArguments?.accept(visitor);
+    _argumentList?.accept(visitor);
   }
 }
 
@@ -5331,10 +5322,10 @@ class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_returnType, visitor);
-    _safelyVisitChild(_name, visitor);
-    _safelyVisitChild(_typeParameters, visitor);
-    _safelyVisitChild(_parameters, visitor);
+    _returnType?.accept(visitor);
+    _name?.accept(visitor);
+    _typeParameters?.accept(visitor);
+    _parameters?.accept(visitor);
   }
 }
 
@@ -5433,10 +5424,10 @@ class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_returnType, visitor);
-    _safelyVisitChild(identifier, visitor);
-    _safelyVisitChild(_typeParameters, visitor);
-    _safelyVisitChild(_parameters, visitor);
+    _returnType?.accept(visitor);
+    identifier?.accept(visitor);
+    _typeParameters?.accept(visitor);
+    _parameters?.accept(visitor);
   }
 }
 
@@ -5617,9 +5608,9 @@ class IfStatementImpl extends StatementImpl implements IfStatement {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_condition, visitor);
-    _safelyVisitChild(_thenStatement, visitor);
-    _safelyVisitChild(_elseStatement, visitor);
+    _condition?.accept(visitor);
+    _thenStatement?.accept(visitor);
+    _elseStatement?.accept(visitor);
   }
 }
 
@@ -5759,7 +5750,7 @@ class ImportDirectiveImpl extends NamespaceDirectiveImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_prefix, visitor);
+    _prefix?.accept(visitor);
     combinators.accept(visitor);
   }
 }
@@ -5978,8 +5969,8 @@ class IndexExpressionImpl extends ExpressionImpl implements IndexExpression {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_target, visitor);
-    _safelyVisitChild(_index, visitor);
+    _target?.accept(visitor);
+    _index?.accept(visitor);
   }
 }
 
@@ -6066,8 +6057,8 @@ class InstanceCreationExpressionImpl extends ExpressionImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_constructorName, visitor);
-    _safelyVisitChild(_argumentList, visitor);
+    _constructorName?.accept(visitor);
+    _argumentList?.accept(visitor);
   }
 }
 
@@ -6198,7 +6189,7 @@ class InterpolationExpressionImpl extends InterpolationElementImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_expression, visitor);
+    _expression?.accept(visitor);
   }
 }
 
@@ -6380,8 +6371,8 @@ class IsExpressionImpl extends ExpressionImpl implements IsExpression {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_expression, visitor);
-    _safelyVisitChild(_type, visitor);
+    _expression?.accept(visitor);
+    _type?.accept(visitor);
   }
 }
 
@@ -6446,7 +6437,7 @@ class LabeledStatementImpl extends StatementImpl implements LabeledStatement {
   @override
   void visitChildren(AstVisitor visitor) {
     _labels.accept(visitor);
-    _safelyVisitChild(_statement, visitor);
+    _statement?.accept(visitor);
   }
 }
 
@@ -6497,7 +6488,7 @@ class LabelImpl extends AstNodeImpl implements Label {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_label, visitor);
+    _label?.accept(visitor);
   }
 }
 
@@ -6563,7 +6554,7 @@ class LibraryDirectiveImpl extends DirectiveImpl implements LibraryDirective {
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_name, visitor);
+    _name?.accept(visitor);
   }
 }
 
@@ -6806,8 +6797,8 @@ class MapLiteralEntryImpl extends AstNodeImpl implements MapLiteralEntry {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_key, visitor);
-    _safelyVisitChild(_value, visitor);
+    _key?.accept(visitor);
+    _value?.accept(visitor);
   }
 }
 
@@ -7094,11 +7085,11 @@ class MethodDeclarationImpl extends ClassMemberImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_returnType, visitor);
-    _safelyVisitChild(_name, visitor);
-    _safelyVisitChild(_typeParameters, visitor);
-    _safelyVisitChild(_parameters, visitor);
-    _safelyVisitChild(_body, visitor);
+    _returnType?.accept(visitor);
+    _name?.accept(visitor);
+    _typeParameters?.accept(visitor);
+    _parameters?.accept(visitor);
+    _body?.accept(visitor);
   }
 }
 
@@ -7214,10 +7205,10 @@ class MethodInvocationImpl extends InvocationExpressionImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_target, visitor);
-    _safelyVisitChild(_methodName, visitor);
-    _safelyVisitChild(_typeArguments, visitor);
-    _safelyVisitChild(_argumentList, visitor);
+    _target?.accept(visitor);
+    _methodName?.accept(visitor);
+    _typeArguments?.accept(visitor);
+    _argumentList?.accept(visitor);
   }
 }
 
@@ -7320,8 +7311,8 @@ class NamedExpressionImpl extends ExpressionImpl implements NamedExpression {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_name, visitor);
-    _safelyVisitChild(_expression, visitor);
+    _name?.accept(visitor);
+    _expression?.accept(visitor);
   }
 }
 
@@ -7440,7 +7431,7 @@ class NativeClauseImpl extends AstNodeImpl implements NativeClause {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_name, visitor);
+    _name?.accept(visitor);
   }
 }
 
@@ -7505,7 +7496,7 @@ class NativeFunctionBodyImpl extends FunctionBodyImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_stringLiteral, visitor);
+    _stringLiteral?.accept(visitor);
   }
 }
 
@@ -7729,7 +7720,7 @@ abstract class NormalFormalParameterImpl extends FormalParameterImpl
     // they often need to visit other nodes before visiting the identifier.
     //
     if (_commentIsBeforeAnnotations()) {
-      _safelyVisitChild(_comment, visitor);
+      _comment?.accept(visitor);
       _metadata.accept(visitor);
     } else {
       for (AstNode child in sortedCommentAndAnnotations) {
@@ -7844,7 +7835,7 @@ class ParenthesizedExpressionImpl extends ExpressionImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_expression, visitor);
+    _expression?.accept(visitor);
   }
 }
 
@@ -7972,7 +7963,7 @@ class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_libraryName, visitor);
+    _libraryName?.accept(visitor);
   }
 }
 
@@ -8088,7 +8079,7 @@ class PostfixExpressionImpl extends ExpressionImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_operand, visitor);
+    _operand?.accept(visitor);
   }
 }
 
@@ -8201,8 +8192,8 @@ class PrefixedIdentifierImpl extends IdentifierImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_prefix, visitor);
-    _safelyVisitChild(_identifier, visitor);
+    _prefix?.accept(visitor);
+    _identifier?.accept(visitor);
   }
 }
 
@@ -8313,7 +8304,7 @@ class PrefixExpressionImpl extends ExpressionImpl implements PrefixExpression {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_operand, visitor);
+    _operand?.accept(visitor);
   }
 }
 
@@ -8413,8 +8404,8 @@ class PropertyAccessImpl extends ExpressionImpl implements PropertyAccess {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_target, visitor);
-    _safelyVisitChild(_propertyName, visitor);
+    _target?.accept(visitor);
+    _propertyName?.accept(visitor);
   }
 }
 
@@ -8502,8 +8493,8 @@ class RedirectingConstructorInvocationImpl extends ConstructorInitializerImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_constructorName, visitor);
-    _safelyVisitChild(_argumentList, visitor);
+    _constructorName?.accept(visitor);
+    _argumentList?.accept(visitor);
   }
 }
 
@@ -8601,7 +8592,7 @@ class ReturnStatementImpl extends StatementImpl implements ReturnStatement {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_expression, visitor);
+    _expression?.accept(visitor);
   }
 }
 
@@ -8757,8 +8748,8 @@ class SimpleFormalParameterImpl extends NormalFormalParameterImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_type, visitor);
-    _safelyVisitChild(identifier, visitor);
+    _type?.accept(visitor);
+    identifier?.accept(visitor);
   }
 }
 
@@ -9461,8 +9452,8 @@ class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_constructorName, visitor);
-    _safelyVisitChild(_argumentList, visitor);
+    _constructorName?.accept(visitor);
+    _argumentList?.accept(visitor);
   }
 }
 
@@ -9548,7 +9539,7 @@ class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
   @override
   void visitChildren(AstVisitor visitor) {
     labels.accept(visitor);
-    _safelyVisitChild(_expression, visitor);
+    _expression?.accept(visitor);
     statements.accept(visitor);
   }
 }
@@ -9737,7 +9728,7 @@ class SwitchStatementImpl extends StatementImpl implements SwitchStatement {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_expression, visitor);
+    _expression?.accept(visitor);
     _members.accept(visitor);
   }
 }
@@ -9878,7 +9869,7 @@ class ThrowExpressionImpl extends ExpressionImpl implements ThrowExpression {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_expression, visitor);
+    _expression?.accept(visitor);
   }
 }
 
@@ -9939,7 +9930,7 @@ class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_variableList, visitor);
+    _variableList?.accept(visitor);
   }
 }
 
@@ -10039,9 +10030,9 @@ class TryStatementImpl extends StatementImpl implements TryStatement {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_body, visitor);
+    _body?.accept(visitor);
     _catchClauses.accept(visitor);
-    _safelyVisitChild(_finallyBlock, visitor);
+    _finallyBlock?.accept(visitor);
   }
 }
 
@@ -10180,7 +10171,7 @@ abstract class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_typeArguments, visitor);
+    _typeArguments?.accept(visitor);
   }
 }
 
@@ -10264,8 +10255,8 @@ class TypeNameImpl extends AstNodeImpl implements TypeName {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_name, visitor);
-    _safelyVisitChild(_typeArguments, visitor);
+    _name?.accept(visitor);
+    _typeArguments?.accept(visitor);
   }
 }
 
@@ -10347,8 +10338,8 @@ class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_name, visitor);
-    _safelyVisitChild(_bound, visitor);
+    _name?.accept(visitor);
+    _bound?.accept(visitor);
   }
 }
 
@@ -10480,7 +10471,7 @@ abstract class UriBasedDirectiveImpl extends DirectiveImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_uri, visitor);
+    _uri?.accept(visitor);
   }
 }
 
@@ -10625,8 +10616,8 @@ class VariableDeclarationImpl extends DeclarationImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_name, visitor);
-    _safelyVisitChild(_initializer, visitor);
+    _name?.accept(visitor);
+    _initializer?.accept(visitor);
   }
 }
 
@@ -10720,7 +10711,7 @@ class VariableDeclarationListImpl extends AnnotatedNodeImpl
   @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    _safelyVisitChild(_type, visitor);
+    _type?.accept(visitor);
     _variables.accept(visitor);
   }
 }
@@ -10775,7 +10766,7 @@ class VariableDeclarationStatementImpl extends StatementImpl
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_variableList, visitor);
+    _variableList?.accept(visitor);
   }
 }
 
@@ -10855,8 +10846,8 @@ class WhileStatementImpl extends StatementImpl implements WhileStatement {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_condition, visitor);
-    _safelyVisitChild(_body, visitor);
+    _condition?.accept(visitor);
+    _body?.accept(visitor);
   }
 }
 
@@ -10980,6 +10971,6 @@ class YieldStatementImpl extends StatementImpl implements YieldStatement {
 
   @override
   void visitChildren(AstVisitor visitor) {
-    _safelyVisitChild(_expression, visitor);
+    _expression?.accept(visitor);
   }
 }
