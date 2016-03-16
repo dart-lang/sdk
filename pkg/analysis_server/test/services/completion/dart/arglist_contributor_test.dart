@@ -96,7 +96,7 @@ class ArgListContributorTest extends DartCompletionContributorTest {
 
   test_Annotation_local_constructor_named_param() async {
     addTestSource('''
-class A { A({int one, String two: 'defaultValue'}) { } }
+class A { const A({int one, String two: 'defaultValue'}); }
 @A(^) main() { }''');
     await computeSuggestions();
     assertSuggestArguments(namedArguments: ['one', 'two']);
@@ -106,7 +106,7 @@ class A { A({int one, String two: 'defaultValue'}) { } }
     addSource(
         '/libA.dart',
         '''
-library libA; class A { A({int one, String two: 'defaultValue'}) { } }''');
+library libA; class A { const A({int one, String two: 'defaultValue'}); }''');
     addTestSource('import "/libA.dart"; @A(^) main() { }');
     await computeSuggestions();
     assertSuggestArguments(namedArguments: ['one', 'two']);
@@ -120,7 +120,7 @@ library libA; class A { A({int one, String two: 'defaultValue'}) { } }''');
 
   test_ArgumentList_imported_constructor_named_param() async {
     //
-    addSource('/libA.dart', 'library libA; class A{A({int one}){}}');
+    addSource('/libA.dart', 'library libA; class A{A({int one}); }');
     addTestSource('import "/libA.dart"; main() { new A(^);}');
     await computeSuggestions();
     assertSuggestArguments(namedArguments: ['one']);
@@ -128,7 +128,7 @@ library libA; class A { A({int one, String two: 'defaultValue'}) { } }''');
 
   test_ArgumentList_imported_constructor_named_param2() async {
     //
-    addSource('/libA.dart', 'library libA; class A{A.foo({int one}){}}');
+    addSource('/libA.dart', 'library libA; class A{A.foo({int one}); }');
     addTestSource('import "/libA.dart"; main() { new A.foo(^);}');
     await computeSuggestions();
     assertSuggestArguments(namedArguments: ['one']);
