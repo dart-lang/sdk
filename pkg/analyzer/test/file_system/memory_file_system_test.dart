@@ -123,6 +123,19 @@ class FileTest {
     expect(parent.path, equals('/foo/bar'));
   }
 
+  void test_readAsBytesSync_doesNotExist() {
+    File file = provider.getResource('/test.bin');
+    expect(() {
+      file.readAsBytesSync();
+    }, throwsA(_isFileSystemException));
+  }
+
+  void test_readAsBytesSync_exists() {
+    List<int> bytes = <int>[1, 2, 3, 4, 5];
+    File file = provider.newFileWithBytes('/file.bin', bytes);
+    expect(file.readAsBytesSync(), bytes);
+  }
+
   void test_readAsStringSync_doesNotExist() {
     File file = provider.getResource('/test.txt');
     expect(() {
@@ -143,6 +156,14 @@ class FileTest {
   void test_toString() {
     File file = provider.getResource('/foo/bar/file.txt');
     expect(file.toString(), '/foo/bar/file.txt');
+  }
+
+  void test_writeAsBytesSync() {
+    File file = provider.newFileWithBytes('/file.bin', <int>[1, 2]);
+    expect(file.readAsBytesSync(), <int>[1, 2]);
+    // write new bytes
+    file.writeAsBytesSync(<int>[10, 20]);
+    expect(file.readAsBytesSync(), <int>[10, 20]);
   }
 }
 
@@ -465,6 +486,16 @@ class MemoryResourceProviderTest {
     expect(source.contents.data, equals('contents 1'));
     provider.modifyFile(path, 'contents 2');
     expect(source.contents.data, equals('contents 2'));
+  }
+
+  void test_newFileWithBytes() {
+    String path = '/my/file';
+    List<int> bytes = <int>[1, 2, 3, 4, 5];
+    provider.newFileWithBytes(path, bytes);
+    File file = provider.getResource(path);
+    expect(file, isNotNull);
+    expect(file.exists, isTrue);
+    expect(file.readAsBytesSync(), bytes);
   }
 
   void test_newFolder_aleadyExists_asFile() {

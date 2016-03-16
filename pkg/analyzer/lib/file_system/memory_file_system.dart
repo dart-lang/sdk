@@ -23,6 +23,7 @@ class MemoryResourceProvider implements ResourceProvider {
   final Map<String, _MemoryResource> _pathToResource =
       new HashMap<String, _MemoryResource>();
   final Map<String, String> _pathToContent = new HashMap<String, String>();
+  final Map<String, List<int>> _pathToBytes = new HashMap<String, List<int>>();
   final Map<String, int> _pathToTimestamp = new HashMap<String, int>();
   final Map<String, List<StreamController<WatchEvent>>> _pathToWatchers =
       new HashMap<String, List<StreamController<WatchEvent>>>();
@@ -116,16 +117,18 @@ class MemoryResourceProvider implements ResourceProvider {
 
   File newFile(String path, String content, [int stamp]) {
     path = pathContext.normalize(path);
-    _MemoryResource folder = _pathToResource[pathContext.dirname(path)];
-    if (folder == null) {
-      newFolder(pathContext.dirname(path));
-    } else if (folder is! Folder) {
-      throw new ArgumentError('Cannot create file ($path) as child of file');
-    }
-    _MemoryFile file = new _MemoryFile(this, path);
-    _pathToResource[path] = file;
+    _MemoryFile file = _newFile(path);
     _pathToContent[path] = content;
-    _pathToTimestamp[path] = stamp != null ? stamp : nextStamp++;
+    _pathToTimestamp[path] = stamp ?? nextStamp++;
+    _notifyWatchers(path, ChangeType.ADD);
+    return file;
+  }
+
+  File newFileWithBytes(String path, List<int> bytes, [int stamp]) {
+    path = pathContext.normalize(path);
+    _MemoryFile file = _newFile(path);
+    _pathToBytes[path] = bytes;
+    _pathToTimestamp[path] = stamp ?? nextStamp++;
     _notifyWatchers(path, ChangeType.ADD);
     return file;
   }
@@ -183,6 +186,22 @@ class MemoryResourceProvider implements ResourceProvider {
     }
   }
 
+  /**
+   * Create a new [_MemoryFile] without any content.
+   */
+  _MemoryFile _newFile(String path) {
+    String folderPath = pathContext.dirname(path);
+    _MemoryResource folder = _pathToResource[folderPath];
+    if (folder == null) {
+      newFolder(folderPath);
+    } else if (folder is! Folder) {
+      throw new ArgumentError('Cannot create file ($path) as child of file');
+    }
+    _MemoryFile file = new _MemoryFile(this, path);
+    _pathToResource[path] = file;
+    return file;
+  }
+
   void _notifyWatchers(String path, ChangeType changeType) {
     _pathToWatchers.forEach((String watcherPath,
         List<StreamController<WatchEvent>> streamControllers) {
@@ -193,6 +212,12 @@ class MemoryResourceProvider implements ResourceProvider {
         }
       }
     });
+  }
+
+  void _setFileBytes(String path, List<int> bytes) {
+    _pathToBytes[path] = bytes;
+    _pathToTimestamp[path] = nextStamp++;
+    _notifyWatchers(path, ChangeType.MODIFY);
   }
 }
 
@@ -236,8 +261,18 @@ class _MemoryDummyLink extends _MemoryResource implements File {
   }
 
   @override
+  List<int> readAsBytesSync() {
+    throw new FileSystemException(path, 'File could not be read');
+  }
+
+  @override
   String readAsStringSync() {
     throw new FileSystemException(path, 'File could not be read');
+  }
+
+  @override
+  void writeAsBytesSync(List<int> bytes) {
+    throw new FileSystemException(path, 'File could not be written');
   }
 }
 
@@ -282,12 +317,26 @@ class _MemoryFile extends _MemoryResource implements File {
   }
 
   @override
+  List<int> readAsBytesSync() {
+    List<int> bytes = _provider._pathToBytes[path];
+    if (bytes == null) {
+      throw new FileSystemException(path, 'File "$path" is not binary.');
+    }
+    return bytes;
+  }
+
+  @override
   String readAsStringSync() {
     String content = _provider._pathToContent[path];
     if (content == null) {
       throw new FileSystemException(path, 'File "$path" does not exist.');
     }
     return content;
+  }
+
+  @override
+  void writeAsBytesSync(List<int> bytes) {
+    _provider._setFileBytes(path, bytes);
   }
 }
 

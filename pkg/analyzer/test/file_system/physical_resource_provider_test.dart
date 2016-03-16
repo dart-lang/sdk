@@ -20,9 +20,11 @@ import '../utils.dart';
 
 main() {
   initializeTestEnvironment();
-  runReflectiveTests(PhysicalResourceProviderTest);
-  runReflectiveTests(FileTest);
-  runReflectiveTests(FolderTest);
+  if (!new bool.fromEnvironment('skipPhysicalResourceProviderTests')) {
+    runReflectiveTests(PhysicalResourceProviderTest);
+    runReflectiveTests(FileTest);
+    runReflectiveTests(FolderTest);
+  }
 }
 
 var _isFile = new isInstanceOf<File>();
@@ -104,6 +106,19 @@ class FileTest extends _BaseTest {
     expect(parent.path, equals(tempPath));
   }
 
+  void test_readAsBytesSync_doesNotExist() {
+    File file = PhysicalResourceProvider.INSTANCE.getResource('/test.bin');
+    expect(() {
+      file.readAsBytesSync();
+    }, throwsA(_isFileSystemException));
+  }
+
+  void test_readAsBytesSync_exists() {
+    List<int> bytes = <int>[1, 2, 3, 4, 5];
+    new io.File(path).writeAsBytesSync(bytes);
+    expect(file.readAsBytesSync(), bytes);
+  }
+
   void test_readAsStringSync_doesNotExist() {
     File file = PhysicalResourceProvider.INSTANCE.getResource(path);
     expect(() {
@@ -123,6 +138,14 @@ class FileTest extends _BaseTest {
 
   void test_toString() {
     expect(file.toString(), path);
+  }
+
+  void test_writeAsBytesSync() {
+    new io.File(path).writeAsBytesSync(<int>[1, 2]);
+    expect(file.readAsBytesSync(), <int>[1, 2]);
+    // write new bytes
+    file.writeAsBytesSync(<int>[10, 20]);
+    expect(file.readAsBytesSync(), <int>[10, 20]);
   }
 }
 

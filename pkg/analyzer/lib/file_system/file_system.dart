@@ -32,10 +32,23 @@ abstract class File implements Resource {
   Source createSource([Uri uri]);
 
   /**
+   * Synchronously read the entire file contents as a list of bytes.
+   * Throws a [FileSystemException] if the operation fails.
+   */
+  List<int> readAsBytesSync();
+
+  /**
    * Synchronously read the entire file contents as a [String].
    * Throws [FileSystemException] if the file does not exist.
    */
   String readAsStringSync();
+
+  /**
+   * Synchronously write a list of bytes to the file.
+   *
+   * Throws a [FileSystemException] if the operation fails.
+   */
+  void writeAsBytesSync(List<int> bytes);
 }
 
 /**
@@ -63,7 +76,7 @@ abstract class Folder implements Resource {
 
   /**
    * If the path [path] is a relative path, convert it to an absolute path
-   * by interpreting it relative to this folder.  If it is already an aboslute
+   * by interpreting it relative to this folder.  If it is already an absolute
    * path, then don't change it.
    *
    * However, regardless of whether [path] is relative or absolute, normalize
