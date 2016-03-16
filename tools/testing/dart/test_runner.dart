@@ -793,11 +793,14 @@ class TestCase extends UniqueObject {
   }
 
   int get timeout {
+    return configuration['timeout'] * SLOW_TIMEOUT_MULTIPLIER;
+/*
     if (expectedOutcomes.contains(Expectation.SLOW)) {
       return configuration['timeout'] * SLOW_TIMEOUT_MULTIPLIER;
     } else {
       return configuration['timeout'];
     }
+*/
   }
 
   String get configurationString {
