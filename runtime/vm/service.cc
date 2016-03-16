@@ -35,6 +35,7 @@
 #include "vm/source_report.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
+#include "vm/timeline.h"
 #include "vm/unicode.h"
 #include "vm/version.h"
 
@@ -2870,9 +2871,8 @@ static const char* const timeline_streams_enum_names[] = {
   "all",
 #define DEFINE_NAME(name, unused)                                              \
   #name,
-ISOLATE_TIMELINE_STREAM_LIST(DEFINE_NAME)
+TIMELINE_STREAM_LIST(DEFINE_NAME)
 #undef DEFINE_NAME
-  "VM",
   NULL
 };
 
@@ -2915,9 +2915,8 @@ static bool SetVMTimelineFlags(Thread* thread, JSONStream* js) {
 
 #define SET_ENABLE_STREAM(name, unused)                                        \
   Timeline::SetStream##name##Enabled(HasStream(recorded_streams, #name));
-ISOLATE_TIMELINE_STREAM_LIST(SET_ENABLE_STREAM);
+TIMELINE_STREAM_LIST(SET_ENABLE_STREAM);
 #undef SET_ENABLE_STREAM
-  Timeline::SetVMStreamEnabled(HasStream(recorded_streams, "VM"));
 
   PrintSuccess(js);
 

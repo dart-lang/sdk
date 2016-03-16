@@ -38,6 +38,7 @@
 #include "vm/symbols.h"
 #include "vm/tags.h"
 #include "vm/thread_registry.h"
+#include "vm/timeline.h"
 #include "vm/timer.h"
 #include "vm/unicode.h"
 #include "vm/verified_memory.h"
@@ -1104,7 +1105,7 @@ RawError* Object::Init(Isolate* isolate) {
   ASSERT(isolate == thread->isolate());
 NOT_IN_PRODUCT(
   TimelineDurationScope tds(thread,
-                            isolate->GetIsolateStream(),
+                            Timeline::GetIsolateStream(),
                             "Object::Init");
 )
 

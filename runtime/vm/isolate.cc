@@ -451,7 +451,9 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
   Zone* zone = stack_zone.GetZone();
   HandleScope handle_scope(thread);
 #ifndef PRODUCT
-  TimelineDurationScope tds(thread, I->GetIsolateStream(), "HandleMessage");
+  TimelineDurationScope tds(thread,
+                            Timeline::GetIsolateStream(),
+                            "HandleMessage");
   tds.SetNumArguments(1);
   tds.CopyArgument(0, "isolateName", I->name());
 #endif
@@ -903,11 +905,6 @@ Isolate* Isolate::Init(const char* name_prefix,
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_INIT);
 #undef ISOLATE_METRIC_INIT
 
-#ifndef PRODUCT
-  // Initialize Timeline streams.
-  Timeline::SetupIsolateStreams(result);
-#endif  // !PRODUCT
-
   Heap::Init(result,
              is_vm_isolate
                  ? 0  // New gen size 0; VM isolate should only allocate in old.
@@ -1126,7 +1123,7 @@ bool Isolate::MakeRunnable() {
   }
 #ifndef PRODUCT
   if (FLAG_support_timeline) {
-    TimelineStream* stream = GetIsolateStream();
+    TimelineStream* stream = Timeline::GetIsolateStream();
     ASSERT(stream != NULL);
     TimelineEvent* event = stream->StartEvent();
     if (event != NULL) {

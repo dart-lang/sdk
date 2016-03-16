@@ -19,6 +19,7 @@
 #include "vm/service.h"
 #include "vm/symbols.h"
 #include "vm/thread_pool.h"
+#include "vm/timeline.h"
 
 namespace dart {
 

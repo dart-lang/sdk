@@ -8,6 +8,7 @@
 #include "vm/lockers.h"
 #include "vm/log.h"
 #include "vm/thread_interrupter.h"
+#include "vm/timeline.h"
 
 namespace dart {
 

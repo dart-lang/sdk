@@ -8,6 +8,7 @@
 #include "vm/bit_vector.h"
 #include "vm/il_printer.h"
 #include "vm/regexp_assembler.h"
+#include "vm/timeline.h"
 
 namespace dart {
 
@@ -20,8 +21,7 @@ DECLARE_FLAG(bool, propagate_types);
 void FlowGraphTypePropagator::Propagate(FlowGraph* flow_graph) {
 #ifndef PRODUCT
   Thread* thread = flow_graph->thread();
-  Isolate* const isolate = flow_graph->isolate();
-  TimelineStream* compiler_timeline = isolate->GetCompilerStream();
+  TimelineStream* compiler_timeline = Timeline::GetCompilerStream();
   TimelineDurationScope tds2(thread,
                              compiler_timeline,
                              "FlowGraphTypePropagator");

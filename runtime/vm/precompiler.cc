@@ -39,6 +39,7 @@
 #include "vm/resolver.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
+#include "vm/timeline.h"
 #include "vm/timer.h"
 
 namespace dart {
@@ -1981,7 +1982,7 @@ bool PrecompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   bool is_compiled = false;
   Zone* const zone = thread()->zone();
 #ifndef PRODUCT
-  TimelineStream* compiler_timeline = isolate()->GetCompilerStream();
+  TimelineStream* compiler_timeline = Timeline::GetCompilerStream();
 #endif  // !PRODUCT
   CSTAT_TIMER_SCOPE(thread(), codegen_timer);
   HANDLESCOPE(thread());

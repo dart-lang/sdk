@@ -35,6 +35,7 @@
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
+#include "vm/timeline.h"
 #include "vm/timer.h"
 #include "vm/zone.h"
 
@@ -498,7 +499,7 @@ void Parser::ParseCompilationUnit(const Library& library,
   VMTagScope tagScope(thread, VMTag::kCompileTopLevelTagId);
 #ifndef PRODUCT
   TimelineDurationScope tds(thread,
-                            thread->isolate()->GetCompilerStream(),
+                            Timeline::GetCompilerStream(),
                             "CompileTopLevel");
   if (tds.enabled()) {
     tds.SetNumArguments(1);
@@ -856,7 +857,7 @@ void Parser::ParseClass(const Class& cls) {
   const int64_t num_tokes_before = STAT_VALUE(thread, num_tokens_consumed);
 #ifndef PRODUCT
   TimelineDurationScope tds(thread,
-                            thread->isolate()->GetCompilerStream(),
+                            Timeline::GetCompilerStream(),
                             "ParseClass");
   if (tds.enabled()) {
     tds.SetNumArguments(1);
@@ -973,7 +974,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
                       FLAG_profile_vm);
 #ifndef PRODUCT
   TimelineDurationScope tds(thread,
-                            thread->isolate()->GetCompilerStream(),
+                            Timeline::GetCompilerStream(),
                             "ParseFunction");
 #endif  // !PRODUCT
   ASSERT(thread->long_jump_base()->IsSafeToJump());

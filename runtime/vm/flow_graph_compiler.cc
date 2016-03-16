@@ -255,7 +255,7 @@ bool FlowGraphCompiler::IsPotentialUnboxedField(const Field& field) {
 void FlowGraphCompiler::InitCompiler() {
 #ifndef PRODUCT
   TimelineDurationScope tds(thread(),
-                            isolate()->GetCompilerStream(),
+                            Timeline::GetCompilerStream(),
                             "InitCompiler");
 #endif  // !PRODUCT
   pc_descriptors_list_ = new(zone()) DescriptorList(64);

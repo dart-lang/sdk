@@ -27,6 +27,7 @@
 #include "vm/stub_code.h"
 #include "vm/symbols.h"
 #include "vm/thread_interrupter.h"
+#include "vm/timeline.h"
 #include "vm/token_position.h"
 #include "vm/visitor.h"
 
@@ -2558,7 +2559,7 @@ void Debugger::Pause(DebuggerEvent* event) {
     Thread* thread = Thread::Current();
     DisableThreadInterruptsScope dtis(thread);
     TimelineDurationScope tds(thread,
-                              isolate_->GetDebuggerStream(),
+                              Timeline::GetDebuggerStream(),
                               "Debugger Pause");
     InvokeEventHandler(event);
   }

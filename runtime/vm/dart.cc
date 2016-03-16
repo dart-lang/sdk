@@ -29,6 +29,7 @@
 #include "vm/symbols.h"
 #include "vm/thread_interrupter.h"
 #include "vm/thread_pool.h"
+#include "vm/timeline.h"
 #include "vm/virtual_memory.h"
 #include "vm/zone.h"
 
@@ -391,7 +392,9 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   Thread* T = Thread::Current();
   Isolate* I = T->isolate();
   NOT_IN_PRODUCT(
-    TimelineDurationScope tds(T, I->GetIsolateStream(), "InitializeIsolate");
+    TimelineDurationScope tds(T,
+                              Timeline::GetIsolateStream(),
+                              "InitializeIsolate");
     tds.SetNumArguments(1);
     tds.CopyArgument(0, "isolateName", I->name());
   )
@@ -400,7 +403,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   HandleScope handle_scope(T);
   {
     NOT_IN_PRODUCT(TimelineDurationScope tds(T,
-        I->GetIsolateStream(), "ObjectStore::Init"));
+        Timeline::GetIsolateStream(), "ObjectStore::Init"));
     ObjectStore::Init(I);
   }
 
@@ -411,7 +414,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
   if (snapshot_buffer != NULL) {
     // Read the snapshot and setup the initial state.
     NOT_IN_PRODUCT(TimelineDurationScope tds(T,
-        I->GetIsolateStream(), "IsolateSnapshotReader"));
+        Timeline::GetIsolateStream(), "IsolateSnapshotReader"));
     // TODO(turnidge): Remove once length is not part of the snapshot.
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_buffer);
     if (snapshot == NULL) {
@@ -449,7 +452,7 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
 
   {
     NOT_IN_PRODUCT(TimelineDurationScope tds(T,
-        I->GetIsolateStream(), "StubCode::Init"));
+        Timeline::GetIsolateStream(), "StubCode::Init"));
     StubCode::Init(I);
   }
 

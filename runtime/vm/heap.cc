@@ -369,7 +369,7 @@ void Heap::CollectNewSpaceGarbage(Thread* thread,
     VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
 #ifndef PRODUCT
     TimelineDurationScope tds(thread,
-                              isolate()->GetGCStream(),
+                              Timeline::GetGCStream(),
                               "CollectNewGeneration");
 #endif  // !PRODUCT
     UpdateClassHeapStatsBeforeGC(kNew);
@@ -396,7 +396,7 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
     VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId);
 #ifndef PRODUCT
     TimelineDurationScope tds(thread,
-                              isolate()->GetGCStream(),
+                              Timeline::GetGCStream(),
                               "CollectOldGeneration");
 #endif  // !PRODUCT
     UpdateClassHeapStatsBeforeGC(kOld);

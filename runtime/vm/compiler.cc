@@ -40,6 +40,7 @@
 #include "vm/symbols.h"
 #include "vm/tags.h"
 #include "vm/thread_registry.h"
+#include "vm/timeline.h"
 #include "vm/timer.h"
 
 namespace dart {
@@ -278,7 +279,7 @@ RawError* Compiler::CompileClass(const Class& cls) {
 NOT_IN_PRODUCT(
   VMTagScope tagScope(thread, VMTag::kCompileClassTagId);
   TimelineDurationScope tds(thread,
-                            thread->isolate()->GetCompilerStream(),
+                            Timeline::GetCompilerStream(),
                             "CompileClass");
   if (tds.enabled()) {
     tds.SetNumArguments(1);
@@ -582,7 +583,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   bool is_compiled = false;
   Zone* const zone = thread()->zone();
   NOT_IN_PRODUCT(
-      TimelineStream* compiler_timeline = isolate()->GetCompilerStream());
+      TimelineStream* compiler_timeline = Timeline::GetCompilerStream());
   CSTAT_TIMER_SCOPE(thread(), codegen_timer);
   HANDLESCOPE(thread());
 

@@ -78,12 +78,12 @@ const char* CanonicalFunction(const char* func) {
 #ifndef PRODUCT
 #define API_TIMELINE_DURATION                                                  \
   TimelineDurationScope tds(Thread::Current(),                                 \
-                            Timeline::GetVMApiStream(),                        \
+                            Timeline::GetAPIStream(),                          \
                             CURRENT_FUNC)
 
 #define API_TIMELINE_BEGIN_END                                                 \
   TimelineBeginEndScope tbes(Thread::Current(),                                \
-                             Timeline::GetVMApiStream(),                       \
+                             Timeline::GetAPIStream(),                         \
                              CURRENT_FUNC)
 #else
 #define API_TIMELINE_DURATION do { } while (false)
@@ -5775,31 +5775,7 @@ DART_EXPORT int64_t Dart_TimelineGetMicros() {
 }
 
 
-DART_EXPORT void Dart_TimelineSetRecordedStreams(int64_t stream_mask) {
-  if (!FLAG_support_timeline) {
-    return;
-  }
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
-  isolate->GetAPIStream()->set_enabled(
-      (stream_mask & DART_TIMELINE_STREAM_API) != 0);
-  isolate->GetCompilerStream()->set_enabled(
-      (stream_mask & DART_TIMELINE_STREAM_COMPILER) != 0);
-  isolate->GetDartStream()->set_enabled(
-      (stream_mask & DART_TIMELINE_STREAM_DART) != 0);
-  isolate->GetDebuggerStream()->set_enabled(
-      (stream_mask & DART_TIMELINE_STREAM_DEBUGGER) != 0);
-  isolate->GetEmbedderStream()->set_enabled(
-      (stream_mask & DART_TIMELINE_STREAM_EMBEDDER) != 0);
-  isolate->GetGCStream()->set_enabled(
-      (stream_mask & DART_TIMELINE_STREAM_GC) != 0);
-  isolate->GetIsolateStream()->set_enabled(
-      (stream_mask & DART_TIMELINE_STREAM_ISOLATE) != 0);
-}
-
-
 DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask) {
-  // Per isolate overrides.
   if (!FLAG_support_timeline) {
     return;
   }
@@ -5815,6 +5791,8 @@ DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask) {
   const bool gc_enabled = (stream_mask & DART_TIMELINE_STREAM_GC) != 0;
   const bool isolate_enabled =
       (stream_mask & DART_TIMELINE_STREAM_ISOLATE) != 0;
+  const bool vm_enabled =
+      (stream_mask & DART_TIMELINE_STREAM_VM) != 0;
   Timeline::SetStreamAPIEnabled(api_enabled);
   Timeline::SetStreamCompilerEnabled(compiler_enabled);
   Timeline::SetStreamDartEnabled(dart_enabled);
@@ -5822,10 +5800,7 @@ DART_EXPORT void Dart_GlobalTimelineSetRecordedStreams(int64_t stream_mask) {
   Timeline::SetStreamEmbedderEnabled(embedder_enabled);
   Timeline::SetStreamGCEnabled(gc_enabled);
   Timeline::SetStreamIsolateEnabled(isolate_enabled);
-  // VM wide.
-  const bool vm_enabled =
-      (stream_mask & DART_TIMELINE_STREAM_VM) != 0;
-  Timeline::GetVMStream()->set_enabled(vm_enabled);
+  Timeline::SetStreamVMEnabled(vm_enabled);
 }
 
 
@@ -5924,44 +5899,14 @@ static bool StreamTraceEvents(Dart_StreamConsumer consumer,
 }
 
 
-DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
-                                       void* user_data) {
-  if (!FLAG_support_timeline) {
-    return false;
-  }
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
-  if (consumer == NULL) {
-    return false;
-  }
-  TimelineEventRecorder* timeline_recorder = Timeline::recorder();
-  if (timeline_recorder == NULL) {
-    // Nothing has been recorded.
-    return false;
-  }
-  Thread* T = Thread::Current();
-  StackZone zone(T);
-  Timeline::ReclaimCachedBlocksFromThreads();
-  JSONStream js;
-  IsolateTimelineEventFilter filter(isolate->main_port());
-  timeline_recorder->PrintTraceEvent(&js, &filter);
-  StartStreamToConsumer(consumer, user_data, "timeline");
-  bool success = StreamTraceEvents(consumer, user_data, &js);
-  FinishStreamToConsumer(consumer, user_data, "timeline");
-  return success;
-}
-
-
 DART_EXPORT void Dart_SetEmbedderTimelineCallbacks(
     Dart_EmbedderTimelineStartRecording start_recording,
-    Dart_EmbedderTimelineStopRecording stop_recording,
-    Dart_EmbedderTimelineGetTimeline get_timeline) {
+    Dart_EmbedderTimelineStopRecording stop_recording) {
   if (!FLAG_support_timeline) {
     return;
   }
   Timeline::set_start_recording_cb(start_recording);
   Timeline::set_stop_recording_cb(stop_recording);
-  Timeline::set_get_timeline_cb(get_timeline);
 }
 
 
@@ -5996,67 +5941,105 @@ DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
 }
 
 
-DART_EXPORT Dart_Handle Dart_TimelineDuration(const char* label,
-                                              int64_t start_micros,
-                                              int64_t end_micros) {
+DART_EXPORT void Dart_TimelineEvent(const char* label,
+                                    int64_t timestamp0,
+                                    int64_t timestamp1,
+                                    Dart_Timeline_Event_Type type,
+                                    intptr_t argument_count,
+                                    const char** argument_names,
+                                    const char** argument_values) {
   if (!FLAG_support_timeline) {
-    return Api::Success();
+    return;
   }
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
-  if (label == NULL) {
-    RETURN_NULL_ERROR(label);
+  if (type < Dart_Timeline_Event_Begin) {
+    return;
+  }
+  if (type > Dart_Timeline_Event_Duration) {
+    return;
+  }
+  TimelineStream* stream = Timeline::GetEmbedderStream();
+  ASSERT(stream != NULL);
+  TimelineEvent* event = stream->StartEvent();
+  if (event == NULL) {
+    return;
+  }
+  switch (type) {
+    case Dart_Timeline_Event_Begin:
+      event->Begin(label, timestamp0);
+    break;
+    case Dart_Timeline_Event_End:
+      event->End(label, timestamp0);
+    break;
+    case Dart_Timeline_Event_Instant:
+      event->Instant(label, timestamp0);
+    break;
+    case Dart_Timeline_Event_Duration:
+      event->Duration(label, timestamp0, timestamp1);
+    break;
+    default:
+      FATAL("Unknown Dart_Timeline_Event_Type");
+  }
+  event->SetNumArguments(argument_count);
+  for (intptr_t i = 0; i < argument_count; i++) {
+    event->CopyArgument(i, argument_names[i], argument_values[i]);
+  }
+  event->Complete();
+}
+
+
+DART_EXPORT void Dart_TimelineDuration(const char* label,
+                                       int64_t start_micros,
+                                       int64_t end_micros) {
+  if (!FLAG_support_timeline) {
+    return;
   }
   if (start_micros > end_micros) {
-    const char* msg = "%s: start_micros must be <= end_micros";
-    return Api::NewError(msg, CURRENT_FUNC);
+    FATAL1("%s: start_micros must be <= end_micros", CURRENT_FUNC);
   }
-  TimelineStream* stream = isolate->GetEmbedderStream();
+  if (label == NULL) {
+    return;
+  }
+  TimelineStream* stream = Timeline::GetEmbedderStream();
   ASSERT(stream != NULL);
   TimelineEvent* event = stream->StartEvent();
   if (event != NULL) {
     event->Duration(label, start_micros, end_micros);
     event->Complete();
   }
-  return Api::Success();
 }
 
 
-DART_EXPORT Dart_Handle Dart_TimelineInstant(const char* label) {
+DART_EXPORT void Dart_TimelineInstant(const char* label) {
   if (!FLAG_support_timeline) {
-    return Api::Success();
+    return;
   }
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
   if (label == NULL) {
-    RETURN_NULL_ERROR(label);
+    return;
   }
-  TimelineStream* stream = isolate->GetEmbedderStream();
+  TimelineStream* stream = Timeline::GetEmbedderStream();
   ASSERT(stream != NULL);
   TimelineEvent* event = stream->StartEvent();
   if (event != NULL) {
     event->Instant(label);
     event->Complete();
   }
-  return Api::Success();
+  return;
 }
 
 
-DART_EXPORT Dart_Handle Dart_TimelineAsyncBegin(const char* label,
-                                                int64_t* async_id) {
+DART_EXPORT void Dart_TimelineAsyncBegin(const char* label,
+                                         int64_t* async_id) {
   if (!FLAG_support_timeline) {
-    return Api::Success();
+    return;
   }
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
   if (label == NULL) {
-    RETURN_NULL_ERROR(label);
+    return;
   }
   if (async_id == NULL) {
-    RETURN_NULL_ERROR(async_id);
+    return;
   }
   *async_id = -1;
-  TimelineStream* stream = isolate->GetEmbedderStream();
+  TimelineStream* stream = Timeline::GetEmbedderStream();
   ASSERT(stream != NULL);
   TimelineEvent* event = stream->StartEvent();
   if (event != NULL) {
@@ -6066,55 +6049,51 @@ DART_EXPORT Dart_Handle Dart_TimelineAsyncBegin(const char* label,
     event->AsyncBegin(label, *async_id);
     event->Complete();
   }
-  return Api::Success();
+  return;
 }
 
 
-DART_EXPORT Dart_Handle Dart_TimelineAsyncInstant(const char* label,
-                                                  int64_t async_id) {
+DART_EXPORT void Dart_TimelineAsyncInstant(const char* label,
+                                           int64_t async_id) {
   if (!FLAG_support_timeline) {
-    return Api::Success();
+    return;
   }
   if (async_id < 0) {
-    return Api::Success();
+    return;
   }
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
   if (label == NULL) {
-    RETURN_NULL_ERROR(label);
+    return;
   }
-  TimelineStream* stream = isolate->GetEmbedderStream();
+  TimelineStream* stream = Timeline::GetEmbedderStream();
   ASSERT(stream != NULL);
   TimelineEvent* event = stream->StartEvent();
   if (event != NULL) {
     event->AsyncInstant(label, async_id);
     event->Complete();
   }
-  return Api::Success();
+  return;
 }
 
 
-DART_EXPORT Dart_Handle Dart_TimelineAsyncEnd(const char* label,
-                                              int64_t async_id) {
+DART_EXPORT void Dart_TimelineAsyncEnd(const char* label,
+                                       int64_t async_id) {
   if (!FLAG_support_timeline) {
-    return Api::Success();
+    return;
   }
   if (async_id < 0) {
-    return Api::Success();
+    return;
   }
-  Isolate* isolate = Isolate::Current();
-  CHECK_ISOLATE(isolate);
   if (label == NULL) {
-    RETURN_NULL_ERROR(label);
+    return;
   }
-  TimelineStream* stream = isolate->GetEmbedderStream();
+  TimelineStream* stream = Timeline::GetEmbedderStream();
   ASSERT(stream != NULL);
   TimelineEvent* event = stream->StartEvent();
   if (event != NULL) {
     event->AsyncEnd(label, async_id);
     event->Complete();
   }
-  return Api::Success();
+  return;
 }
 
 // The precompiler is included in dart_bootstrap and dart_noopt, and
