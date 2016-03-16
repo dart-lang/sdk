@@ -20,6 +20,23 @@ namespace dart {
 
 #ifndef PRODUCT
 
+void AppendJSONStreamConsumer(Dart_StreamConsumer_State state,
+                              const char* stream_name,
+                              const uint8_t* buffer,
+                              intptr_t buffer_length,
+                              void* user_data) {
+  if ((state == Dart_StreamConsumer_kStart) ||
+      (state == Dart_StreamConsumer_kFinish)) {
+    // Ignore.
+    return;
+  }
+  ASSERT(state == Dart_StreamConsumer_kData);
+  JSONStream* js = reinterpret_cast<JSONStream*>(user_data);
+  ASSERT(js != NULL);
+  js->AppendSerializedObject(buffer, buffer_length);
+}
+
+
 DECLARE_FLAG(bool, trace_service);
 
 JSONStream::JSONStream(intptr_t buf_size)
@@ -262,6 +279,11 @@ void JSONStream::AppendSerializedObject(const char* serialized_object) {
   buffer_.AddString(serialized_object);
 }
 
+
+void JSONStream::AppendSerializedObject(const uint8_t* buffer,
+                                        intptr_t buffer_length) {
+  buffer_.AddRaw(buffer, buffer_length);
+}
 
 void JSONStream::AppendSerializedObject(const char* property_name,
                                         const char* serialized_object) {

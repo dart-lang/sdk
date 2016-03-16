@@ -13,6 +13,41 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 
 /**
+ * TODO(scheglov) add to the `meta` package.
+ */
+const visibleForTesting = const Object();
+
+/**
+ * Information about an element referenced in index.
+ */
+class ElementInfo {
+  /**
+   * The identifier of the [CompilationUnitElement] containing this element.
+   */
+  final int unitId;
+
+  /**
+   * The name offset of the element.
+   */
+  final int offset;
+
+  /**
+   * The kind of the element.
+   */
+  final IndexSyntheticElementKind kind;
+
+  /**
+   * The unique id of the element.  It is set after indexing of the whole
+   * package is done and we are assembling the full package index.
+   */
+  int id;
+
+  ElementInfo(this.unitId, this.offset, this.kind) {
+    assert(offset >= 0);
+  }
+}
+
+/**
  * Object that gathers information about the whole package index and then uses
  * it to assemble a new [PackageIndexBuilder].  Call [index] on each compilation
  * unit to be indexed, then call [assemble] to retrieve the complete index for
@@ -20,9 +55,9 @@ import 'package:analyzer/src/summary/idl.dart';
  */
 class PackageIndexAssembler {
   /**
-   * Map associating referenced elements with their [_ElementInfo]s.
+   * Map associating referenced elements with their [ElementInfo]s.
    */
-  final Map<Element, _ElementInfo> _elementMap = <Element, _ElementInfo>{};
+  final Map<Element, ElementInfo> _elementMap = <Element, ElementInfo>{};
 
   /**
    * Map associating [CompilationUnitElement]s with their identifiers, which
@@ -67,7 +102,7 @@ class PackageIndexAssembler {
       stringInfoList[i].id = i;
     }
     // sort elements and set IDs
-    List<_ElementInfo> elementInfoList = _elementMap.values.toList();
+    List<ElementInfo> elementInfoList = _elementMap.values.toList();
     elementInfoList.sort((a, b) {
       return a.offset - b.offset;
     });
@@ -95,22 +130,17 @@ class PackageIndexAssembler {
   }
 
   /**
-   * Return the unique [_ElementInfo] corresponding the [element].  The field
-   * [_ElementInfo.id] is filled by [assemble] during final sorting.
+   * Return the unique [ElementInfo] corresponding the [element].  The field
+   * [ElementInfo.id] is filled by [assemble] during final sorting.
    */
-  _ElementInfo _getElementInfo(Element element) {
+  ElementInfo _getElementInfo(Element element) {
     if (element is Member) {
       element = (element as Member).baseElement;
     }
     return _elementMap.putIfAbsent(element, () {
       CompilationUnitElement unitElement = getUnitElement(element);
       int unitId = _getUnitId(unitElement);
-      int offset = element.nameOffset;
-      if (element is LibraryElement || element is CompilationUnitElement) {
-        offset = 0;
-      }
-      IndexSyntheticElementKind kind = getIndexElementKind(element);
-      return new _ElementInfo(unitId, offset, kind);
+      return newElementInfo(unitId, element);
     });
   }
 
@@ -149,23 +179,6 @@ class PackageIndexAssembler {
   }
 
   /**
-   * Return the kind of the given [element].
-   */
-  static IndexSyntheticElementKind getIndexElementKind(Element element) {
-    if (element.isSynthetic) {
-      if (element is ConstructorElement) {
-        return IndexSyntheticElementKind.constructor;
-      }
-      if (element is PropertyAccessorElement) {
-        return element.isGetter
-            ? IndexSyntheticElementKind.getter
-            : IndexSyntheticElementKind.setter;
-      }
-    }
-    return IndexSyntheticElementKind.notSynthetic;
-  }
-
-  /**
    * Return the [CompilationUnitElement] that should be used for [element].
    * Throw [StateError] if the [element] is not linked into a unit.
    */
@@ -179,6 +192,52 @@ class PackageIndexAssembler {
       }
     }
     throw new StateError(element.toString());
+  }
+
+  /**
+   * Return a new [ElementInfo] for the given [element] in the given [unitId].
+   * This method is static, so it cannot add any information to the index.
+   */
+  static ElementInfo newElementInfo(int unitId, Element element) {
+    IndexSyntheticElementKind kind = IndexSyntheticElementKind.notSynthetic;
+    if (element.isSynthetic) {
+      if (element is ConstructorElement) {
+        kind = IndexSyntheticElementKind.constructor;
+        element = element.enclosingElement;
+      } else if (element is FunctionElement && element.name == 'loadLibrary') {
+        kind = IndexSyntheticElementKind.loadLibrary;
+        element = element.library;
+      } else if (element is PropertyAccessorElement) {
+        PropertyAccessorElement accessor = element;
+        Element enclosing = element.enclosingElement;
+        bool isEnumGetter = enclosing is ClassElement && enclosing.isEnum;
+        if (isEnumGetter && accessor.name == 'index') {
+          kind = IndexSyntheticElementKind.enumIndex;
+          element = enclosing;
+        } else if (isEnumGetter && accessor.name == 'values') {
+          kind = IndexSyntheticElementKind.enumValues;
+          element = enclosing;
+        } else {
+          kind = accessor.isGetter
+              ? IndexSyntheticElementKind.getter
+              : IndexSyntheticElementKind.setter;
+          element = accessor.variable;
+        }
+      } else if (element is TopLevelVariableElement) {
+        TopLevelVariableElement property = element;
+        kind = IndexSyntheticElementKind.topLevelVariable;
+        element = property.getter;
+        element ??= property.setter;
+      } else {
+        throw new ArgumentError(
+            'Unsupported synthetic element ${element.runtimeType}');
+      }
+    }
+    int offset = element.nameOffset;
+    if (element is LibraryElement || element is CompilationUnitElement) {
+      offset = 0;
+    }
+    return new ElementInfo(unitId, offset, kind);
   }
 }
 
@@ -208,59 +267,13 @@ class _DefinedNameInfo {
 }
 
 /**
- * Information about an element referenced in index.
- */
-class _ElementInfo {
-  /**
-   * The identifier of the [CompilationUnitElement] containing this element.
-   */
-  final int unitId;
-
-  /**
-   * The name offset of the element.
-   */
-  final int offset;
-
-  /**
-   * The kind of the element.
-   */
-  final IndexSyntheticElementKind kind;
-
-  /**
-   * The unique id of the element.  It is set after indexing of the whole
-   * package is done and we are assembling the full package index.
-   */
-  int id;
-
-  _ElementInfo(this.unitId, this.offset, this.kind);
-}
-
-/**
- * Information about a string referenced in the index.
- */
-class _StringInfo {
-  /**
-   * The value of the string.
-   */
-  final String value;
-
-  /**
-   * The unique id of the string.  It is set after indexing of the whole
-   * package is done and we are assembling the full package index.
-   */
-  int id;
-
-  _StringInfo(this.value);
-}
-
-/**
  * Information about a single relation.  Any [_ElementRelationInfo] is always
  * part of a [_UnitIndexAssembler], so [offset] and [length] should be
  * understood within the context of the compilation unit pointed to by the
  * [_UnitIndexAssembler].
  */
 class _ElementRelationInfo {
-  final _ElementInfo elementInfo;
+  final ElementInfo elementInfo;
   final IndexRelationKind kind;
   final int offset;
   final int length;
@@ -301,9 +314,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
   /**
    * Record that the name [node] has a relation of the given [kind].
    */
-  void recordNameRelation(SimpleIdentifier node, IndexRelationKind kind) {
+  void recordNameRelation(
+      SimpleIdentifier node, IndexRelationKind kind, bool isQualified) {
     if (node != null) {
-      assembler.addNameRelation(node.name, kind, node.offset);
+      assembler.addNameRelation(node.name, kind, node.offset, isQualified);
     }
   }
 
@@ -337,15 +351,20 @@ class _IndexContributor extends GeneralizingAstVisitor {
   void recordRelationOffset(Element element, IndexRelationKind kind, int offset,
       int length, bool isQualified) {
     // Ignore elements that can't be referenced outside of the unit.
-    if (element == null ||
-        element is FunctionElement &&
+    ElementKind elementKind = element?.kind;
+    if (elementKind == null ||
+        elementKind == ElementKind.DYNAMIC ||
+        elementKind == ElementKind.LABEL ||
+        elementKind == ElementKind.LOCAL_VARIABLE ||
+        elementKind == ElementKind.PREFIX ||
+        elementKind == ElementKind.TYPE_PARAMETER ||
+        elementKind == ElementKind.FUNCTION &&
+            element is FunctionElement &&
             element.enclosingElement is ExecutableElement ||
-        element is LabelElement ||
-        element is LocalVariableElement ||
-        element is ParameterElement &&
+        elementKind == ElementKind.PARAMETER &&
+            element is ParameterElement &&
             element.parameterKind != ParameterKind.NAMED ||
-        element is PrefixElement ||
-        element is TypeParameterElement) {
+        false) {
       return;
     }
     // Add the relation.
@@ -425,8 +444,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
     SimpleIdentifier fieldName = node.fieldName;
     if (fieldName != null) {
       Element element = fieldName.staticElement;
-      recordRelation(
-          element, IndexRelationKind.IS_REFERENCED_BY, fieldName, true);
+      recordRelation(element, IndexRelationKind.IS_WRITTEN_BY, fieldName, true);
     }
     node.expression?.accept(this);
   }
@@ -489,10 +507,10 @@ class _IndexContributor extends GeneralizingAstVisitor {
   visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier name = node.methodName;
     Element element = name.bestElement;
-    // qualified unresolved name invocation
+    // unresolved name invocation
     bool isQualified = node.realTarget != null;
-    if (isQualified && element == null) {
-      recordNameRelation(name, IndexRelationKind.IS_INVOKED_BY);
+    if (element == null) {
+      recordNameRelation(name, IndexRelationKind.IS_INVOKED_BY, isQualified);
     }
     // element invocation
     IndexRelationKind kind = element is ClassElement
@@ -546,15 +564,29 @@ class _IndexContributor extends GeneralizingAstVisitor {
       recordDefinedElement(element);
       return;
     }
-    // record qualified unresolved name reference
+    // record unresolved name reference
     bool isQualified = _isQualified(node);
-    if (isQualified && element == null) {
-      recordNameRelation(node, IndexRelationKind.IS_REFERENCED_BY);
+    if (element == null) {
+      bool inGetterContext = node.inGetterContext();
+      bool inSetterContext = node.inSetterContext();
+      IndexRelationKind kind;
+      if (inGetterContext && inSetterContext) {
+        kind = IndexRelationKind.IS_READ_WRITTEN_BY;
+      } else if (inGetterContext) {
+        kind = IndexRelationKind.IS_READ_BY;
+      } else {
+        kind = IndexRelationKind.IS_WRITTEN_BY;
+      }
+      recordNameRelation(node, kind, isQualified);
     }
     // this.field parameter
     if (element is FieldFormalParameterElement) {
-      recordRelation(
-          element.field, IndexRelationKind.IS_REFERENCED_BY, node, true);
+      AstNode parent = node.parent;
+      IndexRelationKind kind =
+          parent is FieldFormalParameter && parent.identifier == node
+              ? IndexRelationKind.IS_WRITTEN_BY
+              : IndexRelationKind.IS_REFERENCED_BY;
+      recordRelation(element.field, kind, node, true);
       return;
     }
     // ignore a local reference to a parameter
@@ -579,7 +611,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
       recordRelationOffset(
           element, IndexRelationKind.IS_REFERENCED_BY, offset, 0, true);
     }
-    super.visitSuperConstructorInvocation(node);
+    node.argumentList?.accept(this);
   }
 
   @override
@@ -676,8 +708,27 @@ class _NameRelationInfo {
   final _StringInfo nameInfo;
   final IndexRelationKind kind;
   final int offset;
+  final bool isQualified;
 
-  _NameRelationInfo(this.nameInfo, this.kind, this.offset);
+  _NameRelationInfo(this.nameInfo, this.kind, this.offset, this.isQualified);
+}
+
+/**
+ * Information about a string referenced in the index.
+ */
+class _StringInfo {
+  /**
+   * The value of the string.
+   */
+  final String value;
+
+  /**
+   * The unique id of the string.  It is set after indexing of the whole
+   * package is done and we are assembling the full package index.
+   */
+  int id;
+
+  _StringInfo(this.value);
 }
 
 /**
@@ -688,7 +739,7 @@ class _NameRelationInfo {
  *    compilation unit.
  *  - Call [addNameRelation] for each name relation found in the
  *    compilation unit.
- *  - Assign ids to all the [_ElementInfo] objects reachable from
+ *  - Assign ids to all the [ElementInfo] objects reachable from
  *    [elementRelations].
  *  - Call [assemble] to produce the final unit index.
  */
@@ -704,15 +755,16 @@ class _UnitIndexAssembler {
   void addElementRelation(Element element, IndexRelationKind kind, int offset,
       int length, bool isQualified) {
     try {
-      _ElementInfo elementInfo = pkg._getElementInfo(element);
+      ElementInfo elementInfo = pkg._getElementInfo(element);
       elementRelations.add(new _ElementRelationInfo(
           elementInfo, kind, offset, length, isQualified));
     } on StateError {}
   }
 
-  void addNameRelation(String name, IndexRelationKind kind, int offset) {
+  void addNameRelation(
+      String name, IndexRelationKind kind, int offset, bool isQualified) {
     _StringInfo nameId = pkg._getStringInfo(name);
-    nameRelations.add(new _NameRelationInfo(nameId, kind, offset));
+    nameRelations.add(new _NameRelationInfo(nameId, kind, offset, isQualified));
   }
 
   /**
@@ -742,7 +794,9 @@ class _UnitIndexAssembler {
             elementRelations.map((r) => r.isQualified).toList(),
         usedNames: nameRelations.map((r) => r.nameInfo.id).toList(),
         usedNameKinds: nameRelations.map((r) => r.kind).toList(),
-        usedNameOffsets: nameRelations.map((r) => r.offset).toList());
+        usedNameOffsets: nameRelations.map((r) => r.offset).toList(),
+        usedNameIsQualifiedFlags:
+            nameRelations.map((r) => r.isQualified).toList());
   }
 
   void defineName(String name, IndexNameKind kind, int offset) {

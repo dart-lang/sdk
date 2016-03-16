@@ -828,7 +828,8 @@ class Dart2JSBackend(HtmlDartGenerator):
     ext_attrs = self._interface.ext_attrs
     has_indexed_getter = 'CustomIndexedGetter' in ext_attrs
     for operation in self._interface.operations:
-      if operation.id == 'item' and 'getter' in operation.specials:
+      if operation.id == 'item' and 'getter' in operation.specials \
+          and not self._OperationRequiresConversions(operation):
         has_indexed_getter = True
         break
     return has_indexed_getter

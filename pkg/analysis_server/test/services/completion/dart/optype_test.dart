@@ -7,7 +7,7 @@ library test.services.completion.contributor.dart.optype;
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analysis_server/src/services/completion/dart/optype.dart';
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:plugin/manager.dart';

@@ -38,7 +38,7 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
     // informative error message.
     __ movl(ECX, Immediate(GetEntryPoint()));
     __ movl(EDX, Immediate(argument_count));
-    __ Call(*StubCode::CallToRuntime_entry());
+    __ CallToRuntime();
   }
 }
 

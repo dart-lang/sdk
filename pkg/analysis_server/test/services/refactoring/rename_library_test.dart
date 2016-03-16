@@ -52,8 +52,7 @@ part of my.app;
 library my.app;
 part 'part.dart';
 ''');
-    index.index(
-        context, context.resolveCompilationUnit2(unitSource, testSource));
+    index.indexUnit(context.resolveCompilationUnit2(unitSource, testSource));
     // configure refactoring
     _createRenameRefactoring();
     expect(refactoring.refactoringName, 'Rename Library');
@@ -81,8 +80,7 @@ part of my .  app;
 library my    . app;
 part 'part.dart';
 ''');
-    index.index(
-        context, context.resolveCompilationUnit2(unitSource, testSource));
+    index.indexUnit(context.resolveCompilationUnit2(unitSource, testSource));
     // configure refactoring
     _createRenameRefactoring();
     expect(refactoring.refactoringName, 'Rename Library');

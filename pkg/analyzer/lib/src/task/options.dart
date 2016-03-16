@@ -46,6 +46,7 @@ class AnalyzerOptions {
   static const String analyzer = 'analyzer';
   static const String enableAsync = 'enableAsync';
   static const String enableGenericMethods = 'enableGenericMethods';
+  static const String enableStrictCallChecks = 'enableStrictCallChecks';
   static const String enableSuperMixins = 'enableSuperMixins';
   static const String enableConditionalDirectives =
       "enableConditionalDirectives";
@@ -80,9 +81,10 @@ class AnalyzerOptions {
   /// Supported `analyzer` language configuration options.
   static const List<String> languageOptions = const [
     enableAsync,
-    enableGenericMethods,
-    enableSuperMixins,
     enableConditionalDirectives,
+    enableGenericMethods,
+    enableStrictCallChecks,
+    enableSuperMixins
   ];
 }
 
@@ -474,6 +476,14 @@ class _OptionsProcessor {
         AnalysisOptionsImpl options =
             new AnalysisOptionsImpl.from(context.analysisOptions);
         options.enableAsync = false;
+        context.analysisOptions = options;
+      }
+    }
+    if (feature == AnalyzerOptions.enableStrictCallChecks) {
+      if (isTrue(value)) {
+        AnalysisOptionsImpl options =
+            new AnalysisOptionsImpl.from(context.analysisOptions);
+        options.enableStrictCallChecks = true;
         context.analysisOptions = options;
       }
     }

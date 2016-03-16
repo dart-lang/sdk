@@ -40,7 +40,7 @@ import 'resolution/semantic_visitor.dart' as semantic_visitor;
 import 'resolution/operators.dart' as operators;
 import 'script.dart';
 import 'source_file_provider.dart' as source_file_provider;
-import 'ssa/ssa.dart' as ssa;
+import 'ssa/nodes.dart' as ssa;
 import 'tree/tree.dart' as tree;
 import 'util/util.dart' as util;
 import 'world.dart';

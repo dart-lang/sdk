@@ -8,7 +8,7 @@ import '../common.dart';
 import '../constants/values.dart';
 import '../cps_ir/cps_ir_nodes.dart' as cps_ir;
 import '../elements/elements.dart';
-import 'package:js_ast/js_ast.dart' as js;
+import '../io/source_information.dart';
 import '../js_backend/codegen/glue.dart';
 
 import 'tree_ir_nodes.dart';
@@ -85,9 +85,10 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   }
 
   VariableUse getMutableVariableUse(
-        cps_ir.Reference<cps_ir.MutableVariable> reference) {
+        cps_ir.Reference<cps_ir.MutableVariable> reference,
+        SourceInformation sourceInformation) {
     Variable variable = getMutableVariable(reference.definition);
-    return new VariableUse(variable);
+    return new VariableUse(variable, sourceInformation: sourceInformation);
   }
 
   /// Obtains the variable representing the given primitive. Returns null for
@@ -102,7 +103,8 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   /// referred to by [reference].
   /// This increments the reference count for the given variable, so the
   /// returned expression must be used in the tree.
-  Expression getVariableUse(cps_ir.Reference<cps_ir.Primitive> reference) {
+  Expression getVariableUse(cps_ir.Reference<cps_ir.Primitive> reference,
+                            {SourceInformation sourceInformation}) {
     cps_ir.Primitive prim = reference.definition.effectiveDefinition;
     if (prim is cps_ir.Constant && inlinedConstants.contains(prim)) {
       return new Constant(prim.value);
@@ -110,7 +112,8 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     if (thisParameter != null && prim == thisParameter) {
       return new This();
     }
-    return new VariableUse(getVariable(prim));
+    return new VariableUse(
+        getVariable(prim), sourceInformation: sourceInformation);
   }
 
   Expression getVariableUseOrNull(
@@ -448,11 +451,13 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
 
   /// Translates a branch condition to a tree expression.
   Expression translateCondition(cps_ir.Branch branch) {
-    Expression value = getVariableUse(branch.conditionRef);
+    Expression value = getVariableUse(
+        branch.conditionRef, sourceInformation: branch.sourceInformation);
     if (branch.isStrictCheck) {
       return new ApplyBuiltinOperator(
           BuiltinOperator.StrictEq,
-          <Expression>[value, new Constant(new TrueConstantValue())]);
+          <Expression>[value, new Constant(new TrueConstantValue())],
+          branch.sourceInformation);
     } else {
       return value;
     }
@@ -471,7 +476,8 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     elseStatement = cont.hasExactlyOneUse
         ? translateExpression(cont.body)
         : new Break(labels[cont]);
-    return new If(condition, thenStatement, elseStatement);
+    return new If(
+        condition, thenStatement, elseStatement, node.sourceInformation);
   }
 
 
@@ -483,7 +489,8 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   Expression visitSetField(cps_ir.SetField node) {
     return new SetField(getVariableUse(node.objectRef),
                         node.field,
-                        getVariableUse(node.valueRef));
+                        getVariableUse(node.valueRef),
+                        node.sourceInformation);
   }
 
   Expression visitInterceptor(cps_ir.Interceptor node) {
@@ -502,7 +509,7 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
 
   Expression visitGetField(cps_ir.GetField node) {
     return new GetField(getVariableUse(node.objectRef), node.field,
-        objectIsNotNull: !node.object.type.isNullable);
+        node.sourceInformation, objectIsNotNull: !node.object.type.isNullable);
   }
 
   Expression visitCreateBox(cps_ir.CreateBox node) {
@@ -516,13 +523,14 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
   }
 
   Expression visitGetMutable(cps_ir.GetMutable node) {
-    return getMutableVariableUse(node.variableRef);
+    return getMutableVariableUse(node.variableRef, node.sourceInformation);
   }
 
   Expression visitSetMutable(cps_ir.SetMutable node) {
     Variable variable = getMutableVariable(node.variable);
     Expression value = getVariableUse(node.valueRef);
-    return new Assign(variable, value);
+    return new Assign(
+        variable, value, sourceInformation: node.sourceInformation);
   }
 
   Expression visitConstant(cps_ir.Constant node) {
@@ -581,8 +589,10 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
     if (node.operator == BuiltinOperator.IsFalsy) {
       return new Not(getVariableUse(node.argumentRefs.single));
     }
-    return new ApplyBuiltinOperator(node.operator,
-                                    translateArguments(node.argumentRefs));
+    return new ApplyBuiltinOperator(
+        node.operator,
+        translateArguments(node.argumentRefs),
+        node.sourceInformation);
   }
 
   Expression visitApplyBuiltinMethod(cps_ir.ApplyBuiltinMethod node) {
@@ -724,7 +734,8 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
           arguments,
           node.nativeBehavior,
           nullableArguments,
-          node.dependency);
+          node.dependency,
+          node.sourceInformation);
     } else {
       return (Statement next) {
         assert(next is Unreachable); // We are not using the `next` statement.
@@ -734,7 +745,8 @@ class Builder implements cps_ir.Visitor/*<NodeCallback|Node>*/ {
             arguments,
             node.nativeBehavior,
             nullableArguments,
-            node.dependency);
+            node.dependency,
+            node.sourceInformation);
       };
     }
   }

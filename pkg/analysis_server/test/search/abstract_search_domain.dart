@@ -9,8 +9,8 @@ import 'dart:async';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
-import 'package:analysis_server/src/services/index/index.dart' show Index;
-import 'package:analysis_server/src/services/index/local_memory_index.dart';
+import 'package:analysis_server/src/services/index/index.dart'
+    show Index, createMemoryIndex;
 import 'package:unittest/unittest.dart';
 
 import '../analysis_abstract.dart';
@@ -39,7 +39,7 @@ class AbstractSearchDomainTest extends AbstractAnalysisTest {
 
   @override
   Index createIndex() {
-    return createLocalMemoryIndex();
+    return createMemoryIndex();
   }
 
   void findResult(SearchResultKind kind, String file, int offset, int length,
@@ -94,8 +94,8 @@ class AbstractSearchDomainTest extends AbstractAnalysisTest {
   @override
   void setUp() {
     super.setUp();
-    server.handlers = [new SearchDomainHandler(server),];
     createProject();
+    server.handlers = [new SearchDomainHandler(server),];
   }
 
   Future waitForSearchResults() {

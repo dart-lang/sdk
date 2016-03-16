@@ -54,7 +54,7 @@ void RuntimeEntry::Call(Assembler* assembler, intptr_t argument_count) const {
     // informative error message.
     __ lw(S5, Address(THR, Thread::OffsetFromThread(this)));
     __ LoadImmediate(S4, argument_count);
-    __ BranchLink(*StubCode::CallToRuntime_entry(), kNotPatchable);
+    __ BranchLinkToRuntime();
   }
 }
 

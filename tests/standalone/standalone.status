@@ -13,7 +13,7 @@ package/scenarios/empty_packages_file/empty_packages_file_discovery_test: Fail, 
 package/scenarios/empty_packages_file/empty_packages_file_option_test: Fail, OK # CompileTimeErrors intentionally
 package/scenarios/invalid/invalid_package_name_test: RuntimeError, CompileTimeError # Errors intentionally
 package/scenarios/invalid/same_package_twice_test.dart: RuntimeError, CompileTimeError # Errors intentionally
-full_coverage_test: Pass, Slow
+full_coverage_test: Pass, Slow, Timeout
 
 
 issue14236_test: Pass # Do not remove this line. It serves as a marker for Issue 14516 comment #4.
@@ -65,6 +65,7 @@ vmservice/*: SkipByDesign # Do not run standalone vm service tests in browser.
 issue14236_test: Skip # Issue 14236 Script snapshots do not work in the browser.
 oom_error_stacktrace_test: Skip
 out_of_memory_test: Skip
+map_insert_remove_oom_test: Skip  # Issue 24571
 verbose_gc_to_bmu_test: Skip
 precompilation_test: Skip # Standalone only test.
 precompilation_dart2js_test: Skip # Standalone only test.
@@ -155,9 +156,6 @@ io/http_client_stays_alive_test: Skip # Timing dependent test, MIPS machine too 
 
 [ $compiler == none && $runtime == dartium && $unchecked ]
 assert_test: Fail # Issue 14651.
-
-[ $compiler == none && $runtime == drt ]
-map_insert_remove_oom_test: RuntimeError # Issue 24571
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 io/directory_invalid_arguments_test: StaticWarning

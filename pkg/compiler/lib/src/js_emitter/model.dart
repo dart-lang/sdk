@@ -4,7 +4,6 @@
 
 library dart2js.new_js_emitter.model;
 
-import '../common.dart';
 import '../constants/values.dart' show
     ConstantValue;
 import '../deferred_load.dart' show

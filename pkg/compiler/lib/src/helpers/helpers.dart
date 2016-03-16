@@ -7,25 +7,19 @@
 
 library dart2js.helpers;
 
-import 'dart:async' show
-    EventSink;
-import 'dart:collection';
-import 'dart:convert';
-
-import '../../compiler.dart';
 import '../common.dart';
-import '../compiler.dart' show
-    Compiler;
 import '../diagnostics/invariant.dart' show
     DEBUG_MODE;
 import '../util/util.dart';
 
-part 'debug_collection.dart';
-part 'trace.dart';
-part 'expensive_map.dart';
-part 'expensive_set.dart';
-part 'stats.dart';
-part 'track_map.dart';
+import 'trace.dart';
+
+export 'debug_collection.dart';
+export 'trace.dart';
+export 'expensive_map.dart';
+export 'expensive_set.dart';
+export 'stats.dart';
+export 'track_map.dart';
 
 /// Global flag to enable [debugPrint]. This should always be `true` by default
 /// and be set to `false` as a means to temporarily turn off all debugging

@@ -157,18 +157,38 @@ void ProfileFunction::Tick(bool exclusive,
 
 void ProfileFunction::TickSourcePosition(TokenPosition token_position,
                                          bool exclusive) {
-  for (intptr_t i = 0; i < source_position_ticks_.length(); i++) {
+  intptr_t i = 0;
+  for (; i < source_position_ticks_.length(); i++) {
     ProfileFunctionSourcePosition& position = source_position_ticks_[i];
-    if (position.token_pos() == token_position) {
+    if (position.token_pos().value() == token_position.value()) {
+      if (FLAG_trace_profiler) {
+        OS::Print("Ticking source position %s %s\n",
+                  exclusive ? "exclusive" : "inclusive",
+                  token_position.ToCString());
+      }
       // Found existing position, tick it.
       position.Tick(exclusive);
       return;
     }
+    if (position.token_pos().value() > token_position.value()) {
+      break;
+    }
   }
-  // Add new one.
+
+  // Add new one, sorted by token position value.
   ProfileFunctionSourcePosition pfsp(token_position);
+  if (FLAG_trace_profiler) {
+    OS::Print("Ticking source position %s %s\n",
+              exclusive ? "exclusive" : "inclusive",
+              token_position.ToCString());
+  }
   pfsp.Tick(exclusive);
-  source_position_ticks_.Add(pfsp);
+
+  if (i < source_position_ticks_.length()) {
+    source_position_ticks_.InsertAt(i, pfsp);
+  } else {
+    source_position_ticks_.Add(pfsp);
+  }
 }
 
 
@@ -1427,6 +1447,28 @@ class ProfileBuilder : public ValueObject {
     }
   }
 
+  intptr_t OffsetForPC(uword pc,
+                       const Code& code,
+                       ProcessedSample* sample,
+                       intptr_t frame_index) {
+    intptr_t offset = pc - code.EntryPoint();
+    if (frame_index != 0) {
+      // The PC of frames below the top frame is a call's return address,
+      // which can belong to a different inlining interval than the call.
+      offset--;
+    } else if (sample->IsAllocationSample()) {
+      // Allocation samples skip the top frame, so the top frame's pc is
+      // also a call's return address.
+      offset--;
+    } else if (!sample->first_frame_executing()) {
+      // If the first frame wasn't executing code (i.e. we started to collect
+      // the stack trace at an exit frame), the top frame's pc is also a
+      // call's return address.
+      offset--;
+    }
+    return offset;
+  }
+
   ProfileFunctionTrieNode* ProcessFrame(
       ProfileFunctionTrieNode* current,
       intptr_t sample_index,
@@ -1444,21 +1486,7 @@ class ProfileBuilder : public ValueObject {
     GrowableArray<TokenPosition> inlined_token_positions;
     TokenPosition token_position = TokenPosition::kNoSource;
     if (!code.IsNull()) {
-      intptr_t offset = pc - code.EntryPoint();
-      if (frame_index != 0) {
-        // The PC of frames below the top frame is a call's return address,
-        // which can belong to a different inlining interval than the call.
-        offset--;
-      } else if (sample->IsAllocationSample()) {
-        // Allocation samples skip the top frame, so the top frame's pc is
-        // also a call's return address.
-        offset--;
-      } else if (!sample->first_frame_executing()) {
-        // If the first frame wasn't executing code (i.e. we started to collect
-        // the stack trace at an exit frame), the top frame's pc is also a
-        // call's return address.
-        offset--;
-      }
+      const intptr_t offset = OffsetForPC(pc, code, sample, frame_index);
       code.GetInlinedFunctionsAt(offset,
                                  &inlined_functions,
                                  &inlined_token_positions);
@@ -1587,13 +1615,15 @@ class ProfileBuilder : public ValueObject {
                                            ProfileFunction* function,
                                            TokenPosition token_position,
                                            intptr_t code_index) {
-    if (FLAG_trace_profiler) {
-      THR_Print("S[%" Pd "]F[%" Pd "] %s %s\n",
-                sample_index,
-                frame_index,
-                function->Name(), token_position.ToCString());
-    }
     if (tick_functions_) {
+      if (FLAG_trace_profiler) {
+        THR_Print("S[%" Pd "]F[%" Pd "] %s %s 0x%" Px "\n",
+                  sample_index,
+                  frame_index,
+                  function->Name(),
+                  token_position.ToCString(),
+                  sample->At(frame_index));
+      }
       function->Tick(IsExecutingFrame(sample, frame_index),
                      sample_index,
                      token_position);
@@ -2108,6 +2138,10 @@ void Profile::Build(Thread* thread,
 }
 
 
+intptr_t Profile::NumFunctions() const {
+  return functions_->length();
+}
+
 ProfileFunction* Profile::GetFunction(intptr_t index) {
   ASSERT(functions_ != NULL);
   return functions_->At(index);
@@ -2221,6 +2255,15 @@ void Profile::PrintTimelineJSON(JSONStream* stream) {
                          isolate_id, trie->frame_id());
     }
   }
+}
+
+
+ProfileFunction* Profile::FindFunction(const Function& function) {
+  const intptr_t index = functions_->LookupIndex(function);
+  if (index < 0) {
+    return NULL;
+  }
+  return functions_->At(index);
 }
 
 

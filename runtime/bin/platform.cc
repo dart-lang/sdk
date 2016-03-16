@@ -102,22 +102,18 @@ void FUNCTION_NAME(Platform_Environment)(Dart_NativeArguments args) {
   } else {
     Dart_Handle result = Dart_NewList(count);
     if (Dart_IsError(result)) {
-      Platform::FreeEnvironment(env, count);
       Dart_PropagateError(result);
     }
     for (intptr_t i = 0; i < count; i++) {
       Dart_Handle str = DartUtils::NewString(env[i]);
       if (Dart_IsError(str)) {
-        Platform::FreeEnvironment(env, count);
         Dart_PropagateError(str);
       }
       Dart_Handle error = Dart_ListSetAt(result, i, str);
       if (Dart_IsError(error)) {
-        Platform::FreeEnvironment(env, count);
         Dart_PropagateError(error);
       }
     }
-    Platform::FreeEnvironment(env, count);
     Dart_SetReturnValue(args, result);
   }
 }

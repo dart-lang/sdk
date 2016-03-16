@@ -4,17 +4,14 @@
 
 library ssa.tracer;
 
-import 'dart:async' show
-  EventSink;
+import 'dart:async' show EventSink;
 
-import 'ssa.dart';
-import '../common.dart';
-import '../compiler.dart' show
-    Compiler;
-import '../diagnostics/invariant.dart' show
-    DEBUG_MODE;
+import '../compiler.dart' show Compiler;
+import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../js_backend/js_backend.dart';
 import '../tracer.dart';
+
+import 'nodes.dart';
 
 /**
  * Outputs SSA code in a format readable by Hydra IR.

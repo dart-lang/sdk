@@ -23,7 +23,7 @@ static const char* GetFileName(const char* name) {
 }
 
 
-UNIT_TEST_CASE(Read) {
+TEST_CASE(Read) {
   const char* kFilename = GetFileName("runtime/bin/file_test.cc");
   File* file = File::Open(kFilename, File::kRead);
   EXPECT(file != NULL);
@@ -37,7 +37,7 @@ UNIT_TEST_CASE(Read) {
 }
 
 
-UNIT_TEST_CASE(FileLength) {
+TEST_CASE(FileLength) {
   const char* kFilename =
       GetFileName("runtime/tests/vm/data/fixed_length_file");
   File* file = File::Open(kFilename, File::kRead);
@@ -47,7 +47,7 @@ UNIT_TEST_CASE(FileLength) {
 }
 
 
-UNIT_TEST_CASE(FilePosition) {
+TEST_CASE(FilePosition) {
   char buf[42];
   const char* kFilename =
       GetFileName("runtime/tests/vm/data/fixed_length_file");

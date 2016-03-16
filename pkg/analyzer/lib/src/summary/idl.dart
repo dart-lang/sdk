@@ -224,7 +224,28 @@ enum IndexRelationKind {
    *   Is referenced (and not invoked, read/written) at.
    * Right: location.
    */
-  IS_REFERENCED_BY
+  IS_REFERENCED_BY,
+
+  /**
+   * Left: unresolved member name.
+   *   Is read at.
+   * Right: location.
+   */
+  IS_READ_BY,
+
+  /**
+   * Left: unresolved member name.
+   *   Is both read and written at.
+   * Right: location.
+   */
+  IS_READ_WRITTEN_BY,
+
+  /**
+   * Left: unresolved member name.
+   *   Is written at.
+   * Right: location.
+   */
+  IS_WRITTEN_BY
 }
 
 /**
@@ -251,7 +272,27 @@ enum IndexSyntheticElementKind {
   /**
    * The synthetic setter of a property introducing element.
    */
-  setter
+  setter,
+
+  /**
+   * The synthetic top-level variable element.
+   */
+  topLevelVariable,
+
+  /**
+   * The synthetic `loadLibrary` element.
+   */
+  loadLibrary,
+
+  /**
+   * The synthetic `index` getter of an enum.
+   */
+  enumIndex,
+
+  /**
+   * The synthetic `values` getter of an enum.
+   */
+  enumValues
 }
 
 /**
@@ -751,6 +792,13 @@ abstract class UnitIndex extends base.SummaryClass {
    */
   @Id(8)
   List<int> get usedNames;
+
+  /**
+   * Each item of this list is the `true` if the corresponding name usage
+   * is qualified with some prefix.
+   */
+  @Id(12)
+  List<bool> get usedNameIsQualifiedFlags;
 }
 
 /**

@@ -5,7 +5,6 @@
 library dart2js.cps_ir.gvn;
 
 import 'cps_ir_nodes.dart';
-import '../universe/side_effects.dart';
 import '../elements/elements.dart';
 import 'optimizers.dart' show Pass;
 import 'loop_hierarchy.dart';
@@ -13,7 +12,6 @@ import 'loop_effects.dart';
 import '../world.dart';
 import '../compiler.dart' show Compiler;
 import '../js_backend/js_backend.dart' show JavaScriptBackend;
-import '../constants/values.dart';
 import 'type_mask_system.dart';
 import 'effects.dart';
 
@@ -578,7 +576,7 @@ class GvnVectorBuilder extends DeepRecursiveVisitor {
   }
 
   processTypeExpression(TypeExpression node) {
-    vector = [GvnCode.TYPE_EXPRESSION, node.dartType];
+    vector = [GvnCode.TYPE_EXPRESSION, node.kind.index, node.dartType];
   }
 
   processInterceptor(Interceptor node) {

@@ -20,8 +20,9 @@ import 'package:analysis_server/src/operation/operation_queue.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/services/correction/namespace.dart';
 import 'package:analysis_server/src/services/index/index.dart';
-import 'package:analysis_server/src/services/index2/index2.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analysis_server/src/services/search/search_engine_internal.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -29,7 +30,7 @@ import 'package:analyzer/plugin/embedded_resolver_provider.dart';
 import 'package:analyzer/plugin/resolver_provider.dart';
 import 'package:analyzer/source/embedder.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
@@ -39,6 +40,7 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/dart.dart';
 import 'package:analyzer/src/util/glob.dart';
+import 'package:analyzer/task/dart.dart';
 import 'package:plugin/plugin.dart';
 
 typedef void OptionUpdater(AnalysisOptionsImpl options);
@@ -76,14 +78,14 @@ class AnalysisServer {
    * The version of the analysis server. The value should be replaced
    * automatically during the build.
    */
-  static final String VERSION = '1.14.0';
+  static final String VERSION = '1.15.0';
 
   /**
    * The number of milliseconds to perform operations before inserting
    * a 1 millisecond delay so that the VM and dart:io can deliver content
    * to stdin. This should be removed once the underlying problem is fixed.
    */
-  static int performOperationDelayFreqency = 25;
+  static int performOperationDelayFrequency = 25;
 
   /**
    * The options of this server instance.
@@ -105,11 +107,6 @@ class AnalysisServer {
    * The [Index] for this server, may be `null` if indexing is disabled.
    */
   final Index index;
-
-  /**
-   * The [Index2] for this server, may be `null` if indexing is disabled.
-   */
-  final Index2 index2;
 
   /**
    * The [SearchEngine] for this server, may be `null` if indexing is disabled.
@@ -311,7 +308,6 @@ class AnalysisServer {
       this.resourceProvider,
       PubPackageMapProvider packageMapProvider,
       Index _index,
-      Index2 _index2,
       this.serverPlugin,
       this.options,
       this.defaultSdkCreator,
@@ -320,8 +316,7 @@ class AnalysisServer {
       EmbeddedResolverProvider embeddedResolverProvider: null,
       this.rethrowExceptions: true})
       : index = _index,
-        index2 = _index2,
-        searchEngine = _index != null ? createSearchEngine(_index) : null {
+        searchEngine = _index != null ? new SearchEngineImpl(_index) : null {
     _performance = performanceDuringStartup;
     defaultContextOptions.incremental = true;
     defaultContextOptions.incrementalApi =
@@ -330,8 +325,10 @@ class AnalysisServer {
         options.enableIncrementalResolutionValidation;
     defaultContextOptions.generateImplicitErrors = false;
     operationQueue = new ServerOperationQueue();
+    sdkManager = new DartSdkManager(defaultSdkCreator);
     contextManager = new ContextManagerImpl(
         resourceProvider,
+        sdkManager,
         packageResolverProvider,
         embeddedResolverProvider,
         packageMapProvider,
@@ -354,12 +351,12 @@ class AnalysisServer {
         _performance = performanceAfterStartup;
       });
     });
+    _setupIndexInvalidation();
     Notification notification =
         new ServerConnectedParams(VERSION).toNotification();
     channel.sendNotification(notification);
     channel.listen(handleRequest, onDone: done, onError: error);
     handlers = serverPlugin.createDomains(this);
-    sdkManager = new DartSdkManager(defaultSdkCreator);
   }
 
   /**
@@ -675,23 +672,6 @@ class AnalysisServer {
     return context.getErrors(source);
   }
 
-// TODO(brianwilkerson) Add the following method after 'prioritySources' has
-// been added to InternalAnalysisContext.
-//  /**
-//   * Return a list containing the full names of all of the sources that are
-//   * priority sources.
-//   */
-//  List<String> getPriorityFiles() {
-//    List<String> priorityFiles = new List<String>();
-//    folderMap.values.forEach((ContextDirectory directory) {
-//      InternalAnalysisContext context = directory.context;
-//      context.prioritySources.forEach((Source source) {
-//        priorityFiles.add(source.fullName);
-//      });
-//    });
-//    return priorityFiles;
-//  }
-
   /**
    * Returns resolved [AstNode]s at the given [offset] of the given [file].
    *
@@ -708,6 +688,23 @@ class AnalysisServer {
     }
     return nodes;
   }
+
+// TODO(brianwilkerson) Add the following method after 'prioritySources' has
+// been added to InternalAnalysisContext.
+//  /**
+//   * Return a list containing the full names of all of the sources that are
+//   * priority sources.
+//   */
+//  List<String> getPriorityFiles() {
+//    List<String> priorityFiles = new List<String>();
+//    folderMap.values.forEach((ContextDirectory directory) {
+//      InternalAnalysisContext context = directory.context;
+//      context.prioritySources.forEach((Source source) {
+//        priorityFiles.add(source.fullName);
+//      });
+//    });
+//    return priorityFiles;
+//  }
 
   /**
    * Returns resolved [CompilationUnit]s of the Dart file with the given [path].
@@ -1209,7 +1206,6 @@ class AnalysisServer {
   void shutdown() {
     running = false;
     if (index != null) {
-      index.clear();
       index.stop();
     }
     // Defer closing the channel and shutting down the instrumentation server so
@@ -1434,7 +1430,7 @@ class AnalysisServer {
   }
 
   /**
-   * Schedules [performOperation] exection.
+   * Schedules [performOperation] execution.
    */
   void _schedulePerformOperation() {
     if (performOperationPending) {
@@ -1448,17 +1444,45 @@ class AnalysisServer {
      * every 25 milliseconds.
      *
      * To disable this workaround and see the underlying problem,
-     * set performOperationDelayFreqency to zero
+     * set performOperationDelayFrequency to zero
      */
     int now = new DateTime.now().millisecondsSinceEpoch;
     if (now > _nextPerformOperationDelayTime &&
-        performOperationDelayFreqency > 0) {
-      _nextPerformOperationDelayTime = now + performOperationDelayFreqency;
+        performOperationDelayFrequency > 0) {
+      _nextPerformOperationDelayTime = now + performOperationDelayFrequency;
       new Future.delayed(new Duration(milliseconds: 1), performOperation);
     } else {
       new Future(performOperation);
     }
     performOperationPending = true;
+  }
+
+  /**
+   * Listen for context events and invalidate index.
+   *
+   * It is possible that this method will do more in the future, e.g. listening
+   * for summary information and linking pre-indexed packages into the index,
+   * but for now we only invalidate project specific index information.
+   */
+  void _setupIndexInvalidation() {
+    if (index == null) {
+      return;
+    }
+    onContextsChanged.listen((ContextsChangedEvent event) {
+      for (AnalysisContext context in event.added) {
+        context
+            .onResultChanged(RESOLVED_UNIT)
+            .listen((ResultChangedEvent event) {
+          if (event.wasInvalidated) {
+            LibrarySpecificUnit target = event.target;
+            index.removeUnit(event.context, target.library, target.unit);
+          }
+        });
+      }
+      for (AnalysisContext context in event.removed) {
+        index.removeContext(context);
+      }
+    });
   }
 }
 
@@ -1553,9 +1577,6 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
     AnalysisContext context = analysisServer.folderMap.remove(folder);
     sendAnalysisNotificationFlushResults(analysisServer, flushedFiles);
 
-    if (analysisServer.index != null) {
-      analysisServer.index.removeContext(context);
-    }
     analysisServer.operationQueue.contextRemoved(context);
     analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(removed: [context]));
@@ -1565,11 +1586,7 @@ class ServerContextManagerCallbacks extends ContextManagerCallbacks {
   }
 
   @override
-  void updateContextPackageUriResolver(
-      Folder contextFolder, FolderDisposition disposition) {
-    AnalysisContext context = analysisServer.folderMap[contextFolder];
-    context.sourceFactory = _createSourceFactory(
-        context, context.analysisOptions, disposition, contextFolder);
+  void updateContextPackageUriResolver(AnalysisContext context) {
     analysisServer._onContextsChangedController
         .add(new ContextsChangedEvent(changed: [context]));
     analysisServer.schedulePerformAnalysisOperation(context);
@@ -1662,7 +1679,7 @@ class ServerPerformance {
   int slowRequestCount = 0;
 
   /**
-   * Log performation information about the given request.
+   * Log performance information about the given request.
    */
   void logRequest(Request request) {
     ++requestCount;
@@ -1717,7 +1734,7 @@ class ServerPerformanceStatistics {
   static PerformanceTag pub = new PerformanceTag('pub');
 
   /**
-   * The [PerformanceTag] for time spent in server comminication channels.
+   * The [PerformanceTag] for time spent in server communication channels.
    */
   static PerformanceTag serverChannel = new PerformanceTag('serverChannel');
 

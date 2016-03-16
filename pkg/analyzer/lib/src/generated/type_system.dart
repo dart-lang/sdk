@@ -206,6 +206,18 @@ class StrongTypeSystemImpl extends TypeSystem {
       return false;
     }
 
+    // Don't allow a non-generic function where a generic one is expected. The
+    // former wouldn't know how to handle type arguments being passed to it.
+    // TODO(rnystrom): This same check also exists in FunctionTypeImpl.relate()
+    // but we don't always reliably go through that code path. This should be
+    // cleaned up to avoid the redundancy.
+    if (fromType is FunctionType &&
+        toType is FunctionType &&
+        fromType.typeFormals.isEmpty &&
+        toType.typeFormals.isNotEmpty) {
+      return false;
+    }
+
     // If the subtype relation goes the other way, allow the implicit downcast.
     // TODO(leafp): Emit warnings and hints for these in some way.
     // TODO(leafp): Consider adding a flag to disable these?  Or just rely on

@@ -4,8 +4,6 @@
 
 library dart2js.js_helpers.impact;
 
-import '../common/names.dart' show
-    Identifiers;
 import '../compiler.dart' show
     Compiler;
 import '../core_types.dart' show

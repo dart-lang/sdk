@@ -12,7 +12,7 @@ import 'package:unittest/unittest.dart' show expect;
 
 import '../reflective_tests.dart';
 import '../utils.dart';
-import 'resolver_test.dart';
+import 'resolver_test_case.dart';
 
 main() {
   initializeTestEnvironment();

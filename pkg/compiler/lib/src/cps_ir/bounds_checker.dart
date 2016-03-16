@@ -12,7 +12,6 @@ import 'cps_fragment.dart';
 import 'type_mask_system.dart';
 import '../types/types.dart';
 import '../world.dart';
-import '../elements/elements.dart';
 import 'loop_effects.dart';
 import 'effects.dart';
 

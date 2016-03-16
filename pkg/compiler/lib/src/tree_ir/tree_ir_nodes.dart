@@ -56,6 +56,8 @@ abstract class Node {
 abstract class Expression extends Node {
   accept(ExpressionVisitor v);
   accept1(ExpressionVisitor1 v, arg);
+
+  SourceInformation get sourceInformation => null;
 }
 
 abstract class Statement extends Node {
@@ -123,9 +125,10 @@ class Variable extends Node {
 /// Read the value of a variable.
 class VariableUse extends Expression {
   Variable variable;
+  SourceInformation sourceInformation;
 
   /// Creates a use of [variable] and updates its `readCount`.
-  VariableUse(this.variable) {
+  VariableUse(this.variable, {this.sourceInformation}) {
     variable.readCount++;
   }
 
@@ -138,8 +141,9 @@ class VariableUse extends Expression {
 class Assign extends Expression {
   Variable variable;
   Expression value;
+  SourceInformation sourceInformation;
 
-  Assign(this.variable, this.value) {
+  Assign(this.variable, this.value, {this.sourceInformation}) {
     variable.writeCount++;
   }
 
@@ -345,8 +349,9 @@ class TypeOperator extends Expression {
 class ApplyBuiltinOperator extends Expression {
   BuiltinOperator operator;
   List<Expression> arguments;
+  SourceInformation sourceInformation;
 
-  ApplyBuiltinOperator(this.operator, this.arguments);
+  ApplyBuiltinOperator(this.operator, this.arguments, this.sourceInformation);
 
   accept(ExpressionVisitor visitor) {
     return visitor.visitApplyBuiltinOperator(this);
@@ -598,11 +603,15 @@ class If extends Statement {
   Expression condition;
   Statement thenStatement;
   Statement elseStatement;
+  SourceInformation sourceInformation;
 
   Statement get next => null;
   void set next(Statement s) => throw 'UNREACHABLE';
 
-  If(this.condition, this.thenStatement, this.elseStatement);
+  If(this.condition,
+     this.thenStatement,
+     this.elseStatement,
+     this.sourceInformation);
 
   accept(StatementVisitor visitor) => visitor.visitIf(this);
   accept1(StatementVisitor1 visitor, arg) => visitor.visitIf(this, arg);
@@ -693,8 +702,13 @@ class GetField extends Expression {
   Expression object;
   Element field;
   bool objectIsNotNull;
+  SourceInformation sourceInformation;
 
-  GetField(this.object, this.field, {this.objectIsNotNull: false});
+  GetField(
+      this.object,
+      this.field,
+      this.sourceInformation,
+      {this.objectIsNotNull: false});
 
   accept(ExpressionVisitor visitor) => visitor.visitGetField(this);
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitGetField(this, arg);
@@ -704,12 +718,18 @@ class SetField extends Expression {
   Expression object;
   Element field;
   Expression value;
+  SourceInformation sourceInformation;
 
   /// If non-null, this is a compound assignment to the field, using the given
   /// operator.  The operator must be a compoundable operator.
   BuiltinOperator compound;
 
-  SetField(this.object, this.field, this.value, {this.compound});
+  SetField(
+      this.object,
+      this.field,
+      this.value,
+      this.sourceInformation,
+      {this.compound});
 
   accept(ExpressionVisitor visitor) => visitor.visitSetField(this);
   accept1(ExpressionVisitor1 visitor, arg) => visitor.visitSetField(this, arg);
@@ -857,9 +877,16 @@ class ForeignCode extends Node {
   final native.NativeBehavior nativeBehavior;
   final List<bool> nullableArguments;  // One 'bit' per argument.
   final Element dependency;
+  final SourceInformation sourceInformation;
 
-  ForeignCode(this.codeTemplate, this.type, this.arguments, this.nativeBehavior,
-      this.nullableArguments, this.dependency) {
+  ForeignCode(
+      this.codeTemplate,
+      this.type,
+      this.arguments,
+      this.nativeBehavior,
+      this.nullableArguments,
+      this.dependency,
+      this.sourceInformation) {
     assert(arguments.length == nullableArguments.length);
   }
 }
@@ -869,9 +896,10 @@ class ForeignExpression extends ForeignCode implements Expression {
       js.Template codeTemplate, types.TypeMask type,
       List<Expression> arguments, native.NativeBehavior nativeBehavior,
       List<bool> nullableArguments,
-      Element dependency)
+      Element dependency,
+      SourceInformation sourceInformation)
       : super(codeTemplate, type, arguments, nativeBehavior, nullableArguments,
-          dependency);
+          dependency, sourceInformation);
 
   accept(ExpressionVisitor visitor) {
     return visitor.visitForeignExpression(this);
@@ -887,9 +915,10 @@ class ForeignStatement extends ForeignCode implements Statement {
       js.Template codeTemplate, types.TypeMask type,
       List<Expression> arguments, native.NativeBehavior nativeBehavior,
       List<bool> nullableArguments,
-      Element dependency)
+      Element dependency,
+      SourceInformation sourceInformation)
       : super(codeTemplate, type, arguments, nativeBehavior, nullableArguments,
-          dependency);
+          dependency, sourceInformation);
 
   accept(StatementVisitor visitor) {
     return visitor.visitForeignStatement(this);

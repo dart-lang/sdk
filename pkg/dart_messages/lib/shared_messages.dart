@@ -191,37 +191,14 @@ final Map<String, Message> MESSAGES = {
         }
       ]),
 
-  // Const constructors (factory or not) may not have a body.
-  'CONST_CONSTRUCTOR_OR_FACTORY_WITH_BODY': new Message(
-      id: 'LGJGHW',
-      subId: 0,
-      categories: [Category.parserError],
-      template: "Const constructor or factory can't have a body.",
-      howToFix: "Remove the 'const' keyword or the body.",
-      usedBy: [dart2js],
-      examples: const [
-        r"""
-         class C {
-           const C() {}
-         }
-
-         main() => new C();""",
-        r"""
-         class C {
-           const factory C() {}
-         }
-
-         main() => new C();"""
-      ]),
   // Const constructors may not have a body.
   'CONST_CONSTRUCTOR_WITH_BODY': new Message(
       id: 'LGJGHW',
-      subId: 1,
-      specializationOf: "CONST_CONSTRUCTOR_OR_FACTORY_WITH_BODY",
+      subId: 0,
       categories: [Category.parserError],
       template: "Const constructor can't have a body.",
       howToFix: "Try removing the 'const' keyword or the body.",
-      usedBy: [analyzer],
+      usedBy: [analyzer, dart2js],
       examples: const [
         r"""
          class C {
@@ -233,14 +210,13 @@ final Map<String, Message> MESSAGES = {
   // Const constructor factories may only redirect (and must not have a body).
   'CONST_FACTORY': new Message(
       id: 'LGJGHW',
-      subId: 2,
-      specializationOf: "CONST_CONSTRUCTOR_OR_FACTORY_WITH_BODY",
+      subId: 1,
       categories: [Category.parserError],
       template: "Only redirecting factory constructors can be declared to "
           "be 'const'.",
       howToFix: "Try removing the 'const' keyword or replacing the body with "
           "'=' followed by a valid target.",
-      usedBy: [analyzer],
+      usedBy: [analyzer, dart2js],
       examples: const [
         r"""
          class C {

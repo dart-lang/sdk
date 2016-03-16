@@ -630,10 +630,9 @@ void FUNCTION_NAME(Builtin_NativeLibraryExtension)(Dart_NativeArguments args) {
 
 
 void FUNCTION_NAME(Builtin_GetCurrentDirectory)(Dart_NativeArguments args) {
-  char* current = Directory::Current();
+  const char* current = Directory::Current();
   if (current != NULL) {
     Dart_SetReturnValue(args, DartUtils::NewString(current));
-    free(current);
   } else {
     Dart_Handle err = DartUtils::NewError("Failed to get current directory.");
     Dart_PropagateError(err);
@@ -952,7 +951,7 @@ Dart_Handle DartUtils::NewInternalError(const char* message) {
 
 
 bool DartUtils::SetOriginalWorkingDirectory() {
-  original_working_directory = Directory::Current();
+  original_working_directory = Directory::CurrentNoScope();
   return original_working_directory != NULL;
 }
 

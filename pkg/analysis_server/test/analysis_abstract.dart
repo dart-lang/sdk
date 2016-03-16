@@ -14,7 +14,6 @@ import 'package:analysis_server/src/plugin/linter_plugin.dart';
 import 'package:analysis_server/src/plugin/server_plugin.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_plugin.dart';
 import 'package:analysis_server/src/services/index/index.dart';
-import 'package:analysis_server/src/services/index2/index2.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
@@ -63,6 +62,9 @@ class AbstractAnalysisTest {
   String testCode;
 
   AbstractAnalysisTest();
+
+  AnalysisDomainHandler get analysisHandler => server.handlers
+      .singleWhere((handler) => handler is AnalysisDomainHandler);
 
   void addAnalysisSubscription(AnalysisService service, String file) {
     // add file to subscription
@@ -125,7 +127,6 @@ class AbstractAnalysisTest {
         resourceProvider,
         packageMapProvider,
         index,
-        createMemoryIndex2(),
         serverPlugin,
         new AnalysisServerOptions(),
         () => new MockSdk(),
@@ -143,7 +144,7 @@ class AbstractAnalysisTest {
     resourceProvider.newFolder(projectPath);
     Request request =
         new AnalysisSetAnalysisRootsParams([projectPath], []).toRequest('0');
-    handleSuccessfulRequest(request);
+    handleSuccessfulRequest(request, handler: analysisHandler);
   }
 
   /**
@@ -171,7 +172,8 @@ class AbstractAnalysisTest {
   /**
    * Validates that the given [request] is handled successfully.
    */
-  Response handleSuccessfulRequest(Request request) {
+  Response handleSuccessfulRequest(Request request, {RequestHandler handler}) {
+    handler ??= this.handler;
     Response response = handler.handleRequest(request);
     expect(response, isResponseSuccess(request.id));
     return response;
@@ -203,8 +205,7 @@ class AbstractAnalysisTest {
     packageMapProvider = new MockPackageMapProvider();
     Index index = createIndex();
     server = createAnalysisServer(index);
-    handler = server.handlers
-        .singleWhere((handler) => handler is AnalysisDomainHandler);
+    handler = analysisHandler;
     // listen for notifications
     Stream<Notification> notificationStream =
         serverChannel.notificationController.stream;

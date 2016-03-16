@@ -7,10 +7,6 @@ import 'cps_ir_nodes.dart';
 import 'optimizers.dart';
 import 'cps_fragment.dart';
 import '../js_backend/js_backend.dart';
-import '../constants/values.dart';
-import '../elements/elements.dart';
-import '../universe/selector.dart';
-import '../types/types.dart';
 import 'type_mask_system.dart';
 
 /// Optimizations based on intraprocedural forward dataflow analysis, taking

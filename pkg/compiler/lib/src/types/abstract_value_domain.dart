@@ -7,12 +7,7 @@ library dart2js.abstract_value_domain;
 import '../constants/values.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
-import '../native/native.dart' show
-    NativeBehavior;
-import '../universe/selector.dart' show
-    Selector;
-import '../universe/universe.dart' show
-    ReceiverConstraint;
+import '../universe/selector.dart' show Selector;
 
 enum AbstractBool {
   True, False, Maybe, Nothing

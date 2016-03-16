@@ -6,8 +6,6 @@ library dart2js.js_emitter.constant_ordering;
 
 import '../constants/values.dart';
 
-import '../common.dart';
-//import '../core_types.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart'
     show Element,

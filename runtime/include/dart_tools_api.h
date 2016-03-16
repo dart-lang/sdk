@@ -1078,4 +1078,50 @@ DART_EXPORT Dart_Handle Dart_TimelineAsyncInstant(const char* label,
 DART_EXPORT Dart_Handle Dart_TimelineAsyncEnd(const char* label,
                                               int64_t async_id);
 
+
+/**
+ * Called by the VM to let the embedder know when to start recording into their
+ * own timeline implementation. Can be called from any thread.
+ */
+typedef void (*Dart_EmbedderTimelineStartRecording)();
+
+/**
+ * Called by the VM to let the embedder know when to stop recording into their
+ * own timeline implementation. Can be called from any thread.
+ */
+typedef void (*Dart_EmbedderTimelineStopRecording)();
+
+/**
+ * Called by the VM to request data from the embedder's private timeline
+ * implementation. Can be called from any thread and must complete
+ * synchronously.
+ *
+ * \param stream_consumer The embedder must only call the stream_consumer with
+ *    the Dart_StreamConsumer_kData state. See Dart_StreamConsumer above.
+ * \param user_data
+ *
+ * \return Returns true on success.
+ *
+ */
+typedef bool (*Dart_EmbedderTimelineGetTimeline)(
+      Dart_StreamConsumer stream_consumer,
+      void* user_data);
+
+
+/**
+ * Sets the embedder timeline callbacks. These callbacks are used by the VM
+ * to notify the embedder of timeline recording state changes and to request
+ * data from the embedder.
+ *
+ * \param start_recording See Dart_EmbedderTimelineStartRecording.
+ * \param stop_recording See Dart_EmbedderTimelineStopRecording.
+ * \param get_timeline See Dart_EmbedderTimelineGetTimeline.
+ *
+ * NOTE: To avoid races, this should be called before Dart_Initialize.
+ */
+DART_EXPORT void Dart_SetEmbedderTimelineCallbacks(
+    Dart_EmbedderTimelineStartRecording start_recording,
+    Dart_EmbedderTimelineStopRecording stop_recording,
+    Dart_EmbedderTimelineGetTimeline get_timeline);
+
 #endif  // INCLUDE_DART_TOOLS_API_H_

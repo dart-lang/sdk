@@ -1605,10 +1605,13 @@ static void RunLoopDone(uword param) {
 
 
 DART_EXPORT Dart_Handle Dart_RunLoop() {
-  Thread* T = Thread::Current();
-  Isolate* I = T->isolate();
-  CHECK_API_SCOPE(T);
-  CHECK_CALLBACK_STATE(T);
+  Isolate* I;
+  {
+    Thread* T = Thread::Current();
+    I = T->isolate();
+    CHECK_API_SCOPE(T);
+    CHECK_CALLBACK_STATE(T);
+  }
   API_TIMELINE_BEGIN_END;
   // The message handler run loop does not expect to have a current isolate
   // so we exit the isolate here and enter it again after the runloop is done.
@@ -1627,13 +1630,14 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
     }
   }
   ::Dart_EnterIsolate(Api::CastIsolate(I));
-  if (T->sticky_error() != Object::null()) {
-    Dart_Handle error = Api::NewHandle(T, T->sticky_error());
-    T->clear_sticky_error();
+  if (I->sticky_error() != Object::null()) {
+    Dart_Handle error =
+        Api::NewHandle(Thread::Current(), I->sticky_error());
+    I->clear_sticky_error();
     return error;
   }
   if (FLAG_print_class_table) {
-    HANDLESCOPE(T);
+    HANDLESCOPE(Thread::Current());
     I->class_table()->Print();
   }
   return Api::Success();
@@ -5903,23 +5907,19 @@ static bool StreamTraceEvents(Dart_StreamConsumer consumer,
   ASSERT(output[output_length - 1] == ']');
   // Replace the ']' with the null character.
   output[output_length - 1] = '\0';
+  char* start = &output[1];
   // We are skipping the '['.
   output_length -= 1;
 
-  // Start the stream.
-  StartStreamToConsumer(consumer, user_data, "timeline");
-
   DataStreamToConsumer(consumer,
                        user_data,
-                       &output[1],
+                       start,
                        output_length,
                        "timeline");
 
   // We stole the JSONStream's output buffer, free it.
   free(output);
 
-  // Finish the stream.
-  FinishStreamToConsumer(consumer, user_data, "timeline");
   return true;
 }
 
@@ -5945,7 +5945,23 @@ DART_EXPORT bool Dart_TimelineGetTrace(Dart_StreamConsumer consumer,
   JSONStream js;
   IsolateTimelineEventFilter filter(isolate->main_port());
   timeline_recorder->PrintTraceEvent(&js, &filter);
-  return StreamTraceEvents(consumer, user_data, &js);
+  StartStreamToConsumer(consumer, user_data, "timeline");
+  bool success = StreamTraceEvents(consumer, user_data, &js);
+  FinishStreamToConsumer(consumer, user_data, "timeline");
+  return success;
+}
+
+
+DART_EXPORT void Dart_SetEmbedderTimelineCallbacks(
+    Dart_EmbedderTimelineStartRecording start_recording,
+    Dart_EmbedderTimelineStopRecording stop_recording,
+    Dart_EmbedderTimelineGetTimeline get_timeline) {
+  if (!FLAG_support_timeline) {
+    return;
+  }
+  Timeline::set_start_recording_cb(start_recording);
+  Timeline::set_stop_recording_cb(stop_recording);
+  Timeline::set_get_timeline_cb(get_timeline);
 }
 
 
@@ -5967,10 +5983,16 @@ DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
     return false;
   }
   Timeline::ReclaimCachedBlocksFromThreads();
+  bool success = false;
   JSONStream js;
   TimelineEventFilter filter;
   timeline_recorder->PrintTraceEvent(&js, &filter);
-  return StreamTraceEvents(consumer, user_data, &js);
+  StartStreamToConsumer(consumer, user_data, "timeline");
+  if (StreamTraceEvents(consumer, user_data, &js)) {
+    success = true;
+  }
+  FinishStreamToConsumer(consumer, user_data, "timeline");
+  return success;
 }
 
 
@@ -6094,7 +6116,6 @@ DART_EXPORT Dart_Handle Dart_TimelineAsyncEnd(const char* label,
   }
   return Api::Success();
 }
-
 
 // The precompiler is included in dart_bootstrap and dart_noopt, and
 // excluded from dart and dart_precompiled_runtime.

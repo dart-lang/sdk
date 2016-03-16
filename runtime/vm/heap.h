@@ -124,6 +124,10 @@ class Heap {
     return old_space_.NeedsGarbageCollection();
   }
 
+#if defined(DEBUG)
+  void WaitForSweeperTasks();
+#endif
+
   // Enables growth control on the page space heaps.  This should be
   // called before any user code is executed.
   void InitGrowthControl();

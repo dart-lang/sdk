@@ -5,6 +5,9 @@
 #include "platform/globals.h"
 #if defined(TARGET_OS_MACOS)
 
+#include "bin/socket.h"
+#include "bin/socket_macos.h"
+
 #include <errno.h>  // NOLINT
 #include <stdio.h>  // NOLINT
 #include <stdlib.h>  // NOLINT
@@ -17,10 +20,7 @@
 
 #include "bin/fdutils.h"
 #include "bin/file.h"
-#include "bin/socket.h"
-
 #include "platform/signal_blocker.h"
-
 
 namespace dart {
 namespace bin {
@@ -359,8 +359,9 @@ AddressList<InterfaceSocketAddress>* Socket::ListInterfaces(
   int i = 0;
   for (struct ifaddrs* ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
     if (ShouldIncludeIfaAddrs(ifa, lookup_family)) {
+      char* ifa_name = DartUtils::ScopedCopyCString(ifa->ifa_name);
       addresses->SetAt(i, new InterfaceSocketAddress(
-          ifa->ifa_addr, strdup(ifa->ifa_name), if_nametoindex(ifa->ifa_name)));
+          ifa->ifa_addr, ifa_name, if_nametoindex(ifa->ifa_name)));
       i++;
     }
   }

@@ -9,7 +9,6 @@ import 'dart:async';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/services/index/index.dart';
-import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
@@ -96,7 +95,7 @@ class AnalysisNotificationImplementedTest extends AbstractAnalysisTest {
 
   @override
   Index createIndex() {
-    return createLocalMemoryIndex();
+    return createMemoryIndex();
   }
 
   /**

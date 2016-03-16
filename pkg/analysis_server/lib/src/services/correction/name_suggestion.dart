@@ -5,9 +5,9 @@
 library services.src.correction.name_suggestion;
 
 import 'package:analysis_server/src/services/correction/strings.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/generated/ast.dart';
 
 List<String> _KNOWN_METHOD_NAME_PREFIXES = ['get', 'is', 'to'];
 

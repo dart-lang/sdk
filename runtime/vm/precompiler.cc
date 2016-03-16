@@ -203,6 +203,12 @@ void Precompiler::DoCompileAll(
     TraceTypesFromRetainedClasses();
     DropTypes();
     DropTypeArguments();
+
+    // Clear these before dropping classes as they may hold onto otherwise
+    // dead instances of classes we will remove.
+    I->object_store()->set_compile_time_constants(Array::null_array());
+    I->object_store()->set_unique_dynamic_targets(Array::null_array());
+
     DropClasses();
     DropLibraries();
 
@@ -215,9 +221,6 @@ void Precompiler::DoCompileAll(
       // Reduces binary size but obfuscates profiler results.
       DedupInstructions();
     }
-
-    I->object_store()->set_compile_time_constants(Array::null_array());
-    I->object_store()->set_unique_dynamic_targets(Array::null_array());
 
     zone_ = NULL;
   }
@@ -1473,6 +1476,7 @@ void Precompiler::TraceTypesFromRetainedClasses() {
         constants = Array::MakeArray(retained_constants);
         cls.set_constants(constants);
       } else {
+        constants = Object::empty_array().raw();
         cls.set_constants(Object::empty_array());
       }
 
@@ -1492,14 +1496,17 @@ void Precompiler::TraceTypesFromRetainedClasses() {
 void Precompiler::DropClasses() {
   Library& lib = Library::Handle(Z);
   Class& cls = Class::Handle(Z);
-  Array& members = Array::Handle(Z);
+  Array& constants = Array::Handle(Z);
   String& name = String::Handle(Z);
 
 #if defined(DEBUG)
-  {
-    // Force GC for allocation stats.
-    I->heap()->CollectAllGarbage();
-  }
+  // We are about to remove classes from the class table. For this to be safe,
+  // there must be no instances of these classes on the heap, not even
+  // corpses because the class table entry may be used to find the size of
+  // corpses. Request a full GC and wait for the sweeper tasks to finish before
+  // we continue.
+  I->heap()->CollectAllGarbage();
+  I->heap()->WaitForSweeperTasks();
 #endif
 
   ClassTable* class_table = I->class_table();
@@ -1518,21 +1525,15 @@ void Precompiler::DropClasses() {
       // removed.
       continue;
     }
-    if (cls.is_enum_class()) {
-      // Enum classes have live instances, so we cannot unregister
-      // them.
-      continue;
-    }
-    members = cls.constants();
-    if (members.Length() > 0) {
-      // --compile_all?
-      continue;
-    }
 
     bool retain = classes_to_retain_.Lookup(&cls) != NULL;
     if (retain) {
       continue;
     }
+
+    ASSERT(!cls.is_allocated());
+    constants = cls.constants();
+    ASSERT(constants.Length() == 0);
 
 #if defined(DEBUG)
     intptr_t instances =

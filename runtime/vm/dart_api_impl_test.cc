@@ -9289,6 +9289,7 @@ static void AppendStreamConsumer(Dart_StreamConsumer_State state,
     return;
   }
   ASSERT(state == Dart_StreamConsumer_kData);
+
   // Grow buffer.
   data->buffer = reinterpret_cast<uint8_t*>(
       realloc(data->buffer, data->buffer_length + buffer_length));
@@ -9770,6 +9771,67 @@ TEST_CASE(Timeline_Dart_GlobalTimelineGetTrace_Threaded) {
   // Heartbeat test for new events.
   EXPECT_SUBSTRING("\"name\":\"TestVMDuration2\"", buffer);
   EXPECT_SUBSTRING("\"function\":\"::_bar\"", buffer);
+}
+
+static bool start_called = false;
+static bool stop_called = false;
+
+static void StartRecording() {
+  start_called = true;
+}
+
+static void StopRecording() {
+  stop_called = true;
+}
+
+
+TEST_CASE(Timeline_Dart_EmbedderTimelineStartStopRecording) {
+  Dart_SetEmbedderTimelineCallbacks(StartRecording, StopRecording, NULL);
+
+  EXPECT(!start_called);
+  EXPECT(!stop_called);
+  Timeline::SetStreamEmbedderEnabled(true);
+  EXPECT(start_called);
+  EXPECT(!stop_called);
+
+  start_called = false;
+  stop_called = false;
+  EXPECT(!start_called);
+  EXPECT(!stop_called);
+  Timeline::SetStreamEmbedderEnabled(false);
+  EXPECT(!start_called);
+  EXPECT(stop_called);
+}
+
+static bool GetTimeline(Dart_StreamConsumer stream_consumer,
+                        void* user_data) {
+  ASSERT(stream_consumer != NULL);
+  ASSERT(user_data != NULL);
+
+  const char* test_string = "HELLO FROM EMBEDDER";
+  stream_consumer(Dart_StreamConsumer_kData,
+                  "embedder.timeline",
+                  reinterpret_cast<const uint8_t*>(test_string),
+                  strlen(test_string),
+                  user_data);
+  return true;
+}
+
+TEST_CASE(Timeline_Dart_EmbedderTimelineGetTimeline) {
+  Dart_SetEmbedderTimelineCallbacks(NULL, NULL, GetTimeline);
+
+  Dart_GlobalTimelineSetRecordedStreams(DART_TIMELINE_STREAM_EMBEDDER);
+  Dart_TimelineDuration("testDurationEvent", 0, 1);
+
+  AppendData data;
+  bool success = Dart_GlobalTimelineGetTrace(AppendStreamConsumer, &data);
+  EXPECT(success);
+
+  EXPECT_SUBSTRING("}},HELLO FROM EMBEDDER",
+                   data.buffer);
+
+  // Free buffer allocated by AppendStreamConsumer
+  free(data.buffer);
 }
 
 #endif  // !PRODUCT

@@ -8,8 +8,8 @@ import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/services/index/index.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -96,7 +96,7 @@ class UpdateContentTest extends AbstractAnalysisTest {
     createProject();
     addTestFile('main() { print(1); }');
     await server.onAnalysisComplete;
-    verify(server.index.index(anyObject, testUnitMatcher)).times(1);
+    verify(server.index.indexUnit(testUnitMatcher)).times(1);
     // add an overlay
     server.updateContent(
         '1', {testFile: new AddContentOverlay('main() { print(2); }')});
@@ -108,7 +108,7 @@ class UpdateContentTest extends AbstractAnalysisTest {
     server.updateContent('2', {testFile: new RemoveContentOverlay()});
     // Validate that at the end the unit was indexed.
     await server.onAnalysisComplete;
-    verify(server.index.index(anyObject, testUnitMatcher)).times(3);
+    verify(server.index.indexUnit(testUnitMatcher)).times(3);
   }
 
   test_multiple_contexts() async {
@@ -160,6 +160,29 @@ f() {}
     }
   }
 
+  test_overlay_addPreviouslyImported() async {
+    Folder project = resourceProvider.newFolder('/project');
+    handleSuccessfulRequest(
+        new AnalysisSetAnalysisRootsParams([project.path], []).toRequest('0'));
+
+    server.updateContent('1',
+        {'/project/main.dart': new AddContentOverlay('import "target.dart";')});
+    await server.onAnalysisComplete;
+    expect(filesErrors, {
+      '/project/main.dart': ["1: Target of URI does not exist: 'target.dart'"],
+      '/project/target.dart': []
+    });
+
+    server.updateContent('1',
+        {'/project/target.dart': new AddContentOverlay('import "none.dart";')});
+    await server.onAnalysisComplete;
+    expect(filesErrors, {
+      '/project/main.dart': ["1: Unused import"],
+      '/project/target.dart': ["1: Target of URI does not exist: 'none.dart'"],
+      '/project/none.dart': []
+    });
+  }
+
   test_overlayOnly() async {
     String filePath = '/User/project1/test.dart';
     Folder folder1 = resourceProvider.newFolder('/User/project1');
@@ -187,29 +210,6 @@ f() {}
     server.updateContent('2', {filePath: new RemoveContentOverlay()});
     expect(_getUserSources(context1), isEmpty);
     expect(_getUserSources(context2), isEmpty);
-  }
-
-  test_overlay_addPreviouslyImported() async {
-    Folder project = resourceProvider.newFolder('/project');
-    handleSuccessfulRequest(
-        new AnalysisSetAnalysisRootsParams([project.path], []).toRequest('0'));
-
-    server.updateContent('1',
-        {'/project/main.dart': new AddContentOverlay('import "target.dart";')});
-    await server.onAnalysisComplete;
-    expect(filesErrors, {
-      '/project/main.dart': ["1: Target of URI does not exist: 'target.dart'"],
-      '/project/target.dart': []
-    });
-
-    server.updateContent('1',
-        {'/project/target.dart': new AddContentOverlay('import "none.dart";')});
-    await server.onAnalysisComplete;
-    expect(filesErrors, {
-      '/project/main.dart': ["1: Unused import"],
-      '/project/target.dart': ["1: Target of URI does not exist: 'none.dart'"],
-      '/project/none.dart': []
-    });
   }
 
   test_removeOverlay_incrementalChange() async {

@@ -4,8 +4,6 @@
 
 library universe.side_effects;
 
-import '../common.dart';
-
 class SideEffects {
   // Changes flags.
   static const int FLAG_CHANGES_INDEX = 0;

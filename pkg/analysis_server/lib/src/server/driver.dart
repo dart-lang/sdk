@@ -343,7 +343,7 @@ class Driver implements ServerStarter {
     // TODO (danrubel) Remove this workaround
     // once the underlying VM and dart:io issue has been fixed.
     if (results[INTERNAL_DELAY_FREQUENCY] != null) {
-      AnalysisServer.performOperationDelayFreqency =
+      AnalysisServer.performOperationDelayFrequency =
           int.parse(results[INTERNAL_DELAY_FREQUENCY], onError: (_) => 0);
     }
 

@@ -10,11 +10,29 @@ import 'package:analysis_server/src/provisional/completion/dart/completion_dart.
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
 import 'package:analysis_server/src/services/completion/dart/local_library_contributor.dart';
 import 'package:analysis_server/src/services/completion/dart/optype.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 
 import '../../../protocol_server.dart'
     show CompletionSuggestion, CompletionSuggestionKind;
+
+List<String> hiddenNamesIn(ImportElement importElem) {
+  for (NamespaceCombinator combinator in importElem.combinators) {
+    if (combinator is HideElementCombinator) {
+      return combinator.hiddenNames;
+    }
+  }
+  return null;
+}
+
+List<String> showNamesIn(ImportElement importElem) {
+  for (NamespaceCombinator combinator in importElem.combinators) {
+    if (combinator is ShowElementCombinator) {
+      return combinator.shownNames;
+    }
+  }
+  return null;
+}
 
 /**
  * A contributor for calculating suggestions for imported top level members.
@@ -68,22 +86,4 @@ class ImportedReferenceContributor extends DartCompletionContributor {
     }
     return visitor.suggestions;
   }
-}
-
-List<String> showNamesIn(ImportElement importElem) {
-  for (NamespaceCombinator combinator in importElem.combinators) {
-    if (combinator is ShowElementCombinator) {
-      return combinator.shownNames;
-    }
-  }
-  return null;
-}
-
-List<String> hiddenNamesIn(ImportElement importElem) {
-  for (NamespaceCombinator combinator in importElem.combinators) {
-    if (combinator is HideElementCombinator) {
-      return combinator.hiddenNames;
-    }
-  }
-  return null;
 }

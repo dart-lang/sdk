@@ -5,16 +5,17 @@
 #include "platform/globals.h"
 #if defined(TARGET_OS_WINDOWS)
 
+#include "bin/socket.h"
+#include "bin/socket_win.h"
+
 #include "bin/builtin.h"
 #include "bin/eventhandler.h"
 #include "bin/file.h"
 #include "bin/lockers.h"
 #include "bin/log.h"
-#include "bin/socket.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "bin/utils_win.h"
-
 
 namespace dart {
 namespace bin {
@@ -366,7 +367,6 @@ bool Socket::ParseAddress(int type, const char* address, RawAddr* addr) {
     ASSERT(type == SocketAddress::TYPE_IPV6);
     result = InetPton(AF_INET6, system_address, &addr->in6.sin6_addr);
   }
-  free(const_cast<wchar_t*>(system_address));
   return result == 1;
 }
 

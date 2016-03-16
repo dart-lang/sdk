@@ -721,6 +721,9 @@ dart2js_conversions = monitored.Dict('generator.dart2js_conversions', {
     'any set IDBObjectStore.put': _serialize_SSV,
     'any set IDBCursor.update': _serialize_SSV,
 
+    'any get SQLResultSetRowList.item' :
+      Conversion('convertNativeToDart_Dictionary', 'dynamic', 'Map'),
+
     # postMessage
     'SerializedScriptValue set': _serialize_SSV,
     'any set CompositorWorkerGlobalScope.postMessage': _serialize_SSV,

@@ -738,6 +738,7 @@ class Assembler : public ValueObject {
   void CallRuntime(const RuntimeEntry& entry, intptr_t argument_count);
 
   void Call(const StubEntry& stub_entry);
+  void CallToRuntime();
 
   void Jmp(const StubEntry& stub_entry);
   void J(Condition condition, const StubEntry& stub_entry);

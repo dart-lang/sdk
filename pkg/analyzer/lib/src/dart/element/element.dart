@@ -13,10 +13,10 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
+import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart'
     show DartObject, EvaluationResultImpl;
-import 'package:analyzer/src/generated/element_handle.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
 import 'package:analyzer/src/generated/java_core.dart';
@@ -1987,6 +1987,27 @@ abstract class ElementImpl implements Element {
   }
 
   /**
+   * Append to the given [buffer] a comma-separated list of the names of the
+   * types of this element and every enclosing element.
+   */
+  void appendPathTo(StringBuffer buffer) {
+    Element element = this;
+    while (element != null) {
+      if (element != this) {
+        buffer.write(', ');
+      }
+      buffer.write(element.runtimeType);
+      String name = element.name;
+      if (name != null) {
+        buffer.write(' (');
+        buffer.write(name);
+        buffer.write(')');
+      }
+      element = element.enclosingElement;
+    }
+  }
+
+  /**
    * Append a textual representation of this element to the given [buffer].
    */
   void appendTo(StringBuffer buffer) {
@@ -2229,10 +2250,10 @@ class ElementLocationImpl implements ElementLocation {
 
   @override
   int get hashCode {
-    int result = 1;
+    int result = 0;
     for (int i = 0; i < _components.length; i++) {
       String component = _components[i];
-      result = 31 * result + component.hashCode;
+      result = JenkinsSmiHash.combine(result, component.hashCode);
     }
     return result;
   }

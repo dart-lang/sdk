@@ -98,7 +98,7 @@ class MemberListener extends NodeListener {
     } else {
       memberElement = new PartialFunctionElement(
           name, beginToken, getOrSet, endToken,
-          method.modifiers, enclosingClass, hasBody: method.hasBody());
+          method.modifiers, enclosingClass, hasBody: method.hasBody);
     }
     addMember(memberElement);
   }

@@ -1908,6 +1908,7 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
   List<idl.IndexRelationKind> _usedNameKinds;
   List<int> _usedNameOffsets;
   List<int> _usedNames;
+  List<bool> _usedNameIsQualifiedFlags;
 
   @override
   List<idl.IndexNameKind> get definedNameKinds => _definedNameKinds ??= <idl.IndexNameKind>[];
@@ -2061,7 +2062,19 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
     _usedNames = _value;
   }
 
-  UnitIndexBuilder({List<idl.IndexNameKind> definedNameKinds, List<int> definedNameOffsets, List<int> definedNames, int unit, List<bool> usedElementIsQualifiedFlags, List<idl.IndexRelationKind> usedElementKinds, List<int> usedElementLengths, List<int> usedElementOffsets, List<int> usedElements, List<idl.IndexRelationKind> usedNameKinds, List<int> usedNameOffsets, List<int> usedNames})
+  @override
+  List<bool> get usedNameIsQualifiedFlags => _usedNameIsQualifiedFlags ??= <bool>[];
+
+  /**
+   * Each item of this list is the `true` if the corresponding name usage
+   * is qualified with some prefix.
+   */
+  void set usedNameIsQualifiedFlags(List<bool> _value) {
+    assert(!_finished);
+    _usedNameIsQualifiedFlags = _value;
+  }
+
+  UnitIndexBuilder({List<idl.IndexNameKind> definedNameKinds, List<int> definedNameOffsets, List<int> definedNames, int unit, List<bool> usedElementIsQualifiedFlags, List<idl.IndexRelationKind> usedElementKinds, List<int> usedElementLengths, List<int> usedElementOffsets, List<int> usedElements, List<idl.IndexRelationKind> usedNameKinds, List<int> usedNameOffsets, List<int> usedNames, List<bool> usedNameIsQualifiedFlags})
     : _definedNameKinds = definedNameKinds,
       _definedNameOffsets = definedNameOffsets,
       _definedNames = definedNames,
@@ -2073,7 +2086,8 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
       _usedElements = usedElements,
       _usedNameKinds = usedNameKinds,
       _usedNameOffsets = usedNameOffsets,
-      _usedNames = usedNames;
+      _usedNames = usedNames,
+      _usedNameIsQualifiedFlags = usedNameIsQualifiedFlags;
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -2089,6 +2103,7 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
     fb.Offset offset_usedNameKinds;
     fb.Offset offset_usedNameOffsets;
     fb.Offset offset_usedNames;
+    fb.Offset offset_usedNameIsQualifiedFlags;
     if (!(_definedNameKinds == null || _definedNameKinds.isEmpty)) {
       offset_definedNameKinds = fbBuilder.writeListUint8(_definedNameKinds.map((b) => b.index).toList());
     }
@@ -2121,6 +2136,9 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
     }
     if (!(_usedNames == null || _usedNames.isEmpty)) {
       offset_usedNames = fbBuilder.writeListUint32(_usedNames);
+    }
+    if (!(_usedNameIsQualifiedFlags == null || _usedNameIsQualifiedFlags.isEmpty)) {
+      offset_usedNameIsQualifiedFlags = fbBuilder.writeListBool(_usedNameIsQualifiedFlags);
     }
     fbBuilder.startTable();
     if (offset_definedNameKinds != null) {
@@ -2159,6 +2177,9 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
     if (offset_usedNames != null) {
       fbBuilder.addOffset(8, offset_usedNames);
     }
+    if (offset_usedNameIsQualifiedFlags != null) {
+      fbBuilder.addOffset(12, offset_usedNameIsQualifiedFlags);
+    }
     return fbBuilder.endTable();
   }
 }
@@ -2187,6 +2208,7 @@ class _UnitIndexImpl extends Object with _UnitIndexMixin implements idl.UnitInde
   List<idl.IndexRelationKind> _usedNameKinds;
   List<int> _usedNameOffsets;
   List<int> _usedNames;
+  List<bool> _usedNameIsQualifiedFlags;
 
   @override
   List<idl.IndexNameKind> get definedNameKinds {
@@ -2259,6 +2281,12 @@ class _UnitIndexImpl extends Object with _UnitIndexMixin implements idl.UnitInde
     _usedNames ??= const fb.Uint32ListReader().vTableGet(_bp, 8, const <int>[]);
     return _usedNames;
   }
+
+  @override
+  List<bool> get usedNameIsQualifiedFlags {
+    _usedNameIsQualifiedFlags ??= const fb.BoolListReader().vTableGet(_bp, 12, const <bool>[]);
+    return _usedNameIsQualifiedFlags;
+  }
 }
 
 abstract class _UnitIndexMixin implements idl.UnitIndex {
@@ -2277,6 +2305,7 @@ abstract class _UnitIndexMixin implements idl.UnitIndex {
     if (usedNameKinds.isNotEmpty) _result["usedNameKinds"] = usedNameKinds.map((_value) => _value.toString().split('.')[1]).toList();
     if (usedNameOffsets.isNotEmpty) _result["usedNameOffsets"] = usedNameOffsets;
     if (usedNames.isNotEmpty) _result["usedNames"] = usedNames;
+    if (usedNameIsQualifiedFlags.isNotEmpty) _result["usedNameIsQualifiedFlags"] = usedNameIsQualifiedFlags;
     return _result;
   }
 
@@ -2294,6 +2323,7 @@ abstract class _UnitIndexMixin implements idl.UnitIndex {
     "usedNameKinds": usedNameKinds,
     "usedNameOffsets": usedNameOffsets,
     "usedNames": usedNames,
+    "usedNameIsQualifiedFlags": usedNameIsQualifiedFlags,
   };
 
   @override

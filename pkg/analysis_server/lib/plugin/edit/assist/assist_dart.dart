@@ -7,7 +7,7 @@ library analysis_server.plugin.edit.assist.assist_dart;
 import 'dart:async';
 
 import 'package:analysis_server/plugin/edit/assist/assist_core.dart';
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 

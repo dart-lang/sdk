@@ -16,8 +16,8 @@ import 'package:analysis_server/src/services/refactoring/refactoring_internal.da
 import 'package:analysis_server/src/services/refactoring/rename.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/ast/ast.dart' show Identifier;
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/ast.dart' show Identifier;
 import 'package:analyzer/src/generated/java_core.dart';
 
 /**
@@ -96,10 +96,6 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
         await searchEngine.searchMemberReferences(oldName);
     List<SourceReference> nameRefs = getSourceReferences(nameMatches);
     for (SourceReference reference in nameRefs) {
-      // ignore resolved reference, we have already updated it
-      if (reference.isResolved) {
-        continue;
-      }
       // ignore references from SDK and pub cache
       if (isElementInSdkOrPubCache(reference.element)) {
         continue;

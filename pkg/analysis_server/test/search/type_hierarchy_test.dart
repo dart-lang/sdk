@@ -9,7 +9,6 @@ import 'dart:async';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/search/search_domain.dart';
 import 'package:analysis_server/src/services/index/index.dart';
-import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
 
@@ -27,14 +26,14 @@ class GetTypeHierarchyTest extends AbstractAnalysisTest {
 
   @override
   Index createIndex() {
-    return createLocalMemoryIndex();
+    return createMemoryIndex();
   }
 
   @override
   void setUp() {
     super.setUp();
-    server.handlers = [new SearchDomainHandler(server),];
     createProject();
+    server.handlers = [new SearchDomainHandler(server),];
   }
 
   test_bad_function() async {

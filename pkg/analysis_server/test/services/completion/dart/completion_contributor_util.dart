@@ -13,17 +13,16 @@ import 'package:analysis_server/plugin/protocol/protocol.dart'
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/services/completion/completion_core.dart';
+import 'package:analysis_server/src/services/completion/completion_performance.dart';
 import 'package:analysis_server/src/services/completion/dart/completion_manager.dart'
     show DartCompletionRequestImpl, ReplacementRange;
 import 'package:analysis_server/src/services/index/index.dart';
-import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/task/dart.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../../abstract_context.dart';
-import 'package:analysis_server/src/services/completion/completion_performance.dart';
 
 int suggestionComparator(CompletionSuggestion s1, CompletionSuggestion s2) {
   String c1 = s1.completion.toLowerCase();
@@ -541,7 +540,7 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
   @override
   void setUp() {
     super.setUp();
-    index = createLocalMemoryIndex();
+    index = createMemoryIndex();
     searchEngine = new SearchEngineImpl(index);
     contributor = createContributor();
   }

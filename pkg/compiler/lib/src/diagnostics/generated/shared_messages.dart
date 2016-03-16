@@ -12,10 +12,10 @@ of the json, dart2js and analyzer representations.
 import '../messages.dart' show MessageKind, MessageTemplate;
 
 const Map<MessageKind, MessageTemplate> TEMPLATES = const <MessageKind, MessageTemplate>{ 
-  MessageKind.CONST_CONSTRUCTOR_OR_FACTORY_WITH_BODY: const MessageTemplate(
-    MessageKind.CONST_CONSTRUCTOR_OR_FACTORY_WITH_BODY,
-    "Const constructor or factory can't have a body.",
-    howToFix: "Remove the 'const' keyword or the body.",
+  MessageKind.CONST_CONSTRUCTOR_WITH_BODY: const MessageTemplate(
+    MessageKind.CONST_CONSTRUCTOR_WITH_BODY,
+    "Const constructor can't have a body.",
+    howToFix: "Try removing the 'const' keyword or the body.",
     examples: const [
       r"""
          class C {
@@ -23,6 +23,13 @@ const Map<MessageKind, MessageTemplate> TEMPLATES = const <MessageKind, MessageT
          }
 
          main() => new C();""",
+    ]
+  ),  // Generated. Don't edit.
+  MessageKind.CONST_FACTORY: const MessageTemplate(
+    MessageKind.CONST_FACTORY,
+    "Only redirecting factory constructors can be declared to be 'const'.",
+    howToFix: "Try removing the 'const' keyword or replacing the body with '=' followed by a valid target.",
+    examples: const [
       r"""
          class C {
            const factory C() {}

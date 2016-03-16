@@ -8,6 +8,7 @@
 #include <process.h>  // NOLINT
 
 #include "bin/builtin.h"
+#include "bin/dartutils.h"
 #include "bin/process.h"
 #include "bin/eventhandler.h"
 #include "bin/lockers.h"
@@ -434,7 +435,9 @@ class ProcessStarter {
 
     // Transform input strings to system format.
     const wchar_t* system_path = StringUtilsWin::Utf8ToWide(path_);
-    wchar_t** system_arguments = new wchar_t*[arguments_length];
+    wchar_t** system_arguments;
+    system_arguments = reinterpret_cast<wchar_t**>(
+        Dart_ScopeAllocate(arguments_length * sizeof(*system_arguments)));
     for (int i = 0; i < arguments_length; i++) {
        system_arguments[i] = StringUtilsWin::Utf8ToWide(arguments[i]);
     }
@@ -464,14 +467,13 @@ class ProcessStarter {
       remaining -= written;
       ASSERT(remaining >= 0);
     }
-    free(const_cast<wchar_t*>(system_path));
-    for (int i = 0; i < arguments_length; i++) free(system_arguments[i]);
-    delete[] system_arguments;
 
     // Create environment block if an environment is supplied.
     environment_block_ = NULL;
     if (environment != NULL) {
-      wchar_t** system_environment = new wchar_t*[environment_length];
+      wchar_t** system_environment;
+      system_environment = reinterpret_cast<wchar_t**>(
+          Dart_ScopeAllocate(environment_length * sizeof(*system_environment)));
       // Convert environment strings to system strings.
       for (intptr_t i = 0; i < environment_length; i++) {
         system_environment[i] = StringUtilsWin::Utf8ToWide(environment[i]);
@@ -498,10 +500,6 @@ class ProcessStarter {
       // Block-terminating zero char.
       environment_block_[block_index++] = '\0';
       ASSERT(block_index == block_size);
-      for (intptr_t i = 0; i < environment_length; i++) {
-        free(system_environment[i]);
-      }
-      delete[] system_environment;
     }
 
     system_working_directory_ = NULL;
@@ -518,9 +516,6 @@ class ProcessStarter {
     // Deallocate command-line and environment block strings.
     delete[] command_line_;
     delete[] environment_block_;
-    if (system_working_directory_ != NULL) {
-      free(const_cast<wchar_t*>(system_working_directory_));
-    }
     if (attribute_list_ != NULL) {
       delete_proc_thread_attr_list(attribute_list_);
       free(attribute_list_);

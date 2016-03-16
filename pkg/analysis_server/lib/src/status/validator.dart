@@ -6,13 +6,14 @@ library analysis_server.src.status.validator;
 
 import 'dart:collection';
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisEngine, AnalysisResult, CacheState, ChangeSet;
 import 'package:analyzer/src/generated/error.dart';
@@ -422,14 +423,14 @@ class ElementComparator {
       _write('; found ');
       _writeln(actual.nameOffset);
     }
-    SourceRange expectedRange = expected.docRange;
-    SourceRange actualRange = actual.docRange;
-    if (expectedRange.offset != actualRange.offset ||
-        expectedRange.length != actualRange.length) {
-      _write('Expected documentation range of ');
-      _write(expectedRange);
-      _write('; found ');
-      _writeln(actualRange);
+    String expectedComment = expected.documentationComment;
+    String actualComment = actual.documentationComment;
+    if (expectedComment != actualComment) {
+      _write('Expected documentation comment of "');
+      _write(expectedComment);
+      _write('"; found "');
+      _write(actualComment);
+      _writeln('"');
     }
   }
 

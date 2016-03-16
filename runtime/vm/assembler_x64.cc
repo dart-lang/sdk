@@ -117,6 +117,13 @@ void Assembler::Call(const StubEntry& stub_entry) {
 }
 
 
+void Assembler::CallToRuntime() {
+  movq(TMP, Address(THR, Thread::call_to_runtime_entry_point_offset()));
+  movq(CODE_REG, Address(THR, Thread::call_to_runtime_stub_offset()));
+  call(TMP);
+}
+
+
 void Assembler::pushq(Register reg) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitRegisterREX(reg, REX_NONE);

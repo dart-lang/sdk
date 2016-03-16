@@ -581,6 +581,9 @@ class Isolate : public BaseIsolate {
   void set_deoptimized_code_array(const GrowableObjectArray& value);
   void TrackDeoptimizedCode(const Code& code);
 
+  RawError* sticky_error() const { return sticky_error_; }
+  void clear_sticky_error();
+
   bool compilation_allowed() const { return compilation_allowed_; }
   void set_compilation_allowed(bool allowed) {
     compilation_allowed_ = allowed;
@@ -807,6 +810,8 @@ class Isolate : public BaseIsolate {
   RawGrowableObjectArray* tag_table_;
 
   RawGrowableObjectArray* deoptimized_code_array_;
+
+  RawError* sticky_error_;
 
   // Background compilation.
   BackgroundCompiler* background_compiler_;

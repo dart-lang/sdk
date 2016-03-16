@@ -533,6 +533,13 @@ void Assembler::BranchLinkPatchable(const StubEntry& stub_entry) {
 }
 
 
+void Assembler::BranchLinkToRuntime() {
+  lw(T9, Address(THR, Thread::call_to_runtime_entry_point_offset()));
+  lw(CODE_REG, Address(THR, Thread::call_to_runtime_stub_offset()));
+  jalr(T9);
+}
+
+
 void Assembler::BranchLinkWithEquivalence(const StubEntry& stub_entry,
                                           const Object& equivalence) {
   const Code& target = Code::Handle(stub_entry.code());

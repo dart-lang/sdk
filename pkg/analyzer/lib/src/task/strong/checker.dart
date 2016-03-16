@@ -145,7 +145,7 @@ class CodeChecker extends RecursiveAstVisitor {
     if (expr is ParenthesizedExpression) {
       checkAssignment(expr.expression, type);
     } else {
-      _recordMessage(_checkAssignment(expr, type));
+      _checkDowncast(expr, type);
     }
   }
 
@@ -565,25 +565,15 @@ class CodeChecker extends RecursiveAstVisitor {
     node.visitChildren(this);
   }
 
-  StaticInfo _checkAssignment(Expression expr, DartType toT) {
-    final fromT = _getStaticType(expr);
-    final Coercion c = _coerceTo(fromT, toT);
-    if (c is Identity) return null;
-    if (c is CoercionError) return new StaticTypeError(rules, expr, toT);
-    if (c is Cast) return DownCast.create(rules, expr, c);
-    assert(false);
-    return null;
-  }
-
   void _checkCompoundAssignment(AssignmentExpression expr) {
     var op = expr.operator.type;
     assert(op.isAssignmentOperator && op != TokenType.EQ);
     var methodElement = expr.staticElement;
     if (methodElement == null) {
-      // Dynamic invocation
+      // Dynamic invocation.
       _recordDynamicInvoke(expr, expr.leftHandSide);
     } else {
-      // Sanity check the operator
+      // Sanity check the operator.
       assert(methodElement.isOperator);
       var functionType = methodElement.type;
       var paramTypes = functionType.normalParameterTypes;
@@ -591,7 +581,7 @@ class CodeChecker extends RecursiveAstVisitor {
       assert(functionType.namedParameterTypes.isEmpty);
       assert(functionType.optionalParameterTypes.isEmpty);
 
-      // Check the lhs type
+      // Check the LHS type.
       var staticInfo;
       var rhsType = _getStaticType(expr.rightHandSide);
       var lhsType = _getStaticType(expr.leftHandSide);
@@ -606,10 +596,9 @@ class CodeChecker extends RecursiveAstVisitor {
           // This is also slightly different from spec, but allows us to keep
           // compound operators in the int += num and num += dynamic cases.
           staticInfo = DownCast.create(
-              rules, expr.rightHandSide, Coercion.cast(rhsType, lhsType));
+              rules, expr.rightHandSide, rhsType, lhsType);
           rhsType = lhsType;
         } else {
-          // Static type error
           staticInfo = new StaticTypeError(rules, expr, lhsType);
         }
         _recordMessage(staticInfo);
@@ -618,8 +607,7 @@ class CodeChecker extends RecursiveAstVisitor {
       // Check the rhs type
       if (staticInfo is! CoercionInfo) {
         var paramType = paramTypes.first;
-        staticInfo = _checkAssignment(expr.rightHandSide, paramType);
-        _recordMessage(staticInfo);
+        _checkDowncast(expr.rightHandSide, paramType);
       }
     }
   }
@@ -675,12 +663,18 @@ class CodeChecker extends RecursiveAstVisitor {
     }
   }
 
-  Coercion _coerceTo(DartType fromT, DartType toT) {
-    // We can use anything as void
-    if (toT.isVoid) return Coercion.identity(toT);
+  /// Records a [DownCast] of [expr] to [toT], if there is one.
+  ///
+  /// If [expr] does not require a downcast because it is not related to [toT]
+  /// or is already a subtype of it, does nothing.
+  void _checkDowncast(Expression expr, DartType toT) {
+    DartType fromT = _getStaticType(expr);
 
-    // fromT <: toT, no coercion needed
-    if (rules.isSubtypeOf(fromT, toT)) return Coercion.identity(toT);
+    // We can use anything as void.
+    if (toT.isVoid) return;
+
+    // fromT <: toT, no coercion needed.
+    if (rules.isSubtypeOf(fromT, toT)) return;
 
     // TODO(vsm): We can get rid of the second clause if we disallow
     // all sideways casts - see TODO below.
@@ -690,11 +684,14 @@ class CodeChecker extends RecursiveAstVisitor {
     // well for consistency.
     if ((fromT is FunctionType && rules.getCallMethodType(toT) != null) ||
         (toT is FunctionType && rules.getCallMethodType(fromT) != null)) {
-      return Coercion.error();
+      return;
     }
 
     // Downcast if toT <: fromT
-    if (rules.isSubtypeOf(toT, fromT)) return Coercion.cast(fromT, toT);
+    if (rules.isSubtypeOf(toT, fromT)) {
+      _recordMessage(DownCast.create(rules, expr, fromT, toT));
+      return;
+    }
 
     // TODO(vsm): Once we have generic methods, we should delete this
     // workaround.  These sideways casts are always ones we warn about
@@ -707,10 +704,8 @@ class CodeChecker extends RecursiveAstVisitor {
     // Iterable<T> for some concrete T (e.g. Object).  These are unrelated
     // in the restricted system, but List<dynamic> <: Iterable<T> in dart.
     if (fromT.isAssignableTo(toT)) {
-      return Coercion.cast(fromT, toT);
+      _recordMessage(DownCast.create(rules, expr, fromT, toT));
     }
-
-    return Coercion.error();
   }
 
   // Produce a coercion which coerces something of type fromT

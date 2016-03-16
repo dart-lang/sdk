@@ -87,11 +87,17 @@ CompilationUnit check() {
 
       var librarySource = context.getLibrariesContaining(source).single;
       var resolved = context.resolveCompilationUnit2(source, librarySource);
-      errors.addAll(context.getErrors(source).errors.where((e) =>
-          e.errorCode != HintCode.UNUSED_LOCAL_VARIABLE &&
-          // TODO(jmesserly): these are usually intentional dynamic calls.
-          e.errorCode.name != 'UNDEFINED_METHOD'));
 
+      errors.addAll(context.computeErrors(source).where((e) =>
+          // TODO(jmesserly): these are usually intentional dynamic calls.
+          e.errorCode.name != 'UNDEFINED_METHOD' &&
+          // We don't care about any of these:
+          e.errorCode != HintCode.UNNECESSARY_CAST &&
+          e.errorCode != HintCode.UNUSED_ELEMENT &&
+          e.errorCode != HintCode.UNUSED_FIELD &&
+          e.errorCode != HintCode.UNUSED_IMPORT &&
+          e.errorCode != HintCode.UNUSED_LOCAL_VARIABLE &&
+          e.errorCode != TodoCode.TODO));
       _expectErrors(resolved, errors);
     }
   }

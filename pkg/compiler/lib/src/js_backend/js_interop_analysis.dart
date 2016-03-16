@@ -5,8 +5,6 @@
 /// Analysis to determine how to generate code for typed JavaScript interop.
 library compiler.src.js_backend.js_interop_analysis;
 
-import '../common/names.dart' show Identifiers;
-import '../compiler.dart' show Compiler;
 import '../diagnostics/messages.dart' show MessageKind;
 import '../constants/values.dart'
     show

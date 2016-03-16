@@ -93,9 +93,37 @@ class ErrorProcessor {
     if (context == null) {
       return null;
     }
+
+    // By default, the error is not processed.
+    ErrorProcessor processor;
+
+    // Give strong mode a chance to upgrade it.
+    if (context.analysisOptions.strongMode) {
+      processor = _StrongModeTypeErrorProcessor.instance;
+    }
+
+    // Let the user configure how specific errors are processed.
     List<ErrorProcessor> processors =
         context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
+
     return processors.firstWhere((ErrorProcessor p) => p.appliesTo(error),
-        orElse: () => null);
+        orElse: () => processor);
   }
+}
+
+/// In strong mode, this upgrades static type warnings to errors.
+class _StrongModeTypeErrorProcessor implements ErrorProcessor {
+  static final instance = new _StrongModeTypeErrorProcessor();
+
+  // TODO(rnystrom): As far as I know, this is only used to implement
+  // appliesTo(). Consider making it private in ErrorProcessor if possible.
+  String get code => throw new UnsupportedError(
+      "_StrongModeTypeErrorProcessor is not specific to an error code.");
+
+  /// In strong mode, type warnings are upgraded to errors.
+  ErrorSeverity get severity => ErrorSeverity.ERROR;
+
+  /// Check if this processor applies to the given [error].
+  bool appliesTo(AnalysisError error) =>
+      error.errorCode.type == ErrorType.STATIC_TYPE_WARNING;
 }

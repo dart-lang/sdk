@@ -6,21 +6,12 @@ library services.search_engine;
 
 import 'dart:async';
 
-import 'package:analysis_server/src/services/index/index.dart';
-import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/source.dart';
-
-/**
- * Returns a new [SearchEngine] instance based on the given [Index].
- */
-SearchEngine createSearchEngine(Index index) {
-  return new SearchEngineImpl(index);
-}
 
 /**
  * Instances of the enum [MatchKind] represent the kind of reference that was

@@ -155,6 +155,22 @@ void Timeline::SetVMStreamEnabled(bool enabled) {
 }
 
 
+void Timeline::StreamStateChange(const char* stream_name,
+                                 bool prev,
+                                 bool curr) {
+  if (prev == curr) {
+    return;
+  }
+  if (strcmp(stream_name, "Embedder") == 0) {
+    if (curr && (Timeline::get_start_recording_cb() != NULL)) {
+      Timeline::get_start_recording_cb()();
+    } else if (!curr && (Timeline::get_stop_recording_cb() != NULL)) {
+      Timeline::get_stop_recording_cb()();
+    }
+  }
+}
+
+
 void Timeline::Shutdown() {
   ASSERT(recorder_ != NULL);
   if (FLAG_timeline_dir != NULL) {
@@ -273,6 +289,9 @@ TimelineEventRecorder* Timeline::recorder_ = NULL;
 TimelineStream Timeline::vm_stream_;
 TimelineStream Timeline::vm_api_stream_;
 MallocGrowableArray<char*>* Timeline::enabled_streams_ = NULL;
+Dart_EmbedderTimelineStartRecording Timeline::start_recording_cb_ = NULL;
+Dart_EmbedderTimelineStopRecording Timeline::stop_recording_cb_ = NULL;
+Dart_EmbedderTimelineGetTimeline Timeline::get_timeline_cb_ = NULL;
 
 #define ISOLATE_TIMELINE_STREAM_DEFINE_FLAG(name, enabled_by_default)          \
   bool Timeline::stream_##name##_enabled_ = enabled_by_default;
@@ -1008,6 +1027,14 @@ void TimelineEventRecorder::ThreadBlockCompleteEvent(TimelineEvent* event) {
 }
 
 
+void TimelineEventRecorder::PrintEmbedderJSONEvents(JSONStream* events) {
+  if (Timeline::get_get_timeline_cb() != NULL) {
+    events->PrintCommaIfNeeded();
+    Timeline::get_get_timeline_cb()(AppendJSONStreamConsumer, events);
+  }
+}
+
+
 void TimelineEventRecorder::WriteTo(const char* directory) {
   if (!FLAG_support_service) {
     return;
@@ -1147,6 +1174,7 @@ void TimelineEventRingRecorder::PrintJSON(JSONStream* js,
     JSONArray events(&topLevel, "traceEvents");
     PrintJSONMeta(&events);
     PrintJSONEvents(&events, filter);
+    PrintEmbedderJSONEvents(js);
   }
 }
 
@@ -1158,6 +1186,7 @@ void TimelineEventRingRecorder::PrintTraceEvent(JSONStream* js,
   }
   JSONArray events(js);
   PrintJSONEvents(&events, filter);
+  PrintEmbedderJSONEvents(js);
 }
 
 
@@ -1280,6 +1309,7 @@ void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
     JSONArray events(&topLevel, "traceEvents");
     PrintJSONMeta(&events);
     PrintJSONEvents(&events, filter);
+    PrintEmbedderJSONEvents(js);
   }
 }
 
@@ -1292,6 +1322,7 @@ void TimelineEventEndlessRecorder::PrintTraceEvent(
   }
   JSONArray events(js);
   PrintJSONEvents(&events, filter);
+  PrintEmbedderJSONEvents(js);
 }
 
 

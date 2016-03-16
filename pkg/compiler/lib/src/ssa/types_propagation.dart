@@ -2,7 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of ssa;
+import '../compiler.dart' show Compiler;
+import '../elements/elements.dart';
+import '../js_backend/js_backend.dart';
+import '../types/types.dart';
+import '../universe/selector.dart' show Selector;
+import '../world.dart' show ClassWorld, World;
+
+import 'nodes.dart';
+import 'optimize.dart';
 
 class SsaTypePropagator extends HBaseVisitor implements OptimizationPhase {
   final Map<int, HInstruction> workmap = new Map<int, HInstruction>();

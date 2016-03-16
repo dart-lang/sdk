@@ -11,10 +11,10 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart' show DartObject;
-import 'package:analyzer/src/generated/element_handle.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart'
     show Namespace, TypeProvider;
@@ -25,7 +25,7 @@ import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../generated/resolver_test.dart';
+import '../../generated/resolver_test_case.dart';
 import '../../reflective_tests.dart';
 import 'summary_common.dart' show canonicalize;
 

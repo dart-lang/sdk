@@ -53,7 +53,7 @@ DEFINE_NATIVE_ENTRY(AssertionError_throwNew, 2) {
 // Allocate and throw a new TypeError or CastError.
 // Arg0: index of the token of the failed type check.
 // Arg1: src value.
-// Arg2: dst type name.
+// Arg2: dst type.
 // Arg3: dst name.
 // Arg4: type error message.
 // Return value: none, throws an exception.
@@ -64,14 +64,13 @@ DEFINE_NATIVE_ENTRY(TypeError_throwNew, 5) {
       TokenPosition(Smi::CheckedHandle(arguments->NativeArgAt(0)).Value());
   const Instance& src_value =
       Instance::CheckedHandle(arguments->NativeArgAt(1));
-  const String& dst_type_name =
-      String::CheckedHandle(arguments->NativeArgAt(2));
+  const AbstractType& dst_type =
+      AbstractType::CheckedHandle(arguments->NativeArgAt(2));
   const String& dst_name = String::CheckedHandle(arguments->NativeArgAt(3));
   const String& error_msg = String::CheckedHandle(arguments->NativeArgAt(4));
-  const String& src_type_name = String::Handle(
-      AbstractType::Handle(src_value.GetType()).UserVisibleName());
-  Exceptions::CreateAndThrowTypeError(location, src_type_name,
-                                      dst_type_name, dst_name, error_msg);
+  const AbstractType& src_type = AbstractType::Handle(src_value.GetType());
+  Exceptions::CreateAndThrowTypeError(
+      location, src_type, dst_type, dst_name, error_msg);
   UNREACHABLE();
   return Object::null();
 }

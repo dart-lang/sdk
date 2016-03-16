@@ -518,7 +518,6 @@ class _FilterSink extends ByteConversionSink {
       _closed = true;
       throw e;
     }
-    if (!_closed) _filter.end();
     _closed = true;
     _sink.close();
   }
@@ -544,13 +543,6 @@ abstract class _Filter {
    * make sure an 'end' packet is written on the stream.
    */
   List<int> processed({bool flush: true, bool end: false});
-
-  /**
-   * Mark the filter as closed. Always call this method for any filter created
-   * to avoid leaking resources. [end] can be called at any time, but any
-   * successive calls to [process] or [processed] will fail.
-   */
-  void end();
 
   external static _Filter _newZLibDeflateFilter(bool gzip, int level,
                                                 int windowBits, int memLevel,

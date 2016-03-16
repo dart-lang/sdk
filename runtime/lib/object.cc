@@ -138,10 +138,11 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 4) {
     const char* result_str = is_instance_of ? "true" : "false";
     OS::Print("Native Object.instanceOf: result %s\n", result_str);
     const AbstractType& instance_type =
-        AbstractType::Handle(instance.GetType());
+        AbstractType::Handle(zone, instance.GetType());
     OS::Print("  instance type: %s\n",
-              String::Handle(instance_type.Name()).ToCString());
-    OS::Print("  test type: %s\n", String::Handle(type.Name()).ToCString());
+              String::Handle(zone, instance_type.Name()).ToCString());
+    OS::Print("  test type: %s\n",
+              String::Handle(zone, type.Name()).ToCString());
     if (!bound_error.IsNull()) {
       OS::Print("  bound error: %s\n", bound_error.ToErrorCString());
     }
@@ -155,7 +156,7 @@ DEFINE_NATIVE_ENTRY(Object_instanceOf, 4) {
     String& bound_error_message = String::Handle(
         zone, String::New(bound_error.ToErrorCString()));
     Exceptions::CreateAndThrowTypeError(
-        location, Symbols::Empty(), Symbols::Empty(),
+        location, AbstractType::Handle(zone), AbstractType::Handle(zone),
         Symbols::Empty(), bound_error_message);
     UNREACHABLE();
   }
@@ -224,15 +225,16 @@ DEFINE_NATIVE_ENTRY(Object_instanceOfString, 2) {
 
 
 DEFINE_NATIVE_ENTRY(Object_as, 3) {
-  const Instance& instance = Instance::CheckedHandle(arguments->NativeArgAt(0));
+  const Instance& instance =
+      Instance::CheckedHandle(zone, arguments->NativeArgAt(0));
   const TypeArguments& instantiator_type_arguments =
-      TypeArguments::CheckedHandle(arguments->NativeArgAt(1));
-  const AbstractType& type =
-      AbstractType::CheckedHandle(arguments->NativeArgAt(2));
+      TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(1));
+  AbstractType& type =
+      AbstractType::CheckedHandle(zone, arguments->NativeArgAt(2));
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsMalformed());
   ASSERT(!type.IsMalbounded());
-  Error& bound_error = Error::Handle();
+  Error& bound_error = Error::Handle(zone);
   if (instance.IsNull()) {
     return instance.raw();
   }
@@ -243,10 +245,11 @@ DEFINE_NATIVE_ENTRY(Object_as, 3) {
     const char* result_str = is_instance_of ? "true" : "false";
     OS::Print("Object.as: result %s\n", result_str);
     const AbstractType& instance_type =
-        AbstractType::Handle(instance.GetType());
+        AbstractType::Handle(zone, instance.GetType());
     OS::Print("  instance type: %s\n",
-              String::Handle(instance_type.Name()).ToCString());
-    OS::Print("  cast type: %s\n", String::Handle(type.Name()).ToCString());
+              String::Handle(zone, instance_type.Name()).ToCString());
+    OS::Print("  cast type: %s\n",
+              String::Handle(zone, type.Name()).ToCString());
     if (!bound_error.IsNull()) {
       OS::Print("  bound error: %s\n", bound_error.ToErrorCString());
     }
@@ -257,33 +260,23 @@ DEFINE_NATIVE_ENTRY(Object_as, 3) {
     ASSERT(caller_frame != NULL);
     const TokenPosition location = caller_frame->GetTokenPos();
     const AbstractType& instance_type =
-        AbstractType::Handle(instance.GetType());
-    const String& instance_type_name =
-        String::Handle(instance_type.UserVisibleName());
-    String& type_name = String::Handle();
+        AbstractType::Handle(zone, instance.GetType());
     if (!type.IsInstantiated()) {
       // Instantiate type before reporting the error.
-      const AbstractType& instantiated_type = AbstractType::Handle(
-          type.InstantiateFrom(instantiator_type_arguments, NULL,
-                               NULL, NULL, Heap::kNew));
-      // Note that instantiated_type may be malformed.
-      type_name = instantiated_type.UserVisibleName();
-    } else {
-      type_name = type.UserVisibleName();
+      type = type.InstantiateFrom(instantiator_type_arguments, NULL,
+                                  NULL, NULL, Heap::kNew);
+      // Note that the instantiated type may be malformed.
     }
-    String& bound_error_message =  String::Handle();
     if (bound_error.IsNull()) {
-      const String& dst_name = String::ZoneHandle(
-          Symbols::New(Exceptions::kCastErrorDstName));
-
       Exceptions::CreateAndThrowTypeError(
-          location, instance_type_name, type_name,
-          dst_name, Object::null_string());
+          location, instance_type, type,
+          Symbols::InTypeCast(), Object::null_string());
     } else {
       ASSERT(isolate->type_checks());
-      bound_error_message = String::New(bound_error.ToErrorCString());
+      const String& bound_error_message =
+          String::Handle(zone, String::New(bound_error.ToErrorCString()));
       Exceptions::CreateAndThrowTypeError(
-          location, instance_type_name, Symbols::Empty(),
+          location, instance_type, AbstractType::Handle(zone),
           Symbols::Empty(), bound_error_message);
     }
     UNREACHABLE();
@@ -294,14 +287,14 @@ DEFINE_NATIVE_ENTRY(Object_as, 3) {
 
 DEFINE_NATIVE_ENTRY(AbstractType_toString, 1) {
   const AbstractType& type =
-      AbstractType::CheckedHandle(arguments->NativeArgAt(0));
+      AbstractType::CheckedHandle(zone, arguments->NativeArgAt(0));
   return type.UserVisibleName();
 }
 
 
 DEFINE_NATIVE_ENTRY(LibraryPrefix_invalidateDependentCode, 1) {
   const LibraryPrefix& prefix =
-      LibraryPrefix::CheckedHandle(arguments->NativeArgAt(0));
+      LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
   prefix.InvalidateDependentCode();
   return Bool::Get(true).raw();
 }
@@ -309,7 +302,7 @@ DEFINE_NATIVE_ENTRY(LibraryPrefix_invalidateDependentCode, 1) {
 
 DEFINE_NATIVE_ENTRY(LibraryPrefix_load, 1) {
   const LibraryPrefix& prefix =
-      LibraryPrefix::CheckedHandle(arguments->NativeArgAt(0));
+      LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
   bool hasCompleted = prefix.LoadLibrary();
   return Bool::Get(hasCompleted).raw();
 }
@@ -317,19 +310,19 @@ DEFINE_NATIVE_ENTRY(LibraryPrefix_load, 1) {
 
 DEFINE_NATIVE_ENTRY(LibraryPrefix_loadError, 1) {
   const LibraryPrefix& prefix =
-      LibraryPrefix::CheckedHandle(arguments->NativeArgAt(0));
+      LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
   // Currently all errors are Dart instances, e.g. I/O errors
   // created by deferred loading code. LanguageErrors from
   // failed loading or finalization attempts are propagated and result
   // in the isolate's death.
-  const Instance& error = Instance::Handle(prefix.LoadError());
+  const Instance& error = Instance::Handle(zone, prefix.LoadError());
   return error.raw();
 }
 
 
 DEFINE_NATIVE_ENTRY(LibraryPrefix_isLoaded, 1) {
   const LibraryPrefix& prefix =
-      LibraryPrefix::CheckedHandle(arguments->NativeArgAt(0));
+      LibraryPrefix::CheckedHandle(zone, arguments->NativeArgAt(0));
   return Bool::Get(prefix.is_loaded()).raw();
 }
 

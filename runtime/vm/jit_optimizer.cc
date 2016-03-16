@@ -2690,14 +2690,12 @@ void JitOptimizer::ReplaceWithTypeCast(InstanceCallInstr* call) {
       return;
     }
   }
-  const String& dst_name = String::ZoneHandle(Z,
-      Symbols::New(Exceptions::kCastErrorDstName));
   AssertAssignableInstr* assert_as =
       new(Z) AssertAssignableInstr(call->token_pos(),
                                    new(Z) Value(left),
                                    new(Z) Value(type_args),
                                    type,
-                                   dst_name,
+                                   Symbols::InTypeCast(),
                                    call->deopt_id());
   ReplaceCall(call, assert_as);
 }

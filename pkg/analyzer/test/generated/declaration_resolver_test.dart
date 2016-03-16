@@ -17,7 +17,7 @@ import 'package:unittest/unittest.dart';
 
 import '../reflective_tests.dart';
 import '../utils.dart';
-import 'resolver_test.dart';
+import 'resolver_test_case.dart';
 import 'test_support.dart';
 
 main() {
@@ -267,7 +267,7 @@ enum Fruit {apple, pear}
     analysisContext.computeResult(source, LIBRARY_ELEMENT1);
     CompilationUnit unit =
         analysisContext.computeResult(target, RESOLVED_UNIT1);
-    CompilationUnit unit2 = _cloneResolveUnit(unit);
+    _cloneResolveUnit(unit);
   }
 
   void test_functionDeclaration_getter() {

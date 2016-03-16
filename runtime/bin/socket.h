@@ -189,7 +189,6 @@ class InterfaceSocketAddress {
 
   ~InterfaceSocketAddress() {
     delete socket_address_;
-    free(const_cast<char*>(interface_name_));
   }
 
   SocketAddress* socket_address() const { return socket_address_; }

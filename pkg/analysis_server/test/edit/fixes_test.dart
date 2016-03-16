@@ -7,14 +7,12 @@ library test.edit.fixes;
 import 'dart:async';
 
 import 'package:analysis_server/plugin/protocol/protocol.dart';
-import 'package:analysis_server/src/domain_analysis.dart';
 import 'package:analysis_server/src/edit/edit_domain.dart';
 import 'package:plugin/manager.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart' hide ERROR;
 
 import '../analysis_abstract.dart';
-import '../mocks.dart';
 import '../utils.dart';
 
 main() {
@@ -27,13 +25,13 @@ class FixesTest extends AbstractAnalysisTest {
   @override
   void setUp() {
     super.setUp();
-    createProject();
     ExtensionManager manager = new ExtensionManager();
     manager.processPlugins([server.serverPlugin]);
     handler = new EditDomainHandler(server);
   }
 
   test_fixUndefinedClass() async {
+    createProject();
     addTestFile('''
 main() {
   Future<String> x = null;
@@ -52,6 +50,7 @@ main() {
   }
 
   test_hasFixes() async {
+    createProject();
     addTestFile('''
 foo() {
   print(1)
@@ -77,24 +76,52 @@ bar() {
   }
 
   test_overlayOnlyFile() async {
-    // add an overlay-only file
-    {
-      testCode = '''
+    createProject();
+    testCode = '''
 main() {
-  print(1)
+print(1)
 }
 ''';
-      Request request = new AnalysisUpdateContentParams(
-          {testFile: new AddContentOverlay(testCode)}).toRequest('0');
-      Response response =
-          new AnalysisDomainHandler(server).handleRequest(request);
-      expect(response, isResponseSuccess('0'));
-    }
+    _addOverlay(testFile, testCode);
     // ask for fixes
     await waitForTasksFinished();
     List<AnalysisErrorFixes> errorFixes = await _getFixesAt('print(1)');
     expect(errorFixes, hasLength(1));
     _isSyntacticErrorWithSingleFix(errorFixes[0]);
+  }
+
+  test_suggestImportFromDifferentAnalysisRoot() async {
+    // Set up two projects.
+    resourceProvider..newFolder("/project1")..newFolder("/project2");
+    handleSuccessfulRequest(
+        new AnalysisSetAnalysisRootsParams(["/project1", "/project2"], [])
+            .toRequest('0'),
+        handler: analysisHandler);
+
+    // Set up files.
+    testFile = "/project1/main.dart";
+    testCode = "main() { print(new Foo()); }";
+    _addOverlay(testFile, testCode);
+    // Add another file in the same project that imports the target file.
+    // This ensures it will be analyzed as an implicit Source.
+    _addOverlay("/project1/another.dart", 'import "../project2/target.dart";');
+    _addOverlay("/project2/target.dart", "class Foo() {}");
+
+    await waitForTasksFinished();
+
+    List<String> fixes = (await _getFixesAt('Foo()'))
+        .single
+        .fixes
+        .map((f) => f.message)
+        .toList();
+    expect(fixes, contains("Import library '../project2/target.dart'"));
+  }
+
+  void _addOverlay(String name, String contents) {
+    Request request =
+        new AnalysisUpdateContentParams({name: new AddContentOverlay(contents)})
+            .toRequest('0');
+    handleSuccessfulRequest(request, handler: analysisHandler);
   }
 
   Future<List<AnalysisErrorFixes>> _getFixes(int offset) async {

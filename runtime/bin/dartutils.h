@@ -165,6 +165,23 @@ class DartUtils {
                                   strlen(str));
   }
 
+  // Allocate length bytes for a C string with Dart_ScopeAllocate.
+  static char* ScopedCString(intptr_t length) {
+    char* result = NULL;
+    result = reinterpret_cast<char*>(
+        Dart_ScopeAllocate(length * sizeof(*result)));
+    return result;
+  }
+
+  // Copy str into a buffer allocated with Dart_ScopeAllocate.
+  static char* ScopedCopyCString(const char* str) {
+    size_t str_len = strlen(str);
+    char* result = ScopedCString(str_len + 1);
+    memmove(result, str, str_len);
+    result[str_len] = '\0';
+    return result;
+  }
+
   // Create a new Dart InternalError object with the provided message.
   static Dart_Handle NewError(const char* format, ...);
   static Dart_Handle NewInternalError(const char* message);

@@ -8,7 +8,6 @@ import 'glue.dart';
 
 import '../../closure.dart' show
     ClosureClassElement;
-import '../../common.dart';
 import '../../common/codegen.dart' show
     CodegenRegistry;
 import '../../constants/values.dart';
@@ -497,7 +496,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   @override
   js.Expression visitVariableUse(tree_ir.VariableUse node) {
-    return buildVariableAccess(node.variable);
+    return buildVariableAccess(node.variable)
+        .withSourceInformation(node.sourceInformation);
   }
 
   js.Expression buildVariableAccess(tree_ir.Variable variable) {
@@ -537,20 +537,25 @@ class CodeGenerator extends tree_ir.StatementVisitor
   js.Expression makeAssignment(
       js.Expression leftHand,
       tree_ir.Expression value,
-      {BuiltinOperator compound}) {
+      {SourceInformation sourceInformation,
+       BuiltinOperator compound}) {
     if (isOneConstant(value)) {
       if (compound == BuiltinOperator.NumAdd) {
-        return new js.Prefix('++', leftHand);
+        return new js.Prefix('++', leftHand)
+            .withSourceInformation(sourceInformation);
       }
       if (compound == BuiltinOperator.NumSubtract) {
-        return new js.Prefix('--', leftHand);
+        return new js.Prefix('--', leftHand)
+            .withSourceInformation(sourceInformation);
       }
     }
     if (compound != null) {
       return new js.Assignment.compound(leftHand,
-          getAsCompoundOperator(compound), visitExpression(value));
+          getAsCompoundOperator(compound), visitExpression(value))
+          .withSourceInformation(sourceInformation);
     }
-    return new js.Assignment(leftHand, visitExpression(value));
+    return new js.Assignment(leftHand, visitExpression(value))
+        .withSourceInformation(sourceInformation);
   }
 
   @override
@@ -561,10 +566,12 @@ class CodeGenerator extends tree_ir.StatementVisitor
       tree_ir.Expression left = rhs.arguments[0];
       tree_ir.Expression right = rhs.arguments[1];
       if (left is tree_ir.VariableUse && left.variable == node.variable) {
-        return makeAssignment(variable, right, compound: rhs.operator);
+        return makeAssignment(variable, right, compound: rhs.operator,
+            sourceInformation: node.sourceInformation);
       }
     }
-    return makeAssignment(variable, node.value);
+    return makeAssignment(
+        variable, node.value, sourceInformation: node.sourceInformation);
   }
 
   @override
@@ -620,7 +627,9 @@ class CodeGenerator extends tree_ir.StatementVisitor
     js.Expression exp = visitExpression(node.expression);
     if (node.next is tree_ir.Unreachable && emitUnreachableAsReturn.last) {
       // Emit as 'return exp' to assist local analysis in the VM.
-      accumulator.add(new js.Return(exp));
+      SourceInformation sourceInformation = node.expression.sourceInformation;
+      accumulator.add(
+          new js.Return(exp).withSourceInformation(sourceInformation));
       return null;
     } else {
       accumulator.add(new js.ExpressionStatement(exp));
@@ -649,12 +658,14 @@ class CodeGenerator extends tree_ir.StatementVisitor
     bool thenHasFallthrough = (fallthrough.useCount > usesBefore);
     if (thenHasFallthrough) {
       js.Statement elseBody = buildBodyStatement(node.elseStatement);
-      accumulator.add(new js.If(condition, thenBody, elseBody));
+      accumulator.add(new js.If(condition, thenBody, elseBody)
+          .withSourceInformation(node.sourceInformation));
       return null;
     } else {
       // The 'then' body cannot complete normally, so emit a short 'if'
       // and put the 'else' body after it.
-      accumulator.add(new js.If.noElse(condition, thenBody));
+      accumulator.add(new js.If.noElse(condition, thenBody)
+          .withSourceInformation(node.sourceInformation));
       return node.elseStatement;
     }
   }
@@ -880,7 +891,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
     registry.registerStaticUse(new StaticUse.fieldGet(node.field));
     return new js.PropertyAccess(
         visitExpression(node.object),
-        glue.instanceFieldPropertyName(node.field));
+        glue.instanceFieldPropertyName(node.field))
+        .withSourceInformation(node.sourceInformation);
   }
 
   @override
@@ -890,7 +902,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
         new js.PropertyAccess(
             visitExpression(node.object),
             glue.instanceFieldPropertyName(node.field));
-    return makeAssignment(field, node.value, compound: node.compound);
+    return makeAssignment(field, node.value, compound: node.compound,
+        sourceInformation: node.sourceInformation);
   }
 
   @override
@@ -900,7 +913,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
       // Tear off a method.
       registry.registerStaticUse(
           new StaticUse.staticTearOff(node.element.declaration));
-      return glue.isolateStaticClosureAccess(node.element);
+      return glue.isolateStaticClosureAccess(node.element)
+        .withSourceInformation(node.sourceInformation);
     }
     if (node.useLazyGetter) {
       // Read a lazily initialized field.
@@ -913,7 +927,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
     // Read an eagerly initialized field.
     registry.registerStaticUse(
         new StaticUse.staticGet(node.element.declaration));
-    return glue.staticFieldAccess(node.element);
+    return glue.staticFieldAccess(node.element)
+        .withSourceInformation(node.sourceInformation);
   }
 
   @override
@@ -922,7 +937,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
     registry.registerStaticUse(
         new StaticUse.staticSet(node.element.declaration));
     js.Expression field = glue.staticFieldAccess(node.element);
-    return makeAssignment(field, node.value, compound: node.compound);
+    return makeAssignment(field, node.value, compound: node.compound,
+        sourceInformation: node.sourceInformation);
   }
 
   @override
@@ -1011,7 +1027,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
     }
     // TODO(sra,johnniwinther): Should this be in CodegenRegistry?
     glue.registerNativeBehavior(node.nativeBehavior, node);
-    return node.codeTemplate.instantiate(visitExpressionList(node.arguments));
+    return node.codeTemplate.instantiate(visitExpressionList(node.arguments))
+        .withSourceInformation(node.sourceInformation);
   }
 
   @override
@@ -1063,86 +1080,91 @@ class CodeGenerator extends tree_ir.StatementVisitor
   @override
   js.Expression visitApplyBuiltinOperator(tree_ir.ApplyBuiltinOperator node) {
     List<js.Expression> args = visitExpressionList(node.arguments);
-    switch (node.operator) {
-      case BuiltinOperator.NumAdd:
-        return new js.Binary('+', args[0], args[1]);
-      case BuiltinOperator.NumSubtract:
-        return new js.Binary('-', args[0], args[1]);
-      case BuiltinOperator.NumMultiply:
-        return new js.Binary('*', args[0], args[1]);
-      case BuiltinOperator.NumDivide:
-        return new js.Binary('/', args[0], args[1]);
-      case BuiltinOperator.NumRemainder:
-        return new js.Binary('%', args[0], args[1]);
-      case BuiltinOperator.NumTruncatingDivideToSigned32:
-        return js.js('(# / #) | 0', args);
-      case BuiltinOperator.NumAnd:
-        return normalizeBitOp(js.js('# & #', args), node);
-      case BuiltinOperator.NumOr:
-        return normalizeBitOp(js.js('# | #', args), node);
-      case BuiltinOperator.NumXor:
-        return normalizeBitOp(js.js('# ^ #', args), node);
-      case BuiltinOperator.NumLt:
-        return new js.Binary('<', args[0], args[1]);
-      case BuiltinOperator.NumLe:
-        return new js.Binary('<=', args[0], args[1]);
-      case BuiltinOperator.NumGt:
-        return new js.Binary('>', args[0], args[1]);
-      case BuiltinOperator.NumGe:
-        return new js.Binary('>=', args[0], args[1]);
-      case BuiltinOperator.NumShl:
-        return normalizeBitOp(js.js('# << #', args), node);
-      case BuiltinOperator.NumShr:
-        // No normalization required since output is always uint32.
-        return js.js('# >>> #', args);
-      case BuiltinOperator.NumBitNot:
-        return js.js('(~#) >>> 0', args);
-      case BuiltinOperator.NumNegate:
-        return js.js('-#', args);
-      case BuiltinOperator.StringConcatenate:
-        if (args.isEmpty) return js.string('');
-        return args.reduce((e1,e2) => new js.Binary('+', e1, e2));
-      case BuiltinOperator.CharCodeAt:
-        return js.js('#.charCodeAt(#)', args);
-      case BuiltinOperator.Identical:
-        registry.registerStaticUse(new StaticUse.staticInvoke(
-            glue.identicalFunction, new CallStructure.unnamed(args.length)));
-        return buildStaticHelperInvocation(glue.identicalFunction, args);
-      case BuiltinOperator.StrictEq:
-        return new js.Binary('===', args[0], args[1]);
-      case BuiltinOperator.StrictNeq:
-        return new js.Binary('!==', args[0], args[1]);
-      case BuiltinOperator.LooseEq:
-        return new js.Binary('==', args[0], args[1]);
-      case BuiltinOperator.LooseNeq:
-        return new js.Binary('!=', args[0], args[1]);
-      case BuiltinOperator.IsFalsy:
-        return new js.Prefix('!', args[0]);
-      case BuiltinOperator.IsNumber:
-        return js.js('typeof # === "number"', args);
-      case BuiltinOperator.IsNotNumber:
-        return js.js('typeof # !== "number"', args);
-      case BuiltinOperator.IsFloor:
-        return js.js('Math.floor(#) === #', args);
-      case BuiltinOperator.IsInteger:
-        return js.js('typeof # === "number" && Math.floor(#) === #', args);
-      case BuiltinOperator.IsNotInteger:
-        return js.js('typeof # !== "number" || Math.floor(#) !== #', args);
-      case BuiltinOperator.IsUnsigned32BitInteger:
-        return js.js('# >>> 0 === #', args);
-      case BuiltinOperator.IsNotUnsigned32BitInteger:
-        return js.js('# >>> 0 !== #', args);
-      case BuiltinOperator.IsFixedLengthJSArray:
-        // TODO(sra): Remove boolify (i.e. !!).
-        return js.js(r'!!#.fixed$length', args);
-      case BuiltinOperator.IsExtendableJSArray:
-        return js.js(r'!#.fixed$length', args);
-      case BuiltinOperator.IsModifiableJSArray:
-        return js.js(r'!#.immutable$list', args);
-      case BuiltinOperator.IsUnmodifiableJSArray:
-        // TODO(sra): Remove boolify (i.e. !!).
-        return js.js(r'!!#.immutable$list', args);
+
+    js.Expression createExpression() {
+      switch (node.operator) {
+        case BuiltinOperator.NumAdd:
+          return new js.Binary('+', args[0], args[1]);
+        case BuiltinOperator.NumSubtract:
+          return new js.Binary('-', args[0], args[1]);
+        case BuiltinOperator.NumMultiply:
+          return new js.Binary('*', args[0], args[1]);
+        case BuiltinOperator.NumDivide:
+          return new js.Binary('/', args[0], args[1]);
+        case BuiltinOperator.NumRemainder:
+          return new js.Binary('%', args[0], args[1]);
+        case BuiltinOperator.NumTruncatingDivideToSigned32:
+          return js.js('(# / #) | 0', args);
+        case BuiltinOperator.NumAnd:
+          return normalizeBitOp(js.js('# & #', args), node);
+        case BuiltinOperator.NumOr:
+          return normalizeBitOp(js.js('# | #', args), node);
+        case BuiltinOperator.NumXor:
+          return normalizeBitOp(js.js('# ^ #', args), node);
+        case BuiltinOperator.NumLt:
+          return new js.Binary('<', args[0], args[1]);
+        case BuiltinOperator.NumLe:
+          return new js.Binary('<=', args[0], args[1]);
+        case BuiltinOperator.NumGt:
+          return new js.Binary('>', args[0], args[1]);
+        case BuiltinOperator.NumGe:
+          return new js.Binary('>=', args[0], args[1]);
+        case BuiltinOperator.NumShl:
+          return normalizeBitOp(js.js('# << #', args), node);
+        case BuiltinOperator.NumShr:
+          // No normalization required since output is always uint32.
+          return js.js('# >>> #', args);
+        case BuiltinOperator.NumBitNot:
+          return js.js('(~#) >>> 0', args);
+        case BuiltinOperator.NumNegate:
+          return js.js('-#', args);
+        case BuiltinOperator.StringConcatenate:
+          if (args.isEmpty) return js.string('');
+          return args.reduce((e1,e2) => new js.Binary('+', e1, e2));
+        case BuiltinOperator.CharCodeAt:
+          return js.js('#.charCodeAt(#)', args);
+        case BuiltinOperator.Identical:
+          registry.registerStaticUse(new StaticUse.staticInvoke(
+              glue.identicalFunction, new CallStructure.unnamed(args.length)));
+          return buildStaticHelperInvocation(glue.identicalFunction, args);
+        case BuiltinOperator.StrictEq:
+          return new js.Binary('===', args[0], args[1]);
+        case BuiltinOperator.StrictNeq:
+          return new js.Binary('!==', args[0], args[1]);
+        case BuiltinOperator.LooseEq:
+          return new js.Binary('==', args[0], args[1]);
+        case BuiltinOperator.LooseNeq:
+          return new js.Binary('!=', args[0], args[1]);
+        case BuiltinOperator.IsFalsy:
+          return new js.Prefix('!', args[0]);
+        case BuiltinOperator.IsNumber:
+          return js.js('typeof # === "number"', args);
+        case BuiltinOperator.IsNotNumber:
+          return js.js('typeof # !== "number"', args);
+        case BuiltinOperator.IsFloor:
+          return js.js('Math.floor(#) === #', args);
+        case BuiltinOperator.IsInteger:
+          return js.js('typeof # === "number" && Math.floor(#) === #', args);
+        case BuiltinOperator.IsNotInteger:
+          return js.js('typeof # !== "number" || Math.floor(#) !== #', args);
+        case BuiltinOperator.IsUnsigned32BitInteger:
+          return js.js('# >>> 0 === #', args);
+        case BuiltinOperator.IsNotUnsigned32BitInteger:
+          return js.js('# >>> 0 !== #', args);
+        case BuiltinOperator.IsFixedLengthJSArray:
+          // TODO(sra): Remove boolify (i.e. !!).
+          return js.js(r'!!#.fixed$length', args);
+        case BuiltinOperator.IsExtendableJSArray:
+          return js.js(r'!#.fixed$length', args);
+        case BuiltinOperator.IsModifiableJSArray:
+          return js.js(r'!#.immutable$list', args);
+        case BuiltinOperator.IsUnmodifiableJSArray:
+          // TODO(sra): Remove boolify (i.e. !!).
+          return js.js(r'!!#.immutable$list', args);
+      }
     }
+
+    return createExpression().withSourceInformation(node.sourceInformation);
   }
 
   /// Add a uint32 normalization `op >>> 0` to [op] if it is not in 31-bit

@@ -12,7 +12,7 @@ import '../js_backend/js_backend.dart';
 /// the field initializer of a [CreateInstance] instruction.
 ///
 /// This compensates for a somewhat common pattern where fields are initialized
-/// in the constructor body instead of using intializers. For example:
+/// in the constructor body instead of using initializers. For example:
 ///
 ///     class Foo {
 ///       var x, y;

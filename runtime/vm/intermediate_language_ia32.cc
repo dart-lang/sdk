@@ -6561,8 +6561,11 @@ void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Load code object from frame.
   __ movl(target_reg, Address(EBP, kPcMarkerSlotFromFp * kWordSize));
-  // Load instructions entry point.
-  __ movl(target_reg, FieldAddress(target_reg, Code::entry_point_offset()));
+  // Load instructions object (active_instructions and Code::entry_point() may
+  // not point to this instruction object any more; see Code::DisableDartCode).
+  __ movl(target_reg,
+      FieldAddress(target_reg, Code::saved_instructions_offset()));
+  __ addl(target_reg, Immediate(Instructions::HeaderSize() - kHeapObjectTag));
 
   // Add the offset.
   Register offset_reg = locs()->in(0).reg();

@@ -55,10 +55,10 @@ mainUnresolved(a, b) {
 }
 ''');
     await findMemberReferences('foo');
-    assertHasRef(SearchResultKind.WRITE, 'foo = 1;', false);
-    assertHasRef(SearchResultKind.WRITE, 'foo = 2;', false);
-    assertHasRef(SearchResultKind.READ, 'foo); // resolved A', false);
-    assertHasRef(SearchResultKind.READ, 'foo); // resolved B', false);
+    assertNoResult(SearchResultKind.WRITE, 'foo = 1;');
+    assertNoResult(SearchResultKind.WRITE, 'foo = 2;');
+    assertNoResult(SearchResultKind.READ, 'foo); // resolved A');
+    assertNoResult(SearchResultKind.READ, 'foo); // resolved B');
     assertHasRef(SearchResultKind.WRITE, 'foo = 10;', true);
     assertHasRef(SearchResultKind.WRITE, 'foo = 20;', true);
     assertHasRef(SearchResultKind.READ, 'foo); // unresolved A', true);
@@ -83,8 +83,8 @@ mainUnresolved(a, b) {
 }
 ''');
     await findMemberReferences('foo');
-    assertHasRef(SearchResultKind.READ, 'foo); // resolved A', false);
-    assertHasRef(SearchResultKind.READ, 'foo); // resolved B', false);
+    assertNoResult(SearchResultKind.READ, 'foo); // resolved A');
+    assertNoResult(SearchResultKind.READ, 'foo); // resolved B');
     assertHasRef(SearchResultKind.READ, 'foo); // unresolved A', true);
     assertHasRef(SearchResultKind.READ, 'foo); // unresolved B', true);
   }
@@ -107,8 +107,8 @@ mainUnresolved(a, b) {
 }
 ''');
     await findMemberReferences('foo');
-    assertHasRef(SearchResultKind.INVOCATION, 'foo(1)', false);
-    assertHasRef(SearchResultKind.INVOCATION, 'foo(2)', false);
+    assertNoResult(SearchResultKind.INVOCATION, 'foo(1)');
+    assertNoResult(SearchResultKind.INVOCATION, 'foo(2)');
     assertHasRef(SearchResultKind.INVOCATION, 'foo(10)', true);
     assertHasRef(SearchResultKind.INVOCATION, 'foo(20)', true);
   }

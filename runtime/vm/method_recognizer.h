@@ -245,34 +245,20 @@ namespace dart {
 
 
 #define TYPED_DATA_LIB_INTRINSIC_LIST(V)                                       \
-  V(_Int8Array, _new, TypedData_Int8Array_new, 1025382728)                     \
-  V(_Uint8Array, _new, TypedData_Uint8Array_new, 1772090315)                   \
-  V(_Uint8ClampedArray, _new, TypedData_Uint8ClampedArray_new, 1817995920)     \
-  V(_Int16Array, _new, TypedData_Int16Array_new, 857482727)                    \
-  V(_Uint16Array, _new, TypedData_Uint16Array_new, 224498043)                  \
-  V(_Int32Array, _new, TypedData_Int32Array_new, 662785062)                    \
-  V(_Uint32Array, _new, TypedData_Uint32Array_new, 457777042)                  \
-  V(_Int64Array, _new, TypedData_Int64Array_new, 11424776)                     \
-  V(_Uint64Array, _new, TypedData_Uint64Array_new, 580841705)                  \
-  V(_Float32Array, _new, TypedData_Float32Array_new, 141243383)                \
-  V(_Float64Array, _new, TypedData_Float64Array_new, 2054234881)               \
-  V(_Float32x4Array, _new, TypedData_Float32x4Array_new, 1277009760)           \
-  V(_Int32x4Array, _new, TypedData_Int32x4Array_new, 366994774)                \
-  V(_Float64x2Array, _new, TypedData_Float64x2Array_new, 134695262)            \
-  V(_Int8Array, ., TypedData_Int8Array_factory, 484088513)                     \
-  V(_Uint8Array, ., TypedData_Uint8Array_factory, 1830561671)                  \
-  V(_Uint8ClampedArray, ., TypedData_Uint8ClampedArray_factory, 980532456)     \
-  V(_Int16Array, ., TypedData_Int16Array_factory, 2095566414)                  \
-  V(_Uint16Array, ., TypedData_Uint16Array_factory, 248627537)                 \
-  V(_Int32Array, ., TypedData_Int32Array_factory, 836050202)                   \
-  V(_Uint32Array, ., TypedData_Uint32Array_factory, 102123815)                 \
-  V(_Int64Array, ., TypedData_Int64Array_factory, 1820730838)                  \
-  V(_Uint64Array, ., TypedData_Uint64Array_factory, 1668399825)                \
-  V(_Float32Array, ., TypedData_Float32Array_factory, 307228626)               \
-  V(_Float64Array, ., TypedData_Float64Array_factory, 1700923139)              \
-  V(_Float32x4Array, ., TypedData_Float32x4Array_factory, 1083909924)          \
-  V(_Int32x4Array, ., TypedData_Int32x4Array_factory, 803703492)               \
-  V(_Float64x2Array, ., TypedData_Float64x2Array_factory, 944719167)           \
+  V(_Int8Array, ., TypedData_Int8Array_factory, 1058992179)                    \
+  V(_Uint8Array, ., TypedData_Uint8Array_factory, 1807546986)                  \
+  V(_Uint8ClampedArray, ., TypedData_Uint8ClampedArray_factory, 548459853)     \
+  V(_Int16Array, ., TypedData_Int16Array_factory, 1796211480)                  \
+  V(_Uint16Array, ., TypedData_Uint16Array_factory, 1960868166)                \
+  V(_Int32Array, ., TypedData_Int32Array_factory, 372258367)                   \
+  V(_Uint32Array, ., TypedData_Uint32Array_factory, 1446612721)                \
+  V(_Int64Array, ., TypedData_Int64Array_factory, 964028713)                   \
+  V(_Uint64Array, ., TypedData_Uint64Array_factory, 721823156)                 \
+  V(_Float32Array, ., TypedData_Float32Array_factory, 392399264)               \
+  V(_Float64Array, ., TypedData_Float64Array_factory, 42503976)                \
+  V(_Float32x4Array, ., TypedData_Float32x4Array_factory, 1960198693)          \
+  V(_Int32x4Array, ., TypedData_Int32x4Array_factory, 1433742555)              \
+  V(_Float64x2Array, ., TypedData_Float64x2Array_factory, 165463437)           \
 
 #define GRAPH_TYPED_DATA_INTRINSICS_LIST(V) \
   V(_Uint8Array, [], Uint8ArrayGetIndexed, 513704632)                          \
@@ -518,18 +504,18 @@ RECOGNIZED_LIST(DEFINE_ENUM_LIST)
   V(_ListFactory, kArrayCid, 184405219)                                        \
   V(_GrowableListWithData, kGrowableObjectArrayCid, 131424500)                 \
   V(_GrowableListFactory, kGrowableObjectArrayCid, 664918385)                  \
-  V(_Int8ArrayFactory, kTypedDataInt8ArrayCid, 484088513)                      \
-  V(_Uint8ArrayFactory, kTypedDataUint8ArrayCid, 1830561671)                   \
-  V(_Uint8ClampedArrayFactory, kTypedDataUint8ClampedArrayCid, 980532456)      \
-  V(_Int16ArrayFactory, kTypedDataInt16ArrayCid, 2095566414)                   \
-  V(_Uint16ArrayFactory, kTypedDataUint16ArrayCid, 248627537)                  \
-  V(_Int32ArrayFactory, kTypedDataInt32ArrayCid, 836050202)                    \
-  V(_Uint32ArrayFactory, kTypedDataUint32ArrayCid, 102123815)                  \
-  V(_Int64ArrayFactory, kTypedDataInt64ArrayCid, 1820730838)                   \
-  V(_Uint64ArrayFactory, kTypedDataUint64ArrayCid, 1668399825)                 \
-  V(_Float64ArrayFactory, kTypedDataFloat64ArrayCid, 1700923139)               \
-  V(_Float32ArrayFactory, kTypedDataFloat32ArrayCid, 307228626)                \
-  V(_Float32x4ArrayFactory, kTypedDataFloat32x4ArrayCid, 1083909924)           \
+  V(_Int8ArrayFactory, kTypedDataInt8ArrayCid, 1058992179)                     \
+  V(_Uint8ArrayFactory, kTypedDataUint8ArrayCid, 1807546986)                   \
+  V(_Uint8ClampedArrayFactory, kTypedDataUint8ClampedArrayCid, 548459853)      \
+  V(_Int16ArrayFactory, kTypedDataInt16ArrayCid, 1796211480)                   \
+  V(_Uint16ArrayFactory, kTypedDataUint16ArrayCid, 1960868166)                 \
+  V(_Int32ArrayFactory, kTypedDataInt32ArrayCid, 372258367)                    \
+  V(_Uint32ArrayFactory, kTypedDataUint32ArrayCid, 1446612721)                 \
+  V(_Int64ArrayFactory, kTypedDataInt64ArrayCid, 964028713)                    \
+  V(_Uint64ArrayFactory, kTypedDataUint64ArrayCid, 721823156)                  \
+  V(_Float64ArrayFactory, kTypedDataFloat64ArrayCid, 42503976)                 \
+  V(_Float32ArrayFactory, kTypedDataFloat32ArrayCid, 392399264)                \
+  V(_Float32x4ArrayFactory, kTypedDataFloat32x4ArrayCid, 1960198693)           \
 
 
 // Class that recognizes factories and returns corresponding result cid.

@@ -7,7 +7,6 @@ library test.services.src.search.hierarchy;
 import 'dart:async';
 
 import 'package:analysis_server/src/services/index/index.dart';
-import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -29,7 +28,7 @@ class HierarchyTest extends AbstractSingleUnitTest {
 
   void setUp() {
     super.setUp();
-    index = createLocalMemoryIndex();
+    index = createMemoryIndex();
     searchEngine = new SearchEngineImpl(index);
   }
 
@@ -316,6 +315,6 @@ class F implements A {}
 
   void _indexTestUnit(String code) {
     resolveTestUnit(code);
-    index.index(context, testUnit);
+    index.indexUnit(testUnit);
   }
 }

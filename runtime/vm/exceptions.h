@@ -11,28 +11,21 @@
 namespace dart {
 
 // Forward declarations.
+class AbstractType;
 class Array;
-class Class;
 class DartFrameIterator;
 class Error;
 class Instance;
 class Integer;
-class Object;
 class RawInstance;
 class RawObject;
 class RawScript;
 class RawStacktrace;
-class RawString;
-class Script;
-class StackFrame;
-class Stacktrace;
 class String;
 class Thread;
 
 class Exceptions : AllStatic {
  public:
-  static const char* kCastErrorDstName;
-
   static void Throw(Thread* thread, const Instance& exception);
   static void ReThrow(Thread* thread,
                       const Instance& exception,
@@ -44,10 +37,10 @@ class Exceptions : AllStatic {
   static RawScript* GetCallerScript(DartFrameIterator* iterator);
   static RawInstance* NewInstance(const char* class_name);
   static void CreateAndThrowTypeError(TokenPosition location,
-                                      const String& src_type_name,
-                                      const String& dst_type_name,
+                                      const AbstractType& src_type,
+                                      const AbstractType& dst_type,
                                       const String& dst_name,
-                                      const String& error_msg);
+                                      const String& bound_error_msg);
 
   enum ExceptionType {
     kNone,

@@ -1404,6 +1404,31 @@ class B {
 ''');
   }
 
+  test_createField_getter_qualified_propagatedType() async {
+    resolveTestUnit('''
+class A {
+  A get self => this;
+}
+main() {
+  var a = new A();
+  int v = a.self.test;
+}
+''');
+    await assertHasFix(
+        DartFixKind.CREATE_FIELD,
+        '''
+class A {
+  int test;
+
+  A get self => this;
+}
+main() {
+  var a = new A();
+  int v = a.self.test;
+}
+''');
+  }
+
   test_createField_getter_unqualified_instance_asInvocationArgument() async {
     resolveTestUnit('''
 class A {
@@ -1979,6 +2004,31 @@ class A {
 }
 class B {
   get test => null;
+}
+''');
+  }
+
+  test_createGetter_qualified_propagatedType() async {
+    resolveTestUnit('''
+class A {
+  A get self => this;
+}
+main() {
+  var a = new A();
+  int v = a.self.test;
+}
+''');
+    await assertHasFix(
+        DartFixKind.CREATE_GETTER,
+        '''
+class A {
+  A get self => this;
+
+  int get test => null;
+}
+main() {
+  var a = new A();
+  int v = a.self.test;
 }
 ''');
   }

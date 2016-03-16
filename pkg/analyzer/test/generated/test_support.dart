@@ -19,7 +19,7 @@ import 'package:plugin/manager.dart';
 import 'package:plugin/plugin.dart';
 import 'package:unittest/unittest.dart';
 
-import 'resolver_test.dart';
+import 'analysis_context_factory.dart';
 
 /**
  * The class `EngineTestCase` defines utility methods for making assertions.

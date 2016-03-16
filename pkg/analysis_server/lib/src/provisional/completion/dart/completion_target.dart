@@ -4,10 +4,10 @@
 
 library analysis_server.src.provisional.completion.dart.completion_target;
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 int _computeArgIndex(AstNode containingNode, Object entity) {

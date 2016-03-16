@@ -1157,6 +1157,11 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     const bool success = helper.Compile(pipeline);
     if (!success) {
       if (optimized) {
+        if (Compiler::IsBackgroundCompilation()) {
+          // Try again later, background compilation may abort because of
+          // state change during compilation.
+          return Error::null();
+        }
         // Optimizer bailed out. Disable optimizations and never try again.
         if (trace_compiler) {
           THR_Print("--> disabling optimizations for '%s'\n",
@@ -1294,11 +1299,8 @@ RawError* Compiler::CompileOptimizedFunction(Thread* thread,
 
   // Optimization must happen in non-mutator/Dart thread if background
   // compilation is on. OSR compilation still occurs in the main thread.
-  // TODO(Srdjan): Remove assert allowance for regular expression functions
-  // once they can be compiled in background.
   ASSERT((osr_id != kNoOSRDeoptId) || !FLAG_background_compilation ||
-         !thread->IsMutatorThread() ||
-         function.IsIrregexpFunction());
+         !thread->IsMutatorThread());
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);
   return CompileFunctionHelper(pipeline,
@@ -1504,7 +1506,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
 
 void Compiler::AbortBackgroundCompilation(intptr_t deopt_id) {
   if (FLAG_trace_compiler) {
-    THR_Print("ABORT background compilation.");
+    THR_Print("ABORT background compilation\n");
   }
   ASSERT(Compiler::IsBackgroundCompilation());
   Thread::Current()->long_jump_base()->Jump(

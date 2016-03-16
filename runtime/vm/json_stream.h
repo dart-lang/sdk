@@ -55,6 +55,12 @@ enum JSONRpcErrorCode {
   kIsolateMustBeRunnable   = 105,
 };
 
+// Expected that user_data is a JSONStream*.
+void AppendJSONStreamConsumer(Dart_StreamConsumer_State state,
+                              const char* stream_name,
+                              const uint8_t* buffer,
+                              intptr_t buffer_length,
+                              void* user_data);
 
 class JSONStream : ValueObject {
  public:
@@ -129,6 +135,12 @@ class JSONStream : ValueObject {
   // Append |serialized_object| to the stream.
   void AppendSerializedObject(const char* serialized_object);
 
+  void PrintCommaIfNeeded();
+
+  // Append |buffer| to the stream.
+  void AppendSerializedObject(const uint8_t* buffer,
+                              intptr_t buffer_length);
+
   // Append |serialized_object| to the stream with |property_name|.
   void AppendSerializedObject(const char* property_name,
                               const char* serialized_object);
@@ -196,7 +208,6 @@ class JSONStream : ValueObject {
                      const TimelineEventBlock* timeline_event_block);
   void PrintPropertyVM(const char* name, bool ref = true);
   void PrintPropertyName(const char* name);
-  void PrintCommaIfNeeded();
   bool NeedComma();
 
   bool AddDartString(const String& s, intptr_t offset, intptr_t count);

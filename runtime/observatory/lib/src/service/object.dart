@@ -1171,6 +1171,7 @@ class Isolate extends ServiceObjectOwner {
 
   static const kCallSitesReport = '_CallSites';
   static const kPossibleBreakpointsReport = 'PossibleBreakpoints';
+  static const kProfileReport = '_Profile';
 
   Future<ServiceMap> getSourceReport(List<String> report_kinds,
                                      [Script script,

@@ -27,7 +27,7 @@ import 'package:unittest/unittest.dart';
 import '../reflective_tests.dart';
 import '../utils.dart';
 import 'engine_test.dart';
-import 'resolver_test.dart';
+import 'resolver_test_case.dart';
 import 'test_support.dart';
 
 main() {

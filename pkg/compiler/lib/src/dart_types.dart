@@ -9,8 +9,6 @@ import 'dart:math' show min;
 import 'common.dart';
 import 'common/resolution.dart' show
     Resolution;
-import 'compiler.dart' show
-    Compiler;
 import 'core_types.dart';
 import 'elements/modelx.dart' show
     LibraryElementX,

@@ -52,7 +52,7 @@ dart/optimized_stacktrace_test: RuntimeError
 dart/inline_stack_frame_test: RuntimeError, Pass # Issue 7953
 
 [ $compiler == dart2js && $cps_ir && $checked ]
-dart/inline_stack_frame_test: Crash # Unable to compile ArgumentError.message
+dart/*: Skip # checked mode + cpsir not supported yet. Issue 25761
 
 [ $compiler == dart2js || $compiler == dart2analyzer ]
 # Data uri's not supported by dart2js or the analyzer.

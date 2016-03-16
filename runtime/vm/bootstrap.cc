@@ -355,8 +355,11 @@ RawError* Bootstrap::LoadandCompileScripts() {
     // Eagerly compile the _Closure class as it is the class of all closure
     // instances. This allows us to just finalize function types
     // without going through the hoops of trying to compile their scope class.
-    const Class& cls =
+    Class& cls =
         Class::Handle(zone, isolate->object_store()->closure_class());
+    Compiler::CompileClass(cls);
+    // Eagerly compile Bool class, bool constants are used from within compiler.
+    cls = isolate->object_store()->bool_class();
     Compiler::CompileClass(cls);
   }
 

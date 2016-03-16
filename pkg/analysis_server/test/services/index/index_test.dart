@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/index2/index2.dart';
+import 'package:analysis_server/src/services/index/index.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
@@ -15,27 +15,29 @@ import '../../utils.dart';
 
 main() {
   initializeTestEnvironment();
-  defineReflectiveTests(Index2Test);
+  defineReflectiveTests(IndexTest);
 }
 
 @reflectiveTest
-class Index2Test extends AbstractSingleUnitTest {
-  Index2 index = createMemoryIndex2();
+class IndexTest extends AbstractSingleUnitTest {
+  Index index = createMemoryIndex();
 
   /**
    * Return the [Location] with given properties, or fail.
    */
   Location findLocation(List<Location> locations, String libraryUri,
-      String unitUri, int offset, int length) {
+      String unitUri, int offset, int length, bool isQualified) {
     for (Location location in locations) {
       if (location.libraryUri == libraryUri &&
           location.unitUri == unitUri &&
           location.offset == offset &&
-          location.length == length) {
+          location.length == length &&
+          location.isQualified == isQualified) {
         return location;
       }
     }
-    fail('No at $offset with length $length in\n${locations.join('\n')}');
+    fail('No at $offset with length $length qualified=$isQualified in\n'
+        '${locations.join('\n')}');
     return null;
   }
 
@@ -43,25 +45,27 @@ class Index2Test extends AbstractSingleUnitTest {
    * Return the [Location] with given properties, or fail.
    */
   Location findLocationSource(
-      List<Location> locations, Source source, String search,
+      List<Location> locations, Source source, String search, bool isQualified,
       {int length}) {
     String code = source.contents.data;
     int offset = code.indexOf(search);
     expect(offset, isNonNegative, reason: 'Not found "$search" in\n$code');
     length ??= getLeadingIdentifierLength(search);
     String uri = source.uri.toString();
-    return findLocation(locations, uri, uri, offset, length);
+    return findLocation(locations, uri, uri, offset, length, isQualified);
   }
 
   /**
    * Return the [Location] with given properties, or fail.
    */
-  Location findLocationTest(List<Location> locations, String search,
+  Location findLocationTest(
+      List<Location> locations, String search, bool isQualified,
       {int length}) {
     int offset = findOffset(search);
     length ??= getLeadingIdentifierLength(search);
     String testUri = testSource.uri.toString();
-    return findLocation(locations, testUri, testUri, offset, length);
+    return findLocation(
+        locations, testUri, testUri, offset, length, isQualified);
   }
 
   void setUp() {
@@ -132,8 +136,8 @@ class C extends A {} // C
     ClassElement elementA = testUnitElement.getType('A');
     List<Location> locations =
         await index.getRelations(elementA, IndexRelationKind.IS_EXTENDED_BY);
-    findLocationTest(locations, 'A {} // B');
-    findLocationSource(locations, source2, 'A {} // C');
+    findLocationTest(locations, 'A {} // B', false);
+    findLocationSource(locations, source2, 'A {} // C', false);
   }
 
   test_getRelations_isReferencedBy() async {
@@ -144,40 +148,135 @@ main(int a, int b) {
     ClassElement intElement = context.typeProvider.intType.element;
     List<Location> locations = await index.getRelations(
         intElement, IndexRelationKind.IS_REFERENCED_BY);
-    findLocationTest(locations, 'int a');
-    findLocationTest(locations, 'int b');
+    findLocationTest(locations, 'int a', false);
+    findLocationTest(locations, 'int b', false);
   }
 
-  test_getUnresolvedMemberReferences() async {
+  test_getUnresolvedMemberReferences_qualified_resolved() async {
     _indexTestUnit('''
 class A {
   var test; // A
-  mainA() {
-    test(); // a-inv-r-nq
-    test = 1; // a-ref-r-nq
-    test += 2; // a-ref-r-nq
-    print(test); // a-ref-r-nq
-  }
 }
-main(A a, p) {
-  a.test(); // a-inv-r-q
-  a.test = 1; // a-ref-r-q
-  a.test += 2; // a-ref-r-q
-  print(a.test); // a-ref-r-q
-  p.test(); // p-inv-ur-q
-  p.test = 1; // p-ref-ur-q
-  p.test += 2; // p-ref-ur-q
-  print(p.test); // p-ref-ur-q
+main(A a) {
+  print(a.test);
+  a.test = 1;
+  a.test += 2;
+  a.test();
+}
+''');
+    List<Location> locations =
+        await index.getUnresolvedMemberReferences('test');
+    expect(locations, isEmpty);
+  }
+
+  test_getUnresolvedMemberReferences_qualified_unresolved() async {
+    _indexTestUnit('''
+class A {
+  var test; // A
+}
+main(p) {
+  print(p.test);
+  p.test = 1;
+  p.test += 2;
+  p.test();
   print(p.test2); // not requested
 }
 ''');
     List<Location> locations =
         await index.getUnresolvedMemberReferences('test');
     expect(locations, hasLength(4));
-    findLocationTest(locations, 'test(); // p-inv-ur-q');
-    findLocationTest(locations, 'test = 1; // p-ref-ur-q');
-    findLocationTest(locations, 'test += 2; // p-ref-ur-q');
-    findLocationTest(locations, 'test); // p-ref-ur-q');
+    findLocationTest(locations, 'test);', true);
+    findLocationTest(locations, 'test = 1;', true);
+    findLocationTest(locations, 'test += 2;', true);
+    findLocationTest(locations, 'test();', true);
+  }
+
+  test_getUnresolvedMemberReferences_unqualified_resolved() async {
+    _indexTestUnit('''
+class A {
+  var test;
+  m() {
+    print(test);
+    test = 1;
+    test += 2;
+    test();
+  }
+}
+''');
+    List<Location> locations =
+        await index.getUnresolvedMemberReferences('test');
+    expect(locations, isEmpty);
+  }
+
+  test_getUnresolvedMemberReferences_unqualified_unresolved() async {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+class A {
+  m() {
+    print(test);
+    test = 1;
+    test += 2;
+    test();
+    print(test2); // not requested
+  }
+}
+''');
+    List<Location> locations =
+        await index.getUnresolvedMemberReferences('test');
+    expect(locations, hasLength(4));
+    findLocationTest(locations, 'test);', false);
+    findLocationTest(locations, 'test = 1;', false);
+    findLocationTest(locations, 'test += 2;', false);
+    findLocationTest(locations, 'test();', false);
+  }
+
+  test_indexUnit_nullUnit() async {
+    index.indexUnit(null);
+  }
+
+  test_indexUnit_nullUnitElement() async {
+    resolveTestUnit('');
+    testUnit.element = null;
+    index.indexUnit(testUnit);
+  }
+
+  test_removeContext() async {
+    _indexTestUnit('''
+class A {}
+''');
+    RegExp regExp = new RegExp(r'^A$');
+    expect(await index.getDefinedNames(regExp, IndexNameKind.topLevel),
+        hasLength(1));
+    // remove the context - no top-level declarations
+    index.removeContext(context);
+    expect(
+        await index.getDefinedNames(regExp, IndexNameKind.topLevel), isEmpty);
+  }
+
+  test_removeUnit() async {
+    RegExp regExp = new RegExp(r'^[AB]$');
+    Source sourceA = addSource('/a.dart', 'class A {}');
+    Source sourceB = addSource('/b.dart', 'class B {}');
+    CompilationUnit unitA = resolveLibraryUnit(sourceA);
+    CompilationUnit unitB = resolveLibraryUnit(sourceB);
+    index.indexUnit(unitA);
+    index.indexUnit(unitB);
+    {
+      List<Location> locations =
+          await index.getDefinedNames(regExp, IndexNameKind.topLevel);
+      expect(locations, hasLength(2));
+      expect(locations.map((l) => l.libraryUri),
+          unorderedEquals([sourceA.uri.toString(), sourceB.uri.toString()]));
+    }
+    // remove a.dart - no a.dart location
+    index.removeUnit(context, sourceA, sourceA);
+    {
+      List<Location> locations =
+          await index.getDefinedNames(regExp, IndexNameKind.topLevel);
+      expect(locations, hasLength(1));
+      expect(locations.map((l) => l.libraryUri),
+          unorderedEquals([sourceB.uri.toString()]));
+    }
   }
 
   /**

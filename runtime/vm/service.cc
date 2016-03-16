@@ -2400,15 +2400,11 @@ static bool GetCoverage(Thread* thread, JSONStream* js) {
 }
 
 
-static const char* kCallSitesStr = "_CallSites";
-static const char* kCoverageStr = "Coverage";
-static const char* kPossibleBreakpointsStr = "PossibleBreakpoints";
-
-
 static const char* const report_enum_names[] = {
-  kCallSitesStr,
-  kCoverageStr,
-  kPossibleBreakpointsStr,
+  SourceReport::kCallSitesStr,
+  SourceReport::kCoverageStr,
+  SourceReport::kPossibleBreakpointsStr,
+  SourceReport::kProfileStr,
   NULL,
 };
 
@@ -2436,12 +2432,14 @@ static bool GetSourceReport(Thread* thread, JSONStream* js) {
   const char** reports = reports_parameter->Parse(thread->zone(), reports_str);
   intptr_t report_set = 0;
   while (*reports != NULL) {
-    if (strcmp(*reports, kCallSitesStr) == 0) {
+    if (strcmp(*reports, SourceReport::kCallSitesStr) == 0) {
       report_set |= SourceReport::kCallSites;
-    } else if (strcmp(*reports, kCoverageStr) == 0) {
+    } else if (strcmp(*reports, SourceReport::kCoverageStr) == 0) {
       report_set |= SourceReport::kCoverage;
-    } else if (strcmp(*reports, kPossibleBreakpointsStr) == 0) {
+    } else if (strcmp(*reports, SourceReport::kPossibleBreakpointsStr) == 0) {
       report_set |= SourceReport::kPossibleBreakpoints;
+    } else if (strcmp(*reports, SourceReport::kProfileStr) == 0) {
+      report_set |= SourceReport::kProfile;
     }
     reports++;
   }

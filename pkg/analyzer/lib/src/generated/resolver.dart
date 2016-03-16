@@ -73,6 +73,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   ClassElement _enclosingClass;
 
   /**
+   * A flag indicating whether a surrounding member (compilation unit or class)
+   * is deprecated.
+   */
+  bool inDeprecatedMember = false;
+
+  /**
    * The error reporter by which errors will be reported.
    */
   final ErrorReporter _errorReporter;
@@ -138,13 +144,19 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
     ClassElement outerClass = _enclosingClass;
+    bool wasInDeprecatedMember = inDeprecatedMember;
+    ClassElement element = node.element;
+    if (element != null && element.isDeprecated) {
+      inDeprecatedMember = true;
+    }
     try {
-      _enclosingClass = node.element;
+      _enclosingClass = element;
       // Commented out until we decide that we want this hint in the analyzer
       //    checkForOverrideEqualsButNotHashCode(node);
       return super.visitClassDeclaration(node);
     } finally {
       _enclosingClass = outerClass;
+      inDeprecatedMember = wasInDeprecatedMember;
     }
   }
 
@@ -174,8 +186,17 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitFunctionDeclaration(FunctionDeclaration node) {
-    _checkForMissingReturn(node.returnType, node.functionExpression.body);
-    return super.visitFunctionDeclaration(node);
+    bool wasInDeprecatedMember = inDeprecatedMember;
+    ExecutableElement element = node.element;
+    if (element != null && element.isDeprecated) {
+      inDeprecatedMember = true;
+    }
+    try {
+      _checkForMissingReturn(node.returnType, node.functionExpression.body);
+      return super.visitFunctionDeclaration(node);
+    } finally {
+      inDeprecatedMember = wasInDeprecatedMember;
+    }
   }
 
   @override
@@ -216,11 +237,20 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitMethodDeclaration(MethodDeclaration node) {
-    // This was determined to not be a good hint, see: dartbug.com/16029
-    //checkForOverridingPrivateMember(node);
-    _checkForMissingReturn(node.returnType, node.body);
-    _checkForUnnecessaryNoSuchMethod(node);
-    return super.visitMethodDeclaration(node);
+    bool wasInDeprecatedMember = inDeprecatedMember;
+    ExecutableElement element = node.element;
+    if (element != null && element.isDeprecated) {
+      inDeprecatedMember = true;
+    }
+    try {
+      // This was determined to not be a good hint, see: dartbug.com/16029
+      //checkForOverridingPrivateMember(node);
+      _checkForMissingReturn(node.returnType, node.body);
+      _checkForUnnecessaryNoSuchMethod(node);
+      return super.visitMethodDeclaration(node);
+    } finally {
+      inDeprecatedMember = wasInDeprecatedMember;
+    }
   }
 
   @override
@@ -504,8 +534,19 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    * @return `true` if and only if a hint code is generated on the passed node
    * See [HintCode.DEPRECATED_MEMBER_USE].
    */
-  bool _checkForDeprecatedMemberUse(Element element, AstNode node) {
-    if (element != null && element.isDeprecated) {
+  void _checkForDeprecatedMemberUse(Element element, AstNode node) {
+    bool isDeprecated(Element element) {
+      if (element == null) {
+        return false;
+      } else if (element is PropertyAccessorElement && element.isSynthetic) {
+        element = (element as PropertyAccessorElement).variable;
+        if (element == null) {
+          return false;
+        }
+      }
+      return element.isDeprecated;
+    }
+    if (!inDeprecatedMember && isDeprecated(element)) {
       String displayName = element.displayName;
       if (element is ConstructorElement) {
         // TODO(jwren) We should modify ConstructorElement.getDisplayName(),
@@ -519,9 +560,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
       }
       _errorReporter.reportErrorForNode(
           HintCode.DEPRECATED_MEMBER_USE, node, [displayName]);
-      return true;
     }
-    return false;
   }
 
   /**
@@ -538,9 +577,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
    * @return `true` if and only if a hint code is generated on the passed node
    * See [HintCode.DEPRECATED_MEMBER_USE].
    */
-  bool _checkForDeprecatedMemberUseAtIdentifier(SimpleIdentifier identifier) {
+  void _checkForDeprecatedMemberUseAtIdentifier(SimpleIdentifier identifier) {
     if (identifier.inDeclarationContext()) {
-      return false;
+      return;
     }
     AstNode parent = identifier.parent;
     if ((parent is ConstructorName && identical(identifier, parent.name)) ||
@@ -549,9 +588,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<Object> {
         (parent is SuperConstructorInvocation &&
             identical(identifier, parent.constructorName)) ||
         parent is HideCombinator) {
-      return false;
+      return;
     }
-    return _checkForDeprecatedMemberUse(identifier.bestElement, identifier);
+    _checkForDeprecatedMemberUse(identifier.bestElement, identifier);
   }
 
   /**

@@ -35,7 +35,6 @@ main() {
         resourceProvider,
         new MockPackageMapProvider(),
         null,
-        null,
         serverPlugin,
         new AnalysisServerOptions(),
         () => new MockSdk(),

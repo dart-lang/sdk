@@ -10278,15 +10278,12 @@ AstNode* Parser::ThrowTypeError(TokenPosition type_pos,
       type_pos, Integer::ZoneHandle(Z, Integer::New(type_pos.value()))));
   // Src value argument.
   arguments->Add(new(Z) LiteralNode(type_pos, Object::null_instance()));
-  // Dst type name argument.
-  arguments->Add(new(Z) LiteralNode(type_pos, Symbols::Malformed()));
+  // Dst type argument.
+  arguments->Add(new(Z) LiteralNode(type_pos, type));
   // Dst name argument.
   arguments->Add(new(Z) LiteralNode(type_pos, Symbols::Empty()));
-  // Malformed type error or malbounded type error.
-  const Error& error = Error::Handle(Z, type.error());
-  ASSERT(!error.IsNull());
-  arguments->Add(new(Z) LiteralNode(type_pos, String::ZoneHandle(Z,
-      Symbols::New(error.ToErrorCString()))));
+  // Bound error msg argument.
+  arguments->Add(new(Z) LiteralNode(type_pos, Object::null_instance()));
   return MakeStaticCall(Symbols::TypeError(), method_name, arguments);
 }
 
@@ -13288,7 +13285,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
       (la3 == Token::kLT) || (la3 == Token::kPERIOD) || (la3 == Token::kHASH);
 
   LibraryPrefix& prefix = LibraryPrefix::ZoneHandle(Z);
-  AbstractType& type = AbstractType::Handle(Z,
+  AbstractType& type = AbstractType::ZoneHandle(Z,
       ParseType(ClassFinalizer::kCanonicalizeWellFormed,
                 allow_deferred_type,
                 consume_unresolved_prefix,
@@ -13297,7 +13294,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
   if (FLAG_load_deferred_eagerly &&
       !prefix.IsNull() && prefix.is_deferred_load() && !prefix.is_loaded()) {
     // Add runtime check.
-    Type& malformed_type = Type::Handle(Z);
+    Type& malformed_type = Type::ZoneHandle(Z);
     malformed_type = ClassFinalizer::NewFinalizedMalformedType(
         Error::Handle(Z),  // No previous error.
         script_,
@@ -13417,7 +13414,7 @@ AstNode* Parser::ParseNewOperator(Token::Kind op_kind) {
                                     NULL);  // No existing function.
     } else if (constructor.IsRedirectingFactory()) {
       ClassFinalizer::ResolveRedirectingFactory(type_class, constructor);
-      Type& redirect_type = Type::Handle(Z, constructor.RedirectionType());
+      Type& redirect_type = Type::ZoneHandle(Z, constructor.RedirectionType());
       if (!redirect_type.IsMalformedOrMalbounded() &&
           !redirect_type.IsInstantiated()) {
         // The type arguments of the redirection type are instantiated from the

@@ -12,7 +12,6 @@ import '../elements/elements.dart';
 import '../io/source_information.dart' show SourceInformation;
 import '../types/types.dart' show TypeMask;
 import '../universe/selector.dart' show Selector;
-import '../universe/side_effects.dart';
 
 import 'builtin_operator.dart';
 export 'builtin_operator.dart';
@@ -1113,10 +1112,11 @@ class ApplyBuiltinMethod extends Primitive {
 ///
 class GetMutable extends Primitive {
   final Reference<MutableVariable> variableRef;
+  final SourceInformation sourceInformation;
 
   MutableVariable get variable => variableRef.definition;
 
-  GetMutable(MutableVariable variable)
+  GetMutable(MutableVariable variable, {this.sourceInformation})
       : this.variableRef = new Reference<MutableVariable>(variable);
 
   accept(Visitor visitor) => visitor.visitGetMutable(this);
@@ -1139,11 +1139,15 @@ class GetMutable extends Primitive {
 class SetMutable extends Primitive {
   final Reference<MutableVariable> variableRef;
   final Reference<Primitive> valueRef;
+  final SourceInformation sourceInformation;
 
   MutableVariable get variable => variableRef.definition;
   Primitive get value => valueRef.definition;
 
-  SetMutable(MutableVariable variable, Primitive value)
+  SetMutable(
+      MutableVariable variable,
+      Primitive value,
+      {this.sourceInformation})
       : this.variableRef = new Reference<MutableVariable>(variable),
         this.valueRef = new Reference<Primitive>(value);
 
@@ -1165,6 +1169,7 @@ class SetMutable extends Primitive {
 class GetField extends Primitive {
   final Reference<Primitive> objectRef;
   FieldElement field;
+  final SourceInformation sourceInformation;
 
   /// True if the field never changes value.
   final bool isFinal;
@@ -1176,7 +1181,11 @@ class GetField extends Primitive {
 
   Primitive get object => objectRef.definition;
 
-  GetField(Primitive object, this.field, {this.isFinal: false})
+  GetField(
+      Primitive object,
+      this.field,
+      {this.sourceInformation,
+       this.isFinal: false})
       : this.objectRef = new Reference<Primitive>(object);
 
   accept(Visitor visitor) => visitor.visitGetField(this);
@@ -1199,11 +1208,16 @@ class SetField extends Primitive {
   final Reference<Primitive> objectRef;
   FieldElement field;
   final Reference<Primitive> valueRef;
+  final SourceInformation sourceInformation;
 
   Primitive get object => objectRef.definition;
   Primitive get value => valueRef.definition;
 
-  SetField(Primitive object, this.field, Primitive value)
+  SetField(
+      Primitive object,
+      this.field,
+      Primitive value,
+      {this.sourceInformation})
       : this.objectRef = new Reference<Primitive>(object),
         this.valueRef = new Reference<Primitive>(value);
 
@@ -1434,7 +1448,7 @@ class CreateInstance extends Primitive {
   /// May be `null` to indicate that no type information is needed because the
   /// compiler determined that the type information for instances of this class
   /// is not needed at runtime.
-  final Reference<Primitive> typeInformationRef;
+  Reference<Primitive> typeInformationRef;
 
   final SourceInformation sourceInformation;
 
@@ -1528,13 +1542,18 @@ class ForeignCode extends UnsafePrimitive {
   final TypeMask storedType;
   final List<Reference<Primitive>> argumentRefs;
   final native.NativeBehavior nativeBehavior;
+  final SourceInformation sourceInformation;
   final FunctionElement dependency;
 
   Primitive argument(int n) => argumentRefs[n].definition;
   Iterable<Primitive> get arguments => _dereferenceList(argumentRefs);
 
-  ForeignCode(this.codeTemplate, this.storedType, List<Primitive> arguments,
+  ForeignCode(
+      this.codeTemplate,
+      this.storedType,
+      List<Primitive> arguments,
       this.nativeBehavior,
+      this.sourceInformation,
       {this.dependency})
       : this.argumentRefs = _referenceList(arguments) {
     effects = Effects.from(nativeBehavior.sideEffects);
@@ -2052,6 +2071,7 @@ class Branch extends TailExpression {
   final Reference<Primitive> conditionRef;
   final Reference<Continuation> trueContinuationRef;
   final Reference<Continuation> falseContinuationRef;
+  final SourceInformation sourceInformation;
 
   Primitive get condition => conditionRef.definition;
   Continuation get trueContinuation => trueContinuationRef.definition;
@@ -2064,7 +2084,11 @@ class Branch extends TailExpression {
   /// boolean.
   bool isStrictCheck;
 
-  Branch(Primitive condition, Continuation trueCont, Continuation falseCont,
+  Branch(
+      Primitive condition,
+      Continuation trueCont,
+      Continuation falseCont,
+      this.sourceInformation,
       {bool strict})
       : this.conditionRef = new Reference<Primitive>(condition),
         trueContinuationRef = new Reference<Continuation>(trueCont),
@@ -2074,12 +2098,18 @@ class Branch extends TailExpression {
   }
 
   Branch.strict(
-      Primitive condition, Continuation trueCont, Continuation falseCont)
-      : this(condition, trueCont, falseCont, strict: true);
+      Primitive condition,
+      Continuation trueCont,
+      Continuation falseCont,
+      SourceInformation sourceInformation)
+      : this(condition, trueCont, falseCont, sourceInformation, strict: true);
 
   Branch.loose(
-      Primitive condition, Continuation trueCont, Continuation falseCont)
-      : this(condition, trueCont, falseCont, strict: false);
+      Primitive condition,
+      Continuation trueCont,
+      Continuation falseCont,
+      SourceInformation sourceInformation)
+      : this(condition, trueCont, falseCont, sourceInformation, strict: false);
 
   accept(BlockVisitor visitor) => visitor.visitBranch(this);
 
@@ -2820,7 +2850,8 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   }
 
   Definition visitSetMutable(SetMutable node) {
-    return new SetMutable(getCopy(node.variableRef), getCopy(node.valueRef));
+    return new SetMutable(getCopy(node.variableRef), getCopy(node.valueRef),
+        sourceInformation: node.sourceInformation);
   }
 
   Definition visitSetStatic(SetStatic node) {
@@ -2830,7 +2861,8 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
 
   Definition visitSetField(SetField node) {
     return new SetField(
-        getCopy(node.objectRef), node.field, getCopy(node.valueRef));
+        getCopy(node.objectRef), node.field, getCopy(node.valueRef),
+        sourceInformation: node.sourceInformation);
   }
 
   Definition visitGetLazyStatic(GetLazyStatic node) {
@@ -2856,7 +2888,8 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   }
 
   Definition visitGetMutable(GetMutable node) {
-    return new GetMutable(getCopy(node.variableRef));
+    return new GetMutable(
+        getCopy(node.variableRef), sourceInformation: node.sourceInformation);
   }
 
   Definition visitParameter(Parameter node) {
@@ -2972,6 +3005,7 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   Definition visitForeignCode(ForeignCode node) {
     return new ForeignCode(node.codeTemplate, node.storedType,
         getList(node.argumentRefs), node.nativeBehavior,
+        node.sourceInformation,
         dependency: node.dependency);
   }
 }
@@ -3110,7 +3144,8 @@ class CopyingVisitor extends TrampolineRecursiveVisitor {
     plug(new Branch.loose(
         _definitions.getCopy(node.conditionRef),
         _copies[node.trueContinuation],
-        _copies[node.falseContinuation])..isStrictCheck = node.isStrictCheck);
+        _copies[node.falseContinuation],
+        node.sourceInformation)..isStrictCheck = node.isStrictCheck);
   }
 
   visitUnreachable(Unreachable node) {

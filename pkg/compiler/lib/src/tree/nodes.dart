@@ -2,7 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of tree;
+import 'dart:collection' show IterableMixin;
+
+import '../common.dart';
+import '../tokens/precedence_constants.dart' as Precedence show FUNCTION_INFO;
+import '../tokens/token.dart' show BeginGroupToken, Token;
+import '../tokens/token_constants.dart' as Tokens show IDENTIFIER_TOKEN, KEYWORD_TOKEN, PLUS_TOKEN;
+import '../util/util.dart';
+import '../util/characters.dart';
+import '../resolution/secret_tree_element.dart' show NullTreeElementMixin, StoredTreeElementMixin;
+import '../elements/elements.dart' show MetadataAnnotation;
+import 'dartstring.dart';
+import 'prettyprint.dart';
+import 'unparser.dart';
 
 abstract class Visitor<R> {
   const Visitor();
@@ -572,7 +584,7 @@ class NewExpression extends Expression {
   Token getEndToken() => send.getEndToken();
 }
 
-class NodeList extends Node {
+class NodeList extends Node with IterableMixin<Node> {
   final Link<Node> nodes;
   final Token beginToken;
   final Token endToken;
@@ -587,6 +599,13 @@ class NodeList extends Node {
   NodeList.empty() : this(null, const Link<Node>());
 
   NodeList asNodeList() => this;
+
+  // Override [IterableMixin.toString] with same code as [Node.toString].
+  toString() => unparse(this);
+
+  get length {
+    throw new UnsupportedError('use slowLength() instead of get:length');
+  }
 
   int slowLength() {
     int result = 0;
@@ -840,9 +859,9 @@ class FunctionExpression extends Expression with StoredTreeElementMixin {
     if (body != null) body.accept(visitor);
   }
 
-  bool hasBody() => body.asEmptyStatement() == null;
+  bool get hasBody => body.asEmptyStatement() == null;
 
-  bool hasEmptyBody() {
+  bool get hasEmptyBody {
     Block block = body.asBlock();
     if (block == null) return false;
     return block.statements.isEmpty;
@@ -2476,8 +2495,8 @@ class ErrorNode
   get initializers => null;
   get getOrSet => null;
   get isRedirectingFactory => false;
-  bool hasBody() => false;
-  bool hasEmptyBody() => false;
+  bool get hasBody => false;
+  bool get hasEmptyBody => false;
 
   // VariableDefinitions.
   get metadata => null;

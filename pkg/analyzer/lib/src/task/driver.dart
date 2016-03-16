@@ -501,10 +501,36 @@ class InfiniteTaskLoopException extends AnalysisException {
    * Initialize a newly created exception to represent a failed attempt to
    * perform the given [task] due to the given [dependencyCycle].
    */
-  InfiniteTaskLoopException(AnalysisTask task, this.dependencyCycle,
-      [this.cyclicPath])
-      : super(
-            'Infinite loop while performing task ${task.descriptor.name} for ${task.target}');
+  InfiniteTaskLoopException(AnalysisTask task, List<WorkItem> dependencyCycle,
+      [List<TargetedResult> cyclicPath])
+      : this.dependencyCycle = dependencyCycle,
+        this.cyclicPath = cyclicPath,
+        super(_composeMessage(task, dependencyCycle, cyclicPath));
+
+  /**
+   * Compose an error message based on the data we have available.
+   */
+  static String _composeMessage(AnalysisTask task,
+      List<WorkItem> dependencyCycle, List<TargetedResult> cyclicPath) {
+    StringBuffer buffer = new StringBuffer();
+    buffer.write('Infinite loop while performing task ');
+    buffer.write(task.descriptor.name);
+    buffer.write(' for ');
+    buffer.writeln(task.target);
+    buffer.writeln('  Dependency Cycle:');
+    for (WorkItem item in dependencyCycle) {
+      buffer.write('    ');
+      buffer.writeln(item);
+    }
+    if (cyclicPath != null) {
+      buffer.writeln('  Cyclic Path:');
+      for (TargetedResult result in cyclicPath) {
+        buffer.write('    ');
+        buffer.writeln(result);
+      }
+    }
+    return buffer.toString();
+  }
 }
 
 /**

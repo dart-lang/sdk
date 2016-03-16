@@ -9,11 +9,10 @@ import 'dart:async';
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/index/index.dart';
-import 'package:analysis_server/src/services/index/local_memory_index.dart';
 import 'package:analysis_server/src/services/refactoring/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/src/generated/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:unittest/unittest.dart';
 
@@ -148,18 +147,18 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
 
   void indexTestUnit(String code) {
     resolveTestUnit(code);
-    index.index(context, testUnit);
+    index.indexUnit(testUnit);
   }
 
   void indexUnit(String file, String code) {
     Source source = addSource(file, code);
     CompilationUnit unit = resolveLibraryUnit(source);
-    index.index(context, unit);
+    index.indexUnit(unit);
   }
 
   void setUp() {
     super.setUp();
-    index = createLocalMemoryIndex();
+    index = createMemoryIndex();
     searchEngine = new SearchEngineImpl(index);
   }
 }

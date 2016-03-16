@@ -7,7 +7,7 @@ library analysis_server.test.src.utilities.change_builder_dart_test;
 import 'package:analysis_server/plugin/protocol/protocol.dart';
 import 'package:analysis_server/src/provisional/edit/utilities/change_builder_dart.dart';
 import 'package:analysis_server/src/utilities/change_builder_dart.dart';
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unittest/unittest.dart';
