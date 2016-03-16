@@ -1137,7 +1137,7 @@ bool Simulator::HasExclusiveAccessAndOpen(uword addr) {
 void Simulator::ClearExclusive() {
   MutexLocker ml(exclusive_access_lock_);
   // Remove the reservation for this thread.
-  SetExclusiveAccess(NULL);
+  SetExclusiveAccess(0);
 }
 
 

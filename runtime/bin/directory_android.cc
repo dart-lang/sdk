@@ -82,8 +82,8 @@ void PathBuffer::Reset(intptr_t new_length) {
 // A linked list of symbolic links, with their unique file system identifiers.
 // These are scanned to detect loops while doing a recursive directory listing.
 struct LinkList {
-  dev_t dev;
-  ino_t ino;
+  uint64_t dev;
+  uint64_t ino;
   LinkList* next;
 };
 

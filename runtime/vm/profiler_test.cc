@@ -2324,7 +2324,7 @@ static void InsertFakeSample(SampleBuffer* sample_buffer,
     sample->SetAt(i, pc_offsets[i] + return_address_offset);
     i++;
   }
-  sample->SetAt(i, NULL);
+  sample->SetAt(i, 0);
 }
 
 
