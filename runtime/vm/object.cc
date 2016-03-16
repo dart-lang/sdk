@@ -8808,6 +8808,10 @@ void Script::TokenRangeAtLine(intptr_t line_number,
 
 RawString* Script::GetLine(intptr_t line_number, Heap::Space space) const {
   const String& src = String::Handle(Source());
+  if (src.IsNull()) {
+    ASSERT(Dart::IsRunningPrecompiledCode());
+    return Symbols::OptimizedOut().raw();
+  }
   intptr_t relative_line_number = line_number - line_offset();
   intptr_t current_line = 1;
   intptr_t line_start_idx = -1;
