@@ -40,6 +40,9 @@ class AnalyzerImpl {
 
   final AnalysisContext context;
 
+  /// Accumulated analysis statistics.
+  final AnalysisStats stats;
+
   final Source librarySource;
 
   /// All [Source]s references by the analyzed library.
@@ -59,7 +62,8 @@ class AnalyzerImpl {
   /// specified the "--package-warnings" option.
   String _selfPackageName;
 
-  AnalyzerImpl(this.context, this.librarySource, this.options, this.startTime);
+  AnalyzerImpl(this.context, this.librarySource, this.options, this.stats,
+      this.startTime);
 
   /// Returns the maximal [ErrorSeverity] of the recorded errors.
   ErrorSeverity get maxErrorSeverity {
@@ -220,7 +224,8 @@ class AnalyzerImpl {
     StringSink sink = options.machineFormat ? errorSink : outSink;
 
     // Print errors.
-    ErrorFormatter formatter = new ErrorFormatter(sink, options, _processError);
+    ErrorFormatter formatter =
+        new ErrorFormatter(sink, options, stats, _processError);
     formatter.formatErrors(errorInfos);
   }
 
