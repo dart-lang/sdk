@@ -28,7 +28,7 @@ import "utils.dart";
 import 'record_and_replay.dart';
 
 const int CRASHING_BROWSER_EXITCODE = -10;
-const int SLOW_TIMEOUT_MULTIPLIER = 8;
+const int SLOW_TIMEOUT_MULTIPLIER = 4;
 
 const MESSAGE_CANNOT_OPEN_DISPLAY = 'Gtk-WARNING **: cannot open display';
 const MESSAGE_FAILED_TO_RUN_COMMAND = 'Failed to run command. return code=1';
