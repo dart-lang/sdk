@@ -82,7 +82,7 @@ void SafepointHandler::SafepointThreads(Thread* T) {
           // get it to a safepoint and wait for it to check in.
           if (current->IsMutatorThread()) {
             ASSERT(T->isolate() != NULL);
-            T->isolate()->ScheduleInterrupts(Isolate::kVMInterrupt);
+            current->ScheduleInterruptsLocked(Thread::kVMInterrupt);
           }
           MonitorLocker sl(safepoint_lock_);
           ++number_threads_not_at_safepoint_;

@@ -2874,19 +2874,11 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
     if (FLAG_use_osr && osr_entry_label()->IsLinked()) {
-      uword flags_address = Isolate::Current()->stack_overflow_flags_address();
       const Register value = instruction_->locs()->temp(0).reg();
       __ Comment("CheckStackOverflowSlowPathOsr");
       __ Bind(osr_entry_label());
-      if (FLAG_allow_absolute_addresses) {
-        __ LoadImmediate(IP, flags_address);
-        __ LoadImmediate(value, Isolate::kOsrRequest);
-        __ str(value, Address(IP));
-      } else {
-        __ LoadIsolate(IP);
-        __ LoadImmediate(value, Isolate::kOsrRequest);
-        __ str(value, Address(IP, Isolate::stack_overflow_flags_offset()));
-      }
+      __ LoadImmediate(value, Thread::kOsrRequest);
+      __ str(value, Address(THR, Thread::stack_overflow_flags_offset()));
     }
     __ Comment("CheckStackOverflowSlowPath");
     __ Bind(entry_label());
@@ -2928,13 +2920,7 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   CheckStackOverflowSlowPath* slow_path = new CheckStackOverflowSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
-  if (compiler->is_optimizing() && FLAG_allow_absolute_addresses) {
-    __ LoadImmediate(IP, Isolate::Current()->stack_limit_address());
-    __ ldr(IP, Address(IP));
-  } else {
-    __ LoadIsolate(IP);
-    __ ldr(IP, Address(IP, Isolate::stack_limit_offset()));
-  }
+  __ ldr(IP, Address(THR, Thread::stack_limit_offset()));
   __ cmp(SP, Operand(IP));
   __ b(slow_path->entry_label(), LS);
   if (compiler->CanOSRFunction() && in_loop()) {

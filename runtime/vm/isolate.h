@@ -228,78 +228,12 @@ class Isolate : public BaseIsolate {
     library_tag_handler_ = value;
   }
 
-  void SetStackLimit(uword value);
-  void SetStackLimitFromStackBase(uword stack_base);
-  void ClearStackLimit();
-
-  // Returns the current C++ stack pointer. Equivalent taking the address of a
-  // stack allocated local, but plays well with AddressSanitizer.
-  // TODO(koda): Move to Thread.
-  static uword GetCurrentStackPointer();
-
   void SetupInstructionsSnapshotPage(
       const uint8_t* instructions_snapshot_buffer);
   void SetupDataSnapshotPage(
       const uint8_t* instructions_snapshot_buffer);
 
-  // Returns true if any of the interrupts specified by 'interrupt_bits' are
-  // currently scheduled for this isolate, but leaves them unchanged.
-  //
-  // NOTE: The read uses relaxed memory ordering, i.e., it is atomic and
-  // an interrupt is guaranteed to be observed eventually, but any further
-  // order guarantees must be ensured by other synchronization. See the
-  // tests in isolate_test.cc for example usage.
-  bool HasInterruptsScheduled(uword interrupt_bits) {
-    ASSERT(interrupt_bits == (interrupt_bits & kInterruptsMask));
-    uword limit = AtomicOperations::LoadRelaxed(&stack_limit_);
-    return (limit != saved_stack_limit_) &&
-        (((limit & kInterruptsMask) & interrupt_bits) != 0);
-  }
-
-  // Access to the current stack limit for generated code.  This may be
-  // overwritten with a special value to trigger interrupts.
-  uword stack_limit_address() const {
-    return reinterpret_cast<uword>(&stack_limit_);
-  }
-  static intptr_t stack_limit_offset() {
-    return OFFSET_OF(Isolate, stack_limit_);
-  }
-
-  // The true stack limit for this isolate.
-  uword saved_stack_limit() const { return saved_stack_limit_; }
-
-  // Stack overflow flags
-  enum {
-    kOsrRequest = 0x1,  // Current stack overflow caused by OSR request.
-  };
-
-  uword stack_overflow_flags_address() const {
-    return reinterpret_cast<uword>(&stack_overflow_flags_);
-  }
-  static intptr_t stack_overflow_flags_offset() {
-    return OFFSET_OF(Isolate, stack_overflow_flags_);
-  }
-
-  int32_t IncrementAndGetStackOverflowCount() {
-    return ++stack_overflow_count_;
-  }
-
-  // Retrieves and clears the stack overflow flags.  These are set by
-  // the generated code before the slow path runtime routine for a
-  // stack overflow is called.
-  uword GetAndClearStackOverflowFlags();
-
-  // Interrupt bits.
-  enum {
-    kVMInterrupt = 0x1,  // Internal VM checks: safepoints, store buffers, etc.
-    kMessageInterrupt = 0x2,  // An interrupt to process an out of band message.
-
-    kInterruptsMask = (kVMInterrupt | kMessageInterrupt),
-  };
-
-  void ScheduleInterrupts(uword interrupt_bits);
-  RawError* HandleInterrupts();
-  uword GetAndClearInterrupts();
+  void ScheduleMessageInterrupts();
 
   // Marks all libraries as loaded.
   void DoneLoading();
@@ -663,7 +597,6 @@ class Isolate : public BaseIsolate {
  private:
   friend class Dart;  // Init, InitOnce, Shutdown.
   friend class IsolateKillerVisitor;  // Kill().
-  friend class NoOOBMessageScope;
 
   explicit Isolate(const Dart_IsolateFlags& api_flags);
 
@@ -690,9 +623,6 @@ class Isolate : public BaseIsolate {
     user_tag_ = tag;
   }
 
-  void DeferOOBMessageInterrupts();
-  void RestoreOOBMessageInterrupts();
-
   RawGrowableObjectArray* GetAndClearPendingServiceExtensionCalls();
   RawGrowableObjectArray* pending_service_extension_calls() const {
     return pending_service_extension_calls_;
@@ -717,9 +647,6 @@ class Isolate : public BaseIsolate {
   }
 
   // Accessed from generated code:
-  // TODO(asiva): Need to consider moving the stack_limit_ from isolate to
-  // being thread specific.
-  uword stack_limit_;
   StoreBuffer* store_buffer_;
   Heap* heap_;
   uword user_tag_;
@@ -753,15 +680,10 @@ class Isolate : public BaseIsolate {
   bool has_compiled_code_;  // Can check that no compilation occured.
   Random random_;
   Simulator* simulator_;
-  Mutex* mutex_;  // Protects stack_limit_, saved_stack_limit_, compiler stats.
+  Mutex* mutex_;  // Protects compiler stats.
   Mutex* symbols_mutex_;  // Protects concurrent access to the symbol table.
   Mutex* type_canonicalization_mutex_;  // Protects type canonicalization.
   Mutex* constant_canonicalization_mutex_;  // Protects const canonicalization.
-  uword saved_stack_limit_;
-  uword deferred_interrupts_mask_;
-  uword deferred_interrupts_;
-  uword stack_overflow_flags_;
-  int32_t stack_overflow_count_;
   MessageHandler* message_handler_;
   IsolateSpawnState* spawn_state_;
   bool is_runnable_;
@@ -887,7 +809,7 @@ REUSABLE_HANDLE_LIST(REUSABLE_FRIEND_DECLARATION)
   friend class Scavenger;  // VisitObjectPointers
   friend class ServiceIsolate;
   friend class Thread;
-  friend class IsolateTestHelper;
+  friend class Timeline;
 
   DISALLOW_COPY_AND_ASSIGN(Isolate);
 };
@@ -907,9 +829,9 @@ class StartIsolateScope {
     }
     if (saved_isolate_ != new_isolate_) {
       ASSERT(Isolate::Current() == NULL);
-      // Ensure this is not a nested 'isolate enter' with prior state.
-      ASSERT(new_isolate_->saved_stack_limit() == 0);
       Thread::EnterIsolate(new_isolate_);
+      // Ensure this is not a nested 'isolate enter' with prior state.
+      ASSERT(Thread::Current()->saved_stack_limit() == 0);
     }
   }
 
@@ -922,7 +844,7 @@ class StartIsolateScope {
     if (saved_isolate_ != new_isolate_) {
       ASSERT(saved_isolate_ == NULL);
       // ASSERT that we have bottomed out of all Dart invocations.
-      ASSERT(new_isolate_->saved_stack_limit() == 0);
+      ASSERT(Thread::Current()->saved_stack_limit() == 0);
       Thread::ExitIsolate();
     }
   }

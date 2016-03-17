@@ -2602,18 +2602,10 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
     if (FLAG_use_osr && osr_entry_label()->IsLinked()) {
-      uword flags_address = Isolate::Current()->stack_overflow_flags_address();
-      Register temp = instruction_->locs()->temp(0).reg();
       __ Comment("CheckStackOverflowSlowPathOsr");
       __ Bind(osr_entry_label());
-      if (FLAG_allow_absolute_addresses) {
-        __ LoadImmediate(temp, Immediate(flags_address));
-        __ movq(Address(temp, 0), Immediate(Isolate::kOsrRequest));
-      } else {
-        __ LoadIsolate(TMP);
-        __ movq(Address(TMP, Isolate::stack_overflow_flags_offset()),
-                Immediate(Isolate::kOsrRequest));
-      }
+      __ movq(Address(THR, Thread::stack_overflow_flags_offset()),
+              Immediate(Thread::kOsrRequest));
     }
     __ Comment("CheckStackOverflowSlowPath");
     __ Bind(entry_label());
@@ -2658,14 +2650,7 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   Register temp = locs()->temp(0).reg();
   // Generate stack overflow check.
-  if (compiler->is_optimizing() && FLAG_allow_absolute_addresses) {
-    __ LoadImmediate(
-        temp, Immediate(Isolate::Current()->stack_limit_address()));
-    __ cmpq(RSP, Address(temp, 0));
-  } else {
-    __ LoadIsolate(temp);
-    __ cmpq(RSP, Address(temp, Isolate::stack_limit_offset()));
-  }
+  __ cmpq(RSP, Address(THR, Thread::stack_limit_offset()));
   __ j(BELOW_EQUAL, slow_path->entry_label());
   if (compiler->CanOSRFunction() && in_loop()) {
     // In unoptimized code check the usage counter to trigger OSR at loop

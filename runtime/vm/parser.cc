@@ -6119,7 +6119,7 @@ void Parser::ParseTopLevel() {
 
 
 void Parser::CheckStack() {
-  volatile uword c_stack_pos = Isolate::GetCurrentStackPointer();
+  volatile uword c_stack_pos = Thread::GetCurrentStackPointer();
   volatile uword c_stack_base = OSThread::Current()->stack_base();
   volatile uword c_stack_limit =
       c_stack_base - OSThread::GetSpecifiedStackSize();

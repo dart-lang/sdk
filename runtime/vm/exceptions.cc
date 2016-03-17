@@ -238,7 +238,7 @@ static void JumpToExceptionHandler(Thread* thread,
       StubCode::JumpToExceptionHandler_entry()->EntryPoint());
 
   // Unpoison the stack before we tear it down in the generated stub code.
-  uword current_sp = Isolate::GetCurrentStackPointer() - 1024;
+  uword current_sp = Thread::GetCurrentStackPointer() - 1024;
   ASAN_UNPOISON(reinterpret_cast<void*>(current_sp),
                 stack_pointer - current_sp);
 

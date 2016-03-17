@@ -887,7 +887,7 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
   }
 
   if (FLAG_profile_vm) {
-    uintptr_t sp = Isolate::GetCurrentStackPointer();
+    uintptr_t sp = Thread::GetCurrentStackPointer();
     uintptr_t fp = 0;
     uintptr_t pc = GetProgramCounter();
 
