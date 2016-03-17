@@ -2181,6 +2181,9 @@ class Class extends HeapObject {
   @reflectable final interfaces = new ObservableList<Instance>();
   @reflectable final subclasses = new ObservableList<Class>();
 
+  @observable Instance superType;
+  @observable Instance mixin;
+
   bool get canCache => true;
   bool get immutable => false;
 
@@ -2244,6 +2247,9 @@ class Class extends HeapObject {
     if (superclass != null && superclass.name == "Object") {
       superclass._addSubclass(this);
     }
+    superType = map['superType'];
+    mixin = map['mixin'];
+
     error = map['error'];
 
     traceAllocations =
@@ -2293,11 +2299,17 @@ class Instance extends HeapObject {
   @observable bool valueAsStringIsTruncated;
   @observable ServiceFunction function;  // If a closure.
   @observable Context context;  // If a closure.
-  @observable String name;  // If a Type.
   @observable int length; // If a List, Map or TypedData.
   @observable Instance pattern;  // If a RegExp.
 
-  @observable var typeClass;
+  @observable String name;
+  @observable Class typeClass;
+  @observable Class parameterizedClass;
+  @observable ServiceObject typeArguments;
+  @observable int parameterIndex;
+  @observable Instance targetType;
+  @observable Instance bound;
+
   @observable var fields;
   @observable var nativeFields;
   @observable var elements;  // If a List.
@@ -2441,6 +2453,12 @@ class Instance extends HeapObject {
       }
     }
     typeClass = map['typeClass'];
+    parameterizedClass = map['parameterizedClass'];
+    typeArguments = map['typeArguments'];
+    parameterIndex = map['parameterIndex'];
+    targetType = map['targetType'];
+    bound = map['bound'];
+
     referent = map['mirrorReferent'];
     key = map['propertyKey'];
     value = map['propertyValue'];

@@ -15,6 +15,19 @@ class InstanceViewElement extends ObservatoryElement {
 
   InstanceViewElement.created() : super.created();
 
+  instanceChanged(oldValue) {
+    if (instance != null) {
+      // We load typeClass and typeArguments because we want to
+      // display this info.
+      if (instance.typeClass != null) {
+        instance.typeClass.load();
+      }
+      if (instance.typeArguments != null) {
+        instance.typeArguments.load();
+      }
+    }
+  }
+
   Future<ServiceObject> evaluate(String expression) {
     return instance.evaluate(expression);
   }

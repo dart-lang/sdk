@@ -101,9 +101,18 @@ void Class::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("_implemented", is_implemented());
   jsobj.AddProperty("_patch", is_patch());
   jsobj.AddProperty("_traceAllocations", TraceAllocation(isolate));
+
   const Class& superClass = Class::Handle(SuperClass());
   if (!superClass.IsNull()) {
     jsobj.AddProperty("super", superClass);
+  }
+  const AbstractType& superType = AbstractType::Handle(super_type());
+  if (!superType.IsNull()) {
+    jsobj.AddProperty("superType", superType);
+  }
+  const Type& mix = Type::Handle(mixin());
+  if (!mix.IsNull()) {
+    jsobj.AddProperty("mixin", mix);
   }
   jsobj.AddProperty("library", Object::Handle(library()));
   const Script& script = Script::Handle(this->script());

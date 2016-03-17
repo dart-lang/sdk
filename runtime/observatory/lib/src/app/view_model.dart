@@ -68,7 +68,8 @@ abstract class TableTreeRow extends Observable {
 
   HtmlElement _makeExpander() {
     var expander = new SpanElement();
-    expander.style.minWidth = '2em';
+    expander.style.minWidth = '24px';
+    expander.style.minHeight = '24px';
     listeners.add(expander.onClick.listen(onClick));
     return expander;
   }
