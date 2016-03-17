@@ -19,7 +19,6 @@
 # ......dartfmt
 # ......dart2js
 # ......dartanalyzer
-# ......dartdevc
 # ......pub
 # ......snapshots/
 # ........analysis_server.dart.snapshot
@@ -27,7 +26,6 @@
 # ........dartanalyzer.dart.snapshot
 # ........dartdoc.dart.snapshot
 # ........dartfmt.dart.snapshot
-# ........dartdevc.dart.snapshot
 # ........pub.dart.snapshot
 # ........utils_wrapper.dart.snapshot
 #.........resources/
@@ -131,14 +129,14 @@ def CopyShellScript(src_file, dest_dir):
 
 def CopyDartScripts(home, sdk_root):
   for executable in ['dart2js_sdk', 'dartanalyzer_sdk', 'dartfmt_sdk',
-                     'pub_sdk', 'dartdoc', 'dartdevc_sdk']:
+                     'pub_sdk', 'dartdoc']:
     CopyShellScript(os.path.join(home, 'sdk', 'bin', executable),
                     os.path.join(sdk_root, 'bin'))
 
 
 def CopySnapshots(snapshots, sdk_root):
   for snapshot in ['analysis_server', 'dart2js', 'dartanalyzer', 'dartfmt',
-                   'utils_wrapper', 'pub', 'dartdoc', 'dartdevc']:
+                   'utils_wrapper', 'pub', 'dartdoc']:
     snapshot += '.dart.snapshot'
     copyfile(join(snapshots, snapshot),
              join(sdk_root, 'bin', 'snapshots', snapshot))

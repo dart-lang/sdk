@@ -12,7 +12,6 @@
         'create_sdk',
         'dart2js',
         'dartanalyzer',
-        'dartdevc',
         'packages',
         'runtime',
         'samples',
@@ -56,13 +55,6 @@
       'type': 'none',
       'dependencies': [
         'utils/dartanalyzer/dartanalyzer.gyp:dartanalyzer',
-      ],
-    },
-    {
-      'target_name': 'dartdevc',
-      'type': 'none',
-      'dependencies': [
-        'utils/dartdevc/dartdevc.gyp:dartdevc',
       ],
     },
     {

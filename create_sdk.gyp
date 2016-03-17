@@ -15,7 +15,6 @@
         'utils/dartdoc/dartdoc.gyp:dartdoc',
         'utils/analysis_server/analysis_server.gyp:analysis_server',
         'utils/dartanalyzer/dartanalyzer.gyp:dartanalyzer',
-        'utils/dartdevc/dartdevc.gyp:dartdevc',
       ],
       'actions': [
         {
