@@ -148,6 +148,43 @@ class FileTest {
     expect(file.readAsStringSync(), 'abc');
   }
 
+  void test_renameSync_newDoesNotExist() {
+    String oldPath = '/foo/bar/file.txt';
+    String newPath = '/foo/bar/new-file.txt';
+    File file = provider.newFile(oldPath, 'text');
+    File newFile = file.renameSync(newPath);
+    expect(file.path, oldPath);
+    expect(file.exists, isFalse);
+    expect(newFile.path, newPath);
+    expect(newFile.exists, isTrue);
+    expect(newFile.readAsStringSync(), 'text');
+  }
+
+  void test_renameSync_newExists_file() {
+    String oldPath = '/foo/bar/file.txt';
+    String newPath = '/foo/bar/new-file.txt';
+    File file = provider.newFile(oldPath, 'text');
+    provider.newFile(newPath, 'new text');
+    File newFile = file.renameSync(newPath);
+    expect(file.path, oldPath);
+    expect(file.exists, isFalse);
+    expect(newFile.path, newPath);
+    expect(newFile.exists, isTrue);
+    expect(newFile.readAsStringSync(), 'text');
+  }
+
+  void test_renameSync_newExists_folder() {
+    String oldPath = '/foo/bar/file.txt';
+    String newPath = '/foo/bar/baz';
+    File file = provider.newFile(oldPath, 'text');
+    provider.newFolder(newPath);
+    expect(() {
+      file.renameSync(newPath);
+    }, throwsA(_isFileSystemException));
+    expect(file.path, oldPath);
+    expect(file.exists, isTrue);
+  }
+
   void test_shortName() {
     File file = provider.getResource('/foo/bar/file.txt');
     expect(file.shortName, 'file.txt');
@@ -158,11 +195,20 @@ class FileTest {
     expect(file.toString(), '/foo/bar/file.txt');
   }
 
-  void test_writeAsBytesSync() {
-    File file = provider.newFileWithBytes('/file.bin', <int>[1, 2]);
+  void test_writeAsBytesSync_existing() {
+    File file = provider.newFileWithBytes('/foo/file.bin', <int>[1, 2]);
     expect(file.readAsBytesSync(), <int>[1, 2]);
     // write new bytes
     file.writeAsBytesSync(<int>[10, 20]);
+    expect(file.readAsBytesSync(), <int>[10, 20]);
+  }
+
+  void test_writeAsBytesSync_new() {
+    File file = provider.getFile('/foo/file.bin');
+    expect(file.exists, false);
+    // write new bytes
+    file.writeAsBytesSync(<int>[10, 20]);
+    expect(file.exists, true);
     expect(file.readAsBytesSync(), <int>[10, 20]);
   }
 }
@@ -498,14 +544,14 @@ class MemoryResourceProviderTest {
     expect(file.readAsBytesSync(), bytes);
   }
 
-  void test_newFolder_aleadyExists_asFile() {
+  void test_newFolder_alreadyExists_asFile() {
     provider.newFile('/my/file', 'qwerty');
     expect(() {
       provider.newFolder('/my/file');
     }, throwsA(new isInstanceOf<ArgumentError>()));
   }
 
-  void test_newFolder_aleadyExists_asFolder() {
+  void test_newFolder_alreadyExists_asFolder() {
     Folder folder = provider.newFolder('/my/folder');
     Folder newFolder = provider.newFolder('/my/folder');
     expect(newFolder, folder);

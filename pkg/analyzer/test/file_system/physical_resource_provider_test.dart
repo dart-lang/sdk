@@ -132,6 +132,46 @@ class FileTest extends _BaseTest {
     expect(file.readAsStringSync(), 'abc');
   }
 
+  void test_renameSync_newDoesNotExist() {
+    String oldPath = '$tempPath/file.txt';
+    String newPath = '$tempPath/new-file.txt';
+    new io.File(oldPath).writeAsStringSync('text');
+    File file = PhysicalResourceProvider.INSTANCE.getResource(oldPath);
+    File newFile = file.renameSync(newPath);
+    expect(file.path, oldPath);
+    expect(file.exists, isFalse);
+    expect(newFile.path, newPath);
+    expect(newFile.exists, isTrue);
+    expect(newFile.readAsStringSync(), 'text');
+  }
+
+  test_renameSync_newExists_file() async {
+    String oldPath = '$tempPath/file.txt';
+    String newPath = '$tempPath/new-file.txt';
+    new io.File(oldPath).writeAsStringSync('text');
+    new io.File(newPath).writeAsStringSync('new text');
+    File file = PhysicalResourceProvider.INSTANCE.getResource(oldPath);
+    File newFile = file.renameSync(newPath);
+    expect(file.path, oldPath);
+    expect(file.exists, isFalse);
+    expect(newFile.path, newPath);
+    expect(newFile.exists, isTrue);
+    expect(newFile.readAsStringSync(), 'text');
+  }
+
+  void test_renameSync_newExists_folder() {
+    String oldPath = '$tempPath/file.txt';
+    String newPath = '$tempPath/foo';
+    new io.File(oldPath).writeAsStringSync('text');
+    new io.Directory(newPath).createSync();
+    File file = PhysicalResourceProvider.INSTANCE.getResource(oldPath);
+    expect(() {
+      file.renameSync(newPath);
+    }, throwsA(_isFileSystemException));
+    expect(file.path, oldPath);
+    expect(file.exists, isTrue);
+  }
+
   void test_shortName() {
     expect(file.shortName, 'file.txt');
   }

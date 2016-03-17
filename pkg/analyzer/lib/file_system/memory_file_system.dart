@@ -159,6 +159,29 @@ class MemoryResourceProvider implements ResourceProvider {
     }
   }
 
+  _MemoryFile renameFileSync(_MemoryFile file, String newPath) {
+    String path = file.path;
+    if (newPath == path) {
+      return file;
+    }
+    _MemoryResource existingNewResource = _pathToResource[newPath];
+    if (existingNewResource is _MemoryFolder) {
+      throw new FileSystemException(
+          path, 'Could not be renamed: $newPath is a folder.');
+    }
+    _MemoryFile newFile = _newFile(newPath);
+    _pathToResource.remove(path);
+    _pathToContent[newPath] = _pathToContent.remove(path);
+    _pathToBytes[newPath] = _pathToBytes.remove(path);
+    _pathToTimestamp[newPath] = _pathToTimestamp.remove(path);
+    if (existingNewResource != null) {
+      _notifyWatchers(newPath, ChangeType.REMOVE);
+    }
+    _notifyWatchers(path, ChangeType.REMOVE);
+    _notifyWatchers(newPath, ChangeType.ADD);
+    return newFile;
+  }
+
   File updateFile(String path, String content, [int stamp]) {
     path = pathContext.normalize(path);
     newFolder(pathContext.dirname(path));
@@ -214,7 +237,9 @@ class MemoryResourceProvider implements ResourceProvider {
     });
   }
 
-  void _setFileBytes(String path, List<int> bytes) {
+  void _setFileBytes(_MemoryFile file, List<int> bytes) {
+    String path = file.path;
+    _pathToResource[path] = file;
     _pathToBytes[path] = bytes;
     _pathToTimestamp[path] = nextStamp++;
     _notifyWatchers(path, ChangeType.MODIFY);
@@ -268,6 +293,11 @@ class _MemoryDummyLink extends _MemoryResource implements File {
   @override
   String readAsStringSync() {
     throw new FileSystemException(path, 'File could not be read');
+  }
+
+  @override
+  Resource renameSync(String newPath) {
+    throw new FileSystemException(path, 'File could not be renamed');
   }
 
   @override
@@ -335,8 +365,13 @@ class _MemoryFile extends _MemoryResource implements File {
   }
 
   @override
+  File renameSync(String newPath) {
+    return _provider.renameFileSync(this, newPath);
+  }
+
+  @override
   void writeAsBytesSync(List<int> bytes) {
-    _provider._setFileBytes(path, bytes);
+    _provider._setFileBytes(this, bytes);
   }
 }
 

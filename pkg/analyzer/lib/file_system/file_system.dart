@@ -44,6 +44,16 @@ abstract class File implements Resource {
   String readAsStringSync();
 
   /**
+   * Synchronously rename this file.
+   * Return a [File] instance for the renamed file.
+   *
+   * If [newPath] identifies an existing file, that file is replaced.
+   * If [newPath] identifies an existing resource the operation might fail and
+   * an exception is thrown.
+   */
+  File renameSync(String newPath);
+
+  /**
    * Synchronously write a list of bytes to the file.
    *
    * Throws a [FileSystemException] if the operation fails.
