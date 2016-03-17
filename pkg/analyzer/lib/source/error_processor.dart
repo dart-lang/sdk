@@ -94,20 +94,18 @@ class ErrorProcessor {
       return null;
     }
 
-    // By default, the error is not processed.
-    ErrorProcessor processor;
-
-    // Give strong mode a chance to upgrade it.
-    if (context.analysisOptions.strongMode) {
-      processor = _StrongModeTypeErrorProcessor.instance;
-    }
-
     // Let the user configure how specific errors are processed.
     List<ErrorProcessor> processors =
         context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
 
+    // Give strong mode a chance to upgrade it.
+    if (context.analysisOptions.strongMode) {
+      processors = processors.toList();
+      processors.add(_StrongModeTypeErrorProcessor.instance);
+    }
+
     return processors.firstWhere((ErrorProcessor p) => p.appliesTo(error),
-        orElse: () => processor);
+        orElse: () => null);
   }
 }
 
