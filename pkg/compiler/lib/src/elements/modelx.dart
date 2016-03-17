@@ -208,6 +208,18 @@ abstract class ElementX extends Element with ElementCommon {
     return null;
   }
 
+  ClassElement get contextClass {
+    ClassElement cls;
+    for (Element e = this; e != null; e = e.enclosingElement) {
+      if (e.isClass) {
+        // Record [e] instead of returning it directly. We need the last class
+        // in the chain since the first classes might be closure classes.
+        cls = e.declaration;
+      }
+    }
+    return cls;
+  }
+
   /**
    * Creates the scope for this element.
    */

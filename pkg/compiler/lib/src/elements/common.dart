@@ -123,19 +123,6 @@ abstract class ElementCommon implements Element {
   Element get origin {
     throw new UnsupportedError('origin is not supported on $this');
   }
-
-  @override
-  ClassElement get contextClass {
-    ClassElement cls;
-    for (Element e = this; e != null; e = e.enclosingElement) {
-      if (e.isClass) {
-        // Record [e] instead of returning it directly. We need the last class
-        // in the chain since the first classes might be closure classes.
-        cls = e.declaration;
-      }
-    }
-    return cls;
-  }
 }
 
 abstract class LibraryElementCommon implements LibraryElement {
@@ -344,7 +331,7 @@ abstract class ClassElementCommon implements ClassElement {
         classElement.forEachBackendMember((e) => f(classElement, e));
       }
       if (includeInjectedMembers) {
-        if (classElement.isPatched) {
+        if (classElement.patch != null) {
           classElement.patch.forEachLocalMember((e) {
             if (!e.isPatch) f(classElement, e);
           });

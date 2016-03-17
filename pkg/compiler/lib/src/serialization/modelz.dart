@@ -80,6 +80,9 @@ abstract class ElementZ extends Element with ElementCommon {
   }
 
   @override
+  ClassElement get contextClass => _unsupported('contextClass');
+
+  @override
   ClassElement get enclosingClass => null;
 
   @override
@@ -527,9 +530,6 @@ class CompilationUnitElementZ extends DeserializedElementZ
   CompilationUnitElement get compilationUnit => this;
 
   @override
-  Element get enclosingElement => library;
-
-  @override
   accept(ElementVisitor visitor, arg) {
     return visitor.visitCompilationUnitElement(this, arg);
   }
@@ -723,16 +723,13 @@ abstract class ParametersMixin
 abstract class FunctionTypedElementMixin
     implements FunctionElement, DeserializedElementZ {
   @override
-  AsyncMarker get asyncMarker => _unsupported('asyncMarker');
+  AsyncMarker get asyncMarker => _unsupported('');
+
+  @override
+  bool get isExternal => _unsupported('');
 
   @override
   FunctionElement asFunctionElement() => this;
-
-  @override
-  bool get isExternal {
-    return _decoder.getBool(
-        Key.IS_EXTERNAL, isOptional: true, defaultValue: false);
-  }
 }
 
 class ClassElementZ extends DeserializedElementZ
@@ -886,25 +883,6 @@ class ClassElementZ extends DeserializedElementZ
   }
 }
 
-
-class EnumClassElementZ extends ClassElementZ implements EnumClassElement {
-  List<FieldElement> _enumValues;
-
-  EnumClassElementZ(ObjectDecoder decoder)
-      : super(decoder);
-
-  @override
-  bool get isEnumClass => true;
-
-  @override
-  List<FieldElement> get enumValues {
-    if (_enumValues == null) {
-      _enumValues = _decoder.getElements(Key.FIELDS);
-    }
-    return _enumValues;
-  }
-}
-
 abstract class ConstructorElementZ extends DeserializedElementZ
     with AnalyzableElementMixin,
          AstElementMixin,
@@ -971,11 +949,6 @@ abstract class ConstructorElementZ extends DeserializedElementZ
   @override
   ConstructorElement get immediateRedirectionTarget  {
     return _unsupported('immediateRedirectionTarget');
-  }
-
-  @override
-  bool get isEffectiveTargetMalformed {
-    return _unsupported('isEffectiveTargetMalformed');
   }
 
   @override

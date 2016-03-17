@@ -181,7 +181,7 @@ Future analyze(String serializedData, Uri entryPoint, Test test) async {
   await runCompiler(
       entryPoint: entryPoint,
       memorySourceFiles: test != null ? test.sourceFiles : const {},
-      options: [Flags.analyzeOnly],
+      options: [Flags.analyzeOnly, '--output-type=dart'],
       diagnosticHandler: diagnosticCollector,
       beforeRun: (Compiler compiler) {
         compiler.serialization.deserializer =
@@ -203,7 +203,7 @@ Future analyze(String serializedData, Uri entryPoint, Test test) async {
 
 Future<String> serializeDartCore() async {
   Compiler compiler = compilerFor(
-      options: ['--analyze-all']);
+      options: ['--analyze-all', '--output-type=dart']);
   await compiler.run(Uri.parse('dart:core'));
   return serialize(compiler.libraryLoader.libraries);
 }

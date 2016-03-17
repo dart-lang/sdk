@@ -187,9 +187,6 @@ abstract class Resolution {
 
   bool hasBeenResolved(Element element);
 
-  ResolutionWorkItem createWorkItem(
-      Element element, ItemCompilationContext compilationContext);
-
   /// Returns the precomputed [WorldImpact] for [element].
   WorldImpact getWorldImpact(Element element);
 
