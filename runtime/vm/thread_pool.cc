@@ -433,6 +433,9 @@ void ThreadPool::Worker::Main(uword args) {
   ThreadJoinId join_id = os_thread->join_id();
   ThreadPool* pool;
 
+  // Set the thread's stack_base based on the current stack pointer.
+  os_thread->set_stack_base(Thread::GetCurrentStackPointer());
+
   {
     MonitorLocker ml(&worker->monitor_);
     ASSERT(worker->task_);

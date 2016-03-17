@@ -331,6 +331,7 @@ void Thread::ClearStackLimit() {
 uword Thread::GetCurrentStackPointer() {
   // Since AddressSanitizer's detect_stack_use_after_return instruments the
   // C++ code to give out fake stack addresses, we call a stub in that case.
+  ASSERT(StubCode::GetStackPointer_entry() != NULL);
   uword (*func)() = reinterpret_cast<uword (*)()>(
       StubCode::GetStackPointer_entry()->EntryPoint());
   // But for performance (and to support simulators), we normally use a local.
