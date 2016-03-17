@@ -375,6 +375,22 @@ class Driver implements ServerStarter {
 
     _initIncrementalLogger(results[INCREMENTAL_RESOLUTION_LOG]);
 
+    //
+    // Process all of the plugins so that extensions are registered.
+    //
+    ServerPlugin serverPlugin = new ServerPlugin();
+    List<Plugin> plugins = <Plugin>[];
+    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
+    plugins.add(AnalysisEngine.instance.commandLinePlugin);
+    plugins.add(AnalysisEngine.instance.optionsPlugin);
+    plugins.add(serverPlugin);
+    plugins.add(linterPlugin);
+    plugins.add(linterServerPlugin);
+    plugins.add(dartCompletionPlugin);
+    plugins.addAll(_userDefinedPlugins);
+    ExtensionManager manager = new ExtensionManager();
+    manager.processPlugins(plugins);
+
     JavaFile defaultSdkDirectory;
     if (results[SDK_OPTION] != null) {
       defaultSdkDirectory = new JavaFile(results[SDK_OPTION]);
@@ -407,22 +423,6 @@ class Driver implements ServerStarter {
     service.logVersion(_readUuid(service), results[CLIENT_ID],
         results[CLIENT_VERSION], AnalysisServer.VERSION, defaultSdk.sdkVersion);
     AnalysisEngine.instance.instrumentationService = service;
-    //
-    // Process all of the plugins so that extensions are registered.
-    //
-    ServerPlugin serverPlugin = new ServerPlugin();
-    List<Plugin> plugins = <Plugin>[];
-    plugins.addAll(AnalysisEngine.instance.requiredPlugins);
-    plugins.add(AnalysisEngine.instance.commandLinePlugin);
-    plugins.add(AnalysisEngine.instance.optionsPlugin);
-    plugins.add(serverPlugin);
-    plugins.add(linterPlugin);
-    plugins.add(linterServerPlugin);
-    plugins.add(dartCompletionPlugin);
-    plugins.addAll(_userDefinedPlugins);
-
-    ExtensionManager manager = new ExtensionManager();
-    manager.processPlugins(plugins);
     //
     // Create the sockets and start listening for requests.
     //
