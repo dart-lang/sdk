@@ -132,9 +132,9 @@ static RawString* GetLibrarySource(const Library& lib,
   const uint8_t* utf8_array = NULL;
   intptr_t file_length = -1;
 
-  Dart_FileOpenCallback file_open = Isolate::file_open_callback();
-  Dart_FileReadCallback file_read = Isolate::file_read_callback();
-  Dart_FileCloseCallback file_close = Isolate::file_close_callback();
+  Dart_FileOpenCallback file_open = Dart::file_open_callback();
+  Dart_FileReadCallback file_read = Dart::file_read_callback();
+  Dart_FileCloseCallback file_close = Dart::file_close_callback();
   if ((file_open != NULL) && (file_read != NULL) && (file_close != NULL)) {
     // Try to open and read the file.
     void* stream = (*file_open)(source_path, false);

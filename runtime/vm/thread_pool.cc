@@ -4,6 +4,7 @@
 
 #include "vm/thread_pool.h"
 
+#include "vm/dart.h"
 #include "vm/flags.h"
 #include "vm/lockers.h"
 
@@ -479,6 +480,12 @@ void ThreadPool::Worker::Main(uword args) {
     // down immediately after returning from worker->Loop() above, we still
     // wait for the thread to exit by joining on it in Shutdown().
     delete worker;
+  }
+
+  // Call the thread exit hook here to notify the embedder that the
+  // thread pool thread is exiting.
+  if (Dart::thread_exit_callback() != NULL) {
+    (*Dart::thread_exit_callback())();
   }
 }
 

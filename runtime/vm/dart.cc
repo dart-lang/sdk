@@ -52,6 +52,12 @@ DebugInfo* Dart::pprof_symbol_generator_ = NULL;
 ReadOnlyHandles* Dart::predefined_handles_ = NULL;
 const uint8_t* Dart::instructions_snapshot_buffer_ = NULL;
 const uint8_t* Dart::data_snapshot_buffer_ = NULL;
+Dart_ThreadExitCallback Dart::thread_exit_callback_ = NULL;
+Dart_FileOpenCallback Dart::file_open_callback_ = NULL;
+Dart_FileReadCallback Dart::file_read_callback_ = NULL;
+Dart_FileWriteCallback Dart::file_write_callback_ = NULL;
+Dart_FileCloseCallback Dart::file_close_callback_ = NULL;
+Dart_EntropySource Dart::entropy_source_callback_ = NULL;
 
 // Structure for managing read-only global handles allocation used for
 // creating global read-only handles that are pre created and initialized
@@ -82,6 +88,7 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
                            const uint8_t* data_snapshot,
                            Dart_IsolateCreateCallback create,
                            Dart_IsolateShutdownCallback shutdown,
+                           Dart_ThreadExitCallback thread_exit,
                            Dart_FileOpenCallback file_open,
                            Dart_FileReadCallback file_read,
                            Dart_FileWriteCallback file_write,
@@ -92,8 +99,9 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
   if (vm_isolate_ != NULL || !Flags::Initialized()) {
     return "VM already initialized or flags not initialized.";
   }
-  Isolate::SetFileCallbacks(file_open, file_read, file_write, file_close);
-  Isolate::SetEntropySourceCallback(entropy_source);
+  set_thread_exit_callback(thread_exit);
+  SetFileCallbacks(file_open, file_read, file_write, file_close);
+  set_entropy_source_callback(entropy_source);
   OS::InitOnce();
   VirtualMemory::InitOnce();
   OSThread::InitOnce();

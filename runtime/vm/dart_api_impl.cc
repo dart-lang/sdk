@@ -1139,6 +1139,7 @@ DART_EXPORT char* Dart_Initialize(
     Dart_IsolateInterruptCallback interrupt,
     Dart_IsolateUnhandledExceptionCallback unhandled,
     Dart_IsolateShutdownCallback shutdown,
+    Dart_ThreadExitCallback thread_exit,
     Dart_FileOpenCallback file_open,
     Dart_FileReadCallback file_read,
     Dart_FileWriteCallback file_write,
@@ -1160,6 +1161,7 @@ DART_EXPORT char* Dart_Initialize(
                                        instructions_snapshot,
                                        data_snapshot,
                                        create, shutdown,
+                                       thread_exit,
                                        file_open, file_read, file_write,
                                        file_close, entropy_source,
                                        get_service_assets);

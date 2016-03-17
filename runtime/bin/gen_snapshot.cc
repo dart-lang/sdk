@@ -1041,6 +1041,7 @@ int main(int argc, char** argv) {
       NULL,
       NULL,
       NULL,
+      NULL,
       DartUtils::OpenFile,
       DartUtils::ReadFile,
       DartUtils::WriteFile,

@@ -365,36 +365,6 @@ class Isolate : public BaseIsolate {
     return shutdown_callback_;
   }
 
-  static void SetFileCallbacks(Dart_FileOpenCallback file_open,
-                               Dart_FileReadCallback file_read,
-                               Dart_FileWriteCallback file_write,
-                               Dart_FileCloseCallback file_close) {
-    file_open_callback_ = file_open;
-    file_read_callback_ = file_read;
-    file_write_callback_ = file_write;
-    file_close_callback_ = file_close;
-  }
-
-  static Dart_FileOpenCallback file_open_callback() {
-    return file_open_callback_;
-  }
-  static Dart_FileReadCallback file_read_callback() {
-    return file_read_callback_;
-  }
-  static Dart_FileWriteCallback file_write_callback() {
-    return file_write_callback_;
-  }
-  static Dart_FileCloseCallback file_close_callback() {
-    return file_close_callback_;
-  }
-
-  static void SetEntropySourceCallback(Dart_EntropySource entropy_source) {
-    entropy_source_callback_ = entropy_source;
-  }
-  static Dart_EntropySource entropy_source_callback() {
-    return entropy_source_callback_;
-  }
-
   void set_object_id_ring(ObjectIdRing* ring) {
     object_id_ring_ = ring;
   }
@@ -781,11 +751,6 @@ class Isolate : public BaseIsolate {
 
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateShutdownCallback shutdown_callback_;
-  static Dart_FileOpenCallback file_open_callback_;
-  static Dart_FileReadCallback file_read_callback_;
-  static Dart_FileWriteCallback file_write_callback_;
-  static Dart_FileCloseCallback file_close_callback_;
-  static Dart_EntropySource entropy_source_callback_;
   static Dart_IsolateInterruptCallback vmstats_callback_;
 
   static void WakePauseEventHandler(Dart_Isolate isolate);

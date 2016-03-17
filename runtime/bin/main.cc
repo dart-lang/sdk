@@ -1635,6 +1635,7 @@ void main(int argc, char** argv) {
   char* error = Dart_Initialize(
       vm_isolate_snapshot_buffer, instructions_snapshot, data_snapshot,
       CreateIsolateAndSetup, NULL, NULL, ShutdownIsolate,
+      NULL,
       DartUtils::OpenFile,
       DartUtils::ReadFile,
       DartUtils::WriteFile,
