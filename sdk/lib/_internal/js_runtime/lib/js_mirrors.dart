@@ -589,16 +589,28 @@ InstanceMirror reflect(Object reflectee) {
   }
 }
 
-TypeMirror reflectType(Type key) {
-  return reflectClassByMangledName(getMangledTypeName(key));
+TypeMirror reflectType(Type key, [Iterable<Type> typeArguments]) {
+  var mangledTypeArguments = [];
+  if (typeArguments != null && typeArguments.isNotEmpty) {
+    mangledTypeArguments = typeArguments
+      .map((argType) => getMangledTypeName(argType));
+  }
+  return reflectClassByMangledName(getMangledTypeName(key),
+    mangledTypeArguments);
 }
 
-TypeMirror reflectClassByMangledName(String mangledName) {
-  String unmangledName = mangledGlobalNames[mangledName];
-  if (mangledName == 'dynamic') return JsMirrorSystem._dynamicType;
-  if (mangledName == 'void') return JsMirrorSystem._voidType;
-  if (unmangledName == null) unmangledName = mangledName;
-  return reflectClassByName(s(unmangledName), mangledName);
+TypeMirror reflectClassByMangledName(String mangledName,
+    [Iterable<String> mangledTypeArguments]) {
+  if (mangledTypeArguments == null || mangledTypeArguments.isEmpty) {
+    String unmangledName = mangledGlobalNames[mangledName];
+    if (mangledName == 'dynamic') return JsMirrorSystem._dynamicType;
+    if (mangledName == 'void') return JsMirrorSystem._voidType;
+    if (unmangledName == null) unmangledName = mangledName;
+    return reflectClassByName(s(unmangledName), mangledName);
+  } else {
+    var typedClassName = "${mangledName}<${mangledTypeArguments.join(',')}>";
+    return reflectClassByName(s(typedClassName), typedClassName);
+  }
 }
 
 var classMirrors;
