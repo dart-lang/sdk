@@ -56,7 +56,6 @@ void ThreadRegistry::ReturnThreadLocked(bool is_mutator, Thread* thread) {
   // Remove thread from the active list for the isolate.
   RemoveFromActiveListLocked(thread);
   if (!is_mutator) {
-    ASSERT(thread->api_top_scope() == NULL);
     ReturnToFreelistLocked(thread);
   }
 }
@@ -68,27 +67,16 @@ void ThreadRegistry::VisitObjectPointers(ObjectPointerVisitor* visitor,
   bool mutator_thread_visited = false;
   Thread* thread = active_list_;
   while (thread != NULL) {
-    if (thread->zone() != NULL) {
-      thread->zone()->VisitObjectPointers(visitor);
-    }
-    thread->VisitObjectPointers(visitor);
+    thread->VisitObjectPointers(visitor, validate_frames);
     if (mutator_thread_ == thread) {
       mutator_thread_visited = true;
-    }
-    // Iterate over all the stack frames and visit objects on the stack.
-    StackFrameIterator frames_iterator(thread->top_exit_frame_info(),
-                                       validate_frames);
-    StackFrame* frame = frames_iterator.NextFrame();
-    while (frame != NULL) {
-      frame->VisitObjectPointers(visitor);
-      frame = frames_iterator.NextFrame();
     }
     thread = thread->next_;
   }
   // Visit mutator thread even if it is not in the active list because of
   // api handles.
   if (!mutator_thread_visited && (mutator_thread_ != NULL)) {
-    mutator_thread_->VisitObjectPointers(visitor);
+    mutator_thread_->VisitObjectPointers(visitor, validate_frames);
   }
 }
 

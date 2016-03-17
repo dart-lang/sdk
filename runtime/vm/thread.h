@@ -575,7 +575,7 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   Thread* next() const { return next_; }
 
   // Visit all object pointers.
-  void VisitObjectPointers(ObjectPointerVisitor* visitor);
+  void VisitObjectPointers(ObjectPointerVisitor* visitor, bool validate_frames);
 
   bool IsValidLocalHandle(Dart_Handle object) const;
   int CountLocalHandles() const;

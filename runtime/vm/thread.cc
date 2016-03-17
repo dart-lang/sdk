@@ -542,8 +542,13 @@ void Thread::ClearReusableHandles() {
 }
 
 
-void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor) {
+void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor,
+                                 bool validate_frames) {
   ASSERT(visitor != NULL);
+
+  if (zone_ != NULL) {
+    zone_->VisitObjectPointers(visitor);
+  }
 
   // Visit objects in thread specific handles area.
   reusable_handles_.VisitObjectPointers(visitor);
@@ -558,6 +563,15 @@ void Thread::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   while (scope != NULL) {
     scope->local_handles()->VisitObjectPointers(visitor);
     scope = scope->previous();
+  }
+
+  // Iterate over all the stack frames and visit objects on the stack.
+  StackFrameIterator frames_iterator(top_exit_frame_info(),
+                                     validate_frames);
+  StackFrame* frame = frames_iterator.NextFrame();
+  while (frame != NULL) {
+    frame->VisitObjectPointers(visitor);
+    frame = frames_iterator.NextFrame();
   }
 }
 
