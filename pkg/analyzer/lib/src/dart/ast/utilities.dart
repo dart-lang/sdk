@@ -2588,6 +2588,7 @@ class ElementLocator_ElementMapper extends GeneralizingAstVisitor<Element> {
  * mapping the old token stream to a new token stream, and preserving resolution
  * results.
  */
+@deprecated
 class IncrementalAstCloner implements AstVisitor<AstNode> {
   /**
    * The node to be replaced during the cloning process.
@@ -3101,18 +3102,21 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
           _mapToken(node.implementsKeyword), _cloneNodeList(node.interfaces));
 
   @override
-  ImportDirective visitImportDirective(ImportDirective node) =>
-      new ImportDirective(
-          _cloneNode(node.documentationComment),
-          _cloneNodeList(node.metadata),
-          _mapToken(node.keyword),
-          _cloneNode(node.uri),
-          _cloneNodeList(node.configurations),
-          _mapToken(node.deferredKeyword),
-          _mapToken(node.asKeyword),
-          _cloneNode(node.prefix),
-          _cloneNodeList(node.combinators),
-          _mapToken(node.semicolon));
+  ImportDirective visitImportDirective(ImportDirective node) {
+    ImportDirective copy = new ImportDirective(
+        _cloneNode(node.documentationComment),
+        _cloneNodeList(node.metadata),
+        _mapToken(node.keyword),
+        _cloneNode(node.uri),
+        _cloneNodeList(node.configurations),
+        _mapToken(node.deferredKeyword),
+        _mapToken(node.asKeyword),
+        _cloneNode(node.prefix),
+        _cloneNodeList(node.combinators),
+        _mapToken(node.semicolon));
+    copy.element = node.element;
+    return copy;
+  }
 
   @override
   IndexExpression visitIndexExpression(IndexExpression node) {
@@ -3190,13 +3194,16 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
           _cloneNodeList(node.labels), _cloneNode(node.statement));
 
   @override
-  LibraryDirective visitLibraryDirective(LibraryDirective node) =>
-      new LibraryDirective(
-          _cloneNode(node.documentationComment),
-          _cloneNodeList(node.metadata),
-          _mapToken(node.libraryKeyword),
-          _cloneNode(node.name),
-          _mapToken(node.semicolon));
+  LibraryDirective visitLibraryDirective(LibraryDirective node) {
+    LibraryDirective copy = new LibraryDirective(
+        _cloneNode(node.documentationComment),
+        _cloneNodeList(node.metadata),
+        _mapToken(node.libraryKeyword),
+        _cloneNode(node.name),
+        _mapToken(node.semicolon));
+    copy.element = node.element;
+    return copy;
+  }
 
   @override
   LibraryIdentifier visitLibraryIdentifier(LibraryIdentifier node) {
