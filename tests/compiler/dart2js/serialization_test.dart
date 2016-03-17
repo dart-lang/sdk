@@ -15,9 +15,9 @@ import 'package:compiler/src/diagnostics/invariant.dart';
 import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/visitor.dart';
 import 'package:compiler/src/ordered_typeset.dart';
-import 'package:compiler/src/serialization/serialization.dart';
+import 'package:compiler/src/serialization/element_serialization.dart';
 import 'package:compiler/src/serialization/json_serializer.dart';
-import 'package:compiler/src/tree/tree.dart';
+import 'package:compiler/src/serialization/serialization.dart';
 
 main(List<String> arguments) {
   // Ensure that we can print out constant expressions.
@@ -472,41 +472,28 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
           element1.libraryName, element2.libraryName);
     visitMembers(element1, element2);
     visit(element1.entryCompilationUnit, element2.entryCompilationUnit);
+
     checkElementLists(
         element1, element2, 'compilationUnits',
-        element1.compilationUnits.toList(),
-        element2.compilationUnits.toList());
+        LibrarySerializer.getCompilationUnits(element1),
+        LibrarySerializer.getCompilationUnits(element2));
 
     checkElementListIdentities(
-        element1, element2, 'imports', element1.imports, element2.imports);
+        element1, element2, 'imports',
+        LibrarySerializer.getImports(element1),
+        LibrarySerializer.getImports(element2));
     checkElementListIdentities(
         element1, element2, 'exports', element1.exports, element2.exports);
 
-    List<Element> imports1 = <Element>[];
-    List<Element> imports2 = <Element>[];
-    element1.forEachImport((Element import) {
-      if (import.isAmbiguous) return;
-      imports1.add(import);
-    });
-    element2.forEachImport((Element import) {
-      if (import.isAmbiguous) return;
-      imports2.add(import);
-    });
     checkElementListIdentities(
-        element1, element2, 'importScope', imports1, imports2);
+        element1, element2, 'importScope',
+        LibrarySerializer.getImportedElements(element1),
+        LibrarySerializer.getImportedElements(element2));
 
-    List<Element> exports1 = <Element>[];
-    List<Element> exports2 = <Element>[];
-    element1.forEachExport((Element export) {
-      if (export.isAmbiguous) return;
-      exports1.add(export);
-    });
-    element2.forEachExport((Element export) {
-      if (export.isAmbiguous) return;
-      exports2.add(export);
-    });
     checkElementListIdentities(
-        element1, element2, 'exportScope', exports1, exports2);
+        element1, element2, 'exportScope',
+        LibrarySerializer.getExportedElements(element1),
+        LibrarySerializer.getExportedElements(element2));
   }
 
   @override

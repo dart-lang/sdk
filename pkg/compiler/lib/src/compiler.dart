@@ -34,6 +34,7 @@ import 'common/tasks.dart' show
     CompilerTask,
     GenericTask;
 import 'common/work.dart' show
+    ItemCompilationContext,
     WorkItem;
 import 'compile_time_constants.dart';
 import 'constants/values.dart';
@@ -2141,6 +2142,7 @@ class _CompilerResolution implements Resolution {
 
   @override
   void uncacheWorldImpact(Element element) {
+    if (compiler.serialization.isDeserialized(element)) return;
     assert(invariant(element, _worldImpactCache[element] != null,
         message: "WorldImpact not computed for $element."));
     _worldImpactCache[element] = const WorldImpact();
@@ -2156,6 +2158,17 @@ class _CompilerResolution implements Resolution {
   @override
   bool hasBeenResolved(Element element) {
     return _worldImpactCache.containsKey(element);
+  }
+
+  @override
+  ResolutionWorkItem createWorkItem(
+      Element element, ItemCompilationContext compilationContext) {
+    if (compiler.serialization.isDeserialized(element)) {
+      return compiler.serialization.createResolutionWorkItem(
+          element, compilationContext);
+    } else {
+      return new ResolutionWorkItem(element, compilationContext);
+    }
   }
 }
 

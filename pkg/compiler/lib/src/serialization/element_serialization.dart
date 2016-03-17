@@ -19,6 +19,7 @@ enum SerializedElementKind {
   LIBRARY,
   COMPILATION_UNIT,
   CLASS,
+  ENUM,
   GENERATIVE_CONSTRUCTOR,
   FACTORY_CONSTRUCTOR,
   TOPLEVEL_FIELD,
@@ -116,24 +117,25 @@ class SerializerUtil {
   }
 
   /// Returns a function that adds the underlying declared elements for a
-  /// particular element into [list].
+  /// particular element into [set].
   ///
   /// For instance, for an [AbstractFieldElement] the getter and setter elements
   /// are added, if available.
-  static flattenElements(List<Element> list) {
+  static flattenElements(Set<Element> set) {
     return (Element element) {
+      if (element.isPatch) return;
       // TODO(johnniwinther): Handle ambiguous elements.
       if (element.isAmbiguous) return;
       if (element.isAbstractField) {
         AbstractFieldElement abstractField = element;
         if (abstractField.getter != null) {
-          list.add(abstractField.getter);
+          set.add(abstractField.getter);
         }
         if (abstractField.setter != null) {
-          list.add(abstractField.setter);
+          set.add(abstractField.setter);
         }
       } else {
-        list.add(element);
+        set.add(element);
       }
     };
   }
@@ -149,6 +151,43 @@ class LibrarySerializer implements ElementSerializer {
     return null;
   }
 
+  static List<CompilationUnitElement> getCompilationUnits(
+      LibraryElement element) {
+    List<CompilationUnitElement> compilationUnits = <CompilationUnitElement>[];
+    compilationUnits.addAll(element.compilationUnits.toList());
+    if (element.isPatched) {
+      compilationUnits.addAll(element.implementation.compilationUnits.toList());
+    }
+    return compilationUnits;
+  }
+
+  static List<ImportElement> getImports(LibraryElement element) {
+    List<ImportElement> imports = <ImportElement>[];
+    imports.addAll(element.imports);
+    if (element.isPatched) {
+      imports.addAll(element.implementation.imports);
+    }
+    return imports;
+  }
+
+  static List<Element> getImportedElements(
+      LibraryElement element) {
+    Set<Element> importedElements = new Set<Element>();
+    element.forEachImport(SerializerUtil.flattenElements(importedElements));
+    if (element.isPatched) {
+      element.implementation.forEachImport(
+          SerializerUtil.flattenElements(importedElements));
+    }
+    return importedElements.toList();
+  }
+
+  static List<Element> getExportedElements(
+      LibraryElement element) {
+    Set<Element> exportedElements = new Set<Element>();
+    element.forEachExport(SerializerUtil.flattenElements(exportedElements));
+    return exportedElements.toList();
+  }
+
   void serialize(LibraryElement element,
                  ObjectEncoder encoder,
                  SerializedElementKind kind) {
@@ -157,18 +196,13 @@ class LibrarySerializer implements ElementSerializer {
     encoder.setString(Key.LIBRARY_NAME, element.libraryName);
     SerializerUtil.serializeMembers(element, encoder);
     encoder.setElement(Key.COMPILATION_UNIT, element.entryCompilationUnit);
-    encoder.setElements(
-        Key.COMPILATION_UNITS, element.compilationUnits.toList());
-    encoder.setElements(Key.IMPORTS, element.imports);
+    encoder.setElements(Key.COMPILATION_UNITS, getCompilationUnits(element));
+    encoder.setElements(Key.IMPORTS, getImports(element));
     encoder.setElements(Key.EXPORTS, element.exports);
 
-    List<Element> importedElements = <Element>[];
-    element.forEachImport(SerializerUtil.flattenElements(importedElements));
-    encoder.setElements(Key.IMPORT_SCOPE, importedElements);
+    encoder.setElements(Key.IMPORT_SCOPE, getImportedElements(element));
 
-    List<Element> exportedElements = <Element>[];
-    element.forEachExport(SerializerUtil.flattenElements(exportedElements));
-    encoder.setElements(Key.EXPORT_SCOPE, exportedElements);
+    encoder.setElements(Key.EXPORT_SCOPE, getExportedElements(element));
 
   }
 }
@@ -190,7 +224,11 @@ class CompilationUnitSerializer implements ElementSerializer {
     encoder.setUri(
         Key.URI, element.library.canonicalUri, element.script.resourceUri);
     List<Element> elements = <Element>[];
-    element.forEachLocalMember((e) => elements.add(e));
+    element.forEachLocalMember((e) {
+      if (!element.isPatch) {
+        elements.add(e);
+      }
+    });
     encoder.setElements(Key.ELEMENTS, elements);
   }
 }
@@ -200,6 +238,10 @@ class ClassSerializer implements ElementSerializer {
 
   SerializedElementKind getSerializedKind(Element element) {
     if (element.isClass) {
+      ClassElement cls = element;
+      if (cls.isEnumClass) {
+        return SerializedElementKind.ENUM;
+      }
       return SerializedElementKind.CLASS;
     }
     return null;
@@ -226,6 +268,10 @@ class ClassSerializer implements ElementSerializer {
     supertypes.setInts(Key.OFFSETS, element.allSupertypesAndSelf.levelOffsets);
     encoder.setTypes(Key.INTERFACES, element.interfaces.toList());
     SerializerUtil.serializeMembers(element, encoder);
+    if (kind == SerializedElementKind.ENUM) {
+      EnumClassElement enumClass = element;
+      encoder.setElements(Key.FIELDS, enumClass.enumValues);
+    }
   }
 }
 
@@ -340,6 +386,7 @@ class FunctionSerializer implements ElementSerializer {
       encoder.setElement(Key.LIBRARY, element.library);
       encoder.setElement(Key.COMPILATION_UNIT, element.compilationUnit);
     }
+    encoder.setBool(Key.IS_EXTERNAL, element.isExternal);
   }
 }
 
@@ -508,6 +555,8 @@ class ElementDeserializer {
         return new CompilationUnitElementZ(decoder);
       case SerializedElementKind.CLASS:
         return new ClassElementZ(decoder);
+      case SerializedElementKind.ENUM:
+        return new EnumClassElementZ(decoder);
       case SerializedElementKind.TOPLEVEL_FIELD:
         return new TopLevelFieldElementZ(decoder);
       case SerializedElementKind.STATIC_FIELD:

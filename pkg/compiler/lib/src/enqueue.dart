@@ -803,14 +803,8 @@ class ResolutionEnqueuer extends Enqueuer {
 
     compiler.world.registerUsedElement(element);
 
-    ResolutionWorkItem workItem;
-    if (compiler.serialization.isDeserialized(element)) {
-      workItem = compiler.serialization.createResolutionWorkItem(
-          element, itemCompilationContextCreator());
-    } else {
-      workItem = new ResolutionWorkItem(
-          element, itemCompilationContextCreator());
-    }
+    ResolutionWorkItem workItem = compiler.resolution.createWorkItem(
+        element, itemCompilationContextCreator());
     queue.add(workItem);
 
     // Enable isolate support if we start using something from the isolate
