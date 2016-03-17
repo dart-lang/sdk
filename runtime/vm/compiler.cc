@@ -488,10 +488,12 @@ NOT_IN_PRODUCT(
   }
 );
   if (optimized()) {
+    bool code_was_installed = false;
     // Installs code while at safepoint.
     if (thread()->IsMutatorThread()) {
       const bool is_osr = osr_id() != Compiler::kNoOSRDeoptId;
       function.InstallOptimizedCode(code, is_osr);
+      code_was_installed = true;
     } else {
       // Background compilation.
       // Before installing code check generation counts if the code may
@@ -528,28 +530,36 @@ NOT_IN_PRODUCT(
       }
       if (code_is_valid) {
         const bool is_osr = osr_id() != Compiler::kNoOSRDeoptId;
-        ASSERT(!is_osr);  // OSR is compiled in background.
+        ASSERT(!is_osr);  // OSR is not compiled in background.
         function.InstallOptimizedCode(code, is_osr);
+        code_was_installed = true;
       }
       if (function.usage_counter() < 0) {
         // Reset to 0 so that it can be recompiled if needed.
-        function.set_usage_counter(0);
+        if (code_is_valid) {
+          function.set_usage_counter(0);
+        } else {
+          // Trigger another optimization pass soon.
+          function.set_usage_counter(FLAG_optimization_counter_threshold - 100);
+        }
       }
     }
 
-    // Register code with the classes it depends on because of CHA and
-    // fields it depends on because of store guards, unless we cannot
-    // deopt.
-    for (intptr_t i = 0;
-         i < thread()->cha()->leaf_classes().length();
-         ++i) {
-      thread()->cha()->leaf_classes()[i]->RegisterCHACode(code);
-    }
-    const ZoneGrowableArray<const Field*>& guarded_fields =
-        *flow_graph->parsed_function().guarded_fields();
-    for (intptr_t i = 0; i < guarded_fields.length(); i++) {
-      const Field* field = guarded_fields[i];
-      field->RegisterDependentCode(code);
+    if (code_was_installed) {
+      // Register code with the classes it depends on because of CHA and
+      // fields it depends on because of store guards, unless we cannot
+      // deopt.
+      for (intptr_t i = 0;
+           i < thread()->cha()->leaf_classes().length();
+           ++i) {
+        thread()->cha()->leaf_classes()[i]->RegisterCHACode(code);
+      }
+      const ZoneGrowableArray<const Field*>& guarded_fields =
+          *flow_graph->parsed_function().guarded_fields();
+      for (intptr_t i = 0; i < guarded_fields.length(); i++) {
+        const Field* field = guarded_fields[i];
+        field->RegisterDependentCode(code);
+      }
     }
   } else {  // not optimized.
     if (function.ic_data_array() == Array::null()) {
