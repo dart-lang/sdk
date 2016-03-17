@@ -1205,8 +1205,8 @@ class SsaBuilder extends ast.Visitor
   // implementation/declaration distinction.
   Element get sourceElement => sourceElementStack.last;
 
-  bool get _checkOrTrustTypes =>
-      compiler.enableTypeAssertions || compiler.trustTypeAnnotations;
+  bool get _checkOrTrustTypes => compiler.options.enableTypeAssertions ||
+      compiler.options.trustTypeAnnotations;
 
   /// Build the graph for [target].
   HGraph build() {
@@ -1225,7 +1225,7 @@ class SsaBuilder extends ast.Visitor
       result = buildMethod(target);
     } else if (target.isField) {
       if (target.isInstanceMember) {
-        assert(compiler.enableTypeAssertions);
+        assert(compiler.options.enableTypeAssertions);
         result = buildCheckedSetter(target);
       } else {
         result = buildLazyInitializer(target);
@@ -1426,7 +1426,7 @@ class SsaBuilder extends ast.Visitor
     if (cachedCanBeInlined == false) return false;
 
     bool meetsHardConstraints() {
-      if (compiler.disableInlining) return false;
+      if (compiler.options.disableInlining) return false;
 
       assert(invariant(
           currentNode != null ? currentNode : element,
@@ -1477,7 +1477,7 @@ class SsaBuilder extends ast.Visitor
     bool doesNotContainCode() {
       // A function with size 1 does not contain any code.
       return InlineWeeder.canBeInlined(function, 1, true,
-          enableUserAssertions: compiler.enableUserAssertions);
+          enableUserAssertions: compiler.options.enableUserAssertions);
     }
 
     bool reductiveHeuristic() {
@@ -1485,7 +1485,7 @@ class SsaBuilder extends ast.Visitor
       // does not make the program larger.
       if (isCalledOnce(element)) {
         return InlineWeeder.canBeInlined(function, -1, false,
-            enableUserAssertions: compiler.enableUserAssertions);
+            enableUserAssertions: compiler.options.enableUserAssertions);
       }
       // TODO(sra): Measure if inlining would 'reduce' the size.  One desirable
       // case we miss by doing nothing is inlining very simple constructors
@@ -1524,7 +1524,7 @@ class SsaBuilder extends ast.Visitor
         // if we can inline this method regardless of size.
         assert(InlineWeeder.canBeInlined(function, -1, false,
                 allowLoops: true,
-                enableUserAssertions: compiler.enableUserAssertions));
+                enableUserAssertions: compiler.options.enableUserAssertions));
         return true;
       }
 
@@ -1548,7 +1548,7 @@ class SsaBuilder extends ast.Visitor
       bool canInline;
       canInline = InlineWeeder.canBeInlined(
           function, maxInliningNodes, useMaxInliningNodes,
-          enableUserAssertions: compiler.enableUserAssertions);
+          enableUserAssertions: compiler.options.enableUserAssertions);
       if (canInline) {
         backend.inlineCache.markAsInlinable(element, insideLoop: insideLoop);
       } else {
@@ -2642,7 +2642,7 @@ class SsaBuilder extends ast.Visitor
   }
 
   HInstruction _trustType(HInstruction original, DartType type) {
-    assert(compiler.trustTypeAnnotations);
+    assert(compiler.options.trustTypeAnnotations);
     assert(type != null);
     type = localsHandler.substInContext(type);
     type = type.unaliased;
@@ -2656,7 +2656,7 @@ class SsaBuilder extends ast.Visitor
   }
 
   HInstruction _checkType(HInstruction original, DartType type, int kind) {
-    assert(compiler.enableTypeAssertions);
+    assert(compiler.options.enableTypeAssertions);
     assert(type != null);
     type = localsHandler.substInContext(type);
     HInstruction other = buildTypeConversion(original, type, kind);
@@ -2668,9 +2668,9 @@ class SsaBuilder extends ast.Visitor
       { int kind: HTypeConversion.CHECKED_MODE_CHECK }) {
     if (type == null) return original;
     HInstruction checkedOrTrusted = original;
-    if (compiler.trustTypeAnnotations) {
+    if (compiler.options.trustTypeAnnotations) {
       checkedOrTrusted = _trustType(original, type);
-    } else if (compiler.enableTypeAssertions) {
+    } else if (compiler.options.enableTypeAssertions) {
       checkedOrTrusted = _checkType(original, type, kind);
     }
     if (checkedOrTrusted == original) return original;
@@ -2750,7 +2750,7 @@ class SsaBuilder extends ast.Visitor
   }
 
   visitAssert(ast.Assert node) {
-    if (!compiler.enableUserAssertions) return;
+    if (!compiler.options.enableUserAssertions) return;
 
     if (!node.hasMessage) {
       // Generate:
@@ -4320,7 +4320,7 @@ class SsaBuilder extends ast.Visitor
          value = backend.mustRetainMetadata;
          break;
        case 'USE_CONTENT_SECURITY_POLICY':
-         value = compiler.useContentSecurityPolicy;
+         value = compiler.options.useContentSecurityPolicy;
          break;
        default:
          reporter.reportErrorMessage(
@@ -5353,7 +5353,7 @@ class SsaBuilder extends ast.Visitor
   /// In checked mode checks the [type] of [node] to be well-bounded. The method
   /// returns [:true:] if an error can be statically determined.
   bool checkTypeVariableBounds(ast.NewExpression node, InterfaceType type) {
-    if (!compiler.enableTypeAssertions) return false;
+    if (!compiler.options.enableTypeAssertions) return false;
 
     Map<DartType, Set<DartType>> seenChecksMap =
         new Map<DartType, Set<DartType>>();
@@ -5993,7 +5993,7 @@ class SsaBuilder extends ast.Visitor
 
       var nativeBehavior = new native.NativeBehavior()
         ..codeTemplate = codeTemplate;
-      if (compiler.trustJSInteropTypeAnnotations) {
+      if (compiler.options.trustJSInteropTypeAnnotations) {
         nativeBehavior.typesReturned.add(constructor.enclosingClass.thisType);
       }
       return new HForeignCode(
@@ -6024,7 +6024,8 @@ class SsaBuilder extends ast.Visitor
     // The return type is dynamic if we don't trust js-interop type
     // declarations.
     nativeBehavior.typesReturned.add(
-        compiler.trustJSInteropTypeAnnotations ? type : const DynamicType());
+        compiler.options.trustJSInteropTypeAnnotations
+            ? type : const DynamicType());
 
     // The allocation effects include the declared type if it is native (which
     // includes js interop types).
@@ -6034,7 +6035,7 @@ class SsaBuilder extends ast.Visitor
 
     // It also includes any other JS interop type if we don't trust the
     // annotation or if is declared too broad.
-    if (!compiler.trustJSInteropTypeAnnotations || type.isObject ||
+    if (!compiler.options.trustJSInteropTypeAnnotations || type.isObject ||
         type.isDynamic) {
       nativeBehavior.typesInstantiated.add(
           backend.helpers.jsJavaScriptObjectClass.thisType);
@@ -7333,7 +7334,7 @@ class SsaBuilder extends ast.Visitor
       visit(node.expression);
       value = pop();
       if (isBuildingAsyncFunction) {
-        if (compiler.enableTypeAssertions &&
+        if (compiler.options.enableTypeAssertions &&
             !isValidAsyncReturnType(returnType)) {
           String message =
                 "Async function returned a Future, "

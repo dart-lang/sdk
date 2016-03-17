@@ -105,7 +105,7 @@ class ConstantEmitter
     // digits are lost anyway.
     String representation = primitiveValue.toString();
     String alternative = null;
-    int cutoff = compiler.enableMinification ? 10000 : 1e10.toInt();
+    int cutoff = compiler.options.enableMinification ? 10000 : 1e10.toInt();
     if (primitiveValue.abs() >= cutoff) {
       alternative = _shortenExponentialRepresentation(
           primitiveValue.toStringAsExponential());
@@ -133,7 +133,7 @@ class ConstantEmitter
 
   @override
   jsAst.Expression visitBool(BoolConstantValue constant, [_]) {
-    if (compiler.enableMinification) {
+    if (compiler.options.enableMinification) {
       if (constant.isTrue) {
         // Use !0 for true.
         return js("!0");

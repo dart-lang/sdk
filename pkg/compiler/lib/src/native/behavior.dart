@@ -706,8 +706,8 @@ class NativeBehavior {
     // but otherwise we would include a lot of code by default).
     // TODO(sigmund,sra): consider doing something better for numeric types.
     behavior.typesReturned.add(
-        !isInterop || compiler.trustJSInteropTypeAnnotations ? returnType
-        : const DynamicType());
+        !isInterop || compiler.options.trustJSInteropTypeAnnotations
+            ? returnType : const DynamicType());
     if (!type.returnType.isVoid) {
       // Declared types are nullable.
       behavior.typesReturned.add(compiler.coreTypes.nullType);
@@ -734,8 +734,8 @@ class NativeBehavior {
     bool isInterop = compiler.backend.isJsInterop(field);
     // TODO(sigmund,sra): consider doing something better for numeric types.
     behavior.typesReturned.add(
-        !isInterop || compiler.trustJSInteropTypeAnnotations ? type
-        : const DynamicType());
+        !isInterop || compiler.options.trustJSInteropTypeAnnotations
+            ? type : const DynamicType());
     // Declared types are nullable.
     behavior.typesReturned.add(resolution.coreTypes.nullType);
     behavior._capture(type, resolution,
@@ -859,7 +859,7 @@ class NativeBehavior {
           typesInstantiated.add(type);
         }
 
-        if (!compiler.trustJSInteropTypeAnnotations ||
+        if (!compiler.options.trustJSInteropTypeAnnotations ||
           type.isDynamic || type.isObject) {
           // By saying that only JS-interop types can be created, we prevent
           // pulling in every other native type (e.g. all of dart:html) when a

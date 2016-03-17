@@ -99,7 +99,7 @@ class FieldVisitor {
         js.Name accessorName = namer.fieldAccessorName(field);
         js.Name fieldName = namer.fieldPropertyName(field);
         bool needsCheckedSetter = false;
-        if (compiler.enableTypeAssertions
+        if (compiler.options.enableTypeAssertions
             && needsSetter
             && !canAvoidGeneratedCheckedSetter(field)) {
           needsCheckedSetter = true;

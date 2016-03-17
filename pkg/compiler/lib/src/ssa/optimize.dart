@@ -61,7 +61,7 @@ class SsaOptimizerTask extends CompilerTask {
 
     ConstantSystem constantSystem = compiler.backend.constantSystem;
     JavaScriptItemCompilationContext context = work.compilationContext;
-    bool trustPrimitives = compiler.trustPrimitives;
+    bool trustPrimitives = compiler.options.trustPrimitives;
     measure(() {
       List<OptimizationPhase> phases = <OptimizationPhase>[
           // Run trivial instruction simplification first to optimize
@@ -393,7 +393,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         } else if (applies(helpers.jsArrayAdd)) {
           // The codegen special cases array calls, but does not
           // inline argument type checks.
-          if (!compiler.enableTypeAssertions) {
+          if (!compiler.options.enableTypeAssertions) {
             target = helpers.jsArrayAdd;
           }
         }
@@ -513,7 +513,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
         if (type is FunctionType) {
           canInline = false;
         }
-        if (compiler.enableTypeAssertions) {
+        if (compiler.options.enableTypeAssertions) {
           // TODO(sra): Check if [input] is guaranteed to pass the parameter
           // type check.  Consider using a strengthened type check to avoid
           // passing `null` to primitive types since the native methods usually
@@ -918,7 +918,7 @@ class SsaInstructionSimplifier extends HBaseVisitor
     // interceptor calling convention, but is not a call on an
     // interceptor.
     HInstruction value = node.inputs.last;
-    if (compiler.enableTypeAssertions) {
+    if (compiler.options.enableTypeAssertions) {
       DartType type = field.type;
       if (!type.treatAsRaw || type.isTypeVariable) {
         // We cannot generate the correct type representation here, so don't

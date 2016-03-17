@@ -50,8 +50,14 @@ class TestCompiler extends apiimpl.CompilerImpl {
                String this.testMarker,
                String this.testType,
                Function this.onTest)
-      : super(inputProvider, outputProvider, handler, libraryRoot,
-              packageRoot, options, environment, packageConfig, findPackages) {
+      : super(inputProvider, outputProvider, handler,
+            new api.CompilerOptions.parse(
+                libraryRoot: libraryRoot,
+                packageRoot: packageRoot,
+                options: options,
+                environment: environment,
+                packageConfig: packageConfig,
+                packagesDiscoveryProvider: findPackages)) {
     scanner = new TestScanner(this);
     resolver = new TestResolver(this, backend.constantCompilerTask);
     reporter = new TestDiagnosticReporter(this, super.reporter);

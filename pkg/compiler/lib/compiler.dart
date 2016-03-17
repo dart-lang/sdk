@@ -115,7 +115,7 @@ Future<CompilationResult> compile(
      Uri packageConfig,
      PackagesDiscoveryProvider packagesDiscoveryProvider]) {
 
-  new_api.CompilerOptions compilerOptions = new new_api.CompilerOptions(
+  new_api.CompilerOptions compilerOptions = new new_api.CompilerOptions.parse(
       entryPoint: script,
       libraryRoot: libraryRoot,
       packageRoot: packageRoot,

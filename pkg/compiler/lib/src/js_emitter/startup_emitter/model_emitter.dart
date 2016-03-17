@@ -218,7 +218,7 @@ class ModelEmitter {
           NO_LOCATION_SPANNABLE, MessageKind.PREAMBLE);
     }
 
-    if (compiler.deferredMapUri != null) {
+    if (compiler.options.deferredMapUri != null) {
       writeDeferredMap();
     }
 
@@ -228,7 +228,7 @@ class ModelEmitter {
 
   /// Generates a simple header that provides the compiler's build id.
   js.Comment buildGeneratedBy() {
-    String flavor = compiler.useContentSecurityPolicy
+    String flavor = compiler.options.useContentSecurityPolicy
         ? 'fast startup, CSP'
         : 'fast startup';
     return new js.Comment(generatedBy(compiler, flavor: flavor));
@@ -284,15 +284,15 @@ class ModelEmitter {
         monitor: compiler.dumpInfoTask));
 
     if (shouldGenerateSourceMap) {
-      mainOutput.add(
-          generateSourceMapTag(compiler.sourceMapUri, compiler.outputUri));
+      mainOutput.add(generateSourceMapTag(
+          compiler.options.sourceMapUri, compiler.options.outputUri));
     }
 
     mainOutput.close();
 
     if (shouldGenerateSourceMap) {
       outputSourceMap(mainOutput, lineColumnCollector, '',
-          compiler.sourceMapUri, compiler.outputUri);
+          compiler.options.sourceMapUri, compiler.options.outputUri);
     }
   }
 
@@ -348,8 +348,8 @@ class ModelEmitter {
 
     if (shouldGenerateSourceMap) {
       Uri mapUri, partUri;
-      Uri sourceMapUri = compiler.sourceMapUri;
-      Uri outputUri = compiler.outputUri;
+      Uri sourceMapUri = compiler.options.sourceMapUri;
+      Uri outputUri = compiler.options.outputUri;
       String partName = "$hunkPrefix.$partExtension";
       String hunkFileName = "$hunkPrefix.$deferredExtension";
 
@@ -357,13 +357,15 @@ class ModelEmitter {
         String mapFileName = hunkFileName + ".map";
         List<String> mapSegments = sourceMapUri.pathSegments.toList();
         mapSegments[mapSegments.length - 1] = mapFileName;
-        mapUri = compiler.sourceMapUri.replace(pathSegments: mapSegments);
+        mapUri = compiler.options.sourceMapUri
+            .replace(pathSegments: mapSegments);
       }
 
       if (outputUri != null) {
         List<String> partSegments = outputUri.pathSegments.toList();
         partSegments[partSegments.length - 1] = hunkFileName;
-        partUri = compiler.outputUri.replace(pathSegments: partSegments);
+        partUri = compiler.options.outputUri
+            .replace(pathSegments: partSegments);
       }
 
       output.add(generateSourceMapTag(mapUri, partUri));
@@ -416,7 +418,8 @@ class ModelEmitter {
     mapping["_comment"] = "This mapping shows which compiled `.js` files are "
         "needed for a given deferred library import.";
     mapping.addAll(compiler.deferredLoadTask.computeDeferredMap());
-    compiler.outputProvider(compiler.deferredMapUri.path, 'deferred_map')
+    compiler.outputProvider(
+          compiler.options.deferredMapUri.path, 'deferred_map')
       ..add(const JsonEncoder.withIndent("  ").convert(mapping))
       ..close();
   }

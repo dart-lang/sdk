@@ -511,7 +511,7 @@ class MainOutputGenerator {
           ? mainName.substring(0, mainName.length - 5)
           : mainName;
       // Map each library to a path based on the uri of the original
-      // library and [compiler.outputUri].
+      // library and [compiler.options.outputUri].
       Set<String> usedLibraryPaths = new Set<String>();
       for (LibraryElement library in libraryInfo.userLibraries) {
         if (library == mainFunction.library) {

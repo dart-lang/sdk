@@ -291,7 +291,7 @@ class SsaTrustedCheckRemover extends HBaseVisitor {
   SsaTrustedCheckRemover(this.compiler);
 
   void visitGraph(HGraph graph) {
-    if (!compiler.trustPrimitives) return;
+    if (!compiler.options.trustPrimitives) return;
     visitDominatorTree(graph);
   }
 

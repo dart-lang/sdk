@@ -27,7 +27,7 @@ String prettyPrint(
      Renamer renamerForNames: JavaScriptPrintingOptions.identityRenamer}) {
   // TODO(johnniwinther): Do we need all the options here?
   JavaScriptPrintingOptions options = new JavaScriptPrintingOptions(
-      shouldCompressOutput: compiler.enableMinification,
+      shouldCompressOutput: compiler.options.enableMinification,
       minifyLocalVariables: allowVariableMinification,
       preferSemicolonToNewlineInMinifiedOutput: USE_LAZY_EMITTER,
       renamerForNames: renamerForNames);
@@ -47,7 +47,7 @@ CodeBuffer createCodeBuffer(
   JavaScriptSourceInformationStrategy sourceInformationFactory =
       compiler.backend.sourceInformationStrategy;
   JavaScriptPrintingOptions options = new JavaScriptPrintingOptions(
-      shouldCompressOutput: compiler.enableMinification,
+      shouldCompressOutput: compiler.options.enableMinification,
       minifyLocalVariables: allowVariableMinification,
       preferSemicolonToNewlineInMinifiedOutput: USE_LAZY_EMITTER,
       renamerForNames: renamerForNames);

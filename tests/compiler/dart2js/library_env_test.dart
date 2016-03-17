@@ -24,7 +24,8 @@ import 'package:compiler/src/null_compiler_output.dart' show
 
 import 'package:compiler/compiler_new.dart' show
     CompilerInput,
-    CompilerDiagnostics;
+    CompilerDiagnostics,
+    CompilerOptions;
 
 import 'package:sdk_library_metadata/libraries.dart' show
     LibraryInfo;
@@ -80,23 +81,19 @@ class DummyCompilerDiagnostics implements CompilerDiagnostics {
 }
 
 class CustomCompiler extends CompilerImpl {
-  CustomCompiler(
-      options,
-      environment)
+  CustomCompiler(options, environment)
       : super(
           const DummyCompilerInput(),
           const NullCompilerOutput(),
           const DummyCompilerDiagnostics(),
-          Uri.base.resolve("sdk/"),
-          null,
-          options,
-          environment);
+          new CompilerOptions.parse(
+              libraryRoot: Uri.base.resolve("sdk/"),
+              options: options,
+              environment: environment));
 }
 
 runTest() async {
-  var compiler = new CustomCompiler(
-      [],
-      {});
+  var compiler = new CustomCompiler([], {});
 
   await compiler.setupSdk();
 
@@ -113,9 +110,7 @@ runTest() async {
   Expect.equals(null, compiler.fromEnvironment("dart.library.mock.server"));
   Expect.equals(null, compiler.fromEnvironment("dart.library.io"));
 
-  compiler = new CustomCompiler(
-      ['--categories=Server'],
-      {});
+  compiler = new CustomCompiler(['--categories=Server'], {});
 
   await compiler.setupSdk();
 
@@ -133,8 +128,7 @@ runTest() async {
   Expect.equals("true", compiler.fromEnvironment("dart.library.io"));
 
   // Check that user-defined env-variables win.
-  compiler = new CustomCompiler(
-      [],
+  compiler = new CustomCompiler([],
       {'dart.library.collection': "false",
        'dart.library.mock.client': "foo"});
 

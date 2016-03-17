@@ -300,7 +300,7 @@ class _RuntimeTypes implements RuntimeTypes {
         }
       }
     });
-    if (compiler.enableTypeAssertions) {
+    if (compiler.options.enableTypeAssertions) {
       void analyzeMethod(TypedElement method) {
         DartType memberType = method.type;
         ClassElement contextClass = Types.getClassContext(memberType);

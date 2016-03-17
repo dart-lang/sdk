@@ -180,7 +180,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
           ? Scope.buildEnclosingScope(element) : element.buildScope(),
       // The type annotations on a typedef do not imply type checks.
       // TODO(karlklose): clean this up (dartbug.com/8870).
-      inCheckContext = compiler.enableTypeAssertions &&
+      inCheckContext = compiler.options.enableTypeAssertions &&
           !element.isLibrary &&
           !element.isTypedef &&
           !element.enclosingElement.isTypedef,
@@ -496,7 +496,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   ResolutionResult visitAssert(Assert node) {
-    if (!compiler.enableAssertMessage) {
+    if (!compiler.options.enableAssertMessage) {
       if (node.hasMessage) {
         reporter.reportErrorMessage(
             node, MessageKind.EXPERIMENTAL_ASSERT_MESSAGE);

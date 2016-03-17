@@ -346,7 +346,7 @@ class DeferredLoadTask extends CompilerTask {
                       collectTypeDependencies(type);
                       break;
                     case TypeUseKind.CHECKED_MODE_CHECK:
-                      if (compiler.enableTypeAssertions) {
+                      if (compiler.options.enableTypeAssertions) {
                         collectTypeDependencies(type);
                       }
                       break;

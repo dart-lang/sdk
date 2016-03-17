@@ -1312,7 +1312,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   /// This is also where we should add type checks in checked mode, but this
   /// is not supported yet.
   ir.Primitive checkType(ir.Primitive value, DartType dartType) {
-    if (!compiler.trustTypeAnnotations) return value;
+    if (!compiler.options.trustTypeAnnotations) return value;
     TypeMask type = typeMaskSystem.subtypesOf(dartType).nullable();
     return irBuilder.addPrimitive(new ir.Refinement(value, type));
   }
@@ -1869,7 +1869,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   @override
   ir.Primitive visitAssert(ast.Assert node) {
     assert(irBuilder.isOpen);
-    if (compiler.enableUserAssertions) {
+    if (compiler.options.enableUserAssertions) {
       return giveup(node, 'assert in checked mode not implemented');
     } else {
       // The call to assert and its argument expression must be ignored
@@ -3505,7 +3505,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
             value = backend.mustRetainMetadata;
             break;
           case 'USE_CONTENT_SECURITY_POLICY':
-            value = compiler.useContentSecurityPolicy;
+            value = compiler.options.useContentSecurityPolicy;
             break;
           default:
             internalError(node, 'Unknown internal flag "$name".');
@@ -4247,7 +4247,7 @@ class GlobalProgramInformation {
   }
 
   bool get trustJSInteropTypeAnnotations =>
-      _compiler.trustJSInteropTypeAnnotations;
+      _compiler.options.trustJSInteropTypeAnnotations;
 
   bool isNative(ClassElement element) => _backend.isNative(element);
 

@@ -111,7 +111,7 @@ class DartBackend extends Backend {
             compiler.reporter, compiler.outputProvider,
             forceStripTypes: strips.indexOf('types') != -1,
             multiFile: multiFile,
-            enableMinification: compiler.enableMinification),
+            enableMinification: compiler.options.enableMinification),
         super(compiler) {
     impactTransformer = new DartImpactTransformer(this);
   }
@@ -194,7 +194,7 @@ class DartBackend extends Backend {
         sortElements: Elements.sortedByPosition,
         mirrorRenamer: mirrorRenamer,
         mainFunction: compiler.mainFunction,
-        outputUri: compiler.outputUri);
+        outputUri: compiler.options.outputUri);
 
     // Output verbose info about size ratio of resulting bundle to all
     // referenced non-platform sources.

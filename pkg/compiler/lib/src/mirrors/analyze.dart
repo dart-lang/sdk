@@ -9,6 +9,7 @@ import 'dart:async';
 import 'source_mirrors.dart';
 import 'dart2js_mirrors.dart' show Dart2JsMirrorSystem;
 import '../../compiler.dart' as api;
+import '../../compiler_new.dart' as new_api;
 import '../apiimpl.dart' as apiimpl;
 import '../compiler.dart' show Compiler;
 import '../old_to_new_api.dart';
@@ -58,12 +59,13 @@ Future<MirrorSystem> analyze(List<Uri> libraries,
       new LegacyCompilerInput(inputProvider),
       new LegacyCompilerOutput(),
       new LegacyCompilerDiagnostics(internalDiagnosticHandler),
-      libraryRoot,
-      packageRoot,
-      options,
-      const {},
-      packageConfig,
-      findPackages);
+      new new_api.CompilerOptions.parse(
+          libraryRoot: libraryRoot,
+          packageRoot: packageRoot,
+          options: options,
+          environment: const {},
+          packageConfig: packageConfig,
+          packagesDiscoveryProvider: findPackages));
   compiler.librariesToAnalyzeWhenRun = libraries;
   return compiler.run(null).then((bool success) {
     if (success && !compilationFailed) {

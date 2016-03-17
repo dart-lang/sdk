@@ -141,7 +141,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   CoreTypes get coreTypes => compiler.coreTypes;
 
   void processNativeClasses(Iterable<LibraryElement> libraries) {
-    if (compiler.hasIncrementalSupport) {
+    if (compiler.options.hasIncrementalSupport) {
       // Since [Set.add] returns bool if an element was added, this restricts
       // [libraries] to ones that haven't already been processed. This saves
       // time during incremental compiles.
@@ -370,7 +370,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   processClass(BaseClassElementX classElement, cause) {
     // TODO(ahe): Fix this assertion to work in incremental compilation.
-    assert(compiler.hasIncrementalSupport ||
+    assert(compiler.options.hasIncrementalSupport ||
            !registeredClasses.contains(classElement));
 
     bool firstTime = registeredClasses.isEmpty;
@@ -584,7 +584,7 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
   Map<String, ClassElement> tagOwner = new Map<String, ClassElement>();
 
   NativeResolutionEnqueuer(Enqueuer world, Compiler compiler)
-    : super(world, compiler, compiler.enableNativeLiveTypeAnalysis);
+    : super(world, compiler, compiler.options.enableNativeLiveTypeAnalysis);
 
   void processNativeClass(ClassElement classElement) {
     super.processNativeClass(classElement);
@@ -670,7 +670,7 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
   final Set<ClassElement> doneAddSubtypes = new Set<ClassElement>();
 
   NativeCodegenEnqueuer(Enqueuer world, Compiler compiler, this.emitter)
-    : super(world, compiler, compiler.enableNativeLiveTypeAnalysis);
+    : super(world, compiler, compiler.options.enableNativeLiveTypeAnalysis);
 
   void processNativeClasses(Iterable<LibraryElement> libraries) {
     super.processNativeClasses(libraries);

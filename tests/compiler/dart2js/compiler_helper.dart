@@ -112,6 +112,10 @@ Future<String> compile(String code,
       options.add(Flags.trustJSInteropTypeAnnotations);
     }
 
+    if (disableInlining) {
+      options.add(Flags.disableInlining);
+    }
+
     Map<String, String> source;
     if (entry != 'main') {
       source = {'main.dart': "$code\n\nmain() => $entry;" };
@@ -122,12 +126,7 @@ Future<String> compile(String code,
     CompilationResult result = await runCompiler(
         memorySourceFiles: source,
         options: options,
-        outputProvider: outputCollector,
-        beforeRun: (compiler) {
-          if (disableInlining) {
-            compiler.disableInlining = true;
-          }
-        });
+        outputProvider: outputCollector);
     Expect.isTrue(result.isSuccess);
     Compiler compiler =  result.compiler;
     lego.Element element = compiler.mainApp.find(entry);

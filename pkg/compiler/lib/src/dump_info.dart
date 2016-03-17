@@ -431,7 +431,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   }
 
   void registerImpact(Element element, WorldImpact impact) {
-    if (compiler.dumpInfo) {
+    if (compiler.options.dumpInfo) {
       impacts[element] = impact;
     }
   }
@@ -470,7 +470,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   // Returns true if we care about tracking the size of
   // this node.
   bool isTracking(jsAst.Node code) {
-    if (compiler.dumpInfo) {
+    if (compiler.options.dumpInfo) {
       return _tracking.contains(code);
     } else {
       return false;
@@ -480,7 +480,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   // Registers that a javascript AST node `code` was produced by the
   // dart Element `element`.
   void registerElementAst(Element element, jsAst.Node code) {
-    if (compiler.dumpInfo) {
+    if (compiler.options.dumpInfo) {
       _elementToNodes
           .putIfAbsent(element, () => new List<jsAst.Node>())
           .add(code);
@@ -489,7 +489,7 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
   }
 
   void registerConstantAst(ConstantValue constant, jsAst.Node code) {
-    if (compiler.dumpInfo) {
+    if (compiler.options.dumpInfo) {
       assert(_constantToNode[constant] == null ||
           _constantToNode[constant] == code);
       _constantToNode[constant] = code;
@@ -594,13 +594,14 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     result.program = new ProgramInfo(
         entrypoint: infoCollector._elementToInfo[compiler.mainFunction],
         size: _programSize,
-        dart2jsVersion: compiler.hasBuildId ? compiler.buildId : null,
+        dart2jsVersion:
+            compiler.options.hasBuildId ? compiler.options.buildId : null,
         compilationMoment: new DateTime.now(),
         compilationDuration: compiler.totalCompileTime.elapsed,
         toJsonDuration: stopwatch.elapsedMilliseconds,
         dumpInfoDuration: this.timing,
         noSuchMethodEnabled: compiler.backend.enabledNoSuchMethod,
-        minified: compiler.enableMinification);
+        minified: compiler.options.enableMinification);
 
     ChunkedConversionSink<Object> sink = encoder.startChunkedConversion(
         new StringConversionSink.fromStringSink(buffer));

@@ -307,7 +307,7 @@ class LookupMapAnalysis {
     // When --verbose is passed, we show the total number and set of keys that
     // were tree-shaken from lookup maps.
     Compiler compiler = backend.compiler;
-    if (compiler.verbose) {
+    if (compiler.options.verbose) {
       var sb = new StringBuffer();
       int count = 0;
       for (var info in _lookupMaps.values) {

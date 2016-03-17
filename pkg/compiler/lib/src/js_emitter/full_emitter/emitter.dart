@@ -152,9 +152,9 @@ class Emitter implements js_emitter.Emitter {
   TypeVariableHandler get typeVariableHandler => backend.typeVariableHandler;
 
   String get _ => space;
-  String get space => compiler.enableMinification ? "" : " ";
-  String get n => compiler.enableMinification ? "" : "\n";
-  String get N => compiler.enableMinification ? "\n" : ";\n";
+  String get space => compiler.options.enableMinification ? "" : " ";
+  String get n => compiler.options.enableMinification ? "" : "\n";
+  String get N => compiler.options.enableMinification ? "\n" : ";\n";
 
   /**
    * List of expressions and statements that will be included in the
@@ -571,7 +571,7 @@ class Emitter implements js_emitter.Emitter {
 
   jsAst.Statement buildCspPrecompiledFunctionFor(
       OutputUnit outputUnit) {
-    if (compiler.useContentSecurityPolicy) {
+    if (compiler.options.useContentSecurityPolicy) {
       // TODO(ahe): Compute a hash code.
       // TODO(sigurdm): Avoid this precompiled function. Generated
       // constructor-functions and getter/setter functions can be stored in the
@@ -598,7 +598,7 @@ class Emitter implements js_emitter.Emitter {
                      Fragment fragment) {
     ClassElement classElement = cls.element;
     reporter.withCurrentElement(classElement, () {
-      if (compiler.hasIncrementalSupport) {
+      if (compiler.options.hasIncrementalSupport) {
         ClassBuilder cachedBuilder =
             cachedClassBuilders.putIfAbsent(classElement, () {
               ClassBuilder builder =
@@ -711,7 +711,7 @@ class Emitter implements js_emitter.Emitter {
           }
         }
       })(#laziesInfo)
-      ''', {'notMinified': !compiler.enableMinification,
+      ''', {'notMinified': !compiler.options.enableMinification,
             'laziesInfo': new jsAst.ArrayInitializer(laziesInfo),
             'lazy': js(lazyInitializerName),
             'isMainFragment': isMainFragment,
@@ -728,7 +728,7 @@ class Emitter implements js_emitter.Emitter {
       laziesInfo.add(js.quoteName(field.name));
       laziesInfo.add(js.quoteName(namer.deriveLazyInitializerName(field.name)));
       laziesInfo.add(field.code);
-      if (!compiler.enableMinification) {
+      if (!compiler.options.enableMinification) {
         laziesInfo.add(js.quoteName(field.name));
       }
       if (!isMainFragment) {
@@ -763,7 +763,7 @@ class Emitter implements js_emitter.Emitter {
            isolateProperties]);
     }
 
-    if (compiler.enableMinification) {
+    if (compiler.options.enableMinification) {
       return js('#(#,#,#)',
           [js(lazyInitializerName),
            js.quoteName(namer.globalPropertyName(element)),
@@ -805,12 +805,12 @@ class Emitter implements js_emitter.Emitter {
 
     if (constants.isEmpty) return js.comment("No constants in program.");
     List<jsAst.Statement> parts = <jsAst.Statement>[];
-    if (compiler.hasIncrementalSupport && isMainFragment) {
+    if (compiler.options.hasIncrementalSupport && isMainFragment) {
       parts = cachedEmittedConstantsAst;
     }
     for (Constant constant in constants) {
       ConstantValue constantValue = constant.value;
-      if (compiler.hasIncrementalSupport && isMainFragment) {
+      if (compiler.options.hasIncrementalSupport && isMainFragment) {
         if (cachedEmittedConstants.contains(constantValue)) continue;
         cachedEmittedConstants.add(constantValue);
       }
@@ -1027,7 +1027,7 @@ class Emitter implements js_emitter.Emitter {
             'makeConstListProperty': makeConstListProperty,
             'functionThatReturnsNullProperty':
                 backend.rtiEncoder.getFunctionThatReturnsNullName,
-            'hasIncrementalSupport': compiler.hasIncrementalSupport,
+            'hasIncrementalSupport': compiler.options.hasIncrementalSupport,
             'lazyInitializerProperty': lazyInitializerProperty,});
   }
 
@@ -1073,7 +1073,7 @@ class Emitter implements js_emitter.Emitter {
   jsAst.Statement buildSupportsDirectProtoAccess() {
     jsAst.Statement supportsDirectProtoAccess;
 
-    if (compiler.hasIncrementalSupport) {
+    if (compiler.options.hasIncrementalSupport) {
       supportsDirectProtoAccess = js.statement(r'''
         var supportsDirectProtoAccess = false;
       ''');
@@ -1095,17 +1095,16 @@ class Emitter implements js_emitter.Emitter {
   jsAst.Expression generateLibraryDescriptor(LibraryElement library,
                                              Fragment fragment) {
     var uri = "";
-    if (!compiler.enableMinification || backend.mustPreserveUris) {
+    if (!compiler.options.enableMinification || backend.mustPreserveUris) {
       uri = library.canonicalUri;
-      if (uri.scheme == 'file' && compiler.outputUri != null) {
-        uri = relativize(compiler.outputUri, library.canonicalUri, false);
+      if (uri.scheme == 'file' && compiler.options.outputUri != null) {
+        uri = relativize(
+        compiler.options.outputUri, library.canonicalUri, false);
       }
     }
 
-    String libraryName =
-        (!compiler.enableMinification || backend.mustRetainLibraryNames) ?
-        library.libraryName :
-        "";
+    String libraryName = (!compiler.options.enableMinification ||
+        backend.mustRetainLibraryNames) ? library.libraryName : "";
 
     jsAst.Fun metadata = task.metadataCollector.buildMetadataFunction(library);
 
@@ -1342,7 +1341,7 @@ class Emitter implements js_emitter.Emitter {
 
   void checkEverythingEmitted(Iterable<Element> elements) {
     List<Element> pendingStatics;
-    if (!compiler.hasIncrementalSupport) {
+    if (!compiler.options.hasIncrementalSupport) {
       pendingStatics =
           Elements.sortedByPosition(elements.where((e) => !e.isLibrary));
 
@@ -1429,7 +1428,8 @@ class Emitter implements js_emitter.Emitter {
       // The program builder does not collect libraries that only
       // contain typedefs that are used for reflection.
       for (LibraryElement element in remainingLibraries) {
-        assert(element is LibraryElement || compiler.hasIncrementalSupport);
+        assert(element is LibraryElement ||
+            compiler.options.hasIncrementalSupport);
         if (element is LibraryElement) {
           parts.add(generateLibraryDescriptor(element, mainFragment));
           descriptors.remove(element);
@@ -1552,7 +1552,7 @@ class Emitter implements js_emitter.Emitter {
     })();
     """, {
       "disableVariableRenaming": js.comment("/* ::norenaming:: */"),
-      "hasIncrementalSupport": compiler.hasIncrementalSupport,
+      "hasIncrementalSupport": compiler.options.hasIncrementalSupport,
       "helper": js('this.#', [namer.incrementalHelperName]),
       "schemaChange": buildSchemaChangeFunction(),
       "addMethod": buildIncrementalAddMethod(),
@@ -1612,27 +1612,27 @@ class Emitter implements js_emitter.Emitter {
     mainOutput.addBuffer(jsAst.createCodeBuffer(
         program, compiler, monitor: compiler.dumpInfoTask));
 
-    if (compiler.deferredMapUri != null) {
+    if (compiler.options.deferredMapUri != null) {
       outputDeferredMap();
     }
 
     if (generateSourceMap) {
-      mainOutput.add(
-          generateSourceMapTag(compiler.sourceMapUri, compiler.outputUri));
+      mainOutput.add(generateSourceMapTag(
+          compiler.options.sourceMapUri, compiler.options.outputUri));
     }
 
     mainOutput.close();
 
     if (generateSourceMap) {
       outputSourceMap(mainOutput, lineColumnCollector, '',
-          compiler.sourceMapUri, compiler.outputUri);
+          compiler.options.sourceMapUri, compiler.options.outputUri);
     }
   }
 
   /// Used by incremental compilation to patch up the prototype of
   /// [oldConstructor] for use as prototype of [newConstructor].
   jsAst.Fun buildSchemaChangeFunction() {
-    if (!compiler.hasIncrementalSupport) return null;
+    if (!compiler.options.hasIncrementalSupport) return null;
     return js('''
 function(newConstructor, oldConstructor, superclass) {
   // Invariant: newConstructor.prototype has no interesting properties besides
@@ -1665,7 +1665,7 @@ function(newConstructor, oldConstructor, superclass) {
   /// top-level). [globalFunctionsAccess] is a reference to
   /// [embeddedNames.GLOBAL_FUNCTIONS].
   jsAst.Fun buildIncrementalAddMethod() {
-    if (!compiler.hasIncrementalSupport) return null;
+    if (!compiler.options.hasIncrementalSupport) return null;
     return js(r"""
 function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
   var arrayOrFunction = originalDescriptor[name];
@@ -1992,7 +1992,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
         // in stack traces and profile entries.
         body.add(js.statement('var dart = #', libraryDescriptor));
 
-        if (compiler.useContentSecurityPolicy) {
+        if (compiler.options.useContentSecurityPolicy) {
           body.add(buildCspPrecompiledFunctionFor(outputUnit));
         }
         body.add(
@@ -2067,8 +2067,8 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
 
       if (generateSourceMap) {
         Uri mapUri, partUri;
-        Uri sourceMapUri = compiler.sourceMapUri;
-        Uri outputUri = compiler.outputUri;
+        Uri sourceMapUri = compiler.options.sourceMapUri;
+        Uri outputUri = compiler.options.outputUri;
 
         String partName = "$partPrefix.part";
 
@@ -2076,14 +2076,16 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
           String mapFileName = partName + ".js.map";
           List<String> mapSegments = sourceMapUri.pathSegments.toList();
           mapSegments[mapSegments.length - 1] = mapFileName;
-          mapUri = compiler.sourceMapUri.replace(pathSegments: mapSegments);
+          mapUri = compiler.options.sourceMapUri
+              .replace(pathSegments: mapSegments);
         }
 
         if (outputUri != null) {
           String partFileName = partName + ".js";
           List<String> partSegments = outputUri.pathSegments.toList();
           partSegments[partSegments.length - 1] = partFileName;
-          partUri = compiler.outputUri.replace(pathSegments: partSegments);
+          partUri = compiler.options.outputUri.replace(
+              pathSegments: partSegments);
         }
 
         output.add(generateSourceMapTag(mapUri, partUri));
@@ -2102,7 +2104,7 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
   jsAst.Comment buildGeneratedBy() {
     List<String> options = [];
     if (compiler.mirrorsLibrary != null) options.add('mirrors');
-    if (compiler.useContentSecurityPolicy) options.add("CSP");
+    if (compiler.options.useContentSecurityPolicy) options.add("CSP");
     return new jsAst.Comment(generatedBy(compiler, flavor: options.join(", ")));
   }
 
@@ -2130,13 +2132,14 @@ function(originalDescriptor, name, holder, isStatic, globalFunctionsAccess) {
     mapping["_comment"] = "This mapping shows which compiled `.js` files are "
         "needed for a given deferred library import.";
     mapping.addAll(compiler.deferredLoadTask.computeDeferredMap());
-    compiler.outputProvider(compiler.deferredMapUri.path, 'deferred_map')
+    compiler.outputProvider(
+            compiler.options.deferredMapUri.path, 'deferred_map')
         ..add(const JsonEncoder.withIndent("  ").convert(mapping))
         ..close();
   }
 
   void invalidateCaches() {
-    if (!compiler.hasIncrementalSupport) return;
+    if (!compiler.options.hasIncrementalSupport) return;
     if (cachedElements.isEmpty) return;
     for (Element element in compiler.enqueuer.codegen.newlyEnqueuedElements) {
       if (element.isInstanceMember) {

@@ -76,7 +76,7 @@ class EnqueueTask extends CompilerTask {
   EnqueueTask(Compiler compiler)
     : resolution = new ResolutionEnqueuer(
           compiler, compiler.backend.createItemCompilationContext,
-          compiler.analyzeOnly && compiler.analyzeMain
+          compiler.options.analyzeOnly && compiler.options.analyzeMain
               ? const EnqueuerStrategy() : const TreeShakingEnqueuerStrategy()),
       codegen = new CodegenEnqueuer(
           compiler, compiler.backend.createItemCompilationContext,
@@ -157,7 +157,7 @@ abstract class Enqueuer {
    */
   void addToWorkList(Element element) {
     assert(invariant(element, element.isDeclaration));
-    if (internalAddToWorkList(element) && compiler.dumpInfo) {
+    if (internalAddToWorkList(element) && compiler.options.dumpInfo) {
       // TODO(sigmund): add other missing dependencies (internals, selectors
       // enqueued after allocations), also enable only for the codegen enqueuer.
       compiler.dumpInfoTask.registerDependency(
@@ -663,7 +663,7 @@ abstract class Enqueuer {
         _registerIsCheck(type);
         break;
       case TypeUseKind.CHECKED_MODE_CHECK:
-        if (compiler.enableTypeAssertions) {
+        if (compiler.options.enableTypeAssertions) {
           _registerIsCheck(type);
         }
         break;
@@ -942,13 +942,13 @@ class CodegenEnqueuer extends Enqueuer {
     // Codegen inlines field initializers. It only needs to generate
     // code for checked setters.
     if (element.isField && element.isInstanceMember) {
-      if (!compiler.enableTypeAssertions
+      if (!compiler.options.enableTypeAssertions
           || element.enclosingElement.isClosure) {
         return false;
       }
     }
 
-    if (compiler.hasIncrementalSupport && !isProcessed(element)) {
+    if (compiler.options.hasIncrementalSupport && !isProcessed(element)) {
       newlyEnqueuedElements.add(element);
     }
 
@@ -986,7 +986,7 @@ class CodegenEnqueuer extends Enqueuer {
   }
 
   void handleUnseenSelector(DynamicUse dynamicUse) {
-    if (compiler.hasIncrementalSupport) {
+    if (compiler.options.hasIncrementalSupport) {
       newlySeenSelectors.add(dynamicUse);
     }
     super.handleUnseenSelector(dynamicUse);

@@ -30,7 +30,7 @@ bool maybeEnableNative(Compiler compiler,
       || libraryName == 'dart:web_audio'
       || libraryName == 'dart:web_gl'
       || libraryName == 'dart:web_sql'
-      || compiler.allowNativeExtensions) {
+      || compiler.options.allowNativeExtensions) {
     return true;
   }
   return false;

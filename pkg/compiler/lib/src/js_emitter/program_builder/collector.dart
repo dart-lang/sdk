@@ -148,7 +148,8 @@ class Collector {
 
     JavaScriptConstantCompiler handler = backend.constants;
     List<ConstantValue> constants = handler.getConstantsForEmission(
-        compiler.hasIncrementalSupport ? null : emitter.compareConstants);
+        compiler.options.hasIncrementalSupport ? null
+            : emitter.compareConstants);
     for (ConstantValue constant in constants) {
       if (emitter.isConstantInlinedOrAlreadyEmitted(constant)) continue;
 

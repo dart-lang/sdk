@@ -538,7 +538,7 @@ class JavaScriptBackend extends Backend {
     constantCompilerTask = new JavaScriptConstantTask(compiler);
     impactTransformer = new JavaScriptImpactTransformer(this);
     patchResolverTask = new PatchResolverTask(compiler);
-    functionCompiler = compiler.useCpsIr
+    functionCompiler = compiler.options.useCpsIr
          ? new CpsFunctionCompiler(
              compiler, this, sourceInformationStrategy)
          : new SsaFunctionCompiler(this, sourceInformationStrategy);
@@ -585,8 +585,8 @@ class JavaScriptBackend extends Backend {
   }
 
   static Namer determineNamer(Compiler compiler) {
-    return compiler.enableMinification ?
-        compiler.useFrequencyNamer ?
+    return compiler.options.enableMinification ?
+        compiler.options.useFrequencyNamer ?
             new FrequencyBasedNamer(compiler) :
             new MinifyNamer(compiler) :
         new Namer(compiler);
@@ -702,7 +702,7 @@ class JavaScriptBackend extends Backend {
   }
 
   bool canUseAliasedSuperMember(Element member, Selector selector) {
-    return !selector.isGetter && !compiler.hasIncrementalSupport;
+    return !selector.isGetter && !compiler.options.hasIncrementalSupport;
   }
 
   /**
@@ -1345,7 +1345,7 @@ class JavaScriptBackend extends Backend {
     // will instantiate those two classes.
     addInterceptors(helpers.jsBoolClass, world, registry);
     addInterceptors(helpers.jsNullClass, world, registry);
-    if (compiler.enableTypeAssertions) {
+    if (compiler.options.enableTypeAssertions) {
       // Unconditionally register the helper that checks if the
       // expression in an if/while/for is a boolean.
       // TODO(ngeoffray): Should we have the resolver register those instead?
@@ -1944,14 +1944,13 @@ class JavaScriptBackend extends Backend {
 
   void registerStaticUse(Element element, Enqueuer enqueuer) {
     if (element == helpers.disableTreeShakingMarker) {
-      compiler.disableTypeInferenceForMirrors = true;
       isTreeShakingDisabled = true;
     } else if (element == helpers.preserveNamesMarker) {
       mustPreserveNames = true;
     } else if (element == helpers.preserveMetadataMarker) {
       mustRetainMetadata = true;
     } else if (element == helpers.preserveUrisMarker) {
-      if (compiler.preserveUris) mustPreserveUris = true;
+      if (compiler.options.preserveUris) mustPreserveUris = true;
     } else if (element == helpers.preserveLibraryNamesMarker) {
       mustRetainLibraryNames = true;
     } else if (element == helpers.getIsolateAffinityTagMarker) {
@@ -2394,7 +2393,7 @@ class JavaScriptBackend extends Backend {
       enabledNoSuchMethod = true;
     }
 
-    if (compiler.hasIncrementalSupport) {
+    if (compiler.options.hasIncrementalSupport) {
       // Always enable tear-off closures during incremental compilation.
       Element e = helpers.closureFromTearOff;
       if (e != null && !enqueuer.isProcessed(e)) {
@@ -2561,8 +2560,8 @@ class JavaScriptBackend extends Backend {
   /// If [addExtension] is false, the ".part.js" suffix is left out.
   String deferredPartFileName(String name, {bool addExtension: true}) {
     assert(name != "");
-    String outPath = compiler.outputUri != null
-        ? compiler.outputUri.path
+    String outPath = compiler.options.outputUri != null
+        ? compiler.options.outputUri.path
         : "out";
     String outName = outPath.substring(outPath.lastIndexOf('/') + 1);
     String extension = addExtension ? ".part.js" : "";
@@ -2577,7 +2576,7 @@ class JavaScriptBackend extends Backend {
 
   @override
   bool enableCodegenWithErrorsIfSupported(Spannable node) {
-    if (compiler.useCpsIr) {
+    if (compiler.options.useCpsIr) {
       // TODO(25747): Support code generation with compile-time errors.
       reporter.reportHintMessage(
           node,
@@ -2792,7 +2791,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           registerBackendImpact(transformed, impacts.catchStatement);
           break;
         case Feature.COMPILE_TIME_ERROR:
-          if (backend.compiler.generateCodeWithCompileTimeErrors) {
+          if (backend.compiler.options.generateCodeWithCompileTimeErrors) {
             // TODO(johnniwinther): This should have its own uncatchable error.
             registerBackendImpact(transformed, impacts.throwRuntimeError);
           }
@@ -2858,7 +2857,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           hasAsCast = true;
           break;
         case TypeUseKind.CHECKED_MODE_CHECK:
-          if (backend.compiler.enableTypeAssertions) {
+          if (backend.compiler.options.enableTypeAssertions) {
             onIsCheck(type, transformed);
           }
           break;
@@ -3000,7 +2999,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     type = type.unaliased;
     registerBackendImpact(transformed, impacts.typeCheck);
 
-    bool inCheckedMode = backend.compiler.enableTypeAssertions;
+    bool inCheckedMode = backend.compiler.options.enableTypeAssertions;
     if (inCheckedMode) {
       registerBackendImpact(transformed, impacts.checkedModeTypeCheck);
     }
@@ -3032,7 +3031,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     type = type.unaliased;
     registerBackendImpact(transformed, impacts.typeCheck);
 
-    bool inCheckedMode = backend.compiler.enableTypeAssertions;
+    bool inCheckedMode = backend.compiler.options.enableTypeAssertions;
     // [registerIsCheck] is also called for checked mode checks, so we
     // need to register checked mode helpers.
     if (inCheckedMode) {

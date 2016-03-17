@@ -266,7 +266,8 @@ class ResolverTask extends CompilerTask {
             tree, MessageKind.FUNCTION_WITH_INITIALIZER);
       }
 
-      if (!compiler.analyzeSignaturesOnly || tree.isRedirectingFactory) {
+      if (!compiler.options.analyzeSignaturesOnly ||
+          tree.isRedirectingFactory) {
         // We need to analyze the redirecting factory bodies to ensure that
         // we can analyze compile-time constants.
         visitor.visit(tree.body);

@@ -4,6 +4,7 @@
 
 import 'dart:async';
 import 'package:expect/expect.dart';
+import 'package:compiler/compiler_new.dart' show CompilerOptions;
 import 'package:compiler/src/null_compiler_output.dart';
 import 'memory_source_file_helper.dart';
 
@@ -16,14 +17,15 @@ Future<Map<String, String>> generate(String code,
   var provider = new MemorySourceFileProvider({ 'main.dart': code });
   var handler = new FormattingDiagnosticHandler(provider);
 
+  Uri uri = Uri.parse('memory:main.dart');
   CompilerImpl compiler = new CompilerImpl(provider,
                                    const NullCompilerOutput(),
                                    handler,
-                                   libraryRoot,
-                                   packageRoot,
-                                   options,
-                                   {});
-  Uri uri = Uri.parse('memory:main.dart');
+                                   new CompilerOptions.parse(
+                                       entryPoint: uri,
+                                       libraryRoot: libraryRoot,
+                                       packageRoot: packageRoot,
+                                       options: options));
   return compiler.run(uri).then((success) {
     Expect.isTrue(success);
     Map<String, String> result = new Map<String, String>();

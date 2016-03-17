@@ -1960,7 +1960,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   js.Expression newLiteralBool(bool value,
                                SourceInformation sourceInformation) {
-    if (compiler.enableMinification) {
+    if (compiler.options.enableMinification) {
       // Use !0 for true, !1 for false.
       return new js.Prefix("!", new js.LiteralNumber(value ? "0" : "1"))
           .withSourceInformation(sourceInformation);
@@ -2787,7 +2787,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       ClassWorld classWorld = compiler.world;
       // An int check if the input is not int or null, is not
       // sufficient for doing an argument or receiver check.
-      assert(compiler.trustTypeAnnotations ||
+      assert(compiler.options.trustTypeAnnotations ||
              !node.checkedType.containsOnlyInt(classWorld) ||
              node.checkedInput.isIntegerOrNull(compiler));
       js.Expression test = generateReceiverOrArgumentTypeTest(

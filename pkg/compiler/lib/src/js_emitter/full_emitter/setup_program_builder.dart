@@ -81,9 +81,10 @@ jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
   String unmangledNameIndex = backend.mustRetainMetadata
       ? ' 3 * optionalParameterCount + 2 * requiredParameterCount + 3'
       : ' 2 * optionalParameterCount + requiredParameterCount + 3';
-  String receiverParamName = compiler.enableMinification ? "r" : "receiver";
-  String valueParamName = compiler.enableMinification ? "v" : "value";
-  String space = compiler.enableMinification ? "" : " ";
+  String receiverParamName = compiler.options.enableMinification
+      ? "r" : "receiver";
+  String valueParamName = compiler.options.enableMinification ? "v" : "value";
+  String space = compiler.options.enableMinification ? "" : " ";
   String _ = space;
 
   String specProperty = '"${namer.nativeSpecProperty}"';  // "%"
@@ -109,12 +110,12 @@ jsAst.Statement buildSetupProgram(Program program, Compiler compiler,
      'enabledInvokeOn': compiler.enabledInvokeOn,
      'interceptedNames': interceptedNamesAccess,
      'interceptedNamesSet': emitter.generateInterceptedNamesSet(),
-     'notInCspMode': !compiler.useContentSecurityPolicy,
-     'inCspMode': compiler.useContentSecurityPolicy,
+     'notInCspMode': !compiler.options.useContentSecurityPolicy,
+     'inCspMode': compiler.options.useContentSecurityPolicy,
      'deferredAction': namer.deferredAction,
      'hasIsolateSupport': program.hasIsolateSupport,
      'fieldNamesProperty': js.string(Emitter.FIELD_NAMES_PROPERTY_NAME),
-     'hasIncrementalSupport': compiler.hasIncrementalSupport,
+     'hasIncrementalSupport': compiler.options.hasIncrementalSupport,
      'incrementalHelper': namer.accessIncrementalHelper,
      'createNewIsolateFunction': createNewIsolateFunctionAccess,
      'isolateName': namer.isolateName,

@@ -1163,7 +1163,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
       return null;
     }
 
-    bool trustPrimitives = compiler.trustPrimitives;
+    bool trustPrimitives = compiler.options.trustPrimitives;
 
     /// Check that the receiver and argument satisfy the given type checks, and
     /// throw a [NoSuchMethodError] or [ArgumentError] if the check fails.
@@ -1486,7 +1486,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
         Primitive list,
         Primitive index,
         [int checkKind = BoundsCheck.BOTH_BOUNDS | BoundsCheck.INTEGER]) {
-    if (compiler.trustPrimitives) {
+    if (compiler.options.trustPrimitives) {
       return cps.letPrim(new BoundsCheck.noCheck(list, cps.sourceInformation));
     } else {
       GetLength length = cps.letPrim(new GetLength(list));
@@ -1547,7 +1547,7 @@ class TransformingVisitor extends DeepRecursiveVisitor {
           if (!typeSystem.isDefinitelyUint(newLength.type)) {
             // TODO(asgerf): We could let the SetLength instruction throw for
             // negative right-hand sides (see length setter in js_array.dart).
-            if (compiler.trustPrimitives) {
+            if (compiler.options.trustPrimitives) {
               newLength = cps.refine(newLength, typeSystem.uint32Type);
               newLength.type = typeSystem.uint32Type;
             } else {

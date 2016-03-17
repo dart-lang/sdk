@@ -98,7 +98,7 @@ class IndexAssignSpecializer extends InvokeDynamicSpecializer {
                                    Compiler compiler) {
     if (instruction.inputs[1].isMutableIndexable(compiler)) {
       if (!instruction.inputs[2].isInteger(compiler)
-          && compiler.enableTypeAssertions) {
+          && compiler.options.enableTypeAssertions) {
         // We want the right checked mode error.
         return null;
       }
@@ -118,7 +118,7 @@ class IndexSpecializer extends InvokeDynamicSpecializer {
                                    Compiler compiler) {
     if (!instruction.inputs[1].isIndexablePrimitive(compiler)) return null;
     if (!instruction.inputs[2].isInteger(compiler)
-        && compiler.enableTypeAssertions) {
+        && compiler.options.enableTypeAssertions) {
       // We want the right checked mode error.
       return null;
     }

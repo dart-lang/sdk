@@ -515,8 +515,8 @@ class MemberTypeInformation extends ElementTypeInformation
   TypeMask potentiallyNarrowType(TypeMask mask,
                                  TypeGraphInferrerEngine inferrer) {
     Compiler compiler = inferrer.compiler;
-    if (!compiler.trustTypeAnnotations &&
-        !compiler.enableTypeAssertions &&
+    if (!compiler.options.trustTypeAnnotations &&
+        !compiler.options.enableTypeAssertions &&
         !inferrer.annotations.trustTypeAnnotations(element)) {
       return mask;
     }
@@ -664,14 +664,14 @@ class ParameterTypeInformation extends ElementTypeInformation {
   TypeMask potentiallyNarrowType(TypeMask mask,
                                  TypeGraphInferrerEngine inferrer) {
     Compiler compiler = inferrer.compiler;
-    if (!compiler.trustTypeAnnotations &&
+    if (!compiler.options.trustTypeAnnotations &&
         !inferrer.annotations.trustTypeAnnotations(declaration)) {
       return mask;
     }
     // When type assertions are enabled (aka checked mode), we have to always
     // ignore type annotations to ensure that the checks are actually inserted
     // into the function body and retained until runtime.
-    assert(!compiler.enableTypeAssertions);
+    assert(!compiler.options.enableTypeAssertions);
     return _narrowType(compiler, mask, element.type);
   }
 

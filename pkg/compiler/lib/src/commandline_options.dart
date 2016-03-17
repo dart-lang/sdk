@@ -12,6 +12,7 @@ class Flags {
   static const String analyzeMain = '--analyze-main';
   static const String analyzeOnly = '--analyze-only';
   static const String analyzeSignaturesOnly = '--analyze-signatures-only';
+  static const String disableInlining = '--disable-inlining';
   static const String disableDiagnosticColors = '--disable-diagnostic-colors';
   static const String disableNativeLiveTypeAnalysis =
       '--disable-native-live-type-analysis';
