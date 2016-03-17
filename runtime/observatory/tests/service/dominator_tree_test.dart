@@ -57,7 +57,7 @@ buildGraph() {
 var tests = [
 (Isolate isolate) async {
   var rootLib = await isolate.rootLibrary.load();
-  var snapshot = await isolate.fetchHeapSnapshot().last;
+  var snapshot = await isolate.fetchHeapSnapshot(false).last;
 
   node(String className) {
     var cls = rootLib.classes.singleWhere((cls) => cls.name == className);

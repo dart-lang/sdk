@@ -105,7 +105,7 @@ class Service : public AllStatic {
       Dart_GetVMServiceAssetsArchive get_service_assets);
 
   static void SendEchoEvent(Isolate* isolate, const char* text);
-  static void SendGraphEvent(Thread* thread);
+  static void SendGraphEvent(Thread* thread, bool collect_garbage);
   static void SendInspectEvent(Isolate* isolate, const Object& inspectee);
 
   static void SendEmbedderEvent(Isolate* isolate,

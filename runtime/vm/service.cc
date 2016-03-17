@@ -3269,13 +3269,16 @@ static bool GetHeapMap(Thread* thread, JSONStream* js) {
 
 static const MethodParameter* request_heap_snapshot_params[] = {
   RUNNABLE_ISOLATE_PARAMETER,
+  new BoolParameter("collectGarbage", false /* not required */),
   NULL,
 };
 
 
 static bool RequestHeapSnapshot(Thread* thread, JSONStream* js) {
+  const bool collect_garbage =
+      BoolParameter::Parse(js->LookupParam("collectGarbage"), true);
   if (Service::graph_stream.enabled()) {
-    Service::SendGraphEvent(thread);
+    Service::SendGraphEvent(thread, collect_garbage);
   }
   // TODO(koda): Provide some id that ties this request to async response(s).
   JSONObject jsobj(js);
@@ -3284,11 +3287,11 @@ static bool RequestHeapSnapshot(Thread* thread, JSONStream* js) {
 }
 
 
-void Service::SendGraphEvent(Thread* thread) {
+void Service::SendGraphEvent(Thread* thread, bool collect_garbage) {
   uint8_t* buffer = NULL;
   WriteStream stream(&buffer, &allocator, 1 * MB);
   ObjectGraph graph(thread);
-  intptr_t node_count = graph.Serialize(&stream);
+  intptr_t node_count = graph.Serialize(&stream, collect_garbage);
 
   // Chrome crashes receiving a single tens-of-megabytes blob, so send the
   // snapshot in megabyte-sized chunks instead.

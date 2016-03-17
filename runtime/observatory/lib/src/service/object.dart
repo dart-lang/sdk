@@ -1365,11 +1365,12 @@ class Isolate extends ServiceObjectOwner {
     }
   }
 
-  Stream fetchHeapSnapshot() {
+  Stream fetchHeapSnapshot(collectGarbage) {
     if (_snapshotFetch == null || _snapshotFetch.isClosed) {
       _snapshotFetch = new StreamController();
       // isolate.vm.streamListen('_Graph');
-      isolate.invokeRpcNoUpgrade('_requestHeapSnapshot', {});
+      isolate.invokeRpcNoUpgrade('_requestHeapSnapshot',
+                                 {'collectGarbage': collectGarbage});
     }
     return _snapshotFetch.stream;
   }
