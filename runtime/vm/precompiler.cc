@@ -214,6 +214,7 @@ void Precompiler::DoCompileAll(
     DropLibraries();
 
     BindStaticCalls();
+    SwitchICCalls();
 
     DedupStackmaps();
     DedupStackmapLists();
@@ -1652,6 +1653,84 @@ void Precompiler::BindStaticCalls() {
   };
 
   BindStaticCallsVisitor visitor(Z);
+  VisitFunctions(&visitor);
+}
+
+
+void Precompiler::SwitchICCalls() {
+  // Now that all functions have been compiled, we can switch to an instance
+  // call sequence that loads the Code object and entry point directly from
+  // the ic data array instead indirectly through a Function in the ic data
+  // array. Iterate all the object pools and rewrite the ic data from
+  // (cid, target function, count) to (cid, target code, entry point), and
+  // replace the ICLookupThroughFunction stub with ICLookupThroughCode.
+
+  class SwitchICCallsVisitor : public FunctionVisitor {
+   public:
+    explicit SwitchICCallsVisitor(Zone* zone) :
+        code_(Code::Handle(zone)),
+        pool_(ObjectPool::Handle(zone)),
+        entry_(Object::Handle(zone)),
+        ic_(ICData::Handle(zone)),
+        target_(Function::Handle(zone)),
+        target_code_(Code::Handle(zone)),
+        entry_point_(Smi::Handle(zone)) {
+    }
+
+    void VisitFunction(const Function& function) {
+      if (!function.HasCode()) {
+        ASSERT(function.HasImplicitClosureFunction());
+        return;
+      }
+
+      code_ = function.CurrentCode();
+      pool_ = code_.object_pool();
+      for (intptr_t i = 0; i < pool_.Length(); i++) {
+        if (pool_.InfoAt(i) != ObjectPool::kTaggedObject) continue;
+        entry_ = pool_.ObjectAt(i);
+        if (entry_.IsICData()) {
+          ic_ ^= entry_.raw();
+
+          // Only single check ICs are SwitchableCalls that use the ICLookup
+          // stubs. Some operators like + have ICData that check the types of
+          // arguments in addition to the receiver and use special stubs
+          // with fast paths for Smi operations.
+          if (ic_.NumArgsTested() != 1) continue;
+
+          for (intptr_t j = 0; j < ic_.NumberOfChecks(); j++) {
+            entry_ = ic_.GetTargetOrCodeAt(j);
+            if (entry_.IsFunction()) {
+              target_ ^= entry_.raw();
+              ASSERT(target_.HasCode());
+              target_code_ = target_.CurrentCode();
+              entry_point_ = Smi::FromAlignedAddress(target_code_.EntryPoint());
+              ic_.SetCodeAt(j, target_code_);
+              ic_.SetEntryPointAt(j, entry_point_);
+            } else {
+              // We've already seen and switched this ICData.
+              ASSERT(entry_.IsCode());
+            }
+          }
+        } else if (entry_.raw() ==
+                   StubCode::ICLookupThroughFunction_entry()->code()) {
+          target_code_ = StubCode::ICLookupThroughCode_entry()->code();
+          pool_.SetObjectAt(i, target_code_);
+        }
+      }
+    }
+
+   private:
+    Code& code_;
+    ObjectPool& pool_;
+    Object& entry_;
+    ICData& ic_;
+    Function& target_;
+    Code& target_code_;
+    Smi& entry_point_;
+  };
+
+  ASSERT(!I->compilation_allowed());
+  SwitchICCallsVisitor visitor(Z);
   VisitFunctions(&visitor);
 }
 

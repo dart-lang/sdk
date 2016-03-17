@@ -1926,6 +1926,10 @@ class ICData : public Object {
   RawFunction* GetTargetAt(intptr_t index) const;
   RawFunction* GetTargetForReceiverClassId(intptr_t class_id) const;
 
+  RawObject* GetTargetOrCodeAt(intptr_t index) const;
+  void SetCodeAt(intptr_t index, const Code& value) const;
+  void SetEntryPointAt(intptr_t index, const Smi& value) const;
+
   void IncrementCountAt(intptr_t index, intptr_t value) const;
   void SetCountAt(intptr_t index, intptr_t value) const;
   intptr_t GetCountAt(intptr_t index) const;
@@ -1962,8 +1966,14 @@ class ICData : public Object {
   static intptr_t TargetIndexFor(intptr_t num_args) {
     return num_args;
   }
+  static intptr_t CodeIndexFor(intptr_t num_args) {
+    return num_args;
+  }
 
   static intptr_t CountIndexFor(intptr_t num_args) {
+    return (num_args + 1);
+  }
+  static intptr_t EntryPointIndexFor(intptr_t num_args) {
     return (num_args + 1);
   }
 
@@ -6092,6 +6102,11 @@ class Smi : public Integer {
     intptr_t raw_smi = (value << kSmiTagShift) | kSmiTag;
     ASSERT(ValueFromRaw(raw_smi) == value);
     return reinterpret_cast<RawSmi*>(raw_smi);
+  }
+
+  static RawSmi* FromAlignedAddress(uword address) {
+    ASSERT((address & kSmiTagMask) == kSmiTag);
+    return reinterpret_cast<RawSmi*>(address);
   }
 
   static RawClass* Class();

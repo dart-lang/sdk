@@ -12334,8 +12334,18 @@ void ICData::AddReceiverCheck(intptr_t receiver_class_id,
     data_pos = 0;
   }
   data.SetAt(data_pos, Smi::Handle(Smi::New(receiver_class_id)));
-  data.SetAt(data_pos + 1, target);
-  data.SetAt(data_pos + 2, Smi::Handle(Smi::New(count)));
+  if (Isolate::Current()->compilation_allowed()) {
+    data.SetAt(data_pos + 1, target);
+    data.SetAt(data_pos + 2, Smi::Handle(Smi::New(count)));
+  } else {
+    // Precompilation only, after all functions have been compiled.
+    ASSERT(target.HasCode());
+    const Code& code = Code::Handle(target.CurrentCode());
+    const Smi& entry_point =
+        Smi::Handle(Smi::FromAlignedAddress(code.EntryPoint()));
+    data.SetAt(data_pos + 1, code);
+    data.SetAt(data_pos + 2, entry_point);
+  }
   // Multithreaded access to ICData requires setting of array to be the last
   // operation.
   set_ic_data_array(data);
@@ -12409,12 +12419,22 @@ intptr_t ICData::GetReceiverClassIdAt(intptr_t index) const {
 
 
 RawFunction* ICData::GetTargetAt(intptr_t index) const {
+  ASSERT(Isolate::Current()->compilation_allowed());
   const intptr_t data_pos = index * TestEntryLength() + NumArgsTested();
   ASSERT(Object::Handle(Array::Handle(ic_data()).At(data_pos)).IsFunction());
 
   NoSafepointScope no_safepoint;
   RawArray* raw_data = ic_data();
   return reinterpret_cast<RawFunction*>(raw_data->ptr()->data()[data_pos]);
+}
+
+
+RawObject* ICData::GetTargetOrCodeAt(intptr_t index) const {
+  const intptr_t data_pos = index * TestEntryLength() + NumArgsTested();
+
+  NoSafepointScope no_safepoint;
+  RawArray* raw_data = ic_data();
+  return raw_data->ptr()->data()[data_pos];
 }
 
 
@@ -12437,6 +12457,7 @@ void ICData::SetCountAt(intptr_t index, intptr_t value) const {
 
 
 intptr_t ICData::GetCountAt(intptr_t index) const {
+  ASSERT(Isolate::Current()->compilation_allowed());
   const Array& data = Array::Handle(ic_data());
   const intptr_t data_pos = index * TestEntryLength() +
       CountIndexFor(NumArgsTested());
@@ -12452,6 +12473,24 @@ intptr_t ICData::AggregateCount() const {
     count += GetCountAt(i);
   }
   return count;
+}
+
+
+void ICData::SetCodeAt(intptr_t index, const Code& value) const {
+  ASSERT(!Isolate::Current()->compilation_allowed());
+  const Array& data = Array::Handle(ic_data());
+  const intptr_t data_pos = index * TestEntryLength() +
+      CodeIndexFor(NumArgsTested());
+  data.SetAt(data_pos, value);
+}
+
+
+void ICData::SetEntryPointAt(intptr_t index, const Smi& value) const {
+  ASSERT(!Isolate::Current()->compilation_allowed());
+  const Array& data = Array::Handle(ic_data());
+  const intptr_t data_pos = index * TestEntryLength() +
+      EntryPointIndexFor(NumArgsTested());
+  data.SetAt(data_pos, value);
 }
 
 

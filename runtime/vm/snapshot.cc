@@ -627,6 +627,27 @@ RawApiError* SnapshotReader::ReadFullSnapshot() {
       }
     }
 
+    if (snapshot_code()) {
+      ICData& ic = ICData::Handle(thread->zone());
+      Object& funcOrCode = Object::Handle(thread->zone());
+      Code& code = Code::Handle(thread->zone());
+      Smi& entry_point = Smi::Handle(thread->zone());
+      for (intptr_t i = 0; i < backward_references_->length(); i++) {
+        if ((*backward_references_)[i].reference()->IsICData()) {
+          ic ^= (*backward_references_)[i].reference()->raw();
+          for (intptr_t j = 0; j < ic.NumberOfChecks(); j++) {
+            funcOrCode = ic.GetTargetOrCodeAt(j);
+            if (funcOrCode.IsCode()) {
+              code ^= funcOrCode.raw();
+              entry_point = Smi::FromAlignedAddress(code.EntryPoint());
+              ic.SetEntryPointAt(j, entry_point);
+            }
+          }
+        }
+      }
+    }
+
+
     // Validate the class table.
 #if defined(DEBUG)
     isolate->ValidateClassTable();
