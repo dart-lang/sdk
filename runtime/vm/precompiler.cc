@@ -2670,7 +2670,7 @@ static RawError* PrecompileFunctionHelper(CompilationPipeline* pipeline,
 RawError* Precompiler::CompileFunction(Thread* thread,
                                        const Function& function) {
   VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
-  TIMELINE_FUNCTION_COMPILATION_DURATION(thread, "Function", function);
+  TIMELINE_FUNCTION_COMPILATION_DURATION(thread, "CompileFunction", function);
 
   CompilationPipeline* pipeline =
       CompilationPipeline::New(thread->zone(), function);

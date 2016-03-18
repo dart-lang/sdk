@@ -274,6 +274,14 @@ class Sample {
     state_ = ClassAllocationSampleBit::update(allocation_sample, state_);
   }
 
+  bool is_mutator_thread() const {
+    return MutatorThreadBit::decode(state_);
+  }
+
+  void set_is_mutator_thread(bool mutator_thread) {
+    state_ = MutatorThreadBit::update(mutator_thread, state_);
+  }
+
   bool is_continuation_sample() const {
     return ContinuationSampleBit::decode(state_);
   }
@@ -338,6 +346,7 @@ class Sample {
     kTruncatedTraceBit = 5,
     kClassAllocationSampleBit = 6,
     kContinuationSampleBit = 7,
+    kMutatorThreadBit = 8,
   };
   class HeadSampleBit : public BitField<uword, bool, kHeadSampleBit, 1> {};
   class LeafFrameIsDart :
@@ -352,6 +361,8 @@ class Sample {
       : public BitField<uword, bool, kClassAllocationSampleBit, 1> {};
   class ContinuationSampleBit
       : public BitField<uword, bool, kContinuationSampleBit, 1> {};
+  class MutatorThreadBit
+      : public BitField<uword, bool, kMutatorThreadBit, 1> {};
 
   int64_t timestamp_;
   ThreadId tid_;

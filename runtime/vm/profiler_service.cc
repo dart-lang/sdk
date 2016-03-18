@@ -2497,16 +2497,24 @@ void ProfilerService::PrintJSONImpl(Thread* thread,
 class NoAllocationSampleFilter : public SampleFilter {
  public:
   NoAllocationSampleFilter(Isolate* isolate,
+                           bool include_background_samples,
                            int64_t time_origin_micros,
                            int64_t time_extent_micros)
       : SampleFilter(isolate,
                      time_origin_micros,
-                     time_extent_micros) {
+                     time_extent_micros),
+        include_background_samples_(include_background_samples) {
   }
 
   bool FilterSample(Sample* sample) {
-    return !sample->is_allocation_sample();
+    if (sample->is_allocation_sample()) {
+      return false;
+    }
+    return sample->is_mutator_thread() || include_background_samples_;
   }
+
+ private:
+  const bool include_background_samples_;
 };
 
 
@@ -2517,7 +2525,9 @@ void ProfilerService::PrintJSON(JSONStream* stream,
                                 int64_t time_extent_micros) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
+  const bool include_background_samples = false;
   NoAllocationSampleFilter filter(isolate,
+                                  include_background_samples,
                                   time_origin_micros,
                                   time_extent_micros);
   const bool as_timeline = false;
@@ -2570,7 +2580,9 @@ void ProfilerService::PrintTimelineJSON(JSONStream* stream,
                                         int64_t time_extent_micros) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
+  const bool include_background_samples = true;
   NoAllocationSampleFilter filter(isolate,
+                                  include_background_samples,
                                   time_origin_micros,
                                   time_extent_micros);
   const bool as_timeline = true;

@@ -55,15 +55,21 @@ function gotReponse() {
 function fetchTimelineOnLoad(event) {
   var xhr = event.target;
   var response = JSON.parse(xhr.responseText);
-  var result = response['result'];
-  var newStackFrames = result['stackFrames'];  // Map.
-  var newTraceEvents = result['traceEvents'];  // List.
 
-  // Merge in timeline events.
-  traceObject.traceEvents = traceObject.traceEvents.concat(newTraceEvents);
-  for (var key in newStackFrames) {
-    if (newStackFrames.hasOwnProperty(key)) {
-      traceObject.stackFrames[key] = newStackFrames[key];
+  if (response.error) {
+    // Maybe profiling is disabled.
+    console.log("ERROR " + response.error.message);
+  } else {
+    var result = response['result'];
+    var newStackFrames = result['stackFrames'];  // Map.
+    var newTraceEvents = result['traceEvents'];  // List.
+
+    // Merge in timeline events.
+    traceObject.traceEvents = traceObject.traceEvents.concat(newTraceEvents);
+    for (var key in newStackFrames) {
+      if (newStackFrames.hasOwnProperty(key)) {
+        traceObject.stackFrames[key] = newStackFrames[key];
+      }
     }
   }
 

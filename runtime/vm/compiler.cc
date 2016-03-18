@@ -1249,7 +1249,7 @@ RawError* Compiler::CompileFunction(Thread* thread,
 #endif
   Isolate* isolate = thread->isolate();
   VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
-  TIMELINE_FUNCTION_COMPILATION_DURATION(thread, "Function", function);
+  TIMELINE_FUNCTION_COMPILATION_DURATION(thread, "CompileFunction", function);
 
   if (!isolate->compilation_allowed()) {
     FATAL3("Precompilation missed function %s (%s, %s)\n",
@@ -1305,8 +1305,10 @@ RawError* Compiler::CompileOptimizedFunction(Thread* thread,
                                              const Function& function,
                                              intptr_t osr_id) {
   VMTagScope tagScope(thread, VMTag::kCompileOptimizedTagId);
-  TIMELINE_FUNCTION_COMPILATION_DURATION(thread,
-                                         "OptimizedFunction", function);
+  const char* event_name = IsBackgroundCompilation()
+      ? "BackgroundCompileOptimizedFunction"
+      : "CompileOptimizedFunction";
+  TIMELINE_FUNCTION_COMPILATION_DURATION(thread, event_name, function);
 
   // Optimization must happen in non-mutator/Dart thread if background
   // compilation is on. OSR compilation still occurs in the main thread.

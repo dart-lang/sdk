@@ -844,6 +844,10 @@ static Sample* SetupSample(Thread* thread,
 #endif
   sample->set_vm_tag(vm_tag);
   sample->set_user_tag(isolate->user_tag());
+  // TODO(rmacnak): Consider tracking the current Task kind so the profiler
+  // can say the program spent x% of cpu time in the main thread, GC,
+  // background compilation, etc.
+  sample->set_is_mutator_thread(thread->IsMutatorThread());
   return sample;
 }
 
@@ -985,12 +989,6 @@ void Profiler::SampleThread(Thread* thread,
     return;
   }
 
-  if (!thread->IsMutatorThread()) {
-    // Not a mutator thread.
-    // TODO(johnmccutchan): Profile all threads with an isolate.
-    return;
-  }
-
   uword stack_lower = 0;
   uword stack_upper = 0;
   if (!GetAndValidateIsolateStackBounds(thread,
@@ -1015,7 +1013,9 @@ void Profiler::SampleThread(Thread* thread,
   // Increment counter for vm tag.
   VMTagCounters* counters = isolate->vm_tag_counters();
   ASSERT(counters != NULL);
-  counters->Increment(sample->vm_tag());
+  if (thread->IsMutatorThread()) {
+    counters->Increment(sample->vm_tag());
+  }
 
   ProfilerNativeStackWalker native_stack_walker(isolate,
                                                 sample,

@@ -376,10 +376,10 @@ class TimelineStream {
 };
 
 #ifndef PRODUCT
-#define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, suffix, function)       \
+#define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, name, function)         \
   TimelineDurationScope tds(thread,                                            \
                             Timeline::GetCompilerStream(),                     \
-                            "Compile" suffix);                                 \
+                            name);                                             \
   if (tds.enabled()) {                                                         \
     tds.SetNumArguments(1);                                                    \
     tds.CopyArgument(                                                          \
@@ -388,7 +388,7 @@ class TimelineStream {
         function.ToLibNamePrefixedQualifiedCString());                         \
   }
 #else
-#define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, suffix, function)
+#define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, name, function)
 #endif  // !PRODUCT
 
 // See |TimelineDurationScope| and |TimelineBeginEndScope|.
