@@ -42,14 +42,14 @@ defineTests() {
               .main(['test/_data/p2', '-c', 'test/_data/p2/lintconfig.yaml']);
           expect(exitCode, equals(1));
           expect(collectingOut.trim(),
-              endsWith('4 files analyzed, 1 issue found (2 filtered).'));
+              stringContainsInOrder(['4 files analyzed, 1 issue found (2 filtered), in']));
         });
         test('overrrides', () {
           dartlint
               .main(['test/_data/p2', '-c', 'test/_data/p2/lintconfig2.yaml']);
           expect(exitCode, equals(0));
           expect(collectingOut.trim(),
-              endsWith('4 files analyzed, 0 issues found.'));
+              stringContainsInOrder(['4 files analyzed, 0 issues found, in']));
         });
       });
     });
@@ -64,7 +64,7 @@ defineTests() {
       test('bad pubspec', () {
         dartlint.main(['test/_data/p3', 'test/_data/p3/_pubpspec.yaml']);
         expect(
-            collectingOut.trim(), endsWith('1 file analyzed, 0 issues found.'));
+            collectingOut.trim(), startsWith('1 file analyzed, 0 issues found, in'));
       });
     });
     group('p4', () {
@@ -90,7 +90,7 @@ defineTests() {
         };
         dartlint.runLinter(['test/_data/p4'], options);
         expect(collectingOut.trim(),
-            endsWith('3 files analyzed, 0 issues found.'));
+            startsWith('3 files analyzed, 0 issues found, in'));
       });
     });
 

@@ -21,13 +21,13 @@ main() {
 defineTests() {
   group('formatter', () {
     test('shorten', () {
-      expect(shorten('/foo/bar', '/foo/bar/baz'), equals('/baz'));
+      expect(shorten('/foo/bar', '/foo/bar/baz'), '/baz');
     });
 
     test('pluralize', () {
-      expect(pluralize('issue', 0), equals('0 issues'));
-      expect(pluralize('issue', 1), equals('1 issue'));
-      expect(pluralize('issue', 2), equals('2 issues'));
+      expect(pluralize('issue', 0), '0 issues');
+      expect(pluralize('issue', 1), '1 issue');
+      expect(pluralize('issue', 2), '2 issues');
     });
 
     group('reporter', () {
@@ -55,31 +55,34 @@ defineTests() {
       when(info.errors).thenReturn([error]);
       var out = new CollectingSink();
 
-      var reporter = new SimpleFormatter([info], null, out, fileCount: 1);
+      var reporter =
+          new SimpleFormatter([info], null, out, fileCount: 1, elapsedMs: 13);
       reporter.write();
 
       test('count', () {
-        expect(reporter.errorCount, equals(1));
+        expect(reporter.errorCount, 1);
       });
 
       test('write', () {
-        expect(out.buffer.toString(), equals('''/foo/bar/baz.dart 3:3 [test] MSG
+        expect(
+            out.buffer.toString().trim(),
+            '''/foo/bar/baz.dart 3:3 [test] MSG
 
-1 file analyzed, 1 issue found.
-'''));
+1 file analyzed, 1 issue found, in 13 ms.''');
       });
 
       test('stats', () {
         out.buffer.clear();
         var reporter = new SimpleFormatter([info], null, out,
-            fileCount: 1, showStatistics: true);
+            fileCount: 1, showStatistics: true, elapsedMs: 13);
         reporter.write();
-        expect(out.buffer.toString(), equals('''/foo/bar/baz.dart 3:3 [test] MSG
+        expect(out.buffer.toString(),
+            startsWith('''/foo/bar/baz.dart 3:3 [test] MSG
 
-1 file analyzed, 1 issue found.
--------------------------------
-mock_code                     1
--------------------------------
+1 file analyzed, 1 issue found, in 13 ms.
+-----------------------------------------
+mock_code                               1
+-----------------------------------------
 '''));
       });
     });
@@ -114,22 +117,20 @@ mock_code                     1
 
       group('filtered', () {
         var reporter = new SimpleFormatter([info], new _RejectingFilter(), out,
-            fileCount: 1);
+            fileCount: 1, elapsedMs: 13);
         reporter.write();
 
         test('error count', () {
-          expect(reporter.errorCount, equals(0));
+          expect(reporter.errorCount, 0);
         });
 
         test('filter count', () {
-          expect(reporter.filteredLintCount, equals(1));
+          expect(reporter.filteredLintCount, 1);
         });
 
         test('write', () {
-          expect(out.buffer.toString(), equals('''
-
-1 file analyzed, 0 issues found (1 filtered).
-'''));
+          expect(out.buffer.toString().trim(),
+              '1 file analyzed, 0 issues found (1 filtered), in 13 ms.');
         });
       });
 
@@ -137,14 +138,14 @@ mock_code                     1
         test('write', () {
           out.buffer.clear();
           var reporter = new SimpleFormatter([info], null, out,
-              fileCount: 1, machineOutput: true);
+              fileCount: 1, machineOutput: true, elapsedMs: 13);
           reporter.write();
 
-          expect(out.buffer.toString(), equals(
+          expect(
+              out.buffer.toString().trim(),
               '''MockErrorCode|MockErrorType|MockError|/foo/bar/baz.dart|3|3|13|MSG
 
-1 file analyzed, 1 issue found.
-'''));
+1 file analyzed, 1 issue found, in 13 ms.''');
         });
       });
     });

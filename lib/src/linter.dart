@@ -229,6 +229,7 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
   final Maturity maturity;
 
   /// Lint name.
+  @override
   final String name;
 
   /// Until pubspec analysis is pushed into the analyzer proper, we need to

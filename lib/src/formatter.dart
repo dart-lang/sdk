@@ -10,6 +10,7 @@ import 'dart:math';
 import 'package:analyzer/analyzer.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/services/lint.dart';
 import 'package:linter/src/linter.dart';
 
 String getLineContents(int lineNumber, AnalysisError error) {
@@ -35,17 +36,33 @@ String shorten(String fileRoot, String fullName) {
   return fullName.substring(fileRoot.length);
 }
 
+String _escapePipe(String input) {
+  var result = new StringBuffer();
+  for (var c in input.codeUnits) {
+    if (c == '\\' || c == '|') {
+      result.write('\\');
+    }
+    result.writeCharCode(c);
+  }
+  return result.toString();
+}
+
 class DetailedReporter extends SimpleFormatter {
   DetailedReporter(
       Iterable<AnalysisErrorInfo> errors, LintFilter filter, IOSink out,
-      {int fileCount, String fileRoot, bool showStatistics: false,
-      bool machineOutput: false, quiet: false})
+      {int fileCount,
+      int elapsedMs,
+      String fileRoot,
+      bool showStatistics: false,
+      bool machineOutput: false,
+      quiet: false})
       : super(errors, filter, out,
-          fileCount: fileCount,
-          fileRoot: fileRoot,
-          showStatistics: showStatistics,
-          machineOutput: machineOutput,
-          quiet: quiet);
+            fileCount: fileCount,
+            fileRoot: fileRoot,
+            elapsedMs: elapsedMs,
+            showStatistics: showStatistics,
+            machineOutput: machineOutput,
+            quiet: quiet);
 
   @override
   writeLint(AnalysisError error, {int offset, int line, int column}) {
@@ -66,15 +83,20 @@ class DetailedReporter extends SimpleFormatter {
 
 abstract class ReportFormatter {
   factory ReportFormatter(
-      Iterable<AnalysisErrorInfo> errors, LintFilter filter, IOSink out,
-      {int fileCount, String fileRoot, bool showStatistics: false,
-      bool machineOutput: false, bool quiet: false}) => new DetailedReporter(
-      errors, filter, out,
-      fileCount: fileCount,
-      fileRoot: fileRoot,
-      showStatistics: showStatistics,
-      machineOutput: machineOutput,
-      quiet: quiet);
+          Iterable<AnalysisErrorInfo> errors, LintFilter filter, IOSink out,
+          {int fileCount,
+          int elapsedMs,
+          String fileRoot,
+          bool showStatistics: false,
+          bool machineOutput: false,
+          bool quiet: false}) =>
+      new DetailedReporter(errors, filter, out,
+          fileCount: fileCount,
+          fileRoot: fileRoot,
+          elapsedMs: elapsedMs,
+          showStatistics: showStatistics,
+          machineOutput: machineOutput,
+          quiet: quiet);
 
   write();
 }
@@ -89,6 +111,7 @@ class SimpleFormatter implements ReportFormatter {
   int filteredLintCount = 0;
 
   final int fileCount;
+  final int elapsedMs;
   final String fileRoot;
   final bool showStatistics;
   final bool machineOutput;
@@ -99,8 +122,12 @@ class SimpleFormatter implements ReportFormatter {
 
   Map<String, int> stats = <String, int>{};
 
-  SimpleFormatter(this.errors, this.filter, this.out, {this.fileCount,
-      this.fileRoot, this.showStatistics: false, this.quiet: false,
+  SimpleFormatter(this.errors, this.filter, this.out,
+      {this.fileCount,
+      this.fileRoot,
+      this.elapsedMs,
+      this.showStatistics: false,
+      this.quiet: false,
       this.machineOutput: false});
 
   /// Override to influence error sorting
@@ -128,6 +155,23 @@ class SimpleFormatter implements ReportFormatter {
     if (showStatistics) {
       writeStatistics();
     }
+    out.writeln('');
+  }
+
+  void writeCounts() {
+    var codes = stats.keys.toList()..sort();
+    var largestCountGuess = 8;
+    var longest = codes.fold(0, (prev, element) => max(prev, element.length));
+    var tableWidth = max(_summaryLength, longest + largestCountGuess);
+    var pad = tableWidth - longest;
+    var line = ''.padLeft(tableWidth, '-');
+    out.writeln(line);
+    codes.forEach((c) {
+      out
+        ..write('${c.padRight(longest)}')
+        ..writeln('${stats[c].toString().padLeft(pad)}');
+    });
+    out.writeln(line);
   }
 
   void writeLint(AnalysisError error, {int offset, int line, int column}) {
@@ -160,45 +204,61 @@ class SimpleFormatter implements ReportFormatter {
 
   void writeLints() {
     errors.forEach((info) => (info.errors.toList()..sort(compare)).forEach((e) {
-      if (filter != null && filter.filter(e)) {
-        filteredLintCount++;
-      } else {
-        ++errorCount;
-        if (!quiet) {
-          _writeLint(e, info.lineInfo);
-        }
-        _recordStats(e);
-      }
-    }));
+          if (filter != null && filter.filter(e)) {
+            filteredLintCount++;
+          } else {
+            ++errorCount;
+            if (!quiet) {
+              _writeLint(e, info.lineInfo);
+            }
+            _recordStats(e);
+          }
+        }));
     if (!quiet) {
       out.writeln();
     }
   }
 
   void writeStatistics() {
-    var codes = stats.keys.toList()..sort();
-    var longest = 0;
-    var largestCountGuess = 8;
-    codes.forEach((c) => longest = max(longest, c.length));
-    var tableWidth = max(_summaryLength, longest + largestCountGuess);
-    var pad = tableWidth - longest;
-    var line = ''.padLeft(tableWidth, '-');
-    out.writeln(line);
-    codes.forEach((c) {
-      out
-        ..write('${c.padRight(longest)}')
-        ..writeln('${stats[c].toString().padLeft(pad)}');
-    });
-    out.writeln(line);
+    writeCounts();
+    writeTimings();
   }
 
   void writeSummary() {
     var summary = '${pluralize("file", fileCount)} analyzed, '
         '${pluralize("issue", errorCount)} found'
-        "${filteredLintCount == 0 ? '' : ' ($filteredLintCount filtered)'}.";
+        "${filteredLintCount == 0 ? '' : ' ($filteredLintCount filtered)'}, in $elapsedMs ms.";
     out.writeln(summary);
     // Cache for output table sizing
     _summaryLength = summary.length;
+  }
+
+  void writeTimings() {
+    Map<String, Stopwatch> timers = lintRegistry.timers;
+    List<String> names = timers.keys.toList()..sort();
+
+    int longestName =
+        names.fold(0, (prev, element) => max(prev, element.length));
+    int longestTime = 8;
+    int tableWidth = max(_summaryLength, longestName + longestTime);
+    int pad = tableWidth - longestName;
+    String line = ''.padLeft(tableWidth, '-');
+
+    out.writeln();
+    out.writeln(line);
+    out.writeln('${'Timings'.padRight(longestName)}${'ms'.padLeft(pad)}');
+    out.writeln(line);
+    int totalTime = 0;
+    for (String name in names) {
+      Stopwatch stopwatch = timers[name];
+      totalTime += stopwatch.elapsedMilliseconds;
+      out.writeln(
+          '${name.padRight(longestName)}${stopwatch.elapsedMilliseconds.toString().padLeft(pad)}');
+    }
+    out.writeln(line);
+    out.writeln(
+        '${'Total'.padRight(longestName)}${totalTime.toString().padLeft(pad)}');
+    out.writeln(line);
   }
 
   void _recordStats(AnalysisError error) {
@@ -215,15 +275,4 @@ class SimpleFormatter implements ReportFormatter {
 
     writeLint(error, offset: offset, column: column, line: line);
   }
-}
-
-String _escapePipe(String input) {
-  var result = new StringBuffer();
-  for (var c in input.codeUnits) {
-    if (c == '\\' || c == '|') {
-      result.write('\\');
-    }
-    result.writeCharCode(c);
-  }
-  return result.toString();
 }

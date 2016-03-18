@@ -58,8 +58,7 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
         negatable: false)
     ..addOption('config', abbr: 'c', help: 'Use configuration from this file.')
     ..addOption('dart-sdk', help: 'Custom path to a Dart SDK.')
-    ..addOption('lints',
-        help: 'A list of lints to run.', allowMultiple: true)
+    ..addOption('lints', help: 'A list of lints to run.', allowMultiple: true)
     ..addOption('packages',
         help:
             'Path to the package resolution configuration file, which supplies '
@@ -141,7 +140,10 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
   }
 
   try {
+    Stopwatch timer = new Stopwatch();
+    timer.start();
     List<AnalysisErrorInfo> errors = linter.lintFiles(filesToLint);
+    timer.stop();
 
     if (errors.length > 0) {
       exitCode = _maxSeverity(errors);
@@ -151,6 +153,7 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
     var stats = options['stats'];
     ReportFormatter reporter = new ReportFormatter(
         errors, lintOptions.filter, outSink,
+        elapsedMs: timer.elapsedMilliseconds,
         fileCount: linter.numSourcesAnalyzed,
         fileRoot: commonRoot,
         showStatistics: stats,
