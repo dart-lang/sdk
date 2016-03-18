@@ -48,6 +48,7 @@ AnalysisOptions _buildAnalyzerOptions(DriverOptions options) {
   analysisOptions.hint = false;
   analysisOptions.lint = options.enableLints;
   analysisOptions.generateSdkErrors = options.showSdkWarnings;
+  analysisOptions.enableTiming = options.enableTiming;
   return analysisOptions;
 }
 
@@ -223,6 +224,9 @@ class DriverOptions {
 
   /// Whether to show lint warnings.
   bool enableLints = true;
+
+  /// Whether to gather timing data during analysis.
+  bool enableTiming = false;
 
   /// The path to a `.packages` configuration file
   String packageConfigPath;

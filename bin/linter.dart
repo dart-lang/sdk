@@ -128,6 +128,11 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
     return;
   }
 
+  var stats = options['stats'];
+  if (stats == true) {
+    lintOptions.enableTiming = true;
+  }
+
   lintOptions.packageConfigPath = packageConfigFile;
 
   lintOptions.visitTransitiveClosure = options['visit-transitive-closure'];
@@ -150,7 +155,7 @@ void runLinter(List<String> args, LinterOptions initialLintOptions) {
     }
 
     var commonRoot = getRoot(options.rest);
-    var stats = options['stats'];
+
     ReportFormatter reporter = new ReportFormatter(
         errors, lintOptions.filter, outSink,
         elapsedMs: timer.elapsedMilliseconds,
