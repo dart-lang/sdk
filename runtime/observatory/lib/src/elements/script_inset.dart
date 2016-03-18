@@ -386,15 +386,19 @@ class ScriptLineProfile {
     return Utils.formatPercent(totalTicks, sampleCount);
   }
 
-  double _percent() {
+  double _percent(bool self) {
     if (sampleCount == 0) {
       return 0.0;
     }
-    return totalTicks / sampleCount;
+    if (self) {
+      return selfTicks / sampleCount;
+    } else {
+      return totalTicks / sampleCount;
+    }
   }
 
-  bool get isHot => _percent() > kHotThreshold;
-  bool get isMedium => _percent() > kMediumThreshold;
+  bool isHot(bool self) => _percent(self) > kHotThreshold;
+  bool isMedium(bool self) => _percent(self) > kMediumThreshold;
 }
 
 /// Box with script source code in it.
@@ -1140,9 +1144,9 @@ class ScriptInsetElement extends ObservatoryElement {
       e.text = lineProfile.formattedTotalTicks;
     }
 
-    if (lineProfile.isHot) {
+    if (lineProfile.isHot(self)) {
       e.classes.add('hotProfile');
-    } else if (lineProfile.isMedium) {
+    } else if (lineProfile.isMedium(self)) {
       e.classes.add('mediumProfile');
     } else {
       e.classes.add('coldProfile');
