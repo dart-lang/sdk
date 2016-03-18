@@ -5317,14 +5317,16 @@ RawJSRegExp* RegExpEngine::CreateJSRegExp(Zone* zone,
   regexp.set_is_complex();
   regexp.set_is_global();   // All dart regexps are global.
 
-  const Library& lib = Library::Handle(zone, Library::CoreLibrary());
-  const Class& owner = Class::Handle(
-      zone, lib.LookupClass(Symbols::RegExp()));
+  if (!FLAG_interpret_irregexp) {
+    const Library& lib = Library::Handle(zone, Library::CoreLibrary());
+    const Class& owner = Class::Handle(
+        zone, lib.LookupClass(Symbols::RegExp()));
 
-  CreateSpecializedFunction(zone, regexp, kOneByteStringCid, owner);
-  CreateSpecializedFunction(zone, regexp, kTwoByteStringCid, owner);
-  CreateSpecializedFunction(zone, regexp, kExternalOneByteStringCid, owner);
-  CreateSpecializedFunction(zone, regexp, kExternalTwoByteStringCid, owner);
+    CreateSpecializedFunction(zone, regexp, kOneByteStringCid, owner);
+    CreateSpecializedFunction(zone, regexp, kTwoByteStringCid, owner);
+    CreateSpecializedFunction(zone, regexp, kExternalOneByteStringCid, owner);
+    CreateSpecializedFunction(zone, regexp, kExternalTwoByteStringCid, owner);
+  }
 
   return regexp.raw();
 }
