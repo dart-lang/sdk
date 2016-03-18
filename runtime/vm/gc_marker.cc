@@ -604,7 +604,7 @@ class MarkTask : public ThreadPool::Task {
     ASSERT(result);
     {
       Thread* thread = Thread::Current();
-      TimelineDurationScope tds(thread, Timeline::GetGCStream(), "MarkTask");
+      TIMELINE_FUNCTION_GC_DURATION(thread, "MarkTask");
       StackZone stack_zone(thread);
       Zone* zone = stack_zone.GetZone();
       SkippedCodeFunctions* skipped_code_functions =

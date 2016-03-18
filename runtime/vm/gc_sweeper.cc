@@ -119,7 +119,7 @@ class SweeperTask : public ThreadPool::Task {
     ASSERT(result);
     {
       Thread* thread = Thread::Current();
-      TimelineDurationScope tds(thread, Timeline::GetGCStream(), "SweeperTask");
+      TIMELINE_FUNCTION_GC_DURATION(thread, "SweeperTask");
       GCSweeper sweeper;
 
       HeapPage* page = first_;

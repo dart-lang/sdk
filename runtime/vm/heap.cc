@@ -367,11 +367,7 @@ void Heap::CollectNewSpaceGarbage(Thread* thread,
     bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
     RecordBeforeGC(kNew, reason);
     VMTagScope tagScope(thread, VMTag::kGCNewSpaceTagId);
-#ifndef PRODUCT
-    TimelineDurationScope tds(thread,
-                              Timeline::GetGCStream(),
-                              "CollectNewGeneration");
-#endif  // !PRODUCT
+    TIMELINE_FUNCTION_GC_DURATION(thread, "CollectNewGeneration");
     UpdateClassHeapStatsBeforeGC(kNew);
     new_space_.Scavenge(invoke_api_callbacks);
     isolate()->class_table()->UpdatePromoted();
@@ -394,11 +390,7 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
     bool invoke_api_callbacks = (api_callbacks == kInvokeApiCallbacks);
     RecordBeforeGC(kOld, reason);
     VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId);
-#ifndef PRODUCT
-    TimelineDurationScope tds(thread,
-                              Timeline::GetGCStream(),
-                              "CollectOldGeneration");
-#endif  // !PRODUCT
+    TIMELINE_FUNCTION_GC_DURATION(thread, "CollectOldGeneration");
     UpdateClassHeapStatsBeforeGC(kOld);
     old_space_.MarkSweep(invoke_api_callbacks);
     RecordAfterGC(kOld);

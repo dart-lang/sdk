@@ -387,8 +387,12 @@ class TimelineStream {
         "function",                                                            \
         function.ToLibNamePrefixedQualifiedCString());                         \
   }
+
+#define TIMELINE_FUNCTION_GC_DURATION(thread, name)                            \
+  TimelineDurationScope tds(thread, Timeline::GetGCStream(), name);
 #else
 #define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, name, function)
+#define TIMELINE_FUNCTION_GC_DURATION(thread, name)
 #endif  // !PRODUCT
 
 // See |TimelineDurationScope| and |TimelineBeginEndScope|.
