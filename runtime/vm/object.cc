@@ -3194,8 +3194,54 @@ RawString* Class::GenerateUserVisibleName() const {
   if (FLAG_show_internal_names) {
     return Name();
   }
-NOT_IN_PRODUCT(
   switch (id()) {
+    case kFloat32x4Cid:
+      return Symbols::Float32x4().raw();
+    case kInt32x4Cid:
+      return Symbols::Int32x4().raw();
+    case kTypedDataInt8ArrayCid:
+    case kExternalTypedDataInt8ArrayCid:
+      return Symbols::Int8List().raw();
+    case kTypedDataUint8ArrayCid:
+    case kExternalTypedDataUint8ArrayCid:
+      return Symbols::Uint8List().raw();
+    case kTypedDataUint8ClampedArrayCid:
+    case kExternalTypedDataUint8ClampedArrayCid:
+      return Symbols::Uint8ClampedList().raw();
+    case kTypedDataInt16ArrayCid:
+    case kExternalTypedDataInt16ArrayCid:
+      return Symbols::Int16List().raw();
+    case kTypedDataUint16ArrayCid:
+    case kExternalTypedDataUint16ArrayCid:
+      return Symbols::Uint16List().raw();
+    case kTypedDataInt32ArrayCid:
+    case kExternalTypedDataInt32ArrayCid:
+      return Symbols::Int32List().raw();
+    case kTypedDataUint32ArrayCid:
+    case kExternalTypedDataUint32ArrayCid:
+      return Symbols::Uint32List().raw();
+    case kTypedDataInt64ArrayCid:
+    case kExternalTypedDataInt64ArrayCid:
+      return Symbols::Int64List().raw();
+    case kTypedDataUint64ArrayCid:
+    case kExternalTypedDataUint64ArrayCid:
+      return Symbols::Uint64List().raw();
+    case kTypedDataInt32x4ArrayCid:
+    case kExternalTypedDataInt32x4ArrayCid:
+      return Symbols::Int32x4List().raw();
+    case kTypedDataFloat32x4ArrayCid:
+    case kExternalTypedDataFloat32x4ArrayCid:
+      return Symbols::Float32x4List().raw();
+    case kTypedDataFloat64x2ArrayCid:
+    case kExternalTypedDataFloat64x2ArrayCid:
+      return Symbols::Float64x2List().raw();
+    case kTypedDataFloat32ArrayCid:
+    case kExternalTypedDataFloat32ArrayCid:
+      return Symbols::Float32List().raw();
+    case kTypedDataFloat64ArrayCid:
+    case kExternalTypedDataFloat64ArrayCid:
+      return Symbols::Float64List().raw();
+NOT_IN_PRODUCT(
     case kNullCid:
       return Symbols::Null().raw();
     case kDynamicCid:
@@ -3280,54 +3326,8 @@ NOT_IN_PRODUCT(
     case kImmutableArrayCid:
     case kGrowableObjectArrayCid:
       return Symbols::List().raw();
-    case kFloat32x4Cid:
-      return Symbols::Float32x4().raw();
-    case kInt32x4Cid:
-      return Symbols::Int32x4().raw();
-    case kTypedDataInt8ArrayCid:
-    case kExternalTypedDataInt8ArrayCid:
-      return Symbols::Int8List().raw();
-    case kTypedDataUint8ArrayCid:
-    case kExternalTypedDataUint8ArrayCid:
-      return Symbols::Uint8List().raw();
-    case kTypedDataUint8ClampedArrayCid:
-    case kExternalTypedDataUint8ClampedArrayCid:
-      return Symbols::Uint8ClampedList().raw();
-    case kTypedDataInt16ArrayCid:
-    case kExternalTypedDataInt16ArrayCid:
-      return Symbols::Int16List().raw();
-    case kTypedDataUint16ArrayCid:
-    case kExternalTypedDataUint16ArrayCid:
-      return Symbols::Uint16List().raw();
-    case kTypedDataInt32ArrayCid:
-    case kExternalTypedDataInt32ArrayCid:
-      return Symbols::Int32List().raw();
-    case kTypedDataUint32ArrayCid:
-    case kExternalTypedDataUint32ArrayCid:
-      return Symbols::Uint32List().raw();
-    case kTypedDataInt64ArrayCid:
-    case kExternalTypedDataInt64ArrayCid:
-      return Symbols::Int64List().raw();
-    case kTypedDataUint64ArrayCid:
-    case kExternalTypedDataUint64ArrayCid:
-      return Symbols::Uint64List().raw();
-    case kTypedDataInt32x4ArrayCid:
-    case kExternalTypedDataInt32x4ArrayCid:
-      return Symbols::Int32x4List().raw();
-    case kTypedDataFloat32x4ArrayCid:
-    case kExternalTypedDataFloat32x4ArrayCid:
-      return Symbols::Float32x4List().raw();
-    case kTypedDataFloat64x2ArrayCid:
-    case kExternalTypedDataFloat64x2ArrayCid:
-      return Symbols::Float64x2List().raw();
-    case kTypedDataFloat32ArrayCid:
-    case kExternalTypedDataFloat32ArrayCid:
-      return Symbols::Float32List().raw();
-    case kTypedDataFloat64ArrayCid:
-    case kExternalTypedDataFloat64ArrayCid:
-      return Symbols::Float64List().raw();
-  }
 )
+  }
   const String& name = String::Handle(Name());
   return String::ScrubName(name);
 }
