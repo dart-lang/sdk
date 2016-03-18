@@ -53,6 +53,35 @@ import 'format.dart' as generated;
 const informative = null;
 
 /**
+ * Information about URIs referenced by a library.
+ */
+@TopLevel('CaLU')
+abstract class CacheLibraryUris extends base.SummaryClass {
+  factory CacheLibraryUris.fromBuffer(List<int> buffer) =>
+      generated.readCacheLibraryUris(buffer);
+
+  /**
+   * The list of exported URIs, e.g. `dart:core`, or `foo/bar.dart`,
+   * or `package:foo/bar.dart`.
+   */
+  @Id(1)
+  List<String> get exportedUris;
+
+  /**
+   * The list of explicitly imported URIs, e.g. `dart:core`, or `foo/bar.dart`,
+   * or `package:foo/bar.dart`.
+   */
+  @Id(0)
+  List<String> get importedUris;
+
+  /**
+   * The list of part URIs, e.g. `foo/bar.dart`.
+   */
+  @Id(2)
+  List<String> get partUris;
+}
+
+/**
  * Information about an element code range.
  */
 abstract class CodeRange extends base.SummaryClass {
@@ -773,6 +802,13 @@ abstract class UnitIndex extends base.SummaryClass {
   List<int> get usedElements;
 
   /**
+   * Each item of this list is the `true` if the corresponding name usage
+   * is qualified with some prefix.
+   */
+  @Id(12)
+  List<bool> get usedNameIsQualifiedFlags;
+
+  /**
    * Each item of this list is the kind of the name usage.
    */
   @Id(10)
@@ -792,13 +828,6 @@ abstract class UnitIndex extends base.SummaryClass {
    */
   @Id(8)
   List<int> get usedNames;
-
-  /**
-   * Each item of this list is the `true` if the corresponding name usage
-   * is qualified with some prefix.
-   */
-  @Id(12)
-  List<bool> get usedNameIsQualifiedFlags;
 }
 
 /**

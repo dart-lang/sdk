@@ -560,6 +560,28 @@ enum UnlinkedParamKind : byte {
 }
 
 /**
+ * Information about URIs referenced by a library.
+ */
+table CacheLibraryUris {
+  /**
+   * The list of exported URIs, e.g. `dart:core`, or `foo/bar.dart`,
+   * or `package:foo/bar.dart`.
+   */
+  exportedUris:[string] (id: 1);
+
+  /**
+   * The list of explicitly imported URIs, e.g. `dart:core`, or `foo/bar.dart`,
+   * or `package:foo/bar.dart`.
+   */
+  importedUris:[string] (id: 0);
+
+  /**
+   * The list of part URIs, e.g. `foo/bar.dart`.
+   */
+  partUris:[string] (id: 2);
+}
+
+/**
  * Information about an element code range.
  */
 table CodeRange {
@@ -1017,6 +1039,12 @@ table UnitIndex {
   usedElements:[uint] (id: 3);
 
   /**
+   * Each item of this list is the `true` if the corresponding name usage
+   * is qualified with some prefix.
+   */
+  usedNameIsQualifiedFlags:[ubyte] (id: 12);
+
+  /**
    * Each item of this list is the kind of the name usage.
    */
   usedNameKinds:[IndexRelationKind] (id: 10);
@@ -1033,12 +1061,6 @@ table UnitIndex {
    * quickly find name uses in this [UnitIndex].
    */
   usedNames:[uint] (id: 8);
-
-  /**
-   * Each item of this list is the `true` if the corresponding name usage
-   * is qualified with some prefix.
-   */
-  usedNameIsQualifiedFlags:[ubyte] (id: 12);
 }
 
 /**
