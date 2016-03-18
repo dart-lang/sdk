@@ -482,7 +482,8 @@ abstract class Stream<T> {
    * The `streamTransformer` can decide whether it wants to return a
    * broadcast stream or not.
    */
-  Stream transform(StreamTransformer<T, dynamic> streamTransformer) {
+  Stream/*<S>*/ transform/*<S>*/(
+      StreamTransformer<T, dynamic/*=S*/ > streamTransformer) {
     return streamTransformer.bind(this);
   }
 
