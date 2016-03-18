@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/incremental_cache.dart';
@@ -13,22 +12,21 @@ import '../abstract_single_unit.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(LibraryBundleCacheTest);
+  runReflectiveTests(IncrementalCacheTest);
 }
 
 /**
  * TODO(scheglov) write more tests for invalidation.
  */
 @reflectiveTest
-class LibraryBundleCacheTest extends AbstractSingleUnitTest {
-  Folder cacheFolder;
-  LibraryBundleCache cache;
+class IncrementalCacheTest extends AbstractSingleUnitTest {
+  _TestCacheStorage storage = new _TestCacheStorage();
+  IncrementalCache cache;
 
   @override
   void setUp() {
     super.setUp();
-    cacheFolder = resourceProvider.newFolder('/cache');
-    cache = new LibraryBundleCache('pid.tmp', cacheFolder, context, <int>[]);
+    cache = new IncrementalCache(storage, context, <int>[]);
   }
 
   void test_getSourceKind_library() {
@@ -128,5 +126,22 @@ main() {}
     // has bundle
     PackageBundle bundle = cache.readBundle(testSource);
     expect(bundle, isNotNull);
+  }
+}
+
+/**
+ * A [Map] based [CacheStorage].
+ */
+class _TestCacheStorage implements CacheStorage {
+  final Map<String, List<int>> map = <String, List<int>>{};
+
+  @override
+  List<int> get(String key) {
+    return map[key];
+  }
+
+  @override
+  void put(String key, List<int> bytes) {
+    map[key] = bytes;
   }
 }

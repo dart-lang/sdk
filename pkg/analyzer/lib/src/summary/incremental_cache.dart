@@ -15,22 +15,77 @@ import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:crypto/crypto.dart';
 
 /**
- * The cache of per-library [PackageBundle]s.
- *
- * Note that currently this class is not intended for interactive use.
+ * Storage for cache data.
  */
-class LibraryBundleCache {
+abstract class CacheStorage {
+  /**
+   * Return bytes for the given [key], `null` if [key] is not in the storage.
+   */
+  List<int> get(String key);
+
+  /**
+   * Associate the [key] with the given [bytes].
+   *
+   * If the [key] was already in the storage, its associated value is changed.
+   * Otherwise the key-value pair is added to the storage.
+   *
+   * It is not guaranteed that data will always be accessible using [get], in
+   * some implementations association may silently fail or become inaccessible
+   * after some time.
+   */
+  void put(String key, List<int> bytes);
+}
+
+/**
+ * A [Folder] based implementation of [CacheStorage].
+ */
+class FolderCacheStorage implements CacheStorage {
+  /**
+   * The folder to read and write files.
+   */
+  final Folder folder;
+
   /**
    * To ensure that operations of writing files are atomic we create a temporary
-   * file with this name in the [cacheFolder] and then rename it once we are
+   * file with this name in the [folder] and then rename it once we are
    * done writing.
    */
   final String tempFileName;
 
+  FolderCacheStorage(this.folder, this.tempFileName);
+
+  @override
+  List<int> get(String key) {
+    Resource file = folder.getChild(key);
+    if (file is File) {
+      try {
+        return file.readAsBytesSync();
+      } on FileSystemException {}
+    }
+    return null;
+  }
+
+  @override
+  void put(String key, List<int> bytes) {
+    String absPath = folder.getChild(key).path;
+    File tempFile = folder.getChild(tempFileName);
+    tempFile.writeAsBytesSync(bytes);
+    try {
+      tempFile.renameSync(absPath);
+    } catch (e) {}
+  }
+}
+
+/**
+ * Cache of information to support incremental analysis.
+ *
+ * Note that currently this class is not intended for interactive use.
+ */
+class IncrementalCache {
   /**
-   * The folder to read and write files.
+   * The storage for the cache data.
    */
-  final Folder cacheFolder;
+  final CacheStorage storage;
 
   /**
    * The context in which this cache is used.
@@ -48,8 +103,7 @@ class LibraryBundleCache {
   final Map<Source, List<Source>> _libraryClosureMap = <Source, List<Source>>{};
   final Map<Source, List<int>> _sourceContentHashMap = <Source, List<int>>{};
 
-  LibraryBundleCache(
-      this.tempFileName, this.cacheFolder, this.context, this.configSalt);
+  IncrementalCache(this.storage, this.context, this.configSalt);
 
   /**
    * Clear internal caches so that we read from file system again.
@@ -82,15 +136,13 @@ class LibraryBundleCache {
    * Write information about the [library] into the cache.
    */
   void putLibrary(LibraryElement library) {
-    try {
-      _writeCacheSourceContents(library);
-      List<int> hash = _getLibraryClosureHash(library.source);
-      String hashStr = CryptoUtils.bytesToHex(hash);
-      PackageBundleAssembler assembler = new PackageBundleAssembler();
-      assembler.serializeLibraryElement(library);
-      List<int> bytes = assembler.assemble().toBuffer();
-      _safeWriteBytes('$hashStr.sum', bytes);
-    } catch (e) {}
+    _writeCacheSourceContents(library);
+    List<int> hash = _getLibraryClosureHash(library.source);
+    String hashStr = CryptoUtils.bytesToHex(hash);
+    PackageBundleAssembler assembler = new PackageBundleAssembler();
+    assembler.serializeLibraryElement(library);
+    List<int> bytes = assembler.assemble().toBuffer();
+    storage.put('$hashStr.sum', bytes);
   }
 
   /**
@@ -103,7 +155,7 @@ class LibraryBundleCache {
     try {
       List<int> hash = _getLibraryClosureHash(source);
       String hashStr = CryptoUtils.bytesToHex(hash);
-      List<int> bytes = _safeReadBytes('$hashStr.sum');
+      List<int> bytes = storage.get('$hashStr.sum');
       if (bytes == null) {
         return null;
       }
@@ -154,8 +206,8 @@ class LibraryBundleCache {
   CacheSourceContent _getCacheSourceContent(Source source) {
     CacheSourceContent content = _sourceContentMap[source];
     if (content == null) {
-      String fileName = _getCacheSourceContentFileName(source);
-      List<int> bytes = _safeReadBytes(fileName);
+      String key = _getCacheSourceContentKey(source);
+      List<int> bytes = storage.get(key);
       if (bytes == null) {
         return null;
       }
@@ -166,9 +218,9 @@ class LibraryBundleCache {
   }
 
   /**
-   * Return the name of the file with the content based [source] information.
+   * Return the key of the content based [source] information.
    */
-  String _getCacheSourceContentFileName(Source source) {
+  String _getCacheSourceContentKey(Source source) {
     List<int> hash = _getSourceContentHash(source);
     String hashStr = CryptoUtils.bytesToHex(hash);
     return '$hashStr.content';
@@ -214,39 +266,12 @@ class LibraryBundleCache {
   }
 
   /**
-   * Return bytes of the file with the given [relPath] in the cache, or `null`
-   * if the file does not exist.
-   */
-  List<int> _safeReadBytes(String relPath) {
-    Resource file = cacheFolder.getChild(relPath);
-    if (file is File) {
-      try {
-        return file.readAsBytesSync();
-      } on FileSystemException {}
-    }
-    return null;
-  }
-
-  /**
-   * Atomically write the given [bytes] into the file with the given [relPath].
-   * Silently ignores any errors.
-   */
-  void _safeWriteBytes(String relPath, List<int> bytes) {
-    try {
-      String absPath = cacheFolder.getChild(relPath).path;
-      File tempFile = cacheFolder.getChild(tempFileName);
-      tempFile.writeAsBytesSync(bytes);
-      tempFile.renameSync(absPath);
-    } catch (e) {}
-  }
-
-  /**
    * Write the content based information about the given [source].
    */
   void _writeCacheSourceContent(Source source, CacheSourceContentBuilder b) {
-    String fileName = _getCacheSourceContentFileName(source);
+    String key = _getCacheSourceContentKey(source);
     List<int> bytes = b.toBuffer();
-    _safeWriteBytes(fileName, bytes);
+    storage.put(key, bytes);
     // Put into the cache to avoid reading it later.
     _sourceContentMap[source] = new CacheSourceContent.fromBuffer(bytes);
   }
