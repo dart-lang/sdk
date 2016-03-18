@@ -224,7 +224,7 @@ HeapIterationScope::HeapIterationScope()
   ASSERT(old_space_->iterating_thread_ != thread());
 #endif
   while (old_space_->tasks() > 0) {
-    ml.Wait();
+    ml.WaitWithSafepointCheck(thread());
   }
 #if defined(DEBUG)
   ASSERT(old_space_->iterating_thread_ == NULL);
