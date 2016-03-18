@@ -7,6 +7,15 @@
 
 
 /**
+ * Kind of a source in the cache.
+ */
+enum CacheSourceKind : byte {
+  library,
+
+  part
+}
+
+/**
  * Enum used to indicate the kind of a name in index.
  */
 enum IndexNameKind : byte {
@@ -565,25 +574,31 @@ enum UnlinkedParamKind : byte {
 }
 
 /**
- * Information about URIs referenced by a library.
+ * Information about a source that depends only on its content.
  */
-table CacheLibraryUris {
+table CacheSourceContent {
   /**
    * The list of exported URIs, e.g. `dart:core`, or `foo/bar.dart`,
-   * or `package:foo/bar.dart`.
+   * or `package:foo/bar.dart`.  Empty if [kind] is [CacheSourceKind.part].
    */
-  exportedUris:[string] (id: 1);
+  exportedUris:[string] (id: 2);
 
   /**
    * The list of explicitly imported URIs, e.g. `dart:core`, or `foo/bar.dart`,
-   * or `package:foo/bar.dart`.
+   * or `package:foo/bar.dart`.  Empty if [kind] is [CacheSourceKind.part].
    */
-  importedUris:[string] (id: 0);
+  importedUris:[string] (id: 1);
 
   /**
-   * The list of part URIs, e.g. `foo/bar.dart`.
+   * The kind of the source.
    */
-  partUris:[string] (id: 2);
+  kind:CacheSourceKind (id: 0);
+
+  /**
+   * The list of part URIs, e.g. `foo/bar.dart`.  Empty if [kind] is
+   * [CacheSourceKind.part].
+   */
+  partUris:[string] (id: 3);
 }
 
 /**

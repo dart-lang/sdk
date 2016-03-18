@@ -43,8 +43,8 @@ class LibraryBundleCache {
    */
   final List<int> configSalt;
 
-  final Map<Source, CacheLibraryUris> _libraryUrisMap =
-      <Source, CacheLibraryUris>{};
+  final Map<Source, CacheSourceContent> _sourceContentMap =
+      <Source, CacheSourceContent>{};
   final Map<Source, List<Source>> _libraryClosureMap = <Source, List<Source>>{};
   final Map<Source, List<int>> _sourceContentHashMap = <Source, List<int>>{};
 
@@ -55,9 +55,27 @@ class LibraryBundleCache {
    * Clear internal caches so that we read from file system again.
    */
   void clearInternalCaches() {
-    _libraryUrisMap.clear();
+    _sourceContentMap.clear();
     _libraryClosureMap.clear();
     _sourceContentHashMap.clear();
+  }
+
+  /**
+   * Return the kind of the given [source], or `null` if unknown.
+   */
+  SourceKind getSourceKind(Source source) {
+    try {
+      CacheSourceContent contentSource = _getCacheSourceContent(source);
+      if (contentSource != null) {
+        if (contentSource.kind == CacheSourceKind.library) {
+          return SourceKind.LIBRARY;
+        }
+        if (contentSource.kind == CacheSourceKind.part) {
+          return SourceKind.PART;
+        }
+      }
+    } catch (e) {}
+    return null;
   }
 
   /**
@@ -65,7 +83,7 @@ class LibraryBundleCache {
    */
   void putLibrary(LibraryElement library) {
     try {
-      _writeUris(library);
+      _writeCacheSourceContents(library);
       List<int> hash = _getLibraryClosureHash(library.source);
       String hashStr = CryptoUtils.bytesToHex(hash);
       PackageBundleAssembler assembler = new PackageBundleAssembler();
@@ -102,12 +120,12 @@ class LibraryBundleCache {
    */
   void _appendLibraryClosure(Set<Source> closure, Source librarySource) {
     if (closure.add(librarySource)) {
-      CacheLibraryUris libraryUris = _getUris(librarySource);
-      if (libraryUris == null) {
-        throw new StateError('No URIs for $librarySource');
+      CacheSourceContent contentSource = _getCacheSourceContent(librarySource);
+      if (contentSource == null) {
+        throw new StateError('No structure for $librarySource');
       }
       // Append parts.
-      for (String partUri in libraryUris.partUris) {
+      for (String partUri in contentSource.partUris) {
         Source partSource =
             context.sourceFactory.resolveUri(librarySource, partUri);
         if (partSource == null) {
@@ -124,9 +142,36 @@ class LibraryBundleCache {
         }
         _appendLibraryClosure(closure, refSource);
       }
-      libraryUris.importedUris.forEach(appendLibrarySources);
-      libraryUris.exportedUris.forEach(appendLibrarySources);
+      contentSource.importedUris.forEach(appendLibrarySources);
+      contentSource.exportedUris.forEach(appendLibrarySources);
     }
+  }
+
+  /**
+   * Get the content based information about the given [source], maybe `null`
+   * if the information is not in the cache.
+   */
+  CacheSourceContent _getCacheSourceContent(Source source) {
+    CacheSourceContent content = _sourceContentMap[source];
+    if (content == null) {
+      String fileName = _getCacheSourceContentFileName(source);
+      List<int> bytes = _safeReadBytes(fileName);
+      if (bytes == null) {
+        return null;
+      }
+      content = new CacheSourceContent.fromBuffer(bytes);
+      _sourceContentMap[source] = content;
+    }
+    return content;
+  }
+
+  /**
+   * Return the name of the file with the content based [source] information.
+   */
+  String _getCacheSourceContentFileName(Source source) {
+    List<int> hash = _getSourceContentHash(source);
+    String hashStr = CryptoUtils.bytesToHex(hash);
+    return '$hashStr.content';
   }
 
   /**
@@ -169,41 +214,14 @@ class LibraryBundleCache {
   }
 
   /**
-   * Get the URIs information of the library with the given [librarySource],
-   * maybe `null` if the information is not in the cache.
-   */
-  CacheLibraryUris _getUris(Source librarySource) {
-    CacheLibraryUris uris = _libraryUrisMap[librarySource];
-    if (uris == null) {
-      String fileName = _getUrisFileName(librarySource);
-      List<int> bytes = _safeReadBytes(fileName);
-      if (bytes == null) {
-        return null;
-      }
-      uris = new CacheLibraryUris.fromBuffer(bytes);
-      _libraryUrisMap[librarySource] = uris;
-    }
-    return uris;
-  }
-
-  /**
-   * Return the name of the file with the [librarySource] URIs information.
-   */
-  String _getUrisFileName(Source librarySource) {
-    List<int> hash = _getSourceContentHash(librarySource);
-    String hashStr = CryptoUtils.bytesToHex(hash);
-    return '$hashStr.uris';
-  }
-
-  /**
    * Return bytes of the file with the given [relPath] in the cache, or `null`
    * if the file does not exist.
    */
   List<int> _safeReadBytes(String relPath) {
-    Resource urisFile = cacheFolder.getChild(relPath);
-    if (urisFile is File) {
+    Resource file = cacheFolder.getChild(relPath);
+    if (file is File) {
       try {
-        return urisFile.readAsBytesSync();
+        return file.readAsBytesSync();
       } on FileSystemException {}
     }
     return null;
@@ -223,14 +241,25 @@ class LibraryBundleCache {
   }
 
   /**
-   * Write URIs information for the given [library] and its direct and
-   * indirect imports/exports.
+   * Write the content based information about the given [source].
    */
-  void _writeUris(LibraryElement library,
+  void _writeCacheSourceContent(Source source, CacheSourceContentBuilder b) {
+    String fileName = _getCacheSourceContentFileName(source);
+    List<int> bytes = b.toBuffer();
+    _safeWriteBytes(fileName, bytes);
+    // Put into the cache to avoid reading it later.
+    _sourceContentMap[source] = new CacheSourceContent.fromBuffer(bytes);
+  }
+
+  /**
+   * Write [CacheSourceContent] for every unit of the given [library] and its
+   * direct and indirect imports/exports.
+   */
+  void _writeCacheSourceContents(LibraryElement library,
       [Set<LibraryElement> writtenLibraries]) {
     Source librarySource = library.source;
     // Do nothing if already cached.
-    if (_libraryUrisMap.containsKey(librarySource)) {
+    if (_sourceContentMap.containsKey(librarySource)) {
       return;
     }
     // Stop recursion cycle.
@@ -238,32 +267,41 @@ class LibraryBundleCache {
     if (!writtenLibraries.add(library)) {
       return;
     }
-    // Prepare import/export URIs.
+    // Write parts.
+    List<String> partUris = <String>[];
+    for (CompilationUnitElement part in library.parts) {
+      partUris.add(part.uri);
+      Source partSource = part.source;
+      if (context.getKindOf(partSource) == SourceKind.PART) {
+        _writeCacheSourceContent(partSource,
+            new CacheSourceContentBuilder(kind: CacheSourceKind.part));
+      }
+    }
+    // Write imports.
     List<String> importUris = <String>[];
-    List<String> exportUris = <String>[];
     for (ImportElement element in library.imports) {
       String uri = element.uri;
       if (uri != null) {
         importUris.add(uri);
-        _writeUris(element.importedLibrary, writtenLibraries);
+        _writeCacheSourceContents(element.importedLibrary, writtenLibraries);
       }
     }
+    // Write exports.
+    List<String> exportUris = <String>[];
     for (ExportElement element in library.exports) {
       String uri = element.uri;
       if (uri != null) {
         exportUris.add(uri);
-        _writeUris(element.exportedLibrary, writtenLibraries);
+        _writeCacheSourceContents(element.exportedLibrary, writtenLibraries);
       }
     }
-    // Write the URIs.
-    CacheLibraryUrisBuilder b = new CacheLibraryUrisBuilder(
-        importedUris: importUris,
-        exportedUris: exportUris,
-        partUris: library.parts.map((e) => e.uri).toList());
-    List<int> bytes = b.toBuffer();
-    String fileName = _getUrisFileName(librarySource);
-    _safeWriteBytes(fileName, bytes);
-    // Put into the cache to avoid reading it later.
-    _libraryUrisMap[librarySource] = new CacheLibraryUris.fromBuffer(bytes);
+    // Write the library.
+    _writeCacheSourceContent(
+        librarySource,
+        new CacheSourceContentBuilder(
+            kind: CacheSourceKind.library,
+            importedUris: importUris,
+            exportedUris: exportUris,
+            partUris: partUris));
   }
 }

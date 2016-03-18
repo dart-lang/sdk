@@ -53,33 +53,45 @@ import 'format.dart' as generated;
 const informative = null;
 
 /**
- * Information about URIs referenced by a library.
+ * Information about a source that depends only on its content.
  */
-@TopLevel('CaLU')
-abstract class CacheLibraryUris extends base.SummaryClass {
-  factory CacheLibraryUris.fromBuffer(List<int> buffer) =>
-      generated.readCacheLibraryUris(buffer);
+@TopLevel('CaSS')
+abstract class CacheSourceContent extends base.SummaryClass {
+  factory CacheSourceContent.fromBuffer(List<int> buffer) =>
+      generated.readCacheSourceContent(buffer);
 
   /**
    * The list of exported URIs, e.g. `dart:core`, or `foo/bar.dart`,
-   * or `package:foo/bar.dart`.
+   * or `package:foo/bar.dart`.  Empty if [kind] is [CacheSourceKind.part].
    */
-  @Id(1)
+  @Id(2)
   List<String> get exportedUris;
 
   /**
    * The list of explicitly imported URIs, e.g. `dart:core`, or `foo/bar.dart`,
-   * or `package:foo/bar.dart`.
+   * or `package:foo/bar.dart`.  Empty if [kind] is [CacheSourceKind.part].
    */
-  @Id(0)
+  @Id(1)
   List<String> get importedUris;
 
   /**
-   * The list of part URIs, e.g. `foo/bar.dart`.
+   * The kind of the source.
    */
-  @Id(2)
+  @Id(0)
+  CacheSourceKind get kind;
+
+  /**
+   * The list of part URIs, e.g. `foo/bar.dart`.  Empty if [kind] is
+   * [CacheSourceKind.part].
+   */
+  @Id(3)
   List<String> get partUris;
 }
+
+/**
+ * Kind of a source in the cache.
+ */
+enum CacheSourceKind { library, part }
 
 /**
  * Information about an element code range.
