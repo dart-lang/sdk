@@ -2815,13 +2815,16 @@ class GenerateLintsTask extends SourceBasedAnalysisTask {
     //
     List<AstVisitor> visitors = <AstVisitor>[];
 
+    bool timeVisits = analysisOptions.enableTiming;
     List<Linter> linters = getLints(context);
     for (Linter linter in linters) {
       AstVisitor visitor = linter.getVisitor();
       if (visitor != null) {
         linter.reporter = errorReporter;
-        visitors
-            .add(new TimedAstVisitor(visitor, lintRegistry.getTimer(linter)));
+        if (timeVisits) {
+          visitor = new TimedAstVisitor(visitor, lintRegistry.getTimer(linter));
+        }
+        visitors.add(visitor);
       }
     }
 

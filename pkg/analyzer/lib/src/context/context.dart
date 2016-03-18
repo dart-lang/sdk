@@ -288,6 +288,7 @@ class AnalysisContextImpl implements InternalAnalysisContext {
     this._options.enableConditionalDirectives =
         options.enableConditionalDirectives;
     this._options.enableSuperMixins = options.enableSuperMixins;
+    this._options.enableTiming = options.enableTiming;
     this._options.hint = options.hint;
     this._options.incremental = options.incremental;
     this._options.incrementalApi = options.incrementalApi;

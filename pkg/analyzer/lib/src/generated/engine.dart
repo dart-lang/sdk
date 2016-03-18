@@ -1082,6 +1082,11 @@ abstract class AnalysisOptions {
   bool get enableSuperMixins;
 
   /**
+   * Return `true` if timing data should be gathered during execution.
+   */
+  bool get enableTiming;
+
+  /**
    * Return `true` if errors, warnings and hints should be generated for sources
    * that are implicitly being analyzed. The default value is `true`.
    */
@@ -1215,6 +1220,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
    */
   bool enableSuperMixins = false;
 
+  @override
+  bool enableTiming = false;
+
   /**
    * A flag indicating whether errors, warnings and hints should be generated
    * for sources that are implicitly being analyzed.
@@ -1293,6 +1301,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     enableStrictCallChecks = options.enableStrictCallChecks;
     enableGenericMethods = options.enableGenericMethods;
     enableSuperMixins = options.enableSuperMixins;
+    enableTiming = options.enableTiming;
     generateImplicitErrors = options.generateImplicitErrors;
     generateSdkErrors = options.generateSdkErrors;
     hint = options.hint;
