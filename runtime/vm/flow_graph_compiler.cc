@@ -1109,7 +1109,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
           *return_node.value()->AsLoadInstanceFieldNode();
       // Only intrinsify getter if the field cannot contain a mutable double.
       // Reading from a mutable double box requires allocating a fresh double.
-      if (load_node.field().guarded_cid() == kDynamicCid) {
+      if (!IsPotentialUnboxedField(load_node.field())) {
         GenerateInlinedGetter(load_node.field().Offset());
         return !FLAG_use_field_guards;
       }
