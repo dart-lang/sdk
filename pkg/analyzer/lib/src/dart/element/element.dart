@@ -679,9 +679,12 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
         visitedClasses.add(this);
       }
       try {
-        ClassElementImpl superclass = supertype.element;
-        constructorsToForward =
-            superclass._computeMixinAppConstructors(visitedClasses);
+        ClassElement superclass = supertype.element;
+        if (superclass is ClassElementHandle) {
+          superclass = (superclass as ClassElementHandle).actualElement;
+        }
+        constructorsToForward = (superclass as ClassElementImpl)
+            ._computeMixinAppConstructors(visitedClasses);
       } finally {
         visitedClasses.removeLast();
       }

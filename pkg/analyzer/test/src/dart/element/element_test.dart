@@ -120,6 +120,24 @@ abstract class A<K, V> = Object with MapMixin<K, V>;
     }
   }
 
+  void test_constructors_mixinApplicationWithHandle() {
+    AnalysisContext context = createAnalysisContext();
+    context.sourceFactory = new SourceFactory([]);
+
+    ElementLocation location = new ElementLocationImpl.con2('');
+    ClassElementImpl classA = ElementFactory.classElement2("A");
+    classA.mixinApplication = true;
+    TestElementResynthesizer resynthesizer =
+        new TestElementResynthesizer(context, {location: classA});
+    ClassElementHandle classAHandle =
+        new ClassElementHandle(resynthesizer, location);
+    ClassElementImpl classB =
+        ElementFactory.classElement("B", new InterfaceTypeImpl(classAHandle));
+    classB.mixinApplication = true;
+
+    expect(classB.constructors, hasLength(1));
+  }
+
   void test_getAllSupertypes_interface() {
     ClassElement classA = ElementFactory.classElement2("A");
     ClassElement classB = ElementFactory.classElement("B", classA.type);
