@@ -34132,12 +34132,14 @@ class VttCue extends TextTrackCue {
   @DomName('VTTCue.line')
   @DocsEditable()
   @Experimental() // untriaged
+  @Creates('Null')
   @Returns('num|String')
   Object line;
 
   @DomName('VTTCue.position')
   @DocsEditable()
   @Experimental() // untriaged
+  @Creates('Null')
   @Returns('num|String')
   Object position;
 
