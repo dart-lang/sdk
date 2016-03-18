@@ -55,6 +55,11 @@ import '../patch_parser.dart' show
     checkNativeAnnotation, checkJsInteropAnnotation;
 import '../resolution/tree_elements.dart' show
     TreeElements;
+import '../serialization/serialization.dart' show
+    DeserializerPlugin,
+    ObjectDecoder,
+    ObjectEncoder,
+    SerializerPlugin;
 import '../tree/tree.dart' show
     Node,
     Send;
@@ -101,6 +106,9 @@ abstract class Backend {
   SourceInformationStrategy get sourceInformationStrategy {
     return const SourceInformationStrategy();
   }
+
+  /// Interface for serialization of backend specific data.
+  BackendSerialization get serialization => const BackendSerialization();
 
   // TODO(johnniwinther): Move this to the JavaScriptBackend.
   String get patchVersion => null;
@@ -430,7 +438,8 @@ abstract class Backend {
   /// Creates an impact strategy to use for compilation.
   ImpactStrategy createImpactStrategy(
       {bool supportDeferredLoad: true,
-       bool supportDumpInfo: true}) {
+       bool supportDumpInfo: true,
+       bool supportSerialization: true}) {
     return const ImpactStrategy();
   }
 }
@@ -461,4 +470,12 @@ class ImpactTransformer {
   WorldImpact transformCodegenImpact(CodegenImpact worldImpact) {
     return worldImpact;
   }
+}
+
+/// Interface for serialization of backend specific data.
+class BackendSerialization  {
+  const BackendSerialization();
+
+  SerializerPlugin get serializer => const SerializerPlugin();
+  DeserializerPlugin get deserializer => const DeserializerPlugin();
 }

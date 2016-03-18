@@ -6004,7 +6004,7 @@ class SsaBuilder extends ast.Visitor
     }
     var target = new HForeignCode(js.js.parseForeignJS(
             "${backend.namer.fixedBackendPath(element)}."
-            "${backend.getFixedBackendName(element)}"),
+            "${backend.nativeData.getFixedBackendName(element)}"),
         backend.dynamicType,
         <HInstruction>[]);
     add(target);

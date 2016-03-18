@@ -139,7 +139,7 @@ class NativeEmitter {
       if (backend.isJsInterop(classElement)) {
         needed = true;  // TODO(jacobr): we don't need all interop classes.
       } else if (cls.isNative &&
-                 backend.hasNativeTagsForcedNonLeaf(classElement)) {
+                 backend.nativeData.hasNativeTagsForcedNonLeaf(classElement)) {
         needed = true;
         nonLeafClasses.add(cls);
       }
@@ -159,7 +159,8 @@ class NativeEmitter {
     for (Class cls in classes) {
       if (!cls.isNative) continue;
       if (backend.isJsInterop(cls.element)) continue;
-      List<String> nativeTags = backend.getNativeTagsOfClass(cls.element);
+      List<String> nativeTags =
+          backend.nativeData.getNativeTagsOfClass(cls.element);
 
       if (nonLeafClasses.contains(cls) ||
           extensionPoints.containsKey(cls)) {
@@ -315,7 +316,7 @@ class NativeEmitter {
     assert(invariant(member, nativeMethods.contains(member)));
     // When calling a JS method, we call it with the native name, and only the
     // arguments up until the last one provided.
-    target = backend.getFixedBackendName(member);
+    target = backend.nativeData.getFixedBackendName(member);
 
     if (isInterceptedMethod) {
       receiver = argumentsBuffer[0];

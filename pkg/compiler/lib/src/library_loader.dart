@@ -369,8 +369,11 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
         return reporter.withCurrentElement(library, () {
           return measure(() {
             currentHandler.computeExports();
-            LoadedLibraries loadedLibraries =
-                new _LoadedLibraries(library, currentHandler.nodeMap, this);
+            LoadedLibraries loadedLibraries = new _LoadedLibraries(
+                library,
+                currentHandler.newLibraries,
+                currentHandler.nodeMap,
+                this);
             currentHandler = null;
             return compiler.onLibrariesLoaded(loadedLibraries)
                 .then((_) => library);
@@ -596,8 +599,8 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
   Future<LibraryElement> loadDeserializedLibrary(
       LibraryDependencyHandler handler,
       LibraryElement library) {
-    compiler.onLibraryCreated(library);
     libraryCanonicalUriMap[library.canonicalUri] = library;
+    handler.registerNewLibrary(library);
     return compiler.onLibraryScanned(library, handler).then((_) {
       return Future.forEach(library.imports, (ImportElement import) {
         return createLibrary(handler, library, import.uri);
@@ -1158,6 +1161,7 @@ class LibraryDependencyNode {
  */
 class LibraryDependencyHandler implements LibraryLoader {
   final _LibraryLoaderTask task;
+  final List<LibraryElement> _newLibraries = <LibraryElement>[];
 
   /**
    * Newly loaded libraries and their corresponding node in the library
@@ -1174,8 +1178,8 @@ class LibraryDependencyHandler implements LibraryLoader {
 
   DiagnosticReporter get reporter => task.reporter;
 
-  /// The libraries loaded with this handler.
-  Iterable<LibraryElement> get loadedLibraries => nodeMap.keys;
+  /// The libraries created with this handler.
+  Iterable<LibraryElement> get newLibraries => _newLibraries;
 
   /**
    * Performs a fixed-point computation on the export scopes of all registered
@@ -1264,8 +1268,11 @@ class LibraryDependencyHandler implements LibraryLoader {
    * Registers [library] for the processing of its import/export scope.
    */
   void registerNewLibrary(LibraryElement library) {
-    nodeMap[library] = new LibraryDependencyNode(library);
     compiler.onLibraryCreated(library);
+    _newLibraries.add(library);
+    if (!library.exportsHandled) {
+      nodeMap[library] = new LibraryDependencyNode(library);
+    }
   }
 
   /**
@@ -1314,8 +1321,12 @@ class _LoadedLibraries implements LoadedLibraries {
   final Map<Uri, LibraryElement> loadedLibraries = <Uri, LibraryElement>{};
   final Map<LibraryElement, LibraryDependencyNode> nodeMap;
 
-  _LoadedLibraries(this.rootLibrary, this.nodeMap, this.task) {
-    nodeMap.keys.forEach((LibraryElement loadedLibrary) {
+  _LoadedLibraries(
+      this.rootLibrary,
+      Iterable<LibraryElement> libraries,
+      this.nodeMap,
+      this.task) {
+    libraries.forEach((LibraryElement loadedLibrary) {
       loadedLibraries[loadedLibrary.canonicalUri] = loadedLibrary;
     });
   }
@@ -1406,4 +1417,6 @@ class _LoadedLibraries implements LoadedLibraries {
 
     computeSuffixes(rootLibrary, const Link<Uri>());
   }
+
+  String toString() => 'root=$rootLibrary,libraries=${loadedLibraries.keys}';
 }

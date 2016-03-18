@@ -34,6 +34,7 @@ enum SerializedElementKind {
   INSTANCE_FUNCTION,
   INSTANCE_GETTER,
   INSTANCE_SETTER,
+  LOCAL_FUNCTION,
   TYPEDEF,
   TYPEVARIABLE,
   PARAMETER,
@@ -80,16 +81,16 @@ abstract class ElementSerializer {
 
 class SerializerUtil {
   /// Serialize the declared members of [element] into [encoder].
-  static void serializeMembers(ScopeContainerElement element,
+  static void serializeMembers(Iterable<Element> members,
                                ObjectEncoder encoder) {
     MapEncoder mapEncoder = encoder.createMap(Key.MEMBERS);
-    element.forEachLocalMember((Element member) {
+    for (Element member in members) {
       String name = member.name;
       if (member.isSetter) {
         name = '$name,=';
       }
       mapEncoder.setElement(name, member);
-    });
+    }
   }
 
   /// Serialize the source position of [element] into [encoder].
@@ -151,6 +152,16 @@ class LibrarySerializer implements ElementSerializer {
     return null;
   }
 
+  static List<Element> getMembers(LibraryElement element) {
+    List<Element> members = <Element>[];
+    element.implementation.forEachLocalMember((Element member) {
+      if (!member.isPatch) {
+        members.add(member);
+      }
+    });
+    return members;
+  }
+
   static List<CompilationUnitElement> getCompilationUnits(
       LibraryElement element) {
     List<CompilationUnitElement> compilationUnits = <CompilationUnitElement>[];
@@ -194,7 +205,7 @@ class LibrarySerializer implements ElementSerializer {
     encoder.setUri(
         Key.CANONICAL_URI, element.canonicalUri, element.canonicalUri);
     encoder.setString(Key.LIBRARY_NAME, element.libraryName);
-    SerializerUtil.serializeMembers(element, encoder);
+    SerializerUtil.serializeMembers(getMembers(element), encoder);
     encoder.setElement(Key.COMPILATION_UNIT, element.entryCompilationUnit);
     encoder.setElements(Key.COMPILATION_UNITS, getCompilationUnits(element));
     encoder.setElements(Key.IMPORTS, getImports(element));
@@ -247,6 +258,19 @@ class ClassSerializer implements ElementSerializer {
     return null;
   }
 
+  static List<Element> getMembers(ClassElement element) {
+    List<Element> members = <Element>[];
+    element.forEachLocalMember(members.add);
+    if (element.isPatched) {
+      element.implementation.forEachLocalMember((Element member) {
+        if (!member.isPatch) {
+          members.add(member);
+        }
+      });
+    }
+    return members;
+  }
+
   void serialize(ClassElement element,
                  ObjectEncoder encoder,
                  SerializedElementKind kind) {
@@ -270,7 +294,8 @@ class ClassSerializer implements ElementSerializer {
         element.allSupertypesAndSelf.supertypes.toList());
     supertypes.setInts(Key.OFFSETS, element.allSupertypesAndSelf.levelOffsets);
     encoder.setTypes(Key.INTERFACES, element.interfaces.toList());
-    SerializerUtil.serializeMembers(element, encoder);
+    SerializerUtil.serializeMembers(getMembers(element), encoder);
+    encoder.setBool(Key.IS_PROXY, element.isProxy);
     if (kind == SerializedElementKind.ENUM) {
       EnumClassElement enumClass = element;
       encoder.setElements(Key.FIELDS, enumClass.enumValues);
@@ -355,6 +380,9 @@ class FunctionSerializer implements ElementSerializer {
       if (element.isInstanceMember) {
         return SerializedElementKind.INSTANCE_FUNCTION;
       }
+      if (element.isLocal) {
+        return SerializedElementKind.LOCAL_FUNCTION;
+      }
     }
     if (element.isGetter) {
       if (element.isTopLevel) return SerializedElementKind.TOPLEVEL_GETTER;
@@ -390,6 +418,11 @@ class FunctionSerializer implements ElementSerializer {
       encoder.setElement(Key.COMPILATION_UNIT, element.compilationUnit);
     }
     encoder.setBool(Key.IS_EXTERNAL, element.isExternal);
+    if (element.isLocal) {
+      LocalFunctionElement localFunction = element;
+      encoder.setElement(
+          Key.EXECUTABLE_CONTEXT, localFunction.executableContext);
+    }
   }
 }
 
@@ -576,6 +609,8 @@ class ElementDeserializer {
         return new StaticFunctionElementZ(decoder);
       case SerializedElementKind.INSTANCE_FUNCTION:
         return new InstanceFunctionElementZ(decoder);
+      case SerializedElementKind.LOCAL_FUNCTION:
+        return new LocalFunctionElementZ(decoder);
       case SerializedElementKind.TOPLEVEL_GETTER:
         return new TopLevelGetterElementZ(decoder);
       case SerializedElementKind.STATIC_GETTER:

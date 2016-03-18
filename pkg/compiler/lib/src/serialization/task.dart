@@ -26,6 +26,11 @@ class SerializationTask extends CompilerTask {
 
   String get name => 'Serialization';
 
+  /// If `true`, data must be retained to support serialization.
+  // TODO(johnniwinther): Make this more precise in terms of what needs to be
+  // retained, for instance impacts, resolution data etc.
+  bool supportSerialization = false;
+
   /// Returns the [LibraryElement] for [resolvedUri] if available from
   /// serialization.
   LibraryElement readLibrary(Uri resolvedUri) {

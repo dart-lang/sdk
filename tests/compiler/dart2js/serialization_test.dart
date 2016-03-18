@@ -342,6 +342,10 @@ class ElementIdentityEquivalence extends BaseElementVisitor<dynamic, Element> {
   const ElementIdentityEquivalence();
 
   void visit(Element element1, Element element2) {
+    if (element1 == null && element2 == null) return;
+    element1 = element1.declaration;
+    element2 = element2.declaration;
+    if (element1 == element2) return;
     check(element1, element2, 'kind', element1.kind, element2.kind);
     element1.accept(this, element2);
   }
@@ -454,6 +458,9 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
   const ElementPropertyEquivalence();
 
   void visit(Element element1, Element element2) {
+    if (element1 == null && element2 == null) return;
+    element1 = element1.declaration;
+    element2 = element2.declaration;
     if (element1 == element2) return;
     check(element1, element2, 'kind', element1.kind, element2.kind);
     element1.accept(this, element2);
@@ -523,21 +530,29 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
   void visitMembers(ScopeContainerElement element1,
                     ScopeContainerElement element2) {
     Set<String> names = new Set<String>();
-    element1.forEachLocalMember((Element member) {
+    Iterable<Element> members1 = element1.isLibrary
+        ? LibrarySerializer.getMembers(element1)
+        : ClassSerializer.getMembers(element1);
+    Iterable<Element> members2 = element2.isLibrary
+        ? LibrarySerializer.getMembers(element2)
+        : ClassSerializer.getMembers(element2);
+    for (Element member in members1) {
       names.add(member.name);
-    });
-    element2.forEachLocalMember((Element member) {
+    }
+    for (Element member in members2) {
       names.add(member.name);
-    });
+    }
+    element1 = element1.implementation;
+    element2 = element2.implementation;
     for (String name in names) {
       Element member1 = element1.localLookup(name);
       Element member2 = element2.localLookup(name);
       if (member1 == null) {
-        print('Missing member for $member2');
+        print('Missing member for $member2 in\n ${members1.join('\n ')}');
         continue;
       }
       if (member2 == null) {
-        print('Missing member for $member1');
+        print('Missing member for $member1 in\n ${members2.join('\n ')}');
         continue;
       }
       visit(member1, member2);

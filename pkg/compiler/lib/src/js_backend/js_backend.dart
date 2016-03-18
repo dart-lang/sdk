@@ -14,6 +14,7 @@ import '../closure.dart';
 import '../common.dart';
 import '../common/backend_api.dart' show
     Backend,
+    BackendSerialization,
     ImpactTransformer,
     ForeignResolver;
 import '../common/codegen.dart' show
@@ -116,11 +117,15 @@ import '../world.dart' show
 
 import 'backend_helpers.dart';
 import 'backend_impact.dart';
+import 'backend_serialization.dart' show
+    JavaScriptBackendSerialization;
 import 'codegen/task.dart';
 import 'constant_system_javascript.dart';
-import 'patch_resolver.dart';
+import 'native_data.dart' show
+    NativeData;
 import 'js_interop_analysis.dart' show JsInteropAnalysis;
 import 'lookup_map_analysis.dart' show LookupMapAnalysis;
+import 'patch_resolver.dart';
 
 part 'backend.dart';
 part 'checked_mode_helpers.dart';

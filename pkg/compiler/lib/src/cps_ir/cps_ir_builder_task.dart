@@ -1368,7 +1368,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         irBuilder.buildNativeFunctionBody(function, javaScriptCode,
             sourceInformationBuilder.buildForeignCode(node));
       } else {
-        String name = backend.getFixedBackendName(function);
+        String name = backend.nativeData.getFixedBackendName(function);
         irBuilder.buildRedirectingNativeFunctionBody(function, name, source);
       }
     } else {
@@ -4258,7 +4258,7 @@ class GlobalProgramInformation {
 
   String getJsInteropTargetPath(FunctionElement element) {
     return '${_backend.namer.fixedBackendPath(element)}.'
-      '${_backend.getFixedBackendName(element)}';
+      '${_backend.nativeData.getFixedBackendName(element)}';
   }
 
   DartType get jsJavascriptObjectType =>

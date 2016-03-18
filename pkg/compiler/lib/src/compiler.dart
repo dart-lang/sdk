@@ -859,7 +859,8 @@ abstract class Compiler {
     deferredLoadTask.beforeResolution(this);
     impactStrategy = backend.createImpactStrategy(
         supportDeferredLoad: deferredLoadTask.isProgramSplit,
-        supportDumpInfo: options.dumpInfo);
+        supportDumpInfo: options.dumpInfo,
+        supportSerialization: serialization.supportSerialization);
 
     phase = PHASE_RESOLVING;
     if (analyzeAll) {

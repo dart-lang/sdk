@@ -418,34 +418,40 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     });
   }
 
-  handleFieldAnnotations(Element element) {
+  void handleFieldAnnotations(Element element) {
+    if (compiler.serialization.isDeserialized(element)) {
+      return;
+    }
     if (backend.isNative(element.enclosingElement)) {
       // Exclude non-instance (static) fields - they not really native and are
       // compiled as isolate globals.  Access of a property of a constructor
       // function or a non-method property in the prototype chain, must be coded
       // using a JS-call.
       if (element.isInstanceMember) {
-        setNativeName(element);
+        _setNativeName(element);
       }
     }
   }
 
-  handleMethodAnnotations(Element method) {
+  void handleMethodAnnotations(Element method) {
+    if (compiler.serialization.isDeserialized(method)) {
+      return;
+    }
     if (isNativeMethod(method)) {
       if (method.isStatic) {
-        setNativeNameForStaticMethod(method);
+        _setNativeNameForStaticMethod(method);
       } else {
-        setNativeName(method);
+        _setNativeName(method);
       }
     }
   }
 
   /// Sets the native name of [element], either from an annotation, or
   /// defaulting to the Dart name.
-  void setNativeName(MemberElement element) {
+  void _setNativeName(MemberElement element) {
     String name = findJsNameFromAnnotation(element);
     if (name == null) name = element.name;
-    backend.setNativeMemberName(element, name);
+    backend.nativeData.setNativeMemberName(element, name);
   }
 
   /// Sets the native name of the static native method [element], using the
@@ -456,20 +462,21 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   ///    use the declared @JSName as the expression
   /// 3. If [element] does not have a @JSName annotation, qualify the name of
   ///    the method with the @Native name of the enclosing class.
-  void setNativeNameForStaticMethod(MethodElement element) {
+  void _setNativeNameForStaticMethod(MethodElement element) {
     String name = findJsNameFromAnnotation(element);
     if (name == null) name = element.name;
     if (isIdentifier(name)) {
       List<String> nativeNames =
-          backend.getNativeTagsOfClassRaw(element.enclosingClass);
+          backend.nativeData.getNativeTagsOfClassRaw(element.enclosingClass);
       if (nativeNames.length != 1) {
         reporter.internalError(element,
             'Unable to determine a native name for the enclosing class, '
             'options: $nativeNames');
       }
-      backend.setNativeMemberName(element, '${nativeNames[0]}.$name');
+      backend.nativeData.setNativeMemberName(
+          element, '${nativeNames[0]}.$name');
     } else {
-      backend.setNativeMemberName(element, name);
+      backend.nativeData.setNativeMemberName(element, name);
     }
   }
 
@@ -604,7 +611,7 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
     if (backend.isJsInterop(classElement)) return;
     // Since we map from dispatch tags to classes, a dispatch tag must be used
     // on only one native class.
-    for (String tag in backend.getNativeTagsOfClass(classElement)) {
+    for (String tag in backend.nativeData.getNativeTagsOfClass(classElement)) {
       ClassElement owner = tagOwner[tag];
       if (owner != null) {
         if (owner != classElement) {

@@ -118,7 +118,7 @@ class ParameterStubGenerator {
     });
 
     var body;  // List or jsAst.Statement.
-    if (backend.hasFixedBackendName(member)) {
+    if (backend.nativeData.hasFixedBackendName(member)) {
       body = emitterTask.nativeEmitter.generateParameterStubStatements(
           member, isInterceptedMethod, namer.invocationName(selector),
           parametersBuffer, argumentsBuffer,
