@@ -5,6 +5,7 @@
 library class_tree_element;
 
 import 'observatory_element.dart';
+import 'dart:async';
 import 'dart:html';
 import 'package:logging/logging.dart';
 import 'package:observatory/app.dart';
@@ -34,7 +35,7 @@ class ClassTreeRow extends TableTreeRow {
     }
   }
 
-  void _addMixins(Class cls) async {
+  Future _addMixins(Class cls) async {
     var classCell = flexColumns[0];
     if (cls.superclass == null) {
       return;
@@ -60,7 +61,7 @@ class ClassTreeRow extends TableTreeRow {
     }
   }
 
-  void _addClass(Class cls) async {
+  Future _addClass(Class cls) async {
     var classCell = flexColumns[0];
     classCell.style.justifyContent = 'flex-start';
     var classRef = new Element.tag('class-ref');
