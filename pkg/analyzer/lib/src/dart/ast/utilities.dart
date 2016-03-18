@@ -60,22 +60,23 @@ class AstCloner implements AstVisitor<AstNode> {
   /**
    * Return a clone of the given [node].
    */
-  AstNode cloneNode(AstNode node) {
+  AstNode/*=E*/ cloneNode/*<E extends AstNode>*/(AstNode/*=E*/ node) {
     if (node == null) {
       return null;
     }
-    return node.accept(this) as AstNode;
+    return node.accept(this) as AstNode/*=E*/;
   }
 
   /**
    * Return a list containing cloned versions of the nodes in the given list of
    * [nodes].
    */
-  List<AstNode> cloneNodeList(NodeList nodes) {
+  List<AstNode/*=E*/ > cloneNodeList/*<E extends AstNode>*/(
+      NodeList/*<E>*/ nodes) {
     int count = nodes.length;
-    List clonedNodes = new List();
+    List/*<E>*/ clonedNodes = new List/*<E>*/();
     for (int i = 0; i < count; i++) {
-      clonedNodes.add((nodes[i]).accept(this) as AstNode);
+      clonedNodes.add((nodes[i]).accept(this) as AstNode/*=E*/);
     }
     return clonedNodes;
   }
@@ -3614,19 +3615,19 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
       _cloneNode(node.expression),
       _mapToken(node.semicolon));
 
-  AstNode _cloneNode(AstNode node) {
+  AstNode/*=E*/ _cloneNode/*<E extends AstNode>*/(AstNode/*=E*/ node) {
     if (node == null) {
       return null;
     }
     if (identical(node, _oldNode)) {
-      return _newNode;
+      return _newNode as AstNode/*=E*/;
     }
-    return node.accept(this) as AstNode;
+    return node.accept(this) as AstNode/*=E*/;
   }
 
-  List _cloneNodeList(NodeList nodes) {
-    List clonedNodes = new List();
-    for (AstNode node in nodes) {
+  List/*<E>*/ _cloneNodeList/*<E extends AstNode>*/(NodeList/*<E>*/ nodes) {
+    List/*<E>*/ clonedNodes = new List/*<E>*/();
+    for (AstNode/*=E*/ node in nodes) {
       clonedNodes.add(_cloneNode(node));
     }
     return clonedNodes;

@@ -1019,8 +1019,9 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  Object getResult(AnalysisTarget target, ResultDescriptor result) {
-    return _cache.getValue(target, result);
+  Object/*=V*/ getResult/*<V>*/(
+      AnalysisTarget target, ResultDescriptor/*<V>*/ result) {
+    return _cache.getValue(target, result) as Object/*=V*/;
   }
 
   @override
@@ -2009,7 +2010,7 @@ class AnalysisFutureHelper<T> {
       return new CancelableFuture.error(new AnalysisNotScheduledError());
     }
     CacheEntry entry = _context.getCacheEntry(_target);
-    PendingFuture pendingFuture =
+    PendingFuture<T> pendingFuture =
         new PendingFuture<T>(_context, _target, (CacheEntry entry) {
       CacheState state = entry.getState(_descriptor);
       if (state == CacheState.ERROR) {

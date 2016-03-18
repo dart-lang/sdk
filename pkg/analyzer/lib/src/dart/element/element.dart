@@ -3185,8 +3185,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * the given [name].
    */
   LibraryElementImpl.forNode(this.context, LibraryIdentifier name)
-      : super.forNode(name),
-        nameLength = name != null ? name.length : 0;
+      : nameLength = name != null ? name.length : 0,
+        super.forNode(name);
 
   @override
   int get codeLength {
@@ -3591,14 +3591,16 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     // are in the case where library cycles have simply never been computed from
     // a newly reachable node.
     Set<LibraryElementImpl> active = new HashSet();
-    void invalidate(LibraryElementImpl library) {
-      if (!active.add(library)) return;
-      if (library._libraryCycle != null) {
-        library._libraryCycle.forEach(invalidate);
-        library._libraryCycle = null;
+    void invalidate(LibraryElement library) {
+      LibraryElementImpl libraryImpl = library;
+      if (active.add(libraryImpl)) {
+        if (libraryImpl._libraryCycle != null) {
+          libraryImpl._libraryCycle.forEach(invalidate);
+          libraryImpl._libraryCycle = null;
+        }
+        library.exportedLibraries.forEach(invalidate);
+        library.importedLibraries.forEach(invalidate);
       }
-      library.exportedLibraries.forEach(invalidate);
-      library.importedLibraries.forEach(invalidate);
     }
     invalidate(this);
   }

@@ -136,7 +136,7 @@ class EnumTester<C extends Enum> {
       if (_ignoreGetters.contains(name)) {
         return;
       }
-      C value = reflectedClass.getField(symbol).reflectee;
+      C value = reflectedClass.getField(symbol).reflectee as C;
       result[name] = value;
     });
     return result;
@@ -148,7 +148,7 @@ class EnumTester<C extends Enum> {
    */
   void check_explicit_values() {
     ClassMirror reflectedClass = reflectClass(C);
-    List<C> values = reflectedClass.getField(#values).reflectee;
+    List<C> values = reflectedClass.getField(#values).reflectee as List<C>;
     Map<C, int> reverseMap = <C, int>{};
 
     // Check that "values" is a list of values of type C, with no duplicates.

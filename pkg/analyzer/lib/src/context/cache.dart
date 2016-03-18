@@ -405,7 +405,7 @@ class CacheEntry {
     if (_partition != null) {
       _partition.resultAccessed(target, descriptor);
     }
-    return data.value;
+    return data.value as Object/*=V*/;
   }
 
   /**

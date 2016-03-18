@@ -26,7 +26,7 @@ import 'package:source_span/source_span.dart';
  * The descriptor used to associate error processors with analysis contexts in
  * configuration data.
  */
-final ListResultDescriptor<List<ErrorProcessor>> CONFIGURED_ERROR_PROCESSORS =
+final ListResultDescriptor<ErrorProcessor> CONFIGURED_ERROR_PROCESSORS =
     new ListResultDescriptorImpl('configured.errors', const <ErrorProcessor>[]);
 
 /**

@@ -10,6 +10,13 @@ import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:yaml/yaml.dart';
 
+/// String identifiers mapped to associated severities.
+const Map<String, ErrorSeverity> severityMap = const {
+  'error': ErrorSeverity.ERROR,
+  'info': ErrorSeverity.INFO,
+  'warning': ErrorSeverity.WARNING
+};
+
 /// Error processor configuration derived from analysis (or embedder) options.
 class ErrorConfig {
   /// The processors in this config.
@@ -57,13 +64,6 @@ class ErrorConfig {
   ErrorSeverity _toSeverity(String severity) => severityMap[severity];
 }
 
-/// String identifiers mapped to associated severities.
-const Map<String, ErrorSeverity> severityMap = const {
-  'error': ErrorSeverity.ERROR,
-  'info': ErrorSeverity.INFO,
-  'warning': ErrorSeverity.WARNING
-};
-
 /// Process errors by filtering or changing associated [ErrorSeverity].
 class ErrorProcessor {
   /// The code name of the associated error.
@@ -96,14 +96,14 @@ class ErrorProcessor {
 
     // Let the user configure how specific errors are processed.
     List<ErrorProcessor> processors =
-        context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
+        context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS)
+        as List<ErrorProcessor>;
 
     // Give strong mode a chance to upgrade it.
     if (context.analysisOptions.strongMode) {
       processors = processors.toList();
       processors.add(_StrongModeTypeErrorProcessor.instance);
     }
-
     return processors.firstWhere((ErrorProcessor p) => p.appliesTo(error),
         orElse: () => null);
   }
