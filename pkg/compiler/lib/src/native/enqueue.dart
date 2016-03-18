@@ -236,7 +236,18 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
    * Returns the source string of the class named in the extends clause, or
    * `null` if there is no extends clause.
    */
-  String findExtendsNameOfClass(BaseClassElementX classElement) {
+  String findExtendsNameOfClass(ClassElement classElement) {
+    if (classElement.isResolved) {
+      ClassElement superClass = classElement.superclass;
+      while (superClass != null) {
+        if (!superClass.isUnnamedMixinApplication) {
+          return superClass.name;
+        }
+        superClass = superClass.superclass;
+      }
+      return null;
+    }
+
     //  "class B extends A ... {}"  --> "A"
     //  "class B extends foo.A ... {}"  --> "A"
     //  "class B<T> extends foo.A<T,T> with M1, M2 ... {}"  --> "A"
@@ -368,7 +379,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     flushing = false;
   }
 
-  processClass(BaseClassElementX classElement, cause) {
+  processClass(ClassElement classElement, cause) {
     // TODO(ahe): Fix this assertion to work in incremental compilation.
     assert(compiler.options.hasIncrementalSupport ||
            !registeredClasses.contains(classElement));

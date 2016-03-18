@@ -43,6 +43,8 @@ class Key {
   static const Key IS_NAMED = const Key('isNamed');
   static const Key IS_OPERATOR = const Key('isOperator');
   static const Key IS_OPTIONAL = const Key('isOptional');
+  static const Key IS_UNNAMED_MIXIN_APPLICATION =
+      const Key('isUnnamedMixinApplication');
   static const Key KEYS = const Key('keys');
   static const Key KIND = const Key('kind');
   static const Key LEFT = const Key('left');
