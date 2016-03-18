@@ -8,6 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptionsImpl;
@@ -3703,6 +3704,24 @@ class LibraryElementImplTest extends EngineTestCase {
         library.visibleLibraries, unorderedEquals(<LibraryElement>[library]));
   }
 
+  void test_invalidateLibraryCycles_withHandle() {
+    AnalysisContext context = createAnalysisContext();
+    context.sourceFactory = new SourceFactory([]);
+    LibraryElementImpl library = ElementFactory.library(context, "foo");
+    LibraryElementImpl importedLibrary = ElementFactory.library(context, "bar");
+    ElementLocation location = new ElementLocationImpl.con2('');
+    TestElementResynthesizer resynthesizer =
+        new TestElementResynthesizer(context, {location: importedLibrary});
+    LibraryElement importedLibraryHandle =
+        new LibraryElementHandle(resynthesizer, location);
+    ImportElementImpl import =
+        ElementFactory.importFor(importedLibraryHandle, null);
+    library.imports = <ImportElement>[import];
+    library.libraryCycle; // Force computation of the cycle.
+
+    library.invalidateLibraryCycles();
+  }
+
   void test_isUpToDate() {
     AnalysisContext context = createAnalysisContext();
     context.sourceFactory = new SourceFactory([]);
@@ -3935,6 +3954,18 @@ main(int p) {
       expect(node.identifier.name, 'p');
       expect(node.element, same(element));
     }
+  }
+}
+
+class TestElementResynthesizer extends ElementResynthesizer {
+  Map<ElementLocation, Element> locationMap;
+
+  TestElementResynthesizer(AnalysisContext context, this.locationMap)
+      : super(context);
+
+  @override
+  Element getElement(ElementLocation location) {
+    return locationMap[location];
   }
 }
 

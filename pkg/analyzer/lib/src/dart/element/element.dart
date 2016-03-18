@@ -3592,6 +3592,9 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     // a newly reachable node.
     Set<LibraryElementImpl> active = new HashSet();
     void invalidate(LibraryElement library) {
+      if (library is LibraryElementHandle) {
+        library = (library as LibraryElementHandle).actualElement;
+      }
       LibraryElementImpl libraryImpl = library;
       if (active.add(libraryImpl)) {
         if (libraryImpl._libraryCycle != null) {
