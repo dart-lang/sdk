@@ -37,8 +37,8 @@
 library analyzer.dart.element.element;
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/generated/constant.dart' show DartObject;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
@@ -808,16 +808,16 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   bool get isDeprecated;
 
   /**
-   * Return `true` if this annotation marks the associated method as being
-   * expected to override an inherited method.
-   */
-  bool get isOverride;
-
-  /**
    * Return `true` if this annotation marks the associated member as requiring
    * overriding methods to call super.
    */
   bool get isMustCallSuper;
+
+  /**
+   * Return `true` if this annotation marks the associated method as being
+   * expected to override an inherited method.
+   */
+  bool get isOverride;
 
   /**
    * Return `true` if this annotation marks the associated member as being
@@ -1330,12 +1330,6 @@ abstract class LibraryElement implements Element {
   static const List<LibraryElement> EMPTY_LIST = const <LibraryElement>[];
 
   /**
-   * Return a list containing the strongly connected component in the
-   * import/export graph in which the current library resides.
-   */
-  List<LibraryElement> get libraryCycle;
-
-  /**
    * Return the compilation unit that defines this library.
    */
   CompilationUnitElement get definingCompilationUnit;
@@ -1415,6 +1409,12 @@ abstract class LibraryElement implements Element {
    * Return `true` if this library is part of the SDK.
    */
   bool get isInSdk;
+
+  /**
+   * Return a list containing the strongly connected component in the
+   * import/export graph in which the current library resides.
+   */
+  List<LibraryElement> get libraryCycle;
 
   /**
    * Return the element representing the synthetic function `loadLibrary` that
