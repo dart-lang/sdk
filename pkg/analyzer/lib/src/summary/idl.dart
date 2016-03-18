@@ -294,6 +294,11 @@ enum IndexSyntheticElementKind {
   constructor,
 
   /**
+   * The synthetic field element.
+   */
+  field,
+
+  /**
    * The synthetic getter of a property introducing element.
    */
   getter,

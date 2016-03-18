@@ -763,6 +763,43 @@ main() {
     assertThat(enumElement.getGetter('B'))..isReferencedAt('B);', true);
   }
 
+  void test_isReferencedBy_FieldElement_synthetic_hasGetter() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+class A {
+  A() : f = 42;
+  int get f => 0;
+}
+''');
+    ClassElement element2 = findElement('A');
+    assertThat(element2.getField('f')).isWrittenAt('f = 42', true);
+  }
+
+  void test_isReferencedBy_FieldElement_synthetic_hasGetterSetter() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+class A {
+  A() : f = 42;
+  int get f => 0;
+  set f(_) {}
+}
+''');
+    ClassElement element2 = findElement('A');
+    assertThat(element2.getField('f')).isWrittenAt('f = 42', true);
+  }
+
+  void test_isReferencedBy_FieldElement_synthetic_hasSetter() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+class A {
+  A() : f = 42;
+  set f(_) {}
+}
+''');
+    ClassElement element2 = findElement('A');
+    assertThat(element2.getField('f')).isWrittenAt('f = 42', true);
+  }
+
   void test_isReferencedBy_FunctionElement() {
     _indexTestUnit('''
 foo() {}
