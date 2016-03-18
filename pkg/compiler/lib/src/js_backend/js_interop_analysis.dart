@@ -179,7 +179,7 @@ class JsInteropAnalysis {
           if (selector.namedArgumentCount > 0) return;
           int argumentCount = selector.argumentCount;
           var candidateParameterNames =
-              'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLOMOPQRSTUVWXYZ';
+              'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
           var parameters = new List<String>.generate(
               argumentCount, (i) => candidateParameterNames[i]);
 
