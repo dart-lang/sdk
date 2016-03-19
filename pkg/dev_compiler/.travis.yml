@@ -8,7 +8,7 @@ cache:
     - $HOME/.pub-cache/hosted
     - node_modules
 before_install:
-  - test "$ANALYZER" == stable || ./tool/override_analyzer_dependency.sh
+  - test "$ANALYZER" != master || ./tool/override_analyzer_dependency.sh
   - pub global activate dart_coveralls
   - export CHROME_CANARY_BIN=`./tool/get_chrome_canary.sh`
   - export DISPLAY=:99.0

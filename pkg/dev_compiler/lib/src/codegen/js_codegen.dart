@@ -142,7 +142,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     units = units.map(_cloneCompilationUnit).toList();
 
     // Modify the AST to make coercions explicit.
-    new CoercionReifier(rules).reify(units);
+    new CoercionReifier().reify(units);
 
     units.last.directives.forEach(_visit);
 

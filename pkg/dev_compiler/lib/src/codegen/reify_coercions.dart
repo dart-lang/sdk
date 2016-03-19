@@ -7,13 +7,10 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart' show NodeReplacer;
-import 'package:analyzer/src/generated/type_system.dart'
-    show StrongTypeSystemImpl;
 import 'package:analyzer/src/task/strong/info.dart';
 import 'package:logging/logging.dart' as logger;
 
 import 'ast_builder.dart';
-import '../utils.dart' show getStaticType;
 
 final _log = new logger.Logger('dev_compiler.reify_coercions');
 
@@ -33,9 +30,8 @@ class NewTypeIdDesc {
 // This class implements a pass which modifies (in place) the ast replacing
 // abstract coercion nodes with their dart implementations.
 class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
-  final StrongTypeSystemImpl _typeSystem;
 
-  CoercionReifier(this._typeSystem);
+  CoercionReifier();
 
   /// This should be the entry point for this class.
   ///
@@ -50,9 +46,7 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
   @override
   Object visitExpression(Expression node) {
     var info = CoercionInfo.get(node);
-    if (info is InferredTypeBase) {
-      return _visitInferredTypeBase(info, node);
-    } else if (info is DownCast) {
+    if (info is DownCast) {
       return _visitDownCast(info, node);
     }
     return super.visitExpression(node);
@@ -60,23 +54,10 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
 
   ///////////////// Private //////////////////////////////////
 
-  Object _visitInferredTypeBase(InferredTypeBase node, Expression expr) {
-    DartType t = node.type;
-    if (!_typeSystem.isSubtypeOf(getStaticType(expr), t)) {
-      if (getStaticType(expr).isDynamic) {
-        var cast = Coercion.cast(expr.staticType, t);
-        var info = new DynamicCast(_typeSystem, expr, cast);
-        CoercionInfo.set(expr, info);
-      }
-    }
-    expr.visitChildren(this);
-    return null;
-  }
-
   Object _visitDownCast(DownCast node, Expression expr) {
     var parent = expr.parent;
     expr.visitChildren(this);
-    Expression newE = coerceExpression(expr, node.cast);
+    Expression newE = coerceExpression(expr, node);
     if (!identical(expr, newE)) {
       var replaced = parent.accept(new NodeReplacer(expr, newE));
       // It looks like NodeReplacer will always return true.
@@ -87,27 +68,23 @@ class CoercionReifier extends analyzer.GeneralizingAstVisitor<Object> {
   }
 
   /// Coerce [e] using [c], returning a new expression.
-  Expression coerceExpression(Expression e, Coercion c) {
-    assert(c != null);
-    assert(c is! CoercionError);
+  Expression coerceExpression(Expression e, DownCast node) {
     if (e is NamedExpression) {
-      Expression inner = coerceExpression(e.expression, c);
+      Expression inner = coerceExpression(e.expression, node);
       return new NamedExpression(e.name, inner);
     }
-    if (c is Cast) return _castExpression(e, c);
-    assert(c is Identity);
-    return e;
+    return _castExpression(e, node.convertedType);
   }
 
   ///////////////// Private //////////////////////////////////
 
-  Expression _castExpression(Expression e, Cast c) {
+  Expression _castExpression(Expression e, DartType toType) {
     // We use an empty name in the AST, because the JS code generator only cares
     // about the target type. It does not look at the AST name.
     var typeName = new TypeName(AstBuilder.identifierFromString(''), null);
-    typeName.type = c.toType;
+    typeName.type = toType;
     var cast = AstBuilder.asExpression(e, typeName);
-    cast.staticType = c.toType;
+    cast.staticType = toType;
     return cast;
   }
 }
