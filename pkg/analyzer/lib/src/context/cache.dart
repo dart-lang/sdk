@@ -565,7 +565,8 @@ class CacheEntry {
     // Ask the delta to validate.
     DeltaResult deltaResult = null;
     if (delta != null) {
-      deltaResult = delta.validate(_partition.context, target, descriptor);
+      deltaResult = delta.validate(
+          _partition.context, target, descriptor, thisData.value);
       if (deltaResult == DeltaResult.STOP) {
         return;
       }
@@ -1056,10 +1057,10 @@ class Delta {
 
   /**
    * Check whether this delta affects the result described by the given
-   * [descriptor] and [target].
+   * [descriptor] and [target]. The current [value] of the result is provided.
    */
   DeltaResult validate(InternalAnalysisContext context, AnalysisTarget target,
-      ResultDescriptor descriptor) {
+      ResultDescriptor descriptor, Object value) {
     return DeltaResult.INVALIDATE;
   }
 }

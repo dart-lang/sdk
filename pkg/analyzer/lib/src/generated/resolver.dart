@@ -6609,10 +6609,9 @@ class NamespaceBuilder {
       //
       return Namespace.EMPTY;
     }
-    HashMap<String, Element> definedNames =
-        _createExportMapping(exportedLibrary, new HashSet<LibraryElement>());
-    definedNames = _applyCombinators(definedNames, element.combinators);
-    return new Namespace(definedNames);
+    HashMap<String, Element> exportedNames = _getExportMapping(exportedLibrary);
+    exportedNames = _applyCombinators(exportedNames, element.combinators);
+    return new Namespace(exportedNames);
   }
 
   /**
@@ -6621,9 +6620,10 @@ class NamespaceBuilder {
    * @param library the library whose export namespace is to be created
    * @return the export namespace that was created
    */
-  Namespace createExportNamespaceForLibrary(LibraryElement library) =>
-      new Namespace(
-          _createExportMapping(library, new HashSet<LibraryElement>()));
+  Namespace createExportNamespaceForLibrary(LibraryElement library) {
+    HashMap<String, Element> exportedNames = _getExportMapping(library);
+    return new Namespace(exportedNames);
+  }
 
   /**
    * Create a namespace representing the import namespace of the given library.
@@ -6640,11 +6640,10 @@ class NamespaceBuilder {
       //
       return Namespace.EMPTY;
     }
-    HashMap<String, Element> definedNames =
-        _createExportMapping(importedLibrary, new HashSet<LibraryElement>());
-    definedNames = _applyCombinators(definedNames, element.combinators);
-    definedNames = _applyPrefix(definedNames, element.prefix);
-    return new Namespace(definedNames);
+    HashMap<String, Element> exportedNames = _getExportMapping(importedLibrary);
+    exportedNames = _applyCombinators(exportedNames, element.combinators);
+    exportedNames = _applyPrefix(exportedNames, element.prefix);
+    return new Namespace(exportedNames);
   }
 
   /**
@@ -6768,7 +6767,7 @@ class NamespaceBuilder {
    *          be added by another library
    * @return the mapping table that was created
    */
-  HashMap<String, Element> _createExportMapping(
+  HashMap<String, Element> _computeExportMapping(
       LibraryElement library, HashSet<LibraryElement> visitedElements) {
     visitedElements.add(library);
     try {
@@ -6782,7 +6781,7 @@ class NamespaceBuilder {
           // valid library.
           //
           HashMap<String, Element> exportedNames =
-              _createExportMapping(exportedLibrary, visitedElements);
+              _computeExportMapping(exportedLibrary, visitedElements);
           exportedNames = _applyCombinators(exportedNames, element.combinators);
           definedNames.addAll(exportedNames);
         }
@@ -6795,6 +6794,20 @@ class NamespaceBuilder {
     } finally {
       visitedElements.remove(library);
     }
+  }
+
+  HashMap<String, Element> _getExportMapping(LibraryElement library) {
+    if (library is LibraryElementImpl) {
+      if (library.exportNamespace != null) {
+        return library.exportNamespace.definedNames;
+      } else {
+        HashMap<String, Element> exportMapping =
+            _computeExportMapping(library, new HashSet<LibraryElement>());
+        library.exportNamespace = new Namespace(exportMapping);
+        return exportMapping;
+      }
+    }
+    return _computeExportMapping(library, new HashSet<LibraryElement>());
   }
 
   /**

@@ -2231,7 +2231,7 @@ class DartDelta extends Delta {
 
   @override
   DeltaResult validate(InternalAnalysisContext context, AnalysisTarget target,
-      ResultDescriptor descriptor) {
+      ResultDescriptor descriptor, Object value) {
     if (hasDirectiveChange) {
       return DeltaResult.INVALIDATE;
     }
@@ -2259,6 +2259,10 @@ class DartDelta extends Delta {
         return DeltaResult.KEEP_CONTINUE;
       }
       if (BuildLibraryElementTask.DESCRIPTOR.results.contains(descriptor)) {
+        // Invalidate cached results.
+        if (value is LibraryElementImpl) {
+          value.exportNamespace = null;
+        }
         return DeltaResult.KEEP_CONTINUE;
       }
       return DeltaResult.INVALIDATE;
