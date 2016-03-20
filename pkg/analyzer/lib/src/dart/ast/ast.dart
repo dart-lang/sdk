@@ -7076,7 +7076,9 @@ class MethodDeclarationImpl extends ClassMemberImpl
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
-    if (modifierKeyword != null) {
+    if (externalKeyword != null) {
+      return externalKeyword;
+    } else if (modifierKeyword != null) {
       return modifierKeyword;
     } else if (_returnType != null) {
       return _returnType.beginToken;

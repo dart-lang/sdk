@@ -23,6 +23,7 @@ main() {
   runReflectiveTests(ConstructorDeclarationTest);
   runReflectiveTests(FieldFormalParameterTest);
   runReflectiveTests(IndexExpressionTest);
+  runReflectiveTests(MethodDeclarationTest);
   runReflectiveTests(NodeListTest);
   runReflectiveTests(SimpleIdentifierTest);
   runReflectiveTests(SimpleStringLiteralTest);
@@ -301,6 +302,44 @@ class IndexExpressionTest extends EngineTestCase {
     // ++a[b]
     AstFactory.prefixExpression(TokenType.PLUS_PLUS, expression);
     expect(expression.inSetterContext(), isTrue);
+  }
+}
+
+@reflectiveTest
+class MethodDeclarationTest extends EngineTestCase {
+  void test_firstTokenAfterCommentAndMetadata_external() {
+    MethodDeclaration declaration =
+        AstFactory.methodDeclaration4(external: true, name: 'm');
+    expect(declaration.firstTokenAfterCommentAndMetadata,
+        declaration.externalKeyword);
+  }
+
+  void test_firstTokenAfterCommentAndMetadata_external_getter() {
+    MethodDeclaration declaration = AstFactory.methodDeclaration4(
+        external: true, property: Keyword.GET, name: 'm');
+    expect(declaration.firstTokenAfterCommentAndMetadata,
+        declaration.externalKeyword);
+  }
+
+  void test_firstTokenAfterCommentAndMetadata_external_operator() {
+    MethodDeclaration declaration = AstFactory.methodDeclaration4(
+        external: true, operator: true, name: 'm');
+    expect(declaration.firstTokenAfterCommentAndMetadata,
+        declaration.externalKeyword);
+  }
+
+  void test_firstTokenAfterCommentAndMetadata_getter() {
+    MethodDeclaration declaration =
+        AstFactory.methodDeclaration4(property: Keyword.GET, name: 'm');
+    expect(declaration.firstTokenAfterCommentAndMetadata,
+        declaration.propertyKeyword);
+  }
+
+  void test_firstTokenAfterCommentAndMetadata_operator() {
+    MethodDeclaration declaration =
+        AstFactory.methodDeclaration4(operator: true, name: 'm');
+    expect(declaration.firstTokenAfterCommentAndMetadata,
+        declaration.operatorKeyword);
   }
 }
 
