@@ -103,6 +103,11 @@ class IncrementalCache {
   final Map<Source, List<Source>> _libraryClosureMap = <Source, List<Source>>{};
   final Map<Source, List<int>> _sourceContentHashMap = <Source, List<int>>{};
 
+  /**
+   * Mapping from a library closure key to its [PackageBundle].
+   */
+  final Map<String, PackageBundle> _bundleMap = <String, PackageBundle>{};
+
   IncrementalCache(this.storage, this.context, this.configSalt);
 
   /**
@@ -112,6 +117,38 @@ class IncrementalCache {
     _sourceContentMap.clear();
     _libraryClosureMap.clear();
     _sourceContentHashMap.clear();
+    _bundleMap.clear();
+  }
+
+  /**
+   * Return all summaries that are required to provide results about the library
+   * with the given [librarySource] from its summary.  It includes all of the
+   * bundles in the import/export closure of the library.  If any of the
+   * bundles are not in the cache, then `null` is returned.  If any of the
+   * [LibraryBundleWithId]s were already returned as a part of the closure of
+   * another library, they are still included - it is up to the client to
+   * decide whether a bundle should be used or not, but it is easy to do
+   * using [LibraryBundleWithId.id].
+   */
+  List<LibraryBundleWithId> getLibraryClosureBundles(Source librarySource) {
+    try {
+      List<Source> closureSources = _getLibraryClosure(librarySource);
+      List<LibraryBundleWithId> closureBundles = <LibraryBundleWithId>[];
+      for (Source source in closureSources) {
+        if (source.isInSystemLibrary) {
+          continue;
+        }
+        String key = _getLibraryBundleKey(source);
+        PackageBundle bundle = _getLibraryBundle(key);
+        if (bundle == null) {
+          return null;
+        }
+        closureBundles.add(new LibraryBundleWithId(source, key, bundle));
+      }
+      return closureBundles;
+    } catch (e) {
+      return null;
+    }
   }
 
   /**
@@ -133,36 +170,15 @@ class IncrementalCache {
   }
 
   /**
-   * Write information about the [library] into the cache.
+   * Write information about the [libraryElement] into the cache.
    */
-  void putLibrary(LibraryElement library) {
-    _writeCacheSourceContents(library);
-    List<int> hash = _getLibraryClosureHash(library.source);
-    String hashStr = CryptoUtils.bytesToHex(hash);
+  void putLibrary(LibraryElement libraryElement) {
+    _writeCacheSourceContents(libraryElement);
+    String key = _getLibraryBundleKey(libraryElement.source);
     PackageBundleAssembler assembler = new PackageBundleAssembler();
-    assembler.serializeLibraryElement(library);
+    assembler.serializeLibraryElement(libraryElement);
     List<int> bytes = assembler.assemble().toBuffer();
-    storage.put('$hashStr.sum', bytes);
-  }
-
-  /**
-   * Read the [PackageBundle] for the library with the given [source] from
-   * the cache. The returned bundle will correspond to the state when the set
-   * of direct and indirect dependencies is resolved in the [context]. Return
-   * `null` if such bundle does not exist.
-   */
-  PackageBundle readBundle(Source source) {
-    try {
-      List<int> hash = _getLibraryClosureHash(source);
-      String hashStr = CryptoUtils.bytesToHex(hash);
-      List<int> bytes = storage.get('$hashStr.sum');
-      if (bytes == null) {
-        return null;
-      }
-      return new PackageBundle.fromBuffer(bytes);
-    } catch (e) {
-      return null;
-    }
+    storage.put(key, bytes);
   }
 
   /**
@@ -224,6 +240,31 @@ class IncrementalCache {
     List<int> hash = _getSourceContentHash(source);
     String hashStr = CryptoUtils.bytesToHex(hash);
     return '$hashStr.content';
+  }
+
+  /**
+   * Get the bundle for the given key.
+   */
+  PackageBundle _getLibraryBundle(String key) {
+    PackageBundle bundle = _bundleMap[key];
+    if (bundle == null) {
+      List<int> bytes = storage.get(key);
+      if (bytes == null) {
+        return null;
+      }
+      bundle = new PackageBundle.fromBuffer(bytes);
+      _bundleMap[key] = bundle;
+    }
+    return bundle;
+  }
+
+  /**
+   * Return the key of the bundle of the [librarySource].
+   */
+  String _getLibraryBundleKey(Source librarySource) {
+    List<int> hash = _getLibraryClosureHash(librarySource);
+    String hashStr = CryptoUtils.bytesToHex(hash);
+    return '$hashStr.summary';
   }
 
   /**
@@ -329,4 +370,26 @@ class IncrementalCache {
             exportedUris: exportUris,
             partUris: partUris));
   }
+}
+
+/**
+ * The bundle for a source in the context.
+ */
+class LibraryBundleWithId {
+  /**
+   * The source of the library this bundle is for.
+   */
+  final Source source;
+
+  /**
+   * The unique ID of the [bundle] of the [source] in the context.
+   */
+  final String id;
+
+  /**
+   * The payload bundle.
+   */
+  final PackageBundle bundle;
+
+  LibraryBundleWithId(this.source, this.id, this.bundle);
 }

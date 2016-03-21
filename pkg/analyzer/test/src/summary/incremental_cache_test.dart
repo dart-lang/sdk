@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/incremental_cache.dart';
 import 'package:unittest/unittest.dart';
 
@@ -23,17 +23,106 @@ class IncrementalCacheTest extends AbstractSingleUnitTest {
   _TestCacheStorage storage = new _TestCacheStorage();
   IncrementalCache cache;
 
+  Source putLibrary(String path, String code) {
+    Source source = addSource(path, code);
+    LibraryElement libraryElement = context.computeLibraryElement(source);
+    cache.putLibrary(libraryElement);
+    return source;
+  }
+
+  void putTestLibrary(String code) {
+    resolveTestUnit(code);
+    cache.putLibrary(testLibraryElement);
+  }
+
   @override
   void setUp() {
     super.setUp();
     cache = new IncrementalCache(storage, context, <int>[]);
   }
 
-  void test_getSourceKind_library() {
-    resolveTestUnit(r'''
+  void test_getLibraryClosureBundles_emptyCache() {
+    resolveTestUnit('main() {}');
+    // the cache is empty, no bundles
+    List<LibraryBundleWithId> bundles =
+        cache.getLibraryClosureBundles(testSource);
+    expect(bundles, isNull);
+  }
+
+  void test_getLibraryClosureBundles_exportLib() {
+    Source aSource = putLibrary('/a.dart', '');
+    putTestLibrary(r'''
+import 'a.dart';
 main() {}
 ''');
-    cache.putLibrary(testLibraryElement);
+    List<LibraryBundleWithId> bundles =
+        cache.getLibraryClosureBundles(testSource);
+    expect(bundles, isNotNull);
+    expect(_getBundleSources(bundles), [testSource, aSource].toSet());
+    // remove the 'a.dart' bundle, 'test.dart' loading fails
+    cache.clearInternalCaches();
+    storage.map.remove(_findBundleForSource(bundles, aSource).id);
+    expect(cache.getLibraryClosureBundles(testSource), isNull);
+  }
+
+  void test_getLibraryClosureBundles_importLib() {
+    Source aSource = putLibrary('/a.dart', '');
+    putTestLibrary(r'''
+import 'a.dart';
+main() {}
+''');
+    List<LibraryBundleWithId> bundles =
+        cache.getLibraryClosureBundles(testSource);
+    expect(bundles, isNotNull);
+    expect(_getBundleSources(bundles), [testSource, aSource].toSet());
+    // remove the 'a.dart' bundle, 'test.dart' loading fails
+    cache.clearInternalCaches();
+    storage.map.remove(_findBundleForSource(bundles, aSource).id);
+    expect(cache.getLibraryClosureBundles(testSource), isNull);
+  }
+
+  void test_getLibraryClosureBundles_importLib2() {
+    Source aSource = putLibrary('/a.dart', '');
+    Source bSource = putLibrary('/b.dart', "import 'a.dart';");
+    putTestLibrary(r'''
+import 'b.dart';
+main() {}
+''');
+    List<LibraryBundleWithId> bundles =
+        cache.getLibraryClosureBundles(testSource);
+    expect(bundles, isNotNull);
+    expect(_getBundleSources(bundles), [testSource, aSource, bSource].toSet());
+    // remove the 'a.dart' bundle, 'test.dart' loading fails
+    cache.clearInternalCaches();
+    storage.map.remove(_findBundleForSource(bundles, aSource).id);
+    expect(cache.getLibraryClosureBundles(testSource), isNull);
+  }
+
+  void test_getLibraryClosureBundles_importSdk() {
+    putTestLibrary(r'''
+import 'dart:async';
+main() {}
+''');
+    List<LibraryBundleWithId> bundles =
+        cache.getLibraryClosureBundles(testSource);
+    expect(bundles, isNotNull);
+    expect(_getBundleSources(bundles), [testSource].toSet());
+  }
+
+  void test_getLibraryClosureBundles_onlyLibrary() {
+    putTestLibrary(r'''
+main() {}
+''');
+    // the cache is empty, no bundles
+    List<LibraryBundleWithId> bundles =
+        cache.getLibraryClosureBundles(testSource);
+    expect(bundles, isNotNull);
+  }
+
+  void test_getSourceKind_library() {
+    putTestLibrary(r'''
+main() {}
+''');
     expect(cache.getSourceKind(testSource), SourceKind.LIBRARY);
   }
 
@@ -44,11 +133,10 @@ main() {}
         r'''
 import 'dart:math';
 ''');
-    resolveTestUnit(r'''
+    putTestLibrary(r'''
 part 'foo.dart';
 main() {}
 ''');
-    cache.putLibrary(testLibraryElement);
     expect(cache.getSourceKind(testSource), SourceKind.LIBRARY);
     // not a part, but also not enough information to write it as a library
     expect(cache.getSourceKind(fooSource), isNull);
@@ -63,69 +151,21 @@ main() {}
 
   void test_getSourceKind_part() {
     Source partSource = addSource('/foo.dart', 'part of lib;');
-    resolveTestUnit(r'''
+    putTestLibrary(r'''
 library lib;
 part 'foo.dart';
 ''');
-    cache.putLibrary(testLibraryElement);
     expect(cache.getSourceKind(testSource), SourceKind.LIBRARY);
     expect(cache.getSourceKind(partSource), SourceKind.PART);
   }
 
-  void test_readBundle_emptyCache() {
-    resolveTestUnit('main() {}');
-    // the cache is empty, no bundle
-    PackageBundle bundle = cache.readBundle(testSource);
-    expect(bundle, isNull);
+  LibraryBundleWithId _findBundleForSource(
+      List<LibraryBundleWithId> bundles, Source source) {
+    return bundles.singleWhere((b) => b.source == source);
   }
 
-  void test_readBundle_exportLib() {
-    addSource('/a.dart', '// 1');
-    resolveTestUnit(r'''
-export 'a.dart';
-main() {}
-''');
-    cache.putLibrary(testLibraryElement);
-    // has bundle
-    expect(cache.readBundle(testSource), isNotNull);
-    // update a.dart, no bundle
-    cache.clearInternalCaches();
-    resourceProvider.updateFile('/a.dart', '// 2');
-    expect(cache.readBundle(testSource), isNull);
-  }
-
-  void test_readBundle_importLib() {
-    addSource('/a.dart', '// 1');
-    resolveTestUnit(r'''
-import 'a.dart';
-main() {}
-''');
-    cache.putLibrary(testLibraryElement);
-    // has bundle
-    expect(cache.readBundle(testSource), isNotNull);
-    // update a.dart, no bundle
-    cache.clearInternalCaches();
-    resourceProvider.updateFile('/a.dart', '// 2');
-    expect(cache.readBundle(testSource), isNull);
-  }
-
-  void test_readBundle_importSdk() {
-    resolveTestUnit(r'''
-import 'dart:async';
-main() {}
-''');
-    cache.putLibrary(testLibraryElement);
-    // has bundle
-    PackageBundle bundle = cache.readBundle(testSource);
-    expect(bundle, isNotNull);
-  }
-
-  void test_readBundle_withoutDependencies() {
-    resolveTestUnit('main() {}');
-    cache.putLibrary(testLibraryElement);
-    // has bundle
-    PackageBundle bundle = cache.readBundle(testSource);
-    expect(bundle, isNotNull);
+  Set<Source> _getBundleSources(List<LibraryBundleWithId> bundles) {
+    return bundles.map((b) => b.source).toSet();
   }
 }
 
