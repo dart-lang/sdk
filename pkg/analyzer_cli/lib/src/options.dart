@@ -111,6 +111,9 @@ class CommandLineOptions {
   /// Whether to show package: warnings
   final bool showPackageWarnings;
 
+  /// If not null, show package: warnings only for matching packages.
+  final String showPackageWarningsPrefix;
+
   /// Whether to show SDK warnings
   final bool showSdkWarnings;
 
@@ -151,8 +154,10 @@ class CommandLineOptions {
         packageRootPath = args['package-root'],
         perfReport = args['x-perf-report'],
         shouldBatch = args['batch'],
-        showPackageWarnings =
-            args['show-package-warnings'] || args['package-warnings'],
+        showPackageWarnings = args['show-package-warnings'] ||
+            args['package-warnings'] ||
+            args['x-package-warnings-prefix'] != null,
+        showPackageWarningsPrefix = args['x-package-warnings-prefix'],
         showSdkWarnings = args['show-sdk-warnings'] || args['warnings'],
         sourceFiles = args.rest,
         warningsAreFatal = args['fatal-warnings'],
@@ -281,6 +286,10 @@ class CommandLineOptions {
           help: 'Show warnings from SDK imports (deprecated).',
           defaultsTo: false,
           negatable: false)
+      ..addOption('x-package-warnings-prefix',
+          help:
+              'Show warnings from package: imports that match the given prefix',
+          hide: true)
       ..addOption('x-perf-report',
           help: 'Writes a performance report to the given file (experimental).')
       ..addFlag('help',

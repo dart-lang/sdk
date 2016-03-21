@@ -6,6 +6,7 @@ import 'boot_loader_test.dart' as boot_loader;
 import 'driver_test.dart' as driver;
 import 'error_test.dart' as error;
 import 'options_test.dart' as options;
+import 'package_prefix_test.dart' as package_prefix;
 import 'perf_report_test.dart' as perf;
 import 'plugin_manager_test.dart' as plugin_manager;
 import 'reporter_test.dart' as reporter;
@@ -26,4 +27,5 @@ main() {
   plugin_manager.main();
   reporter.main();
   super_mixin.main();
+  package_prefix.main();
 }

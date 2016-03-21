@@ -21,6 +21,9 @@ typedef ProcessedSeverity _SeverityProcessor(AnalysisError error);
 
 /// Analysis statistics counter.
 class AnalysisStats {
+  /// The total number of diagnostics sent to [formatErrors].
+  int unfilteredCount;
+
   int errorCount;
   int hintCount;
   int lintCount;
@@ -30,8 +33,12 @@ class AnalysisStats {
     init();
   }
 
+  /// The total number of diagnostics reported to the user.
+  int get filteredCount => errorCount + warnCount + hintCount + lintCount;
+
   /// (Re)set initial values.
   void init() {
+    unfilteredCount = 0;
     errorCount = 0;
     hintCount = 0;
     lintCount = 0;
@@ -162,6 +169,8 @@ class ErrorFormatter {
   }
 
   void formatErrors(List<AnalysisErrorInfo> errorInfos) {
+    stats.unfilteredCount += errorInfos.length;
+
     var errors = new List<AnalysisError>();
     var errorToLine = new Map<AnalysisError, LineInfo>();
     for (AnalysisErrorInfo errorInfo in errorInfos) {

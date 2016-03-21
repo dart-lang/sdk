@@ -80,8 +80,8 @@ class AnalyzerImpl {
     return status;
   }
 
-  void addCompilationUnitSource(CompilationUnitElement unit,
-      Set<LibraryElement> libraries, Set<CompilationUnitElement> units) {
+  void addCompilationUnitSource(
+      CompilationUnitElement unit, Set<CompilationUnitElement> units) {
     if (unit == null || units.contains(unit)) {
       return;
     }
@@ -95,21 +95,13 @@ class AnalyzerImpl {
       return;
     }
     // Maybe skip library.
-    {
-      UriKind uriKind = library.source.uriKind;
-      // Optionally skip package: libraries.
-      if (!options.showPackageWarnings && _isOtherPackage(library.source.uri)) {
-        return;
-      }
-      // Optionally skip SDK libraries.
-      if (!options.showSdkWarnings && uriKind == UriKind.DART_URI) {
-        return;
-      }
+    if (!_isAnalyzedLibrary(library)) {
+      return;
     }
     // Add compilation units.
-    addCompilationUnitSource(library.definingCompilationUnit, libraries, units);
+    addCompilationUnitSource(library.definingCompilationUnit, units);
     for (CompilationUnitElement child in library.parts) {
-      addCompilationUnitSource(child, libraries, units);
+      addCompilationUnitSource(child, units);
     }
     // Add referenced libraries.
     for (LibraryElement child in library.importedLibraries) {
@@ -185,18 +177,34 @@ class AnalyzerImpl {
     return status;
   }
 
-  /// Determine whether the given URI refers to a package other than the package
-  /// being analyzed.
-  bool _isOtherPackage(Uri uri) {
-    if (uri.scheme != 'package') {
+  /// Returns true if we want to report diagnostics for this library.
+  bool _isAnalyzedLibrary(LibraryElement library) {
+    switch (library.source.uriKind) {
+      case UriKind.DART_URI:
+        return options.showSdkWarnings;
+      case UriKind.PACKAGE_URI:
+        return _isAnalyzedPackage(library.source.uri);
+      default:
+        return true;
+    }
+  }
+
+  /// Determine whether the given URI refers to a package being analyzed.
+  bool _isAnalyzedPackage(Uri uri) {
+    if (uri.scheme != 'package' || uri.pathSegments.isEmpty) {
       return false;
     }
-    if (_selfPackageName != null &&
-        uri.pathSegments.length > 0 &&
-        uri.pathSegments[0] == _selfPackageName) {
+
+    String packageName = uri.pathSegments.first;
+    if (packageName == _selfPackageName) {
+      return true;
+    } else if (!options.showPackageWarnings) {
       return false;
+    } else if (options.showPackageWarningsPrefix == null) {
+      return true;
+    } else {
+      return packageName.startsWith(options.showPackageWarningsPrefix);
     }
-    return true;
   }
 
   _printColdPerf() {

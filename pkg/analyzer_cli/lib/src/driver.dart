@@ -80,6 +80,9 @@ class Driver implements CommandLineStarter {
   /// `null` if [_analyzeAll] hasn't been called yet.
   AnalysisContext _context;
 
+  /// The total number of source files loaded by an AnalysisContext.
+  int _analyzedFileCount = 0;
+
   /// If [_context] is not `null`, the [CommandLineOptions] that guided its
   /// creation.
   CommandLineOptions _previousOptions;
@@ -105,6 +108,9 @@ class Driver implements CommandLineStarter {
 
   @override
   void start(List<String> args) {
+    if (_context != null) {
+      throw new StateError("start() can only be called once");
+    }
     int startTime = new DateTime.now().millisecondsSinceEpoch;
 
     StringUtilities.INTERNER = new MappedInterner();
@@ -137,8 +143,13 @@ class Driver implements CommandLineStarter {
       }
     }
 
+    if (_context != null) {
+      _analyzedFileCount += _context.sources.length;
+    }
+
     if (options.perfReport != null) {
-      String json = makePerfReport(startTime, currentTimeMillis(), options);
+      String json = makePerfReport(
+          startTime, currentTimeMillis(), options, _analyzedFileCount, stats);
       new File(options.perfReport).writeAsStringSync(json);
     }
   }
@@ -267,6 +278,10 @@ class Driver implements CommandLineStarter {
     if (options.showPackageWarnings != _previousOptions.showPackageWarnings) {
       return false;
     }
+    if (options.showPackageWarningsPrefix !=
+        _previousOptions.showPackageWarningsPrefix) {
+      return false;
+    }
     if (options.showSdkWarnings != _previousOptions.showSdkWarnings) {
       return false;
     }
@@ -300,38 +315,14 @@ class Driver implements CommandLineStarter {
       return (Source source) => true;
     }
 
-    // Determine the set of packages requiring a full parse.  Use null to
-    // represent the case where all packages require a full parse.
-    Set<String> packagesRequiringFullParse;
-    if (options.showPackageWarnings) {
-      // We are showing warnings from all packages so all packages require a
-      // full parse.
-      packagesRequiringFullParse = null;
-    } else {
-      // We aren't showing warnings for dependent packages, but we may still
-      // need to show warnings for "self" packages, so we need to do a full
-      // parse in any package containing files mentioned on the command line.
-      // TODO(paulberry): implement this.  As a temporary workaround, we're
-      // fully parsing all packages.
-      packagesRequiringFullParse = null;
-    }
     return (Source source) {
       if (options.sourceFiles.contains(source.fullName)) {
         return true;
       } else if (source.uri.scheme == 'dart') {
         return options.showSdkWarnings;
-      } else if (source.uri.scheme == 'package') {
-        if (packagesRequiringFullParse == null) {
-          return true;
-        } else if (source.uri.pathSegments.length == 0) {
-          // We should never see a URI like this, but fully parse it to be
-          // safe.
-          return true;
-        } else {
-          return packagesRequiringFullParse
-              .contains(source.uri.pathSegments[0]);
-        }
       } else {
+        // TODO(paulberry): diet parse 'package:' imports when we don't want
+        // diagnostics. (Full parse is still needed for "self" packages.)
         return true;
       }
     };
@@ -508,18 +499,22 @@ class Driver implements CommandLineStarter {
     }
     _previousOptions = options;
 
+    // Save stats from previous context before clobbering it.
+    if (_context != null) {
+      _analyzedFileCount += _context.sources.length;
+    }
+
     // Create a context.
-    AnalysisContext context = AnalysisEngine.instance.createAnalysisContext();
-    _context = context;
+    _context = AnalysisEngine.instance.createAnalysisContext();
 
     // Choose a package resolution policy and a diet parsing policy based on
     // the command-line options.
     SourceFactory sourceFactory = _chooseUriResolutionPolicy(
-        options, (context as InternalAnalysisContext).embedderYamlLocator);
+        options, (_context as InternalAnalysisContext).embedderYamlLocator);
     AnalyzeFunctionBodiesPredicate dietParsingPolicy =
         _chooseDietParsingPolicy(options);
 
-    context.sourceFactory = sourceFactory;
+    _context.sourceFactory = sourceFactory;
 
     setAnalysisContextOptions(_context, options,
         (AnalysisOptionsImpl contextOptions) {
