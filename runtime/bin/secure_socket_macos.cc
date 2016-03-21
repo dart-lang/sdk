@@ -1047,9 +1047,10 @@ static char* GetNameFromCert(SecCertificateRef certificate,
 
 void FUNCTION_NAME(X509_Subject)(Dart_NativeArguments args) {
   SecCertificateRef certificate = GetX509Certificate(args);
-  char* subject_name = GetNameFromCert(certificate,
-                                       kSecOIDX509V1SubjectName,
-                                       kSecOIDCommonName);
+  char* subject_name = GetNameFromCert(
+      certificate,
+      kSecOIDX509V1SubjectName,
+      reinterpret_cast<CFStringRef>(kSecOIDCommonName));
   if (subject_name == NULL) {
     Dart_ThrowException(DartUtils::NewDartArgumentError(
         "X509.subject failed to find issuer's common name."));
@@ -1061,9 +1062,10 @@ void FUNCTION_NAME(X509_Subject)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(X509_Issuer)(Dart_NativeArguments args) {
   SecCertificateRef certificate = GetX509Certificate(args);
-  char* issuer_name = GetNameFromCert(certificate,
-                                      kSecOIDX509V1IssuerName,
-                                      kSecOIDCommonName);
+  char* issuer_name = GetNameFromCert(
+      certificate,
+      kSecOIDX509V1IssuerName,
+      reinterpret_cast<CFStringRef>(kSecOIDCommonName));
   if (issuer_name == NULL) {
     Dart_ThrowException(DartUtils::NewDartArgumentError(
         "X509.issuer failed to find issuer's common name."));
