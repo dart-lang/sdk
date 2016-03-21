@@ -52,6 +52,13 @@ namespace dart {
   V(_Double, _sub, DoubleSub, 1086286468)                                      \
   V(_Double, _mul, DoubleMul, 166332351)                                       \
   V(_Double, _div, DoubleDiv, 821396195)                                       \
+  V(::, sin, MathSin, 939048573)                                               \
+  V(::, cos, MathCos, 1148850331)                                              \
+  V(::, tan, MathTan, 179725235)                                               \
+  V(::, asin, MathAsin, 848695059)                                             \
+  V(::, acos, MathAcos, 337299516)                                             \
+  V(::, atan, MathAtan, 866406810)                                             \
+  V(::, atan2, MathAtan2, 1901969510)                                          \
   V(::, min, MathMin, 1115051548)                                              \
   V(::, max, MathMax, 1410473322)                                              \
   V(::, _doublePow, MathDoublePow, 562154128)                                  \
@@ -236,14 +243,6 @@ namespace dart {
   V(::, sqrt, MathSqrt, 1446681622)                                            \
   V(_Random, _nextState, Random_nextState, 1241583299)                         \
 
-#define GRAPH_MATH_LIB_INTRINSIC_LIST(V)                                       \
-  V(::, sin, MathSin, 939048573)                                               \
-  V(::, cos, MathCos, 1148850331)                                              \
-  V(::, tan, MathTan, 179725235)                                               \
-  V(::, asin, MathAsin, 848695059)                                             \
-  V(::, acos, MathAcos, 337299516)                                             \
-  V(::, atan, MathAtan, 866406810)                                             \
-  V(::, atan2, MathAtan2, 1901969510)                                          \
 
 #define TYPED_DATA_LIB_INTRINSIC_LIST(V)                                       \
   V(Int8List, ., TypedData_Int8Array_factory, 779569635)                       \
@@ -296,7 +295,6 @@ namespace dart {
 #define GRAPH_INTRINSICS_LIST(V)                                               \
   GRAPH_CORE_INTRINSICS_LIST(V)                                                \
   GRAPH_TYPED_DATA_INTRINSICS_LIST(V)                                          \
-  GRAPH_MATH_LIB_INTRINSIC_LIST(V)                                             \
 
 #define DEVELOPER_LIB_INTRINSIC_LIST(V)                                        \
   V(_UserTag, makeCurrent, UserTag_makeCurrent, 187721469)                     \
