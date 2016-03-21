@@ -43,8 +43,11 @@
     'process_macos.cc',
     'process_win.cc',
     '../../third_party/root_certificates/root_certificates.cc',
-    'secure_socket.cc',
     'secure_socket.h',
+    'secure_socket_boringssl.cc',
+    'secure_socket_boringssl.h',
+    'secure_socket_macos.cc',
+    'secure_socket_macos.h',
     'secure_socket_unsupported.cc',
     'socket.cc',
     'socket.h',
@@ -72,13 +75,25 @@
             'io_service_no_ssl.h',
             'secure_socket_unsupported.cc',
           ],
+          'conditions': [
+            ['OS=="mac"', {
+              # On Mac, we use the system keystore, so do not compile in the
+              # root certs.
+              'sources!': [
+                '../../third_party/root_certificates/root_certificates.cc',
+              ],
+            }],
+          ],
         }, {  # else dart_io_secure_socket == 0
           'sources!' : [
             '../../third_party/root_certificates/root_certificates.cc',
             'io_service.cc',
             'io_service.h',
-            'secure_socket.cc',
             'secure_socket.h',
+            'secure_socket_boringssl.cc',
+            'secure_socket_boringssl.h',
+            'secure_socket_macos.cc',
+            'secure_socket_macos.h',
           ],
         }],
       ],
@@ -95,8 +110,11 @@
         'io_service_no_ssl.cc',
         'io_service_no_ssl.h',
         '../../third_party/root_certificates/root_certificates.cc',
-        'secure_socket.cc',
         'secure_socket.h',
+        'secure_socket_boringssl.cc',
+        'secure_socket_boringssl.h',
+        'secure_socket_macos.cc',
+        'secure_socket_macos.h',
       ],
     }],
   ],

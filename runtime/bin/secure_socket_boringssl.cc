@@ -2,7 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "platform/globals.h"
+#if defined(TARGET_OS_ANDROID) || \
+    defined(TARGET_OS_LINUX)   || \
+    defined(TARGET_OS_WINDOWS)
+
 #include "bin/secure_socket.h"
+#include "bin/secure_socket_boringssl.h"
 
 #include <errno.h>
 #include <fcntl.h>
@@ -757,6 +763,11 @@ void FUNCTION_NAME(SecurityContext_SetTrustedCertificatesBytes)(
   CheckStatus(status,
               "TlsException",
               "Failure in setTrustedCertificatesBytes");
+}
+
+
+void FUNCTION_NAME(SecurityContext_AlpnSupported)(Dart_NativeArguments args) {
+  Dart_SetReturnValue(args, Dart_NewBoolean(true));
 }
 
 
@@ -1654,3 +1665,5 @@ int SSLFilter::ProcessWriteEncryptedBuffer(int start, int end) {
 
 }  // namespace bin
 }  // namespace dart
+
+#endif  // defined(TARGET_OS_LINUX)

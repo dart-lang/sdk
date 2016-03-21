@@ -50,6 +50,7 @@ Future<HttpServer> startServer(String certType, String password) {
 
 Future test(String certType, String password) {
   List<int> body = <int>[];
+  Completer completer = new Completer();
   startServer(certType, password).then((server) {
     SecureSocket.connect(
         "localhost", server.port, context: clientContext(certType, password))
@@ -65,14 +66,17 @@ Future test(String certType, String password) {
           Expect.equals(72, body[0]);
           Expect.equals(9, body[body.length - 1]);
           server.close();
+          completer.complete(null);
         },
         onError: (e, trace) {
           String msg = "Unexpected error $e";
           if (trace != null) msg += "\nStackTrace: $trace";
           Expect.fail(msg);
+          completer.complete(null);
         });
     });
   });
+  return completer.future;
 }
 
 main() async {
