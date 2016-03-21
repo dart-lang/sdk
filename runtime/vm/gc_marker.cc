@@ -600,7 +600,8 @@ class MarkTask : public ThreadPool::Task {
   }
 
   virtual void Run() {
-    bool result = Thread::EnterIsolateAsHelper(isolate_, true);
+    bool result =
+        Thread::EnterIsolateAsHelper(isolate_, Thread::kMarkerTask, true);
     ASSERT(result);
     {
       Thread* thread = Thread::Current();

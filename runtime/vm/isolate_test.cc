@@ -95,7 +95,7 @@ class InterruptChecker : public ThreadPool::Task {
   }
 
   virtual void Run() {
-    Thread::EnterIsolateAsHelper(thread_->isolate());
+    Thread::EnterIsolateAsHelper(thread_->isolate(), Thread::kUnknownTask);
     // Tell main thread that we are ready.
     barrier_->Sync();
     for (intptr_t i = 0; i < kIterations; ++i) {

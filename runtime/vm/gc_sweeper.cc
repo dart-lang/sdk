@@ -115,7 +115,8 @@ class SweeperTask : public ThreadPool::Task {
   }
 
   virtual void Run() {
-    bool result = Thread::EnterIsolateAsHelper(task_isolate_);
+    bool result = Thread::EnterIsolateAsHelper(task_isolate_,
+                                               Thread::kSweeperTask);
     ASSERT(result);
     {
       Thread* thread = Thread::Current();

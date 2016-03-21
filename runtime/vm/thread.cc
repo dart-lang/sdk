@@ -63,6 +63,7 @@ Thread::Thread(Isolate* isolate)
       top_exit_frame_info_(0),
       store_buffer_block_(NULL),
       vm_tag_(0),
+      task_kind_(kUnknownTask),
       os_thread_(NULL),
       thread_lock_(new Monitor()),
       zone_(NULL),
@@ -224,6 +225,7 @@ bool Thread::EnterIsolate(Isolate* isolate) {
   Thread* thread = isolate->ScheduleThread(kIsMutatorThread);
   if (thread != NULL) {
     ASSERT(thread->store_buffer_block_ == NULL);
+    thread->task_kind_ = kMutatorTask;
     thread->StoreBufferAcquire();
     return true;
   }
@@ -235,7 +237,7 @@ void Thread::ExitIsolate() {
   Thread* thread = Thread::Current();
   ASSERT(thread != NULL && thread->IsMutatorThread());
   DEBUG_ASSERT(!thread->IsAnyReusableHandleScopeActive());
-
+  thread->task_kind_ = kUnknownTask;
   Isolate* isolate = thread->isolate();
   ASSERT(isolate != NULL);
   ASSERT(thread->execution_state() == Thread::kThreadInVM);
@@ -252,7 +254,10 @@ void Thread::ExitIsolate() {
 }
 
 
-bool Thread::EnterIsolateAsHelper(Isolate* isolate, bool bypass_safepoint) {
+bool Thread::EnterIsolateAsHelper(Isolate* isolate,
+                                  TaskKind kind,
+                                  bool bypass_safepoint) {
+  ASSERT(kind != kMutatorTask);
   const bool kIsNotMutatorThread = false;
   Thread* thread = isolate->ScheduleThread(kIsNotMutatorThread,
                                            bypass_safepoint);
@@ -263,6 +268,7 @@ bool Thread::EnterIsolateAsHelper(Isolate* isolate, bool bypass_safepoint) {
     thread->store_buffer_block_ =
         thread->isolate()->store_buffer()->PopEmptyBlock();
     // This thread should not be the main mutator.
+    thread->task_kind_ = kind;
     ASSERT(!thread->IsMutatorThread());
     return true;
   }
@@ -275,6 +281,7 @@ void Thread::ExitIsolateAsHelper(bool bypass_safepoint) {
   ASSERT(thread != NULL);
   ASSERT(!thread->IsMutatorThread());
   ASSERT(thread->execution_state() == Thread::kThreadInVM);
+  thread->task_kind_ = kUnknownTask;
   // Clear since GC will not visit the thread once it is unscheduled.
   thread->ClearReusableHandles();
   thread->StoreBufferRelease();

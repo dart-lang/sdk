@@ -1652,7 +1652,7 @@ void BackgroundCompiler::Run() {
   while (running_) {
     // Maybe something is already in the queue, check first before waiting
     // to be notified.
-    bool result = Thread::EnterIsolateAsHelper(isolate_);
+    bool result = Thread::EnterIsolateAsHelper(isolate_, Thread::kCompilerTask);
     ASSERT(result);
     {
       Thread* thread = Thread::Current();

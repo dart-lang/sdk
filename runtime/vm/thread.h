@@ -118,6 +118,14 @@ class Zone;
 // must currently be called manually (issue 23474).
 class Thread : public BaseThread {
  public:
+  // The kind of task this thread is performing. Sampled by the profiler.
+  enum TaskKind {
+    kUnknownTask = 0x0,
+    kMutatorTask = 0x1,
+    kCompilerTask = 0x2,
+    kSweeperTask = 0x4,
+    kMarkerTask = 0x8,
+  };
   ~Thread();
 
   // The currently executing thread, or NULL if not yet initialized.
@@ -139,6 +147,7 @@ class Thread : public BaseThread {
   // SweeperTask (which uses the class table, which is copy-on-write).
   // TODO(koda): Properly synchronize heap access to expand allowed operations.
   static bool EnterIsolateAsHelper(Isolate* isolate,
+                                   TaskKind kind,
                                    bool bypass_safepoint = false);
   static void ExitIsolateAsHelper(bool bypass_safepoint = false);
 
@@ -179,6 +188,10 @@ class Thread : public BaseThread {
 
   int32_t IncrementAndGetStackOverflowCount() {
     return ++stack_overflow_count_;
+  }
+
+  TaskKind task_kind() const {
+    return task_kind_;
   }
 
   // Retrieves and clears the stack overflow flags.  These are set by
@@ -595,6 +608,7 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   uword top_exit_frame_info_;
   StoreBufferBlock* store_buffer_block_;
   uword vm_tag_;
+  TaskKind task_kind_;
   // State that is cached in the TLS for fast access in generated code.
 #define DECLARE_MEMBERS(type_name, member_name, expr, default_init_value)      \
   type_name member_name;
