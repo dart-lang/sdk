@@ -13,6 +13,15 @@
     for (int n in <String>["a", "b"]) { ... }
     ```
 
+### Tool Changes
+
+* Pub
+  * `pub serve` now provides caching headers that should improve the performance
+    of requesting large files multiple times.
+
+  * Both `pub get` and `pub upgrade` now have a `--no-precompile` flag that
+    disables precompilation of executables and transformed dependencies.
+
 ## 1.15.0 - 2016-03-09
 
 ### Core library changes

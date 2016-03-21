@@ -21,14 +21,18 @@ vars = {
   "github_mirror":
       "https://chromium.googlesource.com/external/github.com/dart-lang/%s.git",
 
+  # Only use this temporarily while waiting for a mirror for a new package.
+  "github_dartlang": "https://github.com/dart-lang/%s.git",
+
   "gyp_rev": "@6ee91ad8659871916f9aa840d42e1513befdf638",
   "co19_rev": "@3ed795ea02e022ef19c77cf1b6095b7c8f5584d0",
   "chromium_git": "https://chromium.googlesource.com",
 
   # Revisions of /third_party/* dependencies.
-  "args_tag": "@0.13.0",
-  "async_tag": "@1.4.0",
+  "args_tag": "@0.13.4",
+  "async_tag": "@1.9.0",
   "barback_tag" : "@0.15.2+7",
+  "boolean_selector_tag" : "@1.0.0",
   "boringssl_rev" : "@daeafc22c66ad48f6b32fc8d3362eb9ba31b774e",
   "charcode_tag": "@1.1.0",
   "chrome_rev" : "@19997",
@@ -51,7 +55,7 @@ vars = {
   "idl_parser_rev": "@7fbe68cab90c38147dee4f48c30ad0d496c17915",
   "intl_rev": "@a8b480b9c436f6c0ec16730804c914bdb4e30d53",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
-  "json_rpc_2_tag": "@1.1.1",
+  "json_rpc_2_tag": "@2.0.0",
   "linter_rev": "@a60289545b34ab1f047a0a3f0673a4c5abde0eaf",
   "logging_rev": "@85d83e002670545e9039ad3985f0018ab640e597",
   "markdown_rev": "@4aaadf3d940bb172e1f6285af4d2b1710d309982",
@@ -67,31 +71,34 @@ vars = {
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "plugin_tag": "@0.1.0",
   "pool_tag": "@1.2.1",
-  "pub_rev": "@bd5c77abcb609d95340632b96344b59035e70376",
+  "pub_rev": "@c1405b945c6d818c8cfe78334e8d4b11fd913103",
   "pub_cache_tag": "@v0.1.0",
   "pub_semver_tag": "@1.2.1",
   "quiver_tag": "@0.21.4",
   "resource_rev":"@a49101ba2deb29c728acba6fb86000a8f730f4b1",
   "root_certificates_rev": "@c3a41df63afacec62fcb8135196177e35fe72f71",
-  "scheduled_test_tag": "@0.12.4+2",
-  "shelf_tag": "@0.6.4+3",
+  "scheduled_test_tag": "@0.12.5+2",
+  "shelf_tag": "@0.6.5",
   "smoke_rev" : "@f3361191cc2a85ebc1e4d4c33aec672d7915aba9",
   "source_maps_tag": "@0.10.1",
   "shelf_static_tag": "@0.2.3+1",
-  "shelf_web_socket_tag": "@0.0.1+4",
+  "shelf_web_socket_tag": "@0.2.0",
   "source_map_stack_trace_tag": "@1.0.4",
   "source_span_tag": "@1.2.0",
   "stack_trace_tag": "@1.4.2",
+  "stream_channel_tag": "@1.3.1",
   "string_scanner_tag": "@0.1.4",
   "sunflower_rev": "@879b704933413414679396b129f5dfa96f7a0b1e",
-  "test_tag": "@0.12.6+1",
+  "test_tag": "@0.12.12",
   "test_reflective_loader_tag": "@0.0.3",
+  "typed_data_tag": "@1.1.2",
   "utf_rev": "@1f55027068759e2d52f2c12de6a57cce5f3c5ee6",
   "usage_rev": "@b5080dac0d26a5609b266f8fdb0d053bc4c1c638",
   "watcher_tag": "@0.9.7",
   "when_tag": "@0.2.0+2",
   "which_tag": "@0.1.3+1",
   "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
+  "web_socket_channel_tag": "@1.0.0",
   "WebCore_rev": "@a86fe28efadcfc781f836037a80f27e22a5dad17",
   "yaml_tag": "@2.1.5",
   "zlib_rev": "@c3d0a6190f2f8c924a05ab6cc97b8f975bddd33f",
@@ -142,6 +149,9 @@ deps = {
       (Var("github_mirror") % "async") + Var("async_tag"),
   Var("dart_root") + "/third_party/pkg/barback":
       (Var("github_mirror") % "barback") + Var("barback_tag"),
+  Var("dart_root") + "/third_party/pkg/boolean_selector":
+      (Var("github_dartlang") % "boolean_selector") +
+      Var("boolean_selector_tag"),
   Var("dart_root") + "/third_party/pkg/charcode":
       (Var("github_mirror") % "charcode") + Var("charcode_tag"),
   Var("dart_root") + "/third_party/pkg/cli_util":
@@ -247,6 +257,9 @@ deps = {
       Var("source_map_stack_trace_tag"),
   Var("dart_root") + "/third_party/pkg/stack_trace":
       (Var("github_mirror") % "stack_trace") + Var("stack_trace_tag"),
+  Var("dart_root") + "/third_party/pkg/stream_channel":
+      (Var("github_dartlang") % "stream_channel") +
+      Var("stream_channel_tag"),
   Var("dart_root") + "/third_party/pkg/string_scanner":
       (Var("github_mirror") % "string_scanner") +
       Var("string_scanner_tag"),
@@ -258,6 +271,8 @@ deps = {
   Var("dart_root") + "/third_party/pkg/test_reflective_loader":
       (Var("github_mirror") % "test_reflective_loader") +
       Var("test_reflective_loader_tag"),
+  Var("dart_root") + "/third_party/pkg/typed_data":
+      (Var("github_dartlang") % "typed_data") + Var("typed_data_tag"),
   Var("dart_root") + "/third_party/pkg/usage":
       (Var("github_mirror") % "usage") + Var("usage_rev"),
   Var("dart_root") + "/third_party/pkg/utf":
@@ -267,6 +282,9 @@ deps = {
   Var("dart_root") + "/third_party/pkg/web_components":
       (Var("github_mirror") % "web-components") +
       Var("web_components_rev"),
+  Var("dart_root") + "/third_party/pkg/web_socket_channel":
+      (Var("github_dartlang") % "web_socket_channel") +
+      Var("web_socket_channel_tag"),
   Var("dart_root") + "/third_party/pkg/when":
       (Var("github_mirror") % "when") + Var("when_tag"),
   Var("dart_root") + "/third_party/pkg/which":
