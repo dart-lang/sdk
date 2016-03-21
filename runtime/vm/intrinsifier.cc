@@ -21,16 +21,39 @@
 namespace dart {
 
 DEFINE_FLAG(bool, intrinsify, true, "Instrinsify when possible");
+DEFINE_FLAG(bool, trace_intrinsifier, false, "Trace intrinsifier");
 DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
 
 bool Intrinsifier::CanIntrinsify(const Function& function) {
+  if (FLAG_trace_intrinsifier) {
+    THR_Print("CanIntrinsify %s ->", function.ToQualifiedCString());
+  }
   if (!FLAG_intrinsify) return false;
-  if (function.IsClosureFunction()) return false;
+  if (function.IsClosureFunction()) {
+    if (FLAG_trace_intrinsifier) {
+      THR_Print("No, closure function.\n");
+    }
+    return false;
+  }
   // Can occur because of compile-all flag.
-  if (function.is_external()) return false;
-  return function.is_intrinsic();
+  if (function.is_external()) {
+    if (FLAG_trace_intrinsifier) {
+      THR_Print("No, external function.\n");
+    }
+    return false;
+  }
+  if (!function.is_intrinsic()) {
+    if (FLAG_trace_intrinsifier) {
+      THR_Print("No, not intrinsic function.\n");
+    }
+    return false;
+  }
+  if (FLAG_trace_intrinsifier) {
+    THR_Print("Yes.\n");
+  }
+  return true;
 }
 
 
@@ -78,6 +101,7 @@ void Intrinsifier::InitializeState() {
   lib = Library::MathLibrary();
   ASSERT(!lib.IsNull());
   MATH_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
+  GRAPH_MATH_LIB_INTRINSIC_LIST(SETUP_FUNCTION);
 
   // Set up all dart:typed_data lib functions that can be intrinsified.
   lib = Library::TypedDataLibrary();
@@ -99,7 +123,7 @@ static void EmitCodeFor(FlowGraphCompiler* compiler,
                         FlowGraph* graph) {
   // The FlowGraph here is constructed by the intrinsics builder methods, and
   // is different from compiler->flow_graph(), the original method's flow graph.
-  compiler->assembler()->Comment("Graph intrinsic");
+  compiler->assembler()->Comment("Graph intrinsic begin");
   for (intptr_t i = 0; i < graph->reverse_postorder().length(); i++) {
     BlockEntryInstr* block = graph->reverse_postorder()[i];
     if (block->IsGraphEntry()) continue;  // No code for graph entry needed.
@@ -115,6 +139,11 @@ static void EmitCodeFor(FlowGraphCompiler* compiler,
       if (instr->IsParallelMove()) {
         compiler->parallel_move_resolver()->EmitNativeCode(
             instr->AsParallelMove());
+      } else if (instr->IsInvokeMathCFunction()) {
+        ASSERT(instr->locs() != NULL);
+        // InvokeMathCFunction always calls, but it uses registers that
+        // are free for the intrinsic to use.
+        instr->EmitNativeCode(compiler);
       } else {
         ASSERT(instr->locs() != NULL);
         // Calls are not supported in intrinsics code.
@@ -123,6 +152,7 @@ static void EmitCodeFor(FlowGraphCompiler* compiler,
       }
     }
   }
+  compiler->assembler()->Comment("Graph intrinsic end");
 }
 
 
@@ -224,6 +254,11 @@ static intptr_t CidForRepresentation(Representation rep) {
 }
 
 
+// Notes about the graph intrinsics:
+//
+// IR instructions which would jump to a deoptimization sequence on failure
+// instead branch to the intrinsic slow path.
+
 class BlockBuilder : public ValueObject {
  public:
   BlockBuilder(FlowGraph* flow_graph, TargetEntryInstr* entry)
@@ -260,6 +295,22 @@ class BlockBuilder : public ValueObject {
                          SPREG));
   }
 
+  Definition* AddCheckedUnbox(Representation rep, Definition* boxed) {
+    const ICData& value_check = ICData::ZoneHandle(ICData::New(
+        flow_graph_->function(),
+        String::Handle(flow_graph_->function().name()),
+        Object::empty_array(),  // Dummy args. descr.
+        Thread::kNoDeoptId,
+        1));
+    value_check.AddReceiverCheck(CidForRepresentation(rep),
+                                 flow_graph_->function());
+    AddInstruction(new CheckClassInstr(new Value(boxed),
+                                       Thread::kNoDeoptId,
+                                       value_check,
+                                       TokenPos()));
+    return AddUnboxInstr(rep, new Value(boxed));
+  }
+
   TokenPosition TokenPos() {
     return flow_graph_->function().token_pos();
   }
@@ -279,7 +330,28 @@ class BlockBuilder : public ValueObject {
     return unboxed_value;
   }
 
+  Definition* AddUnboxInstr(Representation rep, Definition* boxed) {
+    return AddUnboxInstr(rep, new Value(boxed));
+  }
+
+  Definition* InvokeMathCFunction(MethodRecognizer::Kind recognized_kind,
+                                  ZoneGrowableArray<Value*>* args) {
+    return InvokeMathCFunctionHelper(recognized_kind, args);
+  }
+
  private:
+  Definition* InvokeMathCFunctionHelper(MethodRecognizer::Kind recognized_kind,
+                                        ZoneGrowableArray<Value*>* args) {
+    InvokeMathCFunctionInstr* invoke_math_c_function =
+        new InvokeMathCFunctionInstr(args,
+                                     Thread::kNoDeoptId,
+                                     recognized_kind,
+                                     TokenPos());
+    AddDefinition(invoke_math_c_function);
+    return invoke_math_c_function;
+  }
+
+
   FlowGraph* flow_graph_;
   BlockEntryInstr* entry_;
   Instruction* current_;
@@ -880,6 +952,131 @@ bool Intrinsifier::Build_DoubleFlipSignBit(FlowGraph* flow_graph) {
   Definition* result = builder.AddDefinition(
       BoxInstr::Create(kUnboxedDouble, new Value(unboxed_result)));
   builder.AddIntrinsicReturn(new Value(result));
+  return true;
+}
+
+
+static bool BuildInvokeMathCFunction(BlockBuilder* builder,
+                                     MethodRecognizer::Kind kind) {
+  ZoneGrowableArray<Value*>* args =
+      new ZoneGrowableArray<Value*>(1);
+
+  Definition* value = builder->AddParameter(1);
+  Definition* unboxed_value = builder->AddUnboxInstr(kUnboxedDouble, value);
+  args->Add(new Value(unboxed_value));
+
+  Definition* unboxed_result =
+      builder->InvokeMathCFunction(kind, args);
+
+  Definition* result = builder->AddDefinition(
+      BoxInstr::Create(kUnboxedDouble, new Value(unboxed_result)));
+
+  builder->AddIntrinsicReturn(new Value(result));
+
+  return true;
+}
+
+
+bool Intrinsifier::Build_MathSin(FlowGraph* flow_graph) {
+  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
+
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry);
+
+  return BuildInvokeMathCFunction(&builder,
+                                  MethodRecognizer::kMathSin);
+}
+
+
+bool Intrinsifier::Build_MathCos(FlowGraph* flow_graph) {
+  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
+
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry);
+
+  return BuildInvokeMathCFunction(&builder,
+                                  MethodRecognizer::kMathCos);
+}
+
+
+bool Intrinsifier::Build_MathTan(FlowGraph* flow_graph) {
+  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
+
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry);
+
+  return BuildInvokeMathCFunction(&builder,
+                                  MethodRecognizer::kMathTan);
+}
+
+
+bool Intrinsifier::Build_MathAsin(FlowGraph* flow_graph) {
+  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
+
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry);
+
+  return BuildInvokeMathCFunction(&builder,
+                                  MethodRecognizer::kMathAsin);
+}
+
+
+bool Intrinsifier::Build_MathAcos(FlowGraph* flow_graph) {
+  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
+
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry);
+
+  return BuildInvokeMathCFunction(&builder,
+                                  MethodRecognizer::kMathAcos);
+}
+
+
+bool Intrinsifier::Build_MathAtan(FlowGraph* flow_graph) {
+  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
+
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry);
+
+  return BuildInvokeMathCFunction(&builder,
+                                  MethodRecognizer::kMathAtan);
+}
+
+
+bool Intrinsifier::Build_MathAtan2(FlowGraph* flow_graph) {
+  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
+
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry);
+
+  Definition* value_a = builder.AddParameter(1);
+  Definition* value_b = builder.AddParameter(2);
+
+  Definition* unboxed_a = builder.AddUnboxInstr(kUnboxedDouble, value_a);
+  Definition* unboxed_b = builder.AddUnboxInstr(kUnboxedDouble, value_b);
+
+  // C's atan2 expects the arguments in the opposite order.
+  ZoneGrowableArray<Value*>* args =
+      new ZoneGrowableArray<Value*>(2);
+  args->Add(new Value(unboxed_b));
+  args->Add(new Value(unboxed_a));
+
+  Definition* unboxed_result =
+      builder.InvokeMathCFunction(MethodRecognizer::kMathAtan2,
+                                  args);
+
+  Definition* result = builder.AddDefinition(
+      BoxInstr::Create(kUnboxedDouble, new Value(unboxed_result)));
+
+  builder.AddIntrinsicReturn(new Value(result));
+
   return true;
 }
 
