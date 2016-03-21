@@ -1480,7 +1480,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
         false,  // not abstract
         false,  // not external
         false,  // not native
-        Class::Handle(Type::Handle(Type::Function()).type_class()),
+        Class::Handle(Type::Handle(Type::DartFunctionType()).type_class()),
         fragment->token_pos()));
 
     func.set_result_type(Object::dynamic_type());

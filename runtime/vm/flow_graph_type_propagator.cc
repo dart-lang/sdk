@@ -981,8 +981,7 @@ CompileType AllocateObjectInstr::ComputeType() const {
     ASSERT(cls().id() == kClosureCid);
     return CompileType(CompileType::kNonNullable,
                        kClosureCid,
-                       &FunctionType::ZoneHandle(
-                           closure_function().SignatureType()));
+                       &Type::ZoneHandle(closure_function().SignatureType()));
   }
   // TODO(vegorov): Incorporate type arguments into the returned type.
   return CompileType::FromCid(cls().id());
@@ -1009,8 +1008,9 @@ CompileType LoadFieldInstr::ComputeType() const {
 
   const AbstractType* abstract_type = NULL;
   if (Isolate::Current()->type_checks() &&
-      type().HasResolvedTypeClass() &&
-      !Field::IsExternalizableCid(Class::Handle(type().type_class()).id())) {
+      (type().IsFunctionType() ||
+       (type().HasResolvedTypeClass() &&
+       !Field::IsExternalizableCid(Class::Handle(type().type_class()).id())))) {
     abstract_type = &type();
   }
 

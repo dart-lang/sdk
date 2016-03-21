@@ -1144,33 +1144,6 @@ void Type::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-void FunctionType::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
-  PrintSharedInstanceJSON(&jsobj, ref);
-  jsobj.AddProperty("kind", "FunctionType");
-  if (IsCanonical()) {
-    const Class& scope_cls = Class::Handle(scope_class());
-    intptr_t id = scope_cls.FindCanonicalTypeIndex(*this);
-    ASSERT(id >= 0);
-    intptr_t cid = scope_cls.id();
-    jsobj.AddFixedServiceId("classes/%" Pd "/types/%" Pd "", cid, id);
-    jsobj.AddProperty("scopeClass", scope_cls);
-  } else {
-    jsobj.AddServiceId(*this);
-  }
-  const String& user_name = String::Handle(UserVisibleName());
-  const String& vm_name = String::Handle(Name());
-  AddNameProperties(&jsobj, user_name, vm_name);
-  if (ref) {
-    return;
-  }
-  const TypeArguments& typeArgs = TypeArguments::Handle(arguments());
-  if (!typeArgs.IsNull()) {
-    jsobj.AddProperty("typeArguments", typeArgs);
-  }
-}
-
-
 void TypeRef::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);

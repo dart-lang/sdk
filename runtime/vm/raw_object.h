@@ -52,7 +52,6 @@ namespace dart {
     V(LibraryPrefix)                                                           \
     V(AbstractType)                                                            \
       V(Type)                                                                  \
-      V(FunctionType)                                                          \
       V(TypeRef)                                                               \
       V(TypeParameter)                                                         \
       V(BoundedType)                                                           \
@@ -868,7 +867,7 @@ class RawClosureData : public RawObject {
   }
   RawContextScope* context_scope_;
   RawFunction* parent_function_;  // Enclosing function of this local function.
-  RawFunctionType* signature_type_;
+  RawType* signature_type_;
   RawInstance* closure_;  // Closure object for static implicit closures.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->closure_);
@@ -1617,28 +1616,18 @@ class RawType : public RawAbstractType {
   }
   RawObject* type_class_;  // Either resolved class or unresolved class.
   RawTypeArguments* arguments_;
-  RawLanguageError* error_;  // Error object if type is malformed or malbounded.
+  // This type object represents a function type if its signature field is a
+  // non-null function object.
+  // If this type is malformed or malbounded, the signature field gets
+  // overwritten by the error object in order to save space. If the type is a
+  // function type, its signature is lost, but the message in the error object
+  // can describe the issue without needing the signature.
+  union {
+    RawFunction* signature_;  // If not null, this type is a function type.
+    RawLanguageError* error_;  // If not null, type is malformed or malbounded.
+  } sig_or_err_;
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->error_);
-  }
-  TokenPosition token_pos_;
-  int8_t type_state_;
-};
-
-
-class RawFunctionType : public RawAbstractType {
- private:
-  RAW_HEAP_OBJECT_IMPLEMENTATION(FunctionType);
-
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->scope_class_);
-  }
-  RawClass* scope_class_;
-  RawTypeArguments* arguments_;
-  RawFunction* signature_;
-  RawLanguageError* error_;  // Error object if type is malformed or malbounded.
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->error_);
+    return reinterpret_cast<RawObject**>(&ptr()->sig_or_err_.error_);
   }
   TokenPosition token_pos_;
   int8_t type_state_;

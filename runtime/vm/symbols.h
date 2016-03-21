@@ -137,7 +137,6 @@ class ObjectPointerVisitor;
   V(Dynamic, "dynamic")                                                        \
   V(UnresolvedClass, "UnresolvedClass")                                        \
   V(Type, "_Type")                                                             \
-  V(FunctionType, "_FunctionType")                                             \
   V(TypeRef, "_TypeRef")                                                       \
   V(TypeParameter, "_TypeParameter")                                           \
   V(BoundedType, "_BoundedType")                                               \

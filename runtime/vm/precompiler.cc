@@ -621,14 +621,10 @@ void Precompiler::AddType(const AbstractType& abstype) {
     AddTypesOf(cls);
     const TypeArguments& vector = TypeArguments::Handle(Z, abstype.arguments());
     AddTypeArguments(vector);
-  } else if (abstype.IsFunctionType()) {
-    const FunctionType& func_type = FunctionType::Cast(abstype);
-    const Class& cls = Class::Handle(Z, func_type.scope_class());
-    AddTypesOf(cls);
-    const Function& func = Function::Handle(Z, func_type.signature());
-    AddTypesOf(func);
-    const TypeArguments& vector = TypeArguments::Handle(Z, abstype.arguments());
-    AddTypeArguments(vector);
+    if (type.IsFunctionType()) {
+      const Function& func = Function::Handle(Z, type.signature());
+      AddTypesOf(func);
+    }
   } else if (abstype.IsBoundedType()) {
     AbstractType& type = AbstractType::Handle(Z);
     type = BoundedType::Cast(abstype).type();
@@ -847,7 +843,7 @@ RawObject* Precompiler::ExecuteOnce(SequenceNode* fragment) {
         false,  // not abstract
         false,  // not external
         false,  // not native
-        Class::Handle(Type::Handle(Type::Function()).type_class()),
+        Class::Handle(Type::Handle(Type::DartFunctionType()).type_class()),
         fragment->token_pos()));
 
     func.set_result_type(Object::dynamic_type());

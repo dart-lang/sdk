@@ -1927,8 +1927,8 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
                                          TokenPosition::kNoSource));
       signature_function.set_result_type(result_type);
       AddFormalParamsToFunction(&func_params, signature_function);
-      FunctionType& signature_type =
-          FunctionType::ZoneHandle(Z, signature_function.SignatureType());
+      Type& signature_type =
+          Type::ZoneHandle(Z, signature_function.SignatureType());
       if (!is_top_level_) {
         signature_type ^= ClassFinalizer::FinalizeType(
             current_class(), signature_type, ClassFinalizer::kCanonicalize);
@@ -2318,7 +2318,7 @@ ClosureNode* Parser::CreateImplicitClosureNode(const Function& func,
     // parameterized class, make sure that the receiver is captured as
     // instantiator.
     if (current_block_->scope->function_level() > 0) {
-      const FunctionType& signature_type = FunctionType::Handle(Z,
+      const Type& signature_type = Type::Handle(Z,
           implicit_closure_function.SignatureType());
       const Class& scope_class = Class::Handle(Z, signature_type.type_class());
       if (scope_class.IsGeneric()) {
@@ -6580,8 +6580,7 @@ RawFunction* Parser::OpenSyncGeneratorFunction(TokenPosition func_pos) {
     AddFormalParamsToFunction(&closure_params, body);
 
     // Finalize function type.
-    FunctionType& signature_type =
-        FunctionType::Handle(Z, body.SignatureType());
+    Type& signature_type = Type::Handle(Z, body.SignatureType());
     signature_type ^= ClassFinalizer::FinalizeType(
         current_class(), signature_type, ClassFinalizer::kCanonicalize);
     body.SetSignatureType(signature_type);
@@ -6713,8 +6712,7 @@ RawFunction* Parser::OpenAsyncFunction(TokenPosition async_func_pos) {
     AddFormalParamsToFunction(&closure_params, closure);
 
     // Finalize function type.
-    FunctionType& signature_type =
-        FunctionType::Handle(Z, closure.SignatureType());
+    Type& signature_type = Type::Handle(Z, closure.SignatureType());
     signature_type ^= ClassFinalizer::FinalizeType(
         current_class(), signature_type, ClassFinalizer::kCanonicalize);
     closure.SetSignatureType(signature_type);
@@ -6849,8 +6847,7 @@ RawFunction* Parser::OpenAsyncGeneratorFunction(
     AddFormalParamsToFunction(&closure_params, closure);
 
     // Finalize function type.
-    FunctionType& signature_type =
-        FunctionType::Handle(Z, closure.SignatureType());
+    Type& signature_type = Type::Handle(Z, closure.SignatureType());
     signature_type ^= ClassFinalizer::FinalizeType(
         current_class(), signature_type, ClassFinalizer::kCanonicalize);
     closure.SetSignatureType(signature_type);
@@ -7598,7 +7595,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   // passed as a function argument, or returned as a function result.
 
   LocalVariable* function_variable = NULL;
-  FunctionType& function_type = FunctionType::ZoneHandle(Z);
+  Type& function_type = Type::ZoneHandle(Z);
   if (variable_name != NULL) {
     // Since the function type depends on the signature of the closure function,
     // it cannot be determined before the formal parameter list of the closure
@@ -7607,10 +7604,10 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     // We temporarily use the Closure class as scope class.
     const Class& unknown_scope_class = Class::Handle(Z,
         I->object_store()->closure_class());
-    function_type = FunctionType::New(unknown_scope_class,
-                                      TypeArguments::Handle(Z),
-                                      function,
-                                      function_pos);
+    function_type = Type::New(unknown_scope_class,
+                              TypeArguments::Handle(Z),
+                              function_pos);
+    function_type.set_signature(function);
     function_type.SetIsFinalized();  // No finalization needed.
 
     // Add the function variable to the scope before parsing the function in
@@ -7638,8 +7635,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   INC_STAT(thread(), num_functions_parsed, 1);
 
   // Now that the local function has formal parameters, lookup the signature
-  FunctionType& signature_type =
-      FunctionType::ZoneHandle(Z, function.SignatureType());
+  Type& signature_type = Type::ZoneHandle(Z, function.SignatureType());
   signature_type ^= ClassFinalizer::FinalizeType(
       current_class(), signature_type, ClassFinalizer::kCanonicalize);
   function.SetSignatureType(signature_type);
@@ -7656,15 +7652,15 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     CaptureInstantiator();
   }
 
-  // A signature type itself cannot be malformed or malbounded, only its
+  // A local signature type itself cannot be malformed or malbounded, only its
   // signature function's result type or parameter types may be.
   ASSERT(!signature_type.IsMalformed());
   ASSERT(!signature_type.IsMalbounded());
 
   if (variable_name != NULL) {
     // Patch the function type of the variable now that the signature is known.
-    function_type.set_scope_class(
-        Class::Handle(Z, signature_type.scope_class()));
+    function_type.set_type_class(
+        Class::Handle(Z, signature_type.type_class()));
     function_type.set_arguments(
         TypeArguments::Handle(Z, signature_type.arguments()));
     ASSERT(function_type.signature() == function.raw());
@@ -13184,8 +13180,7 @@ RawFunction* Parser::BuildConstructorClosureFunction(
   AddFormalParamsToFunction(&params, closure);
 
   // Finalize function type.
-  FunctionType& signature_type =
-      FunctionType::Handle(Z, closure.SignatureType());
+  Type& signature_type = Type::Handle(Z, closure.SignatureType());
   signature_type ^= ClassFinalizer::FinalizeType(
       current_class(), signature_type, ClassFinalizer::kCanonicalize);
   closure.SetSignatureType(signature_type);

@@ -52,7 +52,6 @@ class RawField;
 class RawFloat32x4;
 class RawFloat64x2;
 class RawFunction;
-class RawFunctionType;
 class RawGrowableObjectArray;
 class RawICData;
 class RawImmutableArray;
@@ -445,7 +444,6 @@ class SnapshotReader : public BaseReader {
   RawDouble* NewDouble(double value);
   RawUnresolvedClass* NewUnresolvedClass();
   RawType* NewType();
-  RawFunctionType* NewFunctionType();
   RawTypeRef* NewTypeRef();
   RawTypeParameter* NewTypeParameter();
   RawBoundedType* NewBoundedType();
@@ -631,7 +629,6 @@ class SnapshotReader : public BaseReader {
   friend class SubtypeTestCache;
   friend class TokenStream;
   friend class Type;
-  friend class FunctionType;
   friend class TypeArguments;
   friend class TypeParameter;
   friend class TypeRef;

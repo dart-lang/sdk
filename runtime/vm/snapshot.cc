@@ -960,11 +960,6 @@ RawType* SnapshotReader::NewType() {
 }
 
 
-RawFunctionType* SnapshotReader::NewFunctionType() {
-  ALLOC_NEW_OBJECT(FunctionType);
-}
-
-
 RawTypeRef* SnapshotReader::NewTypeRef() {
   ALLOC_NEW_OBJECT(TypeRef);
 }
@@ -1178,19 +1173,19 @@ static void EnsureIdentifier(char* label) {
 
 
 void InstructionsWriter::WriteAssembly() {
-  Zone* Z = Thread::Current()->zone();
+  Zone* zone = Thread::Current()->zone();
 
   // Handlify collected raw pointers as building the names below
   // will allocate on the Dart heap.
   for (intptr_t i = 0; i < instructions_.length(); i++) {
     InstructionsData& data = instructions_[i];
-    data.insns_ = &Instructions::Handle(Z, data.raw_insns_);
+    data.insns_ = &Instructions::Handle(zone, data.raw_insns_);
     ASSERT(data.raw_code_ != NULL);
-    data.code_ = &Code::Handle(Z, data.raw_code_);
+    data.code_ = &Code::Handle(zone, data.raw_code_);
   }
   for (intptr_t i = 0; i < objects_.length(); i++) {
     ObjectData& data = objects_[i];
-    data.obj_ = &Object::Handle(Z, data.raw_obj_);
+    data.obj_ = &Object::Handle(zone, data.raw_obj_);
   }
 
   stream_.Print(".text\n");
@@ -1209,8 +1204,8 @@ void InstructionsWriter::WriteAssembly() {
     WriteWordLiteral(0);
   }
 
-  Object& owner = Object::Handle(Z);
-  String& str = String::Handle(Z);
+  Object& owner = Object::Handle(zone);
+  String& str = String::Handle(zone);
 
   for (intptr_t i = 0; i < instructions_.length(); i++) {
     const Instructions& insns = *instructions_[i].insns_;
@@ -1504,20 +1499,16 @@ void SnapshotReader::AddPatchRecord(intptr_t object_id,
 
 void SnapshotReader::ProcessDeferredCanonicalizations() {
   Type& typeobj = Type::Handle();
-  FunctionType& funtypeobj = FunctionType::Handle();
   TypeArguments& typeargs = TypeArguments::Handle();
   Object& newobj = Object::Handle();
   for (intptr_t i = 0; i < backward_references_->length(); i++) {
     BackRefNode& backref = (*backward_references_)[i];
     if (backref.defer_canonicalization()) {
       Object* objref = backref.reference();
-      // Object should either be a type, a function type, or a type argument.
+      // Object should either be a type or a type argument.
       if (objref->IsType()) {
         typeobj ^= objref->raw();
         newobj = typeobj.Canonicalize();
-      } else if (objref->IsFunctionType()) {
-        funtypeobj ^= objref->raw();
-        newobj = funtypeobj.Canonicalize();
       } else {
         ASSERT(objref->IsTypeArguments());
         typeargs ^= objref->raw();
