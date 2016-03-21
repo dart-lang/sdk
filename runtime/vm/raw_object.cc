@@ -542,8 +542,11 @@ intptr_t RawCode::VisitCodePointers(RawCode* raw_obj,
 
   RawCode* obj = raw_obj->ptr();
   intptr_t length = Code::PtrOffBits::decode(obj->state_bits_);
+#if defined(TARGET_ARCH_IA32)
+  // On IA32 only we embed pointers to objects directly in the generated
+  // instructions. The variable porition of a Code object describes where to
+  // find those pointers for tracing.
   if (Code::AliveBit::decode(obj->state_bits_)) {
-    // Also visit all the embedded pointers in the corresponding instructions.
     uword entry_point = reinterpret_cast<uword>(obj->instructions_->ptr()) +
         Instructions::HeaderSize();
     for (intptr_t i = 0; i < length; i++) {
@@ -553,6 +556,12 @@ intptr_t RawCode::VisitCodePointers(RawCode* raw_obj,
     }
   }
   return Code::InstanceSize(length);
+#else
+  // On all other architectures, objects are referenced indirectly through
+  // either the ObjectPool or Thread.
+  ASSERT(length == 0);
+  return Code::InstanceSize(0);
+#endif
 }
 
 

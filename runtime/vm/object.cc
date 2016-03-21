@@ -13509,9 +13509,10 @@ bool Code::IsFunctionCode() const {
 void Code::DisableDartCode() const {
   DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   ASSERT(IsFunctionCode());
-  ASSERT(instructions() == active_instructions());
+  ASSERT(!IsDisabled());
   const Code& new_code =
       Code::Handle(StubCode::FixCallersTarget_entry()->code());
+  ASSERT(new_code.instructions()->IsVMHeapObject());
   SetActiveInstructions(new_code.instructions());
 }
 
@@ -13519,9 +13520,10 @@ void Code::DisableDartCode() const {
 void Code::DisableStubCode() const {
   ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(IsAllocationStubCode());
-  ASSERT(instructions() == active_instructions());
+  ASSERT(!IsDisabled());
   const Code& new_code =
       Code::Handle(StubCode::FixAllocationStubTarget_entry()->code());
+  ASSERT(new_code.instructions()->IsVMHeapObject());
   SetActiveInstructions(new_code.instructions());
 }
 
@@ -13530,7 +13532,6 @@ void Code::SetActiveInstructions(RawInstructions* instructions) const {
   DEBUG_ASSERT(IsMutatorOrAtSafepoint() || !is_alive());
   // RawInstructions are never allocated in New space and hence a
   // store buffer update is not needed here.
-  StorePointer(&raw_ptr()->active_instructions_, instructions);
   StoreNonPointer(&raw_ptr()->entry_point_,
                   reinterpret_cast<uword>(instructions->ptr()) +
                   Instructions::HeaderSize());

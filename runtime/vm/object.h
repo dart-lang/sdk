@@ -4324,9 +4324,7 @@ class DeoptInfo : public AllStatic {
 
 class Code : public Object {
  public:
-  RawInstructions* active_instructions() const {
-    return raw_ptr()->active_instructions_;
-  }
+  uword active_entry_point() const { return raw_ptr()->entry_point_; }
 
   RawInstructions* instructions() const { return raw_ptr()->instructions_; }
 
@@ -4608,12 +4606,11 @@ class Code : public Object {
   void Enable() const {
     if (!IsDisabled()) return;
     ASSERT(Thread::Current()->IsMutatorThread());
-    ASSERT(instructions() != active_instructions());
     SetActiveInstructions(instructions());
   }
 
   bool IsDisabled() const {
-    return instructions() != active_instructions();
+    return active_entry_point() != EntryPoint();
   }
 
  private:
