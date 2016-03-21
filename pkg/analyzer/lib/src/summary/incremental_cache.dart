@@ -101,12 +101,15 @@ class IncrementalCache {
   final Map<Source, CacheSourceContent> _sourceContentMap =
       <Source, CacheSourceContent>{};
   final Map<Source, List<Source>> _libraryClosureMap = <Source, List<Source>>{};
+  final Map<Source, List<int>> _libraryClosureHashMap = <Source, List<int>>{};
   final Map<Source, List<int>> _sourceContentHashMap = <Source, List<int>>{};
 
   /**
    * Mapping from a library closure key to its [PackageBundle].
    */
   final Map<String, PackageBundle> _bundleMap = <String, PackageBundle>{};
+
+  final Map<String, Source> _absoluteUriMap = <String, Source>{};
 
   IncrementalCache(this.storage, this.context, this.configSalt);
 
@@ -136,6 +139,9 @@ class IncrementalCache {
       List<LibraryBundleWithId> closureBundles = <LibraryBundleWithId>[];
       for (Source source in closureSources) {
         if (source.isInSystemLibrary) {
+          continue;
+        }
+        if (getSourceKind(source) == SourceKind.PART) {
           continue;
         }
         String key = _getLibraryBundleKey(source);
@@ -194,8 +200,7 @@ class IncrementalCache {
       }
       // Append parts.
       for (String partUri in contentSource.partUris) {
-        Source partSource =
-            context.sourceFactory.resolveUri(librarySource, partUri);
+        Source partSource = _resolveUri(librarySource, partUri);
         if (partSource == null) {
           throw new StateError('Unable to resolve $partUri in $librarySource');
         }
@@ -203,8 +208,7 @@ class IncrementalCache {
       }
       // Append imports and exports.
       void appendLibrarySources(String refUri) {
-        Source refSource =
-            context.sourceFactory.resolveUri(librarySource, refUri);
+        Source refSource = _resolveUri(librarySource, refUri);
         if (refSource == null) {
           throw new StateError('Unable to resolve $refUri in $librarySource');
         }
@@ -285,14 +289,16 @@ class IncrementalCache {
    * the given [librarySource].
    */
   List<int> _getLibraryClosureHash(Source librarySource) {
-    List<Source> closure = _getLibraryClosure(librarySource);
-    MD5 md5 = new MD5();
-    for (Source source in closure) {
-      List<int> sourceHash = _getSourceContentHash(source);
-      md5.add(sourceHash);
-    }
-    md5.add(configSalt);
-    return md5.close();
+    return _libraryClosureHashMap.putIfAbsent(librarySource, () {
+      List<Source> closure = _getLibraryClosure(librarySource);
+      MD5 md5 = new MD5();
+      for (Source source in closure) {
+        List<int> sourceHash = _getSourceContentHash(source);
+        md5.add(sourceHash);
+      }
+      md5.add(configSalt);
+      return md5.close();
+    });
   }
 
   /**
@@ -304,6 +310,25 @@ class IncrementalCache {
       List<int> sourceBytes = UTF8.encode(sourceText);
       return (new MD5()..add(sourceBytes)).close();
     });
+  }
+
+  /**
+   * Return a source representing the URI that results from resolving the given
+   * (possibly relative) [containedUri] against the URI associated with the
+   * [containingSource], whether or not the resulting source exists, or `null`
+   * if either the [containedUri] is invalid or if it cannot be resolved against
+   * the [containingSource]'s URI.
+   */
+  Source _resolveUri(Source containingSource, String containedUri) {
+    // Cache absolute URIs.
+    if (containedUri.startsWith('dart:') ||
+        containedUri.startsWith('package:')) {
+      return _absoluteUriMap.putIfAbsent(containedUri, () {
+        return context.sourceFactory.resolveUri(containingSource, containedUri);
+      });
+    }
+    // Resolve relative URIs without caching.
+    return context.sourceFactory.resolveUri(containingSource, containedUri);
   }
 
   /**
