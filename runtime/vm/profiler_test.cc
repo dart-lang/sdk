@@ -958,7 +958,7 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
       Library::Handle(isolate->object_store()->typed_data_library());
 
   const Class& float32_list_class =
-      Class::Handle(GetClass(typed_data_library, "_Float32Array"));
+      Class::Handle(GetClass(typed_data_library, "Float32List"));
   EXPECT(!float32_list_class.IsNull());
 
   Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
@@ -989,8 +989,6 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
     ProfileTrieWalker walker(&profile);
 
     walker.Reset(Profile::kExclusiveCode);
-    EXPECT(walker.Down());
-    EXPECT_STREQ("_Float32Array._Float32Array", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("Float32List.Float32List", walker.CurrentName());
     EXPECT(walker.Down());

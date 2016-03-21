@@ -1438,10 +1438,10 @@ NOT_IN_PRODUCT(
   ASSERT(!lib.IsNull());
   ASSERT(lib.raw() == Library::TypedDataLibrary());
 #define REGISTER_TYPED_DATA_CLASS(clazz)                                       \
-  cls = Class::NewTypedDataClass(kTypedData##clazz##Cid);                      \
-  RegisterPrivateClass(cls, Symbols::_##clazz(), lib);                         \
+  cls = Class::NewTypedDataClass(kTypedData##clazz##ArrayCid);                 \
+  RegisterClass(cls, Symbols::clazz##List(), lib);                             \
 
-  CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_CLASS);
+  DART_CLASS_LIST_TYPED_DATA(REGISTER_TYPED_DATA_CLASS);
 #undef REGISTER_TYPED_DATA_CLASS
 #define REGISTER_TYPED_DATA_VIEW_CLASS(clazz)                                  \
   cls = Class::NewTypedDataViewClass(kTypedData##clazz##ViewCid);              \
@@ -1460,46 +1460,39 @@ NOT_IN_PRODUCT(
   cls = Class::New<Instance>(kByteBufferCid);
   cls.set_instance_size(0);
   cls.set_next_field_offset(-kWordSize);
-  RegisterPrivateClass(cls, Symbols::_ByteBuffer(), lib);
+  RegisterClass(cls, Symbols::ByteBuffer(), lib);
   pending_classes.Add(cls);
 
   CLASS_LIST_TYPED_DATA(REGISTER_EXT_TYPED_DATA_CLASS);
 #undef REGISTER_EXT_TYPED_DATA_CLASS
   // Register Float32x4 and Int32x4 in the object store.
   cls = Class::New<Float32x4>();
-  object_store->set_float32x4_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Float32x4(), lib);
-  cls = Class::New<Int32x4>();
-  object_store->set_int32x4_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Int32x4(), lib);
-  cls = Class::New<Float64x2>();
-  object_store->set_float64x2_class(cls);
-  RegisterPrivateClass(cls, Symbols::_Float64x2(), lib);
-
-  cls = Class::New<Instance>(kIllegalCid);
   RegisterClass(cls, Symbols::Float32x4(), lib);
   cls.set_num_type_arguments(0);
   cls.set_num_own_type_arguments(0);
   cls.set_is_prefinalized();
   pending_classes.Add(cls);
+  object_store->set_float32x4_class(cls);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_float32x4_type(type);
 
-  cls = Class::New<Instance>(kIllegalCid);
+  cls = Class::New<Int32x4>();
   RegisterClass(cls, Symbols::Int32x4(), lib);
   cls.set_num_type_arguments(0);
   cls.set_num_own_type_arguments(0);
   cls.set_is_prefinalized();
   pending_classes.Add(cls);
+  object_store->set_int32x4_class(cls);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_int32x4_type(type);
 
-  cls = Class::New<Instance>(kIllegalCid);
+  cls = Class::New<Float64x2>();
   RegisterClass(cls, Symbols::Float64x2(), lib);
   cls.set_num_type_arguments(0);
   cls.set_num_own_type_arguments(0);
   cls.set_is_prefinalized();
   pending_classes.Add(cls);
+  object_store->set_float64x2_class(cls);
   type = Type::NewNonParameterizedType(cls);
   object_store->set_float64x2_type(type);
 
@@ -7052,7 +7045,6 @@ bool Function::CheckSourceFingerprint(const char* prefix, int32_t fp) const {
       // This output can be copied into a file, then used with sed
       // to replace the old values.
       // sed -i .bak -f /tmp/newkeys runtime/vm/method_recognizer.h
-      // sed -i .bak -f /tmp/newkeys runtime/vm/flow_graph_builder.h
       THR_Print("s/V(%s, %d)/V(%s, %d)/\n",
                 prefix, fp, prefix, SourceFingerprint());
     } else {

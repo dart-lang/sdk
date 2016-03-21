@@ -108,6 +108,22 @@ namespace dart {
   V(Int32x4Array)                                                              \
   V(Float64x2Array)                                                            \
 
+#define DART_CLASS_LIST_TYPED_DATA(V)                                          \
+  V(Int8)                                                                      \
+  V(Uint8)                                                                     \
+  V(Uint8Clamped)                                                              \
+  V(Int16)                                                                     \
+  V(Uint16)                                                                    \
+  V(Int32)                                                                     \
+  V(Uint32)                                                                    \
+  V(Int64)                                                                     \
+  V(Uint64)                                                                    \
+  V(Float32)                                                                   \
+  V(Float64)                                                                   \
+  V(Float32x4)                                                                 \
+  V(Int32x4)                                                                   \
+  V(Float64x2)
+
 #define CLASS_LIST_FOR_HANDLES(V)                                              \
   CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY(V)                                 \
   V(Array)                                                                     \
