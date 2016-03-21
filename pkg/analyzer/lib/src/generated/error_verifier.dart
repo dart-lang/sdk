@@ -5694,6 +5694,15 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     iterableType = iterableType.resolveToBound(_typeProvider.objectType);
     DartType bestIterableType =
         _typeSystem.mostSpecificTypeArgument(iterableType, loopType);
+
+    // Allow it to be a supertype of Iterable<T> (basically just Object) and do
+    // an implicit downcast to Iterable<dynamic>.
+    if (bestIterableType == null) {
+      if (_typeSystem.isSubtypeOf(loopType, iterableType)) {
+        bestIterableType = DynamicTypeImpl.instance;
+      }
+    }
+
     if (bestIterableType == null) {
       _errorReporter.reportTypeErrorForNode(
           StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE,

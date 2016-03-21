@@ -158,6 +158,15 @@ class List<E> implements Iterable<E> {
   void operator []=(int index, E value) {}
   Iterator<E> get iterator => null;
   void clear() {}
+
+  bool get isEmpty => false;
+  E get first => null;
+
+  Iterable/*<R>*/ map/*<R>*/(/*=R*/ f(E e)) => null;
+
+  /*=R*/ fold/*<R>*/(/*=R*/ initialValue,
+      /*=R*/ combine(/*=R*/ previousValue, E element)) => null;
+
 }
 
 class Map<K, V> extends Object {

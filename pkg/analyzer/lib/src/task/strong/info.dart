@@ -67,24 +67,24 @@ abstract class DownCast extends CoercionInfo {
 
   DownCast._internal(
       TypeSystem rules, Expression expression, this._fromType, this._toType)
-      : super(rules, expression) {
-    assert(_toType != baseType &&
-        _fromType == baseType &&
-        (baseType.isDynamic ||
-            // Call methods make the following non-redundant.
-            _toType.isSubtypeOf(baseType) ||
-            baseType.isAssignableTo(_toType)));
-  }
+      : super(rules, expression);
 
   @override
   List<Object> get arguments => [baseType, convertedType];
+
+  /// The type being cast from.
+  ///
+  /// This is usually the static type of the associated expression, but may not
+  /// be if the cast is attached to a variable in a for-in loop.
+  @override
+  DartType get baseType => _fromType;
 
   DartType get convertedType => _toType;
 
   @override
   String get message => 'Unsound implicit cast from {0} to {1}';
 
-  // Factory to create correct DownCast variant.
+  /// Factory to create correct DownCast variant.
   static StaticInfo create(StrongTypeSystemImpl rules, Expression expression,
       DartType fromType, DartType toType) {
     // toT <:_R fromT => to <: fromT

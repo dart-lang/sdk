@@ -1917,6 +1917,26 @@ f() {
         [StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE]);
   }
 
+  void test_forIn_object() {
+    assertNoErrorsInCode(
+        '''
+f() {
+  Object o; // Could be [].
+  for (var i in o) {}
+}
+''');
+  }
+
+  void test_forIn_dynamic() {
+    assertNoErrorsInCode(
+        '''
+f() {
+  dynamic d; // Could be [].
+  for (var i in d) {}
+}
+''');
+  }
+
   void test_forIn_declaredVariableWrongType() {
     assertErrorsInCode(
         '''

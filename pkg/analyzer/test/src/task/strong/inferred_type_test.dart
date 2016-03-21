@@ -484,12 +484,12 @@ main() {
         }
 
         Iterable iter = list;
-        for (Foo x in /*warning:DOWN_CAST_COMPOSITE*/iter) {
+        for (Foo /*info:DYNAMIC_CAST*/x in iter) {
           var y = x;
         }
 
         dynamic iter2 = list;
-        for (Foo x in /*warning:DOWN_CAST_COMPOSITE*/iter2) {
+        for (Foo /*info:DYNAMIC_CAST*/x in /*info:DYNAMIC_CAST*/iter2) {
           var y = x;
         }
 
