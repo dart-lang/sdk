@@ -271,6 +271,8 @@ io/raw_socket_cross_process_test: Skip # Platform.executable
 io/test_extension_test: Skip # Platform.executable
 io/regress_7679_test: Skip # Platform.executable
 io/process_*: Skip # Most use Platform.executable
+assert_test: SkipByDesign # Requires checked mode.
+no_assert_test: SkipByDesign # Requires checked mode.
 
 # Code coverage is not supported in product mode.
 [ $mode == product ]
