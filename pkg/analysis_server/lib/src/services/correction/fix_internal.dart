@@ -1494,6 +1494,10 @@ class FixProcessor {
         String libraryUri = sdkLibrary.shortName;
         Source librarySource =
             sdkSourceFactory.resolveUri(unitSource, libraryUri);
+        // maybe already imported
+        if (alreadyImportedWithPrefix.contains(librarySource)) {
+          continue;
+        }
         // prepare LibraryElement
         LibraryElement libraryElement =
             context.getResult(librarySource, LIBRARY_ELEMENT1);
@@ -1523,7 +1527,7 @@ class FixProcessor {
         if (librarySource.isInSystemLibrary) {
           continue;
         }
-        // maybe already imported with a prefix
+        // maybe already imported
         if (alreadyImportedWithPrefix.contains(librarySource)) {
           continue;
         }

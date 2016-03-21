@@ -3460,7 +3460,35 @@ main() {
 ''');
   }
 
-  test_importLibraryShow() async {
+  test_importLibraryShow_project() async {
+    testFile = '/project/bin/test.dart';
+    addSource(
+        '/project/bin/lib.dart',
+        '''
+class A {}
+class B {}
+''');
+    resolveTestUnit('''
+import 'lib.dart' show A;
+main() {
+  A a;
+  B b;
+}
+''');
+    performAllAnalysisTasks();
+    await assertNoFix(DartFixKind.IMPORT_LIBRARY_PROJECT);
+    await assertHasFix(
+        DartFixKind.IMPORT_LIBRARY_SHOW,
+        '''
+import 'lib.dart' show A, B;
+main() {
+  A a;
+  B b;
+}
+''');
+  }
+
+  test_importLibraryShow_sdk() async {
     resolveTestUnit('''
 import 'dart:async' show Stream;
 main() {
@@ -3468,6 +3496,7 @@ main() {
   Future f = null;
 }
 ''');
+    await assertNoFix(DartFixKind.IMPORT_LIBRARY_SDK);
     await assertHasFix(
         DartFixKind.IMPORT_LIBRARY_SHOW,
         '''
