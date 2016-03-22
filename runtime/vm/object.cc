@@ -2982,6 +2982,9 @@ RawError* Class::EnsureIsFinalized(Thread* thread) const {
   if (is_finalized()) {
     return Error::null();
   }
+  if (Compiler::IsBackgroundCompilation()) {
+    Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId);
+  }
   ASSERT(thread->IsMutatorThread());
   ASSERT(thread != NULL);
   const Error& error = Error::Handle(

@@ -1171,6 +1171,10 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
         if (Compiler::IsBackgroundCompilation()) {
           // Try again later, background compilation may abort because of
           // state change during compilation.
+          if (FLAG_trace_compiler) {
+            THR_Print("Aborted background compilation: %s\n",
+                function.ToFullyQualifiedCString());
+          }
           return Error::null();
         }
         // Optimizer bailed out. Disable optimizations and never try again.
@@ -1225,9 +1229,18 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     Thread* const thread = Thread::Current();
     StackZone stack_zone(thread);
     Error& error = Error::Handle();
-    // We got an error during compilation.
+    // We got an error during compilation or it is a bailout from background
+    // compilation (e.g., during parsing with EnsureIsFinalized).
     error = thread->sticky_error();
     thread->clear_sticky_error();
+    if (error.raw() == Object::background_compilation_error().raw()) {
+      // Exit compilation, retry it later.
+      if (FLAG_trace_bailout) {
+        THR_Print("Aborted background compilation: %s\n",
+            function.ToFullyQualifiedCString());
+      }
+      return Error::null();
+    }
     // Unoptimized compilation or precompilation may encounter compile-time
     // errors, but regular optimized compilation should not.
     ASSERT(!optimized);
