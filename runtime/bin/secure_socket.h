@@ -5,7 +5,7 @@
 #ifndef BIN_SECURE_SOCKET_H_
 #define BIN_SECURE_SOCKET_H_
 
-#ifdef DART_IO_SECURE_SOCKET_DISABLED
+#if defined(DART_IO_SECURE_SOCKET_DISABLED)
 #error "secure_socket.h can only be included on builds with SSL enabled"
 #endif
 

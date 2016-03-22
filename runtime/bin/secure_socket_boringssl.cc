@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_IO_SECURE_SOCKET_DISABLED)
+
 #include "platform/globals.h"
 #if defined(TARGET_OS_ANDROID) || \
     defined(TARGET_OS_LINUX)   || \
@@ -1680,3 +1682,5 @@ int SSLFilter::ProcessWriteEncryptedBuffer(int start, int end) {
 }  // namespace dart
 
 #endif  // defined(TARGET_OS_LINUX)
+
+#endif  // !defined(DART_IO_SECURE_SOCKET_DISABLED)
