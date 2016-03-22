@@ -153,10 +153,11 @@ vm/reflect_core_vm_test: SkipByDesign
 
 [ ($noopt || $compiler == precompiler || $compiler == dart2app) ]
 # Deferred loading happens eagerly
-regress_23408_test: RuntimeError
+regress_23408_test: Skip
 deferred_inheritance_constraints_test: Skip
-deferred_load_constants_test: Skip # multitest gets confused
-tearoff_basic_test: RuntimeError, Crash # Conflicting flag.
+deferred_global_test: Skip
+deferred_load_constants_test: Skip
+tearoff_basic_test: Skip
 
 vm/type_vm_test: RuntimeError # Expects line and column numbers
 vm/type_cast_vm_test: RuntimeError # Line number mismatch.
@@ -173,15 +174,11 @@ list_literal4_test: SkipByDesign # Requires checked mode.
 generic_test: SkipByDesign # Requires checked mode.
 map_literal4_test: SkipByDesign # Requires checked mode.
 
-
 [ $runtime == dart_precompiled ]
-deferred_global_test: RuntimeError # Tries to produce a stack trace.
-ct_const2_test: Pass, Crash # Incompatible flag --compile_all
-hello_dart_test: Pass, Crash # Incompatible flag --compile_all
-
-implicit_closure_test: Pass, Crash # --use_slow_path
-
-deopt_inlined_function_lazy_test: Pass, Crash # Incompatible flag: --deoptimize-alot
+ct_const2_test: Skip # Incompatible flag: --compile_all
+hello_dart_test: Skip # Incompatible flag: --compile_all
+implicit_closure_test: Skip # Incompatible flag: --use_slow_path
+deopt_inlined_function_lazy_test: Skip # Incompatible flag: --deoptimize-alot
 
 [ $runtime == dart_product ]
 # Deferred loading happens eagerly (not sure why this works on precompiled code).
