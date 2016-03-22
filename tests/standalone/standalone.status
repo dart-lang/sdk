@@ -44,6 +44,8 @@ io/directory_fuzz_test: Skip
 # This is expected as MacOS by default runs with a very low number
 # of allowed open files ('ulimit -n' says something like 256).
 io/socket_many_connections_test: Skip
+# Client certs and/or PKCS12 certs working locally but not on buildbot.
+io/secure_server_client_certificate_test: Pass, Fail
 
 [ $runtime == vm && $system == linux ]
 # These tests have started timing out and issue 25649 has been filed to
