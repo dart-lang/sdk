@@ -433,11 +433,13 @@ class PackageUriResolver extends UriResolver {
       if (resolvedFile.exists()) {
         JavaFile canonicalFile =
             getCanonicalFile(packagesDirectory, pkgName, relPath);
+        if (actualUri != null) {
+          return new FileBasedSource(canonicalFile, actualUri);
+        }
         if (_isSelfReference(packagesDirectory, canonicalFile)) {
           uri = canonicalFile.toURI();
         }
-        return new FileBasedSource(
-            canonicalFile, actualUri != null ? actualUri : uri);
+        return new FileBasedSource(canonicalFile, uri);
       }
     }
     return new FileBasedSource(
