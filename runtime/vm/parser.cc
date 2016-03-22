@@ -13050,12 +13050,20 @@ AstNode* Parser::ParseMapLiteral(TokenPosition type_pos,
     factory_type_args = factory_type_args.Canonicalize();
     ArgumentListNode* factory_param = new(Z) ArgumentListNode(literal_pos);
     // The kv_pair array is temporary and of element type dynamic. It is passed
-    // to the factory to initialize a properly typed map.
-    ArrayNode* kv_pairs = new(Z) ArrayNode(
-        TokenPos(),
-        Type::ZoneHandle(Z, Type::ArrayType()),
-        kv_pairs_list);
-    factory_param->Add(kv_pairs);
+    // to the factory to initialize a properly typed map. Pass a pre-allocated
+    // array for the common empty map literal case.
+    if (kv_pairs_list.length() == 0) {
+      LiteralNode* empty_array_literal =
+          new(Z) LiteralNode(TokenPos(), Object::empty_array());
+      factory_param->Add(empty_array_literal);
+    } else {
+      ArrayNode* kv_pairs = new(Z) ArrayNode(
+          TokenPos(),
+          Type::ZoneHandle(Z, Type::ArrayType()),
+          kv_pairs_list);
+      factory_param->Add(kv_pairs);
+    }
+
     return CreateConstructorCallNode(literal_pos,
                                      factory_type_args,
                                      factory_method,
