@@ -713,7 +713,7 @@ CompileType ParameterInstr::ComputeType() const {
     // from being generated.
     switch (index()) {
       case RegExpMacroAssembler::kParamRegExpIndex:
-        return CompileType::FromCid(kJSRegExpCid);
+        return CompileType::FromCid(kRegExpCid);
       case RegExpMacroAssembler::kParamStringIndex:
         return CompileType::FromCid(function.string_specialization_cid());
       case RegExpMacroAssembler::kParamStartOffsetIndex:

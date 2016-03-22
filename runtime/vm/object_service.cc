@@ -1518,7 +1518,7 @@ void Stacktrace::PrintJSONImpl(JSONStream* stream, bool ref) const {
 }
 
 
-void JSRegExp::PrintJSONImpl(JSONStream* stream, bool ref) const {
+void RegExp::PrintJSONImpl(JSONStream* stream, bool ref) const {
   JSONObject jsobj(stream);
   PrintSharedInstanceJSON(&jsobj, ref);
   jsobj.AddProperty("kind", "RegExp");

@@ -3513,15 +3513,15 @@ void RawStacktrace::WriteTo(SnapshotWriter* writer,
 }
 
 
-RawJSRegExp* JSRegExp::ReadFrom(SnapshotReader* reader,
-                                intptr_t object_id,
-                                intptr_t tags,
-                                Snapshot::Kind kind,
-                                bool as_reference) {
+RawRegExp* RegExp::ReadFrom(SnapshotReader* reader,
+                            intptr_t object_id,
+                            intptr_t tags,
+                            Snapshot::Kind kind,
+                            bool as_reference) {
   ASSERT(reader != NULL);
 
-  // Allocate JSRegExp object.
-  JSRegExp& regex = JSRegExp::ZoneHandle(reader->zone(), NEW_OBJECT(JSRegExp));
+  // Allocate RegExp object.
+  RegExp& regex = RegExp::ZoneHandle(reader->zone(), NEW_OBJECT(RegExp));
   reader->AddBackRef(object_id, &regex, kIsDeserialized);
 
   // Read and Set all the other fields.
@@ -3549,17 +3549,17 @@ RawJSRegExp* JSRegExp::ReadFrom(SnapshotReader* reader,
 }
 
 
-void RawJSRegExp::WriteTo(SnapshotWriter* writer,
-                          intptr_t object_id,
-                          Snapshot::Kind kind,
-                          bool as_reference) {
+void RawRegExp::WriteTo(SnapshotWriter* writer,
+                        intptr_t object_id,
+                        Snapshot::Kind kind,
+                        bool as_reference) {
   ASSERT(writer != NULL);
 
   // Write out the serialization header value for this object.
   writer->WriteInlinedObjectHeader(object_id);
 
   // Write out the class and tags information.
-  writer->WriteIndexedObject(kJSRegExpCid);
+  writer->WriteIndexedObject(kRegExpCid);
   writer->WriteTags(writer->GetObjectTags(this));
 
   // Write out all the other fields.

@@ -5018,7 +5018,7 @@ RegExpEngine::CompilationResult RegExpEngine::CompileIR(
   const intptr_t specialization_cid = function.string_specialization_cid();
   const bool is_one_byte = (specialization_cid == kOneByteStringCid ||
                             specialization_cid == kExternalOneByteStringCid);
-  JSRegExp& regexp = JSRegExp::Handle(zone, function.regexp());
+  RegExp& regexp = RegExp::Handle(zone, function.regexp());
   const String& pattern = String::Handle(zone, regexp.pattern());
 
   ASSERT(!regexp.IsNull());
@@ -5132,7 +5132,7 @@ RegExpEngine::CompilationResult RegExpEngine::CompileIR(
 
 RegExpEngine::CompilationResult RegExpEngine::CompileBytecode(
     RegExpCompileData* data,
-    const JSRegExp& regexp,
+    const RegExp& regexp,
     bool is_one_byte,
     Zone* zone) {
   ASSERT(FLAG_interpret_irregexp);
@@ -5245,7 +5245,7 @@ RegExpEngine::CompilationResult RegExpEngine::CompileBytecode(
 
 
 static void CreateSpecializedFunction(Zone* zone,
-                                      const JSRegExp& regexp,
+                                      const RegExp& regexp,
                                       intptr_t specialization_cid,
                                       const Object& owner) {
   const intptr_t kParamCount = RegExpMacroAssembler::kParamCount;
@@ -5255,7 +5255,7 @@ static void CreateSpecializedFunction(Zone* zone,
       String::Handle(zone, Symbols::New(
           String::Handle(zone, String::Concat(
               String::Handle(zone, String::Concat(
-                  Symbols::Irregexp(),
+                  Symbols::ColonMatcher(),
                   Symbols::ColonSpace(), Heap::kOld)),
               String::Handle(regexp.pattern()), Heap::kOld)))),
       RawFunction::kIrregexpFunction,
@@ -5297,11 +5297,11 @@ static void CreateSpecializedFunction(Zone* zone,
 }
 
 
-RawJSRegExp* RegExpEngine::CreateJSRegExp(Zone* zone,
+RawRegExp* RegExpEngine::CreateRegExp(Zone* zone,
                                           const String& pattern,
                                           bool multi_line,
                                           bool ignore_case) {
-  const JSRegExp& regexp = JSRegExp::Handle(JSRegExp::New());
+  const RegExp& regexp = RegExp::Handle(RegExp::New());
 
   regexp.set_pattern(pattern);
 

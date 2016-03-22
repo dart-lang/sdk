@@ -2198,9 +2198,9 @@ class Function : public Object {
   RawScript* script() const;
   RawObject* RawOwner() const { return raw_ptr()->owner_; }
 
-  RawJSRegExp* regexp() const;
+  RawRegExp* regexp() const;
   intptr_t string_specialization_cid() const;
-  void SetRegExpData(const JSRegExp& regexp,
+  void SetRegExpData(const RegExp& regexp,
                      intptr_t string_specialization_cid) const;
 
   RawString* native_name() const;
@@ -5234,7 +5234,7 @@ class Instance : public Object {
   friend class Class;
   friend class Closure;
   friend class DeferredObject;
-  friend class JSRegExp;
+  friend class RegExp;
   friend class SnapshotWriter;
   friend class StubCode;
   friend class TypedDataView;
@@ -8038,7 +8038,7 @@ class Stacktrace : public Instance {
 
 
 // Internal JavaScript regular expression object.
-class JSRegExp : public Instance {
+class RegExp : public Instance {
  public:
   // Meaning of RegExType:
   // kUninitialized: the type of th regexp has not been initialized yet.
@@ -8092,13 +8092,13 @@ class JSRegExp : public Instance {
   static intptr_t function_offset(intptr_t cid) {
     switch (cid) {
       case kOneByteStringCid:
-        return OFFSET_OF(RawJSRegExp, one_byte_function_);
+        return OFFSET_OF(RawRegExp, one_byte_function_);
       case kTwoByteStringCid:
-        return OFFSET_OF(RawJSRegExp, two_byte_function_);
+        return OFFSET_OF(RawRegExp, two_byte_function_);
       case kExternalOneByteStringCid:
-         return OFFSET_OF(RawJSRegExp, external_one_byte_function_);
+         return OFFSET_OF(RawRegExp, external_one_byte_function_);
       case kExternalTwoByteStringCid:
-        return OFFSET_OF(RawJSRegExp, external_two_byte_function_);
+        return OFFSET_OF(RawRegExp, external_two_byte_function_);
     }
 
     UNREACHABLE();
@@ -8129,16 +8129,16 @@ class JSRegExp : public Instance {
   }
 
   void* GetDataStartAddress() const;
-  static RawJSRegExp* FromDataStartAddress(void* data);
+  static RawRegExp* FromDataStartAddress(void* data);
   const char* Flags() const;
 
   virtual bool CanonicalizeEquals(const Instance& other) const;
 
   static intptr_t InstanceSize() {
-    return RoundedAllocationSize(sizeof(RawJSRegExp));
+    return RoundedAllocationSize(sizeof(RawRegExp));
   }
 
-  static RawJSRegExp* New(Heap::Space space = Heap::kNew);
+  static RawRegExp* New(Heap::Space space = Heap::kNew);
 
  private:
   void set_type(RegExType type) const {
@@ -8157,7 +8157,7 @@ class JSRegExp : public Instance {
     return FlagsBits::decode(raw_ptr()->type_flags_);
   }
 
-  FINAL_HEAP_OBJECT_IMPLEMENTATION(JSRegExp, Instance);
+  FINAL_HEAP_OBJECT_IMPLEMENTATION(RegExp, Instance);
   friend class Class;
 };
 

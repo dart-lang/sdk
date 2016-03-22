@@ -1065,8 +1065,8 @@ RawWeakProperty* SnapshotReader::NewWeakProperty() {
 }
 
 
-RawJSRegExp* SnapshotReader::NewJSRegExp() {
-  ALLOC_NEW_OBJECT(JSRegExp);
+RawRegExp* SnapshotReader::NewRegExp() {
+  ALLOC_NEW_OBJECT(RegExp);
 }
 
 

@@ -74,7 +74,7 @@ namespace dart {
     V(ReceivePort)                                                             \
     V(SendPort)                                                                \
     V(Stacktrace)                                                              \
-    V(JSRegExp)                                                                \
+    V(RegExp)                                                                  \
     V(WeakProperty)                                                            \
     V(MirrorReference)                                                         \
     V(LinkedHashMap)                                                           \
@@ -2064,8 +2064,8 @@ class RawStacktrace : public RawInstance {
 
 
 // VM type for capturing JS regular expressions.
-class RawJSRegExp : public RawInstance {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(JSRegExp);
+class RawRegExp : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(RegExp);
 
   RawObject** from() {
     return reinterpret_cast<RawObject**>(&ptr()->num_bracket_expressions_);
@@ -2342,7 +2342,7 @@ inline bool RawObject::IsVariableSizeClassId(intptr_t index) {
          (index == kCodeCid) ||
          (index == kContextScopeCid) ||
          (index == kInstanceCid) ||
-         (index == kJSRegExpCid);
+         (index == kRegExpCid);
 }
 
 

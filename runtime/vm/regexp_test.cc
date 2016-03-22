@@ -14,8 +14,8 @@ namespace dart {
 
 static RawArray* Match(const String& pat, const String& str) {
   Zone* zone = Thread::Current()->zone();
-  const JSRegExp& regexp = JSRegExp::Handle(
-      RegExpEngine::CreateJSRegExp(zone, pat, false, false));
+  const RegExp& regexp = RegExp::Handle(
+      RegExpEngine::CreateRegExp(zone, pat, false, false));
   const Smi& idx = Smi::Handle(Smi::New(0));
   return IRRegExpMacroAssembler::Execute(regexp, str, idx, zone);
 }

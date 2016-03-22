@@ -1271,8 +1271,8 @@ NOT_IN_PRODUCT(
   pending_classes.Add(stacktrace_cls);
   // Super type set below, after Object is allocated.
 
-  cls = Class::New<JSRegExp>();
-  RegisterPrivateClass(cls, Symbols::JSSyntaxRegExp(), core_lib);
+  cls = Class::New<RegExp>();
+  RegisterPrivateClass(cls, Symbols::_RegExp(), core_lib);
   pending_classes.Add(cls);
 
   // Initialize the base interfaces used by the core VM classes.
@@ -1710,7 +1710,7 @@ NOT_IN_PRODUCT(
   cls = Class::New<ReceivePort>();
   cls = Class::New<SendPort>();
   cls = Class::New<Stacktrace>();
-  cls = Class::New<JSRegExp>();
+  cls = Class::New<RegExp>();
   cls = Class::New<Number>();
 
   cls = Class::New<WeakProperty>();
@@ -5610,7 +5610,7 @@ void Function::SetRedirectionTarget(const Function& target) const {
 //   invoke-field dispatcher: Array arguments descriptor
 //   redirecting constructor: RedirectionData
 //   closure function:        ClosureData
-//   irregexp function:       Array[0] = JSRegExp
+//   irregexp function:       Array[0] = RegExp
 //                            Array[1] = Smi string specialization cid
 //   native function:         Array[0] = String native name
 //                            Array[1] = Function implicit closure function
@@ -5644,10 +5644,10 @@ void Function::set_owner(const Object& value) const {
 }
 
 
-RawJSRegExp* Function::regexp() const {
+RawRegExp* Function::regexp() const {
   ASSERT(kind() == RawFunction::kIrregexpFunction);
   const Array& pair = Array::Cast(Object::Handle(raw_ptr()->data_));
-  return JSRegExp::RawCast(pair.At(0));
+  return RegExp::RawCast(pair.At(0));
 }
 
 
@@ -5658,7 +5658,7 @@ intptr_t Function::string_specialization_cid() const {
 }
 
 
-void Function::SetRegExpData(const JSRegExp& regexp,
+void Function::SetRegExpData(const RegExp& regexp,
                              intptr_t string_specialization_cid) const {
   ASSERT(kind() == RawFunction::kIrregexpFunction);
   ASSERT(RawObject::IsStringClassId(string_specialization_cid));
@@ -21418,17 +21418,17 @@ const char* Stacktrace::ToCStringInternal(intptr_t* frame_index,
 }
 
 
-void JSRegExp::set_pattern(const String& pattern) const {
+void RegExp::set_pattern(const String& pattern) const {
   StorePointer(&raw_ptr()->pattern_, pattern.raw());
 }
 
 
-void JSRegExp::set_function(intptr_t cid, const Function& value) const {
+void RegExp::set_function(intptr_t cid, const Function& value) const {
   StorePointer(FunctionAddr(cid), value.raw());
 }
 
 
-void JSRegExp::set_bytecode(bool is_one_byte, const TypedData& bytecode) const {
+void RegExp::set_bytecode(bool is_one_byte, const TypedData& bytecode) const {
   if (is_one_byte) {
     StorePointer(&raw_ptr()->one_byte_bytecode_, bytecode.raw());
   } else {
@@ -21437,16 +21437,16 @@ void JSRegExp::set_bytecode(bool is_one_byte, const TypedData& bytecode) const {
 }
 
 
-void JSRegExp::set_num_bracket_expressions(intptr_t value) const {
+void RegExp::set_num_bracket_expressions(intptr_t value) const {
   StoreSmi(&raw_ptr()->num_bracket_expressions_, Smi::New(value));
 }
 
 
-RawJSRegExp* JSRegExp::New(Heap::Space space) {
-  JSRegExp& result = JSRegExp::Handle();
+RawRegExp* RegExp::New(Heap::Space space) {
+  RegExp& result = RegExp::Handle();
   {
-    RawObject* raw = Object::Allocate(JSRegExp::kClassId,
-                                      JSRegExp::InstanceSize(),
+    RawObject* raw = Object::Allocate(RegExp::kClassId,
+                                      RegExp::InstanceSize(),
                                       space);
     NoSafepointScope no_safepoint;
     result ^= raw;
@@ -21458,21 +21458,21 @@ RawJSRegExp* JSRegExp::New(Heap::Space space) {
 }
 
 
-void* JSRegExp::GetDataStartAddress() const {
+void* RegExp::GetDataStartAddress() const {
   intptr_t addr = reinterpret_cast<intptr_t>(raw_ptr());
-  return reinterpret_cast<void*>(addr + sizeof(RawJSRegExp));
+  return reinterpret_cast<void*>(addr + sizeof(RawRegExp));
 }
 
 
-RawJSRegExp* JSRegExp::FromDataStartAddress(void* data) {
-  JSRegExp& regexp = JSRegExp::Handle();
-  intptr_t addr = reinterpret_cast<intptr_t>(data) - sizeof(RawJSRegExp);
+RawRegExp* RegExp::FromDataStartAddress(void* data) {
+  RegExp& regexp = RegExp::Handle();
+  intptr_t addr = reinterpret_cast<intptr_t>(data) - sizeof(RawRegExp);
   regexp ^= RawObject::FromAddr(addr);
   return regexp.raw();
 }
 
 
-const char* JSRegExp::Flags() const {
+const char* RegExp::Flags() const {
   switch (flags()) {
     case kGlobal | kIgnoreCase | kMultiLine :
     case kIgnoreCase | kMultiLine :
@@ -21490,14 +21490,14 @@ const char* JSRegExp::Flags() const {
 }
 
 
-bool JSRegExp::CanonicalizeEquals(const Instance& other) const {
+bool RegExp::CanonicalizeEquals(const Instance& other) const {
   if (this->raw() == other.raw()) {
     return true;  // "===".
   }
-  if (other.IsNull() || !other.IsJSRegExp()) {
+  if (other.IsNull() || !other.IsRegExp()) {
     return false;
   }
-  const JSRegExp& other_js = JSRegExp::Cast(other);
+  const RegExp& other_js = RegExp::Cast(other);
   // Match the pattern.
   const String& str1 = String::Handle(pattern());
   const String& str2 = String::Handle(other_js.pattern());
@@ -21514,10 +21514,10 @@ bool JSRegExp::CanonicalizeEquals(const Instance& other) const {
 }
 
 
-const char* JSRegExp::ToCString() const {
+const char* RegExp::ToCString() const {
   const String& str = String::Handle(pattern());
   return OS::SCreate(Thread::Current()->zone(),
-      "JSRegExp: pattern=%s flags=%s", str.ToCString(), Flags());
+      "RegExp: pattern=%s flags=%s", str.ToCString(), Flags());
 }
 
 

@@ -57,7 +57,7 @@ class RawICData;
 class RawImmutableArray;
 class RawInstructions;
 class RawInt32x4;
-class RawJSRegExp;
+class RawRegExp;
 class RawLanguageError;
 class RawLibrary;
 class RawLibraryPrefix;
@@ -481,7 +481,7 @@ class SnapshotReader : public BaseReader {
   RawObject* NewInteger(int64_t value);
   RawStacktrace* NewStacktrace();
   RawWeakProperty* NewWeakProperty();
-  RawJSRegExp* NewJSRegExp();
+  RawRegExp* NewRegExp();
 
   RawInstructions* GetInstructionsAt(int32_t offset, uword expected_tags) {
     return instructions_reader_->GetInstructionsAt(offset, expected_tags);
@@ -610,7 +610,7 @@ class SnapshotReader : public BaseReader {
   friend class ICData;
   friend class ImmutableArray;
   friend class Instructions;
-  friend class JSRegExp;
+  friend class RegExp;
   friend class LanguageError;
   friend class Library;
   friend class LibraryPrefix;
@@ -1055,7 +1055,7 @@ class SnapshotWriter : public BaseWriter {
   friend class RawGrowableObjectArray;
   friend class RawImmutableArray;
   friend class RawInstructions;
-  friend class RawJSRegExp;
+  friend class RawRegExp;
   friend class RawLibrary;
   friend class RawLinkedHashMap;
   friend class RawLiteralToken;

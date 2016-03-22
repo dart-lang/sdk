@@ -199,9 +199,9 @@ class ObjectPointerVisitor;
   V(_RawReceivePortImpl, "_RawReceivePortImpl")                                \
   V(_SendPortImpl, "_SendPortImpl")                                            \
   V(_StackTrace, "_StackTrace")                                                \
-  V(JSSyntaxRegExp, "_JSSyntaxRegExp")                                         \
+  V(_RegExp, "_RegExp")                                                        \
   V(RegExp, "RegExp")                                                          \
-  V(Irregexp, ":irregexp")                                                     \
+  V(ColonMatcher, ":matcher")                                                  \
   V(Object, "Object")                                                          \
   V(Int, "int")                                                                \
   V(Double, "double")                                                          \

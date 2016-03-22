@@ -187,7 +187,7 @@ namespace dart {
   V(_List, []=, ObjectArraySetIndexed, 886228780)                              \
   V(_GrowableList, .withData, GrowableArray_Allocate, 131424500)               \
   V(_GrowableList, add, GrowableArray_add, 242296201)                          \
-  V(_JSSyntaxRegExp, _ExecuteMatch, JSRegExp_ExecuteMatch, 1490503678)         \
+  V(_RegExp, _ExecuteMatch, RegExp_ExecuteMatch, 2077783530)                   \
   V(Object, ==, ObjectEquals, 291909336)                                       \
   V(Object, get:runtimeType, ObjectRuntimeType, 15188587)                      \
   V(_StringBase, get:hashCode, String_getHashCode, 2026040200)                 \
