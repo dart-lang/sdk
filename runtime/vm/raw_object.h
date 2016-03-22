@@ -1079,9 +1079,8 @@ class RawCode : public RawObject {
   uword entry_point_;
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->active_instructions_);
+    return reinterpret_cast<RawObject**>(&ptr()->instructions_);
   }
-  RawInstructions* active_instructions_;
   RawInstructions* instructions_;
   RawObjectPool* object_pool_;
   // If owner_ is Function::null() the owner is a regular stub.
