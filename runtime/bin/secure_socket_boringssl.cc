@@ -774,6 +774,18 @@ void FUNCTION_NAME(SecurityContext_AlpnSupported)(Dart_NativeArguments args) {
 void FUNCTION_NAME(SecurityContext_TrustBuiltinRoots)(
     Dart_NativeArguments args) {
   SSL_CTX* context = GetSecurityContext(args);
+#if defined(TARGET_OS_ANDROID)
+  // On Android, we don't compile in the trusted root certificates. Insead,
+  // we use the directory of trusted certificates already present on the device.
+  // This saves ~240KB from the size of the binary. This has the drawback that
+  // SSL_do_handshake will synchronously hit the filesystem looking for root
+  // certs during its trust evaluation. We call SSL_do_handshake directly from
+  // the Dart thread so that Dart code can be invoked from the "bad certificate"
+  // callback called by SSL_do_handshake.
+  const char* android_cacerts = "/system/etc/security/cacerts";
+  int status = SSL_CTX_load_verify_locations(context, NULL, android_cacerts);
+  CheckStatus(status, "TlsException", "Failure trusting builtint roots");
+#else
   X509_STORE* store = SSL_CTX_get_cert_store(context);
   BIO* roots_bio =
       BIO_new_mem_buf(const_cast<unsigned char*>(root_certificates_pem),
@@ -786,6 +798,7 @@ void FUNCTION_NAME(SecurityContext_TrustBuiltinRoots)(
     X509_STORE_add_cert(store, root_cert);
   }
   BIO_free(roots_bio);
+#endif  // defined(TARGET_OS_ANDROID)
 }
 
 
