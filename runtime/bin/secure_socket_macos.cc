@@ -535,15 +535,14 @@ static OSStatus TryPEMImport(CFDataRef cfdata,
   SecExternalFormat format = kSecFormatPEMSequence;
   SecExternalItemType sitem_type = kSecItemTypeAggregate;
 
-  SecKeyImportExportParameters params;
+  SecItemImportExportKeyParameters params;
   memset(&params, 0, sizeof(params));
   params.version = SEC_KEY_IMPORT_EXPORT_PARAMS_VERSION;
   params.flags = kSecKeyNoAccessControl;
   params.passphrase = password;
-  params.keyAttributes = CSSM_KEYATTR_EXTRACTABLE;
 
   CFArrayRef items = NULL;
-  status = SecKeychainItemImport(
+  status = SecItemImport(
       cfdata, NULL, &format, &sitem_type, 0, &params, NULL, &items);
 
   if (status != noErr) {
@@ -630,12 +629,11 @@ static OSStatus TryPKCS12Import(CFDataRef cfdata,
   SecExternalFormat format = kSecFormatPKCS12;
   SecExternalItemType sitem_type = kSecItemTypeAggregate;
 
-  SecKeyImportExportParameters params;
+  SecItemImportExportKeyParameters params;
   memset(&params, 0, sizeof(params));
   params.version = SEC_KEY_IMPORT_EXPORT_PARAMS_VERSION;
   params.flags = kSecKeyNoAccessControl;
   params.passphrase = password;
-  params.keyAttributes = CSSM_KEYATTR_EXTRACTABLE;
 
   CFArrayRef items = NULL;
   if (SSL_LOG_CERTS) {
@@ -676,7 +674,7 @@ static OSStatus TryPKCS12Import(CFDataRef cfdata,
     *out_keychain = keychain;
   }
 
-  status = SecKeychainItemImport(
+  status = SecItemImport(
       cfdata, NULL, &format, &sitem_type, 0, &params, keychain, &items);
   if (status != noErr) {
     if (SSL_LOG_CERTS) {
