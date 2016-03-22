@@ -189,6 +189,8 @@ class PackageAnalyzer {
       AnalysisErrorInfo errorInfo = context.getErrors(source);
       formatter.formatErrors([errorInfo]);
     }
-    stats.print(sink);
+    if (!options.machineFormat) {
+      stats.print(sink);
+    }
   }
 }
