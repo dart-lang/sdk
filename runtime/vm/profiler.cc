@@ -989,6 +989,10 @@ void Profiler::SampleThread(Thread* thread,
     return;
   }
 
+  if (thread->IsMutatorThread() && isolate->IsDeoptimizing()) {
+    return;
+  }
+
   uword stack_lower = 0;
   uword stack_upper = 0;
   if (!GetAndValidateIsolateStackBounds(thread,

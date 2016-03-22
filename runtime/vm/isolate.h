@@ -372,6 +372,7 @@ class Isolate : public BaseIsolate {
     return object_id_ring_;
   }
 
+  bool IsDeoptimizing() const { return deopt_context_ != NULL; }
   DeoptContext* deopt_context() const { return deopt_context_; }
   void set_deopt_context(DeoptContext* value) {
     ASSERT(value == NULL || deopt_context_ == NULL);
