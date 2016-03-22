@@ -14,7 +14,14 @@ class _StructuredCloneDartium extends _StructuredClone {
   cloneNotRequired(e) => e is js.JsObject;
 }
 
-class _AcceptStructuredCloneDartium extends _AcceptStructuredClone {
+/// A version of _AcceptStructuredClone, but using a different algorithm
+/// so we can take advantage of an identity HashMap on Dartium without
+/// the bad side-effect of modifying the JS source objects if we do the same in
+/// dart2js.
+///
+/// This no longer inherits anything from _AcceptStructuredClone
+/// and is never used polymorphically with it, so it doesn't inherit.
+class _AcceptStructuredCloneDartium {
   newDartList(length) => new List(length);
 
   // JsObjects won't be identical, but will be equal only if the underlying
@@ -27,6 +34,75 @@ class _AcceptStructuredCloneDartium extends _AcceptStructuredClone {
     for (var key in keys) {
       action(key, jsObject[key]);
     }
+  }
+
+  // Keep track of the clones, keyed by the original object. If we're
+  // not copying, these may be the same.
+  var clones = new HashMap.identity();
+  bool mustCopy = false;
+
+  Object findSlot(value) {
+    return clones.putIfAbsent(value, () => null);
+  }
+
+  writeSlot(original, x) { clones[original] = x; }
+
+  walk(e) {
+    if (e == null) return e;
+    if (e is bool) return e;
+    if (e is num) return e;
+    if (e is String) return e;
+
+    if (isJavaScriptDate(e)) {
+      return convertNativeToDart_DateTime(e);
+    }
+
+    if (isJavaScriptRegExp(e)) {
+      // TODO(sra).
+      throw new UnimplementedError('structured clone of RegExp');
+    }
+
+    if (isJavaScriptPromise(e)) {
+      return convertNativePromiseToDartFuture(e);
+    }
+
+    if (isJavaScriptSimpleObject(e)) {
+      // TODO(sra): If mustCopy is false, swizzle the prototype for one of a Map
+      // implementation that uses the properies as storage.
+      var copy = findSlot(e);
+      if (copy != null) return copy;
+      copy = {};
+
+      writeSlot(e, copy);
+      forEachJsField(e, (key, value) => copy[key] = walk(value));
+      return copy;
+    }
+
+    if (isJavaScriptArray(e)) {
+      var copy = findSlot(e);
+      if (copy != null) return copy;
+
+      int length = e.length;
+      // Since a JavaScript Array is an instance of Dart List, we can modify it
+      // in-place unless we must copy.
+      copy = mustCopy ? newDartList(length) : e;
+      writeSlot(e, copy);
+
+      for (int i = 0; i < length; i++) {
+        copy[i] = walk(e[i]);
+      }
+      return copy;
+    }
+
+    // Assume anything else is already a valid Dart object, either by having
+    // already been processed, or e.g. a clonable native class.
+    return e;
+  }
+
+  convertNativeToDart_AcceptStructuredClone(object, {mustCopy: false}) {
+    this.mustCopy = mustCopy;
+    var copy = walk(object);
+    return copy;
   }
 }
 
