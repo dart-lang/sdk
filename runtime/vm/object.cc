@@ -10803,6 +10803,15 @@ RawObject* Namespace::Lookup(const String& name) const {
   if (obj.IsNull() || obj.IsLibraryPrefix()) {
     // Lookup in the re-exported symbols.
     obj = lib.LookupReExport(name);
+    if (obj.IsNull() && !Field::IsSetterName(name)) {
+      // LookupReExport() only returns objects that match the given name.
+      // If there is no field/func/getter, try finding a setter.
+      const String& setter_name =
+          String::Handle(Field::LookupSetterSymbol(name));
+      if (!setter_name.IsNull()) {
+        obj = lib.LookupReExport(setter_name);
+      }
+    }
   }
   if (obj.IsNull() || HidesName(name) || obj.IsLibraryPrefix()) {
     return Object::null();
