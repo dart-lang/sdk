@@ -11860,7 +11860,6 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
   }
   // Resolve type arguments, if any.
   const TypeArguments& arguments = TypeArguments::Handle(Z, type->arguments());
-      TypeArguments::Handle(Z, type->arguments());
   if (!arguments.IsNull()) {
     const intptr_t num_arguments = arguments.Length();
     for (intptr_t i = 0; i < num_arguments; i++) {
