@@ -3179,13 +3179,12 @@ Language/Classes/Constructors/Factories/return_wrong_type_t02: Pass, Slow # Issu
 Language/Classes/Constructors/Factories/return_type_t05: Pass, Slow # Issue 25940
 
 [ $compiler == dart2js && $runtime == ff && $system != windows ]
-LayoutTests/fast/canvas/canvas-resetTransform_t01: RuntimeError # Please triage this failure
-LayoutTests/fast/canvas/canvas-setTransform_t01: RuntimeError # Please triage this failure
 LayoutTests/fast/xpath/4XPath/Core/test_parser_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/xpath/py-dom-xpath/abbreviations_t01: RuntimeError # Dartium JSInterop failure
 
 [ $compiler == dart2js && $runtime == ff && $system == linux]
 LayoutTests/fast/canvas/canvas-composite-text-alpha_t01: RuntimeError # co19 issue 16
+LayoutTests/fast/text/whitespace/nowrap-line-break-after-white-space_t01: Pass, RuntimeError # Please triage this failure
 
 [ $compiler == dart2js && $runtime == safari ]
 LayoutTests/fast/alignment/parse-align-items_t01: RuntimeError # Please triage this failure

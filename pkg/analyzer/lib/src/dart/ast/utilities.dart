@@ -60,22 +60,23 @@ class AstCloner implements AstVisitor<AstNode> {
   /**
    * Return a clone of the given [node].
    */
-  AstNode cloneNode(AstNode node) {
+  AstNode/*=E*/ cloneNode/*<E extends AstNode>*/(AstNode/*=E*/ node) {
     if (node == null) {
       return null;
     }
-    return node.accept(this) as AstNode;
+    return node.accept(this) as AstNode/*=E*/;
   }
 
   /**
    * Return a list containing cloned versions of the nodes in the given list of
    * [nodes].
    */
-  List<AstNode> cloneNodeList(NodeList nodes) {
+  List<AstNode/*=E*/ > cloneNodeList/*<E extends AstNode>*/(
+      NodeList/*<E>*/ nodes) {
     int count = nodes.length;
-    List clonedNodes = new List();
+    List/*<E>*/ clonedNodes = new List/*<E>*/();
     for (int i = 0; i < count; i++) {
-      clonedNodes.add((nodes[i]).accept(this) as AstNode);
+      clonedNodes.add((nodes[i]).accept(this) as AstNode/*=E*/);
     }
     return clonedNodes;
   }
@@ -2588,6 +2589,7 @@ class ElementLocator_ElementMapper extends GeneralizingAstVisitor<Element> {
  * mapping the old token stream to a new token stream, and preserving resolution
  * results.
  */
+@deprecated
 class IncrementalAstCloner implements AstVisitor<AstNode> {
   /**
    * The node to be replaced during the cloning process.
@@ -3101,18 +3103,21 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
           _mapToken(node.implementsKeyword), _cloneNodeList(node.interfaces));
 
   @override
-  ImportDirective visitImportDirective(ImportDirective node) =>
-      new ImportDirective(
-          _cloneNode(node.documentationComment),
-          _cloneNodeList(node.metadata),
-          _mapToken(node.keyword),
-          _cloneNode(node.uri),
-          _cloneNodeList(node.configurations),
-          _mapToken(node.deferredKeyword),
-          _mapToken(node.asKeyword),
-          _cloneNode(node.prefix),
-          _cloneNodeList(node.combinators),
-          _mapToken(node.semicolon));
+  ImportDirective visitImportDirective(ImportDirective node) {
+    ImportDirective copy = new ImportDirective(
+        _cloneNode(node.documentationComment),
+        _cloneNodeList(node.metadata),
+        _mapToken(node.keyword),
+        _cloneNode(node.uri),
+        _cloneNodeList(node.configurations),
+        _mapToken(node.deferredKeyword),
+        _mapToken(node.asKeyword),
+        _cloneNode(node.prefix),
+        _cloneNodeList(node.combinators),
+        _mapToken(node.semicolon));
+    copy.element = node.element;
+    return copy;
+  }
 
   @override
   IndexExpression visitIndexExpression(IndexExpression node) {
@@ -3190,13 +3195,16 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
           _cloneNodeList(node.labels), _cloneNode(node.statement));
 
   @override
-  LibraryDirective visitLibraryDirective(LibraryDirective node) =>
-      new LibraryDirective(
-          _cloneNode(node.documentationComment),
-          _cloneNodeList(node.metadata),
-          _mapToken(node.libraryKeyword),
-          _cloneNode(node.name),
-          _mapToken(node.semicolon));
+  LibraryDirective visitLibraryDirective(LibraryDirective node) {
+    LibraryDirective copy = new LibraryDirective(
+        _cloneNode(node.documentationComment),
+        _cloneNodeList(node.metadata),
+        _mapToken(node.libraryKeyword),
+        _cloneNode(node.name),
+        _mapToken(node.semicolon));
+    copy.element = node.element;
+    return copy;
+  }
 
   @override
   LibraryIdentifier visitLibraryIdentifier(LibraryIdentifier node) {
@@ -3607,19 +3615,19 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
       _cloneNode(node.expression),
       _mapToken(node.semicolon));
 
-  AstNode _cloneNode(AstNode node) {
+  AstNode/*=E*/ _cloneNode/*<E extends AstNode>*/(AstNode/*=E*/ node) {
     if (node == null) {
       return null;
     }
     if (identical(node, _oldNode)) {
-      return _newNode;
+      return _newNode as AstNode/*=E*/;
     }
-    return node.accept(this) as AstNode;
+    return node.accept(this) as AstNode/*=E*/;
   }
 
-  List _cloneNodeList(NodeList nodes) {
-    List clonedNodes = new List();
-    for (AstNode node in nodes) {
+  List/*<E>*/ _cloneNodeList/*<E extends AstNode>*/(NodeList/*<E>*/ nodes) {
+    List/*<E>*/ clonedNodes = new List/*<E>*/();
+    for (AstNode/*=E*/ node in nodes) {
       clonedNodes.add(_cloneNode(node));
     }
     return clonedNodes;

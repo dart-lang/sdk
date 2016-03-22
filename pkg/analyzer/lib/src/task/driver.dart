@@ -165,6 +165,9 @@ class AnalysisDriver {
         state == CacheState.IN_PROCESS) {
       return null;
     }
+    if (context.aboutToComputeResult(entry, result)) {
+      return null;
+    }
     TaskDescriptor taskDescriptor = taskManager.findTask(target, result);
     if (taskDescriptor == null) {
       return null;

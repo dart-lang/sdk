@@ -127,21 +127,21 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
     }
     computer._addRegionForNode(node.constructorName, element);
     // arguments
-    _safelyVisit(node.arguments);
+    node.arguments?.accept(this);
   }
 
   @override
   visitAssignmentExpression(AssignmentExpression node) {
-    _safelyVisit(node.leftHandSide);
+    node.leftHandSide?.accept(this);
     computer._addRegionForToken(node.operator, node.bestElement);
-    _safelyVisit(node.rightHandSide);
+    node.rightHandSide?.accept(this);
   }
 
   @override
   visitBinaryExpression(BinaryExpression node) {
-    _safelyVisit(node.leftOperand);
+    node.leftOperand?.accept(this);
     computer._addRegionForToken(node.operator, node.bestElement);
-    _safelyVisit(node.rightOperand);
+    node.rightOperand?.accept(this);
   }
 
   @override
@@ -255,7 +255,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
     computer._addRegionForToken(node.thisKeyword, element);
     computer._addRegionForNode(node.constructorName, element);
     // process arguments
-    _safelyVisit(node.argumentList);
+    node.argumentList?.accept(this);
   }
 
   @override
@@ -277,7 +277,7 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
     computer._addRegionForToken(node.superKeyword, element);
     computer._addRegionForNode(node.constructorName, element);
     // process arguments
-    _safelyVisit(node.argumentList);
+    node.argumentList?.accept(this);
   }
 
   void _addConstructorName(AstNode parent, ConstructorName node) {
@@ -322,12 +322,6 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor {
       if (element.context.exists(source)) {
         computer._addRegionForNode(node.uri, element);
       }
-    }
-  }
-
-  void _safelyVisit(AstNode node) {
-    if (node != null) {
-      node.accept(this);
     }
   }
 }

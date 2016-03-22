@@ -8,7 +8,6 @@
 #include "bin/extensions.h"
 #include <dlfcn.h>  // NOLINT
 
-
 namespace dart {
 namespace bin {
 

@@ -869,6 +869,28 @@ class AstFactory {
           parameters,
           body);
 
+  static MethodDeclaration methodDeclaration4(
+          {bool external: false,
+          Keyword modifier,
+          TypeName returnType,
+          Keyword property,
+          bool operator: false,
+          String name,
+          FormalParameterList parameters,
+          FunctionBody body}) =>
+      new MethodDeclaration(
+          null,
+          null,
+          external ? TokenFactory.tokenFromKeyword(Keyword.EXTERNAL) : null,
+          modifier == null ? null : TokenFactory.tokenFromKeyword(modifier),
+          returnType,
+          property == null ? null : TokenFactory.tokenFromKeyword(property),
+          operator ? TokenFactory.tokenFromKeyword(Keyword.OPERATOR) : null,
+          identifier3(name),
+          null,
+          parameters,
+          body);
+
   static MethodInvocation methodInvocation(Expression target, String methodName,
           [List<Expression> arguments,
           TokenType operator = TokenType.PERIOD]) =>

@@ -122,7 +122,7 @@ class NsmEmitter extends CodeEmitterHelper {
     List<jsAst.Statement> statements = <jsAst.Statement>[];
     if (trivialNsmHandlers.length == 0) return statements;
 
-    bool minify = compiler.enableMinification;
+    bool minify = compiler.options.enableMinification;
     bool useDiffEncoding = minify && trivialNsmHandlers.length > 30;
 
     // Find out how many selectors there are with the special calling

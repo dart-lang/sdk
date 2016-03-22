@@ -80,18 +80,12 @@ abstract class ElementZ extends Element with ElementCommon {
   }
 
   @override
-  ClassElement get contextClass => _unsupported('contextClass');
-
-  @override
   ClassElement get enclosingClass => null;
 
   @override
   Element get enclosingClassOrCompilationUnit {
     return _unsupported('enclosingClassOrCompilationUnit');
   }
-
-  @override
-  String get fixedBackendName => _unsupported('fixedBackendName');
 
   @override
   LibraryElement get implementationLibrary => library;
@@ -325,6 +319,8 @@ class AbstractFieldElementZ extends ElementZ implements AbstractFieldElement {
 
   AbstractFieldElementZ(this.name, this.getter, this.setter);
 
+  FunctionElement get _canonicalElement => getter != null ? getter : setter;
+
   @override
   ElementKind get kind => ElementKind.ABSTRACT_FIELD;
 
@@ -334,19 +330,16 @@ class AbstractFieldElementZ extends ElementZ implements AbstractFieldElement {
   }
 
   @override
-  LibraryElement get library {
-    return getter != null ? getter.library : setter.library;
-  }
+  LibraryElement get library => _canonicalElement.library;
 
   @override
-  Element get enclosingElement {
-    return getter != null ? getter.enclosingElement : setter.enclosingElement;
-  }
+  Element get enclosingElement => _canonicalElement.enclosingElement;
 
   @override
-  SourceSpan get sourcePosition {
-    return getter != null ? getter.sourcePosition : setter.sourcePosition;
-  }
+  SourceSpan get sourcePosition => _canonicalElement.sourcePosition;
+
+  @override
+  ClassElement get enclosingClass => _canonicalElement.enclosingClass;
 }
 
 class LibraryElementZ extends DeserializedElementZ
@@ -531,6 +524,9 @@ class CompilationUnitElementZ extends DeserializedElementZ
 
   @override
   CompilationUnitElement get compilationUnit => this;
+
+  @override
+  Element get enclosingElement => library;
 
   @override
   accept(ElementVisitor visitor, arg) {
@@ -726,13 +722,16 @@ abstract class ParametersMixin
 abstract class FunctionTypedElementMixin
     implements FunctionElement, DeserializedElementZ {
   @override
-  AsyncMarker get asyncMarker => _unsupported('');
-
-  @override
-  bool get isExternal => _unsupported('');
+  AsyncMarker get asyncMarker => _unsupported('asyncMarker');
 
   @override
   FunctionElement asFunctionElement() => this;
+
+  @override
+  bool get isExternal {
+    return _decoder.getBool(
+        Key.IS_EXTERNAL, isOptional: true, defaultValue: false);
+  }
 }
 
 class ClassElementZ extends DeserializedElementZ
@@ -853,11 +852,12 @@ class ClassElementZ extends DeserializedElementZ
   bool get isEnumClass => false;
 
   @override
-  bool get isProxy => _unsupported('isProxy');
+  bool get isProxy => _decoder.getBool(Key.IS_PROXY);
 
   @override
   bool get isUnnamedMixinApplication {
-    return _unsupported('isUnnamedMixinApplication');
+    return _decoder.getBool(Key.IS_UNNAMED_MIXIN_APPLICATION,
+        isOptional: true, defaultValue: false);
   }
 
   @override
@@ -883,6 +883,25 @@ class ClassElementZ extends DeserializedElementZ
   @override
   void ensureResolved(Resolution resolution) {
     resolution.registerClass(this);
+  }
+}
+
+
+class EnumClassElementZ extends ClassElementZ implements EnumClassElement {
+  List<FieldElement> _enumValues;
+
+  EnumClassElementZ(ObjectDecoder decoder)
+      : super(decoder);
+
+  @override
+  bool get isEnumClass => true;
+
+  @override
+  List<FieldElement> get enumValues {
+    if (_enumValues == null) {
+      _enumValues = _decoder.getElements(Key.FIELDS);
+    }
+    return _enumValues;
   }
 }
 
@@ -955,6 +974,11 @@ abstract class ConstructorElementZ extends DeserializedElementZ
   }
 
   @override
+  bool get isEffectiveTargetMalformed {
+    return _unsupported('isEffectiveTargetMalformed');
+  }
+
+  @override
   bool get isRedirectingFactory => _unsupported('isRedirectingFactory');
 
   @override
@@ -975,6 +999,10 @@ class GenerativeConstructorElementZ extends ConstructorElementZ {
 
   @override
   ElementKind get kind => ElementKind.GENERATIVE_CONSTRUCTOR;
+
+  @override
+  bool get isEffectiveTargetMalformed =>
+      _unsupported('isEffectiveTargetMalformed');
 }
 
 class FactoryConstructorElementZ extends ConstructorElementZ {
@@ -984,6 +1012,10 @@ class FactoryConstructorElementZ extends ConstructorElementZ {
 
   @override
   ElementKind get kind => ElementKind.FACTORY_CONSTRUCTOR;
+
+  @override
+  bool get isEffectiveTargetMalformed =>
+      _unsupported('isEffectiveTargetMalformed');
 }
 
 abstract class MemberElementMixin
@@ -1094,6 +1126,61 @@ class InstanceFunctionElementZ extends FunctionElementZ
     with ClassMemberMixin, InstanceMemberMixin {
   InstanceFunctionElementZ(ObjectDecoder decoder)
       : super(decoder);
+}
+
+abstract class LocalExecutableMixin
+    implements DeserializedElementZ, ExecutableElement, LocalElement {
+  ExecutableElement _executableContext;
+
+  @override
+  Element get enclosingElement => executableContext;
+
+  @override
+  ExecutableElement get executableContext {
+    if (_executableContext == null) {
+      _executableContext = _decoder.getElement(Key.EXECUTABLE_CONTEXT);
+    }
+    return _executableContext;
+  }
+
+  @override
+  MemberElement get memberContext => executableContext.memberContext;
+
+  @override
+  bool get isLocal => true;
+
+  @override
+  LibraryElement get library => memberContext.library;
+
+  @override
+  CompilationUnitElement get compilationUnit {
+    return memberContext.compilationUnit;
+  }
+
+  @override
+  bool get hasTreeElements => memberContext.hasTreeElements;
+
+  @override
+  TreeElements get treeElements => memberContext.treeElements;
+}
+
+class LocalFunctionElementZ extends DeserializedElementZ
+    with LocalExecutableMixin,
+         AstElementMixin,
+         ParametersMixin,
+         FunctionTypedElementMixin,
+         TypedElementMixin
+    implements LocalFunctionElement {
+  LocalFunctionElementZ(ObjectDecoder decoder)
+      : super(decoder);
+
+  @override
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitFunctionElement(this, arg);
+  }
+
+  @override
+  ElementKind get kind => ElementKind.FUNCTION;
 }
 
 abstract class GetterElementZ extends DeserializedElementZ

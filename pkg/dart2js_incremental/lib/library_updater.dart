@@ -796,7 +796,7 @@ class LibraryUpdater extends JsFeatures {
     compiler.phase = Compiler.PHASE_DONE_RESOLVING;
 
     // TODO(ahe): Clean this up. Don't call this method in analyze-only mode.
-    if (compiler.analyzeOnly) return "/* analyze only */";
+    if (compiler.options.analyzeOnly) return "/* analyze only */";
 
     Set<ClassElementX> changedClasses =
         new Set<ClassElementX>.from(_classesWithSchemaChanges);

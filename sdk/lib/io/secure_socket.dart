@@ -970,8 +970,16 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
 
     return _IOService._dispatch(_SSL_PROCESS_FILTER, args).then((response) {
       if (response.length == 2) {
-        _reportError(new TlsException('${response[1]} error ${response[0]}'),
-                     null);
+        if (wasInHandshake) {
+          // If we're in handshake, throw a handshake error.
+          _reportError(
+              new HandshakeException('${response[1]} error ${response[0]}'),
+              null);
+        } else {
+          // If we're connected, throw a TLS error.
+          _reportError(new TlsException('${response[1]} error ${response[0]}'),
+                       null);
+        }
       }
       int start(int index) => response[2 * index];
       int end(int index) => response[2 * index + 1];

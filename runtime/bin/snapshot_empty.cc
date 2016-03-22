@@ -13,7 +13,6 @@ typedef unsigned __int8 uint8_t;
 #endif
 #include <stddef.h>
 
-
 namespace dart {
 namespace bin {
 

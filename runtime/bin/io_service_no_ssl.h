@@ -8,7 +8,6 @@
 #include "bin/builtin.h"
 #include "bin/utils.h"
 
-
 namespace dart {
 namespace bin {
 
@@ -66,6 +65,10 @@ IO_SERVICE_REQUEST_LIST(DECLARE_REQUEST)
   };
 
   static Dart_Port GetServicePort();
+
+ private:
+  DISALLOW_ALLOCATION();
+  DISALLOW_IMPLICIT_CONSTRUCTORS(IOService);
 };
 
 }  // namespace bin

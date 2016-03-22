@@ -138,20 +138,14 @@ void Timeline::InitOnce() {
     recorder_ = new TimelineEventRingRecorder();
   }
   enabled_streams_ = GetEnabledByDefaultTimelineStreams();
-  vm_stream_.Init("VM", HasStream(enabled_streams_, "VM"), NULL);
-  vm_api_stream_.Init("API",
-                      HasStream(enabled_streams_, "API"),
-                      &stream_API_enabled_);
   // Global overrides.
-#define ISOLATE_TIMELINE_STREAM_FLAG_DEFAULT(name, not_used)                   \
-  stream_##name##_enabled_ = HasStream(enabled_streams_, #name);
-  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_FLAG_DEFAULT)
-#undef ISOLATE_TIMELINE_STREAM_FLAG_DEFAULT
-}
-
-
-void Timeline::SetVMStreamEnabled(bool enabled) {
-  vm_stream_.set_enabled(enabled);
+#define TIMELINE_STREAM_FLAG_DEFAULT(name, not_used)                           \
+  stream_##name##_enabled_ = HasStream(enabled_streams_, #name);               \
+  stream_##name##_.Init(#name,                                                 \
+                        stream_##name##_enabled_,                              \
+                        &stream_##name##_enabled_);
+  TIMELINE_STREAM_LIST(TIMELINE_STREAM_FLAG_DEFAULT)
+#undef TIMELINE_STREAM_FLAG_DEFAULT
 }
 
 
@@ -177,12 +171,10 @@ void Timeline::Shutdown() {
     recorder_->WriteTo(FLAG_timeline_dir);
   }
   // Disable global streams.
-  vm_stream_.set_enabled(false);
-  vm_api_stream_.set_enabled(false);
-#define ISOLATE_TIMELINE_STREAM_DISABLE(name, not_used)                   \
+#define TIMELINE_STREAM_DISABLE(name, not_used)                                \
   stream_##name##_enabled_ = false;
-  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_DISABLE)
-#undef ISOLATE_TIMELINE_STREAM_DISABLE
+  TIMELINE_STREAM_LIST(TIMELINE_STREAM_DISABLE)
+#undef TIMELINE_STREAM_DISABLE
   delete recorder_;
   recorder_ = NULL;
   if (enabled_streams_ != NULL) {
@@ -194,30 +186,6 @@ void Timeline::Shutdown() {
 
 TimelineEventRecorder* Timeline::recorder() {
   return recorder_;
-}
-
-
-void Timeline::SetupIsolateStreams(Isolate* isolate) {
-  if (!FLAG_support_timeline) {
-    return;
-  }
-#define ISOLATE_TIMELINE_STREAM_INIT(name, enabled_by_default)                 \
-  isolate->Get##name##Stream()->Init(                                          \
-      #name,                                                                   \
-      (enabled_by_default || HasStream(enabled_streams_, #name)),              \
-      Timeline::Stream##name##EnabledFlag());
-  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_INIT);
-#undef ISOLATE_TIMELINE_STREAM_INIT
-}
-
-
-TimelineStream* Timeline::GetVMStream() {
-  return &vm_stream_;
-}
-
-
-TimelineStream* Timeline::GetVMApiStream() {
-  return &vm_api_stream_;
 }
 
 
@@ -256,9 +224,8 @@ void Timeline::PrintFlagsToJSON(JSONStream* js) {
     JSONArray availableStreams(&obj, "availableStreams");
 #define ADD_STREAM_NAME(name, not_used)                                        \
     availableStreams.AddValue(#name);
-ISOLATE_TIMELINE_STREAM_LIST(ADD_STREAM_NAME);
+TIMELINE_STREAM_LIST(ADD_STREAM_NAME);
 #undef ADD_STREAM_NAME
-    availableStreams.AddValue("VM");
   }
   {
     JSONArray recordedStreams(&obj, "recordedStreams");
@@ -266,11 +233,8 @@ ISOLATE_TIMELINE_STREAM_LIST(ADD_STREAM_NAME);
     if (stream_##name##_enabled_) {                                            \
       recordedStreams.AddValue(#name);                                         \
     }
-ISOLATE_TIMELINE_STREAM_LIST(ADD_RECORDED_STREAM_NAME);
+TIMELINE_STREAM_LIST(ADD_RECORDED_STREAM_NAME);
 #undef ADD_RECORDED_STREAM_NAME
-    if (vm_stream_.enabled()) {
-      recordedStreams.AddValue("VM");
-    }
   }
 }
 
@@ -286,17 +250,15 @@ void Timeline::Clear() {
 
 
 TimelineEventRecorder* Timeline::recorder_ = NULL;
-TimelineStream Timeline::vm_stream_;
-TimelineStream Timeline::vm_api_stream_;
 MallocGrowableArray<char*>* Timeline::enabled_streams_ = NULL;
 Dart_EmbedderTimelineStartRecording Timeline::start_recording_cb_ = NULL;
 Dart_EmbedderTimelineStopRecording Timeline::stop_recording_cb_ = NULL;
-Dart_EmbedderTimelineGetTimeline Timeline::get_timeline_cb_ = NULL;
 
-#define ISOLATE_TIMELINE_STREAM_DEFINE_FLAG(name, enabled_by_default)          \
-  bool Timeline::stream_##name##_enabled_ = enabled_by_default;
-  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_DEFINE_FLAG)
-#undef ISOLATE_TIMELINE_STREAM_DEFINE_FLAG
+#define TIMELINE_STREAM_DEFINE(name, enabled_by_default)                       \
+  bool Timeline::stream_##name##_enabled_ = enabled_by_default;                \
+  TimelineStream Timeline::stream_##name##_;
+  TIMELINE_STREAM_LIST(TIMELINE_STREAM_DEFINE)
+#undef TIMELINE_STREAM_DEFINE
 
 TimelineEvent::TimelineEvent()
     : timestamp0_(0),
@@ -1027,21 +989,13 @@ void TimelineEventRecorder::ThreadBlockCompleteEvent(TimelineEvent* event) {
 }
 
 
-void TimelineEventRecorder::PrintEmbedderJSONEvents(JSONStream* events) {
-  if (Timeline::get_get_timeline_cb() != NULL) {
-    events->PrintCommaIfNeeded();
-    Timeline::get_get_timeline_cb()(AppendJSONStreamConsumer, events);
-  }
-}
-
-
 void TimelineEventRecorder::WriteTo(const char* directory) {
   if (!FLAG_support_service) {
     return;
   }
-  Dart_FileOpenCallback file_open = Isolate::file_open_callback();
-  Dart_FileWriteCallback file_write = Isolate::file_write_callback();
-  Dart_FileCloseCallback file_close = Isolate::file_close_callback();
+  Dart_FileOpenCallback file_open = Dart::file_open_callback();
+  Dart_FileWriteCallback file_write = Dart::file_write_callback();
+  Dart_FileCloseCallback file_close = Dart::file_close_callback();
   if ((file_open == NULL) || (file_write == NULL) || (file_close == NULL)) {
     return;
   }
@@ -1174,7 +1128,6 @@ void TimelineEventRingRecorder::PrintJSON(JSONStream* js,
     JSONArray events(&topLevel, "traceEvents");
     PrintJSONMeta(&events);
     PrintJSONEvents(&events, filter);
-    PrintEmbedderJSONEvents(js);
   }
 }
 
@@ -1186,7 +1139,6 @@ void TimelineEventRingRecorder::PrintTraceEvent(JSONStream* js,
   }
   JSONArray events(js);
   PrintJSONEvents(&events, filter);
-  PrintEmbedderJSONEvents(js);
 }
 
 
@@ -1309,7 +1261,6 @@ void TimelineEventEndlessRecorder::PrintJSON(JSONStream* js,
     JSONArray events(&topLevel, "traceEvents");
     PrintJSONMeta(&events);
     PrintJSONEvents(&events, filter);
-    PrintEmbedderJSONEvents(js);
   }
 }
 
@@ -1322,7 +1273,6 @@ void TimelineEventEndlessRecorder::PrintTraceEvent(
   }
   JSONArray events(js);
   PrintJSONEvents(&events, filter);
-  PrintEmbedderJSONEvents(js);
 }
 
 

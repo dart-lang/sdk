@@ -41,25 +41,23 @@ class ScopedIsolateStackLimits : public ValueObject {
     // grows from high to low addresses).
     OSThread* os_thread = thread->os_thread();
     ASSERT(os_thread != NULL);
-    uword current_sp = Isolate::GetCurrentStackPointer();
+    uword current_sp = Thread::GetCurrentStackPointer();
     if (current_sp > os_thread->stack_base()) {
       os_thread->set_stack_base(current_sp);
     }
-    // Save the Isolate's current stack limit and adjust the stack
+    // Save the Thread's current stack limit and adjust the stack
     // limit based on the thread's stack_base.
-    Isolate* isolate = thread->isolate();
-    ASSERT(isolate == Isolate::Current());
-    saved_stack_limit_ = isolate->saved_stack_limit();
-    isolate->SetStackLimitFromStackBase(os_thread->stack_base());
+    ASSERT(thread->isolate() == Isolate::Current());
+    saved_stack_limit_ = thread->saved_stack_limit();
+    thread->SetStackLimitFromStackBase(os_thread->stack_base());
   }
 
   ~ScopedIsolateStackLimits() {
-    Isolate* isolate = thread_->isolate();
-    ASSERT(isolate == Isolate::Current());
+    ASSERT(thread_->isolate() == Isolate::Current());
     // Since we started with a stack limit of 0 we should be getting back
     // to a stack limit of 0 when all nested invocations are done and
     // we have bottomed out.
-    isolate->SetStackLimit(saved_stack_limit_);
+    thread_->SetStackLimit(saved_stack_limit_);
   }
 
  private:
@@ -167,12 +165,13 @@ RawObject* DartEntry::InvokeClosure(const Array& arguments,
     while (!cls.IsNull()) {
       function ^= cls.LookupDynamicFunction(getter_name);
       if (!function.IsNull()) {
-        Isolate* isolate = Isolate::Current();
-        volatile uword c_stack_pos = Isolate::GetCurrentStackPointer();
+        Thread* thread = Thread::Current();
+        Isolate* isolate = thread->isolate();
+        volatile uword c_stack_pos = Thread::GetCurrentStackPointer();
         volatile uword c_stack_limit = OSThread::Current()->stack_base() -
                                        OSThread::GetSpecifiedStackSize();
 #if !defined(USING_SIMULATOR)
-        ASSERT(c_stack_limit == isolate->saved_stack_limit());
+        ASSERT(c_stack_limit == thread->saved_stack_limit());
 #endif
 
         if (c_stack_pos < c_stack_limit) {

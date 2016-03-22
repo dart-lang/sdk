@@ -14,6 +14,7 @@
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
 #include "vm/lockers.h"
+#include "vm/timeline.h"
 #include "vm/unit_test.h"
 #include "vm/verifier.h"
 
@@ -9190,7 +9191,7 @@ TEST_CASE(StringFromExternalTypedData) {
 TEST_CASE(Timeline_Dart_TimelineDuration) {
   Isolate* isolate = Isolate::Current();
   // Grab embedder stream.
-  TimelineStream* stream = isolate->GetEmbedderStream();
+  TimelineStream* stream = Timeline::GetEmbedderStream();
   // Make sure it is enabled.
   stream->set_enabled(true);
   // Add a duration event.
@@ -9208,7 +9209,7 @@ TEST_CASE(Timeline_Dart_TimelineDuration) {
 TEST_CASE(Timeline_Dart_TimelineInstant) {
   Isolate* isolate = Isolate::Current();
   // Grab embedder stream.
-  TimelineStream* stream = isolate->GetEmbedderStream();
+  TimelineStream* stream = Timeline::GetEmbedderStream();
   // Make sure it is enabled.
   stream->set_enabled(true);
   Dart_TimelineInstant("testInstantEvent");
@@ -9223,9 +9224,8 @@ TEST_CASE(Timeline_Dart_TimelineInstant) {
 
 
 TEST_CASE(Timeline_Dart_TimelineAsyncDisabled) {
-  Isolate* isolate = Isolate::Current();
   // Grab embedder stream.
-  TimelineStream* stream = isolate->GetEmbedderStream();
+  TimelineStream* stream = Timeline::GetEmbedderStream();
   // Make sure it is disabled.
   stream->set_enabled(false);
   int64_t async_id = -1;
@@ -9247,7 +9247,7 @@ TEST_CASE(Timeline_Dart_TimelineAsyncDisabled) {
 TEST_CASE(Timeline_Dart_TimelineAsync) {
   Isolate* isolate = Isolate::Current();
   // Grab embedder stream.
-  TimelineStream* stream = isolate->GetEmbedderStream();
+  TimelineStream* stream = Timeline::GetEmbedderStream();
   // Make sure it is enabled.
   stream->set_enabled(true);
   int64_t async_id = -1;
@@ -9315,7 +9315,7 @@ TEST_CASE(Timeline_Dart_TimelineGetTrace) {
   bool success = false;
 
   // Enable recording of all streams.
-  Dart_TimelineSetRecordedStreams(DART_TIMELINE_STREAM_ALL);
+  Dart_GlobalTimelineSetRecordedStreams(DART_TIMELINE_STREAM_ALL);
 
   // Invoke main, which will be compiled resulting in a compiler event in
   // the timeline.
@@ -9327,7 +9327,7 @@ TEST_CASE(Timeline_Dart_TimelineGetTrace) {
 
   // Grab the trace.
   AppendData data;
-  success = Dart_TimelineGetTrace(AppendStreamConsumer, &data);
+  success = Dart_GlobalTimelineGetTrace(AppendStreamConsumer, &data);
   EXPECT(success);
   buffer = reinterpret_cast<char*>(data.buffer);
   buffer_length = data.buffer_length;
@@ -9367,7 +9367,7 @@ TEST_CASE(Timeline_Dart_TimelineGetTraceOnlyDartEvents) {
   bool success = false;
 
   // Enable recording of the Dart stream.
-  Dart_TimelineSetRecordedStreams(DART_TIMELINE_STREAM_DART);
+  Dart_GlobalTimelineSetRecordedStreams(DART_TIMELINE_STREAM_DART);
 
   // Invoke main, which will add a new timeline event from Dart.
   Dart_Handle result = Dart_Invoke(lib,
@@ -9380,7 +9380,7 @@ TEST_CASE(Timeline_Dart_TimelineGetTraceOnlyDartEvents) {
   AppendData data;
   data.buffer = NULL;
   data.buffer_length = 0;
-  success = Dart_TimelineGetTrace(AppendStreamConsumer, &data);
+  success = Dart_GlobalTimelineGetTrace(AppendStreamConsumer, &data);
   EXPECT(success);
   buffer = reinterpret_cast<char*>(data.buffer);
   buffer_length = data.buffer_length;
@@ -9419,7 +9419,7 @@ TEST_CASE(Timeline_Dart_TimelineGetTraceWithDartEvents) {
   bool success = false;
 
   // Enable recording of all streams.
-  Dart_TimelineSetRecordedStreams(DART_TIMELINE_STREAM_ALL);
+  Dart_GlobalTimelineSetRecordedStreams(DART_TIMELINE_STREAM_ALL);
 
   // Invoke main, which will be compiled resulting in a compiler event in
   // the timeline.
@@ -9431,7 +9431,7 @@ TEST_CASE(Timeline_Dart_TimelineGetTraceWithDartEvents) {
 
   // Grab the trace.
   AppendData data;
-  success = Dart_TimelineGetTrace(AppendStreamConsumer, &data);
+  success = Dart_GlobalTimelineGetTrace(AppendStreamConsumer, &data);
   EXPECT(success);
   buffer = reinterpret_cast<char*>(data.buffer);
   buffer_length = data.buffer_length;
@@ -9480,7 +9480,7 @@ TEST_CASE(Timeline_Dart_TimelineGetTraceGlobalOverride) {
 
   // Grab the trace.
   AppendData data;
-  success = Dart_TimelineGetTrace(AppendStreamConsumer, &data);
+  success = Dart_GlobalTimelineGetTrace(AppendStreamConsumer, &data);
   EXPECT(success);
   buffer = reinterpret_cast<char*>(data.buffer);
   buffer_length = data.buffer_length;
@@ -9503,6 +9503,16 @@ TEST_CASE(Timeline_Dart_TimelineGetTraceGlobalOverride) {
 }
 
 
+static const char* arg_names[] = {
+  "arg0"
+};
+
+
+static const char* arg_values[] = {
+  "value0"
+};
+
+
 TEST_CASE(Timeline_Dart_GlobalTimelineGetTrace) {
   const char* kScriptChars =
     "bar() => 'z';\n"
@@ -9518,6 +9528,17 @@ TEST_CASE(Timeline_Dart_GlobalTimelineGetTrace) {
     TimelineDurationScope tds(Timeline::GetVMStream(),
                               "TestVMDuration");
     lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  }
+
+  {
+    // Add something to the embedder stream.
+    Dart_TimelineEvent("TRACE_EVENT",
+                       Dart_TimelineGetMicros(),
+                       0,
+                       Dart_Timeline_Event_Begin,
+                       1,
+                       &arg_names[0],
+                       &arg_values[0]);
   }
 
   // Invoke main, which will be compiled resulting in a compiler event in
@@ -9559,6 +9580,9 @@ TEST_CASE(Timeline_Dart_GlobalTimelineGetTrace) {
   EXPECT_SUBSTRING("\"name\":\"CompileFunction\"", buffer);
   EXPECT_SUBSTRING("\"function\":\"::_main\"", buffer);
   EXPECT_NOTSUBSTRING("\"function\":\"::_bar\"", buffer);
+  EXPECT_SUBSTRING("TRACE_EVENT", buffer);
+  EXPECT_SUBSTRING("arg0", buffer);
+  EXPECT_SUBSTRING("value0", buffer);
 
   // Free buffer allocated by AppendStreamConsumer
   free(data.buffer);
@@ -9786,7 +9810,7 @@ static void StopRecording() {
 
 
 TEST_CASE(Timeline_Dart_EmbedderTimelineStartStopRecording) {
-  Dart_SetEmbedderTimelineCallbacks(StartRecording, StopRecording, NULL);
+  Dart_SetEmbedderTimelineCallbacks(StartRecording, StopRecording);
 
   EXPECT(!start_called);
   EXPECT(!stop_called);
@@ -9801,37 +9825,6 @@ TEST_CASE(Timeline_Dart_EmbedderTimelineStartStopRecording) {
   Timeline::SetStreamEmbedderEnabled(false);
   EXPECT(!start_called);
   EXPECT(stop_called);
-}
-
-static bool GetTimeline(Dart_StreamConsumer stream_consumer,
-                        void* user_data) {
-  ASSERT(stream_consumer != NULL);
-  ASSERT(user_data != NULL);
-
-  const char* test_string = "HELLO FROM EMBEDDER";
-  stream_consumer(Dart_StreamConsumer_kData,
-                  "embedder.timeline",
-                  reinterpret_cast<const uint8_t*>(test_string),
-                  strlen(test_string),
-                  user_data);
-  return true;
-}
-
-TEST_CASE(Timeline_Dart_EmbedderTimelineGetTimeline) {
-  Dart_SetEmbedderTimelineCallbacks(NULL, NULL, GetTimeline);
-
-  Dart_GlobalTimelineSetRecordedStreams(DART_TIMELINE_STREAM_EMBEDDER);
-  Dart_TimelineDuration("testDurationEvent", 0, 1);
-
-  AppendData data;
-  bool success = Dart_GlobalTimelineGetTrace(AppendStreamConsumer, &data);
-  EXPECT(success);
-
-  EXPECT_SUBSTRING("}},HELLO FROM EMBEDDER",
-                   data.buffer);
-
-  // Free buffer allocated by AppendStreamConsumer
-  free(data.buffer);
 }
 
 #endif  // !PRODUCT

@@ -32,7 +32,7 @@ class MainCallStubGenerator {
       Element isolateMain =
         helpers.isolateHelperLibrary.find(BackendHelpers.START_ROOT_ISOLATE);
       mainCallClosure = _buildIsolateSetupClosure(main, isolateMain);
-    } else if (compiler.hasIncrementalSupport) {
+    } else if (compiler.options.hasIncrementalSupport) {
       mainCallClosure = js(
           'function() { return #(); }',
           emitterTask.staticFunctionAccess(main));

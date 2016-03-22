@@ -155,7 +155,7 @@ class SdkExtUriResolver extends UriResolver {
   /// Read the contents of [libDir]/[SDK_EXT_NAME] as a string.
   /// Returns null if the file doesn't exist.
   String _readDotSdkExt(Folder libDir) {
-    var file = libDir.getChild(SDK_EXT_NAME);
+    File file = libDir.getChild(SDK_EXT_NAME);
     try {
       return file.readAsStringSync();
     } on FileSystemException {

@@ -10,7 +10,6 @@
 
 #include "platform/globals.h"
 
-
 namespace dart {
 namespace bin {
 

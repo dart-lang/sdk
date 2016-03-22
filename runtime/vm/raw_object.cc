@@ -343,13 +343,6 @@ intptr_t RawType::VisitTypePointers(
 }
 
 
-intptr_t RawFunctionType::VisitFunctionTypePointers(
-    RawFunctionType* raw_obj, ObjectPointerVisitor* visitor) {
-  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
-  return FunctionType::InstanceSize();
-}
-
-
 intptr_t RawTypeRef::VisitTypeRefPointers(
     RawTypeRef* raw_obj, ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
@@ -931,12 +924,12 @@ intptr_t RawStacktrace::VisitStacktracePointers(RawStacktrace* raw_obj,
 }
 
 
-intptr_t RawJSRegExp::VisitJSRegExpPointers(RawJSRegExp* raw_obj,
-                                            ObjectPointerVisitor* visitor) {
+intptr_t RawRegExp::VisitRegExpPointers(RawRegExp* raw_obj,
+                                        ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.
   ASSERT(raw_obj->IsHeapObject());
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());
-  return JSRegExp::InstanceSize();
+  return RegExp::InstanceSize();
 }
 
 

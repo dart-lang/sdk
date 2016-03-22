@@ -14,7 +14,6 @@
 #include "platform/assert.h"
 #include "platform/utils.h"
 
-
 namespace dart {
 namespace bin {
 
@@ -41,11 +40,13 @@ void OSError::SetCodeAndMessage(SubSystem sub_system, int code) {
   }
 }
 
+
 const char* StringUtils::ConsoleStringToUtf8(
     const char* str, intptr_t len, intptr_t* result_len) {
   UNIMPLEMENTED();
   return NULL;
 }
+
 
 const char* StringUtils::Utf8ToConsoleString(
     const char* utf8, intptr_t len, intptr_t* result_len) {
@@ -53,11 +54,13 @@ const char* StringUtils::Utf8ToConsoleString(
   return NULL;
 }
 
+
 char* StringUtils::ConsoleStringToUtf8(
     char* str, intptr_t len, intptr_t* result_len) {
   UNIMPLEMENTED();
   return NULL;
 }
+
 
 char* StringUtils::Utf8ToConsoleString(
     char* utf8, intptr_t len, intptr_t* result_len) {
@@ -65,16 +68,20 @@ char* StringUtils::Utf8ToConsoleString(
   return NULL;
 }
 
+
 bool ShellUtils::GetUtf8Argv(int argc, char** argv) {
   return false;
 }
 
+
 void TimerUtils::InitOnce() {
 }
+
 
 int64_t TimerUtils::GetCurrentMonotonicMillis() {
   return GetCurrentMonotonicMicros() / 1000;
 }
+
 
 int64_t TimerUtils::GetCurrentMonotonicMicros() {
   struct timespec ts;
@@ -88,6 +95,7 @@ int64_t TimerUtils::GetCurrentMonotonicMicros() {
   result += (ts.tv_nsec / kNanosecondsPerMicrosecond);
   return result;
 }
+
 
 void TimerUtils::Sleep(int64_t millis) {
   struct timespec req;  // requested.

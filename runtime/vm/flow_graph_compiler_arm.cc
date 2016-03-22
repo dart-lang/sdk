@@ -516,7 +516,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ Bind(&fall_through);
     return type_test_cache.raw();
   }
-  if (type.IsType() || type.IsFunctionType()) {
+  if (type.IsType()) {
     const Register kInstanceReg = R0;
     const Register kTypeArgumentsReg = R1;
     __ tst(kInstanceReg, Operand(kSmiTagMask));  // Is instance Smi?
@@ -1367,7 +1367,7 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(
   __ LoadFromOffset(kWord, R0, SP, (argument_count - 1) * kWordSize);
   if (ic_data.NumArgsTested() == 1) {
     __ LoadUniqueObject(R9, ic_data);
-    __ BranchLinkPatchable(*StubCode::ICLookup_entry());
+    __ BranchLinkPatchable(*StubCode::ICLookupThroughFunction_entry());
   } else {
     const String& name = String::Handle(zone(), ic_data.target_name());
     const Array& arguments_descriptor =

@@ -54,7 +54,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
   //      hasBody = true
   bool hasBody = false;
   assert(backend.isNative(element));
-  String nativeMethodName = backend.getFixedBackendName(element);
+  String nativeMethodName = backend.nativeData.getFixedBackendName(element);
   if (nativeBody != null) {
     LiteralString jsCode = nativeBody.asLiteralString();
     String str = jsCode.dartString.slowToString();

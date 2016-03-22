@@ -763,6 +763,43 @@ main() {
     assertThat(enumElement.getGetter('B'))..isReferencedAt('B);', true);
   }
 
+  void test_isReferencedBy_FieldElement_synthetic_hasGetter() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+class A {
+  A() : f = 42;
+  int get f => 0;
+}
+''');
+    ClassElement element2 = findElement('A');
+    assertThat(element2.getField('f')).isWrittenAt('f = 42', true);
+  }
+
+  void test_isReferencedBy_FieldElement_synthetic_hasGetterSetter() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+class A {
+  A() : f = 42;
+  int get f => 0;
+  set f(_) {}
+}
+''');
+    ClassElement element2 = findElement('A');
+    assertThat(element2.getField('f')).isWrittenAt('f = 42', true);
+  }
+
+  void test_isReferencedBy_FieldElement_synthetic_hasSetter() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+class A {
+  A() : f = 42;
+  set f(_) {}
+}
+''');
+    ClassElement element2 = findElement('A');
+    assertThat(element2.getField('f')).isWrittenAt('f = 42', true);
+  }
+
   void test_isReferencedBy_FunctionElement() {
     _indexTestUnit('''
 foo() {}
@@ -908,6 +945,22 @@ class A {
       ..isWrittenAt('field = 5', true);
   }
 
+  void test_usedName_inLibraryIdentifier() {
+    verifyNoTestUnitErrors = false;
+    _indexTestUnit('''
+library aaa.bbb.ccc;
+class C {
+  var bbb;
+}
+main(p) {
+  p.bbb = 1;
+}
+''');
+    assertThatName('bbb')
+      ..isNotUsed('bbb.ccc', IndexRelationKind.IS_READ_BY)
+      ..isUsedQ('bbb = 1;', IndexRelationKind.IS_WRITTEN_BY);
+  }
+
   void test_usedName_qualified_resolved() {
     verifyNoTestUnitErrors = false;
     _indexTestUnit('''
@@ -922,10 +975,10 @@ main(C c) {
 }
 ''');
     assertThatName('x')
-      ..isNotUsed('x;', IndexRelationKind.IS_READ_BY)
-      ..isNotUsed('x = 1;', IndexRelationKind.IS_WRITTEN_BY)
-      ..isNotUsed('x += 2;', IndexRelationKind.IS_READ_WRITTEN_BY)
-      ..isNotUsed('x();', IndexRelationKind.IS_INVOKED_BY);
+      ..isNotUsedQ('x;', IndexRelationKind.IS_READ_BY)
+      ..isNotUsedQ('x = 1;', IndexRelationKind.IS_WRITTEN_BY)
+      ..isNotUsedQ('x += 2;', IndexRelationKind.IS_READ_WRITTEN_BY)
+      ..isNotUsedQ('x();', IndexRelationKind.IS_INVOKED_BY);
   }
 
   void test_usedName_qualified_unresolved() {
@@ -959,10 +1012,10 @@ class C {
 }
 ''');
     assertThatName('x')
-      ..isNotUsed('x;', IndexRelationKind.IS_READ_BY)
-      ..isNotUsed('x = 1;', IndexRelationKind.IS_WRITTEN_BY)
-      ..isNotUsed('x += 2;', IndexRelationKind.IS_READ_WRITTEN_BY)
-      ..isNotUsed('x();', IndexRelationKind.IS_INVOKED_BY);
+      ..isNotUsedQ('x;', IndexRelationKind.IS_READ_BY)
+      ..isNotUsedQ('x = 1;', IndexRelationKind.IS_WRITTEN_BY)
+      ..isNotUsedQ('x += 2;', IndexRelationKind.IS_READ_WRITTEN_BY)
+      ..isNotUsedQ('x();', IndexRelationKind.IS_INVOKED_BY);
   }
 
   void test_usedName_unqualified_unresolved() {
@@ -1200,6 +1253,11 @@ class _NameIndexAssert {
   _NameIndexAssert(this.test, this.name);
 
   void isNotUsed(String search, IndexRelationKind kind) {
+    test._assertUsedName(
+        name, kind, test._expectedLocation(search, false), true);
+  }
+
+  void isNotUsedQ(String search, IndexRelationKind kind) {
     test._assertUsedName(
         name, kind, test._expectedLocation(search, true), true);
   }

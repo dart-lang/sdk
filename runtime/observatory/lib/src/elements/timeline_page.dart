@@ -47,6 +47,8 @@ class TimelinePageElement extends ObservatoryElement {
   }
 
   Future refresh() async {
+    await app.vm.reload();
+    await app.vm.reloadIsolates();
     return postMessage('refresh');
   }
 

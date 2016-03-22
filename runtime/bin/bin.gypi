@@ -225,7 +225,7 @@
         ['exclude', '_test\\.(cc|h)$'],
       ],
       'conditions': [
-        ['dart_io_support==1 and dart_io_secure_socket==1', {
+        ['OS != "mac" and dart_io_support==1 and dart_io_secure_socket==1', {
           'dependencies': [
           '../third_party/boringssl/boringssl_dart.gyp:boringssl',
           ],
@@ -260,6 +260,7 @@
             'libraries': [
               '$(SDKROOT)/System/Library/Frameworks/CoreFoundation.framework',
               '$(SDKROOT)/System/Library/Frameworks/CoreServices.framework',
+              '$(SDKROOT)/System/Library/Frameworks/Security.framework',
             ],
           },
         }],
@@ -300,7 +301,7 @@
             'bin/zlib.gyp:zlib_dart',
           ],
         }],
-        ['dart_io_support==1 and dart_io_secure_socket==1', {
+        ['OS != "mac" and dart_io_support==1 and dart_io_secure_socket==1', {
           'dependencies': [
             '../third_party/boringssl/boringssl_dart.gyp:boringssl',
           ],
@@ -332,6 +333,7 @@
             'libraries': [
               '$(SDKROOT)/System/Library/Frameworks/CoreFoundation.framework',
               '$(SDKROOT)/System/Library/Frameworks/CoreServices.framework',
+              '$(SDKROOT)/System/Library/Frameworks/Security.framework',
             ],
           },
         }],

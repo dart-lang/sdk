@@ -7,6 +7,15 @@
 
 
 /**
+ * Kind of a source in the cache.
+ */
+enum CacheSourceKind : byte {
+  library,
+
+  part
+}
+
+/**
  * Enum used to indicate the kind of a name in index.
  */
 enum IndexNameKind : byte {
@@ -104,6 +113,11 @@ enum IndexSyntheticElementKind : byte {
    * The unnamed synthetic constructor a class element.
    */
   constructor,
+
+  /**
+   * The synthetic field element.
+   */
+  field,
 
   /**
    * The synthetic getter of a property introducing element.
@@ -557,6 +571,34 @@ enum UnlinkedParamKind : byte {
    * Parameter is named optional (enclosed in `{}`)
    */
   named
+}
+
+/**
+ * Information about a source that depends only on its content.
+ */
+table CacheSourceContent {
+  /**
+   * The list of exported URIs, e.g. `dart:core`, or `foo/bar.dart`,
+   * or `package:foo/bar.dart`.  Empty if [kind] is [CacheSourceKind.part].
+   */
+  exportedUris:[string] (id: 2);
+
+  /**
+   * The list of explicitly imported URIs, e.g. `dart:core`, or `foo/bar.dart`,
+   * or `package:foo/bar.dart`.  Empty if [kind] is [CacheSourceKind.part].
+   */
+  importedUris:[string] (id: 1);
+
+  /**
+   * The kind of the source.
+   */
+  kind:CacheSourceKind (id: 0);
+
+  /**
+   * The list of part URIs, e.g. `foo/bar.dart`.  Empty if [kind] is
+   * [CacheSourceKind.part].
+   */
+  partUris:[string] (id: 3);
 }
 
 /**
@@ -1017,6 +1059,12 @@ table UnitIndex {
   usedElements:[uint] (id: 3);
 
   /**
+   * Each item of this list is the `true` if the corresponding name usage
+   * is qualified with some prefix.
+   */
+  usedNameIsQualifiedFlags:[ubyte] (id: 12);
+
+  /**
    * Each item of this list is the kind of the name usage.
    */
   usedNameKinds:[IndexRelationKind] (id: 10);
@@ -1033,12 +1081,6 @@ table UnitIndex {
    * quickly find name uses in this [UnitIndex].
    */
   usedNames:[uint] (id: 8);
-
-  /**
-   * Each item of this list is the `true` if the corresponding name usage
-   * is qualified with some prefix.
-   */
-  usedNameIsQualifiedFlags:[ubyte] (id: 12);
 }
 
 /**

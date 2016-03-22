@@ -318,6 +318,7 @@ class Precompiler : public ValueObject {
   void DropLibraries();
 
   void BindStaticCalls();
+  void SwitchICCalls();
   void DedupStackmaps();
   void DedupStackmapLists();
   void DedupInstructions();

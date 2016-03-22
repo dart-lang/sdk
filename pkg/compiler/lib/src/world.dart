@@ -653,7 +653,8 @@ class World implements ClassWorld {
     /// properties of the [ClassHierarchyNode] for [cls].
 
     void addSubtypes(ClassElement cls) {
-      if (compiler.hasIncrementalSupport && !alreadyPopulated.add(cls)) {
+      if (compiler.options.hasIncrementalSupport &&
+          !alreadyPopulated.add(cls)) {
         return;
       }
       assert(cls.isDeclaration);
@@ -841,5 +842,5 @@ class World implements ClassWorld {
     return functionsThatMightBePassedToApply.contains(element);
   }
 
-  bool get hasClosedWorldAssumption => !compiler.hasIncrementalSupport;
+  bool get hasClosedWorldAssumption => !compiler.options.hasIncrementalSupport;
 }

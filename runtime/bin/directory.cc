@@ -8,7 +8,6 @@
 #include "include/dart_api.h"
 #include "platform/assert.h"
 
-
 namespace dart {
 namespace bin {
 
@@ -28,7 +27,7 @@ void FUNCTION_NAME(Directory_SetCurrent)(Dart_NativeArguments args) {
   if (argc == 1) {
     path = Dart_GetNativeArgument(args, 0);
   }
-  if (argc != 1 || !Dart_IsString(path)) {
+  if ((argc != 1) || !Dart_IsString(path)) {
     Dart_SetReturnValue(args, DartUtils::NewDartArgumentError(NULL));
   } else {
     if (Directory::SetCurrent(DartUtils::GetStringValue(path))) {
@@ -66,8 +65,7 @@ void FUNCTION_NAME(Directory_Create)(Dart_NativeArguments args) {
 }
 
 
-void FUNCTION_NAME(Directory_SystemTemp)(
-    Dart_NativeArguments args) {
+void FUNCTION_NAME(Directory_SystemTemp)(Dart_NativeArguments args) {
   const char* result = Directory::SystemTemp();
   Dart_SetReturnValue(args, DartUtils::NewString(result));
 }
@@ -127,7 +125,9 @@ void FUNCTION_NAME(Directory_List)(Dart_NativeArguments args) {
                Dart_Null(),
                0,
                NULL);
-  if (Dart_IsError(results)) Dart_PropagateError(results);
+  if (Dart_IsError(results)) {
+    Dart_PropagateError(results);
+  }
   SyncDirectoryListing sync_listing(results,
                                     DartUtils::GetStringValue(path),
                                     DartUtils::GetBooleanValue(recursive),
@@ -138,7 +138,7 @@ void FUNCTION_NAME(Directory_List)(Dart_NativeArguments args) {
 
 
 CObject* Directory::CreateRequest(const CObjectArray& request) {
-  if (request.Length() == 1 && request[0]->IsString()) {
+  if ((request.Length() == 1) && request[0]->IsString()) {
     CObjectString path(request[0]);
     if (Directory::Create(path.CString())) {
       return CObject::True();
@@ -151,7 +151,8 @@ CObject* Directory::CreateRequest(const CObjectArray& request) {
 
 
 CObject* Directory::DeleteRequest(const CObjectArray& request) {
-  if (request.Length() == 2 && request[0]->IsString() && request[1]->IsBool()) {
+  if ((request.Length() == 2) &&
+       request[0]->IsString() && request[1]->IsBool()) {
     CObjectString path(request[0]);
     CObjectBool recursive(request[1]);
     if (Directory::Delete(path.CString(), recursive.Value())) {
@@ -167,7 +168,7 @@ CObject* Directory::DeleteRequest(const CObjectArray& request) {
 CObject* Directory::ExistsRequest(const CObjectArray& request) {
   static const int kExists = 1;
   static const int kDoesNotExist = 0;
-  if (request.Length() == 1 && request[0]->IsString()) {
+  if ((request.Length() == 1) && request[0]->IsString()) {
     CObjectString path(request[0]);
     Directory::ExistsResult result = Directory::Exists(path.CString());
     if (result == Directory::EXISTS) {
@@ -183,7 +184,7 @@ CObject* Directory::ExistsRequest(const CObjectArray& request) {
 
 
 CObject* Directory::CreateTempRequest(const CObjectArray& request) {
-  if (request.Length() == 1 && request[0]->IsString()) {
+  if ((request.Length() == 1) && request[0]->IsString()) {
     CObjectString path(request[0]);
     const char* result = Directory::CreateTemp(path.CString());
     if (result != NULL) {
@@ -209,7 +210,7 @@ static CObject* CreateIllegalArgumentError() {
 
 
 CObject* Directory::ListStartRequest(const CObjectArray& request) {
-  if (request.Length() == 3 &&
+  if ((request.Length() == 3) &&
       request[0]->IsString() &&
       request[1]->IsBool() &&
       request[2]->IsBool()) {
@@ -273,7 +274,7 @@ CObject* Directory::ListStopRequest(const CObjectArray& request) {
 
 
 CObject* Directory::RenameRequest(const CObjectArray& request) {
-  if (request.Length() == 2 &&
+  if ((request.Length() == 2) &&
       request[0]->IsString() &&
       request[1]->IsString()) {
     CObjectString path(request[0]);

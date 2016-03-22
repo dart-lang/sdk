@@ -64,9 +64,11 @@ class _FutureListener {
   static const int MASK_WHENCOMPLETE = 8;
   static const int STATE_CHAIN = 0;
   static const int STATE_THEN = MASK_VALUE;
-  static const int STATE_THEN_ONERROR = MASK_VALUE | MASK_ERROR;
+  // TODO(johnmccutchan): Remove the hard coded value. See #26030.
+  static const int STATE_THEN_ONERROR = 3;  // MASK_VALUE | MASK_ERROR.
   static const int STATE_CATCHERROR = MASK_ERROR;
-  static const int STATE_CATCHERROR_TEST = MASK_ERROR | MASK_TEST_ERROR;
+  // TODO(johnmccutchan): Remove the hard coded value. See #26030.
+  static const int STATE_CATCHERROR_TEST = 6;  // MASK_ERROR | MASK_TEST_ERROR.
   static const int STATE_WHENCOMPLETE = MASK_WHENCOMPLETE;
   // Listeners on the same future are linked through this link.
   _FutureListener _nextListener = null;

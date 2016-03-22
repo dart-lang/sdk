@@ -10,7 +10,6 @@
 
 #include "zlib/zlib.h"
 
-
 namespace dart {
 namespace bin {
 

@@ -145,7 +145,7 @@ abstract class PerformanceTag {
    * Make this the current tag for the isolate, run [f], and restore the
    * previous tag. Returns the result of invoking [f].
    */
-  makeCurrentWhile(f());
+  dynamic/*=E*/ makeCurrentWhile/*<E>*/(dynamic/*=E*/ f());
 
   /**
    * Reset the total time tracked by all [PerformanceTag]s to zero.
@@ -206,7 +206,7 @@ class _PerformanceTagImpl implements PerformanceTag {
     return previous;
   }
 
-  makeCurrentWhile(f()) {
+  dynamic/*=E*/ makeCurrentWhile/*<E>*/(dynamic/*=E*/ f()) {
     PerformanceTag prevTag = makeCurrent();
     try {
       return f();

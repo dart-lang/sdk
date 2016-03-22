@@ -36,26 +36,6 @@ import 'package:analyzer/src/task/strong/info.dart'
 export 'package:analyzer/src/generated/type_system.dart';
 
 /**
- * Throw an [ElementMismatchException] to report that the element model and the
- * AST do not match. The [message] will have the path to the given [node]
- * appended to it.
- */
-void _mismatch(String message, AstNode node) {
-  StringBuffer buffer = new StringBuffer();
-  buffer.writeln(message);
-  buffer.write('Path to root:');
-  String separator = ' ';
-  AstNode parent = node;
-  while (parent != null) {
-    buffer.write(separator);
-    buffer.write(parent.runtimeType.toString());
-    separator = ', ';
-    parent = parent.parent;
-  }
-  throw new ElementMismatchException(buffer.toString());
-}
-
-/**
  * Instances of the class `BestPracticesVerifier` traverse an AST structure looking for
  * violations of Dart best practices.
  */
@@ -1877,14 +1857,14 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
             _errorReporter.reportErrorForNode(
                 HintCode.DEAD_CODE, node.rightOperand);
             // only visit the LHS:
-            _safelyVisit(lhsCondition);
+            lhsCondition?.accept(this);
             return null;
           } else if (lhsResult.value.toBoolValue() == false && isAmpAmp) {
             // report error on if block: false && !e!
             _errorReporter.reportErrorForNode(
                 HintCode.DEAD_CODE, node.rightOperand);
             // only visit the LHS:
-            _safelyVisit(lhsCondition);
+            lhsCondition?.accept(this);
             return null;
           }
         }
@@ -1898,13 +1878,13 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
 //                // report error on else block: !e! || true
 //                errorReporter.reportError(HintCode.DEAD_CODE, node.getRightOperand());
 //                // only visit the RHS:
-//                safelyVisit(rhsCondition);
+//                rhsCondition?.accept(this);
 //                return null;
 //              } else if (rhsResult == ValidResult.RESULT_FALSE && isAmpAmp) {
 //                // report error on if block: !e! && false
 //                errorReporter.reportError(HintCode.DEAD_CODE, node.getRightOperand());
 //                // only visit the RHS:
-//                safelyVisit(rhsCondition);
+//                rhsCondition?.accept(this);
 //                return null;
 //              }
 //            }
@@ -1928,7 +1908,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitConditionalExpression(ConditionalExpression node) {
     Expression conditionExpression = node.condition;
-    _safelyVisit(conditionExpression);
+    conditionExpression?.accept(this);
     if (!_isDebugConstant(conditionExpression)) {
       EvaluationResultImpl result =
           _getConstantBooleanValue(conditionExpression);
@@ -1937,13 +1917,13 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
           // report error on else block: true ? 1 : !2!
           _errorReporter.reportErrorForNode(
               HintCode.DEAD_CODE, node.elseExpression);
-          _safelyVisit(node.thenExpression);
+          node.thenExpression?.accept(this);
           return null;
         } else {
           // report error on if block: false ? !1! : 2
           _errorReporter.reportErrorForNode(
               HintCode.DEAD_CODE, node.thenExpression);
-          _safelyVisit(node.elseExpression);
+          node.elseExpression?.accept(this);
           return null;
         }
       }
@@ -1954,7 +1934,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitIfStatement(IfStatement node) {
     Expression conditionExpression = node.condition;
-    _safelyVisit(conditionExpression);
+    conditionExpression?.accept(this);
     if (!_isDebugConstant(conditionExpression)) {
       EvaluationResultImpl result =
           _getConstantBooleanValue(conditionExpression);
@@ -1965,14 +1945,14 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
           if (elseStatement != null) {
             _errorReporter.reportErrorForNode(
                 HintCode.DEAD_CODE, elseStatement);
-            _safelyVisit(node.thenStatement);
+            node.thenStatement?.accept(this);
             return null;
           }
         } else {
           // report error on if block: if (false) {!} else {}
           _errorReporter.reportErrorForNode(
               HintCode.DEAD_CODE, node.thenStatement);
-          _safelyVisit(node.elseStatement);
+          node.elseStatement?.accept(this);
           return null;
         }
       }
@@ -1994,8 +1974,8 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitTryStatement(TryStatement node) {
-    _safelyVisit(node.body);
-    _safelyVisit(node.finallyBlock);
+    node.body?.accept(this);
+    node.finallyBlock?.accept(this);
     NodeList<CatchClause> catchClauses = node.catchClauses;
     int numOfCatchClauses = catchClauses.length;
     List<DartType> visitedTypes = new List<DartType>();
@@ -2012,7 +1992,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
             // this is equivalent to having a catch clause that doesn't have an
             // exception type, visit the block, but generate an error on any
             // following catch clauses (and don't visit them).
-            _safelyVisit(catchClause);
+            catchClause?.accept(this);
             if (i + 1 != numOfCatchClauses) {
               // this catch clause is not the last in the try statement
               CatchClause nextCatchClause = catchClauses[i + 1];
@@ -2039,12 +2019,12 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
           }
           visitedTypes.add(currentType);
         }
-        _safelyVisit(catchClause);
+        catchClause?.accept(this);
       } else {
         // Found catch clause clause that doesn't have an exception type,
         // visit the block, but generate an error on any following catch clauses
         // (and don't visit them).
-        _safelyVisit(catchClause);
+        catchClause?.accept(this);
         if (i + 1 != numOfCatchClauses) {
           // this catch clause is not the last in the try statement
           CatchClause nextCatchClause = catchClauses[i + 1];
@@ -2063,7 +2043,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitWhileStatement(WhileStatement node) {
     Expression conditionExpression = node.condition;
-    _safelyVisit(conditionExpression);
+    conditionExpression?.accept(this);
     if (!_isDebugConstant(conditionExpression)) {
       EvaluationResultImpl result =
           _getConstantBooleanValue(conditionExpression);
@@ -2075,7 +2055,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
         }
       }
     }
-    _safelyVisit(node.body);
+    node.body?.accept(this);
     return null;
   }
 
@@ -2090,7 +2070,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
     int size = statements.length;
     for (int i = 0; i < size; i++) {
       Statement currentStatement = statements[i];
-      _safelyVisit(currentStatement);
+      currentStatement?.accept(this);
       bool returnOrBreakingStatement = currentStatement is ReturnStatement ||
           (currentStatement is BreakStatement &&
               currentStatement.label == null) ||
@@ -2162,17 +2142,6 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
     }
     return false;
   }
-
-  /**
-   * If the given node is not `null`, visit this instance of the dead code verifier.
-   *
-   * @param node the node to be visited
-   */
-  void _safelyVisit(AstNode node) {
-    if (node != null) {
-      node.accept(this);
-    }
-  }
 }
 
 /**
@@ -2184,7 +2153,8 @@ class DeadCodeVerifier extends RecursiveAstVisitor<Object> {
  * This class must not assume that the [CompilationUnitElement] passed to it is
  * any more complete than a [COMPILATION_UNIT_ELEMENT].
  */
-class DeclarationResolver extends RecursiveAstVisitor<Object> {
+class DeclarationResolver extends RecursiveAstVisitor<Object>
+    with ExistingElementResolver {
   /**
    * The analysis context containing the sources to be analyzed.
    */
@@ -2195,11 +2165,6 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
    * compilation unit has been resolved, this set should be empty.
    */
   Set<Element> _expectedElements;
-
-  /**
-   * The compilation unit containing the AST nodes being visited.
-   */
-  CompilationUnitElementImpl _enclosingUnit;
 
   /**
    * The function type alias containing the AST nodes being visited, or `null`
@@ -2833,9 +2798,7 @@ class DeclarationResolver extends RecursiveAstVisitor<Object> {
  * The resulting AST must have everything resolved that would have been resolved
  * by a [DirectiveElementBuilder].
  */
-class DirectiveResolver extends SimpleAstVisitor {
-  CompilationUnitElementImpl _enclosingUnit;
-
+class DirectiveResolver extends SimpleAstVisitor with ExistingElementResolver {
   @override
   void visitCompilationUnit(CompilationUnit node) {
     _enclosingUnit = node.element;
@@ -3490,6 +3453,41 @@ class EnumMemberBuilder extends RecursiveAstVisitor<Object> {
     getter.type = new FunctionTypeImpl(getter);
     field.getter = getter;
     return getter;
+  }
+}
+
+/**
+ * A mixin for classes that use an existing element model to resolve a portion
+ * of an AST structure.
+ */
+class ExistingElementResolver {
+  /**
+   * The compilation unit containing the AST nodes being visited.
+   */
+  CompilationUnitElementImpl _enclosingUnit;
+
+  /**
+   * Throw an [ElementMismatchException] to report that the element model and the
+   * AST do not match. The [message] will have the path to the given [node]
+   * appended to it.
+   */
+  void _mismatch(String message, AstNode node) {
+    StringBuffer buffer = new StringBuffer();
+    buffer.write('Mismatch in ');
+    buffer.write(runtimeType);
+    buffer.write(' while resolving ');
+    buffer.writeln(_enclosingUnit?.source?.fullName);
+    buffer.writeln(message);
+    buffer.write('Path to root:');
+    String separator = ' ';
+    AstNode parent = node;
+    while (parent != null) {
+      buffer.write(separator);
+      buffer.write(parent.runtimeType.toString());
+      separator = ', ';
+      parent = parent.parent;
+    }
+    throw new ElementMismatchException(buffer.toString());
   }
 }
 
@@ -6611,10 +6609,9 @@ class NamespaceBuilder {
       //
       return Namespace.EMPTY;
     }
-    HashMap<String, Element> definedNames =
-        _createExportMapping(exportedLibrary, new HashSet<LibraryElement>());
-    definedNames = _applyCombinators(definedNames, element.combinators);
-    return new Namespace(definedNames);
+    HashMap<String, Element> exportedNames = _getExportMapping(exportedLibrary);
+    exportedNames = _applyCombinators(exportedNames, element.combinators);
+    return new Namespace(exportedNames);
   }
 
   /**
@@ -6623,9 +6620,10 @@ class NamespaceBuilder {
    * @param library the library whose export namespace is to be created
    * @return the export namespace that was created
    */
-  Namespace createExportNamespaceForLibrary(LibraryElement library) =>
-      new Namespace(
-          _createExportMapping(library, new HashSet<LibraryElement>()));
+  Namespace createExportNamespaceForLibrary(LibraryElement library) {
+    HashMap<String, Element> exportedNames = _getExportMapping(library);
+    return new Namespace(exportedNames);
+  }
 
   /**
    * Create a namespace representing the import namespace of the given library.
@@ -6642,11 +6640,10 @@ class NamespaceBuilder {
       //
       return Namespace.EMPTY;
     }
-    HashMap<String, Element> definedNames =
-        _createExportMapping(importedLibrary, new HashSet<LibraryElement>());
-    definedNames = _applyCombinators(definedNames, element.combinators);
-    definedNames = _applyPrefix(definedNames, element.prefix);
-    return new Namespace(definedNames);
+    HashMap<String, Element> exportedNames = _getExportMapping(importedLibrary);
+    exportedNames = _applyCombinators(exportedNames, element.combinators);
+    exportedNames = _applyPrefix(exportedNames, element.prefix);
+    return new Namespace(exportedNames);
   }
 
   /**
@@ -6770,7 +6767,7 @@ class NamespaceBuilder {
    *          be added by another library
    * @return the mapping table that was created
    */
-  HashMap<String, Element> _createExportMapping(
+  HashMap<String, Element> _computeExportMapping(
       LibraryElement library, HashSet<LibraryElement> visitedElements) {
     visitedElements.add(library);
     try {
@@ -6784,7 +6781,7 @@ class NamespaceBuilder {
           // valid library.
           //
           HashMap<String, Element> exportedNames =
-              _createExportMapping(exportedLibrary, visitedElements);
+              _computeExportMapping(exportedLibrary, visitedElements);
           exportedNames = _applyCombinators(exportedNames, element.combinators);
           definedNames.addAll(exportedNames);
         }
@@ -6797,6 +6794,20 @@ class NamespaceBuilder {
     } finally {
       visitedElements.remove(library);
     }
+  }
+
+  HashMap<String, Element> _getExportMapping(LibraryElement library) {
+    if (library is LibraryElementImpl) {
+      if (library.exportNamespace != null) {
+        return library.exportNamespace.definedNames;
+      } else {
+        HashMap<String, Element> exportMapping =
+            _computeExportMapping(library, new HashSet<LibraryElement>());
+        library.exportNamespace = new Namespace(exportMapping);
+        return exportMapping;
+      }
+    }
+    return _computeExportMapping(library, new HashSet<LibraryElement>());
   }
 
   /**
@@ -7682,13 +7693,13 @@ class ResolverVisitor extends ScopedVisitor {
         identical(parent, _enclosingFunctionTypeAlias)) {
       return null;
     }
-    safelyVisit(node.name);
-    safelyVisit(node.constructorName);
+    node.name?.accept(this);
+    node.constructorName?.accept(this);
     Element element = node.element;
     if (element is ExecutableElement) {
       InferenceContext.setType(node.arguments, element.type);
     }
-    safelyVisit(node.arguments);
+    node.arguments?.accept(this);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
     ElementAnnotationImpl elementAnnotationImpl = node.elementAnnotation;
@@ -7766,14 +7777,14 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitAssignmentExpression(AssignmentExpression node) {
-    safelyVisit(node.leftHandSide);
+    node.leftHandSide?.accept(this);
     TokenType operator = node.operator.type;
     if (operator == TokenType.EQ ||
         operator == TokenType.QUESTION_QUESTION_EQ) {
       InferenceContext.setType(
           node.rightHandSide, node.leftHandSide.staticType);
     }
-    safelyVisit(node.rightHandSide);
+    node.rightHandSide?.accept(this);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
     return null;
@@ -7798,7 +7809,7 @@ class ResolverVisitor extends ScopedVisitor {
     Expression leftOperand = node.leftOperand;
     Expression rightOperand = node.rightOperand;
     if (operatorType == TokenType.AMPERSAND_AMPERSAND) {
-      safelyVisit(leftOperand);
+      leftOperand?.accept(this);
       if (rightOperand != null) {
         _overrideManager.enterScope();
         try {
@@ -7821,7 +7832,7 @@ class ResolverVisitor extends ScopedVisitor {
         }
       }
     } else if (operatorType == TokenType.BAR_BAR) {
-      safelyVisit(leftOperand);
+      leftOperand?.accept(this);
       if (rightOperand != null) {
         _overrideManager.enterScope();
         try {
@@ -7838,8 +7849,8 @@ class ResolverVisitor extends ScopedVisitor {
         InferenceContext.setTypeFromNode(leftOperand, node);
         InferenceContext.setTypeFromNode(rightOperand, node);
       }
-      safelyVisit(leftOperand);
-      safelyVisit(rightOperand);
+      leftOperand?.accept(this);
+      rightOperand?.accept(this);
     }
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
@@ -7993,7 +8004,7 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   Object visitConditionalExpression(ConditionalExpression node) {
     Expression condition = node.condition;
-    safelyVisit(condition);
+    condition?.accept(this);
     Expression thenExpression = node.thenExpression;
     if (thenExpression != null) {
       _overrideManager.enterScope();
@@ -8075,7 +8086,7 @@ class ResolverVisitor extends ScopedVisitor {
     //
     FieldElement fieldElement = enclosingClass.getField(node.fieldName.name);
     InferenceContext.setType(node.expression, fieldElement?.type);
-    safelyVisit(node.expression);
+    node.expression?.accept(this);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
     return null;
@@ -8226,9 +8237,9 @@ class ResolverVisitor extends ScopedVisitor {
       InferenceContext.setType(
           iterable, targetType.instantiate([loopVariable.type.type]));
     }
-    safelyVisit(iterable);
-    safelyVisit(loopVariable);
-    safelyVisit(identifier);
+    iterable?.accept(this);
+    loopVariable?.accept(this);
+    identifier?.accept(this);
     Statement body = node.body;
     if (body != null) {
       _overrideManager.enterScope();
@@ -8278,9 +8289,9 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   void visitForStatementInScope(ForStatement node) {
-    safelyVisit(node.variables);
-    safelyVisit(node.initialization);
-    safelyVisit(node.condition);
+    node.variables?.accept(this);
+    node.initialization?.accept(this);
+    node.condition?.accept(this);
     _overrideManager.enterScope();
     try {
       _propagateTrueState(node.condition);
@@ -8350,11 +8361,11 @@ class ResolverVisitor extends ScopedVisitor {
 
   @override
   Object visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
-    safelyVisit(node.function);
+    node.function?.accept(this);
     node.accept(elementResolver);
     _inferFunctionExpressionsParametersTypes(node.argumentList);
     _inferArgumentTypesFromContext(node);
-    safelyVisit(node.argumentList);
+    node.argumentList?.accept(this);
     node.accept(typeAnalyzer);
     return null;
   }
@@ -8387,7 +8398,7 @@ class ResolverVisitor extends ScopedVisitor {
   @override
   Object visitIfStatement(IfStatement node) {
     Expression condition = node.condition;
-    safelyVisit(condition);
+    condition?.accept(this);
     Map<VariableElement, DartType> thenOverrides =
         new HashMap<VariableElement, DartType>();
     Statement thenStatement = node.thenStatement;
@@ -8467,12 +8478,12 @@ class ResolverVisitor extends ScopedVisitor {
         }
       }
     }
-    safelyVisit(node.constructorName);
+    node.constructorName?.accept(this);
     FunctionType constructorType = node.constructorName.staticElement?.type;
     if (constructorType != null) {
       InferenceContext.setType(node.argumentList, constructorType);
     }
-    safelyVisit(node.argumentList);
+    node.argumentList?.accept(this);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
     return null;
@@ -8566,12 +8577,12 @@ class ResolverVisitor extends ScopedVisitor {
     // We visit the target and argument list, but do not visit the method name
     // because it needs to be visited in the context of the invocation.
     //
-    safelyVisit(node.target);
-    safelyVisit(node.typeArguments);
+    node.target?.accept(this);
+    node.typeArguments?.accept(this);
     node.accept(elementResolver);
     _inferFunctionExpressionsParametersTypes(node.argumentList);
     _inferArgumentTypesFromContext(node);
-    safelyVisit(node.argumentList);
+    node.argumentList?.accept(this);
     node.accept(typeAnalyzer);
     return null;
   }
@@ -8602,7 +8613,7 @@ class ResolverVisitor extends ScopedVisitor {
     // We visit the prefix, but do not visit the identifier because it needs to
     // be visited in the context of the prefix.
     //
-    safelyVisit(node.prefix);
+    node.prefix?.accept(this);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
     return null;
@@ -8614,7 +8625,7 @@ class ResolverVisitor extends ScopedVisitor {
     // We visit the target, but do not visit the property name because it needs
     // to be visited in the context of the property access node.
     //
-    safelyVisit(node.target);
+    node.target?.accept(this);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
     return null;
@@ -8629,7 +8640,7 @@ class ResolverVisitor extends ScopedVisitor {
     // invocation.
     //
     InferenceContext.setType(node.argumentList, node.staticElement?.type);
-    safelyVisit(node.argumentList);
+    node.argumentList?.accept(this);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
     return null;
@@ -8663,7 +8674,7 @@ class ResolverVisitor extends ScopedVisitor {
     // invocation.
     //
     InferenceContext.setType(node.argumentList, node.staticElement?.type);
-    safelyVisit(node.argumentList);
+    node.argumentList?.accept(this);
     node.accept(elementResolver);
     node.accept(typeAnalyzer);
     return null;
@@ -8748,7 +8759,7 @@ class ResolverVisitor extends ScopedVisitor {
     try {
       _implicitLabelScope = _implicitLabelScope.nest(node);
       Expression condition = node.condition;
-      safelyVisit(condition);
+      condition?.accept(this);
       Statement body = node.body;
       if (body != null) {
         _overrideManager.enterScope();
@@ -9680,17 +9691,6 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
         source, token.offset, token.length, errorCode, arguments));
   }
 
-  /**
-   * Visit the given AST node if it is not null.
-   *
-   * @param node the node to be visited
-   */
-  void safelyVisit(AstNode node) {
-    if (node != null) {
-      node.accept(this);
-    }
-  }
-
   @override
   Object visitBlock(Block node) {
     Scope outerScope = nameScope;
@@ -9768,16 +9768,16 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   }
 
   void visitClassDeclarationInScope(ClassDeclaration node) {
-    safelyVisit(node.name);
-    safelyVisit(node.typeParameters);
-    safelyVisit(node.extendsClause);
-    safelyVisit(node.withClause);
-    safelyVisit(node.implementsClause);
-    safelyVisit(node.nativeClause);
+    node.name?.accept(this);
+    node.typeParameters?.accept(this);
+    node.extendsClause?.accept(this);
+    node.withClause?.accept(this);
+    node.implementsClause?.accept(this);
+    node.nativeClause?.accept(this);
   }
 
   void visitClassMembersInScope(ClassDeclaration node) {
-    safelyVisit(node.documentationComment);
+    node.documentationComment?.accept(this);
     node.metadata.accept(this);
     node.members.accept(this);
   }
@@ -9843,7 +9843,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     try {
       _implicitLabelScope = _implicitLabelScope.nest(node);
       visitStatementInScope(node.body);
-      safelyVisit(node.condition);
+      node.condition?.accept(this);
     } finally {
       _implicitLabelScope = outerImplicitScope;
     }
@@ -9877,7 +9877,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
   }
 
   void visitEnumMembersInScope(EnumDeclaration node) {
-    safelyVisit(node.documentationComment);
+    node.documentationComment?.accept(this);
     node.metadata.accept(this);
     node.constants.accept(this);
   }
@@ -9909,9 +9909,9 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
     // We visit the iterator before the loop variable because the loop variable
     // cannot be in scope while visiting the iterator.
     //
-    safelyVisit(node.identifier);
-    safelyVisit(node.iterable);
-    safelyVisit(node.loopVariable);
+    node.identifier?.accept(this);
+    node.iterable?.accept(this);
+    node.loopVariable?.accept(this);
     visitStatementInScope(node.body);
   }
 
@@ -9955,9 +9955,9 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
    * @param node the statement to be visited
    */
   void visitForStatementInScope(ForStatement node) {
-    safelyVisit(node.variables);
-    safelyVisit(node.initialization);
-    safelyVisit(node.condition);
+    node.variables?.accept(this);
+    node.initialization?.accept(this);
+    node.condition?.accept(this);
     node.updaters.accept(this);
     visitStatementInScope(node.body);
   }
@@ -10067,7 +10067,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
 
   @override
   Object visitIfStatement(IfStatement node) {
-    safelyVisit(node.condition);
+    node.condition?.accept(this);
     visitStatementInScope(node.thenStatement);
     visitStatementInScope(node.elseStatement);
     return null;
@@ -10191,7 +10191,7 @@ abstract class ScopedVisitor extends UnifyingAstVisitor<Object> {
 
   @override
   Object visitWhileStatement(WhileStatement node) {
-    safelyVisit(node.condition);
+    node.condition?.accept(this);
     ImplicitLabelScope outerImplicitScope = _implicitLabelScope;
     try {
       _implicitLabelScope = _implicitLabelScope.nest(node);

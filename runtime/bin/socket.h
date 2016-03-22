@@ -26,7 +26,6 @@
 #include "bin/thread.h"
 #include "bin/utils.h"
 
-
 namespace dart {
 namespace bin {
 
@@ -59,7 +58,9 @@ class SocketAddress {
   ~SocketAddress() {}
 
   int GetType() {
-    if (addr_.ss.ss_family == AF_INET6) return TYPE_IPV6;
+    if (addr_.ss.ss_family == AF_INET6) {
+      return TYPE_IPV6;
+    }
     return TYPE_IPV4;
   }
 
@@ -67,23 +68,27 @@ class SocketAddress {
   const RawAddr& addr() const { return addr_; }
 
   static intptr_t GetAddrLength(const RawAddr& addr) {
-    ASSERT(addr.ss.ss_family == AF_INET || addr.ss.ss_family == AF_INET6);
-    return addr.ss.ss_family == AF_INET6 ?
+    ASSERT((addr.ss.ss_family == AF_INET) || (addr.ss.ss_family == AF_INET6));
+    return (addr.ss.ss_family == AF_INET6) ?
         sizeof(struct sockaddr_in6) : sizeof(struct sockaddr_in);
   }
 
   static intptr_t GetInAddrLength(const RawAddr& addr) {
-    ASSERT(addr.ss.ss_family == AF_INET || addr.ss.ss_family == AF_INET6);
-    return addr.ss.ss_family == AF_INET6 ?
+    ASSERT((addr.ss.ss_family == AF_INET) || (addr.ss.ss_family == AF_INET6));
+    return (addr.ss.ss_family == AF_INET6) ?
         sizeof(struct in6_addr) : sizeof(struct in_addr);
   }
 
   static bool AreAddressesEqual(const RawAddr& a, const RawAddr& b) {
     if (a.ss.ss_family == AF_INET) {
-      if (b.ss.ss_family != AF_INET) return false;
+      if (b.ss.ss_family != AF_INET) {
+        return false;
+      }
       return memcmp(&a.in.sin_addr, &b.in.sin_addr, sizeof(a.in.sin_addr)) == 0;
     } else if (a.ss.ss_family == AF_INET6) {
-      if (b.ss.ss_family != AF_INET6) return false;
+      if (b.ss.ss_family != AF_INET6) {
+        return false;
+      }
       return memcmp(&a.in6.sin6_addr,
                     &b.in6.sin6_addr,
                     sizeof(a.in6.sin6_addr)) == 0;
@@ -99,9 +104,11 @@ class SocketAddress {
     intptr_t len;
     Dart_Handle result = Dart_TypedDataAcquireData(
         obj, &data_type, reinterpret_cast<void**>(&data), &len);
-    if (Dart_IsError(result)) Dart_PropagateError(result);
-    if (data_type != Dart_TypedData_kUint8 ||
-        (len != sizeof(in_addr) && len != sizeof(in6_addr))) {
+    if (Dart_IsError(result)) {
+      Dart_PropagateError(result);
+    }
+    if ((data_type != Dart_TypedData_kUint8) ||
+        ((len != sizeof(in_addr)) && (len != sizeof(in6_addr)))) {
       Dart_PropagateError(
           Dart_NewApiError("Unexpected type for socket address"));
     }
@@ -118,9 +125,13 @@ class SocketAddress {
   }
 
   static int16_t FromType(int type) {
-    if (type == TYPE_ANY) return AF_UNSPEC;
-    if (type == TYPE_IPV4) return AF_INET;
-    ASSERT(type == TYPE_IPV6 && "Invalid type");
+    if (type == TYPE_ANY) {
+      return AF_UNSPEC;
+    }
+    if (type == TYPE_IPV4) {
+      return AF_INET;
+    }
+    ASSERT((type == TYPE_IPV6) && "Invalid type");
     return AF_INET6;
   }
 
@@ -143,7 +154,9 @@ class SocketAddress {
   static Dart_Handle ToTypedData(const RawAddr& addr) {
     int len = GetInAddrLength(addr);
     Dart_Handle result = Dart_NewTypedData(Dart_TypedData_kUint8, len);
-    if (Dart_IsError(result)) Dart_PropagateError(result);
+    if (Dart_IsError(result)) {
+      Dart_PropagateError(result);
+    }
     Dart_Handle err;
     if (addr.addr.sa_family == AF_INET6) {
       err = Dart_ListSetAsBytes(
@@ -153,7 +166,9 @@ class SocketAddress {
       err = Dart_ListSetAsBytes(
           result, 0, reinterpret_cast<const uint8_t*>(&addr.in.sin_addr), len);
     }
-    if (Dart_IsError(err)) Dart_PropagateError(err);
+    if (Dart_IsError(err)) {
+      Dart_PropagateError(err);
+    }
     return result;
   }
 
@@ -178,11 +193,12 @@ class SocketAddress {
   DISALLOW_COPY_AND_ASSIGN(SocketAddress);
 };
 
+
 class InterfaceSocketAddress {
  public:
-  explicit InterfaceSocketAddress(struct sockaddr* sa,
-                                  const char* interface_name,
-                                  intptr_t interface_index)
+  InterfaceSocketAddress(struct sockaddr* sa,
+                         const char* interface_name,
+                         intptr_t interface_index)
       : socket_address_(new SocketAddress(sa)),
         interface_name_(interface_name),
         interface_index_(interface_index) {}
@@ -202,6 +218,7 @@ class InterfaceSocketAddress {
 
   DISALLOW_COPY_AND_ASSIGN(InterfaceSocketAddress);
 };
+
 
 template<typename T>
 class AddressList {
@@ -227,6 +244,7 @@ class AddressList {
 
   DISALLOW_COPY_AND_ASSIGN(AddressList);
 };
+
 
 class Socket {
  public:
@@ -340,6 +358,7 @@ class ServerSocket {
   DISALLOW_IMPLICIT_CONSTRUCTORS(ServerSocket);
 };
 
+
 class ListeningSocketRegistry {
  private:
   struct OSSocket {
@@ -415,7 +434,6 @@ class ListeningSocketRegistry {
  private:
   DISALLOW_COPY_AND_ASSIGN(ListeningSocketRegistry);
 };
-
 
 }  // namespace bin
 }  // namespace dart

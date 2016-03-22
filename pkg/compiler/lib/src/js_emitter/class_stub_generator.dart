@@ -169,7 +169,7 @@ class ClassStubGenerator {
                 backend.emitter.staticFunctionAccess(
                     backend.helpers.createInvocationMirror),
             'methodName':
-                js.quoteName(compiler.enableMinification
+                js.quoteName(compiler.options.enableMinification
                     ? internalName : methodName),
             'internalName': js.quoteName(internalName),
             'type': js.number(type),
@@ -227,7 +227,7 @@ List<jsAst.Statement> buildTearOffCode(JavaScriptBackend backend) {
   }
 
   jsAst.Statement tearOffGetter;
-  if (!compiler.useContentSecurityPolicy) {
+  if (!compiler.options.useContentSecurityPolicy) {
     jsAst.Expression tearOffAccessText =
         new jsAst.UnparsedNode(tearOffAccessExpression, compiler, false);
     tearOffGetter = js.statement('''

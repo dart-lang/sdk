@@ -35,6 +35,9 @@
         <template if="{{ cls.isPatch }}">
           patch
         </template>
+        <template if="{{ cls.mixin != null }}">
+          mixin
+        </template>
         class {{ cls.name }}
       </h1>
 
@@ -59,9 +62,25 @@
 
         <template if="{{ cls.superclass != null }}">
           <div class="memberItem">
-            <div class="memberName">extends</div>
+            <div class="memberName">superclass</div>
             <div class="memberValue">
               <class-ref ref="{{ cls.superclass }}"></class-ref>
+            </div>
+          </div>
+        </template>
+        <template if="{{ cls.superType != null }}">
+          <div class="memberItem">
+            <div class="memberName">supertype</div>
+            <div class="memberValue">
+              <instance-ref ref="{{ cls.superType }}"></instance-ref>
+            </div>
+          </div>
+        </template>
+        <template if="{{ cls.mixin != null }}">
+          <div class="memberItem">
+            <div class="memberName">mixin</div>
+            <div class="memberValue">
+              <instance-ref ref="{{ cls.mixin }}"></instance-ref>
             </div>
           </div>
         </template>

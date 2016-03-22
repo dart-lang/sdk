@@ -137,7 +137,6 @@ class ObjectPointerVisitor;
   V(Dynamic, "dynamic")                                                        \
   V(UnresolvedClass, "UnresolvedClass")                                        \
   V(Type, "_Type")                                                             \
-  V(FunctionType, "_FunctionType")                                             \
   V(TypeRef, "_TypeRef")                                                       \
   V(TypeParameter, "_TypeParameter")                                           \
   V(BoundedType, "_BoundedType")                                               \
@@ -200,15 +199,12 @@ class ObjectPointerVisitor;
   V(_RawReceivePortImpl, "_RawReceivePortImpl")                                \
   V(_SendPortImpl, "_SendPortImpl")                                            \
   V(_StackTrace, "_StackTrace")                                                \
-  V(JSSyntaxRegExp, "_JSSyntaxRegExp")                                         \
+  V(_RegExp, "_RegExp")                                                        \
   V(RegExp, "RegExp")                                                          \
-  V(Irregexp, ":irregexp")                                                     \
+  V(ColonMatcher, ":matcher")                                                  \
   V(Object, "Object")                                                          \
   V(Int, "int")                                                                \
   V(Double, "double")                                                          \
-  V(_Float32x4, "_Float32x4")                                                  \
-  V(_Float64x2, "_Float64x2")                                                  \
-  V(_Int32x4, "_Int32x4")                                                      \
   V(Float32x4, "Float32x4")                                                    \
   V(Float64x2, "Float64x2")                                                    \
   V(Int32x4, "Int32x4")                                                        \
@@ -226,34 +222,20 @@ class ObjectPointerVisitor;
   V(Float64x2List, "Float64x2List")                                            \
   V(Float32List, "Float32List")                                                \
   V(Float64List, "Float64List")                                                \
-  V(_Int8Array, "_Int8Array")                                                  \
-  V(_Int8ArrayFactory, "_Int8Array.")                                          \
-  V(_Uint8Array, "_Uint8Array")                                                \
-  V(_Uint8ArrayFactory, "_Uint8Array.")                                        \
-  V(_Uint8ClampedArray, "_Uint8ClampedArray")                                  \
-  V(_Uint8ClampedArrayFactory, "_Uint8ClampedArray.")                          \
-  V(_Int16Array, "_Int16Array")                                                \
-  V(_Int16ArrayFactory, "_Int16Array.")                                        \
-  V(_Uint16Array, "_Uint16Array")                                              \
-  V(_Uint16ArrayFactory, "_Uint16Array.")                                      \
-  V(_Int32Array, "_Int32Array")                                                \
-  V(_Int32ArrayFactory, "_Int32Array.")                                        \
-  V(_Uint32Array, "_Uint32Array")                                              \
-  V(_Uint32ArrayFactory, "_Uint32Array.")                                      \
-  V(_Int64Array, "_Int64Array")                                                \
-  V(_Int64ArrayFactory, "_Int64Array.")                                        \
-  V(_Uint64Array, "_Uint64Array")                                              \
-  V(_Uint64ArrayFactory, "_Uint64Array.")                                      \
-  V(_Float32x4Array, "_Float32x4Array")                                        \
-  V(_Float32x4ArrayFactory, "_Float32x4Array.")                                \
-  V(_Int32x4Array, "_Int32x4Array")                                            \
-  V(_Int32x4ArrayFactory, "_Int32x4Array.")                                    \
-  V(_Float64x2Array, "_Float64x2Array")                                        \
-  V(_Float64x2ArrayFactory, "_Float64x2Array.")                                \
-  V(_Float32Array, "_Float32Array")                                            \
-  V(_Float32ArrayFactory, "_Float32Array.")                                    \
-  V(_Float64Array, "_Float64Array")                                            \
-  V(_Float64ArrayFactory, "_Float64Array.")                                    \
+  V(_Int8ArrayFactory, "Int8List.")                                          \
+  V(_Uint8ArrayFactory, "Uint8List.")                                        \
+  V(_Uint8ClampedArrayFactory, "Uint8ClampedList.")                          \
+  V(_Int16ArrayFactory, "Int16List.")                                        \
+  V(_Uint16ArrayFactory, "Uint16List.")                                      \
+  V(_Int32ArrayFactory, "Int32List.")                                        \
+  V(_Uint32ArrayFactory, "Uint32List.")                                      \
+  V(_Int64ArrayFactory, "Int64List.")                                        \
+  V(_Uint64ArrayFactory, "Uint64List.")                                      \
+  V(_Float32x4ArrayFactory, "Float32x4List.")                                \
+  V(_Int32x4ArrayFactory, "Int32x4List.")                                    \
+  V(_Float64x2ArrayFactory, "Float64x2List.")                                \
+  V(_Float32ArrayFactory, "Float32List.")                                    \
+  V(_Float64ArrayFactory, "Float64List.")                                    \
   V(_Int8ArrayView, "_Int8ArrayView")                                          \
   V(_Uint8ArrayView, "_Uint8ArrayView")                                        \
   V(_Uint8ClampedArrayView, "_Uint8ClampedArrayView")                          \
@@ -286,8 +268,8 @@ class ObjectPointerVisitor;
   V(ByteDataDot, "ByteData.")                                                  \
   V(ByteDataDot_view, "ByteData._view")                                        \
   V(_ByteDataView, "_ByteDataView")                                            \
-  V(_ByteBuffer, "_ByteBuffer")                                                \
-  V(_ByteBufferDot_New, "_ByteBuffer._New")                                    \
+  V(ByteBuffer, "ByteBuffer")                                                  \
+  V(ByteBufferDot_New, "ByteBuffer._New")                                      \
   V(_WeakProperty, "_WeakProperty")                                            \
   V(_MirrorReference, "_MirrorReference")                                      \
   V(InvocationMirror, "_InvocationMirror")                                     \

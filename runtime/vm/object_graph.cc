@@ -511,9 +511,13 @@ class WriteGraphVisitor : public ObjectGraph::Visitor {
 };
 
 
-intptr_t ObjectGraph::Serialize(WriteStream* stream) {
+intptr_t ObjectGraph::Serialize(WriteStream* stream, bool collect_garbage) {
+  if (collect_garbage) {
+    isolate()->heap()->CollectAllGarbage();
+  }
   // Current encoding assumes objects do not move, so promote everything to old.
   isolate()->heap()->new_space()->Evacuate();
+
   WriteGraphVisitor visitor(isolate(), stream);
   stream->WriteUnsigned(kObjectAlignment);
   stream->WriteUnsigned(0);

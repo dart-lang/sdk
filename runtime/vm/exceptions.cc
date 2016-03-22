@@ -238,7 +238,7 @@ static void JumpToExceptionHandler(Thread* thread,
       StubCode::JumpToExceptionHandler_entry()->EntryPoint());
 
   // Unpoison the stack before we tear it down in the generated stub code.
-  uword current_sp = Isolate::GetCurrentStackPointer() - 1024;
+  uword current_sp = Thread::GetCurrentStackPointer() - 1024;
   ASAN_UNPOISON(reinterpret_cast<void*>(current_sp),
                 stack_pointer - current_sp);
 
@@ -493,12 +493,24 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
         pieces.Add(Symbols::SingleQuote());
       }
       // Print URIs of src and dst types.
-      pieces.Add(Symbols::SpaceWhereNewLine());
+      // Do not print "where" when no URIs get printed.
+      bool printed_where = false;
       if (!src_type.IsNull()) {
-        pieces.Add(String::Handle(zone, src_type.EnumerateURIs()));
+        const String& uris = String::Handle(zone, src_type.EnumerateURIs());
+        if (uris.Length() > Symbols::SpaceIsFromSpace().Length()) {
+          printed_where = true;
+          pieces.Add(Symbols::SpaceWhereNewLine());
+          pieces.Add(uris);
+        }
       }
       if (!dst_type.IsDynamicType() && !dst_type.IsVoidType()) {
-        pieces.Add(String::Handle(zone, dst_type.EnumerateURIs()));
+        const String& uris = String::Handle(zone, dst_type.EnumerateURIs());
+        if (uris.Length() > Symbols::SpaceIsFromSpace().Length()) {
+          if (!printed_where) {
+            pieces.Add(Symbols::SpaceWhereNewLine());
+          }
+          pieces.Add(uris);
+        }
       }
     }
   }

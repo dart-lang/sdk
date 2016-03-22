@@ -743,7 +743,7 @@ class ClosureTranslator extends Visitor {
     // TODO(karlklose,johnniwinther): if the type is null, the annotation is
     // from a parameter which has been analyzed before the method has been
     // resolved and the result has been thrown away.
-    if (compiler.enableTypeAssertions && type != null &&
+    if (compiler.options.enableTypeAssertions && type != null &&
         type.containsTypeVariables) {
       if (insideClosure && member.isFactoryConstructor) {
         // This is a closure in a factory constructor.  Since there is no
@@ -813,7 +813,7 @@ class ClosureTranslator extends Visitor {
     Element element = elements[node];
     if (Elements.isLocal(element)) {
       mutatedVariables.add(element);
-      if (compiler.enableTypeAssertions) {
+      if (compiler.options.enableTypeAssertions) {
         TypedElement typedElement = element;
         analyzeTypeVariables(typedElement.type);
       }
@@ -1065,7 +1065,7 @@ class ClosureTranslator extends Visitor {
       // escape the potential type variables used in that closure.
       if (element is FunctionElement &&
           (compiler.backend.methodNeedsRti(element) ||
-           compiler.enableTypeAssertions)) {
+           compiler.options.enableTypeAssertions)) {
         analyzeTypeVariables(type);
       }
 

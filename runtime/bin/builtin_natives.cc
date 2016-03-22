@@ -60,7 +60,7 @@ Dart_NativeFunction Builtin::NativeLookup(Dart_Handle name,
   int num_entries = sizeof(BuiltinEntries) / sizeof(struct NativeEntries);
   for (int i = 0; i < num_entries; i++) {
     struct NativeEntries* entry = &(BuiltinEntries[i]);
-    if (!strcmp(function_name, entry->name_) &&
+    if ((strcmp(function_name, entry->name_) == 0) &&
         (entry->argument_count_ == argument_count)) {
       return reinterpret_cast<Dart_NativeFunction>(entry->function_);
     }
@@ -88,7 +88,9 @@ void FUNCTION_NAME(Builtin_PrintString)(Dart_NativeArguments args) {
   uint8_t* chars = NULL;
   Dart_Handle str = Dart_GetNativeArgument(args, 0);
   Dart_Handle result = Dart_StringToUTF8(str, &chars, &length);
-  if (Dart_IsError(result)) Dart_PropagateError(result);
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
 
   // Uses fwrite to support printing NUL bytes.
   intptr_t res = fwrite(chars, 1, length, stdout);

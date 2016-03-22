@@ -407,8 +407,12 @@ class HeapSnapshotElement extends ObservatoryElement {
     var completer = new Completer();
     state = "Requesting heap snapshot...";
     isolate.getClassRefs();
+
+    bool collectGarbage =
+        app.locationManager.getBoolParameter('collectGarbage', true);
+
     var stopwatch = new Stopwatch()..start();
-    isolate.fetchHeapSnapshot().listen((event) {
+    isolate.fetchHeapSnapshot(collectGarbage).listen((event) {
       if (event is String) {
         print("${stopwatch.elapsedMilliseconds} $event");
         state = event;

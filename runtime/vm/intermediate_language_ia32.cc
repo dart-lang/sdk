@@ -2583,11 +2583,10 @@ class CheckStackOverflowSlowPath : public SlowPathCode {
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
     if (FLAG_use_osr && osr_entry_label()->IsLinked()) {
-      uword flags_address = Isolate::Current()->stack_overflow_flags_address();
       __ Comment("CheckStackOverflowSlowPathOsr");
       __ Bind(osr_entry_label());
-      __ movl(Address::Absolute(flags_address),
-              Immediate(Isolate::kOsrRequest));
+      __ movl(Address(THR, Thread::stack_overflow_flags_offset()),
+              Immediate(Thread::kOsrRequest));
     }
     __ Comment("CheckStackOverflowSlowPath");
     __ Bind(entry_label());
@@ -2629,13 +2628,7 @@ void CheckStackOverflowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   CheckStackOverflowSlowPath* slow_path = new CheckStackOverflowSlowPath(this);
   compiler->AddSlowPathCode(slow_path);
 
-  if (compiler->is_optimizing()) {
-    __ cmpl(ESP, Address::Absolute(Isolate::Current()->stack_limit_address()));
-  } else {
-    Register tmp = locs()->temp(0).reg();
-    __ LoadIsolate(tmp);
-    __ cmpl(ESP, Address(tmp, Isolate::stack_limit_offset()));
-  }
+  __ cmpl(ESP, Address(THR, Thread::stack_limit_offset()));
   __ j(BELOW_EQUAL, slow_path->entry_label());
   if (compiler->CanOSRFunction() && in_loop()) {
     // In unoptimized code check the usage counter to trigger OSR at loop

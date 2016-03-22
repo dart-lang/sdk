@@ -9,6 +9,7 @@ import 'dart:async';
 import 'dart:collection';
 
 import 'package:compiler/compiler.dart' as api;
+import 'package:compiler/compiler_new.dart' as new_api;
 import 'package:compiler/src/common/names.dart' show
     Uris;
 import 'package:compiler/src/constants/expressions.dart';
@@ -69,7 +70,6 @@ class MockCompiler extends Compiler {
        bool enableTypeAssertions: false,
        bool enableUserAssertions: false,
        bool enableMinification: false,
-       int maxConcreteTypeSize: 5,
        bool disableTypeInference: false,
        bool analyzeAll: false,
        bool analyzeOnly: false,
@@ -88,22 +88,24 @@ class MockCompiler extends Compiler {
        LibrarySourceProvider this.librariesOverride})
       : sourceFiles = new Map<String, SourceFile>(),
         testedPatchVersion = patchVersion,
-        super(enableTypeAssertions: enableTypeAssertions,
+        super(options: new new_api.CompilerOptions(
+              entryPoint: new Uri(scheme: 'mock'),
+              libraryRoot: Uri.parse('placeholder_library_root_for_mock/'),
+              enableTypeAssertions: enableTypeAssertions,
               enableUserAssertions: enableUserAssertions,
+              disableInlining: disableInlining,
               enableAssertMessage: true,
               enableMinification: enableMinification,
-              maxConcreteTypeSize: maxConcreteTypeSize,
-              disableTypeInferenceFlag: disableTypeInference,
-              analyzeAllFlag: analyzeAll,
+              disableTypeInference: disableTypeInference,
+              analyzeAll: analyzeAll,
               analyzeOnly: analyzeOnly,
               emitJavaScript: emitJavaScript,
               preserveComments: preserveComments,
               trustTypeAnnotations: trustTypeAnnotations,
               trustJSInteropTypeAnnotations: trustJSInteropTypeAnnotations,
               diagnosticOptions:
-                  new DiagnosticOptions(shownPackageWarnings: const []),
+                  new DiagnosticOptions(shownPackageWarnings: const [])),
               outputProvider: new LegacyCompilerOutput(outputProvider)) {
-    this.disableInlining = disableInlining;
 
     deferredLoadTask = new MockDeferredLoadTask(this);
 

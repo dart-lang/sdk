@@ -517,7 +517,7 @@ class Dart2AppSnapshotCompilerConfiguration extends CompilerConfiguration {
       CommandBuilder commandBuilder,
       List arguments,
       Map<String, String> environmentOverrides) {
-    var exec = "$buildDir/dart_no_snapshot";
+    var exec = "$buildDir/dart_bootstrap";
     var args = new List();
     args.add("--full-snapshot-after-run=$outputName");
     args.addAll(arguments);

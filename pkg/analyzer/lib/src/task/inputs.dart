@@ -89,29 +89,27 @@ class ListTaskInputImpl<E> extends SimpleTaskInput<List<E>>
  */
 abstract class ListTaskInputMixin<E> implements ListTaskInput<E> {
   @override
-  ListTaskInput /*<V>*/ toFlattenListOf /*<V>*/ (
-      ListResultDescriptor /*<V>*/ subListResult) {
-    return new ListToFlattenListTaskInput<E, dynamic /*=V*/ >(
+  ListTaskInput/*<V>*/ toFlattenListOf/*<V>*/(
+      ListResultDescriptor/*<V>*/ subListResult) {
+    return new ListToFlattenListTaskInput<E, dynamic/*=V*/ >(
         this, subListResult.of as dynamic);
   }
 
-  ListTaskInput /*<V>*/ toList /*<V>*/ (
-      UnaryFunction<E, dynamic /*<=V>*/ > mapper) {
-    return new ListToListTaskInput<E, dynamic /*=V*/ >(this, mapper);
+  ListTaskInput/*<V>*/ toList/*<V>*/(UnaryFunction<E, dynamic/*=V*/ > mapper) {
+    return new ListToListTaskInput<E, dynamic/*=V*/ >(this, mapper);
   }
 
-  ListTaskInput /*<V>*/ toListOf /*<V>*/ (
-      ResultDescriptor /*<V>*/ valueResult) {
+  ListTaskInput/*<V>*/ toListOf/*<V>*/(ResultDescriptor/*<V>*/ valueResult) {
     return (this as ListTaskInput<AnalysisTarget>).toList(valueResult.of);
   }
 
-  MapTaskInput<E, dynamic /*=V*/ > toMap /*<V>*/ (
-      UnaryFunction<E, dynamic /*<=V>*/ > mapper) {
-    return new ListToMapTaskInput<E, dynamic /*=V*/ >(this, mapper);
+  MapTaskInput<E, dynamic/*=V*/ > toMap/*<V>*/(
+      UnaryFunction<E, dynamic/*=V*/ > mapper) {
+    return new ListToMapTaskInput<E, dynamic/*=V*/ >(this, mapper);
   }
 
-  MapTaskInput<AnalysisTarget, dynamic /*=V*/ > toMapOf /*<V>*/ (
-      ResultDescriptor /*<V>*/ valueResult) {
+  MapTaskInput<AnalysisTarget, dynamic/*=V*/ > toMapOf/*<V>*/(
+      ResultDescriptor/*<V>*/ valueResult) {
     return (this as ListTaskInputImpl<AnalysisTarget>).toMap(valueResult.of);
   }
 }
@@ -279,10 +277,10 @@ class ListToMapTaskInputBuilder<B, E>
  * A mixin-ready implementation of [MapTaskInput].
  */
 abstract class MapTaskInputMixin<K, V> implements MapTaskInput<K, V> {
-  TaskInput<List /*<E>*/ > toFlattenList /*<E>*/ (
-      BinaryFunction<K, dynamic /*element of V*/, dynamic /*<=E>*/ > mapper) {
+  TaskInput<List/*<E>*/ > toFlattenList/*<E>*/(
+      BinaryFunction<K, dynamic /*element of V*/, dynamic/*=E*/ > mapper) {
     return new MapToFlattenListTaskInput<K, dynamic /*element of V*/,
-        dynamic /*=E*/ >(this as MapTaskInput<K, List /*<element of V>*/ >, mapper);
+        dynamic/*=E*/ >(this as MapTaskInput<K, List /*element of V*/ >, mapper);
   }
 }
 
@@ -441,23 +439,22 @@ class ObjectToListTaskInput<E> extends TaskInputImpl<List<E>>
       new ObjectToListTaskInputBuilder<E>(this);
 
   @override
-  ListTaskInput /*<V>*/ toFlattenListOf /*<V>*/ (
-      ListResultDescriptor /*<V>*/ subListResult) {
-    return new ListToFlattenListTaskInput<E, dynamic /*=V*/ >(
+  ListTaskInput/*<V>*/ toFlattenListOf/*<V>*/(
+      ListResultDescriptor/*<V>*/ subListResult) {
+    return new ListToFlattenListTaskInput<E, dynamic/*=V*/ >(
         this, subListResult.of as dynamic);
   }
 
   @override
-  ListTaskInput /*<V>*/ toListOf /*<V>*/ (
-      ResultDescriptor /*<V>*/ valueResult) {
-    return new ListToListTaskInput<E, dynamic /*=V*/ >(
+  ListTaskInput/*<V>*/ toListOf/*<V>*/(ResultDescriptor/*<V>*/ valueResult) {
+    return new ListToListTaskInput<E, dynamic/*=V*/ >(
         this, valueResult.of as dynamic);
   }
 
   @override
-  MapTaskInput<AnalysisTarget, dynamic /*=V*/ > toMapOf /*<V>*/ (
-      ResultDescriptor /*<V>*/ valueResult) {
-    return new ListToMapTaskInput<AnalysisTarget, dynamic /*=V*/ >(
+  MapTaskInput<AnalysisTarget, dynamic/*=V*/ > toMapOf/*<V>*/(
+      ResultDescriptor/*<V>*/ valueResult) {
+    return new ListToMapTaskInput<AnalysisTarget, dynamic/*=V*/ >(
         this as dynamic, valueResult.of);
   }
 }
@@ -696,7 +693,7 @@ class SimpleTaskInputBuilder<V> implements TaskInputBuilder<V> {
 
 abstract class TaskInputImpl<V> implements TaskInput<V> {
   @override
-  ListTaskInput /*<E>*/ mappedToList /*<E>*/ (List /*<E>*/ mapper(V value)) {
+  ListTaskInput/*<E>*/ mappedToList/*<E>*/(List/*<E>*/ mapper(V value)) {
     return new ObjectToListTaskInput(this, mapper);
   }
 }

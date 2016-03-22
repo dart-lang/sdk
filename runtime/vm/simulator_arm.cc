@@ -1137,7 +1137,7 @@ bool Simulator::HasExclusiveAccessAndOpen(uword addr) {
 void Simulator::ClearExclusive() {
   MutexLocker ml(exclusive_access_lock_);
   // Remove the reservation for this thread.
-  SetExclusiveAccess(NULL);
+  SetExclusiveAccess(0);
 }
 
 
@@ -1539,7 +1539,7 @@ void Simulator::SupervisorCall(Instr* instr) {
             (redirection->call_kind() == kBootstrapNativeCall) ||
             (redirection->call_kind() == kNativeCall)) {
           // Set the top_exit_frame_info of this simulator to the native stack.
-          set_top_exit_frame_info(Isolate::GetCurrentStackPointer());
+          set_top_exit_frame_info(Thread::GetCurrentStackPointer());
         }
         if (redirection->call_kind() == kRuntimeCall) {
           NativeArguments arguments;

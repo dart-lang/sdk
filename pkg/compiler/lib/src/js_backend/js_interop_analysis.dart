@@ -70,11 +70,11 @@ class JsInteropAnalysis {
         ConstantValue value = constructedConstant.fields[nameField];
         if (value.isString) {
           StringConstantValue stringValue = value;
-          backend.setJsInteropName(
+          backend.nativeData.setJsInteropName(
               e, stringValue.primitiveValue.slowToString());
         } else {
           // TODO(jacobr): report a warning if the value is not a String.
-          backend.setJsInteropName(e, '');
+          backend.nativeData.setJsInteropName(e, '');
         }
         enabledJsInterop = true;
         return;
@@ -179,7 +179,7 @@ class JsInteropAnalysis {
           if (selector.namedArgumentCount > 0) return;
           int argumentCount = selector.argumentCount;
           var candidateParameterNames =
-              'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLOMOPQRSTUVWXYZ';
+              'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
           var parameters = new List<String>.generate(
               argumentCount, (i) => candidateParameterNames[i]);
 

@@ -62,6 +62,7 @@ class TypeEnvironment {
       collector = new memory.DiagnosticCollector();
       uri = Uri.parse('memory:main.dart');
       compiler = memory.compilerFor(
+          entryPoint: uri,
           memorySourceFiles: {'main.dart': source},
           diagnosticHandler: collector,
           options: stopAfterTypeInference

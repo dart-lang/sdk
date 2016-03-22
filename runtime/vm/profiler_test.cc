@@ -201,6 +201,7 @@ class AllocationFilter : public SampleFilter {
                    int64_t time_origin_micros = -1,
                    int64_t time_extent_micros = -1)
       : SampleFilter(isolate,
+                     Thread::kMutatorTask,
                      time_origin_micros,
                      time_extent_micros),
         cid_(cid),
@@ -958,7 +959,7 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
       Library::Handle(isolate->object_store()->typed_data_library());
 
   const Class& float32_list_class =
-      Class::Handle(GetClass(typed_data_library, "_Float32Array"));
+      Class::Handle(GetClass(typed_data_library, "Float32List"));
   EXPECT(!float32_list_class.IsNull());
 
   Dart_Handle result = Dart_Invoke(lib, NewString("foo"), 0, NULL);
@@ -989,8 +990,6 @@ TEST_CASE(Profiler_TypedArrayAllocation) {
     ProfileTrieWalker walker(&profile);
 
     walker.Reset(Profile::kExclusiveCode);
-    EXPECT(walker.Down());
-    EXPECT_STREQ("_Float32Array._Float32Array", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_STREQ("Float32List.Float32List", walker.CurrentName());
     EXPECT(walker.Down());
@@ -2310,6 +2309,7 @@ static void InsertFakeSample(SampleBuffer* sample_buffer,
   sample->Init(isolate,
                OS::GetCurrentMonotonicMicros(),
                OSThread::Current()->trace_id());
+  sample->set_thread_task(Thread::kMutatorTask);
 
   intptr_t i = 0;
   while (pc_offsets[i] != 0) {
@@ -2324,7 +2324,7 @@ static void InsertFakeSample(SampleBuffer* sample_buffer,
     sample->SetAt(i, pc_offsets[i] + return_address_offset);
     i++;
   }
-  sample->SetAt(i, NULL);
+  sample->SetAt(i, 0);
 }
 
 

@@ -297,7 +297,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
         node, _compiler, renamerForNames: nameToKey);
     return _globalMetadataMap.putIfAbsent(printed, () {
       _BoundMetadataEntry result = new _BoundMetadataEntry(node);
-      if (_compiler.hasIncrementalSupport) {
+      if (_compiler.options.hasIncrementalSupport) {
         result.finalize(_globalMetadataCounter++);
       }
       return result;
@@ -337,7 +337,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
       _BoundMetadataEntry result = new _BoundMetadataEntry(
           _computeTypeRepresentation(type,
                                      ignoreTypeVariables: ignoreTypeVariables));
-      if (_compiler.hasIncrementalSupport) {
+      if (_compiler.options.hasIncrementalSupport) {
         result.finalize(_globalTypesCounter++);
       }
       return result;
@@ -376,7 +376,7 @@ class MetadataCollector implements jsAst.TokenFinalizer {
 
     jsAst.ArrayInitializer finalizeMap(Map<dynamic, _BoundMetadataEntry> map) {
       // When in incremental mode, we allocate entries eagerly.
-      if (_compiler.hasIncrementalSupport) {
+      if (_compiler.options.hasIncrementalSupport) {
         return new jsAst.ArrayInitializer(map.values.toList());
       }
 

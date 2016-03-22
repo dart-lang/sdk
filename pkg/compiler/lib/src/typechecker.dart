@@ -558,7 +558,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
   bool checkAssignable(Spannable spannable, DartType from, DartType to,
                        {bool isConst: false}) {
     if (!types.isAssignable(from, to)) {
-      if (compiler.enableTypeAssertions && isConst) {
+      if (compiler.options.enableTypeAssertions && isConst) {
         reporter.reportErrorMessage(
             spannable,
             MessageKind.NOT_ASSIGNABLE,

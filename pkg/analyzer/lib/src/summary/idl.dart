@@ -53,6 +53,47 @@ import 'format.dart' as generated;
 const informative = null;
 
 /**
+ * Information about a source that depends only on its content.
+ */
+@TopLevel('CaSS')
+abstract class CacheSourceContent extends base.SummaryClass {
+  factory CacheSourceContent.fromBuffer(List<int> buffer) =>
+      generated.readCacheSourceContent(buffer);
+
+  /**
+   * The list of exported URIs, e.g. `dart:core`, or `foo/bar.dart`,
+   * or `package:foo/bar.dart`.  Empty if [kind] is [CacheSourceKind.part].
+   */
+  @Id(2)
+  List<String> get exportedUris;
+
+  /**
+   * The list of explicitly imported URIs, e.g. `dart:core`, or `foo/bar.dart`,
+   * or `package:foo/bar.dart`.  Empty if [kind] is [CacheSourceKind.part].
+   */
+  @Id(1)
+  List<String> get importedUris;
+
+  /**
+   * The kind of the source.
+   */
+  @Id(0)
+  CacheSourceKind get kind;
+
+  /**
+   * The list of part URIs, e.g. `foo/bar.dart`.  Empty if [kind] is
+   * [CacheSourceKind.part].
+   */
+  @Id(3)
+  List<String> get partUris;
+}
+
+/**
+ * Kind of a source in the cache.
+ */
+enum CacheSourceKind { library, part }
+
+/**
  * Information about an element code range.
  */
 abstract class CodeRange extends base.SummaryClass {
@@ -263,6 +304,11 @@ enum IndexSyntheticElementKind {
    * The unnamed synthetic constructor a class element.
    */
   constructor,
+
+  /**
+   * The synthetic field element.
+   */
+  field,
 
   /**
    * The synthetic getter of a property introducing element.
@@ -773,6 +819,13 @@ abstract class UnitIndex extends base.SummaryClass {
   List<int> get usedElements;
 
   /**
+   * Each item of this list is the `true` if the corresponding name usage
+   * is qualified with some prefix.
+   */
+  @Id(12)
+  List<bool> get usedNameIsQualifiedFlags;
+
+  /**
    * Each item of this list is the kind of the name usage.
    */
   @Id(10)
@@ -792,13 +845,6 @@ abstract class UnitIndex extends base.SummaryClass {
    */
   @Id(8)
   List<int> get usedNames;
-
-  /**
-   * Each item of this list is the `true` if the corresponding name usage
-   * is qualified with some prefix.
-   */
-  @Id(12)
-  List<bool> get usedNameIsQualifiedFlags;
 }
 
 /**

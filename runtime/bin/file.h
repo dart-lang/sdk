@@ -5,9 +5,9 @@
 #ifndef BIN_FILE_H_
 #define BIN_FILE_H_
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 #include <sys/types.h>
 
 #include "bin/builtin.h"

@@ -243,7 +243,7 @@ abstract class ConstantCompilerBase implements ConstantCompiler {
     } else {
       expression = compileNodeWithDefinitions(initializer, definitions,
           isConst: isConst);
-      if (compiler.enableTypeAssertions &&
+      if (compiler.options.enableTypeAssertions &&
           checkType &&
           expression != null &&
           element.isField) {
@@ -1079,7 +1079,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
   }
 
   void potentiallyCheckType(TypedElement element, AstConstant constant) {
-    if (compiler.enableTypeAssertions) {
+    if (compiler.options.enableTypeAssertions) {
       DartType elementType = element.type.substByContext(constructedType);
       DartType constantType = constant.value.getType(coreTypes);
       if (!constantSystem.isSubtype(

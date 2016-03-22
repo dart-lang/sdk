@@ -35,6 +35,7 @@
 #include "vm/source_report.h"
 #include "vm/stack_frame.h"
 #include "vm/symbols.h"
+#include "vm/timeline.h"
 #include "vm/unicode.h"
 #include "vm/version.h"
 
@@ -2870,9 +2871,8 @@ static const char* const timeline_streams_enum_names[] = {
   "all",
 #define DEFINE_NAME(name, unused)                                              \
   #name,
-ISOLATE_TIMELINE_STREAM_LIST(DEFINE_NAME)
+TIMELINE_STREAM_LIST(DEFINE_NAME)
 #undef DEFINE_NAME
-  "VM",
   NULL
 };
 
@@ -2915,9 +2915,8 @@ static bool SetVMTimelineFlags(Thread* thread, JSONStream* js) {
 
 #define SET_ENABLE_STREAM(name, unused)                                        \
   Timeline::SetStream##name##Enabled(HasStream(recorded_streams, #name));
-ISOLATE_TIMELINE_STREAM_LIST(SET_ENABLE_STREAM);
+TIMELINE_STREAM_LIST(SET_ENABLE_STREAM);
 #undef SET_ENABLE_STREAM
-  Timeline::SetVMStreamEnabled(HasStream(recorded_streams, "VM"));
 
   PrintSuccess(js);
 
@@ -3270,13 +3269,16 @@ static bool GetHeapMap(Thread* thread, JSONStream* js) {
 
 static const MethodParameter* request_heap_snapshot_params[] = {
   RUNNABLE_ISOLATE_PARAMETER,
+  new BoolParameter("collectGarbage", false /* not required */),
   NULL,
 };
 
 
 static bool RequestHeapSnapshot(Thread* thread, JSONStream* js) {
+  const bool collect_garbage =
+      BoolParameter::Parse(js->LookupParam("collectGarbage"), true);
   if (Service::graph_stream.enabled()) {
-    Service::SendGraphEvent(thread);
+    Service::SendGraphEvent(thread, collect_garbage);
   }
   // TODO(koda): Provide some id that ties this request to async response(s).
   JSONObject jsobj(js);
@@ -3285,11 +3287,11 @@ static bool RequestHeapSnapshot(Thread* thread, JSONStream* js) {
 }
 
 
-void Service::SendGraphEvent(Thread* thread) {
+void Service::SendGraphEvent(Thread* thread, bool collect_garbage) {
   uint8_t* buffer = NULL;
   WriteStream stream(&buffer, &allocator, 1 * MB);
   ObjectGraph graph(thread);
-  intptr_t node_count = graph.Serialize(&stream);
+  intptr_t node_count = graph.Serialize(&stream, collect_garbage);
 
   // Chrome crashes receiving a single tens-of-megabytes blob, so send the
   // snapshot in megabyte-sized chunks instead.

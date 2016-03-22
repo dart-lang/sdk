@@ -1262,17 +1262,17 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
 #if defined(USING_SIMULATOR)
   uword stack_pos = Simulator::Current()->get_register(SPREG);
 #else
-  uword stack_pos = Isolate::GetCurrentStackPointer();
+  uword stack_pos = Thread::GetCurrentStackPointer();
 #endif
   // Always clear the stack overflow flags.  They are meant for this
   // particular stack overflow runtime call and are not meant to
   // persist.
-  uword stack_overflow_flags = isolate->GetAndClearStackOverflowFlags();
+  uword stack_overflow_flags = thread->GetAndClearStackOverflowFlags();
 
   // If an interrupt happens at the same time as a stack overflow, we
   // process the stack overflow now and leave the interrupt for next
   // time.
-  if (stack_pos < isolate->saved_stack_limit()) {
+  if (stack_pos < thread->saved_stack_limit()) {
     // Use the preallocated stack overflow exception to avoid calling
     // into dart code.
     const Instance& exception =
@@ -1289,7 +1289,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     // TODO(turnidge): To make --deoptimize_every and
     // --stacktrace-every faster we could move this increment/test to
     // the generated code.
-    int32_t count = isolate->IncrementAndGetStackOverflowCount();
+    int32_t count = thread->IncrementAndGetStackOverflowCount();
     if (FLAG_deoptimize_every > 0 &&
         (count % FLAG_deoptimize_every) == 0) {
       do_deopt = true;
@@ -1344,13 +1344,13 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
     }
   }
 
-  const Error& error = Error::Handle(isolate->HandleInterrupts());
+  const Error& error = Error::Handle(thread->HandleInterrupts());
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
     UNREACHABLE();
   }
 
-  if ((stack_overflow_flags & Isolate::kOsrRequest) != 0) {
+  if ((stack_overflow_flags & Thread::kOsrRequest) != 0) {
     ASSERT(FLAG_use_osr);
     DartFrameIterator iterator;
     StackFrame* frame = iterator.NextFrame();

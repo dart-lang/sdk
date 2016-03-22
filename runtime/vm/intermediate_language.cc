@@ -3714,9 +3714,9 @@ intptr_t MergedMathInstr::OutputIndexOf(Token::Kind token) {
 
 
 void NativeCallInstr::SetupNative() {
-  Zone* Z = Thread::Current()->zone();
-  const Class& cls = Class::Handle(Z, function().Owner());
-  const Library& library = Library::Handle(Z, cls.library());
+  Zone* zone = Thread::Current()->zone();
+  const Class& cls = Class::Handle(zone, function().Owner());
+  const Library& library = Library::Handle(zone, cls.library());
   const int num_params =
       NativeArguments::ParameterCountForResolution(function());
   bool auto_setup_scope = true;

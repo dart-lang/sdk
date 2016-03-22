@@ -62,7 +62,7 @@ class ClassEmitter extends CodeEmitterHelper {
   void emitConstructorsForCSP(Class cls) {
     List<jsAst.Name> fieldNames = <jsAst.Name>[];
 
-    if (!compiler.useContentSecurityPolicy) return;
+    if (!compiler.options.useContentSecurityPolicy) return;
 
     if (!cls.onlyForRti && !cls.isNative) {
       fieldNames = cls.fields.map((Field field) => field.name).toList();
@@ -208,7 +208,7 @@ class ClassEmitter extends CodeEmitterHelper {
   /// Emits getters/setters for fields if compiling in CSP mode.
   void emitClassGettersSettersForCSP(Class cls, ClassBuilder builder) {
 
-    if (!compiler.useContentSecurityPolicy || cls.onlyForRti) return;
+    if (!compiler.options.useContentSecurityPolicy || cls.onlyForRti) return;
 
     for (Field field in cls.fields) {
       Element member = field.element;

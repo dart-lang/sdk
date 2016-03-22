@@ -37,7 +37,7 @@ DEFINE_FLAG(bool, generate_perf_events_symbols, false,
 class PerfCodeObserver : public CodeObserver {
  public:
   PerfCodeObserver() : out_file_(NULL) {
-    Dart_FileOpenCallback file_open = Isolate::file_open_callback();
+    Dart_FileOpenCallback file_open = Dart::file_open_callback();
     if (file_open == NULL) {
       return;
     }
@@ -48,7 +48,7 @@ class PerfCodeObserver : public CodeObserver {
   }
 
   ~PerfCodeObserver() {
-    Dart_FileCloseCallback file_close = Isolate::file_close_callback();
+    Dart_FileCloseCallback file_close = Dart::file_close_callback();
     if ((file_close == NULL) || (out_file_ == NULL)) {
       return;
     }
@@ -64,7 +64,7 @@ class PerfCodeObserver : public CodeObserver {
                       uword prologue_offset,
                       uword size,
                       bool optimized) {
-    Dart_FileWriteCallback file_write = Isolate::file_write_callback();
+    Dart_FileWriteCallback file_write = Dart::file_write_callback();
     if ((file_write == NULL) || (out_file_ == NULL)) {
       return;
     }

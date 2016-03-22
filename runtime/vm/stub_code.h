@@ -35,7 +35,8 @@ class SnapshotWriter;
   V(OptimizeFunction)                                                          \
   V(InvokeDartCode)                                                            \
   V(DebugStepCheck)                                                            \
-  V(ICLookup)                                                                  \
+  V(ICLookupThroughFunction)                                                   \
+  V(ICLookupThroughCode)                                                       \
   V(MegamorphicLookup)                                                         \
   V(FixAllocationStubTarget)                                                   \
   V(Deoptimize)                                                                \

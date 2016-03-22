@@ -1289,6 +1289,36 @@ class GetHandler {
         buffer.write('</table></p>');
       }
     }
+    void writeOptions(StringBuffer buffer, AnalysisOptionsImpl options) {
+      if (options == null) {
+        buffer.write('<p>No option information available.</p>');
+        return;
+      }
+      buffer.write('<p>');
+      _writeOption(
+          buffer, 'Analyze functon bodies', options.analyzeFunctionBodies);
+      _writeOption(buffer, 'Cache size', options.cacheSize);
+      _writeOption(buffer, 'Enable async support', options.enableAsync);
+      _writeOption(
+          buffer, 'Enable generic methods', options.enableGenericMethods);
+      _writeOption(
+          buffer, 'Enable strict call checks', options.enableStrictCallChecks);
+      _writeOption(buffer, 'Enable super mixins', options.enableSuperMixins);
+      _writeOption(buffer, 'Generate dart2js hints', options.dart2jsHint);
+      _writeOption(buffer, 'Generate errors in implicit files',
+          options.generateImplicitErrors);
+      _writeOption(
+          buffer, 'Generate errors in SDK files', options.generateSdkErrors);
+      _writeOption(buffer, 'Generate hints', options.hint);
+      _writeOption(buffer, 'Incremental resolution', options.incremental);
+      _writeOption(buffer, 'Incremental resolution with API changes',
+          options.incrementalApi);
+      _writeOption(buffer, 'Preserve comments', options.preserveComments);
+      _writeOption(buffer, 'Strong mode', options.strongMode);
+      _writeOption(buffer, 'Strong mode hints', options.strongModeHints,
+          last: true);
+      buffer.write('</p>');
+    }
 
     _writeResponse(request, (StringBuffer buffer) {
       _writePage(
@@ -1296,53 +1326,37 @@ class GetHandler {
           (StringBuffer buffer) {
         buffer.write('<h3>Configuration</h3>');
 
-        _writeTwoColumns(buffer, (StringBuffer buffer) {
-          AnalysisOptionsImpl options = context.analysisOptions;
-          buffer.write('<p><b>Options</b></p>');
-          buffer.write('<p>');
-          _writeOption(
-              buffer, 'Analyze functon bodies', options.analyzeFunctionBodies);
-          _writeOption(buffer, 'Cache size', options.cacheSize);
-          _writeOption(buffer, 'Enable async support', options.enableAsync);
-          _writeOption(
-              buffer, 'Enable generic methods', options.enableGenericMethods);
-          _writeOption(buffer, 'Enable strict call checks',
-              options.enableStrictCallChecks);
-          _writeOption(
-              buffer, 'Enable super mixins', options.enableSuperMixins);
-          _writeOption(buffer, 'Generate dart2js hints', options.dart2jsHint);
-          _writeOption(buffer, 'Generate errors in implicit files',
-              options.generateImplicitErrors);
-          _writeOption(buffer, 'Generate errors in SDK files',
-              options.generateSdkErrors);
-          _writeOption(buffer, 'Generate hints', options.hint);
-          _writeOption(buffer, 'Incremental resolution', options.incremental);
-          _writeOption(buffer, 'Incremental resolution with API changes',
-              options.incrementalApi);
-          _writeOption(buffer, 'Preserve comments', options.preserveComments);
-          _writeOption(buffer, 'Strong mode', options.strongMode);
-          _writeOption(buffer, 'Strong mode hints', options.strongModeHints,
-              last: true);
-          buffer.write('</p>');
-        }, (StringBuffer buffer) {
-          List<Linter> lints =
-              context.getConfigurationData(CONFIGURED_LINTS_KEY);
-          buffer.write('<p><b>Lints</b></p>');
-          if (lints.isEmpty) {
-            buffer.write('<p>none</p>');
-          } else {
-            for (Linter lint in lints) {
-              buffer.write('<p>');
-              buffer.write(lint.runtimeType);
-              buffer.write('</p>');
+        _writeColumns(buffer, <HtmlGenerator>[
+          (StringBuffer buffer) {
+            buffer.write('<p><b>Context Options</b></p>');
+            writeOptions(buffer, context.analysisOptions);
+          },
+          (StringBuffer buffer) {
+            buffer.write('<p><b>SDK Context Options</b></p>');
+            writeOptions(buffer,
+                context?.sourceFactory?.dartSdk?.context?.analysisOptions);
+          },
+          (StringBuffer buffer) {
+            List<Linter> lints =
+                context.getConfigurationData(CONFIGURED_LINTS_KEY);
+            buffer.write('<p><b>Lints</b></p>');
+            if (lints.isEmpty) {
+              buffer.write('<p>none</p>');
+            } else {
+              for (Linter lint in lints) {
+                buffer.write('<p>');
+                buffer.write(lint.runtimeType);
+                buffer.write('</p>');
+              }
             }
-          }
 
-          List<ErrorProcessor> errorProcessors =
-              context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
-          int processorCount = errorProcessors?.length ?? 0;
-          buffer.write('<p><b>Error Processor count</b>: $processorCount</p>');
-        });
+            List<ErrorProcessor> errorProcessors =
+                context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
+            int processorCount = errorProcessors?.length ?? 0;
+            buffer
+                .write('<p><b>Error Processor count</b>: $processorCount</p>');
+          }
+        ]);
 
         SourceFactory sourceFactory = context.sourceFactory;
         if (sourceFactory is SourceFactoryImpl) {
@@ -1663,6 +1677,23 @@ class GetHandler {
       _writeSubscriptionMap(
           buffer, AnalysisService.VALUES, analysisServer.analysisServices);
     });
+  }
+
+  /**
+   * Write multiple columns of information to the given [buffer], where the list
+   * of [columns] functions are used to generate the content of those columns.
+   */
+  void _writeColumns(StringBuffer buffer, List<HtmlGenerator> columns) {
+    buffer
+        .write('<table class="column"><tr class="column"><td class="column">');
+    int count = columns.length;
+    for (int i = 0; i < count; i++) {
+      if (i > 0) {
+        buffer.write('</td><td class="column">');
+      }
+      columns[i](buffer);
+    }
+    buffer.write('</td></tr></table>');
   }
 
   /**

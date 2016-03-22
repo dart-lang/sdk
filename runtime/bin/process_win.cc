@@ -5,11 +5,12 @@
 #include "platform/globals.h"
 #if defined(TARGET_OS_WINDOWS)
 
+#include "bin/process.h"
+
 #include <process.h>  // NOLINT
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
-#include "bin/process.h"
 #include "bin/eventhandler.h"
 #include "bin/lockers.h"
 #include "bin/log.h"
@@ -17,7 +18,6 @@
 #include "bin/thread.h"
 #include "bin/utils.h"
 #include "bin/utils_win.h"
-
 
 namespace dart {
 namespace bin {
@@ -72,6 +72,8 @@ class ProcessInfo {
   HANDLE exit_pipe_;
   // Link to next ProcessInfo object in the singly-linked list.
   ProcessInfo* next_;
+
+  DISALLOW_COPY_AND_ASSIGN(ProcessInfo);
 };
 
 
@@ -143,7 +145,9 @@ class ProcessInfoList {
   // Callback called when an exit code is available from one of the
   // processes in the list.
   static void CALLBACK ExitCodeCallback(PVOID data, BOOLEAN timed_out) {
-    if (timed_out) return;
+    if (timed_out) {
+      return;
+    }
     DWORD pid = reinterpret_cast<DWORD>(data);
     HANDLE handle;
     HANDLE wait_handle;
@@ -154,13 +158,12 @@ class ProcessInfoList {
     }
     // Unregister the event in a non-blocking way.
     BOOL ok = UnregisterWait(wait_handle);
-    if (!ok && GetLastError() != ERROR_IO_PENDING) {
+    if (!ok && (GetLastError() != ERROR_IO_PENDING)) {
       FATAL("Failed unregistering wait operation");
     }
     // Get and report the exit code to Dart.
     int exit_code;
-    ok = GetExitCodeProcess(handle,
-                            reinterpret_cast<DWORD*>(&exit_code));
+    ok = GetExitCodeProcess(handle, reinterpret_cast<DWORD*>(&exit_code));
     if (!ok) {
       FATAL1("GetExitCodeProcess failed %d\n", GetLastError());
     }
@@ -176,9 +179,9 @@ class ProcessInfoList {
     // pipe has been closed. It is therefore not a problem that
     // WriteFile fails with a closed pipe error
     // (ERROR_NO_DATA). Other errors should not happen.
-    if (ok && written != sizeof(message)) {
+    if (ok && (written != sizeof(message))) {
       FATAL("Failed to write entire process exit message");
-    } else if (!ok && GetLastError() != ERROR_NO_DATA) {
+    } else if (!ok && (GetLastError() != ERROR_NO_DATA)) {
       FATAL1("Failed to write exit code: %d", GetLastError());
     }
     // Remove the process from the list of active processes.
@@ -191,6 +194,9 @@ class ProcessInfoList {
   // Mutex protecting all accesses to the linked list of active
   // processes.
   static Mutex* mutex_;
+
+  DISALLOW_ALLOCATION();
+  DISALLOW_IMPLICIT_CONSTRUCTORS(ProcessInfoList);
 };
 
 
@@ -249,7 +255,7 @@ static bool CreateProcessPipe(HANDLE handles[2],
       return false;
     }
   } else {
-    ASSERT(type == kInheritWrite || type == kInheritNone);
+    ASSERT((type == kInheritWrite) || (type == kInheritNone));
     handles[kReadHandle] =
         CreateNamedPipeW(pipe_name,
                          PIPE_ACCESS_INBOUND | FILE_FLAG_OVERLAPPED,
@@ -357,19 +363,19 @@ static bool EnsureInitialized() {
   HMODULE kernel32_module = GetModuleHandleW(L"kernel32.dll");
   if (!load_attempted) {
     MutexLocker locker(mutex);
-    if (load_attempted) return delete_proc_thread_attr_list != NULL;
+    if (load_attempted) {
+      return (delete_proc_thread_attr_list != NULL);
+    }
     init_proc_thread_attr_list = reinterpret_cast<InitProcThreadAttrListFn>(
         GetProcAddress(kernel32_module, "InitializeProcThreadAttributeList"));
-    update_proc_thread_attr =
-        reinterpret_cast<UpdateProcThreadAttrFn>(
-            GetProcAddress(kernel32_module, "UpdateProcThreadAttribute"));
+    update_proc_thread_attr = reinterpret_cast<UpdateProcThreadAttrFn>(
+        GetProcAddress(kernel32_module, "UpdateProcThreadAttribute"));
     delete_proc_thread_attr_list = reinterpret_cast<DeleteProcThreadAttrListFn>(
-        reinterpret_cast<DeleteProcThreadAttrListFn>(
-            GetProcAddress(kernel32_module, "DeleteProcThreadAttributeList")));
+        GetProcAddress(kernel32_module, "DeleteProcThreadAttributeList"));
     load_attempted = true;
-    return delete_proc_thread_attr_list != NULL;
+    return (delete_proc_thread_attr_list != NULL);
   }
-  return delete_proc_thread_attr_list != NULL;
+  return (delete_proc_thread_attr_list != NULL);
 }
 
 
@@ -378,7 +384,7 @@ template<int Count>
 static int GenerateNames(wchar_t pipe_names[Count][kMaxPipeNameSize]) {
   UUID uuid;
   RPC_STATUS status = UuidCreateSequential(&uuid);
-  if (status != RPC_S_OK && status != RPC_S_UUID_LOCAL_ONLY) {
+  if ((status != RPC_S_OK) && (status != RPC_S_UUID_LOCAL_ONLY)) {
     return status;
   }
   RPC_WSTR uuid_string;
@@ -451,7 +457,8 @@ class ProcessStarter {
     command_line_length += arguments_length + 1;
 
     // Put together command-line string.
-    command_line_ = new wchar_t[command_line_length];
+    command_line_ = reinterpret_cast<wchar_t*>(Dart_ScopeAllocate(
+        command_line_length * sizeof(*command_line_)));
     int len = 0;
     int remaining = command_line_length;
     int written =
@@ -460,9 +467,8 @@ class ProcessStarter {
     remaining -= written;
     ASSERT(remaining >= 0);
     for (int i = 0; i < arguments_length; i++) {
-      written =
-          _snwprintf(
-              command_line_ + len, remaining, L" %s", system_arguments[i]);
+      written = _snwprintf(
+          command_line_ + len, remaining, L" %s", system_arguments[i]);
       len += written;
       remaining -= written;
       ASSERT(remaining >= 0);
@@ -485,7 +491,8 @@ class ProcessStarter {
       for (intptr_t i = 0; i < environment_length; i++) {
         block_size += wcslen(system_environment[i]) + 1;
       }
-      environment_block_ = new wchar_t[block_size];
+      environment_block_ = reinterpret_cast<wchar_t*>(Dart_ScopeAllocate(
+          block_size * sizeof(*environment_block_)));
       intptr_t block_index = 0;
       for (intptr_t i = 0; i < environment_length; i++) {
         intptr_t len = wcslen(system_environment[i]);
@@ -513,12 +520,8 @@ class ProcessStarter {
 
 
   ~ProcessStarter() {
-    // Deallocate command-line and environment block strings.
-    delete[] command_line_;
-    delete[] environment_block_;
     if (attribute_list_ != NULL) {
       delete_proc_thread_attr_list(attribute_list_);
-      free(attribute_list_);
     }
   }
 
@@ -526,7 +529,9 @@ class ProcessStarter {
   int Start() {
     // Create pipes required.
     int err = CreatePipes();
-    if (err != 0) return err;
+    if (err != 0) {
+      return err;
+    }
 
     // Setup info structures.
     STARTUPINFOEXW startup_info;
@@ -545,11 +550,11 @@ class ProcessStarter {
       // The call to determine the size of an attribute list always fails with
       // ERROR_INSUFFICIENT_BUFFER and that error should be ignored.
       if (!init_proc_thread_attr_list(NULL, 1, 0, &size) &&
-          GetLastError() != ERROR_INSUFFICIENT_BUFFER) {
+          (GetLastError() != ERROR_INSUFFICIENT_BUFFER)) {
         return CleanupAndReturnError();
       }
-      attribute_list_ =
-          reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(malloc(size));
+      attribute_list_ = reinterpret_cast<LPPROC_THREAD_ATTRIBUTE_LIST>(
+          Dart_ScopeAllocate(size));
       ZeroMemory(attribute_list_, size);
       if (!init_proc_thread_attr_list(attribute_list_, 1, 0, &size)) {
         return CleanupAndReturnError();
@@ -650,10 +655,19 @@ class ProcessStarter {
         }
       }
     } else {
-      // Open NUL for stdin, stdout and stderr.
-      if ((stdin_handles_[kReadHandle] = OpenNul()) == INVALID_HANDLE_VALUE ||
-          (stdout_handles_[kWriteHandle] = OpenNul()) == INVALID_HANDLE_VALUE ||
-          (stderr_handles_[kWriteHandle] = OpenNul()) == INVALID_HANDLE_VALUE) {
+      // Open NUL for stdin, stdout, and stderr.
+      stdin_handles_[kReadHandle] = OpenNul();
+      if (stdin_handles_[kReadHandle] == INVALID_HANDLE_VALUE) {
+        return CleanupAndReturnError();
+      }
+
+      stdout_handles_[kWriteHandle] = OpenNul();
+      if (stdout_handles_[kWriteHandle] == INVALID_HANDLE_VALUE) {
+        return CleanupAndReturnError();
+      }
+
+      stderr_handles_[kWriteHandle] = OpenNul();
+      if (stderr_handles_[kWriteHandle] == INVALID_HANDLE_VALUE) {
         return CleanupAndReturnError();
       }
     }
@@ -688,6 +702,10 @@ class ProcessStarter {
   intptr_t* id_;
   intptr_t* exit_handler_;
   char** os_error_message_;
+
+ private:
+  DISALLOW_ALLOCATION();
+  DISALLOW_IMPLICIT_CONSTRUCTORS(ProcessStarter);
 };
 
 
@@ -738,7 +756,9 @@ class BufferList: public BufferListBase {
   // The access to the read buffer for overlapped read.
   void GetReadBuffer(uint8_t** buffer, intptr_t* size) {
     ASSERT(!read_pending_);
-    if (free_size_ == 0) Allocate();
+    if (free_size_ == 0) {
+      Allocate();
+    }
     ASSERT(free_size_ > 0);
     ASSERT(free_size_ <= kBufferSize);
     *buffer = FreeSpaceAddress();
@@ -763,11 +783,15 @@ class BufferList: public BufferListBase {
 
  private:
   bool read_pending_;
+
+  DISALLOW_COPY_AND_ASSIGN(BufferList);
 };
 
 
 class OverlappedHandle {
  public:
+  OverlappedHandle() {}
+
   void Init(HANDLE handle, HANDLE event) {
     handle_ = handle;
     event_ = event;
@@ -775,7 +799,7 @@ class OverlappedHandle {
   }
 
   bool HasEvent(HANDLE event) {
-    return event_ == event;
+    return (event_ == event);
   }
 
   bool Read() {
@@ -793,7 +817,9 @@ class OverlappedHandle {
       intptr_t buffer_size;
       buffer_.GetReadBuffer(&buffer, &buffer_size);
       BOOL ok = ReadFile(handle_, buffer, buffer_size, NULL, &overlapped_);
-      if (!ok) return GetLastError() == ERROR_IO_PENDING;
+      if (!ok) {
+        return (GetLastError() == ERROR_IO_PENDING);
+      }
       buffer_.DataIsRead(overlapped_.InternalHigh);
     }
   }
@@ -833,6 +859,7 @@ class OverlappedHandle {
   BufferList buffer_;
 
   DISALLOW_ALLOCATION();
+  DISALLOW_COPY_AND_ASSIGN(OverlappedHandle);
 };
 
 
@@ -905,12 +932,14 @@ bool Process::Wait(intptr_t pid,
 
   // Calculate the exit code.
   ASSERT(oh[2].GetDataSize() == 8);
-  uint32_t exit[2];
-  memmove(&exit, oh[2].GetFirstDataBuffer(), sizeof(exit));
+  uint32_t exit_codes[2];
+  memmove(&exit_codes, oh[2].GetFirstDataBuffer(), sizeof(exit_codes));
   oh[2].FreeDataBuffer();
-  intptr_t exit_code = exit[0];
-  intptr_t negative = exit[1];
-  if (negative) exit_code = -exit_code;
+  intptr_t exit_code = exit_codes[0];
+  intptr_t negative = exit_codes[1];
+  if (negative != 0) {
+    exit_code = -exit_code;
+  }
   result->set_exit_code(exit_code);
   return true;
 }
@@ -931,7 +960,9 @@ bool Process::Kill(intptr_t id, int signal) {
   if (!success) {
     process_handle = OpenProcess(PROCESS_TERMINATE, FALSE, id);
     // The process is already dead.
-    if (process_handle == INVALID_HANDLE_VALUE) return false;
+    if (process_handle == INVALID_HANDLE_VALUE) {
+      return false;
+    }
   }
   BOOL result = TerminateProcess(process_handle, -1);
   return result ? true : false;
@@ -985,12 +1016,16 @@ intptr_t GetWinSignal(intptr_t signal) {
 
 intptr_t Process::SetSignalHandler(intptr_t signal) {
   signal = GetWinSignal(signal);
-  if (signal == -1) return -1;
+  if (signal == -1) {
+    return -1;
+  }
 
   // Generate a unique pipe name for the named pipe.
   wchar_t pipe_name[kMaxPipeNameSize];
   int status = GenerateNames<1>(&pipe_name);
-  if (status != 0) return status;
+  if (status != 0) {
+    return status;
+  }
 
   HANDLE fds[2];
   if (!CreateProcessPipe(fds, pipe_name, kInheritNone)) {
@@ -1019,12 +1054,14 @@ intptr_t Process::SetSignalHandler(intptr_t signal) {
 
 void Process::ClearSignalHandler(intptr_t signal) {
   signal = GetWinSignal(signal);
-  if (signal == -1) return;
+  if (signal == -1) {
+    return;
+  }
   MutexLocker lock(signal_mutex);
   SignalInfo* handler = signal_handlers;
   while (handler != NULL) {
-    if (handler->port() == Dart_GetMainPortId() &&
-        handler->signal() == signal) {
+    if ((handler->port() == Dart_GetMainPortId()) &&
+        (handler->signal() == signal)) {
       handler->Unlink();
       break;
     }

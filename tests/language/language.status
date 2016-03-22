@@ -157,10 +157,22 @@ regress_23408_test: RuntimeError
 deferred_inheritance_constraints_test: Skip
 deferred_load_constants_test: Skip # multitest gets confused
 tearoff_basic_test: RuntimeError, Crash # Conflicting flag.
-deferred_global_test: RuntimeError # Issue 25845
 
 vm/type_vm_test: RuntimeError # Expects line and column numbers
 vm/type_cast_vm_test: RuntimeError # Line number mismatch.
+
+issue13474_test: SkipByDesign # Requires checked mode.
+assertion_test: SkipByDesign # Requires checked mode.
+named_parameters_type_test/01: SkipByDesign # Requires checked mode.
+named_parameters_type_test/02: SkipByDesign # Requires checked mode.
+named_parameters_type_test/03: SkipByDesign # Requires checked mode.
+type_checks_in_factory_method_test: SkipByDesign # Requires checked mode.
+positional_parameters_type_test/01: SkipByDesign # Requires checked mode.
+positional_parameters_type_test/02: SkipByDesign # Requires checked mode.
+list_literal4_test: SkipByDesign # Requires checked mode.
+generic_test: SkipByDesign # Requires checked mode.
+map_literal4_test: SkipByDesign # Requires checked mode.
+
 
 [ $runtime == dart_precompiled ]
 deferred_global_test: RuntimeError # Tries to produce a stack trace.

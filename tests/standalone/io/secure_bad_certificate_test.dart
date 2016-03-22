@@ -55,8 +55,8 @@ Future runClient(int port,
                  callbackReturns,
                  result) async {
   badCertificateCallback(X509Certificate certificate) {
-    Expect.equals('/CN=rootauthority', certificate.subject);
-    Expect.equals('/CN=rootauthority', certificate.issuer);
+    Expect.isTrue(certificate.subject.contains('rootauthority'));
+    Expect.isTrue(certificate.issuer.contains('rootauthority'));
     // Throw exception if one is requested.
     if (callbackReturns == 'exception') throw new CustomException();
     return callbackReturns;

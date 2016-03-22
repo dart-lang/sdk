@@ -83,6 +83,22 @@ class A {
 ''');
   }
 
+  void test_classMembers_external_constructorMethod() {
+    _parseTestUnit(r'''
+class Chart {
+  external Pie();
+  external Chart();
+}
+''');
+    // validate change
+    _assertSort(r'''
+class Chart {
+  external Chart();
+  external Pie();
+}
+''');
+  }
+
   void test_classMembers_field() {
     _parseTestUnit(r'''
 class A {

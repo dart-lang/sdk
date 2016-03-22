@@ -7,7 +7,6 @@
 
 #include "include/dart_api.h"
 
-
 namespace dart {
 namespace bin {
 
@@ -124,6 +123,11 @@ void FUNCTION_NAME(SecurityContext_SetClientAuthoritiesBytes)(
 
 void FUNCTION_NAME(SecurityContext_SetTrustedCertificatesBytes)(
     Dart_NativeArguments args) {
+  Dart_ThrowException(DartUtils::NewDartArgumentError(
+      "Secure Sockets unsupported on this platform"));
+}
+
+void FUNCTION_NAME(SecurityContext_AlpnSupported)(Dart_NativeArguments args) {
   Dart_ThrowException(DartUtils::NewDartArgumentError(
       "Secure Sockets unsupported on this platform"));
 }

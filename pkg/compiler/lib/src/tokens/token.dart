@@ -416,28 +416,28 @@ bool isUserDefinableOperator(String value) {
       isUnaryOperator(value);
 }
 
-bool isUnaryOperator(String value) => identical(value, '~');
+bool isUnaryOperator(String value) => value == '~';
 
 bool isBinaryOperator(String value) {
   return
-      (identical(value, '==')) ||
-      (identical(value, '[]')) ||
-      (identical(value, '*')) ||
-      (identical(value, '/')) ||
-      (identical(value, '%')) ||
-      (identical(value, '~/')) ||
-      (identical(value, '+')) ||
-      (identical(value, '<<')) ||
-      (identical(value, '>>')) ||
-      (identical(value, '>=')) ||
-      (identical(value, '>')) ||
-      (identical(value, '<=')) ||
-      (identical(value, '<')) ||
-      (identical(value, '&')) ||
-      (identical(value, '^')) ||
-      (identical(value, '|'));
+      value == '==' ||
+      value == '[]' ||
+      value == '*' ||
+      value == '/' ||
+      value == '%' ||
+      value == '~/' ||
+      value == '+' ||
+      value == '<<' ||
+      value == '>>' ||
+      value == '>=' ||
+      value == '>' ||
+      value == '<=' ||
+      value == '<' ||
+      value == '&' ||
+      value == '^' ||
+      value == '|';
 }
 
-bool isTernaryOperator(String value) => identical(value, '[]=');
+bool isTernaryOperator(String value) => value == '[]=';
 
-bool isMinusOperator(String value) => identical(value, '-');
+bool isMinusOperator(String value) => value == '-';

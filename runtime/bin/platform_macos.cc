@@ -5,22 +5,19 @@
 #include "platform/globals.h"
 #if defined(TARGET_OS_MACOS)
 
-#include <mach-o/dyld.h>
-#include <sys/types.h>
-#include <sys/sysctl.h>
-
-#include "bin/file.h"
-#include "bin/platform.h"
-
 #if !TARGET_OS_IOS
 #include <crt_externs.h>  // NOLINT
 #endif  // !TARGET_OS_IOS
+#include <mach-o/dyld.h>
 #include <signal.h>  // NOLINT
 #include <string.h>  // NOLINT
+#include <sys/sysctl.h>  // NOLINT
+#include <sys/types.h>  // NOLINT
 #include <unistd.h>  // NOLINT
 
 #include "bin/fdutils.h"
-
+#include "bin/file.h"
+#include "bin/platform.h"
 
 namespace dart {
 namespace bin {

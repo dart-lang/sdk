@@ -52,7 +52,6 @@ namespace dart {
     V(LibraryPrefix)                                                           \
     V(AbstractType)                                                            \
       V(Type)                                                                  \
-      V(FunctionType)                                                          \
       V(TypeRef)                                                               \
       V(TypeParameter)                                                         \
       V(BoundedType)                                                           \
@@ -75,7 +74,7 @@ namespace dart {
     V(ReceivePort)                                                             \
     V(SendPort)                                                                \
     V(Stacktrace)                                                              \
-    V(JSRegExp)                                                                \
+    V(RegExp)                                                                  \
     V(WeakProperty)                                                            \
     V(MirrorReference)                                                         \
     V(LinkedHashMap)                                                           \
@@ -107,6 +106,22 @@ namespace dart {
   V(Float32x4Array)                                                            \
   V(Int32x4Array)                                                              \
   V(Float64x2Array)                                                            \
+
+#define DART_CLASS_LIST_TYPED_DATA(V)                                          \
+  V(Int8)                                                                      \
+  V(Uint8)                                                                     \
+  V(Uint8Clamped)                                                              \
+  V(Int16)                                                                     \
+  V(Uint16)                                                                    \
+  V(Int32)                                                                     \
+  V(Uint32)                                                                    \
+  V(Int64)                                                                     \
+  V(Uint64)                                                                    \
+  V(Float32)                                                                   \
+  V(Float64)                                                                   \
+  V(Float32x4)                                                                 \
+  V(Int32x4)                                                                   \
+  V(Float64x2)
 
 #define CLASS_LIST_FOR_HANDLES(V)                                              \
   CLASS_LIST_NO_OBJECT_NOR_STRING_NOR_ARRAY(V)                                 \
@@ -852,7 +867,7 @@ class RawClosureData : public RawObject {
   }
   RawContextScope* context_scope_;
   RawFunction* parent_function_;  // Enclosing function of this local function.
-  RawFunctionType* signature_type_;
+  RawType* signature_type_;
   RawInstance* closure_;  // Closure object for static implicit closures.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->closure_);
@@ -1601,28 +1616,18 @@ class RawType : public RawAbstractType {
   }
   RawObject* type_class_;  // Either resolved class or unresolved class.
   RawTypeArguments* arguments_;
-  RawLanguageError* error_;  // Error object if type is malformed or malbounded.
+  // This type object represents a function type if its signature field is a
+  // non-null function object.
+  // If this type is malformed or malbounded, the signature field gets
+  // overwritten by the error object in order to save space. If the type is a
+  // function type, its signature is lost, but the message in the error object
+  // can describe the issue without needing the signature.
+  union {
+    RawFunction* signature_;  // If not null, this type is a function type.
+    RawLanguageError* error_;  // If not null, type is malformed or malbounded.
+  } sig_or_err_;
   RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->error_);
-  }
-  TokenPosition token_pos_;
-  int8_t type_state_;
-};
-
-
-class RawFunctionType : public RawAbstractType {
- private:
-  RAW_HEAP_OBJECT_IMPLEMENTATION(FunctionType);
-
-  RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->scope_class_);
-  }
-  RawClass* scope_class_;
-  RawTypeArguments* arguments_;
-  RawFunction* signature_;
-  RawLanguageError* error_;  // Error object if type is malformed or malbounded.
-  RawObject** to() {
-    return reinterpret_cast<RawObject**>(&ptr()->error_);
+    return reinterpret_cast<RawObject**>(&ptr()->sig_or_err_.error_);
   }
   TokenPosition token_pos_;
   int8_t type_state_;
@@ -2059,8 +2064,8 @@ class RawStacktrace : public RawInstance {
 
 
 // VM type for capturing JS regular expressions.
-class RawJSRegExp : public RawInstance {
-  RAW_HEAP_OBJECT_IMPLEMENTATION(JSRegExp);
+class RawRegExp : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(RegExp);
 
   RawObject** from() {
     return reinterpret_cast<RawObject**>(&ptr()->num_bracket_expressions_);
@@ -2337,7 +2342,7 @@ inline bool RawObject::IsVariableSizeClassId(intptr_t index) {
          (index == kCodeCid) ||
          (index == kContextScopeCid) ||
          (index == kInstanceCid) ||
-         (index == kJSRegExpCid);
+         (index == kRegExpCid);
 }
 
 

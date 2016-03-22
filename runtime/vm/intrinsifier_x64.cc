@@ -2039,7 +2039,7 @@ void Intrinsifier::TwoByteString_equality(Assembler* assembler) {
 }
 
 
-void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
+void Intrinsifier::RegExp_ExecuteMatch(Assembler* assembler) {
   if (FLAG_interpret_irregexp) return;
 
   static const intptr_t kRegExpParamOffset = 3 * kWordSize;
@@ -2058,7 +2058,7 @@ void Intrinsifier::JSRegExp_ExecuteMatch(Assembler* assembler) {
   __ LoadClassId(RDI, RDI);
   __ SubImmediate(RDI, Immediate(kOneByteStringCid));
   __ movq(RAX, FieldAddress(RBX, RDI, TIMES_8,
-                            JSRegExp::function_offset(kOneByteStringCid)));
+                            RegExp::function_offset(kOneByteStringCid)));
 
   // Registers are now set up for the lazy compile stub. It expects the function
   // in RAX, the argument descriptor in R10, and IC-Data in RCX.

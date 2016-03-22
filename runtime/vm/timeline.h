@@ -28,7 +28,7 @@ class TimelineStream;
 class Zone;
 
 // (name, enabled by default for isolate).
-#define ISOLATE_TIMELINE_STREAM_LIST(V)                                        \
+#define TIMELINE_STREAM_LIST(V)                                                \
   V(API, false)                                                                \
   V(Compiler, false)                                                           \
   V(Dart, false)                                                               \
@@ -36,6 +36,7 @@ class Zone;
   V(Embedder, false)                                                           \
   V(GC, false)                                                                 \
   V(Isolate, false)                                                            \
+  V(VM, false)
 
 class Timeline : public AllStatic {
  public:
@@ -48,12 +49,6 @@ class Timeline : public AllStatic {
   // Access the global recorder. Not thread safe.
   static TimelineEventRecorder* recorder();
 
-  static void SetupIsolateStreams(Isolate* isolate);
-
-  static TimelineStream* GetVMStream();
-
-  static TimelineStream* GetVMApiStream();
-
   // Reclaim all |TimelineEventBlocks|s that are cached by threads.
   static void ReclaimCachedBlocksFromThreads();
 
@@ -62,7 +57,12 @@ class Timeline : public AllStatic {
   // Print information about streams to JSON.
   static void PrintFlagsToJSON(JSONStream* json);
 
-#define ISOLATE_TIMELINE_STREAM_FLAGS(name, not_used)                          \
+#define TIMELINE_STREAM_ACCESSOR(name, not_used)                       \
+  static TimelineStream* Get##name##Stream() { return &stream_##name##_; }
+  TIMELINE_STREAM_LIST(TIMELINE_STREAM_ACCESSOR)
+#undef TIMELINE_STREAM_ACCESSOR
+
+#define TIMELINE_STREAM_FLAGS(name, not_used)                                  \
   static const bool* Stream##name##EnabledFlag() {                             \
     return &stream_##name##_enabled_;                                          \
   }                                                                            \
@@ -70,9 +70,8 @@ class Timeline : public AllStatic {
     StreamStateChange(#name, stream_##name##_enabled_, enabled);               \
     stream_##name##_enabled_ = enabled;                                        \
   }
-  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_FLAGS)
-#undef ISOLATE_TIMELINE_STREAM_FLAGS
-  static void SetVMStreamEnabled(bool enabled);
+  TIMELINE_STREAM_LIST(TIMELINE_STREAM_FLAGS)
+#undef TIMELINE_STREAM_FLAGS
 
   static void set_start_recording_cb(
       Dart_EmbedderTimelineStartRecording start_recording_cb) {
@@ -92,29 +91,18 @@ class Timeline : public AllStatic {
     return stop_recording_cb_;
   }
 
-  static void set_get_timeline_cb(
-      Dart_EmbedderTimelineGetTimeline get_timeline_cb) {
-    get_timeline_cb_ = get_timeline_cb;
-  }
-
-  static Dart_EmbedderTimelineGetTimeline get_get_timeline_cb() {
-    return get_timeline_cb_;
-  }
-
  private:
   static void StreamStateChange(const char* stream_name, bool prev, bool curr);
   static TimelineEventRecorder* recorder_;
-  static TimelineStream vm_stream_;
-  static TimelineStream vm_api_stream_;
   static MallocGrowableArray<char*>* enabled_streams_;
   static Dart_EmbedderTimelineStartRecording start_recording_cb_;
   static Dart_EmbedderTimelineStopRecording stop_recording_cb_;
-  static Dart_EmbedderTimelineGetTimeline get_timeline_cb_;
 
-#define ISOLATE_TIMELINE_STREAM_DECLARE_FLAG(name, not_used)                   \
-  static bool stream_##name##_enabled_;
-  ISOLATE_TIMELINE_STREAM_LIST(ISOLATE_TIMELINE_STREAM_DECLARE_FLAG)
-#undef ISOLATE_TIMELINE_STREAM_DECLARE_FLAG
+#define TIMELINE_STREAM_DECLARE(name, not_used)                                \
+  static bool stream_##name##_enabled_;                                        \
+  static TimelineStream stream_##name##_;
+  TIMELINE_STREAM_LIST(TIMELINE_STREAM_DECLARE)
+#undef TIMELINE_STREAM_DECLARE
 
   friend class TimelineRecorderOverride;
   friend class ReclaimBlocksIsolateVisitor;
@@ -220,6 +208,10 @@ class TimelineEvent {
 
   ThreadId thread() const {
     return thread_;
+  }
+
+  void set_thread(ThreadId tid) {
+    thread_ = tid;
   }
 
   Dart_Port isolate_id() const {
@@ -384,10 +376,10 @@ class TimelineStream {
 };
 
 #ifndef PRODUCT
-#define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, suffix, function)       \
+#define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, name, function)         \
   TimelineDurationScope tds(thread,                                            \
-                            thread->isolate()->GetCompilerStream(),            \
-                            "Compile" suffix);                                 \
+                            Timeline::GetCompilerStream(),                     \
+                            name);                                             \
   if (tds.enabled()) {                                                         \
     tds.SetNumArguments(1);                                                    \
     tds.CopyArgument(                                                          \
@@ -395,8 +387,12 @@ class TimelineStream {
         "function",                                                            \
         function.ToLibNamePrefixedQualifiedCString());                         \
   }
+
+#define TIMELINE_FUNCTION_GC_DURATION(thread, name)                            \
+  TimelineDurationScope tds(thread, Timeline::GetGCStream(), name);
 #else
-#define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, suffix, function)
+#define TIMELINE_FUNCTION_COMPILATION_DURATION(thread, name, function)
+#define TIMELINE_FUNCTION_GC_DURATION(thread, name)
 #endif  // !PRODUCT
 
 // See |TimelineDurationScope| and |TimelineBeginEndScope|.
@@ -678,7 +674,6 @@ class TimelineEventRecorder {
   void PrintJSONMeta(JSONArray* array) const;
   TimelineEvent* ThreadBlockStartEvent();
   void ThreadBlockCompleteEvent(TimelineEvent* event);
-  void PrintEmbedderJSONEvents(JSONStream* events);
 
   Mutex lock_;
   uintptr_t async_id_;

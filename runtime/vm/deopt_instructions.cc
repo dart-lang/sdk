@@ -139,8 +139,7 @@ DeoptContext::~DeoptContext() {
   deferred_objects_ = NULL;
   deferred_objects_count_ = 0;
   if (FLAG_support_timeline && (deopt_start_micros_ != 0)) {
-    Isolate* isolate = Isolate::Current();
-    TimelineStream* compiler_stream = isolate->GetCompilerStream();
+    TimelineStream* compiler_stream = Timeline::GetCompilerStream();
     ASSERT(compiler_stream != NULL);
     if (compiler_stream->Enabled()) {
       // Allocate all Dart objects needed before calling StartEvent,

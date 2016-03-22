@@ -246,7 +246,7 @@ class InterceptorStubGenerator {
       // checked mode, so we don't optimize the interceptor if the
       // compiler has type assertions enabled.
       if (selector.isIndexSet
-          && (compiler.enableTypeAssertions || !containsArray)) {
+          && (compiler.options.enableTypeAssertions || !containsArray)) {
         return null;
       }
       if (!containsArray && !containsString) {

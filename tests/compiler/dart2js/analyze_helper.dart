@@ -7,6 +7,7 @@ library analyze_helper;
 import 'dart:async';
 import 'dart:io';
 import 'package:compiler/compiler.dart' as api;
+import 'package:compiler/compiler_new.dart' as new_api;
 import 'package:compiler/src/apiimpl.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/diagnostics/messages.dart' show
@@ -194,10 +195,11 @@ Future analyze(List<Uri> uriList,
       provider,
       null,
       handler,
-      libraryRoot,
-      packageRoot,
-      options,
-      {});
+      new new_api.CompilerOptions.parse(
+          libraryRoot: libraryRoot,
+          packageRoot: packageRoot,
+          options: options,
+          environment: {}));
   String MESSAGE = """
 
 

@@ -366,11 +366,7 @@ Directory::ExistsResult Directory::Exists(const char* dir_name) {
 
 
 char* Directory::CurrentNoScope() {
-  char buffer[PATH_MAX];
-  if (getcwd(buffer, PATH_MAX) == NULL) {
-    return NULL;
-  }
-  return strdup(buffer);
+  return getcwd(NULL, 0);
 }
 
 
@@ -384,7 +380,7 @@ const char* Directory::Current() {
 
 
 bool Directory::SetCurrent(const char* path) {
-  return NO_RETRY_EXPECTED(chdir(path)) == 0;
+  return (NO_RETRY_EXPECTED(chdir(path)) == 0);
 }
 
 
@@ -469,7 +465,7 @@ bool Directory::Rename(const char* path, const char* new_path) {
   if (exists != EXISTS) {
     return false;
   }
-  return NO_RETRY_EXPECTED(rename(path, new_path)) == 0;
+  return (NO_RETRY_EXPECTED(rename(path, new_path)) == 0);
 }
 
 }  // namespace bin

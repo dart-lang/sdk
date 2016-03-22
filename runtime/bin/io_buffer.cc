@@ -4,7 +4,6 @@
 
 #include "bin/io_buffer.h"
 
-
 namespace dart {
 namespace bin {
 

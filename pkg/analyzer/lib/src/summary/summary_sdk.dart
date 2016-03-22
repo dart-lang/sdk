@@ -93,6 +93,18 @@ class SdkSummaryResultProvider implements SummaryResultProvider {
       if (target.library == null || !target.library.isInSystemLibrary) {
         return false;
       }
+      if (result == CREATED_RESOLVED_UNIT1 ||
+          result == CREATED_RESOLVED_UNIT2 ||
+          result == CREATED_RESOLVED_UNIT3 ||
+          result == CREATED_RESOLVED_UNIT4 ||
+          result == CREATED_RESOLVED_UNIT5 ||
+          result == CREATED_RESOLVED_UNIT6 ||
+          result == CREATED_RESOLVED_UNIT7 ||
+          result == CREATED_RESOLVED_UNIT8 ||
+          result == CREATED_RESOLVED_UNIT9) {
+        entry.setValue(result, true, TargetedResult.EMPTY_LIST);
+        return true;
+      }
       if (result == COMPILATION_UNIT_ELEMENT) {
         String libraryUri = target.library.uri.toString();
         String unitUri = target.unit.uri.toString();

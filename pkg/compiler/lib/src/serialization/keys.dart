@@ -18,10 +18,13 @@ class Key {
   static const Key CONSTANT = const Key('constant');
   static const Key CONSTANTS = const Key('constants');
   static const Key CONSTRUCTOR = const Key('constructor');
+  static const Key DATA = const Key('data');
   static const Key DEFAULT = const Key('default');
   static const Key DEFAULTS = const Key('defaults');
+  static const Key DYNAMIC_USES = const Key('dynamic-uses');
   static const Key ELEMENT = const Key('element');
   static const Key ELEMENTS = const Key('elements');
+  static const Key EXECUTABLE_CONTEXT = const Key('executable-context');
   static const Key EXPORTS = const Key('exports');
   static const Key EXPORT_SCOPE = const Key('export-scope');
   static const Key EXPRESSION = const Key('expression');
@@ -30,6 +33,7 @@ class Key {
   static const Key FIELDS = const Key('fields');
   static const Key FUNCTION = const Key('function');
   static const Key ID = const Key('id');
+  static const Key IMPACTS = const Key('impacts');
   static const Key IMPORT = const Key('import');
   static const Key IMPORTS = const Key('imports');
   static const Key IMPORT_SCOPE = const Key('import-scope');
@@ -43,6 +47,10 @@ class Key {
   static const Key IS_NAMED = const Key('isNamed');
   static const Key IS_OPERATOR = const Key('isOperator');
   static const Key IS_OPTIONAL = const Key('isOptional');
+  static const Key IS_PROXY = const Key('isProxy');
+  static const Key IS_SETTER = const Key('isSetter');
+  static const Key IS_UNNAMED_MIXIN_APPLICATION =
+      const Key('isUnnamedMixinApplication');
   static const Key KEYS = const Key('keys');
   static const Key KIND = const Key('kind');
   static const Key LEFT = const Key('left');
@@ -53,6 +61,7 @@ class Key {
   static const Key MEMBERS = const Key('members');
   static const Key NAME = const Key('name');
   static const Key NAMES = const Key('names');
+  static const Key NAMED_ARGUMENTS = const Key('named-arguments');
   static const Key NAMED_PARAMETERS = const Key('named-parameters');
   static const Key NAMED_PARAMETER_TYPES = const Key('named-parameter-types');
   static const Key OFFSET = const Key('offset');
@@ -65,6 +74,7 @@ class Key {
   static const Key PREFIX = const Key('prefix');
   static const Key RETURN_TYPE = const Key('return-type');
   static const Key RIGHT = const Key('right');
+  static const Key STATIC_USES = const Key('static-uses');
   static const Key SUPERTYPE = const Key('supertype');
   static const Key SUPERTYPES = const Key('supertypes');
   static const Key TAGS = const Key('tags');
@@ -73,6 +83,7 @@ class Key {
   static const Key TYPES = const Key('types');
   static const Key TYPE_ARGUMENTS = const Key('type-arguments');
   static const Key TYPE_DECLARATION = const Key('type-declaration');
+  static const Key TYPE_USES = const Key('type-uses');
   static const Key TYPE_VARIABLES = const Key('type-variables');
   static const Key URI = const Key('uri');
   static const Key VALUE = const Key('value');

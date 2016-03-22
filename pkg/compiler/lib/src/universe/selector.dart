@@ -34,7 +34,12 @@ class SelectorKind {
   static const SelectorKind OPERATOR = const SelectorKind('operator', 3);
   static const SelectorKind INDEX = const SelectorKind('index', 4);
 
+  int get index => hashCode;
+
   String toString() => name;
+
+  static List<SelectorKind> values =
+      const <SelectorKind>[GETTER, SETTER, CALL, OPERATOR, INDEX];
 }
 
 class Selector {

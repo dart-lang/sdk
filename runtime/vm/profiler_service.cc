@@ -2497,9 +2497,11 @@ void ProfilerService::PrintJSONImpl(Thread* thread,
 class NoAllocationSampleFilter : public SampleFilter {
  public:
   NoAllocationSampleFilter(Isolate* isolate,
+                           intptr_t thread_task_mask,
                            int64_t time_origin_micros,
                            int64_t time_extent_micros)
       : SampleFilter(isolate,
+                     thread_task_mask,
                      time_origin_micros,
                      time_extent_micros) {
   }
@@ -2518,6 +2520,7 @@ void ProfilerService::PrintJSON(JSONStream* stream,
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   NoAllocationSampleFilter filter(isolate,
+                                  Thread::kMutatorTask,
                                   time_origin_micros,
                                   time_extent_micros);
   const bool as_timeline = false;
@@ -2529,9 +2532,11 @@ class ClassAllocationSampleFilter : public SampleFilter {
  public:
   ClassAllocationSampleFilter(Isolate* isolate,
                               const Class& cls,
+                              intptr_t thread_task_mask,
                               int64_t time_origin_micros,
                               int64_t time_extent_micros)
       : SampleFilter(isolate,
+                     thread_task_mask,
                      time_origin_micros,
                      time_extent_micros),
         cls_(Class::Handle(cls.raw())) {
@@ -2557,6 +2562,7 @@ void ProfilerService::PrintAllocationJSON(JSONStream* stream,
   Isolate* isolate = thread->isolate();
   ClassAllocationSampleFilter filter(isolate,
                                      cls,
+                                     Thread::kMutatorTask,
                                      time_origin_micros,
                                      time_extent_micros);
   const bool as_timeline = false;
@@ -2570,7 +2576,12 @@ void ProfilerService::PrintTimelineJSON(JSONStream* stream,
                                         int64_t time_extent_micros) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
+  const intptr_t thread_task_mask = Thread::kMutatorTask |
+                                    Thread::kCompilerTask |
+                                    Thread::kSweeperTask |
+                                    Thread::kMarkerTask;
   NoAllocationSampleFilter filter(isolate,
+                                  thread_task_mask,
                                   time_origin_micros,
                                   time_extent_micros);
   const bool as_timeline = true;

@@ -30,7 +30,7 @@ class CompilerTask {
 
   CompilerTask(Compiler compiler)
       : this.compiler = compiler,
-        watch = (compiler.verbose) ? new Stopwatch() : null;
+        watch = (compiler.options.verbose) ? new Stopwatch() : null;
 
   DiagnosticReporter get reporter => compiler.reporter;
 

@@ -9,14 +9,14 @@ import 'dart:math' show min;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/generated/constant.dart'
-    show DartObject, EvaluationResultImpl;
+import 'package:analyzer/src/generated/constant.dart' show EvaluationResultImpl;
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine;
 import 'package:analyzer/src/generated/java_core.dart';
@@ -679,9 +679,12 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
         visitedClasses.add(this);
       }
       try {
-        ClassElementImpl superclass = supertype.element;
-        constructorsToForward =
-            superclass._computeMixinAppConstructors(visitedClasses);
+        ClassElement superclass = supertype.element;
+        if (superclass is ClassElementHandle) {
+          superclass = (superclass as ClassElementHandle).actualElement;
+        }
+        constructorsToForward = (superclass as ClassElementImpl)
+            ._computeMixinAppConstructors(visitedClasses);
       } finally {
         visitedClasses.removeLast();
       }
@@ -2091,15 +2094,6 @@ abstract class ElementImpl implements Element {
   }
 
   /**
-   * If the given [child] is not `null`, use the given [visitor] to visit it.
-   */
-  void safelyVisitChild(Element child, ElementVisitor visitor) {
-    if (child != null) {
-      child.accept(visitor);
-    }
-  }
-
-  /**
    * Use the given [visitor] to visit all of the [children] in the given array.
    */
   void safelyVisitChildren(List<Element> children, ElementVisitor visitor) {
@@ -3048,7 +3042,7 @@ class ImportElementImpl extends UriReferencedElementImpl
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
-    safelyVisitChild(prefix, visitor);
+    prefix?.accept(visitor);
   }
 }
 
@@ -3194,8 +3188,8 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
    * the given [name].
    */
   LibraryElementImpl.forNode(this.context, LibraryIdentifier name)
-      : super.forNode(name),
-        nameLength = name != null ? name.length : 0;
+      : nameLength = name != null ? name.length : 0,
+        super.forNode(name);
 
   @override
   int get codeLength {
@@ -3600,14 +3594,19 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
     // are in the case where library cycles have simply never been computed from
     // a newly reachable node.
     Set<LibraryElementImpl> active = new HashSet();
-    void invalidate(LibraryElementImpl library) {
-      if (!active.add(library)) return;
-      if (library._libraryCycle != null) {
-        library._libraryCycle.forEach(invalidate);
-        library._libraryCycle = null;
+    void invalidate(LibraryElement library) {
+      if (library is LibraryElementHandle) {
+        library = (library as LibraryElementHandle).actualElement;
       }
-      library.exportedLibraries.forEach(invalidate);
-      library.importedLibraries.forEach(invalidate);
+      LibraryElementImpl libraryImpl = library;
+      if (active.add(libraryImpl)) {
+        if (libraryImpl._libraryCycle != null) {
+          libraryImpl._libraryCycle.forEach(invalidate);
+          libraryImpl._libraryCycle = null;
+        }
+        library.exportedLibraries.forEach(invalidate);
+        library.importedLibraries.forEach(invalidate);
+      }
     }
     invalidate(this);
   }
@@ -3621,7 +3620,7 @@ class LibraryElementImpl extends ElementImpl implements LibraryElement {
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
-    safelyVisitChild(_definingCompilationUnit, visitor);
+    _definingCompilationUnit?.accept(visitor);
     safelyVisitChildren(_exports, visitor);
     safelyVisitChildren(_imports, visitor);
     safelyVisitChildren(_parts, visitor);
@@ -4917,7 +4916,7 @@ abstract class VariableElementImpl extends ElementImpl
   @override
   void visitChildren(ElementVisitor visitor) {
     super.visitChildren(visitor);
-    safelyVisitChild(_initializer, visitor);
+    _initializer?.accept(visitor);
   }
 }
 

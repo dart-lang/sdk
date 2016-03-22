@@ -2,16 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#include "bin/stdio.h"
+
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
 #include "bin/utils.h"
-#include "bin/stdio.h"
 
 #include "platform/globals.h"
 #include "platform/utils.h"
 
 #include "include/dart_api.h"
-
 
 namespace dart {
 namespace bin {
@@ -51,7 +51,7 @@ void FUNCTION_NAME(Stdout_GetTerminalSize)(Dart_NativeArguments args) {
     return;
   }
   intptr_t fd = DartUtils::GetIntptrValue(Dart_GetNativeArgument(args, 0));
-  if (fd != 1 && fd != 2) {
+  if ((fd != 1) && (fd != 2)) {
     Dart_SetReturnValue(args, Dart_NewApiError("Terminal fd must be 1 or 2"));
     return;
   }

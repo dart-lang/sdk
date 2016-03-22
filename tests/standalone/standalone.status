@@ -44,6 +44,8 @@ io/directory_fuzz_test: Skip
 # This is expected as MacOS by default runs with a very low number
 # of allowed open files ('ulimit -n' says something like 256).
 io/socket_many_connections_test: Skip
+# Re-enable once the bots have been updated. Issue #26057
+io/secure_server_client_certificate_test: Skip
 
 [ $runtime == vm && $system == linux ]
 # These tests have started timing out and issue 25649 has been filed to
@@ -69,6 +71,7 @@ map_insert_remove_oom_test: Skip  # Issue 24571
 verbose_gc_to_bmu_test: Skip
 precompilation_test: Skip # Standalone only test.
 precompilation_dart2js_test: Skip # Standalone only test.
+regress_26031_test: SkipByDesign # Standalone only test
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
 issue14236_test: Skip # Analyzer can't handle Script snapshots.
@@ -270,6 +273,8 @@ io/raw_socket_cross_process_test: Skip # Platform.executable
 io/test_extension_test: Skip # Platform.executable
 io/regress_7679_test: Skip # Platform.executable
 io/process_*: Skip # Most use Platform.executable
+assert_test: SkipByDesign # Requires checked mode.
+no_assert_test: SkipByDesign # Requires checked mode.
 
 # Code coverage is not supported in product mode.
 [ $mode == product ]

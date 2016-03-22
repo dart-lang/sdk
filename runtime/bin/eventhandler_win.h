@@ -9,13 +9,12 @@
 #error Do not include eventhandler_win.h directly; use eventhandler.h instead.
 #endif
 
+#include <mswsock.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#include <mswsock.h>
 
 #include "bin/builtin.h"
 #include "bin/thread.h"
-
 
 namespace dart {
 namespace bin {
@@ -27,7 +26,6 @@ class FileHandle;
 class SocketHandle;
 class ClientSocket;
 class ListenSocket;
-
 
 // An OverlappedBuffer encapsulates the OVERLAPPED structure and the
 // associated data buffer. For accept it also contains the pre-created
@@ -149,6 +147,8 @@ class OverlappedBuffer {
   // object as the object is allocated larger than it's definition
   // indicate to extend this array.
   uint8_t buffer_data_[1];
+
+  DISALLOW_COPY_AND_ASSIGN(OverlappedBuffer);
 };
 
 
@@ -273,6 +273,8 @@ class Handle : public DescriptorInfoBase {
   void NotifyReadThreadFinished();
 
   int flags_;
+
+  DISALLOW_COPY_AND_ASSIGN(Handle);
 };
 
 
@@ -285,6 +287,9 @@ class FileHandle : public DescriptorInfoSingleMixin<Handle> {
 
   virtual void EnsureInitialized(EventHandlerImplementation* event_handler);
   virtual bool IsClosed();
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(FileHandle);
 };
 
 
@@ -310,6 +315,8 @@ class StdHandle : public FileHandle {
   intptr_t thread_wrote_;
   bool write_thread_exists_;
   bool write_thread_running_;
+
+  DISALLOW_COPY_AND_ASSIGN(StdHandle);
 };
 
 
@@ -332,6 +339,8 @@ class DirectoryWatchHandle : public DescriptorInfoSingleMixin<Handle> {
  private:
   int events_;
   bool recursive_;
+
+  DISALLOW_COPY_AND_ASSIGN(DirectoryWatchHandle);
 };
 
 
@@ -348,6 +357,8 @@ class SocketHandle : public Handle {
 
  private:
   const SOCKET socket_;
+
+  DISALLOW_COPY_AND_ASSIGN(SocketHandle);
 };
 
 
@@ -403,6 +414,8 @@ class ListenSocket : public DescriptorInfoMultipleMixin<SocketHandle> {
   // The number of accepted connections which are waiting to be removed from
   // this queue and processed by dart isolates.
   int accepted_count_;
+
+  DISALLOW_COPY_AND_ASSIGN(ListenSocket);
 };
 
 
@@ -460,6 +473,8 @@ class ClientSocket : public DescriptorInfoSingleMixin<SocketHandle> {
   ClientSocket* next_;
   bool connected_;
   bool closed_;
+
+  DISALLOW_COPY_AND_ASSIGN(ClientSocket);
 };
 
 
@@ -482,7 +497,11 @@ class DatagramSocket : public DescriptorInfoSingleMixin<SocketHandle> {
   virtual void EnsureInitialized(EventHandlerImplementation* event_handler);
   virtual void DoClose();
   virtual bool IsClosed();
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(DatagramSocket);
 };
+
 
 // Event handler.
 class EventHandlerImplementation {
@@ -523,6 +542,8 @@ class EventHandlerImplementation {
   TimeoutQueue timeout_queue_;  // Time for next timeout.
   bool shutdown_;
   HANDLE completion_port_;
+
+  DISALLOW_COPY_AND_ASSIGN(EventHandlerImplementation);
 };
 
 }  // namespace bin

@@ -6,6 +6,7 @@
 #if defined(TARGET_OS_WINDOWS)
 
 #include "bin/thread.h"
+#include "bin/thread_win.h"
 
 #include <process.h>  // NOLINT
 
@@ -57,7 +58,7 @@ int Thread::Start(ThreadStartFunction function, uword parameter) {
   uint32_t tid;
   uintptr_t thread = _beginthreadex(NULL, Thread::GetMaxStackSize(),
                                     ThreadEntry, start_data, 0, &tid);
-  if (thread == -1L || thread == 0) {
+  if ((thread == -1L) || (thread == 0)) {
 #ifdef DEBUG
     fprintf(stderr, "_beginthreadex error: %d (%s)\n", errno, strerror(errno));
 #endif
@@ -130,7 +131,7 @@ intptr_t Thread::ThreadIdToIntPtr(ThreadId id) {
 
 
 bool Thread::Compare(ThreadId a, ThreadId b) {
-  return a == b;
+  return (a == b);
 }
 
 
@@ -209,7 +210,7 @@ bool Mutex::TryLock() {
   if (result == WAIT_OBJECT_0) {
     return true;
   }
-  if (result == WAIT_ABANDONED || result == WAIT_FAILED) {
+  if ((result == WAIT_ABANDONED) || (result == WAIT_FAILED)) {
     FATAL1("Mutex try lock failed %d", GetLastError());
   }
   ASSERT(result == WAIT_TIMEOUT);
@@ -273,7 +274,8 @@ void MonitorData::AddWaiter(MonitorWaitData* wait_data) {
   EnterCriticalSection(&waiters_cs_);
   if (waiters_tail_ == NULL) {
     ASSERT(waiters_head_ == NULL);
-    waiters_head_ = waiters_tail_ = wait_data;
+    waiters_head_ = wait_data;
+    waiters_tail_ = wait_data;
   } else {
     waiters_tail_->next_ = wait_data;
     waiters_tail_ = wait_data;
@@ -291,7 +293,8 @@ void MonitorData::RemoveWaiter(MonitorWaitData* wait_data) {
   while (current != NULL) {
     if (current == wait_data) {
       if (waiters_head_ == waiters_tail_) {
-        waiters_head_ = waiters_tail_ = NULL;
+        waiters_head_ = NULL;
+        waiters_tail_ = NULL;
       } else if (current == waiters_head_) {
         waiters_head_ = waiters_head_->next_;
       } else if (current == waiters_tail_) {
@@ -319,7 +322,8 @@ void MonitorData::SignalAndRemoveFirstWaiter() {
   if (first != NULL) {
     // Remove from list.
     if (waiters_head_ == waiters_tail_) {
-      waiters_tail_ = waiters_head_ = NULL;
+      waiters_tail_ = NULL;
+      waiters_head_ = NULL;
     } else {
       waiters_head_ = waiters_head_->next_;
     }
@@ -340,7 +344,8 @@ void MonitorData::SignalAndRemoveAllWaiters() {
   // Extract list to signal.
   MonitorWaitData* current = waiters_head_;
   // Clear list.
-  waiters_head_ = waiters_tail_ = NULL;
+  waiters_head_ = NULL;
+  waiters_tail_ = NULL;
   // Iterate and signal all events.
   while (current != NULL) {
     // Copy next.

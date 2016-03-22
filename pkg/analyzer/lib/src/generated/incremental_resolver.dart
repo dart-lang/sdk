@@ -878,7 +878,7 @@ class IncrementalBodyDelta extends Delta {
 
   @override
   DeltaResult validate(InternalAnalysisContext context, AnalysisTarget target,
-      ResultDescriptor descriptor) {
+      ResultDescriptor descriptor, Object value) {
     // A body change delta should never leak outside its source.
     // It can cause invalidation of results (e.g. hints) in other sources,
     // but only when a result in the updated source is INVALIDATE_NO_DELTA.

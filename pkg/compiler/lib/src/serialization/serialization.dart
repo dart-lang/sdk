@@ -4,15 +4,18 @@
 
 library dart2js.serialization;
 
+import '../common/backend_api.dart';
 import '../elements/elements.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
+import '../universe/world_impact.dart';
 
-import 'element_serialization.dart';
 import 'constant_serialization.dart';
-import 'type_serialization.dart';
-import 'keys.dart';
+import 'element_serialization.dart';
+import 'impact_serialization.dart';
 import 'json_serializer.dart';
+import 'keys.dart';
+import 'type_serialization.dart';
 import 'values.dart';
 
 /// An object that supports the encoding an [ObjectValue] for serialization.
@@ -608,6 +611,7 @@ class DataObject {
 // between serialized subcomponent.
 class Serializer {
   final SerializationEncoder _encoder;
+  List<SerializerPlugin> plugins = <SerializerPlugin>[];
 
   Map<Element, DataObject> _elementMap = <Element, DataObject>{};
   Map<ConstantExpression, DataObject> _constantMap =
@@ -623,7 +627,6 @@ class Serializer {
     // [DataObject] for [library]. If not already created, this will
     // put the serialization of [library] in the work queue.
     _getElementDataObject(library);
-    _emptyWorklist();
   }
 
   void _emptyWorklist() {
@@ -641,26 +644,40 @@ class Serializer {
     if (element == null) {
       throw new ArgumentError('Serializer._getElementDataObject(null)');
     }
-    return _elementMap.putIfAbsent(element, () {
+    DataObject dataObject = _elementMap[element];
+    if (dataObject == null) {
       // Run through [ELEMENT_SERIALIZERS] sequentially to find the one that
       // deals with [element].
       for (ElementSerializer serializer in ELEMENT_SERIALIZERS) {
         SerializedElementKind kind = serializer.getSerializedKind(element);
         if (kind != null) {
-          DataObject dataObject = new DataObject(
+          dataObject = new DataObject(
               new IntValue(_elementMap.length), new EnumValue(kind));
+          _elementMap[element] = dataObject;
           // Delay the serialization of the element itself to avoid loops, and
           // to keep the call stack small.
           _pendingList.add(() {
-            serializer.serialize(
-                element, new ObjectEncoder(this, dataObject.map), kind);
+            ObjectEncoder encoder = new ObjectEncoder(this, dataObject.map);
+            serializer.serialize(element, encoder, kind);
+
+            MapEncoder pluginData;
+            for (SerializerPlugin plugin in plugins) {
+              plugin.onElement(element, (String tag) {
+                if (pluginData == null) {
+                  pluginData = encoder.createMap(Key.DATA);
+                }
+                return pluginData.createObject(tag);
+              });
+            }
           });
-          return dataObject;
         }
       }
+    }
+    if (dataObject == null) {
       throw new UnsupportedError(
           'Unsupported element: $element (${element.kind})');
-    });
+    }
+    return dataObject;
   }
 
   /// Creates the [ElementValue] for [element].
@@ -731,6 +748,8 @@ class Serializer {
   }
 
   ObjectValue get objectValue {
+    _emptyWorklist();
+
     Map<Key, Value> map = <Key, Value>{};
     map[Key.ELEMENTS] =
         new ListValue(_elementMap.values.map((l) => l.objectValue).toList());
@@ -755,11 +774,34 @@ class Serializer {
   }
 }
 
+/// Plugin for serializing additional data for an [Element].
+class SerializerPlugin {
+  const SerializerPlugin();
+
+  /// Called upon the serialization of [element].
+  ///
+  /// Use [creatorEncoder] to create a data object with id [tag] for storing
+  /// additional data for [element].
+  void onElement(Element element, ObjectEncoder createEncoder(String tag)) {}
+}
+
+/// Plugin for deserializing additional data for an [Element].
+class DeserializerPlugin {
+  const DeserializerPlugin();
+
+  /// Called upon the deserialization of [element].
+  ///
+  /// Use [getDecoder] to retrieve the data object with id [tag] stored for
+  /// [element]. If not object is stored for [tag], [getDecoder] returns `null`.
+  void onElement(Element element, ObjectDecoder getDecoder(String tag)) {}
+}
+
 /// Deserializer for a closed collection of libraries.
 // TODO(johnniwinther): Support per-library deserialization and dependencies
 // between deserialized subcomponent.
 class Deserializer {
   final SerializationDecoder decoder;
+  List<DeserializerPlugin> plugins = <DeserializerPlugin>[];
   ObjectDecoder _headerObject;
   ListDecoder _elementList;
   ListDecoder _typeList;
@@ -818,9 +860,21 @@ class Deserializer {
   /// Returns the deserialized [Element] for [id].
   Element deserializeElement(int id) {
     if (id == null) throw new ArgumentError('Deserializer.getElement(null)');
-    return _elementMap.putIfAbsent(id, () {
-      return ElementDeserializer.deserialize(elements.getObject(id));
-    });
+    Element element = _elementMap[id];
+    if (element == null) {
+      ObjectDecoder decoder = elements.getObject(id);
+      element = ElementDeserializer.deserialize(decoder);
+      _elementMap[id] = element;
+
+      MapDecoder pluginData = decoder.getMap(Key.DATA, isOptional: true);
+      // Call plugins even when there is no data, so they can take action in
+      // this case.
+      for (DeserializerPlugin plugin in plugins) {
+        plugin.onElement(element,
+          (String tag) => pluginData?.getObject(tag, isOptional: true));
+      }
+    }
+    return element;
   }
 
   /// Returns the deserialized [DartType] for [id].

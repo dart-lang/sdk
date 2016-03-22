@@ -53,7 +53,6 @@ namespace dart {
 DECLARE_FLAG(bool, print_metrics);
 DECLARE_FLAG(bool, timing);
 DECLARE_FLAG(bool, trace_service);
-DECLARE_FLAG(bool, trace_service_verbose);
 
 DEFINE_FLAG(bool, trace_isolates, false,
             "Trace isolate creation and shut down.");
@@ -149,12 +148,12 @@ static Message* SerializeMessage(
 
 
 NoOOBMessageScope::NoOOBMessageScope(Thread* thread) : StackResource(thread) {
-  isolate()->DeferOOBMessageInterrupts();
+  thread->DeferOOBMessageInterrupts();
 }
 
 
 NoOOBMessageScope::~NoOOBMessageScope() {
-  isolate()->RestoreOOBMessageInterrupts();
+  thread()->RestoreOOBMessageInterrupts();
 }
 
 
@@ -432,8 +431,8 @@ RawError* IsolateMessageHandler::HandleLibMessage(const Array& message) {
 
 void IsolateMessageHandler::MessageNotify(Message::Priority priority) {
   if (priority >= Message::kOOBPriority) {
-    // Handle out of band messages even if the isolate is busy.
-    I->ScheduleInterrupts(Isolate::kMessageInterrupt);
+    // Handle out of band messages even if the mutator thread is busy.
+    I->ScheduleMessageInterrupts();
   }
   Dart_MessageNotifyCallback callback = I->message_notify_callback();
   if (callback) {
@@ -451,7 +450,9 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
   Zone* zone = stack_zone.GetZone();
   HandleScope handle_scope(thread);
 #ifndef PRODUCT
-  TimelineDurationScope tds(thread, I->GetIsolateStream(), "HandleMessage");
+  TimelineDurationScope tds(thread,
+                            Timeline::GetIsolateStream(),
+                            "HandleMessage");
   tds.SetNumArguments(1);
   tds.CopyArgument(0, "isolateName", I->name());
 #endif
@@ -757,8 +758,7 @@ void BaseIsolate::AssertCurrentThreadIsMutator() const {
 // TODO(srdjan): Some Isolate monitors can be shared. Replace their usage with
 // that shared monitor.
 Isolate::Isolate(const Dart_IsolateFlags& api_flags)
-  :   stack_limit_(0),
-      store_buffer_(new StoreBuffer()),
+  :   store_buffer_(new StoreBuffer()),
       heap_(NULL),
       user_tag_(0),
       current_tag_(UserTag::null()),
@@ -792,11 +792,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       symbols_mutex_(new Mutex()),
       type_canonicalization_mutex_(new Mutex()),
       constant_canonicalization_mutex_(new Mutex()),
-      saved_stack_limit_(0),
-      deferred_interrupts_mask_(0),
-      deferred_interrupts_(0),
-      stack_overflow_flags_(0),
-      stack_overflow_count_(0),
       message_handler_(NULL),
       spawn_state_(NULL),
       is_runnable_(false),
@@ -903,11 +898,6 @@ Isolate* Isolate::Init(const char* name_prefix,
   ISOLATE_METRIC_LIST(ISOLATE_METRIC_INIT);
 #undef ISOLATE_METRIC_INIT
 
-#ifndef PRODUCT
-  // Initialize Timeline streams.
-  Timeline::SetupIsolateStreams(result);
-#endif  // !PRODUCT
-
   Heap::Init(result,
              is_vm_isolate
                  ? 0  // New gen size 0; VM isolate should only allocate in old.
@@ -979,28 +969,6 @@ Isolate* Isolate::Init(const char* name_prefix,
 }
 
 
-/* static */
-uword Isolate::GetCurrentStackPointer() {
-  // Since AddressSanitizer's detect_stack_use_after_return instruments the
-  // C++ code to give out fake stack addresses, we call a stub in that case.
-  uword (*func)() = reinterpret_cast<uword (*)()>(
-      StubCode::GetStackPointer_entry()->EntryPoint());
-  // But for performance (and to support simulators), we normally use a local.
-#if defined(__has_feature)
-#if __has_feature(address_sanitizer)
-  uword current_sp = func();
-  return current_sp;
-#else
-  uword stack_allocated_local_address = reinterpret_cast<uword>(&func);
-  return stack_allocated_local_address;
-#endif
-#else
-  uword stack_allocated_local_address = reinterpret_cast<uword>(&func);
-  return stack_allocated_local_address;
-#endif
-}
-
-
 void Isolate::SetupInstructionsSnapshotPage(
     const uint8_t* instructions_snapshot_buffer) {
   InstructionsSnapshot snapshot(instructions_snapshot_buffer);
@@ -1034,6 +1002,16 @@ void Isolate::SetupDataSnapshotPage(const uint8_t* data_snapshot_buffer) {
 }
 
 
+void Isolate::ScheduleMessageInterrupts() {
+  // We take the threads lock here to ensure that the mutator thread does not
+  // exit the isolate while we are trying to schedule interrupts on it.
+  MonitorLocker ml(threads_lock());
+  Thread* mthread = mutator_thread();
+  if (mthread != NULL) {
+    mthread->ScheduleInterrupts(Thread::kMessageInterrupt);
+  }
+}
+
 
 void Isolate::set_debugger_name(const char* name) {
   free(debugger_name_);
@@ -1052,36 +1030,6 @@ void Isolate::BuildName(const char* name_prefix) {
     return;
   }
   name_ = OS::SCreate(NULL, "%s-%" Pd64 "", name_prefix, main_port());
-}
-
-
-void Isolate::SetStackLimitFromStackBase(uword stack_base) {
-  // Set stack limit.
-#if defined(USING_SIMULATOR)
-  // Ignore passed-in native stack top and use Simulator stack top.
-  Simulator* sim = Simulator::Current();  // May allocate a simulator.
-  ASSERT(simulator() == sim);  // This isolate's simulator is the current one.
-  stack_base = sim->StackTop();
-  // The overflow area is accounted for by the simulator.
-#endif
-  SetStackLimit(stack_base - OSThread::GetSpecifiedStackSize());
-}
-
-
-void Isolate::SetStackLimit(uword limit) {
-  // The isolate setting the stack limit is not necessarily the isolate which
-  // the stack limit is being set on.
-  MutexLocker ml(mutex_);
-  if (stack_limit_ == saved_stack_limit_) {
-    // No interrupt pending, set stack_limit_ too.
-    stack_limit_ = limit;
-  }
-  saved_stack_limit_ = limit;
-}
-
-
-void Isolate::ClearStackLimit() {
-  SetStackLimit(~static_cast<uword>(0));
 }
 
 
@@ -1126,7 +1074,7 @@ bool Isolate::MakeRunnable() {
   }
 #ifndef PRODUCT
   if (FLAG_support_timeline) {
-    TimelineStream* stream = GetIsolateStream();
+    TimelineStream* stream = Timeline::GetIsolateStream();
     ASSERT(stream != NULL);
     TimelineEvent* event = stream->StartEvent();
     if (event != NULL) {
@@ -1488,118 +1436,6 @@ void Isolate::Run() {
 }
 
 
-void Isolate::ScheduleInterrupts(uword interrupt_bits) {
-  MutexLocker ml(mutex_);
-  ASSERT((interrupt_bits & ~kInterruptsMask) == 0);  // Must fit in mask.
-
-  // Check to see if any of the requested interrupts should be deferred.
-  uword defer_bits = interrupt_bits & deferred_interrupts_mask_;
-  if (defer_bits != 0) {
-    deferred_interrupts_ |= defer_bits;
-    interrupt_bits &= ~deferred_interrupts_mask_;
-    if (interrupt_bits == 0) {
-      return;
-    }
-  }
-
-  if (stack_limit_ == saved_stack_limit_) {
-    stack_limit_ = (~static_cast<uword>(0)) & ~kInterruptsMask;
-  }
-  stack_limit_ |= interrupt_bits;
-}
-
-
-uword Isolate::GetAndClearInterrupts() {
-  MutexLocker ml(mutex_);
-  if (stack_limit_ == saved_stack_limit_) {
-    return 0;  // No interrupt was requested.
-  }
-  uword interrupt_bits = stack_limit_ & kInterruptsMask;
-  stack_limit_ = saved_stack_limit_;
-  return interrupt_bits;
-}
-
-
-void Isolate::DeferOOBMessageInterrupts() {
-  MutexLocker ml(mutex_);
-  ASSERT(deferred_interrupts_mask_ == 0);
-  deferred_interrupts_mask_ = kMessageInterrupt;
-
-  if (stack_limit_ != saved_stack_limit_) {
-    // Defer any interrupts which are currently pending.
-    deferred_interrupts_ = stack_limit_ & deferred_interrupts_mask_;
-
-    // Clear deferrable interrupts, if present.
-    stack_limit_ &= ~deferred_interrupts_mask_;
-
-    if ((stack_limit_ & kInterruptsMask) == 0) {
-      // No other pending interrupts.  Restore normal stack limit.
-      stack_limit_ = saved_stack_limit_;
-    }
-  }
-  if (FLAG_trace_service && FLAG_trace_service_verbose) {
-    OS::Print("[+%" Pd64 "ms] Isolate %s deferring OOB interrupts\n",
-              Dart::timestamp(), name());
-  }
-}
-
-
-void Isolate::RestoreOOBMessageInterrupts() {
-  MutexLocker ml(mutex_);
-  ASSERT(deferred_interrupts_mask_ == kMessageInterrupt);
-  deferred_interrupts_mask_ = 0;
-  if (deferred_interrupts_ != 0) {
-    if (stack_limit_ == saved_stack_limit_) {
-      stack_limit_ = (~static_cast<uword>(0)) & ~kInterruptsMask;
-    }
-    stack_limit_ |= deferred_interrupts_;
-    deferred_interrupts_ = 0;
-  }
-  if (FLAG_trace_service && FLAG_trace_service_verbose) {
-    OS::Print("[+%" Pd64 "ms] Isolate %s restoring OOB interrupts\n",
-              Dart::timestamp(), name());
-  }
-}
-
-
-RawError* Isolate::HandleInterrupts() {
-  uword interrupt_bits = GetAndClearInterrupts();
-  if ((interrupt_bits & kVMInterrupt) != 0) {
-    if (store_buffer()->Overflowed()) {
-      if (FLAG_verbose_gc) {
-        OS::PrintErr("Scavenge scheduled by store buffer overflow.\n");
-      }
-      heap()->CollectGarbage(Heap::kNew);
-    }
-  }
-  if ((interrupt_bits & kMessageInterrupt) != 0) {
-    MessageHandler::MessageStatus status =
-        message_handler()->HandleOOBMessages();
-    if (status != MessageHandler::kOK) {
-      // False result from HandleOOBMessages signals that the isolate should
-      // be terminating.
-      if (FLAG_trace_isolates) {
-        OS::Print("[!] Terminating isolate due to OOB message:\n"
-                  "\tisolate:    %s\n", name());
-      }
-      Thread* thread = Thread::Current();
-      const Error& error = Error::Handle(thread->sticky_error());
-      ASSERT(!error.IsNull() && error.IsUnwindError());
-      thread->clear_sticky_error();
-      return error.raw();
-    }
-  }
-  return Error::null();
-}
-
-
-uword Isolate::GetAndClearStackOverflowFlags() {
-  uword stack_overflow_flags = stack_overflow_flags_;
-  stack_overflow_flags_ = 0;
-  return stack_overflow_flags;
-}
-
-
 void Isolate::AddClosureFunction(const Function& function) const {
   GrowableObjectArray& closures =
       GrowableObjectArray::Handle(object_store()->closure_functions());
@@ -1757,7 +1593,7 @@ void Isolate::Shutdown() {
   Thread* thread = Thread::Current();
 
   // Don't allow anymore dart code to execution on this isolate.
-  ClearStackLimit();
+  thread->ClearStackLimit();
 
   // First, perform higher-level cleanup that may need to allocate.
   {
@@ -1813,11 +1649,6 @@ void Isolate::Shutdown() {
 
 Dart_IsolateCreateCallback Isolate::create_callback_ = NULL;
 Dart_IsolateShutdownCallback Isolate::shutdown_callback_ = NULL;
-Dart_FileOpenCallback Isolate::file_open_callback_ = NULL;
-Dart_FileReadCallback Isolate::file_read_callback_ = NULL;
-Dart_FileWriteCallback Isolate::file_write_callback_ = NULL;
-Dart_FileCloseCallback Isolate::file_close_callback_ = NULL;
-Dart_EntropySource Isolate::entropy_source_callback_ = NULL;
 
 Monitor* Isolate::isolates_list_monitor_ = NULL;
 Isolate* Isolate::isolates_list_head_ = NULL;
@@ -2607,6 +2438,9 @@ void Isolate::UnscheduleThread(Thread* thread,
       sticky_error_ = thread->sticky_error();
       thread->clear_sticky_error();
     }
+  } else {
+    ASSERT(thread->api_top_scope_ == NULL);
+    ASSERT(thread->zone_ == NULL);
   }
   if (!bypass_safepoint) {
     // Ensure that the thread reports itself as being at a safepoint.

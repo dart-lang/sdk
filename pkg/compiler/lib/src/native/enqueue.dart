@@ -141,7 +141,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   CoreTypes get coreTypes => compiler.coreTypes;
 
   void processNativeClasses(Iterable<LibraryElement> libraries) {
-    if (compiler.hasIncrementalSupport) {
+    if (compiler.options.hasIncrementalSupport) {
       // Since [Set.add] returns bool if an element was added, this restricts
       // [libraries] to ones that haven't already been processed. This saves
       // time during incremental compiles.
@@ -236,7 +236,18 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
    * Returns the source string of the class named in the extends clause, or
    * `null` if there is no extends clause.
    */
-  String findExtendsNameOfClass(BaseClassElementX classElement) {
+  String findExtendsNameOfClass(ClassElement classElement) {
+    if (classElement.isResolved) {
+      ClassElement superClass = classElement.superclass;
+      while (superClass != null) {
+        if (!superClass.isUnnamedMixinApplication) {
+          return superClass.name;
+        }
+        superClass = superClass.superclass;
+      }
+      return null;
+    }
+
     //  "class B extends A ... {}"  --> "A"
     //  "class B extends foo.A ... {}"  --> "A"
     //  "class B<T> extends foo.A<T,T> with M1, M2 ... {}"  --> "A"
@@ -368,9 +379,9 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     flushing = false;
   }
 
-  processClass(BaseClassElementX classElement, cause) {
+  processClass(ClassElement classElement, cause) {
     // TODO(ahe): Fix this assertion to work in incremental compilation.
-    assert(compiler.hasIncrementalSupport ||
+    assert(compiler.options.hasIncrementalSupport ||
            !registeredClasses.contains(classElement));
 
     bool firstTime = registeredClasses.isEmpty;
@@ -407,34 +418,40 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     });
   }
 
-  handleFieldAnnotations(Element element) {
+  void handleFieldAnnotations(Element element) {
+    if (compiler.serialization.isDeserialized(element)) {
+      return;
+    }
     if (backend.isNative(element.enclosingElement)) {
       // Exclude non-instance (static) fields - they not really native and are
       // compiled as isolate globals.  Access of a property of a constructor
       // function or a non-method property in the prototype chain, must be coded
       // using a JS-call.
       if (element.isInstanceMember) {
-        setNativeName(element);
+        _setNativeName(element);
       }
     }
   }
 
-  handleMethodAnnotations(Element method) {
+  void handleMethodAnnotations(Element method) {
+    if (compiler.serialization.isDeserialized(method)) {
+      return;
+    }
     if (isNativeMethod(method)) {
       if (method.isStatic) {
-        setNativeNameForStaticMethod(method);
+        _setNativeNameForStaticMethod(method);
       } else {
-        setNativeName(method);
+        _setNativeName(method);
       }
     }
   }
 
   /// Sets the native name of [element], either from an annotation, or
   /// defaulting to the Dart name.
-  void setNativeName(MemberElement element) {
+  void _setNativeName(MemberElement element) {
     String name = findJsNameFromAnnotation(element);
     if (name == null) name = element.name;
-    backend.setNativeMemberName(element, name);
+    backend.nativeData.setNativeMemberName(element, name);
   }
 
   /// Sets the native name of the static native method [element], using the
@@ -445,20 +462,21 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   ///    use the declared @JSName as the expression
   /// 3. If [element] does not have a @JSName annotation, qualify the name of
   ///    the method with the @Native name of the enclosing class.
-  void setNativeNameForStaticMethod(MethodElement element) {
+  void _setNativeNameForStaticMethod(MethodElement element) {
     String name = findJsNameFromAnnotation(element);
     if (name == null) name = element.name;
     if (isIdentifier(name)) {
       List<String> nativeNames =
-          backend.getNativeTagsOfClassRaw(element.enclosingClass);
+          backend.nativeData.getNativeTagsOfClassRaw(element.enclosingClass);
       if (nativeNames.length != 1) {
         reporter.internalError(element,
             'Unable to determine a native name for the enclosing class, '
             'options: $nativeNames');
       }
-      backend.setNativeMemberName(element, '${nativeNames[0]}.$name');
+      backend.nativeData.setNativeMemberName(
+          element, '${nativeNames[0]}.$name');
     } else {
-      backend.setNativeMemberName(element, name);
+      backend.nativeData.setNativeMemberName(element, name);
     }
   }
 
@@ -584,7 +602,7 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
   Map<String, ClassElement> tagOwner = new Map<String, ClassElement>();
 
   NativeResolutionEnqueuer(Enqueuer world, Compiler compiler)
-    : super(world, compiler, compiler.enableNativeLiveTypeAnalysis);
+    : super(world, compiler, compiler.options.enableNativeLiveTypeAnalysis);
 
   void processNativeClass(ClassElement classElement) {
     super.processNativeClass(classElement);
@@ -593,7 +611,7 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
     if (backend.isJsInterop(classElement)) return;
     // Since we map from dispatch tags to classes, a dispatch tag must be used
     // on only one native class.
-    for (String tag in backend.getNativeTagsOfClass(classElement)) {
+    for (String tag in backend.nativeData.getNativeTagsOfClass(classElement)) {
       ClassElement owner = tagOwner[tag];
       if (owner != null) {
         if (owner != classElement) {
@@ -670,7 +688,7 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
   final Set<ClassElement> doneAddSubtypes = new Set<ClassElement>();
 
   NativeCodegenEnqueuer(Enqueuer world, Compiler compiler, this.emitter)
-    : super(world, compiler, compiler.enableNativeLiveTypeAnalysis);
+    : super(world, compiler, compiler.options.enableNativeLiveTypeAnalysis);
 
   void processNativeClasses(Iterable<LibraryElement> libraries) {
     super.processNativeClasses(libraries);

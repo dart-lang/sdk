@@ -253,9 +253,9 @@ void CodeCoverage::Write(Thread* thread) {
     return;
   }
 
-  Dart_FileOpenCallback file_open = Isolate::file_open_callback();
-  Dart_FileWriteCallback file_write = Isolate::file_write_callback();
-  Dart_FileCloseCallback file_close = Isolate::file_close_callback();
+  Dart_FileOpenCallback file_open = Dart::file_open_callback();
+  Dart_FileWriteCallback file_write = Dart::file_write_callback();
+  Dart_FileCloseCallback file_close = Dart::file_close_callback();
   if ((file_open == NULL) || (file_write == NULL) || (file_close == NULL)) {
     return;
   }

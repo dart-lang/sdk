@@ -34,6 +34,13 @@ class LocationManager extends Observable {
     _updateApplicationLocation(applicationPath);
   }
 
+  bool getBoolParameter(String name, bool defaultValue) {
+    var value = uri.queryParameters[name];
+    if ("true" == value) return true;
+    if ("false" == value) return false;
+    return defaultValue;
+  }
+
   /// Called whenever the browser changes the location bar (e.g. forward or
   /// back button press).
   void _onBrowserNavigation(PopStateEvent event) {

@@ -307,6 +307,12 @@ bool SampleFilter::TimeFilterSample(Sample* sample) {
 }
 
 
+bool SampleFilter::TaskFilterSample(Sample* sample) {
+  const intptr_t task = static_cast<intptr_t>(sample->thread_task());
+  return (task & thread_task_mask_) != 0;
+}
+
+
 ClearProfileVisitor::ClearProfileVisitor(Isolate* isolate)
     : SampleVisitor(isolate) {
 }
@@ -844,6 +850,7 @@ static Sample* SetupSample(Thread* thread,
 #endif
   sample->set_vm_tag(vm_tag);
   sample->set_user_tag(isolate->user_tag());
+  sample->set_thread_task(thread->task_kind());
   return sample;
 }
 
@@ -887,7 +894,7 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
   }
 
   if (FLAG_profile_vm) {
-    uintptr_t sp = Isolate::GetCurrentStackPointer();
+    uintptr_t sp = Thread::GetCurrentStackPointer();
     uintptr_t fp = 0;
     uintptr_t pc = GetProgramCounter();
 
@@ -945,6 +952,11 @@ void Profiler::SampleThread(Thread* thread,
   ASSERT(os_thread != NULL);
   Isolate* isolate = thread->isolate();
 
+  // Thread is not doing VM work.
+  if (thread->task_kind() == Thread::kUnknownTask) {
+    return;
+  }
+
   if (StubCode::HasBeenInitialized() &&
       StubCode::InJumpToExceptionHandlerStub(state.pc)) {
     // The JumpToExceptionHandler stub manually adjusts the stack pointer,
@@ -985,9 +997,7 @@ void Profiler::SampleThread(Thread* thread,
     return;
   }
 
-  if (!thread->IsMutatorThread()) {
-    // Not a mutator thread.
-    // TODO(johnmccutchan): Profile all threads with an isolate.
+  if (thread->IsMutatorThread() && isolate->IsDeoptimizing()) {
     return;
   }
 
@@ -1015,7 +1025,9 @@ void Profiler::SampleThread(Thread* thread,
   // Increment counter for vm tag.
   VMTagCounters* counters = isolate->vm_tag_counters();
   ASSERT(counters != NULL);
-  counters->Increment(sample->vm_tag());
+  if (thread->IsMutatorThread()) {
+    counters->Increment(sample->vm_tag());
+  }
 
   ProfilerNativeStackWalker native_stack_walker(isolate,
                                                 sample,
@@ -1221,6 +1233,10 @@ ProcessedSampleBuffer* SampleBuffer::BuildProcessedSampleBuffer(
     }
     if (!filter->TimeFilterSample(sample)) {
       // Did not pass time filter.
+      continue;
+    }
+    if (!filter->TaskFilterSample(sample)) {
+      // Did not pass task filter.
       continue;
     }
     if (!filter->FilterSample(sample)) {

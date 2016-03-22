@@ -5,14 +5,13 @@
 #ifndef BIN_FILE_SYSTEM_WATCHER_H_
 #define BIN_FILE_SYSTEM_WATCHER_H_
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 #include <sys/types.h>
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
-
 
 namespace dart {
 namespace bin {

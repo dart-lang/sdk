@@ -8,7 +8,6 @@
 #include "bin/thread.h"
 #include "platform/assert.h"
 
-
 namespace dart {
 namespace bin {
 

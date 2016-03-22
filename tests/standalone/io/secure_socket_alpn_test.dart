@@ -113,6 +113,9 @@ void testInvalidArgumentClientConnect(List<String> protocols,
 }
 
 main() {
+  if (!SecurityContext.alpnSupported) {
+    return 0;
+  }
   final longname256 = 'p' * 256;
   final String longname255 = 'p' * 255;
   final String strangelongname255 = 'ø' + 'p' * 253;

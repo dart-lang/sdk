@@ -9,7 +9,6 @@
 
 #include <stdio.h>  // NOLINT
 
-
 namespace dart {
 namespace bin {
 

@@ -108,6 +108,8 @@ class TimeoutQueue {
  private:
   Timeout* next_timeout_;
   Timeout* timeouts_;
+
+  DISALLOW_COPY_AND_ASSIGN(TimeoutQueue);
 };
 
 
@@ -221,6 +223,8 @@ class CircularLinkedList {
   };
 
   Entry* head_;
+
+  DISALLOW_COPY_AND_ASSIGN(CircularLinkedList);
 };
 
 
@@ -268,6 +272,9 @@ class DescriptorInfoBase {
 
  protected:
   intptr_t fd_;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(DescriptorInfoBase);
 };
 
 
@@ -281,7 +288,7 @@ class DescriptorInfoSingleMixin : public DI {
   static const int kTokenCount = 16;
 
  public:
-  explicit DescriptorInfoSingleMixin(intptr_t fd, bool disable_tokens)
+  DescriptorInfoSingleMixin(intptr_t fd, bool disable_tokens)
       : DI(fd), port_(0), tokens_(kTokenCount), mask_(0),
         disable_tokens_(disable_tokens) {}
 
@@ -356,6 +363,8 @@ class DescriptorInfoSingleMixin : public DI {
   int tokens_;
   intptr_t mask_;
   bool disable_tokens_;
+
+  DISALLOW_COPY_AND_ASSIGN(DescriptorInfoSingleMixin);
 };
 
 
@@ -400,7 +409,7 @@ class DescriptorInfoMultipleMixin : public DI {
   };
 
  public:
-  explicit DescriptorInfoMultipleMixin(intptr_t fd, bool disable_tokens)
+  DescriptorInfoMultipleMixin(intptr_t fd, bool disable_tokens)
       : DI(fd), tokens_map_(&SamePortValue, kTokenCount),
         disable_tokens_(disable_tokens) {}
 
@@ -541,7 +550,7 @@ class DescriptorInfoMultipleMixin : public DI {
         pentry->token_count--;
       }
 
-      if (was_ready && pentry->token_count <= 0) {
+      if (was_ready && (pentry->token_count <= 0)) {
         active_readers_.Remove(pentry);
       }
     }
@@ -586,8 +595,9 @@ class DescriptorInfoMultipleMixin : public DI {
   HashMap tokens_map_;
 
   bool disable_tokens_;
-};
 
+  DISALLOW_COPY_AND_ASSIGN(DescriptorInfoMultipleMixin);
+};
 
 }  // namespace bin
 }  // namespace dart
@@ -610,6 +620,7 @@ namespace bin {
 
 class EventHandler {
  public:
+  EventHandler() {}
   void SendData(intptr_t id, Dart_Port dart_port, int64_t data) {
     delegate_.SendData(id, dart_port, data);
   }
@@ -635,6 +646,8 @@ class EventHandler {
  private:
   friend class EventHandlerImplementation;
   EventHandlerImplementation delegate_;
+
+  DISALLOW_COPY_AND_ASSIGN(EventHandler);
 };
 
 }  // namespace bin

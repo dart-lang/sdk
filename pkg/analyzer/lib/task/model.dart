@@ -381,7 +381,7 @@ abstract class ListTaskInput<E> implements TaskInput<List<E>> {
    * Return a task input that can be used to compute a list whose elements are
    * the result of passing the elements of this input to the [mapper] function.
    */
-  ListTaskInput/*<V>*/ toList/*<V>*/(UnaryFunction<E, dynamic/*<=V>*/ > mapper);
+  ListTaskInput/*<V>*/ toList/*<V>*/(UnaryFunction<E, dynamic/*=V*/ > mapper);
 
   /**
    * Return a task input that can be used to compute a list whose elements are

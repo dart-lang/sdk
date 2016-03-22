@@ -11,6 +11,7 @@ import 'package:compiler/compiler.dart' show
 import 'package:compiler/compiler_new.dart' show
     CompilationResult,
     CompilerDiagnostics,
+    CompilerOptions,
     CompilerOutput,
     Diagnostic,
     PackagesDiscoveryProvider;
@@ -84,6 +85,7 @@ Future<CompilationResult> runCompiler(
     entryPoint = Uri.parse('memory:main.dart');
   }
   CompilerImpl compiler = compilerFor(
+      entryPoint: entryPoint,
       memorySourceFiles: memorySourceFiles,
       diagnosticHandler: diagnosticHandler,
       outputProvider: outputProvider,
@@ -102,7 +104,8 @@ Future<CompilationResult> runCompiler(
 }
 
 CompilerImpl compilerFor(
-    {Map<String, String> memorySourceFiles: const <String, String>{},
+    {Uri entryPoint,
+     Map<String, String> memorySourceFiles: const <String, String>{},
      CompilerDiagnostics diagnosticHandler,
      CompilerOutput outputProvider,
      List<String> options: const <String>[],
@@ -143,12 +146,14 @@ CompilerImpl compilerFor(
       provider,
       outputProvider,
       diagnosticHandler,
-      libraryRoot,
-      packageRoot,
-      options,
-      {},
-      packageConfig,
-      packagesDiscoveryProvider);
+      new CompilerOptions.parse(
+          entryPoint: entryPoint,
+          libraryRoot: libraryRoot,
+          packageRoot: packageRoot,
+          options: options,
+          environment: {},
+          packageConfig: packageConfig,
+          packagesDiscoveryProvider: packagesDiscoveryProvider));
 
   if (cachedCompiler != null) {
     compiler.coreLibrary =
@@ -213,7 +218,6 @@ CompilerImpl compilerFor(
     cachedCompiler.deferredLoadTask = null;
     cachedCompiler.mirrorUsageAnalyzerTask = null;
     cachedCompiler.dumpInfoTask = null;
-    cachedCompiler.buildId = null;
   }
   return compiler;
 }

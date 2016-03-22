@@ -79,6 +79,44 @@ bool _isAppendingToArgList(DartCompletionRequest request) {
 }
 
 /**
+ * Determine if the completion target is in the middle or beginning of the list
+ * of named parameters and is not preceded by a comma. This method assumes that
+ * _isAppendingToArgList has been called and is false.
+ */
+bool _isInsertingToArgListWithNoSynthetic(DartCompletionRequest request) {
+  AstNode node = request.target.containingNode;
+  if (node is ArgumentList) {
+    var entity = request.target.entity;
+    return entity is NamedExpression;
+  }
+  return false;
+}
+
+/**
+ * Determine if the completion target is in the middle or beginning of the list
+ * of named parameters and is preceded by a comma. This method assumes that
+ * _isAppendingToArgList and _isInsertingToArgListWithNoSynthetic have been
+ * called and both return false.
+ */
+bool _isInsertingToArgListWithSynthetic(DartCompletionRequest request) {
+  AstNode node = request.target.containingNode;
+  if (node is ArgumentList) {
+    var entity = request.target.entity;
+    if (entity is SimpleIdentifier) {
+      int argIndex = request.target.argIndex;
+      // if the next argument is a NamedExpression, then we are in the named
+      // parameter list, guard first against end of list
+      if (node.arguments.length == argIndex + 1 ||
+          node.arguments.getRange(argIndex + 1, argIndex + 2).first
+          is NamedExpression) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+/**
  * Determine if the completion target is the label for a named argument.
  */
 bool _isEditingNamedArgLabel(DartCompletionRequest request) {
@@ -87,7 +125,7 @@ bool _isEditingNamedArgLabel(DartCompletionRequest request) {
     var entity = request.target.entity;
     if (entity is NamedExpression) {
       int offset = request.offset;
-      if (entity.offset <= offset && offset < entity.end) {
+      if (entity.offset < offset && offset < entity.end) {
         return true;
       }
     }
@@ -219,23 +257,29 @@ class ArgListContributor extends DartCompletionContributor {
     // suggestions.add(suggestion);
   }
 
-  void _addDefaultParamSuggestions(Iterable<ParameterElement> parameters) {
+  void _addDefaultParamSuggestions(Iterable<ParameterElement> parameters,
+      [bool appendComma = false]) {
     Iterable<String> namedArgs = _namedArgs(request);
     for (ParameterElement param in parameters) {
       if (param.parameterKind == ParameterKind.NAMED) {
-        _addNamedParameterSuggestion(request, namedArgs, param.name);
+        _addNamedParameterSuggestion(
+            request, namedArgs, param.name, appendComma);
       }
     }
   }
 
-  void _addNamedParameterSuggestion(
-      DartCompletionRequest request, List<String> namedArgs, String name) {
+  void _addNamedParameterSuggestion(DartCompletionRequest request,
+      List<String> namedArgs, String name, bool appendComma) {
     if (name != null && name.length > 0 && !namedArgs.contains(name)) {
+      String completion = '$name: ';
+      if (appendComma) {
+        completion += ',';
+      }
       suggestions.add(new CompletionSuggestion(
           CompletionSuggestionKind.NAMED_ARGUMENT,
           DART_RELEVANCE_NAMED_PARAMETER,
-          '$name: ',
-          name.length + 2,
+          completion,
+          completion.length,
           0,
           false,
           false));
@@ -253,10 +297,19 @@ class ArgListContributor extends DartCompletionContributor {
       _addArgListSuggestion(requiredParam);
       return;
     }
+    // TODO (jwren) _isAppendingToArgList can be split into two cases (with and
+    // without preceded), then _isAppendingToArgList,
+    // _isInsertingToArgListWithNoSynthetic and
+    // _isInsertingToArgListWithSynthetic could be formatted into a single
+    // method which returns some enum with 5+ cases.
     if (_isEditingNamedArgLabel(request) || _isAppendingToArgList(request)) {
       if (requiredCount == 0 || requiredCount < _argCount(request)) {
         _addDefaultParamSuggestions(parameters);
       }
+    } else if (_isInsertingToArgListWithNoSynthetic(request)) {
+      _addDefaultParamSuggestions(parameters, true);
+    } else if (_isInsertingToArgListWithSynthetic(request)) {
+      _addDefaultParamSuggestions(parameters);
     }
   }
 }

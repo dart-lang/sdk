@@ -801,6 +801,7 @@ class _StringBase {
 
   // Convert single object to string.
   static String _interpolateSingle(Object o) {
+    if (o is String) return o;
     final s = o.toString();
     if (s is! String) {
       throw new ArgumentError(s);

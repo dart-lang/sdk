@@ -8,6 +8,7 @@
 #include "vm/bit_vector.h"
 #include "vm/il_printer.h"
 #include "vm/regexp_assembler.h"
+#include "vm/timeline.h"
 
 namespace dart {
 
@@ -20,8 +21,7 @@ DECLARE_FLAG(bool, propagate_types);
 void FlowGraphTypePropagator::Propagate(FlowGraph* flow_graph) {
 #ifndef PRODUCT
   Thread* thread = flow_graph->thread();
-  Isolate* const isolate = flow_graph->isolate();
-  TimelineStream* compiler_timeline = isolate->GetCompilerStream();
+  TimelineStream* compiler_timeline = Timeline::GetCompilerStream();
   TimelineDurationScope tds2(thread,
                              compiler_timeline,
                              "FlowGraphTypePropagator");
@@ -713,7 +713,7 @@ CompileType ParameterInstr::ComputeType() const {
     // from being generated.
     switch (index()) {
       case RegExpMacroAssembler::kParamRegExpIndex:
-        return CompileType::FromCid(kJSRegExpCid);
+        return CompileType::FromCid(kRegExpCid);
       case RegExpMacroAssembler::kParamStringIndex:
         return CompileType::FromCid(function.string_specialization_cid());
       case RegExpMacroAssembler::kParamStartOffsetIndex:
@@ -981,8 +981,7 @@ CompileType AllocateObjectInstr::ComputeType() const {
     ASSERT(cls().id() == kClosureCid);
     return CompileType(CompileType::kNonNullable,
                        kClosureCid,
-                       &FunctionType::ZoneHandle(
-                           closure_function().SignatureType()));
+                       &Type::ZoneHandle(closure_function().SignatureType()));
   }
   // TODO(vegorov): Incorporate type arguments into the returned type.
   return CompileType::FromCid(cls().id());
@@ -1009,8 +1008,9 @@ CompileType LoadFieldInstr::ComputeType() const {
 
   const AbstractType* abstract_type = NULL;
   if (Isolate::Current()->type_checks() &&
-      type().HasResolvedTypeClass() &&
-      !Field::IsExternalizableCid(Class::Handle(type().type_class()).id())) {
+      (type().IsFunctionType() ||
+       (type().HasResolvedTypeClass() &&
+       !Field::IsExternalizableCid(Class::Handle(type().type_class()).id())))) {
     abstract_type = &type();
   }
 

@@ -466,7 +466,8 @@ class LocalsHandler<T> {
 
   void update(LocalElement local, T type, Node node) {
     assert(type != null);
-    if (compiler.trustTypeAnnotations || compiler.enableTypeAssertions) {
+    if (compiler.options.trustTypeAnnotations ||
+        compiler.options.enableTypeAssertions) {
       type = types.narrowType(type, local.type);
     }
     updateLocal() {
@@ -779,7 +780,7 @@ abstract class InferrerVisitor<T, E extends MinimalInferrerEngine<T>>
 
   T visitAssert(Assert node) {
     // Avoid pollution from assert statement unless enabled.
-    if (compiler.enableUserAssertions) {
+    if (compiler.options.enableUserAssertions) {
       super.visitAssert(node);
     }
     return null;

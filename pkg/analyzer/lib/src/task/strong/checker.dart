@@ -327,19 +327,43 @@ class CodeChecker extends RecursiveAstVisitor {
 
   @override
   void visitForEachStatement(ForEachStatement node) {
-    // Check that the expression is an Iterable.
-    var expr = node.iterable;
-    var iterableType = node.awaitKeyword != null
-        ? typeProvider.streamType
-        : typeProvider.iterableType;
     var loopVariable = node.identifier != null
         ? node.identifier
         : node.loopVariable?.identifier;
+
+    // Safely handle malformed statements.
     if (loopVariable != null) {
-      var iteratorType = loopVariable.staticType;
-      var checkedType = iterableType.instantiate([iteratorType]);
-      checkAssignment(expr, checkedType);
+      // Find the element type of the sequence.
+      var sequenceInterface = node.awaitKeyword != null
+          ? typeProvider.streamType
+          : typeProvider.iterableType;
+      var iterableType = _getStaticType(node.iterable);
+      var elementType =
+          rules.mostSpecificTypeArgument(iterableType, sequenceInterface);
+
+      // If the sequence is not an Iterable (or Stream for await for) but is a
+      // supertype of it, do an implicit downcast to Iterable<dynamic>. Then
+      // we'll do a separate cast of the dynamic element to the variable's type.
+      if (elementType == null) {
+        var sequenceType = sequenceInterface.instantiate([DynamicTypeImpl.instance]);
+
+        if (rules.isSubtypeOf(sequenceType, iterableType)) {
+          _recordMessage(DownCast.create(
+              rules, node.iterable, iterableType, sequenceType));
+          elementType = DynamicTypeImpl.instance;
+        }
+      }
+
+      // If the sequence doesn't implement the interface at all, [ErrorVerifier]
+      // will report the error, so ignore it here.
+      if (elementType != null) {
+        // Insert a cast from the sequence's element type to the loop variable's
+        // if needed.
+        _checkDowncast(loopVariable, _getStaticType(loopVariable),
+            from: elementType);
+      }
     }
+
     node.visitChildren(this);
   }
 
@@ -595,8 +619,8 @@ class CodeChecker extends RecursiveAstVisitor {
             rules.isSubtypeOf(lhsType, rhsType)) {
           // This is also slightly different from spec, but allows us to keep
           // compound operators in the int += num and num += dynamic cases.
-          staticInfo = DownCast.create(
-              rules, expr.rightHandSide, rhsType, lhsType);
+          staticInfo =
+              DownCast.create(rules, expr.rightHandSide, rhsType, lhsType);
           rhsType = lhsType;
         } else {
           staticInfo = new StaticTypeError(rules, expr, lhsType);
@@ -663,18 +687,22 @@ class CodeChecker extends RecursiveAstVisitor {
     }
   }
 
-  /// Records a [DownCast] of [expr] to [toT], if there is one.
+  /// Records a [DownCast] of [expr] from [from] to [to], if there is one.
   ///
-  /// If [expr] does not require a downcast because it is not related to [toT]
+  /// If [from] is omitted, uses the static type of [expr].
+  ///
+  /// If [expr] does not require a downcast because it is not related to [to]
   /// or is already a subtype of it, does nothing.
-  void _checkDowncast(Expression expr, DartType toT) {
-    DartType fromT = _getStaticType(expr);
+  void _checkDowncast(Expression expr, DartType to, {DartType from}) {
+    if (from == null) {
+      from = _getStaticType(expr);
+    }
 
     // We can use anything as void.
-    if (toT.isVoid) return;
+    if (to.isVoid) return;
 
     // fromT <: toT, no coercion needed.
-    if (rules.isSubtypeOf(fromT, toT)) return;
+    if (rules.isSubtypeOf(from, to)) return;
 
     // TODO(vsm): We can get rid of the second clause if we disallow
     // all sideways casts - see TODO below.
@@ -682,14 +710,14 @@ class CodeChecker extends RecursiveAstVisitor {
     // Note: a function type is never assignable to a class per the Dart
     // spec - even if it has a compatible call method.  We disallow as
     // well for consistency.
-    if ((fromT is FunctionType && rules.getCallMethodType(toT) != null) ||
-        (toT is FunctionType && rules.getCallMethodType(fromT) != null)) {
+    if ((from is FunctionType && rules.getCallMethodType(to) != null) ||
+        (to is FunctionType && rules.getCallMethodType(from) != null)) {
       return;
     }
 
     // Downcast if toT <: fromT
-    if (rules.isSubtypeOf(toT, fromT)) {
-      _recordMessage(DownCast.create(rules, expr, fromT, toT));
+    if (rules.isSubtypeOf(to, from)) {
+      _recordMessage(DownCast.create(rules, expr, from, to));
       return;
     }
 
@@ -703,8 +731,8 @@ class CodeChecker extends RecursiveAstVisitor {
     // are likely to succeed.  The canonical example is List<dynamic> and
     // Iterable<T> for some concrete T (e.g. Object).  These are unrelated
     // in the restricted system, but List<dynamic> <: Iterable<T> in dart.
-    if (fromT.isAssignableTo(toT)) {
-      _recordMessage(DownCast.create(rules, expr, fromT, toT));
+    if (from.isAssignableTo(to)) {
+      _recordMessage(DownCast.create(rules, expr, from, to));
     }
   }
 

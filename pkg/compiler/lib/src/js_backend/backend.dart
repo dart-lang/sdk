@@ -504,6 +504,10 @@ class JavaScriptBackend extends Backend {
 
   SourceInformationStrategy sourceInformationStrategy;
 
+  JavaScriptBackendSerialization serialization;
+
+  final NativeData nativeData = new NativeData();
+
   final BackendHelpers helpers;
   final BackendImpacts impacts;
 
@@ -538,10 +542,11 @@ class JavaScriptBackend extends Backend {
     constantCompilerTask = new JavaScriptConstantTask(compiler);
     impactTransformer = new JavaScriptImpactTransformer(this);
     patchResolverTask = new PatchResolverTask(compiler);
-    functionCompiler = compiler.useCpsIr
+    functionCompiler = compiler.options.useCpsIr
          ? new CpsFunctionCompiler(
              compiler, this, sourceInformationStrategy)
          : new SsaFunctionCompiler(this, sourceInformationStrategy);
+    serialization = new JavaScriptBackendSerialization(this);
   }
 
   ConstantSystem get constantSystem => constants.constantSystem;
@@ -585,8 +590,8 @@ class JavaScriptBackend extends Backend {
   }
 
   static Namer determineNamer(Compiler compiler) {
-    return compiler.enableMinification ?
-        compiler.useFrequencyNamer ?
+    return compiler.options.enableMinification ?
+        compiler.options.useFrequencyNamer ?
             new FrequencyBasedNamer(compiler) :
             new MinifyNamer(compiler) :
         new Namer(compiler);
@@ -600,42 +605,48 @@ class JavaScriptBackend extends Backend {
   // TODO(johnniwinther): Replace this with a more precise modelling; type
   // inference of these elements is disabled.
   Element registerBackendUse(Element element) {
-    if (element != null) {
-      bool registerUse = false;
-      if (element == helpers.streamIteratorConstructor ||
-          element == helpers.compiler.symbolConstructor ||
-          element == helpers.compiler.symbolValidatedConstructor ||
-          element == helpers.syncCompleterConstructor ||
-          element == coreClasses.symbolClass ||
-          element == helpers.objectNoSuchMethod) {
-        // TODO(johnniwinther): These are valid but we could be more precise.
-        registerUse = true;
-      } else if (element.implementationLibrary.isPatch ||
-                 element.library == helpers.jsHelperLibrary ||
-                 element.library == helpers.interceptorsLibrary ||
-                 element.library == helpers.isolateHelperLibrary) {
-        // TODO(johnniwinther): We should be more precise about these.
-        registerUse = true;
-      } else if (element == coreClasses.listClass ||
-                 element == helpers.mapLiteralClass ||
-                 element == coreClasses.functionClass ||
-                 element == coreClasses.stringClass) {
-        // TODO(johnniwinther): Avoid these.
-        registerUse = true;
-      }
-      if (!registerUse) {
-        assert(invariant(element, false,
-            message: "Backend use of $element is not allowed."));
-        return element;
-      }
-      helpersUsed.add(element.declaration);
-      if (element.isClass && element.isPatched) {
-        // Both declaration and implementation may declare fields, so we
-        // add both to the list of helpers.
-        helpersUsed.add(element.implementation);
-      }
+    if (element == null) return null;
+    assert(invariant(element, _isValidBackendUse(element),
+        message: "Backend use of $element is not allowed."));
+    helpersUsed.add(element.declaration);
+    if (element.isClass && element.isPatched) {
+      // Both declaration and implementation may declare fields, so we
+      // add both to the list of helpers.
+      helpersUsed.add(element.implementation);
     }
     return element;
+  }
+
+  bool _isValidBackendUse(Element element) {
+    assert(invariant(element, element.isDeclaration,
+        message: ""));
+    if (element == helpers.streamIteratorConstructor ||
+        element == helpers.compiler.symbolConstructor ||
+        element == helpers.compiler.symbolValidatedConstructor ||
+        element == helpers.syncCompleterConstructor ||
+        element == coreClasses.symbolClass ||
+        element == helpers.objectNoSuchMethod) {
+      // TODO(johnniwinther): These are valid but we could be more precise.
+      return true;
+    } else if (element.implementationLibrary.isPatch ||
+               // Needed to detect deserialized injected elements, that is
+               // element declared in patch files.
+               (element.library.isPlatformLibrary &&
+                element.sourcePosition.uri.path.contains(
+                    '_internal/js_runtime/lib/')) ||
+               element.library == helpers.jsHelperLibrary ||
+               element.library == helpers.interceptorsLibrary ||
+               element.library == helpers.isolateHelperLibrary) {
+      // TODO(johnniwinther): We should be more precise about these.
+      return true;
+    } else if (element == coreClasses.listClass ||
+               element == helpers.mapLiteralClass ||
+               element == coreClasses.functionClass ||
+               element == coreClasses.stringClass) {
+      // TODO(johnniwinther): Avoid these.
+      return true;
+    }
+    return false;
   }
 
   bool usedByBackend(Element element) {
@@ -702,7 +713,7 @@ class JavaScriptBackend extends Backend {
   }
 
   bool canUseAliasedSuperMember(Element member, Selector selector) {
-    return !selector.isGetter && !compiler.hasIncrementalSupport;
+    return !selector.isGetter && !compiler.options.hasIncrementalSupport;
   }
 
   /**
@@ -712,161 +723,16 @@ class JavaScriptBackend extends Backend {
     return aliasedSuperMembers.contains(member);
   }
 
-  /// The JavaScript names for elements implemented via typed JavaScript
-  /// interop.
-  Map<Element, String> jsInteropNames = <Element, String>{};
-
-  /// The JavaScript names for native JavaScript elements implemented.
-  Map<Element, String> nativeMemberName = <Element, String>{};
-
-  /// Tag info for native JavaScript classes names. See
-  /// [setNativeClassTagInfo].
-  Map<ClassElement, String> nativeClassTagInfo = <ClassElement, String>{};
-
-  /// Returns `true` if [element] is explicitly marked as part of JsInterop.
-  bool _isJsInterop(Element element) {
-    return jsInteropNames.containsKey(element.declaration);
-  }
-
-  /// Returns [element] as an explicit part of JsInterop. The js interop name is
-  /// expected to be computed later.
-  void markAsJsInterop(Element element) {
-    jsInteropNames[element.declaration] = null;
-  }
-
-  /// Sets the explicit js interop [name] for [element].
-  void setJsInteropName(Element element, String name) {
-    assert(invariant(element,
-        isJsInterop(element),
-        message:
-          'Element $element is not js interop but given a js interop name.'));
-    jsInteropNames[element.declaration] = name;
-  }
-
-  /// Returns the explicit js interop name for [element].
-  String getJsInteropName(Element element) {
-    return jsInteropNames[element.declaration];
-  }
-
   /// Returns `true` if [element] is part of JsInterop.
   @override
-  bool isJsInterop(Element element) {
-    // An function is part of JsInterop in the following cases:
-    // * It has a jsInteropName annotation
-    // * It is external member of a class or library tagged as JsInterop.
-    if (element.isFunction || element.isConstructor || element.isAccessor) {
-      FunctionElement function = element;
-      if (!function.isExternal) return false;
-
-      if (_isJsInterop(function)) return true;
-      if (function.isClassMember) return isJsInterop(function.contextClass);
-      if (function.isTopLevel) return isJsInterop(function.library);
-      return false;
-    } else {
-      return _isJsInterop(element);
-    }
-  }
-
-  /// Returns `true` if the name of [element] is fixed for the generated
-  /// JavaScript.
-  bool hasFixedBackendName(Element element) {
-    return isJsInterop(element) ||
-        nativeMemberName.containsKey(element.declaration);
-  }
-
-  String _jsNameHelper(Element element) {
-    String jsInteropName = jsInteropNames[element.declaration];
-    assert(invariant(element,
-        !(_isJsInterop(element) && jsInteropName == null),
-        message:
-            'Element $element is js interop but js interop name has not yet '
-            'been computed.'));
-    if (jsInteropName != null && jsInteropName.isNotEmpty) {
-      return jsInteropName;
-    }
-    return element.isLibrary ? 'self' : element.name;
-  }
-
-  /// Computes the name for [element] to use in the generated JavaScript. This
-  /// is either given through a native annotation or a js interop annotation.
-  String getFixedBackendName(Element element) {
-    String name = nativeMemberName[element.declaration];
-    if (name == null && isJsInterop(element)) {
-      // If an element isJsInterop but _isJsInterop is false that means it is
-      // considered interop as the parent class is interop.
-      name = _jsNameHelper(
-          element.isConstructor ? element.enclosingClass : element);
-      nativeMemberName[element.declaration] = name;
-    }
-    return name;
-  }
+  bool isJsInterop(Element element) => nativeData.isJsInterop(element);
 
   /// Whether [element] corresponds to a native JavaScript construct either
   /// through the native mechanism (`@Native(...)` or the `native` pseudo
   /// keyword) which is only allowed for internal libraries or via the typed
   /// JavaScriptInterop mechanism which is allowed for user libraries.
   @override
-  bool isNative(Element element) {
-    if (isJsInterop(element)) return true;
-    if (element.isClass) {
-      return nativeClassTagInfo.containsKey(element.declaration);
-    } else {
-      return nativeMemberName.containsKey(element.declaration);
-    }
-  }
-
-  /// Sets the native [name] for the member [element]. This name is used for
-  /// [element] in the generated JavaScript.
-  void setNativeMemberName(MemberElement element, String name) {
-    // TODO(johnniwinther): Avoid setting this more than once. The enqueuer
-    // might enqueue [element] several times (before processing it) and computes
-    // name on each call to `internalAddToWorkList`.
-    assert(invariant(element,
-        nativeMemberName[element.declaration] == null ||
-        nativeMemberName[element.declaration] == name,
-        message:
-          "Native member name set inconsistently on $element: "
-          "Existing name '${nativeMemberName[element.declaration]}', "
-          "new name '$name'."));
-    nativeMemberName[element.declaration] = name;
-  }
-
-  /// Sets the native tag info for [cls].
-  ///
-  /// The tag info string contains comma-separated 'words' which are either
-  /// dispatch tags (having JavaScript identifier syntax) and directives that
-  /// begin with `!`.
-  void setNativeClassTagInfo(ClassElement cls, String tagInfo) {
-    // TODO(johnniwinther): Assert that this is only called once. The memory
-    // compiler copies pre-processed elements into a new compiler through
-    // [Compiler.onLibraryScanned] and thereby causes multiple calls to this
-    // method.
-    assert(invariant(cls,
-        nativeClassTagInfo[cls.declaration] == null ||
-        nativeClassTagInfo[cls.declaration] == tagInfo,
-        message:
-          "Native tag info set inconsistently on $cls: "
-          "Existing tag info '${nativeClassTagInfo[cls.declaration]}', "
-          "new tag info '$tagInfo'."));
-    nativeClassTagInfo[cls.declaration] = tagInfo;
-  }
-
-  /// Returns the list of native tag words for [cls].
-  List<String> getNativeTagsOfClassRaw(ClassElement cls) {
-    String quotedName = nativeClassTagInfo[cls.declaration];
-    return quotedName.substring(1, quotedName.length - 1).split(',');
-  }
-
-  /// Returns the list of non-directive native tag words for [cls].
-  List<String> getNativeTagsOfClass(ClassElement cls) {
-    return getNativeTagsOfClassRaw(cls).where(
-        (s) => !s.startsWith('!')).toList();
-  }
-
-  /// Returns `true` if [cls] has a `!nonleaf` tag word.
-  bool hasNativeTagsForcedNonLeaf(ClassElement cls) {
-    return getNativeTagsOfClassRaw(cls).contains('!nonleaf');
-  }
+  bool isNative(Element element) => nativeData.isNative(element);
 
   bool isNativeOrExtendsNative(ClassElement element) {
     if (element == null) return false;
@@ -1009,7 +875,13 @@ class JavaScriptBackend extends Backend {
       Element interceptorMember = interceptorClass.lookupMember(member.name);
       // Interceptors must override all Object methods due to calling convention
       // differences.
-      assert(interceptorMember.enclosingClass == interceptorClass);
+      assert(invariant(
+          interceptorMember,
+          interceptorMember.enclosingClass == interceptorClass,
+          message:
+            "Member ${member.name} not overridden in ${interceptorClass}. "
+            "Found $interceptorMember from "
+            "${interceptorMember.enclosingClass}."));
     });
   }
 
@@ -1209,7 +1081,7 @@ class JavaScriptBackend extends Backend {
         Element getFactory(String name, int arity) {
           // The constructor is on the patch class, but dart2js unit tests don't
           // have a patch class.
-          ClassElement implementation = cls.patch != null ? cls.patch : cls;
+          ClassElement implementation = cls.implementation;
           ConstructorElement ctor = implementation.lookupConstructor(name);
           if (ctor == null ||
               (Name.isPrivateName(name) &&
@@ -1225,7 +1097,7 @@ class JavaScriptBackend extends Backend {
         Element getMember(String name) {
           // The constructor is on the patch class, but dart2js unit tests don't
           // have a patch class.
-          ClassElement implementation = cls.patch != null ? cls.patch : cls;
+          ClassElement implementation = cls.implementation;
           Element element = implementation.lookupLocalMember(name);
           if (element == null || !element.isFunction || !element.isStatic) {
             reporter.internalError(helpers.mapLiteralClass,
@@ -1345,7 +1217,7 @@ class JavaScriptBackend extends Backend {
     // will instantiate those two classes.
     addInterceptors(helpers.jsBoolClass, world, registry);
     addInterceptors(helpers.jsNullClass, world, registry);
-    if (compiler.enableTypeAssertions) {
+    if (compiler.options.enableTypeAssertions) {
       // Unconditionally register the helper that checks if the
       // expression in an if/while/for is a boolean.
       // TODO(ngeoffray): Should we have the resolver register those instead?
@@ -1944,14 +1816,13 @@ class JavaScriptBackend extends Backend {
 
   void registerStaticUse(Element element, Enqueuer enqueuer) {
     if (element == helpers.disableTreeShakingMarker) {
-      compiler.disableTypeInferenceForMirrors = true;
       isTreeShakingDisabled = true;
     } else if (element == helpers.preserveNamesMarker) {
       mustPreserveNames = true;
     } else if (element == helpers.preserveMetadataMarker) {
       mustRetainMetadata = true;
     } else if (element == helpers.preserveUrisMarker) {
-      if (compiler.preserveUris) mustPreserveUris = true;
+      if (compiler.options.preserveUris) mustPreserveUris = true;
     } else if (element == helpers.preserveLibraryNamesMarker) {
       mustRetainLibraryNames = true;
     } else if (element == helpers.getIsolateAffinityTagMarker) {
@@ -2394,7 +2265,7 @@ class JavaScriptBackend extends Backend {
       enabledNoSuchMethod = true;
     }
 
-    if (compiler.hasIncrementalSupport) {
+    if (compiler.options.hasIncrementalSupport) {
       // Always enable tear-off closures during incremental compilation.
       Element e = helpers.closureFromTearOff;
       if (e != null && !enqueuer.isProcessed(e)) {
@@ -2561,8 +2432,8 @@ class JavaScriptBackend extends Backend {
   /// If [addExtension] is false, the ".part.js" suffix is left out.
   String deferredPartFileName(String name, {bool addExtension: true}) {
     assert(name != "");
-    String outPath = compiler.outputUri != null
-        ? compiler.outputUri.path
+    String outPath = compiler.options.outputUri != null
+        ? compiler.options.outputUri.path
         : "out";
     String outName = outPath.substring(outPath.lastIndexOf('/') + 1);
     String extension = addExtension ? ".part.js" : "";
@@ -2577,7 +2448,7 @@ class JavaScriptBackend extends Backend {
 
   @override
   bool enableCodegenWithErrorsIfSupported(Spannable node) {
-    if (compiler.useCpsIr) {
+    if (compiler.options.useCpsIr) {
       // TODO(25747): Support code generation with compile-time errors.
       reporter.reportHintMessage(
           node,
@@ -2673,12 +2544,14 @@ class JavaScriptBackend extends Backend {
   @override
   ImpactStrategy createImpactStrategy(
       {bool supportDeferredLoad: true,
-       bool supportDumpInfo: true}) {
+       bool supportDumpInfo: true,
+       bool supportSerialization: true}) {
     return new JavaScriptImpactStrategy(
         resolution,
         compiler.dumpInfoTask,
         supportDeferredLoad: supportDeferredLoad,
-        supportDumpInfo: supportDumpInfo);
+        supportDumpInfo: supportDumpInfo,
+        supportSerialization: supportSerialization);
   }
 }
 
@@ -2792,7 +2665,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           registerBackendImpact(transformed, impacts.catchStatement);
           break;
         case Feature.COMPILE_TIME_ERROR:
-          if (backend.compiler.generateCodeWithCompileTimeErrors) {
+          if (backend.compiler.options.generateCodeWithCompileTimeErrors) {
             // TODO(johnniwinther): This should have its own uncatchable error.
             registerBackendImpact(transformed, impacts.throwRuntimeError);
           }
@@ -2858,7 +2731,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
           hasAsCast = true;
           break;
         case TypeUseKind.CHECKED_MODE_CHECK:
-          if (backend.compiler.enableTypeAssertions) {
+          if (backend.compiler.options.enableTypeAssertions) {
             onIsCheck(type, transformed);
           }
           break;
@@ -3000,7 +2873,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     type = type.unaliased;
     registerBackendImpact(transformed, impacts.typeCheck);
 
-    bool inCheckedMode = backend.compiler.enableTypeAssertions;
+    bool inCheckedMode = backend.compiler.options.enableTypeAssertions;
     if (inCheckedMode) {
       registerBackendImpact(transformed, impacts.checkedModeTypeCheck);
     }
@@ -3032,7 +2905,7 @@ class JavaScriptImpactTransformer extends ImpactTransformer {
     type = type.unaliased;
     registerBackendImpact(transformed, impacts.typeCheck);
 
-    bool inCheckedMode = backend.compiler.enableTypeAssertions;
+    bool inCheckedMode = backend.compiler.options.enableTypeAssertions;
     // [registerIsCheck] is also called for checked mode checks, so we
     // need to register checked mode helpers.
     if (inCheckedMode) {
@@ -3154,11 +3027,13 @@ class JavaScriptImpactStrategy extends ImpactStrategy {
   final DumpInfoTask dumpInfoTask;
   final bool supportDeferredLoad;
   final bool supportDumpInfo;
+  final bool supportSerialization;
 
   JavaScriptImpactStrategy(this.resolution,
                            this.dumpInfoTask,
                            {this.supportDeferredLoad,
-                            this.supportDumpInfo});
+                            this.supportDumpInfo,
+                            this.supportSerialization});
 
   @override
   void visitImpact(Element element,
@@ -3167,7 +3042,7 @@ class JavaScriptImpactStrategy extends ImpactStrategy {
                    ImpactUseCase impactUse) {
     // TODO(johnniwinther): Compute the application strategy once for each use.
     if (impactUse == ResolutionEnqueuer.IMPACT_USE) {
-      if (supportDeferredLoad) {
+      if (supportDeferredLoad || supportSerialization) {
         impact.apply(visitor);
       } else {
         impact.apply(visitor);
@@ -3186,7 +3061,10 @@ class JavaScriptImpactStrategy extends ImpactStrategy {
 
   @override
   void onImpactUsed(ImpactUseCase impactUse) {
-    if (impactUse == DeferredLoadTask.IMPACT_USE) {
+    if (impactUse == DeferredLoadTask.IMPACT_USE &&
+        !supportSerialization) {
+      // TODO(johnniwinther): Allow emptying when serialization has been
+      // performed.
       resolution.emptyCache();
     }
   }

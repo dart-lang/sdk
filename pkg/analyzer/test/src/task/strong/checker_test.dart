@@ -87,6 +87,73 @@ void main() {
     ''');
   });
 
+  test('for-in casts supertype sequence to iterable', () {
+    checkFile('''
+      main() {
+        dynamic d;
+        for (var i in /*info:DYNAMIC_CAST*/d) {}
+
+        Object o;
+        for (var i in /*info:DOWN_CAST_IMPLICIT*/o) {}
+      }
+    ''');
+  });
+
+  test('await for-in casts supertype sequence to stream', () {
+    checkFile('''
+      main() async {
+        dynamic d;
+        await for (var i in /*info:DYNAMIC_CAST*/d) {}
+
+        Object o;
+        await for (var i in /*info:DOWN_CAST_IMPLICIT*/o) {}
+      }
+    ''');
+  });
+
+  test('for-in casts iterable element to variable', () {
+    checkFile('''
+      main() {
+        // Don't choke if sequence is not iterable.
+        for (var i in /*warning:FOR_IN_OF_INVALID_TYPE*/1234) {}
+
+        // Dynamic cast.
+        for (String /*info:DYNAMIC_CAST*/s in <dynamic>[]) {}
+
+        // Identity cast.
+        for (String s in <String>[]) {}
+
+        // Untyped.
+        for (var s in <String>[]) {}
+
+        // Downcast.
+        for (int /*info:DOWN_CAST_IMPLICIT*/i in <num>[]) {}
+      }
+    ''');
+  });
+
+  test('await for-in casts stream element to variable', () {
+    checkFile('''
+      import 'dart:async';
+      main() async {
+        // Don't choke if sequence is not stream.
+        await for (var i in /*warning:FOR_IN_OF_INVALID_TYPE*/1234) {}
+
+        // Dynamic cast.
+        await for (String /*info:DYNAMIC_CAST*/s in new Stream<dynamic>()) {}
+
+        // Identity cast.
+        await for (String s in new Stream<String>()) {}
+
+        // Untyped.
+        await for (var s in new Stream<String>()) {}
+
+        // Downcast.
+        await for (int /*info:DOWN_CAST_IMPLICIT*/i in new Stream<num>()) {}
+      }
+    ''');
+  });
+
   test('dynamic invocation', () {
     checkFile('''
       class A {

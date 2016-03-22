@@ -128,7 +128,9 @@ Map<String, MethodTrampoline> methodTable_Parser = <String, MethodTrampoline>{
   'expectKeyword_1': new MethodTrampoline(
       1, (Parser target, arg0) => target._expectKeyword(arg0)),
   'findRange_2': new MethodTrampoline(
-      2, (Parser target, arg0, arg1) => target._findRange(arg0, arg1)),
+      2,
+      (Parser target, List<List<int>> arg0, int arg1) =>
+          target._findRange(arg0, arg1)),
   'getCodeBlockRanges_1': new MethodTrampoline(
       1, (Parser target, arg0) => target._getCodeBlockRanges(arg0)),
   'getEndToken_1': new MethodTrampoline(
@@ -202,7 +204,9 @@ Map<String, MethodTrampoline> methodTable_Parser = <String, MethodTrampoline>{
   'parseCommentReference_2': new MethodTrampoline(2,
       (Parser target, arg0, arg1) => target._parseCommentReference(arg0, arg1)),
   'parseCommentReferences_1': new MethodTrampoline(
-      1, (Parser target, arg0) => target._parseCommentReferences(arg0)),
+      1,
+      (Parser target, List<DocumentationCommentToken> arg0) =>
+          target._parseCommentReferences(arg0)),
   'parseCompilationUnitMember_1': new MethodTrampoline(
       1, (Parser target, arg0) => target._parseCompilationUnitMember(arg0)),
   'parseConfiguration_0':

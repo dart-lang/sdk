@@ -11,6 +11,19 @@ import 'flat_buffers.dart' as fb;
 import 'idl.dart' as idl;
 import 'dart:convert' as convert;
 
+class _CacheSourceKindReader extends fb.Reader<idl.CacheSourceKind> {
+  const _CacheSourceKindReader() : super();
+
+  @override
+  int get size => 1;
+
+  @override
+  idl.CacheSourceKind read(fb.BufferPointer bp) {
+    int index = const fb.Uint8Reader().read(bp);
+    return index < idl.CacheSourceKind.values.length ? idl.CacheSourceKind.values[index] : idl.CacheSourceKind.library;
+  }
+}
+
 class _IndexNameKindReader extends fb.Reader<idl.IndexNameKind> {
   const _IndexNameKindReader() : super();
 
@@ -113,6 +126,174 @@ class _UnlinkedParamKindReader extends fb.Reader<idl.UnlinkedParamKind> {
     int index = const fb.Uint8Reader().read(bp);
     return index < idl.UnlinkedParamKind.values.length ? idl.UnlinkedParamKind.values[index] : idl.UnlinkedParamKind.required;
   }
+}
+
+class CacheSourceContentBuilder extends Object with _CacheSourceContentMixin implements idl.CacheSourceContent {
+  bool _finished = false;
+
+  List<String> _exportedUris;
+  List<String> _importedUris;
+  idl.CacheSourceKind _kind;
+  List<String> _partUris;
+
+  @override
+  List<String> get exportedUris => _exportedUris ??= <String>[];
+
+  /**
+   * The list of exported URIs, e.g. `dart:core`, or `foo/bar.dart`,
+   * or `package:foo/bar.dart`.  Empty if [kind] is [CacheSourceKind.part].
+   */
+  void set exportedUris(List<String> _value) {
+    assert(!_finished);
+    _exportedUris = _value;
+  }
+
+  @override
+  List<String> get importedUris => _importedUris ??= <String>[];
+
+  /**
+   * The list of explicitly imported URIs, e.g. `dart:core`, or `foo/bar.dart`,
+   * or `package:foo/bar.dart`.  Empty if [kind] is [CacheSourceKind.part].
+   */
+  void set importedUris(List<String> _value) {
+    assert(!_finished);
+    _importedUris = _value;
+  }
+
+  @override
+  idl.CacheSourceKind get kind => _kind ??= idl.CacheSourceKind.library;
+
+  /**
+   * The kind of the source.
+   */
+  void set kind(idl.CacheSourceKind _value) {
+    assert(!_finished);
+    _kind = _value;
+  }
+
+  @override
+  List<String> get partUris => _partUris ??= <String>[];
+
+  /**
+   * The list of part URIs, e.g. `foo/bar.dart`.  Empty if [kind] is
+   * [CacheSourceKind.part].
+   */
+  void set partUris(List<String> _value) {
+    assert(!_finished);
+    _partUris = _value;
+  }
+
+  CacheSourceContentBuilder({List<String> exportedUris, List<String> importedUris, idl.CacheSourceKind kind, List<String> partUris})
+    : _exportedUris = exportedUris,
+      _importedUris = importedUris,
+      _kind = kind,
+      _partUris = partUris;
+
+  List<int> toBuffer() {
+    fb.Builder fbBuilder = new fb.Builder();
+    return fbBuilder.finish(finish(fbBuilder), "CaSS");
+  }
+
+  fb.Offset finish(fb.Builder fbBuilder) {
+    assert(!_finished);
+    _finished = true;
+    fb.Offset offset_exportedUris;
+    fb.Offset offset_importedUris;
+    fb.Offset offset_partUris;
+    if (!(_exportedUris == null || _exportedUris.isEmpty)) {
+      offset_exportedUris = fbBuilder.writeList(_exportedUris.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    if (!(_importedUris == null || _importedUris.isEmpty)) {
+      offset_importedUris = fbBuilder.writeList(_importedUris.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    if (!(_partUris == null || _partUris.isEmpty)) {
+      offset_partUris = fbBuilder.writeList(_partUris.map((b) => fbBuilder.writeString(b)).toList());
+    }
+    fbBuilder.startTable();
+    if (offset_exportedUris != null) {
+      fbBuilder.addOffset(2, offset_exportedUris);
+    }
+    if (offset_importedUris != null) {
+      fbBuilder.addOffset(1, offset_importedUris);
+    }
+    if (_kind != null && _kind != idl.CacheSourceKind.library) {
+      fbBuilder.addUint8(0, _kind.index);
+    }
+    if (offset_partUris != null) {
+      fbBuilder.addOffset(3, offset_partUris);
+    }
+    return fbBuilder.endTable();
+  }
+}
+
+idl.CacheSourceContent readCacheSourceContent(List<int> buffer) {
+  fb.BufferPointer rootRef = new fb.BufferPointer.fromBytes(buffer);
+  return const _CacheSourceContentReader().read(rootRef);
+}
+
+class _CacheSourceContentReader extends fb.TableReader<_CacheSourceContentImpl> {
+  const _CacheSourceContentReader();
+
+  @override
+  _CacheSourceContentImpl createObject(fb.BufferPointer bp) => new _CacheSourceContentImpl(bp);
+}
+
+class _CacheSourceContentImpl extends Object with _CacheSourceContentMixin implements idl.CacheSourceContent {
+  final fb.BufferPointer _bp;
+
+  _CacheSourceContentImpl(this._bp);
+
+  List<String> _exportedUris;
+  List<String> _importedUris;
+  idl.CacheSourceKind _kind;
+  List<String> _partUris;
+
+  @override
+  List<String> get exportedUris {
+    _exportedUris ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 2, const <String>[]);
+    return _exportedUris;
+  }
+
+  @override
+  List<String> get importedUris {
+    _importedUris ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 1, const <String>[]);
+    return _importedUris;
+  }
+
+  @override
+  idl.CacheSourceKind get kind {
+    _kind ??= const _CacheSourceKindReader().vTableGet(_bp, 0, idl.CacheSourceKind.library);
+    return _kind;
+  }
+
+  @override
+  List<String> get partUris {
+    _partUris ??= const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bp, 3, const <String>[]);
+    return _partUris;
+  }
+}
+
+abstract class _CacheSourceContentMixin implements idl.CacheSourceContent {
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> _result = <String, Object>{};
+    if (exportedUris.isNotEmpty) _result["exportedUris"] = exportedUris;
+    if (importedUris.isNotEmpty) _result["importedUris"] = importedUris;
+    if (kind != idl.CacheSourceKind.library) _result["kind"] = kind.toString().split('.')[1];
+    if (partUris.isNotEmpty) _result["partUris"] = partUris;
+    return _result;
+  }
+
+  @override
+  Map<String, Object> toMap() => {
+    "exportedUris": exportedUris,
+    "importedUris": importedUris,
+    "kind": kind,
+    "partUris": partUris,
+  };
+
+  @override
+  String toString() => convert.JSON.encode(toJson());
 }
 
 class CodeRangeBuilder extends Object with _CodeRangeMixin implements idl.CodeRange {
@@ -1905,10 +2086,10 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
   List<int> _usedElementLengths;
   List<int> _usedElementOffsets;
   List<int> _usedElements;
+  List<bool> _usedNameIsQualifiedFlags;
   List<idl.IndexRelationKind> _usedNameKinds;
   List<int> _usedNameOffsets;
   List<int> _usedNames;
-  List<bool> _usedNameIsQualifiedFlags;
 
   @override
   List<idl.IndexNameKind> get definedNameKinds => _definedNameKinds ??= <idl.IndexNameKind>[];
@@ -2025,6 +2206,18 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
   }
 
   @override
+  List<bool> get usedNameIsQualifiedFlags => _usedNameIsQualifiedFlags ??= <bool>[];
+
+  /**
+   * Each item of this list is the `true` if the corresponding name usage
+   * is qualified with some prefix.
+   */
+  void set usedNameIsQualifiedFlags(List<bool> _value) {
+    assert(!_finished);
+    _usedNameIsQualifiedFlags = _value;
+  }
+
+  @override
   List<idl.IndexRelationKind> get usedNameKinds => _usedNameKinds ??= <idl.IndexRelationKind>[];
 
   /**
@@ -2062,19 +2255,7 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
     _usedNames = _value;
   }
 
-  @override
-  List<bool> get usedNameIsQualifiedFlags => _usedNameIsQualifiedFlags ??= <bool>[];
-
-  /**
-   * Each item of this list is the `true` if the corresponding name usage
-   * is qualified with some prefix.
-   */
-  void set usedNameIsQualifiedFlags(List<bool> _value) {
-    assert(!_finished);
-    _usedNameIsQualifiedFlags = _value;
-  }
-
-  UnitIndexBuilder({List<idl.IndexNameKind> definedNameKinds, List<int> definedNameOffsets, List<int> definedNames, int unit, List<bool> usedElementIsQualifiedFlags, List<idl.IndexRelationKind> usedElementKinds, List<int> usedElementLengths, List<int> usedElementOffsets, List<int> usedElements, List<idl.IndexRelationKind> usedNameKinds, List<int> usedNameOffsets, List<int> usedNames, List<bool> usedNameIsQualifiedFlags})
+  UnitIndexBuilder({List<idl.IndexNameKind> definedNameKinds, List<int> definedNameOffsets, List<int> definedNames, int unit, List<bool> usedElementIsQualifiedFlags, List<idl.IndexRelationKind> usedElementKinds, List<int> usedElementLengths, List<int> usedElementOffsets, List<int> usedElements, List<bool> usedNameIsQualifiedFlags, List<idl.IndexRelationKind> usedNameKinds, List<int> usedNameOffsets, List<int> usedNames})
     : _definedNameKinds = definedNameKinds,
       _definedNameOffsets = definedNameOffsets,
       _definedNames = definedNames,
@@ -2084,10 +2265,10 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
       _usedElementLengths = usedElementLengths,
       _usedElementOffsets = usedElementOffsets,
       _usedElements = usedElements,
+      _usedNameIsQualifiedFlags = usedNameIsQualifiedFlags,
       _usedNameKinds = usedNameKinds,
       _usedNameOffsets = usedNameOffsets,
-      _usedNames = usedNames,
-      _usedNameIsQualifiedFlags = usedNameIsQualifiedFlags;
+      _usedNames = usedNames;
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -2100,10 +2281,10 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
     fb.Offset offset_usedElementLengths;
     fb.Offset offset_usedElementOffsets;
     fb.Offset offset_usedElements;
+    fb.Offset offset_usedNameIsQualifiedFlags;
     fb.Offset offset_usedNameKinds;
     fb.Offset offset_usedNameOffsets;
     fb.Offset offset_usedNames;
-    fb.Offset offset_usedNameIsQualifiedFlags;
     if (!(_definedNameKinds == null || _definedNameKinds.isEmpty)) {
       offset_definedNameKinds = fbBuilder.writeListUint8(_definedNameKinds.map((b) => b.index).toList());
     }
@@ -2128,6 +2309,9 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
     if (!(_usedElements == null || _usedElements.isEmpty)) {
       offset_usedElements = fbBuilder.writeListUint32(_usedElements);
     }
+    if (!(_usedNameIsQualifiedFlags == null || _usedNameIsQualifiedFlags.isEmpty)) {
+      offset_usedNameIsQualifiedFlags = fbBuilder.writeListBool(_usedNameIsQualifiedFlags);
+    }
     if (!(_usedNameKinds == null || _usedNameKinds.isEmpty)) {
       offset_usedNameKinds = fbBuilder.writeListUint8(_usedNameKinds.map((b) => b.index).toList());
     }
@@ -2136,9 +2320,6 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
     }
     if (!(_usedNames == null || _usedNames.isEmpty)) {
       offset_usedNames = fbBuilder.writeListUint32(_usedNames);
-    }
-    if (!(_usedNameIsQualifiedFlags == null || _usedNameIsQualifiedFlags.isEmpty)) {
-      offset_usedNameIsQualifiedFlags = fbBuilder.writeListBool(_usedNameIsQualifiedFlags);
     }
     fbBuilder.startTable();
     if (offset_definedNameKinds != null) {
@@ -2168,6 +2349,9 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
     if (offset_usedElements != null) {
       fbBuilder.addOffset(3, offset_usedElements);
     }
+    if (offset_usedNameIsQualifiedFlags != null) {
+      fbBuilder.addOffset(12, offset_usedNameIsQualifiedFlags);
+    }
     if (offset_usedNameKinds != null) {
       fbBuilder.addOffset(10, offset_usedNameKinds);
     }
@@ -2176,9 +2360,6 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
     }
     if (offset_usedNames != null) {
       fbBuilder.addOffset(8, offset_usedNames);
-    }
-    if (offset_usedNameIsQualifiedFlags != null) {
-      fbBuilder.addOffset(12, offset_usedNameIsQualifiedFlags);
     }
     return fbBuilder.endTable();
   }
@@ -2205,10 +2386,10 @@ class _UnitIndexImpl extends Object with _UnitIndexMixin implements idl.UnitInde
   List<int> _usedElementLengths;
   List<int> _usedElementOffsets;
   List<int> _usedElements;
+  List<bool> _usedNameIsQualifiedFlags;
   List<idl.IndexRelationKind> _usedNameKinds;
   List<int> _usedNameOffsets;
   List<int> _usedNames;
-  List<bool> _usedNameIsQualifiedFlags;
 
   @override
   List<idl.IndexNameKind> get definedNameKinds {
@@ -2265,6 +2446,12 @@ class _UnitIndexImpl extends Object with _UnitIndexMixin implements idl.UnitInde
   }
 
   @override
+  List<bool> get usedNameIsQualifiedFlags {
+    _usedNameIsQualifiedFlags ??= const fb.BoolListReader().vTableGet(_bp, 12, const <bool>[]);
+    return _usedNameIsQualifiedFlags;
+  }
+
+  @override
   List<idl.IndexRelationKind> get usedNameKinds {
     _usedNameKinds ??= const fb.ListReader<idl.IndexRelationKind>(const _IndexRelationKindReader()).vTableGet(_bp, 10, const <idl.IndexRelationKind>[]);
     return _usedNameKinds;
@@ -2281,12 +2468,6 @@ class _UnitIndexImpl extends Object with _UnitIndexMixin implements idl.UnitInde
     _usedNames ??= const fb.Uint32ListReader().vTableGet(_bp, 8, const <int>[]);
     return _usedNames;
   }
-
-  @override
-  List<bool> get usedNameIsQualifiedFlags {
-    _usedNameIsQualifiedFlags ??= const fb.BoolListReader().vTableGet(_bp, 12, const <bool>[]);
-    return _usedNameIsQualifiedFlags;
-  }
 }
 
 abstract class _UnitIndexMixin implements idl.UnitIndex {
@@ -2302,10 +2483,10 @@ abstract class _UnitIndexMixin implements idl.UnitIndex {
     if (usedElementLengths.isNotEmpty) _result["usedElementLengths"] = usedElementLengths;
     if (usedElementOffsets.isNotEmpty) _result["usedElementOffsets"] = usedElementOffsets;
     if (usedElements.isNotEmpty) _result["usedElements"] = usedElements;
+    if (usedNameIsQualifiedFlags.isNotEmpty) _result["usedNameIsQualifiedFlags"] = usedNameIsQualifiedFlags;
     if (usedNameKinds.isNotEmpty) _result["usedNameKinds"] = usedNameKinds.map((_value) => _value.toString().split('.')[1]).toList();
     if (usedNameOffsets.isNotEmpty) _result["usedNameOffsets"] = usedNameOffsets;
     if (usedNames.isNotEmpty) _result["usedNames"] = usedNames;
-    if (usedNameIsQualifiedFlags.isNotEmpty) _result["usedNameIsQualifiedFlags"] = usedNameIsQualifiedFlags;
     return _result;
   }
 
@@ -2320,10 +2501,10 @@ abstract class _UnitIndexMixin implements idl.UnitIndex {
     "usedElementLengths": usedElementLengths,
     "usedElementOffsets": usedElementOffsets,
     "usedElements": usedElements,
+    "usedNameIsQualifiedFlags": usedNameIsQualifiedFlags,
     "usedNameKinds": usedNameKinds,
     "usedNameOffsets": usedNameOffsets,
     "usedNames": usedNames,
-    "usedNameIsQualifiedFlags": usedNameIsQualifiedFlags,
   };
 
   @override

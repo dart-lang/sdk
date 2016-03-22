@@ -40,6 +40,7 @@
 #include "vm/symbols.h"
 #include "vm/tags.h"
 #include "vm/thread_registry.h"
+#include "vm/timeline.h"
 #include "vm/timer.h"
 
 namespace dart {
@@ -278,7 +279,7 @@ RawError* Compiler::CompileClass(const Class& cls) {
 NOT_IN_PRODUCT(
   VMTagScope tagScope(thread, VMTag::kCompileClassTagId);
   TimelineDurationScope tds(thread,
-                            thread->isolate()->GetCompilerStream(),
+                            Timeline::GetCompilerStream(),
                             "CompileClass");
   if (tds.enabled()) {
     tds.SetNumArguments(1);
@@ -487,10 +488,12 @@ NOT_IN_PRODUCT(
   }
 );
   if (optimized()) {
+    bool code_was_installed = false;
     // Installs code while at safepoint.
     if (thread()->IsMutatorThread()) {
       const bool is_osr = osr_id() != Compiler::kNoOSRDeoptId;
       function.InstallOptimizedCode(code, is_osr);
+      code_was_installed = true;
     } else {
       // Background compilation.
       // Before installing code check generation counts if the code may
@@ -527,28 +530,36 @@ NOT_IN_PRODUCT(
       }
       if (code_is_valid) {
         const bool is_osr = osr_id() != Compiler::kNoOSRDeoptId;
-        ASSERT(!is_osr);  // OSR is compiled in background.
+        ASSERT(!is_osr);  // OSR is not compiled in background.
         function.InstallOptimizedCode(code, is_osr);
+        code_was_installed = true;
       }
       if (function.usage_counter() < 0) {
         // Reset to 0 so that it can be recompiled if needed.
-        function.set_usage_counter(0);
+        if (code_is_valid) {
+          function.set_usage_counter(0);
+        } else {
+          // Trigger another optimization pass soon.
+          function.set_usage_counter(FLAG_optimization_counter_threshold - 100);
+        }
       }
     }
 
-    // Register code with the classes it depends on because of CHA and
-    // fields it depends on because of store guards, unless we cannot
-    // deopt.
-    for (intptr_t i = 0;
-         i < thread()->cha()->leaf_classes().length();
-         ++i) {
-      thread()->cha()->leaf_classes()[i]->RegisterCHACode(code);
-    }
-    const ZoneGrowableArray<const Field*>& guarded_fields =
-        *flow_graph->parsed_function().guarded_fields();
-    for (intptr_t i = 0; i < guarded_fields.length(); i++) {
-      const Field* field = guarded_fields[i];
-      field->RegisterDependentCode(code);
+    if (code_was_installed) {
+      // Register code with the classes it depends on because of CHA and
+      // fields it depends on because of store guards, unless we cannot
+      // deopt.
+      for (intptr_t i = 0;
+           i < thread()->cha()->leaf_classes().length();
+           ++i) {
+        thread()->cha()->leaf_classes()[i]->RegisterCHACode(code);
+      }
+      const ZoneGrowableArray<const Field*>& guarded_fields =
+          *flow_graph->parsed_function().guarded_fields();
+      for (intptr_t i = 0; i < guarded_fields.length(); i++) {
+        const Field* field = guarded_fields[i];
+        field->RegisterDependentCode(code);
+      }
     }
   } else {  // not optimized.
     if (function.ic_data_array() == Array::null()) {
@@ -582,7 +593,7 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
   bool is_compiled = false;
   Zone* const zone = thread()->zone();
   NOT_IN_PRODUCT(
-      TimelineStream* compiler_timeline = isolate()->GetCompilerStream());
+      TimelineStream* compiler_timeline = Timeline::GetCompilerStream());
   CSTAT_TIMER_SCOPE(thread(), codegen_timer);
   HANDLESCOPE(thread());
 
@@ -1237,8 +1248,10 @@ RawError* Compiler::CompileFunction(Thread* thread,
   }
 #endif
   Isolate* isolate = thread->isolate();
+NOT_IN_PRODUCT(
   VMTagScope tagScope(thread, VMTag::kCompileUnoptimizedTagId);
-  TIMELINE_FUNCTION_COMPILATION_DURATION(thread, "Function", function);
+  TIMELINE_FUNCTION_COMPILATION_DURATION(thread, "CompileFunction", function);
+)  // !PRODUCT
 
   if (!isolate->compilation_allowed()) {
     FATAL3("Precompilation missed function %s (%s, %s)\n",
@@ -1293,9 +1306,13 @@ RawError* Compiler::EnsureUnoptimizedCode(Thread* thread,
 RawError* Compiler::CompileOptimizedFunction(Thread* thread,
                                              const Function& function,
                                              intptr_t osr_id) {
+NOT_IN_PRODUCT(
   VMTagScope tagScope(thread, VMTag::kCompileOptimizedTagId);
-  TIMELINE_FUNCTION_COMPILATION_DURATION(thread,
-                                         "OptimizedFunction", function);
+  const char* event_name = IsBackgroundCompilation()
+      ? "BackgroundCompileOptimizedFunction"
+      : "CompileOptimizedFunction";
+  TIMELINE_FUNCTION_COMPILATION_DURATION(thread, event_name, function);
+)  // !PRODUCT
 
   // Optimization must happen in non-mutator/Dart thread if background
   // compilation is on. OSR compilation still occurs in the main thread.
@@ -1463,7 +1480,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
         false,  // not abstract
         false,  // not external
         false,  // not native
-        Class::Handle(Type::Handle(Type::Function()).type_class()),
+        Class::Handle(Type::Handle(Type::DartFunctionType()).type_class()),
         fragment->token_pos()));
 
     func.set_result_type(Object::dynamic_type());
@@ -1635,7 +1652,7 @@ void BackgroundCompiler::Run() {
   while (running_) {
     // Maybe something is already in the queue, check first before waiting
     // to be notified.
-    bool result = Thread::EnterIsolateAsHelper(isolate_);
+    bool result = Thread::EnterIsolateAsHelper(isolate_, Thread::kCompilerTask);
     ASSERT(result);
     {
       Thread* thread = Thread::Current();

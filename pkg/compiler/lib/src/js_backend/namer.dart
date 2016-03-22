@@ -624,7 +624,7 @@ class Namer {
   }
 
   String _jsNameHelper(Element e) {
-    String jsInteropName = backend.getJsInteropName(e);
+    String jsInteropName = backend.nativeData.getJsInteropName(e);
     if (jsInteropName != null && jsInteropName.isNotEmpty)
       return jsInteropName;
     return e.isLibrary ? 'self' : e.name;
@@ -779,8 +779,9 @@ class Namer {
   jsAst.Name instanceFieldPropertyName(FieldElement element) {
     ClassElement enclosingClass = element.enclosingClass;
 
-    if (backend.hasFixedBackendName(element)) {
-      return new StringBackedName(backend.getFixedBackendName(element));
+    if (backend.nativeData.hasFixedBackendName(element)) {
+      return new StringBackedName(
+          backend.nativeData.getFixedBackendName(element));
     }
 
     // Some elements, like e.g. instances of BoxFieldElement are special.

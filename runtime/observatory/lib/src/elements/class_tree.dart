@@ -5,6 +5,7 @@
 library class_tree_element;
 
 import 'observatory_element.dart';
+import 'dart:async';
 import 'dart:html';
 import 'package:logging/logging.dart';
 import 'package:observatory/app.dart';
@@ -20,27 +21,92 @@ class ClassTreeRow extends TableTreeRow {
     assert(cls != null);
   }
 
-  void onShow() {
-    super.onShow();
-    if (children.length == 0) {
-      for (var subclass in cls.subclasses) {
-        if (subclass.isPatch) {
-          continue;
-        }
+  void _addChildren(List<Class> subclasses) {
+    for (var subclass in subclasses) {
+      if (subclass.isPatch) {
+        continue;
+      }
+      if (subclass.mixin != null) {
+        _addChildren(subclass.subclasses);
+      } else {
         var row = new ClassTreeRow(isolate, subclass, tree, this);
         children.add(row);
       }
     }
+  }
+
+  Future _addMixins(Class cls) async {
+    var classCell = flexColumns[0];
+    if (cls.superclass == null) {
+      return;
+    }
+    bool first = true;
+    while (cls.superclass != null && cls.superclass.mixin != null) {
+      cls = cls.superclass;
+      await cls.mixin.load();
+      var span = new SpanElement();
+      span.style.alignSelf = 'center';
+      span.style.whiteSpace = 'pre';
+      if (first) {
+        span.text = ' with ';
+      } else {
+        span.text = ', ';
+      }
+      classCell.children.add(span);
+      var mixinRef = new Element.tag('class-ref');
+      mixinRef.ref = cls.mixin.typeClass;
+      mixinRef.style.alignSelf = 'center';
+      classCell.children.add(mixinRef);
+      first = false;
+    }
+  }
+
+  Future _addClass(Class cls) async {
     var classCell = flexColumns[0];
     classCell.style.justifyContent = 'flex-start';
     var classRef = new Element.tag('class-ref');
     classRef.ref = cls;
     classRef.style.alignSelf = 'center';
     classCell.children.add(classRef);
+    if (cls.superclass != null && cls.superclass.mixin != null) {
+      await _addMixins(cls);
+    }
+    if (cls.subclasses.isNotEmpty) {
+      var span = new SpanElement();
+      span.style.paddingLeft = '.5em';
+      span.style.alignSelf = 'center';
+      int subclassCount = _indirectSubclassCount(cls) - 1;
+      if (subclassCount > 1) {
+        span.text = '($subclassCount subclasses)';
+      } else {
+        span.text = '($subclassCount subclass)';
+      }
+      classCell.children.add(span);
+    }
+  }
+
+  void onShow() {
+    super.onShow();
+    if (children.length == 0) {
+      _addChildren(cls.subclasses);
+    }
+    _addClass(cls);
+  }
+
+  static int _indirectSubclassCount(var cls) {
+    int count = 0;
+    if (cls.mixin == null) {
+      // Don't count synthetic mixin classes in subclass count.
+      count++;
+    }
+    for (var subclass in cls.subclasses) {
+      count += _indirectSubclassCount(subclass);
+    }
+    return count;
   }
 
   bool hasChildren() {
-    return cls.subclasses.length > 0;
+    return cls.subclasses.isNotEmpty;
   }
 }
 

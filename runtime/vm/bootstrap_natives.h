@@ -99,12 +99,12 @@ namespace dart {
   V(Double_toStringAsExponential, 2)                                           \
   V(Double_toStringAsPrecision, 2)                                             \
   V(Double_flipSignBit, 1)                                                     \
-  V(JSSyntaxRegExp_factory, 4)                                                 \
-  V(JSSyntaxRegExp_getPattern, 1)                                              \
-  V(JSSyntaxRegExp_getIsMultiLine, 1)                                          \
-  V(JSSyntaxRegExp_getIsCaseSensitive, 1)                                      \
-  V(JSSyntaxRegExp_getGroupCount, 1)                                           \
-  V(JSSyntaxRegExp_ExecuteMatch, 3)                                            \
+  V(RegExp_factory, 4)                                                         \
+  V(RegExp_getPattern, 1)                                                      \
+  V(RegExp_getIsMultiLine, 1)                                                  \
+  V(RegExp_getIsCaseSensitive, 1)                                              \
+  V(RegExp_getGroupCount, 1)                                                   \
+  V(RegExp_ExecuteMatch, 3)                                                    \
   V(List_allocate, 2)                                                          \
   V(List_getIndexed, 2)                                                        \
   V(List_setIndexed, 3)                                                        \

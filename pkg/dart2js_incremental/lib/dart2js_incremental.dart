@@ -18,6 +18,7 @@ import 'package:compiler/compiler_new.dart' show
     CompilerDiagnostics,
     CompilerInput,
     CompilerOutput,
+    CompilerOptions,
     Diagnostic;
 
 import 'package:compiler/src/null_compiler_output.dart' show

@@ -37,7 +37,7 @@ class IRRegExpMacroAssembler : public RegExpMacroAssembler {
 
   virtual bool CanReadUnaligned();
 
-  static RawArray* Execute(const JSRegExp& regexp,
+  static RawArray* Execute(const RegExp& regexp,
                            const String& input,
                            const Smi& start_offset,
                            Zone* zone);

@@ -709,7 +709,7 @@ class TypeGraphInferrerEngine
 
   void runOverAllElements() {
     if (compiler.disableTypeInference) return;
-    if (compiler.verbose) {
+    if (compiler.options.verbose) {
       compiler.progress.reset();
     }
     sortResolvedElements().forEach((Element element) {

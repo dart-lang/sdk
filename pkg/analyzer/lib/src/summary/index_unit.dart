@@ -207,6 +207,11 @@ class PackageIndexAssembler {
       } else if (element is FunctionElement && element.name == 'loadLibrary') {
         kind = IndexSyntheticElementKind.loadLibrary;
         element = element.library;
+      } else if (element is FieldElement) {
+        FieldElement field = element;
+        kind = IndexSyntheticElementKind.field;
+        element = field.getter;
+        element ??= field.setter;
       } else if (element is PropertyAccessorElement) {
         PropertyAccessorElement accessor = element;
         Element enclosing = element.enclosingElement;
@@ -502,6 +507,9 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
     super.visitIndexExpression(node);
   }
+
+  @override
+  visitLibraryIdentifier(LibraryIdentifier node) {}
 
   @override
   visitMethodInvocation(MethodInvocation node) {
