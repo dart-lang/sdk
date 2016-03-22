@@ -27,6 +27,7 @@
 namespace dart {
 
 static const intptr_t kSampleSize = 8;
+static const intptr_t kMaxSamplesPerTick = 4;
 
 DECLARE_FLAG(bool, trace_profiler);
 DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
@@ -39,7 +40,7 @@ DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
   DEFINE_FLAG(int, profile_period, 1000,
               "Time between profiler samples in microseconds. Minimum 50.");
 #endif
-DEFINE_FLAG(int, max_profile_depth, kSampleSize,
+DEFINE_FLAG(int, max_profile_depth, kSampleSize * kMaxSamplesPerTick,
             "Maximum number stack frames walked. Minimum 1. Maximum 255.");
 #if defined(USING_SIMULATOR)
 DEFINE_FLAG(bool, profile_vm, true,
