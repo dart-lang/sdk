@@ -8,7 +8,6 @@
 
 {
   'variables': {
-    'dart_io_ssl_builtin_roots': 0,
     'android_ndk_root': '<(PRODUCT_DIR)/../../third_party/android_tools/ndk',
   },  # variables
   'target_defaults': {

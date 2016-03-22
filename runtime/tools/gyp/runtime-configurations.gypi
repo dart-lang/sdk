@@ -9,7 +9,6 @@
     # then do not build the native libraries supporting  dart:io.
     'dart_io_support%': 0,
     'dart_io_secure_socket%': 1,
-    'dart_io_ssl_builtin_roots%': 1,
     # Intel VTune related variables.
     'dart_vtune_support%': 0,
     'conditions': [
