@@ -201,6 +201,7 @@ class AllocationFilter : public SampleFilter {
                    int64_t time_origin_micros = -1,
                    int64_t time_extent_micros = -1)
       : SampleFilter(isolate,
+                     Thread::kMutatorTask,
                      time_origin_micros,
                      time_extent_micros),
         cid_(cid),
@@ -2308,6 +2309,7 @@ static void InsertFakeSample(SampleBuffer* sample_buffer,
   sample->Init(isolate,
                OS::GetCurrentMonotonicMicros(),
                OSThread::Current()->trace_id());
+  sample->set_thread_task(Thread::kMutatorTask);
 
   intptr_t i = 0;
   while (pc_offsets[i] != 0) {

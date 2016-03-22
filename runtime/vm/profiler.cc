@@ -307,6 +307,12 @@ bool SampleFilter::TimeFilterSample(Sample* sample) {
 }
 
 
+bool SampleFilter::TaskFilterSample(Sample* sample) {
+  const intptr_t task = static_cast<intptr_t>(sample->thread_task());
+  return (task & thread_task_mask_) != 0;
+}
+
+
 ClearProfileVisitor::ClearProfileVisitor(Isolate* isolate)
     : SampleVisitor(isolate) {
 }
@@ -844,10 +850,7 @@ static Sample* SetupSample(Thread* thread,
 #endif
   sample->set_vm_tag(vm_tag);
   sample->set_user_tag(isolate->user_tag());
-  // TODO(rmacnak): Consider tracking the current Task kind so the profiler
-  // can say the program spent x% of cpu time in the main thread, GC,
-  // background compilation, etc.
-  sample->set_is_mutator_thread(thread->IsMutatorThread());
+  sample->set_thread_task(thread->task_kind());
   return sample;
 }
 
@@ -948,6 +951,11 @@ void Profiler::SampleThread(Thread* thread,
   OSThread* os_thread = thread->os_thread();
   ASSERT(os_thread != NULL);
   Isolate* isolate = thread->isolate();
+
+  // Thread is not doing VM work.
+  if (thread->task_kind() == Thread::kUnknownTask) {
+    return;
+  }
 
   if (StubCode::HasBeenInitialized() &&
       StubCode::InJumpToExceptionHandlerStub(state.pc)) {
@@ -1225,6 +1233,10 @@ ProcessedSampleBuffer* SampleBuffer::BuildProcessedSampleBuffer(
     }
     if (!filter->TimeFilterSample(sample)) {
       // Did not pass time filter.
+      continue;
+    }
+    if (!filter->TaskFilterSample(sample)) {
+      // Did not pass task filter.
       continue;
     }
     if (!filter->FilterSample(sample)) {

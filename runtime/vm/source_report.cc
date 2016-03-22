@@ -43,7 +43,9 @@ void SourceReport::Init(Thread* thread,
   next_script_index_ = 0;
   if (IsReportRequested(kProfile)) {
     // Build the profile.
-    SampleFilter samplesForIsolate(thread_->isolate(), -1, -1);
+    SampleFilter samplesForIsolate(thread_->isolate(),
+                                   Thread::kMutatorTask,
+                                   -1, -1);
     profile_.Build(thread, &samplesForIsolate, Profile::kNoTags);
   }
 }

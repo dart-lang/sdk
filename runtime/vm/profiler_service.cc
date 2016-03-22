@@ -2497,24 +2497,18 @@ void ProfilerService::PrintJSONImpl(Thread* thread,
 class NoAllocationSampleFilter : public SampleFilter {
  public:
   NoAllocationSampleFilter(Isolate* isolate,
-                           bool include_background_samples,
+                           intptr_t thread_task_mask,
                            int64_t time_origin_micros,
                            int64_t time_extent_micros)
       : SampleFilter(isolate,
+                     thread_task_mask,
                      time_origin_micros,
-                     time_extent_micros),
-        include_background_samples_(include_background_samples) {
+                     time_extent_micros) {
   }
 
   bool FilterSample(Sample* sample) {
-    if (sample->is_allocation_sample()) {
-      return false;
-    }
-    return sample->is_mutator_thread() || include_background_samples_;
+    return !sample->is_allocation_sample();
   }
-
- private:
-  const bool include_background_samples_;
 };
 
 
@@ -2525,9 +2519,8 @@ void ProfilerService::PrintJSON(JSONStream* stream,
                                 int64_t time_extent_micros) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
-  const bool include_background_samples = false;
   NoAllocationSampleFilter filter(isolate,
-                                  include_background_samples,
+                                  Thread::kMutatorTask,
                                   time_origin_micros,
                                   time_extent_micros);
   const bool as_timeline = false;
@@ -2539,9 +2532,11 @@ class ClassAllocationSampleFilter : public SampleFilter {
  public:
   ClassAllocationSampleFilter(Isolate* isolate,
                               const Class& cls,
+                              intptr_t thread_task_mask,
                               int64_t time_origin_micros,
                               int64_t time_extent_micros)
       : SampleFilter(isolate,
+                     thread_task_mask,
                      time_origin_micros,
                      time_extent_micros),
         cls_(Class::Handle(cls.raw())) {
@@ -2567,6 +2562,7 @@ void ProfilerService::PrintAllocationJSON(JSONStream* stream,
   Isolate* isolate = thread->isolate();
   ClassAllocationSampleFilter filter(isolate,
                                      cls,
+                                     Thread::kMutatorTask,
                                      time_origin_micros,
                                      time_extent_micros);
   const bool as_timeline = false;
@@ -2580,9 +2576,12 @@ void ProfilerService::PrintTimelineJSON(JSONStream* stream,
                                         int64_t time_extent_micros) {
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
-  const bool include_background_samples = true;
+  const intptr_t thread_task_mask = Thread::kMutatorTask |
+                                    Thread::kCompilerTask |
+                                    Thread::kSweeperTask |
+                                    Thread::kMarkerTask;
   NoAllocationSampleFilter filter(isolate,
-                                  include_background_samples,
+                                  thread_task_mask,
                                   time_origin_micros,
                                   time_extent_micros);
   const bool as_timeline = true;
