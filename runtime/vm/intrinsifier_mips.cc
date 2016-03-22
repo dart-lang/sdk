@@ -1382,12 +1382,13 @@ void Intrinsifier::Double_lessEqualThan(Assembler* assembler) {
 // Expects left argument to be double (receiver). Right argument is unknown.
 // Both arguments are on stack.
 static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
-  Label fall_through;
+  Label fall_through, is_smi, double_op;
 
-  TestLastArgumentIsDouble(assembler, &fall_through, &fall_through);
+  TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
   // Both arguments are double, right operand is in T0.
   __ lwc1(F2, FieldAddress(T0, Double::value_offset()));
   __ lwc1(F3, FieldAddress(T0, Double::value_offset() + kWordSize));
+  __ Bind(&double_op);
   __ lw(T0, Address(SP, 1 * kWordSize));  // Left argument.
   __ lwc1(F0, FieldAddress(T0, Double::value_offset()));
   __ lwc1(F1, FieldAddress(T0, Double::value_offset() + kWordSize));
@@ -1405,6 +1406,13 @@ static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
   __ Ret();
   __ delay_slot()->swc1(F1,
                         FieldAddress(V0, Double::value_offset() + kWordSize));
+
+  __ Bind(&is_smi);
+  __ SmiUntag(T0);
+  __ mtc1(T0, STMP1);
+  __ cvtdw(D1, STMP1);
+  __ b(&double_op);
+
   __ Bind(&fall_through);
 }
 
