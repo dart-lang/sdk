@@ -3758,8 +3758,8 @@ class LocalVariableElementImpl extends VariableElementImpl
   }
 
   @override
-  VariableDeclaration computeNode() =>
-      getNodeMatching((node) => node is VariableDeclaration);
+  Declaration computeNode() => getNodeMatching(
+      (node) => node is DeclaredIdentifier || node is VariableDeclaration);
 
   /**
    * Set the visible range for this element to the range starting at the given

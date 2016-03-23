@@ -525,6 +525,28 @@ main() {
     await _verifyReferences(element, expected);
   }
 
+  test_searchReferences_LocalVariableElement_inForEachLoop() async {
+    _indexTestUnit('''
+main() {
+  for (var v in []) {
+    v = 1;
+    v += 2;
+    print(v);
+    v();
+  }
+}
+''');
+    LocalVariableElement element = findElement('v');
+    Element mainElement = findElement('main');
+    var expected = [
+      _expectId(mainElement, MatchKind.WRITE, 'v = 1;'),
+      _expectId(mainElement, MatchKind.READ_WRITE, 'v += 2;'),
+      _expectId(mainElement, MatchKind.READ, 'v);'),
+      _expectId(mainElement, MatchKind.INVOCATION, 'v();')
+    ];
+    await _verifyReferences(element, expected);
+  }
+
   test_searchReferences_MethodElement() async {
     _indexTestUnit('''
 class A {
