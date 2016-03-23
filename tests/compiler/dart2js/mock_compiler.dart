@@ -268,7 +268,7 @@ class MockCompiler extends Compiler {
     return null;
   }
 
-  Future<Script> readScript(Spannable node, Uri uri) {
+  Future<Script> readScript(Uri uri, [Spannable spannable]) {
     SourceFile sourceFile = sourceFiles[uri.toString()];
     if (sourceFile == null) throw new ArgumentError(uri);
     return new Future.value(new Script(uri, uri, sourceFile));

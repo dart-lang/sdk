@@ -18,6 +18,8 @@ import 'keys.dart';
 import 'type_serialization.dart';
 import 'values.dart';
 
+export 'task.dart' show LibraryDeserializer;
+
 /// An object that supports the encoding an [ObjectValue] for serialization.
 ///
 /// The [ObjectEncoder] ensures that nominality and circularities of

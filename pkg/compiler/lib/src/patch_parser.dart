@@ -172,7 +172,7 @@ class PatchParserTask extends CompilerTask {
    */
   Future patchLibrary(LibraryLoader loader,
                       Uri patchUri, LibraryElement originLibrary) {
-    return compiler.readScript(originLibrary, patchUri)
+    return compiler.readScript(patchUri, originLibrary)
         .then((Script script) {
       var patchLibrary = new LibraryElementX(script, null, originLibrary);
       return reporter.withCurrentElement(patchLibrary, () {

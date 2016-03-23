@@ -26,17 +26,10 @@ import 'diagnostics/diagnostic_listener.dart' show
 import 'diagnostics/messages.dart' show
     Message;
 import 'elements/elements.dart' as elements;
+import 'environment.dart';
 import 'io/source_file.dart';
 import 'platform_configuration.dart' as platform_configuration;
 import 'script.dart';
-
-/// For every 'dart:' library, a corresponding environment variable is set
-/// to "true". The environment variable's name is the concatenation of
-/// this prefix and the name (without the 'dart:'.
-///
-/// For example 'dart:html' has the environment variable 'dart.library.html' set
-/// to "true".
-const String dartLibraryEnvironmentPrefix = 'dart.library.';
 
 
 /// Implements the [Compiler] using a [api.CompilerInput] for supplying the
@@ -60,7 +53,10 @@ class CompilerImpl extends Compiler {
 
   CompilerImpl(this.provider, api.CompilerOutput outputProvider,
       this.handler, api.CompilerOptions options)
-      : super(options: options, outputProvider: outputProvider) {
+      : super(options: options, outputProvider: outputProvider,
+          environment: new _Environment(options.environment)) {
+    _Environment env = environment;
+    env.compiler = this;
     tasks.addAll([
         userHandlerTask = new GenericTask('Diagnostic handler', this),
         userProviderTask = new GenericTask('Input provider', this),
@@ -87,7 +83,7 @@ class CompilerImpl extends Compiler {
   /**
    * Reads the script designated by [readableUri].
    */
-  Future<Script> readScript(Spannable node, Uri readableUri) {
+  Future<Script> readScript(Uri readableUri, [Spannable node]) {
     if (!readableUri.isAbsolute) {
       if (node == null) node = NO_LOCATION_SPANNABLE;
       reporter.internalError(node,
@@ -115,7 +111,7 @@ class CompilerImpl extends Compiler {
     }
 
     Uri resourceUri = translateUri(node, readableUri);
-    if (resourceUri == null) return synthesizeScript(node, readableUri);
+    if (resourceUri == null) return _synthesizeScript(readableUri);
     if (resourceUri.scheme == 'dart-ext') {
       if (!options.allowNativeExtensions) {
         reporter.withCurrentElement(element, () {
@@ -123,7 +119,7 @@ class CompilerImpl extends Compiler {
               node, MessageKind.DART_EXT_NOT_SUPPORTED);
         });
       }
-      return synthesizeScript(node, readableUri);
+      return _synthesizeScript(readableUri);
     }
 
     // TODO(johnniwinther): Wrap the result from [provider] in a specialized
@@ -147,18 +143,12 @@ class CompilerImpl extends Compiler {
       return new Script(readableUri, resourceUri, sourceFile);
     }).catchError((error) {
       reportReadError(error);
-      return synthesizeScript(node, readableUri);
+      return _synthesizeScript(readableUri);
     });
   }
 
-  Future<Script> synthesizeScript(Spannable node, Uri readableUri) {
-    return new Future.value(
-        new Script(
-            readableUri, readableUri,
-            new StringSourceFile.fromUri(
-                readableUri,
-                "// Synthetic source file generated for '$readableUri'."),
-            isSynthesized: true));
+  Future<Script> _synthesizeScript(Uri readableUri) {
+    return new Future.value(new Script.synthetic(readableUri));
   }
 
   /**
@@ -166,12 +156,8 @@ class CompilerImpl extends Compiler {
    *
    * See [LibraryLoader] for terminology on URIs.
    */
-  Uri translateUri(Spannable node, Uri readableUri) {
-    switch (readableUri.scheme) {
-      case 'package': return translatePackageUri(node, readableUri);
-      default: return readableUri;
-    }
-  }
+  Uri translateUri(Spannable node, Uri uri) =>
+      uri.scheme == 'package' ? translatePackageUri(node, uri) : uri;
 
   /// Translates "resolvedUri" with scheme "dart" to a [uri] resolved relative
   /// to `options.platformConfigUri` according to the information in the file at
@@ -380,59 +366,18 @@ class CompilerImpl extends Compiler {
 
   void callUserHandler(Message message, Uri uri, int begin, int end,
                        String text, api.Diagnostic kind) {
-    try {
-      userHandlerTask.measure(() {
-        handler.report(message, uri, begin, end, text, kind);
-      });
-    } catch (ex, s) {
-      diagnoseCrashInUserCode(
-          'Uncaught exception in diagnostic handler', ex, s);
-      rethrow;
-    }
+    userHandlerTask.measure(() {
+      handler.report(message, uri, begin, end, text, kind);
+    });
   }
 
   Future callUserProvider(Uri uri) {
-    try {
-      return userProviderTask.measure(() => provider.readFromUri(uri));
-    } catch (ex, s) {
-      diagnoseCrashInUserCode('Uncaught exception in input provider', ex, s);
-      rethrow;
-    }
+    return userProviderTask.measure(() => provider.readFromUri(uri));
   }
 
   Future<Packages> callUserPackagesDiscovery(Uri uri) {
-    try {
-      return userPackagesDiscoveryTask.measure(
-                 () => options.packagesDiscoveryProvider(uri));
-    } catch (ex, s) {
-      diagnoseCrashInUserCode('Uncaught exception in package discovery', ex, s);
-      rethrow;
-    }
-  }
-
-  fromEnvironment(String name) {
-    assert(invariant(NO_LOCATION_SPANNABLE,
-        sdkLibraries != null, message: "setupSdk() has not been run"));
-
-    var result = options.environment[name];
-    if (result != null || options.environment.containsKey(name)) return result;
-    if (!name.startsWith(dartLibraryEnvironmentPrefix)) return null;
-
-    String libraryName = name.substring(dartLibraryEnvironmentPrefix.length);
-
-    // Private libraries are not exposed to the users.
-    if (libraryName.startsWith("_")) return null;
-
-    if (sdkLibraries.containsKey(libraryName)) {
-      // Dart2js always "supports" importing 'dart:mirrors' but will abort
-      // the compilation at a later point if the backend doesn't support
-      // mirrors. In this case 'mirrors' should not be in the environment.
-      if (libraryName == 'mirrors') {
-        return backend.supportsReflection ? "true" : null;
-      }
-      return "true";
-    }
-    return null;
+    return userPackagesDiscoveryTask.measure(
+        () => options.packagesDiscoveryProvider(uri));
   }
 
   Uri lookupLibraryUri(String libraryName) {
@@ -445,3 +390,47 @@ class CompilerImpl extends Compiler {
     return backend.resolvePatchUri(libraryName, options.platformConfigUri);
   }
 }
+
+class _Environment implements Environment {
+  final Map<String, String> definitions;
+
+  // TODO(sigmund): break the circularity here: Compiler needs an environment to
+  // intialize the library loader, but the environment here needs to know about
+  // how the sdk is set up and about whether the backend supports mirrors.
+  CompilerImpl compiler;
+
+  _Environment(this.definitions);
+
+  String valueOf(String name) {
+    assert(invariant(NO_LOCATION_SPANNABLE,
+        compiler.sdkLibraries != null, message: "setupSdk() has not been run"));
+
+    var result = definitions[name];
+    if (result != null || definitions.containsKey(name)) return result;
+    if (!name.startsWith(_dartLibraryEnvironmentPrefix)) return null;
+
+    String libraryName = name.substring(_dartLibraryEnvironmentPrefix.length);
+
+    // Private libraries are not exposed to the users.
+    if (libraryName.startsWith("_")) return null;
+
+    if (compiler.sdkLibraries.containsKey(libraryName)) {
+      // Dart2js always "supports" importing 'dart:mirrors' but will abort
+      // the compilation at a later point if the backend doesn't support
+      // mirrors. In this case 'mirrors' should not be in the environment.
+      if (libraryName == 'mirrors') {
+        return compiler.backend.supportsReflection ? "true" : null;
+      }
+      return "true";
+    }
+    return null;
+  }
+}
+
+/// For every 'dart:' library, a corresponding environment variable is set
+/// to "true". The environment variable's name is the concatenation of
+/// this prefix and the name (without the 'dart:'.
+///
+/// For example 'dart:html' has the environment variable 'dart.library.html' set
+/// to "true".
+const String _dartLibraryEnvironmentPrefix = 'dart.library.';
