@@ -16,13 +16,13 @@ abstract class _HashFieldBase {
   // NOTE: When maps are deserialized, their _index and _hashMask is regenerated
   // lazily by _regenerateIndex.
   // TODO(koda): Consider also using null _index for tiny, linear-search tables.
-  Uint32List _index = new Uint32List(_HashBase._INITIAL_INDEX_SIZE);
+  Uint32List _index;
 
   // Cached in-place mask for the hash pattern component. 
-  int _hashMask = _HashBase._indexSizeToHashMask(_HashBase._INITIAL_INDEX_SIZE);
+  int _hashMask;
 
   // Fixed-length list of keys (set) or key/value at even/odd indices (map).
-  List _data = new List(_HashBase._INITIAL_INDEX_SIZE);
+  List _data;
 
   // Length of _data that is used (i.e., keys + values for a map).
   int _usedData = 0;
@@ -125,7 +125,7 @@ class _LinkedHashMapMixin<K, V> {
   int get length => (_usedData >> 1) - _deletedKeys;
   bool get isEmpty => length == 0;
   bool get isNotEmpty => !isEmpty;
-  
+
   void _rehash() {
     if ((_deletedKeys << 2) > _usedData) {
       // TODO(koda): Consider shrinking.
@@ -140,12 +140,12 @@ class _LinkedHashMapMixin<K, V> {
   void clear() {
     if (!isEmpty) {
       // Use _data.length, since _index might be null.
-      _init(_data.length, _hashMask);
+      _init(_data.length, _hashMask, null, 0);
     }
   }
 
   // Allocate new _index and _data, and optionally copy existing contents.
-  void _init(int size, int hashMask, [List oldData, int oldUsed]) {
+  void _init(int size, int hashMask, List oldData, int oldUsed) {
     assert(size & (size - 1) == 0);
     assert(_HashBase._UNUSED_PAIR == 0);
     _index = new Uint32List(size);
@@ -206,7 +206,7 @@ class _LinkedHashMapMixin<K, V> {
     int pair = _index[i];
     while (pair != _HashBase._UNUSED_PAIR) {
       if (pair == _HashBase._DELETED_PAIR) {
-        if (firstDeleted < 0){
+        if (firstDeleted < 0) {
           firstDeleted = i;
         }
       } else {
@@ -351,6 +351,12 @@ class _CompactLinkedIdentityHashMap<K, V> extends _HashFieldBase
     with MapMixin<K, V>, _LinkedHashMapMixin<K, V>, _HashBase,
          _IdenticalAndIdentityHashCode
     implements LinkedHashMap<K, V> {
+
+  _CompactLinkedIdentityHashMap() {
+    _index = new Uint32List(_HashBase._INITIAL_INDEX_SIZE);
+    _hashMask = _HashBase._indexSizeToHashMask(_HashBase._INITIAL_INDEX_SIZE);
+    _data = new List(_HashBase._INITIAL_INDEX_SIZE);
+  }
 }
 
 class _CompactLinkedCustomHashMap<K, V> extends _HashFieldBase
@@ -369,7 +375,11 @@ class _CompactLinkedCustomHashMap<K, V> extends _HashFieldBase
   V remove(Object o) => _validKey(o) ? super.remove(o) : null;
 
   _CompactLinkedCustomHashMap(this._equality, this._hasher, validKey)
-      : _validKey = (validKey != null) ? validKey : new _TypeTest<K>().test;
+      : _validKey = (validKey != null) ? validKey : new _TypeTest<K>().test {
+    _index = new Uint32List(_HashBase._INITIAL_INDEX_SIZE);
+    _hashMask = _HashBase._indexSizeToHashMask(_HashBase._INITIAL_INDEX_SIZE);
+    _data = new List(_HashBase._INITIAL_INDEX_SIZE);
+  }
 }
 
 // Iterates through _data[_offset + _step], _data[_offset + 2*_step], ...
@@ -429,6 +439,7 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
   _CompactLinkedHashSet() {
     assert(_HashBase._UNUSED_PAIR == 0);
     _index = new Uint32List(_HashBase._INITIAL_INDEX_SIZE);
+    _hashMask = _HashBase._indexSizeToHashMask(_HashBase._INITIAL_INDEX_SIZE);
     _data = new List(_HashBase._INITIAL_INDEX_SIZE >> 1);
   }
 
@@ -444,11 +455,11 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
 
   void clear() {
     if (!isEmpty) {
-      _init(_index.length, _hashMask);
+      _init(_index.length, _hashMask, null, 0);
     }
   }
 
-  void _init(int size, int hashMask, [List oldData, int oldUsed]) {
+  void _init(int size, int hashMask, List oldData, int oldUsed) {
     _index = new Uint32List(size);
     _hashMask = hashMask;
     _data = new List(size >> 1);
@@ -475,7 +486,7 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
     int pair = _index[i];
     while (pair != _HashBase._UNUSED_PAIR) {
       if (pair == _HashBase._DELETED_PAIR) {
-        if (firstDeleted < 0){
+        if (firstDeleted < 0) {
           firstDeleted = i;
         }
       } else {
