@@ -230,7 +230,7 @@
           '../third_party/boringssl/boringssl_dart.gyp:boringssl',
           ],
         }],
-        ['dart_io_secure_socket==0', {
+        ['dart_io_secure_socket==0 or dart_io_support==0', {
           'defines': [
             'DART_IO_SECURE_SOCKET_DISABLED'
           ],
@@ -306,7 +306,7 @@
             '../third_party/boringssl/boringssl_dart.gyp:boringssl',
           ],
         }],
-        ['dart_io_secure_socket==0', {
+        ['dart_io_secure_socket==0 or dart_io_support==0', {
           'defines': [
             'DART_IO_SECURE_SOCKET_DISABLED'
           ],
