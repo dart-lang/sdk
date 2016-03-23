@@ -28,7 +28,7 @@ bool StackFrame::IsStubFrame() const {
   NoSafepointScope no_safepoint;
 #endif
   RawCode* code = GetCodeObject();
-  intptr_t cid = code->ptr()->owner_->GetClassId();
+  const intptr_t cid = code->ptr()->owner_->GetClassId();
   ASSERT(cid == kNullCid || cid == kClassCid || cid == kFunctionCid);
   return cid == kNullCid || cid == kClassCid;
 }
