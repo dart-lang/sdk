@@ -31,6 +31,20 @@ namespace dart {
 intptr_t Intrinsifier::ParameterSlotFromSp() { return -1; }
 
 
+void Intrinsifier::IntrinsicCallPrologue(Assembler* assembler) {
+  assembler->Comment("IntrinsicCallPrologue");
+  assembler->mov(CALLEE_SAVED_TEMP, LR);
+  assembler->mov(CALLEE_SAVED_TEMP2, R4);
+}
+
+
+void Intrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
+  assembler->Comment("IntrinsicCallEpilogue");
+  assembler->mov(LR, CALLEE_SAVED_TEMP);
+  assembler->mov(R4, CALLEE_SAVED_TEMP2);
+}
+
+
 // Intrinsify only for Smi value and index. Non-smi values need a store buffer
 // update. Array length is always a Smi.
 void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {

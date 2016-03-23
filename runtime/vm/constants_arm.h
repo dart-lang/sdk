@@ -246,6 +246,7 @@ const Register ICREG = R9;  // IC data register.
 const Register ARGS_DESC_REG = R4;
 const Register CODE_REG = R6;
 const Register THR = R10;  // Caches current thread in generated code.
+const Register CALLEE_SAVED_TEMP = R6;
 
 // R15 encodes APSR in the vmrs instruction.
 const Register APSR = R15;

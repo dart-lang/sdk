@@ -39,6 +39,20 @@ namespace dart {
 intptr_t Intrinsifier::ParameterSlotFromSp() { return 0; }
 
 
+void Intrinsifier::IntrinsicCallPrologue(Assembler* assembler) {
+  assembler->Comment("IntrinsicCallPrologue");
+  assembler->movl(CALLEE_SAVED_TEMP, ICREG);
+  assembler->movl(CALLEE_SAVED_TEMP2, ARGS_DESC_REG);
+}
+
+
+void Intrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
+  assembler->Comment("IntrinsicCallEpilogue");
+  assembler->movl(ICREG, CALLEE_SAVED_TEMP);
+  assembler->movl(ARGS_DESC_REG, CALLEE_SAVED_TEMP2);
+}
+
+
 static intptr_t ComputeObjectArrayTypeArgumentsOffset() {
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
   const Class& cls = Class::Handle(

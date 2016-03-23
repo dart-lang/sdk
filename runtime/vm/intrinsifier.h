@@ -32,6 +32,9 @@ class Intrinsifier : public AllStatic {
 
   static intptr_t ParameterSlotFromSp();
 
+  static void IntrinsicCallPrologue(Assembler* assembler);
+  static void IntrinsicCallEpilogue(Assembler* assembler);
+
  private:
   static bool CanIntrinsify(const Function& function);
 

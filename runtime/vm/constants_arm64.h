@@ -117,7 +117,8 @@ const Register LRREG = LR;  // Link register.
 const Register ICREG = R5;  // IC data register.
 const Register ARGS_DESC_REG = R4;  // Arguments descriptor register.
 const Register THR = R26;  // Caches current thread in generated code.
-
+const Register CALLEE_SAVED_TEMP = R19;
+const Register CALLEE_SAVED_TEMP2 = R20;
 
 // Exception object is passed in this register to the catch handlers when an
 // exception is thrown.
