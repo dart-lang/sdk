@@ -40,7 +40,7 @@ class EmbedderSdk implements DartSdk {
   @override
   AnalysisContext get context {
     if (_analysisContext == null) {
-      _analysisContext = new SdkAnalysisContext();
+      _analysisContext = new SdkAnalysisContext(null);
       SourceFactory factory = new SourceFactory([_resolver]);
       _analysisContext.sourceFactory = factory;
       List<String> uris = this.uris;

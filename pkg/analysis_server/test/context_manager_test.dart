@@ -153,7 +153,7 @@ class AbstractContextManagerTest {
     processRequiredPlugins();
     resourceProvider = new MemoryResourceProvider();
     packageMapProvider = new MockPackageMapProvider();
-    DartSdkManager sdkManager = new DartSdkManager(() {
+    DartSdkManager sdkManager = new DartSdkManager((_) {
       return new MockSdk();
     });
     manager = new ContextManagerImpl(

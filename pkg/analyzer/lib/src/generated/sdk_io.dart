@@ -249,6 +249,11 @@ class DirectoryBasedDartSdk implements DartSdk {
   Map<String, Source> _uriToSourceMap = new HashMap<String, Source>();
 
   /**
+   * The [AnalysisOptions] to use to create the [context].
+   */
+  AnalysisOptions _analysisOptions;
+
+  /**
    * Initialize a newly created SDK to represent the Dart SDK installed in the
    * [sdkDirectory]. The flag [useDart2jsPaths] is `true` if the dart2js path
    * should be used when it is available
@@ -258,12 +263,31 @@ class DirectoryBasedDartSdk implements DartSdk {
     _libraryMap = initialLibraryMap(useDart2jsPaths);
   }
 
+  /**
+   * Set the [options] for this SDK analysis context.  Throw [StateError] if the
+   * context has been already created.
+   */
+  void set analysisOptions(AnalysisOptions options) {
+    if (_analysisContext != null) {
+      throw new StateError(
+          'Analysis options cannot be changed after context creation.');
+    }
+    _analysisOptions = options;
+  }
+
   @override
   AnalysisContext get context {
     if (_analysisContext == null) {
-      _analysisContext = new SdkAnalysisContext();
+      _analysisContext = new SdkAnalysisContext(_analysisOptions);
       SourceFactory factory = new SourceFactory([new DartUriResolver(this)]);
       _analysisContext.sourceFactory = factory;
+      if (_useSummary) {
+        PackageBundle sdkBundle = _getSummarySdkBundle();
+        if (sdkBundle != null) {
+          _analysisContext.resultProvider =
+              new SdkSummaryResultProvider(_analysisContext, sdkBundle);
+        }
+      }
     }
     return _analysisContext;
   }
@@ -393,14 +417,11 @@ class DirectoryBasedDartSdk implements DartSdk {
    * Specify whether SDK summary should be used.
    */
   void set useSummary(bool use) {
-    _useSummary = use;
-    if (_useSummary) {
-      PackageBundle sdkBundle = _getSummarySdkBundle();
-      if (sdkBundle != null) {
-        _analysisContext.resultProvider =
-            new SdkSummaryResultProvider(_analysisContext, sdkBundle);
-      }
+    if (_analysisContext != null) {
+      throw new StateError(
+          'The "useSummary" flag cannot be changed after context creation.');
     }
+    _useSummary = use;
   }
 
   /**
@@ -552,8 +573,8 @@ class DirectoryBasedDartSdk implements DartSdk {
    */
   PackageBundle _getSummarySdkBundle() {
     String rootPath = directory.getAbsolutePath();
-    String name =
-        context.analysisOptions.strongMode ? 'strong.sum' : 'spec.sum';
+    bool strongMode = _analysisOptions?.strongMode ?? false;
+    String name = strongMode ? 'strong.sum' : 'spec.sum';
     String path = pathos.join(rootPath, 'lib', '_internal', name);
     try {
       File file = new File(path);

@@ -155,6 +155,24 @@ class DirectoryBasedDartSdkTest {
     expect(docFile, isNotNull);
   }
 
+  void test_analysisOptions_afterContextCreation() {
+    DirectoryBasedDartSdk sdk = _createDartSdk();
+    sdk.context;
+    expect(() {
+      sdk.analysisOptions = new AnalysisOptionsImpl();
+    }, throwsStateError);
+  }
+
+  void test_analysisOptions_beforeContextCreation() {
+    DirectoryBasedDartSdk sdk = _createDartSdk();
+    sdk.analysisOptions = new AnalysisOptionsImpl();
+    sdk.context;
+    // cannot change "analysisOptions" in the context
+    expect(() {
+      sdk.context.analysisOptions = new AnalysisOptionsImpl();
+    }, throwsStateError);
+  }
+
   void test_creation() {
     DirectoryBasedDartSdk sdk = _createDartSdk();
     expect(sdk, isNotNull);
@@ -260,6 +278,20 @@ class DirectoryBasedDartSdkTest {
     expect(executable, isNotNull);
     expect(executable.exists(), isTrue);
     expect(executable.isExecutable(), isTrue);
+  }
+
+  void test_useSummary_afterContextCreation() {
+    DirectoryBasedDartSdk sdk = _createDartSdk();
+    sdk.context;
+    expect(() {
+      sdk.useSummary = true;
+    }, throwsStateError);
+  }
+
+  void test_useSummary_beforeContextCreation() {
+    DirectoryBasedDartSdk sdk = _createDartSdk();
+    sdk.useSummary = true;
+    sdk.context;
   }
 
   DirectoryBasedDartSdk _createDartSdk() {

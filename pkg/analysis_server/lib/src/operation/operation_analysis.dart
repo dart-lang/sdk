@@ -250,10 +250,12 @@ void sendAnalysisNotificationOverrides(
  * Sets the cache size in the given [context] to the given value.
  */
 void setCacheSize(AnalysisContext context, int cacheSize) {
-  AnalysisOptionsImpl options =
-      new AnalysisOptionsImpl.from(context.analysisOptions);
-  options.cacheSize = cacheSize;
-  context.analysisOptions = options;
+  // TODO(scheglov) The cache size cannot be changed with task model.
+  // TODO(scheglov) Consider removing this function.
+//  AnalysisOptionsImpl options =
+//      new AnalysisOptionsImpl.from(context.analysisOptions);
+//  options.cacheSize = cacheSize;
+//  context.analysisOptions = options;
 }
 
 String _computeLibraryName(CompilationUnit unit) {
