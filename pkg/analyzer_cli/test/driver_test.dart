@@ -286,22 +286,43 @@ linter:
 
     group('build-mode', () {
       // Shared driver command.
-      var testFilePath = path.join(
-          path.dirname(Platform.script.toFilePath()), 'data', 'test_file.dart');
-      var doDrive = () => drive('file:///test_file.dart|$testFilePath',
-          args: [
-            '--dart-sdk',
-            findSdkDirForSummaries(),
-            '--build-mode',
-            '--machine'
-          ],
-          options: 'data/options_tests_project/.analysis_options');
+      void doDrive(String filePath, {List<String> additionalArgs: const []}) {
+        drive('file:///test_file.dart|$filePath',
+            args: [
+              '--dart-sdk',
+              findSdkDirForSummaries(),
+              '--build-mode',
+              '--machine'
+            ]..addAll(additionalArgs),
+            options: 'data/options_tests_project/.analysis_options');
+      }
 
       test('no stats', () {
-        doDrive();
+        doDrive('data/test_file.dart');
         // Should not print stat summary.
         expect(outSink.toString(), isEmpty);
         expect(errorSink.toString(), isEmpty);
+        expect(exitCode, 0);
+      });
+
+      test(
+          'Fails if file not found, even when --build-suppress-exit-code is given',
+          () {
+        doDrive('data/non_existent_file.dart',
+            additionalArgs: ['--build-suppress-exit-code']);
+        expect(exitCode, isNot(0));
+      });
+
+      test('Fails if there are errors', () {
+        doDrive('data/file_with_error.dart');
+        expect(exitCode, isNot(0));
+      });
+
+      test(
+          'Succeeds if there are errors, when --build-suppress-exit-code is given',
+          () {
+        doDrive('data/file_with_error.dart',
+            additionalArgs: ['--build-suppress-exit-code']);
         expect(exitCode, 0);
       });
     });
@@ -378,6 +399,15 @@ Driver driver;
 List<ErrorProcessor> get processors =>
     driver.context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
 
+/// Convert a file specification from a relative path to an absolute path.
+/// Handles the case where the file specification is of the form "$uri|$path".
+String adjustFileSpec(String fileSpec) {
+  int uriPrefixLength = fileSpec.indexOf('|') + 1;
+  String uriPrefix = fileSpec.substring(0, uriPrefixLength);
+  String relativePath = fileSpec.substring(uriPrefixLength);
+  return '$uriPrefix${path.join(testDirectory, relativePath)}';
+}
+
 /// Start a driver for the given [source], optionally providing additional
 /// [args] and an [options] file path.  The value of [options] defaults to
 /// an empty options file to avoid unwanted configuration from an otherwise
@@ -388,7 +418,7 @@ void drive(String source,
   var cmd = [
     '--options',
     path.join(testDirectory, options),
-    path.join(testDirectory, source)
+    adjustFileSpec(source)
   ]..addAll(args);
   driver.start(cmd);
 }
