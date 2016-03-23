@@ -170,7 +170,7 @@ class DownCastComposite extends DownCast {
   @override
   String get name => 'STRONG_MODE_DOWN_CAST_COMPOSITE';
 
-  toErrorCode() => new StaticTypeWarningCode(name, message);
+  toErrorCode() => new StaticWarningCode(name, message);
 }
 
 /// A down cast to a non-ground type.  These behave differently from standard
