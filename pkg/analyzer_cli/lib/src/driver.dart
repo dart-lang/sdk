@@ -588,8 +588,24 @@ class Driver implements CommandLineStarter {
     // to activate batch mode.
     if (sdk == null) {
       sdk = new DirectoryBasedDartSdk(new JavaFile(options.dartSdkPath));
+      sdk.analysisOptions = createAnalysisOptionsForCommandLineOptions(options);
     }
     _isBatch = options.shouldBatch;
+  }
+
+  static AnalysisOptionsImpl createAnalysisOptionsForCommandLineOptions(
+      CommandLineOptions options) {
+    AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
+    contextOptions.hint = !options.disableHints;
+    contextOptions.enableStrictCallChecks = options.enableStrictCallChecks;
+    contextOptions.enableSuperMixins = options.enableSuperMixins;
+    contextOptions.enableConditionalDirectives =
+        options.enableConditionalDirectives;
+    contextOptions.generateImplicitErrors = options.showPackageWarnings;
+    contextOptions.generateSdkErrors = options.showSdkWarnings;
+    contextOptions.lint = options.lints;
+    contextOptions.strongMode = options.strongMode;
+    return contextOptions;
   }
 
   static void setAnalysisContextOptions(
@@ -609,21 +625,12 @@ class Driver implements CommandLineStarter {
     }
 
     // Prepare context options.
-    AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
-    contextOptions.hint = !options.disableHints;
-    contextOptions.enableStrictCallChecks = options.enableStrictCallChecks;
-    contextOptions.enableSuperMixins = options.enableSuperMixins;
-    contextOptions.enableConditionalDirectives =
-        options.enableConditionalDirectives;
-    contextOptions.generateImplicitErrors = options.showPackageWarnings;
-    contextOptions.generateSdkErrors = options.showSdkWarnings;
-    contextOptions.lint = options.lints;
-    contextOptions.strongMode = options.strongMode;
+    AnalysisOptionsImpl contextOptions =
+        createAnalysisOptionsForCommandLineOptions(options);
     configureContextOptions(contextOptions);
 
     // Set context options.
     context.analysisOptions = contextOptions;
-    context.sourceFactory.dartSdk.context.analysisOptions = contextOptions;
 
     // Process analysis options file (and notify all interested parties).
     _processAnalysisOptions(context, options);
