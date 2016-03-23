@@ -367,12 +367,6 @@ class StrongTypeSystemImpl extends TypeSystem {
     _GuardedSubtypeChecker<DartType> guardedSubtype = _guard(_isSubtypeOf);
     _GuardedSubtypeChecker<DartType> guardedInferTypeParameter =
         _guard(_inferTypeParameterSubtypeOf);
-    // Void only appears as the return type of a function, any we handle it
-    // directly in the function subtype rules. We should not get to a point
-    // where we're doing a subtype test on a "bare" void.
-    assert(!t1.isVoid);
-    assert(!t2.isVoid);
-
     if (t1 == t2) {
       return true;
     }
@@ -410,6 +404,12 @@ class StrongTypeSystemImpl extends TypeSystem {
       return guardedInferTypeParameter(t1, t2, visited);
     }
 
+    // Void only appears as the return type of a function, and we handle it
+    // directly in the function subtype rules. We should not get to a point
+    // where we're doing a subtype test on a "bare" void, but just in case we
+    // do, handle it safely.
+    // TODO(rnystrom): Determine how this can ever be reached. If it can't,
+    // remove it.
     if (t1.isVoid || t2.isVoid) {
       return false;
     }
