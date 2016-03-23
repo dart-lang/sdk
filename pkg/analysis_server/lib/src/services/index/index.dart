@@ -77,10 +77,21 @@ class Index {
   }
 
   /**
+   * Index declarations in the given partially resolved [unit].
+   */
+  void indexDeclarations(CompilationUnit unit) {
+    if (unit?.element?.library == null) {
+      return;
+    }
+    AnalysisContext context = unit.element.context;
+    _getContextIndex(context).indexDeclarations(unit);
+  }
+
+  /**
    * Index the given fully resolved [unit].
    */
   void indexUnit(CompilationUnit unit) {
-    if (unit == null || unit.element == null) {
+    if (unit?.element?.library == null) {
       return;
     }
     AnalysisContext context = unit.element.context;
@@ -256,18 +267,21 @@ class _ContextIndex {
   }
 
   /**
+   * Index declarations in the given partially resolved [unit].
+   */
+  void indexDeclarations(CompilationUnit unit) {
+    PackageIndexAssembler assembler = new PackageIndexAssembler();
+    assembler.indexDeclarations(unit);
+    _putUnitIndexBuilder(unit, assembler);
+  }
+
+  /**
    * Index the given fully resolved [unit].
    */
   void indexUnit(CompilationUnit unit) {
-    // Index the unit.
     PackageIndexAssembler assembler = new PackageIndexAssembler();
-    assembler.index(unit);
-    PackageIndexBuilder indexBuilder = assembler.assemble();
-    // Put the index into the map.
-    List<int> indexBytes = indexBuilder.toBuffer();
-    PackageIndex index = new PackageIndex.fromBuffer(indexBytes);
-    String key = _getUnitKeyForElement(unit.element);
-    indexMap[key] = index;
+    assembler.indexUnit(unit);
+    _putUnitIndexBuilder(unit, assembler);
   }
 
   /**
@@ -299,6 +313,16 @@ class _ContextIndex {
       locations.addAll(indexLocations);
     }
     return locations;
+  }
+
+  void _putUnitIndexBuilder(
+      CompilationUnit unit, PackageIndexAssembler assembler) {
+    PackageIndexBuilder indexBuilder = assembler.assemble();
+    // Put the index into the map.
+    List<int> indexBytes = indexBuilder.toBuffer();
+    PackageIndex index = new PackageIndex.fromBuffer(indexBytes);
+    String key = _getUnitKeyForElement(unit.element);
+    indexMap[key] = index;
   }
 }
 

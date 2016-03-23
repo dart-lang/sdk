@@ -99,6 +99,11 @@ class A {
     _assertDefinedName('A', IndexNameKind.topLevel, 'A {}');
   }
 
+  void test_definedName_topLevel_class2() {
+    _indexTestUnit('class A {}', declOnly: true);
+    _assertDefinedName('A', IndexNameKind.topLevel, 'A {}');
+  }
+
   void test_definedName_topLevel_classAlias() {
     _indexTestUnit('''
 class M {}
@@ -1169,10 +1174,14 @@ main() {
     return _getStringId(str);
   }
 
-  void _indexTestUnit(String code) {
+  void _indexTestUnit(String code, {bool declOnly: false}) {
     resolveTestUnit(code);
     PackageIndexAssembler assembler = new PackageIndexAssembler();
-    assembler.index(testUnit);
+    if (declOnly) {
+      assembler.indexDeclarations(testUnit);
+    } else {
+      assembler.indexUnit(testUnit);
+    }
     // assemble, write and read
     PackageIndexBuilder indexBuilder = assembler.assemble();
     List<int> indexBytes = indexBuilder.toBuffer();

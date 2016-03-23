@@ -13,11 +13,6 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 
 /**
- * TODO(scheglov) add to the `meta` package.
- */
-const visibleForTesting = const Object();
-
-/**
  * Information about an element referenced in index.
  */
 class ElementInfo {
@@ -90,7 +85,7 @@ class PackageIndexAssembler {
 
   /**
    * Assemble a new [PackageIndexBuilder] using the information gathered by
-   * [index].
+   * [indexDeclarations] or [indexUnit].
    */
   PackageIndexBuilder assemble() {
     // sort strings end set IDs
@@ -120,9 +115,19 @@ class PackageIndexAssembler {
   }
 
   /**
+   * Index declarations in the given partially resolved [unit].
+   */
+  void indexDeclarations(CompilationUnit unit) {
+    int unitId = _getUnitId(unit.element);
+    _UnitIndexAssembler assembler = new _UnitIndexAssembler(this, unitId);
+    _units.add(assembler);
+    unit.accept(new _IndexDeclarationContributor(assembler));
+  }
+
+  /**
    * Index the given fully resolved [unit].
    */
-  void index(CompilationUnit unit) {
+  void indexUnit(CompilationUnit unit) {
     int unitId = _getUnitId(unit.element);
     _UnitIndexAssembler assembler = new _UnitIndexAssembler(this, unitId);
     _units.add(assembler);
@@ -291,26 +296,8 @@ class _ElementRelationInfo {
 /**
  * Visits a resolved AST and adds relationships into [_UnitIndexAssembler].
  */
-class _IndexContributor extends GeneralizingAstVisitor {
-  final _UnitIndexAssembler assembler;
-
-  _IndexContributor(this.assembler);
-
-  /**
-   * Record definition of the given [element].
-   */
-  void recordDefinedElement(Element element) {
-    if (element != null) {
-      String name = element.displayName;
-      int offset = element.nameOffset;
-      Element enclosing = element.enclosingElement;
-      if (enclosing is CompilationUnitElement) {
-        assembler.defineName(name, IndexNameKind.topLevel, offset);
-      } else if (enclosing is ClassElement) {
-        assembler.defineName(name, IndexNameKind.classMember, offset);
-      }
-    }
-  }
+class _IndexContributor extends _IndexDeclarationContributor {
+  _IndexContributor(_UnitIndexAssembler assembler) : super(assembler);
 
   void recordIsAncestorOf(Element descendant) {
     _recordIsAncestorOf(descendant, descendant, false, <ClassElement>[]);
@@ -566,12 +553,13 @@ class _IndexContributor extends GeneralizingAstVisitor {
 
   @override
   visitSimpleIdentifier(SimpleIdentifier node) {
-    Element element = node.bestElement;
     // name in declaration
     if (node.inDeclarationContext()) {
+      Element element = node.staticElement;
       recordDefinedElement(element);
       return;
     }
+    Element element = node.bestElement;
     // record unresolved name reference
     bool isQualified = _isQualified(node);
     if (element == null) {
@@ -699,6 +687,40 @@ class _IndexContributor extends GeneralizingAstVisitor {
     for (InterfaceType implementedType in ancestor.interfaces) {
       _recordIsAncestorOf(
           descendant, implementedType.element, true, visitedElements);
+    }
+  }
+}
+
+/**
+ * Visits a resolved AST and adds relationships into [_UnitIndexAssembler].
+ */
+class _IndexDeclarationContributor extends GeneralizingAstVisitor {
+  final _UnitIndexAssembler assembler;
+
+  _IndexDeclarationContributor(this.assembler);
+
+  /**
+   * Record definition of the given [element].
+   */
+  void recordDefinedElement(Element element) {
+    if (element != null) {
+      String name = element.displayName;
+      int offset = element.nameOffset;
+      Element enclosing = element.enclosingElement;
+      if (enclosing is CompilationUnitElement) {
+        assembler.defineName(name, IndexNameKind.topLevel, offset);
+      } else if (enclosing is ClassElement) {
+        assembler.defineName(name, IndexNameKind.classMember, offset);
+      }
+    }
+  }
+
+  @override
+  visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.inDeclarationContext()) {
+      Element element = node.staticElement;
+      recordDefinedElement(element);
+      return;
     }
   }
 }

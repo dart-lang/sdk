@@ -228,7 +228,7 @@ class _Builder {
       Source unitSource = unitElement.source;
       CompilationUnit unit =
           context.resolveCompilationUnit2(unitSource, source);
-      indexAssembler.index(unit);
+      indexAssembler.indexUnit(unit);
     }
   }
 }
