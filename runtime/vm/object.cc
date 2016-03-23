@@ -5174,6 +5174,11 @@ void PatchClass::set_script(const Script& value) const {
 }
 
 
+intptr_t Function::Hash() const {
+  return String::HashRawSymbol(name());
+}
+
+
 bool Function::HasBreakpoint() const {
   if (!FLAG_support_debugger) {
     return false;

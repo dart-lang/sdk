@@ -73,8 +73,8 @@ class ProfileFunction : public ZoneAllocated {
 
   const char* Name() const;
 
-  RawFunction* function() const {
-    return function_.raw();
+  const Function* function() const {
+    return &function_;
   }
 
   intptr_t table_index() const {

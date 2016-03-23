@@ -2249,6 +2249,8 @@ class Function : public Object {
     return OFFSET_OF(RawFunction, entry_point_);
   }
 
+  virtual intptr_t Hash() const;
+
   // Returns true if there is at least one debugger breakpoint
   // set in this function.
   bool HasBreakpoint() const;

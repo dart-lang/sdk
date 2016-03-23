@@ -131,6 +131,10 @@ D(trace_handles, bool, false,                                                  \
   "Traces allocation of handles.")                                             \
 D(trace_optimization, bool, false,                                             \
   "Print optimization details.");                                              \
+R(trace_profiler, false, bool, false,                                          \
+  "Profiler trace")                                                            \
+D(trace_profiler_verbose, bool, false,                                         \
+  "Verbose profiler trace")                                                    \
 D(trace_ssa_allocator, bool, false,                                            \
   "Trace register allocation over SSA.")                                       \
 D(trace_zones, bool, false,                                                    \
@@ -153,5 +157,6 @@ R(verify_before_gc, false, bool, false,                                        \
   "Enables heap verification before GC.")                                      \
 D(verify_on_transition, bool, false,                                           \
   "Verify on dart <==> VM.")                                                   \
+
 
 #endif  // VM_FLAG_LIST_H_

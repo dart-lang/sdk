@@ -5,6 +5,7 @@
 #include "vm/profiler_service.h"
 
 #include "vm/growable_array.h"
+#include "vm/hash_map.h"
 #include "vm/log.h"
 #include "vm/native_symbol.h"
 #include "vm/object.h"
@@ -17,8 +18,6 @@ namespace dart {
 
 DECLARE_FLAG(int, max_profile_depth);
 DECLARE_FLAG(int, profile_period);
-
-DEFINE_FLAG(bool, trace_profiler, false, "Trace profiler.");
 
 #ifndef PRODUCT
 
@@ -161,7 +160,7 @@ void ProfileFunction::TickSourcePosition(TokenPosition token_position,
   for (; i < source_position_ticks_.length(); i++) {
     ProfileFunctionSourcePosition& position = source_position_ticks_[i];
     if (position.token_pos().value() == token_position.value()) {
-      if (FLAG_trace_profiler) {
+      if (FLAG_trace_profiler_verbose) {
         OS::Print("Ticking source position %s %s\n",
                   exclusive ? "exclusive" : "inclusive",
                   token_position.ToCString());
@@ -177,7 +176,7 @@ void ProfileFunction::TickSourcePosition(TokenPosition token_position,
 
   // Add new one, sorted by token position value.
   ProfileFunctionSourcePosition pfsp(token_position);
-  if (FLAG_trace_profiler) {
+  if (FLAG_trace_profiler_verbose) {
     OS::Print("Ticking source position %s %s\n",
               exclusive ? "exclusive" : "inclusive",
               token_position.ToCString());
@@ -515,8 +514,8 @@ class ProfileFunctionTable : public ZoneAllocated {
  public:
   ProfileFunctionTable()
       : null_function_(Function::ZoneHandle()),
-        table_(8),
-        unknown_function_(NULL) {
+        unknown_function_(NULL),
+        table_(8) {
     unknown_function_ = Add(ProfileFunction::kUnknownFunction,
                             "<unknown Dart function>");
   }
@@ -530,15 +529,9 @@ class ProfileFunctionTable : public ZoneAllocated {
     return Add(function);
   }
 
-  intptr_t LookupIndex(const Function& function) {
+  ProfileFunction* Lookup(const Function& function) {
     ASSERT(!function.IsNull());
-    for (intptr_t i = 0; i < table_.length(); i++) {
-      ProfileFunction* profile_function = table_[i];
-      if (profile_function->function() == function.raw()) {
-        return i;
-      }
-    }
-    return -1;
+    return function_hash_.Lookup(&function);
   }
 
   ProfileFunction* GetUnknown() {
@@ -595,21 +588,37 @@ class ProfileFunctionTable : public ZoneAllocated {
                             function,
                             table_.length());
     table_.Add(profile_function);
+    function_hash_.Insert(profile_function);
     return profile_function;
   }
 
-  ProfileFunction* Lookup(const Function& function) {
-    ASSERT(!function.IsNull());
-    intptr_t index = LookupIndex(function);
-    if (index == -1) {
-      return NULL;
+  // Needed for DirectChainedHashMap.
+  struct ProfileFunctionTableTrait {
+    typedef ProfileFunction* Value;
+    typedef const Function* Key;
+    typedef ProfileFunction* Pair;
+
+    static Key KeyOf(Pair kv) {
+      return kv->function();
     }
-    return table_[index];
-  }
+
+    static Value ValueOf(Pair kv) {
+      return kv;
+    }
+
+    static inline intptr_t Hashcode(Key key) {
+      return key->Hash();
+    }
+
+    static inline bool IsKeyEqual(Pair kv, Key key) {
+      return kv->function()->raw() == key->raw();
+    }
+  };
 
   const Function& null_function_;
-  ZoneGrowableArray<ProfileFunction*> table_;
   ProfileFunction* unknown_function_;
+  ZoneGrowableArray<ProfileFunction*> table_;
+  DirectChainedHashMap<ProfileFunctionTableTrait> function_hash_;
 };
 
 
@@ -1498,7 +1507,7 @@ class ProfileBuilder : public ValueObject {
         inlined_token_positions.InsertAt(0, token_position);
       }
       ASSERT(inlined_functions.length() <= inlined_token_positions.length());
-      if (FLAG_trace_profiler) {
+      if (FLAG_trace_profiler_verbose) {
         for (intptr_t i = 0; i < inlined_functions.length(); i++) {
           const String& name =
               String::Handle(inlined_functions[i]->QualifiedScrubbedName());
@@ -1616,7 +1625,7 @@ class ProfileBuilder : public ValueObject {
                                            TokenPosition token_position,
                                            intptr_t code_index) {
     if (tick_functions_) {
-      if (FLAG_trace_profiler) {
+      if (FLAG_trace_profiler_verbose) {
         THR_Print("S[%" Pd "]F[%" Pd "] %s %s 0x%" Px "\n",
                   sample_index,
                   frame_index,
@@ -2259,11 +2268,7 @@ void Profile::PrintTimelineJSON(JSONStream* stream) {
 
 
 ProfileFunction* Profile::FindFunction(const Function& function) {
-  const intptr_t index = functions_->LookupIndex(function);
-  if (index < 0) {
-    return NULL;
-  }
-  return functions_->At(index);
+  return functions_->Lookup(function);
 }
 
 
@@ -2395,7 +2400,7 @@ const char* ProfileTrieWalker::CurrentToken() {
     return NULL;
   }
   ProfileFunction* func = profile_->GetFunction(current_->table_index());
-  const Function& function = Function::Handle(func->function());
+  const Function& function = Function::Handle(func->function()->raw());
   if (function.IsNull()) {
     // No function.
     return NULL;
