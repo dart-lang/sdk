@@ -6600,14 +6600,12 @@ void set f(value) {}''';
 final v = f() ? /*<T>*/(T t) => 0 : /*<T>*/(T t) => 1;
 bool f() => true;
 ''');
-    // The inferred type of `v` is currently `(Object) -> int` due to
-    // dartbug.com/25802.  TODO(paulberry): fix this test when the bug is fixed.
     EntityRef inferredType = getTypeRefForSlot(variable.inferredTypeSlot);
     checkLinkedTypeRef(
         inferredType.syntheticReturnType, 'dart:core', 'dart:core', 'int');
     expect(inferredType.syntheticParams, hasLength(1));
-    checkLinkedTypeRef(inferredType.syntheticParams[0].type, 'dart:core',
-        'dart:core', 'Object');
+    checkLinkedTypeRef(
+        inferredType.syntheticParams[0].type, null, null, '*bottom*');
   }
 
   test_syntheticFunctionType_genericClosure_inGenericFunction() {
@@ -6628,16 +6626,14 @@ void f<T, U>(bool b) {
   final v = b ? /*<V>*/(T t, U u, V v) => 0 : /*<V>*/(T t, U u, V v) => 1;
 }
 ''').localVariables[0];
-    // The inferred type of `v` is currently `(T, U, Object) -> int` due to
-    // dartbug.com/25802.  TODO(paulberry): fix this test when the bug is fixed.
     EntityRef inferredType = getTypeRefForSlot(variable.inferredTypeSlot);
     checkLinkedTypeRef(
         inferredType.syntheticReturnType, 'dart:core', 'dart:core', 'int');
     expect(inferredType.syntheticParams, hasLength(3));
     checkParamTypeRef(inferredType.syntheticParams[0].type, 2);
     checkParamTypeRef(inferredType.syntheticParams[1].type, 1);
-    checkLinkedTypeRef(inferredType.syntheticParams[2].type, 'dart:core',
-        'dart:core', 'Object');
+    checkLinkedTypeRef(
+        inferredType.syntheticParams[2].type, null, null, '*bottom*');
   }
 
   test_syntheticFunctionType_inGenericClass() {

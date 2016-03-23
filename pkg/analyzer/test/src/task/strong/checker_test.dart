@@ -28,16 +28,22 @@ void main() {
           Comparator<K> _comparator;
           _Predicate _validKey;
 
-          // TODO(rnystrom): Initializing _comparator should have a cast, since
-          // K may not always be Comparable. It doesn't currently get one
-          // because we're using the spec's LUB on function types, which isn't
-          // sound.
+          // The warning on assigning to _comparator is legitimate. Since K has
+          // no bound, all we know is that it's object. _comparator's function
+          // type is effectively:              (Object, Object) -> int
+          // We are assigning it a fn of type: (Comparable, Comparable) -> int
+          // There's no telling if that will work. For example, consider:
+          //
+          //     new SplayTreeMap<Uri>();
+          //
+          // This would end up calling .compareTo() on a Uri, which doesn't
+          // define that since it doesn't implement Comparable.
           SplayTreeMap([int compare(K key1, K key2),
                         bool isValidKey(potentialKey)])
-            : _comparator = (compare == null) ? Comparable.compare : compare,
+            : _comparator = /*warning:DOWN_CAST_COMPOSITE*/(compare == null) ? Comparable.compare : compare,
               _validKey = (isValidKey != null) ? isValidKey : ((v) => true) {
-            _Predicate<Object> v = /*warning:DOWN_CAST_COMPOSITE*/(isValidKey != null)
-                                    ? isValidKey : (/*info:INFERRED_TYPE_CLOSURE*/(_) => true);
+            _Predicate<Object> v = (isValidKey != null)
+                ? isValidKey : (/*info:INFERRED_TYPE_CLOSURE*/(_) => true);
 
             v = (isValidKey != null)
                  ? v : (/*info:INFERRED_TYPE_CLOSURE*/(_) => true);

@@ -2742,6 +2742,20 @@ class FunctionElementImpl extends ExecutableElementImpl
    */
   FunctionElementImpl.forOffset(int nameOffset) : super("", nameOffset);
 
+  /**
+   * Synthesize an unnamed function element that takes [parameters] and returns
+   * [returnType].
+   */
+  FunctionElementImpl.synthetic(
+      List<ParameterElement> parameters, DartType returnType)
+      : super("", -1) {
+    synthetic = true;
+    this.returnType = returnType;
+    this.parameters = parameters;
+
+    type = new FunctionTypeImpl(this);
+  }
+
   @override
   String get identifier {
     String identifier = super.identifier;
