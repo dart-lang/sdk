@@ -2928,8 +2928,20 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register left = locs()->in(0).reg();
   Register right = locs()->in(1).reg();
   Register result = locs()->out(0).reg();
-  __ or_(result, left, right);
-  __ andi(CMPRES1, result, Immediate(kSmiTagMask));
+  intptr_t left_cid = this->left()->Type()->ToCid();
+  intptr_t right_cid = this->right()->Type()->ToCid();
+  bool combined_smi_check = false;
+  if (this->left()->definition() == this->right()->definition()) {
+    __ andi(CMPRES1, left, Immediate(kSmiTagMask));
+  } else if (left_cid == kSmiCid) {
+    __ andi(CMPRES1, right, Immediate(kSmiTagMask));
+  } else if (right_cid == kSmiCid) {
+    __ andi(CMPRES1, left, Immediate(kSmiTagMask));
+  } else {
+    combined_smi_check = true;
+    __ or_(result, left, right);
+    __ andi(CMPRES1, result, Immediate(kSmiTagMask));
+  }
   __ bne(CMPRES1, ZR, slow_path->entry_label());
   switch (op_kind()) {
     case Token::kADD:
@@ -2942,6 +2954,9 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     case Token::kBIT_OR:
       // Operation part of combined smi check.
+      if (!combined_smi_check) {
+        __ or_(result, left, right);
+      }
       break;
     case Token::kBIT_AND:
       __ and_(result, left, right);
