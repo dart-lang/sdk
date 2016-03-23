@@ -82,6 +82,44 @@ class DirectoryBasedSourceContainer implements SourceContainer {
 }
 
 /**
+ * Instances of the class [ExplicitSourceResolver] map URIs to files on disk
+ * using a fixed mapping provided at construction time.
+ */
+class ExplicitSourceResolver extends UriResolver {
+  final Map<Uri, JavaFile> uriToFileMap;
+  final Map<String, Uri> pathToUriMap;
+
+  /**
+   * Construct an [ExplicitSourceResolver] based on the given [uriToFileMap].
+   */
+  ExplicitSourceResolver(Map<Uri, JavaFile> uriToFileMap)
+      : uriToFileMap = uriToFileMap,
+        pathToUriMap = _computePathToUriMap(uriToFileMap);
+
+  @override
+  Source resolveAbsolute(Uri uri, [Uri actualUri]) {
+    return new FileBasedSource(uriToFileMap[uri], actualUri ?? uri);
+  }
+
+  @override
+  Uri restoreAbsolute(Source source) {
+    return pathToUriMap[source.fullName];
+  }
+
+  /**
+   * Build the inverse mapping of [uriToSourceMap].
+   */
+  static Map<String, Uri> _computePathToUriMap(
+      Map<Uri, JavaFile> uriToSourceMap) {
+    Map<String, Uri> pathToUriMap = <String, Uri>{};
+    uriToSourceMap.forEach((Uri uri, JavaFile file) {
+      pathToUriMap[file.getAbsolutePath()] = uri;
+    });
+    return pathToUriMap;
+  }
+}
+
+/**
  * Instances of the class `FileBasedSource` implement a source that represents a file.
  */
 class FileBasedSource extends Source {

@@ -15,32 +15,15 @@ import 'package:analyzer/task/model.dart';
 import 'package:path/path.dart' as pathos;
 
 /**
- * If [uri] has the `package` scheme in form of `package:pkg/file.dart`,
- * return the `pkg` name.  Otherwise return `null`.
- */
-String _getPackageName(Uri uri) {
-  if (uri.scheme != 'package') {
-    return null;
-  }
-  String path = uri.path;
-  int index = path.indexOf('/');
-  if (index == -1) {
-    return null;
-  }
-  return path.substring(0, index);
-}
-
-/**
  * The [ResultProvider] that provides results from input package summaries.
  */
 class InputPackagesResultProvider extends ResultProvider {
   final InternalAnalysisContext _context;
-  final Map<String, String> _packageSummaryInputs;
 
   _FileBasedSummaryResynthesizer _resynthesizer;
   SummaryResultProvider _sdkProvider;
 
-  InputPackagesResultProvider(this._context, this._packageSummaryInputs) {
+  InputPackagesResultProvider(this._context, SummaryDataStore dataStore) {
     InternalAnalysisContext sdkContext = _context.sourceFactory.dartSdk.context;
     _sdkProvider = sdkContext.resultProvider;
     // Set the type provider to prevent the context from computing it.
@@ -52,7 +35,7 @@ class InputPackagesResultProvider extends ResultProvider {
         _context.typeProvider,
         _context.sourceFactory,
         _context.analysisOptions.strongMode,
-        _packageSummaryInputs.values.toList());
+        dataStore);
   }
 
   @override
@@ -65,12 +48,11 @@ class InputPackagesResultProvider extends ResultProvider {
     if (target is Source) {
       Uri uri = target.uri;
       // We know how to server results to input packages.
-      String sourcePackageName = _getPackageName(uri);
-      if (!_packageSummaryInputs.containsKey(sourcePackageName)) {
+      String uriString = uri.toString();
+      if (!_resynthesizer.hasLibrarySummary(uriString)) {
         return false;
       }
       // Provide known results.
-      String uriString = uri.toString();
       if (result == LIBRARY_ELEMENT1 ||
           result == LIBRARY_ELEMENT2 ||
           result == LIBRARY_ELEMENT3 ||
@@ -91,11 +73,11 @@ class InputPackagesResultProvider extends ResultProvider {
         entry.setValue(result, true, TargetedResult.EMPTY_LIST);
         return true;
       } else if (result == SOURCE_KIND) {
-        if (_resynthesizer.linkedMap.containsKey(uriString)) {
+        if (_resynthesizer._dataStore.linkedMap.containsKey(uriString)) {
           entry.setValue(result, SourceKind.LIBRARY, TargetedResult.EMPTY_LIST);
           return true;
         }
-        if (_resynthesizer.unlinkedMap.containsKey(uriString)) {
+        if (_resynthesizer._dataStore.unlinkedMap.containsKey(uriString)) {
           entry.setValue(result, SourceKind.PART, TargetedResult.EMPTY_LIST);
           return true;
         }
@@ -107,19 +89,18 @@ class InputPackagesResultProvider extends ResultProvider {
 }
 
 /**
- * The [UriResolver] that knows about sources that are parts of packages which
- * are served from their summaries.
+ * The [UriResolver] that knows about sources that are served from their
+ * summaries.
  */
 class InSummaryPackageUriResolver extends UriResolver {
-  final Map<String, String> _packageSummaryInputs;
+  final SummaryDataStore _dataStore;
 
-  InSummaryPackageUriResolver(this._packageSummaryInputs);
+  InSummaryPackageUriResolver(this._dataStore);
 
   @override
   Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     actualUri ??= uri;
-    String packageName = _getPackageName(actualUri);
-    if (_packageSummaryInputs.containsKey(packageName)) {
+    if (_dataStore.unlinkedMap.containsKey(uri.toString())) {
       return new _InSummarySource(actualUri);
     }
     return null;
@@ -127,36 +108,24 @@ class InSummaryPackageUriResolver extends UriResolver {
 }
 
 /**
- * A concrete resynthesizer that serves summaries from given file paths.
+ * A [SummaryDataStore] is a container for the data extracted from a set of
+ * summary package bundles.  It contains maps which can be used to find linked
+ * and unlinked summaries by URI.
  */
-class _FileBasedSummaryResynthesizer extends SummaryResynthesizer {
+class SummaryDataStore {
+  /**
+   * Map from the URI of a compilation unit to the unlinked summary of that
+   * compilation unit.
+   */
   final Map<String, UnlinkedUnit> unlinkedMap = <String, UnlinkedUnit>{};
+
+  /**
+   * Map from the URI of a library to the linked summary of that library.
+   */
   final Map<String, LinkedLibrary> linkedMap = <String, LinkedLibrary>{};
 
-  _FileBasedSummaryResynthesizer(
-      SummaryResynthesizer parent,
-      AnalysisContext context,
-      TypeProvider typeProvider,
-      SourceFactory sourceFactory,
-      bool strongMode,
-      List<String> summaryPaths)
-      : super(parent, context, typeProvider, sourceFactory, strongMode) {
+  SummaryDataStore(Iterable<String> summaryPaths) {
     summaryPaths.forEach(_fillMaps);
-  }
-
-  @override
-  LinkedLibrary getLinkedSummary(String uri) {
-    return linkedMap[uri];
-  }
-
-  @override
-  UnlinkedUnit getUnlinkedSummary(String uri) {
-    return unlinkedMap[uri];
-  }
-
-  @override
-  bool hasLibrarySummary(String uri) {
-    return linkedMap.containsKey(uri);
   }
 
   void _fillMaps(String path) {
@@ -169,6 +138,37 @@ class _FileBasedSummaryResynthesizer extends SummaryResynthesizer {
     for (int i = 0; i < bundle.linkedLibraryUris.length; i++) {
       linkedMap[bundle.linkedLibraryUris[i]] = bundle.linkedLibraries[i];
     }
+  }
+}
+
+/**
+ * A concrete resynthesizer that serves summaries from given file paths.
+ */
+class _FileBasedSummaryResynthesizer extends SummaryResynthesizer {
+  final SummaryDataStore _dataStore;
+
+  _FileBasedSummaryResynthesizer(
+      SummaryResynthesizer parent,
+      AnalysisContext context,
+      TypeProvider typeProvider,
+      SourceFactory sourceFactory,
+      bool strongMode,
+      this._dataStore)
+      : super(parent, context, typeProvider, sourceFactory, strongMode);
+
+  @override
+  LinkedLibrary getLinkedSummary(String uri) {
+    return _dataStore.linkedMap[uri];
+  }
+
+  @override
+  UnlinkedUnit getUnlinkedSummary(String uri) {
+    return _dataStore.unlinkedMap[uri];
+  }
+
+  @override
+  bool hasLibrarySummary(String uri) {
+    return _dataStore.linkedMap.containsKey(uri);
   }
 }
 

@@ -284,13 +284,15 @@ linter:
       });
     });
 
-    group('package-mode', () {
+    group('build-mode', () {
       // Shared driver command.
-      var doDrive = () => drive('data/options_tests_project/test_file.dart',
+      var testFilePath = path.join(
+          path.dirname(Platform.script.toFilePath()), 'data', 'test_file.dart');
+      var doDrive = () => drive('file:///test_file.dart|$testFilePath',
           args: [
             '--dart-sdk',
             findSdkDirForSummaries(),
-            '--package-mode',
+            '--build-mode',
             '--machine'
           ],
           options: 'data/options_tests_project/.analysis_options');
@@ -299,6 +301,8 @@ linter:
         doDrive();
         // Should not print stat summary.
         expect(outSink.toString(), isEmpty);
+        expect(errorSink.toString(), isEmpty);
+        expect(exitCode, 0);
       });
     });
 

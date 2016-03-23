@@ -33,9 +33,9 @@ import 'package:analyzer/src/generated/utilities_general.dart'
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
+import 'package:analyzer_cli/src/build_mode.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/options.dart';
-import 'package:analyzer_cli/src/package_analyzer.dart';
 import 'package:analyzer_cli/src/perf_report.dart';
 import 'package:analyzer_cli/starter.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
@@ -124,8 +124,8 @@ class Driver implements CommandLineStarter {
     _setupEnv(options);
 
     // Do analysis.
-    if (options.packageMode) {
-      ErrorSeverity severity = _analyzePackage(options);
+    if (options.buildMode) {
+      ErrorSeverity severity = _buildModeAnalyze(options);
       // In case of error propagate exit code.
       if (severity == ErrorSeverity.ERROR) {
         exitCode = severity.ordinal;
@@ -241,10 +241,10 @@ class Driver implements CommandLineStarter {
     return allResult;
   }
 
-  /// Perform package analysis according to the given [options].
-  ErrorSeverity _analyzePackage(CommandLineOptions options) {
+  /// Perform analysis in build mode according to the given [options].
+  ErrorSeverity _buildModeAnalyze(CommandLineOptions options) {
     return _analyzeAllTag.makeCurrentWhile(() {
-      return new PackageAnalyzer(options, stats).analyze();
+      return new BuildMode(options, stats).analyze();
     });
   }
 

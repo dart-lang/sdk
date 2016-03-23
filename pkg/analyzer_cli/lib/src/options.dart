@@ -33,6 +33,24 @@ class CommandLineOptions {
   /// The path to an analysis options file
   final String analysisOptionsFile;
 
+  /// The path to output analysis results when in build mode.
+  final String buildAnalysisOutput;
+
+  /// Whether to use build mode.
+  final bool buildMode;
+
+  /// List of summary file paths to use in build mode.
+  final List<String> buildSummaryInputs;
+
+  /// Whether to skip analysis when creating summaries in build mode.
+  final bool buildSummaryOnly;
+
+  /// The path to output the summary when creating summaries in build mode.
+  final String buildSummaryOutput;
+
+  /// Whether to suppress a nonzero exit code in build mode.
+  final bool buildSuppressExitCode;
+
   /// The path to the dart SDK
   String dartSdkPath;
 
@@ -77,24 +95,6 @@ class CommandLineOptions {
   /// Whether to use machine format for error display
   final bool machineFormat;
 
-  /// Whether to use the whole package analysis mode.
-  final bool packageMode;
-
-  /// The path of the root folder of the package to analyze.
-  final String packageModePath;
-
-  /// The name of the package being analyzed.
-  final String packageName;
-
-  /// Mapping of package names to package summary file paths.
-  final Map<String, String> packageSummaryInputs;
-
-  /// Whether to skip analysis when creating summaries.
-  final bool packageSummaryOnly;
-
-  /// The path to find the package summary.
-  final String packageSummaryOutput;
-
   /// The path to the package root
   final String packageRootPath;
 
@@ -129,7 +129,13 @@ class CommandLineOptions {
   /// Initialize options from the given parsed [args].
   CommandLineOptions._fromArgs(
       ArgResults args, Map<String, String> definedVariables)
-      : dartSdkPath = args['dart-sdk'],
+      : buildAnalysisOutput = args['build-analysis-output'],
+        buildMode = args['build-mode'],
+        buildSummaryInputs = args['build-summary-input'],
+        buildSummaryOnly = args['build-summary-only'],
+        buildSummaryOutput = args['build-summary-output'],
+        buildSuppressExitCode = args['build-suppress-exit-code'],
+        dartSdkPath = args['dart-sdk'],
         definedVariables = definedVariables,
         analysisOptionsFile = args['options'],
         disableHints = args['no-hints'],
@@ -144,12 +150,6 @@ class CommandLineOptions {
         lints = args['lints'],
         log = args['log'],
         machineFormat = args['machine'] || args['format'] == 'machine',
-        packageMode = args['package-mode'],
-        packageModePath = args['package-mode-path'],
-        packageName = args['package-name'],
-        packageSummaryInputs = _parsePackageSummaryInputs(args),
-        packageSummaryOnly = args['package-summary-only'],
-        packageSummaryOutput = args['package-summary-output'],
         packageConfigPath = args['packages'],
         packageRootPath = args['package-root'],
         perfReport = args['x-perf-report'],
@@ -304,34 +304,34 @@ class CommandLineOptions {
           allowMultiple: true,
           splitCommas: false)
       //
-      // Package analysis mode and summary.
+      // Build mode.
       //
-      ..addFlag('package-mode',
-          help: 'Enable the whole package analysis mode. '
-              'Exactly one input path must be specified, which must be a path '
-              'to the folder with a Pub package.',
+      ..addOption('build-analysis-output',
+          help:
+              'Specifies the path to the file where analysis results should be written.',
+          hide: true)
+      ..addFlag('build-mode',
+          // TODO(paulberry): add more documentation.
+          help: 'Enable build mode.',
           defaultsTo: false,
           negatable: false,
           hide: true)
-      ..addOption('package-mode-path',
-          help: 'The path of the root folder of the package to analyze.',
-          hide: true)
-      ..addOption('package-name',
-          help: 'The name of the package to analyze, as it is used by clients.',
-          hide: true)
-      ..addOption('package-summary-input',
-          help: '--package-summary-input=packageName,/path/to/package.sum '
-              'specifies the summary file that contains information about '
-              'every library of the specified package.',
+      ..addOption('build-summary-input',
+          help: 'Path to a summary file that contains information from a '
+              'previous analysis run.  May be specified multiple times.',
           allowMultiple: true,
-          splitCommas: false,
           hide: true)
-      ..addOption('package-summary-output',
+      ..addOption('build-summary-output',
           help: 'Specifies the path to the file where the summary information '
-              'about the package should be written to.',
+              'should be written.',
           hide: true)
-      ..addFlag('package-summary-only',
+      ..addFlag('build-summary-only',
           help: 'Disable analysis (only generate summaries).',
+          defaultsTo: false,
+          negatable: false,
+          hide: true)
+      ..addFlag('build-suppress-exit-code',
+          help: 'Exit with code 0 even if errors are found.',
           defaultsTo: false,
           negatable: false,
           hide: true)
@@ -424,27 +424,6 @@ class CommandLineOptions {
       exitHandler(15);
       return null; // Only reachable in testing.
     }
-  }
-
-  /// Parse the `--package-summary-input` arguments into a Map of package
-  /// names to summary paths.
-  static Map<String, String> _parsePackageSummaryInputs(ArgResults args) {
-    Map<String, String> result = <String, String>{};
-    List<String> argList = args['package-summary-input'];
-    for (String arg in argList) {
-      int index = arg.indexOf(',');
-      if (index == -1) {
-        errorSink.writeln(
-            'The syntax is --package-summary-input=packageName,/path/to/pkg.sum');
-        errorSink.writeln('No comma found in: $arg');
-        exitHandler(15);
-        return null; // Only reachable in testing.
-      }
-      String packageName = arg.substring(0, index);
-      String summaryPath = arg.substring(index + 1);
-      result[packageName] = summaryPath;
-    }
-    return result;
   }
 
   static _showUsage(parser) {
