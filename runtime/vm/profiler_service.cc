@@ -18,6 +18,7 @@ namespace dart {
 
 DECLARE_FLAG(int, max_profile_depth);
 DECLARE_FLAG(int, profile_period);
+DECLARE_FLAG(bool, show_invisible_frames);
 
 #ifndef PRODUCT
 
@@ -133,6 +134,15 @@ const char* ProfileFunction::Name() const {
   const String& func_name =
       String::Handle(function_.QualifiedUserVisibleName());
   return func_name.ToCString();
+}
+
+
+bool ProfileFunction::is_visible() const {
+  if (function_.IsNull()) {
+    // Some synthetic function.
+    return true;
+  }
+  return FLAG_show_invisible_frames || function_.is_visible();
 }
 
 
@@ -1624,6 +1634,9 @@ class ProfileBuilder : public ValueObject {
                                            ProfileFunction* function,
                                            TokenPosition token_position,
                                            intptr_t code_index) {
+    if (!function->is_visible()) {
+      return current;
+    }
     if (tick_functions_) {
       if (FLAG_trace_profiler_verbose) {
         THR_Print("S[%" Pd "]F[%" Pd "] %s %s 0x%" Px "\n",

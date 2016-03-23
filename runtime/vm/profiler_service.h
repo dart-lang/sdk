@@ -77,6 +77,8 @@ class ProfileFunction : public ZoneAllocated {
     return &function_;
   }
 
+  bool is_visible() const;
+
   intptr_t table_index() const {
     return table_index_;
   }
