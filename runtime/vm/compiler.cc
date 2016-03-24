@@ -385,6 +385,9 @@ class CompileParsedFunctionHelper : public ValueObject {
   }
 
   bool Compile(CompilationPipeline* pipeline);
+  uint32_t prefix_invalidation_gen_at_start() const {
+    return prefix_invalidation_gen_at_start_;
+  }
 
  private:
   ParsedFunction* parsed_function() const { return parsed_function_; }
@@ -397,9 +400,6 @@ class CompileParsedFunctionHelper : public ValueObject {
   }
   uint32_t field_invalidation_gen_at_start() const {
     return field_invalidation_gen_at_start_;
-  }
-  uint32_t prefix_invalidation_gen_at_start() const {
-    return prefix_invalidation_gen_at_start_;
   }
   void FinalizeCompilation(Assembler* assembler,
                            FlowGraphCompiler* graph_compiler,
@@ -1154,6 +1154,9 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     if (optimized) {
       INC_STAT(thread, num_functions_optimized, 1);
     }
+    // Makes sure no libraries are loaded during parsing.
+    const uint32_t prefix_invalidation_gen_at_start =
+        isolate->prefix_invalidation_gen();
     {
       HANDLESCOPE(thread);
       const int64_t num_tokens_before = STAT_VALUE(thread, num_tokens_consumed);
@@ -1165,6 +1168,13 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     }
 
     CompileParsedFunctionHelper helper(parsed_function, optimized, osr_id);
+    if (prefix_invalidation_gen_at_start !=
+        helper.prefix_invalidation_gen_at_start()) {
+      ASSERT(Compiler::IsBackgroundCompilation());
+      // Deferred loading occured while parsing or copying ICData. We need
+      // to abort here because deopt-ids may have changed.
+      Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId);
+    }
     const bool success = helper.Compile(pipeline);
     if (!success) {
       if (optimized) {
@@ -1377,6 +1387,8 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   // IsIrregexpFunction have eager var descriptors generation.
   ASSERT(!function.IsIrregexpFunction());
   // Parser should not produce any errors, therefore no LongJumpScope needed.
+  // (exception is background compilation).
+  ASSERT(!Compiler::IsBackgroundCompilation());
   Parser::ParseFunction(parsed_function);
   parsed_function->AllocateVariables();
   var_descs = parsed_function->node_sequence()->scope()->

@@ -10515,6 +10515,7 @@ RawClass* LibraryPrefix::LookupClass(const String& class_name) const {
 
 
 void LibraryPrefix::set_is_loaded() const {
+  Isolate::Current()->IncrPrefixInvalidationGen();
   StoreNonPointer(&raw_ptr()->is_loaded_, true);
 }
 
