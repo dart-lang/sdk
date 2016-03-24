@@ -101,7 +101,8 @@ class InSummaryPackageUriResolver extends UriResolver {
   Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     actualUri ??= uri;
     if (_dataStore.unlinkedMap.containsKey(uri.toString())) {
-      return new _InSummarySource(actualUri);
+      return new InSummarySource(
+          actualUri, _dataStore.uriToSummaryPath[uri.toString()]);
     }
     return null;
   }
@@ -124,6 +125,11 @@ class SummaryDataStore {
    */
   final Map<String, LinkedLibrary> linkedMap = <String, LinkedLibrary>{};
 
+  /**
+   * Map from the URI of a library to the summary path that contained it.
+   */
+  final Map<String, String> uriToSummaryPath = <String, String>{};
+
   SummaryDataStore(Iterable<String> summaryPaths) {
     summaryPaths.forEach(_fillMaps);
   }
@@ -133,10 +139,13 @@ class SummaryDataStore {
     List<int> buffer = file.readAsBytesSync();
     PackageBundle bundle = new PackageBundle.fromBuffer(buffer);
     for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
-      unlinkedMap[bundle.unlinkedUnitUris[i]] = bundle.unlinkedUnits[i];
+      String uri = bundle.unlinkedUnitUris[i];
+      uriToSummaryPath[uri] = path;
+      unlinkedMap[uri] = bundle.unlinkedUnits[i];
     }
     for (int i = 0; i < bundle.linkedLibraryUris.length; i++) {
-      linkedMap[bundle.linkedLibraryUris[i]] = bundle.linkedLibraries[i];
+      String uri = bundle.linkedLibraryUris[i];
+      linkedMap[uri] = bundle.linkedLibraries[i];
     }
   }
 }
@@ -177,10 +186,15 @@ class _FileBasedSummaryResynthesizer extends SummaryResynthesizer {
  * are served from its summary.  This source uses its URI as [fullName] and has
  * empty contents.
  */
-class _InSummarySource extends Source {
+class InSummarySource extends Source {
   final Uri uri;
 
-  _InSummarySource(this.uri);
+  /**
+   * The summary file where this source was defined.
+   */
+  final String summaryPath;
+
+  InSummarySource(this.uri, this.summaryPath);
 
   @override
   TimestampedData<String> get contents => new TimestampedData<String>(0, '');
@@ -208,7 +222,7 @@ class _InSummarySource extends Source {
 
   @override
   bool operator ==(Object object) =>
-      object is _InSummarySource && object.uri == uri;
+      object is InSummarySource && object.uri == uri;
 
   @override
   bool exists() => true;
