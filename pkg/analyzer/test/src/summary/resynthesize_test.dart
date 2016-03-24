@@ -179,57 +179,48 @@ class ResynthTest extends ResolverTestCase {
   }
 
   void compareClassElements(
-      ClassElementImpl resynthesized, ClassElementImpl original, String desc) {
-    compareElements(resynthesized, original, desc);
-    expect(resynthesized.fields.length, original.fields.length,
-        reason: '$desc fields.length');
-    for (int i = 0; i < resynthesized.fields.length; i++) {
-      String name = original.fields[i].name;
-      compareFieldElements(
-          resynthesized.fields[i], original.fields[i], '$desc.field $name');
+      ClassElement resynthesized, ClassElement original, String desc) {
+    ClassElementImpl r = getActualElement(resynthesized, desc);
+    ClassElementImpl o = getActualElement(original, desc);
+    compareElements(r, o, desc);
+    expect(r.fields.length, o.fields.length, reason: '$desc fields.length');
+    for (int i = 0; i < r.fields.length; i++) {
+      String name = o.fields[i].name;
+      compareFieldElements(r.fields[i], o.fields[i], '$desc.field $name');
     }
-    compareTypes(
-        resynthesized.supertype, original.supertype, '$desc supertype');
-    expect(resynthesized.interfaces.length, original.interfaces.length);
-    for (int i = 0; i < resynthesized.interfaces.length; i++) {
-      compareTypes(resynthesized.interfaces[i], original.interfaces[i],
-          '$desc interface ${original.interfaces[i].name}');
+    compareTypes(r.supertype, o.supertype, '$desc supertype');
+    expect(r.interfaces.length, o.interfaces.length);
+    for (int i = 0; i < r.interfaces.length; i++) {
+      compareTypes(r.interfaces[i], o.interfaces[i],
+          '$desc interface ${o.interfaces[i].name}');
     }
-    expect(resynthesized.mixins.length, original.mixins.length);
-    for (int i = 0; i < resynthesized.mixins.length; i++) {
-      compareTypes(resynthesized.mixins[i], original.mixins[i],
-          '$desc mixin ${original.mixins[i].name}');
+    expect(r.mixins.length, o.mixins.length);
+    for (int i = 0; i < r.mixins.length; i++) {
+      compareTypes(r.mixins[i], o.mixins[i], '$desc mixin ${o.mixins[i].name}');
     }
-    expect(resynthesized.typeParameters.length, original.typeParameters.length);
-    for (int i = 0; i < resynthesized.typeParameters.length; i++) {
-      compareTypeParameterElements(
-          resynthesized.typeParameters[i],
-          original.typeParameters[i],
-          '$desc type parameter ${original.typeParameters[i].name}');
+    expect(r.typeParameters.length, o.typeParameters.length);
+    for (int i = 0; i < r.typeParameters.length; i++) {
+      compareTypeParameterElements(r.typeParameters[i], o.typeParameters[i],
+          '$desc type parameter ${o.typeParameters[i].name}');
     }
-    expect(resynthesized.constructors.length, original.constructors.length,
+    expect(r.constructors.length, o.constructors.length,
         reason: '$desc constructors.length');
-    for (int i = 0; i < resynthesized.constructors.length; i++) {
-      compareConstructorElements(
-          resynthesized.constructors[i],
-          original.constructors[i],
-          '$desc constructor ${original.constructors[i].name}');
+    for (int i = 0; i < r.constructors.length; i++) {
+      compareConstructorElements(r.constructors[i], o.constructors[i],
+          '$desc constructor ${o.constructors[i].name}');
     }
-    expect(resynthesized.accessors.length, original.accessors.length);
-    for (int i = 0; i < resynthesized.accessors.length; i++) {
-      comparePropertyAccessorElements(
-          resynthesized.accessors[i],
-          original.accessors[i],
-          '$desc accessor ${original.accessors[i].name}');
+    expect(r.accessors.length, o.accessors.length);
+    for (int i = 0; i < r.accessors.length; i++) {
+      comparePropertyAccessorElements(r.accessors[i], o.accessors[i],
+          '$desc accessor ${o.accessors[i].name}');
     }
-    expect(resynthesized.methods.length, original.methods.length);
-    for (int i = 0; i < resynthesized.methods.length; i++) {
-      compareMethodElements(resynthesized.methods[i], original.methods[i],
-          '$desc.${original.methods[i].name}');
+    expect(r.methods.length, o.methods.length);
+    for (int i = 0; i < r.methods.length; i++) {
+      compareMethodElements(
+          r.methods[i], o.methods[i], '$desc.${o.methods[i].name}');
     }
-    compareTypes(resynthesized.type, original.type, desc);
-    expect(resynthesized.hasBeenInferred, original.hasBeenInferred,
-        reason: desc);
+    compareTypes(r.type, o.type, desc);
+    expect(r.hasBeenInferred, o.hasBeenInferred, reason: desc);
   }
 
   void compareCompilationUnitElements(CompilationUnitElementImpl resynthesized,

@@ -1082,7 +1082,13 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
    */
   void set types(List<ClassElement> types) {
     for (ClassElement type in types) {
-      (type as ClassElementImpl).enclosingElement = this;
+      // Another implementation of ClassElement is _DeferredClassElement,
+      // which is used to resynthesize classes lazily. We cannot cast it
+      // to ClassElementImpl, and it already can provide correct values of the
+      // 'enclosingElement' property.
+      if (type is ClassElementImpl) {
+        type.enclosingElement = this;
+      }
     }
     this._types = types;
   }
