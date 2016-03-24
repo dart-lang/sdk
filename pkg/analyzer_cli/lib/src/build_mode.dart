@@ -145,7 +145,11 @@ class BuildMode {
 
     // Set context options.
     Driver.setAnalysisContextOptions(
-        context, options, (AnalysisOptionsImpl contextOptions) {});
+        context, options, (AnalysisOptionsImpl contextOptions) {
+      if (options.buildSummaryOnlyDiet) {
+        contextOptions.analyzeFunctionBodies = false;
+      }
+    });
 
     // Configure using summaries.
     context.typeProvider = sdk.context.typeProvider;

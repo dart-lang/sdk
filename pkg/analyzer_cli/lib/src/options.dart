@@ -45,6 +45,10 @@ class CommandLineOptions {
   /// Whether to skip analysis when creating summaries in build mode.
   final bool buildSummaryOnly;
 
+  /// Whether to use diet parsing, i.e. skip function bodies. We don't need to
+  /// analyze function bodies to use summaries during future compilation steps.
+  final bool buildSummaryOnlyDiet;
+
   /// The path to output the summary when creating summaries in build mode.
   final String buildSummaryOutput;
 
@@ -133,6 +137,7 @@ class CommandLineOptions {
         buildMode = args['build-mode'],
         buildSummaryInputs = args['build-summary-input'],
         buildSummaryOnly = args['build-summary-only'],
+        buildSummaryOnlyDiet = args['build-summary-only-diet'],
         buildSummaryOutput = args['build-summary-output'],
         buildSuppressExitCode = args['build-suppress-exit-code'],
         dartSdkPath = args['dart-sdk'],
@@ -207,6 +212,12 @@ class CommandLineOptions {
       errorSink.writeln(
           "Info: Option '--enable-null-aware-operators' is no longer needed. "
           "Null aware operators are supported by default.");
+    }
+
+    // Build mode.
+    if (options.buildSummaryOnlyDiet && !options.buildSummaryOnly) {
+      printAndFail('The option --build-summary-only-diet can be used only '
+          'together with --build-summary-only.');
     }
 
     return options;
@@ -327,6 +338,11 @@ class CommandLineOptions {
           hide: true)
       ..addFlag('build-summary-only',
           help: 'Disable analysis (only generate summaries).',
+          defaultsTo: false,
+          negatable: false,
+          hide: true)
+      ..addFlag('build-summary-only-diet',
+          help: 'Diet parse function bodies.',
           defaultsTo: false,
           negatable: false,
           hide: true)
