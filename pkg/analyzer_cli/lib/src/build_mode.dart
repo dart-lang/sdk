@@ -127,6 +127,9 @@ class BuildMode {
   void _createContext() {
     DirectoryBasedDartSdk sdk =
         new DirectoryBasedDartSdk(new JavaFile(options.dartSdkPath));
+    sdk.analysisOptions =
+        Driver.createAnalysisOptionsForCommandLineOptions(options);
+    sdk.useSummary = true;
 
     // Read the summaries.
     SummaryDataStore summaryDataStore =
@@ -145,7 +148,6 @@ class BuildMode {
         context, options, (AnalysisOptionsImpl contextOptions) {});
 
     // Configure using summaries.
-    sdk.useSummary = true;
     context.typeProvider = sdk.context.typeProvider;
     context.resultProvider =
         new InputPackagesResultProvider(context, summaryDataStore);
