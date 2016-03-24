@@ -55,6 +55,9 @@ class CommandLineOptions {
   /// The path to output the summary when creating summaries in build mode.
   final String buildSummaryOutput;
 
+  /// Whether to output a summary in "fallback mode".
+  final bool buildSummaryFallback;
+
   /// Whether to suppress a nonzero exit code in build mode.
   final bool buildSuppressExitCode;
 
@@ -138,6 +141,7 @@ class CommandLineOptions {
       ArgResults args, Map<String, String> definedVariables)
       : buildAnalysisOutput = args['build-analysis-output'],
         buildMode = args['build-mode'],
+        buildSummaryFallback = args['build-summary-fallback'],
         buildSummaryInputs = args['build-summary-input'],
         buildSummaryOnly = args['build-summary-only'],
         buildSummaryOnlyDiet = args['build-summary-only-diet'],
@@ -353,6 +357,11 @@ class CommandLineOptions {
           hide: true)
       ..addFlag('build-summary-exclude-informative',
           help: 'Exclude @informative information (docs, offsets, etc).',
+          defaultsTo: false,
+          negatable: false,
+          hide: true)
+      ..addFlag('build-summary-fallback',
+          help: 'If outputting a summary, output it in fallback mode.',
           defaultsTo: false,
           negatable: false,
           hide: true)

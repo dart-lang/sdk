@@ -86,11 +86,17 @@ class BuildMode {
     if (options.buildSummaryOutput != null) {
       PackageBundleAssembler assembler = new PackageBundleAssembler();
       for (Source source in explicitSources) {
-        if (context.computeKindOf(source) != SourceKind.LIBRARY) {
-          continue;
+        if (context.computeKindOf(source) == SourceKind.LIBRARY) {
+          if (options.buildSummaryFallback) {
+            assembler.addFallbackLibrary(source);
+          } else {
+            LibraryElement libraryElement = context.computeLibraryElement(source);
+            assembler.serializeLibraryElement(libraryElement);
+          }
         }
-        LibraryElement libraryElement = context.computeLibraryElement(source);
-        assembler.serializeLibraryElement(libraryElement);
+        if (options.buildSummaryFallback) {
+          assembler.addFallbackUnit(source);
+        }
       }
       // Write the whole package bundle.
       PackageBundleBuilder sdkBundle = assembler.assemble();

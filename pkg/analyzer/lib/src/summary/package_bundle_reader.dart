@@ -4,8 +4,10 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/summary/summary_sdk.dart';
@@ -100,12 +102,74 @@ class InSummaryPackageUriResolver extends UriResolver {
   @override
   Source resolveAbsolute(Uri uri, [Uri actualUri]) {
     actualUri ??= uri;
-    if (_dataStore.unlinkedMap.containsKey(uri.toString())) {
-      return new InSummarySource(
-          actualUri, _dataStore.uriToSummaryPath[uri.toString()]);
+    UnlinkedUnit unit = _dataStore.unlinkedMap[uri.toString()];
+    if (unit != null) {
+      String summaryPath = _dataStore.uriToSummaryPath[uri.toString()];
+      if (unit.fallbackModePath.isNotEmpty) {
+        return new _InSummaryFallbackSource(
+            new JavaFile(unit.fallbackModePath), actualUri, summaryPath);
+      } else {
+        return new InSummarySource(actualUri, summaryPath);
+      }
     }
     return null;
   }
+}
+
+/**
+ * A placeholder of a source that is part of a package whose analysis results
+ * are served from its summary.  This source uses its URI as [fullName] and has
+ * empty contents.
+ */
+class InSummarySource extends Source {
+  final Uri uri;
+
+  /**
+   * The summary file where this source was defined.
+   */
+  final String summaryPath;
+
+  InSummarySource(this.uri, this.summaryPath);
+
+  @override
+  TimestampedData<String> get contents => new TimestampedData<String>(0, '');
+
+  @override
+  String get encoding => uri.toString();
+
+  @override
+  String get fullName => encoding;
+
+  @override
+  int get hashCode => uri.hashCode;
+
+  @override
+  bool get isInSystemLibrary => false;
+
+  @override
+  int get modificationStamp => 0;
+
+  @override
+  String get shortName => pathos.basename(fullName);
+
+  @override
+  UriKind get uriKind => UriKind.PACKAGE_URI;
+
+  @override
+  bool operator ==(Object object) =>
+      object is InSummarySource && object.uri == uri;
+
+  @override
+  bool exists() => true;
+
+  @override
+  Uri resolveRelativeUri(Uri relativeUri) {
+    Uri baseUri = uri;
+    return baseUri.resolveUri(relativeUri);
+  }
+
+  @override
+  String toString() => uri.toString();
 }
 
 /**
@@ -177,62 +241,21 @@ class _FileBasedSummaryResynthesizer extends SummaryResynthesizer {
 
   @override
   bool hasLibrarySummary(String uri) {
-    return _dataStore.linkedMap.containsKey(uri);
+    LinkedLibrary linkedLibrary = _dataStore.linkedMap[uri];
+    return linkedLibrary != null && !linkedLibrary.fallbackMode;
   }
 }
 
 /**
- * A placeholder of a source that is part of a package whose analysis results
- * are served from its summary.  This source uses its URI as [fullName] and has
- * empty contents.
+ * A source that is part of a package whose summary was generated in fallback
+ * mode.  This source behaves identically to a [FileBasedSource] except that it
+ * also provides [summaryPath].
  */
-class InSummarySource extends Source {
-  final Uri uri;
-
-  /**
-   * The summary file where this source was defined.
-   */
+class _InSummaryFallbackSource extends FileBasedSource
+    implements InSummarySource {
+  @override
   final String summaryPath;
 
-  InSummarySource(this.uri, this.summaryPath);
-
-  @override
-  TimestampedData<String> get contents => new TimestampedData<String>(0, '');
-
-  @override
-  String get encoding => uri.toString();
-
-  @override
-  String get fullName => encoding;
-
-  @override
-  int get hashCode => uri.hashCode;
-
-  @override
-  bool get isInSystemLibrary => false;
-
-  @override
-  int get modificationStamp => 0;
-
-  @override
-  String get shortName => pathos.basename(fullName);
-
-  @override
-  UriKind get uriKind => UriKind.PACKAGE_URI;
-
-  @override
-  bool operator ==(Object object) =>
-      object is InSummarySource && object.uri == uri;
-
-  @override
-  bool exists() => true;
-
-  @override
-  Uri resolveRelativeUri(Uri relativeUri) {
-    Uri baseUri = uri;
-    return baseUri.resolveUri(relativeUri);
-  }
-
-  @override
-  String toString() => uri.toString();
+  _InSummaryFallbackSource(JavaFile file, Uri uri, this.summaryPath)
+      : super(file, uri);
 }

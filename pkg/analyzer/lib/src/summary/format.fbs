@@ -789,6 +789,12 @@ table LinkedLibrary {
   exportNames:[LinkedExportName] (id: 4);
 
   /**
+   * Indicates whether this library was summarized in "fallback mode".  If
+   * true, all other fields in the data structure have their default values.
+   */
+  fallbackMode:bool (id: 5);
+
+  /**
    * For each import in [UnlinkedUnit.imports], an index into [dependencies]
    * of the library being imported.
    */
@@ -1940,6 +1946,15 @@ table UnlinkedTypeParam {
  * Unlinked summary information about a compilation unit ("part file").
  */
 table UnlinkedUnit {
+  /**
+   * If this compilation unit was summarized in fallback mode, the path where
+   * the compilation unit may be found on disk.  Otherwise empty.
+   *
+   * When this field is non-empty, all other fields in the data structure have
+   * their default values.
+   */
+  fallbackModePath:string (id: 16);
+
   /**
    * Classes declared in the compilation unit.
    */

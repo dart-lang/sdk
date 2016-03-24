@@ -138,6 +138,29 @@ class PackageBundleAssembler {
   final List<String> _unlinkedUnitHashes = <String>[];
 
   /**
+   * Add a fallback library to the package bundle, corresponding to the library
+   * whose defining compilation unit is located at [source].  Caller must also
+   * call [addFallbackUnit] for all compilation units contained in the library
+   * (including the defining compilation unit).
+   */
+  void addFallbackLibrary(Source source) {
+    String uri = source.uri.toString();
+    _linkedLibraryUris.add(uri);
+    _linkedLibraries.add(new LinkedLibraryBuilder(fallbackMode: true));
+  }
+
+  /**
+   * Add a fallback compilation unit to the package bundle, corresponding to
+   * the compilation unit located at [source].
+   */
+  void addFallbackUnit(Source source) {
+    String uri = source.uri.toString();
+    _unlinkedUnitUris.add(uri);
+    _unlinkedUnits
+        .add(new UnlinkedUnitBuilder(fallbackModePath: source.fullName));
+  }
+
+  /**
    * Assemble a new [PackageBundleBuilder] using the gathered information.
    */
   PackageBundleBuilder assemble() {

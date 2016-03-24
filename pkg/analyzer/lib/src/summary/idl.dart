@@ -437,6 +437,13 @@ abstract class LinkedLibrary extends base.SummaryClass {
   List<LinkedExportName> get exportNames;
 
   /**
+   * Indicates whether this library was summarized in "fallback mode".  If
+   * true, all other fields in the data structure have their default values.
+   */
+  @Id(5)
+  bool get fallbackMode;
+
+  /**
    * For each import in [UnlinkedUnit.imports], an index into [dependencies]
    * of the library being imported.
    */
@@ -2226,6 +2233,16 @@ abstract class UnlinkedTypeParam extends base.SummaryClass {
 abstract class UnlinkedUnit extends base.SummaryClass {
   factory UnlinkedUnit.fromBuffer(List<int> buffer) =>
       generated.readUnlinkedUnit(buffer);
+
+  /**
+   * If this compilation unit was summarized in fallback mode, the path where
+   * the compilation unit may be found on disk.  Otherwise empty.
+   *
+   * When this field is non-empty, all other fields in the data structure have
+   * their default values.
+   */
+  @Id(16)
+  String get fallbackModePath;
 
   /**
    * Classes declared in the compilation unit.

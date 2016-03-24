@@ -21,6 +21,7 @@ main() {
         expect(options, isNotNull);
         expect(options.buildMode, isFalse);
         expect(options.buildAnalysisOutput, isNull);
+        expect(options.buildSummaryFallback, isFalse);
         expect(options.buildSummaryInputs, isEmpty);
         expect(options.buildSummaryOnly, isFalse);
         expect(options.buildSummaryOutput, isNull);
@@ -248,6 +249,17 @@ class CommandLineOptionsTest extends AbstractStatusTest {
   test_buildMode() {
     _parse(['--build-mode', 'package:p/foo.dart|/path/to/p/lib/foo.dart']);
     expect(options.buildMode, isTrue);
+  }
+
+  test_buildSummaryFallback() {
+    _parse([
+      '--build-mode',
+      '--build-summary-output=//path/to/output.sum',
+      '--build-summary-fallback',
+      'package:p/foo.dart|/path/to/p/lib/foo.dart'
+    ]);
+    expect(options.buildMode, isTrue);
+    expect(options.buildSummaryFallback, isTrue);
   }
 
   test_buildSummaryInputs_commaSeparated() {

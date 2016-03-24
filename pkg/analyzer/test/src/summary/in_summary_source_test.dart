@@ -5,6 +5,7 @@
 library analyzer.test.src.summary.in_summary_source_test;
 
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:unittest/unittest.dart';
@@ -18,6 +19,18 @@ main() {
 
 @reflectiveTest
 class InSummarySourceTest extends ReflectiveTest {
+  test_fallbackPath() {
+    var sourceFactory = new SourceFactory([
+      new InSummaryPackageUriResolver(new MockSummaryDataStore.fake(
+          {'package:foo/foo.dart': 'foo.sum',},
+          uriToFallbackModePath: {'package:foo/foo.dart': '/path/to/foo.dart'}))
+    ]);
+
+    InSummarySource source = sourceFactory.forUri('package:foo/foo.dart');
+    expect(source, new isInstanceOf<FileBasedSource>());
+    expect(source.fullName, '/path/to/foo.dart');
+  }
+
   test_InSummarySource() {
     var sourceFactory = new SourceFactory([
       new InSummaryPackageUriResolver(new MockSummaryDataStore.fake({
@@ -28,12 +41,15 @@ class InSummarySourceTest extends ReflectiveTest {
     ]);
 
     InSummarySource source = sourceFactory.forUri('package:foo/foo.dart');
+    expect(source, isNot(new isInstanceOf<FileBasedSource>()));
     expect(source.summaryPath, 'foo.sum');
 
     source = sourceFactory.forUri('package:foo/src/foo_impl.dart');
+    expect(source, isNot(new isInstanceOf<FileBasedSource>()));
     expect(source.summaryPath, 'foo.sum');
 
     source = sourceFactory.forUri('package:bar/baz.dart');
+    expect(source, isNot(new isInstanceOf<FileBasedSource>()));
     expect(source.summaryPath, 'bar.sum');
   }
 }
@@ -45,12 +61,14 @@ class MockSummaryDataStore implements SummaryDataStore {
 
   MockSummaryDataStore(this.linkedMap, this.unlinkedMap, this.uriToSummaryPath);
 
-  factory MockSummaryDataStore.fake(Map<String, String> uriToSummary) {
+  factory MockSummaryDataStore.fake(Map<String, String> uriToSummary,
+      {Map<String, String> uriToFallbackModePath: const {}}) {
     // Create fake unlinked map.
     // We don't populate the values as it is not needed for the test.
     var unlinkedMap = new Map<String, UnlinkedUnit>.fromIterable(
         uriToSummary.keys,
-        value: (k) => null);
+        value: (uri) => new UnlinkedUnitBuilder(
+            fallbackModePath: uriToFallbackModePath[uri]));
     return new MockSummaryDataStore(null, unlinkedMap, uriToSummary);
   }
 }

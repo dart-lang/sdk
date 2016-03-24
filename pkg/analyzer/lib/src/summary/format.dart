@@ -975,6 +975,7 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
 
   List<LinkedDependencyBuilder> _dependencies;
   List<LinkedExportNameBuilder> _exportNames;
+  bool _fallbackMode;
   List<int> _importDependencies;
   int _numPrelinkedDependencies;
   List<LinkedUnitBuilder> _units;
@@ -1019,6 +1020,18 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
   }
 
   @override
+  bool get fallbackMode => _fallbackMode ??= false;
+
+  /**
+   * Indicates whether this library was summarized in "fallback mode".  If
+   * true, all other fields in the data structure have their default values.
+   */
+  void set fallbackMode(bool _value) {
+    assert(!_finished);
+    _fallbackMode = _value;
+  }
+
+  @override
   List<int> get importDependencies => _importDependencies ??= <int>[];
 
   /**
@@ -1059,9 +1072,10 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
     _units = _value;
   }
 
-  LinkedLibraryBuilder({List<LinkedDependencyBuilder> dependencies, List<LinkedExportNameBuilder> exportNames, List<int> importDependencies, int numPrelinkedDependencies, List<LinkedUnitBuilder> units})
+  LinkedLibraryBuilder({List<LinkedDependencyBuilder> dependencies, List<LinkedExportNameBuilder> exportNames, bool fallbackMode, List<int> importDependencies, int numPrelinkedDependencies, List<LinkedUnitBuilder> units})
     : _dependencies = dependencies,
       _exportNames = exportNames,
+      _fallbackMode = fallbackMode,
       _importDependencies = importDependencies,
       _numPrelinkedDependencies = numPrelinkedDependencies,
       _units = units;
@@ -1106,6 +1120,9 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
     if (offset_exportNames != null) {
       fbBuilder.addOffset(4, offset_exportNames);
     }
+    if (_fallbackMode == true) {
+      fbBuilder.addBool(5, true);
+    }
     if (offset_importDependencies != null) {
       fbBuilder.addOffset(1, offset_importDependencies);
     }
@@ -1138,6 +1155,7 @@ class _LinkedLibraryImpl extends Object with _LinkedLibraryMixin implements idl.
 
   List<idl.LinkedDependency> _dependencies;
   List<idl.LinkedExportName> _exportNames;
+  bool _fallbackMode;
   List<int> _importDependencies;
   int _numPrelinkedDependencies;
   List<idl.LinkedUnit> _units;
@@ -1152,6 +1170,12 @@ class _LinkedLibraryImpl extends Object with _LinkedLibraryMixin implements idl.
   List<idl.LinkedExportName> get exportNames {
     _exportNames ??= const fb.ListReader<idl.LinkedExportName>(const _LinkedExportNameReader()).vTableGet(_bp, 4, const <idl.LinkedExportName>[]);
     return _exportNames;
+  }
+
+  @override
+  bool get fallbackMode {
+    _fallbackMode ??= const fb.BoolReader().vTableGet(_bp, 5, false);
+    return _fallbackMode;
   }
 
   @override
@@ -1179,6 +1203,7 @@ abstract class _LinkedLibraryMixin implements idl.LinkedLibrary {
     Map<String, Object> _result = <String, Object>{};
     if (dependencies.isNotEmpty) _result["dependencies"] = dependencies.map((_value) => _value.toJson()).toList();
     if (exportNames.isNotEmpty) _result["exportNames"] = exportNames.map((_value) => _value.toJson()).toList();
+    if (fallbackMode != false) _result["fallbackMode"] = fallbackMode;
     if (importDependencies.isNotEmpty) _result["importDependencies"] = importDependencies;
     if (numPrelinkedDependencies != 0) _result["numPrelinkedDependencies"] = numPrelinkedDependencies;
     if (units.isNotEmpty) _result["units"] = units.map((_value) => _value.toJson()).toList();
@@ -1189,6 +1214,7 @@ abstract class _LinkedLibraryMixin implements idl.LinkedLibrary {
   Map<String, Object> toMap() => {
     "dependencies": dependencies,
     "exportNames": exportNames,
+    "fallbackMode": fallbackMode,
     "importDependencies": importDependencies,
     "numPrelinkedDependencies": numPrelinkedDependencies,
     "units": units,
@@ -7213,6 +7239,7 @@ abstract class _UnlinkedTypeParamMixin implements idl.UnlinkedTypeParam {
 class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.UnlinkedUnit {
   bool _finished = false;
 
+  String _fallbackModePath;
   List<UnlinkedClassBuilder> _classes;
   CodeRangeBuilder _codeRange;
   List<UnlinkedEnumBuilder> _enums;
@@ -7229,6 +7256,21 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   List<UnlinkedReferenceBuilder> _references;
   List<UnlinkedTypedefBuilder> _typedefs;
   List<UnlinkedVariableBuilder> _variables;
+
+  @override
+  String get fallbackModePath => _fallbackModePath ??= '';
+
+  /**
+   * If this compilation unit was summarized in fallback mode, the path where
+   * the compilation unit may be found on disk.  Otherwise empty.
+   *
+   * When this field is non-empty, all other fields in the data structure have
+   * their default values.
+   */
+  void set fallbackModePath(String _value) {
+    assert(!_finished);
+    _fallbackModePath = _value;
+  }
 
   @override
   List<UnlinkedClassBuilder> get classes => _classes ??= <UnlinkedClassBuilder>[];
@@ -7417,8 +7459,9 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     _variables = _value;
   }
 
-  UnlinkedUnitBuilder({List<UnlinkedClassBuilder> classes, CodeRangeBuilder codeRange, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportNonPublicBuilder> exports, List<UnlinkedImportBuilder> imports, List<UnlinkedConstBuilder> libraryAnnotations, UnlinkedDocumentationCommentBuilder libraryDocumentationComment, String libraryName, int libraryNameLength, int libraryNameOffset, List<UnlinkedPartBuilder> parts, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables})
-    : _classes = classes,
+  UnlinkedUnitBuilder({String fallbackModePath, List<UnlinkedClassBuilder> classes, CodeRangeBuilder codeRange, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportNonPublicBuilder> exports, List<UnlinkedImportBuilder> imports, List<UnlinkedConstBuilder> libraryAnnotations, UnlinkedDocumentationCommentBuilder libraryDocumentationComment, String libraryName, int libraryNameLength, int libraryNameOffset, List<UnlinkedPartBuilder> parts, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables})
+    : _fallbackModePath = fallbackModePath,
+      _classes = classes,
       _codeRange = codeRange,
       _enums = enums,
       _executables = executables,
@@ -7464,6 +7507,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
+    fb.Offset offset_fallbackModePath;
     fb.Offset offset_classes;
     fb.Offset offset_codeRange;
     fb.Offset offset_enums;
@@ -7478,6 +7522,9 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     fb.Offset offset_references;
     fb.Offset offset_typedefs;
     fb.Offset offset_variables;
+    if (_fallbackModePath != null) {
+      offset_fallbackModePath = fbBuilder.writeString(_fallbackModePath);
+    }
     if (!(_classes == null || _classes.isEmpty)) {
       offset_classes = fbBuilder.writeList(_classes.map((b) => b.finish(fbBuilder)).toList());
     }
@@ -7521,6 +7568,9 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
       offset_variables = fbBuilder.writeList(_variables.map((b) => b.finish(fbBuilder)).toList());
     }
     fbBuilder.startTable();
+    if (offset_fallbackModePath != null) {
+      fbBuilder.addOffset(16, offset_fallbackModePath);
+    }
     if (offset_classes != null) {
       fbBuilder.addOffset(2, offset_classes);
     }
@@ -7590,6 +7640,7 @@ class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements idl.Un
 
   _UnlinkedUnitImpl(this._bp);
 
+  String _fallbackModePath;
   List<idl.UnlinkedClass> _classes;
   idl.CodeRange _codeRange;
   List<idl.UnlinkedEnum> _enums;
@@ -7606,6 +7657,12 @@ class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements idl.Un
   List<idl.UnlinkedReference> _references;
   List<idl.UnlinkedTypedef> _typedefs;
   List<idl.UnlinkedVariable> _variables;
+
+  @override
+  String get fallbackModePath {
+    _fallbackModePath ??= const fb.StringReader().vTableGet(_bp, 16, '');
+    return _fallbackModePath;
+  }
 
   @override
   List<idl.UnlinkedClass> get classes {
@@ -7708,6 +7765,7 @@ abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
+    if (fallbackModePath != '') _result["fallbackModePath"] = fallbackModePath;
     if (classes.isNotEmpty) _result["classes"] = classes.map((_value) => _value.toJson()).toList();
     if (codeRange != null) _result["codeRange"] = codeRange.toJson();
     if (enums.isNotEmpty) _result["enums"] = enums.map((_value) => _value.toJson()).toList();
@@ -7729,6 +7787,7 @@ abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
 
   @override
   Map<String, Object> toMap() => {
+    "fallbackModePath": fallbackModePath,
     "classes": classes,
     "codeRange": codeRange,
     "enums": enums,
