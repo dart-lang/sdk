@@ -29,7 +29,6 @@ namespace dart {
 static const intptr_t kSampleSize = 8;
 static const intptr_t kMaxSamplesPerTick = 4;
 
-DECLARE_FLAG(bool, trace_profiler);
 DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
 
 #if defined(TARGET_OS_ANDROID) || defined(TARGET_ARCH_ARM64) ||                \
