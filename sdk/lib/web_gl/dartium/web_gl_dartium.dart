@@ -3664,31 +3664,22 @@ class RenderingContext extends DartHtmlDomObject implements CanvasRenderingConte
    * Sets the currently bound texture to [data].
    *
    * [data] can be either an [ImageElement], a
-   * [CanvasElement], a [VideoElement], or an [ImageData] object.
+   * [CanvasElement], a [VideoElement], [TypedData] or an [ImageData] object.
    *
-   * To use [texImage2d] with a TypedData object, use [texImage2dTyped].
-   *
+   * This is deprecated in favor of [texImage2D].
    */
-  void texImage2DUntyped(int targetTexture, int levelOfDetail, 
+  @Deprecated("Use texImage2D")
+  void texImage2DUntyped(int targetTexture, int levelOfDetail,
       int internalFormat, int format, int type, data) {
-    if (data is ImageElement) {
-      texImage2DImage(targetTexture, levelOfDetail, internalFormat, format,
-          type, data);
-    } else if (data is ImageData) {
-      texImage2DImageData(targetTexture, levelOfDetail, internalFormat, format,
-          type, data);
-    } else if (data is CanvasElement) {
-      texImage2DCanvas(targetTexture, levelOfDetail, internalFormat, format,
-          type, data);
-    } else {
-      texImage2DVideo(targetTexture, levelOfDetail, internalFormat, format,
-          type, data);
-    }
+    texImage2D(targetText, levelOfDetail, internalFormat, format, type, data);
   }
 
   /**
    * Sets the currently bound texture to [data].
+   *
+   * This is deprecated in favour of [texImage2D].
    */
+  @Deprecated("Use texImage2D")
   void texImage2DTyped(int targetTexture, int levelOfDetail, int internalFormat,
       int width, int height, int border, int format, int type, TypedData data) {
     texImage2D(targetTexture, levelOfDetail, internalFormat,
@@ -3699,12 +3690,11 @@ class RenderingContext extends DartHtmlDomObject implements CanvasRenderingConte
    * Updates a sub-rectangle of the currently bound texture to [data].
    *
    * [data] can be either an [ImageElement], a
-   * [CanvasElement], a [VideoElement], or an [ImageData] object.
-   *
-   * To use [texSubImage2d] with a TypedData object, use [texSubImage2dTyped].
+   * [CanvasElement], a [VideoElement], [TypedData] or an [ImageData] object.
    *
    */
-  void texSubImage2DUntyped(int targetTexture, int levelOfDetail, 
+  @Deprecated("Use texSubImage2D")
+  void texSubImage2DUntyped(int targetTexture, int levelOfDetail,
       int xOffset, int yOffset, int format, int type, data) {
     texSubImage2D(targetTexture, levelOfDetail, xOffset, yOffset,
         format, type, data);
@@ -3713,11 +3703,30 @@ class RenderingContext extends DartHtmlDomObject implements CanvasRenderingConte
   /**
    * Updates a sub-rectangle of the currently bound texture to [data].
    */
+  @Deprecated("Use texSubImage2D")
   void texSubImage2DTyped(int targetTexture, int levelOfDetail,
-      int xOffset, int yOffset, int width, int height, int format,
+      int xOffset, int yOffset, int width, int height, int border, int format,
       int type, TypedData data) {
     texSubImage2D(targetTexture, levelOfDetail, xOffset, yOffset,
         width, height, format, type, data);
+  }
+
+  /**
+   * Set the bufferData to [data].
+   */
+  @Deprecated("Use bufferData")
+  void bufferDataTyped(int target, TypedData data, int usage) {
+    bufferData2D(targetTexture, levelOfDetail, xOffset, yOffset,
+        format, type, data);
+  }
+
+  /**
+   * Set the bufferSubData to [data].
+   */
+  @Deprecated("Use bufferSubData")
+  void bufferSubDataTyped(int target, TypedData data, int usage) {
+    bufferSubData2D(targetTexture, levelOfDetail, xOffset, yOffset,
+        format, type, data);
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

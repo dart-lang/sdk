@@ -454,38 +454,6 @@ renamed_overloads = monitored.Dict('htmldartgenerator.renamed_overloads', {
       '_createObjectUrlFromWebKitSource',
   'URL.createObjectURL(MediaStream stream)': 'createObjectUrlFromStream',
   'URL.createObjectURL(Blob blob)': 'createObjectUrlFromBlob',
-  'WebGLRenderingContextBase.texImage2D(unsigned long target, long level, '
-      'unsigned long internalformat, unsigned long format, unsigned long '
-      'type, ImageData pixels)': 'texImage2DImageData',
-  'WebGLRenderingContextBase.texImage2D(unsigned long target, long level, '
-      'unsigned long internalformat, unsigned long format, unsigned long '
-      'type, HTMLImageElement image)': 'texImage2DImage',
-  'WebGLRenderingContextBase.texImage2D(unsigned long target, long level, '
-      'unsigned long internalformat, unsigned long format, unsigned long '
-      'type, HTMLCanvasElement canvas)': 'texImage2DCanvas',
-  'WebGLRenderingContextBase.texImage2D(unsigned long target, long level, '
-      'unsigned long internalformat, unsigned long format, unsigned long '
-      'type, HTMLVideoElement video)': 'texImage2DVideo',
-  'WebGLRenderingContextBase.texSubImage2D(unsigned long target, long level, '
-      'long xoffset, long yoffset, unsigned long format, unsigned long type, '
-      'ImageData pixels)': 'texSubImage2DImageData',
-  'WebGLRenderingContextBase.texSubImage2D(unsigned long target, long level, '
-      'long xoffset, long yoffset, unsigned long format, unsigned long type, '
-      'HTMLImageElement image)': 'texSubImage2DImage',
-  'WebGLRenderingContextBase.texSubImage2D(unsigned long target, long level, '
-      'long xoffset, long yoffset, unsigned long format, unsigned long type, '
-      'HTMLCanvasElement canvas)': 'texSubImage2DCanvas',
-  'WebGLRenderingContextBase.texSubImage2D(unsigned long target, long level, '
-      'long xoffset, long yoffset, unsigned long format, unsigned long type, '
-      'HTMLVideoElement video)': 'texSubImage2DVideo',
-  'WebGLRenderingContextBase.bufferData(unsigned long target, '
-      'ArrayBuffer data, unsigned long usage)': 'bufferByteData',
-  'WebGLRenderingContextBase.bufferData(unsigned long target, '
-      'ArrayBufferView data, unsigned long usage)': 'bufferDataTyped',
-  'WebGLRenderingContextBase.bufferSubData(unsigned long target, '
-      'long long offset, ArrayBuffer data)': 'bufferSubByteData',
-  'WebGLRenderingContextBase.bufferSubData(unsigned long target, '
-      'long long offset, ArrayBufferView data)': 'bufferSubDataTyped',
   'WebSocket.send(ArrayBuffer data)': 'sendByteBuffer',
   'WebSocket.send(ArrayBufferView data)': 'sendTypedData',
   'WebSocket.send(DOMString data)': 'sendString',
@@ -525,10 +493,6 @@ overloaded_and_renamed = monitored.Set(
   'CanvasRenderingContext2D.isPointInStroke',
   'CanvasRenderingContext2D.stroke',
   'Navigator.sendBeacon',
-  'WebGLRenderingContextBase.bufferData',
-  'WebGLRenderingContextBase.bufferSubData',
-  'WebGLRenderingContextBase.texImage2D',
-  'WebGLRenderingContextBase.texSubImage2D',
 ])
 
 for member in convert_to_future_members:
