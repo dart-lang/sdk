@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/element/handle.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/resolver.dart'
     show Namespace, TypeProvider;
 import 'package:analyzer/src/generated/source.dart';
@@ -25,8 +26,9 @@ import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:unittest/unittest.dart';
 
-import '../../generated/resolver_test_case.dart';
+import '../../generated/test_support.dart';
 import '../../reflective_tests.dart';
+import '../abstract_single_unit.dart';
 import 'summary_common.dart' show canonicalize;
 
 main() {
@@ -35,16 +37,35 @@ main() {
 }
 
 @reflectiveTest
-class ResynthTest extends ResolverTestCase {
+class ResynthTest extends AbstractSingleUnitTest {
   Set<Source> otherLibrarySources = new Set<Source>();
   bool constantInitializersAreInvalid = false;
 
   void addLibrary(String uri) {
-    otherLibrarySources.add(analysisContext2.sourceFactory.forUri(uri));
+    otherLibrarySources.add(context.sourceFactory.forUri(uri));
   }
 
   void addLibrarySource(String filePath, String contents) {
-    otherLibrarySources.add(addNamedSource(filePath, contents));
+    otherLibrarySources.add(addSource(filePath, contents));
+  }
+
+  void assertNoErrors(Source source) {
+    GatheringErrorListener errorListener = new GatheringErrorListener();
+    for (AnalysisError error in context.computeErrors(source)) {
+      expect(error.source, source);
+      ErrorCode errorCode = error.errorCode;
+      if (errorCode == HintCode.UNUSED_ELEMENT ||
+          errorCode == HintCode.UNUSED_FIELD) {
+        continue;
+      }
+      if (errorCode == HintCode.UNUSED_CATCH_CLAUSE ||
+          errorCode == HintCode.UNUSED_CATCH_STACK ||
+          errorCode == HintCode.UNUSED_LOCAL_VARIABLE) {
+        continue;
+      }
+      errorListener.onError(error);
+    }
+    errorListener.assertNoErrors();
   }
 
   /**
@@ -60,8 +81,8 @@ class ResynthTest extends ResolverTestCase {
 
   void checkLibrary(String text,
       {bool allowErrors: false, bool dumpSummaries: false}) {
-    Source source = addSource(text);
-    LibraryElementImpl original = resolve2(source);
+    Source source = addTestSource(text);
+    LibraryElementImpl original = context.computeLibraryElement(source);
     LibraryElementImpl resynthesized = resynthesizeLibraryElement(
         encodeLibrary(original,
             allowErrors: allowErrors, dumpSummaries: dumpSummaries),
@@ -1043,6 +1064,8 @@ class ResynthTest extends ResolverTestCase {
       assertNoErrors(library.source);
     }
     addLibrary('dart:core');
+    addLibrary('dart:async');
+    addLibrary('dart:math');
     return encodeLibraryElement(library, dumpSummaries: dumpSummaries);
   }
 
@@ -1058,7 +1081,7 @@ class ResynthTest extends ResolverTestCase {
     Map<String, UnlinkedUnit> unlinkedSummaries = <String, UnlinkedUnit>{};
     LinkedLibrary getLinkedSummaryFor(LibraryElement lib) {
       LibrarySerializationResult serialized = serializeLibrary(
-          lib, typeProvider, analysisContext.analysisOptions.strongMode);
+          lib, context.typeProvider, context.analysisOptions.strongMode);
       for (int i = 0; i < serialized.unlinkedUnits.length; i++) {
         unlinkedSummaries[serialized.unitUris[i]] =
             new UnlinkedUnit.fromBuffer(serialized.unlinkedUnits[i].toBuffer());
@@ -1069,7 +1092,7 @@ class ResynthTest extends ResolverTestCase {
       library.source.uri.toString(): getLinkedSummaryFor(library)
     };
     for (Source source in otherLibrarySources) {
-      LibraryElement original = resolve2(source);
+      LibraryElement original = context.computeLibraryElement(source);
       String uri = source.uri.toString();
       linkedSummaries[uri] = getLinkedSummaryFor(original);
     }
@@ -1083,9 +1106,9 @@ class ResynthTest extends ResolverTestCase {
     }
     return new _TestSummaryResynthesizer(
         null,
-        analysisContext,
-        analysisContext.typeProvider,
-        analysisContext.sourceFactory,
+        context,
+        context.typeProvider,
+        context.sourceFactory,
         unlinkedSummaries,
         linkedSummaries,
         createOptions().strongMode);
@@ -1133,7 +1156,7 @@ class ResynthTest extends ResolverTestCase {
   @override
   void setUp() {
     super.setUp();
-    resetWithOptions(createOptions());
+    prepareAnalysisContext(createOptions());
   }
 
   test_class_abstract() {
@@ -2540,14 +2563,11 @@ class D {
   }
 
   test_core() {
-    if (createOptions().strongMode) {
-      // The fake `dart:core` library is always in spec mode, so don't bother
-      // trying to check that it resynthesizes properly; it won't.
-      return;
-    }
+    addLibrary('dart:async');
+    addLibrary('dart:math');
     String uri = 'dart:core';
     LibraryElementImpl original =
-        resolve2(analysisContext2.sourceFactory.forUri(uri));
+        context.computeLibraryElement(context.sourceFactory.forUri(uri));
     LibraryElementImpl resynthesized = resynthesizeLibraryElement(
         encodeLibraryElement(original), uri, original);
     checkLibraryElements(original, resynthesized);
@@ -2703,7 +2723,7 @@ class C {
   }
 
   test_field_propagatedType_final_dep_inPart() {
-    addNamedSource('/a.dart', 'part of lib; final a = 1;');
+    addSource('/a.dart', 'part of lib; final a = 1;');
     checkLibrary('''
 library lib;
 part "a.dart";
@@ -2750,7 +2770,7 @@ f() {}''');
   }
 
   test_function_entry_point_in_part() {
-    addNamedSource('/a.dart', 'part of my.lib; main() {}');
+    addSource('/a.dart', 'part of my.lib; main() {}');
     checkLibrary('library my.lib; part "a.dart";');
   }
 
@@ -2803,12 +2823,12 @@ f() {}''');
   }
 
   test_function_type_parameter() {
-    resetWithOptions(createOptions()..enableGenericMethods = true);
+    prepareAnalysisContext(createOptions()..enableGenericMethods = true);
     checkLibrary('T f<T, U>(U u) => null;');
   }
 
   test_function_type_parameter_with_function_typed_parameter() {
-    resetWithOptions(createOptions()..enableGenericMethods = true);
+    prepareAnalysisContext(createOptions()..enableGenericMethods = true);
     checkLibrary('void f<T, U>(T x(U u)) {}');
   }
 
@@ -2817,7 +2837,7 @@ f() {}''');
   }
 
   test_generic_gClass_gMethodStatic() {
-    resetWithOptions(createOptions()..enableGenericMethods = true);
+    prepareAnalysisContext(createOptions()..enableGenericMethods = true);
     checkLibrary('''
 class C<T, U> {
   static void m<V, W>(V v, W w) {
@@ -2829,7 +2849,8 @@ class C<T, U> {
   }
 
   test_getElement_constructor_named() {
-    ConstructorElement original = resolve2(addSource('class C { C.named(); }'))
+    ConstructorElement original = context
+        .computeLibraryElement(addTestSource('class C { C.named(); }'))
         .getType('C')
         .getNamedConstructor('named');
     expect(original, isNotNull);
@@ -2838,62 +2859,71 @@ class C<T, U> {
   }
 
   test_getElement_constructor_unnamed() {
-    ConstructorElement original =
-        resolve2(addSource('class C { C(); }')).getType('C').unnamedConstructor;
+    ConstructorElement original = context
+        .computeLibraryElement(addTestSource('class C { C(); }'))
+        .getType('C')
+        .unnamedConstructor;
     expect(original, isNotNull);
     ConstructorElement resynthesized = validateGetElement(original);
     compareConstructorElements(resynthesized, original, 'C.constructor');
   }
 
   test_getElement_field() {
-    FieldElement original =
-        resolve2(addSource('class C { var f; }')).getType('C').getField('f');
+    FieldElement original = context
+        .computeLibraryElement(addTestSource('class C { var f; }'))
+        .getType('C')
+        .getField('f');
     expect(original, isNotNull);
     FieldElement resynthesized = validateGetElement(original);
     compareFieldElements(resynthesized, original, 'C.field f');
   }
 
   test_getElement_getter() {
-    PropertyAccessorElement original =
-        resolve2(addSource('class C { get f => null; }'))
-            .getType('C')
-            .getGetter('f');
+    PropertyAccessorElement original = context
+        .computeLibraryElement(addTestSource('class C { get f => null; }'))
+        .getType('C')
+        .getGetter('f');
     expect(original, isNotNull);
     PropertyAccessorElement resynthesized = validateGetElement(original);
     comparePropertyAccessorElements(resynthesized, original, 'C.getter f');
   }
 
   test_getElement_method() {
-    MethodElement original =
-        resolve2(addSource('class C { f() {} }')).getType('C').getMethod('f');
+    MethodElement original = context
+        .computeLibraryElement(addTestSource('class C { f() {} }'))
+        .getType('C')
+        .getMethod('f');
     expect(original, isNotNull);
     MethodElement resynthesized = validateGetElement(original);
     compareMethodElements(resynthesized, original, 'C.method f');
   }
 
   test_getElement_operator() {
-    MethodElement original =
-        resolve2(addSource('class C { operator+(x) => null; }'))
-            .getType('C')
-            .getMethod('+');
+    MethodElement original = context
+        .computeLibraryElement(
+            addTestSource('class C { operator+(x) => null; }'))
+        .getType('C')
+        .getMethod('+');
     expect(original, isNotNull);
     MethodElement resynthesized = validateGetElement(original);
     compareMethodElements(resynthesized, original, 'C.operator+');
   }
 
   test_getElement_setter() {
-    PropertyAccessorElement original =
-        resolve2(addSource('class C { void set f(value) {} }'))
-            .getType('C')
-            .getSetter('f');
+    PropertyAccessorElement original = context
+        .computeLibraryElement(
+            addTestSource('class C { void set f(value) {} }'))
+        .getType('C')
+        .getSetter('f');
     expect(original, isNotNull);
     PropertyAccessorElement resynthesized = validateGetElement(original);
     comparePropertyAccessorElements(resynthesized, original, 'C.setter f');
   }
 
   test_getElement_unit() {
-    Source source = addSource('class C { f() {} }');
-    CompilationUnitElement original = resolve2(source).definingCompilationUnit;
+    Source source = addTestSource('class C { f() {} }');
+    CompilationUnitElement original =
+        context.computeLibraryElement(source).definingCompilationUnit;
     expect(original, isNotNull);
     CompilationUnitElement resynthesized = validateGetElement(original);
     compareCompilationUnitElements(resynthesized, original);
@@ -3417,7 +3447,7 @@ get g {
   }
 
   test_metadata_partDirective() {
-    addNamedSource('/foo.dart', 'part of L;');
+    addSource('/foo.dart', 'part of L;');
     checkLibrary('library L; @a part "foo.dart"; const a = null;');
   }
 
@@ -3492,17 +3522,17 @@ class C {
   }
 
   test_method_type_parameter() {
-    resetWithOptions(createOptions()..enableGenericMethods = true);
+    prepareAnalysisContext(createOptions()..enableGenericMethods = true);
     checkLibrary('class C { T f<T, U>(U u) => null; }');
   }
 
   test_method_type_parameter_in_generic_class() {
-    resetWithOptions(createOptions()..enableGenericMethods = true);
+    prepareAnalysisContext(createOptions()..enableGenericMethods = true);
     checkLibrary('class C<T, U> { V f<V, W>(T t, U u, W w) => null; }');
   }
 
   test_method_type_parameter_with_function_typed_parameter() {
-    resetWithOptions(createOptions()..enableGenericMethods = true);
+    prepareAnalysisContext(createOptions()..enableGenericMethods = true);
     checkLibrary('class C { void f<T, U>(T x(U u)) {} }');
   }
 
@@ -3635,8 +3665,8 @@ void named({x: 1}) {}
   }
 
   test_parts() {
-    addNamedSource('/a.dart', 'part of my.lib;');
-    addNamedSource('/b.dart', 'part of my.lib;');
+    addSource('/a.dart', 'part of my.lib;');
+    addSource('/b.dart', 'part of my.lib;');
     checkLibrary('library my.lib; part "a.dart"; part "b.dart";');
   }
 
@@ -3772,26 +3802,24 @@ bool f() => true;
   }
 
   test_type_reference_lib_to_part() {
-    addNamedSource(
-        '/a.dart', 'part of l; class C {} enum E { v } typedef F();');
+    addSource('/a.dart', 'part of l; class C {} enum E { v } typedef F();');
     checkLibrary('library l; part "a.dart"; C c; E e; F f;');
   }
 
   test_type_reference_part_to_lib() {
-    addNamedSource('/a.dart', 'part of l; C c; E e; F f;');
+    addSource('/a.dart', 'part of l; C c; E e; F f;');
     checkLibrary(
         'library l; part "a.dart"; class C {} enum E { v } typedef F();');
   }
 
   test_type_reference_part_to_other_part() {
-    addNamedSource(
-        '/a.dart', 'part of l; class C {} enum E { v } typedef F();');
-    addNamedSource('/b.dart', 'part of l; C c; E e; F f;');
+    addSource('/a.dart', 'part of l; class C {} enum E { v } typedef F();');
+    addSource('/b.dart', 'part of l; C c; E e; F f;');
     checkLibrary('library l; part "a.dart"; part "b.dart";');
   }
 
   test_type_reference_part_to_part() {
-    addNamedSource('/a.dart',
+    addSource('/a.dart',
         'part of l; class C {} enum E { v } typedef F(); C c; E e; F f;');
     checkLibrary('library l; part "a.dart";');
   }
@@ -3845,22 +3873,20 @@ bool f() => true;
 
   test_type_reference_to_import_part() {
     addLibrarySource('/a.dart', 'library l; part "b.dart";');
-    addNamedSource(
-        '/b.dart', 'part of l; class C {} enum E { v } typedef F();');
+    addSource('/b.dart', 'part of l; class C {} enum E { v } typedef F();');
     checkLibrary('import "a.dart"; C c; E e; F f;');
   }
 
   test_type_reference_to_import_part2() {
     addLibrarySource('/a.dart', 'library l; part "p1.dart"; part "p2.dart";');
-    addNamedSource('/p1.dart', 'part of l; class C1 {}');
-    addNamedSource('/p2.dart', 'part of l; class C2 {}');
+    addSource('/p1.dart', 'part of l; class C1 {}');
+    addSource('/p2.dart', 'part of l; class C2 {}');
     checkLibrary('import "a.dart"; C1 c1; C2 c2;');
   }
 
   test_type_reference_to_import_part_in_subdir() {
     addLibrarySource('/a/b.dart', 'library l; part "c.dart";');
-    addNamedSource(
-        '/a/c.dart', 'part of l; class C {} enum E { v } typedef F();');
+    addSource('/a/c.dart', 'part of l; class C {} enum E { v } typedef F();');
     checkLibrary('import "a/b.dart"; C c; E e; F f;');
   }
 
@@ -3976,18 +4002,18 @@ var x;''');
   }
 
   test_variable_getterInLib_setterInPart() {
-    addNamedSource('/a.dart', 'part of my.lib; void set x(int _) {}');
+    addSource('/a.dart', 'part of my.lib; void set x(int _) {}');
     checkLibrary('library my.lib; part "a.dart"; int get x => 42;');
   }
 
   test_variable_getterInPart_setterInLib() {
-    addNamedSource('/a.dart', 'part of my.lib; int get x => 42;');
+    addSource('/a.dart', 'part of my.lib; int get x => 42;');
     checkLibrary('library my.lib; part "a.dart"; void set x(int _) {}');
   }
 
   test_variable_getterInPart_setterInPart() {
-    addNamedSource('/a.dart', 'part of my.lib; int get x => 42;');
-    addNamedSource('/b.dart', 'part of my.lib; void set x(int _) {}');
+    addSource('/a.dart', 'part of my.lib; int get x => 42;');
+    addSource('/b.dart', 'part of my.lib; void set x(int _) {}');
     checkLibrary('library my.lib; part "a.dart"; part "b.dart";');
   }
 
@@ -4009,7 +4035,7 @@ var x;''');
   }
 
   test_variable_propagatedType_final_dep_inPart() {
-    addNamedSource('/a.dart', 'part of lib; final a = 1;');
+    addSource('/a.dart', 'part of lib; final a = 1;');
     checkLibrary('library lib; part "a.dart"; final b = a / 2;');
   }
 
@@ -4025,8 +4051,8 @@ var x;''');
   }
 
   test_variable_setterInPart_getterInPart() {
-    addNamedSource('/a.dart', 'part of my.lib; void set x(int _) {}');
-    addNamedSource('/b.dart', 'part of my.lib; int get x => 42;');
+    addSource('/a.dart', 'part of my.lib; void set x(int _) {}');
+    addSource('/b.dart', 'part of my.lib; int get x => 42;');
     checkLibrary('library my.lib; part "a.dart"; part "b.dart";');
   }
 
