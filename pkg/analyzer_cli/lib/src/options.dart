@@ -49,6 +49,9 @@ class CommandLineOptions {
   /// analyze function bodies to use summaries during future compilation steps.
   final bool buildSummaryOnlyDiet;
 
+  /// Whether to use exclude informative data from created summaries.
+  final bool buildSummaryExcludeInformative;
+
   /// The path to output the summary when creating summaries in build mode.
   final String buildSummaryOutput;
 
@@ -138,6 +141,8 @@ class CommandLineOptions {
         buildSummaryInputs = args['build-summary-input'],
         buildSummaryOnly = args['build-summary-only'],
         buildSummaryOnlyDiet = args['build-summary-only-diet'],
+        buildSummaryExcludeInformative =
+            args['build-summary-exclude-informative'],
         buildSummaryOutput = args['build-summary-output'],
         buildSuppressExitCode = args['build-suppress-exit-code'],
         dartSdkPath = args['dart-sdk'],
@@ -343,6 +348,11 @@ class CommandLineOptions {
           hide: true)
       ..addFlag('build-summary-only-diet',
           help: 'Diet parse function bodies.',
+          defaultsTo: false,
+          negatable: false,
+          hide: true)
+      ..addFlag('build-summary-exclude-informative',
+          help: 'Exclude @informative information (docs, offsets, etc).',
           defaultsTo: false,
           negatable: false,
           hide: true)

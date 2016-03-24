@@ -94,6 +94,10 @@ class BuildMode {
       }
       // Write the whole package bundle.
       PackageBundleBuilder sdkBundle = assembler.assemble();
+      if (options.buildSummaryExcludeInformative) {
+        sdkBundle.flushInformative();
+        sdkBundle.unlinkedUnitHashes = null;
+      }
       io.File file = new io.File(options.buildSummaryOutput);
       file.writeAsBytesSync(sdkBundle.toBuffer(), mode: io.FileMode.WRITE_ONLY);
     }

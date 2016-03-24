@@ -860,6 +860,7 @@ abstract class UnlinkedClass extends base.SummaryClass {
   /**
    * Code range of the class.
    */
+  @informative
   @Id(13)
   CodeRange get codeRange;
 
@@ -1416,6 +1417,7 @@ abstract class UnlinkedEnum extends base.SummaryClass {
   /**
    * Code range of the enum.
    */
+  @informative
   @Id(5)
   CodeRange get codeRange;
 
@@ -1488,6 +1490,7 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
   /**
    * Code range of the executable.
    */
+  @informative
   @Id(26)
   CodeRange get codeRange;
 
@@ -1877,6 +1880,7 @@ abstract class UnlinkedParam extends base.SummaryClass {
   /**
    * Code range of the parameter.
    */
+  @informative
   @Id(14)
   CodeRange get codeRange;
 
@@ -2133,6 +2137,7 @@ abstract class UnlinkedTypedef extends base.SummaryClass {
   /**
    * Code range of the typedef.
    */
+  @informative
   @Id(7)
   CodeRange get codeRange;
 
@@ -2196,6 +2201,7 @@ abstract class UnlinkedTypeParam extends base.SummaryClass {
   /**
    * Code range of the type parameter.
    */
+  @informative
   @Id(4)
   CodeRange get codeRange;
 
@@ -2230,6 +2236,7 @@ abstract class UnlinkedUnit extends base.SummaryClass {
   /**
    * Code range of the unit.
    */
+  @informative
   @Id(15)
   CodeRange get codeRange;
 
@@ -2344,6 +2351,7 @@ abstract class UnlinkedVariable extends base.SummaryClass {
   /**
    * Code range of the variable.
    */
+  @informative
   @Id(14)
   CodeRange get codeRange;
 

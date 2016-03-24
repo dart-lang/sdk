@@ -189,6 +189,12 @@ class CacheSourceContentBuilder extends Object with _CacheSourceContentMixin imp
       _kind = kind,
       _partUris = partUris;
 
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+  }
+
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "CaSS");
@@ -329,6 +335,12 @@ class CodeRangeBuilder extends Object with _CodeRangeMixin implements idl.CodeRa
   CodeRangeBuilder({int length, int offset})
     : _length = length,
       _offset = offset;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+  }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -540,6 +552,15 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
       _syntheticReturnType = syntheticReturnType,
       _typeArguments = typeArguments;
 
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _syntheticParams?.forEach((b) => b.flushInformative());
+    _syntheticReturnType?.flushInformative();
+    _typeArguments?.forEach((b) => b.flushInformative());
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -714,6 +735,12 @@ class LinkedDependencyBuilder extends Object with _LinkedDependencyMixin impleme
     : _parts = parts,
       _uri = uri;
 
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -847,6 +874,12 @@ class LinkedExportNameBuilder extends Object with _LinkedExportNameMixin impleme
       _kind = kind,
       _name = name,
       _unit = unit;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+  }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -1032,6 +1065,15 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
       _importDependencies = importDependencies,
       _numPrelinkedDependencies = numPrelinkedDependencies,
       _units = units;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _dependencies?.forEach((b) => b.flushInformative());
+    _exportNames?.forEach((b) => b.flushInformative());
+    _units?.forEach((b) => b.flushInformative());
+  }
 
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
@@ -1285,6 +1327,12 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
       _numTypeParameters = numTypeParameters,
       _unit = unit;
 
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -1462,6 +1510,14 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
     : _constCycles = constCycles,
       _references = references,
       _types = types;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _references?.forEach((b) => b.flushInformative());
+    _types?.forEach((b) => b.flushInformative());
+  }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -1650,6 +1706,14 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
       _unlinkedUnitHashes = unlinkedUnitHashes,
       _unlinkedUnits = unlinkedUnits,
       _unlinkedUnitUris = unlinkedUnitUris;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _linkedLibraries?.forEach((b) => b.flushInformative());
+    _unlinkedUnits?.forEach((b) => b.flushInformative());
+  }
 
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
@@ -1914,6 +1978,13 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
       _unitLibraryUris = unitLibraryUris,
       _units = units,
       _unitUnitUris = unitUnitUris;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _units?.forEach((b) => b.flushInformative());
+  }
 
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
@@ -2269,6 +2340,12 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
       _usedNameKinds = usedNameKinds,
       _usedNameOffsets = usedNameOffsets,
       _usedNames = usedNames;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+  }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -2704,6 +2781,22 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
       _supertype = supertype,
       _typeParameters = typeParameters;
 
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _annotations?.forEach((b) => b.flushInformative());
+    _codeRange = null;
+    _documentationComment = null;
+    _executables?.forEach((b) => b.flushInformative());
+    _fields?.forEach((b) => b.flushInformative());
+    _interfaces?.forEach((b) => b.flushInformative());
+    _mixins?.forEach((b) => b.flushInformative());
+    _nameOffset = null;
+    _supertype?.flushInformative();
+    _typeParameters?.forEach((b) => b.flushInformative());
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -3011,6 +3104,14 @@ class UnlinkedCombinatorBuilder extends Object with _UnlinkedCombinatorMixin imp
       _offset = offset,
       _shows = shows;
 
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _end = null;
+    _offset = null;
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -3196,6 +3297,13 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements id
       _operations = operations,
       _references = references,
       _strings = strings;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _references?.forEach((b) => b.flushInformative());
+  }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -3389,6 +3497,14 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
       _kind = kind,
       _name = name;
 
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _arguments?.forEach((b) => b.flushInformative());
+    _expression?.flushInformative();
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -3536,6 +3652,12 @@ class UnlinkedDocumentationCommentBuilder extends Object with _UnlinkedDocumenta
     : _length = length,
       _offset = offset,
       _text = text;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+  }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -3699,6 +3821,17 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.
       _name = name,
       _nameOffset = nameOffset,
       _values = values;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _annotations?.forEach((b) => b.flushInformative());
+    _codeRange = null;
+    _documentationComment = null;
+    _nameOffset = null;
+    _values?.forEach((b) => b.flushInformative());
+  }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -3875,6 +4008,14 @@ class UnlinkedEnumValueBuilder extends Object with _UnlinkedEnumValueMixin imple
     : _documentationComment = documentationComment,
       _name = name,
       _nameOffset = nameOffset;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _documentationComment = null;
+    _nameOffset = null;
+  }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -4354,6 +4495,26 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
       _visibleLength = visibleLength,
       _visibleOffset = visibleOffset;
 
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _annotations?.forEach((b) => b.flushInformative());
+    _codeRange = null;
+    _constantInitializers?.forEach((b) => b.flushInformative());
+    _documentationComment = null;
+    _localFunctions?.forEach((b) => b.flushInformative());
+    _localLabels?.forEach((b) => b.flushInformative());
+    _localVariables?.forEach((b) => b.flushInformative());
+    _nameEnd = null;
+    _nameOffset = null;
+    _parameters?.forEach((b) => b.flushInformative());
+    _periodOffset = null;
+    _redirectedConstructor?.flushInformative();
+    _returnType?.flushInformative();
+    _typeParameters?.forEach((b) => b.flushInformative());
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -4830,6 +4991,16 @@ class UnlinkedExportNonPublicBuilder extends Object with _UnlinkedExportNonPubli
       _uriEnd = uriEnd,
       _uriOffset = uriOffset;
 
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _annotations?.forEach((b) => b.flushInformative());
+    _offset = null;
+    _uriEnd = null;
+    _uriOffset = null;
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -4950,6 +5121,13 @@ class UnlinkedExportPublicBuilder extends Object with _UnlinkedExportPublicMixin
   UnlinkedExportPublicBuilder({List<UnlinkedCombinatorBuilder> combinators, String uri})
     : _combinators = combinators,
       _uri = uri;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _combinators?.forEach((b) => b.flushInformative());
+  }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -5167,6 +5345,18 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
       _uri = uri,
       _uriEnd = uriEnd,
       _uriOffset = uriOffset;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _annotations?.forEach((b) => b.flushInformative());
+    _combinators?.forEach((b) => b.flushInformative());
+    _offset = null;
+    _prefixOffset = null;
+    _uriEnd = null;
+    _uriOffset = null;
+  }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -5396,6 +5586,13 @@ class UnlinkedLabelBuilder extends Object with _UnlinkedLabelMixin implements id
       _isOnSwitchStatement = isOnSwitchStatement,
       _name = name,
       _nameOffset = nameOffset;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _nameOffset = null;
+  }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -5706,6 +5903,20 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
       _visibleLength = visibleLength,
       _visibleOffset = visibleOffset;
 
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _annotations?.forEach((b) => b.flushInformative());
+    _codeRange = null;
+    _defaultValue?.flushInformative();
+    _defaultValueCode = null;
+    _initializer?.flushInformative();
+    _nameOffset = null;
+    _parameters?.forEach((b) => b.flushInformative());
+    _type?.flushInformative();
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -6004,6 +6215,15 @@ class UnlinkedPartBuilder extends Object with _UnlinkedPartMixin implements idl.
       _uriEnd = uriEnd,
       _uriOffset = uriOffset;
 
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _annotations?.forEach((b) => b.flushInformative());
+    _uriEnd = null;
+    _uriOffset = null;
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -6146,6 +6366,13 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
       _name = name,
       _numTypeParameters = numTypeParameters;
 
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _members?.forEach((b) => b.flushInformative());
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -6287,6 +6514,14 @@ class UnlinkedPublicNamespaceBuilder extends Object with _UnlinkedPublicNamespac
       _names = names,
       _parts = parts;
 
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _exports?.forEach((b) => b.flushInformative());
+    _names?.forEach((b) => b.flushInformative());
+  }
+
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "UPNS");
@@ -6421,6 +6656,12 @@ class UnlinkedReferenceBuilder extends Object with _UnlinkedReferenceMixin imple
   UnlinkedReferenceBuilder({String name, int prefixReference})
     : _name = name,
       _prefixReference = prefixReference;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+  }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -6598,6 +6839,19 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
       _parameters = parameters,
       _returnType = returnType,
       _typeParameters = typeParameters;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _annotations?.forEach((b) => b.flushInformative());
+    _codeRange = null;
+    _documentationComment = null;
+    _nameOffset = null;
+    _parameters?.forEach((b) => b.flushInformative());
+    _returnType?.flushInformative();
+    _typeParameters?.forEach((b) => b.flushInformative());
+  }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -6832,6 +7086,16 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
       _codeRange = codeRange,
       _name = name,
       _nameOffset = nameOffset;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _annotations?.forEach((b) => b.flushInformative());
+    _bound?.flushInformative();
+    _codeRange = null;
+    _nameOffset = null;
+  }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -7170,6 +7434,27 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
       _references = references,
       _typedefs = typedefs,
       _variables = variables;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _classes?.forEach((b) => b.flushInformative());
+    _codeRange = null;
+    _enums?.forEach((b) => b.flushInformative());
+    _executables?.forEach((b) => b.flushInformative());
+    _exports?.forEach((b) => b.flushInformative());
+    _imports?.forEach((b) => b.flushInformative());
+    _libraryAnnotations?.forEach((b) => b.flushInformative());
+    _libraryDocumentationComment = null;
+    _libraryNameLength = null;
+    _libraryNameOffset = null;
+    _parts?.forEach((b) => b.flushInformative());
+    _publicNamespace?.flushInformative();
+    _references?.forEach((b) => b.flushInformative());
+    _typedefs?.forEach((b) => b.flushInformative());
+    _variables?.forEach((b) => b.flushInformative());
+  }
 
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
@@ -7687,6 +7972,19 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
       _type = type,
       _visibleLength = visibleLength,
       _visibleOffset = visibleOffset;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _annotations?.forEach((b) => b.flushInformative());
+    _codeRange = null;
+    _constExpr?.flushInformative();
+    _documentationComment = null;
+    _initializer?.flushInformative();
+    _nameOffset = null;
+    _type?.flushInformative();
+  }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
