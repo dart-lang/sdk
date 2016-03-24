@@ -577,7 +577,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
     return reporter.withCurrentElement(library, () {
       return scriptLoader.readScript(readableUri, part).then((Script script) {
         if (script == null) return;
-        return createUnitSync(script, library);
+        createUnitSync(script, library);
       });
     });
   }
