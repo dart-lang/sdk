@@ -77,6 +77,7 @@ analyzer/test/generated/static_type_warning_code_test: Pass, Slow
 analyzer/test/generated/static_type_warning_code_test: Pass, Slow # Issue 21628
 analyzer/test/generated/static_warning_code_test: Pass, Slow # Issue 21628
 analyzer/test/generated/strong_mode_test: Pass, Slow # Issue 21628
+analyzer/test/generated/type_system_test: Pass, Slow # Issue 21628
 analyzer/test/generated/utilities_test: Pass, Slow # Issue 21628
 analyzer/test/src/context/cache_test: Pass, Slow # Issue 21628
 analyzer/test/src/context/context_test: Pass, Timeout # dartbug.com/23658
