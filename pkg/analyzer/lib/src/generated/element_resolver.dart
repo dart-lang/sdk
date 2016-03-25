@@ -1118,7 +1118,8 @@ class ElementResolver extends SimpleAstVisitor<Object> {
 
   @override
   Object visitSuperConstructorInvocation(SuperConstructorInvocation node) {
-    ClassElementImpl enclosingClass = _resolver.enclosingClass;
+    ClassElementImpl enclosingClass =
+        ClassElementImpl.getImpl(_resolver.enclosingClass);
     if (enclosingClass == null) {
       // TODO(brianwilkerson) Report this error.
       return null;

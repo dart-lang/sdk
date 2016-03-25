@@ -198,7 +198,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * The class containing the AST nodes being visited, or `null` if we are not
    * in the scope of a class.
    */
-  ClassElement _enclosingClass;
+  ClassElementImpl _enclosingClass;
 
   /**
    * The method or function that we are currently visiting, or `null` if we are
@@ -420,10 +420,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitClassDeclaration(ClassDeclaration node) {
-    ClassElement outerClass = _enclosingClass;
+    ClassElementImpl outerClass = _enclosingClass;
     try {
       _isInNativeClass = node.nativeClause != null;
-      _enclosingClass = node.element;
+      _enclosingClass = ClassElementImpl.getImpl(node.element);
       ExtendsClause extendsClause = node.extendsClause;
       ImplementsClause implementsClause = node.implementsClause;
       WithClause withClause = node.withClause;
@@ -472,7 +472,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    */
   void visitClassDeclarationIncrementally(ClassDeclaration node) {
     _isInNativeClass = node.nativeClause != null;
-    _enclosingClass = node.element;
+    _enclosingClass = ClassElementImpl.getImpl(node.element);
     // initialize initialFieldElementsMap
     if (_enclosingClass != null) {
       List<FieldElement> fieldElements = _enclosingClass.fields;
@@ -490,9 +490,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   Object visitClassTypeAlias(ClassTypeAlias node) {
     _checkForBuiltInIdentifierAsName(
         node.name, CompileTimeErrorCode.BUILT_IN_IDENTIFIER_AS_TYPEDEF_NAME);
-    ClassElement outerClassElement = _enclosingClass;
+    ClassElementImpl outerClassElement = _enclosingClass;
     try {
-      _enclosingClass = node.element;
+      _enclosingClass = ClassElementImpl.getImpl(node.element);
       ImplementsClause implementsClause = node.implementsClause;
       // Only check for all of the inheritance logic around clauses if there
       // isn't an error code such as "Cannot extend double" already on the
@@ -608,10 +608,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
   @override
   Object visitEnumDeclaration(EnumDeclaration node) {
-    ClassElement outerClass = _enclosingClass;
+    ClassElementImpl outerClass = _enclosingClass;
     try {
       _isInNativeClass = false;
-      _enclosingClass = node.element;
+      _enclosingClass = ClassElementImpl.getImpl(node.element);
       return super.visitEnumDeclaration(node);
     } finally {
       _enclosingClass = outerClass;
@@ -687,17 +687,17 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   @override
+  Object visitForEachStatement(ForEachStatement node) {
+    _checkForInIterable(node);
+    return super.visitForEachStatement(node);
+  }
+
+  @override
   Object visitForStatement(ForStatement node) {
     if (node.condition != null) {
       _checkForNonBoolCondition(node.condition);
     }
     return super.visitForStatement(node);
-  }
-
-  @override
-  Object visitForEachStatement(ForEachStatement node) {
-    _checkForInIterable(node);
-    return super.visitForEachStatement(node);
   }
 
   @override
@@ -1165,6 +1165,25 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (expression != null && !enableAssertMessage) {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.EXTRA_ARGUMENT_TO_ASSERT, expression);
+    }
+  }
+
+  /**
+   * Given a list of [directives] that have the same prefix, generate an error
+   * if there is more than one import and any of those imports is deferred.
+   *
+   * See [CompileTimeErrorCode.SHARED_DEFERRED_PREFIX].
+   */
+  void _checkDeferredPrefixCollision(List<ImportDirective> directives) {
+    int count = directives.length;
+    if (count > 1) {
+      for (int i = 0; i < count; i++) {
+        Token deferredToken = directives[i].deferredKeyword;
+        if (deferredToken != null) {
+          _errorReporter.reportErrorForToken(
+              CompileTimeErrorCode.SHARED_DEFERRED_PREFIX, deferredToken);
+        }
+      }
     }
   }
 
@@ -1729,8 +1748,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       PropertyAccessorElement setter = element.setter;
       SimpleIdentifier fieldName = field.name;
       if (getter != null) {
-        _checkForAllInvalidOverrideErrorCodesForExecutable(getter,
-            ParameterElement.EMPTY_LIST, AstNode.EMPTY_LIST, fieldName);
+        _checkForAllInvalidOverrideErrorCodesForExecutable(
+            getter, ParameterElement.EMPTY_LIST, AstNode.EMPTY_LIST, fieldName);
       }
       if (setter != null) {
         _checkForAllInvalidOverrideErrorCodesForExecutable(
@@ -3614,6 +3633,62 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   /**
+   * Check for a type mis-match between the iterable expression and the
+   * assigned variable in a for-in statement.
+   */
+  void _checkForInIterable(ForEachStatement node) {
+    // Ignore malformed for statements.
+    if (node.identifier == null && node.loopVariable == null) {
+      return;
+    }
+
+    DartType iterableType = getStaticType(node.iterable);
+    if (iterableType.isDynamic) {
+      return;
+    }
+
+    // The type of the loop variable.
+    SimpleIdentifier variable = node.identifier != null
+        ? node.identifier
+        : node.loopVariable.identifier;
+    DartType variableType = getStaticType(variable);
+
+    DartType loopType = node.awaitKeyword != null
+        ? _typeProvider.streamType
+        : _typeProvider.iterableType;
+
+    // Use an explicit string instead of [loopType] to remove the "<E>".
+    String loopTypeName = node.awaitKeyword != null ? "Stream" : "Iterable";
+
+    // The object being iterated has to implement Iterable<T> for some T that
+    // is assignable to the variable's type.
+    // TODO(rnystrom): Move this into mostSpecificTypeArgument()?
+    iterableType = iterableType.resolveToBound(_typeProvider.objectType);
+    DartType bestIterableType =
+        _typeSystem.mostSpecificTypeArgument(iterableType, loopType);
+
+    // Allow it to be a supertype of Iterable<T> (basically just Object) and do
+    // an implicit downcast to Iterable<dynamic>.
+    if (bestIterableType == null) {
+      if (_typeSystem.isSubtypeOf(loopType, iterableType)) {
+        bestIterableType = DynamicTypeImpl.instance;
+      }
+    }
+
+    if (bestIterableType == null) {
+      _errorReporter.reportTypeErrorForNode(
+          StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE,
+          node.iterable,
+          [iterableType, loopTypeName]);
+    } else if (!_typeSystem.isAssignableTo(bestIterableType, variableType)) {
+      _errorReporter.reportTypeErrorForNode(
+          StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
+          node.iterable,
+          [iterableType, loopTypeName, variableType]);
+    }
+  }
+
+  /**
    * Check that the given [typeReference] is not a type reference and that then
    * the [name] is reference to an instance member.
    *
@@ -4138,12 +4213,12 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     if (_returnsWith.isNotEmpty && _returnsWithout.isNotEmpty) {
       for (ReturnStatement returnWith in _returnsWith) {
-        _errorReporter.reportErrorForToken(StaticWarningCode.MIXED_RETURN_TYPES,
-            returnWith.returnKeyword);
+        _errorReporter.reportErrorForToken(
+            StaticWarningCode.MIXED_RETURN_TYPES, returnWith.returnKeyword);
       }
       for (ReturnStatement returnWithout in _returnsWithout) {
-        _errorReporter.reportErrorForToken(StaticWarningCode.MIXED_RETURN_TYPES,
-            returnWithout.returnKeyword);
+        _errorReporter.reportErrorForToken(
+            StaticWarningCode.MIXED_RETURN_TYPES, returnWithout.returnKeyword);
       }
     }
   }
@@ -4174,7 +4249,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * appropriate.
    */
   void _checkForMixinHasNoConstructors(AstNode node) {
-    if ((_enclosingClass as ClassElementImpl).doesMixinLackConstructors) {
+    if (_enclosingClass.doesMixinLackConstructors) {
       ErrorCode errorCode = CompileTimeErrorCode.MIXIN_HAS_NO_CONSTRUCTORS;
       _errorReporter
           .reportErrorForNode(errorCode, node, [_enclosingClass.supertype]);
@@ -4317,8 +4392,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   void _checkForNoDefaultSuperConstructorImplicit(
       ClassDeclaration declaration) {
     // do nothing if mixin errors have already been reported for this class.
-    ClassElementImpl enclosingClass = _enclosingClass;
-    if (enclosingClass.doesMixinLackConstructors) {
+    if (_enclosingClass.doesMixinLackConstructors) {
       return;
     }
     // do nothing if there is explicit constructor
@@ -5172,8 +5246,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return;
     }
     // do nothing if mixin errors have already been reported for this class.
-    ClassElementImpl enclosingClass = _enclosingClass;
-    if (enclosingClass.doesMixinLackConstructors) {
+    if (_enclosingClass.doesMixinLackConstructors) {
       return;
     }
 
@@ -5241,14 +5314,14 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return;
     }
     Element enclosingElement = element.enclosingElement;
+    if (identical(enclosingElement, _enclosingClass)) {
+      return;
+    }
     if (enclosingElement is! ClassElement) {
       return;
     }
     if ((element is MethodElement && !element.isStatic) ||
         (element is PropertyAccessorElement && !element.isStatic)) {
-      return;
-    }
-    if (identical(enclosingElement, _enclosingClass)) {
       return;
     }
     _errorReporter.reportErrorForNode(
@@ -5407,62 +5480,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.WRONG_NUMBER_OF_PARAMETERS_FOR_SETTER,
           setterName);
-    }
-  }
-
-  /**
-   * Check for a type mis-match between the iterable expression and the
-   * assigned variable in a for-in statement.
-   */
-  void _checkForInIterable(ForEachStatement node) {
-    // Ignore malformed for statements.
-    if (node.identifier == null && node.loopVariable == null) {
-      return;
-    }
-
-    DartType iterableType = getStaticType(node.iterable);
-    if (iterableType.isDynamic) {
-      return;
-    }
-
-    // The type of the loop variable.
-    SimpleIdentifier variable = node.identifier != null
-        ? node.identifier
-        : node.loopVariable.identifier;
-    DartType variableType = getStaticType(variable);
-
-    DartType loopType = node.awaitKeyword != null
-        ? _typeProvider.streamType
-        : _typeProvider.iterableType;
-
-    // Use an explicit string instead of [loopType] to remove the "<E>".
-    String loopTypeName = node.awaitKeyword != null ? "Stream" : "Iterable";
-
-    // The object being iterated has to implement Iterable<T> for some T that
-    // is assignable to the variable's type.
-    // TODO(rnystrom): Move this into mostSpecificTypeArgument()?
-    iterableType = iterableType.resolveToBound(_typeProvider.objectType);
-    DartType bestIterableType =
-        _typeSystem.mostSpecificTypeArgument(iterableType, loopType);
-
-    // Allow it to be a supertype of Iterable<T> (basically just Object) and do
-    // an implicit downcast to Iterable<dynamic>.
-    if (bestIterableType == null) {
-      if (_typeSystem.isSubtypeOf(loopType, iterableType)) {
-        bestIterableType = DynamicTypeImpl.instance;
-      }
-    }
-
-    if (bestIterableType == null) {
-      _errorReporter.reportTypeErrorForNode(
-          StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE,
-          node.iterable,
-          [iterableType, loopTypeName]);
-    } else if (!_typeSystem.isAssignableTo(bestIterableType, variableType)) {
-      _errorReporter.reportTypeErrorForNode(
-          StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE,
-          node.iterable,
-          [iterableType, loopTypeName, variableType]);
     }
   }
 
@@ -5688,25 +5705,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       return null;
     }
     return setterParameters[0].type;
-  }
-
-  /**
-   * Given a list of [directives] that have the same prefix, generate an error
-   * if there is more than one import and any of those imports is deferred.
-   *
-   * See [CompileTimeErrorCode.SHARED_DEFERRED_PREFIX].
-   */
-  void _checkDeferredPrefixCollision(List<ImportDirective> directives) {
-    int count = directives.length;
-    if (count > 1) {
-      for (int i = 0; i < count; i++) {
-        Token deferredToken = directives[i].deferredKeyword;
-        if (deferredToken != null) {
-          _errorReporter.reportErrorForToken(
-              CompileTimeErrorCode.SHARED_DEFERRED_PREFIX, deferredToken);
-        }
-      }
-    }
   }
 
   /**

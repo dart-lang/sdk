@@ -679,11 +679,7 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
         visitedClasses.add(this);
       }
       try {
-        ClassElement superclass = supertype.element;
-        if (superclass is ClassElementHandle) {
-          superclass = (superclass as ClassElementHandle).actualElement;
-        }
-        constructorsToForward = (superclass as ClassElementImpl)
+        constructorsToForward = getImpl(supertype.element)
             ._computeMixinAppConstructors(visitedClasses);
       } finally {
         visitedClasses.removeLast();
@@ -745,10 +741,10 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
         _internalLookUpGetter(getterName, library, includeThisClass);
     while (getter != null && getter.isAbstract) {
       Element definingClass = getter.enclosingElement;
-      if (definingClass is! ClassElementImpl) {
+      if (definingClass is! ClassElement) {
         return null;
       }
-      getter = (definingClass as ClassElementImpl)
+      getter = getImpl(definingClass)
           ._internalLookUpGetter(getterName, library, false);
     }
     return getter;
@@ -907,6 +903,18 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
       }
     }
     return false;
+  }
+
+  /**
+   * Return the [ClassElementImpl] of the given [classElement].  May throw an
+   * exception if the [ClassElementImpl] cannot be provided (should not happen
+   * though).
+   */
+  static ClassElementImpl getImpl(ClassElement classElement) {
+    if (classElement is ClassElementHandle) {
+      return getImpl(classElement.actualElement);
+    }
+    return classElement as ClassElementImpl;
   }
 }
 
