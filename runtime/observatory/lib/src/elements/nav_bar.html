@@ -386,7 +386,7 @@
         margin-top: 10px;
         margin-right: 10px;
         padding-right: 25px;
-        width: 250px;
+        width: 500px;
         color: #ddd;
         background: rgba(0,0,0,.6);
         border: solid 2px white;
@@ -428,6 +428,9 @@
       a.boxclose:hover {
         background: rgba(255,255,255,0.5);
       }
+      .stacktrace {
+        white-space: pre
+      }
     </style>
     <template if="{{ isUnexpectedError }}">
       <!-- TODO(turnidge): Add a file-a-bug link to this notification -->
@@ -436,7 +439,7 @@
         <div class="indent">{{ exception.toString() }}</div><br>
         <template if="{{ stacktrace != null }}">
           Stacktrace:<br><br>
-          <div class="indent">{{ stacktrace.toString() }}</div>
+          <div class="indent stacktrace">{{ stacktrace.toString() }}</div>
           <br>
         </template>
         [<a class="link" on-click="{{ goto }}"

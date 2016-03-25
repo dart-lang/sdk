@@ -237,6 +237,20 @@
   </template>
 </polymer-element>
 
+<polymer-element name="cpu-profile-virtual-tree" extends="observatory-element">
+  <template>
+    <link rel="stylesheet" href="css/shared.css">
+    <style>
+    .full {
+      height: 50%;
+      width: 100%;
+    }
+    </style>
+    <div id="tree" class="full"></div>
+  </template>
+</polymer-element>
+
+
 <polymer-element name="cpu-profile-table" extends="observatory-element">
   <template>
     <link rel="stylesheet" href="css/shared.css">
@@ -472,12 +486,7 @@
     <br>
     <stack-trace-tree-config id="stackTraceTreeConfig"></stack-trace-tree-config>
     <br>
-    <div class="content-centered-big">
-      <div class="tableWell shadow">
-        <cpu-profile-tree id="cpuProfileTree"></cpu-profile-tree>
-      </div>
-    </div>
-    <view-footer></view-footer>
+    <cpu-profile-virtual-tree class="shadow" id="cpuProfileVirtualTree"></cpu-profile-virtual-tree>
   </template>
 </polymer-element>
 
