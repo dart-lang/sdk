@@ -6704,7 +6704,12 @@ abstract class SimpleIdentifier extends Identifier {
   /**
    * Initialize a newly created identifier.
    */
-  factory SimpleIdentifier(Token token) = SimpleIdentifierImpl;
+  factory SimpleIdentifier(Token token, {bool isDeclaration: false}) {
+    if (isDeclaration) {
+      return new DeclaredSimpleIdentifier(token);
+    }
+    return new SimpleIdentifierImpl(token);
+  }
 
   /**
    * Return the auxiliary elements associated with this identifier, or `null` if
