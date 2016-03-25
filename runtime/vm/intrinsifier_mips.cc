@@ -1359,8 +1359,9 @@ static void CompareDoubles(Assembler* assembler, RelationOperator rel_op) {
   __ Bind(&is_smi);
   __ SmiUntag(T0);
   __ mtc1(T0, STMP1);
-  __ cvtdw(D1, STMP1);
   __ b(&double_op);
+  __ delay_slot()->cvtdw(D1, STMP1);
+
 
   __ Bind(&fall_through);
 }
@@ -1422,8 +1423,8 @@ static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
   __ Bind(&is_smi);
   __ SmiUntag(T0);
   __ mtc1(T0, STMP1);
-  __ cvtdw(D1, STMP1);
   __ b(&double_op);
+  __ delay_slot()->cvtdw(D1, STMP1);
 
   __ Bind(&fall_through);
 }

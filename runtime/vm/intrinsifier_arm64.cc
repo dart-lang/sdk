@@ -1422,7 +1422,7 @@ static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
   __ Bind(&is_smi);  // Convert R0 to a double.
   __ SmiUntag(R0);
   __ scvtfdx(V1, R0);
-  __ b(&double_op);  // Then do the comparison.
+  __ b(&double_op);
 
   __ Bind(&fall_through);
 }

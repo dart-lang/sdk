@@ -1326,7 +1326,7 @@ static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
     __ SmiUntag(R0);
     __ vmovsr(S0, R0);
     __ vcvtdi(D1, S0);
-    __ b(&double_op);  // Then do the comparison.
+    __ b(&double_op);
     __ Bind(&fall_through);
   }
 }
