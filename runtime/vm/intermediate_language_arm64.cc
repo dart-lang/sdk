@@ -2834,6 +2834,14 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ subs(result, left, Operand(right));
       __ b(slow_path->entry_label(), VS);
       break;
+    case Token::kMUL:
+      __ SmiUntag(TMP, left);
+      __ mul(result, TMP, right);
+      __ smulh(TMP, TMP, right);
+      // TMP: result bits 64..127.
+      __ cmp(TMP, Operand(result, ASR, 63));
+      __ b(slow_path->entry_label(), NE);
+      break;
     case Token::kBIT_OR:
       // Operation may be part of combined smi check.
       if (!combined_smi_check) {

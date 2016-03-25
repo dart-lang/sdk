@@ -2952,6 +2952,14 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ SubuDetectOverflow(result, left, right, CMPRES1);
       __ bltz(CMPRES1, slow_path->entry_label());
       break;
+    case Token::kMUL:
+      __ sra(TMP, left, kSmiTagSize);
+      __ mult(TMP, right);
+      __ mflo(result);
+      __ mfhi(CMPRES2);
+      __ sra(CMPRES1, result, 31);
+      __ bne(CMPRES1, CMPRES2, slow_path->entry_label());
+      break;
     case Token::kBIT_OR:
       // Operation part of combined smi check.
       if (!combined_smi_check) {

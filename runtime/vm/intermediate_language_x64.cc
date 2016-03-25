@@ -2829,6 +2829,7 @@ LocationSummary* CheckedSmiOpInstr::MakeLocationSummary(Zone* zone,
     case Token::kGTE:
     case Token::kADD:
     case Token::kSUB:
+    case Token::kMUL:
       summary->set_out(0, Location::RequiresRegister());
       break;
     case Token::kBIT_OR:
@@ -2875,6 +2876,12 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kSUB:
       __ movq(result, left);
       __ subq(result, right);
+      __ j(OVERFLOW, slow_path->entry_label());
+      break;
+    case Token::kMUL:
+      __ movq(result, left);
+      __ SmiUntag(result);
+      __ imulq(result, right);
       __ j(OVERFLOW, slow_path->entry_label());
       break;
     case Token::kBIT_OR:

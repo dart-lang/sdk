@@ -425,6 +425,30 @@ namespace dart {
   V(_Bigint, _sqrAdd, Bigint_sqrAdd, 372896038)                                \
   V(_Bigint, _estQuotientDigit, Bigint_estQuotientDigit, 540033329)            \
   V(_Montgomery, _mulMod, Montgomery_mulMod, 118781828)                        \
+  V(_Double, >, Double_greaterThan, 1413076759)                                \
+  V(_Double, >=, Double_greaterEqualThan, 1815180096)                          \
+  V(_Double, <, Double_lessThan, 652059836)                                    \
+  V(_Double, <=, Double_lessEqualThan, 512138528)                              \
+  V(_Double, ==, Double_equal, 752327620)                                      \
+  V(_Double, +, Double_add, 854024064)                                         \
+  V(_Double, -, Double_sub, 685132889)                                         \
+  V(_Double, *, Double_mul, 542254390)                                         \
+  V(_Double, /, Double_div, 1145710768)                                        \
+  V(_IntegerImplementation, +, Integer_add, 364498398)                         \
+  V(_IntegerImplementation, -, Integer_sub, 1682674911)                        \
+  V(_IntegerImplementation, *, Integer_mul, 1651115456)                        \
+  V(_IntegerImplementation, ~/, Integer_truncDivide, 108494012)                \
+  V(_IntegerImplementation, unary-, Integer_negate, 1507648892)                \
+  V(_IntegerImplementation, &, Integer_bitAnd, 286231290)                      \
+  V(_IntegerImplementation, |, Integer_bitOr, 1111108792)                      \
+  V(_IntegerImplementation, ^, Integer_bitXor, 1884808537)                     \
+  V(_IntegerImplementation, >, Integer_greaterThan, 293890061)                 \
+  V(_IntegerImplementation, ==, Integer_equal, 4489308)                        \
+  V(_IntegerImplementation, <, Integer_lessThan, 652059836)                    \
+  V(_IntegerImplementation, <=, Integer_lessEqualThan, 512138528)              \
+  V(_IntegerImplementation, >=, Integer_greaterEqualThan, 1815180096)          \
+  V(_IntegerImplementation, <<, Integer_shl, 293751452)                        \
+  V(_IntegerImplementation, >>, Integer_sar, 125091101)                        \
 
 // A list of core functions that internally dispatch based on received id.
 #define POLYMORPHIC_TARGET_LIST(V)                                             \
