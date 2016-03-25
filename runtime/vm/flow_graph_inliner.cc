@@ -14,7 +14,6 @@
 #include "vm/flow_graph_compiler.h"
 #include "vm/flow_graph_type_propagator.h"
 #include "vm/il_printer.h"
-#include "vm/intrinsifier.h"
 #include "vm/jit_optimizer.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
@@ -625,6 +624,15 @@ class CallSiteInliner : public ValueObject {
     if (!function.CanBeInlined()) {
       TRACE_INLINING(THR_Print("     Bailout: not inlinable\n"));
       PRINT_INLINING_TREE("Not inlinable",
+          &call_data->caller, &function, call_data->call);
+      return false;
+    }
+
+    // Don't inline any intrinsified functions in precompiled mode
+    // to reduce code size and make sure we use the intrinsic code.
+    if (FLAG_precompiled_mode && function.is_intrinsic()) {
+      TRACE_INLINING(THR_Print("     Bailout: intrinisic\n"));
+      PRINT_INLINING_TREE("intrinsic",
           &call_data->caller, &function, call_data->call);
       return false;
     }
