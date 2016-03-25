@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer/src/generated/java_engine.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/name_filter.dart';
@@ -507,7 +510,37 @@ class _Prelinker {
     if (sourceUri == null) {
       return relativeUri;
     } else {
-      return Uri.parse(sourceUri).resolve(relativeUri).toString();
+//      return Uri.parse(sourceUri).resolve(relativeUri).toString();
+      // TODO(paulberry): this algorithm is mostly copied from FileBasedSource.
+      // The code should be refactored so it can be shared.
+      Uri containedUri = Uri.parse(relativeUri);
+      if (containedUri.isAbsolute) {
+        return relativeUri;
+      }
+      Uri uri = Uri.parse(sourceUri);
+      try {
+        Uri baseUri = uri;
+        bool isOpaque = uri.isAbsolute && !uri.path.startsWith('/');
+        if (isOpaque) {
+          String scheme = uri.scheme;
+          String part = uri.path;
+          if (scheme == DartUriResolver.DART_SCHEME && part.indexOf('/') < 0) {
+            part = "$part/$part.dart";
+          }
+          baseUri = parseUriWithException("$scheme:/$part");
+        }
+        Uri result = baseUri.resolveUri(containedUri);
+        if (isOpaque) {
+          result = parseUriWithException(
+              "${result.scheme}:${result.path.substring(1)}");
+        }
+        //print('$sourceUri | $relativeUri -> $result');
+        return result.toString();
+      } catch (exception, stackTrace) {
+        throw new AnalysisException(
+            "Could not resolve URI ($containedUri) relative to source ($uri)",
+            new CaughtException(exception, stackTrace));
+      }
     }
   }
 }

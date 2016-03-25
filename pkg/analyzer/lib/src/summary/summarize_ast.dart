@@ -521,7 +521,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     } else {
       b.kind = UnlinkedExecutableKind.functionOrMethod;
     }
-    b.isAbstract = body is EmptyFunctionBody;
+    b.isExternal = isExternal;
+    b.isAbstract = !isExternal && body is EmptyFunctionBody;
     b.name = nameString;
     b.nameOffset = nameOffset;
     b.typeParameters =
@@ -530,7 +531,6 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       b.isStatic = isDeclaredStatic;
     }
     b.returnType = serializeTypeName(returnType);
-    b.isExternal = isExternal;
     bool isSemanticallyStatic = isTopLevel || isDeclaredStatic;
     if (formalParameters != null) {
       b.parameters = formalParameters.parameters
@@ -890,6 +890,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     b.isExternal = node.externalKeyword != null;
     b.documentationComment = serializeDocumentation(node.documentationComment);
     b.annotations = serializeAnnotations(node.metadata);
+    b.codeRange = serializeCodeRange(node);
     if (node.constKeyword != null) {
       Set<String> constructorParameterNames =
           node.parameters.parameters.map((p) => p.identifier.name).toSet();
@@ -913,6 +914,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       b.defaultValueCode = node.defaultValue.toSource();
     }
     b.initializer = serializeInitializerFunction(node.defaultValue);
+    b.codeRange = serializeCodeRange(node);
     return b;
   }
 

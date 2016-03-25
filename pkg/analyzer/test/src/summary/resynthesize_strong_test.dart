@@ -12,11 +12,11 @@ import 'resynthesize_test.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(ResynthStrongTest);
+  runReflectiveTests(ResynthesizeStrongTest);
 }
 
 @reflectiveTest
-class ResynthStrongTest extends ResynthTest {
+class ResynthesizeStrongTest extends ResynthesizeElementTest {
   @override
   AnalysisOptionsImpl createOptions() =>
       super.createOptions()..strongMode = true;

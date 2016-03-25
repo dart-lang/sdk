@@ -3338,6 +3338,7 @@ int foo() => 0;
     expect(parameter.kind, UnlinkedParamKind.named);
     expect(parameter.initializer, isNotNull);
     expect(parameter.defaultValueCode, '42');
+    _assertCodeRange(parameter.codeRange, 13, 10);
     _assertUnlinkedConst(parameter.defaultValue,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
@@ -3369,6 +3370,7 @@ int foo() => 0;
     expect(parameter.kind, UnlinkedParamKind.positional);
     expect(parameter.initializer, isNotNull);
     expect(parameter.defaultValueCode, '42');
+    _assertCodeRange(parameter.codeRange, 13, 11);
     _assertUnlinkedConst(parameter.defaultValue,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
@@ -3413,6 +3415,7 @@ class C {
     expect(executable.nameOffset, text.indexOf('foo'));
     expect(executable.periodOffset, text.indexOf('.foo'));
     expect(executable.nameEnd, text.indexOf('()'));
+    _assertCodeRange(executable.codeRange, 10, 8);
   }
 
   test_constructor_non_const() {
@@ -4521,6 +4524,14 @@ get g { // 1
     expect(executable.isExternal, false);
   }
 
+  test_executable_operator_abstract() {
+    UnlinkedExecutable executable =
+        serializeClassText('class C { C operator+(C c); }', allowErrors: true)
+            .executables[0];
+    expect(executable.isAbstract, true);
+    expect(executable.isExternal, false);
+  }
+
   test_executable_operator_equal() {
     UnlinkedExecutable executable = serializeClassText(
             'class C { bool operator==(Object other) => false; }')
@@ -4532,6 +4543,7 @@ get g { // 1
     UnlinkedExecutable executable =
         serializeClassText('class C { external C operator+(C c); }')
             .executables[0];
+    expect(executable.isAbstract, false);
     expect(executable.isExternal, true);
   }
 
@@ -4677,6 +4689,7 @@ int foo(int a, String b) => 0;
     expect(param.kind, UnlinkedParamKind.named);
     expect(param.initializer, isNotNull);
     expect(param.defaultValueCode, '42');
+    _assertCodeRange(param.codeRange, 3, 5);
     _assertUnlinkedConst(param.defaultValue,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
@@ -4696,6 +4709,7 @@ int foo(int a, String b) => 0;
     expect(param.kind, UnlinkedParamKind.positional);
     expect(param.initializer, isNotNull);
     expect(param.defaultValueCode, '42');
+    _assertCodeRange(param.codeRange, 3, 6);
     _assertUnlinkedConst(param.defaultValue,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
