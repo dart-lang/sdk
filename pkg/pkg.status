@@ -52,6 +52,7 @@ analyzer/test/enum_test: Slow, Pass, Fail # Issue 21323
 analyzer/test/non_hint_code_test: Pass, Slow # Issue 21628
 analyzer/test/strong_mode_test: Pass, Slow # Issue 21628
 analyzer/test/generated/all_the_rest_test: Pass, Slow # Issue 21628
+analyzer/test/generated/checked_mode_compile_time_error_code_test: Pass, Slow # Issue 21628
 analyzer/test/generated/ast_test: Pass, Slow # Issue 21628
 analyzer/test/generated/compile_time_error_code_test: Pass, Slow
 analyzer/test/generated/compile_time_error_code_test: Pass, Slow # Issue 21628
@@ -84,6 +85,7 @@ analyzer/test/src/context/context_test: Pass, Timeout # dartbug.com/23658
 analyzer/test/src/dart/ast/utilities_test: Pass, Slow # Issue 24914
 analyzer/test/src/dart/constant/evaluation_test: Pass, Slow # Issue 24914
 analyzer/test/src/dart/element/element_test: Pass, Slow # Issue 24914
+analyzer/test/src/summary/incremental_cache_test: Pass, Slow # Issue 24914
 analyzer/test/src/summary/index_unit_test: Pass, Slow # Issue 24914
 analyzer/test/src/summary/prelinker_test: Pass, Slow # Issue 24914
 analyzer/test/src/summary/resynthesize_strong_test: Pass, Slow
