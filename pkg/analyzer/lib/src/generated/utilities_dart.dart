@@ -21,6 +21,9 @@ import 'package:analyzer/src/generated/source.dart';
  *     resolveRelativeUri(package:a/b.dart, ../c.dart) -> package:a/c.dart
  */
 Uri resolveRelativeUri(Uri baseUri, Uri containedUri) {
+  if (containedUri.isAbsolute) {
+    return containedUri;
+  }
   Uri origBaseUri = baseUri;
   try {
     bool isOpaque = baseUri.isAbsolute && !baseUri.path.startsWith('/');
