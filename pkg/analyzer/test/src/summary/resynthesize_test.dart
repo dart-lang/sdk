@@ -19,6 +19,7 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/resolver.dart'
     show Namespace, TypeProvider;
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/testing/ast_factory.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -29,6 +30,7 @@ import 'package:unittest/unittest.dart';
 import '../../generated/test_support.dart';
 import '../../reflective_tests.dart';
 import '../abstract_single_unit.dart';
+import '../context/abstract_context.dart';
 import 'summary_common.dart' show canonicalize;
 
 main() {
@@ -111,8 +113,8 @@ class ResynthesizeElementTest extends ResynthesizeTest {
         print('Linked $path: ${JSON.encode(canonicalize(lib))}');
       });
     }
-    return new TestSummaryResynthesizer(null, context, unlinkedSummaries,
-        linkedSummaries);
+    return new TestSummaryResynthesizer(
+        null, context, unlinkedSummaries, linkedSummaries);
   }
 
   /**
@@ -1148,6 +1150,8 @@ abstract class ResynthesizeTest extends AbstractSingleUnitTest {
     checkPossibleLocalElements(resynthesized, original);
   }
 
+  DartSdk createDartSdk() => AbstractContextTest.SHARED_MOCK_SDK;
+
   /**
    * Determine the analysis options that should be used for this test.
    */
@@ -1213,8 +1217,8 @@ abstract class ResynthesizeTest extends AbstractSingleUnitTest {
         print('Linked $path: ${JSON.encode(canonicalize(lib))}');
       });
     }
-    return new TestSummaryResynthesizer(null, context, unlinkedSummaries,
-        linkedSummaries);
+    return new TestSummaryResynthesizer(
+        null, context, unlinkedSummaries, linkedSummaries);
   }
 
   fail_library_hasExtUri() {
