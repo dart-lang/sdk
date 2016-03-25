@@ -1969,7 +1969,6 @@ set g(int x) => 42;
     computeLibrarySourceErrors(source);
     assertErrors(source, [
       StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
-      StaticTypeWarningCode.RETURN_OF_INVALID_TYPE
     ]);
     verify([source]);
   }

@@ -642,7 +642,13 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       DartType expectedReturnType = functionType == null
           ? DynamicTypeImpl.instance
           : functionType.returnType;
-      _checkForReturnOfInvalidType(node.expression, expectedReturnType);
+      bool isSetterWithImplicitReturn =
+          _enclosingFunction.hasImplicitReturnType &&
+          _enclosingFunction is PropertyAccessorElement &&
+          (_enclosingFunction as PropertyAccessorElement).isSetter;
+      if (!isSetterWithImplicitReturn) {
+        _checkForReturnOfInvalidType(node.expression, expectedReturnType);
+      }
       return super.visitExpressionFunctionBody(node);
     } finally {
       _inAsync = wasInAsync;
