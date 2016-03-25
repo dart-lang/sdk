@@ -163,12 +163,6 @@ class InSummarySource extends Source {
   bool exists() => true;
 
   @override
-  Uri resolveRelativeUri(Uri relativeUri) {
-    Uri baseUri = uri;
-    return baseUri.resolveUri(relativeUri);
-  }
-
-  @override
   String toString() => uri.toString();
 }
 

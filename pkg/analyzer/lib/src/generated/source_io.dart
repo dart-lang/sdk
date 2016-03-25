@@ -11,6 +11,7 @@ import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 
 export 'package:analyzer/src/generated/source.dart';
 
@@ -245,32 +246,6 @@ class FileBasedSource extends Source {
 
   @override
   bool exists() => file.isFile();
-
-  @override
-  Uri resolveRelativeUri(Uri containedUri) {
-    try {
-      Uri baseUri = uri;
-      bool isOpaque = uri.isAbsolute && !uri.path.startsWith('/');
-      if (isOpaque) {
-        String scheme = uri.scheme;
-        String part = uri.path;
-        if (scheme == DartUriResolver.DART_SCHEME && part.indexOf('/') < 0) {
-          part = "$part/$part.dart";
-        }
-        baseUri = parseUriWithException("$scheme:/$part");
-      }
-      Uri result = baseUri.resolveUri(containedUri);
-      if (isOpaque) {
-        result = parseUriWithException(
-            "${result.scheme}:${result.path.substring(1)}");
-      }
-      return result;
-    } catch (exception, stackTrace) {
-      throw new AnalysisException(
-          "Could not resolve URI ($containedUri) relative to source ($uri)",
-          new CaughtException(exception, stackTrace));
-    }
-  }
 
   @override
   String toString() {

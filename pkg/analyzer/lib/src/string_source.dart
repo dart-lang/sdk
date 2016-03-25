@@ -64,8 +64,5 @@ class StringSource extends Source {
   bool exists() => true;
 
   @override
-  Uri resolveRelativeUri(Uri relativeUri) => uri.resolveUri(relativeUri);
-
-  @override
   String toString() => 'StringSource ($fullName)';
 }

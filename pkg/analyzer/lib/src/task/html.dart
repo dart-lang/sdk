@@ -88,10 +88,6 @@ class DartScript implements Source {
 
   @override
   bool exists() => source.exists();
-
-  @override
-  Uri resolveRelativeUri(Uri relativeUri) =>
-      throw new StateError('resolveRelativeUri not supported for scripts');
 }
 
 /**

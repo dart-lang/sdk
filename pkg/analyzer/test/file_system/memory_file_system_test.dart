@@ -11,6 +11,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/memory_file_system.dart';
 import 'package:analyzer/src/generated/engine.dart' show TimestampedData;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 import 'package:watcher/watcher.dart';
@@ -402,14 +403,14 @@ class MemoryFileSourceExistingTest {
   }
 
   void test_resolveRelative() {
-    Uri relative = source.resolveRelativeUri(new Uri.file('bar/baz.dart'));
+    Uri relative = resolveRelativeUri(source.uri, new Uri.file('bar/baz.dart'));
     expect(relative.path, '/foo/bar/baz.dart');
   }
 
   void test_resolveRelative_dart() {
     File file = provider.newFile('/sdk/lib/core/core.dart', '');
     Source source = file.createSource(Uri.parse('dart:core'));
-    Uri resolved = source.resolveRelativeUri(Uri.parse('int.dart'));
+    Uri resolved = resolveRelativeUri(source.uri, Uri.parse('int.dart'));
     expect(resolved.toString(), 'dart:core/int.dart');
   }
 
@@ -451,7 +452,7 @@ class MemoryFileSourceNotExistingTest {
   }
 
   void test_resolveRelative() {
-    Uri relative = source.resolveRelativeUri(new Uri.file('bar/baz.dart'));
+    Uri relative = resolveRelativeUri(source.uri, new Uri.file('bar/baz.dart'));
     expect(relative.path, '/foo/bar/baz.dart');
   }
 

@@ -54,6 +54,7 @@ main() {
   runReflectiveTests(ExitDetectorTest2);
   runReflectiveTests(FileBasedSourceTest);
   runReflectiveTests(FileUriResolverTest);
+  runReflectiveTests(ResolveRelativeUriTest);
   runReflectiveTests(SDKLibrariesReaderTest);
   runReflectiveTests(UriKindTest);
 }
@@ -4055,38 +4056,6 @@ class FileBasedSourceTest {
     expect(source.exists(), isFalse);
   }
 
-  void test_resolveRelative_dart_fileName() {
-    JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
-    FileBasedSource source =
-        new FileBasedSource(file, parseUriWithException("dart:test"));
-    expect(source, isNotNull);
-    Uri relative = source.resolveRelativeUri(parseUriWithException("lib.dart"));
-    expect(relative, isNotNull);
-    expect(relative.toString(), "dart:test/lib.dart");
-  }
-
-  void test_resolveRelative_dart_filePath() {
-    JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
-    FileBasedSource source =
-        new FileBasedSource(file, parseUriWithException("dart:test"));
-    expect(source, isNotNull);
-    Uri relative =
-        source.resolveRelativeUri(parseUriWithException("c/lib.dart"));
-    expect(relative, isNotNull);
-    expect(relative.toString(), "dart:test/c/lib.dart");
-  }
-
-  void test_resolveRelative_dart_filePathWithParent() {
-    JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
-    FileBasedSource source = new FileBasedSource(
-        file, parseUriWithException("dart:test/b/test.dart"));
-    expect(source, isNotNull);
-    Uri relative =
-        source.resolveRelativeUri(parseUriWithException("../c/lib.dart"));
-    expect(relative, isNotNull);
-    expect(relative.toString(), "dart:test/c/lib.dart");
-  }
-
   void test_resolveRelative_file_fileName() {
     if (OSUtilities.isWindows()) {
       // On Windows, the URI that is produced includes a drive letter,
@@ -4097,7 +4066,8 @@ class FileBasedSourceTest {
     JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
     FileBasedSource source = new FileBasedSource(file);
     expect(source, isNotNull);
-    Uri relative = source.resolveRelativeUri(parseUriWithException("lib.dart"));
+    Uri relative =
+        resolveRelativeUri(source.uri, parseUriWithException("lib.dart"));
     expect(relative, isNotNull);
     expect(relative.toString(), "file:///a/b/lib.dart");
   }
@@ -4113,7 +4083,7 @@ class FileBasedSourceTest {
     FileBasedSource source = new FileBasedSource(file);
     expect(source, isNotNull);
     Uri relative =
-        source.resolveRelativeUri(parseUriWithException("c/lib.dart"));
+        resolveRelativeUri(source.uri, parseUriWithException("c/lib.dart"));
     expect(relative, isNotNull);
     expect(relative.toString(), "file:///a/b/c/lib.dart");
   }
@@ -4128,51 +4098,9 @@ class FileBasedSourceTest {
     FileBasedSource source = new FileBasedSource(file);
     expect(source, isNotNull);
     Uri relative =
-        source.resolveRelativeUri(parseUriWithException("../c/lib.dart"));
+        resolveRelativeUri(source.uri, parseUriWithException("../c/lib.dart"));
     expect(relative, isNotNull);
     expect(relative.toString(), "file:///a/c/lib.dart");
-  }
-
-  void test_resolveRelative_package_fileName() {
-    JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
-    FileBasedSource source =
-        new FileBasedSource(file, parseUriWithException("package:b/test.dart"));
-    expect(source, isNotNull);
-    Uri relative = source.resolveRelativeUri(parseUriWithException("lib.dart"));
-    expect(relative, isNotNull);
-    expect(relative.toString(), "package:b/lib.dart");
-  }
-
-  void test_resolveRelative_package_fileNameWithoutPackageName() {
-    JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
-    FileBasedSource source =
-        new FileBasedSource(file, parseUriWithException("package:test.dart"));
-    expect(source, isNotNull);
-    Uri relative = source.resolveRelativeUri(parseUriWithException("lib.dart"));
-    expect(relative, isNotNull);
-    expect(relative.toString(), "package:lib.dart");
-  }
-
-  void test_resolveRelative_package_filePath() {
-    JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
-    FileBasedSource source =
-        new FileBasedSource(file, parseUriWithException("package:b/test.dart"));
-    expect(source, isNotNull);
-    Uri relative =
-        source.resolveRelativeUri(parseUriWithException("c/lib.dart"));
-    expect(relative, isNotNull);
-    expect(relative.toString(), "package:b/c/lib.dart");
-  }
-
-  void test_resolveRelative_package_filePathWithParent() {
-    JavaFile file = FileUtilities2.createFile("/a/b/test.dart");
-    FileBasedSource source = new FileBasedSource(
-        file, parseUriWithException("package:a/b/test.dart"));
-    expect(source, isNotNull);
-    Uri relative =
-        source.resolveRelativeUri(parseUriWithException("../c/lib.dart"));
-    expect(relative, isNotNull);
-    expect(relative.toString(), "package:a/c/lib.dart");
   }
 
   void test_system() {
@@ -4217,6 +4145,60 @@ class FileUriResolverTest {
         resolver.restoreAbsolute(
             new NonExistingSource(source.fullName, null, null)),
         uri);
+  }
+}
+
+@reflectiveTest
+class ResolveRelativeUriTest {
+  void test_resolveRelative_dart_fileName() {
+    Uri uri = parseUriWithException("dart:test");
+    Uri relative = resolveRelativeUri(uri, parseUriWithException("lib.dart"));
+    expect(relative, isNotNull);
+    expect(relative.toString(), "dart:test/lib.dart");
+  }
+
+  void test_resolveRelative_dart_filePath() {
+    Uri uri = parseUriWithException("dart:test");
+    Uri relative = resolveRelativeUri(uri, parseUriWithException("c/lib.dart"));
+    expect(relative, isNotNull);
+    expect(relative.toString(), "dart:test/c/lib.dart");
+  }
+
+  void test_resolveRelative_dart_filePathWithParent() {
+    Uri uri = parseUriWithException("dart:test/b/test.dart");
+    Uri relative =
+        resolveRelativeUri(uri, parseUriWithException("../c/lib.dart"));
+    expect(relative, isNotNull);
+    expect(relative.toString(), "dart:test/c/lib.dart");
+  }
+
+  void test_resolveRelative_package_fileName() {
+    Uri uri = parseUriWithException("package:b/test.dart");
+    Uri relative = resolveRelativeUri(uri, parseUriWithException("lib.dart"));
+    expect(relative, isNotNull);
+    expect(relative.toString(), "package:b/lib.dart");
+  }
+
+  void test_resolveRelative_package_fileNameWithoutPackageName() {
+    Uri uri = parseUriWithException("package:test.dart");
+    Uri relative = resolveRelativeUri(uri, parseUriWithException("lib.dart"));
+    expect(relative, isNotNull);
+    expect(relative.toString(), "package:lib.dart");
+  }
+
+  void test_resolveRelative_package_filePath() {
+    Uri uri = parseUriWithException("package:b/test.dart");
+    Uri relative = resolveRelativeUri(uri, parseUriWithException("c/lib.dart"));
+    expect(relative, isNotNull);
+    expect(relative.toString(), "package:b/c/lib.dart");
+  }
+
+  void test_resolveRelative_package_filePathWithParent() {
+    Uri uri = parseUriWithException("package:a/b/test.dart");
+    Uri relative =
+        resolveRelativeUri(uri, parseUriWithException("../c/lib.dart"));
+    expect(relative, isNotNull);
+    expect(relative.toString(), "package:a/c/lib.dart");
   }
 }
 
