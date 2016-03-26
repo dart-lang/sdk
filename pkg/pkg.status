@@ -54,7 +54,7 @@ analyzer/test/strong_mode_test: Pass, Slow # Issue 21628
 analyzer/test/generated/all_the_rest_test: Pass, Slow # Issue 21628
 analyzer/test/generated/checked_mode_compile_time_error_code_test: Pass, Slow # Issue 21628
 analyzer/test/generated/ast_test: Pass, Slow # Issue 21628
-analyzer/test/generated/compile_time_error_code_test: Pass, Slow
+analyzer/test/generated/checked_mode_compile_time_error_code_test: Pass, Slow # Issue 21628
 analyzer/test/generated/compile_time_error_code_test: Pass, Slow # Issue 21628
 analyzer/test/generated/constant_test: Pass, Slow # Issue 24914
 analyzer/test/generated/declaration_resolver_test: Pass, Slow # Issue 24914
@@ -82,12 +82,14 @@ analyzer/test/generated/type_system_test: Pass, Slow # Issue 21628
 analyzer/test/generated/utilities_test: Pass, Slow # Issue 21628
 analyzer/test/src/context/cache_test: Pass, Slow # Issue 21628
 analyzer/test/src/context/context_test: Pass, Timeout # dartbug.com/23658
+analyzer/test/src/context/declared_variables_test: Pass, Slow # Issue 21628
 analyzer/test/src/dart/ast/utilities_test: Pass, Slow # Issue 24914
 analyzer/test/src/dart/constant/evaluation_test: Pass, Slow # Issue 24914
 analyzer/test/src/dart/element/element_test: Pass, Slow # Issue 24914
 analyzer/test/src/summary/incremental_cache_test: Pass, Slow # Issue 24914
 analyzer/test/src/summary/index_unit_test: Pass, Slow # Issue 24914
 analyzer/test/src/summary/prelinker_test: Pass, Slow # Issue 24914
+analyzer/test/src/summary/resynthesize_ast_test: Pass, Slow
 analyzer/test/src/summary/resynthesize_strong_test: Pass, Slow
 analyzer/test/src/summary/resynthesize_test: Pass, Slow
 analyzer/test/src/summary/summary_sdk_test: Pass, Slow # Issue 24914
