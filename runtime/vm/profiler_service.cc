@@ -2539,7 +2539,7 @@ const char* ProfileTrieWalker::CurrentToken() {
     return NULL;
   }
   ProfileFunction* func = profile_->GetFunction(current_->table_index());
-  const Function& function = Function::Handle(func->function()->raw());
+  const Function& function = *(func->function());
   if (function.IsNull()) {
     // No function.
     return NULL;
