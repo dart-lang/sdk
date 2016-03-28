@@ -502,7 +502,7 @@ class Isolate : public BaseIsolate {
     AtomicOperations::DecrementBy(&top_level_parsing_count_, 1);
   }
 
-  static const uint32_t kInvalidGen = 0;
+  static const intptr_t kInvalidGen = 0;
 
   void IncrFieldInvalidationGen() {
     AtomicOperations::IncrementBy(&field_invalidation_gen_, 1);
