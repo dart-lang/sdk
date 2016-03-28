@@ -3449,7 +3449,7 @@ class Parser {
   Statement parseStatement2() {
     List<Label> labels = new List<Label>();
     while (_matchesIdentifier() && _tokenMatches(_peek(), TokenType.COLON)) {
-      labels.add(parseLabel());
+      labels.add(parseLabel(isDeclaration: true));
     }
     Statement statement = _parseNonLabeledStatement();
     if (labels.isEmpty) {
@@ -7743,7 +7743,8 @@ class Parser {
         List<Label> labels = new List<Label>();
         while (
             _matchesIdentifier() && _tokenMatches(_peek(), TokenType.COLON)) {
-          SimpleIdentifier identifier = parseSimpleIdentifier();
+          SimpleIdentifier identifier =
+              parseSimpleIdentifier(isDeclaration: true);
           String label = identifier.token.lexeme;
           if (definedLabels.contains(label)) {
             _reportErrorForToken(
