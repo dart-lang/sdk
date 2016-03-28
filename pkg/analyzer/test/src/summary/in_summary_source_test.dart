@@ -71,4 +71,6 @@ class MockSummaryDataStore implements SummaryDataStore {
             fallbackModePath: uriToFallbackModePath[uri]));
     return new MockSummaryDataStore(null, unlinkedMap, uriToSummary);
   }
+
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

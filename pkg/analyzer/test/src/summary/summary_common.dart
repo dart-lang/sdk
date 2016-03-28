@@ -4749,6 +4749,19 @@ f() { // 1
     }
   }
 
+  test_executable_localVariables_catch_noVariables() {
+    String code = r'''
+f() {
+  try {
+    throw 42;
+  } on int {}
+}
+''';
+    UnlinkedExecutable executable = serializeExecutableText(code);
+    List<UnlinkedVariable> variables = executable.localVariables;
+    expect(variables, isEmpty);
+  }
+
   test_executable_localVariables_empty() {
     UnlinkedExecutable executable = serializeExecutableText(r'''
 f() {
@@ -4796,6 +4809,17 @@ f() { // 1
       _assertVariableVisible(code, i, 'for', '} // 3');
       checkTypeRef(i.type, 'dart:core', 'dart:core', 'int');
     }
+  }
+
+  test_executable_localVariables_forLoop_noVariables() {
+    String code = r'''
+f() {
+  for (; true;) {}
+}
+''';
+    UnlinkedExecutable executable = serializeExecutableText(code);
+    List<UnlinkedVariable> variables = executable.localVariables;
+    expect(variables, isEmpty);
   }
 
   test_executable_localVariables_inConstructor() {

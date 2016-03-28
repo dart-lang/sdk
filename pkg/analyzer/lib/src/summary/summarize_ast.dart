@@ -858,8 +858,10 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   void visitCatchClause(CatchClause node) {
     SimpleIdentifier exception = node.exceptionParameter;
     SimpleIdentifier st = node.stackTraceParameter;
-    serializeDeclaredIdentifier(
-        node, null, null, false, false, node.exceptionType, false, exception);
+    if (exception != null) {
+      serializeDeclaredIdentifier(
+          node, null, null, false, false, node.exceptionType, false, exception);
+    }
     if (st != null) {
       serializeDeclaredIdentifier(
           node, null, null, false, false, null, false, st);
@@ -1033,7 +1035,10 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
 
   @override
   void visitForStatement(ForStatement node) {
-    serializeVariables(node, node.variables, false, null, null, false);
+    VariableDeclarationList declaredVariables = node.variables;
+    if (declaredVariables != null) {
+      serializeVariables(node, declaredVariables, false, null, null, false);
+    }
     super.visitForStatement(node);
   }
 
