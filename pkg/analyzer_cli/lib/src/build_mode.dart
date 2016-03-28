@@ -7,6 +7,7 @@ library analyzer_cli.src.build_mode;
 import 'dart:core' hide Resource;
 import 'dart:io' as io;
 
+import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -17,8 +18,12 @@ import 'package:analyzer/src/generated/sdk_io.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/summary/format.dart';
+import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:analyzer/src/summary/prelink.dart';
+import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
+import 'package:analyzer/task/dart.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
@@ -32,9 +37,14 @@ class BuildMode {
   final AnalysisStats stats;
 
   final ResourceProvider resourceProvider = PhysicalResourceProvider.INSTANCE;
+  SummaryDataStore summaryDataStore;
   InternalAnalysisContext context;
   Map<Uri, JavaFile> uriToFileMap;
   final List<Source> explicitSources = <Source>[];
+
+  PackageBundleAssembler assembler = new PackageBundleAssembler();
+  final Set<Source> processedSources = new Set<Source>();
+  final Map<Uri, UnlinkedUnit> uriToUnit = <Uri, UnlinkedUnit>{};
 
   BuildMode(this.options, this.stats);
 
@@ -84,13 +94,15 @@ class BuildMode {
 
     // Write summary.
     if (options.buildSummaryOutput != null) {
-      PackageBundleAssembler assembler = new PackageBundleAssembler();
       for (Source source in explicitSources) {
         if (context.computeKindOf(source) == SourceKind.LIBRARY) {
           if (options.buildSummaryFallback) {
             assembler.addFallbackLibrary(source);
+          } else if (options.buildSummaryOnlyAst) {
+            _serializeAstBasedSummary(source);
           } else {
-            LibraryElement libraryElement = context.computeLibraryElement(source);
+            LibraryElement libraryElement =
+                context.computeLibraryElement(source);
             assembler.serializeLibraryElement(libraryElement);
           }
         }
@@ -142,8 +154,12 @@ class BuildMode {
     sdk.useSummary = true;
 
     // Read the summaries.
-    SummaryDataStore summaryDataStore =
-        new SummaryDataStore(options.buildSummaryInputs);
+    summaryDataStore = new SummaryDataStore(options.buildSummaryInputs);
+
+    // In AST mode include SDK bundle to avoid parsing SDK sources.
+    if (options.buildSummaryOnlyAst) {
+      summaryDataStore.addBundle(null, sdk.getSummarySdkBundle());
+    }
 
     // Create the context.
     context = AnalysisEngine.instance.createAnalysisContext();
@@ -154,8 +170,8 @@ class BuildMode {
     ]);
 
     // Set context options.
-    Driver.setAnalysisContextOptions(
-        context, options, (AnalysisOptionsImpl contextOptions) {
+    Driver.setAnalysisContextOptions(context, options,
+        (AnalysisOptionsImpl contextOptions) {
       if (options.buildSummaryOnlyDiet) {
         contextOptions.analyzeFunctionBodies = false;
       }
@@ -192,6 +208,55 @@ class BuildMode {
     } else {
       new io.File(outputPath).writeAsStringSync(buffer.toString());
     }
+  }
+
+  /**
+   * Serialize the library with the given [source] into [assembler] using only
+   * its AST, [UnlinkedUnit]s of input packages and ASTs (via [UnlinkedUnit]s)
+   * of package sources.
+   */
+  void _serializeAstBasedSummary(Source source) {
+    Source resolveRelativeUri(String relativeUri) {
+      Source resolvedSource =
+          context.sourceFactory.resolveUri(source, relativeUri);
+      if (resolvedSource == null) {
+        context.sourceFactory.resolveUri(source, relativeUri);
+        throw new StateError('Could not resolve $relativeUri in the context of '
+            '$source (${source.runtimeType})');
+      }
+      return resolvedSource;
+    }
+
+    UnlinkedUnit _getUnlinkedUnit(Source source) {
+      // Maybe an input package contains the source.
+      {
+        String uriStr = source.uri.toString();
+        UnlinkedUnit unlinkedUnit = summaryDataStore.unlinkedMap[uriStr];
+        if (unlinkedUnit != null) {
+          return unlinkedUnit;
+        }
+      }
+      // Parse the source and serialize its AST.
+      return uriToUnit.putIfAbsent(source.uri, () {
+        CompilationUnit unit = context.computeResult(source, PARSED_UNIT);
+        UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
+        assembler.addUnlinkedUnit(source, unlinkedUnit);
+        return unlinkedUnit;
+      });
+    }
+
+    UnlinkedUnit getPart(String relativeUri) {
+      return _getUnlinkedUnit(resolveRelativeUri(relativeUri));
+    }
+
+    UnlinkedPublicNamespace getImport(String relativeUri) {
+      return getPart(relativeUri).publicNamespace;
+    }
+
+    UnlinkedUnitBuilder definingUnit = _getUnlinkedUnit(source);
+    LinkedLibraryBuilder linkedLibrary =
+        prelink(definingUnit, getPart, getImport);
+    assembler.addLinkedLibrary(source.uri.toString(), linkedLibrary);
   }
 
   /**

@@ -45,6 +45,10 @@ class CommandLineOptions {
   /// Whether to skip analysis when creating summaries in build mode.
   final bool buildSummaryOnly;
 
+  /// Whether to create summaries using only ASTs, i.e. don't perform
+  /// resolution.
+  final bool buildSummaryOnlyAst;
+
   /// Whether to use diet parsing, i.e. skip function bodies. We don't need to
   /// analyze function bodies to use summaries during future compilation steps.
   final bool buildSummaryOnlyDiet;
@@ -144,6 +148,7 @@ class CommandLineOptions {
         buildSummaryFallback = args['build-summary-fallback'],
         buildSummaryInputs = args['build-summary-input'],
         buildSummaryOnly = args['build-summary-only'],
+        buildSummaryOnlyAst = args['build-summary-only-ast'],
         buildSummaryOnlyDiet = args['build-summary-only-diet'],
         buildSummaryExcludeInformative =
             args['build-summary-exclude-informative'],
@@ -347,6 +352,11 @@ class CommandLineOptions {
           hide: true)
       ..addFlag('build-summary-only',
           help: 'Disable analysis (only generate summaries).',
+          defaultsTo: false,
+          negatable: false,
+          hide: true)
+      ..addFlag('build-summary-only-ast',
+          help: 'Generate summaries using ASTs.',
           defaultsTo: false,
           negatable: false,
           hide: true)

@@ -282,7 +282,7 @@ class DirectoryBasedDartSdk implements DartSdk {
       SourceFactory factory = new SourceFactory([new DartUriResolver(this)]);
       _analysisContext.sourceFactory = factory;
       if (_useSummary) {
-        PackageBundle sdkBundle = _getSummarySdkBundle();
+        PackageBundle sdkBundle = getSummarySdkBundle();
         if (sdkBundle != null) {
           _analysisContext.resultProvider =
               new SdkSummaryResultProvider(_analysisContext, sdkBundle);
@@ -570,8 +570,10 @@ class DirectoryBasedDartSdk implements DartSdk {
 
   /**
    * Return the [PackageBundle] for this SDK, if it exists, or `null` otherwise.
+   * This method should not be used outside of `analyzer` and `analyzer_cli`
+   * packages.
    */
-  PackageBundle _getSummarySdkBundle() {
+  PackageBundle getSummarySdkBundle() {
     String rootPath = directory.getAbsolutePath();
     bool strongMode = _analysisOptions?.strongMode ?? false;
     String name = strongMode ? 'strong.sum' : 'spec.sum';

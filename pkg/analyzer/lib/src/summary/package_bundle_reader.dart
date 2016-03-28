@@ -192,10 +192,10 @@ class SummaryDataStore {
     summaryPaths.forEach(_fillMaps);
   }
 
-  void _fillMaps(String path) {
-    io.File file = new io.File(path);
-    List<int> buffer = file.readAsBytesSync();
-    PackageBundle bundle = new PackageBundle.fromBuffer(buffer);
+  /**
+   * Add the given [bundle] loaded from the file with the given [path].
+   */
+  void addBundle(String path, PackageBundle bundle) {
     for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
       String uri = bundle.unlinkedUnitUris[i];
       uriToSummaryPath[uri] = path;
@@ -205,6 +205,13 @@ class SummaryDataStore {
       String uri = bundle.linkedLibraryUris[i];
       linkedMap[uri] = bundle.linkedLibraries[i];
     }
+  }
+
+  void _fillMaps(String path) {
+    io.File file = new io.File(path);
+    List<int> buffer = file.readAsBytesSync();
+    PackageBundle bundle = new PackageBundle.fromBuffer(buffer);
+    addBundle(path, bundle);
   }
 }
 
