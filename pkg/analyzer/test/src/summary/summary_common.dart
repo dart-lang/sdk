@@ -3945,6 +3945,27 @@ class D {
     expect(findClass('D').executables[0].constCycleSlot, 0);
   }
 
+  test_constructorCycle_referenceToClass() {
+    serializeLibraryText('''
+class C {
+  final x;
+  const C() : x = C;
+}
+''');
+    checkConstCycle('C', hasCycle: false);
+  }
+
+  test_constructorCycle_referenceToEnum() {
+    serializeLibraryText('''
+enum E { v }
+class C {
+  final x;
+  const C() : x = E;
+}
+''');
+    checkConstCycle('C', hasCycle: false);
+  }
+
   test_constructorCycle_referenceToEnumValue() {
     serializeLibraryText('''
 enum E { v }
@@ -3965,6 +3986,110 @@ class C {
 }
 ''');
     checkConstCycle('C', hasCycle: false);
+  }
+
+  test_constructorCycle_referenceToGenericParameter() {
+    // It's not valid Dart but we need to make sure it doesn't crash
+    // summary generation.
+    serializeLibraryText(
+        '''
+class C<T> {
+  final x;
+  const C() : x = T;
+}
+''',
+        allowErrors: true);
+    checkConstCycle('C', hasCycle: false);
+  }
+
+  test_constructorCycle_referenceToStaticMethod_inOtherClass() {
+    serializeLibraryText('''
+class C {
+  final x;
+  const C() : x = D.f;
+}
+class D {
+  static void f() {}
+}
+''');
+    checkConstCycle('C', hasCycle: false);
+  }
+
+  test_constructorCycle_referenceToStaticMethod_inSameClass() {
+    serializeLibraryText('''
+class C {
+  final x;
+  static void f() {}
+  const C() : x = f;
+}
+''');
+    checkConstCycle('C', hasCycle: false);
+  }
+
+  test_constructorCycle_referenceToTopLevelFunction() {
+    serializeLibraryText('''
+void f() {}
+class C {
+  final x;
+  const C() : x = f;
+}
+''');
+    checkConstCycle('C', hasCycle: false);
+  }
+
+  test_constructorCycle_referenceToTypedef() {
+    serializeLibraryText('''
+typedef F();
+class C {
+  final x;
+  const C() : x = F;
+}
+''');
+    checkConstCycle('C', hasCycle: false);
+  }
+
+  test_constructorCycle_referenceToUndefinedName() {
+    // It's not valid Dart but we need to make sure it doesn't crash
+    // summary generation.
+    serializeLibraryText(
+        '''
+class C {
+  final x;
+  const C() : x = foo;
+}
+''',
+        allowErrors: true);
+    checkConstCycle('C', hasCycle: false);
+  }
+
+  test_constructorCycle_referenceToUndefinedName_viaPrefix() {
+    // It's not valid Dart but we need to make sure it doesn't crash
+    // summary generation.
+    addNamedSource('/a.dart', '');
+    serializeLibraryText(
+        '''
+import 'a.dart' as a;
+class C {
+  final x;
+  const C() : x = a.foo;
+}
+''',
+        allowErrors: true);
+  }
+
+  test_constructorCycle_referenceToUndefinedName_viaPrefix_nonExistentFile() {
+    // It's not valid Dart but we need to make sure it doesn't crash
+    // summary generation.
+    allowMissingFiles = true;
+    serializeLibraryText(
+        '''
+import 'a.dart' as a;
+class C {
+  final x;
+  const C() : x = a.foo;
+}
+''',
+        allowErrors: true);
   }
 
   test_constructorCycle_viaFinalField() {
@@ -4122,6 +4247,44 @@ class C {
   const C() : x = y;
 }
 const y = const C();
+''',
+        allowErrors: true);
+    checkConstCycle('C');
+  }
+
+  test_constructorCycle_viaTopLevelVariable_imported() {
+    addNamedSource(
+        '/a.dart',
+        '''
+import 'test.dart';
+const y = const C();
+    ''');
+    serializeLibraryText(
+        '''
+import 'a.dart';
+class C {
+  final x;
+  const C() : x = y;
+}
+''',
+        allowErrors: true);
+    checkConstCycle('C');
+  }
+
+  test_constructorCycle_viaTopLevelVariable_importedViaPrefix() {
+    addNamedSource(
+        '/a.dart',
+        '''
+import 'test.dart';
+const y = const C();
+    ''');
+    serializeLibraryText(
+        '''
+import 'a.dart' as a;
+class C {
+  final x;
+  const C() : x = a.y;
+}
 ''',
         allowErrors: true);
     checkConstCycle('C');

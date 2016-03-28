@@ -130,8 +130,10 @@ abstract class ClassElementForLink
 
   @override
   ConstVariableNode get asConstVariable {
-    // TODO(paulberry): implement.
-    throw new UnimplementedError();
+    // When a class name is used as a constant variable, it doesn't depend on
+    // anything, so it is not necessary to include it in the constant
+    // dependency graph.
+    return null;
   }
 
   @override
@@ -441,14 +443,17 @@ abstract class CompilationUnitElementForLink implements CompilationUnitElement {
       LinkedReference linkedReference = _linkedUnit.references[index];
       String name = unlinkedReference.name;
       int containingReference = unlinkedReference.prefixReference;
-      if (containingReference != 0) {
+      if (containingReference != 0 &&
+          _linkedUnit.references[containingReference].kind !=
+              ReferenceKind.prefix) {
         _references[index] =
             _resolveRef(containingReference).getContainedName(name);
       } else if (linkedReference.dependency == 0) {
         _references[index] = enclosingElement.getContainedName(name);
       } else {
-        // TODO(paulberry): implement.
-        throw new UnimplementedError();
+        LibraryElementForLink dependency =
+            enclosingElement._getDependency(linkedReference.dependency);
+        _references[index] = dependency.getContainedName(name);
       }
     }
     return _references[index];
@@ -1107,8 +1112,11 @@ abstract class LibraryElementForLink<
   List<UnitElement> _units;
   final Map<String, ReferenceableElementForLink> _containedNames =
       <String, ReferenceableElementForLink>{};
+  final List<LibraryElementForLink> _dependencies = <LibraryElementForLink>[];
 
-  LibraryElementForLink(this._linker, this._absoluteUri);
+  LibraryElementForLink(this._linker, this._absoluteUri) {
+    _dependencies.length = _linkedLibrary.dependencies.length;
+  }
 
   @override
   List<UnitElement> get units {
@@ -1153,6 +1161,14 @@ abstract class LibraryElementForLink<
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  /**
+   * Return the [LibraryElement] corresponding to the given dependency [index].
+   */
+  LibraryElementForLink _getDependency(int index) {
+    return _dependencies[index] ??= _linker.getLibrary(resolveRelativeUri(
+        _absoluteUri, Uri.parse(_linkedLibrary.dependencies[index].uri)));
+  }
 
   /**
    * Create a [UnitElement] for one of the library's compilation

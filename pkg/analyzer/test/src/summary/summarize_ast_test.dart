@@ -87,9 +87,8 @@ class LinkedSummarizeAstTest extends Object with SummaryTest {
       }
       return unit;
     }
-    linked =
-        link(<String>[testDartUri.toString()].toSet(), getDependency, getUnit)[
-            testDartUri.toString()];
+    linked = link(uriToUnit.keys.toSet(), getDependency, getUnit)[
+        testDartUri.toString()];
     expect(linked, isNotNull);
     validateLinkedLibrary(linked);
     unlinkedUnits = <UnlinkedUnit>[definingUnit];
