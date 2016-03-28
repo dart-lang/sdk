@@ -16,10 +16,10 @@ abstract class _HashFieldBase {
   // NOTE: When maps are deserialized, their _index and _hashMask is regenerated
   // lazily by _regenerateIndex.
   // TODO(koda): Consider also using null _index for tiny, linear-search tables.
-  Uint32List _index;
+  Uint32List _index = new Uint32List(_HashBase._INITIAL_INDEX_SIZE);
 
   // Cached in-place mask for the hash pattern component. 
-  int _hashMask;
+  int _hashMask = _HashBase._indexSizeToHashMask(_HashBase._INITIAL_INDEX_SIZE);
 
   // Fixed-length list of keys (set) or key/value at even/odd indices (map).
   List _data;
@@ -29,6 +29,11 @@ abstract class _HashFieldBase {
 
   // Number of deleted keys.
   int _deletedKeys = 0;
+
+  // Note: All fields are initialized in a single constructor so that the VM
+  // recognizes they cannot hold null values. This makes a big (20%) performance
+  // difference on some operations.
+  _HashFieldBase(int dataSize) : this._data = new List(dataSize);
 }
 
 // Base class for VM-internal classes; keep in sync with _HashFieldBase.
@@ -352,11 +357,7 @@ class _CompactLinkedIdentityHashMap<K, V> extends _HashFieldBase
          _IdenticalAndIdentityHashCode
     implements LinkedHashMap<K, V> {
 
-  _CompactLinkedIdentityHashMap() {
-    _index = new Uint32List(_HashBase._INITIAL_INDEX_SIZE);
-    _hashMask = _HashBase._indexSizeToHashMask(_HashBase._INITIAL_INDEX_SIZE);
-    _data = new List(_HashBase._INITIAL_INDEX_SIZE);
-  }
+  _CompactLinkedIdentityHashMap() : super(_HashBase._INITIAL_INDEX_SIZE);
 }
 
 class _CompactLinkedCustomHashMap<K, V> extends _HashFieldBase
@@ -375,11 +376,8 @@ class _CompactLinkedCustomHashMap<K, V> extends _HashFieldBase
   V remove(Object o) => _validKey(o) ? super.remove(o) : null;
 
   _CompactLinkedCustomHashMap(this._equality, this._hasher, validKey)
-      : _validKey = (validKey != null) ? validKey : new _TypeTest<K>().test {
-    _index = new Uint32List(_HashBase._INITIAL_INDEX_SIZE);
-    _hashMask = _HashBase._indexSizeToHashMask(_HashBase._INITIAL_INDEX_SIZE);
-    _data = new List(_HashBase._INITIAL_INDEX_SIZE);
-  }
+      : _validKey = (validKey != null) ? validKey : new _TypeTest<K>().test,
+        super(_HashBase._INITIAL_INDEX_SIZE);
 }
 
 // Iterates through _data[_offset + _step], _data[_offset + 2*_step], ...
@@ -436,11 +434,8 @@ class _CompactLinkedHashSet<E> extends _HashFieldBase
     with _HashBase, _OperatorEqualsAndHashCode, SetMixin<E>
     implements LinkedHashSet<E> {
 
-  _CompactLinkedHashSet() {
+  _CompactLinkedHashSet() : super(_HashBase._INITIAL_INDEX_SIZE >> 1) {
     assert(_HashBase._UNUSED_PAIR == 0);
-    _index = new Uint32List(_HashBase._INITIAL_INDEX_SIZE);
-    _hashMask = _HashBase._indexSizeToHashMask(_HashBase._INITIAL_INDEX_SIZE);
-    _data = new List(_HashBase._INITIAL_INDEX_SIZE >> 1);
   }
 
   int get length => _usedData - _deletedKeys;
