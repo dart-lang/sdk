@@ -570,12 +570,19 @@ class ConstConstructorNode extends ConstNode {
       // we'll evaluate calls to this constructor without having to refer to
       // any other constants.  So we don't need to report any dependencies.
     } else {
+      ClassElementForLink superClass = enclosingClass.supertype?.element;
       bool superInvocationFound = false;
       for (UnlinkedConstructorInitializer constructorInitializer
           in constructorElement._unlinkedExecutable.constantInitializers) {
         if (constructorInitializer.kind ==
             UnlinkedConstructorInitializerKind.superInvocation) {
           superInvocationFound = true;
+          if (superClass != null && !superClass.isObject) {
+            ConstructorElementForLink constructor = superClass
+                .getContainedName(constructorInitializer.name)
+                .asConstructor;
+            safeAddDependency(constructor?._constNode);
+          }
         }
         CompilationUnitElementForLink compilationUnit =
             constructorElement.enclosingElement.enclosingElement;
@@ -588,7 +595,6 @@ class ConstConstructorNode extends ConstNode {
       if (!superInvocationFound) {
         // No explicit superconstructor invocation found, so we need to
         // manually insert a reference to the implicit superconstructor.
-        ClassElementForLink superClass = enclosingClass.supertype?.element;
         if (superClass != null && !superClass.isObject) {
           ConstructorElementForLink unnamedConstructor =
               superClass.unnamedConstructor;

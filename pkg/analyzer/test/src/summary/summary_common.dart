@@ -4050,6 +4050,42 @@ class C extends E {
     checkConstCycle('C', hasCycle: false);
   }
 
+  test_constructorCycle_viaSupertype_explicit() {
+    serializeLibraryText('''
+class C {
+  final x;
+  const C() : x = const D();
+  const C.named() : x = const D.named();
+}
+class D extends C {
+  const D() : super();
+  const D.named() : super.named();
+}
+''');
+    checkConstCycle('C');
+    checkConstCycle('C', name: 'named');
+    checkConstCycle('D');
+    checkConstCycle('D', name: 'named');
+  }
+
+  test_constructorCycle_viaSupertype_explicit_undefined() {
+    // It's not valid Dart but we need to make sure it doesn't crash
+    // summary generation.
+    serializeLibraryText(
+        '''
+class C {
+  final x;
+  const C() : x = const D();
+}
+class D extends C {
+  const D() : super.named();
+}
+''',
+        allowErrors: true);
+    checkConstCycle('C', hasCycle: false);
+    checkConstCycle('D', hasCycle: false);
+  }
+
   test_constructorCycle_viaSupertype_withDefaultTypeArgument() {
     serializeLibraryText('''
 class C<T> {
