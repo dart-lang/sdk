@@ -4673,12 +4673,14 @@ f() {
   bbb: switch (42) {
     ccc: case 0:
       break;
+    ddd: default:
+      break;
   }
 }
 ''';
     UnlinkedExecutable executable = serializeExecutableText(code);
     List<UnlinkedLabel> labels = executable.localLabels;
-    expect(labels, hasLength(3));
+    expect(labels, hasLength(4));
     {
       UnlinkedLabel aaa = labels.singleWhere((l) => l.name == 'aaa');
       expect(aaa, isNotNull);
@@ -4693,6 +4695,12 @@ f() {
     }
     {
       UnlinkedLabel ccc = labels.singleWhere((l) => l.name == 'ccc');
+      expect(ccc, isNotNull);
+      expect(ccc.isOnSwitchMember, isTrue);
+      expect(ccc.isOnSwitchStatement, isFalse);
+    }
+    {
+      UnlinkedLabel ccc = labels.singleWhere((l) => l.name == 'ddd');
       expect(ccc, isNotNull);
       expect(ccc.isOnSwitchMember, isTrue);
       expect(ccc.isOnSwitchStatement, isFalse);
@@ -4722,6 +4730,18 @@ get g {
       expect(bbb.isOnSwitchMember, isFalse);
       expect(bbb.isOnSwitchStatement, isFalse);
     }
+  }
+
+  test_executable_localLabels_namedExpressionLabel() {
+    String code = r'''
+f() {
+  foo(p: 42);
+}
+foo({int p}) {}
+''';
+    UnlinkedExecutable executable = serializeExecutableText(code);
+    List<UnlinkedLabel> labels = executable.localLabels;
+    expect(labels, isEmpty);
   }
 
   test_executable_localVariables_catch() {

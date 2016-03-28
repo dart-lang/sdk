@@ -1139,12 +1139,14 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   @override
   void visitLabel(Label node) {
     AstNode parent = node.parent;
-    labels.add(new UnlinkedLabelBuilder(
-        name: node.label.name,
-        nameOffset: node.offset,
-        isOnSwitchMember: parent is SwitchMember,
-        isOnSwitchStatement:
-            parent is LabeledStatement && parent.statement is SwitchStatement));
+    if (parent is! NamedExpression) {
+      labels.add(new UnlinkedLabelBuilder(
+          name: node.label.name,
+          nameOffset: node.offset,
+          isOnSwitchMember: parent is SwitchMember,
+          isOnSwitchStatement: parent is LabeledStatement &&
+              parent.statement is SwitchStatement));
+    }
   }
 
   @override
