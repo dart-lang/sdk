@@ -345,7 +345,8 @@ class CodeChecker extends RecursiveAstVisitor {
       // supertype of it, do an implicit downcast to Iterable<dynamic>. Then
       // we'll do a separate cast of the dynamic element to the variable's type.
       if (elementType == null) {
-        var sequenceType = sequenceInterface.instantiate([DynamicTypeImpl.instance]);
+        var sequenceType =
+            sequenceInterface.instantiate([DynamicTypeImpl.instance]);
 
         if (rules.isSubtypeOf(sequenceType, iterableType)) {
           _recordMessage(DownCast.create(
@@ -636,57 +637,6 @@ class CodeChecker extends RecursiveAstVisitor {
     }
   }
 
-  void _checkFieldAccess(AstNode node, AstNode target, SimpleIdentifier field) {
-    if ((_isDynamicTarget(target) || field.staticElement == null) &&
-        !_isObjectProperty(target, field)) {
-      _recordDynamicInvoke(node, target);
-    }
-    node.visitChildren(this);
-  }
-
-  void _checkReturnOrYield(Expression expression, AstNode node,
-      {bool yieldStar: false}) {
-    var body = node.getAncestor((n) => n is FunctionBody);
-    var type = _getExpectedReturnType(body, yieldStar: yieldStar);
-    if (type == null) {
-      // We have a type mismatch: the async/async*/sync* modifier does
-      // not match the return or yield type.  We should have already gotten an
-      // analyzer error in this case.
-      return;
-    }
-    InterfaceType futureType = typeProvider.futureType;
-    DartType actualType = expression?.staticType;
-    if (body.isAsynchronous &&
-        !body.isGenerator &&
-        actualType is InterfaceType &&
-        actualType.element == futureType.element) {
-      type = futureType.instantiate([type]);
-    }
-    // TODO(vsm): Enforce void or dynamic (to void?) when expression is null.
-    if (expression != null) checkAssignment(expression, type);
-  }
-
-  void _checkRuntimeTypeCheck(AstNode node, TypeName typeName) {
-    var type = getType(typeName);
-    if (!rules.isGroundType(type)) {
-      _recordMessage(new NonGroundTypeCheckInfo(node, type));
-    }
-  }
-
-  void _checkUnary(/*PrefixExpression|PostfixExpression*/ node) {
-    var op = node.operator;
-    if (op.isUserDefinableOperator ||
-        op.type == TokenType.PLUS_PLUS ||
-        op.type == TokenType.MINUS_MINUS) {
-      if (_isDynamicTarget(node.operand)) {
-        _recordDynamicInvoke(node, node.operand);
-      }
-      // For ++ and --, even if it is not dynamic, we still need to check
-      // that the user defined method accepts an `int` as the RHS.
-      // We assume Analyzer has done this already.
-    }
-  }
-
   /// Records a [DownCast] of [expr] from [from] to [to], if there is one.
   ///
   /// If [from] is omitted, uses the static type of [expr].
@@ -736,6 +686,57 @@ class CodeChecker extends RecursiveAstVisitor {
     }
   }
 
+  void _checkFieldAccess(AstNode node, AstNode target, SimpleIdentifier field) {
+    if ((_isDynamicTarget(target) || field.staticElement == null) &&
+        !_isObjectProperty(target, field)) {
+      _recordDynamicInvoke(node, target);
+    }
+    node.visitChildren(this);
+  }
+
+  void _checkReturnOrYield(Expression expression, AstNode node,
+      {bool yieldStar: false}) {
+    FunctionBody body = node.getAncestor((n) => n is FunctionBody);
+    var type = _getExpectedReturnType(body, yieldStar: yieldStar);
+    if (type == null) {
+      // We have a type mismatch: the async/async*/sync* modifier does
+      // not match the return or yield type.  We should have already gotten an
+      // analyzer error in this case.
+      return;
+    }
+    InterfaceType futureType = typeProvider.futureType;
+    DartType actualType = expression?.staticType;
+    if (body.isAsynchronous &&
+        !body.isGenerator &&
+        actualType is InterfaceType &&
+        actualType.element == futureType.element) {
+      type = futureType.instantiate([type]);
+    }
+    // TODO(vsm): Enforce void or dynamic (to void?) when expression is null.
+    if (expression != null) checkAssignment(expression, type);
+  }
+
+  void _checkRuntimeTypeCheck(AstNode node, TypeName typeName) {
+    var type = getType(typeName);
+    if (!rules.isGroundType(type)) {
+      _recordMessage(new NonGroundTypeCheckInfo(node, type));
+    }
+  }
+
+  void _checkUnary(/*PrefixExpression|PostfixExpression*/ node) {
+    var op = node.operator;
+    if (op.isUserDefinableOperator ||
+        op.type == TokenType.PLUS_PLUS ||
+        op.type == TokenType.MINUS_MINUS) {
+      if (_isDynamicTarget(node.operand)) {
+        _recordDynamicInvoke(node, node.operand);
+      }
+      // For ++ and --, even if it is not dynamic, we still need to check
+      // that the user defined method accepts an `int` as the RHS.
+      // We assume Analyzer has done this already.
+    }
+  }
+
   // Produce a coercion which coerces something of type fromT
   // to something of type toT.
   // Returns the error coercion if the types cannot be coerced
@@ -749,7 +750,8 @@ class CodeChecker extends RecursiveAstVisitor {
       functionType = _elementType(parent.element);
     } else {
       assert(parent is FunctionExpression);
-      functionType = parent.staticType ?? DynamicTypeImpl.instance;
+      functionType =
+          (parent as FunctionExpression).staticType ?? DynamicTypeImpl.instance;
     }
 
     var type = functionType.returnType;
@@ -802,55 +804,6 @@ class CodeChecker extends RecursiveAstVisitor {
     }
 
     return t;
-  }
-
-  /// Remove "fuzzy arrow" in this function type.
-  ///
-  /// Normally we treat dynamically typed parameters as bottom for function
-  /// types. This allows type tests such as `if (f is SingleArgFunction)`.
-  /// It also requires a dynamic check on the parameter type to call these
-  /// functions.
-  ///
-  /// When we convert to a strict arrow, dynamically typed parameters become
-  /// top. This is safe to do for known functions, like top-level or local
-  /// functions and static methods. Those functions must already be essentially
-  /// treating dynamic as top.
-  ///
-  /// Only the outer-most arrow can be strict. Any others must be fuzzy, because
-  /// we don't know what function value will be passed there.
-  // TODO(jmesserly): should we use a real "fuzzyArrow" bit on the function
-  // type? That would allow us to implement this in the subtype relation.
-  // TODO(jmesserly): we'll need to factor this differently if we want to
-  // move CodeChecker's functionality into existing analyzer. Likely we can
-  // let the Expression have a strict arrow, then in places were we do
-  // inference, convert back to a fuzzy arrow.
-  FunctionType _removeFuzz(FunctionType t) {
-    bool foundFuzz = false;
-    List<ParameterElement> parameters = <ParameterElement>[];
-    for (ParameterElement p in t.parameters) {
-      ParameterElement newP = _removeParameterFuzz(p);
-      parameters.add(newP);
-      if (p != newP) foundFuzz = true;
-    }
-    if (!foundFuzz) {
-      return t;
-    }
-
-    FunctionElementImpl function = new FunctionElementImpl("", -1);
-    function.synthetic = true;
-    function.returnType = t.returnType;
-    function.shareTypeParameters(t.typeFormals);
-    function.shareParameters(parameters);
-    return function.type = new FunctionTypeImpl(function);
-  }
-
-  /// Removes fuzzy arrow, see [_removeFuzz].
-  ParameterElement _removeParameterFuzz(ParameterElement p) {
-    if (p.type.isDynamic) {
-      return new ParameterElementImpl.synthetic(
-          p.name, typeProvider.objectType, p.parameterKind);
-    }
-    return p;
   }
 
   /// Given an expression, return its type assuming it is
@@ -953,6 +906,55 @@ class CodeChecker extends RecursiveAstVisitor {
       // assert(CoercionInfo.get(info.node) == null);
       CoercionInfo.set(info.node, info);
     }
+  }
+
+  /// Remove "fuzzy arrow" in this function type.
+  ///
+  /// Normally we treat dynamically typed parameters as bottom for function
+  /// types. This allows type tests such as `if (f is SingleArgFunction)`.
+  /// It also requires a dynamic check on the parameter type to call these
+  /// functions.
+  ///
+  /// When we convert to a strict arrow, dynamically typed parameters become
+  /// top. This is safe to do for known functions, like top-level or local
+  /// functions and static methods. Those functions must already be essentially
+  /// treating dynamic as top.
+  ///
+  /// Only the outer-most arrow can be strict. Any others must be fuzzy, because
+  /// we don't know what function value will be passed there.
+  // TODO(jmesserly): should we use a real "fuzzyArrow" bit on the function
+  // type? That would allow us to implement this in the subtype relation.
+  // TODO(jmesserly): we'll need to factor this differently if we want to
+  // move CodeChecker's functionality into existing analyzer. Likely we can
+  // let the Expression have a strict arrow, then in places were we do
+  // inference, convert back to a fuzzy arrow.
+  FunctionType _removeFuzz(FunctionType t) {
+    bool foundFuzz = false;
+    List<ParameterElement> parameters = <ParameterElement>[];
+    for (ParameterElement p in t.parameters) {
+      ParameterElement newP = _removeParameterFuzz(p);
+      parameters.add(newP);
+      if (p != newP) foundFuzz = true;
+    }
+    if (!foundFuzz) {
+      return t;
+    }
+
+    FunctionElementImpl function = new FunctionElementImpl("", -1);
+    function.synthetic = true;
+    function.returnType = t.returnType;
+    function.shareTypeParameters(t.typeFormals);
+    function.shareParameters(parameters);
+    return function.type = new FunctionTypeImpl(function);
+  }
+
+  /// Removes fuzzy arrow, see [_removeFuzz].
+  ParameterElement _removeParameterFuzz(ParameterElement p) {
+    if (p.type.isDynamic) {
+      return new ParameterElementImpl.synthetic(
+          p.name, typeProvider.objectType, p.parameterKind);
+    }
+    return p;
   }
 
   DartType _specializedBinaryReturnType(
@@ -1058,7 +1060,6 @@ class _OverrideChecker {
   _checkIndividualOverridesFromClass(ClassDeclaration node,
       InterfaceType baseType, Set<String> seen, bool isSubclass) {
     for (var member in node.members) {
-      if (member is ConstructorDeclaration) continue;
       if (member is FieldDeclaration) {
         if (member.isStatic) continue;
         for (var variable in member.fields.variables) {
@@ -1068,23 +1069,25 @@ class _OverrideChecker {
           var getter = element.getter;
           var setter = element.setter;
           bool found = _checkSingleOverride(
-              getter, baseType, variable, member, isSubclass);
+              getter, baseType, variable.name, member, isSubclass);
           if (!variable.isFinal &&
               !variable.isConst &&
               _checkSingleOverride(
-                  setter, baseType, variable, member, isSubclass)) {
+                  setter, baseType, variable.name, member, isSubclass)) {
             found = true;
           }
           if (found) seen.add(name);
         }
-      } else {
-        if ((member as MethodDeclaration).isStatic) continue;
-        var method = (member as MethodDeclaration).element;
+      } else if (member is MethodDeclaration) {
+        if (member.isStatic) continue;
+        var method = member.element;
         if (seen.contains(method.name)) continue;
         if (_checkSingleOverride(
-            method, baseType, member, member, isSubclass)) {
+            method, baseType, member.name, member, isSubclass)) {
           seen.add(method.name);
         }
+      } else {
+        assert(member is ConstructorDeclaration);
       }
     }
   }
