@@ -756,7 +756,8 @@ dart_library.library('dart/_isolate_helper', null, /* Imports */[
       exports._globalState.isolates[dartx.remove](this.id);
       this.errorPorts.clear();
       if (this.doneHandlers != null) {
-        for (let port of dart.as(this.doneHandlers, core.Iterable$(isolate.SendPort))) {
+        for (let port of dart.as(this.doneHandlers, core.Iterable)) {
+          dart.as(port, isolate.SendPort);
           port.send(null);
         }
         this.doneHandlers = null;

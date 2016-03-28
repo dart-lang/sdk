@@ -176,7 +176,8 @@ dart_library.library('dart/html', null, /* Imports */[
     set [dartx.nodes](value) {
       let copy = core.List.from(value);
       this[dartx.text] = '';
-      for (let node of dart.as(copy, core.Iterable$(Node))) {
+      for (let node of copy) {
+        dart.as(node, Node);
         this[dartx.append](node);
       }
     }

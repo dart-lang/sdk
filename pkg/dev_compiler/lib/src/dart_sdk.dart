@@ -20,7 +20,7 @@ class MockDartSdk implements DartSdk {
   final Map<String, SdkLibrary> _libs = {};
   final String sdkVersion = '0';
   List<String> get uris => _sources.keys.map((uri) => '$uri').toList();
-  final AnalysisContext context = new SdkAnalysisContext();
+  final AnalysisContext context = new SdkAnalysisContext(null);
   DartUriResolver _resolver;
   DartUriResolver get resolver => _resolver;
 

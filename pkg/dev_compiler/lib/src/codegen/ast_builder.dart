@@ -525,6 +525,11 @@ class RawAstBuilder {
     return new ExpressionFunctionBody(null, null, body, semi);
   }
 
+  static ExpressionStatement expressionStatement(Expression expression) {
+    Token semi = new Token(TokenType.SEMICOLON, 0);
+    return new ExpressionStatement(expression, semi);
+  }
+
   static FunctionDeclaration functionDeclaration(
       TypeName rt, SimpleIdentifier f, FunctionExpression fexp) {
     return new FunctionDeclaration(null, null, null, rt, null, f, fexp);

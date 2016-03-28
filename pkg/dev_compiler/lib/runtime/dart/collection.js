@@ -505,8 +505,10 @@ dart_library.library('dart/collection', null, /* Imports */[
       }
       static from(elements) {
         let result = HashSet$(E).new();
-        for (let e of dart.as(elements, core.Iterable$(E)))
+        for (let e of elements) {
+          dart.as(e, E);
           result.add(e);
+        }
         return result;
       }
       [Symbol.iterator]() {
@@ -2679,7 +2681,8 @@ dart_library.library('dart/collection', null, /* Imports */[
       }
       static from(elements) {
         let list = new (DoubleLinkedQueue$(E))();
-        for (let e of dart.as(elements, core.Iterable$(E))) {
+        for (let e of elements) {
+          dart.as(e, E);
           list.addLast(e);
         }
         return dart.as(list, DoubleLinkedQueue$(E));
@@ -2899,7 +2902,8 @@ dart_library.library('dart/collection', null, /* Imports */[
             capacity = elements[dartx.length];
           }
           let result = new (ListQueue$(E))(capacity);
-          for (let element of dart.as(elements, core.Iterable$(E))) {
+          for (let element of elements) {
+            dart.as(element, E);
             result.addLast(element);
           }
           return result;
@@ -3420,7 +3424,7 @@ dart_library.library('dart/collection', null, /* Imports */[
       SplayTreeMap(compare, isValidKey) {
         if (compare === void 0) compare = null;
         if (isValidKey === void 0) isValidKey = null;
-        this[_comparator] = compare == null ? core.Comparable.compare : compare;
+        this[_comparator] = dart.as(compare == null ? core.Comparable.compare : compare, core.Comparator$(K));
         this[_validKey] = isValidKey != null ? isValidKey : dart.fn(v => dart.is(v, K), core.bool, [core.Object]);
         super._SplayTree();
       }
@@ -3854,7 +3858,7 @@ dart_library.library('dart/collection', null, /* Imports */[
       SplayTreeSet(compare, isValidKey) {
         if (compare === void 0) compare = null;
         if (isValidKey === void 0) isValidKey = null;
-        this[_comparator] = compare == null ? core.Comparable.compare : compare;
+        this[_comparator] = dart.as(compare == null ? core.Comparable.compare : compare, core.Comparator$(E));
         this[_validKey] = isValidKey != null ? isValidKey : dart.fn(v => dart.is(v, E), core.bool, [core.Object]);
         super._SplayTree();
       }
@@ -3862,7 +3866,8 @@ dart_library.library('dart/collection', null, /* Imports */[
         if (compare === void 0) compare = null;
         if (isValidKey === void 0) isValidKey = null;
         let result = new (SplayTreeSet$(E))(compare, isValidKey);
-        for (let element of dart.as(elements, core.Iterable$(E))) {
+        for (let element of elements) {
+          dart.as(element, E);
           result.add(element);
         }
         return result;

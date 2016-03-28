@@ -15,10 +15,7 @@ import 'package:analyzer/src/generated/constant.dart';
 //ignore: DEPRECATED_MEMBER_USE
 import 'package:analyzer/src/generated/element.dart'
     show DynamicElementImpl, DynamicTypeImpl, LocalVariableElementImpl;
-// TODO(jmesserly): we can remove this when ResolutionCopier is fixed.
-import 'package:analyzer/src/dart/ast/ast.dart' show FunctionBodyImpl;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
-import 'package:analyzer/src/generated/parser.dart' show ResolutionCopier;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/dart/ast/token.dart'
     show StringToken, Token, TokenType;
@@ -138,11 +135,8 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   TypeProvider get types => _types;
 
   JS.Program emitLibrary(List<CompilationUnit> units) {
-    // Copy the AST before modifying it.
-    units = units.map(_cloneCompilationUnit).toList();
-
     // Modify the AST to make coercions explicit.
-    new CoercionReifier().reify(units);
+    units = new CoercionReifier().reify(units);
 
     units.last.directives.forEach(_visit);
 
@@ -2346,9 +2340,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   visitFieldDeclaration(FieldDeclaration node) {
     if (!node.isStatic) return;
 
-    for (var f in node.fields.variables) {
-      _loader.loadDeclaration(f, f.element);
-    }
+    node.fields.variables.forEach(_emitModuleItem);
   }
 
   _addExport(String name, [String exportName]) {
@@ -3182,7 +3174,7 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
   JS.Statement _emitAwaitFor(ForEachStatement node) {
     // Emits `await for (var value in stream) ...`, which desugars as:
     //
-    // var iter = new StreamIterator<T>(stream);
+    // var iter = new StreamIterator(stream);
     // try {
     //   while (await iter.moveNext()) {
     //     var value = iter.current;
@@ -3200,18 +3192,17 @@ class JSCodegenVisitor extends GeneralizingAstVisitor
     var context = compiler.context;
     var dart_async = context
         .computeLibraryElement(context.sourceFactory.forUri('dart:async'));
-    var T = node.loopVariable.element.type;
-    var StreamIterator_T =
-        dart_async.getType('StreamIterator').type.instantiate([T]);
+    var _streamIteratorType =
+        rules.instantiateToBounds(dart_async.getType('StreamIterator').type);
 
     var createStreamIter = _emitInstanceCreationExpression(
-        StreamIterator_T.element.unnamedConstructor,
-        StreamIterator_T,
+        _streamIteratorType.element.unnamedConstructor,
+        _streamIteratorType,
         null,
         AstBuilder.argumentList([node.iterable]),
         false);
     var iter =
-        _visit(_createTemporary('it', StreamIterator_T, nullable: false));
+        _visit(_createTemporary('it', _streamIteratorType, nullable: false));
 
     var init = _visit(node.identifier);
     if (init == null) {
@@ -3843,53 +3834,4 @@ class TemporaryVariableElement extends LocalVariableElementImpl {
 
   int get hashCode => identityHashCode(this);
   bool operator ==(Object other) => identical(this, other);
-}
-
-CompilationUnit _cloneCompilationUnit(CompilationUnit unit) {
-  var result = new _TreeCloner().visitCompilationUnit(unit);
-  ResolutionCopier.copyResolutionData(unit, result);
-  return result;
-}
-
-class _TreeCloner extends AstCloner {
-  void _cloneProperties(AstNode clone, AstNode node) {
-    if (clone != null) {
-      CoercionInfo.set(clone, CoercionInfo.get(node));
-      DynamicInvoke.set(clone, DynamicInvoke.get(node));
-    }
-  }
-
-  @override
-  AstNode cloneNode(AstNode node) {
-    var clone = super.cloneNode(node);
-    _cloneProperties(clone, node);
-    return clone;
-  }
-
-  @override
-  List cloneNodeList(List list) {
-    var clone = super.cloneNodeList(list);
-    for (int i = 0, len = list.length; i < len; i++) {
-      _cloneProperties(clone[i], list[i]);
-    }
-    return clone;
-  }
-
-  // TODO(jmesserly): ResolutionCopier is not copying this yet.
-  @override
-  BlockFunctionBody visitBlockFunctionBody(BlockFunctionBody node) {
-    var clone = super.visitBlockFunctionBody(node);
-    (clone as FunctionBodyImpl).localVariableInfo =
-        (node as FunctionBodyImpl).localVariableInfo;
-    return clone;
-  }
-
-  @override
-  ExpressionFunctionBody visitExpressionFunctionBody(
-      ExpressionFunctionBody node) {
-    var clone = super.visitExpressionFunctionBody(node);
-    (clone as FunctionBodyImpl).localVariableInfo =
-        (node as FunctionBodyImpl).localVariableInfo;
-    return clone;
-  }
 }

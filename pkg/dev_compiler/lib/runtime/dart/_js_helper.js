@@ -423,7 +423,8 @@ dart_library.library('dart/_js_helper', null, /* Imports */[
     }
     let buffer = new core.StringBuffer();
     let startIndex = 0;
-    for (let match of dart.as(dart.dsend(pattern, 'allMatches', receiver), core.Iterable$(core.Match))) {
+    for (let match of dart.as(dart.dsend(pattern, 'allMatches', receiver), core.Iterable)) {
+      dart.as(match, core.Match);
       buffer.write(dart.dcall(onNonMatch, dart.dsend(receiver, 'substring', startIndex, match.start)));
       buffer.write(dart.dcall(onMatch, match));
       startIndex = match.end;
