@@ -2159,8 +2159,7 @@ static bool Evaluate(Thread* thread, JSONStream* js) {
   }
   js->PrintError(kInvalidParams,
                  "%s: invalid 'targetId' parameter: "
-                 "id '%s' does not correspond to a "
-                 "library, class, or instance", js->method(), target_id);
+                 "Cannot evaluate against a VM-internal object", js->method());
   return true;
 }
 
