@@ -108,6 +108,13 @@ class UnlinkedSummarizeAstTest extends Object with SummaryTest {
     }
   }
 
+  test_class_no_superclass() {
+    UnlinkedClass cls = serializeClassText('part of dart.core; class Object {}',
+        className: 'Object');
+    expect(cls.supertype, isNull);
+    expect(cls.hasNoSupertype, isTrue);
+  }
+
   CompilationUnit _parseText(String text) {
     CharSequenceReader reader = new CharSequenceReader(text);
     Scanner scanner =

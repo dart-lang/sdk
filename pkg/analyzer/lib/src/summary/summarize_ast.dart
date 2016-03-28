@@ -255,6 +255,11 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   final Map<int, Map<String, int>> nameToReference = <int, Map<String, int>>{};
 
   /**
+   * True if the 'dart:core' library is been summarized.
+   */
+  bool isCoreLibrary = false;
+
+  /**
    * If the library has a library directive, the library name derived from it.
    * Otherwise `null`.
    */
@@ -375,6 +380,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         serializeTypeParameters(typeParameters, typeParameterScope);
     if (superclass != null) {
       b.supertype = serializeTypeName(superclass);
+    } else {
+      b.hasNoSupertype = isCoreLibrary && name == 'Object';
     }
     if (withClause != null) {
       b.mixins = withClause.mixinTypes.map(serializeTypeName).toList();
@@ -1076,6 +1083,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         node.name.components.map((SimpleIdentifier id) => id.name).join('.');
     libraryNameOffset = node.name.offset;
     libraryNameLength = node.name.length;
+    isCoreLibrary = libraryName == 'dart.core';
     libraryDocumentationComment =
         serializeDocumentation(node.documentationComment);
     libraryAnnotations = serializeAnnotations(node.metadata);
@@ -1109,7 +1117,9 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  void visitPartOfDirective(PartOfDirective node) {}
+  void visitPartOfDirective(PartOfDirective node) {
+    isCoreLibrary = node.libraryName.name == 'dart.core';
+  }
 
   @override
   UnlinkedParamBuilder visitSimpleFormalParameter(SimpleFormalParameter node) {
