@@ -4002,6 +4002,19 @@ class C<T> {
     checkConstCycle('C', hasCycle: false);
   }
 
+  test_constructorCycle_referenceToGenericParameter_asSupertype() {
+    // It's not valid Dart but we need to make sure it doesn't crash
+    // summary generation.
+    serializeLibraryText(
+        '''
+class C<T> extends T {
+  const C();
+}
+''',
+        allowErrors: true);
+    checkConstCycle('C', hasCycle: false);
+  }
+
   test_constructorCycle_referenceToStaticMethod_inOtherClass() {
     serializeLibraryText('''
 class C {

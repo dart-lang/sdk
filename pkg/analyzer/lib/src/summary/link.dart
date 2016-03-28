@@ -188,7 +188,8 @@ abstract class ClassElementForLink
  * Element representing a class resynthesized from a summary during
  * linking.
  */
-class ClassElementForLink_Class extends ClassElementForLink {
+class ClassElementForLink_Class extends ClassElementForLink
+    implements TypeParameterContext {
   /**
    * The unlinked representation of the class in the summary.
    */
@@ -203,6 +204,7 @@ class ClassElementForLink_Class extends ClassElementForLink {
   List<FieldElementForLink_ClassField> _fields;
   InterfaceTypeForLink _supertype;
   InterfaceTypeForLink _type;
+  List<TypeParameterTypeForLink> _typeParameterTypes;
 
   ClassElementForLink_Class(this.enclosingElement, this._unlinkedClass);
 
@@ -243,9 +245,20 @@ class ClassElementForLink_Class extends ClassElementForLink {
     if (isObject) {
       return null;
     }
-    return _supertype ??= _unlinkedClass.supertype == null
-        ? enclosingElement.enclosingElement._linker.objectType
-        : enclosingElement._resolveTypeRef(_unlinkedClass.supertype);
+    return _supertype ??= _computeSupertype();
+  }
+
+  /**
+   * Get a list of [TypeParameterTypeForLink] objects corresponding to the
+   * class's type parameters.
+   */
+  List<TypeParameterTypeForLink> get typeParameterTypes {
+    if (_typeParameterTypes == null) {
+      _typeParameterTypes = _unlinkedClass.typeParameters
+          .map((UnlinkedTypeParam _) => new TypeParameterTypeForLink())
+          .toList();
+    }
+    return _typeParameterTypes;
   }
 
   @override
@@ -273,10 +286,30 @@ class ClassElementForLink_Class extends ClassElementForLink {
   }
 
   @override
+  TypeParameterTypeForLink getTypeParameterType(int index) {
+    List<TypeParameterTypeForLink> types = typeParameterTypes;
+    return types[types.length - index];
+  }
+
+  @override
   void link(LinkedUnitBuilder linkedUnit) {
     for (ConstructorElementForLink constructorElement in constructors) {
       constructorElement.link(linkedUnit);
     }
+  }
+
+  InterfaceTypeForLink _computeSupertype() {
+    if (_unlinkedClass.supertype != null) {
+      DartTypeForLink supertype =
+          enclosingElement._resolveTypeRef(_unlinkedClass.supertype, this);
+      if (supertype is InterfaceTypeForLink) {
+        return supertype;
+      }
+      // In the event that the supertype isn't an interface type (which may
+      // happen in the event of erroneous code) just fall through and pretend
+      // the supertype is `Object`.
+    }
+    return enclosingElement.enclosingElement._linker.objectType;
   }
 }
 
@@ -466,7 +499,9 @@ abstract class CompilationUnitElementForLink implements CompilationUnitElement {
    * TODO(paulberry): or should we have a class representing an
    * unresolved type, for consistency with the full element model?
    */
-  DartTypeForLink _resolveTypeRef(EntityRef type, {bool defaultVoid: false}) {
+  DartTypeForLink _resolveTypeRef(
+      EntityRef type, TypeParameterContext typeParameterContext,
+      {bool defaultVoid: false}) {
     if (type == null) {
       if (defaultVoid) {
         return VoidTypeForLink.instance;
@@ -475,15 +510,14 @@ abstract class CompilationUnitElementForLink implements CompilationUnitElement {
       }
     }
     if (type.paramReference != 0) {
-      // TODO(paulberry): implement.
-      throw new UnimplementedError();
+      return typeParameterContext.getTypeParameterType(type.paramReference);
     } else if (type.syntheticReturnType != null) {
       // TODO(paulberry): implement.
       throw new UnimplementedError();
     } else {
       DartTypeForLink getTypeArgument(int i) {
         if (i < type.typeArguments.length) {
-          return _resolveTypeRef(type.typeArguments[i]);
+          return _resolveTypeRef(type.typeArguments[i], typeParameterContext);
         } else {
           return DynamicTypeForLink.instance;
         }
@@ -1358,6 +1392,25 @@ class TopLevelVariableElementForLink extends VariableElementForLink
   @override
   bool get isStatic => true;
 }
+
+/**
+ * Interface representing elements which can serve as the context within which
+ * type parameter indices are interpreted.
+ */
+abstract class TypeParameterContext {
+  /**
+   * Convert the given [index] into a type parameter type.
+   */
+  TypeParameterTypeForLink getTypeParameterType(int index);
+}
+
+/**
+ * Representation of a type based on a type parameter during linking.
+ *
+ * TODO(paulberry): add more functionality as needed.
+ */
+class TypeParameterTypeForLink extends DartTypeForLink
+    implements TypeParameterType {}
 
 /**
  * Singleton element used for unresolved references.
