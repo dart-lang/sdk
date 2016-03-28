@@ -95,6 +95,9 @@ import 'dart:html' as html;
 import 'dart:html_common' as html_common;
 import 'dart:indexed_db' as indexed_db;
 import 'dart:typed_data';
+import 'dart:core';
+
+import 'cached_patches.dart';
 
 // Pretend we are always in checked mode as we aren't interested in users
 // running Dartium code outside of checked mode.
@@ -278,13 +281,52 @@ void _registerJsInterfaces(List<Type> classes) {
 
 _finalizeJsInterfaces() native "Js_finalizeJsInterfaces";
 
+// Create the files for the generated Dart files from IDLs.  These only change
+// when browser's Dart files change (dart:*).
+@Deprecated("Internal Use Only")
+String createCachedPatchesFile() {
+  var patches = _generateInteropPatchFiles(['dart:html',
+                                            'dart:indexed_db',
+                                            'dart:web_gl',
+                                            'dart:web_sql',
+                                            'dart:svg',
+                                            'dart:web_audio']);
+  var sb = new StringBuffer();
+
+  sb.write("""
+
+// START_OF_CACHED_PATCHES
+// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// DO NOT EDIT GENERATED FILE.
+
+library cached_patches;
+
+var cached_patches = {""");
+
+  for (var baseIndex = 0; baseIndex < patches.length; baseIndex += 3) {
+    var uri = patches[baseIndex + 0];
+    var uri_js_interop = patches[baseIndex + 1];
+    var source = patches[baseIndex + 2];
+
+    if (uri != 'dart:js') {
+      sb.write('"$uri": ["$uri", "$uri_js_interop", """$source"""],');
+    }
+  }
+
+  sb.write("""};
+// END_OF_CACHED_PATCHES
+  """);
+
+  return "$sb";
+}
+
 String _getJsName(mirrors.DeclarationMirror mirror) {
-  for (var annotation in mirror.metadata) {
-    if (mirrors.MirrorSystem.getName(annotation.type.simpleName) == "JS") {
-      mirrors.LibraryMirror library = annotation.type.owner;
-      var uri = library.uri;
-      // make sure the annotation is from package://js
-      if (uri.scheme == 'package' && uri.path == 'js/js.dart') {
+  if (_atJsType != null) {
+    for (var annotation in mirror.metadata) {
+      if (annotation.type.reflectedType == _atJsType) {
         try {
           var name = annotation.reflectee.name;
           return name != null ? name : "";
@@ -311,6 +353,8 @@ bool _isAnonymousClass(mirrors.ClassMirror mirror) {
 }
 
 bool _hasJsName(mirrors.DeclarationMirror mirror) => _getJsName(mirror) != null;
+
+var _domNameType;
 
 bool hasDomName(mirrors.DeclarationMirror mirror) {
   var location = mirror.location;
@@ -445,9 +489,37 @@ bool _isExternal(mirrors.MethodMirror mirror) {
   return false;
 }
 
-List<String> _generateExternalMethods() {
+List<String> _generateExternalMethods(List<String> libraryPaths) {
   var staticCodegen = <String>[];
-  mirrors.currentMirrorSystem().libraries.forEach((uri, library) {
+
+  if (libraryPaths.length == 0) {
+    mirrors.currentMirrorSystem().libraries.forEach((uri, library) {
+      var library_name = "${uri.scheme}:${uri.path}";
+      if (cached_patches.containsKey(library_name)) {
+        var patch = cached_patches[library_name];
+        staticCodegen.addAll(patch);
+      } else {
+        _generateLibraryCodegen(uri, library, staticCodegen);
+      }
+    });    // End of library foreach
+  } else {
+    // Used to generate cached_patches.dart file for all IDL generated dart:
+    // files to the WebKit DOM.
+    for (var library_name in libraryPaths) {
+      var parts = library_name.split(':');
+      var uri = new Uri(scheme: parts[0], path: parts[1]);
+      var library = mirrors.currentMirrorSystem().libraries[uri];
+      _generateLibraryCodegen(uri, library, staticCodegen);
+    }
+  }
+
+  return staticCodegen;
+}
+
+_generateLibraryCodegen(uri, library, staticCodegen) {
+    // Is it a dart generated library?
+    var dartLibrary = uri.scheme == 'dart';  
+
     var sb = new StringBuffer();
     String jsLibraryName = _getJsName(library);
     library.declarations.forEach((name, declaration) {
@@ -458,7 +530,7 @@ List<String> _generateExternalMethods() {
         }
       } else if (declaration is mirrors.ClassMirror) {
         mirrors.ClassMirror clazz = declaration;
-        var isDom = hasDomName(clazz);
+        var isDom = dartLibrary ? hasDomName(clazz) : false;
         var isJsInterop = _hasJsName(clazz);
         if (isDom || isJsInterop) {
           // TODO(jacobr): verify class implements JavaScriptObject.
@@ -519,7 +591,7 @@ List<String> _generateExternalMethods() {
                     isStatic: true,
                     memberName: className);
               }
-            });
+            });   // End of clazz.declarations.forEach 
 
             clazz.staticMembers.forEach((memberName, member) {
               if (_isExternal(member)) {
@@ -578,18 +650,32 @@ const ${_UNDEFINED_VAR} = const Object();
 ${sb}
 """);
     }
-  });
-
-  return staticCodegen;
 }
+
+// Remember the @JS type to compare annotation type.
+var _atJsType = -1;
 
 /**
  * Generates part files defining source code for JSObjectImpl, all DOM classes
  * classes. This codegen  is needed so that type checks for all registered
  * JavaScript interop classes pass.
  */
-List<String> _generateInteropPatchFiles() {
-  var ret = _generateExternalMethods();
+List<String> _generateInteropPatchFiles(List<String> libraryPaths) {
+  // Cache the @JS Type.
+  if (_atJsType == -1) {
+    var uri = new Uri(scheme: "package", path: "js/js.dart");
+    var jsLibrary = mirrors.currentMirrorSystem().libraries[uri];
+    if (jsLibrary != null) {
+      // @ JS used somewhere.
+      var jsDeclaration = jsLibrary.declarations[new Symbol("JS")];
+      _atJsType = jsDeclaration.reflectedType;
+    } else {
+      // @ JS not used in any library.
+      _atJsType = null;
+    }
+  }
+
+  var ret = _generateExternalMethods(libraryPaths);
   var libraryPrefixes = new Map<mirrors.LibraryMirror, String>();
   var prefixNames = new Set<String>();
   var sb = new StringBuffer();
