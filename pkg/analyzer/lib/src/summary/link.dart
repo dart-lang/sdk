@@ -343,9 +343,10 @@ abstract class CompilationUnitElementForLink implements CompilationUnitElement {
    */
   final List<ReferenceableElementForLink> _references;
 
-  List<ClassElementForLink> _types;
+  List<ClassElementForLink_Class> _types;
   Map<String, ReferenceableElementForLink> _containedNames;
   List<TopLevelVariableElementForLink> _topLevelVariables;
+  List<ClassElementForLink_Enum> _enums;
 
   @override
   final LibraryElementForLink enclosingElement;
@@ -357,6 +358,20 @@ abstract class CompilationUnitElementForLink implements CompilationUnitElement {
         _unlinkedUnit = unlinkedUnit;
 
   @override
+  List<ClassElementForLink_Enum> get enums {
+    if (_enums == null) {
+      _enums = <ClassElementForLink_Enum>[];
+      for (UnlinkedEnum unlinkedEnum in _unlinkedUnit.enums) {
+        _enums.add(new ClassElementForLink_Enum(unlinkedEnum));
+      }
+    }
+    return _enums;
+  }
+
+  /**
+   * Indicates whether this compilation element is part of the build unit
+   * currently being linked.
+   */
   bool get isInBuildUnit;
 
   @override
@@ -372,14 +387,11 @@ abstract class CompilationUnitElementForLink implements CompilationUnitElement {
   }
 
   @override
-  List<ClassElementForLink> get types {
+  List<ClassElementForLink_Class> get types {
     if (_types == null) {
-      _types = <ClassElementForLink>[];
+      _types = <ClassElementForLink_Class>[];
       for (UnlinkedClass unlinkedClass in _unlinkedUnit.classes) {
         _types.add(new ClassElementForLink_Class(this, unlinkedClass));
-      }
-      for (UnlinkedEnum unlinkedEnum in _unlinkedUnit.enums) {
-        _types.add(new ClassElementForLink_Enum(unlinkedEnum));
       }
     }
     return _types;
@@ -399,8 +411,11 @@ abstract class CompilationUnitElementForLink implements CompilationUnitElement {
     if (_containedNames == null) {
       _containedNames = <String, ReferenceableElementForLink>{};
       // TODO(paulberry): what's the correct way to handle name conflicts?
-      for (ClassElementForLink type in types) {
+      for (ClassElementForLink_Class type in types) {
         _containedNames[type.name] = type;
+      }
+      for (ClassElementForLink_Enum enm in enums) {
+        _containedNames[enm.name] = enm;
       }
       for (TopLevelVariableElementForLink variable in topLevelVariables) {
         _containedNames[variable.name] = variable;
