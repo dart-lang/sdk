@@ -378,16 +378,12 @@ class CompileParsedFunctionHelper : public ValueObject {
         optimized_(optimized),
         osr_id_(osr_id),
         thread_(Thread::Current()),
-        cha_invalidation_gen_at_start_(isolate()->cha_invalidation_gen()),
         field_invalidation_gen_at_start_(isolate()->field_invalidation_gen()),
-        prefix_invalidation_gen_at_start_(
-            isolate()->prefix_invalidation_gen()) {
+        loading_invalidation_gen_at_start_(
+            isolate()->loading_invalidation_gen()) {
   }
 
   bool Compile(CompilationPipeline* pipeline);
-  uint32_t prefix_invalidation_gen_at_start() const {
-    return prefix_invalidation_gen_at_start_;
-  }
 
  private:
   ParsedFunction* parsed_function() const { return parsed_function_; }
@@ -395,11 +391,11 @@ class CompileParsedFunctionHelper : public ValueObject {
   intptr_t osr_id() const { return osr_id_; }
   Thread* thread() const { return thread_; }
   Isolate* isolate() const { return thread_->isolate(); }
-  uint32_t cha_invalidation_gen_at_start() const {
-    return cha_invalidation_gen_at_start_;
-  }
-  uint32_t field_invalidation_gen_at_start() const {
+  intptr_t field_invalidation_gen_at_start() const {
     return field_invalidation_gen_at_start_;
+  }
+  intptr_t loading_invalidation_gen_at_start() const {
+    return loading_invalidation_gen_at_start_;
   }
   void FinalizeCompilation(Assembler* assembler,
                            FlowGraphCompiler* graph_compiler,
@@ -409,9 +405,8 @@ class CompileParsedFunctionHelper : public ValueObject {
   const bool optimized_;
   const intptr_t osr_id_;
   Thread* const thread_;
-  const uint32_t cha_invalidation_gen_at_start_;
-  const uint32_t field_invalidation_gen_at_start_;
-  const uint32_t prefix_invalidation_gen_at_start_;
+  const intptr_t field_invalidation_gen_at_start_;
+  const intptr_t loading_invalidation_gen_at_start_;
 
   DISALLOW_COPY_AND_ASSIGN(CompileParsedFunctionHelper);
 };
@@ -501,15 +496,6 @@ NOT_IN_PRODUCT(
       const bool trace_compiler =
           FLAG_trace_compiler || FLAG_trace_optimizing_compiler;
       bool code_is_valid = true;
-      if (!thread()->cha()->leaf_classes().is_empty()) {
-        if (cha_invalidation_gen_at_start() !=
-            isolate()->cha_invalidation_gen()) {
-          code_is_valid = false;
-          if (trace_compiler) {
-            THR_Print("--> FAIL: CHA invalidation.");
-          }
-        }
-      }
       if (!flow_graph->parsed_function().guarded_fields()->is_empty()) {
         if (field_invalidation_gen_at_start() !=
             isolate()->field_invalidation_gen()) {
@@ -519,13 +505,11 @@ NOT_IN_PRODUCT(
           }
         }
       }
-      if (parsed_function()->HasDeferredPrefixes()) {
-        if (prefix_invalidation_gen_at_start() !=
-            isolate()->prefix_invalidation_gen()) {
-          code_is_valid = false;
-          if (trace_compiler) {
-            THR_Print("--> FAIL: Prefix invalidation.");
-          }
+      if (loading_invalidation_gen_at_start() !=
+          isolate()->loading_invalidation_gen()) {
+        code_is_valid = false;
+        if (trace_compiler) {
+          THR_Print("--> FAIL: Loading invalidation.");
         }
       }
       if (code_is_valid) {
@@ -1154,9 +1138,9 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     if (optimized) {
       INC_STAT(thread, num_functions_optimized, 1);
     }
-    // Makes sure no libraries are loaded during parsing.
-    const uint32_t prefix_invalidation_gen_at_start =
-        isolate->prefix_invalidation_gen();
+    // Makes sure no classes are loaded during parsing in background.
+    const intptr_t loading_invalidation_gen_at_start =
+        isolate->loading_invalidation_gen();
     {
       HANDLESCOPE(thread);
       const int64_t num_tokens_before = STAT_VALUE(thread, num_tokens_consumed);
@@ -1167,14 +1151,19 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
                num_tokens_after - num_tokens_before);
     }
 
+
     CompileParsedFunctionHelper helper(parsed_function, optimized, osr_id);
-    if (prefix_invalidation_gen_at_start !=
-        helper.prefix_invalidation_gen_at_start()) {
-      ASSERT(Compiler::IsBackgroundCompilation());
-      // Deferred loading occured while parsing or copying ICData. We need
-      // to abort here because deopt-ids may have changed.
-      Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId);
+
+    if (Compiler::IsBackgroundCompilation()) {
+      if (isolate->IsTopLevelParsing() ||
+              (loading_invalidation_gen_at_start !=
+               isolate->loading_invalidation_gen())) {
+        // Loading occured while parsing. We need to abort here because state
+        // changed while compiling.
+        Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId);
+      }
     }
+
     const bool success = helper.Compile(pipeline);
     if (!success) {
       if (optimized) {

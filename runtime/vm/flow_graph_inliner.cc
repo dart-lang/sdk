@@ -702,12 +702,26 @@ class CallSiteInliner : public ValueObject {
       // Install bailout jump.
       LongJumpScope jump;
       if (setjmp(*jump.Set()) == 0) {
+        Isolate* isolate = Isolate::Current();
+        // Makes sure no classes are loaded during parsing in background.
+        const intptr_t loading_invalidation_gen_at_start =
+            isolate->loading_invalidation_gen();
         // Parse the callee function.
         bool in_cache;
         ParsedFunction* parsed_function;
-        {
+       {
           CSTAT_TIMER_SCOPE(thread(), graphinliner_parse_timer);
           parsed_function = GetParsedFunction(function, &in_cache);
+        }
+
+        if (Compiler::IsBackgroundCompilation()) {
+          if (isolate->IsTopLevelParsing() ||
+                  (loading_invalidation_gen_at_start !=
+                   isolate->loading_invalidation_gen())) {
+            // Loading occured while parsing. We need to abort here because
+            // state changed while compiling.
+            Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId);
+          }
         }
 
         // Load IC data for the callee.

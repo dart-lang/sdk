@@ -491,6 +491,20 @@ void Parser::SetPosition(TokenPosition position) {
 }
 
 
+// Set state and increments generational count so that thge background compiler
+// can detect if loading/top-level-parsing occured during compilation.
+class TopLevelParsingScope : public StackResource {
+ public:
+  explicit TopLevelParsingScope(Thread* thread) : StackResource(thread) {
+    isolate()->IncrTopLevelParsingCount();
+  }
+  ~TopLevelParsingScope() {
+    isolate()->DecrTopLevelParsingCount();
+    isolate()->IncrLoadingInvalidationGen();
+  }
+};
+
+
 void Parser::ParseCompilationUnit(const Library& library,
                                   const Script& script) {
   Thread* thread = Thread::Current();
@@ -507,6 +521,7 @@ void Parser::ParseCompilationUnit(const Library& library,
   }
 #endif
 
+  TopLevelParsingScope scope(thread);
   Parser parser(script, library, TokenPosition::kMinSource);
   parser.ParseTopLevel();
 }
