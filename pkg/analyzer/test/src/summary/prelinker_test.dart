@@ -75,7 +75,8 @@ class PrelinkerTest extends SummarizeElementsTest {
     }
     UnlinkedPublicNamespace getImport(String relativeUri) {
       String absoluteUri = resolveToAbsoluteUri(library, relativeUri);
-      UnlinkedPublicNamespace namespace = sdkPublicNamespace[absoluteUri];
+      UnlinkedPublicNamespace namespace = SerializedMockSdk
+          .instance.uriToUnlinkedUnit[absoluteUri]?.publicNamespace;
       if (namespace == null) {
         namespace = uriToPublicNamespace[absoluteUri];
       }

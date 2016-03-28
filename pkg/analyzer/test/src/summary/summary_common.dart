@@ -26,40 +26,6 @@ import 'package:unittest/unittest.dart';
 import '../../generated/analysis_context_factory.dart';
 
 /**
- * The public namespaces of the sdk are computed once so that we don't bog
- * down the test.  Structured as a map from absolute URI to the corresponding
- * public namespace.
- *
- * Note: should an exception occur during computation of this variable, it
- * will silently be set to null to allow other tests to run.
- */
-final Map<String, UnlinkedPublicNamespace> sdkPublicNamespace = () {
-  try {
-    AnalysisContext analysisContext = AnalysisContextFactory.contextWithCore();
-    Map<String, UnlinkedPublicNamespace> uriToNamespace =
-        <String, UnlinkedPublicNamespace>{};
-    List<LibraryElement> libraries = [
-      analysisContext.typeProvider.objectType.element.library,
-      analysisContext.typeProvider.futureType.element.library
-    ];
-    for (LibraryElement library in libraries) {
-      summarize_elements.LibrarySerializationResult serializedLibrary =
-          summarize_elements.serializeLibrary(
-              library, analysisContext.typeProvider, false);
-      for (int i = 0; i < serializedLibrary.unlinkedUnits.length; i++) {
-        uriToNamespace[serializedLibrary.unitUris[i]] =
-            new UnlinkedUnit.fromBuffer(
-                    serializedLibrary.unlinkedUnits[i].toBuffer())
-                .publicNamespace;
-      }
-    }
-    return uriToNamespace;
-  } catch (_) {
-    return null;
-  }
-}();
-
-/**
  * Convert a summary object (or a portion of one) into a canonical form that
  * can be easily compared using [expect].  If [orderByName] is true, and the
  * object is a [List], it is sorted by the `name` field of its elements.
@@ -114,6 +80,51 @@ UnlinkedPublicNamespace computePublicNamespaceFromText(
  * Type of a function that validates an [EntityRef].
  */
 typedef void _EntityRefValidator(EntityRef entityRef);
+
+/**
+ * [SerializedMockSdk] is a singleton class representing the result of
+ * serializing the mock SDK to summaries.  It is computed once and then shared
+ * among test invocations so that we don't bog down the tests.
+ *
+ * Note: should an exception occur during computation of [instance], it will
+ * silently be set to null to allow other tests to complete quickly.
+ */
+class SerializedMockSdk {
+  static final SerializedMockSdk instance = _serializeMockSdk();
+
+  final Map<String, UnlinkedUnit> uriToUnlinkedUnit;
+
+  final Map<String, LinkedLibrary> uriToLinkedLibrary;
+  SerializedMockSdk._(this.uriToUnlinkedUnit, this.uriToLinkedLibrary);
+
+  static SerializedMockSdk _serializeMockSdk() {
+    try {
+      AnalysisContext analysisContext =
+          AnalysisContextFactory.contextWithCore();
+      Map<String, UnlinkedUnit> uriToUnlinkedUnit = <String, UnlinkedUnit>{};
+      Map<String, LinkedLibrary> uriToLinkedLibrary = <String, LinkedLibrary>{};
+      List<LibraryElement> libraries = [
+        analysisContext.typeProvider.objectType.element.library,
+        analysisContext.typeProvider.futureType.element.library
+      ];
+      for (LibraryElement library in libraries) {
+        summarize_elements.LibrarySerializationResult serializedLibrary =
+            summarize_elements.serializeLibrary(
+                library, analysisContext.typeProvider, false);
+        uriToLinkedLibrary[library.source.uri.toString()] =
+            new LinkedLibrary.fromBuffer(serializedLibrary.linked.toBuffer());
+        for (int i = 0; i < serializedLibrary.unlinkedUnits.length; i++) {
+          uriToUnlinkedUnit[serializedLibrary.unitUris[i]] =
+              new UnlinkedUnit.fromBuffer(
+                  serializedLibrary.unlinkedUnits[i].toBuffer());
+        }
+      }
+      return new SerializedMockSdk._(uriToUnlinkedUnit, uriToLinkedLibrary);
+    } catch (_) {
+      return null;
+    }
+  }
+}
 
 /**
  * Base class containing most summary tests.  This allows summary tests to be
