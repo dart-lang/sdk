@@ -479,6 +479,36 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   }
 
   /**
+   * Serialize the given [declaredIdentifier] into [UnlinkedVariable], and
+   * store it in [variables].
+   */
+  void serializeDeclaredIdentifier(
+      AstNode scopeNode,
+      Comment documentationComment,
+      NodeList<Annotation> annotations,
+      bool isFinal,
+      bool isConst,
+      TypeName type,
+      bool assignPropagatedTypeSlot,
+      SimpleIdentifier declaredIdentifier) {
+    UnlinkedVariableBuilder b = new UnlinkedVariableBuilder();
+    b.isFinal = isFinal;
+    b.isConst = isConst;
+    b.name = declaredIdentifier.name;
+    b.nameOffset = declaredIdentifier.offset;
+    b.type = serializeTypeName(type);
+    b.documentationComment = serializeDocumentation(documentationComment);
+    b.annotations = serializeAnnotations(annotations);
+    b.codeRange = serializeCodeRange(declaredIdentifier);
+    if (assignPropagatedTypeSlot) {
+      b.propagatedTypeSlot = assignSlot();
+    }
+    b.visibleOffset = scopeNode?.offset;
+    b.visibleLength = scopeNode?.length;
+    this.variables.add(b);
+  }
+
+  /**
    * Serialize a [Comment] node into an [UnlinkedDocumentationComment] object.
    */
   UnlinkedDocumentationCommentBuilder serializeDocumentation(
@@ -776,6 +806,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
    * in [this.variables].
    */
   void serializeVariables(
+      AstNode scopeNode,
       VariableDeclarationList variables,
       bool isDeclaredStatic,
       Comment documentationComment,
@@ -808,8 +839,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
           (variable.initializer != null || !isSemanticallyStatic)) {
         b.inferredTypeSlot = assignSlot();
       }
-      b.visibleOffset = enclosingBlock?.offset;
-      b.visibleLength = enclosingBlock?.length;
+      b.visibleOffset = scopeNode?.offset;
+      b.visibleLength = scopeNode?.length;
       b.initializer = serializeInitializerFunction(variable.initializer);
       this.variables.add(b);
     }
@@ -821,6 +852,19 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
     enclosingBlock = node;
     super.visitBlock(node);
     enclosingBlock = oldBlock;
+  }
+
+  @override
+  void visitCatchClause(CatchClause node) {
+    SimpleIdentifier exception = node.exceptionParameter;
+    SimpleIdentifier st = node.stackTraceParameter;
+    serializeDeclaredIdentifier(
+        node, null, null, false, false, node.exceptionType, false, exception);
+    if (st != null) {
+      serializeDeclaredIdentifier(
+          node, null, null, false, false, null, false, st);
+    }
+    super.visitCatchClause(node);
   }
 
   @override
@@ -953,7 +997,7 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    serializeVariables(node.fields, node.staticKeyword != null,
+    serializeVariables(null, node.fields, node.staticKeyword != null,
         node.documentationComment, node.metadata, true);
   }
 
@@ -970,6 +1014,27 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       }
     }
     return b;
+  }
+
+  @override
+  void visitForEachStatement(ForEachStatement node) {
+    DeclaredIdentifier loopVariable = node.loopVariable;
+    serializeDeclaredIdentifier(
+        node,
+        loopVariable.documentationComment,
+        loopVariable.metadata,
+        loopVariable.isFinal,
+        loopVariable.isConst,
+        loopVariable.type,
+        true,
+        loopVariable.identifier);
+    super.visitForEachStatement(node);
+  }
+
+  @override
+  void visitForStatement(ForStatement node) {
+    serializeVariables(node, node.variables, false, null, null, false);
+    super.visitForStatement(node);
   }
 
   @override
@@ -1130,8 +1195,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
 
   @override
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
-    serializeVariables(
-        node.variables, false, node.documentationComment, node.metadata, false);
+    serializeVariables(null, node.variables, false, node.documentationComment,
+        node.metadata, false);
   }
 
   @override
@@ -1149,7 +1214,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
 
   @override
   void visitVariableDeclarationStatement(VariableDeclarationStatement node) {
-    serializeVariables(node.variables, false, null, null, false);
+    serializeVariables(
+        enclosingBlock, node.variables, false, null, null, false);
   }
 
   /**

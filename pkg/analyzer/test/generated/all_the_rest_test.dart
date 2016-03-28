@@ -596,11 +596,13 @@ class C {
     String stackParameterName = "s";
     CatchClause clause =
         AstFactory.catchClause2(exceptionParameterName, stackParameterName);
+    _setNodeSourceRange(clause, 100, 110);
     clause.accept(builder);
 
     List<LocalVariableElement> variables = holder.localVariables;
     expect(variables, hasLength(2));
-    VariableElement exceptionVariable = variables[0];
+
+    LocalVariableElement exceptionVariable = variables[0];
     expect(exceptionVariable, isNotNull);
     expect(exceptionVariable.name, exceptionParameterName);
     expect(exceptionVariable.hasImplicitType, isTrue);
@@ -608,13 +610,16 @@ class C {
     expect(exceptionVariable.isConst, isFalse);
     expect(exceptionVariable.isFinal, isFalse);
     expect(exceptionVariable.initializer, isNull);
-    VariableElement stackVariable = variables[1];
+    _assertVisibleRange(exceptionVariable, 100, 110);
+
+    LocalVariableElement stackVariable = variables[1];
     expect(stackVariable, isNotNull);
     expect(stackVariable.name, stackParameterName);
     expect(stackVariable.isSynthetic, isFalse);
     expect(stackVariable.isConst, isFalse);
     expect(stackVariable.isFinal, isFalse);
     expect(stackVariable.initializer, isNull);
+    _assertVisibleRange(stackVariable, 100, 110);
   }
 
   void test_visitCatchClause_withType() {

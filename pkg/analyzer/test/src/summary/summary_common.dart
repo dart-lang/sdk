@@ -4548,12 +4548,78 @@ get g {
     }
   }
 
+  test_executable_localVariables_catch() {
+    String code = r'''
+f() { // 1
+  try {
+    throw 42;
+  } on int catch (e, st) { // 2
+    print(e);
+    print(st);
+  } // 3
+} // 4
+''';
+    UnlinkedExecutable executable = serializeExecutableText(code);
+    List<UnlinkedVariable> variables = executable.localVariables;
+    expect(variables, hasLength(2));
+    {
+      UnlinkedVariable e = variables.singleWhere((v) => v.name == 'e');
+      _assertVariableVisible(code, e, 'on int catch (', '} // 3');
+      checkTypeRef(e.type, 'dart:core', 'dart:core', 'int');
+    }
+    {
+      UnlinkedVariable st = variables.singleWhere((v) => v.name == 'st');
+      _assertVariableVisible(code, st, 'on int catch (', '} // 3');
+    }
+  }
+
   test_executable_localVariables_empty() {
     UnlinkedExecutable executable = serializeExecutableText(r'''
 f() {
 }
 ''');
     expect(executable.localVariables, isEmpty);
+  }
+
+  test_executable_localVariables_forEachLoop() {
+    String code = r'''
+f() { // 1
+  for (int i in <int>[]) { // 2
+    print(i);
+  } // 3
+} // 4
+''';
+    UnlinkedExecutable executable = serializeExecutableText(code);
+    List<UnlinkedVariable> variables = executable.localVariables;
+    expect(variables, hasLength(1));
+    {
+      UnlinkedVariable i = variables.singleWhere((v) => v.name == 'i');
+      _assertVariableVisible(code, i, 'for', '} // 3');
+      checkTypeRef(i.type, 'dart:core', 'dart:core', 'int');
+    }
+  }
+
+  test_executable_localVariables_forLoop() {
+    String code = r'''
+f() { // 1
+  for (int i = 0, j = 0; i < 10; i++, j++) { // 2
+    print(i);
+  } // 3
+} // 4
+''';
+    UnlinkedExecutable executable = serializeExecutableText(code);
+    List<UnlinkedVariable> variables = executable.localVariables;
+    expect(variables, hasLength(2));
+    {
+      UnlinkedVariable i = variables.singleWhere((v) => v.name == 'i');
+      _assertVariableVisible(code, i, 'for', '} // 3');
+      checkTypeRef(i.type, 'dart:core', 'dart:core', 'int');
+    }
+    {
+      UnlinkedVariable i = variables.singleWhere((v) => v.name == 'j');
+      _assertVariableVisible(code, i, 'for', '} // 3');
+      checkTypeRef(i.type, 'dart:core', 'dart:core', 'int');
+    }
   }
 
   test_executable_localVariables_inConstructor() {
