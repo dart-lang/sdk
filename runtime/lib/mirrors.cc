@@ -333,12 +333,6 @@ static RawInstance* CreateClassMirror(const Class& cls,
     return CreateTypedefMirror(cls, type, is_declaration, owner_mirror);
   }
 
-  const Error& error = Error::Handle(cls.EnsureIsFinalized(Thread::Current()));
-  if (!error.IsNull()) {
-    Exceptions::PropagateError(error);
-    UNREACHABLE();
-  }
-
   const Array& args = Array::Handle(Array::New(9));
   args.SetAt(0, MirrorReference::Handle(MirrorReference::New(cls)));
   args.SetAt(1, type);
@@ -1471,6 +1465,12 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invoke, 5) {
   GET_NON_NULL_NATIVE_ARGUMENT(Array, args, arguments->NativeArgAt(3));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, arg_names, arguments->NativeArgAt(4));
 
+  const Error& error = Error::Handle(zone, klass.EnsureIsFinalized(thread));
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+    UNREACHABLE();
+  }
+
   Function& function = Function::Handle(
       klass.LookupStaticFunction(function_name));
 
@@ -1543,6 +1543,11 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeGetter, 3) {
   // with its cousins.
   GET_NON_NULL_NATIVE_ARGUMENT(MirrorReference, ref, arguments->NativeArgAt(1));
   const Class& klass = Class::Handle(ref.GetClassReferent());
+  const Error& error = Error::Handle(zone, klass.EnsureIsFinalized(thread));
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+    UNREACHABLE();
+  }
   GET_NON_NULL_NATIVE_ARGUMENT(String, getter_name, arguments->NativeArgAt(2));
   return InvokeClassGetter(klass, getter_name, true);
 }
@@ -1556,6 +1561,12 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeSetter, 4) {
   const Class& klass = Class::Handle(ref.GetClassReferent());
   GET_NON_NULL_NATIVE_ARGUMENT(String, setter_name, arguments->NativeArgAt(2));
   GET_NATIVE_ARGUMENT(Instance, value, arguments->NativeArgAt(3));
+
+  const Error& error = Error::Handle(zone, klass.EnsureIsFinalized(thread));
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+    UNREACHABLE();
+  }
 
   // Check for real fields and user-defined setters.
   const Field& field = Field::Handle(klass.LookupStaticField(setter_name));
@@ -1615,6 +1626,12 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeConstructor, 5) {
       String, constructor_name, arguments->NativeArgAt(2));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, explicit_args, arguments->NativeArgAt(3));
   GET_NON_NULL_NATIVE_ARGUMENT(Array, arg_names, arguments->NativeArgAt(4));
+
+  const Error& error = Error::Handle(zone, klass.EnsureIsFinalized(thread));
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+    UNREACHABLE();
+  }
 
   // By convention, the static function implementing a named constructor 'C'
   // for class 'A' is labeled 'A.C', and the static function implementing the
