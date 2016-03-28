@@ -1068,4 +1068,65 @@ bool Intrinsifier::Build_MathAtan2(FlowGraph* flow_graph) {
                                   /* num_parameters = */ 2);
 }
 
+
+bool Intrinsifier::Build_DoubleMod(FlowGraph* flow_graph) {
+  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
+
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry);
+
+  return BuildInvokeMathCFunction(&builder,
+                                  MethodRecognizer::kDoubleMod,
+                                  /* num_parameters = */ 2);
+}
+
+
+bool Intrinsifier::Build_DoubleCeil(FlowGraph* flow_graph) {
+  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
+
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry);
+
+  return BuildInvokeMathCFunction(&builder,
+                                  MethodRecognizer::kDoubleCeil);
+}
+
+
+bool Intrinsifier::Build_DoubleFloor(FlowGraph* flow_graph) {
+  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
+
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry);
+
+  return BuildInvokeMathCFunction(&builder,
+                                  MethodRecognizer::kDoubleFloor);
+}
+
+
+bool Intrinsifier::Build_DoubleTruncate(FlowGraph* flow_graph) {
+  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
+
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry);
+
+  return BuildInvokeMathCFunction(&builder,
+                                  MethodRecognizer::kDoubleTruncate);
+}
+
+
+bool Intrinsifier::Build_DoubleRound(FlowGraph* flow_graph) {
+  if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
+
+  GraphEntryInstr* graph_entry = flow_graph->graph_entry();
+  TargetEntryInstr* normal_entry = graph_entry->normal_entry();
+  BlockBuilder builder(flow_graph, normal_entry);
+
+  return BuildInvokeMathCFunction(&builder,
+                                  MethodRecognizer::kDoubleRound);
+}
+
 }  // namespace dart

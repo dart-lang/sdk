@@ -43,11 +43,6 @@ namespace dart {
   V(_IntegerImplementation, toDouble, IntegerToDouble, 150718448)              \
   V(_IntegerImplementation, _leftShiftWithMask32,                              \
       IntegerLeftShiftWithMask32, 1634465017)                                  \
-  V(_Double, truncateToDouble, DoubleTruncate, 791143891)                      \
-  V(_Double, roundToDouble, DoubleRound, 797558034)                            \
-  V(_Double, floorToDouble, DoubleFloor, 1789426271)                           \
-  V(_Double, ceilToDouble, DoubleCeil, 453271198)                              \
-  V(_Double, _modulo, DoubleMod, 1093862165)                                   \
   V(_Double, _add, DoubleAdd, 1190606283)                                      \
   V(_Double, _sub, DoubleSub, 1086286468)                                      \
   V(_Double, _mul, DoubleMul, 166332351)                                       \
@@ -291,7 +286,13 @@ namespace dart {
   V(_GrowableList, [], GrowableArrayGetIndexed, 1957529650)                    \
   V(_GrowableList, []=, GrowableArraySetIndexed, 225246870)                    \
   V(_StringBase, get:length, StringBaseLength, 707533587)                      \
-  V(_Double, unary-, DoubleFlipSignBit, 1783281169)
+  V(_Double, unary-, DoubleFlipSignBit, 1783281169)                            \
+  V(_Double, truncateToDouble, DoubleTruncate, 791143891)                      \
+  V(_Double, roundToDouble, DoubleRound, 797558034)                            \
+  V(_Double, floorToDouble, DoubleFloor, 1789426271)                           \
+  V(_Double, ceilToDouble, DoubleCeil, 453271198)                              \
+  V(_Double, _modulo, DoubleMod, 1093862165)
+
 
 #define GRAPH_INTRINSICS_LIST(V)                                               \
   GRAPH_CORE_INTRINSICS_LIST(V)                                                \
