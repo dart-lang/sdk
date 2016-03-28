@@ -137,7 +137,8 @@ analysis_server/test/search/element_reference_test: Pass, Slow # Issue 19756
 analysis_server/index/store/codec_test: Pass, Slow # Issue 19756
 
 [ $runtime == jsshell ]
-async/test/stream_zip_test: RuntimeError, OK # Timers are not supported.
+async/test/stream_zip_test: RuntimeError, OK # Issue 26103. Timers are not supported.
+lookup_map/test/lookup_map_test: RuntimeError, OK # Issue 26103. Timers are not supported.
 
 [ $compiler == dart2js && $runtime == drt ]
 async/test/stream_zip_test: RuntimeError, Pass # Issue 18548
