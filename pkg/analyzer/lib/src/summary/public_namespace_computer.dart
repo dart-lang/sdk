@@ -116,7 +116,23 @@ class _PublicNamespaceVisitor extends RecursiveAstVisitor {
 
   @override
   visitEnumDeclaration(EnumDeclaration node) {
-    addNameIfPublic(node.name.name, ReferenceKind.classOrEnum, 0);
+    UnlinkedPublicNameBuilder enm =
+        addNameIfPublic(node.name.name, ReferenceKind.classOrEnum, 0);
+    if (enm != null) {
+      enm.members.add(new UnlinkedPublicNameBuilder(
+          name: 'values',
+          kind: ReferenceKind.propertyAccessor,
+          numTypeParameters: 0));
+      for (EnumConstantDeclaration enumConstant in node.constants) {
+        String name = enumConstant.name.name;
+        if (isPublic(name)) {
+          enm.members.add(new UnlinkedPublicNameBuilder(
+              name: name,
+              kind: ReferenceKind.propertyAccessor,
+              numTypeParameters: 0));
+        }
+      }
+    }
   }
 
   @override

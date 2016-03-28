@@ -137,17 +137,6 @@ class PackageBundleAssembler {
   final List<UnlinkedUnitBuilder> _unlinkedUnits = <UnlinkedUnitBuilder>[];
   final List<String> _unlinkedUnitHashes = <String>[];
 
-  void addLinkedLibrary(String uri, LinkedLibraryBuilder library) {
-    _linkedLibraries.add(library);
-    _linkedLibraryUris.add(uri);
-  }
-
-  void addUnlinkedUnit(Source source, UnlinkedUnitBuilder unit) {
-    _unlinkedUnitUris.add(source.uri.toString());
-    _unlinkedUnits.add(unit);
-    _unlinkedUnitHashes.add(_hash(source.contents.data));
-  }
-
   /**
    * Add a fallback library to the package bundle, corresponding to the library
    * whose defining compilation unit is located at [source].  Caller must also
@@ -169,6 +158,17 @@ class PackageBundleAssembler {
     _unlinkedUnitUris.add(uri);
     _unlinkedUnits
         .add(new UnlinkedUnitBuilder(fallbackModePath: source.fullName));
+  }
+
+  void addLinkedLibrary(String uri, LinkedLibraryBuilder library) {
+    _linkedLibraries.add(library);
+    _linkedLibraryUris.add(uri);
+  }
+
+  void addUnlinkedUnit(Source source, UnlinkedUnitBuilder unit) {
+    _unlinkedUnitUris.add(source.uri.toString());
+    _unlinkedUnits.add(unit);
+    _unlinkedUnitHashes.add(_hash(source.contents.data));
   }
 
   /**
@@ -346,7 +346,9 @@ class _CompilationUnitSerializer {
     for (ClassElement enm in compilationUnit.enums) {
       if (enm.isPublic) {
         names.add(new UnlinkedPublicNameBuilder(
-            kind: ReferenceKind.classOrEnum, name: enm.name));
+            kind: ReferenceKind.classOrEnum,
+            name: enm.name,
+            members: serializeClassConstMembers(enm)));
       }
     }
     for (FunctionElement function in compilationUnit.functions) {

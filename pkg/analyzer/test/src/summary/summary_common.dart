@@ -2615,6 +2615,82 @@ const v = C;
     ]);
   }
 
+  test_constExpr_pushReference_enumValue() {
+    UnlinkedVariable variable = serializeVariableText('''
+enum C {V1, V2, V3}
+const v = C.V1;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'V1',
+              expectedKind: ReferenceKind.propertyAccessor,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
+              ])
+    ]);
+  }
+
+  test_constExpr_pushReference_enumValue_viaImport() {
+    addNamedSource(
+        '/a.dart',
+        '''
+enum C {V1, V2, V3}
+''');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart';
+const v = C.V1;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'V1',
+              expectedKind: ReferenceKind.propertyAccessor,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
+                    absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart')
+              ])
+    ]);
+  }
+
+  test_constExpr_pushReference_enumValues() {
+    UnlinkedVariable variable = serializeVariableText('''
+enum C {V1, V2, V3}
+const v = C.values;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'values',
+              expectedKind: ReferenceKind.propertyAccessor,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
+              ])
+    ]);
+  }
+
+  test_constExpr_pushReference_enumValues_viaImport() {
+    addNamedSource(
+        '/a.dart',
+        '''
+enum C {V1, V2, V3}
+''');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart';
+const v = C.values;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'values',
+              expectedKind: ReferenceKind.propertyAccessor,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
+                    absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart')
+              ])
+    ]);
+  }
+
   test_constExpr_pushReference_field() {
     UnlinkedVariable variable = serializeVariableText('''
 class C {
@@ -4035,6 +4111,19 @@ typedef F();
         ReferenceKind.classOrEnum);
     expect(unlinkedUnits[0].publicNamespace.names[0].name, 'E');
     expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 0);
+    expect(unlinkedUnits[0].publicNamespace.names[0].members, hasLength(2));
+    expect(unlinkedUnits[0].publicNamespace.names[0].members[0].kind,
+        ReferenceKind.propertyAccessor);
+    expect(unlinkedUnits[0].publicNamespace.names[0].members[0].name, 'values');
+    expect(
+        unlinkedUnits[0].publicNamespace.names[0].members[0].numTypeParameters,
+        0);
+    expect(unlinkedUnits[0].publicNamespace.names[0].members[1].kind,
+        ReferenceKind.propertyAccessor);
+    expect(unlinkedUnits[0].publicNamespace.names[0].members[1].name, 'v1');
+    expect(
+        unlinkedUnits[0].publicNamespace.names[0].members[1].numTypeParameters,
+        0);
   }
 
   test_enum_documented() {
@@ -4072,6 +4161,13 @@ enum E {
     UnlinkedEnumValue value = serializeEnumText(text).values[0];
     expect(value.documentationComment, isNotNull);
     checkDocumentationComment(value.documentationComment, text);
+  }
+
+  test_enum_value_private() {
+    serializeEnumText('enum E { _v }', 'E');
+    expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.names[0].members, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.names[0].members[0].name, 'values');
   }
 
   test_executable_abstract() {

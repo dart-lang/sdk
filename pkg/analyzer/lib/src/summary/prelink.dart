@@ -285,8 +285,16 @@ class _Prelinker {
       });
     }
     for (UnlinkedEnum enm in unit.enums) {
-      privateNamespace.putIfAbsent(enm.name,
-          () => new _Meaning(unitNum, ReferenceKind.classOrEnum, 0, 0));
+      privateNamespace.putIfAbsent(enm.name, () {
+        Map<String, _Meaning> namespace = <String, _Meaning>{};
+        enm.values.forEach((UnlinkedEnumValue value) {
+          namespace[value.name] =
+              new _Meaning(unitNum, ReferenceKind.propertyAccessor, 0, 0);
+        });
+        namespace['values'] =
+            new _Meaning(unitNum, ReferenceKind.propertyAccessor, 0, 0);
+        return new _ClassMeaning(unitNum, 0, 0, namespace);
+      });
     }
     for (UnlinkedExecutable executable in unit.executables) {
       privateNamespace.putIfAbsent(
