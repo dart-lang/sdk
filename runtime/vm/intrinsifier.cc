@@ -5,6 +5,7 @@
 
 #include "vm/assembler.h"
 #include "vm/compiler.h"
+#include "vm/cpu.h"
 #include "vm/flags.h"
 #include "vm/flow_graph.h"
 #include "vm/flow_graph_compiler.h"
@@ -1084,6 +1085,9 @@ bool Intrinsifier::Build_DoubleMod(FlowGraph* flow_graph) {
 
 bool Intrinsifier::Build_DoubleCeil(FlowGraph* flow_graph) {
   if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
+  // TODO(johnmccutchan): On X86 this intrinsic can be written in a different
+  // way.
+  if (TargetCPUFeatures::double_truncate_round_supported()) return false;
 
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   TargetEntryInstr* normal_entry = graph_entry->normal_entry();
@@ -1096,6 +1100,9 @@ bool Intrinsifier::Build_DoubleCeil(FlowGraph* flow_graph) {
 
 bool Intrinsifier::Build_DoubleFloor(FlowGraph* flow_graph) {
   if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
+  // TODO(johnmccutchan): On X86 this intrinsic can be written in a different
+  // way.
+  if (TargetCPUFeatures::double_truncate_round_supported()) return false;
 
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   TargetEntryInstr* normal_entry = graph_entry->normal_entry();
@@ -1108,6 +1115,9 @@ bool Intrinsifier::Build_DoubleFloor(FlowGraph* flow_graph) {
 
 bool Intrinsifier::Build_DoubleTruncate(FlowGraph* flow_graph) {
   if (!FlowGraphCompiler::SupportsUnboxedDoubles()) return false;
+  // TODO(johnmccutchan): On X86 this intrinsic can be written in a different
+  // way.
+  if (TargetCPUFeatures::double_truncate_round_supported()) return false;
 
   GraphEntryInstr* graph_entry = flow_graph->graph_entry();
   TargetEntryInstr* normal_entry = graph_entry->normal_entry();
