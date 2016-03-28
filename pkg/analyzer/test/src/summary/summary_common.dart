@@ -211,6 +211,21 @@ abstract class SummaryTest {
     ]);
   }
 
+  void checkConstCycle(String className,
+      {String name: '', bool hasCycle: true}) {
+    UnlinkedClass cls = findClass(className);
+    int constCycleSlot =
+        findExecutable(name, executables: cls.executables).constCycleSlot;
+    expect(constCycleSlot, isNot(0));
+    if (!skipFullyLinkedData) {
+      expect(
+          definingUnit.constCycles,
+          hasCycle
+              ? contains(constCycleSlot)
+              : isNot(contains(constCycleSlot)));
+    }
+  }
+
   /**
    * Verify that the [dependency]th element of the dependency table represents
    * a file reachable via the given [absoluteUri] and [relativeUri].
@@ -3910,17 +3925,9 @@ class E {
   const E() : x = null;
 }
 ''');
-    int classCConstCycleSlot = findClass('C').executables[0].constCycleSlot;
-    expect(classCConstCycleSlot, isNot(0));
-    int classDConstCycleSlot = findClass('D').executables[0].constCycleSlot;
-    expect(classDConstCycleSlot, isNot(0));
-    int classEConstCycleSlot = findClass('E').executables[0].constCycleSlot;
-    expect(classEConstCycleSlot, isNot(0));
-    if (!skipFullyLinkedData) {
-      expect(definingUnit.constCycles, contains(classCConstCycleSlot));
-      expect(definingUnit.constCycles, contains(classDConstCycleSlot));
-      expect(definingUnit.constCycles, isNot(contains(classEConstCycleSlot)));
-    }
+    checkConstCycle('C');
+    checkConstCycle('D');
+    checkConstCycle('E', hasCycle: false);
   }
 
   test_constructor_withCycles_nonConst() {
@@ -3936,6 +3943,152 @@ class D {
 ''');
     expect(findClass('C').executables[0].constCycleSlot, 0);
     expect(findClass('D').executables[0].constCycleSlot, 0);
+  }
+
+  test_constructorCycle_referenceToEnumValue() {
+    serializeLibraryText('''
+enum E { v }
+class C {
+  final x;
+  const C() : x = E.v;
+}
+''');
+    checkConstCycle('C', hasCycle: false);
+  }
+
+  test_constructorCycle_referenceToEnumValues() {
+    serializeLibraryText('''
+enum E { v }
+class C {
+  final x;
+  const C() : x = E.values;
+}
+''');
+    checkConstCycle('C', hasCycle: false);
+  }
+
+  test_constructorCycle_viaFinalField() {
+    serializeLibraryText(
+        '''
+class C {
+  final x = const C();
+  const C();
+}
+''',
+        allowErrors: true);
+    checkConstCycle('C');
+  }
+
+  test_constructorCycle_viaNamedConstructor() {
+    serializeLibraryText('''
+class C {
+  final x;
+  const C() : x = const D.named();
+}
+class D {
+  final x;
+  const D.named() : x = const C();
+}
+''');
+    checkConstCycle('C');
+    checkConstCycle('D', name: 'named');
+  }
+
+  test_constructorCycle_viaStaticField_inOtherClass() {
+    serializeLibraryText(
+        '''
+class C {
+  final x;
+  const C() : x = D.y;
+}
+class D {
+  static const y = const C();
+}
+''',
+        allowErrors: true);
+    checkConstCycle('C');
+  }
+
+  test_constructorCycle_viaStaticField_inSameClass() {
+    serializeLibraryText(
+        '''
+class C {
+  final x;
+  static const y = const C();
+  const C() : x = y;
+}
+''',
+        allowErrors: true);
+    checkConstCycle('C');
+  }
+
+  test_constructorCycle_viaSupertype() {
+    serializeLibraryText('''
+class C {
+  final x;
+  const C() : x = const D();
+}
+class D extends C {
+  const D();
+}
+''');
+    checkConstCycle('C');
+    checkConstCycle('D');
+  }
+
+  test_constructorCycle_viaSupertype_Enum() {
+    // It's not valid Dart but we need to make sure it doesn't crash
+    // summary generation.
+    serializeLibraryText(
+        '''
+enum E { v }
+class C extends E {
+  const C();
+}
+''',
+        allowErrors: true);
+    checkConstCycle('C', hasCycle: false);
+  }
+
+  test_constructorCycle_viaSupertype_withDefaultTypeArgument() {
+    serializeLibraryText('''
+class C<T> {
+  final x;
+  const C() : x = const D();
+}
+class D extends C {
+  const D();
+}
+''');
+    checkConstCycle('C');
+    checkConstCycle('D');
+  }
+
+  test_constructorCycle_viaSupertype_withTypeArgument() {
+    serializeLibraryText('''
+class C<T> {
+  final x;
+  const C() : x = const D();
+}
+class D extends C<int> {
+  const D();
+}
+''');
+    checkConstCycle('C');
+    checkConstCycle('D');
+  }
+
+  test_constructorCycle_viaTopLevelVariable() {
+    serializeLibraryText(
+        '''
+class C {
+  final x;
+  const C() : x = y;
+}
+const y = const C();
+''',
+        allowErrors: true);
+    checkConstCycle('C');
   }
 
   test_dependencies_export_to_export_unused() {

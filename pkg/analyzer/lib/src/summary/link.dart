@@ -123,8 +123,22 @@ typedef UnlinkedUnit GetUnitCallback(String absoluteUri);
  */
 abstract class ClassElementForLink
     implements ClassElement, ReferenceableElementForLink {
+  Map<String, ReferenceableElementForLink> _containedNames;
+
   @override
   ConstructorElementForLink get asConstructor => unnamedConstructor;
+
+  @override
+  ConstVariableNode get asConstVariable {
+    // TODO(paulberry): implement.
+    throw new UnimplementedError();
+  }
+
+  @override
+  List<ConstructorElementForLink> get constructors;
+
+  @override
+  List<FieldElementForLink> get fields;
 
   /**
    * Indicates whether this is the core class `Object`.
@@ -136,6 +150,27 @@ abstract class ClassElementForLink
 
   @override
   ConstructorElementForLink get unnamedConstructor;
+
+  @override
+  ReferenceableElementForLink getContainedName(name) {
+    if (_containedNames == null) {
+      _containedNames = <String, ReferenceableElementForLink>{};
+      // TODO(paulberry): what's the correct way to handle name conflicts?
+      for (ConstructorElementForLink constructor in constructors) {
+        _containedNames[constructor.name] = constructor;
+      }
+      for (FieldElementForLink field in fields) {
+        // TODO(paulberry): do we need to handle nonstatic fields for
+        // consistent behavior with erroneous code?
+        if (field.isStatic) {
+          _containedNames[field.name] = field;
+        }
+      }
+      // TODO(paulberry): add methods.
+    }
+    return _containedNames.putIfAbsent(
+        name, () => UndefinedElementForLink.instance);
+  }
 
   /**
    * Perform type inference and cycle detection on this class and
@@ -163,7 +198,7 @@ class ClassElementForLink_Class extends ClassElementForLink {
   List<ConstructorElementForLink> _constructors;
   ConstructorElementForLink _unnamedConstructor;
   bool _unnamedConstructorComputed = false;
-  List<FieldElementForLink> _fields;
+  List<FieldElementForLink_ClassField> _fields;
   InterfaceTypeForLink _supertype;
   InterfaceTypeForLink _type;
 
@@ -185,11 +220,11 @@ class ClassElementForLink_Class extends ClassElementForLink {
   }
 
   @override
-  List<FieldElementForLink> get fields {
+  List<FieldElementForLink_ClassField> get fields {
     if (_fields == null) {
-      _fields = <FieldElementForLink>[];
+      _fields = <FieldElementForLink_ClassField>[];
       for (UnlinkedVariable field in _unlinkedClass.fields) {
-        _fields.add(new FieldElementForLink(this, field));
+        _fields.add(new FieldElementForLink_ClassField(this, field));
       }
     }
     return _fields;
@@ -229,17 +264,10 @@ class ClassElementForLink_Class extends ClassElementForLink {
   DartTypeForLink buildType(DartTypeForLink getTypeArgument(int i),
       List<int> implicitFunctionTypeIndices) {
     if (_unlinkedClass.typeParameters.length != 0) {
-      // TODO(paulberry): implement.
-      throw new UnimplementedError();
+      return new InterfaceTypeForLink(this);
     } else {
       return _type ??= new InterfaceTypeForLink(this);
     }
-  }
-
-  @override
-  ReferenceableElementForLink getContainedName(name) {
-    // TODO(paulberry): implement.
-    throw new UnimplementedError();
   }
 
   @override
@@ -260,7 +288,25 @@ class ClassElementForLink_Enum extends ClassElementForLink {
    */
   final UnlinkedEnum _unlinkedEnum;
 
+  InterfaceTypeForLink _type;
+  List<FieldElementForLink_EnumField> _fields;
+
   ClassElementForLink_Enum(this._unlinkedEnum);
+
+  @override
+  List<ConstructorElementForLink> get constructors => const [];
+
+  @override
+  List<FieldElementForLink_EnumField> get fields {
+    if (_fields == null) {
+      _fields = <FieldElementForLink_EnumField>[];
+      _fields.add(new FieldElementForLink_EnumField(null));
+      for (UnlinkedEnumValue value in _unlinkedEnum.values) {
+        _fields.add(new FieldElementForLink_EnumField(value));
+      }
+    }
+    return _fields;
+  }
 
   @override
   bool get isObject => false;
@@ -273,16 +319,8 @@ class ClassElementForLink_Enum extends ClassElementForLink {
 
   @override
   DartTypeForLink buildType(DartTypeForLink getTypeArgument(int i),
-      List<int> implicitFunctionTypeIndices) {
-    // TODO(paulberry): implement.
-    throw new UnimplementedError();
-  }
-
-  @override
-  ReferenceableElementForLink getContainedName(name) {
-    // TODO(paulberry): implement.
-    throw new UnimplementedError();
-  }
+          List<int> implicitFunctionTypeIndices) =>
+      _type ??= new InterfaceTypeForLink(this);
 
   @override
   void link(LinkedUnitBuilder linkedUnit) {}
@@ -307,6 +345,7 @@ abstract class CompilationUnitElementForLink implements CompilationUnitElement {
 
   List<ClassElementForLink> _types;
   Map<String, ReferenceableElementForLink> _containedNames;
+  List<TopLevelVariableElementForLink> _topLevelVariables;
 
   @override
   final LibraryElementForLink enclosingElement;
@@ -319,6 +358,18 @@ abstract class CompilationUnitElementForLink implements CompilationUnitElement {
 
   @override
   bool get isInBuildUnit;
+
+  @override
+  List<TopLevelVariableElementForLink> get topLevelVariables {
+    if (_topLevelVariables == null) {
+      _topLevelVariables = <TopLevelVariableElementForLink>[];
+      for (UnlinkedVariable unlinkedVariable in _unlinkedUnit.variables) {
+        _topLevelVariables
+            .add(new TopLevelVariableElementForLink(this, unlinkedVariable));
+      }
+    }
+    return _topLevelVariables;
+  }
 
   @override
   List<ClassElementForLink> get types {
@@ -347,11 +398,15 @@ abstract class CompilationUnitElementForLink implements CompilationUnitElement {
   ReferenceableElementForLink getContainedName(name) {
     if (_containedNames == null) {
       _containedNames = <String, ReferenceableElementForLink>{};
+      // TODO(paulberry): what's the correct way to handle name conflicts?
       for (ClassElementForLink type in types) {
-        // TODO(paulberry): what's the correct way to handle name conflicts?
         _containedNames[type.name] = type;
       }
-      // TODO(paulberry): fill in other top level entities.
+      for (TopLevelVariableElementForLink variable in topLevelVariables) {
+        _containedNames[variable.name] = variable;
+      }
+      // TODO(paulberry): fill in other top level entities (typedefs
+      // and executables).
     }
     return _containedNames.putIfAbsent(
         name, () => UndefinedElementForLink.instance);
@@ -544,7 +599,7 @@ class ConstConstructorNode extends ConstNode {
         // Note: non-static const isn't allowed but we handle it anyway so
         // that we won't be confused by incorrect code.
         if ((field.isFinal || field.isConst) && !field.isStatic) {
-          safeAddDependency(field._constNode);
+          safeAddDependency(field.asConstVariable);
         }
       }
       for (ParameterElementForLink parameterElement
@@ -613,8 +668,13 @@ abstract class ConstNode extends Node<ConstNode> {
     for (UnlinkedConstOperation operation in unlinkedConst.operations) {
       switch (operation) {
         case UnlinkedConstOperation.pushReference:
-          // TODO(paulberry): implement.
-          throw new UnimplementedError();
+          EntityRef ref = unlinkedConst.references[refPtr++];
+          ConstVariableNode variable =
+              compilationUnit._resolveRef(ref.reference).asConstVariable;
+          if (variable != null) {
+            dependencies.add(variable);
+          }
+          break;
         case UnlinkedConstOperation.makeTypedList:
           refPtr++;
           break;
@@ -664,7 +724,8 @@ class ConstParameterNode extends ConstNode {
  * Element representing a constructor resynthesized from a summary
  * during linking.
  */
-class ConstructorElementForLink implements ConstructorElement {
+class ConstructorElementForLink
+    implements ConstructorElement, ReferenceableElementForLink {
   /**
    * The unlinked representation of the constructor in the summary.
    */
@@ -690,6 +751,12 @@ class ConstructorElementForLink implements ConstructorElement {
   }
 
   @override
+  ConstructorElementForLink get asConstructor => this;
+
+  @override
+  ConstVariableNode get asConstVariable => null;
+
+  @override
   bool get isCycleFree {
     if (!_constNode.isEvaluated) {
       new ConstDependencyWalker().walk(_constNode);
@@ -711,6 +778,15 @@ class ConstructorElementForLink implements ConstructorElement {
     }
     return _parameters;
   }
+
+  @override
+  DartTypeForLink buildType(DartTypeForLink getTypeArgument(int i),
+          List<int> implicitFunctionTypeIndices) =>
+      DynamicTypeForLink.instance;
+
+  @override
+  ReferenceableElementForLink getContainedName(name) =>
+      UndefinedElementForLink.instance;
 
   /**
    * Perform const cycle detection on this constructor.
@@ -910,28 +986,68 @@ class DynamicTypeForLink extends DartTypeForLink {
 }
 
 /**
- * Element representing a field resynthesized from a summary during linking.
+ * Element representing a field resynthesized from a summary during
+ * linking.
  */
-class FieldElementForLink extends VariableElementForLink
-    implements FieldElement {
-  /**
-   * The unlinked representation of the field in the summary.
-   */
+abstract class FieldElementForLink
+    implements FieldElement, ReferenceableElementForLink {}
+
+/**
+ * Specialization of [FieldElementForLink] for class fields.
+ */
+class FieldElementForLink_ClassField extends VariableElementForLink
+    implements FieldElementForLink {
+  @override
   final ClassElementForLink_Class enclosingElement;
 
-  FieldElementForLink(ClassElementForLink_Class enclosingElement,
+  FieldElementForLink_ClassField(ClassElementForLink_Class enclosingElement,
       UnlinkedVariable unlinkedVariable)
       : enclosingElement = enclosingElement,
         super(unlinkedVariable, enclosingElement.enclosingElement);
 
   @override
-  bool get isConst => unlinkedVariable.isConst;
-
-  @override
-  bool get isFinal => unlinkedVariable.isFinal;
-
-  @override
   bool get isStatic => unlinkedVariable.isStatic;
+}
+
+/**
+ * Specialization of [FieldElementForLink] for enum fields.
+ */
+class FieldElementForLink_EnumField extends FieldElementForLink
+    implements FieldElement {
+  /**
+   * The unlinked representation of the field in the summary, or `null` if this
+   * is an enum's `values` field.
+   */
+  final UnlinkedEnumValue unlinkedEnumValue;
+
+  FieldElementForLink_EnumField(this.unlinkedEnumValue);
+
+  @override
+  ConstructorElementForLink get asConstructor => null;
+
+  @override
+  ConstVariableNode get asConstVariable {
+    // Even though enum fields are constants, there is no need to include them
+    // in the const dependency graph because they can't participate in a
+    // circularity.
+    return null;
+  }
+
+  @override
+  bool get isStatic => true;
+
+  @override
+  String get name =>
+      unlinkedEnumValue == null ? 'values' : unlinkedEnumValue.name;
+
+  @override
+  DartTypeForLink buildType(DartTypeForLink getTypeArgument(int i),
+          List<int> implicitFunctionTypeIndices) =>
+      DynamicTypeForLink.instance;
+
+  @override
+  ReferenceableElementForLink getContainedName(name) =>
+      UndefinedElementForLink.instance;
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -939,6 +1055,8 @@ class FieldElementForLink extends VariableElementForLink
 
 /**
  * Representation of an interface type during linking.
+ *
+ * TODO(paulberry): add the ability to represent type arguments.
  */
 class InterfaceTypeForLink extends DartTypeForLink implements InterfaceType {
   @override
@@ -1166,6 +1284,13 @@ abstract class ReferenceableElementForLink {
   ConstructorElementForLink get asConstructor;
 
   /**
+   * If this element can be used in a getter context to refer to a
+   * constant variable, return the [ConstVariableNode] for the
+   * constant value.  Otherwise return `null`.
+   */
+  ConstVariableNode get asConstVariable;
+
+  /**
    * Return the type indicated by this element when it is used in a
    * type instantiation context.  If this element can't legally be
    * instantiated as a type, return the dynamic type.
@@ -1184,6 +1309,20 @@ abstract class ReferenceableElementForLink {
 }
 
 /**
+ * Element representing a top level variable resynthesized from a
+ * summary during linking.
+ */
+class TopLevelVariableElementForLink extends VariableElementForLink
+    implements TopLevelVariableElement {
+  TopLevelVariableElementForLink(CompilationUnitElement enclosingElement,
+      UnlinkedVariable unlinkedVariable)
+      : super(unlinkedVariable, enclosingElement);
+
+  @override
+  bool get isStatic => true;
+}
+
+/**
  * Singleton element used for unresolved references.
  */
 class UndefinedElementForLink implements ReferenceableElementForLink {
@@ -1194,6 +1333,9 @@ class UndefinedElementForLink implements ReferenceableElementForLink {
 
   @override
   ConstructorElementForLink get asConstructor => null;
+
+  @override
+  ConstVariableNode get asConstVariable => null;
 
   @override
   DartTypeForLink buildType(DartTypeForLink getTypeArgument(int i),
@@ -1208,7 +1350,8 @@ class UndefinedElementForLink implements ReferenceableElementForLink {
  * Element representing a top level variable resynthesized from a
  * summary during linking.
  */
-class VariableElementForLink {
+class VariableElementForLink
+    implements VariableElement, ReferenceableElementForLink {
   /**
    * The unlinked representation of the variable in the summary.
    */
@@ -1231,6 +1374,39 @@ class VariableElementForLink {
       _constNode = new ConstVariableNode(this);
     }
   }
+
+  @override
+  ConstructorElementForLink get asConstructor => null;
+
+  @override
+  ConstVariableNode get asConstVariable => _constNode;
+
+  @override
+  bool get isConst => unlinkedVariable.isConst;
+
+  @override
+  bool get isFinal => unlinkedVariable.isFinal;
+
+  @override
+  bool get isStatic;
+
+  @override
+  String get name => unlinkedVariable.name;
+
+  @override
+  DartTypeForLink buildType(DartTypeForLink getTypeArgument(int i),
+          List<int> implicitFunctionTypeIndices) =>
+      DynamicTypeForLink.instance;
+
+  ReferenceableElementForLink getContainedName(name) {
+    // TODO(paulberry): implement.
+    // TODO(paulberry): make sure that circularities involving
+    // ".length" are handled correctly.
+    return UndefinedElementForLink.instance;
+  }
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /**
