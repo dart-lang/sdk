@@ -138,11 +138,6 @@ class LinkedSummarizeAstTest extends Object with SummaryTest {
   }
 
   @override
-  test_constExpr_classMember_shadows_typeParam() {
-    // TODO(paulberry): fix.
-  }
-
-  @override
   test_field_propagated_type_final_immediate() {
     // TODO(paulberry): fix.
   }
