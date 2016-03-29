@@ -1947,15 +1947,6 @@ table UnlinkedTypeParam {
  */
 table UnlinkedUnit {
   /**
-   * If this compilation unit was summarized in fallback mode, the path where
-   * the compilation unit may be found on disk.  Otherwise empty.
-   *
-   * When this field is non-empty, all other fields in the data structure have
-   * their default values.
-   */
-  fallbackModePath:string (id: 16);
-
-  /**
    * Classes declared in the compilation unit.
    */
   classes:[UnlinkedClass] (id: 2);
@@ -1980,6 +1971,15 @@ table UnlinkedUnit {
    * Export declarations in the compilation unit.
    */
   exports:[UnlinkedExportNonPublic] (id: 13);
+
+  /**
+   * If this compilation unit was summarized in fallback mode, the path where
+   * the compilation unit may be found on disk.  Otherwise empty.
+   *
+   * When this field is non-empty, all other fields in the data structure have
+   * their default values.
+   */
+  fallbackModePath:string (id: 16);
 
   /**
    * Import declarations in the compilation unit.
