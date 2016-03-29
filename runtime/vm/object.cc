@@ -912,18 +912,10 @@ class PremarkingVisitor : public ObjectVisitor {
 
   void VisitObject(RawObject* obj) {
     // Free list elements should never be marked.
+    ASSERT(!obj->IsMarked());
     if (!obj->IsFreeListElement()) {
       ASSERT(obj->IsVMHeapObject());
-      if (obj->IsMarked()) {
-        // Precompiled objects are loaded pre-marked.
-        ASSERT(Dart::IsRunningPrecompiledCode());
-        ASSERT(obj->IsInstructions() ||
-               obj->IsPcDescriptors() ||
-               obj->IsStackmap() ||
-               obj->IsOneByteString());
-      } else {
-        obj->SetMarkBitUnsynchronized();
-      }
+      obj->SetMarkBitUnsynchronized();
     }
   }
 };
@@ -994,11 +986,10 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
 
   {
     ASSERT(isolate == Dart::vm_isolate());
-    bool include_code_pages = !Dart::IsRunningPrecompiledCode();
-    WritableVMIsolateScope scope(Thread::Current(), include_code_pages);
+    WritableVMIsolateScope scope(Thread::Current());
     PremarkingVisitor premarker;
     ASSERT(isolate->heap()->UsedInWords(Heap::kNew) == 0);
-    isolate->heap()->IterateOldObjects(&premarker);
+    isolate->heap()->IterateOldObjectsNoEmbedderPages(&premarker);
     // Make the VM isolate read-only again after setting all objects as marked.
   }
 }

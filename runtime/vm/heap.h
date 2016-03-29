@@ -102,6 +102,7 @@ class Heap {
 
   void IterateObjects(ObjectVisitor* visitor) const;
   void IterateOldObjects(ObjectVisitor* visitor) const;
+  void IterateOldObjectsNoEmbedderPages(ObjectVisitor* visitor) const;
   void IterateObjectPointers(ObjectVisitor* visitor) const;
 
   // Find an object by visiting all pointers in the specified heap space,
@@ -138,7 +139,7 @@ class Heap {
 
   // Protect access to the heap. Note: Code pages are made
   // executable/non-executable when 'read_only' is true/false, respectively.
-  void WriteProtect(bool read_only, bool include_code_pages);
+  void WriteProtect(bool read_only);
   void WriteProtectCode(bool read_only) {
     old_space_.WriteProtectCode(read_only);
   }
@@ -391,11 +392,8 @@ class NoHeapGrowthControlScope : public StackResource {
 // Note: During this scope, the code pages are non-executable.
 class WritableVMIsolateScope : StackResource {
  public:
-  explicit WritableVMIsolateScope(Thread* thread, bool include_code_pages);
+  explicit WritableVMIsolateScope(Thread* thread);
   ~WritableVMIsolateScope();
-
- private:
-  bool include_code_pages_;
 };
 
 }  // namespace dart
