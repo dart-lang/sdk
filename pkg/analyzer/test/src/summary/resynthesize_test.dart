@@ -2172,6 +2172,14 @@ const vFunctionTypeAlias = p.F;
 ''');
   }
 
+  test_const_reference_type_typeParameter() {
+    checkLibrary(r'''
+class C<T> {
+  final f = <T>[];
+}
+''');
+  }
+
   test_const_reference_unresolved_prefix0() {
     checkLibrary(
         r'''

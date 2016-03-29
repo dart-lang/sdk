@@ -5741,6 +5741,18 @@ class C {
     _assertUnlinkedConst(variable.constExpr, isInvalid: true);
   }
 
+  test_field_final_typeParameter() {
+    UnlinkedVariable variable = serializeClassText(r'''
+class C<T> {
+  final f = <T>[];
+}''').fields[0];
+    expect(variable.isFinal, isTrue);
+    _assertUnlinkedConst(variable.constExpr,
+        operators: [UnlinkedConstOperation.makeTypedList],
+        ints: [0],
+        referenceValidators: [(EntityRef r) => checkParamTypeRef(r, 1)]);
+  }
+
   test_field_formal_param_inferred_type_explicit() {
     UnlinkedClass cls = serializeClassText(
         'class C extends D { var v; C(int this.v); }'
