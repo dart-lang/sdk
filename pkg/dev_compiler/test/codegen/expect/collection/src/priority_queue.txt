@@ -1,3 +1,3 @@
 // Messages from compiling priority_queue.dart
-warning: [DOWN_CAST_COMPOSITE] Unsound implicit cast from (dynamic, dynamic) → int to (E, E) → int (package:collection/src/priority_queue.dart, line 210, col 15)
-warning: [DOWN_CAST_COMPOSITE] Unsound implicit cast from (dynamic, dynamic) → int to (E, E) → int (package:collection/src/priority_queue.dart, line 215, col 38)
+warning: [STRONG_MODE_DOWN_CAST_COMPOSITE] Unsound implicit cast from (dynamic, dynamic) → int to (E, E) → int (package:collection/src/priority_queue.dart, line 210, col 15)
+warning: [STRONG_MODE_DOWN_CAST_COMPOSITE] Unsound implicit cast from (dynamic, dynamic) → int to (E, E) → int (package:collection/src/priority_queue.dart, line 215, col 38)

@@ -10,6 +10,7 @@ import 'package:analyzer/src/generated/error.dart'
     show AnalysisErrorListener, ErrorReporter;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/source.dart' show Source;
+import 'package:analyzer/src/dart/ast/ast.dart';
 
 /// True is the expression can be evaluated multiple times without causing
 /// code execution. This is true for final fields. This can be true for local
@@ -54,6 +55,12 @@ bool isStateless(FunctionBody function, Expression node, [AstNode context]) {
 /// This accounts for closures that may have been created outside of [context].
 bool _isPotentiallyMutated(FunctionBody function, VariableElement e,
     [AstNode context]) {
+  if (function is FunctionBodyImpl && function.localVariableInfo == null) {
+    // TODO(jmesserly): this is a caching bug in Analyzer. They don't restore
+    // this info in some cases.
+    return true;
+  }
+
   if (function.isPotentiallyMutatedInClosure(e)) return true;
   if (function.isPotentiallyMutatedInScope(e)) {
     // Need to visit the context looking for assignment to this local.

@@ -40,7 +40,7 @@ AnalysisContext createAnalysisContext() {
 /// `package:` URI resolvers.
 SourceFactory createSourceFactory(SourceResolverOptions options,
     {DartUriResolver sdkResolver, List<UriResolver> fileResolvers}) {
-  var sdkResolver = options.useMockSdk
+  sdkResolver ??= options.useMockSdk
       ? createMockSdkResolver(mockSdkSources)
       : createSdkPathResolver(options.dartSdkPath);
 

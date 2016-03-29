@@ -317,6 +317,12 @@
         'multiline_newline_test_06_multi',
         'multiline_newline_test_none_multi',
         'no_main_test_01_multi',
+
+        // https://github.com/dart-lang/sdk/issues/26123
+        'bad_raw_string_negative_test',
+
+        // https://github.com/dart-lang/sdk/issues/26124
+        'prefix10_negative_test'
       ]),
       helpers: new Set([
         'library_prefixes_test1',
@@ -392,7 +398,12 @@
             async_helper.asyncTestInitialize(done);
             console.debug('Running ' + s + ' test:  ' + name);
 
-            dart_library.import(s + '/' + name).main();
+            let mainLibrary = dart_library.import(s + '/' + name);
+            if (/negative_test/.test(name)) {
+              assert.throws(mainLibrary.main);
+            } else {
+              mainLibrary.main();
+            }
 
             if (!async_helper.asyncTestStarted) done();
           });

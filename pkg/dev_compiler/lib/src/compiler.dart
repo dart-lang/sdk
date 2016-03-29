@@ -86,7 +86,8 @@ class BatchCompiler extends AbstractCompiler {
       : super(
             context,
             options,
-            new ErrorCollector(reporter ?? AnalysisErrorListener.NULL_LISTENER),
+            new ErrorCollector(
+                context, reporter ?? AnalysisErrorListener.NULL_LISTENER),
             fileSystem) {
     _inputBaseDir = options.inputBaseDir;
     if (outputDir != null) {
@@ -441,23 +442,14 @@ abstract class AbstractCompiler {
     List<AnalysisError> errors = errorContext.computeErrors(source);
     bool failure = false;
     for (var error in errors) {
-      ErrorCode code = error.errorCode;
-      // Always skip TODOs.
-      if (code.type == ErrorType.TODO) continue;
-
-      // TODO(jmesserly): for now, treat DDC errors as having a different
-      // error level from Analayzer ones.
-      if (isStrongModeError(code)) {
+      // TODO(jmesserly): this is a very expensive lookup, and it has to be
+      // repeated every time we want to query error severity.
+      var severity = errorSeverity(errorContext, error);
+      if (severity == ErrorSeverity.ERROR) {
         reporter.onError(error);
-        if (code.errorSeverity == ErrorSeverity.ERROR) {
-          failure = true;
-        }
-      } else if (code.errorSeverity.ordinal >= ErrorSeverity.WARNING.ordinal) {
-        // All analyzer warnings or errors are errors for DDC.
         failure = true;
+      } else if (severity == ErrorSeverity.WARNING) {
         reporter.onError(error);
-      } else {
-        // Skip hints for now.
       }
     }
     return failure;

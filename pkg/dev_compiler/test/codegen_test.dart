@@ -11,17 +11,20 @@ import 'dart:io';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisEngine, Logger;
 import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
+import 'package:analyzer/src/generated/source_io.dart';
 import 'package:args/args.dart';
+import 'package:cli_util/cli_util.dart' show getSdkDir;
 import 'package:logging/logging.dart' show Level;
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import 'package:dev_compiler/devc.dart';
+import 'package:dev_compiler/src/analysis_context.dart';
 import 'package:dev_compiler/src/compiler.dart' show defaultRuntimeFiles;
 import 'package:dev_compiler/src/options.dart';
 import 'package:dev_compiler/src/report.dart' show LogReporter;
 
-import 'testing.dart' show realSdkContext, testDirectory;
+import 'testing.dart' show testDirectory;
 import 'multitest.dart';
 
 final ArgParser argParser = new ArgParser()
@@ -65,12 +68,24 @@ main(arguments) {
 
   var expectDir = path.join(inputDir, 'expect');
 
-  BatchCompiler createCompiler(AnalysisContext context,
-      {bool checkSdk: false,
+  BatchCompiler createCompiler(DartUriResolver sdkResolver, {bool checkSdk: false,
       bool sourceMaps: false,
       bool destructureNamedParams: false,
       bool closure: false,
       ModuleFormat moduleFormat: ModuleFormat.legacy}) {
+
+    String _testCodegenPath(String p1, [String p2]) =>
+        path.join(testDirectory, 'codegen', p1, p2);
+
+    var context = createAnalysisContextWithSources(new SourceResolverOptions(
+        customUrlMappings: {
+          'package:expect/expect.dart': _testCodegenPath('expect.dart'),
+          'package:async_helper/async_helper.dart':
+          _testCodegenPath('async_helper.dart'),
+          'package:unittest/unittest.dart': _testCodegenPath('unittest.dart'),
+          'package:dom/dom.dart': _testCodegenPath('sunflower', 'dom.dart')
+        }), sdkResolver: sdkResolver);
+
     // TODO(jmesserly): add a way to specify flags in the test file, so
     // they're more self-contained.
     var runtimeDir = path.join(path.dirname(testDirectory), 'lib', 'runtime');
@@ -137,7 +152,8 @@ $compilerMessages''';
     }
   }
 
-  var batchCompiler = createCompiler(realSdkContext);
+  var realSdkResolver = createSdkPathResolver(getSdkDir().path);
+  var batchCompiler = createCompiler(realSdkResolver);
 
   var allDirs = [null];
   allDirs.addAll(testDirs);
@@ -174,7 +190,7 @@ $compilerMessages''';
                   closure ||
                   destructureNamedParams ||
                   moduleFormat != ModuleFormat.legacy)
-              ? createCompiler(realSdkContext,
+              ? createCompiler(realSdkResolver,
                   sourceMaps: sourceMaps,
                   destructureNamedParams: destructureNamedParams,
                   closure: closure,
@@ -207,13 +223,12 @@ $compilerMessages''';
       });
 
       test('devc dart:core', () {
-        var testSdkContext = createAnalysisContextWithSources(
-            new SourceResolverOptions(dartSdkPath: path.join(
-                testDirectory, '..', 'tool', 'generated_sdk')));
+        var testSdkResolver = createSdkPathResolver(path.join(
+                testDirectory, '..', 'tool', 'generated_sdk'));
 
         // Get the test SDK. We use a checked in copy so test expectations can
         // be generated against a specific SDK version.
-        var compiler = createCompiler(testSdkContext, checkSdk: true);
+        var compiler = createCompiler(testSdkResolver, checkSdk: true);
         compile(compiler, 'dart:core');
         var outFile = new File(path.join(expectDir, 'dart/core.js'));
         expect(outFile.existsSync(), true,

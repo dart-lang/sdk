@@ -25,7 +25,6 @@ import 'package:analyzer/src/generated/constant.dart' show DartObject;
 //ignore: DEPRECATED_MEMBER_USE
 import 'package:analyzer/src/generated/element.dart' show DynamicTypeImpl;
 import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
-import 'package:analyzer/src/generated/error.dart' show ErrorCode;
 import 'package:analyzer/src/task/dart.dart' show ParseDartTask;
 import 'package:analyzer/src/generated/resolver.dart' show TypeProvider;
 import 'package:analyzer/src/generated/source.dart' show LineInfo, Source;
@@ -400,22 +399,6 @@ SourceSpanWithContext createSpanHelper(
   var text = content.substring(start, end);
   var lineText = content.substring(lineStart, lineEnd);
   return new SourceSpanWithContext(startLoc, endLoc, text, lineText);
-}
-
-String _strongModeErrorPrefix = 'STRONG_MODE';
-
-bool isStrongModeError(ErrorCode errorCode) {
-  return errorCode.name.startsWith(_strongModeErrorPrefix);
-}
-
-String errorCodeName(ErrorCode errorCode) {
-  if (isStrongModeError(errorCode)) {
-    return errorCode.name.substring(_strongModeErrorPrefix.length + 1);
-  } else {
-    // TODO(jmesserly): this is for backwards compat, but not sure it's very
-    // useful to log this.
-    return 'AnalyzerMessage';
-  }
 }
 
 bool isInlineJS(Element e) =>

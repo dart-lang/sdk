@@ -7,10 +7,14 @@
 /// definitions to provide mock sdks.
 
 import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, TimestampedData;
-import 'package:analyzer/src/generated/sdk.dart';
-import 'package:analyzer/src/generated/source.dart';
-import 'package:analyzer/src/context/context.dart';
+    show AnalysisContext, AnalysisEngine, TimestampedData;
+import 'package:analyzer/src/generated/sdk.dart'
+    show DartSdk, SdkLibrary, SdkLibraryImpl;
+import 'package:analyzer/src/generated/source.dart'
+    show DartUriResolver, Source, SourceFactory, UriKind;
+import 'package:analyzer/src/context/context.dart' show AnalysisContextImpl;
+import 'package:analyzer/src/context/cache.dart'
+    show AnalysisCache, CachePartition;
 
 /// Dart SDK which contains a mock implementation of the SDK libraries. May be
 /// used to speed up execution when most of the core libraries is not needed.
@@ -20,11 +24,12 @@ class MockDartSdk implements DartSdk {
   final Map<String, SdkLibrary> _libs = {};
   final String sdkVersion = '0';
   List<String> get uris => _sources.keys.map((uri) => '$uri').toList();
-  final AnalysisContext context = new SdkAnalysisContext(null);
+  AnalysisContext context;
   DartUriResolver _resolver;
   DartUriResolver get resolver => _resolver;
 
   MockDartSdk(Map<String, String> sources, {this.reportMissing}) {
+    context = new _SdkAnalysisContext(this);
     sources.forEach((uriString, contents) {
       var uri = Uri.parse(uriString);
       _sources[uri] = new _MockSdkSource(uri, contents);
@@ -180,3 +185,19 @@ final Map<String, String> mockSdkSources = {
         num max(num x, num y) {}
         ''',
 };
+
+/// An [AnalysisContextImpl] that only contains sources for a Dart SDK.
+class _SdkAnalysisContext extends AnalysisContextImpl {
+  final DartSdk sdk;
+
+  _SdkAnalysisContext(this.sdk);
+
+  @override
+  AnalysisCache createCacheFromSourceFactory(SourceFactory factory) {
+    if (factory == null) {
+      return super.createCacheFromSourceFactory(factory);
+    }
+    return new AnalysisCache(
+        <CachePartition>[AnalysisEngine.instance.partitionManager.forSdk(sdk)]);
+  }
+}

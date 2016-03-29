@@ -11,11 +11,9 @@ import 'closure/closure_annotation_test.dart' as closure_annotation_test;
 import 'closure/closure_type_test.dart' as closure_type_test;
 import 'codegen_test.dart' as codegen_test;
 import 'js/builder_test.dart' as builder_test;
-import 'end_to_end_test.dart' as e2e;
 import 'utils_test.dart' as utils_test;
 
 void main() {
-  group('end-to-end', e2e.main);
   group('codegen', () => codegen_test.main([]));
   group('closure', () {
     closure_annotation_test.main();
