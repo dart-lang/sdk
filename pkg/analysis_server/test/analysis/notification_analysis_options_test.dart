@@ -297,11 +297,8 @@ linter:
 
     if (enabled) {
       // Should produce a type warning.
-      expect(
-          errors.map((error) => error.type),
-          unorderedEquals([
-            AnalysisErrorType.STATIC_TYPE_WARNING
-          ]));
+      expect(errors.map((error) => error.type),
+          unorderedEquals([AnalysisErrorType.STATIC_TYPE_WARNING]));
     } else {
       // Should only produce a hint.
       expect(errors.map((error) => error.type),

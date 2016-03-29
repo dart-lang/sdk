@@ -79,7 +79,8 @@ dt.typeDefinition {
 
   list-style-type: none;
 }
-'''.trim();
+'''
+    .trim();
 
 final GeneratedFile target =
     new GeneratedFile('doc/api.html', (String pkgPath) {
@@ -448,7 +449,8 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
     });
   }
 
-  @override visitRefactoring(Refactoring refactoring) {
+  @override
+  visitRefactoring(Refactoring refactoring) {
     dt('refactoring', () {
       write(refactoring.kind);
     });

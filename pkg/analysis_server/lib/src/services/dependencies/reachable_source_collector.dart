@@ -33,7 +33,6 @@ class ReachableSourceCollector {
   }
 
   void _addDependencies(Source source) {
-
     String sourceUri = source.uri.toString();
 
     // Careful not to revisit.
