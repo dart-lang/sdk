@@ -5,6 +5,8 @@
 #include "platform/globals.h"
 #if defined(TARGET_OS_MACOS)
 
+#include "bin/platform.h"
+
 #if !TARGET_OS_IOS
 #include <crt_externs.h>  // NOLINT
 #endif  // !TARGET_OS_IOS
@@ -17,10 +19,14 @@
 
 #include "bin/fdutils.h"
 #include "bin/file.h"
-#include "bin/platform.h"
 
 namespace dart {
 namespace bin {
+
+const char* Platform::executable_name_ = NULL;
+char* Platform::resolved_executable_name_ = NULL;
+int Platform::script_index_ = 1;
+char** Platform::argv_ = NULL;
 
 bool Platform::Initialize() {
   // Turn off the signal handler for SIGPIPE as it causes the process

@@ -4,21 +4,20 @@
 
 #include "bin/dartutils.h"
 
-#include "include/dart_api.h"
-#include "include/dart_tools_api.h"
-#include "include/dart_native_api.h"
-
-#include "platform/assert.h"
-#include "platform/globals.h"
-
 #include "bin/crypto.h"
 #include "bin/directory.h"
 #include "bin/extensions.h"
 #include "bin/file.h"
 #include "bin/io_buffer.h"
 #include "bin/platform.h"
-#include "bin/socket.h"
 #include "bin/utils.h"
+
+#include "include/dart_api.h"
+#include "include/dart_native_api.h"
+#include "include/dart_tools_api.h"
+
+#include "platform/assert.h"
+#include "platform/globals.h"
 
 // Return the error from the containing function if handle is in error handle.
 #define RETURN_IF_ERROR(handle)                                                \

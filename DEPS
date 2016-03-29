@@ -76,7 +76,7 @@ vars = {
   "pub_semver_tag": "@1.2.1",
   "quiver_tag": "@0.21.4",
   "resource_rev":"@a49101ba2deb29c728acba6fb86000a8f730f4b1",
-  "root_certificates_rev": "@218d6a723fab86a7b80aa5f9b591d5a51d2955eb",
+  "root_certificates_rev": "@aed07942ce98507d2be28cbd29e879525410c7fc",
   "scheduled_test_tag": "@0.12.5+2",
   "shelf_tag": "@0.6.5",
   "smoke_rev" : "@f3361191cc2a85ebc1e4d4c33aec672d7915aba9",

@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_IO_DISABLED)
+
 #include "bin/file.h"
 
 #include "bin/builtin.h"
@@ -18,102 +20,12 @@ namespace bin {
 
 static const int kMSPerSecond = 1000;
 
-// Are we capturing output from stdout for the VM service?
-static bool capture_stdout = false;
-
-// Are we capturing output from stderr for the VM service?
-static bool capture_stderr = false;
-
-void SetCaptureStdout(bool value) {
-  capture_stdout = value;
-}
-
-
-void SetCaptureStderr(bool value) {
-  capture_stderr = value;
-}
-
-
-bool ShouldCaptureStdout() {
-  return capture_stdout;
-}
-
-
-bool ShouldCaptureStderr() {
-  return capture_stderr;
-}
-
-
 // The file pointer has been passed into Dart as an intptr_t and it is safe
 // to pull it out of Dart as a 64-bit integer, cast it to an intptr_t and
 // from there to a File pointer.
 static File* GetFilePointer(Dart_Handle handle) {
   intptr_t value = DartUtils::GetIntptrValue(handle);
   return reinterpret_cast<File*>(value);
-}
-
-
-bool File::ReadFully(void* buffer, int64_t num_bytes) {
-  int64_t remaining = num_bytes;
-  char* current_buffer = reinterpret_cast<char*>(buffer);
-  while (remaining > 0) {
-    int64_t bytes_read = Read(current_buffer, remaining);
-    if (bytes_read <= 0) {
-      return false;
-    }
-    remaining -= bytes_read;  // Reduce the number of remaining bytes.
-    current_buffer += bytes_read;  // Move the buffer forward.
-  }
-  return true;
-}
-
-
-bool File::WriteFully(const void* buffer, int64_t num_bytes) {
-  int64_t remaining = num_bytes;
-  const char* current_buffer = reinterpret_cast<const char*>(buffer);
-  while (remaining > 0) {
-    int64_t bytes_written = Write(current_buffer, remaining);
-    if (bytes_written < 0) {
-      return false;
-    }
-    remaining -= bytes_written;  // Reduce the number of remaining bytes.
-    current_buffer += bytes_written;  // Move the buffer forward.
-  }
-  if (capture_stdout || capture_stderr) {
-    intptr_t fd = GetFD();
-    if ((fd == STDOUT_FILENO) && capture_stdout) {
-      Dart_ServiceSendDataEvent("Stdout", "WriteEvent",
-                                reinterpret_cast<const uint8_t*>(buffer),
-                                num_bytes);
-    } else if ((fd == STDERR_FILENO) && capture_stderr) {
-      Dart_ServiceSendDataEvent("Stderr", "WriteEvent",
-                                reinterpret_cast<const uint8_t*>(buffer),
-                                num_bytes);
-    }
-  }
-  return true;
-}
-
-
-File::FileOpenMode File::DartModeToFileMode(DartFileOpenMode mode) {
-  ASSERT((mode == File::kDartRead) ||
-         (mode == File::kDartWrite) ||
-         (mode == File::kDartAppend) ||
-         (mode == File::kDartWriteOnly) ||
-         (mode == File::kDartWriteOnlyAppend));
-  if (mode == File::kDartWrite) {
-    return File::kWriteTruncate;
-  }
-  if (mode == File::kDartAppend) {
-    return File::kWrite;
-  }
-  if (mode == File::kDartWriteOnly) {
-    return File::kWriteOnlyTruncate;
-  }
-  if (mode == File::kDartWriteOnlyAppend) {
-    return File::kWriteOnly;
-  }
-  return File::kRead;
 }
 
 
@@ -1250,3 +1162,5 @@ CObject* File::LockRequest(const CObjectArray& request) {
 
 }  // namespace bin
 }  // namespace dart
+
+#endif  // !defined(DART_IO_DISABLED)

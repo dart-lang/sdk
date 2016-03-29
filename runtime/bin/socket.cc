@@ -2,18 +2,21 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_IO_DISABLED)
+
+#include "bin/socket.h"
+
 #include "bin/dartutils.h"
 #include "bin/io_buffer.h"
 #include "bin/isolate_data.h"
 #include "bin/lockers.h"
-#include "bin/socket.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 
+#include "include/dart_api.h"
+
 #include "platform/globals.h"
 #include "platform/utils.h"
-
-#include "include/dart_api.h"
 
 namespace dart {
 namespace bin {
@@ -874,3 +877,5 @@ intptr_t Socket::GetSocketIdNativeField(Dart_Handle socket_obj) {
 
 }  // namespace bin
 }  // namespace dart
+
+#endif  // !defined(DART_IO_DISABLED)

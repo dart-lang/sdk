@@ -5,6 +5,10 @@
 #ifndef BIN_SOCKET_LINUX_H_
 #define BIN_SOCKET_LINUX_H_
 
+#if !defined(BIN_SOCKET_H_)
+#error Do not include socket_linux.h directly. Use socket.h.
+#endif
+
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <sys/socket.h>

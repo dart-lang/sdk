@@ -5,9 +5,10 @@
 #include "platform/globals.h"
 #if defined(TARGET_OS_WINDOWS)
 
+#include "bin/platform.h"
+
 #include "bin/file.h"
 #include "bin/log.h"
-#include "bin/platform.h"
 #include "bin/socket.h"
 #include "bin/utils.h"
 #include "bin/utils_win.h"
@@ -18,6 +19,11 @@ namespace dart {
 extern bool private_flag_windows_run_tls_destructors;
 
 namespace bin {
+
+const char* Platform::executable_name_ = NULL;
+char* Platform::resolved_executable_name_ = NULL;
+int Platform::script_index_ = 1;
+char** Platform::argv_ = NULL;
 
 bool Platform::Initialize() {
   // Nothing to do on Windows.

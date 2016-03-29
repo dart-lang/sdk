@@ -5,13 +5,11 @@
 #ifndef BIN_DARTUTILS_H_
 #define BIN_DARTUTILS_H_
 
+#include "bin/isolate_data.h"
 #include "include/dart_api.h"
 #include "include/dart_native_api.h"
-
 #include "platform/assert.h"
 #include "platform/globals.h"
-
-#include "bin/isolate_data.h"
 
 namespace dart {
 namespace bin {

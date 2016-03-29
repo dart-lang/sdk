@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_IO_DISABLED)
+
 #include "platform/globals.h"
 #if defined(TARGET_OS_WINDOWS)
 
@@ -25,6 +27,8 @@ namespace bin {
 static const int kReadHandle = 0;
 static const int kWriteHandle = 1;
 
+int Process::global_exit_code_ = 0;
+Mutex* Process::global_exit_code_mutex_ = new Mutex();
 
 // ProcessInfo is used to map a process id to the process handle,
 // wait handle for registered exit code event and the pipe used to
@@ -1082,3 +1086,5 @@ void Process::ClearSignalHandler(intptr_t signal) {
 }  // namespace dart
 
 #endif  // defined(TARGET_OS_WINDOWS)
+
+#endif  // !defined(DART_IO_DISABLED)

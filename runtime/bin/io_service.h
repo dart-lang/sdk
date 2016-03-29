@@ -5,6 +5,10 @@
 #ifndef BIN_IO_SERVICE_H_
 #define BIN_IO_SERVICE_H_
 
+#if defined(DART_IO_DISABLED) || defined(DART_IO_SECURE_SOCKET_DISABLED)
+#error "io_service.h can only be included on builds with IO and SSL enabled"
+#endif
+
 #include "bin/builtin.h"
 #include "bin/utils.h"
 

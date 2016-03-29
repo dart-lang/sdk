@@ -26,7 +26,9 @@
 #include "platform/globals.h"
 #include "platform/hashmap.h"
 #include "platform/text_buffer.h"
+#if !defined(DART_PRECOMPILER)
 #include "zlib/zlib.h"
+#endif
 
 namespace dart {
 namespace bin {

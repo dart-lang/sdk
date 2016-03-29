@@ -5,12 +5,11 @@
 #ifndef BIN_SOCKET_H_
 #define BIN_SOCKET_H_
 
-#include <map>
+#if defined(DART_IO_DISABLED)
+#error "socket.h can only be included on builds with IO enabled"
+#endif
 
 #include "platform/globals.h"
-
-#include "bin/builtin.h"
-#include "bin/dartutils.h"
 // Declare the OS-specific types ahead of defining the generic class.
 #if defined(TARGET_OS_ANDROID)
 #include "bin/socket_android.h"
@@ -23,6 +22,11 @@
 #else
 #error Unknown target os.
 #endif
+
+#include <map>
+
+#include "bin/builtin.h"
+#include "bin/dartutils.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
 
