@@ -480,22 +480,17 @@ class _ConstExprBuilder {
   }
 
   TypeName _buildTypeAst(DartType type) {
-    if (type is DynamicTypeImpl) {
-      TypeName node = AstFactory.typeName4('dynamic');
-      node.type = type;
-      (node.name as SimpleIdentifier).staticElement = type.element;
-      return node;
-    } else if (type is InterfaceType) {
+    List<TypeName> argumentNodes;
+    if (type is ParameterizedType) {
       List<DartType> typeArguments = type.typeArguments;
-      List<TypeName> argumentNodes = typeArguments.every((a) => a.isDynamic)
+      argumentNodes = typeArguments.every((a) => a.isDynamic)
           ? null
           : typeArguments.map(_buildTypeAst).toList();
-      TypeName node = AstFactory.typeName4(type.name, argumentNodes);
-      node.type = type;
-      (node.name as SimpleIdentifier).staticElement = type.element;
-      return node;
     }
-    throw new StateError('Unsupported type $type');
+    TypeName node = AstFactory.typeName4(type.name, argumentNodes);
+    node.type = type;
+    (node.name as SimpleIdentifier).staticElement = type.element;
+    return node;
   }
 
   InterpolationElement _newInterpolationElement(Expression expr) {

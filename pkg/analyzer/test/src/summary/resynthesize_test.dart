@@ -2131,6 +2131,15 @@ const vFunctionTypeAlias = F;
 ''');
   }
 
+  test_const_reference_type_functionType() {
+    checkLibrary(r'''
+typedef F();
+class C {
+  final f = <F>[];
+}
+''');
+  }
+
   test_const_reference_type_imported() {
     addLibrarySource(
         '/a.dart',
