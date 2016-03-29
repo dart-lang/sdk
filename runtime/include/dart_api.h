@@ -54,7 +54,8 @@ typedef unsigned __int64 uint64_t;
 #include <stdbool.h>
 #if __GNUC__ >= 4
 #if defined(DART_SHARED_LIB)
-#define DART_EXPORT DART_EXTERN_C __attribute__ ((visibility("default")))
+#define DART_EXPORT DART_EXTERN_C __attribute__ ((visibility("default"))) \
+    __attribute((used))
 #else
 #define DART_EXPORT DART_EXTERN_C
 #endif
