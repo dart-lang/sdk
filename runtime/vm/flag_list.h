@@ -27,6 +27,8 @@ P(always_megamorphic_calls, bool, false,                                       \
   "Instance call always as megamorphic.")                                      \
 C(background_compilation, false, false, bool, false,                           \
   "Run optimizing compilation in background")                                  \
+R(break_at_isolate_spawn, false, bool, false,                                  \
+  "Insert a one-time breakpoint at the entrypoint for all spawned isolates")   \
 C(collect_code, false, true, bool, true,                                       \
   "Attempt to GC infrequently used code.")                                     \
 P(collect_dynamic_function_names, bool, false,                                 \
@@ -55,6 +57,9 @@ R(error_on_bad_override, false, bool, false,                                   \
   "Report error for bad overrides.")                                           \
 R(error_on_bad_type, false, bool, false,                                       \
   "Report error for malformed types.")                                         \
+P(external_max_size, int, (kWordSize <= 4) ? 512 : 1024,                       \
+  "Max total size of external allocations in MB, or 0 for unlimited,"          \
+  "e.g: --external_max_size=1024 allows up to 1024MB of externals")            \
 P(fields_may_be_reset, bool, false,                                            \
   "Don't optimize away static field initialization")                           \
 C(force_clone_compiler_objects, false, false, bool, false,                     \
@@ -83,8 +88,19 @@ P(merge_sin_cos, bool, false,                                                  \
   "Merge sin/cos into sincos")                                                 \
 P(new_gen_ext_limit, int, 64,                                                  \
   "maximum total external size (MB) in new gen before triggering GC")          \
+P(new_gen_semi_max_size, int, (kWordSize <= 4) ? 16 : 32,                      \
+  "Max size of new gen semi space in MB")                                      \
 P(optimization_counter_threshold, int, 30000,                                  \
   "Function's usage-counter value before it is optimized, -1 means never")     \
+P(old_gen_heap_size, int, (kWordSize <= 4) ? 1536 : 0,                         \
+  "Max size of old gen heap size in MB, or 0 for unlimited,"                   \
+  "e.g: --old_gen_heap_size=1024 allows up to 1024MB old gen heap")            \
+R(pause_isolates_on_start, false, bool, false,                                 \
+  "Pause isolates before starting.")                                           \
+R(pause_isolates_on_exit, false, bool, false,                                  \
+  "Pause isolates exiting.")                                                   \
+R(pause_isolates_on_unhandled_exceptions, false, bool, false,                  \
+  "Pause isolates on unhandled exceptions.")                                   \
 P(polymorphic_with_deopt, bool, true,                                          \
   "Polymorphic calls with deoptimization / megamorphic call")                  \
 P(precompiled_mode, bool, false,                                               \
@@ -127,6 +143,8 @@ D(trace_cha, bool, false,                                                      \
   "Trace CHA operations")                                                      \
 D(trace_field_guards, bool, false,                                             \
   "Trace changes in field's cids.")                                            \
+D(trace_isolates, bool, false,                                                 \
+  "Trace isolate creation and shut down.")                                     \
 D(trace_handles, bool, false,                                                  \
   "Traces allocation of handles.")                                             \
 D(trace_optimization, bool, false,                                             \

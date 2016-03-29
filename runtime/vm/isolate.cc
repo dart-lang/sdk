@@ -53,29 +53,6 @@ namespace dart {
 DECLARE_FLAG(bool, print_metrics);
 DECLARE_FLAG(bool, timing);
 DECLARE_FLAG(bool, trace_service);
-
-DEFINE_FLAG(bool, trace_isolates, false,
-            "Trace isolate creation and shut down.");
-DEFINE_FLAG(bool, pause_isolates_on_start, false,
-            "Pause isolates before starting.");
-DEFINE_FLAG(bool, pause_isolates_on_exit, false,
-            "Pause isolates exiting.");
-DEFINE_FLAG(bool, pause_isolates_on_unhandled_exceptions, false,
-            "Pause isolates on unhandled exceptions.");
-
-DEFINE_FLAG(bool, break_at_isolate_spawn, false,
-            "Insert a one-time breakpoint at the entrypoint for all spawned "
-            "isolates");
-
-DEFINE_FLAG(int, new_gen_semi_max_size, (kWordSize <= 4) ? 16 : 32,
-            "Max size of new gen semi space in MB");
-DEFINE_FLAG(int, old_gen_heap_size, 0,
-            "Max size of old gen heap size in MB, or 0 for unlimited,"
-            "e.g: --old_gen_heap_size=1024 allows up to 1024MB old gen heap");
-DEFINE_FLAG(int, external_max_size, (kWordSize <= 4) ? 512 : 1024,
-            "Max total size of external allocations in MB, or 0 for unlimited,"
-            "e.g: --external_max_size=1024 allows up to 1024MB of externals");
-
 DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
 
 NOT_IN_PRODUCT(

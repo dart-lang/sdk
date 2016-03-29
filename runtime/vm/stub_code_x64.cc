@@ -2092,6 +2092,7 @@ void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
           FieldAddress(RBX, MegamorphicCache::arguments_descriptor_offset()));
   __ movq(RDI, FieldAddress(RBX, MegamorphicCache::buckets_offset()));
   __ movq(R9, FieldAddress(RBX, MegamorphicCache::mask_offset()));
+  // R10: arguments descriptor (result).
   // RDI: cache buckets array.
   // RBX: mask.
   __ movq(RCX, RAX);

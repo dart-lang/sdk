@@ -36,10 +36,7 @@
 namespace dart {
 
 DECLARE_FLAG(bool, print_class_table);
-DECLARE_FLAG(bool, trace_isolates);
 DECLARE_FLAG(bool, trace_time_all);
-DECLARE_FLAG(bool, pause_isolates_on_start);
-DECLARE_FLAG(bool, pause_isolates_on_exit);
 DEFINE_FLAG(bool, keep_code, false,
             "Keep deoptimized code for profiling.");
 DEFINE_FLAG(bool, shutdown, true, "Do a clean shutdown of the VM");

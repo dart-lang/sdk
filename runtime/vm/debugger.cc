@@ -45,7 +45,6 @@ DEFINE_FLAG(bool, steal_breakpoints, false,
             "handler instead.  This handler dispatches breakpoints to "
             "the VM service.");
 
-DECLARE_FLAG(bool, trace_isolates);
 DECLARE_FLAG(bool, warn_on_pause_with_no_debugger);
 
 

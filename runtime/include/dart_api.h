@@ -528,8 +528,8 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object);
  *   after the object is garbage collected, unless the handle has been deleted.
  *   A valid callback needs to be specified it cannot be NULL.
  *
- * \return Success if the weak persistent handle was
- *   created. Otherwise, returns an error.
+ * \return The weak persistent handle or NULL. NULL is returned in case of bad
+ *   parameters.
  */
 DART_EXPORT Dart_WeakPersistentHandle Dart_NewWeakPersistentHandle(
     Dart_Handle object,

@@ -23,7 +23,6 @@
 namespace dart {
 
 
-DECLARE_FLAG(bool, trace_isolates);
 DECLARE_FLAG(bool, trace_service);
 DECLARE_FLAG(bool, trace_service_verbose);
 
