@@ -150,6 +150,11 @@ void Timeline::InitOnce() {
                         &stream_##name##_enabled_);
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_FLAG_DEFAULT)
 #undef TIMELINE_STREAM_FLAG_DEFAULT
+
+  if (stream_Embedder_enabled_ &&
+      (Timeline::get_start_recording_cb() != NULL)) {
+    Timeline::get_start_recording_cb()();
+  }
 }
 
 
@@ -171,9 +176,16 @@ void Timeline::StreamStateChange(const char* stream_name,
 
 void Timeline::Shutdown() {
   ASSERT(recorder_ != NULL);
+
+  if (stream_Embedder_enabled_ &&
+      (Timeline::get_stop_recording_cb() != NULL)) {
+    Timeline::get_stop_recording_cb()();
+  }
+
   if (FLAG_timeline_dir != NULL) {
     recorder_->WriteTo(FLAG_timeline_dir);
   }
+
   // Disable global streams.
 #define TIMELINE_STREAM_DISABLE(name, not_used)                                \
   stream_##name##_enabled_ = false;
