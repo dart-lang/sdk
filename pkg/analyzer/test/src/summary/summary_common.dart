@@ -4179,6 +4179,21 @@ class C {
     checkConstCycle('C');
   }
 
+  test_constructorCycle_viaLength() {
+    // It's not valid Dart but we need to make sure it doesn't crash
+    // summary generation.
+    serializeLibraryText(
+        '''
+class C {
+  final x;
+  const C() : x = y.length;
+}
+const y = const C();
+''',
+        allowErrors: true);
+    checkConstCycle('C');
+  }
+
   test_constructorCycle_viaNamedConstructor() {
     serializeLibraryText('''
 class C {

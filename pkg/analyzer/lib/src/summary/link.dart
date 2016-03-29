@@ -1327,6 +1327,35 @@ abstract class Node<NodeType> {
 }
 
 /**
+ * Element used for references that result from trying to access a nonstatic
+ * member of an element that is not a container (e.g. accessing the "length"
+ * property of a constant).
+ */
+class NonstaticMemberElementForLink implements ReferenceableElementForLink {
+  /**
+   * If the thing from which a member was accessed is a constant, the
+   * associated [ConstNode].  Otherwise `null`.
+   */
+  final ConstVariableNode _constNode;
+
+  NonstaticMemberElementForLink(this._constNode);
+
+  @override
+  ConstructorElementForLink get asConstructor => null;
+
+  @override
+  ConstVariableNode get asConstVariable => _constNode;
+
+  @override
+  DartTypeForLink buildType(DartTypeForLink getTypeArgument(int i),
+          List<int> implicitFunctionTypeIndices) =>
+      DynamicTypeForLink.instance;
+
+  @override
+  ReferenceableElementForLink getContainedName(String name) => this;
+}
+
+/**
  * Element representing a function or method parameter resynthesized
  * from a summary during linking.
  */
@@ -1505,10 +1534,7 @@ class VariableElementForLink
       DynamicTypeForLink.instance;
 
   ReferenceableElementForLink getContainedName(String name) {
-    // TODO(paulberry): implement.
-    // TODO(paulberry): make sure that circularities involving
-    // ".length" are handled correctly.
-    return UndefinedElementForLink.instance;
+    return new NonstaticMemberElementForLink(_constNode);
   }
 
   @override
