@@ -127,6 +127,9 @@ precompilation_dart2js_test: SkipByDesign # Not expected to pass on ia32.
 precompilation_test: SkipSlow
 precompilation_dart2js_test: SkipSlow
 
+[ ($runtime == vm || $runtime == dart_product) && ($arch == arm || $arch == arm64) ]
+io/file_stream_test: Skip # Issue 26109
+
 [ $compiler == dart2js && $jscl ]
 assert_test: RuntimeError, OK # Assumes unspecified fields on the AssertionError.
 deoptimization_test: RuntimeError, OK # Requires bigint.
