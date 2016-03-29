@@ -56,13 +56,10 @@ const List<String> SKIP_LIST = const <String>[
 ];
 
 main(List<String> arguments) {
-  bool verbose = arguments.contains('-v');
-
-  List<String> options = <String>[
-    Flags.analyzeOnly,
-    Flags.analyzeMain,
-    '--categories=Client,Server'];
-  if (verbose) {
+  // TODO(johnniwinther): Remove verbose flag when test issues have been
+  // resolved.
+  List<String> options = <String>[Flags.verbose];
+  if (arguments.contains('-v') || arguments.contains(Flags.verbose)) {
     options.add(Flags.verbose);
   }
   asyncTest(() async {
@@ -77,6 +74,7 @@ main(List<String> arguments) {
         }
       }
     }
-    await analyze(uriList, WHITE_LIST, mode: AnalysisMode.URI);
+    await analyze(
+        uriList, WHITE_LIST, mode: AnalysisMode.URI, options: options);
   });
 }

@@ -113,6 +113,9 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
       if (checkWhiteList(uri, message, text)) {
         // Suppress whitelisted warnings.
         lastWasWhitelisted = true;
+        if (verbose) {
+          super.report(message, uri, begin, end, text, kind);
+        }
         return;
       }
       hasWarnings = true;
@@ -121,6 +124,9 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
       if (checkWhiteList(uri, message, text)) {
         // Suppress whitelisted hints.
         lastWasWhitelisted = true;
+        if (verbose) {
+          super.report(message, uri, begin, end, text, kind);
+        }
         return;
       }
       hasHint = true;
@@ -129,6 +135,9 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
       if (checkWhiteList(uri, message, text)) {
         // Suppress whitelisted errors.
         lastWasWhitelisted = true;
+        if (verbose) {
+          super.report(message, uri, begin, end, text, kind);
+        }
         return;
       }
       hasErrors = true;
@@ -159,7 +168,8 @@ enum AnalysisMode {
 Future analyze(List<Uri> uriList,
                Map<String, List/*<String|MessageKind>*/> whiteList,
                {AnalysisMode mode: AnalysisMode.ALL,
-                CheckResults checkResults}) async {
+                CheckResults checkResults,
+                List<String> options: const <String>[]}) async {
   String testFileName =
       relativize(Uri.base, Platform.script, Platform.isWindows);
 
@@ -178,8 +188,8 @@ Future analyze(List<Uri> uriList,
       currentDirectory.resolve(Platform.packageRoot);
   var provider = new CompilerSourceFileProvider();
   var handler = new CollectingDiagnosticHandler(whiteList, provider);
-  var options = <String>[Flags.analyzeOnly, '--categories=Client,Server',
-      Flags.showPackageWarnings];
+  options = <String>[Flags.analyzeOnly, '--categories=Client,Server',
+      Flags.showPackageWarnings]..addAll(options);
   switch (mode) {
     case AnalysisMode.URI:
     case AnalysisMode.MAIN:
@@ -190,6 +200,9 @@ Future analyze(List<Uri> uriList,
       break;
     case AnalysisMode.TREE_SHAKING:
       break;
+  }
+  if (options.contains(Flags.verbose)) {
+    handler.verbose = true;
   }
   var compiler = new CompilerImpl(
       provider,
