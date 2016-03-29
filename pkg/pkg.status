@@ -44,6 +44,7 @@ analysis_server/test/search/element_references_test: Pass, Slow
 analysis_server/test/search/top_level_declarations_test: Pass, Slow # 19756, 21628
 analysis_server/test/services/index/store/codec_test: Pass, Slow
 analysis_server/test/socket_server_test: Pass, Slow # Issue 19756, 21628
+analyzer/test/context/declared_variables_test: Pass, Slow # Issue 21628
 analyzer/test/dart/element/element_test: Pass, Slow # Issue 24914
 analyzer/test/dart/ast/ast_test: Pass, Slow # Issue 19756, 21628
 analyzer/test/dart/ast/utilities_test: Pass, Slow # Issue 19756, 21628
@@ -82,7 +83,6 @@ analyzer/test/generated/type_system_test: Pass, Slow # Issue 21628
 analyzer/test/generated/utilities_test: Pass, Slow # Issue 21628
 analyzer/test/src/context/cache_test: Pass, Slow # Issue 21628
 analyzer/test/src/context/context_test: Pass, Timeout # dartbug.com/23658
-analyzer/test/src/context/declared_variables_test: Pass, Slow # Issue 21628
 analyzer/test/src/dart/ast/utilities_test: Pass, Slow # Issue 24914
 analyzer/test/src/dart/constant/evaluation_test: Pass, Slow # Issue 24914
 analyzer/test/src/dart/element/element_test: Pass, Slow # Issue 24914
