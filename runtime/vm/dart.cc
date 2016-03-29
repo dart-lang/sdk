@@ -161,9 +161,7 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
       StubCode::InitOnce();
     }
     if (vm_isolate_snapshot != NULL) {
-      if (instructions_snapshot != NULL) {
-        vm_isolate_->SetupInstructionsSnapshotPage(instructions_snapshot);
-        ASSERT(data_snapshot != NULL);
+      if (data_snapshot != NULL) {
         vm_isolate_->SetupDataSnapshotPage(data_snapshot);
       }
       const Snapshot* snapshot = Snapshot::SetupFromBuffer(vm_isolate_snapshot);

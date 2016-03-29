@@ -3859,7 +3859,10 @@ class Instructions : public Object {
   intptr_t size() const { return raw_ptr()->size_; }  // Excludes HeaderSize().
 
   uword EntryPoint() const {
-    return reinterpret_cast<uword>(raw_ptr()) + HeaderSize();
+    return EntryPoint(raw());
+  }
+  static uword EntryPoint(RawInstructions* instr) {
+    return reinterpret_cast<uword>(instr->ptr()) + HeaderSize();
   }
 
   static const intptr_t kMaxElements = (kMaxInt32 -
@@ -4326,9 +4329,7 @@ class DeoptInfo : public AllStatic {
 
 class Code : public Object {
  public:
-  RawInstructions* active_instructions() const {
-    return raw_ptr()->active_instructions_;
-  }
+  uword active_entry_point() const { return raw_ptr()->entry_point_; }
 
   RawInstructions* instructions() const { return raw_ptr()->instructions_; }
 
@@ -4358,20 +4359,15 @@ class Code : public Object {
   }
   void set_is_alive(bool value) const;
 
-  uword EntryPoint() const {
-    return Instructions::Handle(instructions()).EntryPoint();
-  }
-  intptr_t Size() const {
-    const Instructions& instr = Instructions::Handle(instructions());
-    return instr.size();
-  }
+  uword EntryPoint() const;
+  intptr_t Size() const;
+
   RawObjectPool* GetObjectPool() const {
     return object_pool();
   }
   bool ContainsInstructionAt(uword addr) const {
-    const Instructions& instr = Instructions::Handle(instructions());
-    const uword offset = addr - instr.EntryPoint();
-    return offset < static_cast<uword>(instr.size());
+    const uword offset = addr - EntryPoint();
+    return offset < static_cast<uword>(Size());
   }
 
   // Returns true if there is a debugger breakpoint set in this code object.
@@ -4610,12 +4606,11 @@ class Code : public Object {
   void Enable() const {
     if (!IsDisabled()) return;
     ASSERT(Thread::Current()->IsMutatorThread());
-    ASSERT(instructions() != active_instructions());
     SetActiveInstructions(instructions());
   }
 
   bool IsDisabled() const {
-    return instructions() != active_instructions();
+    return active_entry_point() != EntryPoint();
   }
 
  private:

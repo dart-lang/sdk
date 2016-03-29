@@ -370,7 +370,7 @@ class InstructionsReader : public ZoneAllocated {
                             OS::PreferredCodeAlignment()));
   }
 
-  RawInstructions* GetInstructionsAt(int32_t offset, uword expected_tags);
+  uword GetInstructionsAt(int32_t offset);
   RawObject* GetObjectAt(int32_t offset);
 
  private:
@@ -483,8 +483,8 @@ class SnapshotReader : public BaseReader {
   RawWeakProperty* NewWeakProperty();
   RawRegExp* NewRegExp();
 
-  RawInstructions* GetInstructionsAt(int32_t offset, uword expected_tags) {
-    return instructions_reader_->GetInstructionsAt(offset, expected_tags);
+  uword GetInstructionsAt(int32_t offset) {
+    return instructions_reader_->GetInstructionsAt(offset);
   }
 
   RawObject* GetObjectAt(int32_t offset) {
@@ -862,26 +862,18 @@ class InstructionsWriter : public ZoneAllocated {
 
   intptr_t binary_size() { return binary_size_; }
 
-  int32_t GetOffsetFor(RawInstructions* instructions);
+  int32_t GetOffsetFor(RawInstructions* instructions, RawCode* code);
 
   int32_t GetObjectOffsetFor(RawObject* raw_object);
-
-  void SetInstructionsCode(RawInstructions* insns, RawCode* code) {
-    for (intptr_t i = 0; i < instructions_.length(); i++) {
-      if (instructions_[i].raw_insns_ == insns) {
-        instructions_[i].raw_code_ = code;
-        return;
-      }
-    }
-    UNREACHABLE();
-  }
 
   void WriteAssembly();
 
  private:
   struct InstructionsData {
-    explicit InstructionsData(RawInstructions* insns)
-        : raw_insns_(insns), raw_code_(NULL) { }
+    explicit InstructionsData(RawInstructions* insns,
+                              RawCode* code,
+                              intptr_t offset)
+        : raw_insns_(insns), raw_code_(code), offset_(offset) { }
 
     union {
       RawInstructions* raw_insns_;
@@ -891,6 +883,7 @@ class InstructionsWriter : public ZoneAllocated {
       RawCode* raw_code_;
       const Code* code_;
     };
+    intptr_t offset_;
   };
 
   struct ObjectData {
@@ -970,16 +963,12 @@ class SnapshotWriter : public BaseWriter {
 
   static intptr_t FirstObjectId();
 
-  int32_t GetInstructionsId(RawInstructions* instructions) {
-    return instructions_writer_->GetOffsetFor(instructions);
+  int32_t GetInstructionsId(RawInstructions* instructions, RawCode* code) {
+    return instructions_writer_->GetOffsetFor(instructions, code);
   }
 
   int32_t GetObjectId(RawObject* raw) {
     return instructions_writer_->GetObjectOffsetFor(raw);
-  }
-
-  void SetInstructionsCode(RawInstructions* instructions, RawCode* code) {
-    return instructions_writer_->SetInstructionsCode(instructions, code);
   }
 
   void WriteFunctionId(RawFunction* func, bool owner_is_class);
@@ -1048,6 +1037,7 @@ class SnapshotWriter : public BaseWriter {
   friend class RawArray;
   friend class RawClass;
   friend class RawClosureData;
+  friend class RawCode;
   friend class RawContextScope;
   friend class RawExceptionHandlers;
   friend class RawField;
