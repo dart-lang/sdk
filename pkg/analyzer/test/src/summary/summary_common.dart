@@ -3945,6 +3945,47 @@ class D {
     expect(findClass('D').executables[0].constCycleSlot, 0);
   }
 
+  test_constructorCycle_redirectToImplicitConstructor() {
+    serializeLibraryText(
+        '''
+class C {
+  const factory C() = D;
+}
+class D extends C {}
+''',
+        allowErrors: true);
+    checkConstCycle('C', hasCycle: false);
+  }
+
+  test_constructorCycle_redirectToNonConstConstructor() {
+    // It's not valid Dart but we need to make sure it doesn't crash
+    // summary generation.
+    serializeLibraryText(
+        '''
+class C {
+  const factory C() = D;
+}
+class D extends C {
+  D();
+}
+''',
+        allowErrors: true);
+    checkConstCycle('C', hasCycle: false);
+  }
+
+  test_constructorCycle_redirectToSymbolConstructor() {
+    // The symbol constructor has some special case behaviors in analyzer.
+    // Make sure those special case behaviors don't cause problems.
+    serializeLibraryText(
+        '''
+class C {
+  const factory C(String name) = Symbol;
+}
+''',
+        allowErrors: true);
+    checkConstCycle('C', hasCycle: false);
+  }
+
   test_constructorCycle_referenceToClass() {
     serializeLibraryText('''
 class C {
@@ -4088,6 +4129,7 @@ class C {
 }
 ''',
         allowErrors: true);
+    checkConstCycle('C', hasCycle: false);
   }
 
   test_constructorCycle_referenceToUndefinedName_viaPrefix_nonExistentFile() {
@@ -4103,6 +4145,26 @@ class C {
 }
 ''',
         allowErrors: true);
+    checkConstCycle('C', hasCycle: false);
+  }
+
+  test_constructorCycle_viaFactoryRedirect() {
+    serializeLibraryText(
+        '''
+class C {
+  const C();
+  const factory C.named() = D;
+}
+class D extends C {
+  final x;
+  const D() : x = y;
+}
+const y = const C.named();
+''',
+        allowErrors: true);
+    checkConstCycle('C', hasCycle: false);
+    checkConstCycle('C', name: 'named');
+    checkConstCycle('D');
   }
 
   test_constructorCycle_viaFinalField() {
@@ -4130,6 +4192,38 @@ class D {
 ''');
     checkConstCycle('C');
     checkConstCycle('D', name: 'named');
+  }
+
+  test_constructorCycle_viaOrdinaryRedirect() {
+    serializeLibraryText('''
+class C {
+  final x;
+  const C() : this.named();
+  const C.named() : x = const C();
+}
+''');
+    checkConstCycle('C');
+    checkConstCycle('C', name: 'named');
+  }
+
+  test_constructorCycle_viaOrdinaryRedirect_suppressSupertype() {
+    // Since C redirects to C.named, it doesn't implicitly refer to B's unnamed
+    // constructor.  Therefore there is no cycle.
+    serializeLibraryText('''
+class B {
+  final x;
+  const B() : x = const C();
+  const B.named() : x = null;
+}
+class C extends B {
+  const C() : this.named();
+  const C.named() : super.named();
+}
+''');
+    checkConstCycle('B', hasCycle: false);
+    checkConstCycle('B', name: 'named', hasCycle: false);
+    checkConstCycle('C', hasCycle: false);
+    checkConstCycle('C', name: 'named', hasCycle: false);
   }
 
   test_constructorCycle_viaStaticField_inOtherClass() {

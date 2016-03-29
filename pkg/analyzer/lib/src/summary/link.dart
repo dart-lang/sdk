@@ -154,7 +154,7 @@ abstract class ClassElementForLink
   ConstructorElementForLink get unnamedConstructor;
 
   @override
-  ReferenceableElementForLink getContainedName(name) {
+  ReferenceableElementForLink getContainedName(String name) {
     if (_containedNames == null) {
       _containedNames = <String, ReferenceableElementForLink>{};
       // TODO(paulberry): what's the correct way to handle name conflicts?
@@ -610,7 +610,7 @@ class ConstConstructorNode extends ConstNode {
     ClassElementForLink_Class enclosingClass =
         constructorElement.enclosingElement;
     ConstructorElementForLink redirectedConstructor =
-        _getConstRedirectedConstructor();
+        _getFactoryRedirectedConstructor();
     if (redirectedConstructor != null) {
       if (redirectedConstructor._constNode != null) {
         safeAddDependency(redirectedConstructor._constNode);
@@ -625,18 +625,26 @@ class ConstConstructorNode extends ConstNode {
       // any other constants.  So we don't need to report any dependencies.
     } else {
       ClassElementForLink superClass = enclosingClass.supertype?.element;
-      bool superInvocationFound = false;
+      bool defaultSuperInvocationNeeded = true;
       for (UnlinkedConstructorInitializer constructorInitializer
           in constructorElement._unlinkedExecutable.constantInitializers) {
         if (constructorInitializer.kind ==
             UnlinkedConstructorInitializerKind.superInvocation) {
-          superInvocationFound = true;
+          defaultSuperInvocationNeeded = false;
           if (superClass != null && !superClass.isObject) {
             ConstructorElementForLink constructor = superClass
                 .getContainedName(constructorInitializer.name)
                 .asConstructor;
             safeAddDependency(constructor?._constNode);
           }
+        } else if (constructorInitializer.kind ==
+            UnlinkedConstructorInitializerKind.thisInvocation) {
+          defaultSuperInvocationNeeded = false;
+          ConstructorElementForLink constructor = constructorElement
+              .enclosingElement
+              .getContainedName(constructorInitializer.name)
+              .asConstructor;
+          safeAddDependency(constructor?._constNode);
         }
         CompilationUnitElementForLink compilationUnit =
             constructorElement.enclosingElement.enclosingElement;
@@ -646,7 +654,7 @@ class ConstConstructorNode extends ConstNode {
             collectDependencies(dependencies, unlinkedConst, compilationUnit));
       }
 
-      if (!superInvocationFound) {
+      if (defaultSuperInvocationNeeded) {
         // No explicit superconstructor invocation found, so we need to
         // manually insert a reference to the implicit superconstructor.
         if (superClass != null && !superClass.isObject) {
@@ -671,12 +679,19 @@ class ConstConstructorNode extends ConstNode {
   }
 
   /**
-   * If [constructorElement] redirects to another constructor, return
-   * the constructor it redirects to.
+   * If [constructorElement] redirects to another constructor via a factory
+   * redirect, return the constructor it redirects to.
    */
-  ConstructorElementForLink _getConstRedirectedConstructor() {
-    // TODO(paulberry): implement
-    return null;
+  ConstructorElementForLink _getFactoryRedirectedConstructor() {
+    EntityRef redirectedConstructor =
+        constructorElement._unlinkedExecutable.redirectedConstructor;
+    if (redirectedConstructor != null) {
+      return constructorElement.enclosingElement.enclosingElement
+          ._resolveRef(redirectedConstructor.reference)
+          .asConstructor;
+    } else {
+      return null;
+    }
   }
 }
 
@@ -845,7 +860,7 @@ class ConstructorElementForLink
       DynamicTypeForLink.instance;
 
   @override
-  ReferenceableElementForLink getContainedName(name) =>
+  ReferenceableElementForLink getContainedName(String name) =>
       UndefinedElementForLink.instance;
 
   /**
@@ -1106,7 +1121,7 @@ class FieldElementForLink_EnumField extends FieldElementForLink
       DynamicTypeForLink.instance;
 
   @override
-  ReferenceableElementForLink getContainedName(name) =>
+  ReferenceableElementForLink getContainedName(String name) =>
       UndefinedElementForLink.instance;
 
   @override
@@ -1376,7 +1391,7 @@ abstract class ReferenceableElementForLink {
    * with the given name, return the singleton of
    * [UndefinedElementForLink].
    */
-  ReferenceableElementForLink getContainedName(name);
+  ReferenceableElementForLink getContainedName(String name);
 }
 
 /**
@@ -1433,7 +1448,7 @@ class UndefinedElementForLink implements ReferenceableElementForLink {
       DynamicTypeForLink.instance;
 
   @override
-  ReferenceableElementForLink getContainedName(name) => this;
+  ReferenceableElementForLink getContainedName(String name) => this;
 }
 
 /**
@@ -1488,7 +1503,7 @@ class VariableElementForLink
           List<int> implicitFunctionTypeIndices) =>
       DynamicTypeForLink.instance;
 
-  ReferenceableElementForLink getContainedName(name) {
+  ReferenceableElementForLink getContainedName(String name) {
     // TODO(paulberry): implement.
     // TODO(paulberry): make sure that circularities involving
     // ".length" are handled correctly.
