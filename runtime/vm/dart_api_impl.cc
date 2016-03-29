@@ -97,7 +97,6 @@ const char* CanonicalFunction(const char* func) {
 class FunctionVisitor : public ObjectVisitor {
  public:
   explicit FunctionVisitor(Thread* thread) :
-      ObjectVisitor(thread->isolate()),
       classHandle_(Class::Handle(thread->zone())),
       funcHandle_(Function::Handle(thread->zone())),
       typeHandle_(AbstractType::Handle(thread->zone())) {}

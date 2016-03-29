@@ -698,8 +698,7 @@ void PageSpace::PrintToJSONObject(JSONObject* object) const {
 
 class HeapMapAsJSONVisitor : public ObjectVisitor {
  public:
-  explicit HeapMapAsJSONVisitor(JSONArray* array)
-      : ObjectVisitor(NULL), array_(array) {}
+  explicit HeapMapAsJSONVisitor(JSONArray* array) : array_(array) { }
   virtual void VisitObject(RawObject* obj) {
     array_->AddValue(obj->Size() / kObjectAlignment);
     array_->AddValue(obj->GetClassId());

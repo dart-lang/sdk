@@ -4636,8 +4636,7 @@ class Code : public Object {
 
   class SlowFindRawCodeVisitor : public FindObjectVisitor {
    public:
-    explicit SlowFindRawCodeVisitor(uword pc)
-        : FindObjectVisitor(Isolate::Current()), pc_(pc) { }
+    explicit SlowFindRawCodeVisitor(uword pc) : pc_(pc) { }
     virtual ~SlowFindRawCodeVisitor() { }
 
     // Check if object matches find condition.

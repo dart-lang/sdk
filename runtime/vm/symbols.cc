@@ -375,8 +375,7 @@ intptr_t Symbols::Compact(Isolate* isolate) {
    public:
     SymbolCollector(Thread* thread,
                     GrowableArray<String*>* symbols)
-        : ObjectVisitor(thread->isolate()),
-          symbols_(symbols),
+        : symbols_(symbols),
           zone_(thread->zone()) {}
 
     void VisitObject(RawObject* obj) {

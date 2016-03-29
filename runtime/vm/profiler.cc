@@ -1125,9 +1125,7 @@ CodeLookupTable::CodeLookupTable(Thread* thread) {
 
 class CodeLookupTableBuilder : public ObjectVisitor {
  public:
-  CodeLookupTableBuilder(Isolate* isolate, CodeLookupTable* table)
-      : ObjectVisitor(isolate),
-        table_(table) {
+  explicit CodeLookupTableBuilder(CodeLookupTable* table) : table_(table) {
     ASSERT(table_ != NULL);
   }
 
@@ -1163,7 +1161,7 @@ void CodeLookupTable::Build(Thread* thread) {
   code_objects_.Clear();
 
   // Add all found Code objects.
-  CodeLookupTableBuilder cltb(isolate, this);
+  CodeLookupTableBuilder cltb(this);
   vm_isolate->heap()->IterateOldObjects(&cltb);
   isolate->heap()->IterateOldObjects(&cltb);
 

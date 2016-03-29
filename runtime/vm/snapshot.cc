@@ -1845,13 +1845,11 @@ bool SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
 class ScriptVisitor : public ObjectVisitor {
  public:
   explicit ScriptVisitor(Thread* thread) :
-      ObjectVisitor(thread->isolate()),
       objHandle_(Object::Handle(thread->zone())),
       count_(0),
       scripts_(NULL) {}
 
   ScriptVisitor(Thread* thread, const Array* scripts) :
-      ObjectVisitor(thread->isolate()),
       objHandle_(Object::Handle(thread->zone())),
       count_(0),
       scripts_(scripts) {}
@@ -2271,7 +2269,7 @@ void SnapshotWriter::WriteMarkedObjectImpl(RawObject* raw,
 class WriteInlinedObjectVisitor : public ObjectVisitor {
  public:
   explicit WriteInlinedObjectVisitor(SnapshotWriter* writer)
-      : ObjectVisitor(Isolate::Current()), writer_(writer) {}
+      : writer_(writer) {}
 
   virtual void VisitObject(RawObject* obj) {
     intptr_t object_id = writer_->forward_list_->FindObject(obj);

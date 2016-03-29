@@ -20,9 +20,8 @@ DEFINE_FLAG(bool, compiler_benchmark, false,
 
 class TokenStreamVisitor : public ObjectVisitor {
  public:
-  TokenStreamVisitor(Isolate* isolate, CompilerStats* compiler_stats)
-      : ObjectVisitor(isolate),
-        obj_(Object::Handle()),
+  explicit TokenStreamVisitor(CompilerStats* compiler_stats)
+      : obj_(Object::Handle()),
         stats_(compiler_stats) {
   }
 
@@ -113,7 +112,7 @@ void CompilerStats::Update() {
   // Traverse the heap and compute number of tokens in all
   // TokenStream objects.
   num_tokens_total = 0;
-  TokenStreamVisitor visitor(isolate_, this);
+  TokenStreamVisitor visitor(this);
   isolate_->heap()->IterateObjects(&visitor);
   Dart::vm_isolate()->heap()->IterateObjects(&visitor);
 }

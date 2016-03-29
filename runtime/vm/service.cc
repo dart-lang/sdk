@@ -3403,8 +3403,7 @@ void Service::SendExtensionEvent(Isolate* isolate,
 
 class ContainsAddressVisitor : public FindObjectVisitor {
  public:
-  ContainsAddressVisitor(Isolate* isolate, uword addr)
-      : FindObjectVisitor(isolate), addr_(addr) { }
+  explicit ContainsAddressVisitor(uword addr) : addr_(addr) { }
   virtual ~ContainsAddressVisitor() { }
 
   virtual uword filter_addr() const { return addr_; }
@@ -3435,7 +3434,7 @@ static RawObject* GetObjectHelper(Thread* thread, uword addr) {
   {
     NoSafepointScope no_safepoint;
     Isolate* isolate = thread->isolate();
-    ContainsAddressVisitor visitor(isolate, addr);
+    ContainsAddressVisitor visitor(addr);
     object = isolate->heap()->FindObject(&visitor);
   }
 
@@ -3445,7 +3444,7 @@ static RawObject* GetObjectHelper(Thread* thread, uword addr) {
 
   {
     NoSafepointScope no_safepoint;
-    ContainsAddressVisitor visitor(Dart::vm_isolate(), addr);
+    ContainsAddressVisitor visitor(addr);
     object = Dart::vm_isolate()->heap()->FindObject(&visitor);
   }
 

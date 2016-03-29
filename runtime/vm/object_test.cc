@@ -4121,7 +4121,7 @@ VM_TEST_CASE(SpecialClassesHaveEmptyArrays) {
 class ObjectAccumulator : public ObjectVisitor {
  public:
   explicit ObjectAccumulator(GrowableArray<Object*>* objects)
-      : ObjectVisitor(Isolate::Current()), objects_(objects) {}
+      : objects_(objects) { }
   virtual ~ObjectAccumulator() { }
   virtual void VisitObject(RawObject* obj) {
     // Free-list elements cannot even be wrapped in handles.

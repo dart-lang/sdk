@@ -908,7 +908,7 @@ void Object::InitOnce(Isolate* isolate) {
 // premark all objects in the vm_isolate_ heap.
 class PremarkingVisitor : public ObjectVisitor {
  public:
-  explicit PremarkingVisitor(Isolate* isolate) : ObjectVisitor(isolate) {}
+  PremarkingVisitor() { }
 
   void VisitObject(RawObject* obj) {
     // Free list elements should never be marked.
@@ -996,7 +996,7 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
     ASSERT(isolate == Dart::vm_isolate());
     bool include_code_pages = !Dart::IsRunningPrecompiledCode();
     WritableVMIsolateScope scope(Thread::Current(), include_code_pages);
-    PremarkingVisitor premarker(isolate);
+    PremarkingVisitor premarker;
     ASSERT(isolate->heap()->UsedInWords(Heap::kNew) == 0);
     isolate->heap()->IterateOldObjects(&premarker);
     // Make the VM isolate read-only again after setting all objects as marked.
