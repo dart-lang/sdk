@@ -58,10 +58,16 @@ class TestCompiler extends apiimpl.CompilerImpl {
                 environment: environment,
                 packageConfig: packageConfig,
                 packagesDiscoveryProvider: findPackages)) {
-    scanner = new TestScanner(this);
-    resolver = new TestResolver(this, backend.constantCompilerTask);
     reporter = new TestDiagnosticReporter(this, super.reporter);
     test('Compiler');
+  }
+
+  @override
+  ScannerTask createScannerTask() => new TestScanner(this);
+
+  @override
+  ResolverTask createResolverTask() {
+    return new TestResolver(this, backend.constantCompilerTask);
   }
 
   Future<bool> run(Uri uri) {

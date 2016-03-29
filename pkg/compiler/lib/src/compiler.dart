@@ -401,7 +401,7 @@ abstract class Compiler implements LibraryLoaderListener {
     tasks = [
       dietParser = new DietParserTask(
           this, enableConditionalDirectives: options.enableConditionalDirectives),
-      scanner = new ScannerTask(this),
+      scanner = createScannerTask(),
       serialization = new SerializationTask(this),
       libraryLoader = new LibraryLoaderTask(this,
           new _ResolvedUriTranslator(this),
@@ -414,7 +414,7 @@ abstract class Compiler implements LibraryLoaderListener {
           enableConditionalDirectives: options.enableConditionalDirectives),
       patchParser = new PatchParserTask(
           this, enableConditionalDirectives: options.enableConditionalDirectives),
-      resolver = new ResolverTask(this, backend.constantCompilerTask),
+      resolver = createResolverTask(),
       closureToClassMapper = new closureMapping.ClosureTask(this),
       checker = new TypeCheckerTask(this),
       typesTask = new ti.TypesTask(this),
@@ -427,6 +427,18 @@ abstract class Compiler implements LibraryLoaderListener {
     ];
 
     tasks.addAll(backend.tasks);
+  }
+
+  /// Creates the scanner task.
+  ///
+  /// Override this to mock the scanner for testing.
+  ScannerTask createScannerTask() => new ScannerTask(this);
+
+  /// Creates the resolver task.
+  ///
+  /// Override this to mock the resolver for testing.
+  ResolverTask createResolverTask() {
+    return new ResolverTask(this, backend.constantCompilerTask);
   }
 
   Universe get resolverWorld => enqueuer.resolution.universe;
