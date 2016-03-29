@@ -1477,6 +1477,26 @@ main() {
     verify([source]);
   }
 
+  void test_constRedirectSkipsSupertype() {
+    // Since C redirects to C.named, it doesn't implicitly refer to B's
+    // unnamed constructor.  Therefore there is no cycle.
+    Source source = addSource('''
+class B {
+  final x;
+  const B() : x = y;
+  const B.named() : x = null;
+}
+class C extends B {
+  const C() : this.named();
+  const C.named() : super.named();
+}
+const y = const C();
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_constructorDeclaration_scope_signature() {
     Source source = addSource(r'''
 const app = 0;

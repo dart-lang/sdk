@@ -295,16 +295,17 @@ class ConstantEvaluationEngine {
           // any other constants.  So we don't need to report any dependencies.
           return;
         }
-        bool superInvocationFound = false;
+        bool defaultSuperInvocationNeeded = true;
         List<ConstructorInitializer> initializers =
             constant.constantInitializers;
         for (ConstructorInitializer initializer in initializers) {
-          if (initializer is SuperConstructorInvocation) {
-            superInvocationFound = true;
+          if (initializer is SuperConstructorInvocation ||
+              initializer is RedirectingConstructorInvocation) {
+            defaultSuperInvocationNeeded = false;
           }
           initializer.accept(referenceFinder);
         }
-        if (!superInvocationFound) {
+        if (defaultSuperInvocationNeeded) {
           // No explicit superconstructor invocation found, so we need to
           // manually insert a reference to the implicit superconstructor.
           InterfaceType superclass =
