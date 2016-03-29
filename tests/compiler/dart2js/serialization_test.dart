@@ -7,6 +7,7 @@ library dart2js.serialization_test;
 import 'dart:io';
 import 'memory_compiler.dart';
 import 'package:async_helper/async_helper.dart';
+import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/constants/constructors.dart';
 import 'package:compiler/src/constants/expressions.dart';
 import 'package:compiler/src/dart_types.dart';
@@ -47,7 +48,7 @@ main(List<String> arguments) {
   }
   asyncTest(() async {
     CompilationResult result = await runCompiler(
-        entryPoint: entryPoint, options: ['--analyze-all']);
+        entryPoint: entryPoint, options: [Flags.analyzeAll]);
     Compiler compiler = result.compiler;
     testSerialization(compiler.libraryLoader.libraries,
                       outPath: outPath,
@@ -58,11 +59,11 @@ main(List<String> arguments) {
 void testSerialization(Iterable<LibraryElement> libraries1,
                        {String outPath,
                         bool prettyPrint}) {
-  Serializer serializer = new Serializer(const JsonSerializationEncoder());
+  Serializer serializer = new Serializer();
   for (LibraryElement library1 in libraries1) {
     serializer.serialize(library1);
   }
-  String text = serializer.toText();
+  String text = serializer.toText(const JsonSerializationEncoder());
   String outText = text;
   if (prettyPrint) {
     outText = serializer.prettyPrint();
@@ -74,6 +75,7 @@ void testSerialization(Iterable<LibraryElement> libraries1,
   }
 
   Deserializer deserializer = new Deserializer.fromText(
+      new DeserializationContext(),
       text, const JsonSerializationDecoder());
   List<LibraryElement> libraries2 = <LibraryElement>[];
   for (LibraryElement library1 in libraries1) {
@@ -86,13 +88,14 @@ void testSerialization(Iterable<LibraryElement> libraries1,
     libraries2.add(library2);
   }
 
-  Serializer serializer2 = new Serializer(const JsonSerializationEncoder());
+  Serializer serializer2 = new Serializer();
   for (LibraryElement library2 in libraries2) {
     serializer2.serialize(library2);
   }
-  String text2 = serializer2.toText();
+  String text2 = serializer2.toText(const JsonSerializationEncoder());
 
   Deserializer deserializer3 = new Deserializer.fromText(
+      new DeserializationContext(),
       text2, const JsonSerializationDecoder());
   for (LibraryElement library1 in libraries1) {
     LibraryElement library2 =
@@ -569,6 +572,7 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
           throw message;
         }
       }
+      //print('Checking member ${member1} against ${member2}');
       visit(member1, member2);
     }
   }

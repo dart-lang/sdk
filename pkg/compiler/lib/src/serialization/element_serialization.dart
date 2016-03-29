@@ -43,6 +43,10 @@ enum SerializedElementKind {
   IMPORT,
   EXPORT,
   PREFIX,
+  EXTERNAL_LIBRARY,
+  EXTERNAL_LIBRARY_MEMBER,
+  EXTERNAL_STATIC_MEMBER,
+  EXTERNAL_CONSTRUCTOR,
 }
 
 /// Set of serializers used to serialize different kinds of elements by
@@ -593,9 +597,9 @@ class ElementDeserializer {
   /// needs deserialization. The [ObjectDecoder] ensures that any [Element],
   /// [DartType], and [ConstantExpression] that the deserialized [Element]
   /// depends upon are available.
-  static Element deserialize(ObjectDecoder decoder) {
-    SerializedElementKind elementKind =
-        decoder.getEnum(Key.KIND, SerializedElementKind.values);
+  static Element deserialize(
+      ObjectDecoder decoder,
+      SerializedElementKind elementKind) {
     switch (elementKind) {
       case SerializedElementKind.LIBRARY:
         return new LibraryElementZ(decoder);
@@ -651,6 +655,11 @@ class ElementDeserializer {
         return new ExportElementZ(decoder);
       case SerializedElementKind.PREFIX:
         return new PrefixElementZ(decoder);
+      case SerializedElementKind.EXTERNAL_LIBRARY:
+      case SerializedElementKind.EXTERNAL_LIBRARY_MEMBER:
+      case SerializedElementKind.EXTERNAL_STATIC_MEMBER:
+      case SerializedElementKind.EXTERNAL_CONSTRUCTOR:
+        break;
     }
     throw new UnsupportedError("Unexpected element kind '${elementKind}.");
   }
