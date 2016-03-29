@@ -3554,6 +3554,7 @@ class Library : public Object {
   // Library imports.
   RawArray* imports() const { return raw_ptr()->imports_; }
   RawArray* exports() const { return raw_ptr()->exports_; }
+  RawArray* exports2() const { return raw_ptr()->exports_; }
   void AddImport(const Namespace& ns) const;
   intptr_t num_imports() const { return raw_ptr()->num_imports_; }
   RawNamespace* ImportAt(intptr_t index) const;

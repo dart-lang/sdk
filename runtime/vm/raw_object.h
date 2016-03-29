@@ -1023,6 +1023,9 @@ class RawLibrary : public RawObject {
   RawGrowableObjectArray* patch_classes_;
   RawArray* imports_;            // List of Namespaces imported without prefix.
   RawArray* exports_;            // List of re-exported Namespaces.
+  RawArray* exports2_;           // Copy of exports_, used by background
+                                 // compiler to detect cycles without colliding
+                                 // with mutator thread lookups.
   RawInstance* load_error_;      // Error iff load_state_ == kLoadError.
   RawObject** to_snapshot() {
     return reinterpret_cast<RawObject**>(&ptr()->load_error_);

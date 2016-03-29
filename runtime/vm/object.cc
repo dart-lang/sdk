@@ -9499,11 +9499,21 @@ void Library::AddObject(const Object& obj, const String& name) const {
 
 
 // Lookup a name in the library's re-export namespace.
+// This lookup can occur from two different threads: background compiler and
+// mutator thread.
 RawObject* Library::LookupReExport(const String& name) const {
   if (HasExports()) {
-    const Array& exports = Array::Handle(this->exports());
-    // Break potential export cycle while looking up name.
-    StorePointer(&raw_ptr()->exports_, Object::empty_array().raw());
+    const bool is_background_compiler = Compiler::IsBackgroundCompilation();
+    Array& exports = Array::Handle();
+    if (is_background_compiler) {
+      exports = this->exports2();
+      // Break potential export cycle while looking up name.
+      StorePointer(&raw_ptr()->exports2_, Object::empty_array().raw());
+    } else {
+      exports = this->exports();
+      // Break potential export cycle while looking up name.
+      StorePointer(&raw_ptr()->exports_, Object::empty_array().raw());
+    }
     Namespace& ns = Namespace::Handle();
     Object& obj = Object::Handle();
     for (int i = 0; i < exports.Length(); i++) {
@@ -9519,7 +9529,11 @@ RawObject* Library::LookupReExport(const String& name) const {
         }
       }
     }
-    StorePointer(&raw_ptr()->exports_, exports.raw());
+    if (is_background_compiler) {
+      StorePointer(&raw_ptr()->exports2_, exports.raw());
+    } else {
+      StorePointer(&raw_ptr()->exports_, exports.raw());
+    }
     return obj.raw();
   }
   return Object::null();
@@ -9966,6 +9980,7 @@ bool Library::ImportsCorelib() const {
 void Library::DropDependencies() const {
   StorePointer(&raw_ptr()->imports_, Array::null());
   StorePointer(&raw_ptr()->exports_, Array::null());
+  StorePointer(&raw_ptr()->exports2_, Array::null());
 }
 
 
@@ -9998,6 +10013,7 @@ void Library::AddExport(const Namespace& ns) const {
   intptr_t num_exports = exports.Length();
   exports = Array::Grow(exports, num_exports + 1);
   StorePointer(&raw_ptr()->exports_, exports.raw());
+  StorePointer(&raw_ptr()->exports2_, exports.raw());
   exports.SetAt(num_exports, ns);
 }
 
@@ -10065,6 +10081,8 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
                                                Heap::kOld));
   result.StorePointer(&result.raw_ptr()->imports_, Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->exports_, Object::empty_array().raw());
+  result.StorePointer(&result.raw_ptr()->exports2_,
+      Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->loaded_scripts_, Array::null());
   result.StorePointer(&result.raw_ptr()->load_error_, Instance::null());
   result.set_native_entry_resolver(NULL);
