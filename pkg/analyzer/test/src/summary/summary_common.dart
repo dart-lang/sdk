@@ -4148,6 +4148,17 @@ class C {
     checkConstCycle('C', hasCycle: false);
   }
 
+  test_constructorCycle_trivial() {
+    serializeLibraryText(
+        '''
+class C {
+  const C() : this();
+}
+''',
+        allowErrors: true);
+    checkConstCycle('C');
+  }
+
   test_constructorCycle_viaFactoryRedirect() {
     serializeLibraryText(
         '''

@@ -957,6 +957,8 @@ abstract class DependencyWalker<NodeType extends Node<NodeType>> {
     List<NodeType> stack = <NodeType>[];
 
     void strongConnect(NodeType node) {
+      bool hasTrivialCycle = false;
+
       // Assign the current node an index and add it to the stack.  We
       // haven't seen any of its dependencies yet, so set its lowLink
       // to its index, indicating that so far it is the only node in
@@ -972,7 +974,11 @@ abstract class DependencyWalker<NodeType extends Node<NodeType>> {
         if (dependency.isEvaluated) {
           continue;
         }
-        if (dependency.index == 0) {
+        if (identical(node, dependency)) {
+          // If a node includes itself as a dependency, there is no need to
+          // explore the dependency further.
+          hasTrivialCycle = true;
+        } else if (dependency.index == 0) {
           // The dependency hasn't been seen yet, so recurse on it.
           strongConnect(dependency);
           // If the dependency's lowLink refers to a node that was
@@ -1001,15 +1007,11 @@ abstract class DependencyWalker<NodeType extends Node<NodeType>> {
       // we have finished visiting a strongly connected component, so
       // pop the stack and evaluate it before moving on.
       if (node.lowLink == node.index) {
-        // In the case where the strongly connected component has only
-        // one node, determine whether there is a trivial cycle or
-        // not.
-        //
-        // TODO(paulberry): could we figure this out in the for-loop
-        // above and save some effort?
+        // The strongly connected component has only one node.  If there is a
+        // cycle, it's a trivial one.
         if (identical(stack.last, node)) {
           stack.removeLast();
-          if (_hasTrivialScc(node)) {
+          if (hasTrivialCycle) {
             evaluateScc(<NodeType>[node]);
           } else {
             evaluate(node);
@@ -1032,20 +1034,6 @@ abstract class DependencyWalker<NodeType extends Node<NodeType>> {
 
     // Kick off the algorithm starting with the starting point.
     strongConnect(startingPoint);
-  }
-
-  /**
-   * The given [node] is in a strongly connected component of size 1.
-   * Determine if it contains a trivial cycle (i.e. depends on
-   * itself).
-   */
-  bool _hasTrivialScc(NodeType node) {
-    for (NodeType dependency in node.dependencies) {
-      if (identical(dependency, node)) {
-        return true;
-      }
-    }
-    return false;
   }
 }
 
