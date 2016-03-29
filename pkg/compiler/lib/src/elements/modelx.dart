@@ -2881,8 +2881,8 @@ class EnumFieldElementX extends FieldElementX {
 }
 
 abstract class MixinApplicationElementX extends BaseClassElementX
+    with MixinApplicationElementCommon
     implements MixinApplicationElement {
-
   Link<ConstructorElement> constructors = new Link<ConstructorElement>();
 
   InterfaceType mixinType;
@@ -2905,31 +2905,6 @@ abstract class MixinApplicationElementX extends BaseClassElementX
   Token get position => node.getBeginToken();
 
   Node parseNode(Parsing parsing) => node;
-
-  FunctionElement lookupLocalConstructor(String name) {
-    for (Link<Element> link = constructors;
-         !link.isEmpty;
-         link = link.tail) {
-      if (link.head.name == name) return link.head;
-    }
-    return null;
-  }
-
-  Element localLookup(String name) {
-    Element constructor = lookupLocalConstructor(name);
-    if (constructor != null) return constructor;
-    if (mixin == null) return null;
-    Element mixedInElement = mixin.localLookup(name);
-    if (mixedInElement == null) return null;
-    return mixedInElement.isInstanceMember ? mixedInElement : null;
-  }
-
-  void forEachLocalMember(void f(Element member)) {
-    constructors.forEach(f);
-    if (mixin != null) mixin.forEachLocalMember((Element mixedInElement) {
-      if (mixedInElement.isInstanceMember) f(mixedInElement);
-    });
-  }
 
   void addMember(Element element, DiagnosticReporter reporter) {
     throw new UnsupportedError("Cannot add member to $this.");

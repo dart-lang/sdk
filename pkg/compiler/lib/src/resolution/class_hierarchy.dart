@@ -55,7 +55,10 @@ class TypeDefinitionVisitor extends MappingVisitor<DartType> {
         scope = Scope.buildEnclosingScope(element),
         super(compiler, registry);
 
-  DartType get objectType => compiler.coreTypes.objectType;
+  CoreTypes get coreTypes => compiler.coreTypes;
+
+  DartType get objectType => coreTypes.objectType;
+
 
   void resolveTypeVariableBounds(NodeList node) {
     if (node == null) return;
@@ -245,7 +248,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     }
 
     InterfaceType enumType = element.computeType(resolution);
-    element.supertype = compiler.coreTypes.objectType;
+    element.supertype = objectType;
     element.interfaces = const Link<DartType>();
     calculateAllSupertypes(element);
 
@@ -579,24 +582,10 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     if (cls.allSupertypesAndSelf != null) return;
     final DartType supertype = cls.supertype;
     if (supertype != null) {
-      OrderedTypeSetBuilder allSupertypes = new OrderedTypeSetBuilder(cls);
-      // TODO(15296): Collapse these iterations to one when the order is not
-      // needed.
-      allSupertypes.add(compiler, supertype);
-      for (Link<DartType> interfaces = cls.interfaces;
-           !interfaces.isEmpty;
-           interfaces = interfaces.tail) {
-        allSupertypes.add(compiler, interfaces.head);
-      }
-
-      addAllSupertypes(allSupertypes, supertype);
-      for (Link<DartType> interfaces = cls.interfaces;
-           !interfaces.isEmpty;
-           interfaces = interfaces.tail) {
-        addAllSupertypes(allSupertypes, interfaces.head);
-      }
-      allSupertypes.add(compiler, cls.computeType(resolution));
-      cls.allSupertypesAndSelf = allSupertypes.toTypeSet();
+      cls.allSupertypesAndSelf =
+          new OrderedTypeSetBuilder(
+              cls, reporter: reporter, objectType: coreTypes.objectType)
+              .createOrderedTypeSet(supertype, cls.interfaces);
     } else {
       assert(cls == compiler.coreClasses.objectClass);
       cls.allSupertypesAndSelf =
@@ -604,27 +593,8 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     }
   }
 
-  /**
-   * Adds [type] and all supertypes of [type] to [allSupertypes] while
-   * substituting type variables.
-   */
-  void addAllSupertypes(OrderedTypeSetBuilder allSupertypes,
-                        InterfaceType type) {
-    ClassElement classElement = type.element;
-    Link<DartType> supertypes = classElement.allSupertypes;
-    assert(invariant(element, supertypes != null,
-        message: "Supertypes not computed on $classElement "
-                 "during resolution of $element"));
-    while (!supertypes.isEmpty) {
-      DartType supertype = supertypes.head;
-      allSupertypes.add(compiler, supertype.substByContext(type));
-      supertypes = supertypes.tail;
-    }
-  }
-
   isBlackListed(DartType type) {
     LibraryElement lib = element.library;
-    CoreTypes coreTypes = compiler.coreTypes;
     return
       !identical(lib, compiler.coreLibrary) &&
       !compiler.backend.isBackendLibrary(lib) &&

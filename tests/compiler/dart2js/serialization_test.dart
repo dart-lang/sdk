@@ -548,12 +548,26 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
       Element member1 = element1.localLookup(name);
       Element member2 = element2.localLookup(name);
       if (member1 == null) {
-        print('Missing member for $member2 in\n ${members1.join('\n ')}');
-        continue;
+        String message =
+            'Missing member for $member2 in\n ${members1.join('\n ')}';
+        if (member2.isAbstractField) {
+          // TODO(johnniwinther): Ensure abstract fields are handled correctly.
+          print(message);
+          continue;
+        } else {
+          throw message;
+        }
       }
       if (member2 == null) {
-        print('Missing member for $member1 in\n ${members2.join('\n ')}');
-        continue;
+        String message =
+            'Missing member for $member1 in\n ${members2.join('\n ')}';
+        if (member1.isAbstractField) {
+          // TODO(johnniwinther): Ensure abstract fields are handled correctly.
+          print(message);
+          continue;
+        } else {
+          throw message;
+        }
       }
       visit(member1, member2);
     }
@@ -620,6 +634,15 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         element1, element2, 'interfaces',
         element1.interfaces.toList(),
         element2.interfaces.toList());
+
+    List<ConstructorElement> getConstructors(ClassElement cls) {
+      return cls.implementation.constructors.map((c) => c.declaration).toList();
+    }
+
+    checkElementLists(
+        element1, element2, 'constructors',
+        getConstructors(element1),
+        getConstructors(element2));
 
     visitMembers(element1, element2);
   }

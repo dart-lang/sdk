@@ -352,6 +352,8 @@ abstract class GenericType extends DartType {
               this.typeArguments,
               {bool checkTypeArgumentCount: true})
       : this.element = element {
+    assert(invariant(CURRENT_ELEMENT_SPANNABLE, element != null,
+        message: "Missing element for generic type."));
     assert(invariant(element, () {
         if (!checkTypeArgumentCount) return true;
         if (element is TypeDeclarationElementX) {

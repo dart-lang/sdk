@@ -47,6 +47,11 @@ class ImpactSerializer implements WorldImpactVisitor {
 
   @override
   void visitStaticUse(StaticUse staticUse) {
+    if (staticUse.element.isGenerativeConstructor &&
+        staticUse.element.enclosingClass.isUnnamedMixinApplication) {
+      // TODO(johnniwinther): Handle static use of forwarding constructors.
+      return;
+    }
     ObjectEncoder object = staticUses.createObject();
     object.setEnum(Key.KIND, staticUse.kind);
     object.setElement(Key.ELEMENT, staticUse.element);

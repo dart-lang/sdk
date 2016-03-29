@@ -4,15 +4,12 @@
 
 library dart2js.serialization;
 
-import '../common/backend_api.dart';
 import '../elements/elements.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
-import '../universe/world_impact.dart';
 
 import 'constant_serialization.dart';
 import 'element_serialization.dart';
-import 'impact_serialization.dart';
 import 'json_serializer.dart';
 import 'keys.dart';
 import 'type_serialization.dart';
