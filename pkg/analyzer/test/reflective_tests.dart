@@ -11,6 +11,12 @@ import 'dart:mirrors';
 import 'package:unittest/unittest.dart';
 
 /**
+ * A marker annotation used to instruct dart2js to keep reflection information
+ * for the annotated classes.
+ */
+const ReflectiveTest reflectiveTest = const ReflectiveTest();
+
+/**
  * Runs test methods existing in the given [type].
  *
  * Methods with names starting with `test` are run using [test] function.
@@ -114,9 +120,3 @@ _runTest(ClassMirror classMirror, Symbol symbol) {
 class ReflectiveTest {
   const ReflectiveTest();
 }
-
-/**
- * A marker annotation used to instruct dart2js to keep reflection information
- * for the annotated classes.
- */
-const ReflectiveTest reflectiveTest = const ReflectiveTest();

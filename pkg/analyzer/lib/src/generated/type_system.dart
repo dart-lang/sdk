@@ -41,6 +41,59 @@ class StrongTypeSystemImpl extends TypeSystem {
     return null;
   }
 
+  /// Computes the greatest lower bound of [type1] and [type2].
+  @override
+  DartType getGreatestLowerBound(
+      TypeProvider provider, DartType type1, DartType type2) {
+    // The greatest lower bound relation is reflexive.
+    if (identical(type1, type2)) {
+      return type1;
+    }
+
+    // Treat dynamic as top. The GLB of dynamic and any type is just that type
+    // since dynamic permits all values.
+    if (type1.isDynamic) {
+      return type2;
+    }
+    if (type2.isDynamic) {
+      return type1;
+    }
+
+    // You can't get any lower than bottom.
+    if (type1.isBottom || type2.isBottom) {
+      return provider.bottomType;
+    }
+
+    // Treat void as top-like for GLB. This only comes into play with the
+    // return types of two functions whose GLB is being taken. We allow a
+    // non-void-returning function to subtype a void-returning one, so match
+    // that logic here by treating the non-void arm as the subtype for GLB.
+    if (type1.isVoid) {
+      return type2;
+    }
+    if (type2.isVoid) {
+      return type1;
+    }
+
+    // Function types have structural GLB.
+    if (type1 is FunctionType && type2 is FunctionType) {
+      return _functionGreatestLowerBound(provider, type1, type2);
+    }
+
+    // Otherwise, the GLB of two types is one of them it if it is a subtype of
+    // the other.
+    if (isSubtypeOf(type1, type2)) {
+      return type1;
+    }
+
+    if (isSubtypeOf(type2, type1)) {
+      return type2;
+    }
+
+    // No subtype relation, so no known GLB.
+    return provider.bottomType;
+  }
+
   /**
    * Given a generic function type `F<T0, T1, ... Tn>` and a context type C,
    * infer an instantiation of F, such that `F<S0, S1, ..., Sn>` <: C.
@@ -260,6 +313,121 @@ class StrongTypeSystemImpl extends TypeSystem {
   }
 
   /**
+   * Compute the greatest lower bound of function types [f] and [g].
+   *
+   * The spec rules for GLB on function types, informally, are pretty simple:
+   *
+   * - If a parameter is required in both, it stays required.
+   *
+   * - If a positional parameter is optional or missing in one, it becomes
+   *   optional.
+   *
+   * - Named parameters are unioned together.
+   *
+   * - For any parameter that exists in both functions, use the LUB of them as
+   *   the resulting parameter type.
+   *
+   * - Use the GLB of their return types.
+   */
+  DartType _functionGreatestLowerBound(
+      TypeProvider provider, FunctionType f, FunctionType g) {
+    // Calculate the LUB of each corresponding pair of parameters.
+    List<ParameterElement> parameters = [];
+
+    bool hasPositional = false;
+    bool hasNamed = false;
+    addParameter(
+        String name, DartType fType, DartType gType, ParameterKind kind) {
+      DartType paramType;
+      if (fType != null && gType != null) {
+        // If both functions have this parameter, include both of their types.
+        paramType = getLeastUpperBound(provider, fType, gType);
+      } else {
+        paramType = fType ?? gType;
+      }
+
+      parameters.add(new ParameterElementImpl.synthetic(name, paramType, kind));
+    }
+
+    // TODO(rnystrom): Right now, this assumes f and g do not have any type
+    // parameters. Revisit that in the presence of generic methods.
+    List<DartType> fRequired = f.normalParameterTypes;
+    List<DartType> gRequired = g.normalParameterTypes;
+
+    // We need some parameter names for in the synthesized function type.
+    List<String> fRequiredNames = f.normalParameterNames;
+    List<String> gRequiredNames = g.normalParameterNames;
+
+    // Parameters that are required in both functions are required in the
+    // result.
+    int requiredCount = math.min(fRequired.length, gRequired.length);
+    for (int i = 0; i < requiredCount; i++) {
+      addParameter(fRequiredNames[i], fRequired[i], gRequired[i],
+          ParameterKind.REQUIRED);
+    }
+
+    // Parameters that are optional or missing in either end up optional.
+    List<DartType> fPositional = f.optionalParameterTypes;
+    List<DartType> gPositional = g.optionalParameterTypes;
+    List<String> fPositionalNames = f.optionalParameterNames;
+    List<String> gPositionalNames = g.optionalParameterNames;
+
+    int totalPositional = math.max(fRequired.length + fPositional.length,
+        gRequired.length + gPositional.length);
+    for (int i = requiredCount; i < totalPositional; i++) {
+      // Find the corresponding positional parameters (required or optional) at
+      // this index, if there is one.
+      DartType fType;
+      String fName;
+      if (i < fRequired.length) {
+        fType = fRequired[i];
+        fName = fRequiredNames[i];
+      } else if (i < fRequired.length + fPositional.length) {
+        fType = fPositional[i - fRequired.length];
+        fName = fPositionalNames[i - fRequired.length];
+      }
+
+      DartType gType;
+      String gName;
+      if (i < gRequired.length) {
+        gType = gRequired[i];
+        gName = gRequiredNames[i];
+      } else if (i < gRequired.length + gPositional.length) {
+        gType = gPositional[i - gRequired.length];
+        gName = gPositionalNames[i - gRequired.length];
+      }
+
+      // The loop should not let us go past both f and g's positional params.
+      assert(fType != null || gType != null);
+
+      addParameter(fName ?? gName, fType, gType, ParameterKind.POSITIONAL);
+      hasPositional = true;
+    }
+
+    // Union the named parameters together.
+    Map<String, DartType> fNamed = f.namedParameterTypes;
+    Map<String, DartType> gNamed = g.namedParameterTypes;
+    for (String name in fNamed.keys.toSet()..addAll(gNamed.keys)) {
+      addParameter(name, fNamed[name], gNamed[name], ParameterKind.NAMED);
+      hasNamed = true;
+    }
+
+    // Edge case. Dart does not support functions with both optional positional
+    // and named parameters. If we would synthesize that, give up.
+    if (hasPositional && hasNamed) return provider.bottomType;
+
+    // Calculate the GLB of the return type.
+    DartType returnType =
+        getGreatestLowerBound(provider, f.returnType, g.returnType);
+    return new FunctionElementImpl.synthetic(parameters, returnType).type;
+  }
+
+  @override
+  DartType _functionParameterBound(
+          TypeProvider provider, DartType f, DartType g) =>
+      getGreatestLowerBound(provider, f, g);
+
+  /**
    * Guard against loops in the class hierarchy
    */
   _GuardedSubtypeChecker<DartType> _guard(
@@ -439,178 +607,10 @@ class StrongTypeSystemImpl extends TypeSystem {
     return _isFunctionSubtypeOf(t1 as FunctionType, t2 as FunctionType);
   }
 
-  // TODO(leafp): Document the rules in play here
   bool _isTop(DartType t, {bool dynamicIsBottom: false}) {
+    // TODO(leafp): Document the rules in play here
     return (t.isDynamic && !dynamicIsBottom) || t.isObject;
   }
-
-  /// Computes the greatest lower bound of [type1] and [type2].
-  @override
-  DartType getGreatestLowerBound(
-      TypeProvider provider, DartType type1, DartType type2) {
-    // The greatest lower bound relation is reflexive.
-    if (identical(type1, type2)) {
-      return type1;
-    }
-
-    // Treat dynamic as top. The GLB of dynamic and any type is just that type
-    // since dynamic permits all values.
-    if (type1.isDynamic) {
-      return type2;
-    }
-    if (type2.isDynamic) {
-      return type1;
-    }
-
-    // You can't get any lower than bottom.
-    if (type1.isBottom || type2.isBottom) {
-      return provider.bottomType;
-    }
-
-    // Treat void as top-like for GLB. This only comes into play with the
-    // return types of two functions whose GLB is being taken. We allow a
-    // non-void-returning function to subtype a void-returning one, so match
-    // that logic here by treating the non-void arm as the subtype for GLB.
-    if (type1.isVoid) {
-      return type2;
-    }
-    if (type2.isVoid) {
-      return type1;
-    }
-
-    // Function types have structural GLB.
-    if (type1 is FunctionType && type2 is FunctionType) {
-      return _functionGreatestLowerBound(provider, type1, type2);
-    }
-
-    // Otherwise, the GLB of two types is one of them it if it is a subtype of
-    // the other.
-    if (isSubtypeOf(type1, type2)) {
-      return type1;
-    }
-
-    if (isSubtypeOf(type2, type1)) {
-      return type2;
-    }
-
-    // No subtype relation, so no known GLB.
-    return provider.bottomType;
-  }
-
-  /**
-   * Compute the greatest lower bound of function types [f] and [g].
-   *
-   * The spec rules for GLB on function types, informally, are pretty simple:
-   *
-   * - If a parameter is required in both, it stays required.
-   *
-   * - If a positional parameter is optional or missing in one, it becomes
-   *   optional.
-   *
-   * - Named parameters are unioned together.
-   *
-   * - For any parameter that exists in both functions, use the LUB of them as
-   *   the resulting parameter type.
-   *
-   * - Use the GLB of their return types.
-   */
-  DartType _functionGreatestLowerBound(
-      TypeProvider provider, FunctionType f, FunctionType g) {
-    // Calculate the LUB of each corresponding pair of parameters.
-    List<ParameterElement> parameters = [];
-
-    bool hasPositional = false;
-    bool hasNamed = false;
-    addParameter(
-        String name, DartType fType, DartType gType, ParameterKind kind) {
-      DartType paramType;
-      if (fType != null && gType != null) {
-        // If both functions have this parameter, include both of their types.
-        paramType = getLeastUpperBound(provider, fType, gType);
-      } else {
-        paramType = fType ?? gType;
-      }
-
-      parameters.add(new ParameterElementImpl.synthetic(name, paramType, kind));
-    }
-
-    // TODO(rnystrom): Right now, this assumes f and g do not have any type
-    // parameters. Revisit that in the presence of generic methods.
-    List<DartType> fRequired = f.normalParameterTypes;
-    List<DartType> gRequired = g.normalParameterTypes;
-
-    // We need some parameter names for in the synthesized function type.
-    List<String> fRequiredNames = f.normalParameterNames;
-    List<String> gRequiredNames = g.normalParameterNames;
-
-    // Parameters that are required in both functions are required in the
-    // result.
-    int requiredCount = math.min(fRequired.length, gRequired.length);
-    for (int i = 0; i < requiredCount; i++) {
-      addParameter(fRequiredNames[i], fRequired[i], gRequired[i],
-          ParameterKind.REQUIRED);
-    }
-
-    // Parameters that are optional or missing in either end up optional.
-    List<DartType> fPositional = f.optionalParameterTypes;
-    List<DartType> gPositional = g.optionalParameterTypes;
-    List<String> fPositionalNames = f.optionalParameterNames;
-    List<String> gPositionalNames = g.optionalParameterNames;
-
-    int totalPositional = math.max(fRequired.length + fPositional.length,
-        gRequired.length + gPositional.length);
-    for (int i = requiredCount; i < totalPositional; i++) {
-      // Find the corresponding positional parameters (required or optional) at
-      // this index, if there is one.
-      DartType fType;
-      String fName;
-      if (i < fRequired.length) {
-        fType = fRequired[i];
-        fName = fRequiredNames[i];
-      } else if (i < fRequired.length + fPositional.length) {
-        fType = fPositional[i - fRequired.length];
-        fName = fPositionalNames[i - fRequired.length];
-      }
-
-      DartType gType;
-      String gName;
-      if (i < gRequired.length) {
-        gType = gRequired[i];
-        gName = gRequiredNames[i];
-      } else if (i < gRequired.length + gPositional.length) {
-        gType = gPositional[i - gRequired.length];
-        gName = gPositionalNames[i - gRequired.length];
-      }
-
-      // The loop should not let us go past both f and g's positional params.
-      assert(fType != null || gType != null);
-
-      addParameter(fName ?? gName, fType, gType, ParameterKind.POSITIONAL);
-      hasPositional = true;
-    }
-
-    // Union the named parameters together.
-    Map<String, DartType> fNamed = f.namedParameterTypes;
-    Map<String, DartType> gNamed = g.namedParameterTypes;
-    for (String name in fNamed.keys.toSet()..addAll(gNamed.keys)) {
-      addParameter(name, fNamed[name], gNamed[name], ParameterKind.NAMED);
-      hasNamed = true;
-    }
-
-    // Edge case. Dart does not support functions with both optional positional
-    // and named parameters. If we would synthesize that, give up.
-    if (hasPositional && hasNamed) return provider.bottomType;
-
-    // Calculate the GLB of the return type.
-    DartType returnType =
-        getGreatestLowerBound(provider, f.returnType, g.returnType);
-    return new FunctionElementImpl.synthetic(parameters, returnType).type;
-  }
-
-  @override
-  DartType _functionParameterBound(
-          TypeProvider provider, DartType f, DartType g) =>
-      getGreatestLowerBound(provider, f, g);
 }
 
 /**
@@ -825,15 +825,6 @@ abstract class TypeSystem {
       TypeParameterTypeImpl.getTypes(typeFormalsAsElements(type));
 
   /**
-   * Create either a strong mode or regular type system based on context.
-   */
-  static TypeSystem create(AnalysisContext context) {
-    return (context.analysisOptions.strongMode)
-        ? new StrongTypeSystemImpl()
-        : new TypeSystemImpl();
-  }
-
-  /**
    * Compute the least upper bound of function types [f] and [g].
    *
    * The spec rules for LUB on function types, informally, are pretty simple
@@ -914,6 +905,15 @@ abstract class TypeSystem {
   DartType _functionParameterBound(
           TypeProvider provider, DartType f, DartType g) =>
       getLeastUpperBound(provider, f, g);
+
+  /**
+   * Create either a strong mode or regular type system based on context.
+   */
+  static TypeSystem create(AnalysisContext context) {
+    return (context.analysisOptions.strongMode)
+        ? new StrongTypeSystemImpl()
+        : new TypeSystemImpl();
+  }
 }
 
 /**

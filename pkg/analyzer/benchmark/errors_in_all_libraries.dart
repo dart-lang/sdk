@@ -9,14 +9,13 @@
 /// it easier to connect to this with observatory.
 import 'dart:io';
 
-import 'package:path/path.dart' as p;
-
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk_io.dart' show DirectoryBasedDartSdk;
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
+import 'package:path/path.dart' as p;
 
 void main(List<String> args) {
   JavaSystemIO.setProperty(

@@ -67,16 +67,6 @@ analyzer:
     expect(analysisOptions.enableAsync, false);
   }
 
-  test_configure_enableGenericMethods() {
-    expect(analysisOptions.enableGenericMethods, false);
-    configureContext('''
-analyzer:
-  language:
-    enableGenericMethods: true
-''');
-    expect(analysisOptions.enableGenericMethods, true);
-  }
-
   test_configure_enableConditionalDirectives() {
     expect(analysisOptions.enableConditionalDirectives, false);
     configureContext('''
@@ -87,13 +77,14 @@ analyzer:
     expect(analysisOptions.enableConditionalDirectives, true);
   }
 
-  test_configure_enableSuperMixins() {
+  test_configure_enableGenericMethods() {
+    expect(analysisOptions.enableGenericMethods, false);
     configureContext('''
 analyzer:
   language:
-    enableSuperMixins: true
+    enableGenericMethods: true
 ''');
-    expect(analysisOptions.enableSuperMixins, true);
+    expect(analysisOptions.enableGenericMethods, true);
   }
 
   test_configure_enableStrictCallChecks() {
@@ -103,6 +94,15 @@ analyzer:
     enableStrictCallChecks: true
 ''');
     expect(analysisOptions.enableStrictCallChecks, true);
+  }
+
+  test_configure_enableSuperMixins() {
+    configureContext('''
+analyzer:
+  language:
+    enableSuperMixins: true
+''');
+    expect(analysisOptions.enableSuperMixins, true);
   }
 
   test_configure_error_processors() {

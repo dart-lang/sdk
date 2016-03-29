@@ -2235,16 +2235,6 @@ abstract class UnlinkedUnit extends base.SummaryClass {
       generated.readUnlinkedUnit(buffer);
 
   /**
-   * If this compilation unit was summarized in fallback mode, the path where
-   * the compilation unit may be found on disk.  Otherwise empty.
-   *
-   * When this field is non-empty, all other fields in the data structure have
-   * their default values.
-   */
-  @Id(16)
-  String get fallbackModePath;
-
-  /**
    * Classes declared in the compilation unit.
    */
   @Id(2)
@@ -2275,6 +2265,16 @@ abstract class UnlinkedUnit extends base.SummaryClass {
    */
   @Id(13)
   List<UnlinkedExportNonPublic> get exports;
+
+  /**
+   * If this compilation unit was summarized in fallback mode, the path where
+   * the compilation unit may be found on disk.  Otherwise empty.
+   *
+   * When this field is non-empty, all other fields in the data structure have
+   * their default values.
+   */
+  @Id(16)
+  String get fallbackModePath;
 
   /**
    * Import declarations in the compilation unit.

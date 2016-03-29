@@ -113,6 +113,28 @@ CompilationUnit checkFile(String content) {
   return check();
 }
 
+void initStrongModeTests() {
+  setUp(() {
+    AnalysisEngine.instance.processRequiredPlugins();
+    files = new MemoryResourceProvider();
+    _checkCalled = false;
+  });
+
+  tearDown(() {
+    // This is a sanity check, in case only addFile is called.
+    expect(_checkCalled, true, reason: 'must call check() method in test case');
+    files = null;
+  });
+}
+
+Level _actualErrorLevel(AnalysisError actual) {
+  return const <ErrorSeverity, Level>{
+    ErrorSeverity.ERROR: Level.SEVERE,
+    ErrorSeverity.WARNING: Level.WARNING,
+    ErrorSeverity.INFO: Level.INFO
+  }[actual.errorCode.errorSeverity];
+}
+
 SourceSpanWithContext _createSpanHelper(
     LineInfo lineInfo, int start, Source source, String content,
     {int end}) {
@@ -147,49 +169,6 @@ String _errorCodeName(ErrorCode errorCode) {
   } else {
     return name;
   }
-}
-
-void initStrongModeTests() {
-  setUp(() {
-    AnalysisEngine.instance.processRequiredPlugins();
-    files = new MemoryResourceProvider();
-    _checkCalled = false;
-  });
-
-  tearDown(() {
-    // This is a sanity check, in case only addFile is called.
-    expect(_checkCalled, true, reason: 'must call check() method in test case');
-    files = null;
-  });
-}
-
-SourceLocation _locationForOffset(LineInfo lineInfo, Uri uri, int offset) {
-  var loc = lineInfo.getLocation(offset);
-  return new SourceLocation(offset,
-      sourceUrl: uri, line: loc.lineNumber - 1, column: loc.columnNumber - 1);
-}
-
-/// Returns all libraries transitively imported or exported from [start].
-List<LibraryElement> _reachableLibraries(LibraryElement start) {
-  var results = <LibraryElement>[];
-  var seen = new Set();
-  void find(LibraryElement lib) {
-    if (seen.contains(lib)) return;
-    seen.add(lib);
-    results.add(lib);
-    lib.importedLibraries.forEach(find);
-    lib.exportedLibraries.forEach(find);
-  }
-  find(start);
-  return results;
-}
-
-Level _actualErrorLevel(AnalysisError actual) {
-  return const <ErrorSeverity, Level>{
-    ErrorSeverity.ERROR: Level.SEVERE,
-    ErrorSeverity.WARNING: Level.WARNING,
-    ErrorSeverity.INFO: Level.INFO
-  }[actual.errorCode.errorSeverity];
 }
 
 void _expectErrors(CompilationUnit unit, List<AnalysisError> actualErrors) {
@@ -265,6 +244,27 @@ List<_ErrorExpectation> _findExpectedErrors(Token beginToken) {
     }
   }
   return expectedErrors;
+}
+
+SourceLocation _locationForOffset(LineInfo lineInfo, Uri uri, int offset) {
+  var loc = lineInfo.getLocation(offset);
+  return new SourceLocation(offset,
+      sourceUrl: uri, line: loc.lineNumber - 1, column: loc.columnNumber - 1);
+}
+
+/// Returns all libraries transitively imported or exported from [start].
+List<LibraryElement> _reachableLibraries(LibraryElement start) {
+  var results = <LibraryElement>[];
+  var seen = new Set();
+  void find(LibraryElement lib) {
+    if (seen.contains(lib)) return;
+    seen.add(lib);
+    results.add(lib);
+    lib.importedLibraries.forEach(find);
+    lib.exportedLibraries.forEach(find);
+  }
+  find(start);
+  return results;
 }
 
 void _reportFailure(

@@ -37,6 +37,143 @@ main() {
   runReflectiveTests(StaticTypeAnalyzer2Test);
 }
 
+/**
+ * Like [StaticTypeAnalyzerTest], but as end-to-end tests.
+ */
+@reflectiveTest
+class StaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
+  void test_FunctionExpressionInvocation_block() {
+    String code = r'''
+main() {
+  var foo = (() { return 1; })();
+}
+''';
+    resolveTestUnit(code);
+    expectInitializerType('foo', 'dynamic', isNull);
+  }
+
+  void test_FunctionExpressionInvocation_curried() {
+    String code = r'''
+typedef int F();
+F f() => null;
+main() {
+  var foo = f()();
+}
+''';
+    resolveTestUnit(code);
+    expectInitializerType('foo', 'int', isNull);
+  }
+
+  void test_FunctionExpressionInvocation_expression() {
+    String code = r'''
+main() {
+  var foo = (() => 1)();
+}
+''';
+    resolveTestUnit(code);
+    expectInitializerType('foo', 'int', isNull);
+  }
+
+  void test_MethodInvocation_nameType_localVariable() {
+    String code = r"""
+typedef Foo();
+main() {
+  Foo foo;
+  foo();
+}
+""";
+    resolveTestUnit(code);
+    // "foo" should be resolved to the "Foo" type
+    expectIdentifierType("foo();", new isInstanceOf<FunctionType>());
+  }
+
+  void test_MethodInvocation_nameType_parameter_FunctionTypeAlias() {
+    String code = r"""
+typedef Foo();
+main(Foo foo) {
+  foo();
+}
+""";
+    resolveTestUnit(code);
+    // "foo" should be resolved to the "Foo" type
+    expectIdentifierType("foo();", new isInstanceOf<FunctionType>());
+  }
+
+  void test_MethodInvocation_nameType_parameter_propagatedType() {
+    String code = r"""
+typedef Foo();
+main(p) {
+  if (p is Foo) {
+    p();
+  }
+}
+""";
+    resolveTestUnit(code);
+    expectIdentifierType("p()", DynamicTypeImpl.instance,
+        predicate((type) => type.name == 'Foo'));
+  }
+
+  void test_staticMethods_classTypeParameters() {
+    String code = r'''
+class C<T> {
+  static void m() => null;
+}
+main() {
+  print(C.m);
+}
+''';
+    resolveTestUnit(code);
+    expectFunctionType('m);', '() → void');
+  }
+
+  void test_staticMethods_classTypeParameters_genericMethod() {
+    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
+    options.enableGenericMethods = true;
+    resetWithOptions(options);
+    String code = r'''
+class C<T> {
+  static void m<S>(S s) {
+    void f<U>(S s, U u) {}
+    print(f);
+  }
+}
+main() {
+  print(C.m);
+}
+''';
+    resolveTestUnit(code);
+    // C - m
+    TypeParameterType typeS;
+    {
+      expectFunctionType('m);', '<S>(S) → void',
+          elementTypeParams: '[S]', typeFormals: '[S]');
+
+      FunctionTypeImpl type = findIdentifier('m);').staticType;
+      typeS = type.typeFormals[0].type;
+      type = type.instantiate([DynamicTypeImpl.instance]);
+      expect(type.toString(), '(dynamic) → void');
+      expect(type.typeParameters.toString(), '[S]');
+      expect(type.typeArguments, [DynamicTypeImpl.instance]);
+      expect(type.typeFormals, isEmpty);
+    }
+    // C - m - f
+        {
+      expectFunctionType('f);', '<U>(S, U) → void',
+          elementTypeParams: '[U]',
+          typeParams: '[S]',
+          typeArgs: '[S]',
+          typeFormals: '[U]');
+
+      FunctionTypeImpl type = findIdentifier('f);').staticType;
+      type = type.instantiate([DynamicTypeImpl.instance]);
+      expect(type.toString(), '(S, dynamic) → void');
+      expect(type.typeParameters.toString(), '[S, U]');
+      expect(type.typeArguments, [typeS, DynamicTypeImpl.instance]);
+      expect(type.typeFormals, isEmpty);
+    }
+  }
+}
+
 @reflectiveTest
 class StaticTypeAnalyzerTest extends EngineTestCase {
   /**
@@ -1478,142 +1615,5 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
       identifier.staticElement = element;
     }
     (element as ParameterElementImpl).type = type;
-  }
-}
-
-/**
- * Like [StaticTypeAnalyzerTest], but as end-to-end tests.
- */
-@reflectiveTest
-class StaticTypeAnalyzer2Test extends StaticTypeAnalyzer2TestShared {
-  void test_FunctionExpressionInvocation_block() {
-    String code = r'''
-main() {
-  var foo = (() { return 1; })();
-}
-''';
-    resolveTestUnit(code);
-    expectInitializerType('foo', 'dynamic', isNull);
-  }
-
-  void test_FunctionExpressionInvocation_curried() {
-    String code = r'''
-typedef int F();
-F f() => null;
-main() {
-  var foo = f()();
-}
-''';
-    resolveTestUnit(code);
-    expectInitializerType('foo', 'int', isNull);
-  }
-
-  void test_FunctionExpressionInvocation_expression() {
-    String code = r'''
-main() {
-  var foo = (() => 1)();
-}
-''';
-    resolveTestUnit(code);
-    expectInitializerType('foo', 'int', isNull);
-  }
-
-  void test_MethodInvocation_nameType_localVariable() {
-    String code = r"""
-typedef Foo();
-main() {
-  Foo foo;
-  foo();
-}
-""";
-    resolveTestUnit(code);
-    // "foo" should be resolved to the "Foo" type
-    expectIdentifierType("foo();", new isInstanceOf<FunctionType>());
-  }
-
-  void test_MethodInvocation_nameType_parameter_FunctionTypeAlias() {
-    String code = r"""
-typedef Foo();
-main(Foo foo) {
-  foo();
-}
-""";
-    resolveTestUnit(code);
-    // "foo" should be resolved to the "Foo" type
-    expectIdentifierType("foo();", new isInstanceOf<FunctionType>());
-  }
-
-  void test_MethodInvocation_nameType_parameter_propagatedType() {
-    String code = r"""
-typedef Foo();
-main(p) {
-  if (p is Foo) {
-    p();
-  }
-}
-""";
-    resolveTestUnit(code);
-    expectIdentifierType("p()", DynamicTypeImpl.instance,
-        predicate((type) => type.name == 'Foo'));
-  }
-
-  void test_staticMethods_classTypeParameters() {
-    String code = r'''
-class C<T> {
-  static void m() => null;
-}
-main() {
-  print(C.m);
-}
-''';
-    resolveTestUnit(code);
-    expectFunctionType('m);', '() → void');
-  }
-
-  void test_staticMethods_classTypeParameters_genericMethod() {
-    AnalysisOptionsImpl options = new AnalysisOptionsImpl();
-    options.enableGenericMethods = true;
-    resetWithOptions(options);
-    String code = r'''
-class C<T> {
-  static void m<S>(S s) {
-    void f<U>(S s, U u) {}
-    print(f);
-  }
-}
-main() {
-  print(C.m);
-}
-''';
-    resolveTestUnit(code);
-    // C - m
-    TypeParameterType typeS;
-    {
-      expectFunctionType('m);', '<S>(S) → void',
-          elementTypeParams: '[S]', typeFormals: '[S]');
-
-      FunctionTypeImpl type = findIdentifier('m);').staticType;
-      typeS = type.typeFormals[0].type;
-      type = type.instantiate([DynamicTypeImpl.instance]);
-      expect(type.toString(), '(dynamic) → void');
-      expect(type.typeParameters.toString(), '[S]');
-      expect(type.typeArguments, [DynamicTypeImpl.instance]);
-      expect(type.typeFormals, isEmpty);
-    }
-    // C - m - f
-        {
-      expectFunctionType('f);', '<U>(S, U) → void',
-          elementTypeParams: '[U]',
-          typeParams: '[S]',
-          typeArgs: '[S]',
-          typeFormals: '[U]');
-
-      FunctionTypeImpl type = findIdentifier('f);').staticType;
-      type = type.instantiate([DynamicTypeImpl.instance]);
-      expect(type.toString(), '(S, dynamic) → void');
-      expect(type.typeParameters.toString(), '[S, U]');
-      expect(type.typeArguments, [typeS, DynamicTypeImpl.instance]);
-      expect(type.typeFormals, isEmpty);
-    }
   }
 }

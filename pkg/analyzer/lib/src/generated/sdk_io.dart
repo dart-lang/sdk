@@ -533,6 +533,30 @@ class DirectoryBasedDartSdk implements DartSdk {
   SdkLibrary getSdkLibrary(String dartUri) => _libraryMap.getLibrary(dartUri);
 
   /**
+   * Return the [PackageBundle] for this SDK, if it exists, or `null` otherwise.
+   * This method should not be used outside of `analyzer` and `analyzer_cli`
+   * packages.
+   */
+  PackageBundle getSummarySdkBundle() {
+    String rootPath = directory.getAbsolutePath();
+    bool strongMode = _analysisOptions?.strongMode ?? false;
+    String name = strongMode ? 'strong.sum' : 'spec.sum';
+    String path = pathos.join(rootPath, 'lib', '_internal', name);
+    try {
+      File file = new File(path);
+      if (file.existsSync()) {
+        List<int> bytes = file.readAsBytesSync();
+        return new PackageBundle.fromBuffer(bytes);
+      }
+    } catch (exception, stackTrace) {
+      AnalysisEngine.instance.logger.logError(
+          'Failed to load SDK analysis summary from $path',
+          new CaughtException(exception, stackTrace));
+    }
+    return null;
+  }
+
+  /**
    * Read all of the configuration files to initialize the library maps. The
    * flag [useDart2jsPaths] is `true` if the dart2js path should be used when it
    * is available. Return the initialized library map.
@@ -566,30 +590,6 @@ class DirectoryBasedDartSdk implements DartSdk {
       _uriToSourceMap[dartUri] = source;
     }
     return source;
-  }
-
-  /**
-   * Return the [PackageBundle] for this SDK, if it exists, or `null` otherwise.
-   * This method should not be used outside of `analyzer` and `analyzer_cli`
-   * packages.
-   */
-  PackageBundle getSummarySdkBundle() {
-    String rootPath = directory.getAbsolutePath();
-    bool strongMode = _analysisOptions?.strongMode ?? false;
-    String name = strongMode ? 'strong.sum' : 'spec.sum';
-    String path = pathos.join(rootPath, 'lib', '_internal', name);
-    try {
-      File file = new File(path);
-      if (file.existsSync()) {
-        List<int> bytes = file.readAsBytesSync();
-        return new PackageBundle.fromBuffer(bytes);
-      }
-    } catch (exception, stackTrace) {
-      AnalysisEngine.instance.logger.logError(
-          'Failed to load SDK analysis summary from $path',
-          new CaughtException(exception, stackTrace));
-    }
-    return null;
   }
 
   FileBasedSource _mapDartUri(String dartUri) {

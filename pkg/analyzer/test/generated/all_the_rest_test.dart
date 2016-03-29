@@ -4155,6 +4155,13 @@ class FileUriResolverTest {
 
 @reflectiveTest
 class ResolveRelativeUriTest {
+  void test_resolveRelative_dart_dartUri() {
+    Uri uri = parseUriWithException('dart:foo');
+    Uri relative = resolveRelativeUri(uri, parseUriWithException('dart:bar'));
+    expect(relative, isNotNull);
+    expect(relative.toString(), 'dart:bar');
+  }
+
   void test_resolveRelative_dart_fileName() {
     Uri uri = parseUriWithException("dart:test");
     Uri relative = resolveRelativeUri(uri, parseUriWithException("lib.dart"));
@@ -4169,19 +4176,19 @@ class ResolveRelativeUriTest {
     expect(relative.toString(), "dart:test/c/lib.dart");
   }
 
-  void test_resolveRelative_dart_dartUri() {
-    Uri uri = parseUriWithException('dart:foo');
-    Uri relative = resolveRelativeUri(uri, parseUriWithException('dart:bar'));
-    expect(relative, isNotNull);
-    expect(relative.toString(), 'dart:bar');
-  }
-
   void test_resolveRelative_dart_filePathWithParent() {
     Uri uri = parseUriWithException("dart:test/b/test.dart");
     Uri relative =
         resolveRelativeUri(uri, parseUriWithException("../c/lib.dart"));
     expect(relative, isNotNull);
     expect(relative.toString(), "dart:test/c/lib.dart");
+  }
+
+  void test_resolveRelative_package_dartUri() {
+    Uri uri = parseUriWithException('package:foo/bar.dart');
+    Uri relative = resolveRelativeUri(uri, parseUriWithException('dart:test'));
+    expect(relative, isNotNull);
+    expect(relative.toString(), 'dart:test');
   }
 
   void test_resolveRelative_package_fileName() {
@@ -4196,13 +4203,6 @@ class ResolveRelativeUriTest {
     Uri relative = resolveRelativeUri(uri, parseUriWithException("lib.dart"));
     expect(relative, isNotNull);
     expect(relative.toString(), "package:lib.dart");
-  }
-
-  void test_resolveRelative_package_dartUri() {
-    Uri uri = parseUriWithException('package:foo/bar.dart');
-    Uri relative = resolveRelativeUri(uri, parseUriWithException('dart:test'));
-    expect(relative, isNotNull);
-    expect(relative.toString(), 'dart:test');
   }
 
   void test_resolveRelative_package_filePath() {

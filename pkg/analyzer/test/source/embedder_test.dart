@@ -138,8 +138,8 @@ main() {
   });
 }
 
-ResourceProvider resourceProvider;
 TestPathTranslator pathTranslator;
+ResourceProvider resourceProvider;
 
 buildResourceProvider() {
   var rawProvider = new MemoryResourceProvider(isWindows: isWindows);

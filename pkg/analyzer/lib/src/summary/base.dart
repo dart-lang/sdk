@@ -23,6 +23,30 @@ class Id {
 }
 
 /**
+ * Instances of this class represent data that has been read from a summary.
+ */
+abstract class SummaryClass {
+  /**
+   * Translate the data in this class into a JSON map, whose keys are the names
+   * of fields and whose values are the data stored in those fields,
+   * recursively converted into JSON.
+   *
+   * Fields containing their default value are elided.
+   *
+   * Intended for testing and debugging only.
+   */
+  Map<String, Object> toJson();
+
+  /**
+   * Translate the data in this class into a map whose keys are the names of
+   * fields and whose values are the data stored in those fields.
+   *
+   * Intended for testing and debugging only.
+   */
+  Map<String, Object> toMap();
+}
+
+/**
  * Annotation used in the summary IDL to indicate that a summary class can be
  * the top level object in an encoded summary.
  */
@@ -34,28 +58,4 @@ class TopLevel {
   final String fileIdentifier;
 
   const TopLevel([this.fileIdentifier]);
-}
-
-/**
- * Instances of this class represent data that has been read from a summary.
- */
-abstract class SummaryClass {
-  /**
-   * Translate the data in this class into a map whose keys are the names of
-   * fields and whose values are the data stored in those fields.
-   *
-   * Intended for testing and debugging only.
-   */
-  Map<String, Object> toMap();
-
-  /**
-   * Translate the data in this class into a JSON map, whose keys are the names
-   * of fields and whose values are the data stored in those fields,
-   * recursively converted into JSON.
-   *
-   * Fields containing their default value are elided.
-   *
-   * Intended for testing and debugging only.
-   */
-  Map<String, Object> toJson();
 }

@@ -30,6 +30,480 @@ main() {
   runReflectiveTests(StrongGreatestLowerBoundTest);
 }
 
+/**
+ * Base class for testing LUB and GLB in spec and strong mode.
+ */
+abstract class BoundTestBase {
+  TypeProvider typeProvider;
+  TypeSystem typeSystem;
+  FunctionType simpleFunctionType;
+
+  DartType get bottomType => typeProvider.bottomType;
+  InterfaceType get doubleType => typeProvider.doubleType;
+  DartType get dynamicType => typeProvider.dynamicType;
+  InterfaceType get functionType => typeProvider.functionType;
+  InterfaceType get intType => typeProvider.intType;
+  InterfaceType get listType => typeProvider.listType;
+  InterfaceType get numType => typeProvider.numType;
+  InterfaceType get objectType => typeProvider.objectType;
+  InterfaceType get stringType => typeProvider.stringType;
+  StrongTypeSystemImpl get strongTypeSystem =>
+      typeSystem as StrongTypeSystemImpl;
+
+  DartType get voidType => VoidTypeImpl.instance;
+
+  void setUp() {
+    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
+    typeProvider = context.typeProvider;
+    FunctionTypeAliasElementImpl typeAlias =
+        ElementFactory.functionTypeAliasElement('A');
+    typeAlias.parameters = [];
+    typeAlias.returnType = voidType;
+    simpleFunctionType = typeAlias.type;
+  }
+
+  void _checkGreatestLowerBound(
+      DartType type1, DartType type2, DartType expectedResult) {
+    expect(strongTypeSystem.getGreatestLowerBound(typeProvider, type1, type2),
+        expectedResult);
+  }
+
+  void _checkLeastUpperBound(
+      DartType type1, DartType type2, DartType expectedResult) {
+    expect(typeSystem.getLeastUpperBound(typeProvider, type1, type2),
+        expectedResult);
+  }
+
+  /**
+   * Creates a function type with the given parameter and return types.
+   *
+   * The return type defaults to `void` if omitted.
+   */
+  FunctionType _functionType(List<DartType> required,
+      {List<DartType> optional,
+      Map<String, DartType> named,
+      DartType returns}) {
+    if (returns == null) {
+      returns = voidType;
+    }
+
+    return ElementFactory
+        .functionElement8(required, returns, optional: optional, named: named)
+        .type;
+  }
+}
+
+/**
+ * Tests LUB in spec mode.
+ *
+ * Tests defined in this class are ones whose behavior is spec mode-specific.
+ * In particular, function parameters are compared using LUB in spec mode, but
+ * GLB in strong mode.
+ */
+@reflectiveTest
+class LeastUpperBoundTest extends LeastUpperBoundTestBase {
+  void setUp() {
+    typeSystem = new TypeSystemImpl();
+    super.setUp();
+  }
+
+  void test_functionsLubNamedParams() {
+    FunctionType type1 =
+        _functionType([], named: {'a': stringType, 'b': intType});
+    FunctionType type2 = _functionType([], named: {'a': intType, 'b': numType});
+    FunctionType expected =
+        _functionType([], named: {'a': objectType, 'b': numType});
+    _checkLeastUpperBound(type1, type2, expected);
+  }
+
+  void test_functionsLubPositionalParams() {
+    FunctionType type1 = _functionType([], optional: [stringType, intType]);
+    FunctionType type2 = _functionType([], optional: [intType, numType]);
+    FunctionType expected = _functionType([], optional: [objectType, numType]);
+    _checkLeastUpperBound(type1, type2, expected);
+  }
+
+  void test_functionsLubRequiredParams() {
+    FunctionType type1 = _functionType([stringType, intType, intType]);
+    FunctionType type2 = _functionType([intType, doubleType, numType]);
+    FunctionType expected = _functionType([objectType, numType, numType]);
+    _checkLeastUpperBound(type1, type2, expected);
+  }
+
+  void test_nestedNestedFunctionsLubInnermostParamTypes() {
+    FunctionType type1 = _functionType([
+      _functionType([
+        _functionType([stringType, intType, intType])
+      ])
+    ]);
+    FunctionType type2 = _functionType([
+      _functionType([
+        _functionType([intType, doubleType, numType])
+      ])
+    ]);
+    FunctionType expected = _functionType([
+      _functionType([
+        _functionType([objectType, numType, numType])
+      ])
+    ]);
+    _checkLeastUpperBound(type1, type2, expected);
+  }
+}
+
+/**
+ * Base class for testing LUB in spec and strong mode.
+ * Defines helper functions and tests. Tests here are ones whose behavior is
+ * the same in strong and spec mode.
+ */
+abstract class LeastUpperBoundTestBase extends BoundTestBase {
+  void test_bottom_function() {
+    _checkLeastUpperBound(bottomType, simpleFunctionType, simpleFunctionType);
+  }
+
+  void test_bottom_interface() {
+    DartType interfaceType = ElementFactory.classElement2('A', []).type;
+    _checkLeastUpperBound(bottomType, interfaceType, interfaceType);
+  }
+
+  void test_bottom_typeParam() {
+    DartType typeParam = ElementFactory.typeParameterElement('T').type;
+    _checkLeastUpperBound(bottomType, typeParam, typeParam);
+  }
+
+  void test_directInterfaceCase() {
+    // class A
+    // class B implements A
+    // class C implements B
+    ClassElementImpl classA = ElementFactory.classElement2("A");
+    ClassElementImpl classB = ElementFactory.classElement2("B");
+    ClassElementImpl classC = ElementFactory.classElement2("C");
+    InterfaceType typeA = classA.type;
+    InterfaceType typeB = classB.type;
+    InterfaceType typeC = classC.type;
+    classB.interfaces = <InterfaceType>[typeA];
+    classC.interfaces = <InterfaceType>[typeB];
+    _checkLeastUpperBound(typeB, typeC, typeB);
+  }
+
+  void test_directSubclassCase() {
+    // class A
+    // class B extends A
+    // class C extends B
+    ClassElementImpl classA = ElementFactory.classElement2("A");
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
+    ClassElementImpl classC = ElementFactory.classElement("C", classB.type);
+    InterfaceType typeB = classB.type;
+    InterfaceType typeC = classC.type;
+    _checkLeastUpperBound(typeB, typeC, typeB);
+  }
+
+  void test_dynamic_bottom() {
+    _checkLeastUpperBound(dynamicType, bottomType, dynamicType);
+  }
+
+  void test_dynamic_function() {
+    _checkLeastUpperBound(dynamicType, simpleFunctionType, dynamicType);
+  }
+
+  void test_dynamic_interface() {
+    DartType interfaceType = ElementFactory.classElement2('A', []).type;
+    _checkLeastUpperBound(dynamicType, interfaceType, dynamicType);
+  }
+
+  void test_dynamic_typeParam() {
+    DartType typeParam = ElementFactory.typeParameterElement('T').type;
+    _checkLeastUpperBound(dynamicType, typeParam, dynamicType);
+  }
+
+  void test_dynamic_void() {
+    _checkLeastUpperBound(dynamicType, voidType, dynamicType);
+  }
+
+  void test_functionsDifferentRequiredArity() {
+    FunctionType type1 = _functionType([intType, intType]);
+    FunctionType type2 = _functionType([intType, intType, intType]);
+    _checkLeastUpperBound(type1, type2, functionType);
+  }
+
+  void test_functionsIgnoreExtraNamedParams() {
+    FunctionType type1 = _functionType([], named: {'a': intType, 'b': intType});
+    FunctionType type2 = _functionType([], named: {'a': intType, 'c': intType});
+    FunctionType expected = _functionType([], named: {'a': intType});
+    _checkLeastUpperBound(type1, type2, expected);
+  }
+
+  void test_functionsIgnoreExtraPositionalParams() {
+    FunctionType type1 =
+        _functionType([], optional: [intType, intType, stringType]);
+    FunctionType type2 = _functionType([], optional: [intType]);
+    FunctionType expected = _functionType([], optional: [intType]);
+    _checkLeastUpperBound(type1, type2, expected);
+  }
+
+  void test_functionsLubReturnType() {
+    FunctionType type1 = _functionType([], returns: intType);
+    FunctionType type2 = _functionType([], returns: doubleType);
+    FunctionType expected = _functionType([], returns: numType);
+    _checkLeastUpperBound(type1, type2, expected);
+  }
+
+  void test_functionsSameType() {
+    FunctionType type1 = _functionType([stringType, intType, numType],
+        optional: [doubleType], named: {'n': numType}, returns: intType);
+    FunctionType type2 = _functionType([stringType, intType, numType],
+        optional: [doubleType], named: {'n': numType}, returns: intType);
+    FunctionType expected = _functionType([stringType, intType, numType],
+        optional: [doubleType], named: {'n': numType}, returns: intType);
+    _checkLeastUpperBound(type1, type2, expected);
+  }
+
+  void test_interface_function() {
+    DartType interfaceType = ElementFactory.classElement2('A', []).type;
+    _checkLeastUpperBound(interfaceType, simpleFunctionType, objectType);
+  }
+
+  void test_mixinCase() {
+    // class A
+    // class B extends A
+    // class C extends A
+    // class D extends B with M, N, O, P
+    ClassElement classA = ElementFactory.classElement2("A");
+    ClassElement classB = ElementFactory.classElement("B", classA.type);
+    ClassElement classC = ElementFactory.classElement("C", classA.type);
+    ClassElementImpl classD = ElementFactory.classElement("D", classB.type);
+    InterfaceType typeA = classA.type;
+    InterfaceType typeC = classC.type;
+    InterfaceType typeD = classD.type;
+    classD.mixins = <InterfaceType>[
+      ElementFactory.classElement2("M").type,
+      ElementFactory.classElement2("N").type,
+      ElementFactory.classElement2("O").type,
+      ElementFactory.classElement2("P").type
+    ];
+    _checkLeastUpperBound(typeD, typeC, typeA);
+  }
+
+  void test_nestedFunctionsLubInnerParamTypes() {
+    FunctionType type1 = _functionType([
+      _functionType([stringType, intType, intType])
+    ]);
+    FunctionType type2 = _functionType([
+      _functionType([intType, doubleType, numType])
+    ]);
+    FunctionType expected = _functionType([
+      _functionType([objectType, numType, numType])
+    ]);
+    _checkLeastUpperBound(type1, type2, expected);
+  }
+
+  void test_object() {
+    ClassElementImpl classA = ElementFactory.classElement2("A");
+    ClassElementImpl classB = ElementFactory.classElement2("B");
+    InterfaceType typeA = classA.type;
+    InterfaceType typeB = classB.type;
+    DartType typeObject = typeA.element.supertype;
+    // assert that object does not have a super type
+    expect((typeObject.element as ClassElement).supertype, isNull);
+    // assert that both A and B have the same super type of Object
+    expect(typeB.element.supertype, typeObject);
+    // finally, assert that the only least upper bound of A and B is Object
+    _checkLeastUpperBound(typeA, typeB, typeObject);
+  }
+
+  void test_self() {
+    DartType typeParam = ElementFactory.typeParameterElement('T').type;
+    DartType interfaceType = ElementFactory.classElement2('A', []).type;
+
+    List<DartType> types = [
+      dynamicType,
+      voidType,
+      bottomType,
+      typeParam,
+      interfaceType,
+      simpleFunctionType
+    ];
+
+    for (DartType type in types) {
+      _checkLeastUpperBound(type, type, type);
+    }
+  }
+
+  void test_sharedSuperclass1() {
+    ClassElementImpl classA = ElementFactory.classElement2("A");
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
+    ClassElementImpl classC = ElementFactory.classElement("C", classA.type);
+    InterfaceType typeA = classA.type;
+    InterfaceType typeB = classB.type;
+    InterfaceType typeC = classC.type;
+    _checkLeastUpperBound(typeB, typeC, typeA);
+  }
+
+  void test_sharedSuperclass2() {
+    ClassElementImpl classA = ElementFactory.classElement2("A");
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
+    ClassElementImpl classC = ElementFactory.classElement("C", classA.type);
+    ClassElementImpl classD = ElementFactory.classElement("D", classC.type);
+    InterfaceType typeA = classA.type;
+    InterfaceType typeB = classB.type;
+    InterfaceType typeD = classD.type;
+    _checkLeastUpperBound(typeB, typeD, typeA);
+  }
+
+  void test_sharedSuperclass3() {
+    ClassElementImpl classA = ElementFactory.classElement2("A");
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
+    ClassElementImpl classC = ElementFactory.classElement("C", classB.type);
+    ClassElementImpl classD = ElementFactory.classElement("D", classB.type);
+    InterfaceType typeB = classB.type;
+    InterfaceType typeC = classC.type;
+    InterfaceType typeD = classD.type;
+    _checkLeastUpperBound(typeC, typeD, typeB);
+  }
+
+  void test_sharedSuperclass4() {
+    ClassElement classA = ElementFactory.classElement2("A");
+    ClassElement classA2 = ElementFactory.classElement2("A2");
+    ClassElement classA3 = ElementFactory.classElement2("A3");
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
+    ClassElementImpl classC = ElementFactory.classElement("C", classA.type);
+    InterfaceType typeA = classA.type;
+    InterfaceType typeA2 = classA2.type;
+    InterfaceType typeA3 = classA3.type;
+    InterfaceType typeB = classB.type;
+    InterfaceType typeC = classC.type;
+    classB.interfaces = <InterfaceType>[typeA2];
+    classC.interfaces = <InterfaceType>[typeA3];
+    _checkLeastUpperBound(typeB, typeC, typeA);
+  }
+
+  void test_sharedSuperinterface1() {
+    ClassElementImpl classA = ElementFactory.classElement2("A");
+    ClassElementImpl classB = ElementFactory.classElement2("B");
+    ClassElementImpl classC = ElementFactory.classElement2("C");
+    InterfaceType typeA = classA.type;
+    InterfaceType typeB = classB.type;
+    InterfaceType typeC = classC.type;
+    classB.interfaces = <InterfaceType>[typeA];
+    classC.interfaces = <InterfaceType>[typeA];
+    _checkLeastUpperBound(typeB, typeC, typeA);
+  }
+
+  void test_sharedSuperinterface2() {
+    ClassElementImpl classA = ElementFactory.classElement2("A");
+    ClassElementImpl classB = ElementFactory.classElement2("B");
+    ClassElementImpl classC = ElementFactory.classElement2("C");
+    ClassElementImpl classD = ElementFactory.classElement2("D");
+    InterfaceType typeA = classA.type;
+    InterfaceType typeB = classB.type;
+    InterfaceType typeC = classC.type;
+    InterfaceType typeD = classD.type;
+    classB.interfaces = <InterfaceType>[typeA];
+    classC.interfaces = <InterfaceType>[typeA];
+    classD.interfaces = <InterfaceType>[typeC];
+    _checkLeastUpperBound(typeB, typeD, typeA);
+  }
+
+  void test_sharedSuperinterface3() {
+    ClassElementImpl classA = ElementFactory.classElement2("A");
+    ClassElementImpl classB = ElementFactory.classElement2("B");
+    ClassElementImpl classC = ElementFactory.classElement2("C");
+    ClassElementImpl classD = ElementFactory.classElement2("D");
+    InterfaceType typeA = classA.type;
+    InterfaceType typeB = classB.type;
+    InterfaceType typeC = classC.type;
+    InterfaceType typeD = classD.type;
+    classB.interfaces = <InterfaceType>[typeA];
+    classC.interfaces = <InterfaceType>[typeB];
+    classD.interfaces = <InterfaceType>[typeB];
+    _checkLeastUpperBound(typeC, typeD, typeB);
+  }
+
+  void test_sharedSuperinterface4() {
+    ClassElement classA = ElementFactory.classElement2("A");
+    ClassElement classA2 = ElementFactory.classElement2("A2");
+    ClassElement classA3 = ElementFactory.classElement2("A3");
+    ClassElementImpl classB = ElementFactory.classElement2("B");
+    ClassElementImpl classC = ElementFactory.classElement2("C");
+    InterfaceType typeA = classA.type;
+    InterfaceType typeA2 = classA2.type;
+    InterfaceType typeA3 = classA3.type;
+    InterfaceType typeB = classB.type;
+    InterfaceType typeC = classC.type;
+    classB.interfaces = <InterfaceType>[typeA, typeA2];
+    classC.interfaces = <InterfaceType>[typeA, typeA3];
+    _checkLeastUpperBound(typeB, typeC, typeA);
+  }
+
+  void test_twoComparables() {
+    _checkLeastUpperBound(stringType, numType, objectType);
+  }
+
+  void test_typeParam_function_bounded() {
+    DartType typeA = ElementFactory.classElement('A', functionType).type;
+    TypeParameterElementImpl typeParamElement =
+        ElementFactory.typeParameterElement('T');
+    typeParamElement.bound = typeA;
+    DartType typeParam = typeParamElement.type;
+    _checkLeastUpperBound(typeParam, simpleFunctionType, functionType);
+  }
+
+  void test_typeParam_function_noBound() {
+    DartType typeParam = ElementFactory.typeParameterElement('T').type;
+    _checkLeastUpperBound(typeParam, simpleFunctionType, objectType);
+  }
+
+  void test_typeParam_interface_bounded() {
+    DartType typeA = ElementFactory.classElement2('A', []).type;
+    DartType typeB = ElementFactory.classElement('B', typeA).type;
+    DartType typeC = ElementFactory.classElement('C', typeA).type;
+    TypeParameterElementImpl typeParamElement =
+        ElementFactory.typeParameterElement('T');
+    typeParamElement.bound = typeB;
+    DartType typeParam = typeParamElement.type;
+    _checkLeastUpperBound(typeParam, typeC, typeA);
+  }
+
+  void test_typeParam_interface_noBound() {
+    DartType typeParam = ElementFactory.typeParameterElement('T').type;
+    DartType interfaceType = ElementFactory.classElement2('A', []).type;
+    _checkLeastUpperBound(typeParam, interfaceType, objectType);
+  }
+
+  void test_typeParameters_different() {
+    // class List<int>
+    // class List<double>
+    InterfaceType listOfIntType = listType.instantiate(<DartType>[intType]);
+    InterfaceType listOfDoubleType =
+        listType.instantiate(<DartType>[doubleType]);
+    _checkLeastUpperBound(listOfIntType, listOfDoubleType, objectType);
+  }
+
+  void test_typeParameters_same() {
+    // List<int>
+    // List<int>
+    InterfaceType listOfIntType = listType.instantiate(<DartType>[intType]);
+    _checkLeastUpperBound(listOfIntType, listOfIntType, listOfIntType);
+  }
+
+  void test_void_bottom() {
+    _checkLeastUpperBound(voidType, bottomType, voidType);
+  }
+
+  void test_void_function() {
+    _checkLeastUpperBound(voidType, simpleFunctionType, voidType);
+  }
+
+  void test_void_interface() {
+    DartType interfaceType = ElementFactory.classElement2('A', []).type;
+    _checkLeastUpperBound(voidType, interfaceType, voidType);
+  }
+
+  void test_void_typeParam() {
+    DartType typeParam = ElementFactory.typeParameterElement('T').type;
+    _checkLeastUpperBound(voidType, typeParam, voidType);
+  }
+}
+
 @reflectiveTest
 class StrongAssignabilityTest {
   TypeProvider typeProvider;
@@ -531,6 +1005,318 @@ class StrongGenericFunctionInferenceTest {
   }
 }
 
+/**
+ * Tests GLB, which only exists in strong mode.
+ */
+@reflectiveTest
+class StrongGreatestLowerBoundTest extends BoundTestBase {
+  void setUp() {
+    typeSystem = new StrongTypeSystemImpl();
+    super.setUp();
+  }
+
+  void test_bottom_function() {
+    _checkGreatestLowerBound(bottomType, simpleFunctionType, bottomType);
+  }
+
+  void test_bottom_interface() {
+    DartType interfaceType = ElementFactory.classElement2('A', []).type;
+    _checkGreatestLowerBound(bottomType, interfaceType, bottomType);
+  }
+
+  void test_bottom_typeParam() {
+    DartType typeParam = ElementFactory.typeParameterElement('T').type;
+    _checkGreatestLowerBound(bottomType, typeParam, bottomType);
+  }
+
+  void test_classAndSuperclass() {
+    // class A
+    // class B extends A
+    // class C extends B
+    ClassElementImpl classA = ElementFactory.classElement2("A");
+    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
+    ClassElementImpl classC = ElementFactory.classElement("C", classB.type);
+    _checkGreatestLowerBound(classA.type, classC.type, classC.type);
+  }
+
+  void test_classAndSuperinterface() {
+    // class A
+    // class B implements A
+    // class C implements B
+    ClassElementImpl classA = ElementFactory.classElement2("A");
+    ClassElementImpl classB = ElementFactory.classElement2("B");
+    ClassElementImpl classC = ElementFactory.classElement2("C");
+    classB.interfaces = <InterfaceType>[classA.type];
+    classC.interfaces = <InterfaceType>[classB.type];
+    _checkGreatestLowerBound(classA.type, classC.type, classC.type);
+  }
+
+  void test_dynamic_bottom() {
+    _checkGreatestLowerBound(dynamicType, bottomType, bottomType);
+  }
+
+  void test_dynamic_function() {
+    _checkGreatestLowerBound(
+        dynamicType, simpleFunctionType, simpleFunctionType);
+  }
+
+  void test_dynamic_interface() {
+    DartType interfaceType = ElementFactory.classElement2('A', []).type;
+    _checkGreatestLowerBound(dynamicType, interfaceType, interfaceType);
+  }
+
+  void test_dynamic_typeParam() {
+    DartType typeParam = ElementFactory.typeParameterElement('T').type;
+    _checkGreatestLowerBound(dynamicType, typeParam, typeParam);
+  }
+
+  void test_dynamic_void() {
+    _checkGreatestLowerBound(dynamicType, voidType, voidType);
+  }
+
+  void test_functionsDifferentNamedTakeUnion() {
+    FunctionType type1 = _functionType([], named: {'a': intType, 'b': intType});
+    FunctionType type2 =
+        _functionType([], named: {'b': doubleType, 'c': stringType});
+    FunctionType expected =
+        _functionType([], named: {'a': intType, 'b': numType, 'c': stringType});
+    _checkGreatestLowerBound(type1, type2, expected);
+  }
+
+  void test_functionsDifferentOptionalArityTakeMax() {
+    FunctionType type1 = _functionType([], optional: [intType]);
+    FunctionType type2 =
+        _functionType([], optional: [doubleType, stringType, objectType]);
+    FunctionType expected =
+        _functionType([], optional: [numType, stringType, objectType]);
+    _checkGreatestLowerBound(type1, type2, expected);
+  }
+
+  void test_functionsDifferentRequiredArityBecomeOptional() {
+    FunctionType type1 = _functionType([intType]);
+    FunctionType type2 = _functionType([intType, intType, intType]);
+    FunctionType expected =
+        _functionType([intType], optional: [intType, intType]);
+    _checkGreatestLowerBound(type1, type2, expected);
+  }
+
+  void test_functionsGlbReturnType() {
+    FunctionType type1 = _functionType([], returns: intType);
+    FunctionType type2 = _functionType([], returns: numType);
+    FunctionType expected = _functionType([], returns: intType);
+    _checkGreatestLowerBound(type1, type2, expected);
+  }
+
+  void test_functionsLubNamedParams() {
+    FunctionType type1 =
+        _functionType([], named: {'a': stringType, 'b': intType});
+    FunctionType type2 = _functionType([], named: {'a': intType, 'b': numType});
+    FunctionType expected =
+        _functionType([], named: {'a': objectType, 'b': numType});
+    _checkGreatestLowerBound(type1, type2, expected);
+  }
+
+  void test_functionsLubPositionalParams() {
+    FunctionType type1 = _functionType([], optional: [stringType, intType]);
+    FunctionType type2 = _functionType([], optional: [intType, numType]);
+    FunctionType expected = _functionType([], optional: [objectType, numType]);
+    _checkGreatestLowerBound(type1, type2, expected);
+  }
+
+  void test_functionsLubRequiredParams() {
+    FunctionType type1 = _functionType([stringType, intType, intType]);
+    FunctionType type2 = _functionType([intType, doubleType, numType]);
+    FunctionType expected = _functionType([objectType, numType, numType]);
+    _checkGreatestLowerBound(type1, type2, expected);
+  }
+
+  void test_functionsMixedOptionalAndRequiredBecomeOptional() {
+    FunctionType type1 = _functionType([intType, intType],
+        optional: [intType, intType, intType]);
+    FunctionType type2 = _functionType([intType], optional: [intType, intType]);
+    FunctionType expected = _functionType([intType],
+        optional: [intType, intType, intType, intType]);
+    _checkGreatestLowerBound(type1, type2, expected);
+  }
+
+  void test_functionsReturnBottomIfMixOptionalAndNamed() {
+    // Dart doesn't allow a function to have both optional and named parameters,
+    // so if we would have synthethized that, pick bottom instead.
+    FunctionType type1 = _functionType([intType], named: {'a': intType});
+    FunctionType type2 = _functionType([], named: {'a': intType});
+    _checkGreatestLowerBound(type1, type2, bottomType);
+  }
+
+  void test_functionsSameType() {
+    FunctionType type1 = _functionType([stringType, intType, numType],
+        optional: [doubleType], named: {'n': numType}, returns: intType);
+    FunctionType type2 = _functionType([stringType, intType, numType],
+        optional: [doubleType], named: {'n': numType}, returns: intType);
+    FunctionType expected = _functionType([stringType, intType, numType],
+        optional: [doubleType], named: {'n': numType}, returns: intType);
+    _checkGreatestLowerBound(type1, type2, expected);
+  }
+
+  void test_interface_function() {
+    DartType interfaceType = ElementFactory.classElement2('A', []).type;
+    _checkGreatestLowerBound(interfaceType, simpleFunctionType, bottomType);
+  }
+
+  void test_mixin() {
+    // class A
+    // class B
+    // class C
+    // class D extends A with B, C
+    ClassElement classA = ElementFactory.classElement2("A");
+    ClassElement classB = ElementFactory.classElement2("B");
+    ClassElement classC = ElementFactory.classElement2("C");
+    ClassElementImpl classD = ElementFactory.classElement("D", classA.type);
+    classD.mixins = <InterfaceType>[classB.type, classC.type];
+    _checkGreatestLowerBound(classA.type, classD.type, classD.type);
+    _checkGreatestLowerBound(classB.type, classD.type, classD.type);
+    _checkGreatestLowerBound(classC.type, classD.type, classD.type);
+  }
+
+  void test_self() {
+    DartType typeParam = ElementFactory.typeParameterElement('T').type;
+    DartType interfaceType = ElementFactory.classElement2('A', []).type;
+
+    List<DartType> types = [
+      dynamicType,
+      voidType,
+      bottomType,
+      typeParam,
+      interfaceType,
+      simpleFunctionType
+    ];
+
+    for (DartType type in types) {
+      _checkGreatestLowerBound(type, type, type);
+    }
+  }
+
+  void test_typeParam_function_noBound() {
+    DartType typeParam = ElementFactory.typeParameterElement('T').type;
+    _checkGreatestLowerBound(typeParam, simpleFunctionType, bottomType);
+  }
+
+  void test_typeParam_interface_bounded() {
+    DartType typeA = ElementFactory.classElement2('A', []).type;
+    DartType typeB = ElementFactory.classElement('B', typeA).type;
+    DartType typeC = ElementFactory.classElement('C', typeB).type;
+    TypeParameterElementImpl typeParam =
+        ElementFactory.typeParameterElement('T');
+    typeParam.bound = typeB;
+    _checkGreatestLowerBound(typeParam.type, typeC, bottomType);
+  }
+
+  void test_typeParam_interface_noBound() {
+    // GLB(T, A) = ⊥
+    DartType typeParam = ElementFactory.typeParameterElement('T').type;
+    DartType interfaceType = ElementFactory.classElement2('A', []).type;
+    _checkGreatestLowerBound(typeParam, interfaceType, bottomType);
+  }
+
+  void test_typeParameters_different() {
+    // GLB(List<int>, List<double>) = ⊥
+    InterfaceType listOfIntType = listType.instantiate(<DartType>[intType]);
+    InterfaceType listOfDoubleType =
+        listType.instantiate(<DartType>[doubleType]);
+    // TODO(rnystrom): Can we do something better here?
+    _checkGreatestLowerBound(listOfIntType, listOfDoubleType, bottomType);
+  }
+
+  void test_typeParameters_same() {
+    // GLB(List<int>, List<int>) = List<int>
+    InterfaceType listOfIntType = listType.instantiate(<DartType>[intType]);
+    _checkGreatestLowerBound(listOfIntType, listOfIntType, listOfIntType);
+  }
+
+  void test_unrelatedClasses() {
+    // class A
+    // class B
+    // class C
+    ClassElementImpl classA = ElementFactory.classElement2("A");
+    ClassElementImpl classB = ElementFactory.classElement2("B");
+    _checkGreatestLowerBound(classA.type, classB.type, bottomType);
+  }
+
+  void test_void_bottom() {
+    _checkGreatestLowerBound(voidType, bottomType, bottomType);
+  }
+
+  void test_void_function() {
+    _checkGreatestLowerBound(voidType, simpleFunctionType, simpleFunctionType);
+  }
+
+  void test_void_interface() {
+    DartType interfaceType = ElementFactory.classElement2('A', []).type;
+    _checkGreatestLowerBound(voidType, interfaceType, interfaceType);
+  }
+
+  void test_void_typeParam() {
+    DartType typeParam = ElementFactory.typeParameterElement('T').type;
+    _checkGreatestLowerBound(voidType, typeParam, typeParam);
+  }
+}
+
+/**
+ * Tests LUB in strong mode.
+ *
+ * Tests defined in this class are ones whose behavior is spec mode-specific.
+ * In particular, function parameters are compared using LUB in spec mode, but
+ * GLB in strong mode.
+ */
+@reflectiveTest
+class StrongLeastUpperBoundTest extends LeastUpperBoundTestBase {
+  void setUp() {
+    typeSystem = new StrongTypeSystemImpl();
+    super.setUp();
+  }
+
+  void test_functionsGlbNamedParams() {
+    FunctionType type1 =
+        _functionType([], named: {'a': stringType, 'b': intType});
+    FunctionType type2 = _functionType([], named: {'a': intType, 'b': numType});
+    FunctionType expected =
+        _functionType([], named: {'a': bottomType, 'b': intType});
+    _checkLeastUpperBound(type1, type2, expected);
+  }
+
+  void test_functionsGlbPositionalParams() {
+    FunctionType type1 = _functionType([], optional: [stringType, intType]);
+    FunctionType type2 = _functionType([], optional: [intType, numType]);
+    FunctionType expected = _functionType([], optional: [bottomType, intType]);
+    _checkLeastUpperBound(type1, type2, expected);
+  }
+
+  void test_functionsGlbRequiredParams() {
+    FunctionType type1 = _functionType([stringType, intType, intType]);
+    FunctionType type2 = _functionType([intType, doubleType, numType]);
+    FunctionType expected = _functionType([bottomType, bottomType, intType]);
+    _checkLeastUpperBound(type1, type2, expected);
+  }
+
+  void test_nestedNestedFunctionsGlbInnermostParamTypes() {
+    FunctionType type1 = _functionType([
+      _functionType([
+        _functionType([stringType, intType, intType])
+      ])
+    ]);
+    FunctionType type2 = _functionType([
+      _functionType([
+        _functionType([intType, doubleType, numType])
+      ])
+    ]);
+    FunctionType expected = _functionType([
+      _functionType([
+        _functionType([bottomType, bottomType, intType])
+      ])
+    ]);
+    _checkLeastUpperBound(type1, type2, expected);
+  }
+}
+
 @reflectiveTest
 class StrongSubtypingTest {
   TypeProvider typeProvider;
@@ -926,790 +1712,4 @@ class TypeBuilder {
 
   static TypeParameterType variable(String name, {DartType bound}) =>
       ElementFactory.typeParameterWithType(name, bound).type;
-}
-
-/**
- * Base class for testing LUB and GLB in spec and strong mode.
- */
-abstract class BoundTestBase {
-  TypeProvider typeProvider;
-  TypeSystem typeSystem;
-  FunctionType simpleFunctionType;
-
-  DartType get bottomType => typeProvider.bottomType;
-  InterfaceType get doubleType => typeProvider.doubleType;
-  DartType get dynamicType => typeProvider.dynamicType;
-  InterfaceType get functionType => typeProvider.functionType;
-  InterfaceType get intType => typeProvider.intType;
-  InterfaceType get listType => typeProvider.listType;
-  InterfaceType get numType => typeProvider.numType;
-  InterfaceType get objectType => typeProvider.objectType;
-  InterfaceType get stringType => typeProvider.stringType;
-  DartType get voidType => VoidTypeImpl.instance;
-
-  StrongTypeSystemImpl get strongTypeSystem =>
-      typeSystem as StrongTypeSystemImpl;
-
-  void setUp() {
-    InternalAnalysisContext context = AnalysisContextFactory.contextWithCore();
-    typeProvider = context.typeProvider;
-    FunctionTypeAliasElementImpl typeAlias =
-        ElementFactory.functionTypeAliasElement('A');
-    typeAlias.parameters = [];
-    typeAlias.returnType = voidType;
-    simpleFunctionType = typeAlias.type;
-  }
-
-  /**
-   * Creates a function type with the given parameter and return types.
-   *
-   * The return type defaults to `void` if omitted.
-   */
-  FunctionType _functionType(List<DartType> required,
-      {List<DartType> optional,
-      Map<String, DartType> named,
-      DartType returns}) {
-    if (returns == null) {
-      returns = voidType;
-    }
-
-    return ElementFactory
-        .functionElement8(required, returns, optional: optional, named: named)
-        .type;
-  }
-
-  void _checkLeastUpperBound(
-      DartType type1, DartType type2, DartType expectedResult) {
-    expect(typeSystem.getLeastUpperBound(typeProvider, type1, type2),
-        expectedResult);
-  }
-
-  void _checkGreatestLowerBound(
-      DartType type1, DartType type2, DartType expectedResult) {
-    expect(strongTypeSystem.getGreatestLowerBound(typeProvider, type1, type2),
-        expectedResult);
-  }
-}
-
-/**
- * Base class for testing LUB in spec and strong mode.
- * Defines helper functions and tests. Tests here are ones whose behavior is
- * the same in strong and spec mode.
- */
-abstract class LeastUpperBoundTestBase extends BoundTestBase {
-  void test_bottom_function() {
-    _checkLeastUpperBound(bottomType, simpleFunctionType, simpleFunctionType);
-  }
-
-  void test_bottom_interface() {
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
-    _checkLeastUpperBound(bottomType, interfaceType, interfaceType);
-  }
-
-  void test_bottom_typeParam() {
-    DartType typeParam = ElementFactory.typeParameterElement('T').type;
-    _checkLeastUpperBound(bottomType, typeParam, typeParam);
-  }
-
-  void test_directInterfaceCase() {
-    // class A
-    // class B implements A
-    // class C implements B
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement2("B");
-    ClassElementImpl classC = ElementFactory.classElement2("C");
-    InterfaceType typeA = classA.type;
-    InterfaceType typeB = classB.type;
-    InterfaceType typeC = classC.type;
-    classB.interfaces = <InterfaceType>[typeA];
-    classC.interfaces = <InterfaceType>[typeB];
-    _checkLeastUpperBound(typeB, typeC, typeB);
-  }
-
-  void test_directSubclassCase() {
-    // class A
-    // class B extends A
-    // class C extends B
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    ClassElementImpl classC = ElementFactory.classElement("C", classB.type);
-    InterfaceType typeB = classB.type;
-    InterfaceType typeC = classC.type;
-    _checkLeastUpperBound(typeB, typeC, typeB);
-  }
-
-  void test_dynamic_bottom() {
-    _checkLeastUpperBound(dynamicType, bottomType, dynamicType);
-  }
-
-  void test_dynamic_function() {
-    _checkLeastUpperBound(dynamicType, simpleFunctionType, dynamicType);
-  }
-
-  void test_dynamic_interface() {
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
-    _checkLeastUpperBound(dynamicType, interfaceType, dynamicType);
-  }
-
-  void test_dynamic_typeParam() {
-    DartType typeParam = ElementFactory.typeParameterElement('T').type;
-    _checkLeastUpperBound(dynamicType, typeParam, dynamicType);
-  }
-
-  void test_dynamic_void() {
-    _checkLeastUpperBound(dynamicType, voidType, dynamicType);
-  }
-
-  void test_interface_function() {
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
-    _checkLeastUpperBound(interfaceType, simpleFunctionType, objectType);
-  }
-
-  void test_mixinCase() {
-    // class A
-    // class B extends A
-    // class C extends A
-    // class D extends B with M, N, O, P
-    ClassElement classA = ElementFactory.classElement2("A");
-    ClassElement classB = ElementFactory.classElement("B", classA.type);
-    ClassElement classC = ElementFactory.classElement("C", classA.type);
-    ClassElementImpl classD = ElementFactory.classElement("D", classB.type);
-    InterfaceType typeA = classA.type;
-    InterfaceType typeC = classC.type;
-    InterfaceType typeD = classD.type;
-    classD.mixins = <InterfaceType>[
-      ElementFactory.classElement2("M").type,
-      ElementFactory.classElement2("N").type,
-      ElementFactory.classElement2("O").type,
-      ElementFactory.classElement2("P").type
-    ];
-    _checkLeastUpperBound(typeD, typeC, typeA);
-  }
-
-  void test_object() {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement2("B");
-    InterfaceType typeA = classA.type;
-    InterfaceType typeB = classB.type;
-    DartType typeObject = typeA.element.supertype;
-    // assert that object does not have a super type
-    expect((typeObject.element as ClassElement).supertype, isNull);
-    // assert that both A and B have the same super type of Object
-    expect(typeB.element.supertype, typeObject);
-    // finally, assert that the only least upper bound of A and B is Object
-    _checkLeastUpperBound(typeA, typeB, typeObject);
-  }
-
-  void test_self() {
-    DartType typeParam = ElementFactory.typeParameterElement('T').type;
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
-
-    List<DartType> types = [
-      dynamicType,
-      voidType,
-      bottomType,
-      typeParam,
-      interfaceType,
-      simpleFunctionType
-    ];
-
-    for (DartType type in types) {
-      _checkLeastUpperBound(type, type, type);
-    }
-  }
-
-  void test_sharedSuperclass1() {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    ClassElementImpl classC = ElementFactory.classElement("C", classA.type);
-    InterfaceType typeA = classA.type;
-    InterfaceType typeB = classB.type;
-    InterfaceType typeC = classC.type;
-    _checkLeastUpperBound(typeB, typeC, typeA);
-  }
-
-  void test_sharedSuperclass2() {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    ClassElementImpl classC = ElementFactory.classElement("C", classA.type);
-    ClassElementImpl classD = ElementFactory.classElement("D", classC.type);
-    InterfaceType typeA = classA.type;
-    InterfaceType typeB = classB.type;
-    InterfaceType typeD = classD.type;
-    _checkLeastUpperBound(typeB, typeD, typeA);
-  }
-
-  void test_sharedSuperclass3() {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    ClassElementImpl classC = ElementFactory.classElement("C", classB.type);
-    ClassElementImpl classD = ElementFactory.classElement("D", classB.type);
-    InterfaceType typeB = classB.type;
-    InterfaceType typeC = classC.type;
-    InterfaceType typeD = classD.type;
-    _checkLeastUpperBound(typeC, typeD, typeB);
-  }
-
-  void test_sharedSuperclass4() {
-    ClassElement classA = ElementFactory.classElement2("A");
-    ClassElement classA2 = ElementFactory.classElement2("A2");
-    ClassElement classA3 = ElementFactory.classElement2("A3");
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    ClassElementImpl classC = ElementFactory.classElement("C", classA.type);
-    InterfaceType typeA = classA.type;
-    InterfaceType typeA2 = classA2.type;
-    InterfaceType typeA3 = classA3.type;
-    InterfaceType typeB = classB.type;
-    InterfaceType typeC = classC.type;
-    classB.interfaces = <InterfaceType>[typeA2];
-    classC.interfaces = <InterfaceType>[typeA3];
-    _checkLeastUpperBound(typeB, typeC, typeA);
-  }
-
-  void test_sharedSuperinterface1() {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement2("B");
-    ClassElementImpl classC = ElementFactory.classElement2("C");
-    InterfaceType typeA = classA.type;
-    InterfaceType typeB = classB.type;
-    InterfaceType typeC = classC.type;
-    classB.interfaces = <InterfaceType>[typeA];
-    classC.interfaces = <InterfaceType>[typeA];
-    _checkLeastUpperBound(typeB, typeC, typeA);
-  }
-
-  void test_sharedSuperinterface2() {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement2("B");
-    ClassElementImpl classC = ElementFactory.classElement2("C");
-    ClassElementImpl classD = ElementFactory.classElement2("D");
-    InterfaceType typeA = classA.type;
-    InterfaceType typeB = classB.type;
-    InterfaceType typeC = classC.type;
-    InterfaceType typeD = classD.type;
-    classB.interfaces = <InterfaceType>[typeA];
-    classC.interfaces = <InterfaceType>[typeA];
-    classD.interfaces = <InterfaceType>[typeC];
-    _checkLeastUpperBound(typeB, typeD, typeA);
-  }
-
-  void test_sharedSuperinterface3() {
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement2("B");
-    ClassElementImpl classC = ElementFactory.classElement2("C");
-    ClassElementImpl classD = ElementFactory.classElement2("D");
-    InterfaceType typeA = classA.type;
-    InterfaceType typeB = classB.type;
-    InterfaceType typeC = classC.type;
-    InterfaceType typeD = classD.type;
-    classB.interfaces = <InterfaceType>[typeA];
-    classC.interfaces = <InterfaceType>[typeB];
-    classD.interfaces = <InterfaceType>[typeB];
-    _checkLeastUpperBound(typeC, typeD, typeB);
-  }
-
-  void test_sharedSuperinterface4() {
-    ClassElement classA = ElementFactory.classElement2("A");
-    ClassElement classA2 = ElementFactory.classElement2("A2");
-    ClassElement classA3 = ElementFactory.classElement2("A3");
-    ClassElementImpl classB = ElementFactory.classElement2("B");
-    ClassElementImpl classC = ElementFactory.classElement2("C");
-    InterfaceType typeA = classA.type;
-    InterfaceType typeA2 = classA2.type;
-    InterfaceType typeA3 = classA3.type;
-    InterfaceType typeB = classB.type;
-    InterfaceType typeC = classC.type;
-    classB.interfaces = <InterfaceType>[typeA, typeA2];
-    classC.interfaces = <InterfaceType>[typeA, typeA3];
-    _checkLeastUpperBound(typeB, typeC, typeA);
-  }
-
-  void test_twoComparables() {
-    _checkLeastUpperBound(stringType, numType, objectType);
-  }
-
-  void test_typeParam_function_bounded() {
-    DartType typeA = ElementFactory.classElement('A', functionType).type;
-    TypeParameterElementImpl typeParamElement =
-        ElementFactory.typeParameterElement('T');
-    typeParamElement.bound = typeA;
-    DartType typeParam = typeParamElement.type;
-    _checkLeastUpperBound(typeParam, simpleFunctionType, functionType);
-  }
-
-  void test_typeParam_function_noBound() {
-    DartType typeParam = ElementFactory.typeParameterElement('T').type;
-    _checkLeastUpperBound(typeParam, simpleFunctionType, objectType);
-  }
-
-  void test_typeParam_interface_bounded() {
-    DartType typeA = ElementFactory.classElement2('A', []).type;
-    DartType typeB = ElementFactory.classElement('B', typeA).type;
-    DartType typeC = ElementFactory.classElement('C', typeA).type;
-    TypeParameterElementImpl typeParamElement =
-        ElementFactory.typeParameterElement('T');
-    typeParamElement.bound = typeB;
-    DartType typeParam = typeParamElement.type;
-    _checkLeastUpperBound(typeParam, typeC, typeA);
-  }
-
-  void test_typeParam_interface_noBound() {
-    DartType typeParam = ElementFactory.typeParameterElement('T').type;
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
-    _checkLeastUpperBound(typeParam, interfaceType, objectType);
-  }
-
-  void test_typeParameters_different() {
-    // class List<int>
-    // class List<double>
-    InterfaceType listOfIntType = listType.instantiate(<DartType>[intType]);
-    InterfaceType listOfDoubleType =
-        listType.instantiate(<DartType>[doubleType]);
-    _checkLeastUpperBound(listOfIntType, listOfDoubleType, objectType);
-  }
-
-  void test_typeParameters_same() {
-    // List<int>
-    // List<int>
-    InterfaceType listOfIntType = listType.instantiate(<DartType>[intType]);
-    _checkLeastUpperBound(listOfIntType, listOfIntType, listOfIntType);
-  }
-
-  void test_void_bottom() {
-    _checkLeastUpperBound(voidType, bottomType, voidType);
-  }
-
-  void test_void_function() {
-    _checkLeastUpperBound(voidType, simpleFunctionType, voidType);
-  }
-
-  void test_void_interface() {
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
-    _checkLeastUpperBound(voidType, interfaceType, voidType);
-  }
-
-  void test_void_typeParam() {
-    DartType typeParam = ElementFactory.typeParameterElement('T').type;
-    _checkLeastUpperBound(voidType, typeParam, voidType);
-  }
-
-  void test_functionsSameType() {
-    FunctionType type1 = _functionType([stringType, intType, numType],
-        optional: [doubleType], named: {'n': numType}, returns: intType);
-    FunctionType type2 = _functionType([stringType, intType, numType],
-        optional: [doubleType], named: {'n': numType}, returns: intType);
-    FunctionType expected = _functionType([stringType, intType, numType],
-        optional: [doubleType], named: {'n': numType}, returns: intType);
-    _checkLeastUpperBound(type1, type2, expected);
-  }
-
-  void test_functionsDifferentRequiredArity() {
-    FunctionType type1 = _functionType([intType, intType]);
-    FunctionType type2 = _functionType([intType, intType, intType]);
-    _checkLeastUpperBound(type1, type2, functionType);
-  }
-
-  void test_functionsIgnoreExtraPositionalParams() {
-    FunctionType type1 =
-        _functionType([], optional: [intType, intType, stringType]);
-    FunctionType type2 = _functionType([], optional: [intType]);
-    FunctionType expected = _functionType([], optional: [intType]);
-    _checkLeastUpperBound(type1, type2, expected);
-  }
-
-  void test_functionsIgnoreExtraNamedParams() {
-    FunctionType type1 = _functionType([], named: {'a': intType, 'b': intType});
-    FunctionType type2 = _functionType([], named: {'a': intType, 'c': intType});
-    FunctionType expected = _functionType([], named: {'a': intType});
-    _checkLeastUpperBound(type1, type2, expected);
-  }
-
-  void test_functionsLubReturnType() {
-    FunctionType type1 = _functionType([], returns: intType);
-    FunctionType type2 = _functionType([], returns: doubleType);
-    FunctionType expected = _functionType([], returns: numType);
-    _checkLeastUpperBound(type1, type2, expected);
-  }
-
-  void test_nestedFunctionsLubInnerParamTypes() {
-    FunctionType type1 = _functionType([
-      _functionType([stringType, intType, intType])
-    ]);
-    FunctionType type2 = _functionType([
-      _functionType([intType, doubleType, numType])
-    ]);
-    FunctionType expected = _functionType([
-      _functionType([objectType, numType, numType])
-    ]);
-    _checkLeastUpperBound(type1, type2, expected);
-  }
-}
-
-/**
- * Tests LUB in spec mode.
- *
- * Tests defined in this class are ones whose behavior is spec mode-specific.
- * In particular, function parameters are compared using LUB in spec mode, but
- * GLB in strong mode.
- */
-@reflectiveTest
-class LeastUpperBoundTest extends LeastUpperBoundTestBase {
-  void setUp() {
-    typeSystem = new TypeSystemImpl();
-    super.setUp();
-  }
-
-  void test_functionsLubRequiredParams() {
-    FunctionType type1 = _functionType([stringType, intType, intType]);
-    FunctionType type2 = _functionType([intType, doubleType, numType]);
-    FunctionType expected = _functionType([objectType, numType, numType]);
-    _checkLeastUpperBound(type1, type2, expected);
-  }
-
-  void test_functionsLubPositionalParams() {
-    FunctionType type1 = _functionType([], optional: [stringType, intType]);
-    FunctionType type2 = _functionType([], optional: [intType, numType]);
-    FunctionType expected = _functionType([], optional: [objectType, numType]);
-    _checkLeastUpperBound(type1, type2, expected);
-  }
-
-  void test_functionsLubNamedParams() {
-    FunctionType type1 =
-        _functionType([], named: {'a': stringType, 'b': intType});
-    FunctionType type2 = _functionType([], named: {'a': intType, 'b': numType});
-    FunctionType expected =
-        _functionType([], named: {'a': objectType, 'b': numType});
-    _checkLeastUpperBound(type1, type2, expected);
-  }
-
-  void test_nestedNestedFunctionsLubInnermostParamTypes() {
-    FunctionType type1 = _functionType([
-      _functionType([
-        _functionType([stringType, intType, intType])
-      ])
-    ]);
-    FunctionType type2 = _functionType([
-      _functionType([
-        _functionType([intType, doubleType, numType])
-      ])
-    ]);
-    FunctionType expected = _functionType([
-      _functionType([
-        _functionType([objectType, numType, numType])
-      ])
-    ]);
-    _checkLeastUpperBound(type1, type2, expected);
-  }
-}
-
-/**
- * Tests LUB in strong mode.
- *
- * Tests defined in this class are ones whose behavior is spec mode-specific.
- * In particular, function parameters are compared using LUB in spec mode, but
- * GLB in strong mode.
- */
-@reflectiveTest
-class StrongLeastUpperBoundTest extends LeastUpperBoundTestBase {
-  void setUp() {
-    typeSystem = new StrongTypeSystemImpl();
-    super.setUp();
-  }
-
-  void test_functionsGlbRequiredParams() {
-    FunctionType type1 = _functionType([stringType, intType, intType]);
-    FunctionType type2 = _functionType([intType, doubleType, numType]);
-    FunctionType expected = _functionType([bottomType, bottomType, intType]);
-    _checkLeastUpperBound(type1, type2, expected);
-  }
-
-  void test_functionsGlbPositionalParams() {
-    FunctionType type1 = _functionType([], optional: [stringType, intType]);
-    FunctionType type2 = _functionType([], optional: [intType, numType]);
-    FunctionType expected = _functionType([], optional: [bottomType, intType]);
-    _checkLeastUpperBound(type1, type2, expected);
-  }
-
-  void test_functionsGlbNamedParams() {
-    FunctionType type1 =
-        _functionType([], named: {'a': stringType, 'b': intType});
-    FunctionType type2 = _functionType([], named: {'a': intType, 'b': numType});
-    FunctionType expected =
-        _functionType([], named: {'a': bottomType, 'b': intType});
-    _checkLeastUpperBound(type1, type2, expected);
-  }
-
-  void test_nestedNestedFunctionsGlbInnermostParamTypes() {
-    FunctionType type1 = _functionType([
-      _functionType([
-        _functionType([stringType, intType, intType])
-      ])
-    ]);
-    FunctionType type2 = _functionType([
-      _functionType([
-        _functionType([intType, doubleType, numType])
-      ])
-    ]);
-    FunctionType expected = _functionType([
-      _functionType([
-        _functionType([bottomType, bottomType, intType])
-      ])
-    ]);
-    _checkLeastUpperBound(type1, type2, expected);
-  }
-}
-
-/**
- * Tests GLB, which only exists in strong mode.
- */
-@reflectiveTest
-class StrongGreatestLowerBoundTest extends BoundTestBase {
-  void setUp() {
-    typeSystem = new StrongTypeSystemImpl();
-    super.setUp();
-  }
-
-  void test_bottom_function() {
-    _checkGreatestLowerBound(bottomType, simpleFunctionType, bottomType);
-  }
-
-  void test_bottom_interface() {
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
-    _checkGreatestLowerBound(bottomType, interfaceType, bottomType);
-  }
-
-  void test_bottom_typeParam() {
-    DartType typeParam = ElementFactory.typeParameterElement('T').type;
-    _checkGreatestLowerBound(bottomType, typeParam, bottomType);
-  }
-
-  void test_classAndSuperinterface() {
-    // class A
-    // class B implements A
-    // class C implements B
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement2("B");
-    ClassElementImpl classC = ElementFactory.classElement2("C");
-    classB.interfaces = <InterfaceType>[classA.type];
-    classC.interfaces = <InterfaceType>[classB.type];
-    _checkGreatestLowerBound(classA.type, classC.type, classC.type);
-  }
-
-  void test_classAndSuperclass() {
-    // class A
-    // class B extends A
-    // class C extends B
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement("B", classA.type);
-    ClassElementImpl classC = ElementFactory.classElement("C", classB.type);
-    _checkGreatestLowerBound(classA.type, classC.type, classC.type);
-  }
-
-  void test_mixin() {
-    // class A
-    // class B
-    // class C
-    // class D extends A with B, C
-    ClassElement classA = ElementFactory.classElement2("A");
-    ClassElement classB = ElementFactory.classElement2("B");
-    ClassElement classC = ElementFactory.classElement2("C");
-    ClassElementImpl classD = ElementFactory.classElement("D", classA.type);
-    classD.mixins = <InterfaceType>[classB.type, classC.type];
-    _checkGreatestLowerBound(classA.type, classD.type, classD.type);
-    _checkGreatestLowerBound(classB.type, classD.type, classD.type);
-    _checkGreatestLowerBound(classC.type, classD.type, classD.type);
-  }
-
-  void test_dynamic_bottom() {
-    _checkGreatestLowerBound(dynamicType, bottomType, bottomType);
-  }
-
-  void test_dynamic_function() {
-    _checkGreatestLowerBound(
-        dynamicType, simpleFunctionType, simpleFunctionType);
-  }
-
-  void test_dynamic_interface() {
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
-    _checkGreatestLowerBound(dynamicType, interfaceType, interfaceType);
-  }
-
-  void test_dynamic_typeParam() {
-    DartType typeParam = ElementFactory.typeParameterElement('T').type;
-    _checkGreatestLowerBound(dynamicType, typeParam, typeParam);
-  }
-
-  void test_dynamic_void() {
-    _checkGreatestLowerBound(dynamicType, voidType, voidType);
-  }
-
-  void test_interface_function() {
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
-    _checkGreatestLowerBound(interfaceType, simpleFunctionType, bottomType);
-  }
-
-  void test_unrelatedClasses() {
-    // class A
-    // class B
-    // class C
-    ClassElementImpl classA = ElementFactory.classElement2("A");
-    ClassElementImpl classB = ElementFactory.classElement2("B");
-    _checkGreatestLowerBound(classA.type, classB.type, bottomType);
-  }
-
-  void test_self() {
-    DartType typeParam = ElementFactory.typeParameterElement('T').type;
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
-
-    List<DartType> types = [
-      dynamicType,
-      voidType,
-      bottomType,
-      typeParam,
-      interfaceType,
-      simpleFunctionType
-    ];
-
-    for (DartType type in types) {
-      _checkGreatestLowerBound(type, type, type);
-    }
-  }
-
-  void test_typeParam_function_noBound() {
-    DartType typeParam = ElementFactory.typeParameterElement('T').type;
-    _checkGreatestLowerBound(typeParam, simpleFunctionType, bottomType);
-  }
-
-  void test_typeParam_interface_bounded() {
-    DartType typeA = ElementFactory.classElement2('A', []).type;
-    DartType typeB = ElementFactory.classElement('B', typeA).type;
-    DartType typeC = ElementFactory.classElement('C', typeB).type;
-    TypeParameterElementImpl typeParam =
-        ElementFactory.typeParameterElement('T');
-    typeParam.bound = typeB;
-    _checkGreatestLowerBound(typeParam.type, typeC, bottomType);
-  }
-
-  void test_typeParam_interface_noBound() {
-    // GLB(T, A) = ⊥
-    DartType typeParam = ElementFactory.typeParameterElement('T').type;
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
-    _checkGreatestLowerBound(typeParam, interfaceType, bottomType);
-  }
-
-  void test_typeParameters_different() {
-    // GLB(List<int>, List<double>) = ⊥
-    InterfaceType listOfIntType = listType.instantiate(<DartType>[intType]);
-    InterfaceType listOfDoubleType =
-        listType.instantiate(<DartType>[doubleType]);
-    // TODO(rnystrom): Can we do something better here?
-    _checkGreatestLowerBound(listOfIntType, listOfDoubleType, bottomType);
-  }
-
-  void test_typeParameters_same() {
-    // GLB(List<int>, List<int>) = List<int>
-    InterfaceType listOfIntType = listType.instantiate(<DartType>[intType]);
-    _checkGreatestLowerBound(listOfIntType, listOfIntType, listOfIntType);
-  }
-
-  void test_void_bottom() {
-    _checkGreatestLowerBound(voidType, bottomType, bottomType);
-  }
-
-  void test_void_function() {
-    _checkGreatestLowerBound(voidType, simpleFunctionType, simpleFunctionType);
-  }
-
-  void test_void_interface() {
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
-    _checkGreatestLowerBound(voidType, interfaceType, interfaceType);
-  }
-
-  void test_void_typeParam() {
-    DartType typeParam = ElementFactory.typeParameterElement('T').type;
-    _checkGreatestLowerBound(voidType, typeParam, typeParam);
-  }
-
-  void test_functionsSameType() {
-    FunctionType type1 = _functionType([stringType, intType, numType],
-        optional: [doubleType], named: {'n': numType}, returns: intType);
-    FunctionType type2 = _functionType([stringType, intType, numType],
-        optional: [doubleType], named: {'n': numType}, returns: intType);
-    FunctionType expected = _functionType([stringType, intType, numType],
-        optional: [doubleType], named: {'n': numType}, returns: intType);
-    _checkGreatestLowerBound(type1, type2, expected);
-  }
-
-  void test_functionsLubRequiredParams() {
-    FunctionType type1 = _functionType([stringType, intType, intType]);
-    FunctionType type2 = _functionType([intType, doubleType, numType]);
-    FunctionType expected = _functionType([objectType, numType, numType]);
-    _checkGreatestLowerBound(type1, type2, expected);
-  }
-
-  void test_functionsLubPositionalParams() {
-    FunctionType type1 = _functionType([], optional: [stringType, intType]);
-    FunctionType type2 = _functionType([], optional: [intType, numType]);
-    FunctionType expected = _functionType([], optional: [objectType, numType]);
-    _checkGreatestLowerBound(type1, type2, expected);
-  }
-
-  void test_functionsLubNamedParams() {
-    FunctionType type1 =
-        _functionType([], named: {'a': stringType, 'b': intType});
-    FunctionType type2 = _functionType([], named: {'a': intType, 'b': numType});
-    FunctionType expected =
-        _functionType([], named: {'a': objectType, 'b': numType});
-    _checkGreatestLowerBound(type1, type2, expected);
-  }
-
-  void test_functionsGlbReturnType() {
-    FunctionType type1 = _functionType([], returns: intType);
-    FunctionType type2 = _functionType([], returns: numType);
-    FunctionType expected = _functionType([], returns: intType);
-    _checkGreatestLowerBound(type1, type2, expected);
-  }
-
-  void test_functionsDifferentRequiredArityBecomeOptional() {
-    FunctionType type1 = _functionType([intType]);
-    FunctionType type2 = _functionType([intType, intType, intType]);
-    FunctionType expected =
-        _functionType([intType], optional: [intType, intType]);
-    _checkGreatestLowerBound(type1, type2, expected);
-  }
-
-  void test_functionsDifferentOptionalArityTakeMax() {
-    FunctionType type1 = _functionType([], optional: [intType]);
-    FunctionType type2 =
-        _functionType([], optional: [doubleType, stringType, objectType]);
-    FunctionType expected =
-        _functionType([], optional: [numType, stringType, objectType]);
-    _checkGreatestLowerBound(type1, type2, expected);
-  }
-
-  void test_functionsMixedOptionalAndRequiredBecomeOptional() {
-    FunctionType type1 = _functionType([intType, intType],
-        optional: [intType, intType, intType]);
-    FunctionType type2 = _functionType([intType], optional: [intType, intType]);
-    FunctionType expected = _functionType([intType],
-        optional: [intType, intType, intType, intType]);
-    _checkGreatestLowerBound(type1, type2, expected);
-  }
-
-  void test_functionsDifferentNamedTakeUnion() {
-    FunctionType type1 = _functionType([], named: {'a': intType, 'b': intType});
-    FunctionType type2 =
-        _functionType([], named: {'b': doubleType, 'c': stringType});
-    FunctionType expected =
-        _functionType([], named: {'a': intType, 'b': numType, 'c': stringType});
-    _checkGreatestLowerBound(type1, type2, expected);
-  }
-
-  void test_functionsReturnBottomIfMixOptionalAndNamed() {
-    // Dart doesn't allow a function to have both optional and named parameters,
-    // so if we would have synthethized that, pick bottom instead.
-    FunctionType type1 = _functionType([intType], named: {'a': intType});
-    FunctionType type2 = _functionType([], named: {'a': intType});
-    _checkGreatestLowerBound(type1, type2, bottomType);
-  }
 }

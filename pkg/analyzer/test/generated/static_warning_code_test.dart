@@ -2319,6 +2319,24 @@ set g(String v) {}''');
     verify([source]);
   }
 
+  void test_missingEnumConstantInSwitch() {
+    Source source = addSource(r'''
+enum E { ONE, TWO, THREE, FOUR }
+bool odd(E e) {
+  switch (e) {
+    case E.ONE:
+    case E.THREE: return true;
+  }
+  return false;
+}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [
+      StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
+      StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH
+    ]);
+    verify([source]);
+  }
+
   void test_mixedReturnTypes_localFunction() {
     Source source = addSource(r'''
 class C {
@@ -3615,23 +3633,5 @@ class S {
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [StaticWarningCode.VOID_RETURN_FOR_GETTER]);
-  }
-
-  void test_missingEnumConstantInSwitch() {
-    Source source = addSource(r'''
-enum E { ONE, TWO, THREE, FOUR }
-bool odd(E e) {
-  switch (e) {
-    case E.ONE:
-    case E.THREE: return true;
-  }
-  return false;
-}''');
-    computeLibrarySourceErrors(source);
-    assertErrors(source, [
-      StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH,
-      StaticWarningCode.MISSING_ENUM_CONSTANT_IN_SWITCH
-    ]);
-    verify([source]);
   }
 }

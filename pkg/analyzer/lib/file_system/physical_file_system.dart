@@ -132,21 +132,21 @@ class _PhysicalFile extends _PhysicalResource implements File {
   }
 
   @override
-  void writeAsBytesSync(List<int> bytes) {
+  Resource renameSync(String newPath) {
     try {
       io.File file = _entry as io.File;
-      file.writeAsBytesSync(bytes);
+      io.File newFile = file.renameSync(newPath);
+      return new _PhysicalFile(newFile);
     } on io.FileSystemException catch (exception) {
       throw new FileSystemException(exception.path, exception.message);
     }
   }
 
   @override
-  Resource renameSync(String newPath) {
+  void writeAsBytesSync(List<int> bytes) {
     try {
       io.File file = _entry as io.File;
-      io.File newFile = file.renameSync(newPath);
-      return new _PhysicalFile(newFile);
+      file.writeAsBytesSync(bytes);
     } on io.FileSystemException catch (exception) {
       throw new FileSystemException(exception.path, exception.message);
     }
