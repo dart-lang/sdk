@@ -945,6 +945,32 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
 }
 
 
+void Profiler::SampleThreadSingleFrame(Thread* thread, uintptr_t pc) {
+  ASSERT(thread != NULL);
+  OSThread* os_thread = thread->os_thread();
+  ASSERT(os_thread != NULL);
+  Isolate* isolate = thread->isolate();
+
+  SampleBuffer* sample_buffer = Profiler::sample_buffer();
+  if (sample_buffer == NULL) {
+    // Profiler not initialized.
+    return;
+  }
+
+  // Setup sample.
+  Sample* sample = SetupSample(thread, sample_buffer, os_thread->trace_id());
+  // Increment counter for vm tag.
+  VMTagCounters* counters = isolate->vm_tag_counters();
+  ASSERT(counters != NULL);
+  if (thread->IsMutatorThread()) {
+    counters->Increment(sample->vm_tag());
+  }
+
+  // Write the single pc value.
+  sample->SetAt(0, pc);
+}
+
+
 void Profiler::SampleThread(Thread* thread,
                             const InterruptedThreadState& state) {
   ASSERT(thread != NULL);
@@ -989,15 +1015,17 @@ void Profiler::SampleThread(Thread* thread,
     sp = state.csp;
   }
 
-  if (!InitialRegisterCheck(pc, fp, sp)) {
-    return;
-  }
-
   if (!CheckIsolate(isolate)) {
     return;
   }
 
   if (thread->IsMutatorThread() && isolate->IsDeoptimizing()) {
+    SampleThreadSingleFrame(thread, pc);
+    return;
+  }
+
+  if (!InitialRegisterCheck(pc, fp, sp)) {
+    SampleThreadSingleFrame(thread, pc);
     return;
   }
 
@@ -1009,6 +1037,7 @@ void Profiler::SampleThread(Thread* thread,
                                         &stack_lower,
                                         &stack_upper)) {
     // Could not get stack boundary.
+    SampleThreadSingleFrame(thread, pc);
     return;
   }
 

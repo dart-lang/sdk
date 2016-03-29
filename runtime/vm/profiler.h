@@ -53,6 +53,8 @@ class Profiler : public AllStatic {
                            const InterruptedThreadState& state);
 
  private:
+  // Does not walk the thread's stack.
+  static void SampleThreadSingleFrame(Thread* thread, uintptr_t pc);
   static bool initialized_;
 
   static SampleBuffer* sample_buffer_;
