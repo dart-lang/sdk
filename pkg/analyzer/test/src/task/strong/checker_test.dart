@@ -62,6 +62,55 @@ void main() {
       ''');
   });
 
+  test('least upper bounds', () {
+    checkFile('''
+      typedef T Returns<T>();
+
+      // regression test for https://github.com/dart-lang/sdk/issues/26094
+      class A <S extends  Returns<S>, T extends Returns<T>> {
+        int test(bool b) {
+          S s;
+          T t;
+          if (b) {
+            return /*warning:RETURN_OF_INVALID_TYPE*/b ? s : t;
+          } else {
+            return /*warning:RETURN_OF_INVALID_TYPE*/s ?? t;
+          }
+        }
+      }
+
+      class B<S, T extends S> {
+        T t;
+        S s;
+        int test(bool b) {
+          return /*warning:RETURN_OF_INVALID_TYPE*/b ? t : s;
+        }
+      }
+
+      class C {
+        // Check that the least upper bound of two types with the same
+        // class but different type arguments produces the pointwise
+        // least upper bound of the type arguments
+        int test1(bool b) {
+          List<int> li;
+          List<double> ld;
+          return /*warning:RETURN_OF_INVALID_TYPE*/b ? li : ld;
+        }
+        // TODO(leafp): This case isn't handled yet.  This test checks
+        // the case where two related classes are instantiated with related
+        // but different types.
+        Iterable<num> test2(bool b) {
+          List<int> li;
+          Iterable<double> id;
+          int x =
+              /*info:ASSIGNMENT_CAST should be warning:INVALID_ASSIGNMENT*/
+              b ? li : id;
+          return /*warning:DOWN_CAST_COMPOSITE should be pass*/b ? li : id;
+        }
+      }
+      ''');
+  });
+
   test('setter return types', () {
     checkFile('''
       void voidFn() => null;
@@ -71,7 +120,8 @@ void main() {
         void set c(y) => /*warning:RETURN_OF_INVALID_TYPE*/4;
         void set d(y) => voidFn();
         /*warning:NON_VOID_RETURN_FOR_SETTER*/int set e(y) => 4;
-        /*warning:NON_VOID_RETURN_FOR_SETTER*/int set f(y) => /*warning:RETURN_OF_INVALID_TYPE*/voidFn();
+        /*warning:NON_VOID_RETURN_FOR_SETTER*/int set f(y) =>
+            /*warning:RETURN_OF_INVALID_TYPE*/voidFn();
         set g(y) {return /*warning:RETURN_OF_INVALID_TYPE*/4;}
         void set h(y) {return /*warning:RETURN_OF_INVALID_TYPE*/4;}
         /*warning:NON_VOID_RETURN_FOR_SETTER*/int set i(y) {return 4;}

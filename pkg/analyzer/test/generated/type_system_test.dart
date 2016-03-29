@@ -43,6 +43,7 @@ abstract class BoundTestBase {
   DartType get dynamicType => typeProvider.dynamicType;
   InterfaceType get functionType => typeProvider.functionType;
   InterfaceType get intType => typeProvider.intType;
+  InterfaceType get iterableType => typeProvider.iterableType;
   InterfaceType get listType => typeProvider.listType;
   InterfaceType get numType => typeProvider.numType;
   InterfaceType get objectType => typeProvider.objectType;
@@ -64,14 +65,48 @@ abstract class BoundTestBase {
 
   void _checkGreatestLowerBound(
       DartType type1, DartType type2, DartType expectedResult) {
-    expect(strongTypeSystem.getGreatestLowerBound(typeProvider, type1, type2),
-        expectedResult);
+    DartType glb =
+        strongTypeSystem.getGreatestLowerBound(typeProvider, type1, type2);
+    expect(glb, expectedResult);
+    // Check that the result is a lower bound.
+    expect(typeSystem.isSubtypeOf(glb, type1), true);
+    expect(typeSystem.isSubtypeOf(glb, type2), true);
+    // Check for symmetry while we're at it.  Unfortunately,
+    // for function types, the current version of equality
+    // does not respect re-ordering of named parameters, so
+    // for function types we just check if they are mutual subtypes.
+    // https://github.com/dart-lang/sdk/issues/26126
+    // TODO(leafp): Fix this.
+    glb = strongTypeSystem.getGreatestLowerBound(typeProvider, type2, type1);
+    if (glb is FunctionTypeImpl) {
+      expect(typeSystem.isSubtypeOf(glb, expectedResult), true);
+      expect(typeSystem.isSubtypeOf(expectedResult, glb), true);
+    } else {
+      expect(glb, expectedResult);
+    }
   }
 
   void _checkLeastUpperBound(
       DartType type1, DartType type2, DartType expectedResult) {
-    expect(typeSystem.getLeastUpperBound(typeProvider, type1, type2),
-        expectedResult);
+    DartType lub = typeSystem.getLeastUpperBound(typeProvider, type1, type2);
+    expect(lub, expectedResult);
+    // Check that the result is an upper bound.
+    expect(typeSystem.isSubtypeOf(type1, lub), true);
+    expect(typeSystem.isSubtypeOf(type2, lub), true);
+
+    // Check for symmetry while we're at it.  Unfortunately,
+    // for function types, the current version of equality
+    // does not respect re-ordering of named parameters, so
+    // for function types we just check if they are mutual subtypes.
+    // https://github.com/dart-lang/sdk/issues/26126
+    // TODO(leafp): Fix this.
+    lub = typeSystem.getLeastUpperBound(typeProvider, type2, type1);
+    if (lub is FunctionTypeImpl) {
+      expect(typeSystem.isSubtypeOf(lub, expectedResult), true);
+      expect(typeSystem.isSubtypeOf(expectedResult, lub), true);
+    } else {
+      expect(lub, expectedResult);
+    }
   }
 
   /**
@@ -147,6 +182,27 @@ class LeastUpperBoundTest extends LeastUpperBoundTestBase {
       ])
     ]);
     _checkLeastUpperBound(type1, type2, expected);
+  }
+
+  /// Check least upper bound of the same class with different type parameters.
+  void test_typeParameters_different() {
+    // class List<int>
+    // class List<double>
+    InterfaceType listOfIntType = listType.instantiate(<DartType>[intType]);
+    InterfaceType listOfDoubleType =
+        listType.instantiate(<DartType>[doubleType]);
+    _checkLeastUpperBound(listOfIntType, listOfDoubleType, objectType);
+  }
+
+  /// Check least upper bound of two related classes with different
+  /// type parameters.
+  void test_typeParametersAndClass_different() {
+    // class List<int>
+    // class Iterable<double>
+    InterfaceType listOfIntType = listType.instantiate(<DartType>[intType]);
+    InterfaceType iterableOfDoubleType =
+        iterableType.instantiate(<DartType>[doubleType]);
+    _checkLeastUpperBound(listOfIntType, iterableOfDoubleType, objectType);
   }
 }
 
@@ -469,15 +525,6 @@ abstract class LeastUpperBoundTestBase extends BoundTestBase {
     _checkLeastUpperBound(typeParam, interfaceType, objectType);
   }
 
-  void test_typeParameters_different() {
-    // class List<int>
-    // class List<double>
-    InterfaceType listOfIntType = listType.instantiate(<DartType>[intType]);
-    InterfaceType listOfDoubleType =
-        listType.instantiate(<DartType>[doubleType]);
-    _checkLeastUpperBound(listOfIntType, listOfDoubleType, objectType);
-  }
-
   void test_typeParameters_same() {
     // List<int>
     // List<int>
@@ -485,22 +532,19 @@ abstract class LeastUpperBoundTestBase extends BoundTestBase {
     _checkLeastUpperBound(listOfIntType, listOfIntType, listOfIntType);
   }
 
-  void test_void_bottom() {
-    _checkLeastUpperBound(voidType, bottomType, voidType);
-  }
-
-  void test_void_function() {
-    _checkLeastUpperBound(voidType, simpleFunctionType, voidType);
-  }
-
-  void test_void_interface() {
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
-    _checkLeastUpperBound(voidType, interfaceType, voidType);
-  }
-
-  void test_void_typeParam() {
-    DartType typeParam = ElementFactory.typeParameterElement('T').type;
-    _checkLeastUpperBound(voidType, typeParam, voidType);
+  void test_void() {
+    List<DartType> types = [
+      bottomType,
+      simpleFunctionType,
+      ElementFactory.classElement2('A', []).type,
+      ElementFactory.typeParameterElement('T').type
+    ];
+    for (DartType type in types) {
+      _checkLeastUpperBound(
+          _functionType([], returns: voidType),
+          _functionType([], returns: type),
+          _functionType([], returns: voidType));
+    }
   }
 }
 
@@ -1241,22 +1285,17 @@ class StrongGreatestLowerBoundTest extends BoundTestBase {
     _checkGreatestLowerBound(classA.type, classB.type, bottomType);
   }
 
-  void test_void_bottom() {
-    _checkGreatestLowerBound(voidType, bottomType, bottomType);
-  }
-
-  void test_void_function() {
-    _checkGreatestLowerBound(voidType, simpleFunctionType, simpleFunctionType);
-  }
-
-  void test_void_interface() {
-    DartType interfaceType = ElementFactory.classElement2('A', []).type;
-    _checkGreatestLowerBound(voidType, interfaceType, interfaceType);
-  }
-
-  void test_void_typeParam() {
-    DartType typeParam = ElementFactory.typeParameterElement('T').type;
-    _checkGreatestLowerBound(voidType, typeParam, typeParam);
+  void test_void() {
+    List<DartType> types = [
+      bottomType,
+      simpleFunctionType,
+      ElementFactory.classElement2('A', []).type,
+      ElementFactory.typeParameterElement('T').type
+    ];
+    for (DartType type in types) {
+      _checkGreatestLowerBound(_functionType([], returns: voidType),
+          _functionType([], returns: type), _functionType([], returns: type));
+    }
   }
 }
 
@@ -1314,6 +1353,52 @@ class StrongLeastUpperBoundTest extends LeastUpperBoundTestBase {
       ])
     ]);
     _checkLeastUpperBound(type1, type2, expected);
+  }
+
+  void test_typeParam_boundedByParam() {
+    TypeParameterElementImpl typeParamElementT =
+        ElementFactory.typeParameterElement('T');
+    TypeParameterElementImpl typeParamElementS =
+        ElementFactory.typeParameterElement('S');
+    DartType typeParamT = typeParamElementT.type;
+    DartType typeParamS = typeParamElementS.type;
+    typeParamElementT.bound = typeParamS;
+    _checkLeastUpperBound(typeParamT, typeParamS, typeParamS);
+  }
+
+  void test_typeParam_fBounded() {
+    ClassElementImpl AClass = ElementFactory.classElement2('A', ["Q"]);
+    InterfaceType AType = AClass.type;
+
+    DartType s = TypeBuilder.variable("S");
+    (s.element as TypeParameterElementImpl).bound = AType.instantiate([s]);
+    DartType u = TypeBuilder.variable("U");
+    (u.element as TypeParameterElementImpl).bound = AType.instantiate([u]);
+
+    _checkLeastUpperBound(s, u, AType.instantiate([objectType]));
+  }
+
+  /// Check least upper bound of the same class with different type parameters.
+  void test_typeParameters_different() {
+    // class List<int>
+    // class List<double>
+    InterfaceType listOfIntType = listType.instantiate(<DartType>[intType]);
+    InterfaceType listOfDoubleType =
+        listType.instantiate(<DartType>[doubleType]);
+    InterfaceType listOfNum = listType.instantiate(<DartType>[numType]);
+    _checkLeastUpperBound(listOfIntType, listOfDoubleType, listOfNum);
+  }
+
+  /// Check least upper bound of two related classes with different
+  /// type parameters.
+  void test_typeParametersAndClass_different() {
+    // class List<int>
+    // class Iterable<double>
+    InterfaceType listOfIntType = listType.instantiate(<DartType>[intType]);
+    InterfaceType iterableOfDoubleType =
+        iterableType.instantiate(<DartType>[doubleType]);
+    // TODO(leafp): this should be iterableOfNumType
+    _checkLeastUpperBound(listOfIntType, iterableOfDoubleType, objectType);
   }
 }
 

@@ -95,6 +95,111 @@ class StrongTypeSystemImpl extends TypeSystem {
   }
 
   /**
+   * This currently does not implement a very complete least upper bound
+   * algorithm, but handles a couple of the very common cases that are
+   * causing pain in real code.  The current algorithm is:
+   * 1. If either of the types is a supertype of the other, return it.
+   *    This is in fact the best result in this case.
+   * 2. If the two types have the same class element, then take the
+   *    pointwise least upper bound of the type arguments.  This is again
+   *    the best result, except that the recursive calls may not return
+   *    the true least uppper bounds.  The result is guaranteed to be a
+   *    well-formed type under the assumption that the input types were
+   *    well-formed (and assuming that the recursive calls return
+   *    well-formed types).
+   * 3. Otherwise return the spec-defined least upper bound.  This will
+   *    be an upper bound, might (or might not) be least, and might
+   *    (or might not) be a well-formed type.
+   *
+   * TODO(leafp): Use matchTypes or something similar here to handle the
+   *  case where one of the types is a superclass (but not supertype) of
+   *  the other, e.g. LUB(Iterable<double>, List<int>) = Iterable<num>
+   * TODO(leafp): Figure out the right final algorithm and implement it.
+   */
+  @override
+  DartType _interfaceLeastUpperBound(
+      TypeProvider provider, InterfaceType type1, InterfaceType type2) {
+    if (isSubtypeOf(type1, type2)) {
+      return type2;
+    }
+    if (isSubtypeOf(type2, type1)) {
+      return type1;
+    }
+    if (type1.element == type2.element) {
+      List<DartType> tArgs1 = type1.typeArguments;
+      List<DartType> tArgs2 = type2.typeArguments;
+
+      assert(tArgs1.length == tArgs2.length);
+      List<DartType> tArgs = new List(tArgs1.length);
+      for (int i = 0; i < tArgs1.length; i++) {
+        tArgs[i] = getLeastUpperBound(provider, tArgs1[i], tArgs2[i]);
+      }
+      InterfaceTypeImpl lub = new InterfaceTypeImpl(type1.element);
+      lub.typeArguments = tArgs;
+      return lub;
+    }
+    return InterfaceTypeImpl.computeLeastUpperBound(type1, type2) ??
+        provider.dynamicType;
+  }
+
+  /**
+   * This currently just implements a simple least upper bound to
+   * handle some common cases.  It also avoids some termination issues
+   * with the naive spec algorithm.  The least upper bound of two types
+   * (at least one of which is a type parameter) is computed here as:
+   * 1. If either type is a supertype of the other, return it.
+   * 2. If the first type is a type parameter, replace it with its bound,
+   *    with recursive occurrences of itself replaced with Object.
+   *    The second part of this should ensure termination.  Informally,
+   *    each type variable instantiation in one of the arguments to the
+   *    least upper bound algorithm now strictly reduces the number
+   *    of bound variables in scope in that argument position.
+   * 3. If the second type is a type parameter, do the symmetric operation
+   *    to #2.
+   *
+   * It's not immediately obvious why this is symmetric in the case that both
+   * of the them are type parameters.  For #1, symmetry holds since subtype
+   * is antisymmetric.  For #2, it's clearly not symmetric if upper bounds of
+   * bottom are allowed.  Ignoring this (for various reasons, not least
+   * of which that there's no way to write it), there's an informal
+   * argument (that might even be right) that you will always either
+   * end up expanding both of them or else returning the same result no matter
+   * which order you expand them in.  A key observation is that
+   * identical(expand(type1), type2) => subtype(type1, type2)
+   * and hence the contra-positive.
+   *
+   * TODO(leafp): Think this through and figure out what's the right
+   * definition.  Be careful about termination.
+   *
+   * I suspect in general a reasonable algorithm is to expand the innermost
+   * type variable first.  Alternatively, you could probably choose to treat
+   * it as just an instance of the interface type upper bound problem, with
+   * the "inheritance" chain extended by the bounds placed on the variables.
+   */
+  @override
+  DartType _typeParameterLeastUpperBound(
+      TypeProvider provider, DartType type1, DartType type2) {
+    if (isSubtypeOf(type1, type2)) {
+      return type2;
+    }
+    if (isSubtypeOf(type2, type1)) {
+      return type1;
+    }
+    if (type1 is TypeParameterType) {
+      type1 = type1
+          .resolveToBound(provider.objectType)
+          .substitute2([provider.objectType], [type1]);
+      return getLeastUpperBound(provider, type1, type2);
+    }
+    // We should only be called when at least one of the types is a
+    // TypeParameterType
+    type2 = type2
+        .resolveToBound(provider.objectType)
+        .substitute2([provider.objectType], [type2]);
+    return getLeastUpperBound(provider, type1, type2);
+  }
+
+  /**
    * Given a generic function type `F<T0, T1, ... Tn>` and a context type C,
    * infer an instantiation of F, such that `F<S0, S1, ..., Sn>` <: C.
    *
@@ -663,26 +768,9 @@ abstract class TypeSystem {
       return type1;
     }
 
-    // TODO(rnystrom): This isn't correct. See: https://dartbug.com/26054.
-    // Leaf says:
-    // It does at least give *an* upper bound, but it won't be the least, and in
-    // many common cases won't be the useful one (e.g. T, S extends T).
-    //
-    // The spec definition is pretty unhelpful.
-    //
-    // I suspect that a reasonable algorithm is to expand the innermost type
-    // variable first.  Alternatively, you could probably choose to treat it as
-    // just an instance of the interface type upper bound problem, with the
-    // "inheritance" chain extended by the bounds placed on the variables.
-    //
-    // In the short term, in the case that both are type variables you could
-    // check if either is a subtype of the other, and if so use the supertype,
-    // and otherwise fall back to expanding both.  This should catch many of the
-    // interesting cases without getting too involved.
-    // Let U be a type variable with upper bound B.  The least upper bound of U
-    // and a type T is the least upper bound of B and T.
-    type1 = type1.resolveToBound(typeProvider.objectType);
-    type2 = type2.resolveToBound(typeProvider.objectType);
+    if (type1 is TypeParameterType || type2 is TypeParameterType) {
+      return _typeParameterLeastUpperBound(typeProvider, type1, type2);
+    }
 
     // The least upper bound of a function type and an interface type T is the
     // least upper bound of Function and T.
@@ -696,12 +784,7 @@ abstract class TypeSystem {
     // At this point type1 and type2 should both either be interface types or
     // function types.
     if (type1 is InterfaceType && type2 is InterfaceType) {
-      InterfaceType result =
-          InterfaceTypeImpl.computeLeastUpperBound(type1, type2);
-      if (result == null) {
-        return typeProvider.dynamicType;
-      }
-      return result;
+      return _interfaceLeastUpperBound(typeProvider, type1, type2);
     }
 
     if (type1 is FunctionType && type2 is FunctionType) {
@@ -712,6 +795,21 @@ abstract class TypeSystem {
     assert(false);
     return typeProvider.dynamicType;
   }
+
+  /**
+   * Given two [InterfaceType]s [type1] and [type2] return their least upper
+   * bound in a type system specific manner.
+   */
+  DartType _interfaceLeastUpperBound(
+      TypeProvider provider, InterfaceType type1, InterfaceType type2);
+
+  /**
+   * Given two [DartType]s [type1] and [type2] at least one of which is a
+   * [TypeParameterType], return their least upper bound in a type system
+   * specific manner.
+   */
+  DartType _typeParameterLeastUpperBound(
+      TypeProvider provider, DartType type1, DartType type2);
 
   /**
    * Given a [DartType] [type], instantiate it with its bounds.
@@ -957,6 +1055,22 @@ class TypeSystemImpl extends TypeSystem {
   @override
   bool isSubtypeOf(DartType leftType, DartType rightType) {
     return leftType.isSubtypeOf(rightType);
+  }
+
+  @override
+  DartType _interfaceLeastUpperBound(
+      TypeProvider provider, InterfaceType type1, InterfaceType type2) {
+    InterfaceType result =
+        InterfaceTypeImpl.computeLeastUpperBound(type1, type2);
+    return result ?? provider.dynamicType;
+  }
+
+  @override
+  DartType _typeParameterLeastUpperBound(
+      TypeProvider provider, DartType type1, DartType type2) {
+    type1 = type1.resolveToBound(provider.objectType);
+    type2 = type2.resolveToBound(provider.objectType);
+    return getLeastUpperBound(provider, type1, type2);
   }
 }
 
