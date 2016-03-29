@@ -191,7 +191,7 @@ class _Future<T> implements Future<T> {
     _resultOrListeners = source;
   }
 
-  Future then(f(T value), { Function onError }) {
+  Future/*<S>*/ then/*<S>*/(f(T value), { Function onError }) {
     Zone currentZone = Zone.current;
     if (!identical(currentZone, _ROOT_ZONE)) {
       f = currentZone.registerUnaryCallback(f);
