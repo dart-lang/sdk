@@ -4226,6 +4226,21 @@ class C extends B {
     checkConstCycle('C', name: 'named', hasCycle: false);
   }
 
+  test_constructorCycle_viaRedirectArgument() {
+    serializeLibraryText(
+        '''
+class C {
+  final x;
+  const C() : this.named(y);
+  const C.named(this.x);
+}
+const y = const C();
+''',
+        allowErrors: true);
+    checkConstCycle('C');
+    checkConstCycle('C', name: 'named', hasCycle: false);
+  }
+
   test_constructorCycle_viaStaticField_inOtherClass() {
     serializeLibraryText(
         '''
@@ -4251,6 +4266,23 @@ class C {
 }
 ''',
         allowErrors: true);
+    checkConstCycle('C');
+  }
+
+  test_constructorCycle_viaSuperArgument() {
+    serializeLibraryText(
+        '''
+class B {
+  final x;
+  const B(this.x);
+}
+class C extends B {
+  const C() : super(y);
+}
+const y = const C();
+''',
+        allowErrors: true);
+    checkConstCycle('B', hasCycle: false);
     checkConstCycle('C');
   }
 

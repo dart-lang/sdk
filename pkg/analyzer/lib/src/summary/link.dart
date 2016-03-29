@@ -650,8 +650,9 @@ class ConstConstructorNode extends ConstNode {
             constructorElement.enclosingElement.enclosingElement;
         collectDependencies(
             dependencies, constructorInitializer.expression, compilationUnit);
-        constructorInitializer.arguments.map((UnlinkedConst unlinkedConst) =>
-            collectDependencies(dependencies, unlinkedConst, compilationUnit));
+        for (UnlinkedConst unlinkedConst in constructorInitializer.arguments) {
+          collectDependencies(dependencies, unlinkedConst, compilationUnit);
+        }
       }
 
       if (defaultSuperInvocationNeeded) {
