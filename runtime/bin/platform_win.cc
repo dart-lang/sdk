@@ -9,7 +9,7 @@
 
 #include "bin/file.h"
 #include "bin/log.h"
-if !defined(PLATFORM_DISABLE_SOCKET)
+#if !defined(PLATFORM_DISABLE_SOCKET)
 #include "bin/socket.h"
 #endif
 #include "bin/utils.h"
