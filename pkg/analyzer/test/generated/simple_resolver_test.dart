@@ -51,7 +51,7 @@ void main() {
     // Verify that both the getter and setter for "x" in "new C().x" refer to
     // the accessors defined in M2.
     FunctionDeclaration main =
-    library.definingCompilationUnit.functions[0].computeNode();
+        library.definingCompilationUnit.functions[0].computeNode();
     BlockFunctionBody body = main.functionExpression.body;
     ExpressionStatement stmt = body.block.statements[0];
     AssignmentExpression assignment = stmt.expression;
@@ -196,7 +196,7 @@ class A {
       FunctionBody mainBody = mainElement.computeNode().functionExpression.body;
       Statement statement = (mainBody as BlockFunctionBody).block.statements[1];
       ExpressionStatement expressionStatement =
-      statement as ExpressionStatement;
+          statement as ExpressionStatement;
       assignment = expressionStatement.expression as AssignmentExpression;
     }
     // get parameter
@@ -232,7 +232,7 @@ class B {
       FunctionBody mainBody = mainElement.computeNode().functionExpression.body;
       Statement statement = (mainBody as BlockFunctionBody).block.statements[1];
       ExpressionStatement expressionStatement =
-      statement as ExpressionStatement;
+          statement as ExpressionStatement;
       assignment = expressionStatement.expression as AssignmentExpression;
     }
     // get parameter
@@ -265,7 +265,7 @@ class A {
       FunctionBody mainBody = mainElement.computeNode().functionExpression.body;
       Statement statement = (mainBody as BlockFunctionBody).block.statements[1];
       ExpressionStatement expressionStatement =
-      statement as ExpressionStatement;
+          statement as ExpressionStatement;
       assignment = expressionStatement.expression as AssignmentExpression;
     }
     // get parameter
@@ -300,7 +300,7 @@ class B {
       FunctionBody mainBody = mainElement.computeNode().functionExpression.body;
       Statement statement = (mainBody as BlockFunctionBody).block.statements[1];
       ExpressionStatement expressionStatement =
-      statement as ExpressionStatement;
+          statement as ExpressionStatement;
       assignment = expressionStatement.expression as AssignmentExpression;
     }
     // get parameter
@@ -331,7 +331,7 @@ void f() {
     WhileStatement whileStatement = EngineTestCase.findNode(
         unit, text, 'while (true)', (n) => n is WhileStatement);
     ForStatement forStatement =
-    EngineTestCase.findNode(unit, text, 'for', (n) => n is ForStatement);
+        EngineTestCase.findNode(unit, text, 'for', (n) => n is ForStatement);
     BreakStatement break1 = EngineTestCase.findNode(
         unit, text, 'break loop1', (n) => n is BreakStatement);
     BreakStatement break2 = EngineTestCase.findNode(
@@ -350,7 +350,7 @@ void f() {
 ''';
     CompilationUnit unit = resolveSource(text);
     DoStatement doStatement =
-    EngineTestCase.findNode(unit, text, 'do', (n) => n is DoStatement);
+        EngineTestCase.findNode(unit, text, 'do', (n) => n is DoStatement);
     BreakStatement breakStatement = EngineTestCase.findNode(
         unit, text, 'break', (n) => n is BreakStatement);
     expect(breakStatement.target, same(doStatement));
@@ -366,7 +366,7 @@ void f() {
 ''';
     CompilationUnit unit = resolveSource(text);
     ForStatement forStatement =
-    EngineTestCase.findNode(unit, text, 'for', (n) => n is ForStatement);
+        EngineTestCase.findNode(unit, text, 'for', (n) => n is ForStatement);
     BreakStatement breakStatement = EngineTestCase.findNode(
         unit, text, 'break', (n) => n is BreakStatement);
     expect(breakStatement.target, same(forStatement));
@@ -517,7 +517,7 @@ void f() {
     WhileStatement whileStatement = EngineTestCase.findNode(
         unit, text, 'while (true)', (n) => n is WhileStatement);
     ForStatement forStatement =
-    EngineTestCase.findNode(unit, text, 'for', (n) => n is ForStatement);
+        EngineTestCase.findNode(unit, text, 'for', (n) => n is ForStatement);
     ContinueStatement continue1 = EngineTestCase.findNode(
         unit, text, 'continue loop1', (n) => n is ContinueStatement);
     ContinueStatement continue2 = EngineTestCase.findNode(
@@ -536,7 +536,7 @@ void f() {
 ''';
     CompilationUnit unit = resolveSource(text);
     DoStatement doStatement =
-    EngineTestCase.findNode(unit, text, 'do', (n) => n is DoStatement);
+        EngineTestCase.findNode(unit, text, 'do', (n) => n is DoStatement);
     ContinueStatement continueStatement = EngineTestCase.findNode(
         unit, text, 'continue', (n) => n is ContinueStatement);
     expect(continueStatement.target, same(doStatement));
@@ -552,7 +552,7 @@ void f() {
 ''';
     CompilationUnit unit = resolveSource(text);
     ForStatement forStatement =
-    EngineTestCase.findNode(unit, text, 'for', (n) => n is ForStatement);
+        EngineTestCase.findNode(unit, text, 'for', (n) => n is ForStatement);
     ContinueStatement continueStatement = EngineTestCase.findNode(
         unit, text, 'continue', (n) => n is ContinueStatement);
     expect(continueStatement.target, same(forStatement));
@@ -839,7 +839,7 @@ void main() {
     // Verify that the getter for "x" in "new C().x" refers to the getter
     // defined in M2.
     FunctionDeclaration main =
-    library.definingCompilationUnit.functions[0].computeNode();
+        library.definingCompilationUnit.functions[0].computeNode();
     BlockFunctionBody body = main.functionExpression.body;
     VariableDeclarationStatement stmt = body.block.statements[0];
     PropertyAccess propertyAccess = stmt.variables.variables[0].initializer;
@@ -1197,7 +1197,7 @@ main() {
     LibraryElement library = resolve2(source);
     expect(library, isNotNull);
     CompilationUnit unit =
-    analysisContext.resolveCompilationUnit(source, library);
+        analysisContext.resolveCompilationUnit(source, library);
     expect(unit, isNotNull);
     List<bool> found = [false];
     List<CaughtException> thrownException = new List<CaughtException>(1);
@@ -1470,7 +1470,7 @@ void main() {
     verify([source]);
     // Verify that the "f" in "new C().f()" refers to the "f" defined in M2.
     FunctionDeclaration main =
-    library.definingCompilationUnit.functions[0].computeNode();
+        library.definingCompilationUnit.functions[0].computeNode();
     BlockFunctionBody body = main.functionExpression.body;
     ExpressionStatement stmt = body.block.statements[0];
     MethodInvocation expr = stmt.expression;
@@ -1525,7 +1525,7 @@ void main() {
     // Verify that the call to f() in "new C().f()" refers to the method
     // defined in M2.
     FunctionDeclaration main =
-    library.definingCompilationUnit.functions[0].computeNode();
+        library.definingCompilationUnit.functions[0].computeNode();
     BlockFunctionBody body = main.functionExpression.body;
     ExpressionStatement stmt = body.block.statements[0];
     MethodInvocation invocation = stmt.expression;
@@ -1642,7 +1642,7 @@ void main() {
     // Verify that the setter for "x" in "new C().x" refers to the setter
     // defined in M2.
     FunctionDeclaration main =
-    library.definingCompilationUnit.functions[0].computeNode();
+        library.definingCompilationUnit.functions[0].computeNode();
     BlockFunctionBody body = main.functionExpression.body;
     ExpressionStatement stmt = body.block.statements[0];
     AssignmentExpression assignment = stmt.expression;
@@ -1708,9 +1708,9 @@ main() {
     CompilationUnit unit = resolveCompilationUnit(source, library);
     expect(unit, isNotNull);
     ClassDeclaration classDeclaration =
-    unit.declarations[0] as ClassDeclaration;
+        unit.declarations[0] as ClassDeclaration;
     MethodDeclaration methodDeclaration =
-    classDeclaration.members[0] as MethodDeclaration;
+        classDeclaration.members[0] as MethodDeclaration;
     Block block = (methodDeclaration.body as BlockFunctionBody).block;
     ExpressionStatement statement = block.statements[0] as ExpressionStatement;
     MethodInvocation invocation = statement.expression as MethodInvocation;

@@ -77,7 +77,6 @@ void main() {
         /*warning:NON_VOID_RETURN_FOR_SETTER*/int set i(y) {return 4;}
       }
     ''');
-
   });
 
   test('if/for/do/while statements use boolean conversion', () {
@@ -686,7 +685,6 @@ void main() {
     });
 
     test('dynamic - known functions', () {
-
       // Our lattice should look like this:
       //
       //

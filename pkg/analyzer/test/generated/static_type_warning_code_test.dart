@@ -368,8 +368,7 @@ f() {
   }
 
   void test_forIn_dynamic() {
-    assertNoErrorsInCode(
-        '''
+    assertNoErrorsInCode('''
 f() {
   dynamic d; // Could be [].
   for (var i in d) {}
@@ -433,8 +432,7 @@ f() {
   }
 
   void test_forIn_object() {
-    assertNoErrorsInCode(
-        '''
+    assertNoErrorsInCode('''
 f() {
   Object o; // Could be [].
   for (var i in o) {}

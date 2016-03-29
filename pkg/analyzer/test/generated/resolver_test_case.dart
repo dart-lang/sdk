@@ -520,7 +520,7 @@ class ResolverTestCase extends EngineTestCase {
    */
   FileBasedSource createNamedSource(String fileName) {
     FileBasedSource source =
-    new FileBasedSource(FileUtilities2.createFile(fileName));
+        new FileBasedSource(FileUtilities2.createFile(fileName));
     analysisContext2.setContents(source, "");
     return source;
   }
@@ -536,8 +536,7 @@ class ResolverTestCase extends EngineTestCase {
       AnalysisContext context, String libraryName,
       [List<String> typeNames]) {
     String fileName = "$libraryName.dart";
-    FileBasedSource definingCompilationUnitSource =
-    createNamedSource(fileName);
+    FileBasedSource definingCompilationUnitSource = createNamedSource(fileName);
     List<CompilationUnitElement> sourcedCompilationUnits;
     if (typeNames == null) {
       sourcedCompilationUnits = CompilationUnitElement.EMPTY_LIST;
@@ -547,10 +546,10 @@ class ResolverTestCase extends EngineTestCase {
       for (int i = 0; i < count; i++) {
         String typeName = typeNames[i];
         ClassElementImpl type =
-        new ClassElementImpl.forNode(AstFactory.identifier3(typeName));
+            new ClassElementImpl.forNode(AstFactory.identifier3(typeName));
         String fileName = "$typeName.dart";
         CompilationUnitElementImpl compilationUnit =
-        new CompilationUnitElementImpl(fileName);
+            new CompilationUnitElementImpl(fileName);
         compilationUnit.source = createNamedSource(fileName);
         compilationUnit.librarySource = definingCompilationUnitSource;
         compilationUnit.types = <ClassElement>[type];
@@ -558,7 +557,7 @@ class ResolverTestCase extends EngineTestCase {
       }
     }
     CompilationUnitElementImpl compilationUnit =
-    new CompilationUnitElementImpl(fileName);
+        new CompilationUnitElementImpl(fileName);
     compilationUnit.librarySource =
         compilationUnit.source = definingCompilationUnitSource;
     LibraryElementImpl library = new LibraryElementImpl.forNode(
@@ -599,7 +598,7 @@ class ResolverTestCase extends EngineTestCase {
   }
 
   Expression findTopLevelConstantExpression(
-      CompilationUnit compilationUnit, String name) =>
+          CompilationUnit compilationUnit, String name) =>
       findTopLevelDeclaration(compilationUnit, name).initializer;
 
   VariableDeclaration findTopLevelDeclaration(
@@ -656,7 +655,7 @@ class ResolverTestCase extends EngineTestCase {
    * @throws Exception if the compilation unit could not be resolved
    */
   CompilationUnit resolveCompilationUnit(
-      Source source, LibraryElement library) =>
+          Source source, LibraryElement library) =>
       analysisContext2.resolveCompilationUnit(source, library);
 
   CompilationUnit resolveSource(String sourceText) =>
@@ -671,7 +670,7 @@ class ResolverTestCase extends EngineTestCase {
   Source resolveSources(List<String> sourceTexts) {
     for (int i = 0; i < sourceTexts.length; i++) {
       CompilationUnit unit =
-      resolveSource2("/lib${i + 1}.dart", sourceTexts[i]);
+          resolveSource2("/lib${i + 1}.dart", sourceTexts[i]);
       // reference the source if this is the last source
       if (i + 1 == sourceTexts.length) {
         return unit.element.source;
@@ -800,7 +799,7 @@ class StaticTypeAnalyzer2TestShared extends ResolverTestCase {
   void expectInitializerType(String name, type, [propagatedType]) {
     SimpleIdentifier identifier = findIdentifier(name);
     VariableDeclaration declaration =
-    identifier.getAncestor((node) => node is VariableDeclaration);
+        identifier.getAncestor((node) => node is VariableDeclaration);
     Expression initializer = declaration.initializer;
     _expectType(initializer.staticType, type);
     if (propagatedType != null) {

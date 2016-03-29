@@ -39,13 +39,13 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
   Asserter<DartType> _isString;
 
   AsserterBuilder2<Asserter<DartType>, Asserter<DartType>, DartType>
-  _isFunction2Of;
+      _isFunction2Of;
   AsserterBuilder<List<Asserter<DartType>>, InterfaceType> _isFutureOf;
   AsserterBuilderBuilder<Asserter<DartType>, List<Asserter<DartType>>, DartType>
-  _isInstantiationOf;
+      _isInstantiationOf;
   AsserterBuilder<Asserter<DartType>, InterfaceType> _isListOf;
   AsserterBuilder2<Asserter<DartType>, Asserter<DartType>, InterfaceType>
-  _isMapOf;
+      _isMapOf;
   AsserterBuilder<List<Asserter<DartType>>, InterfaceType> _isStreamOf;
   AsserterBuilder<DartType, DartType> _isType;
 
@@ -264,7 +264,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
    ''';
     CompilationUnit unit = resolveSource(code);
     List<Statement> statements =
-    AstFinder.getStatementsInTopLevelFunction(unit, "main");
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
     CascadeExpression fetch(int i) {
       VariableDeclarationStatement stmt = statements[i];
       VariableDeclaration decl = stmt.variables.variables[0];
@@ -291,7 +291,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
    ''';
     CompilationUnit unit = resolveSource(code);
     ConstructorDeclaration constructor =
-    AstFinder.getConstructorInClass(unit, "A", null);
+        AstFinder.getConstructorInClass(unit, "A", null);
     ConstructorFieldInitializer assignment = constructor.initializers[0];
     Expression exp = assignment.expression;
     _isListOf(_isString)(exp.staticType);
@@ -307,7 +307,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
     CompilationUnit unit = resolveSource(code);
 
     ConstructorDeclaration constructor =
-    AstFinder.getConstructorInClass(unit, "A", null);
+        AstFinder.getConstructorInClass(unit, "A", null);
     BlockFunctionBody body = constructor.body;
     ReturnStatement stmt = body.block.statements[0];
     InstanceCreationExpression exp = stmt.expression;
@@ -353,7 +353,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
     assertListOfInt(body.expression.staticType);
 
     List<Statement> statements =
-    AstFinder.getStatementsInTopLevelFunction(unit, "test2");
+        AstFinder.getStatementsInTopLevelFunction(unit, "test2");
 
     FunctionDeclaration inner =
         (statements[0] as FunctionDeclarationStatement).functionDeclaration;
@@ -384,7 +384,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
    ''';
     CompilationUnit unit = resolveSource(code);
     List<Statement> statements =
-    AstFinder.getStatementsInTopLevelFunction(unit, "main");
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
     DartType literal(int i) {
       VariableDeclarationStatement stmt = statements[i];
       VariableDeclaration decl = stmt.variables.variables[0];
@@ -412,7 +412,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
    ''';
     CompilationUnit unit = resolveSource(code);
     List<Statement> statements =
-    AstFinder.getStatementsInTopLevelFunction(unit, "main");
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
     DartType literal(int i) {
       VariableDeclarationStatement stmt = statements[i];
       VariableDeclaration decl = stmt.variables.variables[0];
@@ -439,7 +439,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
    ''';
     CompilationUnit unit = resolveSource(code);
     List<Statement> statements =
-    AstFinder.getStatementsInTopLevelFunction(unit, "main");
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
     Expression functionReturnValue(int i) {
       VariableDeclarationStatement stmt = statements[i];
       VariableDeclaration decl = stmt.variables.variables[0];
@@ -475,7 +475,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
    ''';
     CompilationUnit unit = resolveSource(code);
     List<Statement> statements =
-    AstFinder.getStatementsInTopLevelFunction(unit, "main");
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
     DartType literal(int i) {
       ExpressionStatement stmt = statements[i];
       FunctionExpressionInvocation invk = stmt.expression;
@@ -505,7 +505,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
    ''';
     CompilationUnit unit = resolveSource(code);
     List<Statement> statements =
-    AstFinder.getStatementsInTopLevelFunction(unit, "main");
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
     DartType literal(int i) {
       ExpressionStatement stmt = statements[i];
       FunctionExpressionInvocation invk = stmt.expression;
@@ -533,7 +533,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
    ''';
     CompilationUnit unit = resolveSource(code);
     List<Statement> statements =
-    AstFinder.getStatementsInTopLevelFunction(unit, "main");
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
     DartType literal(int i) {
       ExpressionStatement stmt = statements[i];
       MethodInvocation invk = stmt.expression;
@@ -561,7 +561,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
    ''';
     CompilationUnit unit = resolveSource(code);
     List<Statement> statements =
-    AstFinder.getStatementsInTopLevelFunction(unit, "main");
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
     DartType literal(int i) {
       ExpressionStatement stmt = statements[i];
       MethodInvocation invk = stmt.expression;
@@ -591,7 +591,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
    ''';
     CompilationUnit unit = resolveSource(code);
     List<Statement> statements =
-    AstFinder.getStatementsInTopLevelFunction(unit, "main");
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
     DartType literal(int i) {
       ExpressionStatement stmt = statements[i];
       MethodInvocation invk = stmt.expression;
@@ -621,7 +621,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
    ''';
     CompilationUnit unit = resolveSource(code);
     List<Statement> statements =
-    AstFinder.getStatementsInTopLevelFunction(unit, "main");
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
     DartType literal(int i) {
       ExpressionStatement stmt = statements[i];
       MethodInvocation invk = stmt.expression;
@@ -649,7 +649,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
    ''';
     CompilationUnit unit = resolveSource(code);
     List<Statement> statements =
-    AstFinder.getStatementsInTopLevelFunction(unit, "main");
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
     Expression functionReturnValue(int i) {
       VariableDeclarationStatement stmt = statements[i];
       VariableDeclaration decl = stmt.variables.variables[0];
@@ -794,21 +794,21 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
     Element elementF = AstFinder.getClass(unit, "F").element;
 
     AsserterBuilder<List<Asserter<DartType>>, DartType> assertAOf =
-    _isInstantiationOf(_hasElement(elementA));
+        _isInstantiationOf(_hasElement(elementA));
     AsserterBuilder<List<Asserter<DartType>>, DartType> assertBOf =
-    _isInstantiationOf(_hasElement(elementB));
+        _isInstantiationOf(_hasElement(elementB));
     AsserterBuilder<List<Asserter<DartType>>, DartType> assertCOf =
-    _isInstantiationOf(_hasElement(elementC));
+        _isInstantiationOf(_hasElement(elementC));
     AsserterBuilder<List<Asserter<DartType>>, DartType> assertDOf =
-    _isInstantiationOf(_hasElement(elementD));
+        _isInstantiationOf(_hasElement(elementD));
     AsserterBuilder<List<Asserter<DartType>>, DartType> assertEOf =
-    _isInstantiationOf(_hasElement(elementE));
+        _isInstantiationOf(_hasElement(elementE));
     AsserterBuilder<List<Asserter<DartType>>, DartType> assertFOf =
-    _isInstantiationOf(_hasElement(elementF));
+        _isInstantiationOf(_hasElement(elementF));
 
     {
       List<Statement> statements =
-      AstFinder.getStatementsInTopLevelFunction(unit, "test0");
+          AstFinder.getStatementsInTopLevelFunction(unit, "test0");
 
       hasType(assertAOf([_isInt, _isString]), rhs(statements[0]));
       hasType(assertAOf([_isInt, _isString]), rhs(statements[0]));
@@ -821,14 +821,14 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
 
     {
       List<Statement> statements =
-      AstFinder.getStatementsInTopLevelFunction(unit, "test1");
+          AstFinder.getStatementsInTopLevelFunction(unit, "test1");
       hasType(assertAOf([_isInt, _isString]), rhs(statements[0]));
       hasType(assertAOf([_isInt, _isString]), rhs(statements[1]));
     }
 
     {
       List<Statement> statements =
-      AstFinder.getStatementsInTopLevelFunction(unit, "test2");
+          AstFinder.getStatementsInTopLevelFunction(unit, "test2");
       hasType(assertBOf([_isString, _isInt]), rhs(statements[0]));
       hasType(assertBOf([_isString, _isInt]), rhs(statements[1]));
       hasType(assertBOf([_isString, _isInt]), rhs(statements[2]));
@@ -839,14 +839,14 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
 
     {
       List<Statement> statements =
-      AstFinder.getStatementsInTopLevelFunction(unit, "test3");
+          AstFinder.getStatementsInTopLevelFunction(unit, "test3");
       hasType(assertBOf([_isString, _isInt]), rhs(statements[0]));
       hasType(assertBOf([_isString, _isInt]), rhs(statements[1]));
     }
 
     {
       List<Statement> statements =
-      AstFinder.getStatementsInTopLevelFunction(unit, "test4");
+          AstFinder.getStatementsInTopLevelFunction(unit, "test4");
       hasType(assertCOf([_isInt]), rhs(statements[0]));
       hasType(assertCOf([_isInt]), rhs(statements[1]));
       hasType(assertCOf([_isInt]), rhs(statements[2]));
@@ -857,7 +857,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
 
     {
       List<Statement> statements =
-      AstFinder.getStatementsInTopLevelFunction(unit, "test5");
+          AstFinder.getStatementsInTopLevelFunction(unit, "test5");
       hasType(assertCOf([_isInt]), rhs(statements[0]));
       hasType(assertCOf([_isInt]), rhs(statements[1]));
     }
@@ -867,7 +867,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
       // context.  We could choose a tighter type, but currently
       // we just use dynamic.
       List<Statement> statements =
-      AstFinder.getStatementsInTopLevelFunction(unit, "test6");
+          AstFinder.getStatementsInTopLevelFunction(unit, "test6");
       hasType(assertDOf([_isDynamic, _isString]), rhs(statements[0]));
       hasType(assertDOf([_isDynamic, _isString]), rhs(statements[1]));
       hasType(assertDOf([_isInt, _isString]), rhs(statements[2]));
@@ -878,20 +878,20 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
 
     {
       List<Statement> statements =
-      AstFinder.getStatementsInTopLevelFunction(unit, "test7");
+          AstFinder.getStatementsInTopLevelFunction(unit, "test7");
       hasType(assertDOf([_isDynamic, _isString]), rhs(statements[0]));
       hasType(assertDOf([_isDynamic, _isString]), rhs(statements[1]));
     }
 
     {
       List<Statement> statements =
-      AstFinder.getStatementsInTopLevelFunction(unit, "test8");
+          AstFinder.getStatementsInTopLevelFunction(unit, "test8");
       hasType(assertEOf([_isDynamic, _isDynamic]), rhs(statements[0]));
     }
 
     {
       List<Statement> statements =
-      AstFinder.getStatementsInTopLevelFunction(unit, "test9");
+          AstFinder.getStatementsInTopLevelFunction(unit, "test9");
       hasType(assertFOf([_isInt, _isString]), rhs(statements[0]));
       hasType(assertFOf([_isInt, _isString]), rhs(statements[1]));
       hasType(assertFOf([_isInt, _isString]), rhs(statements[2]));
@@ -912,7 +912,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
    ''';
     CompilationUnit unit = resolveSource(code);
     List<Statement> statements =
-    AstFinder.getStatementsInTopLevelFunction(unit, "main");
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
     ListLiteral literal(int i) {
       VariableDeclarationStatement stmt = statements[i];
       VariableDeclaration decl = stmt.variables.variables[0];
@@ -944,7 +944,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
    ''';
     CompilationUnit unit = resolveSource(code);
     List<Statement> statements =
-    AstFinder.getStatementsInTopLevelFunction(unit, "main");
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
     DartType literal(int i) {
       VariableDeclarationStatement stmt = statements[i];
       VariableDeclaration decl = stmt.variables.variables[0];
@@ -971,7 +971,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
    ''';
     CompilationUnit unit = resolveSource(code);
     List<Statement> statements =
-    AstFinder.getStatementsInTopLevelFunction(unit, "main");
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
     DartType literal(int i) {
       VariableDeclarationStatement stmt = statements[i];
       VariableDeclaration decl = stmt.variables.variables[0];
@@ -998,7 +998,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
    ''';
     CompilationUnit unit = resolveSource(code);
     List<Statement> statements =
-    AstFinder.getStatementsInTopLevelFunction(unit, "main");
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
     DartType literal(int i) {
       VariableDeclarationStatement stmt = statements[i];
       VariableDeclaration decl = stmt.variables.variables[0];
@@ -1023,7 +1023,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
    ''';
     CompilationUnit unit = resolveSource(code);
     List<Statement> statements =
-    AstFinder.getStatementsInTopLevelFunction(unit, "main");
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
     DartType literal(int i) {
       VariableDeclarationStatement stmt = statements[i];
       VariableDeclaration decl = stmt.variables.variables[0];
@@ -1051,7 +1051,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
    ''';
     CompilationUnit unit = resolveSource(code);
     List<Statement> statements =
-    AstFinder.getStatementsInTopLevelFunction(unit, "main");
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
     MapLiteral literal(int i) {
       VariableDeclarationStatement stmt = statements[i];
       VariableDeclaration decl = stmt.variables.variables[0];
@@ -1061,7 +1061,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
 
     Asserter<InterfaceType> assertListOfString = _isListOf(_isString);
     Asserter<InterfaceType> assertMapOfIntToListOfString =
-    _isMapOf(_isInt, assertListOfString);
+        _isMapOf(_isInt, assertListOfString);
 
     assertMapOfIntToListOfString(literal(0).staticType);
     assertMapOfIntToListOfString(literal(1).staticType);
@@ -1087,7 +1087,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
    ''';
     CompilationUnit unit = resolveSource(code);
     List<Statement> statements =
-    AstFinder.getStatementsInTopLevelFunction(unit, "main");
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
     DartType literal(int i) {
       VariableDeclarationStatement stmt = statements[i];
       VariableDeclaration decl = stmt.variables.variables[0];
@@ -1096,7 +1096,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
     }
 
     Asserter<InterfaceType> assertMapOfIntToString =
-    _isMapOf(_isInt, _isString);
+        _isMapOf(_isInt, _isString);
 
     assertMapOfIntToString(literal(0));
     assertMapOfIntToString(literal(1));
@@ -1115,7 +1115,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
    ''';
     CompilationUnit unit = resolveSource(code);
     List<Statement> statements =
-    AstFinder.getStatementsInTopLevelFunction(unit, "main");
+        AstFinder.getStatementsInTopLevelFunction(unit, "main");
     DartType literal(int i) {
       VariableDeclarationStatement stmt = statements[i];
       VariableDeclaration decl = stmt.variables.variables[0];
@@ -1124,7 +1124,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
     }
 
     Asserter<InterfaceType> assertMapOfIntToDynamic =
-    _isMapOf(_isInt, _isDynamic);
+        _isMapOf(_isInt, _isDynamic);
 
     assertMapOfIntToDynamic(literal(0));
     assertMapOfIntToDynamic(literal(1));
@@ -1142,7 +1142,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
     CompilationUnit unit = resolveSource(code);
     Expression methodReturnValue(String methodName) {
       MethodDeclaration method =
-      AstFinder.getMethodInClass(unit, "A", methodName);
+          AstFinder.getMethodInClass(unit, "A", methodName);
       FunctionBody body = method.body;
       if (body is ExpressionFunctionBody) {
         return body.expression;
@@ -1166,7 +1166,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
     CompilationUnit unit = resolveSource(code);
 
     ConstructorDeclaration constructor =
-    AstFinder.getConstructorInClass(unit, "A", null);
+        AstFinder.getConstructorInClass(unit, "A", null);
     RedirectingConstructorInvocation invocation = constructor.initializers[0];
     Expression exp = invocation.argumentList.arguments[0];
     _isListOf(_isString)(exp.staticType);
@@ -1184,7 +1184,7 @@ class StrongModeDownwardsInferenceTest extends ResolverTestCase {
     CompilationUnit unit = resolveSource(code);
 
     ConstructorDeclaration constructor =
-    AstFinder.getConstructorInClass(unit, "A", null);
+        AstFinder.getConstructorInClass(unit, "A", null);
     SuperConstructorInvocation invocation = constructor.initializers[0];
     Expression exp = invocation.argumentList.arguments[0];
     _isListOf(_isString)(exp.staticType);
@@ -1389,7 +1389,7 @@ class D<S> {
 
     checkBody(String className) {
       List<Statement> statements =
-      AstFinder.getStatementsInMethod(testUnit, className, "g");
+          AstFinder.getStatementsInMethod(testUnit, className, "g");
 
       for (int i = 1; i <= 5; i++) {
         Expression exp = (statements[i] as ExpressionStatement).expression;
@@ -1725,7 +1725,7 @@ class D extends C {
     expectFunctionType('f/*<T>*/(/*=T*/ x) => null; // from D', '<T>(T) → T',
         elementTypeParams: '[T]', typeFormals: '[T]');
     SimpleIdentifier f =
-    findIdentifier('f/*<T>*/(/*=T*/ x) => null; // from D');
+        findIdentifier('f/*<T>*/(/*=T*/ x) => null; // from D');
     MethodElementImpl e = f.staticElement;
     FunctionType ft = e.type.instantiate([typeProvider.stringType]);
     expect(ft.toString(), '(String) → String');
@@ -1967,9 +1967,7 @@ class A {
 set g(int x) => 42;
 ''');
     computeLibrarySourceErrors(source);
-    assertErrors(source, [
-      StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,
-    ]);
+    assertErrors(source, [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE,]);
     verify([source]);
   }
 

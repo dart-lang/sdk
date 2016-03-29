@@ -644,8 +644,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           : functionType.returnType;
       bool isSetterWithImplicitReturn =
           _enclosingFunction.hasImplicitReturnType &&
-          _enclosingFunction is PropertyAccessorElement &&
-          (_enclosingFunction as PropertyAccessorElement).isSetter;
+              _enclosingFunction is PropertyAccessorElement &&
+              (_enclosingFunction as PropertyAccessorElement).isSetter;
       if (!isSetterWithImplicitReturn) {
         _checkForReturnOfInvalidType(node.expression, expectedReturnType);
       }
