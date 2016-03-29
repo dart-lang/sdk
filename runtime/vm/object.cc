@@ -3340,6 +3340,10 @@ TokenPosition Class::ComputeEndTokenPos() const {
   const Script& scr = Script::Handle(script());
   ASSERT(!scr.IsNull());
   const TokenStream& tkns = TokenStream::Handle(scr.tokens());
+  if (tkns.IsNull()) {
+    ASSERT(Dart::IsRunningPrecompiledCode());
+    return TokenPosition::kNoSource;
+  }
   TokenStream::Iterator tkit(tkns,
                              token_pos(),
                              TokenStream::Iterator::kNoNewlines);

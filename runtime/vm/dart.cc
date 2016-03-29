@@ -161,6 +161,8 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
       StubCode::InitOnce();
     }
     if (vm_isolate_snapshot != NULL) {
+      NOT_IN_PRODUCT(TimelineDurationScope tds(Timeline::GetVMStream(),
+                                               "VMIsolateSnapshot"));
       if (data_snapshot != NULL) {
         vm_isolate_->SetupDataSnapshotPage(data_snapshot);
       }
@@ -202,7 +204,11 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
       return "SSE2 is required.";
     }
 #endif
-    Object::FinalizeVMIsolate(vm_isolate_);
+    {
+      NOT_IN_PRODUCT(TimelineDurationScope tds(Timeline::GetVMStream(),
+                                               "FinalizeVMIsolate"));
+      Object::FinalizeVMIsolate(vm_isolate_);
+    }
 #if defined(DEBUG)
     vm_isolate_->heap()->Verify(kRequireMarked);
 #endif

@@ -814,9 +814,12 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
   result = DartUtils::PrepareForScriptLoading(false, trace_loading);
   CHECK_RESULT(result);
 
-  if (run_service_isolate) {
+  if (!run_precompiled_snapshot && !run_full_snapshot) {
     // Set up the load port provided by the service isolate so that we can
     // load scripts.
+    // With a full snapshot or a precompiled snapshot in product mode, there is
+    // no service isolate. A precompiled snapshot in release or debug mode does
+    // have the service isolate, but it doesn't use it for loading.
     result = DartUtils::SetupServiceLoadPort();
     CHECK_RESULT(result);
   }
