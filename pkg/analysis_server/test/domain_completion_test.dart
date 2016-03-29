@@ -211,47 +211,6 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
     });
   }
 
-  test_invocation() {
-    addTestFile('class A {b() {}} main() {A a; a.^}');
-    return getSuggestions().then((_) {
-      expect(replacementOffset, equals(completionOffset));
-      expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'b');
-    });
-  }
-
-  test_invocation_sdk_relevancy_off() {
-    var originalSorter = DartCompletionManager.contributionSorter;
-    var mockSorter = new MockRelevancySorter();
-    DartCompletionManager.contributionSorter = mockSorter;
-    addTestFile('main() {Map m; m.^}');
-    return getSuggestions().then((_) {
-      // Assert that the CommonUsageComputer has been replaced
-      expect(suggestions.any((s) => s.relevance == DART_RELEVANCE_COMMON_USAGE),
-          isFalse);
-      DartCompletionManager.contributionSorter = originalSorter;
-      mockSorter.enabled = false;
-    });
-  }
-
-  test_invocation_sdk_relevancy_on() {
-    addTestFile('main() {Map m; m.^}');
-    return getSuggestions().then((_) {
-      // Assert that the CommonUsageComputer is working
-      expect(suggestions.any((s) => s.relevance == DART_RELEVANCE_COMMON_USAGE),
-          isTrue);
-    });
-  }
-
-  test_invocation_withTrailingStmt() {
-    addTestFile('class A {b() {}} main() {A a; a.^ int x = 7;}');
-    return getSuggestions().then((_) {
-      expect(replacementOffset, equals(completionOffset));
-      expect(replacementLength, equals(0));
-      assertHasResult(CompletionSuggestionKind.INVOCATION, 'b');
-    });
-  }
-
   test_inComment_block_beforeNode() async {
     addTestFile('''
   main(aaa, bbb) {
@@ -345,6 +304,47 @@ class B extends A {
       expect(replacementOffset, equals(completionOffset));
       expect(replacementLength, equals(0));
       assertHasResult(CompletionSuggestionKind.INVOCATION, 'm');
+    });
+  }
+
+  test_invocation() {
+    addTestFile('class A {b() {}} main() {A a; a.^}');
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset));
+      expect(replacementLength, equals(0));
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'b');
+    });
+  }
+
+  test_invocation_sdk_relevancy_off() {
+    var originalSorter = DartCompletionManager.contributionSorter;
+    var mockSorter = new MockRelevancySorter();
+    DartCompletionManager.contributionSorter = mockSorter;
+    addTestFile('main() {Map m; m.^}');
+    return getSuggestions().then((_) {
+      // Assert that the CommonUsageComputer has been replaced
+      expect(suggestions.any((s) => s.relevance == DART_RELEVANCE_COMMON_USAGE),
+          isFalse);
+      DartCompletionManager.contributionSorter = originalSorter;
+      mockSorter.enabled = false;
+    });
+  }
+
+  test_invocation_sdk_relevancy_on() {
+    addTestFile('main() {Map m; m.^}');
+    return getSuggestions().then((_) {
+      // Assert that the CommonUsageComputer is working
+      expect(suggestions.any((s) => s.relevance == DART_RELEVANCE_COMMON_USAGE),
+          isTrue);
+    });
+  }
+
+  test_invocation_withTrailingStmt() {
+    addTestFile('class A {b() {}} main() {A a; a.^ int x = 7;}');
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset));
+      expect(replacementLength, equals(0));
+      assertHasResult(CompletionSuggestionKind.INVOCATION, 'b');
     });
   }
 

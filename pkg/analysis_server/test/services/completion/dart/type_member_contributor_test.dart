@@ -53,571 +53,16 @@ void f(Derived d) {
     }
   }
 
-  fail_test_PrefixedIdentifier_trailingStmt_const_untyped() async {
-    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addTestSource('const g = "hello"; f() {g.^ int y = 0;}');
-    await computeSuggestions();
-    assertSuggestGetter('length', 'int');
-  }
-
   @override
   DartCompletionContributor createContributor() {
     return new TypeMemberContributor();
   }
 
-  test_enumConst() async {
-    addTestSource('enum E { one, two } main() {E.^}');
-    await computeSuggestions();
-    assertNotSuggested('E');
-    // Suggested by StaticMemberContributor
-    assertNotSuggested('one');
-    assertNotSuggested('two');
-    assertNotSuggested('index');
-    assertNotSuggested('values');
-  }
-
-  test_enumConst2() async {
-    addTestSource('enum E { one, two } main() {E.o^}');
-    await computeSuggestions();
-    assertNotSuggested('E');
-    // Suggested by StaticMemberContributor
-    assertNotSuggested('one');
-    assertNotSuggested('two');
-    assertNotSuggested('index');
-    assertNotSuggested('values');
-  }
-
-  test_enumConst3() async {
-    addTestSource('enum E { one, two } main() {E.^ int g;}');
-    await computeSuggestions();
-    assertNotSuggested('E');
-    // Suggested by StaticMemberContributor
-    assertNotSuggested('one');
-    assertNotSuggested('two');
-    assertNotSuggested('index');
-    assertNotSuggested('values');
-  }
-
-  test_enumConst_index() async {
-    addTestSource('enum E { one, two } main() {E.one.^}');
-    await computeSuggestions();
-    assertNotSuggested('E');
-    assertNotSuggested('one');
-    assertNotSuggested('two');
-    assertSuggestField('index', 'int');
-    assertNotSuggested('values');
-  }
-
-  test_enumConst_index2() async {
-    addTestSource('enum E { one, two } main() {E.one.i^}');
-    await computeSuggestions();
-    assertNotSuggested('E');
-    assertNotSuggested('one');
-    assertNotSuggested('two');
-    assertSuggestField('index', 'int');
-    assertNotSuggested('values');
-  }
-
-  test_enumConst_index3() async {
-    addTestSource('enum E { one, two } main() {E.one.^ int g;}');
-    await computeSuggestions();
-    assertNotSuggested('E');
-    assertNotSuggested('one');
-    assertNotSuggested('two');
-    assertSuggestField('index', 'int');
-    assertNotSuggested('values');
-  }
-
-  test_generic_field() async {
-    addTestSource('''
-class C<T> {
-  T t;
-}
-void f(C<int> c) {
-  c.^
-}
-''');
-    await computeSuggestions();
-    assertSuggestField('t', 'int');
-  }
-
-  test_generic_getter() async {
-    addTestSource('''
-class C<T> {
-  T get t => null;
-}
-void f(C<int> c) {
-  c.^
-}
-''');
-    await computeSuggestions();
-    assertSuggestGetter('t', 'int');
-  }
-
-  test_generic_method() async {
-    addTestSource('''
-class C<T> {
-  T m(T t) {}
-}
-void f(C<int> c) {
-  c.^
-}
-''');
-    await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'int');
-    expect(suggestion.parameterTypes[0], 'int');
-    expect(suggestion.element.returnType, 'int');
-    expect(suggestion.element.parameters, '(int t)');
-  }
-
-  test_generic_setter() async {
-    addTestSource('''
-class C<T> {
-  set t(T value) {}
-}
-void f(C<int> c) {
-  c.^
-}
-''');
-    await computeSuggestions();
-    // TODO(paulberry): modify assertSuggestSetter so that we can pass 'int'
-    // as a parmeter to it, and it will check the appropriate field in
-    // the suggestion object.
-    CompletionSuggestion suggestion = assertSuggestSetter('t');
-    expect(suggestion.element.parameters, '(int value)');
-  }
-
-  test_keyword() async {
-    addTestSource('class C { static C get instance => null; } main() {C.in^}');
-    await computeSuggestions();
-    // Suggested by StaticMemberContributor
-    assertNotSuggested('instance');
-  }
-
-  test_libraryPrefix() async {
+  fail_test_PrefixedIdentifier_trailingStmt_const_untyped() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addTestSource('import "dart:async" as bar; foo() {bar.^}');
-    await computeSuggestions();
-    // Suggested by LibraryMemberContributor
-    assertNotSuggested('Future');
-    assertNotSuggested('loadLibrary');
-  }
-
-  test_libraryPrefix2() async {
-    // SimpleIdentifier  MethodInvocation  ExpressionStatement
-    addTestSource('import "dart:async" as bar; foo() {bar.^ print("f")}');
-    await computeSuggestions();
-    // Suggested by LibraryMemberContributor
-    assertNotSuggested('Future');
-  }
-
-  test_libraryPrefix3() async {
-    // SimpleIdentifier  MethodInvocation  ExpressionStatement
-    addTestSource('import "dart:async" as bar; foo() {new bar.F^ print("f")}');
-    await computeSuggestions();
-    // Suggested by LibraryMemberContributor
-    assertNotSuggested('Future');
-    assertNotSuggested('Future.delayed');
-  }
-
-  test_libraryPrefix_deferred() async {
-    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addTestSource('import "dart:async" deferred as bar; foo() {bar.^}');
-    await computeSuggestions();
-    // Suggested by LibraryMemberContributor
-    assertNotSuggested('Future');
-    assertNotSuggested('loadLibrary');
-  }
-
-  test_libraryPrefix_with_exports() async {
-    addSource('/libA.dart', 'library libA; class A { }');
-    addSource('/libB.dart', 'library libB; export "/libA.dart"; class B { }');
-    addTestSource('import "/libB.dart" as foo; main() {foo.^} class C { }');
-    await computeSuggestions();
-    // Suggested by LibraryMemberContributor
-    assertNotSuggested('B');
-    assertNotSuggested('A');
-  }
-
-  test_local() async {
-    addTestSource('foo() {String x = "bar"; x.^}');
+    addTestSource('const g = "hello"; f() {g.^ int y = 0;}');
     await computeSuggestions();
     assertSuggestGetter('length', 'int');
-  }
-
-  test_local_is() async {
-    addTestSource('foo() {var x; if (x is String) x.^}');
-    await computeSuggestions();
-    assertSuggestGetter('length', 'int');
-  }
-
-  test_local_propogatedType() async {
-    addTestSource('foo() {var x = "bar"; x.^}');
-    await computeSuggestions();
-    assertSuggestGetter('length', 'int');
-  }
-
-  test_method_parameters_mixed_required_and_named() async {
-    addTestSource('''
-class C {
-  void m(x, {int y}) {}
-}
-void main() {new C().^}''');
-    await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
-    expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
-    expect(suggestion.requiredParameterCount, 1);
-    expect(suggestion.hasNamedParameters, true);
-  }
-
-  test_method_parameters_mixed_required_and_positional() async {
-    addTestSource('''
-class C {
-  void m(x, [int y]) {}
-}
-void main() {new C().^}''');
-    await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
-    expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
-    expect(suggestion.requiredParameterCount, 1);
-    expect(suggestion.hasNamedParameters, false);
-  }
-
-  test_method_parameters_named() async {
-    addTestSource('''
-class C {
-  void m({x, int y}) {}
-}
-void main() {new C().^}''');
-    await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
-    expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
-    expect(suggestion.requiredParameterCount, 0);
-    expect(suggestion.hasNamedParameters, true);
-  }
-
-  test_method_parameters_none() async {
-    addTestSource('''
-class C {
-  void m() {}
-}
-void main() {new C().^}''');
-    await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
-    expect(suggestion.parameterNames, isEmpty);
-    expect(suggestion.parameterTypes, isEmpty);
-    expect(suggestion.requiredParameterCount, 0);
-    expect(suggestion.hasNamedParameters, false);
-  }
-
-  test_method_parameters_positional() async {
-    addTestSource('''
-class C {
-  void m([x, int y]) {}
-}
-void main() {new C().^}''');
-    await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
-    expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
-    expect(suggestion.requiredParameterCount, 0);
-    expect(suggestion.hasNamedParameters, false);
-  }
-
-  test_method_parameters_required() async {
-    addTestSource('''
-class C {
-  void m(x, int y) {}
-}
-void main() {new C().^}''');
-    await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
-    expect(suggestion.parameterNames, hasLength(2));
-    expect(suggestion.parameterNames[0], 'x');
-    expect(suggestion.parameterTypes[0], 'dynamic');
-    expect(suggestion.parameterNames[1], 'y');
-    expect(suggestion.parameterTypes[1], 'int');
-    expect(suggestion.requiredParameterCount, 2);
-    expect(suggestion.hasNamedParameters, false);
-  }
-
-  test_no_parameters_field() async {
-    addTestSource('''
-class C {
-  int x;
-}
-void main() {new C().^}''');
-    await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestField('x', 'int');
-    assertHasNoParameterInfo(suggestion);
-  }
-
-  test_no_parameters_getter() async {
-    addTestSource('''
-class C {
-  int get x => null;
-}
-void main() {int y = new C().^}''');
-    await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestGetter('x', 'int');
-    assertHasNoParameterInfo(suggestion);
-  }
-
-  test_no_parameters_setter() async {
-    addTestSource('''
-class C {
-  set x(int value) {};
-}
-void main() {int y = new C().^}''');
-    await computeSuggestions();
-    CompletionSuggestion suggestion = assertSuggestSetter('x');
-    assertHasNoParameterInfo(suggestion);
-  }
-
-  test_only_instance() async {
-    // SimpleIdentifier  PropertyAccess  ExpressionStatement
-    addTestSource('''
-class C {
-  int f1;
-  static int f2;
-  m1() {}
-  static m2() {}
-}
-void main() {new C().^}''');
-    await computeSuggestions();
-    assertSuggestField('f1', 'int');
-    assertNotSuggested('f2');
-    assertSuggestMethod('m1', 'C', null);
-    assertNotSuggested('m2');
-  }
-
-  test_only_instance2() async {
-    // SimpleIdentifier  MethodInvocation  ExpressionStatement
-    addTestSource('''
-class C {
-  int f1;
-  static int f2;
-  m1() {}
-  static m2() {}
-}
-void main() {new C().^ print("something");}''');
-    await computeSuggestions();
-    assertSuggestField('f1', 'int');
-    assertNotSuggested('f2');
-    assertSuggestMethod('m1', 'C', null);
-    assertNotSuggested('m2');
-  }
-
-  test_only_static() async {
-    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
-    addTestSource('''
-class C {
-  int f1;
-  static int f2;
-  m1() {}
-  static m2() {}
-}
-void main() {C.^}''');
-    await computeSuggestions();
-    assertNotSuggested('f1');
-    // Suggested by StaticMemberContributor
-    assertNotSuggested('f2');
-    assertNotSuggested('m1');
-    assertNotSuggested('m2');
-  }
-
-  test_only_static2() async {
-    // SimpleIdentifier  MethodInvocation  ExpressionStatement
-    addTestSource('''
-class C {
-  int f1;
-  static int f2;
-  m1() {}
-  static m2() {}
-}
-void main() {C.^ print("something");}''');
-    await computeSuggestions();
-    assertNotSuggested('f1');
-    // Suggested by StaticMemberContributor
-    assertNotSuggested('f2');
-    assertNotSuggested('m1');
-    assertNotSuggested('m2');
-  }
-
-  test_param() async {
-    addTestSource('foo(String x) {x.^}');
-    await computeSuggestions();
-    assertSuggestGetter('length', 'int');
-  }
-
-  test_param_is() async {
-    addTestSource('foo(x) {if (x is String) x.^}');
-    await computeSuggestions();
-    assertSuggestGetter('length', 'int');
-  }
-
-  test_shadowing_field_over_field() =>
-      check_shadowing('int x;', 'int x;', true);
-
-  test_shadowing_field_over_getter() =>
-      check_shadowing('int x;', 'int get x => null;', true);
-
-  test_shadowing_field_over_method() =>
-      check_shadowing('int x;', 'void x() {}', true);
-
-  test_shadowing_field_over_setter() =>
-      check_shadowing('int x;', 'set x(int value) {}', true);
-
-  test_shadowing_getter_over_field() =>
-      check_shadowing('int get x => null;', 'int x;', false);
-
-  test_shadowing_getter_over_getter() =>
-      check_shadowing('int get x => null;', 'int get x => null;', true);
-
-  test_shadowing_getter_over_method() =>
-      check_shadowing('int get x => null;', 'void x() {}', true);
-
-  test_shadowing_getter_over_setter() =>
-      check_shadowing('int get x => null;', 'set x(int value) {}', false);
-
-  test_shadowing_method_over_field() =>
-      check_shadowing('void x() {}', 'int x;', true);
-
-  test_shadowing_method_over_getter() =>
-      check_shadowing('void x() {}', 'int get x => null;', true);
-
-  test_shadowing_method_over_method() =>
-      check_shadowing('void x() {}', 'void x() {}', true);
-
-  test_shadowing_method_over_setter() =>
-      check_shadowing('void x() {}', 'set x(int value) {}', true);
-
-  test_shadowing_mixin_order() async {
-    addTestSource('''
-class Base {
-}
-class Mixin1 {
-  void f() {}
-}
-class Mixin2 {
-  void f() {}
-}
-class Derived extends Base with Mixin1, Mixin2 {
-}
-void test(Derived d) {
-  d.^
-}
-''');
-    await computeSuggestions();
-    // Note: due to dartbug.com/22069, analyzer currently analyzes mixins in
-    // reverse order.  The correct order is that Derived inherits from
-    // "Base with Mixin1, Mixin2", which inherits from "Base with Mixin1",
-    // which inherits from "Base".  So the definition of f in Mixin2 should
-    // shadow the definition in Mixin1.
-    assertSuggestMethod('f', 'Mixin2', 'void');
-  }
-
-  test_shadowing_mixin_over_superclass() async {
-    addTestSource('''
-class Base {
-  void f() {}
-}
-class Mixin {
-  void f() {}
-}
-class Derived extends Base with Mixin {
-}
-void test(Derived d) {
-  d.^
-}
-''');
-    await computeSuggestions();
-    assertSuggestMethod('f', 'Mixin', 'void');
-  }
-
-  test_shadowing_setter_over_field() =>
-      check_shadowing('set x(int value) {}', 'int x;', false);
-
-  test_shadowing_setter_over_getter() =>
-      check_shadowing('set x(int value) {}', 'int get x => null;', false);
-
-  test_shadowing_setter_over_method() =>
-      check_shadowing('set x(int value) {}', 'void x() {}', true);
-
-  test_shadowing_setter_over_setter() =>
-      check_shadowing('set x(int value) {}', 'set x(int value) {}', true);
-
-  test_shadowing_superclass_over_interface() async {
-    addTestSource('''
-class Base {
-  void f() {}
-}
-class Interface {
-  void f() {}
-}
-class Derived extends Base implements Interface {
-}
-void test(Derived d) {
-  d.^
-}
-''');
-    await computeSuggestions();
-    assertSuggestMethod('f', 'Base', 'void');
-  }
-
-  test_super() async {
-    // SimpleIdentifier  MethodInvocation  ExpressionStatement
-    addTestSource('''
-class C3 {
-  int fi3;
-  static int fs3;
-  m() {}
-  mi3() {}
-  static ms3() {}
-}
-class C2 {
-  int fi2;
-  static int fs2;
-  m() {}
-  mi2() {}
-  static ms2() {}
-}
-class C1 extends C2 implements C3 {
-  int fi1;
-  static int fs1;
-  m() {super.^}
-  mi1() {}
-  static ms1() {}
-}''');
-    await computeSuggestions();
-    assertNotSuggested('fi1');
-    assertNotSuggested('fs1');
-    assertNotSuggested('mi1');
-    assertNotSuggested('ms1');
-    assertSuggestField('fi2', 'int');
-    assertNotSuggested('fs2');
-    assertSuggestMethod('mi2', 'C2', null);
-    assertNotSuggested('ms2');
-    assertSuggestMethod('m', 'C2', null, relevance: DART_RELEVANCE_HIGH);
-    assertNotSuggested('fi3');
-    assertNotSuggested('fs3');
-    assertNotSuggested('mi3');
-    assertNotSuggested('ms3');
   }
 
   test_ArgumentList() async {
@@ -2272,6 +1717,69 @@ class C1 extends C2 implements C3 {
     assertNotSuggested('bar');
   }
 
+  test_enumConst() async {
+    addTestSource('enum E { one, two } main() {E.^}');
+    await computeSuggestions();
+    assertNotSuggested('E');
+    // Suggested by StaticMemberContributor
+    assertNotSuggested('one');
+    assertNotSuggested('two');
+    assertNotSuggested('index');
+    assertNotSuggested('values');
+  }
+
+  test_enumConst2() async {
+    addTestSource('enum E { one, two } main() {E.o^}');
+    await computeSuggestions();
+    assertNotSuggested('E');
+    // Suggested by StaticMemberContributor
+    assertNotSuggested('one');
+    assertNotSuggested('two');
+    assertNotSuggested('index');
+    assertNotSuggested('values');
+  }
+
+  test_enumConst3() async {
+    addTestSource('enum E { one, two } main() {E.^ int g;}');
+    await computeSuggestions();
+    assertNotSuggested('E');
+    // Suggested by StaticMemberContributor
+    assertNotSuggested('one');
+    assertNotSuggested('two');
+    assertNotSuggested('index');
+    assertNotSuggested('values');
+  }
+
+  test_enumConst_index() async {
+    addTestSource('enum E { one, two } main() {E.one.^}');
+    await computeSuggestions();
+    assertNotSuggested('E');
+    assertNotSuggested('one');
+    assertNotSuggested('two');
+    assertSuggestField('index', 'int');
+    assertNotSuggested('values');
+  }
+
+  test_enumConst_index2() async {
+    addTestSource('enum E { one, two } main() {E.one.i^}');
+    await computeSuggestions();
+    assertNotSuggested('E');
+    assertNotSuggested('one');
+    assertNotSuggested('two');
+    assertSuggestField('index', 'int');
+    assertNotSuggested('values');
+  }
+
+  test_enumConst_index3() async {
+    addTestSource('enum E { one, two } main() {E.one.^ int g;}');
+    await computeSuggestions();
+    assertNotSuggested('E');
+    assertNotSuggested('one');
+    assertNotSuggested('two');
+    assertSuggestField('index', 'int');
+    assertNotSuggested('values');
+  }
+
   test_ExpressionStatement_identifier() async {
     // SimpleIdentifier  ExpressionStatement  Block
     addSource(
@@ -2586,6 +2094,65 @@ class C1 extends C2 implements C3 {
     assertNotSuggested('args');
     assertNotSuggested('b');
     assertNotSuggested('Object');
+  }
+
+  test_generic_field() async {
+    addTestSource('''
+class C<T> {
+  T t;
+}
+void f(C<int> c) {
+  c.^
+}
+''');
+    await computeSuggestions();
+    assertSuggestField('t', 'int');
+  }
+
+  test_generic_getter() async {
+    addTestSource('''
+class C<T> {
+  T get t => null;
+}
+void f(C<int> c) {
+  c.^
+}
+''');
+    await computeSuggestions();
+    assertSuggestGetter('t', 'int');
+  }
+
+  test_generic_method() async {
+    addTestSource('''
+class C<T> {
+  T m(T t) {}
+}
+void f(C<int> c) {
+  c.^
+}
+''');
+    await computeSuggestions();
+    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'int');
+    expect(suggestion.parameterTypes[0], 'int');
+    expect(suggestion.element.returnType, 'int');
+    expect(suggestion.element.parameters, '(int t)');
+  }
+
+  test_generic_setter() async {
+    addTestSource('''
+class C<T> {
+  set t(T value) {}
+}
+void f(C<int> c) {
+  c.^
+}
+''');
+    await computeSuggestions();
+    // TODO(paulberry): modify assertSuggestSetter so that we can pass 'int'
+    // as a parmeter to it, and it will check the appropriate field in
+    // the suggestion object.
+    CompletionSuggestion suggestion = assertSuggestSetter('t');
+    expect(suggestion.element.parameters, '(int value)');
   }
 
   test_IfStatement() async {
@@ -2910,6 +2477,13 @@ class C1 extends C2 implements C3 {
     assertNotSuggested('Object');
   }
 
+  test_keyword() async {
+    addTestSource('class C { static C get instance => null; } main() {C.in^}');
+    await computeSuggestions();
+    // Suggested by StaticMemberContributor
+    assertNotSuggested('instance');
+  }
+
   test_keyword2() async {
     addSource(
         '/testB.dart',
@@ -2937,6 +2511,51 @@ class C1 extends C2 implements C3 {
     assertNotSuggested('newer');
   }
 
+  test_libraryPrefix() async {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    addTestSource('import "dart:async" as bar; foo() {bar.^}');
+    await computeSuggestions();
+    // Suggested by LibraryMemberContributor
+    assertNotSuggested('Future');
+    assertNotSuggested('loadLibrary');
+  }
+
+  test_libraryPrefix2() async {
+    // SimpleIdentifier  MethodInvocation  ExpressionStatement
+    addTestSource('import "dart:async" as bar; foo() {bar.^ print("f")}');
+    await computeSuggestions();
+    // Suggested by LibraryMemberContributor
+    assertNotSuggested('Future');
+  }
+
+  test_libraryPrefix3() async {
+    // SimpleIdentifier  MethodInvocation  ExpressionStatement
+    addTestSource('import "dart:async" as bar; foo() {new bar.F^ print("f")}');
+    await computeSuggestions();
+    // Suggested by LibraryMemberContributor
+    assertNotSuggested('Future');
+    assertNotSuggested('Future.delayed');
+  }
+
+  test_libraryPrefix_deferred() async {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    addTestSource('import "dart:async" deferred as bar; foo() {bar.^}');
+    await computeSuggestions();
+    // Suggested by LibraryMemberContributor
+    assertNotSuggested('Future');
+    assertNotSuggested('loadLibrary');
+  }
+
+  test_libraryPrefix_with_exports() async {
+    addSource('/libA.dart', 'library libA; class A { }');
+    addSource('/libB.dart', 'library libB; export "/libA.dart"; class B { }');
+    addTestSource('import "/libB.dart" as foo; main() {foo.^} class C { }');
+    await computeSuggestions();
+    // Suggested by LibraryMemberContributor
+    assertNotSuggested('B');
+    assertNotSuggested('A');
+  }
+
   test_Literal_list() async {
     // ']'  ListLiteral  ArgumentList  MethodInvocation
     addTestSource('main() {var Some; print([^]);}');
@@ -2958,6 +2577,31 @@ class C1 extends C2 implements C3 {
     addTestSource('class A {a() {"hel^lo"}}');
     await computeSuggestions();
     assertNoSuggestions();
+  }
+
+  test_local() async {
+    addTestSource('foo() {String x = "bar"; x.^}');
+    await computeSuggestions();
+    assertSuggestGetter('length', 'int');
+  }
+
+  test_local_is() async {
+    addTestSource('foo() {var x; if (x is String) x.^}');
+    await computeSuggestions();
+    assertSuggestGetter('length', 'int');
+  }
+
+  test_local_propogatedType() async {
+    addTestSource('foo() {var x = "bar"; x.^}');
+    await computeSuggestions();
+    assertSuggestGetter('length', 'int');
+  }
+
+  test_localVariableDeclarationName() async {
+    addTestSource('main() {String m^}');
+    await computeSuggestions();
+    assertNotSuggested('main');
+    assertNotSuggested('min');
   }
 
   test_MapLiteralEntry() async {
@@ -3031,6 +2675,105 @@ class C1 extends C2 implements C3 {
     expect(replacementOffset, completionOffset - 1);
     expect(replacementLength, 1);
     assertNotSuggested('T2');
+  }
+
+  test_method_parameters_mixed_required_and_named() async {
+    addTestSource('''
+class C {
+  void m(x, {int y}) {}
+}
+void main() {new C().^}''');
+    await computeSuggestions();
+    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
+    expect(suggestion.parameterNames, hasLength(2));
+    expect(suggestion.parameterNames[0], 'x');
+    expect(suggestion.parameterTypes[0], 'dynamic');
+    expect(suggestion.parameterNames[1], 'y');
+    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.requiredParameterCount, 1);
+    expect(suggestion.hasNamedParameters, true);
+  }
+
+  test_method_parameters_mixed_required_and_positional() async {
+    addTestSource('''
+class C {
+  void m(x, [int y]) {}
+}
+void main() {new C().^}''');
+    await computeSuggestions();
+    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
+    expect(suggestion.parameterNames, hasLength(2));
+    expect(suggestion.parameterNames[0], 'x');
+    expect(suggestion.parameterTypes[0], 'dynamic');
+    expect(suggestion.parameterNames[1], 'y');
+    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.requiredParameterCount, 1);
+    expect(suggestion.hasNamedParameters, false);
+  }
+
+  test_method_parameters_named() async {
+    addTestSource('''
+class C {
+  void m({x, int y}) {}
+}
+void main() {new C().^}''');
+    await computeSuggestions();
+    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
+    expect(suggestion.parameterNames, hasLength(2));
+    expect(suggestion.parameterNames[0], 'x');
+    expect(suggestion.parameterTypes[0], 'dynamic');
+    expect(suggestion.parameterNames[1], 'y');
+    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.requiredParameterCount, 0);
+    expect(suggestion.hasNamedParameters, true);
+  }
+
+  test_method_parameters_none() async {
+    addTestSource('''
+class C {
+  void m() {}
+}
+void main() {new C().^}''');
+    await computeSuggestions();
+    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
+    expect(suggestion.parameterNames, isEmpty);
+    expect(suggestion.parameterTypes, isEmpty);
+    expect(suggestion.requiredParameterCount, 0);
+    expect(suggestion.hasNamedParameters, false);
+  }
+
+  test_method_parameters_positional() async {
+    addTestSource('''
+class C {
+  void m([x, int y]) {}
+}
+void main() {new C().^}''');
+    await computeSuggestions();
+    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
+    expect(suggestion.parameterNames, hasLength(2));
+    expect(suggestion.parameterNames[0], 'x');
+    expect(suggestion.parameterTypes[0], 'dynamic');
+    expect(suggestion.parameterNames[1], 'y');
+    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.requiredParameterCount, 0);
+    expect(suggestion.hasNamedParameters, false);
+  }
+
+  test_method_parameters_required() async {
+    addTestSource('''
+class C {
+  void m(x, int y) {}
+}
+void main() {new C().^}''');
+    await computeSuggestions();
+    CompletionSuggestion suggestion = assertSuggestMethod('m', 'C', 'void');
+    expect(suggestion.parameterNames, hasLength(2));
+    expect(suggestion.parameterNames[0], 'x');
+    expect(suggestion.parameterTypes[0], 'dynamic');
+    expect(suggestion.parameterNames[1], 'y');
+    expect(suggestion.parameterTypes[1], 'int');
+    expect(suggestion.requiredParameterCount, 2);
+    expect(suggestion.hasNamedParameters, false);
   }
 
   test_MethodDeclaration_body_getters() async {
@@ -3288,6 +3031,121 @@ class C1 extends C2 implements C3 {
     assertNotSuggested('Random');
     assertNotSuggested('Object');
     assertNotSuggested('A');
+  }
+
+  test_no_parameters_field() async {
+    addTestSource('''
+class C {
+  int x;
+}
+void main() {new C().^}''');
+    await computeSuggestions();
+    CompletionSuggestion suggestion = assertSuggestField('x', 'int');
+    assertHasNoParameterInfo(suggestion);
+  }
+
+  test_no_parameters_getter() async {
+    addTestSource('''
+class C {
+  int get x => null;
+}
+void main() {int y = new C().^}''');
+    await computeSuggestions();
+    CompletionSuggestion suggestion = assertSuggestGetter('x', 'int');
+    assertHasNoParameterInfo(suggestion);
+  }
+
+  test_no_parameters_setter() async {
+    addTestSource('''
+class C {
+  set x(int value) {};
+}
+void main() {int y = new C().^}''');
+    await computeSuggestions();
+    CompletionSuggestion suggestion = assertSuggestSetter('x');
+    assertHasNoParameterInfo(suggestion);
+  }
+
+  test_only_instance() async {
+    // SimpleIdentifier  PropertyAccess  ExpressionStatement
+    addTestSource('''
+class C {
+  int f1;
+  static int f2;
+  m1() {}
+  static m2() {}
+}
+void main() {new C().^}''');
+    await computeSuggestions();
+    assertSuggestField('f1', 'int');
+    assertNotSuggested('f2');
+    assertSuggestMethod('m1', 'C', null);
+    assertNotSuggested('m2');
+  }
+
+  test_only_instance2() async {
+    // SimpleIdentifier  MethodInvocation  ExpressionStatement
+    addTestSource('''
+class C {
+  int f1;
+  static int f2;
+  m1() {}
+  static m2() {}
+}
+void main() {new C().^ print("something");}''');
+    await computeSuggestions();
+    assertSuggestField('f1', 'int');
+    assertNotSuggested('f2');
+    assertSuggestMethod('m1', 'C', null);
+    assertNotSuggested('m2');
+  }
+
+  test_only_static() async {
+    // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
+    addTestSource('''
+class C {
+  int f1;
+  static int f2;
+  m1() {}
+  static m2() {}
+}
+void main() {C.^}''');
+    await computeSuggestions();
+    assertNotSuggested('f1');
+    // Suggested by StaticMemberContributor
+    assertNotSuggested('f2');
+    assertNotSuggested('m1');
+    assertNotSuggested('m2');
+  }
+
+  test_only_static2() async {
+    // SimpleIdentifier  MethodInvocation  ExpressionStatement
+    addTestSource('''
+class C {
+  int f1;
+  static int f2;
+  m1() {}
+  static m2() {}
+}
+void main() {C.^ print("something");}''');
+    await computeSuggestions();
+    assertNotSuggested('f1');
+    // Suggested by StaticMemberContributor
+    assertNotSuggested('f2');
+    assertNotSuggested('m1');
+    assertNotSuggested('m2');
+  }
+
+  test_param() async {
+    addTestSource('foo(String x) {x.^}');
+    await computeSuggestions();
+    assertSuggestGetter('length', 'int');
+  }
+
+  test_param_is() async {
+    addTestSource('foo(x) {if (x is String) x.^}');
+    await computeSuggestions();
+    assertSuggestGetter('length', 'int');
   }
 
   test_parameterName_excludeTypes() async {
@@ -3702,13 +3560,6 @@ class C1 extends C2 implements C3 {
     assertSuggestGetter('length', 'int');
   }
 
-  test_localVariableDeclarationName() async {
-    addTestSource('main() {String m^}');
-    await computeSuggestions();
-    assertNotSuggested('main');
-    assertNotSuggested('min');
-  }
-
   test_PrefixedIdentifier_trailingStmt_param2() async {
     // SimpleIdentifier  PrefixedIdentifier  ExpressionStatement
     addTestSource('f(String g) {g.^ int y = 0;}');
@@ -3763,6 +3614,155 @@ class C1 extends C2 implements C3 {
     assertNotSuggested('a');
     assertNotSuggested('Object');
     assertNotSuggested('==');
+  }
+
+  test_shadowing_field_over_field() =>
+      check_shadowing('int x;', 'int x;', true);
+
+  test_shadowing_field_over_getter() =>
+      check_shadowing('int x;', 'int get x => null;', true);
+
+  test_shadowing_field_over_method() =>
+      check_shadowing('int x;', 'void x() {}', true);
+
+  test_shadowing_field_over_setter() =>
+      check_shadowing('int x;', 'set x(int value) {}', true);
+
+  test_shadowing_getter_over_field() =>
+      check_shadowing('int get x => null;', 'int x;', false);
+
+  test_shadowing_getter_over_getter() =>
+      check_shadowing('int get x => null;', 'int get x => null;', true);
+
+  test_shadowing_getter_over_method() =>
+      check_shadowing('int get x => null;', 'void x() {}', true);
+
+  test_shadowing_getter_over_setter() =>
+      check_shadowing('int get x => null;', 'set x(int value) {}', false);
+
+  test_shadowing_method_over_field() =>
+      check_shadowing('void x() {}', 'int x;', true);
+
+  test_shadowing_method_over_getter() =>
+      check_shadowing('void x() {}', 'int get x => null;', true);
+
+  test_shadowing_method_over_method() =>
+      check_shadowing('void x() {}', 'void x() {}', true);
+
+  test_shadowing_method_over_setter() =>
+      check_shadowing('void x() {}', 'set x(int value) {}', true);
+
+  test_shadowing_mixin_order() async {
+    addTestSource('''
+class Base {
+}
+class Mixin1 {
+  void f() {}
+}
+class Mixin2 {
+  void f() {}
+}
+class Derived extends Base with Mixin1, Mixin2 {
+}
+void test(Derived d) {
+  d.^
+}
+''');
+    await computeSuggestions();
+    // Note: due to dartbug.com/22069, analyzer currently analyzes mixins in
+    // reverse order.  The correct order is that Derived inherits from
+    // "Base with Mixin1, Mixin2", which inherits from "Base with Mixin1",
+    // which inherits from "Base".  So the definition of f in Mixin2 should
+    // shadow the definition in Mixin1.
+    assertSuggestMethod('f', 'Mixin2', 'void');
+  }
+
+  test_shadowing_mixin_over_superclass() async {
+    addTestSource('''
+class Base {
+  void f() {}
+}
+class Mixin {
+  void f() {}
+}
+class Derived extends Base with Mixin {
+}
+void test(Derived d) {
+  d.^
+}
+''');
+    await computeSuggestions();
+    assertSuggestMethod('f', 'Mixin', 'void');
+  }
+
+  test_shadowing_setter_over_field() =>
+      check_shadowing('set x(int value) {}', 'int x;', false);
+
+  test_shadowing_setter_over_getter() =>
+      check_shadowing('set x(int value) {}', 'int get x => null;', false);
+
+  test_shadowing_setter_over_method() =>
+      check_shadowing('set x(int value) {}', 'void x() {}', true);
+
+  test_shadowing_setter_over_setter() =>
+      check_shadowing('set x(int value) {}', 'set x(int value) {}', true);
+
+  test_shadowing_superclass_over_interface() async {
+    addTestSource('''
+class Base {
+  void f() {}
+}
+class Interface {
+  void f() {}
+}
+class Derived extends Base implements Interface {
+}
+void test(Derived d) {
+  d.^
+}
+''');
+    await computeSuggestions();
+    assertSuggestMethod('f', 'Base', 'void');
+  }
+
+  test_super() async {
+    // SimpleIdentifier  MethodInvocation  ExpressionStatement
+    addTestSource('''
+class C3 {
+  int fi3;
+  static int fs3;
+  m() {}
+  mi3() {}
+  static ms3() {}
+}
+class C2 {
+  int fi2;
+  static int fs2;
+  m() {}
+  mi2() {}
+  static ms2() {}
+}
+class C1 extends C2 implements C3 {
+  int fi1;
+  static int fs1;
+  m() {super.^}
+  mi1() {}
+  static ms1() {}
+}''');
+    await computeSuggestions();
+    assertNotSuggested('fi1');
+    assertNotSuggested('fs1');
+    assertNotSuggested('mi1');
+    assertNotSuggested('ms1');
+    assertSuggestField('fi2', 'int');
+    assertNotSuggested('fs2');
+    assertSuggestMethod('mi2', 'C2', null);
+    assertNotSuggested('ms2');
+    assertSuggestMethod('m', 'C2', null, relevance: DART_RELEVANCE_HIGH);
+    assertNotSuggested('fi3');
+    assertNotSuggested('fs3');
+    assertNotSuggested('mi3');
+    assertNotSuggested('ms3');
   }
 
   test_SwitchStatement_c() async {

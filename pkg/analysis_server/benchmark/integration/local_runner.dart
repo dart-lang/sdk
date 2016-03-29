@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:io';
+
 import 'package:path/path.dart';
+
 import 'main.dart' as performance;
 
 // Local driver for performance measurement
