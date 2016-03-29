@@ -97,7 +97,7 @@ vars = {
   "watcher_tag": "@0.9.7",
   "when_tag": "@0.2.0+2",
   "which_tag": "@0.1.3+1",
-  "web_components_rev": "@0e636b534d9b12c9e96f841e6679398e91a986ec",
+  "web_components_rev": "@6349e09f9118dce7ae1b309af5763745e25a9d61",
   "web_socket_channel_tag": "@1.0.0",
   "WebCore_rev": "@a86fe28efadcfc781f836037a80f27e22a5dad17",
   "yaml_tag": "@2.1.5",
