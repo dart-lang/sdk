@@ -21,100 +21,17 @@ import 'summary_common.dart';
 
 main() {
   groupSep = ' | ';
-  runReflectiveTests(LinkedSummarizeAstTest);
+  runReflectiveTests(LinkedSummarizeAstSpecTest);
 }
 
-/**
- * Override of [SummaryTest] which creates unlinked summaries directly from the
- * AST.
- */
 @reflectiveTest
-class LinkedSummarizeAstTest extends Object with SummaryTest {
-  @override
-  LinkedLibrary linked;
-
-  @override
-  List<UnlinkedUnit> unlinkedUnits;
-
-  /**
-   * Map from absolute URI to the [UnlinkedUnit] for each compilation unit
-   * passed to [addNamedSource].
-   */
-  Map<String, UnlinkedUnit> uriToUnit = <String, UnlinkedUnit>{};
-
-  @override
-  bool get checkAstDerivedData => true;
-
-  @override
-  bool get expectAbsoluteUrisInDependencies => false;
-
-  @override
-  bool get skipFullyLinkedData => false;
-
+class LinkedSummarizeAstSpecTest extends LinkedSummarizeAstTest {
   @override
   bool get strongMode => false;
 
   @override
-  addNamedSource(String filePath, String contents) {
-    CompilationUnit unit = _parseText(contents);
-    UnlinkedUnit unlinkedUnit =
-        new UnlinkedUnit.fromBuffer(serializeAstUnlinked(unit).toBuffer());
-    uriToUnit[absUri(filePath)] = unlinkedUnit;
-  }
-
-  @override
-  void serializeLibraryText(String text, {bool allowErrors: false}) {
-    Uri testDartUri = Uri.parse(absUri('/test.dart'));
-    CompilationUnit unit = _parseText(text);
-    UnlinkedUnit definingUnit =
-        new UnlinkedUnit.fromBuffer(serializeAstUnlinked(unit).toBuffer());
-    uriToUnit[testDartUri.toString()] = definingUnit;
-    LinkedLibrary getDependency(String absoluteUri) {
-      Map<String, LinkedLibrary> sdkLibraries =
-          SerializedMockSdk.instance.uriToLinkedLibrary;
-      LinkedLibrary linkedLibrary = sdkLibraries[absoluteUri];
-      if (linkedLibrary == null && !allowMissingFiles) {
-        fail('Linker unexpectedly requested LinkedLibrary for "$absoluteUri".'
-            '  Libraries available: ${sdkLibraries.keys}');
-      }
-      return linkedLibrary;
-    }
-    UnlinkedUnit getUnit(String absoluteUri) {
-      UnlinkedUnit unit = uriToUnit[absoluteUri] ??
-          SerializedMockSdk.instance.uriToUnlinkedUnit[absoluteUri];
-      if (unit == null && !allowMissingFiles) {
-        fail('Linker unexpectedly requested unit for "$absoluteUri".');
-      }
-      return unit;
-    }
-    linked = link(uriToUnit.keys.toSet(), getDependency, getUnit)[
-        testDartUri.toString()];
-    expect(linked, isNotNull);
-    validateLinkedLibrary(linked);
-    unlinkedUnits = <UnlinkedUnit>[definingUnit];
-    for (String relativeUri in definingUnit.publicNamespace.parts) {
-      UnlinkedUnit unit = uriToUnit[
-          resolveRelativeUri(testDartUri, Uri.parse(relativeUri)).toString()];
-      if (unit == null) {
-        if (!allowMissingFiles) {
-          fail('Test referred to unknown unit $relativeUri');
-        }
-      } else {
-        unlinkedUnits.add(unit);
-      }
-    }
-  }
-
-  @override
   test_bottom_reference_shared() {
     // TODO(paulberry): fix.
-  }
-
-  test_class_no_superclass() {
-    UnlinkedClass cls = serializeClassText('part of dart.core; class Object {}',
-        className: 'Object');
-    expect(cls.supertype, isNull);
-    expect(cls.hasNoSupertype, isTrue);
   }
 
   @override
@@ -225,6 +142,92 @@ class LinkedSummarizeAstTest extends Object with SummaryTest {
   @override
   test_variable_propagated_type_omit_dynamic() {
     // TODO(paulberry): fix.
+  }
+}
+
+/**
+ * Override of [SummaryTest] which creates linked summaries directly from the
+ * AST.
+ */
+@reflectiveTest
+abstract class LinkedSummarizeAstTest extends Object with SummaryTest {
+  @override
+  LinkedLibrary linked;
+
+  @override
+  List<UnlinkedUnit> unlinkedUnits;
+
+  /**
+   * Map from absolute URI to the [UnlinkedUnit] for each compilation unit
+   * passed to [addNamedSource].
+   */
+  Map<String, UnlinkedUnit> uriToUnit = <String, UnlinkedUnit>{};
+
+  @override
+  bool get checkAstDerivedData => true;
+
+  @override
+  bool get expectAbsoluteUrisInDependencies => false;
+
+  @override
+  bool get skipFullyLinkedData => false;
+
+  @override
+  addNamedSource(String filePath, String contents) {
+    CompilationUnit unit = _parseText(contents);
+    UnlinkedUnit unlinkedUnit =
+        new UnlinkedUnit.fromBuffer(serializeAstUnlinked(unit).toBuffer());
+    uriToUnit[absUri(filePath)] = unlinkedUnit;
+  }
+
+  @override
+  void serializeLibraryText(String text, {bool allowErrors: false}) {
+    Uri testDartUri = Uri.parse(absUri('/test.dart'));
+    CompilationUnit unit = _parseText(text);
+    UnlinkedUnit definingUnit =
+        new UnlinkedUnit.fromBuffer(serializeAstUnlinked(unit).toBuffer());
+    uriToUnit[testDartUri.toString()] = definingUnit;
+    LinkedLibrary getDependency(String absoluteUri) {
+      Map<String, LinkedLibrary> sdkLibraries =
+          SerializedMockSdk.instance.uriToLinkedLibrary;
+      LinkedLibrary linkedLibrary = sdkLibraries[absoluteUri];
+      if (linkedLibrary == null && !allowMissingFiles) {
+        fail('Linker unexpectedly requested LinkedLibrary for "$absoluteUri".'
+            '  Libraries available: ${sdkLibraries.keys}');
+      }
+      return linkedLibrary;
+    }
+    UnlinkedUnit getUnit(String absoluteUri) {
+      UnlinkedUnit unit = uriToUnit[absoluteUri] ??
+          SerializedMockSdk.instance.uriToUnlinkedUnit[absoluteUri];
+      if (unit == null && !allowMissingFiles) {
+        fail('Linker unexpectedly requested unit for "$absoluteUri".');
+      }
+      return unit;
+    }
+    linked = link(uriToUnit.keys.toSet(), getDependency, getUnit)[
+        testDartUri.toString()];
+    expect(linked, isNotNull);
+    validateLinkedLibrary(linked);
+    unlinkedUnits = <UnlinkedUnit>[definingUnit];
+    for (String relativeUri in definingUnit.publicNamespace.parts) {
+      UnlinkedUnit unit = uriToUnit[
+          resolveRelativeUri(testDartUri, Uri.parse(relativeUri)).toString()];
+      if (unit == null) {
+        if (!allowMissingFiles) {
+          fail('Test referred to unknown unit $relativeUri');
+        }
+      } else {
+        unlinkedUnits.add(unit);
+      }
+    }
+  }
+
+  test_class_no_superclass() {
+    UnlinkedClass cls = serializeClassText('part of dart.core; class Object {}',
+        className: 'Object');
+    expect(cls.supertype, isNull);
+    expect(cls.hasNoSupertype, isTrue);
   }
 
   CompilationUnit _parseText(String text) {
