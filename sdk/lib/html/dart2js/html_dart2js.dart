@@ -123,9 +123,6 @@ Future<Isolate> spawnDomUri(Uri uri, List<String> args, message) {
   throw new UnimplementedError();
 }
 
-/// Dartium functions that are a NOOP in dart2js.
-unwrap_jso(dartClass_instance) => dartClass_instance;
-wrap_jso(jsObject) => jsObject;
 createCustomUpgrader(Type customElementClass, $this) => $this;
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

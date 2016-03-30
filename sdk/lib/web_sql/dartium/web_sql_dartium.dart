@@ -29,22 +29,11 @@ import 'dart:js' as js;
 // FIXME: Can we make this private?
 @Deprecated("Internal Use Only")
 final web_sqlBlinkMap = {
-  'Database': () => SqlDatabase,
-  'SQLError': () => SqlError,
-  'SQLResultSet': () => SqlResultSet,
-  'SQLResultSetRowList': () => SqlResultSetRowList,
-  'SQLTransaction': () => SqlTransaction,
-
-};
-
-// FIXME: Can we make this private?
-@Deprecated("Internal Use Only")
-final web_sqlBlinkFunctionMap = {
-  'Database': () => SqlDatabase.internalCreateSqlDatabase,
-  'SQLError': () => SqlError.internalCreateSqlError,
-  'SQLResultSet': () => SqlResultSet.internalCreateSqlResultSet,
-  'SQLResultSetRowList': () => SqlResultSetRowList.internalCreateSqlResultSetRowList,
-  'SQLTransaction': () => SqlTransaction.internalCreateSqlTransaction,
+  'Database': () => SqlDatabase.instanceRuntimeType,
+  'SQLError': () => SqlError.instanceRuntimeType,
+  'SQLResultSet': () => SqlResultSet.instanceRuntimeType,
+  'SQLResultSetRowList': () => SqlResultSetRowList.instanceRuntimeType,
+  'SQLTransaction': () => SqlTransaction.instanceRuntimeType,
 
 };
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -109,68 +98,60 @@ class SqlDatabase extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory SqlDatabase._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static SqlDatabase internalCreateSqlDatabase() {
-    return new SqlDatabase._internalWrap();
-  }
 
-  factory SqlDatabase._internalWrap() {
-    return new SqlDatabase.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   SqlDatabase.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
 
   /// Checks if this type is supported on the current platform.
   static bool get supported => true;
 
   @DomName('Database.version')
   @DocsEditable()
-  String get version => _blink.BlinkDatabase.instance.version_Getter_(unwrap_jso(this));
+  String get version => _blink.BlinkDatabase.instance.version_Getter_(this);
   
   void changeVersion(String oldVersion, String newVersion, [SqlTransactionCallback callback, SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) {
     if (successCallback != null) {
-      _blink.BlinkDatabase.instance.changeVersion_Callback_5_(unwrap_jso(this), oldVersion, newVersion, unwrap_jso((transaction) => callback(wrap_jso(transaction))), unwrap_jso((error) => errorCallback(wrap_jso(error))), unwrap_jso(() => successCallback()));
+      _blink.BlinkDatabase.instance.changeVersion_Callback_5_(this, oldVersion, newVersion, callback, errorCallback, successCallback);
       return;
     }
     if (errorCallback != null) {
-      _blink.BlinkDatabase.instance.changeVersion_Callback_4_(unwrap_jso(this), oldVersion, newVersion, unwrap_jso((transaction) => callback(wrap_jso(transaction))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
+      _blink.BlinkDatabase.instance.changeVersion_Callback_4_(this, oldVersion, newVersion, callback, errorCallback);
       return;
     }
     if (callback != null) {
-      _blink.BlinkDatabase.instance.changeVersion_Callback_3_(unwrap_jso(this), oldVersion, newVersion, unwrap_jso((transaction) => callback(wrap_jso(transaction))));
+      _blink.BlinkDatabase.instance.changeVersion_Callback_3_(this, oldVersion, newVersion, callback);
       return;
     }
-    _blink.BlinkDatabase.instance.changeVersion_Callback_2_(unwrap_jso(this), oldVersion, newVersion);
+    _blink.BlinkDatabase.instance.changeVersion_Callback_2_(this, oldVersion, newVersion);
     return;
   }
 
   void readTransaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) {
     if (successCallback != null) {
-      _blink.BlinkDatabase.instance.readTransaction_Callback_3_(unwrap_jso(this), unwrap_jso((transaction) => callback(wrap_jso(transaction))), unwrap_jso((error) => errorCallback(wrap_jso(error))), unwrap_jso(() => successCallback()));
+      _blink.BlinkDatabase.instance.readTransaction_Callback_3_(this, callback, errorCallback, successCallback);
       return;
     }
     if (errorCallback != null) {
-      _blink.BlinkDatabase.instance.readTransaction_Callback_2_(unwrap_jso(this), unwrap_jso((transaction) => callback(wrap_jso(transaction))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
+      _blink.BlinkDatabase.instance.readTransaction_Callback_2_(this, callback, errorCallback);
       return;
     }
-    _blink.BlinkDatabase.instance.readTransaction_Callback_1_(unwrap_jso(this), unwrap_jso((transaction) => callback(wrap_jso(transaction))));
+    _blink.BlinkDatabase.instance.readTransaction_Callback_1_(this, callback);
     return;
   }
 
   void transaction(SqlTransactionCallback callback, [SqlTransactionErrorCallback errorCallback, VoidCallback successCallback]) {
     if (successCallback != null) {
-      _blink.BlinkDatabase.instance.transaction_Callback_3_(unwrap_jso(this), unwrap_jso((transaction) => callback(wrap_jso(transaction))), unwrap_jso((error) => errorCallback(wrap_jso(error))), unwrap_jso(() => successCallback()));
+      _blink.BlinkDatabase.instance.transaction_Callback_3_(this, callback, errorCallback, successCallback);
       return;
     }
     if (errorCallback != null) {
-      _blink.BlinkDatabase.instance.transaction_Callback_2_(unwrap_jso(this), unwrap_jso((transaction) => callback(wrap_jso(transaction))), unwrap_jso((error) => errorCallback(wrap_jso(error))));
+      _blink.BlinkDatabase.instance.transaction_Callback_2_(this, callback, errorCallback);
       return;
     }
-    _blink.BlinkDatabase.instance.transaction_Callback_1_(unwrap_jso(this), unwrap_jso((transaction) => callback(wrap_jso(transaction))));
+    _blink.BlinkDatabase.instance.transaction_Callback_1_(this, callback);
     return;
   }
 
@@ -190,20 +171,12 @@ class SqlError extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory SqlError._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static SqlError internalCreateSqlError() {
-    return new SqlError._internalWrap();
-  }
 
-  factory SqlError._internalWrap() {
-    return new SqlError.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   SqlError.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SQLError.CONSTRAINT_ERR')
   @DocsEditable()
@@ -239,11 +212,11 @@ class SqlError extends DartHtmlDomObject {
 
   @DomName('SQLError.code')
   @DocsEditable()
-  int get code => _blink.BlinkSQLError.instance.code_Getter_(unwrap_jso(this));
+  int get code => _blink.BlinkSQLError.instance.code_Getter_(this);
   
   @DomName('SQLError.message')
   @DocsEditable()
-  String get message => _blink.BlinkSQLError.instance.message_Getter_(unwrap_jso(this));
+  String get message => _blink.BlinkSQLError.instance.message_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -261,32 +234,24 @@ class SqlResultSet extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory SqlResultSet._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static SqlResultSet internalCreateSqlResultSet() {
-    return new SqlResultSet._internalWrap();
-  }
 
-  factory SqlResultSet._internalWrap() {
-    return new SqlResultSet.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   SqlResultSet.internal_() { }
 
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('SQLResultSet.insertId')
   @DocsEditable()
-  int get insertId => _blink.BlinkSQLResultSet.instance.insertId_Getter_(unwrap_jso(this));
+  int get insertId => _blink.BlinkSQLResultSet.instance.insertId_Getter_(this);
   
   @DomName('SQLResultSet.rows')
   @DocsEditable()
-  SqlResultSetRowList get rows => wrap_jso(_blink.BlinkSQLResultSet.instance.rows_Getter_(unwrap_jso(this)));
+  SqlResultSetRowList get rows => _blink.BlinkSQLResultSet.instance.rows_Getter_(this);
   
   @DomName('SQLResultSet.rowsAffected')
   @DocsEditable()
-  int get rowsAffected => _blink.BlinkSQLResultSet.instance.rowsAffected_Getter_(unwrap_jso(this));
+  int get rowsAffected => _blink.BlinkSQLResultSet.instance.rowsAffected_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -304,32 +269,24 @@ class SqlResultSetRowList extends DartHtmlDomObject with ListMixin<Map>, Immutab
   // To suppress missing implicit constructor warnings.
   factory SqlResultSetRowList._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static SqlResultSetRowList internalCreateSqlResultSetRowList() {
-    return new SqlResultSetRowList._internalWrap();
-  }
 
-  factory SqlResultSetRowList._internalWrap() {
-    return new SqlResultSetRowList.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   SqlResultSetRowList.internal_() { }
 
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('SQLResultSetRowList.length')
   @DocsEditable()
-  int get length => _blink.BlinkSQLResultSetRowList.instance.length_Getter_(unwrap_jso(this));
+  int get length => _blink.BlinkSQLResultSetRowList.instance.length_Getter_(this);
   
   Map operator[](int index) {
     if (index < 0 || index >= length)
       throw new RangeError.index(index, this);
-    return wrap_jso(_blink.BlinkSQLResultSetRowList.instance.item_Callback_1_(unwrap_jso(this), index));
+    return _nativeIndexedGetter(index);
   }
 
-  Map _nativeIndexedGetter(int index) => wrap_jso(_blink.BlinkSQLResultSetRowList.instance.item_Callback_1_(unwrap_jso(this), index));
+  Map _nativeIndexedGetter(int index) => convertNativeToDart_Dictionary(_blink.BlinkSQLResultSetRowList.instance.item_Callback_1_(this, index));
 
   void operator[]=(int index, Map value) {
     throw new UnsupportedError("Cannot assign element of immutable List.");
@@ -371,7 +328,7 @@ class SqlResultSetRowList extends DartHtmlDomObject with ListMixin<Map>, Immutab
 
   @DomName('SQLResultSetRowList.item')
   @DocsEditable()
-  Object item(int index) => wrap_jso(_blink.BlinkSQLResultSetRowList.instance.item_Callback_1_(unwrap_jso(this), index));
+  Object item(int index) => convertNativeToDart_Dictionary(_blink.BlinkSQLResultSetRowList.instance.item_Callback_1_(this, index));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -392,35 +349,27 @@ class SqlTransaction extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory SqlTransaction._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static SqlTransaction internalCreateSqlTransaction() {
-    return new SqlTransaction._internalWrap();
-  }
 
-  factory SqlTransaction._internalWrap() {
-    return new SqlTransaction.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   SqlTransaction.internal_() { }
 
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   void executeSql(String sqlStatement, [List arguments, SqlStatementCallback callback, SqlStatementErrorCallback errorCallback]) {
     if (errorCallback != null) {
-      _blink.BlinkSQLTransaction.instance.executeSql_Callback_4_(unwrap_jso(this), sqlStatement, arguments, unwrap_jso((transaction, resultSet) => callback(wrap_jso(transaction), wrap_jso(resultSet))), unwrap_jso((transaction, error) => errorCallback(wrap_jso(transaction), wrap_jso(error))));
+      _blink.BlinkSQLTransaction.instance.executeSql_Callback_4_(this, sqlStatement, arguments, callback, errorCallback);
       return;
     }
     if (callback != null) {
-      _blink.BlinkSQLTransaction.instance.executeSql_Callback_3_(unwrap_jso(this), sqlStatement, arguments, unwrap_jso((transaction, resultSet) => callback(wrap_jso(transaction), wrap_jso(resultSet))));
+      _blink.BlinkSQLTransaction.instance.executeSql_Callback_3_(this, sqlStatement, arguments, callback);
       return;
     }
     if (arguments != null) {
-      _blink.BlinkSQLTransaction.instance.executeSql_Callback_2_(unwrap_jso(this), sqlStatement, arguments);
+      _blink.BlinkSQLTransaction.instance.executeSql_Callback_2_(this, sqlStatement, arguments);
       return;
     }
-    _blink.BlinkSQLTransaction.instance.executeSql_Callback_1_(unwrap_jso(this), sqlStatement);
+    _blink.BlinkSQLTransaction.instance.executeSql_Callback_1_(this, sqlStatement);
     return;
   }
 

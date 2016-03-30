@@ -72,14 +72,14 @@ $else
     if (storeName_OR_storeNames == null) {
       throw new ArgumentError("stores may not be null in transaction");
     } else if (storeName_OR_storeNames is String || storeName_OR_storeNames is DomStringList) {
-      names = unwrap_jso(storeName_OR_storeNames);
+      names = storeName_OR_storeNames;
     } else if (storeName_OR_storeNames is List<String>) {
       names = convertDartToNative_List(storeName_OR_storeNames);
     } else {
       throw new ArgumentError("Invalid store(s) $store_Name_OR_storeNames");
     }
 
-    return wrap_jso(_blink.BlinkIDBDatabase.instance.transaction_Callback_2_(unwrap_jso(this), names, mode));
+    return _blink.BlinkIDBDatabase.instance.transaction_Callback_2_(this, names, mode);
   }
 
   Transaction transactionList(List<String> storeNames, String mode) => transaction(storeNames, mode);

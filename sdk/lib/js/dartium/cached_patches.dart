@@ -16,7 +16,7 @@ var cached_patches = {"dart:html": ["dart:html", "dart:html_js_interop_patch.dar
 const _UNDEFINED_JS_CONST = const Object();
 
 patch class DivElement {
-  factory DivElement._internalWrap() => new DivElementImpl.internal_();
+  static Type get instanceRuntimeType => DivElementImpl;
 
 }
 class DivElementImpl extends DivElement implements js_library.JSObjectInterfacesDom {
@@ -25,7 +25,7 @@ class DivElementImpl extends DivElement implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class ImageElement {
-  factory ImageElement._internalWrap() => new ImageElementImpl.internal_();
+  static Type get instanceRuntimeType => ImageElementImpl;
 
 }
 class ImageElementImpl extends ImageElement implements js_library.JSObjectInterfacesDom {
@@ -34,7 +34,7 @@ class ImageElementImpl extends ImageElement implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class TreeWalker {
-  factory TreeWalker._internalWrap() => new TreeWalkerImpl.internal_();
+  static Type get instanceRuntimeType => TreeWalkerImpl;
 
 }
 class TreeWalkerImpl extends TreeWalker implements js_library.JSObjectInterfacesDom {
@@ -43,7 +43,7 @@ class TreeWalkerImpl extends TreeWalker implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class TableSectionElement {
-  factory TableSectionElement._internalWrap() => new TableSectionElementImpl.internal_();
+  static Type get instanceRuntimeType => TableSectionElementImpl;
 
 }
 class TableSectionElementImpl extends TableSectionElement implements js_library.JSObjectInterfacesDom {
@@ -52,7 +52,7 @@ class TableSectionElementImpl extends TableSectionElement implements js_library.
   toString() => super.toString();
 }
 patch class DetailsElement {
-  factory DetailsElement._internalWrap() => new DetailsElementImpl.internal_();
+  static Type get instanceRuntimeType => DetailsElementImpl;
 
 }
 class DetailsElementImpl extends DetailsElement implements js_library.JSObjectInterfacesDom {
@@ -61,7 +61,7 @@ class DetailsElementImpl extends DetailsElement implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class XPathResult {
-  factory XPathResult._internalWrap() => new XPathResultImpl.internal_();
+  static Type get instanceRuntimeType => XPathResultImpl;
 
 }
 class XPathResultImpl extends XPathResult implements js_library.JSObjectInterfacesDom {
@@ -70,7 +70,7 @@ class XPathResultImpl extends XPathResult implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class HttpRequest {
-  factory HttpRequest._internalWrap() => new HttpRequestImpl.internal_();
+  static Type get instanceRuntimeType => HttpRequestImpl;
 
 }
 class HttpRequestImpl extends HttpRequest implements js_library.JSObjectInterfacesDom {
@@ -79,7 +79,7 @@ class HttpRequestImpl extends HttpRequest implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class SpeechSynthesisUtterance {
-  factory SpeechSynthesisUtterance._internalWrap() => new SpeechSynthesisUtteranceImpl.internal_();
+  static Type get instanceRuntimeType => SpeechSynthesisUtteranceImpl;
 
 }
 class SpeechSynthesisUtteranceImpl extends SpeechSynthesisUtterance implements js_library.JSObjectInterfacesDom {
@@ -88,7 +88,7 @@ class SpeechSynthesisUtteranceImpl extends SpeechSynthesisUtterance implements j
   toString() => super.toString();
 }
 patch class CredentialsContainer {
-  factory CredentialsContainer._internalWrap() => new CredentialsContainerImpl.internal_();
+  static Type get instanceRuntimeType => CredentialsContainerImpl;
 
 }
 class CredentialsContainerImpl extends CredentialsContainer implements js_library.JSObjectInterfacesDom {
@@ -97,7 +97,7 @@ class CredentialsContainerImpl extends CredentialsContainer implements js_librar
   toString() => super.toString();
 }
 patch class MessageChannel {
-  factory MessageChannel._internalWrap() => new MessageChannelImpl.internal_();
+  static Type get instanceRuntimeType => MessageChannelImpl;
 
 }
 class MessageChannelImpl extends MessageChannel implements js_library.JSObjectInterfacesDom {
@@ -106,7 +106,7 @@ class MessageChannelImpl extends MessageChannel implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class CloseEvent {
-  factory CloseEvent._internalWrap() => new CloseEventImpl.internal_();
+  static Type get instanceRuntimeType => CloseEventImpl;
 
 }
 class CloseEventImpl extends CloseEvent implements js_library.JSObjectInterfacesDom {
@@ -115,7 +115,7 @@ class CloseEventImpl extends CloseEvent implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class ProgressEvent {
-  factory ProgressEvent._internalWrap() => new ProgressEventImpl.internal_();
+  static Type get instanceRuntimeType => ProgressEventImpl;
 
 }
 class ProgressEventImpl extends ProgressEvent implements js_library.JSObjectInterfacesDom {
@@ -124,7 +124,7 @@ class ProgressEventImpl extends ProgressEvent implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class MediaController {
-  factory MediaController._internalWrap() => new MediaControllerImpl.internal_();
+  static Type get instanceRuntimeType => MediaControllerImpl;
 
 }
 class MediaControllerImpl extends MediaController implements js_library.JSObjectInterfacesDom {
@@ -133,7 +133,7 @@ class MediaControllerImpl extends MediaController implements js_library.JSObject
   toString() => super.toString();
 }
 patch class VRDevice {
-  factory VRDevice._internalWrap() => new VRDeviceImpl.internal_();
+  static Type get instanceRuntimeType => VRDeviceImpl;
 
 }
 class VRDeviceImpl extends VRDevice implements js_library.JSObjectInterfacesDom {
@@ -142,7 +142,7 @@ class VRDeviceImpl extends VRDevice implements js_library.JSObjectInterfacesDom 
   toString() => super.toString();
 }
 patch class SpeechSynthesis {
-  factory SpeechSynthesis._internalWrap() => new SpeechSynthesisImpl.internal_();
+  static Type get instanceRuntimeType => SpeechSynthesisImpl;
 
 }
 class SpeechSynthesisImpl extends SpeechSynthesis implements js_library.JSObjectInterfacesDom {
@@ -151,7 +151,7 @@ class SpeechSynthesisImpl extends SpeechSynthesis implements js_library.JSObject
   toString() => super.toString();
 }
 patch class HtmlCollection {
-  factory HtmlCollection._internalWrap() => new HtmlCollectionImpl.internal_();
+  static Type get instanceRuntimeType => HtmlCollectionImpl;
 
 }
 class HtmlCollectionImpl extends HtmlCollection implements js_library.JSObjectInterfacesDom {
@@ -160,7 +160,7 @@ class HtmlCollectionImpl extends HtmlCollection implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class Element {
-  factory Element._internalWrap() => new ElementImpl.internal_();
+  static Type get instanceRuntimeType => ElementImpl;
 
 }
 class ElementImpl extends Element implements js_library.JSObjectInterfacesDom {
@@ -169,7 +169,7 @@ class ElementImpl extends Element implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class Plugin {
-  factory Plugin._internalWrap() => new PluginImpl.internal_();
+  static Type get instanceRuntimeType => PluginImpl;
 
 }
 class PluginImpl extends Plugin implements js_library.JSObjectInterfacesDom {
@@ -178,7 +178,7 @@ class PluginImpl extends Plugin implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class CssFontFaceRule {
-  factory CssFontFaceRule._internalWrap() => new CssFontFaceRuleImpl.internal_();
+  static Type get instanceRuntimeType => CssFontFaceRuleImpl;
 
 }
 class CssFontFaceRuleImpl extends CssFontFaceRule implements js_library.JSObjectInterfacesDom {
@@ -187,7 +187,7 @@ class CssFontFaceRuleImpl extends CssFontFaceRule implements js_library.JSObject
   toString() => super.toString();
 }
 patch class File {
-  factory File._internalWrap() => new FileImpl.internal_();
+  static Type get instanceRuntimeType => FileImpl;
 
 }
 class FileImpl extends File implements js_library.JSObjectInterfacesDom {
@@ -196,7 +196,7 @@ class FileImpl extends File implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class MouseEvent {
-  factory MouseEvent._internalWrap() => new MouseEventImpl.internal_();
+  static Type get instanceRuntimeType => MouseEventImpl;
 
 }
 class MouseEventImpl extends MouseEvent implements js_library.JSObjectInterfacesDom {
@@ -205,7 +205,7 @@ class MouseEventImpl extends MouseEvent implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class MenuElement {
-  factory MenuElement._internalWrap() => new MenuElementImpl.internal_();
+  static Type get instanceRuntimeType => MenuElementImpl;
 
 }
 class MenuElementImpl extends MenuElement implements js_library.JSObjectInterfacesDom {
@@ -214,7 +214,7 @@ class MenuElementImpl extends MenuElement implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class ReadableByteStreamReader {
-  factory ReadableByteStreamReader._internalWrap() => new ReadableByteStreamReaderImpl.internal_();
+  static Type get instanceRuntimeType => ReadableByteStreamReaderImpl;
 
 }
 class ReadableByteStreamReaderImpl extends ReadableByteStreamReader implements js_library.JSObjectInterfacesDom {
@@ -223,7 +223,7 @@ class ReadableByteStreamReaderImpl extends ReadableByteStreamReader implements j
   toString() => super.toString();
 }
 patch class FetchEvent {
-  factory FetchEvent._internalWrap() => new FetchEventImpl.internal_();
+  static Type get instanceRuntimeType => FetchEventImpl;
 
 }
 class FetchEventImpl extends FetchEvent implements js_library.JSObjectInterfacesDom {
@@ -232,7 +232,7 @@ class FetchEventImpl extends FetchEvent implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class MediaStreamTrack {
-  factory MediaStreamTrack._internalWrap() => new MediaStreamTrackImpl.internal_();
+  static Type get instanceRuntimeType => MediaStreamTrackImpl;
 
 }
 class MediaStreamTrackImpl extends MediaStreamTrack implements js_library.JSObjectInterfacesDom {
@@ -241,7 +241,7 @@ class MediaStreamTrackImpl extends MediaStreamTrack implements js_library.JSObje
   toString() => super.toString();
 }
 patch class ShadowRoot {
-  factory ShadowRoot._internalWrap() => new ShadowRootImpl.internal_();
+  static Type get instanceRuntimeType => ShadowRootImpl;
 
 }
 class ShadowRootImpl extends ShadowRoot implements js_library.JSObjectInterfacesDom {
@@ -250,7 +250,7 @@ class ShadowRootImpl extends ShadowRoot implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class SpeechSynthesisEvent {
-  factory SpeechSynthesisEvent._internalWrap() => new SpeechSynthesisEventImpl.internal_();
+  static Type get instanceRuntimeType => SpeechSynthesisEventImpl;
 
 }
 class SpeechSynthesisEventImpl extends SpeechSynthesisEvent implements js_library.JSObjectInterfacesDom {
@@ -259,7 +259,7 @@ class SpeechSynthesisEventImpl extends SpeechSynthesisEvent implements js_librar
   toString() => super.toString();
 }
 patch class VRPositionState {
-  factory VRPositionState._internalWrap() => new VRPositionStateImpl.internal_();
+  static Type get instanceRuntimeType => VRPositionStateImpl;
 
 }
 class VRPositionStateImpl extends VRPositionState implements js_library.JSObjectInterfacesDom {
@@ -268,7 +268,7 @@ class VRPositionStateImpl extends VRPositionState implements js_library.JSObject
   toString() => super.toString();
 }
 patch class Window {
-  factory Window._internalWrap() => new WindowImpl.internal_();
+  static Type get instanceRuntimeType => WindowImpl;
 
 }
 class WindowImpl extends Window implements js_library.JSObjectInterfacesDom {
@@ -277,7 +277,7 @@ class WindowImpl extends Window implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class SpeechRecognition {
-  factory SpeechRecognition._internalWrap() => new SpeechRecognitionImpl.internal_();
+  static Type get instanceRuntimeType => SpeechRecognitionImpl;
 
 }
 class SpeechRecognitionImpl extends SpeechRecognition implements js_library.JSObjectInterfacesDom {
@@ -286,7 +286,7 @@ class SpeechRecognitionImpl extends SpeechRecognition implements js_library.JSOb
   toString() => super.toString();
 }
 patch class Console {
-  factory Console._internalWrap() => new ConsoleImpl.internal_();
+  static Type get instanceRuntimeType => ConsoleImpl;
 
 }
 class ConsoleImpl extends Console implements js_library.JSObjectInterfacesDom {
@@ -295,7 +295,7 @@ class ConsoleImpl extends Console implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class AutocompleteErrorEvent {
-  factory AutocompleteErrorEvent._internalWrap() => new AutocompleteErrorEventImpl.internal_();
+  static Type get instanceRuntimeType => AutocompleteErrorEventImpl;
 
 }
 class AutocompleteErrorEventImpl extends AutocompleteErrorEvent implements js_library.JSObjectInterfacesDom {
@@ -304,7 +304,7 @@ class AutocompleteErrorEventImpl extends AutocompleteErrorEvent implements js_li
   toString() => super.toString();
 }
 patch class CanvasGradient {
-  factory CanvasGradient._internalWrap() => new CanvasGradientImpl.internal_();
+  static Type get instanceRuntimeType => CanvasGradientImpl;
 
 }
 class CanvasGradientImpl extends CanvasGradient implements js_library.JSObjectInterfacesDom {
@@ -313,7 +313,7 @@ class CanvasGradientImpl extends CanvasGradient implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class MediaStream {
-  factory MediaStream._internalWrap() => new MediaStreamImpl.internal_();
+  static Type get instanceRuntimeType => MediaStreamImpl;
 
 }
 class MediaStreamImpl extends MediaStream implements js_library.JSObjectInterfacesDom {
@@ -322,7 +322,7 @@ class MediaStreamImpl extends MediaStream implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class _ClientRectList {
-  factory _ClientRectList._internalWrap() => new _ClientRectListImpl.internal_();
+  static Type get instanceRuntimeType => _ClientRectListImpl;
 
 }
 class _ClientRectListImpl extends _ClientRectList implements js_library.JSObjectInterfacesDom {
@@ -331,7 +331,7 @@ class _ClientRectListImpl extends _ClientRectList implements js_library.JSObject
   toString() => super.toString();
 }
 patch class Document {
-  factory Document._internalWrap() => new DocumentImpl.internal_();
+  static Type get instanceRuntimeType => DocumentImpl;
 
 }
 class DocumentImpl extends Document implements js_library.JSObjectInterfacesDom {
@@ -340,7 +340,7 @@ class DocumentImpl extends Document implements js_library.JSObjectInterfacesDom 
   toString() => super.toString();
 }
 patch class MessageEvent {
-  factory MessageEvent._internalWrap() => new MessageEventImpl.internal_();
+  static Type get instanceRuntimeType => MessageEventImpl;
 
 }
 class MessageEventImpl extends MessageEvent implements js_library.JSObjectInterfacesDom {
@@ -349,7 +349,7 @@ class MessageEventImpl extends MessageEvent implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class RtcDtmfSender {
-  factory RtcDtmfSender._internalWrap() => new RtcDtmfSenderImpl.internal_();
+  static Type get instanceRuntimeType => RtcDtmfSenderImpl;
 
 }
 class RtcDtmfSenderImpl extends RtcDtmfSender implements js_library.JSObjectInterfacesDom {
@@ -358,7 +358,7 @@ class RtcDtmfSenderImpl extends RtcDtmfSender implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class ParamElement {
-  factory ParamElement._internalWrap() => new ParamElementImpl.internal_();
+  static Type get instanceRuntimeType => ParamElementImpl;
 
 }
 class ParamElementImpl extends ParamElement implements js_library.JSObjectInterfacesDom {
@@ -367,7 +367,7 @@ class ParamElementImpl extends ParamElement implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class TextTrack {
-  factory TextTrack._internalWrap() => new TextTrackImpl.internal_();
+  static Type get instanceRuntimeType => TextTrackImpl;
 
 }
 class TextTrackImpl extends TextTrack implements js_library.JSObjectInterfacesDom {
@@ -376,7 +376,7 @@ class TextTrackImpl extends TextTrack implements js_library.JSObjectInterfacesDo
   toString() => super.toString();
 }
 patch class ModElement {
-  factory ModElement._internalWrap() => new ModElementImpl.internal_();
+  static Type get instanceRuntimeType => ModElementImpl;
 
 }
 class ModElementImpl extends ModElement implements js_library.JSObjectInterfacesDom {
@@ -385,7 +385,7 @@ class ModElementImpl extends ModElement implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class ScriptElement {
-  factory ScriptElement._internalWrap() => new ScriptElementImpl.internal_();
+  static Type get instanceRuntimeType => ScriptElementImpl;
 
 }
 class ScriptElementImpl extends ScriptElement implements js_library.JSObjectInterfacesDom {
@@ -394,7 +394,7 @@ class ScriptElementImpl extends ScriptElement implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class VRFieldOfView {
-  factory VRFieldOfView._internalWrap() => new VRFieldOfViewImpl.internal_();
+  static Type get instanceRuntimeType => VRFieldOfViewImpl;
 
 }
 class VRFieldOfViewImpl extends VRFieldOfView implements js_library.JSObjectInterfacesDom {
@@ -403,7 +403,7 @@ class VRFieldOfViewImpl extends VRFieldOfView implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class SyncRegistration {
-  factory SyncRegistration._internalWrap() => new SyncRegistrationImpl.internal_();
+  static Type get instanceRuntimeType => SyncRegistrationImpl;
 
 }
 class SyncRegistrationImpl extends SyncRegistration implements js_library.JSObjectInterfacesDom {
@@ -412,7 +412,7 @@ class SyncRegistrationImpl extends SyncRegistration implements js_library.JSObje
   toString() => super.toString();
 }
 patch class Touch {
-  factory Touch._internalWrap() => new TouchImpl.internal_();
+  static Type get instanceRuntimeType => TouchImpl;
 
 }
 class TouchImpl extends Touch implements js_library.JSObjectInterfacesDom {
@@ -421,7 +421,7 @@ class TouchImpl extends Touch implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class BarProp {
-  factory BarProp._internalWrap() => new BarPropImpl.internal_();
+  static Type get instanceRuntimeType => BarPropImpl;
 
 }
 class BarPropImpl extends BarProp implements js_library.JSObjectInterfacesDom {
@@ -430,7 +430,7 @@ class BarPropImpl extends BarProp implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class DeviceLightEvent {
-  factory DeviceLightEvent._internalWrap() => new DeviceLightEventImpl.internal_();
+  static Type get instanceRuntimeType => DeviceLightEventImpl;
 
 }
 class DeviceLightEventImpl extends DeviceLightEvent implements js_library.JSObjectInterfacesDom {
@@ -439,7 +439,7 @@ class DeviceLightEventImpl extends DeviceLightEvent implements js_library.JSObje
   toString() => super.toString();
 }
 patch class MediaDevices {
-  factory MediaDevices._internalWrap() => new MediaDevicesImpl.internal_();
+  static Type get instanceRuntimeType => MediaDevicesImpl;
 
 }
 class MediaDevicesImpl extends MediaDevices implements js_library.JSObjectInterfacesDom {
@@ -448,7 +448,7 @@ class MediaDevicesImpl extends MediaDevices implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class Url {
-  factory Url._internalWrap() => new UrlImpl.internal_();
+  static Type get instanceRuntimeType => UrlImpl;
 
 }
 class UrlImpl extends Url implements js_library.JSObjectInterfacesDom {
@@ -457,7 +457,7 @@ class UrlImpl extends Url implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class EmbedElement {
-  factory EmbedElement._internalWrap() => new EmbedElementImpl.internal_();
+  static Type get instanceRuntimeType => EmbedElementImpl;
 
 }
 class EmbedElementImpl extends EmbedElement implements js_library.JSObjectInterfacesDom {
@@ -466,7 +466,7 @@ class EmbedElementImpl extends EmbedElement implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class Metadata {
-  factory Metadata._internalWrap() => new MetadataImpl.internal_();
+  static Type get instanceRuntimeType => MetadataImpl;
 
 }
 class MetadataImpl extends Metadata implements js_library.JSObjectInterfacesDom {
@@ -475,7 +475,7 @@ class MetadataImpl extends Metadata implements js_library.JSObjectInterfacesDom 
   toString() => super.toString();
 }
 patch class _FileEntrySync {
-  factory _FileEntrySync._internalWrap() => new _FileEntrySyncImpl.internal_();
+  static Type get instanceRuntimeType => _FileEntrySyncImpl;
 
 }
 class _FileEntrySyncImpl extends _FileEntrySync implements js_library.JSObjectInterfacesDom {
@@ -484,7 +484,7 @@ class _FileEntrySyncImpl extends _FileEntrySync implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class BaseElement {
-  factory BaseElement._internalWrap() => new BaseElementImpl.internal_();
+  static Type get instanceRuntimeType => BaseElementImpl;
 
 }
 class BaseElementImpl extends BaseElement implements js_library.JSObjectInterfacesDom {
@@ -493,7 +493,7 @@ class BaseElementImpl extends BaseElement implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class BRElement {
-  factory BRElement._internalWrap() => new BRElementImpl.internal_();
+  static Type get instanceRuntimeType => BRElementImpl;
 
 }
 class BRElementImpl extends BRElement implements js_library.JSObjectInterfacesDom {
@@ -502,7 +502,7 @@ class BRElementImpl extends BRElement implements js_library.JSObjectInterfacesDo
   toString() => super.toString();
 }
 patch class Presentation {
-  factory Presentation._internalWrap() => new PresentationImpl.internal_();
+  static Type get instanceRuntimeType => PresentationImpl;
 
 }
 class PresentationImpl extends Presentation implements js_library.JSObjectInterfacesDom {
@@ -511,7 +511,7 @@ class PresentationImpl extends Presentation implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class CircularGeofencingRegion {
-  factory CircularGeofencingRegion._internalWrap() => new CircularGeofencingRegionImpl.internal_();
+  static Type get instanceRuntimeType => CircularGeofencingRegionImpl;
 
 }
 class CircularGeofencingRegionImpl extends CircularGeofencingRegion implements js_library.JSObjectInterfacesDom {
@@ -520,7 +520,7 @@ class CircularGeofencingRegionImpl extends CircularGeofencingRegion implements j
   toString() => super.toString();
 }
 patch class PushManager {
-  factory PushManager._internalWrap() => new PushManagerImpl.internal_();
+  static Type get instanceRuntimeType => PushManagerImpl;
 
 }
 class PushManagerImpl extends PushManager implements js_library.JSObjectInterfacesDom {
@@ -529,7 +529,7 @@ class PushManagerImpl extends PushManager implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class PasswordCredential {
-  factory PasswordCredential._internalWrap() => new PasswordCredentialImpl.internal_();
+  static Type get instanceRuntimeType => PasswordCredentialImpl;
 
 }
 class PasswordCredentialImpl extends PasswordCredential implements js_library.JSObjectInterfacesDom {
@@ -538,7 +538,7 @@ class PasswordCredentialImpl extends PasswordCredential implements js_library.JS
   toString() => super.toString();
 }
 patch class ObjectElement {
-  factory ObjectElement._internalWrap() => new ObjectElementImpl.internal_();
+  static Type get instanceRuntimeType => ObjectElementImpl;
 
 }
 class ObjectElementImpl extends ObjectElement implements js_library.JSObjectInterfacesDom {
@@ -547,7 +547,7 @@ class ObjectElementImpl extends ObjectElement implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class DomMatrix {
-  factory DomMatrix._internalWrap() => new DomMatrixImpl.internal_();
+  static Type get instanceRuntimeType => DomMatrixImpl;
 
 }
 class DomMatrixImpl extends DomMatrix implements js_library.JSObjectInterfacesDom {
@@ -556,7 +556,7 @@ class DomMatrixImpl extends DomMatrix implements js_library.JSObjectInterfacesDo
   toString() => super.toString();
 }
 patch class AbstractWorker {
-  factory AbstractWorker._internalWrap() => new AbstractWorkerImpl.internal_();
+  static Type get instanceRuntimeType => AbstractWorkerImpl;
 
 }
 class AbstractWorkerImpl extends AbstractWorker implements js_library.JSObjectInterfacesDom {
@@ -565,7 +565,7 @@ class AbstractWorkerImpl extends AbstractWorker implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class ResourceProgressEvent {
-  factory ResourceProgressEvent._internalWrap() => new ResourceProgressEventImpl.internal_();
+  static Type get instanceRuntimeType => ResourceProgressEventImpl;
 
 }
 class ResourceProgressEventImpl extends ResourceProgressEvent implements js_library.JSObjectInterfacesDom {
@@ -574,7 +574,7 @@ class ResourceProgressEventImpl extends ResourceProgressEvent implements js_libr
   toString() => super.toString();
 }
 patch class ValidityState {
-  factory ValidityState._internalWrap() => new ValidityStateImpl.internal_();
+  static Type get instanceRuntimeType => ValidityStateImpl;
 
 }
 class ValidityStateImpl extends ValidityState implements js_library.JSObjectInterfacesDom {
@@ -583,7 +583,7 @@ class ValidityStateImpl extends ValidityState implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class HRElement {
-  factory HRElement._internalWrap() => new HRElementImpl.internal_();
+  static Type get instanceRuntimeType => HRElementImpl;
 
 }
 class HRElementImpl extends HRElement implements js_library.JSObjectInterfacesDom {
@@ -592,7 +592,7 @@ class HRElementImpl extends HRElement implements js_library.JSObjectInterfacesDo
   toString() => super.toString();
 }
 patch class OptGroupElement {
-  factory OptGroupElement._internalWrap() => new OptGroupElementImpl.internal_();
+  static Type get instanceRuntimeType => OptGroupElementImpl;
 
 }
 class OptGroupElementImpl extends OptGroupElement implements js_library.JSObjectInterfacesDom {
@@ -601,7 +601,7 @@ class OptGroupElementImpl extends OptGroupElement implements js_library.JSObject
   toString() => super.toString();
 }
 patch class Crypto {
-  factory Crypto._internalWrap() => new CryptoImpl.internal_();
+  static Type get instanceRuntimeType => CryptoImpl;
 
 }
 class CryptoImpl extends Crypto implements js_library.JSObjectInterfacesDom {
@@ -610,7 +610,7 @@ class CryptoImpl extends Crypto implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class PerformanceTiming {
-  factory PerformanceTiming._internalWrap() => new PerformanceTimingImpl.internal_();
+  static Type get instanceRuntimeType => PerformanceTimingImpl;
 
 }
 class PerformanceTimingImpl extends PerformanceTiming implements js_library.JSObjectInterfacesDom {
@@ -619,7 +619,7 @@ class PerformanceTimingImpl extends PerformanceTiming implements js_library.JSOb
   toString() => super.toString();
 }
 patch class RtcDataChannel {
-  factory RtcDataChannel._internalWrap() => new RtcDataChannelImpl.internal_();
+  static Type get instanceRuntimeType => RtcDataChannelImpl;
 
 }
 class RtcDataChannelImpl extends RtcDataChannel implements js_library.JSObjectInterfacesDom {
@@ -628,7 +628,7 @@ class RtcDataChannelImpl extends RtcDataChannel implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class NavigatorOnLine {
-  factory NavigatorOnLine._internalWrap() => new NavigatorOnLineImpl.internal_();
+  static Type get instanceRuntimeType => NavigatorOnLineImpl;
 
 }
 class NavigatorOnLineImpl extends NavigatorOnLine implements js_library.JSObjectInterfacesDom {
@@ -637,7 +637,7 @@ class NavigatorOnLineImpl extends NavigatorOnLine implements js_library.JSObject
   toString() => super.toString();
 }
 patch class _HTMLAppletElement {
-  factory _HTMLAppletElement._internalWrap() => new _HTMLAppletElementImpl.internal_();
+  static Type get instanceRuntimeType => _HTMLAppletElementImpl;
 
 }
 class _HTMLAppletElementImpl extends _HTMLAppletElement implements js_library.JSObjectInterfacesDom {
@@ -646,7 +646,7 @@ class _HTMLAppletElementImpl extends _HTMLAppletElement implements js_library.JS
   toString() => super.toString();
 }
 patch class SpeechSynthesisVoice {
-  factory SpeechSynthesisVoice._internalWrap() => new SpeechSynthesisVoiceImpl.internal_();
+  static Type get instanceRuntimeType => SpeechSynthesisVoiceImpl;
 
 }
 class SpeechSynthesisVoiceImpl extends SpeechSynthesisVoice implements js_library.JSObjectInterfacesDom {
@@ -655,7 +655,7 @@ class SpeechSynthesisVoiceImpl extends SpeechSynthesisVoice implements js_librar
   toString() => super.toString();
 }
 patch class FontFaceSetLoadEvent {
-  factory FontFaceSetLoadEvent._internalWrap() => new FontFaceSetLoadEventImpl.internal_();
+  static Type get instanceRuntimeType => FontFaceSetLoadEventImpl;
 
 }
 class FontFaceSetLoadEventImpl extends FontFaceSetLoadEvent implements js_library.JSObjectInterfacesDom {
@@ -664,7 +664,7 @@ class FontFaceSetLoadEventImpl extends FontFaceSetLoadEvent implements js_librar
   toString() => super.toString();
 }
 patch class NavigatorStorageUtils {
-  factory NavigatorStorageUtils._internalWrap() => new NavigatorStorageUtilsImpl.internal_();
+  static Type get instanceRuntimeType => NavigatorStorageUtilsImpl;
 
 }
 class NavigatorStorageUtilsImpl extends NavigatorStorageUtils implements js_library.JSObjectInterfacesDom {
@@ -673,7 +673,7 @@ class NavigatorStorageUtilsImpl extends NavigatorStorageUtils implements js_libr
   toString() => super.toString();
 }
 patch class SourceElement {
-  factory SourceElement._internalWrap() => new SourceElementImpl.internal_();
+  static Type get instanceRuntimeType => SourceElementImpl;
 
 }
 class SourceElementImpl extends SourceElement implements js_library.JSObjectInterfacesDom {
@@ -682,7 +682,7 @@ class SourceElementImpl extends SourceElement implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class InjectedScriptHost {
-  factory InjectedScriptHost._internalWrap() => new InjectedScriptHostImpl.internal_();
+  static Type get instanceRuntimeType => InjectedScriptHostImpl;
 
 }
 class InjectedScriptHostImpl extends InjectedScriptHost implements js_library.JSObjectInterfacesDom {
@@ -691,7 +691,7 @@ class InjectedScriptHostImpl extends InjectedScriptHost implements js_library.JS
   toString() => super.toString();
 }
 patch class UIEvent {
-  factory UIEvent._internalWrap() => new UIEventImpl.internal_();
+  static Type get instanceRuntimeType => UIEventImpl;
 
 }
 class UIEventImpl extends UIEvent implements js_library.JSObjectInterfacesDom {
@@ -700,7 +700,7 @@ class UIEventImpl extends UIEvent implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class HtmlHtmlElement {
-  factory HtmlHtmlElement._internalWrap() => new HtmlHtmlElementImpl.internal_();
+  static Type get instanceRuntimeType => HtmlHtmlElementImpl;
 
 }
 class HtmlHtmlElementImpl extends HtmlHtmlElement implements js_library.JSObjectInterfacesDom {
@@ -709,7 +709,7 @@ class HtmlHtmlElementImpl extends HtmlHtmlElement implements js_library.JSObject
   toString() => super.toString();
 }
 patch class ClipboardEvent {
-  factory ClipboardEvent._internalWrap() => new ClipboardEventImpl.internal_();
+  static Type get instanceRuntimeType => ClipboardEventImpl;
 
 }
 class ClipboardEventImpl extends ClipboardEvent implements js_library.JSObjectInterfacesDom {
@@ -718,7 +718,7 @@ class ClipboardEventImpl extends ClipboardEvent implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class OptionElement {
-  factory OptionElement._internalWrap() => new OptionElementImpl.internal_();
+  static Type get instanceRuntimeType => OptionElementImpl;
 
 }
 class OptionElementImpl extends OptionElement implements js_library.JSObjectInterfacesDom {
@@ -727,7 +727,7 @@ class OptionElementImpl extends OptionElement implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class MediaSource {
-  factory MediaSource._internalWrap() => new MediaSourceImpl.internal_();
+  static Type get instanceRuntimeType => MediaSourceImpl;
 
 }
 class MediaSourceImpl extends MediaSource implements js_library.JSObjectInterfacesDom {
@@ -736,7 +736,7 @@ class MediaSourceImpl extends MediaSource implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class MediaKeyMessageEvent {
-  factory MediaKeyMessageEvent._internalWrap() => new MediaKeyMessageEventImpl.internal_();
+  static Type get instanceRuntimeType => MediaKeyMessageEventImpl;
 
 }
 class MediaKeyMessageEventImpl extends MediaKeyMessageEvent implements js_library.JSObjectInterfacesDom {
@@ -745,7 +745,7 @@ class MediaKeyMessageEventImpl extends MediaKeyMessageEvent implements js_librar
   toString() => super.toString();
 }
 patch class CustomEvent {
-  factory CustomEvent._internalWrap() => new CustomEventImpl.internal_();
+  static Type get instanceRuntimeType => CustomEventImpl;
 
 }
 class CustomEventImpl extends CustomEvent implements js_library.JSObjectInterfacesDom {
@@ -754,7 +754,7 @@ class CustomEventImpl extends CustomEvent implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class VttRegion {
-  factory VttRegion._internalWrap() => new VttRegionImpl.internal_();
+  static Type get instanceRuntimeType => VttRegionImpl;
 
 }
 class VttRegionImpl extends VttRegion implements js_library.JSObjectInterfacesDom {
@@ -763,7 +763,7 @@ class VttRegionImpl extends VttRegion implements js_library.JSObjectInterfacesDo
   toString() => super.toString();
 }
 patch class HeadingElement {
-  factory HeadingElement._internalWrap() => new HeadingElementImpl.internal_();
+  static Type get instanceRuntimeType => HeadingElementImpl;
 
 }
 class HeadingElementImpl extends HeadingElement implements js_library.JSObjectInterfacesDom {
@@ -772,7 +772,7 @@ class HeadingElementImpl extends HeadingElement implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class History {
-  factory History._internalWrap() => new HistoryImpl.internal_();
+  static Type get instanceRuntimeType => HistoryImpl;
 
 }
 class HistoryImpl extends History implements js_library.JSObjectInterfacesDom {
@@ -781,7 +781,7 @@ class HistoryImpl extends History implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class ServiceWorkerRegistration {
-  factory ServiceWorkerRegistration._internalWrap() => new ServiceWorkerRegistrationImpl.internal_();
+  static Type get instanceRuntimeType => ServiceWorkerRegistrationImpl;
 
 }
 class ServiceWorkerRegistrationImpl extends ServiceWorkerRegistration implements js_library.JSObjectInterfacesDom {
@@ -790,7 +790,7 @@ class ServiceWorkerRegistrationImpl extends ServiceWorkerRegistration implements
   toString() => super.toString();
 }
 patch class _WorkerNavigator {
-  factory _WorkerNavigator._internalWrap() => new _WorkerNavigatorImpl.internal_();
+  static Type get instanceRuntimeType => _WorkerNavigatorImpl;
 
 }
 class _WorkerNavigatorImpl extends _WorkerNavigator implements js_library.JSObjectInterfacesDom {
@@ -799,7 +799,7 @@ class _WorkerNavigatorImpl extends _WorkerNavigator implements js_library.JSObje
   toString() => super.toString();
 }
 patch class RtcStatsResponse {
-  factory RtcStatsResponse._internalWrap() => new RtcStatsResponseImpl.internal_();
+  static Type get instanceRuntimeType => RtcStatsResponseImpl;
 
 }
 class RtcStatsResponseImpl extends RtcStatsResponse implements js_library.JSObjectInterfacesDom {
@@ -808,7 +808,7 @@ class RtcStatsResponseImpl extends RtcStatsResponse implements js_library.JSObje
   toString() => super.toString();
 }
 patch class DirectoryReader {
-  factory DirectoryReader._internalWrap() => new DirectoryReaderImpl.internal_();
+  static Type get instanceRuntimeType => DirectoryReaderImpl;
 
 }
 class DirectoryReaderImpl extends DirectoryReader implements js_library.JSObjectInterfacesDom {
@@ -817,7 +817,7 @@ class DirectoryReaderImpl extends DirectoryReader implements js_library.JSObject
   toString() => super.toString();
 }
 patch class Headers {
-  factory Headers._internalWrap() => new HeadersImpl.internal_();
+  static Type get instanceRuntimeType => HeadersImpl;
 
 }
 class HeadersImpl extends Headers implements js_library.JSObjectInterfacesDom {
@@ -826,7 +826,7 @@ class HeadersImpl extends Headers implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class DataListElement {
-  factory DataListElement._internalWrap() => new DataListElementImpl.internal_();
+  static Type get instanceRuntimeType => DataListElementImpl;
 
 }
 class DataListElementImpl extends DataListElement implements js_library.JSObjectInterfacesDom {
@@ -835,7 +835,7 @@ class DataListElementImpl extends DataListElement implements js_library.JSObject
   toString() => super.toString();
 }
 patch class MediaList {
-  factory MediaList._internalWrap() => new MediaListImpl.internal_();
+  static Type get instanceRuntimeType => MediaListImpl;
 
 }
 class MediaListImpl extends MediaList implements js_library.JSObjectInterfacesDom {
@@ -844,7 +844,7 @@ class MediaListImpl extends MediaList implements js_library.JSObjectInterfacesDo
   toString() => super.toString();
 }
 patch class ParentNode {
-  factory ParentNode._internalWrap() => new ParentNodeImpl.internal_();
+  static Type get instanceRuntimeType => ParentNodeImpl;
 
 }
 class ParentNodeImpl extends ParentNode implements js_library.JSObjectInterfacesDom {
@@ -853,7 +853,7 @@ class ParentNodeImpl extends ParentNode implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class _FileReaderSync {
-  factory _FileReaderSync._internalWrap() => new _FileReaderSyncImpl.internal_();
+  static Type get instanceRuntimeType => _FileReaderSyncImpl;
 
 }
 class _FileReaderSyncImpl extends _FileReaderSync implements js_library.JSObjectInterfacesDom {
@@ -862,7 +862,7 @@ class _FileReaderSyncImpl extends _FileReaderSync implements js_library.JSObject
   toString() => super.toString();
 }
 patch class DataTransferItemList {
-  factory DataTransferItemList._internalWrap() => new DataTransferItemListImpl.internal_();
+  static Type get instanceRuntimeType => DataTransferItemListImpl;
 
 }
 class DataTransferItemListImpl extends DataTransferItemList implements js_library.JSObjectInterfacesDom {
@@ -871,7 +871,7 @@ class DataTransferItemListImpl extends DataTransferItemList implements js_librar
   toString() => super.toString();
 }
 patch class GlobalEventHandlers {
-  factory GlobalEventHandlers._internalWrap() => new GlobalEventHandlersImpl.internal_();
+  static Type get instanceRuntimeType => GlobalEventHandlersImpl;
 
 }
 class GlobalEventHandlersImpl extends GlobalEventHandlers implements js_library.JSObjectInterfacesDom {
@@ -880,7 +880,7 @@ class GlobalEventHandlersImpl extends GlobalEventHandlers implements js_library.
   toString() => super.toString();
 }
 patch class DocumentFragment {
-  factory DocumentFragment._internalWrap() => new DocumentFragmentImpl.internal_();
+  static Type get instanceRuntimeType => DocumentFragmentImpl;
 
 }
 class DocumentFragmentImpl extends DocumentFragment implements js_library.JSObjectInterfacesDom {
@@ -889,7 +889,7 @@ class DocumentFragmentImpl extends DocumentFragment implements js_library.JSObje
   toString() => super.toString();
 }
 patch class DomImplementation {
-  factory DomImplementation._internalWrap() => new DomImplementationImpl.internal_();
+  static Type get instanceRuntimeType => DomImplementationImpl;
 
 }
 class DomImplementationImpl extends DomImplementation implements js_library.JSObjectInterfacesDom {
@@ -898,7 +898,7 @@ class DomImplementationImpl extends DomImplementation implements js_library.JSOb
   toString() => super.toString();
 }
 patch class PeriodicSyncEvent {
-  factory PeriodicSyncEvent._internalWrap() => new PeriodicSyncEventImpl.internal_();
+  static Type get instanceRuntimeType => PeriodicSyncEventImpl;
 
 }
 class PeriodicSyncEventImpl extends PeriodicSyncEvent implements js_library.JSObjectInterfacesDom {
@@ -907,7 +907,7 @@ class PeriodicSyncEventImpl extends PeriodicSyncEvent implements js_library.JSOb
   toString() => super.toString();
 }
 patch class DialogElement {
-  factory DialogElement._internalWrap() => new DialogElementImpl.internal_();
+  static Type get instanceRuntimeType => DialogElementImpl;
 
 }
 class DialogElementImpl extends DialogElement implements js_library.JSObjectInterfacesDom {
@@ -916,7 +916,7 @@ class DialogElementImpl extends DialogElement implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class PeriodicSyncRegistration {
-  factory PeriodicSyncRegistration._internalWrap() => new PeriodicSyncRegistrationImpl.internal_();
+  static Type get instanceRuntimeType => PeriodicSyncRegistrationImpl;
 
 }
 class PeriodicSyncRegistrationImpl extends PeriodicSyncRegistration implements js_library.JSObjectInterfacesDom {
@@ -925,7 +925,7 @@ class PeriodicSyncRegistrationImpl extends PeriodicSyncRegistration implements j
   toString() => super.toString();
 }
 patch class MessagePort {
-  factory MessagePort._internalWrap() => new MessagePortImpl.internal_();
+  static Type get instanceRuntimeType => MessagePortImpl;
 
 }
 class MessagePortImpl extends MessagePort implements js_library.JSObjectInterfacesDom {
@@ -934,7 +934,7 @@ class MessagePortImpl extends MessagePort implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class FileReader {
-  factory FileReader._internalWrap() => new FileReaderImpl.internal_();
+  static Type get instanceRuntimeType => FileReaderImpl;
 
 }
 class FileReaderImpl extends FileReader implements js_library.JSObjectInterfacesDom {
@@ -943,7 +943,7 @@ class FileReaderImpl extends FileReader implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class HtmlOptionsCollection {
-  factory HtmlOptionsCollection._internalWrap() => new HtmlOptionsCollectionImpl.internal_();
+  static Type get instanceRuntimeType => HtmlOptionsCollectionImpl;
 
 }
 class HtmlOptionsCollectionImpl extends HtmlOptionsCollection implements js_library.JSObjectInterfacesDom {
@@ -952,7 +952,7 @@ class HtmlOptionsCollectionImpl extends HtmlOptionsCollection implements js_libr
   toString() => super.toString();
 }
 patch class _HTMLFrameSetElement {
-  factory _HTMLFrameSetElement._internalWrap() => new _HTMLFrameSetElementImpl.internal_();
+  static Type get instanceRuntimeType => _HTMLFrameSetElementImpl;
 
 }
 class _HTMLFrameSetElementImpl extends _HTMLFrameSetElement implements js_library.JSObjectInterfacesDom {
@@ -961,7 +961,7 @@ class _HTMLFrameSetElementImpl extends _HTMLFrameSetElement implements js_librar
   toString() => super.toString();
 }
 patch class PerformanceMeasure {
-  factory PerformanceMeasure._internalWrap() => new PerformanceMeasureImpl.internal_();
+  static Type get instanceRuntimeType => PerformanceMeasureImpl;
 
 }
 class PerformanceMeasureImpl extends PerformanceMeasure implements js_library.JSObjectInterfacesDom {
@@ -970,7 +970,7 @@ class PerformanceMeasureImpl extends PerformanceMeasure implements js_library.JS
   toString() => super.toString();
 }
 patch class ServiceWorkerContainer {
-  factory ServiceWorkerContainer._internalWrap() => new ServiceWorkerContainerImpl.internal_();
+  static Type get instanceRuntimeType => ServiceWorkerContainerImpl;
 
 }
 class ServiceWorkerContainerImpl extends ServiceWorkerContainer implements js_library.JSObjectInterfacesDom {
@@ -979,7 +979,7 @@ class ServiceWorkerContainerImpl extends ServiceWorkerContainer implements js_li
   toString() => super.toString();
 }
 patch class TrackDefaultList {
-  factory TrackDefaultList._internalWrap() => new TrackDefaultListImpl.internal_();
+  static Type get instanceRuntimeType => TrackDefaultListImpl;
 
 }
 class TrackDefaultListImpl extends TrackDefaultList implements js_library.JSObjectInterfacesDom {
@@ -988,7 +988,7 @@ class TrackDefaultListImpl extends TrackDefaultList implements js_library.JSObje
   toString() => super.toString();
 }
 patch class RelatedEvent {
-  factory RelatedEvent._internalWrap() => new RelatedEventImpl.internal_();
+  static Type get instanceRuntimeType => RelatedEventImpl;
 
 }
 class RelatedEventImpl extends RelatedEvent implements js_library.JSObjectInterfacesDom {
@@ -997,7 +997,7 @@ class RelatedEventImpl extends RelatedEvent implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class TableCaptionElement {
-  factory TableCaptionElement._internalWrap() => new TableCaptionElementImpl.internal_();
+  static Type get instanceRuntimeType => TableCaptionElementImpl;
 
 }
 class TableCaptionElementImpl extends TableCaptionElement implements js_library.JSObjectInterfacesDom {
@@ -1006,7 +1006,7 @@ class TableCaptionElementImpl extends TableCaptionElement implements js_library.
   toString() => super.toString();
 }
 patch class ScrollState {
-  factory ScrollState._internalWrap() => new ScrollStateImpl.internal_();
+  static Type get instanceRuntimeType => ScrollStateImpl;
 
 }
 class ScrollStateImpl extends ScrollState implements js_library.JSObjectInterfacesDom {
@@ -1015,7 +1015,7 @@ class ScrollStateImpl extends ScrollState implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class MenuItemElement {
-  factory MenuItemElement._internalWrap() => new MenuItemElementImpl.internal_();
+  static Type get instanceRuntimeType => MenuItemElementImpl;
 
 }
 class MenuItemElementImpl extends MenuItemElement implements js_library.JSObjectInterfacesDom {
@@ -1024,7 +1024,7 @@ class MenuItemElementImpl extends MenuItemElement implements js_library.JSObject
   toString() => super.toString();
 }
 patch class MediaKeyStatusMap {
-  factory MediaKeyStatusMap._internalWrap() => new MediaKeyStatusMapImpl.internal_();
+  static Type get instanceRuntimeType => MediaKeyStatusMapImpl;
 
 }
 class MediaKeyStatusMapImpl extends MediaKeyStatusMap implements js_library.JSObjectInterfacesDom {
@@ -1033,7 +1033,7 @@ class MediaKeyStatusMapImpl extends MediaKeyStatusMap implements js_library.JSOb
   toString() => super.toString();
 }
 patch class RtcDataChannelEvent {
-  factory RtcDataChannelEvent._internalWrap() => new RtcDataChannelEventImpl.internal_();
+  static Type get instanceRuntimeType => RtcDataChannelEventImpl;
 
 }
 class RtcDataChannelEventImpl extends RtcDataChannelEvent implements js_library.JSObjectInterfacesDom {
@@ -1042,7 +1042,7 @@ class RtcDataChannelEventImpl extends RtcDataChannelEvent implements js_library.
   toString() => super.toString();
 }
 patch class MediaElement {
-  factory MediaElement._internalWrap() => new MediaElementImpl.internal_();
+  static Type get instanceRuntimeType => MediaElementImpl;
 
 }
 class MediaElementImpl extends MediaElement implements js_library.JSObjectInterfacesDom {
@@ -1051,7 +1051,7 @@ class MediaElementImpl extends MediaElement implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class MediaDeviceInfo {
-  factory MediaDeviceInfo._internalWrap() => new MediaDeviceInfoImpl.internal_();
+  static Type get instanceRuntimeType => MediaDeviceInfoImpl;
 
 }
 class MediaDeviceInfoImpl extends MediaDeviceInfo implements js_library.JSObjectInterfacesDom {
@@ -1060,7 +1060,7 @@ class MediaDeviceInfoImpl extends MediaDeviceInfo implements js_library.JSObject
   toString() => super.toString();
 }
 patch class StorageEvent {
-  factory StorageEvent._internalWrap() => new StorageEventImpl.internal_();
+  static Type get instanceRuntimeType => StorageEventImpl;
 
 }
 class StorageEventImpl extends StorageEvent implements js_library.JSObjectInterfacesDom {
@@ -1069,7 +1069,7 @@ class StorageEventImpl extends StorageEvent implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class FormData {
-  factory FormData._internalWrap() => new FormDataImpl.internal_();
+  static Type get instanceRuntimeType => FormDataImpl;
 
 }
 class FormDataImpl extends FormData implements js_library.JSObjectInterfacesDom {
@@ -1078,7 +1078,7 @@ class FormDataImpl extends FormData implements js_library.JSObjectInterfacesDom 
   toString() => super.toString();
 }
 patch class PushEvent {
-  factory PushEvent._internalWrap() => new PushEventImpl.internal_();
+  static Type get instanceRuntimeType => PushEventImpl;
 
 }
 class PushEventImpl extends PushEvent implements js_library.JSObjectInterfacesDom {
@@ -1087,7 +1087,7 @@ class PushEventImpl extends PushEvent implements js_library.JSObjectInterfacesDo
   toString() => super.toString();
 }
 patch class CssPageRule {
-  factory CssPageRule._internalWrap() => new CssPageRuleImpl.internal_();
+  static Type get instanceRuntimeType => CssPageRuleImpl;
 
 }
 class CssPageRuleImpl extends CssPageRule implements js_library.JSObjectInterfacesDom {
@@ -1096,7 +1096,7 @@ class CssPageRuleImpl extends CssPageRule implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class PageTransitionEvent {
-  factory PageTransitionEvent._internalWrap() => new PageTransitionEventImpl.internal_();
+  static Type get instanceRuntimeType => PageTransitionEventImpl;
 
 }
 class PageTransitionEventImpl extends PageTransitionEvent implements js_library.JSObjectInterfacesDom {
@@ -1105,7 +1105,7 @@ class PageTransitionEventImpl extends PageTransitionEvent implements js_library.
   toString() => super.toString();
 }
 patch class MemoryInfo {
-  factory MemoryInfo._internalWrap() => new MemoryInfoImpl.internal_();
+  static Type get instanceRuntimeType => MemoryInfoImpl;
 
 }
 class MemoryInfoImpl extends MemoryInfo implements js_library.JSObjectInterfacesDom {
@@ -1114,7 +1114,7 @@ class MemoryInfoImpl extends MemoryInfo implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class ChromiumValuebuffer {
-  factory ChromiumValuebuffer._internalWrap() => new ChromiumValuebufferImpl.internal_();
+  static Type get instanceRuntimeType => ChromiumValuebufferImpl;
 
 }
 class ChromiumValuebufferImpl extends ChromiumValuebuffer implements js_library.JSObjectInterfacesDom {
@@ -1123,7 +1123,7 @@ class ChromiumValuebufferImpl extends ChromiumValuebuffer implements js_library.
   toString() => super.toString();
 }
 patch class KeyframeEffect {
-  factory KeyframeEffect._internalWrap() => new KeyframeEffectImpl.internal_();
+  static Type get instanceRuntimeType => KeyframeEffectImpl;
 
 }
 class KeyframeEffectImpl extends KeyframeEffect implements js_library.JSObjectInterfacesDom {
@@ -1132,7 +1132,7 @@ class KeyframeEffectImpl extends KeyframeEffect implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class XPathEvaluator {
-  factory XPathEvaluator._internalWrap() => new XPathEvaluatorImpl.internal_();
+  static Type get instanceRuntimeType => XPathEvaluatorImpl;
 
 }
 class XPathEvaluatorImpl extends XPathEvaluator implements js_library.JSObjectInterfacesDom {
@@ -1141,7 +1141,7 @@ class XPathEvaluatorImpl extends XPathEvaluator implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class ContentElement {
-  factory ContentElement._internalWrap() => new ContentElementImpl.internal_();
+  static Type get instanceRuntimeType => ContentElementImpl;
 
 }
 class ContentElementImpl extends ContentElement implements js_library.JSObjectInterfacesDom {
@@ -1150,7 +1150,7 @@ class ContentElementImpl extends ContentElement implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class CompositionEvent {
-  factory CompositionEvent._internalWrap() => new CompositionEventImpl.internal_();
+  static Type get instanceRuntimeType => CompositionEventImpl;
 
 }
 class CompositionEventImpl extends CompositionEvent implements js_library.JSObjectInterfacesDom {
@@ -1159,7 +1159,7 @@ class CompositionEventImpl extends CompositionEvent implements js_library.JSObje
   toString() => super.toString();
 }
 patch class FileWriter {
-  factory FileWriter._internalWrap() => new FileWriterImpl.internal_();
+  static Type get instanceRuntimeType => FileWriterImpl;
 
 }
 class FileWriterImpl extends FileWriter implements js_library.JSObjectInterfacesDom {
@@ -1168,7 +1168,7 @@ class FileWriterImpl extends FileWriter implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class SpanElement {
-  factory SpanElement._internalWrap() => new SpanElementImpl.internal_();
+  static Type get instanceRuntimeType => SpanElementImpl;
 
 }
 class SpanElementImpl extends SpanElement implements js_library.JSObjectInterfacesDom {
@@ -1177,7 +1177,7 @@ class SpanElementImpl extends SpanElement implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class _WebKitCSSMatrix {
-  factory _WebKitCSSMatrix._internalWrap() => new _WebKitCSSMatrixImpl.internal_();
+  static Type get instanceRuntimeType => _WebKitCSSMatrixImpl;
 
 }
 class _WebKitCSSMatrixImpl extends _WebKitCSSMatrix implements js_library.JSObjectInterfacesDom {
@@ -1186,7 +1186,7 @@ class _WebKitCSSMatrixImpl extends _WebKitCSSMatrix implements js_library.JSObje
   toString() => super.toString();
 }
 patch class WorkerPerformance {
-  factory WorkerPerformance._internalWrap() => new WorkerPerformanceImpl.internal_();
+  static Type get instanceRuntimeType => WorkerPerformanceImpl;
 
 }
 class WorkerPerformanceImpl extends WorkerPerformance implements js_library.JSObjectInterfacesDom {
@@ -1195,7 +1195,7 @@ class WorkerPerformanceImpl extends WorkerPerformance implements js_library.JSOb
   toString() => super.toString();
 }
 patch class TransitionEvent {
-  factory TransitionEvent._internalWrap() => new TransitionEventImpl.internal_();
+  static Type get instanceRuntimeType => TransitionEventImpl;
 
 }
 class TransitionEventImpl extends TransitionEvent implements js_library.JSObjectInterfacesDom {
@@ -1204,7 +1204,7 @@ class TransitionEventImpl extends TransitionEvent implements js_library.JSObject
   toString() => super.toString();
 }
 patch class GamepadEvent {
-  factory GamepadEvent._internalWrap() => new GamepadEventImpl.internal_();
+  static Type get instanceRuntimeType => GamepadEventImpl;
 
 }
 class GamepadEventImpl extends GamepadEvent implements js_library.JSObjectInterfacesDom {
@@ -1213,7 +1213,7 @@ class GamepadEventImpl extends GamepadEvent implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class _HTMLFontElement {
-  factory _HTMLFontElement._internalWrap() => new _HTMLFontElementImpl.internal_();
+  static Type get instanceRuntimeType => _HTMLFontElementImpl;
 
 }
 class _HTMLFontElementImpl extends _HTMLFontElement implements js_library.JSObjectInterfacesDom {
@@ -1222,7 +1222,7 @@ class _HTMLFontElementImpl extends _HTMLFontElement implements js_library.JSObje
   toString() => super.toString();
 }
 patch class _Response {
-  factory _Response._internalWrap() => new _ResponseImpl.internal_();
+  static Type get instanceRuntimeType => _ResponseImpl;
 
 }
 class _ResponseImpl extends _Response implements js_library.JSObjectInterfacesDom {
@@ -1231,7 +1231,7 @@ class _ResponseImpl extends _Response implements js_library.JSObjectInterfacesDo
   toString() => super.toString();
 }
 patch class _PagePopupController {
-  factory _PagePopupController._internalWrap() => new _PagePopupControllerImpl.internal_();
+  static Type get instanceRuntimeType => _PagePopupControllerImpl;
 
 }
 class _PagePopupControllerImpl extends _PagePopupController implements js_library.JSObjectInterfacesDom {
@@ -1240,7 +1240,7 @@ class _PagePopupControllerImpl extends _PagePopupController implements js_librar
   toString() => super.toString();
 }
 patch class AnimationPlayerEvent {
-  factory AnimationPlayerEvent._internalWrap() => new AnimationPlayerEventImpl.internal_();
+  static Type get instanceRuntimeType => AnimationPlayerEventImpl;
 
 }
 class AnimationPlayerEventImpl extends AnimationPlayerEvent implements js_library.JSObjectInterfacesDom {
@@ -1249,7 +1249,7 @@ class AnimationPlayerEventImpl extends AnimationPlayerEvent implements js_librar
   toString() => super.toString();
 }
 patch class DomTokenList {
-  factory DomTokenList._internalWrap() => new DomTokenListImpl.internal_();
+  static Type get instanceRuntimeType => DomTokenListImpl;
 
 }
 class DomTokenListImpl extends DomTokenList implements js_library.JSObjectInterfacesDom {
@@ -1258,7 +1258,7 @@ class DomTokenListImpl extends DomTokenList implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class _GamepadList {
-  factory _GamepadList._internalWrap() => new _GamepadListImpl.internal_();
+  static Type get instanceRuntimeType => _GamepadListImpl;
 
 }
 class _GamepadListImpl extends _GamepadList implements js_library.JSObjectInterfacesDom {
@@ -1267,7 +1267,7 @@ class _GamepadListImpl extends _GamepadList implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class PluginArray {
-  factory PluginArray._internalWrap() => new PluginArrayImpl.internal_();
+  static Type get instanceRuntimeType => PluginArrayImpl;
 
 }
 class PluginArrayImpl extends PluginArray implements js_library.JSObjectInterfacesDom {
@@ -1276,7 +1276,7 @@ class PluginArrayImpl extends PluginArray implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class DomPoint {
-  factory DomPoint._internalWrap() => new DomPointImpl.internal_();
+  static Type get instanceRuntimeType => DomPointImpl;
 
 }
 class DomPointImpl extends DomPoint implements js_library.JSObjectInterfacesDom {
@@ -1285,7 +1285,7 @@ class DomPointImpl extends DomPoint implements js_library.JSObjectInterfacesDom 
   toString() => super.toString();
 }
 patch class FileSystem {
-  factory FileSystem._internalWrap() => new FileSystemImpl.internal_();
+  static Type get instanceRuntimeType => FileSystemImpl;
 
 }
 class FileSystemImpl extends FileSystem implements js_library.JSObjectInterfacesDom {
@@ -1294,7 +1294,7 @@ class FileSystemImpl extends FileSystem implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class NavigatorCpu {
-  factory NavigatorCpu._internalWrap() => new NavigatorCpuImpl.internal_();
+  static Type get instanceRuntimeType => NavigatorCpuImpl;
 
 }
 class NavigatorCpuImpl extends NavigatorCpu implements js_library.JSObjectInterfacesDom {
@@ -1303,7 +1303,7 @@ class NavigatorCpuImpl extends NavigatorCpu implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class VideoTrack {
-  factory VideoTrack._internalWrap() => new VideoTrackImpl.internal_();
+  static Type get instanceRuntimeType => VideoTrackImpl;
 
 }
 class VideoTrackImpl extends VideoTrack implements js_library.JSObjectInterfacesDom {
@@ -1312,7 +1312,7 @@ class VideoTrackImpl extends VideoTrack implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class QuoteElement {
-  factory QuoteElement._internalWrap() => new QuoteElementImpl.internal_();
+  static Type get instanceRuntimeType => QuoteElementImpl;
 
 }
 class QuoteElementImpl extends QuoteElement implements js_library.JSObjectInterfacesDom {
@@ -1321,7 +1321,7 @@ class QuoteElementImpl extends QuoteElement implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class LabelElement {
-  factory LabelElement._internalWrap() => new LabelElementImpl.internal_();
+  static Type get instanceRuntimeType => LabelElementImpl;
 
 }
 class LabelElementImpl extends LabelElement implements js_library.JSObjectInterfacesDom {
@@ -1330,7 +1330,7 @@ class LabelElementImpl extends LabelElement implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class TextAreaElement {
-  factory TextAreaElement._internalWrap() => new TextAreaElementImpl.internal_();
+  static Type get instanceRuntimeType => TextAreaElementImpl;
 
 }
 class TextAreaElementImpl extends TextAreaElement implements js_library.JSObjectInterfacesDom {
@@ -1339,7 +1339,7 @@ class TextAreaElementImpl extends TextAreaElement implements js_library.JSObject
   toString() => super.toString();
 }
 patch class TextMetrics {
-  factory TextMetrics._internalWrap() => new TextMetricsImpl.internal_();
+  static Type get instanceRuntimeType => TextMetricsImpl;
 
 }
 class TextMetricsImpl extends TextMetrics implements js_library.JSObjectInterfacesDom {
@@ -1348,7 +1348,7 @@ class TextMetricsImpl extends TextMetrics implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class Selection {
-  factory Selection._internalWrap() => new SelectionImpl.internal_();
+  static Type get instanceRuntimeType => SelectionImpl;
 
 }
 class SelectionImpl extends Selection implements js_library.JSObjectInterfacesDom {
@@ -1357,7 +1357,7 @@ class SelectionImpl extends Selection implements js_library.JSObjectInterfacesDo
   toString() => super.toString();
 }
 patch class NodeIterator {
-  factory NodeIterator._internalWrap() => new NodeIteratorImpl.internal_();
+  static Type get instanceRuntimeType => NodeIteratorImpl;
 
 }
 class NodeIteratorImpl extends NodeIterator implements js_library.JSObjectInterfacesDom {
@@ -1366,7 +1366,7 @@ class NodeIteratorImpl extends NodeIterator implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class _HTMLDirectoryElement {
-  factory _HTMLDirectoryElement._internalWrap() => new _HTMLDirectoryElementImpl.internal_();
+  static Type get instanceRuntimeType => _HTMLDirectoryElementImpl;
 
 }
 class _HTMLDirectoryElementImpl extends _HTMLDirectoryElement implements js_library.JSObjectInterfacesDom {
@@ -1375,7 +1375,7 @@ class _HTMLDirectoryElementImpl extends _HTMLDirectoryElement implements js_libr
   toString() => super.toString();
 }
 patch class AreaElement {
-  factory AreaElement._internalWrap() => new AreaElementImpl.internal_();
+  static Type get instanceRuntimeType => AreaElementImpl;
 
 }
 class AreaElementImpl extends AreaElement implements js_library.JSObjectInterfacesDom {
@@ -1384,7 +1384,7 @@ class AreaElementImpl extends AreaElement implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class Notification {
-  factory Notification._internalWrap() => new NotificationImpl.internal_();
+  static Type get instanceRuntimeType => NotificationImpl;
 
 }
 class NotificationImpl extends Notification implements js_library.JSObjectInterfacesDom {
@@ -1393,7 +1393,7 @@ class NotificationImpl extends Notification implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class TableCellElement {
-  factory TableCellElement._internalWrap() => new TableCellElementImpl.internal_();
+  static Type get instanceRuntimeType => TableCellElementImpl;
 
 }
 class TableCellElementImpl extends TableCellElement implements js_library.JSObjectInterfacesDom {
@@ -1402,7 +1402,7 @@ class TableCellElementImpl extends TableCellElement implements js_library.JSObje
   toString() => super.toString();
 }
 patch class DomStringMap {
-  factory DomStringMap._internalWrap() => new DomStringMapImpl.internal_();
+  static Type get instanceRuntimeType => DomStringMapImpl;
 
 }
 class DomStringMapImpl extends DomStringMap implements js_library.JSObjectInterfacesDom {
@@ -1411,7 +1411,7 @@ class DomStringMapImpl extends DomStringMap implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class Entry {
-  factory Entry._internalWrap() => new EntryImpl.internal_();
+  static Type get instanceRuntimeType => EntryImpl;
 
 }
 class EntryImpl extends Entry implements js_library.JSObjectInterfacesDom {
@@ -1420,7 +1420,7 @@ class EntryImpl extends Entry implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class PeriodicSyncManager {
-  factory PeriodicSyncManager._internalWrap() => new PeriodicSyncManagerImpl.internal_();
+  static Type get instanceRuntimeType => PeriodicSyncManagerImpl;
 
 }
 class PeriodicSyncManagerImpl extends PeriodicSyncManager implements js_library.JSObjectInterfacesDom {
@@ -1429,7 +1429,7 @@ class PeriodicSyncManagerImpl extends PeriodicSyncManager implements js_library.
   toString() => super.toString();
 }
 patch class RtcIceCandidate {
-  factory RtcIceCandidate._internalWrap() => new RtcIceCandidateImpl.internal_();
+  static Type get instanceRuntimeType => RtcIceCandidateImpl;
 
 }
 class RtcIceCandidateImpl extends RtcIceCandidate implements js_library.JSObjectInterfacesDom {
@@ -1438,7 +1438,7 @@ class RtcIceCandidateImpl extends RtcIceCandidate implements js_library.JSObject
   toString() => super.toString();
 }
 patch class SpeechRecognitionResult {
-  factory SpeechRecognitionResult._internalWrap() => new SpeechRecognitionResultImpl.internal_();
+  static Type get instanceRuntimeType => SpeechRecognitionResultImpl;
 
 }
 class SpeechRecognitionResultImpl extends SpeechRecognitionResult implements js_library.JSObjectInterfacesDom {
@@ -1447,7 +1447,7 @@ class SpeechRecognitionResultImpl extends SpeechRecognitionResult implements js_
   toString() => super.toString();
 }
 patch class TextTrackList {
-  factory TextTrackList._internalWrap() => new TextTrackListImpl.internal_();
+  static Type get instanceRuntimeType => TextTrackListImpl;
 
 }
 class TextTrackListImpl extends TextTrackList implements js_library.JSObjectInterfacesDom {
@@ -1456,7 +1456,7 @@ class TextTrackListImpl extends TextTrackList implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class _ServiceWorker {
-  factory _ServiceWorker._internalWrap() => new _ServiceWorkerImpl.internal_();
+  static Type get instanceRuntimeType => _ServiceWorkerImpl;
 
 }
 class _ServiceWorkerImpl extends _ServiceWorker implements js_library.JSObjectInterfacesDom {
@@ -1465,7 +1465,7 @@ class _ServiceWorkerImpl extends _ServiceWorker implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class SharedWorker {
-  factory SharedWorker._internalWrap() => new SharedWorkerImpl.internal_();
+  static Type get instanceRuntimeType => SharedWorkerImpl;
 
 }
 class SharedWorkerImpl extends SharedWorker implements js_library.JSObjectInterfacesDom {
@@ -1474,7 +1474,7 @@ class SharedWorkerImpl extends SharedWorker implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class EventTarget {
-  factory EventTarget._internalWrap() => new EventTargetImpl.internal_();
+  static Type get instanceRuntimeType => EventTargetImpl;
 
 }
 class EventTargetImpl extends EventTarget implements js_library.JSObjectInterfacesDom {
@@ -1483,7 +1483,7 @@ class EventTargetImpl extends EventTarget implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class HtmlFormControlsCollection {
-  factory HtmlFormControlsCollection._internalWrap() => new HtmlFormControlsCollectionImpl.internal_();
+  static Type get instanceRuntimeType => HtmlFormControlsCollectionImpl;
 
 }
 class HtmlFormControlsCollectionImpl extends HtmlFormControlsCollection implements js_library.JSObjectInterfacesDom {
@@ -1492,7 +1492,7 @@ class HtmlFormControlsCollectionImpl extends HtmlFormControlsCollection implemen
   toString() => super.toString();
 }
 patch class KeyboardEvent {
-  factory KeyboardEvent._internalWrap() => new KeyboardEventImpl.internal_();
+  static Type get instanceRuntimeType => KeyboardEventImpl;
 
 }
 class KeyboardEventImpl extends KeyboardEvent implements js_library.JSObjectInterfacesDom {
@@ -1501,7 +1501,7 @@ class KeyboardEventImpl extends KeyboardEvent implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class MidiMessageEvent {
-  factory MidiMessageEvent._internalWrap() => new MidiMessageEventImpl.internal_();
+  static Type get instanceRuntimeType => MidiMessageEventImpl;
 
 }
 class MidiMessageEventImpl extends MidiMessageEvent implements js_library.JSObjectInterfacesDom {
@@ -1510,7 +1510,7 @@ class MidiMessageEventImpl extends MidiMessageEvent implements js_library.JSObje
   toString() => super.toString();
 }
 patch class CacheStorage {
-  factory CacheStorage._internalWrap() => new CacheStorageImpl.internal_();
+  static Type get instanceRuntimeType => CacheStorageImpl;
 
 }
 class CacheStorageImpl extends CacheStorage implements js_library.JSObjectInterfacesDom {
@@ -1519,7 +1519,7 @@ class CacheStorageImpl extends CacheStorage implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class CanvasElement {
-  factory CanvasElement._internalWrap() => new CanvasElementImpl.internal_();
+  static Type get instanceRuntimeType => CanvasElementImpl;
 
 }
 class CanvasElementImpl extends CanvasElement implements js_library.JSObjectInterfacesDom {
@@ -1528,7 +1528,7 @@ class CanvasElementImpl extends CanvasElement implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class BatteryManager {
-  factory BatteryManager._internalWrap() => new BatteryManagerImpl.internal_();
+  static Type get instanceRuntimeType => BatteryManagerImpl;
 
 }
 class BatteryManagerImpl extends BatteryManager implements js_library.JSObjectInterfacesDom {
@@ -1537,7 +1537,7 @@ class BatteryManagerImpl extends BatteryManager implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class _StyleSheetList {
-  factory _StyleSheetList._internalWrap() => new _StyleSheetListImpl.internal_();
+  static Type get instanceRuntimeType => _StyleSheetListImpl;
 
 }
 class _StyleSheetListImpl extends _StyleSheetList implements js_library.JSObjectInterfacesDom {
@@ -1546,7 +1546,7 @@ class _StyleSheetListImpl extends _StyleSheetList implements js_library.JSObject
   toString() => super.toString();
 }
 patch class Path2D {
-  factory Path2D._internalWrap() => new Path2DImpl.internal_();
+  static Type get instanceRuntimeType => Path2DImpl;
 
 }
 class Path2DImpl extends Path2D implements js_library.JSObjectInterfacesDom {
@@ -1555,7 +1555,7 @@ class Path2DImpl extends Path2D implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class DeviceRotationRate {
-  factory DeviceRotationRate._internalWrap() => new DeviceRotationRateImpl.internal_();
+  static Type get instanceRuntimeType => DeviceRotationRateImpl;
 
 }
 class DeviceRotationRateImpl extends DeviceRotationRate implements js_library.JSObjectInterfacesDom {
@@ -1564,7 +1564,7 @@ class DeviceRotationRateImpl extends DeviceRotationRate implements js_library.JS
   toString() => super.toString();
 }
 patch class Screen {
-  factory Screen._internalWrap() => new ScreenImpl.internal_();
+  static Type get instanceRuntimeType => ScreenImpl;
 
 }
 class ScreenImpl extends Screen implements js_library.JSObjectInterfacesDom {
@@ -1573,7 +1573,7 @@ class ScreenImpl extends Screen implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class StorageInfo {
-  factory StorageInfo._internalWrap() => new StorageInfoImpl.internal_();
+  static Type get instanceRuntimeType => StorageInfoImpl;
 
 }
 class StorageInfoImpl extends StorageInfo implements js_library.JSObjectInterfacesDom {
@@ -1582,7 +1582,7 @@ class StorageInfoImpl extends StorageInfo implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class TableColElement {
-  factory TableColElement._internalWrap() => new TableColElementImpl.internal_();
+  static Type get instanceRuntimeType => TableColElementImpl;
 
 }
 class TableColElementImpl extends TableColElement implements js_library.JSObjectInterfacesDom {
@@ -1591,7 +1591,7 @@ class TableColElementImpl extends TableColElement implements js_library.JSObject
   toString() => super.toString();
 }
 patch class CssStyleDeclaration {
-  factory CssStyleDeclaration._internalWrap() => new CssStyleDeclarationImpl.internal_();
+  static Type get instanceRuntimeType => CssStyleDeclarationImpl;
 
 }
 class CssStyleDeclarationImpl extends CssStyleDeclaration implements js_library.JSObjectInterfacesDom {
@@ -1600,7 +1600,7 @@ class CssStyleDeclarationImpl extends CssStyleDeclaration implements js_library.
   toString() => super.toString();
 }
 patch class DomStringList {
-  factory DomStringList._internalWrap() => new DomStringListImpl.internal_();
+  static Type get instanceRuntimeType => DomStringListImpl;
 
 }
 class DomStringListImpl extends DomStringList implements js_library.JSObjectInterfacesDom {
@@ -1609,7 +1609,7 @@ class DomStringListImpl extends DomStringList implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class StashedPortCollection {
-  factory StashedPortCollection._internalWrap() => new StashedPortCollectionImpl.internal_();
+  static Type get instanceRuntimeType => StashedPortCollectionImpl;
 
 }
 class StashedPortCollectionImpl extends StashedPortCollection implements js_library.JSObjectInterfacesDom {
@@ -1618,7 +1618,7 @@ class StashedPortCollectionImpl extends StashedPortCollection implements js_libr
   toString() => super.toString();
 }
 patch class SyncManager {
-  factory SyncManager._internalWrap() => new SyncManagerImpl.internal_();
+  static Type get instanceRuntimeType => SyncManagerImpl;
 
 }
 class SyncManagerImpl extends SyncManager implements js_library.JSObjectInterfacesDom {
@@ -1627,7 +1627,7 @@ class SyncManagerImpl extends SyncManager implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class HttpRequestUpload {
-  factory HttpRequestUpload._internalWrap() => new HttpRequestUploadImpl.internal_();
+  static Type get instanceRuntimeType => HttpRequestUploadImpl;
 
 }
 class HttpRequestUploadImpl extends HttpRequestUpload implements js_library.JSObjectInterfacesDom {
@@ -1636,7 +1636,7 @@ class HttpRequestUploadImpl extends HttpRequestUpload implements js_library.JSOb
   toString() => super.toString();
 }
 patch class ReadableStreamReader {
-  factory ReadableStreamReader._internalWrap() => new ReadableStreamReaderImpl.internal_();
+  static Type get instanceRuntimeType => ReadableStreamReaderImpl;
 
 }
 class ReadableStreamReaderImpl extends ReadableStreamReader implements js_library.JSObjectInterfacesDom {
@@ -1645,7 +1645,7 @@ class ReadableStreamReaderImpl extends ReadableStreamReader implements js_librar
   toString() => super.toString();
 }
 patch class MediaKeySession {
-  factory MediaKeySession._internalWrap() => new MediaKeySessionImpl.internal_();
+  static Type get instanceRuntimeType => MediaKeySessionImpl;
 
 }
 class MediaKeySessionImpl extends MediaKeySession implements js_library.JSObjectInterfacesDom {
@@ -1654,7 +1654,7 @@ class MediaKeySessionImpl extends MediaKeySession implements js_library.JSObject
   toString() => super.toString();
 }
 patch class Gamepad {
-  factory Gamepad._internalWrap() => new GamepadImpl.internal_();
+  static Type get instanceRuntimeType => GamepadImpl;
 
 }
 class GamepadImpl extends Gamepad implements js_library.JSObjectInterfacesDom {
@@ -1663,7 +1663,7 @@ class GamepadImpl extends Gamepad implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class Worker {
-  factory Worker._internalWrap() => new WorkerImpl.internal_();
+  static Type get instanceRuntimeType => WorkerImpl;
 
 }
 class WorkerImpl extends Worker implements js_library.JSObjectInterfacesDom {
@@ -1672,7 +1672,7 @@ class WorkerImpl extends Worker implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class DefaultSessionStartEvent {
-  factory DefaultSessionStartEvent._internalWrap() => new DefaultSessionStartEventImpl.internal_();
+  static Type get instanceRuntimeType => DefaultSessionStartEventImpl;
 
 }
 class DefaultSessionStartEventImpl extends DefaultSessionStartEvent implements js_library.JSObjectInterfacesDom {
@@ -1681,7 +1681,7 @@ class DefaultSessionStartEventImpl extends DefaultSessionStartEvent implements j
   toString() => super.toString();
 }
 patch class DListElement {
-  factory DListElement._internalWrap() => new DListElementImpl.internal_();
+  static Type get instanceRuntimeType => DListElementImpl;
 
 }
 class DListElementImpl extends DListElement implements js_library.JSObjectInterfacesDom {
@@ -1690,7 +1690,7 @@ class DListElementImpl extends DListElement implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class FileError {
-  factory FileError._internalWrap() => new FileErrorImpl.internal_();
+  static Type get instanceRuntimeType => FileErrorImpl;
 
 }
 class FileErrorImpl extends FileError implements js_library.JSObjectInterfacesDom {
@@ -1699,7 +1699,7 @@ class FileErrorImpl extends FileError implements js_library.JSObjectInterfacesDo
   toString() => super.toString();
 }
 patch class HeadElement {
-  factory HeadElement._internalWrap() => new HeadElementImpl.internal_();
+  static Type get instanceRuntimeType => HeadElementImpl;
 
 }
 class HeadElementImpl extends HeadElement implements js_library.JSObjectInterfacesDom {
@@ -1708,7 +1708,7 @@ class HeadElementImpl extends HeadElement implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class BluetoothGattCharacteristic {
-  factory BluetoothGattCharacteristic._internalWrap() => new BluetoothGattCharacteristicImpl.internal_();
+  static Type get instanceRuntimeType => BluetoothGattCharacteristicImpl;
 
 }
 class BluetoothGattCharacteristicImpl extends BluetoothGattCharacteristic implements js_library.JSObjectInterfacesDom {
@@ -1717,7 +1717,7 @@ class BluetoothGattCharacteristicImpl extends BluetoothGattCharacteristic implem
   toString() => super.toString();
 }
 patch class DomSettableTokenList {
-  factory DomSettableTokenList._internalWrap() => new DomSettableTokenListImpl.internal_();
+  static Type get instanceRuntimeType => DomSettableTokenListImpl;
 
 }
 class DomSettableTokenListImpl extends DomSettableTokenList implements js_library.JSObjectInterfacesDom {
@@ -1726,7 +1726,7 @@ class DomSettableTokenListImpl extends DomSettableTokenList implements js_librar
   toString() => super.toString();
 }
 patch class _WorkerLocation {
-  factory _WorkerLocation._internalWrap() => new _WorkerLocationImpl.internal_();
+  static Type get instanceRuntimeType => _WorkerLocationImpl;
 
 }
 class _WorkerLocationImpl extends _WorkerLocation implements js_library.JSObjectInterfacesDom {
@@ -1735,7 +1735,7 @@ class _WorkerLocationImpl extends _WorkerLocation implements js_library.JSObject
   toString() => super.toString();
 }
 patch class TouchList {
-  factory TouchList._internalWrap() => new TouchListImpl.internal_();
+  static Type get instanceRuntimeType => TouchListImpl;
 
 }
 class TouchListImpl extends TouchList implements js_library.JSObjectInterfacesDom {
@@ -1744,7 +1744,7 @@ class TouchListImpl extends TouchList implements js_library.JSObjectInterfacesDo
   toString() => super.toString();
 }
 patch class MetaElement {
-  factory MetaElement._internalWrap() => new MetaElementImpl.internal_();
+  static Type get instanceRuntimeType => MetaElementImpl;
 
 }
 class MetaElementImpl extends MetaElement implements js_library.JSObjectInterfacesDom {
@@ -1753,7 +1753,7 @@ class MetaElementImpl extends MetaElement implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class TrackElement {
-  factory TrackElement._internalWrap() => new TrackElementImpl.internal_();
+  static Type get instanceRuntimeType => TrackElementImpl;
 
 }
 class TrackElementImpl extends TrackElement implements js_library.JSObjectInterfacesDom {
@@ -1762,7 +1762,7 @@ class TrackElementImpl extends TrackElement implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class WheelEvent {
-  factory WheelEvent._internalWrap() => new WheelEventImpl.internal_();
+  static Type get instanceRuntimeType => WheelEventImpl;
 
 }
 class WheelEventImpl extends WheelEvent implements js_library.JSObjectInterfacesDom {
@@ -1771,7 +1771,7 @@ class WheelEventImpl extends WheelEvent implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class DomMatrixReadOnly {
-  factory DomMatrixReadOnly._internalWrap() => new DomMatrixReadOnlyImpl.internal_();
+  static Type get instanceRuntimeType => DomMatrixReadOnlyImpl;
 
 }
 class DomMatrixReadOnlyImpl extends DomMatrixReadOnly implements js_library.JSObjectInterfacesDom {
@@ -1780,7 +1780,7 @@ class DomMatrixReadOnlyImpl extends DomMatrixReadOnly implements js_library.JSOb
   toString() => super.toString();
 }
 patch class FormElement {
-  factory FormElement._internalWrap() => new FormElementImpl.internal_();
+  static Type get instanceRuntimeType => FormElementImpl;
 
 }
 class FormElementImpl extends FormElement implements js_library.JSObjectInterfacesDom {
@@ -1789,7 +1789,7 @@ class FormElementImpl extends FormElement implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class _SpeechRecognitionResultList {
-  factory _SpeechRecognitionResultList._internalWrap() => new _SpeechRecognitionResultListImpl.internal_();
+  static Type get instanceRuntimeType => _SpeechRecognitionResultListImpl;
 
 }
 class _SpeechRecognitionResultListImpl extends _SpeechRecognitionResultList implements js_library.JSObjectInterfacesDom {
@@ -1798,7 +1798,7 @@ class _SpeechRecognitionResultListImpl extends _SpeechRecognitionResultList impl
   toString() => super.toString();
 }
 patch class CompositorWorkerGlobalScope {
-  factory CompositorWorkerGlobalScope._internalWrap() => new CompositorWorkerGlobalScopeImpl.internal_();
+  static Type get instanceRuntimeType => CompositorWorkerGlobalScopeImpl;
 
 }
 class CompositorWorkerGlobalScopeImpl extends CompositorWorkerGlobalScope implements js_library.JSObjectInterfacesDom {
@@ -1807,7 +1807,7 @@ class CompositorWorkerGlobalScopeImpl extends CompositorWorkerGlobalScope implem
   toString() => super.toString();
 }
 patch class PresentationAvailability {
-  factory PresentationAvailability._internalWrap() => new PresentationAvailabilityImpl.internal_();
+  static Type get instanceRuntimeType => PresentationAvailabilityImpl;
 
 }
 class PresentationAvailabilityImpl extends PresentationAvailability implements js_library.JSObjectInterfacesDom {
@@ -1816,7 +1816,7 @@ class PresentationAvailabilityImpl extends PresentationAvailability implements j
   toString() => super.toString();
 }
 patch class FontFaceSet {
-  factory FontFaceSet._internalWrap() => new FontFaceSetImpl.internal_();
+  static Type get instanceRuntimeType => FontFaceSetImpl;
 
 }
 class FontFaceSetImpl extends FontFaceSet implements js_library.JSObjectInterfacesDom {
@@ -1825,7 +1825,7 @@ class FontFaceSetImpl extends FontFaceSet implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class _SubtleCrypto {
-  factory _SubtleCrypto._internalWrap() => new _SubtleCryptoImpl.internal_();
+  static Type get instanceRuntimeType => _SubtleCryptoImpl;
 
 }
 class _SubtleCryptoImpl extends _SubtleCrypto implements js_library.JSObjectInterfacesDom {
@@ -1834,7 +1834,7 @@ class _SubtleCryptoImpl extends _SubtleCrypto implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class ButtonElement {
-  factory ButtonElement._internalWrap() => new ButtonElementImpl.internal_();
+  static Type get instanceRuntimeType => ButtonElementImpl;
 
 }
 class ButtonElementImpl extends ButtonElement implements js_library.JSObjectInterfacesDom {
@@ -1843,7 +1843,7 @@ class ButtonElementImpl extends ButtonElement implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class ProcessingInstruction {
-  factory ProcessingInstruction._internalWrap() => new ProcessingInstructionImpl.internal_();
+  static Type get instanceRuntimeType => ProcessingInstructionImpl;
 
 }
 class ProcessingInstructionImpl extends ProcessingInstruction implements js_library.JSObjectInterfacesDom {
@@ -1852,7 +1852,7 @@ class ProcessingInstructionImpl extends ProcessingInstruction implements js_libr
   toString() => super.toString();
 }
 patch class StashedMessagePort {
-  factory StashedMessagePort._internalWrap() => new StashedMessagePortImpl.internal_();
+  static Type get instanceRuntimeType => StashedMessagePortImpl;
 
 }
 class StashedMessagePortImpl extends StashedMessagePort implements js_library.JSObjectInterfacesDom {
@@ -1861,7 +1861,7 @@ class StashedMessagePortImpl extends StashedMessagePort implements js_library.JS
   toString() => super.toString();
 }
 patch class DeviceAcceleration {
-  factory DeviceAcceleration._internalWrap() => new DeviceAccelerationImpl.internal_();
+  static Type get instanceRuntimeType => DeviceAccelerationImpl;
 
 }
 class DeviceAccelerationImpl extends DeviceAcceleration implements js_library.JSObjectInterfacesDom {
@@ -1870,7 +1870,7 @@ class DeviceAccelerationImpl extends DeviceAcceleration implements js_library.JS
   toString() => super.toString();
 }
 patch class MapElement {
-  factory MapElement._internalWrap() => new MapElementImpl.internal_();
+  static Type get instanceRuntimeType => MapElementImpl;
 
 }
 class MapElementImpl extends MapElement implements js_library.JSObjectInterfacesDom {
@@ -1879,7 +1879,7 @@ class MapElementImpl extends MapElement implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class PresentationSession {
-  factory PresentationSession._internalWrap() => new PresentationSessionImpl.internal_();
+  static Type get instanceRuntimeType => PresentationSessionImpl;
 
 }
 class PresentationSessionImpl extends PresentationSession implements js_library.JSObjectInterfacesDom {
@@ -1888,7 +1888,7 @@ class PresentationSessionImpl extends PresentationSession implements js_library.
   toString() => super.toString();
 }
 patch class RtcDtmfToneChangeEvent {
-  factory RtcDtmfToneChangeEvent._internalWrap() => new RtcDtmfToneChangeEventImpl.internal_();
+  static Type get instanceRuntimeType => RtcDtmfToneChangeEventImpl;
 
 }
 class RtcDtmfToneChangeEventImpl extends RtcDtmfToneChangeEvent implements js_library.JSObjectInterfacesDom {
@@ -1897,7 +1897,7 @@ class RtcDtmfToneChangeEventImpl extends RtcDtmfToneChangeEvent implements js_li
   toString() => super.toString();
 }
 patch class PerformanceCompositeTiming {
-  factory PerformanceCompositeTiming._internalWrap() => new PerformanceCompositeTimingImpl.internal_();
+  static Type get instanceRuntimeType => PerformanceCompositeTimingImpl;
 
 }
 class PerformanceCompositeTimingImpl extends PerformanceCompositeTiming implements js_library.JSObjectInterfacesDom {
@@ -1906,7 +1906,7 @@ class PerformanceCompositeTimingImpl extends PerformanceCompositeTiming implemen
   toString() => super.toString();
 }
 patch class NodeFilter {
-  factory NodeFilter._internalWrap() => new NodeFilterImpl.internal_();
+  static Type get instanceRuntimeType => NodeFilterImpl;
 
 }
 class NodeFilterImpl extends NodeFilter implements js_library.JSObjectInterfacesDom {
@@ -1915,7 +1915,7 @@ class NodeFilterImpl extends NodeFilter implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class _DomRect {
-  factory _DomRect._internalWrap() => new _DomRectImpl.internal_();
+  static Type get instanceRuntimeType => _DomRectImpl;
 
 }
 class _DomRectImpl extends _DomRect implements js_library.JSObjectInterfacesDom {
@@ -1924,7 +1924,7 @@ class _DomRectImpl extends _DomRect implements js_library.JSObjectInterfacesDom 
   toString() => super.toString();
 }
 patch class PermissionStatus {
-  factory PermissionStatus._internalWrap() => new PermissionStatusImpl.internal_();
+  static Type get instanceRuntimeType => PermissionStatusImpl;
 
 }
 class PermissionStatusImpl extends PermissionStatus implements js_library.JSObjectInterfacesDom {
@@ -1933,7 +1933,7 @@ class PermissionStatusImpl extends PermissionStatus implements js_library.JSObje
   toString() => super.toString();
 }
 patch class DeviceMotionEvent {
-  factory DeviceMotionEvent._internalWrap() => new DeviceMotionEventImpl.internal_();
+  static Type get instanceRuntimeType => DeviceMotionEventImpl;
 
 }
 class DeviceMotionEventImpl extends DeviceMotionEvent implements js_library.JSObjectInterfacesDom {
@@ -1942,7 +1942,7 @@ class DeviceMotionEventImpl extends DeviceMotionEvent implements js_library.JSOb
   toString() => super.toString();
 }
 patch class Comment {
-  factory Comment._internalWrap() => new CommentImpl.internal_();
+  static Type get instanceRuntimeType => CommentImpl;
 
 }
 class CommentImpl extends Comment implements js_library.JSObjectInterfacesDom {
@@ -1951,7 +1951,7 @@ class CommentImpl extends Comment implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class CanvasPattern {
-  factory CanvasPattern._internalWrap() => new CanvasPatternImpl.internal_();
+  static Type get instanceRuntimeType => CanvasPatternImpl;
 
 }
 class CanvasPatternImpl extends CanvasPattern implements js_library.JSObjectInterfacesDom {
@@ -1960,7 +1960,7 @@ class CanvasPatternImpl extends CanvasPattern implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class CompositorProxy {
-  factory CompositorProxy._internalWrap() => new CompositorProxyImpl.internal_();
+  static Type get instanceRuntimeType => CompositorProxyImpl;
 
 }
 class CompositorProxyImpl extends CompositorProxy implements js_library.JSObjectInterfacesDom {
@@ -1969,7 +1969,7 @@ class CompositorProxyImpl extends CompositorProxy implements js_library.JSObject
   toString() => super.toString();
 }
 patch class MediaKeyError {
-  factory MediaKeyError._internalWrap() => new MediaKeyErrorImpl.internal_();
+  static Type get instanceRuntimeType => MediaKeyErrorImpl;
 
 }
 class MediaKeyErrorImpl extends MediaKeyError implements js_library.JSObjectInterfacesDom {
@@ -1978,7 +1978,7 @@ class MediaKeyErrorImpl extends MediaKeyError implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class CssRule {
-  factory CssRule._internalWrap() => new CssRuleImpl.internal_();
+  static Type get instanceRuntimeType => CssRuleImpl;
 
 }
 class CssRuleImpl extends CssRule implements js_library.JSObjectInterfacesDom {
@@ -1987,7 +1987,7 @@ class CssRuleImpl extends CssRule implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class SpeechRecognitionAlternative {
-  factory SpeechRecognitionAlternative._internalWrap() => new SpeechRecognitionAlternativeImpl.internal_();
+  static Type get instanceRuntimeType => SpeechRecognitionAlternativeImpl;
 
 }
 class SpeechRecognitionAlternativeImpl extends SpeechRecognitionAlternative implements js_library.JSObjectInterfacesDom {
@@ -1996,7 +1996,7 @@ class SpeechRecognitionAlternativeImpl extends SpeechRecognitionAlternative impl
   toString() => super.toString();
 }
 patch class XPathExpression {
-  factory XPathExpression._internalWrap() => new XPathExpressionImpl.internal_();
+  static Type get instanceRuntimeType => XPathExpressionImpl;
 
 }
 class XPathExpressionImpl extends XPathExpression implements js_library.JSObjectInterfacesDom {
@@ -2005,7 +2005,7 @@ class XPathExpressionImpl extends XPathExpression implements js_library.JSObject
   toString() => super.toString();
 }
 patch class Permissions {
-  factory Permissions._internalWrap() => new PermissionsImpl.internal_();
+  static Type get instanceRuntimeType => PermissionsImpl;
 
 }
 class PermissionsImpl extends Permissions implements js_library.JSObjectInterfacesDom {
@@ -2014,7 +2014,7 @@ class PermissionsImpl extends Permissions implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class PerformanceNavigation {
-  factory PerformanceNavigation._internalWrap() => new PerformanceNavigationImpl.internal_();
+  static Type get instanceRuntimeType => PerformanceNavigationImpl;
 
 }
 class PerformanceNavigationImpl extends PerformanceNavigation implements js_library.JSObjectInterfacesDom {
@@ -2023,7 +2023,7 @@ class PerformanceNavigationImpl extends PerformanceNavigation implements js_libr
   toString() => super.toString();
 }
 patch class SecurityPolicyViolationEvent {
-  factory SecurityPolicyViolationEvent._internalWrap() => new SecurityPolicyViolationEventImpl.internal_();
+  static Type get instanceRuntimeType => SecurityPolicyViolationEventImpl;
 
 }
 class SecurityPolicyViolationEventImpl extends SecurityPolicyViolationEvent implements js_library.JSObjectInterfacesDom {
@@ -2032,7 +2032,7 @@ class SecurityPolicyViolationEventImpl extends SecurityPolicyViolationEvent impl
   toString() => super.toString();
 }
 patch class TableElement {
-  factory TableElement._internalWrap() => new TableElementImpl.internal_();
+  static Type get instanceRuntimeType => TableElementImpl;
 
 }
 class TableElementImpl extends TableElement implements js_library.JSObjectInterfacesDom {
@@ -2041,7 +2041,7 @@ class TableElementImpl extends TableElement implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class NavigatorID {
-  factory NavigatorID._internalWrap() => new NavigatorIDImpl.internal_();
+  static Type get instanceRuntimeType => NavigatorIDImpl;
 
 }
 class NavigatorIDImpl extends NavigatorID implements js_library.JSObjectInterfacesDom {
@@ -2050,7 +2050,7 @@ class NavigatorIDImpl extends NavigatorID implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class ServicePort {
-  factory ServicePort._internalWrap() => new ServicePortImpl.internal_();
+  static Type get instanceRuntimeType => ServicePortImpl;
 
 }
 class ServicePortImpl extends ServicePort implements js_library.JSObjectInterfacesDom {
@@ -2059,7 +2059,7 @@ class ServicePortImpl extends ServicePort implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class TextTrackCue {
-  factory TextTrackCue._internalWrap() => new TextTrackCueImpl.internal_();
+  static Type get instanceRuntimeType => TextTrackCueImpl;
 
 }
 class TextTrackCueImpl extends TextTrackCue implements js_library.JSObjectInterfacesDom {
@@ -2068,7 +2068,7 @@ class TextTrackCueImpl extends TextTrackCue implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class FileEntry {
-  factory FileEntry._internalWrap() => new FileEntryImpl.internal_();
+  static Type get instanceRuntimeType => FileEntryImpl;
 
 }
 class FileEntryImpl extends FileEntry implements js_library.JSObjectInterfacesDom {
@@ -2077,7 +2077,7 @@ class FileEntryImpl extends FileEntry implements js_library.JSObjectInterfacesDo
   toString() => super.toString();
 }
 patch class _DOMFileSystemSync {
-  factory _DOMFileSystemSync._internalWrap() => new _DOMFileSystemSyncImpl.internal_();
+  static Type get instanceRuntimeType => _DOMFileSystemSyncImpl;
 
 }
 class _DOMFileSystemSyncImpl extends _DOMFileSystemSync implements js_library.JSObjectInterfacesDom {
@@ -2086,7 +2086,7 @@ class _DOMFileSystemSyncImpl extends _DOMFileSystemSync implements js_library.JS
   toString() => super.toString();
 }
 patch class Animation {
-  factory Animation._internalWrap() => new AnimationImpl.internal_();
+  static Type get instanceRuntimeType => AnimationImpl;
 
 }
 class AnimationImpl extends Animation implements js_library.JSObjectInterfacesDom {
@@ -2095,7 +2095,7 @@ class AnimationImpl extends Animation implements js_library.JSObjectInterfacesDo
   toString() => super.toString();
 }
 patch class Navigator {
-  factory Navigator._internalWrap() => new NavigatorImpl.internal_();
+  static Type get instanceRuntimeType => NavigatorImpl;
 
 }
 class NavigatorImpl extends Navigator implements js_library.JSObjectInterfacesDom {
@@ -2104,7 +2104,7 @@ class NavigatorImpl extends Navigator implements js_library.JSObjectInterfacesDo
   toString() => super.toString();
 }
 patch class MediaQueryList {
-  factory MediaQueryList._internalWrap() => new MediaQueryListImpl.internal_();
+  static Type get instanceRuntimeType => MediaQueryListImpl;
 
 }
 class MediaQueryListImpl extends MediaQueryList implements js_library.JSObjectInterfacesDom {
@@ -2113,7 +2113,7 @@ class MediaQueryListImpl extends MediaQueryList implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class CssImportRule {
-  factory CssImportRule._internalWrap() => new CssImportRuleImpl.internal_();
+  static Type get instanceRuntimeType => CssImportRuleImpl;
 
 }
 class CssImportRuleImpl extends CssImportRule implements js_library.JSObjectInterfacesDom {
@@ -2122,7 +2122,7 @@ class CssImportRuleImpl extends CssImportRule implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class StorageQuota {
-  factory StorageQuota._internalWrap() => new StorageQuotaImpl.internal_();
+  static Type get instanceRuntimeType => StorageQuotaImpl;
 
 }
 class StorageQuotaImpl extends StorageQuota implements js_library.JSObjectInterfacesDom {
@@ -2131,7 +2131,7 @@ class StorageQuotaImpl extends StorageQuota implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class MediaQueryListEvent {
-  factory MediaQueryListEvent._internalWrap() => new MediaQueryListEventImpl.internal_();
+  static Type get instanceRuntimeType => MediaQueryListEventImpl;
 
 }
 class MediaQueryListEventImpl extends MediaQueryListEvent implements js_library.JSObjectInterfacesDom {
@@ -2140,7 +2140,7 @@ class MediaQueryListEventImpl extends MediaQueryListEvent implements js_library.
   toString() => super.toString();
 }
 patch class BluetoothGattRemoteServer {
-  factory BluetoothGattRemoteServer._internalWrap() => new BluetoothGattRemoteServerImpl.internal_();
+  static Type get instanceRuntimeType => BluetoothGattRemoteServerImpl;
 
 }
 class BluetoothGattRemoteServerImpl extends BluetoothGattRemoteServer implements js_library.JSObjectInterfacesDom {
@@ -2149,7 +2149,7 @@ class BluetoothGattRemoteServerImpl extends BluetoothGattRemoteServer implements
   toString() => super.toString();
 }
 patch class FileList {
-  factory FileList._internalWrap() => new FileListImpl.internal_();
+  static Type get instanceRuntimeType => FileListImpl;
 
 }
 class FileListImpl extends FileList implements js_library.JSObjectInterfacesDom {
@@ -2158,7 +2158,7 @@ class FileListImpl extends FileList implements js_library.JSObjectInterfacesDom 
   toString() => super.toString();
 }
 patch class WindowClient {
-  factory WindowClient._internalWrap() => new WindowClientImpl.internal_();
+  static Type get instanceRuntimeType => WindowClientImpl;
 
 }
 class WindowClientImpl extends WindowClient implements js_library.JSObjectInterfacesDom {
@@ -2167,7 +2167,7 @@ class WindowClientImpl extends WindowClient implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class ReadableStream {
-  factory ReadableStream._internalWrap() => new ReadableStreamImpl.internal_();
+  static Type get instanceRuntimeType => ReadableStreamImpl;
 
 }
 class ReadableStreamImpl extends ReadableStream implements js_library.JSObjectInterfacesDom {
@@ -2176,7 +2176,7 @@ class ReadableStreamImpl extends ReadableStream implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class Node {
-  factory Node._internalWrap() => new NodeImpl.internal_();
+  static Type get instanceRuntimeType => NodeImpl;
 
 }
 class NodeImpl extends Node implements js_library.JSObjectInterfacesDom {
@@ -2185,7 +2185,7 @@ class NodeImpl extends Node implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class DedicatedWorkerGlobalScope {
-  factory DedicatedWorkerGlobalScope._internalWrap() => new DedicatedWorkerGlobalScopeImpl.internal_();
+  static Type get instanceRuntimeType => DedicatedWorkerGlobalScopeImpl;
 
 }
 class DedicatedWorkerGlobalScopeImpl extends DedicatedWorkerGlobalScope implements js_library.JSObjectInterfacesDom {
@@ -2194,7 +2194,7 @@ class DedicatedWorkerGlobalScopeImpl extends DedicatedWorkerGlobalScope implemen
   toString() => super.toString();
 }
 patch class AudioTrackList {
-  factory AudioTrackList._internalWrap() => new AudioTrackListImpl.internal_();
+  static Type get instanceRuntimeType => AudioTrackListImpl;
 
 }
 class AudioTrackListImpl extends AudioTrackList implements js_library.JSObjectInterfacesDom {
@@ -2203,7 +2203,7 @@ class AudioTrackListImpl extends AudioTrackList implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class StyleMedia {
-  factory StyleMedia._internalWrap() => new StyleMediaImpl.internal_();
+  static Type get instanceRuntimeType => StyleMediaImpl;
 
 }
 class StyleMediaImpl extends StyleMedia implements js_library.JSObjectInterfacesDom {
@@ -2212,7 +2212,7 @@ class StyleMediaImpl extends StyleMedia implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class WindowEventHandlers {
-  factory WindowEventHandlers._internalWrap() => new WindowEventHandlersImpl.internal_();
+  static Type get instanceRuntimeType => WindowEventHandlersImpl;
 
 }
 class WindowEventHandlersImpl extends WindowEventHandlers implements js_library.JSObjectInterfacesDom {
@@ -2221,7 +2221,7 @@ class WindowEventHandlersImpl extends WindowEventHandlers implements js_library.
   toString() => super.toString();
 }
 patch class SourceInfo {
-  factory SourceInfo._internalWrap() => new SourceInfoImpl.internal_();
+  static Type get instanceRuntimeType => SourceInfoImpl;
 
 }
 class SourceInfoImpl extends SourceInfo implements js_library.JSObjectInterfacesDom {
@@ -2230,7 +2230,7 @@ class SourceInfoImpl extends SourceInfo implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class _DirectoryEntrySync {
-  factory _DirectoryEntrySync._internalWrap() => new _DirectoryEntrySyncImpl.internal_();
+  static Type get instanceRuntimeType => _DirectoryEntrySyncImpl;
 
 }
 class _DirectoryEntrySyncImpl extends _DirectoryEntrySync implements js_library.JSObjectInterfacesDom {
@@ -2239,7 +2239,7 @@ class _DirectoryEntrySyncImpl extends _DirectoryEntrySync implements js_library.
   toString() => super.toString();
 }
 patch class AnimationEvent {
-  factory AnimationEvent._internalWrap() => new AnimationEventImpl.internal_();
+  static Type get instanceRuntimeType => AnimationEventImpl;
 
 }
 class AnimationEventImpl extends AnimationEvent implements js_library.JSObjectInterfacesDom {
@@ -2248,7 +2248,7 @@ class AnimationEventImpl extends AnimationEvent implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class PluginPlaceholderElement {
-  factory PluginPlaceholderElement._internalWrap() => new PluginPlaceholderElementImpl.internal_();
+  static Type get instanceRuntimeType => PluginPlaceholderElementImpl;
 
 }
 class PluginPlaceholderElementImpl extends PluginPlaceholderElement implements js_library.JSObjectInterfacesDom {
@@ -2257,7 +2257,7 @@ class PluginPlaceholderElementImpl extends PluginPlaceholderElement implements j
   toString() => super.toString();
 }
 patch class _MutationEvent {
-  factory _MutationEvent._internalWrap() => new _MutationEventImpl.internal_();
+  static Type get instanceRuntimeType => _MutationEventImpl;
 
 }
 class _MutationEventImpl extends _MutationEvent implements js_library.JSObjectInterfacesDom {
@@ -2266,7 +2266,7 @@ class _MutationEventImpl extends _MutationEvent implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class LinkElement {
-  factory LinkElement._internalWrap() => new LinkElementImpl.internal_();
+  static Type get instanceRuntimeType => LinkElementImpl;
 
 }
 class LinkElementImpl extends LinkElement implements js_library.JSObjectInterfacesDom {
@@ -2275,7 +2275,7 @@ class LinkElementImpl extends LinkElement implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class TextTrackCueList {
-  factory TextTrackCueList._internalWrap() => new TextTrackCueListImpl.internal_();
+  static Type get instanceRuntimeType => TextTrackCueListImpl;
 
 }
 class TextTrackCueListImpl extends TextTrackCueList implements js_library.JSObjectInterfacesDom {
@@ -2284,7 +2284,7 @@ class TextTrackCueListImpl extends TextTrackCueList implements js_library.JSObje
   toString() => super.toString();
 }
 patch class VideoPlaybackQuality {
-  factory VideoPlaybackQuality._internalWrap() => new VideoPlaybackQualityImpl.internal_();
+  static Type get instanceRuntimeType => VideoPlaybackQualityImpl;
 
 }
 class VideoPlaybackQualityImpl extends VideoPlaybackQuality implements js_library.JSObjectInterfacesDom {
@@ -2293,7 +2293,7 @@ class VideoPlaybackQualityImpl extends VideoPlaybackQuality implements js_librar
   toString() => super.toString();
 }
 patch class IFrameElement {
-  factory IFrameElement._internalWrap() => new IFrameElementImpl.internal_();
+  static Type get instanceRuntimeType => IFrameElementImpl;
 
 }
 class IFrameElementImpl extends IFrameElement implements js_library.JSObjectInterfacesDom {
@@ -2302,7 +2302,7 @@ class IFrameElementImpl extends IFrameElement implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class FontFace {
-  factory FontFace._internalWrap() => new FontFaceImpl.internal_();
+  static Type get instanceRuntimeType => FontFaceImpl;
 
 }
 class FontFaceImpl extends FontFace implements js_library.JSObjectInterfacesDom {
@@ -2311,7 +2311,7 @@ class FontFaceImpl extends FontFace implements js_library.JSObjectInterfacesDom 
   toString() => super.toString();
 }
 patch class AnchorElement {
-  factory AnchorElement._internalWrap() => new AnchorElementImpl.internal_();
+  static Type get instanceRuntimeType => AnchorElementImpl;
 
 }
 class AnchorElementImpl extends AnchorElement implements js_library.JSObjectInterfacesDom {
@@ -2320,7 +2320,7 @@ class AnchorElementImpl extends AnchorElement implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class XsltProcessor {
-  factory XsltProcessor._internalWrap() => new XsltProcessorImpl.internal_();
+  static Type get instanceRuntimeType => XsltProcessorImpl;
 
 }
 class XsltProcessorImpl extends XsltProcessor implements js_library.JSObjectInterfacesDom {
@@ -2329,7 +2329,7 @@ class XsltProcessorImpl extends XsltProcessor implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class NavigatorLanguage {
-  factory NavigatorLanguage._internalWrap() => new NavigatorLanguageImpl.internal_();
+  static Type get instanceRuntimeType => NavigatorLanguageImpl;
 
 }
 class NavigatorLanguageImpl extends NavigatorLanguage implements js_library.JSObjectInterfacesDom {
@@ -2338,7 +2338,7 @@ class NavigatorLanguageImpl extends NavigatorLanguage implements js_library.JSOb
   toString() => super.toString();
 }
 patch class ParagraphElement {
-  factory ParagraphElement._internalWrap() => new ParagraphElementImpl.internal_();
+  static Type get instanceRuntimeType => ParagraphElementImpl;
 
 }
 class ParagraphElementImpl extends ParagraphElement implements js_library.JSObjectInterfacesDom {
@@ -2347,7 +2347,7 @@ class ParagraphElementImpl extends ParagraphElement implements js_library.JSObje
   toString() => super.toString();
 }
 patch class HmdvrDevice {
-  factory HmdvrDevice._internalWrap() => new HmdvrDeviceImpl.internal_();
+  static Type get instanceRuntimeType => HmdvrDeviceImpl;
 
 }
 class HmdvrDeviceImpl extends HmdvrDevice implements js_library.JSObjectInterfacesDom {
@@ -2356,7 +2356,7 @@ class HmdvrDeviceImpl extends HmdvrDevice implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class SourceBuffer {
-  factory SourceBuffer._internalWrap() => new SourceBufferImpl.internal_();
+  static Type get instanceRuntimeType => SourceBufferImpl;
 
 }
 class SourceBufferImpl extends SourceBuffer implements js_library.JSObjectInterfacesDom {
@@ -2365,7 +2365,7 @@ class SourceBufferImpl extends SourceBuffer implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class CssCharsetRule {
-  factory CssCharsetRule._internalWrap() => new CssCharsetRuleImpl.internal_();
+  static Type get instanceRuntimeType => CssCharsetRuleImpl;
 
 }
 class CssCharsetRuleImpl extends CssCharsetRule implements js_library.JSObjectInterfacesDom {
@@ -2374,7 +2374,7 @@ class CssCharsetRuleImpl extends CssCharsetRule implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class DeprecatedStorageQuota {
-  factory DeprecatedStorageQuota._internalWrap() => new DeprecatedStorageQuotaImpl.internal_();
+  static Type get instanceRuntimeType => DeprecatedStorageQuotaImpl;
 
 }
 class DeprecatedStorageQuotaImpl extends DeprecatedStorageQuota implements js_library.JSObjectInterfacesDom {
@@ -2383,7 +2383,7 @@ class DeprecatedStorageQuotaImpl extends DeprecatedStorageQuota implements js_li
   toString() => super.toString();
 }
 patch class DataTransfer {
-  factory DataTransfer._internalWrap() => new DataTransferImpl.internal_();
+  static Type get instanceRuntimeType => DataTransferImpl;
 
 }
 class DataTransferImpl extends DataTransfer implements js_library.JSObjectInterfacesDom {
@@ -2392,7 +2392,7 @@ class DataTransferImpl extends DataTransfer implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class MutationObserver {
-  factory MutationObserver._internalWrap() => new MutationObserverImpl.internal_();
+  static Type get instanceRuntimeType => MutationObserverImpl;
 
 }
 class MutationObserverImpl extends MutationObserver implements js_library.JSObjectInterfacesDom {
@@ -2401,7 +2401,7 @@ class MutationObserverImpl extends MutationObserver implements js_library.JSObje
   toString() => super.toString();
 }
 patch class XmlSerializer {
-  factory XmlSerializer._internalWrap() => new XmlSerializerImpl.internal_();
+  static Type get instanceRuntimeType => XmlSerializerImpl;
 
 }
 class XmlSerializerImpl extends XmlSerializer implements js_library.JSObjectInterfacesDom {
@@ -2410,7 +2410,7 @@ class XmlSerializerImpl extends XmlSerializer implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class PictureElement {
-  factory PictureElement._internalWrap() => new PictureElementImpl.internal_();
+  static Type get instanceRuntimeType => PictureElementImpl;
 
 }
 class PictureElementImpl extends PictureElement implements js_library.JSObjectInterfacesDom {
@@ -2419,7 +2419,7 @@ class PictureElementImpl extends PictureElement implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class MediaEncryptedEvent {
-  factory MediaEncryptedEvent._internalWrap() => new MediaEncryptedEventImpl.internal_();
+  static Type get instanceRuntimeType => MediaEncryptedEventImpl;
 
 }
 class MediaEncryptedEventImpl extends MediaEncryptedEvent implements js_library.JSObjectInterfacesDom {
@@ -2428,7 +2428,7 @@ class MediaEncryptedEventImpl extends MediaEncryptedEvent implements js_library.
   toString() => super.toString();
 }
 patch class TouchEvent {
-  factory TouchEvent._internalWrap() => new TouchEventImpl.internal_();
+  static Type get instanceRuntimeType => TouchEventImpl;
 
 }
 class TouchEventImpl extends TouchEvent implements js_library.JSObjectInterfacesDom {
@@ -2437,7 +2437,7 @@ class TouchEventImpl extends TouchEvent implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class ServiceWorkerMessageEvent {
-  factory ServiceWorkerMessageEvent._internalWrap() => new ServiceWorkerMessageEventImpl.internal_();
+  static Type get instanceRuntimeType => ServiceWorkerMessageEventImpl;
 
 }
 class ServiceWorkerMessageEventImpl extends ServiceWorkerMessageEvent implements js_library.JSObjectInterfacesDom {
@@ -2446,7 +2446,7 @@ class ServiceWorkerMessageEventImpl extends ServiceWorkerMessageEvent implements
   toString() => super.toString();
 }
 patch class MeterElement {
-  factory MeterElement._internalWrap() => new MeterElementImpl.internal_();
+  static Type get instanceRuntimeType => MeterElementImpl;
 
 }
 class MeterElementImpl extends MeterElement implements js_library.JSObjectInterfacesDom {
@@ -2455,7 +2455,7 @@ class MeterElementImpl extends MeterElement implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class CssGroupingRule {
-  factory CssGroupingRule._internalWrap() => new CssGroupingRuleImpl.internal_();
+  static Type get instanceRuntimeType => CssGroupingRuleImpl;
 
 }
 class CssGroupingRuleImpl extends CssGroupingRule implements js_library.JSObjectInterfacesDom {
@@ -2464,7 +2464,7 @@ class CssGroupingRuleImpl extends CssGroupingRule implements js_library.JSObject
   toString() => super.toString();
 }
 patch class UListElement {
-  factory UListElement._internalWrap() => new UListElementImpl.internal_();
+  static Type get instanceRuntimeType => UListElementImpl;
 
 }
 class UListElementImpl extends UListElement implements js_library.JSObjectInterfacesDom {
@@ -2473,7 +2473,7 @@ class UListElementImpl extends UListElement implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class Storage {
-  factory Storage._internalWrap() => new StorageImpl.internal_();
+  static Type get instanceRuntimeType => StorageImpl;
 
 }
 class StorageImpl extends Storage implements js_library.JSObjectInterfacesDom {
@@ -2482,7 +2482,7 @@ class StorageImpl extends Storage implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class _DocumentType {
-  factory _DocumentType._internalWrap() => new _DocumentTypeImpl.internal_();
+  static Type get instanceRuntimeType => _DocumentTypeImpl;
 
 }
 class _DocumentTypeImpl extends _DocumentType implements js_library.JSObjectInterfacesDom {
@@ -2491,7 +2491,7 @@ class _DocumentTypeImpl extends _DocumentType implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class ErrorEvent {
-  factory ErrorEvent._internalWrap() => new ErrorEventImpl.internal_();
+  static Type get instanceRuntimeType => ErrorEventImpl;
 
 }
 class ErrorEventImpl extends ErrorEvent implements js_library.JSObjectInterfacesDom {
@@ -2500,7 +2500,7 @@ class ErrorEventImpl extends ErrorEvent implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class BodyElement {
-  factory BodyElement._internalWrap() => new BodyElementImpl.internal_();
+  static Type get instanceRuntimeType => BodyElementImpl;
 
 }
 class BodyElementImpl extends BodyElement implements js_library.JSObjectInterfacesDom {
@@ -2509,7 +2509,7 @@ class BodyElementImpl extends BodyElement implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class DeprecatedStorageInfo {
-  factory DeprecatedStorageInfo._internalWrap() => new DeprecatedStorageInfoImpl.internal_();
+  static Type get instanceRuntimeType => DeprecatedStorageInfoImpl;
 
 }
 class DeprecatedStorageInfoImpl extends DeprecatedStorageInfo implements js_library.JSObjectInterfacesDom {
@@ -2518,7 +2518,7 @@ class DeprecatedStorageInfoImpl extends DeprecatedStorageInfo implements js_libr
   toString() => super.toString();
 }
 patch class Geoposition {
-  factory Geoposition._internalWrap() => new GeopositionImpl.internal_();
+  static Type get instanceRuntimeType => GeopositionImpl;
 
 }
 class GeopositionImpl extends Geoposition implements js_library.JSObjectInterfacesDom {
@@ -2527,7 +2527,7 @@ class GeopositionImpl extends Geoposition implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class ApplicationCacheErrorEvent {
-  factory ApplicationCacheErrorEvent._internalWrap() => new ApplicationCacheErrorEventImpl.internal_();
+  static Type get instanceRuntimeType => ApplicationCacheErrorEventImpl;
 
 }
 class ApplicationCacheErrorEventImpl extends ApplicationCacheErrorEvent implements js_library.JSObjectInterfacesDom {
@@ -2536,7 +2536,7 @@ class ApplicationCacheErrorEventImpl extends ApplicationCacheErrorEvent implemen
   toString() => super.toString();
 }
 patch class MutationRecord {
-  factory MutationRecord._internalWrap() => new MutationRecordImpl.internal_();
+  static Type get instanceRuntimeType => MutationRecordImpl;
 
 }
 class MutationRecordImpl extends MutationRecord implements js_library.JSObjectInterfacesDom {
@@ -2545,7 +2545,7 @@ class MutationRecordImpl extends MutationRecord implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class FieldSetElement {
-  factory FieldSetElement._internalWrap() => new FieldSetElementImpl.internal_();
+  static Type get instanceRuntimeType => FieldSetElementImpl;
 
 }
 class FieldSetElementImpl extends FieldSetElement implements js_library.JSObjectInterfacesDom {
@@ -2554,7 +2554,7 @@ class FieldSetElementImpl extends FieldSetElement implements js_library.JSObject
   toString() => super.toString();
 }
 patch class NonDocumentTypeChildNode {
-  factory NonDocumentTypeChildNode._internalWrap() => new NonDocumentTypeChildNodeImpl.internal_();
+  static Type get instanceRuntimeType => NonDocumentTypeChildNodeImpl;
 
 }
 class NonDocumentTypeChildNodeImpl extends NonDocumentTypeChildNode implements js_library.JSObjectInterfacesDom {
@@ -2563,7 +2563,7 @@ class NonDocumentTypeChildNodeImpl extends NonDocumentTypeChildNode implements j
   toString() => super.toString();
 }
 patch class _DirectoryReaderSync {
-  factory _DirectoryReaderSync._internalWrap() => new _DirectoryReaderSyncImpl.internal_();
+  static Type get instanceRuntimeType => _DirectoryReaderSyncImpl;
 
 }
 class _DirectoryReaderSyncImpl extends _DirectoryReaderSync implements js_library.JSObjectInterfacesDom {
@@ -2572,7 +2572,7 @@ class _DirectoryReaderSyncImpl extends _DirectoryReaderSync implements js_librar
   toString() => super.toString();
 }
 patch class RtcSessionDescription {
-  factory RtcSessionDescription._internalWrap() => new RtcSessionDescriptionImpl.internal_();
+  static Type get instanceRuntimeType => RtcSessionDescriptionImpl;
 
 }
 class RtcSessionDescriptionImpl extends RtcSessionDescription implements js_library.JSObjectInterfacesDom {
@@ -2581,7 +2581,7 @@ class RtcSessionDescriptionImpl extends RtcSessionDescription implements js_libr
   toString() => super.toString();
 }
 patch class PositionSensorVRDevice {
-  factory PositionSensorVRDevice._internalWrap() => new PositionSensorVRDeviceImpl.internal_();
+  static Type get instanceRuntimeType => PositionSensorVRDeviceImpl;
 
 }
 class PositionSensorVRDeviceImpl extends PositionSensorVRDevice implements js_library.JSObjectInterfacesDom {
@@ -2590,7 +2590,7 @@ class PositionSensorVRDeviceImpl extends PositionSensorVRDevice implements js_li
   toString() => super.toString();
 }
 patch class Text {
-  factory Text._internalWrap() => new TextImpl.internal_();
+  static Type get instanceRuntimeType => TextImpl;
 
 }
 class TextImpl extends Text implements js_library.JSObjectInterfacesDom {
@@ -2599,7 +2599,7 @@ class TextImpl extends Text implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class AnimationEffectTiming {
-  factory AnimationEffectTiming._internalWrap() => new AnimationEffectTimingImpl.internal_();
+  static Type get instanceRuntimeType => AnimationEffectTimingImpl;
 
 }
 class AnimationEffectTimingImpl extends AnimationEffectTiming implements js_library.JSObjectInterfacesDom {
@@ -2608,7 +2608,7 @@ class AnimationEffectTimingImpl extends AnimationEffectTiming implements js_libr
   toString() => super.toString();
 }
 patch class PositionError {
-  factory PositionError._internalWrap() => new PositionErrorImpl.internal_();
+  static Type get instanceRuntimeType => PositionErrorImpl;
 
 }
 class PositionErrorImpl extends PositionError implements js_library.JSObjectInterfacesDom {
@@ -2617,7 +2617,7 @@ class PositionErrorImpl extends PositionError implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class VideoTrackList {
-  factory VideoTrackList._internalWrap() => new VideoTrackListImpl.internal_();
+  static Type get instanceRuntimeType => VideoTrackListImpl;
 
 }
 class VideoTrackListImpl extends VideoTrackList implements js_library.JSObjectInterfacesDom {
@@ -2626,7 +2626,7 @@ class VideoTrackListImpl extends VideoTrackList implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class GamepadButton {
-  factory GamepadButton._internalWrap() => new GamepadButtonImpl.internal_();
+  static Type get instanceRuntimeType => GamepadButtonImpl;
 
 }
 class GamepadButtonImpl extends GamepadButton implements js_library.JSObjectInterfacesDom {
@@ -2635,7 +2635,7 @@ class GamepadButtonImpl extends GamepadButton implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class WorkerConsole {
-  factory WorkerConsole._internalWrap() => new WorkerConsoleImpl.internal_();
+  static Type get instanceRuntimeType => WorkerConsoleImpl;
 
 }
 class WorkerConsoleImpl extends WorkerConsole implements js_library.JSObjectInterfacesDom {
@@ -2644,7 +2644,7 @@ class WorkerConsoleImpl extends WorkerConsole implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class TrackDefault {
-  factory TrackDefault._internalWrap() => new TrackDefaultImpl.internal_();
+  static Type get instanceRuntimeType => TrackDefaultImpl;
 
 }
 class TrackDefaultImpl extends TrackDefault implements js_library.JSObjectInterfacesDom {
@@ -2653,7 +2653,7 @@ class TrackDefaultImpl extends TrackDefault implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class FileStream {
-  factory FileStream._internalWrap() => new FileStreamImpl.internal_();
+  static Type get instanceRuntimeType => FileStreamImpl;
 
 }
 class FileStreamImpl extends FileStream implements js_library.JSObjectInterfacesDom {
@@ -2662,7 +2662,7 @@ class FileStreamImpl extends FileStream implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class _ClientRect {
-  factory _ClientRect._internalWrap() => new _ClientRectImpl.internal_();
+  static Type get instanceRuntimeType => _ClientRectImpl;
 
 }
 class _ClientRectImpl extends _ClientRect implements js_library.JSObjectInterfacesDom {
@@ -2671,7 +2671,7 @@ class _ClientRectImpl extends _ClientRect implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class TemplateElement {
-  factory TemplateElement._internalWrap() => new TemplateElementImpl.internal_();
+  static Type get instanceRuntimeType => TemplateElementImpl;
 
 }
 class TemplateElementImpl extends TemplateElement implements js_library.JSObjectInterfacesDom {
@@ -2680,7 +2680,7 @@ class TemplateElementImpl extends TemplateElement implements js_library.JSObject
   toString() => super.toString();
 }
 patch class RtcStatsReport {
-  factory RtcStatsReport._internalWrap() => new RtcStatsReportImpl.internal_();
+  static Type get instanceRuntimeType => RtcStatsReportImpl;
 
 }
 class RtcStatsReportImpl extends RtcStatsReport implements js_library.JSObjectInterfacesDom {
@@ -2689,7 +2689,7 @@ class RtcStatsReportImpl extends RtcStatsReport implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class TimeRanges {
-  factory TimeRanges._internalWrap() => new TimeRangesImpl.internal_();
+  static Type get instanceRuntimeType => TimeRangesImpl;
 
 }
 class TimeRangesImpl extends TimeRanges implements js_library.JSObjectInterfacesDom {
@@ -2698,7 +2698,7 @@ class TimeRangesImpl extends TimeRanges implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class _Request {
-  factory _Request._internalWrap() => new _RequestImpl.internal_();
+  static Type get instanceRuntimeType => _RequestImpl;
 
 }
 class _RequestImpl extends _Request implements js_library.JSObjectInterfacesDom {
@@ -2707,7 +2707,7 @@ class _RequestImpl extends _Request implements js_library.JSObjectInterfacesDom 
   toString() => super.toString();
 }
 patch class _WindowTimers {
-  factory _WindowTimers._internalWrap() => new _WindowTimersImpl.internal_();
+  static Type get instanceRuntimeType => _WindowTimersImpl;
 
 }
 class _WindowTimersImpl extends _WindowTimers implements js_library.JSObjectInterfacesDom {
@@ -2716,7 +2716,7 @@ class _WindowTimersImpl extends _WindowTimers implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class VttRegionList {
-  factory VttRegionList._internalWrap() => new VttRegionListImpl.internal_();
+  static Type get instanceRuntimeType => VttRegionListImpl;
 
 }
 class VttRegionListImpl extends VttRegionList implements js_library.JSObjectInterfacesDom {
@@ -2725,7 +2725,7 @@ class VttRegionListImpl extends VttRegionList implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class AnimationTimeline {
-  factory AnimationTimeline._internalWrap() => new AnimationTimelineImpl.internal_();
+  static Type get instanceRuntimeType => AnimationTimelineImpl;
 
 }
 class AnimationTimelineImpl extends AnimationTimeline implements js_library.JSObjectInterfacesDom {
@@ -2734,7 +2734,7 @@ class AnimationTimelineImpl extends AnimationTimeline implements js_library.JSOb
   toString() => super.toString();
 }
 patch class Event {
-  factory Event._internalWrap() => new EventImpl.internal_();
+  static Type get instanceRuntimeType => EventImpl;
 
 }
 class EventImpl extends Event implements js_library.JSObjectInterfacesDom {
@@ -2743,7 +2743,7 @@ class EventImpl extends Event implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class DomIterator {
-  factory DomIterator._internalWrap() => new DomIteratorImpl.internal_();
+  static Type get instanceRuntimeType => DomIteratorImpl;
 
 }
 class DomIteratorImpl extends DomIterator implements js_library.JSObjectInterfacesDom {
@@ -2752,7 +2752,7 @@ class DomIteratorImpl extends DomIterator implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class ImageData {
-  factory ImageData._internalWrap() => new ImageDataImpl.internal_();
+  static Type get instanceRuntimeType => ImageDataImpl;
 
 }
 class ImageDataImpl extends ImageData implements js_library.JSObjectInterfacesDom {
@@ -2761,7 +2761,7 @@ class ImageDataImpl extends ImageData implements js_library.JSObjectInterfacesDo
   toString() => super.toString();
 }
 patch class MediaStreamTrackEvent {
-  factory MediaStreamTrackEvent._internalWrap() => new MediaStreamTrackEventImpl.internal_();
+  static Type get instanceRuntimeType => MediaStreamTrackEventImpl;
 
 }
 class MediaStreamTrackEventImpl extends MediaStreamTrackEvent implements js_library.JSObjectInterfacesDom {
@@ -2770,7 +2770,7 @@ class MediaStreamTrackEventImpl extends MediaStreamTrackEvent implements js_libr
   toString() => super.toString();
 }
 patch class PromiseRejectionEvent {
-  factory PromiseRejectionEvent._internalWrap() => new PromiseRejectionEventImpl.internal_();
+  static Type get instanceRuntimeType => PromiseRejectionEventImpl;
 
 }
 class PromiseRejectionEventImpl extends PromiseRejectionEvent implements js_library.JSObjectInterfacesDom {
@@ -2779,7 +2779,7 @@ class PromiseRejectionEventImpl extends PromiseRejectionEvent implements js_libr
   toString() => super.toString();
 }
 patch class HtmlElement {
-  factory HtmlElement._internalWrap() => new HtmlElementImpl.internal_();
+  static Type get instanceRuntimeType => HtmlElementImpl;
 
 }
 class HtmlElementImpl extends HtmlElement implements js_library.JSObjectInterfacesDom {
@@ -2788,7 +2788,7 @@ class HtmlElementImpl extends HtmlElement implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class HtmlDocument {
-  factory HtmlDocument._internalWrap() => new HtmlDocumentImpl.internal_();
+  static Type get instanceRuntimeType => HtmlDocumentImpl;
 
 }
 class HtmlDocumentImpl extends HtmlDocument implements js_library.JSObjectInterfacesDom {
@@ -2797,7 +2797,7 @@ class HtmlDocumentImpl extends HtmlDocument implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class MidiPort {
-  factory MidiPort._internalWrap() => new MidiPortImpl.internal_();
+  static Type get instanceRuntimeType => MidiPortImpl;
 
 }
 class MidiPortImpl extends MidiPort implements js_library.JSObjectInterfacesDom {
@@ -2806,7 +2806,7 @@ class MidiPortImpl extends MidiPort implements js_library.JSObjectInterfacesDom 
   toString() => super.toString();
 }
 patch class CssMediaRule {
-  factory CssMediaRule._internalWrap() => new CssMediaRuleImpl.internal_();
+  static Type get instanceRuntimeType => CssMediaRuleImpl;
 
 }
 class CssMediaRuleImpl extends CssMediaRule implements js_library.JSObjectInterfacesDom {
@@ -2815,7 +2815,7 @@ class CssMediaRuleImpl extends CssMediaRule implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class CssViewportRule {
-  factory CssViewportRule._internalWrap() => new CssViewportRuleImpl.internal_();
+  static Type get instanceRuntimeType => CssViewportRuleImpl;
 
 }
 class CssViewportRuleImpl extends CssViewportRule implements js_library.JSObjectInterfacesDom {
@@ -2824,7 +2824,7 @@ class CssViewportRuleImpl extends CssViewportRule implements js_library.JSObject
   toString() => super.toString();
 }
 patch class FederatedCredential {
-  factory FederatedCredential._internalWrap() => new FederatedCredentialImpl.internal_();
+  static Type get instanceRuntimeType => FederatedCredentialImpl;
 
 }
 class FederatedCredentialImpl extends FederatedCredential implements js_library.JSObjectInterfacesDom {
@@ -2833,7 +2833,7 @@ class FederatedCredentialImpl extends FederatedCredential implements js_library.
   toString() => super.toString();
 }
 patch class RtcIceCandidateEvent {
-  factory RtcIceCandidateEvent._internalWrap() => new RtcIceCandidateEventImpl.internal_();
+  static Type get instanceRuntimeType => RtcIceCandidateEventImpl;
 
 }
 class RtcIceCandidateEventImpl extends RtcIceCandidateEvent implements js_library.JSObjectInterfacesDom {
@@ -2842,7 +2842,7 @@ class RtcIceCandidateEventImpl extends RtcIceCandidateEvent implements js_librar
   toString() => super.toString();
 }
 patch class PerformanceMark {
-  factory PerformanceMark._internalWrap() => new PerformanceMarkImpl.internal_();
+  static Type get instanceRuntimeType => PerformanceMarkImpl;
 
 }
 class PerformanceMarkImpl extends PerformanceMark implements js_library.JSObjectInterfacesDom {
@@ -2851,7 +2851,7 @@ class PerformanceMarkImpl extends PerformanceMark implements js_library.JSObject
   toString() => super.toString();
 }
 patch class SharedWorkerGlobalScope {
-  factory SharedWorkerGlobalScope._internalWrap() => new SharedWorkerGlobalScopeImpl.internal_();
+  static Type get instanceRuntimeType => SharedWorkerGlobalScopeImpl;
 
 }
 class SharedWorkerGlobalScopeImpl extends SharedWorkerGlobalScope implements js_library.JSObjectInterfacesDom {
@@ -2860,7 +2860,7 @@ class SharedWorkerGlobalScopeImpl extends SharedWorkerGlobalScope implements js_
   toString() => super.toString();
 }
 patch class MimeTypeArray {
-  factory MimeTypeArray._internalWrap() => new MimeTypeArrayImpl.internal_();
+  static Type get instanceRuntimeType => MimeTypeArrayImpl;
 
 }
 class MimeTypeArrayImpl extends MimeTypeArray implements js_library.JSObjectInterfacesDom {
@@ -2869,7 +2869,7 @@ class MimeTypeArrayImpl extends MimeTypeArray implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class PerformanceRenderTiming {
-  factory PerformanceRenderTiming._internalWrap() => new PerformanceRenderTimingImpl.internal_();
+  static Type get instanceRuntimeType => PerformanceRenderTimingImpl;
 
 }
 class PerformanceRenderTimingImpl extends PerformanceRenderTiming implements js_library.JSObjectInterfacesDom {
@@ -2878,7 +2878,7 @@ class PerformanceRenderTimingImpl extends PerformanceRenderTiming implements js_
   toString() => super.toString();
 }
 patch class EffectModel {
-  factory EffectModel._internalWrap() => new EffectModelImpl.internal_();
+  static Type get instanceRuntimeType => EffectModelImpl;
 
 }
 class EffectModelImpl extends EffectModel implements js_library.JSObjectInterfacesDom {
@@ -2887,7 +2887,7 @@ class EffectModelImpl extends EffectModel implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class StyleSheet {
-  factory StyleSheet._internalWrap() => new StyleSheetImpl.internal_();
+  static Type get instanceRuntimeType => StyleSheetImpl;
 
 }
 class StyleSheetImpl extends StyleSheet implements js_library.JSObjectInterfacesDom {
@@ -2896,7 +2896,7 @@ class StyleSheetImpl extends StyleSheet implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class TableRowElement {
-  factory TableRowElement._internalWrap() => new TableRowElementImpl.internal_();
+  static Type get instanceRuntimeType => TableRowElementImpl;
 
 }
 class TableRowElementImpl extends TableRowElement implements js_library.JSObjectInterfacesDom {
@@ -2905,7 +2905,7 @@ class TableRowElementImpl extends TableRowElement implements js_library.JSObject
   toString() => super.toString();
 }
 patch class Geofencing {
-  factory Geofencing._internalWrap() => new GeofencingImpl.internal_();
+  static Type get instanceRuntimeType => GeofencingImpl;
 
 }
 class GeofencingImpl extends Geofencing implements js_library.JSObjectInterfacesDom {
@@ -2914,7 +2914,7 @@ class GeofencingImpl extends Geofencing implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class NodeList {
-  factory NodeList._internalWrap() => new NodeListImpl.internal_();
+  static Type get instanceRuntimeType => NodeListImpl;
 
 }
 class NodeListImpl extends NodeList implements js_library.JSObjectInterfacesDom {
@@ -2923,7 +2923,7 @@ class NodeListImpl extends NodeList implements js_library.JSObjectInterfacesDom 
   toString() => super.toString();
 }
 patch class MidiAccess {
-  factory MidiAccess._internalWrap() => new MidiAccessImpl.internal_();
+  static Type get instanceRuntimeType => MidiAccessImpl;
 
 }
 class MidiAccessImpl extends MidiAccess implements js_library.JSObjectInterfacesDom {
@@ -2932,7 +2932,7 @@ class MidiAccessImpl extends MidiAccess implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class CssStyleRule {
-  factory CssStyleRule._internalWrap() => new CssStyleRuleImpl.internal_();
+  static Type get instanceRuntimeType => CssStyleRuleImpl;
 
 }
 class CssStyleRuleImpl extends CssStyleRule implements js_library.JSObjectInterfacesDom {
@@ -2941,7 +2941,7 @@ class CssStyleRuleImpl extends CssStyleRule implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class DomError {
-  factory DomError._internalWrap() => new DomErrorImpl.internal_();
+  static Type get instanceRuntimeType => DomErrorImpl;
 
 }
 class DomErrorImpl extends DomError implements js_library.JSObjectInterfacesDom {
@@ -2950,7 +2950,7 @@ class DomErrorImpl extends DomError implements js_library.JSObjectInterfacesDom 
   toString() => super.toString();
 }
 patch class BluetoothUuid {
-  factory BluetoothUuid._internalWrap() => new BluetoothUuidImpl.internal_();
+  static Type get instanceRuntimeType => BluetoothUuidImpl;
 
 }
 class BluetoothUuidImpl extends BluetoothUuid implements js_library.JSObjectInterfacesDom {
@@ -2959,7 +2959,7 @@ class BluetoothUuidImpl extends BluetoothUuid implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class HashChangeEvent {
-  factory HashChangeEvent._internalWrap() => new HashChangeEventImpl.internal_();
+  static Type get instanceRuntimeType => HashChangeEventImpl;
 
 }
 class HashChangeEventImpl extends HashChangeEvent implements js_library.JSObjectInterfacesDom {
@@ -2968,7 +2968,7 @@ class HashChangeEventImpl extends HashChangeEvent implements js_library.JSObject
   toString() => super.toString();
 }
 patch class InputElement {
-  factory InputElement._internalWrap() => new InputElementImpl.internal_();
+  static Type get instanceRuntimeType => InputElementImpl;
 
 }
 class InputElementImpl extends InputElement implements js_library.JSObjectInterfacesDom {
@@ -2977,7 +2977,7 @@ class InputElementImpl extends InputElement implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class CDataSection {
-  factory CDataSection._internalWrap() => new CDataSectionImpl.internal_();
+  static Type get instanceRuntimeType => CDataSectionImpl;
 
 }
 class CDataSectionImpl extends CDataSection implements js_library.JSObjectInterfacesDom {
@@ -2986,7 +2986,7 @@ class CDataSectionImpl extends CDataSection implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class CssStyleSheet {
-  factory CssStyleSheet._internalWrap() => new CssStyleSheetImpl.internal_();
+  static Type get instanceRuntimeType => CssStyleSheetImpl;
 
 }
 class CssStyleSheetImpl extends CssStyleSheet implements js_library.JSObjectInterfacesDom {
@@ -2995,7 +2995,7 @@ class CssStyleSheetImpl extends CssStyleSheet implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class DomRectReadOnly {
-  factory DomRectReadOnly._internalWrap() => new DomRectReadOnlyImpl.internal_();
+  static Type get instanceRuntimeType => DomRectReadOnlyImpl;
 
 }
 class DomRectReadOnlyImpl extends DomRectReadOnly implements js_library.JSObjectInterfacesDom {
@@ -3004,7 +3004,7 @@ class DomRectReadOnlyImpl extends DomRectReadOnly implements js_library.JSObject
   toString() => super.toString();
 }
 patch class SyncEvent {
-  factory SyncEvent._internalWrap() => new SyncEventImpl.internal_();
+  static Type get instanceRuntimeType => SyncEventImpl;
 
 }
 class SyncEventImpl extends SyncEvent implements js_library.JSObjectInterfacesDom {
@@ -3013,7 +3013,7 @@ class SyncEventImpl extends SyncEvent implements js_library.JSObjectInterfacesDo
   toString() => super.toString();
 }
 patch class CssSupportsRule {
-  factory CssSupportsRule._internalWrap() => new CssSupportsRuleImpl.internal_();
+  static Type get instanceRuntimeType => CssSupportsRuleImpl;
 
 }
 class CssSupportsRuleImpl extends CssSupportsRule implements js_library.JSObjectInterfacesDom {
@@ -3022,7 +3022,7 @@ class CssSupportsRuleImpl extends CssSupportsRule implements js_library.JSObject
   toString() => super.toString();
 }
 patch class DomParser {
-  factory DomParser._internalWrap() => new DomParserImpl.internal_();
+  static Type get instanceRuntimeType => DomParserImpl;
 
 }
 class DomParserImpl extends DomParser implements js_library.JSObjectInterfacesDom {
@@ -3031,7 +3031,7 @@ class DomParserImpl extends DomParser implements js_library.JSObjectInterfacesDo
   toString() => super.toString();
 }
 patch class LIElement {
-  factory LIElement._internalWrap() => new LIElementImpl.internal_();
+  static Type get instanceRuntimeType => LIElementImpl;
 
 }
 class LIElementImpl extends LIElement implements js_library.JSObjectInterfacesDom {
@@ -3040,7 +3040,7 @@ class LIElementImpl extends LIElement implements js_library.JSObjectInterfacesDo
   toString() => super.toString();
 }
 patch class CrossOriginServiceWorkerClient {
-  factory CrossOriginServiceWorkerClient._internalWrap() => new CrossOriginServiceWorkerClientImpl.internal_();
+  static Type get instanceRuntimeType => CrossOriginServiceWorkerClientImpl;
 
 }
 class CrossOriginServiceWorkerClientImpl extends CrossOriginServiceWorkerClient implements js_library.JSObjectInterfacesDom {
@@ -3049,7 +3049,7 @@ class CrossOriginServiceWorkerClientImpl extends CrossOriginServiceWorkerClient 
   toString() => super.toString();
 }
 patch class ServiceWorkerGlobalScope {
-  factory ServiceWorkerGlobalScope._internalWrap() => new ServiceWorkerGlobalScopeImpl.internal_();
+  static Type get instanceRuntimeType => ServiceWorkerGlobalScopeImpl;
 
 }
 class ServiceWorkerGlobalScopeImpl extends ServiceWorkerGlobalScope implements js_library.JSObjectInterfacesDom {
@@ -3058,7 +3058,7 @@ class ServiceWorkerGlobalScopeImpl extends ServiceWorkerGlobalScope implements j
   toString() => super.toString();
 }
 patch class InputDevice {
-  factory InputDevice._internalWrap() => new InputDeviceImpl.internal_();
+  static Type get instanceRuntimeType => InputDeviceImpl;
 
 }
 class InputDeviceImpl extends InputDevice implements js_library.JSObjectInterfacesDom {
@@ -3067,7 +3067,7 @@ class InputDeviceImpl extends InputDevice implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class MediaSession {
-  factory MediaSession._internalWrap() => new MediaSessionImpl.internal_();
+  static Type get instanceRuntimeType => MediaSessionImpl;
 
 }
 class MediaSessionImpl extends MediaSession implements js_library.JSObjectInterfacesDom {
@@ -3076,7 +3076,7 @@ class MediaSessionImpl extends MediaSession implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class PreElement {
-  factory PreElement._internalWrap() => new PreElementImpl.internal_();
+  static Type get instanceRuntimeType => PreElementImpl;
 
 }
 class PreElementImpl extends PreElement implements js_library.JSObjectInterfacesDom {
@@ -3085,7 +3085,7 @@ class PreElementImpl extends PreElement implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class _NamedNodeMap {
-  factory _NamedNodeMap._internalWrap() => new _NamedNodeMapImpl.internal_();
+  static Type get instanceRuntimeType => _NamedNodeMapImpl;
 
 }
 class _NamedNodeMapImpl extends _NamedNodeMap implements js_library.JSObjectInterfacesDom {
@@ -3094,7 +3094,7 @@ class _NamedNodeMapImpl extends _NamedNodeMap implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class StyleElement {
-  factory StyleElement._internalWrap() => new StyleElementImpl.internal_();
+  static Type get instanceRuntimeType => StyleElementImpl;
 
 }
 class StyleElementImpl extends StyleElement implements js_library.JSObjectInterfacesDom {
@@ -3103,7 +3103,7 @@ class StyleElementImpl extends StyleElement implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class TrackEvent {
-  factory TrackEvent._internalWrap() => new TrackEventImpl.internal_();
+  static Type get instanceRuntimeType => TrackEventImpl;
 
 }
 class TrackEventImpl extends TrackEvent implements js_library.JSObjectInterfacesDom {
@@ -3112,7 +3112,7 @@ class TrackEventImpl extends TrackEvent implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class Performance {
-  factory Performance._internalWrap() => new PerformanceImpl.internal_();
+  static Type get instanceRuntimeType => PerformanceImpl;
 
 }
 class PerformanceImpl extends Performance implements js_library.JSObjectInterfacesDom {
@@ -3121,7 +3121,7 @@ class PerformanceImpl extends Performance implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class CssKeyframeRule {
-  factory CssKeyframeRule._internalWrap() => new CssKeyframeRuleImpl.internal_();
+  static Type get instanceRuntimeType => CssKeyframeRuleImpl;
 
 }
 class CssKeyframeRuleImpl extends CssKeyframeRule implements js_library.JSObjectInterfacesDom {
@@ -3130,7 +3130,7 @@ class CssKeyframeRuleImpl extends CssKeyframeRule implements js_library.JSObject
   toString() => super.toString();
 }
 patch class MidiInputMap {
-  factory MidiInputMap._internalWrap() => new MidiInputMapImpl.internal_();
+  static Type get instanceRuntimeType => MidiInputMapImpl;
 
 }
 class MidiInputMapImpl extends MidiInputMap implements js_library.JSObjectInterfacesDom {
@@ -3139,7 +3139,7 @@ class MidiInputMapImpl extends MidiInputMap implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class XmlDocument {
-  factory XmlDocument._internalWrap() => new XmlDocumentImpl.internal_();
+  static Type get instanceRuntimeType => XmlDocumentImpl;
 
 }
 class XmlDocumentImpl extends XmlDocument implements js_library.JSObjectInterfacesDom {
@@ -3148,7 +3148,7 @@ class XmlDocumentImpl extends XmlDocument implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class VREyeParameters {
-  factory VREyeParameters._internalWrap() => new VREyeParametersImpl.internal_();
+  static Type get instanceRuntimeType => VREyeParametersImpl;
 
 }
 class VREyeParametersImpl extends VREyeParameters implements js_library.JSObjectInterfacesDom {
@@ -3157,7 +3157,7 @@ class VREyeParametersImpl extends VREyeParameters implements js_library.JSObject
   toString() => super.toString();
 }
 patch class Credential {
-  factory Credential._internalWrap() => new CredentialImpl.internal_();
+  static Type get instanceRuntimeType => CredentialImpl;
 
 }
 class CredentialImpl extends Credential implements js_library.JSObjectInterfacesDom {
@@ -3166,7 +3166,7 @@ class CredentialImpl extends Credential implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class DomException {
-  factory DomException._internalWrap() => new DomExceptionImpl.internal_();
+  static Type get instanceRuntimeType => DomExceptionImpl;
 
 }
 class DomExceptionImpl extends DomException implements js_library.JSObjectInterfacesDom {
@@ -3175,7 +3175,7 @@ class DomExceptionImpl extends DomException implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class LegendElement {
-  factory LegendElement._internalWrap() => new LegendElementImpl.internal_();
+  static Type get instanceRuntimeType => LegendElementImpl;
 
 }
 class LegendElementImpl extends LegendElement implements js_library.JSObjectInterfacesDom {
@@ -3184,7 +3184,7 @@ class LegendElementImpl extends LegendElement implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class HttpRequestEventTarget {
-  factory HttpRequestEventTarget._internalWrap() => new HttpRequestEventTargetImpl.internal_();
+  static Type get instanceRuntimeType => HttpRequestEventTargetImpl;
 
 }
 class HttpRequestEventTargetImpl extends HttpRequestEventTarget implements js_library.JSObjectInterfacesDom {
@@ -3193,7 +3193,7 @@ class HttpRequestEventTargetImpl extends HttpRequestEventTarget implements js_li
   toString() => super.toString();
 }
 patch class UnknownElement {
-  factory UnknownElement._internalWrap() => new UnknownElementImpl.internal_();
+  static Type get instanceRuntimeType => UnknownElementImpl;
 
 }
 class UnknownElementImpl extends UnknownElement implements js_library.JSObjectInterfacesDom {
@@ -3202,7 +3202,7 @@ class UnknownElementImpl extends UnknownElement implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class _RadioNodeList {
-  factory _RadioNodeList._internalWrap() => new _RadioNodeListImpl.internal_();
+  static Type get instanceRuntimeType => _RadioNodeListImpl;
 
 }
 class _RadioNodeListImpl extends _RadioNodeList implements js_library.JSObjectInterfacesDom {
@@ -3211,7 +3211,7 @@ class _RadioNodeListImpl extends _RadioNodeList implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class NavigatorUserMediaError {
-  factory NavigatorUserMediaError._internalWrap() => new NavigatorUserMediaErrorImpl.internal_();
+  static Type get instanceRuntimeType => NavigatorUserMediaErrorImpl;
 
 }
 class NavigatorUserMediaErrorImpl extends NavigatorUserMediaError implements js_library.JSObjectInterfacesDom {
@@ -3220,7 +3220,7 @@ class NavigatorUserMediaErrorImpl extends NavigatorUserMediaError implements js_
   toString() => super.toString();
 }
 patch class ImageBitmap {
-  factory ImageBitmap._internalWrap() => new ImageBitmapImpl.internal_();
+  static Type get instanceRuntimeType => ImageBitmapImpl;
 
 }
 class ImageBitmapImpl extends ImageBitmap implements js_library.JSObjectInterfacesDom {
@@ -3229,7 +3229,7 @@ class ImageBitmapImpl extends ImageBitmap implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class AudioTrack {
-  factory AudioTrack._internalWrap() => new AudioTrackImpl.internal_();
+  static Type get instanceRuntimeType => AudioTrackImpl;
 
 }
 class AudioTrackImpl extends AudioTrack implements js_library.JSObjectInterfacesDom {
@@ -3238,7 +3238,7 @@ class AudioTrackImpl extends AudioTrack implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class ReadableByteStream {
-  factory ReadableByteStream._internalWrap() => new ReadableByteStreamImpl.internal_();
+  static Type get instanceRuntimeType => ReadableByteStreamImpl;
 
 }
 class ReadableByteStreamImpl extends ReadableByteStream implements js_library.JSObjectInterfacesDom {
@@ -3247,7 +3247,7 @@ class ReadableByteStreamImpl extends ReadableByteStream implements js_library.JS
   toString() => super.toString();
 }
 patch class _HTMLFrameElement {
-  factory _HTMLFrameElement._internalWrap() => new _HTMLFrameElementImpl.internal_();
+  static Type get instanceRuntimeType => _HTMLFrameElementImpl;
 
 }
 class _HTMLFrameElementImpl extends _HTMLFrameElement implements js_library.JSObjectInterfacesDom {
@@ -3256,7 +3256,7 @@ class _HTMLFrameElementImpl extends _HTMLFrameElement implements js_library.JSOb
   toString() => super.toString();
 }
 patch class Body {
-  factory Body._internalWrap() => new BodyImpl.internal_();
+  static Type get instanceRuntimeType => BodyImpl;
 
 }
 class BodyImpl extends Body implements js_library.JSObjectInterfacesDom {
@@ -3265,7 +3265,7 @@ class BodyImpl extends Body implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class MediaKeySystemAccess {
-  factory MediaKeySystemAccess._internalWrap() => new MediaKeySystemAccessImpl.internal_();
+  static Type get instanceRuntimeType => MediaKeySystemAccessImpl;
 
 }
 class MediaKeySystemAccessImpl extends MediaKeySystemAccess implements js_library.JSObjectInterfacesDom {
@@ -3274,7 +3274,7 @@ class MediaKeySystemAccessImpl extends MediaKeySystemAccess implements js_librar
   toString() => super.toString();
 }
 patch class BluetoothGattService {
-  factory BluetoothGattService._internalWrap() => new BluetoothGattServiceImpl.internal_();
+  static Type get instanceRuntimeType => BluetoothGattServiceImpl;
 
 }
 class BluetoothGattServiceImpl extends BluetoothGattService implements js_library.JSObjectInterfacesDom {
@@ -3283,7 +3283,7 @@ class BluetoothGattServiceImpl extends BluetoothGattService implements js_librar
   toString() => super.toString();
 }
 patch class _Attr {
-  factory _Attr._internalWrap() => new _AttrImpl.internal_();
+  static Type get instanceRuntimeType => _AttrImpl;
 
 }
 class _AttrImpl extends _Attr implements js_library.JSObjectInterfacesDom {
@@ -3292,7 +3292,7 @@ class _AttrImpl extends _Attr implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class CanvasRenderingContext2D {
-  factory CanvasRenderingContext2D._internalWrap() => new CanvasRenderingContext2DImpl.internal_();
+  static Type get instanceRuntimeType => CanvasRenderingContext2DImpl;
 
 }
 class CanvasRenderingContext2DImpl extends CanvasRenderingContext2D implements js_library.JSObjectInterfacesDom {
@@ -3301,7 +3301,7 @@ class CanvasRenderingContext2DImpl extends CanvasRenderingContext2D implements j
   toString() => super.toString();
 }
 patch class OListElement {
-  factory OListElement._internalWrap() => new OListElementImpl.internal_();
+  static Type get instanceRuntimeType => OListElementImpl;
 
 }
 class OListElementImpl extends OListElement implements js_library.JSObjectInterfacesDom {
@@ -3310,7 +3310,7 @@ class OListElementImpl extends OListElement implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class ApplicationCache {
-  factory ApplicationCache._internalWrap() => new ApplicationCacheImpl.internal_();
+  static Type get instanceRuntimeType => ApplicationCacheImpl;
 
 }
 class ApplicationCacheImpl extends ApplicationCache implements js_library.JSObjectInterfacesDom {
@@ -3319,7 +3319,7 @@ class ApplicationCacheImpl extends ApplicationCache implements js_library.JSObje
   toString() => super.toString();
 }
 patch class Clients {
-  factory Clients._internalWrap() => new ClientsImpl.internal_();
+  static Type get instanceRuntimeType => ClientsImpl;
 
 }
 class ClientsImpl extends Clients implements js_library.JSObjectInterfacesDom {
@@ -3328,7 +3328,7 @@ class ClientsImpl extends Clients implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class RtcPeerConnection {
-  factory RtcPeerConnection._internalWrap() => new RtcPeerConnectionImpl.internal_();
+  static Type get instanceRuntimeType => RtcPeerConnectionImpl;
 
 }
 class RtcPeerConnectionImpl extends RtcPeerConnection implements js_library.JSObjectInterfacesDom {
@@ -3337,7 +3337,7 @@ class RtcPeerConnectionImpl extends RtcPeerConnection implements js_library.JSOb
   toString() => super.toString();
 }
 patch class VideoElement {
-  factory VideoElement._internalWrap() => new VideoElementImpl.internal_();
+  static Type get instanceRuntimeType => VideoElementImpl;
 
 }
 class VideoElementImpl extends VideoElement implements js_library.JSObjectInterfacesDom {
@@ -3346,7 +3346,7 @@ class VideoElementImpl extends VideoElement implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class OutputElement {
-  factory OutputElement._internalWrap() => new OutputElementImpl.internal_();
+  static Type get instanceRuntimeType => OutputElementImpl;
 
 }
 class OutputElementImpl extends OutputElement implements js_library.JSObjectInterfacesDom {
@@ -3355,7 +3355,7 @@ class OutputElementImpl extends OutputElement implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class Coordinates {
-  factory Coordinates._internalWrap() => new CoordinatesImpl.internal_();
+  static Type get instanceRuntimeType => CoordinatesImpl;
 
 }
 class CoordinatesImpl extends Coordinates implements js_library.JSObjectInterfacesDom {
@@ -3364,7 +3364,7 @@ class CoordinatesImpl extends Coordinates implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class NetworkInformation {
-  factory NetworkInformation._internalWrap() => new NetworkInformationImpl.internal_();
+  static Type get instanceRuntimeType => NetworkInformationImpl;
 
 }
 class NetworkInformationImpl extends NetworkInformation implements js_library.JSObjectInterfacesDom {
@@ -3373,7 +3373,7 @@ class NetworkInformationImpl extends NetworkInformation implements js_library.JS
   toString() => super.toString();
 }
 patch class FocusEvent {
-  factory FocusEvent._internalWrap() => new FocusEventImpl.internal_();
+  static Type get instanceRuntimeType => FocusEventImpl;
 
 }
 class FocusEventImpl extends FocusEvent implements js_library.JSObjectInterfacesDom {
@@ -3382,7 +3382,7 @@ class FocusEventImpl extends FocusEvent implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class SpeechGrammarList {
-  factory SpeechGrammarList._internalWrap() => new SpeechGrammarListImpl.internal_();
+  static Type get instanceRuntimeType => SpeechGrammarListImpl;
 
 }
 class SpeechGrammarListImpl extends SpeechGrammarList implements js_library.JSObjectInterfacesDom {
@@ -3391,7 +3391,7 @@ class SpeechGrammarListImpl extends SpeechGrammarList implements js_library.JSOb
   toString() => super.toString();
 }
 patch class Range {
-  factory Range._internalWrap() => new RangeImpl.internal_();
+  static Type get instanceRuntimeType => RangeImpl;
 
 }
 class RangeImpl extends Range implements js_library.JSObjectInterfacesDom {
@@ -3400,7 +3400,7 @@ class RangeImpl extends Range implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class SpeechGrammar {
-  factory SpeechGrammar._internalWrap() => new SpeechGrammarImpl.internal_();
+  static Type get instanceRuntimeType => SpeechGrammarImpl;
 
 }
 class SpeechGrammarImpl extends SpeechGrammar implements js_library.JSObjectInterfacesDom {
@@ -3409,7 +3409,7 @@ class SpeechGrammarImpl extends SpeechGrammar implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class WorkerGlobalScope {
-  factory WorkerGlobalScope._internalWrap() => new WorkerGlobalScopeImpl.internal_();
+  static Type get instanceRuntimeType => WorkerGlobalScopeImpl;
 
 }
 class WorkerGlobalScopeImpl extends WorkerGlobalScope implements js_library.JSObjectInterfacesDom {
@@ -3418,7 +3418,7 @@ class WorkerGlobalScopeImpl extends WorkerGlobalScope implements js_library.JSOb
   toString() => super.toString();
 }
 patch class ScreenOrientation {
-  factory ScreenOrientation._internalWrap() => new ScreenOrientationImpl.internal_();
+  static Type get instanceRuntimeType => ScreenOrientationImpl;
 
 }
 class ScreenOrientationImpl extends ScreenOrientation implements js_library.JSObjectInterfacesDom {
@@ -3427,7 +3427,7 @@ class ScreenOrientationImpl extends ScreenOrientation implements js_library.JSOb
   toString() => super.toString();
 }
 patch class NonElementParentNode {
-  factory NonElementParentNode._internalWrap() => new NonElementParentNodeImpl.internal_();
+  static Type get instanceRuntimeType => NonElementParentNodeImpl;
 
 }
 class NonElementParentNodeImpl extends NonElementParentNode implements js_library.JSObjectInterfacesDom {
@@ -3436,7 +3436,7 @@ class NonElementParentNodeImpl extends NonElementParentNode implements js_librar
   toString() => super.toString();
 }
 patch class TitleElement {
-  factory TitleElement._internalWrap() => new TitleElementImpl.internal_();
+  static Type get instanceRuntimeType => TitleElementImpl;
 
 }
 class TitleElementImpl extends TitleElement implements js_library.JSObjectInterfacesDom {
@@ -3445,7 +3445,7 @@ class TitleElementImpl extends TitleElement implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class MidiConnectionEvent {
-  factory MidiConnectionEvent._internalWrap() => new MidiConnectionEventImpl.internal_();
+  static Type get instanceRuntimeType => MidiConnectionEventImpl;
 
 }
 class MidiConnectionEventImpl extends MidiConnectionEvent implements js_library.JSObjectInterfacesDom {
@@ -3454,7 +3454,7 @@ class MidiConnectionEventImpl extends MidiConnectionEvent implements js_library.
   toString() => super.toString();
 }
 patch class NotificationEvent {
-  factory NotificationEvent._internalWrap() => new NotificationEventImpl.internal_();
+  static Type get instanceRuntimeType => NotificationEventImpl;
 
 }
 class NotificationEventImpl extends NotificationEvent implements js_library.JSObjectInterfacesDom {
@@ -3463,7 +3463,7 @@ class NotificationEventImpl extends NotificationEvent implements js_library.JSOb
   toString() => super.toString();
 }
 patch class BeforeInstallPromptEvent {
-  factory BeforeInstallPromptEvent._internalWrap() => new BeforeInstallPromptEventImpl.internal_();
+  static Type get instanceRuntimeType => BeforeInstallPromptEventImpl;
 
 }
 class BeforeInstallPromptEventImpl extends BeforeInstallPromptEvent implements js_library.JSObjectInterfacesDom {
@@ -3472,7 +3472,7 @@ class BeforeInstallPromptEventImpl extends BeforeInstallPromptEvent implements j
   toString() => super.toString();
 }
 patch class _CanvasPathMethods {
-  factory _CanvasPathMethods._internalWrap() => new _CanvasPathMethodsImpl.internal_();
+  static Type get instanceRuntimeType => _CanvasPathMethodsImpl;
 
 }
 class _CanvasPathMethodsImpl extends _CanvasPathMethods implements js_library.JSObjectInterfacesDom {
@@ -3481,7 +3481,7 @@ class _CanvasPathMethodsImpl extends _CanvasPathMethods implements js_library.JS
   toString() => super.toString();
 }
 patch class UrlUtils {
-  factory UrlUtils._internalWrap() => new UrlUtilsImpl.internal_();
+  static Type get instanceRuntimeType => UrlUtilsImpl;
 
 }
 class UrlUtilsImpl extends UrlUtils implements js_library.JSObjectInterfacesDom {
@@ -3490,7 +3490,7 @@ class UrlUtilsImpl extends UrlUtils implements js_library.JSObjectInterfacesDom 
   toString() => super.toString();
 }
 patch class SelectElement {
-  factory SelectElement._internalWrap() => new SelectElementImpl.internal_();
+  static Type get instanceRuntimeType => SelectElementImpl;
 
 }
 class SelectElementImpl extends SelectElement implements js_library.JSObjectInterfacesDom {
@@ -3499,7 +3499,7 @@ class SelectElementImpl extends SelectElement implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class Bluetooth {
-  factory Bluetooth._internalWrap() => new BluetoothImpl.internal_();
+  static Type get instanceRuntimeType => BluetoothImpl;
 
 }
 class BluetoothImpl extends Bluetooth implements js_library.JSObjectInterfacesDom {
@@ -3508,7 +3508,7 @@ class BluetoothImpl extends Bluetooth implements js_library.JSObjectInterfacesDo
   toString() => super.toString();
 }
 patch class BluetoothDevice {
-  factory BluetoothDevice._internalWrap() => new BluetoothDeviceImpl.internal_();
+  static Type get instanceRuntimeType => BluetoothDeviceImpl;
 
 }
 class BluetoothDeviceImpl extends BluetoothDevice implements js_library.JSObjectInterfacesDom {
@@ -3517,7 +3517,7 @@ class BluetoothDeviceImpl extends BluetoothDevice implements js_library.JSObject
   toString() => super.toString();
 }
 patch class ConsoleBase {
-  factory ConsoleBase._internalWrap() => new ConsoleBaseImpl.internal_();
+  static Type get instanceRuntimeType => ConsoleBaseImpl;
 
 }
 class ConsoleBaseImpl extends ConsoleBase implements js_library.JSObjectInterfacesDom {
@@ -3526,7 +3526,7 @@ class ConsoleBaseImpl extends ConsoleBase implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class AudioElement {
-  factory AudioElement._internalWrap() => new AudioElementImpl.internal_();
+  static Type get instanceRuntimeType => AudioElementImpl;
 
 }
 class AudioElementImpl extends AudioElement implements js_library.JSObjectInterfacesDom {
@@ -3535,7 +3535,7 @@ class AudioElementImpl extends AudioElement implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class PushMessageData {
-  factory PushMessageData._internalWrap() => new PushMessageDataImpl.internal_();
+  static Type get instanceRuntimeType => PushMessageDataImpl;
 
 }
 class PushMessageDataImpl extends PushMessageData implements js_library.JSObjectInterfacesDom {
@@ -3544,7 +3544,7 @@ class PushMessageDataImpl extends PushMessageData implements js_library.JSObject
   toString() => super.toString();
 }
 patch class SpeechRecognitionEvent {
-  factory SpeechRecognitionEvent._internalWrap() => new SpeechRecognitionEventImpl.internal_();
+  static Type get instanceRuntimeType => SpeechRecognitionEventImpl;
 
 }
 class SpeechRecognitionEventImpl extends SpeechRecognitionEvent implements js_library.JSObjectInterfacesDom {
@@ -3553,7 +3553,7 @@ class SpeechRecognitionEventImpl extends SpeechRecognitionEvent implements js_li
   toString() => super.toString();
 }
 patch class WebSocket {
-  factory WebSocket._internalWrap() => new WebSocketImpl.internal_();
+  static Type get instanceRuntimeType => WebSocketImpl;
 
 }
 class WebSocketImpl extends WebSocket implements js_library.JSObjectInterfacesDom {
@@ -3562,7 +3562,7 @@ class WebSocketImpl extends WebSocket implements js_library.JSObjectInterfacesDo
   toString() => super.toString();
 }
 patch class _XMLHttpRequestProgressEvent {
-  factory _XMLHttpRequestProgressEvent._internalWrap() => new _XMLHttpRequestProgressEventImpl.internal_();
+  static Type get instanceRuntimeType => _XMLHttpRequestProgressEventImpl;
 
 }
 class _XMLHttpRequestProgressEventImpl extends _XMLHttpRequestProgressEvent implements js_library.JSObjectInterfacesDom {
@@ -3571,7 +3571,7 @@ class _XMLHttpRequestProgressEventImpl extends _XMLHttpRequestProgressEvent impl
   toString() => super.toString();
 }
 patch class Location {
-  factory Location._internalWrap() => new LocationImpl.internal_();
+  static Type get instanceRuntimeType => LocationImpl;
 
 }
 class LocationImpl extends Location implements js_library.JSObjectInterfacesDom {
@@ -3580,7 +3580,7 @@ class LocationImpl extends Location implements js_library.JSObjectInterfacesDom 
   toString() => super.toString();
 }
 patch class PerformanceEntry {
-  factory PerformanceEntry._internalWrap() => new PerformanceEntryImpl.internal_();
+  static Type get instanceRuntimeType => PerformanceEntryImpl;
 
 }
 class PerformanceEntryImpl extends PerformanceEntry implements js_library.JSObjectInterfacesDom {
@@ -3589,7 +3589,7 @@ class PerformanceEntryImpl extends PerformanceEntry implements js_library.JSObje
   toString() => super.toString();
 }
 patch class Client {
-  factory Client._internalWrap() => new ClientImpl.internal_();
+  static Type get instanceRuntimeType => ClientImpl;
 
 }
 class ClientImpl extends Client implements js_library.JSObjectInterfacesDom {
@@ -3598,7 +3598,7 @@ class ClientImpl extends Client implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class _Cache {
-  factory _Cache._internalWrap() => new _CacheImpl.internal_();
+  static Type get instanceRuntimeType => _CacheImpl;
 
 }
 class _CacheImpl extends _Cache implements js_library.JSObjectInterfacesDom {
@@ -3607,7 +3607,7 @@ class _CacheImpl extends _Cache implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class MimeType {
-  factory MimeType._internalWrap() => new MimeTypeImpl.internal_();
+  static Type get instanceRuntimeType => MimeTypeImpl;
 
 }
 class MimeTypeImpl extends MimeType implements js_library.JSObjectInterfacesDom {
@@ -3616,7 +3616,7 @@ class MimeTypeImpl extends MimeType implements js_library.JSObjectInterfacesDom 
   toString() => super.toString();
 }
 patch class MidiOutputMap {
-  factory MidiOutputMap._internalWrap() => new MidiOutputMapImpl.internal_();
+  static Type get instanceRuntimeType => MidiOutputMapImpl;
 
 }
 class MidiOutputMapImpl extends MidiOutputMap implements js_library.JSObjectInterfacesDom {
@@ -3625,7 +3625,7 @@ class MidiOutputMapImpl extends MidiOutputMap implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class PointerEvent {
-  factory PointerEvent._internalWrap() => new PointerEventImpl.internal_();
+  static Type get instanceRuntimeType => PointerEventImpl;
 
 }
 class PointerEventImpl extends PointerEvent implements js_library.JSObjectInterfacesDom {
@@ -3634,7 +3634,7 @@ class PointerEventImpl extends PointerEvent implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class ChildNode {
-  factory ChildNode._internalWrap() => new ChildNodeImpl.internal_();
+  static Type get instanceRuntimeType => ChildNodeImpl;
 
 }
 class ChildNodeImpl extends ChildNode implements js_library.JSObjectInterfacesDom {
@@ -3643,7 +3643,7 @@ class ChildNodeImpl extends ChildNode implements js_library.JSObjectInterfacesDo
   toString() => super.toString();
 }
 patch class Geolocation {
-  factory Geolocation._internalWrap() => new GeolocationImpl.internal_();
+  static Type get instanceRuntimeType => GeolocationImpl;
 
 }
 class GeolocationImpl extends Geolocation implements js_library.JSObjectInterfacesDom {
@@ -3652,7 +3652,7 @@ class GeolocationImpl extends Geolocation implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class _CssRuleList {
-  factory _CssRuleList._internalWrap() => new _CssRuleListImpl.internal_();
+  static Type get instanceRuntimeType => _CssRuleListImpl;
 
 }
 class _CssRuleListImpl extends _CssRuleList implements js_library.JSObjectInterfacesDom {
@@ -3661,7 +3661,7 @@ class _CssRuleListImpl extends _CssRuleList implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class MediaKeyEvent {
-  factory MediaKeyEvent._internalWrap() => new MediaKeyEventImpl.internal_();
+  static Type get instanceRuntimeType => MediaKeyEventImpl;
 
 }
 class MediaKeyEventImpl extends MediaKeyEvent implements js_library.JSObjectInterfacesDom {
@@ -3670,7 +3670,7 @@ class MediaKeyEventImpl extends MediaKeyEvent implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class CompositorWorker {
-  factory CompositorWorker._internalWrap() => new CompositorWorkerImpl.internal_();
+  static Type get instanceRuntimeType => CompositorWorkerImpl;
 
 }
 class CompositorWorkerImpl extends CompositorWorker implements js_library.JSObjectInterfacesDom {
@@ -3679,7 +3679,7 @@ class CompositorWorkerImpl extends CompositorWorker implements js_library.JSObje
   toString() => super.toString();
 }
 patch class ProgressElement {
-  factory ProgressElement._internalWrap() => new ProgressElementImpl.internal_();
+  static Type get instanceRuntimeType => ProgressElementImpl;
 
 }
 class ProgressElementImpl extends ProgressElement implements js_library.JSObjectInterfacesDom {
@@ -3688,7 +3688,7 @@ class ProgressElementImpl extends ProgressElement implements js_library.JSObject
   toString() => super.toString();
 }
 patch class SharedArrayBuffer {
-  factory SharedArrayBuffer._internalWrap() => new SharedArrayBufferImpl.internal_();
+  static Type get instanceRuntimeType => SharedArrayBufferImpl;
 
 }
 class SharedArrayBufferImpl extends SharedArrayBuffer implements js_library.JSObjectInterfacesDom {
@@ -3697,7 +3697,7 @@ class SharedArrayBufferImpl extends SharedArrayBuffer implements js_library.JSOb
   toString() => super.toString();
 }
 patch class CrossOriginConnectEvent {
-  factory CrossOriginConnectEvent._internalWrap() => new CrossOriginConnectEventImpl.internal_();
+  static Type get instanceRuntimeType => CrossOriginConnectEventImpl;
 
 }
 class CrossOriginConnectEventImpl extends CrossOriginConnectEvent implements js_library.JSObjectInterfacesDom {
@@ -3706,7 +3706,7 @@ class CrossOriginConnectEventImpl extends CrossOriginConnectEvent implements js_
   toString() => super.toString();
 }
 patch class BeforeUnloadEvent {
-  factory BeforeUnloadEvent._internalWrap() => new BeforeUnloadEventImpl.internal_();
+  static Type get instanceRuntimeType => BeforeUnloadEventImpl;
 
 }
 class BeforeUnloadEventImpl extends BeforeUnloadEvent implements js_library.JSObjectInterfacesDom {
@@ -3715,7 +3715,7 @@ class BeforeUnloadEventImpl extends BeforeUnloadEvent implements js_library.JSOb
   toString() => super.toString();
 }
 patch class DataTransferItem {
-  factory DataTransferItem._internalWrap() => new DataTransferItemImpl.internal_();
+  static Type get instanceRuntimeType => DataTransferItemImpl;
 
 }
 class DataTransferItemImpl extends DataTransferItem implements js_library.JSObjectInterfacesDom {
@@ -3724,7 +3724,7 @@ class DataTransferItemImpl extends DataTransferItem implements js_library.JSObje
   toString() => super.toString();
 }
 patch class _HTMLAllCollection {
-  factory _HTMLAllCollection._internalWrap() => new _HTMLAllCollectionImpl.internal_();
+  static Type get instanceRuntimeType => _HTMLAllCollectionImpl;
 
 }
 class _HTMLAllCollectionImpl extends _HTMLAllCollection implements js_library.JSObjectInterfacesDom {
@@ -3733,7 +3733,7 @@ class _HTMLAllCollectionImpl extends _HTMLAllCollection implements js_library.JS
   toString() => super.toString();
 }
 patch class ServicePortCollection {
-  factory ServicePortCollection._internalWrap() => new ServicePortCollectionImpl.internal_();
+  static Type get instanceRuntimeType => ServicePortCollectionImpl;
 
 }
 class ServicePortCollectionImpl extends ServicePortCollection implements js_library.JSObjectInterfacesDom {
@@ -3742,7 +3742,7 @@ class ServicePortCollectionImpl extends ServicePortCollection implements js_libr
   toString() => super.toString();
 }
 patch class KeygenElement {
-  factory KeygenElement._internalWrap() => new KeygenElementImpl.internal_();
+  static Type get instanceRuntimeType => KeygenElementImpl;
 
 }
 class KeygenElementImpl extends KeygenElement implements js_library.JSObjectInterfacesDom {
@@ -3751,7 +3751,7 @@ class KeygenElementImpl extends KeygenElement implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class CryptoKey {
-  factory CryptoKey._internalWrap() => new CryptoKeyImpl.internal_();
+  static Type get instanceRuntimeType => CryptoKeyImpl;
 
 }
 class CryptoKeyImpl extends CryptoKey implements js_library.JSObjectInterfacesDom {
@@ -3760,7 +3760,7 @@ class CryptoKeyImpl extends CryptoKey implements js_library.JSObjectInterfacesDo
   toString() => super.toString();
 }
 patch class CssKeyframesRule {
-  factory CssKeyframesRule._internalWrap() => new CssKeyframesRuleImpl.internal_();
+  static Type get instanceRuntimeType => CssKeyframesRuleImpl;
 
 }
 class CssKeyframesRuleImpl extends CssKeyframesRule implements js_library.JSObjectInterfacesDom {
@@ -3769,7 +3769,7 @@ class CssKeyframesRuleImpl extends CssKeyframesRule implements js_library.JSObje
   toString() => super.toString();
 }
 patch class _HTMLMarqueeElement {
-  factory _HTMLMarqueeElement._internalWrap() => new _HTMLMarqueeElementImpl.internal_();
+  static Type get instanceRuntimeType => _HTMLMarqueeElementImpl;
 
 }
 class _HTMLMarqueeElementImpl extends _HTMLMarqueeElement implements js_library.JSObjectInterfacesDom {
@@ -3778,7 +3778,7 @@ class _HTMLMarqueeElementImpl extends _HTMLMarqueeElement implements js_library.
   toString() => super.toString();
 }
 patch class TextEvent {
-  factory TextEvent._internalWrap() => new TextEventImpl.internal_();
+  static Type get instanceRuntimeType => TextEventImpl;
 
 }
 class TextEventImpl extends TextEvent implements js_library.JSObjectInterfacesDom {
@@ -3787,7 +3787,7 @@ class TextEventImpl extends TextEvent implements js_library.JSObjectInterfacesDo
   toString() => super.toString();
 }
 patch class _EntrySync {
-  factory _EntrySync._internalWrap() => new _EntrySyncImpl.internal_();
+  static Type get instanceRuntimeType => _EntrySyncImpl;
 
 }
 class _EntrySyncImpl extends _EntrySync implements js_library.JSObjectInterfacesDom {
@@ -3796,7 +3796,7 @@ class _EntrySyncImpl extends _EntrySync implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class GeofencingEvent {
-  factory GeofencingEvent._internalWrap() => new GeofencingEventImpl.internal_();
+  static Type get instanceRuntimeType => GeofencingEventImpl;
 
 }
 class GeofencingEventImpl extends GeofencingEvent implements js_library.JSObjectInterfacesDom {
@@ -3805,7 +3805,7 @@ class GeofencingEventImpl extends GeofencingEvent implements js_library.JSObject
   toString() => super.toString();
 }
 patch class MediaKeys {
-  factory MediaKeys._internalWrap() => new MediaKeysImpl.internal_();
+  static Type get instanceRuntimeType => MediaKeysImpl;
 
 }
 class MediaKeysImpl extends MediaKeys implements js_library.JSObjectInterfacesDom {
@@ -3814,7 +3814,7 @@ class MediaKeysImpl extends MediaKeys implements js_library.JSObjectInterfacesDo
   toString() => super.toString();
 }
 patch class DomPointReadOnly {
-  factory DomPointReadOnly._internalWrap() => new DomPointReadOnlyImpl.internal_();
+  static Type get instanceRuntimeType => DomPointReadOnlyImpl;
 
 }
 class DomPointReadOnlyImpl extends DomPointReadOnly implements js_library.JSObjectInterfacesDom {
@@ -3823,7 +3823,7 @@ class DomPointReadOnlyImpl extends DomPointReadOnly implements js_library.JSObje
   toString() => super.toString();
 }
 patch class WindowBase64 {
-  factory WindowBase64._internalWrap() => new WindowBase64Impl.internal_();
+  static Type get instanceRuntimeType => WindowBase64Impl;
 
 }
 class WindowBase64Impl extends WindowBase64 implements js_library.JSObjectInterfacesDom {
@@ -3832,7 +3832,7 @@ class WindowBase64Impl extends WindowBase64 implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class SpeechRecognitionError {
-  factory SpeechRecognitionError._internalWrap() => new SpeechRecognitionErrorImpl.internal_();
+  static Type get instanceRuntimeType => SpeechRecognitionErrorImpl;
 
 }
 class SpeechRecognitionErrorImpl extends SpeechRecognitionError implements js_library.JSObjectInterfacesDom {
@@ -3841,7 +3841,7 @@ class SpeechRecognitionErrorImpl extends SpeechRecognitionError implements js_li
   toString() => super.toString();
 }
 patch class MidiOutput {
-  factory MidiOutput._internalWrap() => new MidiOutputImpl.internal_();
+  static Type get instanceRuntimeType => MidiOutputImpl;
 
 }
 class MidiOutputImpl extends MidiOutput implements js_library.JSObjectInterfacesDom {
@@ -3850,7 +3850,7 @@ class MidiOutputImpl extends MidiOutput implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class EventSource {
-  factory EventSource._internalWrap() => new EventSourceImpl.internal_();
+  static Type get instanceRuntimeType => EventSourceImpl;
 
 }
 class EventSourceImpl extends EventSource implements js_library.JSObjectInterfacesDom {
@@ -3859,7 +3859,7 @@ class EventSourceImpl extends EventSource implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class DeviceOrientationEvent {
-  factory DeviceOrientationEvent._internalWrap() => new DeviceOrientationEventImpl.internal_();
+  static Type get instanceRuntimeType => DeviceOrientationEventImpl;
 
 }
 class DeviceOrientationEventImpl extends DeviceOrientationEvent implements js_library.JSObjectInterfacesDom {
@@ -3868,7 +3868,7 @@ class DeviceOrientationEventImpl extends DeviceOrientationEvent implements js_li
   toString() => super.toString();
 }
 patch class DirectoryEntry {
-  factory DirectoryEntry._internalWrap() => new DirectoryEntryImpl.internal_();
+  static Type get instanceRuntimeType => DirectoryEntryImpl;
 
 }
 class DirectoryEntryImpl extends DirectoryEntry implements js_library.JSObjectInterfacesDom {
@@ -3877,7 +3877,7 @@ class DirectoryEntryImpl extends DirectoryEntry implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class ShadowElement {
-  factory ShadowElement._internalWrap() => new ShadowElementImpl.internal_();
+  static Type get instanceRuntimeType => ShadowElementImpl;
 
 }
 class ShadowElementImpl extends ShadowElement implements js_library.JSObjectInterfacesDom {
@@ -3886,7 +3886,7 @@ class ShadowElementImpl extends ShadowElement implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class AppBannerPromptResult {
-  factory AppBannerPromptResult._internalWrap() => new AppBannerPromptResultImpl.internal_();
+  static Type get instanceRuntimeType => AppBannerPromptResultImpl;
 
 }
 class AppBannerPromptResultImpl extends AppBannerPromptResult implements js_library.JSObjectInterfacesDom {
@@ -3895,7 +3895,7 @@ class AppBannerPromptResultImpl extends AppBannerPromptResult implements js_libr
   toString() => super.toString();
 }
 patch class Blob {
-  factory Blob._internalWrap() => new BlobImpl.internal_();
+  static Type get instanceRuntimeType => BlobImpl;
 
 }
 class BlobImpl extends Blob implements js_library.JSObjectInterfacesDom {
@@ -3904,7 +3904,7 @@ class BlobImpl extends Blob implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class VttCue {
-  factory VttCue._internalWrap() => new VttCueImpl.internal_();
+  static Type get instanceRuntimeType => VttCueImpl;
 
 }
 class VttCueImpl extends VttCue implements js_library.JSObjectInterfacesDom {
@@ -3913,7 +3913,7 @@ class VttCueImpl extends VttCue implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class PopStateEvent {
-  factory PopStateEvent._internalWrap() => new PopStateEventImpl.internal_();
+  static Type get instanceRuntimeType => PopStateEventImpl;
 
 }
 class PopStateEventImpl extends PopStateEvent implements js_library.JSObjectInterfacesDom {
@@ -3922,7 +3922,7 @@ class PopStateEventImpl extends PopStateEvent implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class PushSubscription {
-  factory PushSubscription._internalWrap() => new PushSubscriptionImpl.internal_();
+  static Type get instanceRuntimeType => PushSubscriptionImpl;
 
 }
 class PushSubscriptionImpl extends PushSubscription implements js_library.JSObjectInterfacesDom {
@@ -3931,7 +3931,7 @@ class PushSubscriptionImpl extends PushSubscription implements js_library.JSObje
   toString() => super.toString();
 }
 patch class UrlUtilsReadOnly {
-  factory UrlUtilsReadOnly._internalWrap() => new UrlUtilsReadOnlyImpl.internal_();
+  static Type get instanceRuntimeType => UrlUtilsReadOnlyImpl;
 
 }
 class UrlUtilsReadOnlyImpl extends UrlUtilsReadOnly implements js_library.JSObjectInterfacesDom {
@@ -3940,7 +3940,7 @@ class UrlUtilsReadOnlyImpl extends UrlUtilsReadOnly implements js_library.JSObje
   toString() => super.toString();
 }
 patch class MediaError {
-  factory MediaError._internalWrap() => new MediaErrorImpl.internal_();
+  static Type get instanceRuntimeType => MediaErrorImpl;
 
 }
 class MediaErrorImpl extends MediaError implements js_library.JSObjectInterfacesDom {
@@ -3949,7 +3949,7 @@ class MediaErrorImpl extends MediaError implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class SourceBufferList {
-  factory SourceBufferList._internalWrap() => new SourceBufferListImpl.internal_();
+  static Type get instanceRuntimeType => SourceBufferListImpl;
 
 }
 class SourceBufferListImpl extends SourceBufferList implements js_library.JSObjectInterfacesDom {
@@ -3958,7 +3958,7 @@ class SourceBufferListImpl extends SourceBufferList implements js_library.JSObje
   toString() => super.toString();
 }
 patch class AnimationEffectReadOnly {
-  factory AnimationEffectReadOnly._internalWrap() => new AnimationEffectReadOnlyImpl.internal_();
+  static Type get instanceRuntimeType => AnimationEffectReadOnlyImpl;
 
 }
 class AnimationEffectReadOnlyImpl extends AnimationEffectReadOnly implements js_library.JSObjectInterfacesDom {
@@ -3967,7 +3967,7 @@ class AnimationEffectReadOnlyImpl extends AnimationEffectReadOnly implements js_
   toString() => super.toString();
 }
 patch class PerformanceResourceTiming {
-  factory PerformanceResourceTiming._internalWrap() => new PerformanceResourceTimingImpl.internal_();
+  static Type get instanceRuntimeType => PerformanceResourceTimingImpl;
 
 }
 class PerformanceResourceTimingImpl extends PerformanceResourceTiming implements js_library.JSObjectInterfacesDom {
@@ -3976,7 +3976,7 @@ class PerformanceResourceTimingImpl extends PerformanceResourceTiming implements
   toString() => super.toString();
 }
 patch class GeofencingRegion {
-  factory GeofencingRegion._internalWrap() => new GeofencingRegionImpl.internal_();
+  static Type get instanceRuntimeType => GeofencingRegionImpl;
 
 }
 class GeofencingRegionImpl extends GeofencingRegion implements js_library.JSObjectInterfacesDom {
@@ -3985,7 +3985,7 @@ class GeofencingRegionImpl extends GeofencingRegion implements js_library.JSObje
   toString() => super.toString();
 }
 patch class CharacterData {
-  factory CharacterData._internalWrap() => new CharacterDataImpl.internal_();
+  static Type get instanceRuntimeType => CharacterDataImpl;
 
 }
 class CharacterDataImpl extends CharacterData implements js_library.JSObjectInterfacesDom {
@@ -3994,7 +3994,7 @@ class CharacterDataImpl extends CharacterData implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class Css {
-  factory Css._internalWrap() => new CssImpl.internal_();
+  static Type get instanceRuntimeType => CssImpl;
 
 }
 class CssImpl extends Css implements js_library.JSObjectInterfacesDom {
@@ -4003,7 +4003,7 @@ class CssImpl extends Css implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class MidiInput {
-  factory MidiInput._internalWrap() => new MidiInputImpl.internal_();
+  static Type get instanceRuntimeType => MidiInputImpl;
 
 }
 class MidiInputImpl extends MidiInput implements js_library.JSObjectInterfacesDom {
@@ -4012,7 +4012,7 @@ class MidiInputImpl extends MidiInput implements js_library.JSObjectInterfacesDo
   toString() => super.toString();
 }
 patch class ServicePortConnectEvent {
-  factory ServicePortConnectEvent._internalWrap() => new ServicePortConnectEventImpl.internal_();
+  static Type get instanceRuntimeType => ServicePortConnectEventImpl;
 
 }
 class ServicePortConnectEventImpl extends ServicePortConnectEvent implements js_library.JSObjectInterfacesDom {
@@ -4021,7 +4021,7 @@ class ServicePortConnectEventImpl extends ServicePortConnectEvent implements js_
   toString() => super.toString();
 }
 patch class ExtendableEvent {
-  factory ExtendableEvent._internalWrap() => new ExtendableEventImpl.internal_();
+  static Type get instanceRuntimeType => ExtendableEventImpl;
 
 }
 class ExtendableEventImpl extends ExtendableEvent implements js_library.JSObjectInterfacesDom {
@@ -4030,7 +4030,7 @@ class ExtendableEventImpl extends ExtendableEvent implements js_library.JSObject
   toString() => super.toString();
 }
 patch class MediaStreamEvent {
-  factory MediaStreamEvent._internalWrap() => new MediaStreamEventImpl.internal_();
+  static Type get instanceRuntimeType => MediaStreamEventImpl;
 
 }
 class MediaStreamEventImpl extends MediaStreamEvent implements js_library.JSObjectInterfacesDom {
@@ -4039,7 +4039,7 @@ class MediaStreamEventImpl extends MediaStreamEvent implements js_library.JSObje
   toString() => super.toString();
 }
 patch class XPathNSResolver {
-  factory XPathNSResolver._internalWrap() => new XPathNSResolverImpl.internal_();
+  static Type get instanceRuntimeType => XPathNSResolverImpl;
 
 }
 class XPathNSResolverImpl extends XPathNSResolver implements js_library.JSObjectInterfacesDom {
@@ -4048,7 +4048,7 @@ class XPathNSResolverImpl extends XPathNSResolver implements js_library.JSObject
   toString() => super.toString();
 }
 patch class _FileWriterSync {
-  factory _FileWriterSync._internalWrap() => new _FileWriterSyncImpl.internal_();
+  static Type get instanceRuntimeType => _FileWriterSyncImpl;
 
 }
 class _FileWriterSyncImpl extends _FileWriterSync implements js_library.JSObjectInterfacesDom {
@@ -4066,7 +4066,7 @@ class _FileWriterSyncImpl extends _FileWriterSync implements js_library.JSObject
 const _UNDEFINED_JS_CONST = const Object();
 
 patch class IdbFactory {
-  factory IdbFactory._internalWrap() => new IdbFactoryImpl.internal_();
+  static Type get instanceRuntimeType => IdbFactoryImpl;
 
 }
 class IdbFactoryImpl extends IdbFactory implements js_library.JSObjectInterfacesDom {
@@ -4075,7 +4075,7 @@ class IdbFactoryImpl extends IdbFactory implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class Cursor {
-  factory Cursor._internalWrap() => new CursorImpl.internal_();
+  static Type get instanceRuntimeType => CursorImpl;
 
 }
 class CursorImpl extends Cursor implements js_library.JSObjectInterfacesDom {
@@ -4084,7 +4084,7 @@ class CursorImpl extends Cursor implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class Transaction {
-  factory Transaction._internalWrap() => new TransactionImpl.internal_();
+  static Type get instanceRuntimeType => TransactionImpl;
 
 }
 class TransactionImpl extends Transaction implements js_library.JSObjectInterfacesDom {
@@ -4093,7 +4093,7 @@ class TransactionImpl extends Transaction implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class KeyRange {
-  factory KeyRange._internalWrap() => new KeyRangeImpl.internal_();
+  static Type get instanceRuntimeType => KeyRangeImpl;
 
 }
 class KeyRangeImpl extends KeyRange implements js_library.JSObjectInterfacesDom {
@@ -4102,7 +4102,7 @@ class KeyRangeImpl extends KeyRange implements js_library.JSObjectInterfacesDom 
   toString() => super.toString();
 }
 patch class Request {
-  factory Request._internalWrap() => new RequestImpl.internal_();
+  static Type get instanceRuntimeType => RequestImpl;
 
 }
 class RequestImpl extends Request implements js_library.JSObjectInterfacesDom {
@@ -4111,7 +4111,7 @@ class RequestImpl extends Request implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class OpenDBRequest {
-  factory OpenDBRequest._internalWrap() => new OpenDBRequestImpl.internal_();
+  static Type get instanceRuntimeType => OpenDBRequestImpl;
 
 }
 class OpenDBRequestImpl extends OpenDBRequest implements js_library.JSObjectInterfacesDom {
@@ -4120,7 +4120,7 @@ class OpenDBRequestImpl extends OpenDBRequest implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class Database {
-  factory Database._internalWrap() => new DatabaseImpl.internal_();
+  static Type get instanceRuntimeType => DatabaseImpl;
 
 }
 class DatabaseImpl extends Database implements js_library.JSObjectInterfacesDom {
@@ -4129,7 +4129,7 @@ class DatabaseImpl extends Database implements js_library.JSObjectInterfacesDom 
   toString() => super.toString();
 }
 patch class Index {
-  factory Index._internalWrap() => new IndexImpl.internal_();
+  static Type get instanceRuntimeType => IndexImpl;
 
 }
 class IndexImpl extends Index implements js_library.JSObjectInterfacesDom {
@@ -4138,7 +4138,7 @@ class IndexImpl extends Index implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class ObjectStore {
-  factory ObjectStore._internalWrap() => new ObjectStoreImpl.internal_();
+  static Type get instanceRuntimeType => ObjectStoreImpl;
 
 }
 class ObjectStoreImpl extends ObjectStore implements js_library.JSObjectInterfacesDom {
@@ -4147,7 +4147,7 @@ class ObjectStoreImpl extends ObjectStore implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class VersionChangeEvent {
-  factory VersionChangeEvent._internalWrap() => new VersionChangeEventImpl.internal_();
+  static Type get instanceRuntimeType => VersionChangeEventImpl;
 
 }
 class VersionChangeEventImpl extends VersionChangeEvent implements js_library.JSObjectInterfacesDom {
@@ -4156,7 +4156,7 @@ class VersionChangeEventImpl extends VersionChangeEvent implements js_library.JS
   toString() => super.toString();
 }
 patch class CursorWithValue {
-  factory CursorWithValue._internalWrap() => new CursorWithValueImpl.internal_();
+  static Type get instanceRuntimeType => CursorWithValueImpl;
 
 }
 class CursorWithValueImpl extends CursorWithValue implements js_library.JSObjectInterfacesDom {
@@ -4174,7 +4174,7 @@ class CursorWithValueImpl extends CursorWithValue implements js_library.JSObject
 const _UNDEFINED_JS_CONST = const Object();
 
 patch class Buffer {
-  factory Buffer._internalWrap() => new BufferImpl.internal_();
+  static Type get instanceRuntimeType => BufferImpl;
 
 }
 class BufferImpl extends Buffer implements js_library.JSObjectInterfacesDom {
@@ -4183,7 +4183,7 @@ class BufferImpl extends Buffer implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class Texture {
-  factory Texture._internalWrap() => new TextureImpl.internal_();
+  static Type get instanceRuntimeType => TextureImpl;
 
 }
 class TextureImpl extends Texture implements js_library.JSObjectInterfacesDom {
@@ -4192,7 +4192,7 @@ class TextureImpl extends Texture implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class VertexArrayObjectOes {
-  factory VertexArrayObjectOes._internalWrap() => new VertexArrayObjectOesImpl.internal_();
+  static Type get instanceRuntimeType => VertexArrayObjectOesImpl;
 
 }
 class VertexArrayObjectOesImpl extends VertexArrayObjectOes implements js_library.JSObjectInterfacesDom {
@@ -4201,7 +4201,7 @@ class VertexArrayObjectOesImpl extends VertexArrayObjectOes implements js_librar
   toString() => super.toString();
 }
 patch class DepthTexture {
-  factory DepthTexture._internalWrap() => new DepthTextureImpl.internal_();
+  static Type get instanceRuntimeType => DepthTextureImpl;
 
 }
 class DepthTextureImpl extends DepthTexture implements js_library.JSObjectInterfacesDom {
@@ -4210,7 +4210,7 @@ class DepthTextureImpl extends DepthTexture implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class OesTextureHalfFloatLinear {
-  factory OesTextureHalfFloatLinear._internalWrap() => new OesTextureHalfFloatLinearImpl.internal_();
+  static Type get instanceRuntimeType => OesTextureHalfFloatLinearImpl;
 
 }
 class OesTextureHalfFloatLinearImpl extends OesTextureHalfFloatLinear implements js_library.JSObjectInterfacesDom {
@@ -4219,7 +4219,7 @@ class OesTextureHalfFloatLinearImpl extends OesTextureHalfFloatLinear implements
   toString() => super.toString();
 }
 patch class Sampler {
-  factory Sampler._internalWrap() => new SamplerImpl.internal_();
+  static Type get instanceRuntimeType => SamplerImpl;
 
 }
 class SamplerImpl extends Sampler implements js_library.JSObjectInterfacesDom {
@@ -4228,7 +4228,7 @@ class SamplerImpl extends Sampler implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class Sync {
-  factory Sync._internalWrap() => new SyncImpl.internal_();
+  static Type get instanceRuntimeType => SyncImpl;
 
 }
 class SyncImpl extends Sync implements js_library.JSObjectInterfacesDom {
@@ -4237,7 +4237,7 @@ class SyncImpl extends Sync implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class OesVertexArrayObject {
-  factory OesVertexArrayObject._internalWrap() => new OesVertexArrayObjectImpl.internal_();
+  static Type get instanceRuntimeType => OesVertexArrayObjectImpl;
 
 }
 class OesVertexArrayObjectImpl extends OesVertexArrayObject implements js_library.JSObjectInterfacesDom {
@@ -4246,7 +4246,7 @@ class OesVertexArrayObjectImpl extends OesVertexArrayObject implements js_librar
   toString() => super.toString();
 }
 patch class CompressedTextureS3TC {
-  factory CompressedTextureS3TC._internalWrap() => new CompressedTextureS3TCImpl.internal_();
+  static Type get instanceRuntimeType => CompressedTextureS3TCImpl;
 
 }
 class CompressedTextureS3TCImpl extends CompressedTextureS3TC implements js_library.JSObjectInterfacesDom {
@@ -4255,7 +4255,7 @@ class CompressedTextureS3TCImpl extends CompressedTextureS3TC implements js_libr
   toString() => super.toString();
 }
 patch class ExtFragDepth {
-  factory ExtFragDepth._internalWrap() => new ExtFragDepthImpl.internal_();
+  static Type get instanceRuntimeType => ExtFragDepthImpl;
 
 }
 class ExtFragDepthImpl extends ExtFragDepth implements js_library.JSObjectInterfacesDom {
@@ -4264,7 +4264,7 @@ class ExtFragDepthImpl extends ExtFragDepth implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class Shader {
-  factory Shader._internalWrap() => new ShaderImpl.internal_();
+  static Type get instanceRuntimeType => ShaderImpl;
 
 }
 class ShaderImpl extends Shader implements js_library.JSObjectInterfacesDom {
@@ -4273,7 +4273,7 @@ class ShaderImpl extends Shader implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class _WebGL2RenderingContextBase {
-  factory _WebGL2RenderingContextBase._internalWrap() => new _WebGL2RenderingContextBaseImpl.internal_();
+  static Type get instanceRuntimeType => _WebGL2RenderingContextBaseImpl;
 
 }
 class _WebGL2RenderingContextBaseImpl extends _WebGL2RenderingContextBase implements js_library.JSObjectInterfacesDom {
@@ -4282,7 +4282,7 @@ class _WebGL2RenderingContextBaseImpl extends _WebGL2RenderingContextBase implem
   toString() => super.toString();
 }
 patch class Query {
-  factory Query._internalWrap() => new QueryImpl.internal_();
+  static Type get instanceRuntimeType => QueryImpl;
 
 }
 class QueryImpl extends Query implements js_library.JSObjectInterfacesDom {
@@ -4291,7 +4291,7 @@ class QueryImpl extends Query implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class RenderingContext {
-  factory RenderingContext._internalWrap() => new RenderingContextImpl.internal_();
+  static Type get instanceRuntimeType => RenderingContextImpl;
 
 }
 class RenderingContextImpl extends RenderingContext implements js_library.JSObjectInterfacesDom {
@@ -4300,7 +4300,7 @@ class RenderingContextImpl extends RenderingContext implements js_library.JSObje
   toString() => super.toString();
 }
 patch class ShaderPrecisionFormat {
-  factory ShaderPrecisionFormat._internalWrap() => new ShaderPrecisionFormatImpl.internal_();
+  static Type get instanceRuntimeType => ShaderPrecisionFormatImpl;
 
 }
 class ShaderPrecisionFormatImpl extends ShaderPrecisionFormat implements js_library.JSObjectInterfacesDom {
@@ -4309,7 +4309,7 @@ class ShaderPrecisionFormatImpl extends ShaderPrecisionFormat implements js_libr
   toString() => super.toString();
 }
 patch class OesTextureHalfFloat {
-  factory OesTextureHalfFloat._internalWrap() => new OesTextureHalfFloatImpl.internal_();
+  static Type get instanceRuntimeType => OesTextureHalfFloatImpl;
 
 }
 class OesTextureHalfFloatImpl extends OesTextureHalfFloat implements js_library.JSObjectInterfacesDom {
@@ -4318,7 +4318,7 @@ class OesTextureHalfFloatImpl extends OesTextureHalfFloat implements js_library.
   toString() => super.toString();
 }
 patch class ExtTextureFilterAnisotropic {
-  factory ExtTextureFilterAnisotropic._internalWrap() => new ExtTextureFilterAnisotropicImpl.internal_();
+  static Type get instanceRuntimeType => ExtTextureFilterAnisotropicImpl;
 
 }
 class ExtTextureFilterAnisotropicImpl extends ExtTextureFilterAnisotropic implements js_library.JSObjectInterfacesDom {
@@ -4327,7 +4327,7 @@ class ExtTextureFilterAnisotropicImpl extends ExtTextureFilterAnisotropic implem
   toString() => super.toString();
 }
 patch class OesTextureFloat {
-  factory OesTextureFloat._internalWrap() => new OesTextureFloatImpl.internal_();
+  static Type get instanceRuntimeType => OesTextureFloatImpl;
 
 }
 class OesTextureFloatImpl extends OesTextureFloat implements js_library.JSObjectInterfacesDom {
@@ -4336,7 +4336,7 @@ class OesTextureFloatImpl extends OesTextureFloat implements js_library.JSObject
   toString() => super.toString();
 }
 patch class VertexArrayObject {
-  factory VertexArrayObject._internalWrap() => new VertexArrayObjectImpl.internal_();
+  static Type get instanceRuntimeType => VertexArrayObjectImpl;
 
 }
 class VertexArrayObjectImpl extends VertexArrayObject implements js_library.JSObjectInterfacesDom {
@@ -4345,7 +4345,7 @@ class VertexArrayObjectImpl extends VertexArrayObject implements js_library.JSOb
   toString() => super.toString();
 }
 patch class CompressedTexturePvrtc {
-  factory CompressedTexturePvrtc._internalWrap() => new CompressedTexturePvrtcImpl.internal_();
+  static Type get instanceRuntimeType => CompressedTexturePvrtcImpl;
 
 }
 class CompressedTexturePvrtcImpl extends CompressedTexturePvrtc implements js_library.JSObjectInterfacesDom {
@@ -4354,7 +4354,7 @@ class CompressedTexturePvrtcImpl extends CompressedTexturePvrtc implements js_li
   toString() => super.toString();
 }
 patch class ChromiumSubscribeUniform {
-  factory ChromiumSubscribeUniform._internalWrap() => new ChromiumSubscribeUniformImpl.internal_();
+  static Type get instanceRuntimeType => ChromiumSubscribeUniformImpl;
 
 }
 class ChromiumSubscribeUniformImpl extends ChromiumSubscribeUniform implements js_library.JSObjectInterfacesDom {
@@ -4363,7 +4363,7 @@ class ChromiumSubscribeUniformImpl extends ChromiumSubscribeUniform implements j
   toString() => super.toString();
 }
 patch class _WebGLRenderingContextBase {
-  factory _WebGLRenderingContextBase._internalWrap() => new _WebGLRenderingContextBaseImpl.internal_();
+  static Type get instanceRuntimeType => _WebGLRenderingContextBaseImpl;
 
 }
 class _WebGLRenderingContextBaseImpl extends _WebGLRenderingContextBase implements js_library.JSObjectInterfacesDom {
@@ -4372,7 +4372,7 @@ class _WebGLRenderingContextBaseImpl extends _WebGLRenderingContextBase implemen
   toString() => super.toString();
 }
 patch class ActiveInfo {
-  factory ActiveInfo._internalWrap() => new ActiveInfoImpl.internal_();
+  static Type get instanceRuntimeType => ActiveInfoImpl;
 
 }
 class ActiveInfoImpl extends ActiveInfo implements js_library.JSObjectInterfacesDom {
@@ -4381,7 +4381,7 @@ class ActiveInfoImpl extends ActiveInfo implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class TransformFeedback {
-  factory TransformFeedback._internalWrap() => new TransformFeedbackImpl.internal_();
+  static Type get instanceRuntimeType => TransformFeedbackImpl;
 
 }
 class TransformFeedbackImpl extends TransformFeedback implements js_library.JSObjectInterfacesDom {
@@ -4390,7 +4390,7 @@ class TransformFeedbackImpl extends TransformFeedback implements js_library.JSOb
   toString() => super.toString();
 }
 patch class ExtShaderTextureLod {
-  factory ExtShaderTextureLod._internalWrap() => new ExtShaderTextureLodImpl.internal_();
+  static Type get instanceRuntimeType => ExtShaderTextureLodImpl;
 
 }
 class ExtShaderTextureLodImpl extends ExtShaderTextureLod implements js_library.JSObjectInterfacesDom {
@@ -4399,7 +4399,7 @@ class ExtShaderTextureLodImpl extends ExtShaderTextureLod implements js_library.
   toString() => super.toString();
 }
 patch class UniformLocation {
-  factory UniformLocation._internalWrap() => new UniformLocationImpl.internal_();
+  static Type get instanceRuntimeType => UniformLocationImpl;
 
 }
 class UniformLocationImpl extends UniformLocation implements js_library.JSObjectInterfacesDom {
@@ -4408,7 +4408,7 @@ class UniformLocationImpl extends UniformLocation implements js_library.JSObject
   toString() => super.toString();
 }
 patch class ExtBlendMinMax {
-  factory ExtBlendMinMax._internalWrap() => new ExtBlendMinMaxImpl.internal_();
+  static Type get instanceRuntimeType => ExtBlendMinMaxImpl;
 
 }
 class ExtBlendMinMaxImpl extends ExtBlendMinMax implements js_library.JSObjectInterfacesDom {
@@ -4417,7 +4417,7 @@ class ExtBlendMinMaxImpl extends ExtBlendMinMax implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class Framebuffer {
-  factory Framebuffer._internalWrap() => new FramebufferImpl.internal_();
+  static Type get instanceRuntimeType => FramebufferImpl;
 
 }
 class FramebufferImpl extends Framebuffer implements js_library.JSObjectInterfacesDom {
@@ -4426,7 +4426,7 @@ class FramebufferImpl extends Framebuffer implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class OesStandardDerivatives {
-  factory OesStandardDerivatives._internalWrap() => new OesStandardDerivativesImpl.internal_();
+  static Type get instanceRuntimeType => OesStandardDerivativesImpl;
 
 }
 class OesStandardDerivativesImpl extends OesStandardDerivatives implements js_library.JSObjectInterfacesDom {
@@ -4435,7 +4435,7 @@ class OesStandardDerivativesImpl extends OesStandardDerivatives implements js_li
   toString() => super.toString();
 }
 patch class DrawBuffers {
-  factory DrawBuffers._internalWrap() => new DrawBuffersImpl.internal_();
+  static Type get instanceRuntimeType => DrawBuffersImpl;
 
 }
 class DrawBuffersImpl extends DrawBuffers implements js_library.JSObjectInterfacesDom {
@@ -4444,7 +4444,7 @@ class DrawBuffersImpl extends DrawBuffers implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class OesTextureFloatLinear {
-  factory OesTextureFloatLinear._internalWrap() => new OesTextureFloatLinearImpl.internal_();
+  static Type get instanceRuntimeType => OesTextureFloatLinearImpl;
 
 }
 class OesTextureFloatLinearImpl extends OesTextureFloatLinear implements js_library.JSObjectInterfacesDom {
@@ -4453,7 +4453,7 @@ class OesTextureFloatLinearImpl extends OesTextureFloatLinear implements js_libr
   toString() => super.toString();
 }
 patch class DebugShaders {
-  factory DebugShaders._internalWrap() => new DebugShadersImpl.internal_();
+  static Type get instanceRuntimeType => DebugShadersImpl;
 
 }
 class DebugShadersImpl extends DebugShaders implements js_library.JSObjectInterfacesDom {
@@ -4462,7 +4462,7 @@ class DebugShadersImpl extends DebugShaders implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class Program {
-  factory Program._internalWrap() => new ProgramImpl.internal_();
+  static Type get instanceRuntimeType => ProgramImpl;
 
 }
 class ProgramImpl extends Program implements js_library.JSObjectInterfacesDom {
@@ -4471,7 +4471,7 @@ class ProgramImpl extends Program implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class ContextEvent {
-  factory ContextEvent._internalWrap() => new ContextEventImpl.internal_();
+  static Type get instanceRuntimeType => ContextEventImpl;
 
 }
 class ContextEventImpl extends ContextEvent implements js_library.JSObjectInterfacesDom {
@@ -4480,7 +4480,7 @@ class ContextEventImpl extends ContextEvent implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class AngleInstancedArrays {
-  factory AngleInstancedArrays._internalWrap() => new AngleInstancedArraysImpl.internal_();
+  static Type get instanceRuntimeType => AngleInstancedArraysImpl;
 
 }
 class AngleInstancedArraysImpl extends AngleInstancedArrays implements js_library.JSObjectInterfacesDom {
@@ -4489,7 +4489,7 @@ class AngleInstancedArraysImpl extends AngleInstancedArrays implements js_librar
   toString() => super.toString();
 }
 patch class DebugRendererInfo {
-  factory DebugRendererInfo._internalWrap() => new DebugRendererInfoImpl.internal_();
+  static Type get instanceRuntimeType => DebugRendererInfoImpl;
 
 }
 class DebugRendererInfoImpl extends DebugRendererInfo implements js_library.JSObjectInterfacesDom {
@@ -4498,7 +4498,7 @@ class DebugRendererInfoImpl extends DebugRendererInfo implements js_library.JSOb
   toString() => super.toString();
 }
 patch class CompressedTextureAtc {
-  factory CompressedTextureAtc._internalWrap() => new CompressedTextureAtcImpl.internal_();
+  static Type get instanceRuntimeType => CompressedTextureAtcImpl;
 
 }
 class CompressedTextureAtcImpl extends CompressedTextureAtc implements js_library.JSObjectInterfacesDom {
@@ -4507,7 +4507,7 @@ class CompressedTextureAtcImpl extends CompressedTextureAtc implements js_librar
   toString() => super.toString();
 }
 patch class OesElementIndexUint {
-  factory OesElementIndexUint._internalWrap() => new OesElementIndexUintImpl.internal_();
+  static Type get instanceRuntimeType => OesElementIndexUintImpl;
 
 }
 class OesElementIndexUintImpl extends OesElementIndexUint implements js_library.JSObjectInterfacesDom {
@@ -4516,7 +4516,7 @@ class OesElementIndexUintImpl extends OesElementIndexUint implements js_library.
   toString() => super.toString();
 }
 patch class CompressedTextureETC1 {
-  factory CompressedTextureETC1._internalWrap() => new CompressedTextureETC1Impl.internal_();
+  static Type get instanceRuntimeType => CompressedTextureETC1Impl;
 
 }
 class CompressedTextureETC1Impl extends CompressedTextureETC1 implements js_library.JSObjectInterfacesDom {
@@ -4525,7 +4525,7 @@ class CompressedTextureETC1Impl extends CompressedTextureETC1 implements js_libr
   toString() => super.toString();
 }
 patch class LoseContext {
-  factory LoseContext._internalWrap() => new LoseContextImpl.internal_();
+  static Type get instanceRuntimeType => LoseContextImpl;
 
 }
 class LoseContextImpl extends LoseContext implements js_library.JSObjectInterfacesDom {
@@ -4534,7 +4534,7 @@ class LoseContextImpl extends LoseContext implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class Renderbuffer {
-  factory Renderbuffer._internalWrap() => new RenderbufferImpl.internal_();
+  static Type get instanceRuntimeType => RenderbufferImpl;
 
 }
 class RenderbufferImpl extends Renderbuffer implements js_library.JSObjectInterfacesDom {
@@ -4543,7 +4543,7 @@ class RenderbufferImpl extends Renderbuffer implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class RenderingContext2 {
-  factory RenderingContext2._internalWrap() => new RenderingContext2Impl.internal_();
+  static Type get instanceRuntimeType => RenderingContext2Impl;
 
 }
 class RenderingContext2Impl extends RenderingContext2 implements js_library.JSObjectInterfacesDom {
@@ -4552,7 +4552,7 @@ class RenderingContext2Impl extends RenderingContext2 implements js_library.JSOb
   toString() => super.toString();
 }
 patch class EXTsRgb {
-  factory EXTsRgb._internalWrap() => new EXTsRgbImpl.internal_();
+  static Type get instanceRuntimeType => EXTsRgbImpl;
 
 }
 class EXTsRgbImpl extends EXTsRgb implements js_library.JSObjectInterfacesDom {
@@ -4570,7 +4570,7 @@ class EXTsRgbImpl extends EXTsRgb implements js_library.JSObjectInterfacesDom {
 const _UNDEFINED_JS_CONST = const Object();
 
 patch class SqlError {
-  factory SqlError._internalWrap() => new SqlErrorImpl.internal_();
+  static Type get instanceRuntimeType => SqlErrorImpl;
 
 }
 class SqlErrorImpl extends SqlError implements js_library.JSObjectInterfacesDom {
@@ -4579,7 +4579,7 @@ class SqlErrorImpl extends SqlError implements js_library.JSObjectInterfacesDom 
   toString() => super.toString();
 }
 patch class SqlResultSet {
-  factory SqlResultSet._internalWrap() => new SqlResultSetImpl.internal_();
+  static Type get instanceRuntimeType => SqlResultSetImpl;
 
 }
 class SqlResultSetImpl extends SqlResultSet implements js_library.JSObjectInterfacesDom {
@@ -4588,7 +4588,7 @@ class SqlResultSetImpl extends SqlResultSet implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class SqlResultSetRowList {
-  factory SqlResultSetRowList._internalWrap() => new SqlResultSetRowListImpl.internal_();
+  static Type get instanceRuntimeType => SqlResultSetRowListImpl;
 
 }
 class SqlResultSetRowListImpl extends SqlResultSetRowList implements js_library.JSObjectInterfacesDom {
@@ -4597,7 +4597,7 @@ class SqlResultSetRowListImpl extends SqlResultSetRowList implements js_library.
   toString() => super.toString();
 }
 patch class SqlDatabase {
-  factory SqlDatabase._internalWrap() => new SqlDatabaseImpl.internal_();
+  static Type get instanceRuntimeType => SqlDatabaseImpl;
 
 }
 class SqlDatabaseImpl extends SqlDatabase implements js_library.JSObjectInterfacesDom {
@@ -4606,7 +4606,7 @@ class SqlDatabaseImpl extends SqlDatabase implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class SqlTransaction {
-  factory SqlTransaction._internalWrap() => new SqlTransactionImpl.internal_();
+  static Type get instanceRuntimeType => SqlTransactionImpl;
 
 }
 class SqlTransactionImpl extends SqlTransaction implements js_library.JSObjectInterfacesDom {
@@ -4624,7 +4624,7 @@ class SqlTransactionImpl extends SqlTransaction implements js_library.JSObjectIn
 const _UNDEFINED_JS_CONST = const Object();
 
 patch class AnimatedString {
-  factory AnimatedString._internalWrap() => new AnimatedStringImpl.internal_();
+  static Type get instanceRuntimeType => AnimatedStringImpl;
 
 }
 class AnimatedStringImpl extends AnimatedString implements js_library.JSObjectInterfacesDom {
@@ -4633,7 +4633,7 @@ class AnimatedStringImpl extends AnimatedString implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class FilterElement {
-  factory FilterElement._internalWrap() => new FilterElementImpl.internal_();
+  static Type get instanceRuntimeType => FilterElementImpl;
 
 }
 class FilterElementImpl extends FilterElement implements js_library.JSObjectInterfacesDom {
@@ -4642,7 +4642,7 @@ class FilterElementImpl extends FilterElement implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class FilterPrimitiveStandardAttributes {
-  factory FilterPrimitiveStandardAttributes._internalWrap() => new FilterPrimitiveStandardAttributesImpl.internal_();
+  static Type get instanceRuntimeType => FilterPrimitiveStandardAttributesImpl;
 
 }
 class FilterPrimitiveStandardAttributesImpl extends FilterPrimitiveStandardAttributes implements js_library.JSObjectInterfacesDom {
@@ -4651,7 +4651,7 @@ class FilterPrimitiveStandardAttributesImpl extends FilterPrimitiveStandardAttri
   toString() => super.toString();
 }
 patch class PathSegLinetoRel {
-  factory PathSegLinetoRel._internalWrap() => new PathSegLinetoRelImpl.internal_();
+  static Type get instanceRuntimeType => PathSegLinetoRelImpl;
 
 }
 class PathSegLinetoRelImpl extends PathSegLinetoRel implements js_library.JSObjectInterfacesDom {
@@ -4660,7 +4660,7 @@ class PathSegLinetoRelImpl extends PathSegLinetoRel implements js_library.JSObje
   toString() => super.toString();
 }
 patch class UriReference {
-  factory UriReference._internalWrap() => new UriReferenceImpl.internal_();
+  static Type get instanceRuntimeType => UriReferenceImpl;
 
 }
 class UriReferenceImpl extends UriReference implements js_library.JSObjectInterfacesDom {
@@ -4669,7 +4669,7 @@ class UriReferenceImpl extends UriReference implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class ImageElement {
-  factory ImageElement._internalWrap() => new ImageElementImpl.internal_();
+  static Type get instanceRuntimeType => ImageElementImpl;
 
 }
 class ImageElementImpl extends ImageElement implements js_library.JSObjectInterfacesDom {
@@ -4678,7 +4678,7 @@ class ImageElementImpl extends ImageElement implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class StyleElement {
-  factory StyleElement._internalWrap() => new StyleElementImpl.internal_();
+  static Type get instanceRuntimeType => StyleElementImpl;
 
 }
 class StyleElementImpl extends StyleElement implements js_library.JSObjectInterfacesDom {
@@ -4687,7 +4687,7 @@ class StyleElementImpl extends StyleElement implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class AnimatedPreserveAspectRatio {
-  factory AnimatedPreserveAspectRatio._internalWrap() => new AnimatedPreserveAspectRatioImpl.internal_();
+  static Type get instanceRuntimeType => AnimatedPreserveAspectRatioImpl;
 
 }
 class AnimatedPreserveAspectRatioImpl extends AnimatedPreserveAspectRatio implements js_library.JSObjectInterfacesDom {
@@ -4696,7 +4696,7 @@ class AnimatedPreserveAspectRatioImpl extends AnimatedPreserveAspectRatio implem
   toString() => super.toString();
 }
 patch class TextElement {
-  factory TextElement._internalWrap() => new TextElementImpl.internal_();
+  static Type get instanceRuntimeType => TextElementImpl;
 
 }
 class TextElementImpl extends TextElement implements js_library.JSObjectInterfacesDom {
@@ -4705,7 +4705,7 @@ class TextElementImpl extends TextElement implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class DefsElement {
-  factory DefsElement._internalWrap() => new DefsElementImpl.internal_();
+  static Type get instanceRuntimeType => DefsElementImpl;
 
 }
 class DefsElementImpl extends DefsElement implements js_library.JSObjectInterfacesDom {
@@ -4714,7 +4714,7 @@ class DefsElementImpl extends DefsElement implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class FEDiffuseLightingElement {
-  factory FEDiffuseLightingElement._internalWrap() => new FEDiffuseLightingElementImpl.internal_();
+  static Type get instanceRuntimeType => FEDiffuseLightingElementImpl;
 
 }
 class FEDiffuseLightingElementImpl extends FEDiffuseLightingElement implements js_library.JSObjectInterfacesDom {
@@ -4723,7 +4723,7 @@ class FEDiffuseLightingElementImpl extends FEDiffuseLightingElement implements j
   toString() => super.toString();
 }
 patch class FETileElement {
-  factory FETileElement._internalWrap() => new FETileElementImpl.internal_();
+  static Type get instanceRuntimeType => FETileElementImpl;
 
 }
 class FETileElementImpl extends FETileElement implements js_library.JSObjectInterfacesDom {
@@ -4732,7 +4732,7 @@ class FETileElementImpl extends FETileElement implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class PathSegLinetoHorizontalAbs {
-  factory PathSegLinetoHorizontalAbs._internalWrap() => new PathSegLinetoHorizontalAbsImpl.internal_();
+  static Type get instanceRuntimeType => PathSegLinetoHorizontalAbsImpl;
 
 }
 class PathSegLinetoHorizontalAbsImpl extends PathSegLinetoHorizontalAbs implements js_library.JSObjectInterfacesDom {
@@ -4741,7 +4741,7 @@ class PathSegLinetoHorizontalAbsImpl extends PathSegLinetoHorizontalAbs implemen
   toString() => super.toString();
 }
 patch class PathSegMovetoRel {
-  factory PathSegMovetoRel._internalWrap() => new PathSegMovetoRelImpl.internal_();
+  static Type get instanceRuntimeType => PathSegMovetoRelImpl;
 
 }
 class PathSegMovetoRelImpl extends PathSegMovetoRel implements js_library.JSObjectInterfacesDom {
@@ -4750,7 +4750,7 @@ class PathSegMovetoRelImpl extends PathSegMovetoRel implements js_library.JSObje
   toString() => super.toString();
 }
 patch class _SVGFEDropShadowElement {
-  factory _SVGFEDropShadowElement._internalWrap() => new _SVGFEDropShadowElementImpl.internal_();
+  static Type get instanceRuntimeType => _SVGFEDropShadowElementImpl;
 
 }
 class _SVGFEDropShadowElementImpl extends _SVGFEDropShadowElement implements js_library.JSObjectInterfacesDom {
@@ -4759,7 +4759,7 @@ class _SVGFEDropShadowElementImpl extends _SVGFEDropShadowElement implements js_
   toString() => super.toString();
 }
 patch class Transform {
-  factory Transform._internalWrap() => new TransformImpl.internal_();
+  static Type get instanceRuntimeType => TransformImpl;
 
 }
 class TransformImpl extends Transform implements js_library.JSObjectInterfacesDom {
@@ -4768,7 +4768,7 @@ class TransformImpl extends Transform implements js_library.JSObjectInterfacesDo
   toString() => super.toString();
 }
 patch class PathSegArcRel {
-  factory PathSegArcRel._internalWrap() => new PathSegArcRelImpl.internal_();
+  static Type get instanceRuntimeType => PathSegArcRelImpl;
 
 }
 class PathSegArcRelImpl extends PathSegArcRel implements js_library.JSObjectInterfacesDom {
@@ -4777,7 +4777,7 @@ class PathSegArcRelImpl extends PathSegArcRel implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class AnimateElement {
-  factory AnimateElement._internalWrap() => new AnimateElementImpl.internal_();
+  static Type get instanceRuntimeType => AnimateElementImpl;
 
 }
 class AnimateElementImpl extends AnimateElement implements js_library.JSObjectInterfacesDom {
@@ -4786,7 +4786,7 @@ class AnimateElementImpl extends AnimateElement implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class PolylineElement {
-  factory PolylineElement._internalWrap() => new PolylineElementImpl.internal_();
+  static Type get instanceRuntimeType => PolylineElementImpl;
 
 }
 class PolylineElementImpl extends PolylineElement implements js_library.JSObjectInterfacesDom {
@@ -4795,7 +4795,7 @@ class PolylineElementImpl extends PolylineElement implements js_library.JSObject
   toString() => super.toString();
 }
 patch class AnimatedRect {
-  factory AnimatedRect._internalWrap() => new AnimatedRectImpl.internal_();
+  static Type get instanceRuntimeType => AnimatedRectImpl;
 
 }
 class AnimatedRectImpl extends AnimatedRect implements js_library.JSObjectInterfacesDom {
@@ -4804,7 +4804,7 @@ class AnimatedRectImpl extends AnimatedRect implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class GraphicsElement {
-  factory GraphicsElement._internalWrap() => new GraphicsElementImpl.internal_();
+  static Type get instanceRuntimeType => GraphicsElementImpl;
 
 }
 class GraphicsElementImpl extends GraphicsElement implements js_library.JSObjectInterfacesDom {
@@ -4813,7 +4813,7 @@ class GraphicsElementImpl extends GraphicsElement implements js_library.JSObject
   toString() => super.toString();
 }
 patch class TransformList {
-  factory TransformList._internalWrap() => new TransformListImpl.internal_();
+  static Type get instanceRuntimeType => TransformListImpl;
 
 }
 class TransformListImpl extends TransformList implements js_library.JSObjectInterfacesDom {
@@ -4822,7 +4822,7 @@ class TransformListImpl extends TransformList implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class EllipseElement {
-  factory EllipseElement._internalWrap() => new EllipseElementImpl.internal_();
+  static Type get instanceRuntimeType => EllipseElementImpl;
 
 }
 class EllipseElementImpl extends EllipseElement implements js_library.JSObjectInterfacesDom {
@@ -4831,7 +4831,7 @@ class EllipseElementImpl extends EllipseElement implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class FEFuncGElement {
-  factory FEFuncGElement._internalWrap() => new FEFuncGElementImpl.internal_();
+  static Type get instanceRuntimeType => FEFuncGElementImpl;
 
 }
 class FEFuncGElementImpl extends FEFuncGElement implements js_library.JSObjectInterfacesDom {
@@ -4840,7 +4840,7 @@ class FEFuncGElementImpl extends FEFuncGElement implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class PointList {
-  factory PointList._internalWrap() => new PointListImpl.internal_();
+  static Type get instanceRuntimeType => PointListImpl;
 
 }
 class PointListImpl extends PointList implements js_library.JSObjectInterfacesDom {
@@ -4849,7 +4849,7 @@ class PointListImpl extends PointList implements js_library.JSObjectInterfacesDo
   toString() => super.toString();
 }
 patch class FEMergeElement {
-  factory FEMergeElement._internalWrap() => new FEMergeElementImpl.internal_();
+  static Type get instanceRuntimeType => FEMergeElementImpl;
 
 }
 class FEMergeElementImpl extends FEMergeElement implements js_library.JSObjectInterfacesDom {
@@ -4858,7 +4858,7 @@ class FEMergeElementImpl extends FEMergeElement implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class CircleElement {
-  factory CircleElement._internalWrap() => new CircleElementImpl.internal_();
+  static Type get instanceRuntimeType => CircleElementImpl;
 
 }
 class CircleElementImpl extends CircleElement implements js_library.JSObjectInterfacesDom {
@@ -4867,7 +4867,7 @@ class CircleElementImpl extends CircleElement implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class AnimatedNumberList {
-  factory AnimatedNumberList._internalWrap() => new AnimatedNumberListImpl.internal_();
+  static Type get instanceRuntimeType => AnimatedNumberListImpl;
 
 }
 class AnimatedNumberListImpl extends AnimatedNumberList implements js_library.JSObjectInterfacesDom {
@@ -4876,7 +4876,7 @@ class AnimatedNumberListImpl extends AnimatedNumberList implements js_library.JS
   toString() => super.toString();
 }
 patch class SwitchElement {
-  factory SwitchElement._internalWrap() => new SwitchElementImpl.internal_();
+  static Type get instanceRuntimeType => SwitchElementImpl;
 
 }
 class SwitchElementImpl extends SwitchElement implements js_library.JSObjectInterfacesDom {
@@ -4885,7 +4885,7 @@ class SwitchElementImpl extends SwitchElement implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class RadialGradientElement {
-  factory RadialGradientElement._internalWrap() => new RadialGradientElementImpl.internal_();
+  static Type get instanceRuntimeType => RadialGradientElementImpl;
 
 }
 class RadialGradientElementImpl extends RadialGradientElement implements js_library.JSObjectInterfacesDom {
@@ -4894,7 +4894,7 @@ class RadialGradientElementImpl extends RadialGradientElement implements js_libr
   toString() => super.toString();
 }
 patch class FEDistantLightElement {
-  factory FEDistantLightElement._internalWrap() => new FEDistantLightElementImpl.internal_();
+  static Type get instanceRuntimeType => FEDistantLightElementImpl;
 
 }
 class FEDistantLightElementImpl extends FEDistantLightElement implements js_library.JSObjectInterfacesDom {
@@ -4903,7 +4903,7 @@ class FEDistantLightElementImpl extends FEDistantLightElement implements js_libr
   toString() => super.toString();
 }
 patch class LinearGradientElement {
-  factory LinearGradientElement._internalWrap() => new LinearGradientElementImpl.internal_();
+  static Type get instanceRuntimeType => LinearGradientElementImpl;
 
 }
 class LinearGradientElementImpl extends LinearGradientElement implements js_library.JSObjectInterfacesDom {
@@ -4912,7 +4912,7 @@ class LinearGradientElementImpl extends LinearGradientElement implements js_libr
   toString() => super.toString();
 }
 patch class TextPositioningElement {
-  factory TextPositioningElement._internalWrap() => new TextPositioningElementImpl.internal_();
+  static Type get instanceRuntimeType => TextPositioningElementImpl;
 
 }
 class TextPositioningElementImpl extends TextPositioningElement implements js_library.JSObjectInterfacesDom {
@@ -4921,7 +4921,7 @@ class TextPositioningElementImpl extends TextPositioningElement implements js_li
   toString() => super.toString();
 }
 patch class PathSegCurvetoQuadraticRel {
-  factory PathSegCurvetoQuadraticRel._internalWrap() => new PathSegCurvetoQuadraticRelImpl.internal_();
+  static Type get instanceRuntimeType => PathSegCurvetoQuadraticRelImpl;
 
 }
 class PathSegCurvetoQuadraticRelImpl extends PathSegCurvetoQuadraticRel implements js_library.JSObjectInterfacesDom {
@@ -4930,7 +4930,7 @@ class PathSegCurvetoQuadraticRelImpl extends PathSegCurvetoQuadraticRel implemen
   toString() => super.toString();
 }
 patch class PathSegLinetoHorizontalRel {
-  factory PathSegLinetoHorizontalRel._internalWrap() => new PathSegLinetoHorizontalRelImpl.internal_();
+  static Type get instanceRuntimeType => PathSegLinetoHorizontalRelImpl;
 
 }
 class PathSegLinetoHorizontalRelImpl extends PathSegLinetoHorizontalRel implements js_library.JSObjectInterfacesDom {
@@ -4939,7 +4939,7 @@ class PathSegLinetoHorizontalRelImpl extends PathSegLinetoHorizontalRel implemen
   toString() => super.toString();
 }
 patch class StringList {
-  factory StringList._internalWrap() => new StringListImpl.internal_();
+  static Type get instanceRuntimeType => StringListImpl;
 
 }
 class StringListImpl extends StringList implements js_library.JSObjectInterfacesDom {
@@ -4948,7 +4948,7 @@ class StringListImpl extends StringList implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class TextContentElement {
-  factory TextContentElement._internalWrap() => new TextContentElementImpl.internal_();
+  static Type get instanceRuntimeType => TextContentElementImpl;
 
 }
 class TextContentElementImpl extends TextContentElement implements js_library.JSObjectInterfacesDom {
@@ -4957,7 +4957,7 @@ class TextContentElementImpl extends TextContentElement implements js_library.JS
   toString() => super.toString();
 }
 patch class FEConvolveMatrixElement {
-  factory FEConvolveMatrixElement._internalWrap() => new FEConvolveMatrixElementImpl.internal_();
+  static Type get instanceRuntimeType => FEConvolveMatrixElementImpl;
 
 }
 class FEConvolveMatrixElementImpl extends FEConvolveMatrixElement implements js_library.JSObjectInterfacesDom {
@@ -4966,7 +4966,7 @@ class FEConvolveMatrixElementImpl extends FEConvolveMatrixElement implements js_
   toString() => super.toString();
 }
 patch class PathSegLinetoAbs {
-  factory PathSegLinetoAbs._internalWrap() => new PathSegLinetoAbsImpl.internal_();
+  static Type get instanceRuntimeType => PathSegLinetoAbsImpl;
 
 }
 class PathSegLinetoAbsImpl extends PathSegLinetoAbs implements js_library.JSObjectInterfacesDom {
@@ -4975,7 +4975,7 @@ class PathSegLinetoAbsImpl extends PathSegLinetoAbs implements js_library.JSObje
   toString() => super.toString();
 }
 patch class FESpecularLightingElement {
-  factory FESpecularLightingElement._internalWrap() => new FESpecularLightingElementImpl.internal_();
+  static Type get instanceRuntimeType => FESpecularLightingElementImpl;
 
 }
 class FESpecularLightingElementImpl extends FESpecularLightingElement implements js_library.JSObjectInterfacesDom {
@@ -4984,7 +4984,7 @@ class FESpecularLightingElementImpl extends FESpecularLightingElement implements
   toString() => super.toString();
 }
 patch class AnimatedTransformList {
-  factory AnimatedTransformList._internalWrap() => new AnimatedTransformListImpl.internal_();
+  static Type get instanceRuntimeType => AnimatedTransformListImpl;
 
 }
 class AnimatedTransformListImpl extends AnimatedTransformList implements js_library.JSObjectInterfacesDom {
@@ -4993,7 +4993,7 @@ class AnimatedTransformListImpl extends AnimatedTransformList implements js_libr
   toString() => super.toString();
 }
 patch class FEGaussianBlurElement {
-  factory FEGaussianBlurElement._internalWrap() => new FEGaussianBlurElementImpl.internal_();
+  static Type get instanceRuntimeType => FEGaussianBlurElementImpl;
 
 }
 class FEGaussianBlurElementImpl extends FEGaussianBlurElement implements js_library.JSObjectInterfacesDom {
@@ -5002,7 +5002,7 @@ class FEGaussianBlurElementImpl extends FEGaussianBlurElement implements js_libr
   toString() => super.toString();
 }
 patch class Number {
-  factory Number._internalWrap() => new NumberImpl.internal_();
+  static Type get instanceRuntimeType => NumberImpl;
 
 }
 class NumberImpl extends Number implements js_library.JSObjectInterfacesDom {
@@ -5011,7 +5011,7 @@ class NumberImpl extends Number implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class ZoomEvent {
-  factory ZoomEvent._internalWrap() => new ZoomEventImpl.internal_();
+  static Type get instanceRuntimeType => ZoomEventImpl;
 
 }
 class ZoomEventImpl extends ZoomEvent implements js_library.JSObjectInterfacesDom {
@@ -5020,7 +5020,7 @@ class ZoomEventImpl extends ZoomEvent implements js_library.JSObjectInterfacesDo
   toString() => super.toString();
 }
 patch class PathSegCurvetoCubicSmoothAbs {
-  factory PathSegCurvetoCubicSmoothAbs._internalWrap() => new PathSegCurvetoCubicSmoothAbsImpl.internal_();
+  static Type get instanceRuntimeType => PathSegCurvetoCubicSmoothAbsImpl;
 
 }
 class PathSegCurvetoCubicSmoothAbsImpl extends PathSegCurvetoCubicSmoothAbs implements js_library.JSObjectInterfacesDom {
@@ -5029,7 +5029,7 @@ class PathSegCurvetoCubicSmoothAbsImpl extends PathSegCurvetoCubicSmoothAbs impl
   toString() => super.toString();
 }
 patch class AnimatedNumber {
-  factory AnimatedNumber._internalWrap() => new AnimatedNumberImpl.internal_();
+  static Type get instanceRuntimeType => AnimatedNumberImpl;
 
 }
 class AnimatedNumberImpl extends AnimatedNumber implements js_library.JSObjectInterfacesDom {
@@ -5038,7 +5038,7 @@ class AnimatedNumberImpl extends AnimatedNumber implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class MaskElement {
-  factory MaskElement._internalWrap() => new MaskElementImpl.internal_();
+  static Type get instanceRuntimeType => MaskElementImpl;
 
 }
 class MaskElementImpl extends MaskElement implements js_library.JSObjectInterfacesDom {
@@ -5047,7 +5047,7 @@ class MaskElementImpl extends MaskElement implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class Angle {
-  factory Angle._internalWrap() => new AngleImpl.internal_();
+  static Type get instanceRuntimeType => AngleImpl;
 
 }
 class AngleImpl extends Angle implements js_library.JSObjectInterfacesDom {
@@ -5056,7 +5056,7 @@ class AngleImpl extends Angle implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class SymbolElement {
-  factory SymbolElement._internalWrap() => new SymbolElementImpl.internal_();
+  static Type get instanceRuntimeType => SymbolElementImpl;
 
 }
 class SymbolElementImpl extends SymbolElement implements js_library.JSObjectInterfacesDom {
@@ -5065,7 +5065,7 @@ class SymbolElementImpl extends SymbolElement implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class PathSegArcAbs {
-  factory PathSegArcAbs._internalWrap() => new PathSegArcAbsImpl.internal_();
+  static Type get instanceRuntimeType => PathSegArcAbsImpl;
 
 }
 class PathSegArcAbsImpl extends PathSegArcAbs implements js_library.JSObjectInterfacesDom {
@@ -5074,7 +5074,7 @@ class PathSegArcAbsImpl extends PathSegArcAbs implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class RectElement {
-  factory RectElement._internalWrap() => new RectElementImpl.internal_();
+  static Type get instanceRuntimeType => RectElementImpl;
 
 }
 class RectElementImpl extends RectElement implements js_library.JSObjectInterfacesDom {
@@ -5083,7 +5083,7 @@ class RectElementImpl extends RectElement implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class FEFloodElement {
-  factory FEFloodElement._internalWrap() => new FEFloodElementImpl.internal_();
+  static Type get instanceRuntimeType => FEFloodElementImpl;
 
 }
 class FEFloodElementImpl extends FEFloodElement implements js_library.JSObjectInterfacesDom {
@@ -5092,7 +5092,7 @@ class FEFloodElementImpl extends FEFloodElement implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class PathSegCurvetoQuadraticAbs {
-  factory PathSegCurvetoQuadraticAbs._internalWrap() => new PathSegCurvetoQuadraticAbsImpl.internal_();
+  static Type get instanceRuntimeType => PathSegCurvetoQuadraticAbsImpl;
 
 }
 class PathSegCurvetoQuadraticAbsImpl extends PathSegCurvetoQuadraticAbs implements js_library.JSObjectInterfacesDom {
@@ -5101,7 +5101,7 @@ class PathSegCurvetoQuadraticAbsImpl extends PathSegCurvetoQuadraticAbs implemen
   toString() => super.toString();
 }
 patch class ScriptElement {
-  factory ScriptElement._internalWrap() => new ScriptElementImpl.internal_();
+  static Type get instanceRuntimeType => ScriptElementImpl;
 
 }
 class ScriptElementImpl extends ScriptElement implements js_library.JSObjectInterfacesDom {
@@ -5110,7 +5110,7 @@ class ScriptElementImpl extends ScriptElement implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class AnimatedInteger {
-  factory AnimatedInteger._internalWrap() => new AnimatedIntegerImpl.internal_();
+  static Type get instanceRuntimeType => AnimatedIntegerImpl;
 
 }
 class AnimatedIntegerImpl extends AnimatedInteger implements js_library.JSObjectInterfacesDom {
@@ -5119,7 +5119,7 @@ class AnimatedIntegerImpl extends AnimatedInteger implements js_library.JSObject
   toString() => super.toString();
 }
 patch class Tests {
-  factory Tests._internalWrap() => new TestsImpl.internal_();
+  static Type get instanceRuntimeType => TestsImpl;
 
 }
 class TestsImpl extends Tests implements js_library.JSObjectInterfacesDom {
@@ -5128,7 +5128,7 @@ class TestsImpl extends Tests implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class PathSegCurvetoCubicSmoothRel {
-  factory PathSegCurvetoCubicSmoothRel._internalWrap() => new PathSegCurvetoCubicSmoothRelImpl.internal_();
+  static Type get instanceRuntimeType => PathSegCurvetoCubicSmoothRelImpl;
 
 }
 class PathSegCurvetoCubicSmoothRelImpl extends PathSegCurvetoCubicSmoothRel implements js_library.JSObjectInterfacesDom {
@@ -5137,7 +5137,7 @@ class PathSegCurvetoCubicSmoothRelImpl extends PathSegCurvetoCubicSmoothRel impl
   toString() => super.toString();
 }
 patch class PathSeg {
-  factory PathSeg._internalWrap() => new PathSegImpl.internal_();
+  static Type get instanceRuntimeType => PathSegImpl;
 
 }
 class PathSegImpl extends PathSeg implements js_library.JSObjectInterfacesDom {
@@ -5146,7 +5146,7 @@ class PathSegImpl extends PathSeg implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class GElement {
-  factory GElement._internalWrap() => new GElementImpl.internal_();
+  static Type get instanceRuntimeType => GElementImpl;
 
 }
 class GElementImpl extends GElement implements js_library.JSObjectInterfacesDom {
@@ -5155,7 +5155,7 @@ class GElementImpl extends GElement implements js_library.JSObjectInterfacesDom 
   toString() => super.toString();
 }
 patch class PathSegMovetoAbs {
-  factory PathSegMovetoAbs._internalWrap() => new PathSegMovetoAbsImpl.internal_();
+  static Type get instanceRuntimeType => PathSegMovetoAbsImpl;
 
 }
 class PathSegMovetoAbsImpl extends PathSegMovetoAbs implements js_library.JSObjectInterfacesDom {
@@ -5164,7 +5164,7 @@ class PathSegMovetoAbsImpl extends PathSegMovetoAbs implements js_library.JSObje
   toString() => super.toString();
 }
 patch class PathSegCurvetoCubicAbs {
-  factory PathSegCurvetoCubicAbs._internalWrap() => new PathSegCurvetoCubicAbsImpl.internal_();
+  static Type get instanceRuntimeType => PathSegCurvetoCubicAbsImpl;
 
 }
 class PathSegCurvetoCubicAbsImpl extends PathSegCurvetoCubicAbs implements js_library.JSObjectInterfacesDom {
@@ -5173,7 +5173,7 @@ class PathSegCurvetoCubicAbsImpl extends PathSegCurvetoCubicAbs implements js_li
   toString() => super.toString();
 }
 patch class AnimatedEnumeration {
-  factory AnimatedEnumeration._internalWrap() => new AnimatedEnumerationImpl.internal_();
+  static Type get instanceRuntimeType => AnimatedEnumerationImpl;
 
 }
 class AnimatedEnumerationImpl extends AnimatedEnumeration implements js_library.JSObjectInterfacesDom {
@@ -5182,7 +5182,7 @@ class AnimatedEnumerationImpl extends AnimatedEnumeration implements js_library.
   toString() => super.toString();
 }
 patch class TitleElement {
-  factory TitleElement._internalWrap() => new TitleElementImpl.internal_();
+  static Type get instanceRuntimeType => TitleElementImpl;
 
 }
 class TitleElementImpl extends TitleElement implements js_library.JSObjectInterfacesDom {
@@ -5191,7 +5191,7 @@ class TitleElementImpl extends TitleElement implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class MetadataElement {
-  factory MetadataElement._internalWrap() => new MetadataElementImpl.internal_();
+  static Type get instanceRuntimeType => MetadataElementImpl;
 
 }
 class MetadataElementImpl extends MetadataElement implements js_library.JSObjectInterfacesDom {
@@ -5200,7 +5200,7 @@ class MetadataElementImpl extends MetadataElement implements js_library.JSObject
   toString() => super.toString();
 }
 patch class AElement {
-  factory AElement._internalWrap() => new AElementImpl.internal_();
+  static Type get instanceRuntimeType => AElementImpl;
 
 }
 class AElementImpl extends AElement implements js_library.JSObjectInterfacesDom {
@@ -5209,7 +5209,7 @@ class AElementImpl extends AElement implements js_library.JSObjectInterfacesDom 
   toString() => super.toString();
 }
 patch class _GradientElement {
-  factory _GradientElement._internalWrap() => new _GradientElementImpl.internal_();
+  static Type get instanceRuntimeType => _GradientElementImpl;
 
 }
 class _GradientElementImpl extends _GradientElement implements js_library.JSObjectInterfacesDom {
@@ -5218,7 +5218,7 @@ class _GradientElementImpl extends _GradientElement implements js_library.JSObje
   toString() => super.toString();
 }
 patch class FEImageElement {
-  factory FEImageElement._internalWrap() => new FEImageElementImpl.internal_();
+  static Type get instanceRuntimeType => FEImageElementImpl;
 
 }
 class FEImageElementImpl extends FEImageElement implements js_library.JSObjectInterfacesDom {
@@ -5227,7 +5227,7 @@ class FEImageElementImpl extends FEImageElement implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class _SVGComponentTransferFunctionElement {
-  factory _SVGComponentTransferFunctionElement._internalWrap() => new _SVGComponentTransferFunctionElementImpl.internal_();
+  static Type get instanceRuntimeType => _SVGComponentTransferFunctionElementImpl;
 
 }
 class _SVGComponentTransferFunctionElementImpl extends _SVGComponentTransferFunctionElement implements js_library.JSObjectInterfacesDom {
@@ -5236,7 +5236,7 @@ class _SVGComponentTransferFunctionElementImpl extends _SVGComponentTransferFunc
   toString() => super.toString();
 }
 patch class PathSegLinetoVerticalRel {
-  factory PathSegLinetoVerticalRel._internalWrap() => new PathSegLinetoVerticalRelImpl.internal_();
+  static Type get instanceRuntimeType => PathSegLinetoVerticalRelImpl;
 
 }
 class PathSegLinetoVerticalRelImpl extends PathSegLinetoVerticalRel implements js_library.JSObjectInterfacesDom {
@@ -5245,7 +5245,7 @@ class PathSegLinetoVerticalRelImpl extends PathSegLinetoVerticalRel implements j
   toString() => super.toString();
 }
 patch class AnimatedLengthList {
-  factory AnimatedLengthList._internalWrap() => new AnimatedLengthListImpl.internal_();
+  static Type get instanceRuntimeType => AnimatedLengthListImpl;
 
 }
 class AnimatedLengthListImpl extends AnimatedLengthList implements js_library.JSObjectInterfacesDom {
@@ -5254,7 +5254,7 @@ class AnimatedLengthListImpl extends AnimatedLengthList implements js_library.JS
   toString() => super.toString();
 }
 patch class FEMorphologyElement {
-  factory FEMorphologyElement._internalWrap() => new FEMorphologyElementImpl.internal_();
+  static Type get instanceRuntimeType => FEMorphologyElementImpl;
 
 }
 class FEMorphologyElementImpl extends FEMorphologyElement implements js_library.JSObjectInterfacesDom {
@@ -5263,7 +5263,7 @@ class FEMorphologyElementImpl extends FEMorphologyElement implements js_library.
   toString() => super.toString();
 }
 patch class PolygonElement {
-  factory PolygonElement._internalWrap() => new PolygonElementImpl.internal_();
+  static Type get instanceRuntimeType => PolygonElementImpl;
 
 }
 class PolygonElementImpl extends PolygonElement implements js_library.JSObjectInterfacesDom {
@@ -5272,7 +5272,7 @@ class PolygonElementImpl extends PolygonElement implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class UseElement {
-  factory UseElement._internalWrap() => new UseElementImpl.internal_();
+  static Type get instanceRuntimeType => UseElementImpl;
 
 }
 class UseElementImpl extends UseElement implements js_library.JSObjectInterfacesDom {
@@ -5281,7 +5281,7 @@ class UseElementImpl extends UseElement implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class Point {
-  factory Point._internalWrap() => new PointImpl.internal_();
+  static Type get instanceRuntimeType => PointImpl;
 
 }
 class PointImpl extends Point implements js_library.JSObjectInterfacesDom {
@@ -5290,7 +5290,7 @@ class PointImpl extends Point implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class Rect {
-  factory Rect._internalWrap() => new RectImpl.internal_();
+  static Type get instanceRuntimeType => RectImpl;
 
 }
 class RectImpl extends Rect implements js_library.JSObjectInterfacesDom {
@@ -5299,7 +5299,7 @@ class RectImpl extends Rect implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class AnimatedBoolean {
-  factory AnimatedBoolean._internalWrap() => new AnimatedBooleanImpl.internal_();
+  static Type get instanceRuntimeType => AnimatedBooleanImpl;
 
 }
 class AnimatedBooleanImpl extends AnimatedBoolean implements js_library.JSObjectInterfacesDom {
@@ -5308,7 +5308,7 @@ class AnimatedBooleanImpl extends AnimatedBoolean implements js_library.JSObject
   toString() => super.toString();
 }
 patch class FETurbulenceElement {
-  factory FETurbulenceElement._internalWrap() => new FETurbulenceElementImpl.internal_();
+  static Type get instanceRuntimeType => FETurbulenceElementImpl;
 
 }
 class FETurbulenceElementImpl extends FETurbulenceElement implements js_library.JSObjectInterfacesDom {
@@ -5317,7 +5317,7 @@ class FETurbulenceElementImpl extends FETurbulenceElement implements js_library.
   toString() => super.toString();
 }
 patch class NumberList {
-  factory NumberList._internalWrap() => new NumberListImpl.internal_();
+  static Type get instanceRuntimeType => NumberListImpl;
 
 }
 class NumberListImpl extends NumberList implements js_library.JSObjectInterfacesDom {
@@ -5326,7 +5326,7 @@ class NumberListImpl extends NumberList implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class AnimationElement {
-  factory AnimationElement._internalWrap() => new AnimationElementImpl.internal_();
+  static Type get instanceRuntimeType => AnimationElementImpl;
 
 }
 class AnimationElementImpl extends AnimationElement implements js_library.JSObjectInterfacesDom {
@@ -5335,7 +5335,7 @@ class AnimationElementImpl extends AnimationElement implements js_library.JSObje
   toString() => super.toString();
 }
 patch class MarkerElement {
-  factory MarkerElement._internalWrap() => new MarkerElementImpl.internal_();
+  static Type get instanceRuntimeType => MarkerElementImpl;
 
 }
 class MarkerElementImpl extends MarkerElement implements js_library.JSObjectInterfacesDom {
@@ -5344,7 +5344,7 @@ class MarkerElementImpl extends MarkerElement implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class FECompositeElement {
-  factory FECompositeElement._internalWrap() => new FECompositeElementImpl.internal_();
+  static Type get instanceRuntimeType => FECompositeElementImpl;
 
 }
 class FECompositeElementImpl extends FECompositeElement implements js_library.JSObjectInterfacesDom {
@@ -5353,7 +5353,7 @@ class FECompositeElementImpl extends FECompositeElement implements js_library.JS
   toString() => super.toString();
 }
 patch class PathSegList {
-  factory PathSegList._internalWrap() => new PathSegListImpl.internal_();
+  static Type get instanceRuntimeType => PathSegListImpl;
 
 }
 class PathSegListImpl extends PathSegList implements js_library.JSObjectInterfacesDom {
@@ -5362,7 +5362,7 @@ class PathSegListImpl extends PathSegList implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class PathSegCurvetoQuadraticSmoothRel {
-  factory PathSegCurvetoQuadraticSmoothRel._internalWrap() => new PathSegCurvetoQuadraticSmoothRelImpl.internal_();
+  static Type get instanceRuntimeType => PathSegCurvetoQuadraticSmoothRelImpl;
 
 }
 class PathSegCurvetoQuadraticSmoothRelImpl extends PathSegCurvetoQuadraticSmoothRel implements js_library.JSObjectInterfacesDom {
@@ -5371,7 +5371,7 @@ class PathSegCurvetoQuadraticSmoothRelImpl extends PathSegCurvetoQuadraticSmooth
   toString() => super.toString();
 }
 patch class FEFuncRElement {
-  factory FEFuncRElement._internalWrap() => new FEFuncRElementImpl.internal_();
+  static Type get instanceRuntimeType => FEFuncRElementImpl;
 
 }
 class FEFuncRElementImpl extends FEFuncRElement implements js_library.JSObjectInterfacesDom {
@@ -5380,7 +5380,7 @@ class FEFuncRElementImpl extends FEFuncRElement implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class FEFuncBElement {
-  factory FEFuncBElement._internalWrap() => new FEFuncBElementImpl.internal_();
+  static Type get instanceRuntimeType => FEFuncBElementImpl;
 
 }
 class FEFuncBElementImpl extends FEFuncBElement implements js_library.JSObjectInterfacesDom {
@@ -5389,7 +5389,7 @@ class FEFuncBElementImpl extends FEFuncBElement implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class FEBlendElement {
-  factory FEBlendElement._internalWrap() => new FEBlendElementImpl.internal_();
+  static Type get instanceRuntimeType => FEBlendElementImpl;
 
 }
 class FEBlendElementImpl extends FEBlendElement implements js_library.JSObjectInterfacesDom {
@@ -5398,7 +5398,7 @@ class FEBlendElementImpl extends FEBlendElement implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class AnimatedAngle {
-  factory AnimatedAngle._internalWrap() => new AnimatedAngleImpl.internal_();
+  static Type get instanceRuntimeType => AnimatedAngleImpl;
 
 }
 class AnimatedAngleImpl extends AnimatedAngle implements js_library.JSObjectInterfacesDom {
@@ -5407,7 +5407,7 @@ class AnimatedAngleImpl extends AnimatedAngle implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class TSpanElement {
-  factory TSpanElement._internalWrap() => new TSpanElementImpl.internal_();
+  static Type get instanceRuntimeType => TSpanElementImpl;
 
 }
 class TSpanElementImpl extends TSpanElement implements js_library.JSObjectInterfacesDom {
@@ -5416,7 +5416,7 @@ class TSpanElementImpl extends TSpanElement implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class PathSegCurvetoCubicRel {
-  factory PathSegCurvetoCubicRel._internalWrap() => new PathSegCurvetoCubicRelImpl.internal_();
+  static Type get instanceRuntimeType => PathSegCurvetoCubicRelImpl;
 
 }
 class PathSegCurvetoCubicRelImpl extends PathSegCurvetoCubicRel implements js_library.JSObjectInterfacesDom {
@@ -5425,7 +5425,7 @@ class PathSegCurvetoCubicRelImpl extends PathSegCurvetoCubicRel implements js_li
   toString() => super.toString();
 }
 patch class AnimateMotionElement {
-  factory AnimateMotionElement._internalWrap() => new AnimateMotionElementImpl.internal_();
+  static Type get instanceRuntimeType => AnimateMotionElementImpl;
 
 }
 class AnimateMotionElementImpl extends AnimateMotionElement implements js_library.JSObjectInterfacesDom {
@@ -5434,7 +5434,7 @@ class AnimateMotionElementImpl extends AnimateMotionElement implements js_librar
   toString() => super.toString();
 }
 patch class GeometryElement {
-  factory GeometryElement._internalWrap() => new GeometryElementImpl.internal_();
+  static Type get instanceRuntimeType => GeometryElementImpl;
 
 }
 class GeometryElementImpl extends GeometryElement implements js_library.JSObjectInterfacesDom {
@@ -5443,7 +5443,7 @@ class GeometryElementImpl extends GeometryElement implements js_library.JSObject
   toString() => super.toString();
 }
 patch class AnimateTransformElement {
-  factory AnimateTransformElement._internalWrap() => new AnimateTransformElementImpl.internal_();
+  static Type get instanceRuntimeType => AnimateTransformElementImpl;
 
 }
 class AnimateTransformElementImpl extends AnimateTransformElement implements js_library.JSObjectInterfacesDom {
@@ -5452,7 +5452,7 @@ class AnimateTransformElementImpl extends AnimateTransformElement implements js_
   toString() => super.toString();
 }
 patch class PreserveAspectRatio {
-  factory PreserveAspectRatio._internalWrap() => new PreserveAspectRatioImpl.internal_();
+  static Type get instanceRuntimeType => PreserveAspectRatioImpl;
 
 }
 class PreserveAspectRatioImpl extends PreserveAspectRatio implements js_library.JSObjectInterfacesDom {
@@ -5461,7 +5461,7 @@ class PreserveAspectRatioImpl extends PreserveAspectRatio implements js_library.
   toString() => super.toString();
 }
 patch class PathElement {
-  factory PathElement._internalWrap() => new PathElementImpl.internal_();
+  static Type get instanceRuntimeType => PathElementImpl;
 
 }
 class PathElementImpl extends PathElement implements js_library.JSObjectInterfacesDom {
@@ -5470,7 +5470,7 @@ class PathElementImpl extends PathElement implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class FEColorMatrixElement {
-  factory FEColorMatrixElement._internalWrap() => new FEColorMatrixElementImpl.internal_();
+  static Type get instanceRuntimeType => FEColorMatrixElementImpl;
 
 }
 class FEColorMatrixElementImpl extends FEColorMatrixElement implements js_library.JSObjectInterfacesDom {
@@ -5479,7 +5479,7 @@ class FEColorMatrixElementImpl extends FEColorMatrixElement implements js_librar
   toString() => super.toString();
 }
 patch class PatternElement {
-  factory PatternElement._internalWrap() => new PatternElementImpl.internal_();
+  static Type get instanceRuntimeType => PatternElementImpl;
 
 }
 class PatternElementImpl extends PatternElement implements js_library.JSObjectInterfacesDom {
@@ -5488,7 +5488,7 @@ class PatternElementImpl extends PatternElement implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class Length {
-  factory Length._internalWrap() => new LengthImpl.internal_();
+  static Type get instanceRuntimeType => LengthImpl;
 
 }
 class LengthImpl extends Length implements js_library.JSObjectInterfacesDom {
@@ -5497,7 +5497,7 @@ class LengthImpl extends Length implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class FESpotLightElement {
-  factory FESpotLightElement._internalWrap() => new FESpotLightElementImpl.internal_();
+  static Type get instanceRuntimeType => FESpotLightElementImpl;
 
 }
 class FESpotLightElementImpl extends FESpotLightElement implements js_library.JSObjectInterfacesDom {
@@ -5506,7 +5506,7 @@ class FESpotLightElementImpl extends FESpotLightElement implements js_library.JS
   toString() => super.toString();
 }
 patch class LineElement {
-  factory LineElement._internalWrap() => new LineElementImpl.internal_();
+  static Type get instanceRuntimeType => LineElementImpl;
 
 }
 class LineElementImpl extends LineElement implements js_library.JSObjectInterfacesDom {
@@ -5515,7 +5515,7 @@ class LineElementImpl extends LineElement implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class Matrix {
-  factory Matrix._internalWrap() => new MatrixImpl.internal_();
+  static Type get instanceRuntimeType => MatrixImpl;
 
 }
 class MatrixImpl extends Matrix implements js_library.JSObjectInterfacesDom {
@@ -5524,7 +5524,7 @@ class MatrixImpl extends Matrix implements js_library.JSObjectInterfacesDom {
   toString() => super.toString();
 }
 patch class SvgSvgElement {
-  factory SvgSvgElement._internalWrap() => new SvgSvgElementImpl.internal_();
+  static Type get instanceRuntimeType => SvgSvgElementImpl;
 
 }
 class SvgSvgElementImpl extends SvgSvgElement implements js_library.JSObjectInterfacesDom {
@@ -5533,7 +5533,7 @@ class SvgSvgElementImpl extends SvgSvgElement implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class FitToViewBox {
-  factory FitToViewBox._internalWrap() => new FitToViewBoxImpl.internal_();
+  static Type get instanceRuntimeType => FitToViewBoxImpl;
 
 }
 class FitToViewBoxImpl extends FitToViewBox implements js_library.JSObjectInterfacesDom {
@@ -5542,7 +5542,7 @@ class FitToViewBoxImpl extends FitToViewBox implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class _SVGMPathElement {
-  factory _SVGMPathElement._internalWrap() => new _SVGMPathElementImpl.internal_();
+  static Type get instanceRuntimeType => _SVGMPathElementImpl;
 
 }
 class _SVGMPathElementImpl extends _SVGMPathElement implements js_library.JSObjectInterfacesDom {
@@ -5551,7 +5551,7 @@ class _SVGMPathElementImpl extends _SVGMPathElement implements js_library.JSObje
   toString() => super.toString();
 }
 patch class FEDisplacementMapElement {
-  factory FEDisplacementMapElement._internalWrap() => new FEDisplacementMapElementImpl.internal_();
+  static Type get instanceRuntimeType => FEDisplacementMapElementImpl;
 
 }
 class FEDisplacementMapElementImpl extends FEDisplacementMapElement implements js_library.JSObjectInterfacesDom {
@@ -5560,7 +5560,7 @@ class FEDisplacementMapElementImpl extends FEDisplacementMapElement implements j
   toString() => super.toString();
 }
 patch class PathSegCurvetoQuadraticSmoothAbs {
-  factory PathSegCurvetoQuadraticSmoothAbs._internalWrap() => new PathSegCurvetoQuadraticSmoothAbsImpl.internal_();
+  static Type get instanceRuntimeType => PathSegCurvetoQuadraticSmoothAbsImpl;
 
 }
 class PathSegCurvetoQuadraticSmoothAbsImpl extends PathSegCurvetoQuadraticSmoothAbs implements js_library.JSObjectInterfacesDom {
@@ -5569,7 +5569,7 @@ class PathSegCurvetoQuadraticSmoothAbsImpl extends PathSegCurvetoQuadraticSmooth
   toString() => super.toString();
 }
 patch class PathSegClosePath {
-  factory PathSegClosePath._internalWrap() => new PathSegClosePathImpl.internal_();
+  static Type get instanceRuntimeType => PathSegClosePathImpl;
 
 }
 class PathSegClosePathImpl extends PathSegClosePath implements js_library.JSObjectInterfacesDom {
@@ -5578,7 +5578,7 @@ class PathSegClosePathImpl extends PathSegClosePath implements js_library.JSObje
   toString() => super.toString();
 }
 patch class AnimatedLength {
-  factory AnimatedLength._internalWrap() => new AnimatedLengthImpl.internal_();
+  static Type get instanceRuntimeType => AnimatedLengthImpl;
 
 }
 class AnimatedLengthImpl extends AnimatedLength implements js_library.JSObjectInterfacesDom {
@@ -5587,7 +5587,7 @@ class AnimatedLengthImpl extends AnimatedLength implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class ClipPathElement {
-  factory ClipPathElement._internalWrap() => new ClipPathElementImpl.internal_();
+  static Type get instanceRuntimeType => ClipPathElementImpl;
 
 }
 class ClipPathElementImpl extends ClipPathElement implements js_library.JSObjectInterfacesDom {
@@ -5596,7 +5596,7 @@ class ClipPathElementImpl extends ClipPathElement implements js_library.JSObject
   toString() => super.toString();
 }
 patch class StopElement {
-  factory StopElement._internalWrap() => new StopElementImpl.internal_();
+  static Type get instanceRuntimeType => StopElementImpl;
 
 }
 class StopElementImpl extends StopElement implements js_library.JSObjectInterfacesDom {
@@ -5605,7 +5605,7 @@ class StopElementImpl extends StopElement implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class ViewSpec {
-  factory ViewSpec._internalWrap() => new ViewSpecImpl.internal_();
+  static Type get instanceRuntimeType => ViewSpecImpl;
 
 }
 class ViewSpecImpl extends ViewSpec implements js_library.JSObjectInterfacesDom {
@@ -5614,7 +5614,7 @@ class ViewSpecImpl extends ViewSpec implements js_library.JSObjectInterfacesDom 
   toString() => super.toString();
 }
 patch class LengthList {
-  factory LengthList._internalWrap() => new LengthListImpl.internal_();
+  static Type get instanceRuntimeType => LengthListImpl;
 
 }
 class LengthListImpl extends LengthList implements js_library.JSObjectInterfacesDom {
@@ -5623,7 +5623,7 @@ class LengthListImpl extends LengthList implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class _SVGCursorElement {
-  factory _SVGCursorElement._internalWrap() => new _SVGCursorElementImpl.internal_();
+  static Type get instanceRuntimeType => _SVGCursorElementImpl;
 
 }
 class _SVGCursorElementImpl extends _SVGCursorElement implements js_library.JSObjectInterfacesDom {
@@ -5632,7 +5632,7 @@ class _SVGCursorElementImpl extends _SVGCursorElement implements js_library.JSOb
   toString() => super.toString();
 }
 patch class ForeignObjectElement {
-  factory ForeignObjectElement._internalWrap() => new ForeignObjectElementImpl.internal_();
+  static Type get instanceRuntimeType => ForeignObjectElementImpl;
 
 }
 class ForeignObjectElementImpl extends ForeignObjectElement implements js_library.JSObjectInterfacesDom {
@@ -5641,7 +5641,7 @@ class ForeignObjectElementImpl extends ForeignObjectElement implements js_librar
   toString() => super.toString();
 }
 patch class SetElement {
-  factory SetElement._internalWrap() => new SetElementImpl.internal_();
+  static Type get instanceRuntimeType => SetElementImpl;
 
 }
 class SetElementImpl extends SetElement implements js_library.JSObjectInterfacesDom {
@@ -5650,7 +5650,7 @@ class SetElementImpl extends SetElement implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class SvgElement {
-  factory SvgElement._internalWrap() => new SvgElementImpl.internal_();
+  static Type get instanceRuntimeType => SvgElementImpl;
 
 }
 class SvgElementImpl extends SvgElement implements js_library.JSObjectInterfacesDom {
@@ -5659,7 +5659,7 @@ class SvgElementImpl extends SvgElement implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class UnitTypes {
-  factory UnitTypes._internalWrap() => new UnitTypesImpl.internal_();
+  static Type get instanceRuntimeType => UnitTypesImpl;
 
 }
 class UnitTypesImpl extends UnitTypes implements js_library.JSObjectInterfacesDom {
@@ -5668,7 +5668,7 @@ class UnitTypesImpl extends UnitTypes implements js_library.JSObjectInterfacesDo
   toString() => super.toString();
 }
 patch class FEComponentTransferElement {
-  factory FEComponentTransferElement._internalWrap() => new FEComponentTransferElementImpl.internal_();
+  static Type get instanceRuntimeType => FEComponentTransferElementImpl;
 
 }
 class FEComponentTransferElementImpl extends FEComponentTransferElement implements js_library.JSObjectInterfacesDom {
@@ -5676,8 +5676,17 @@ class FEComponentTransferElementImpl extends FEComponentTransferElement implemen
   get runtimeType => FEComponentTransferElement;
   toString() => super.toString();
 }
+patch class PathSegLinetoVerticalAbs {
+  static Type get instanceRuntimeType => PathSegLinetoVerticalAbsImpl;
+
+}
+class PathSegLinetoVerticalAbsImpl extends PathSegLinetoVerticalAbs implements js_library.JSObjectInterfacesDom {
+  PathSegLinetoVerticalAbsImpl.internal_() : super.internal_();
+  get runtimeType => PathSegLinetoVerticalAbs;
+  toString() => super.toString();
+}
 patch class DescElement {
-  factory DescElement._internalWrap() => new DescElementImpl.internal_();
+  static Type get instanceRuntimeType => DescElementImpl;
 
 }
 class DescElementImpl extends DescElement implements js_library.JSObjectInterfacesDom {
@@ -5686,7 +5695,7 @@ class DescElementImpl extends DescElement implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class DiscardElement {
-  factory DiscardElement._internalWrap() => new DiscardElementImpl.internal_();
+  static Type get instanceRuntimeType => DiscardElementImpl;
 
 }
 class DiscardElementImpl extends DiscardElement implements js_library.JSObjectInterfacesDom {
@@ -5694,17 +5703,8 @@ class DiscardElementImpl extends DiscardElement implements js_library.JSObjectIn
   get runtimeType => DiscardElement;
   toString() => super.toString();
 }
-patch class PathSegLinetoVerticalAbs {
-  factory PathSegLinetoVerticalAbs._internalWrap() => new PathSegLinetoVerticalAbsImpl.internal_();
-
-}
-class PathSegLinetoVerticalAbsImpl extends PathSegLinetoVerticalAbs implements js_library.JSObjectInterfacesDom {
-  PathSegLinetoVerticalAbsImpl.internal_() : super.internal_();
-  get runtimeType => PathSegLinetoVerticalAbs;
-  toString() => super.toString();
-}
 patch class FEMergeNodeElement {
-  factory FEMergeNodeElement._internalWrap() => new FEMergeNodeElementImpl.internal_();
+  static Type get instanceRuntimeType => FEMergeNodeElementImpl;
 
 }
 class FEMergeNodeElementImpl extends FEMergeNodeElement implements js_library.JSObjectInterfacesDom {
@@ -5713,7 +5713,7 @@ class FEMergeNodeElementImpl extends FEMergeNodeElement implements js_library.JS
   toString() => super.toString();
 }
 patch class TextPathElement {
-  factory TextPathElement._internalWrap() => new TextPathElementImpl.internal_();
+  static Type get instanceRuntimeType => TextPathElementImpl;
 
 }
 class TextPathElementImpl extends TextPathElement implements js_library.JSObjectInterfacesDom {
@@ -5722,7 +5722,7 @@ class TextPathElementImpl extends TextPathElement implements js_library.JSObject
   toString() => super.toString();
 }
 patch class FEOffsetElement {
-  factory FEOffsetElement._internalWrap() => new FEOffsetElementImpl.internal_();
+  static Type get instanceRuntimeType => FEOffsetElementImpl;
 
 }
 class FEOffsetElementImpl extends FEOffsetElement implements js_library.JSObjectInterfacesDom {
@@ -5731,7 +5731,7 @@ class FEOffsetElementImpl extends FEOffsetElement implements js_library.JSObject
   toString() => super.toString();
 }
 patch class ZoomAndPan {
-  factory ZoomAndPan._internalWrap() => new ZoomAndPanImpl.internal_();
+  static Type get instanceRuntimeType => ZoomAndPanImpl;
 
 }
 class ZoomAndPanImpl extends ZoomAndPan implements js_library.JSObjectInterfacesDom {
@@ -5740,7 +5740,7 @@ class ZoomAndPanImpl extends ZoomAndPan implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class ViewElement {
-  factory ViewElement._internalWrap() => new ViewElementImpl.internal_();
+  static Type get instanceRuntimeType => ViewElementImpl;
 
 }
 class ViewElementImpl extends ViewElement implements js_library.JSObjectInterfacesDom {
@@ -5749,7 +5749,7 @@ class ViewElementImpl extends ViewElement implements js_library.JSObjectInterfac
   toString() => super.toString();
 }
 patch class FEPointLightElement {
-  factory FEPointLightElement._internalWrap() => new FEPointLightElementImpl.internal_();
+  static Type get instanceRuntimeType => FEPointLightElementImpl;
 
 }
 class FEPointLightElementImpl extends FEPointLightElement implements js_library.JSObjectInterfacesDom {
@@ -5758,7 +5758,7 @@ class FEPointLightElementImpl extends FEPointLightElement implements js_library.
   toString() => super.toString();
 }
 patch class FEFuncAElement {
-  factory FEFuncAElement._internalWrap() => new FEFuncAElementImpl.internal_();
+  static Type get instanceRuntimeType => FEFuncAElementImpl;
 
 }
 class FEFuncAElementImpl extends FEFuncAElement implements js_library.JSObjectInterfacesDom {
@@ -5776,7 +5776,7 @@ class FEFuncAElementImpl extends FEFuncAElement implements js_library.JSObjectIn
 const _UNDEFINED_JS_CONST = const Object();
 
 patch class GainNode {
-  factory GainNode._internalWrap() => new GainNodeImpl.internal_();
+  static Type get instanceRuntimeType => GainNodeImpl;
 
 }
 class GainNodeImpl extends GainNode implements js_library.JSObjectInterfacesDom {
@@ -5785,7 +5785,7 @@ class GainNodeImpl extends GainNode implements js_library.JSObjectInterfacesDom 
   toString() => super.toString();
 }
 patch class MediaStreamAudioDestinationNode {
-  factory MediaStreamAudioDestinationNode._internalWrap() => new MediaStreamAudioDestinationNodeImpl.internal_();
+  static Type get instanceRuntimeType => MediaStreamAudioDestinationNodeImpl;
 
 }
 class MediaStreamAudioDestinationNodeImpl extends MediaStreamAudioDestinationNode implements js_library.JSObjectInterfacesDom {
@@ -5794,7 +5794,7 @@ class MediaStreamAudioDestinationNodeImpl extends MediaStreamAudioDestinationNod
   toString() => super.toString();
 }
 patch class AudioProcessingEvent {
-  factory AudioProcessingEvent._internalWrap() => new AudioProcessingEventImpl.internal_();
+  static Type get instanceRuntimeType => AudioProcessingEventImpl;
 
 }
 class AudioProcessingEventImpl extends AudioProcessingEvent implements js_library.JSObjectInterfacesDom {
@@ -5803,7 +5803,7 @@ class AudioProcessingEventImpl extends AudioProcessingEvent implements js_librar
   toString() => super.toString();
 }
 patch class StereoPannerNode {
-  factory StereoPannerNode._internalWrap() => new StereoPannerNodeImpl.internal_();
+  static Type get instanceRuntimeType => StereoPannerNodeImpl;
 
 }
 class StereoPannerNodeImpl extends StereoPannerNode implements js_library.JSObjectInterfacesDom {
@@ -5812,7 +5812,7 @@ class StereoPannerNodeImpl extends StereoPannerNode implements js_library.JSObje
   toString() => super.toString();
 }
 patch class DynamicsCompressorNode {
-  factory DynamicsCompressorNode._internalWrap() => new DynamicsCompressorNodeImpl.internal_();
+  static Type get instanceRuntimeType => DynamicsCompressorNodeImpl;
 
 }
 class DynamicsCompressorNodeImpl extends DynamicsCompressorNode implements js_library.JSObjectInterfacesDom {
@@ -5821,7 +5821,7 @@ class DynamicsCompressorNodeImpl extends DynamicsCompressorNode implements js_li
   toString() => super.toString();
 }
 patch class PeriodicWave {
-  factory PeriodicWave._internalWrap() => new PeriodicWaveImpl.internal_();
+  static Type get instanceRuntimeType => PeriodicWaveImpl;
 
 }
 class PeriodicWaveImpl extends PeriodicWave implements js_library.JSObjectInterfacesDom {
@@ -5830,7 +5830,7 @@ class PeriodicWaveImpl extends PeriodicWave implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class MediaStreamAudioSourceNode {
-  factory MediaStreamAudioSourceNode._internalWrap() => new MediaStreamAudioSourceNodeImpl.internal_();
+  static Type get instanceRuntimeType => MediaStreamAudioSourceNodeImpl;
 
 }
 class MediaStreamAudioSourceNodeImpl extends MediaStreamAudioSourceNode implements js_library.JSObjectInterfacesDom {
@@ -5839,7 +5839,7 @@ class MediaStreamAudioSourceNodeImpl extends MediaStreamAudioSourceNode implemen
   toString() => super.toString();
 }
 patch class PannerNode {
-  factory PannerNode._internalWrap() => new PannerNodeImpl.internal_();
+  static Type get instanceRuntimeType => PannerNodeImpl;
 
 }
 class PannerNodeImpl extends PannerNode implements js_library.JSObjectInterfacesDom {
@@ -5848,7 +5848,7 @@ class PannerNodeImpl extends PannerNode implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class OfflineAudioContext {
-  factory OfflineAudioContext._internalWrap() => new OfflineAudioContextImpl.internal_();
+  static Type get instanceRuntimeType => OfflineAudioContextImpl;
 
 }
 class OfflineAudioContextImpl extends OfflineAudioContext implements js_library.JSObjectInterfacesDom {
@@ -5857,7 +5857,7 @@ class OfflineAudioContextImpl extends OfflineAudioContext implements js_library.
   toString() => super.toString();
 }
 patch class AudioParam {
-  factory AudioParam._internalWrap() => new AudioParamImpl.internal_();
+  static Type get instanceRuntimeType => AudioParamImpl;
 
 }
 class AudioParamImpl extends AudioParam implements js_library.JSObjectInterfacesDom {
@@ -5866,7 +5866,7 @@ class AudioParamImpl extends AudioParam implements js_library.JSObjectInterfaces
   toString() => super.toString();
 }
 patch class AnalyserNode {
-  factory AnalyserNode._internalWrap() => new AnalyserNodeImpl.internal_();
+  static Type get instanceRuntimeType => AnalyserNodeImpl;
 
 }
 class AnalyserNodeImpl extends AnalyserNode implements js_library.JSObjectInterfacesDom {
@@ -5875,7 +5875,7 @@ class AnalyserNodeImpl extends AnalyserNode implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class ConvolverNode {
-  factory ConvolverNode._internalWrap() => new ConvolverNodeImpl.internal_();
+  static Type get instanceRuntimeType => ConvolverNodeImpl;
 
 }
 class ConvolverNodeImpl extends ConvolverNode implements js_library.JSObjectInterfacesDom {
@@ -5884,7 +5884,7 @@ class ConvolverNodeImpl extends ConvolverNode implements js_library.JSObjectInte
   toString() => super.toString();
 }
 patch class AudioNode {
-  factory AudioNode._internalWrap() => new AudioNodeImpl.internal_();
+  static Type get instanceRuntimeType => AudioNodeImpl;
 
 }
 class AudioNodeImpl extends AudioNode implements js_library.JSObjectInterfacesDom {
@@ -5893,7 +5893,7 @@ class AudioNodeImpl extends AudioNode implements js_library.JSObjectInterfacesDo
   toString() => super.toString();
 }
 patch class AudioDestinationNode {
-  factory AudioDestinationNode._internalWrap() => new AudioDestinationNodeImpl.internal_();
+  static Type get instanceRuntimeType => AudioDestinationNodeImpl;
 
 }
 class AudioDestinationNodeImpl extends AudioDestinationNode implements js_library.JSObjectInterfacesDom {
@@ -5902,7 +5902,7 @@ class AudioDestinationNodeImpl extends AudioDestinationNode implements js_librar
   toString() => super.toString();
 }
 patch class WaveShaperNode {
-  factory WaveShaperNode._internalWrap() => new WaveShaperNodeImpl.internal_();
+  static Type get instanceRuntimeType => WaveShaperNodeImpl;
 
 }
 class WaveShaperNodeImpl extends WaveShaperNode implements js_library.JSObjectInterfacesDom {
@@ -5911,7 +5911,7 @@ class WaveShaperNodeImpl extends WaveShaperNode implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class ScriptProcessorNode {
-  factory ScriptProcessorNode._internalWrap() => new ScriptProcessorNodeImpl.internal_();
+  static Type get instanceRuntimeType => ScriptProcessorNodeImpl;
 
 }
 class ScriptProcessorNodeImpl extends ScriptProcessorNode implements js_library.JSObjectInterfacesDom {
@@ -5920,7 +5920,7 @@ class ScriptProcessorNodeImpl extends ScriptProcessorNode implements js_library.
   toString() => super.toString();
 }
 patch class MediaElementAudioSourceNode {
-  factory MediaElementAudioSourceNode._internalWrap() => new MediaElementAudioSourceNodeImpl.internal_();
+  static Type get instanceRuntimeType => MediaElementAudioSourceNodeImpl;
 
 }
 class MediaElementAudioSourceNodeImpl extends MediaElementAudioSourceNode implements js_library.JSObjectInterfacesDom {
@@ -5929,7 +5929,7 @@ class MediaElementAudioSourceNodeImpl extends MediaElementAudioSourceNode implem
   toString() => super.toString();
 }
 patch class AudioBufferSourceNode {
-  factory AudioBufferSourceNode._internalWrap() => new AudioBufferSourceNodeImpl.internal_();
+  static Type get instanceRuntimeType => AudioBufferSourceNodeImpl;
 
 }
 class AudioBufferSourceNodeImpl extends AudioBufferSourceNode implements js_library.JSObjectInterfacesDom {
@@ -5938,7 +5938,7 @@ class AudioBufferSourceNodeImpl extends AudioBufferSourceNode implements js_libr
   toString() => super.toString();
 }
 patch class AudioContext {
-  factory AudioContext._internalWrap() => new AudioContextImpl.internal_();
+  static Type get instanceRuntimeType => AudioContextImpl;
 
 }
 class AudioContextImpl extends AudioContext implements js_library.JSObjectInterfacesDom {
@@ -5947,7 +5947,7 @@ class AudioContextImpl extends AudioContext implements js_library.JSObjectInterf
   toString() => super.toString();
 }
 patch class ChannelSplitterNode {
-  factory ChannelSplitterNode._internalWrap() => new ChannelSplitterNodeImpl.internal_();
+  static Type get instanceRuntimeType => ChannelSplitterNodeImpl;
 
 }
 class ChannelSplitterNodeImpl extends ChannelSplitterNode implements js_library.JSObjectInterfacesDom {
@@ -5956,7 +5956,7 @@ class ChannelSplitterNodeImpl extends ChannelSplitterNode implements js_library.
   toString() => super.toString();
 }
 patch class DelayNode {
-  factory DelayNode._internalWrap() => new DelayNodeImpl.internal_();
+  static Type get instanceRuntimeType => DelayNodeImpl;
 
 }
 class DelayNodeImpl extends DelayNode implements js_library.JSObjectInterfacesDom {
@@ -5965,7 +5965,7 @@ class DelayNodeImpl extends DelayNode implements js_library.JSObjectInterfacesDo
   toString() => super.toString();
 }
 patch class OfflineAudioCompletionEvent {
-  factory OfflineAudioCompletionEvent._internalWrap() => new OfflineAudioCompletionEventImpl.internal_();
+  static Type get instanceRuntimeType => OfflineAudioCompletionEventImpl;
 
 }
 class OfflineAudioCompletionEventImpl extends OfflineAudioCompletionEvent implements js_library.JSObjectInterfacesDom {
@@ -5974,7 +5974,7 @@ class OfflineAudioCompletionEventImpl extends OfflineAudioCompletionEvent implem
   toString() => super.toString();
 }
 patch class OscillatorNode {
-  factory OscillatorNode._internalWrap() => new OscillatorNodeImpl.internal_();
+  static Type get instanceRuntimeType => OscillatorNodeImpl;
 
 }
 class OscillatorNodeImpl extends OscillatorNode implements js_library.JSObjectInterfacesDom {
@@ -5983,7 +5983,7 @@ class OscillatorNodeImpl extends OscillatorNode implements js_library.JSObjectIn
   toString() => super.toString();
 }
 patch class BiquadFilterNode {
-  factory BiquadFilterNode._internalWrap() => new BiquadFilterNodeImpl.internal_();
+  static Type get instanceRuntimeType => BiquadFilterNodeImpl;
 
 }
 class BiquadFilterNodeImpl extends BiquadFilterNode implements js_library.JSObjectInterfacesDom {
@@ -5992,7 +5992,7 @@ class BiquadFilterNodeImpl extends BiquadFilterNode implements js_library.JSObje
   toString() => super.toString();
 }
 patch class AudioBuffer {
-  factory AudioBuffer._internalWrap() => new AudioBufferImpl.internal_();
+  static Type get instanceRuntimeType => AudioBufferImpl;
 
 }
 class AudioBufferImpl extends AudioBuffer implements js_library.JSObjectInterfacesDom {
@@ -6000,17 +6000,8 @@ class AudioBufferImpl extends AudioBuffer implements js_library.JSObjectInterfac
   get runtimeType => AudioBuffer;
   toString() => super.toString();
 }
-patch class AudioListener {
-  factory AudioListener._internalWrap() => new AudioListenerImpl.internal_();
-
-}
-class AudioListenerImpl extends AudioListener implements js_library.JSObjectInterfacesDom {
-  AudioListenerImpl.internal_() : super.internal_();
-  get runtimeType => AudioListener;
-  toString() => super.toString();
-}
 patch class ChannelMergerNode {
-  factory ChannelMergerNode._internalWrap() => new ChannelMergerNodeImpl.internal_();
+  static Type get instanceRuntimeType => ChannelMergerNodeImpl;
 
 }
 class ChannelMergerNodeImpl extends ChannelMergerNode implements js_library.JSObjectInterfacesDom {
@@ -6019,12 +6010,21 @@ class ChannelMergerNodeImpl extends ChannelMergerNode implements js_library.JSOb
   toString() => super.toString();
 }
 patch class AudioSourceNode {
-  factory AudioSourceNode._internalWrap() => new AudioSourceNodeImpl.internal_();
+  static Type get instanceRuntimeType => AudioSourceNodeImpl;
 
 }
 class AudioSourceNodeImpl extends AudioSourceNode implements js_library.JSObjectInterfacesDom {
   AudioSourceNodeImpl.internal_() : super.internal_();
   get runtimeType => AudioSourceNode;
+  toString() => super.toString();
+}
+patch class AudioListener {
+  static Type get instanceRuntimeType => AudioListenerImpl;
+
+}
+class AudioListenerImpl extends AudioListener implements js_library.JSObjectInterfacesDom {
+  AudioListenerImpl.internal_() : super.internal_();
+  get runtimeType => AudioListener;
   toString() => super.toString();
 }
 

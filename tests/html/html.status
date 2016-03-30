@@ -7,16 +7,11 @@ cross_frame_test: Skip # Test reloads itself. Issue 18558
 
 [ $compiler == none && ($runtime == dartium || $runtime == drt) ]
 
-js_array_test: Skip # Dartium JSInterop failure
 mirrors_js_typed_interop_test: Fail # Missing expected failure (Issue 25044)
 js_typed_interop_side_cast_exp_test: Fail, OK # tests dart2js-specific behavior.
 
 cross_domain_iframe_test: RuntimeError # Dartium JSInterop failure
-indexeddb_2_test: Fail # Dartium JSInterop failure. Identity preservation on array deferred copy.
-js_test/transferrables: RuntimeError # Dartium JSInterop failure
-js_test/JsArray: RuntimeError # Dartium JSInterop failure
 native_gc_test: Skip # Dartium JSInterop failure
-transferables_test: RuntimeError # Dartium JSInterop failure
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium ) ]
 worker_api_test: Fail # Issue 10223

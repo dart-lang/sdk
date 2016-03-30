@@ -24,11 +24,3 @@ $!GENERATED_DART_FILES
 final web_glBlinkMap = {
 $!TYPE_MAP
 };
-
-$if JSINTEROP
-// FIXME: Can we make this private?
-@Deprecated("Internal Use Only")
-final web_glBlinkFunctionMap = {
-$!TYPE_FUNCTION_MAP
-};
-$endif

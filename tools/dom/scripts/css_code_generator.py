@@ -154,7 +154,7 @@ $endif
 $if DARTIUM
   bool _hasProperty(String propertyName) =>
   $if JSINTEROP
-      _blink.BlinkCSSStyleDeclaration.instance.$__propertyQuery___Callback_1_(unwrap_jso(this), propertyName) != null;
+      _blink.BlinkCSSStyleDeclaration.instance.$__propertyQuery___Callback_1_(this, propertyName);
   $else
       _blink.BlinkCSSStyleDeclaration.$__propertyQuery___Callback_1(this, propertyName);
   $endif
