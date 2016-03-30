@@ -26,6 +26,11 @@ inline void AtomicOperations::IncrementBy(intptr_t* p, intptr_t value) {
 }
 
 
+inline void AtomicOperations::IncrementInt64By(int64_t* p, int64_t value) {
+  __sync_fetch_and_add(p, value);
+}
+
+
 inline uintptr_t AtomicOperations::FetchAndDecrement(uintptr_t* p) {
   return __sync_fetch_and_sub(p, 1);
 }

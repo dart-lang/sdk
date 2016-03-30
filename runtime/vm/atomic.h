@@ -26,6 +26,7 @@ class AtomicOperations : public AllStatic {
   // NOTE: Not to be used for any atomic operations involving memory locations
   // that are accessed by generated code.
   static void IncrementBy(intptr_t* p, intptr_t value);
+  static void IncrementInt64By(int64_t* p, int64_t value);
 
   // Atomically fetch the value at p and decrement the value at p.
   // Returns the original value at p.

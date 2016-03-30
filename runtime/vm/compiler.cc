@@ -1670,12 +1670,15 @@ void BackgroundCompiler::Run() {
     ASSERT(result);
     {
       Thread* thread = Thread::Current();
+      Isolate* isolate = thread->isolate();
       StackZone stack_zone(thread);
       Zone* zone = stack_zone.GetZone();
       HANDLESCOPE(thread);
       Function& function = Function::Handle(zone);
       function = function_queue()->PeekFunction();
       while (running_ && !function.IsNull()) {
+        // Check that we have aggregated and cleared the stats.
+        ASSERT(thread->compiler_stats()->IsCleared());
         const Error& error = Error::Handle(zone,
             Compiler::CompileOptimizedFunction(thread,
                                                function,
@@ -1685,6 +1688,8 @@ void BackgroundCompiler::Run() {
         // unoptimized code. Any issues while optimizing are flagged by
         // making the result invalid.
         ASSERT(error.IsNull());
+        isolate->aggregate_compiler_stats()->Add(*thread->compiler_stats());
+        thread->compiler_stats()->Clear();
         QueueElement* qelem = function_queue()->Remove();
         delete qelem;
         function = function_queue()->PeekFunction();

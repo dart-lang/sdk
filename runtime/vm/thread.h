@@ -23,6 +23,7 @@ class Array;
 class CHA;
 class Class;
 class Code;
+class CompilerStats;
 class Error;
 class ExceptionHandlers;
 class Field;
@@ -443,6 +444,8 @@ LEAF_RUNTIME_ENTRY_LIST(DEFINE_OFFSET_METHOD)
   void set_sticky_error(const Error& value);
   void clear_sticky_error();
 
+  CompilerStats* compiler_stats() { return compiler_stats_; }
+
 #if defined(DEBUG)
 #define REUSABLE_HANDLE_SCOPE_ACCESSORS(object)                                \
   void set_reusable_##object##_handle_scope_active(bool value) {               \
@@ -650,6 +653,8 @@ LEAF_RUNTIME_ENTRY_LIST(DECLARE_MEMBERS)
   RawGrowableObjectArray* pending_functions_;
 
   RawError* sticky_error_;
+
+  CompilerStats* compiler_stats_;
 
   // Reusable handles support.
 #define REUSABLE_HANDLE_FIELDS(object)                                         \

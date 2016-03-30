@@ -4,6 +4,7 @@
 
 #include "vm/thread.h"
 
+#include "vm/compiler_stats.h"
 #include "vm/dart_api_state.h"
 #include "vm/growable_array.h"
 #include "vm/isolate.h"
@@ -30,6 +31,10 @@ DECLARE_FLAG(bool, trace_service_verbose);
 Thread::~Thread() {
   // We should cleanly exit any isolate before destruction.
   ASSERT(isolate_ == NULL);
+  if (compiler_stats_ != NULL) {
+    delete compiler_stats_;
+    compiler_stats_ = NULL;
+  }
   // There should be no top api scopes at this point.
   ASSERT(api_top_scope() == NULL);
   // Delete the resusable api scope if there is one.
@@ -85,6 +90,7 @@ Thread::Thread(Isolate* isolate)
       deopt_id_(0),
       pending_functions_(GrowableObjectArray::null()),
       sticky_error_(Error::null()),
+      compiler_stats_(NULL),
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_INITIALIZERS)
       REUSABLE_HANDLE_LIST(REUSABLE_HANDLE_SCOPE_INIT)
       safepoint_state_(0),
@@ -109,6 +115,13 @@ LEAF_RUNTIME_ENTRY_LIST(DEFAULT_INIT)
   // due to boot strapping issues.
   if ((Dart::vm_isolate() != NULL) && (isolate != Dart::vm_isolate())) {
     InitVMConstants();
+  }
+
+  if (FLAG_support_compiler_stats) {
+    compiler_stats_ = new CompilerStats(isolate);
+    if (FLAG_compiler_benchmark) {
+      compiler_stats_->EnableBenchmark();
+    }
   }
 }
 

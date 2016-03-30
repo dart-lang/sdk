@@ -12019,7 +12019,7 @@ void Parser::CacheConstantValue(TokenPosition token_pos,
   ConstantsMap constants(isolate()->object_store()->compile_time_constants());
   constants.InsertNewOrGetValue(key, value);
   if (FLAG_compiler_stats) {
-    isolate_->compiler_stats()->num_cached_consts = constants.NumOccupied();
+    thread_->compiler_stats()->num_cached_consts = constants.NumOccupied();
   }
   isolate()->object_store()->set_compile_time_constants(constants.Release());
 }
@@ -12038,7 +12038,7 @@ bool Parser::GetCachedConstant(TokenPosition token_pos, Instance* value) {
   // do not assert that 'compile_time_constants' has not changed.
   constants.Release();
   if (FLAG_compiler_stats && is_present) {
-    isolate_->compiler_stats()->num_const_cache_hits++;
+    thread_->compiler_stats()->num_const_cache_hits++;
   }
   return is_present;
 }

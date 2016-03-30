@@ -7,6 +7,7 @@
 
 #include "platform/utils.h"
 #include "vm/allocation.h"
+#include "vm/atomic.h"
 #include "vm/flags.h"
 #include "vm/os.h"
 
@@ -34,7 +35,8 @@ class Timer : public ValueObject {
     stop_ = OS::GetCurrentTimeMicros();
     int64_t elapsed = ElapsedMicros();
     max_contiguous_ = Utils::Maximum(max_contiguous_, elapsed);
-    total_ += elapsed;
+    // Make increment atomic in case it occurs in parallel with aggregation.
+    AtomicOperations::IncrementInt64By(&total_, elapsed);
     running_ = false;
   }
 
@@ -63,6 +65,15 @@ class Timer : public ValueObject {
     total_ = 0;
     max_contiguous_ = 0;
     running_ = false;
+  }
+
+  bool IsReset() const {
+    return (start_ == 0) && (stop_ == 0) && (total_ == 0) &&
+        (max_contiguous_ == 0) && !running_;
+  }
+
+  void AddTotal(const Timer& other) {
+    AtomicOperations::IncrementInt64By(&total_, other.total_);
   }
 
   // Accessors.
