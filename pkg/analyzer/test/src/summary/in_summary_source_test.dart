@@ -8,6 +8,7 @@ import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
+import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../reflective_tests.dart';
@@ -20,15 +21,16 @@ main() {
 @reflectiveTest
 class InSummarySourceTest extends ReflectiveTest {
   test_fallbackPath() {
+    String fooFallbackPath = absolute('path', 'to', 'foo.dart');
     var sourceFactory = new SourceFactory([
       new InSummaryPackageUriResolver(new MockSummaryDataStore.fake(
           {'package:foo/foo.dart': 'foo.sum',},
-          uriToFallbackModePath: {'package:foo/foo.dart': '/path/to/foo.dart'}))
+          uriToFallbackModePath: {'package:foo/foo.dart': fooFallbackPath}))
     ]);
 
     InSummarySource source = sourceFactory.forUri('package:foo/foo.dart');
     expect(source, new isInstanceOf<FileBasedSource>());
-    expect(source.fullName, '/path/to/foo.dart');
+    expect(source.fullName, fooFallbackPath);
   }
 
   test_InSummarySource() {
