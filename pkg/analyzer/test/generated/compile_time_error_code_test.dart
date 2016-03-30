@@ -5478,6 +5478,22 @@ class D implements A {}''');
     verify([source]);
   }
 
+  void test_recursiveInterfaceInheritanceBaseCaseExtends_abstract() {
+    Source source = addSource(r'''
+class C extends C {
+  var bar = 0;
+  m();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [
+      CompileTimeErrorCode.RECURSIVE_INTERFACE_INHERITANCE_BASE_CASE_EXTENDS,
+      StaticWarningCode.CONCRETE_CLASS_WITH_ABSTRACT_MEMBER,
+      StaticWarningCode.NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_ONE
+    ]);
+    verify([source]);
+  }
+
   void test_recursiveInterfaceInheritanceBaseCaseImplements() {
     Source source = addSource("class A implements A {}");
     computeLibrarySourceErrors(source);

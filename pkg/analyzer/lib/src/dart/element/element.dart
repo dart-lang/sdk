@@ -568,7 +568,8 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   @override
   MethodElement lookUpConcreteMethod(
           String methodName, LibraryElement library) =>
-      _internalLookUpConcreteMethod(methodName, library, true);
+      _internalLookUpConcreteMethod(
+          methodName, library, true, new HashSet<ClassElement>());
 
   @override
   PropertyAccessorElement lookUpGetter(
@@ -583,7 +584,8 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   @override
   MethodElement lookUpInheritedConcreteMethod(
           String methodName, LibraryElement library) =>
-      _internalLookUpConcreteMethod(methodName, library, false);
+      _internalLookUpConcreteMethod(
+          methodName, library, false, new HashSet<ClassElement>());
 
   @override
   PropertyAccessorElement lookUpInheritedConcreteSetter(
@@ -593,11 +595,13 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   @override
   MethodElement lookUpInheritedMethod(
           String methodName, LibraryElement library) =>
-      _internalLookUpMethod(methodName, library, false);
+      _internalLookUpMethod(
+          methodName, library, false, new HashSet<ClassElement>());
 
   @override
   MethodElement lookUpMethod(String methodName, LibraryElement library) =>
-      _internalLookUpMethod(methodName, library, true);
+      _internalLookUpMethod(
+          methodName, library, true, new HashSet<ClassElement>());
 
   @override
   PropertyAccessorElement lookUpSetter(
@@ -751,15 +755,19 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
   }
 
   MethodElement _internalLookUpConcreteMethod(
-      String methodName, LibraryElement library, bool includeThisClass) {
-    MethodElement method =
-        _internalLookUpMethod(methodName, library, includeThisClass);
+      String methodName,
+      LibraryElement library,
+      bool includeThisClass,
+      HashSet<ClassElement> visitedClasses) {
+    MethodElement method = _internalLookUpMethod(
+        methodName, library, includeThisClass, visitedClasses);
     while (method != null && method.isAbstract) {
       ClassElement definingClass = method.enclosingElement;
       if (definingClass == null) {
         return null;
       }
-      method = definingClass.lookUpInheritedMethod(methodName, library);
+      method = getImpl(definingClass)
+          ._internalLookUpMethod(methodName, library, false, visitedClasses);
     }
     return method;
   }
@@ -812,9 +820,8 @@ class ClassElementImpl extends ElementImpl implements ClassElement {
     return null;
   }
 
-  MethodElement _internalLookUpMethod(
-      String methodName, LibraryElement library, bool includeThisClass) {
-    HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
+  MethodElement _internalLookUpMethod(String methodName, LibraryElement library,
+      bool includeThisClass, HashSet<ClassElement> visitedClasses) {
     ClassElement currentElement = this;
     if (includeThisClass) {
       MethodElement element = currentElement.getMethod(methodName);
