@@ -41,9 +41,11 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
 
   Map<String, Map<dynamic/*String|MessageKind*/, int>> whiteListMap
       = new Map<String, Map<dynamic/*String|MessageKind*/, int>>();
+  List<MessageKind> skipList;
 
   CollectingDiagnosticHandler(
       Map<String, List/*<String|MessageKind>*/> whiteList,
+      this.skipList,
       SourceFileProvider provider)
       : super(provider) {
     whiteList.forEach((String file, List/*<String|MessageKind>*/ messageParts) {
@@ -88,6 +90,9 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
   bool checkWhiteList(Uri uri, Message message, String text) {
     if (uri == null) {
       return false;
+    }
+    if (skipList.contains(message.kind)) {
+      return true;
     }
     String path = uri.path;
     for (String file in whiteListMap.keys) {
@@ -169,11 +174,17 @@ enum AnalysisMode {
   TREE_SHAKING,
 }
 
+/// Analyzes the file(s) in [uriList] using the provided [mode] and checks that
+/// no messages (errors, warnings or hints) are emitted.
+///
+/// Messages can be generally allowed using [skipList] or on a per-file basis
+/// using [whiteList].
 Future analyze(List<Uri> uriList,
                Map<String, List/*<String|MessageKind>*/> whiteList,
                {AnalysisMode mode: AnalysisMode.ALL,
                 CheckResults checkResults,
-                List<String> options: const <String>[]}) async {
+                List<String> options: const <String>[],
+                List<MessageKind> skipList: const <MessageKind>[]}) async {
   String testFileName =
       relativize(Uri.base, Platform.script, Platform.isWindows);
 
@@ -191,7 +202,7 @@ Future analyze(List<Uri> uriList,
   var packageRoot =
       currentDirectory.resolve(Platform.packageRoot);
   var provider = new CompilerSourceFileProvider();
-  var handler = new CollectingDiagnosticHandler(whiteList, provider);
+  var handler = new CollectingDiagnosticHandler(whiteList, skipList, provider);
   options = <String>[Flags.analyzeOnly, '--categories=Client,Server',
       Flags.showPackageWarnings]..addAll(options);
   switch (mode) {
