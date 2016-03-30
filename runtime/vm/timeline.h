@@ -128,6 +128,8 @@ class TimelineEvent {
     kAsyncBegin,
     kAsyncInstant,
     kAsyncEnd,
+    kCounter,
+    kMetadata,
     kNumEventTypes,
   };
 
@@ -168,6 +170,12 @@ class TimelineEvent {
 
   void End(const char* label,
            int64_t micros = OS::GetCurrentMonotonicMicros());
+
+  void Counter(const char* label,
+               int64_t micros = OS::GetCurrentMonotonicMicros());
+
+  void Metadata(const char* label,
+                int64_t micros = OS::GetCurrentMonotonicMicros());
 
   // Completes this event with pre-serialized JSON. Copies |json|.
   void CompleteWithPreSerializedJSON(const char* json);

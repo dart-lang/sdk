@@ -983,10 +983,15 @@ DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
                                              void* user_data);
 
 typedef enum {
-  Dart_Timeline_Event_Begin,       // Phase = 'B'.
-  Dart_Timeline_Event_End,         // Phase = 'E'.
-  Dart_Timeline_Event_Instant,     // Phase = 'i'.
-  Dart_Timeline_Event_Duration,    // Phase = 'X'.
+  Dart_Timeline_Event_Begin,          // Phase = 'B'.
+  Dart_Timeline_Event_End,            // Phase = 'E'.
+  Dart_Timeline_Event_Instant,        // Phase = 'i'.
+  Dart_Timeline_Event_Duration,       // Phase = 'X'.
+  Dart_Timeline_Event_Async_Begin,    // Phase = 'b'.
+  Dart_Timeline_Event_Async_End,      // Phase = 'e'.
+  Dart_Timeline_Event_Async_Instant,  // Phase = 'n'.
+  Dart_Timeline_Event_Counter,        // Phase = 'C'.
+  Dart_Timeline_Event_Metadata,       // Phase = 'M'.
 } Dart_Timeline_Event_Type;
 
 /**

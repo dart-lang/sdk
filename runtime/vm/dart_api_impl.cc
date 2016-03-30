@@ -5947,7 +5947,7 @@ DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
 
 DART_EXPORT void Dart_TimelineEvent(const char* label,
                                     int64_t timestamp0,
-                                    int64_t timestamp1,
+                                    int64_t timestamp1_or_async_id,
                                     Dart_Timeline_Event_Type type,
                                     intptr_t argument_count,
                                     const char** argument_names,
@@ -5958,7 +5958,7 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
   if (type < Dart_Timeline_Event_Begin) {
     return;
   }
-  if (type > Dart_Timeline_Event_Duration) {
+  if (type > Dart_Timeline_Event_Metadata) {
     return;
   }
   TimelineStream* stream = Timeline::GetEmbedderStream();
@@ -5978,7 +5978,22 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
       event->Instant(label, timestamp0);
     break;
     case Dart_Timeline_Event_Duration:
-      event->Duration(label, timestamp0, timestamp1);
+      event->Duration(label, timestamp0, timestamp1_or_async_id);
+    break;
+    case Dart_Timeline_Event_Async_Begin:
+      event->AsyncBegin(label, timestamp1_or_async_id, timestamp0);
+    break;
+    case Dart_Timeline_Event_Async_End:
+      event->AsyncEnd(label, timestamp1_or_async_id, timestamp0);
+    break;
+    case Dart_Timeline_Event_Async_Instant:
+      event->AsyncInstant(label, timestamp1_or_async_id, timestamp0);
+    break;
+    case Dart_Timeline_Event_Counter:
+      event->Counter(label, timestamp0);
+    break;
+    case Dart_Timeline_Event_Metadata:
+      event->Metadata(label, timestamp0);
     break;
     default:
       FATAL("Unknown Dart_Timeline_Event_Type");

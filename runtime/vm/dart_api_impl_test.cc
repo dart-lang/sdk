@@ -9539,6 +9539,22 @@ TEST_CASE(Timeline_Dart_GlobalTimelineGetTrace) {
                        1,
                        &arg_names[0],
                        &arg_values[0]);
+    // Add metadata to the embedder stream.
+    Dart_TimelineEvent("METADATA_EVENT",
+                       Dart_TimelineGetMicros(),
+                       0,
+                       Dart_Timeline_Event_Metadata,
+                       0,
+                       NULL,
+                       NULL);
+    // Add counter to the embedder stream.
+    Dart_TimelineEvent("COUNTER_EVENT",
+                       Dart_TimelineGetMicros(),
+                       0,
+                       Dart_Timeline_Event_Counter,
+                       0,
+                       NULL,
+                       NULL);
   }
 
   // Invoke main, which will be compiled resulting in a compiler event in
@@ -9583,6 +9599,8 @@ TEST_CASE(Timeline_Dart_GlobalTimelineGetTrace) {
   EXPECT_SUBSTRING("TRACE_EVENT", buffer);
   EXPECT_SUBSTRING("arg0", buffer);
   EXPECT_SUBSTRING("value0", buffer);
+  EXPECT_SUBSTRING("METADATA_EVENT", buffer);
+  EXPECT_SUBSTRING("COUNTER_EVENT", buffer);
 
   // Free buffer allocated by AppendStreamConsumer
   free(data.buffer);
