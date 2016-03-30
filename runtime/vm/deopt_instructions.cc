@@ -666,9 +666,14 @@ class DeoptPcMarkerInstr : public DeoptInstr {
       return;
     }
 
-    *dest_addr = reinterpret_cast<intptr_t>(Object::null());
-    deopt_context->DeferPcMarkerMaterialization(
-        object_table_index_, dest_addr);
+    // We don't always have the Code object for the frame's corresponding
+    // unoptimized code as it may have been collected. Use a stub as the pc
+    // marker until we can recreate that Code object during deferred
+    // materialization to maintain the invariant that Dart frames always have
+    // a pc marker.
+    *reinterpret_cast<RawObject**>(dest_addr) =
+        StubCode::FrameAwaitingMaterialization_entry()->code();
+    deopt_context->DeferPcMarkerMaterialization(object_table_index_, dest_addr);
   }
 
  private:

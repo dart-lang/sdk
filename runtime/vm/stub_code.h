@@ -63,6 +63,7 @@ class SnapshotWriter;
   V(Subtype2TestCache)                                                         \
   V(Subtype3TestCache)                                                         \
   V(CallClosureNoSuchMethod)                                                   \
+  V(FrameAwaitingMaterialization)                                              \
 
 // Is it permitted for the stubs above to refer to Object::null(), which is
 // allocated in the VM isolate and shared across all isolates.

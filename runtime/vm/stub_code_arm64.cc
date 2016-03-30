@@ -2232,6 +2232,11 @@ void StubCode::GenerateICLookupThroughCodeStub(Assembler* assembler) {
   __ ret();
 }
 
+
+void StubCode::GenerateFrameAwaitingMaterializationStub(Assembler* assembler) {
+  __ brk(0);
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_ARM64
