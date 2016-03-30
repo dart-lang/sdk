@@ -116,7 +116,7 @@ regress_25335_test: Skip # Int64List not supported.
 [ $compiler == dart2js && $cps_ir && $checked ]
 *: Skip # `assert` not implemented
 
-[ ($runtime == vm || $runtime == dart_product) && $mode == debug ]
+[ ($runtime == vm || $runtime == dart_product) ]
 precompilation_dart2js_test: Pass, Slow
 
 [ ($runtime == vm || $runtime == dart_product) && $arch == ia32 ]
