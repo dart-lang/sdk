@@ -518,7 +518,9 @@ abstract class StaticInfo {
 
   static bool isKnownFunction(Expression expression) {
     Element element = null;
-    if (expression is PropertyAccess) {
+    if (expression is FunctionExpression) {
+      return true;
+    } else if (expression is PropertyAccess) {
       element = expression.propertyName.staticElement;
     } else if (expression is Identifier) {
       element = expression.staticElement;
