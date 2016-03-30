@@ -10,7 +10,6 @@ cross_frame_test: Skip # Test reloads itself. Issue 18558
 mirrors_js_typed_interop_test: Fail # Missing expected failure (Issue 25044)
 js_typed_interop_side_cast_exp_test: Fail, OK # tests dart2js-specific behavior.
 
-cross_domain_iframe_test: RuntimeError # Dartium JSInterop failure
 native_gc_test: Skip # Dartium JSInterop failure
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium ) ]

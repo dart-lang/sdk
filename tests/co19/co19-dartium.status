@@ -60,6 +60,9 @@ Language/Errors_and_Warnings/static_warning_t03: RuntimeError # Please triage th
 Language/Errors_and_Warnings/static_warning_t04: RuntimeError # Please triage this failure.
 Language/Errors_and_Warnings/static_warning_t05: RuntimeError # Please triage this failure.
 Language/Errors_and_Warnings/static_warning_t06: RuntimeError # Please triage this failure.
+Language/Mixins/Mixin_Application/error_t01: MissingCompileTimeError # co19 issue 43
+Language/Mixins/Mixin_Application/error_t02: MissingCompileTimeError # co19 issue 43
+Language/Mixins/declaring_constructor_t01: MissingCompileTimeError # co19 issue 43
 LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/webgl/oes-vertex-array-object_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/webgl/read-pixels-test_t01: RuntimeError # co19-roll r761: Please triage this failure.
@@ -562,7 +565,6 @@ LayoutTests/fast/dynamic/crash-generated-text_t01: RuntimeError # co19-roll r786
 LayoutTests/fast/dynamic/insertAdjacentElement_t01: Skip # Timeout. co19-roll r786: Please triage this failure.
 LayoutTests/fast/dynamic/insertAdjacentHTML_t01: Pass, RuntimeError # co19 issue 11.
 LayoutTests/fast/dynamic/recursive-layout_t01: RuntimeError # co19-roll r786: Please triage this failure.
-LayoutTests/fast/events/add-event-without-document_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/events/change-overflow-on-overflow-change_t01: Timeout # Dartium 45 roll. Issue 25754
 LayoutTests/fast/events/clipboard-clearData_t01: Skip # Timeout. co19-roll r786: Please triage this failure.
 LayoutTests/fast/events/clipboard-dataTransferItemList-remove_t01: RuntimeError # Issue 22532
@@ -927,7 +929,6 @@ LayoutTests/fast/xpath/4XPath/Core/test_node_test_t01: RuntimeError # co19-roll 
 LayoutTests/fast/xpath/4XPath/Core/test_node_test_t02: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/xpath/4XPath/Core/test_parser_t01: RuntimeError # Dartium JSInterop failure
 LayoutTests/fast/xpath/ambiguous-operators_t01: RuntimeError # co19-roll r761: Please triage this failure.
-LayoutTests/fast/xpath/attr-namespace_t01: RuntimeError # Dartium JsInterop failure
 LayoutTests/fast/xpath/attr-namespace_t02: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/xpath/ensure-null-namespace_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/xpath/implicit-node-args_t01: RuntimeError # co19-roll r761: Please triage this failure.
@@ -1349,3 +1350,44 @@ WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot
 WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/dom-tree-accessors-002_t01: RuntimeError #  45 Roll co19 test rewrite issue 25807
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-event-interface/event-path-001_t01: RuntimeError # 45 roll issue https://github.com/dart-lang/co19/issues/32
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-002_t01: RuntimeError # 45 roll issue https://github.com/dart-lang/co19/issues/33
+# Must fix failures below after JsInterop checkin.
+WebPlatformTest/custom-elements/instantiating/createElement_A02_t01: RuntimeError # Issue 26134
+WebPlatformTest/custom-elements/instantiating/isAttribute_A01_t02: RuntimeError # Issue 26134
+WebPlatformTest/custom-elements/instantiating/createElementNS_A04_t01: RuntimeError # Issue 26134
+WebPlatformTest/custom-elements/instantiating/createElementNS_A03_t01: RuntimeError # Issue 26134
+WebPlatformTest/custom-elements/instantiating/isAttribute_A01_t01: RuntimeError # Issue 26134
+WebPlatformTest/custom-elements/instantiating/createElementNS_A02_t01: RuntimeError # Issue 26134
+WebPlatformTest/custom-elements/instantiating/createElement_A03_t01: RuntimeError # Issue 26134
+WebPlatformTest/custom-elements/instantiating/createElement_A04_t01: RuntimeError # Issue 26134
+WebPlatformTest/dom/nodes/Node-appendChild_t01: RuntimeError # Issue 26134
+WebPlatformTest/dom/nodes/attributes/setAttribute_A01_t01: RuntimeError # Issue 26134
+LayoutTests/fast/xpath/attr-namespace_t01: RuntimeError # Issue 26134
+LayoutTests/fast/dom/Document/createElement-invalid-names_t01: RuntimeError # Issue 26134
+LayoutTests/fast/dom/createDocumentType2_t01: RuntimeError # Issue 26134
+LayoutTests/fast/dom/createElementNS_t01: RuntimeError # Issue 26134
+LayoutTests/fast/dom/HTMLTemplateElement/cycles-in-shadow_t01: RuntimeError # Issue 26134
+LayoutTests/fast/dom/HTMLTemplateElement/cycles_t01: RuntimeError # Issue 26134
+LayoutTests/fast/dom/computed-style-set-property_t01: RuntimeError # Issue 26134
+LayoutTests/fast/dom/custom/element-type_t01: RuntimeError # Issue 26134
+LayoutTests/fast/dom/custom/type-extensions_t01: RuntimeError # Issue 26134
+LayoutTests/fast/dom/custom/element-upgrade_t01: RuntimeError # Issue 26134
+LayoutTests/fast/dom/custom/document-register-type-extensions_t01: RuntimeError # Issue 26134
+LayoutTests/fast/dom/custom/document-register-namespace_t01: RuntimeError # Issue 26134
+LayoutTests/fast/dom/DOMException/prototype-object_t01: RuntimeError # Issue 26134
+LayoutTests/fast/dom/shadow/shadow-hierarchy-exception_t01: RuntimeError # Issue 26134
+LayoutTests/fast/dom/Node/contains-method_t01: RuntimeError # Issue 26134
+LayoutTests/fast/dom/MutationObserver/observe-attributes_t01: RuntimeError # Issue 26134
+LayoutTests/fast/events/mutation-during-append-child_t01: RuntimeError # Issue 26134
+LayoutTests/fast/events/mutation-during-insert-before_t01: RuntimeError # Issue 26134
+LayoutTests/fast/events/add-event-without-document_t01: RuntimeError # Issue 26134
+LayoutTests/fast/events/clipboard-dataTransferItemList-remove_t01: Slow 26134
+LibTest/html/Document/text_A01_t01: RuntimeError # Issue 26134
+LibTest/html/Document/insertBefore_A01_t01: RuntimeError # Issue 26134
+LibTest/html/Document/insertAllBefore_A01_t01: RuntimeError # Issue 26134
+LibTest/html/IFrameElement/insertBefore_A01_t01: RuntimeError # Issue 26134
+LibTest/html/IFrameElement/insertAllBefore_A01_t01: RuntimeError # Issue 26134
+LibTest/html/Element/text_A01_t01: RuntimeError # Issue 26134
+LibTest/html/Element/insertBefore_A01_t01: RuntimeError # Issue 26134
+LibTest/html/Element/insertAllBefore_A01_t01: RuntimeError # Issue 26134
+LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t06: Slow 26134
+html/cross_domain_iframe_test: RuntimeError # Issue 26134
