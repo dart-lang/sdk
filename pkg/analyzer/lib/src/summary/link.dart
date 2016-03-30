@@ -60,6 +60,7 @@
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -202,9 +203,9 @@ class ClassElementForLink_Class extends ClassElementForLink
   ConstructorElementForLink _unnamedConstructor;
   bool _unnamedConstructorComputed = false;
   List<FieldElementForLink_ClassField> _fields;
-  InterfaceTypeForLink _supertype;
-  InterfaceTypeForLink _type;
-  List<TypeParameterTypeForLink> _typeParameterTypes;
+  InterfaceType _supertype;
+  InterfaceType _type;
+  List<TypeParameterType> _typeParameterTypes;
 
   ClassElementForLink_Class(this.enclosingElement, this._unlinkedClass);
 
@@ -224,6 +225,9 @@ class ClassElementForLink_Class extends ClassElementForLink
   }
 
   @override
+  String get displayName => _unlinkedClass.name;
+
+  @override
   List<FieldElementForLink_ClassField> get fields {
     if (_fields == null) {
       _fields = <FieldElementForLink_ClassField>[];
@@ -241,7 +245,7 @@ class ClassElementForLink_Class extends ClassElementForLink
   String get name => _unlinkedClass.name;
 
   @override
-  InterfaceTypeForLink get supertype {
+  InterfaceType get supertype {
     if (isObject) {
       return null;
     }
@@ -249,13 +253,14 @@ class ClassElementForLink_Class extends ClassElementForLink
   }
 
   /**
-   * Get a list of [TypeParameterTypeForLink] objects corresponding to the
+   * Get a list of [TypeParameterType] objects corresponding to the
    * class's type parameters.
    */
-  List<TypeParameterTypeForLink> get typeParameterTypes {
+  List<TypeParameterType> get typeParameterTypes {
     if (_typeParameterTypes == null) {
       _typeParameterTypes = _unlinkedClass.typeParameters
-          .map((UnlinkedTypeParam _) => new TypeParameterTypeForLink())
+          .map((UnlinkedTypeParam p) =>
+              new TypeParameterTypeImpl(new TypeParameterElementForLink(p)))
           .toList();
     }
     return _typeParameterTypes;
@@ -276,18 +281,27 @@ class ClassElementForLink_Class extends ClassElementForLink
   }
 
   @override
-  DartTypeForLink buildType(DartTypeForLink getTypeArgument(int i),
-      List<int> implicitFunctionTypeIndices) {
-    if (_unlinkedClass.typeParameters.length != 0) {
-      return new InterfaceTypeForLink(this);
+  DartType buildType(
+      DartType getTypeArgument(int i), List<int> implicitFunctionTypeIndices) {
+    int numTypeParameters = _unlinkedClass.typeParameters.length;
+    if (numTypeParameters != 0) {
+      return new InterfaceTypeImpl(this);
     } else {
-      return _type ??= new InterfaceTypeForLink(this);
+      if (_type == null) {
+        List<DartType> typeArguments = new List<DartType>(numTypeParameters);
+        for (int i = 0; i < numTypeParameters; i++) {
+          typeArguments[i] = getTypeArgument(i);
+        }
+        _type = new InterfaceTypeImpl.elementWithNameAndArgs(
+            this, name, typeArguments);
+      }
+      return _type;
     }
   }
 
   @override
-  TypeParameterTypeForLink getTypeParameterType(int index) {
-    List<TypeParameterTypeForLink> types = typeParameterTypes;
+  TypeParameterType getTypeParameterType(int index) {
+    List<TypeParameterType> types = typeParameterTypes;
     return types[types.length - index];
   }
 
@@ -298,11 +312,11 @@ class ClassElementForLink_Class extends ClassElementForLink
     }
   }
 
-  InterfaceTypeForLink _computeSupertype() {
+  InterfaceType _computeSupertype() {
     if (_unlinkedClass.supertype != null) {
-      DartTypeForLink supertype =
+      DartType supertype =
           enclosingElement._resolveTypeRef(_unlinkedClass.supertype, this);
-      if (supertype is InterfaceTypeForLink) {
+      if (supertype is InterfaceType) {
         return supertype;
       }
       // In the event that the supertype isn't an interface type (which may
@@ -323,13 +337,16 @@ class ClassElementForLink_Enum extends ClassElementForLink {
    */
   final UnlinkedEnum _unlinkedEnum;
 
-  InterfaceTypeForLink _type;
+  InterfaceType _type;
   List<FieldElementForLink_EnumField> _fields;
 
   ClassElementForLink_Enum(this._unlinkedEnum);
 
   @override
   List<ConstructorElementForLink> get constructors => const [];
+
+  @override
+  String get displayName => _unlinkedEnum.name;
 
   @override
   List<FieldElementForLink_EnumField> get fields {
@@ -353,9 +370,9 @@ class ClassElementForLink_Enum extends ClassElementForLink {
   ConstructorElementForLink get unnamedConstructor => null;
 
   @override
-  DartTypeForLink buildType(DartTypeForLink getTypeArgument(int i),
+  DartType buildType(DartType getTypeArgument(int i),
           List<int> implicitFunctionTypeIndices) =>
-      _type ??= new InterfaceTypeForLink(this);
+      _type ??= new InterfaceTypeImpl(this);
 
   @override
   void link(LinkedUnitBuilder linkedUnit) {}
@@ -499,14 +516,14 @@ abstract class CompilationUnitElementForLink implements CompilationUnitElement {
    * TODO(paulberry): or should we have a class representing an
    * unresolved type, for consistency with the full element model?
    */
-  DartTypeForLink _resolveTypeRef(
+  DartType _resolveTypeRef(
       EntityRef type, TypeParameterContext typeParameterContext,
       {bool defaultVoid: false}) {
     if (type == null) {
       if (defaultVoid) {
-        return VoidTypeForLink.instance;
+        return VoidTypeImpl.instance;
       } else {
-        return DynamicTypeForLink.instance;
+        return DynamicTypeImpl.instance;
       }
     }
     if (type.paramReference != 0) {
@@ -515,11 +532,11 @@ abstract class CompilationUnitElementForLink implements CompilationUnitElement {
       // TODO(paulberry): implement.
       throw new UnimplementedError();
     } else {
-      DartTypeForLink getTypeArgument(int i) {
+      DartType getTypeArgument(int i) {
         if (i < type.typeArguments.length) {
           return _resolveTypeRef(type.typeArguments[i], typeParameterContext);
         } else {
-          return DynamicTypeForLink.instance;
+          return DynamicTypeImpl.instance;
         }
       }
       ReferenceableElementForLink element = _resolveRef(type.reference);
@@ -856,9 +873,9 @@ class ConstructorElementForLink
   }
 
   @override
-  DartTypeForLink buildType(DartTypeForLink getTypeArgument(int i),
+  DartType buildType(DartType getTypeArgument(int i),
           List<int> implicitFunctionTypeIndices) =>
-      DynamicTypeForLink.instance;
+      DynamicTypeImpl.instance;
 
   @override
   ReferenceableElementForLink getContainedName(String name) =>
@@ -899,16 +916,6 @@ class ConstVariableNode extends ConstNode {
         variableElement.compilationUnit);
     return dependencies;
   }
-}
-
-/**
- * Representation of a type resynthesized from a summary during linking.
- */
-class DartTypeForLink implements DartType {
-  const DartTypeForLink();
-
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 /**
@@ -1038,18 +1045,6 @@ abstract class DependencyWalker<NodeType extends Node<NodeType>> {
 }
 
 /**
- * Representation of the dynamic type during linking.
- */
-class DynamicTypeForLink extends DartTypeForLink {
-  /**
-   * Singleton instance of the dynamic type.
-   */
-  static const DynamicTypeForLink instance = const DynamicTypeForLink._();
-
-  const DynamicTypeForLink._();
-}
-
-/**
  * Element representing a field resynthesized from a summary during
  * linking.
  */
@@ -1105,9 +1100,9 @@ class FieldElementForLink_EnumField extends FieldElementForLink
       unlinkedEnumValue == null ? 'values' : unlinkedEnumValue.name;
 
   @override
-  DartTypeForLink buildType(DartTypeForLink getTypeArgument(int i),
+  DartType buildType(DartType getTypeArgument(int i),
           List<int> implicitFunctionTypeIndices) =>
-      DynamicTypeForLink.instance;
+      DynamicTypeImpl.instance;
 
   @override
   ReferenceableElementForLink getContainedName(String name) =>
@@ -1115,18 +1110,6 @@ class FieldElementForLink_EnumField extends FieldElementForLink
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-/**
- * Representation of an interface type during linking.
- *
- * TODO(paulberry): add the ability to represent type arguments.
- */
-class InterfaceTypeForLink extends DartTypeForLink implements InterfaceType {
-  @override
-  final ClassElementForLink element;
-
-  InterfaceTypeForLink(this.element);
 }
 
 /**
@@ -1335,9 +1318,9 @@ class NonstaticMemberElementForLink implements ReferenceableElementForLink {
   ConstVariableNode get asConstVariable => _constNode;
 
   @override
-  DartTypeForLink buildType(DartTypeForLink getTypeArgument(int i),
+  DartType buildType(DartType getTypeArgument(int i),
           List<int> implicitFunctionTypeIndices) =>
-      DynamicTypeForLink.instance;
+      DynamicTypeImpl.instance;
 
   @override
   ReferenceableElementForLink getContainedName(String name) => this;
@@ -1399,8 +1382,8 @@ abstract class ReferenceableElementForLink {
    * type instantiation context.  If this element can't legally be
    * instantiated as a type, return the dynamic type.
    */
-  DartTypeForLink buildType(DartTypeForLink getTypeArgument(int i),
-      List<int> implicitFunctionTypeIndices);
+  DartType buildType(
+      DartType getTypeArgument(int i), List<int> implicitFunctionTypeIndices);
 
   /**
    * If this element contains other named elements, return the
@@ -1434,16 +1417,27 @@ abstract class TypeParameterContext {
   /**
    * Convert the given [index] into a type parameter type.
    */
-  TypeParameterTypeForLink getTypeParameterType(int index);
+  TypeParameterType getTypeParameterType(int index);
 }
 
 /**
- * Representation of a type based on a type parameter during linking.
- *
- * TODO(paulberry): add more functionality as needed.
+ * Element representing a type parameter resynthesized from a summary during
+ * linking.
  */
-class TypeParameterTypeForLink extends DartTypeForLink
-    implements TypeParameterType {}
+class TypeParameterElementForLink implements TypeParameterElement {
+  /**
+   * The unlinked representation of the type parameter in the summary.
+   */
+  final UnlinkedTypeParam _unlinkedTypeParam;
+
+  TypeParameterElementForLink(this._unlinkedTypeParam);
+
+  @override
+  String get name => _unlinkedTypeParam.name;
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
 
 /**
  * Singleton element used for unresolved references.
@@ -1461,9 +1455,9 @@ class UndefinedElementForLink implements ReferenceableElementForLink {
   ConstVariableNode get asConstVariable => null;
 
   @override
-  DartTypeForLink buildType(DartTypeForLink getTypeArgument(int i),
+  DartType buildType(DartType getTypeArgument(int i),
           List<int> implicitFunctionTypeIndices) =>
-      DynamicTypeForLink.instance;
+      DynamicTypeImpl.instance;
 
   @override
   ReferenceableElementForLink getContainedName(String name) => this;
@@ -1517,9 +1511,9 @@ class VariableElementForLink
   String get name => unlinkedVariable.name;
 
   @override
-  DartTypeForLink buildType(DartTypeForLink getTypeArgument(int i),
+  DartType buildType(DartType getTypeArgument(int i),
           List<int> implicitFunctionTypeIndices) =>
-      DynamicTypeForLink.instance;
+      DynamicTypeImpl.instance;
 
   ReferenceableElementForLink getContainedName(String name) {
     return new NonstaticMemberElementForLink(_constNode);
@@ -1527,14 +1521,6 @@ class VariableElementForLink
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-/**
- * Representation of the void type during linking.
- */
-class VoidTypeForLink extends DartTypeForLink {
-  static const VoidTypeForLink instance = const VoidTypeForLink._();
-  const VoidTypeForLink._();
 }
 
 /**
@@ -1568,7 +1554,7 @@ class _Linker {
   final List<LibraryElementInBuildUnit> _librariesInBuildUnit =
       <LibraryElementInBuildUnit>[];
 
-  InterfaceTypeForLink _objectType;
+  InterfaceType _objectType;
   LibraryElementForLink _coreLibrary;
 
   _Linker(Map<String, LinkedLibraryBuilder> linkedLibraries, this.getDependency,
@@ -1592,9 +1578,9 @@ class _Linker {
   /**
    * Get the `InterfaceType` for the type `Object`.
    */
-  InterfaceTypeForLink get objectType => _objectType ??= coreLibrary
+  InterfaceType get objectType => _objectType ??= coreLibrary
       .getContainedName('Object')
-      .buildType((int i) => DynamicTypeForLink.instance, const []);
+      .buildType((int i) => DynamicTypeImpl.instance, const []);
 
   /**
    * Get the library element for the library having the given [uri].
