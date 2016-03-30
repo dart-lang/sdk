@@ -4336,6 +4336,7 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
   CatchBlockEntryInstr* catch_entry =
       new(Z) CatchBlockEntryInstr(owner()->AllocateBlockId(),
                                   catch_handler_index,
+                                  owner()->graph_entry(),
                                   catch_block->handler_types(),
                                   try_handler_index,
                                   catch_block->exception_var(),
@@ -4381,6 +4382,7 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
     CatchBlockEntryInstr* finally_entry =
         new(Z) CatchBlockEntryInstr(owner()->AllocateBlockId(),
                                     original_handler_index,
+                                    owner()->graph_entry(),
                                     types,
                                     catch_handler_index,
                                     catch_block->exception_var(),

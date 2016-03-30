@@ -140,6 +140,10 @@ class FlowGraphBuilder : public ValueObject {
 
   void AddCatchEntry(CatchBlockEntryInstr* entry);
 
+  GraphEntryInstr* graph_entry() const {
+    return graph_entry_;
+  }
+
   intptr_t num_copied_params() const {
     return num_copied_params_;
   }

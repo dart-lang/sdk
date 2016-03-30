@@ -1283,40 +1283,6 @@ RawField* JitOptimizer::GetField(intptr_t class_id,
 }
 
 
-// Use CHA to determine if the call needs a class check: if the callee's
-// receiver is the same as the caller's receiver and there are no overriden
-// callee functions, then no class check is needed.
-bool JitOptimizer::InstanceCallNeedsClassCheck(
-    InstanceCallInstr* call, RawFunction::Kind kind) const {
-  if (!FLAG_use_cha_deopt && !isolate()->all_classes_finalized()) {
-    // Even if class or function are private, lazy class finalization
-    // may later add overriding methods.
-    return true;
-  }
-  Definition* callee_receiver = call->ArgumentAt(0);
-  ASSERT(callee_receiver != NULL);
-  const Function& function = flow_graph_->function();
-  if (function.IsDynamicFunction() &&
-      callee_receiver->IsParameter() &&
-      (callee_receiver->AsParameter()->index() == 0)) {
-    const String& name = (kind == RawFunction::kMethodExtractor)
-        ? String::Handle(Z, Field::NameFromGetter(call->function_name()))
-        : call->function_name();
-    const Class& cls = Class::Handle(Z, function.Owner());
-    if (!thread()->cha()->HasOverride(cls, name)) {
-      if (FLAG_trace_cha) {
-        THR_Print("  **(CHA) Instance call needs no check, "
-            "no overrides of '%s' '%s'\n",
-            name.ToCString(), cls.ToCString());
-      }
-      thread()->cha()->AddToLeafClasses(cls);
-      return false;
-    }
-  }
-  return true;
-}
-
-
 bool JitOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
   const ICData& ic_data = *call->ic_data();
@@ -1331,7 +1297,8 @@ bool JitOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
       Field::ZoneHandle(Z, GetField(class_ids[0], field_name));
   ASSERT(!field.IsNull());
 
-  if (InstanceCallNeedsClassCheck(call, RawFunction::kImplicitGetter)) {
+  if (flow_graph()->InstanceCallNeedsClassCheck(
+          call, RawFunction::kImplicitGetter)) {
     AddReceiverCheck(call);
   }
   LoadFieldInstr* load = new(Z) LoadFieldInstr(
@@ -2727,7 +2694,8 @@ void JitOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
       ? FLAG_max_equality_polymorphic_checks
       : FLAG_max_polymorphic_checks;
   if ((unary_checks.NumberOfChecks() > max_checks) &&
-      InstanceCallNeedsClassCheck(instr, RawFunction::kRegularFunction)) {
+      flow_graph()->InstanceCallNeedsClassCheck(
+          instr, RawFunction::kRegularFunction)) {
     // Too many checks, it will be megamorphic which needs unary checks.
     instr->set_ic_data(&unary_checks);
     return;
@@ -2782,7 +2750,7 @@ void JitOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   if (has_one_target) {
     RawFunction::Kind function_kind =
         Function::Handle(Z, unary_checks.GetTargetAt(0)).kind();
-    if (!InstanceCallNeedsClassCheck(instr, function_kind)) {
+    if (!flow_graph()->InstanceCallNeedsClassCheck(instr, function_kind)) {
       PolymorphicInstanceCallInstr* call =
           new(Z) PolymorphicInstanceCallInstr(instr, unary_checks,
                                               /* call_with_checks = */ false);
@@ -3114,7 +3082,8 @@ bool JitOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
       Field::ZoneHandle(Z, GetField(class_id, field_name));
   ASSERT(!field.IsNull());
 
-  if (InstanceCallNeedsClassCheck(instr, RawFunction::kImplicitSetter)) {
+  if (flow_graph()->InstanceCallNeedsClassCheck(
+          instr, RawFunction::kImplicitSetter)) {
     AddReceiverCheck(instr);
   }
   if (field.guarded_cid() != kDynamicCid) {

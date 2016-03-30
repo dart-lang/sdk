@@ -697,12 +697,15 @@ CompileType ParameterInstr::ComputeType() const {
   // However there are parameters that are known to match their declared type:
   // for example receiver.
   GraphEntryInstr* graph_entry = block_->AsGraphEntry();
-  // Parameters at catch blocks and OSR entries have type dynamic.
+  if (graph_entry == NULL) {
+    graph_entry = block_->AsCatchBlockEntry()->graph_entry();
+  }
+  // Parameters at OSR entries have type dynamic.
   //
   // TODO(kmillikin): Use the actual type of the parameter at OSR entry.
   // The code below is not safe for OSR because it doesn't necessarily use
   // the correct scope.
-  if ((graph_entry == NULL) || graph_entry->IsCompiledForOsr()) {
+  if (graph_entry->IsCompiledForOsr()) {
     return CompileType::Dynamic();
   }
 
@@ -724,12 +727,11 @@ CompileType ParameterInstr::ComputeType() const {
     return CompileType::Dynamic();
   }
 
-  LocalScope* scope = graph_entry->parsed_function().node_sequence()->scope();
-  const AbstractType& type = scope->VariableAt(index())->type();
-
   // Parameter is the receiver.
   if ((index() == 0) &&
       (function.IsDynamicFunction() || function.IsGenerativeConstructor())) {
+    LocalScope* scope = graph_entry->parsed_function().node_sequence()->scope();
+    const AbstractType& type = scope->VariableAt(index())->type();
     if (type.IsObjectType() || type.IsNullType()) {
       // Receiver can be null.
       return CompileType::FromAbstractType(type, CompileType::kNullable);

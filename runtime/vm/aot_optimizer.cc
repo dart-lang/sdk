@@ -1311,40 +1311,6 @@ RawField* AotOptimizer::GetField(intptr_t class_id,
 }
 
 
-// Use CHA to determine if the call needs a class check: if the callee's
-// receiver is the same as the caller's receiver and there are no overriden
-// callee functions, then no class check is needed.
-bool AotOptimizer::InstanceCallNeedsClassCheck(
-    InstanceCallInstr* call, RawFunction::Kind kind) const {
-  if (!FLAG_use_cha_deopt && !isolate()->all_classes_finalized()) {
-    // Even if class or function are private, lazy class finalization
-    // may later add overriding methods.
-    return true;
-  }
-  Definition* callee_receiver = call->ArgumentAt(0);
-  ASSERT(callee_receiver != NULL);
-  const Function& function = flow_graph_->function();
-  if (function.IsDynamicFunction() &&
-      callee_receiver->IsParameter() &&
-      (callee_receiver->AsParameter()->index() == 0)) {
-    const String& name = (kind == RawFunction::kMethodExtractor)
-        ? String::Handle(Z, Field::NameFromGetter(call->function_name()))
-        : call->function_name();
-    const Class& cls = Class::Handle(Z, function.Owner());
-    if (!thread()->cha()->HasOverride(cls, name)) {
-      if (FLAG_trace_cha) {
-        THR_Print("  **(CHA) Instance call needs no check, "
-            "no overrides of '%s' '%s'\n",
-            name.ToCString(), cls.ToCString());
-      }
-      thread()->cha()->AddToLeafClasses(cls);
-      return false;
-    }
-  }
-  return true;
-}
-
-
 bool AotOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
   ASSERT(call->HasICData());
   const ICData& ic_data = *call->ic_data();
@@ -1359,7 +1325,8 @@ bool AotOptimizer::InlineImplicitInstanceGetter(InstanceCallInstr* call) {
       Field::ZoneHandle(Z, GetField(class_ids[0], field_name));
   ASSERT(!field.IsNull());
 
-  if (InstanceCallNeedsClassCheck(call, RawFunction::kImplicitGetter)) {
+  if (flow_graph()->InstanceCallNeedsClassCheck(
+          call, RawFunction::kImplicitGetter)) {
     return false;
   }
   LoadFieldInstr* load = new(Z) LoadFieldInstr(
@@ -2470,7 +2437,8 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
   if (has_one_target) {
     RawFunction::Kind function_kind =
         Function::Handle(Z, unary_checks.GetTargetAt(0)).kind();
-    if (!InstanceCallNeedsClassCheck(instr, function_kind)) {
+    if (!flow_graph()->InstanceCallNeedsClassCheck(
+            instr, function_kind)) {
       PolymorphicInstanceCallInstr* call =
           new(Z) PolymorphicInstanceCallInstr(instr, unary_checks,
                                               /* with_checks = */ false);
@@ -2771,7 +2739,8 @@ bool AotOptimizer::TryInlineInstanceSetter(InstanceCallInstr* instr,
       Field::ZoneHandle(Z, GetField(class_id, field_name));
   ASSERT(!field.IsNull());
 
-  if (InstanceCallNeedsClassCheck(instr, RawFunction::kImplicitSetter)) {
+  if (flow_graph()->InstanceCallNeedsClassCheck(
+          instr, RawFunction::kImplicitSetter)) {
     return false;
   }
 
