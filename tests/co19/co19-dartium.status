@@ -60,9 +60,9 @@ Language/Errors_and_Warnings/static_warning_t03: RuntimeError # Please triage th
 Language/Errors_and_Warnings/static_warning_t04: RuntimeError # Please triage this failure.
 Language/Errors_and_Warnings/static_warning_t05: RuntimeError # Please triage this failure.
 Language/Errors_and_Warnings/static_warning_t06: RuntimeError # Please triage this failure.
-Language/Mixins/Mixin_Application/error_t01: MissingCompileTimeError # co19 issue 43
-Language/Mixins/Mixin_Application/error_t02: MissingCompileTimeError # co19 issue 43
-Language/Mixins/declaring_constructor_t01: MissingCompileTimeError # co19 issue 43
+Language/Mixins/Mixin_Application/error_t01: Fail # co19 issue 43
+Language/Mixins/Mixin_Application/error_t02: Fail # co19 issue 43
+Language/Mixins/declaring_constructor_t01: Fail # co19 issue 43
 LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/webgl/oes-vertex-array-object_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/webgl/read-pixels-test_t01: RuntimeError # co19-roll r761: Please triage this failure.
@@ -567,7 +567,6 @@ LayoutTests/fast/dynamic/insertAdjacentHTML_t01: Pass, RuntimeError # co19 issue
 LayoutTests/fast/dynamic/recursive-layout_t01: RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/events/change-overflow-on-overflow-change_t01: Timeout # Dartium 45 roll. Issue 25754
 LayoutTests/fast/events/clipboard-clearData_t01: Skip # Timeout. co19-roll r786: Please triage this failure.
-LayoutTests/fast/events/clipboard-dataTransferItemList-remove_t01: RuntimeError # Issue 22532
 LayoutTests/fast/events/clipboard-dataTransferItemList_t01: Skip # Timeout. co19-roll r786: Please triage this failure.
 LayoutTests/fast/events/div-focus_t01: Pass, RuntimeError # co19-roll r786: Please triage this failure.
 LayoutTests/fast/events/document-elementFromPoint_t01: RuntimeError # co19-roll r786: Please triage this failure.
@@ -1361,7 +1360,6 @@ WebPlatformTest/custom-elements/instantiating/createElement_A03_t01: RuntimeErro
 WebPlatformTest/custom-elements/instantiating/createElement_A04_t01: RuntimeError # Issue 26134
 WebPlatformTest/dom/nodes/Node-appendChild_t01: RuntimeError # Issue 26134
 WebPlatformTest/dom/nodes/attributes/setAttribute_A01_t01: RuntimeError # Issue 26134
-LayoutTests/fast/xpath/attr-namespace_t01: RuntimeError # Issue 26134
 LayoutTests/fast/dom/Document/createElement-invalid-names_t01: RuntimeError # Issue 26134
 LayoutTests/fast/dom/createDocumentType2_t01: RuntimeError # Issue 26134
 LayoutTests/fast/dom/createElementNS_t01: RuntimeError # Issue 26134
@@ -1379,8 +1377,7 @@ LayoutTests/fast/dom/Node/contains-method_t01: RuntimeError # Issue 26134
 LayoutTests/fast/dom/MutationObserver/observe-attributes_t01: RuntimeError # Issue 26134
 LayoutTests/fast/events/mutation-during-append-child_t01: RuntimeError # Issue 26134
 LayoutTests/fast/events/mutation-during-insert-before_t01: RuntimeError # Issue 26134
-LayoutTests/fast/events/add-event-without-document_t01: RuntimeError # Issue 26134
-LayoutTests/fast/events/clipboard-dataTransferItemList-remove_t01: Slow 26134
+LayoutTests/fast/events/clipboard-dataTransferItemList-remove_t01: Skip # Issue 26134, timesout
 LibTest/html/Document/text_A01_t01: RuntimeError # Issue 26134
 LibTest/html/Document/insertBefore_A01_t01: RuntimeError # Issue 26134
 LibTest/html/Document/insertAllBefore_A01_t01: RuntimeError # Issue 26134
@@ -1389,5 +1386,5 @@ LibTest/html/IFrameElement/insertAllBefore_A01_t01: RuntimeError # Issue 26134
 LibTest/html/Element/text_A01_t01: RuntimeError # Issue 26134
 LibTest/html/Element/insertBefore_A01_t01: RuntimeError # Issue 26134
 LibTest/html/Element/insertAllBefore_A01_t01: RuntimeError # Issue 26134
-LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t06: Slow 26134
+LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t06: Skip # Issue 26134, timeout
 html/cross_domain_iframe_test: RuntimeError # Issue 26134
