@@ -4,6 +4,7 @@
 
 library analyzer_cli.src.build_mode;
 
+import 'dart:convert';
 import 'dart:core' hide Resource;
 import 'dart:io' as io;
 
@@ -279,5 +280,291 @@ class BuildMode {
       uriToFileMap[uri] = new JavaFile(path);
     }
     return uriToFileMap;
+  }
+}
+
+/**
+ * Interface that every worker related data object has.
+ */
+abstract class WorkDataObject {
+  /**
+   * Translate the data in this class into a JSON map.
+   */
+  Map<String, Object> toJson();
+}
+
+/**
+ * Connection between a worker and input / output.
+ */
+abstract class WorkerConnection {
+  /**
+   * Read a new line. Block until a line is read. Return `null` if EOF.
+   */
+  String readLineSync();
+
+  /**
+   * Write the given [json] as a new line to the output.
+   */
+  void writeJson(Map<String, Object> json);
+}
+
+/**
+ * Persistent Bazel worker.
+ */
+class WorkerLoop {
+  static const int EXIT_CODE_OK = 0;
+  static const int EXIT_CODE_ERROR = 15;
+
+  final WorkerConnection connection;
+
+  final StringBuffer errorBuffer = new StringBuffer();
+  final StringBuffer outBuffer = new StringBuffer();
+
+  WorkerLoop(this.connection);
+
+  factory WorkerLoop.std() {
+    WorkerConnection connection = new _StdWorkerConnection();
+    return new WorkerLoop(connection);
+  }
+
+  /**
+   * Performs analysis with given [options].
+   */
+  void analyze(CommandLineOptions options) {
+    new BuildMode(options, new AnalysisStats()).analyze();
+  }
+
+  /**
+   * Perform a single loop step.  Return `true` if should exit the loop.
+   */
+  bool performSingle() {
+    try {
+      WorkRequest request = _readRequest();
+      if (request == null) {
+        return true;
+      }
+      // Prepare options.
+      CommandLineOptions options =
+          CommandLineOptions.parse(request.arguments, (String msg) {
+        throw new ArgumentError(msg);
+      });
+      // Analyze and respond.
+      analyze(options);
+      String msg = _getErrorOutputBuffersText();
+      _writeResponse(new WorkResponse(EXIT_CODE_OK, msg));
+    } catch (e, st) {
+      String msg = _getErrorOutputBuffersText();
+      msg += '$e \n $st';
+      _writeResponse(new WorkResponse(EXIT_CODE_ERROR, msg));
+    }
+    return false;
+  }
+
+  /**
+   * Run the worker loop.
+   */
+  void run() {
+    errorSink = errorBuffer;
+    outSink = outBuffer;
+    exitHandler = (int exitCode) {
+      return throw new StateError('Exit called: $exitCode');
+    };
+    while (true) {
+      errorBuffer.clear();
+      outBuffer.clear();
+      bool shouldExit = performSingle();
+      if (shouldExit) {
+        break;
+      }
+    }
+  }
+
+  String _getErrorOutputBuffersText() {
+    String msg = '';
+    if (errorBuffer.isNotEmpty) {
+      msg += errorBuffer.toString() + '\n';
+    }
+    if (outBuffer.isNotEmpty) {
+      msg += outBuffer.toString() + '\n';
+    }
+    return msg;
+  }
+
+  /**
+   * Read a new [WorkRequest]. Return `null` if EOF.
+   * Throw [ArgumentError] if cannot be parsed.
+   */
+  WorkRequest _readRequest() {
+    String line = connection.readLineSync();
+    if (line == null) {
+      return null;
+    }
+    Object json = JSON.decode(line);
+    if (json is Map) {
+      return new WorkRequest.fromJson(json);
+    } else {
+      throw new ArgumentError('The request line is not a  JSON object: $line');
+    }
+  }
+
+  void _writeResponse(WorkResponse response) {
+    Map<String, Object> json = response.toJson();
+    connection.writeJson(json);
+  }
+}
+
+/**
+ * Input file.
+ */
+class WorkInput implements WorkDataObject {
+  final String path;
+  final List<int> digest;
+
+  WorkInput(this.path, this.digest);
+
+  factory WorkInput.fromJson(Map<String, Object> json) {
+    // Parse path.
+    Object path2 = json['path'];
+    if (path2 == null) {
+      throw new ArgumentError('The field "path" is missing.');
+    }
+    if (path2 is! String) {
+      throw new ArgumentError('The field "path" must be a string.');
+    }
+    // Parse digest.
+    List<int> digest = const <int>[];
+    {
+      Object digestJson = json['digest'];
+      if (digestJson != null) {
+        if (digestJson is List && digestJson.every((e) => e is int)) {
+          digest = digestJson;
+        } else {
+          throw new ArgumentError(
+              'The field "digest" should be a list of int.');
+        }
+      }
+    }
+    // OK
+    return new WorkInput(path2, digest);
+  }
+
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> json = <String, Object>{};
+    if (path != null) {
+      json['path'] = path;
+    }
+    if (digest != null) {
+      json['digest'] = digest;
+    }
+    return json;
+  }
+}
+
+/**
+ * Single work unit that Bazel sends to the worker.
+ */
+class WorkRequest implements WorkDataObject {
+  /**
+   * Command line arguments for this request.
+   */
+  final List<String> arguments;
+
+  /**
+   * Input files that the worker is allowed to read during execution of this
+   * request.
+   */
+  final List<WorkInput> inputs;
+
+  WorkRequest(this.arguments, this.inputs);
+
+  factory WorkRequest.fromJson(Map<String, Object> json) {
+    // Parse arguments.
+    List<String> arguments = const <String>[];
+    {
+      Object argumentsJson = json['arguments'];
+      if (argumentsJson != null) {
+        if (argumentsJson is List && argumentsJson.every((e) => e is String)) {
+          arguments = argumentsJson;
+        } else {
+          throw new ArgumentError(
+              'The field "arguments" should be a list of strings.');
+        }
+      }
+    }
+    // Parse inputs.
+    List<WorkInput> inputs = const <WorkInput>[];
+    {
+      Object inputsJson = json['inputs'];
+      if (inputsJson != null) {
+        if (inputsJson is List &&
+            inputsJson.every((e) {
+              return e is Map && e.keys.every((key) => key is String);
+            })) {
+          inputs = inputsJson
+              .map((Map input) => new WorkInput.fromJson(input))
+              .toList();
+        } else {
+          throw new ArgumentError(
+              'The field "inputs" should be a list of objects.');
+        }
+      }
+    }
+    // No inputs.
+    if (arguments.isEmpty && inputs.isEmpty) {
+      throw new ArgumentError('Both "arguments" and "inputs" cannot be empty.');
+    }
+    // OK
+    return new WorkRequest(arguments, inputs);
+  }
+
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> json = <String, Object>{};
+    if (arguments != null) {
+      json['arguments'] = arguments;
+    }
+    if (inputs != null) {
+      json['inputs'] = inputs.map((input) => input.toJson()).toList();
+    }
+    return json;
+  }
+}
+
+/**
+ * Result that the worker sends back to Bazel when it finished its work on a
+ * [WorkRequest] message.
+ */
+class WorkResponse implements WorkDataObject {
+  final int exitCode;
+  final String output;
+
+  WorkResponse(this.exitCode, this.output);
+
+  @override
+  Map<String, Object> toJson() {
+    Map<String, Object> json = <String, Object>{};
+    if (exitCode != null) {
+      json['exit_code'] = exitCode;
+    }
+    if (output != null) {
+      json['output'] = output;
+    }
+    return json;
+  }
+}
+
+/**
+ * Default implementation of [WorkerConnection] that works with stdio.
+ */
+class _StdWorkerConnection implements WorkerConnection {
+  @override
+  String readLineSync() {
+    return io.stdin.readLineSync();
+  }
+
+  @override
+  void writeJson(Map<String, Object> json) {
+    io.stdout.writeln(JSON.encode(json));
   }
 }

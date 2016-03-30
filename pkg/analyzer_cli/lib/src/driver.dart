@@ -244,7 +244,11 @@ class Driver implements CommandLineStarter {
   /// Perform analysis in build mode according to the given [options].
   ErrorSeverity _buildModeAnalyze(CommandLineOptions options) {
     return _analyzeAllTag.makeCurrentWhile(() {
-      return new BuildMode(options, stats).analyze();
+      if (options.buildModePersistentWorker) {
+        new WorkerLoop.std().run();
+      } else {
+        return new BuildMode(options, stats).analyze();
+      }
     });
   }
 

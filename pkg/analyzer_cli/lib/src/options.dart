@@ -39,6 +39,9 @@ class CommandLineOptions {
   /// Whether to use build mode.
   final bool buildMode;
 
+  /// Whether to use build mode as a Bazel persistent worker.
+  final bool buildModePersistentWorker;
+
   /// List of summary file paths to use in build mode.
   final List<String> buildSummaryInputs;
 
@@ -145,6 +148,7 @@ class CommandLineOptions {
       ArgResults args, Map<String, String> definedVariables)
       : buildAnalysisOutput = args['build-analysis-output'],
         buildMode = args['build-mode'],
+        buildModePersistentWorker = args['persistent_worker'],
         buildSummaryFallback = args['build-summary-fallback'],
         buildSummaryInputs = args['build-summary-input'],
         buildSummaryOnly = args['build-summary-only'],
@@ -186,7 +190,7 @@ class CommandLineOptions {
   /// analyzer options. In case of a format error, calls [printAndFail], which
   /// by default prints an error message to stderr and exits.
   static CommandLineOptions parse(List<String> args,
-      [printAndFail = printAndFail]) {
+      [printAndFail(String msg) = printAndFail]) {
     CommandLineOptions options = _parse(args);
     // Check SDK.
     {
@@ -229,6 +233,10 @@ class CommandLineOptions {
     }
 
     // Build mode.
+    if (options.buildModePersistentWorker && !options.buildMode) {
+      printAndFail('The option --persisten_worker can be used only '
+          'together with --build-mode.');
+    }
     if (options.buildSummaryOnlyDiet && !options.buildSummaryOnly) {
       printAndFail('The option --build-summary-only-diet can be used only '
           'together with --build-summary-only.');
@@ -331,6 +339,11 @@ class CommandLineOptions {
       //
       // Build mode.
       //
+      ..addFlag('persistent_worker',
+          help: 'Enable Bazel persistent worker mode.',
+          defaultsTo: false,
+          negatable: false,
+          hide: true)
       ..addOption('build-analysis-output',
           help:
               'Specifies the path to the file where analysis results should be written.',
@@ -437,6 +450,17 @@ class CommandLineOptions {
           args.map((String arg) => arg == '-batch' ? '--batch' : arg).toList();
       Map<String, String> definedVariables = <String, String>{};
       var results = parser.parse(args, definedVariables);
+
+      // Persistent worker.
+      if (args.contains('--persistent_worker')) {
+        if (args.length != 2 || !args.contains('--build-mode')) {
+          printAndFail('The --persistent_worker flag should be used with and '
+              'only with the --build-mode flag.');
+          return null; // Only reachable in testing.
+        }
+        return new CommandLineOptions._fromArgs(results, definedVariables);
+      }
+
       // Help requests.
       if (results['help']) {
         _showUsage(parser);
@@ -447,6 +471,14 @@ class CommandLineOptions {
       if (results['batch']) {
         if (results.rest.isNotEmpty) {
           errorSink.writeln('No source files expected in the batch mode.');
+          _showUsage(parser);
+          exitHandler(15);
+          return null; // Only reachable in testing.
+        }
+      } else if (results['persistent_worker']) {
+        if (results.rest.isNotEmpty) {
+          errorSink.writeln(
+              'No source files expected in the persistent worker mode.');
           _showUsage(parser);
           exitHandler(15);
           return null; // Only reachable in testing.
