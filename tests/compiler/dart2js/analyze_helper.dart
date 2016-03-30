@@ -17,6 +17,9 @@ import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/source_file_provider.dart';
 import 'package:compiler/src/util/uri_extras.dart';
 
+/// Option for hiding whitelisted messages.
+const String HIDE_WHITELISTED = '--hide-whitelisted';
+
 /**
  * Map of whitelisted warnings and errors.
  *
@@ -34,6 +37,7 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
   bool hasHint = false;
   bool hasErrors = false;
   bool lastWasWhitelisted = false;
+  bool showWhitelisted = true;
 
   Map<String, Map<dynamic/*String|MessageKind*/, int>> whiteListMap
       = new Map<String, Map<dynamic/*String|MessageKind*/, int>>();
@@ -113,7 +117,7 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
       if (checkWhiteList(uri, message, text)) {
         // Suppress whitelisted warnings.
         lastWasWhitelisted = true;
-        if (verbose) {
+        if (showWhitelisted || verbose) {
           super.report(message, uri, begin, end, text, kind);
         }
         return;
@@ -124,7 +128,7 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
       if (checkWhiteList(uri, message, text)) {
         // Suppress whitelisted hints.
         lastWasWhitelisted = true;
-        if (verbose) {
+        if (showWhitelisted || verbose) {
           super.report(message, uri, begin, end, text, kind);
         }
         return;
@@ -135,7 +139,7 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
       if (checkWhiteList(uri, message, text)) {
         // Suppress whitelisted errors.
         lastWasWhitelisted = true;
-        if (verbose) {
+        if (showWhitelisted || verbose) {
           super.report(message, uri, begin, end, text, kind);
         }
         return;
@@ -204,6 +208,9 @@ Future analyze(List<Uri> uriList,
   if (options.contains(Flags.verbose)) {
     handler.verbose = true;
   }
+  if (options.contains(HIDE_WHITELISTED)) {
+    handler.showWhitelisted = false;
+  }
   var compiler = new CompilerImpl(
       provider,
       null,
@@ -225,12 +232,15 @@ Future analyze(List<Uri> uriList,
 
   if (mode == AnalysisMode.URI) {
     for (Uri uri in uriList) {
+      print('Analyzing uri: $uri');
       await compiler.analyzeUri(uri);
     }
   } else if (mode != AnalysisMode.TREE_SHAKING) {
+    print('Analyzing libraries: $uriList');
     compiler.librariesToAnalyzeWhenRun = uriList;
     await compiler.run(null);
   } else {
+    print('Analyzing entry point: ${uriList.single}');
     await compiler.run(uriList.single);
   }
 

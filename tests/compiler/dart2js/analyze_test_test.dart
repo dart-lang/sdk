@@ -56,9 +56,7 @@ const List<String> SKIP_LIST = const <String>[
 ];
 
 main(List<String> arguments) {
-  // TODO(johnniwinther): Remove verbose flag when test issues have been
-  // resolved.
-  List<String> options = <String>[Flags.verbose];
+  List<String> options = <String>[];
   if (arguments.contains('-v') || arguments.contains(Flags.verbose)) {
     options.add(Flags.verbose);
   }
