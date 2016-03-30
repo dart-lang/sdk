@@ -19,6 +19,7 @@ namespace dart {
 #ifndef PRODUCT
 
 DEFINE_FLAG(bool, complete_timeline, false, "Record the complete timeline");
+DEFINE_FLAG(bool, startup_timeline, false, "Record the startup timeline");
 DEFINE_FLAG(bool, trace_timeline, false,
             "Trace timeline backend");
 DEFINE_FLAG(bool, trace_timeline_analysis, false,
@@ -111,7 +112,8 @@ static void FreeEnabledByDefaultTimelineStreams(
 
 // Returns true if |streams| contains |stream| or "all". Not case sensitive.
 static bool HasStream(MallocGrowableArray<char*>* streams, const char* stream) {
-  if ((FLAG_timeline_dir != NULL) || FLAG_timing || FLAG_complete_timeline) {
+  if ((FLAG_timeline_dir != NULL) ||
+      FLAG_timing || FLAG_complete_timeline || FLAG_startup_timeline) {
     return true;
   }
   for (intptr_t i = 0; i < streams->length(); i++) {
@@ -134,6 +136,8 @@ void Timeline::InitOnce() {
       (FLAG_timeline_dir != NULL) || FLAG_timing || FLAG_complete_timeline;
   if (use_endless_recorder) {
     recorder_ = new TimelineEventEndlessRecorder();
+  } else if (FLAG_startup_timeline) {
+    recorder_ = new TimelineEventStartupRecorder();
   } else if (use_ring_recorder) {
     recorder_ = new TimelineEventRingRecorder();
   }
@@ -146,6 +150,11 @@ void Timeline::InitOnce() {
                         &stream_##name##_enabled_);
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_FLAG_DEFAULT)
 #undef TIMELINE_STREAM_FLAG_DEFAULT
+
+  if (stream_Embedder_enabled_ &&
+      (Timeline::get_start_recording_cb() != NULL)) {
+    Timeline::get_start_recording_cb()();
+  }
 }
 
 
@@ -167,9 +176,16 @@ void Timeline::StreamStateChange(const char* stream_name,
 
 void Timeline::Shutdown() {
   ASSERT(recorder_ != NULL);
+
+  if (stream_Embedder_enabled_ &&
+      (Timeline::get_stop_recording_cb() != NULL)) {
+    Timeline::get_stop_recording_cb()();
+  }
+
   if (FLAG_timeline_dir != NULL) {
     recorder_->WriteTo(FLAG_timeline_dir);
   }
+
   // Disable global streams.
 #define TIMELINE_STREAM_DISABLE(name, not_used)                                \
   stream_##name##_enabled_ = false;
@@ -1054,7 +1070,8 @@ TimelineEventBlock* TimelineEventRecorder::GetNewBlock() {
 }
 
 
-TimelineEventRingRecorder::TimelineEventRingRecorder(intptr_t capacity)
+TimelineEventFixedBufferRecorder::TimelineEventFixedBufferRecorder(
+    intptr_t capacity)
     : blocks_(NULL),
       capacity_(capacity),
       num_blocks_(0),
@@ -1077,7 +1094,7 @@ TimelineEventRingRecorder::TimelineEventRingRecorder(intptr_t capacity)
 }
 
 
-TimelineEventRingRecorder::~TimelineEventRingRecorder() {
+TimelineEventFixedBufferRecorder::~TimelineEventFixedBufferRecorder() {
   // Delete all blocks.
   for (intptr_t i = 0; i < num_blocks_; i++) {
     TimelineEventBlock* block = blocks_[i];
@@ -1087,7 +1104,7 @@ TimelineEventRingRecorder::~TimelineEventRingRecorder() {
 }
 
 
-void TimelineEventRingRecorder::PrintJSONEvents(
+void TimelineEventFixedBufferRecorder::PrintJSONEvents(
     JSONArray* events,
     TimelineEventFilter* filter) {
   if (!FLAG_support_service) {
@@ -1117,8 +1134,8 @@ void TimelineEventRingRecorder::PrintJSONEvents(
 }
 
 
-void TimelineEventRingRecorder::PrintJSON(JSONStream* js,
-                                          TimelineEventFilter* filter) {
+void TimelineEventFixedBufferRecorder::PrintJSON(JSONStream* js,
+                                                 TimelineEventFilter* filter) {
   if (!FLAG_support_service) {
     return;
   }
@@ -1132,8 +1149,9 @@ void TimelineEventRingRecorder::PrintJSON(JSONStream* js,
 }
 
 
-void TimelineEventRingRecorder::PrintTraceEvent(JSONStream* js,
-                                                TimelineEventFilter* filter) {
+void TimelineEventFixedBufferRecorder::PrintTraceEvent(
+    JSONStream* js,
+    TimelineEventFilter* filter) {
   if (!FLAG_support_service) {
     return;
   }
@@ -1142,25 +1160,12 @@ void TimelineEventRingRecorder::PrintTraceEvent(JSONStream* js,
 }
 
 
-TimelineEventBlock* TimelineEventRingRecorder::GetHeadBlockLocked() {
+TimelineEventBlock* TimelineEventFixedBufferRecorder::GetHeadBlockLocked() {
   return blocks_[0];
 }
 
 
-TimelineEventBlock* TimelineEventRingRecorder::GetNewBlockLocked() {
-  // TODO(johnmccutchan): This function should only hand out blocks
-  // which have been marked as finished.
-  if (block_cursor_ == num_blocks_) {
-    block_cursor_ = 0;
-  }
-  TimelineEventBlock* block = blocks_[block_cursor_++];
-  block->Reset();
-  block->Open();
-  return block;
-}
-
-
-void TimelineEventRingRecorder::Clear() {
+void TimelineEventFixedBufferRecorder::Clear() {
   MutexLocker ml(&lock_);
   for (intptr_t i = 0; i < num_blocks_; i++) {
     TimelineEventBlock* block = blocks_[i];
@@ -1169,7 +1174,7 @@ void TimelineEventRingRecorder::Clear() {
 }
 
 
-intptr_t TimelineEventRingRecorder::FindOldestBlockIndex() const {
+intptr_t TimelineEventFixedBufferRecorder::FindOldestBlockIndex() const {
   int64_t earliest_time = kMaxInt64;
   intptr_t earliest_index = -1;
   for (intptr_t block_idx = 0; block_idx < num_blocks_; block_idx++) {
@@ -1187,16 +1192,40 @@ intptr_t TimelineEventRingRecorder::FindOldestBlockIndex() const {
 }
 
 
-TimelineEvent* TimelineEventRingRecorder::StartEvent() {
+TimelineEvent* TimelineEventFixedBufferRecorder::StartEvent() {
   return ThreadBlockStartEvent();
 }
 
 
-void TimelineEventRingRecorder::CompleteEvent(TimelineEvent* event) {
+void TimelineEventFixedBufferRecorder::CompleteEvent(TimelineEvent* event) {
   if (event == NULL) {
     return;
   }
   ThreadBlockCompleteEvent(event);
+}
+
+
+TimelineEventBlock* TimelineEventRingRecorder::GetNewBlockLocked() {
+  // TODO(johnmccutchan): This function should only hand out blocks
+  // which have been marked as finished.
+  if (block_cursor_ == num_blocks_) {
+    block_cursor_ = 0;
+  }
+  TimelineEventBlock* block = blocks_[block_cursor_++];
+  block->Reset();
+  block->Open();
+  return block;
+}
+
+
+TimelineEventBlock* TimelineEventStartupRecorder::GetNewBlockLocked() {
+  if (block_cursor_ == num_blocks_) {
+    return NULL;
+  }
+  TimelineEventBlock* block = blocks_[block_cursor_++];
+  block->Reset();
+  block->Open();
+  return block;
 }
 
 

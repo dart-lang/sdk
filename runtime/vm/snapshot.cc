@@ -1142,11 +1142,27 @@ RawStacktrace* SnapshotReader::NewStacktrace() {
 }
 
 
-int32_t InstructionsWriter::GetOffsetFor(RawInstructions* instructions) {
-  intptr_t heap_size = instructions->Size();
+int32_t InstructionsWriter::GetOffsetFor(RawInstructions* instructions,
+                                         RawCode* code) {
+#if defined(PRODUCT)
+  // Instructions are only dedup in product mode because it obfuscates profiler
+  // results.
+  for (intptr_t i = 0; i < instructions_.length(); i++) {
+    if (instructions_[i].raw_insns_ == instructions) {
+      return instructions_[i].offset_;
+    }
+  }
+#endif
+
+  intptr_t payload_size = instructions->ptr()->size_;
+  payload_size = Utils::RoundUp(payload_size, OS::PreferredCodeAlignment());
+
   intptr_t offset = next_offset_;
-  next_offset_ += heap_size;
-  instructions_.Add(InstructionsData(instructions));
+  ASSERT(Utils::IsAligned(next_offset_, OS::PreferredCodeAlignment()));
+  next_offset_ += payload_size;
+  ASSERT(Utils::IsAligned(next_offset_, OS::PreferredCodeAlignment()));
+  instructions_.Add(InstructionsData(instructions, code, offset));
+
   return offset;
 }
 
@@ -1213,32 +1229,7 @@ void InstructionsWriter::WriteAssembly() {
 
     ASSERT(insns.raw()->Size() % sizeof(uint64_t) == 0);
 
-    {
-      // 1. Write from the header to the entry point.
-      NoSafepointScope no_safepoint;
-
-      uword beginning = reinterpret_cast<uword>(insns.raw_ptr());
-      uword entry = beginning + Instructions::HeaderSize();
-
-      ASSERT(Utils::IsAligned(beginning, sizeof(uint64_t)));
-      ASSERT(Utils::IsAligned(entry, sizeof(uint64_t)));
-
-      // Write Instructions with the mark and VM heap bits set.
-      uword marked_tags = insns.raw_ptr()->tags_;
-      marked_tags = RawObject::VMHeapObjectTag::update(true, marked_tags);
-      marked_tags = RawObject::MarkBit::update(true, marked_tags);
-
-      WriteWordLiteral(marked_tags);
-      beginning += sizeof(uword);
-
-      for (uword* cursor = reinterpret_cast<uword*>(beginning);
-           cursor < reinterpret_cast<uword*>(entry);
-           cursor++) {
-        WriteWordLiteral(*cursor);
-      }
-    }
-
-    // 2. Write a label at the entry point.
+    // 1. Write a label at the entry point.
     owner = code.owner();
     if (owner.IsNull()) {
       const char* name = StubCode::NameOfStub(insns.EntryPoint());
@@ -1257,11 +1248,13 @@ void InstructionsWriter::WriteAssembly() {
     }
 
     {
-      // 3. Write from the entry point to the end.
+      // 2. Write from the entry point to the end.
       NoSafepointScope no_safepoint;
       uword beginning = reinterpret_cast<uword>(insns.raw()) - kHeapObjectTag;
       uword entry = beginning + Instructions::HeaderSize();
-      uword end = beginning + insns.raw()->Size();
+      uword payload_size = insns.size();
+      payload_size = Utils::RoundUp(payload_size, OS::PreferredCodeAlignment());
+      uword end = entry + payload_size;
 
       ASSERT(Utils::IsAligned(beginning, sizeof(uint64_t)));
       ASSERT(Utils::IsAligned(entry, sizeof(uint64_t)));
@@ -1313,27 +1306,9 @@ void InstructionsWriter::WriteAssembly() {
 }
 
 
-RawInstructions* InstructionsReader::GetInstructionsAt(int32_t offset,
-                                                       uword expected_tags) {
+uword InstructionsReader::GetInstructionsAt(int32_t offset) {
   ASSERT(Utils::IsAligned(offset, OS::PreferredCodeAlignment()));
-
-  RawInstructions* result =
-      reinterpret_cast<RawInstructions*>(
-          reinterpret_cast<uword>(instructions_buffer_) +
-          offset + kHeapObjectTag);
-
-#ifdef DEBUG
-  uword actual_tags = result->ptr()->tags_;
-  if (actual_tags != expected_tags) {
-    FATAL2("Instructions tag mismatch: expected %" Pd ", saw %" Pd,
-           expected_tags,
-           actual_tags);
-  }
-#endif
-
-  ASSERT(result->IsMarked());
-
-  return result;
+  return reinterpret_cast<uword>(instructions_buffer_) + offset;
 }
 
 
@@ -1870,13 +1845,11 @@ bool SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
 class ScriptVisitor : public ObjectVisitor {
  public:
   explicit ScriptVisitor(Thread* thread) :
-      ObjectVisitor(thread->isolate()),
       objHandle_(Object::Handle(thread->zone())),
       count_(0),
       scripts_(NULL) {}
 
   ScriptVisitor(Thread* thread, const Array* scripts) :
-      ObjectVisitor(thread->isolate()),
       objHandle_(Object::Handle(thread->zone())),
       count_(0),
       scripts_(scripts) {}
@@ -2296,7 +2269,7 @@ void SnapshotWriter::WriteMarkedObjectImpl(RawObject* raw,
 class WriteInlinedObjectVisitor : public ObjectVisitor {
  public:
   explicit WriteInlinedObjectVisitor(SnapshotWriter* writer)
-      : ObjectVisitor(Isolate::Current()), writer_(writer) {}
+      : writer_(writer) {}
 
   virtual void VisitObject(RawObject* obj) {
     intptr_t object_id = writer_->forward_list_->FindObject(obj);

@@ -189,6 +189,12 @@ class CacheSourceContentBuilder extends Object with _CacheSourceContentMixin imp
       _kind = kind,
       _partUris = partUris;
 
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+  }
+
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "CaSS");
@@ -329,6 +335,12 @@ class CodeRangeBuilder extends Object with _CodeRangeMixin implements idl.CodeRa
   CodeRangeBuilder({int length, int offset})
     : _length = length,
       _offset = offset;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+  }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -540,6 +552,15 @@ class EntityRefBuilder extends Object with _EntityRefMixin implements idl.Entity
       _syntheticReturnType = syntheticReturnType,
       _typeArguments = typeArguments;
 
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _syntheticParams?.forEach((b) => b.flushInformative());
+    _syntheticReturnType?.flushInformative();
+    _typeArguments?.forEach((b) => b.flushInformative());
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -714,6 +735,12 @@ class LinkedDependencyBuilder extends Object with _LinkedDependencyMixin impleme
     : _parts = parts,
       _uri = uri;
 
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -848,6 +875,12 @@ class LinkedExportNameBuilder extends Object with _LinkedExportNameMixin impleme
       _name = name,
       _unit = unit;
 
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -942,6 +975,7 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
 
   List<LinkedDependencyBuilder> _dependencies;
   List<LinkedExportNameBuilder> _exportNames;
+  bool _fallbackMode;
   List<int> _importDependencies;
   int _numPrelinkedDependencies;
   List<LinkedUnitBuilder> _units;
@@ -986,6 +1020,18 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
   }
 
   @override
+  bool get fallbackMode => _fallbackMode ??= false;
+
+  /**
+   * Indicates whether this library was summarized in "fallback mode".  If
+   * true, all other fields in the data structure have their default values.
+   */
+  void set fallbackMode(bool _value) {
+    assert(!_finished);
+    _fallbackMode = _value;
+  }
+
+  @override
   List<int> get importDependencies => _importDependencies ??= <int>[];
 
   /**
@@ -1026,12 +1072,22 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
     _units = _value;
   }
 
-  LinkedLibraryBuilder({List<LinkedDependencyBuilder> dependencies, List<LinkedExportNameBuilder> exportNames, List<int> importDependencies, int numPrelinkedDependencies, List<LinkedUnitBuilder> units})
+  LinkedLibraryBuilder({List<LinkedDependencyBuilder> dependencies, List<LinkedExportNameBuilder> exportNames, bool fallbackMode, List<int> importDependencies, int numPrelinkedDependencies, List<LinkedUnitBuilder> units})
     : _dependencies = dependencies,
       _exportNames = exportNames,
+      _fallbackMode = fallbackMode,
       _importDependencies = importDependencies,
       _numPrelinkedDependencies = numPrelinkedDependencies,
       _units = units;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _dependencies?.forEach((b) => b.flushInformative());
+    _exportNames?.forEach((b) => b.flushInformative());
+    _units?.forEach((b) => b.flushInformative());
+  }
 
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
@@ -1063,6 +1119,9 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
     }
     if (offset_exportNames != null) {
       fbBuilder.addOffset(4, offset_exportNames);
+    }
+    if (_fallbackMode == true) {
+      fbBuilder.addBool(5, true);
     }
     if (offset_importDependencies != null) {
       fbBuilder.addOffset(1, offset_importDependencies);
@@ -1096,6 +1155,7 @@ class _LinkedLibraryImpl extends Object with _LinkedLibraryMixin implements idl.
 
   List<idl.LinkedDependency> _dependencies;
   List<idl.LinkedExportName> _exportNames;
+  bool _fallbackMode;
   List<int> _importDependencies;
   int _numPrelinkedDependencies;
   List<idl.LinkedUnit> _units;
@@ -1110,6 +1170,12 @@ class _LinkedLibraryImpl extends Object with _LinkedLibraryMixin implements idl.
   List<idl.LinkedExportName> get exportNames {
     _exportNames ??= const fb.ListReader<idl.LinkedExportName>(const _LinkedExportNameReader()).vTableGet(_bp, 4, const <idl.LinkedExportName>[]);
     return _exportNames;
+  }
+
+  @override
+  bool get fallbackMode {
+    _fallbackMode ??= const fb.BoolReader().vTableGet(_bp, 5, false);
+    return _fallbackMode;
   }
 
   @override
@@ -1137,6 +1203,7 @@ abstract class _LinkedLibraryMixin implements idl.LinkedLibrary {
     Map<String, Object> _result = <String, Object>{};
     if (dependencies.isNotEmpty) _result["dependencies"] = dependencies.map((_value) => _value.toJson()).toList();
     if (exportNames.isNotEmpty) _result["exportNames"] = exportNames.map((_value) => _value.toJson()).toList();
+    if (fallbackMode != false) _result["fallbackMode"] = fallbackMode;
     if (importDependencies.isNotEmpty) _result["importDependencies"] = importDependencies;
     if (numPrelinkedDependencies != 0) _result["numPrelinkedDependencies"] = numPrelinkedDependencies;
     if (units.isNotEmpty) _result["units"] = units.map((_value) => _value.toJson()).toList();
@@ -1147,6 +1214,7 @@ abstract class _LinkedLibraryMixin implements idl.LinkedLibrary {
   Map<String, Object> toMap() => {
     "dependencies": dependencies,
     "exportNames": exportNames,
+    "fallbackMode": fallbackMode,
     "importDependencies": importDependencies,
     "numPrelinkedDependencies": numPrelinkedDependencies,
     "units": units,
@@ -1284,6 +1352,12 @@ class LinkedReferenceBuilder extends Object with _LinkedReferenceMixin implement
       _name = name,
       _numTypeParameters = numTypeParameters,
       _unit = unit;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+  }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -1462,6 +1536,14 @@ class LinkedUnitBuilder extends Object with _LinkedUnitMixin implements idl.Link
     : _constCycles = constCycles,
       _references = references,
       _types = types;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _references?.forEach((b) => b.flushInformative());
+    _types?.forEach((b) => b.flushInformative());
+  }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -1650,6 +1732,14 @@ class PackageBundleBuilder extends Object with _PackageBundleMixin implements id
       _unlinkedUnitHashes = unlinkedUnitHashes,
       _unlinkedUnits = unlinkedUnits,
       _unlinkedUnitUris = unlinkedUnitUris;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _linkedLibraries?.forEach((b) => b.flushInformative());
+    _unlinkedUnits?.forEach((b) => b.flushInformative());
+  }
 
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
@@ -1914,6 +2004,13 @@ class PackageIndexBuilder extends Object with _PackageIndexMixin implements idl.
       _unitLibraryUris = unitLibraryUris,
       _units = units,
       _unitUnitUris = unitUnitUris;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _units?.forEach((b) => b.flushInformative());
+  }
 
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
@@ -2269,6 +2366,12 @@ class UnitIndexBuilder extends Object with _UnitIndexMixin implements idl.UnitIn
       _usedNameKinds = usedNameKinds,
       _usedNameOffsets = usedNameOffsets,
       _usedNames = usedNames;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+  }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -2704,6 +2807,22 @@ class UnlinkedClassBuilder extends Object with _UnlinkedClassMixin implements id
       _supertype = supertype,
       _typeParameters = typeParameters;
 
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _annotations?.forEach((b) => b.flushInformative());
+    _codeRange = null;
+    _documentationComment = null;
+    _executables?.forEach((b) => b.flushInformative());
+    _fields?.forEach((b) => b.flushInformative());
+    _interfaces?.forEach((b) => b.flushInformative());
+    _mixins?.forEach((b) => b.flushInformative());
+    _nameOffset = null;
+    _supertype?.flushInformative();
+    _typeParameters?.forEach((b) => b.flushInformative());
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -3011,6 +3130,14 @@ class UnlinkedCombinatorBuilder extends Object with _UnlinkedCombinatorMixin imp
       _offset = offset,
       _shows = shows;
 
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _end = null;
+    _offset = null;
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -3196,6 +3323,13 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements id
       _operations = operations,
       _references = references,
       _strings = strings;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _references?.forEach((b) => b.flushInformative());
+  }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -3389,6 +3523,14 @@ class UnlinkedConstructorInitializerBuilder extends Object with _UnlinkedConstru
       _kind = kind,
       _name = name;
 
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _arguments?.forEach((b) => b.flushInformative());
+    _expression?.flushInformative();
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -3536,6 +3678,12 @@ class UnlinkedDocumentationCommentBuilder extends Object with _UnlinkedDocumenta
     : _length = length,
       _offset = offset,
       _text = text;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+  }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -3699,6 +3847,17 @@ class UnlinkedEnumBuilder extends Object with _UnlinkedEnumMixin implements idl.
       _name = name,
       _nameOffset = nameOffset,
       _values = values;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _annotations?.forEach((b) => b.flushInformative());
+    _codeRange = null;
+    _documentationComment = null;
+    _nameOffset = null;
+    _values?.forEach((b) => b.flushInformative());
+  }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -3875,6 +4034,14 @@ class UnlinkedEnumValueBuilder extends Object with _UnlinkedEnumValueMixin imple
     : _documentationComment = documentationComment,
       _name = name,
       _nameOffset = nameOffset;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _documentationComment = null;
+    _nameOffset = null;
+  }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -4354,6 +4521,26 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
       _visibleLength = visibleLength,
       _visibleOffset = visibleOffset;
 
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _annotations?.forEach((b) => b.flushInformative());
+    _codeRange = null;
+    _constantInitializers?.forEach((b) => b.flushInformative());
+    _documentationComment = null;
+    _localFunctions?.forEach((b) => b.flushInformative());
+    _localLabels?.forEach((b) => b.flushInformative());
+    _localVariables?.forEach((b) => b.flushInformative());
+    _nameEnd = null;
+    _nameOffset = null;
+    _parameters?.forEach((b) => b.flushInformative());
+    _periodOffset = null;
+    _redirectedConstructor?.flushInformative();
+    _returnType?.flushInformative();
+    _typeParameters?.forEach((b) => b.flushInformative());
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -4830,6 +5017,16 @@ class UnlinkedExportNonPublicBuilder extends Object with _UnlinkedExportNonPubli
       _uriEnd = uriEnd,
       _uriOffset = uriOffset;
 
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _annotations?.forEach((b) => b.flushInformative());
+    _offset = null;
+    _uriEnd = null;
+    _uriOffset = null;
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -4950,6 +5147,13 @@ class UnlinkedExportPublicBuilder extends Object with _UnlinkedExportPublicMixin
   UnlinkedExportPublicBuilder({List<UnlinkedCombinatorBuilder> combinators, String uri})
     : _combinators = combinators,
       _uri = uri;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _combinators?.forEach((b) => b.flushInformative());
+  }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -5167,6 +5371,18 @@ class UnlinkedImportBuilder extends Object with _UnlinkedImportMixin implements 
       _uri = uri,
       _uriEnd = uriEnd,
       _uriOffset = uriOffset;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _annotations?.forEach((b) => b.flushInformative());
+    _combinators?.forEach((b) => b.flushInformative());
+    _offset = null;
+    _prefixOffset = null;
+    _uriEnd = null;
+    _uriOffset = null;
+  }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -5396,6 +5612,13 @@ class UnlinkedLabelBuilder extends Object with _UnlinkedLabelMixin implements id
       _isOnSwitchStatement = isOnSwitchStatement,
       _name = name,
       _nameOffset = nameOffset;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _nameOffset = null;
+  }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -5706,6 +5929,20 @@ class UnlinkedParamBuilder extends Object with _UnlinkedParamMixin implements id
       _visibleLength = visibleLength,
       _visibleOffset = visibleOffset;
 
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _annotations?.forEach((b) => b.flushInformative());
+    _codeRange = null;
+    _defaultValue?.flushInformative();
+    _defaultValueCode = null;
+    _initializer?.flushInformative();
+    _nameOffset = null;
+    _parameters?.forEach((b) => b.flushInformative());
+    _type?.flushInformative();
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -6004,6 +6241,15 @@ class UnlinkedPartBuilder extends Object with _UnlinkedPartMixin implements idl.
       _uriEnd = uriEnd,
       _uriOffset = uriOffset;
 
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _annotations?.forEach((b) => b.flushInformative());
+    _uriEnd = null;
+    _uriOffset = null;
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -6146,6 +6392,13 @@ class UnlinkedPublicNameBuilder extends Object with _UnlinkedPublicNameMixin imp
       _name = name,
       _numTypeParameters = numTypeParameters;
 
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _members?.forEach((b) => b.flushInformative());
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -6287,6 +6540,14 @@ class UnlinkedPublicNamespaceBuilder extends Object with _UnlinkedPublicNamespac
       _names = names,
       _parts = parts;
 
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _exports?.forEach((b) => b.flushInformative());
+    _names?.forEach((b) => b.flushInformative());
+  }
+
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
     return fbBuilder.finish(finish(fbBuilder), "UPNS");
@@ -6421,6 +6682,12 @@ class UnlinkedReferenceBuilder extends Object with _UnlinkedReferenceMixin imple
   UnlinkedReferenceBuilder({String name, int prefixReference})
     : _name = name,
       _prefixReference = prefixReference;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+  }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -6598,6 +6865,19 @@ class UnlinkedTypedefBuilder extends Object with _UnlinkedTypedefMixin implement
       _parameters = parameters,
       _returnType = returnType,
       _typeParameters = typeParameters;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _annotations?.forEach((b) => b.flushInformative());
+    _codeRange = null;
+    _documentationComment = null;
+    _nameOffset = null;
+    _parameters?.forEach((b) => b.flushInformative());
+    _returnType?.flushInformative();
+    _typeParameters?.forEach((b) => b.flushInformative());
+  }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
@@ -6833,6 +7113,16 @@ class UnlinkedTypeParamBuilder extends Object with _UnlinkedTypeParamMixin imple
       _name = name,
       _nameOffset = nameOffset;
 
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _annotations?.forEach((b) => b.flushInformative());
+    _bound?.flushInformative();
+    _codeRange = null;
+    _nameOffset = null;
+  }
+
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
@@ -6954,6 +7244,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   List<UnlinkedEnumBuilder> _enums;
   List<UnlinkedExecutableBuilder> _executables;
   List<UnlinkedExportNonPublicBuilder> _exports;
+  String _fallbackModePath;
   List<UnlinkedImportBuilder> _imports;
   List<UnlinkedConstBuilder> _libraryAnnotations;
   UnlinkedDocumentationCommentBuilder _libraryDocumentationComment;
@@ -7020,6 +7311,21 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
   void set exports(List<UnlinkedExportNonPublicBuilder> _value) {
     assert(!_finished);
     _exports = _value;
+  }
+
+  @override
+  String get fallbackModePath => _fallbackModePath ??= '';
+
+  /**
+   * If this compilation unit was summarized in fallback mode, the path where
+   * the compilation unit may be found on disk.  Otherwise empty.
+   *
+   * When this field is non-empty, all other fields in the data structure have
+   * their default values.
+   */
+  void set fallbackModePath(String _value) {
+    assert(!_finished);
+    _fallbackModePath = _value;
   }
 
   @override
@@ -7153,12 +7459,13 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     _variables = _value;
   }
 
-  UnlinkedUnitBuilder({List<UnlinkedClassBuilder> classes, CodeRangeBuilder codeRange, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportNonPublicBuilder> exports, List<UnlinkedImportBuilder> imports, List<UnlinkedConstBuilder> libraryAnnotations, UnlinkedDocumentationCommentBuilder libraryDocumentationComment, String libraryName, int libraryNameLength, int libraryNameOffset, List<UnlinkedPartBuilder> parts, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables})
+  UnlinkedUnitBuilder({List<UnlinkedClassBuilder> classes, CodeRangeBuilder codeRange, List<UnlinkedEnumBuilder> enums, List<UnlinkedExecutableBuilder> executables, List<UnlinkedExportNonPublicBuilder> exports, String fallbackModePath, List<UnlinkedImportBuilder> imports, List<UnlinkedConstBuilder> libraryAnnotations, UnlinkedDocumentationCommentBuilder libraryDocumentationComment, String libraryName, int libraryNameLength, int libraryNameOffset, List<UnlinkedPartBuilder> parts, UnlinkedPublicNamespaceBuilder publicNamespace, List<UnlinkedReferenceBuilder> references, List<UnlinkedTypedefBuilder> typedefs, List<UnlinkedVariableBuilder> variables})
     : _classes = classes,
       _codeRange = codeRange,
       _enums = enums,
       _executables = executables,
       _exports = exports,
+      _fallbackModePath = fallbackModePath,
       _imports = imports,
       _libraryAnnotations = libraryAnnotations,
       _libraryDocumentationComment = libraryDocumentationComment,
@@ -7170,6 +7477,27 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
       _references = references,
       _typedefs = typedefs,
       _variables = variables;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _classes?.forEach((b) => b.flushInformative());
+    _codeRange = null;
+    _enums?.forEach((b) => b.flushInformative());
+    _executables?.forEach((b) => b.flushInformative());
+    _exports?.forEach((b) => b.flushInformative());
+    _imports?.forEach((b) => b.flushInformative());
+    _libraryAnnotations?.forEach((b) => b.flushInformative());
+    _libraryDocumentationComment = null;
+    _libraryNameLength = null;
+    _libraryNameOffset = null;
+    _parts?.forEach((b) => b.flushInformative());
+    _publicNamespace?.flushInformative();
+    _references?.forEach((b) => b.flushInformative());
+    _typedefs?.forEach((b) => b.flushInformative());
+    _variables?.forEach((b) => b.flushInformative());
+  }
 
   List<int> toBuffer() {
     fb.Builder fbBuilder = new fb.Builder();
@@ -7184,6 +7512,7 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     fb.Offset offset_enums;
     fb.Offset offset_executables;
     fb.Offset offset_exports;
+    fb.Offset offset_fallbackModePath;
     fb.Offset offset_imports;
     fb.Offset offset_libraryAnnotations;
     fb.Offset offset_libraryDocumentationComment;
@@ -7207,6 +7536,9 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     }
     if (!(_exports == null || _exports.isEmpty)) {
       offset_exports = fbBuilder.writeList(_exports.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (_fallbackModePath != null) {
+      offset_fallbackModePath = fbBuilder.writeString(_fallbackModePath);
     }
     if (!(_imports == null || _imports.isEmpty)) {
       offset_imports = fbBuilder.writeList(_imports.map((b) => b.finish(fbBuilder)).toList());
@@ -7250,6 +7582,9 @@ class UnlinkedUnitBuilder extends Object with _UnlinkedUnitMixin implements idl.
     }
     if (offset_exports != null) {
       fbBuilder.addOffset(13, offset_exports);
+    }
+    if (offset_fallbackModePath != null) {
+      fbBuilder.addOffset(16, offset_fallbackModePath);
     }
     if (offset_imports != null) {
       fbBuilder.addOffset(5, offset_imports);
@@ -7310,6 +7645,7 @@ class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements idl.Un
   List<idl.UnlinkedEnum> _enums;
   List<idl.UnlinkedExecutable> _executables;
   List<idl.UnlinkedExportNonPublic> _exports;
+  String _fallbackModePath;
   List<idl.UnlinkedImport> _imports;
   List<idl.UnlinkedConst> _libraryAnnotations;
   idl.UnlinkedDocumentationComment _libraryDocumentationComment;
@@ -7350,6 +7686,12 @@ class _UnlinkedUnitImpl extends Object with _UnlinkedUnitMixin implements idl.Un
   List<idl.UnlinkedExportNonPublic> get exports {
     _exports ??= const fb.ListReader<idl.UnlinkedExportNonPublic>(const _UnlinkedExportNonPublicReader()).vTableGet(_bp, 13, const <idl.UnlinkedExportNonPublic>[]);
     return _exports;
+  }
+
+  @override
+  String get fallbackModePath {
+    _fallbackModePath ??= const fb.StringReader().vTableGet(_bp, 16, '');
+    return _fallbackModePath;
   }
 
   @override
@@ -7428,6 +7770,7 @@ abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
     if (enums.isNotEmpty) _result["enums"] = enums.map((_value) => _value.toJson()).toList();
     if (executables.isNotEmpty) _result["executables"] = executables.map((_value) => _value.toJson()).toList();
     if (exports.isNotEmpty) _result["exports"] = exports.map((_value) => _value.toJson()).toList();
+    if (fallbackModePath != '') _result["fallbackModePath"] = fallbackModePath;
     if (imports.isNotEmpty) _result["imports"] = imports.map((_value) => _value.toJson()).toList();
     if (libraryAnnotations.isNotEmpty) _result["libraryAnnotations"] = libraryAnnotations.map((_value) => _value.toJson()).toList();
     if (libraryDocumentationComment != null) _result["libraryDocumentationComment"] = libraryDocumentationComment.toJson();
@@ -7449,6 +7792,7 @@ abstract class _UnlinkedUnitMixin implements idl.UnlinkedUnit {
     "enums": enums,
     "executables": executables,
     "exports": exports,
+    "fallbackModePath": fallbackModePath,
     "imports": imports,
     "libraryAnnotations": libraryAnnotations,
     "libraryDocumentationComment": libraryDocumentationComment,
@@ -7687,6 +8031,19 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
       _type = type,
       _visibleLength = visibleLength,
       _visibleOffset = visibleOffset;
+
+  /**
+   * Flush [informative] data recursively.
+   */
+  void flushInformative() {
+    _annotations?.forEach((b) => b.flushInformative());
+    _codeRange = null;
+    _constExpr?.flushInformative();
+    _documentationComment = null;
+    _initializer?.flushInformative();
+    _nameOffset = null;
+    _type?.flushInformative();
+  }
 
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);

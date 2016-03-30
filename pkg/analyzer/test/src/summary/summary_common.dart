@@ -26,40 +26,6 @@ import 'package:unittest/unittest.dart';
 import '../../generated/analysis_context_factory.dart';
 
 /**
- * The public namespaces of the sdk are computed once so that we don't bog
- * down the test.  Structured as a map from absolute URI to the corresponding
- * public namespace.
- *
- * Note: should an exception occur during computation of this variable, it
- * will silently be set to null to allow other tests to run.
- */
-final Map<String, UnlinkedPublicNamespace> sdkPublicNamespace = () {
-  try {
-    AnalysisContext analysisContext = AnalysisContextFactory.contextWithCore();
-    Map<String, UnlinkedPublicNamespace> uriToNamespace =
-        <String, UnlinkedPublicNamespace>{};
-    List<LibraryElement> libraries = [
-      analysisContext.typeProvider.objectType.element.library,
-      analysisContext.typeProvider.futureType.element.library
-    ];
-    for (LibraryElement library in libraries) {
-      summarize_elements.LibrarySerializationResult serializedLibrary =
-          summarize_elements.serializeLibrary(
-              library, analysisContext.typeProvider, false);
-      for (int i = 0; i < serializedLibrary.unlinkedUnits.length; i++) {
-        uriToNamespace[serializedLibrary.unitUris[i]] =
-            new UnlinkedUnit.fromBuffer(
-                    serializedLibrary.unlinkedUnits[i].toBuffer())
-                .publicNamespace;
-      }
-    }
-    return uriToNamespace;
-  } catch (_) {
-    return null;
-  }
-}();
-
-/**
  * Convert a summary object (or a portion of one) into a canonical form that
  * can be easily compared using [expect].  If [orderByName] is true, and the
  * object is a [List], it is sorted by the `name` field of its elements.
@@ -114,6 +80,51 @@ UnlinkedPublicNamespace computePublicNamespaceFromText(
  * Type of a function that validates an [EntityRef].
  */
 typedef void _EntityRefValidator(EntityRef entityRef);
+
+/**
+ * [SerializedMockSdk] is a singleton class representing the result of
+ * serializing the mock SDK to summaries.  It is computed once and then shared
+ * among test invocations so that we don't bog down the tests.
+ *
+ * Note: should an exception occur during computation of [instance], it will
+ * silently be set to null to allow other tests to complete quickly.
+ */
+class SerializedMockSdk {
+  static final SerializedMockSdk instance = _serializeMockSdk();
+
+  final Map<String, UnlinkedUnit> uriToUnlinkedUnit;
+
+  final Map<String, LinkedLibrary> uriToLinkedLibrary;
+  SerializedMockSdk._(this.uriToUnlinkedUnit, this.uriToLinkedLibrary);
+
+  static SerializedMockSdk _serializeMockSdk() {
+    try {
+      AnalysisContext analysisContext =
+          AnalysisContextFactory.contextWithCore();
+      Map<String, UnlinkedUnit> uriToUnlinkedUnit = <String, UnlinkedUnit>{};
+      Map<String, LinkedLibrary> uriToLinkedLibrary = <String, LinkedLibrary>{};
+      List<LibraryElement> libraries = [
+        analysisContext.typeProvider.objectType.element.library,
+        analysisContext.typeProvider.futureType.element.library
+      ];
+      for (LibraryElement library in libraries) {
+        summarize_elements.LibrarySerializationResult serializedLibrary =
+            summarize_elements.serializeLibrary(
+                library, analysisContext.typeProvider, false);
+        uriToLinkedLibrary[library.source.uri.toString()] =
+            new LinkedLibrary.fromBuffer(serializedLibrary.linked.toBuffer());
+        for (int i = 0; i < serializedLibrary.unlinkedUnits.length; i++) {
+          uriToUnlinkedUnit[serializedLibrary.unitUris[i]] =
+              new UnlinkedUnit.fromBuffer(
+                  serializedLibrary.unlinkedUnits[i].toBuffer());
+        }
+      }
+      return new SerializedMockSdk._(uriToUnlinkedUnit, uriToLinkedLibrary);
+    } catch (_) {
+      return null;
+    }
+  }
+}
 
 /**
  * Base class containing most summary tests.  This allows summary tests to be
@@ -198,6 +209,21 @@ abstract class SummaryTest {
       (EntityRef r) => checkTypeRef(r, null, null, 'a',
           expectedKind: ReferenceKind.topLevelPropertyAccessor)
     ]);
+  }
+
+  void checkConstCycle(String className,
+      {String name: '', bool hasCycle: true}) {
+    UnlinkedClass cls = findClass(className);
+    int constCycleSlot =
+        findExecutable(name, executables: cls.executables).constCycleSlot;
+    expect(constCycleSlot, isNot(0));
+    if (!skipFullyLinkedData) {
+      expect(
+          definingUnit.constCycles,
+          hasCycle
+              ? contains(constCycleSlot)
+              : isNot(contains(constCycleSlot)));
+    }
   }
 
   /**
@@ -2604,6 +2630,82 @@ const v = C;
     ]);
   }
 
+  test_constExpr_pushReference_enumValue() {
+    UnlinkedVariable variable = serializeVariableText('''
+enum C {V1, V2, V3}
+const v = C.V1;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'V1',
+              expectedKind: ReferenceKind.propertyAccessor,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
+              ])
+    ]);
+  }
+
+  test_constExpr_pushReference_enumValue_viaImport() {
+    addNamedSource(
+        '/a.dart',
+        '''
+enum C {V1, V2, V3}
+''');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart';
+const v = C.V1;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'V1',
+              expectedKind: ReferenceKind.propertyAccessor,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
+                    absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart')
+              ])
+    ]);
+  }
+
+  test_constExpr_pushReference_enumValues() {
+    UnlinkedVariable variable = serializeVariableText('''
+enum C {V1, V2, V3}
+const v = C.values;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'values',
+              expectedKind: ReferenceKind.propertyAccessor,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
+              ])
+    ]);
+  }
+
+  test_constExpr_pushReference_enumValues_viaImport() {
+    addNamedSource(
+        '/a.dart',
+        '''
+enum C {V1, V2, V3}
+''');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart';
+const v = C.values;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'values',
+              expectedKind: ReferenceKind.propertyAccessor,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
+                    absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart')
+              ])
+    ]);
+  }
+
   test_constExpr_pushReference_field() {
     UnlinkedVariable variable = serializeVariableText('''
 class C {
@@ -3338,6 +3440,7 @@ int foo() => 0;
     expect(parameter.kind, UnlinkedParamKind.named);
     expect(parameter.initializer, isNotNull);
     expect(parameter.defaultValueCode, '42');
+    _assertCodeRange(parameter.codeRange, 13, 10);
     _assertUnlinkedConst(parameter.defaultValue,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
@@ -3369,6 +3472,7 @@ int foo() => 0;
     expect(parameter.kind, UnlinkedParamKind.positional);
     expect(parameter.initializer, isNotNull);
     expect(parameter.defaultValueCode, '42');
+    _assertCodeRange(parameter.codeRange, 13, 11);
     _assertUnlinkedConst(parameter.defaultValue,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
@@ -3413,6 +3517,7 @@ class C {
     expect(executable.nameOffset, text.indexOf('foo'));
     expect(executable.periodOffset, text.indexOf('.foo'));
     expect(executable.nameEnd, text.indexOf('()'));
+    _assertCodeRange(executable.codeRange, 10, 8);
   }
 
   test_constructor_non_const() {
@@ -3820,17 +3925,9 @@ class E {
   const E() : x = null;
 }
 ''');
-    int classCConstCycleSlot = findClass('C').executables[0].constCycleSlot;
-    expect(classCConstCycleSlot, isNot(0));
-    int classDConstCycleSlot = findClass('D').executables[0].constCycleSlot;
-    expect(classDConstCycleSlot, isNot(0));
-    int classEConstCycleSlot = findClass('E').executables[0].constCycleSlot;
-    expect(classEConstCycleSlot, isNot(0));
-    if (!skipFullyLinkedData) {
-      expect(definingUnit.constCycles, contains(classCConstCycleSlot));
-      expect(definingUnit.constCycles, contains(classDConstCycleSlot));
-      expect(definingUnit.constCycles, isNot(contains(classEConstCycleSlot)));
-    }
+    checkConstCycle('C');
+    checkConstCycle('D');
+    checkConstCycle('E', hasCycle: false);
   }
 
   test_constructor_withCycles_nonConst() {
@@ -3846,6 +3943,516 @@ class D {
 ''');
     expect(findClass('C').executables[0].constCycleSlot, 0);
     expect(findClass('D').executables[0].constCycleSlot, 0);
+  }
+
+  test_constructorCycle_redirectToImplicitConstructor() {
+    serializeLibraryText(
+        '''
+class C {
+  const factory C() = D;
+}
+class D extends C {}
+''',
+        allowErrors: true);
+    checkConstCycle('C', hasCycle: false);
+  }
+
+  test_constructorCycle_redirectToNonConstConstructor() {
+    // It's not valid Dart but we need to make sure it doesn't crash
+    // summary generation.
+    serializeLibraryText(
+        '''
+class C {
+  const factory C() = D;
+}
+class D extends C {
+  D();
+}
+''',
+        allowErrors: true);
+    checkConstCycle('C', hasCycle: false);
+  }
+
+  test_constructorCycle_redirectToSymbolConstructor() {
+    // The symbol constructor has some special case behaviors in analyzer.
+    // Make sure those special case behaviors don't cause problems.
+    serializeLibraryText(
+        '''
+class C {
+  const factory C(String name) = Symbol;
+}
+''',
+        allowErrors: true);
+    checkConstCycle('C', hasCycle: false);
+  }
+
+  test_constructorCycle_referenceToClass() {
+    serializeLibraryText('''
+class C {
+  final x;
+  const C() : x = C;
+}
+''');
+    checkConstCycle('C', hasCycle: false);
+  }
+
+  test_constructorCycle_referenceToEnum() {
+    serializeLibraryText('''
+enum E { v }
+class C {
+  final x;
+  const C() : x = E;
+}
+''');
+    checkConstCycle('C', hasCycle: false);
+  }
+
+  test_constructorCycle_referenceToEnumValue() {
+    serializeLibraryText('''
+enum E { v }
+class C {
+  final x;
+  const C() : x = E.v;
+}
+''');
+    checkConstCycle('C', hasCycle: false);
+  }
+
+  test_constructorCycle_referenceToEnumValues() {
+    serializeLibraryText('''
+enum E { v }
+class C {
+  final x;
+  const C() : x = E.values;
+}
+''');
+    checkConstCycle('C', hasCycle: false);
+  }
+
+  test_constructorCycle_referenceToGenericParameter() {
+    // It's not valid Dart but we need to make sure it doesn't crash
+    // summary generation.
+    serializeLibraryText(
+        '''
+class C<T> {
+  final x;
+  const C() : x = T;
+}
+''',
+        allowErrors: true);
+    checkConstCycle('C', hasCycle: false);
+  }
+
+  test_constructorCycle_referenceToGenericParameter_asSupertype() {
+    // It's not valid Dart but we need to make sure it doesn't crash
+    // summary generation.
+    serializeLibraryText(
+        '''
+class C<T> extends T {
+  const C();
+}
+''',
+        allowErrors: true);
+    checkConstCycle('C', hasCycle: false);
+  }
+
+  test_constructorCycle_referenceToStaticMethod_inOtherClass() {
+    serializeLibraryText('''
+class C {
+  final x;
+  const C() : x = D.f;
+}
+class D {
+  static void f() {}
+}
+''');
+    checkConstCycle('C', hasCycle: false);
+  }
+
+  test_constructorCycle_referenceToStaticMethod_inSameClass() {
+    serializeLibraryText('''
+class C {
+  final x;
+  static void f() {}
+  const C() : x = f;
+}
+''');
+    checkConstCycle('C', hasCycle: false);
+  }
+
+  test_constructorCycle_referenceToTopLevelFunction() {
+    serializeLibraryText('''
+void f() {}
+class C {
+  final x;
+  const C() : x = f;
+}
+''');
+    checkConstCycle('C', hasCycle: false);
+  }
+
+  test_constructorCycle_referenceToTypedef() {
+    serializeLibraryText('''
+typedef F();
+class C {
+  final x;
+  const C() : x = F;
+}
+''');
+    checkConstCycle('C', hasCycle: false);
+  }
+
+  test_constructorCycle_referenceToUndefinedName() {
+    // It's not valid Dart but we need to make sure it doesn't crash
+    // summary generation.
+    serializeLibraryText(
+        '''
+class C {
+  final x;
+  const C() : x = foo;
+}
+''',
+        allowErrors: true);
+    checkConstCycle('C', hasCycle: false);
+  }
+
+  test_constructorCycle_referenceToUndefinedName_viaPrefix() {
+    // It's not valid Dart but we need to make sure it doesn't crash
+    // summary generation.
+    addNamedSource('/a.dart', '');
+    serializeLibraryText(
+        '''
+import 'a.dart' as a;
+class C {
+  final x;
+  const C() : x = a.foo;
+}
+''',
+        allowErrors: true);
+    checkConstCycle('C', hasCycle: false);
+  }
+
+  test_constructorCycle_referenceToUndefinedName_viaPrefix_nonExistentFile() {
+    // It's not valid Dart but we need to make sure it doesn't crash
+    // summary generation.
+    allowMissingFiles = true;
+    serializeLibraryText(
+        '''
+import 'a.dart' as a;
+class C {
+  final x;
+  const C() : x = a.foo;
+}
+''',
+        allowErrors: true);
+    checkConstCycle('C', hasCycle: false);
+  }
+
+  test_constructorCycle_trivial() {
+    serializeLibraryText(
+        '''
+class C {
+  const C() : this();
+}
+''',
+        allowErrors: true);
+    checkConstCycle('C');
+  }
+
+  test_constructorCycle_viaFactoryRedirect() {
+    serializeLibraryText(
+        '''
+class C {
+  const C();
+  const factory C.named() = D;
+}
+class D extends C {
+  final x;
+  const D() : x = y;
+}
+const y = const C.named();
+''',
+        allowErrors: true);
+    checkConstCycle('C', hasCycle: false);
+    checkConstCycle('C', name: 'named');
+    checkConstCycle('D');
+  }
+
+  test_constructorCycle_viaFinalField() {
+    serializeLibraryText(
+        '''
+class C {
+  final x = const C();
+  const C();
+}
+''',
+        allowErrors: true);
+    checkConstCycle('C');
+  }
+
+  test_constructorCycle_viaLength() {
+    // It's not valid Dart but we need to make sure it doesn't crash
+    // summary generation.
+    serializeLibraryText(
+        '''
+class C {
+  final x;
+  const C() : x = y.length;
+}
+const y = const C();
+''',
+        allowErrors: true);
+    checkConstCycle('C');
+  }
+
+  test_constructorCycle_viaNamedConstructor() {
+    serializeLibraryText('''
+class C {
+  final x;
+  const C() : x = const D.named();
+}
+class D {
+  final x;
+  const D.named() : x = const C();
+}
+''');
+    checkConstCycle('C');
+    checkConstCycle('D', name: 'named');
+  }
+
+  test_constructorCycle_viaOrdinaryRedirect() {
+    serializeLibraryText('''
+class C {
+  final x;
+  const C() : this.named();
+  const C.named() : x = const C();
+}
+''');
+    checkConstCycle('C');
+    checkConstCycle('C', name: 'named');
+  }
+
+  test_constructorCycle_viaOrdinaryRedirect_suppressSupertype() {
+    // Since C redirects to C.named, it doesn't implicitly refer to B's unnamed
+    // constructor.  Therefore there is no cycle.
+    serializeLibraryText('''
+class B {
+  final x;
+  const B() : x = const C();
+  const B.named() : x = null;
+}
+class C extends B {
+  const C() : this.named();
+  const C.named() : super.named();
+}
+''');
+    checkConstCycle('B', hasCycle: false);
+    checkConstCycle('B', name: 'named', hasCycle: false);
+    checkConstCycle('C', hasCycle: false);
+    checkConstCycle('C', name: 'named', hasCycle: false);
+  }
+
+  test_constructorCycle_viaRedirectArgument() {
+    serializeLibraryText(
+        '''
+class C {
+  final x;
+  const C() : this.named(y);
+  const C.named(this.x);
+}
+const y = const C();
+''',
+        allowErrors: true);
+    checkConstCycle('C');
+    checkConstCycle('C', name: 'named', hasCycle: false);
+  }
+
+  test_constructorCycle_viaStaticField_inOtherClass() {
+    serializeLibraryText(
+        '''
+class C {
+  final x;
+  const C() : x = D.y;
+}
+class D {
+  static const y = const C();
+}
+''',
+        allowErrors: true);
+    checkConstCycle('C');
+  }
+
+  test_constructorCycle_viaStaticField_inSameClass() {
+    serializeLibraryText(
+        '''
+class C {
+  final x;
+  static const y = const C();
+  const C() : x = y;
+}
+''',
+        allowErrors: true);
+    checkConstCycle('C');
+  }
+
+  test_constructorCycle_viaSuperArgument() {
+    serializeLibraryText(
+        '''
+class B {
+  final x;
+  const B(this.x);
+}
+class C extends B {
+  const C() : super(y);
+}
+const y = const C();
+''',
+        allowErrors: true);
+    checkConstCycle('B', hasCycle: false);
+    checkConstCycle('C');
+  }
+
+  test_constructorCycle_viaSupertype() {
+    serializeLibraryText('''
+class C {
+  final x;
+  const C() : x = const D();
+}
+class D extends C {
+  const D();
+}
+''');
+    checkConstCycle('C');
+    checkConstCycle('D');
+  }
+
+  test_constructorCycle_viaSupertype_Enum() {
+    // It's not valid Dart but we need to make sure it doesn't crash
+    // summary generation.
+    serializeLibraryText(
+        '''
+enum E { v }
+class C extends E {
+  const C();
+}
+''',
+        allowErrors: true);
+    checkConstCycle('C', hasCycle: false);
+  }
+
+  test_constructorCycle_viaSupertype_explicit() {
+    serializeLibraryText('''
+class C {
+  final x;
+  const C() : x = const D();
+  const C.named() : x = const D.named();
+}
+class D extends C {
+  const D() : super();
+  const D.named() : super.named();
+}
+''');
+    checkConstCycle('C');
+    checkConstCycle('C', name: 'named');
+    checkConstCycle('D');
+    checkConstCycle('D', name: 'named');
+  }
+
+  test_constructorCycle_viaSupertype_explicit_undefined() {
+    // It's not valid Dart but we need to make sure it doesn't crash
+    // summary generation.
+    serializeLibraryText(
+        '''
+class C {
+  final x;
+  const C() : x = const D();
+}
+class D extends C {
+  const D() : super.named();
+}
+''',
+        allowErrors: true);
+    checkConstCycle('C', hasCycle: false);
+    checkConstCycle('D', hasCycle: false);
+  }
+
+  test_constructorCycle_viaSupertype_withDefaultTypeArgument() {
+    serializeLibraryText('''
+class C<T> {
+  final x;
+  const C() : x = const D();
+}
+class D extends C {
+  const D();
+}
+''');
+    checkConstCycle('C');
+    checkConstCycle('D');
+  }
+
+  test_constructorCycle_viaSupertype_withTypeArgument() {
+    serializeLibraryText('''
+class C<T> {
+  final x;
+  const C() : x = const D();
+}
+class D extends C<int> {
+  const D();
+}
+''');
+    checkConstCycle('C');
+    checkConstCycle('D');
+  }
+
+  test_constructorCycle_viaTopLevelVariable() {
+    serializeLibraryText(
+        '''
+class C {
+  final x;
+  const C() : x = y;
+}
+const y = const C();
+''',
+        allowErrors: true);
+    checkConstCycle('C');
+  }
+
+  test_constructorCycle_viaTopLevelVariable_imported() {
+    addNamedSource(
+        '/a.dart',
+        '''
+import 'test.dart';
+const y = const C();
+    ''');
+    serializeLibraryText(
+        '''
+import 'a.dart';
+class C {
+  final x;
+  const C() : x = y;
+}
+''',
+        allowErrors: true);
+    checkConstCycle('C');
+  }
+
+  test_constructorCycle_viaTopLevelVariable_importedViaPrefix() {
+    addNamedSource(
+        '/a.dart',
+        '''
+import 'test.dart';
+const y = const C();
+    ''');
+    serializeLibraryText(
+        '''
+import 'a.dart' as a;
+class C {
+  final x;
+  const C() : x = a.y;
+}
+''',
+        allowErrors: true);
+    checkConstCycle('C');
   }
 
   test_dependencies_export_to_export_unused() {
@@ -4021,6 +4628,19 @@ typedef F();
         ReferenceKind.classOrEnum);
     expect(unlinkedUnits[0].publicNamespace.names[0].name, 'E');
     expect(unlinkedUnits[0].publicNamespace.names[0].numTypeParameters, 0);
+    expect(unlinkedUnits[0].publicNamespace.names[0].members, hasLength(2));
+    expect(unlinkedUnits[0].publicNamespace.names[0].members[0].kind,
+        ReferenceKind.propertyAccessor);
+    expect(unlinkedUnits[0].publicNamespace.names[0].members[0].name, 'values');
+    expect(
+        unlinkedUnits[0].publicNamespace.names[0].members[0].numTypeParameters,
+        0);
+    expect(unlinkedUnits[0].publicNamespace.names[0].members[1].kind,
+        ReferenceKind.propertyAccessor);
+    expect(unlinkedUnits[0].publicNamespace.names[0].members[1].name, 'v1');
+    expect(
+        unlinkedUnits[0].publicNamespace.names[0].members[1].numTypeParameters,
+        0);
   }
 
   test_enum_documented() {
@@ -4058,6 +4678,13 @@ enum E {
     UnlinkedEnumValue value = serializeEnumText(text).values[0];
     expect(value.documentationComment, isNotNull);
     checkDocumentationComment(value.documentationComment, text);
+  }
+
+  test_enum_value_private() {
+    serializeEnumText('enum E { _v }', 'E');
+    expect(unlinkedUnits[0].publicNamespace.names, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.names[0].members, hasLength(1));
+    expect(unlinkedUnits[0].publicNamespace.names[0].members[0].name, 'values');
   }
 
   test_executable_abstract() {
@@ -4198,12 +4825,14 @@ f() {
   bbb: switch (42) {
     ccc: case 0:
       break;
+    ddd: default:
+      break;
   }
 }
 ''';
     UnlinkedExecutable executable = serializeExecutableText(code);
     List<UnlinkedLabel> labels = executable.localLabels;
-    expect(labels, hasLength(3));
+    expect(labels, hasLength(4));
     {
       UnlinkedLabel aaa = labels.singleWhere((l) => l.name == 'aaa');
       expect(aaa, isNotNull);
@@ -4218,6 +4847,12 @@ f() {
     }
     {
       UnlinkedLabel ccc = labels.singleWhere((l) => l.name == 'ccc');
+      expect(ccc, isNotNull);
+      expect(ccc.isOnSwitchMember, isTrue);
+      expect(ccc.isOnSwitchStatement, isFalse);
+    }
+    {
+      UnlinkedLabel ccc = labels.singleWhere((l) => l.name == 'ddd');
       expect(ccc, isNotNull);
       expect(ccc.isOnSwitchMember, isTrue);
       expect(ccc.isOnSwitchStatement, isFalse);
@@ -4249,12 +4884,114 @@ get g {
     }
   }
 
+  test_executable_localLabels_namedExpressionLabel() {
+    String code = r'''
+f() {
+  foo(p: 42);
+}
+foo({int p}) {}
+''';
+    UnlinkedExecutable executable = serializeExecutableText(code);
+    List<UnlinkedLabel> labels = executable.localLabels;
+    expect(labels, isEmpty);
+  }
+
+  test_executable_localVariables_catch() {
+    String code = r'''
+f() { // 1
+  try {
+    throw 42;
+  } on int catch (e, st) { // 2
+    print(e);
+    print(st);
+  } // 3
+} // 4
+''';
+    UnlinkedExecutable executable = serializeExecutableText(code);
+    List<UnlinkedVariable> variables = executable.localVariables;
+    expect(variables, hasLength(2));
+    {
+      UnlinkedVariable e = variables.singleWhere((v) => v.name == 'e');
+      _assertVariableVisible(code, e, 'on int catch (', '} // 3');
+      checkTypeRef(e.type, 'dart:core', 'dart:core', 'int');
+    }
+    {
+      UnlinkedVariable st = variables.singleWhere((v) => v.name == 'st');
+      _assertVariableVisible(code, st, 'on int catch (', '} // 3');
+    }
+  }
+
+  test_executable_localVariables_catch_noVariables() {
+    String code = r'''
+f() {
+  try {
+    throw 42;
+  } on int {}
+}
+''';
+    UnlinkedExecutable executable = serializeExecutableText(code);
+    List<UnlinkedVariable> variables = executable.localVariables;
+    expect(variables, isEmpty);
+  }
+
   test_executable_localVariables_empty() {
     UnlinkedExecutable executable = serializeExecutableText(r'''
 f() {
 }
 ''');
     expect(executable.localVariables, isEmpty);
+  }
+
+  test_executable_localVariables_forEachLoop() {
+    String code = r'''
+f() { // 1
+  for (int i in <int>[]) { // 2
+    print(i);
+  } // 3
+} // 4
+''';
+    UnlinkedExecutable executable = serializeExecutableText(code);
+    List<UnlinkedVariable> variables = executable.localVariables;
+    expect(variables, hasLength(1));
+    {
+      UnlinkedVariable i = variables.singleWhere((v) => v.name == 'i');
+      _assertVariableVisible(code, i, 'for', '} // 3');
+      checkTypeRef(i.type, 'dart:core', 'dart:core', 'int');
+    }
+  }
+
+  test_executable_localVariables_forLoop() {
+    String code = r'''
+f() { // 1
+  for (int i = 0, j = 0; i < 10; i++, j++) { // 2
+    print(i);
+  } // 3
+} // 4
+''';
+    UnlinkedExecutable executable = serializeExecutableText(code);
+    List<UnlinkedVariable> variables = executable.localVariables;
+    expect(variables, hasLength(2));
+    {
+      UnlinkedVariable i = variables.singleWhere((v) => v.name == 'i');
+      _assertVariableVisible(code, i, 'for', '} // 3');
+      checkTypeRef(i.type, 'dart:core', 'dart:core', 'int');
+    }
+    {
+      UnlinkedVariable i = variables.singleWhere((v) => v.name == 'j');
+      _assertVariableVisible(code, i, 'for', '} // 3');
+      checkTypeRef(i.type, 'dart:core', 'dart:core', 'int');
+    }
+  }
+
+  test_executable_localVariables_forLoop_noVariables() {
+    String code = r'''
+f() {
+  for (; true;) {}
+}
+''';
+    UnlinkedExecutable executable = serializeExecutableText(code);
+    List<UnlinkedVariable> variables = executable.localVariables;
+    expect(variables, isEmpty);
   }
 
   test_executable_localVariables_inConstructor() {
@@ -4521,6 +5258,14 @@ get g { // 1
     expect(executable.isExternal, false);
   }
 
+  test_executable_operator_abstract() {
+    UnlinkedExecutable executable =
+        serializeClassText('class C { C operator+(C c); }', allowErrors: true)
+            .executables[0];
+    expect(executable.isAbstract, true);
+    expect(executable.isExternal, false);
+  }
+
   test_executable_operator_equal() {
     UnlinkedExecutable executable = serializeClassText(
             'class C { bool operator==(Object other) => false; }')
@@ -4532,6 +5277,7 @@ get g { // 1
     UnlinkedExecutable executable =
         serializeClassText('class C { external C operator+(C c); }')
             .executables[0];
+    expect(executable.isAbstract, false);
     expect(executable.isExternal, true);
   }
 
@@ -4677,6 +5423,7 @@ int foo(int a, String b) => 0;
     expect(param.kind, UnlinkedParamKind.named);
     expect(param.initializer, isNotNull);
     expect(param.defaultValueCode, '42');
+    _assertCodeRange(param.codeRange, 3, 5);
     _assertUnlinkedConst(param.defaultValue,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
@@ -4696,6 +5443,7 @@ int foo(int a, String b) => 0;
     expect(param.kind, UnlinkedParamKind.positional);
     expect(param.initializer, isNotNull);
     expect(param.defaultValueCode, '42');
+    _assertCodeRange(param.codeRange, 3, 6);
     _assertUnlinkedConst(param.defaultValue,
         operators: [UnlinkedConstOperation.pushInt], ints: [42]);
   }
@@ -5143,6 +5891,18 @@ class C {
 }''').fields[0];
     expect(variable.isFinal, isTrue);
     _assertUnlinkedConst(variable.constExpr, isInvalid: true);
+  }
+
+  test_field_final_typeParameter() {
+    UnlinkedVariable variable = serializeClassText(r'''
+class C<T> {
+  final f = <T>[];
+}''').fields[0];
+    expect(variable.isFinal, isTrue);
+    _assertUnlinkedConst(variable.constExpr,
+        operators: [UnlinkedConstOperation.makeTypedList],
+        ints: [0],
+        referenceValidators: [(EntityRef r) => checkParamTypeRef(r, 1)]);
   }
 
   test_field_formal_param_inferred_type_explicit() {
@@ -6600,14 +7360,12 @@ void set f(value) {}''';
 final v = f() ? /*<T>*/(T t) => 0 : /*<T>*/(T t) => 1;
 bool f() => true;
 ''');
-    // The inferred type of `v` is currently `(Object) -> int` due to
-    // dartbug.com/25802.  TODO(paulberry): fix this test when the bug is fixed.
     EntityRef inferredType = getTypeRefForSlot(variable.inferredTypeSlot);
     checkLinkedTypeRef(
         inferredType.syntheticReturnType, 'dart:core', 'dart:core', 'int');
     expect(inferredType.syntheticParams, hasLength(1));
-    checkLinkedTypeRef(inferredType.syntheticParams[0].type, 'dart:core',
-        'dart:core', 'Object');
+    checkLinkedTypeRef(
+        inferredType.syntheticParams[0].type, null, null, '*bottom*');
   }
 
   test_syntheticFunctionType_genericClosure_inGenericFunction() {
@@ -6628,16 +7386,14 @@ void f<T, U>(bool b) {
   final v = b ? /*<V>*/(T t, U u, V v) => 0 : /*<V>*/(T t, U u, V v) => 1;
 }
 ''').localVariables[0];
-    // The inferred type of `v` is currently `(T, U, Object) -> int` due to
-    // dartbug.com/25802.  TODO(paulberry): fix this test when the bug is fixed.
     EntityRef inferredType = getTypeRefForSlot(variable.inferredTypeSlot);
     checkLinkedTypeRef(
         inferredType.syntheticReturnType, 'dart:core', 'dart:core', 'int');
     expect(inferredType.syntheticParams, hasLength(3));
     checkParamTypeRef(inferredType.syntheticParams[0].type, 2);
     checkParamTypeRef(inferredType.syntheticParams[1].type, 1);
-    checkLinkedTypeRef(inferredType.syntheticParams[2].type, 'dart:core',
-        'dart:core', 'Object');
+    checkLinkedTypeRef(
+        inferredType.syntheticParams[2].type, null, null, '*bottom*');
   }
 
   test_syntheticFunctionType_inGenericClass() {

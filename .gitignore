@@ -75,6 +75,7 @@ pubspec.lock
 *.rej
 
 # Generated files.
+tools/dartium/out
 tools/out
 tools/xcodebuild
 editor/util/testing/mac/CodeLab.suite/Results

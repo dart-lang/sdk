@@ -124,8 +124,6 @@ class _Utils {
     }
   }
 
-  static maybeUnwrapJso(obj) => unwrap_jso(obj);
-
   static List convertToList(List list) {
     // FIXME: [possible optimization]: do not copy the array if Dart_IsArray is fine w/ it.
     final length = list.length;
@@ -189,15 +187,14 @@ class _Utils {
     return element;
   }
 
-  static window() => wrap_jso(js.context['window']);
-
   static forwardingPrint(String message) => _blink.Blink_Utils.forwardingPrint(message);
   static void spawnDomHelper(Function f, int replyTo) =>
       _blink.Blink_Utils.spawnDomHelper(f, replyTo);
 
   // TODO(vsm): Make this API compatible with spawnUri.  It should also
   // return a Future<Isolate>.
-  static spawnDomUri(String uri) => wrap_jso(_blink.Blink_Utils.spawnDomUri(uri));
+  // TODO(jacobr): IS THIS RIGHT? I worry we have broken conversion from Promise to Future.
+  static spawnDomUri(String uri) => _blink.Blink_Utils.spawnDomUri(uri);
 
   // The following methods were added for debugger integration to make working
   // with the Dart C mirrors API simpler.
@@ -774,13 +771,13 @@ class _Utils {
     return [
         "inspect",
         (o) {
-          host.callMethod("_inspect", [unwrap_jso(o)]);
+          js.JsNative.callMethod(host, "_inspect", [o]);
           return o;
         },
         "dir",
-        window().console.dir,
+        window.console.dir,
         "dirxml",
-        window().console.dirxml
+        window.console.dirxml
         // FIXME: add copy method.
         ];
   }
@@ -804,38 +801,34 @@ class _Utils {
   }
 
   static void _register(Document document, String tag, Type customType,
-    String extendsTagName) => _blink.Blink_Utils.register(unwrap_jso(document), tag, customType, extendsTagName);
+    String extendsTagName) => _blink.Blink_Utils.register(document, tag, customType, extendsTagName);
 
   static Element createElement(Document document, String tagName) =>
-      wrap_jso(_blink.Blink_Utils.createElement(unwrap_jso(document), tagName));
-
-  static Element changeElementWrapper(HtmlElement element, Type type) =>
-      wrap_jso(_blink.Blink_Utils.changeElementWrapper(unwrap_jso(element), type));
+      _blink.Blink_Utils.createElement(document, tagName);
 }
 
+// TODO(jacobr): this seems busted. I believe we are actually
+// giving users real windows for opener, parent, top, etc.
+// Or worse, we are probaly returning a raw JSObject.
 class _DOMWindowCrossFrame extends DartHtmlDomObject implements
     WindowBase {
-  /** Needed because KeyboardEvent is implements.
-   *  TODO(terry): Consider making blink_jsObject private (add underscore) for
-   *               all blink_jsObject.  Then needed private wrap/unwrap_jso
-   *               functions that delegate to a public wrap/unwrap_jso.
-   */
-  js.JsObject blink_jsObject;
 
   _DOMWindowCrossFrame.internal();
+  
+  static _createSafe(win) => _blink.Blink_Utils.setInstanceInterceptor(win, _DOMWindowCrossFrame);
 
   // Fields.
-  HistoryBase get history => wrap_jso(_blink.Blink_DOMWindowCrossFrame.get_history(unwrap_jso(this)));
-  LocationBase get location => wrap_jso(_blink.Blink_DOMWindowCrossFrame.get_location(unwrap_jso(this)));
-  bool get closed => wrap_jso(_blink.Blink_DOMWindowCrossFrame.get_closed(unwrap_jso(this)));
-  WindowBase get opener => wrap_jso(_blink.Blink_DOMWindowCrossFrame.get_opener(unwrap_jso(this)));
-  WindowBase get parent => wrap_jso(_blink.Blink_DOMWindowCrossFrame.get_parent(unwrap_jso(this)));
-  WindowBase get top => wrap_jso(_blink.Blink_DOMWindowCrossFrame.get_top(unwrap_jso(this)));
+  HistoryBase get history => _blink.Blink_DOMWindowCrossFrame.get_history(this);
+  LocationBase get location => _blink.Blink_DOMWindowCrossFrame.get_location(this);
+  bool get closed => _blink.Blink_DOMWindowCrossFrame.get_closed(this);
+  WindowBase get opener => _blink.Blink_DOMWindowCrossFrame.get_opener(this);
+  WindowBase get parent => _blink.Blink_DOMWindowCrossFrame.get_parent(this);
+  WindowBase get top => _blink.Blink_DOMWindowCrossFrame.get_top(this);
 
   // Methods.
-  void close() => _blink.Blink_DOMWindowCrossFrame.close(unwrap_jso(this));
+  void close() => _blink.Blink_DOMWindowCrossFrame.close(this);
   void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) =>
-      _blink.Blink_DOMWindowCrossFrame.postMessage(unwrap_jso(this),
+      _blink.Blink_DOMWindowCrossFrame.postMessage(this,
          convertDartToNative_SerializedScriptValue(message), targetOrigin, messagePorts);
 
   // Implementation support.
@@ -869,9 +862,9 @@ class _HistoryCrossFrame extends DartHtmlDomObject implements HistoryBase {
   _HistoryCrossFrame.internal();
 
   // Methods.
-  void back() => _blink.Blink_HistoryCrossFrame.back(unwrap_jso(this));
-  void forward() => _blink.Blink_HistoryCrossFrame.forward(unwrap_jso(this));
-  void go(int distance) => _blink.Blink_HistoryCrossFrame.go(unwrap_jso(this), distance);
+  void back() => _blink.Blink_HistoryCrossFrame.back(this);
+  void forward() => _blink.Blink_HistoryCrossFrame.forward(this);
+  void go(int distance) => _blink.Blink_HistoryCrossFrame.go(this, distance);
 
   // Implementation support.
   String get typeName => "History";
@@ -881,7 +874,7 @@ class _LocationCrossFrame extends DartHtmlDomObject implements LocationBase {
   _LocationCrossFrame.internal();
 
   // Fields.
-  set href(String h) => _blink.Blink_LocationCrossFrame.set_href(unwrap_jso(this), h);
+  set href(String h) => _blink.Blink_LocationCrossFrame.set_href(this, h);
 
   // Implementation support.
   String get typeName => "Location";

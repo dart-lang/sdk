@@ -2249,6 +2249,8 @@ class Function : public Object {
     return OFFSET_OF(RawFunction, entry_point_);
   }
 
+  virtual intptr_t Hash() const;
+
   // Returns true if there is at least one debugger breakpoint
   // set in this function.
   bool HasBreakpoint() const;
@@ -3552,6 +3554,7 @@ class Library : public Object {
   // Library imports.
   RawArray* imports() const { return raw_ptr()->imports_; }
   RawArray* exports() const { return raw_ptr()->exports_; }
+  RawArray* exports2() const { return raw_ptr()->exports2_; }
   void AddImport(const Namespace& ns) const;
   intptr_t num_imports() const { return raw_ptr()->num_imports_; }
   RawNamespace* ImportAt(intptr_t index) const;
@@ -3856,7 +3859,10 @@ class Instructions : public Object {
   intptr_t size() const { return raw_ptr()->size_; }  // Excludes HeaderSize().
 
   uword EntryPoint() const {
-    return reinterpret_cast<uword>(raw_ptr()) + HeaderSize();
+    return EntryPoint(raw());
+  }
+  static uword EntryPoint(RawInstructions* instr) {
+    return reinterpret_cast<uword>(instr->ptr()) + HeaderSize();
   }
 
   static const intptr_t kMaxElements = (kMaxInt32 -
@@ -4323,9 +4329,7 @@ class DeoptInfo : public AllStatic {
 
 class Code : public Object {
  public:
-  RawInstructions* active_instructions() const {
-    return raw_ptr()->active_instructions_;
-  }
+  uword active_entry_point() const { return raw_ptr()->entry_point_; }
 
   RawInstructions* instructions() const { return raw_ptr()->instructions_; }
 
@@ -4355,20 +4359,15 @@ class Code : public Object {
   }
   void set_is_alive(bool value) const;
 
-  uword EntryPoint() const {
-    return Instructions::Handle(instructions()).EntryPoint();
-  }
-  intptr_t Size() const {
-    const Instructions& instr = Instructions::Handle(instructions());
-    return instr.size();
-  }
+  uword EntryPoint() const;
+  intptr_t Size() const;
+
   RawObjectPool* GetObjectPool() const {
     return object_pool();
   }
   bool ContainsInstructionAt(uword addr) const {
-    const Instructions& instr = Instructions::Handle(instructions());
-    const uword offset = addr - instr.EntryPoint();
-    return offset < static_cast<uword>(instr.size());
+    const uword offset = addr - EntryPoint();
+    return offset < static_cast<uword>(Size());
   }
 
   // Returns true if there is a debugger breakpoint set in this code object.
@@ -4607,12 +4606,11 @@ class Code : public Object {
   void Enable() const {
     if (!IsDisabled()) return;
     ASSERT(Thread::Current()->IsMutatorThread());
-    ASSERT(instructions() != active_instructions());
     SetActiveInstructions(instructions());
   }
 
   bool IsDisabled() const {
-    return instructions() != active_instructions();
+    return active_entry_point() != EntryPoint();
   }
 
  private:
@@ -4638,8 +4636,7 @@ class Code : public Object {
 
   class SlowFindRawCodeVisitor : public FindObjectVisitor {
    public:
-    explicit SlowFindRawCodeVisitor(uword pc)
-        : FindObjectVisitor(Isolate::Current()), pc_(pc) { }
+    explicit SlowFindRawCodeVisitor(uword pc) : pc_(pc) { }
     virtual ~SlowFindRawCodeVisitor() { }
 
     // Check if object matches find condition.

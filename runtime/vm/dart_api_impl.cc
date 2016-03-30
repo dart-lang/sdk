@@ -97,7 +97,6 @@ const char* CanonicalFunction(const char* func) {
 class FunctionVisitor : public ObjectVisitor {
  public:
   explicit FunctionVisitor(Thread* thread) :
-      ObjectVisitor(thread->isolate()),
       classHandle_(Class::Handle(thread->zone())),
       funcHandle_(Function::Handle(thread->zone())),
       typeHandle_(AbstractType::Handle(thread->zone())) {}
@@ -1466,6 +1465,7 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(
     intptr_t* isolate_snapshot_size) {
   ASSERT(FLAG_load_deferred_eagerly);
   DARTSCOPE(Thread::Current());
+  API_TIMELINE_DURATION;
   Isolate* I = T->isolate();
   if (vm_isolate_snapshot_buffer != NULL &&
       vm_isolate_snapshot_size == NULL) {
@@ -1537,6 +1537,7 @@ static Dart_Handle createLibrarySnapshot(Dart_Handle library,
 
 DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
                                                   intptr_t* size) {
+  API_TIMELINE_DURATION;
   return createLibrarySnapshot(Dart_Null(), buffer, size);
 }
 
@@ -1544,6 +1545,7 @@ DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
 DART_EXPORT Dart_Handle Dart_CreateLibrarySnapshot(Dart_Handle library,
                                                    uint8_t** buffer,
                                                    intptr_t* size) {
+  API_TIMELINE_DURATION;
   return createLibrarySnapshot(library, buffer, size);
 }
 

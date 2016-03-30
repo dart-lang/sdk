@@ -1505,8 +1505,6 @@ abstract class ClassElement extends TypeDeclarationElement
 abstract class MixinApplicationElement extends ClassElement {
   ClassElement get mixin;
   InterfaceType get mixinType;
-  void set mixinType(InterfaceType value);
-  void addConstructor(FunctionElement constructor);
 }
 
 /// Enum declaration.

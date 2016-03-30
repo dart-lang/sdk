@@ -30,6 +30,7 @@ main() {
   runReflectiveTests(FieldElementImplTest);
   runReflectiveTests(FunctionTypeImplTest);
   runReflectiveTests(InterfaceTypeImplTest);
+  runReflectiveTests(LocalVariableElementImplTest);
   runReflectiveTests(TypeParameterTypeImplTest);
   runReflectiveTests(VoidTypeImplTest);
   runReflectiveTests(ClassElementImplTest);
@@ -3766,6 +3767,45 @@ class LibraryElementImplTest extends EngineTestCase {
     for (int i = 0; i < actualImports.length; i++) {
       expect(actualImports[i], same(expectedImports[i]));
     }
+  }
+}
+
+@reflectiveTest
+class LocalVariableElementImplTest extends EngineTestCase {
+  void test_computeNode_declaredIdentifier() {
+    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
+    AnalysisContext context = contextHelper.context;
+    Source source = contextHelper.addSource(
+        "/test.dart",
+        r'''
+main() {
+  for (int v in <int>[1, 2, 3]) {}
+}''');
+    LibraryElement libraryElement = context.computeLibraryElement(source);
+    FunctionElement mainElement = libraryElement.units[0].functions[0];
+    LocalVariableElement element = mainElement.localVariables[0];
+    DeclaredIdentifier node = element.computeNode() as DeclaredIdentifier;
+    expect(node, isNotNull);
+    expect(node.identifier.name, 'v');
+    expect(node.element, same(element));
+  }
+
+  void test_computeNode_variableDeclaration() {
+    AnalysisContextHelper contextHelper = new AnalysisContextHelper();
+    AnalysisContext context = contextHelper.context;
+    Source source = contextHelper.addSource(
+        "/test.dart",
+        r'''
+main() {
+  int v = 0;
+}''');
+    LibraryElement libraryElement = context.computeLibraryElement(source);
+    FunctionElement mainElement = libraryElement.units[0].functions[0];
+    LocalVariableElement element = mainElement.localVariables[0];
+    VariableDeclaration node = element.computeNode() as VariableDeclaration;
+    expect(node, isNotNull);
+    expect(node.name.name, 'v');
+    expect(node.element, same(element));
   }
 }
 

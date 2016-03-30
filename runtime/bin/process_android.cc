@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_IO_DISABLED)
+
 #include "platform/globals.h"
 #if defined(TARGET_OS_ANDROID)
 
@@ -29,6 +31,9 @@ extern char **environ;
 
 namespace dart {
 namespace bin {
+
+int Process::global_exit_code_ = 0;
+Mutex* Process::global_exit_code_mutex_ = new Mutex();
 
 // ProcessInfo is used to map a process id to the file descriptor for
 // the pipe used to communicate the exit code of the process to Dart.
@@ -1037,3 +1042,5 @@ void Process::ClearSignalHandler(intptr_t signal) {
 }  // namespace dart
 
 #endif  // defined(TARGET_OS_ANDROID)
+
+#endif  // !defined(DART_IO_DISABLED)

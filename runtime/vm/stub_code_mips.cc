@@ -2345,6 +2345,11 @@ void StubCode::GenerateICLookupThroughCodeStub(Assembler* assembler) {
   __ Ret();
 }
 
+
+void StubCode::GenerateFrameAwaitingMaterializationStub(Assembler* assembler) {
+  __ break_(0);
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_MIPS

@@ -28,16 +28,22 @@ void main() {
           Comparator<K> _comparator;
           _Predicate _validKey;
 
-          // TODO(rnystrom): Initializing _comparator should have a cast, since
-          // K may not always be Comparable. It doesn't currently get one
-          // because we're using the spec's LUB on function types, which isn't
-          // sound.
+          // The warning on assigning to _comparator is legitimate. Since K has
+          // no bound, all we know is that it's object. _comparator's function
+          // type is effectively:              (Object, Object) -> int
+          // We are assigning it a fn of type: (Comparable, Comparable) -> int
+          // There's no telling if that will work. For example, consider:
+          //
+          //     new SplayTreeMap<Uri>();
+          //
+          // This would end up calling .compareTo() on a Uri, which doesn't
+          // define that since it doesn't implement Comparable.
           SplayTreeMap([int compare(K key1, K key2),
                         bool isValidKey(potentialKey)])
-            : _comparator = (compare == null) ? Comparable.compare : compare,
+            : _comparator = /*warning:DOWN_CAST_COMPOSITE*/(compare == null) ? Comparable.compare : compare,
               _validKey = (isValidKey != null) ? isValidKey : ((v) => true) {
-            _Predicate<Object> v = /*warning:DOWN_CAST_COMPOSITE*/(isValidKey != null)
-                                    ? isValidKey : (/*info:INFERRED_TYPE_CLOSURE*/(_) => true);
+            _Predicate<Object> v = (isValidKey != null)
+                ? isValidKey : (/*info:INFERRED_TYPE_CLOSURE*/(_) => true);
 
             v = (isValidKey != null)
                  ? v : (/*info:INFERRED_TYPE_CLOSURE*/(_) => true);
@@ -54,6 +60,73 @@ void main() {
           print((/*info:DYNAMIC_CAST*/dyn) ? false : true);
         }
       ''');
+  });
+
+  test('least upper bounds', () {
+    checkFile('''
+      typedef T Returns<T>();
+
+      // regression test for https://github.com/dart-lang/sdk/issues/26094
+      class A <S extends  Returns<S>, T extends Returns<T>> {
+        int test(bool b) {
+          S s;
+          T t;
+          if (b) {
+            return /*warning:RETURN_OF_INVALID_TYPE*/b ? s : t;
+          } else {
+            return /*warning:RETURN_OF_INVALID_TYPE*/s ?? t;
+          }
+        }
+      }
+
+      class B<S, T extends S> {
+        T t;
+        S s;
+        int test(bool b) {
+          return /*warning:RETURN_OF_INVALID_TYPE*/b ? t : s;
+        }
+      }
+
+      class C {
+        // Check that the least upper bound of two types with the same
+        // class but different type arguments produces the pointwise
+        // least upper bound of the type arguments
+        int test1(bool b) {
+          List<int> li;
+          List<double> ld;
+          return /*warning:RETURN_OF_INVALID_TYPE*/b ? li : ld;
+        }
+        // TODO(leafp): This case isn't handled yet.  This test checks
+        // the case where two related classes are instantiated with related
+        // but different types.
+        Iterable<num> test2(bool b) {
+          List<int> li;
+          Iterable<double> id;
+          int x =
+              /*info:ASSIGNMENT_CAST should be warning:INVALID_ASSIGNMENT*/
+              b ? li : id;
+          return /*warning:DOWN_CAST_COMPOSITE should be pass*/b ? li : id;
+        }
+      }
+      ''');
+  });
+
+  test('setter return types', () {
+    checkFile('''
+      void voidFn() => null;
+      class A {
+        set a(y) => 4;
+        set b(y) => voidFn();
+        void set c(y) => /*warning:RETURN_OF_INVALID_TYPE*/4;
+        void set d(y) => voidFn();
+        /*warning:NON_VOID_RETURN_FOR_SETTER*/int set e(y) => 4;
+        /*warning:NON_VOID_RETURN_FOR_SETTER*/int set f(y) =>
+            /*warning:RETURN_OF_INVALID_TYPE*/voidFn();
+        set g(y) {return /*warning:RETURN_OF_INVALID_TYPE*/4;}
+        void set h(y) {return /*warning:RETURN_OF_INVALID_TYPE*/4;}
+        /*warning:NON_VOID_RETURN_FOR_SETTER*/int set i(y) {return 4;}
+      }
+    ''');
   });
 
   test('if/for/do/while statements use boolean conversion', () {
@@ -661,8 +734,24 @@ void main() {
    ''');
     });
 
-    test('dynamic - known functions', () {
+    test('dynamic functions - closures are not fuzzy', () {
+      // Regression test for
+      // https://github.com/dart-lang/sdk/issues/26118
+      checkFile('''
+        void test1() {
+          void takesF(f(int x)) => null;
+          takesF((dynamic y) => 3);
+        }
 
+        void test2() {
+          int x;
+          int f/*<T>*/(/*=T*/ t, callback(/*=T*/ x)) { return 3; }
+          f(x, (y) => 3);
+        }
+     ''');
+    });
+
+    test('dynamic - known functions', () {
       // Our lattice should look like this:
       //
       //
@@ -674,6 +763,10 @@ void main() {
       //         \      /
       //         Top -> A
       //
+      // Note that downcasts of known functions are promoted to
+      // static type errors, since they cannot succeed.
+      // This makes some of what look like downcasts turn into
+      // type errors below.
       checkFile('''
         class A {}
 
@@ -688,51 +781,160 @@ void main() {
         A aa(A x) => x;
         dynamic topTop(dynamic x) => x;
         A topA(dynamic x) => /*info:DYNAMIC_CAST*/x;
-
+        void apply/*<T>*/(/*=T*/ f0, /*=T*/ f1, /*=T*/ f2,
+                          /*=T*/ f3, /*=T*/ f4, /*=T*/ f5) {}
         void main() {
           BotTop botTop;
           BotA botA;
           {
             BotTop f;
-            f = topTop;
-            f = aTop;
             f = topA;
+            f = topTop;
             f = aa;
+            f = aTop;
+            f = botA;
+            f = botTop;
+            apply/*<BotTop>*/(
+                topA,
+                topTop,
+                aa,
+                aTop,
+                botA,
+                botTop
+                              );
+            apply/*<BotTop>*/(
+                (dynamic x) => new A(),
+                (dynamic x) => (x as Object),
+                (A x) => x,
+                (A x) => null,
+                botA,
+                botTop
+                              );
           }
           {
             ATop f;
-            f = topTop;
-            f = aTop;
             f = topA;
+            f = topTop;
             f = aa;
+            f = aTop;
+            f = /*warning:DOWN_CAST_COMPOSITE should be severe:STATIC_TYPE_ERROR*/botA;
+            f = /*warning:DOWN_CAST_COMPOSITE*/botTop;
+            apply/*<ATop>*/(
+                topA,
+                topTop,
+                aa,
+                aTop,
+                /*warning:DOWN_CAST_COMPOSITE should be severe:STATIC_TYPE_ERROR*/botA,
+                /*warning:DOWN_CAST_COMPOSITE*/botTop
+                            );
+            apply/*<ATop>*/(
+                (dynamic x) => new A(),
+                (dynamic x) => (x as Object),
+                (A x) => x,
+                (A x) => null,
+                /*warning:DOWN_CAST_COMPOSITE should be severe:STATIC_TYPE_ERROR*/botA,
+                /*warning:DOWN_CAST_COMPOSITE*/botTop
+                            );
           }
           {
             BotA f;
-            f = /*severe:STATIC_TYPE_ERROR*/topTop;
-            f = /*severe:STATIC_TYPE_ERROR*/aTop;
             f = topA;
+            f = /*severe:STATIC_TYPE_ERROR*/topTop;
             f = aa;
+            f = /*severe:STATIC_TYPE_ERROR*/aTop;
+            f = botA;
+            f = /*warning:DOWN_CAST_COMPOSITE*/botTop;
+            apply/*<BotA>*/(
+                topA,
+                /*severe:STATIC_TYPE_ERROR*/topTop,
+                aa,
+                /*severe:STATIC_TYPE_ERROR*/aTop,
+                botA,
+                /*warning:DOWN_CAST_COMPOSITE*/botTop
+                            );
+            apply/*<BotA>*/(
+                (dynamic x) => new A(),
+                /*severe:STATIC_TYPE_ERROR*/(dynamic x) => (x as Object),
+                (A x) => x,
+                /*severe:STATIC_TYPE_ERROR*/(A x) => (x as Object),
+                botA,
+                /*warning:DOWN_CAST_COMPOSITE*/botTop
+                            );
           }
           {
             AA f;
-            f = /*severe:STATIC_TYPE_ERROR*/topTop;
-            f = /*severe:STATIC_TYPE_ERROR*/aTop;
             f = topA;
+            f = /*severe:STATIC_TYPE_ERROR*/topTop;
             f = aa;
+            f = /*severe:STATIC_TYPE_ERROR*/aTop; // known function
+            f = /*warning:DOWN_CAST_COMPOSITE*/botA;
+            f = /*warning:DOWN_CAST_COMPOSITE*/botTop;
+            apply/*<AA>*/(
+                topA,
+                /*severe:STATIC_TYPE_ERROR*/topTop,
+                aa,
+                /*severe:STATIC_TYPE_ERROR*/aTop, // known function
+                /*warning:DOWN_CAST_COMPOSITE*/botA,
+                /*warning:DOWN_CAST_COMPOSITE*/botTop
+                          );
+            apply/*<AA>*/(
+                (dynamic x) => new A(),
+                /*severe:STATIC_TYPE_ERROR*/(dynamic x) => (x as Object),
+                (A x) => x,
+                /*severe:STATIC_TYPE_ERROR*/(A x) => (x as Object), // known function
+                /*warning:DOWN_CAST_COMPOSITE*/botA,
+                /*warning:DOWN_CAST_COMPOSITE*/botTop
+                          );
           }
           {
             TopTop f;
-            f = topTop;
-            f = /*severe:STATIC_TYPE_ERROR*/aTop;
             f = topA;
+            f = topTop;
             f = /*severe:STATIC_TYPE_ERROR*/aa;
+            f = /*severe:STATIC_TYPE_ERROR*/aTop; // known function
+            f = /*warning:DOWN_CAST_COMPOSITE should be severe:STATIC_TYPE_ERROR*/botA;
+            f = /*warning:DOWN_CAST_COMPOSITE*/botTop;
+            apply/*<TopTop>*/(
+                topA,
+                topTop,
+                /*severe:STATIC_TYPE_ERROR*/aa,
+                /*severe:STATIC_TYPE_ERROR*/aTop, // known function
+                /*warning:DOWN_CAST_COMPOSITE should be severe:STATIC_TYPE_ERROR*/botA,
+                /*warning:DOWN_CAST_COMPOSITE*/botTop
+                              );
+            apply/*<TopTop>*/(
+                (dynamic x) => new A(),
+                (dynamic x) => (x as Object),
+                /*severe:STATIC_TYPE_ERROR*/(A x) => x,
+                /*severe:STATIC_TYPE_ERROR*/(A x) => (x as Object), // known function
+                /*warning:DOWN_CAST_COMPOSITE should be severe:STATIC_TYPE_ERROR*/botA,
+                /*warning:DOWN_CAST_COMPOSITE*/botTop
+                              );
           }
           {
             TopA f;
-            f = /*severe:STATIC_TYPE_ERROR*/topTop;
-            f = /*severe:STATIC_TYPE_ERROR*/aTop;
             f = topA;
-            f = /*severe:STATIC_TYPE_ERROR*/aa;
+            f = /*severe:STATIC_TYPE_ERROR*/topTop; // known function
+            f = /*severe:STATIC_TYPE_ERROR*/aa; // known function
+            f = /*severe:STATIC_TYPE_ERROR*/aTop; // known function
+            f = /*warning:DOWN_CAST_COMPOSITE*/botA;
+            f = /*warning:DOWN_CAST_COMPOSITE*/botTop;
+            apply/*<TopA>*/(
+                topA,
+                /*severe:STATIC_TYPE_ERROR*/topTop, // known function
+                /*severe:STATIC_TYPE_ERROR*/aa, // known function
+                /*severe:STATIC_TYPE_ERROR*/aTop, // known function
+                /*warning:DOWN_CAST_COMPOSITE*/botA,
+                /*warning:DOWN_CAST_COMPOSITE*/botTop
+                            );
+            apply/*<TopA>*/(
+                (dynamic x) => new A(),
+                /*severe:STATIC_TYPE_ERROR*/(dynamic x) => (x as Object), // known function
+                /*severe:STATIC_TYPE_ERROR*/(A x) => x, // known function
+                /*severe:STATIC_TYPE_ERROR*/(A x) => (x as Object), // known function
+                /*warning:DOWN_CAST_COMPOSITE*/botA,
+                /*warning:DOWN_CAST_COMPOSITE*/botTop
+                            );
           }
         }
      ''');
@@ -1325,7 +1527,7 @@ void main() {
             local = g; // valid
 
             // Non-generic function cannot subtype a generic one.
-            local = /*severe:STATIC_TYPE_ERROR, warning:INVALID_ASSIGNMENT*/(x) => null;
+            local = /*warning:INVALID_ASSIGNMENT*/(x) => null;
             local = /*warning:INVALID_ASSIGNMENT*/nonGenericFn;
           }
           {
@@ -1341,7 +1543,7 @@ void main() {
             local2 = /*warning:DOWN_CAST_COMPOSITE*/local;
 
             // Non-generic function cannot subtype a generic one.
-            local = /*severe:STATIC_TYPE_ERROR, warning:INVALID_ASSIGNMENT*/(x) => null;
+            local = /*warning:INVALID_ASSIGNMENT*/(x) => null;
             local = /*warning:INVALID_ASSIGNMENT*/nonGenericFn;
           }
         }

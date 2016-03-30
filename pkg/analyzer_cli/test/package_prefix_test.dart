@@ -2,6 +2,7 @@ import 'dart:io' show exitCode;
 
 import 'package:analyzer_cli/src/driver.dart' show Driver, outSink, errorSink;
 import 'package:analyzer_cli/src/options.dart' show ExitHandler, exitHandler;
+import 'package:path/path.dart';
 import 'package:unittest/unittest.dart';
 
 import 'utils.dart' show testDirectory;
@@ -22,14 +23,14 @@ main() {
     test('shows only the hint whose package matches the prefix', () {
       runner.run([
         "--packages",
-        "$testDirectory/data/package_prefix/packagelist",
+        join(testDirectory, 'data', 'package_prefix', 'packagelist'),
         "--x-package-warnings-prefix=f",
-        "$testDirectory/data/package_prefix/main.dart"
+        join(testDirectory, 'data', 'package_prefix', 'main.dart')
       ]);
-      print("ran it");
       expect(runner.stdout, contains('1 hint found'));
       expect(runner.stdout, contains('Unused import'));
-      expect(runner.stdout, contains('package_prefix/pkg/foo/foo.dart'));
+      expect(runner.stdout,
+          contains(join('package_prefix', 'pkg', 'foo', 'foo.dart')));
       expect(runner.stdout, isNot(contains('bar.dart')));
     });
   });
@@ -54,15 +55,15 @@ class _Runner {
     exitHandler = (_) {};
   }
 
+  String get stderr => _stderr.toString();
+
+  String get stdout => _stdout.toString();
   void run(List<String> args) {
     new Driver().start(args);
     if (stderr.isNotEmpty) {
       fail("Unexpected output to stderr:\n$stderr");
     }
   }
-
-  String get stdout => _stdout.toString();
-  String get stderr => _stderr.toString();
 
   void tearDown() {
     outSink = _savedOutSink;

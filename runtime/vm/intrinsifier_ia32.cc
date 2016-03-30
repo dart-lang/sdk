@@ -39,6 +39,20 @@ namespace dart {
 intptr_t Intrinsifier::ParameterSlotFromSp() { return 0; }
 
 
+void Intrinsifier::IntrinsicCallPrologue(Assembler* assembler) {
+  assembler->Comment("IntrinsicCallPrologue");
+  assembler->movl(CALLEE_SAVED_TEMP, ICREG);
+  assembler->movl(CALLEE_SAVED_TEMP2, ARGS_DESC_REG);
+}
+
+
+void Intrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
+  assembler->Comment("IntrinsicCallEpilogue");
+  assembler->movl(ICREG, CALLEE_SAVED_TEMP);
+  assembler->movl(ARGS_DESC_REG, CALLEE_SAVED_TEMP2);
+}
+
+
 static intptr_t ComputeObjectArrayTypeArgumentsOffset() {
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
   const Class& cls = Class::Handle(
@@ -1441,10 +1455,11 @@ void Intrinsifier::Double_lessEqualThan(Assembler* assembler) {
 // Expects left argument to be double (receiver). Right argument is unknown.
 // Both arguments are on stack.
 static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
-  Label fall_through;
-  TestLastArgumentIsDouble(assembler, &fall_through, &fall_through);
+  Label fall_through, is_smi, double_op;
+  TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
   // Both arguments are double, right operand is in EAX.
   __ movsd(XMM1, FieldAddress(EAX, Double::value_offset()));
+  __ Bind(&double_op);
   __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Left argument.
   __ movsd(XMM0, FieldAddress(EAX, Double::value_offset()));
   switch (kind) {
@@ -1463,6 +1478,10 @@ static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
                  EBX);
   __ movsd(FieldAddress(EAX, Double::value_offset()), XMM0);
   __ ret();
+  __ Bind(&is_smi);
+  __ SmiUntag(EAX);
+  __ cvtsi2sd(XMM1, EAX);
+  __ jmp(&double_op);
   __ Bind(&fall_through);
 }
 

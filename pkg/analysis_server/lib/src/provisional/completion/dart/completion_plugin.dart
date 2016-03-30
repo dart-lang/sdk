@@ -51,15 +51,15 @@ class DartCompletionPlugin implements Plugin {
    */
   ExtensionPoint _contributorExtensionPoint;
 
-  @override
-  String get uniqueIdentifier => UNIQUE_IDENTIFIER;
-
   /**
    * Return a list containing all of the Dart specific completion contributors.
    */
   Iterable<DartCompletionContributor> get contributors =>
       _contributorExtensionPoint.extensions
           .map((DartCompletionContributorFactory factory) => factory());
+
+  @override
+  String get uniqueIdentifier => UNIQUE_IDENTIFIER;
 
   @override
   void registerExtensionPoints(RegisterExtensionPoint registerExtensionPoint) {

@@ -105,7 +105,6 @@ mirrors/mirrors_reader_test: Slow, RuntimeError # Issue 16589
 [ $runtime == safari || $runtime == safarimobilesim ]
 typed_data/int32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
 typed_data/float32x4_test: Fail, Pass # Safari has an optimization bug (nightlies are already fine).
-mirrors/null_test: Fail # Issue 16831
 convert/json_test: Fail # https://bugs.webkit.org/show_bug.cgi?id=134920
 
 [ ($runtime == safari && $builder_tag == mac10_7)|| $runtime == safarimobilesim ]
@@ -262,6 +261,7 @@ async/slow_consumer_test: Fail, Pass # Dartium JsInterop failure, dartbug.com/24
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
 mirrors/mirrors_reader_test: SkipSlow # Times out. Issue 20806.
+mirrors/null_test: Fail # Issue 16831
 
 [ $compiler == dart2js && $runtime == jsshell ]
 async/schedule_microtask_test: Fail  # Preamble file does not correctly implement scheduleImmediate.

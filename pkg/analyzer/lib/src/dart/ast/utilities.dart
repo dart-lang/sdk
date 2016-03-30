@@ -778,7 +778,8 @@ class AstCloner implements AstVisitor<AstNode> {
 
   @override
   SimpleIdentifier visitSimpleIdentifier(SimpleIdentifier node) =>
-      new SimpleIdentifier(cloneToken(node.token));
+      new SimpleIdentifier(cloneToken(node.token),
+          isDeclaration: node.inDeclarationContext());
 
   @override
   SimpleStringLiteral visitSimpleStringLiteral(SimpleStringLiteral node) =>
@@ -3433,7 +3434,8 @@ class IncrementalAstCloner implements AstVisitor<AstNode> {
       // documentation comments for the parser.
       mappedToken = node.token;
     }
-    SimpleIdentifier copy = new SimpleIdentifier(mappedToken);
+    SimpleIdentifier copy = new SimpleIdentifier(mappedToken,
+        isDeclaration: node.inDeclarationContext());
     copy.auxiliaryElements = node.auxiliaryElements;
     copy.propagatedElement = node.propagatedElement;
     copy.propagatedType = node.propagatedType;

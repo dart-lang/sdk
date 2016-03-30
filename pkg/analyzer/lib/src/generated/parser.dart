@@ -678,9 +678,9 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     if (identical(_oldNode, node.exceptionType)) {
       return _parser.parseTypeName();
     } else if (identical(_oldNode, node.exceptionParameter)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (identical(_oldNode, node.stackTraceParameter)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (identical(_oldNode, node.body)) {
       return _parser.parseBlock();
     }
@@ -722,7 +722,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     } else if (node.metadata.contains(_oldNode)) {
       return _parser.parseAnnotation();
     } else if (identical(_oldNode, node.name)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (identical(_oldNode, node.typeParameters)) {
       return _parser.parseTypeParameterList();
     } else if (identical(_oldNode, node.superclass)) {
@@ -885,7 +885,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     } else if (node.metadata.contains(_oldNode)) {
       return _parser.parseAnnotation();
     } else if (identical(_oldNode, node.name)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     }
     return _notAChild(node);
   }
@@ -897,7 +897,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     } else if (node.metadata.contains(_oldNode)) {
       return _parser.parseAnnotation();
     } else if (identical(_oldNode, node.name)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (node.constants.contains(_oldNode)) {
       throw new InsufficientContextException();
     }
@@ -977,7 +977,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
       throw new InsufficientContextException();
       //return parser.parseDeclaredIdentifier();
     } else if (identical(_oldNode, node.identifier)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (identical(_oldNode, node.body)) {
       return _parser.parseStatement2();
     }
@@ -1015,7 +1015,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     } else if (identical(_oldNode, node.returnType)) {
       return _parser.parseReturnType();
     } else if (identical(_oldNode, node.name)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (identical(_oldNode, node.functionExpression)) {
       throw new InsufficientContextException();
     }
@@ -1059,7 +1059,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     } else if (identical(_oldNode, node.returnType)) {
       return _parser.parseReturnType();
     } else if (identical(_oldNode, node.name)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (identical(_oldNode, node.typeParameters)) {
       return _parser.parseTypeParameterList();
     } else if (identical(_oldNode, node.parameters)) {
@@ -1077,7 +1077,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     } else if (identical(_oldNode, node.returnType)) {
       return _parser.parseReturnType();
     } else if (identical(_oldNode, node.identifier)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (identical(_oldNode, node.parameters)) {
       return _parser.parseFormalParameterList();
     }
@@ -1121,7 +1121,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     } else if (identical(_oldNode, node.uri)) {
       return _parser.parseStringLiteral();
     } else if (identical(_oldNode, node.prefix)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (node.combinators.contains(_oldNode)) {
       return _parser.parseCombinator();
     }
@@ -1181,7 +1181,8 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
   @override
   AstNode visitLabel(Label node) {
     if (identical(_oldNode, node.label)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(
+          isDeclaration: node.parent is LabeledStatement);
     }
     return _notAChild(node);
   }
@@ -1189,7 +1190,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
   @override
   AstNode visitLabeledStatement(LabeledStatement node) {
     if (node.labels.contains(_oldNode)) {
-      return _parser.parseLabel();
+      return _parser.parseLabel(isDeclaration: true);
     } else if (identical(_oldNode, node.statement)) {
       return _parser.parseStatement2();
     }
@@ -1260,7 +1261,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
       if (node.operatorKeyword != null) {
         throw new InsufficientContextException();
       }
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (identical(_oldNode, node.body)) {
       //return parser.parseFunctionBody();
       throw new InsufficientContextException();
@@ -1555,7 +1556,7 @@ class IncrementalParseDispatcher implements AstVisitor<AstNode> {
     } else if (node.metadata.contains(_oldNode)) {
       return _parser.parseAnnotation();
     } else if (identical(_oldNode, node.name)) {
-      return _parser.parseSimpleIdentifier();
+      return _parser.parseSimpleIdentifier(isDeclaration: true);
     } else if (identical(_oldNode, node.bound)) {
       return _parser.parseTypeName();
     }
@@ -2539,10 +2540,10 @@ class Parser {
             null,
             null,
             null,
-            _createSyntheticIdentifier(),
+            _createSyntheticIdentifier(isDeclaration: true),
             null,
             new FormalParameterList(
-                null, new List<FormalParameter>(), null, null, null),
+                null, <FormalParameter>[], null, null, null),
             new EmptyFunctionBody(_createSyntheticToken(TokenType.SEMICOLON)));
       }
       return null;
@@ -2556,11 +2557,11 @@ class Parser {
           modifiers.factoryKeyword,
           parseSimpleIdentifier(),
           getAndAdvance(),
-          parseSimpleIdentifier(),
+          parseSimpleIdentifier(isDeclaration: true),
           parseFormalParameterList());
     } else if (_tokenMatches(_peek(), TokenType.OPEN_PAREN)) {
       TypeName returnType = _parseOptionalTypeNameComment();
-      SimpleIdentifier methodName = parseSimpleIdentifier();
+      SimpleIdentifier methodName = parseSimpleIdentifier(isDeclaration: true);
       TypeParameterList typeParameters = _parseGenericCommentTypeParameters();
       FormalParameterList parameters = parseFormalParameterList();
       if (_matches(TokenType.COLON) ||
@@ -2571,7 +2572,7 @@ class Parser {
             modifiers.externalKeyword,
             _validateModifiersForConstructor(modifiers),
             modifiers.factoryKeyword,
-            methodName,
+            new SimpleIdentifier(methodName.token, isDeclaration: false),
             null,
             null,
             parameters);
@@ -2663,7 +2664,7 @@ class Parser {
         _unlockErrorListener();
       }
     } else if (_tokenMatches(_peek(), TokenType.OPEN_PAREN)) {
-      SimpleIdentifier methodName = parseSimpleIdentifier();
+      SimpleIdentifier methodName = parseSimpleIdentifier(isDeclaration: true);
       TypeParameterList typeParameters = _parseGenericCommentTypeParameters();
       FormalParameterList parameters = parseFormalParameterList();
       if (methodName.name == className) {
@@ -2673,7 +2674,7 @@ class Parser {
             modifiers.externalKeyword,
             _validateModifiersForConstructor(modifiers),
             modifiers.factoryKeyword,
-            methodName,
+            new SimpleIdentifier(methodName.token, isDeclaration: true),
             null,
             null,
             parameters);
@@ -3229,8 +3230,9 @@ class Parser {
    *     label ::=
    *         identifier ':'
    */
-  Label parseLabel() {
-    SimpleIdentifier label = parseSimpleIdentifier();
+  Label parseLabel({bool isDeclaration: false}) {
+    SimpleIdentifier label =
+        parseSimpleIdentifier(isDeclaration: isDeclaration);
     Token colon = _expect(TokenType.COLON);
     return new Label(label, colon);
   }
@@ -3322,7 +3324,7 @@ class Parser {
             commentAndMetadata.comment,
             commentAndMetadata.metadata,
             holder.type,
-            identifier,
+            new SimpleIdentifier(identifier.token, isDeclaration: true),
             typeParameters,
             parameters);
       } else {
@@ -3367,8 +3369,12 @@ class Parser {
           null,
           null);
     }
-    return new SimpleFormalParameter(commentAndMetadata.comment,
-        commentAndMetadata.metadata, holder.keyword, holder.type, identifier);
+    return new SimpleFormalParameter(
+        commentAndMetadata.comment,
+        commentAndMetadata.metadata,
+        holder.keyword,
+        holder.type,
+        new SimpleIdentifier(identifier.token, isDeclaration: true));
   }
 
   /**
@@ -3409,7 +3415,7 @@ class Parser {
    *     identifier ::=
    *         IDENTIFIER
    */
-  SimpleIdentifier parseSimpleIdentifier() {
+  SimpleIdentifier parseSimpleIdentifier({bool isDeclaration: false}) {
     if (_matchesIdentifier()) {
       String lexeme = _currentToken.lexeme;
       if ((_inAsync || _inGenerator) &&
@@ -3417,10 +3423,11 @@ class Parser {
         _reportErrorForCurrentToken(
             ParserErrorCode.ASYNC_KEYWORD_USED_AS_IDENTIFIER);
       }
-      return new SimpleIdentifier(getAndAdvance());
+      return new SimpleIdentifier(getAndAdvance(),
+          isDeclaration: isDeclaration);
     }
     _reportErrorForCurrentToken(ParserErrorCode.MISSING_IDENTIFIER);
-    return _createSyntheticIdentifier();
+    return _createSyntheticIdentifier(isDeclaration: isDeclaration);
   }
 
   /**
@@ -3442,7 +3449,7 @@ class Parser {
   Statement parseStatement2() {
     List<Label> labels = new List<Label>();
     while (_matchesIdentifier() && _tokenMatches(_peek(), TokenType.COLON)) {
-      labels.add(parseLabel());
+      labels.add(parseLabel(isDeclaration: true));
     }
     Statement statement = _parseNonLabeledStatement();
     if (labels.isEmpty) {
@@ -3535,7 +3542,7 @@ class Parser {
    */
   TypeParameter parseTypeParameter() {
     CommentAndMetadata commentAndMetadata = _parseCommentAndMetadata();
-    SimpleIdentifier name = parseSimpleIdentifier();
+    SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
     if (_matchesKeyword(Keyword.EXTENDS)) {
       Token keyword = getAndAdvance();
       TypeName bound = parseTypeName();
@@ -3705,7 +3712,7 @@ class Parser {
   /**
    * Return a synthetic identifier.
    */
-  SimpleIdentifier _createSyntheticIdentifier() {
+  SimpleIdentifier _createSyntheticIdentifier({bool isDeclaration: false}) {
     Token syntheticToken;
     if (_currentToken.type == TokenType.KEYWORD) {
       // Consider current keyword token as an identifier.
@@ -3718,7 +3725,7 @@ class Parser {
     } else {
       syntheticToken = _createSyntheticToken(TokenType.IDENTIFIER);
     }
-    return new SimpleIdentifier(syntheticToken);
+    return new SimpleIdentifier(syntheticToken, isDeclaration: isDeclaration);
   }
 
   /**
@@ -4746,7 +4753,7 @@ class Parser {
             commentAndMetadata, abstractKeyword, keyword);
       }
     }
-    SimpleIdentifier name = parseSimpleIdentifier();
+    SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
     String className = name.name;
     TypeParameterList typeParameters = null;
     if (_matches(TokenType.LT)) {
@@ -4899,7 +4906,7 @@ class Parser {
    */
   ClassTypeAlias _parseClassTypeAlias(CommentAndMetadata commentAndMetadata,
       Token abstractKeyword, Token classKeyword) {
-    SimpleIdentifier className = parseSimpleIdentifier();
+    SimpleIdentifier className = parseSimpleIdentifier(isDeclaration: true);
     TypeParameterList typeParameters = null;
     if (_matches(TokenType.LT)) {
       typeParameters = parseTypeParameterList();
@@ -5708,7 +5715,7 @@ class Parser {
     CommentAndMetadata commentAndMetadata = _parseCommentAndMetadata();
     SimpleIdentifier name;
     if (_matchesIdentifier()) {
-      name = parseSimpleIdentifier();
+      name = parseSimpleIdentifier(isDeclaration: true);
     } else {
       name = _createSyntheticIdentifier();
     }
@@ -5729,7 +5736,7 @@ class Parser {
    */
   EnumDeclaration _parseEnumDeclaration(CommentAndMetadata commentAndMetadata) {
     Token keyword = _expectKeyword(Keyword.ENUM);
-    SimpleIdentifier name = parseSimpleIdentifier();
+    SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
     Token leftBracket = null;
     List<EnumConstantDeclaration> constants =
         new List<EnumConstantDeclaration>();
@@ -5992,8 +5999,13 @@ class Parser {
             Token keyword = variableList.keyword;
             TypeName type = variableList.type;
             if (keyword != null || type != null) {
-              loopVariable = new DeclaredIdentifier(commentAndMetadata.comment,
-                  commentAndMetadata.metadata, keyword, type, variable.name);
+              loopVariable = new DeclaredIdentifier(
+                  commentAndMetadata.comment,
+                  commentAndMetadata.metadata,
+                  keyword,
+                  type,
+                  new SimpleIdentifier(variable.name.token,
+                      isDeclaration: true));
             } else {
               if (!commentAndMetadata.metadata.isEmpty) {
                 // TODO(jwren) metadata isn't allowed before the identifier in
@@ -6204,7 +6216,7 @@ class Parser {
         !_tokenMatches(_peek(), TokenType.OPEN_PAREN)) {
       keyword = getAndAdvance();
     }
-    SimpleIdentifier name = parseSimpleIdentifier();
+    SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
     TypeParameterList typeParameters = _parseGenericMethodTypeParameters();
     FormalParameterList parameters = null;
     if (!isGetter) {
@@ -6304,7 +6316,7 @@ class Parser {
     if (hasReturnTypeInTypeAlias) {
       returnType = parseReturnType();
     }
-    SimpleIdentifier name = parseSimpleIdentifier();
+    SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
     TypeParameterList typeParameters = null;
     if (_matches(TokenType.LT)) {
       typeParameters = parseTypeParameterList();
@@ -6406,7 +6418,7 @@ class Parser {
   MethodDeclaration _parseGetter(CommentAndMetadata commentAndMetadata,
       Token externalKeyword, Token staticKeyword, TypeName returnType) {
     Token propertyKeyword = _expectKeyword(Keyword.GET);
-    SimpleIdentifier name = parseSimpleIdentifier();
+    SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
     if (_matches(TokenType.OPEN_PAREN) &&
         _tokenMatches(_peek(), TokenType.CLOSE_PAREN)) {
       _reportErrorForCurrentToken(ParserErrorCode.GETTER_WITH_PARAMETERS);
@@ -6492,7 +6504,7 @@ class Parser {
     }
     if (_matchesKeyword(Keyword.AS)) {
       asToken = getAndAdvance();
-      prefix = parseSimpleIdentifier();
+      prefix = parseSimpleIdentifier(isDeclaration: true);
     } else if (deferredToken != null) {
       _reportErrorForCurrentToken(
           ParserErrorCode.MISSING_PREFIX_IN_DEFERRED_IMPORT);
@@ -6508,7 +6520,7 @@ class Parser {
         _advance();
         if (_matchesKeyword(Keyword.AS)) {
           asToken = getAndAdvance();
-          prefix = parseSimpleIdentifier();
+          prefix = parseSimpleIdentifier(isDeclaration: true);
         }
       }
     }
@@ -6816,7 +6828,7 @@ class Parser {
       Token externalKeyword,
       Token staticKeyword,
       TypeName returnType) {
-    SimpleIdentifier methodName = parseSimpleIdentifier();
+    SimpleIdentifier methodName = parseSimpleIdentifier(isDeclaration: true);
     TypeParameterList typeParameters = _parseGenericMethodTypeParameters();
     FormalParameterList parameters;
     if (!_matches(TokenType.OPEN_PAREN) &&
@@ -7179,7 +7191,8 @@ class Parser {
       _reportErrorForCurrentToken(
           ParserErrorCode.NON_USER_DEFINABLE_OPERATOR, [_currentToken.lexeme]);
     }
-    SimpleIdentifier name = new SimpleIdentifier(getAndAdvance());
+    SimpleIdentifier name =
+        new SimpleIdentifier(getAndAdvance(), isDeclaration: true);
     if (_matches(TokenType.EQ)) {
       Token previous = _currentToken.previous;
       if ((_tokenMatches(previous, TokenType.EQ_EQ) ||
@@ -7564,7 +7577,7 @@ class Parser {
   MethodDeclaration _parseSetter(CommentAndMetadata commentAndMetadata,
       Token externalKeyword, Token staticKeyword, TypeName returnType) {
     Token propertyKeyword = _expectKeyword(Keyword.SET);
-    SimpleIdentifier name = parseSimpleIdentifier();
+    SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
     FormalParameterList parameters = parseFormalParameterList();
     _validateFormalParameterList(parameters);
     FunctionBody body = _parseFunctionBody(
@@ -7730,7 +7743,8 @@ class Parser {
         List<Label> labels = new List<Label>();
         while (
             _matchesIdentifier() && _tokenMatches(_peek(), TokenType.COLON)) {
-          SimpleIdentifier identifier = parseSimpleIdentifier();
+          SimpleIdentifier identifier =
+              parseSimpleIdentifier(isDeclaration: true);
           String label = identifier.token.lexeme;
           if (definedLabels.contains(label)) {
             _reportErrorForToken(
@@ -7886,10 +7900,10 @@ class Parser {
       if (_matchesKeyword(Keyword.CATCH)) {
         catchKeyword = getAndAdvance();
         leftParenthesis = _expect(TokenType.OPEN_PAREN);
-        exceptionParameter = parseSimpleIdentifier();
+        exceptionParameter = parseSimpleIdentifier(isDeclaration: true);
         if (_matches(TokenType.COMMA)) {
           comma = getAndAdvance();
-          stackTraceParameter = parseSimpleIdentifier();
+          stackTraceParameter = parseSimpleIdentifier(isDeclaration: true);
         }
         rightParenthesis = _expect(TokenType.CLOSE_PAREN);
       }
@@ -8122,7 +8136,7 @@ class Parser {
     // of a construct like "class C { int @deprecated foo() {} }" (i.e. the
     // user is in the middle of inserting "int bar;" prior to
     // "@deprecated foo() {}").
-    SimpleIdentifier name = parseSimpleIdentifier();
+    SimpleIdentifier name = parseSimpleIdentifier(isDeclaration: true);
     Token equals = null;
     Expression initializer = null;
     if (_matches(TokenType.EQ)) {

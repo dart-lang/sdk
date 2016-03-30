@@ -626,7 +626,7 @@ class HtmlDartGenerator(object):
             (factory_params, converted_arguments) = self._ConvertArgumentTypes(
                 stmts_emitter, arguments, argument_count, constructor_info)
             args = ', '.join(converted_arguments)
-            call_template = 'wrap_jso($FACTORY_NAME($FACTORY_PARAMS))'
+            call_template = '$FACTORY_NAME($FACTORY_PARAMS)'
         else:
             qualified_name = emitter.Format(
                 '$FACTORY.$NAME',

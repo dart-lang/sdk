@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_IO_DISABLED)
+
+#include "bin/process.h"
+
 #include "bin/dartutils.h"
 #include "bin/io_buffer.h"
 #include "bin/log.h"
 #include "bin/platform.h"
-#include "bin/process.h"
 #include "bin/socket.h"
 #include "bin/utils.h"
 
@@ -16,9 +19,6 @@ namespace dart {
 namespace bin {
 
 static const int kProcessIdNativeField = 0;
-
-int Process::global_exit_code_ = 0;
-Mutex* Process::global_exit_code_mutex_ = new Mutex();
 
 // Extract an array of C strings from a list of Dart strings.
 static char** ExtractCStringList(Dart_Handle strings,
@@ -367,3 +367,5 @@ void FUNCTION_NAME(StringToSystemEncoding)(Dart_NativeArguments args) {
 
 }  // namespace bin
 }  // namespace dart
+
+#endif  // !defined(DART_IO_DISABLED)

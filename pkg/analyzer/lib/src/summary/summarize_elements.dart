@@ -138,6 +138,40 @@ class PackageBundleAssembler {
   final List<String> _unlinkedUnitHashes = <String>[];
 
   /**
+   * Add a fallback library to the package bundle, corresponding to the library
+   * whose defining compilation unit is located at [source].  Caller must also
+   * call [addFallbackUnit] for all compilation units contained in the library
+   * (including the defining compilation unit).
+   */
+  void addFallbackLibrary(Source source) {
+    String uri = source.uri.toString();
+    _linkedLibraryUris.add(uri);
+    _linkedLibraries.add(new LinkedLibraryBuilder(fallbackMode: true));
+  }
+
+  /**
+   * Add a fallback compilation unit to the package bundle, corresponding to
+   * the compilation unit located at [source].
+   */
+  void addFallbackUnit(Source source) {
+    String uri = source.uri.toString();
+    _unlinkedUnitUris.add(uri);
+    _unlinkedUnits
+        .add(new UnlinkedUnitBuilder(fallbackModePath: source.fullName));
+  }
+
+  void addLinkedLibrary(String uri, LinkedLibraryBuilder library) {
+    _linkedLibraries.add(library);
+    _linkedLibraryUris.add(uri);
+  }
+
+  void addUnlinkedUnit(Source source, UnlinkedUnitBuilder unit) {
+    _unlinkedUnitUris.add(source.uri.toString());
+    _unlinkedUnits.add(unit);
+    _unlinkedUnitHashes.add(_hash(source.contents.data));
+  }
+
+  /**
    * Assemble a new [PackageBundleBuilder] using the gathered information.
    */
   PackageBundleBuilder assemble() {
@@ -312,7 +346,9 @@ class _CompilationUnitSerializer {
     for (ClassElement enm in compilationUnit.enums) {
       if (enm.isPublic) {
         names.add(new UnlinkedPublicNameBuilder(
-            kind: ReferenceKind.classOrEnum, name: enm.name));
+            kind: ReferenceKind.classOrEnum,
+            name: enm.name,
+            members: serializeClassConstMembers(enm)));
       }
     }
     for (FunctionElement function in compilationUnit.functions) {
@@ -469,7 +505,8 @@ class _CompilationUnitSerializer {
       return const <UnlinkedConstBuilder>[];
     }
     return element.metadata.map((ElementAnnotationImpl a) {
-      _ConstExprSerializer serializer = new _ConstExprSerializer(this, null);
+      _ConstExprSerializer serializer =
+          new _ConstExprSerializer(this, element, null);
       serializer.serializeAnnotation(a.annotationAst);
       return serializer.toBuilder();
     }).toList();
@@ -615,10 +652,11 @@ class _CompilationUnitSerializer {
   /**
    * Serialize the given [expression], creating an [UnlinkedConstBuilder].
    */
-  UnlinkedConstBuilder serializeConstExpr(Expression expression,
+  UnlinkedConstBuilder serializeConstExpr(
+      Element context, Expression expression,
       [Set<String> constructorParameterNames]) {
     _ConstExprSerializer serializer =
-        new _ConstExprSerializer(this, constructorParameterNames);
+        new _ConstExprSerializer(this, context, constructorParameterNames);
     serializer.serialize(expression);
     return serializer.toBuilder();
   }
@@ -733,8 +771,8 @@ class _CompilationUnitSerializer {
               .map((ConstructorInitializer initializer) =>
                   serializeConstructorInitializer(
                       initializer,
-                      (expr) =>
-                          serializeConstExpr(expr, constructorParameterNames)))
+                      (expr) => serializeConstExpr(
+                          executableElement, expr, constructorParameterNames)))
               .toList();
         }
       }
@@ -870,7 +908,7 @@ class _CompilationUnitSerializer {
       ConstVariableElement constParameter = parameter as ConstVariableElement;
       Expression initializer = constParameter.constantInitializer;
       if (initializer != null) {
-        b.defaultValue = serializeConstExpr(initializer);
+        b.defaultValue = serializeConstExpr(parameter, initializer);
         b.defaultValueCode = parameter.defaultValueCode;
       }
     }
@@ -1084,7 +1122,7 @@ class _CompilationUnitSerializer {
       ConstVariableElement constVariable = variable as ConstVariableElement;
       Expression initializer = constVariable.constantInitializer;
       if (initializer != null) {
-        b.constExpr = serializeConstExpr(initializer);
+        b.constExpr = serializeConstExpr(variable, initializer);
       }
     }
     if (variable is PropertyInducingElement) {
@@ -1248,6 +1286,7 @@ class _CompilationUnitSerializer {
  */
 class _ConstExprSerializer extends AbstractConstExprSerializer {
   final _CompilationUnitSerializer serializer;
+  final Element context;
 
   /**
    * If a constructor initializer expression is being serialized, the names of
@@ -1255,7 +1294,8 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
    */
   final Set<String> constructorParameterNames;
 
-  _ConstExprSerializer(this.serializer, this.constructorParameterNames);
+  _ConstExprSerializer(
+      this.serializer, this.context, this.constructorParameterNames);
 
   @override
   bool isConstructorParameterName(String name) {
@@ -1386,7 +1426,7 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
       }
     }
     DartType type = typeName != null ? typeName.type : DynamicTypeImpl.instance;
-    return serializer.serializeTypeRef(type, null);
+    return serializer.serializeTypeRef(type, context);
   }
 }
 

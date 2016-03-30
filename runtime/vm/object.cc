@@ -908,22 +908,14 @@ void Object::InitOnce(Isolate* isolate) {
 // premark all objects in the vm_isolate_ heap.
 class PremarkingVisitor : public ObjectVisitor {
  public:
-  explicit PremarkingVisitor(Isolate* isolate) : ObjectVisitor(isolate) {}
+  PremarkingVisitor() { }
 
   void VisitObject(RawObject* obj) {
     // Free list elements should never be marked.
+    ASSERT(!obj->IsMarked());
     if (!obj->IsFreeListElement()) {
       ASSERT(obj->IsVMHeapObject());
-      if (obj->IsMarked()) {
-        // Precompiled objects are loaded pre-marked.
-        ASSERT(Dart::IsRunningPrecompiledCode());
-        ASSERT(obj->IsInstructions() ||
-               obj->IsPcDescriptors() ||
-               obj->IsStackmap() ||
-               obj->IsOneByteString());
-      } else {
-        obj->SetMarkBitUnsynchronized();
-      }
+      obj->SetMarkBitUnsynchronized();
     }
   }
 };
@@ -994,11 +986,10 @@ void Object::FinalizeVMIsolate(Isolate* isolate) {
 
   {
     ASSERT(isolate == Dart::vm_isolate());
-    bool include_code_pages = !Dart::IsRunningPrecompiledCode();
-    WritableVMIsolateScope scope(Thread::Current(), include_code_pages);
-    PremarkingVisitor premarker(isolate);
+    WritableVMIsolateScope scope(Thread::Current());
+    PremarkingVisitor premarker;
     ASSERT(isolate->heap()->UsedInWords(Heap::kNew) == 0);
-    isolate->heap()->IterateOldObjects(&premarker);
+    isolate->heap()->IterateOldObjectsNoEmbedderPages(&premarker);
     // Make the VM isolate read-only again after setting all objects as marked.
   }
 }
@@ -2733,9 +2724,7 @@ class CHACodeArray : public WeakCodeReferences {
     }
   }
 
-  virtual void IncrementInvalidationGen() {
-    Isolate::Current()->IncrCHAInvalidationGen();
-  }
+  virtual void IncrementInvalidationGen() {}
 
  private:
   const Class& cls_;
@@ -2981,6 +2970,9 @@ RawError* Class::EnsureIsFinalized(Thread* thread) const {
   // Finalized classes have already been parsed.
   if (is_finalized()) {
     return Error::null();
+  }
+  if (Compiler::IsBackgroundCompilation()) {
+    Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId);
   }
   ASSERT(thread->IsMutatorThread());
   ASSERT(thread != NULL);
@@ -3339,6 +3331,10 @@ TokenPosition Class::ComputeEndTokenPos() const {
   const Script& scr = Script::Handle(script());
   ASSERT(!scr.IsNull());
   const TokenStream& tkns = TokenStream::Handle(scr.tokens());
+  if (tkns.IsNull()) {
+    ASSERT(Dart::IsRunningPrecompiledCode());
+    return TokenPosition::kNoSource;
+  }
   TokenStream::Iterator tkit(tkns,
                              token_pos(),
                              TokenStream::Iterator::kNoNewlines);
@@ -5168,6 +5164,11 @@ void PatchClass::set_origin_class(const Class& value) const {
 
 void PatchClass::set_script(const Script& value) const {
   StorePointer(&raw_ptr()->script_, value.raw());
+}
+
+
+intptr_t Function::Hash() const {
+  return String::HashRawSymbol(name());
 }
 
 
@@ -9493,11 +9494,21 @@ void Library::AddObject(const Object& obj, const String& name) const {
 
 
 // Lookup a name in the library's re-export namespace.
+// This lookup can occur from two different threads: background compiler and
+// mutator thread.
 RawObject* Library::LookupReExport(const String& name) const {
   if (HasExports()) {
-    const Array& exports = Array::Handle(this->exports());
-    // Break potential export cycle while looking up name.
-    StorePointer(&raw_ptr()->exports_, Object::empty_array().raw());
+    const bool is_background_compiler = Compiler::IsBackgroundCompilation();
+    Array& exports = Array::Handle();
+    if (is_background_compiler) {
+      exports = this->exports2();
+      // Break potential export cycle while looking up name.
+      StorePointer(&raw_ptr()->exports2_, Object::empty_array().raw());
+    } else {
+      exports = this->exports();
+      // Break potential export cycle while looking up name.
+      StorePointer(&raw_ptr()->exports_, Object::empty_array().raw());
+    }
     Namespace& ns = Namespace::Handle();
     Object& obj = Object::Handle();
     for (int i = 0; i < exports.Length(); i++) {
@@ -9513,7 +9524,11 @@ RawObject* Library::LookupReExport(const String& name) const {
         }
       }
     }
-    StorePointer(&raw_ptr()->exports_, exports.raw());
+    if (is_background_compiler) {
+      StorePointer(&raw_ptr()->exports2_, exports.raw());
+    } else {
+      StorePointer(&raw_ptr()->exports_, exports.raw());
+    }
     return obj.raw();
   }
   return Object::null();
@@ -9960,6 +9975,7 @@ bool Library::ImportsCorelib() const {
 void Library::DropDependencies() const {
   StorePointer(&raw_ptr()->imports_, Array::null());
   StorePointer(&raw_ptr()->exports_, Array::null());
+  StorePointer(&raw_ptr()->exports2_, Array::null());
 }
 
 
@@ -9992,6 +10008,7 @@ void Library::AddExport(const Namespace& ns) const {
   intptr_t num_exports = exports.Length();
   exports = Array::Grow(exports, num_exports + 1);
   StorePointer(&raw_ptr()->exports_, exports.raw());
+  StorePointer(&raw_ptr()->exports2_, exports.raw());
   exports.SetAt(num_exports, ns);
 }
 
@@ -10059,6 +10076,8 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
                                                Heap::kOld));
   result.StorePointer(&result.raw_ptr()->imports_, Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->exports_, Object::empty_array().raw());
+  result.StorePointer(&result.raw_ptr()->exports2_,
+      Object::empty_array().raw());
   result.StorePointer(&result.raw_ptr()->loaded_scripts_, Array::null());
   result.StorePointer(&result.raw_ptr()->load_error_, Instance::null());
   result.set_native_entry_resolver(NULL);
@@ -10599,9 +10618,7 @@ class PrefixDependentArray : public WeakCodeReferences {
     }
   }
 
-  virtual void IncrementInvalidationGen() {
-    Isolate::Current()->IncrPrefixInvalidationGen();
-  }
+  virtual void IncrementInvalidationGen() {}
 
  private:
   const LibraryPrefix& prefix_;
@@ -10800,6 +10817,15 @@ RawObject* Namespace::Lookup(const String& name) const {
   if (obj.IsNull() || obj.IsLibraryPrefix()) {
     // Lookup in the re-exported symbols.
     obj = lib.LookupReExport(name);
+    if (obj.IsNull() && !Field::IsSetterName(name)) {
+      // LookupReExport() only returns objects that match the given name.
+      // If there is no field/func/getter, try finding a setter.
+      const String& setter_name =
+          String::Handle(Field::LookupSetterSymbol(name));
+      if (!setter_name.IsNull()) {
+        obj = lib.LookupReExport(setter_name);
+      }
+    }
   }
   if (obj.IsNull() || HidesName(name) || obj.IsLibraryPrefix()) {
     return Object::null();
@@ -12954,6 +12980,26 @@ void Code::set_static_calls_target_table(const Array& value) const {
 }
 
 
+uword Code::EntryPoint() const {
+  RawObject* instr = instructions();
+  if (!instr->IsHeapObject()) {
+    return active_entry_point();
+  } else {
+    return Instructions::EntryPoint(instructions());
+  }
+}
+
+
+intptr_t Code::Size() const {
+  RawObject* instr = instructions();
+  if (!instr->IsHeapObject()) {
+    return Smi::Value(raw_ptr()->precompiled_instructions_size_);
+  } else {
+    return instructions()->ptr()->size_;
+  }
+}
+
+
 bool Code::HasBreakpoint() const {
   if (!FLAG_support_debugger) {
     return false;
@@ -13299,9 +13345,12 @@ RawCode* Code::FinalizeCode(const char* name,
     }
 
     // Hook up Code and Instructions objects.
-    code.SetActiveInstructions(instrs.raw());
     code.set_instructions(instrs.raw());
+    code.SetActiveInstructions(instrs.raw());
     code.set_is_alive(true);
+
+    ASSERT(code.EntryPoint() == instrs.EntryPoint());
+    ASSERT(code.Size() == instrs.size());
 
     // Set object pool in Instructions object.
     INC_STAT(Thread::Current(),
@@ -13500,9 +13549,10 @@ bool Code::IsFunctionCode() const {
 void Code::DisableDartCode() const {
   DEBUG_ASSERT(IsMutatorOrAtSafepoint());
   ASSERT(IsFunctionCode());
-  ASSERT(instructions() == active_instructions());
+  ASSERT(!IsDisabled());
   const Code& new_code =
       Code::Handle(StubCode::FixCallersTarget_entry()->code());
+  ASSERT(new_code.instructions()->IsVMHeapObject());
   SetActiveInstructions(new_code.instructions());
 }
 
@@ -13510,9 +13560,10 @@ void Code::DisableDartCode() const {
 void Code::DisableStubCode() const {
   ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(IsAllocationStubCode());
-  ASSERT(instructions() == active_instructions());
+  ASSERT(!IsDisabled());
   const Code& new_code =
       Code::Handle(StubCode::FixAllocationStubTarget_entry()->code());
+  ASSERT(new_code.instructions()->IsVMHeapObject());
   SetActiveInstructions(new_code.instructions());
 }
 
@@ -13521,7 +13572,6 @@ void Code::SetActiveInstructions(RawInstructions* instructions) const {
   DEBUG_ASSERT(IsMutatorOrAtSafepoint() || !is_alive());
   // RawInstructions are never allocated in New space and hence a
   // store buffer update is not needed here.
-  StorePointer(&raw_ptr()->active_instructions_, instructions);
   StoreNonPointer(&raw_ptr()->entry_point_,
                   reinterpret_cast<uword>(instructions->ptr()) +
                   Instructions::HeaderSize());

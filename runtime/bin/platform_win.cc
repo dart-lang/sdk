@@ -5,10 +5,13 @@
 #include "platform/globals.h"
 #if defined(TARGET_OS_WINDOWS)
 
+#include "bin/platform.h"
+
 #include "bin/file.h"
 #include "bin/log.h"
-#include "bin/platform.h"
+#if !defined(DART_IO_DISABLED) && !defined(PLATFORM_DISABLE_SOCKET)
 #include "bin/socket.h"
+#endif
 #include "bin/utils.h"
 #include "bin/utils_win.h"
 
@@ -18,6 +21,11 @@ namespace dart {
 extern bool private_flag_windows_run_tls_destructors;
 
 namespace bin {
+
+const char* Platform::executable_name_ = NULL;
+char* Platform::resolved_executable_name_ = NULL;
+int Platform::script_index_ = 1;
+char** Platform::argv_ = NULL;
 
 bool Platform::Initialize() {
   // Nothing to do on Windows.
@@ -43,7 +51,7 @@ const char* Platform::LibraryExtension() {
 
 
 bool Platform::LocalHostname(char *buffer, intptr_t buffer_length) {
-#if defined(PLATFORM_DISABLE_SOCKET)
+#if defined(DART_IO_DISABLED) || defined(PLATFORM_DISABLE_SOCKET)
   return false;
 #else
   if (!Socket::Initialize()) {

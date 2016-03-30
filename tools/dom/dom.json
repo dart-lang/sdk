@@ -16927,10 +16927,22 @@
       "blitFramebuffer": {
         "support_level": "untriaged"
       },
+      "bufferByteData": {
+        "support_level": "untriaged"
+      },
       "bufferData": {
         "support_level": "untriaged"
       },
+      "bufferDataTyped": {
+        "support_level": "untriaged"
+      },
+      "bufferSubByteData": {
+        "support_level": "untriaged"
+      },
       "bufferSubData": {
+        "support_level": "untriaged"
+      },
+      "bufferSubDataTyped": {
         "support_level": "untriaged"
       },
       "canvas": {
@@ -17365,6 +17377,18 @@
       "texImage2D": {
         "support_level": "untriaged"
       },
+      "texImage2DCanvas": {
+        "support_level": "untriaged"
+      },
+      "texImage2DImage": {
+        "support_level": "untriaged"
+      },
+      "texImage2DImageData": {
+        "support_level": "untriaged"
+      },
+      "texImage2DVideo": {
+        "support_level": "untriaged"
+      },
       "texImage3D": {
         "support_level": "untriaged"
       },
@@ -17381,6 +17405,18 @@
         "support_level": "untriaged"
       },
       "texSubImage2D": {
+        "support_level": "untriaged"
+      },
+      "texSubImage2DCanvas": {
+        "support_level": "untriaged"
+      },
+      "texSubImage2DImage": {
+        "support_level": "untriaged"
+      },
+      "texSubImage2DImageData": {
+        "support_level": "untriaged"
+      },
+      "texSubImage2DVideo": {
         "support_level": "untriaged"
       },
       "texSubImage3D": {

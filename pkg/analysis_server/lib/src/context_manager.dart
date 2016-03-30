@@ -637,13 +637,13 @@ class ContextManagerImpl implements ContextManager {
   }
 
   /**
-   * Return the options from the analysis options file in the given [folder], or
-   * `null` if there is no file in the folder or if the contents of the file are
-   * not valid YAML.
+   * Return the options from the analysis options file in the given [folder]
+   * if exists, or in one of the parent folders, or `null` if no analysis
+   * options file is found or if the contents of the file are not valid YAML.
    */
   Map<String, Object> readOptions(Folder folder) {
     try {
-      return analysisOptionsProvider.getOptions(folder);
+      return analysisOptionsProvider.getOptions(folder, crawlUp: true);
     } catch (_) {
       // Parse errors are reported by GenerateOptionsErrorsTask.
     }

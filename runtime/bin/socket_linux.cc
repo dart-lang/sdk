@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_IO_DISABLED)
+
 #include "platform/globals.h"
 #if defined(TARGET_OS_LINUX)
 
@@ -585,3 +587,5 @@ bool Socket::LeaveMulticast(
 }  // namespace dart
 
 #endif  // defined(TARGET_OS_LINUX)
+
+#endif  // !defined(DART_IO_DISABLED)

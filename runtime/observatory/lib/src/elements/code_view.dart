@@ -210,7 +210,7 @@ class CodeViewElement extends ObservatoryElement {
       if (content is ServiceObject) {
         ServiceRefElement element = new Element.tag('any-service-ref');
         element.ref = content;
-        cell.append(element);
+        cell.children = [element];
       } else if (content != null) {
         cell.text = content.toString();
       }

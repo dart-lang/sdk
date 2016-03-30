@@ -31,7 +31,9 @@ void main() {
       parseCompilationUnit("void main() => print('Hello, world!')");
     }, throwsA(predicate((error) {
       return error is AnalyzerErrorGroup &&
-          error.toString().contains("Error in <unknown source>: Expected to find ';'");
+          error
+              .toString()
+              .contains("Error in <unknown source>: Expected to find ';'");
     })));
   });
 

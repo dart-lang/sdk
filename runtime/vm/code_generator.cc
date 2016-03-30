@@ -1793,6 +1793,17 @@ END_LEAF_RUNTIME_ENTRY
 // materialization phase.
 DEFINE_RUNTIME_ENTRY(DeoptimizeMaterialize, 0) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DEBUG)
+  {
+    // We may rendezvous for a safepoint at entry or GC from the allocations
+    // below. Check the stack is walkable.
+    StackFrameIterator frames_iterator(StackFrameIterator::kValidateFrames);
+    StackFrame* frame = frames_iterator.NextFrame();
+    while (frame != NULL) {
+      frame = frames_iterator.NextFrame();
+    }
+  }
+#endif
   DeoptContext* deopt_context = isolate->deopt_context();
   intptr_t deopt_arg_count = deopt_context->MaterializeDeferredObjects();
   isolate->set_deopt_context(NULL);

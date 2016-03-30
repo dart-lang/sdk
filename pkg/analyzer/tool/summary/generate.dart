@@ -283,6 +283,7 @@ class _CodeGenerator {
             }
             int id;
             bool isDeprecated = false;
+            bool isInformative = false;
             for (Annotation annotation in classMember.metadata) {
               if (annotation.name.name == 'Id') {
                 if (id != null) {
@@ -305,6 +306,8 @@ class _CodeGenerator {
                   throw new Exception('@deprecated does not take args ($desc)');
                 }
                 isDeprecated = true;
+              } else if (annotation.name.name == 'informative') {
+                isInformative = true;
               }
             }
             if (id == null) {
@@ -314,7 +317,12 @@ class _CodeGenerator {
             idlModel.FieldType fieldType =
                 new idlModel.FieldType(type.name.name, isList);
             cls.allFields.add(new idlModel.FieldDeclaration(
-                doc, classMember.name.name, fieldType, id, isDeprecated));
+                doc,
+                classMember.name.name,
+                fieldType,
+                id,
+                isDeprecated,
+                isInformative));
           } else if (classMember is ConstructorDeclaration &&
               classMember.name.name == 'fromBuffer') {
             // Ignore `fromBuffer` declarations; they simply forward to the
@@ -588,6 +596,30 @@ class _CodeGenerator {
         String prefix = i == 0 ? '  : ' : '    ';
         String suffix = i == fields.length - 1 ? ';' : ',';
         out('${prefix}_${field.name} = ${field.name}$suffix');
+      }
+      // Generate flushInformative().
+      {
+        out();
+        out('/**');
+        out(' * Flush [informative] data recursively.');
+        out(' */');
+        out('void flushInformative() {');
+        indent(() {
+          for (idlModel.FieldDeclaration field in cls.fields) {
+            idlModel.FieldType fieldType = field.type;
+            String valueName = '_' + field.name;
+            if (field.isInformative) {
+              out('$valueName = null;');
+            } else if (_idl.classes.containsKey(fieldType.typeName)) {
+              if (fieldType.isList) {
+                out('$valueName?.forEach((b) => b.flushInformative());');
+              } else {
+                out('$valueName?.flushInformative();');
+              }
+            }
+          }
+        });
+        out('}');
       }
       // Generate finish.
       if (cls.isTopLevel) {

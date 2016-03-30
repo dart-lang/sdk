@@ -52,6 +52,8 @@ class HeapPage {
     return type_;
   }
 
+  bool embedder_allocated() const { return memory_->embedder_allocated(); }
+
   void VisitObjects(ObjectVisitor* visitor) const;
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
 
@@ -254,6 +256,7 @@ class PageSpace {
   }
 
   void VisitObjects(ObjectVisitor* visitor) const;
+  void VisitObjectsNoEmbedderPages(ObjectVisitor* visitor) const;
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
 
   RawObject* FindObject(FindObjectVisitor* visitor,
@@ -292,7 +295,7 @@ class PageSpace {
 
   // Note: Code pages are made executable/non-executable when 'read_only' is
   // true/false, respectively.
-  void WriteProtect(bool read_only, bool include_code_pages);
+  void WriteProtect(bool read_only);
   void WriteProtectCode(bool read_only);
 
   void AddGCTime(int64_t micros) {

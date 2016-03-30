@@ -242,6 +242,7 @@ Future analyze(String serializedData, Uri entryPoint, Test test) async {
       diagnosticHandler: diagnosticCollector,
       beforeRun: (Compiler compiler) {
         Deserializer deserializer = new Deserializer.fromText(
+            new DeserializationContext(),
             serializedData,
             const JsonSerializationDecoder());
         deserializer.plugins.add(compiler.backend.serialization.deserializer);
@@ -271,14 +272,14 @@ Future<String> serializeDartCore() async {
 }
 
 String serialize(Compiler compiler) {
-  Serializer serializer = new Serializer(const JsonSerializationEncoder());
+  Serializer serializer = new Serializer();
   serializer.plugins.add(compiler.backend.serialization.serializer);
   serializer.plugins.add(new WorldImpactSerializer(compiler.resolution));
 
   for (LibraryElement library in compiler.libraryLoader.libraries) {
     serializer.serialize(library);
   }
-  return serializer.toText();
+  return serializer.toText(const JsonSerializationEncoder());
 }
 
 const String WORLD_IMPACT_TAG = 'worldImpact';

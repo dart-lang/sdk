@@ -77,19 +77,6 @@ class ArgListContributorTest extends DartCompletionContributorTest {
   }
 
   /**
-   * Assert that the specified suggestions are the only suggestions.
-   */
-  void assertSuggestions(List<String> suggestions) {
-    List<CompletionSuggestion> expected = new List<CompletionSuggestion>();
-    for (String suggestion in suggestions) {
-      expected.add(assertSuggest('$suggestion',
-          csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
-          relevance: DART_RELEVANCE_NAMED_PARAMETER));
-    }
-    assertNoOtherSuggestions(expected);
-  }
-
-  /**
    * Assert that the specified named argument suggestions are the only
    * suggestions.
    */
@@ -103,18 +90,48 @@ class ArgListContributorTest extends DartCompletionContributorTest {
     assertNoOtherSuggestions(expected);
   }
 
+  /**
+   * Assert that the specified suggestions are the only suggestions.
+   */
+  void assertSuggestions(List<String> suggestions) {
+    List<CompletionSuggestion> expected = new List<CompletionSuggestion>();
+    for (String suggestion in suggestions) {
+      expected.add(assertSuggest('$suggestion',
+          csKind: CompletionSuggestionKind.NAMED_ARGUMENT,
+          relevance: DART_RELEVANCE_NAMED_PARAMETER));
+    }
+    assertNoOtherSuggestions(expected);
+  }
+
   @override
   DartCompletionContributor createContributor() {
     return new ArgListContributor();
   }
 
-  test_Annotation_local_constructor_named_param_negative() async {
+  fail_test_Annotation_local_constructor_named_param_10() async {
     addTestSource('''
-class A { const A(int one, int two, int three, {int four, String five:
-  'defaultValue'}); }
-@A(1, ^, 3) main() { }''');
+class A { const A({int one, String two: 'defaultValue'}); }
+@A(two: '2' ^) main() { }''');
     await computeSuggestions();
-    assertNoSuggestions();
+    assertSuggestions([', one: ']);
+  }
+
+  fail_test_Annotation_local_constructor_named_param_9() async {
+    addTestSource('''
+class A { const A({int one, String two: 'defaultValue'}); }
+@A(two: '2'^) main() { }''');
+    await computeSuggestions();
+    assertSuggestions([', one: ']);
+  }
+
+  test_Annotation_imported_constructor_named_param() async {
+    addSource(
+        '/libA.dart',
+        '''
+library libA; class A { const A({int one, String two: 'defaultValue'}); }''');
+    addTestSource('import "/libA.dart"; @A(^) main() { }');
+    await computeSuggestions();
+    assertSuggestArguments(namedArguments: ['one', 'two']);
   }
 
   test_Annotation_local_constructor_named_param() async {
@@ -123,6 +140,14 @@ class A { const A({int one, String two: 'defaultValue'}); }
 @A(^) main() { }''');
     await computeSuggestions();
     assertSuggestArguments(namedArguments: ['one', 'two']);
+  }
+
+  test_Annotation_local_constructor_named_param_11() async {
+    addTestSource('''
+class A { const A({int one, String two: 'defaultValue'}); }
+@A(two: '2', ^) main() { }''');
+    await computeSuggestions();
+    assertSuggestArguments(namedArguments: ['one']);
   }
 
   test_Annotation_local_constructor_named_param_2() async {
@@ -181,38 +206,13 @@ class A { const A(int zero, {int one, String two: 'defaultValue'}); }
     assertSuggestions(['one: ,']);
   }
 
-  fail_test_Annotation_local_constructor_named_param_9() async {
+  test_Annotation_local_constructor_named_param_negative() async {
     addTestSource('''
-class A { const A({int one, String two: 'defaultValue'}); }
-@A(two: '2'^) main() { }''');
+class A { const A(int one, int two, int three, {int four, String five:
+  'defaultValue'}); }
+@A(1, ^, 3) main() { }''');
     await computeSuggestions();
-    assertSuggestions([', one: ']);
-  }
-
-  fail_test_Annotation_local_constructor_named_param_10() async {
-    addTestSource('''
-class A { const A({int one, String two: 'defaultValue'}); }
-@A(two: '2' ^) main() { }''');
-    await computeSuggestions();
-    assertSuggestions([', one: ']);
-  }
-
-  test_Annotation_local_constructor_named_param_11() async {
-    addTestSource('''
-class A { const A({int one, String two: 'defaultValue'}); }
-@A(two: '2', ^) main() { }''');
-    await computeSuggestions();
-    assertSuggestArguments(namedArguments: ['one']);
-  }
-
-  test_Annotation_imported_constructor_named_param() async {
-    addSource(
-        '/libA.dart',
-        '''
-library libA; class A { const A({int one, String two: 'defaultValue'}); }''');
-    addTestSource('import "/libA.dart"; @A(^) main() { }');
-    await computeSuggestions();
-    assertSuggestArguments(namedArguments: ['one', 'two']);
+    assertNoSuggestions();
   }
 
   test_ArgumentList_getter() async {

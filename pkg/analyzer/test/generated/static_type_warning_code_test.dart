@@ -181,6 +181,111 @@ f() async {
         [StaticTypeWarningCode.INVALID_ASSIGNMENT]);
   }
 
+  void test_awaitForIn_declaredVariableRightType() {
+    assertNoErrorsInCode('''
+import 'dart:async';
+f() async {
+  Stream<int> stream;
+  await for (int i in stream) {}
+}
+''');
+  }
+
+  void test_awaitForIn_declaredVariableWrongType() {
+    assertErrorsInCode(
+        '''
+import 'dart:async';
+f() async {
+  Stream<String> stream;
+  await for (int i in stream) {}
+}
+''',
+        [StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE]);
+  }
+
+  void test_awaitForIn_downcast() {
+    assertNoErrorsInCode('''
+import 'dart:async';
+f() async {
+  Stream<num> stream;
+  await for (int i in stream) {}
+}
+''');
+  }
+
+  void test_awaitForIn_dynamicStream() {
+    assertNoErrorsInCode('''
+f() async {
+  dynamic stream;
+  await for (int i in stream) {}
+}
+''');
+  }
+
+  void test_awaitForIn_dynamicVariable() {
+    assertNoErrorsInCode('''
+import 'dart:async';
+f() async {
+  Stream<int> stream;
+  await for (var i in stream) {}
+}
+''');
+  }
+
+  void test_awaitForIn_existingVariableRightType() {
+    assertNoErrorsInCode('''
+import 'dart:async';
+f() async {
+  Stream<int> stream;
+  int i;
+  await for (i in stream) {}
+}
+''');
+  }
+
+  void test_awaitForIn_existingVariableWrongType() {
+    assertErrorsInCode(
+        '''
+import 'dart:async';
+f() async {
+  Stream<String> stream;
+  int i;
+  await for (i in stream) {}
+}
+''',
+        [StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE]);
+  }
+
+  void test_awaitForIn_notStream() {
+    assertErrorsInCode(
+        '''
+f() async {
+  await for (var i in true) {}
+}
+''',
+        [StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE]);
+  }
+
+  void test_awaitForIn_streamOfDynamic() {
+    assertNoErrorsInCode('''
+import 'dart:async';
+f() async {
+  Stream stream;
+  await for (int i in stream) {}
+}
+''');
+  }
+
+  void test_awaitForIn_upcast() {
+    assertNoErrorsInCode('''
+import 'dart:async';
+f() async {
+  Stream<int> stream;
+  await for (num i in stream) {}
+}
+''');
+  }
+
   void test_bug21912() {
     assertErrorsInCode(
         '''
@@ -234,6 +339,135 @@ main() {
   <int, int, int> {};
 }''',
         [StaticTypeWarningCode.EXPECTED_TWO_MAP_TYPE_ARGUMENTS]);
+  }
+
+  void test_forIn_declaredVariableRightType() {
+    assertNoErrorsInCode('''
+f() {
+  for (int i in <int>[]) {}
+}
+''');
+  }
+
+  void test_forIn_declaredVariableWrongType() {
+    assertErrorsInCode(
+        '''
+f() {
+  for (int i in <String>[]) {}
+}
+''',
+        [StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE]);
+  }
+
+  void test_forIn_downcast() {
+    assertNoErrorsInCode('''
+f() {
+  for (int i in <num>[]) {}
+}
+''');
+  }
+
+  void test_forIn_dynamic() {
+    assertNoErrorsInCode('''
+f() {
+  dynamic d; // Could be [].
+  for (var i in d) {}
+}
+''');
+  }
+
+  void test_forIn_dynamicIterable() {
+    assertNoErrorsInCode('''
+f() {
+  dynamic iterable;
+  for (int i in iterable) {}
+}
+''');
+  }
+
+  void test_forIn_dynamicVariable() {
+    assertNoErrorsInCode('''
+f() {
+  for (var i in <int>[]) {}
+}
+''');
+  }
+
+  void test_forIn_existingVariableRightType() {
+    assertNoErrorsInCode('''
+f() {
+  int i;
+  for (i in <int>[]) {}
+}
+''');
+  }
+
+  void test_forIn_existingVariableWrongType() {
+    assertErrorsInCode(
+        '''
+f() {
+  int i;
+  for (i in <String>[]) {}
+}
+''',
+        [StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE]);
+  }
+
+  void test_forIn_iterableOfDynamic() {
+    assertNoErrorsInCode('''
+f() {
+  for (int i in []) {}
+}
+''');
+  }
+
+  void test_forIn_notIterable() {
+    assertErrorsInCode(
+        '''
+f() {
+  for (var i in true) {}
+}
+''',
+        [StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE]);
+  }
+
+  void test_forIn_object() {
+    assertNoErrorsInCode('''
+f() {
+  Object o; // Could be [].
+  for (var i in o) {}
+}
+''');
+  }
+
+  void test_forIn_typeBoundBad() {
+    assertErrorsInCode(
+        '''
+class Foo<T extends Iterable<int>> {
+  void method(T iterable) {
+    for (String i in iterable) {}
+  }
+}
+''',
+        [StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE]);
+  }
+
+  void test_forIn_typeBoundGood() {
+    assertNoErrorsInCode('''
+class Foo<T extends Iterable<int>> {
+  void method(T iterable) {
+    for (var i in iterable) {}
+  }
+}
+''');
+  }
+
+  void test_forIn_upcast() {
+    assertNoErrorsInCode('''
+f() {
+  for (num i in <int>[]) {}
+}
+''');
   }
 
   void test_illegal_return_type_async_function() {
@@ -646,6 +880,7 @@ f() {
         [StaticTypeWarningCode.NON_BOOL_CONDITION]);
   }
 
+  // https://github.com/dart-lang/sdk/issues/24713
   void test_nonBoolCondition_for() {
     assertErrorsInCode(
         r'''
@@ -856,7 +1091,6 @@ class A {
         [StaticTypeWarningCode.RETURN_OF_INVALID_TYPE]);
   }
 
-  // https://github.com/dart-lang/sdk/issues/24713
   void test_returnOfInvalidType_not_issued_for_valid_generic_return() {
     assertNoErrorsInCode(r'''
 abstract class F<T, U>  {
@@ -1905,242 +2139,6 @@ f(p) {
   return p is C<A, A>;
 }''',
         [StaticTypeWarningCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS]);
-  }
-
-  void test_forIn_notIterable() {
-    assertErrorsInCode(
-        '''
-f() {
-  for (var i in true) {}
-}
-''',
-        [StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE]);
-  }
-
-  void test_forIn_object() {
-    assertNoErrorsInCode(
-        '''
-f() {
-  Object o; // Could be [].
-  for (var i in o) {}
-}
-''');
-  }
-
-  void test_forIn_dynamic() {
-    assertNoErrorsInCode(
-        '''
-f() {
-  dynamic d; // Could be [].
-  for (var i in d) {}
-}
-''');
-  }
-
-  void test_forIn_declaredVariableWrongType() {
-    assertErrorsInCode(
-        '''
-f() {
-  for (int i in <String>[]) {}
-}
-''',
-        [StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE]);
-  }
-
-  void test_forIn_existingVariableWrongType() {
-    assertErrorsInCode(
-        '''
-f() {
-  int i;
-  for (i in <String>[]) {}
-}
-''',
-        [StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE]);
-  }
-
-  void test_forIn_declaredVariableRightType() {
-    assertNoErrorsInCode('''
-f() {
-  for (int i in <int>[]) {}
-}
-''');
-  }
-
-  void test_forIn_existingVariableRightType() {
-    assertNoErrorsInCode('''
-f() {
-  int i;
-  for (i in <int>[]) {}
-}
-''');
-  }
-
-  void test_forIn_dynamicVariable() {
-    assertNoErrorsInCode('''
-f() {
-  for (var i in <int>[]) {}
-}
-''');
-  }
-
-  void test_forIn_iterableOfDynamic() {
-    assertNoErrorsInCode('''
-f() {
-  for (int i in []) {}
-}
-''');
-  }
-
-  void test_forIn_dynamicIterable() {
-    assertNoErrorsInCode('''
-f() {
-  dynamic iterable;
-  for (int i in iterable) {}
-}
-''');
-  }
-
-  void test_forIn_upcast() {
-    assertNoErrorsInCode('''
-f() {
-  for (num i in <int>[]) {}
-}
-''');
-  }
-
-  void test_forIn_downcast() {
-    assertNoErrorsInCode('''
-f() {
-  for (int i in <num>[]) {}
-}
-''');
-  }
-
-  void test_forIn_typeBoundBad() {
-    assertErrorsInCode(
-        '''
-class Foo<T extends Iterable<int>> {
-  void method(T iterable) {
-    for (String i in iterable) {}
-  }
-}
-''',
-        [StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE]);
-  }
-
-  void test_forIn_typeBoundGood() {
-    assertNoErrorsInCode('''
-class Foo<T extends Iterable<int>> {
-  void method(T iterable) {
-    for (var i in iterable) {}
-  }
-}
-''');
-  }
-
-  void test_awaitForIn_notStream() {
-    assertErrorsInCode(
-        '''
-f() async {
-  await for (var i in true) {}
-}
-''',
-        [StaticTypeWarningCode.FOR_IN_OF_INVALID_TYPE]);
-  }
-
-  void test_awaitForIn_declaredVariableWrongType() {
-    assertErrorsInCode(
-        '''
-import 'dart:async';
-f() async {
-  Stream<String> stream;
-  await for (int i in stream) {}
-}
-''',
-        [StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE]);
-  }
-
-  void test_awaitForIn_existingVariableWrongType() {
-    assertErrorsInCode(
-        '''
-import 'dart:async';
-f() async {
-  Stream<String> stream;
-  int i;
-  await for (i in stream) {}
-}
-''',
-        [StaticTypeWarningCode.FOR_IN_OF_INVALID_ELEMENT_TYPE]);
-  }
-
-  void test_awaitForIn_declaredVariableRightType() {
-    assertNoErrorsInCode('''
-import 'dart:async';
-f() async {
-  Stream<int> stream;
-  await for (int i in stream) {}
-}
-''');
-  }
-
-  void test_awaitForIn_existingVariableRightType() {
-    assertNoErrorsInCode('''
-import 'dart:async';
-f() async {
-  Stream<int> stream;
-  int i;
-  await for (i in stream) {}
-}
-''');
-  }
-
-  void test_awaitForIn_dynamicVariable() {
-    assertNoErrorsInCode('''
-import 'dart:async';
-f() async {
-  Stream<int> stream;
-  await for (var i in stream) {}
-}
-''');
-  }
-
-  void test_awaitForIn_streamOfDynamic() {
-    assertNoErrorsInCode('''
-import 'dart:async';
-f() async {
-  Stream stream;
-  await for (int i in stream) {}
-}
-''');
-  }
-
-  void test_awaitForIn_dynamicStream() {
-    assertNoErrorsInCode('''
-f() async {
-  dynamic stream;
-  await for (int i in stream) {}
-}
-''');
-  }
-
-  void test_awaitForIn_upcast() {
-    assertNoErrorsInCode('''
-import 'dart:async';
-f() async {
-  Stream<int> stream;
-  await for (num i in stream) {}
-}
-''');
-  }
-
-  void test_awaitForIn_downcast() {
-    assertNoErrorsInCode('''
-import 'dart:async';
-f() async {
-  Stream<num> stream;
-  await for (int i in stream) {}
-}
-''');
   }
 
   void test_yield_async_to_basic_type() {

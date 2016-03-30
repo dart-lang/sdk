@@ -26,261 +26,133 @@ import 'dart:js' as js;
 // FIXME: Can we make this private?
 @Deprecated("Internal Use Only")
 final svgBlinkMap = {
-  'SVGAElement': () => AElement,
-  'SVGAngle': () => Angle,
-  'SVGAnimateElement': () => AnimateElement,
-  'SVGAnimateMotionElement': () => AnimateMotionElement,
-  'SVGAnimateTransformElement': () => AnimateTransformElement,
-  'SVGAnimatedAngle': () => AnimatedAngle,
-  'SVGAnimatedBoolean': () => AnimatedBoolean,
-  'SVGAnimatedEnumeration': () => AnimatedEnumeration,
-  'SVGAnimatedInteger': () => AnimatedInteger,
-  'SVGAnimatedLength': () => AnimatedLength,
-  'SVGAnimatedLengthList': () => AnimatedLengthList,
-  'SVGAnimatedNumber': () => AnimatedNumber,
-  'SVGAnimatedNumberList': () => AnimatedNumberList,
-  'SVGAnimatedPreserveAspectRatio': () => AnimatedPreserveAspectRatio,
-  'SVGAnimatedRect': () => AnimatedRect,
-  'SVGAnimatedString': () => AnimatedString,
-  'SVGAnimatedTransformList': () => AnimatedTransformList,
-  'SVGAnimationElement': () => AnimationElement,
-  'SVGCircleElement': () => CircleElement,
-  'SVGClipPathElement': () => ClipPathElement,
-  'SVGComponentTransferFunctionElement': () => _SVGComponentTransferFunctionElement,
-  'SVGCursorElement': () => _SVGCursorElement,
-  'SVGDefsElement': () => DefsElement,
-  'SVGDescElement': () => DescElement,
-  'SVGDiscardElement': () => DiscardElement,
-  'SVGElement': () => SvgElement,
-  'SVGEllipseElement': () => EllipseElement,
-  'SVGFEBlendElement': () => FEBlendElement,
-  'SVGFEColorMatrixElement': () => FEColorMatrixElement,
-  'SVGFEComponentTransferElement': () => FEComponentTransferElement,
-  'SVGFECompositeElement': () => FECompositeElement,
-  'SVGFEConvolveMatrixElement': () => FEConvolveMatrixElement,
-  'SVGFEDiffuseLightingElement': () => FEDiffuseLightingElement,
-  'SVGFEDisplacementMapElement': () => FEDisplacementMapElement,
-  'SVGFEDistantLightElement': () => FEDistantLightElement,
-  'SVGFEDropShadowElement': () => _SVGFEDropShadowElement,
-  'SVGFEFloodElement': () => FEFloodElement,
-  'SVGFEFuncAElement': () => FEFuncAElement,
-  'SVGFEFuncBElement': () => FEFuncBElement,
-  'SVGFEFuncGElement': () => FEFuncGElement,
-  'SVGFEFuncRElement': () => FEFuncRElement,
-  'SVGFEGaussianBlurElement': () => FEGaussianBlurElement,
-  'SVGFEImageElement': () => FEImageElement,
-  'SVGFEMergeElement': () => FEMergeElement,
-  'SVGFEMergeNodeElement': () => FEMergeNodeElement,
-  'SVGFEMorphologyElement': () => FEMorphologyElement,
-  'SVGFEOffsetElement': () => FEOffsetElement,
-  'SVGFEPointLightElement': () => FEPointLightElement,
-  'SVGFESpecularLightingElement': () => FESpecularLightingElement,
-  'SVGFESpotLightElement': () => FESpotLightElement,
-  'SVGFETileElement': () => FETileElement,
-  'SVGFETurbulenceElement': () => FETurbulenceElement,
-  'SVGFilterElement': () => FilterElement,
-  'SVGFilterPrimitiveStandardAttributes': () => FilterPrimitiveStandardAttributes,
-  'SVGFitToViewBox': () => FitToViewBox,
-  'SVGForeignObjectElement': () => ForeignObjectElement,
-  'SVGGElement': () => GElement,
-  'SVGGeometryElement': () => GeometryElement,
-  'SVGGradientElement': () => _GradientElement,
-  'SVGGraphicsElement': () => GraphicsElement,
-  'SVGImageElement': () => ImageElement,
-  'SVGLength': () => Length,
-  'SVGLengthList': () => LengthList,
-  'SVGLineElement': () => LineElement,
-  'SVGLinearGradientElement': () => LinearGradientElement,
-  'SVGMPathElement': () => _SVGMPathElement,
-  'SVGMarkerElement': () => MarkerElement,
-  'SVGMaskElement': () => MaskElement,
-  'SVGMatrix': () => Matrix,
-  'SVGMetadataElement': () => MetadataElement,
-  'SVGNumber': () => Number,
-  'SVGNumberList': () => NumberList,
-  'SVGPathElement': () => PathElement,
-  'SVGPathSeg': () => PathSeg,
-  'SVGPathSegArcAbs': () => PathSegArcAbs,
-  'SVGPathSegArcRel': () => PathSegArcRel,
-  'SVGPathSegClosePath': () => PathSegClosePath,
-  'SVGPathSegCurvetoCubicAbs': () => PathSegCurvetoCubicAbs,
-  'SVGPathSegCurvetoCubicRel': () => PathSegCurvetoCubicRel,
-  'SVGPathSegCurvetoCubicSmoothAbs': () => PathSegCurvetoCubicSmoothAbs,
-  'SVGPathSegCurvetoCubicSmoothRel': () => PathSegCurvetoCubicSmoothRel,
-  'SVGPathSegCurvetoQuadraticAbs': () => PathSegCurvetoQuadraticAbs,
-  'SVGPathSegCurvetoQuadraticRel': () => PathSegCurvetoQuadraticRel,
-  'SVGPathSegCurvetoQuadraticSmoothAbs': () => PathSegCurvetoQuadraticSmoothAbs,
-  'SVGPathSegCurvetoQuadraticSmoothRel': () => PathSegCurvetoQuadraticSmoothRel,
-  'SVGPathSegLinetoAbs': () => PathSegLinetoAbs,
-  'SVGPathSegLinetoHorizontalAbs': () => PathSegLinetoHorizontalAbs,
-  'SVGPathSegLinetoHorizontalRel': () => PathSegLinetoHorizontalRel,
-  'SVGPathSegLinetoRel': () => PathSegLinetoRel,
-  'SVGPathSegLinetoVerticalAbs': () => PathSegLinetoVerticalAbs,
-  'SVGPathSegLinetoVerticalRel': () => PathSegLinetoVerticalRel,
-  'SVGPathSegList': () => PathSegList,
-  'SVGPathSegMovetoAbs': () => PathSegMovetoAbs,
-  'SVGPathSegMovetoRel': () => PathSegMovetoRel,
-  'SVGPatternElement': () => PatternElement,
-  'SVGPoint': () => Point,
-  'SVGPointList': () => PointList,
-  'SVGPolygonElement': () => PolygonElement,
-  'SVGPolylineElement': () => PolylineElement,
-  'SVGPreserveAspectRatio': () => PreserveAspectRatio,
-  'SVGRadialGradientElement': () => RadialGradientElement,
-  'SVGRect': () => Rect,
-  'SVGRectElement': () => RectElement,
-  'SVGSVGElement': () => SvgSvgElement,
-  'SVGScriptElement': () => ScriptElement,
-  'SVGSetElement': () => SetElement,
-  'SVGStopElement': () => StopElement,
-  'SVGStringList': () => StringList,
-  'SVGStyleElement': () => StyleElement,
-  'SVGSwitchElement': () => SwitchElement,
-  'SVGSymbolElement': () => SymbolElement,
-  'SVGTSpanElement': () => TSpanElement,
-  'SVGTests': () => Tests,
-  'SVGTextContentElement': () => TextContentElement,
-  'SVGTextElement': () => TextElement,
-  'SVGTextPathElement': () => TextPathElement,
-  'SVGTextPositioningElement': () => TextPositioningElement,
-  'SVGTitleElement': () => TitleElement,
-  'SVGTransform': () => Transform,
-  'SVGTransformList': () => TransformList,
-  'SVGURIReference': () => UriReference,
-  'SVGUnitTypes': () => UnitTypes,
-  'SVGUseElement': () => UseElement,
-  'SVGViewElement': () => ViewElement,
-  'SVGViewSpec': () => ViewSpec,
-  'SVGZoomAndPan': () => ZoomAndPan,
-  'SVGZoomEvent': () => ZoomEvent,
-
-};
-
-// FIXME: Can we make this private?
-@Deprecated("Internal Use Only")
-final svgBlinkFunctionMap = {
-  'SVGAElement': () => AElement.internalCreateAElement,
-  'SVGAngle': () => Angle.internalCreateAngle,
-  'SVGAnimateElement': () => AnimateElement.internalCreateAnimateElement,
-  'SVGAnimateMotionElement': () => AnimateMotionElement.internalCreateAnimateMotionElement,
-  'SVGAnimateTransformElement': () => AnimateTransformElement.internalCreateAnimateTransformElement,
-  'SVGAnimatedAngle': () => AnimatedAngle.internalCreateAnimatedAngle,
-  'SVGAnimatedBoolean': () => AnimatedBoolean.internalCreateAnimatedBoolean,
-  'SVGAnimatedEnumeration': () => AnimatedEnumeration.internalCreateAnimatedEnumeration,
-  'SVGAnimatedInteger': () => AnimatedInteger.internalCreateAnimatedInteger,
-  'SVGAnimatedLength': () => AnimatedLength.internalCreateAnimatedLength,
-  'SVGAnimatedLengthList': () => AnimatedLengthList.internalCreateAnimatedLengthList,
-  'SVGAnimatedNumber': () => AnimatedNumber.internalCreateAnimatedNumber,
-  'SVGAnimatedNumberList': () => AnimatedNumberList.internalCreateAnimatedNumberList,
-  'SVGAnimatedPreserveAspectRatio': () => AnimatedPreserveAspectRatio.internalCreateAnimatedPreserveAspectRatio,
-  'SVGAnimatedRect': () => AnimatedRect.internalCreateAnimatedRect,
-  'SVGAnimatedString': () => AnimatedString.internalCreateAnimatedString,
-  'SVGAnimatedTransformList': () => AnimatedTransformList.internalCreateAnimatedTransformList,
-  'SVGAnimationElement': () => AnimationElement.internalCreateAnimationElement,
-  'SVGCircleElement': () => CircleElement.internalCreateCircleElement,
-  'SVGClipPathElement': () => ClipPathElement.internalCreateClipPathElement,
-  'SVGComponentTransferFunctionElement': () => _SVGComponentTransferFunctionElement.internalCreate_SVGComponentTransferFunctionElement,
-  'SVGCursorElement': () => _SVGCursorElement.internalCreate_SVGCursorElement,
-  'SVGDefsElement': () => DefsElement.internalCreateDefsElement,
-  'SVGDescElement': () => DescElement.internalCreateDescElement,
-  'SVGDiscardElement': () => DiscardElement.internalCreateDiscardElement,
-  'SVGElement': () => SvgElement.internalCreateSvgElement,
-  'SVGEllipseElement': () => EllipseElement.internalCreateEllipseElement,
-  'SVGFEBlendElement': () => FEBlendElement.internalCreateFEBlendElement,
-  'SVGFEColorMatrixElement': () => FEColorMatrixElement.internalCreateFEColorMatrixElement,
-  'SVGFEComponentTransferElement': () => FEComponentTransferElement.internalCreateFEComponentTransferElement,
-  'SVGFECompositeElement': () => FECompositeElement.internalCreateFECompositeElement,
-  'SVGFEConvolveMatrixElement': () => FEConvolveMatrixElement.internalCreateFEConvolveMatrixElement,
-  'SVGFEDiffuseLightingElement': () => FEDiffuseLightingElement.internalCreateFEDiffuseLightingElement,
-  'SVGFEDisplacementMapElement': () => FEDisplacementMapElement.internalCreateFEDisplacementMapElement,
-  'SVGFEDistantLightElement': () => FEDistantLightElement.internalCreateFEDistantLightElement,
-  'SVGFEDropShadowElement': () => _SVGFEDropShadowElement.internalCreate_SVGFEDropShadowElement,
-  'SVGFEFloodElement': () => FEFloodElement.internalCreateFEFloodElement,
-  'SVGFEFuncAElement': () => FEFuncAElement.internalCreateFEFuncAElement,
-  'SVGFEFuncBElement': () => FEFuncBElement.internalCreateFEFuncBElement,
-  'SVGFEFuncGElement': () => FEFuncGElement.internalCreateFEFuncGElement,
-  'SVGFEFuncRElement': () => FEFuncRElement.internalCreateFEFuncRElement,
-  'SVGFEGaussianBlurElement': () => FEGaussianBlurElement.internalCreateFEGaussianBlurElement,
-  'SVGFEImageElement': () => FEImageElement.internalCreateFEImageElement,
-  'SVGFEMergeElement': () => FEMergeElement.internalCreateFEMergeElement,
-  'SVGFEMergeNodeElement': () => FEMergeNodeElement.internalCreateFEMergeNodeElement,
-  'SVGFEMorphologyElement': () => FEMorphologyElement.internalCreateFEMorphologyElement,
-  'SVGFEOffsetElement': () => FEOffsetElement.internalCreateFEOffsetElement,
-  'SVGFEPointLightElement': () => FEPointLightElement.internalCreateFEPointLightElement,
-  'SVGFESpecularLightingElement': () => FESpecularLightingElement.internalCreateFESpecularLightingElement,
-  'SVGFESpotLightElement': () => FESpotLightElement.internalCreateFESpotLightElement,
-  'SVGFETileElement': () => FETileElement.internalCreateFETileElement,
-  'SVGFETurbulenceElement': () => FETurbulenceElement.internalCreateFETurbulenceElement,
-  'SVGFilterElement': () => FilterElement.internalCreateFilterElement,
-  'SVGForeignObjectElement': () => ForeignObjectElement.internalCreateForeignObjectElement,
-  'SVGGElement': () => GElement.internalCreateGElement,
-  'SVGGeometryElement': () => GeometryElement.internalCreateGeometryElement,
-  'SVGGradientElement': () => _GradientElement.internalCreate_GradientElement,
-  'SVGGraphicsElement': () => GraphicsElement.internalCreateGraphicsElement,
-  'SVGImageElement': () => ImageElement.internalCreateImageElement,
-  'SVGLength': () => Length.internalCreateLength,
-  'SVGLengthList': () => LengthList.internalCreateLengthList,
-  'SVGLineElement': () => LineElement.internalCreateLineElement,
-  'SVGLinearGradientElement': () => LinearGradientElement.internalCreateLinearGradientElement,
-  'SVGMPathElement': () => _SVGMPathElement.internalCreate_SVGMPathElement,
-  'SVGMarkerElement': () => MarkerElement.internalCreateMarkerElement,
-  'SVGMaskElement': () => MaskElement.internalCreateMaskElement,
-  'SVGMatrix': () => Matrix.internalCreateMatrix,
-  'SVGMetadataElement': () => MetadataElement.internalCreateMetadataElement,
-  'SVGNumber': () => Number.internalCreateNumber,
-  'SVGNumberList': () => NumberList.internalCreateNumberList,
-  'SVGPathElement': () => PathElement.internalCreatePathElement,
-  'SVGPathSeg': () => PathSeg.internalCreatePathSeg,
-  'SVGPathSegArcAbs': () => PathSegArcAbs.internalCreatePathSegArcAbs,
-  'SVGPathSegArcRel': () => PathSegArcRel.internalCreatePathSegArcRel,
-  'SVGPathSegClosePath': () => PathSegClosePath.internalCreatePathSegClosePath,
-  'SVGPathSegCurvetoCubicAbs': () => PathSegCurvetoCubicAbs.internalCreatePathSegCurvetoCubicAbs,
-  'SVGPathSegCurvetoCubicRel': () => PathSegCurvetoCubicRel.internalCreatePathSegCurvetoCubicRel,
-  'SVGPathSegCurvetoCubicSmoothAbs': () => PathSegCurvetoCubicSmoothAbs.internalCreatePathSegCurvetoCubicSmoothAbs,
-  'SVGPathSegCurvetoCubicSmoothRel': () => PathSegCurvetoCubicSmoothRel.internalCreatePathSegCurvetoCubicSmoothRel,
-  'SVGPathSegCurvetoQuadraticAbs': () => PathSegCurvetoQuadraticAbs.internalCreatePathSegCurvetoQuadraticAbs,
-  'SVGPathSegCurvetoQuadraticRel': () => PathSegCurvetoQuadraticRel.internalCreatePathSegCurvetoQuadraticRel,
-  'SVGPathSegCurvetoQuadraticSmoothAbs': () => PathSegCurvetoQuadraticSmoothAbs.internalCreatePathSegCurvetoQuadraticSmoothAbs,
-  'SVGPathSegCurvetoQuadraticSmoothRel': () => PathSegCurvetoQuadraticSmoothRel.internalCreatePathSegCurvetoQuadraticSmoothRel,
-  'SVGPathSegLinetoAbs': () => PathSegLinetoAbs.internalCreatePathSegLinetoAbs,
-  'SVGPathSegLinetoHorizontalAbs': () => PathSegLinetoHorizontalAbs.internalCreatePathSegLinetoHorizontalAbs,
-  'SVGPathSegLinetoHorizontalRel': () => PathSegLinetoHorizontalRel.internalCreatePathSegLinetoHorizontalRel,
-  'SVGPathSegLinetoRel': () => PathSegLinetoRel.internalCreatePathSegLinetoRel,
-  'SVGPathSegLinetoVerticalAbs': () => PathSegLinetoVerticalAbs.internalCreatePathSegLinetoVerticalAbs,
-  'SVGPathSegLinetoVerticalRel': () => PathSegLinetoVerticalRel.internalCreatePathSegLinetoVerticalRel,
-  'SVGPathSegList': () => PathSegList.internalCreatePathSegList,
-  'SVGPathSegMovetoAbs': () => PathSegMovetoAbs.internalCreatePathSegMovetoAbs,
-  'SVGPathSegMovetoRel': () => PathSegMovetoRel.internalCreatePathSegMovetoRel,
-  'SVGPatternElement': () => PatternElement.internalCreatePatternElement,
-  'SVGPoint': () => Point.internalCreatePoint,
-  'SVGPointList': () => PointList.internalCreatePointList,
-  'SVGPolygonElement': () => PolygonElement.internalCreatePolygonElement,
-  'SVGPolylineElement': () => PolylineElement.internalCreatePolylineElement,
-  'SVGPreserveAspectRatio': () => PreserveAspectRatio.internalCreatePreserveAspectRatio,
-  'SVGRadialGradientElement': () => RadialGradientElement.internalCreateRadialGradientElement,
-  'SVGRect': () => Rect.internalCreateRect,
-  'SVGRectElement': () => RectElement.internalCreateRectElement,
-  'SVGSVGElement': () => SvgSvgElement.internalCreateSvgSvgElement,
-  'SVGScriptElement': () => ScriptElement.internalCreateScriptElement,
-  'SVGSetElement': () => SetElement.internalCreateSetElement,
-  'SVGStopElement': () => StopElement.internalCreateStopElement,
-  'SVGStringList': () => StringList.internalCreateStringList,
-  'SVGStyleElement': () => StyleElement.internalCreateStyleElement,
-  'SVGSwitchElement': () => SwitchElement.internalCreateSwitchElement,
-  'SVGSymbolElement': () => SymbolElement.internalCreateSymbolElement,
-  'SVGTSpanElement': () => TSpanElement.internalCreateTSpanElement,
-  'SVGTextContentElement': () => TextContentElement.internalCreateTextContentElement,
-  'SVGTextElement': () => TextElement.internalCreateTextElement,
-  'SVGTextPathElement': () => TextPathElement.internalCreateTextPathElement,
-  'SVGTextPositioningElement': () => TextPositioningElement.internalCreateTextPositioningElement,
-  'SVGTitleElement': () => TitleElement.internalCreateTitleElement,
-  'SVGTransform': () => Transform.internalCreateTransform,
-  'SVGTransformList': () => TransformList.internalCreateTransformList,
-  'SVGUnitTypes': () => UnitTypes.internalCreateUnitTypes,
-  'SVGUseElement': () => UseElement.internalCreateUseElement,
-  'SVGViewElement': () => ViewElement.internalCreateViewElement,
-  'SVGViewSpec': () => ViewSpec.internalCreateViewSpec,
-  'SVGZoomEvent': () => ZoomEvent.internalCreateZoomEvent,
+  'SVGAElement': () => AElement.instanceRuntimeType,
+  'SVGAngle': () => Angle.instanceRuntimeType,
+  'SVGAnimateElement': () => AnimateElement.instanceRuntimeType,
+  'SVGAnimateMotionElement': () => AnimateMotionElement.instanceRuntimeType,
+  'SVGAnimateTransformElement': () => AnimateTransformElement.instanceRuntimeType,
+  'SVGAnimatedAngle': () => AnimatedAngle.instanceRuntimeType,
+  'SVGAnimatedBoolean': () => AnimatedBoolean.instanceRuntimeType,
+  'SVGAnimatedEnumeration': () => AnimatedEnumeration.instanceRuntimeType,
+  'SVGAnimatedInteger': () => AnimatedInteger.instanceRuntimeType,
+  'SVGAnimatedLength': () => AnimatedLength.instanceRuntimeType,
+  'SVGAnimatedLengthList': () => AnimatedLengthList.instanceRuntimeType,
+  'SVGAnimatedNumber': () => AnimatedNumber.instanceRuntimeType,
+  'SVGAnimatedNumberList': () => AnimatedNumberList.instanceRuntimeType,
+  'SVGAnimatedPreserveAspectRatio': () => AnimatedPreserveAspectRatio.instanceRuntimeType,
+  'SVGAnimatedRect': () => AnimatedRect.instanceRuntimeType,
+  'SVGAnimatedString': () => AnimatedString.instanceRuntimeType,
+  'SVGAnimatedTransformList': () => AnimatedTransformList.instanceRuntimeType,
+  'SVGAnimationElement': () => AnimationElement.instanceRuntimeType,
+  'SVGCircleElement': () => CircleElement.instanceRuntimeType,
+  'SVGClipPathElement': () => ClipPathElement.instanceRuntimeType,
+  'SVGComponentTransferFunctionElement': () => _SVGComponentTransferFunctionElement.instanceRuntimeType,
+  'SVGCursorElement': () => _SVGCursorElement.instanceRuntimeType,
+  'SVGDefsElement': () => DefsElement.instanceRuntimeType,
+  'SVGDescElement': () => DescElement.instanceRuntimeType,
+  'SVGDiscardElement': () => DiscardElement.instanceRuntimeType,
+  'SVGElement': () => SvgElement.instanceRuntimeType,
+  'SVGEllipseElement': () => EllipseElement.instanceRuntimeType,
+  'SVGFEBlendElement': () => FEBlendElement.instanceRuntimeType,
+  'SVGFEColorMatrixElement': () => FEColorMatrixElement.instanceRuntimeType,
+  'SVGFEComponentTransferElement': () => FEComponentTransferElement.instanceRuntimeType,
+  'SVGFECompositeElement': () => FECompositeElement.instanceRuntimeType,
+  'SVGFEConvolveMatrixElement': () => FEConvolveMatrixElement.instanceRuntimeType,
+  'SVGFEDiffuseLightingElement': () => FEDiffuseLightingElement.instanceRuntimeType,
+  'SVGFEDisplacementMapElement': () => FEDisplacementMapElement.instanceRuntimeType,
+  'SVGFEDistantLightElement': () => FEDistantLightElement.instanceRuntimeType,
+  'SVGFEDropShadowElement': () => _SVGFEDropShadowElement.instanceRuntimeType,
+  'SVGFEFloodElement': () => FEFloodElement.instanceRuntimeType,
+  'SVGFEFuncAElement': () => FEFuncAElement.instanceRuntimeType,
+  'SVGFEFuncBElement': () => FEFuncBElement.instanceRuntimeType,
+  'SVGFEFuncGElement': () => FEFuncGElement.instanceRuntimeType,
+  'SVGFEFuncRElement': () => FEFuncRElement.instanceRuntimeType,
+  'SVGFEGaussianBlurElement': () => FEGaussianBlurElement.instanceRuntimeType,
+  'SVGFEImageElement': () => FEImageElement.instanceRuntimeType,
+  'SVGFEMergeElement': () => FEMergeElement.instanceRuntimeType,
+  'SVGFEMergeNodeElement': () => FEMergeNodeElement.instanceRuntimeType,
+  'SVGFEMorphologyElement': () => FEMorphologyElement.instanceRuntimeType,
+  'SVGFEOffsetElement': () => FEOffsetElement.instanceRuntimeType,
+  'SVGFEPointLightElement': () => FEPointLightElement.instanceRuntimeType,
+  'SVGFESpecularLightingElement': () => FESpecularLightingElement.instanceRuntimeType,
+  'SVGFESpotLightElement': () => FESpotLightElement.instanceRuntimeType,
+  'SVGFETileElement': () => FETileElement.instanceRuntimeType,
+  'SVGFETurbulenceElement': () => FETurbulenceElement.instanceRuntimeType,
+  'SVGFilterElement': () => FilterElement.instanceRuntimeType,
+  'SVGFilterPrimitiveStandardAttributes': () => FilterPrimitiveStandardAttributes.instanceRuntimeType,
+  'SVGFitToViewBox': () => FitToViewBox.instanceRuntimeType,
+  'SVGForeignObjectElement': () => ForeignObjectElement.instanceRuntimeType,
+  'SVGGElement': () => GElement.instanceRuntimeType,
+  'SVGGeometryElement': () => GeometryElement.instanceRuntimeType,
+  'SVGGradientElement': () => _GradientElement.instanceRuntimeType,
+  'SVGGraphicsElement': () => GraphicsElement.instanceRuntimeType,
+  'SVGImageElement': () => ImageElement.instanceRuntimeType,
+  'SVGLength': () => Length.instanceRuntimeType,
+  'SVGLengthList': () => LengthList.instanceRuntimeType,
+  'SVGLineElement': () => LineElement.instanceRuntimeType,
+  'SVGLinearGradientElement': () => LinearGradientElement.instanceRuntimeType,
+  'SVGMPathElement': () => _SVGMPathElement.instanceRuntimeType,
+  'SVGMarkerElement': () => MarkerElement.instanceRuntimeType,
+  'SVGMaskElement': () => MaskElement.instanceRuntimeType,
+  'SVGMatrix': () => Matrix.instanceRuntimeType,
+  'SVGMetadataElement': () => MetadataElement.instanceRuntimeType,
+  'SVGNumber': () => Number.instanceRuntimeType,
+  'SVGNumberList': () => NumberList.instanceRuntimeType,
+  'SVGPathElement': () => PathElement.instanceRuntimeType,
+  'SVGPathSeg': () => PathSeg.instanceRuntimeType,
+  'SVGPathSegArcAbs': () => PathSegArcAbs.instanceRuntimeType,
+  'SVGPathSegArcRel': () => PathSegArcRel.instanceRuntimeType,
+  'SVGPathSegClosePath': () => PathSegClosePath.instanceRuntimeType,
+  'SVGPathSegCurvetoCubicAbs': () => PathSegCurvetoCubicAbs.instanceRuntimeType,
+  'SVGPathSegCurvetoCubicRel': () => PathSegCurvetoCubicRel.instanceRuntimeType,
+  'SVGPathSegCurvetoCubicSmoothAbs': () => PathSegCurvetoCubicSmoothAbs.instanceRuntimeType,
+  'SVGPathSegCurvetoCubicSmoothRel': () => PathSegCurvetoCubicSmoothRel.instanceRuntimeType,
+  'SVGPathSegCurvetoQuadraticAbs': () => PathSegCurvetoQuadraticAbs.instanceRuntimeType,
+  'SVGPathSegCurvetoQuadraticRel': () => PathSegCurvetoQuadraticRel.instanceRuntimeType,
+  'SVGPathSegCurvetoQuadraticSmoothAbs': () => PathSegCurvetoQuadraticSmoothAbs.instanceRuntimeType,
+  'SVGPathSegCurvetoQuadraticSmoothRel': () => PathSegCurvetoQuadraticSmoothRel.instanceRuntimeType,
+  'SVGPathSegLinetoAbs': () => PathSegLinetoAbs.instanceRuntimeType,
+  'SVGPathSegLinetoHorizontalAbs': () => PathSegLinetoHorizontalAbs.instanceRuntimeType,
+  'SVGPathSegLinetoHorizontalRel': () => PathSegLinetoHorizontalRel.instanceRuntimeType,
+  'SVGPathSegLinetoRel': () => PathSegLinetoRel.instanceRuntimeType,
+  'SVGPathSegLinetoVerticalAbs': () => PathSegLinetoVerticalAbs.instanceRuntimeType,
+  'SVGPathSegLinetoVerticalRel': () => PathSegLinetoVerticalRel.instanceRuntimeType,
+  'SVGPathSegList': () => PathSegList.instanceRuntimeType,
+  'SVGPathSegMovetoAbs': () => PathSegMovetoAbs.instanceRuntimeType,
+  'SVGPathSegMovetoRel': () => PathSegMovetoRel.instanceRuntimeType,
+  'SVGPatternElement': () => PatternElement.instanceRuntimeType,
+  'SVGPoint': () => Point.instanceRuntimeType,
+  'SVGPointList': () => PointList.instanceRuntimeType,
+  'SVGPolygonElement': () => PolygonElement.instanceRuntimeType,
+  'SVGPolylineElement': () => PolylineElement.instanceRuntimeType,
+  'SVGPreserveAspectRatio': () => PreserveAspectRatio.instanceRuntimeType,
+  'SVGRadialGradientElement': () => RadialGradientElement.instanceRuntimeType,
+  'SVGRect': () => Rect.instanceRuntimeType,
+  'SVGRectElement': () => RectElement.instanceRuntimeType,
+  'SVGSVGElement': () => SvgSvgElement.instanceRuntimeType,
+  'SVGScriptElement': () => ScriptElement.instanceRuntimeType,
+  'SVGSetElement': () => SetElement.instanceRuntimeType,
+  'SVGStopElement': () => StopElement.instanceRuntimeType,
+  'SVGStringList': () => StringList.instanceRuntimeType,
+  'SVGStyleElement': () => StyleElement.instanceRuntimeType,
+  'SVGSwitchElement': () => SwitchElement.instanceRuntimeType,
+  'SVGSymbolElement': () => SymbolElement.instanceRuntimeType,
+  'SVGTSpanElement': () => TSpanElement.instanceRuntimeType,
+  'SVGTests': () => Tests.instanceRuntimeType,
+  'SVGTextContentElement': () => TextContentElement.instanceRuntimeType,
+  'SVGTextElement': () => TextElement.instanceRuntimeType,
+  'SVGTextPathElement': () => TextPathElement.instanceRuntimeType,
+  'SVGTextPositioningElement': () => TextPositioningElement.instanceRuntimeType,
+  'SVGTitleElement': () => TitleElement.instanceRuntimeType,
+  'SVGTransform': () => Transform.instanceRuntimeType,
+  'SVGTransformList': () => TransformList.instanceRuntimeType,
+  'SVGURIReference': () => UriReference.instanceRuntimeType,
+  'SVGUnitTypes': () => UnitTypes.instanceRuntimeType,
+  'SVGUseElement': () => UseElement.instanceRuntimeType,
+  'SVGViewElement': () => ViewElement.instanceRuntimeType,
+  'SVGViewSpec': () => ViewSpec.instanceRuntimeType,
+  'SVGZoomAndPan': () => ZoomAndPan.instanceRuntimeType,
+  'SVGZoomEvent': () => ZoomEvent.instanceRuntimeType,
 
 };
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -315,11 +187,7 @@ class AElement extends GraphicsElement implements UriReference {
 
 
   @Deprecated("Internal Use Only")
-  static AElement internalCreateAElement() {
-    return new AElement._internalWrap();
-  }
-
-  external factory AElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   AElement.internal_() : super.internal_();
@@ -333,11 +201,11 @@ class AElement extends GraphicsElement implements UriReference {
 
   @DomName('SVGAElement.target')
   @DocsEditable()
-  AnimatedString get target => wrap_jso(_blink.BlinkSVGAElement.instance.target_Getter_(unwrap_jso(this)));
+  AnimatedString get target => _blink.BlinkSVGAElement.instance.target_Getter_(this);
   
   @DomName('SVGAElement.href')
   @DocsEditable()
-  AnimatedString get href => wrap_jso(_blink.BlinkSVGAElement.instance.href_Getter_(unwrap_jso(this)));
+  AnimatedString get href => _blink.BlinkSVGAElement.instance.href_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -354,20 +222,12 @@ class Angle extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Angle._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static Angle internalCreateAngle() {
-    return new Angle._internalWrap();
-  }
 
-  factory Angle._internalWrap() {
-    return new Angle.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   Angle.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGAngle.SVG_ANGLETYPE_DEG')
   @DocsEditable()
@@ -391,39 +251,39 @@ class Angle extends DartHtmlDomObject {
 
   @DomName('SVGAngle.unitType')
   @DocsEditable()
-  int get unitType => _blink.BlinkSVGAngle.instance.unitType_Getter_(unwrap_jso(this));
+  int get unitType => _blink.BlinkSVGAngle.instance.unitType_Getter_(this);
   
   @DomName('SVGAngle.value')
   @DocsEditable()
-  num get value => _blink.BlinkSVGAngle.instance.value_Getter_(unwrap_jso(this));
+  num get value => _blink.BlinkSVGAngle.instance.value_Getter_(this);
   
   @DomName('SVGAngle.value')
   @DocsEditable()
-  set value(num value) => _blink.BlinkSVGAngle.instance.value_Setter_(unwrap_jso(this), value);
+  set value(num value) => _blink.BlinkSVGAngle.instance.value_Setter_(this, value);
   
   @DomName('SVGAngle.valueAsString')
   @DocsEditable()
-  String get valueAsString => _blink.BlinkSVGAngle.instance.valueAsString_Getter_(unwrap_jso(this));
+  String get valueAsString => _blink.BlinkSVGAngle.instance.valueAsString_Getter_(this);
   
   @DomName('SVGAngle.valueAsString')
   @DocsEditable()
-  set valueAsString(String value) => _blink.BlinkSVGAngle.instance.valueAsString_Setter_(unwrap_jso(this), value);
+  set valueAsString(String value) => _blink.BlinkSVGAngle.instance.valueAsString_Setter_(this, value);
   
   @DomName('SVGAngle.valueInSpecifiedUnits')
   @DocsEditable()
-  num get valueInSpecifiedUnits => _blink.BlinkSVGAngle.instance.valueInSpecifiedUnits_Getter_(unwrap_jso(this));
+  num get valueInSpecifiedUnits => _blink.BlinkSVGAngle.instance.valueInSpecifiedUnits_Getter_(this);
   
   @DomName('SVGAngle.valueInSpecifiedUnits')
   @DocsEditable()
-  set valueInSpecifiedUnits(num value) => _blink.BlinkSVGAngle.instance.valueInSpecifiedUnits_Setter_(unwrap_jso(this), value);
+  set valueInSpecifiedUnits(num value) => _blink.BlinkSVGAngle.instance.valueInSpecifiedUnits_Setter_(this, value);
   
   @DomName('SVGAngle.convertToSpecifiedUnits')
   @DocsEditable()
-  void convertToSpecifiedUnits(int unitType) => _blink.BlinkSVGAngle.instance.convertToSpecifiedUnits_Callback_1_(unwrap_jso(this), unitType);
+  void convertToSpecifiedUnits(int unitType) => _blink.BlinkSVGAngle.instance.convertToSpecifiedUnits_Callback_1_(this, unitType);
   
   @DomName('SVGAngle.newValueSpecifiedUnits')
   @DocsEditable()
-  void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) => _blink.BlinkSVGAngle.instance.newValueSpecifiedUnits_Callback_2_(unwrap_jso(this), unitType, valueInSpecifiedUnits);
+  void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) => _blink.BlinkSVGAngle.instance.newValueSpecifiedUnits_Callback_2_(this, unitType, valueInSpecifiedUnits);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -449,11 +309,7 @@ class AnimateElement extends AnimationElement {
 
 
   @Deprecated("Internal Use Only")
-  static AnimateElement internalCreateAnimateElement() {
-    return new AnimateElement._internalWrap();
-  }
-
-  external factory AnimateElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   AnimateElement.internal_() : super.internal_();
@@ -492,11 +348,7 @@ class AnimateMotionElement extends AnimationElement {
 
 
   @Deprecated("Internal Use Only")
-  static AnimateMotionElement internalCreateAnimateMotionElement() {
-    return new AnimateMotionElement._internalWrap();
-  }
-
-  external factory AnimateMotionElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   AnimateMotionElement.internal_() : super.internal_();
@@ -535,11 +387,7 @@ class AnimateTransformElement extends AnimationElement {
 
 
   @Deprecated("Internal Use Only")
-  static AnimateTransformElement internalCreateAnimateTransformElement() {
-    return new AnimateTransformElement._internalWrap();
-  }
-
-  external factory AnimateTransformElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   AnimateTransformElement.internal_() : super.internal_();
@@ -569,28 +417,20 @@ class AnimatedAngle extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedAngle._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static AnimatedAngle internalCreateAnimatedAngle() {
-    return new AnimatedAngle._internalWrap();
-  }
 
-  factory AnimatedAngle._internalWrap() {
-    return new AnimatedAngle.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   AnimatedAngle.internal_() { }
 
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('SVGAnimatedAngle.animVal')
   @DocsEditable()
-  Angle get animVal => wrap_jso(_blink.BlinkSVGAnimatedAngle.instance.animVal_Getter_(unwrap_jso(this)));
+  Angle get animVal => _blink.BlinkSVGAnimatedAngle.instance.animVal_Getter_(this);
   
   @DomName('SVGAnimatedAngle.baseVal')
   @DocsEditable()
-  Angle get baseVal => wrap_jso(_blink.BlinkSVGAnimatedAngle.instance.baseVal_Getter_(unwrap_jso(this)));
+  Angle get baseVal => _blink.BlinkSVGAnimatedAngle.instance.baseVal_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -607,32 +447,24 @@ class AnimatedBoolean extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedBoolean._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static AnimatedBoolean internalCreateAnimatedBoolean() {
-    return new AnimatedBoolean._internalWrap();
-  }
 
-  factory AnimatedBoolean._internalWrap() {
-    return new AnimatedBoolean.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   AnimatedBoolean.internal_() { }
 
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('SVGAnimatedBoolean.animVal')
   @DocsEditable()
-  bool get animVal => _blink.BlinkSVGAnimatedBoolean.instance.animVal_Getter_(unwrap_jso(this));
+  bool get animVal => _blink.BlinkSVGAnimatedBoolean.instance.animVal_Getter_(this);
   
   @DomName('SVGAnimatedBoolean.baseVal')
   @DocsEditable()
-  bool get baseVal => _blink.BlinkSVGAnimatedBoolean.instance.baseVal_Getter_(unwrap_jso(this));
+  bool get baseVal => _blink.BlinkSVGAnimatedBoolean.instance.baseVal_Getter_(this);
   
   @DomName('SVGAnimatedBoolean.baseVal')
   @DocsEditable()
-  set baseVal(bool value) => _blink.BlinkSVGAnimatedBoolean.instance.baseVal_Setter_(unwrap_jso(this), value);
+  set baseVal(bool value) => _blink.BlinkSVGAnimatedBoolean.instance.baseVal_Setter_(this, value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -649,32 +481,24 @@ class AnimatedEnumeration extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedEnumeration._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static AnimatedEnumeration internalCreateAnimatedEnumeration() {
-    return new AnimatedEnumeration._internalWrap();
-  }
 
-  factory AnimatedEnumeration._internalWrap() {
-    return new AnimatedEnumeration.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   AnimatedEnumeration.internal_() { }
 
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('SVGAnimatedEnumeration.animVal')
   @DocsEditable()
-  int get animVal => _blink.BlinkSVGAnimatedEnumeration.instance.animVal_Getter_(unwrap_jso(this));
+  int get animVal => _blink.BlinkSVGAnimatedEnumeration.instance.animVal_Getter_(this);
   
   @DomName('SVGAnimatedEnumeration.baseVal')
   @DocsEditable()
-  int get baseVal => _blink.BlinkSVGAnimatedEnumeration.instance.baseVal_Getter_(unwrap_jso(this));
+  int get baseVal => _blink.BlinkSVGAnimatedEnumeration.instance.baseVal_Getter_(this);
   
   @DomName('SVGAnimatedEnumeration.baseVal')
   @DocsEditable()
-  set baseVal(int value) => _blink.BlinkSVGAnimatedEnumeration.instance.baseVal_Setter_(unwrap_jso(this), value);
+  set baseVal(int value) => _blink.BlinkSVGAnimatedEnumeration.instance.baseVal_Setter_(this, value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -691,32 +515,24 @@ class AnimatedInteger extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedInteger._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static AnimatedInteger internalCreateAnimatedInteger() {
-    return new AnimatedInteger._internalWrap();
-  }
 
-  factory AnimatedInteger._internalWrap() {
-    return new AnimatedInteger.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   AnimatedInteger.internal_() { }
 
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('SVGAnimatedInteger.animVal')
   @DocsEditable()
-  int get animVal => _blink.BlinkSVGAnimatedInteger.instance.animVal_Getter_(unwrap_jso(this));
+  int get animVal => _blink.BlinkSVGAnimatedInteger.instance.animVal_Getter_(this);
   
   @DomName('SVGAnimatedInteger.baseVal')
   @DocsEditable()
-  int get baseVal => _blink.BlinkSVGAnimatedInteger.instance.baseVal_Getter_(unwrap_jso(this));
+  int get baseVal => _blink.BlinkSVGAnimatedInteger.instance.baseVal_Getter_(this);
   
   @DomName('SVGAnimatedInteger.baseVal')
   @DocsEditable()
-  set baseVal(int value) => _blink.BlinkSVGAnimatedInteger.instance.baseVal_Setter_(unwrap_jso(this), value);
+  set baseVal(int value) => _blink.BlinkSVGAnimatedInteger.instance.baseVal_Setter_(this, value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -733,28 +549,20 @@ class AnimatedLength extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedLength._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static AnimatedLength internalCreateAnimatedLength() {
-    return new AnimatedLength._internalWrap();
-  }
 
-  factory AnimatedLength._internalWrap() {
-    return new AnimatedLength.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   AnimatedLength.internal_() { }
 
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('SVGAnimatedLength.animVal')
   @DocsEditable()
-  Length get animVal => wrap_jso(_blink.BlinkSVGAnimatedLength.instance.animVal_Getter_(unwrap_jso(this)));
+  Length get animVal => _blink.BlinkSVGAnimatedLength.instance.animVal_Getter_(this);
   
   @DomName('SVGAnimatedLength.baseVal')
   @DocsEditable()
-  Length get baseVal => wrap_jso(_blink.BlinkSVGAnimatedLength.instance.baseVal_Getter_(unwrap_jso(this)));
+  Length get baseVal => _blink.BlinkSVGAnimatedLength.instance.baseVal_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -771,28 +579,20 @@ class AnimatedLengthList extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedLengthList._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static AnimatedLengthList internalCreateAnimatedLengthList() {
-    return new AnimatedLengthList._internalWrap();
-  }
 
-  factory AnimatedLengthList._internalWrap() {
-    return new AnimatedLengthList.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   AnimatedLengthList.internal_() { }
 
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('SVGAnimatedLengthList.animVal')
   @DocsEditable()
-  LengthList get animVal => wrap_jso(_blink.BlinkSVGAnimatedLengthList.instance.animVal_Getter_(unwrap_jso(this)));
+  LengthList get animVal => _blink.BlinkSVGAnimatedLengthList.instance.animVal_Getter_(this);
   
   @DomName('SVGAnimatedLengthList.baseVal')
   @DocsEditable()
-  LengthList get baseVal => wrap_jso(_blink.BlinkSVGAnimatedLengthList.instance.baseVal_Getter_(unwrap_jso(this)));
+  LengthList get baseVal => _blink.BlinkSVGAnimatedLengthList.instance.baseVal_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -809,32 +609,24 @@ class AnimatedNumber extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedNumber._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static AnimatedNumber internalCreateAnimatedNumber() {
-    return new AnimatedNumber._internalWrap();
-  }
 
-  factory AnimatedNumber._internalWrap() {
-    return new AnimatedNumber.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   AnimatedNumber.internal_() { }
 
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('SVGAnimatedNumber.animVal')
   @DocsEditable()
-  num get animVal => _blink.BlinkSVGAnimatedNumber.instance.animVal_Getter_(unwrap_jso(this));
+  num get animVal => _blink.BlinkSVGAnimatedNumber.instance.animVal_Getter_(this);
   
   @DomName('SVGAnimatedNumber.baseVal')
   @DocsEditable()
-  num get baseVal => _blink.BlinkSVGAnimatedNumber.instance.baseVal_Getter_(unwrap_jso(this));
+  num get baseVal => _blink.BlinkSVGAnimatedNumber.instance.baseVal_Getter_(this);
   
   @DomName('SVGAnimatedNumber.baseVal')
   @DocsEditable()
-  set baseVal(num value) => _blink.BlinkSVGAnimatedNumber.instance.baseVal_Setter_(unwrap_jso(this), value);
+  set baseVal(num value) => _blink.BlinkSVGAnimatedNumber.instance.baseVal_Setter_(this, value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -851,28 +643,20 @@ class AnimatedNumberList extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedNumberList._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static AnimatedNumberList internalCreateAnimatedNumberList() {
-    return new AnimatedNumberList._internalWrap();
-  }
 
-  factory AnimatedNumberList._internalWrap() {
-    return new AnimatedNumberList.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   AnimatedNumberList.internal_() { }
 
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('SVGAnimatedNumberList.animVal')
   @DocsEditable()
-  NumberList get animVal => wrap_jso(_blink.BlinkSVGAnimatedNumberList.instance.animVal_Getter_(unwrap_jso(this)));
+  NumberList get animVal => _blink.BlinkSVGAnimatedNumberList.instance.animVal_Getter_(this);
   
   @DomName('SVGAnimatedNumberList.baseVal')
   @DocsEditable()
-  NumberList get baseVal => wrap_jso(_blink.BlinkSVGAnimatedNumberList.instance.baseVal_Getter_(unwrap_jso(this)));
+  NumberList get baseVal => _blink.BlinkSVGAnimatedNumberList.instance.baseVal_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -889,28 +673,20 @@ class AnimatedPreserveAspectRatio extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedPreserveAspectRatio._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static AnimatedPreserveAspectRatio internalCreateAnimatedPreserveAspectRatio() {
-    return new AnimatedPreserveAspectRatio._internalWrap();
-  }
 
-  factory AnimatedPreserveAspectRatio._internalWrap() {
-    return new AnimatedPreserveAspectRatio.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   AnimatedPreserveAspectRatio.internal_() { }
 
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('SVGAnimatedPreserveAspectRatio.animVal')
   @DocsEditable()
-  PreserveAspectRatio get animVal => wrap_jso(_blink.BlinkSVGAnimatedPreserveAspectRatio.instance.animVal_Getter_(unwrap_jso(this)));
+  PreserveAspectRatio get animVal => _blink.BlinkSVGAnimatedPreserveAspectRatio.instance.animVal_Getter_(this);
   
   @DomName('SVGAnimatedPreserveAspectRatio.baseVal')
   @DocsEditable()
-  PreserveAspectRatio get baseVal => wrap_jso(_blink.BlinkSVGAnimatedPreserveAspectRatio.instance.baseVal_Getter_(unwrap_jso(this)));
+  PreserveAspectRatio get baseVal => _blink.BlinkSVGAnimatedPreserveAspectRatio.instance.baseVal_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -927,28 +703,20 @@ class AnimatedRect extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedRect._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static AnimatedRect internalCreateAnimatedRect() {
-    return new AnimatedRect._internalWrap();
-  }
 
-  factory AnimatedRect._internalWrap() {
-    return new AnimatedRect.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   AnimatedRect.internal_() { }
 
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('SVGAnimatedRect.animVal')
   @DocsEditable()
-  Rect get animVal => wrap_jso(_blink.BlinkSVGAnimatedRect.instance.animVal_Getter_(unwrap_jso(this)));
+  Rect get animVal => _blink.BlinkSVGAnimatedRect.instance.animVal_Getter_(this);
   
   @DomName('SVGAnimatedRect.baseVal')
   @DocsEditable()
-  Rect get baseVal => wrap_jso(_blink.BlinkSVGAnimatedRect.instance.baseVal_Getter_(unwrap_jso(this)));
+  Rect get baseVal => _blink.BlinkSVGAnimatedRect.instance.baseVal_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -965,32 +733,24 @@ class AnimatedString extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedString._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static AnimatedString internalCreateAnimatedString() {
-    return new AnimatedString._internalWrap();
-  }
 
-  factory AnimatedString._internalWrap() {
-    return new AnimatedString.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   AnimatedString.internal_() { }
 
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('SVGAnimatedString.animVal')
   @DocsEditable()
-  String get animVal => _blink.BlinkSVGAnimatedString.instance.animVal_Getter_(unwrap_jso(this));
+  String get animVal => _blink.BlinkSVGAnimatedString.instance.animVal_Getter_(this);
   
   @DomName('SVGAnimatedString.baseVal')
   @DocsEditable()
-  String get baseVal => _blink.BlinkSVGAnimatedString.instance.baseVal_Getter_(unwrap_jso(this));
+  String get baseVal => _blink.BlinkSVGAnimatedString.instance.baseVal_Getter_(this);
   
   @DomName('SVGAnimatedString.baseVal')
   @DocsEditable()
-  set baseVal(String value) => _blink.BlinkSVGAnimatedString.instance.baseVal_Setter_(unwrap_jso(this), value);
+  set baseVal(String value) => _blink.BlinkSVGAnimatedString.instance.baseVal_Setter_(this, value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1007,28 +767,20 @@ class AnimatedTransformList extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory AnimatedTransformList._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static AnimatedTransformList internalCreateAnimatedTransformList() {
-    return new AnimatedTransformList._internalWrap();
-  }
 
-  factory AnimatedTransformList._internalWrap() {
-    return new AnimatedTransformList.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   AnimatedTransformList.internal_() { }
 
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('SVGAnimatedTransformList.animVal')
   @DocsEditable()
-  TransformList get animVal => wrap_jso(_blink.BlinkSVGAnimatedTransformList.instance.animVal_Getter_(unwrap_jso(this)));
+  TransformList get animVal => _blink.BlinkSVGAnimatedTransformList.instance.animVal_Getter_(this);
   
   @DomName('SVGAnimatedTransformList.baseVal')
   @DocsEditable()
-  TransformList get baseVal => wrap_jso(_blink.BlinkSVGAnimatedTransformList.instance.baseVal_Getter_(unwrap_jso(this)));
+  TransformList get baseVal => _blink.BlinkSVGAnimatedTransformList.instance.baseVal_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1051,11 +803,7 @@ class AnimationElement extends SvgElement implements Tests {
 
 
   @Deprecated("Internal Use Only")
-  static AnimationElement internalCreateAnimationElement() {
-    return new AnimationElement._internalWrap();
-  }
-
-  external factory AnimationElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   AnimationElement.internal_() : super.internal_();
@@ -1069,51 +817,51 @@ class AnimationElement extends SvgElement implements Tests {
 
   @DomName('SVGAnimationElement.targetElement')
   @DocsEditable()
-  SvgElement get targetElement => wrap_jso(_blink.BlinkSVGAnimationElement.instance.targetElement_Getter_(unwrap_jso(this)));
+  SvgElement get targetElement => _blink.BlinkSVGAnimationElement.instance.targetElement_Getter_(this);
   
   @DomName('SVGAnimationElement.beginElement')
   @DocsEditable()
-  void beginElement() => _blink.BlinkSVGAnimationElement.instance.beginElement_Callback_0_(unwrap_jso(this));
+  void beginElement() => _blink.BlinkSVGAnimationElement.instance.beginElement_Callback_0_(this);
   
   @DomName('SVGAnimationElement.beginElementAt')
   @DocsEditable()
-  void beginElementAt(num offset) => _blink.BlinkSVGAnimationElement.instance.beginElementAt_Callback_1_(unwrap_jso(this), offset);
+  void beginElementAt(num offset) => _blink.BlinkSVGAnimationElement.instance.beginElementAt_Callback_1_(this, offset);
   
   @DomName('SVGAnimationElement.endElement')
   @DocsEditable()
-  void endElement() => _blink.BlinkSVGAnimationElement.instance.endElement_Callback_0_(unwrap_jso(this));
+  void endElement() => _blink.BlinkSVGAnimationElement.instance.endElement_Callback_0_(this);
   
   @DomName('SVGAnimationElement.endElementAt')
   @DocsEditable()
-  void endElementAt(num offset) => _blink.BlinkSVGAnimationElement.instance.endElementAt_Callback_1_(unwrap_jso(this), offset);
+  void endElementAt(num offset) => _blink.BlinkSVGAnimationElement.instance.endElementAt_Callback_1_(this, offset);
   
   @DomName('SVGAnimationElement.getCurrentTime')
   @DocsEditable()
-  num getCurrentTime() => _blink.BlinkSVGAnimationElement.instance.getCurrentTime_Callback_0_(unwrap_jso(this));
+  num getCurrentTime() => _blink.BlinkSVGAnimationElement.instance.getCurrentTime_Callback_0_(this);
   
   @DomName('SVGAnimationElement.getSimpleDuration')
   @DocsEditable()
-  num getSimpleDuration() => _blink.BlinkSVGAnimationElement.instance.getSimpleDuration_Callback_0_(unwrap_jso(this));
+  num getSimpleDuration() => _blink.BlinkSVGAnimationElement.instance.getSimpleDuration_Callback_0_(this);
   
   @DomName('SVGAnimationElement.getStartTime')
   @DocsEditable()
-  num getStartTime() => _blink.BlinkSVGAnimationElement.instance.getStartTime_Callback_0_(unwrap_jso(this));
+  num getStartTime() => _blink.BlinkSVGAnimationElement.instance.getStartTime_Callback_0_(this);
   
   @DomName('SVGAnimationElement.requiredExtensions')
   @DocsEditable()
-  StringList get requiredExtensions => wrap_jso(_blink.BlinkSVGAnimationElement.instance.requiredExtensions_Getter_(unwrap_jso(this)));
+  StringList get requiredExtensions => _blink.BlinkSVGAnimationElement.instance.requiredExtensions_Getter_(this);
   
   @DomName('SVGAnimationElement.requiredFeatures')
   @DocsEditable()
-  StringList get requiredFeatures => wrap_jso(_blink.BlinkSVGAnimationElement.instance.requiredFeatures_Getter_(unwrap_jso(this)));
+  StringList get requiredFeatures => _blink.BlinkSVGAnimationElement.instance.requiredFeatures_Getter_(this);
   
   @DomName('SVGAnimationElement.systemLanguage')
   @DocsEditable()
-  StringList get systemLanguage => wrap_jso(_blink.BlinkSVGAnimationElement.instance.systemLanguage_Getter_(unwrap_jso(this)));
+  StringList get systemLanguage => _blink.BlinkSVGAnimationElement.instance.systemLanguage_Getter_(this);
   
   @DomName('SVGAnimationElement.hasExtension')
   @DocsEditable()
-  bool hasExtension(String extension) => _blink.BlinkSVGAnimationElement.instance.hasExtension_Callback_1_(unwrap_jso(this), extension);
+  bool hasExtension(String extension) => _blink.BlinkSVGAnimationElement.instance.hasExtension_Callback_1_(this, extension);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1136,11 +884,7 @@ class CircleElement extends GeometryElement {
 
 
   @Deprecated("Internal Use Only")
-  static CircleElement internalCreateCircleElement() {
-    return new CircleElement._internalWrap();
-  }
-
-  external factory CircleElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   CircleElement.internal_() : super.internal_();
@@ -1154,15 +898,15 @@ class CircleElement extends GeometryElement {
 
   @DomName('SVGCircleElement.cx')
   @DocsEditable()
-  AnimatedLength get cx => wrap_jso(_blink.BlinkSVGCircleElement.instance.cx_Getter_(unwrap_jso(this)));
+  AnimatedLength get cx => _blink.BlinkSVGCircleElement.instance.cx_Getter_(this);
   
   @DomName('SVGCircleElement.cy')
   @DocsEditable()
-  AnimatedLength get cy => wrap_jso(_blink.BlinkSVGCircleElement.instance.cy_Getter_(unwrap_jso(this)));
+  AnimatedLength get cy => _blink.BlinkSVGCircleElement.instance.cy_Getter_(this);
   
   @DomName('SVGCircleElement.r')
   @DocsEditable()
-  AnimatedLength get r => wrap_jso(_blink.BlinkSVGCircleElement.instance.r_Getter_(unwrap_jso(this)));
+  AnimatedLength get r => _blink.BlinkSVGCircleElement.instance.r_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1185,11 +929,7 @@ class ClipPathElement extends GraphicsElement {
 
 
   @Deprecated("Internal Use Only")
-  static ClipPathElement internalCreateClipPathElement() {
-    return new ClipPathElement._internalWrap();
-  }
-
-  external factory ClipPathElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   ClipPathElement.internal_() : super.internal_();
@@ -1203,7 +943,7 @@ class ClipPathElement extends GraphicsElement {
 
   @DomName('SVGClipPathElement.clipPathUnits')
   @DocsEditable()
-  AnimatedEnumeration get clipPathUnits => wrap_jso(_blink.BlinkSVGClipPathElement.instance.clipPathUnits_Getter_(unwrap_jso(this)));
+  AnimatedEnumeration get clipPathUnits => _blink.BlinkSVGClipPathElement.instance.clipPathUnits_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1226,11 +966,7 @@ class DefsElement extends GraphicsElement {
 
 
   @Deprecated("Internal Use Only")
-  static DefsElement internalCreateDefsElement() {
-    return new DefsElement._internalWrap();
-  }
-
-  external factory DefsElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   DefsElement.internal_() : super.internal_();
@@ -1263,11 +999,7 @@ class DescElement extends SvgElement {
 
 
   @Deprecated("Internal Use Only")
-  static DescElement internalCreateDescElement() {
-    return new DescElement._internalWrap();
-  }
-
-  external factory DescElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   DescElement.internal_() : super.internal_();
@@ -1296,11 +1028,7 @@ class DiscardElement extends SvgElement {
 
 
   @Deprecated("Internal Use Only")
-  static DiscardElement internalCreateDiscardElement() {
-    return new DiscardElement._internalWrap();
-  }
-
-  external factory DiscardElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   DiscardElement.internal_() : super.internal_();
@@ -1333,11 +1061,7 @@ class EllipseElement extends GeometryElement {
 
 
   @Deprecated("Internal Use Only")
-  static EllipseElement internalCreateEllipseElement() {
-    return new EllipseElement._internalWrap();
-  }
-
-  external factory EllipseElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   EllipseElement.internal_() : super.internal_();
@@ -1351,19 +1075,19 @@ class EllipseElement extends GeometryElement {
 
   @DomName('SVGEllipseElement.cx')
   @DocsEditable()
-  AnimatedLength get cx => wrap_jso(_blink.BlinkSVGEllipseElement.instance.cx_Getter_(unwrap_jso(this)));
+  AnimatedLength get cx => _blink.BlinkSVGEllipseElement.instance.cx_Getter_(this);
   
   @DomName('SVGEllipseElement.cy')
   @DocsEditable()
-  AnimatedLength get cy => wrap_jso(_blink.BlinkSVGEllipseElement.instance.cy_Getter_(unwrap_jso(this)));
+  AnimatedLength get cy => _blink.BlinkSVGEllipseElement.instance.cy_Getter_(this);
   
   @DomName('SVGEllipseElement.rx')
   @DocsEditable()
-  AnimatedLength get rx => wrap_jso(_blink.BlinkSVGEllipseElement.instance.rx_Getter_(unwrap_jso(this)));
+  AnimatedLength get rx => _blink.BlinkSVGEllipseElement.instance.rx_Getter_(this);
   
   @DomName('SVGEllipseElement.ry')
   @DocsEditable()
-  AnimatedLength get ry => wrap_jso(_blink.BlinkSVGEllipseElement.instance.ry_Getter_(unwrap_jso(this)));
+  AnimatedLength get ry => _blink.BlinkSVGEllipseElement.instance.ry_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1390,11 +1114,7 @@ class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
 
   @Deprecated("Internal Use Only")
-  static FEBlendElement internalCreateFEBlendElement() {
-    return new FEBlendElement._internalWrap();
-  }
-
-  external factory FEBlendElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   FEBlendElement.internal_() : super.internal_();
@@ -1435,35 +1155,35 @@ class FEBlendElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
   @DomName('SVGFEBlendElement.in1')
   @DocsEditable()
-  AnimatedString get in1 => wrap_jso(_blink.BlinkSVGFEBlendElement.instance.in1_Getter_(unwrap_jso(this)));
+  AnimatedString get in1 => _blink.BlinkSVGFEBlendElement.instance.in1_Getter_(this);
   
   @DomName('SVGFEBlendElement.in2')
   @DocsEditable()
-  AnimatedString get in2 => wrap_jso(_blink.BlinkSVGFEBlendElement.instance.in2_Getter_(unwrap_jso(this)));
+  AnimatedString get in2 => _blink.BlinkSVGFEBlendElement.instance.in2_Getter_(this);
   
   @DomName('SVGFEBlendElement.mode')
   @DocsEditable()
-  AnimatedEnumeration get mode => wrap_jso(_blink.BlinkSVGFEBlendElement.instance.mode_Getter_(unwrap_jso(this)));
+  AnimatedEnumeration get mode => _blink.BlinkSVGFEBlendElement.instance.mode_Getter_(this);
   
   @DomName('SVGFEBlendElement.height')
   @DocsEditable()
-  AnimatedLength get height => wrap_jso(_blink.BlinkSVGFEBlendElement.instance.height_Getter_(unwrap_jso(this)));
+  AnimatedLength get height => _blink.BlinkSVGFEBlendElement.instance.height_Getter_(this);
   
   @DomName('SVGFEBlendElement.result')
   @DocsEditable()
-  AnimatedString get result => wrap_jso(_blink.BlinkSVGFEBlendElement.instance.result_Getter_(unwrap_jso(this)));
+  AnimatedString get result => _blink.BlinkSVGFEBlendElement.instance.result_Getter_(this);
   
   @DomName('SVGFEBlendElement.width')
   @DocsEditable()
-  AnimatedLength get width => wrap_jso(_blink.BlinkSVGFEBlendElement.instance.width_Getter_(unwrap_jso(this)));
+  AnimatedLength get width => _blink.BlinkSVGFEBlendElement.instance.width_Getter_(this);
   
   @DomName('SVGFEBlendElement.x')
   @DocsEditable()
-  AnimatedLength get x => wrap_jso(_blink.BlinkSVGFEBlendElement.instance.x_Getter_(unwrap_jso(this)));
+  AnimatedLength get x => _blink.BlinkSVGFEBlendElement.instance.x_Getter_(this);
   
   @DomName('SVGFEBlendElement.y')
   @DocsEditable()
-  AnimatedLength get y => wrap_jso(_blink.BlinkSVGFEBlendElement.instance.y_Getter_(unwrap_jso(this)));
+  AnimatedLength get y => _blink.BlinkSVGFEBlendElement.instance.y_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1490,11 +1210,7 @@ class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandard
 
 
   @Deprecated("Internal Use Only")
-  static FEColorMatrixElement internalCreateFEColorMatrixElement() {
-    return new FEColorMatrixElement._internalWrap();
-  }
-
-  external factory FEColorMatrixElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   FEColorMatrixElement.internal_() : super.internal_();
@@ -1531,35 +1247,35 @@ class FEColorMatrixElement extends SvgElement implements FilterPrimitiveStandard
 
   @DomName('SVGFEColorMatrixElement.in1')
   @DocsEditable()
-  AnimatedString get in1 => wrap_jso(_blink.BlinkSVGFEColorMatrixElement.instance.in1_Getter_(unwrap_jso(this)));
+  AnimatedString get in1 => _blink.BlinkSVGFEColorMatrixElement.instance.in1_Getter_(this);
   
   @DomName('SVGFEColorMatrixElement.type')
   @DocsEditable()
-  AnimatedEnumeration get type => wrap_jso(_blink.BlinkSVGFEColorMatrixElement.instance.type_Getter_(unwrap_jso(this)));
+  AnimatedEnumeration get type => _blink.BlinkSVGFEColorMatrixElement.instance.type_Getter_(this);
   
   @DomName('SVGFEColorMatrixElement.values')
   @DocsEditable()
-  AnimatedNumberList get values => wrap_jso(_blink.BlinkSVGFEColorMatrixElement.instance.values_Getter_(unwrap_jso(this)));
+  AnimatedNumberList get values => _blink.BlinkSVGFEColorMatrixElement.instance.values_Getter_(this);
   
   @DomName('SVGFEColorMatrixElement.height')
   @DocsEditable()
-  AnimatedLength get height => wrap_jso(_blink.BlinkSVGFEColorMatrixElement.instance.height_Getter_(unwrap_jso(this)));
+  AnimatedLength get height => _blink.BlinkSVGFEColorMatrixElement.instance.height_Getter_(this);
   
   @DomName('SVGFEColorMatrixElement.result')
   @DocsEditable()
-  AnimatedString get result => wrap_jso(_blink.BlinkSVGFEColorMatrixElement.instance.result_Getter_(unwrap_jso(this)));
+  AnimatedString get result => _blink.BlinkSVGFEColorMatrixElement.instance.result_Getter_(this);
   
   @DomName('SVGFEColorMatrixElement.width')
   @DocsEditable()
-  AnimatedLength get width => wrap_jso(_blink.BlinkSVGFEColorMatrixElement.instance.width_Getter_(unwrap_jso(this)));
+  AnimatedLength get width => _blink.BlinkSVGFEColorMatrixElement.instance.width_Getter_(this);
   
   @DomName('SVGFEColorMatrixElement.x')
   @DocsEditable()
-  AnimatedLength get x => wrap_jso(_blink.BlinkSVGFEColorMatrixElement.instance.x_Getter_(unwrap_jso(this)));
+  AnimatedLength get x => _blink.BlinkSVGFEColorMatrixElement.instance.x_Getter_(this);
   
   @DomName('SVGFEColorMatrixElement.y')
   @DocsEditable()
-  AnimatedLength get y => wrap_jso(_blink.BlinkSVGFEColorMatrixElement.instance.y_Getter_(unwrap_jso(this)));
+  AnimatedLength get y => _blink.BlinkSVGFEColorMatrixElement.instance.y_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1586,11 +1302,7 @@ class FEComponentTransferElement extends SvgElement implements FilterPrimitiveSt
 
 
   @Deprecated("Internal Use Only")
-  static FEComponentTransferElement internalCreateFEComponentTransferElement() {
-    return new FEComponentTransferElement._internalWrap();
-  }
-
-  external factory FEComponentTransferElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   FEComponentTransferElement.internal_() : super.internal_();
@@ -1607,27 +1319,27 @@ class FEComponentTransferElement extends SvgElement implements FilterPrimitiveSt
 
   @DomName('SVGFEComponentTransferElement.in1')
   @DocsEditable()
-  AnimatedString get in1 => wrap_jso(_blink.BlinkSVGFEComponentTransferElement.instance.in1_Getter_(unwrap_jso(this)));
+  AnimatedString get in1 => _blink.BlinkSVGFEComponentTransferElement.instance.in1_Getter_(this);
   
   @DomName('SVGFEComponentTransferElement.height')
   @DocsEditable()
-  AnimatedLength get height => wrap_jso(_blink.BlinkSVGFEComponentTransferElement.instance.height_Getter_(unwrap_jso(this)));
+  AnimatedLength get height => _blink.BlinkSVGFEComponentTransferElement.instance.height_Getter_(this);
   
   @DomName('SVGFEComponentTransferElement.result')
   @DocsEditable()
-  AnimatedString get result => wrap_jso(_blink.BlinkSVGFEComponentTransferElement.instance.result_Getter_(unwrap_jso(this)));
+  AnimatedString get result => _blink.BlinkSVGFEComponentTransferElement.instance.result_Getter_(this);
   
   @DomName('SVGFEComponentTransferElement.width')
   @DocsEditable()
-  AnimatedLength get width => wrap_jso(_blink.BlinkSVGFEComponentTransferElement.instance.width_Getter_(unwrap_jso(this)));
+  AnimatedLength get width => _blink.BlinkSVGFEComponentTransferElement.instance.width_Getter_(this);
   
   @DomName('SVGFEComponentTransferElement.x')
   @DocsEditable()
-  AnimatedLength get x => wrap_jso(_blink.BlinkSVGFEComponentTransferElement.instance.x_Getter_(unwrap_jso(this)));
+  AnimatedLength get x => _blink.BlinkSVGFEComponentTransferElement.instance.x_Getter_(this);
   
   @DomName('SVGFEComponentTransferElement.y')
   @DocsEditable()
-  AnimatedLength get y => wrap_jso(_blink.BlinkSVGFEComponentTransferElement.instance.y_Getter_(unwrap_jso(this)));
+  AnimatedLength get y => _blink.BlinkSVGFEComponentTransferElement.instance.y_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1646,11 +1358,7 @@ class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAt
 
 
   @Deprecated("Internal Use Only")
-  static FECompositeElement internalCreateFECompositeElement() {
-    return new FECompositeElement._internalWrap();
-  }
-
-  external factory FECompositeElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   FECompositeElement.internal_() : super.internal_();
@@ -1692,51 +1400,51 @@ class FECompositeElement extends SvgElement implements FilterPrimitiveStandardAt
 
   @DomName('SVGFECompositeElement.in1')
   @DocsEditable()
-  AnimatedString get in1 => wrap_jso(_blink.BlinkSVGFECompositeElement.instance.in1_Getter_(unwrap_jso(this)));
+  AnimatedString get in1 => _blink.BlinkSVGFECompositeElement.instance.in1_Getter_(this);
   
   @DomName('SVGFECompositeElement.in2')
   @DocsEditable()
-  AnimatedString get in2 => wrap_jso(_blink.BlinkSVGFECompositeElement.instance.in2_Getter_(unwrap_jso(this)));
+  AnimatedString get in2 => _blink.BlinkSVGFECompositeElement.instance.in2_Getter_(this);
   
   @DomName('SVGFECompositeElement.k1')
   @DocsEditable()
-  AnimatedNumber get k1 => wrap_jso(_blink.BlinkSVGFECompositeElement.instance.k1_Getter_(unwrap_jso(this)));
+  AnimatedNumber get k1 => _blink.BlinkSVGFECompositeElement.instance.k1_Getter_(this);
   
   @DomName('SVGFECompositeElement.k2')
   @DocsEditable()
-  AnimatedNumber get k2 => wrap_jso(_blink.BlinkSVGFECompositeElement.instance.k2_Getter_(unwrap_jso(this)));
+  AnimatedNumber get k2 => _blink.BlinkSVGFECompositeElement.instance.k2_Getter_(this);
   
   @DomName('SVGFECompositeElement.k3')
   @DocsEditable()
-  AnimatedNumber get k3 => wrap_jso(_blink.BlinkSVGFECompositeElement.instance.k3_Getter_(unwrap_jso(this)));
+  AnimatedNumber get k3 => _blink.BlinkSVGFECompositeElement.instance.k3_Getter_(this);
   
   @DomName('SVGFECompositeElement.k4')
   @DocsEditable()
-  AnimatedNumber get k4 => wrap_jso(_blink.BlinkSVGFECompositeElement.instance.k4_Getter_(unwrap_jso(this)));
+  AnimatedNumber get k4 => _blink.BlinkSVGFECompositeElement.instance.k4_Getter_(this);
   
   @DomName('SVGFECompositeElement.operator')
   @DocsEditable()
-  AnimatedEnumeration get operator => wrap_jso(_blink.BlinkSVGFECompositeElement.instance.operator_Getter_(unwrap_jso(this)));
+  AnimatedEnumeration get operator => _blink.BlinkSVGFECompositeElement.instance.operator_Getter_(this);
   
   @DomName('SVGFECompositeElement.height')
   @DocsEditable()
-  AnimatedLength get height => wrap_jso(_blink.BlinkSVGFECompositeElement.instance.height_Getter_(unwrap_jso(this)));
+  AnimatedLength get height => _blink.BlinkSVGFECompositeElement.instance.height_Getter_(this);
   
   @DomName('SVGFECompositeElement.result')
   @DocsEditable()
-  AnimatedString get result => wrap_jso(_blink.BlinkSVGFECompositeElement.instance.result_Getter_(unwrap_jso(this)));
+  AnimatedString get result => _blink.BlinkSVGFECompositeElement.instance.result_Getter_(this);
   
   @DomName('SVGFECompositeElement.width')
   @DocsEditable()
-  AnimatedLength get width => wrap_jso(_blink.BlinkSVGFECompositeElement.instance.width_Getter_(unwrap_jso(this)));
+  AnimatedLength get width => _blink.BlinkSVGFECompositeElement.instance.width_Getter_(this);
   
   @DomName('SVGFECompositeElement.x')
   @DocsEditable()
-  AnimatedLength get x => wrap_jso(_blink.BlinkSVGFECompositeElement.instance.x_Getter_(unwrap_jso(this)));
+  AnimatedLength get x => _blink.BlinkSVGFECompositeElement.instance.x_Getter_(this);
   
   @DomName('SVGFECompositeElement.y')
   @DocsEditable()
-  AnimatedLength get y => wrap_jso(_blink.BlinkSVGFECompositeElement.instance.y_Getter_(unwrap_jso(this)));
+  AnimatedLength get y => _blink.BlinkSVGFECompositeElement.instance.y_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1763,11 +1471,7 @@ class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStand
 
 
   @Deprecated("Internal Use Only")
-  static FEConvolveMatrixElement internalCreateFEConvolveMatrixElement() {
-    return new FEConvolveMatrixElement._internalWrap();
-  }
-
-  external factory FEConvolveMatrixElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   FEConvolveMatrixElement.internal_() : super.internal_();
@@ -1800,71 +1504,71 @@ class FEConvolveMatrixElement extends SvgElement implements FilterPrimitiveStand
 
   @DomName('SVGFEConvolveMatrixElement.bias')
   @DocsEditable()
-  AnimatedNumber get bias => wrap_jso(_blink.BlinkSVGFEConvolveMatrixElement.instance.bias_Getter_(unwrap_jso(this)));
+  AnimatedNumber get bias => _blink.BlinkSVGFEConvolveMatrixElement.instance.bias_Getter_(this);
   
   @DomName('SVGFEConvolveMatrixElement.divisor')
   @DocsEditable()
-  AnimatedNumber get divisor => wrap_jso(_blink.BlinkSVGFEConvolveMatrixElement.instance.divisor_Getter_(unwrap_jso(this)));
+  AnimatedNumber get divisor => _blink.BlinkSVGFEConvolveMatrixElement.instance.divisor_Getter_(this);
   
   @DomName('SVGFEConvolveMatrixElement.edgeMode')
   @DocsEditable()
-  AnimatedEnumeration get edgeMode => wrap_jso(_blink.BlinkSVGFEConvolveMatrixElement.instance.edgeMode_Getter_(unwrap_jso(this)));
+  AnimatedEnumeration get edgeMode => _blink.BlinkSVGFEConvolveMatrixElement.instance.edgeMode_Getter_(this);
   
   @DomName('SVGFEConvolveMatrixElement.in1')
   @DocsEditable()
-  AnimatedString get in1 => wrap_jso(_blink.BlinkSVGFEConvolveMatrixElement.instance.in1_Getter_(unwrap_jso(this)));
+  AnimatedString get in1 => _blink.BlinkSVGFEConvolveMatrixElement.instance.in1_Getter_(this);
   
   @DomName('SVGFEConvolveMatrixElement.kernelMatrix')
   @DocsEditable()
-  AnimatedNumberList get kernelMatrix => wrap_jso(_blink.BlinkSVGFEConvolveMatrixElement.instance.kernelMatrix_Getter_(unwrap_jso(this)));
+  AnimatedNumberList get kernelMatrix => _blink.BlinkSVGFEConvolveMatrixElement.instance.kernelMatrix_Getter_(this);
   
   @DomName('SVGFEConvolveMatrixElement.kernelUnitLengthX')
   @DocsEditable()
-  AnimatedNumber get kernelUnitLengthX => wrap_jso(_blink.BlinkSVGFEConvolveMatrixElement.instance.kernelUnitLengthX_Getter_(unwrap_jso(this)));
+  AnimatedNumber get kernelUnitLengthX => _blink.BlinkSVGFEConvolveMatrixElement.instance.kernelUnitLengthX_Getter_(this);
   
   @DomName('SVGFEConvolveMatrixElement.kernelUnitLengthY')
   @DocsEditable()
-  AnimatedNumber get kernelUnitLengthY => wrap_jso(_blink.BlinkSVGFEConvolveMatrixElement.instance.kernelUnitLengthY_Getter_(unwrap_jso(this)));
+  AnimatedNumber get kernelUnitLengthY => _blink.BlinkSVGFEConvolveMatrixElement.instance.kernelUnitLengthY_Getter_(this);
   
   @DomName('SVGFEConvolveMatrixElement.orderX')
   @DocsEditable()
-  AnimatedInteger get orderX => wrap_jso(_blink.BlinkSVGFEConvolveMatrixElement.instance.orderX_Getter_(unwrap_jso(this)));
+  AnimatedInteger get orderX => _blink.BlinkSVGFEConvolveMatrixElement.instance.orderX_Getter_(this);
   
   @DomName('SVGFEConvolveMatrixElement.orderY')
   @DocsEditable()
-  AnimatedInteger get orderY => wrap_jso(_blink.BlinkSVGFEConvolveMatrixElement.instance.orderY_Getter_(unwrap_jso(this)));
+  AnimatedInteger get orderY => _blink.BlinkSVGFEConvolveMatrixElement.instance.orderY_Getter_(this);
   
   @DomName('SVGFEConvolveMatrixElement.preserveAlpha')
   @DocsEditable()
-  AnimatedBoolean get preserveAlpha => wrap_jso(_blink.BlinkSVGFEConvolveMatrixElement.instance.preserveAlpha_Getter_(unwrap_jso(this)));
+  AnimatedBoolean get preserveAlpha => _blink.BlinkSVGFEConvolveMatrixElement.instance.preserveAlpha_Getter_(this);
   
   @DomName('SVGFEConvolveMatrixElement.targetX')
   @DocsEditable()
-  AnimatedInteger get targetX => wrap_jso(_blink.BlinkSVGFEConvolveMatrixElement.instance.targetX_Getter_(unwrap_jso(this)));
+  AnimatedInteger get targetX => _blink.BlinkSVGFEConvolveMatrixElement.instance.targetX_Getter_(this);
   
   @DomName('SVGFEConvolveMatrixElement.targetY')
   @DocsEditable()
-  AnimatedInteger get targetY => wrap_jso(_blink.BlinkSVGFEConvolveMatrixElement.instance.targetY_Getter_(unwrap_jso(this)));
+  AnimatedInteger get targetY => _blink.BlinkSVGFEConvolveMatrixElement.instance.targetY_Getter_(this);
   
   @DomName('SVGFEConvolveMatrixElement.height')
   @DocsEditable()
-  AnimatedLength get height => wrap_jso(_blink.BlinkSVGFEConvolveMatrixElement.instance.height_Getter_(unwrap_jso(this)));
+  AnimatedLength get height => _blink.BlinkSVGFEConvolveMatrixElement.instance.height_Getter_(this);
   
   @DomName('SVGFEConvolveMatrixElement.result')
   @DocsEditable()
-  AnimatedString get result => wrap_jso(_blink.BlinkSVGFEConvolveMatrixElement.instance.result_Getter_(unwrap_jso(this)));
+  AnimatedString get result => _blink.BlinkSVGFEConvolveMatrixElement.instance.result_Getter_(this);
   
   @DomName('SVGFEConvolveMatrixElement.width')
   @DocsEditable()
-  AnimatedLength get width => wrap_jso(_blink.BlinkSVGFEConvolveMatrixElement.instance.width_Getter_(unwrap_jso(this)));
+  AnimatedLength get width => _blink.BlinkSVGFEConvolveMatrixElement.instance.width_Getter_(this);
   
   @DomName('SVGFEConvolveMatrixElement.x')
   @DocsEditable()
-  AnimatedLength get x => wrap_jso(_blink.BlinkSVGFEConvolveMatrixElement.instance.x_Getter_(unwrap_jso(this)));
+  AnimatedLength get x => _blink.BlinkSVGFEConvolveMatrixElement.instance.x_Getter_(this);
   
   @DomName('SVGFEConvolveMatrixElement.y')
   @DocsEditable()
-  AnimatedLength get y => wrap_jso(_blink.BlinkSVGFEConvolveMatrixElement.instance.y_Getter_(unwrap_jso(this)));
+  AnimatedLength get y => _blink.BlinkSVGFEConvolveMatrixElement.instance.y_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1891,11 +1595,7 @@ class FEDiffuseLightingElement extends SvgElement implements FilterPrimitiveStan
 
 
   @Deprecated("Internal Use Only")
-  static FEDiffuseLightingElement internalCreateFEDiffuseLightingElement() {
-    return new FEDiffuseLightingElement._internalWrap();
-  }
-
-  external factory FEDiffuseLightingElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   FEDiffuseLightingElement.internal_() : super.internal_();
@@ -1912,43 +1612,43 @@ class FEDiffuseLightingElement extends SvgElement implements FilterPrimitiveStan
 
   @DomName('SVGFEDiffuseLightingElement.diffuseConstant')
   @DocsEditable()
-  AnimatedNumber get diffuseConstant => wrap_jso(_blink.BlinkSVGFEDiffuseLightingElement.instance.diffuseConstant_Getter_(unwrap_jso(this)));
+  AnimatedNumber get diffuseConstant => _blink.BlinkSVGFEDiffuseLightingElement.instance.diffuseConstant_Getter_(this);
   
   @DomName('SVGFEDiffuseLightingElement.in1')
   @DocsEditable()
-  AnimatedString get in1 => wrap_jso(_blink.BlinkSVGFEDiffuseLightingElement.instance.in1_Getter_(unwrap_jso(this)));
+  AnimatedString get in1 => _blink.BlinkSVGFEDiffuseLightingElement.instance.in1_Getter_(this);
   
   @DomName('SVGFEDiffuseLightingElement.kernelUnitLengthX')
   @DocsEditable()
-  AnimatedNumber get kernelUnitLengthX => wrap_jso(_blink.BlinkSVGFEDiffuseLightingElement.instance.kernelUnitLengthX_Getter_(unwrap_jso(this)));
+  AnimatedNumber get kernelUnitLengthX => _blink.BlinkSVGFEDiffuseLightingElement.instance.kernelUnitLengthX_Getter_(this);
   
   @DomName('SVGFEDiffuseLightingElement.kernelUnitLengthY')
   @DocsEditable()
-  AnimatedNumber get kernelUnitLengthY => wrap_jso(_blink.BlinkSVGFEDiffuseLightingElement.instance.kernelUnitLengthY_Getter_(unwrap_jso(this)));
+  AnimatedNumber get kernelUnitLengthY => _blink.BlinkSVGFEDiffuseLightingElement.instance.kernelUnitLengthY_Getter_(this);
   
   @DomName('SVGFEDiffuseLightingElement.surfaceScale')
   @DocsEditable()
-  AnimatedNumber get surfaceScale => wrap_jso(_blink.BlinkSVGFEDiffuseLightingElement.instance.surfaceScale_Getter_(unwrap_jso(this)));
+  AnimatedNumber get surfaceScale => _blink.BlinkSVGFEDiffuseLightingElement.instance.surfaceScale_Getter_(this);
   
   @DomName('SVGFEDiffuseLightingElement.height')
   @DocsEditable()
-  AnimatedLength get height => wrap_jso(_blink.BlinkSVGFEDiffuseLightingElement.instance.height_Getter_(unwrap_jso(this)));
+  AnimatedLength get height => _blink.BlinkSVGFEDiffuseLightingElement.instance.height_Getter_(this);
   
   @DomName('SVGFEDiffuseLightingElement.result')
   @DocsEditable()
-  AnimatedString get result => wrap_jso(_blink.BlinkSVGFEDiffuseLightingElement.instance.result_Getter_(unwrap_jso(this)));
+  AnimatedString get result => _blink.BlinkSVGFEDiffuseLightingElement.instance.result_Getter_(this);
   
   @DomName('SVGFEDiffuseLightingElement.width')
   @DocsEditable()
-  AnimatedLength get width => wrap_jso(_blink.BlinkSVGFEDiffuseLightingElement.instance.width_Getter_(unwrap_jso(this)));
+  AnimatedLength get width => _blink.BlinkSVGFEDiffuseLightingElement.instance.width_Getter_(this);
   
   @DomName('SVGFEDiffuseLightingElement.x')
   @DocsEditable()
-  AnimatedLength get x => wrap_jso(_blink.BlinkSVGFEDiffuseLightingElement.instance.x_Getter_(unwrap_jso(this)));
+  AnimatedLength get x => _blink.BlinkSVGFEDiffuseLightingElement.instance.x_Getter_(this);
   
   @DomName('SVGFEDiffuseLightingElement.y')
   @DocsEditable()
-  AnimatedLength get y => wrap_jso(_blink.BlinkSVGFEDiffuseLightingElement.instance.y_Getter_(unwrap_jso(this)));
+  AnimatedLength get y => _blink.BlinkSVGFEDiffuseLightingElement.instance.y_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -1975,11 +1675,7 @@ class FEDisplacementMapElement extends SvgElement implements FilterPrimitiveStan
 
 
   @Deprecated("Internal Use Only")
-  static FEDisplacementMapElement internalCreateFEDisplacementMapElement() {
-    return new FEDisplacementMapElement._internalWrap();
-  }
-
-  external factory FEDisplacementMapElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   FEDisplacementMapElement.internal_() : super.internal_();
@@ -2016,43 +1712,43 @@ class FEDisplacementMapElement extends SvgElement implements FilterPrimitiveStan
 
   @DomName('SVGFEDisplacementMapElement.in1')
   @DocsEditable()
-  AnimatedString get in1 => wrap_jso(_blink.BlinkSVGFEDisplacementMapElement.instance.in1_Getter_(unwrap_jso(this)));
+  AnimatedString get in1 => _blink.BlinkSVGFEDisplacementMapElement.instance.in1_Getter_(this);
   
   @DomName('SVGFEDisplacementMapElement.in2')
   @DocsEditable()
-  AnimatedString get in2 => wrap_jso(_blink.BlinkSVGFEDisplacementMapElement.instance.in2_Getter_(unwrap_jso(this)));
+  AnimatedString get in2 => _blink.BlinkSVGFEDisplacementMapElement.instance.in2_Getter_(this);
   
   @DomName('SVGFEDisplacementMapElement.scale')
   @DocsEditable()
-  AnimatedNumber get scale => wrap_jso(_blink.BlinkSVGFEDisplacementMapElement.instance.scale_Getter_(unwrap_jso(this)));
+  AnimatedNumber get scale => _blink.BlinkSVGFEDisplacementMapElement.instance.scale_Getter_(this);
   
   @DomName('SVGFEDisplacementMapElement.xChannelSelector')
   @DocsEditable()
-  AnimatedEnumeration get xChannelSelector => wrap_jso(_blink.BlinkSVGFEDisplacementMapElement.instance.xChannelSelector_Getter_(unwrap_jso(this)));
+  AnimatedEnumeration get xChannelSelector => _blink.BlinkSVGFEDisplacementMapElement.instance.xChannelSelector_Getter_(this);
   
   @DomName('SVGFEDisplacementMapElement.yChannelSelector')
   @DocsEditable()
-  AnimatedEnumeration get yChannelSelector => wrap_jso(_blink.BlinkSVGFEDisplacementMapElement.instance.yChannelSelector_Getter_(unwrap_jso(this)));
+  AnimatedEnumeration get yChannelSelector => _blink.BlinkSVGFEDisplacementMapElement.instance.yChannelSelector_Getter_(this);
   
   @DomName('SVGFEDisplacementMapElement.height')
   @DocsEditable()
-  AnimatedLength get height => wrap_jso(_blink.BlinkSVGFEDisplacementMapElement.instance.height_Getter_(unwrap_jso(this)));
+  AnimatedLength get height => _blink.BlinkSVGFEDisplacementMapElement.instance.height_Getter_(this);
   
   @DomName('SVGFEDisplacementMapElement.result')
   @DocsEditable()
-  AnimatedString get result => wrap_jso(_blink.BlinkSVGFEDisplacementMapElement.instance.result_Getter_(unwrap_jso(this)));
+  AnimatedString get result => _blink.BlinkSVGFEDisplacementMapElement.instance.result_Getter_(this);
   
   @DomName('SVGFEDisplacementMapElement.width')
   @DocsEditable()
-  AnimatedLength get width => wrap_jso(_blink.BlinkSVGFEDisplacementMapElement.instance.width_Getter_(unwrap_jso(this)));
+  AnimatedLength get width => _blink.BlinkSVGFEDisplacementMapElement.instance.width_Getter_(this);
   
   @DomName('SVGFEDisplacementMapElement.x')
   @DocsEditable()
-  AnimatedLength get x => wrap_jso(_blink.BlinkSVGFEDisplacementMapElement.instance.x_Getter_(unwrap_jso(this)));
+  AnimatedLength get x => _blink.BlinkSVGFEDisplacementMapElement.instance.x_Getter_(this);
   
   @DomName('SVGFEDisplacementMapElement.y')
   @DocsEditable()
-  AnimatedLength get y => wrap_jso(_blink.BlinkSVGFEDisplacementMapElement.instance.y_Getter_(unwrap_jso(this)));
+  AnimatedLength get y => _blink.BlinkSVGFEDisplacementMapElement.instance.y_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2079,11 +1775,7 @@ class FEDistantLightElement extends SvgElement {
 
 
   @Deprecated("Internal Use Only")
-  static FEDistantLightElement internalCreateFEDistantLightElement() {
-    return new FEDistantLightElement._internalWrap();
-  }
-
-  external factory FEDistantLightElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   FEDistantLightElement.internal_() : super.internal_();
@@ -2100,11 +1792,11 @@ class FEDistantLightElement extends SvgElement {
 
   @DomName('SVGFEDistantLightElement.azimuth')
   @DocsEditable()
-  AnimatedNumber get azimuth => wrap_jso(_blink.BlinkSVGFEDistantLightElement.instance.azimuth_Getter_(unwrap_jso(this)));
+  AnimatedNumber get azimuth => _blink.BlinkSVGFEDistantLightElement.instance.azimuth_Getter_(this);
   
   @DomName('SVGFEDistantLightElement.elevation')
   @DocsEditable()
-  AnimatedNumber get elevation => wrap_jso(_blink.BlinkSVGFEDistantLightElement.instance.elevation_Getter_(unwrap_jso(this)));
+  AnimatedNumber get elevation => _blink.BlinkSVGFEDistantLightElement.instance.elevation_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2131,11 +1823,7 @@ class FEFloodElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
 
   @Deprecated("Internal Use Only")
-  static FEFloodElement internalCreateFEFloodElement() {
-    return new FEFloodElement._internalWrap();
-  }
-
-  external factory FEFloodElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   FEFloodElement.internal_() : super.internal_();
@@ -2152,23 +1840,23 @@ class FEFloodElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
   @DomName('SVGFEFloodElement.height')
   @DocsEditable()
-  AnimatedLength get height => wrap_jso(_blink.BlinkSVGFEFloodElement.instance.height_Getter_(unwrap_jso(this)));
+  AnimatedLength get height => _blink.BlinkSVGFEFloodElement.instance.height_Getter_(this);
   
   @DomName('SVGFEFloodElement.result')
   @DocsEditable()
-  AnimatedString get result => wrap_jso(_blink.BlinkSVGFEFloodElement.instance.result_Getter_(unwrap_jso(this)));
+  AnimatedString get result => _blink.BlinkSVGFEFloodElement.instance.result_Getter_(this);
   
   @DomName('SVGFEFloodElement.width')
   @DocsEditable()
-  AnimatedLength get width => wrap_jso(_blink.BlinkSVGFEFloodElement.instance.width_Getter_(unwrap_jso(this)));
+  AnimatedLength get width => _blink.BlinkSVGFEFloodElement.instance.width_Getter_(this);
   
   @DomName('SVGFEFloodElement.x')
   @DocsEditable()
-  AnimatedLength get x => wrap_jso(_blink.BlinkSVGFEFloodElement.instance.x_Getter_(unwrap_jso(this)));
+  AnimatedLength get x => _blink.BlinkSVGFEFloodElement.instance.x_Getter_(this);
   
   @DomName('SVGFEFloodElement.y')
   @DocsEditable()
-  AnimatedLength get y => wrap_jso(_blink.BlinkSVGFEFloodElement.instance.y_Getter_(unwrap_jso(this)));
+  AnimatedLength get y => _blink.BlinkSVGFEFloodElement.instance.y_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2195,11 +1883,7 @@ class FEFuncAElement extends _SVGComponentTransferFunctionElement {
 
 
   @Deprecated("Internal Use Only")
-  static FEFuncAElement internalCreateFEFuncAElement() {
-    return new FEFuncAElement._internalWrap();
-  }
-
-  external factory FEFuncAElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   FEFuncAElement.internal_() : super.internal_();
@@ -2239,11 +1923,7 @@ class FEFuncBElement extends _SVGComponentTransferFunctionElement {
 
 
   @Deprecated("Internal Use Only")
-  static FEFuncBElement internalCreateFEFuncBElement() {
-    return new FEFuncBElement._internalWrap();
-  }
-
-  external factory FEFuncBElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   FEFuncBElement.internal_() : super.internal_();
@@ -2283,11 +1963,7 @@ class FEFuncGElement extends _SVGComponentTransferFunctionElement {
 
 
   @Deprecated("Internal Use Only")
-  static FEFuncGElement internalCreateFEFuncGElement() {
-    return new FEFuncGElement._internalWrap();
-  }
-
-  external factory FEFuncGElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   FEFuncGElement.internal_() : super.internal_();
@@ -2327,11 +2003,7 @@ class FEFuncRElement extends _SVGComponentTransferFunctionElement {
 
 
   @Deprecated("Internal Use Only")
-  static FEFuncRElement internalCreateFEFuncRElement() {
-    return new FEFuncRElement._internalWrap();
-  }
-
-  external factory FEFuncRElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   FEFuncRElement.internal_() : super.internal_();
@@ -2371,11 +2043,7 @@ class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandar
 
 
   @Deprecated("Internal Use Only")
-  static FEGaussianBlurElement internalCreateFEGaussianBlurElement() {
-    return new FEGaussianBlurElement._internalWrap();
-  }
-
-  external factory FEGaussianBlurElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   FEGaussianBlurElement.internal_() : super.internal_();
@@ -2392,39 +2060,39 @@ class FEGaussianBlurElement extends SvgElement implements FilterPrimitiveStandar
 
   @DomName('SVGFEGaussianBlurElement.in1')
   @DocsEditable()
-  AnimatedString get in1 => wrap_jso(_blink.BlinkSVGFEGaussianBlurElement.instance.in1_Getter_(unwrap_jso(this)));
+  AnimatedString get in1 => _blink.BlinkSVGFEGaussianBlurElement.instance.in1_Getter_(this);
   
   @DomName('SVGFEGaussianBlurElement.stdDeviationX')
   @DocsEditable()
-  AnimatedNumber get stdDeviationX => wrap_jso(_blink.BlinkSVGFEGaussianBlurElement.instance.stdDeviationX_Getter_(unwrap_jso(this)));
+  AnimatedNumber get stdDeviationX => _blink.BlinkSVGFEGaussianBlurElement.instance.stdDeviationX_Getter_(this);
   
   @DomName('SVGFEGaussianBlurElement.stdDeviationY')
   @DocsEditable()
-  AnimatedNumber get stdDeviationY => wrap_jso(_blink.BlinkSVGFEGaussianBlurElement.instance.stdDeviationY_Getter_(unwrap_jso(this)));
+  AnimatedNumber get stdDeviationY => _blink.BlinkSVGFEGaussianBlurElement.instance.stdDeviationY_Getter_(this);
   
   @DomName('SVGFEGaussianBlurElement.setStdDeviation')
   @DocsEditable()
-  void setStdDeviation(num stdDeviationX, num stdDeviationY) => _blink.BlinkSVGFEGaussianBlurElement.instance.setStdDeviation_Callback_2_(unwrap_jso(this), stdDeviationX, stdDeviationY);
+  void setStdDeviation(num stdDeviationX, num stdDeviationY) => _blink.BlinkSVGFEGaussianBlurElement.instance.setStdDeviation_Callback_2_(this, stdDeviationX, stdDeviationY);
   
   @DomName('SVGFEGaussianBlurElement.height')
   @DocsEditable()
-  AnimatedLength get height => wrap_jso(_blink.BlinkSVGFEGaussianBlurElement.instance.height_Getter_(unwrap_jso(this)));
+  AnimatedLength get height => _blink.BlinkSVGFEGaussianBlurElement.instance.height_Getter_(this);
   
   @DomName('SVGFEGaussianBlurElement.result')
   @DocsEditable()
-  AnimatedString get result => wrap_jso(_blink.BlinkSVGFEGaussianBlurElement.instance.result_Getter_(unwrap_jso(this)));
+  AnimatedString get result => _blink.BlinkSVGFEGaussianBlurElement.instance.result_Getter_(this);
   
   @DomName('SVGFEGaussianBlurElement.width')
   @DocsEditable()
-  AnimatedLength get width => wrap_jso(_blink.BlinkSVGFEGaussianBlurElement.instance.width_Getter_(unwrap_jso(this)));
+  AnimatedLength get width => _blink.BlinkSVGFEGaussianBlurElement.instance.width_Getter_(this);
   
   @DomName('SVGFEGaussianBlurElement.x')
   @DocsEditable()
-  AnimatedLength get x => wrap_jso(_blink.BlinkSVGFEGaussianBlurElement.instance.x_Getter_(unwrap_jso(this)));
+  AnimatedLength get x => _blink.BlinkSVGFEGaussianBlurElement.instance.x_Getter_(this);
   
   @DomName('SVGFEGaussianBlurElement.y')
   @DocsEditable()
-  AnimatedLength get y => wrap_jso(_blink.BlinkSVGFEGaussianBlurElement.instance.y_Getter_(unwrap_jso(this)));
+  AnimatedLength get y => _blink.BlinkSVGFEGaussianBlurElement.instance.y_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2451,11 +2119,7 @@ class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
 
   @Deprecated("Internal Use Only")
-  static FEImageElement internalCreateFEImageElement() {
-    return new FEImageElement._internalWrap();
-  }
-
-  external factory FEImageElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   FEImageElement.internal_() : super.internal_();
@@ -2472,31 +2136,31 @@ class FEImageElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
   @DomName('SVGFEImageElement.preserveAspectRatio')
   @DocsEditable()
-  AnimatedPreserveAspectRatio get preserveAspectRatio => wrap_jso(_blink.BlinkSVGFEImageElement.instance.preserveAspectRatio_Getter_(unwrap_jso(this)));
+  AnimatedPreserveAspectRatio get preserveAspectRatio => _blink.BlinkSVGFEImageElement.instance.preserveAspectRatio_Getter_(this);
   
   @DomName('SVGFEImageElement.height')
   @DocsEditable()
-  AnimatedLength get height => wrap_jso(_blink.BlinkSVGFEImageElement.instance.height_Getter_(unwrap_jso(this)));
+  AnimatedLength get height => _blink.BlinkSVGFEImageElement.instance.height_Getter_(this);
   
   @DomName('SVGFEImageElement.result')
   @DocsEditable()
-  AnimatedString get result => wrap_jso(_blink.BlinkSVGFEImageElement.instance.result_Getter_(unwrap_jso(this)));
+  AnimatedString get result => _blink.BlinkSVGFEImageElement.instance.result_Getter_(this);
   
   @DomName('SVGFEImageElement.width')
   @DocsEditable()
-  AnimatedLength get width => wrap_jso(_blink.BlinkSVGFEImageElement.instance.width_Getter_(unwrap_jso(this)));
+  AnimatedLength get width => _blink.BlinkSVGFEImageElement.instance.width_Getter_(this);
   
   @DomName('SVGFEImageElement.x')
   @DocsEditable()
-  AnimatedLength get x => wrap_jso(_blink.BlinkSVGFEImageElement.instance.x_Getter_(unwrap_jso(this)));
+  AnimatedLength get x => _blink.BlinkSVGFEImageElement.instance.x_Getter_(this);
   
   @DomName('SVGFEImageElement.y')
   @DocsEditable()
-  AnimatedLength get y => wrap_jso(_blink.BlinkSVGFEImageElement.instance.y_Getter_(unwrap_jso(this)));
+  AnimatedLength get y => _blink.BlinkSVGFEImageElement.instance.y_Getter_(this);
   
   @DomName('SVGFEImageElement.href')
   @DocsEditable()
-  AnimatedString get href => wrap_jso(_blink.BlinkSVGFEImageElement.instance.href_Getter_(unwrap_jso(this)));
+  AnimatedString get href => _blink.BlinkSVGFEImageElement.instance.href_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2523,11 +2187,7 @@ class FEMergeElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
 
   @Deprecated("Internal Use Only")
-  static FEMergeElement internalCreateFEMergeElement() {
-    return new FEMergeElement._internalWrap();
-  }
-
-  external factory FEMergeElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   FEMergeElement.internal_() : super.internal_();
@@ -2544,23 +2204,23 @@ class FEMergeElement extends SvgElement implements FilterPrimitiveStandardAttrib
 
   @DomName('SVGFEMergeElement.height')
   @DocsEditable()
-  AnimatedLength get height => wrap_jso(_blink.BlinkSVGFEMergeElement.instance.height_Getter_(unwrap_jso(this)));
+  AnimatedLength get height => _blink.BlinkSVGFEMergeElement.instance.height_Getter_(this);
   
   @DomName('SVGFEMergeElement.result')
   @DocsEditable()
-  AnimatedString get result => wrap_jso(_blink.BlinkSVGFEMergeElement.instance.result_Getter_(unwrap_jso(this)));
+  AnimatedString get result => _blink.BlinkSVGFEMergeElement.instance.result_Getter_(this);
   
   @DomName('SVGFEMergeElement.width')
   @DocsEditable()
-  AnimatedLength get width => wrap_jso(_blink.BlinkSVGFEMergeElement.instance.width_Getter_(unwrap_jso(this)));
+  AnimatedLength get width => _blink.BlinkSVGFEMergeElement.instance.width_Getter_(this);
   
   @DomName('SVGFEMergeElement.x')
   @DocsEditable()
-  AnimatedLength get x => wrap_jso(_blink.BlinkSVGFEMergeElement.instance.x_Getter_(unwrap_jso(this)));
+  AnimatedLength get x => _blink.BlinkSVGFEMergeElement.instance.x_Getter_(this);
   
   @DomName('SVGFEMergeElement.y')
   @DocsEditable()
-  AnimatedLength get y => wrap_jso(_blink.BlinkSVGFEMergeElement.instance.y_Getter_(unwrap_jso(this)));
+  AnimatedLength get y => _blink.BlinkSVGFEMergeElement.instance.y_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2587,11 +2247,7 @@ class FEMergeNodeElement extends SvgElement {
 
 
   @Deprecated("Internal Use Only")
-  static FEMergeNodeElement internalCreateFEMergeNodeElement() {
-    return new FEMergeNodeElement._internalWrap();
-  }
-
-  external factory FEMergeNodeElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   FEMergeNodeElement.internal_() : super.internal_();
@@ -2608,7 +2264,7 @@ class FEMergeNodeElement extends SvgElement {
 
   @DomName('SVGFEMergeNodeElement.in1')
   @DocsEditable()
-  AnimatedString get in1 => wrap_jso(_blink.BlinkSVGFEMergeNodeElement.instance.in1_Getter_(unwrap_jso(this)));
+  AnimatedString get in1 => _blink.BlinkSVGFEMergeNodeElement.instance.in1_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2631,11 +2287,7 @@ class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardA
 
 
   @Deprecated("Internal Use Only")
-  static FEMorphologyElement internalCreateFEMorphologyElement() {
-    return new FEMorphologyElement._internalWrap();
-  }
-
-  external factory FEMorphologyElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   FEMorphologyElement.internal_() : super.internal_();
@@ -2661,39 +2313,39 @@ class FEMorphologyElement extends SvgElement implements FilterPrimitiveStandardA
 
   @DomName('SVGFEMorphologyElement.in1')
   @DocsEditable()
-  AnimatedString get in1 => wrap_jso(_blink.BlinkSVGFEMorphologyElement.instance.in1_Getter_(unwrap_jso(this)));
+  AnimatedString get in1 => _blink.BlinkSVGFEMorphologyElement.instance.in1_Getter_(this);
   
   @DomName('SVGFEMorphologyElement.operator')
   @DocsEditable()
-  AnimatedEnumeration get operator => wrap_jso(_blink.BlinkSVGFEMorphologyElement.instance.operator_Getter_(unwrap_jso(this)));
+  AnimatedEnumeration get operator => _blink.BlinkSVGFEMorphologyElement.instance.operator_Getter_(this);
   
   @DomName('SVGFEMorphologyElement.radiusX')
   @DocsEditable()
-  AnimatedNumber get radiusX => wrap_jso(_blink.BlinkSVGFEMorphologyElement.instance.radiusX_Getter_(unwrap_jso(this)));
+  AnimatedNumber get radiusX => _blink.BlinkSVGFEMorphologyElement.instance.radiusX_Getter_(this);
   
   @DomName('SVGFEMorphologyElement.radiusY')
   @DocsEditable()
-  AnimatedNumber get radiusY => wrap_jso(_blink.BlinkSVGFEMorphologyElement.instance.radiusY_Getter_(unwrap_jso(this)));
+  AnimatedNumber get radiusY => _blink.BlinkSVGFEMorphologyElement.instance.radiusY_Getter_(this);
   
   @DomName('SVGFEMorphologyElement.height')
   @DocsEditable()
-  AnimatedLength get height => wrap_jso(_blink.BlinkSVGFEMorphologyElement.instance.height_Getter_(unwrap_jso(this)));
+  AnimatedLength get height => _blink.BlinkSVGFEMorphologyElement.instance.height_Getter_(this);
   
   @DomName('SVGFEMorphologyElement.result')
   @DocsEditable()
-  AnimatedString get result => wrap_jso(_blink.BlinkSVGFEMorphologyElement.instance.result_Getter_(unwrap_jso(this)));
+  AnimatedString get result => _blink.BlinkSVGFEMorphologyElement.instance.result_Getter_(this);
   
   @DomName('SVGFEMorphologyElement.width')
   @DocsEditable()
-  AnimatedLength get width => wrap_jso(_blink.BlinkSVGFEMorphologyElement.instance.width_Getter_(unwrap_jso(this)));
+  AnimatedLength get width => _blink.BlinkSVGFEMorphologyElement.instance.width_Getter_(this);
   
   @DomName('SVGFEMorphologyElement.x')
   @DocsEditable()
-  AnimatedLength get x => wrap_jso(_blink.BlinkSVGFEMorphologyElement.instance.x_Getter_(unwrap_jso(this)));
+  AnimatedLength get x => _blink.BlinkSVGFEMorphologyElement.instance.x_Getter_(this);
   
   @DomName('SVGFEMorphologyElement.y')
   @DocsEditable()
-  AnimatedLength get y => wrap_jso(_blink.BlinkSVGFEMorphologyElement.instance.y_Getter_(unwrap_jso(this)));
+  AnimatedLength get y => _blink.BlinkSVGFEMorphologyElement.instance.y_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2720,11 +2372,7 @@ class FEOffsetElement extends SvgElement implements FilterPrimitiveStandardAttri
 
 
   @Deprecated("Internal Use Only")
-  static FEOffsetElement internalCreateFEOffsetElement() {
-    return new FEOffsetElement._internalWrap();
-  }
-
-  external factory FEOffsetElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   FEOffsetElement.internal_() : super.internal_();
@@ -2741,35 +2389,35 @@ class FEOffsetElement extends SvgElement implements FilterPrimitiveStandardAttri
 
   @DomName('SVGFEOffsetElement.dx')
   @DocsEditable()
-  AnimatedNumber get dx => wrap_jso(_blink.BlinkSVGFEOffsetElement.instance.dx_Getter_(unwrap_jso(this)));
+  AnimatedNumber get dx => _blink.BlinkSVGFEOffsetElement.instance.dx_Getter_(this);
   
   @DomName('SVGFEOffsetElement.dy')
   @DocsEditable()
-  AnimatedNumber get dy => wrap_jso(_blink.BlinkSVGFEOffsetElement.instance.dy_Getter_(unwrap_jso(this)));
+  AnimatedNumber get dy => _blink.BlinkSVGFEOffsetElement.instance.dy_Getter_(this);
   
   @DomName('SVGFEOffsetElement.in1')
   @DocsEditable()
-  AnimatedString get in1 => wrap_jso(_blink.BlinkSVGFEOffsetElement.instance.in1_Getter_(unwrap_jso(this)));
+  AnimatedString get in1 => _blink.BlinkSVGFEOffsetElement.instance.in1_Getter_(this);
   
   @DomName('SVGFEOffsetElement.height')
   @DocsEditable()
-  AnimatedLength get height => wrap_jso(_blink.BlinkSVGFEOffsetElement.instance.height_Getter_(unwrap_jso(this)));
+  AnimatedLength get height => _blink.BlinkSVGFEOffsetElement.instance.height_Getter_(this);
   
   @DomName('SVGFEOffsetElement.result')
   @DocsEditable()
-  AnimatedString get result => wrap_jso(_blink.BlinkSVGFEOffsetElement.instance.result_Getter_(unwrap_jso(this)));
+  AnimatedString get result => _blink.BlinkSVGFEOffsetElement.instance.result_Getter_(this);
   
   @DomName('SVGFEOffsetElement.width')
   @DocsEditable()
-  AnimatedLength get width => wrap_jso(_blink.BlinkSVGFEOffsetElement.instance.width_Getter_(unwrap_jso(this)));
+  AnimatedLength get width => _blink.BlinkSVGFEOffsetElement.instance.width_Getter_(this);
   
   @DomName('SVGFEOffsetElement.x')
   @DocsEditable()
-  AnimatedLength get x => wrap_jso(_blink.BlinkSVGFEOffsetElement.instance.x_Getter_(unwrap_jso(this)));
+  AnimatedLength get x => _blink.BlinkSVGFEOffsetElement.instance.x_Getter_(this);
   
   @DomName('SVGFEOffsetElement.y')
   @DocsEditable()
-  AnimatedLength get y => wrap_jso(_blink.BlinkSVGFEOffsetElement.instance.y_Getter_(unwrap_jso(this)));
+  AnimatedLength get y => _blink.BlinkSVGFEOffsetElement.instance.y_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2796,11 +2444,7 @@ class FEPointLightElement extends SvgElement {
 
 
   @Deprecated("Internal Use Only")
-  static FEPointLightElement internalCreateFEPointLightElement() {
-    return new FEPointLightElement._internalWrap();
-  }
-
-  external factory FEPointLightElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   FEPointLightElement.internal_() : super.internal_();
@@ -2817,15 +2461,15 @@ class FEPointLightElement extends SvgElement {
 
   @DomName('SVGFEPointLightElement.x')
   @DocsEditable()
-  AnimatedNumber get x => wrap_jso(_blink.BlinkSVGFEPointLightElement.instance.x_Getter_(unwrap_jso(this)));
+  AnimatedNumber get x => _blink.BlinkSVGFEPointLightElement.instance.x_Getter_(this);
   
   @DomName('SVGFEPointLightElement.y')
   @DocsEditable()
-  AnimatedNumber get y => wrap_jso(_blink.BlinkSVGFEPointLightElement.instance.y_Getter_(unwrap_jso(this)));
+  AnimatedNumber get y => _blink.BlinkSVGFEPointLightElement.instance.y_Getter_(this);
   
   @DomName('SVGFEPointLightElement.z')
   @DocsEditable()
-  AnimatedNumber get z => wrap_jso(_blink.BlinkSVGFEPointLightElement.instance.z_Getter_(unwrap_jso(this)));
+  AnimatedNumber get z => _blink.BlinkSVGFEPointLightElement.instance.z_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2852,11 +2496,7 @@ class FESpecularLightingElement extends SvgElement implements FilterPrimitiveSta
 
 
   @Deprecated("Internal Use Only")
-  static FESpecularLightingElement internalCreateFESpecularLightingElement() {
-    return new FESpecularLightingElement._internalWrap();
-  }
-
-  external factory FESpecularLightingElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   FESpecularLightingElement.internal_() : super.internal_();
@@ -2873,49 +2513,49 @@ class FESpecularLightingElement extends SvgElement implements FilterPrimitiveSta
 
   @DomName('SVGFESpecularLightingElement.in1')
   @DocsEditable()
-  AnimatedString get in1 => wrap_jso(_blink.BlinkSVGFESpecularLightingElement.instance.in1_Getter_(unwrap_jso(this)));
+  AnimatedString get in1 => _blink.BlinkSVGFESpecularLightingElement.instance.in1_Getter_(this);
   
   @DomName('SVGFESpecularLightingElement.kernelUnitLengthX')
   @DocsEditable()
   @Experimental() // untriaged
-  AnimatedNumber get kernelUnitLengthX => wrap_jso(_blink.BlinkSVGFESpecularLightingElement.instance.kernelUnitLengthX_Getter_(unwrap_jso(this)));
+  AnimatedNumber get kernelUnitLengthX => _blink.BlinkSVGFESpecularLightingElement.instance.kernelUnitLengthX_Getter_(this);
   
   @DomName('SVGFESpecularLightingElement.kernelUnitLengthY')
   @DocsEditable()
   @Experimental() // untriaged
-  AnimatedNumber get kernelUnitLengthY => wrap_jso(_blink.BlinkSVGFESpecularLightingElement.instance.kernelUnitLengthY_Getter_(unwrap_jso(this)));
+  AnimatedNumber get kernelUnitLengthY => _blink.BlinkSVGFESpecularLightingElement.instance.kernelUnitLengthY_Getter_(this);
   
   @DomName('SVGFESpecularLightingElement.specularConstant')
   @DocsEditable()
-  AnimatedNumber get specularConstant => wrap_jso(_blink.BlinkSVGFESpecularLightingElement.instance.specularConstant_Getter_(unwrap_jso(this)));
+  AnimatedNumber get specularConstant => _blink.BlinkSVGFESpecularLightingElement.instance.specularConstant_Getter_(this);
   
   @DomName('SVGFESpecularLightingElement.specularExponent')
   @DocsEditable()
-  AnimatedNumber get specularExponent => wrap_jso(_blink.BlinkSVGFESpecularLightingElement.instance.specularExponent_Getter_(unwrap_jso(this)));
+  AnimatedNumber get specularExponent => _blink.BlinkSVGFESpecularLightingElement.instance.specularExponent_Getter_(this);
   
   @DomName('SVGFESpecularLightingElement.surfaceScale')
   @DocsEditable()
-  AnimatedNumber get surfaceScale => wrap_jso(_blink.BlinkSVGFESpecularLightingElement.instance.surfaceScale_Getter_(unwrap_jso(this)));
+  AnimatedNumber get surfaceScale => _blink.BlinkSVGFESpecularLightingElement.instance.surfaceScale_Getter_(this);
   
   @DomName('SVGFESpecularLightingElement.height')
   @DocsEditable()
-  AnimatedLength get height => wrap_jso(_blink.BlinkSVGFESpecularLightingElement.instance.height_Getter_(unwrap_jso(this)));
+  AnimatedLength get height => _blink.BlinkSVGFESpecularLightingElement.instance.height_Getter_(this);
   
   @DomName('SVGFESpecularLightingElement.result')
   @DocsEditable()
-  AnimatedString get result => wrap_jso(_blink.BlinkSVGFESpecularLightingElement.instance.result_Getter_(unwrap_jso(this)));
+  AnimatedString get result => _blink.BlinkSVGFESpecularLightingElement.instance.result_Getter_(this);
   
   @DomName('SVGFESpecularLightingElement.width')
   @DocsEditable()
-  AnimatedLength get width => wrap_jso(_blink.BlinkSVGFESpecularLightingElement.instance.width_Getter_(unwrap_jso(this)));
+  AnimatedLength get width => _blink.BlinkSVGFESpecularLightingElement.instance.width_Getter_(this);
   
   @DomName('SVGFESpecularLightingElement.x')
   @DocsEditable()
-  AnimatedLength get x => wrap_jso(_blink.BlinkSVGFESpecularLightingElement.instance.x_Getter_(unwrap_jso(this)));
+  AnimatedLength get x => _blink.BlinkSVGFESpecularLightingElement.instance.x_Getter_(this);
   
   @DomName('SVGFESpecularLightingElement.y')
   @DocsEditable()
-  AnimatedLength get y => wrap_jso(_blink.BlinkSVGFESpecularLightingElement.instance.y_Getter_(unwrap_jso(this)));
+  AnimatedLength get y => _blink.BlinkSVGFESpecularLightingElement.instance.y_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -2942,11 +2582,7 @@ class FESpotLightElement extends SvgElement {
 
 
   @Deprecated("Internal Use Only")
-  static FESpotLightElement internalCreateFESpotLightElement() {
-    return new FESpotLightElement._internalWrap();
-  }
-
-  external factory FESpotLightElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   FESpotLightElement.internal_() : super.internal_();
@@ -2963,35 +2599,35 @@ class FESpotLightElement extends SvgElement {
 
   @DomName('SVGFESpotLightElement.limitingConeAngle')
   @DocsEditable()
-  AnimatedNumber get limitingConeAngle => wrap_jso(_blink.BlinkSVGFESpotLightElement.instance.limitingConeAngle_Getter_(unwrap_jso(this)));
+  AnimatedNumber get limitingConeAngle => _blink.BlinkSVGFESpotLightElement.instance.limitingConeAngle_Getter_(this);
   
   @DomName('SVGFESpotLightElement.pointsAtX')
   @DocsEditable()
-  AnimatedNumber get pointsAtX => wrap_jso(_blink.BlinkSVGFESpotLightElement.instance.pointsAtX_Getter_(unwrap_jso(this)));
+  AnimatedNumber get pointsAtX => _blink.BlinkSVGFESpotLightElement.instance.pointsAtX_Getter_(this);
   
   @DomName('SVGFESpotLightElement.pointsAtY')
   @DocsEditable()
-  AnimatedNumber get pointsAtY => wrap_jso(_blink.BlinkSVGFESpotLightElement.instance.pointsAtY_Getter_(unwrap_jso(this)));
+  AnimatedNumber get pointsAtY => _blink.BlinkSVGFESpotLightElement.instance.pointsAtY_Getter_(this);
   
   @DomName('SVGFESpotLightElement.pointsAtZ')
   @DocsEditable()
-  AnimatedNumber get pointsAtZ => wrap_jso(_blink.BlinkSVGFESpotLightElement.instance.pointsAtZ_Getter_(unwrap_jso(this)));
+  AnimatedNumber get pointsAtZ => _blink.BlinkSVGFESpotLightElement.instance.pointsAtZ_Getter_(this);
   
   @DomName('SVGFESpotLightElement.specularExponent')
   @DocsEditable()
-  AnimatedNumber get specularExponent => wrap_jso(_blink.BlinkSVGFESpotLightElement.instance.specularExponent_Getter_(unwrap_jso(this)));
+  AnimatedNumber get specularExponent => _blink.BlinkSVGFESpotLightElement.instance.specularExponent_Getter_(this);
   
   @DomName('SVGFESpotLightElement.x')
   @DocsEditable()
-  AnimatedNumber get x => wrap_jso(_blink.BlinkSVGFESpotLightElement.instance.x_Getter_(unwrap_jso(this)));
+  AnimatedNumber get x => _blink.BlinkSVGFESpotLightElement.instance.x_Getter_(this);
   
   @DomName('SVGFESpotLightElement.y')
   @DocsEditable()
-  AnimatedNumber get y => wrap_jso(_blink.BlinkSVGFESpotLightElement.instance.y_Getter_(unwrap_jso(this)));
+  AnimatedNumber get y => _blink.BlinkSVGFESpotLightElement.instance.y_Getter_(this);
   
   @DomName('SVGFESpotLightElement.z')
   @DocsEditable()
-  AnimatedNumber get z => wrap_jso(_blink.BlinkSVGFESpotLightElement.instance.z_Getter_(unwrap_jso(this)));
+  AnimatedNumber get z => _blink.BlinkSVGFESpotLightElement.instance.z_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3018,11 +2654,7 @@ class FETileElement extends SvgElement implements FilterPrimitiveStandardAttribu
 
 
   @Deprecated("Internal Use Only")
-  static FETileElement internalCreateFETileElement() {
-    return new FETileElement._internalWrap();
-  }
-
-  external factory FETileElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   FETileElement.internal_() : super.internal_();
@@ -3039,27 +2671,27 @@ class FETileElement extends SvgElement implements FilterPrimitiveStandardAttribu
 
   @DomName('SVGFETileElement.in1')
   @DocsEditable()
-  AnimatedString get in1 => wrap_jso(_blink.BlinkSVGFETileElement.instance.in1_Getter_(unwrap_jso(this)));
+  AnimatedString get in1 => _blink.BlinkSVGFETileElement.instance.in1_Getter_(this);
   
   @DomName('SVGFETileElement.height')
   @DocsEditable()
-  AnimatedLength get height => wrap_jso(_blink.BlinkSVGFETileElement.instance.height_Getter_(unwrap_jso(this)));
+  AnimatedLength get height => _blink.BlinkSVGFETileElement.instance.height_Getter_(this);
   
   @DomName('SVGFETileElement.result')
   @DocsEditable()
-  AnimatedString get result => wrap_jso(_blink.BlinkSVGFETileElement.instance.result_Getter_(unwrap_jso(this)));
+  AnimatedString get result => _blink.BlinkSVGFETileElement.instance.result_Getter_(this);
   
   @DomName('SVGFETileElement.width')
   @DocsEditable()
-  AnimatedLength get width => wrap_jso(_blink.BlinkSVGFETileElement.instance.width_Getter_(unwrap_jso(this)));
+  AnimatedLength get width => _blink.BlinkSVGFETileElement.instance.width_Getter_(this);
   
   @DomName('SVGFETileElement.x')
   @DocsEditable()
-  AnimatedLength get x => wrap_jso(_blink.BlinkSVGFETileElement.instance.x_Getter_(unwrap_jso(this)));
+  AnimatedLength get x => _blink.BlinkSVGFETileElement.instance.x_Getter_(this);
   
   @DomName('SVGFETileElement.y')
   @DocsEditable()
-  AnimatedLength get y => wrap_jso(_blink.BlinkSVGFETileElement.instance.y_Getter_(unwrap_jso(this)));
+  AnimatedLength get y => _blink.BlinkSVGFETileElement.instance.y_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3086,11 +2718,7 @@ class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardA
 
 
   @Deprecated("Internal Use Only")
-  static FETurbulenceElement internalCreateFETurbulenceElement() {
-    return new FETurbulenceElement._internalWrap();
-  }
-
-  external factory FETurbulenceElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   FETurbulenceElement.internal_() : super.internal_();
@@ -3131,47 +2759,47 @@ class FETurbulenceElement extends SvgElement implements FilterPrimitiveStandardA
 
   @DomName('SVGFETurbulenceElement.baseFrequencyX')
   @DocsEditable()
-  AnimatedNumber get baseFrequencyX => wrap_jso(_blink.BlinkSVGFETurbulenceElement.instance.baseFrequencyX_Getter_(unwrap_jso(this)));
+  AnimatedNumber get baseFrequencyX => _blink.BlinkSVGFETurbulenceElement.instance.baseFrequencyX_Getter_(this);
   
   @DomName('SVGFETurbulenceElement.baseFrequencyY')
   @DocsEditable()
-  AnimatedNumber get baseFrequencyY => wrap_jso(_blink.BlinkSVGFETurbulenceElement.instance.baseFrequencyY_Getter_(unwrap_jso(this)));
+  AnimatedNumber get baseFrequencyY => _blink.BlinkSVGFETurbulenceElement.instance.baseFrequencyY_Getter_(this);
   
   @DomName('SVGFETurbulenceElement.numOctaves')
   @DocsEditable()
-  AnimatedInteger get numOctaves => wrap_jso(_blink.BlinkSVGFETurbulenceElement.instance.numOctaves_Getter_(unwrap_jso(this)));
+  AnimatedInteger get numOctaves => _blink.BlinkSVGFETurbulenceElement.instance.numOctaves_Getter_(this);
   
   @DomName('SVGFETurbulenceElement.seed')
   @DocsEditable()
-  AnimatedNumber get seed => wrap_jso(_blink.BlinkSVGFETurbulenceElement.instance.seed_Getter_(unwrap_jso(this)));
+  AnimatedNumber get seed => _blink.BlinkSVGFETurbulenceElement.instance.seed_Getter_(this);
   
   @DomName('SVGFETurbulenceElement.stitchTiles')
   @DocsEditable()
-  AnimatedEnumeration get stitchTiles => wrap_jso(_blink.BlinkSVGFETurbulenceElement.instance.stitchTiles_Getter_(unwrap_jso(this)));
+  AnimatedEnumeration get stitchTiles => _blink.BlinkSVGFETurbulenceElement.instance.stitchTiles_Getter_(this);
   
   @DomName('SVGFETurbulenceElement.type')
   @DocsEditable()
-  AnimatedEnumeration get type => wrap_jso(_blink.BlinkSVGFETurbulenceElement.instance.type_Getter_(unwrap_jso(this)));
+  AnimatedEnumeration get type => _blink.BlinkSVGFETurbulenceElement.instance.type_Getter_(this);
   
   @DomName('SVGFETurbulenceElement.height')
   @DocsEditable()
-  AnimatedLength get height => wrap_jso(_blink.BlinkSVGFETurbulenceElement.instance.height_Getter_(unwrap_jso(this)));
+  AnimatedLength get height => _blink.BlinkSVGFETurbulenceElement.instance.height_Getter_(this);
   
   @DomName('SVGFETurbulenceElement.result')
   @DocsEditable()
-  AnimatedString get result => wrap_jso(_blink.BlinkSVGFETurbulenceElement.instance.result_Getter_(unwrap_jso(this)));
+  AnimatedString get result => _blink.BlinkSVGFETurbulenceElement.instance.result_Getter_(this);
   
   @DomName('SVGFETurbulenceElement.width')
   @DocsEditable()
-  AnimatedLength get width => wrap_jso(_blink.BlinkSVGFETurbulenceElement.instance.width_Getter_(unwrap_jso(this)));
+  AnimatedLength get width => _blink.BlinkSVGFETurbulenceElement.instance.width_Getter_(this);
   
   @DomName('SVGFETurbulenceElement.x')
   @DocsEditable()
-  AnimatedLength get x => wrap_jso(_blink.BlinkSVGFETurbulenceElement.instance.x_Getter_(unwrap_jso(this)));
+  AnimatedLength get x => _blink.BlinkSVGFETurbulenceElement.instance.x_Getter_(this);
   
   @DomName('SVGFETurbulenceElement.y')
   @DocsEditable()
-  AnimatedLength get y => wrap_jso(_blink.BlinkSVGFETurbulenceElement.instance.y_Getter_(unwrap_jso(this)));
+  AnimatedLength get y => _blink.BlinkSVGFETurbulenceElement.instance.y_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3198,11 +2826,7 @@ class FilterElement extends SvgElement implements UriReference {
 
 
   @Deprecated("Internal Use Only")
-  static FilterElement internalCreateFilterElement() {
-    return new FilterElement._internalWrap();
-  }
-
-  external factory FilterElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   FilterElement.internal_() : super.internal_();
@@ -3219,31 +2843,31 @@ class FilterElement extends SvgElement implements UriReference {
 
   @DomName('SVGFilterElement.filterUnits')
   @DocsEditable()
-  AnimatedEnumeration get filterUnits => wrap_jso(_blink.BlinkSVGFilterElement.instance.filterUnits_Getter_(unwrap_jso(this)));
+  AnimatedEnumeration get filterUnits => _blink.BlinkSVGFilterElement.instance.filterUnits_Getter_(this);
   
   @DomName('SVGFilterElement.height')
   @DocsEditable()
-  AnimatedLength get height => wrap_jso(_blink.BlinkSVGFilterElement.instance.height_Getter_(unwrap_jso(this)));
+  AnimatedLength get height => _blink.BlinkSVGFilterElement.instance.height_Getter_(this);
   
   @DomName('SVGFilterElement.primitiveUnits')
   @DocsEditable()
-  AnimatedEnumeration get primitiveUnits => wrap_jso(_blink.BlinkSVGFilterElement.instance.primitiveUnits_Getter_(unwrap_jso(this)));
+  AnimatedEnumeration get primitiveUnits => _blink.BlinkSVGFilterElement.instance.primitiveUnits_Getter_(this);
   
   @DomName('SVGFilterElement.width')
   @DocsEditable()
-  AnimatedLength get width => wrap_jso(_blink.BlinkSVGFilterElement.instance.width_Getter_(unwrap_jso(this)));
+  AnimatedLength get width => _blink.BlinkSVGFilterElement.instance.width_Getter_(this);
   
   @DomName('SVGFilterElement.x')
   @DocsEditable()
-  AnimatedLength get x => wrap_jso(_blink.BlinkSVGFilterElement.instance.x_Getter_(unwrap_jso(this)));
+  AnimatedLength get x => _blink.BlinkSVGFilterElement.instance.x_Getter_(this);
   
   @DomName('SVGFilterElement.y')
   @DocsEditable()
-  AnimatedLength get y => wrap_jso(_blink.BlinkSVGFilterElement.instance.y_Getter_(unwrap_jso(this)));
+  AnimatedLength get y => _blink.BlinkSVGFilterElement.instance.y_Getter_(this);
   
   @DomName('SVGFilterElement.href')
   @DocsEditable()
-  AnimatedString get href => wrap_jso(_blink.BlinkSVGFilterElement.instance.href_Getter_(unwrap_jso(this)));
+  AnimatedString get href => _blink.BlinkSVGFilterElement.instance.href_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3327,11 +2951,7 @@ class ForeignObjectElement extends GraphicsElement {
 
 
   @Deprecated("Internal Use Only")
-  static ForeignObjectElement internalCreateForeignObjectElement() {
-    return new ForeignObjectElement._internalWrap();
-  }
-
-  external factory ForeignObjectElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   ForeignObjectElement.internal_() : super.internal_();
@@ -3348,19 +2968,19 @@ class ForeignObjectElement extends GraphicsElement {
 
   @DomName('SVGForeignObjectElement.height')
   @DocsEditable()
-  AnimatedLength get height => wrap_jso(_blink.BlinkSVGForeignObjectElement.instance.height_Getter_(unwrap_jso(this)));
+  AnimatedLength get height => _blink.BlinkSVGForeignObjectElement.instance.height_Getter_(this);
   
   @DomName('SVGForeignObjectElement.width')
   @DocsEditable()
-  AnimatedLength get width => wrap_jso(_blink.BlinkSVGForeignObjectElement.instance.width_Getter_(unwrap_jso(this)));
+  AnimatedLength get width => _blink.BlinkSVGForeignObjectElement.instance.width_Getter_(this);
   
   @DomName('SVGForeignObjectElement.x')
   @DocsEditable()
-  AnimatedLength get x => wrap_jso(_blink.BlinkSVGForeignObjectElement.instance.x_Getter_(unwrap_jso(this)));
+  AnimatedLength get x => _blink.BlinkSVGForeignObjectElement.instance.x_Getter_(this);
   
   @DomName('SVGForeignObjectElement.y')
   @DocsEditable()
-  AnimatedLength get y => wrap_jso(_blink.BlinkSVGForeignObjectElement.instance.y_Getter_(unwrap_jso(this)));
+  AnimatedLength get y => _blink.BlinkSVGForeignObjectElement.instance.y_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3383,11 +3003,7 @@ class GElement extends GraphicsElement {
 
 
   @Deprecated("Internal Use Only")
-  static GElement internalCreateGElement() {
-    return new GElement._internalWrap();
-  }
-
-  external factory GElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   GElement.internal_() : super.internal_();
@@ -3416,11 +3032,7 @@ class GeometryElement extends GraphicsElement {
 
 
   @Deprecated("Internal Use Only")
-  static GeometryElement internalCreateGeometryElement() {
-    return new GeometryElement._internalWrap();
-  }
-
-  external factory GeometryElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   GeometryElement.internal_() : super.internal_();
@@ -3435,12 +3047,12 @@ class GeometryElement extends GraphicsElement {
   @DomName('SVGGeometryElement.isPointInFill')
   @DocsEditable()
   @Experimental() // untriaged
-  bool isPointInFill(Point point) => _blink.BlinkSVGGeometryElement.instance.isPointInFill_Callback_1_(unwrap_jso(this), unwrap_jso(point));
+  bool isPointInFill(Point point) => _blink.BlinkSVGGeometryElement.instance.isPointInFill_Callback_1_(this, point);
   
   @DomName('SVGGeometryElement.isPointInStroke')
   @DocsEditable()
   @Experimental() // untriaged
-  bool isPointInStroke(Point point) => _blink.BlinkSVGGeometryElement.instance.isPointInStroke_Callback_1_(unwrap_jso(this), unwrap_jso(point));
+  bool isPointInStroke(Point point) => _blink.BlinkSVGGeometryElement.instance.isPointInStroke_Callback_1_(this, point);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3459,11 +3071,7 @@ class GraphicsElement extends SvgElement implements Tests {
 
 
   @Deprecated("Internal Use Only")
-  static GraphicsElement internalCreateGraphicsElement() {
-    return new GraphicsElement._internalWrap();
-  }
-
-  external factory GraphicsElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   GraphicsElement.internal_() : super.internal_();
@@ -3478,57 +3086,57 @@ class GraphicsElement extends SvgElement implements Tests {
   @DomName('SVGGraphicsElement.farthestViewportElement')
   @DocsEditable()
   @Experimental() // untriaged
-  SvgElement get farthestViewportElement => wrap_jso(_blink.BlinkSVGGraphicsElement.instance.farthestViewportElement_Getter_(unwrap_jso(this)));
+  SvgElement get farthestViewportElement => _blink.BlinkSVGGraphicsElement.instance.farthestViewportElement_Getter_(this);
   
   @DomName('SVGGraphicsElement.nearestViewportElement')
   @DocsEditable()
   @Experimental() // untriaged
-  SvgElement get nearestViewportElement => wrap_jso(_blink.BlinkSVGGraphicsElement.instance.nearestViewportElement_Getter_(unwrap_jso(this)));
+  SvgElement get nearestViewportElement => _blink.BlinkSVGGraphicsElement.instance.nearestViewportElement_Getter_(this);
   
   @DomName('SVGGraphicsElement.transform')
   @DocsEditable()
   @Experimental() // untriaged
-  AnimatedTransformList get transform => wrap_jso(_blink.BlinkSVGGraphicsElement.instance.transform_Getter_(unwrap_jso(this)));
+  AnimatedTransformList get transform => _blink.BlinkSVGGraphicsElement.instance.transform_Getter_(this);
   
   @DomName('SVGGraphicsElement.getBBox')
   @DocsEditable()
   @Experimental() // untriaged
-  Rect getBBox() => wrap_jso(_blink.BlinkSVGGraphicsElement.instance.getBBox_Callback_0_(unwrap_jso(this)));
+  Rect getBBox() => _blink.BlinkSVGGraphicsElement.instance.getBBox_Callback_0_(this);
   
   @DomName('SVGGraphicsElement.getCTM')
   @DocsEditable()
   @Experimental() // untriaged
-  Matrix getCtm() => wrap_jso(_blink.BlinkSVGGraphicsElement.instance.getCTM_Callback_0_(unwrap_jso(this)));
+  Matrix getCtm() => _blink.BlinkSVGGraphicsElement.instance.getCTM_Callback_0_(this);
   
   @DomName('SVGGraphicsElement.getScreenCTM')
   @DocsEditable()
   @Experimental() // untriaged
-  Matrix getScreenCtm() => wrap_jso(_blink.BlinkSVGGraphicsElement.instance.getScreenCTM_Callback_0_(unwrap_jso(this)));
+  Matrix getScreenCtm() => _blink.BlinkSVGGraphicsElement.instance.getScreenCTM_Callback_0_(this);
   
   @DomName('SVGGraphicsElement.getTransformToElement')
   @DocsEditable()
   @Experimental() // untriaged
-  Matrix getTransformToElement(SvgElement element) => wrap_jso(_blink.BlinkSVGGraphicsElement.instance.getTransformToElement_Callback_1_(unwrap_jso(this), unwrap_jso(element)));
+  Matrix getTransformToElement(SvgElement element) => _blink.BlinkSVGGraphicsElement.instance.getTransformToElement_Callback_1_(this, element);
   
   @DomName('SVGGraphicsElement.requiredExtensions')
   @DocsEditable()
   @Experimental() // untriaged
-  StringList get requiredExtensions => wrap_jso(_blink.BlinkSVGGraphicsElement.instance.requiredExtensions_Getter_(unwrap_jso(this)));
+  StringList get requiredExtensions => _blink.BlinkSVGGraphicsElement.instance.requiredExtensions_Getter_(this);
   
   @DomName('SVGGraphicsElement.requiredFeatures')
   @DocsEditable()
   @Experimental() // untriaged
-  StringList get requiredFeatures => wrap_jso(_blink.BlinkSVGGraphicsElement.instance.requiredFeatures_Getter_(unwrap_jso(this)));
+  StringList get requiredFeatures => _blink.BlinkSVGGraphicsElement.instance.requiredFeatures_Getter_(this);
   
   @DomName('SVGGraphicsElement.systemLanguage')
   @DocsEditable()
   @Experimental() // untriaged
-  StringList get systemLanguage => wrap_jso(_blink.BlinkSVGGraphicsElement.instance.systemLanguage_Getter_(unwrap_jso(this)));
+  StringList get systemLanguage => _blink.BlinkSVGGraphicsElement.instance.systemLanguage_Getter_(this);
   
   @DomName('SVGGraphicsElement.hasExtension')
   @DocsEditable()
   @Experimental() // untriaged
-  bool hasExtension(String extension) => _blink.BlinkSVGGraphicsElement.instance.hasExtension_Callback_1_(unwrap_jso(this), extension);
+  bool hasExtension(String extension) => _blink.BlinkSVGGraphicsElement.instance.hasExtension_Callback_1_(this, extension);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3551,11 +3159,7 @@ class ImageElement extends GraphicsElement implements UriReference {
 
 
   @Deprecated("Internal Use Only")
-  static ImageElement internalCreateImageElement() {
-    return new ImageElement._internalWrap();
-  }
-
-  external factory ImageElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   ImageElement.internal_() : super.internal_();
@@ -3569,27 +3173,27 @@ class ImageElement extends GraphicsElement implements UriReference {
 
   @DomName('SVGImageElement.height')
   @DocsEditable()
-  AnimatedLength get height => wrap_jso(_blink.BlinkSVGImageElement.instance.height_Getter_(unwrap_jso(this)));
+  AnimatedLength get height => _blink.BlinkSVGImageElement.instance.height_Getter_(this);
   
   @DomName('SVGImageElement.preserveAspectRatio')
   @DocsEditable()
-  AnimatedPreserveAspectRatio get preserveAspectRatio => wrap_jso(_blink.BlinkSVGImageElement.instance.preserveAspectRatio_Getter_(unwrap_jso(this)));
+  AnimatedPreserveAspectRatio get preserveAspectRatio => _blink.BlinkSVGImageElement.instance.preserveAspectRatio_Getter_(this);
   
   @DomName('SVGImageElement.width')
   @DocsEditable()
-  AnimatedLength get width => wrap_jso(_blink.BlinkSVGImageElement.instance.width_Getter_(unwrap_jso(this)));
+  AnimatedLength get width => _blink.BlinkSVGImageElement.instance.width_Getter_(this);
   
   @DomName('SVGImageElement.x')
   @DocsEditable()
-  AnimatedLength get x => wrap_jso(_blink.BlinkSVGImageElement.instance.x_Getter_(unwrap_jso(this)));
+  AnimatedLength get x => _blink.BlinkSVGImageElement.instance.x_Getter_(this);
   
   @DomName('SVGImageElement.y')
   @DocsEditable()
-  AnimatedLength get y => wrap_jso(_blink.BlinkSVGImageElement.instance.y_Getter_(unwrap_jso(this)));
+  AnimatedLength get y => _blink.BlinkSVGImageElement.instance.y_Getter_(this);
   
   @DomName('SVGImageElement.href')
   @DocsEditable()
-  AnimatedString get href => wrap_jso(_blink.BlinkSVGImageElement.instance.href_Getter_(unwrap_jso(this)));
+  AnimatedString get href => _blink.BlinkSVGImageElement.instance.href_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3606,20 +3210,12 @@ class Length extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Length._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static Length internalCreateLength() {
-    return new Length._internalWrap();
-  }
 
-  factory Length._internalWrap() {
-    return new Length.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   Length.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGLength.SVG_LENGTHTYPE_CM')
   @DocsEditable()
@@ -3667,39 +3263,39 @@ class Length extends DartHtmlDomObject {
 
   @DomName('SVGLength.unitType')
   @DocsEditable()
-  int get unitType => _blink.BlinkSVGLength.instance.unitType_Getter_(unwrap_jso(this));
+  int get unitType => _blink.BlinkSVGLength.instance.unitType_Getter_(this);
   
   @DomName('SVGLength.value')
   @DocsEditable()
-  num get value => _blink.BlinkSVGLength.instance.value_Getter_(unwrap_jso(this));
+  num get value => _blink.BlinkSVGLength.instance.value_Getter_(this);
   
   @DomName('SVGLength.value')
   @DocsEditable()
-  set value(num value) => _blink.BlinkSVGLength.instance.value_Setter_(unwrap_jso(this), value);
+  set value(num value) => _blink.BlinkSVGLength.instance.value_Setter_(this, value);
   
   @DomName('SVGLength.valueAsString')
   @DocsEditable()
-  String get valueAsString => _blink.BlinkSVGLength.instance.valueAsString_Getter_(unwrap_jso(this));
+  String get valueAsString => _blink.BlinkSVGLength.instance.valueAsString_Getter_(this);
   
   @DomName('SVGLength.valueAsString')
   @DocsEditable()
-  set valueAsString(String value) => _blink.BlinkSVGLength.instance.valueAsString_Setter_(unwrap_jso(this), value);
+  set valueAsString(String value) => _blink.BlinkSVGLength.instance.valueAsString_Setter_(this, value);
   
   @DomName('SVGLength.valueInSpecifiedUnits')
   @DocsEditable()
-  num get valueInSpecifiedUnits => _blink.BlinkSVGLength.instance.valueInSpecifiedUnits_Getter_(unwrap_jso(this));
+  num get valueInSpecifiedUnits => _blink.BlinkSVGLength.instance.valueInSpecifiedUnits_Getter_(this);
   
   @DomName('SVGLength.valueInSpecifiedUnits')
   @DocsEditable()
-  set valueInSpecifiedUnits(num value) => _blink.BlinkSVGLength.instance.valueInSpecifiedUnits_Setter_(unwrap_jso(this), value);
+  set valueInSpecifiedUnits(num value) => _blink.BlinkSVGLength.instance.valueInSpecifiedUnits_Setter_(this, value);
   
   @DomName('SVGLength.convertToSpecifiedUnits')
   @DocsEditable()
-  void convertToSpecifiedUnits(int unitType) => _blink.BlinkSVGLength.instance.convertToSpecifiedUnits_Callback_1_(unwrap_jso(this), unitType);
+  void convertToSpecifiedUnits(int unitType) => _blink.BlinkSVGLength.instance.convertToSpecifiedUnits_Callback_1_(this, unitType);
   
   @DomName('SVGLength.newValueSpecifiedUnits')
   @DocsEditable()
-  void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) => _blink.BlinkSVGLength.instance.newValueSpecifiedUnits_Callback_2_(unwrap_jso(this), unitType, valueInSpecifiedUnits);
+  void newValueSpecifiedUnits(int unitType, num valueInSpecifiedUnits) => _blink.BlinkSVGLength.instance.newValueSpecifiedUnits_Callback_2_(this, unitType, valueInSpecifiedUnits);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3716,29 +3312,21 @@ class LengthList extends DartHtmlDomObject with ListMixin<Length>, ImmutableList
   // To suppress missing implicit constructor warnings.
   factory LengthList._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static LengthList internalCreateLengthList() {
-    return new LengthList._internalWrap();
-  }
 
-  factory LengthList._internalWrap() {
-    return new LengthList.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   LengthList.internal_() { }
 
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('SVGLengthList.length')
   @DocsEditable()
   @Experimental() // untriaged
-  int get length => _blink.BlinkSVGLengthList.instance.length_Getter_(unwrap_jso(this));
+  int get length => _blink.BlinkSVGLengthList.instance.length_Getter_(this);
   
   @DomName('SVGLengthList.numberOfItems')
   @DocsEditable()
-  int get numberOfItems => _blink.BlinkSVGLengthList.instance.numberOfItems_Getter_(unwrap_jso(this));
+  int get numberOfItems => _blink.BlinkSVGLengthList.instance.numberOfItems_Getter_(this);
   
   Length operator[](int index) {
     if (index < 0 || index >= length)
@@ -3787,35 +3375,35 @@ class LengthList extends DartHtmlDomObject with ListMixin<Length>, ImmutableList
   @DomName('SVGLengthList.__setter__')
   @DocsEditable()
   @Experimental() // untriaged
-  void __setter__(int index, Length newItem) => _blink.BlinkSVGLengthList.instance.$__setter___Callback_2_(unwrap_jso(this), index, unwrap_jso(newItem));
+  void __setter__(int index, Length newItem) => _blink.BlinkSVGLengthList.instance.$__setter___Callback_2_(this, index, newItem);
   
   @DomName('SVGLengthList.appendItem')
   @DocsEditable()
-  Length appendItem(Length newItem) => wrap_jso(_blink.BlinkSVGLengthList.instance.appendItem_Callback_1_(unwrap_jso(this), unwrap_jso(newItem)));
+  Length appendItem(Length newItem) => _blink.BlinkSVGLengthList.instance.appendItem_Callback_1_(this, newItem);
   
   @DomName('SVGLengthList.clear')
   @DocsEditable()
-  void clear() => _blink.BlinkSVGLengthList.instance.clear_Callback_0_(unwrap_jso(this));
+  void clear() => _blink.BlinkSVGLengthList.instance.clear_Callback_0_(this);
   
   @DomName('SVGLengthList.getItem')
   @DocsEditable()
-  Length getItem(int index) => wrap_jso(_blink.BlinkSVGLengthList.instance.getItem_Callback_1_(unwrap_jso(this), index));
+  Length getItem(int index) => _blink.BlinkSVGLengthList.instance.getItem_Callback_1_(this, index);
   
   @DomName('SVGLengthList.initialize')
   @DocsEditable()
-  Length initialize(Length newItem) => wrap_jso(_blink.BlinkSVGLengthList.instance.initialize_Callback_1_(unwrap_jso(this), unwrap_jso(newItem)));
+  Length initialize(Length newItem) => _blink.BlinkSVGLengthList.instance.initialize_Callback_1_(this, newItem);
   
   @DomName('SVGLengthList.insertItemBefore')
   @DocsEditable()
-  Length insertItemBefore(Length newItem, int index) => wrap_jso(_blink.BlinkSVGLengthList.instance.insertItemBefore_Callback_2_(unwrap_jso(this), unwrap_jso(newItem), index));
+  Length insertItemBefore(Length newItem, int index) => _blink.BlinkSVGLengthList.instance.insertItemBefore_Callback_2_(this, newItem, index);
   
   @DomName('SVGLengthList.removeItem')
   @DocsEditable()
-  Length removeItem(int index) => wrap_jso(_blink.BlinkSVGLengthList.instance.removeItem_Callback_1_(unwrap_jso(this), index));
+  Length removeItem(int index) => _blink.BlinkSVGLengthList.instance.removeItem_Callback_1_(this, index);
   
   @DomName('SVGLengthList.replaceItem')
   @DocsEditable()
-  Length replaceItem(Length newItem, int index) => wrap_jso(_blink.BlinkSVGLengthList.instance.replaceItem_Callback_2_(unwrap_jso(this), unwrap_jso(newItem), index));
+  Length replaceItem(Length newItem, int index) => _blink.BlinkSVGLengthList.instance.replaceItem_Callback_2_(this, newItem, index);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3838,11 +3426,7 @@ class LineElement extends GeometryElement {
 
 
   @Deprecated("Internal Use Only")
-  static LineElement internalCreateLineElement() {
-    return new LineElement._internalWrap();
-  }
-
-  external factory LineElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   LineElement.internal_() : super.internal_();
@@ -3856,19 +3440,19 @@ class LineElement extends GeometryElement {
 
   @DomName('SVGLineElement.x1')
   @DocsEditable()
-  AnimatedLength get x1 => wrap_jso(_blink.BlinkSVGLineElement.instance.x1_Getter_(unwrap_jso(this)));
+  AnimatedLength get x1 => _blink.BlinkSVGLineElement.instance.x1_Getter_(this);
   
   @DomName('SVGLineElement.x2')
   @DocsEditable()
-  AnimatedLength get x2 => wrap_jso(_blink.BlinkSVGLineElement.instance.x2_Getter_(unwrap_jso(this)));
+  AnimatedLength get x2 => _blink.BlinkSVGLineElement.instance.x2_Getter_(this);
   
   @DomName('SVGLineElement.y1')
   @DocsEditable()
-  AnimatedLength get y1 => wrap_jso(_blink.BlinkSVGLineElement.instance.y1_Getter_(unwrap_jso(this)));
+  AnimatedLength get y1 => _blink.BlinkSVGLineElement.instance.y1_Getter_(this);
   
   @DomName('SVGLineElement.y2')
   @DocsEditable()
-  AnimatedLength get y2 => wrap_jso(_blink.BlinkSVGLineElement.instance.y2_Getter_(unwrap_jso(this)));
+  AnimatedLength get y2 => _blink.BlinkSVGLineElement.instance.y2_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3891,11 +3475,7 @@ class LinearGradientElement extends _GradientElement {
 
 
   @Deprecated("Internal Use Only")
-  static LinearGradientElement internalCreateLinearGradientElement() {
-    return new LinearGradientElement._internalWrap();
-  }
-
-  external factory LinearGradientElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   LinearGradientElement.internal_() : super.internal_();
@@ -3909,19 +3489,19 @@ class LinearGradientElement extends _GradientElement {
 
   @DomName('SVGLinearGradientElement.x1')
   @DocsEditable()
-  AnimatedLength get x1 => wrap_jso(_blink.BlinkSVGLinearGradientElement.instance.x1_Getter_(unwrap_jso(this)));
+  AnimatedLength get x1 => _blink.BlinkSVGLinearGradientElement.instance.x1_Getter_(this);
   
   @DomName('SVGLinearGradientElement.x2')
   @DocsEditable()
-  AnimatedLength get x2 => wrap_jso(_blink.BlinkSVGLinearGradientElement.instance.x2_Getter_(unwrap_jso(this)));
+  AnimatedLength get x2 => _blink.BlinkSVGLinearGradientElement.instance.x2_Getter_(this);
   
   @DomName('SVGLinearGradientElement.y1')
   @DocsEditable()
-  AnimatedLength get y1 => wrap_jso(_blink.BlinkSVGLinearGradientElement.instance.y1_Getter_(unwrap_jso(this)));
+  AnimatedLength get y1 => _blink.BlinkSVGLinearGradientElement.instance.y1_Getter_(this);
   
   @DomName('SVGLinearGradientElement.y2')
   @DocsEditable()
-  AnimatedLength get y2 => wrap_jso(_blink.BlinkSVGLinearGradientElement.instance.y2_Getter_(unwrap_jso(this)));
+  AnimatedLength get y2 => _blink.BlinkSVGLinearGradientElement.instance.y2_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3944,11 +3524,7 @@ class MarkerElement extends SvgElement implements FitToViewBox {
 
 
   @Deprecated("Internal Use Only")
-  static MarkerElement internalCreateMarkerElement() {
-    return new MarkerElement._internalWrap();
-  }
-
-  external factory MarkerElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   MarkerElement.internal_() : super.internal_();
@@ -3986,47 +3562,47 @@ class MarkerElement extends SvgElement implements FitToViewBox {
 
   @DomName('SVGMarkerElement.markerHeight')
   @DocsEditable()
-  AnimatedLength get markerHeight => wrap_jso(_blink.BlinkSVGMarkerElement.instance.markerHeight_Getter_(unwrap_jso(this)));
+  AnimatedLength get markerHeight => _blink.BlinkSVGMarkerElement.instance.markerHeight_Getter_(this);
   
   @DomName('SVGMarkerElement.markerUnits')
   @DocsEditable()
-  AnimatedEnumeration get markerUnits => wrap_jso(_blink.BlinkSVGMarkerElement.instance.markerUnits_Getter_(unwrap_jso(this)));
+  AnimatedEnumeration get markerUnits => _blink.BlinkSVGMarkerElement.instance.markerUnits_Getter_(this);
   
   @DomName('SVGMarkerElement.markerWidth')
   @DocsEditable()
-  AnimatedLength get markerWidth => wrap_jso(_blink.BlinkSVGMarkerElement.instance.markerWidth_Getter_(unwrap_jso(this)));
+  AnimatedLength get markerWidth => _blink.BlinkSVGMarkerElement.instance.markerWidth_Getter_(this);
   
   @DomName('SVGMarkerElement.orientAngle')
   @DocsEditable()
-  AnimatedAngle get orientAngle => wrap_jso(_blink.BlinkSVGMarkerElement.instance.orientAngle_Getter_(unwrap_jso(this)));
+  AnimatedAngle get orientAngle => _blink.BlinkSVGMarkerElement.instance.orientAngle_Getter_(this);
   
   @DomName('SVGMarkerElement.orientType')
   @DocsEditable()
-  AnimatedEnumeration get orientType => wrap_jso(_blink.BlinkSVGMarkerElement.instance.orientType_Getter_(unwrap_jso(this)));
+  AnimatedEnumeration get orientType => _blink.BlinkSVGMarkerElement.instance.orientType_Getter_(this);
   
   @DomName('SVGMarkerElement.refX')
   @DocsEditable()
-  AnimatedLength get refX => wrap_jso(_blink.BlinkSVGMarkerElement.instance.refX_Getter_(unwrap_jso(this)));
+  AnimatedLength get refX => _blink.BlinkSVGMarkerElement.instance.refX_Getter_(this);
   
   @DomName('SVGMarkerElement.refY')
   @DocsEditable()
-  AnimatedLength get refY => wrap_jso(_blink.BlinkSVGMarkerElement.instance.refY_Getter_(unwrap_jso(this)));
+  AnimatedLength get refY => _blink.BlinkSVGMarkerElement.instance.refY_Getter_(this);
   
   @DomName('SVGMarkerElement.setOrientToAngle')
   @DocsEditable()
-  void setOrientToAngle(Angle angle) => _blink.BlinkSVGMarkerElement.instance.setOrientToAngle_Callback_1_(unwrap_jso(this), unwrap_jso(angle));
+  void setOrientToAngle(Angle angle) => _blink.BlinkSVGMarkerElement.instance.setOrientToAngle_Callback_1_(this, angle);
   
   @DomName('SVGMarkerElement.setOrientToAuto')
   @DocsEditable()
-  void setOrientToAuto() => _blink.BlinkSVGMarkerElement.instance.setOrientToAuto_Callback_0_(unwrap_jso(this));
+  void setOrientToAuto() => _blink.BlinkSVGMarkerElement.instance.setOrientToAuto_Callback_0_(this);
   
   @DomName('SVGMarkerElement.preserveAspectRatio')
   @DocsEditable()
-  AnimatedPreserveAspectRatio get preserveAspectRatio => wrap_jso(_blink.BlinkSVGMarkerElement.instance.preserveAspectRatio_Getter_(unwrap_jso(this)));
+  AnimatedPreserveAspectRatio get preserveAspectRatio => _blink.BlinkSVGMarkerElement.instance.preserveAspectRatio_Getter_(this);
   
   @DomName('SVGMarkerElement.viewBox')
   @DocsEditable()
-  AnimatedRect get viewBox => wrap_jso(_blink.BlinkSVGMarkerElement.instance.viewBox_Getter_(unwrap_jso(this)));
+  AnimatedRect get viewBox => _blink.BlinkSVGMarkerElement.instance.viewBox_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4049,11 +3625,7 @@ class MaskElement extends SvgElement implements Tests {
 
 
   @Deprecated("Internal Use Only")
-  static MaskElement internalCreateMaskElement() {
-    return new MaskElement._internalWrap();
-  }
-
-  external factory MaskElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   MaskElement.internal_() : super.internal_();
@@ -4067,43 +3639,43 @@ class MaskElement extends SvgElement implements Tests {
 
   @DomName('SVGMaskElement.height')
   @DocsEditable()
-  AnimatedLength get height => wrap_jso(_blink.BlinkSVGMaskElement.instance.height_Getter_(unwrap_jso(this)));
+  AnimatedLength get height => _blink.BlinkSVGMaskElement.instance.height_Getter_(this);
   
   @DomName('SVGMaskElement.maskContentUnits')
   @DocsEditable()
-  AnimatedEnumeration get maskContentUnits => wrap_jso(_blink.BlinkSVGMaskElement.instance.maskContentUnits_Getter_(unwrap_jso(this)));
+  AnimatedEnumeration get maskContentUnits => _blink.BlinkSVGMaskElement.instance.maskContentUnits_Getter_(this);
   
   @DomName('SVGMaskElement.maskUnits')
   @DocsEditable()
-  AnimatedEnumeration get maskUnits => wrap_jso(_blink.BlinkSVGMaskElement.instance.maskUnits_Getter_(unwrap_jso(this)));
+  AnimatedEnumeration get maskUnits => _blink.BlinkSVGMaskElement.instance.maskUnits_Getter_(this);
   
   @DomName('SVGMaskElement.width')
   @DocsEditable()
-  AnimatedLength get width => wrap_jso(_blink.BlinkSVGMaskElement.instance.width_Getter_(unwrap_jso(this)));
+  AnimatedLength get width => _blink.BlinkSVGMaskElement.instance.width_Getter_(this);
   
   @DomName('SVGMaskElement.x')
   @DocsEditable()
-  AnimatedLength get x => wrap_jso(_blink.BlinkSVGMaskElement.instance.x_Getter_(unwrap_jso(this)));
+  AnimatedLength get x => _blink.BlinkSVGMaskElement.instance.x_Getter_(this);
   
   @DomName('SVGMaskElement.y')
   @DocsEditable()
-  AnimatedLength get y => wrap_jso(_blink.BlinkSVGMaskElement.instance.y_Getter_(unwrap_jso(this)));
+  AnimatedLength get y => _blink.BlinkSVGMaskElement.instance.y_Getter_(this);
   
   @DomName('SVGMaskElement.requiredExtensions')
   @DocsEditable()
-  StringList get requiredExtensions => wrap_jso(_blink.BlinkSVGMaskElement.instance.requiredExtensions_Getter_(unwrap_jso(this)));
+  StringList get requiredExtensions => _blink.BlinkSVGMaskElement.instance.requiredExtensions_Getter_(this);
   
   @DomName('SVGMaskElement.requiredFeatures')
   @DocsEditable()
-  StringList get requiredFeatures => wrap_jso(_blink.BlinkSVGMaskElement.instance.requiredFeatures_Getter_(unwrap_jso(this)));
+  StringList get requiredFeatures => _blink.BlinkSVGMaskElement.instance.requiredFeatures_Getter_(this);
   
   @DomName('SVGMaskElement.systemLanguage')
   @DocsEditable()
-  StringList get systemLanguage => wrap_jso(_blink.BlinkSVGMaskElement.instance.systemLanguage_Getter_(unwrap_jso(this)));
+  StringList get systemLanguage => _blink.BlinkSVGMaskElement.instance.systemLanguage_Getter_(this);
   
   @DomName('SVGMaskElement.hasExtension')
   @DocsEditable()
-  bool hasExtension(String extension) => _blink.BlinkSVGMaskElement.instance.hasExtension_Callback_1_(unwrap_jso(this), extension);
+  bool hasExtension(String extension) => _blink.BlinkSVGMaskElement.instance.hasExtension_Callback_1_(this, extension);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4120,112 +3692,104 @@ class Matrix extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Matrix._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static Matrix internalCreateMatrix() {
-    return new Matrix._internalWrap();
-  }
 
-  factory Matrix._internalWrap() {
-    return new Matrix.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   Matrix.internal_() { }
 
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('SVGMatrix.a')
   @DocsEditable()
-  num get a => _blink.BlinkSVGMatrix.instance.a_Getter_(unwrap_jso(this));
+  num get a => _blink.BlinkSVGMatrix.instance.a_Getter_(this);
   
   @DomName('SVGMatrix.a')
   @DocsEditable()
-  set a(num value) => _blink.BlinkSVGMatrix.instance.a_Setter_(unwrap_jso(this), value);
+  set a(num value) => _blink.BlinkSVGMatrix.instance.a_Setter_(this, value);
   
   @DomName('SVGMatrix.b')
   @DocsEditable()
-  num get b => _blink.BlinkSVGMatrix.instance.b_Getter_(unwrap_jso(this));
+  num get b => _blink.BlinkSVGMatrix.instance.b_Getter_(this);
   
   @DomName('SVGMatrix.b')
   @DocsEditable()
-  set b(num value) => _blink.BlinkSVGMatrix.instance.b_Setter_(unwrap_jso(this), value);
+  set b(num value) => _blink.BlinkSVGMatrix.instance.b_Setter_(this, value);
   
   @DomName('SVGMatrix.c')
   @DocsEditable()
-  num get c => _blink.BlinkSVGMatrix.instance.c_Getter_(unwrap_jso(this));
+  num get c => _blink.BlinkSVGMatrix.instance.c_Getter_(this);
   
   @DomName('SVGMatrix.c')
   @DocsEditable()
-  set c(num value) => _blink.BlinkSVGMatrix.instance.c_Setter_(unwrap_jso(this), value);
+  set c(num value) => _blink.BlinkSVGMatrix.instance.c_Setter_(this, value);
   
   @DomName('SVGMatrix.d')
   @DocsEditable()
-  num get d => _blink.BlinkSVGMatrix.instance.d_Getter_(unwrap_jso(this));
+  num get d => _blink.BlinkSVGMatrix.instance.d_Getter_(this);
   
   @DomName('SVGMatrix.d')
   @DocsEditable()
-  set d(num value) => _blink.BlinkSVGMatrix.instance.d_Setter_(unwrap_jso(this), value);
+  set d(num value) => _blink.BlinkSVGMatrix.instance.d_Setter_(this, value);
   
   @DomName('SVGMatrix.e')
   @DocsEditable()
-  num get e => _blink.BlinkSVGMatrix.instance.e_Getter_(unwrap_jso(this));
+  num get e => _blink.BlinkSVGMatrix.instance.e_Getter_(this);
   
   @DomName('SVGMatrix.e')
   @DocsEditable()
-  set e(num value) => _blink.BlinkSVGMatrix.instance.e_Setter_(unwrap_jso(this), value);
+  set e(num value) => _blink.BlinkSVGMatrix.instance.e_Setter_(this, value);
   
   @DomName('SVGMatrix.f')
   @DocsEditable()
-  num get f => _blink.BlinkSVGMatrix.instance.f_Getter_(unwrap_jso(this));
+  num get f => _blink.BlinkSVGMatrix.instance.f_Getter_(this);
   
   @DomName('SVGMatrix.f')
   @DocsEditable()
-  set f(num value) => _blink.BlinkSVGMatrix.instance.f_Setter_(unwrap_jso(this), value);
+  set f(num value) => _blink.BlinkSVGMatrix.instance.f_Setter_(this, value);
   
   @DomName('SVGMatrix.flipX')
   @DocsEditable()
-  Matrix flipX() => wrap_jso(_blink.BlinkSVGMatrix.instance.flipX_Callback_0_(unwrap_jso(this)));
+  Matrix flipX() => _blink.BlinkSVGMatrix.instance.flipX_Callback_0_(this);
   
   @DomName('SVGMatrix.flipY')
   @DocsEditable()
-  Matrix flipY() => wrap_jso(_blink.BlinkSVGMatrix.instance.flipY_Callback_0_(unwrap_jso(this)));
+  Matrix flipY() => _blink.BlinkSVGMatrix.instance.flipY_Callback_0_(this);
   
   @DomName('SVGMatrix.inverse')
   @DocsEditable()
-  Matrix inverse() => wrap_jso(_blink.BlinkSVGMatrix.instance.inverse_Callback_0_(unwrap_jso(this)));
+  Matrix inverse() => _blink.BlinkSVGMatrix.instance.inverse_Callback_0_(this);
   
   @DomName('SVGMatrix.multiply')
   @DocsEditable()
-  Matrix multiply(Matrix secondMatrix) => wrap_jso(_blink.BlinkSVGMatrix.instance.multiply_Callback_1_(unwrap_jso(this), unwrap_jso(secondMatrix)));
+  Matrix multiply(Matrix secondMatrix) => _blink.BlinkSVGMatrix.instance.multiply_Callback_1_(this, secondMatrix);
   
   @DomName('SVGMatrix.rotate')
   @DocsEditable()
-  Matrix rotate(num angle) => wrap_jso(_blink.BlinkSVGMatrix.instance.rotate_Callback_1_(unwrap_jso(this), angle));
+  Matrix rotate(num angle) => _blink.BlinkSVGMatrix.instance.rotate_Callback_1_(this, angle);
   
   @DomName('SVGMatrix.rotateFromVector')
   @DocsEditable()
-  Matrix rotateFromVector(num x, num y) => wrap_jso(_blink.BlinkSVGMatrix.instance.rotateFromVector_Callback_2_(unwrap_jso(this), x, y));
+  Matrix rotateFromVector(num x, num y) => _blink.BlinkSVGMatrix.instance.rotateFromVector_Callback_2_(this, x, y);
   
   @DomName('SVGMatrix.scale')
   @DocsEditable()
-  Matrix scale(num scaleFactor) => wrap_jso(_blink.BlinkSVGMatrix.instance.scale_Callback_1_(unwrap_jso(this), scaleFactor));
+  Matrix scale(num scaleFactor) => _blink.BlinkSVGMatrix.instance.scale_Callback_1_(this, scaleFactor);
   
   @DomName('SVGMatrix.scaleNonUniform')
   @DocsEditable()
-  Matrix scaleNonUniform(num scaleFactorX, num scaleFactorY) => wrap_jso(_blink.BlinkSVGMatrix.instance.scaleNonUniform_Callback_2_(unwrap_jso(this), scaleFactorX, scaleFactorY));
+  Matrix scaleNonUniform(num scaleFactorX, num scaleFactorY) => _blink.BlinkSVGMatrix.instance.scaleNonUniform_Callback_2_(this, scaleFactorX, scaleFactorY);
   
   @DomName('SVGMatrix.skewX')
   @DocsEditable()
-  Matrix skewX(num angle) => wrap_jso(_blink.BlinkSVGMatrix.instance.skewX_Callback_1_(unwrap_jso(this), angle));
+  Matrix skewX(num angle) => _blink.BlinkSVGMatrix.instance.skewX_Callback_1_(this, angle);
   
   @DomName('SVGMatrix.skewY')
   @DocsEditable()
-  Matrix skewY(num angle) => wrap_jso(_blink.BlinkSVGMatrix.instance.skewY_Callback_1_(unwrap_jso(this), angle));
+  Matrix skewY(num angle) => _blink.BlinkSVGMatrix.instance.skewY_Callback_1_(this, angle);
   
   @DomName('SVGMatrix.translate')
   @DocsEditable()
-  Matrix translate(num x, num y) => wrap_jso(_blink.BlinkSVGMatrix.instance.translate_Callback_2_(unwrap_jso(this), x, y));
+  Matrix translate(num x, num y) => _blink.BlinkSVGMatrix.instance.translate_Callback_2_(this, x, y);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4244,11 +3808,7 @@ class MetadataElement extends SvgElement {
 
 
   @Deprecated("Internal Use Only")
-  static MetadataElement internalCreateMetadataElement() {
-    return new MetadataElement._internalWrap();
-  }
-
-  external factory MetadataElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   MetadataElement.internal_() : super.internal_();
@@ -4275,28 +3835,20 @@ class Number extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Number._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static Number internalCreateNumber() {
-    return new Number._internalWrap();
-  }
 
-  factory Number._internalWrap() {
-    return new Number.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   Number.internal_() { }
 
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('SVGNumber.value')
   @DocsEditable()
-  num get value => _blink.BlinkSVGNumber.instance.value_Getter_(unwrap_jso(this));
+  num get value => _blink.BlinkSVGNumber.instance.value_Getter_(this);
   
   @DomName('SVGNumber.value')
   @DocsEditable()
-  set value(num value) => _blink.BlinkSVGNumber.instance.value_Setter_(unwrap_jso(this), value);
+  set value(num value) => _blink.BlinkSVGNumber.instance.value_Setter_(this, value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4313,29 +3865,21 @@ class NumberList extends DartHtmlDomObject with ListMixin<Number>, ImmutableList
   // To suppress missing implicit constructor warnings.
   factory NumberList._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static NumberList internalCreateNumberList() {
-    return new NumberList._internalWrap();
-  }
 
-  factory NumberList._internalWrap() {
-    return new NumberList.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   NumberList.internal_() { }
 
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('SVGNumberList.length')
   @DocsEditable()
   @Experimental() // untriaged
-  int get length => _blink.BlinkSVGNumberList.instance.length_Getter_(unwrap_jso(this));
+  int get length => _blink.BlinkSVGNumberList.instance.length_Getter_(this);
   
   @DomName('SVGNumberList.numberOfItems')
   @DocsEditable()
-  int get numberOfItems => _blink.BlinkSVGNumberList.instance.numberOfItems_Getter_(unwrap_jso(this));
+  int get numberOfItems => _blink.BlinkSVGNumberList.instance.numberOfItems_Getter_(this);
   
   Number operator[](int index) {
     if (index < 0 || index >= length)
@@ -4384,35 +3928,35 @@ class NumberList extends DartHtmlDomObject with ListMixin<Number>, ImmutableList
   @DomName('SVGNumberList.__setter__')
   @DocsEditable()
   @Experimental() // untriaged
-  void __setter__(int index, Number newItem) => _blink.BlinkSVGNumberList.instance.$__setter___Callback_2_(unwrap_jso(this), index, unwrap_jso(newItem));
+  void __setter__(int index, Number newItem) => _blink.BlinkSVGNumberList.instance.$__setter___Callback_2_(this, index, newItem);
   
   @DomName('SVGNumberList.appendItem')
   @DocsEditable()
-  Number appendItem(Number newItem) => wrap_jso(_blink.BlinkSVGNumberList.instance.appendItem_Callback_1_(unwrap_jso(this), unwrap_jso(newItem)));
+  Number appendItem(Number newItem) => _blink.BlinkSVGNumberList.instance.appendItem_Callback_1_(this, newItem);
   
   @DomName('SVGNumberList.clear')
   @DocsEditable()
-  void clear() => _blink.BlinkSVGNumberList.instance.clear_Callback_0_(unwrap_jso(this));
+  void clear() => _blink.BlinkSVGNumberList.instance.clear_Callback_0_(this);
   
   @DomName('SVGNumberList.getItem')
   @DocsEditable()
-  Number getItem(int index) => wrap_jso(_blink.BlinkSVGNumberList.instance.getItem_Callback_1_(unwrap_jso(this), index));
+  Number getItem(int index) => _blink.BlinkSVGNumberList.instance.getItem_Callback_1_(this, index);
   
   @DomName('SVGNumberList.initialize')
   @DocsEditable()
-  Number initialize(Number newItem) => wrap_jso(_blink.BlinkSVGNumberList.instance.initialize_Callback_1_(unwrap_jso(this), unwrap_jso(newItem)));
+  Number initialize(Number newItem) => _blink.BlinkSVGNumberList.instance.initialize_Callback_1_(this, newItem);
   
   @DomName('SVGNumberList.insertItemBefore')
   @DocsEditable()
-  Number insertItemBefore(Number newItem, int index) => wrap_jso(_blink.BlinkSVGNumberList.instance.insertItemBefore_Callback_2_(unwrap_jso(this), unwrap_jso(newItem), index));
+  Number insertItemBefore(Number newItem, int index) => _blink.BlinkSVGNumberList.instance.insertItemBefore_Callback_2_(this, newItem, index);
   
   @DomName('SVGNumberList.removeItem')
   @DocsEditable()
-  Number removeItem(int index) => wrap_jso(_blink.BlinkSVGNumberList.instance.removeItem_Callback_1_(unwrap_jso(this), index));
+  Number removeItem(int index) => _blink.BlinkSVGNumberList.instance.removeItem_Callback_1_(this, index);
   
   @DomName('SVGNumberList.replaceItem')
   @DocsEditable()
-  Number replaceItem(Number newItem, int index) => wrap_jso(_blink.BlinkSVGNumberList.instance.replaceItem_Callback_2_(unwrap_jso(this), unwrap_jso(newItem), index));
+  Number replaceItem(Number newItem, int index) => _blink.BlinkSVGNumberList.instance.replaceItem_Callback_2_(this, newItem, index);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4435,11 +3979,7 @@ class PathElement extends GeometryElement {
 
 
   @Deprecated("Internal Use Only")
-  static PathElement internalCreatePathElement() {
-    return new PathElement._internalWrap();
-  }
-
-  external factory PathElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   PathElement.internal_() : super.internal_();
@@ -4453,111 +3993,111 @@ class PathElement extends GeometryElement {
 
   @DomName('SVGPathElement.animatedNormalizedPathSegList')
   @DocsEditable()
-  PathSegList get animatedNormalizedPathSegList => wrap_jso(_blink.BlinkSVGPathElement.instance.animatedNormalizedPathSegList_Getter_(unwrap_jso(this)));
+  PathSegList get animatedNormalizedPathSegList => _blink.BlinkSVGPathElement.instance.animatedNormalizedPathSegList_Getter_(this);
   
   @DomName('SVGPathElement.animatedPathSegList')
   @DocsEditable()
-  PathSegList get animatedPathSegList => wrap_jso(_blink.BlinkSVGPathElement.instance.animatedPathSegList_Getter_(unwrap_jso(this)));
+  PathSegList get animatedPathSegList => _blink.BlinkSVGPathElement.instance.animatedPathSegList_Getter_(this);
   
   @DomName('SVGPathElement.normalizedPathSegList')
   @DocsEditable()
-  PathSegList get normalizedPathSegList => wrap_jso(_blink.BlinkSVGPathElement.instance.normalizedPathSegList_Getter_(unwrap_jso(this)));
+  PathSegList get normalizedPathSegList => _blink.BlinkSVGPathElement.instance.normalizedPathSegList_Getter_(this);
   
   @DomName('SVGPathElement.pathLength')
   @DocsEditable()
-  AnimatedNumber get pathLength => wrap_jso(_blink.BlinkSVGPathElement.instance.pathLength_Getter_(unwrap_jso(this)));
+  AnimatedNumber get pathLength => _blink.BlinkSVGPathElement.instance.pathLength_Getter_(this);
   
   @DomName('SVGPathElement.pathSegList')
   @DocsEditable()
-  PathSegList get pathSegList => wrap_jso(_blink.BlinkSVGPathElement.instance.pathSegList_Getter_(unwrap_jso(this)));
+  PathSegList get pathSegList => _blink.BlinkSVGPathElement.instance.pathSegList_Getter_(this);
   
   @DomName('SVGPathElement.createSVGPathSegArcAbs')
   @DocsEditable()
-  PathSegArcAbs createSvgPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegArcAbs_Callback_7_(unwrap_jso(this), x, y, r1, r2, angle, largeArcFlag, sweepFlag));
+  PathSegArcAbs createSvgPathSegArcAbs(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) => _blink.BlinkSVGPathElement.instance.createSVGPathSegArcAbs_Callback_7_(this, x, y, r1, r2, angle, largeArcFlag, sweepFlag);
   
   @DomName('SVGPathElement.createSVGPathSegArcRel')
   @DocsEditable()
-  PathSegArcRel createSvgPathSegArcRel(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegArcRel_Callback_7_(unwrap_jso(this), x, y, r1, r2, angle, largeArcFlag, sweepFlag));
+  PathSegArcRel createSvgPathSegArcRel(num x, num y, num r1, num r2, num angle, bool largeArcFlag, bool sweepFlag) => _blink.BlinkSVGPathElement.instance.createSVGPathSegArcRel_Callback_7_(this, x, y, r1, r2, angle, largeArcFlag, sweepFlag);
   
   @DomName('SVGPathElement.createSVGPathSegClosePath')
   @DocsEditable()
-  PathSegClosePath createSvgPathSegClosePath() => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegClosePath_Callback_0_(unwrap_jso(this)));
+  PathSegClosePath createSvgPathSegClosePath() => _blink.BlinkSVGPathElement.instance.createSVGPathSegClosePath_Callback_0_(this);
   
   @DomName('SVGPathElement.createSVGPathSegCurvetoCubicAbs')
   @DocsEditable()
-  PathSegCurvetoCubicAbs createSvgPathSegCurvetoCubicAbs(num x, num y, num x1, num y1, num x2, num y2) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoCubicAbs_Callback_6_(unwrap_jso(this), x, y, x1, y1, x2, y2));
+  PathSegCurvetoCubicAbs createSvgPathSegCurvetoCubicAbs(num x, num y, num x1, num y1, num x2, num y2) => _blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoCubicAbs_Callback_6_(this, x, y, x1, y1, x2, y2);
   
   @DomName('SVGPathElement.createSVGPathSegCurvetoCubicRel')
   @DocsEditable()
-  PathSegCurvetoCubicRel createSvgPathSegCurvetoCubicRel(num x, num y, num x1, num y1, num x2, num y2) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoCubicRel_Callback_6_(unwrap_jso(this), x, y, x1, y1, x2, y2));
+  PathSegCurvetoCubicRel createSvgPathSegCurvetoCubicRel(num x, num y, num x1, num y1, num x2, num y2) => _blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoCubicRel_Callback_6_(this, x, y, x1, y1, x2, y2);
   
   @DomName('SVGPathElement.createSVGPathSegCurvetoCubicSmoothAbs')
   @DocsEditable()
-  PathSegCurvetoCubicSmoothAbs createSvgPathSegCurvetoCubicSmoothAbs(num x, num y, num x2, num y2) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoCubicSmoothAbs_Callback_4_(unwrap_jso(this), x, y, x2, y2));
+  PathSegCurvetoCubicSmoothAbs createSvgPathSegCurvetoCubicSmoothAbs(num x, num y, num x2, num y2) => _blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoCubicSmoothAbs_Callback_4_(this, x, y, x2, y2);
   
   @DomName('SVGPathElement.createSVGPathSegCurvetoCubicSmoothRel')
   @DocsEditable()
-  PathSegCurvetoCubicSmoothRel createSvgPathSegCurvetoCubicSmoothRel(num x, num y, num x2, num y2) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoCubicSmoothRel_Callback_4_(unwrap_jso(this), x, y, x2, y2));
+  PathSegCurvetoCubicSmoothRel createSvgPathSegCurvetoCubicSmoothRel(num x, num y, num x2, num y2) => _blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoCubicSmoothRel_Callback_4_(this, x, y, x2, y2);
   
   @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticAbs')
   @DocsEditable()
-  PathSegCurvetoQuadraticAbs createSvgPathSegCurvetoQuadraticAbs(num x, num y, num x1, num y1) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoQuadraticAbs_Callback_4_(unwrap_jso(this), x, y, x1, y1));
+  PathSegCurvetoQuadraticAbs createSvgPathSegCurvetoQuadraticAbs(num x, num y, num x1, num y1) => _blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoQuadraticAbs_Callback_4_(this, x, y, x1, y1);
   
   @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticRel')
   @DocsEditable()
-  PathSegCurvetoQuadraticRel createSvgPathSegCurvetoQuadraticRel(num x, num y, num x1, num y1) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoQuadraticRel_Callback_4_(unwrap_jso(this), x, y, x1, y1));
+  PathSegCurvetoQuadraticRel createSvgPathSegCurvetoQuadraticRel(num x, num y, num x1, num y1) => _blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoQuadraticRel_Callback_4_(this, x, y, x1, y1);
   
   @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothAbs')
   @DocsEditable()
-  PathSegCurvetoQuadraticSmoothAbs createSvgPathSegCurvetoQuadraticSmoothAbs(num x, num y) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoQuadraticSmoothAbs_Callback_2_(unwrap_jso(this), x, y));
+  PathSegCurvetoQuadraticSmoothAbs createSvgPathSegCurvetoQuadraticSmoothAbs(num x, num y) => _blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoQuadraticSmoothAbs_Callback_2_(this, x, y);
   
   @DomName('SVGPathElement.createSVGPathSegCurvetoQuadraticSmoothRel')
   @DocsEditable()
-  PathSegCurvetoQuadraticSmoothRel createSvgPathSegCurvetoQuadraticSmoothRel(num x, num y) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoQuadraticSmoothRel_Callback_2_(unwrap_jso(this), x, y));
+  PathSegCurvetoQuadraticSmoothRel createSvgPathSegCurvetoQuadraticSmoothRel(num x, num y) => _blink.BlinkSVGPathElement.instance.createSVGPathSegCurvetoQuadraticSmoothRel_Callback_2_(this, x, y);
   
   @DomName('SVGPathElement.createSVGPathSegLinetoAbs')
   @DocsEditable()
-  PathSegLinetoAbs createSvgPathSegLinetoAbs(num x, num y) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegLinetoAbs_Callback_2_(unwrap_jso(this), x, y));
+  PathSegLinetoAbs createSvgPathSegLinetoAbs(num x, num y) => _blink.BlinkSVGPathElement.instance.createSVGPathSegLinetoAbs_Callback_2_(this, x, y);
   
   @DomName('SVGPathElement.createSVGPathSegLinetoHorizontalAbs')
   @DocsEditable()
-  PathSegLinetoHorizontalAbs createSvgPathSegLinetoHorizontalAbs(num x) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegLinetoHorizontalAbs_Callback_1_(unwrap_jso(this), x));
+  PathSegLinetoHorizontalAbs createSvgPathSegLinetoHorizontalAbs(num x) => _blink.BlinkSVGPathElement.instance.createSVGPathSegLinetoHorizontalAbs_Callback_1_(this, x);
   
   @DomName('SVGPathElement.createSVGPathSegLinetoHorizontalRel')
   @DocsEditable()
-  PathSegLinetoHorizontalRel createSvgPathSegLinetoHorizontalRel(num x) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegLinetoHorizontalRel_Callback_1_(unwrap_jso(this), x));
+  PathSegLinetoHorizontalRel createSvgPathSegLinetoHorizontalRel(num x) => _blink.BlinkSVGPathElement.instance.createSVGPathSegLinetoHorizontalRel_Callback_1_(this, x);
   
   @DomName('SVGPathElement.createSVGPathSegLinetoRel')
   @DocsEditable()
-  PathSegLinetoRel createSvgPathSegLinetoRel(num x, num y) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegLinetoRel_Callback_2_(unwrap_jso(this), x, y));
+  PathSegLinetoRel createSvgPathSegLinetoRel(num x, num y) => _blink.BlinkSVGPathElement.instance.createSVGPathSegLinetoRel_Callback_2_(this, x, y);
   
   @DomName('SVGPathElement.createSVGPathSegLinetoVerticalAbs')
   @DocsEditable()
-  PathSegLinetoVerticalAbs createSvgPathSegLinetoVerticalAbs(num y) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegLinetoVerticalAbs_Callback_1_(unwrap_jso(this), y));
+  PathSegLinetoVerticalAbs createSvgPathSegLinetoVerticalAbs(num y) => _blink.BlinkSVGPathElement.instance.createSVGPathSegLinetoVerticalAbs_Callback_1_(this, y);
   
   @DomName('SVGPathElement.createSVGPathSegLinetoVerticalRel')
   @DocsEditable()
-  PathSegLinetoVerticalRel createSvgPathSegLinetoVerticalRel(num y) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegLinetoVerticalRel_Callback_1_(unwrap_jso(this), y));
+  PathSegLinetoVerticalRel createSvgPathSegLinetoVerticalRel(num y) => _blink.BlinkSVGPathElement.instance.createSVGPathSegLinetoVerticalRel_Callback_1_(this, y);
   
   @DomName('SVGPathElement.createSVGPathSegMovetoAbs')
   @DocsEditable()
-  PathSegMovetoAbs createSvgPathSegMovetoAbs(num x, num y) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegMovetoAbs_Callback_2_(unwrap_jso(this), x, y));
+  PathSegMovetoAbs createSvgPathSegMovetoAbs(num x, num y) => _blink.BlinkSVGPathElement.instance.createSVGPathSegMovetoAbs_Callback_2_(this, x, y);
   
   @DomName('SVGPathElement.createSVGPathSegMovetoRel')
   @DocsEditable()
-  PathSegMovetoRel createSvgPathSegMovetoRel(num x, num y) => wrap_jso(_blink.BlinkSVGPathElement.instance.createSVGPathSegMovetoRel_Callback_2_(unwrap_jso(this), x, y));
+  PathSegMovetoRel createSvgPathSegMovetoRel(num x, num y) => _blink.BlinkSVGPathElement.instance.createSVGPathSegMovetoRel_Callback_2_(this, x, y);
   
   @DomName('SVGPathElement.getPathSegAtLength')
   @DocsEditable()
-  int getPathSegAtLength(num distance) => _blink.BlinkSVGPathElement.instance.getPathSegAtLength_Callback_1_(unwrap_jso(this), distance);
+  int getPathSegAtLength(num distance) => _blink.BlinkSVGPathElement.instance.getPathSegAtLength_Callback_1_(this, distance);
   
   @DomName('SVGPathElement.getPointAtLength')
   @DocsEditable()
-  Point getPointAtLength(num distance) => wrap_jso(_blink.BlinkSVGPathElement.instance.getPointAtLength_Callback_1_(unwrap_jso(this), distance));
+  Point getPointAtLength(num distance) => _blink.BlinkSVGPathElement.instance.getPointAtLength_Callback_1_(this, distance);
   
   @DomName('SVGPathElement.getTotalLength')
   @DocsEditable()
-  num getTotalLength() => _blink.BlinkSVGPathElement.instance.getTotalLength_Callback_0_(unwrap_jso(this));
+  num getTotalLength() => _blink.BlinkSVGPathElement.instance.getTotalLength_Callback_0_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4574,20 +4114,12 @@ class PathSeg extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory PathSeg._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static PathSeg internalCreatePathSeg() {
-    return new PathSeg._internalWrap();
-  }
 
-  factory PathSeg._internalWrap() {
-    return new PathSeg.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   PathSeg.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGPathSeg.PATHSEG_ARC_ABS')
   @DocsEditable()
@@ -4671,11 +4203,11 @@ class PathSeg extends DartHtmlDomObject {
 
   @DomName('SVGPathSeg.pathSegType')
   @DocsEditable()
-  int get pathSegType => _blink.BlinkSVGPathSeg.instance.pathSegType_Getter_(unwrap_jso(this));
+  int get pathSegType => _blink.BlinkSVGPathSeg.instance.pathSegType_Getter_(this);
   
   @DomName('SVGPathSeg.pathSegTypeAsLetter')
   @DocsEditable()
-  String get pathSegTypeAsLetter => _blink.BlinkSVGPathSeg.instance.pathSegTypeAsLetter_Getter_(unwrap_jso(this));
+  String get pathSegTypeAsLetter => _blink.BlinkSVGPathSeg.instance.pathSegTypeAsLetter_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4694,11 +4226,7 @@ class PathSegArcAbs extends PathSeg {
 
 
   @Deprecated("Internal Use Only")
-  static PathSegArcAbs internalCreatePathSegArcAbs() {
-    return new PathSegArcAbs._internalWrap();
-  }
-
-  external factory PathSegArcAbs._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   PathSegArcAbs.internal_() : super.internal_();
@@ -4706,59 +4234,59 @@ class PathSegArcAbs extends PathSeg {
 
   @DomName('SVGPathSegArcAbs.angle')
   @DocsEditable()
-  num get angle => _blink.BlinkSVGPathSegArcAbs.instance.angle_Getter_(unwrap_jso(this));
+  num get angle => _blink.BlinkSVGPathSegArcAbs.instance.angle_Getter_(this);
   
   @DomName('SVGPathSegArcAbs.angle')
   @DocsEditable()
-  set angle(num value) => _blink.BlinkSVGPathSegArcAbs.instance.angle_Setter_(unwrap_jso(this), value);
+  set angle(num value) => _blink.BlinkSVGPathSegArcAbs.instance.angle_Setter_(this, value);
   
   @DomName('SVGPathSegArcAbs.largeArcFlag')
   @DocsEditable()
-  bool get largeArcFlag => _blink.BlinkSVGPathSegArcAbs.instance.largeArcFlag_Getter_(unwrap_jso(this));
+  bool get largeArcFlag => _blink.BlinkSVGPathSegArcAbs.instance.largeArcFlag_Getter_(this);
   
   @DomName('SVGPathSegArcAbs.largeArcFlag')
   @DocsEditable()
-  set largeArcFlag(bool value) => _blink.BlinkSVGPathSegArcAbs.instance.largeArcFlag_Setter_(unwrap_jso(this), value);
+  set largeArcFlag(bool value) => _blink.BlinkSVGPathSegArcAbs.instance.largeArcFlag_Setter_(this, value);
   
   @DomName('SVGPathSegArcAbs.r1')
   @DocsEditable()
-  num get r1 => _blink.BlinkSVGPathSegArcAbs.instance.r1_Getter_(unwrap_jso(this));
+  num get r1 => _blink.BlinkSVGPathSegArcAbs.instance.r1_Getter_(this);
   
   @DomName('SVGPathSegArcAbs.r1')
   @DocsEditable()
-  set r1(num value) => _blink.BlinkSVGPathSegArcAbs.instance.r1_Setter_(unwrap_jso(this), value);
+  set r1(num value) => _blink.BlinkSVGPathSegArcAbs.instance.r1_Setter_(this, value);
   
   @DomName('SVGPathSegArcAbs.r2')
   @DocsEditable()
-  num get r2 => _blink.BlinkSVGPathSegArcAbs.instance.r2_Getter_(unwrap_jso(this));
+  num get r2 => _blink.BlinkSVGPathSegArcAbs.instance.r2_Getter_(this);
   
   @DomName('SVGPathSegArcAbs.r2')
   @DocsEditable()
-  set r2(num value) => _blink.BlinkSVGPathSegArcAbs.instance.r2_Setter_(unwrap_jso(this), value);
+  set r2(num value) => _blink.BlinkSVGPathSegArcAbs.instance.r2_Setter_(this, value);
   
   @DomName('SVGPathSegArcAbs.sweepFlag')
   @DocsEditable()
-  bool get sweepFlag => _blink.BlinkSVGPathSegArcAbs.instance.sweepFlag_Getter_(unwrap_jso(this));
+  bool get sweepFlag => _blink.BlinkSVGPathSegArcAbs.instance.sweepFlag_Getter_(this);
   
   @DomName('SVGPathSegArcAbs.sweepFlag')
   @DocsEditable()
-  set sweepFlag(bool value) => _blink.BlinkSVGPathSegArcAbs.instance.sweepFlag_Setter_(unwrap_jso(this), value);
+  set sweepFlag(bool value) => _blink.BlinkSVGPathSegArcAbs.instance.sweepFlag_Setter_(this, value);
   
   @DomName('SVGPathSegArcAbs.x')
   @DocsEditable()
-  num get x => _blink.BlinkSVGPathSegArcAbs.instance.x_Getter_(unwrap_jso(this));
+  num get x => _blink.BlinkSVGPathSegArcAbs.instance.x_Getter_(this);
   
   @DomName('SVGPathSegArcAbs.x')
   @DocsEditable()
-  set x(num value) => _blink.BlinkSVGPathSegArcAbs.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegArcAbs.instance.x_Setter_(this, value);
   
   @DomName('SVGPathSegArcAbs.y')
   @DocsEditable()
-  num get y => _blink.BlinkSVGPathSegArcAbs.instance.y_Getter_(unwrap_jso(this));
+  num get y => _blink.BlinkSVGPathSegArcAbs.instance.y_Getter_(this);
   
   @DomName('SVGPathSegArcAbs.y')
   @DocsEditable()
-  set y(num value) => _blink.BlinkSVGPathSegArcAbs.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegArcAbs.instance.y_Setter_(this, value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4777,11 +4305,7 @@ class PathSegArcRel extends PathSeg {
 
 
   @Deprecated("Internal Use Only")
-  static PathSegArcRel internalCreatePathSegArcRel() {
-    return new PathSegArcRel._internalWrap();
-  }
-
-  external factory PathSegArcRel._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   PathSegArcRel.internal_() : super.internal_();
@@ -4789,59 +4313,59 @@ class PathSegArcRel extends PathSeg {
 
   @DomName('SVGPathSegArcRel.angle')
   @DocsEditable()
-  num get angle => _blink.BlinkSVGPathSegArcRel.instance.angle_Getter_(unwrap_jso(this));
+  num get angle => _blink.BlinkSVGPathSegArcRel.instance.angle_Getter_(this);
   
   @DomName('SVGPathSegArcRel.angle')
   @DocsEditable()
-  set angle(num value) => _blink.BlinkSVGPathSegArcRel.instance.angle_Setter_(unwrap_jso(this), value);
+  set angle(num value) => _blink.BlinkSVGPathSegArcRel.instance.angle_Setter_(this, value);
   
   @DomName('SVGPathSegArcRel.largeArcFlag')
   @DocsEditable()
-  bool get largeArcFlag => _blink.BlinkSVGPathSegArcRel.instance.largeArcFlag_Getter_(unwrap_jso(this));
+  bool get largeArcFlag => _blink.BlinkSVGPathSegArcRel.instance.largeArcFlag_Getter_(this);
   
   @DomName('SVGPathSegArcRel.largeArcFlag')
   @DocsEditable()
-  set largeArcFlag(bool value) => _blink.BlinkSVGPathSegArcRel.instance.largeArcFlag_Setter_(unwrap_jso(this), value);
+  set largeArcFlag(bool value) => _blink.BlinkSVGPathSegArcRel.instance.largeArcFlag_Setter_(this, value);
   
   @DomName('SVGPathSegArcRel.r1')
   @DocsEditable()
-  num get r1 => _blink.BlinkSVGPathSegArcRel.instance.r1_Getter_(unwrap_jso(this));
+  num get r1 => _blink.BlinkSVGPathSegArcRel.instance.r1_Getter_(this);
   
   @DomName('SVGPathSegArcRel.r1')
   @DocsEditable()
-  set r1(num value) => _blink.BlinkSVGPathSegArcRel.instance.r1_Setter_(unwrap_jso(this), value);
+  set r1(num value) => _blink.BlinkSVGPathSegArcRel.instance.r1_Setter_(this, value);
   
   @DomName('SVGPathSegArcRel.r2')
   @DocsEditable()
-  num get r2 => _blink.BlinkSVGPathSegArcRel.instance.r2_Getter_(unwrap_jso(this));
+  num get r2 => _blink.BlinkSVGPathSegArcRel.instance.r2_Getter_(this);
   
   @DomName('SVGPathSegArcRel.r2')
   @DocsEditable()
-  set r2(num value) => _blink.BlinkSVGPathSegArcRel.instance.r2_Setter_(unwrap_jso(this), value);
+  set r2(num value) => _blink.BlinkSVGPathSegArcRel.instance.r2_Setter_(this, value);
   
   @DomName('SVGPathSegArcRel.sweepFlag')
   @DocsEditable()
-  bool get sweepFlag => _blink.BlinkSVGPathSegArcRel.instance.sweepFlag_Getter_(unwrap_jso(this));
+  bool get sweepFlag => _blink.BlinkSVGPathSegArcRel.instance.sweepFlag_Getter_(this);
   
   @DomName('SVGPathSegArcRel.sweepFlag')
   @DocsEditable()
-  set sweepFlag(bool value) => _blink.BlinkSVGPathSegArcRel.instance.sweepFlag_Setter_(unwrap_jso(this), value);
+  set sweepFlag(bool value) => _blink.BlinkSVGPathSegArcRel.instance.sweepFlag_Setter_(this, value);
   
   @DomName('SVGPathSegArcRel.x')
   @DocsEditable()
-  num get x => _blink.BlinkSVGPathSegArcRel.instance.x_Getter_(unwrap_jso(this));
+  num get x => _blink.BlinkSVGPathSegArcRel.instance.x_Getter_(this);
   
   @DomName('SVGPathSegArcRel.x')
   @DocsEditable()
-  set x(num value) => _blink.BlinkSVGPathSegArcRel.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegArcRel.instance.x_Setter_(this, value);
   
   @DomName('SVGPathSegArcRel.y')
   @DocsEditable()
-  num get y => _blink.BlinkSVGPathSegArcRel.instance.y_Getter_(unwrap_jso(this));
+  num get y => _blink.BlinkSVGPathSegArcRel.instance.y_Getter_(this);
   
   @DomName('SVGPathSegArcRel.y')
   @DocsEditable()
-  set y(num value) => _blink.BlinkSVGPathSegArcRel.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegArcRel.instance.y_Setter_(this, value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4860,11 +4384,7 @@ class PathSegClosePath extends PathSeg {
 
 
   @Deprecated("Internal Use Only")
-  static PathSegClosePath internalCreatePathSegClosePath() {
-    return new PathSegClosePath._internalWrap();
-  }
-
-  external factory PathSegClosePath._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   PathSegClosePath.internal_() : super.internal_();
@@ -4887,11 +4407,7 @@ class PathSegCurvetoCubicAbs extends PathSeg {
 
 
   @Deprecated("Internal Use Only")
-  static PathSegCurvetoCubicAbs internalCreatePathSegCurvetoCubicAbs() {
-    return new PathSegCurvetoCubicAbs._internalWrap();
-  }
-
-  external factory PathSegCurvetoCubicAbs._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   PathSegCurvetoCubicAbs.internal_() : super.internal_();
@@ -4899,51 +4415,51 @@ class PathSegCurvetoCubicAbs extends PathSeg {
 
   @DomName('SVGPathSegCurvetoCubicAbs.x')
   @DocsEditable()
-  num get x => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.x_Getter_(unwrap_jso(this));
+  num get x => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.x_Getter_(this);
   
   @DomName('SVGPathSegCurvetoCubicAbs.x')
   @DocsEditable()
-  set x(num value) => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.x_Setter_(this, value);
   
   @DomName('SVGPathSegCurvetoCubicAbs.x1')
   @DocsEditable()
-  num get x1 => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.x1_Getter_(unwrap_jso(this));
+  num get x1 => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.x1_Getter_(this);
   
   @DomName('SVGPathSegCurvetoCubicAbs.x1')
   @DocsEditable()
-  set x1(num value) => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.x1_Setter_(unwrap_jso(this), value);
+  set x1(num value) => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.x1_Setter_(this, value);
   
   @DomName('SVGPathSegCurvetoCubicAbs.x2')
   @DocsEditable()
-  num get x2 => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.x2_Getter_(unwrap_jso(this));
+  num get x2 => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.x2_Getter_(this);
   
   @DomName('SVGPathSegCurvetoCubicAbs.x2')
   @DocsEditable()
-  set x2(num value) => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.x2_Setter_(unwrap_jso(this), value);
+  set x2(num value) => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.x2_Setter_(this, value);
   
   @DomName('SVGPathSegCurvetoCubicAbs.y')
   @DocsEditable()
-  num get y => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.y_Getter_(unwrap_jso(this));
+  num get y => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.y_Getter_(this);
   
   @DomName('SVGPathSegCurvetoCubicAbs.y')
   @DocsEditable()
-  set y(num value) => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.y_Setter_(this, value);
   
   @DomName('SVGPathSegCurvetoCubicAbs.y1')
   @DocsEditable()
-  num get y1 => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.y1_Getter_(unwrap_jso(this));
+  num get y1 => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.y1_Getter_(this);
   
   @DomName('SVGPathSegCurvetoCubicAbs.y1')
   @DocsEditable()
-  set y1(num value) => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.y1_Setter_(unwrap_jso(this), value);
+  set y1(num value) => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.y1_Setter_(this, value);
   
   @DomName('SVGPathSegCurvetoCubicAbs.y2')
   @DocsEditable()
-  num get y2 => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.y2_Getter_(unwrap_jso(this));
+  num get y2 => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.y2_Getter_(this);
   
   @DomName('SVGPathSegCurvetoCubicAbs.y2')
   @DocsEditable()
-  set y2(num value) => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.y2_Setter_(unwrap_jso(this), value);
+  set y2(num value) => _blink.BlinkSVGPathSegCurvetoCubicAbs.instance.y2_Setter_(this, value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4962,11 +4478,7 @@ class PathSegCurvetoCubicRel extends PathSeg {
 
 
   @Deprecated("Internal Use Only")
-  static PathSegCurvetoCubicRel internalCreatePathSegCurvetoCubicRel() {
-    return new PathSegCurvetoCubicRel._internalWrap();
-  }
-
-  external factory PathSegCurvetoCubicRel._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   PathSegCurvetoCubicRel.internal_() : super.internal_();
@@ -4974,51 +4486,51 @@ class PathSegCurvetoCubicRel extends PathSeg {
 
   @DomName('SVGPathSegCurvetoCubicRel.x')
   @DocsEditable()
-  num get x => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.x_Getter_(unwrap_jso(this));
+  num get x => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.x_Getter_(this);
   
   @DomName('SVGPathSegCurvetoCubicRel.x')
   @DocsEditable()
-  set x(num value) => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.x_Setter_(this, value);
   
   @DomName('SVGPathSegCurvetoCubicRel.x1')
   @DocsEditable()
-  num get x1 => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.x1_Getter_(unwrap_jso(this));
+  num get x1 => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.x1_Getter_(this);
   
   @DomName('SVGPathSegCurvetoCubicRel.x1')
   @DocsEditable()
-  set x1(num value) => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.x1_Setter_(unwrap_jso(this), value);
+  set x1(num value) => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.x1_Setter_(this, value);
   
   @DomName('SVGPathSegCurvetoCubicRel.x2')
   @DocsEditable()
-  num get x2 => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.x2_Getter_(unwrap_jso(this));
+  num get x2 => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.x2_Getter_(this);
   
   @DomName('SVGPathSegCurvetoCubicRel.x2')
   @DocsEditable()
-  set x2(num value) => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.x2_Setter_(unwrap_jso(this), value);
+  set x2(num value) => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.x2_Setter_(this, value);
   
   @DomName('SVGPathSegCurvetoCubicRel.y')
   @DocsEditable()
-  num get y => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.y_Getter_(unwrap_jso(this));
+  num get y => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.y_Getter_(this);
   
   @DomName('SVGPathSegCurvetoCubicRel.y')
   @DocsEditable()
-  set y(num value) => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.y_Setter_(this, value);
   
   @DomName('SVGPathSegCurvetoCubicRel.y1')
   @DocsEditable()
-  num get y1 => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.y1_Getter_(unwrap_jso(this));
+  num get y1 => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.y1_Getter_(this);
   
   @DomName('SVGPathSegCurvetoCubicRel.y1')
   @DocsEditable()
-  set y1(num value) => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.y1_Setter_(unwrap_jso(this), value);
+  set y1(num value) => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.y1_Setter_(this, value);
   
   @DomName('SVGPathSegCurvetoCubicRel.y2')
   @DocsEditable()
-  num get y2 => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.y2_Getter_(unwrap_jso(this));
+  num get y2 => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.y2_Getter_(this);
   
   @DomName('SVGPathSegCurvetoCubicRel.y2')
   @DocsEditable()
-  set y2(num value) => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.y2_Setter_(unwrap_jso(this), value);
+  set y2(num value) => _blink.BlinkSVGPathSegCurvetoCubicRel.instance.y2_Setter_(this, value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5037,11 +4549,7 @@ class PathSegCurvetoCubicSmoothAbs extends PathSeg {
 
 
   @Deprecated("Internal Use Only")
-  static PathSegCurvetoCubicSmoothAbs internalCreatePathSegCurvetoCubicSmoothAbs() {
-    return new PathSegCurvetoCubicSmoothAbs._internalWrap();
-  }
-
-  external factory PathSegCurvetoCubicSmoothAbs._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   PathSegCurvetoCubicSmoothAbs.internal_() : super.internal_();
@@ -5049,35 +4557,35 @@ class PathSegCurvetoCubicSmoothAbs extends PathSeg {
 
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.x')
   @DocsEditable()
-  num get x => _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance.x_Getter_(unwrap_jso(this));
+  num get x => _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance.x_Getter_(this);
   
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.x')
   @DocsEditable()
-  set x(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance.x_Setter_(this, value);
   
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.x2')
   @DocsEditable()
-  num get x2 => _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance.x2_Getter_(unwrap_jso(this));
+  num get x2 => _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance.x2_Getter_(this);
   
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.x2')
   @DocsEditable()
-  set x2(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance.x2_Setter_(unwrap_jso(this), value);
+  set x2(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance.x2_Setter_(this, value);
   
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.y')
   @DocsEditable()
-  num get y => _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance.y_Getter_(unwrap_jso(this));
+  num get y => _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance.y_Getter_(this);
   
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.y')
   @DocsEditable()
-  set y(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance.y_Setter_(this, value);
   
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.y2')
   @DocsEditable()
-  num get y2 => _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance.y2_Getter_(unwrap_jso(this));
+  num get y2 => _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance.y2_Getter_(this);
   
   @DomName('SVGPathSegCurvetoCubicSmoothAbs.y2')
   @DocsEditable()
-  set y2(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance.y2_Setter_(unwrap_jso(this), value);
+  set y2(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothAbs.instance.y2_Setter_(this, value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5096,11 +4604,7 @@ class PathSegCurvetoCubicSmoothRel extends PathSeg {
 
 
   @Deprecated("Internal Use Only")
-  static PathSegCurvetoCubicSmoothRel internalCreatePathSegCurvetoCubicSmoothRel() {
-    return new PathSegCurvetoCubicSmoothRel._internalWrap();
-  }
-
-  external factory PathSegCurvetoCubicSmoothRel._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   PathSegCurvetoCubicSmoothRel.internal_() : super.internal_();
@@ -5108,35 +4612,35 @@ class PathSegCurvetoCubicSmoothRel extends PathSeg {
 
   @DomName('SVGPathSegCurvetoCubicSmoothRel.x')
   @DocsEditable()
-  num get x => _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance.x_Getter_(unwrap_jso(this));
+  num get x => _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance.x_Getter_(this);
   
   @DomName('SVGPathSegCurvetoCubicSmoothRel.x')
   @DocsEditable()
-  set x(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance.x_Setter_(this, value);
   
   @DomName('SVGPathSegCurvetoCubicSmoothRel.x2')
   @DocsEditable()
-  num get x2 => _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance.x2_Getter_(unwrap_jso(this));
+  num get x2 => _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance.x2_Getter_(this);
   
   @DomName('SVGPathSegCurvetoCubicSmoothRel.x2')
   @DocsEditable()
-  set x2(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance.x2_Setter_(unwrap_jso(this), value);
+  set x2(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance.x2_Setter_(this, value);
   
   @DomName('SVGPathSegCurvetoCubicSmoothRel.y')
   @DocsEditable()
-  num get y => _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance.y_Getter_(unwrap_jso(this));
+  num get y => _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance.y_Getter_(this);
   
   @DomName('SVGPathSegCurvetoCubicSmoothRel.y')
   @DocsEditable()
-  set y(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance.y_Setter_(this, value);
   
   @DomName('SVGPathSegCurvetoCubicSmoothRel.y2')
   @DocsEditable()
-  num get y2 => _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance.y2_Getter_(unwrap_jso(this));
+  num get y2 => _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance.y2_Getter_(this);
   
   @DomName('SVGPathSegCurvetoCubicSmoothRel.y2')
   @DocsEditable()
-  set y2(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance.y2_Setter_(unwrap_jso(this), value);
+  set y2(num value) => _blink.BlinkSVGPathSegCurvetoCubicSmoothRel.instance.y2_Setter_(this, value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5155,11 +4659,7 @@ class PathSegCurvetoQuadraticAbs extends PathSeg {
 
 
   @Deprecated("Internal Use Only")
-  static PathSegCurvetoQuadraticAbs internalCreatePathSegCurvetoQuadraticAbs() {
-    return new PathSegCurvetoQuadraticAbs._internalWrap();
-  }
-
-  external factory PathSegCurvetoQuadraticAbs._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   PathSegCurvetoQuadraticAbs.internal_() : super.internal_();
@@ -5167,35 +4667,35 @@ class PathSegCurvetoQuadraticAbs extends PathSeg {
 
   @DomName('SVGPathSegCurvetoQuadraticAbs.x')
   @DocsEditable()
-  num get x => _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance.x_Getter_(unwrap_jso(this));
+  num get x => _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance.x_Getter_(this);
   
   @DomName('SVGPathSegCurvetoQuadraticAbs.x')
   @DocsEditable()
-  set x(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance.x_Setter_(this, value);
   
   @DomName('SVGPathSegCurvetoQuadraticAbs.x1')
   @DocsEditable()
-  num get x1 => _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance.x1_Getter_(unwrap_jso(this));
+  num get x1 => _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance.x1_Getter_(this);
   
   @DomName('SVGPathSegCurvetoQuadraticAbs.x1')
   @DocsEditable()
-  set x1(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance.x1_Setter_(unwrap_jso(this), value);
+  set x1(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance.x1_Setter_(this, value);
   
   @DomName('SVGPathSegCurvetoQuadraticAbs.y')
   @DocsEditable()
-  num get y => _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance.y_Getter_(unwrap_jso(this));
+  num get y => _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance.y_Getter_(this);
   
   @DomName('SVGPathSegCurvetoQuadraticAbs.y')
   @DocsEditable()
-  set y(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance.y_Setter_(this, value);
   
   @DomName('SVGPathSegCurvetoQuadraticAbs.y1')
   @DocsEditable()
-  num get y1 => _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance.y1_Getter_(unwrap_jso(this));
+  num get y1 => _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance.y1_Getter_(this);
   
   @DomName('SVGPathSegCurvetoQuadraticAbs.y1')
   @DocsEditable()
-  set y1(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance.y1_Setter_(unwrap_jso(this), value);
+  set y1(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticAbs.instance.y1_Setter_(this, value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5214,11 +4714,7 @@ class PathSegCurvetoQuadraticRel extends PathSeg {
 
 
   @Deprecated("Internal Use Only")
-  static PathSegCurvetoQuadraticRel internalCreatePathSegCurvetoQuadraticRel() {
-    return new PathSegCurvetoQuadraticRel._internalWrap();
-  }
-
-  external factory PathSegCurvetoQuadraticRel._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   PathSegCurvetoQuadraticRel.internal_() : super.internal_();
@@ -5226,35 +4722,35 @@ class PathSegCurvetoQuadraticRel extends PathSeg {
 
   @DomName('SVGPathSegCurvetoQuadraticRel.x')
   @DocsEditable()
-  num get x => _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance.x_Getter_(unwrap_jso(this));
+  num get x => _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance.x_Getter_(this);
   
   @DomName('SVGPathSegCurvetoQuadraticRel.x')
   @DocsEditable()
-  set x(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance.x_Setter_(this, value);
   
   @DomName('SVGPathSegCurvetoQuadraticRel.x1')
   @DocsEditable()
-  num get x1 => _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance.x1_Getter_(unwrap_jso(this));
+  num get x1 => _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance.x1_Getter_(this);
   
   @DomName('SVGPathSegCurvetoQuadraticRel.x1')
   @DocsEditable()
-  set x1(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance.x1_Setter_(unwrap_jso(this), value);
+  set x1(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance.x1_Setter_(this, value);
   
   @DomName('SVGPathSegCurvetoQuadraticRel.y')
   @DocsEditable()
-  num get y => _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance.y_Getter_(unwrap_jso(this));
+  num get y => _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance.y_Getter_(this);
   
   @DomName('SVGPathSegCurvetoQuadraticRel.y')
   @DocsEditable()
-  set y(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance.y_Setter_(this, value);
   
   @DomName('SVGPathSegCurvetoQuadraticRel.y1')
   @DocsEditable()
-  num get y1 => _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance.y1_Getter_(unwrap_jso(this));
+  num get y1 => _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance.y1_Getter_(this);
   
   @DomName('SVGPathSegCurvetoQuadraticRel.y1')
   @DocsEditable()
-  set y1(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance.y1_Setter_(unwrap_jso(this), value);
+  set y1(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticRel.instance.y1_Setter_(this, value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5273,11 +4769,7 @@ class PathSegCurvetoQuadraticSmoothAbs extends PathSeg {
 
 
   @Deprecated("Internal Use Only")
-  static PathSegCurvetoQuadraticSmoothAbs internalCreatePathSegCurvetoQuadraticSmoothAbs() {
-    return new PathSegCurvetoQuadraticSmoothAbs._internalWrap();
-  }
-
-  external factory PathSegCurvetoQuadraticSmoothAbs._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   PathSegCurvetoQuadraticSmoothAbs.internal_() : super.internal_();
@@ -5285,19 +4777,19 @@ class PathSegCurvetoQuadraticSmoothAbs extends PathSeg {
 
   @DomName('SVGPathSegCurvetoQuadraticSmoothAbs.x')
   @DocsEditable()
-  num get x => _blink.BlinkSVGPathSegCurvetoQuadraticSmoothAbs.instance.x_Getter_(unwrap_jso(this));
+  num get x => _blink.BlinkSVGPathSegCurvetoQuadraticSmoothAbs.instance.x_Getter_(this);
   
   @DomName('SVGPathSegCurvetoQuadraticSmoothAbs.x')
   @DocsEditable()
-  set x(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticSmoothAbs.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticSmoothAbs.instance.x_Setter_(this, value);
   
   @DomName('SVGPathSegCurvetoQuadraticSmoothAbs.y')
   @DocsEditable()
-  num get y => _blink.BlinkSVGPathSegCurvetoQuadraticSmoothAbs.instance.y_Getter_(unwrap_jso(this));
+  num get y => _blink.BlinkSVGPathSegCurvetoQuadraticSmoothAbs.instance.y_Getter_(this);
   
   @DomName('SVGPathSegCurvetoQuadraticSmoothAbs.y')
   @DocsEditable()
-  set y(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticSmoothAbs.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticSmoothAbs.instance.y_Setter_(this, value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5316,11 +4808,7 @@ class PathSegCurvetoQuadraticSmoothRel extends PathSeg {
 
 
   @Deprecated("Internal Use Only")
-  static PathSegCurvetoQuadraticSmoothRel internalCreatePathSegCurvetoQuadraticSmoothRel() {
-    return new PathSegCurvetoQuadraticSmoothRel._internalWrap();
-  }
-
-  external factory PathSegCurvetoQuadraticSmoothRel._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   PathSegCurvetoQuadraticSmoothRel.internal_() : super.internal_();
@@ -5328,19 +4816,19 @@ class PathSegCurvetoQuadraticSmoothRel extends PathSeg {
 
   @DomName('SVGPathSegCurvetoQuadraticSmoothRel.x')
   @DocsEditable()
-  num get x => _blink.BlinkSVGPathSegCurvetoQuadraticSmoothRel.instance.x_Getter_(unwrap_jso(this));
+  num get x => _blink.BlinkSVGPathSegCurvetoQuadraticSmoothRel.instance.x_Getter_(this);
   
   @DomName('SVGPathSegCurvetoQuadraticSmoothRel.x')
   @DocsEditable()
-  set x(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticSmoothRel.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticSmoothRel.instance.x_Setter_(this, value);
   
   @DomName('SVGPathSegCurvetoQuadraticSmoothRel.y')
   @DocsEditable()
-  num get y => _blink.BlinkSVGPathSegCurvetoQuadraticSmoothRel.instance.y_Getter_(unwrap_jso(this));
+  num get y => _blink.BlinkSVGPathSegCurvetoQuadraticSmoothRel.instance.y_Getter_(this);
   
   @DomName('SVGPathSegCurvetoQuadraticSmoothRel.y')
   @DocsEditable()
-  set y(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticSmoothRel.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegCurvetoQuadraticSmoothRel.instance.y_Setter_(this, value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5359,11 +4847,7 @@ class PathSegLinetoAbs extends PathSeg {
 
 
   @Deprecated("Internal Use Only")
-  static PathSegLinetoAbs internalCreatePathSegLinetoAbs() {
-    return new PathSegLinetoAbs._internalWrap();
-  }
-
-  external factory PathSegLinetoAbs._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   PathSegLinetoAbs.internal_() : super.internal_();
@@ -5371,19 +4855,19 @@ class PathSegLinetoAbs extends PathSeg {
 
   @DomName('SVGPathSegLinetoAbs.x')
   @DocsEditable()
-  num get x => _blink.BlinkSVGPathSegLinetoAbs.instance.x_Getter_(unwrap_jso(this));
+  num get x => _blink.BlinkSVGPathSegLinetoAbs.instance.x_Getter_(this);
   
   @DomName('SVGPathSegLinetoAbs.x')
   @DocsEditable()
-  set x(num value) => _blink.BlinkSVGPathSegLinetoAbs.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegLinetoAbs.instance.x_Setter_(this, value);
   
   @DomName('SVGPathSegLinetoAbs.y')
   @DocsEditable()
-  num get y => _blink.BlinkSVGPathSegLinetoAbs.instance.y_Getter_(unwrap_jso(this));
+  num get y => _blink.BlinkSVGPathSegLinetoAbs.instance.y_Getter_(this);
   
   @DomName('SVGPathSegLinetoAbs.y')
   @DocsEditable()
-  set y(num value) => _blink.BlinkSVGPathSegLinetoAbs.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegLinetoAbs.instance.y_Setter_(this, value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5402,11 +4886,7 @@ class PathSegLinetoHorizontalAbs extends PathSeg {
 
 
   @Deprecated("Internal Use Only")
-  static PathSegLinetoHorizontalAbs internalCreatePathSegLinetoHorizontalAbs() {
-    return new PathSegLinetoHorizontalAbs._internalWrap();
-  }
-
-  external factory PathSegLinetoHorizontalAbs._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   PathSegLinetoHorizontalAbs.internal_() : super.internal_();
@@ -5414,11 +4894,11 @@ class PathSegLinetoHorizontalAbs extends PathSeg {
 
   @DomName('SVGPathSegLinetoHorizontalAbs.x')
   @DocsEditable()
-  num get x => _blink.BlinkSVGPathSegLinetoHorizontalAbs.instance.x_Getter_(unwrap_jso(this));
+  num get x => _blink.BlinkSVGPathSegLinetoHorizontalAbs.instance.x_Getter_(this);
   
   @DomName('SVGPathSegLinetoHorizontalAbs.x')
   @DocsEditable()
-  set x(num value) => _blink.BlinkSVGPathSegLinetoHorizontalAbs.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegLinetoHorizontalAbs.instance.x_Setter_(this, value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5437,11 +4917,7 @@ class PathSegLinetoHorizontalRel extends PathSeg {
 
 
   @Deprecated("Internal Use Only")
-  static PathSegLinetoHorizontalRel internalCreatePathSegLinetoHorizontalRel() {
-    return new PathSegLinetoHorizontalRel._internalWrap();
-  }
-
-  external factory PathSegLinetoHorizontalRel._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   PathSegLinetoHorizontalRel.internal_() : super.internal_();
@@ -5449,11 +4925,11 @@ class PathSegLinetoHorizontalRel extends PathSeg {
 
   @DomName('SVGPathSegLinetoHorizontalRel.x')
   @DocsEditable()
-  num get x => _blink.BlinkSVGPathSegLinetoHorizontalRel.instance.x_Getter_(unwrap_jso(this));
+  num get x => _blink.BlinkSVGPathSegLinetoHorizontalRel.instance.x_Getter_(this);
   
   @DomName('SVGPathSegLinetoHorizontalRel.x')
   @DocsEditable()
-  set x(num value) => _blink.BlinkSVGPathSegLinetoHorizontalRel.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegLinetoHorizontalRel.instance.x_Setter_(this, value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5472,11 +4948,7 @@ class PathSegLinetoRel extends PathSeg {
 
 
   @Deprecated("Internal Use Only")
-  static PathSegLinetoRel internalCreatePathSegLinetoRel() {
-    return new PathSegLinetoRel._internalWrap();
-  }
-
-  external factory PathSegLinetoRel._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   PathSegLinetoRel.internal_() : super.internal_();
@@ -5484,19 +4956,19 @@ class PathSegLinetoRel extends PathSeg {
 
   @DomName('SVGPathSegLinetoRel.x')
   @DocsEditable()
-  num get x => _blink.BlinkSVGPathSegLinetoRel.instance.x_Getter_(unwrap_jso(this));
+  num get x => _blink.BlinkSVGPathSegLinetoRel.instance.x_Getter_(this);
   
   @DomName('SVGPathSegLinetoRel.x')
   @DocsEditable()
-  set x(num value) => _blink.BlinkSVGPathSegLinetoRel.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegLinetoRel.instance.x_Setter_(this, value);
   
   @DomName('SVGPathSegLinetoRel.y')
   @DocsEditable()
-  num get y => _blink.BlinkSVGPathSegLinetoRel.instance.y_Getter_(unwrap_jso(this));
+  num get y => _blink.BlinkSVGPathSegLinetoRel.instance.y_Getter_(this);
   
   @DomName('SVGPathSegLinetoRel.y')
   @DocsEditable()
-  set y(num value) => _blink.BlinkSVGPathSegLinetoRel.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegLinetoRel.instance.y_Setter_(this, value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5515,11 +4987,7 @@ class PathSegLinetoVerticalAbs extends PathSeg {
 
 
   @Deprecated("Internal Use Only")
-  static PathSegLinetoVerticalAbs internalCreatePathSegLinetoVerticalAbs() {
-    return new PathSegLinetoVerticalAbs._internalWrap();
-  }
-
-  external factory PathSegLinetoVerticalAbs._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   PathSegLinetoVerticalAbs.internal_() : super.internal_();
@@ -5527,11 +4995,11 @@ class PathSegLinetoVerticalAbs extends PathSeg {
 
   @DomName('SVGPathSegLinetoVerticalAbs.y')
   @DocsEditable()
-  num get y => _blink.BlinkSVGPathSegLinetoVerticalAbs.instance.y_Getter_(unwrap_jso(this));
+  num get y => _blink.BlinkSVGPathSegLinetoVerticalAbs.instance.y_Getter_(this);
   
   @DomName('SVGPathSegLinetoVerticalAbs.y')
   @DocsEditable()
-  set y(num value) => _blink.BlinkSVGPathSegLinetoVerticalAbs.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegLinetoVerticalAbs.instance.y_Setter_(this, value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5550,11 +5018,7 @@ class PathSegLinetoVerticalRel extends PathSeg {
 
 
   @Deprecated("Internal Use Only")
-  static PathSegLinetoVerticalRel internalCreatePathSegLinetoVerticalRel() {
-    return new PathSegLinetoVerticalRel._internalWrap();
-  }
-
-  external factory PathSegLinetoVerticalRel._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   PathSegLinetoVerticalRel.internal_() : super.internal_();
@@ -5562,11 +5026,11 @@ class PathSegLinetoVerticalRel extends PathSeg {
 
   @DomName('SVGPathSegLinetoVerticalRel.y')
   @DocsEditable()
-  num get y => _blink.BlinkSVGPathSegLinetoVerticalRel.instance.y_Getter_(unwrap_jso(this));
+  num get y => _blink.BlinkSVGPathSegLinetoVerticalRel.instance.y_Getter_(this);
   
   @DomName('SVGPathSegLinetoVerticalRel.y')
   @DocsEditable()
-  set y(num value) => _blink.BlinkSVGPathSegLinetoVerticalRel.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegLinetoVerticalRel.instance.y_Setter_(this, value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5583,29 +5047,21 @@ class PathSegList extends DartHtmlDomObject with ListMixin<PathSeg>, ImmutableLi
   // To suppress missing implicit constructor warnings.
   factory PathSegList._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static PathSegList internalCreatePathSegList() {
-    return new PathSegList._internalWrap();
-  }
 
-  factory PathSegList._internalWrap() {
-    return new PathSegList.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   PathSegList.internal_() { }
 
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('SVGPathSegList.length')
   @DocsEditable()
   @Experimental() // untriaged
-  int get length => _blink.BlinkSVGPathSegList.instance.length_Getter_(unwrap_jso(this));
+  int get length => _blink.BlinkSVGPathSegList.instance.length_Getter_(this);
   
   @DomName('SVGPathSegList.numberOfItems')
   @DocsEditable()
-  int get numberOfItems => _blink.BlinkSVGPathSegList.instance.numberOfItems_Getter_(unwrap_jso(this));
+  int get numberOfItems => _blink.BlinkSVGPathSegList.instance.numberOfItems_Getter_(this);
   
   PathSeg operator[](int index) {
     if (index < 0 || index >= length)
@@ -5654,35 +5110,35 @@ class PathSegList extends DartHtmlDomObject with ListMixin<PathSeg>, ImmutableLi
   @DomName('SVGPathSegList.__setter__')
   @DocsEditable()
   @Experimental() // untriaged
-  void __setter__(int index, PathSeg newItem) => _blink.BlinkSVGPathSegList.instance.$__setter___Callback_2_(unwrap_jso(this), index, unwrap_jso(newItem));
+  void __setter__(int index, PathSeg newItem) => _blink.BlinkSVGPathSegList.instance.$__setter___Callback_2_(this, index, newItem);
   
   @DomName('SVGPathSegList.appendItem')
   @DocsEditable()
-  PathSeg appendItem(PathSeg newItem) => wrap_jso(_blink.BlinkSVGPathSegList.instance.appendItem_Callback_1_(unwrap_jso(this), unwrap_jso(newItem)));
+  PathSeg appendItem(PathSeg newItem) => _blink.BlinkSVGPathSegList.instance.appendItem_Callback_1_(this, newItem);
   
   @DomName('SVGPathSegList.clear')
   @DocsEditable()
-  void clear() => _blink.BlinkSVGPathSegList.instance.clear_Callback_0_(unwrap_jso(this));
+  void clear() => _blink.BlinkSVGPathSegList.instance.clear_Callback_0_(this);
   
   @DomName('SVGPathSegList.getItem')
   @DocsEditable()
-  PathSeg getItem(int index) => wrap_jso(_blink.BlinkSVGPathSegList.instance.getItem_Callback_1_(unwrap_jso(this), index));
+  PathSeg getItem(int index) => _blink.BlinkSVGPathSegList.instance.getItem_Callback_1_(this, index);
   
   @DomName('SVGPathSegList.initialize')
   @DocsEditable()
-  PathSeg initialize(PathSeg newItem) => wrap_jso(_blink.BlinkSVGPathSegList.instance.initialize_Callback_1_(unwrap_jso(this), unwrap_jso(newItem)));
+  PathSeg initialize(PathSeg newItem) => _blink.BlinkSVGPathSegList.instance.initialize_Callback_1_(this, newItem);
   
   @DomName('SVGPathSegList.insertItemBefore')
   @DocsEditable()
-  PathSeg insertItemBefore(PathSeg newItem, int index) => wrap_jso(_blink.BlinkSVGPathSegList.instance.insertItemBefore_Callback_2_(unwrap_jso(this), unwrap_jso(newItem), index));
+  PathSeg insertItemBefore(PathSeg newItem, int index) => _blink.BlinkSVGPathSegList.instance.insertItemBefore_Callback_2_(this, newItem, index);
   
   @DomName('SVGPathSegList.removeItem')
   @DocsEditable()
-  PathSeg removeItem(int index) => wrap_jso(_blink.BlinkSVGPathSegList.instance.removeItem_Callback_1_(unwrap_jso(this), index));
+  PathSeg removeItem(int index) => _blink.BlinkSVGPathSegList.instance.removeItem_Callback_1_(this, index);
   
   @DomName('SVGPathSegList.replaceItem')
   @DocsEditable()
-  PathSeg replaceItem(PathSeg newItem, int index) => wrap_jso(_blink.BlinkSVGPathSegList.instance.replaceItem_Callback_2_(unwrap_jso(this), unwrap_jso(newItem), index));
+  PathSeg replaceItem(PathSeg newItem, int index) => _blink.BlinkSVGPathSegList.instance.replaceItem_Callback_2_(this, newItem, index);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5701,11 +5157,7 @@ class PathSegMovetoAbs extends PathSeg {
 
 
   @Deprecated("Internal Use Only")
-  static PathSegMovetoAbs internalCreatePathSegMovetoAbs() {
-    return new PathSegMovetoAbs._internalWrap();
-  }
-
-  external factory PathSegMovetoAbs._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   PathSegMovetoAbs.internal_() : super.internal_();
@@ -5713,19 +5165,19 @@ class PathSegMovetoAbs extends PathSeg {
 
   @DomName('SVGPathSegMovetoAbs.x')
   @DocsEditable()
-  num get x => _blink.BlinkSVGPathSegMovetoAbs.instance.x_Getter_(unwrap_jso(this));
+  num get x => _blink.BlinkSVGPathSegMovetoAbs.instance.x_Getter_(this);
   
   @DomName('SVGPathSegMovetoAbs.x')
   @DocsEditable()
-  set x(num value) => _blink.BlinkSVGPathSegMovetoAbs.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegMovetoAbs.instance.x_Setter_(this, value);
   
   @DomName('SVGPathSegMovetoAbs.y')
   @DocsEditable()
-  num get y => _blink.BlinkSVGPathSegMovetoAbs.instance.y_Getter_(unwrap_jso(this));
+  num get y => _blink.BlinkSVGPathSegMovetoAbs.instance.y_Getter_(this);
   
   @DomName('SVGPathSegMovetoAbs.y')
   @DocsEditable()
-  set y(num value) => _blink.BlinkSVGPathSegMovetoAbs.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegMovetoAbs.instance.y_Setter_(this, value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5744,11 +5196,7 @@ class PathSegMovetoRel extends PathSeg {
 
 
   @Deprecated("Internal Use Only")
-  static PathSegMovetoRel internalCreatePathSegMovetoRel() {
-    return new PathSegMovetoRel._internalWrap();
-  }
-
-  external factory PathSegMovetoRel._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   PathSegMovetoRel.internal_() : super.internal_();
@@ -5756,19 +5204,19 @@ class PathSegMovetoRel extends PathSeg {
 
   @DomName('SVGPathSegMovetoRel.x')
   @DocsEditable()
-  num get x => _blink.BlinkSVGPathSegMovetoRel.instance.x_Getter_(unwrap_jso(this));
+  num get x => _blink.BlinkSVGPathSegMovetoRel.instance.x_Getter_(this);
   
   @DomName('SVGPathSegMovetoRel.x')
   @DocsEditable()
-  set x(num value) => _blink.BlinkSVGPathSegMovetoRel.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPathSegMovetoRel.instance.x_Setter_(this, value);
   
   @DomName('SVGPathSegMovetoRel.y')
   @DocsEditable()
-  num get y => _blink.BlinkSVGPathSegMovetoRel.instance.y_Getter_(unwrap_jso(this));
+  num get y => _blink.BlinkSVGPathSegMovetoRel.instance.y_Getter_(this);
   
   @DomName('SVGPathSegMovetoRel.y')
   @DocsEditable()
-  set y(num value) => _blink.BlinkSVGPathSegMovetoRel.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPathSegMovetoRel.instance.y_Setter_(this, value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5791,11 +5239,7 @@ class PatternElement extends SvgElement implements FitToViewBox, UriReference, T
 
 
   @Deprecated("Internal Use Only")
-  static PatternElement internalCreatePatternElement() {
-    return new PatternElement._internalWrap();
-  }
-
-  external factory PatternElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   PatternElement.internal_() : super.internal_();
@@ -5809,59 +5253,59 @@ class PatternElement extends SvgElement implements FitToViewBox, UriReference, T
 
   @DomName('SVGPatternElement.height')
   @DocsEditable()
-  AnimatedLength get height => wrap_jso(_blink.BlinkSVGPatternElement.instance.height_Getter_(unwrap_jso(this)));
+  AnimatedLength get height => _blink.BlinkSVGPatternElement.instance.height_Getter_(this);
   
   @DomName('SVGPatternElement.patternContentUnits')
   @DocsEditable()
-  AnimatedEnumeration get patternContentUnits => wrap_jso(_blink.BlinkSVGPatternElement.instance.patternContentUnits_Getter_(unwrap_jso(this)));
+  AnimatedEnumeration get patternContentUnits => _blink.BlinkSVGPatternElement.instance.patternContentUnits_Getter_(this);
   
   @DomName('SVGPatternElement.patternTransform')
   @DocsEditable()
-  AnimatedTransformList get patternTransform => wrap_jso(_blink.BlinkSVGPatternElement.instance.patternTransform_Getter_(unwrap_jso(this)));
+  AnimatedTransformList get patternTransform => _blink.BlinkSVGPatternElement.instance.patternTransform_Getter_(this);
   
   @DomName('SVGPatternElement.patternUnits')
   @DocsEditable()
-  AnimatedEnumeration get patternUnits => wrap_jso(_blink.BlinkSVGPatternElement.instance.patternUnits_Getter_(unwrap_jso(this)));
+  AnimatedEnumeration get patternUnits => _blink.BlinkSVGPatternElement.instance.patternUnits_Getter_(this);
   
   @DomName('SVGPatternElement.width')
   @DocsEditable()
-  AnimatedLength get width => wrap_jso(_blink.BlinkSVGPatternElement.instance.width_Getter_(unwrap_jso(this)));
+  AnimatedLength get width => _blink.BlinkSVGPatternElement.instance.width_Getter_(this);
   
   @DomName('SVGPatternElement.x')
   @DocsEditable()
-  AnimatedLength get x => wrap_jso(_blink.BlinkSVGPatternElement.instance.x_Getter_(unwrap_jso(this)));
+  AnimatedLength get x => _blink.BlinkSVGPatternElement.instance.x_Getter_(this);
   
   @DomName('SVGPatternElement.y')
   @DocsEditable()
-  AnimatedLength get y => wrap_jso(_blink.BlinkSVGPatternElement.instance.y_Getter_(unwrap_jso(this)));
+  AnimatedLength get y => _blink.BlinkSVGPatternElement.instance.y_Getter_(this);
   
   @DomName('SVGPatternElement.preserveAspectRatio')
   @DocsEditable()
-  AnimatedPreserveAspectRatio get preserveAspectRatio => wrap_jso(_blink.BlinkSVGPatternElement.instance.preserveAspectRatio_Getter_(unwrap_jso(this)));
+  AnimatedPreserveAspectRatio get preserveAspectRatio => _blink.BlinkSVGPatternElement.instance.preserveAspectRatio_Getter_(this);
   
   @DomName('SVGPatternElement.viewBox')
   @DocsEditable()
-  AnimatedRect get viewBox => wrap_jso(_blink.BlinkSVGPatternElement.instance.viewBox_Getter_(unwrap_jso(this)));
+  AnimatedRect get viewBox => _blink.BlinkSVGPatternElement.instance.viewBox_Getter_(this);
   
   @DomName('SVGPatternElement.requiredExtensions')
   @DocsEditable()
-  StringList get requiredExtensions => wrap_jso(_blink.BlinkSVGPatternElement.instance.requiredExtensions_Getter_(unwrap_jso(this)));
+  StringList get requiredExtensions => _blink.BlinkSVGPatternElement.instance.requiredExtensions_Getter_(this);
   
   @DomName('SVGPatternElement.requiredFeatures')
   @DocsEditable()
-  StringList get requiredFeatures => wrap_jso(_blink.BlinkSVGPatternElement.instance.requiredFeatures_Getter_(unwrap_jso(this)));
+  StringList get requiredFeatures => _blink.BlinkSVGPatternElement.instance.requiredFeatures_Getter_(this);
   
   @DomName('SVGPatternElement.systemLanguage')
   @DocsEditable()
-  StringList get systemLanguage => wrap_jso(_blink.BlinkSVGPatternElement.instance.systemLanguage_Getter_(unwrap_jso(this)));
+  StringList get systemLanguage => _blink.BlinkSVGPatternElement.instance.systemLanguage_Getter_(this);
   
   @DomName('SVGPatternElement.hasExtension')
   @DocsEditable()
-  bool hasExtension(String extension) => _blink.BlinkSVGPatternElement.instance.hasExtension_Callback_1_(unwrap_jso(this), extension);
+  bool hasExtension(String extension) => _blink.BlinkSVGPatternElement.instance.hasExtension_Callback_1_(this, extension);
   
   @DomName('SVGPatternElement.href')
   @DocsEditable()
-  AnimatedString get href => wrap_jso(_blink.BlinkSVGPatternElement.instance.href_Getter_(unwrap_jso(this)));
+  AnimatedString get href => _blink.BlinkSVGPatternElement.instance.href_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5878,40 +5322,32 @@ class Point extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Point._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static Point internalCreatePoint() {
-    return new Point._internalWrap();
-  }
 
-  factory Point._internalWrap() {
-    return new Point.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   Point.internal_() { }
 
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('SVGPoint.x')
   @DocsEditable()
-  num get x => _blink.BlinkSVGPoint.instance.x_Getter_(unwrap_jso(this));
+  num get x => _blink.BlinkSVGPoint.instance.x_Getter_(this);
   
   @DomName('SVGPoint.x')
   @DocsEditable()
-  set x(num value) => _blink.BlinkSVGPoint.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGPoint.instance.x_Setter_(this, value);
   
   @DomName('SVGPoint.y')
   @DocsEditable()
-  num get y => _blink.BlinkSVGPoint.instance.y_Getter_(unwrap_jso(this));
+  num get y => _blink.BlinkSVGPoint.instance.y_Getter_(this);
   
   @DomName('SVGPoint.y')
   @DocsEditable()
-  set y(num value) => _blink.BlinkSVGPoint.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGPoint.instance.y_Setter_(this, value);
   
   @DomName('SVGPoint.matrixTransform')
   @DocsEditable()
-  Point matrixTransform(Matrix matrix) => wrap_jso(_blink.BlinkSVGPoint.instance.matrixTransform_Callback_1_(unwrap_jso(this), unwrap_jso(matrix)));
+  Point matrixTransform(Matrix matrix) => _blink.BlinkSVGPoint.instance.matrixTransform_Callback_1_(this, matrix);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5928,62 +5364,54 @@ class PointList extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory PointList._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static PointList internalCreatePointList() {
-    return new PointList._internalWrap();
-  }
 
-  factory PointList._internalWrap() {
-    return new PointList.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   PointList.internal_() { }
 
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('SVGPointList.length')
   @DocsEditable()
   @Experimental() // untriaged
-  int get length => _blink.BlinkSVGPointList.instance.length_Getter_(unwrap_jso(this));
+  int get length => _blink.BlinkSVGPointList.instance.length_Getter_(this);
   
   @DomName('SVGPointList.numberOfItems')
   @DocsEditable()
-  int get numberOfItems => _blink.BlinkSVGPointList.instance.numberOfItems_Getter_(unwrap_jso(this));
+  int get numberOfItems => _blink.BlinkSVGPointList.instance.numberOfItems_Getter_(this);
   
   @DomName('SVGPointList.__setter__')
   @DocsEditable()
   @Experimental() // untriaged
-  void __setter__(int index, Point newItem) => _blink.BlinkSVGPointList.instance.$__setter___Callback_2_(unwrap_jso(this), index, unwrap_jso(newItem));
+  void __setter__(int index, Point newItem) => _blink.BlinkSVGPointList.instance.$__setter___Callback_2_(this, index, newItem);
   
   @DomName('SVGPointList.appendItem')
   @DocsEditable()
-  Point appendItem(Point newItem) => wrap_jso(_blink.BlinkSVGPointList.instance.appendItem_Callback_1_(unwrap_jso(this), unwrap_jso(newItem)));
+  Point appendItem(Point newItem) => _blink.BlinkSVGPointList.instance.appendItem_Callback_1_(this, newItem);
   
   @DomName('SVGPointList.clear')
   @DocsEditable()
-  void clear() => _blink.BlinkSVGPointList.instance.clear_Callback_0_(unwrap_jso(this));
+  void clear() => _blink.BlinkSVGPointList.instance.clear_Callback_0_(this);
   
   @DomName('SVGPointList.getItem')
   @DocsEditable()
-  Point getItem(int index) => wrap_jso(_blink.BlinkSVGPointList.instance.getItem_Callback_1_(unwrap_jso(this), index));
+  Point getItem(int index) => _blink.BlinkSVGPointList.instance.getItem_Callback_1_(this, index);
   
   @DomName('SVGPointList.initialize')
   @DocsEditable()
-  Point initialize(Point newItem) => wrap_jso(_blink.BlinkSVGPointList.instance.initialize_Callback_1_(unwrap_jso(this), unwrap_jso(newItem)));
+  Point initialize(Point newItem) => _blink.BlinkSVGPointList.instance.initialize_Callback_1_(this, newItem);
   
   @DomName('SVGPointList.insertItemBefore')
   @DocsEditable()
-  Point insertItemBefore(Point newItem, int index) => wrap_jso(_blink.BlinkSVGPointList.instance.insertItemBefore_Callback_2_(unwrap_jso(this), unwrap_jso(newItem), index));
+  Point insertItemBefore(Point newItem, int index) => _blink.BlinkSVGPointList.instance.insertItemBefore_Callback_2_(this, newItem, index);
   
   @DomName('SVGPointList.removeItem')
   @DocsEditable()
-  Point removeItem(int index) => wrap_jso(_blink.BlinkSVGPointList.instance.removeItem_Callback_1_(unwrap_jso(this), index));
+  Point removeItem(int index) => _blink.BlinkSVGPointList.instance.removeItem_Callback_1_(this, index);
   
   @DomName('SVGPointList.replaceItem')
   @DocsEditable()
-  Point replaceItem(Point newItem, int index) => wrap_jso(_blink.BlinkSVGPointList.instance.replaceItem_Callback_2_(unwrap_jso(this), unwrap_jso(newItem), index));
+  Point replaceItem(Point newItem, int index) => _blink.BlinkSVGPointList.instance.replaceItem_Callback_2_(this, newItem, index);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6006,11 +5434,7 @@ class PolygonElement extends GeometryElement {
 
 
   @Deprecated("Internal Use Only")
-  static PolygonElement internalCreatePolygonElement() {
-    return new PolygonElement._internalWrap();
-  }
-
-  external factory PolygonElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   PolygonElement.internal_() : super.internal_();
@@ -6024,11 +5448,11 @@ class PolygonElement extends GeometryElement {
 
   @DomName('SVGPolygonElement.animatedPoints')
   @DocsEditable()
-  PointList get animatedPoints => wrap_jso(_blink.BlinkSVGPolygonElement.instance.animatedPoints_Getter_(unwrap_jso(this)));
+  PointList get animatedPoints => _blink.BlinkSVGPolygonElement.instance.animatedPoints_Getter_(this);
   
   @DomName('SVGPolygonElement.points')
   @DocsEditable()
-  PointList get points => wrap_jso(_blink.BlinkSVGPolygonElement.instance.points_Getter_(unwrap_jso(this)));
+  PointList get points => _blink.BlinkSVGPolygonElement.instance.points_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6051,11 +5475,7 @@ class PolylineElement extends GeometryElement {
 
 
   @Deprecated("Internal Use Only")
-  static PolylineElement internalCreatePolylineElement() {
-    return new PolylineElement._internalWrap();
-  }
-
-  external factory PolylineElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   PolylineElement.internal_() : super.internal_();
@@ -6069,11 +5489,11 @@ class PolylineElement extends GeometryElement {
 
   @DomName('SVGPolylineElement.animatedPoints')
   @DocsEditable()
-  PointList get animatedPoints => wrap_jso(_blink.BlinkSVGPolylineElement.instance.animatedPoints_Getter_(unwrap_jso(this)));
+  PointList get animatedPoints => _blink.BlinkSVGPolylineElement.instance.animatedPoints_Getter_(this);
   
   @DomName('SVGPolylineElement.points')
   @DocsEditable()
-  PointList get points => wrap_jso(_blink.BlinkSVGPolylineElement.instance.points_Getter_(unwrap_jso(this)));
+  PointList get points => _blink.BlinkSVGPolylineElement.instance.points_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6090,20 +5510,12 @@ class PreserveAspectRatio extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory PreserveAspectRatio._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static PreserveAspectRatio internalCreatePreserveAspectRatio() {
-    return new PreserveAspectRatio._internalWrap();
-  }
 
-  factory PreserveAspectRatio._internalWrap() {
-    return new PreserveAspectRatio.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   PreserveAspectRatio.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGPreserveAspectRatio.SVG_MEETORSLICE_MEET')
   @DocsEditable()
@@ -6163,19 +5575,19 @@ class PreserveAspectRatio extends DartHtmlDomObject {
 
   @DomName('SVGPreserveAspectRatio.align')
   @DocsEditable()
-  int get align => _blink.BlinkSVGPreserveAspectRatio.instance.align_Getter_(unwrap_jso(this));
+  int get align => _blink.BlinkSVGPreserveAspectRatio.instance.align_Getter_(this);
   
   @DomName('SVGPreserveAspectRatio.align')
   @DocsEditable()
-  set align(int value) => _blink.BlinkSVGPreserveAspectRatio.instance.align_Setter_(unwrap_jso(this), value);
+  set align(int value) => _blink.BlinkSVGPreserveAspectRatio.instance.align_Setter_(this, value);
   
   @DomName('SVGPreserveAspectRatio.meetOrSlice')
   @DocsEditable()
-  int get meetOrSlice => _blink.BlinkSVGPreserveAspectRatio.instance.meetOrSlice_Getter_(unwrap_jso(this));
+  int get meetOrSlice => _blink.BlinkSVGPreserveAspectRatio.instance.meetOrSlice_Getter_(this);
   
   @DomName('SVGPreserveAspectRatio.meetOrSlice')
   @DocsEditable()
-  set meetOrSlice(int value) => _blink.BlinkSVGPreserveAspectRatio.instance.meetOrSlice_Setter_(unwrap_jso(this), value);
+  set meetOrSlice(int value) => _blink.BlinkSVGPreserveAspectRatio.instance.meetOrSlice_Setter_(this, value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6198,11 +5610,7 @@ class RadialGradientElement extends _GradientElement {
 
 
   @Deprecated("Internal Use Only")
-  static RadialGradientElement internalCreateRadialGradientElement() {
-    return new RadialGradientElement._internalWrap();
-  }
-
-  external factory RadialGradientElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   RadialGradientElement.internal_() : super.internal_();
@@ -6216,27 +5624,27 @@ class RadialGradientElement extends _GradientElement {
 
   @DomName('SVGRadialGradientElement.cx')
   @DocsEditable()
-  AnimatedLength get cx => wrap_jso(_blink.BlinkSVGRadialGradientElement.instance.cx_Getter_(unwrap_jso(this)));
+  AnimatedLength get cx => _blink.BlinkSVGRadialGradientElement.instance.cx_Getter_(this);
   
   @DomName('SVGRadialGradientElement.cy')
   @DocsEditable()
-  AnimatedLength get cy => wrap_jso(_blink.BlinkSVGRadialGradientElement.instance.cy_Getter_(unwrap_jso(this)));
+  AnimatedLength get cy => _blink.BlinkSVGRadialGradientElement.instance.cy_Getter_(this);
   
   @DomName('SVGRadialGradientElement.fr')
   @DocsEditable()
-  AnimatedLength get fr => wrap_jso(_blink.BlinkSVGRadialGradientElement.instance.fr_Getter_(unwrap_jso(this)));
+  AnimatedLength get fr => _blink.BlinkSVGRadialGradientElement.instance.fr_Getter_(this);
   
   @DomName('SVGRadialGradientElement.fx')
   @DocsEditable()
-  AnimatedLength get fx => wrap_jso(_blink.BlinkSVGRadialGradientElement.instance.fx_Getter_(unwrap_jso(this)));
+  AnimatedLength get fx => _blink.BlinkSVGRadialGradientElement.instance.fx_Getter_(this);
   
   @DomName('SVGRadialGradientElement.fy')
   @DocsEditable()
-  AnimatedLength get fy => wrap_jso(_blink.BlinkSVGRadialGradientElement.instance.fy_Getter_(unwrap_jso(this)));
+  AnimatedLength get fy => _blink.BlinkSVGRadialGradientElement.instance.fy_Getter_(this);
   
   @DomName('SVGRadialGradientElement.r')
   @DocsEditable()
-  AnimatedLength get r => wrap_jso(_blink.BlinkSVGRadialGradientElement.instance.r_Getter_(unwrap_jso(this)));
+  AnimatedLength get r => _blink.BlinkSVGRadialGradientElement.instance.r_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6253,52 +5661,44 @@ class Rect extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Rect._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static Rect internalCreateRect() {
-    return new Rect._internalWrap();
-  }
 
-  factory Rect._internalWrap() {
-    return new Rect.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   Rect.internal_() { }
 
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('SVGRect.height')
   @DocsEditable()
-  num get height => _blink.BlinkSVGRect.instance.height_Getter_(unwrap_jso(this));
+  num get height => _blink.BlinkSVGRect.instance.height_Getter_(this);
   
   @DomName('SVGRect.height')
   @DocsEditable()
-  set height(num value) => _blink.BlinkSVGRect.instance.height_Setter_(unwrap_jso(this), value);
+  set height(num value) => _blink.BlinkSVGRect.instance.height_Setter_(this, value);
   
   @DomName('SVGRect.width')
   @DocsEditable()
-  num get width => _blink.BlinkSVGRect.instance.width_Getter_(unwrap_jso(this));
+  num get width => _blink.BlinkSVGRect.instance.width_Getter_(this);
   
   @DomName('SVGRect.width')
   @DocsEditable()
-  set width(num value) => _blink.BlinkSVGRect.instance.width_Setter_(unwrap_jso(this), value);
+  set width(num value) => _blink.BlinkSVGRect.instance.width_Setter_(this, value);
   
   @DomName('SVGRect.x')
   @DocsEditable()
-  num get x => _blink.BlinkSVGRect.instance.x_Getter_(unwrap_jso(this));
+  num get x => _blink.BlinkSVGRect.instance.x_Getter_(this);
   
   @DomName('SVGRect.x')
   @DocsEditable()
-  set x(num value) => _blink.BlinkSVGRect.instance.x_Setter_(unwrap_jso(this), value);
+  set x(num value) => _blink.BlinkSVGRect.instance.x_Setter_(this, value);
   
   @DomName('SVGRect.y')
   @DocsEditable()
-  num get y => _blink.BlinkSVGRect.instance.y_Getter_(unwrap_jso(this));
+  num get y => _blink.BlinkSVGRect.instance.y_Getter_(this);
   
   @DomName('SVGRect.y')
   @DocsEditable()
-  set y(num value) => _blink.BlinkSVGRect.instance.y_Setter_(unwrap_jso(this), value);
+  set y(num value) => _blink.BlinkSVGRect.instance.y_Setter_(this, value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6321,11 +5721,7 @@ class RectElement extends GeometryElement {
 
 
   @Deprecated("Internal Use Only")
-  static RectElement internalCreateRectElement() {
-    return new RectElement._internalWrap();
-  }
-
-  external factory RectElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   RectElement.internal_() : super.internal_();
@@ -6339,27 +5735,27 @@ class RectElement extends GeometryElement {
 
   @DomName('SVGRectElement.height')
   @DocsEditable()
-  AnimatedLength get height => wrap_jso(_blink.BlinkSVGRectElement.instance.height_Getter_(unwrap_jso(this)));
+  AnimatedLength get height => _blink.BlinkSVGRectElement.instance.height_Getter_(this);
   
   @DomName('SVGRectElement.rx')
   @DocsEditable()
-  AnimatedLength get rx => wrap_jso(_blink.BlinkSVGRectElement.instance.rx_Getter_(unwrap_jso(this)));
+  AnimatedLength get rx => _blink.BlinkSVGRectElement.instance.rx_Getter_(this);
   
   @DomName('SVGRectElement.ry')
   @DocsEditable()
-  AnimatedLength get ry => wrap_jso(_blink.BlinkSVGRectElement.instance.ry_Getter_(unwrap_jso(this)));
+  AnimatedLength get ry => _blink.BlinkSVGRectElement.instance.ry_Getter_(this);
   
   @DomName('SVGRectElement.width')
   @DocsEditable()
-  AnimatedLength get width => wrap_jso(_blink.BlinkSVGRectElement.instance.width_Getter_(unwrap_jso(this)));
+  AnimatedLength get width => _blink.BlinkSVGRectElement.instance.width_Getter_(this);
   
   @DomName('SVGRectElement.x')
   @DocsEditable()
-  AnimatedLength get x => wrap_jso(_blink.BlinkSVGRectElement.instance.x_Getter_(unwrap_jso(this)));
+  AnimatedLength get x => _blink.BlinkSVGRectElement.instance.x_Getter_(this);
   
   @DomName('SVGRectElement.y')
   @DocsEditable()
-  AnimatedLength get y => wrap_jso(_blink.BlinkSVGRectElement.instance.y_Getter_(unwrap_jso(this)));
+  AnimatedLength get y => _blink.BlinkSVGRectElement.instance.y_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6382,11 +5778,7 @@ class ScriptElement extends SvgElement implements UriReference {
 
 
   @Deprecated("Internal Use Only")
-  static ScriptElement internalCreateScriptElement() {
-    return new ScriptElement._internalWrap();
-  }
-
-  external factory ScriptElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   ScriptElement.internal_() : super.internal_();
@@ -6400,15 +5792,15 @@ class ScriptElement extends SvgElement implements UriReference {
 
   @DomName('SVGScriptElement.type')
   @DocsEditable()
-  String get type => _blink.BlinkSVGScriptElement.instance.type_Getter_(unwrap_jso(this));
+  String get type => _blink.BlinkSVGScriptElement.instance.type_Getter_(this);
   
   @DomName('SVGScriptElement.type')
   @DocsEditable()
-  set type(String value) => _blink.BlinkSVGScriptElement.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkSVGScriptElement.instance.type_Setter_(this, value);
   
   @DomName('SVGScriptElement.href')
   @DocsEditable()
-  AnimatedString get href => wrap_jso(_blink.BlinkSVGScriptElement.instance.href_Getter_(unwrap_jso(this)));
+  AnimatedString get href => _blink.BlinkSVGScriptElement.instance.href_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6434,11 +5826,7 @@ class SetElement extends AnimationElement {
 
 
   @Deprecated("Internal Use Only")
-  static SetElement internalCreateSetElement() {
-    return new SetElement._internalWrap();
-  }
-
-  external factory SetElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   SetElement.internal_() : super.internal_();
@@ -6474,11 +5862,7 @@ class StopElement extends SvgElement {
 
 
   @Deprecated("Internal Use Only")
-  static StopElement internalCreateStopElement() {
-    return new StopElement._internalWrap();
-  }
-
-  external factory StopElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   StopElement.internal_() : super.internal_();
@@ -6492,7 +5876,7 @@ class StopElement extends SvgElement {
 
   @DomName('SVGStopElement.offset')
   @DocsEditable()
-  AnimatedNumber get gradientOffset => wrap_jso(_blink.BlinkSVGStopElement.instance.offset_Getter_(unwrap_jso(this)));
+  AnimatedNumber get gradientOffset => _blink.BlinkSVGStopElement.instance.offset_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6509,29 +5893,21 @@ class StringList extends DartHtmlDomObject with ListMixin<String>, ImmutableList
   // To suppress missing implicit constructor warnings.
   factory StringList._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static StringList internalCreateStringList() {
-    return new StringList._internalWrap();
-  }
 
-  factory StringList._internalWrap() {
-    return new StringList.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   StringList.internal_() { }
 
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('SVGStringList.length')
   @DocsEditable()
   @Experimental() // untriaged
-  int get length => _blink.BlinkSVGStringList.instance.length_Getter_(unwrap_jso(this));
+  int get length => _blink.BlinkSVGStringList.instance.length_Getter_(this);
   
   @DomName('SVGStringList.numberOfItems')
   @DocsEditable()
-  int get numberOfItems => _blink.BlinkSVGStringList.instance.numberOfItems_Getter_(unwrap_jso(this));
+  int get numberOfItems => _blink.BlinkSVGStringList.instance.numberOfItems_Getter_(this);
   
   String operator[](int index) {
     if (index < 0 || index >= length)
@@ -6580,35 +5956,35 @@ class StringList extends DartHtmlDomObject with ListMixin<String>, ImmutableList
   @DomName('SVGStringList.__setter__')
   @DocsEditable()
   @Experimental() // untriaged
-  void __setter__(int index, String newItem) => _blink.BlinkSVGStringList.instance.$__setter___Callback_2_(unwrap_jso(this), index, newItem);
+  void __setter__(int index, String newItem) => _blink.BlinkSVGStringList.instance.$__setter___Callback_2_(this, index, newItem);
   
   @DomName('SVGStringList.appendItem')
   @DocsEditable()
-  String appendItem(String newItem) => _blink.BlinkSVGStringList.instance.appendItem_Callback_1_(unwrap_jso(this), newItem);
+  String appendItem(String newItem) => _blink.BlinkSVGStringList.instance.appendItem_Callback_1_(this, newItem);
   
   @DomName('SVGStringList.clear')
   @DocsEditable()
-  void clear() => _blink.BlinkSVGStringList.instance.clear_Callback_0_(unwrap_jso(this));
+  void clear() => _blink.BlinkSVGStringList.instance.clear_Callback_0_(this);
   
   @DomName('SVGStringList.getItem')
   @DocsEditable()
-  String getItem(int index) => _blink.BlinkSVGStringList.instance.getItem_Callback_1_(unwrap_jso(this), index);
+  String getItem(int index) => _blink.BlinkSVGStringList.instance.getItem_Callback_1_(this, index);
   
   @DomName('SVGStringList.initialize')
   @DocsEditable()
-  String initialize(String newItem) => _blink.BlinkSVGStringList.instance.initialize_Callback_1_(unwrap_jso(this), newItem);
+  String initialize(String newItem) => _blink.BlinkSVGStringList.instance.initialize_Callback_1_(this, newItem);
   
   @DomName('SVGStringList.insertItemBefore')
   @DocsEditable()
-  String insertItemBefore(String item, int index) => _blink.BlinkSVGStringList.instance.insertItemBefore_Callback_2_(unwrap_jso(this), item, index);
+  String insertItemBefore(String item, int index) => _blink.BlinkSVGStringList.instance.insertItemBefore_Callback_2_(this, item, index);
   
   @DomName('SVGStringList.removeItem')
   @DocsEditable()
-  String removeItem(int index) => _blink.BlinkSVGStringList.instance.removeItem_Callback_1_(unwrap_jso(this), index);
+  String removeItem(int index) => _blink.BlinkSVGStringList.instance.removeItem_Callback_1_(this, index);
   
   @DomName('SVGStringList.replaceItem')
   @DocsEditable()
-  String replaceItem(String newItem, int index) => _blink.BlinkSVGStringList.instance.replaceItem_Callback_2_(unwrap_jso(this), newItem, index);
+  String replaceItem(String newItem, int index) => _blink.BlinkSVGStringList.instance.replaceItem_Callback_2_(this, newItem, index);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -6632,11 +6008,7 @@ class StyleElement extends SvgElement {
 
 
   @Deprecated("Internal Use Only")
-  static StyleElement internalCreateStyleElement() {
-    return new StyleElement._internalWrap();
-  }
-
-  external factory StyleElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   StyleElement.internal_() : super.internal_();
@@ -6650,40 +6022,40 @@ class StyleElement extends SvgElement {
 
   @DomName('SVGStyleElement.disabled')
   @DocsEditable()
-  bool get disabled => _blink.BlinkSVGStyleElement.instance.disabled_Getter_(unwrap_jso(this));
+  bool get disabled => _blink.BlinkSVGStyleElement.instance.disabled_Getter_(this);
   
   @DomName('SVGStyleElement.disabled')
   @DocsEditable()
-  set disabled(bool value) => _blink.BlinkSVGStyleElement.instance.disabled_Setter_(unwrap_jso(this), value);
+  set disabled(bool value) => _blink.BlinkSVGStyleElement.instance.disabled_Setter_(this, value);
   
   @DomName('SVGStyleElement.media')
   @DocsEditable()
-  String get media => _blink.BlinkSVGStyleElement.instance.media_Getter_(unwrap_jso(this));
+  String get media => _blink.BlinkSVGStyleElement.instance.media_Getter_(this);
   
   @DomName('SVGStyleElement.media')
   @DocsEditable()
-  set media(String value) => _blink.BlinkSVGStyleElement.instance.media_Setter_(unwrap_jso(this), value);
+  set media(String value) => _blink.BlinkSVGStyleElement.instance.media_Setter_(this, value);
   
   @DomName('SVGStyleElement.sheet')
   @DocsEditable()
   @Experimental() // untriaged
-  StyleSheet get sheet => wrap_jso(_blink.BlinkSVGStyleElement.instance.sheet_Getter_(unwrap_jso(this)));
+  StyleSheet get sheet => _blink.BlinkSVGStyleElement.instance.sheet_Getter_(this);
   
   @DomName('SVGStyleElement.title')
   @DocsEditable()
-  String get title => _blink.BlinkSVGStyleElement.instance.title_Getter_(unwrap_jso(this));
+  String get title => _blink.BlinkSVGStyleElement.instance.title_Getter_(this);
   
   @DomName('SVGStyleElement.title')
   @DocsEditable()
-  set title(String value) => _blink.BlinkSVGStyleElement.instance.title_Setter_(unwrap_jso(this), value);
+  set title(String value) => _blink.BlinkSVGStyleElement.instance.title_Setter_(this, value);
   
   @DomName('SVGStyleElement.type')
   @DocsEditable()
-  String get type => _blink.BlinkSVGStyleElement.instance.type_Getter_(unwrap_jso(this));
+  String get type => _blink.BlinkSVGStyleElement.instance.type_Getter_(this);
   
   @DomName('SVGStyleElement.type')
   @DocsEditable()
-  set type(String value) => _blink.BlinkSVGStyleElement.instance.type_Setter_(unwrap_jso(this), value);
+  set type(String value) => _blink.BlinkSVGStyleElement.instance.type_Setter_(this, value);
   
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
@@ -6834,18 +6206,8 @@ class SvgElement extends Element implements GlobalEventHandlers {
   }
 
   set _svgClassName(AnimatedString value) =>
-      _blink.BlinkSVGElement.instance.className_Setter_(unwrap_jso(this), unwrap_jso(value));
+      _blink.BlinkSVGElement.instance.className_Setter_(this, value);
 
-  String get className => _svgClassName.baseVal;
-
-  // Unbelievable hack. We can't create an SvgAnimatedString, but we can get
-  // the existing one and change its baseVal. Then we call the blink setter directly
-  // TODO(alanknight): Handle suppressing the SVGAnimated<*> better
-  set className(String s) {
-    var oldClass = _svgClassName;
-    oldClass.baseVal = s;
-    _svgClassName = oldClass;
-  }
   // To suppress missing implicit constructor warnings.
   factory SvgElement._() { throw new UnsupportedError("Not supported"); }
 
@@ -7111,11 +6473,7 @@ class SvgElement extends Element implements GlobalEventHandlers {
 
 
   @Deprecated("Internal Use Only")
-  static SvgElement internalCreateSvgElement() {
-    return new SvgElement._internalWrap();
-  }
-
-  external factory SvgElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   SvgElement.internal_() : super.internal_();
@@ -7130,40 +6488,40 @@ class SvgElement extends Element implements GlobalEventHandlers {
   @DomName('SVGElement.className')
   @DocsEditable()
   @Experimental() // untriaged
-  AnimatedString get _svgClassName => wrap_jso(_blink.BlinkSVGElement.instance.className_Getter_(unwrap_jso(this)));
+  AnimatedString get _svgClassName => _blink.BlinkSVGElement.instance.className_Getter_(this);
   
   @DomName('SVGElement.ownerSVGElement')
   @DocsEditable()
-  SvgSvgElement get ownerSvgElement => wrap_jso(_blink.BlinkSVGElement.instance.ownerSVGElement_Getter_(unwrap_jso(this)));
+  SvgSvgElement get ownerSvgElement => _blink.BlinkSVGElement.instance.ownerSVGElement_Getter_(this);
   
   @DomName('SVGElement.style')
   @DocsEditable()
   @Experimental() // untriaged
-  CssStyleDeclaration get style => wrap_jso(_blink.BlinkSVGElement.instance.style_Getter_(unwrap_jso(this)));
+  CssStyleDeclaration get style => _blink.BlinkSVGElement.instance.style_Getter_(this);
   
   @DomName('SVGElement.tabIndex')
   @DocsEditable()
   @Experimental() // untriaged
-  int get tabIndex => _blink.BlinkSVGElement.instance.tabIndex_Getter_(unwrap_jso(this));
+  int get tabIndex => _blink.BlinkSVGElement.instance.tabIndex_Getter_(this);
   
   @DomName('SVGElement.tabIndex')
   @DocsEditable()
   @Experimental() // untriaged
-  set tabIndex(int value) => _blink.BlinkSVGElement.instance.tabIndex_Setter_(unwrap_jso(this), value);
+  set tabIndex(int value) => _blink.BlinkSVGElement.instance.tabIndex_Setter_(this, value);
   
   @DomName('SVGElement.viewportElement')
   @DocsEditable()
-  SvgElement get viewportElement => wrap_jso(_blink.BlinkSVGElement.instance.viewportElement_Getter_(unwrap_jso(this)));
+  SvgElement get viewportElement => _blink.BlinkSVGElement.instance.viewportElement_Getter_(this);
   
   @DomName('SVGElement.blur')
   @DocsEditable()
   @Experimental() // untriaged
-  void blur() => _blink.BlinkSVGElement.instance.blur_Callback_0_(unwrap_jso(this));
+  void blur() => _blink.BlinkSVGElement.instance.blur_Callback_0_(this);
   
   @DomName('SVGElement.focus')
   @DocsEditable()
   @Experimental() // untriaged
-  void focus() => _blink.BlinkSVGElement.instance.focus_Callback_0_(unwrap_jso(this));
+  void focus() => _blink.BlinkSVGElement.instance.focus_Callback_0_(this);
   
   @DomName('SVGElement.onabort')
   @DocsEditable()
@@ -7446,11 +6804,7 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ZoomAndPan 
 
 
   @Deprecated("Internal Use Only")
-  static SvgSvgElement internalCreateSvgSvgElement() {
-    return new SvgSvgElement._internalWrap();
-  }
-
-  external factory SvgSvgElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   SvgSvgElement.internal_() : super.internal_();
@@ -7464,167 +6818,167 @@ class SvgSvgElement extends GraphicsElement implements FitToViewBox, ZoomAndPan 
 
   @DomName('SVGSVGElement.currentScale')
   @DocsEditable()
-  num get currentScale => _blink.BlinkSVGSVGElement.instance.currentScale_Getter_(unwrap_jso(this));
+  num get currentScale => _blink.BlinkSVGSVGElement.instance.currentScale_Getter_(this);
   
   @DomName('SVGSVGElement.currentScale')
   @DocsEditable()
-  set currentScale(num value) => _blink.BlinkSVGSVGElement.instance.currentScale_Setter_(unwrap_jso(this), value);
+  set currentScale(num value) => _blink.BlinkSVGSVGElement.instance.currentScale_Setter_(this, value);
   
   @DomName('SVGSVGElement.currentTranslate')
   @DocsEditable()
-  Point get currentTranslate => wrap_jso(_blink.BlinkSVGSVGElement.instance.currentTranslate_Getter_(unwrap_jso(this)));
+  Point get currentTranslate => _blink.BlinkSVGSVGElement.instance.currentTranslate_Getter_(this);
   
   @DomName('SVGSVGElement.currentView')
   @DocsEditable()
-  ViewSpec get currentView => wrap_jso(_blink.BlinkSVGSVGElement.instance.currentView_Getter_(unwrap_jso(this)));
+  ViewSpec get currentView => _blink.BlinkSVGSVGElement.instance.currentView_Getter_(this);
   
   @DomName('SVGSVGElement.height')
   @DocsEditable()
-  AnimatedLength get height => wrap_jso(_blink.BlinkSVGSVGElement.instance.height_Getter_(unwrap_jso(this)));
+  AnimatedLength get height => _blink.BlinkSVGSVGElement.instance.height_Getter_(this);
   
   @DomName('SVGSVGElement.pixelUnitToMillimeterX')
   @DocsEditable()
-  num get pixelUnitToMillimeterX => _blink.BlinkSVGSVGElement.instance.pixelUnitToMillimeterX_Getter_(unwrap_jso(this));
+  num get pixelUnitToMillimeterX => _blink.BlinkSVGSVGElement.instance.pixelUnitToMillimeterX_Getter_(this);
   
   @DomName('SVGSVGElement.pixelUnitToMillimeterY')
   @DocsEditable()
-  num get pixelUnitToMillimeterY => _blink.BlinkSVGSVGElement.instance.pixelUnitToMillimeterY_Getter_(unwrap_jso(this));
+  num get pixelUnitToMillimeterY => _blink.BlinkSVGSVGElement.instance.pixelUnitToMillimeterY_Getter_(this);
   
   @DomName('SVGSVGElement.screenPixelToMillimeterX')
   @DocsEditable()
-  num get screenPixelToMillimeterX => _blink.BlinkSVGSVGElement.instance.screenPixelToMillimeterX_Getter_(unwrap_jso(this));
+  num get screenPixelToMillimeterX => _blink.BlinkSVGSVGElement.instance.screenPixelToMillimeterX_Getter_(this);
   
   @DomName('SVGSVGElement.screenPixelToMillimeterY')
   @DocsEditable()
-  num get screenPixelToMillimeterY => _blink.BlinkSVGSVGElement.instance.screenPixelToMillimeterY_Getter_(unwrap_jso(this));
+  num get screenPixelToMillimeterY => _blink.BlinkSVGSVGElement.instance.screenPixelToMillimeterY_Getter_(this);
   
   @DomName('SVGSVGElement.useCurrentView')
   @DocsEditable()
-  bool get useCurrentView => _blink.BlinkSVGSVGElement.instance.useCurrentView_Getter_(unwrap_jso(this));
+  bool get useCurrentView => _blink.BlinkSVGSVGElement.instance.useCurrentView_Getter_(this);
   
   @DomName('SVGSVGElement.viewport')
   @DocsEditable()
-  Rect get viewport => wrap_jso(_blink.BlinkSVGSVGElement.instance.viewport_Getter_(unwrap_jso(this)));
+  Rect get viewport => _blink.BlinkSVGSVGElement.instance.viewport_Getter_(this);
   
   @DomName('SVGSVGElement.width')
   @DocsEditable()
-  AnimatedLength get width => wrap_jso(_blink.BlinkSVGSVGElement.instance.width_Getter_(unwrap_jso(this)));
+  AnimatedLength get width => _blink.BlinkSVGSVGElement.instance.width_Getter_(this);
   
   @DomName('SVGSVGElement.x')
   @DocsEditable()
-  AnimatedLength get x => wrap_jso(_blink.BlinkSVGSVGElement.instance.x_Getter_(unwrap_jso(this)));
+  AnimatedLength get x => _blink.BlinkSVGSVGElement.instance.x_Getter_(this);
   
   @DomName('SVGSVGElement.y')
   @DocsEditable()
-  AnimatedLength get y => wrap_jso(_blink.BlinkSVGSVGElement.instance.y_Getter_(unwrap_jso(this)));
+  AnimatedLength get y => _blink.BlinkSVGSVGElement.instance.y_Getter_(this);
   
   @DomName('SVGSVGElement.animationsPaused')
   @DocsEditable()
-  bool animationsPaused() => _blink.BlinkSVGSVGElement.instance.animationsPaused_Callback_0_(unwrap_jso(this));
+  bool animationsPaused() => _blink.BlinkSVGSVGElement.instance.animationsPaused_Callback_0_(this);
   
   @DomName('SVGSVGElement.checkEnclosure')
   @DocsEditable()
-  bool checkEnclosure(SvgElement element, Rect rect) => _blink.BlinkSVGSVGElement.instance.checkEnclosure_Callback_2_(unwrap_jso(this), unwrap_jso(element), unwrap_jso(rect));
+  bool checkEnclosure(SvgElement element, Rect rect) => _blink.BlinkSVGSVGElement.instance.checkEnclosure_Callback_2_(this, element, rect);
   
   @DomName('SVGSVGElement.checkIntersection')
   @DocsEditable()
-  bool checkIntersection(SvgElement element, Rect rect) => _blink.BlinkSVGSVGElement.instance.checkIntersection_Callback_2_(unwrap_jso(this), unwrap_jso(element), unwrap_jso(rect));
+  bool checkIntersection(SvgElement element, Rect rect) => _blink.BlinkSVGSVGElement.instance.checkIntersection_Callback_2_(this, element, rect);
   
   @DomName('SVGSVGElement.createSVGAngle')
   @DocsEditable()
-  Angle createSvgAngle() => wrap_jso(_blink.BlinkSVGSVGElement.instance.createSVGAngle_Callback_0_(unwrap_jso(this)));
+  Angle createSvgAngle() => _blink.BlinkSVGSVGElement.instance.createSVGAngle_Callback_0_(this);
   
   @DomName('SVGSVGElement.createSVGLength')
   @DocsEditable()
-  Length createSvgLength() => wrap_jso(_blink.BlinkSVGSVGElement.instance.createSVGLength_Callback_0_(unwrap_jso(this)));
+  Length createSvgLength() => _blink.BlinkSVGSVGElement.instance.createSVGLength_Callback_0_(this);
   
   @DomName('SVGSVGElement.createSVGMatrix')
   @DocsEditable()
-  Matrix createSvgMatrix() => wrap_jso(_blink.BlinkSVGSVGElement.instance.createSVGMatrix_Callback_0_(unwrap_jso(this)));
+  Matrix createSvgMatrix() => _blink.BlinkSVGSVGElement.instance.createSVGMatrix_Callback_0_(this);
   
   @DomName('SVGSVGElement.createSVGNumber')
   @DocsEditable()
-  Number createSvgNumber() => wrap_jso(_blink.BlinkSVGSVGElement.instance.createSVGNumber_Callback_0_(unwrap_jso(this)));
+  Number createSvgNumber() => _blink.BlinkSVGSVGElement.instance.createSVGNumber_Callback_0_(this);
   
   @DomName('SVGSVGElement.createSVGPoint')
   @DocsEditable()
-  Point createSvgPoint() => wrap_jso(_blink.BlinkSVGSVGElement.instance.createSVGPoint_Callback_0_(unwrap_jso(this)));
+  Point createSvgPoint() => _blink.BlinkSVGSVGElement.instance.createSVGPoint_Callback_0_(this);
   
   @DomName('SVGSVGElement.createSVGRect')
   @DocsEditable()
-  Rect createSvgRect() => wrap_jso(_blink.BlinkSVGSVGElement.instance.createSVGRect_Callback_0_(unwrap_jso(this)));
+  Rect createSvgRect() => _blink.BlinkSVGSVGElement.instance.createSVGRect_Callback_0_(this);
   
   @DomName('SVGSVGElement.createSVGTransform')
   @DocsEditable()
-  Transform createSvgTransform() => wrap_jso(_blink.BlinkSVGSVGElement.instance.createSVGTransform_Callback_0_(unwrap_jso(this)));
+  Transform createSvgTransform() => _blink.BlinkSVGSVGElement.instance.createSVGTransform_Callback_0_(this);
   
   @DomName('SVGSVGElement.createSVGTransformFromMatrix')
   @DocsEditable()
-  Transform createSvgTransformFromMatrix(Matrix matrix) => wrap_jso(_blink.BlinkSVGSVGElement.instance.createSVGTransformFromMatrix_Callback_1_(unwrap_jso(this), unwrap_jso(matrix)));
+  Transform createSvgTransformFromMatrix(Matrix matrix) => _blink.BlinkSVGSVGElement.instance.createSVGTransformFromMatrix_Callback_1_(this, matrix);
   
   @DomName('SVGSVGElement.deselectAll')
   @DocsEditable()
-  void deselectAll() => _blink.BlinkSVGSVGElement.instance.deselectAll_Callback_0_(unwrap_jso(this));
+  void deselectAll() => _blink.BlinkSVGSVGElement.instance.deselectAll_Callback_0_(this);
   
   @DomName('SVGSVGElement.forceRedraw')
   @DocsEditable()
-  void forceRedraw() => _blink.BlinkSVGSVGElement.instance.forceRedraw_Callback_0_(unwrap_jso(this));
+  void forceRedraw() => _blink.BlinkSVGSVGElement.instance.forceRedraw_Callback_0_(this);
   
   @DomName('SVGSVGElement.getCurrentTime')
   @DocsEditable()
-  num getCurrentTime() => _blink.BlinkSVGSVGElement.instance.getCurrentTime_Callback_0_(unwrap_jso(this));
+  num getCurrentTime() => _blink.BlinkSVGSVGElement.instance.getCurrentTime_Callback_0_(this);
   
   @DomName('SVGSVGElement.getElementById')
   @DocsEditable()
-  Element getElementById(String elementId) => wrap_jso(_blink.BlinkSVGSVGElement.instance.getElementById_Callback_1_(unwrap_jso(this), elementId));
+  Element getElementById(String elementId) => _blink.BlinkSVGSVGElement.instance.getElementById_Callback_1_(this, elementId);
   
   @DomName('SVGSVGElement.getEnclosureList')
   @DocsEditable()
-  List<Node> getEnclosureList(Rect rect, SvgElement referenceElement) => wrap_jso(_blink.BlinkSVGSVGElement.instance.getEnclosureList_Callback_2_(unwrap_jso(this), unwrap_jso(rect), unwrap_jso(referenceElement)));
+  List<Node> getEnclosureList(Rect rect, SvgElement referenceElement) => (_blink.BlinkSVGSVGElement.instance.getEnclosureList_Callback_2_(this, rect, referenceElement));
   
   @DomName('SVGSVGElement.getIntersectionList')
   @DocsEditable()
-  List<Node> getIntersectionList(Rect rect, SvgElement referenceElement) => wrap_jso(_blink.BlinkSVGSVGElement.instance.getIntersectionList_Callback_2_(unwrap_jso(this), unwrap_jso(rect), unwrap_jso(referenceElement)));
+  List<Node> getIntersectionList(Rect rect, SvgElement referenceElement) => (_blink.BlinkSVGSVGElement.instance.getIntersectionList_Callback_2_(this, rect, referenceElement));
   
   @DomName('SVGSVGElement.pauseAnimations')
   @DocsEditable()
-  void pauseAnimations() => _blink.BlinkSVGSVGElement.instance.pauseAnimations_Callback_0_(unwrap_jso(this));
+  void pauseAnimations() => _blink.BlinkSVGSVGElement.instance.pauseAnimations_Callback_0_(this);
   
   @DomName('SVGSVGElement.setCurrentTime')
   @DocsEditable()
-  void setCurrentTime(num seconds) => _blink.BlinkSVGSVGElement.instance.setCurrentTime_Callback_1_(unwrap_jso(this), seconds);
+  void setCurrentTime(num seconds) => _blink.BlinkSVGSVGElement.instance.setCurrentTime_Callback_1_(this, seconds);
   
   @DomName('SVGSVGElement.suspendRedraw')
   @DocsEditable()
-  int suspendRedraw(int maxWaitMilliseconds) => _blink.BlinkSVGSVGElement.instance.suspendRedraw_Callback_1_(unwrap_jso(this), maxWaitMilliseconds);
+  int suspendRedraw(int maxWaitMilliseconds) => _blink.BlinkSVGSVGElement.instance.suspendRedraw_Callback_1_(this, maxWaitMilliseconds);
   
   @DomName('SVGSVGElement.unpauseAnimations')
   @DocsEditable()
-  void unpauseAnimations() => _blink.BlinkSVGSVGElement.instance.unpauseAnimations_Callback_0_(unwrap_jso(this));
+  void unpauseAnimations() => _blink.BlinkSVGSVGElement.instance.unpauseAnimations_Callback_0_(this);
   
   @DomName('SVGSVGElement.unsuspendRedraw')
   @DocsEditable()
-  void unsuspendRedraw(int suspendHandleId) => _blink.BlinkSVGSVGElement.instance.unsuspendRedraw_Callback_1_(unwrap_jso(this), suspendHandleId);
+  void unsuspendRedraw(int suspendHandleId) => _blink.BlinkSVGSVGElement.instance.unsuspendRedraw_Callback_1_(this, suspendHandleId);
   
   @DomName('SVGSVGElement.unsuspendRedrawAll')
   @DocsEditable()
-  void unsuspendRedrawAll() => _blink.BlinkSVGSVGElement.instance.unsuspendRedrawAll_Callback_0_(unwrap_jso(this));
+  void unsuspendRedrawAll() => _blink.BlinkSVGSVGElement.instance.unsuspendRedrawAll_Callback_0_(this);
   
   @DomName('SVGSVGElement.preserveAspectRatio')
   @DocsEditable()
-  AnimatedPreserveAspectRatio get preserveAspectRatio => wrap_jso(_blink.BlinkSVGSVGElement.instance.preserveAspectRatio_Getter_(unwrap_jso(this)));
+  AnimatedPreserveAspectRatio get preserveAspectRatio => _blink.BlinkSVGSVGElement.instance.preserveAspectRatio_Getter_(this);
   
   @DomName('SVGSVGElement.viewBox')
   @DocsEditable()
-  AnimatedRect get viewBox => wrap_jso(_blink.BlinkSVGSVGElement.instance.viewBox_Getter_(unwrap_jso(this)));
+  AnimatedRect get viewBox => _blink.BlinkSVGSVGElement.instance.viewBox_Getter_(this);
   
   @DomName('SVGSVGElement.zoomAndPan')
   @DocsEditable()
-  int get zoomAndPan => _blink.BlinkSVGSVGElement.instance.zoomAndPan_Getter_(unwrap_jso(this));
+  int get zoomAndPan => _blink.BlinkSVGSVGElement.instance.zoomAndPan_Getter_(this);
   
   @DomName('SVGSVGElement.zoomAndPan')
   @DocsEditable()
-  set zoomAndPan(int value) => _blink.BlinkSVGSVGElement.instance.zoomAndPan_Setter_(unwrap_jso(this), value);
+  set zoomAndPan(int value) => _blink.BlinkSVGSVGElement.instance.zoomAndPan_Setter_(this, value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7647,11 +7001,7 @@ class SwitchElement extends GraphicsElement {
 
 
   @Deprecated("Internal Use Only")
-  static SwitchElement internalCreateSwitchElement() {
-    return new SwitchElement._internalWrap();
-  }
-
-  external factory SwitchElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   SwitchElement.internal_() : super.internal_();
@@ -7684,11 +7034,7 @@ class SymbolElement extends SvgElement implements FitToViewBox {
 
 
   @Deprecated("Internal Use Only")
-  static SymbolElement internalCreateSymbolElement() {
-    return new SymbolElement._internalWrap();
-  }
-
-  external factory SymbolElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   SymbolElement.internal_() : super.internal_();
@@ -7702,11 +7048,11 @@ class SymbolElement extends SvgElement implements FitToViewBox {
 
   @DomName('SVGSymbolElement.preserveAspectRatio')
   @DocsEditable()
-  AnimatedPreserveAspectRatio get preserveAspectRatio => wrap_jso(_blink.BlinkSVGSymbolElement.instance.preserveAspectRatio_Getter_(unwrap_jso(this)));
+  AnimatedPreserveAspectRatio get preserveAspectRatio => _blink.BlinkSVGSymbolElement.instance.preserveAspectRatio_Getter_(this);
   
   @DomName('SVGSymbolElement.viewBox')
   @DocsEditable()
-  AnimatedRect get viewBox => wrap_jso(_blink.BlinkSVGSymbolElement.instance.viewBox_Getter_(unwrap_jso(this)));
+  AnimatedRect get viewBox => _blink.BlinkSVGSymbolElement.instance.viewBox_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7729,11 +7075,7 @@ class TSpanElement extends TextPositioningElement {
 
 
   @Deprecated("Internal Use Only")
-  static TSpanElement internalCreateTSpanElement() {
-    return new TSpanElement._internalWrap();
-  }
-
-  external factory TSpanElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   TSpanElement.internal_() : super.internal_();
@@ -7793,11 +7135,7 @@ class TextContentElement extends GraphicsElement {
 
 
   @Deprecated("Internal Use Only")
-  static TextContentElement internalCreateTextContentElement() {
-    return new TextContentElement._internalWrap();
-  }
-
-  external factory TextContentElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   TextContentElement.internal_() : super.internal_();
@@ -7823,47 +7161,47 @@ class TextContentElement extends GraphicsElement {
 
   @DomName('SVGTextContentElement.lengthAdjust')
   @DocsEditable()
-  AnimatedEnumeration get lengthAdjust => wrap_jso(_blink.BlinkSVGTextContentElement.instance.lengthAdjust_Getter_(unwrap_jso(this)));
+  AnimatedEnumeration get lengthAdjust => _blink.BlinkSVGTextContentElement.instance.lengthAdjust_Getter_(this);
   
   @DomName('SVGTextContentElement.textLength')
   @DocsEditable()
-  AnimatedLength get textLength => wrap_jso(_blink.BlinkSVGTextContentElement.instance.textLength_Getter_(unwrap_jso(this)));
+  AnimatedLength get textLength => _blink.BlinkSVGTextContentElement.instance.textLength_Getter_(this);
   
   @DomName('SVGTextContentElement.getCharNumAtPosition')
   @DocsEditable()
-  int getCharNumAtPosition(Point point) => _blink.BlinkSVGTextContentElement.instance.getCharNumAtPosition_Callback_1_(unwrap_jso(this), unwrap_jso(point));
+  int getCharNumAtPosition(Point point) => _blink.BlinkSVGTextContentElement.instance.getCharNumAtPosition_Callback_1_(this, point);
   
   @DomName('SVGTextContentElement.getComputedTextLength')
   @DocsEditable()
-  num getComputedTextLength() => _blink.BlinkSVGTextContentElement.instance.getComputedTextLength_Callback_0_(unwrap_jso(this));
+  num getComputedTextLength() => _blink.BlinkSVGTextContentElement.instance.getComputedTextLength_Callback_0_(this);
   
   @DomName('SVGTextContentElement.getEndPositionOfChar')
   @DocsEditable()
-  Point getEndPositionOfChar(int charnum) => wrap_jso(_blink.BlinkSVGTextContentElement.instance.getEndPositionOfChar_Callback_1_(unwrap_jso(this), charnum));
+  Point getEndPositionOfChar(int charnum) => _blink.BlinkSVGTextContentElement.instance.getEndPositionOfChar_Callback_1_(this, charnum);
   
   @DomName('SVGTextContentElement.getExtentOfChar')
   @DocsEditable()
-  Rect getExtentOfChar(int charnum) => wrap_jso(_blink.BlinkSVGTextContentElement.instance.getExtentOfChar_Callback_1_(unwrap_jso(this), charnum));
+  Rect getExtentOfChar(int charnum) => _blink.BlinkSVGTextContentElement.instance.getExtentOfChar_Callback_1_(this, charnum);
   
   @DomName('SVGTextContentElement.getNumberOfChars')
   @DocsEditable()
-  int getNumberOfChars() => _blink.BlinkSVGTextContentElement.instance.getNumberOfChars_Callback_0_(unwrap_jso(this));
+  int getNumberOfChars() => _blink.BlinkSVGTextContentElement.instance.getNumberOfChars_Callback_0_(this);
   
   @DomName('SVGTextContentElement.getRotationOfChar')
   @DocsEditable()
-  num getRotationOfChar(int charnum) => _blink.BlinkSVGTextContentElement.instance.getRotationOfChar_Callback_1_(unwrap_jso(this), charnum);
+  num getRotationOfChar(int charnum) => _blink.BlinkSVGTextContentElement.instance.getRotationOfChar_Callback_1_(this, charnum);
   
   @DomName('SVGTextContentElement.getStartPositionOfChar')
   @DocsEditable()
-  Point getStartPositionOfChar(int charnum) => wrap_jso(_blink.BlinkSVGTextContentElement.instance.getStartPositionOfChar_Callback_1_(unwrap_jso(this), charnum));
+  Point getStartPositionOfChar(int charnum) => _blink.BlinkSVGTextContentElement.instance.getStartPositionOfChar_Callback_1_(this, charnum);
   
   @DomName('SVGTextContentElement.getSubStringLength')
   @DocsEditable()
-  num getSubStringLength(int charnum, int nchars) => _blink.BlinkSVGTextContentElement.instance.getSubStringLength_Callback_2_(unwrap_jso(this), charnum, nchars);
+  num getSubStringLength(int charnum, int nchars) => _blink.BlinkSVGTextContentElement.instance.getSubStringLength_Callback_2_(this, charnum, nchars);
   
   @DomName('SVGTextContentElement.selectSubString')
   @DocsEditable()
-  void selectSubString(int charnum, int nchars) => _blink.BlinkSVGTextContentElement.instance.selectSubString_Callback_2_(unwrap_jso(this), charnum, nchars);
+  void selectSubString(int charnum, int nchars) => _blink.BlinkSVGTextContentElement.instance.selectSubString_Callback_2_(this, charnum, nchars);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7886,11 +7224,7 @@ class TextElement extends TextPositioningElement {
 
 
   @Deprecated("Internal Use Only")
-  static TextElement internalCreateTextElement() {
-    return new TextElement._internalWrap();
-  }
-
-  external factory TextElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   TextElement.internal_() : super.internal_();
@@ -7919,11 +7253,7 @@ class TextPathElement extends TextContentElement implements UriReference {
 
 
   @Deprecated("Internal Use Only")
-  static TextPathElement internalCreateTextPathElement() {
-    return new TextPathElement._internalWrap();
-  }
-
-  external factory TextPathElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   TextPathElement.internal_() : super.internal_();
@@ -7961,19 +7291,19 @@ class TextPathElement extends TextContentElement implements UriReference {
 
   @DomName('SVGTextPathElement.method')
   @DocsEditable()
-  AnimatedEnumeration get method => wrap_jso(_blink.BlinkSVGTextPathElement.instance.method_Getter_(unwrap_jso(this)));
+  AnimatedEnumeration get method => _blink.BlinkSVGTextPathElement.instance.method_Getter_(this);
   
   @DomName('SVGTextPathElement.spacing')
   @DocsEditable()
-  AnimatedEnumeration get spacing => wrap_jso(_blink.BlinkSVGTextPathElement.instance.spacing_Getter_(unwrap_jso(this)));
+  AnimatedEnumeration get spacing => _blink.BlinkSVGTextPathElement.instance.spacing_Getter_(this);
   
   @DomName('SVGTextPathElement.startOffset')
   @DocsEditable()
-  AnimatedLength get startOffset => wrap_jso(_blink.BlinkSVGTextPathElement.instance.startOffset_Getter_(unwrap_jso(this)));
+  AnimatedLength get startOffset => _blink.BlinkSVGTextPathElement.instance.startOffset_Getter_(this);
   
   @DomName('SVGTextPathElement.href')
   @DocsEditable()
-  AnimatedString get href => wrap_jso(_blink.BlinkSVGTextPathElement.instance.href_Getter_(unwrap_jso(this)));
+  AnimatedString get href => _blink.BlinkSVGTextPathElement.instance.href_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7992,11 +7322,7 @@ class TextPositioningElement extends TextContentElement {
 
 
   @Deprecated("Internal Use Only")
-  static TextPositioningElement internalCreateTextPositioningElement() {
-    return new TextPositioningElement._internalWrap();
-  }
-
-  external factory TextPositioningElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   TextPositioningElement.internal_() : super.internal_();
@@ -8010,23 +7336,23 @@ class TextPositioningElement extends TextContentElement {
 
   @DomName('SVGTextPositioningElement.dx')
   @DocsEditable()
-  AnimatedLengthList get dx => wrap_jso(_blink.BlinkSVGTextPositioningElement.instance.dx_Getter_(unwrap_jso(this)));
+  AnimatedLengthList get dx => _blink.BlinkSVGTextPositioningElement.instance.dx_Getter_(this);
   
   @DomName('SVGTextPositioningElement.dy')
   @DocsEditable()
-  AnimatedLengthList get dy => wrap_jso(_blink.BlinkSVGTextPositioningElement.instance.dy_Getter_(unwrap_jso(this)));
+  AnimatedLengthList get dy => _blink.BlinkSVGTextPositioningElement.instance.dy_Getter_(this);
   
   @DomName('SVGTextPositioningElement.rotate')
   @DocsEditable()
-  AnimatedNumberList get rotate => wrap_jso(_blink.BlinkSVGTextPositioningElement.instance.rotate_Getter_(unwrap_jso(this)));
+  AnimatedNumberList get rotate => _blink.BlinkSVGTextPositioningElement.instance.rotate_Getter_(this);
   
   @DomName('SVGTextPositioningElement.x')
   @DocsEditable()
-  AnimatedLengthList get x => wrap_jso(_blink.BlinkSVGTextPositioningElement.instance.x_Getter_(unwrap_jso(this)));
+  AnimatedLengthList get x => _blink.BlinkSVGTextPositioningElement.instance.x_Getter_(this);
   
   @DomName('SVGTextPositioningElement.y')
   @DocsEditable()
-  AnimatedLengthList get y => wrap_jso(_blink.BlinkSVGTextPositioningElement.instance.y_Getter_(unwrap_jso(this)));
+  AnimatedLengthList get y => _blink.BlinkSVGTextPositioningElement.instance.y_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8049,11 +7375,7 @@ class TitleElement extends SvgElement {
 
 
   @Deprecated("Internal Use Only")
-  static TitleElement internalCreateTitleElement() {
-    return new TitleElement._internalWrap();
-  }
-
-  external factory TitleElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   TitleElement.internal_() : super.internal_();
@@ -8080,20 +7402,12 @@ class Transform extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory Transform._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static Transform internalCreateTransform() {
-    return new Transform._internalWrap();
-  }
 
-  factory Transform._internalWrap() {
-    return new Transform.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   Transform.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGTransform.SVG_TRANSFORM_MATRIX')
   @DocsEditable()
@@ -8125,39 +7439,39 @@ class Transform extends DartHtmlDomObject {
 
   @DomName('SVGTransform.angle')
   @DocsEditable()
-  num get angle => _blink.BlinkSVGTransform.instance.angle_Getter_(unwrap_jso(this));
+  num get angle => _blink.BlinkSVGTransform.instance.angle_Getter_(this);
   
   @DomName('SVGTransform.matrix')
   @DocsEditable()
-  Matrix get matrix => wrap_jso(_blink.BlinkSVGTransform.instance.matrix_Getter_(unwrap_jso(this)));
+  Matrix get matrix => _blink.BlinkSVGTransform.instance.matrix_Getter_(this);
   
   @DomName('SVGTransform.type')
   @DocsEditable()
-  int get type => _blink.BlinkSVGTransform.instance.type_Getter_(unwrap_jso(this));
+  int get type => _blink.BlinkSVGTransform.instance.type_Getter_(this);
   
   @DomName('SVGTransform.setMatrix')
   @DocsEditable()
-  void setMatrix(Matrix matrix) => _blink.BlinkSVGTransform.instance.setMatrix_Callback_1_(unwrap_jso(this), unwrap_jso(matrix));
+  void setMatrix(Matrix matrix) => _blink.BlinkSVGTransform.instance.setMatrix_Callback_1_(this, matrix);
   
   @DomName('SVGTransform.setRotate')
   @DocsEditable()
-  void setRotate(num angle, num cx, num cy) => _blink.BlinkSVGTransform.instance.setRotate_Callback_3_(unwrap_jso(this), angle, cx, cy);
+  void setRotate(num angle, num cx, num cy) => _blink.BlinkSVGTransform.instance.setRotate_Callback_3_(this, angle, cx, cy);
   
   @DomName('SVGTransform.setScale')
   @DocsEditable()
-  void setScale(num sx, num sy) => _blink.BlinkSVGTransform.instance.setScale_Callback_2_(unwrap_jso(this), sx, sy);
+  void setScale(num sx, num sy) => _blink.BlinkSVGTransform.instance.setScale_Callback_2_(this, sx, sy);
   
   @DomName('SVGTransform.setSkewX')
   @DocsEditable()
-  void setSkewX(num angle) => _blink.BlinkSVGTransform.instance.setSkewX_Callback_1_(unwrap_jso(this), angle);
+  void setSkewX(num angle) => _blink.BlinkSVGTransform.instance.setSkewX_Callback_1_(this, angle);
   
   @DomName('SVGTransform.setSkewY')
   @DocsEditable()
-  void setSkewY(num angle) => _blink.BlinkSVGTransform.instance.setSkewY_Callback_1_(unwrap_jso(this), angle);
+  void setSkewY(num angle) => _blink.BlinkSVGTransform.instance.setSkewY_Callback_1_(this, angle);
   
   @DomName('SVGTransform.setTranslate')
   @DocsEditable()
-  void setTranslate(num tx, num ty) => _blink.BlinkSVGTransform.instance.setTranslate_Callback_2_(unwrap_jso(this), tx, ty);
+  void setTranslate(num tx, num ty) => _blink.BlinkSVGTransform.instance.setTranslate_Callback_2_(this, tx, ty);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8174,29 +7488,21 @@ class TransformList extends DartHtmlDomObject with ListMixin<Transform>, Immutab
   // To suppress missing implicit constructor warnings.
   factory TransformList._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static TransformList internalCreateTransformList() {
-    return new TransformList._internalWrap();
-  }
 
-  factory TransformList._internalWrap() {
-    return new TransformList.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   TransformList.internal_() { }
 
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('SVGTransformList.length')
   @DocsEditable()
   @Experimental() // untriaged
-  int get length => _blink.BlinkSVGTransformList.instance.length_Getter_(unwrap_jso(this));
+  int get length => _blink.BlinkSVGTransformList.instance.length_Getter_(this);
   
   @DomName('SVGTransformList.numberOfItems')
   @DocsEditable()
-  int get numberOfItems => _blink.BlinkSVGTransformList.instance.numberOfItems_Getter_(unwrap_jso(this));
+  int get numberOfItems => _blink.BlinkSVGTransformList.instance.numberOfItems_Getter_(this);
   
   Transform operator[](int index) {
     if (index < 0 || index >= length)
@@ -8245,43 +7551,43 @@ class TransformList extends DartHtmlDomObject with ListMixin<Transform>, Immutab
   @DomName('SVGTransformList.__setter__')
   @DocsEditable()
   @Experimental() // untriaged
-  void __setter__(int index, Transform newItem) => _blink.BlinkSVGTransformList.instance.$__setter___Callback_2_(unwrap_jso(this), index, unwrap_jso(newItem));
+  void __setter__(int index, Transform newItem) => _blink.BlinkSVGTransformList.instance.$__setter___Callback_2_(this, index, newItem);
   
   @DomName('SVGTransformList.appendItem')
   @DocsEditable()
-  Transform appendItem(Transform newItem) => wrap_jso(_blink.BlinkSVGTransformList.instance.appendItem_Callback_1_(unwrap_jso(this), unwrap_jso(newItem)));
+  Transform appendItem(Transform newItem) => _blink.BlinkSVGTransformList.instance.appendItem_Callback_1_(this, newItem);
   
   @DomName('SVGTransformList.clear')
   @DocsEditable()
-  void clear() => _blink.BlinkSVGTransformList.instance.clear_Callback_0_(unwrap_jso(this));
+  void clear() => _blink.BlinkSVGTransformList.instance.clear_Callback_0_(this);
   
   @DomName('SVGTransformList.consolidate')
   @DocsEditable()
-  Transform consolidate() => wrap_jso(_blink.BlinkSVGTransformList.instance.consolidate_Callback_0_(unwrap_jso(this)));
+  Transform consolidate() => _blink.BlinkSVGTransformList.instance.consolidate_Callback_0_(this);
   
   @DomName('SVGTransformList.createSVGTransformFromMatrix')
   @DocsEditable()
-  Transform createSvgTransformFromMatrix(Matrix matrix) => wrap_jso(_blink.BlinkSVGTransformList.instance.createSVGTransformFromMatrix_Callback_1_(unwrap_jso(this), unwrap_jso(matrix)));
+  Transform createSvgTransformFromMatrix(Matrix matrix) => _blink.BlinkSVGTransformList.instance.createSVGTransformFromMatrix_Callback_1_(this, matrix);
   
   @DomName('SVGTransformList.getItem')
   @DocsEditable()
-  Transform getItem(int index) => wrap_jso(_blink.BlinkSVGTransformList.instance.getItem_Callback_1_(unwrap_jso(this), index));
+  Transform getItem(int index) => _blink.BlinkSVGTransformList.instance.getItem_Callback_1_(this, index);
   
   @DomName('SVGTransformList.initialize')
   @DocsEditable()
-  Transform initialize(Transform newItem) => wrap_jso(_blink.BlinkSVGTransformList.instance.initialize_Callback_1_(unwrap_jso(this), unwrap_jso(newItem)));
+  Transform initialize(Transform newItem) => _blink.BlinkSVGTransformList.instance.initialize_Callback_1_(this, newItem);
   
   @DomName('SVGTransformList.insertItemBefore')
   @DocsEditable()
-  Transform insertItemBefore(Transform newItem, int index) => wrap_jso(_blink.BlinkSVGTransformList.instance.insertItemBefore_Callback_2_(unwrap_jso(this), unwrap_jso(newItem), index));
+  Transform insertItemBefore(Transform newItem, int index) => _blink.BlinkSVGTransformList.instance.insertItemBefore_Callback_2_(this, newItem, index);
   
   @DomName('SVGTransformList.removeItem')
   @DocsEditable()
-  Transform removeItem(int index) => wrap_jso(_blink.BlinkSVGTransformList.instance.removeItem_Callback_1_(unwrap_jso(this), index));
+  Transform removeItem(int index) => _blink.BlinkSVGTransformList.instance.removeItem_Callback_1_(this, index);
   
   @DomName('SVGTransformList.replaceItem')
   @DocsEditable()
-  Transform replaceItem(Transform newItem, int index) => wrap_jso(_blink.BlinkSVGTransformList.instance.replaceItem_Callback_2_(unwrap_jso(this), unwrap_jso(newItem), index));
+  Transform replaceItem(Transform newItem, int index) => _blink.BlinkSVGTransformList.instance.replaceItem_Callback_2_(this, newItem, index);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8298,20 +7604,12 @@ class UnitTypes extends DartHtmlDomObject {
   // To suppress missing implicit constructor warnings.
   factory UnitTypes._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static UnitTypes internalCreateUnitTypes() {
-    return new UnitTypes._internalWrap();
-  }
 
-  factory UnitTypes._internalWrap() {
-    return new UnitTypes.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   UnitTypes.internal_() { }
-
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
 
   @DomName('SVGUnitTypes.SVG_UNIT_TYPE_OBJECTBOUNDINGBOX')
   @DocsEditable()
@@ -8365,11 +7663,7 @@ class UseElement extends GraphicsElement implements UriReference {
 
 
   @Deprecated("Internal Use Only")
-  static UseElement internalCreateUseElement() {
-    return new UseElement._internalWrap();
-  }
-
-  external factory UseElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   UseElement.internal_() : super.internal_();
@@ -8383,23 +7677,23 @@ class UseElement extends GraphicsElement implements UriReference {
 
   @DomName('SVGUseElement.height')
   @DocsEditable()
-  AnimatedLength get height => wrap_jso(_blink.BlinkSVGUseElement.instance.height_Getter_(unwrap_jso(this)));
+  AnimatedLength get height => _blink.BlinkSVGUseElement.instance.height_Getter_(this);
   
   @DomName('SVGUseElement.width')
   @DocsEditable()
-  AnimatedLength get width => wrap_jso(_blink.BlinkSVGUseElement.instance.width_Getter_(unwrap_jso(this)));
+  AnimatedLength get width => _blink.BlinkSVGUseElement.instance.width_Getter_(this);
   
   @DomName('SVGUseElement.x')
   @DocsEditable()
-  AnimatedLength get x => wrap_jso(_blink.BlinkSVGUseElement.instance.x_Getter_(unwrap_jso(this)));
+  AnimatedLength get x => _blink.BlinkSVGUseElement.instance.x_Getter_(this);
   
   @DomName('SVGUseElement.y')
   @DocsEditable()
-  AnimatedLength get y => wrap_jso(_blink.BlinkSVGUseElement.instance.y_Getter_(unwrap_jso(this)));
+  AnimatedLength get y => _blink.BlinkSVGUseElement.instance.y_Getter_(this);
   
   @DomName('SVGUseElement.href')
   @DocsEditable()
-  AnimatedString get href => wrap_jso(_blink.BlinkSVGUseElement.instance.href_Getter_(unwrap_jso(this)));
+  AnimatedString get href => _blink.BlinkSVGUseElement.instance.href_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8422,11 +7716,7 @@ class ViewElement extends SvgElement implements FitToViewBox, ZoomAndPan {
 
 
   @Deprecated("Internal Use Only")
-  static ViewElement internalCreateViewElement() {
-    return new ViewElement._internalWrap();
-  }
-
-  external factory ViewElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   ViewElement.internal_() : super.internal_();
@@ -8440,23 +7730,23 @@ class ViewElement extends SvgElement implements FitToViewBox, ZoomAndPan {
 
   @DomName('SVGViewElement.viewTarget')
   @DocsEditable()
-  StringList get viewTarget => wrap_jso(_blink.BlinkSVGViewElement.instance.viewTarget_Getter_(unwrap_jso(this)));
+  StringList get viewTarget => _blink.BlinkSVGViewElement.instance.viewTarget_Getter_(this);
   
   @DomName('SVGViewElement.preserveAspectRatio')
   @DocsEditable()
-  AnimatedPreserveAspectRatio get preserveAspectRatio => wrap_jso(_blink.BlinkSVGViewElement.instance.preserveAspectRatio_Getter_(unwrap_jso(this)));
+  AnimatedPreserveAspectRatio get preserveAspectRatio => _blink.BlinkSVGViewElement.instance.preserveAspectRatio_Getter_(this);
   
   @DomName('SVGViewElement.viewBox')
   @DocsEditable()
-  AnimatedRect get viewBox => wrap_jso(_blink.BlinkSVGViewElement.instance.viewBox_Getter_(unwrap_jso(this)));
+  AnimatedRect get viewBox => _blink.BlinkSVGViewElement.instance.viewBox_Getter_(this);
   
   @DomName('SVGViewElement.zoomAndPan')
   @DocsEditable()
-  int get zoomAndPan => _blink.BlinkSVGViewElement.instance.zoomAndPan_Getter_(unwrap_jso(this));
+  int get zoomAndPan => _blink.BlinkSVGViewElement.instance.zoomAndPan_Getter_(this);
   
   @DomName('SVGViewElement.zoomAndPan')
   @DocsEditable()
-  set zoomAndPan(int value) => _blink.BlinkSVGViewElement.instance.zoomAndPan_Setter_(unwrap_jso(this), value);
+  set zoomAndPan(int value) => _blink.BlinkSVGViewElement.instance.zoomAndPan_Setter_(this, value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8473,64 +7763,56 @@ class ViewSpec extends DartHtmlDomObject implements FitToViewBox, ZoomAndPan {
   // To suppress missing implicit constructor warnings.
   factory ViewSpec._() { throw new UnsupportedError("Not supported"); }
 
-  @Deprecated("Internal Use Only")
-  static ViewSpec internalCreateViewSpec() {
-    return new ViewSpec._internalWrap();
-  }
 
-  factory ViewSpec._internalWrap() {
-    return new ViewSpec.internal_();
-  }
+  @Deprecated("Internal Use Only")
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   ViewSpec.internal_() { }
 
-  bool operator ==(other) => unwrap_jso(other) == unwrap_jso(this) || identical(this, other);
-  int get hashCode => unwrap_jso(this).hashCode;
-
   @DomName('SVGViewSpec.preserveAspectRatioString')
   @DocsEditable()
-  String get preserveAspectRatioString => _blink.BlinkSVGViewSpec.instance.preserveAspectRatioString_Getter_(unwrap_jso(this));
+  String get preserveAspectRatioString => _blink.BlinkSVGViewSpec.instance.preserveAspectRatioString_Getter_(this);
   
   @DomName('SVGViewSpec.transform')
   @DocsEditable()
-  TransformList get transform => wrap_jso(_blink.BlinkSVGViewSpec.instance.transform_Getter_(unwrap_jso(this)));
+  TransformList get transform => _blink.BlinkSVGViewSpec.instance.transform_Getter_(this);
   
   @DomName('SVGViewSpec.transformString')
   @DocsEditable()
-  String get transformString => _blink.BlinkSVGViewSpec.instance.transformString_Getter_(unwrap_jso(this));
+  String get transformString => _blink.BlinkSVGViewSpec.instance.transformString_Getter_(this);
   
   @DomName('SVGViewSpec.viewBoxString')
   @DocsEditable()
-  String get viewBoxString => _blink.BlinkSVGViewSpec.instance.viewBoxString_Getter_(unwrap_jso(this));
+  String get viewBoxString => _blink.BlinkSVGViewSpec.instance.viewBoxString_Getter_(this);
   
   @DomName('SVGViewSpec.viewTarget')
   @DocsEditable()
-  SvgElement get viewTarget => wrap_jso(_blink.BlinkSVGViewSpec.instance.viewTarget_Getter_(unwrap_jso(this)));
+  SvgElement get viewTarget => _blink.BlinkSVGViewSpec.instance.viewTarget_Getter_(this);
   
   @DomName('SVGViewSpec.viewTargetString')
   @DocsEditable()
-  String get viewTargetString => _blink.BlinkSVGViewSpec.instance.viewTargetString_Getter_(unwrap_jso(this));
+  String get viewTargetString => _blink.BlinkSVGViewSpec.instance.viewTargetString_Getter_(this);
   
   @DomName('SVGViewSpec.preserveAspectRatio')
   @DocsEditable()
   @Experimental() // nonstandard
-  AnimatedPreserveAspectRatio get preserveAspectRatio => wrap_jso(_blink.BlinkSVGViewSpec.instance.preserveAspectRatio_Getter_(unwrap_jso(this)));
+  AnimatedPreserveAspectRatio get preserveAspectRatio => _blink.BlinkSVGViewSpec.instance.preserveAspectRatio_Getter_(this);
   
   @DomName('SVGViewSpec.viewBox')
   @DocsEditable()
   @Experimental() // nonstandard
-  AnimatedRect get viewBox => wrap_jso(_blink.BlinkSVGViewSpec.instance.viewBox_Getter_(unwrap_jso(this)));
+  AnimatedRect get viewBox => _blink.BlinkSVGViewSpec.instance.viewBox_Getter_(this);
   
   @DomName('SVGViewSpec.zoomAndPan')
   @DocsEditable()
   @Experimental() // nonstandard
-  int get zoomAndPan => _blink.BlinkSVGViewSpec.instance.zoomAndPan_Getter_(unwrap_jso(this));
+  int get zoomAndPan => _blink.BlinkSVGViewSpec.instance.zoomAndPan_Getter_(this);
   
   @DomName('SVGViewSpec.zoomAndPan')
   @DocsEditable()
   @Experimental() // nonstandard
-  set zoomAndPan(int value) => _blink.BlinkSVGViewSpec.instance.zoomAndPan_Setter_(unwrap_jso(this), value);
+  set zoomAndPan(int value) => _blink.BlinkSVGViewSpec.instance.zoomAndPan_Setter_(this, value);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8584,11 +7866,7 @@ class ZoomEvent extends UIEvent {
 
 
   @Deprecated("Internal Use Only")
-  static ZoomEvent internalCreateZoomEvent() {
-    return new ZoomEvent._internalWrap();
-  }
-
-  external factory ZoomEvent._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   ZoomEvent.internal_() : super.internal_();
@@ -8596,23 +7874,23 @@ class ZoomEvent extends UIEvent {
 
   @DomName('SVGZoomEvent.newScale')
   @DocsEditable()
-  num get newScale => _blink.BlinkSVGZoomEvent.instance.newScale_Getter_(unwrap_jso(this));
+  num get newScale => _blink.BlinkSVGZoomEvent.instance.newScale_Getter_(this);
   
   @DomName('SVGZoomEvent.newTranslate')
   @DocsEditable()
-  Point get newTranslate => wrap_jso(_blink.BlinkSVGZoomEvent.instance.newTranslate_Getter_(unwrap_jso(this)));
+  Point get newTranslate => _blink.BlinkSVGZoomEvent.instance.newTranslate_Getter_(this);
   
   @DomName('SVGZoomEvent.previousScale')
   @DocsEditable()
-  num get previousScale => _blink.BlinkSVGZoomEvent.instance.previousScale_Getter_(unwrap_jso(this));
+  num get previousScale => _blink.BlinkSVGZoomEvent.instance.previousScale_Getter_(this);
   
   @DomName('SVGZoomEvent.previousTranslate')
   @DocsEditable()
-  Point get previousTranslate => wrap_jso(_blink.BlinkSVGZoomEvent.instance.previousTranslate_Getter_(unwrap_jso(this)));
+  Point get previousTranslate => _blink.BlinkSVGZoomEvent.instance.previousTranslate_Getter_(this);
   
   @DomName('SVGZoomEvent.zoomRectScreen')
   @DocsEditable()
-  Rect get zoomRectScreen => wrap_jso(_blink.BlinkSVGZoomEvent.instance.zoomRectScreen_Getter_(unwrap_jso(this)));
+  Rect get zoomRectScreen => _blink.BlinkSVGZoomEvent.instance.zoomRectScreen_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8631,11 +7909,7 @@ class _GradientElement extends SvgElement implements UriReference {
 
 
   @Deprecated("Internal Use Only")
-  static _GradientElement internalCreate_GradientElement() {
-    return new _GradientElement._internalWrap();
-  }
-
-  external factory _GradientElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   _GradientElement.internal_() : super.internal_();
@@ -8665,19 +7939,19 @@ class _GradientElement extends SvgElement implements UriReference {
 
   @DomName('SVGGradientElement.gradientTransform')
   @DocsEditable()
-  AnimatedTransformList get gradientTransform => wrap_jso(_blink.BlinkSVGGradientElement.instance.gradientTransform_Getter_(unwrap_jso(this)));
+  AnimatedTransformList get gradientTransform => _blink.BlinkSVGGradientElement.instance.gradientTransform_Getter_(this);
   
   @DomName('SVGGradientElement.gradientUnits')
   @DocsEditable()
-  AnimatedEnumeration get gradientUnits => wrap_jso(_blink.BlinkSVGGradientElement.instance.gradientUnits_Getter_(unwrap_jso(this)));
+  AnimatedEnumeration get gradientUnits => _blink.BlinkSVGGradientElement.instance.gradientUnits_Getter_(this);
   
   @DomName('SVGGradientElement.spreadMethod')
   @DocsEditable()
-  AnimatedEnumeration get spreadMethod => wrap_jso(_blink.BlinkSVGGradientElement.instance.spreadMethod_Getter_(unwrap_jso(this)));
+  AnimatedEnumeration get spreadMethod => _blink.BlinkSVGGradientElement.instance.spreadMethod_Getter_(this);
   
   @DomName('SVGGradientElement.href')
   @DocsEditable()
-  AnimatedString get href => wrap_jso(_blink.BlinkSVGGradientElement.instance.href_Getter_(unwrap_jso(this)));
+  AnimatedString get href => _blink.BlinkSVGGradientElement.instance.href_Getter_(this);
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8696,11 +7970,7 @@ class _SVGComponentTransferFunctionElement extends SvgElement {
 
 
   @Deprecated("Internal Use Only")
-  static _SVGComponentTransferFunctionElement internalCreate_SVGComponentTransferFunctionElement() {
-    return new _SVGComponentTransferFunctionElement._internalWrap();
-  }
-
-  external factory _SVGComponentTransferFunctionElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   _SVGComponentTransferFunctionElement.internal_() : super.internal_();
@@ -8731,11 +8001,7 @@ class _SVGCursorElement extends SvgElement implements UriReference, Tests {
 
 
   @Deprecated("Internal Use Only")
-  static _SVGCursorElement internalCreate_SVGCursorElement() {
-    return new _SVGCursorElement._internalWrap();
-  }
-
-  external factory _SVGCursorElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   _SVGCursorElement.internal_() : super.internal_();
@@ -8751,11 +8017,11 @@ class _SVGCursorElement extends SvgElement implements UriReference, Tests {
   static bool get supported => true;
 
   // Override these methods for Dartium _SVGCursorElement can't be abstract.
-  StringList get requiredExtensions => wrap_jso(_blink.BlinkSVGCursorElement.instance.requiredExtensions_Getter_(unwrap_jso(this)));
-  StringList get requiredFeatures => wrap_jso(_blink.BlinkSVGCursorElement.instance.requiredFeatures_Getter_(unwrap_jso(this)));
-  StringList get systemLanguage => wrap_jso(_blink.BlinkSVGCursorElement.instance.systemLanguage_Getter_(unwrap_jso(this)));
-  AnimatedString get href => wrap_jso(_blink.BlinkSVGCursorElement.instance.href_Getter_(unwrap_jso(this)));
-  bool hasExtension(String extension) => _blink.BlinkSVGCursorElement.instance.hasExtension_Callback_1_(unwrap_jso(this), extension);
+  StringList get requiredExtensions => _blink.BlinkSVGCursorElement.instance.requiredExtensions_Getter_(this);
+  StringList get requiredFeatures => _blink.BlinkSVGCursorElement.instance.requiredFeatures_Getter_(this);
+  StringList get systemLanguage => _blink.BlinkSVGCursorElement.instance.systemLanguage_Getter_(this);
+  AnimatedString get href => _blink.BlinkSVGCursorElement.instance.href_Getter_(this);
+  bool hasExtension(String extension) => _blink.BlinkSVGCursorElement.instance.hasExtension_Callback_1_(this, extension);
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8772,11 +8038,7 @@ class _SVGFEDropShadowElement extends SvgElement implements FilterPrimitiveStand
 
 
   @Deprecated("Internal Use Only")
-  static _SVGFEDropShadowElement internalCreate_SVGFEDropShadowElement() {
-    return new _SVGFEDropShadowElement._internalWrap();
-  }
-
-  external factory _SVGFEDropShadowElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   _SVGFEDropShadowElement.internal_() : super.internal_();
@@ -8789,11 +8051,11 @@ class _SVGFEDropShadowElement extends SvgElement implements FilterPrimitiveStand
   _SVGFEDropShadowElement.created() : super.created();
 
   // Override these methods for Dartium _SVGFEDropShadowElement can't be abstract.
-  AnimatedLength get height => wrap_jso(_blink.BlinkSVGFEDropShadowElement.instance.height_Getter_(unwrap_jso(this)));
-  AnimatedString get result => wrap_jso(_blink.BlinkSVGFEDropShadowElement.instance.result_Getter_(unwrap_jso(this)));
-  AnimatedLength get width => wrap_jso(_blink.BlinkSVGFEDropShadowElement.instance.width_Getter_(unwrap_jso(this)));
-  AnimatedLength get x => wrap_jso(_blink.BlinkSVGFEDropShadowElement.instance.x_Getter_(unwrap_jso(this)));
-  AnimatedLength get y => wrap_jso(_blink.BlinkSVGFEDropShadowElement.instance.y_Getter_(unwrap_jso(this)));
+  AnimatedLength get height => _blink.BlinkSVGFEDropShadowElement.instance.height_Getter_(this);
+  AnimatedString get result => _blink.BlinkSVGFEDropShadowElement.instance.result_Getter_(this);
+  AnimatedLength get width => _blink.BlinkSVGFEDropShadowElement.instance.width_Getter_(this);
+  AnimatedLength get x => _blink.BlinkSVGFEDropShadowElement.instance.x_Getter_(this);
+  AnimatedLength get y => _blink.BlinkSVGFEDropShadowElement.instance.y_Getter_(this);
 }
 
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8813,11 +8075,7 @@ class _SVGMPathElement extends SvgElement implements UriReference {
 
 
   @Deprecated("Internal Use Only")
-  static _SVGMPathElement internalCreate_SVGMPathElement() {
-    return new _SVGMPathElement._internalWrap();
-  }
-
-  external factory _SVGMPathElement._internalWrap();
+  external static Type get instanceRuntimeType;
 
   @Deprecated("Internal Use Only")
   _SVGMPathElement.internal_() : super.internal_();
@@ -8830,6 +8088,6 @@ class _SVGMPathElement extends SvgElement implements UriReference {
   _SVGMPathElement.created() : super.created();
 
   // Override these methods for Dartium _SVGMPathElement can't be abstract.
-  AnimatedString get href => wrap_jso(_blink.BlinkSVGMPathElement.instance.href_Getter_(unwrap_jso(this)));
+  AnimatedString get href => _blink.BlinkSVGMPathElement.instance.href_Getter_(this);
 }
 

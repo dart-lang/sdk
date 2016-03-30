@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/name_filter.dart';
@@ -284,8 +285,16 @@ class _Prelinker {
       });
     }
     for (UnlinkedEnum enm in unit.enums) {
-      privateNamespace.putIfAbsent(enm.name,
-          () => new _Meaning(unitNum, ReferenceKind.classOrEnum, 0, 0));
+      privateNamespace.putIfAbsent(enm.name, () {
+        Map<String, _Meaning> namespace = <String, _Meaning>{};
+        enm.values.forEach((UnlinkedEnumValue value) {
+          namespace[value.name] =
+              new _Meaning(unitNum, ReferenceKind.propertyAccessor, 0, 0);
+        });
+        namespace['values'] =
+            new _Meaning(unitNum, ReferenceKind.propertyAccessor, 0, 0);
+        return new _ClassMeaning(unitNum, 0, 0, namespace);
+      });
     }
     for (UnlinkedExecutable executable in unit.executables) {
       privateNamespace.putIfAbsent(
@@ -507,7 +516,8 @@ class _Prelinker {
     if (sourceUri == null) {
       return relativeUri;
     } else {
-      return Uri.parse(sourceUri).resolve(relativeUri).toString();
+      return resolveRelativeUri(Uri.parse(sourceUri), Uri.parse(relativeUri))
+          .toString();
     }
   }
 }

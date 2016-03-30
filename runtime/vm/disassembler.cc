@@ -99,8 +99,7 @@ void DisassembleToJSONStream::Print(const char* format, ...) {
 
 class FindAddrVisitor : public FindObjectVisitor {
  public:
-  explicit FindAddrVisitor(uword addr)
-      : FindObjectVisitor(Isolate::Current()), addr_(addr) { }
+  explicit FindAddrVisitor(uword addr) : addr_(addr) { }
   virtual ~FindAddrVisitor() { }
 
   virtual uword filter_addr() const { return addr_; }

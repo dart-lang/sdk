@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#if !defined(DART_IO_DISABLED) && !defined(DART_IO_SECURE_SOCKET_DISABLED)
+
 #include "platform/globals.h"
 #if defined(TARGET_OS_MACOS)
 
@@ -53,6 +55,16 @@ SecIdentityRef SecIdentityCreate(CFAllocatorRef allocator,
 
 namespace dart {
 namespace bin {
+
+static const int kSSLFilterNativeFieldIndex = 0;
+static const int kSecurityContextNativeFieldIndex = 0;
+static const int kX509NativeFieldIndex = 0;
+
+static const bool SSL_LOG_STATUS = false;
+static const bool SSL_LOG_DATA = false;
+static const bool SSL_LOG_CERTS = false;
+static const int SSL_ERROR_MESSAGE_BUFFER_SIZE = 1000;
+static const intptr_t PEM_BUFSIZE = 1024;
 
 // SSLCertContext wraps the certificates needed for a SecureTransport
 // connection. Fields are protected by the mutex_ field, and may only be set
@@ -181,15 +193,6 @@ class SSLCertContext {
   DISALLOW_COPY_AND_ASSIGN(SSLCertContext);
 };
 
-static const int kSSLFilterNativeFieldIndex = 0;
-static const int kSecurityContextNativeFieldIndex = 0;
-static const int kX509NativeFieldIndex = 0;
-
-static const bool SSL_LOG_STATUS = false;
-static const bool SSL_LOG_DATA = false;
-static const bool SSL_LOG_CERTS = false;
-static const int SSL_ERROR_MESSAGE_BUFFER_SIZE = 1000;
-static const intptr_t PEM_BUFSIZE = 1024;
 
 static char* CFStringRefToCString(CFStringRef cfstring) {
   CFIndex len = CFStringGetLength(cfstring);
@@ -1840,30 +1843,6 @@ void SSLFilter::Destroy() {
 }
 
 
-static intptr_t AvailableToRead(intptr_t start, intptr_t end, intptr_t size) {
-  intptr_t data_available = 0;
-  if (end < start) {
-    // Data may be split into two segments.  In this case,
-    // the first is [start, size).
-    intptr_t buffer_end = (start == 0) ? size - 1 : size;
-    intptr_t available = buffer_end - start;
-    start += available;
-    data_available += available;
-    ASSERT(start <= size);
-    if (start == size) {
-      start = 0;
-    }
-  }
-  if (start < end) {
-    intptr_t available = end - start;
-    start += available;
-    data_available += available;
-    ASSERT(start <= end);
-  }
-  return data_available;
-}
-
-
 OSStatus SSLFilter::SSLReadCallback(SSLConnectionRef connection,
                                     void* data, size_t* data_requested) {
   // Copy at most `data_requested` bytes from `buffers_[kReadEncrypted]` into
@@ -1881,11 +1860,6 @@ OSStatus SSLFilter::SSLReadCallback(SSLConnectionRef connection,
   intptr_t size = filter->encrypted_buffer_size_;
   intptr_t requested = static_cast<intptr_t>(*data_requested);
   intptr_t data_read = 0;
-
-  if (AvailableToRead(start, end, size) < requested) {
-    *data_requested = 0;
-    return errSSLWouldBlock;
-  }
 
   if (end < start) {
     // Data may be split into two segments.  In this case,
@@ -1920,8 +1894,9 @@ OSStatus SSLFilter::SSLReadCallback(SSLConnectionRef connection,
   }
 
   filter->SetBufferStart(kReadEncrypted, start);
+  bool short_read = data_read < static_cast<intptr_t>(*data_requested);
   *data_requested = data_read;
-  return noErr;
+  return short_read ? errSSLWouldBlock : noErr;
 }
 
 
@@ -1939,6 +1914,9 @@ OSStatus SSLFilter::ProcessReadPlaintextBuffer(intptr_t start,
         reinterpret_cast<void*>((buffers_[kReadPlaintext] + start)),
         length,
         &bytes);
+    if (SSL_LOG_STATUS) {
+      Log::Print("SSLRead: status = %ld\n", static_cast<intptr_t>(status));
+    }
     if ((status != noErr) && (status != errSSLWouldBlock)) {
       *bytes_processed = 0;
       return status;
@@ -1950,35 +1928,6 @@ OSStatus SSLFilter::ProcessReadPlaintextBuffer(intptr_t start,
   }
   *bytes_processed = static_cast<intptr_t>(bytes);
   return status;
-}
-
-
-intptr_t SpaceToWrite(intptr_t start, intptr_t end, intptr_t size) {
-  intptr_t writable_space = 0;
-
-  // is full, neither if statement is executed and nothing happens.
-  if (start <= end) {
-    // If the free space may be split into two segments,
-    // then the first is [end, size), unless start == 0.
-    // Then, since the last free byte is at position start - 2,
-    // the interval is [end, size - 1).
-    intptr_t buffer_end = (start == 0) ? size - 1 : size;
-    intptr_t available = buffer_end - end;
-    end += available;
-    writable_space += available;
-    ASSERT(end <= size);
-    if (end == size) {
-      end = 0;
-    }
-  }
-  if (start > end + 1) {
-    intptr_t available = (start - 1) - end;
-    end += available;
-    writable_space += available;
-    ASSERT(end < start);
-  }
-
-  return writable_space;
 }
 
 
@@ -1999,11 +1948,6 @@ OSStatus SSLFilter::SSLWriteCallback(SSLConnectionRef connection,
   intptr_t size = filter->encrypted_buffer_size_;
   intptr_t provided = static_cast<intptr_t>(*data_provided);
   intptr_t data_written = 0;
-
-  if (SpaceToWrite(start, end, size) < provided) {
-    *data_provided = 0;
-    return errSSLWouldBlock;
-  }
 
   // is full, neither if statement is executed and nothing happens.
   if (start <= end) {
@@ -2042,7 +1986,7 @@ OSStatus SSLFilter::SSLWriteCallback(SSLConnectionRef connection,
 
   filter->SetBufferEnd(kWriteEncrypted, end);
   *data_provided = data_written;
-  return noErr;
+  return (data_written == 0) ? errSSLWouldBlock : noErr;
 }
 
 
@@ -2059,10 +2003,17 @@ OSStatus SSLFilter::ProcessWritePlaintextBuffer(intptr_t start,
         reinterpret_cast<void*>(buffers_[kWritePlaintext] + start),
         length,
         &bytes);
+    if (SSL_LOG_STATUS) {
+      Log::Print("SSLWrite: status = %ld\n", static_cast<intptr_t>(status));
+    }
     if ((status != noErr) && (status != errSSLWouldBlock)) {
       *bytes_processed = 0;
       return status;
     }
+  }
+  if (SSL_LOG_DATA) {
+    Log::Print("ProcessWritePlaintextBuffer: requested: %ld, written: %ld\n",
+        length, bytes);
   }
   *bytes_processed = static_cast<intptr_t>(bytes);
   return status;
@@ -2072,3 +2023,6 @@ OSStatus SSLFilter::ProcessWritePlaintextBuffer(intptr_t start,
 }  // namespace dart
 
 #endif  // defined(TARGET_OS_MACOS)
+
+#endif  // !defined(DART_IO_DISABLED) &&
+        // !defined(DART_IO_SECURE_SOCKET_DISABLED)

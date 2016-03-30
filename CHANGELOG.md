@@ -1,5 +1,10 @@
 ## 1.16.0
 
+### Core library changes
+
+* `dart:core`
+  * Fixed DateTime implementation in the VM (issue #19923), but no API change.
+
 ### Analyzer
 
 *   Static checking of `for in` statements. These will now produce static

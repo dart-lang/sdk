@@ -28,7 +28,8 @@ bool StackFrame::IsStubFrame() const {
   NoSafepointScope no_safepoint;
 #endif
   RawCode* code = GetCodeObject();
-  intptr_t cid = code->ptr()->owner_->GetClassId();
+  ASSERT(code != Object::null());
+  const intptr_t cid = code->ptr()->owner_->GetClassId();
   ASSERT(cid == kNullCid || cid == kClassCid || cid == kFunctionCid);
   return cid == kNullCid || cid == kClassCid;
 }
@@ -100,8 +101,7 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
     Array maps;
     maps = Array::null();
     Stackmap map;
-    const uword entry = reinterpret_cast<uword>(code.instructions()->ptr()) +
-                        Instructions::HeaderSize();
+    const uword entry = code.EntryPoint();
     map = code.GetStackmap(pc() - entry, &maps, &map);
     if (!map.IsNull()) {
       RawObject** first = reinterpret_cast<RawObject**>(sp());
@@ -150,6 +150,8 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
       visitor->VisitPointers(first, last);
       return;
     }
+
+    // No stack map, fall through.
   }
   // For normal unoptimized Dart frames and Stub frames each slot
   // between the first and last included are tagged objects.

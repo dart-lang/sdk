@@ -10,9 +10,9 @@ $!MEMBERS
 $if JSINTEROP
   factory AudioElement([String src]) {
     if (src == null)
-      return wrap_jso(_blink.BlinkHTMLAudioElement.instance.constructorCallback_0_());
+      return _blink.BlinkHTMLAudioElement.instance.constructorCallback_0_();
     else
-      return wrap_jso(_blink.BlinkHTMLAudioElement.instance.constructorCallback_1_(src));
+      return _blink.BlinkHTMLAudioElement.instance.constructorCallback_1_(src);
   }
 $else
   factory AudioElement([String src]) => new AudioElement._(src);

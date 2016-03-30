@@ -19,6 +19,9 @@ import 'package:compiler/src/diagnostics/messages.dart' show MessageKind;
  */
 // TODO(johnniwinther): Support canonical URIs as keys.
 const Map<String, List<String>> WHITE_LIST = const {
+  'sdk/lib/web_gl/dart2js/web_gl_dart2js.dart': const [
+    "is not defined for the class 'RenderingContext'", // Issue 26111
+  ],
 };
 
 void main() {

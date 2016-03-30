@@ -42,7 +42,7 @@ void VerifyObjectVisitor::VisitObject(RawObject* raw_obj) {
     }
   }
   allocated_set_->Add(raw_obj);
-  raw_obj->Validate(isolate());
+  raw_obj->Validate(isolate_);
 }
 
 

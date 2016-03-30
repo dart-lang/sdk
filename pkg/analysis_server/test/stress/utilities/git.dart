@@ -379,7 +379,7 @@ class DiffRecord {
    */
   bool isFor(String fileName) =>
       (srcPath != null && fileName == path.basename(srcPath)) ||
-          (dstPath != null && fileName == path.basename(dstPath));
+      (dstPath != null && fileName == path.basename(dstPath));
 
   @override
   String toString() => srcPath ?? dstPath;

@@ -1023,6 +1023,9 @@ class RawLibrary : public RawObject {
   RawGrowableObjectArray* patch_classes_;
   RawArray* imports_;            // List of Namespaces imported without prefix.
   RawArray* exports_;            // List of re-exported Namespaces.
+  RawArray* exports2_;           // Copy of exports_, used by background
+                                 // compiler to detect cycles without colliding
+                                 // with mutator thread lookups.
   RawInstance* load_error_;      // Error iff load_state_ == kLoadError.
   RawObject** to_snapshot() {
     return reinterpret_cast<RawObject**>(&ptr()->load_error_);
@@ -1079,10 +1082,12 @@ class RawCode : public RawObject {
   uword entry_point_;
 
   RawObject** from() {
-    return reinterpret_cast<RawObject**>(&ptr()->active_instructions_);
+    return reinterpret_cast<RawObject**>(&ptr()->instructions_);
   }
-  RawInstructions* active_instructions_;
-  RawInstructions* instructions_;
+  union {
+    RawInstructions* instructions_;
+    RawSmi* precompiled_instructions_size_;
+  };
   RawObjectPool* object_pool_;
   // If owner_ is Function::null() the owner is a regular stub.
   // If owner_ is a Class the owner is the allocation stub for that class.

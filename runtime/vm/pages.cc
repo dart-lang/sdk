@@ -611,6 +611,15 @@ void PageSpace::VisitObjects(ObjectVisitor* visitor) const {
 }
 
 
+void PageSpace::VisitObjectsNoEmbedderPages(ObjectVisitor* visitor) const {
+  for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
+    if (!it.page()->embedder_allocated()) {
+      it.page()->VisitObjects(visitor);
+    }
+  }
+}
+
+
 void PageSpace::VisitObjectPointers(ObjectPointerVisitor* visitor) const {
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
     it.page()->VisitObjectPointers(visitor);
@@ -652,15 +661,13 @@ RawObject* PageSpace::FindObject(FindObjectVisitor* visitor,
 }
 
 
-void PageSpace::WriteProtect(bool read_only, bool include_code_pages) {
+void PageSpace::WriteProtect(bool read_only) {
   if (read_only) {
     // Avoid MakeIterable trying to write to the heap.
     AbandonBumpAllocation();
   }
   for (ExclusivePageIterator it(this); !it.Done(); it.Advance()) {
-    HeapPage::PageType page_type = it.page()->type();
-    if ((page_type != HeapPage::kReadOnlyData) &&
-        ((page_type != HeapPage::kExecutable) || include_code_pages)) {
+    if (!it.page()->embedder_allocated()) {
       it.page()->WriteProtect(read_only);
     }
   }
@@ -698,8 +705,7 @@ void PageSpace::PrintToJSONObject(JSONObject* object) const {
 
 class HeapMapAsJSONVisitor : public ObjectVisitor {
  public:
-  explicit HeapMapAsJSONVisitor(JSONArray* array)
-      : ObjectVisitor(NULL), array_(array) {}
+  explicit HeapMapAsJSONVisitor(JSONArray* array) : array_(array) { }
   virtual void VisitObject(RawObject* obj) {
     array_->AddValue(obj->Size() / kObjectAlignment);
     array_->AddValue(obj->GetClassId());

@@ -3093,8 +3093,20 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register left = locs()->in(0).reg();
   Register right = locs()->in(1).reg();
   Register result = locs()->out(0).reg();
-  __ orr(result, left, Operand(right));
-  __ tst(result, Operand(kSmiTagMask));
+  intptr_t left_cid = this->left()->Type()->ToCid();
+  intptr_t right_cid = this->right()->Type()->ToCid();
+  bool combined_smi_check = false;
+  if (this->left()->definition() == this->right()->definition()) {
+    __ tst(left, Operand(kSmiTagMask));
+  } else if (left_cid == kSmiCid) {
+    __ tst(right, Operand(kSmiTagMask));
+  } else if (right_cid == kSmiCid) {
+    __ tst(left, Operand(kSmiTagMask));
+  } else {
+    combined_smi_check = true;
+    __ orr(result, left, Operand(right));
+    __ tst(result, Operand(kSmiTagMask));
+  }
   __ b(slow_path->entry_label(), NE);
   switch (op_kind()) {
     case Token::kADD:
@@ -3105,8 +3117,18 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ subs(result, left, Operand(right));
       __ b(slow_path->entry_label(), VS);
       break;
+    case Token::kMUL:
+      __ SmiUntag(IP, left);
+      __ smull(result, IP, IP, right);
+      // IP: result bits 32..63.
+      __ cmp(IP, Operand(result, ASR, 31));
+      __ b(slow_path->entry_label(), NE);
+      break;
     case Token::kBIT_OR:
-      // Operation part of combined smi check.
+      // Operation may be part of combined smi check.
+      if (!combined_smi_check) {
+        __ orr(result, left, Operand(right));
+      }
       break;
     case Token::kBIT_AND:
       __ and_(result, left, Operand(right));

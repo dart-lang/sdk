@@ -99,14 +99,16 @@ class CodeGenerator {
    */
   void docComment(List<dom.Node> docs, {bool removeTrailingNewLine: false}) {
     if (containsOnlyWhitespace(docs)) return;
-    if (codeGeneratorSettings.docCommentStartMarker != null) writeln(codeGeneratorSettings.docCommentStartMarker);
+    if (codeGeneratorSettings.docCommentStartMarker != null)
+      writeln(codeGeneratorSettings.docCommentStartMarker);
     int width = codeGeneratorSettings.commentLineLength;
     bool javadocStyle = codeGeneratorSettings.languageName == 'java';
     indentBy(codeGeneratorSettings.docCommentLineLeader, () {
       write(nodesToText(docs, width - _state.indent.length, javadocStyle,
           removeTrailingNewLine: removeTrailingNewLine));
     });
-    if (codeGeneratorSettings.docCommentEndMarker != null) writeln(codeGeneratorSettings.docCommentEndMarker);
+    if (codeGeneratorSettings.docCommentEndMarker != null)
+      writeln(codeGeneratorSettings.docCommentEndMarker);
   }
 
   /**

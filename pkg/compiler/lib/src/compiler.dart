@@ -73,6 +73,7 @@ import 'enqueue.dart' show
     EnqueueTask,
     ResolutionEnqueuer,
     QueueFilter;
+import 'environment.dart';
 import 'io/source_information.dart' show
     SourceInformation;
 import 'js_backend/backend_helpers.dart' as js_backend show
@@ -80,9 +81,13 @@ import 'js_backend/backend_helpers.dart' as js_backend show
 import 'js_backend/js_backend.dart' as js_backend show
     JavaScriptBackend;
 import 'library_loader.dart' show
+    ElementScanner,
     LibraryLoader,
     LibraryLoaderTask,
-    LoadedLibraries;
+    LoadedLibraries,
+    LibraryLoaderListener,
+    ResolvedUriTranslator,
+    ScriptLoader;
 import 'mirrors_used.dart' show
     MirrorUsageAnalyzerTask;
 import 'common/names.dart' show
@@ -146,7 +151,7 @@ import 'util/util.dart' show
 import 'world.dart' show
     World;
 
-abstract class Compiler {
+abstract class Compiler implements LibraryLoaderListener {
 
   final Stopwatch totalCompileTime = new Stopwatch();
   int nextFreeClassId = 0;
@@ -280,7 +285,11 @@ abstract class Compiler {
   /// Tracks elements with compile-time errors.
   final Set<Element> elementsWithCompileTimeErrors = new Set<Element>();
 
-  fromEnvironment(String name) => null;
+  final Environment environment;
+  // TODO(sigmund): delete once we migrate the rest of the compiler to use
+  // `environment` directly.
+  @deprecated
+  fromEnvironment(String name) => environment.valueOf(name);
 
   Element get currentElement => _reporter.currentElement;
 
@@ -348,7 +357,8 @@ abstract class Compiler {
   }
 
   Compiler({api.CompilerOptions options,
-            api.CompilerOutput outputProvider})
+            api.CompilerOutput outputProvider,
+            this.environment: const _EmptyEnvironment()})
       : this.options = options,
         this.cacheStrategy = new CacheStrategy(options.hasIncrementalSupport),
         this.userOutputProvider = outputProvider == null
@@ -389,16 +399,22 @@ abstract class Compiler {
     }
 
     tasks = [
-      libraryLoader = new LibraryLoaderTask(this),
-      serialization = new SerializationTask(this),
-      scanner = new ScannerTask(this),
       dietParser = new DietParserTask(
           this, enableConditionalDirectives: options.enableConditionalDirectives),
-      parser = new ParserTask(
-          this, enableConditionalDirectives: options.enableConditionalDirectives),
+      scanner = createScannerTask(),
+      serialization = new SerializationTask(this),
+      libraryLoader = new LibraryLoaderTask(this,
+          new _ResolvedUriTranslator(this),
+          new _ScriptLoader(this),
+          new _ElementScanner(scanner),
+          this.serialization,
+          this,
+          environment),
+      parser = new ParserTask(this,
+          enableConditionalDirectives: options.enableConditionalDirectives),
       patchParser = new PatchParserTask(
           this, enableConditionalDirectives: options.enableConditionalDirectives),
-      resolver = new ResolverTask(this, backend.constantCompilerTask),
+      resolver = createResolverTask(),
       closureToClassMapper = new closureMapping.ClosureTask(this),
       checker = new TypeCheckerTask(this),
       typesTask = new ti.TypesTask(this),
@@ -411,6 +427,18 @@ abstract class Compiler {
     ];
 
     tasks.addAll(backend.tasks);
+  }
+
+  /// Creates the scanner task.
+  ///
+  /// Override this to mock the scanner for testing.
+  ScannerTask createScannerTask() => new ScannerTask(this);
+
+  /// Creates the resolver task.
+  ///
+  /// Override this to mock the resolver for testing.
+  ResolverTask createResolverTask() {
+    return new ResolverTask(this, backend.constantCompilerTask);
   }
 
   Universe get resolverWorld => enqueuer.resolution.universe;
@@ -1151,6 +1179,7 @@ abstract class Compiler {
     }
   }
 
+  // TODO(sigmund): move this dart doc somewhere else too.
   /**
    * Translates the [resolvedUri] into a readable URI.
    *
@@ -1175,15 +1204,8 @@ abstract class Compiler {
    *
    * See [LibraryLoader] for terminology on URIs.
    */
-  Future<Script> readScript(Spannable node, Uri readableUri) {
+  Future<Script> readScript(Uri readableUri, [Spannable node]) {
     unimplemented(node, 'Compiler.readScript');
-    return null;
-  }
-
-  /// Compatible with [readScript] and used by [LibraryLoader] to create
-  /// synthetic scripts to recover from read errors and bad URIs.
-  Future<Script> synthesizeScript(Spannable node, Uri readableUri) {
-    unimplemented(node, 'Compiler.synthesizeScript');
     return null;
   }
 
@@ -1319,10 +1341,6 @@ abstract class Compiler {
       }
     }
     return libraryUri;
-  }
-
-  void diagnoseCrashInUserCode(String message, exception, stackTrace) {
-    // Overridden by Compiler in apiimpl.dart.
   }
 
   void forgetElement(Element element) {
@@ -2093,4 +2111,36 @@ class GlobalDependencyRegistry extends EagerRegistry {
   Iterable<Element> get otherDependencies {
     return _otherDependencies != null ? _otherDependencies : const <Element>[];
   }
+}
+
+// TODO(sigmund): in the future, each of these classes should be self contained
+// and not use references to `compiler`.
+class _ResolvedUriTranslator implements ResolvedUriTranslator {
+  Compiler compiler;
+  _ResolvedUriTranslator(this.compiler);
+
+  Uri translate(LibraryElement importingLibrary, Uri resolvedUri,
+      [Spannable spannable]) =>
+    compiler.translateResolvedUri(importingLibrary, resolvedUri, spannable);
+}
+
+class _ScriptLoader implements ScriptLoader {
+  Compiler compiler;
+  _ScriptLoader(this.compiler);
+
+  Future<Script> readScript(Uri uri, [Spannable spannable]) =>
+      compiler.readScript(uri, spannable);
+}
+
+class _ElementScanner implements ElementScanner {
+  ScannerTask scanner;
+  _ElementScanner(this.scanner);
+  void scanLibrary(LibraryElement library) => scanner.scanLibrary(library);
+  void scanUnit(CompilationUnitElement unit) => scanner.scan(unit);
+}
+
+class _EmptyEnvironment implements Environment {
+  const _EmptyEnvironment();
+
+  String valueOf(String key) => null;
 }

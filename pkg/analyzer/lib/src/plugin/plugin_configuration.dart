@@ -143,8 +143,7 @@ class PluginConfigOptionsProcessor extends OptionsProcessor {
   }
 
   @override
-  void optionsProcessed(
-      AnalysisContext context, Map<String, Object> options) {
+  void optionsProcessed(AnalysisContext context, Map<String, Object> options) {
     _config = new PluginConfig.fromOptions(options);
   }
 }

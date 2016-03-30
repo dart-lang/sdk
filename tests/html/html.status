@@ -7,16 +7,10 @@ cross_frame_test: Skip # Test reloads itself. Issue 18558
 
 [ $compiler == none && ($runtime == dartium || $runtime == drt) ]
 
-js_array_test: Skip # Dartium JSInterop failure
 mirrors_js_typed_interop_test: Fail # Missing expected failure (Issue 25044)
 js_typed_interop_side_cast_exp_test: Fail, OK # tests dart2js-specific behavior.
 
-cross_domain_iframe_test: RuntimeError # Dartium JSInterop failure
-indexeddb_2_test: Fail # Dartium JSInterop failure. Identity preservation on array deferred copy.
-js_test/transferrables: RuntimeError # Dartium JSInterop failure
-js_test/JsArray: RuntimeError # Dartium JSInterop failure
 native_gc_test: Skip # Dartium JSInterop failure
-transferables_test: RuntimeError # Dartium JSInterop failure
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium ) ]
 worker_api_test: Fail # Issue 10223
@@ -63,6 +57,9 @@ keyboard_event_test: Fail # Issue 13902
 fileapi_test/getFile: Pass, Fail # Issue 20488
 async_test: RuntimeError, OK  # Uses Isolate.spawn.
 isolates_test: RuntimeError, OK  # Uses Isolate.spawn.
+
+[ $compiler == none && ($runtime == drt || $runtime == dartium ) && $checked]
+cross_domain_iframe_test: RuntimeError # Issue 26134
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium ) && $mode == debug ]
 websocket_test/websocket: Skip # Issue 17666
@@ -272,12 +269,12 @@ indexeddb_1_test/supportsDatabaseNames: Fail
 media_stream_test/supported_MediaStreamEvent: Fail
 media_stream_test/supported_MediaStreamTrackEvent: Fail
 media_stream_test/supported_media: Fail
-performance_api_test/supported: Fail
 rtc_test/supported: Fail
 shadow_dom_test/supported: Fail
 speechrecognition_test/supported: Fail
 
 [ $runtime == safarimobilesim ]
+performance_api_test/supported: Fail
 indexeddb_1_test/supported: Fail
 element_types_test/supported_template: Fail
 xhr_test/json: Fail # Safari doesn't support JSON response type

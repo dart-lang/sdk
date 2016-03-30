@@ -1076,15 +1076,12 @@ class BuildTypeProviderTaskTest extends _AbstractDartTaskTest {
 
 @reflectiveTest
 class BuildTypeProviderTaskTest_noAsync extends _AbstractDartTaskTest {
+  DartSdk createDartSdk() => new MockSdk(dartAsync: false);
+
   void prepareAnalysisContext([AnalysisOptions options]) {
     AnalysisOptionsImpl newOptions = new AnalysisOptionsImpl();
     newOptions.enableAsync = false;
     super.prepareAnalysisContext(newOptions);
-  }
-
-  void setUp() {
-    sdk = new MockSdk(dartAsync: false);
-    super.setUp();
   }
 
   test_perform_noAsync() {

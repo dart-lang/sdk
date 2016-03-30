@@ -44,7 +44,7 @@ $if DART2JS
         type, convertDartToNative_Dictionary(options));
 
 $else
-    return wrap_jso(_blink.BlinkWheelEvent.instance.constructorCallback_2_(type, convertDartToNative_Dictionary(options)));
+    return _blink.BlinkWheelEvent.instance.constructorCallback_2_(type, convertDartToNative_Dictionary(options));
 $endif
   }
 

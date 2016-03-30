@@ -36,10 +36,7 @@
 namespace dart {
 
 DECLARE_FLAG(bool, print_class_table);
-DECLARE_FLAG(bool, trace_isolates);
 DECLARE_FLAG(bool, trace_time_all);
-DECLARE_FLAG(bool, pause_isolates_on_start);
-DECLARE_FLAG(bool, pause_isolates_on_exit);
 DEFINE_FLAG(bool, keep_code, false,
             "Keep deoptimized code for profiling.");
 DEFINE_FLAG(bool, shutdown, true, "Do a clean shutdown of the VM");
@@ -164,9 +161,9 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
       StubCode::InitOnce();
     }
     if (vm_isolate_snapshot != NULL) {
-      if (instructions_snapshot != NULL) {
-        vm_isolate_->SetupInstructionsSnapshotPage(instructions_snapshot);
-        ASSERT(data_snapshot != NULL);
+      NOT_IN_PRODUCT(TimelineDurationScope tds(Timeline::GetVMStream(),
+                                               "VMIsolateSnapshot"));
+      if (data_snapshot != NULL) {
         vm_isolate_->SetupDataSnapshotPage(data_snapshot);
       }
       const Snapshot* snapshot = Snapshot::SetupFromBuffer(vm_isolate_snapshot);
@@ -207,7 +204,11 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
       return "SSE2 is required.";
     }
 #endif
-    Object::FinalizeVMIsolate(vm_isolate_);
+    {
+      NOT_IN_PRODUCT(TimelineDurationScope tds(Timeline::GetVMStream(),
+                                               "FinalizeVMIsolate"));
+      Object::FinalizeVMIsolate(vm_isolate_);
+    }
 #if defined(DEBUG)
     vm_isolate_->heap()->Verify(kRequireMarked);
 #endif

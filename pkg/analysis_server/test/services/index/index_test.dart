@@ -122,6 +122,23 @@ class NoMatchABCDE {}
     _assertHasDefinedName(locations, topE);
   }
 
+  test_getDefinedNames_topLevel2() async {
+    _indexTestUnit(
+        '''
+class A {} // A
+class B = Object with A;
+class NoMatchABCDE {}
+''',
+        declOnly: true);
+    Element topA = findElement('A');
+    Element topB = findElement('B');
+    List<Location> locations = await index.getDefinedNames(
+        new RegExp(r'^[A-E]$'), IndexNameKind.topLevel);
+    expect(locations, hasLength(2));
+    _assertHasDefinedName(locations, topA);
+    _assertHasDefinedName(locations, topB);
+  }
+
   test_getRelations_isExtendedBy() async {
     _indexTestUnit(r'''
 class A {}
@@ -230,6 +247,16 @@ class A {
     findLocationTest(locations, 'test();', false);
   }
 
+  test_indexDeclarations_nullUnit() async {
+    index.indexDeclarations(null);
+  }
+
+  test_indexDeclarations_nullUnitElement() async {
+    resolveTestUnit('');
+    testUnit.element = null;
+    index.indexDeclarations(testUnit);
+  }
+
   test_indexUnit_nullUnit() async {
     index.indexUnit(null);
   }
@@ -298,9 +325,13 @@ class A {}
         '${locations.join('\n')}');
   }
 
-  void _indexTestUnit(String code) {
+  void _indexTestUnit(String code, {bool declOnly: false}) {
     resolveTestUnit(code);
-    index.indexUnit(testUnit);
+    if (declOnly) {
+      index.indexDeclarations(testUnit);
+    } else {
+      index.indexUnit(testUnit);
+    }
   }
 
   Source _indexUnit(String path, String code) {

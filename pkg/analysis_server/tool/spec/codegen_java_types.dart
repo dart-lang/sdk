@@ -480,8 +480,7 @@ class CodegenJavaType extends CodegenJavaVisitor {
 //        }
       if (className != 'Outline') {
         publicMethod('fromJson', () {
-          writeln(
-              'public static $className fromJson(JsonObject jsonObject) {');
+          writeln('public static $className fromJson(JsonObject jsonObject) {');
           indent(() {
             for (TypeObjectField field in fields) {
               write('${javaFieldType(field)} ${javaName(field.name)} = ');

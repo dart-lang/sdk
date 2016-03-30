@@ -43,22 +43,10 @@ namespace dart {
   V(_IntegerImplementation, toDouble, IntegerToDouble, 150718448)              \
   V(_IntegerImplementation, _leftShiftWithMask32,                              \
       IntegerLeftShiftWithMask32, 1634465017)                                  \
-  V(_Double, truncateToDouble, DoubleTruncate, 791143891)                      \
-  V(_Double, roundToDouble, DoubleRound, 797558034)                            \
-  V(_Double, floorToDouble, DoubleFloor, 1789426271)                           \
-  V(_Double, ceilToDouble, DoubleCeil, 453271198)                              \
-  V(_Double, _modulo, DoubleMod, 1093862165)                                   \
   V(_Double, _add, DoubleAdd, 1190606283)                                      \
   V(_Double, _sub, DoubleSub, 1086286468)                                      \
   V(_Double, _mul, DoubleMul, 166332351)                                       \
   V(_Double, _div, DoubleDiv, 821396195)                                       \
-  V(::, sin, MathSin, 939048573)                                               \
-  V(::, cos, MathCos, 1148850331)                                              \
-  V(::, tan, MathTan, 179725235)                                               \
-  V(::, asin, MathAsin, 848695059)                                             \
-  V(::, acos, MathAcos, 337299516)                                             \
-  V(::, atan, MathAtan, 866406810)                                             \
-  V(::, atan2, MathAtan2, 1901969510)                                          \
   V(::, min, MathMin, 1115051548)                                              \
   V(::, max, MathMax, 1410473322)                                              \
   V(::, _doublePow, MathDoublePow, 562154128)                                  \
@@ -243,6 +231,14 @@ namespace dart {
   V(::, sqrt, MathSqrt, 1446681622)                                            \
   V(_Random, _nextState, Random_nextState, 1241583299)                         \
 
+#define GRAPH_MATH_LIB_INTRINSIC_LIST(V)                                       \
+  V(::, sin, MathSin, 939048573)                                               \
+  V(::, cos, MathCos, 1148850331)                                              \
+  V(::, tan, MathTan, 179725235)                                               \
+  V(::, asin, MathAsin, 848695059)                                             \
+  V(::, acos, MathAcos, 337299516)                                             \
+  V(::, atan, MathAtan, 866406810)                                             \
+  V(::, atan2, MathAtan2, 1901969510)                                          \
 
 #define TYPED_DATA_LIB_INTRINSIC_LIST(V)                                       \
   V(Int8List, ., TypedData_Int8Array_factory, 779569635)                       \
@@ -290,11 +286,18 @@ namespace dart {
   V(_GrowableList, [], GrowableArrayGetIndexed, 1957529650)                    \
   V(_GrowableList, []=, GrowableArraySetIndexed, 225246870)                    \
   V(_StringBase, get:length, StringBaseLength, 707533587)                      \
-  V(_Double, unary-, DoubleFlipSignBit, 1783281169)
+  V(_Double, unary-, DoubleFlipSignBit, 1783281169)                            \
+  V(_Double, truncateToDouble, DoubleTruncate, 791143891)                      \
+  V(_Double, roundToDouble, DoubleRound, 797558034)                            \
+  V(_Double, floorToDouble, DoubleFloor, 1789426271)                           \
+  V(_Double, ceilToDouble, DoubleCeil, 453271198)                              \
+  V(_Double, _modulo, DoubleMod, 1093862165)
+
 
 #define GRAPH_INTRINSICS_LIST(V)                                               \
   GRAPH_CORE_INTRINSICS_LIST(V)                                                \
   GRAPH_TYPED_DATA_INTRINSICS_LIST(V)                                          \
+  GRAPH_MATH_LIB_INTRINSIC_LIST(V)                                             \
 
 #define DEVELOPER_LIB_INTRINSIC_LIST(V)                                        \
   V(_UserTag, makeCurrent, UserTag_makeCurrent, 187721469)                     \
@@ -423,6 +426,30 @@ namespace dart {
   V(_Bigint, _sqrAdd, Bigint_sqrAdd, 372896038)                                \
   V(_Bigint, _estQuotientDigit, Bigint_estQuotientDigit, 540033329)            \
   V(_Montgomery, _mulMod, Montgomery_mulMod, 118781828)                        \
+  V(_Double, >, Double_greaterThan, 1413076759)                                \
+  V(_Double, >=, Double_greaterEqualThan, 1815180096)                          \
+  V(_Double, <, Double_lessThan, 652059836)                                    \
+  V(_Double, <=, Double_lessEqualThan, 512138528)                              \
+  V(_Double, ==, Double_equal, 752327620)                                      \
+  V(_Double, +, Double_add, 854024064)                                         \
+  V(_Double, -, Double_sub, 685132889)                                         \
+  V(_Double, *, Double_mul, 542254390)                                         \
+  V(_Double, /, Double_div, 1145710768)                                        \
+  V(_IntegerImplementation, +, Integer_add, 364498398)                         \
+  V(_IntegerImplementation, -, Integer_sub, 1682674911)                        \
+  V(_IntegerImplementation, *, Integer_mul, 1651115456)                        \
+  V(_IntegerImplementation, ~/, Integer_truncDivide, 108494012)                \
+  V(_IntegerImplementation, unary-, Integer_negate, 1507648892)                \
+  V(_IntegerImplementation, &, Integer_bitAnd, 286231290)                      \
+  V(_IntegerImplementation, |, Integer_bitOr, 1111108792)                      \
+  V(_IntegerImplementation, ^, Integer_bitXor, 1884808537)                     \
+  V(_IntegerImplementation, >, Integer_greaterThan, 293890061)                 \
+  V(_IntegerImplementation, ==, Integer_equal, 4489308)                        \
+  V(_IntegerImplementation, <, Integer_lessThan, 652059836)                    \
+  V(_IntegerImplementation, <=, Integer_lessEqualThan, 512138528)              \
+  V(_IntegerImplementation, >=, Integer_greaterEqualThan, 1815180096)          \
+  V(_IntegerImplementation, <<, Integer_shl, 293751452)                        \
+  V(_IntegerImplementation, >>, Integer_sar, 125091101)                        \
 
 // A list of core functions that internally dispatch based on received id.
 #define POLYMORPHIC_TARGET_LIST(V)                                             \

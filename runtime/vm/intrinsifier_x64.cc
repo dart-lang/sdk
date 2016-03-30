@@ -31,6 +31,18 @@ namespace dart {
 intptr_t Intrinsifier::ParameterSlotFromSp() { return 0; }
 
 
+void Intrinsifier::IntrinsicCallPrologue(Assembler* assembler) {
+  assembler->Comment("IntrinsicCallPrologue");
+  assembler->movq(CALLEE_SAVED_TEMP, R10);
+}
+
+
+void Intrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
+  assembler->Comment("IntrinsicCallEpilogue");
+  assembler->movq(R10, CALLEE_SAVED_TEMP);
+}
+
+
 void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
   if (Isolate::Current()->type_checks()) {
     return;
@@ -1295,10 +1307,11 @@ void Intrinsifier::Double_lessEqualThan(Assembler* assembler) {
 // Expects left argument to be double (receiver). Right argument is unknown.
 // Both arguments are on stack.
 static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
-  Label fall_through;
-  TestLastArgumentIsDouble(assembler, &fall_through, &fall_through);
+  Label fall_through, is_smi, double_op;
+  TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
   // Both arguments are double, right operand is in RAX.
   __ movsd(XMM1, FieldAddress(RAX, Double::value_offset()));
+  __ Bind(&double_op);
   __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Left argument.
   __ movsd(XMM0, FieldAddress(RAX, Double::value_offset()));
   switch (kind) {
@@ -1317,6 +1330,10 @@ static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
                  R13);
   __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
   __ ret();
+  __ Bind(&is_smi);
+  __ SmiUntag(RAX);
+  __ cvtsi2sdq(XMM1, RAX);
+  __ jmp(&double_op);
   __ Bind(&fall_through);
 }
 

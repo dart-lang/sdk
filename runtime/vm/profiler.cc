@@ -27,8 +27,8 @@
 namespace dart {
 
 static const intptr_t kSampleSize = 8;
+static const intptr_t kMaxSamplesPerTick = 4;
 
-DECLARE_FLAG(bool, trace_profiler);
 DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
 
 #if defined(TARGET_OS_ANDROID) || defined(TARGET_ARCH_ARM64) ||                \
@@ -39,7 +39,7 @@ DEFINE_FLAG(bool, trace_profiled_isolates, false, "Trace profiled isolates.");
   DEFINE_FLAG(int, profile_period, 1000,
               "Time between profiler samples in microseconds. Minimum 50.");
 #endif
-DEFINE_FLAG(int, max_profile_depth, kSampleSize,
+DEFINE_FLAG(int, max_profile_depth, kSampleSize * kMaxSamplesPerTick,
             "Maximum number stack frames walked. Minimum 1. Maximum 255.");
 #if defined(USING_SIMULATOR)
 DEFINE_FLAG(bool, profile_vm, true,
@@ -945,6 +945,32 @@ void Profiler::SampleAllocation(Thread* thread, intptr_t cid) {
 }
 
 
+void Profiler::SampleThreadSingleFrame(Thread* thread, uintptr_t pc) {
+  ASSERT(thread != NULL);
+  OSThread* os_thread = thread->os_thread();
+  ASSERT(os_thread != NULL);
+  Isolate* isolate = thread->isolate();
+
+  SampleBuffer* sample_buffer = Profiler::sample_buffer();
+  if (sample_buffer == NULL) {
+    // Profiler not initialized.
+    return;
+  }
+
+  // Setup sample.
+  Sample* sample = SetupSample(thread, sample_buffer, os_thread->trace_id());
+  // Increment counter for vm tag.
+  VMTagCounters* counters = isolate->vm_tag_counters();
+  ASSERT(counters != NULL);
+  if (thread->IsMutatorThread()) {
+    counters->Increment(sample->vm_tag());
+  }
+
+  // Write the single pc value.
+  sample->SetAt(0, pc);
+}
+
+
 void Profiler::SampleThread(Thread* thread,
                             const InterruptedThreadState& state) {
   ASSERT(thread != NULL);
@@ -989,15 +1015,17 @@ void Profiler::SampleThread(Thread* thread,
     sp = state.csp;
   }
 
-  if (!InitialRegisterCheck(pc, fp, sp)) {
-    return;
-  }
-
   if (!CheckIsolate(isolate)) {
     return;
   }
 
   if (thread->IsMutatorThread() && isolate->IsDeoptimizing()) {
+    SampleThreadSingleFrame(thread, pc);
+    return;
+  }
+
+  if (!InitialRegisterCheck(pc, fp, sp)) {
+    SampleThreadSingleFrame(thread, pc);
     return;
   }
 
@@ -1009,6 +1037,7 @@ void Profiler::SampleThread(Thread* thread,
                                         &stack_lower,
                                         &stack_upper)) {
     // Could not get stack boundary.
+    SampleThreadSingleFrame(thread, pc);
     return;
   }
 
@@ -1096,9 +1125,7 @@ CodeLookupTable::CodeLookupTable(Thread* thread) {
 
 class CodeLookupTableBuilder : public ObjectVisitor {
  public:
-  CodeLookupTableBuilder(Isolate* isolate, CodeLookupTable* table)
-      : ObjectVisitor(isolate),
-        table_(table) {
+  explicit CodeLookupTableBuilder(CodeLookupTable* table) : table_(table) {
     ASSERT(table_ != NULL);
   }
 
@@ -1134,7 +1161,7 @@ void CodeLookupTable::Build(Thread* thread) {
   code_objects_.Clear();
 
   // Add all found Code objects.
-  CodeLookupTableBuilder cltb(isolate, this);
+  CodeLookupTableBuilder cltb(this);
   vm_isolate->heap()->IterateOldObjects(&cltb);
   isolate->heap()->IterateOldObjects(&cltb);
 

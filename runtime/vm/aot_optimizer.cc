@@ -227,32 +227,6 @@ bool AotOptimizer::TryCreateICData(InstanceCallInstr* call) {
     }
   }
 
-  // Check if getter or setter in function's class and class is currently leaf.
-  if (FLAG_guess_icdata_cid &&
-      ((call->token_kind() == Token::kGET) ||
-          (call->token_kind() == Token::kSET))) {
-    const Class& owner_class = Class::Handle(Z, function().Owner());
-    if (!owner_class.is_abstract() &&
-        !CHA::HasSubclasses(owner_class) &&
-        !CHA::IsImplemented(owner_class)) {
-      const Array& args_desc_array = Array::Handle(Z,
-          ArgumentsDescriptor::New(call->ArgumentCount(),
-                                   call->argument_names()));
-      ArgumentsDescriptor args_desc(args_desc_array);
-      const Function& function = Function::Handle(Z,
-          Resolver::ResolveDynamicForReceiverClass(owner_class,
-                                                   call->function_name(),
-                                                   args_desc));
-      if (!function.IsNull()) {
-        const ICData& ic_data = ICData::ZoneHandle(Z,
-            ICData::NewFrom(*call->ic_data(), class_ids.length()));
-        ic_data.AddReceiverCheck(owner_class.id(), function);
-        call->set_ic_data(&ic_data);
-        return true;
-      }
-    }
-  }
-
   return false;
 }
 
@@ -2405,6 +2379,25 @@ bool AotOptimizer::IsBlackListedForInlining(intptr_t call_deopt_id) {
 }
 
 
+static bool HasLikelySmiOperand(InstanceCallInstr* instr) {
+  // Phis with at least one known smi are // guessed to be likely smi as well.
+  for (intptr_t i = 0; i < instr->ArgumentCount(); ++i) {
+    PhiInstr* phi = instr->ArgumentAt(i)->AsPhi();
+    if (phi != NULL) {
+      for (intptr_t j = 0; j < phi->InputCount(); ++j) {
+        if (phi->InputAt(j)->Type()->ToCid() == kSmiCid) return true;
+      }
+    }
+  }
+  // If all of the inputs are known smis or the result of CheckedSmiOp,
+  // we guess the operand to be likely smi.
+  for (intptr_t i = 0; i < instr->ArgumentCount(); ++i) {
+    if (!instr->ArgumentAt(i)->IsCheckedSmiOp()) return false;
+  }
+  return true;
+}
+
+
 // Tries to optimize instance call by replacing it with a faster instruction
 // (e.g, binary op, field load, ..).
 void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
@@ -2495,8 +2488,10 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     case Token::kBIT_XOR:
     case Token::kBIT_AND:
     case Token::kADD:
-    case Token::kSUB: {
-      if (HasOnlyTwoOf(*instr->ic_data(), kSmiCid)) {
+    case Token::kSUB:
+    case Token::kMUL: {
+      if (HasOnlyTwoOf(*instr->ic_data(), kSmiCid) ||
+          HasLikelySmiOperand(instr)) {
         Definition* left = instr->ArgumentAt(0);
         Definition* right = instr->ArgumentAt(1);
         CheckedSmiOpInstr* smi_op =
@@ -2508,9 +2503,54 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
         ReplaceCall(instr, smi_op);
         return;
       }
+      break;
     }
     default:
       break;
+  }
+
+  // No IC data checks. Try resolve target using the propagated type.
+  // If the propagated type has a method with the target name and there are
+  // no overrides with that name according to CHA, call the method directly.
+  const intptr_t receiver_cid =
+      instr->PushArgumentAt(0)->value()->Type()->ToCid();
+  if (receiver_cid != kDynamicCid) {
+    const Class& receiver_class = Class::Handle(Z,
+        isolate()->class_table()->At(receiver_cid));
+
+    const Array& args_desc_array = Array::Handle(Z,
+        ArgumentsDescriptor::New(instr->ArgumentCount(),
+                                 instr->argument_names()));
+    ArgumentsDescriptor args_desc(args_desc_array);
+    const Function& function = Function::Handle(Z,
+        Resolver::ResolveDynamicForReceiverClass(
+            receiver_class,
+            instr->function_name(),
+            args_desc));
+    if (!function.IsNull()) {
+      if (!thread()->cha()->HasOverride(receiver_class,
+                                        instr->function_name())) {
+        if (FLAG_trace_cha) {
+          THR_Print("  **(CHA) Instance call needs no check, "
+              "no overrides of '%s' '%s'\n",
+              instr->function_name().ToCString(), receiver_class.ToCString());
+        }
+
+        // Create fake IC data with the resolved target.
+        const ICData& ic_data = ICData::Handle(
+            ICData::New(flow_graph_->function(),
+                        instr->function_name(),
+                        args_desc_array,
+                        Thread::kNoDeoptId,
+                        /* args_tested = */ 1));
+        ic_data.AddReceiverCheck(receiver_class.id(), function);
+        PolymorphicInstanceCallInstr* call =
+            new(Z) PolymorphicInstanceCallInstr(instr, ic_data,
+                                                /* with_checks = */ false);
+        instr->ReplaceWith(call, current_iterator());
+        return;
+      }
+    }
   }
 
   // More than one targets. Generate generic polymorphic call without
@@ -2524,49 +2564,6 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
                                             /* with_checks = */ true);
     instr->ReplaceWith(call, current_iterator());
     return;
-  }
-
-  // No IC data checks. Try resolve target using the propagated type.
-  // If the propagated type has a method with the target name and there are
-  // no overrides with that name according to CHA, call the method directly.
-  const intptr_t receiver_cid =
-      instr->PushArgumentAt(0)->value()->Type()->ToCid();
-  if (receiver_cid == kDynamicCid) return;
-  const Class& receiver_class = Class::Handle(Z,
-      isolate()->class_table()->At(receiver_cid));
-
-  const Array& args_desc_array = Array::Handle(Z,
-      ArgumentsDescriptor::New(instr->ArgumentCount(),
-                               instr->argument_names()));
-  ArgumentsDescriptor args_desc(args_desc_array);
-  const Function& function = Function::Handle(Z,
-      Resolver::ResolveDynamicForReceiverClass(
-          receiver_class,
-          instr->function_name(),
-          args_desc));
-  if (function.IsNull()) {
-    return;
-  }
-  if (!thread()->cha()->HasOverride(receiver_class, instr->function_name())) {
-    if (FLAG_trace_cha) {
-      THR_Print("  **(CHA) Instance call needs no check, "
-          "no overrides of '%s' '%s'\n",
-          instr->function_name().ToCString(), receiver_class.ToCString());
-    }
-    thread()->cha()->AddToLeafClasses(receiver_class);
-
-    // Create fake IC data with the resolved target.
-    const ICData& ic_data = ICData::Handle(
-        ICData::New(flow_graph_->function(),
-                    instr->function_name(),
-                    args_desc_array,
-                    Thread::kNoDeoptId,
-                    /* args_tested = */ 1));
-    ic_data.AddReceiverCheck(receiver_class.id(), function);
-    PolymorphicInstanceCallInstr* call =
-        new(Z) PolymorphicInstanceCallInstr(instr, ic_data,
-                                            /* with_checks = */ false);
-    instr->ReplaceWith(call, current_iterator());
   }
 }
 

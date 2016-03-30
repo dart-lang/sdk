@@ -510,3 +510,37 @@ abstract class FunctionSignatureCommon implements FunctionSignature {
     return true;
   }
 }
+
+abstract class MixinApplicationElementCommon
+    implements MixinApplicationElement {
+  Link<ConstructorElement> get constructors {
+    throw new UnsupportedError('Unimplemented $this.constructors');
+  }
+
+  FunctionElement _lookupLocalConstructor(String name) {
+    for (Link<Element> link = constructors;
+         !link.isEmpty;
+         link = link.tail) {
+      if (link.head.name == name) return link.head;
+    }
+    return null;
+  }
+
+  @override
+  Element localLookup(String name) {
+    Element constructor = _lookupLocalConstructor(name);
+    if (constructor != null) return constructor;
+    if (mixin == null) return null;
+    Element mixedInElement = mixin.localLookup(name);
+    if (mixedInElement == null) return null;
+    return mixedInElement.isInstanceMember ? mixedInElement : null;
+  }
+
+  @override
+  void forEachLocalMember(void f(Element member)) {
+    constructors.forEach(f);
+    if (mixin != null) mixin.forEachLocalMember((Element mixedInElement) {
+      if (mixedInElement.isInstanceMember) f(mixedInElement);
+    });
+  }
+}

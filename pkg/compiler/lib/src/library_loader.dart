@@ -30,8 +30,9 @@ import 'elements/modelx.dart' show
     LibraryDependencyElementX,
     PrefixElementX,
     SyntheticImportElement;
-
+import 'environment.dart';
 import 'script.dart';
+import 'serialization/serialization.dart' show LibraryDeserializer;
 import 'tree/tree.dart';
 import 'util/util.dart' show
     Link,
@@ -105,9 +106,9 @@ import 'util/util.dart' show
  * resolved into a readable URI using the library root URI provided from the
  * command line and the list of platform libraries found in
  * 'sdk/lib/_internal/sdk_library_metadata/lib/libraries.dart'. This is done
- * through the [Compiler.translateResolvedUri] method which checks whether a
- * library by that name exists and in case of internal libraries whether access
- * is granted.
+ * through a [ResolvedUriTranslator] provided from the compiler. The translator
+ * checks whether a library by that name exists and in case of internal
+ * libraries whether access is granted.
  *
  * ## Resource URI ##
  *
@@ -132,7 +133,13 @@ import 'util/util.dart' show
  *
  */
 abstract class LibraryLoaderTask implements CompilerTask {
-  factory LibraryLoaderTask(Compiler compiler) = _LibraryLoaderTask;
+  factory LibraryLoaderTask(Compiler compiler,
+      ResolvedUriTranslator uriTranslator,
+      ScriptLoader scriptLoader,
+      ElementScanner scriptScanner,
+      LibraryDeserializer deserializer,
+      LibraryLoaderListener listener,
+      Environment environment) = _LibraryLoaderTask;
 
   /// Returns all libraries that have been loaded.
   Iterable<LibraryElement> get libraries;
@@ -259,13 +266,38 @@ class HideFilter extends CombinatorFilter {
   bool exclude(Element element) => excludedNames.contains(element.name);
 }
 
-/**
- * Implementation class for [LibraryLoader]. The distinction between
- * [LibraryLoader] and [LibraryLoaderTask] is made to hide internal members from
- * the [LibraryLoader] interface.
- */
+/// Implementation class for [LibraryLoaderTask]. The distinction between
+/// [LibraryLoaderTask] and [_LibraryLoaderTask] is made to hide internal
+/// members from the [LibraryLoaderTask] interface.
 class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
-  _LibraryLoaderTask(Compiler compiler) : super(compiler);
+  /// Translates internal uris (like dart:core) to a disk location.
+  final ResolvedUriTranslator uriTranslator;
+
+  /// Loads the contents of a script file (a .dart file). Used when loading
+  /// libraries from source.
+  final ScriptLoader scriptLoader;
+
+  /// Provides a diet element model from a script file containing information
+  /// about imports and exports. Used when loading libraries from source.
+  final ElementScanner scanner;
+
+  /// Provides a diet element model for a library. Used when loading libraries
+  /// from a serialized form.
+  final LibraryDeserializer deserializer;
+
+  /// Hooks to inform others about progress done by this loader.
+  // TODO(sigmund): move away from this.
+  final LibraryLoaderListener listener;
+
+  /// Definitions provided via the `-D` command line flags. Used to resolve
+  /// conditional imports.
+  final Environment environment;
+
+  _LibraryLoaderTask(
+      Compiler compiler, this.uriTranslator, this.scriptLoader,
+      this.scanner, this.deserializer, this.listener, this.environment)
+      // TODO(sigmund): make measurements separate from compiler
+      : super(compiler);
 
   String get name => 'LibraryLoader';
 
@@ -290,6 +322,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
 
       Iterable<LibraryElement> reusedLibraries = null;
       if (reuseLibrary != null) {
+        // TODO(sigmund): make measurements separate from compiler
         reusedLibraries = compiler.reuseLibraryTask.measure(() {
           // Call [toList] to force eager calls to [reuseLibrary].
           return libraryCanonicalUriMap.values.where(reuseLibrary).toList();
@@ -316,18 +349,9 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
     return measure(() {
       assert(currentHandler == null);
 
-      Future<LibraryElement> wrapper(LibraryElement library) {
-        try {
-          return reuseLibrary(library).then(
-              (bool reuse) => reuse ? library : null);
-        } catch (exception, trace) {
-          compiler.diagnoseCrashInUserCode(
-              'Uncaught exception in reuseLibrary', exception, trace);
-          rethrow;
-        }
-      }
-
+      wrapper(lib) => reuseLibrary(lib).then((reuse) => reuse ? lib : null);
       List<Future<LibraryElement>> reusedLibrariesFuture =
+          // TODO(sigmund): make measurements separate from compiler
           compiler.reuseLibraryTask.measure(
               () => libraryCanonicalUriMap.values.map(wrapper).toList());
 
@@ -351,8 +375,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
     }
   }
 
-  Future<LibraryElement> loadLibrary(
-      Uri resolvedUri,
+  Future<LibraryElement> loadLibrary(Uri resolvedUri,
       {bool skipFileWithPartOfTag: false}) {
     return measure(() {
       assert(currentHandler == null);
@@ -375,7 +398,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
                 currentHandler.nodeMap,
                 this);
             currentHandler = null;
-            return compiler.onLibrariesLoaded(loadedLibraries)
+            return listener.onLibrariesLoaded(loadedLibraries)
                 .then((_) => library);
           });
         });
@@ -409,7 +432,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
               String value = conditionalUri.value == null
                   ? "true"
                   : conditionalUri.value.dartString.slowToString();
-              String actual = compiler.fromEnvironment(key);
+              String actual = environment.valueOf(key);
               if (value == actual) {
                 uriNode = conditionalUri.uri;
                 break;
@@ -472,7 +495,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
         }
       });
     }).then((_) {
-      return compiler.onLibraryScanned(library, handler);
+      return listener.onLibraryScanned(library, handler);
     }).then((_) {
       return reporter.withCurrentElement(library, () {
         checkDuplicatedLibraryName(library);
@@ -549,23 +572,13 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
    */
   Future scanPart(Part part, Uri resolvedUri, LibraryElement library) {
     if (!resolvedUri.isAbsolute) throw new ArgumentError(resolvedUri);
-    Uri readableUri = compiler.translateResolvedUri(library, resolvedUri, part);
+    Uri readableUri = uriTranslator.translate(library, resolvedUri, part);
     if (readableUri == null) return new Future.value();
     return reporter.withCurrentElement(library, () {
-      return compiler.readScript(part, readableUri).
-          then((Script sourceScript) {
-            if (sourceScript == null) return;
-
-            CompilationUnitElementX unit =
-                new CompilationUnitElementX(sourceScript, library);
-            reporter.withCurrentElement(unit, () {
-              compiler.scanner.scan(unit);
-              if (unit.partTag == null && !sourceScript.isSynthesized) {
-                reporter.reportErrorMessage(
-                    unit, MessageKind.MISSING_PART_OF_TAG);
-              }
-            });
-          });
+      return scriptLoader.readScript(readableUri, part).then((Script script) {
+        if (script == null) return;
+        createUnitSync(script, library);
+      });
     });
   }
 
@@ -601,7 +614,7 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
       LibraryElement library) {
     libraryCanonicalUriMap[library.canonicalUri] = library;
     handler.registerNewLibrary(library);
-    return compiler.onLibraryScanned(library, handler).then((_) {
+    return listener.onLibraryScanned(library, handler).then((_) {
       return Future.forEach(library.imports, (ImportElement import) {
         return createLibrary(handler, library, import.uri);
       }).then((_) {
@@ -610,6 +623,15 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
         }).then((_) => library);
       });
     });
+  }
+
+  Future<Script> _readScript(Spannable spannable,
+      Uri readableUri, Uri resolvedUri) {
+    if (readableUri == null) {
+      return new Future.value(new Script.synthetic(resolvedUri));
+    } else {
+      return scriptLoader.readScript(readableUri, spannable);
+    }
   }
 
   /**
@@ -625,29 +647,24 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
       {Spannable node,
        bool skipFileWithPartOfTag: false}) {
     Uri readableUri =
-        compiler.translateResolvedUri(importingLibrary, resolvedUri, node);
+        uriTranslator.translate(importingLibrary, resolvedUri, node);
     LibraryElement library = libraryCanonicalUriMap[resolvedUri];
     if (library != null) {
       return new Future.value(library);
     }
-    library = compiler.serialization.readLibrary(resolvedUri);
+    library = deserializer.readLibrary(resolvedUri);
     if (library != null) {
       return loadDeserializedLibrary(handler, library);
     }
-    var readScript = compiler.readScript;
-    if (readableUri == null) {
-      readableUri = resolvedUri;
-      readScript = compiler.synthesizeScript;
-    }
     return reporter.withCurrentElement(importingLibrary, () {
-      return readScript(node, readableUri).then((Script script) {
+      return _readScript(node, readableUri, resolvedUri).then((Script script) {
         if (script == null) return null;
         LibraryElement element =
             createLibrarySync(handler, script, resolvedUri);
         CompilationUnitElementX compilationUnit = element.entryCompilationUnit;
         if (compilationUnit.partTag != null) {
           if (skipFileWithPartOfTag) {
-            // TODO(johnniwinther): Avoid calling [Compiler.onLibraryCreated]
+            // TODO(johnniwinther): Avoid calling [listener.onLibraryCreated]
             // for this library.
             libraryCanonicalUriMap.remove(resolvedUri);
             return null;
@@ -681,19 +698,28 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
     });
   }
 
-  LibraryElement createLibrarySync(
-      LibraryDependencyHandler handler,
-      Script script,
-      Uri resolvedUri) {
+  LibraryElement createLibrarySync(LibraryDependencyHandler handler,
+      Script script, Uri resolvedUri) {
     LibraryElement element = new LibraryElementX(script, resolvedUri);
     return reporter.withCurrentElement(element, () {
       if (handler != null) {
         handler.registerNewLibrary(element);
         libraryCanonicalUriMap[resolvedUri] = element;
       }
-      compiler.scanner.scanLibrary(element);
+      scanner.scanLibrary(element);
       return element;
     });
+  }
+
+  CompilationUnitElement createUnitSync(Script script, LibraryElement library) {
+    CompilationUnitElementX unit = new CompilationUnitElementX(script, library);
+    reporter.withCurrentElement(unit, () {
+      scanner.scanUnit(unit);
+      if (unit.partTag == null && !script.isSynthesized) {
+        reporter.reportErrorMessage(unit, MessageKind.MISSING_PART_OF_TAG);
+      }
+    });
+    return unit;
   }
 }
 
@@ -1174,8 +1200,6 @@ class LibraryDependencyHandler implements LibraryLoader {
 
   LibraryDependencyHandler(this.task);
 
-  Compiler get compiler => task.compiler;
-
   DiagnosticReporter get reporter => task.reporter;
 
   /// The libraries created with this handler.
@@ -1268,7 +1292,7 @@ class LibraryDependencyHandler implements LibraryLoader {
    * Registers [library] for the processing of its import/export scope.
    */
   void registerNewLibrary(LibraryElement library) {
-    compiler.onLibraryCreated(library);
+    task.listener.onLibraryCreated(library);
     _newLibraries.add(library);
     if (!library.exportsHandled) {
       nodeMap[library] = new LibraryDependencyNode(library);
@@ -1419,4 +1443,84 @@ class _LoadedLibraries implements LoadedLibraries {
   }
 
   String toString() => 'root=$rootLibrary,libraries=${loadedLibraries.keys}';
+}
+
+/// API used by the library loader to translate internal SDK URIs into file
+/// system readable URIs.
+abstract class ResolvedUriTranslator {
+  // TODO(sigmund): move here the comments from library loader.
+  /// Translate the resolved [uri] in the context of [importingLibrary].
+  ///
+  /// Use [spannable] for error reporting.
+  Uri translate(
+      LibraryElement importingLibrary, Uri uri, [Spannable spannable]);
+}
+
+
+// TODO(sigmund): remove ScriptLoader & ElementScanner. Such abstraction seems
+// rather low-level. It might be more practical to split the library-loading
+// task itself.  The task would continue to do the work of recursively loading
+// dependencies, but it can delegate to a set of subloaders how to do the actual
+// loading. We would then have a list of subloaders that use different
+// implementations: in-memory cache, deserialization, scanning from files.
+//
+// For example, the API might look like this:
+//
+// /// APIs to create [LibraryElement] and [CompilationUnitElements] given it's
+// /// URI.
+// abstract class SubLoader {
+//   /// Return the library corresponding to the script at [uri].
+//   ///
+//   /// Use [spannable] for error reporting.
+//   Future<LibraryElement> createLibrary(Uri uri, [Spannable spannable]);
+//
+//   /// Return the compilation unit at [uri] that is a part of [library].
+//   Future<CompilationUnitElement> createUnit(Uri uri, LibraryElement library,
+//       [Spannable spannable]);
+// }
+//
+// /// A [SubLoader] that parses a serialized form of the element model to
+// /// produce the results.
+// class DeserializingUnitElementCreator implements SubLoader {
+// ...
+// }
+//
+// /// A [SubLoader] that finds the script sources and does a diet parse
+// /// on them to produces the results.
+// class ScanningUnitElementCreator implements SubLoader {
+// ...
+// }
+//
+// Each subloader would internally create what they need (a scanner, a
+// deserializer), and we wouldn't need to create abstractions to pass in
+// something that is only used by the loader.
+
+/// API used by the library loader to request scripts from the compiler system.
+abstract class ScriptLoader {
+  /// Load script from a readable [uri], report any errors using the location of
+  /// the given [spannable].
+  Future<Script> readScript(Uri uri, [Spannable spannable]);
+}
+
+/// API used by the library loader to synchronously scan a library or
+/// compilation unit and ensure that their library tags are computed.
+abstract class ElementScanner {
+  void scanLibrary(LibraryElement library);
+  void scanUnit(CompilationUnitElement unit);
+}
+
+
+/// TODO(sigmund): remove this abstraction. Ideally the loader can produce the
+/// LoadedLibraries results once, and the compiler and choose what to do with
+/// it instead.
+abstract class LibraryLoaderListener {
+  /// Called after a request to load a library. The [results] will include all
+  /// transitive libraries loaded as a result of the initial request.
+  Future onLibrariesLoaded(LoadedLibraries results);
+
+  /// Called whenever a library element is created.
+  void onLibraryCreated(LibraryElement library);
+
+  /// Called whenever a library is scanned from a script file.
+  Future onLibraryScanned(LibraryElement library, LibraryLoader loader);
 }

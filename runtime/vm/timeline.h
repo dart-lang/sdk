@@ -330,6 +330,7 @@ class TimelineEvent {
   friend class TimelineEventRecorder;
   friend class TimelineEventEndlessRecorder;
   friend class TimelineEventRingRecorder;
+  friend class TimelineEventStartupRecorder;
   friend class TimelineStream;
   friend class TimelineTestHelper;
   DISALLOW_COPY_AND_ASSIGN(TimelineEvent);
@@ -574,8 +575,9 @@ class TimelineEventBlock {
 
   friend class Thread;
   friend class TimelineEventRecorder;
-  friend class TimelineEventRingRecorder;
   friend class TimelineEventEndlessRecorder;
+  friend class TimelineEventRingRecorder;
+  friend class TimelineEventStartupRecorder;
   friend class TimelineTestHelper;
   friend class JSONStream;
 
@@ -689,26 +691,22 @@ class TimelineEventRecorder {
 };
 
 
-// A recorder that stores events in a ring buffer of fixed capacity.
-class TimelineEventRingRecorder : public TimelineEventRecorder {
+// An abstract recorder that stores events in a buffer of fixed capacity.
+class TimelineEventFixedBufferRecorder : public TimelineEventRecorder {
  public:
   static const intptr_t kDefaultCapacity = 8192;
 
-  explicit TimelineEventRingRecorder(intptr_t capacity = kDefaultCapacity);
-  ~TimelineEventRingRecorder();
+  explicit TimelineEventFixedBufferRecorder(intptr_t capacity);
+  ~TimelineEventFixedBufferRecorder();
 
   void PrintJSON(JSONStream* js, TimelineEventFilter* filter);
   void PrintTraceEvent(JSONStream* js, TimelineEventFilter* filter);
-  const char* name() const {
-    return "ring";
-  }
 
  protected:
   TimelineEvent* StartEvent();
   void CompleteEvent(TimelineEvent* event);
   TimelineEventBlock* GetHeadBlockLocked();
   intptr_t FindOldestBlockIndex() const;
-  TimelineEventBlock* GetNewBlockLocked();
   void Clear();
 
   void PrintJSONEvents(JSONArray* array, TimelineEventFilter* filter);
@@ -717,6 +715,40 @@ class TimelineEventRingRecorder : public TimelineEventRecorder {
   intptr_t capacity_;
   intptr_t num_blocks_;
   intptr_t block_cursor_;
+};
+
+
+// A recorder that stores events in a buffer of fixed capacity. When the buffer
+// is full, new events overwrite old events.
+class TimelineEventRingRecorder : public TimelineEventFixedBufferRecorder {
+ public:
+  explicit TimelineEventRingRecorder(intptr_t capacity = kDefaultCapacity)
+      : TimelineEventFixedBufferRecorder(capacity) {}
+  ~TimelineEventRingRecorder() {}
+
+  const char* name() const {
+    return "ring";
+  }
+
+ protected:
+  TimelineEventBlock* GetNewBlockLocked();
+};
+
+
+// A recorder that stores events in a buffer of fixed capacity. When the buffer
+// is full, new events are dropped.
+class TimelineEventStartupRecorder : public TimelineEventFixedBufferRecorder {
+ public:
+  explicit TimelineEventStartupRecorder(intptr_t capacity = kDefaultCapacity)
+      : TimelineEventFixedBufferRecorder(capacity) {}
+  ~TimelineEventStartupRecorder() {}
+
+  const char* name() const {
+    return "startup";
+  }
+
+ protected:
+  TimelineEventBlock* GetNewBlockLocked();
 };
 
 

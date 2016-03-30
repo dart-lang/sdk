@@ -437,6 +437,13 @@ abstract class LinkedLibrary extends base.SummaryClass {
   List<LinkedExportName> get exportNames;
 
   /**
+   * Indicates whether this library was summarized in "fallback mode".  If
+   * true, all other fields in the data structure have their default values.
+   */
+  @Id(5)
+  bool get fallbackMode;
+
+  /**
    * For each import in [UnlinkedUnit.imports], an index into [dependencies]
    * of the library being imported.
    */
@@ -860,6 +867,7 @@ abstract class UnlinkedClass extends base.SummaryClass {
   /**
    * Code range of the class.
    */
+  @informative
   @Id(13)
   CodeRange get codeRange;
 
@@ -1416,6 +1424,7 @@ abstract class UnlinkedEnum extends base.SummaryClass {
   /**
    * Code range of the enum.
    */
+  @informative
   @Id(5)
   CodeRange get codeRange;
 
@@ -1488,6 +1497,7 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
   /**
    * Code range of the executable.
    */
+  @informative
   @Id(26)
   CodeRange get codeRange;
 
@@ -1877,6 +1887,7 @@ abstract class UnlinkedParam extends base.SummaryClass {
   /**
    * Code range of the parameter.
    */
+  @informative
   @Id(14)
   CodeRange get codeRange;
 
@@ -2133,6 +2144,7 @@ abstract class UnlinkedTypedef extends base.SummaryClass {
   /**
    * Code range of the typedef.
    */
+  @informative
   @Id(7)
   CodeRange get codeRange;
 
@@ -2196,6 +2208,7 @@ abstract class UnlinkedTypeParam extends base.SummaryClass {
   /**
    * Code range of the type parameter.
    */
+  @informative
   @Id(4)
   CodeRange get codeRange;
 
@@ -2230,6 +2243,7 @@ abstract class UnlinkedUnit extends base.SummaryClass {
   /**
    * Code range of the unit.
    */
+  @informative
   @Id(15)
   CodeRange get codeRange;
 
@@ -2251,6 +2265,16 @@ abstract class UnlinkedUnit extends base.SummaryClass {
    */
   @Id(13)
   List<UnlinkedExportNonPublic> get exports;
+
+  /**
+   * If this compilation unit was summarized in fallback mode, the path where
+   * the compilation unit may be found on disk.  Otherwise empty.
+   *
+   * When this field is non-empty, all other fields in the data structure have
+   * their default values.
+   */
+  @Id(16)
+  String get fallbackModePath;
 
   /**
    * Import declarations in the compilation unit.
@@ -2344,6 +2368,7 @@ abstract class UnlinkedVariable extends base.SummaryClass {
   /**
    * Code range of the variable.
    */
+  @informative
   @Id(14)
   CodeRange get codeRange;
 

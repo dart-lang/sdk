@@ -15,7 +15,6 @@
 
 namespace dart {
 
-DECLARE_FLAG(bool, trace_isolates);
 DECLARE_FLAG(bool, trace_service_pause_events);
 
 class MessageHandlerTask : public ThreadPool::Task {

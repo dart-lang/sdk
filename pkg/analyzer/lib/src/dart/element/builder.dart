@@ -370,6 +370,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
       if (node.exceptionType == null) {
         exception.hasImplicitType = true;
       }
+      exception.setVisibleRange(node.offset, node.length);
       _currentHolder.addLocalVariable(exception);
       exceptionParameter.staticElement = exception;
       // stack trace
@@ -378,6 +379,7 @@ class ElementBuilder extends RecursiveAstVisitor<Object> {
         LocalVariableElementImpl stackTrace =
             new LocalVariableElementImpl.forNode(stackTraceParameter);
         _setCodeRange(stackTrace, stackTraceParameter);
+        stackTrace.setVisibleRange(node.offset, node.length);
         _currentHolder.addLocalVariable(stackTrace);
         stackTraceParameter.staticElement = stackTrace;
       }

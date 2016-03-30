@@ -282,6 +282,14 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
   }
 
   Dart_QualifiedFunctionName vm_entry_points[] = {
+    // TODO(rmacnak): These types are not allocated from C++ but they are
+    // cached in the object store. Consider clearing them from the object store
+    // before snapshotting and adjusting InitKnownObjects to allow their
+    // absence.
+    { "dart:async", "Future", "Future." },
+    { "dart:async", "Completer", "Completer." },
+    { "dart:async", "StreamIterator", "StreamIterator." },
+
     // Functions
     { "dart:async", "::", "_setScheduleImmediateClosure" },
     { "dart:core", "::", "_completeDeferredLoads" },
@@ -314,9 +322,11 @@ void Precompiler::AddRoots(Dart_QualifiedFunctionName embedder_entry_points[]) {
     { "dart:typed_data", "ByteData", "ByteData." },
     { "dart:typed_data", "ByteData", "ByteData._view" },
     { "dart:typed_data", "ByteBuffer", "ByteBuffer._New" },
+#if !defined(PRODUCT)
     { "dart:_vmservice", "::", "_registerIsolate" },
     { "dart:_vmservice", "::", "boot" },
     { "dart:developer", "Metrics", "_printMetrics" },
+#endif  // !PRODUCT
     // Fields
     { "dart:core", "Error", "_stackTrace" },
     { "dart:math", "_Random", "_state" },

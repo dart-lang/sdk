@@ -18,8 +18,16 @@ import '../enqueue.dart' show
 import '../universe/world_impact.dart' show
     WorldImpact;
 
+/// A deserializer that can load a library element by reading it's information
+/// from a serialized form.
+abstract class LibraryDeserializer {
+  /// Loads the [LibraryElement] associated with a library under [uri], or null
+  /// if no serialized information is available for the given library.
+  LibraryElement readLibrary(Uri uri);
+}
+
 /// Task that supports deserialization of elements.
-class SerializationTask extends CompilerTask {
+class SerializationTask extends CompilerTask implements LibraryDeserializer {
   SerializationTask(Compiler compiler) : super(compiler);
 
   DeserializerSystem deserializer;

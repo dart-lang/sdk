@@ -22,8 +22,6 @@ typedef bool _GuardedSubtypeChecker<T>(T t1, T t2, Set<Element> visited);
  * https://github.com/dart-lang/dev_compiler/blob/master/STRONG_MODE.md
  */
 class StrongTypeSystemImpl extends TypeSystem {
-  final _specTypeSystem = new TypeSystemImpl();
-
   bool anyParameterType(FunctionType ft, bool predicate(DartType t)) {
     return ft.parameters.any((p) => predicate(p.type));
   }
@@ -43,11 +41,162 @@ class StrongTypeSystemImpl extends TypeSystem {
     return null;
   }
 
+  /// Computes the greatest lower bound of [type1] and [type2].
   @override
-  DartType getLeastUpperBound(
-      TypeProvider typeProvider, DartType type1, DartType type2) {
-    // TODO(leafp): Implement a strong mode version of this.
-    return _specTypeSystem.getLeastUpperBound(typeProvider, type1, type2);
+  DartType getGreatestLowerBound(
+      TypeProvider provider, DartType type1, DartType type2) {
+    // The greatest lower bound relation is reflexive.
+    if (identical(type1, type2)) {
+      return type1;
+    }
+
+    // Treat dynamic as top. The GLB of dynamic and any type is just that type
+    // since dynamic permits all values.
+    if (type1.isDynamic) {
+      return type2;
+    }
+    if (type2.isDynamic) {
+      return type1;
+    }
+
+    // You can't get any lower than bottom.
+    if (type1.isBottom || type2.isBottom) {
+      return provider.bottomType;
+    }
+
+    // Treat void as top-like for GLB. This only comes into play with the
+    // return types of two functions whose GLB is being taken. We allow a
+    // non-void-returning function to subtype a void-returning one, so match
+    // that logic here by treating the non-void arm as the subtype for GLB.
+    if (type1.isVoid) {
+      return type2;
+    }
+    if (type2.isVoid) {
+      return type1;
+    }
+
+    // Function types have structural GLB.
+    if (type1 is FunctionType && type2 is FunctionType) {
+      return _functionGreatestLowerBound(provider, type1, type2);
+    }
+
+    // Otherwise, the GLB of two types is one of them it if it is a subtype of
+    // the other.
+    if (isSubtypeOf(type1, type2)) {
+      return type1;
+    }
+
+    if (isSubtypeOf(type2, type1)) {
+      return type2;
+    }
+
+    // No subtype relation, so no known GLB.
+    return provider.bottomType;
+  }
+
+  /**
+   * This currently does not implement a very complete least upper bound
+   * algorithm, but handles a couple of the very common cases that are
+   * causing pain in real code.  The current algorithm is:
+   * 1. If either of the types is a supertype of the other, return it.
+   *    This is in fact the best result in this case.
+   * 2. If the two types have the same class element, then take the
+   *    pointwise least upper bound of the type arguments.  This is again
+   *    the best result, except that the recursive calls may not return
+   *    the true least uppper bounds.  The result is guaranteed to be a
+   *    well-formed type under the assumption that the input types were
+   *    well-formed (and assuming that the recursive calls return
+   *    well-formed types).
+   * 3. Otherwise return the spec-defined least upper bound.  This will
+   *    be an upper bound, might (or might not) be least, and might
+   *    (or might not) be a well-formed type.
+   *
+   * TODO(leafp): Use matchTypes or something similar here to handle the
+   *  case where one of the types is a superclass (but not supertype) of
+   *  the other, e.g. LUB(Iterable<double>, List<int>) = Iterable<num>
+   * TODO(leafp): Figure out the right final algorithm and implement it.
+   */
+  @override
+  DartType _interfaceLeastUpperBound(
+      TypeProvider provider, InterfaceType type1, InterfaceType type2) {
+    if (isSubtypeOf(type1, type2)) {
+      return type2;
+    }
+    if (isSubtypeOf(type2, type1)) {
+      return type1;
+    }
+    if (type1.element == type2.element) {
+      List<DartType> tArgs1 = type1.typeArguments;
+      List<DartType> tArgs2 = type2.typeArguments;
+
+      assert(tArgs1.length == tArgs2.length);
+      List<DartType> tArgs = new List(tArgs1.length);
+      for (int i = 0; i < tArgs1.length; i++) {
+        tArgs[i] = getLeastUpperBound(provider, tArgs1[i], tArgs2[i]);
+      }
+      InterfaceTypeImpl lub = new InterfaceTypeImpl(type1.element);
+      lub.typeArguments = tArgs;
+      return lub;
+    }
+    return InterfaceTypeImpl.computeLeastUpperBound(type1, type2) ??
+        provider.dynamicType;
+  }
+
+  /**
+   * This currently just implements a simple least upper bound to
+   * handle some common cases.  It also avoids some termination issues
+   * with the naive spec algorithm.  The least upper bound of two types
+   * (at least one of which is a type parameter) is computed here as:
+   * 1. If either type is a supertype of the other, return it.
+   * 2. If the first type is a type parameter, replace it with its bound,
+   *    with recursive occurrences of itself replaced with Object.
+   *    The second part of this should ensure termination.  Informally,
+   *    each type variable instantiation in one of the arguments to the
+   *    least upper bound algorithm now strictly reduces the number
+   *    of bound variables in scope in that argument position.
+   * 3. If the second type is a type parameter, do the symmetric operation
+   *    to #2.
+   *
+   * It's not immediately obvious why this is symmetric in the case that both
+   * of the them are type parameters.  For #1, symmetry holds since subtype
+   * is antisymmetric.  For #2, it's clearly not symmetric if upper bounds of
+   * bottom are allowed.  Ignoring this (for various reasons, not least
+   * of which that there's no way to write it), there's an informal
+   * argument (that might even be right) that you will always either
+   * end up expanding both of them or else returning the same result no matter
+   * which order you expand them in.  A key observation is that
+   * identical(expand(type1), type2) => subtype(type1, type2)
+   * and hence the contra-positive.
+   *
+   * TODO(leafp): Think this through and figure out what's the right
+   * definition.  Be careful about termination.
+   *
+   * I suspect in general a reasonable algorithm is to expand the innermost
+   * type variable first.  Alternatively, you could probably choose to treat
+   * it as just an instance of the interface type upper bound problem, with
+   * the "inheritance" chain extended by the bounds placed on the variables.
+   */
+  @override
+  DartType _typeParameterLeastUpperBound(
+      TypeProvider provider, DartType type1, DartType type2) {
+    if (isSubtypeOf(type1, type2)) {
+      return type2;
+    }
+    if (isSubtypeOf(type2, type1)) {
+      return type1;
+    }
+    if (type1 is TypeParameterType) {
+      type1 = type1
+          .resolveToBound(provider.objectType)
+          .substitute2([provider.objectType], [type1]);
+      return getLeastUpperBound(provider, type1, type2);
+    }
+    // We should only be called when at least one of the types is a
+    // TypeParameterType
+    type2 = type2
+        .resolveToBound(provider.objectType)
+        .substitute2([provider.objectType], [type2]);
+    return getLeastUpperBound(provider, type1, type2);
   }
 
   /**
@@ -222,8 +371,7 @@ class StrongTypeSystemImpl extends TypeSystem {
     // TODO(leafp): Emit warnings and hints for these in some way.
     // TODO(leafp): Consider adding a flag to disable these?  Or just rely on
     //   --warnings-as-errors?
-    if (isSubtypeOf(toType, fromType) ||
-        _specTypeSystem.isAssignableTo(toType, fromType)) {
+    if (isSubtypeOf(toType, fromType) || toType.isAssignableTo(fromType)) {
       // TODO(leafp): error if type is known to be exact (literal,
       //  instance creation).
       // TODO(leafp): Warn on composite downcast.
@@ -268,6 +416,121 @@ class StrongTypeSystemImpl extends TypeSystem {
   bool isSubtypeOf(DartType leftType, DartType rightType) {
     return _isSubtypeOf(leftType, rightType, null);
   }
+
+  /**
+   * Compute the greatest lower bound of function types [f] and [g].
+   *
+   * The spec rules for GLB on function types, informally, are pretty simple:
+   *
+   * - If a parameter is required in both, it stays required.
+   *
+   * - If a positional parameter is optional or missing in one, it becomes
+   *   optional.
+   *
+   * - Named parameters are unioned together.
+   *
+   * - For any parameter that exists in both functions, use the LUB of them as
+   *   the resulting parameter type.
+   *
+   * - Use the GLB of their return types.
+   */
+  DartType _functionGreatestLowerBound(
+      TypeProvider provider, FunctionType f, FunctionType g) {
+    // Calculate the LUB of each corresponding pair of parameters.
+    List<ParameterElement> parameters = [];
+
+    bool hasPositional = false;
+    bool hasNamed = false;
+    addParameter(
+        String name, DartType fType, DartType gType, ParameterKind kind) {
+      DartType paramType;
+      if (fType != null && gType != null) {
+        // If both functions have this parameter, include both of their types.
+        paramType = getLeastUpperBound(provider, fType, gType);
+      } else {
+        paramType = fType ?? gType;
+      }
+
+      parameters.add(new ParameterElementImpl.synthetic(name, paramType, kind));
+    }
+
+    // TODO(rnystrom): Right now, this assumes f and g do not have any type
+    // parameters. Revisit that in the presence of generic methods.
+    List<DartType> fRequired = f.normalParameterTypes;
+    List<DartType> gRequired = g.normalParameterTypes;
+
+    // We need some parameter names for in the synthesized function type.
+    List<String> fRequiredNames = f.normalParameterNames;
+    List<String> gRequiredNames = g.normalParameterNames;
+
+    // Parameters that are required in both functions are required in the
+    // result.
+    int requiredCount = math.min(fRequired.length, gRequired.length);
+    for (int i = 0; i < requiredCount; i++) {
+      addParameter(fRequiredNames[i], fRequired[i], gRequired[i],
+          ParameterKind.REQUIRED);
+    }
+
+    // Parameters that are optional or missing in either end up optional.
+    List<DartType> fPositional = f.optionalParameterTypes;
+    List<DartType> gPositional = g.optionalParameterTypes;
+    List<String> fPositionalNames = f.optionalParameterNames;
+    List<String> gPositionalNames = g.optionalParameterNames;
+
+    int totalPositional = math.max(fRequired.length + fPositional.length,
+        gRequired.length + gPositional.length);
+    for (int i = requiredCount; i < totalPositional; i++) {
+      // Find the corresponding positional parameters (required or optional) at
+      // this index, if there is one.
+      DartType fType;
+      String fName;
+      if (i < fRequired.length) {
+        fType = fRequired[i];
+        fName = fRequiredNames[i];
+      } else if (i < fRequired.length + fPositional.length) {
+        fType = fPositional[i - fRequired.length];
+        fName = fPositionalNames[i - fRequired.length];
+      }
+
+      DartType gType;
+      String gName;
+      if (i < gRequired.length) {
+        gType = gRequired[i];
+        gName = gRequiredNames[i];
+      } else if (i < gRequired.length + gPositional.length) {
+        gType = gPositional[i - gRequired.length];
+        gName = gPositionalNames[i - gRequired.length];
+      }
+
+      // The loop should not let us go past both f and g's positional params.
+      assert(fType != null || gType != null);
+
+      addParameter(fName ?? gName, fType, gType, ParameterKind.POSITIONAL);
+      hasPositional = true;
+    }
+
+    // Union the named parameters together.
+    Map<String, DartType> fNamed = f.namedParameterTypes;
+    Map<String, DartType> gNamed = g.namedParameterTypes;
+    for (String name in fNamed.keys.toSet()..addAll(gNamed.keys)) {
+      addParameter(name, fNamed[name], gNamed[name], ParameterKind.NAMED);
+      hasNamed = true;
+    }
+
+    // Edge case. Dart does not support functions with both optional positional
+    // and named parameters. If we would synthesize that, give up.
+    if (hasPositional && hasNamed) return provider.bottomType;
+
+    // Calculate the GLB of the return type.
+    DartType returnType =
+        getGreatestLowerBound(provider, f.returnType, g.returnType);
+    return new FunctionElementImpl.synthetic(parameters, returnType).type;
+  }
+
+  @override
+  DartType _functionParameterBound(
+          TypeProvider provider, DartType f, DartType g) =>
+      getGreatestLowerBound(provider, f, g);
 
   /**
    * Guard against loops in the class hierarchy
@@ -377,7 +640,6 @@ class StrongTypeSystemImpl extends TypeSystem {
     _GuardedSubtypeChecker<DartType> guardedSubtype = _guard(_isSubtypeOf);
     _GuardedSubtypeChecker<DartType> guardedInferTypeParameter =
         _guard(_inferTypeParameterSubtypeOf);
-
     if (t1 == t2) {
       return true;
     }
@@ -415,6 +677,12 @@ class StrongTypeSystemImpl extends TypeSystem {
       return guardedInferTypeParameter(t1, t2, visited);
     }
 
+    // Void only appears as the return type of a function, and we handle it
+    // directly in the function subtype rules. We should not get to a point
+    // where we're doing a subtype test on a "bare" void, but just in case we
+    // do, handle it safely.
+    // TODO(rnystrom): Determine how this can ever be reached. If it can't,
+    // remove it.
     if (t1.isVoid || t2.isVoid) {
       return false;
     }
@@ -444,8 +712,8 @@ class StrongTypeSystemImpl extends TypeSystem {
     return _isFunctionSubtypeOf(t1 as FunctionType, t2 as FunctionType);
   }
 
-  // TODO(leafp): Document the rules in play here
   bool _isTop(DartType t, {bool dynamicIsBottom: false}) {
+    // TODO(leafp): Document the rules in play here
     return (t.isDynamic && !dynamicIsBottom) || t.isObject;
   }
 }
@@ -473,7 +741,75 @@ abstract class TypeSystem {
    * Compute the least upper bound of two types.
    */
   DartType getLeastUpperBound(
-      TypeProvider typeProvider, DartType type1, DartType type2);
+      TypeProvider typeProvider, DartType type1, DartType type2) {
+    // The least upper bound relation is reflexive.
+    if (identical(type1, type2)) {
+      return type1;
+    }
+    // The least upper bound of dynamic and any type T is dynamic.
+    if (type1.isDynamic) {
+      return type1;
+    }
+    if (type2.isDynamic) {
+      return type2;
+    }
+    // The least upper bound of void and any type T != dynamic is void.
+    if (type1.isVoid) {
+      return type1;
+    }
+    if (type2.isVoid) {
+      return type2;
+    }
+    // The least upper bound of bottom and any type T is T.
+    if (type1.isBottom) {
+      return type2;
+    }
+    if (type2.isBottom) {
+      return type1;
+    }
+
+    if (type1 is TypeParameterType || type2 is TypeParameterType) {
+      return _typeParameterLeastUpperBound(typeProvider, type1, type2);
+    }
+
+    // The least upper bound of a function type and an interface type T is the
+    // least upper bound of Function and T.
+    if (type1 is FunctionType && type2 is InterfaceType) {
+      type1 = typeProvider.functionType;
+    }
+    if (type2 is FunctionType && type1 is InterfaceType) {
+      type2 = typeProvider.functionType;
+    }
+
+    // At this point type1 and type2 should both either be interface types or
+    // function types.
+    if (type1 is InterfaceType && type2 is InterfaceType) {
+      return _interfaceLeastUpperBound(typeProvider, type1, type2);
+    }
+
+    if (type1 is FunctionType && type2 is FunctionType) {
+      return _functionLeastUpperBound(typeProvider, type1, type2);
+    }
+
+    // Should never happen. As a defensive measure, return the dynamic type.
+    assert(false);
+    return typeProvider.dynamicType;
+  }
+
+  /**
+   * Given two [InterfaceType]s [type1] and [type2] return their least upper
+   * bound in a type system specific manner.
+   */
+  DartType _interfaceLeastUpperBound(
+      TypeProvider provider, InterfaceType type1, InterfaceType type2);
+
+  /**
+   * Given two [DartType]s [type1] and [type2] at least one of which is a
+   * [TypeParameterType], return their least upper bound in a type system
+   * specific manner.
+   */
+  DartType _typeParameterLeastUpperBound(
+      TypeProvider provider, DartType type1, DartType type2);
 
   /**
    * Given a [DartType] [type], instantiate it with its bounds.
@@ -587,120 +923,6 @@ abstract class TypeSystem {
       TypeParameterTypeImpl.getTypes(typeFormalsAsElements(type));
 
   /**
-   * Create either a strong mode or regular type system based on context.
-   */
-  static TypeSystem create(AnalysisContext context) {
-    return (context.analysisOptions.strongMode)
-        ? new StrongTypeSystemImpl()
-        : new TypeSystemImpl();
-  }
-}
-
-/**
- * Implementation of [TypeSystem] using the rules in the Dart specification.
- */
-class TypeSystemImpl extends TypeSystem {
-  TypeSystemImpl();
-
-  @override
-  bool canPromoteToType(DartType to, DartType from) {
-    // Declared type should not be "dynamic".
-    // Promoted type should not be "dynamic".
-    // Promoted type should be more specific than declared.
-    return !from.isDynamic && !to.isDynamic && to.isMoreSpecificThan(from);
-  }
-
-  @override
-  DartType getLeastUpperBound(
-      TypeProvider typeProvider, DartType type1, DartType type2) {
-    // The least upper bound relation is reflexive.
-    if (identical(type1, type2)) {
-      return type1;
-    }
-    // The least upper bound of dynamic and any type T is dynamic.
-    if (type1.isDynamic) {
-      return type1;
-    }
-    if (type2.isDynamic) {
-      return type2;
-    }
-    // The least upper bound of void and any type T != dynamic is void.
-    if (type1.isVoid) {
-      return type1;
-    }
-    if (type2.isVoid) {
-      return type2;
-    }
-    // The least upper bound of bottom and any type T is T.
-    if (type1.isBottom) {
-      return type2;
-    }
-    if (type2.isBottom) {
-      return type1;
-    }
-
-    // Let U be a type variable with upper bound B.  The least upper bound of U
-    // and a type T is the least upper bound of B and T.
-    type1 = type1.resolveToBound(typeProvider.objectType);
-    type2 = type2.resolveToBound(typeProvider.objectType);
-
-    // The least upper bound of a function type and an interface type T is the
-    // least upper bound of Function and T.
-    if (type1 is FunctionType && type2 is InterfaceType) {
-      type1 = typeProvider.functionType;
-    }
-    if (type2 is FunctionType && type1 is InterfaceType) {
-      type2 = typeProvider.functionType;
-    }
-
-    // At this point type1 and type2 should both either be interface types or
-    // function types.
-    if (type1 is InterfaceType && type2 is InterfaceType) {
-      InterfaceType result =
-          InterfaceTypeImpl.computeLeastUpperBound(type1, type2);
-      if (result == null) {
-        return typeProvider.dynamicType;
-      }
-      return result;
-    } else if (type1 is FunctionType && type2 is FunctionType) {
-      return _functionLeastUpperBound(typeProvider, type1, type2);
-    } else {
-      // Should never happen.  As a defensive measure, return the dynamic type.
-      assert(false);
-      return typeProvider.dynamicType;
-    }
-  }
-
-  /**
-   * Instantiate a parameterized type using `dynamic` for all generic
-   * parameters.  Returns the type unchanged if there are no parameters.
-   */
-  DartType instantiateToBounds(DartType type) {
-    List<DartType> typeFormals = typeFormalsAsTypes(type);
-    int count = typeFormals.length;
-    if (count > 0) {
-      List<DartType> typeArguments =
-          new List<DartType>.filled(count, DynamicTypeImpl.instance);
-      return instantiateType(type, typeArguments);
-    }
-    return type;
-  }
-
-  @override
-  bool isAssignableTo(DartType leftType, DartType rightType) {
-    return leftType.isAssignableTo(rightType);
-  }
-
-  @override
-  bool isMoreSpecificThan(DartType t1, DartType t2) =>
-      t1.isMoreSpecificThan(t2);
-
-  @override
-  bool isSubtypeOf(DartType leftType, DartType rightType) {
-    return leftType.isSubtypeOf(rightType);
-  }
-
-  /**
    * Compute the least upper bound of function types [f] and [g].
    *
    * The spec rules for LUB on function types, informally, are pretty simple
@@ -739,7 +961,7 @@ class TypeSystemImpl extends TypeSystem {
     for (int i = 0; i < fRequired.length; i++) {
       parameters.add(new ParameterElementImpl.synthetic(
           fRequiredNames[i],
-          getLeastUpperBound(provider, fRequired[i], gRequired[i]),
+          _functionParameterBound(provider, fRequired[i], gRequired[i]),
           ParameterKind.REQUIRED));
     }
 
@@ -752,7 +974,7 @@ class TypeSystemImpl extends TypeSystem {
     for (int i = 0; i < length; i++) {
       parameters.add(new ParameterElementImpl.synthetic(
           fPositionalNames[i],
-          getLeastUpperBound(provider, fPositional[i], gPositional[i]),
+          _functionParameterBound(provider, fPositional[i], gPositional[i]),
           ParameterKind.POSITIONAL));
     }
 
@@ -761,21 +983,94 @@ class TypeSystemImpl extends TypeSystem {
     for (String name in fNamed.keys.toSet()..retainAll(gNamed.keys)) {
       parameters.add(new ParameterElementImpl.synthetic(
           name,
-          getLeastUpperBound(provider, fNamed[name], gNamed[name]),
+          _functionParameterBound(provider, fNamed[name], gNamed[name]),
           ParameterKind.NAMED));
     }
 
     // Calculate the LUB of the return type.
     DartType returnType =
         getLeastUpperBound(provider, f.returnType, g.returnType);
+    return new FunctionElementImpl.synthetic(parameters, returnType).type;
+  }
 
-    FunctionElementImpl function = new FunctionElementImpl("", -1);
-    function.synthetic = true;
-    function.returnType = returnType;
-    function.parameters = parameters;
+  /**
+   * Calculates the appropriate upper or lower bound of a pair of parameters
+   * for two function types whose least upper bound is being calculated.
+   *
+   * In spec mode, this uses least upper bound, which... doesn't really make
+   * much sense. Strong mode overrides this to use greatest lower bound.
+   */
+  DartType _functionParameterBound(
+          TypeProvider provider, DartType f, DartType g) =>
+      getLeastUpperBound(provider, f, g);
 
-    function.type = new FunctionTypeImpl(function);
-    return function.type;
+  /**
+   * Create either a strong mode or regular type system based on context.
+   */
+  static TypeSystem create(AnalysisContext context) {
+    return (context.analysisOptions.strongMode)
+        ? new StrongTypeSystemImpl()
+        : new TypeSystemImpl();
+  }
+}
+
+/**
+ * Implementation of [TypeSystem] using the rules in the Dart specification.
+ */
+class TypeSystemImpl extends TypeSystem {
+  TypeSystemImpl();
+
+  @override
+  bool canPromoteToType(DartType to, DartType from) {
+    // Declared type should not be "dynamic".
+    // Promoted type should not be "dynamic".
+    // Promoted type should be more specific than declared.
+    return !from.isDynamic && !to.isDynamic && to.isMoreSpecificThan(from);
+  }
+
+  /**
+   * Instantiate a parameterized type using `dynamic` for all generic
+   * parameters.  Returns the type unchanged if there are no parameters.
+   */
+  DartType instantiateToBounds(DartType type) {
+    List<DartType> typeFormals = typeFormalsAsTypes(type);
+    int count = typeFormals.length;
+    if (count > 0) {
+      List<DartType> typeArguments =
+          new List<DartType>.filled(count, DynamicTypeImpl.instance);
+      return instantiateType(type, typeArguments);
+    }
+    return type;
+  }
+
+  @override
+  bool isAssignableTo(DartType leftType, DartType rightType) {
+    return leftType.isAssignableTo(rightType);
+  }
+
+  @override
+  bool isMoreSpecificThan(DartType t1, DartType t2) =>
+      t1.isMoreSpecificThan(t2);
+
+  @override
+  bool isSubtypeOf(DartType leftType, DartType rightType) {
+    return leftType.isSubtypeOf(rightType);
+  }
+
+  @override
+  DartType _interfaceLeastUpperBound(
+      TypeProvider provider, InterfaceType type1, InterfaceType type2) {
+    InterfaceType result =
+        InterfaceTypeImpl.computeLeastUpperBound(type1, type2);
+    return result ?? provider.dynamicType;
+  }
+
+  @override
+  DartType _typeParameterLeastUpperBound(
+      TypeProvider provider, DartType type1, DartType type2) {
+    type1 = type1.resolveToBound(provider.objectType);
+    type2 = type2.resolveToBound(provider.objectType);
+    return getLeastUpperBound(provider, type1, type2);
   }
 }
 

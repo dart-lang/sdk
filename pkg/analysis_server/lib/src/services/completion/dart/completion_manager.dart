@@ -18,6 +18,7 @@ import 'package:analysis_server/src/services/completion/dart/common_usage_sorter
 import 'package:analysis_server/src/services/completion/dart/contribution_sorter.dart';
 import 'package:analysis_server/src/services/completion/dart/optype.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -25,7 +26,6 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/context.dart'
     show AnalysisFutureHelper, AnalysisContextImpl;
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/generated/engine.dart' hide AnalysisContextImpl;
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/source.dart';

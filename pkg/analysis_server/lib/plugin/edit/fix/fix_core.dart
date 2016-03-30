@@ -27,9 +27,9 @@ class Fix {
    * A comparator that can be used to sort fixes by their relevance. The most
    * relevant fixes will be sorted before fixes with a lower relevance.
    */
-  static final Comparator<Fix> SORT_BY_RELEVANCE = (Fix firstFix,
-          Fix secondFix) =>
-      firstFix.kind.relevance - secondFix.kind.relevance;
+  static final Comparator<Fix> SORT_BY_RELEVANCE =
+      (Fix firstFix, Fix secondFix) =>
+          firstFix.kind.relevance - secondFix.kind.relevance;
 
   /**
    * A description of the fix being proposed.

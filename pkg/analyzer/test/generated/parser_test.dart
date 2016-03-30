@@ -9743,6 +9743,7 @@ void''');
   void test_parseStatement_singleLabel() {
     LabeledStatement statement = parse4("parseStatement", "l: return x;");
     expect(statement.labels, hasLength(1));
+    expect(statement.labels[0].label.inDeclarationContext(), isTrue);
     expect(statement.statement, isNotNull);
   }
 
@@ -10013,7 +10014,32 @@ void''');
     expect(statement.rightParenthesis, isNotNull);
     expect(statement.leftBracket, isNotNull);
     expect(statement.members, hasLength(1));
-    expect(statement.members[0].labels, hasLength(3));
+    {
+      List<Label> labels = statement.members[0].labels;
+      expect(labels, hasLength(3));
+      expect(labels[0].label.inDeclarationContext(), isTrue);
+      expect(labels[1].label.inDeclarationContext(), isTrue);
+      expect(labels[2].label.inDeclarationContext(), isTrue);
+    }
+    expect(statement.rightBracket, isNotNull);
+  }
+
+  void test_parseSwitchStatement_labeledDefault() {
+    SwitchStatement statement =
+        parse4("parseSwitchStatement", "switch (a) {l1: l2: l3: default:}");
+    expect(statement.switchKeyword, isNotNull);
+    expect(statement.leftParenthesis, isNotNull);
+    expect(statement.expression, isNotNull);
+    expect(statement.rightParenthesis, isNotNull);
+    expect(statement.leftBracket, isNotNull);
+    expect(statement.members, hasLength(1));
+    {
+      List<Label> labels = statement.members[0].labels;
+      expect(labels, hasLength(3));
+      expect(labels[0].label.inDeclarationContext(), isTrue);
+      expect(labels[1].label.inDeclarationContext(), isTrue);
+      expect(labels[2].label.inDeclarationContext(), isTrue);
+    }
     expect(statement.rightBracket, isNotNull);
   }
 

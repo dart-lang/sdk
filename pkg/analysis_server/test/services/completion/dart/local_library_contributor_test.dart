@@ -64,6 +64,45 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
         relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
   }
 
+  test_partFile_Constructor2() async {
+    // SimpleIdentifier  TypeName  ConstructorName
+    addSource(
+        '/testB.dart',
+        '''
+        lib B;
+        int T1;
+        F1() { }
+        class X {X.c(); X._d(); z() {}}''');
+    addSource(
+        '/testA.dart',
+        '''
+        part of libA;
+        class B { }''');
+    addTestSource('''
+        library libA;
+        import "/testB.dart";
+        part "/testA.dart";
+        class A { A({String boo: 'hoo'}) { } }
+        main() {new ^}
+        var m;''');
+    await computeLibrariesContaining();
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestConstructor('B');
+    // Suggested by ConstructorContributor
+    assertNotSuggested('A');
+    // Suggested by ImportedReferenceContributor
+    assertNotSuggested('Object');
+    assertNotSuggested('X.c');
+    assertNotSuggested('X._d');
+    assertNotSuggested('F1');
+    assertNotSuggested('T1');
+    assertNotSuggested('_d');
+    assertNotSuggested('z');
+    assertNotSuggested('m');
+  }
+
   test_partFile_TypeName() async {
     addSource(
         '/testB.dart',
@@ -109,45 +148,6 @@ class LocalLibraryContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('T1');
     assertNotSuggested('_d');
     assertNotSuggested('z');
-  }
-
-  test_partFile_Constructor2() async {
-    // SimpleIdentifier  TypeName  ConstructorName
-    addSource(
-        '/testB.dart',
-        '''
-        lib B;
-        int T1;
-        F1() { }
-        class X {X.c(); X._d(); z() {}}''');
-    addSource(
-        '/testA.dart',
-        '''
-        part of libA;
-        class B { }''');
-    addTestSource('''
-        library libA;
-        import "/testB.dart";
-        part "/testA.dart";
-        class A { A({String boo: 'hoo'}) { } }
-        main() {new ^}
-        var m;''');
-    await computeLibrariesContaining();
-    await computeSuggestions();
-    expect(replacementOffset, completionOffset);
-    expect(replacementLength, 0);
-    assertSuggestConstructor('B');
-    // Suggested by ConstructorContributor
-    assertNotSuggested('A');
-    // Suggested by ImportedReferenceContributor
-    assertNotSuggested('Object');
-    assertNotSuggested('X.c');
-    assertNotSuggested('X._d');
-    assertNotSuggested('F1');
-    assertNotSuggested('T1');
-    assertNotSuggested('_d');
-    assertNotSuggested('z');
-    assertNotSuggested('m');
   }
 
   test_partFile_TypeName2() async {

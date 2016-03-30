@@ -185,9 +185,8 @@ class _Builder {
     DirectoryBasedDartSdk sdk =
         new DirectoryBasedDartSdk(new JavaFile(sdkPath));
     sdk.useSummary = false;
+    sdk.analysisOptions = new AnalysisOptionsImpl()..strongMode = strongMode;
     context = sdk.context;
-    context.analysisOptions = new AnalysisOptionsImpl()
-      ..strongMode = strongMode;
     //
     // Prepare 'dart:' URIs to serialize.
     //
@@ -228,7 +227,7 @@ class _Builder {
       Source unitSource = unitElement.source;
       CompilationUnit unit =
           context.resolveCompilationUnit2(unitSource, source);
-      indexAssembler.index(unit);
+      indexAssembler.indexUnit(unit);
     }
   }
 }

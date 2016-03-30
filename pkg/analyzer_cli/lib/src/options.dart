@@ -33,6 +33,41 @@ class CommandLineOptions {
   /// The path to an analysis options file
   final String analysisOptionsFile;
 
+  /// The path to output analysis results when in build mode.
+  final String buildAnalysisOutput;
+
+  /// Whether to use build mode.
+  final bool buildMode;
+
+  /// Whether to use build mode as a Bazel persistent worker.
+  final bool buildModePersistentWorker;
+
+  /// List of summary file paths to use in build mode.
+  final List<String> buildSummaryInputs;
+
+  /// Whether to skip analysis when creating summaries in build mode.
+  final bool buildSummaryOnly;
+
+  /// Whether to create summaries using only ASTs, i.e. don't perform
+  /// resolution.
+  final bool buildSummaryOnlyAst;
+
+  /// Whether to use diet parsing, i.e. skip function bodies. We don't need to
+  /// analyze function bodies to use summaries during future compilation steps.
+  final bool buildSummaryOnlyDiet;
+
+  /// Whether to use exclude informative data from created summaries.
+  final bool buildSummaryExcludeInformative;
+
+  /// The path to output the summary when creating summaries in build mode.
+  final String buildSummaryOutput;
+
+  /// Whether to output a summary in "fallback mode".
+  final bool buildSummaryFallback;
+
+  /// Whether to suppress a nonzero exit code in build mode.
+  final bool buildSuppressExitCode;
+
   /// The path to the dart SDK
   String dartSdkPath;
 
@@ -77,24 +112,6 @@ class CommandLineOptions {
   /// Whether to use machine format for error display
   final bool machineFormat;
 
-  /// Whether to use the whole package analysis mode.
-  final bool packageMode;
-
-  /// The path of the root folder of the package to analyze.
-  final String packageModePath;
-
-  /// The name of the package being analyzed.
-  final String packageName;
-
-  /// Mapping of package names to package summary file paths.
-  final Map<String, String> packageSummaryInputs;
-
-  /// Whether to skip analysis when creating summaries.
-  final bool packageSummaryOnly;
-
-  /// The path to find the package summary.
-  final String packageSummaryOutput;
-
   /// The path to the package root
   final String packageRootPath;
 
@@ -129,7 +146,19 @@ class CommandLineOptions {
   /// Initialize options from the given parsed [args].
   CommandLineOptions._fromArgs(
       ArgResults args, Map<String, String> definedVariables)
-      : dartSdkPath = args['dart-sdk'],
+      : buildAnalysisOutput = args['build-analysis-output'],
+        buildMode = args['build-mode'],
+        buildModePersistentWorker = args['persistent_worker'],
+        buildSummaryFallback = args['build-summary-fallback'],
+        buildSummaryInputs = args['build-summary-input'],
+        buildSummaryOnly = args['build-summary-only'],
+        buildSummaryOnlyAst = args['build-summary-only-ast'],
+        buildSummaryOnlyDiet = args['build-summary-only-diet'],
+        buildSummaryExcludeInformative =
+            args['build-summary-exclude-informative'],
+        buildSummaryOutput = args['build-summary-output'],
+        buildSuppressExitCode = args['build-suppress-exit-code'],
+        dartSdkPath = args['dart-sdk'],
         definedVariables = definedVariables,
         analysisOptionsFile = args['options'],
         disableHints = args['no-hints'],
@@ -144,12 +173,6 @@ class CommandLineOptions {
         lints = args['lints'],
         log = args['log'],
         machineFormat = args['machine'] || args['format'] == 'machine',
-        packageMode = args['package-mode'],
-        packageModePath = args['package-mode-path'],
-        packageName = args['package-name'],
-        packageSummaryInputs = _parsePackageSummaryInputs(args),
-        packageSummaryOnly = args['package-summary-only'],
-        packageSummaryOutput = args['package-summary-output'],
         packageConfigPath = args['packages'],
         packageRootPath = args['package-root'],
         perfReport = args['x-perf-report'],
@@ -167,7 +190,7 @@ class CommandLineOptions {
   /// analyzer options. In case of a format error, calls [printAndFail], which
   /// by default prints an error message to stderr and exits.
   static CommandLineOptions parse(List<String> args,
-      [printAndFail = printAndFail]) {
+      [printAndFail(String msg) = printAndFail]) {
     CommandLineOptions options = _parse(args);
     // Check SDK.
     {
@@ -207,6 +230,16 @@ class CommandLineOptions {
       errorSink.writeln(
           "Info: Option '--enable-null-aware-operators' is no longer needed. "
           "Null aware operators are supported by default.");
+    }
+
+    // Build mode.
+    if (options.buildModePersistentWorker && !options.buildMode) {
+      printAndFail('The option --persisten_worker can be used only '
+          'together with --build-mode.');
+    }
+    if (options.buildSummaryOnlyDiet && !options.buildSummaryOnly) {
+      printAndFail('The option --build-summary-only-diet can be used only '
+          'together with --build-summary-only.');
     }
 
     return options;
@@ -304,34 +337,59 @@ class CommandLineOptions {
           allowMultiple: true,
           splitCommas: false)
       //
-      // Package analysis mode and summary.
+      // Build mode.
       //
-      ..addFlag('package-mode',
-          help: 'Enable the whole package analysis mode. '
-              'Exactly one input path must be specified, which must be a path '
-              'to the folder with a Pub package.',
+      ..addFlag('persistent_worker',
+          help: 'Enable Bazel persistent worker mode.',
           defaultsTo: false,
           negatable: false,
           hide: true)
-      ..addOption('package-mode-path',
-          help: 'The path of the root folder of the package to analyze.',
+      ..addOption('build-analysis-output',
+          help:
+              'Specifies the path to the file where analysis results should be written.',
           hide: true)
-      ..addOption('package-name',
-          help: 'The name of the package to analyze, as it is used by clients.',
+      ..addFlag('build-mode',
+          // TODO(paulberry): add more documentation.
+          help: 'Enable build mode.',
+          defaultsTo: false,
+          negatable: false,
           hide: true)
-      ..addOption('package-summary-input',
-          help: '--package-summary-input=packageName,/path/to/package.sum '
-              'specifies the summary file that contains information about '
-              'every library of the specified package.',
+      ..addOption('build-summary-input',
+          help: 'Path to a summary file that contains information from a '
+              'previous analysis run.  May be specified multiple times.',
           allowMultiple: true,
-          splitCommas: false,
           hide: true)
-      ..addOption('package-summary-output',
+      ..addOption('build-summary-output',
           help: 'Specifies the path to the file where the summary information '
-              'about the package should be written to.',
+              'should be written.',
           hide: true)
-      ..addFlag('package-summary-only',
+      ..addFlag('build-summary-only',
           help: 'Disable analysis (only generate summaries).',
+          defaultsTo: false,
+          negatable: false,
+          hide: true)
+      ..addFlag('build-summary-only-ast',
+          help: 'Generate summaries using ASTs.',
+          defaultsTo: false,
+          negatable: false,
+          hide: true)
+      ..addFlag('build-summary-only-diet',
+          help: 'Diet parse function bodies.',
+          defaultsTo: false,
+          negatable: false,
+          hide: true)
+      ..addFlag('build-summary-exclude-informative',
+          help: 'Exclude @informative information (docs, offsets, etc).',
+          defaultsTo: false,
+          negatable: false,
+          hide: true)
+      ..addFlag('build-summary-fallback',
+          help: 'If outputting a summary, output it in fallback mode.',
+          defaultsTo: false,
+          negatable: false,
+          hide: true)
+      ..addFlag('build-suppress-exit-code',
+          help: 'Exit with code 0 even if errors are found.',
           defaultsTo: false,
           negatable: false,
           hide: true)
@@ -392,6 +450,17 @@ class CommandLineOptions {
           args.map((String arg) => arg == '-batch' ? '--batch' : arg).toList();
       Map<String, String> definedVariables = <String, String>{};
       var results = parser.parse(args, definedVariables);
+
+      // Persistent worker.
+      if (args.contains('--persistent_worker')) {
+        if (args.length != 2 || !args.contains('--build-mode')) {
+          printAndFail('The --persistent_worker flag should be used with and '
+              'only with the --build-mode flag.');
+          return null; // Only reachable in testing.
+        }
+        return new CommandLineOptions._fromArgs(results, definedVariables);
+      }
+
       // Help requests.
       if (results['help']) {
         _showUsage(parser);
@@ -402,6 +471,14 @@ class CommandLineOptions {
       if (results['batch']) {
         if (results.rest.isNotEmpty) {
           errorSink.writeln('No source files expected in the batch mode.');
+          _showUsage(parser);
+          exitHandler(15);
+          return null; // Only reachable in testing.
+        }
+      } else if (results['persistent_worker']) {
+        if (results.rest.isNotEmpty) {
+          errorSink.writeln(
+              'No source files expected in the persistent worker mode.');
           _showUsage(parser);
           exitHandler(15);
           return null; // Only reachable in testing.
@@ -424,27 +501,6 @@ class CommandLineOptions {
       exitHandler(15);
       return null; // Only reachable in testing.
     }
-  }
-
-  /// Parse the `--package-summary-input` arguments into a Map of package
-  /// names to summary paths.
-  static Map<String, String> _parsePackageSummaryInputs(ArgResults args) {
-    Map<String, String> result = <String, String>{};
-    List<String> argList = args['package-summary-input'];
-    for (String arg in argList) {
-      int index = arg.indexOf(',');
-      if (index == -1) {
-        errorSink.writeln(
-            'The syntax is --package-summary-input=packageName,/path/to/pkg.sum');
-        errorSink.writeln('No comma found in: $arg');
-        exitHandler(15);
-        return null; // Only reachable in testing.
-      }
-      String packageName = arg.substring(0, index);
-      String summaryPath = arg.substring(index + 1);
-      result[packageName] = summaryPath;
-    }
-    return result;
   }
 
   static _showUsage(parser) {

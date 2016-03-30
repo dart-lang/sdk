@@ -5,6 +5,10 @@
 #ifndef BIN_STDIO_H_
 #define BIN_STDIO_H_
 
+#if defined(DART_IO_DISABLED)
+#error "stdio.h can only be included on builds with IO enabled"
+#endif
+
 #include "bin/builtin.h"
 #include "bin/utils.h"
 

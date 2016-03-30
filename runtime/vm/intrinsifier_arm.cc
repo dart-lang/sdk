@@ -32,6 +32,20 @@ namespace dart {
 intptr_t Intrinsifier::ParameterSlotFromSp() { return -1; }
 
 
+void Intrinsifier::IntrinsicCallPrologue(Assembler* assembler) {
+  // Save LR by moving it to a callee saved temporary register.
+  assembler->Comment("IntrinsicCallPrologue");
+  assembler->mov(CALLEE_SAVED_TEMP, Operand(LR));
+}
+
+
+void Intrinsifier::IntrinsicCallEpilogue(Assembler* assembler) {
+  // Restore LR.
+  assembler->Comment("IntrinsicCallEpilogue");
+  assembler->mov(LR, Operand(CALLEE_SAVED_TEMP));
+}
+
+
 // Intrinsify only for Smi value and index. Non-smi values need a store buffer
 // update. Array length is always a Smi.
 void Intrinsifier::ObjectArraySetIndexed(Assembler* assembler) {
@@ -1288,11 +1302,12 @@ void Intrinsifier::Double_lessEqualThan(Assembler* assembler) {
 // Both arguments are on stack.
 static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
   if (TargetCPUFeatures::vfp_supported()) {
-    Label fall_through;
+    Label fall_through, is_smi, double_op;
 
-    TestLastArgumentIsDouble(assembler, &fall_through, &fall_through);
+    TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
     // Both arguments are double, right operand is in R0.
     __ LoadDFromOffset(D1, R0, Double::value_offset() - kHeapObjectTag);
+    __ Bind(&double_op);
     __ ldr(R0, Address(SP, 1 * kWordSize));  // Left argument.
     __ LoadDFromOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
     switch (kind) {
@@ -1307,6 +1322,11 @@ static void DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
     __ TryAllocate(double_class, &fall_through, R0, R1);  // Result register.
     __ StoreDToOffset(D0, R0, Double::value_offset() - kHeapObjectTag);
     __ Ret();
+    __ Bind(&is_smi);  // Convert R0 to a double.
+    __ SmiUntag(R0);
+    __ vmovsr(S0, R0);
+    __ vcvtdi(D1, S0);
+    __ b(&double_op);
     __ Bind(&fall_through);
   }
 }

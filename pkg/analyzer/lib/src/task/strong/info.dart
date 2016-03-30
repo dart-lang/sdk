@@ -170,7 +170,7 @@ class DownCastComposite extends DownCast {
   @override
   String get name => 'STRONG_MODE_DOWN_CAST_COMPOSITE';
 
-  toErrorCode() => new StaticTypeWarningCode(name, message);
+  toErrorCode() => new StaticWarningCode(name, message);
 }
 
 /// A down cast to a non-ground type.  These behave differently from standard
@@ -518,7 +518,9 @@ abstract class StaticInfo {
 
   static bool isKnownFunction(Expression expression) {
     Element element = null;
-    if (expression is PropertyAccess) {
+    if (expression is FunctionExpression) {
+      return true;
+    } else if (expression is PropertyAccess) {
       element = expression.propertyName.staticElement;
     } else if (expression is Identifier) {
       element = expression.staticElement;

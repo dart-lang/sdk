@@ -20,6 +20,7 @@ enum SerializedElementKind {
   COMPILATION_UNIT,
   CLASS,
   ENUM,
+  NAMED_MIXIN_APPLICATION,
   GENERATIVE_CONSTRUCTOR,
   FACTORY_CONSTRUCTOR,
   TOPLEVEL_FIELD,
@@ -42,6 +43,10 @@ enum SerializedElementKind {
   IMPORT,
   EXPORT,
   PREFIX,
+  EXTERNAL_LIBRARY,
+  EXTERNAL_LIBRARY_MEMBER,
+  EXTERNAL_STATIC_MEMBER,
+  EXTERNAL_CONSTRUCTOR,
 }
 
 /// Set of serializers used to serialize different kinds of elements by
@@ -252,8 +257,13 @@ class ClassSerializer implements ElementSerializer {
       ClassElement cls = element;
       if (cls.isEnumClass) {
         return SerializedElementKind.ENUM;
+      } else if (cls.isMixinApplication) {
+        if (!cls.isUnnamedMixinApplication) {
+          return SerializedElementKind.NAMED_MIXIN_APPLICATION;
+        }
+      } else {
+        return SerializedElementKind.CLASS;
       }
-      return SerializedElementKind.CLASS;
     }
     return null;
   }
@@ -280,25 +290,32 @@ class ClassSerializer implements ElementSerializer {
     SerializerUtil.serializePosition(element, encoder);
     encoder.setTypes(Key.TYPE_VARIABLES, element.typeVariables);
     encoder.setBool(Key.IS_ABSTRACT, element.isAbstract);
-    if (element.isUnnamedMixinApplication) {
-      encoder.setBool(Key.IS_UNNAMED_MIXIN_APPLICATION, true);
-    }
-    if (element.supertype != null) {
-      encoder.setType(Key.SUPERTYPE, element.supertype);
-    }
-    // TODO(johnniwinther): Make [OrderedTypeSet] easier to (de)serialize.
-    ObjectEncoder supertypes = encoder.createObject(Key.SUPERTYPES);
-    supertypes.setTypes(Key.TYPES,
-        element.allSupertypesAndSelf.types.toList());
-    supertypes.setTypes(Key.SUPERTYPES,
-        element.allSupertypesAndSelf.supertypes.toList());
-    supertypes.setInts(Key.OFFSETS, element.allSupertypesAndSelf.levelOffsets);
-    encoder.setTypes(Key.INTERFACES, element.interfaces.toList());
     SerializerUtil.serializeMembers(getMembers(element), encoder);
     encoder.setBool(Key.IS_PROXY, element.isProxy);
     if (kind == SerializedElementKind.ENUM) {
       EnumClassElement enumClass = element;
       encoder.setElements(Key.FIELDS, enumClass.enumValues);
+    }
+    if (element.isObject) return;
+
+    List<InterfaceType> mixins = <InterfaceType>[];
+    ClassElement superclass = element.superclass;
+    while (superclass.isUnnamedMixinApplication) {
+      MixinApplicationElement mixinElement = superclass;
+      mixins.add(element.thisType.asInstanceOf(mixinElement.mixin));
+      superclass = mixinElement.superclass;
+    }
+    mixins = mixins.reversed.toList();
+    InterfaceType supertype = element.thisType.asInstanceOf(superclass);
+
+
+    encoder.setType(Key.SUPERTYPE, supertype);
+    encoder.setTypes(Key.MIXINS, mixins);
+    encoder.setTypes(Key.INTERFACES, element.interfaces.toList());
+
+    if (element.isMixinApplication) {
+      MixinApplicationElement mixinElement = element;
+      encoder.setType(Key.MIXIN, mixinElement.mixinType);
     }
   }
 }
@@ -324,7 +341,6 @@ class ConstructorSerializer implements ElementSerializer {
     SerializerUtil.serializePosition(element, encoder);
     SerializerUtil.serializeParameters(element, encoder);
     encoder.setBool(Key.IS_CONST, element.isConst);
-    // TODO(johnniwinther): Handle external constructors.
     encoder.setBool(Key.IS_EXTERNAL, element.isExternal);
     if (element.isExternal) return;
     if (element.isConst && !element.isFromEnvironmentConstructor) {
@@ -581,9 +597,9 @@ class ElementDeserializer {
   /// needs deserialization. The [ObjectDecoder] ensures that any [Element],
   /// [DartType], and [ConstantExpression] that the deserialized [Element]
   /// depends upon are available.
-  static Element deserialize(ObjectDecoder decoder) {
-    SerializedElementKind elementKind =
-        decoder.getEnum(Key.KIND, SerializedElementKind.values);
+  static Element deserialize(
+      ObjectDecoder decoder,
+      SerializedElementKind elementKind) {
     switch (elementKind) {
       case SerializedElementKind.LIBRARY:
         return new LibraryElementZ(decoder);
@@ -593,6 +609,8 @@ class ElementDeserializer {
         return new ClassElementZ(decoder);
       case SerializedElementKind.ENUM:
         return new EnumClassElementZ(decoder);
+      case SerializedElementKind.NAMED_MIXIN_APPLICATION:
+        return new NamedMixinApplicationElementZ(decoder);
       case SerializedElementKind.TOPLEVEL_FIELD:
         return new TopLevelFieldElementZ(decoder);
       case SerializedElementKind.STATIC_FIELD:
@@ -637,6 +655,11 @@ class ElementDeserializer {
         return new ExportElementZ(decoder);
       case SerializedElementKind.PREFIX:
         return new PrefixElementZ(decoder);
+      case SerializedElementKind.EXTERNAL_LIBRARY:
+      case SerializedElementKind.EXTERNAL_LIBRARY_MEMBER:
+      case SerializedElementKind.EXTERNAL_STATIC_MEMBER:
+      case SerializedElementKind.EXTERNAL_CONSTRUCTOR:
+        break;
     }
     throw new UnsupportedError("Unexpected element kind '${elementKind}.");
   }

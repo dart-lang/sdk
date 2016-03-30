@@ -399,16 +399,16 @@ class Driver implements ServerStarter {
       // Use DirectoryBasedDartSdk.defaultSdkDirectory, which will make a guess.
       defaultSdkDirectory = DirectoryBasedDartSdk.defaultSdkDirectory;
     }
-    SdkCreator defaultSdkCreator = () {
+    SdkCreator defaultSdkCreator = (AnalysisOptions options) {
       DirectoryBasedDartSdk sdk =
           new DirectoryBasedDartSdk(defaultSdkDirectory);
-      sdk.useSummary = true;
+      sdk.analysisOptions = options;
       return sdk;
     };
     // TODO(brianwilkerson) It would be nice to avoid creating an SDK that
     // cannot be re-used, but the SDK is needed to create a package map provider
     // in the case where we need to run `pub` in order to get the package map.
-    DirectoryBasedDartSdk defaultSdk = defaultSdkCreator();
+    DirectoryBasedDartSdk defaultSdk = defaultSdkCreator(null);
     //
     // Initialize the instrumentation service.
     //

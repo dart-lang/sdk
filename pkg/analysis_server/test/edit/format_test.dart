@@ -107,7 +107,7 @@ main() {
 
   Future test_format_withErrors() {
     addTestFile('''
-main() { int x = 
+main() { int x =
 ''');
     return waitForTasksFinished().then((_) {
       Request request = new EditFormatParams(testFile, 0, 3).toRequest('0');
@@ -119,8 +119,9 @@ main() { int x =
   EditFormatResult _formatAt(int selectionOffset, int selectionLength,
       {int lineLength}) {
     Request request = new EditFormatParams(
-        testFile, selectionOffset, selectionLength,
-        lineLength: lineLength).toRequest('0');
+            testFile, selectionOffset, selectionLength,
+            lineLength: lineLength)
+        .toRequest('0');
     Response response = handleSuccessfulRequest(request);
     return new EditFormatResult.fromResponse(response);
   }

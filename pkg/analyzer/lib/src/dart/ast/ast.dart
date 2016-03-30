@@ -3258,6 +3258,24 @@ class DeclaredIdentifierImpl extends DeclarationImpl
 }
 
 /**
+ * A simple identifier that declares a name.
+ */
+// TODO(rnystrom): Consider making this distinct from [SimpleIdentifier] and
+// get rid of all of the:
+//
+//     if (node.inDeclarationContext()) { ... }
+//
+// code and instead visit this separately. A declaration is semantically pretty
+// different from a use, so using the same node type doesn't seem to buy us
+// much.
+class DeclaredSimpleIdentifier extends SimpleIdentifierImpl {
+  DeclaredSimpleIdentifier(Token token) : super(token);
+
+  @override
+  bool inDeclarationContext() => true;
+}
+
+/**
  * A formal parameter with a default value. There are two kinds of parameters
  * that are both represented by this class: named formal parameters and
  * positional formal parameters.
@@ -8930,7 +8948,7 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
 
   @override
   void set propagatedElement(Element element) {
-    _propagatedElement = _validateElement(element);
+    _propagatedElement = element;
   }
 
   @override
@@ -8938,7 +8956,7 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
 
   @override
   void set staticElement(Element element) {
-    _staticElement = _validateElement(element);
+    _staticElement = element;
   }
 
   @override
@@ -8946,46 +8964,7 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
       visitor.visitSimpleIdentifier(this);
 
   @override
-  bool inDeclarationContext() {
-    // TODO(brianwilkerson) Convert this to a getter.
-    AstNode parent = this.parent;
-    if (parent is CatchClause) {
-      CatchClause clause = parent;
-      return identical(this, clause.exceptionParameter) ||
-          identical(this, clause.stackTraceParameter);
-    } else if (parent is ClassDeclaration) {
-      return identical(this, parent.name);
-    } else if (parent is ClassTypeAlias) {
-      return identical(this, parent.name);
-    } else if (parent is ConstructorDeclaration) {
-      return identical(this, parent.name);
-    } else if (parent is DeclaredIdentifier) {
-      return identical(this, parent.identifier);
-    } else if (parent is EnumDeclaration) {
-      return identical(this, parent.name);
-    } else if (parent is EnumConstantDeclaration) {
-      return identical(this, parent.name);
-    } else if (parent is FunctionDeclaration) {
-      return identical(this, parent.name);
-    } else if (parent is FunctionTypeAlias) {
-      return identical(this, parent.name);
-    } else if (parent is ImportDirective) {
-      return identical(this, parent.prefix);
-    } else if (parent is Label) {
-      return identical(this, parent.label) &&
-          (parent.parent is LabeledStatement);
-    } else if (parent is MethodDeclaration) {
-      return identical(this, parent.name);
-    } else if (parent is FunctionTypedFormalParameter ||
-        parent is SimpleFormalParameter) {
-      return identical(this, (parent as NormalFormalParameter).identifier);
-    } else if (parent is TypeParameter) {
-      return identical(this, parent.name);
-    } else if (parent is VariableDeclaration) {
-      return identical(this, parent.name);
-    }
-    return false;
-  }
+  bool inDeclarationContext() => false;
 
   @override
   bool inGetterContext() {
@@ -9065,66 +9044,6 @@ class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
   @override
   void visitChildren(AstVisitor visitor) {
     // There are no children to visit.
-  }
-
-  /**
-   * Return the given element if it is valid, or report the problem and return
-   * `null` if it is not appropriate.
-   *
-   * The [parent] is the parent of the element, used for reporting when there is
-   * a problem.
-   * The [isValid] is `true` if the element is appropriate.
-   * The [element] is the element to be associated with this identifier.
-   */
-  Element _returnOrReportElement(
-      AstNode parent, bool isValid, Element element) {
-    if (!isValid) {
-      AnalysisEngine.instance.logger.logInformation(
-          "Internal error: attempting to set the name of a ${parent.runtimeType} to a ${element.runtimeType}",
-          new CaughtException(new AnalysisException(), null));
-      return null;
-    }
-    return element;
-  }
-
-  /**
-   * Return the given [element] if it is an appropriate element based on the
-   * parent of this identifier, or `null` if it is not appropriate.
-   */
-  Element _validateElement(Element element) {
-    if (element == null) {
-      return null;
-    }
-    AstNode parent = this.parent;
-    if (parent is ClassDeclaration && identical(parent.name, this)) {
-      return _returnOrReportElement(parent, element is ClassElement, element);
-    } else if (parent is ClassTypeAlias && identical(parent.name, this)) {
-      return _returnOrReportElement(parent, element is ClassElement, element);
-    } else if (parent is DeclaredIdentifier &&
-        identical(parent.identifier, this)) {
-      return _returnOrReportElement(
-          parent, element is LocalVariableElement, element);
-    } else if (parent is FormalParameter &&
-        identical(parent.identifier, this)) {
-      return _returnOrReportElement(
-          parent, element is ParameterElement, element);
-    } else if (parent is FunctionDeclaration && identical(parent.name, this)) {
-      return _returnOrReportElement(
-          parent, element is ExecutableElement, element);
-    } else if (parent is FunctionTypeAlias && identical(parent.name, this)) {
-      return _returnOrReportElement(
-          parent, element is FunctionTypeAliasElement, element);
-    } else if (parent is MethodDeclaration && identical(parent.name, this)) {
-      return _returnOrReportElement(
-          parent, element is ExecutableElement, element);
-    } else if (parent is TypeParameter && identical(parent.name, this)) {
-      return _returnOrReportElement(
-          parent, element is TypeParameterElement, element);
-    } else if (parent is VariableDeclaration && identical(parent.name, this)) {
-      return _returnOrReportElement(
-          parent, element is VariableElement, element);
-    }
-    return element;
   }
 }
 

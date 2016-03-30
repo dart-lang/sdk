@@ -1066,7 +1066,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
       // If not the same content (e.g. the file is being closed without save),
       // then force analysis.
       if (changed) {
-        if (!analysisOptions.incremental ||
+        if (newContents == null ||
+            !analysisOptions.incremental ||
             !_tryPoorMansIncrementalResolution(source, newContents)) {
           _sourceChanged(source);
         }
@@ -2173,6 +2174,22 @@ abstract class ResultProvider {
  * An [AnalysisContext] that only contains sources for a Dart SDK.
  */
 class SdkAnalysisContext extends AnalysisContextImpl {
+  /**
+   * Initialize a newly created SDK analysis context with the given [options].
+   * Analysis options cannot be changed afterwards.  If the given [options] are
+   * `null`, then default options are used.
+   */
+  SdkAnalysisContext(AnalysisOptions options) {
+    if (options != null) {
+      super.analysisOptions = options;
+    }
+  }
+
+  @override
+  void set analysisOptions(AnalysisOptions options) {
+    throw new StateError('AnalysisOptions of SDK context cannot be changed.');
+  }
+
   @override
   AnalysisCache createCacheFromSourceFactory(SourceFactory factory) {
     if (factory == null) {

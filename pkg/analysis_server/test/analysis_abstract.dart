@@ -129,7 +129,7 @@ class AbstractAnalysisTest {
         index,
         serverPlugin,
         new AnalysisServerOptions(),
-        () => new MockSdk(),
+        (_) => new MockSdk(),
         InstrumentationService.NULL_SERVICE);
   }
 

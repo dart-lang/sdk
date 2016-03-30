@@ -59,13 +59,14 @@ class Key {
   static const Key LIBRARY_DEPENDENCY = const Key('library-dependency');
   static const Key LIBRARY_NAME = const Key('library-name');
   static const Key MEMBERS = const Key('members');
+  static const Key MIXIN = const Key('mixin');
+  static const Key MIXINS = const Key('mixins');
   static const Key NAME = const Key('name');
   static const Key NAMES = const Key('names');
   static const Key NAMED_ARGUMENTS = const Key('named-arguments');
   static const Key NAMED_PARAMETERS = const Key('named-parameters');
   static const Key NAMED_PARAMETER_TYPES = const Key('named-parameter-types');
   static const Key OFFSET = const Key('offset');
-  static const Key OFFSETS = const Key('offsets');
   static const Key OPERATOR = const Key('operator');
   static const Key OPTIONAL_PARAMETER_TYPES =
       const Key('optional-parameter-types');

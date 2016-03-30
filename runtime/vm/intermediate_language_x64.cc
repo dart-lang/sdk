@@ -2829,6 +2829,7 @@ LocationSummary* CheckedSmiOpInstr::MakeLocationSummary(Zone* zone,
     case Token::kGTE:
     case Token::kADD:
     case Token::kSUB:
+    case Token::kMUL:
       summary->set_out(0, Location::RequiresRegister());
       break;
     case Token::kBIT_OR:
@@ -2848,13 +2849,24 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       new CheckedSmiSlowPath(this, compiler->CurrentTryIndex());
   compiler->AddSlowPathCode(slow_path);
   // Test operands if necessary.
+
+  intptr_t left_cid = left()->Type()->ToCid();
+  intptr_t right_cid = right()->Type()->ToCid();
   Register left = locs()->in(0).reg();
   Register right = locs()->in(1).reg();
-  Register result = locs()->out(0).reg();
-  __ movq(TMP, left);
-  __ orq(TMP, right);
-  __ testq(TMP, Immediate(kSmiTagMask));
+  if (this->left()->definition() == this->right()->definition()) {
+    __ testq(left, Immediate(kSmiTagMask));
+  } else if (left_cid == kSmiCid) {
+    __ testq(right, Immediate(kSmiTagMask));
+  } else if (right_cid == kSmiCid) {
+    __ testq(left, Immediate(kSmiTagMask));
+  } else {
+    __ movq(TMP, left);
+    __ orq(TMP, right);
+    __ testq(TMP, Immediate(kSmiTagMask));
+  }
   __ j(NOT_ZERO, slow_path->entry_label());
+  Register result = locs()->out(0).reg();
   switch (op_kind()) {
     case Token::kADD:
       __ movq(result, left);
@@ -2864,6 +2876,12 @@ void CheckedSmiOpInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     case Token::kSUB:
       __ movq(result, left);
       __ subq(result, right);
+      __ j(OVERFLOW, slow_path->entry_label());
+      break;
+    case Token::kMUL:
+      __ movq(result, left);
+      __ SmiUntag(result);
+      __ imulq(result, right);
       __ j(OVERFLOW, slow_path->entry_label());
       break;
     case Token::kBIT_OR:

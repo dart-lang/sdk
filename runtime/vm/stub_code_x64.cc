@@ -2092,6 +2092,7 @@ void StubCode::EmitMegamorphicLookup(Assembler* assembler) {
           FieldAddress(RBX, MegamorphicCache::arguments_descriptor_offset()));
   __ movq(RDI, FieldAddress(RBX, MegamorphicCache::buckets_offset()));
   __ movq(R9, FieldAddress(RBX, MegamorphicCache::mask_offset()));
+  // R10: arguments descriptor (result).
   // RDI: cache buckets array.
   // RBX: mask.
   __ movq(RCX, RAX);
@@ -2217,6 +2218,11 @@ void StubCode::GenerateICLookupThroughCodeStub(Assembler* assembler) {
   __ movq(CODE_REG, Address(RAX, Isolate::ic_miss_code_offset()));
   __ movq(RCX, FieldAddress(CODE_REG, Code::entry_point_offset()));
   __ ret();
+}
+
+
+void StubCode::GenerateFrameAwaitingMaterializationStub(Assembler* assembler) {
+  __ int3();
 }
 
 }  // namespace dart

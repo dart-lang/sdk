@@ -33,9 +33,9 @@ import 'package:analyzer/src/generated/utilities_general.dart'
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer_cli/src/analyzer_impl.dart';
+import 'package:analyzer_cli/src/build_mode.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/options.dart';
-import 'package:analyzer_cli/src/package_analyzer.dart';
 import 'package:analyzer_cli/src/perf_report.dart';
 import 'package:analyzer_cli/starter.dart';
 import 'package:linter/src/plugin/linter_plugin.dart';
@@ -124,8 +124,8 @@ class Driver implements CommandLineStarter {
     _setupEnv(options);
 
     // Do analysis.
-    if (options.packageMode) {
-      ErrorSeverity severity = _analyzePackage(options);
+    if (options.buildMode) {
+      ErrorSeverity severity = _buildModeAnalyze(options);
       // In case of error propagate exit code.
       if (severity == ErrorSeverity.ERROR) {
         exitCode = severity.ordinal;
@@ -241,10 +241,14 @@ class Driver implements CommandLineStarter {
     return allResult;
   }
 
-  /// Perform package analysis according to the given [options].
-  ErrorSeverity _analyzePackage(CommandLineOptions options) {
+  /// Perform analysis in build mode according to the given [options].
+  ErrorSeverity _buildModeAnalyze(CommandLineOptions options) {
     return _analyzeAllTag.makeCurrentWhile(() {
-      return new PackageAnalyzer(options, stats).analyze();
+      if (options.buildModePersistentWorker) {
+        new WorkerLoop.std().run();
+      } else {
+        return new BuildMode(options, stats).analyze();
+      }
     });
   }
 
@@ -588,8 +592,24 @@ class Driver implements CommandLineStarter {
     // to activate batch mode.
     if (sdk == null) {
       sdk = new DirectoryBasedDartSdk(new JavaFile(options.dartSdkPath));
+      sdk.analysisOptions = createAnalysisOptionsForCommandLineOptions(options);
     }
     _isBatch = options.shouldBatch;
+  }
+
+  static AnalysisOptionsImpl createAnalysisOptionsForCommandLineOptions(
+      CommandLineOptions options) {
+    AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
+    contextOptions.hint = !options.disableHints;
+    contextOptions.enableStrictCallChecks = options.enableStrictCallChecks;
+    contextOptions.enableSuperMixins = options.enableSuperMixins;
+    contextOptions.enableConditionalDirectives =
+        options.enableConditionalDirectives;
+    contextOptions.generateImplicitErrors = options.showPackageWarnings;
+    contextOptions.generateSdkErrors = options.showSdkWarnings;
+    contextOptions.lint = options.lints;
+    contextOptions.strongMode = options.strongMode;
+    return contextOptions;
   }
 
   static void setAnalysisContextOptions(
@@ -609,21 +629,12 @@ class Driver implements CommandLineStarter {
     }
 
     // Prepare context options.
-    AnalysisOptionsImpl contextOptions = new AnalysisOptionsImpl();
-    contextOptions.hint = !options.disableHints;
-    contextOptions.enableStrictCallChecks = options.enableStrictCallChecks;
-    contextOptions.enableSuperMixins = options.enableSuperMixins;
-    contextOptions.enableConditionalDirectives =
-        options.enableConditionalDirectives;
-    contextOptions.generateImplicitErrors = options.showPackageWarnings;
-    contextOptions.generateSdkErrors = options.showSdkWarnings;
-    contextOptions.lint = options.lints;
-    contextOptions.strongMode = options.strongMode;
+    AnalysisOptionsImpl contextOptions =
+        createAnalysisOptionsForCommandLineOptions(options);
     configureContextOptions(contextOptions);
 
     // Set context options.
     context.analysisOptions = contextOptions;
-    context.sourceFactory.dartSdk.context.analysisOptions = contextOptions;
 
     // Process analysis options file (and notify all interested parties).
     _processAnalysisOptions(context, options);

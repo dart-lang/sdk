@@ -54,7 +54,8 @@ typedef unsigned __int64 uint64_t;
 #include <stdbool.h>
 #if __GNUC__ >= 4
 #if defined(DART_SHARED_LIB)
-#define DART_EXPORT DART_EXTERN_C __attribute__ ((visibility("default")))
+#define DART_EXPORT DART_EXTERN_C __attribute__ ((visibility("default"))) \
+    __attribute((used))
 #else
 #define DART_EXPORT DART_EXTERN_C
 #endif
@@ -528,8 +529,8 @@ DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object);
  *   after the object is garbage collected, unless the handle has been deleted.
  *   A valid callback needs to be specified it cannot be NULL.
  *
- * \return Success if the weak persistent handle was
- *   created. Otherwise, returns an error.
+ * \return The weak persistent handle or NULL. NULL is returned in case of bad
+ *   parameters.
  */
 DART_EXPORT Dart_WeakPersistentHandle Dart_NewWeakPersistentHandle(
     Dart_Handle object,

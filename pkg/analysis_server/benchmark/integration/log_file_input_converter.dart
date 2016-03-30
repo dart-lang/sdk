@@ -13,9 +13,9 @@ import 'input_converter.dart';
 import 'operation.dart';
 
 const CONNECTED_MSG_FRAGMENT = ' <= {"event":"server.connected"';
-final int NINE = '9'.codeUnitAt(0);
 const RECEIVED_FRAGMENT = ' <= {';
 const SENT_FRAGMENT = ' => {';
+final int NINE = '9'.codeUnitAt(0);
 final int ZERO = '0'.codeUnitAt(0);
 
 /**

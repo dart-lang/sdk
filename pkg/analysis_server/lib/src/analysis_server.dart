@@ -1471,6 +1471,16 @@ class AnalysisServer {
     onContextsChanged.listen((ContextsChangedEvent event) {
       for (AnalysisContext context in event.added) {
         context
+            .onResultChanged(RESOLVED_UNIT2)
+            .listen((ResultChangedEvent event) {
+          if (event.wasComputed) {
+            Object value = event.value;
+            if (value is CompilationUnit) {
+              index.indexDeclarations(value);
+            }
+          }
+        });
+        context
             .onResultChanged(RESOLVED_UNIT)
             .listen((ResultChangedEvent event) {
           if (event.wasInvalidated) {

@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "bin/dartutils.h"
+#if !defined(DART_IO_DISABLED)
+
 #include "bin/filter.h"
+
+#include "bin/dartutils.h"
 #include "bin/io_buffer.h"
 
 #include "include/dart_api.h"
@@ -465,3 +468,5 @@ intptr_t ZLibInflateFilter::Processed(uint8_t* buffer,
 
 }  // namespace bin
 }  // namespace dart
+
+#endif  // !defined(DART_IO_DISABLED)
