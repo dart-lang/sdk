@@ -18,9 +18,13 @@ LayoutTests/fast/xpath/invalid-resolver_t01: RuntimeError # 45 roll
 [ $compiler == none && $runtime == dartium && $system == windows ]
 LayoutTests/fast/writing-mode/vertical-inline-block-hittest_t01: Pass, RuntimeError # Issue 21605
 WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-002_t01: RuntimeError # Please triage this failure.
+WebPlatformTest/shadow-dom/events/retargeting-focus-events/test-001_t01: Skip # Timesout Issue 26134
 
 [ $compiler == none && $runtime == dartium && $system != windows ]
 LayoutTests/fast/css/font-face-unicode-range-monospace_t01: RuntimeError # co19-roll r761: Please triage this failure.
+
+[ $compiler == none && $runtime == dartium && $system == linux ]
+language/mixin_illegal_constructor_test/01: Skip # Issue 43
 
 [ $compiler == none && $runtime == dartium && ($system == windows || $system == linux) ]
 LayoutTests/fast/canvas/webgl/buffer-data-array-buffer_t01: RuntimeError # 45 roll webgl doesn't run on on windows/linux bots.
