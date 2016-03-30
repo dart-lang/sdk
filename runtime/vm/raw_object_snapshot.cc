@@ -855,8 +855,6 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
   if (reader->snapshot_code()) {
     field.set_token_pos(TokenPosition::kNoSource);
     ASSERT(!FLAG_use_field_guards);
-    field.set_guarded_cid(kDynamicCid);
-    field.set_is_nullable(true);
   } else {
     field.set_token_pos(
         TokenPosition::SnapshotDecode(reader->Read<int32_t>()));
@@ -873,8 +871,9 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
                      field.raw()->from(), toobj,
                      kAsReference);
 
-  if (reader->snapshot_code()) {
-    ASSERT(!FLAG_use_field_guards);
+  if (!FLAG_use_field_guards) {
+    field.set_guarded_cid(kDynamicCid);
+    field.set_is_nullable(true);
     field.set_guarded_list_length(Field::kNoFixedLength);
     field.set_guarded_list_length_in_object_offset(Field::kUnknownLengthOffset);
   } else {
