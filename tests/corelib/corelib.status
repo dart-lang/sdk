@@ -107,9 +107,7 @@ regress_r21715_test: RuntimeError # Requires bigint support.
 [ $compiler == dart2js && $runtime == chromeOnAndroid ]
 list_as_map_test: Pass, Slow # TODO(kasperl): Please triage.
 
-[ $compiler == dart2js && ($runtime == firefox || $runtime == safari || $runtime == chrome || $runtime == drt) ]
-
-[ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim) ]
+[ $compiler == dart2js && $runtime == safarimobilesim ]
 string_split_test: RuntimeError # Issue 21431
 
 [ $compiler == dart2js && $runtime == safarimobilesim ]
