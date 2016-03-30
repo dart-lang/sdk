@@ -1688,7 +1688,10 @@ void BackgroundCompiler::Run() {
         // unoptimized code. Any issues while optimizing are flagged by
         // making the result invalid.
         ASSERT(error.IsNull());
-        isolate->aggregate_compiler_stats()->Add(*thread->compiler_stats());
+        // We cannot aggregate stats if isolate is shutting down.
+        if (isolate->HasMutatorThread()) {
+          isolate->aggregate_compiler_stats()->Add(*thread->compiler_stats());
+        }
         thread->compiler_stats()->Clear();
         QueueElement* qelem = function_queue()->Remove();
         delete qelem;
