@@ -60,9 +60,6 @@ Language/Errors_and_Warnings/static_warning_t03: RuntimeError # Please triage th
 Language/Errors_and_Warnings/static_warning_t04: RuntimeError # Please triage this failure.
 Language/Errors_and_Warnings/static_warning_t05: RuntimeError # Please triage this failure.
 Language/Errors_and_Warnings/static_warning_t06: RuntimeError # Please triage this failure.
-Language/Mixins/Mixin_Application/error_t01: Fail # co19 issue 43
-Language/Mixins/Mixin_Application/error_t02: Fail # co19 issue 43
-Language/Mixins/declaring_constructor_t01: Fail # co19 issue 43
 LayoutTests/fast/canvas/webgl/framebuffer-object-attachment_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/webgl/oes-vertex-array-object_t01: RuntimeError # co19-roll r761: Please triage this failure.
 LayoutTests/fast/canvas/webgl/read-pixels-test_t01: RuntimeError # co19-roll r761: Please triage this failure.
@@ -203,6 +200,9 @@ Language/Libraries_and_Scripts/URIs/syntax_t10: RuntimeError # Please triage thi
 Language/Libraries_and_Scripts/URIs/syntax_t14: RuntimeError # Please triage this failure.
 Language/Libraries_and_Scripts/URIs/syntax_t15: RuntimeError # Please triage this failure.
 Language/Metadata/before_variable_t01: RuntimeError # Please triage this failure.
+Language/Mixins/Mixin_Application/error_t01: Fail # co19 issue 43
+Language/Mixins/Mixin_Application/error_t02: Fail # co19 issue 43
+Language/Mixins/declaring_constructor_t01: Fail # co19 issue 43
 Language/Mixins/not_object_superclass_t01: Fail # Please triage this failure.
 Language/Mixins/reference_to_super_t01: Fail # Please triage this failure.
 Language/Statements/Assert/execution_t02: skip # co19 issue 734
