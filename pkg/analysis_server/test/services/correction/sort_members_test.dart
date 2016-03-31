@@ -371,34 +371,119 @@ main() {
 ''');
   }
 
-  void test_directives_comments() {
+  void test_directives_docComment_hasLibrary_lines() {
     _parseTestUnit(r'''
-// header
-library lib;
+/// Library documentation comment A.
+/// Library documentation comment B.
+library foo.bar;
 
-import 'c.dart';// c
-import 'a.dart';// aa
-import 'b.dart';// bbb
-
-/** doc */
-main() {
-}
+/// bbb1
+/// bbb2
+/// bbb3
+import 'b.dart';
+/// aaa1
+/// aaa2
+import 'a.dart';
 ''');
     // validate change
     _assertSort(r'''
-// header
-library lib;
+/// Library documentation comment A.
+/// Library documentation comment B.
+library foo.bar;
 
+/// aaa1
+/// aaa2
+import 'a.dart';
+/// bbb1
+/// bbb2
+/// bbb3
+import 'b.dart';
+''');
+  }
+
+  void test_directives_docComment_hasLibrary_stars() {
+    _parseTestUnit(r'''
+/**
+ * Library documentation comment A.
+ * Library documentation comment B.
+ */
+library foo.bar;
+
+/**
+ * bbb
+ */
+import 'b.dart';
+/**
+ * aaa
+ * aaa
+ */
+import 'a.dart';
+''');
+    // validate change
+    _assertSort(r'''
+/**
+ * Library documentation comment A.
+ * Library documentation comment B.
+ */
+library foo.bar;
+
+/**
+ * aaa
+ * aaa
+ */
+import 'a.dart';
+/**
+ * bbb
+ */
+import 'b.dart';
+''');
+  }
+
+  void test_directives_docComment_noLibrary_lines() {
+    _parseTestUnit(r'''
+/// Library documentation comment A
+/// Library documentation comment B
+import 'b.dart';
+/// aaa1
+/// aaa2
+import 'a.dart';
+''');
+    // validate change
+    _assertSort(r'''
+/// aaa1
+/// aaa2
+/// Library documentation comment A
+/// Library documentation comment B
 import 'a.dart';
 import 'b.dart';
-import 'c.dart';
-// c
-// aa
-// bbb
+''');
+  }
 
-/** doc */
-main() {
-}
+  void test_directives_docComment_noLibrary_stars() {
+    _parseTestUnit(r'''
+/**
+ * Library documentation comment A.
+ * Library documentation comment B.
+ */
+import 'b.dart';
+/**
+ * aaa
+ * aaa
+ */
+import 'a.dart';
+''');
+    // validate change
+    _assertSort(r'''
+/**
+ * aaa
+ * aaa
+ */
+/**
+ * Library documentation comment A.
+ * Library documentation comment B.
+ */
+import 'a.dart';
+import 'b.dart';
 ''');
   }
 
