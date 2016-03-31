@@ -27,6 +27,16 @@
   * Both `pub get` and `pub upgrade` now have a `--no-precompile` flag that
     disables precompilation of executables and transformed dependencies.
 
+* Dart Dev Compiler
+  * The **experimental** `dartdevc` executable has been added to the SDK.
+
+  * It will help early adopters validate the implementation provide feedback.
+    It **should not** be used for production code.
+
+  * Read more about the Dart Dev Compiler [here][dartdevc].
+
+[dartdevc]: https://github.com/dart-lang/dev_compiler
+
 ## 1.15.0 - 2016-03-09
 
 ### Core library changes
