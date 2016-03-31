@@ -45,6 +45,7 @@ main() {
         expect(options.sourceFiles, equals(['foo.dart']));
         expect(options.warningsAreFatal, isFalse);
         expect(options.strongMode, isFalse);
+        expect(options.lintsAreFatal, isFalse);
       });
 
       test('batch', () {
@@ -180,6 +181,12 @@ main() {
         CommandLineOptions options =
             CommandLineOptions.parse(['--strong', 'foo.dart']);
         expect(options.strongMode, isTrue);
+      });
+
+      test('hintsAreFatal', () {
+        CommandLineOptions options = CommandLineOptions
+            .parse(['--dart-sdk', '.', '--fatal-lints', 'foo.dart']);
+        expect(options.lintsAreFatal, isTrue);
       });
 
       test("can't specify package and package-root", () {

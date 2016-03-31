@@ -143,6 +143,9 @@ class CommandLineOptions {
   /// Whether to use strong static checking.
   final bool strongMode;
 
+  /// Whether to treat lints as fatal
+  final bool lintsAreFatal;
+
   /// Initialize options from the given parsed [args].
   CommandLineOptions._fromArgs(
       ArgResults args, Map<String, String> definedVariables)
@@ -184,7 +187,8 @@ class CommandLineOptions {
         showSdkWarnings = args['show-sdk-warnings'] || args['warnings'],
         sourceFiles = args.rest,
         warningsAreFatal = args['fatal-warnings'],
-        strongMode = args['strong'];
+        strongMode = args['strong'],
+        lintsAreFatal = args['fatal-lints'];
 
   /// Parse [args] into [CommandLineOptions] describing the specified
   /// analyzer options. In case of a format error, calls [printAndFail], which
@@ -303,6 +307,8 @@ class CommandLineOptions {
           help: 'Treat non-type warnings as fatal.',
           defaultsTo: false,
           negatable: false)
+      ..addFlag('fatal-lints',
+          help: 'Treat lints as fatal.', defaultsTo: false, negatable: false)
       ..addFlag('package-warnings',
           help: 'Show warnings from package: imports.',
           defaultsTo: false,
