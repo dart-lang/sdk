@@ -5,7 +5,7 @@
 #if !defined(DART_IO_DISABLED) && !defined(DART_IO_SECURE_SOCKET_DISABLED)
 
 #include "platform/globals.h"
-#if defined(TARGET_OS_MACOS) && !TARGET_OS_IOS
+#if TARGET_OS_IOS
 
 #include "bin/secure_socket.h"
 #include "bin/secure_socket_macos.h"
@@ -62,9 +62,7 @@ static const int kX509NativeFieldIndex = 0;
 
 static const bool SSL_LOG_STATUS = false;
 static const bool SSL_LOG_DATA = false;
-static const bool SSL_LOG_CERTS = false;
 static const int SSL_ERROR_MESSAGE_BUFFER_SIZE = 1000;
-static const intptr_t PEM_BUFSIZE = 1024;
 
 // SSLCertContext wraps the certificates needed for a SecureTransport
 // connection. Fields are protected by the mutex_ field, and may only be set
@@ -74,96 +72,10 @@ class SSLCertContext {
  public:
   SSLCertContext() :
       mutex_(new Mutex()),
-      private_key_(NULL),
-      keychain_(NULL),
-      cert_chain_(NULL),
-      trusted_certs_(NULL),
-      cert_authorities_(NULL),
       trust_builtin_(false) {}
 
   ~SSLCertContext() {
-    if (private_key_ != NULL) {
-      CFRelease(private_key_);
-    }
-    if (keychain_ != NULL) {
-      SecKeychainDelete(keychain_);
-      CFRelease(keychain_);
-    }
-    if (cert_chain_ != NULL) {
-      CFRelease(cert_chain_);
-    }
-    if (trusted_certs_ != NULL) {
-      CFRelease(trusted_certs_);
-    }
-    if (cert_authorities_ != NULL) {
-      CFRelease(cert_authorities_);
-    }
     delete mutex_;
-  }
-
-  SecKeyRef private_key() {
-    MutexLocker m(mutex_);
-    return private_key_;
-  }
-  bool set_private_key(SecKeyRef private_key) {
-    MutexLocker m(mutex_);
-    if (private_key_ != NULL) {
-      return false;
-    }
-    private_key_ = private_key;
-    return true;
-  }
-
-  SecKeychainRef keychain() {
-    MutexLocker m(mutex_);
-    return keychain_;
-  }
-  bool set_keychain(SecKeychainRef keychain) {
-    MutexLocker m(mutex_);
-    if (keychain_ != NULL) {
-      return false;
-    }
-    keychain_ = keychain;
-    return true;
-  }
-
-  CFArrayRef cert_chain() {
-    MutexLocker m(mutex_);
-    return cert_chain_;
-  }
-  bool set_cert_chain(CFArrayRef cert_chain) {
-    MutexLocker m(mutex_);
-    if (cert_chain_ != NULL) {
-      return false;
-    }
-    cert_chain_ = cert_chain;
-    return true;
-  }
-
-  CFArrayRef trusted_certs() {
-    MutexLocker m(mutex_);
-    return trusted_certs_;
-  }
-  bool set_trusted_certs(CFArrayRef trusted_certs) {
-    MutexLocker m(mutex_);
-    if (trusted_certs_ != NULL) {
-      return false;
-    }
-    trusted_certs_ = trusted_certs;
-    return true;
-  }
-
-  CFArrayRef cert_authorities() {
-    MutexLocker m(mutex_);
-    return cert_authorities_;
-  }
-  bool set_cert_authorities(CFArrayRef cert_authorities) {
-    MutexLocker m(mutex_);
-    if (cert_authorities_ != NULL) {
-      return false;
-    }
-    cert_authorities_ = cert_authorities;
-    return true;
   }
 
   bool trust_builtin() {
@@ -179,48 +91,18 @@ class SSLCertContext {
   // The context is accessed both by Dart code and the IOService. This mutex
   // protects all fields.
   Mutex* mutex_;
-
-  SecKeyRef private_key_;
-  SecKeychainRef keychain_;
-
-  // CFArrays of SecCertificateRef.
-  CFArrayRef cert_chain_;
-  CFArrayRef trusted_certs_;
-  CFArrayRef cert_authorities_;
-
   bool trust_builtin_;
 
   DISALLOW_COPY_AND_ASSIGN(SSLCertContext);
 };
-
-
-static char* CFStringRefToCString(CFStringRef cfstring) {
-  CFIndex len = CFStringGetLength(cfstring);
-  CFIndex max_len =
-      CFStringGetMaximumSizeForEncoding(len, kCFStringEncodingUTF8) + 1;
-  char* result = reinterpret_cast<char*>(Dart_ScopeAllocate(max_len));
-  ASSERT(result != NULL);
-  bool success =
-      CFStringGetCString(cfstring, result, max_len, kCFStringEncodingUTF8);
-  return success ? result : NULL;
-}
-
 
 // Handle an error reported from the SecureTransport library.
 static void ThrowIOException(OSStatus status,
                              const char* exception_type,
                              const char* message) {
   TextBuffer status_message(SSL_ERROR_MESSAGE_BUFFER_SIZE);
-  CFStringRef error_string = SecCopyErrorMessageString(status, NULL);
-  if (error_string == NULL) {
-    status_message.Printf("OSStatus = %ld: https://www.osstatus.com",
-        static_cast<intptr_t>(status));
-  } else {
-    char* error = CFStringRefToCString(error_string);
-    status_message.Printf("OSStatus = %ld: %s",
-        static_cast<intptr_t>(status), error);
-    CFRelease(error_string);
-  }
+  status_message.Printf("OSStatus = %ld: https://www.osstatus.com",
+      static_cast<intptr_t>(status));
   OSError os_error_struct(status, status_message.buf(), OSError::kBoringSSL);
   Dart_Handle os_error = DartUtils::NewDartOSError(&os_error_struct);
   Dart_Handle exception =
@@ -319,18 +201,6 @@ static Dart_Handle SetSecurityContext(Dart_NativeArguments args,
 }
 
 
-static SecCertificateRef GetX509Certificate(Dart_NativeArguments args) {
-  SecCertificateRef certificate;
-  Dart_Handle dart_this = ThrowIfError(Dart_GetNativeArgument(args, 0));
-  ASSERT(Dart_IsInstance(dart_this));
-  ThrowIfError(Dart_GetNativeInstanceField(
-      dart_this,
-      kX509NativeFieldIndex,
-      reinterpret_cast<intptr_t*>(&certificate)));
-  return certificate;
-}
-
-
 static void ReleaseCertificate(void* isolate_data,
                                Dart_WeakPersistentHandle handle,
                                void* context_pointer) {
@@ -374,362 +244,6 @@ static Dart_Handle WrappedX509Certificate(SecCertificateRef certificate) {
     return status;
   }
   return result;
-}
-
-
-// Where the argument to the constructor is the handle for an object
-// implementing List<int>, this class creates a scope in which the memory
-// backing the list can be accessed.
-//
-// Do not make Dart_ API calls while in a ScopedMemBuffer.
-// Do not call Dart_PropagateError while in a ScopedMemBuffer.
-class ScopedMemBuffer {
- public:
-  explicit ScopedMemBuffer(Dart_Handle object) {
-    if (!Dart_IsTypedData(object) && !Dart_IsList(object)) {
-      Dart_ThrowException(DartUtils::NewDartArgumentError(
-          "Argument is not a List<int>"));
-    }
-
-    uint8_t* bytes = NULL;
-    intptr_t bytes_len = 0;
-    bool is_typed_data = false;
-    if (Dart_IsTypedData(object)) {
-      is_typed_data = true;
-      Dart_TypedData_Type typ;
-      ThrowIfError(Dart_TypedDataAcquireData(
-          object,
-          &typ,
-          reinterpret_cast<void**>(&bytes),
-          &bytes_len));
-    } else {
-      ASSERT(Dart_IsList(object));
-      ThrowIfError(Dart_ListLength(object, &bytes_len));
-      bytes = Dart_ScopeAllocate(bytes_len);
-      ASSERT(bytes != NULL);
-      ThrowIfError(Dart_ListGetAsBytes(object, 0, bytes, bytes_len));
-    }
-
-    object_ = object;
-    bytes_ = bytes;
-    bytes_len_ = bytes_len;
-    is_typed_data_ = is_typed_data;
-  }
-
-  ~ScopedMemBuffer() {
-    if (is_typed_data_) {
-      ThrowIfError(Dart_TypedDataReleaseData(object_));
-    }
-  }
-
-  uint8_t* get() const { return bytes_; }
-  intptr_t length() const { return bytes_len_; }
-
- private:
-  Dart_Handle object_;
-  uint8_t* bytes_;
-  intptr_t bytes_len_;
-  bool is_typed_data_;
-
-  DISALLOW_ALLOCATION();
-  DISALLOW_COPY_AND_ASSIGN(ScopedMemBuffer);
-};
-
-
-static const char* GetPasswordArgument(Dart_NativeArguments args,
-                                       intptr_t index) {
-  Dart_Handle password_object =
-      ThrowIfError(Dart_GetNativeArgument(args, index));
-  const char* password = NULL;
-  if (Dart_IsString(password_object)) {
-    ThrowIfError(Dart_StringToCString(password_object, &password));
-    if (strlen(password) > PEM_BUFSIZE - 1) {
-      Dart_ThrowException(DartUtils::NewDartArgumentError(
-          "Password length is greater than 1023 bytes."));
-    }
-  } else if (Dart_IsNull(password_object)) {
-    password = "";
-  } else {
-    Dart_ThrowException(DartUtils::NewDartArgumentError(
-        "Password is not a String or null"));
-  }
-  return password;
-}
-
-
-static OSStatus GetKeyAndCerts(CFArrayRef items,
-                               CFIndex items_length,
-                               CFArrayRef* out_certs,
-                               SecKeyRef* out_key) {
-  OSStatus status = noErr;
-
-  // Loop through the items, take only the first private key/identity, ignore
-  // any others, populate out_certs.
-  CFMutableArrayRef certs =
-      CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
-  SecKeyRef key = NULL;
-
-  for (CFIndex i = 0; i < items_length; ++i) {
-    CFTypeRef item =
-        reinterpret_cast<CFTypeRef>(CFArrayGetValueAtIndex(items, i));
-    CFTypeID item_type = CFGetTypeID(item);
-    if (item_type == SecCertificateGetTypeID()) {
-      if (SSL_LOG_CERTS) {
-        Log::Print("\titem %ld: Certificate\n", i);
-      }
-      CFArrayAppendValue(certs, item);
-    } else if ((item_type == SecKeyGetTypeID()) && (key == NULL)) {
-      if (SSL_LOG_CERTS) {
-        Log::Print("\titem %ld: Key\n", i);
-      }
-      key = reinterpret_cast<SecKeyRef>(const_cast<void*>(item));
-      CFRetain(key);
-    } else if ((item_type == SecIdentityGetTypeID()) && (key == NULL)) {
-      if (SSL_LOG_CERTS) {
-        Log::Print("\titem %ld: Identity\n", i);
-      }
-      SecIdentityRef identity =
-          reinterpret_cast<SecIdentityRef>(const_cast<void*>(item));
-      SecCertificateRef cert = NULL;
-
-      status = SecIdentityCopyPrivateKey(identity, &key);
-      if (status != noErr) {
-        CFRelease(certs);
-        return status;
-      }
-
-      status = SecIdentityCopyCertificate(identity, &cert);
-      if (status != noErr) {
-        CFRelease(key);
-        CFRelease(certs);
-        return status;
-      }
-      CFArrayAppendValue(certs, cert);
-      CFRelease(cert);
-    }
-    // Other item types are ignored.
-  }
-
-  if (out_key == NULL) {
-    if (key != NULL) {
-      CFRelease(key);
-    }
-  } else {
-    *out_key = key;
-  }
-
-  if (out_certs == NULL) {
-    if (certs != NULL) {
-      CFRelease(certs);
-    }
-  } else {
-    *out_certs = certs;
-  }
-  return status;
-}
-
-
-static OSStatus TryPEMImport(CFDataRef cfdata,
-                             CFStringRef password,
-                             CFArrayRef* out_certs,
-                             SecKeyRef* out_key) {
-  OSStatus status = noErr;
-
-  SecExternalFormat format = kSecFormatPEMSequence;
-  SecExternalItemType sitem_type = kSecItemTypeAggregate;
-
-  SecItemImportExportKeyParameters params;
-  memset(&params, 0, sizeof(params));
-  params.version = SEC_KEY_IMPORT_EXPORT_PARAMS_VERSION;
-  params.flags = kSecKeyNoAccessControl;
-  params.passphrase = password;
-
-  CFArrayRef items = NULL;
-  status = SecItemImport(
-      cfdata, NULL, &format, &sitem_type, 0, &params, NULL, &items);
-
-  if (status != noErr) {
-    if (SSL_LOG_CERTS) {
-      Log::Print("TrySecItemImport failed with: %ld, type = %d, format = %d\n",
-          static_cast<intptr_t>(status), sitem_type, format);
-    }
-    return status;
-  }
-
-  CFIndex items_length = (items == NULL) ? 0 : CFArrayGetCount(items);
-  if (SSL_LOG_CERTS) {
-    Log::Print(
-        "TrySecItemImport succeeded, type = %d, format = %d, count = %ld\n",
-        sitem_type, format, items_length);
-  }
-
-  // Empty list indicates a decoding failure of some sort.
-  if ((items != NULL) && (items_length == 0)) {
-    CFRelease(items);
-    return errSSLBadCert;
-  }
-
-  status = GetKeyAndCerts(items, items_length, out_certs, out_key);
-  CFRelease(items);
-  return status;
-}
-
-
-static char* TempKeychainPath() {
-  const char* exes = "keychaindir.XXXX";
-  const char* fname = "keychain";
-  const char* temp_dir = getenv("TMPDIR");
-  if (temp_dir == NULL) {
-    temp_dir = getenv("TMP");
-  }
-  if (temp_dir == NULL) {
-    temp_dir = "/tmp/";
-  }
-  ASSERT(temp_dir != NULL);
-
-  TextBuffer path(PATH_MAX);
-  path.Printf("%s/%s", temp_dir, exes);
-  char* ret = mkdtemp(path.buf());
-  ASSERT(ret != NULL);
-  path.Printf("/%s", fname);
-
-  char* result =
-      reinterpret_cast<char*>(Dart_ScopeAllocate(path.length() + 1));
-  return strncpy(result, path.buf(), path.length() + 1);
-}
-
-
-static OSStatus CreateKeychain(SecKeychainRef* keychain) {
-  ASSERT(keychain != NULL);
-  OSStatus status = noErr;
-  const char* temp_keychain_pwd = "dartdart";
-  char* temp_file_path = TempKeychainPath();
-  ASSERT(temp_file_path != NULL);
-  if (SSL_LOG_CERTS) {
-    Log::Print("Temporary keychain at: '%s'\n", temp_file_path);
-  }
-  status = SecKeychainCreate(temp_file_path,
-                             strlen(temp_keychain_pwd) + 1,
-                             reinterpret_cast<const void*>(temp_keychain_pwd),
-                             FALSE,  // Prompt user? Definitely no.
-                             NULL,  // Default access rights.
-                             keychain);
-  if (status != noErr) {
-    return status;
-  }
-  ASSERT(*keychain != NULL);
-  return status;
-}
-
-
-static OSStatus TryPKCS12Import(CFDataRef cfdata,
-                                CFStringRef password,
-                                CFArrayRef* out_certs,
-                                SecKeyRef* out_key,
-                                SecKeychainRef* out_keychain) {
-  OSStatus status = noErr;
-
-  SecExternalFormat format = kSecFormatPKCS12;
-  SecExternalItemType sitem_type = kSecItemTypeAggregate;
-
-  SecItemImportExportKeyParameters params;
-  memset(&params, 0, sizeof(params));
-  params.version = SEC_KEY_IMPORT_EXPORT_PARAMS_VERSION;
-  params.flags = kSecKeyNoAccessControl;
-  params.passphrase = password;
-
-  CFArrayRef items = NULL;
-  if (SSL_LOG_CERTS) {
-    Log::Print("Trying PKCS12 import with: type = %d, format = %d\n",
-        sitem_type, format);
-  }
-
-  // The documentation for SecKeychainItemImport here:
-  //
-  // https://developer.apple.com/library/mac/documentation/Security/Reference/keychainservices/index.html
-  //
-  // states that when the SecKeychainRef argument is NULL, the CFArrayRef*
-  // argument will be populated by an array containing all keys, identities,
-  // and certificates from the data in the CFDataRef argument.
-  //
-  // Unfortunately, this is not true. The code to populate the CFArrayRef with
-  // keys and identities from PKCS12 data has been skipped and/or commented out,
-  // here:
-  //
-  // https://github.com/Apple-FOSS-Mirror/Security/blob/master/libsecurity_keychain/lib/SecImportExportAgg.cpp#L636
-  //
-  // as "floating" SecKeyRefs from the PKCS12 decoder haven't been implemented.
-  // That is, each private key instance coming from the PKCS12 decoder has to be
-  // associated with a keychain instance. Thus, as a workaround, we create a
-  // temporary keychain here if one is needed, and stash it below in a
-  // SecurityContext. This has the drawbacks:
-  // 1.) We need to make a temporary directory to hold the keychain file, and
-  // 2.) SecKeychainItemImport() probably does blocking IO to create and
-  //     manipulate the keychain file.
-  // So if the API is updated, this keychain should not be used.
-  SecKeychainRef keychain = NULL;
-  if (out_key != NULL) {
-    ASSERT(out_keychain != NULL);
-    status = CreateKeychain(&keychain);
-    if (status != noErr) {
-      return status;
-    }
-    *out_keychain = keychain;
-  }
-
-  status = SecItemImport(
-      cfdata, NULL, &format, &sitem_type, 0, &params, keychain, &items);
-  if (status != noErr) {
-    if (SSL_LOG_CERTS) {
-      Log::Print("TrySecItemImport failed with: %ld, it = %d, format = %d\n",
-          static_cast<intptr_t>(status), sitem_type, format);
-    }
-    return status;
-  }
-
-  CFIndex items_length = (items == NULL) ? 0 : CFArrayGetCount(items);
-  if (SSL_LOG_CERTS) {
-    Log::Print("TrySecItemImport succeeded, count = %ld\n", items_length);
-  }
-
-  // Empty list indicates a decoding failure of some sort.
-  if ((items != NULL) && (items_length == 0)) {
-    CFRelease(items);
-    return errSSLBadCert;
-  }
-
-  status = GetKeyAndCerts(items, items_length, out_certs, out_key);
-  CFRelease(items);
-  return status;
-}
-
-
-static OSStatus ExtractSecItems(uint8_t* buffer,
-                                intptr_t length,
-                                const char* password,
-                                CFArrayRef* out_certs,
-                                SecKeyRef* out_key,
-                                SecKeychainRef* out_keychain) {
-  ASSERT(buffer != NULL);
-  ASSERT(password != NULL);
-  OSStatus status = noErr;
-
-  CFDataRef cfdata = CFDataCreateWithBytesNoCopy(
-      NULL, buffer, length, kCFAllocatorNull);
-  CFStringRef cfpassword = CFStringCreateWithCStringNoCopy(
-      NULL, password, kCFStringEncodingUTF8, kCFAllocatorNull);
-  ASSERT(cfdata != NULL);
-  ASSERT(cfpassword != NULL);
-
-  status = TryPEMImport(cfdata, cfpassword, out_certs, out_key);
-  if (status != noErr) {
-    status =
-        TryPKCS12Import(cfdata, cfpassword, out_certs, out_key, out_keychain);
-  }
-
-  CFRelease(cfdata);
-  CFRelease(cfpassword);
-  return status;
 }
 
 
@@ -843,8 +357,7 @@ void FUNCTION_NAME(SecureSocket_RegisterBadCertificateCallback)(
 }
 
 
-void FUNCTION_NAME(SecureSocket_PeerCertificate)
-    (Dart_NativeArguments args) {
+void FUNCTION_NAME(SecureSocket_PeerCertificate)(Dart_NativeArguments args) {
   Dart_SetReturnValue(args, GetFilter(args)->PeerCertificate());
 }
 
@@ -868,62 +381,15 @@ void FUNCTION_NAME(SecurityContext_Allocate)(Dart_NativeArguments args) {
 
 void FUNCTION_NAME(SecurityContext_UsePrivateKeyBytes)(
     Dart_NativeArguments args) {
-  SSLCertContext* context = GetSecurityContext(args);
-  const char* password = GetPasswordArgument(args, 2);
-
-  OSStatus status;
-  SecKeyRef key = NULL;
-  SecKeychainRef keychain = NULL;
-  {
-    ScopedMemBuffer buffer(ThrowIfError(Dart_GetNativeArgument(args, 1)));
-    status = ExtractSecItems(
-        buffer.get(), buffer.length(), password, NULL, &key, &keychain);
-  }
-
-  // Set the context fields. If there's a failure, release the items.
-  bool set_failure = false;
-  if ((key != NULL) && !context->set_private_key(key)) {
-    CFRelease(key);
-    SecKeychainDelete(keychain);
-    CFRelease(keychain);
-    set_failure = true;
-  }
-  if (!set_failure && (keychain != NULL) && !context->set_keychain(keychain)) {
-    SecKeychainDelete(keychain);
-    CFRelease(keychain);
-  }
-
-  if (set_failure) {
-    Dart_ThrowException(DartUtils::NewDartArgumentError(
-        "usePrivateKeyBytes has already been called on the given context."));
-  }
-  CheckStatus(status, "TlsException", "Failure in usePrivateKeyBytes");
+  Dart_ThrowException(DartUtils::NewDartUnsupportedError(
+      "SecurityContext.usePrivateKeyBytes is not yet implemented."));
 }
 
 
 void FUNCTION_NAME(SecurityContext_SetTrustedCertificatesBytes)(
     Dart_NativeArguments args) {
-  SSLCertContext* context = GetSecurityContext(args);
-  const char* password = GetPasswordArgument(args, 2);
-
-  OSStatus status;
-  CFArrayRef certs = NULL;
-  {
-    ScopedMemBuffer buffer(ThrowIfError(Dart_GetNativeArgument(args, 1)));
-    status = ExtractSecItems(
-        buffer.get(), buffer.length(), password, &certs, NULL, NULL);
-  }
-
-  // Set the field in the context. If there's a failure, release the certs,
-  // and throw an exception.
-  if ((certs != NULL) && !context->set_trusted_certs(certs)) {
-    CFRelease(certs);
-    Dart_ThrowException(DartUtils::NewDartArgumentError(
-        "setTrustedCertificatesBytes has already been called "
-        "on the given context."));
-  }
-
-  CheckStatus(status, "TlsException", "Failure in setTrustedCertificatesBytes");
+  Dart_ThrowException(DartUtils::NewDartUnsupportedError(
+      "SecurityContext.setTrustedCertificatesBytes is not yet implemented."));
 }
 
 
@@ -941,53 +407,15 @@ void FUNCTION_NAME(SecurityContext_TrustBuiltinRoots)(
 
 void FUNCTION_NAME(SecurityContext_UseCertificateChainBytes)(
     Dart_NativeArguments args) {
-  SSLCertContext* context = GetSecurityContext(args);
-
-  const char* password = GetPasswordArgument(args, 2);
-  OSStatus status;
-  CFArrayRef certs = NULL;
-  {
-    ScopedMemBuffer buffer(ThrowIfError(Dart_GetNativeArgument(args, 1)));
-    status = ExtractSecItems(
-        buffer.get(), buffer.length(), password, &certs, NULL, NULL);
-  }
-
-  // Set the field in the context. If there's a failure, release the certs,
-  // and throw an exception.
-  if ((certs != NULL) && !context->set_cert_chain(certs)) {
-    CFRelease(certs);
-    Dart_ThrowException(DartUtils::NewDartArgumentError(
-        "useCertificateChainBytes has already been called "
-        "on the given context."));
-  }
-
-  CheckStatus(status, "TlsException", "Failure in useCertificateChainBytes");
+  Dart_ThrowException(DartUtils::NewDartUnsupportedError(
+      "SecurityContext.useCertificateChainBytes is not yet implemented."));
 }
 
 
 void FUNCTION_NAME(SecurityContext_SetClientAuthoritiesBytes)(
     Dart_NativeArguments args) {
-  SSLCertContext* context = GetSecurityContext(args);
-  const char* password = GetPasswordArgument(args, 2);
-
-  OSStatus status;
-  CFArrayRef certs = NULL;
-  {
-    ScopedMemBuffer buffer(ThrowIfError(Dart_GetNativeArgument(args, 1)));
-    status = ExtractSecItems(
-        buffer.get(), buffer.length(), password, &certs, NULL, NULL);
-  }
-
-  // Set the field in the context. If there's a failure, release the certs,
-  // and throw an exception.
-  if ((certs != NULL) && !context->set_cert_authorities(certs)) {
-    CFRelease(certs);
-    Dart_ThrowException(DartUtils::NewDartArgumentError(
-        "setClientAuthoritiesBytes has already been called "
-        "on the given context."));
-  }
-
-  CheckStatus(status, "TlsException", "Failure in setClientAuthoritiesBytes");
+  Dart_ThrowException(DartUtils::NewDartUnsupportedError(
+      "SecurityContext.setClientAuthoritiesBytes is not yet implemented."));
 }
 
 
@@ -998,128 +426,27 @@ void FUNCTION_NAME(SecurityContext_SetAlpnProtocols)(
 }
 
 
-static char* GetNameFromCert(SecCertificateRef certificate,
-                             CFTypeRef field,
-                             CFStringRef name) {
-  char* issuer_name = NULL;
-
-  CFTypeRef keys[] = { field };
-  CFArrayRef key_array = CFArrayCreate(NULL, keys, 1, &kCFTypeArrayCallBacks);
-  CFErrorRef error = NULL;
-  CFDictionaryRef cert_dict =
-      SecCertificateCopyValues(certificate, key_array, &error);
-  if (cert_dict == NULL) {
-    CFRelease(key_array);
-    Dart_ThrowException(DartUtils::NewDartArgumentError(
-        "X509.issuer failed to copy issuer field out of certificate"));
-  }
-
-  CFTypeRef item = CFDictionaryGetValue(cert_dict, keys[0]);
-  ASSERT(CFGetTypeID(item) == CFDictionaryGetTypeID());
-  CFDictionaryRef val_dict = reinterpret_cast<CFDictionaryRef>(item);
-
-  item = CFDictionaryGetValue(val_dict, kSecPropertyKeyValue);
-  ASSERT(CFGetTypeID(item) == CFArrayGetTypeID());
-  CFArrayRef val_array = reinterpret_cast<CFArrayRef>(item);
-
-  for (intptr_t i = 0; i < CFArrayGetCount(val_array); i++) {
-    item = CFArrayGetValueAtIndex(val_array, i);
-    ASSERT(CFGetTypeID(item) == CFDictionaryGetTypeID());
-    CFDictionaryRef val_dict2 = reinterpret_cast<CFDictionaryRef>(item);
-
-    item = CFDictionaryGetValue(val_dict2, kSecPropertyKeyLabel);
-    ASSERT(CFGetTypeID(item) == CFStringGetTypeID());
-    CFStringRef label = reinterpret_cast<CFStringRef>(item);
-
-    if (CFStringCompare(label, name, 0) == kCFCompareEqualTo) {
-      item = CFDictionaryGetValue(val_dict2, kSecPropertyKeyValue);
-      ASSERT(CFGetTypeID(item) == CFStringGetTypeID());
-      CFStringRef value = reinterpret_cast<CFStringRef>(item);
-      issuer_name = CFStringRefToCString(value);
-      break;
-    }
-  }
-
-  CFRelease(cert_dict);
-  CFRelease(key_array);
-  return issuer_name;
-}
-
-
 void FUNCTION_NAME(X509_Subject)(Dart_NativeArguments args) {
-  SecCertificateRef certificate = GetX509Certificate(args);
-  char* subject_name = GetNameFromCert(
-      certificate,
-      kSecOIDX509V1SubjectName,
-      reinterpret_cast<CFStringRef>(kSecOIDCommonName));
-  if (subject_name == NULL) {
-    Dart_ThrowException(DartUtils::NewDartArgumentError(
-        "X509.subject failed to find issuer's common name."));
-  } else {
-    Dart_SetReturnValue(args, Dart_NewStringFromCString(subject_name));
-  }
+  Dart_ThrowException(DartUtils::NewDartUnsupportedError(
+      "X509Certificate.subject is not yet implemented."));
 }
 
 
 void FUNCTION_NAME(X509_Issuer)(Dart_NativeArguments args) {
-  SecCertificateRef certificate = GetX509Certificate(args);
-  char* issuer_name = GetNameFromCert(
-      certificate,
-      kSecOIDX509V1IssuerName,
-      reinterpret_cast<CFStringRef>(kSecOIDCommonName));
-  if (issuer_name == NULL) {
-    Dart_ThrowException(DartUtils::NewDartArgumentError(
-        "X509.issuer failed to find issuer's common name."));
-  } else {
-    Dart_SetReturnValue(args, Dart_NewStringFromCString(issuer_name));
-  }
-}
-
-
-// Returns the number of seconds since the epoch from 'field'.
-static int64_t GetTimeFromCert(SecCertificateRef certificate, CFTypeRef field) {
-  CFTypeRef keys[] = { field };
-  CFArrayRef key_array = CFArrayCreate(NULL, keys, 1, &kCFTypeArrayCallBacks);
-  CFErrorRef error = NULL;
-  CFDictionaryRef cert_dict =
-      SecCertificateCopyValues(certificate, key_array, &error);
-  if (cert_dict == NULL) {
-    CFRelease(key_array);
-    Dart_ThrowException(DartUtils::NewDartArgumentError(
-        "X509.startValidity: failed to copy issuer field out of certificate"));
-  }
-
-  CFTypeRef item = CFDictionaryGetValue(cert_dict, keys[0]);
-  ASSERT(CFGetTypeID(item) == CFDictionaryGetTypeID());
-  CFDictionaryRef val_dict = reinterpret_cast<CFDictionaryRef>(item);
-
-  item = CFDictionaryGetValue(val_dict, kSecPropertyKeyValue);
-  ASSERT(CFGetTypeID(item) == CFNumberGetTypeID());
-  CFNumberRef date_number = reinterpret_cast<CFNumberRef>(item);
-
-  CFAbsoluteTime date_abs_time;
-  CFNumberGetValue(date_number, kCFNumberDoubleType, &date_abs_time);
-  CFAbsoluteTime seconds_since_epoch =
-      date_abs_time + kCFAbsoluteTimeIntervalSince1970;
-  return static_cast<int64_t>(seconds_since_epoch) * 1000LL;
+  Dart_ThrowException(DartUtils::NewDartUnsupportedError(
+      "X509Certificate.issuer is not supported on this platform."));
 }
 
 
 void FUNCTION_NAME(X509_StartValidity)(Dart_NativeArguments args) {
-  SecCertificateRef certificate = GetX509Certificate(args);
-  int64_t seconds_since_epoch = GetTimeFromCert(certificate,
-                                                kSecOIDX509V1ValidityNotBefore);
-  Dart_SetReturnValue(args,
-      Dart_NewInteger(static_cast<int64_t>(seconds_since_epoch) * 1000LL));
+  Dart_ThrowException(DartUtils::NewDartUnsupportedError(
+      "X509Certificate.startValidity is not supported on this platform."));
 }
 
 
 void FUNCTION_NAME(X509_EndValidity)(Dart_NativeArguments args) {
-  SecCertificateRef certificate = GetX509Certificate(args);
-  int64_t seconds_since_epoch = GetTimeFromCert(certificate,
-                                                kSecOIDX509V1ValidityNotAfter);
-  Dart_SetReturnValue(args,
-      Dart_NewInteger(static_cast<int64_t>(seconds_since_epoch) * 1000LL));
+    Dart_ThrowException(DartUtils::NewDartUnsupportedError(
+      "X509Certificate.endValidity is not supported on this platform."));
 }
 
 
@@ -1164,16 +491,8 @@ CObject* SSLFilter::ProcessFilterRequest(const CObjectArray& request) {
     return result;
   } else {
     TextBuffer status_message(SSL_ERROR_MESSAGE_BUFFER_SIZE);
-    CFStringRef error_string = SecCopyErrorMessageString(status, NULL);
-    if (error_string == NULL) {
-      status_message.Printf("OSStatus = %ld: https://www.osstatus.com",
-          static_cast<intptr_t>(status));
-    } else {
-      char* error = CFStringRefToCString(error_string);
-      status_message.Printf("OSStatus = %ld: %s",
-          static_cast<intptr_t>(status), error);
-      CFRelease(error_string);
-    }
+    status_message.Printf("OSStatus = %ld: https://www.osstatus.com",
+        static_cast<intptr_t>(status));
     CObjectArray* result = new CObjectArray(CObject::NewArray(2));
     result->SetAt(0, new CObjectInt32(CObject::NewInt32(status)));
     result->SetAt(1, new CObjectString(CObject::NewString(
@@ -1519,38 +838,6 @@ void SSLFilter::Connect(Dart_Handle dart_this,
       "TlsException",
       "Failed to set minimum protocol version to kTLSProtocol1");
 
-  // If the context has a private key and certificate chain, combine the
-  // private key and first certificate into a SecIdentityRef, and place that
-  // and the remaining certs in an array to pass to SSLSetCertificate().
-  if ((context->private_key() != NULL) && (context->cert_chain() != NULL)) {
-    CFIndex chain_length = CFArrayGetCount(context->cert_chain());
-    CFMutableArrayRef certs =
-        CFArrayCreateMutable(NULL, chain_length, &kCFTypeArrayCallBacks);
-    CFTypeRef item = CFArrayGetValueAtIndex(context->cert_chain(), 0);
-    ASSERT(CFGetTypeID(item) == SecCertificateGetTypeID());
-    SecCertificateRef first_cert =
-        reinterpret_cast<SecCertificateRef>(const_cast<void*>(item));
-    SecIdentityRef identity =
-        SecIdentityCreate(NULL, first_cert, context->private_key());
-    CFArrayAppendValue(certs, identity);
-    for (CFIndex i = 0; i < chain_length; i++) {
-      CFArrayAppendValue(certs,
-                         CFArrayGetValueAtIndex(context->cert_chain(), i));
-    }
-    CFRelease(identity);
-    status = SSLSetCertificate(ssl_context, certs);
-    CFRelease(certs);
-    CheckStatus(status, "TlsException", "SSLSetCertificate failed");
-  }
-
-  if (context->cert_authorities() != NULL) {
-    status = SSLSetCertificateAuthorities(
-        ssl_context, context->cert_authorities(), true);
-    CheckStatus(status,
-        "TlsException",
-        "Failed to set certificate authorities");
-  }
-
   if (is_server) {
     SSLAuthenticate auth =
         require_client_certificate
@@ -1611,12 +898,8 @@ OSStatus SSLFilter::EvaluatePeerTrust() {
     return status;
   }
 
-  CFArrayRef trusted_certs = NULL;
-  if (cert_context_->trusted_certs() != NULL) {
-    trusted_certs = CFArrayCreateCopy(NULL, cert_context_->trusted_certs());
-  } else {
-    trusted_certs = CFArrayCreate(NULL, NULL, 0, &kCFTypeArrayCallBacks);
-  }
+  CFArrayRef trusted_certs =
+      CFArrayCreate(NULL, NULL, 0, &kCFTypeArrayCallBacks);
 
   status = SecTrustSetAnchorCertificates(peer_trust, trusted_certs);
   if (status != noErr) {
@@ -2022,7 +1305,6 @@ OSStatus SSLFilter::ProcessWritePlaintextBuffer(intptr_t start,
 }  // namespace bin
 }  // namespace dart
 
-#endif  // defined(TARGET_OS_MACOS) && !TARGET_OS_IOS
+#endif  // TARGET_OS_IOS
 
-#endif  // !defined(DART_IO_DISABLED) &&
-        // !defined(DART_IO_SECURE_SOCKET_DISABLED)
+#endif  // !defined(DART_IO_SECURE_SOCKET_DISABLED)

@@ -14,6 +14,10 @@ part of dart.io;
  *
  * Certificates and keys can be added to a SecurityContext from either PEM
  * or PKCS12 containers.
+ *
+ * iOS note: methods to add, remove, and inspect certificates are not yet
+ * implemented. That is, only the platform's built-in trusted certificates can
+ * be used, by way of [SecurityContext.defaultContext].
  */
 abstract class SecurityContext {
   external factory SecurityContext();
@@ -24,8 +28,10 @@ abstract class SecurityContext {
    * This object can also be accessed, and modified, directly.
    * Each isolate has a different [defaultContext] object.
    * The [defaultContext] object uses a list of well-known trusted
-   * certificate authorities as its trusted roots.  This list is
-   * taken from Mozilla, who maintains it as part of Firefox.
+   * certificate authorities as its trusted roots. On Linux and Windows, this
+   * list is taken from Mozilla, who maintains it as part of Firefox. On,
+   * MacOS, iOS, and Android, this list comes from the trusted certificates
+   * stores built in to the platforms.
    */
   external static SecurityContext get defaultContext;
 

@@ -102,6 +102,9 @@
 // the value defined in TargetConditionals.h
 #define TARGET_OS_MACOS 1
 #if TARGET_OS_IPHONE
+// Test for this #define by saying '#if TARGET_OS_IOS' rather than the usual
+// '#if defined(TARGET_OS_IOS)'. TARGET_OS_IOS is defined to be 0 in
+// XCode >= 7.0. See Issue #24453.
 #define TARGET_OS_IOS 1
 #endif
 
