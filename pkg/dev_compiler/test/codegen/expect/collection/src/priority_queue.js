@@ -1,9 +1,10 @@
 dart_library.library('collection/src/priority_queue', null, /* Imports */[
   'dart/_runtime',
   'dart/core',
+  'collection/src/utils',
   'dart/collection'
 ], /* Lazy imports */[
-], function(exports, dart, core, collection) {
+], function(exports, dart, core, utils, collection) {
   'use strict';
   let dartx = dart.dartx;
   const PriorityQueue$ = dart.generic(function(E) {
@@ -31,7 +32,10 @@ dart_library.library('collection/src/priority_queue', null, /* Imports */[
       HeapPriorityQueue(comparison) {
         if (comparison === void 0) comparison = null;
         this[_queue] = core.List$(E).new(HeapPriorityQueue$()._INITIAL_CAPACITY);
-        this.comparison = comparison != null ? comparison : core.Comparable.compare;
+        this.comparison = (() => {
+          let l = comparison;
+          return l != null ? l : utils.defaultCompare();
+        })();
         this[_length] = 0;
       }
       add(element) {
@@ -71,7 +75,7 @@ dart_library.library('collection/src/priority_queue', null, /* Imports */[
         if (dart.notNull(index) < 0) return false;
         let last = this[_removeLast]();
         if (dart.notNull(index) < dart.notNull(this[_length])) {
-          let comp = dart.dcall(this.comparison, last, element);
+          let comp = this.comparison(last, element);
           if (dart.notNull(comp) <= 0) {
             this[_bubbleUp](last, index);
           } else {
@@ -100,11 +104,11 @@ dart_library.library('collection/src/priority_queue', null, /* Imports */[
         let list = core.List$(E).new();
         list[dartx.length] = this[_length];
         list[dartx.setRange](0, this[_length], this[_queue]);
-        list[dartx.sort](dart.as(this.comparison, dart.functionType(core.int, [E, E])));
+        list[dartx.sort](this.comparison);
         return list;
       }
       toSet() {
-        let set = new (collection.SplayTreeSet$(E))(dart.as(this.comparison, dart.functionType(core.int, [E, E])));
+        let set = new (collection.SplayTreeSet$(E))(this.comparison);
         for (let i = 0; i < dart.notNull(this[_length]); i++) {
           set.add(this[_queue][dartx.get](i));
         }
@@ -129,7 +133,7 @@ dart_library.library('collection/src/priority_queue', null, /* Imports */[
         do {
           let index = position - 1;
           let element = this[_queue][dartx.get](index);
-          let comp = dart.dcall(this.comparison, element, object);
+          let comp = this.comparison(element, object);
           if (comp == 0) return index;
           if (dart.notNull(comp) < 0) {
             let leftChildPosition = position * 2;
@@ -159,7 +163,7 @@ dart_library.library('collection/src/priority_queue', null, /* Imports */[
         while (dart.notNull(index) > 0) {
           let parentIndex = ((dart.notNull(index) - 1) / 2)[dartx.truncate]();
           let parent = this[_queue][dartx.get](parentIndex);
-          if (dart.notNull(dart.dcall(this.comparison, element, parent)) > 0) break;
+          if (dart.notNull(this.comparison(element, parent)) > 0) break;
           this[_queue][dartx.set](index, parent);
           index = parentIndex;
         }
@@ -172,7 +176,7 @@ dart_library.library('collection/src/priority_queue', null, /* Imports */[
           let leftChildIndex = rightChildIndex - 1;
           let leftChild = this[_queue][dartx.get](leftChildIndex);
           let rightChild = this[_queue][dartx.get](rightChildIndex);
-          let comp = dart.dcall(this.comparison, leftChild, rightChild);
+          let comp = this.comparison(leftChild, rightChild);
           let minChildIndex = null;
           let minChild = null;
           if (dart.notNull(comp) < 0) {
@@ -182,7 +186,7 @@ dart_library.library('collection/src/priority_queue', null, /* Imports */[
             minChild = rightChild;
             minChildIndex = rightChildIndex;
           }
-          comp = dart.dcall(this.comparison, element, minChild);
+          comp = this.comparison(element, minChild);
           if (dart.notNull(comp) <= 0) {
             this[_queue][dartx.set](index, element);
             return;
@@ -194,7 +198,7 @@ dart_library.library('collection/src/priority_queue', null, /* Imports */[
         let leftChildIndex = rightChildIndex - 1;
         if (leftChildIndex < dart.notNull(this[_length])) {
           let child = this[_queue][dartx.get](leftChildIndex);
-          let comp = dart.dcall(this.comparison, element, child);
+          let comp = this.comparison(element, child);
           if (dart.notNull(comp) > 0) {
             this[_queue][dartx.set](index, child);
             index = leftChildIndex;

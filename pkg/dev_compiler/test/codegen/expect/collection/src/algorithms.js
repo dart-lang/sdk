@@ -1,39 +1,22 @@
 dart_library.library('collection/src/algorithms', null, /* Imports */[
   'dart/_runtime',
+  'collection/src/utils',
   'dart/core',
   'dart/math'
 ], /* Lazy imports */[
-], function(exports, dart, core, math) {
+], function(exports, dart, utils, core, math) {
   'use strict';
   let dartx = dart.dartx;
-  function _comparableBinarySearch(list, value) {
-    let min = 0;
-    let max = list[dartx.length];
-    while (min < dart.notNull(max)) {
-      let mid = min + (dart.notNull(max) - min >> 1);
-      let element = list[dartx.get](mid);
-      let comp = element[dartx.compareTo](value);
-      if (comp == 0) return mid;
-      if (dart.notNull(comp) < 0) {
-        min = mid + 1;
-      } else {
-        max = mid;
-      }
-    }
-    return -1;
-  }
-  dart.fn(_comparableBinarySearch, core.int, [core.List$(core.Comparable), core.Comparable]);
   function binarySearch(sortedList, value, opts) {
     let compare = opts && 'compare' in opts ? opts.compare : null;
-    if (compare == null) {
-      return _comparableBinarySearch(dart.as(sortedList, core.List$(core.Comparable)), dart.as(value, core.Comparable));
-    }
+    let t = compare;
+    t == null ? compare = utils.defaultCompare() : t;
     let min = 0;
     let max = sortedList[dartx.length];
     while (min < dart.notNull(max)) {
       let mid = min + (dart.notNull(max) - min >> 1);
       let element = sortedList[dartx.get](mid);
-      let comp = dart.dcall(compare, element, value);
+      let comp = compare(element, value);
       if (comp == 0) return mid;
       if (dart.notNull(comp) < 0) {
         min = mid + 1;
@@ -43,34 +26,17 @@ dart_library.library('collection/src/algorithms', null, /* Imports */[
     }
     return -1;
   }
-  dart.fn(binarySearch, core.int, [core.List, dart.dynamic], {compare: dart.functionType(core.int, [dart.dynamic, dart.dynamic])});
-  function _comparableLowerBound(list, value) {
-    let min = 0;
-    let max = list[dartx.length];
-    while (min < dart.notNull(max)) {
-      let mid = min + (dart.notNull(max) - min >> 1);
-      let element = list[dartx.get](mid);
-      let comp = element[dartx.compareTo](value);
-      if (dart.notNull(comp) < 0) {
-        min = mid + 1;
-      } else {
-        max = mid;
-      }
-    }
-    return min;
-  }
-  dart.fn(_comparableLowerBound, core.int, [core.List$(core.Comparable), core.Comparable]);
+  dart.fn(binarySearch, () => dart.definiteFunctionType(core.int, [core.List, dart.dynamic], {compare: dart.functionType(core.int, [dart.dynamic, dart.dynamic])}));
   function lowerBound(sortedList, value, opts) {
     let compare = opts && 'compare' in opts ? opts.compare : null;
-    if (compare == null) {
-      return _comparableLowerBound(dart.as(sortedList, core.List$(core.Comparable)), dart.as(value, core.Comparable));
-    }
+    let t = compare;
+    t == null ? compare = utils.defaultCompare() : t;
     let min = 0;
     let max = sortedList[dartx.length];
     while (min < dart.notNull(max)) {
       let mid = min + (dart.notNull(max) - min >> 1);
       let element = sortedList[dartx.get](mid);
-      let comp = dart.dcall(compare, element, value);
+      let comp = compare(element, value);
       if (dart.notNull(comp) < 0) {
         min = mid + 1;
       } else {
@@ -79,7 +45,7 @@ dart_library.library('collection/src/algorithms', null, /* Imports */[
     }
     return min;
   }
-  dart.fn(lowerBound, core.int, [core.List, dart.dynamic], {compare: dart.functionType(core.int, [dart.dynamic, dart.dynamic])});
+  dart.fn(lowerBound, () => dart.definiteFunctionType(core.int, [core.List, dart.dynamic], {compare: dart.functionType(core.int, [dart.dynamic, dart.dynamic])}));
   function shuffle(list, start, end) {
     if (start === void 0) start = 0;
     if (end === void 0) end = null;
@@ -114,41 +80,41 @@ dart_library.library('collection/src/algorithms', null, /* Imports */[
     let compare = opts && 'compare' in opts ? opts.compare : null;
     let start = opts && 'start' in opts ? opts.start : 0;
     let end = opts && 'end' in opts ? opts.end : null;
-    if (end == null) end = list[dartx.length];
-    if (compare == null) compare = core.Comparable.compare;
-    _insertionSort(list, compare, start, end, dart.notNull(start) + 1);
-  }
-  dart.fn(insertionSort, dart.void, [core.List], {compare: dart.functionType(core.int, [dart.dynamic, dart.dynamic]), start: core.int, end: core.int});
-  function _insertionSort(list, compare, start, end, sortedUntil) {
-    for (let pos = sortedUntil; dart.notNull(pos) < dart.notNull(end); pos = dart.notNull(pos) + 1) {
+    let t = compare;
+    t == null ? compare = utils.defaultCompare() : t;
+    let t$ = end;
+    t$ == null ? end = list[dartx.length] : t$;
+    for (let pos = dart.notNull(start) + 1; pos < dart.notNull(end); pos++) {
       let min = start;
       let max = pos;
       let element = list[dartx.get](pos);
-      while (dart.notNull(min) < dart.notNull(max)) {
-        let mid = dart.notNull(min) + (dart.notNull(max) - dart.notNull(min) >> 1);
-        let comparison = dart.dcall(compare, element, list[dartx.get](mid));
+      while (dart.notNull(min) < max) {
+        let mid = dart.notNull(min) + (max - dart.notNull(min) >> 1);
+        let comparison = compare(element, list[dartx.get](mid));
         if (dart.notNull(comparison) < 0) {
           max = mid;
         } else {
           min = mid + 1;
         }
       }
-      list[dartx.setRange](dart.notNull(min) + 1, dart.notNull(pos) + 1, list, min);
+      list[dartx.setRange](dart.notNull(min) + 1, pos + 1, list, min);
       list[dartx.set](min, element);
     }
   }
-  dart.fn(_insertionSort, dart.void, [core.List, dart.functionType(core.int, [dart.dynamic, dart.dynamic]), core.int, core.int, core.int]);
+  dart.fn(insertionSort, () => dart.definiteFunctionType(dart.void, [core.List], {compare: dart.functionType(core.int, [dart.dynamic, dart.dynamic]), start: core.int, end: core.int}));
   const _MERGE_SORT_LIMIT = 32;
   function mergeSort(list, opts) {
     let start = opts && 'start' in opts ? opts.start : 0;
     let end = opts && 'end' in opts ? opts.end : null;
     let compare = opts && 'compare' in opts ? opts.compare : null;
-    if (end == null) end = list[dartx.length];
-    if (compare == null) compare = core.Comparable.compare;
+    let t = end;
+    t == null ? end = list[dartx.length] : t;
+    let t$ = compare;
+    t$ == null ? compare = utils.defaultCompare() : t$;
     let length = dart.notNull(end) - dart.notNull(start);
     if (length < 2) return;
     if (length < dart.notNull(_MERGE_SORT_LIMIT)) {
-      _insertionSort(list, compare, start, end, dart.notNull(start) + 1);
+      insertionSort(list, {compare: compare, start: start, end: end});
       return;
     }
     let middle = dart.notNull(start) + (dart.notNull(end) - dart.notNull(start) >> 1);
@@ -160,7 +126,7 @@ dart_library.library('collection/src/algorithms', null, /* Imports */[
     _mergeSort(list, compare, start, middle, list, firstTarget);
     _merge(compare, list, firstTarget, end, scratchSpace, 0, secondLength, list, start);
   }
-  dart.fn(mergeSort, dart.void, [core.List], {start: core.int, end: core.int, compare: dart.functionType(core.int, [dart.dynamic, dart.dynamic])});
+  dart.fn(mergeSort, () => dart.definiteFunctionType(dart.void, [core.List], {start: core.int, end: core.int, compare: dart.functionType(core.int, [dart.dynamic, dart.dynamic])}));
   function _movingInsertionSort(list, compare, start, end, target, targetOffset) {
     let length = dart.notNull(end) - dart.notNull(start);
     if (length == 0) return;
@@ -171,7 +137,7 @@ dart_library.library('collection/src/algorithms', null, /* Imports */[
       let max = dart.notNull(targetOffset) + i;
       while (dart.notNull(min) < max) {
         let mid = dart.notNull(min) + (max - dart.notNull(min) >> 1);
-        if (dart.notNull(dart.dcall(compare, element, target[dartx.get](mid))) < 0) {
+        if (dart.notNull(compare(element, target[dartx.get](mid))) < 0) {
           max = mid;
         } else {
           min = mid + 1;
@@ -181,7 +147,7 @@ dart_library.library('collection/src/algorithms', null, /* Imports */[
       target[dartx.set](min, element);
     }
   }
-  dart.fn(_movingInsertionSort, dart.void, [core.List, dart.functionType(core.int, [dart.dynamic, dart.dynamic]), core.int, core.int, core.List, core.int]);
+  dart.fn(_movingInsertionSort, () => dart.definiteFunctionType(dart.void, [core.List, dart.functionType(core.int, [dart.dynamic, dart.dynamic]), core.int, core.int, core.List, core.int]));
   function _mergeSort(list, compare, start, end, target, targetOffset) {
     let length = dart.notNull(end) - dart.notNull(start);
     if (length < dart.notNull(_MERGE_SORT_LIMIT)) {
@@ -196,7 +162,7 @@ dart_library.library('collection/src/algorithms', null, /* Imports */[
     _mergeSort(list, compare, start, middle, list, middle);
     _merge(compare, list, middle, middle + firstLength, target, targetMiddle, targetMiddle + secondLength, target, targetOffset);
   }
-  dart.fn(_mergeSort, dart.void, [core.List, dart.functionType(core.int, [dart.dynamic, dart.dynamic]), core.int, core.int, core.List, core.int]);
+  dart.fn(_mergeSort, () => dart.definiteFunctionType(dart.void, [core.List, dart.functionType(core.int, [dart.dynamic, dart.dynamic]), core.int, core.int, core.List, core.int]));
   function _merge(compare, firstList, firstStart, firstEnd, secondList, secondStart, secondEnd, target, targetOffset) {
     dart.assert(dart.notNull(firstStart) < dart.notNull(firstEnd));
     dart.assert(dart.notNull(secondStart) < dart.notNull(secondEnd));
@@ -213,7 +179,7 @@ dart_library.library('collection/src/algorithms', null, /* Imports */[
       return x;
     })());
     while (true) {
-      if (dart.notNull(dart.dcall(compare, firstElement, secondElement)) <= 0) {
+      if (dart.notNull(compare(firstElement, secondElement)) <= 0) {
         target[dartx.set]((() => {
           let x = targetOffset;
           targetOffset = dart.notNull(x) + 1;
@@ -255,7 +221,7 @@ dart_library.library('collection/src/algorithms', null, /* Imports */[
     })(), secondElement);
     target[dartx.setRange](targetOffset, dart.notNull(targetOffset) + (dart.notNull(secondEnd) - dart.notNull(cursor2)), secondList, cursor2);
   }
-  dart.fn(_merge, dart.void, [dart.functionType(core.int, [dart.dynamic, dart.dynamic]), core.List, core.int, core.int, core.List, core.int, core.int, core.List, core.int]);
+  dart.fn(_merge, () => dart.definiteFunctionType(dart.void, [dart.functionType(core.int, [dart.dynamic, dart.dynamic]), core.List, core.int, core.int, core.List, core.int, core.int, core.List, core.int]));
   // Exports:
   exports.binarySearch = binarySearch;
   exports.lowerBound = lowerBound;

@@ -2762,7 +2762,7 @@ dart_library.library('dart/convert', null, /* Imports */[
       return dart.as(dart.notNull(this[_parent][_isUpgraded]) ? this[_parent].keys[dartx.elementAt](index) : this[_parent][_computeKeys]()[dartx.get](index), core.String);
     }
     get iterator() {
-      return dart.as(dart.notNull(this[_parent][_isUpgraded]) ? this[_parent].keys[dartx.iterator] : this[_parent][_computeKeys]()[dartx.iterator], core.Iterator);
+      return dart.notNull(this[_parent][_isUpgraded]) ? this[_parent].keys[dartx.iterator] : this[_parent][_computeKeys]()[dartx.iterator];
     }
     contains(key) {
       return this[_parent].containsKey(key);

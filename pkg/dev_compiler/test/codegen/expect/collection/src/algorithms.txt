@@ -1,3 +1,1 @@
 // Messages from compiling algorithms.dart
-warning: [STRONG_MODE_DOWN_CAST_COMPOSITE] Unsound implicit cast from List<dynamic> to List<Comparable<dynamic>> (package:collection/src/algorithms.dart, line 36, col 36)
-warning: [STRONG_MODE_DOWN_CAST_COMPOSITE] Unsound implicit cast from List<dynamic> to List<Comparable<dynamic>> (package:collection/src/algorithms.dart, line 84, col 34)

@@ -7,6 +7,12 @@ dart_library.library('collection/src/canonicalized_map', null, /* Imports */[
 ], function(exports, dart, core, utils, collection) {
   'use strict';
   let dartx = dart.dartx;
+  const _Canonicalize$ = dart.generic(function(C, K) {
+    const _Canonicalize = dart.typedef('_Canonicalize', () => dart.functionType(C, [K]));
+    return _Canonicalize;
+  });
+  let _Canonicalize = _Canonicalize$();
+  const _IsValidKey = dart.typedef('_IsValidKey', () => dart.functionType(core.bool, [core.Object]));
   const _base = Symbol('_base');
   const _canonicalize = Symbol('_canonicalize');
   const _isValidKeyFn = Symbol('_isValidKeyFn');
@@ -28,7 +34,7 @@ dart_library.library('collection/src/canonicalized_map', null, /* Imports */[
       }
       get(key) {
         if (!dart.notNull(this[_isValidKey](key))) return null;
-        let pair = this[_base][dartx.get](dart.dcall(this[_canonicalize], key));
+        let pair = this[_base][dartx.get](this[_canonicalize](dart.as(key, K)));
         return pair == null ? null : pair.last;
       }
       set(key, value) {
@@ -36,7 +42,7 @@ dart_library.library('collection/src/canonicalized_map', null, /* Imports */[
           dart.as(key, K);
           dart.as(value, V);
           if (!dart.notNull(this[_isValidKey](key))) return;
-          this[_base][dartx.set](dart.as(dart.dcall(this[_canonicalize], key), C), new (utils.Pair$(K, V))(key, value));
+          this[_base][dartx.set](this[_canonicalize](key), new (utils.Pair$(K, V))(key, value));
         })();
         return value;
       }
@@ -53,7 +59,7 @@ dart_library.library('collection/src/canonicalized_map', null, /* Imports */[
       }
       containsKey(key) {
         if (!dart.notNull(this[_isValidKey](key))) return false;
-        return this[_base][dartx.containsKey](dart.dcall(this[_canonicalize], key));
+        return this[_base][dartx.containsKey](this[_canonicalize](dart.as(key, K)));
       }
       containsValue(value) {
         return this[_base][dartx.values][dartx.any](dart.fn(pair => {
@@ -87,11 +93,11 @@ dart_library.library('collection/src/canonicalized_map', null, /* Imports */[
       putIfAbsent(key, ifAbsent) {
         dart.as(key, K);
         dart.as(ifAbsent, dart.functionType(V, []));
-        return this[_base][dartx.putIfAbsent](dart.as(dart.dcall(this[_canonicalize], key), C), dart.fn(() => new (utils.Pair$(K, V))(key, ifAbsent()), utils.Pair$(K, V), [])).last;
+        return this[_base][dartx.putIfAbsent](this[_canonicalize](key), dart.fn(() => new (utils.Pair$(K, V))(key, ifAbsent()), utils.Pair$(K, V), [])).last;
       }
       remove(key) {
         if (!dart.notNull(this[_isValidKey](key))) return null;
-        let pair = this[_base][dartx.remove](dart.dcall(this[_canonicalize], key));
+        let pair = this[_base][dartx.remove](this[_canonicalize](dart.as(key, K)));
         return pair == null ? null : pair.last;
       }
       get values() {
@@ -104,7 +110,7 @@ dart_library.library('collection/src/canonicalized_map', null, /* Imports */[
         return collection.Maps.mapToString(this);
       }
       [_isValidKey](key) {
-        return (key == null || dart.is(key, K)) && (this[_isValidKeyFn] == null || dart.notNull(dart.as(dart.dcall(this[_isValidKeyFn], key), core.bool)));
+        return (key == null || dart.is(key, K)) && (this[_isValidKeyFn] == null || dart.notNull(this[_isValidKeyFn](key)));
       }
     }
     CanonicalizedMap[dart.implements] = () => [core.Map$(K, V)];

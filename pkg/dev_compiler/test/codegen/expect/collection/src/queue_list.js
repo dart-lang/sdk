@@ -33,8 +33,8 @@ dart_library.library('collection/src/queue_list', null, /* Imports */[
           let length = source[dartx.length];
           let queue = new (QueueList$(E))(dart.notNull(length) + 1);
           dart.assert(dart.notNull(queue[_table][dartx.length]) > dart.notNull(length));
-          let sourceList = dart.as(source, core.List);
-          queue[_table][dartx.setRange](0, length, dart.as(sourceList, core.Iterable$(E)), 0);
+          let sourceList = source;
+          queue[_table][dartx.setRange](0, length, sourceList, 0);
           queue[_tail] = length;
           return queue;
         } else {
@@ -50,22 +50,22 @@ dart_library.library('collection/src/queue_list', null, /* Imports */[
       addAll(elements) {
         dart.as(elements, core.Iterable$(E));
         if (dart.is(elements, core.List)) {
-          let list = dart.as(elements, core.List);
+          let list = elements;
           let addCount = list[dartx.length];
           let length = this.length;
           if (dart.notNull(length) + dart.notNull(addCount) >= dart.notNull(this[_table][dartx.length])) {
             this[_preGrow](dart.notNull(length) + dart.notNull(addCount));
-            this[_table][dartx.setRange](length, dart.notNull(length) + dart.notNull(addCount), dart.as(list, core.Iterable$(E)), 0);
+            this[_table][dartx.setRange](length, dart.notNull(length) + dart.notNull(addCount), list, 0);
             this[_tail] = dart.notNull(this[_tail]) + dart.notNull(addCount);
           } else {
             let endSpace = dart.notNull(this[_table][dartx.length]) - dart.notNull(this[_tail]);
             if (dart.notNull(addCount) < endSpace) {
-              this[_table][dartx.setRange](this[_tail], dart.notNull(this[_tail]) + dart.notNull(addCount), dart.as(list, core.Iterable$(E)), 0);
+              this[_table][dartx.setRange](this[_tail], dart.notNull(this[_tail]) + dart.notNull(addCount), list, 0);
               this[_tail] = dart.notNull(this[_tail]) + dart.notNull(addCount);
             } else {
               let preSpace = dart.notNull(addCount) - endSpace;
-              this[_table][dartx.setRange](this[_tail], dart.notNull(this[_tail]) + endSpace, dart.as(list, core.Iterable$(E)), 0);
-              this[_table][dartx.setRange](0, preSpace, dart.as(list, core.Iterable$(E)), endSpace);
+              this[_table][dartx.setRange](this[_tail], dart.notNull(this[_tail]) + endSpace, list, 0);
+              this[_table][dartx.setRange](0, preSpace, list, endSpace);
               this[_tail] = preSpace;
             }
           }

@@ -257,6 +257,7 @@
         'regress_13462_1_test',
         'regress_14105_test',
         'regress_16640_test',
+	'regress_18535_test',
         'regress_21795_test',
         'regress_22443_test',
         'regress_22666_test',

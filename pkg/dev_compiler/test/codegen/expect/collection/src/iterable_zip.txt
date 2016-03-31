@@ -1,2 +1,1 @@
 // Messages from compiling iterable_zip.dart
-warning: [STRONG_MODE_DOWN_CAST_COMPOSITE] Unsound implicit cast from List<dynamic> to List<Iterator<dynamic>> (package:collection/src/iterable_zip.dart, line 33, col 47)

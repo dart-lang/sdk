@@ -264,7 +264,7 @@ dart_library.library('dart/js', null, /* Imports */[
       sort(compare) {
         if (compare === void 0) compare = null;
         dart.as(compare, dart.functionType(core.int, [E, E]));
-        this.callMethod('sort', dart.as(compare == null ? [] : dart.list([compare], dart.functionType(core.int, [E, E])), core.List));
+        this.callMethod('sort', compare == null ? [] : dart.list([compare], dart.functionType(core.int, [E, E])));
       }
     }
     dart.defineNamedConstructor(JsArray, 'from');

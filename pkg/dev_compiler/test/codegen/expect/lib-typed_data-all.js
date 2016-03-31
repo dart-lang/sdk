@@ -3582,13 +3582,13 @@ dart_library.library('lib/typed_data/typed_data_sublist_type_test', null, /* Imp
     let isIntList = new (Is$(core.List$(core.int)))('List<int>');
     let isDoubleList = new (Is$(core.List$(core.double)))('List<double>');
     let isNumList = new (Is$(core.List$(core.num)))('List<num>');
-    let allChecks = dart.list([isFloat32list, isFloat64list, isInt8List, isInt16List, isInt32List, isUint8List, isUint16List, isUint32List, isUint8ClampedList], core.Object);
+    let allChecks = dart.list([isFloat32list, isFloat64list, isInt8List, isInt16List, isInt32List, isUint8List, isUint16List, isUint32List, isUint8ClampedList], Is$(core.List));
     function testInt(list, check) {
-      testSublistType(list, [check, isIntList, isNumList], allChecks);
+      testSublistType(list, dart.list([dart.as(check, Is$(core.List)), isIntList, isNumList], Is$(core.List)), allChecks);
     }
     dart.fn(testInt);
     function testDouble(list, check) {
-      testSublistType(list, [check, isDoubleList, isNumList], allChecks);
+      testSublistType(list, dart.list([dart.as(check, Is$(core.List)), isDoubleList, isNumList], Is$(core.List)), allChecks);
     }
     dart.fn(testDouble);
     testDouble(typed_data.Float32List.new(10), isFloat32list);

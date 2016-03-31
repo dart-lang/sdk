@@ -1,7 +1,1 @@
 // Messages from compiling unmodifiable_wrappers.dart
-severe: [NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE] Missing concrete implementation of 'Iterable.expand', 'Iterable.fold' and 'Iterable.map' (package:collection/src/unmodifiable_wrappers.dart, line 20, col 7)
-severe: [NON_ABSTRACT_CLASS_INHERITS_ABSTRACT_MEMBER_THREE] Missing concrete implementation of 'Iterable.expand', 'Iterable.fold' and 'Iterable.map' (package:collection/src/unmodifiable_wrappers.dart, line 93, col 7)
-warning: [STRONG_MODE_DOWN_CAST_COMPOSITE] Unsound implicit cast from dynamic to E (package:collection/src/unmodifiable_wrappers.dart, line 59, col 28)
-warning: [STRONG_MODE_DOWN_CAST_COMPOSITE] Unsound implicit cast from dynamic to E (package:collection/src/unmodifiable_wrappers.dart, line 63, col 21)
-warning: [STRONG_MODE_DOWN_CAST_COMPOSITE] Unsound implicit cast from dynamic to V (package:collection/src/unmodifiable_wrappers.dart, line 151, col 41)
-warning: [STRONG_MODE_DOWN_CAST_COMPOSITE] Unsound implicit cast from dynamic to V (package:collection/src/unmodifiable_wrappers.dart, line 159, col 27)

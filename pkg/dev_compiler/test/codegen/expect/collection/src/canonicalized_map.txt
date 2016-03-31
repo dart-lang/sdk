@@ -1,3 +1,1 @@
 // Messages from compiling canonicalized_map.dart
-warning: [STRONG_MODE_DOWN_CAST_COMPOSITE] Unsound implicit cast from dynamic to C (package:collection/src/canonicalized_map.dart, line 61, col 11)
-warning: [STRONG_MODE_DOWN_CAST_COMPOSITE] Unsound implicit cast from dynamic to C (package:collection/src/canonicalized_map.dart, line 93, col 30)
