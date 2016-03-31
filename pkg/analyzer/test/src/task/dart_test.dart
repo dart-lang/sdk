@@ -2818,6 +2818,12 @@ class C {
 
 @reflectiveTest
 class InferStaticVariableTypesInUnitTaskTest extends _AbstractDartTaskTest {
+  @override
+  void setUp() {
+    super.setUp();
+    enableStrongMode();
+  }
+
   test_created_resolved_unit() {
     Source source = newSource(
         '/test.dart',
@@ -2846,6 +2852,18 @@ class M {
     VariableDeclaration declaration = AstFinder.getFieldInClass(unit, 'M', 'X');
     InterfaceType stringType = context.typeProvider.stringType;
     expect(declaration.element.type, stringType);
+  }
+
+  test_perform_hasParseError() {
+    Source source = newSource(
+        '/test.dart',
+        r'''
+@(i $=
+''');
+    LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
+    computeResult(target, RESOLVED_UNIT7);
+    expect(outputs[RESOLVED_UNIT7], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT7], isTrue);
   }
 
   void test_perform_nestedDeclarations() {

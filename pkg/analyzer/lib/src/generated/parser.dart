@@ -3816,7 +3816,7 @@ class Parser {
       return _createSyntheticToken(TokenType.SEMICOLON);
     }
     _reportErrorForCurrentToken(ParserErrorCode.EXPECTED_TOKEN, [type.lexeme]);
-    return _currentToken;
+    return _createSyntheticToken(type);
   }
 
   /**
