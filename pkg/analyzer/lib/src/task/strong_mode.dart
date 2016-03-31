@@ -75,7 +75,7 @@ class InstanceMemberInferrer {
   /**
    * The inheritance manager used to find overridden method.
    */
-  InheritanceManager inheritanceManager;
+  final InheritanceManager inheritanceManager;
 
   /**
    * The classes that have been visited while attempting to infer the types of
@@ -87,7 +87,8 @@ class InstanceMemberInferrer {
   /**
    * Initialize a newly create inferrer.
    */
-  InstanceMemberInferrer(this.typeProvider, {TypeSystem typeSystem})
+  InstanceMemberInferrer(this.typeProvider, this.inheritanceManager,
+      {TypeSystem typeSystem})
       : typeSystem = (typeSystem != null) ? typeSystem : new TypeSystemImpl();
 
   /**
@@ -95,7 +96,6 @@ class InstanceMemberInferrer {
    * compilation [unit].
    */
   void inferCompilationUnit(CompilationUnitElement unit) {
-    inheritanceManager = new InheritanceManager(unit.library);
     unit.types.forEach((ClassElement classElement) {
       try {
         _inferClass(classElement);

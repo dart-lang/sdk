@@ -2906,7 +2906,8 @@ class InferInstanceMembersInUnitTask extends SourceBasedAnalysisTask {
     // Infer instance members.
     //
     if (context.analysisOptions.strongMode) {
-      InstanceMemberInferrer inferrer = new InstanceMemberInferrer(typeProvider,
+      InstanceMemberInferrer inferrer = new InstanceMemberInferrer(
+          typeProvider, new InheritanceManager(unit.element.library),
           typeSystem: context.typeSystem);
       inferrer.inferCompilationUnit(unit.element);
     }

@@ -205,7 +205,7 @@ abstract class LinkedSummarizeAstTest extends Object with SummaryTest {
       }
       return unit;
     }
-    linked = link(uriToUnit.keys.toSet(), getDependency, getUnit)[
+    linked = link(uriToUnit.keys.toSet(), getDependency, getUnit, strongMode)[
         testDartUri.toString()];
     expect(linked, isNotNull);
     validateLinkedLibrary(linked);
