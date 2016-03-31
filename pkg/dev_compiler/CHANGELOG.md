@@ -1,5 +1,9 @@
 # dev_compiler changelog
 
+## 0.1.23
+- updates for the latest analyzer
+- removal of deprecated functionality (server mode) in prep for refactoring
+
 ## 0.1.22
 - fixes to support the latest analyzer
 - improvements in compile speed
