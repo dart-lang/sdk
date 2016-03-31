@@ -323,13 +323,11 @@ UNIT_TEST_CASE(CustomIsolates) {
   FLAG_verify_handles = true;
 #ifdef DEBUG
   FLAG_verify_on_transition = true;
-#endif
-  // Cannot verify heap while running compilation in background.
-  // Issue #26149.
+  // Cannot verify heap while running compilation in background. Issue #26149.
   FLAG_background_compilation = false;
   // Issue #26150.
   FLAG_use_osr = false;
-
+#endif
   event_queue = new EventQueue();
 
   Dart_Isolate dart_isolate = TestCase::CreateTestIsolate();

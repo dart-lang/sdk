@@ -65,10 +65,6 @@ STAT_COUNTERS(INITIALIZE_COUNTERS)
 }
 
 
-#ifndef PRODUCT
-
-
-
 // Used to aggregate stats. Must be atomic.
 void CompilerStats::Add(const CompilerStats& other) {
 #define ADD_TOTAL(timer_name, literal)                                         \
@@ -114,6 +110,9 @@ bool CompilerStats::IsCleared() const {
 #undef CHECK_COUNTERS
   return true;
 }
+
+
+#ifndef PRODUCT
 
 
 // This function is used as a callback in the log object to which the
