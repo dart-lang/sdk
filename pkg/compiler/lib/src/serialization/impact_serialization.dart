@@ -5,25 +5,57 @@
 library dart2js.serialization.impact;
 
 import '../dart_types.dart';
+import '../common/resolution.dart';
+import '../constants/expressions.dart';
 import '../elements/elements.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
 import '../universe/world_impact.dart';
 import '../universe/use.dart';
+import '../util/enumset.dart';
 
 import 'keys.dart';
 import 'serialization.dart';
 
-/// Visitor that serializes a [WorldImpact] object using an [ObjectEncoder].
+/// Visitor that serializes a [ResolutionImpact] object using an
+/// [ObjectEncoder].
 class ImpactSerializer implements WorldImpactVisitor {
+  final ObjectEncoder objectEncoder;
   final ListEncoder staticUses;
   final ListEncoder dynamicUses;
   final ListEncoder typeUses;
 
   ImpactSerializer(ObjectEncoder objectEncoder)
-      : staticUses = objectEncoder.createList(Key.STATIC_USES),
+      : this.objectEncoder = objectEncoder,
+        staticUses = objectEncoder.createList(Key.STATIC_USES),
         dynamicUses = objectEncoder.createList(Key.DYNAMIC_USES),
         typeUses = objectEncoder.createList(Key.TYPE_USES);
+
+  void serialize(ResolutionImpact resolutionImpact) {
+    resolutionImpact.apply(this);
+    objectEncoder.setStrings(Key.SYMBOLS, resolutionImpact.constSymbolNames);
+    objectEncoder.setConstants(
+        Key.CONSTANTS, resolutionImpact.constantLiterals);
+    objectEncoder.setEnums(Key.FEATURES, resolutionImpact.features);
+    if (resolutionImpact.listLiterals.isNotEmpty) {
+      ListEncoder encoder = objectEncoder.createList(Key.LISTS);
+      for (ListLiteralUse use in resolutionImpact.listLiterals) {
+        ObjectEncoder useEncoder = encoder.createObject();
+        useEncoder.setType(Key.TYPE, use.type);
+        useEncoder.setBool(Key.IS_CONST, use.isConstant);
+        useEncoder.setBool(Key.IS_EMPTY, use.isEmpty);
+      }
+    }
+    if (resolutionImpact.mapLiterals.isNotEmpty) {
+      ListEncoder encoder = objectEncoder.createList(Key.MAPS);
+      for (MapLiteralUse use in resolutionImpact.mapLiterals) {
+        ObjectEncoder useEncoder = encoder.createObject();
+        useEncoder.setType(Key.TYPE, use.type);
+        useEncoder.setBool(Key.IS_CONST, use.isConstant);
+        useEncoder.setBool(Key.IS_EMPTY, use.isEmpty);
+      }
+    }
+  }
 
   @override
   void visitDynamicUse(DynamicUse dynamicUse) {
@@ -66,22 +98,47 @@ class ImpactSerializer implements WorldImpactVisitor {
 }
 
 /// A deserialized [WorldImpact] object.
-class DeserializedWorldImpact extends WorldImpact with WorldImpactBuilder {}
+class DeserializedResolutionImpact extends WorldImpact
+    implements ResolutionImpact {
+  final Iterable<String> constSymbolNames;
+  final Iterable<ConstantExpression> constantLiterals;
+  final Iterable<DynamicUse> dynamicUses;
+  final EnumSet<Feature> _features;
+  final Iterable<ListLiteralUse> listLiterals;
+  final Iterable<MapLiteralUse> mapLiterals;
+  final Iterable<StaticUse> staticUses;
+  final Iterable<TypeUse> typeUses;
+
+  DeserializedResolutionImpact({
+    this.constSymbolNames,
+    this.constantLiterals,
+    this.dynamicUses,
+    EnumSet<Feature> features,
+    this.listLiterals,
+    this.mapLiterals,
+    this.staticUses,
+    this.typeUses})
+      : this._features = features;
+
+  Iterable<Feature> get features => _features.iterable(Feature.values);
+}
 
 class ImpactDeserializer {
   /// Deserializes a [WorldImpact] from [objectDecoder].
-  static WorldImpact deserializeImpact(ObjectDecoder objectDecoder) {
-    DeserializedWorldImpact worldImpact = new DeserializedWorldImpact();
-    ListDecoder staticUses = objectDecoder.getList(Key.STATIC_USES);
-    for (int index = 0; index < staticUses.length; index++) {
-      ObjectDecoder object = staticUses.getObject(index);
+  static ResolutionImpact deserializeImpact(ObjectDecoder objectDecoder) {
+    ListDecoder staticUseDecoder = objectDecoder.getList(Key.STATIC_USES);
+    List<StaticUse> staticUses = <StaticUse>[];
+    for (int index = 0; index < staticUseDecoder.length; index++) {
+      ObjectDecoder object = staticUseDecoder.getObject(index);
       StaticUseKind kind = object.getEnum(Key.KIND, StaticUseKind.values);
       Element element = object.getElement(Key.ELEMENT);
-      worldImpact.registerStaticUse(new StaticUse.internal(element, kind));
+      staticUses.add(new StaticUse.internal(element, kind));
     }
-    ListDecoder dynamicUses = objectDecoder.getList(Key.DYNAMIC_USES);
-    for (int index = 0; index < dynamicUses.length; index++) {
-      ObjectDecoder object = dynamicUses.getObject(index);
+
+    ListDecoder dynamicUseDecoder = objectDecoder.getList(Key.DYNAMIC_USES);
+    List<DynamicUse> dynamicUses = <DynamicUse>[];
+    for (int index = 0; index < dynamicUseDecoder.length; index++) {
+      ObjectDecoder object = dynamicUseDecoder.getObject(index);
       SelectorKind kind = object.getEnum(Key.KIND, SelectorKind.values);
       int argumentCount = object.getInt(Key.ARGUMENTS);
       List<String> namedArguments =
@@ -89,7 +146,7 @@ class ImpactDeserializer {
       String name = object.getString(Key.NAME);
       bool isSetter = object.getBool(Key.IS_SETTER);
       LibraryElement library = object.getElement(Key.LIBRARY, isOptional: true);
-      worldImpact.registerDynamicUse(
+      dynamicUses.add(
           new DynamicUse(
               new Selector(
                   kind,
@@ -97,13 +154,63 @@ class ImpactDeserializer {
                   new CallStructure(argumentCount, namedArguments)),
               null));
     }
-    ListDecoder typeUses = objectDecoder.getList(Key.TYPE_USES);
-    for (int index = 0; index < typeUses.length; index++) {
-      ObjectDecoder object = typeUses.getObject(index);
+
+    ListDecoder typeUseDecoder = objectDecoder.getList(Key.TYPE_USES);
+    List<TypeUse> typeUses = <TypeUse>[];
+    for (int index = 0; index < typeUseDecoder.length; index++) {
+      ObjectDecoder object = typeUseDecoder.getObject(index);
       TypeUseKind kind = object.getEnum(Key.KIND, TypeUseKind.values);
       DartType type = object.getType(Key.TYPE);
-      worldImpact.registerTypeUse(new TypeUse.internal(type, kind));
+      typeUses.add(new TypeUse.internal(type, kind));
     }
-    return worldImpact;
+
+    List<String> constSymbolNames =
+        objectDecoder.getStrings(Key.SYMBOLS, isOptional: true);
+
+    List<ConstantExpression> constantLiterals =
+        objectDecoder.getConstants(Key.CONSTANTS, isOptional: true);
+
+    EnumSet<Feature> features =
+        objectDecoder.getEnums(Key.FEATURES, isOptional: true);
+
+    ListDecoder listLiteralDecoder =
+        objectDecoder.getList(Key.LISTS, isOptional: true);
+    List<ListLiteralUse> listLiterals = const <ListLiteralUse>[];
+    if (listLiteralDecoder != null) {
+      listLiterals = <ListLiteralUse>[];
+      for (int i = 0; i < listLiteralDecoder.length; i++) {
+        ObjectDecoder useDecoder = listLiteralDecoder.getObject(i);
+        DartType type = useDecoder.getType(Key.TYPE);
+        bool isConstant = useDecoder.getBool(Key.IS_CONST);
+        bool isEmpty = useDecoder.getBool(Key.IS_EMPTY);
+        listLiterals.add(new ListLiteralUse(
+            type, isConstant: isConstant, isEmpty: isEmpty));
+      }
+    }
+
+    ListDecoder mapLiteralDecoder =
+        objectDecoder.getList(Key.LISTS, isOptional: true);
+    List<MapLiteralUse> mapLiterals = const <MapLiteralUse>[];
+    if (listLiteralDecoder != null) {
+      mapLiterals = <MapLiteralUse>[];
+      for (int i = 0; i < mapLiteralDecoder.length; i++) {
+        ObjectDecoder useDecoder = mapLiteralDecoder.getObject(i);
+        DartType type = useDecoder.getType(Key.TYPE);
+        bool isConstant = useDecoder.getBool(Key.IS_CONST);
+        bool isEmpty = useDecoder.getBool(Key.IS_EMPTY);
+        mapLiterals.add(new MapLiteralUse(
+            type, isConstant: isConstant, isEmpty: isEmpty));
+      }
+    }
+
+    return new DeserializedResolutionImpact(
+        constSymbolNames: constSymbolNames,
+        constantLiterals: constantLiterals,
+        dynamicUses: dynamicUses,
+        features: features,
+        listLiterals: listLiterals,
+        mapLiterals: mapLiterals,
+        staticUses: staticUses,
+        typeUses: typeUses);
   }
 }

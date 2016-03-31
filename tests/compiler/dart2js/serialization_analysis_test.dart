@@ -8,6 +8,7 @@ import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/common/backend_api.dart';
 import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/compiler.dart';
@@ -247,7 +248,9 @@ Future analyze(String serializedData, Uri entryPoint, Test test) async {
             const JsonSerializationDecoder());
         deserializer.plugins.add(compiler.backend.serialization.deserializer);
         compiler.serialization.deserializer =
-            new _DeserializerSystem(deserializer);
+            new _DeserializerSystem(
+                deserializer,
+                compiler.backend.impactTransformer);
       });
   if (test != null) {
     Expect.equals(test.expectedErrorCount, diagnosticCollector.errors.length,
@@ -274,7 +277,7 @@ Future<String> serializeDartCore() async {
 String serialize(Compiler compiler) {
   Serializer serializer = new Serializer();
   serializer.plugins.add(compiler.backend.serialization.serializer);
-  serializer.plugins.add(new WorldImpactSerializer(compiler.resolution));
+  serializer.plugins.add(new ResolutionImpactSerializer(compiler.resolution));
 
   for (LibraryElement library in compiler.libraryLoader.libraries) {
     serializer.serialize(library);
@@ -284,23 +287,23 @@ String serialize(Compiler compiler) {
 
 const String WORLD_IMPACT_TAG = 'worldImpact';
 
-class WorldImpactSerializer extends SerializerPlugin {
+class ResolutionImpactSerializer extends SerializerPlugin {
   final Resolution resolution;
 
-  WorldImpactSerializer(this.resolution);
+  ResolutionImpactSerializer(this.resolution);
 
   @override
   void onElement(Element element, ObjectEncoder createEncoder(String tag)) {
     if (resolution.hasBeenResolved(element)) {
-      WorldImpact impact = resolution.getWorldImpact(element);
+      ResolutionImpact impact = resolution.getResolutionImpact(element);
       ObjectEncoder encoder = createEncoder(WORLD_IMPACT_TAG);
-      impact.apply(new ImpactSerializer(encoder));
+      new ImpactSerializer(encoder).serialize(impact);
     }
   }
 }
 
-class WorldImpactDeserializer extends DeserializerPlugin {
-  Map<Element, WorldImpact> impactMap = <Element, WorldImpact>{};
+class ResolutionImpactDeserializer extends DeserializerPlugin {
+  Map<Element, ResolutionImpact> impactMap = <Element, ResolutionImpact>{};
 
   @override
   void onElement(Element element, ObjectDecoder getDecoder(String tag)) {
@@ -314,11 +317,12 @@ class WorldImpactDeserializer extends DeserializerPlugin {
 class _DeserializerSystem extends DeserializerSystem {
   final Deserializer _deserializer;
   final List<LibraryElement> deserializedLibraries = <LibraryElement>[];
-  final WorldImpactDeserializer _worldImpactDeserializer =
-      new WorldImpactDeserializer();
+  final ResolutionImpactDeserializer _resolutionImpactDeserializer =
+      new ResolutionImpactDeserializer();
+  final ImpactTransformer _impactTransformer;
 
-  _DeserializerSystem(this._deserializer) {
-    _deserializer.plugins.add(_worldImpactDeserializer);
+  _DeserializerSystem(this._deserializer, this._impactTransformer) {
+    _deserializer.plugins.add(_resolutionImpactDeserializer);
   }
 
   LibraryElement readLibrary(Uri resolvedUri) {
@@ -331,12 +335,14 @@ class _DeserializerSystem extends DeserializerSystem {
 
   @override
   WorldImpact computeWorldImpact(Element element) {
-    WorldImpact impact = _worldImpactDeserializer.impactMap[element];
-    if (impact == null) {
+    ResolutionImpact resolutionImpact =
+        _resolutionImpactDeserializer.impactMap[element];
+    if (resolutionImpact == null) {
       print('No impact found for $element (${element.library})');
-      impact = const WorldImpact();
+      return const WorldImpact();
+    } else {
+      return _impactTransformer.transformResolutionImpact(resolutionImpact);
     }
-    return impact;
   }
 
   @override

@@ -1957,6 +1957,8 @@ class _CompilerDiagnosticReporter extends DiagnosticReporter {
 // TODO(johnniwinther): Move [ResolverTask] here.
 class _CompilerResolution implements Resolution {
   final Compiler compiler;
+  final Map<Element, ResolutionImpact> _resolutionImpactCache =
+      <Element, ResolutionImpact>{};
   final Map<Element, WorldImpact> _worldImpactCache = <Element, WorldImpact>{};
 
   _CompilerResolution(this.compiler);
@@ -2001,6 +2003,14 @@ class _CompilerResolution implements Resolution {
   }
 
   @override
+  ResolutionImpact getResolutionImpact(Element element) {
+    ResolutionImpact resolutionImpact = _resolutionImpactCache[element];
+    assert(invariant(element, resolutionImpact != null,
+        message: "ResolutionImpact not available for $element."));
+    return resolutionImpact;
+  }
+
+  @override
   WorldImpact getWorldImpact(Element element) {
     WorldImpact worldImpact = _worldImpactCache[element];
     assert(invariant(element, worldImpact != null,
@@ -2016,6 +2026,14 @@ class _CompilerResolution implements Resolution {
       assert(invariant(element, !element.isSynthesized || tree == null));
       ResolutionImpact resolutionImpact =
           compiler.resolver.resolve(element);
+      if (compiler.serialization.supportSerialization) {
+        // [ResolutionImpact] is currently only used by serialization. The
+        // enqueuer uses the [WorldImpact] which is always cached.
+        // TODO(johnniwinther): Align these use cases better; maybe only
+        // cache [ResolutionImpact] and let the enqueuer transform it into
+        // a [WorldImpact].
+        _resolutionImpactCache[element] = resolutionImpact;
+      }
       if (tree != null && !compiler.options.analyzeSignaturesOnly) {
         // TODO(het): don't do this if suppressWarnings is on, currently we have
         // to do it because the typechecker also sets types
@@ -2035,6 +2053,7 @@ class _CompilerResolution implements Resolution {
     assert(invariant(element, _worldImpactCache[element] != null,
         message: "WorldImpact not computed for $element."));
     _worldImpactCache[element] = const WorldImpact();
+    _resolutionImpactCache.remove(element);
   }
 
   @override
@@ -2042,6 +2061,7 @@ class _CompilerResolution implements Resolution {
     for (Element element in _worldImpactCache.keys) {
       _worldImpactCache[element] = const WorldImpact();
     }
+    _resolutionImpactCache.clear();
   }
 
   @override

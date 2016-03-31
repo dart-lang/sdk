@@ -190,6 +190,9 @@ abstract class Resolution {
   ResolutionWorkItem createWorkItem(
       Element element, ItemCompilationContext compilationContext);
 
+  /// Returns the precomputed [ResolutionImpact] for [element].
+  ResolutionImpact getResolutionImpact(Element element);
+
   /// Returns the precomputed [WorldImpact] for [element].
   WorldImpact getWorldImpact(Element element);
 
