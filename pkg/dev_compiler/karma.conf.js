@@ -2,10 +2,6 @@
 // Generated on Mon Apr 20 2015 06:33:20 GMT-0700 (PDT)
 
 module.exports = function(config) {
-  var harmony_flags = '--js-flags="' + [
-    '--harmony',
-  ].join(' ') + '"';
-
   var configuration = {
 
     // base path that will be used to resolve all patterns (eg. files, exclude)
@@ -77,12 +73,12 @@ module.exports = function(config) {
     customLaunchers: {
       chrome_travis: {
         base: 'Chrome',
-        flags: [ '--no-sandbox', harmony_flags ]
+        flags: [ '--no-sandbox' ]
       },
 
       chrome_canary_travis: {
         base: 'ChromeCanary',
-        flags: [ '--no-sandbox', harmony_flags ]
+        flags: [ '--no-sandbox' ]
       },
     },
 
