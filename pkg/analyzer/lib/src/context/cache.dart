@@ -173,12 +173,13 @@ class AnalysisCache {
    * It does not update the cache, if the corresponding [CacheEntry] does not
    * exist, then the default value is returned.
    */
-  Object getValue(AnalysisTarget target, ResultDescriptor result) {
+  Object/*=V*/ getValue/*<V>*/(
+      AnalysisTarget target, ResultDescriptor/*<V>*/ result) {
     CacheEntry entry = get(target);
     if (entry == null) {
       return result.defaultValue;
     }
-    return entry.getValue(result);
+    return entry.getValue(result) as Object/*=V*/;
   }
 
   /**

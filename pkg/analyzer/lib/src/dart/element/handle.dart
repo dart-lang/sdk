@@ -95,6 +95,9 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
   ConstructorElement get unnamedConstructor => actualElement.unnamedConstructor;
 
   @override
+  NamedCompilationUnitMember computeNode() => super.computeNode();
+
+  @override
   FieldElement getField(String fieldName) => actualElement.getField(fieldName);
 
   @override
@@ -895,6 +898,9 @@ class ParameterElementHandle extends VariableElementHandle
 
   @override
   SourceRange get visibleRange => actualElement.visibleRange;
+
+  @override
+  FormalParameter computeNode() => super.computeNode();
 }
 
 /**
@@ -1013,6 +1019,9 @@ class TopLevelVariableElementHandle extends PropertyInducingElementHandle
 
   @override
   ElementKind get kind => ElementKind.TOP_LEVEL_VARIABLE;
+
+  @override
+  VariableDeclaration computeNode() => super.computeNode();
 }
 
 /**
@@ -1075,10 +1084,12 @@ abstract class VariableElementHandle extends ElementHandle
   @override
   bool get isFinal => actualElement.isFinal;
 
+  @deprecated
   @override
   bool get isPotentiallyMutatedInClosure =>
       actualElement.isPotentiallyMutatedInClosure;
 
+  @deprecated
   @override
   bool get isPotentiallyMutatedInScope =>
       actualElement.isPotentiallyMutatedInScope;

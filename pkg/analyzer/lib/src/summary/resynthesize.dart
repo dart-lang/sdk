@@ -723,7 +723,8 @@ class _DeferredConstructorElement extends ConstructorElementHandle {
       : super(null, location);
 
   @override
-  Element get actualElement => enclosingElement.getNamedConstructor(name);
+  ConstructorElement get actualElement =>
+      enclosingElement.getNamedConstructor(name);
 
   @override
   AnalysisContext get context => _definingType.element.context;
@@ -1325,7 +1326,7 @@ class _ReferenceInfo {
         // For a type that refers to a generic executable, the type arguments are
         // not supposed to include the arguments to the executable itself.
         numTypeArguments = enclosing == null ? 0 : enclosing.numTypeParameters;
-        computer = () => this.element;
+        computer = () => this.element as FunctionTypedElement;
       }
       // TODO(paulberry): Is it a bug that we have to pass `false` for
       // isInstantiated?

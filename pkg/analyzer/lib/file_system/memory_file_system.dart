@@ -296,7 +296,7 @@ class _MemoryDummyLink extends _MemoryResource implements File {
   }
 
   @override
-  Resource renameSync(String newPath) {
+  File renameSync(String newPath) {
     throw new FileSystemException(path, 'File could not be renamed');
   }
 

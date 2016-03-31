@@ -7537,8 +7537,10 @@ class ResolverVisitor extends ScopedVisitor {
 
     // Same number of type formals. Instantiate the function type so its
     // parameter and return type are in terms of the surrounding context.
-    return fnType.instantiate(
-        typeParameters.map((t) => t.name.staticElement.type).toList());
+    return fnType.instantiate(typeParameters
+        .map((TypeParameter t) =>
+            (t.name.staticElement as TypeParameterElement).type)
+        .toList());
   }
 
   /**

@@ -45,7 +45,7 @@ import 'package:analyzer/task/model.dart';
 /**
  * The [ResultCachingPolicy] for ASTs.
  */
-const ResultCachingPolicy AST_CACHING_POLICY =
+const ResultCachingPolicy<CompilationUnit> AST_CACHING_POLICY =
     const SimpleResultCachingPolicy(16384, 16384);
 
 /**
@@ -57,7 +57,7 @@ const ResultCachingPolicy ELEMENT_CACHING_POLICY =
 /**
  * The [ResultCachingPolicy] for [TOKEN_STREAM].
  */
-const ResultCachingPolicy TOKEN_STREAM_CACHING_POLICY =
+const ResultCachingPolicy<Token> TOKEN_STREAM_CACHING_POLICY =
     const SimpleResultCachingPolicy(1, 1);
 
 /**
@@ -1986,7 +1986,7 @@ class ComputeLibraryCycleTask extends SourceBasedAnalysisTask {
       List<LibraryElement> component = library.libraryCycle;
       Set<LibraryElement> filter = new Set<LibraryElement>.from(component);
       Set<CompilationUnitElement> deps = new Set<CompilationUnitElement>();
-      void addLibrary(l) {
+      void addLibrary(LibraryElement l) {
         if (!filter.contains(l)) {
           deps.addAll(l.units);
         }
@@ -2933,13 +2933,17 @@ class InferInstanceMembersInUnitTask extends SourceBasedAnalysisTask {
       // Require that field re-resolution be complete for all units in the
       // current library cycle.
       'orderLibraryCycleTasks': LIBRARY_CYCLE_UNITS.of(unit).toList(
-          (CompilationUnitElementImpl unit) => CREATED_RESOLVED_UNIT8
-              .of(new LibrarySpecificUnit(unit.librarySource, unit.source))),
+          (CompilationUnitElement unit) => CREATED_RESOLVED_UNIT8.of(
+              new LibrarySpecificUnit(
+                  (unit as CompilationUnitElementImpl).librarySource,
+                  unit.source))),
       // Require that full inference be complete for all dependencies of the
       // current library cycle.
       'orderLibraryCycles': LIBRARY_CYCLE_DEPENDENCIES.of(unit).toList(
-          (CompilationUnitElementImpl unit) => CREATED_RESOLVED_UNIT9
-              .of(new LibrarySpecificUnit(unit.librarySource, unit.source)))
+          (CompilationUnitElement unit) => CREATED_RESOLVED_UNIT9.of(
+              new LibrarySpecificUnit(
+                  (unit as CompilationUnitElementImpl).librarySource,
+                  unit.source)))
     };
   }
 
@@ -3193,8 +3197,10 @@ class InferStaticVariableTypeTask extends InferStaticVariableTask {
       // Require that full inference be complete for all dependencies of the
       // current library cycle.
       'orderLibraryCycles': LIBRARY_CYCLE_DEPENDENCIES.of(unit).toList(
-          (CompilationUnitElementImpl unit) => CREATED_RESOLVED_UNIT9
-              .of(new LibrarySpecificUnit(unit.librarySource, unit.source)))
+          (CompilationUnitElement unit) => CREATED_RESOLVED_UNIT9.of(
+              new LibrarySpecificUnit(
+                  (unit as CompilationUnitElementImpl).librarySource,
+                  unit.source)))
     };
   }
 
@@ -3675,8 +3681,10 @@ class PartiallyResolveUnitReferencesTask extends SourceBasedAnalysisTask {
       // Require that full inference be complete for all dependencies of the
       // current library cycle.
       'orderLibraryCycles': LIBRARY_CYCLE_DEPENDENCIES.of(unit).toList(
-          (CompilationUnitElementImpl unit) => CREATED_RESOLVED_UNIT9
-              .of(new LibrarySpecificUnit(unit.librarySource, unit.source)))
+          (CompilationUnitElement unit) => CREATED_RESOLVED_UNIT9.of(
+              new LibrarySpecificUnit(
+                  (unit as CompilationUnitElementImpl).librarySource,
+                  unit.source)))
     };
   }
 
@@ -4398,13 +4406,17 @@ class ResolveInstanceFieldsInUnitTask extends SourceBasedAnalysisTask {
       // Require that static variable inference  be complete for all units in
       // the current library cycle.
       'orderLibraryCycleTasks': LIBRARY_CYCLE_UNITS.of(unit).toList(
-          (CompilationUnitElementImpl unit) => CREATED_RESOLVED_UNIT7
-              .of(new LibrarySpecificUnit(unit.librarySource, unit.source))),
+          (CompilationUnitElement unit) => CREATED_RESOLVED_UNIT7.of(
+              new LibrarySpecificUnit(
+                  (unit as CompilationUnitElementImpl).librarySource,
+                  unit.source))),
       // Require that full inference be complete for all dependencies of the
       // current library cycle.
       'orderLibraryCycles': LIBRARY_CYCLE_DEPENDENCIES.of(unit).toList(
-          (CompilationUnitElementImpl unit) => CREATED_RESOLVED_UNIT9
-              .of(new LibrarySpecificUnit(unit.librarySource, unit.source)))
+          (CompilationUnitElement unit) => CREATED_RESOLVED_UNIT9.of(
+              new LibrarySpecificUnit(
+                  (unit as CompilationUnitElementImpl).librarySource,
+                  unit.source)))
     };
   }
 
@@ -4721,8 +4733,10 @@ class ResolveUnitTask extends SourceBasedAnalysisTask {
       // Require that inference be complete for all units in the
       // current library cycle.
       'orderLibraryCycleTasks': LIBRARY_CYCLE_UNITS.of(unit).toList(
-          (CompilationUnitElementImpl unit) => CREATED_RESOLVED_UNIT9
-              .of(new LibrarySpecificUnit(unit.librarySource, unit.source)))
+          (CompilationUnitElement unit) => CREATED_RESOLVED_UNIT9.of(
+              new LibrarySpecificUnit(
+                  (unit as CompilationUnitElementImpl).librarySource,
+                  unit.source)))
     };
   }
 

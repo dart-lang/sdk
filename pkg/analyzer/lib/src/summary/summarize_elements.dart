@@ -504,10 +504,11 @@ class _CompilationUnitSerializer {
     if (element.metadata.isEmpty) {
       return const <UnlinkedConstBuilder>[];
     }
-    return element.metadata.map((ElementAnnotationImpl a) {
+    return element.metadata.map((ElementAnnotation a) {
       _ConstExprSerializer serializer =
           new _ConstExprSerializer(this, element, null);
-      serializer.serializeAnnotation(a.annotationAst);
+      serializer
+          .serializeAnnotation((a as ElementAnnotationImpl).annotationAst);
       return serializer.toBuilder();
     }).toList();
   }

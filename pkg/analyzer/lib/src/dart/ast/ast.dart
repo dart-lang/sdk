@@ -7600,8 +7600,7 @@ class NodeListImpl<E extends AstNode> extends Object
   /**
    * The node that is the parent of each of the elements in the list.
    */
-  @override
-  AstNodeImpl owner;
+  AstNodeImpl _owner;
 
   /**
    * The elements contained in the list.
@@ -7613,7 +7612,7 @@ class NodeListImpl<E extends AstNode> extends Object
    * are added to the list will have their parent set to the given [owner]. The
    * list will initially be populated with the given [elements].
    */
-  NodeListImpl(this.owner, [List<E> elements]) {
+  NodeListImpl(this._owner, [List<E> elements]) {
     addAll(elements);
   }
 
@@ -7642,6 +7641,14 @@ class NodeListImpl<E extends AstNode> extends Object
     throw new UnsupportedError("Cannot resize NodeList.");
   }
 
+  @override
+  AstNode get owner => _owner;
+
+  @override
+  void set owner(AstNode value) {
+    _owner = value as AstNodeImpl;
+  }
+
   E operator [](int index) {
     if (index < 0 || index >= _elements.length) {
       throw new RangeError("Index: $index, Size: ${_elements.length}");
@@ -7653,7 +7660,7 @@ class NodeListImpl<E extends AstNode> extends Object
     if (index < 0 || index >= _elements.length) {
       throw new RangeError("Index: $index, Size: ${_elements.length}");
     }
-    owner._becomeParentOf(node);
+    _owner._becomeParentOf(node);
     _elements[index] = node;
   }
 
@@ -7675,7 +7682,7 @@ class NodeListImpl<E extends AstNode> extends Object
     if (nodes != null && !nodes.isEmpty) {
       _elements.addAll(nodes);
       for (E node in nodes) {
-        owner._becomeParentOf(node);
+        _owner._becomeParentOf(node);
       }
       return true;
     }
@@ -7693,7 +7700,7 @@ class NodeListImpl<E extends AstNode> extends Object
     if (index < 0 || index > length) {
       throw new RangeError("Index: $index, Size: ${_elements.length}");
     }
-    owner._becomeParentOf(node);
+    _owner._becomeParentOf(node);
     if (length == 0) {
       _elements.add(node);
     } else {
