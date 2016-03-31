@@ -512,6 +512,20 @@ class B extends A {m() {^}}
       assertNoResult('HtmlElement');
     });
   }
+
+  test_import_uri_with_trailing() {
+    addFile('/project/bin/testA.dart', 'library libA;');
+    addTestFile('''
+      import '/project/bin/t^.dart';
+      main() {}''');
+    return getSuggestions().then((_) {
+      expect(replacementOffset, equals(completionOffset - 14));
+      expect(replacementLength, equals(5 + 14));
+      assertHasResult(
+          CompletionSuggestionKind.IMPORT, '/project/bin/testA.dart');
+      assertNoResult('test');
+    });
+  }
 }
 
 class MockRelevancySorter implements DartContributionSorter {
