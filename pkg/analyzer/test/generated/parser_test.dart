@@ -2033,6 +2033,24 @@ class Foo {
         "static var x;", [ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION]);
   }
 
+  void test_string_unterminated_interpolation_block() {
+    ParserTestCase.parseCompilationUnit(
+        r'''
+m() {
+ {
+ '${${
+''',
+        [
+          ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.EXPECTED_TOKEN,
+        ]);
+  }
+
   void test_switchHasCaseAfterDefaultCase() {
     parse4(
         "parseSwitchStatement",
