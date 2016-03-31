@@ -9,4 +9,4 @@ export 'src/analysis_context.dart'
 export 'src/compiler.dart' show BatchCompiler, setupLogger;
 
 // When updating this version, also update the version in the pubspec.
-const devCompilerVersion = '0.1.22';
+const devCompilerVersion = '0.1.23';
