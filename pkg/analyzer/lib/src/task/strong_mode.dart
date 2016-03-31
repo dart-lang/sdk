@@ -29,7 +29,10 @@ void setFieldType(VariableElement field, DartType newType) {
   if (field is PropertyInducingElementImpl) {
     (field.getter as ExecutableElementImpl).returnType = newType;
     if (!field.isFinal && !field.isConst) {
-      (field.setter.parameters[0] as ParameterElementImpl).type = newType;
+      List<ParameterElement> setterParameters = field.setter.parameters;
+      if (setterParameters.isNotEmpty) {
+        (setterParameters[0] as ParameterElementImpl).type = newType;
+      }
     }
   }
 }

@@ -18,6 +18,7 @@ import '../context/abstract_context.dart';
 main() {
   initializeTestEnvironment();
   runReflectiveTests(InstanceMemberInferrerTest);
+  runReflectiveTests(SetFieldTypeTest);
   runReflectiveTests(VariableGathererTest);
 }
 
@@ -978,6 +979,23 @@ class B extends A {
     // Note that B's synthetic field type will be String. This matches what
     // resolver would do if we explicitly typed the parameter as 'String'
     expect(fieldB.type, setterB.parameters[0].type);
+  }
+}
+
+@reflectiveTest
+class SetFieldTypeTest extends AbstractContextTest {
+  void test_setter_withoutParameter() {
+    CompilationUnitElement unit = _resolve('''
+var x = 0;
+set x() {}
+''');
+    TopLevelVariableElement variable = unit.topLevelVariables.single;
+    setFieldType(variable, context.typeProvider.intType);
+  }
+
+  CompilationUnitElement _resolve(String content) {
+    Source source = addSource('/test.dart', content);
+    return context.resolveCompilationUnit2(source, source).element;
   }
 }
 
