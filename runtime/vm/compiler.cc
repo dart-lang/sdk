@@ -1375,15 +1375,20 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   ASSERT(var_descs.IsNull());
   // IsIrregexpFunction have eager var descriptors generation.
   ASSERT(!function.IsIrregexpFunction());
-  // Parser should not produce any errors, therefore no LongJumpScope needed.
-  // (exception is background compilation).
-  ASSERT(!Compiler::IsBackgroundCompilation());
-  Parser::ParseFunction(parsed_function);
-  parsed_function->AllocateVariables();
-  var_descs = parsed_function->node_sequence()->scope()->
-      GetVarDescriptors(function);
-  ASSERT(!var_descs.IsNull());
-  code.set_var_descriptors(var_descs);
+  // In background compilation, parser can produce 'errors": bailouts
+  // if state changed while compiling in background.
+  LongJumpScope jump;
+  if (setjmp(*jump.Set()) == 0) {
+    Parser::ParseFunction(parsed_function);
+    parsed_function->AllocateVariables();
+    var_descs = parsed_function->node_sequence()->scope()->
+        GetVarDescriptors(function);
+    ASSERT(!var_descs.IsNull());
+    code.set_var_descriptors(var_descs);
+  } else {
+    // Only possible with background compilation.
+    ASSERT(Compiler::IsBackgroundCompilation());
+  }
 }
 
 
