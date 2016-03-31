@@ -180,6 +180,13 @@ const char* Dart::InitOnce(const uint8_t* vm_isolate_snapshot,
       if (!error.IsNull()) {
         return error.ToCString();
       }
+      NOT_IN_PRODUCT(if (tds.enabled()) {
+        tds.SetNumArguments(2);
+        tds.FormatArgument(0, "snapshotSize", "%" Pd, snapshot->length());
+        tds.FormatArgument(1, "heapSize", "%" Pd64,
+                           vm_isolate_->heap()->UsedInWords(Heap::kOld) *
+                           kWordSize);
+      });
       if (FLAG_trace_isolates) {
         OS::Print("Size of vm isolate snapshot = %" Pd "\n",
                   snapshot->length());
@@ -444,6 +451,12 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     if (!error.IsNull()) {
       return error.raw();
     }
+    NOT_IN_PRODUCT(if (tds.enabled()) {
+      tds.SetNumArguments(2);
+      tds.FormatArgument(0, "snapshotSize", "%" Pd, snapshot->length());
+      tds.FormatArgument(1, "heapSize", "%" Pd64,
+                         I->heap()->UsedInWords(Heap::kOld) * kWordSize);
+    });
     if (FLAG_trace_isolates) {
       I->heap()->PrintSizes();
       MegamorphicCacheTable::PrintSizes(I);
