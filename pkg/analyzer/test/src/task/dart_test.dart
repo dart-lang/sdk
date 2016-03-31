@@ -2227,7 +2227,7 @@ class GatherUsedImportedElementsTaskTest extends _AbstractDartTaskTest {
   UsedImportedElements usedElements;
   Set<String> usedElementNames;
 
-  test_perform() {
+  test_perform_inBody() {
     newSource(
         '/a.dart',
         r'''
@@ -2251,6 +2251,54 @@ main() {
     _computeUsedElements(source);
     // validate
     expect(usedElementNames, unorderedEquals(['A']));
+  }
+
+  test_perform_inComment_exportDirective() {
+    Source source = newSource(
+        '/test.dart',
+        r'''
+import 'dart:async';
+/// Use [Future].
+export 'dart:math';
+''');
+    _computeUsedElements(source);
+    expect(usedElementNames, unorderedEquals(['Future']));
+  }
+
+  test_perform_inComment_importDirective() {
+    Source source = newSource(
+        '/test.dart',
+        r'''
+import 'dart:async';
+/// Use [Future].
+import 'dart:math';
+''');
+    _computeUsedElements(source);
+    expect(usedElementNames, unorderedEquals(['Future']));
+  }
+
+  test_perform_inComment_libraryDirective() {
+    Source source = newSource(
+        '/test.dart',
+        r'''
+/// Use [Future].
+library test;
+import 'dart:async';
+''');
+    _computeUsedElements(source);
+    expect(usedElementNames, unorderedEquals(['Future']));
+  }
+
+  test_perform_inComment_topLevelFunction() {
+    Source source = newSource(
+        '/test.dart',
+        r'''
+import 'dart:async';
+/// Use [Future].
+main() {}
+''');
+    _computeUsedElements(source);
+    expect(usedElementNames, unorderedEquals(['Future']));
   }
 
   void _computeUsedElements(Source source) {

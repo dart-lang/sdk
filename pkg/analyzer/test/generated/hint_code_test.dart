@@ -2709,6 +2709,15 @@ class A {}''');
     verify([source, source2]);
   }
 
+  void test_unusedImport_inComment_libraryDirective() {
+    Source source = addSource(r'''
+/// Use [Future] class.
+library L;
+import 'dart:async';
+''');
+    assertNoErrors(source);
+  }
+
   void test_unusedImport_show() {
     Source source = addSource(r'''
 library L;

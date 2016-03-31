@@ -4082,17 +4082,17 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    _visitMetadata(node.metadata);
+    _visitDirective(node);
   }
 
   @override
   void visitImportDirective(ImportDirective node) {
-    _visitMetadata(node.metadata);
+    _visitDirective(node);
   }
 
   @override
   void visitLibraryDirective(LibraryDirective node) {
-    _visitMetadata(node.metadata);
+    _visitDirective(node);
   }
 
   @override
@@ -4114,6 +4114,14 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     _visitIdentifier(node.staticElement, node.name);
+  }
+
+  /**
+   * Visit identifiers used by the given [directive].
+   */
+  void _visitDirective(Directive directive) {
+    directive.documentationComment?.accept(this);
+    directive.metadata.accept(this);
   }
 
   void _visitIdentifier(Element element, String name) {
@@ -4149,20 +4157,6 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
     }
     // Remember the element.
     usedElements.elements.add(element);
-  }
-
-  /**
-   * Given some [NodeList] of [Annotation]s, ensure that the identifiers are visited by
-   * this visitor. Specifically, this covers the cases where AST nodes don't have their identifiers
-   * visited by this visitor, but still need their annotations visited.
-   *
-   * @param annotations the list of annotations to visit
-   */
-  void _visitMetadata(NodeList<Annotation> annotations) {
-    int count = annotations.length;
-    for (int i = 0; i < count; i++) {
-      annotations[i].accept(this);
-    }
   }
 }
 
@@ -4463,7 +4457,7 @@ class ImplicitLabelScope {
  * While this class does not yet have support for an "Organize Imports" action, this logic built up
  * in this class could be used for such an action in the future.
  */
-class ImportsVerifier /*extends RecursiveAstVisitor<Object>*/ {
+class ImportsVerifier {
   /**
    * A list of [ImportDirective]s that the current library imports, as identifiers are visited
    * by this visitor and an import has been identified as being used by the library, the
