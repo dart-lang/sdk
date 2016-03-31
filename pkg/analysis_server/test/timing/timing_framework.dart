@@ -224,17 +224,13 @@ abstract class TimingTest extends IntegrationTestMixin {
    * number of milliseconds required to perform the operation the specified
    * number of times.
    */
-  Future<TimingResult> run() {
+  Future<TimingResult> run() async {
     List<int> times = new List<int>();
-    return oneTimeSetUp().then((_) {
-      return _repeat(warmupCount, null).then((_) {
-        return _repeat(timingCount, times).then((_) {
-          return oneTimeTearDown().then((_) {
-            return new Future.value(new TimingResult(times));
-          });
-        });
-      });
-    });
+    await oneTimeSetUp();
+    await _repeat(warmupCount, null);
+    await _repeat(timingCount, times);
+    await oneTimeTearDown();
+    return new Future<TimingResult>.value(new TimingResult(times));
   }
 
   /**

@@ -60,13 +60,16 @@ class AnalysisManager {
   /**
    * Launch an analysis server and open a connection to that server.
    */
-  Future<AnalysisManager> _launchServer(String pathToServer) {
-    // TODO dynamically allocate port and/or allow client to specify port
-    List<String> serverArgs = [pathToServer, '--port', PORT.toString()];
-    return Process.start(Platform.executable, serverArgs).catchError((error) {
+  Future<AnalysisManager> _launchServer(String pathToServer) async {
+    try {
+      // TODO dynamically allocate port and/or allow client to specify port
+      List<String> serverArgs = [pathToServer, '--port', PORT.toString()];
+      Process process = await Process.start(Platform.executable, serverArgs);
+      return _listenForPort(process);
+    } catch (error) {
       exitCode = 1;
       throw 'Failed to launch analysis server: $error';
-    }).then(_listenForPort);
+    }
   }
 
   /**

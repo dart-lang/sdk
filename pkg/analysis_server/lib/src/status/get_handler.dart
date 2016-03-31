@@ -886,12 +886,11 @@ class GetHandler {
     Map<Folder, List<CacheEntry>> entryMap =
         new HashMap<Folder, List<CacheEntry>>();
     StringBuffer invalidKeysBuffer = new StringBuffer();
-    analysisServer.folderMap
-        .forEach((Folder folder, InternalAnalysisContext context) {
+    analysisServer.folderMap.forEach((Folder folder, AnalysisContext context) {
       Source source = context.sourceFactory.forUri(sourceUri);
       if (source != null) {
         MapIterator<AnalysisTarget, CacheEntry> iterator =
-            context.analysisCache.iterator();
+            (context as InternalAnalysisContext).analysisCache.iterator();
         while (iterator.moveNext()) {
           if (source == iterator.key.source) {
             if (!allContexts.contains(folder)) {
@@ -1223,15 +1222,15 @@ class GetHandler {
       return _returnFailure(request, 'Invalid context: $contextFilter');
     }
 
-    List<String> priorityNames;
+    List<String> priorityNames = <String>[];
     List<String> explicitNames = <String>[];
     List<String> implicitNames = <String>[];
     Map<String, String> links = new HashMap<String, String>();
     List<CaughtException> exceptions = <CaughtException>[];
     InternalAnalysisContext context = analysisServer.folderMap[folder];
-    priorityNames = context.prioritySources
-        .map((Source source) => source.fullName)
-        .toList();
+    context.prioritySources.forEach((Source source) {
+      priorityNames.add(source.fullName);
+    });
     MapIterator<AnalysisTarget, CacheEntry> iterator =
         context.analysisCache.iterator(context: context);
     while (iterator.moveNext()) {
@@ -1337,8 +1336,8 @@ class GetHandler {
                 context?.sourceFactory?.dartSdk?.context?.analysisOptions);
           },
           (StringBuffer buffer) {
-            List<Linter> lints =
-                context.getConfigurationData(CONFIGURED_LINTS_KEY);
+            List<Linter> lints = context
+                .getConfigurationData(CONFIGURED_LINTS_KEY) as List<Linter>;
             buffer.write('<p><b>Lints</b></p>');
             if (lints.isEmpty) {
               buffer.write('<p>none</p>');
@@ -1351,7 +1350,8 @@ class GetHandler {
             }
 
             List<ErrorProcessor> errorProcessors =
-                context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
+                context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS)
+                as List<ErrorProcessor>;
             int processorCount = errorProcessors?.length ?? 0;
             buffer
                 .write('<p><b>Error Processor count</b>: $processorCount</p>');
@@ -1885,7 +1885,7 @@ class GetHandler {
     buffer.write(_diagnosticCallAverage.value);
     buffer.write(' (ms)</p>&nbsp;');
 
-    var json = response.toJson()[Response.RESULT];
+    Map json = response.toJson()[Response.RESULT];
     List contexts = json['contexts'];
     contexts.sort((first, second) => first['name'].compareTo(second['name']));
 
@@ -2232,7 +2232,7 @@ class GetHandler {
     _writeTwoColumns(buffer, (StringBuffer buffer) {
       if (analysisServer == null) {
         buffer.write('Status: <span style="color:red">Not running</span>');
-        return false;
+        return;
       }
       buffer.write('<p>');
       buffer.write('Status: Running<br>');
@@ -2261,7 +2261,7 @@ class GetHandler {
     }, (StringBuffer buffer) {
       _writeSubscriptionList(buffer, ServerService.VALUES, services);
     });
-    return true;
+    return analysisServer != null;
   }
 
   /**

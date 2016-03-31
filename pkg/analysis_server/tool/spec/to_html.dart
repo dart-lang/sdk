@@ -172,8 +172,8 @@ class ToHtmlVisitor extends HierarchicalApiVisitor
   ApiMappings apiMappings;
 
   ToHtmlVisitor(Api api)
-      : super(api),
-        apiMappings = new ApiMappings(api) {
+      : apiMappings = new ApiMappings(api),
+        super(api) {
     apiMappings.visitApi();
   }
 

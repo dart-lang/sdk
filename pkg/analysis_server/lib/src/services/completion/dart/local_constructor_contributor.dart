@@ -181,8 +181,8 @@ class _Visitor extends LocalDeclarationVisitor {
   final List<CompletionSuggestion> suggestions;
 
   _Visitor(DartCompletionRequest request, this.suggestions)
-      : super(request.offset),
-        request = request;
+      : request = request,
+        super(request.offset);
 
   @override
   void declaredClass(ClassDeclaration declaration) {
