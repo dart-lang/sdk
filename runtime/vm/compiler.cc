@@ -1675,7 +1675,6 @@ void BackgroundCompiler::Run() {
     ASSERT(result);
     {
       Thread* thread = Thread::Current();
-      Isolate* isolate = thread->isolate();
       StackZone stack_zone(thread);
       Zone* zone = stack_zone.GetZone();
       HANDLESCOPE(thread);
@@ -1693,11 +1692,14 @@ void BackgroundCompiler::Run() {
         // unoptimized code. Any issues while optimizing are flagged by
         // making the result invalid.
         ASSERT(error.IsNull());
+#ifndef PRODUCT
+        Isolate* isolate = thread->isolate();
         // We cannot aggregate stats if isolate is shutting down.
         if (isolate->HasMutatorThread()) {
           isolate->aggregate_compiler_stats()->Add(*thread->compiler_stats());
         }
         thread->compiler_stats()->Clear();
+#endif  // PRODUCT
         QueueElement* qelem = function_queue()->Remove();
         delete qelem;
         function = function_queue()->PeekFunction();
