@@ -8,6 +8,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:html';
 import 'observatory_element.dart';
+import 'package:observatory/elements.dart';
 import 'package:observatory/service_html.dart';
 import 'package:polymer/polymer.dart';
 
@@ -20,6 +21,9 @@ class TimelinePageElement extends ObservatoryElement {
     super.attached();
     _resizeSubscription = window.onResize.listen((_) => _updateSize());
     _updateSize();
+    // Click refresh button.
+    NavRefreshElement refreshButton = $['refresh'];
+    refreshButton.buttonClick(null, null, null);
   }
 
   detached() {
