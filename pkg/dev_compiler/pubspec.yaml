@@ -1,6 +1,6 @@
 name: dev_compiler
 # When updating this version, also update the version in lib/devc.dart.
-version: 0.1.22
+version: 0.1.23
 description: >
   Experimental Dart to JavaScript compiler designed to create idiomatic,
   readable JavaScript output.
