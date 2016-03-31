@@ -840,9 +840,11 @@ static Dart_Isolate CreateIsolateAndSetupHelper(const char* script_uri,
     result = Dart_RunLoop();
     CHECK_RESULT(result);
 
-    if (isolate_data->load_async_id >= 0) {
-      Dart_TimelineAsyncEnd("LoadScript", isolate_data->load_async_id);
-    }
+    Dart_TimelineEvent("LoadScript",
+                       Dart_TimelineGetMicros(),
+                       Dart_GetMainPortId(),
+                       Dart_Timeline_Event_Async_End,
+                       0, NULL, NULL);
 
     result = DartUtils::SetupIOLibrary(script_uri);
     CHECK_RESULT(result);

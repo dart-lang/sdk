@@ -1014,67 +1014,6 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
                                     const char** argument_values);
 
 /**
- * Add a duration timeline event to the embedder stream.
- *
- * \param label The name of the event.
- * \param start_micros The start of the duration (in microseconds)
- * \param end_micros The end of the duration (in microseconds)
- *
- * NOTE: All timestamps should be acquired from Dart_TimelineGetMicros.
- */
-DART_EXPORT void Dart_TimelineDuration(const char* label,
-                                       int64_t start_micros,
-                                       int64_t end_micros);
-
-
-/**
- * Add an instant timeline event to the embedder stream.
- *
- * \param label The name of event.
- *
- * NOTE: All timestamps should be acquired from Dart_TimelineGetMicros.
- */
-DART_EXPORT void Dart_TimelineInstant(const char* label);
-
-
-/**
- * Adds an asynchronous begin timeline event to the embedder stream.
- *
- * \param label The name of event.
- * \param async_id Pointer that receives the asynchronous id for this async
- *   operation. If it is less than 0 the event was not added to the timeline.
- *
- * NOTE: All timestamps should be acquired from Dart_TimelineGetMicros.
- */
-DART_EXPORT void Dart_TimelineAsyncBegin(const char* label,
-                                         int64_t* async_id);
-
-
-/**
- * Adds an asynchronous instant timeline event to the embedder stream.
- *
- * \param label The name of event.
- * \param async_id the asynchronous id received by Dart_TimelineAsyncBegin.
- *
- * NOTE: All timestamps should be acquired from Dart_TimelineGetMicros.
- */
-DART_EXPORT void Dart_TimelineAsyncInstant(const char* label,
-                                           int64_t async_id);
-
-
-/**
- * Adds an asynchronous end timeline event to the embedder stream.
- *
- * \param label The name of event.
- * \param async_id the asynchronous id received by Dart_TimelineAsyncBegin.
- *
- * NOTE: All timestamps should be acquired from Dart_TimelineGetMicros.
- */
-DART_EXPORT void Dart_TimelineAsyncEnd(const char* label,
-                                       int64_t async_id);
-
-
-/**
  * Called by the VM to let the embedder know when to start recording into the
  * timeline. Can be called from any thread.
  */

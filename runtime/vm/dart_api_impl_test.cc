@@ -9195,7 +9195,11 @@ TEST_CASE(Timeline_Dart_TimelineDuration) {
   // Make sure it is enabled.
   stream->set_enabled(true);
   // Add a duration event.
-  Dart_TimelineDuration("testDurationEvent", 0, 1);
+  Dart_TimelineEvent("testDurationEvent",
+                     0,
+                     1,
+                     Dart_Timeline_Event_Duration,
+                     0, NULL, NULL);
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
   Timeline::ReclaimCachedBlocksFromThreads();
@@ -9212,7 +9216,11 @@ TEST_CASE(Timeline_Dart_TimelineInstant) {
   TimelineStream* stream = Timeline::GetEmbedderStream();
   // Make sure it is enabled.
   stream->set_enabled(true);
-  Dart_TimelineInstant("testInstantEvent");
+  Dart_TimelineEvent("testInstantEvent",
+                     0,
+                     1,
+                     Dart_Timeline_Event_Instant,
+                     0, NULL, NULL);
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
   Timeline::ReclaimCachedBlocksFromThreads();
@@ -9228,12 +9236,12 @@ TEST_CASE(Timeline_Dart_TimelineAsyncDisabled) {
   TimelineStream* stream = Timeline::GetEmbedderStream();
   // Make sure it is disabled.
   stream->set_enabled(false);
-  int64_t async_id = -1;
-  Dart_TimelineAsyncBegin("testAsyncEvent", &async_id);
-  // Expect that the |async_id| is negative because the stream is disabled.
-  EXPECT(async_id < 0);
-  // Call Dart_TimelineAsyncEnd with a negative async_id.
-  Dart_TimelineAsyncEnd("testAsyncEvent", async_id);
+  int64_t async_id = 99;
+  Dart_TimelineEvent("testAsyncEvent",
+                     0,
+                     async_id,
+                     Dart_Timeline_Event_Async_Begin,
+                     0, NULL, NULL);
   // Check that testAsync is not in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
   Timeline::ReclaimCachedBlocksFromThreads();
@@ -9250,12 +9258,12 @@ TEST_CASE(Timeline_Dart_TimelineAsync) {
   TimelineStream* stream = Timeline::GetEmbedderStream();
   // Make sure it is enabled.
   stream->set_enabled(true);
-  int64_t async_id = -1;
-  Dart_TimelineAsyncBegin("testAsyncEvent", &async_id);
-  // Expect that the |async_id| is >= 0.
-  EXPECT(async_id >= 0);
-
-  Dart_TimelineAsyncEnd("testAsyncEvent", async_id);
+  int64_t async_id = 99;
+  Dart_TimelineEvent("testAsyncEvent",
+                     0,
+                     async_id,
+                     Dart_Timeline_Event_Async_Begin,
+                     0, NULL, NULL);
 
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
