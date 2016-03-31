@@ -41,6 +41,24 @@ int compareStrings(String a, String b) {
   return a.compareTo(b);
 }
 
+/**
+ * Return a simple difference between the given [oldStr] and [newStr].
+ */
+SimpleDiff computeSimpleDiff(String oldStr, String newStr) {
+  int prefixLength = findCommonPrefix(oldStr, newStr);
+  int suffixLength = findCommonSuffix(oldStr, newStr);
+  while (prefixLength >= 0) {
+    int oldReplaceLength = oldStr.length - prefixLength - suffixLength;
+    int newReplaceLength = newStr.length - prefixLength - suffixLength;
+    if (oldReplaceLength >= 0 && newReplaceLength >= 0) {
+      return new SimpleDiff(prefixLength, oldReplaceLength,
+          newStr.substring(prefixLength, newStr.length - suffixLength));
+    }
+    prefixLength--;
+  }
+  return new SimpleDiff(0, oldStr.length, newStr);
+}
+
 int countLeadingWhitespaces(String str) {
   int i = 0;
   for (; i < str.length; i++) {
@@ -278,4 +296,16 @@ String substringAfterLast(String str, String separator) {
     return str;
   }
   return str.substring(pos + separator.length);
+}
+
+/**
+ * Information about a single replacement that should be made to convert the
+ * "old" string to the "new" one.
+ */
+class SimpleDiff {
+  final int offset;
+  final int length;
+  final String replacement;
+
+  SimpleDiff(this.offset, this.length, this.replacement);
 }

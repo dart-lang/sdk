@@ -33,6 +33,27 @@ class StringsTest {
     expect(compareStrings('b', 'a'), 1);
   }
 
+  void test_computeSimpleDiff() {
+    assertDiff(String oldStr, String newStr) {
+      SimpleDiff diff = computeSimpleDiff(oldStr, newStr);
+      expect(diff.offset, isNonNegative);
+      expect(diff.length, isNonNegative);
+      String applied = oldStr.substring(0, diff.offset) +
+          diff.replacement +
+          oldStr.substring(diff.offset + diff.length);
+      expect(applied, newStr);
+    }
+    assertDiff('', '');
+    assertDiff('', 'a');
+    assertDiff('abc', '');
+    assertDiff('abcd', 'acd');
+    assertDiff('a', 'b');
+    assertDiff('12345xyz', '12345abcxyz');
+    assertDiff('12345xyz', '12345xyzabc');
+    assertDiff('abbc', 'abbbc');
+    assertDiff('abbbbc', 'abbbbbbc');
+  }
+
   void test_countMatches() {
     expect(countMatches(null, null), 0);
     expect(countMatches('abc', null), 0);
@@ -40,15 +61,6 @@ class StringsTest {
     expect(countMatches('ababa', 'a'), 3);
     expect(countMatches('ababa', 'ab'), 2);
     expect(countMatches('aaabaa', 'aa'), 2);
-  }
-
-  void test_findCommonOverlap() {
-    expect(findCommonOverlap('', 'abcd'), 0);
-    expect(findCommonOverlap('abc', 'abcd'), 3);
-    expect(findCommonOverlap('123456', 'abcd'), 0);
-    expect(findCommonOverlap('123456xxx', 'xxxabcd'), 3);
-    expect(findCommonOverlap('123456', '56'), 2);
-    expect(findCommonOverlap('56', '56789'), 2);
   }
 
   void test_findCommonPrefix() {

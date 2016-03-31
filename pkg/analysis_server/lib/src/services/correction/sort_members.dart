@@ -62,16 +62,9 @@ class MemberSorter {
     // prepare edits
     List<SourceEdit> edits = <SourceEdit>[];
     if (code != initialCode) {
-      int prefixLength = findCommonPrefix(initialCode, code);
-      int suffixLength = findCommonSuffix(initialCode, code);
-      String prefix = code.substring(0, prefixLength);
-      String suffix = code.substring(code.length - suffixLength, code.length);
-      int commonLength = findCommonOverlap(prefix, suffix);
-      suffixLength -= commonLength;
-      SourceEdit edit = new SourceEdit(
-          prefixLength,
-          initialCode.length - suffixLength - prefixLength,
-          code.substring(prefixLength, code.length - suffixLength));
+      SimpleDiff diff = computeSimpleDiff(initialCode, code);
+      SourceEdit edit =
+          new SourceEdit(diff.offset, diff.length, diff.replacement);
       edits.add(edit);
     }
     return edits;
