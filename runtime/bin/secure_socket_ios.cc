@@ -43,16 +43,6 @@
     }                                                                          \
   }
 
-// We need to access this private API function to create a SecIdentityRef
-// without writing a custom keychain to the filesystem. This is the approach
-// taken in WebKit:
-// https://webkit.googlesource.com/WebKit/+/master/Source/WebKit2/Shared/cf/ArgumentCodersCF.cpp
-extern "C" {
-SecIdentityRef SecIdentityCreate(CFAllocatorRef allocator,
-                                 SecCertificateRef certificate,
-                                 SecKeyRef private_key);
-}
-
 namespace dart {
 namespace bin {
 
@@ -72,10 +62,28 @@ class SSLCertContext {
  public:
   SSLCertContext() :
       mutex_(new Mutex()),
+      trusted_certs_(NULL),
       trust_builtin_(false) {}
 
   ~SSLCertContext() {
     delete mutex_;
+    if (trusted_certs_ != NULL) {
+      CFRelease(trusted_certs_);
+    }
+  }
+
+  CFMutableArrayRef trusted_certs() {
+    MutexLocker m(mutex_);
+    return trusted_certs_;
+  }
+  void add_trusted_cert(SecCertificateRef trusted_cert) {
+    // Takes ownership of trusted_cert.
+    MutexLocker m(mutex_);
+    if (trusted_certs_ == NULL) {
+      trusted_certs_ = CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
+    }
+    CFArrayAppendValue(trusted_certs_, trusted_cert);
+    CFRelease(trusted_cert);  // trusted_cert is retained by the array.
   }
 
   bool trust_builtin() {
@@ -91,6 +99,7 @@ class SSLCertContext {
   // The context is accessed both by Dart code and the IOService. This mutex
   // protects all fields.
   Mutex* mutex_;
+  CFMutableArrayRef trusted_certs_;
   bool trust_builtin_;
 
   DISALLOW_COPY_AND_ASSIGN(SSLCertContext);
@@ -388,8 +397,25 @@ void FUNCTION_NAME(SecurityContext_UsePrivateKeyBytes)(
 
 void FUNCTION_NAME(SecurityContext_SetTrustedCertificatesBytes)(
     Dart_NativeArguments args) {
-  Dart_ThrowException(DartUtils::NewDartUnsupportedError(
-      "SecurityContext.setTrustedCertificatesBytes is not yet implemented."));
+  SSLCertContext* context = GetSecurityContext(args);
+
+  OSStatus status = noErr;
+  SecCertificateRef cert = NULL;
+  {
+    ScopedMemBuffer buffer(ThrowIfError(Dart_GetNativeArgument(args, 1)));
+    CFDataRef cfdata = CFDataCreateWithBytesNoCopy(
+        NULL, buffer.get(), buffer.length(), kCFAllocatorNull);
+    cert = SecCertificateCreateWithData(NULL, cfdata);
+    CFRelease(cfdata);
+  }
+
+  // Add the certs to the context.
+  if (cert != NULL) {
+    context->add_trusted_cert(cert);
+  } else {
+    status = errSSLBadCert;
+  }
+  CheckStatus(status, "TlsException", "Failure in setTrustedCertificatesBytes");
 }
 
 
@@ -898,8 +924,12 @@ OSStatus SSLFilter::EvaluatePeerTrust() {
     return status;
   }
 
-  CFArrayRef trusted_certs =
-      CFArrayCreate(NULL, NULL, 0, &kCFTypeArrayCallBacks);
+  CFArrayRef trusted_certs = NULL;
+  if (cert_context_->trusted_certs() != NULL) {
+    trusted_certs = CFArrayCreateCopy(NULL, cert_context_->trusted_certs());
+  } else {
+    trusted_certs = CFArrayCreate(NULL, NULL, 0, &kCFTypeArrayCallBacks);
+  }
 
   status = SecTrustSetAnchorCertificates(peer_trust, trusted_certs);
   if (status != noErr) {
