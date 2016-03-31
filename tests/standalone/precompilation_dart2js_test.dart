@@ -43,6 +43,7 @@ main(List args) {
     return;
   }
 
+  print("Creating precompiled snapshot...");
   var abs_package_root = Uri.parse(Platform.packageRoot).toFilePath();
   var dart_executable =
       Directory.current.path + Platform.pathSeparator + Platform.executable;
@@ -62,6 +63,7 @@ main(List args) {
     }
 
     // Check if gcc is present, and skip test if it is not.
+    print("Creating shared library...");
     try {
       result = Process.runSync(
           cc,
@@ -85,6 +87,7 @@ main(List args) {
       throw "Shared library creation failed!";
     }
 
+    print("Running test program...");
     var ld_library_path = new String.fromEnvironment("LD_LIBRARY_PATH");
     ld_library_path = "${ld_library_path}:${tmp.path}";
     exec = "${dart_executable}_precompiled_runtime";
