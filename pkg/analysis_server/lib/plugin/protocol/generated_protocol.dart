@@ -194,7 +194,7 @@ class ServerSetSubscriptionsParams implements HasToJson {
     if (json is Map) {
       List<ServerService> subscriptions;
       if (json.containsKey("subscriptions")) {
-        subscriptions = jsonDecoder.decodeList(jsonPath + ".subscriptions", json["subscriptions"], (String jsonPath, Object json) => new ServerService.fromJson(jsonDecoder, jsonPath, json));
+        subscriptions = jsonDecoder.decodeList(jsonPath + ".subscriptions", json["subscriptions"], (String jsonPath, Object json) => new ServerService.fromJson(jsonDecoder, jsonPath, json)) as List<ServerService>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "subscriptions");
       }
@@ -701,7 +701,7 @@ class AnalysisGetErrorsResult implements HasToJson {
     if (json is Map) {
       List<AnalysisError> errors;
       if (json.containsKey("errors")) {
-        errors = jsonDecoder.decodeList(jsonPath + ".errors", json["errors"], (String jsonPath, Object json) => new AnalysisError.fromJson(jsonDecoder, jsonPath, json));
+        errors = jsonDecoder.decodeList(jsonPath + ".errors", json["errors"], (String jsonPath, Object json) => new AnalysisError.fromJson(jsonDecoder, jsonPath, json)) as List<AnalysisError>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "errors");
       }
@@ -895,7 +895,7 @@ class AnalysisGetHoverResult implements HasToJson {
     if (json is Map) {
       List<HoverInformation> hovers;
       if (json.containsKey("hovers")) {
-        hovers = jsonDecoder.decodeList(jsonPath + ".hovers", json["hovers"], (String jsonPath, Object json) => new HoverInformation.fromJson(jsonDecoder, jsonPath, json));
+        hovers = jsonDecoder.decodeList(jsonPath + ".hovers", json["hovers"], (String jsonPath, Object json) => new HoverInformation.fromJson(jsonDecoder, jsonPath, json)) as List<HoverInformation>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "hovers");
       }
@@ -1065,7 +1065,7 @@ class AnalysisGetReachableSourcesResult implements HasToJson {
     if (json is Map) {
       Map<String, List<String>> sources;
       if (json.containsKey("sources")) {
-        sources = jsonDecoder.decodeMap(jsonPath + ".sources", json["sources"], valueDecoder: (String jsonPath, Object json) => jsonDecoder.decodeList(jsonPath, json, jsonDecoder.decodeString));
+        sources = jsonDecoder.decodeMap(jsonPath + ".sources", json["sources"], valueDecoder: (String jsonPath, Object json) => jsonDecoder.decodeList(jsonPath, json, jsonDecoder.decodeString) as List<String>) as Map<String, List<String>>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "sources");
       }
@@ -1189,13 +1189,13 @@ class AnalysisGetLibraryDependenciesResult implements HasToJson {
     if (json is Map) {
       List<String> libraries;
       if (json.containsKey("libraries")) {
-        libraries = jsonDecoder.decodeList(jsonPath + ".libraries", json["libraries"], jsonDecoder.decodeString);
+        libraries = jsonDecoder.decodeList(jsonPath + ".libraries", json["libraries"], jsonDecoder.decodeString) as List<String>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "libraries");
       }
       Map<String, Map<String, List<String>>> packageMap;
       if (json.containsKey("packageMap")) {
-        packageMap = jsonDecoder.decodeMap(jsonPath + ".packageMap", json["packageMap"], valueDecoder: (String jsonPath, Object json) => jsonDecoder.decodeMap(jsonPath, json, valueDecoder: (String jsonPath, Object json) => jsonDecoder.decodeList(jsonPath, json, jsonDecoder.decodeString)));
+        packageMap = jsonDecoder.decodeMap(jsonPath + ".packageMap", json["packageMap"], valueDecoder: (String jsonPath, Object json) => jsonDecoder.decodeMap(jsonPath, json, valueDecoder: (String jsonPath, Object json) => jsonDecoder.decodeList(jsonPath, json, jsonDecoder.decodeString) as List<String>) as Map<String, List<String>>) as Map<String, Map<String, List<String>>>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "packageMap");
       }
@@ -1452,19 +1452,19 @@ class AnalysisGetNavigationResult implements HasToJson {
     if (json is Map) {
       List<String> files;
       if (json.containsKey("files")) {
-        files = jsonDecoder.decodeList(jsonPath + ".files", json["files"], jsonDecoder.decodeString);
+        files = jsonDecoder.decodeList(jsonPath + ".files", json["files"], jsonDecoder.decodeString) as List<String>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "files");
       }
       List<NavigationTarget> targets;
       if (json.containsKey("targets")) {
-        targets = jsonDecoder.decodeList(jsonPath + ".targets", json["targets"], (String jsonPath, Object json) => new NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
+        targets = jsonDecoder.decodeList(jsonPath + ".targets", json["targets"], (String jsonPath, Object json) => new NavigationTarget.fromJson(jsonDecoder, jsonPath, json)) as List<NavigationTarget>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "targets");
       }
       List<NavigationRegion> regions;
       if (json.containsKey("regions")) {
-        regions = jsonDecoder.decodeList(jsonPath + ".regions", json["regions"], (String jsonPath, Object json) => new NavigationRegion.fromJson(jsonDecoder, jsonPath, json));
+        regions = jsonDecoder.decodeList(jsonPath + ".regions", json["regions"], (String jsonPath, Object json) => new NavigationRegion.fromJson(jsonDecoder, jsonPath, json)) as List<NavigationRegion>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "regions");
       }
@@ -1549,7 +1549,7 @@ class AnalysisReanalyzeParams implements HasToJson {
     if (json is Map) {
       List<String> roots;
       if (json.containsKey("roots")) {
-        roots = jsonDecoder.decodeList(jsonPath + ".roots", json["roots"], jsonDecoder.decodeString);
+        roots = jsonDecoder.decodeList(jsonPath + ".roots", json["roots"], jsonDecoder.decodeString) as List<String>;
       }
       return new AnalysisReanalyzeParams(roots: roots);
     } else {
@@ -1723,19 +1723,19 @@ class AnalysisSetAnalysisRootsParams implements HasToJson {
     if (json is Map) {
       List<String> included;
       if (json.containsKey("included")) {
-        included = jsonDecoder.decodeList(jsonPath + ".included", json["included"], jsonDecoder.decodeString);
+        included = jsonDecoder.decodeList(jsonPath + ".included", json["included"], jsonDecoder.decodeString) as List<String>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "included");
       }
       List<String> excluded;
       if (json.containsKey("excluded")) {
-        excluded = jsonDecoder.decodeList(jsonPath + ".excluded", json["excluded"], jsonDecoder.decodeString);
+        excluded = jsonDecoder.decodeList(jsonPath + ".excluded", json["excluded"], jsonDecoder.decodeString) as List<String>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "excluded");
       }
       Map<String, String> packageRoots;
       if (json.containsKey("packageRoots")) {
-        packageRoots = jsonDecoder.decodeMap(jsonPath + ".packageRoots", json["packageRoots"], valueDecoder: jsonDecoder.decodeString);
+        packageRoots = jsonDecoder.decodeMap(jsonPath + ".packageRoots", json["packageRoots"], valueDecoder: jsonDecoder.decodeString) as Map<String, String>;
       }
       return new AnalysisSetAnalysisRootsParams(included, excluded, packageRoots: packageRoots);
     } else {
@@ -1844,7 +1844,7 @@ class AnalysisSetGeneralSubscriptionsParams implements HasToJson {
     if (json is Map) {
       List<GeneralAnalysisService> subscriptions;
       if (json.containsKey("subscriptions")) {
-        subscriptions = jsonDecoder.decodeList(jsonPath + ".subscriptions", json["subscriptions"], (String jsonPath, Object json) => new GeneralAnalysisService.fromJson(jsonDecoder, jsonPath, json));
+        subscriptions = jsonDecoder.decodeList(jsonPath + ".subscriptions", json["subscriptions"], (String jsonPath, Object json) => new GeneralAnalysisService.fromJson(jsonDecoder, jsonPath, json)) as List<GeneralAnalysisService>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "subscriptions");
       }
@@ -1947,7 +1947,7 @@ class AnalysisSetPriorityFilesParams implements HasToJson {
     if (json is Map) {
       List<String> files;
       if (json.containsKey("files")) {
-        files = jsonDecoder.decodeList(jsonPath + ".files", json["files"], jsonDecoder.decodeString);
+        files = jsonDecoder.decodeList(jsonPath + ".files", json["files"], jsonDecoder.decodeString) as List<String>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "files");
       }
@@ -2052,7 +2052,7 @@ class AnalysisSetSubscriptionsParams implements HasToJson {
     if (json is Map) {
       Map<AnalysisService, List<String>> subscriptions;
       if (json.containsKey("subscriptions")) {
-        subscriptions = jsonDecoder.decodeMap(jsonPath + ".subscriptions", json["subscriptions"], keyDecoder: (String jsonPath, Object json) => new AnalysisService.fromJson(jsonDecoder, jsonPath, json), valueDecoder: (String jsonPath, Object json) => jsonDecoder.decodeList(jsonPath, json, jsonDecoder.decodeString));
+        subscriptions = jsonDecoder.decodeMap(jsonPath + ".subscriptions", json["subscriptions"], keyDecoder: (String jsonPath, Object json) => new AnalysisService.fromJson(jsonDecoder, jsonPath, json), valueDecoder: (String jsonPath, Object json) => jsonDecoder.decodeList(jsonPath, json, jsonDecoder.decodeString) as List<String>) as Map<AnalysisService, List<String>>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "subscriptions");
       }
@@ -2157,7 +2157,7 @@ class AnalysisUpdateContentParams implements HasToJson {
     if (json is Map) {
       Map<String, dynamic> files;
       if (json.containsKey("files")) {
-        files = jsonDecoder.decodeMap(jsonPath + ".files", json["files"], valueDecoder: (String jsonPath, Object json) => jsonDecoder.decodeUnion(jsonPath, json, "type", {"add": (String jsonPath, Object json) => new AddContentOverlay.fromJson(jsonDecoder, jsonPath, json), "change": (String jsonPath, Object json) => new ChangeContentOverlay.fromJson(jsonDecoder, jsonPath, json), "remove": (String jsonPath, Object json) => new RemoveContentOverlay.fromJson(jsonDecoder, jsonPath, json)}));
+        files = jsonDecoder.decodeMap(jsonPath + ".files", json["files"], valueDecoder: (String jsonPath, Object json) => jsonDecoder.decodeUnion(jsonPath, json, "type", {"add": (String jsonPath, Object json) => new AddContentOverlay.fromJson(jsonDecoder, jsonPath, json), "change": (String jsonPath, Object json) => new ChangeContentOverlay.fromJson(jsonDecoder, jsonPath, json), "remove": (String jsonPath, Object json) => new RemoveContentOverlay.fromJson(jsonDecoder, jsonPath, json)})) as Map<String, dynamic>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "files");
       }
@@ -2394,7 +2394,7 @@ class AnalysisAnalyzedFilesParams implements HasToJson {
     if (json is Map) {
       List<String> directories;
       if (json.containsKey("directories")) {
-        directories = jsonDecoder.decodeList(jsonPath + ".directories", json["directories"], jsonDecoder.decodeString);
+        directories = jsonDecoder.decodeList(jsonPath + ".directories", json["directories"], jsonDecoder.decodeString) as List<String>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "directories");
       }
@@ -2497,7 +2497,7 @@ class AnalysisErrorsParams implements HasToJson {
       }
       List<AnalysisError> errors;
       if (json.containsKey("errors")) {
-        errors = jsonDecoder.decodeList(jsonPath + ".errors", json["errors"], (String jsonPath, Object json) => new AnalysisError.fromJson(jsonDecoder, jsonPath, json));
+        errors = jsonDecoder.decodeList(jsonPath + ".errors", json["errors"], (String jsonPath, Object json) => new AnalysisError.fromJson(jsonDecoder, jsonPath, json)) as List<AnalysisError>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "errors");
       }
@@ -2580,7 +2580,7 @@ class AnalysisFlushResultsParams implements HasToJson {
     if (json is Map) {
       List<String> files;
       if (json.containsKey("files")) {
-        files = jsonDecoder.decodeList(jsonPath + ".files", json["files"], jsonDecoder.decodeString);
+        files = jsonDecoder.decodeList(jsonPath + ".files", json["files"], jsonDecoder.decodeString) as List<String>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "files");
       }
@@ -2683,7 +2683,7 @@ class AnalysisFoldingParams implements HasToJson {
       }
       List<FoldingRegion> regions;
       if (json.containsKey("regions")) {
-        regions = jsonDecoder.decodeList(jsonPath + ".regions", json["regions"], (String jsonPath, Object json) => new FoldingRegion.fromJson(jsonDecoder, jsonPath, json));
+        regions = jsonDecoder.decodeList(jsonPath + ".regions", json["regions"], (String jsonPath, Object json) => new FoldingRegion.fromJson(jsonDecoder, jsonPath, json)) as List<FoldingRegion>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "regions");
       }
@@ -2797,7 +2797,7 @@ class AnalysisHighlightsParams implements HasToJson {
       }
       List<HighlightRegion> regions;
       if (json.containsKey("regions")) {
-        regions = jsonDecoder.decodeList(jsonPath + ".regions", json["regions"], (String jsonPath, Object json) => new HighlightRegion.fromJson(jsonDecoder, jsonPath, json));
+        regions = jsonDecoder.decodeList(jsonPath + ".regions", json["regions"], (String jsonPath, Object json) => new HighlightRegion.fromJson(jsonDecoder, jsonPath, json)) as List<HighlightRegion>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "regions");
       }
@@ -2920,13 +2920,13 @@ class AnalysisImplementedParams implements HasToJson {
       }
       List<ImplementedClass> classes;
       if (json.containsKey("classes")) {
-        classes = jsonDecoder.decodeList(jsonPath + ".classes", json["classes"], (String jsonPath, Object json) => new ImplementedClass.fromJson(jsonDecoder, jsonPath, json));
+        classes = jsonDecoder.decodeList(jsonPath + ".classes", json["classes"], (String jsonPath, Object json) => new ImplementedClass.fromJson(jsonDecoder, jsonPath, json)) as List<ImplementedClass>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "classes");
       }
       List<ImplementedMember> members;
       if (json.containsKey("members")) {
-        members = jsonDecoder.decodeList(jsonPath + ".members", json["members"], (String jsonPath, Object json) => new ImplementedMember.fromJson(jsonDecoder, jsonPath, json));
+        members = jsonDecoder.decodeList(jsonPath + ".members", json["members"], (String jsonPath, Object json) => new ImplementedMember.fromJson(jsonDecoder, jsonPath, json)) as List<ImplementedMember>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "members");
       }
@@ -3247,19 +3247,19 @@ class AnalysisNavigationParams implements HasToJson {
       }
       List<NavigationRegion> regions;
       if (json.containsKey("regions")) {
-        regions = jsonDecoder.decodeList(jsonPath + ".regions", json["regions"], (String jsonPath, Object json) => new NavigationRegion.fromJson(jsonDecoder, jsonPath, json));
+        regions = jsonDecoder.decodeList(jsonPath + ".regions", json["regions"], (String jsonPath, Object json) => new NavigationRegion.fromJson(jsonDecoder, jsonPath, json)) as List<NavigationRegion>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "regions");
       }
       List<NavigationTarget> targets;
       if (json.containsKey("targets")) {
-        targets = jsonDecoder.decodeList(jsonPath + ".targets", json["targets"], (String jsonPath, Object json) => new NavigationTarget.fromJson(jsonDecoder, jsonPath, json));
+        targets = jsonDecoder.decodeList(jsonPath + ".targets", json["targets"], (String jsonPath, Object json) => new NavigationTarget.fromJson(jsonDecoder, jsonPath, json)) as List<NavigationTarget>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "targets");
       }
       List<String> files;
       if (json.containsKey("files")) {
-        files = jsonDecoder.decodeList(jsonPath + ".files", json["files"], jsonDecoder.decodeString);
+        files = jsonDecoder.decodeList(jsonPath + ".files", json["files"], jsonDecoder.decodeString) as List<String>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "files");
       }
@@ -3371,7 +3371,7 @@ class AnalysisOccurrencesParams implements HasToJson {
       }
       List<Occurrences> occurrences;
       if (json.containsKey("occurrences")) {
-        occurrences = jsonDecoder.decodeList(jsonPath + ".occurrences", json["occurrences"], (String jsonPath, Object json) => new Occurrences.fromJson(jsonDecoder, jsonPath, json));
+        occurrences = jsonDecoder.decodeList(jsonPath + ".occurrences", json["occurrences"], (String jsonPath, Object json) => new Occurrences.fromJson(jsonDecoder, jsonPath, json)) as List<Occurrences>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "occurrences");
       }
@@ -3642,7 +3642,7 @@ class AnalysisOverridesParams implements HasToJson {
       }
       List<Override> overrides;
       if (json.containsKey("overrides")) {
-        overrides = jsonDecoder.decodeList(jsonPath + ".overrides", json["overrides"], (String jsonPath, Object json) => new Override.fromJson(jsonDecoder, jsonPath, json));
+        overrides = jsonDecoder.decodeList(jsonPath + ".overrides", json["overrides"], (String jsonPath, Object json) => new Override.fromJson(jsonDecoder, jsonPath, json)) as List<Override>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "overrides");
       }
@@ -4017,7 +4017,7 @@ class CompletionResultsParams implements HasToJson {
       }
       List<CompletionSuggestion> results;
       if (json.containsKey("results")) {
-        results = jsonDecoder.decodeList(jsonPath + ".results", json["results"], (String jsonPath, Object json) => new CompletionSuggestion.fromJson(jsonDecoder, jsonPath, json));
+        results = jsonDecoder.decodeList(jsonPath + ".results", json["results"], (String jsonPath, Object json) => new CompletionSuggestion.fromJson(jsonDecoder, jsonPath, json)) as List<CompletionSuggestion>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "results");
       }
@@ -4999,7 +4999,7 @@ class SearchGetTypeHierarchyResult implements HasToJson {
     if (json is Map) {
       List<TypeHierarchyItem> hierarchyItems;
       if (json.containsKey("hierarchyItems")) {
-        hierarchyItems = jsonDecoder.decodeList(jsonPath + ".hierarchyItems", json["hierarchyItems"], (String jsonPath, Object json) => new TypeHierarchyItem.fromJson(jsonDecoder, jsonPath, json));
+        hierarchyItems = jsonDecoder.decodeList(jsonPath + ".hierarchyItems", json["hierarchyItems"], (String jsonPath, Object json) => new TypeHierarchyItem.fromJson(jsonDecoder, jsonPath, json)) as List<TypeHierarchyItem>;
       }
       return new SearchGetTypeHierarchyResult(hierarchyItems: hierarchyItems);
     } else {
@@ -5121,7 +5121,7 @@ class SearchResultsParams implements HasToJson {
       }
       List<SearchResult> results;
       if (json.containsKey("results")) {
-        results = jsonDecoder.decodeList(jsonPath + ".results", json["results"], (String jsonPath, Object json) => new SearchResult.fromJson(jsonDecoder, jsonPath, json));
+        results = jsonDecoder.decodeList(jsonPath + ".results", json["results"], (String jsonPath, Object json) => new SearchResult.fromJson(jsonDecoder, jsonPath, json)) as List<SearchResult>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "results");
       }
@@ -5406,7 +5406,7 @@ class EditFormatResult implements HasToJson {
     if (json is Map) {
       List<SourceEdit> edits;
       if (json.containsKey("edits")) {
-        edits = jsonDecoder.decodeList(jsonPath + ".edits", json["edits"], (String jsonPath, Object json) => new SourceEdit.fromJson(jsonDecoder, jsonPath, json));
+        edits = jsonDecoder.decodeList(jsonPath + ".edits", json["edits"], (String jsonPath, Object json) => new SourceEdit.fromJson(jsonDecoder, jsonPath, json)) as List<SourceEdit>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "edits");
       }
@@ -5636,7 +5636,7 @@ class EditGetAssistsResult implements HasToJson {
     if (json is Map) {
       List<SourceChange> assists;
       if (json.containsKey("assists")) {
-        assists = jsonDecoder.decodeList(jsonPath + ".assists", json["assists"], (String jsonPath, Object json) => new SourceChange.fromJson(jsonDecoder, jsonPath, json));
+        assists = jsonDecoder.decodeList(jsonPath + ".assists", json["assists"], (String jsonPath, Object json) => new SourceChange.fromJson(jsonDecoder, jsonPath, json)) as List<SourceChange>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "assists");
       }
@@ -5848,7 +5848,7 @@ class EditGetAvailableRefactoringsResult implements HasToJson {
     if (json is Map) {
       List<RefactoringKind> kinds;
       if (json.containsKey("kinds")) {
-        kinds = jsonDecoder.decodeList(jsonPath + ".kinds", json["kinds"], (String jsonPath, Object json) => new RefactoringKind.fromJson(jsonDecoder, jsonPath, json));
+        kinds = jsonDecoder.decodeList(jsonPath + ".kinds", json["kinds"], (String jsonPath, Object json) => new RefactoringKind.fromJson(jsonDecoder, jsonPath, json)) as List<RefactoringKind>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "kinds");
       }
@@ -6034,7 +6034,7 @@ class EditGetFixesResult implements HasToJson {
     if (json is Map) {
       List<AnalysisErrorFixes> fixes;
       if (json.containsKey("fixes")) {
-        fixes = jsonDecoder.decodeList(jsonPath + ".fixes", json["fixes"], (String jsonPath, Object json) => new AnalysisErrorFixes.fromJson(jsonDecoder, jsonPath, json));
+        fixes = jsonDecoder.decodeList(jsonPath + ".fixes", json["fixes"], (String jsonPath, Object json) => new AnalysisErrorFixes.fromJson(jsonDecoder, jsonPath, json)) as List<AnalysisErrorFixes>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "fixes");
       }
@@ -6451,19 +6451,19 @@ class EditGetRefactoringResult implements HasToJson {
     if (json is Map) {
       List<RefactoringProblem> initialProblems;
       if (json.containsKey("initialProblems")) {
-        initialProblems = jsonDecoder.decodeList(jsonPath + ".initialProblems", json["initialProblems"], (String jsonPath, Object json) => new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
+        initialProblems = jsonDecoder.decodeList(jsonPath + ".initialProblems", json["initialProblems"], (String jsonPath, Object json) => new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json)) as List<RefactoringProblem>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "initialProblems");
       }
       List<RefactoringProblem> optionsProblems;
       if (json.containsKey("optionsProblems")) {
-        optionsProblems = jsonDecoder.decodeList(jsonPath + ".optionsProblems", json["optionsProblems"], (String jsonPath, Object json) => new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
+        optionsProblems = jsonDecoder.decodeList(jsonPath + ".optionsProblems", json["optionsProblems"], (String jsonPath, Object json) => new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json)) as List<RefactoringProblem>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "optionsProblems");
       }
       List<RefactoringProblem> finalProblems;
       if (json.containsKey("finalProblems")) {
-        finalProblems = jsonDecoder.decodeList(jsonPath + ".finalProblems", json["finalProblems"], (String jsonPath, Object json) => new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json));
+        finalProblems = jsonDecoder.decodeList(jsonPath + ".finalProblems", json["finalProblems"], (String jsonPath, Object json) => new RefactoringProblem.fromJson(jsonDecoder, jsonPath, json)) as List<RefactoringProblem>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "finalProblems");
       }
@@ -6477,7 +6477,7 @@ class EditGetRefactoringResult implements HasToJson {
       }
       List<String> potentialEdits;
       if (json.containsKey("potentialEdits")) {
-        potentialEdits = jsonDecoder.decodeList(jsonPath + ".potentialEdits", json["potentialEdits"], jsonDecoder.decodeString);
+        potentialEdits = jsonDecoder.decodeList(jsonPath + ".potentialEdits", json["potentialEdits"], jsonDecoder.decodeString) as List<String>;
       }
       return new EditGetRefactoringResult(initialProblems, optionsProblems, finalProblems, feedback: feedback, change: change, potentialEdits: potentialEdits);
     } else {
@@ -7403,7 +7403,7 @@ class ExecutionSetSubscriptionsParams implements HasToJson {
     if (json is Map) {
       List<ExecutionService> subscriptions;
       if (json.containsKey("subscriptions")) {
-        subscriptions = jsonDecoder.decodeList(jsonPath + ".subscriptions", json["subscriptions"], (String jsonPath, Object json) => new ExecutionService.fromJson(jsonDecoder, jsonPath, json));
+        subscriptions = jsonDecoder.decodeList(jsonPath + ".subscriptions", json["subscriptions"], (String jsonPath, Object json) => new ExecutionService.fromJson(jsonDecoder, jsonPath, json)) as List<ExecutionService>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "subscriptions");
       }
@@ -7554,7 +7554,7 @@ class ExecutionLaunchDataParams implements HasToJson {
       }
       List<String> referencedFiles;
       if (json.containsKey("referencedFiles")) {
-        referencedFiles = jsonDecoder.decodeList(jsonPath + ".referencedFiles", json["referencedFiles"], jsonDecoder.decodeString);
+        referencedFiles = jsonDecoder.decodeList(jsonPath + ".referencedFiles", json["referencedFiles"], jsonDecoder.decodeString) as List<String>;
       }
       return new ExecutionLaunchDataParams(file, kind: kind, referencedFiles: referencedFiles);
     } else {
@@ -7665,7 +7665,7 @@ class DiagnosticGetDiagnosticsResult implements HasToJson {
     if (json is Map) {
       List<ContextData> contexts;
       if (json.containsKey("contexts")) {
-        contexts = jsonDecoder.decodeList(jsonPath + ".contexts", json["contexts"], (String jsonPath, Object json) => new ContextData.fromJson(jsonDecoder, jsonPath, json));
+        contexts = jsonDecoder.decodeList(jsonPath + ".contexts", json["contexts"], (String jsonPath, Object json) => new ContextData.fromJson(jsonDecoder, jsonPath, json)) as List<ContextData>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "contexts");
       }
@@ -8094,7 +8094,7 @@ class AnalysisErrorFixes implements HasToJson {
       }
       List<SourceChange> fixes;
       if (json.containsKey("fixes")) {
-        fixes = jsonDecoder.decodeList(jsonPath + ".fixes", json["fixes"], (String jsonPath, Object json) => new SourceChange.fromJson(jsonDecoder, jsonPath, json));
+        fixes = jsonDecoder.decodeList(jsonPath + ".fixes", json["fixes"], (String jsonPath, Object json) => new SourceChange.fromJson(jsonDecoder, jsonPath, json)) as List<SourceChange>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "fixes");
       }
@@ -8765,7 +8765,7 @@ class ChangeContentOverlay implements HasToJson {
       }
       List<SourceEdit> edits;
       if (json.containsKey("edits")) {
-        edits = jsonDecoder.decodeList(jsonPath + ".edits", json["edits"], (String jsonPath, Object json) => new SourceEdit.fromJson(jsonDecoder, jsonPath, json));
+        edits = jsonDecoder.decodeList(jsonPath + ".edits", json["edits"], (String jsonPath, Object json) => new SourceEdit.fromJson(jsonDecoder, jsonPath, json)) as List<SourceEdit>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "edits");
       }
@@ -9236,11 +9236,11 @@ class CompletionSuggestion implements HasToJson {
       }
       List<String> parameterNames;
       if (json.containsKey("parameterNames")) {
-        parameterNames = jsonDecoder.decodeList(jsonPath + ".parameterNames", json["parameterNames"], jsonDecoder.decodeString);
+        parameterNames = jsonDecoder.decodeList(jsonPath + ".parameterNames", json["parameterNames"], jsonDecoder.decodeString) as List<String>;
       }
       List<String> parameterTypes;
       if (json.containsKey("parameterTypes")) {
-        parameterTypes = jsonDecoder.decodeList(jsonPath + ".parameterTypes", json["parameterTypes"], jsonDecoder.decodeString);
+        parameterTypes = jsonDecoder.decodeList(jsonPath + ".parameterTypes", json["parameterTypes"], jsonDecoder.decodeString) as List<String>;
       }
       int requiredParameterCount;
       if (json.containsKey("requiredParameterCount")) {
@@ -9607,7 +9607,7 @@ class ContextData implements HasToJson {
       }
       List<String> cacheEntryExceptions;
       if (json.containsKey("cacheEntryExceptions")) {
-        cacheEntryExceptions = jsonDecoder.decodeList(jsonPath + ".cacheEntryExceptions", json["cacheEntryExceptions"], jsonDecoder.decodeString);
+        cacheEntryExceptions = jsonDecoder.decodeList(jsonPath + ".cacheEntryExceptions", json["cacheEntryExceptions"], jsonDecoder.decodeString) as List<String>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "cacheEntryExceptions");
       }
@@ -11886,7 +11886,7 @@ class LinkedEditGroup implements HasToJson {
     if (json is Map) {
       List<Position> positions;
       if (json.containsKey("positions")) {
-        positions = jsonDecoder.decodeList(jsonPath + ".positions", json["positions"], (String jsonPath, Object json) => new Position.fromJson(jsonDecoder, jsonPath, json));
+        positions = jsonDecoder.decodeList(jsonPath + ".positions", json["positions"], (String jsonPath, Object json) => new Position.fromJson(jsonDecoder, jsonPath, json)) as List<Position>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "positions");
       }
@@ -11898,7 +11898,7 @@ class LinkedEditGroup implements HasToJson {
       }
       List<LinkedEditSuggestion> suggestions;
       if (json.containsKey("suggestions")) {
-        suggestions = jsonDecoder.decodeList(jsonPath + ".suggestions", json["suggestions"], (String jsonPath, Object json) => new LinkedEditSuggestion.fromJson(jsonDecoder, jsonPath, json));
+        suggestions = jsonDecoder.decodeList(jsonPath + ".suggestions", json["suggestions"], (String jsonPath, Object json) => new LinkedEditSuggestion.fromJson(jsonDecoder, jsonPath, json)) as List<LinkedEditSuggestion>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "suggestions");
       }
@@ -12382,7 +12382,7 @@ class NavigationRegion implements HasToJson {
       }
       List<int> targets;
       if (json.containsKey("targets")) {
-        targets = jsonDecoder.decodeList(jsonPath + ".targets", json["targets"], jsonDecoder.decodeInt);
+        targets = jsonDecoder.decodeList(jsonPath + ".targets", json["targets"], jsonDecoder.decodeInt) as List<int>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "targets");
       }
@@ -12706,7 +12706,7 @@ class Occurrences implements HasToJson {
       }
       List<int> offsets;
       if (json.containsKey("offsets")) {
-        offsets = jsonDecoder.decodeList(jsonPath + ".offsets", json["offsets"], jsonDecoder.decodeInt);
+        offsets = jsonDecoder.decodeList(jsonPath + ".offsets", json["offsets"], jsonDecoder.decodeInt) as List<int>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offsets");
       }
@@ -12865,7 +12865,7 @@ class Outline implements HasToJson {
       }
       List<Outline> children;
       if (json.containsKey("children")) {
-        children = jsonDecoder.decodeList(jsonPath + ".children", json["children"], (String jsonPath, Object json) => new Outline.fromJson(jsonDecoder, jsonPath, json));
+        children = jsonDecoder.decodeList(jsonPath + ".children", json["children"], (String jsonPath, Object json) => new Outline.fromJson(jsonDecoder, jsonPath, json)) as List<Outline>;
       }
       return new Outline(element, offset, length, children: children);
     } else {
@@ -13018,7 +13018,7 @@ class Override implements HasToJson {
       }
       List<OverriddenMember> interfaceMembers;
       if (json.containsKey("interfaceMembers")) {
-        interfaceMembers = jsonDecoder.decodeList(jsonPath + ".interfaceMembers", json["interfaceMembers"], (String jsonPath, Object json) => new OverriddenMember.fromJson(jsonDecoder, jsonPath, json));
+        interfaceMembers = jsonDecoder.decodeList(jsonPath + ".interfaceMembers", json["interfaceMembers"], (String jsonPath, Object json) => new OverriddenMember.fromJson(jsonDecoder, jsonPath, json)) as List<OverriddenMember>;
       }
       return new Override(offset, length, superclassMember: superclassMember, interfaceMembers: interfaceMembers);
     } else {
@@ -14477,7 +14477,7 @@ class SearchResult implements HasToJson {
       }
       List<Element> path;
       if (json.containsKey("path")) {
-        path = jsonDecoder.decodeList(jsonPath + ".path", json["path"], (String jsonPath, Object json) => new Element.fromJson(jsonDecoder, jsonPath, json));
+        path = jsonDecoder.decodeList(jsonPath + ".path", json["path"], (String jsonPath, Object json) => new Element.fromJson(jsonDecoder, jsonPath, json)) as List<Element>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "path");
       }
@@ -14767,13 +14767,13 @@ class SourceChange implements HasToJson {
       }
       List<SourceFileEdit> edits;
       if (json.containsKey("edits")) {
-        edits = jsonDecoder.decodeList(jsonPath + ".edits", json["edits"], (String jsonPath, Object json) => new SourceFileEdit.fromJson(jsonDecoder, jsonPath, json));
+        edits = jsonDecoder.decodeList(jsonPath + ".edits", json["edits"], (String jsonPath, Object json) => new SourceFileEdit.fromJson(jsonDecoder, jsonPath, json)) as List<SourceFileEdit>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "edits");
       }
       List<LinkedEditGroup> linkedEditGroups;
       if (json.containsKey("linkedEditGroups")) {
-        linkedEditGroups = jsonDecoder.decodeList(jsonPath + ".linkedEditGroups", json["linkedEditGroups"], (String jsonPath, Object json) => new LinkedEditGroup.fromJson(jsonDecoder, jsonPath, json));
+        linkedEditGroups = jsonDecoder.decodeList(jsonPath + ".linkedEditGroups", json["linkedEditGroups"], (String jsonPath, Object json) => new LinkedEditGroup.fromJson(jsonDecoder, jsonPath, json)) as List<LinkedEditGroup>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "linkedEditGroups");
       }
@@ -15122,7 +15122,7 @@ class SourceFileEdit implements HasToJson {
       }
       List<SourceEdit> edits;
       if (json.containsKey("edits")) {
-        edits = jsonDecoder.decodeList(jsonPath + ".edits", json["edits"], (String jsonPath, Object json) => new SourceEdit.fromJson(jsonDecoder, jsonPath, json));
+        edits = jsonDecoder.decodeList(jsonPath + ".edits", json["edits"], (String jsonPath, Object json) => new SourceEdit.fromJson(jsonDecoder, jsonPath, json)) as List<SourceEdit>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "edits");
       }
@@ -15361,19 +15361,19 @@ class TypeHierarchyItem implements HasToJson {
       }
       List<int> interfaces;
       if (json.containsKey("interfaces")) {
-        interfaces = jsonDecoder.decodeList(jsonPath + ".interfaces", json["interfaces"], jsonDecoder.decodeInt);
+        interfaces = jsonDecoder.decodeList(jsonPath + ".interfaces", json["interfaces"], jsonDecoder.decodeInt) as List<int>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "interfaces");
       }
       List<int> mixins;
       if (json.containsKey("mixins")) {
-        mixins = jsonDecoder.decodeList(jsonPath + ".mixins", json["mixins"], jsonDecoder.decodeInt);
+        mixins = jsonDecoder.decodeList(jsonPath + ".mixins", json["mixins"], jsonDecoder.decodeInt) as List<int>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "mixins");
       }
       List<int> subclasses;
       if (json.containsKey("subclasses")) {
-        subclasses = jsonDecoder.decodeList(jsonPath + ".subclasses", json["subclasses"], jsonDecoder.decodeInt);
+        subclasses = jsonDecoder.decodeList(jsonPath + ".subclasses", json["subclasses"], jsonDecoder.decodeInt) as List<int>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "subclasses");
       }
@@ -15622,27 +15622,27 @@ class ExtractLocalVariableFeedback extends RefactoringFeedback implements HasToJ
     if (json is Map) {
       List<int> coveringExpressionOffsets;
       if (json.containsKey("coveringExpressionOffsets")) {
-        coveringExpressionOffsets = jsonDecoder.decodeList(jsonPath + ".coveringExpressionOffsets", json["coveringExpressionOffsets"], jsonDecoder.decodeInt);
+        coveringExpressionOffsets = jsonDecoder.decodeList(jsonPath + ".coveringExpressionOffsets", json["coveringExpressionOffsets"], jsonDecoder.decodeInt) as List<int>;
       }
       List<int> coveringExpressionLengths;
       if (json.containsKey("coveringExpressionLengths")) {
-        coveringExpressionLengths = jsonDecoder.decodeList(jsonPath + ".coveringExpressionLengths", json["coveringExpressionLengths"], jsonDecoder.decodeInt);
+        coveringExpressionLengths = jsonDecoder.decodeList(jsonPath + ".coveringExpressionLengths", json["coveringExpressionLengths"], jsonDecoder.decodeInt) as List<int>;
       }
       List<String> names;
       if (json.containsKey("names")) {
-        names = jsonDecoder.decodeList(jsonPath + ".names", json["names"], jsonDecoder.decodeString);
+        names = jsonDecoder.decodeList(jsonPath + ".names", json["names"], jsonDecoder.decodeString) as List<String>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "names");
       }
       List<int> offsets;
       if (json.containsKey("offsets")) {
-        offsets = jsonDecoder.decodeList(jsonPath + ".offsets", json["offsets"], jsonDecoder.decodeInt);
+        offsets = jsonDecoder.decodeList(jsonPath + ".offsets", json["offsets"], jsonDecoder.decodeInt) as List<int>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offsets");
       }
       List<int> lengths;
       if (json.containsKey("lengths")) {
-        lengths = jsonDecoder.decodeList(jsonPath + ".lengths", json["lengths"], jsonDecoder.decodeInt);
+        lengths = jsonDecoder.decodeList(jsonPath + ".lengths", json["lengths"], jsonDecoder.decodeInt) as List<int>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "lengths");
       }
@@ -15988,7 +15988,7 @@ class ExtractMethodFeedback extends RefactoringFeedback implements HasToJson {
       }
       List<String> names;
       if (json.containsKey("names")) {
-        names = jsonDecoder.decodeList(jsonPath + ".names", json["names"], jsonDecoder.decodeString);
+        names = jsonDecoder.decodeList(jsonPath + ".names", json["names"], jsonDecoder.decodeString) as List<String>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "names");
       }
@@ -16000,19 +16000,19 @@ class ExtractMethodFeedback extends RefactoringFeedback implements HasToJson {
       }
       List<RefactoringMethodParameter> parameters;
       if (json.containsKey("parameters")) {
-        parameters = jsonDecoder.decodeList(jsonPath + ".parameters", json["parameters"], (String jsonPath, Object json) => new RefactoringMethodParameter.fromJson(jsonDecoder, jsonPath, json));
+        parameters = jsonDecoder.decodeList(jsonPath + ".parameters", json["parameters"], (String jsonPath, Object json) => new RefactoringMethodParameter.fromJson(jsonDecoder, jsonPath, json)) as List<RefactoringMethodParameter>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "parameters");
       }
       List<int> offsets;
       if (json.containsKey("offsets")) {
-        offsets = jsonDecoder.decodeList(jsonPath + ".offsets", json["offsets"], jsonDecoder.decodeInt);
+        offsets = jsonDecoder.decodeList(jsonPath + ".offsets", json["offsets"], jsonDecoder.decodeInt) as List<int>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "offsets");
       }
       List<int> lengths;
       if (json.containsKey("lengths")) {
-        lengths = jsonDecoder.decodeList(jsonPath + ".lengths", json["lengths"], jsonDecoder.decodeInt);
+        lengths = jsonDecoder.decodeList(jsonPath + ".lengths", json["lengths"], jsonDecoder.decodeInt) as List<int>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "lengths");
       }
@@ -16214,7 +16214,7 @@ class ExtractMethodOptions extends RefactoringOptions implements HasToJson {
       }
       List<RefactoringMethodParameter> parameters;
       if (json.containsKey("parameters")) {
-        parameters = jsonDecoder.decodeList(jsonPath + ".parameters", json["parameters"], (String jsonPath, Object json) => new RefactoringMethodParameter.fromJson(jsonDecoder, jsonPath, json));
+        parameters = jsonDecoder.decodeList(jsonPath + ".parameters", json["parameters"], (String jsonPath, Object json) => new RefactoringMethodParameter.fromJson(jsonDecoder, jsonPath, json)) as List<RefactoringMethodParameter>;
       } else {
         throw jsonDecoder.missingKey(jsonPath, "parameters");
       }

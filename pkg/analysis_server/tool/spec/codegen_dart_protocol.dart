@@ -970,7 +970,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
           if (!valueCode.isIdentity) {
             result.write(', valueDecoder: ${valueCode.asClosure}');
           }
-          result.write(')');
+          result.write(') as ${dartType(type)}');
           return result.toString();
         });
       }
@@ -980,7 +980,7 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         return new FromJsonFunction('jsonDecoder.decodeList');
       } else {
         return new FromJsonSnippet((String jsonPath, String json) =>
-            'jsonDecoder.decodeList($jsonPath, $json, ${itemCode.asClosure})');
+            'jsonDecoder.decodeList($jsonPath, $json, ${itemCode.asClosure}) as ${dartType(type)}');
       }
     } else if (type is TypeUnion) {
       List<String> decoders = <String>[];
