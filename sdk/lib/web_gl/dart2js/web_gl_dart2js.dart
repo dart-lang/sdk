@@ -3006,7 +3006,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   @Deprecated("Use texImage2D")
   void texImage2DUntyped(int targetTexture, int levelOfDetail,
       int internalFormat, int format, int type, data) {
-    texImage2D(targetText, levelOfDetail, internalFormat, format, type, data);
+    texImage2D(targetTexture, levelOfDetail, internalFormat, format, type, data);
   }
 
   /**
@@ -3051,17 +3051,15 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
    */
   @Deprecated("Use bufferData")
   void bufferDataTyped(int target, TypedData data, int usage) {
-    bufferData2D(targetTexture, levelOfDetail, xOffset, yOffset,
-        format, type, data);
+    bufferData(target, data, usage);
   }
 
   /**
    * Set the bufferSubData to [data].
    */
   @Deprecated("Use bufferSubData")
-  void bufferSubDataTyped(int target, TypedData data, int usage) {
-    bufferSubData2D(targetTexture, levelOfDetail, xOffset, yOffset,
-        format, type, data);
+  void bufferSubDataTyped(int target, int offset, TypedData data) {
+    bufferSubData(target, offset, data);
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
