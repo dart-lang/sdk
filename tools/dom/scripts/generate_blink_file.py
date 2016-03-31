@@ -40,6 +40,7 @@ _js_custom_members = Set([
     'Document.createTextNode',
     'Window.location',
     'Location.href',
+    'Location.hash',
     'Node.querySelector',
 
     'HTMLElement.hidden',
