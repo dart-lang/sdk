@@ -231,14 +231,18 @@ abstract class SummaryTest {
    * a file reachable via the given [absoluteUri] and [relativeUri].
    */
   void checkDependency(int dependency, String absoluteUri, String relativeUri) {
+    expect(dependency, new isInstanceOf<int>());
     if (expectAbsoluteUrisInDependencies) {
       // The element model doesn't (yet) store enough information to recover
       // relative URIs, so we have to use the absolute URI.
       // TODO(paulberry): fix this.
-      relativeUri = absoluteUri;
+      expect(linked.dependencies[dependency].uri, absoluteUri);
+    } else if (dependency >= linked.numPrelinkedDependencies) {
+      // Fully-linked dependencies are always absolute URIs.
+      expect(linked.dependencies[dependency].uri, absoluteUri);
+    } else {
+      expect(linked.dependencies[dependency].uri, relativeUri);
     }
-    expect(dependency, new isInstanceOf<int>());
-    expect(linked.dependencies[dependency].uri, relativeUri);
   }
 
   /**

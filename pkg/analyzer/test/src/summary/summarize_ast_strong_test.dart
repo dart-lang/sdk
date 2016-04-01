@@ -78,31 +78,6 @@ class LinkedSummarizeAstStrongTest extends LinkedSummarizeAstTest {
   }
 
   @override
-  test_inferred_type_refers_to_bound_type_param() {
-    // TODO(paulberry): fix.
-  }
-
-  @override
-  test_inferred_type_refers_to_function_typed_parameter_type_generic_class() {
-    // TODO(paulberry): fix.
-  }
-
-  @override
-  test_inferred_type_refers_to_function_typed_parameter_type_other_lib() {
-    // TODO(paulberry): fix.
-  }
-
-  @override
-  test_inferred_type_refers_to_method_function_typed_parameter_type() {
-    // TODO(paulberry): fix.
-  }
-
-  @override
-  test_inferred_type_refers_to_setter_function_typed_parameter_type() {
-    // TODO(paulberry): fix.
-  }
-
-  @override
   test_initializer_executable_with_bottom_return_type() {
     // TODO(paulberry): fix.
   }
