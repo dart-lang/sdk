@@ -2,9 +2,6 @@
 
 ### Core library changes
 
-* `dart:core`
-  * Fixed DateTime implementation in the VM (issue #19923), but no API change.
-
 * `dart:io`
   * Added `SecurityContext.alpnSupported`, which is true if a platform
     supports ALPN, and false otherwise.
