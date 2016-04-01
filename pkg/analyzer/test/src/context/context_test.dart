@@ -1931,14 +1931,14 @@ library expectedToFindSemicolon
     LibrarySpecificUnit unitA = new LibrarySpecificUnit(sourceA, sourceA);
     for (int i = 0; i < 10000; i++) {
       context.performAnalysisTask();
-      if (context.getResult(unitA, RESOLVED_UNIT2) != null) {
+      if (context.getResult(unitA, RESOLVED_UNIT3) != null) {
         break;
       }
     }
     // Update the source.
     // This should invalidate all the results and also reset the driver.
     context.setContents(sourceA, "library semicolonWasAdded;");
-    expect(context.getResult(unitA, RESOLVED_UNIT2), isNull);
+    expect(context.getResult(unitA, RESOLVED_UNIT3), isNull);
     expect(analysisDriver.currentWorkOrder, isNull);
     // Continue analysis.
     _analyzeAll_assertFinished();
@@ -2130,6 +2130,7 @@ class ClassTwo {
     entry.setState(RESOLVED_UNIT9, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT10, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT11, CacheState.FLUSHED);
+    entry.setState(RESOLVED_UNIT12, CacheState.FLUSHED);
     entry.setState(RESOLVED_UNIT, CacheState.FLUSHED);
 
     context.resolveCompilationUnit2(source, source);

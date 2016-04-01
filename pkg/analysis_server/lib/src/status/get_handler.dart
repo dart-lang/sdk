@@ -457,6 +457,10 @@ class GetHandler {
     if (unit != null) {
       return unit;
     }
+    unit = entry.getValue(RESOLVED_UNIT12);
+    if (unit != null) {
+      return unit;
+    }
     return entry.getValue(RESOLVED_UNIT);
   }
 
@@ -526,6 +530,7 @@ class GetHandler {
       results.add(RESOLVED_UNIT9);
       results.add(RESOLVED_UNIT10);
       results.add(RESOLVED_UNIT11);
+      results.add(RESOLVED_UNIT12);
       results.add(RESOLVED_UNIT);
       results.add(STRONG_MODE_ERRORS);
       results.add(USED_IMPORTED_ELEMENTS);

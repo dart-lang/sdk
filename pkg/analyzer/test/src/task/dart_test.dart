@@ -66,6 +66,7 @@ main() {
   runReflectiveTests(PartiallyResolveUnitReferencesTaskTest);
   runReflectiveTests(PropagateVariableTypesInUnitTaskTest);
   runReflectiveTests(PropagateVariableTypeTaskTest);
+  runReflectiveTests(ResolveDirectiveElementsTaskTest);
   runReflectiveTests(ResolveInstanceFieldsInUnitTaskTest);
   runReflectiveTests(ResolveLibraryTaskTest);
   runReflectiveTests(ResolveLibraryTypeNamesTaskTest);
@@ -130,6 +131,8 @@ isInstanceOf isPropagateVariableTypesInUnitTask =
     new isInstanceOf<PropagateVariableTypesInUnitTask>();
 isInstanceOf isPropagateVariableTypeTask =
     new isInstanceOf<PropagateVariableTypeTask>();
+isInstanceOf isResolveDirectiveElementsTask =
+    new isInstanceOf<ResolveDirectiveElementsTask>();
 isInstanceOf isResolveLibraryTask = new isInstanceOf<ResolveLibraryTask>();
 isInstanceOf isResolveLibraryTypeNamesTask =
     new isInstanceOf<ResolveLibraryTypeNamesTask>();
@@ -562,9 +565,9 @@ library lib;
 class A {}
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT2);
-    expect(outputs[RESOLVED_UNIT2], isNotNull);
-    expect(outputs[CREATED_RESOLVED_UNIT2], isTrue);
+    computeResult(target, RESOLVED_UNIT3);
+    expect(outputs[RESOLVED_UNIT3], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT3], isTrue);
   }
 
   test_perform() {
@@ -575,9 +578,9 @@ enum MyEnum {
   A, B
 }
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT2,
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT3,
         matcher: isBuildEnumMemberElementsTask);
-    CompilationUnit unit = outputs[RESOLVED_UNIT2];
+    CompilationUnit unit = outputs[RESOLVED_UNIT3];
     // validate Element
     ClassElement enumElement = unit.element.getEnum('MyEnum');
     List<FieldElement> fields = enumElement.fields;
@@ -1209,8 +1212,8 @@ enum E {A, B, C}
     // First compute the resolved unit for the source.
     LibrarySpecificUnit librarySpecificUnit =
         new LibrarySpecificUnit(source, source);
-    computeResult(librarySpecificUnit, RESOLVED_UNIT2);
-    CompilationUnit unit = outputs[RESOLVED_UNIT2];
+    computeResult(librarySpecificUnit, RESOLVED_UNIT3);
+    CompilationUnit unit = outputs[RESOLVED_UNIT3];
     // Find the element for 'A'
     EnumDeclaration enumDeclaration = unit.declarations[0];
     EnumConstantDeclaration constantDeclaration = enumDeclaration.constants[0];
@@ -1496,9 +1499,9 @@ library lib;
 class A {}
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT5);
-    expect(outputs[RESOLVED_UNIT5], isNotNull);
-    expect(outputs[CREATED_RESOLVED_UNIT5], isTrue);
+    computeResult(target, RESOLVED_UNIT6);
+    expect(outputs[RESOLVED_UNIT6], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT6], isTrue);
   }
 
   test_perform() {
@@ -1509,8 +1512,8 @@ const a = b;
 const b = 0;
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT5);
-    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    computeResult(target, RESOLVED_UNIT6);
+    CompilationUnit unit = outputs[RESOLVED_UNIT6];
     TopLevelVariableElement elementA = unit.element.topLevelVariables[0];
     TopLevelVariableElement elementB = unit.element.topLevelVariables[1];
 
@@ -2022,8 +2025,8 @@ class B {
 }
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT5);
-    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    computeResult(target, RESOLVED_UNIT6);
+    CompilationUnit unit = outputs[RESOLVED_UNIT6];
     FieldElement elementA = AstFinder.getFieldInClassElement(unit, 'A', 'a');
     // compute
     computeResult(elementA, PROPAGABLE_VARIABLE_DEPENDENCIES,
@@ -2053,8 +2056,8 @@ final d3;
 var   d4 = 4;
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT5);
-    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    computeResult(target, RESOLVED_UNIT6);
+    CompilationUnit unit = outputs[RESOLVED_UNIT6];
     TopLevelVariableElement elementA =
         AstFinder.getTopLevelVariableElement(unit, 'a');
     // compute
@@ -2084,8 +2087,8 @@ final a = () {
 final d = 4;
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT5);
-    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    computeResult(target, RESOLVED_UNIT6);
+    CompilationUnit unit = outputs[RESOLVED_UNIT6];
     TopLevelVariableElement elementA =
         AstFinder.getTopLevelVariableElement(unit, 'a');
     // compute
@@ -2108,8 +2111,8 @@ const b = 1;
 const c = 2;
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT5);
-    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    computeResult(target, RESOLVED_UNIT6);
+    CompilationUnit unit = outputs[RESOLVED_UNIT6];
     TopLevelVariableElement elementA =
         AstFinder.getTopLevelVariableElement(unit, 'a');
     // compute
@@ -2216,9 +2219,9 @@ library lib;
 class A {}
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT11);
-    expect(outputs[RESOLVED_UNIT11], isNotNull);
-    expect(outputs[CREATED_RESOLVED_UNIT11], isTrue);
+    computeResult(target, RESOLVED_UNIT12);
+    expect(outputs[RESOLVED_UNIT12], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT12], isTrue);
   }
 
   test_perform() {
@@ -2235,9 +2238,9 @@ f() {}
 const x = const C();
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT11,
+    computeResult(target, RESOLVED_UNIT12,
         matcher: isEvaluateUnitConstantsTask);
-    CompilationUnit unit = outputs[RESOLVED_UNIT11];
+    CompilationUnit unit = outputs[RESOLVED_UNIT12];
     CompilationUnitElement unitElement = unit.element;
     expect(
         (unitElement.types[0].constructors[0] as ConstructorElementImpl)
@@ -2744,9 +2747,9 @@ library lib;
 class A {}
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT9);
-    expect(outputs[RESOLVED_UNIT9], isNotNull);
-    expect(outputs[CREATED_RESOLVED_UNIT9], isTrue);
+    computeResult(target, RESOLVED_UNIT10);
+    expect(outputs[RESOLVED_UNIT10], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT10], isTrue);
   }
 
   void test_perform() {
@@ -2766,9 +2769,9 @@ class X {}
 class Y {}
 class Z {}
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT9,
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT10,
         matcher: isInferInstanceMembersInUnitTask);
-    CompilationUnit unit = outputs[RESOLVED_UNIT9];
+    CompilationUnit unit = outputs[RESOLVED_UNIT10];
     VariableDeclaration field = AstFinder.getFieldInClass(unit, 'B', 'f');
     MethodDeclaration method = AstFinder.getMethodInClass(unit, 'B', 'm');
     DartType typeX = AstFinder.getClass(unit, 'X').element.type;
@@ -2800,12 +2803,12 @@ class M {
 }
 ''');
     computeResult(
-        new LibrarySpecificUnit(firstSource, firstSource), RESOLVED_UNIT9,
+        new LibrarySpecificUnit(firstSource, firstSource), RESOLVED_UNIT10,
         matcher: isInferInstanceMembersInUnitTask);
-    CompilationUnit firstUnit = outputs[RESOLVED_UNIT9];
+    CompilationUnit firstUnit = outputs[RESOLVED_UNIT10];
     computeResult(
-        new LibrarySpecificUnit(secondSource, secondSource), RESOLVED_UNIT9);
-    CompilationUnit secondUnit = outputs[RESOLVED_UNIT9];
+        new LibrarySpecificUnit(secondSource, secondSource), RESOLVED_UNIT10);
+    CompilationUnit secondUnit = outputs[RESOLVED_UNIT10];
 
     VariableDeclaration variableA =
         AstFinder.getTopLevelVariable(firstUnit, 'a');
@@ -2832,8 +2835,8 @@ class C {
   String field = topLevel;
 }
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT9);
-    CompilationUnit unit = outputs[RESOLVED_UNIT9];
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT10);
+    CompilationUnit unit = outputs[RESOLVED_UNIT10];
     VariableDeclaration topLevelDecl =
         AstFinder.getTopLevelVariable(unit, 'topLevel');
     VariableDeclaration fieldDecl =
@@ -2864,9 +2867,9 @@ library lib;
 class A {}
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT7);
-    expect(outputs[RESOLVED_UNIT7], isNotNull);
-    expect(outputs[CREATED_RESOLVED_UNIT7], isTrue);
+    computeResult(target, RESOLVED_UNIT8);
+    expect(outputs[RESOLVED_UNIT8], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT8], isTrue);
   }
 
   void test_perform_const_field() {
@@ -2878,9 +2881,9 @@ class M {
   static const X = "";
 }
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT7,
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT8,
         matcher: isInferStaticVariableTypesInUnitTask);
-    CompilationUnit unit = outputs[RESOLVED_UNIT7];
+    CompilationUnit unit = outputs[RESOLVED_UNIT8];
     VariableDeclaration declaration = AstFinder.getFieldInClass(unit, 'M', 'X');
     InterfaceType stringType = context.typeProvider.stringType;
     expect(declaration.element.type, stringType);
@@ -2893,9 +2896,9 @@ class M {
 @(i $=
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT7);
-    expect(outputs[RESOLVED_UNIT7], isNotNull);
-    expect(outputs[CREATED_RESOLVED_UNIT7], isTrue);
+    computeResult(target, RESOLVED_UNIT8);
+    expect(outputs[RESOLVED_UNIT8], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT8], isTrue);
   }
 
   void test_perform_nestedDeclarations() {
@@ -2909,7 +2912,7 @@ var f = (int x) {
   return xSquared;
 };
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT7,
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT8,
         matcher: isInferStaticVariableTypesInUnitTask);
   }
 
@@ -2932,12 +2935,12 @@ var b = a;
 class M {}
 ''');
     computeResult(
-        new LibrarySpecificUnit(firstSource, firstSource), RESOLVED_UNIT7,
+        new LibrarySpecificUnit(firstSource, firstSource), RESOLVED_UNIT8,
         matcher: isInferStaticVariableTypesInUnitTask);
-    CompilationUnit firstUnit = outputs[RESOLVED_UNIT7];
+    CompilationUnit firstUnit = outputs[RESOLVED_UNIT8];
     computeResult(
-        new LibrarySpecificUnit(secondSource, secondSource), RESOLVED_UNIT7);
-    CompilationUnit secondUnit = outputs[RESOLVED_UNIT7];
+        new LibrarySpecificUnit(secondSource, secondSource), RESOLVED_UNIT8);
+    CompilationUnit secondUnit = outputs[RESOLVED_UNIT8];
 
     VariableDeclaration variableA =
         AstFinder.getTopLevelVariable(firstUnit, 'a');
@@ -2966,9 +2969,9 @@ var Y = () {
   return 1 + X;
 };
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT7,
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT8,
         matcher: isInferStaticVariableTypesInUnitTask);
-    CompilationUnit unit = outputs[RESOLVED_UNIT7];
+    CompilationUnit unit = outputs[RESOLVED_UNIT8];
     TopLevelVariableDeclaration declaration = unit.declarations[1];
     FunctionExpression function =
         declaration.variables.variables[0].initializer;
@@ -2990,8 +2993,8 @@ class C {
   var field = '';
 }
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
-    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT6);
+    CompilationUnit unit = outputs[RESOLVED_UNIT6];
     VariableDeclaration declaration =
         AstFinder.getFieldInClass(unit, 'C', 'field');
     VariableElement variable = declaration.name.staticElement;
@@ -3006,8 +3009,8 @@ class C {
         '''
 var topLevel = '';
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
-    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT6);
+    CompilationUnit unit = outputs[RESOLVED_UNIT6];
     VariableDeclaration declaration =
         AstFinder.getTopLevelVariable(unit, 'topLevel');
     VariableElement variable = declaration.name.staticElement;
@@ -3026,8 +3029,8 @@ class C {
   var field3 = topLevel3;
 }
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
-    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT6);
+    CompilationUnit unit = outputs[RESOLVED_UNIT6];
     VariableDeclaration topLevelDecl =
         AstFinder.getTopLevelVariable(unit, 'topLevel3');
     VariableDeclaration fieldDecl =
@@ -3053,8 +3056,8 @@ class C {
   var field = topLevel;
 }
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
-    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT6);
+    CompilationUnit unit = outputs[RESOLVED_UNIT6];
     VariableElement topLevel =
         AstFinder.getTopLevelVariable(unit, 'topLevel').name.staticElement;
     VariableElement field =
@@ -3076,8 +3079,8 @@ var piFirst = true;
 var pi = piFirst ? 3.14 : tau / 2;
 var tau = piFirst ? pi * 2 : 6.28;
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
-    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT6);
+    CompilationUnit unit = outputs[RESOLVED_UNIT6];
     VariableElement piFirst =
         AstFinder.getTopLevelVariable(unit, 'piFirst').name.staticElement;
     VariableElement pi =
@@ -3099,8 +3102,8 @@ var tau = piFirst ? pi * 2 : 6.28;
         '''
 var a = '' / null;
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
-    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT6);
+    CompilationUnit unit = outputs[RESOLVED_UNIT6];
     VariableElement a =
         AstFinder.getTopLevelVariable(unit, 'a').name.staticElement;
 
@@ -3116,8 +3119,8 @@ var a = '' / null;
         '''
 var a = null;
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
-    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT6);
+    CompilationUnit unit = outputs[RESOLVED_UNIT6];
     VariableElement a =
         AstFinder.getTopLevelVariable(unit, 'a').name.staticElement;
 
@@ -3424,11 +3427,11 @@ main() {
   new A<int>().m();
 }
 ''');
-    computeResult(new LibrarySpecificUnit(sourceC, sourceC), RESOLVED_UNIT5,
+    computeResult(new LibrarySpecificUnit(sourceC, sourceC), RESOLVED_UNIT6,
         matcher: isPartiallyResolveUnitReferencesTask);
     // validate
     expect(outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT], hasLength(0));
-    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    CompilationUnit unit = outputs[RESOLVED_UNIT6];
     expect(unit, isNotNull);
 
     FunctionDeclaration mainFunction = unit.declarations[0];
@@ -3456,9 +3459,9 @@ class C {
 }
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT5,
+    computeResult(target, RESOLVED_UNIT6,
         matcher: isPartiallyResolveUnitReferencesTask);
-    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    CompilationUnit unit = outputs[RESOLVED_UNIT6];
     // INFERABLE_STATIC_VARIABLES_IN_UNIT
     {
       List<VariableElement> variables =
@@ -3499,9 +3502,9 @@ class C {
 }
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT5,
+    computeResult(target, RESOLVED_UNIT6,
         matcher: isPartiallyResolveUnitReferencesTask);
-    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    CompilationUnit unit = outputs[RESOLVED_UNIT6];
     NodeList<CompilationUnitMember> declarations = unit.declarations;
 
     void expectReference(BlockFunctionBody body, bool isResolved) {
@@ -3550,9 +3553,9 @@ library lib;
 class A {}
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT6);
-    expect(outputs[RESOLVED_UNIT6], isNotNull);
-    expect(outputs[CREATED_RESOLVED_UNIT6], isTrue);
+    computeResult(target, RESOLVED_UNIT7);
+    expect(outputs[RESOLVED_UNIT7], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT7], isTrue);
   }
 
   void test_perform_cycle() {
@@ -3564,9 +3567,9 @@ final pi = piFirst ? 3.14 : tau / 2;
 final tau = piFirst ? pi * 2 : 6.28;
 ''');
     // compute
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT6,
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT7,
         matcher: isPropagateVariableTypesInUnitTask);
-    CompilationUnit unit = outputs[RESOLVED_UNIT6];
+    CompilationUnit unit = outputs[RESOLVED_UNIT7];
     // verify
     TopLevelVariableElement piFirst =
         AstFinder.getTopLevelVariableElement(unit, 'piFirst');
@@ -3589,9 +3592,9 @@ final b = 1;
 final c = '2';
 ''');
     // compute
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT6,
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT7,
         matcher: isPropagateVariableTypesInUnitTask);
-    CompilationUnit unit = outputs[RESOLVED_UNIT6];
+    CompilationUnit unit = outputs[RESOLVED_UNIT7];
     // verify
     InterfaceType intType = context.typeProvider.intType;
     InterfaceType stringType = context.typeProvider.stringType;
@@ -3614,8 +3617,8 @@ final piFirst = true;
 final pi = piFirst ? 3.14 : tau / 2;
 final tau = piFirst ? pi * 2 : 6.28;
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
-    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT6);
+    CompilationUnit unit = outputs[RESOLVED_UNIT6];
     TopLevelVariableElement piFirst =
         AstFinder.getTopLevelVariableElement(unit, 'piFirst');
     TopLevelVariableElement pi =
@@ -3637,8 +3640,8 @@ final tau = piFirst ? pi * 2 : 6.28;
         '''
 var a = null;
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
-    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT6);
+    CompilationUnit unit = outputs[RESOLVED_UNIT6];
     TopLevelVariableElement a = AstFinder.getTopLevelVariableElement(unit, 'a');
     // compute
     computeResult(a, PROPAGATED_VARIABLE, matcher: isPropagateVariableTypeTask);
@@ -3653,8 +3656,8 @@ final a = b + c.length;
 final b = 1;
 final c = '2';
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT5);
-    CompilationUnit unit = outputs[RESOLVED_UNIT5];
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT6);
+    CompilationUnit unit = outputs[RESOLVED_UNIT6];
     TopLevelVariableElement elementA =
         AstFinder.getTopLevelVariableElement(unit, 'a');
     TopLevelVariableElement elementB =
@@ -3669,6 +3672,57 @@ final c = '2';
     expect(elementA.propagatedType, intType);
     expect(elementB.propagatedType, intType);
     expect(elementC.propagatedType, stringType);
+  }
+}
+
+@reflectiveTest
+class ResolveDirectiveElementsTaskTest extends _AbstractDartTaskTest {
+  test_perform() {
+    List<Source> sources = newSources({
+      '/libA.dart': '''
+library libA;
+import 'libB.dart';
+export 'libC.dart';
+''',
+      '/libB.dart': '''
+library libB;
+''',
+      '/libC.dart': '''
+library libC;
+'''
+    });
+    Source sourceA = sources[0];
+    LibrarySpecificUnit targetA = new LibrarySpecificUnit(sourceA, sourceA);
+    // build directive elements
+    computeResult(sourceA, LIBRARY_ELEMENT2,
+        matcher: isBuildDirectiveElementsTask);
+    // prepare outputs
+    LibraryElement libraryElementA = outputs[LIBRARY_ELEMENT2];
+    LibraryElement libraryElementB = libraryElementA.imports[0].importedLibrary;
+    LibraryElement libraryElementC = libraryElementA.exports[0].exportedLibrary;
+    // clear elements in directive ASTs
+    {
+      CompilationUnit unitA = context.getResult(targetA, RESOLVED_UNIT1);
+      unitA.directives[1].element = null;
+      unitA.directives[2].element = null;
+    }
+    // resolve directive ASTs
+    computeResult(targetA, RESOLVED_UNIT2,
+        matcher: isResolveDirectiveElementsTask);
+    // validate that directive ASTs have elements
+    CompilationUnit unitA = context.getResult(targetA, RESOLVED_UNIT2);
+    {
+      ImportDirective importNode = unitA.directives[1];
+      ImportElement importElement = importNode.element;
+      expect(importElement, isNotNull);
+      expect(importElement.importedLibrary, libraryElementB);
+    }
+    {
+      ExportDirective exportNode = unitA.directives[2];
+      ExportElement exportElement = exportNode.element;
+      expect(exportElement, isNotNull);
+      expect(exportElement.exportedLibrary, libraryElementC);
+    }
   }
 }
 
@@ -3688,9 +3742,9 @@ library lib;
 class A {}
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT8);
-    expect(outputs[RESOLVED_UNIT8], isNotNull);
-    expect(outputs[CREATED_RESOLVED_UNIT8], isTrue);
+    computeResult(target, RESOLVED_UNIT9);
+    expect(outputs[RESOLVED_UNIT9], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT9], isTrue);
   }
 
   // Test inference of instance fields across units
@@ -3720,16 +3774,16 @@ class A {}
     DartType dynamicType = context.typeProvider.dynamicType;
 
     computeResult(
-        new LibrarySpecificUnit(sources[1], sources[1]), RESOLVED_UNIT8);
-    CompilationUnit unit1 = outputs[RESOLVED_UNIT8];
+        new LibrarySpecificUnit(sources[1], sources[1]), RESOLVED_UNIT9);
+    CompilationUnit unit1 = outputs[RESOLVED_UNIT9];
 
     // B.b2 shoud be resolved on the rhs, but not yet inferred.
     assertVariableDeclarationTypes(
         AstFinder.getFieldInClass(unit1, "B", "b2"), dynamicType, intType);
 
     computeResult(
-        new LibrarySpecificUnit(sources[0], sources[0]), RESOLVED_UNIT8);
-    CompilationUnit unit0 = outputs[RESOLVED_UNIT8];
+        new LibrarySpecificUnit(sources[0], sources[0]), RESOLVED_UNIT9);
+    CompilationUnit unit0 = outputs[RESOLVED_UNIT9];
 
     // B.b2 should now be fully resolved and inferred.
     assertVariableDeclarationTypes(
@@ -3740,7 +3794,7 @@ class A {}
         AstFinder.getFieldInClass(unit0, "A", "a2"), dynamicType, intType);
 
     computeResult(
-        new LibrarySpecificUnit(sources[2], sources[2]), RESOLVED_UNIT8);
+        new LibrarySpecificUnit(sources[2], sources[2]), RESOLVED_UNIT9);
 
     // A.a2 should now be fully resolved and inferred.
     assertVariableDeclarationTypes(
@@ -3777,15 +3831,15 @@ class A {}
     DartType dynamicType = context.typeProvider.dynamicType;
 
     computeResult(
-        new LibrarySpecificUnit(sources[0], sources[0]), RESOLVED_UNIT8);
-    CompilationUnit unit0 = outputs[RESOLVED_UNIT8];
+        new LibrarySpecificUnit(sources[0], sources[0]), RESOLVED_UNIT9);
+    CompilationUnit unit0 = outputs[RESOLVED_UNIT9];
 
     // A.a2 should now be resolved on the rhs, but not yet inferred.
     assertVariableDeclarationTypes(
         AstFinder.getFieldInClass(unit0, "A", "a2"), dynamicType, dynamicType);
 
     computeResult(
-        new LibrarySpecificUnit(sources[2], sources[2]), RESOLVED_UNIT8);
+        new LibrarySpecificUnit(sources[2], sources[2]), RESOLVED_UNIT9);
 
     // A.a2 should now be fully resolved and inferred (but not re-resolved).
     assertVariableDeclarationTypes(
@@ -3823,8 +3877,8 @@ class A {}
     DartType dynamicType = context.typeProvider.dynamicType;
 
     computeResult(
-        new LibrarySpecificUnit(sources[1], sources[1]), RESOLVED_UNIT8);
-    CompilationUnit unit1 = outputs[RESOLVED_UNIT8];
+        new LibrarySpecificUnit(sources[1], sources[1]), RESOLVED_UNIT9);
+    CompilationUnit unit1 = outputs[RESOLVED_UNIT9];
 
     assertVariableDeclarationTypes(
         AstFinder.getFieldInClass(unit1, "B", "b1"), intType, intType);
@@ -3832,8 +3886,8 @@ class A {}
         AstFinder.getFieldInClass(unit1, "B", "b2"), dynamicType, intType);
 
     computeResult(
-        new LibrarySpecificUnit(sources[0], sources[0]), RESOLVED_UNIT8);
-    CompilationUnit unit0 = outputs[RESOLVED_UNIT8];
+        new LibrarySpecificUnit(sources[0], sources[0]), RESOLVED_UNIT9);
+    CompilationUnit unit0 = outputs[RESOLVED_UNIT9];
 
     assertVariableDeclarationTypes(
         AstFinder.getFieldInClass(unit0, "A", "a1"), intType, intType);
@@ -3846,7 +3900,7 @@ class A {}
         AstFinder.getFieldInClass(unit1, "B", "b2"), intType, intType);
 
     computeResult(
-        new LibrarySpecificUnit(sources[2], sources[2]), RESOLVED_UNIT8);
+        new LibrarySpecificUnit(sources[2], sources[2]), RESOLVED_UNIT9);
 
     assertVariableDeclarationTypes(
         AstFinder.getFieldInClass(unit0, "A", "a1"), intType, intType);
@@ -3885,8 +3939,8 @@ class A {}
     DartType dynamicType = context.typeProvider.dynamicType;
 
     computeResult(
-        new LibrarySpecificUnit(sources[0], sources[0]), RESOLVED_UNIT8);
-    CompilationUnit unit0 = outputs[RESOLVED_UNIT8];
+        new LibrarySpecificUnit(sources[0], sources[0]), RESOLVED_UNIT9);
+    CompilationUnit unit0 = outputs[RESOLVED_UNIT9];
 
     // A.a2 should now be resolved on the rhs, but not yet inferred.
     assertVariableDeclarationTypes(
@@ -3897,7 +3951,7 @@ class A {}
         AstFinder.getFieldInClass(unit0, "B", "b2"), dynamicType, intType);
 
     computeResult(
-        new LibrarySpecificUnit(sources[1], sources[1]), RESOLVED_UNIT8);
+        new LibrarySpecificUnit(sources[1], sources[1]), RESOLVED_UNIT9);
 
     // A.a2 should now be fully resolved and inferred (but not re-resolved).
     assertVariableDeclarationTypes(
@@ -4006,9 +4060,9 @@ library lib;
 class A {}
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT10);
-    expect(outputs[RESOLVED_UNIT10], isNotNull);
-    expect(outputs[CREATED_RESOLVED_UNIT10], isTrue);
+    computeResult(target, RESOLVED_UNIT11);
+    expect(outputs[RESOLVED_UNIT11], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT11], isTrue);
   }
 
   void test_perform() {
@@ -4025,9 +4079,9 @@ class C {
   }
 }
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT10,
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT11,
         matcher: isResolveUnitTask);
-    CompilationUnit unit = outputs[RESOLVED_UNIT10];
+    CompilationUnit unit = outputs[RESOLVED_UNIT11];
 
     FunctionDeclaration f = unit.declarations[0];
     _assertResolved(f.functionExpression.body);
@@ -4054,10 +4108,10 @@ main(A a) {
   a.v.isEven;
 }
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT10,
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT11,
         matcher: isResolveUnitTask);
     expect(outputs[RESOLVE_UNIT_ERRORS], hasLength(0));
-    CompilationUnit unit = outputs[RESOLVED_UNIT10];
+    CompilationUnit unit = outputs[RESOLVED_UNIT11];
     FunctionDeclaration main = unit.declarations[0];
     BlockFunctionBody body = main.functionExpression.body;
     ExpressionStatement statement = body.block.statements.single;
@@ -4082,9 +4136,9 @@ library lib;
 class A {}
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT3);
-    expect(outputs[RESOLVED_UNIT3], isNotNull);
-    expect(outputs[CREATED_RESOLVED_UNIT3], isTrue);
+    computeResult(target, RESOLVED_UNIT4);
+    expect(outputs[RESOLVED_UNIT4], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT4], isTrue);
   }
 
   test_perform() {
@@ -4096,9 +4150,9 @@ class B extends A {}
 int f(String p) => p.length;
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT3, matcher: isResolveUnitTypeNamesTask);
+    computeResult(target, RESOLVED_UNIT4, matcher: isResolveUnitTypeNamesTask);
     // validate
-    CompilationUnit unit = outputs[RESOLVED_UNIT3];
+    CompilationUnit unit = outputs[RESOLVED_UNIT4];
     {
       ClassDeclaration nodeA = unit.declarations[0];
       ClassDeclaration nodeB = unit.declarations[1];
@@ -4138,9 +4192,9 @@ typedef int F(G g);
 typedef String G(int p);
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT3, matcher: isResolveUnitTypeNamesTask);
+    computeResult(target, RESOLVED_UNIT4, matcher: isResolveUnitTypeNamesTask);
     // validate
-    CompilationUnit unit = outputs[RESOLVED_UNIT3];
+    CompilationUnit unit = outputs[RESOLVED_UNIT4];
     FunctionTypeAlias nodeF = unit.declarations[0];
     FunctionTypeAlias nodeG = unit.declarations[1];
     {
@@ -4194,9 +4248,9 @@ library lib;
 class A {}
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT4);
-    expect(outputs[RESOLVED_UNIT4], isNotNull);
-    expect(outputs[CREATED_RESOLVED_UNIT4], isTrue);
+    computeResult(target, RESOLVED_UNIT5);
+    expect(outputs[RESOLVED_UNIT5], isNotNull);
+    expect(outputs[CREATED_RESOLVED_UNIT5], isTrue);
   }
 
   test_perform_buildClosureLibraryElements() {
@@ -4207,7 +4261,7 @@ main() {
 }
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT4,
+    computeResult(target, RESOLVED_UNIT5,
         matcher: isResolveVariableReferencesTask);
   }
 
@@ -4229,10 +4283,10 @@ main() {
 }
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT4,
+    computeResult(target, RESOLVED_UNIT5,
         matcher: isResolveVariableReferencesTask);
     // validate
-    CompilationUnit unit = outputs[RESOLVED_UNIT4];
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
     FunctionDeclaration mainDeclaration = unit.declarations[0];
     FunctionBody body = mainDeclaration.functionExpression.body;
     FunctionElement main = mainDeclaration.element;
@@ -4256,10 +4310,10 @@ main(p1, p2, p3, p4) {
 }
 ''');
     LibrarySpecificUnit target = new LibrarySpecificUnit(source, source);
-    computeResult(target, RESOLVED_UNIT4,
+    computeResult(target, RESOLVED_UNIT5,
         matcher: isResolveVariableReferencesTask);
     // validate
-    CompilationUnit unit = outputs[RESOLVED_UNIT4];
+    CompilationUnit unit = outputs[RESOLVED_UNIT5];
     FunctionDeclaration mainDeclaration = unit.declarations[0];
     FunctionBody body = mainDeclaration.functionExpression.body;
     FunctionElement main = mainDeclaration.element;
@@ -4338,8 +4392,8 @@ var piFirst = true;
 var pi = piFirst ? 3.14 : tau / 2;
 var tau = piFirst ? pi * 2 : 6.28;
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT10);
-    CompilationUnit unit = outputs[RESOLVED_UNIT10];
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT11);
+    CompilationUnit unit = outputs[RESOLVED_UNIT11];
     VariableElement piFirst =
         AstFinder.getTopLevelVariable(unit, 'piFirst').name.staticElement;
     VariableElement pi =
@@ -4381,11 +4435,11 @@ var tau = piFirst ? pi * 2 : 6.28;
           }
 ''');
     computeResult(
-        new LibrarySpecificUnit(firstSource, firstSource), RESOLVED_UNIT10);
-    CompilationUnit unit1 = outputs[RESOLVED_UNIT10];
+        new LibrarySpecificUnit(firstSource, firstSource), RESOLVED_UNIT11);
+    CompilationUnit unit1 = outputs[RESOLVED_UNIT11];
     computeResult(
-        new LibrarySpecificUnit(secondSource, secondSource), RESOLVED_UNIT10);
-    CompilationUnit unit2 = outputs[RESOLVED_UNIT10];
+        new LibrarySpecificUnit(secondSource, secondSource), RESOLVED_UNIT11);
+    CompilationUnit unit2 = outputs[RESOLVED_UNIT11];
 
     InterfaceType intType = context.typeProvider.intType;
 
@@ -4432,7 +4486,7 @@ var tau = piFirst ? pi * 2 : 6.28;
     '''
     });
     List<dynamic> units =
-        computeLibraryResults(sources, RESOLVED_UNIT10).toList();
+        computeLibraryResults(sources, RESOLVED_UNIT11).toList();
     CompilationUnit unit0 = units[0];
     CompilationUnit unit1 = units[1];
     CompilationUnit unit2 = units[2];
@@ -4479,7 +4533,7 @@ var tau = piFirst ? pi * 2 : 6.28;
     '''
     });
     List<dynamic> units =
-        computeLibraryResults(sources, RESOLVED_UNIT10).toList();
+        computeLibraryResults(sources, RESOLVED_UNIT11).toList();
     CompilationUnit unit0 = units[0];
     CompilationUnit unit2 = units[2];
 
@@ -4520,11 +4574,11 @@ var tau = piFirst ? pi * 2 : 6.28;
           }
 ''');
     computeResult(
-        new LibrarySpecificUnit(firstSource, firstSource), RESOLVED_UNIT10);
-    CompilationUnit unit1 = outputs[RESOLVED_UNIT10];
+        new LibrarySpecificUnit(firstSource, firstSource), RESOLVED_UNIT11);
+    CompilationUnit unit1 = outputs[RESOLVED_UNIT11];
     computeResult(
-        new LibrarySpecificUnit(secondSource, secondSource), RESOLVED_UNIT10);
-    CompilationUnit unit2 = outputs[RESOLVED_UNIT10];
+        new LibrarySpecificUnit(secondSource, secondSource), RESOLVED_UNIT11);
+    CompilationUnit unit2 = outputs[RESOLVED_UNIT11];
 
     InterfaceType intType = context.typeProvider.intType;
     InterfaceType stringType = context.typeProvider.stringType;
@@ -4574,7 +4628,7 @@ var tau = piFirst ? pi * 2 : 6.28;
     '''
     });
     List<dynamic> units =
-        computeLibraryResults(sources, RESOLVED_UNIT10).toList();
+        computeLibraryResults(sources, RESOLVED_UNIT11).toList();
     CompilationUnit unit0 = units[0];
     CompilationUnit unit1 = units[1];
     CompilationUnit unit2 = units[2];
@@ -4610,8 +4664,8 @@ var tau = piFirst ? pi * 2 : 6.28;
         y = "hi";
       }
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT10);
-    CompilationUnit unit = outputs[RESOLVED_UNIT10];
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT11);
+    CompilationUnit unit = outputs[RESOLVED_UNIT11];
 
     InterfaceType intType = context.typeProvider.intType;
     InterfaceType stringType = context.typeProvider.stringType;
@@ -4649,8 +4703,8 @@ var tau = piFirst ? pi * 2 : 6.28;
         final z = 42; // should infer `int`
       }
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT10);
-    CompilationUnit unit = outputs[RESOLVED_UNIT10];
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT11);
+    CompilationUnit unit = outputs[RESOLVED_UNIT11];
 
     InterfaceType intType = context.typeProvider.intType;
     InterfaceType stringType = context.typeProvider.stringType;
@@ -4698,8 +4752,8 @@ var tau = piFirst ? pi * 2 : 6.28;
       int y = 0; // field def after use
       final z = 42; // should infer `int`
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT10);
-    CompilationUnit unit = outputs[RESOLVED_UNIT10];
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT11);
+    CompilationUnit unit = outputs[RESOLVED_UNIT11];
 
     InterfaceType intType = context.typeProvider.intType;
     InterfaceType stringType = context.typeProvider.stringType;
@@ -4751,8 +4805,8 @@ var tau = piFirst ? pi * 2 : 6.28;
         new A().y2 = /*severe:StaticTypeError*/"hi";
       }
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT10);
-    CompilationUnit unit = outputs[RESOLVED_UNIT10];
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT11);
+    CompilationUnit unit = outputs[RESOLVED_UNIT11];
 
     InterfaceType intType = context.typeProvider.intType;
     InterfaceType stringType = context.typeProvider.stringType;
@@ -4793,8 +4847,8 @@ var tau = piFirst ? pi * 2 : 6.28;
         x = "hi";
       }
 ''');
-    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT10);
-    CompilationUnit unit = outputs[RESOLVED_UNIT10];
+    computeResult(new LibrarySpecificUnit(source, source), RESOLVED_UNIT11);
+    CompilationUnit unit = outputs[RESOLVED_UNIT11];
 
     InterfaceType intType = context.typeProvider.intType;
     InterfaceType stringType = context.typeProvider.stringType;
