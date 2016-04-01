@@ -1265,6 +1265,12 @@ class Class : public Object {
 
   void set_is_prefinalized() const;
 
+  bool is_refinalize_after_patch() const {
+    return ClassFinalizedBits::decode(raw_ptr()->state_bits_)
+        == RawClass::kRefinalizeAfterPatch;
+  }
+
+  void SetRefinalizeAfterPatch() const;
   void ResetFinalization() const;
 
   bool is_marked_for_parsing() const {
@@ -1377,6 +1383,8 @@ class Class : public Object {
 
   bool TraceAllocation(Isolate* isolate) const;
   void SetTraceAllocation(bool trace_allocation) const;
+
+  bool ValidatePostFinalizePatch(const Class& orig_class, Error* error) const;
 
  private:
   enum MemberKind {
