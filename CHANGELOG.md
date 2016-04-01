@@ -31,8 +31,8 @@
 * Dart Dev Compiler
   * The **experimental** `dartdevc` executable has been added to the SDK.
 
-  * It will help early adopters validate the implementation provide feedback.
-    It **should not** be used for production code.
+  * It will help early adopters validate the implementation and provide
+    feedback. `dartdevc` **is not** yet ready for production usage.
 
   * Read more about the Dart Dev Compiler [here][dartdevc].
 
