@@ -1990,6 +1990,80 @@ class CompoundIndexSetStructure<R, A> implements SendStructure<R, A> {
   String toString() => 'compound []=($operator,$semantics)';
 }
 
+/// The structure for a [Send] that is a if-null assignment on the index
+/// operator. For instance `a[b] ??= c`.
+class IndexSetIfNullStructure<R, A> implements SendStructure<R, A> {
+  /// The target of the index operations.
+  final AccessSemantics semantics;
+
+  IndexSetIfNullStructure(this.semantics);
+
+  R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
+    switch (semantics.kind) {
+      case AccessKind.EXPRESSION:
+        return visitor.visitIndexSetIfNull(
+            node,
+            node.receiver,
+            node.arguments.first,
+            node.arguments.tail.head,
+            arg);
+      case AccessKind.UNRESOLVED_SUPER:
+        return visitor.visitUnresolvedSuperIndexSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.first,
+            node.arguments.tail.head,
+            arg);
+      case AccessKind.INVALID:
+        return visitor.errorInvalidIndexSetIfNull(
+            node,
+            semantics.element,
+            node.arguments.first,
+            node.arguments.tail.head,
+            arg);
+      case AccessKind.COMPOUND:
+        CompoundAccessSemantics compoundSemantics = semantics;
+        switch (compoundSemantics.compoundAccessKind) {
+          case CompoundAccessKind.SUPER_GETTER_SETTER:
+            return visitor.visitSuperIndexSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.first,
+                node.arguments.tail.head,
+                arg);
+          case CompoundAccessKind.UNRESOLVED_SUPER_GETTER:
+            return visitor.visitUnresolvedSuperGetterIndexSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.first,
+                node.arguments.tail.head,
+                arg);
+          case CompoundAccessKind.UNRESOLVED_SUPER_SETTER:
+            return visitor.visitUnresolvedSuperSetterIndexSetIfNull(
+                node,
+                compoundSemantics.getter,
+                compoundSemantics.setter,
+                node.arguments.first,
+                node.arguments.tail.head,
+                arg);
+          default:
+            // This is not a valid case.
+            break;
+        }
+        break;
+      default:
+        // This is not a valid case.
+        break;
+    }
+    throw new SpannableAssertionFailure(
+        node, "Invalid index set if-null: ${semantics}");
+  }
+
+  String toString() => 'index set if-null []??=($semantics)';
+}
+
 /// The structure for a [Send] that is a prefix operations. For instance
 /// `++a`.
 class PrefixStructure<R, A> implements SendStructure<R, A> {

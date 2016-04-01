@@ -949,6 +949,19 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   @override
+  T visitIndexSetIfNull(
+      ast.SendSet node,
+      ast.Node receiver,
+      ast.Node index,
+      ast.Node rhs,
+      _) {
+    T receiverType = visit(receiver);
+    T indexType = visit(index);
+    T rhsType = visit(rhs);
+    return handleCompoundIndexSet(node, receiverType, indexType, rhsType);
+  }
+
+  @override
   T visitSuperIndexPrefix(
       ast.Send node,
       MethodElement getter,
@@ -996,11 +1009,32 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   @override
+  T visitSuperIndexSetIfNull(
+      ast.SendSet node,
+      MethodElement getter,
+      MethodElement setter,
+      ast.Node index,
+      ast.Node rhs,
+      _) {
+    return handleSuperCompoundIndexSet(node, index, rhs);
+  }
+
+  @override
   T visitUnresolvedSuperCompoundIndexSet(
       ast.Send node,
       Element element,
       ast.Node index,
       op.AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    return handleSuperCompoundIndexSet(node, index, rhs);
+  }
+
+  @override
+  T visitUnresolvedSuperIndexSetIfNull(
+      ast.Send node,
+      Element element,
+      ast.Node index,
       ast.Node rhs,
       _) {
     return handleSuperCompoundIndexSet(node, index, rhs);
@@ -1019,12 +1053,34 @@ class SimpleTypeInferrerVisitor<T>
   }
 
   @override
+  T visitUnresolvedSuperGetterIndexSetIfNull(
+      ast.SendSet node,
+      Element element,
+      MethodElement setter,
+      ast.Node index,
+      ast.Node rhs,
+      _) {
+    return handleSuperCompoundIndexSet(node, index, rhs);
+  }
+
+  @override
   T visitUnresolvedSuperSetterCompoundIndexSet(
       ast.SendSet node,
       MethodElement getter,
       Element element,
       ast.Node index,
       op.AssignmentOperator operator,
+      ast.Node rhs,
+      _) {
+    return handleSuperCompoundIndexSet(node, index, rhs);
+  }
+
+  @override
+  T visitUnresolvedSuperSetterIndexSetIfNull(
+      ast.SendSet node,
+      MethodElement getter,
+      Element element,
+      ast.Node index,
       ast.Node rhs,
       _) {
     return handleSuperCompoundIndexSet(node, index, rhs);

@@ -2225,6 +2225,47 @@ class _StatsVisitor<T> extends Visitor
     handleNSMError(node);
   }
 
+  @override
+  errorInvalidIndexSetIfNull(SendSet node, ErroneousElement error, Node index,
+      Node rhs, T arg) {
+    handleNoSend(node);
+  }
+
+  @override
+  visitIndexSetIfNull(SendSet node, Node receiver, Node index, Node rhs,
+      T arg) {
+    handleIndex(node); // t1 = receiver[index]
+    handleIndex(node); // receiver[index] = t2
+  }
+
+  @override
+  visitSuperIndexSetIfNull(SendSet node, MethodElement getter,
+      MethodElement setter, Node index, Node rhs, T arg) {
+    handleSuper(node); // t1 = super[index]
+    handleSuper(node); // super[index] = t2
+  }
+
+  @override
+  visitUnresolvedSuperGetterIndexSetIfNull(Send node, Element element,
+      MethodElement setter, Node index, Node rhs, T arg) {
+    handleNSMSuper(node, element.enclosingClass);
+    handleNSMSuper(node, element.enclosingClass);
+  }
+
+  @override
+  visitUnresolvedSuperIndexSetIfNull(Send node, Element element, Node index,
+      Node rhs, T arg) {
+    handleNSMSuper(node, element.enclosingClass);
+    handleNSMSuper(node, element.enclosingClass);
+  }
+
+  @override
+  visitUnresolvedSuperSetterIndexSetIfNull(Send node, MethodElement getter,
+      Element element, Node index, Node rhs, T arg) {
+    handleSuper(node); // t1 = super[index]
+    handleNSMSuper(node, element.enclosingClass);
+  }
+
   void visitIfNull(Send node, Node left, Node right, T arg) {
     handleNoSend(node);
   }
