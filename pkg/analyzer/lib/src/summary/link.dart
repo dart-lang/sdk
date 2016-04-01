@@ -169,9 +169,11 @@ abstract class ClassElementForLink
   final CompilationUnitElementForLink enclosingElement;
 
   @override
-  bool hasBeenInferred = false;
+  bool hasBeenInferred;
 
-  ClassElementForLink(this.enclosingElement);
+  ClassElementForLink(CompilationUnitElementForLink enclosingElement)
+      : enclosingElement = enclosingElement,
+        hasBeenInferred = !enclosingElement.isInBuildUnit;
 
   @override
   ConstructorElementForLink get asConstructor => unnamedConstructor;
@@ -227,9 +229,9 @@ abstract class ClassElementForLink
 
   /**
    * Perform type inference and cycle detection on this class and
-   * store the resulting information in the enclosing elements.
+   * store the resulting information in [compilationUnit].
    */
-  void link(LinkedUnitBuilder linkedUnit);
+  void link(CompilationUnitElementInBuildUnit compilationUnit);
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -405,12 +407,12 @@ class ClassElementForLink_Class extends ClassElementForLink
   }
 
   @override
-  void link(LinkedUnitBuilder linkedUnit) {
+  void link(CompilationUnitElementInBuildUnit compilationUnit) {
     for (ConstructorElementForLink constructorElement in constructors) {
-      constructorElement.link(linkedUnit);
+      constructorElement.link(compilationUnit);
     }
     for (MethodElementForLink methodElement in methods) {
-      methodElement.link(linkedUnit);
+      methodElement.link(compilationUnit);
     }
   }
 
@@ -507,7 +509,7 @@ class ClassElementForLink_Enum extends ClassElementForLink {
       _type ??= new InterfaceTypeImpl(this);
 
   @override
-  void link(LinkedUnitBuilder linkedUnit) {}
+  void link(CompilationUnitElementInBuildUnit compilationUnit) {}
 
   @override
   void unlink() {}
@@ -751,7 +753,7 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
           .inferCompilationUnit(this);
     }
     for (ClassElementForLink classElement in types) {
-      classElement.link(_linkedUnit);
+      classElement.link(this);
     }
   }
 
@@ -766,11 +768,34 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
       classElement.unlink();
     }
   }
+
+  /**
+   * Store the fact that the given [slot] represents a constant constructor
+   * that is part of a cycle.
+   */
+  void _storeConstCycle(int slot) {
+    _linkedUnit.constCycles.add(slot);
+  }
+
+  /**
+   * Store the given [linkedType] in the given [slot] of the this compilation
+   * unit's linked type list.
+   */
+  void _storeLinkedType(int slot, DartType linkedType) {
+    if (slot != 0) {
+      if (linkedType != null && !linkedType.isDynamic) {
+        _linkedUnit.types.add(_createLinkedType(linkedType, this, slot: slot));
+      }
+    }
+  }
 }
 
 /**
  * Element representing a compilation unit which is depended upon
  * (either directly or indirectly) by the build unit being linked.
+ *
+ * TODO(paulberry): ensure that inferred types in dependencies are properly
+ * resynthesized.
  */
 class CompilationUnitElementInDependency extends CompilationUnitElementForLink {
   @override
@@ -1055,8 +1080,8 @@ class ConstructorElementForLink
     if (_parameters == null) {
       _parameters = <ParameterElementForLink>[];
       for (UnlinkedParam unlinkedParam in _unlinkedExecutable.parameters) {
-        _parameters.add(new ParameterElementForLink(
-            unlinkedParam, enclosingElement.enclosingElement));
+        _parameters.add(new ParameterElementForLink(unlinkedParam,
+            enclosingElement, enclosingElement.enclosingElement));
       }
     }
     return _parameters;
@@ -1074,9 +1099,9 @@ class ConstructorElementForLink
   /**
    * Perform const cycle detection on this constructor.
    */
-  void link(LinkedUnitBuilder linkedUnit) {
+  void link(CompilationUnitElementInBuildUnit compilationUnit) {
     if (_constNode != null && !isCycleFree) {
-      linkedUnit.constCycles.add(_unlinkedExecutable.constCycleSlot);
+      compilationUnit._storeConstCycle(_unlinkedExecutable.constCycleSlot);
     }
   }
 
@@ -1474,7 +1499,7 @@ class LibraryElementInBuildUnit
     _linkedLibrary.dependencies.length =
         _linkedLibrary.numPrelinkedDependencies;
     for (CompilationUnitElementInBuildUnit unit in units) {
-      unit.link();
+      unit.unlink();
     }
   }
 
@@ -1518,6 +1543,7 @@ class MethodElementForLink implements MethodElementImpl, TypeParameterContext {
   DartType _inferredReturnType;
   FunctionTypeImpl _type;
   List<TypeParameterElementForLink> _typeParameters;
+  List<ParameterElementForLink> _parameters;
 
   @override
   final ClassElementForLink_Class enclosingElement;
@@ -1544,8 +1570,14 @@ class MethodElementForLink implements MethodElementImpl, TypeParameterContext {
 
   @override
   List<ParameterElementForLink> get parameters {
-    // TODO(paulberry): implement.
-    return const [];
+    if (_parameters == null) {
+      _parameters = <ParameterElementForLink>[];
+      for (UnlinkedParam unlinkedParam in _unlinkedExecutable.parameters) {
+        _parameters.add(new ParameterElementForLink(
+            unlinkedParam, this, enclosingElement.enclosingElement));
+      }
+    }
+    return _parameters;
   }
 
   @override
@@ -1593,17 +1625,13 @@ class MethodElementForLink implements MethodElementImpl, TypeParameterContext {
       !Identifier.isPrivateName(name) || identical(this.library, library);
 
   /**
-   * Store the results of type inference for this method in [linkedUnit].
+   * Store the results of type inference for this method in [compilationUnit].
    */
-  void link(LinkedUnitBuilder linkedUnit) {
-    int slot = _unlinkedExecutable.inferredReturnTypeSlot;
-    if (slot != 0) {
-      DartType inferredReturnType = returnType;
-      if (!inferredReturnType.isDynamic) {
-        linkedUnit.types.add(_createLinkedType(
-            inferredReturnType, enclosingElement.enclosingElement,
-            slot: slot));
-      }
+  void link(CompilationUnitElementInBuildUnit compilationUnit) {
+    compilationUnit._storeLinkedType(
+        _unlinkedExecutable.inferredReturnTypeSlot, _inferredReturnType);
+    for (ParameterElementForLink parameterElement in parameters) {
+      parameterElement.link(compilationUnit);
     }
   }
 
@@ -1614,6 +1642,9 @@ class MethodElementForLink implements MethodElementImpl, TypeParameterContext {
    * Throw away any information produced by type inference.
    */
   void unlink() {
+    for (ParameterElementForLink parameterElement in parameters) {
+      parameterElement.unlink();
+    }
     _inferredReturnType = null;
   }
 }
@@ -1690,11 +1721,16 @@ class NonstaticMemberElementForLink implements ReferenceableElementForLink {
  * Element representing a function or method parameter resynthesized
  * from a summary during linking.
  */
-class ParameterElementForLink implements ParameterElement {
+class ParameterElementForLink implements ParameterElementImpl {
   /**
    * The unlinked representation of the parameter in the summary.
    */
   final UnlinkedParam _unlinkedParam;
+
+  /**
+   * The context in which type parameters should be interpreted.
+   */
+  final TypeParameterContext _typeParameterContext;
 
   /**
    * If this parameter has a default value and the enclosing library
@@ -1708,14 +1744,74 @@ class ParameterElementForLink implements ParameterElement {
    */
   final CompilationUnitElementForLink compilationUnit;
 
-  ParameterElementForLink(this._unlinkedParam, this.compilationUnit) {
+  DartType _inferredType;
+  DartType _declaredType;
+
+  ParameterElementForLink(
+      this._unlinkedParam, this._typeParameterContext, this.compilationUnit) {
     if (_unlinkedParam.defaultValue != null) {
       _constNode = new ConstParameterNode(this);
     }
   }
 
   @override
+  bool get hasImplicitType =>
+      !_unlinkedParam.isFunctionTyped && _unlinkedParam.type == null;
+
+  @override
+  ParameterKind get parameterKind {
+    switch (_unlinkedParam.kind) {
+      case UnlinkedParamKind.required:
+        return ParameterKind.REQUIRED;
+      case UnlinkedParamKind.positional:
+        return ParameterKind.POSITIONAL;
+      case UnlinkedParamKind.named:
+        return ParameterKind.NAMED;
+    }
+  }
+
+  @override
+  DartType get type {
+    if (_inferredType != null) {
+      return _inferredType;
+    } else if (_declaredType == null) {
+      if (_unlinkedParam.isFunctionTyped) {
+        // TODO(paulberry): implement.
+        throw new UnimplementedError();
+      } else if (_unlinkedParam.type == null) {
+        _declaredType = DynamicTypeImpl.instance;
+      } else {
+        _declaredType = compilationUnit._resolveTypeRef(
+            _unlinkedParam.type, _typeParameterContext);
+      }
+    }
+    return _declaredType;
+  }
+
+  @override
+  void set type(DartType inferredType) {
+    assert(_inferredType == null);
+    _inferredType = inferredType;
+  }
+
+  /**
+   * Store the results of type inference for this parameter in
+   * [compilationUnit].
+   */
+  void link(CompilationUnitElementInBuildUnit compilationUnit) {
+    compilationUnit._storeLinkedType(
+        _unlinkedParam.inferredTypeSlot, _inferredType);
+  }
+
+  @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  /**
+   * Throw away any information produced by type inference.
+   */
+  void unlink() {
+    _inferredType = null;
+  }
 }
 
 /**
@@ -2005,7 +2101,7 @@ class VariableElementForLink
   ConstVariableNode get asConstVariable => _constNode;
 
   @override
-  bool get hasImplicitType => unlinkedVariable.type != null;
+  bool get hasImplicitType => unlinkedVariable.type == null;
 
   @override
   FunctionElementForLink_Initializer get initializer =>

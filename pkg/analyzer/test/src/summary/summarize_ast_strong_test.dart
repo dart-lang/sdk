@@ -153,11 +153,6 @@ class LinkedSummarizeAstStrongTest extends LinkedSummarizeAstTest {
   }
 
   @override
-  test_method_inferred_type_nonstatic_implicit_param() {
-    // TODO(paulberry): fix.
-  }
-
-  @override
   test_setter_inferred_type_nonstatic_implicit_param() {
     // TODO(paulberry): fix.
   }
