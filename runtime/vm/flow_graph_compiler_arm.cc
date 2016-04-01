@@ -121,7 +121,7 @@ RawTypedData* CompilerDeoptInfo::CreateDeoptInfo(FlowGraphCompiler* compiler,
   Zone* zone = compiler->zone();
 
   builder->AddPp(current->function(), slot_ix++);
-  builder->AddPcMarker(Function::Handle(zone), slot_ix++);
+  builder->AddPcMarker(Function::ZoneHandle(zone), slot_ix++);
   builder->AddCallerFp(slot_ix++);
   builder->AddReturnAddress(current->function(), deopt_id(), slot_ix++);
 

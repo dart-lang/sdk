@@ -244,6 +244,7 @@ const Code::Comments& Assembler::GetCodeComments() const {
 
 intptr_t ObjectPoolWrapper::AddObject(const Object& obj,
                                       Patchability patchable) {
+  ASSERT(obj.IsNotTemporaryScopedHandle());
   return AddObject(ObjectPoolWrapperEntry(&obj), patchable);
 }
 
@@ -255,6 +256,10 @@ intptr_t ObjectPoolWrapper::AddImmediate(uword imm) {
 
 intptr_t ObjectPoolWrapper::AddObject(ObjectPoolWrapperEntry entry,
                                       Patchability patchable) {
+  ASSERT((entry.type_ != ObjectPool::kTaggedObject) ||
+         (entry.obj_->IsNotTemporaryScopedHandle() &&
+          (entry.equivalence_ == NULL ||
+           entry.equivalence_->IsNotTemporaryScopedHandle())));
   object_pool_.Add(entry);
   if (patchable == kNotPatchable) {
     // The object isn't patchable. Record the index for fast lookup.
@@ -275,7 +280,6 @@ intptr_t ObjectPoolWrapper::FindObject(ObjectPoolWrapperEntry entry,
       return idx;
     }
   }
-
   return AddObject(entry, patchable);
 }
 
@@ -288,8 +292,7 @@ intptr_t ObjectPoolWrapper::FindObject(const Object& obj,
 
 intptr_t ObjectPoolWrapper::FindObject(const Object& obj,
                                        const Object& equivalence) {
-  return FindObject(ObjectPoolWrapperEntry(&obj, &equivalence),
-                    kNotPatchable);
+  return FindObject(ObjectPoolWrapperEntry(&obj, &equivalence), kNotPatchable);
 }
 
 
