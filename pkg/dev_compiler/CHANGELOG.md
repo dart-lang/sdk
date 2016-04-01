@@ -1,5 +1,8 @@
 # dev_compiler changelog
 
+## 0.1.24
+- workaround breaking change on requestAnimationFrame
+
 ## 0.1.23
 - updates for the latest analyzer
 - removal of deprecated functionality (server mode) in prep for refactoring
