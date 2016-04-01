@@ -63,8 +63,9 @@ CompilationUnit check() {
   var uriResolver = new _TestUriResolver(files);
   // Enable task model strong mode
   var context = AnalysisEngine.instance.createAnalysisContext();
-  context.analysisOptions.strongMode = true;
-  (context.analysisOptions as AnalysisOptionsImpl).strongModeHints = true;
+  AnalysisOptionsImpl options = context.analysisOptions as AnalysisOptionsImpl;
+  options.strongMode = true;
+  options.strongModeHints = true;
   context.sourceFactory =
       new SourceFactory([new DartUriResolver(new MockSdk()), uriResolver]);
 

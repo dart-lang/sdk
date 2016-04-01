@@ -49,9 +49,22 @@ const ResultCachingPolicy<CompilationUnit> AST_CACHING_POLICY =
     const SimpleResultCachingPolicy(16384, 16384);
 
 /**
+ * The [ResultCachingPolicy] for lists of [ConstantEvaluationTarget]s.
+ */
+const ResultCachingPolicy<List<ConstantEvaluationTarget>>
+    CONSTANT_EVALUATION_TARGET_LIST_POLICY =
+    const SimpleResultCachingPolicy(-1, -1);
+
+/**
+ * The [ResultCachingPolicy] for [ConstantEvaluationTarget]s.
+ */
+const ResultCachingPolicy<ConstantEvaluationTarget>
+    CONSTANT_EVALUATION_TARGET_POLICY = const SimpleResultCachingPolicy(-1, -1);
+
+/**
  * The [ResultCachingPolicy] for [Element]s.
  */
-const ResultCachingPolicy ELEMENT_CACHING_POLICY =
+const ResultCachingPolicy<Element> ELEMENT_CACHING_POLICY =
     const SimpleResultCachingPolicy(-1, -1);
 
 /**
@@ -59,6 +72,18 @@ const ResultCachingPolicy ELEMENT_CACHING_POLICY =
  */
 const ResultCachingPolicy<Token> TOKEN_STREAM_CACHING_POLICY =
     const SimpleResultCachingPolicy(1, 1);
+
+/**
+ * The [ResultCachingPolicy] for [UsedImportedElements]s.
+ */
+const ResultCachingPolicy<UsedImportedElements> USED_IMPORTED_ELEMENTS_POLICY =
+    const SimpleResultCachingPolicy(-1, -1);
+
+/**
+ * The [ResultCachingPolicy] for [UsedLocalElements]s.
+ */
+const ResultCachingPolicy<UsedLocalElements> USED_LOCAL_ELEMENTS_POLICY =
+    const SimpleResultCachingPolicy(-1, -1);
 
 /**
  * The errors produced while resolving a library directives.
@@ -94,7 +119,7 @@ final ListResultDescriptor<ConstantEvaluationTarget>
     COMPILATION_UNIT_CONSTANTS =
     new ListResultDescriptor<ConstantEvaluationTarget>(
         'COMPILATION_UNIT_CONSTANTS', null,
-        cachingPolicy: ELEMENT_CACHING_POLICY);
+        cachingPolicy: CONSTANT_EVALUATION_TARGET_LIST_POLICY);
 
 /**
  * The element model associated with a single compilation unit.
@@ -151,7 +176,7 @@ final ListResultDescriptor<ConstantEvaluationTarget>
  */
 final ResultDescriptor<ConstantEvaluationTarget> CONSTANT_VALUE =
     new ResultDescriptor<ConstantEvaluationTarget>('CONSTANT_VALUE', null,
-        cachingPolicy: ELEMENT_CACHING_POLICY);
+        cachingPolicy: CONSTANT_EVALUATION_TARGET_POLICY);
 
 /**
  * The sources representing the libraries that include a given source as a part.
@@ -775,14 +800,14 @@ final ResultDescriptor<TypeProvider> TYPE_PROVIDER =
  */
 final ResultDescriptor<UsedImportedElements> USED_IMPORTED_ELEMENTS =
     new ResultDescriptor<UsedImportedElements>('USED_IMPORTED_ELEMENTS', null,
-        cachingPolicy: ELEMENT_CACHING_POLICY);
+        cachingPolicy: USED_IMPORTED_ELEMENTS_POLICY);
 
 /**
  * The [UsedLocalElements] of a [LibrarySpecificUnit].
  */
 final ResultDescriptor<UsedLocalElements> USED_LOCAL_ELEMENTS =
     new ResultDescriptor<UsedLocalElements>('USED_LOCAL_ELEMENTS', null,
-        cachingPolicy: ELEMENT_CACHING_POLICY);
+        cachingPolicy: USED_LOCAL_ELEMENTS_POLICY);
 
 /**
  * The errors produced while resolving variable references in a compilation unit.

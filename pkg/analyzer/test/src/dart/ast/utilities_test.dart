@@ -420,7 +420,7 @@ class B {}''');
   }
 
   void _assertLocate(CompilationUnit unit, int start, int end,
-      Predicate<AstNode> predicate, Type expectedClass) {
+      Predicate<Object> predicate, Type expectedClass) {
     NodeLocator locator = new NodeLocator(start, end);
     AstNode node = locator.searchWithin(unit);
     expect(node, isNotNull);

@@ -601,7 +601,7 @@ class DartObjectImplTest extends EngineTestCase {
   }
 
   void test_hasKnownValue_list_invalidElement() {
-    expect(_listValue([_dynamicValue]).hasKnownValue, isTrue);
+    expect(_listValue([_dynamicValue()]).hasKnownValue, isTrue);
   }
 
   void test_hasKnownValue_list_valid() {

@@ -981,7 +981,8 @@ void set test(_) {}
     libraryUnitElement = libraryUnit.element;
     librarySource = libraryUnitElement.source;
     libraryElement = outputs[LIBRARY_ELEMENT1];
-    partUnits = task.inputs[BuildLibraryElementTask.PARTS_UNIT_INPUT];
+    partUnits = task.inputs[BuildLibraryElementTask.PARTS_UNIT_INPUT]
+        as List<CompilationUnit>;
   }
 }
 
@@ -1012,6 +1013,10 @@ d() {}
 
 @reflectiveTest
 class BuildSourceExportClosureTaskTest extends _AbstractDartTaskTest {
+  List<Source> getExportSourceClosure(Map<ResultDescriptor, dynamic> outputs) {
+    return outputs[EXPORT_SOURCE_CLOSURE] as List<Source>;
+  }
+
   test_perform_exportClosure() {
     Source sourceA = newSource(
         '/a.dart',
@@ -1040,21 +1045,21 @@ library lib_d;
     {
       computeResult(sourceA, EXPORT_SOURCE_CLOSURE,
           matcher: isBuildSourceExportClosureTask);
-      List<Source> closure = outputs[EXPORT_SOURCE_CLOSURE];
+      List<Source> closure = getExportSourceClosure(outputs);
       expect(closure, unorderedEquals([sourceA, sourceB, sourceC]));
     }
     // c.dart
     {
       computeResult(sourceC, EXPORT_SOURCE_CLOSURE,
           matcher: isBuildSourceExportClosureTask);
-      List<Source> closure = outputs[EXPORT_SOURCE_CLOSURE];
+      List<Source> closure = getExportSourceClosure(outputs);
       expect(closure, unorderedEquals([sourceA, sourceB, sourceC]));
     }
     // d.dart
     {
       computeResult(sourceD, EXPORT_SOURCE_CLOSURE,
           matcher: isBuildSourceExportClosureTask);
-      List<Source> closure = outputs[EXPORT_SOURCE_CLOSURE];
+      List<Source> closure = getExportSourceClosure(outputs);
       expect(closure, unorderedEquals([sourceD]));
     }
   }
@@ -1512,14 +1517,28 @@ const b = 0;
     computeResult(elementA, INFERABLE_STATIC_VARIABLE_DEPENDENCIES,
         matcher: isComputeInferableStaticVariableDependenciesTask);
     expect(outputs, hasLength(1));
-    List<VariableElement> dependencies =
-        outputs[INFERABLE_STATIC_VARIABLE_DEPENDENCIES];
+    List<VariableElement> dependencies = outputs[
+        INFERABLE_STATIC_VARIABLE_DEPENDENCIES] as List<VariableElement>;
     expect(dependencies, unorderedEquals([elementB]));
   }
 }
 
 @reflectiveTest
 class ComputeLibraryCycleTaskTest extends _AbstractDartTaskTest {
+  List<LibraryElement> getLibraryCycle(Map<ResultDescriptor, dynamic> outputs) {
+    return outputs[LIBRARY_CYCLE] as List<LibraryElement>;
+  }
+
+  List<CompilationUnitElement> getLibraryCycleDependencies(
+      Map<ResultDescriptor, dynamic> outputs) {
+    return outputs[LIBRARY_CYCLE_DEPENDENCIES] as List<CompilationUnitElement>;
+  }
+
+  List<CompilationUnitElement> getLibraryCycleUnits(
+      Map<ResultDescriptor, dynamic> outputs) {
+    return outputs[LIBRARY_CYCLE_UNITS] as List<CompilationUnitElement>;
+  }
+
   @override
   void setUp() {
     super.setUp();
@@ -1639,18 +1658,18 @@ import 'a.dart';
     });
     List<Map<ResultDescriptor, dynamic>> results =
         computeLibraryResultsMap(sources, LIBRARY_CYCLE);
-    List<LibraryElement> component0 = results[0][LIBRARY_CYCLE];
-    List<LibraryElement> component1 = results[1][LIBRARY_CYCLE];
+    List<LibraryElement> component0 = getLibraryCycle(results[0]);
+    List<LibraryElement> component1 = getLibraryCycle(results[1]);
     expect(component0, hasLength(1));
     expect(component1, hasLength(1));
 
-    List<CompilationUnitElement> units0 = results[0][LIBRARY_CYCLE_UNITS];
-    List<CompilationUnitElement> units1 = results[1][LIBRARY_CYCLE_UNITS];
+    List<CompilationUnitElement> units0 = getLibraryCycleUnits(results[0]);
+    List<CompilationUnitElement> units1 = getLibraryCycleUnits(results[1]);
     expect(units0, hasLength(1));
     expect(units1, hasLength(1));
 
-    List<CompilationUnitElement> dep0 = results[0][LIBRARY_CYCLE_DEPENDENCIES];
-    List<CompilationUnitElement> dep1 = results[1][LIBRARY_CYCLE_DEPENDENCIES];
+    List<CompilationUnitElement> dep0 = getLibraryCycleDependencies(results[0]);
+    List<CompilationUnitElement> dep1 = getLibraryCycleDependencies(results[1]);
     expect(dep0, hasLength(1)); // dart:core
     expect(dep1, hasLength(2)); // dart:core, a.dart
   }
@@ -1669,24 +1688,24 @@ import 'a.dart';
     });
     List<Map<ResultDescriptor, dynamic>> results =
         computeLibraryResultsMap(sources, LIBRARY_CYCLE).toList();
-    List<LibraryElement> component0 = results[0][LIBRARY_CYCLE];
-    List<LibraryElement> component1 = results[1][LIBRARY_CYCLE];
-    List<LibraryElement> component2 = results[2][LIBRARY_CYCLE];
+    List<LibraryElement> component0 = getLibraryCycle(results[0]);
+    List<LibraryElement> component1 = getLibraryCycle(results[1]);
+    List<LibraryElement> component2 = getLibraryCycle(results[2]);
 
     expect(component0, hasLength(3));
     expect(component1, hasLength(3));
     expect(component2, hasLength(3));
 
-    List<CompilationUnitElement> units0 = results[0][LIBRARY_CYCLE_UNITS];
-    List<CompilationUnitElement> units1 = results[1][LIBRARY_CYCLE_UNITS];
-    List<CompilationUnitElement> units2 = results[2][LIBRARY_CYCLE_UNITS];
+    List<CompilationUnitElement> units0 = getLibraryCycleUnits(results[0]);
+    List<CompilationUnitElement> units1 = getLibraryCycleUnits(results[1]);
+    List<CompilationUnitElement> units2 = getLibraryCycleUnits(results[2]);
     expect(units0, hasLength(3));
     expect(units1, hasLength(3));
     expect(units2, hasLength(3));
 
-    List<CompilationUnitElement> dep0 = results[0][LIBRARY_CYCLE_DEPENDENCIES];
-    List<CompilationUnitElement> dep1 = results[1][LIBRARY_CYCLE_DEPENDENCIES];
-    List<CompilationUnitElement> dep2 = results[2][LIBRARY_CYCLE_DEPENDENCIES];
+    List<CompilationUnitElement> dep0 = getLibraryCycleDependencies(results[0]);
+    List<CompilationUnitElement> dep1 = getLibraryCycleDependencies(results[1]);
+    List<CompilationUnitElement> dep2 = getLibraryCycleDependencies(results[2]);
     expect(dep0, hasLength(1)); // dart:core
     expect(dep1, hasLength(1)); // dart:core
     expect(dep2, hasLength(1)); // dart:core
@@ -1756,13 +1775,13 @@ var foo = 123;
     });
     List<Map<ResultDescriptor, dynamic>> results =
         computeLibraryResultsMap(sources, LIBRARY_CYCLE).toList();
-    List<LibraryElement> component0 = results[0][LIBRARY_CYCLE];
+    List<LibraryElement> component0 = getLibraryCycle(results[0]);
     expect(component0, hasLength(1));
 
-    List<CompilationUnitElement> units0 = results[0][LIBRARY_CYCLE_UNITS];
+    List<CompilationUnitElement> units0 = getLibraryCycleUnits(results[0]);
     expect(units0, hasLength(1));
 
-    List<CompilationUnitElement> dep0 = results[0][LIBRARY_CYCLE_DEPENDENCIES];
+    List<CompilationUnitElement> dep0 = getLibraryCycleDependencies(results[0]);
     expect(dep0, hasLength(1)); // dart:core
   }
 
@@ -1773,9 +1792,9 @@ var foo = 123;
 import 'dart:core';
 ''');
     computeResult(new LibrarySpecificUnit(source, source), LIBRARY_CYCLE);
-    List<LibraryElement> component = outputs[LIBRARY_CYCLE];
-    List<CompilationUnitElement> units = outputs[LIBRARY_CYCLE_UNITS];
-    List<CompilationUnitElement> deps = outputs[LIBRARY_CYCLE_DEPENDENCIES];
+    List<LibraryElement> component = getLibraryCycle(outputs);
+    List<CompilationUnitElement> units = getLibraryCycleUnits(outputs);
+    List<CompilationUnitElement> deps = getLibraryCycleDependencies(outputs);
     expect(component, hasLength(1));
     expect(units, hasLength(1));
     expect(deps, hasLength(1));
@@ -1794,23 +1813,23 @@ import 'dart:core';
     });
     List<Map<ResultDescriptor, dynamic>> results =
         computeLibraryResultsMap(sources, LIBRARY_CYCLE);
-    List<LibraryElement> component0 = results[0][LIBRARY_CYCLE];
-    List<LibraryElement> component1 = results[1][LIBRARY_CYCLE];
-    List<LibraryElement> component2 = results[2][LIBRARY_CYCLE];
+    List<LibraryElement> component0 = getLibraryCycle(results[0]);
+    List<LibraryElement> component1 = getLibraryCycle(results[1]);
+    List<LibraryElement> component2 = getLibraryCycle(results[2]);
     expect(component0, hasLength(1));
     expect(component1, hasLength(1));
     expect(component2, hasLength(1));
 
-    List<CompilationUnitElement> units0 = results[0][LIBRARY_CYCLE_UNITS];
-    List<CompilationUnitElement> units1 = results[1][LIBRARY_CYCLE_UNITS];
-    List<CompilationUnitElement> units2 = results[2][LIBRARY_CYCLE_UNITS];
+    List<CompilationUnitElement> units0 = getLibraryCycleUnits(results[0]);
+    List<CompilationUnitElement> units1 = getLibraryCycleUnits(results[1]);
+    List<CompilationUnitElement> units2 = getLibraryCycleUnits(results[2]);
     expect(units0, hasLength(1));
     expect(units1, hasLength(1));
     expect(units2, hasLength(1));
 
-    List<CompilationUnitElement> dep0 = results[0][LIBRARY_CYCLE_DEPENDENCIES];
-    List<CompilationUnitElement> dep1 = results[1][LIBRARY_CYCLE_DEPENDENCIES];
-    List<CompilationUnitElement> dep2 = results[2][LIBRARY_CYCLE_DEPENDENCIES];
+    List<CompilationUnitElement> dep0 = getLibraryCycleDependencies(results[0]);
+    List<CompilationUnitElement> dep1 = getLibraryCycleDependencies(results[1]);
+    List<CompilationUnitElement> dep2 = getLibraryCycleDependencies(results[2]);
     expect(dep0, hasLength(1)); // dart:core
     expect(dep1, hasLength(1)); // dart:core,
     expect(dep2, hasLength(3)); // dart:core, a.dart, b.dart
@@ -1837,29 +1856,29 @@ import 'dart:core';
     });
     List<Map<ResultDescriptor, dynamic>> results =
         computeLibraryResultsMap(sources, LIBRARY_CYCLE).toList();
-    List<LibraryElement> component0 = results[0][LIBRARY_CYCLE];
-    List<LibraryElement> component1 = results[1][LIBRARY_CYCLE];
-    List<LibraryElement> component2 = results[2][LIBRARY_CYCLE];
-    List<LibraryElement> component3 = results[3][LIBRARY_CYCLE];
+    List<LibraryElement> component0 = getLibraryCycle(results[0]);
+    List<LibraryElement> component1 = getLibraryCycle(results[1]);
+    List<LibraryElement> component2 = getLibraryCycle(results[2]);
+    List<LibraryElement> component3 = getLibraryCycle(results[3]);
 
     expect(component0, hasLength(2));
     expect(component1, hasLength(2));
     expect(component2, hasLength(2));
     expect(component3, hasLength(2));
 
-    List<CompilationUnitElement> units0 = results[0][LIBRARY_CYCLE_UNITS];
-    List<CompilationUnitElement> units1 = results[1][LIBRARY_CYCLE_UNITS];
-    List<CompilationUnitElement> units2 = results[2][LIBRARY_CYCLE_UNITS];
-    List<CompilationUnitElement> units3 = results[3][LIBRARY_CYCLE_UNITS];
+    List<CompilationUnitElement> units0 = getLibraryCycleUnits(results[0]);
+    List<CompilationUnitElement> units1 = getLibraryCycleUnits(results[1]);
+    List<CompilationUnitElement> units2 = getLibraryCycleUnits(results[2]);
+    List<CompilationUnitElement> units3 = getLibraryCycleUnits(results[3]);
     expect(units0, hasLength(2));
     expect(units1, hasLength(2));
     expect(units2, hasLength(2));
     expect(units3, hasLength(2));
 
-    List<CompilationUnitElement> dep0 = results[0][LIBRARY_CYCLE_DEPENDENCIES];
-    List<CompilationUnitElement> dep1 = results[1][LIBRARY_CYCLE_DEPENDENCIES];
-    List<CompilationUnitElement> dep2 = results[2][LIBRARY_CYCLE_DEPENDENCIES];
-    List<CompilationUnitElement> dep3 = results[3][LIBRARY_CYCLE_DEPENDENCIES];
+    List<CompilationUnitElement> dep0 = getLibraryCycleDependencies(results[0]);
+    List<CompilationUnitElement> dep1 = getLibraryCycleDependencies(results[1]);
+    List<CompilationUnitElement> dep2 = getLibraryCycleDependencies(results[2]);
+    List<CompilationUnitElement> dep3 = getLibraryCycleDependencies(results[3]);
     expect(dep0, hasLength(1)); // dart:core
     expect(dep1, hasLength(1)); // dart:core
     expect(dep2, hasLength(3)); // dart:core, a.dart, b.dart
@@ -1922,14 +1941,14 @@ import 'dart:core';
         new LibrarySpecificUnit(sources[5], sources[7]), LIBRARY_CYCLE);
     Map<ResultDescriptor, dynamic> results7 = outputs;
 
-    List<LibraryElement> component0 = results0[LIBRARY_CYCLE];
-    List<LibraryElement> component1 = results1[LIBRARY_CYCLE];
-    List<LibraryElement> component2 = results2[LIBRARY_CYCLE];
-    List<LibraryElement> component3 = results3[LIBRARY_CYCLE];
-    List<LibraryElement> component4 = results4[LIBRARY_CYCLE];
-    List<LibraryElement> component5 = results5[LIBRARY_CYCLE];
-    List<LibraryElement> component6 = results6[LIBRARY_CYCLE];
-    List<LibraryElement> component7 = results7[LIBRARY_CYCLE];
+    List<LibraryElement> component0 = getLibraryCycle(results0);
+    List<LibraryElement> component1 = getLibraryCycle(results1);
+    List<LibraryElement> component2 = getLibraryCycle(results2);
+    List<LibraryElement> component3 = getLibraryCycle(results3);
+    List<LibraryElement> component4 = getLibraryCycle(results4);
+    List<LibraryElement> component5 = getLibraryCycle(results5);
+    List<LibraryElement> component6 = getLibraryCycle(results6);
+    List<LibraryElement> component7 = getLibraryCycle(results7);
 
     expect(component0, hasLength(2));
     expect(component1, hasLength(2));
@@ -1940,14 +1959,14 @@ import 'dart:core';
     expect(component6, hasLength(2));
     expect(component7, hasLength(2));
 
-    List<CompilationUnitElement> units0 = results0[LIBRARY_CYCLE_UNITS];
-    List<CompilationUnitElement> units1 = results1[LIBRARY_CYCLE_UNITS];
-    List<CompilationUnitElement> units2 = results2[LIBRARY_CYCLE_UNITS];
-    List<CompilationUnitElement> units3 = results3[LIBRARY_CYCLE_UNITS];
-    List<CompilationUnitElement> units4 = results4[LIBRARY_CYCLE_UNITS];
-    List<CompilationUnitElement> units5 = results5[LIBRARY_CYCLE_UNITS];
-    List<CompilationUnitElement> units6 = results6[LIBRARY_CYCLE_UNITS];
-    List<CompilationUnitElement> units7 = results7[LIBRARY_CYCLE_UNITS];
+    List<CompilationUnitElement> units0 = getLibraryCycleUnits(results0);
+    List<CompilationUnitElement> units1 = getLibraryCycleUnits(results1);
+    List<CompilationUnitElement> units2 = getLibraryCycleUnits(results2);
+    List<CompilationUnitElement> units3 = getLibraryCycleUnits(results3);
+    List<CompilationUnitElement> units4 = getLibraryCycleUnits(results4);
+    List<CompilationUnitElement> units5 = getLibraryCycleUnits(results5);
+    List<CompilationUnitElement> units6 = getLibraryCycleUnits(results6);
+    List<CompilationUnitElement> units7 = getLibraryCycleUnits(results7);
     expect(units0, hasLength(4));
     expect(units1, hasLength(4));
     expect(units2, hasLength(4));
@@ -1957,14 +1976,14 @@ import 'dart:core';
     expect(units6, hasLength(4));
     expect(units7, hasLength(4));
 
-    List<CompilationUnitElement> dep0 = results0[LIBRARY_CYCLE_DEPENDENCIES];
-    List<CompilationUnitElement> dep1 = results1[LIBRARY_CYCLE_DEPENDENCIES];
-    List<CompilationUnitElement> dep2 = results2[LIBRARY_CYCLE_DEPENDENCIES];
-    List<CompilationUnitElement> dep3 = results3[LIBRARY_CYCLE_DEPENDENCIES];
-    List<CompilationUnitElement> dep4 = results4[LIBRARY_CYCLE_DEPENDENCIES];
-    List<CompilationUnitElement> dep5 = results5[LIBRARY_CYCLE_DEPENDENCIES];
-    List<CompilationUnitElement> dep6 = results6[LIBRARY_CYCLE_DEPENDENCIES];
-    List<CompilationUnitElement> dep7 = results7[LIBRARY_CYCLE_DEPENDENCIES];
+    List<CompilationUnitElement> dep0 = getLibraryCycleDependencies(results0);
+    List<CompilationUnitElement> dep1 = getLibraryCycleDependencies(results1);
+    List<CompilationUnitElement> dep2 = getLibraryCycleDependencies(results2);
+    List<CompilationUnitElement> dep3 = getLibraryCycleDependencies(results3);
+    List<CompilationUnitElement> dep4 = getLibraryCycleDependencies(results4);
+    List<CompilationUnitElement> dep5 = getLibraryCycleDependencies(results5);
+    List<CompilationUnitElement> dep6 = getLibraryCycleDependencies(results6);
+    List<CompilationUnitElement> dep7 = getLibraryCycleDependencies(results7);
     expect(dep0, hasLength(1)); // dart:core
     expect(dep1, hasLength(1)); // dart:core
     expect(dep2, hasLength(1)); // dart:core
@@ -1979,6 +1998,11 @@ import 'dart:core';
 @reflectiveTest
 class ComputePropagableVariableDependenciesTaskTest
     extends _AbstractDartTaskTest {
+  List<VariableElement> getPropagableVariableDependencies(
+      Map<ResultDescriptor, dynamic> outputs) {
+    return outputs[PROPAGABLE_VARIABLE_DEPENDENCIES] as List<VariableElement>;
+  }
+
   test_perform_instanceField() {
     AnalysisTarget source = newSource(
         '/test.dart',
@@ -2007,7 +2031,7 @@ class B {
     // verify
     expect(outputs, hasLength(1));
     List<VariableElement> dependencies =
-        outputs[PROPAGABLE_VARIABLE_DEPENDENCIES];
+        getPropagableVariableDependencies(outputs);
     expect(
         dependencies,
         unorderedEquals([
@@ -2039,7 +2063,7 @@ var   d4 = 4;
     // verify
     expect(outputs, hasLength(1));
     List<VariableElement> dependencies =
-        outputs[PROPAGABLE_VARIABLE_DEPENDENCIES];
+        getPropagableVariableDependencies(outputs);
     expect(
         dependencies,
         unorderedEquals([
@@ -2070,7 +2094,7 @@ final d = 4;
     // verify
     expect(outputs, hasLength(1));
     List<VariableElement> dependencies =
-        outputs[PROPAGABLE_VARIABLE_DEPENDENCIES];
+        getPropagableVariableDependencies(outputs);
     expect(dependencies,
         unorderedEquals([AstFinder.getTopLevelVariableElement(unit, 'd')]));
   }
@@ -2094,7 +2118,7 @@ const c = 2;
     // verify
     expect(outputs, hasLength(1));
     List<VariableElement> dependencies =
-        outputs[PROPAGABLE_VARIABLE_DEPENDENCIES];
+        getPropagableVariableDependencies(outputs);
     expect(
         dependencies,
         unorderedEquals([
@@ -2106,13 +2130,17 @@ const c = 2;
 
 @reflectiveTest
 class ContainingLibrariesTaskTest extends _AbstractDartTaskTest {
+  List<Source> getContainingLibraries(Map<ResultDescriptor, dynamic> outputs) {
+    return outputs[CONTAINING_LIBRARIES] as List<Source>;
+  }
+
   test_perform_definingCompilationUnit() {
     AnalysisTarget library = newSource('/test.dart', 'library test;');
     computeResult(library, INCLUDED_PARTS);
     computeResult(library, CONTAINING_LIBRARIES,
         matcher: isContainingLibrariesTask);
     expect(outputs, hasLength(1));
-    List<Source> containingLibraries = outputs[CONTAINING_LIBRARIES];
+    List<Source> containingLibraries = getContainingLibraries(outputs);
     expect(containingLibraries, unorderedEquals([library]));
   }
 
@@ -2128,7 +2156,7 @@ class ContainingLibrariesTaskTest extends _AbstractDartTaskTest {
     computeResult(part, CONTAINING_LIBRARIES,
         matcher: isContainingLibrariesTask);
     expect(outputs, hasLength(1));
-    List<Source> containingLibraries = outputs[CONTAINING_LIBRARIES];
+    List<Source> containingLibraries = getContainingLibraries(outputs);
     expect(containingLibraries, unorderedEquals([library1, library2]));
   }
 
@@ -2141,20 +2169,24 @@ class ContainingLibrariesTaskTest extends _AbstractDartTaskTest {
     computeResult(part, CONTAINING_LIBRARIES,
         matcher: isContainingLibrariesTask);
     expect(outputs, hasLength(1));
-    List<Source> containingLibraries = outputs[CONTAINING_LIBRARIES];
+    List<Source> containingLibraries = getContainingLibraries(outputs);
     expect(containingLibraries, unorderedEquals([library]));
   }
 }
 
 @reflectiveTest
 class DartErrorsTaskTest extends _AbstractDartTaskTest {
+  List<AnalysisError> getDartErrors(Map<ResultDescriptor, dynamic> outputs) {
+    return outputs[DART_ERRORS] as List<AnalysisError>;
+  }
+
   test_perform_definingCompilationUnit() {
     AnalysisTarget library =
         newSource('/test.dart', 'library test; import "dart:math";');
     computeResult(library, INCLUDED_PARTS);
     computeResult(library, DART_ERRORS, matcher: isDartErrorsTask);
     expect(outputs, hasLength(1));
-    List<AnalysisError> errors = outputs[DART_ERRORS];
+    List<AnalysisError> errors = getDartErrors(outputs);
     expect(errors, hasLength(1));
   }
 
@@ -2167,7 +2199,7 @@ class DartErrorsTaskTest extends _AbstractDartTaskTest {
     computeResult(library, DART_ERRORS);
     computeResult(part, DART_ERRORS, matcher: isDartErrorsTask);
     expect(outputs, hasLength(1));
-    List<AnalysisError> errors = outputs[DART_ERRORS];
+    List<AnalysisError> errors = getDartErrors(outputs);
     // This should contain only the errors in the part file, not the ones in the
     // library.
     expect(errors, hasLength(1));
@@ -3131,6 +3163,11 @@ X v3;
 
 @reflectiveTest
 class LibraryUnitErrorsTaskTest extends _AbstractDartTaskTest {
+  List<AnalysisError> getLibraryUnitErrors(
+      Map<ResultDescriptor, dynamic> outputs) {
+    return outputs[LIBRARY_UNIT_ERRORS] as List<AnalysisError>;
+  }
+
   test_perform_definingCompilationUnit() {
     AnalysisTarget library =
         newSource('/test.dart', 'library test; import "dart:math";');
@@ -3138,7 +3175,7 @@ class LibraryUnitErrorsTaskTest extends _AbstractDartTaskTest {
         new LibrarySpecificUnit(library, library), LIBRARY_UNIT_ERRORS,
         matcher: isLibraryUnitErrorsTask);
     expect(outputs, hasLength(1));
-    List<AnalysisError> errors = outputs[LIBRARY_UNIT_ERRORS];
+    List<AnalysisError> errors = getLibraryUnitErrors(outputs);
     expect(errors, hasLength(1));
   }
 
@@ -3149,7 +3186,7 @@ class LibraryUnitErrorsTaskTest extends _AbstractDartTaskTest {
     computeResult(new LibrarySpecificUnit(library, part), LIBRARY_UNIT_ERRORS,
         matcher: isLibraryUnitErrorsTask);
     expect(outputs, hasLength(1));
-    List<AnalysisError> errors = outputs[LIBRARY_UNIT_ERRORS];
+    List<AnalysisError> errors = getLibraryUnitErrors(outputs);
     expect(errors, hasLength(0));
   }
 }
@@ -3322,7 +3359,8 @@ class B {}''');
     computeResult(source, PARSED_UNIT, matcher: isParseDartTask);
   }
 
-  static void _assertHasCore(List<Source> sources, int lenght) {
+  static void _assertHasCore(dynamic sourceList, int lenght) {
+    List<Source> sources = sourceList as List<Source>;
     expect(sources, hasLength(lenght));
     expect(sources, contains(predicate((Source s) {
       return s.fullName.endsWith('core.dart');
@@ -3356,7 +3394,8 @@ class C {
     computeResult(target, PROPAGABLE_VARIABLES_IN_UNIT,
         matcher: isPartiallyResolveUnitReferencesTask);
     // PROPAGABLE_VARIABLES_IN_UNIT
-    List<VariableElement> variables = outputs[PROPAGABLE_VARIABLES_IN_UNIT];
+    List<VariableElement> variables =
+        outputs[PROPAGABLE_VARIABLES_IN_UNIT] as List<VariableElement>;
     expect(variables.map((v) => v.displayName),
         unorderedEquals(['t1', 't2', 'fs1', 'fs2', 'fi1', 'fi2']));
   }
@@ -3423,7 +3462,7 @@ class C {
     // INFERABLE_STATIC_VARIABLES_IN_UNIT
     {
       List<VariableElement> variables =
-          outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT];
+          outputs[INFERABLE_STATIC_VARIABLES_IN_UNIT] as List<VariableElement>;
       expect(variables, hasLength(4));
       expect(variables.map((v) => v.displayName),
           unorderedEquals(['a', 'b', 'd', 'f']));
@@ -5103,7 +5142,7 @@ class _AbstractDartTaskTest extends AbstractContextTest {
    * Fill [errorListener] with [result] errors in the current [task].
    */
   void _fillErrorListener(ResultDescriptor<List<AnalysisError>> result) {
-    List<AnalysisError> errors = task.outputs[result];
+    List<AnalysisError> errors = task.outputs[result] as List<AnalysisError>;
     expect(errors, isNotNull, reason: result.name);
     errorListener = new GatheringErrorListener();
     errorListener.addAll(errors);

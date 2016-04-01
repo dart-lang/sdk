@@ -465,7 +465,7 @@ abstract class ResultDescriptor<V> {
    * never evicted from the cache, and removed only when they are invalidated.
    */
   factory ResultDescriptor(String name, V defaultValue,
-      {ResultCachingPolicy<V> cachingPolicy}) = ResultDescriptorImpl;
+      {ResultCachingPolicy<V> cachingPolicy}) = ResultDescriptorImpl<V>;
 
   /**
    * Return the caching policy for results described by this descriptor.

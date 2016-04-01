@@ -853,12 +853,13 @@ class _CompilationUnitSerializer {
   /**
    * Serialize the given [label], creating an [UnlinkedLabelBuilder].
    */
-  UnlinkedLabelBuilder serializeLabel(LabelElementImpl label) {
+  UnlinkedLabelBuilder serializeLabel(LabelElement label) {
+    LabelElementImpl labelImpl = label as LabelElementImpl;
     UnlinkedLabelBuilder b = new UnlinkedLabelBuilder();
-    b.name = label.name;
-    b.nameOffset = label.nameOffset;
-    b.isOnSwitchMember = label.isOnSwitchMember;
-    b.isOnSwitchStatement = label.isOnSwitchStatement;
+    b.name = labelImpl.name;
+    b.nameOffset = labelImpl.nameOffset;
+    b.isOnSwitchMember = labelImpl.isOnSwitchMember;
+    b.isOnSwitchStatement = labelImpl.isOnSwitchStatement;
     return b;
   }
 
