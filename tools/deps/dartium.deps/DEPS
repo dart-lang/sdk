@@ -9,7 +9,7 @@ execfile(os.path.join(path, 'src', 'dart', 'tools', 'deps', 'dartium.deps', 'DEP
 
 vars.update({
   "dartium_chromium_commit": "b16942297fc65fd478c6f46afd1c3aaecde77009",
-  "dartium_webkit_commit": "06623ed0c4516d579995a62854d0dde215791082",
+  "dartium_webkit_commit": "62ae6246581b6e54959733836a5d5b36c1d956c2",
   "chromium_base_revision": "338390",
 
   # We use mirrors of all github repos to guarantee reproducibility and
