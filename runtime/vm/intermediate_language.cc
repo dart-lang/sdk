@@ -133,6 +133,7 @@ CheckClassInstr::CheckClassInstr(Value* value,
       unary_checks_(unary_checks),
       cids_(unary_checks.NumberOfChecks()),
       licm_hoisted_(false),
+      is_dense_switch_(IsDenseCidRange(unary_checks)),
       token_pos_(token_pos) {
   ASSERT(unary_checks.IsZoneHandle());
   // Expected useful check data.
@@ -231,14 +232,22 @@ bool CheckClassInstr::DeoptIfNotNull() const {
 }
 
 
+bool CheckClassInstr::IsDenseCidRange(const ICData& unary_checks) {
+  if (unary_checks.GetReceiverClassIdAt(0) == kSmiCid) return false;
+  if (unary_checks.NumberOfChecks() <= 2) return false;
+  intptr_t max = 0;
+  intptr_t min = kIntptrMax;
+  for (intptr_t i = 0; i < unary_checks.NumberOfChecks(); ++i) {
+    intptr_t cid = unary_checks.GetCidAt(i);
+    if (cid < min) min = cid;
+    if (cid > max) max = cid;
+  }
+  return (max - min) < kBitsPerWord;
+}
+
 
 bool CheckClassInstr::IsDenseSwitch() const {
-  if (unary_checks().GetReceiverClassIdAt(0) == kSmiCid) return false;
-  if (cids_.length() > 2 &&
-      cids_[cids_.length() - 1] - cids_[0] < kBitsPerWord) {
-    return true;
-  }
-  return false;
+  return is_dense_switch_;
 }
 
 
