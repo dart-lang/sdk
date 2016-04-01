@@ -547,26 +547,62 @@ class SampleBufferControlElement extends ObservatoryElement {
 class StackTraceTreeConfigElement extends ObservatoryElement {
   StackTraceTreeConfigElement.created() : super.created();
 
+  attached() {
+    super.attached();
+    var filterElement = shadowRoot.querySelector('#filterInput');
+    keyDownSubscription = filterElement.onKeyDown.listen(_onKeyDown);
+    blurSubscription = filterElement.onBlur.listen(_onBlur);
+  }
+
+  detached() {
+    super.detached();
+    keyDownSubscription?.cancel();
+    blurSubscription?.cancel();
+  }
+
+  void _onKeyDown(KeyboardEvent keyEvent) {
+    if (keyEvent.keyCode == 13) {
+      // On enter, update the filter string.
+      filterString =
+          (shadowRoot.querySelector('#filterInput') as InputElement).value;
+      if (onTreeConfigChange == null) {
+        return;
+      }
+      onTreeConfigChange(modeSelector, directionSelector, filterString);
+    }
+  }
+
+  void _onBlur(Event event) {
+    // Input box has lost focus, update the display to match the active
+    // filter string.
+    (shadowRoot.querySelector('#filterInput') as InputElement).value =
+        filterString;
+  }
+
   void modeSelectorChanged(oldValue) {
     if (onTreeConfigChange == null) {
       return;
     }
-    onTreeConfigChange(modeSelector, directionSelector);
+    onTreeConfigChange(modeSelector, directionSelector, filterString);
   }
 
   void directionSelectorChanged(oldValue) {
     if (onTreeConfigChange == null) {
       return;
     }
-    onTreeConfigChange(modeSelector, directionSelector);
+    onTreeConfigChange(modeSelector, directionSelector, filterString);
   }
 
   Function onTreeConfigChange;
+  StreamSubscription keyDownSubscription;
+  StreamSubscription blurSubscription;
   @observable bool show = true;
   @observable bool showModeSelector = true;
   @observable bool showDirectionSelector = true;
+  @observable bool showFilter = true;
   @observable String modeSelector = 'Function';
   @observable String directionSelector = 'Up';
+  @observable String filterString;
 }
 
 class FunctionCallTreeNodeRow extends VirtualTreeRow {
@@ -733,7 +769,9 @@ class CpuProfileElement extends ObservatoryElement {
     _renderTask.queue();
   }
 
-  onTreeConfigChange(String modeSelector, String directionSelector) {
+  onTreeConfigChange(String modeSelector,
+                     String directionSelector,
+                     String filterString) {
     ProfileTreeDirection direction = ProfileTreeDirection.Exclusive;
     if (directionSelector != 'Up') {
       direction = ProfileTreeDirection.Inclusive;
@@ -741,6 +779,16 @@ class CpuProfileElement extends ObservatoryElement {
     ProfileTreeMode mode = ProfileTreeMode.Function;
     if (modeSelector == 'Code') {
       mode = ProfileTreeMode.Code;
+    }
+    // Clear the filter.
+    cpuProfileVirtualTreeElement.filter = null;
+    if (filterString != null) {
+      filterString = filterString.trim();
+      if (filterString.isNotEmpty) {
+        cpuProfileVirtualTreeElement.filter = (CallTreeNode node) {
+          return node.name.contains(filterString);
+        };
+      }
     }
     cpuProfileVirtualTreeElement.direction = direction;
     cpuProfileVirtualTreeElement.mode = mode;
@@ -968,7 +1016,9 @@ class CpuProfileTableElement extends ObservatoryElement {
     _renderTask.queue();
   }
 
-  onTreeConfigChange(String modeSelector, String directionSelector) {
+  onTreeConfigChange(String modeSelector,
+                     String directionSelector,
+                     String filterString) {
     ProfileTreeDirection direction = ProfileTreeDirection.Exclusive;
     if (directionSelector != 'Up') {
       direction = ProfileTreeDirection.Inclusive;

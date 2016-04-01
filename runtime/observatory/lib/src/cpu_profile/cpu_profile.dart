@@ -300,8 +300,8 @@ class _FilteredCodeCallTreeBuilder extends _FilteredCallTreeBuilder {
                 new CodeCallTreeNode(tree.root.profileData,
                                      tree.root.count)));
 
-  _copyNode(FunctionCallTreeNode node) {
-    return new FunctionCallTreeNode(node.profileData, node.count);
+  _copyNode(CodeCallTreeNode node) {
+    return new CodeCallTreeNode(node.profileData, node.count);
   }
 }
 
