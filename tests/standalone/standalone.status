@@ -230,6 +230,7 @@ io/test_extension_fail_test: Skip # Platform.executable
 io/platform_test: Skip # Platform.executable
 io/code_collection_test: Skip # Platform.executable
 full_coverage_test: Skip # Platform.executable
+regress_26031_test: Skip # Platform.resolvedExecutable
 
 [ $runtime == dart_precompiled ]
 io/compile_all_test: Crash # Incompatible flag --compile_all
@@ -294,7 +295,7 @@ no_support_service_test: SkipByDesign
 no_support_timeline_test: SkipByDesign
 
 # Following tests are skipped on dart_product as package mapping is not supported.
-[ $runtime == dart_product ]
+[ $runtime == dart_precompiled || $runtime == dart_product ]
 package/scenarios/packages_file_strange_formatting/mixed_line_ends_test: Skip
 package/scenarios/packages_file_strange_formatting/empty_lines_test: Skip
 package/scenarios/invalid/invalid_utf8_test: Skip
