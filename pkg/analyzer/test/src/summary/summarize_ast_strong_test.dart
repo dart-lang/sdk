@@ -43,16 +43,6 @@ class LinkedSummarizeAstStrongTest extends LinkedSummarizeAstTest {
   }
 
   @override
-  test_field_formal_param_inferred_type_explicit() {
-    // TODO(paulberry): fix.
-  }
-
-  @override
-  test_field_formal_param_inferred_type_implicit() {
-    // TODO(paulberry): fix.
-  }
-
-  @override
   test_field_inferred_type_nonstatic_implicit_initialized() {
     // TODO(paulberry): fix.
   }

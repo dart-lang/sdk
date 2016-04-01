@@ -130,7 +130,7 @@ void relink(Map<String, LinkedLibraryBuilder> libraries,
 EntityRefBuilder _createLinkedType(
     DartType type,
     CompilationUnitElementInBuildUnit compilationUnit,
-    TypeParameterContext typeParameterContext,
+    TypeParameterizedElementForLink typeParameterContext,
     {int slot}) {
   EntityRefBuilder result = new EntityRefBuilder(slot: slot);
   if (type is InterfaceType) {
@@ -346,7 +346,7 @@ class ClassElementForLink_Class extends ClassElementForLink
   String get displayName => _unlinkedClass.name;
 
   @override
-  TypeParameterContext get enclosingTypeParameterContext => null;
+  TypeParameterizedElementForLink get enclosingTypeParameterContext => null;
 
   @override
   List<FieldElementForLink_ClassField> get fields {
@@ -708,7 +708,7 @@ abstract class CompilationUnitElementForLink implements CompilationUnitElement {
    * unresolved type, for consistency with the full element model?
    */
   DartType _resolveTypeRef(
-      EntityRef type, TypeParameterContext typeParameterContext,
+      EntityRef type, TypeParameterizedElementForLink typeParameterContext,
       {bool defaultVoid: false}) {
     if (type == null) {
       if (defaultVoid) {
@@ -876,7 +876,7 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
    * unit's linked type list.
    */
   void _storeLinkedType(int slot, DartType linkedType,
-      TypeParameterContext typeParameterContext) {
+      TypeParameterizedElementForLink typeParameterContext) {
     if (slot != 0) {
       if (linkedType != null && !linkedType.isDynamic) {
         _linkedUnit.types.add(_createLinkedType(
@@ -1340,7 +1340,7 @@ abstract class DependencyWalker<NodeType extends Node<NodeType>> {
  */
 abstract class ExecutableElementForLink extends Object
     with TypeParameterizedElementForLink
-    implements ExecutableElementImpl, TypeParameterContext {
+    implements ExecutableElementImpl {
   /**
    * The unlinked representation of the method in the summary.
    */
@@ -1361,7 +1361,8 @@ abstract class ExecutableElementForLink extends Object
   ExecutableElementForLink(this.enclosingElement, this._unlinkedExecutable);
 
   @override
-  TypeParameterContext get enclosingTypeParameterContext => enclosingElement;
+  TypeParameterizedElementForLink get enclosingTypeParameterContext =>
+      enclosingElement;
 
   @override
   bool get hasImplicitReturnType => _unlinkedExecutable.returnType == null;
@@ -1910,7 +1911,7 @@ class ParameterElementForLink implements ParameterElementImpl {
   /**
    * The context in which type parameters should be interpreted.
    */
-  final TypeParameterContext _typeParameterContext;
+  final TypeParameterizedElementForLink _typeParameterContext;
 
   /**
    * If this parameter has a default value and the enclosing library
@@ -2112,22 +2113,6 @@ class TopLevelVariableElementForLink extends VariableElementForLink
 }
 
 /**
- * Interface representing elements which can serve as the context within which
- * type parameter indices are interpreted.
- */
-abstract class TypeParameterContext {
-  /**
-   * Find out how many type parameters are in scope in this context.
-   */
-  int get typeParameterNestingLevel;
-
-  /**
-   * Convert the given [index] into a type parameter type.
-   */
-  TypeParameterType getTypeParameterType(int index);
-}
-
-/**
  * Element representing a type parameter resynthesized from a summary during
  * linking.
  */
@@ -2161,7 +2146,7 @@ class TypeParameterElementForLink implements TypeParameterElement {
  * Mixin representing an element which can have type parameters.
  */
 abstract class TypeParameterizedElementForLink
-    implements TypeParameterizedElement, TypeParameterContext {
+    implements TypeParameterizedElement {
   List<TypeParameterType> _typeParameterTypes;
   List<TypeParameterElementForLink> _typeParameters;
   int _nestingLevel;
@@ -2169,9 +2154,11 @@ abstract class TypeParameterizedElementForLink
   /**
    * Get the type parameter context enclosing this one, if any.
    */
-  TypeParameterContext get enclosingTypeParameterContext;
+  TypeParameterizedElementForLink get enclosingTypeParameterContext;
 
-  @override
+  /**
+   * Find out how many type parameters are in scope in this context.
+   */
   int get typeParameterNestingLevel =>
       _nestingLevel ??= _unlinkedTypeParams.length +
           (enclosingTypeParameterContext?.typeParameterNestingLevel ?? 0);
@@ -2210,7 +2197,9 @@ abstract class TypeParameterizedElementForLink
    */
   List<UnlinkedTypeParam> get _unlinkedTypeParams;
 
-  @override
+  /**
+   * Convert the given [index] into a type parameter type.
+   */
   TypeParameterType getTypeParameterType(int index) {
     List<TypeParameterType> types = typeParameterTypes;
     if (index <= types.length) {
