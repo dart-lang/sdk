@@ -58,11 +58,6 @@ class LinkedSummarizeAstStrongTest extends LinkedSummarizeAstTest {
   }
 
   @override
-  test_field_inferred_type_nonstatic_implicit_uninitialized() {
-    // TODO(paulberry): fix.
-  }
-
-  @override
   test_field_inferred_type_static_implicit_initialized() {
     // TODO(paulberry): fix.
   }
@@ -74,11 +69,6 @@ class LinkedSummarizeAstStrongTest extends LinkedSummarizeAstTest {
 
   @override
   test_fully_linked_references_follow_other_references() {
-    // TODO(paulberry): fix.
-  }
-
-  @override
-  test_getter_inferred_type_nonstatic_implicit_return() {
     // TODO(paulberry): fix.
   }
 
@@ -149,16 +139,6 @@ class LinkedSummarizeAstStrongTest extends LinkedSummarizeAstTest {
 
   @override
   test_linked_type_dependency_reuse() {
-    // TODO(paulberry): fix.
-  }
-
-  @override
-  test_setter_inferred_type_nonstatic_implicit_param() {
-    // TODO(paulberry): fix.
-  }
-
-  @override
-  test_setter_inferred_type_nonstatic_implicit_return() {
     // TODO(paulberry): fix.
   }
 
