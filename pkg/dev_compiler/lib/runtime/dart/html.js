@@ -22699,6 +22699,7 @@ dart_library.library('dart/html', null, /* Imports */[
   RelatedEvent[dart.metadata] = () => [dart.const(new _metadata.DocsEditable()), dart.const(new _metadata.DomName('RelatedEvent')), dart.const(new _metadata.Experimental()), dart.const(new _js_helper.Native("RelatedEvent"))];
   dart.registerExtension(dart.global.RelatedEvent, RelatedEvent);
   const RequestAnimationFrameCallback = dart.typedef('RequestAnimationFrameCallback', () => dart.functionType(dart.void, [core.num]));
+  const FrameRequestCallback = dart.typedef('FrameRequestCallback', () => dart.functionType(dart.void, [core.num]));
   dart.defineExtensionNames([
     'url'
   ]);
@@ -34730,6 +34731,7 @@ dart_library.library('dart/html', null, /* Imports */[
   exports.ReadableStream = ReadableStream;
   exports.RelatedEvent = RelatedEvent;
   exports.RequestAnimationFrameCallback = RequestAnimationFrameCallback;
+  exports.FrameRequestCallback = FrameRequestCallback;
   exports.ResourceProgressEvent = ResourceProgressEvent;
   exports.RtcDataChannel = RtcDataChannel;
   exports.RtcDataChannelEvent = RtcDataChannelEvent;

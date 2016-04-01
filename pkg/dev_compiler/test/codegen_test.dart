@@ -68,23 +68,24 @@ main(arguments) {
 
   var expectDir = path.join(inputDir, 'expect');
 
-  BatchCompiler createCompiler(DartUriResolver sdkResolver, {bool checkSdk: false,
+  BatchCompiler createCompiler(DartUriResolver sdkResolver,
+      {bool checkSdk: false,
       bool sourceMaps: false,
       bool destructureNamedParams: false,
       bool closure: false,
       ModuleFormat moduleFormat: ModuleFormat.legacy}) {
-
     String _testCodegenPath(String p1, [String p2]) =>
         path.join(testDirectory, 'codegen', p1, p2);
 
-    var context = createAnalysisContextWithSources(new SourceResolverOptions(
-        customUrlMappings: {
+    var context = createAnalysisContextWithSources(
+        new SourceResolverOptions(customUrlMappings: {
           'package:expect/expect.dart': _testCodegenPath('expect.dart'),
           'package:async_helper/async_helper.dart':
-          _testCodegenPath('async_helper.dart'),
+              _testCodegenPath('async_helper.dart'),
           'package:unittest/unittest.dart': _testCodegenPath('unittest.dart'),
           'package:dom/dom.dart': _testCodegenPath('sunflower', 'dom.dart')
-        }), sdkResolver: sdkResolver);
+        }),
+        sdkResolver: sdkResolver);
 
     // TODO(jmesserly): add a way to specify flags in the test file, so
     // they're more self-contained.
@@ -223,8 +224,8 @@ $compilerMessages''';
       });
 
       test('devc dart:core', () {
-        var testSdkResolver = createSdkPathResolver(path.join(
-                testDirectory, '..', 'tool', 'generated_sdk'));
+        var testSdkResolver = createSdkPathResolver(
+            path.join(testDirectory, '..', 'tool', 'generated_sdk'));
 
         // Get the test SDK. We use a checked in copy so test expectations can
         // be generated against a specific SDK version.
