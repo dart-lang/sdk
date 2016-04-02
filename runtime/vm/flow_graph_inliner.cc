@@ -1115,27 +1115,12 @@ class CallSiteInliner : public ValueObject {
     return parsed_function;
   }
 
-  // Include special handling for List. factory: inlining it is not helpful
-  // if the incoming argument is a non-constant value.
-  // TODO(srdjan): Fix inlining of List. factory.
   void InlineStaticCalls() {
     const GrowableArray<CallSites::StaticCallInfo>& call_info =
         inlining_call_sites_->static_calls();
     TRACE_INLINING(THR_Print("  Static Calls (%" Pd ")\n", call_info.length()));
     for (intptr_t call_idx = 0; call_idx < call_info.length(); ++call_idx) {
       StaticCallInstr* call = call_info[call_idx].call;
-      if (call->function().name() == Symbols::ListFactory().raw()) {
-        // Inline only if no arguments or a constant was passed.
-        ASSERT(call->function().NumImplicitParameters() == 1);
-        ASSERT(call->ArgumentCount() <= 2);
-        // Arg 0: Instantiator type arguments.
-        // Arg 1: Length (optional).
-        if ((call->ArgumentCount() == 2) &&
-            (!call->PushArgumentAt(1)->value()->BindsToConstant())) {
-          // Do not inline since a non-constant argument was passed.
-          continue;
-        }
-      }
       const Function& target = call->function();
       if (!inliner_->AlwaysInline(target) &&
           (call_info[call_idx].ratio * 100) < FLAG_inlining_hotness) {
