@@ -2002,7 +2002,6 @@ class PhiInstr : public Definition {
   }
 
   void set_is_receiver(ReceiverType is_receiver) {
-    ASSERT(is_receiver_ == kUnknownReceiver);
     is_receiver_ = is_receiver;
   }
 

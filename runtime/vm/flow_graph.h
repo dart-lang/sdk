@@ -356,7 +356,9 @@ class FlowGraph : public ZoneAllocated {
                         bool is_environment_use);
 
   bool IsReceiver(Definition* def) const;
-  void ComputeIsReceiverRecursive(PhiInstr* phi, BitVector* processed) const;
+  void ComputeIsReceiver(PhiInstr* phi) const;
+  void ComputeIsReceiverRecursive(PhiInstr* phi,
+                                  GrowableArray<PhiInstr*>* unmark) const;
 
   Thread* thread_;
 

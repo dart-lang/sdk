@@ -372,40 +372,57 @@ static void VerifyUseListsInInstruction(Instruction* instr) {
   }
 }
 
-
-void FlowGraph::ComputeIsReceiverRecursive(PhiInstr* phi,
-                                           BitVector* processed) const {
+void FlowGraph::ComputeIsReceiverRecursive(
+    PhiInstr* phi, GrowableArray<PhiInstr*>* unmark) const {
   if (phi->is_receiver() != PhiInstr::kUnknownReceiver) return;
-  if (processed->Contains(phi->ssa_temp_index())) return;
-  processed->Add(phi->ssa_temp_index());
+  phi->set_is_receiver(PhiInstr::kReceiver);
   for (intptr_t i = 0; i < phi->InputCount(); ++i) {
     Definition* def = phi->InputAt(i)->definition();
     if (def->IsParameter() && (def->AsParameter()->index() == 0)) continue;
     if (!def->IsPhi()) {
       phi->set_is_receiver(PhiInstr::kNotReceiver);
-      return;
+      break;
     }
-    ComputeIsReceiverRecursive(def->AsPhi(), processed);
+    ComputeIsReceiverRecursive(def->AsPhi(), unmark);
     if (def->AsPhi()->is_receiver() == PhiInstr::kNotReceiver) {
       phi->set_is_receiver(PhiInstr::kNotReceiver);
-      return;
+      break;
     }
   }
-  phi->set_is_receiver(PhiInstr::kReceiver);
+
+  if (phi->is_receiver() == PhiInstr::kNotReceiver) {
+    unmark->Add(phi);
+  }
+}
+
+
+void FlowGraph::ComputeIsReceiver(PhiInstr* phi) const {
+  GrowableArray<PhiInstr*> unmark;
+  ComputeIsReceiverRecursive(phi, &unmark);
+
+  // Now drain unmark.
+  while (!unmark.is_empty()) {
+    PhiInstr* phi = unmark.RemoveLast();
+    for (Value::Iterator it(phi->input_use_list()); !it.Done(); it.Advance()) {
+      PhiInstr* use = it.Current()->instruction()->AsPhi();
+      if ((use != NULL) && (use->is_receiver() == PhiInstr::kReceiver)) {
+        use->set_is_receiver(PhiInstr::kNotReceiver);
+        unmark.Add(use);
+      }
+    }
+  }
 }
 
 
 bool FlowGraph::IsReceiver(Definition* def) const {
   if (def->IsParameter()) return (def->AsParameter()->index() == 0);
-  if (!def->IsPhi()) return false;
+  if (!def->IsPhi() || graph_entry()->catch_entries().is_empty()) return false;
   PhiInstr* phi = def->AsPhi();
   if (phi->is_receiver() != PhiInstr::kUnknownReceiver) {
     return (phi->is_receiver() == PhiInstr::kReceiver);
   }
   // Not known if this phi is the receiver yet. Compute it now.
-  BitVector* processed =
-      new(zone()) BitVector(zone(), max_virtual_register_number());
-  ComputeIsReceiverRecursive(phi, processed);
+  ComputeIsReceiver(phi);
   return (phi->is_receiver() == PhiInstr::kReceiver);
 }
 
