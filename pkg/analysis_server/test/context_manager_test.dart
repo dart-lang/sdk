@@ -145,7 +145,8 @@ class AbstractContextManagerTest {
     manager.processPlugins(plugins);
   }
 
-  UriResolver provideEmbeddedUriResolver(Folder folder) => embeddedUriResolver;
+  EmbedderUriResolver provideEmbeddedUriResolver(Folder folder) =>
+      embeddedUriResolver;
 
   UriResolver providePackageResolver(Folder folder) => packageResolver;
 

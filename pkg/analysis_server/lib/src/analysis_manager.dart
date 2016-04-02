@@ -75,7 +75,7 @@ class AnalysisManager {
   /**
    * Listen for a port from the given analysis server process.
    */
-  Future<AnalysisManager> _listenForPort(Process process) {
+  Future<AnalysisManager> _listenForPort(Process process) async {
     this.process = process;
 
     // Echo stdout and stderr
@@ -85,18 +85,18 @@ class AnalysisManager {
 
     // Listen for port from server
     const String pattern = 'Listening on port ';
-    return out
-        .firstWhere((String line) => line.startsWith(pattern))
-        .timeout(new Duration(seconds: 10))
-        .catchError((error) {
-      exitCode = 1;
-      process.kill();
-      throw 'Expected port from analysis server';
-    }).then((String line) {
+    try {
+      String line = await out
+          .firstWhere((String line) => line.startsWith(pattern))
+          .timeout(new Duration(seconds: 10));
       String port = line.substring(pattern.length).trim();
       String url = 'ws://${InternetAddress.LOOPBACK_IP_V4.address}:$port/';
       return _openConnection(url);
-    });
+    } catch (error) {
+      exitCode = 1;
+      process.kill();
+      throw 'Expected port from analysis server';
+    }
   }
 
   /**

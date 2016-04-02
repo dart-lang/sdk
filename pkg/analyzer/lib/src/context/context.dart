@@ -833,8 +833,8 @@ class AnalysisContextImpl implements InternalAnalysisContext {
   }
 
   @override
-  Object getConfigurationData(ResultDescriptor key) =>
-      _configurationData[key] ?? key?.defaultValue;
+  Object/*=V*/ getConfigurationData/*<V>*/(ResultDescriptor/*<V>*/ key) =>
+      (_configurationData[key] ?? key?.defaultValue) as Object/*=V*/;
 
   @override
   TimestampedData<String> getContents(Source source) {

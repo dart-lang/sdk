@@ -346,7 +346,7 @@ abstract class AnalysisContext {
    *
    * See [setConfigurationData].
    */
-  Object getConfigurationData(ResultDescriptor key);
+  Object/*=V*/ getConfigurationData/*<V>*/(ResultDescriptor/*<V>*/ key);
 
   /**
    * Return the contents and timestamp of the given [source].

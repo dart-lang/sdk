@@ -511,7 +511,8 @@ abstract class HtmlCodeGenerator {
    * Execute [callback], wrapping its output in an element with the given
    * [name] and [attributes].
    */
-  void element(String name, Map<String, String> attributes, [void callback()]) {
+  void element(String name, Map<dynamic, String> attributes,
+      [void callback()]) {
     add(makeElement(name, attributes, collectHtml(callback)));
   }
 

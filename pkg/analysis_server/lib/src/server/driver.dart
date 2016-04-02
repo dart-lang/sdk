@@ -467,7 +467,7 @@ class Driver implements ServerStarter {
    */
   dynamic _captureExceptions(InstrumentationService service, dynamic callback(),
       {void print(String line)}) {
-    Function errorFunction = (Zone self, ZoneDelegate parent, Zone zone,
+    var errorFunction = (Zone self, ZoneDelegate parent, Zone zone,
         dynamic exception, StackTrace stackTrace) {
       service.logPriorityException(exception, stackTrace);
       AnalysisServer analysisServer = socketServer.analysisServer;
@@ -475,11 +475,11 @@ class Driver implements ServerStarter {
           'Captured exception', exception, stackTrace);
       throw exception;
     };
-    Function printFunction = print == null
+    var printFunction = print == null
         ? null
         : (Zone self, ZoneDelegate parent, Zone zone, String line) {
-            // Note: we don't pass the line on to stdout, because that is reserved
-            // for communication to the client.
+            // Note: we don't pass the line on to stdout, because that is
+            // reserved for communication to the client.
             print(line);
           };
     ZoneSpecification zoneSpecification = new ZoneSpecification(

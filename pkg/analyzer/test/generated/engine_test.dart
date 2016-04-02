@@ -462,7 +462,7 @@ class TestAnalysisContext implements InternalAnalysisContext {
   }
 
   @override
-  Object getConfigurationData(ResultDescriptor key) {
+  Object/*=V*/ getConfigurationData/*<V>*/(ResultDescriptor/*<V>*/ key) {
     fail("Unexpected invocation of getConfigurationData");
     return null;
   }

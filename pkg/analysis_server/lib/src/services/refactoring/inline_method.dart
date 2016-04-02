@@ -280,12 +280,12 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
     // prepare method information
     result.addStatus(_prepareMethod());
     if (result.hasFatalError) {
-      return new Future.value(result);
+      return new Future<RefactoringStatus>.value(result);
     }
     // maybe operator
     if (_methodElement.isOperator) {
       result = new RefactoringStatus.fatal('Cannot inline operator.');
-      return new Future.value(result);
+      return new Future<RefactoringStatus>.value(result);
     }
     // analyze method body
     result.addStatus(_prepareMethodParts());

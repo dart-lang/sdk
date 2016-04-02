@@ -86,7 +86,7 @@ class Notification {
   /**
    * Initialize a newly created instance based on the given JSON data.
    */
-  factory Notification.fromJson(Map<String, Object> json) {
+  factory Notification.fromJson(Map json) {
     return new Notification(json[Notification.EVENT],
         json[Notification.PARAMS] as Map<String, Object>);
   }
@@ -368,7 +368,7 @@ class Response {
   /**
    * Initialize a newly created instance based on the given JSON data.
    */
-  factory Response.fromJson(Map<String, Object> json) {
+  factory Response.fromJson(Map json) {
     try {
       Object id = json[Response.ID];
       if (id is! String) {
