@@ -2852,6 +2852,13 @@ class DirectiveResolver extends SimpleAstVisitor with ExistingElementResolver {
     }
     for (ExportElement export in exports) {
       if (export.exportedLibrary.source == source) {
+        // Must have the same offset.
+        if (export.nameOffset != node.offset) {
+          continue;
+        }
+        // In general we should also match combinators.
+        // But currently we invalidate element model on any directive change.
+        // So, either the combinators are the same, or we build new elements.
         return export;
       }
     }
@@ -2874,17 +2881,18 @@ class DirectiveResolver extends SimpleAstVisitor with ExistingElementResolver {
     for (ImportElement element in imports) {
       if (element.importedLibrary.source == source) {
         foundSource = true;
-        PrefixElement prefixElement = element.prefix;
-        if (prefix == null) {
-          if (prefixElement == null) {
-            return element;
-          }
-        } else {
-          if (prefixElement != null &&
-              prefix.name == prefixElement.displayName) {
-            return element;
-          }
+        // Must have the same offset.
+        if (element.nameOffset != node.offset) {
+          continue;
         }
+        // Must have the same prefix.
+        if (element.prefix?.displayName != prefix?.name) {
+          continue;
+        }
+        // In general we should also match combinators.
+        // But currently we invalidate element model on any directive change.
+        // So, either the combinators are the same, or we build new elements.
+        return element;
       }
     }
     if (foundSource) {
