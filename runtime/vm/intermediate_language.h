@@ -7804,6 +7804,7 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
   bool DeoptIfNotNull() const;
 
   bool IsDenseSwitch() const;
+  static bool IsDenseCidRange(const ICData& unary_checks);
   intptr_t ComputeCidMask() const;
   static bool IsDenseMask(intptr_t mask);
 
@@ -7822,6 +7823,7 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
   const ICData& unary_checks_;
   GrowableArray<intptr_t> cids_;  // Sorted, lowest first.
   bool licm_hoisted_;
+  bool is_dense_switch_;
   const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckClassInstr);
