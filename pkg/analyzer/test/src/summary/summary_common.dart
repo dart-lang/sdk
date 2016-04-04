@@ -6002,6 +6002,28 @@ class C<T> {
     expect(variable.constExpr, isNull);
   }
 
+  test_field_static_final_untyped() {
+    if (!checkAstDerivedData) {
+      // The element model doesn't contain the initializer expressions needed
+      // for type inference.  TODO(paulberry): fix.
+      return;
+    }
+    UnlinkedVariable variable =
+        serializeClassText('class C { static final x = 0; }').fields[0];
+    expect(variable.constExpr, isNotNull);
+  }
+
+  test_field_untyped() {
+    if (!checkAstDerivedData) {
+      // The element model doesn't contain the initializer expressions needed
+      // for type inference.  TODO(paulberry): fix.
+      return;
+    }
+    UnlinkedVariable variable =
+        serializeClassText('class C { var x = 0; }').fields[0];
+    expect(variable.constExpr, isNotNull);
+  }
+
   test_fully_linked_references_follow_other_references() {
     if (skipFullyLinkedData) {
       return;
@@ -8023,6 +8045,16 @@ var v;''';
         serializeVariableText('final int i = 0;', variableName: 'i');
     expect(variable.isFinal, isTrue);
     expect(variable.constExpr, isNull);
+  }
+
+  test_variable_final_top_level_untyped() {
+    if (!checkAstDerivedData) {
+      // The element model doesn't contain the initializer expressions needed
+      // for type inference.  TODO(paulberry): fix.
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('final v = 0;');
+    expect(variable.constExpr, isNotNull);
   }
 
   test_variable_implicit_dynamic() {

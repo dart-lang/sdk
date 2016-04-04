@@ -2006,7 +2006,7 @@ class _UnitResynthesizer {
    */
   LocalVariableElement buildLocalVariable(UnlinkedVariable serializedVariable) {
     LocalVariableElementImpl element;
-    if (serializedVariable.constExpr != null) {
+    if (serializedVariable.constExpr != null && serializedVariable.isConst) {
       ConstLocalVariableElementImpl constElement =
           new ConstLocalVariableElementImpl(
               serializedVariable.name, serializedVariable.nameOffset);
@@ -2233,7 +2233,7 @@ class _UnitResynthesizer {
       [ElementHolder holder]) {
     if (holder == null) {
       TopLevelVariableElementImpl element;
-      if (serializedVariable.constExpr != null) {
+      if (serializedVariable.constExpr != null && serializedVariable.isConst) {
         ConstTopLevelVariableElementImpl constElement =
             new ConstTopLevelVariableElementImpl(
                 serializedVariable.name, serializedVariable.nameOffset);
@@ -2249,7 +2249,9 @@ class _UnitResynthesizer {
       buildImplicitAccessors(element, unitHolder);
     } else {
       FieldElementImpl element;
-      if (serializedVariable.constExpr != null) {
+      if (serializedVariable.constExpr != null &&
+          (serializedVariable.isConst ||
+              serializedVariable.isFinal && !serializedVariable.isStatic)) {
         ConstFieldElementImpl constElement = new ConstFieldElementImpl(
             serializedVariable.name, serializedVariable.nameOffset);
         element = constElement;

@@ -824,7 +824,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       b.annotations = serializeAnnotations(annotations);
       b.codeRange = serializeCodeRange(variables.parent);
       if (variable.isConst ||
-          variable.isFinal && isField && !isDeclaredStatic) {
+          variable.isFinal && isField && !isDeclaredStatic ||
+          variables.type == null) {
         Expression initializer = variable.initializer;
         if (initializer != null) {
           b.constExpr = serializeConstExpr(initializer);

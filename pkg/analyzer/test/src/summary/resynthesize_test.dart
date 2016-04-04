@@ -2875,6 +2875,14 @@ class C {
 }''');
   }
 
+  test_field_static_final_untyped() {
+    checkLibrary('class C { static final x = 0; }');
+  }
+
+  test_field_untyped() {
+    checkLibrary('class C { var x = 0; }');
+  }
+
   test_function_documented() {
     checkLibrary('''
 // Extra comment so doc comment offset != 0
@@ -4144,6 +4152,10 @@ var x;''');
 
   test_variable_final() {
     checkLibrary('final int x = 0;');
+  }
+
+  test_variable_final_top_level_untyped() {
+    checkLibrary('final v = 0;');
   }
 
   test_variable_getterInLib_setterInPart() {
