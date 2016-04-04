@@ -115,6 +115,19 @@ class _UnlinkedExecutableKindReader extends fb.Reader<idl.UnlinkedExecutableKind
   }
 }
 
+class _UnlinkedExprAssignOperatorReader extends fb.Reader<idl.UnlinkedExprAssignOperator> {
+  const _UnlinkedExprAssignOperatorReader() : super();
+
+  @override
+  int get size => 1;
+
+  @override
+  idl.UnlinkedExprAssignOperator read(fb.BufferPointer bp) {
+    int index = const fb.Uint8Reader().read(bp);
+    return index < idl.UnlinkedExprAssignOperator.values.length ? idl.UnlinkedExprAssignOperator.values[index] : idl.UnlinkedExprAssignOperator.assign;
+  }
+}
+
 class _UnlinkedParamKindReader extends fb.Reader<idl.UnlinkedParamKind> {
   const _UnlinkedParamKindReader() : super();
 
@@ -3234,12 +3247,24 @@ abstract class _UnlinkedCombinatorMixin implements idl.UnlinkedCombinator {
 class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements idl.UnlinkedConst {
   bool _finished = false;
 
+  List<idl.UnlinkedExprAssignOperator> _assignmentOperators;
   List<double> _doubles;
   List<int> _ints;
   bool _isInvalid;
   List<idl.UnlinkedConstOperation> _operations;
   List<EntityRefBuilder> _references;
   List<String> _strings;
+
+  @override
+  List<idl.UnlinkedExprAssignOperator> get assignmentOperators => _assignmentOperators ??= <idl.UnlinkedExprAssignOperator>[];
+
+  /**
+   * Sequence of operators used by assignment operations.
+   */
+  void set assignmentOperators(List<idl.UnlinkedExprAssignOperator> _value) {
+    assert(!_finished);
+    _assignmentOperators = _value;
+  }
 
   @override
   List<double> get doubles => _doubles ??= <double>[];
@@ -3316,8 +3341,9 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements id
     _strings = _value;
   }
 
-  UnlinkedConstBuilder({List<double> doubles, List<int> ints, bool isInvalid, List<idl.UnlinkedConstOperation> operations, List<EntityRefBuilder> references, List<String> strings})
-    : _doubles = doubles,
+  UnlinkedConstBuilder({List<idl.UnlinkedExprAssignOperator> assignmentOperators, List<double> doubles, List<int> ints, bool isInvalid, List<idl.UnlinkedConstOperation> operations, List<EntityRefBuilder> references, List<String> strings})
+    : _assignmentOperators = assignmentOperators,
+      _doubles = doubles,
       _ints = ints,
       _isInvalid = isInvalid,
       _operations = operations,
@@ -3334,11 +3360,15 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements id
   fb.Offset finish(fb.Builder fbBuilder) {
     assert(!_finished);
     _finished = true;
+    fb.Offset offset_assignmentOperators;
     fb.Offset offset_doubles;
     fb.Offset offset_ints;
     fb.Offset offset_operations;
     fb.Offset offset_references;
     fb.Offset offset_strings;
+    if (!(_assignmentOperators == null || _assignmentOperators.isEmpty)) {
+      offset_assignmentOperators = fbBuilder.writeListUint8(_assignmentOperators.map((b) => b.index).toList());
+    }
     if (!(_doubles == null || _doubles.isEmpty)) {
       offset_doubles = fbBuilder.writeListFloat64(_doubles);
     }
@@ -3355,6 +3385,9 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements id
       offset_strings = fbBuilder.writeList(_strings.map((b) => fbBuilder.writeString(b)).toList());
     }
     fbBuilder.startTable();
+    if (offset_assignmentOperators != null) {
+      fbBuilder.addOffset(6, offset_assignmentOperators);
+    }
     if (offset_doubles != null) {
       fbBuilder.addOffset(4, offset_doubles);
     }
@@ -3389,12 +3422,19 @@ class _UnlinkedConstImpl extends Object with _UnlinkedConstMixin implements idl.
 
   _UnlinkedConstImpl(this._bp);
 
+  List<idl.UnlinkedExprAssignOperator> _assignmentOperators;
   List<double> _doubles;
   List<int> _ints;
   bool _isInvalid;
   List<idl.UnlinkedConstOperation> _operations;
   List<idl.EntityRef> _references;
   List<String> _strings;
+
+  @override
+  List<idl.UnlinkedExprAssignOperator> get assignmentOperators {
+    _assignmentOperators ??= const fb.ListReader<idl.UnlinkedExprAssignOperator>(const _UnlinkedExprAssignOperatorReader()).vTableGet(_bp, 6, const <idl.UnlinkedExprAssignOperator>[]);
+    return _assignmentOperators;
+  }
 
   @override
   List<double> get doubles {
@@ -3437,6 +3477,7 @@ abstract class _UnlinkedConstMixin implements idl.UnlinkedConst {
   @override
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
+    if (assignmentOperators.isNotEmpty) _result["assignmentOperators"] = assignmentOperators.map((_value) => _value.toString().split('.')[1]).toList();
     if (doubles.isNotEmpty) _result["doubles"] = doubles.map((_value) => _value.isFinite ? _value : _value.toString()).toList();
     if (ints.isNotEmpty) _result["ints"] = ints;
     if (isInvalid != false) _result["isInvalid"] = isInvalid;
@@ -3448,6 +3489,7 @@ abstract class _UnlinkedConstMixin implements idl.UnlinkedConst {
 
   @override
   Map<String, Object> toMap() => {
+    "assignmentOperators": assignmentOperators,
     "doubles": doubles,
     "ints": ints,
     "isInvalid": isInvalid,

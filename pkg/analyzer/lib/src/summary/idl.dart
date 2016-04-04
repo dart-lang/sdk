@@ -991,6 +991,12 @@ abstract class UnlinkedCombinator extends base.SummaryClass {
  */
 abstract class UnlinkedConst extends base.SummaryClass {
   /**
+   * Sequence of operators used by assignment operations.
+   */
+  @Id(6)
+  List<UnlinkedExprAssignOperator> get assignmentOperators;
+
+  /**
    * Sequence of 64-bit doubles consumed by the operation `pushDouble`.
    */
   @Id(4)
@@ -1324,6 +1330,36 @@ enum UnlinkedConstOperation {
    * result back onto the stack.
    */
   conditional,
+
+  /**
+   * Pop from the stack `value` and get the next `target` reference from
+   * [UnlinkedConst.references] - a top-level variable (prefixed or not), an
+   * assignable field of a class (prefixed or not), or a sequence of getters
+   * ending with an assignable property `a.b.b.c.d.e`.  In general `a.b` cannot
+   * not be distinguished between: `a` is a prefix and `b` is a top-level
+   * variable; or `a` is an object and `b` is the name of a property.  Perform
+   * `reference op= value` where `op` is the next assignment operator from
+   * [UnlinkedConst.assignmentOperators].  Push `value` back into the stack.
+   */
+  assignToRef,
+
+  /**
+   * Pop from the stack `value` and `target`.  Get the name of the property from
+   * `UnlinkedConst.strings` and assign the `value` to the named property of the
+   * `target`.  This operation is used when we know that the `target` is an
+   * object reference expression, e.g. `new Foo().a.b.c` or `a.b[0].c.d`.
+   * Perform `target.property op= value` where `op` is the next assignment
+   * operator from [UnlinkedConst.assignmentOperators].  Push `value` back into
+   * the stack.
+   */
+  assignToProperty,
+
+  /**
+   * Pop from the stack `value`, `index` and `target`.  Perform
+   * `target[index] op= value`  where `op` is the next assignment operator from
+   * [UnlinkedConst.assignmentOperators].  Push `value` back into the stack.
+   */
+  assignToIndex,
 }
 
 /**
@@ -1761,6 +1797,80 @@ abstract class UnlinkedExportPublic extends base.SummaryClass {
    */
   @Id(0)
   String get uri;
+}
+
+/**
+ * Enum representing the various kinds of assignment operations combined
+ * with:
+ *    [UnlinkedConstOperation.assignToRef],
+ *    [UnlinkedConstOperation.assignToProperty],
+ *    [UnlinkedConstOperation.assignToIndex].
+ */
+enum UnlinkedExprAssignOperator {
+  /**
+   * Perform simple assignment `target = operand`.
+   */
+  assign,
+
+  /**
+   * Perform `target ??= operand`.
+   */
+  ifNull,
+
+  /**
+   * Perform `target *= operand`.
+   */
+  multiply,
+
+  /**
+   * Perform `target /= operand`.
+   */
+  divide,
+
+  /**
+   * Perform `target ~= operand`.
+   */
+  floorDivide,
+
+  /**
+   * Perform `target %= operand`.
+   */
+  modulo,
+
+  /**
+   * Perform `target += operand`.
+   */
+  plus,
+
+  /**
+   * Perform `target -= operand`.
+   */
+  minus,
+
+  /**
+   * Perform `target <<= operand`.
+   */
+  shiftLeft,
+
+  /**
+   * Perform `target >>= operand`.
+   */
+  shiftRight,
+
+  /**
+   * Perform `target &= operand`.
+   */
+  bitAnd,
+
+  /**
+   * Perform `target ^= operand`.
+   */
+  bitXor,
+
+  /**
+   * Perform `target |= operand`.
+   */
+  bitOr
 }
 
 /**
