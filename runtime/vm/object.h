@@ -5190,7 +5190,8 @@ class Instance : public Object {
   // error object if evaluating the expression fails. The method has
   // the formal parameters given in param_names, and is invoked with
   // the argument values given in param_values.
-  RawObject* Evaluate(const String& expr,
+  RawObject* Evaluate(const Class& method_cls,
+                      const String& expr,
                       const Array& param_names,
                       const Array& param_values) const;
 

@@ -2150,8 +2150,10 @@ static bool Evaluate(Thread* thread, JSONStream* js) {
     // We don't use Instance::Cast here because it doesn't allow null.
     Instance& instance = Instance::Handle(zone);
     instance ^= obj.raw();
+    const Class& receiver_cls = Class::Handle(zone, instance.clazz());
     const Object& result =
-        Object::Handle(zone, instance.Evaluate(expr_str,
+        Object::Handle(zone, instance.Evaluate(receiver_cls,
+                                               expr_str,
                                                Array::empty_array(),
                                                Array::empty_array()));
     result.PrintJSON(js, true);

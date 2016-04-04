@@ -1071,12 +1071,14 @@ RawObject* ActivationFrame::Evaluate(const String& expr) {
                         Array::Handle(Array::MakeArray(param_values)));
   } else {
     const Object& receiver = Object::Handle(GetReceiver());
+    const Class& method_cls = Class::Handle(function().origin());
     ASSERT(receiver.IsInstance() || receiver.IsNull());
     if (!(receiver.IsInstance() || receiver.IsNull())) {
       return Object::null();
     }
     const Instance& inst = Instance::Cast(receiver);
-    return inst.Evaluate(expr,
+    return inst.Evaluate(method_cls,
+                         expr,
                          Array::Handle(Array::MakeArray(param_names)),
                          Array::Handle(Array::MakeArray(param_values)));
   }

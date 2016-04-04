@@ -14555,12 +14555,12 @@ const char* UnwindError::ToCString() const {
 }
 
 
-RawObject* Instance::Evaluate(const String& expr,
+RawObject* Instance::Evaluate(const Class& method_cls,
+                              const String& expr,
                               const Array& param_names,
                               const Array& param_values) const {
-  const Class& cls = Class::Handle(clazz());
   const Function& eval_func =
-      Function::Handle(EvaluateHelper(cls, expr, param_names, false));
+      Function::Handle(EvaluateHelper(method_cls, expr, param_names, false));
   const Array& args = Array::Handle(Array::New(1 + param_values.Length()));
   PassiveObject& param = PassiveObject::Handle();
   args.SetAt(0, *this);
