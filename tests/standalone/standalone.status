@@ -69,8 +69,6 @@ oom_error_stacktrace_test: Skip
 out_of_memory_test: Skip
 map_insert_remove_oom_test: Skip  # Issue 24571
 verbose_gc_to_bmu_test: Skip
-precompilation_test: Skip # Standalone only test.
-precompilation_dart2js_test: Skip # Standalone only test.
 regress_26031_test: SkipByDesign # Standalone only test
 
 [ $compiler == dartanalyzer || $compiler == dart2analyzer ]
@@ -109,23 +107,10 @@ vmservice/*: Skip # Do not run standalone vm service tests with dart2js.
 issue14236_test: Skip # dart2js does not deal with Script snapshots.
 unboxed_int_converter_test: Skip
 pair_location_remapping_test: Skip
-precompilation_test: Skip # Standalone only test.
-precompilation_dart2js_test: Skip # Standalone only test.
 regress_25335_test: Skip # Int64List not supported.
 
 [ $compiler == dart2js && $cps_ir && $checked ]
 *: Skip # `assert` not implemented
-
-[ ($runtime == vm || $runtime == dart_product) ]
-precompilation_dart2js_test: Pass, Slow
-
-[ ($runtime == vm || $runtime == dart_product) && $arch == ia32 ]
-precompilation_test: SkipByDesign # Not expected to pass on ia32.
-precompilation_dart2js_test: SkipByDesign # Not expected to pass on ia32.
-
-[ ($runtime == vm || $runtime == dart_product) && ($arch == mips || $arch == arm || $arch == arm64) ]
-precompilation_test: SkipSlow
-precompilation_dart2js_test: SkipSlow
 
 [ ($runtime == vm || $runtime == dart_product) && ($arch == arm || $arch == arm64) ]
 io/file_stream_test: Skip # Issue 26109
@@ -223,8 +208,6 @@ assert_test: Pass, RuntimeError
 [ $noopt || $compiler == precompiler ]
 map_insert_remove_oom_test: Skip # Heap limit too low. Increasing iteration count to make a higher limit a meaningful test makes it too slow for simarm[64] bots.
 io/web_socket_test: Pass, RuntimeError # Issue 24674
-precompilation_test: Skip # Platform.executable
-precompilation_dart2js_test: Skip  # Platform.executable
 io/test_extension_test: Skip # Platform.executable
 io/test_extension_fail_test: Skip # Platform.executable
 io/platform_test: Skip # Platform.executable
@@ -240,8 +223,6 @@ io/stdout_bad_argument_test: Skip # Test exits and so can't generate snapshot.
 
 [ $runtime == dart_precompiled || $runtime == dart_product ]
 debugger/*: Skip
-precompilation_test: Skip # Platform.executable
-precompilation_dart2js_test: Skip # Platform.executable
 full_coverage_test: Skip # Platform.executable
 http_launch_test: Skip # Platform.executable
 io/addlatexhash_test: Skip # Platform.executable
@@ -255,7 +236,6 @@ io/skipping_dart2js_compilations_test: Skip # Platform.executable
 io/snapshot_fail_test: Skip # Platform.executable
 io/stdin_sync_test: Skip # Platform.executable
 io/test_extension_fail_test: Skip # Platform.executable
-precompilation_test: Skip # Platform.executable
 io/file_read_special_device_test: Skip # Platform.executable
 verbose_gc_to_bmu_test: Skip # Platform.executable
 io/http_server_close_response_after_error_test: Skip # Platform.executable
