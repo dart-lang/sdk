@@ -480,6 +480,17 @@ abstract class ResynthesizeTest extends AbstractSingleUnitTest {
           fail('Prefix of type ${o.prefix.staticElement.runtimeType} should not'
               ' have been elided');
         }
+      } else if (o is SimpleIdentifier && r is PrefixedIdentifier) {
+        // In 'class C {static const a = 0; static const b = a;}' the reference
+        // to 'a' in 'b' is serialized as a fully qualified 'C.a' reference.
+        if (r.prefix.staticElement is ClassElement) {
+          compareElements(
+              r.prefix.staticElement, o.staticElement?.enclosingElement, desc);
+          compareConstAsts(r.identifier, o, desc);
+        } else {
+          fail('Prefix of type ${r.prefix.staticElement.runtimeType} should not'
+              ' have been elided');
+        }
       } else if (o is PropertyAccess &&
           o.target is PrefixedIdentifier &&
           r is PrefixedIdentifier) {

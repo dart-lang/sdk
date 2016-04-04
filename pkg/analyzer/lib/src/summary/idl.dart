@@ -718,11 +718,6 @@ enum ReferenceKind {
   method,
 
   /**
-   * The `length` property access.
-   */
-  length,
-
-  /**
    * The entity is a typedef.
    */
   typedef,
@@ -1129,6 +1124,13 @@ enum UnlinkedConstOperation {
   pushReference,
 
   /**
+   * Pop the top value from the stack, extract the value of the property with
+   * the name obtained from [UnlinkedConst.strings], and push the result back
+   * onto the stack.
+   */
+  extractProperty,
+
+  /**
    * Pop the top `n` values from the stack (where `n` is obtained from
    * [UnlinkedConst.ints]) into a list (filled from the end) and take the next
    * `n` values from [UnlinkedConst.strings] and use the lists of names and
@@ -1322,12 +1324,6 @@ enum UnlinkedConstOperation {
    * result back onto the stack.
    */
   conditional,
-
-  /**
-   * Pop the top value from the stack, evaluate `v.length`, and push the result
-   * back onto the stack.
-   */
-  length,
 }
 
 /**

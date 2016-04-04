@@ -85,7 +85,7 @@ abstract class AbstractConstExprSerializer {
   void serialize(Expression expr) {
     try {
       _serialize(expr);
-    } on StateError {
+    } on StateError catch (e, st) {
       isInvalid = true;
     }
   }
@@ -106,6 +106,12 @@ abstract class AbstractConstExprSerializer {
    * Return [EntityRefBuilder] that corresponds to the given [identifier].
    */
   EntityRefBuilder serializeIdentifier(Identifier identifier);
+
+  /**
+   * Return [EntityRefBuilder] that corresponds to the given [expr], which
+   * must be a sequence of identifiers.
+   */
+  EntityRefBuilder serializeIdentifierSequence(Expression expr);
 
   void serializeInstanceCreation(
       EntityRefBuilder constructor, ArgumentList argumentList) {
@@ -128,11 +134,6 @@ abstract class AbstractConstExprSerializer {
     // Serialize the reference.
     references.add(constructor);
   }
-
-  /**
-   * Return [EntityRefBuilder] that corresponds to the given [access].
-   */
-  EntityRefBuilder serializePropertyAccess(PropertyAccess access);
 
   /**
    * Return [EntityRefBuilder] that corresponds to the given [type].
@@ -237,14 +238,7 @@ abstract class AbstractConstExprSerializer {
     } else if (expr is PrefixExpression) {
       _serializePrefixExpression(expr);
     } else if (expr is PropertyAccess) {
-      if (expr.target is! PrefixedIdentifier &&
-          expr.propertyName.name == 'length') {
-        _serialize(expr.target);
-        operations.add(UnlinkedConstOperation.length);
-      } else {
-        references.add(serializePropertyAccess(expr));
-        operations.add(UnlinkedConstOperation.pushReference);
-      }
+      _serializePropertyAccess(expr);
     } else if (expr is ParenthesizedExpression) {
       _serialize(expr.expression);
     } else {
@@ -342,6 +336,18 @@ abstract class AbstractConstExprSerializer {
     }
   }
 
+  void _serializePropertyAccess(PropertyAccess expr) {
+    if (_isIdentifierSequence(expr)) {
+      EntityRefBuilder ref = serializeIdentifierSequence(expr);
+      references.add(ref);
+      operations.add(UnlinkedConstOperation.pushReference);
+    } else {
+      _serialize(expr.target);
+      strings.add(expr.propertyName.name);
+      operations.add(UnlinkedConstOperation.extractProperty);
+    }
+  }
+
   void _serializeString(StringLiteral expr) {
     if (expr is AdjacentStrings) {
       if (expr.strings.every((string) => string is SimpleStringLiteral)) {
@@ -368,5 +374,24 @@ abstract class AbstractConstExprSerializer {
       operations.add(UnlinkedConstOperation.concatenate);
       ints.add(interpolation.elements.length);
     }
+  }
+
+  /**
+   * Return `true` if the given [expr] is a sequence of identifiers.
+   */
+  static bool _isIdentifierSequence(Expression expr) {
+    while (expr != null) {
+      if (expr is SimpleIdentifier) {
+        return true;
+      }
+      if (expr is PrefixedIdentifier) {
+        expr = (expr as PrefixedIdentifier).prefix;
+      } else if (expr is PropertyAccess) {
+        expr = (expr as PropertyAccess).target;
+      } else {
+        return false;
+      }
+    }
+    return false;
   }
 }

@@ -64,6 +64,9 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
   bool get skipFullyLinkedData => false;
 
   @override
+  bool get skipNonConstInitializers => true;
+
+  @override
   bool get strongMode => false;
 
   @override

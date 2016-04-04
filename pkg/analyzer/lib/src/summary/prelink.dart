@@ -421,24 +421,8 @@ class _Prelinker {
         // Prefix references must always point backward.
         assert(reference.prefixReference < i);
         namespace = prefixNamespaces[reference.prefixReference];
-        // If in `a.length` the `a` prefix is a top-level variable or a field,
-        // then it must be the `String.length` property reference.
-        if (namespace == null && reference.name == 'length') {
-          ReferenceKind prefixKind = references[reference.prefixReference].kind;
-          if (prefixKind == ReferenceKind.topLevelPropertyAccessor ||
-              prefixKind == ReferenceKind.propertyAccessor) {
-            references
-                .add(new LinkedReferenceBuilder(kind: ReferenceKind.length));
-            continue;
-          }
-        }
-        // Anything prefixed with 'unresolved' is unresolved.
-        if (references[reference.prefixReference].kind ==
-            ReferenceKind.unresolved) {
-          namespace = const <String, _Meaning>{};
-        }
-        // Prefix references must always point to proper prefixes.
-        assert(namespace != null);
+        // Expressions like 'a.b.c.d' cannot be prelinked.
+        namespace ??= const <String, _Meaning>{};
       }
       _Meaning meaning = namespace[reference.name];
       if (meaning != null) {

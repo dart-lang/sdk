@@ -172,6 +172,11 @@ abstract class SummaryTest {
   bool get skipFullyLinkedData;
 
   /**
+   * `true` if non-const variable initializers are not serialized.
+   */
+  bool get skipNonConstInitializers;
+
+  /**
    * `true` if the linked portion of the summary contains the result of strong
    * mode analysis.
    */
@@ -511,7 +516,8 @@ abstract class SummaryTest {
       UnlinkedUnit unlinkedSourceUnit,
       int numTypeParameters: 0,
       bool checkAstDerivedDataOverride: false,
-      int localIndex: 0}) {
+      int localIndex: 0,
+      bool unresolvedHasName: false}) {
     linkedSourceUnit ??= definingUnit;
     unlinkedSourceUnit ??= unlinkedUnits[0];
     LinkedReference referenceResolution =
@@ -546,7 +552,7 @@ abstract class SummaryTest {
         !checkAstDerivedDataOverride) {
       // summarize_elements.dart isn't yet able to record the name of
       // unresolved references.  TODO(paulberry): fix this.
-      expect(name, '*unresolved*');
+      expect(name, unresolvedHasName ? expectedName : '*unresolved*');
     } else {
       if (expectedName == null) {
         expect(name, isEmpty);
@@ -588,7 +594,8 @@ abstract class SummaryTest {
       LinkedUnit linkedSourceUnit,
       UnlinkedUnit unlinkedSourceUnit,
       int numTypeParameters: 0,
-      bool checkAstDerivedDataOverride: false}) {
+      bool checkAstDerivedDataOverride: false,
+      bool unresolvedHasName: false}) {
     linkedSourceUnit ??= definingUnit;
     expect(typeRef, new isInstanceOf<EntityRef>());
     expect(typeRef.paramReference, 0);
@@ -603,12 +610,14 @@ abstract class SummaryTest {
         linkedSourceUnit: linkedSourceUnit,
         unlinkedSourceUnit: unlinkedSourceUnit,
         numTypeParameters: numTypeParameters,
-        checkAstDerivedDataOverride: checkAstDerivedDataOverride);
+        checkAstDerivedDataOverride: checkAstDerivedDataOverride,
+        unresolvedHasName: unresolvedHasName);
     expect(reference, isNotNull,
         reason: 'Unlinked type refs must refer to an explicit reference');
     if (expectedKind == ReferenceKind.unresolved &&
         !checkAstDerivedData &&
-        !checkAstDerivedDataOverride) {
+        !checkAstDerivedDataOverride &&
+        !unresolvedHasName) {
       // summarize_elements.dart isn't yet able to record the prefix of
       // unresolved references.  TODO(paulberry): fix this.
       expect(reference.prefixReference, 0);
@@ -2258,7 +2267,8 @@ const int v = a.length;
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'length',
-              expectedKind: ReferenceKind.length,
+              expectedKind: ReferenceKind.unresolved,
+              unresolvedHasName: true,
               prefixExpectations: [
                 new _PrefixExpectation(
                     ReferenceKind.topLevelPropertyAccessor, 'a')
@@ -2277,7 +2287,8 @@ const int v = C.F.length;
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'length',
-              expectedKind: ReferenceKind.length,
+              expectedKind: ReferenceKind.unresolved,
+              unresolvedHasName: true,
               prefixExpectations: [
                 new _PrefixExpectation(ReferenceKind.propertyAccessor, 'F'),
                 new _PrefixExpectation(ReferenceKind.classOrEnum, 'C'),
@@ -2299,7 +2310,8 @@ const int v = a.length;
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'length',
-              expectedKind: ReferenceKind.length,
+              expectedKind: ReferenceKind.unresolved,
+              unresolvedHasName: true,
               prefixExpectations: [
                 new _PrefixExpectation(
                     ReferenceKind.topLevelPropertyAccessor, 'a',
@@ -2322,7 +2334,8 @@ const int v = p.a.length;
       UnlinkedConstOperation.pushReference
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'length',
-              expectedKind: ReferenceKind.length,
+              expectedKind: ReferenceKind.unresolved,
+              unresolvedHasName: true,
               prefixExpectations: [
                 new _PrefixExpectation(
                     ReferenceKind.topLevelPropertyAccessor, 'a',
@@ -2339,10 +2352,11 @@ const int v = p.a.length;
       UnlinkedConstOperation.pushString,
       UnlinkedConstOperation.pushString,
       UnlinkedConstOperation.add,
-      UnlinkedConstOperation.length
+      UnlinkedConstOperation.extractProperty
     ], strings: [
       'abc',
-      'edf'
+      'edf',
+      'length'
     ]);
   }
 
@@ -2351,9 +2365,10 @@ const int v = p.a.length;
         serializeVariableText('const v = ("abc").length;');
     _assertUnlinkedConst(variable.constExpr, operators: [
       UnlinkedConstOperation.pushString,
-      UnlinkedConstOperation.length
+      UnlinkedConstOperation.extractProperty
     ], strings: [
-      'abc'
+      'abc',
+      'length'
     ]);
   }
 
@@ -2362,9 +2377,10 @@ const int v = p.a.length;
         serializeVariableText('const v = "abc".length;');
     _assertUnlinkedConst(variable.constExpr, operators: [
       UnlinkedConstOperation.pushString,
-      UnlinkedConstOperation.length
+      UnlinkedConstOperation.extractProperty
     ], strings: [
-      'abc'
+      'abc',
+      'length'
     ]);
   }
 
@@ -5846,6 +5862,30 @@ f(MyFunction myFunction) {}
         ReferenceKind.topLevelPropertyAccessor);
   }
 
+  test_expr_extractProperty_ofInvokeConstructor() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('''
+class C {
+  int f = 0;
+}
+final v = new C().f;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.invokeConstructor,
+      UnlinkedConstOperation.extractProperty,
+    ], ints: [
+      0,
+      0
+    ], strings: [
+      'f'
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'C',
+          expectedKind: ReferenceKind.classOrEnum)
+    ]);
+  }
+
   test_field() {
     UnlinkedClass cls = serializeClassText('class C { int i; }');
     UnlinkedVariable variable = findVariable('i', variables: cls.fields);
@@ -8305,6 +8345,9 @@ var v;''';
     expect(p.visibleLength, isZero);
   }
 
+  /**
+   * TODO(scheglov) rename "Const" to "Expr" everywhere
+   */
   void _assertUnlinkedConst(UnlinkedConst constExpr,
       {bool isInvalid: false,
       List<UnlinkedConstOperation> operators: const <UnlinkedConstOperation>[],

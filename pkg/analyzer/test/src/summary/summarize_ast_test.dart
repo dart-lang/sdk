@@ -178,6 +178,9 @@ abstract class LinkedSummarizeAstTest extends Object with SummaryTest {
   bool get skipFullyLinkedData => false;
 
   @override
+  bool get skipNonConstInitializers => false;
+
+  @override
   addNamedSource(String filePath, String contents) {
     CompilationUnit unit = _parseText(contents);
     UnlinkedUnit unlinkedUnit =

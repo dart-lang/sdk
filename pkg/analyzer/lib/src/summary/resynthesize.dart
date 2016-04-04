@@ -438,32 +438,13 @@ class _ConstExprBuilder {
           _pushMap(AstFactory.typeArgumentList(<TypeName>[keyType, valueType]));
           break;
         case UnlinkedConstOperation.pushReference:
-          EntityRef ref = uc.references[refPtr++];
-          _ReferenceInfo info = resynthesizer.referenceInfos[ref.reference];
-          if (info.enclosing != null &&
-              info.enclosing.element != null &&
-              info.enclosing.element is! ClassElement) {
-            SimpleIdentifier prefix = AstFactory.identifier3(
-                info.enclosing.name)..staticElement = info.enclosing.element;
-            SimpleIdentifier name = AstFactory.identifier3(info.name)
-              ..staticElement = info.element;
-            PrefixedIdentifier node = AstFactory.identifier(prefix, name);
-            _push(node);
-          } else {
-            SimpleIdentifier node = AstFactory.identifier3(info.name);
-            node.staticElement = info.element;
-            _push(node);
-          }
+          _pushReference();
+          break;
+        case UnlinkedConstOperation.extractProperty:
+          _pushExtractProperty();
           break;
         case UnlinkedConstOperation.invokeConstructor:
           _pushInstanceCreation();
-          break;
-        case UnlinkedConstOperation.length:
-          Expression target = _pop();
-          SimpleIdentifier property = AstFactory.identifier3('length');
-          property.staticElement =
-              resynthesizer._buildStringLengthPropertyAccessorElement();
-          _push(AstFactory.propertyAccess(target, property));
           break;
         case UnlinkedConstOperation.pushConstructorParameter:
           String name = uc.strings[stringPtr++];
@@ -479,6 +460,32 @@ class _ConstExprBuilder {
     return stack.single;
   }
 
+  /**
+   * Build the identifier sequence (a single or prefixed identifier, or a
+   * property access) corresponding to the given reference [info].
+   */
+  Expression _buildIdentifierSequence(_ReferenceInfo info) {
+    Expression enclosing;
+    if (info.enclosing != null) {
+      enclosing = _buildIdentifierSequence(info.enclosing);
+    }
+    Element element = info.element;
+    if (element == null && info.name == 'length') {
+      element = _getStringLengthElement();
+    }
+    if (enclosing == null) {
+      return AstFactory.identifier3(info.name)..staticElement = element;
+    }
+    if (enclosing is SimpleIdentifier) {
+      SimpleIdentifier identifier = AstFactory.identifier3(info.name)
+        ..staticElement = element;
+      return AstFactory.identifier(enclosing, identifier);
+    }
+    SimpleIdentifier property = AstFactory.identifier3(info.name)
+      ..staticElement = element;
+    return AstFactory.propertyAccess(enclosing, property);
+  }
+
   TypeName _buildTypeAst(DartType type) {
     List<TypeName> argumentNodes;
     if (type is ParameterizedType) {
@@ -492,6 +499,9 @@ class _ConstExprBuilder {
     (node.name as SimpleIdentifier).staticElement = type.element;
     return node;
   }
+
+  PropertyAccessorElement _getStringLengthElement() =>
+      resynthesizer.typeProvider.stringType.getGetter('length');
 
   InterpolationElement _newInterpolationElement(Expression expr) {
     if (expr is SimpleStringLiteral) {
@@ -524,6 +534,17 @@ class _ConstExprBuilder {
     Expression right = _pop();
     Expression left = _pop();
     _push(AstFactory.binaryExpression(left, operator, right));
+  }
+
+  void _pushExtractProperty() {
+    Expression target = _pop();
+    String name = uc.strings[stringPtr++];
+    // TODO(scheglov) Only String.length property access is supported.
+    assert(name == 'length');
+    _push(AstFactory.propertyAccess(
+        target,
+        AstFactory.identifier3('length')
+          ..staticElement = _getStringLengthElement()));
   }
 
   void _pushInstanceCreation() {
@@ -628,6 +649,13 @@ class _ConstExprBuilder {
   void _pushPrefix(TokenType operator) {
     Expression operand = _pop();
     _push(AstFactory.prefixExpression(operator, operand));
+  }
+
+  void _pushReference() {
+    EntityRef ref = uc.references[refPtr++];
+    _ReferenceInfo info = resynthesizer.referenceInfos[ref.reference];
+    Expression node = _buildIdentifierSequence(info);
+    _push(node);
   }
 
   List<Expression> _removeTopItems(int count) {
@@ -965,7 +993,6 @@ class _LibraryResynthesizer {
       case ReferenceKind.function:
       case ReferenceKind.propertyAccessor:
       case ReferenceKind.method:
-      case ReferenceKind.length:
       case ReferenceKind.prefix:
       case ReferenceKind.unresolved:
       case ReferenceKind.variable:
@@ -2411,9 +2438,6 @@ class _UnitResynthesizer {
             element =
                 new ConstructorElementHandle(summaryResynthesizer, location);
             break;
-          case ReferenceKind.length:
-            element = _buildStringLengthPropertyAccessorElement();
-            break;
           case ReferenceKind.method:
             assert(location.components.length == 4);
             element = new MethodElementHandle(summaryResynthesizer, location);
@@ -2539,15 +2563,6 @@ class _UnitResynthesizer {
   Expression _buildConstExpression(UnlinkedConst uc) {
     return new _ConstExprBuilder(this, uc).build();
   }
-
-  /**
-   * Return the new handle of the `String.length` getter element.
-   */
-  PropertyAccessorElementHandle _buildStringLengthPropertyAccessorElement() =>
-      new PropertyAccessorElementHandle(
-          summaryResynthesizer,
-          new ElementLocationImpl.con3(
-              <String>['dart:core', 'dart:core', 'String', 'length?']));
 
   /**
    * Return the defining type for a [ConstructorElement] by applying
