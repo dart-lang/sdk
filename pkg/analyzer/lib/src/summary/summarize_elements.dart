@@ -450,7 +450,7 @@ class _CompilationUnitSerializer {
 
   /**
    * Compute the appropriate De Bruijn index to represent the given type
-   * parameter [type].
+   * parameter [type], or return `null` if the type parameter is not in scope.
    */
   int findTypeParameterIndex(TypeParameterType type, Element context) {
     Element originalContext = context;
@@ -475,8 +475,7 @@ class _CompilationUnitSerializer {
       }
       context = context.enclosingElement;
     }
-    throw new StateError(
-        'Unbound type parameter $type (${originalContext?.location})');
+    return null;
   }
 
   /**
@@ -1009,7 +1008,15 @@ class _CompilationUnitSerializer {
     EntityRefBuilder b = new EntityRefBuilder(slot: slot);
     Element typeElement = type.element;
     if (type is TypeParameterType) {
-      b.paramReference = findTypeParameterIndex(type, context);
+      int typeParameterIndex = findTypeParameterIndex(type, context);
+      if (typeParameterIndex != null) {
+        b.paramReference = typeParameterIndex;
+      } else {
+        // Out-of-scope type parameters only occur in circumstances where they
+        // are irrelevant (i.e. when a type parameter is unused).  So we can
+        // safely convert them to `dynamic`.
+        b.reference = serializeReferenceForType(DynamicTypeImpl.instance);
+      }
     } else if (type is FunctionType &&
         typeElement is FunctionElement &&
         typeElement.enclosingElement == null) {

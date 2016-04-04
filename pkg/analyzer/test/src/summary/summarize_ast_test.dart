@@ -130,6 +130,11 @@ class LinkedSummarizeAstSpecTest extends LinkedSummarizeAstTest {
   }
 
   @override
+  test_unused_type_parameter() {
+    // TODO(paulberry): fix.
+  }
+
+  @override
   test_variable_propagated_type_final_immediate() {
     // TODO(paulberry): fix.
   }

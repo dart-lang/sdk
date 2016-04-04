@@ -7953,6 +7953,24 @@ typedef F();''';
     expect(xType.reference, yType.reference);
   }
 
+  test_unused_type_parameter() {
+    if (skipFullyLinkedData) {
+      return;
+    }
+    // Unused type parameters get converted to `dynamic`.
+    UnlinkedVariable variable = serializeVariableText('''
+class C<T> {
+  void f() {}
+}
+C<int> c;
+var v = c.f;
+''');
+    EntityRef type =
+        getTypeRefForSlot(variable.initializer.inferredReturnTypeSlot);
+    expect(type.typeArguments, hasLength(1));
+    checkLinkedTypeRef(type.typeArguments[0], null, null, 'dynamic');
+  }
+
   test_variable() {
     String text = 'int i;';
     UnlinkedVariable v = serializeVariableText(text, variableName: 'i');

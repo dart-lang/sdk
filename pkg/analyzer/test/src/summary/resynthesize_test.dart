@@ -1076,8 +1076,20 @@ abstract class ResynthesizeTest extends AbstractSingleUnitTest {
       expect(resynthesized.typeArguments.length, original.typeArguments.length,
           reason: desc);
       for (int i = 0; i < resynthesized.typeArguments.length; i++) {
-        compareTypes(resynthesized.typeArguments[i], original.typeArguments[i],
-            '$desc type argument ${original.typeArguments[i].name}');
+        if (resynthesized.typeArguments[i].isDynamic &&
+            original.typeArguments[i] is TypeParameterType) {
+          // It's ok for type arguments to get converted to `dynamic` if they
+          // are not used.
+          expect(
+              isTypeParameterUsed(
+                  original.typeArguments[i], original.element.type),
+              isFalse);
+        } else {
+          compareTypes(
+              resynthesized.typeArguments[i],
+              original.typeArguments[i],
+              '$desc type argument ${original.typeArguments[i].name}');
+        }
       }
       if (original.typeParameters == null) {
         expect(resynthesized.typeParameters, isNull, reason: desc);
@@ -1242,6 +1254,25 @@ abstract class ResynthesizeTest extends AbstractSingleUnitTest {
       fail('Unexpected type for resynthesized ($desc):'
           ' ${element.runtimeType}');
       return null;
+    }
+  }
+
+  /**
+   * Determine if [type] makes use of the given [typeParameter].
+   */
+  bool isTypeParameterUsed(TypeParameterType typeParameter, DartType type) {
+    if (type is FunctionType) {
+      return isTypeParameterUsed(typeParameter, type.returnType) ||
+          type.parameters.any((ParameterElement e) =>
+              isTypeParameterUsed(typeParameter, e.type));
+    } else if (type is InterfaceType) {
+      return type.typeArguments
+          .any((DartType t) => isTypeParameterUsed(typeParameter, t));
+    } else if (type is TypeParameterType) {
+      return type == typeParameter;
+    } else {
+      expect(type.isDynamic || type.isVoid, isTrue);
+      return false;
     }
   }
 
@@ -4086,6 +4117,16 @@ typedef F();''');
 
   test_typedefs() {
     checkLibrary('f() {} g() {}');
+  }
+
+  test_unused_type_parameter() {
+    checkLibrary('''
+class C<T> {
+  void f() {}
+}
+C<int> c;
+var v = c.f;
+''');
   }
 
   test_variable_const() {
