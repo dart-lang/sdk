@@ -25,7 +25,8 @@ import '../util/util.dart' show
 /// parameters to sync* functions that are mutated in the body must be boxed.
 /// (Currently handled in closure.dart).
 ///
-/// Look at [visitFun], [visitDartYield] and [visitAwait] for more explanation.
+/// Look at [rewriteFunction], [visitDartYield] and [visitAwait] for more
+/// explanation.
 abstract class AsyncRewriterBase extends js.NodeVisitor {
 
   // Local variables are hoisted to the top of the function, so they are
@@ -207,7 +208,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     // Initialize names specific to the subclass.
     initializeNames();
 
-    return node.accept(this);
+    return rewriteFunction(node);
   }
 
   js.Expression get currentErrorHandler {
@@ -665,8 +666,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   ///   }
   /// }
   ///
-  @override
-  js.Expression visitFun(js.Fun node) {
+  js.Expression rewriteFunction(js.Fun node) {
     beginLabel(newLabel("Function start"));
     // AsyncStar needs a returnlabel for its handling of cancelation. See
     // [visitDartYield].
@@ -717,6 +717,18 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
         new js.VariableDeclarationList(variables);
 
     return finishFunction(node.params, rewrittenBody, variableDeclarations);
+  }
+
+  @override
+  js.Expression visitFun(js.Fun node) {
+    if (node.asyncModifier.isAsync || node.asyncModifier.isYielding) {
+      // The translation does not handle nested functions that are generators
+      // or asynchronous.  These functions should only be ones that are
+      // introduced by JS foreign code from our own libraries.
+      reporter.internalError(spannable,
+          'Nested function is a generator or asynchronous.');
+    }
+    return node;
   }
 
   @override
@@ -772,7 +784,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
 
   /// An await is translated to an [awaitStatement].
   ///
-  /// See the comments of [visitFun] for an example.
+  /// See the comments of [rewriteFunction] for an example.
   @override
   js.Expression visitAwait(js.Await node) {
     assert(isAsync || isAsyncStar);
@@ -929,7 +941,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   /// It is necessary to run all nesting finally-handlers between the jump and
   /// the target. For that [next] is used as a stack of places to go.
   ///
-  /// See also [visitFun].
+  /// See also [rewriteFunction].
   void translateJump(js.Node target, int targetLabel) {
     // Compute a stack of all the 'finally' nodes that must be visited before
     // the jump.
@@ -1432,7 +1444,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     return result.reversed.toList();
   }
 
-  /// See the comments of [visitFun] for more explanation.
+  /// See the comments of [rewriteFunction] for more explanation.
   void visitTry(js.Try node) {
     if (!shouldTransform(node)) {
       js.Block body = translateInBlock(node.body);
