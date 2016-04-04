@@ -4,6 +4,8 @@
 
 library dart2js.parser;
 
+import '../options.dart' show
+    ParserOptions;
 import '../common.dart';
 import '../tokens/keyword.dart' show
     Keyword;
@@ -97,13 +99,12 @@ class FormalParameterType {
  */
 class Parser {
   final Listener listener;
+  final ParserOptions parserOptions;
   bool mayParseFunctionExpressions = true;
-  final bool enableConditionalDirectives;
   bool asyncAwaitKeywordsEnabled;
 
-  Parser(this.listener,
-      {this.enableConditionalDirectives: false,
-       this.asyncAwaitKeywordsEnabled: false});
+  Parser(this.listener, this.parserOptions,
+      {this.asyncAwaitKeywordsEnabled: false});
 
   Token parseUnit(Token token) {
     listener.beginCompilationUnit(token);
@@ -180,7 +181,7 @@ class Parser {
   Token parseConditionalUris(Token token) {
     listener.beginConditionalUris(token);
     int count = 0;
-    if (enableConditionalDirectives) {
+    if (parserOptions.enableConditionalDirectives) {
       while (optional('if', token)) {
         count++;
         token = parseConditionalUri(token);
