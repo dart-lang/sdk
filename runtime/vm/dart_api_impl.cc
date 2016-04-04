@@ -5958,7 +5958,7 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
   if (type < Dart_Timeline_Event_Begin) {
     return;
   }
-  if (type > Dart_Timeline_Event_Metadata) {
+  if (type > Dart_Timeline_Event_Counter) {
     return;
   }
   TimelineStream* stream = Timeline::GetEmbedderStream();
@@ -5992,9 +5992,6 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
     case Dart_Timeline_Event_Counter:
       event->Counter(label, timestamp0);
     break;
-    case Dart_Timeline_Event_Metadata:
-      event->Metadata(label, timestamp0);
-    break;
     default:
       FATAL("Unknown Dart_Timeline_Event_Type");
   }
@@ -6003,6 +6000,16 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
     event->CopyArgument(i, argument_names[i], argument_values[i]);
   }
   event->Complete();
+}
+
+
+DART_EXPORT void Dart_SetThreadName(const char* name) {
+  OSThread* thread = OSThread::Current();
+  if (thread == NULL) {
+    // VM is shutting down.
+    return;
+  }
+  thread->SetName(name);
 }
 
 

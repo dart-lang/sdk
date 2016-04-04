@@ -1176,6 +1176,7 @@ void TimelineEventFixedBufferRecorder::PrintTraceEvent(
     return;
   }
   JSONArray events(js);
+  PrintJSONMeta(&events);
   PrintJSONEvents(&events, filter);
 }
 
@@ -1321,6 +1322,7 @@ void TimelineEventEndlessRecorder::PrintTraceEvent(
     return;
   }
   JSONArray events(js);
+  PrintJSONMeta(&events);
   PrintJSONEvents(&events, filter);
 }
 

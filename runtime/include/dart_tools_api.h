@@ -991,7 +991,6 @@ typedef enum {
   Dart_Timeline_Event_Async_End,      // Phase = 'e'.
   Dart_Timeline_Event_Async_Instant,  // Phase = 'n'.
   Dart_Timeline_Event_Counter,        // Phase = 'C'.
-  Dart_Timeline_Event_Metadata,       // Phase = 'M'.
 } Dart_Timeline_Event_Type;
 
 /**
@@ -1012,6 +1011,14 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
                                     intptr_t argument_count,
                                     const char** argument_names,
                                     const char** argument_values);
+
+/**
+ * Associates a name with the current thread. This name will be used to name
+ * threads in the timeline. Can only be called after a call to Dart_Initialize.
+ *
+ * \param name The name of the thread.
+ */
+DART_EXPORT void Dart_SetThreadName(const char* name);
 
 /**
  * Called by the VM to let the embedder know when to start recording into the

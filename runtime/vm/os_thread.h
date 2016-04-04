@@ -75,6 +75,8 @@ class OSThread : public BaseThread {
     return name_;
   }
 
+  void SetName(const char* name);
+
   void set_name(const char* name) {
     ASSERT(OSThread::Current() == this);
     ASSERT(name_ == NULL);
