@@ -531,7 +531,13 @@ enum UnlinkedConstOperation : byte {
    * `target[index] op= value`  where `op` is the next assignment operator from
    * [UnlinkedConst.assignmentOperators].  Push `value` back into the stack.
    */
-  assignToIndex
+  assignToIndex,
+
+  /**
+   * Pop from the stack `index` and `target`.  Push into the stack the result
+   * of evaluation of `target[index]`.
+   */
+  extractIndex
 }
 
 /**

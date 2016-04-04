@@ -5886,6 +5886,33 @@ final v = new C().f;
     ]);
   }
 
+  test_expr_extractIndex_ofClassField() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('''
+class C {
+  List<int> get items => null;
+}
+final v = new C().items[5];
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.invokeConstructor,
+      UnlinkedConstOperation.extractProperty,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.extractIndex,
+    ], ints: [
+      0,
+      0,
+      5
+    ], strings: [
+      'items'
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'C',
+          expectedKind: ReferenceKind.classOrEnum)
+    ]);
+  }
+
   test_field() {
     UnlinkedClass cls = serializeClassText('class C { int i; }');
     UnlinkedVariable variable = findVariable('i', variables: cls.fields);

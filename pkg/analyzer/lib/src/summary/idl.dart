@@ -1360,6 +1360,12 @@ enum UnlinkedConstOperation {
    * [UnlinkedConst.assignmentOperators].  Push `value` back into the stack.
    */
   assignToIndex,
+
+  /**
+   * Pop from the stack `index` and `target`.  Push into the stack the result
+   * of evaluation of `target[index]`.
+   */
+  extractIndex,
 }
 
 /**

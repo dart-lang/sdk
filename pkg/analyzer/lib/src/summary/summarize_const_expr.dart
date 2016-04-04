@@ -241,6 +241,10 @@ abstract class AbstractConstExprSerializer {
       _serializePropertyAccess(expr);
     } else if (expr is ParenthesizedExpression) {
       _serialize(expr.expression);
+    } else if (expr is IndexExpression) {
+      _serialize(expr.target);
+      _serialize(expr.index);
+      operations.add(UnlinkedConstOperation.extractIndex);
     } else {
       throw new StateError('Unknown expression type: $expr');
     }
