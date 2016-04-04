@@ -455,6 +455,10 @@ class _ConstExprBuilder {
                       'Unable to resolve constructor parameter: $name'));
           _push(identifier);
           break;
+        case UnlinkedConstOperation.assignToRef:
+        case UnlinkedConstOperation.assignToProperty:
+        case UnlinkedConstOperation.assignToIndex:
+          throw new UnimplementedError('$operation');
       }
     }
     return stack.single;
