@@ -1340,6 +1340,11 @@ enum UnlinkedConstOperation {
    * variable; or `a` is an object and `b` is the name of a property.  Perform
    * `reference op= value` where `op` is the next assignment operator from
    * [UnlinkedConst.assignmentOperators].  Push `value` back into the stack.
+   *
+   * If the assignment operator is a prefix/postfix increment/decrement, then
+   * `value` is not present in the stack, so it should not be popped and the
+   * corresponding value of the `target` after/before update is pushed into the
+   * stack instead.
    */
   assignToRef,
 
@@ -1351,6 +1356,11 @@ enum UnlinkedConstOperation {
    * Perform `target.property op= value` where `op` is the next assignment
    * operator from [UnlinkedConst.assignmentOperators].  Push `value` back into
    * the stack.
+   *
+   * If the assignment operator is a prefix/postfix increment/decrement, then
+   * `value` is not present in the stack, so it should not be popped and the
+   * corresponding value of the `target` after/before update is pushed into the
+   * stack instead.
    */
   assignToProperty,
 
@@ -1358,6 +1368,11 @@ enum UnlinkedConstOperation {
    * Pop from the stack `value`, `index` and `target`.  Perform
    * `target[index] op= value`  where `op` is the next assignment operator from
    * [UnlinkedConst.assignmentOperators].  Push `value` back into the stack.
+   *
+   * If the assignment operator is a prefix/postfix increment/decrement, then
+   * `value` is not present in the stack, so it should not be popped and the
+   * corresponding value of the `target` after/before update is pushed into the
+   * stack instead.
    */
   assignToIndex,
 
@@ -1876,7 +1891,27 @@ enum UnlinkedExprAssignOperator {
   /**
    * Perform `target |= operand`.
    */
-  bitOr
+  bitOr,
+
+  /**
+   * Perform `++target`.
+   */
+  prefixIncrement,
+
+  /**
+   * Perform `--target`.
+   */
+  prefixDecrement,
+
+  /**
+   * Perform `target++`.
+   */
+  postfixIncrement,
+
+  /**
+   * Perform `target++`.
+   */
+  postfixDecrement,
 }
 
 /**

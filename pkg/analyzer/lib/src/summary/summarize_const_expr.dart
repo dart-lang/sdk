@@ -163,6 +163,28 @@ abstract class AbstractConstExprSerializer {
         references: references);
   }
 
+  /**
+   * Push the given assignable [expr] and return the kind of assignment
+   * operation that should be used.
+   */
+  UnlinkedConstOperation _pushAssignable(Expression expr) {
+    if (_isIdentifierSequence(expr)) {
+      EntityRefBuilder ref = serializeIdentifierSequence(expr);
+      references.add(ref);
+      return UnlinkedConstOperation.assignToRef;
+    } else if (expr is PropertyAccess) {
+      _serialize(expr.target);
+      strings.add(expr.propertyName.name);
+      return UnlinkedConstOperation.assignToProperty;
+    } else if (expr is IndexExpression) {
+      _serialize(expr.target);
+      _serialize(expr.index);
+      return UnlinkedConstOperation.assignToIndex;
+    } else {
+      throw new StateError('Unsupported assignable: $expr');
+    }
+  }
+
   void _pushInt(int value) {
     assert(value >= 0);
     if (value >= (1 << 32)) {
@@ -244,6 +266,8 @@ abstract class AbstractConstExprSerializer {
       operations.add(UnlinkedConstOperation.conditional);
     } else if (expr is PrefixExpression) {
       _serializePrefixExpression(expr);
+    } else if (expr is PostfixExpression) {
+      _serializePostfixExpression(expr);
     } else if (expr is PropertyAccess) {
       _serializePropertyAccess(expr);
     } else if (expr is ParenthesizedExpression) {
@@ -262,53 +286,40 @@ abstract class AbstractConstExprSerializer {
   void _serializeAssignment(AssignmentExpression expr) {
     // Push the assignment operator.
     TokenType operator = expr.operator.type;
+    UnlinkedExprAssignOperator assignmentOperator;
     if (operator == TokenType.EQ) {
-      assignmentOperators.add(UnlinkedExprAssignOperator.assign);
+      assignmentOperator = UnlinkedExprAssignOperator.assign;
     } else if (operator == TokenType.QUESTION_QUESTION_EQ) {
-      assignmentOperators.add(UnlinkedExprAssignOperator.ifNull);
+      assignmentOperator = UnlinkedExprAssignOperator.ifNull;
     } else if (operator == TokenType.STAR_EQ) {
-      assignmentOperators.add(UnlinkedExprAssignOperator.multiply);
+      assignmentOperator = UnlinkedExprAssignOperator.multiply;
     } else if (operator == TokenType.SLASH_EQ) {
-      assignmentOperators.add(UnlinkedExprAssignOperator.divide);
+      assignmentOperator = UnlinkedExprAssignOperator.divide;
     } else if (operator == TokenType.TILDE_SLASH_EQ) {
-      assignmentOperators.add(UnlinkedExprAssignOperator.floorDivide);
+      assignmentOperator = UnlinkedExprAssignOperator.floorDivide;
     } else if (operator == TokenType.PERCENT_EQ) {
-      assignmentOperators.add(UnlinkedExprAssignOperator.modulo);
+      assignmentOperator = UnlinkedExprAssignOperator.modulo;
     } else if (operator == TokenType.PLUS_EQ) {
-      assignmentOperators.add(UnlinkedExprAssignOperator.plus);
+      assignmentOperator = UnlinkedExprAssignOperator.plus;
     } else if (operator == TokenType.MINUS_EQ) {
-      assignmentOperators.add(UnlinkedExprAssignOperator.minus);
+      assignmentOperator = UnlinkedExprAssignOperator.minus;
     } else if (operator == TokenType.LT_LT_EQ) {
-      assignmentOperators.add(UnlinkedExprAssignOperator.shiftLeft);
+      assignmentOperator = UnlinkedExprAssignOperator.shiftLeft;
     } else if (operator == TokenType.GT_GT_EQ) {
-      assignmentOperators.add(UnlinkedExprAssignOperator.shiftRight);
+      assignmentOperator = UnlinkedExprAssignOperator.shiftRight;
     } else if (operator == TokenType.AMPERSAND_EQ) {
-      assignmentOperators.add(UnlinkedExprAssignOperator.bitAnd);
+      assignmentOperator = UnlinkedExprAssignOperator.bitAnd;
     } else if (operator == TokenType.CARET_EQ) {
-      assignmentOperators.add(UnlinkedExprAssignOperator.bitXor);
+      assignmentOperator = UnlinkedExprAssignOperator.bitXor;
     } else if (operator == TokenType.BAR_EQ) {
-      assignmentOperators.add(UnlinkedExprAssignOperator.bitOr);
+      assignmentOperator = UnlinkedExprAssignOperator.bitOr;
     } else {
       throw new StateError('Unknown assignment operator: $operator');
     }
+    assignmentOperators.add(assignmentOperator);
     // Push the target and prepare the assignment operation.
     Expression leftHandSide = expr.leftHandSide;
-    UnlinkedConstOperation assignOperation;
-    if (_isIdentifierSequence(leftHandSide)) {
-      EntityRefBuilder ref = serializeIdentifierSequence(leftHandSide);
-      references.add(ref);
-      assignOperation = UnlinkedConstOperation.assignToRef;
-    } else if (leftHandSide is PropertyAccess) {
-      _serialize(leftHandSide.target);
-      strings.add(leftHandSide.propertyName.name);
-      assignOperation = UnlinkedConstOperation.assignToProperty;
-    } else if (leftHandSide is IndexExpression) {
-      _serialize(leftHandSide.target);
-      _serialize(leftHandSide.index);
-      assignOperation = UnlinkedConstOperation.assignToIndex;
-    } else {
-      throw new StateError('Unsupported LHS: $leftHandSide');
-    }
+    UnlinkedConstOperation assignOperation = _pushAssignable(leftHandSide);
     // Push the value.
     _serialize(expr.rightHandSide);
     // Push the target-specific assignment operation.
@@ -391,18 +402,48 @@ abstract class AbstractConstExprSerializer {
     }
   }
 
-  void _serializePrefixExpression(PrefixExpression expr) {
-    _serialize(expr.operand);
+  void _serializePostfixExpression(PostfixExpression expr) {
     TokenType operator = expr.operator.type;
-    if (operator == TokenType.BANG) {
-      operations.add(UnlinkedConstOperation.not);
-    } else if (operator == TokenType.MINUS) {
-      operations.add(UnlinkedConstOperation.negate);
-    } else if (operator == TokenType.TILDE) {
-      operations.add(UnlinkedConstOperation.complement);
+    Expression operand = expr.operand;
+    if (operator == TokenType.PLUS_PLUS) {
+      _serializePrefixPostfixIncDec(
+          operand, UnlinkedExprAssignOperator.postfixIncrement);
+    } else if (operator == TokenType.MINUS_MINUS) {
+      _serializePrefixPostfixIncDec(
+          operand, UnlinkedExprAssignOperator.postfixDecrement);
     } else {
       throw new StateError('Unknown operator: $operator');
     }
+  }
+
+  void _serializePrefixExpression(PrefixExpression expr) {
+    TokenType operator = expr.operator.type;
+    Expression operand = expr.operand;
+    if (operator == TokenType.BANG) {
+      _serialize(operand);
+      operations.add(UnlinkedConstOperation.not);
+    } else if (operator == TokenType.MINUS) {
+      _serialize(operand);
+      operations.add(UnlinkedConstOperation.negate);
+    } else if (operator == TokenType.TILDE) {
+      _serialize(operand);
+      operations.add(UnlinkedConstOperation.complement);
+    } else if (operator == TokenType.PLUS_PLUS) {
+      _serializePrefixPostfixIncDec(
+          operand, UnlinkedExprAssignOperator.prefixIncrement);
+    } else if (operator == TokenType.MINUS_MINUS) {
+      _serializePrefixPostfixIncDec(
+          operand, UnlinkedExprAssignOperator.prefixDecrement);
+    } else {
+      throw new StateError('Unknown operator: $operator');
+    }
+  }
+
+  void _serializePrefixPostfixIncDec(
+      Expression operand, UnlinkedExprAssignOperator operator) {
+    assignmentOperators.add(operator);
+    UnlinkedConstOperation assignOperation = _pushAssignable(operand);
+    operations.add(assignOperation);
   }
 
   void _serializePropertyAccess(PropertyAccess expr) {

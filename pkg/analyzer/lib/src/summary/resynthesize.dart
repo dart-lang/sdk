@@ -458,6 +458,7 @@ class _ConstExprBuilder {
         case UnlinkedConstOperation.assignToRef:
         case UnlinkedConstOperation.assignToProperty:
         case UnlinkedConstOperation.assignToIndex:
+        case UnlinkedConstOperation.extractIndex:
           throw new UnimplementedError('$operation');
       }
     }

@@ -6129,6 +6129,26 @@ final v = (a.b.c.f = 1);
     ]);
   }
 
+  test_expr_assignToRef_postfixDecrement() {
+    _assertRefPrefixPostfixIncrementDecrement(
+        'a-- + 2', UnlinkedExprAssignOperator.postfixDecrement);
+  }
+
+  test_expr_assignToRef_postfixIncrement() {
+    _assertRefPrefixPostfixIncrementDecrement(
+        'a++ + 2', UnlinkedExprAssignOperator.postfixIncrement);
+  }
+
+  test_expr_assignToRef_prefixDecrement() {
+    _assertRefPrefixPostfixIncrementDecrement(
+        '--a + 2', UnlinkedExprAssignOperator.prefixDecrement);
+  }
+
+  test_expr_assignToRef_prefixIncrement() {
+    _assertRefPrefixPostfixIncrementDecrement(
+        '++a + 2', UnlinkedExprAssignOperator.prefixIncrement);
+  }
+
   test_expr_assignToRef_topLevelVariable() {
     if (skipNonConstInitializers) {
       return;
@@ -8745,6 +8765,33 @@ final v = $expr;
   void _assertParameterZeroVisibleRange(UnlinkedParam p) {
     expect(p.visibleOffset, isZero);
     expect(p.visibleLength, isZero);
+  }
+
+  /**
+   * Assert that the [expr] of the form `++a + 2` is serialized with the
+   * [expectedAssignmentOperator].
+   */
+  void _assertRefPrefixPostfixIncrementDecrement(
+      String expr, UnlinkedExprAssignOperator expectedAssignmentOperator) {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('''
+int a = 0;
+final v = $expr;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.assignToRef,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.add,
+    ], assignmentOperators: [
+      expectedAssignmentOperator
+    ], ints: [
+      2
+    ], strings: [], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'a',
+          expectedKind: ReferenceKind.topLevelPropertyAccessor)
+    ]);
   }
 
   /**
