@@ -16,17 +16,18 @@ import 'package:package_config/src/util.dart' show
     checkValidPackageUri;
 
 import '../compiler_new.dart' as api;
+import 'commandline_options.dart';
 import 'common.dart';
 import 'common/tasks.dart' show
     GenericTask;
 import 'compiler.dart';
+import 'diagnostics/diagnostic_listener.dart' show
+    DiagnosticOptions;
 import 'diagnostics/messages.dart' show
     Message;
 import 'elements/elements.dart' as elements;
 import 'environment.dart';
 import 'io/source_file.dart';
-import 'options.dart' show
-    CompilerOptions;
 import 'platform_configuration.dart' as platform_configuration;
 import 'script.dart';
 
@@ -51,7 +52,7 @@ class CompilerImpl extends Compiler {
   Uri get libraryRoot => options.platformConfigUri.resolve(".");
 
   CompilerImpl(this.provider, api.CompilerOutput outputProvider,
-      this.handler, CompilerOptions options)
+      this.handler, api.CompilerOptions options)
       : super(options: options, outputProvider: outputProvider,
           environment: new _Environment(options.environment)) {
     _Environment env = environment;

@@ -50,7 +50,7 @@ import 'dart_types.dart' show
 import 'deferred_load.dart' show DeferredLoadTask, OutputUnit;
 import 'diagnostics/code_location.dart';
 import 'diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter;
+    DiagnosticOptions;
 import 'diagnostics/invariant.dart' show
     REPORT_EXCESS_RESOLUTION;
 import 'diagnostics/messages.dart' show
@@ -95,10 +95,6 @@ import 'common/names.dart' show
 import 'null_compiler_output.dart' show
     NullCompilerOutput,
     NullSink;
-import 'options.dart' show
-    CompilerOptions,
-    DiagnosticOptions,
-    ParserOptions;
 import 'parser/diet_parser_task.dart' show
     DietParserTask;
 import 'parser/element_listener.dart' show
@@ -195,7 +191,7 @@ abstract class Compiler implements LibraryLoaderListener {
       new ResolutionRegistry(null, new TreeElementMapping(null));
 
   /// Options provided from command-line arguments.
-  final CompilerOptions options;
+  final api.CompilerOptions options;
 
   /**
    * If true, stop compilation after type inference is complete. Used for
@@ -360,17 +356,19 @@ abstract class Compiler implements LibraryLoaderListener {
     compilationFailedInternal = value;
   }
 
-  Compiler({CompilerOptions options,
+  Compiler({api.CompilerOptions options,
             api.CompilerOutput outputProvider,
             this.environment: const _EmptyEnvironment()})
       : this.options = options,
         this.cacheStrategy = new CacheStrategy(options.hasIncrementalSupport),
         this.userOutputProvider = outputProvider == null
             ? const NullCompilerOutput() : outputProvider {
+
     world = new World(this);
     // TODO(johnniwinther): Initialize core types in [initializeCoreClasses] and
     // make its field final.
-    _reporter = new _CompilerDiagnosticReporter(this, options);
+    _reporter = new _CompilerDiagnosticReporter(
+        this, options.diagnosticOptions);
     _parsing = new _CompilerParsing(this);
     _resolution = new _CompilerResolution(this);
     _coreTypes = new _CompilerCoreTypes(_resolution);
@@ -401,7 +399,8 @@ abstract class Compiler implements LibraryLoaderListener {
     }
 
     tasks = [
-      dietParser = new DietParserTask(this, parsing.parserOptions),
+      dietParser = new DietParserTask(
+          this, enableConditionalDirectives: options.enableConditionalDirectives),
       scanner = createScannerTask(),
       serialization = new SerializationTask(this),
       libraryLoader = new LibraryLoaderTask(this,
@@ -411,8 +410,10 @@ abstract class Compiler implements LibraryLoaderListener {
           this.serialization,
           this,
           environment),
-      parser = new ParserTask(this, parsing.parserOptions),
-      patchParser = new PatchParserTask(this, parsing.parserOptions),
+      parser = new ParserTask(this,
+          enableConditionalDirectives: options.enableConditionalDirectives),
+      patchParser = new PatchParserTask(
+          this, enableConditionalDirectives: options.enableConditionalDirectives),
       resolver = createResolverTask(),
       closureToClassMapper = new closureMapping.ClosureTask(this),
       checker = new TypeCheckerTask(this),
@@ -2102,10 +2103,10 @@ class _CompilerParsing implements Parsing {
     });
   }
 
-  ScannerOptions getScannerOptionsFor(Element element) =>
-      new ScannerOptions.from(compiler, element.library);
-
-  ParserOptions get parserOptions => compiler.options;
+  ScannerOptions getScannerOptionsFor(Element element) {
+    return new ScannerOptions(
+      canUseNative: compiler.backend.canLibraryUseNative(element.library));
+  }
 }
 
 class GlobalDependencyRegistry extends EagerRegistry {

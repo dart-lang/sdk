@@ -4,8 +4,6 @@
 
 library dart2js.parser.element_listener;
 
-import '../compiler.dart' show
-    Compiler;
 import '../common.dart';
 import '../diagnostics/messages.dart' show
     MessageTemplate;
@@ -59,17 +57,11 @@ typedef int IdGenerator();
 /// Options used for scanning.
 ///
 /// Use this to conditionally support special tokens.
-///
-/// TODO(johnniwinther): This class should be renamed, it is not about options
-/// in the same sense as `CompilerOptions` or `DiagnosticOptions`.
 class ScannerOptions {
   /// If `true` the pseudo keyword `native` is supported.
   final bool canUseNative;
 
   const ScannerOptions({this.canUseNative: false});
-
-  ScannerOptions.from(Compiler compiler, LibraryElement libraryElement) :
-      canUseNative = compiler.backend.canLibraryUseNative(libraryElement);
 }
 
 /**

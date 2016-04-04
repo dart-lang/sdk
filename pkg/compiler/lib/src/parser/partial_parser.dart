@@ -5,8 +5,6 @@
 library dart2js.parser.partial;
 
 import '../common.dart';
-import '../options.dart' show
-    ParserOptions;
 import '../util/characters.dart' as Characters show
     $CLOSE_CURLY_BRACKET;
 import '../tokens/token.dart' show
@@ -22,8 +20,9 @@ import 'parser.dart' show
     Parser;
 
 class PartialParser extends Parser {
-  PartialParser(Listener listener, ParserOptions options)
-      : super(listener, options);
+  PartialParser(Listener listener, {bool enableConditionalDirectives})
+      : super(listener,
+          enableConditionalDirectives: enableConditionalDirectives);
 
   Token parseClassBody(Token token) => skipClassBody(token);
 

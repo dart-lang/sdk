@@ -29,8 +29,6 @@ import '../elements/elements.dart' show
     TypeVariableElement;
 import '../enqueue.dart' show
     ResolutionEnqueuer;
-import '../options.dart' show
-    ParserOptions;
 import '../parser/element_listener.dart' show
     ScannerOptions;
 import '../tree/tree.dart' show
@@ -217,5 +215,4 @@ abstract class Parsing {
   void parsePatchClass(ClassElement cls);
   measure(f());
   ScannerOptions getScannerOptionsFor(Element element);
-  ParserOptions get parserOptions;
 }
