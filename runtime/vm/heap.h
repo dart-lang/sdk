@@ -196,9 +196,11 @@ class Heap {
   // Associate an id with an object (used when serializing an object).
   // A non-existant id is equal to 0.
   void SetObjectId(RawObject* raw_obj, intptr_t object_id) {
+    ASSERT(Thread::Current()->IsMutatorThread());
     SetWeakEntry(raw_obj, kObjectIds, object_id);
   }
   intptr_t GetObjectId(RawObject* raw_obj) const {
+    ASSERT(Thread::Current()->IsMutatorThread());
     return GetWeakEntry(raw_obj, kObjectIds);
   }
   int64_t ObjectIdCount() const;

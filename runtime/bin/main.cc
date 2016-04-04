@@ -1204,6 +1204,7 @@ static void ComputeSnapshotFilenames(const char* filename,
   snprintf(*isolate_snapshot_fname, len + 1, "%s.%s", filename, kIsolateSuffix);
 }
 
+
 static void GenerateFullSnapshot() {
   // Create a full snapshot of the script.
   Dart_Handle result;

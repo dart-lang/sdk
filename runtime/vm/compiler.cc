@@ -1778,10 +1778,12 @@ void BackgroundCompiler::EnsureInit(Thread* thread) {
   // compilation.
   Class& cls = Class::Handle(thread->zone(),
       Library::LookupCoreClass(Symbols::NoSuchMethodError()));
+  ASSERT(!cls.IsNull());
   Error& error = Error::Handle(thread->zone(),
       cls.EnsureIsFinalized(thread));
   ASSERT(error.IsNull());
   cls = Library::LookupCoreClass(Symbols::_Mint());
+  ASSERT(!cls.IsNull());
   error = cls.EnsureIsFinalized(thread);
   ASSERT(error.IsNull());
 

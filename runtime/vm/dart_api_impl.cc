@@ -1483,6 +1483,8 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(
     return state;
   }
   I->heap()->CollectAllGarbage();
+  I->StopBackgroundCompiler();
+
 #if defined(DEBUG)
   FunctionVisitor check_canonical(T);
   I->heap()->IterateObjects(&check_canonical);

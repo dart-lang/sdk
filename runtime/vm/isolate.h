@@ -575,6 +575,8 @@ class Isolate : public BaseIsolate {
   static void DisableIsolateCreation();
   static void EnableIsolateCreation();
 
+  void StopBackgroundCompiler();
+
  private:
   friend class Dart;  // Init, InitOnce, Shutdown.
   friend class IsolateKillerVisitor;  // Kill().

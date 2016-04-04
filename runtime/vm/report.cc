@@ -118,7 +118,7 @@ void Report::LongJumpV(const Error& prev_error,
                        const char* format, va_list args) {
   const Error& error = Error::Handle(LanguageError::NewFormattedV(
       prev_error, script, token_pos, Report::AtLocation,
-      kError, Heap::kNew,
+      kError, Heap::kOld,
       format, args));
   LongJump(error);
   UNREACHABLE();
@@ -159,7 +159,7 @@ void Report::MessageV(Kind kind,
   const Error& error = Error::Handle(
       LanguageError::NewFormattedV(Error::Handle(),  // No previous error.
                                    script, token_pos, report_after_token,
-                                   kind, Heap::kNew,
+                                   kind, Heap::kOld,
                                    format, args));
   LongJump(error);
   UNREACHABLE();

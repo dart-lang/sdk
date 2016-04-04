@@ -9435,11 +9435,15 @@ RawObject* Library::ResolveName(const String& name) const {
     // are not cached. This reduces the size of the the cache.
     return obj.raw();
   }
-  String& accessor_name = String::Handle(Field::GetterName(name));
-  obj = LookupLocalObject(accessor_name);
-  if (obj.IsNull()) {
-    accessor_name = Field::SetterName(name);
+  String& accessor_name = String::Handle(Field::LookupGetterSymbol(name));
+  if (!accessor_name.IsNull()) {
     obj = LookupLocalObject(accessor_name);
+  }
+  if (obj.IsNull()) {
+    accessor_name = Field::LookupSetterSymbol(name);
+    if (!accessor_name.IsNull()) {
+      obj = LookupLocalObject(accessor_name);
+    }
     if (obj.IsNull() && !ShouldBePrivate(name)) {
       obj = LookupImportedObject(name);
     }

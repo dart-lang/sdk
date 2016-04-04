@@ -1524,12 +1524,17 @@ void Isolate::LowLevelShutdown() {
 }
 
 
-void Isolate::Shutdown() {
-  ASSERT(this == Isolate::Current());
+void Isolate::StopBackgroundCompiler() {
   // Wait until all background compilation has finished.
   if (background_compiler_ != NULL) {
     BackgroundCompiler::Stop(background_compiler_);
   }
+}
+
+
+void Isolate::Shutdown() {
+  ASSERT(this == Isolate::Current());
+  StopBackgroundCompiler();
 
 #if defined(DEBUG)
   if (heap_ != NULL) {
