@@ -1834,7 +1834,7 @@ enum UnlinkedExprAssignOperator {
   divide,
 
   /**
-   * Perform `target ~= operand`.
+   * Perform `target ~/= operand`.
    */
   floorDivide,
 

@@ -54,6 +54,12 @@ abstract class AbstractConstExprSerializer {
   final List<UnlinkedConstOperation> operations = <UnlinkedConstOperation>[];
 
   /**
+   * See [UnlinkedConstBuilder.assignmentOperators].
+   */
+  final List<UnlinkedExprAssignOperator> assignmentOperators =
+      <UnlinkedExprAssignOperator>[];
+
+  /**
    * See [UnlinkedConstBuilder.ints].
    */
   final List<int> ints = <int>[];
@@ -150,6 +156,7 @@ abstract class AbstractConstExprSerializer {
     }
     return new UnlinkedConstBuilder(
         operations: operations,
+        assignmentOperators: assignmentOperators,
         ints: ints,
         doubles: doubles,
         strings: strings,
@@ -245,9 +252,67 @@ abstract class AbstractConstExprSerializer {
       _serialize(expr.target);
       _serialize(expr.index);
       operations.add(UnlinkedConstOperation.extractIndex);
+    } else if (expr is AssignmentExpression) {
+      _serializeAssignment(expr);
     } else {
       throw new StateError('Unknown expression type: $expr');
     }
+  }
+
+  void _serializeAssignment(AssignmentExpression expr) {
+    // Push the assignment operator.
+    TokenType operator = expr.operator.type;
+    if (operator == TokenType.EQ) {
+      assignmentOperators.add(UnlinkedExprAssignOperator.assign);
+    } else if (operator == TokenType.QUESTION_QUESTION_EQ) {
+      assignmentOperators.add(UnlinkedExprAssignOperator.ifNull);
+    } else if (operator == TokenType.STAR_EQ) {
+      assignmentOperators.add(UnlinkedExprAssignOperator.multiply);
+    } else if (operator == TokenType.SLASH_EQ) {
+      assignmentOperators.add(UnlinkedExprAssignOperator.divide);
+    } else if (operator == TokenType.TILDE_SLASH_EQ) {
+      assignmentOperators.add(UnlinkedExprAssignOperator.floorDivide);
+    } else if (operator == TokenType.PERCENT_EQ) {
+      assignmentOperators.add(UnlinkedExprAssignOperator.modulo);
+    } else if (operator == TokenType.PLUS_EQ) {
+      assignmentOperators.add(UnlinkedExprAssignOperator.plus);
+    } else if (operator == TokenType.MINUS_EQ) {
+      assignmentOperators.add(UnlinkedExprAssignOperator.minus);
+    } else if (operator == TokenType.LT_LT_EQ) {
+      assignmentOperators.add(UnlinkedExprAssignOperator.shiftLeft);
+    } else if (operator == TokenType.GT_GT_EQ) {
+      assignmentOperators.add(UnlinkedExprAssignOperator.shiftRight);
+    } else if (operator == TokenType.AMPERSAND_EQ) {
+      assignmentOperators.add(UnlinkedExprAssignOperator.bitAnd);
+    } else if (operator == TokenType.CARET_EQ) {
+      assignmentOperators.add(UnlinkedExprAssignOperator.bitXor);
+    } else if (operator == TokenType.BAR_EQ) {
+      assignmentOperators.add(UnlinkedExprAssignOperator.bitOr);
+    } else {
+      throw new StateError('Unknown assignment operator: $operator');
+    }
+    // Push the target and prepare the assignment operation.
+    Expression leftHandSide = expr.leftHandSide;
+    UnlinkedConstOperation assignOperation;
+    if (_isIdentifierSequence(leftHandSide)) {
+      EntityRefBuilder ref = serializeIdentifierSequence(leftHandSide);
+      references.add(ref);
+      assignOperation = UnlinkedConstOperation.assignToRef;
+    } else if (leftHandSide is PropertyAccess) {
+      _serialize(leftHandSide.target);
+      strings.add(leftHandSide.propertyName.name);
+      assignOperation = UnlinkedConstOperation.assignToProperty;
+    } else if (leftHandSide is IndexExpression) {
+      _serialize(leftHandSide.target);
+      _serialize(leftHandSide.index);
+      assignOperation = UnlinkedConstOperation.assignToIndex;
+    } else {
+      throw new StateError('Unsupported LHS: $leftHandSide');
+    }
+    // Push the value.
+    _serialize(expr.rightHandSide);
+    // Push the target-specific assignment operation.
+    operations.add(assignOperation);
   }
 
   void _serializeBinaryExpression(BinaryExpression expr) {

@@ -614,7 +614,7 @@ enum UnlinkedExprAssignOperator : byte {
   divide,
 
   /**
-   * Perform `target ~= operand`.
+   * Perform `target ~/= operand`.
    */
   floorDivide,
 
