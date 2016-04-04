@@ -592,7 +592,7 @@ class ContextManagerImpl implements ContextManager {
       info.context.analysisOptions = new AnalysisOptionsImpl();
 
       // Apply inherited options.
-      options = _getEmbeddedOptions(info.context);
+      options = _toStringMap(_getEmbeddedOptions(info.context));
       if (options != null) {
         configureContextOptions(info.context, options);
       }
@@ -600,7 +600,7 @@ class ContextManagerImpl implements ContextManager {
       // Check for embedded options.
       YamlMap embeddedOptions = _getEmbeddedOptions(info.context);
       if (embeddedOptions != null) {
-        options = new Merger().merge(embeddedOptions, options);
+        options = _toStringMap(new Merger().merge(embeddedOptions, options));
       }
     }
 
@@ -627,8 +627,9 @@ class ContextManagerImpl implements ContextManager {
     if (analyzer is Map) {
       // Set ignore patterns.
       YamlList exclude = analyzer[AnalyzerOptions.exclude];
-      if (exclude is List<String>) {
-        setIgnorePatternsForContext(info, exclude);
+      List<String> excludeList = _toStringList(exclude);
+      if (excludeList != null) {
+        setIgnorePatternsForContext(info, excludeList);
       }
     }
   }
@@ -1558,6 +1559,44 @@ class ContextManagerImpl implements ContextManager {
       }
     }
     return false;
+  }
+
+  /**
+   * If all of the elements of [list] are strings, return a list of strings
+   * containing the same elements. Otherwise, return `null`.
+   */
+  List<String> _toStringList(YamlList list) {
+    if (list == null) {
+      return null;
+    }
+    List<String> stringList = <String>[];
+    for (var element in list) {
+      if (element is String) {
+        stringList.add(element);
+      } else {
+        return null;
+      }
+    }
+    return stringList;
+  }
+
+  /**
+   * If the given [object] is a map, and all of the keys in the map are strings,
+   * return a map containing the same mappings. Otherwise, return `null`.
+   */
+  Map<String, Object> _toStringMap(Object object) {
+    if (object is Map) {
+      Map<String, Object> stringMap = new HashMap<String, Object>();
+      for (var key in object.keys) {
+        if (key is String) {
+          stringMap[key] = object[key];
+        } else {
+          return null;
+        }
+      }
+      return stringMap;
+    }
+    return null;
   }
 
   void _updateContextPackageUriResolver(

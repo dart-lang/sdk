@@ -30,7 +30,7 @@ compilationUnitMatcher(String file) {
 
 @reflectiveTest
 class UpdateContentTest extends AbstractAnalysisTest {
-  Map<String, List<AnalysisError>> filesErrors = {};
+  Map<String, List<String>> filesErrors = {};
   int serverErrorCount = 0;
   int navigationCount = 0;
 
@@ -42,7 +42,8 @@ class UpdateContentTest extends AbstractAnalysisTest {
   void processNotification(Notification notification) {
     if (notification.event == ANALYSIS_ERRORS) {
       var decoded = new AnalysisErrorsParams.fromNotification(notification);
-      _format(AnalysisError e) => "${e.location.startLine}: ${e.message}";
+      String _format(AnalysisError e) =>
+          "${e.location.startLine}: ${e.message}";
       filesErrors[decoded.file] = decoded.errors.map(_format).toList();
     }
     if (notification.event == ANALYSIS_NAVIGATION) {

@@ -131,16 +131,24 @@ bool mapEqual(Map mapA, Map mapB, bool valueEqual(a, b)) {
  * Translate the input [map], applying [keyCallback] to all its keys, and
  * [valueCallback] to all its values.
  */
-mapMap(Map map, {dynamic keyCallback(key), dynamic valueCallback(value)}) {
-  Map result = {};
+Map/*<KR, VR>*/ mapMap/*<KP, VP, KR, VR>*/(Map/*<KP, VP>*/ map,
+    {dynamic/*=KR*/ keyCallback(/*<KP>*/ key),
+    dynamic/*=VR*/ valueCallback(/*<VP>*/ value)}) {
+  Map/*<KR, VR>*/ result = new HashMap/*<KR, VR>*/();
   map.forEach((key, value) {
+    Object/*=KR*/ resultKey;
+    Object/*=VR*/ resultValue;
     if (keyCallback != null) {
-      key = keyCallback(key);
+      resultKey = keyCallback(key);
+    } else {
+      resultKey = key as Object/*=KR*/;
     }
     if (valueCallback != null) {
-      value = valueCallback(value);
+      resultValue = valueCallback(value);
+    } else {
+      resultValue = value as Object/*=VR*/;
     }
-    result[key] = value;
+    result[resultKey] = resultValue;
   });
   return result;
 }

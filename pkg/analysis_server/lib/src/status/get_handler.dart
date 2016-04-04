@@ -1341,8 +1341,8 @@ class GetHandler {
                 context?.sourceFactory?.dartSdk?.context?.analysisOptions);
           },
           (StringBuffer buffer) {
-            List<Linter> lints = context
-                .getConfigurationData(CONFIGURED_LINTS_KEY) as List<Linter>;
+            List<Linter> lints =
+                context.getConfigurationData(CONFIGURED_LINTS_KEY);
             buffer.write('<p><b>Lints</b></p>');
             if (lints.isEmpty) {
               buffer.write('<p>none</p>');
@@ -1355,8 +1355,7 @@ class GetHandler {
             }
 
             List<ErrorProcessor> errorProcessors =
-                context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS)
-                as List<ErrorProcessor>;
+                context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
             int processorCount = errorProcessors?.length ?? 0;
             buffer
                 .write('<p><b>Error Processor count</b>: $processorCount</p>');
