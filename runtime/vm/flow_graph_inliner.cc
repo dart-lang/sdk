@@ -609,7 +609,9 @@ class CallSiteInliner : public ValueObject {
     if (constant != NULL) {
       return new(Z) ConstantInstr(constant->value());
     } else {
-      return new(Z) ParameterInstr(i, graph->graph_entry());
+      ParameterInstr* param = new(Z) ParameterInstr(i, graph->graph_entry());
+      param->UpdateType(*argument->Type());
+      return param;
     }
   }
 
@@ -831,6 +833,13 @@ class CallSiteInliner : public ValueObject {
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
           } else {
             JitOptimizer optimizer(callee_graph);
+
+            optimizer.ApplyClassIds();
+            DEBUG_ASSERT(callee_graph->VerifyUseLists());
+
+            FlowGraphTypePropagator::Propagate(callee_graph);
+            DEBUG_ASSERT(callee_graph->VerifyUseLists());
+
             optimizer.ApplyICData();
             DEBUG_ASSERT(callee_graph->VerifyUseLists());
 
