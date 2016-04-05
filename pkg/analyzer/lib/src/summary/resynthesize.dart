@@ -459,6 +459,9 @@ class _ConstExprBuilder {
         case UnlinkedConstOperation.invokeMethod:
         case UnlinkedConstOperation.cascadeSectionBegin:
         case UnlinkedConstOperation.cascadeSectionEnd:
+        case UnlinkedConstOperation.typeCast:
+        case UnlinkedConstOperation.typeCheck:
+        case UnlinkedConstOperation.throwException:
           throw new UnimplementedError('$operation');
       }
     }

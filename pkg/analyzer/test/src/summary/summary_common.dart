@@ -6647,6 +6647,62 @@ final v = p.C.m();
     ]);
   }
 
+  test_expr_throwException() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('''
+final v = throw 1 + 2;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.add,
+      UnlinkedConstOperation.throwException,
+    ], ints: [
+      1,
+      2
+    ]);
+  }
+
+  test_expr_typeCast() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('''
+final v = 42 as num;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushReference,
+      UnlinkedConstOperation.typeCast,
+    ], ints: [
+      42
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, 'dart:core', 'dart:core', 'num',
+          expectedKind: ReferenceKind.classOrEnum)
+    ]);
+  }
+
+  test_expr_typeCheck() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('''
+final v = 42 is num;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushReference,
+      UnlinkedConstOperation.typeCheck,
+    ], ints: [
+      42
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, 'dart:core', 'dart:core', 'num',
+          expectedKind: ReferenceKind.classOrEnum)
+    ]);
+  }
+
   test_field() {
     UnlinkedClass cls = serializeClassText('class C { int i; }');
     UnlinkedVariable variable = findVariable('i', variables: cls.fields);

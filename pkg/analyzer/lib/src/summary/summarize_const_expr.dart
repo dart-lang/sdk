@@ -264,6 +264,17 @@ abstract class AbstractConstExprSerializer {
     } else if (expr is FunctionExpressionInvocation) {
       // TODO(scheglov) implement
       operations.add(UnlinkedConstOperation.pushNull);
+    } else if (expr is AsExpression) {
+      _serialize(expr.expression);
+      _serialize(expr.type.name);
+      operations.add(UnlinkedConstOperation.typeCast);
+    } else if (expr is IsExpression) {
+      _serialize(expr.expression);
+      _serialize(expr.type.name);
+      operations.add(UnlinkedConstOperation.typeCheck);
+    } else if (expr is ThrowExpression) {
+      _serialize(expr.expression);
+      operations.add(UnlinkedConstOperation.throwException);
     } else {
       throw new StateError('Unknown expression type: $expr');
     }

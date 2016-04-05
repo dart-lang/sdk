@@ -1420,6 +1420,24 @@ enum UnlinkedConstOperation {
    * away.
    */
   cascadeSectionEnd,
+
+  /**
+   * Pop the top value from the stack and cast it to the type with reference
+   * from [UnlinkedConst.references], push the result into the stack.
+   */
+  typeCast,
+
+  /**
+   * Pop the top value from the stack and check whether is is a subclass of the
+   * type with reference from [UnlinkedConst.references], push the result into
+   * the stack.
+   */
+  typeCheck,
+
+  /**
+   * Pop the top value from the stack and raise an exception with this value.
+   */
+  throwException,
 }
 
 /**
