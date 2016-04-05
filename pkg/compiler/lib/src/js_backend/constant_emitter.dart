@@ -18,10 +18,10 @@ typedef jsAst.Expression _ConstantListGenerator(jsAst.Expression array);
 class ConstantEmitter
     implements ConstantValueVisitor<jsAst.Expression, Null> {
 
-  // Matches blank lines, comment lines and trailing comments that can't be part
-  // of a string.
+  // Matches blank lines, comment lines and trailing comments.
+  // Note: this will include slashes in strings!
   static final RegExp COMMENT_RE =
-      new RegExp(r'''^ *(//.*)?\n|  *//[^''"\n]*$''' , multiLine: true);
+      new RegExp(r'''^ *(//.*)?\n|  *//[^\n]*$''' , multiLine: true);
 
   final Compiler compiler;
   final Namer namer;
