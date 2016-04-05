@@ -262,11 +262,6 @@ abstract class ClassElementForLink
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-
-  /**
-   * Throw away any information produced by a previous call to [link].
-   */
-  void unlink();
 }
 
 /**
@@ -453,23 +448,6 @@ class ClassElementForLink_Class extends ClassElementForLink
     }
   }
 
-  @override
-  void unlink() {
-    hasBeenInferred = false;
-    for (ConstructorElementForLink constructorElement in constructors) {
-      constructorElement.unlink();
-    }
-    for (MethodElementForLink methodElement in methods) {
-      methodElement.unlink();
-    }
-    for (PropertyAccessorElementForLink propertyAccessorElement in accessors) {
-      propertyAccessorElement.unlink();
-    }
-    for (FieldElementForLink_ClassField fieldElement in fields) {
-      fieldElement.unlink();
-    }
-  }
-
   /**
    * Convert [typeRef] into an [InterfaceType].
    */
@@ -556,9 +534,6 @@ class ClassElementForLink_Enum extends ClassElementForLink {
 
   @override
   void link(CompilationUnitElementInBuildUnit compilationUnit) {}
-
-  @override
-  void unlink() {}
 }
 
 /**
@@ -852,15 +827,13 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
   }
 
   /**
-   * Throw away any information produced by a previous call to [link].
+   * Throw away any information stored in the summary by a previous call to
+   * [link].
    */
   void unlink() {
     _linkedUnit.constCycles.clear();
     _linkedUnit.references.length = _unlinkedUnit.references.length;
     _linkedUnit.types.clear();
-    for (ClassElementForLink classElement in types) {
-      classElement.unlink();
-    }
   }
 
   /**
@@ -1445,16 +1418,6 @@ abstract class ExecutableElementForLink extends Object
       parameterElement.link(compilationUnit);
     }
   }
-
-  /**
-   * Throw away any information produced by type inference.
-   */
-  void unlink() {
-    for (ParameterElementForLink parameterElement in parameters) {
-      parameterElement.unlink();
-    }
-    _inferredReturnType = null;
-  }
 }
 
 /**
@@ -1511,13 +1474,6 @@ class FieldElementForLink_ClassField extends VariableElementForLink
   void link(CompilationUnitElementInBuildUnit compilationUnit) {
     compilationUnit._storeLinkedType(
         unlinkedVariable.inferredTypeSlot, _inferredType, enclosingElement);
-  }
-
-  /**
-   * Throw away any information produced by type inference.
-   */
-  void unlink() {
-    _inferredType = null;
   }
 }
 
@@ -1802,7 +1758,8 @@ class LibraryElementInBuildUnit
   }
 
   /**
-   * Throw away any information produced by a previous call to [link].
+   * Throw away any information stored in the summary by a previous call to
+   * [link].
    */
   void unlink() {
     _linkedLibrary.dependencies.length =
@@ -2027,13 +1984,6 @@ class ParameterElementForLink implements ParameterElementImpl {
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-
-  /**
-   * Throw away any information produced by type inference.
-   */
-  void unlink() {
-    _inferredType = null;
-  }
 }
 
 /**
@@ -2579,7 +2529,8 @@ class _Linker {
   }
 
   /**
-   * Throw away any information produced by a previous call to [link].
+   * Throw away any information stored in the summary by a previous call to
+   * [link].
    */
   void unlink() {
     for (LibraryElementInBuildUnit library in _librariesInBuildUnit) {
