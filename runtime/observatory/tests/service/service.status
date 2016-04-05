@@ -38,3 +38,6 @@ coverage_test: Pass, Slow
 # Service protocol is not supported when running a full application snapshot.
 [ ($runtime == dart_product) ]
 *: SkipByDesign
+
+[ $compiler == dart2analyzer ]
+evaluate_activation_in_method_class_test: CompileTimeError # Issue 24478
