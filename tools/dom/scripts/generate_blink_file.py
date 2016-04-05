@@ -131,6 +131,7 @@ class Blink_Utils {
   // In any case, returns a typed JS wrapper compatibile with dart:html and the new
   // typed JS Interop.
   static defineInterceptorCustomElement(jsObject, Type type) native "Utils_defineInterceptorCustomElement";
+  static defineInterceptor(jsObject, Type type) native "Utils_defineInterceptor";
   static setInstanceInterceptor(o, Type type, {bool customElement: false}) native "Utils_setInstanceInterceptor";
 
   // This method will throw if the element isn't actually a real Element.
