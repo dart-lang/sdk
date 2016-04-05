@@ -25,7 +25,7 @@ import 'package:compiler/src/null_compiler_output.dart' show NullCompilerOutput;
 
 import 'package:compiler/src/old_to_new_api.dart'
     show LegacyCompilerDiagnostics, LegacyCompilerInput;
-import 'package:compiler/compiler_new.dart' show CompilerOptions;
+import 'package:compiler/src/options.dart' show CompilerOptions;
 
 Uri sdkRoot = Uri.base.resolve("sdk/");
 Uri mock1LibraryUri = sdkRoot.resolve("lib/mock1.dart");

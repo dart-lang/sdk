@@ -19,6 +19,8 @@ import "package:compiler/src/elements/modelx.dart"
          LibraryElementX;
 import "package:compiler/src/script.dart";
 
+import "options_helper.dart";
+
 main() {
   testClassDef();
   testClass1Field();
@@ -84,7 +86,6 @@ void compareCode(String code, {String expectedResult}) {
   Expect.equals(expectedResult, doUnparse(code));
 }
 
-
 String doUnparse(String source) {
   MessageCollector diagnosticListener = new MessageCollector();
   Script script = new Script(null, null, null);
@@ -94,7 +95,7 @@ String doUnparse(String source) {
   Token beginToken = scanner.tokenize();
   NodeListener listener = new NodeListener(
       const ScannerOptions(), diagnosticListener, element);
-  Parser parser = new Parser(listener);
+  Parser parser = new Parser(listener, new MockParserOptions());
   parser.parseUnit(beginToken);
   Node node = listener.popNode();
   Expect.isTrue(listener.nodes.isEmpty);

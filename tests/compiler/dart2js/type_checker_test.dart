@@ -26,6 +26,7 @@ import 'package:compiler/src/script.dart';
 import 'package:compiler/src/util/util.dart';
 
 import 'mock_compiler.dart';
+import 'options_helper.dart';
 import 'parser_helper.dart';
 
 final MessageKind NOT_ASSIGNABLE = MessageKind.NOT_ASSIGNABLE;
@@ -2555,7 +2556,7 @@ analyze(MockCompiler compiler,
   Token tokens = scan(text);
   NodeListener listener = new NodeListener(
       const ScannerOptions(), compiler.reporter, null);
-  Parser parser = new Parser(listener);
+  Parser parser = new Parser(listener, new MockParserOptions());
   parser.parseStatement(tokens);
   Node node = listener.popNode();
   Element compilationUnit =
@@ -2601,7 +2602,7 @@ analyzeIn(MockCompiler compiler,
   Token tokens = scan(text);
   NodeListener listener = new NodeListener(
       const ScannerOptions(), compiler.reporter, null);
-  Parser parser = new Parser(listener,
+  Parser parser = new Parser(listener, new MockParserOptions(),
       asyncAwaitKeywordsEnabled: element.asyncMarker != AsyncMarker.SYNC);
   parser.parseStatement(tokens);
   Node node = listener.popNode();

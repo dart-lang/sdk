@@ -1,4 +1,4 @@
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -11,7 +11,6 @@ import 'package:compiler/compiler.dart' show
 import 'package:compiler/compiler_new.dart' show
     CompilationResult,
     CompilerDiagnostics,
-    CompilerOptions,
     CompilerOutput,
     Diagnostic,
     PackagesDiscoveryProvider;
@@ -23,6 +22,8 @@ import 'package:compiler/src/null_compiler_output.dart' show
     NullCompilerOutput;
 import 'package:compiler/src/library_loader.dart' show
     LoadedLibraries;
+import 'package:compiler/src/options.dart' show
+    CompilerOptions;
 
 import 'memory_source_file_helper.dart';
 
