@@ -146,6 +146,9 @@ EntityRefBuilder _createLinkedType(
   } else if (type is VoidTypeImpl) {
     result.reference = compilationUnit.addRawReference('void');
     return result;
+  } else if (type is BottomTypeImpl) {
+    result.reference = compilationUnit.addRawReference('*bottom*');
+    return result;
   } else if (type is TypeParameterType) {
     TypeParameterElementForLink element = type.element;
     result.paramReference =
@@ -212,6 +215,13 @@ abstract class ClassElementForLink
     // dependency graph.
     return null;
   }
+
+  @override
+  DartType get asStaticType =>
+      enclosingElement.enclosingElement._linker.typeProvider.typeType;
+
+  @override
+  TypeInferenceNode get asTypeInferenceNode => null;
 
   @override
   List<ConstructorElementForLink> get constructors;
@@ -437,14 +447,17 @@ class ClassElementForLink_Class extends ClassElementForLink
     for (ConstructorElementForLink constructorElement in constructors) {
       constructorElement.link(compilationUnit);
     }
-    for (MethodElementForLink methodElement in methods) {
-      methodElement.link(compilationUnit);
-    }
-    for (PropertyAccessorElementForLink propertyAccessorElement in accessors) {
-      propertyAccessorElement.link(compilationUnit);
-    }
-    for (FieldElementForLink_ClassField fieldElement in fields) {
-      fieldElement.link(compilationUnit);
+    if (compilationUnit.library._linker.strongMode) {
+      for (MethodElementForLink methodElement in methods) {
+        methodElement.link(compilationUnit);
+      }
+      for (PropertyAccessorElementForLink propertyAccessorElement
+          in accessors) {
+        propertyAccessorElement.link(compilationUnit);
+      }
+      for (FieldElementForLink_ClassField fieldElement in fields) {
+        fieldElement.link(compilationUnit);
+      }
     }
   }
 
@@ -695,6 +708,9 @@ abstract class CompilationUnitElementForLink implements CompilationUnitElement {
     if (type.paramReference != 0) {
       return typeParameterContext.getTypeParameterType(type.paramReference);
     } else if (type.syntheticReturnType != null) {
+      // TODO(paulberry): implement.
+      throw new UnimplementedError();
+    } else if (type.implicitFunctionTypeIndices.isNotEmpty) {
       // TODO(paulberry): implement.
       throw new UnimplementedError();
     } else {
@@ -1127,6 +1143,16 @@ class ConstructorElementForLink extends ExecutableElementForLink
   ConstVariableNode get asConstVariable => null;
 
   @override
+  DartType get asStaticType {
+    // Referring to a constructor directly is an error, so just use
+    // `dynamic`.
+    return DynamicTypeImpl.instance;
+  }
+
+  @override
+  TypeInferenceNode get asTypeInferenceNode => null;
+
+  @override
   bool get isCycleFree {
     if (!_constNode.isEvaluated) {
       new ConstDependencyWalker().walk(_constNode);
@@ -1435,7 +1461,12 @@ class FieldElementForLink_ClassField extends VariableElementForLink
   @override
   final ClassElementForLink_Class enclosingElement;
 
-  DartType _inferredType;
+  /**
+   * If this is an instance field, the type that was computed by
+   * [InstanceMemberInferrer].
+   */
+  DartType _inferredInstanceType;
+
   DartType _declaredType;
 
   FieldElementForLink_ClassField(ClassElementForLink_Class enclosingElement,
@@ -1448,8 +1479,9 @@ class FieldElementForLink_ClassField extends VariableElementForLink
 
   @override
   DartType get type {
-    if (_inferredType != null) {
-      return _inferredType;
+    assert(!isStatic);
+    if (_inferredInstanceType != null) {
+      return _inferredInstanceType;
     } else if (_declaredType == null) {
       if (unlinkedVariable.type == null) {
         _declaredType = DynamicTypeImpl.instance;
@@ -1463,8 +1495,9 @@ class FieldElementForLink_ClassField extends VariableElementForLink
 
   @override
   void set type(DartType inferredType) {
-    assert(_inferredType == null);
-    _inferredType = inferredType;
+    assert(!isStatic);
+    assert(_inferredInstanceType == null);
+    _inferredInstanceType = inferredType;
   }
 
   /**
@@ -1472,8 +1505,18 @@ class FieldElementForLink_ClassField extends VariableElementForLink
    * [compilationUnit].
    */
   void link(CompilationUnitElementInBuildUnit compilationUnit) {
-    compilationUnit._storeLinkedType(
-        unlinkedVariable.inferredTypeSlot, _inferredType, enclosingElement);
+    if (hasImplicitType) {
+      if (isStatic) {
+        TypeInferenceNode typeInferenceNode = this.asTypeInferenceNode;
+        if (typeInferenceNode != null) {
+          compilationUnit._storeLinkedType(unlinkedVariable.inferredTypeSlot,
+              typeInferenceNode.inferredType, enclosingElement);
+        }
+      } else {
+        compilationUnit._storeLinkedType(unlinkedVariable.inferredTypeSlot,
+            _inferredInstanceType, enclosingElement);
+      }
+    }
   }
 }
 
@@ -1500,6 +1543,15 @@ class FieldElementForLink_EnumField extends FieldElementForLink
     // circularity.
     return null;
   }
+
+  @override
+  DartType get asStaticType {
+    // TODO(paulberry): implement.
+    throw new UnimplementedError();
+  }
+
+  @override
+  TypeInferenceNode get asTypeInferenceNode => null;
 
   @override
   bool get isStatic => true;
@@ -1570,12 +1622,31 @@ class FunctionElementForLink_FunctionTypedParam implements FunctionElement {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/**
+ * Element representing the initializer expression of a variable.
+ */
 class FunctionElementForLink_Initializer implements FunctionElementImpl {
+  /**
+   * The variable for which this element is the initializer.
+   */
+  final VariableElementForLink _variable;
+
+  FunctionElementForLink_Initializer(this._variable);
+
   @override
   DartType get returnType {
-    // TODO(paulberry): for type inference, compute and return the type of the
-    // initializer expression.
-    return DynamicTypeImpl.instance;
+    // If this is a variable whose type needs inferring, infer it.
+    TypeInferenceNode typeInferenceNode = _variable._typeInferenceNode;
+    if (typeInferenceNode != null) {
+      return typeInferenceNode.inferredType;
+    } else {
+      // There's no reason linking should need to access the type of
+      // this FunctionElement, since the variable doesn't need its
+      // type inferred.
+      assert(false);
+      // But for robustness, return the dynamic type.
+      return DynamicTypeImpl.instance;
+    }
   }
 
   @override
@@ -1875,6 +1946,18 @@ class NonstaticMemberElementForLink implements ReferenceableElementForLink {
   ConstVariableNode get asConstVariable => _constNode;
 
   @override
+  DartType get asStaticType {
+    // TODO(paulberry): implement.
+    throw new UnimplementedError();
+  }
+
+  @override
+  TypeInferenceNode get asTypeInferenceNode {
+    // TODO(paulberry): implement.
+    throw new UnimplementedError();
+  }
+
+  @override
   DartType buildType(DartType getTypeArgument(int i),
           List<int> implicitFunctionTypeIndices) =>
       DynamicTypeImpl.instance;
@@ -2038,6 +2121,18 @@ abstract class ReferenceableElementForLink {
   ConstVariableNode get asConstVariable;
 
   /**
+   * Return the static type of the entity referred to by thi element.
+   */
+  DartType get asStaticType;
+
+  /**
+   * If this element can be used in a getter context as a type inference
+   * dependency, return the [TypeInferenceNode] for the inferred type.
+   * Otherwise return `null`.
+   */
+  TypeInferenceNode get asTypeInferenceNode;
+
+  /**
    * Return the type indicated by this element when it is used in a
    * type instantiation context.  If this element can't legally be
    * instantiated as a type, return the dynamic type.
@@ -2088,6 +2183,194 @@ class TopLevelVariableElementForLink extends VariableElementForLink
 
   @override
   bool get isStatic => true;
+}
+
+/**
+ * Specialization of [DependencyWalker] for performing type inferrence
+ * on static and top level variables.
+ */
+class TypeInferenceDependencyWalker
+    extends DependencyWalker<TypeInferenceNode> {
+  @override
+  void evaluate(TypeInferenceNode v) {
+    v.evaluate(false);
+  }
+
+  @override
+  void evaluateScc(List<TypeInferenceNode> scc) {
+    for (TypeInferenceNode v in scc) {
+      v.evaluate(true);
+    }
+  }
+}
+
+/**
+ * Specialization of [Node] used to construct the type inference dependency
+ * graph.
+ */
+class TypeInferenceNode extends Node<TypeInferenceNode> {
+  /**
+   * The [FieldElement] or [TopLevelVariableElement] to which this
+   * node refers.
+   */
+  final VariableElementForLink variableElement;
+
+  /**
+   * If a type has been inferred for this node, the inferred type (may be
+   * `dynamic`).  Otherwise `null`.
+   */
+  DartType _inferredType;
+
+  TypeInferenceNode(this.variableElement);
+
+  /**
+   * Infer a type for this node if necessary, and return it.
+   */
+  DartType get inferredType {
+    if (_inferredType == null) {
+      new TypeInferenceDependencyWalker().walk(this);
+      assert(_inferredType != null);
+    }
+    return _inferredType;
+  }
+
+  @override
+  bool get isEvaluated => _inferredType != null;
+
+  /**
+   * Collect the type inference dependencies in [unlinkedConst] (which should be
+   * interpreted relative to [compilationUnit]) and store them in
+   * [dependencies].
+   */
+  void collectDependencies(
+      List<TypeInferenceNode> dependencies,
+      UnlinkedConst unlinkedConst,
+      CompilationUnitElementForLink compilationUnit) {
+    if (unlinkedConst == null) {
+      return;
+    }
+    int refPtr = 0;
+    for (UnlinkedConstOperation operation in unlinkedConst.operations) {
+      switch (operation) {
+        case UnlinkedConstOperation.pushReference:
+          EntityRef ref = unlinkedConst.references[refPtr++];
+          // TODO(paulberry): cache these resolved references for
+          // later use by evaluate().
+          TypeInferenceNode dependency =
+              compilationUnit._resolveRef(ref.reference).asTypeInferenceNode;
+          if (dependency != null) {
+            dependencies.add(dependency);
+          }
+          break;
+        case UnlinkedConstOperation.makeTypedList:
+        case UnlinkedConstOperation.invokeConstructor:
+          refPtr++;
+          break;
+        case UnlinkedConstOperation.makeTypedMap:
+          refPtr += 2;
+          break;
+        default:
+          break;
+      }
+    }
+    assert(refPtr == unlinkedConst.references.length);
+  }
+
+  @override
+  List<TypeInferenceNode> computeDependencies() {
+    List<TypeInferenceNode> dependencies = <TypeInferenceNode>[];
+    collectDependencies(
+        dependencies,
+        variableElement.unlinkedVariable.constExpr,
+        variableElement.compilationUnit);
+    return dependencies;
+  }
+
+  @override
+  void evaluate(bool inCycle) {
+    if (inCycle) {
+      _inferredType = DynamicTypeImpl.instance;
+    } else if (variableElement.unlinkedVariable.constExpr.isInvalid) {
+      // TODO(paulberry): implement.
+      throw new UnimplementedError();
+    } else {
+      // Perform RPN evaluation of the cycle, using a stack of
+      // inferred types.
+      List<DartType> stack = <DartType>[];
+      int refPtr = 0;
+      int intPtr = 0;
+      UnlinkedConst unlinkedConst = variableElement.unlinkedVariable.constExpr;
+      TypeProvider typeProvider =
+          variableElement.compilationUnit.enclosingElement._linker.typeProvider;
+      for (UnlinkedConstOperation operation in unlinkedConst.operations) {
+        switch (operation) {
+          case UnlinkedConstOperation.pushInt:
+            intPtr++;
+            stack.add(typeProvider.intType);
+            break;
+          case UnlinkedConstOperation.pushNull:
+            stack.add(BottomTypeImpl.instance);
+            break;
+          case UnlinkedConstOperation.pushReference:
+            EntityRef ref = unlinkedConst.references[refPtr++];
+            if (ref.paramReference != 0) {
+              stack.add(typeProvider.typeType);
+            } else {
+              // Synthetic function types can't be directly referred
+              // to by expressions.
+              assert(ref.syntheticReturnType == null);
+              // Nor can implicit function types derived from
+              // function-typed parameters.
+              assert(ref.implicitFunctionTypeIndices.isEmpty);
+              ReferenceableElementForLink element =
+                  variableElement.compilationUnit._resolveRef(ref.reference);
+              TypeInferenceNode typeInferenceNode = element.asTypeInferenceNode;
+              if (typeInferenceNode != null) {
+                assert(typeInferenceNode.isEvaluated);
+                stack.add(typeInferenceNode._inferredType);
+              } else {
+                stack.add(element.asStaticType);
+              }
+            }
+            break;
+          case UnlinkedConstOperation.makeTypedList:
+            refPtr++;
+            stack.length -= unlinkedConst.ints[intPtr++];
+            // TODO(paulberry): implement.
+            stack.add(DynamicTypeImpl.instance);
+            break;
+          case UnlinkedConstOperation.makeTypedMap:
+            refPtr += 2;
+            // TODO(paulberry): implement.
+            throw new UnimplementedError('$operation');
+          case UnlinkedConstOperation.invokeConstructor:
+            // TODO(paulberry): don't just pop the args; use their types
+            // to infer the type of type arguments.
+            stack.length -=
+                unlinkedConst.ints[intPtr++] + unlinkedConst.ints[intPtr++];
+            EntityRef ref = unlinkedConst.references[refPtr++];
+            ConstructorElementForLink element = variableElement.compilationUnit
+                ._resolveRef(ref.reference)
+                .asConstructor;
+            if (ref.typeArguments.isNotEmpty) {
+              // TODO(paulberry): handle type arguments
+              throw new UnimplementedError();
+            }
+            // TODO(paulberry): do we have to follow constructor
+            // redirections?
+            stack.add(element.enclosingElement.type);
+            break;
+          default:
+            // TODO(paulberry): implement.
+            throw new UnimplementedError('$operation');
+        }
+      }
+      assert(refPtr == unlinkedConst.references.length);
+      assert(intPtr == unlinkedConst.ints.length);
+      assert(stack.length == 1);
+      _inferredType = stack[0];
+    }
+  }
 }
 
 /**
@@ -2353,6 +2636,12 @@ class UndefinedElementForLink implements ReferenceableElementForLink {
   ConstVariableNode get asConstVariable => null;
 
   @override
+  DartType get asStaticType => DynamicTypeImpl.instance;
+
+  @override
+  TypeInferenceNode get asTypeInferenceNode => null;
+
+  @override
   DartType buildType(DartType getTypeArgument(int i),
           List<int> implicitFunctionTypeIndices) =>
       DynamicTypeImpl.instance;
@@ -2379,6 +2668,13 @@ class VariableElementForLink
    */
   ConstNode _constNode;
 
+  /**
+   * If this variable has an initializer and an implicit type, and the enclosing
+   * library is part of the build unit being linked, the variable's node in the
+   * type inference dependency graph.  Otherwise `null`.
+   */
+  TypeInferenceNode _typeInferenceNode;
+
   FunctionElementForLink_Initializer _initializer;
 
   /**
@@ -2389,6 +2685,9 @@ class VariableElementForLink
   VariableElementForLink(this.unlinkedVariable, this.compilationUnit) {
     if (compilationUnit.isInBuildUnit && unlinkedVariable.constExpr != null) {
       _constNode = new ConstVariableNode(this);
+      if (unlinkedVariable.type == null) {
+        _typeInferenceNode = new TypeInferenceNode(this);
+      }
     }
   }
 
@@ -2399,11 +2698,25 @@ class VariableElementForLink
   ConstVariableNode get asConstVariable => _constNode;
 
   @override
+  DartType get asStaticType {
+    // TODO(paulberry): implement.
+    throw new UnimplementedError();
+  }
+
+  @override
+  TypeInferenceNode get asTypeInferenceNode => _typeInferenceNode;
+
+  @override
   bool get hasImplicitType => unlinkedVariable.type == null;
 
   @override
-  FunctionElementForLink_Initializer get initializer =>
-      _initializer ??= new FunctionElementForLink_Initializer();
+  FunctionElementForLink_Initializer get initializer {
+    if (unlinkedVariable.constExpr == null) {
+      return null;
+    } else {
+      return _initializer ??= new FunctionElementForLink_Initializer(this);
+    }
+  }
 
   @override
   bool get isConst => unlinkedVariable.isConst;

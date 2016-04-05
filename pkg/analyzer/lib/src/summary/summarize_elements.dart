@@ -1358,9 +1358,10 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
     if (identifier is SimpleIdentifier) {
       Element element = identifier.staticElement;
       if (element is TypeParameterElement) {
-        throw new StateError('Constants may not refer to type parameters.');
-      }
-      if (_isPrelinkResolvableElement(element)) {
+        int typeParameterIndex =
+            serializer.findTypeParameterIndex(element.type, context);
+        return new EntityRefBuilder(paramReference: typeParameterIndex);
+      } else if (_isPrelinkResolvableElement(element)) {
         int ref = serializer._getElementReferenceId(element);
         return new EntityRefBuilder(reference: ref);
       } else {

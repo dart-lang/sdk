@@ -3007,7 +3007,13 @@ class C<T> {
 ''';
     UnlinkedVariable variable =
         serializeClassText(text, allowErrors: true).fields[0];
-    _assertUnlinkedConst(variable.constExpr, isInvalid: true);
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference
+    ], referenceValidators: [
+      (EntityRef r) {
+        return checkParamTypeRef(r, 1);
+      }
+    ]);
   }
 
   test_constExpr_pushReference_unresolved_prefix0() {
