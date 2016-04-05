@@ -149,22 +149,25 @@ abstract class AbstractConstExprSerializer {
   }
 
   /**
-   * Push the given assignable [expr] and return the kind of assignment
-   * operation that should be used.
+   * Push the operation for the given assignable [expr].
    */
-  UnlinkedConstOperation _pushAssignable(Expression expr) {
+  void _pushAssignable(Expression expr) {
     if (_isIdentifierSequence(expr)) {
       EntityRefBuilder ref = serializeIdentifierSequence(expr);
       references.add(ref);
-      return UnlinkedConstOperation.assignToRef;
+      operations.add(UnlinkedConstOperation.assignToRef);
     } else if (expr is PropertyAccess) {
-      _serialize(expr.target);
+      if (!expr.isCascaded) {
+        _serialize(expr.target);
+      }
       strings.add(expr.propertyName.name);
-      return UnlinkedConstOperation.assignToProperty;
+      operations.add(UnlinkedConstOperation.assignToProperty);
     } else if (expr is IndexExpression) {
-      _serialize(expr.target);
+      if (!expr.isCascaded) {
+        _serialize(expr.target);
+      }
       _serialize(expr.index);
-      return UnlinkedConstOperation.assignToIndex;
+      operations.add(UnlinkedConstOperation.assignToIndex);
     } else {
       throw new StateError('Unsupported assignable: $expr');
     }
@@ -253,6 +256,8 @@ abstract class AbstractConstExprSerializer {
       operations.add(UnlinkedConstOperation.extractIndex);
     } else if (expr is AssignmentExpression) {
       _serializeAssignment(expr);
+    } else if (expr is CascadeExpression) {
+      _serializeCascadeExpression(expr);
     } else {
       throw new StateError('Unknown expression type: $expr');
     }
@@ -277,6 +282,8 @@ abstract class AbstractConstExprSerializer {
   }
 
   void _serializeAssignment(AssignmentExpression expr) {
+    // Push the value.
+    _serialize(expr.rightHandSide);
     // Push the assignment operator.
     TokenType operator = expr.operator.type;
     UnlinkedExprAssignOperator assignmentOperator;
@@ -310,13 +317,8 @@ abstract class AbstractConstExprSerializer {
       throw new StateError('Unknown assignment operator: $operator');
     }
     assignmentOperators.add(assignmentOperator);
-    // Push the target and prepare the assignment operation.
-    Expression leftHandSide = expr.leftHandSide;
-    UnlinkedConstOperation assignOperation = _pushAssignable(leftHandSide);
-    // Push the value.
-    _serialize(expr.rightHandSide);
-    // Push the target-specific assignment operation.
-    operations.add(assignOperation);
+    // Push the assignment to the LHS.
+    _pushAssignable(expr.leftHandSide);
   }
 
   void _serializeBinaryExpression(BinaryExpression expr) {
@@ -366,6 +368,15 @@ abstract class AbstractConstExprSerializer {
     }
   }
 
+  void _serializeCascadeExpression(CascadeExpression expr) {
+    _serialize(expr.target);
+    for (Expression section in expr.cascadeSections) {
+      operations.add(UnlinkedConstOperation.cascadeSectionBegin);
+      _serialize(section);
+      operations.add(UnlinkedConstOperation.cascadeSectionEnd);
+    }
+  }
+
   void _serializeListLiteral(ListLiteral expr) {
     List<Expression> elements = expr.elements;
     elements.forEach(_serialize);
@@ -405,7 +416,9 @@ abstract class AbstractConstExprSerializer {
       _serializeArguments(argumentList);
       operations.add(UnlinkedConstOperation.invokeMethodRef);
     } else {
-      _serialize(target);
+      if (!invocation.isCascaded) {
+        _serialize(target);
+      }
       _serializeArguments(argumentList);
       strings.add(methodName.name);
       operations.add(UnlinkedConstOperation.invokeMethod);
@@ -452,8 +465,7 @@ abstract class AbstractConstExprSerializer {
   void _serializePrefixPostfixIncDec(
       Expression operand, UnlinkedExprAssignOperator operator) {
     assignmentOperators.add(operator);
-    UnlinkedConstOperation assignOperation = _pushAssignable(operand);
-    operations.add(assignOperation);
+    _pushAssignable(operand);
   }
 
   void _serializePropertyAccess(PropertyAccess expr) {
@@ -504,6 +516,9 @@ abstract class AbstractConstExprSerializer {
       if (expr is SimpleIdentifier) {
         AstNode parent = expr.parent;
         if (parent is MethodInvocation && parent.methodName == expr) {
+          if (parent.isCascaded) {
+            return false;
+          }
           return parent.target == null || _isIdentifierSequence(parent.target);
         }
         return true;

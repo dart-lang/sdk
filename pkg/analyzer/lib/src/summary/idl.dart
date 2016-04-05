@@ -1343,7 +1343,7 @@ enum UnlinkedConstOperation {
   assignToRef,
 
   /**
-   * Pop from the stack `value` and `target`.  Get the name of the property from
+   * Pop from the stack `target` and `value`.  Get the name of the property from
    * `UnlinkedConst.strings` and assign the `value` to the named property of the
    * `target`.  This operation is used when we know that the `target` is an
    * object reference expression, e.g. `new Foo().a.b.c` or `a.b[0].c.d`.
@@ -1359,7 +1359,7 @@ enum UnlinkedConstOperation {
   assignToProperty,
 
   /**
-   * Pop from the stack `value`, `index` and `target`.  Perform
+   * Pop from the stack `index`, `target` and `value`.  Perform
    * `target[index] op= value`  where `op` is the next assignment operator from
    * [UnlinkedConst.assignmentOperators].  Push `value` back into the stack.
    *
@@ -1409,6 +1409,17 @@ enum UnlinkedConstOperation {
    * where `target` is know to be an object instance.
    */
   invokeMethod,
+
+  /**
+   * Begin a new cascade section.  Duplicate the top value of the stack.
+   */
+  cascadeSectionBegin,
+
+  /**
+   * End a new cascade section.  Pop the top value from the stack and throw it
+   * away.
+   */
+  cascadeSectionEnd,
 }
 
 /**

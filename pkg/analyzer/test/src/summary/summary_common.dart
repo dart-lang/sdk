@@ -5958,15 +5958,15 @@ A a = new A();
 final v = (a.b.c.f[1] = 5);
 ''');
     _assertUnlinkedConst(variable.constExpr, operators: [
-      UnlinkedConstOperation.pushReference,
       UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushReference,
       UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.assignToIndex,
     ], assignmentOperators: [
       (UnlinkedExprAssignOperator.assign)
     ], ints: [
-      1,
-      5
+      5,
+      1
     ], strings: [], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'f',
               expectedKind: ReferenceKind.unresolved,
@@ -5997,6 +5997,8 @@ A a = new A();
 final v = (a.b[1].c[2].f[3] = 5);
 ''');
     _assertUnlinkedConst(variable.constExpr, operators: [
+      // 5
+      UnlinkedConstOperation.pushInt,
       // a.b[1]
       UnlinkedConstOperation.pushReference,
       UnlinkedConstOperation.pushInt,
@@ -6008,15 +6010,14 @@ final v = (a.b[1].c[2].f[3] = 5);
       // f[3] = 5
       UnlinkedConstOperation.extractProperty,
       UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.assignToIndex,
     ], assignmentOperators: [
       (UnlinkedExprAssignOperator.assign)
     ], ints: [
+      5,
       1,
       2,
       3,
-      5
     ], strings: [
       'c',
       'f'
@@ -6037,15 +6038,15 @@ List<int> a = <int>[0, 1, 2];
 final v = (a[1] = 5);
 ''');
     _assertUnlinkedConst(variable.constExpr, operators: [
-      UnlinkedConstOperation.pushReference,
       UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushReference,
       UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.assignToIndex,
     ], assignmentOperators: [
       (UnlinkedExprAssignOperator.assign)
     ], ints: [
+      5,
       1,
-      5
     ], strings: [], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'a',
           expectedKind: ReferenceKind.topLevelPropertyAccessor)
@@ -6063,15 +6064,15 @@ class C {
 final v = (new C().f = 5);
 ''');
     _assertUnlinkedConst(variable.constExpr, operators: [
-      UnlinkedConstOperation.invokeConstructor,
       UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.invokeConstructor,
       UnlinkedConstOperation.assignToProperty,
     ], assignmentOperators: [
       (UnlinkedExprAssignOperator.assign)
     ], ints: [
+      5,
       0,
       0,
-      5
     ], strings: [
       'f'
     ], referenceValidators: [
@@ -6235,6 +6236,194 @@ final v = (p.a = 1);
             expectedKind: ReferenceKind.topLevelPropertyAccessor,
             expectedPrefix: 'p');
       }
+    ]);
+  }
+
+  test_expr_cascadeSection_assignToProperty() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('''
+class C {
+  int f1 = 0;
+  int f2 = 0;
+}
+final v = new C()..f1 = 1..f2 += 2;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      // new C()
+      UnlinkedConstOperation.invokeConstructor,
+      //   ..f1 = 1
+      UnlinkedConstOperation.cascadeSectionBegin,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.assignToProperty,
+      // C
+      UnlinkedConstOperation.cascadeSectionEnd,
+      //   ..f2 += 2
+      UnlinkedConstOperation.cascadeSectionBegin,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.assignToProperty,
+      // C
+      UnlinkedConstOperation.cascadeSectionEnd,
+    ], assignmentOperators: [
+      UnlinkedExprAssignOperator.assign,
+      UnlinkedExprAssignOperator.plus,
+    ], ints: [
+      0, 0, // new C()
+      1, // f1 = 1
+      2, // f2 += 2
+    ], strings: [
+      'f1',
+      'f2',
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'C',
+          expectedKind: ReferenceKind.classOrEnum)
+    ]);
+  }
+
+  test_expr_cascadeSection_assignToIndex() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('''
+class C {
+  List<int> items;
+}
+final C c = new C();
+final v = c.items..[1] = 2;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference,
+      //   ..[1] = 2
+      UnlinkedConstOperation.cascadeSectionBegin,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.assignToIndex,
+      // c
+      UnlinkedConstOperation.cascadeSectionEnd,
+    ], assignmentOperators: [
+      UnlinkedExprAssignOperator.assign,
+    ], ints: [
+      2,
+      1
+    ], strings: [], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'items',
+              expectedKind: ReferenceKind.unresolved,
+              prefixExpectations: [
+                new _PrefixExpectation(
+                    ReferenceKind.topLevelPropertyAccessor, 'c'),
+              ])
+    ]);
+  }
+
+  test_expr_cascadeSection_embedded() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('''
+class A {
+  int fa1;
+  B b;
+  int fa2;
+}
+class B {
+  int fb;
+}
+final v = new A()
+  ..fa1 = 1
+  ..b = (new B()..fb = 2)
+  ..fa2 = 3;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      // new A()
+      UnlinkedConstOperation.invokeConstructor,
+      // ..fa1 = 1
+      UnlinkedConstOperation.cascadeSectionBegin,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.assignToProperty,
+      UnlinkedConstOperation.cascadeSectionEnd,
+      // ..b
+      UnlinkedConstOperation.cascadeSectionBegin,
+      //   new B()
+      UnlinkedConstOperation.invokeConstructor,
+      //   ..fb = 2
+      UnlinkedConstOperation.cascadeSectionBegin,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.assignToProperty,
+      UnlinkedConstOperation.cascadeSectionEnd,
+      // ..b = <pop value>
+      UnlinkedConstOperation.assignToProperty,
+      UnlinkedConstOperation.cascadeSectionEnd,
+      // ..fa2 = 3
+      UnlinkedConstOperation.cascadeSectionBegin,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.assignToProperty,
+      UnlinkedConstOperation.cascadeSectionEnd,
+    ], assignmentOperators: [
+      UnlinkedExprAssignOperator.assign,
+      UnlinkedExprAssignOperator.assign,
+      UnlinkedExprAssignOperator.assign,
+      UnlinkedExprAssignOperator.assign,
+    ], ints: [
+      0,
+      0,
+      1,
+      0,
+      0,
+      2,
+      3,
+    ], strings: [
+      'fa1',
+      'fb',
+      'b',
+      'fa2',
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'A',
+          expectedKind: ReferenceKind.classOrEnum),
+      (EntityRef r) => checkTypeRef(r, null, null, 'B',
+          expectedKind: ReferenceKind.classOrEnum),
+    ]);
+  }
+
+  test_expr_cascadeSection_invokeMethod() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('''
+class A {
+  int m(int _) => 0;
+}
+final A a = new A();
+final v = a..m(5).abs()..m(6);
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      // a
+      UnlinkedConstOperation.pushReference,
+      //   ..m(5)
+      UnlinkedConstOperation.cascadeSectionBegin,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.invokeMethod,
+      //   ..abs()
+      UnlinkedConstOperation.invokeMethod,
+      // a
+      UnlinkedConstOperation.cascadeSectionEnd,
+      //   ..m(6)
+      UnlinkedConstOperation.cascadeSectionBegin,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.invokeMethod,
+      // a
+      UnlinkedConstOperation.cascadeSectionEnd,
+    ], ints: [
+      5, 0, 1, // m(5)
+      0, 0, // abs()
+      6, 0, 1, // m(5)
+    ], strings: [
+      'm',
+      'abs',
+      'm',
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'a',
+          expectedKind: ReferenceKind.topLevelPropertyAccessor),
     ]);
   }
 

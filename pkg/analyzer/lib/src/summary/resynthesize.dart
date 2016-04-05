@@ -457,6 +457,8 @@ class _ConstExprBuilder {
         case UnlinkedConstOperation.assignToIndex:
         case UnlinkedConstOperation.extractIndex:
         case UnlinkedConstOperation.invokeMethod:
+        case UnlinkedConstOperation.cascadeSectionBegin:
+        case UnlinkedConstOperation.cascadeSectionEnd:
           throw new UnimplementedError('$operation');
       }
     }
