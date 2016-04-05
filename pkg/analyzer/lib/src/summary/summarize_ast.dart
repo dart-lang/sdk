@@ -91,6 +91,14 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
   @override
   EntityRefBuilder serializeIdentifierSequence(Expression expr) {
     if (expr is Identifier) {
+      AstNode parent = expr.parent;
+      if (parent is MethodInvocation &&
+          parent.methodName == expr &&
+          parent.target != null) {
+        int targetId = serializeIdentifierSequence(parent.target).reference;
+        int nameId = visitor.serializeReference(targetId, expr.name);
+        return new EntityRefBuilder(reference: nameId);
+      }
       return serializeIdentifier(expr);
     }
     if (expr is PropertyAccess) {

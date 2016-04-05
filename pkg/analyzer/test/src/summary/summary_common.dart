@@ -1741,18 +1741,6 @@ class C<T> {
         strings: ['T']);
   }
 
-  test_constExpr_identical() {
-    UnlinkedVariable variable =
-        serializeVariableText('const v = identical(42, null);');
-    _assertUnlinkedConst(variable.constExpr, operators: [
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushNull,
-      UnlinkedConstOperation.identical
-    ], ints: [
-      42
-    ]);
-  }
-
   test_constExpr_invokeConstructor_generic_named() {
     UnlinkedVariable variable = serializeVariableText('''
 class C<K, V> {
@@ -2212,6 +2200,25 @@ const v = const Foo();
       (EntityRef r) => checkTypeRef(r, null, null, 'Foo',
           expectedKind: ReferenceKind.unresolved,
           checkAstDerivedDataOverride: true)
+    ]);
+  }
+
+  test_constExpr_invokeMethodRef_identical() {
+    UnlinkedVariable variable =
+        serializeVariableText('const v = identical(42, null);');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushNull,
+      UnlinkedConstOperation.invokeMethodRef
+    ], ints: [
+      42,
+      0,
+      2
+    ], referenceValidators: [
+      (EntityRef r) {
+        checkTypeRef(r, 'dart:core', 'dart:core', 'identical',
+            expectedKind: ReferenceKind.topLevelFunction);
+      }
     ]);
   }
 
@@ -6276,6 +6283,109 @@ final v = new C().f;
     ]);
   }
 
+  test_expr_invokeMethod_instance() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('''
+class C {
+  int m(a, {b, c}) => 42;
+}
+final v = new C().m(1, b: 2, c: 3);
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.invokeConstructor,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.invokeMethod,
+    ], ints: [
+      0,
+      0,
+      1,
+      2,
+      3,
+      2,
+      1
+    ], strings: [
+      'b',
+      'c',
+      'm'
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'C',
+          expectedKind: ReferenceKind.classOrEnum)
+    ]);
+  }
+
+  test_expr_invokeMethodRef_instance() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('''
+class A {
+  B b;
+}
+class B {
+  C c;
+}
+class C {
+  int m(int a, int b) => a + b;
+}
+A a = new A();
+final v = a.b.c.m(10, 20);
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.invokeMethodRef,
+    ], ints: [
+      10,
+      20,
+      0,
+      2
+    ], strings: [], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'm',
+              expectedKind: ReferenceKind.unresolved,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.unresolved, 'c'),
+                new _PrefixExpectation(ReferenceKind.unresolved, 'b'),
+                new _PrefixExpectation(
+                    ReferenceKind.topLevelPropertyAccessor, 'a')
+              ])
+    ]);
+  }
+
+  test_expr_invokeMethodRef_static_importedWithPrefix() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    addNamedSource(
+        '/a.dart',
+        '''
+class C {
+  static int m() => 42;
+}
+''');
+    UnlinkedVariable variable = serializeVariableText('''
+import 'a.dart' as p;
+final v = p.C.m();
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.invokeMethodRef,
+    ], ints: [
+      0,
+      0
+    ], strings: [], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'm',
+              expectedKind: ReferenceKind.method,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C',
+                    absoluteUri: absUri('/a.dart'), relativeUri: 'a.dart'),
+                new _PrefixExpectation(ReferenceKind.prefix, 'p')
+              ])
+    ]);
+  }
+
   test_field() {
     UnlinkedClass cls = serializeClassText('class C { int i; }');
     UnlinkedVariable variable = findVariable('i', variables: cls.fields);
@@ -6317,14 +6427,28 @@ class C {
         operators: [UnlinkedConstOperation.pushInt], ints: [0]);
   }
 
-  test_field_final_invalidConstExpr() {
+  test_field_final_notConstExpr() {
     UnlinkedVariable variable = serializeClassText(r'''
 class C {
   final int f = 1 + m();
   static int m() => 42;
 }''').fields[0];
     expect(variable.isFinal, isTrue);
-    _assertUnlinkedConst(variable.constExpr, isInvalid: true);
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.invokeMethodRef,
+      UnlinkedConstOperation.add,
+    ], ints: [
+      1,
+      0,
+      0
+    ], strings: [], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'm',
+              expectedKind: ReferenceKind.method,
+              prefixExpectations: [
+                new _PrefixExpectation(ReferenceKind.classOrEnum, 'C')
+              ])
+    ]);
   }
 
   test_field_final_typeParameter() {

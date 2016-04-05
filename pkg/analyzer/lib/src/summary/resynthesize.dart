@@ -414,12 +414,9 @@ class _ConstExprBuilder {
           _push(
               AstFactory.conditionalExpression(condition, thenExpr, elseExpr));
           break;
-        // identical
-        case UnlinkedConstOperation.identical:
-          Expression second = _pop();
-          Expression first = _pop();
-          _push(AstFactory.methodInvocation(
-              null, 'identical', <Expression>[first, second]));
+        // invokeMethodRef
+        case UnlinkedConstOperation.invokeMethodRef:
+          _pushInvokeMethodRef();
           break;
         // containers
         case UnlinkedConstOperation.makeUntypedList:
@@ -459,10 +456,28 @@ class _ConstExprBuilder {
         case UnlinkedConstOperation.assignToProperty:
         case UnlinkedConstOperation.assignToIndex:
         case UnlinkedConstOperation.extractIndex:
+        case UnlinkedConstOperation.invokeMethod:
           throw new UnimplementedError('$operation');
       }
     }
     return stack.single;
+  }
+
+  List<Expression> _buildArguments() {
+    List<Expression> arguments;
+    {
+      int numNamedArgs = uc.ints[intPtr++];
+      int numPositionalArgs = uc.ints[intPtr++];
+      int numArgs = numNamedArgs + numPositionalArgs;
+      arguments = _removeTopItems(numArgs);
+      // add names to the named arguments
+      for (int i = 0; i < numNamedArgs; i++) {
+        String name = uc.strings[stringPtr++];
+        int index = numPositionalArgs + i;
+        arguments[index] = AstFactory.namedExpression2(name, arguments[index]);
+      }
+    }
+    return arguments;
   }
 
   /**
@@ -602,19 +617,7 @@ class _ConstExprBuilder {
       }
     }
     // prepare arguments
-    List<Expression> arguments;
-    {
-      int numNamedArgs = uc.ints[intPtr++];
-      int numPositionalArgs = uc.ints[intPtr++];
-      int numArgs = numNamedArgs + numPositionalArgs;
-      arguments = _removeTopItems(numArgs);
-      // add names to the named arguments
-      for (int i = 0; i < numNamedArgs; i++) {
-        String name = uc.strings[stringPtr++];
-        int index = numPositionalArgs + i;
-        arguments[index] = AstFactory.namedExpression2(name, arguments[index]);
-      }
-    }
+    List<Expression> arguments = _buildArguments();
     // create ConstructorName
     ConstructorName constructorNode;
     if (constructorName != null) {
@@ -629,6 +632,23 @@ class _ConstExprBuilder {
         .instanceCreationExpression(Keyword.CONST, constructorNode, arguments);
     instanceCreation.staticElement = constructorElement;
     _push(instanceCreation);
+  }
+
+  void _pushInvokeMethodRef() {
+    List<Expression> arguments = _buildArguments();
+    EntityRef ref = uc.references[refPtr++];
+    _ReferenceInfo info = resynthesizer.referenceInfos[ref.reference];
+    Expression node = _buildIdentifierSequence(info);
+    if (node is SimpleIdentifier) {
+      _push(new MethodInvocation(
+          null,
+          TokenFactory.tokenFromType(TokenType.PERIOD),
+          node,
+          null,
+          AstFactory.argumentList(arguments)));
+    } else {
+      throw new UnimplementedError('For ${node?.runtimeType}: $node');
+    }
   }
 
   void _pushList(TypeArgumentList typeArguments) {

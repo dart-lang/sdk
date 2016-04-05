@@ -1188,12 +1188,6 @@ enum UnlinkedConstOperation {
   makeTypedMap,
 
   /**
-   * Pop the top 2 values from the stack, pass them to the predefined Dart
-   * function `identical`, and push the result back onto the stack.
-   */
-  identical,
-
-  /**
    * Pop the top 2 values from the stack, evaluate `v1 == v2`, and push the
    * result back onto the stack.
    */
@@ -1381,6 +1375,40 @@ enum UnlinkedConstOperation {
    * of evaluation of `target[index]`.
    */
   extractIndex,
+
+  /**
+   * Pop the top `n` values from the stack (where `n` is obtained from
+   * [UnlinkedConst.ints]) into a list (filled from the end) and take the next
+   * `n` values from [UnlinkedConst.strings] and use the lists of names and
+   * values to create named arguments.  Then pop the top `m` values from the
+   * stack (where `m` is obtained from [UnlinkedConst.ints]) into a list (filled
+   * from the end) and use them as positional arguments.  Use the lists of
+   * positional and names arguments to invoke a method (or a function) with
+   * the reference from [UnlinkedConst.references].  Push the result of
+   * invocation value into the stack.
+   *
+   * In general `a.b` cannot not be distinguished between: `a` is a prefix and
+   * `b` is a top-level function; or `a` is an object and `b` is the name of a
+   * method.  This operation should be used for a sequence of identifiers
+   * `a.b.b.c.d.e` ending with an invokable result.
+   */
+  invokeMethodRef,
+
+  /**
+   * Pop the top `n` values from the stack (where `n` is obtained from
+   * [UnlinkedConst.ints]) into a list (filled from the end) and take the next
+   * `n` values from [UnlinkedConst.strings] and use the lists of names and
+   * values to create named arguments.  Then pop the top `m` values from the
+   * stack (where `m` is obtained from [UnlinkedConst.ints]) into a list (filled
+   * from the end) and use them as positional arguments.  Use the lists of
+   * positional and names arguments to invoke the method with the name from
+   * [UnlinkedConst.strings] of the target popped from the stack, and push the
+   * resulting value into the stack.
+   *
+   * This operation should be used for invocation of a method invocation
+   * where `target` is know to be an object instance.
+   */
+  invokeMethod,
 }
 
 /**

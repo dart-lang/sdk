@@ -91,7 +91,7 @@ abstract class AbstractConstExprSerializer {
   void serialize(Expression expr) {
     try {
       _serialize(expr);
-    } on StateError catch (e, st) {
+    } on StateError {
       isInvalid = true;
     }
   }
@@ -121,24 +121,9 @@ abstract class AbstractConstExprSerializer {
 
   void serializeInstanceCreation(
       EntityRefBuilder constructor, ArgumentList argumentList) {
-    List<Expression> arguments = argumentList.arguments;
-    // Serialize the arguments.
-    List<String> argumentNames = <String>[];
-    arguments.forEach((arg) {
-      if (arg is NamedExpression) {
-        argumentNames.add(arg.name.label.name);
-        _serialize(arg.expression);
-      } else {
-        _serialize(arg);
-      }
-    });
-    // Add the op-code and numbers of named and positional arguments.
-    operations.add(UnlinkedConstOperation.invokeConstructor);
-    ints.add(argumentNames.length);
-    strings.addAll(argumentNames);
-    ints.add(arguments.length - argumentNames.length);
-    // Serialize the reference.
+    _serializeArguments(argumentList);
     references.add(constructor);
+    operations.add(UnlinkedConstOperation.invokeConstructor);
   }
 
   /**
@@ -246,17 +231,7 @@ abstract class AbstractConstExprSerializer {
     } else if (expr is MapLiteral) {
       _serializeMapLiteral(expr);
     } else if (expr is MethodInvocation) {
-      String name = expr.methodName.name;
-      if (name != 'identical') {
-        throw new StateError('Only "identity" function invocation is allowed.');
-      }
-      if (expr.argumentList == null ||
-          expr.argumentList.arguments.length != 2) {
-        throw new StateError(
-            'The function "identity" requires exactly 2 arguments.');
-      }
-      expr.argumentList.arguments.forEach(_serialize);
-      operations.add(UnlinkedConstOperation.identical);
+      _serializeMethodInvocation(expr);
     } else if (expr is BinaryExpression) {
       _serializeBinaryExpression(expr);
     } else if (expr is ConditionalExpression) {
@@ -281,6 +256,24 @@ abstract class AbstractConstExprSerializer {
     } else {
       throw new StateError('Unknown expression type: $expr');
     }
+  }
+
+  void _serializeArguments(ArgumentList argumentList) {
+    List<Expression> arguments = argumentList.arguments;
+    // Serialize the arguments.
+    List<String> argumentNames = <String>[];
+    arguments.forEach((arg) {
+      if (arg is NamedExpression) {
+        argumentNames.add(arg.name.label.name);
+        _serialize(arg.expression);
+      } else {
+        _serialize(arg);
+      }
+    });
+    // Add numbers of named and positional arguments, and the op-code.
+    ints.add(argumentNames.length);
+    strings.addAll(argumentNames);
+    ints.add(arguments.length - argumentNames.length);
   }
 
   void _serializeAssignment(AssignmentExpression expr) {
@@ -402,6 +395,23 @@ abstract class AbstractConstExprSerializer {
     }
   }
 
+  void _serializeMethodInvocation(MethodInvocation invocation) {
+    Expression target = invocation.target;
+    SimpleIdentifier methodName = invocation.methodName;
+    ArgumentList argumentList = invocation.argumentList;
+    if (_isIdentifierSequence(methodName)) {
+      EntityRefBuilder ref = serializeIdentifierSequence(methodName);
+      references.add(ref);
+      _serializeArguments(argumentList);
+      operations.add(UnlinkedConstOperation.invokeMethodRef);
+    } else {
+      _serialize(target);
+      _serializeArguments(argumentList);
+      strings.add(methodName.name);
+      operations.add(UnlinkedConstOperation.invokeMethod);
+    }
+  }
+
   void _serializePostfixExpression(PostfixExpression expr) {
     TokenType operator = expr.operator.type;
     Expression operand = expr.operand;
@@ -492,9 +502,12 @@ abstract class AbstractConstExprSerializer {
   static bool _isIdentifierSequence(Expression expr) {
     while (expr != null) {
       if (expr is SimpleIdentifier) {
+        AstNode parent = expr.parent;
+        if (parent is MethodInvocation && parent.methodName == expr) {
+          return parent.target == null || _isIdentifierSequence(parent.target);
+        }
         return true;
-      }
-      if (expr is PrefixedIdentifier) {
+      } else if (expr is PrefixedIdentifier) {
         expr = (expr as PrefixedIdentifier).prefix;
       } else if (expr is PropertyAccess) {
         expr = (expr as PropertyAccess).target;
