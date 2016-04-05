@@ -309,6 +309,7 @@ class BoxFieldElement extends ElementX
 /// A local variable used encode the direct (uncaptured) references to [this].
 class ThisLocal extends Local {
   final ExecutableElement executableContext;
+  final hashCode = ++ElementX.elementHashCode;
 
   ThisLocal(this.executableContext);
 

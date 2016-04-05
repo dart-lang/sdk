@@ -445,6 +445,8 @@ abstract class GenericType extends DartType {
 }
 
 class InterfaceType extends GenericType {
+  int _hashCode;
+
   InterfaceType(ClassElement element,
                 [List<DartType> typeArguments = const <DartType>[]])
       : super(element, typeArguments) {
@@ -503,7 +505,7 @@ class InterfaceType extends GenericType {
     return member;
   }
 
-  int get hashCode => super.hashCode;
+  int get hashCode => _hashCode ??= super.hashCode;
 
   InterfaceType asRaw() => super.asRaw();
 
@@ -824,6 +826,8 @@ class DynamicType extends DartType {
   accept(DartTypeVisitor visitor, var argument) {
     return visitor.visitDynamicType(this, argument);
   }
+
+  int get hashCode => 91;
 
   String toString() => name;
 }
