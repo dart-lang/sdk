@@ -3250,7 +3250,7 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements id
   List<idl.UnlinkedExprAssignOperator> _assignmentOperators;
   List<double> _doubles;
   List<int> _ints;
-  bool _isInvalid;
+  bool _isValidConst;
   List<idl.UnlinkedConstOperation> _operations;
   List<EntityRefBuilder> _references;
   List<String> _strings;
@@ -3292,15 +3292,15 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements id
   }
 
   @override
-  bool get isInvalid => _isInvalid ??= false;
+  bool get isValidConst => _isValidConst ??= false;
 
   /**
-   * Indicates whether the expression is not a valid potentially constant
+   * Indicates whether the expression is a valid potentially constant
    * expression.
    */
-  void set isInvalid(bool _value) {
+  void set isValidConst(bool _value) {
     assert(!_finished);
-    _isInvalid = _value;
+    _isValidConst = _value;
   }
 
   @override
@@ -3341,11 +3341,11 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements id
     _strings = _value;
   }
 
-  UnlinkedConstBuilder({List<idl.UnlinkedExprAssignOperator> assignmentOperators, List<double> doubles, List<int> ints, bool isInvalid, List<idl.UnlinkedConstOperation> operations, List<EntityRefBuilder> references, List<String> strings})
+  UnlinkedConstBuilder({List<idl.UnlinkedExprAssignOperator> assignmentOperators, List<double> doubles, List<int> ints, bool isValidConst, List<idl.UnlinkedConstOperation> operations, List<EntityRefBuilder> references, List<String> strings})
     : _assignmentOperators = assignmentOperators,
       _doubles = doubles,
       _ints = ints,
-      _isInvalid = isInvalid,
+      _isValidConst = isValidConst,
       _operations = operations,
       _references = references,
       _strings = strings;
@@ -3394,7 +3394,7 @@ class UnlinkedConstBuilder extends Object with _UnlinkedConstMixin implements id
     if (offset_ints != null) {
       fbBuilder.addOffset(1, offset_ints);
     }
-    if (_isInvalid == true) {
+    if (_isValidConst == true) {
       fbBuilder.addBool(5, true);
     }
     if (offset_operations != null) {
@@ -3425,7 +3425,7 @@ class _UnlinkedConstImpl extends Object with _UnlinkedConstMixin implements idl.
   List<idl.UnlinkedExprAssignOperator> _assignmentOperators;
   List<double> _doubles;
   List<int> _ints;
-  bool _isInvalid;
+  bool _isValidConst;
   List<idl.UnlinkedConstOperation> _operations;
   List<idl.EntityRef> _references;
   List<String> _strings;
@@ -3449,9 +3449,9 @@ class _UnlinkedConstImpl extends Object with _UnlinkedConstMixin implements idl.
   }
 
   @override
-  bool get isInvalid {
-    _isInvalid ??= const fb.BoolReader().vTableGet(_bp, 5, false);
-    return _isInvalid;
+  bool get isValidConst {
+    _isValidConst ??= const fb.BoolReader().vTableGet(_bp, 5, false);
+    return _isValidConst;
   }
 
   @override
@@ -3480,7 +3480,7 @@ abstract class _UnlinkedConstMixin implements idl.UnlinkedConst {
     if (assignmentOperators.isNotEmpty) _result["assignmentOperators"] = assignmentOperators.map((_value) => _value.toString().split('.')[1]).toList();
     if (doubles.isNotEmpty) _result["doubles"] = doubles.map((_value) => _value.isFinite ? _value : _value.toString()).toList();
     if (ints.isNotEmpty) _result["ints"] = ints;
-    if (isInvalid != false) _result["isInvalid"] = isInvalid;
+    if (isValidConst != false) _result["isValidConst"] = isValidConst;
     if (operations.isNotEmpty) _result["operations"] = operations.map((_value) => _value.toString().split('.')[1]).toList();
     if (references.isNotEmpty) _result["references"] = references.map((_value) => _value.toJson()).toList();
     if (strings.isNotEmpty) _result["strings"] = strings;
@@ -3492,7 +3492,7 @@ abstract class _UnlinkedConstMixin implements idl.UnlinkedConst {
     "assignmentOperators": assignmentOperators,
     "doubles": doubles,
     "ints": ints,
-    "isInvalid": isInvalid,
+    "isValidConst": isValidConst,
     "operations": operations,
     "references": references,
     "strings": strings,

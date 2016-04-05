@@ -1011,11 +1011,11 @@ abstract class UnlinkedConst extends base.SummaryClass {
   List<int> get ints;
 
   /**
-   * Indicates whether the expression is not a valid potentially constant
+   * Indicates whether the expression is a valid potentially constant
    * expression.
    */
   @Id(5)
-  bool get isInvalid;
+  bool get isValidConst;
 
   /**
    * Sequence of operations to execute (starting with an empty stack) to form

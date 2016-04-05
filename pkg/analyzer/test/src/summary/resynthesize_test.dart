@@ -147,6 +147,7 @@ class ResynthesizeElementTest extends ResynthesizeTest {
 @reflectiveTest
 abstract class ResynthesizeTest extends AbstractSingleUnitTest {
   Set<Source> otherLibrarySources = new Set<Source>();
+  bool constantInitializersAreInvalid = false;
 
   bool get checkPropagatedTypes => true;
 
@@ -430,7 +431,11 @@ abstract class ResynthesizeTest extends AbstractSingleUnitTest {
       } else if (oItem is ConstructorFieldInitializer &&
           rItem is ConstructorFieldInitializer) {
         compareConstAsts(rItem.fieldName, oItem.fieldName, desc);
-        compareConstAsts(rItem.expression, oItem.expression, desc);
+        if (constantInitializersAreInvalid) {
+          _assertUnresolvedIdentifier(rItem.expression, desc);
+        } else {
+          compareConstAsts(rItem.expression, oItem.expression, desc);
+        }
       } else if (oItem is SuperConstructorInvocation &&
           rItem is SuperConstructorInvocation) {
         compareElements(rItem.staticElement, oItem.staticElement, desc);
@@ -1163,8 +1168,12 @@ abstract class ResynthesizeTest extends AbstractSingleUnitTest {
             resynthesized.constantValue, original.constantValue, desc);
       } else {
         Expression initializer = resynthesizedActual.constantInitializer;
-        compareConstAsts(initializer, originalActual.constantInitializer,
-            '$desc initializer');
+        if (constantInitializersAreInvalid) {
+          _assertUnresolvedIdentifier(initializer, desc);
+        } else {
+          compareConstAsts(initializer, originalActual.constantInitializer,
+              '$desc initializer');
+        }
       }
     }
     checkPossibleMember(resynthesized, original, desc);
@@ -1289,17 +1298,6 @@ abstract class ResynthesizeTest extends AbstractSingleUnitTest {
   void setUp() {
     super.setUp();
     prepareAnalysisContext(createOptions());
-  }
-
-  test_const_invalid_field_const() {
-    checkLibrary(
-        r'''
-class C {
-  static const f = 1 + foo();
-}
-int foo() => 42;
-''',
-        allowErrors: true);
   }
 
   test_class_abstract() {
@@ -1639,7 +1637,20 @@ f() {
 ''');
   }
 
+  test_const_invalid_field_const() {
+    constantInitializersAreInvalid = true;
+    checkLibrary(
+        r'''
+class C {
+  static const f = 1 + foo();
+}
+int foo() => 42;
+''',
+        allowErrors: true);
+  }
+
   test_const_invalid_field_final() {
+    constantInitializersAreInvalid = true;
     checkLibrary(
         r'''
 class C {
@@ -1651,6 +1662,7 @@ int foo() => 42;
   }
 
   test_const_invalid_topLevel() {
+    constantInitializersAreInvalid = true;
     checkLibrary(
         r'''
 const v = 1 + foo();
@@ -2393,6 +2405,7 @@ class C {
   }
 
   test_constructor_initializers_field_notConst() {
+    constantInitializersAreInvalid = true;
     checkLibrary(
         '''
 class C {

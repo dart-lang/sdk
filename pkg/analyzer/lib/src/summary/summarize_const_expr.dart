@@ -46,7 +46,7 @@ abstract class AbstractConstExprSerializer {
   /**
    * See [UnlinkedConstBuilder.isInvalid].
    */
-  bool isInvalid = false;
+  bool isValidConst = true;
 
   /**
    * See [UnlinkedConstBuilder.operations].
@@ -92,7 +92,7 @@ abstract class AbstractConstExprSerializer {
     try {
       _serialize(expr);
     } on StateError {
-      isInvalid = true;
+      isValidConst = false;
     }
   }
 
@@ -136,10 +136,8 @@ abstract class AbstractConstExprSerializer {
    * serializer.
    */
   UnlinkedConstBuilder toBuilder() {
-    if (isInvalid) {
-      return new UnlinkedConstBuilder(isInvalid: true);
-    }
     return new UnlinkedConstBuilder(
+        isValidConst: isValidConst,
         operations: operations,
         assignmentOperators: assignmentOperators,
         ints: ints,
@@ -225,6 +223,9 @@ abstract class AbstractConstExprSerializer {
         operations.add(UnlinkedConstOperation.pushReference);
       }
     } else if (expr is InstanceCreationExpression) {
+      if (!expr.isConst) {
+        isValidConst = false;
+      }
       serializeInstanceCreation(
           serializeConstructorName(
               expr.constructorName.type, expr.constructorName.name),
@@ -251,6 +252,7 @@ abstract class AbstractConstExprSerializer {
     } else if (expr is ParenthesizedExpression) {
       _serialize(expr.expression);
     } else if (expr is IndexExpression) {
+      isValidConst = false;
       _serialize(expr.target);
       _serialize(expr.index);
       operations.add(UnlinkedConstOperation.extractIndex);
@@ -259,20 +261,25 @@ abstract class AbstractConstExprSerializer {
     } else if (expr is CascadeExpression) {
       _serializeCascadeExpression(expr);
     } else if (expr is FunctionExpression) {
+      isValidConst = false;
       // TODO(scheglov) implement
       operations.add(UnlinkedConstOperation.pushNull);
     } else if (expr is FunctionExpressionInvocation) {
+      isValidConst = false;
       // TODO(scheglov) implement
       operations.add(UnlinkedConstOperation.pushNull);
     } else if (expr is AsExpression) {
+      isValidConst = false;
       _serialize(expr.expression);
       _serialize(expr.type.name);
       operations.add(UnlinkedConstOperation.typeCast);
     } else if (expr is IsExpression) {
+      isValidConst = false;
       _serialize(expr.expression);
       _serialize(expr.type.name);
       operations.add(UnlinkedConstOperation.typeCheck);
     } else if (expr is ThrowExpression) {
+      isValidConst = false;
       _serialize(expr.expression);
       operations.add(UnlinkedConstOperation.throwException);
     } else {
@@ -299,6 +306,7 @@ abstract class AbstractConstExprSerializer {
   }
 
   void _serializeAssignment(AssignmentExpression expr) {
+    isValidConst = false;
     // Push the value.
     _serialize(expr.rightHandSide);
     // Push the assignment operator.
@@ -424,6 +432,10 @@ abstract class AbstractConstExprSerializer {
   }
 
   void _serializeMethodInvocation(MethodInvocation invocation) {
+    if (invocation.target != null ||
+        invocation.methodName.name != 'identical') {
+      isValidConst = false;
+    }
     Expression target = invocation.target;
     SimpleIdentifier methodName = invocation.methodName;
     ArgumentList argumentList = invocation.argumentList;
@@ -481,6 +493,7 @@ abstract class AbstractConstExprSerializer {
 
   void _serializePrefixPostfixIncDec(
       Expression operand, UnlinkedExprAssignOperator operator) {
+    isValidConst = false;
     assignmentOperators.add(operator);
     _pushAssignable(operand);
   }

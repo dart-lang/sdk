@@ -2290,8 +2290,8 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
   void evaluate(bool inCycle) {
     if (inCycle) {
       _inferredType = DynamicTypeImpl.instance;
-    } else if (variableElement.unlinkedVariable.constExpr.isInvalid) {
-      // TODO(paulberry): implement.
+    } else if (!variableElement.unlinkedVariable.constExpr.isValidConst) {
+      // TODO(paulberry): delete this case and fix errors.
       throw new UnimplementedError();
     } else {
       // Perform RPN evaluation of the cycle, using a stack of

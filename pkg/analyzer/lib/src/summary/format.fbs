@@ -1423,10 +1423,10 @@ table UnlinkedConst {
   ints:[uint] (id: 1);
 
   /**
-   * Indicates whether the expression is not a valid potentially constant
+   * Indicates whether the expression is a valid potentially constant
    * expression.
    */
-  isInvalid:bool (id: 5);
+  isValidConst:bool (id: 5);
 
   /**
    * Sequence of operations to execute (starting with an empty stack) to form

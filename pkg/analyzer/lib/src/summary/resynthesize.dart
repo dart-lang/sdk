@@ -286,7 +286,7 @@ class _ConstExprBuilder {
   Expression get expr => stack.single;
 
   Expression build() {
-    if (uc.isInvalid) {
+    if (!uc.isValidConst) {
       return AstFactory.identifier3(r'$$invalidConstExpr$$');
     }
     for (UnlinkedConstOperation operation in uc.operations) {

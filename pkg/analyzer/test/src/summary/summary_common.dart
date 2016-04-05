@@ -5957,7 +5957,7 @@ class C {
 A a = new A();
 final v = (a.b.c.f[1] = 5);
 ''');
-    _assertUnlinkedConst(variable.constExpr, operators: [
+    _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
       UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.pushReference,
       UnlinkedConstOperation.pushInt,
@@ -5996,7 +5996,7 @@ class C {
 A a = new A();
 final v = (a.b[1].c[2].f[3] = 5);
 ''');
-    _assertUnlinkedConst(variable.constExpr, operators: [
+    _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
       // 5
       UnlinkedConstOperation.pushInt,
       // a.b[1]
@@ -6037,7 +6037,7 @@ final v = (a.b[1].c[2].f[3] = 5);
 List<int> a = <int>[0, 1, 2];
 final v = (a[1] = 5);
 ''');
-    _assertUnlinkedConst(variable.constExpr, operators: [
+    _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
       UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.pushReference,
       UnlinkedConstOperation.pushInt,
@@ -6063,7 +6063,7 @@ class C {
 }
 final v = (new C().f = 5);
 ''');
-    _assertUnlinkedConst(variable.constExpr, operators: [
+    _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
       UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.invokeConstructor,
       UnlinkedConstOperation.assignToProperty,
@@ -6091,7 +6091,7 @@ class C {
 }
 final v = (C.f = 1);
 ''');
-    _assertUnlinkedConst(variable.constExpr, operators: [
+    _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
       UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.assignToRef,
     ], assignmentOperators: [
@@ -6124,7 +6124,7 @@ class C {
 A a = new A();
 final v = (a.b.c.f = 1);
 ''');
-    _assertUnlinkedConst(variable.constExpr, operators: [
+    _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
       UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.assignToRef,
     ], assignmentOperators: [
@@ -6171,7 +6171,7 @@ final v = (a.b.c.f = 1);
 int a = 0;
 final v = (a = 1);
 ''');
-    _assertUnlinkedConst(variable.constExpr, operators: [
+    _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
       UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.assignToRef,
     ], assignmentOperators: [
@@ -6197,7 +6197,7 @@ int a = 0;
 import 'a.dart';
 final v = (a = 1);
 ''');
-    _assertUnlinkedConst(variable.constExpr, operators: [
+    _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
       UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.assignToRef,
     ], assignmentOperators: [
@@ -6223,7 +6223,7 @@ int a = 0;
 import 'a.dart' as p;
 final v = (p.a = 1);
 ''');
-    _assertUnlinkedConst(variable.constExpr, operators: [
+    _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
       UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.assignToRef,
     ], assignmentOperators: [
@@ -6250,7 +6250,7 @@ class C {
 final C c = new C();
 final v = c.items..[1] = 2;
 ''');
-    _assertUnlinkedConst(variable.constExpr, operators: [
+    _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
       UnlinkedConstOperation.pushReference,
       //   ..[1] = 2
       UnlinkedConstOperation.cascadeSectionBegin,
@@ -6285,7 +6285,7 @@ class C {
 }
 final v = new C()..f1 = 1..f2 += 2;
 ''');
-    _assertUnlinkedConst(variable.constExpr, operators: [
+    _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
       // new C()
       UnlinkedConstOperation.invokeConstructor,
       //   ..f1 = 1
@@ -6334,7 +6334,7 @@ final v = new A()
   ..b = (new B()..fb = 2)
   ..fa2 = 3;
 ''');
-    _assertUnlinkedConst(variable.constExpr, operators: [
+    _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
       // new A()
       UnlinkedConstOperation.invokeConstructor,
       // ..fa1 = 1
@@ -6396,7 +6396,7 @@ class A {
 final A a = new A();
 final v = a..m(5).abs()..m(6);
 ''');
-    _assertUnlinkedConst(variable.constExpr, operators: [
+    _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
       // a
       UnlinkedConstOperation.pushReference,
       //   ..m(5)
@@ -6437,7 +6437,7 @@ class C {
 }
 final v = new C().items[5];
 ''');
-    _assertUnlinkedConst(variable.constExpr, operators: [
+    _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
       UnlinkedConstOperation.invokeConstructor,
       UnlinkedConstOperation.extractProperty,
       UnlinkedConstOperation.pushInt,
@@ -6464,7 +6464,7 @@ class C {
 }
 final v = new C().f;
 ''');
-    _assertUnlinkedConst(variable.constExpr, operators: [
+    _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
       UnlinkedConstOperation.invokeConstructor,
       UnlinkedConstOperation.extractProperty,
     ], ints: [
@@ -6486,7 +6486,7 @@ final v = new C().f;
 final v = foo(5, () => 42);
 foo(a, b) {}
 ''');
-    _assertUnlinkedConst(variable.constExpr, operators: [
+    _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
       UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.pushNull,
       UnlinkedConstOperation.invokeMethodRef
@@ -6508,7 +6508,7 @@ foo(a, b) {}
 final v = () { return 42; };
 ''');
     _assertUnlinkedConst(variable.constExpr,
-        operators: [UnlinkedConstOperation.pushNull]);
+        isValidConst: false, operators: [UnlinkedConstOperation.pushNull]);
   }
 
   test_expr_functionExpression_withExpressionBody() {
@@ -6519,7 +6519,7 @@ final v = () { return 42; };
 final v = () => 42;
 ''');
     _assertUnlinkedConst(variable.constExpr,
-        operators: [UnlinkedConstOperation.pushNull]);
+        isValidConst: false, operators: [UnlinkedConstOperation.pushNull]);
   }
 
   test_expr_functionExpressionInvocation_withBlockBody() {
@@ -6530,7 +6530,7 @@ final v = () => 42;
 final v = ((a, b) {return 42;})(1, 2);
 ''');
     _assertUnlinkedConst(variable.constExpr,
-        operators: [UnlinkedConstOperation.pushNull]);
+        isValidConst: false, operators: [UnlinkedConstOperation.pushNull]);
   }
 
   test_expr_functionExpressionInvocation_withExpressionBody() {
@@ -6541,7 +6541,7 @@ final v = ((a, b) {return 42;})(1, 2);
 final v = ((a, b) => 42)(1, 2);
 ''');
     _assertUnlinkedConst(variable.constExpr,
-        operators: [UnlinkedConstOperation.pushNull]);
+        isValidConst: false, operators: [UnlinkedConstOperation.pushNull]);
   }
 
   test_expr_invokeMethod_instance() {
@@ -6554,7 +6554,7 @@ class C {
 }
 final v = new C().m(1, b: 2, c: 3);
 ''');
-    _assertUnlinkedConst(variable.constExpr, operators: [
+    _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
       UnlinkedConstOperation.invokeConstructor,
       UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.pushInt,
@@ -6595,7 +6595,7 @@ class C {
 A a = new A();
 final v = a.b.c.m(10, 20);
 ''');
-    _assertUnlinkedConst(variable.constExpr, operators: [
+    _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
       UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.invokeMethodRef,
@@ -6631,7 +6631,7 @@ class C {
 import 'a.dart' as p;
 final v = p.C.m();
 ''');
-    _assertUnlinkedConst(variable.constExpr, operators: [
+    _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
       UnlinkedConstOperation.invokeMethodRef,
     ], ints: [
       0,
@@ -6654,7 +6654,7 @@ final v = p.C.m();
     UnlinkedVariable variable = serializeVariableText('''
 final v = throw 1 + 2;
 ''');
-    _assertUnlinkedConst(variable.constExpr, operators: [
+    _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
       UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.add,
@@ -6672,7 +6672,7 @@ final v = throw 1 + 2;
     UnlinkedVariable variable = serializeVariableText('''
 final v = 42 as num;
 ''');
-    _assertUnlinkedConst(variable.constExpr, operators: [
+    _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
       UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.pushReference,
       UnlinkedConstOperation.typeCast,
@@ -6691,7 +6691,7 @@ final v = 42 as num;
     UnlinkedVariable variable = serializeVariableText('''
 final v = 42 is num;
 ''');
-    _assertUnlinkedConst(variable.constExpr, operators: [
+    _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
       UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.pushReference,
       UnlinkedConstOperation.typeCheck,
@@ -6751,7 +6751,7 @@ class C {
   static int m() => 42;
 }''').fields[0];
     expect(variable.isFinal, isTrue);
-    _assertUnlinkedConst(variable.constExpr, operators: [
+    _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
       UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.invokeMethodRef,
       UnlinkedConstOperation.add,
@@ -9160,7 +9160,7 @@ var v;''';
 int a = 0;
 final v = $expr;
     ''');
-    _assertUnlinkedConst(variable.constExpr, operators: [
+    _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
       UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.add,
@@ -9221,7 +9221,7 @@ final v = $expr;
 int a = 0;
 final v = $expr;
 ''');
-    _assertUnlinkedConst(variable.constExpr, operators: [
+    _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
       UnlinkedConstOperation.assignToRef,
       UnlinkedConstOperation.pushInt,
       UnlinkedConstOperation.add,
@@ -9239,7 +9239,7 @@ final v = $expr;
    * TODO(scheglov) rename "Const" to "Expr" everywhere
    */
   void _assertUnlinkedConst(UnlinkedConst constExpr,
-      {bool isInvalid: false,
+      {bool isValidConst: true,
       List<UnlinkedConstOperation> operators: const <UnlinkedConstOperation>[],
       List<UnlinkedExprAssignOperator> assignmentOperators:
           const <UnlinkedExprAssignOperator>[],
@@ -9249,7 +9249,7 @@ final v = $expr;
       List<_EntityRefValidator> referenceValidators:
           const <_EntityRefValidator>[]}) {
     expect(constExpr, isNotNull);
-    expect(constExpr.isInvalid, isInvalid);
+    expect(constExpr.isValidConst, isValidConst);
     expect(constExpr.operations, operators);
     expect(constExpr.ints, ints);
     expect(constExpr.doubles, doubles);
