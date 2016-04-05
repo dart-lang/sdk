@@ -258,6 +258,12 @@ abstract class AbstractConstExprSerializer {
       _serializeAssignment(expr);
     } else if (expr is CascadeExpression) {
       _serializeCascadeExpression(expr);
+    } else if (expr is FunctionExpression) {
+      // TODO(scheglov) implement
+      operations.add(UnlinkedConstOperation.pushNull);
+    } else if (expr is FunctionExpressionInvocation) {
+      // TODO(scheglov) implement
+      operations.add(UnlinkedConstOperation.pushNull);
     } else {
       throw new StateError('Unknown expression type: $expr');
     }

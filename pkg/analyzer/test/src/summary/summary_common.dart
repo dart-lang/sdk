@@ -6239,6 +6239,41 @@ final v = (p.a = 1);
     ]);
   }
 
+  test_expr_cascadeSection_assignToIndex() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('''
+class C {
+  List<int> items;
+}
+final C c = new C();
+final v = c.items..[1] = 2;
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushReference,
+      //   ..[1] = 2
+      UnlinkedConstOperation.cascadeSectionBegin,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.assignToIndex,
+      // c
+      UnlinkedConstOperation.cascadeSectionEnd,
+    ], assignmentOperators: [
+      UnlinkedExprAssignOperator.assign,
+    ], ints: [
+      2,
+      1
+    ], strings: [], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'items',
+              expectedKind: ReferenceKind.unresolved,
+              prefixExpectations: [
+                new _PrefixExpectation(
+                    ReferenceKind.topLevelPropertyAccessor, 'c'),
+              ])
+    ]);
+  }
+
   test_expr_cascadeSection_assignToProperty() {
     if (skipNonConstInitializers) {
       return;
@@ -6278,41 +6313,6 @@ final v = new C()..f1 = 1..f2 += 2;
     ], referenceValidators: [
       (EntityRef r) => checkTypeRef(r, null, null, 'C',
           expectedKind: ReferenceKind.classOrEnum)
-    ]);
-  }
-
-  test_expr_cascadeSection_assignToIndex() {
-    if (skipNonConstInitializers) {
-      return;
-    }
-    UnlinkedVariable variable = serializeVariableText('''
-class C {
-  List<int> items;
-}
-final C c = new C();
-final v = c.items..[1] = 2;
-''');
-    _assertUnlinkedConst(variable.constExpr, operators: [
-      UnlinkedConstOperation.pushReference,
-      //   ..[1] = 2
-      UnlinkedConstOperation.cascadeSectionBegin,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.assignToIndex,
-      // c
-      UnlinkedConstOperation.cascadeSectionEnd,
-    ], assignmentOperators: [
-      UnlinkedExprAssignOperator.assign,
-    ], ints: [
-      2,
-      1
-    ], strings: [], referenceValidators: [
-      (EntityRef r) => checkTypeRef(r, null, null, 'items',
-              expectedKind: ReferenceKind.unresolved,
-              prefixExpectations: [
-                new _PrefixExpectation(
-                    ReferenceKind.topLevelPropertyAccessor, 'c'),
-              ])
     ]);
   }
 
@@ -6476,6 +6476,72 @@ final v = new C().f;
       (EntityRef r) => checkTypeRef(r, null, null, 'C',
           expectedKind: ReferenceKind.classOrEnum)
     ]);
+  }
+
+  test_expr_functionExpression_asArgument() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('''
+final v = foo(5, () => 42);
+foo(a, b) {}
+''');
+    _assertUnlinkedConst(variable.constExpr, operators: [
+      UnlinkedConstOperation.pushInt,
+      UnlinkedConstOperation.pushNull,
+      UnlinkedConstOperation.invokeMethodRef
+    ], ints: [
+      5,
+      0,
+      2
+    ], referenceValidators: [
+      (EntityRef r) => checkTypeRef(r, null, null, 'foo',
+          expectedKind: ReferenceKind.topLevelFunction)
+    ]);
+  }
+
+  test_expr_functionExpression_withBlockBody() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('''
+final v = () { return 42; };
+''');
+    _assertUnlinkedConst(variable.constExpr,
+        operators: [UnlinkedConstOperation.pushNull]);
+  }
+
+  test_expr_functionExpression_withExpressionBody() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('''
+final v = () => 42;
+''');
+    _assertUnlinkedConst(variable.constExpr,
+        operators: [UnlinkedConstOperation.pushNull]);
+  }
+
+  test_expr_functionExpressionInvocation_withBlockBody() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('''
+final v = ((a, b) {return 42;})(1, 2);
+''');
+    _assertUnlinkedConst(variable.constExpr,
+        operators: [UnlinkedConstOperation.pushNull]);
+  }
+
+  test_expr_functionExpressionInvocation_withExpressionBody() {
+    if (skipNonConstInitializers) {
+      return;
+    }
+    UnlinkedVariable variable = serializeVariableText('''
+final v = ((a, b) => 42)(1, 2);
+''');
+    _assertUnlinkedConst(variable.constExpr,
+        operators: [UnlinkedConstOperation.pushNull]);
   }
 
   test_expr_invokeMethod_instance() {
