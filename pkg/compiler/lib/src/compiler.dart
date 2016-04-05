@@ -1960,6 +1960,7 @@ class _CompilerResolution implements Resolution {
   final Map<Element, ResolutionImpact> _resolutionImpactCache =
       <Element, ResolutionImpact>{};
   final Map<Element, WorldImpact> _worldImpactCache = <Element, WorldImpact>{};
+  bool retainCaches = false;
 
   _CompilerResolution(this.compiler);
 
@@ -2003,6 +2004,11 @@ class _CompilerResolution implements Resolution {
   }
 
   @override
+  bool hasResolutionImpact(Element element) {
+    return _resolutionImpactCache.containsKey(element);
+  }
+
+  @override
   ResolutionImpact getResolutionImpact(Element element) {
     ResolutionImpact resolutionImpact = _resolutionImpactCache[element];
     assert(invariant(element, resolutionImpact != null,
@@ -2026,7 +2032,7 @@ class _CompilerResolution implements Resolution {
       assert(invariant(element, !element.isSynthesized || tree == null));
       ResolutionImpact resolutionImpact =
           compiler.resolver.resolve(element);
-      if (compiler.serialization.supportSerialization) {
+      if (compiler.serialization.supportSerialization || retainCaches) {
         // [ResolutionImpact] is currently only used by serialization. The
         // enqueuer uses the [WorldImpact] which is always cached.
         // TODO(johnniwinther): Align these use cases better; maybe only
@@ -2049,6 +2055,7 @@ class _CompilerResolution implements Resolution {
 
   @override
   void uncacheWorldImpact(Element element) {
+    if (retainCaches) return;
     if (compiler.serialization.isDeserialized(element)) return;
     assert(invariant(element, _worldImpactCache[element] != null,
         message: "WorldImpact not computed for $element."));
@@ -2058,6 +2065,7 @@ class _CompilerResolution implements Resolution {
 
   @override
   void emptyCache() {
+    if (retainCaches) return;
     for (Element element in _worldImpactCache.keys) {
       _worldImpactCache[element] = const WorldImpact();
     }

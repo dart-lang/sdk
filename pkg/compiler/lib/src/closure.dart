@@ -352,6 +352,10 @@ class SynthesizedCallMethodElementX extends BaseFunctionElementX
   }
 
   Element get analyzableElement => closureClass.methodElement.analyzableElement;
+
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitMethodElement(this, arg);
+  }
 }
 
 // The box-element for a scope, and the captured variables that need to be

@@ -309,10 +309,19 @@ abstract class ContainerMixin
 
 class AbstractFieldElementZ extends ElementZ implements AbstractFieldElement {
   final String name;
-  final FunctionElement getter;
-  final FunctionElement setter;
+  final GetterElementZ getter;
+  final SetterElementZ setter;
 
-  AbstractFieldElementZ(this.name, this.getter, this.setter);
+  AbstractFieldElementZ(this.name, this.getter, this.setter) {
+    if (getter != null) {
+      getter.abstractField = this;
+      getter.setter = setter;
+    }
+    if (setter != null) {
+      setter.abstractField = this;
+      setter.getter = getter;
+    }
+  }
 
   FunctionElement get _canonicalElement => getter != null ? getter : setter;
 
@@ -1349,7 +1358,7 @@ abstract class FunctionElementZ extends DeserializedElementZ
 
   @override
   accept(ElementVisitor visitor, arg) {
-    return visitor.visitFunctionElement(this, arg);
+    return visitor.visitMethodElement(this, arg);
   }
 
   @override
@@ -1422,7 +1431,7 @@ class LocalFunctionElementZ extends DeserializedElementZ
 
   @override
   accept(ElementVisitor visitor, arg) {
-    return visitor.visitFunctionElement(this, arg);
+    return visitor.visitLocalFunctionElement(this, arg);
   }
 
   @override
@@ -1436,7 +1445,10 @@ abstract class GetterElementZ extends DeserializedElementZ
          ParametersMixin,
          TypedElementMixin,
          MemberElementMixin
-    implements FunctionElement {
+    implements GetterElement {
+
+  AbstractFieldElement abstractField;
+  SetterElement setter;
 
   GetterElementZ(ObjectDecoder decoder)
       : super(decoder);
@@ -1446,7 +1458,7 @@ abstract class GetterElementZ extends DeserializedElementZ
 
   @override
   accept(ElementVisitor visitor, arg) {
-    return visitor.visitFunctionElement(this, arg);
+    return visitor.visitGetterElement(this, arg);
   }
 }
 
@@ -1474,7 +1486,10 @@ abstract class SetterElementZ extends DeserializedElementZ
          ParametersMixin,
          TypedElementMixin,
          MemberElementMixin
-    implements FunctionElement {
+    implements SetterElement {
+
+  AbstractFieldElement abstractField;
+  GetterElement getter;
 
   SetterElementZ(ObjectDecoder decoder)
       : super(decoder);
@@ -1484,7 +1499,7 @@ abstract class SetterElementZ extends DeserializedElementZ
 
   @override
   accept(ElementVisitor visitor, arg) {
-    return visitor.visitFunctionElement(this, arg);
+    return visitor.visitSetterElement(this, arg);
   }
 }
 

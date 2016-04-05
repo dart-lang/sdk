@@ -17,6 +17,7 @@ import 'package:compiler/src/diagnostics/diagnostic_listener.dart';
 import 'package:compiler/src/diagnostics/source_span.dart';
 import 'package:compiler/src/diagnostics/spannable.dart';
 import 'package:compiler/src/elements/elements.dart';
+import 'package:compiler/src/elements/visitor.dart';
 import 'package:compiler/src/js_backend/backend_helpers.dart'
     show BackendHelpers;
 import 'package:compiler/src/js_backend/lookup_map_analysis.dart'
@@ -347,6 +348,10 @@ class MockElement extends FunctionElementX {
   parseNode(_) => null;
 
   bool get hasNode => false;
+
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitMethodElement(this, arg);
+  }
 }
 
 // TODO(herhut): Disallow warnings and errors during compilation by default.

@@ -17,6 +17,7 @@ import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/elements/visitor.dart';
 import 'package:compiler/src/ordered_typeset.dart';
 import 'package:compiler/src/serialization/element_serialization.dart';
+import 'package:compiler/src/serialization/equivalence.dart';
 import 'package:compiler/src/serialization/json_serializer.dart';
 import 'package:compiler/src/serialization/serialization.dart';
 
@@ -144,7 +145,7 @@ checkElementLists(Object object1, Object object2, String property,
 /// [checkEquivalence] to check the pair-wise equivalence.
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
-void checkListEquivalence(
+bool checkListEquivalence(
     Object object1, Object object2, String property,
     Iterable list1, Iterable list2,
     void checkEquivalence(o1, o2, property, a, b)) {
@@ -167,30 +168,73 @@ void checkListEquivalence(
         '`${property}` on $object1:\n ${list1.join('\n ')}\n'
         '`${property}` on $object2:\n ${list2.join('\n ')}';
   }
+  return true;
+}
+
+/// Check equivalence of the two iterables, [set1] and [set1], as sets using
+/// [elementEquivalence] to compute the pair-wise equivalence.
+///
+/// Uses [object1], [object2] and [property] to provide context for failures.
+bool checkSetEquivalence(
+    var object1,
+    var object2,
+    String property,
+    Iterable set1,
+    Iterable set2,
+    bool sameElement(a, b)) {
+  List common = [];
+  List unfound = [];
+  Set remaining = set2.toSet();
+  for (var element1 in set1) {
+    bool found = false;
+    for (var element2 in remaining) {
+      if (sameElement(element1, element2)) {
+        found = true;
+        remaining.remove(element2);
+        break;
+      }
+    }
+    if (found) {
+      common.add(element1);
+    } else {
+      unfound.add(element1);
+    }
+  }
+  if (unfound.isNotEmpty || remaining.isNotEmpty) {
+    String message =
+        "Set mismatch for `$property` on $object1 vs $object2: \n"
+        "Common:\n ${common.join('\n ')}\n"
+        "Unfound:\n ${unfound.join('\n ')}\n"
+        "Extra: \n ${remaining.join('\n ')}";
+    throw message;
+  }
+  return true;
 }
 
 /// Checks the equivalence of the identity (but not properties) of [element1]
 /// and [element2].
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
-void checkElementIdentities(
+bool checkElementIdentities(
     Object object1, Object object2, String property,
     Element element1, Element element2) {
-  if (identical(element1, element2)) return;
+  if (identical(element1, element2)) return true;
   if (element1 == null || element2 == null) {
-    check(object1, object2, property, element1, element2);
+    return check(object1, object2, property, element1, element2);
+  } else {
+    return const ElementIdentityEquivalence(const CheckStrategy())
+        .visit(element1, element2);
   }
-  const ElementIdentityEquivalence().visit(element1, element2);
 }
 
 /// Checks the pair-wise equivalence of the identity (but not properties) of the
 /// elements in [list] and [list2].
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
-void checkElementListIdentities(
+bool checkElementListIdentities(
     Object object1, Object object2, String property,
     Iterable<Element> list1, Iterable<Element> list2) {
-  checkListEquivalence(
+  return checkListEquivalence(
       object1, object2, property,
       list1, list2, checkElementIdentities);
 }
@@ -198,48 +242,127 @@ void checkElementListIdentities(
 /// Checks the equivalence of [type1] and [type2].
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
-void checkTypes(
+bool checkTypes(
     Object object1, Object object2, String property,
     DartType type1, DartType type2) {
-  if (identical(type1, type2)) return;
+  if (identical(type1, type2)) return true;
   if (type1 == null || type2 == null) {
-    check(object1, object2, property, type1, type2);
+    return check(object1, object2, property, type1, type2);
+  } else {
+    return const TypeEquivalence(const CheckStrategy()).visit(type1, type2);
   }
-  const TypeEquivalence().visit(type1, type2);
 }
 
 /// Checks the pair-wise equivalence of the types in [list1] and [list2].
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
-void checkTypeLists(
+bool checkTypeLists(
     Object object1, Object object2, String property,
     List<DartType> list1, List<DartType> list2) {
-  checkListEquivalence(object1, object2, property, list1, list2, checkTypes);
+  return checkListEquivalence(
+      object1, object2, property, list1, list2, checkTypes);
 }
 
 /// Checks the equivalence of [exp1] and [exp2].
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
-void checkConstants(
+bool checkConstants(
     Object object1, Object object2, String property,
     ConstantExpression exp1, ConstantExpression exp2) {
-  if (identical(exp1, exp2)) return;
+  if (identical(exp1, exp2)) return true;
   if (exp1 == null || exp2 == null) {
-    check(object1, object2, property, exp1, exp2);
+    return check(object1, object2, property, exp1, exp2);
+  } else {
+    return const ConstantEquivalence(const CheckStrategy()).visit(exp1, exp2);
   }
-  const ConstantEquivalence().visit(exp1, exp2);
 }
 
 /// Checks the pair-wise equivalence of the contants in [list1] and [list2].
 ///
 /// Uses [object1], [object2] and [property] to provide context for failures.
-void checkConstantLists(
+bool checkConstantLists(
     Object object1, Object object2, String property,
     List<ConstantExpression> list1,
     List<ConstantExpression> list2) {
-  checkListEquivalence(
+  return checkListEquivalence(
       object1, object2, property,
       list1, list2, checkConstants);
+}
+
+
+/// Strategy for checking equivalence.
+///
+/// Use this strategy to fail early with contextual information in the event of
+/// inequivalence.
+class CheckStrategy implements TestStrategy {
+  const CheckStrategy();
+
+  @override
+  bool test(var object1, var object2, String property, var value1, var value2) {
+    return check(object1, object2, property, value1, value2);
+  }
+
+  @override
+  bool testLists(
+      Object object1, Object object2, String property,
+      List list1, List list2,
+      [bool elementEquivalence(a, b) = equality]) {
+    return checkListEquivalence(
+        object1, object2, property, list1, list2,
+        (o1, o2, p, v1, v2) {
+          if (!elementEquivalence(v1, v2)) {
+            throw "$o1.$p = '${v1}' <> "
+                  "$o2.$p = '${v2}'";
+          }
+          return true;
+        });
+  }
+
+  @override
+  bool testSets(
+      var object1, var object2, String property,
+      Iterable set1, Iterable set2,
+      [bool elementEquivalence(a, b) = equality]) {
+    return checkSetEquivalence(
+        object1, object2,property, set1, set2, elementEquivalence);
+  }
+
+  @override
+  bool testElements(
+      Object object1, Object object2, String property,
+      Element element1, Element element2) {
+    return checkElementIdentities(
+        object1, object2, property, element1, element2);
+  }
+
+  @override
+  bool testTypes(
+      Object object1, Object object2, String property,
+      DartType type1, DartType type2) {
+    return checkTypes(object1, object2, property, type1, type2);
+  }
+
+  @override
+  bool testConstants(
+      Object object1, Object object2, String property,
+      ConstantExpression exp1, ConstantExpression exp2) {
+    return checkConstants(object1, object2, property, exp1, exp2);
+  }
+
+  @override
+  bool testTypeLists(
+      Object object1, Object object2, String property,
+      List<DartType> list1, List<DartType> list2) {
+    return checkTypeLists(object1, object2, property, list1, list2);
+  }
+
+  @override
+  bool testConstantLists(
+      Object object1, Object object2, String property,
+      List<ConstantExpression> list1,
+      List<ConstantExpression> list2) {
+    return checkConstantLists(object1, object2, property, list1, list2);
+  }
 }
 
 /// Checks the equivalence of [constructor1] and [constructor2].
@@ -333,127 +456,12 @@ class ConstantConstructorEquivalence
 
 /// Check that the values [property] of [object1] and [object2], [value1] and
 /// [value2] respectively, are equal and throw otherwise.
-void check(var object1, var object2, String property, var value1, value2) {
+bool check(var object1, var object2, String property, var value1, value2) {
   if (value1 != value2) {
     throw "$object1.$property = '${value1}' <> "
           "$object2.$property = '${value2}'";
   }
-}
-
-/// Visitor that checks for equivalence of [Element] identities.
-class ElementIdentityEquivalence extends BaseElementVisitor<dynamic, Element> {
-  const ElementIdentityEquivalence();
-
-  void visit(Element element1, Element element2) {
-    if (element1 == null && element2 == null) return;
-    element1 = element1.declaration;
-    element2 = element2.declaration;
-    if (element1 == element2) return;
-    check(element1, element2, 'kind', element1.kind, element2.kind);
-    element1.accept(this, element2);
-  }
-
-  @override
-  void visitElement(Element e, Element arg) {
-    throw new UnsupportedError("Unsupported element $e");
-  }
-
-  @override
-  void visitLibraryElement(LibraryElement element1, LibraryElement element2) {
-    check(element1, element2,
-          'canonicalUri',
-          element1.canonicalUri, element2.canonicalUri);
-  }
-
-  @override
-  void visitCompilationUnitElement(CompilationUnitElement element1,
-                                   CompilationUnitElement element2) {
-    check(element1, element2,
-          'name',
-          element1.name, element2.name);
-    visit(element1.library, element2.library);
-  }
-
-  @override
-  void visitClassElement(ClassElement element1, ClassElement element2) {
-    check(element1, element2,
-          'name',
-          element1.name, element2.name);
-    visit(element1.library, element2.library);
-  }
-
-  void checkMembers(Element element1, Element element2) {
-    check(element1, element2,
-          'name',
-          element1.name, element2.name);
-    if (element1.enclosingClass != null || element2.enclosingClass != null) {
-      visit(element1.enclosingClass, element2.enclosingClass);
-    } else {
-      visit(element1.library, element2.library);
-    }
-  }
-
-  @override
-  void visitFieldElement(FieldElement element1, FieldElement element2) {
-    checkMembers(element1, element2);
-  }
-
-  @override
-  void visitFunctionElement(FunctionElement element1,
-                            FunctionElement element2) {
-    checkMembers(element1, element2);
-  }
-
-  void visitAbstractFieldElement(AbstractFieldElement element1,
-                                 AbstractFieldElement element2) {
-    checkMembers(element1, element2);
-  }
-
-  @override
-  void visitTypeVariableElement(TypeVariableElement element1,
-                                TypeVariableElement element2) {
-    check(element1, element2,
-          'name',
-          element1.name, element2.name);
-    visit(element1.typeDeclaration, element2.typeDeclaration);
-  }
-
-  @override
-  void visitTypedefElement(TypedefElement element1, TypedefElement element2) {
-    check(element1, element2,
-          'name',
-          element1.name, element2.name);
-    visit(element1.library, element2.library);
-  }
-
-  @override
-  void visitParameterElement(ParameterElement element1,
-                             ParameterElement element2) {
-    check(element1, element2,
-          'name',
-          element1.name, element2.name);
-    visit(element1.functionDeclaration, element2.functionDeclaration);
-  }
-
-  @override
-  void visitImportElement(ImportElement element1, ImportElement element2) {
-    visit(element1.importedLibrary, element2.importedLibrary);
-    visit(element1.library, element2.library);
-  }
-
-  @override
-  void visitExportElement(ExportElement element1, ExportElement element2) {
-    visit(element1.exportedLibrary, element2.exportedLibrary);
-    visit(element1.library, element2.library);
-  }
-
-  @override
-  void visitPrefixElement(PrefixElement element1, PrefixElement element2) {
-    check(element1, element2,
-          'name',
-          element1.name, element2.name);
-    visit(element1.library, element2.library);
-  }
+  return true;
 }
 
 /// Visitor that checks for equivalence of [Element] properties.
@@ -555,7 +563,7 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
             'Missing member for $member2 in\n ${members1.join('\n ')}';
         if (member2.isAbstractField) {
           // TODO(johnniwinther): Ensure abstract fields are handled correctly.
-          print(message);
+          //print(message);
           continue;
         } else {
           throw message;
@@ -566,7 +574,7 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
             'Missing member for $member1 in\n ${members2.join('\n ')}';
         if (member1.isAbstractField) {
           // TODO(johnniwinther): Ensure abstract fields are handled correctly.
-          print(message);
+          //print(message);
           continue;
         } else {
           throw message;
@@ -862,275 +870,5 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         element1, element2, 'importedLibrary',
         element1.deferredImport, element2.deferredImport);
     // TODO(johnniwinther): Check members.
-  }
-}
-
-/// Visitor that checks for equivalence of [DartType]s.
-class TypeEquivalence implements DartTypeVisitor<dynamic, DartType> {
-  const TypeEquivalence();
-
-  void visit(DartType type1, DartType type2) {
-    check(type1, type2, 'kind', type1.kind, type2.kind);
-    type1.accept(this, type2);
-  }
-
-  @override
-  void visitDynamicType(DynamicType type, DynamicType other) {
-  }
-
-  @override
-  void visitFunctionType(FunctionType type, FunctionType other) {
-    checkTypeLists(
-        type, other, 'parameterTypes',
-        type.parameterTypes, other.parameterTypes);
-    checkTypeLists(
-        type, other, 'optionalParameterTypes',
-        type.optionalParameterTypes, other.optionalParameterTypes);
-    checkTypeLists(
-        type, other, 'namedParameterTypes',
-        type.namedParameterTypes, other.namedParameterTypes);
-    for (int i = 0; i < type.namedParameters.length; i++) {
-      if (type.namedParameters[i] != other.namedParameters[i]) {
-        throw "Named parameter '$type.namedParameters[i]' <> "
-              "'${other.namedParameters[i]}'";
-      }
-    }
-  }
-
-  void visitGenericType(GenericType type, GenericType other) {
-    checkElementIdentities(
-        type, other, 'element',
-        type.element, other.element);
-    checkTypeLists(
-        type, other, 'typeArguments',
-        type.typeArguments, other.typeArguments);
-  }
-
-  @override
-  void visitMalformedType(MalformedType type, MalformedType other) {
-  }
-
-  @override
-  void  visitStatementType(StatementType type, StatementType other) {
-    throw new UnsupportedError("Unsupported type: $type");
-  }
-
-  @override
-  void visitTypeVariableType(TypeVariableType type, TypeVariableType other) {
-    checkElementIdentities(
-        type, other, 'element',
-        type.element, other.element);
-  }
-
-  @override
-  void visitVoidType(VoidType type, VoidType argument) {
-  }
-
-  @override
-  void visitInterfaceType(InterfaceType type, InterfaceType other) {
-    visitGenericType(type, other);
-  }
-
-  @override
-  void visitTypedefType(TypedefType type, TypedefType other) {
-    visitGenericType(type, other);
-  }
-}
-
-/// Visitor that checks for structural equivalence of [ConstantExpression]s.
-class ConstantEquivalence
-    implements ConstantExpressionVisitor<dynamic, ConstantExpression> {
-  const ConstantEquivalence();
-
-  @override
-  visit(ConstantExpression exp1, ConstantExpression exp2) {
-    if (identical(exp1, exp2)) return;
-    check(exp1, exp2, 'kind', exp1.kind, exp2.kind);
-    exp1.accept(this, exp2);
-  }
-
-  @override
-  visitBinary(BinaryConstantExpression exp1, BinaryConstantExpression exp2) {
-    check(exp1, exp2, 'operator', exp1.operator, exp2.operator);
-    checkConstants(exp1, exp2, 'left', exp1.left, exp2.left);
-    checkConstants(exp1, exp2, 'right', exp1.right, exp2.right);
-  }
-
-  @override
-  visitConcatenate(ConcatenateConstantExpression exp1,
-                   ConcatenateConstantExpression exp2) {
-    checkConstantLists(
-        exp1, exp2, 'expressions',
-        exp1.expressions, exp2.expressions);
-  }
-
-  @override
-  visitConditional(ConditionalConstantExpression exp1,
-                   ConditionalConstantExpression exp2) {
-    checkConstants(
-        exp1, exp2, 'condition', exp1.condition, exp2.condition);
-    checkConstants(exp1, exp2, 'trueExp', exp1.trueExp, exp2.trueExp);
-    checkConstants(exp1, exp2, 'falseExp', exp1.falseExp, exp2.falseExp);
-  }
-
-  @override
-  visitConstructed(ConstructedConstantExpression exp1,
-                   ConstructedConstantExpression exp2) {
-    checkTypes(
-        exp1, exp2, 'type',
-        exp1.type, exp2.type);
-    checkElementIdentities(
-        exp1, exp2, 'target',
-        exp1.target, exp2.target);
-    checkConstantLists(
-        exp1, exp2, 'arguments',
-        exp1.arguments, exp2.arguments);
-    check(exp1, exp2, 'callStructure', exp1.callStructure, exp2.callStructure);
-  }
-
-  @override
-  visitFunction(FunctionConstantExpression exp1,
-                FunctionConstantExpression exp2) {
-    checkElementIdentities(
-        exp1, exp2, 'element',
-        exp1.element, exp2.element);
-  }
-
-  @override
-  visitIdentical(IdenticalConstantExpression exp1,
-                 IdenticalConstantExpression exp2) {
-    checkConstants(exp1, exp2, 'left', exp1.left, exp2.left);
-    checkConstants(exp1, exp2, 'right', exp1.right, exp2.right);
-  }
-
-  @override
-  visitList(ListConstantExpression exp1, ListConstantExpression exp2) {
-    checkTypes(
-        exp1, exp2, 'type',
-        exp1.type, exp2.type);
-    checkConstantLists(
-        exp1, exp2, 'values',
-        exp1.values, exp2.values);
-  }
-
-  @override
-  visitMap(MapConstantExpression exp1, MapConstantExpression exp2) {
-    checkTypes(
-        exp1, exp2, 'type',
-        exp1.type, exp2.type);
-    checkConstantLists(
-        exp1, exp2, 'keys',
-        exp1.keys, exp2.keys);
-    checkConstantLists(
-        exp1, exp2, 'values',
-        exp1.values, exp2.values);
-  }
-
-  @override
-  visitNamed(NamedArgumentReference exp1, NamedArgumentReference exp2) {
-    check(exp1, exp2, 'name', exp1.name, exp2.name);
-  }
-
-  @override
-  visitPositional(PositionalArgumentReference exp1,
-                  PositionalArgumentReference exp2) {
-    check(exp1, exp2, 'index', exp1.index, exp2.index);
-  }
-
-  @override
-  visitSymbol(SymbolConstantExpression exp1, SymbolConstantExpression exp2) {
-    // TODO: implement visitSymbol
-  }
-
-  @override
-  visitType(TypeConstantExpression exp1, TypeConstantExpression exp2) {
-    checkTypes(
-        exp1, exp2, 'type',
-        exp1.type, exp2.type);
-  }
-
-  @override
-  visitUnary(UnaryConstantExpression exp1, UnaryConstantExpression exp2) {
-    check(exp1, exp2, 'operator', exp1.operator, exp2.operator);
-    checkConstants(
-        exp1, exp2, 'expression', exp1.expression, exp2.expression);
-  }
-
-  @override
-  visitVariable(VariableConstantExpression exp1,
-                VariableConstantExpression exp2) {
-    checkElementIdentities(
-        exp1, exp2, 'element',
-        exp1.element, exp2.element);
-  }
-
-  @override
-  visitBool(BoolConstantExpression exp1, BoolConstantExpression exp2) {
-    check(exp1, exp2, 'primitiveValue',
-          exp1.primitiveValue, exp2.primitiveValue);
-  }
-
-  @override
-  visitDouble(DoubleConstantExpression exp1, DoubleConstantExpression exp2) {
-    check(exp1, exp2, 'primitiveValue',
-          exp1.primitiveValue, exp2.primitiveValue);
-  }
-
-  @override
-  visitInt(IntConstantExpression exp1, IntConstantExpression exp2) {
-    check(exp1, exp2, 'primitiveValue',
-          exp1.primitiveValue, exp2.primitiveValue);
-  }
-
-  @override
-  visitNull(NullConstantExpression exp1, NullConstantExpression exp2) {
-    // Do nothing.
-  }
-
-  @override
-  visitString(StringConstantExpression exp1, StringConstantExpression exp2) {
-    check(exp1, exp2, 'primitiveValue',
-          exp1.primitiveValue, exp2.primitiveValue);
-  }
-
-  @override
-  visitBoolFromEnvironment(BoolFromEnvironmentConstantExpression exp1,
-                           BoolFromEnvironmentConstantExpression exp2) {
-    checkConstants(exp1, exp2, 'name', exp1.name, exp2.name);
-    checkConstants(
-        exp1, exp2, 'defaultValue',
-        exp1.defaultValue, exp2.defaultValue);
-  }
-
-  @override
-  visitIntFromEnvironment(IntFromEnvironmentConstantExpression exp1,
-                          IntFromEnvironmentConstantExpression exp2) {
-    checkConstants(exp1, exp2, 'name', exp1.name, exp2.name);
-    checkConstants(
-        exp1, exp2, 'defaultValue',
-        exp1.defaultValue, exp2.defaultValue);
-  }
-
-  @override
-  visitStringFromEnvironment(StringFromEnvironmentConstantExpression exp1,
-                             StringFromEnvironmentConstantExpression exp2) {
-    checkConstants(exp1, exp2, 'name', exp1.name, exp2.name);
-    checkConstants(
-        exp1, exp2, 'defaultValue',
-        exp1.defaultValue, exp2.defaultValue);
-  }
-
-  @override
-  visitStringLength(StringLengthConstantExpression exp1,
-                    StringLengthConstantExpression exp2) {
-    checkConstants(
-        exp1, exp2, 'expression',
-        exp1.expression, exp2.expression);
-  }
-
-  @override
-  visitDeferred(DeferredConstantExpression exp1,
-                DeferredConstantExpression exp2) {
-    // TODO: implement visitDeferred
   }
 }

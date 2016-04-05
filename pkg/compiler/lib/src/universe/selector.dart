@@ -62,18 +62,27 @@ class Selector {
                     this.memberName,
                     this.callStructure,
                     this.hashCode) {
-    assert(kind == SelectorKind.INDEX ||
-           (memberName != Names.INDEX_NAME &&
-            memberName != Names.INDEX_SET_NAME));
-    assert(kind == SelectorKind.OPERATOR ||
-           kind == SelectorKind.INDEX ||
-           !Elements.isOperatorName(memberName.text) ||
-           identical(memberName.text, '??'));
-    assert(kind == SelectorKind.CALL ||
-           kind == SelectorKind.GETTER ||
-           kind == SelectorKind.SETTER ||
-           Elements.isOperatorName(memberName.text) ||
-           identical(memberName.text, '??'));
+    assert(invariant(NO_LOCATION_SPANNABLE,
+        kind == SelectorKind.INDEX ||
+        (memberName != Names.INDEX_NAME &&
+         memberName != Names.INDEX_SET_NAME),
+        message: "kind=$kind,memberName=$memberName,"
+                 "callStructure:$callStructure"));
+    assert(invariant(NO_LOCATION_SPANNABLE,
+        kind == SelectorKind.OPERATOR ||
+        kind == SelectorKind.INDEX ||
+        !Elements.isOperatorName(memberName.text) ||
+        memberName.text == '??',
+        message: "kind=$kind,memberName=$memberName,"
+                 "callStructure:$callStructure"));
+    assert(invariant(NO_LOCATION_SPANNABLE,
+        kind == SelectorKind.CALL ||
+        kind == SelectorKind.GETTER ||
+        kind == SelectorKind.SETTER ||
+        Elements.isOperatorName(memberName.text) ||
+        memberName.text == '??',
+        message: "kind=$kind,memberName=$memberName,"
+                 "callStructure:$callStructure"));
   }
 
   // TODO(johnniwinther): Extract caching.

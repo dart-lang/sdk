@@ -189,9 +189,9 @@ class ImpactDeserializer {
     }
 
     ListDecoder mapLiteralDecoder =
-        objectDecoder.getList(Key.LISTS, isOptional: true);
+        objectDecoder.getList(Key.MAPS, isOptional: true);
     List<MapLiteralUse> mapLiterals = const <MapLiteralUse>[];
-    if (listLiteralDecoder != null) {
+    if (mapLiteralDecoder != null) {
       mapLiterals = <MapLiteralUse>[];
       for (int i = 0; i < mapLiteralDecoder.length; i++) {
         ObjectDecoder useDecoder = mapLiteralDecoder.getObject(i);

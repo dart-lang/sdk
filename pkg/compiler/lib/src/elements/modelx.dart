@@ -2078,10 +2078,6 @@ abstract class BaseFunctionElementX
 
   bool get isAbstract => false;
 
-  accept(ElementVisitor visitor, arg) {
-    return visitor.visitFunctionElement(this, arg);
-  }
-
   // A function is defined by the implementation element.
   AstElement get definingElement => implementation;
 }
@@ -2132,6 +2128,10 @@ abstract class MethodElementX extends FunctionElementX {
   bool get isAbstract {
     return !modifiers.isExternal && !hasBody;
   }
+
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitMethodElement(this, arg);
+  }
 }
 
 abstract class AccessorElementX extends MethodElementX
@@ -2154,6 +2154,10 @@ abstract class GetterElementX extends AccessorElementX
                  Element enclosing,
                  bool hasBody)
       : super(name, ElementKind.GETTER, modifiers, enclosing, hasBody);
+
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitGetterElement(this, arg);
+  }
 }
 
 abstract class SetterElementX extends AccessorElementX
@@ -2164,6 +2168,10 @@ abstract class SetterElementX extends AccessorElementX
                  Element enclosing,
                  bool hasBody)
       : super(name, ElementKind.SETTER, modifiers, enclosing, hasBody);
+
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitSetterElement(this, arg);
+  }
 }
 
 class LocalFunctionElementX extends BaseFunctionElementX
@@ -2195,6 +2203,10 @@ class LocalFunctionElementX extends BaseFunctionElementX
   }
 
   bool get isLocal => true;
+
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitLocalFunctionElement(this, arg);
+  }
 }
 
 abstract class ConstantConstructorMixin implements ConstructorElement {
