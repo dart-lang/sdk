@@ -637,10 +637,9 @@ class CallSiteInliner : public ValueObject {
       return false;
     }
 
-    // Function has no type feedback. With precompilation we don't rely on
-    // type feedback.
-    if (!FLAG_precompiled_mode &&
-        function.ic_data_array() == Object::null()) {
+    // Do not rely on function type feedback or presence of code to determine
+    // if a function was compiled.
+    if (!FLAG_precompiled_mode && !function.was_compiled()) {
       TRACE_INLINING(THR_Print("     Bailout: not compiled yet\n"));
       PRINT_INLINING_TREE("Not compiled",
           &call_data->caller, &function, call_data->call);

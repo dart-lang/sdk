@@ -5840,7 +5840,7 @@ void Function::set_token_pos(TokenPosition token_pos) const {
 }
 
 
-void Function::set_kind_tag(intptr_t value) const {
+void Function::set_kind_tag(uint32_t value) const {
   StoreNonPointer(&raw_ptr()->kind_tag_, static_cast<uint32_t>(value));
 }
 
@@ -6492,6 +6492,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_generated_body(false);
   result.set_always_inline(false);
   result.set_is_polymorphic_target(false);
+  result.set_was_compiled(false);
   result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_end_token_pos(token_pos);

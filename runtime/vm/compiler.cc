@@ -1109,6 +1109,7 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
                                        bool optimized,
                                        intptr_t osr_id) {
   ASSERT(!FLAG_precompiled_mode);
+  ASSERT(!optimized || function.was_compiled());
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     Thread* const thread = Thread::Current();
@@ -1165,7 +1166,11 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     }
 
     const bool success = helper.Compile(pipeline);
-    if (!success) {
+    if (success) {
+      if (!optimized) {
+        function.set_was_compiled(true);
+      }
+    } else {
       if (optimized) {
         if (Compiler::IsBackgroundCompilation()) {
           // Try again later, background compilation may abort because of

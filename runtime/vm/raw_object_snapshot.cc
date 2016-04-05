@@ -733,10 +733,11 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
       func.set_optimized_call_site_count(0);
     } else {
       func.set_usage_counter(reader->Read<int32_t>());
-      func.set_deoptimization_counter(reader->Read<int16_t>());
+      func.set_deoptimization_counter(reader->Read<int8_t>());
       func.set_optimized_instruction_count(reader->Read<uint16_t>());
       func.set_optimized_call_site_count(reader->Read<uint16_t>());
     }
+    func.set_was_compiled(false);
 
     // Set all the object fields.
     READ_OBJECT_FIELDS(func,
@@ -814,7 +815,7 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
       } else {
         writer->Write<int32_t>(0);
       }
-      writer->Write<int16_t>(ptr()->deoptimization_counter_);
+      writer->Write<int8_t>(ptr()->deoptimization_counter_);
       writer->Write<uint16_t>(ptr()->optimized_instruction_count_);
       writer->Write<uint16_t>(ptr()->optimized_call_site_count_);
     }

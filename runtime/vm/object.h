@@ -2433,10 +2433,11 @@ class Function : public Object {
     StoreNonPointer(&raw_ptr()->usage_counter_, value);
   }
 
-  int16_t deoptimization_counter() const {
+  int8_t deoptimization_counter() const {
     return raw_ptr()->deoptimization_counter_;
   }
-  void set_deoptimization_counter(int16_t value) const {
+  void set_deoptimization_counter(int8_t value) const {
+    ASSERT(value >= 0);
     StoreNonPointer(&raw_ptr()->deoptimization_counter_, value);
   }
 
@@ -2718,6 +2719,15 @@ class Function : public Object {
 
   void set_modifier(RawFunction::AsyncModifier value) const;
 
+  // 'was_compiled' is true if the function was compiled once in this
+  // VM instantiation. It independent from presence of type feedback
+  // (ic_data_array) and code, whihc may be loaded from a snapshot.
+  void set_was_compiled(bool value) const {
+    StoreNonPointer(&raw_ptr()->was_compiled_, value ? 1 : 0);
+  }
+  bool was_compiled() const { return raw_ptr()->was_compiled_ == 1; }
+
+
   // static: Considered during class-side or top-level resolution rather than
   //         instance-side resolution.
   // const: Valid target of a const constructor call.
@@ -2824,7 +2834,7 @@ FOR_EACH_FUNCTION_KIND_BIT(DEFINE_BIT)
   RawScript* eval_script() const;
   void set_eval_script(const Script& value) const;
   void set_num_optional_parameters(intptr_t value) const;  // Encoded value.
-  void set_kind_tag(intptr_t value) const;
+  void set_kind_tag(uint32_t value) const;
   void set_data(const Object& value) const;
 
   static RawFunction* New();
