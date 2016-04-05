@@ -1632,6 +1632,22 @@ class FunctionElementForLink_Initializer implements FunctionElementImpl {
 }
 
 /**
+ * An instance of [LibraryCycleForLink] represents a single library cycle
+ * discovered during linking; it consists of one or more libraries in the build
+ * unit being linked.
+ *
+ * This is a stub implementation; at the moment all libraries in the build unit
+ * being linked are considered to be part of the same library cycle.  Hence
+ * there is just a singleton instance of this class.
+ * TODO(paulberry): replace this with a correct implementation.
+ */
+class LibraryCycleForLink {
+  static final LibraryCycleForLink instance = const LibraryCycleForLink._();
+
+  const LibraryCycleForLink._();
+}
+
+/**
  * Element representing a library resynthesied from a summary during
  * linking.  The type parameter, [UnitElement], represents the type
  * that will be used for the compilation unit elements.
@@ -1667,6 +1683,12 @@ abstract class LibraryElementForLink<
 
   @override
   Element get enclosingElement => null;
+
+  /**
+   * If this library is part of the build unit being linked, return the library
+   * cycle it is part of.  Otherwise return `null`.
+   */
+  LibraryCycleForLink get libraryCycleForLink;
 
   @override
   List<UnitElement> get units {
@@ -1748,6 +1770,9 @@ class LibraryElementInBuildUnit
   InheritanceManager get inheritanceManager =>
       _inheritanceManager ??= new InheritanceManager(this);
 
+  @override
+  LibraryCycleForLink get libraryCycleForLink => LibraryCycleForLink.instance;
+
   /**
    * If this library already has a dependency in its dependencies table matching
    * [library], return its index.  Otherwise add a new dependency to table and
@@ -1806,6 +1831,9 @@ class LibraryElementInDependency
   LibraryElementInDependency(
       _Linker linker, Uri absoluteUri, this._linkedLibrary)
       : super(linker, absoluteUri);
+
+  @override
+  LibraryCycleForLink get libraryCycleForLink => null;
 
   @override
   CompilationUnitElementInDependency _makeUnitElement(
