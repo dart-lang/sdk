@@ -188,7 +188,9 @@ abstract class Resolution {
   DiagnosticReporter get reporter;
   CoreTypes get coreTypes;
 
-  bool retainCaches;
+  /// If set to `true` resolution caches will not be cleared. Use this only for
+  /// testing.
+  bool retainCachesForTesting;
 
   void resolveTypedef(TypedefElement typdef);
   void resolveClass(ClassElement cls);

@@ -10,6 +10,7 @@ class Key {
   static const Key ARGUMENTS = const Key('arguments');
   static const Key BOUND = const Key('bound');
   static const Key CALL_STRUCTURE = const Key('callStructure');
+  static const Key CALL_TYPE = const Key('callType');
   static const Key CANONICAL_URI = const Key('canonicalUri');
   static const Key CLASS = const Key('class');
   static const Key COMPILATION_UNIT = const Key('compilation-unit');

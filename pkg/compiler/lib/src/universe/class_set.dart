@@ -181,6 +181,8 @@ class ClassHierarchyNode {
     _directSubclasses = _directSubclasses.prepend(subclass);
   }
 
+  Iterable<ClassHierarchyNode> get directSubclasses => _directSubclasses;
+
   /// Returns `true` if [other] is contained in the subtree of this node.
   ///
   /// This means that [other] is a subclass of [cls].

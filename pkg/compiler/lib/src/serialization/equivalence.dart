@@ -39,7 +39,6 @@ bool areSetsEquivalent(
     Iterable set1,
     Iterable set2,
     [bool elementEquivalence(a, b) = equality]) {
-
   Set remaining = set2.toSet();
   for (var element1 in set1) {
     bool found = false;

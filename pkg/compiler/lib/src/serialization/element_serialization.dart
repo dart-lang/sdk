@@ -308,10 +308,13 @@ class ClassSerializer implements ElementSerializer {
     mixins = mixins.reversed.toList();
     InterfaceType supertype = element.thisType.asInstanceOf(superclass);
 
-
     encoder.setType(Key.SUPERTYPE, supertype);
     encoder.setTypes(Key.MIXINS, mixins);
     encoder.setTypes(Key.INTERFACES, element.interfaces.toList());
+    FunctionType callType = element.declaration.callType;
+    if (callType != null) {
+      encoder.setType(Key.CALL_TYPE, element.callType);
+    }
 
     if (element.isMixinApplication) {
       MixinApplicationElement mixinElement = element;

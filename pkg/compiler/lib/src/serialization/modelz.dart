@@ -747,7 +747,6 @@ abstract class FunctionTypedElementMixin
 }
 
 abstract class ClassElementMixin implements ElementZ, ClassElement {
-
   InterfaceType _createType(List<DartType> typeArguments) {
     return new InterfaceType(this, typeArguments);
   }
@@ -777,11 +776,6 @@ abstract class ClassElementMixin implements ElementZ, ClassElement {
 
   @override
   bool get hasLocalScopeMembers => _unsupported('hasLocalScopeMembers');
-
-  @override
-  bool implementsFunction(CoreClasses coreClasses) {
-    return _unsupported('implementsFunction');
-  }
 
   @override
   bool get isEnumClass => false;
@@ -827,6 +821,7 @@ class ClassElementZ extends DeserializedElementZ
   DartType _supertype;
   OrderedTypeSet _allSupertypesAndSelf;
   Link<DartType> _interfaces;
+  FunctionType _callType;
 
   ClassElementZ(ObjectDecoder decoder)
       : super(decoder);
@@ -860,6 +855,7 @@ class ClassElementZ extends DeserializedElementZ
         _allSupertypesAndSelf =
             new OrderedTypeSetBuilder(this)
               .createOrderedTypeSet(_supertype, _interfaces);
+        _callType = _decoder.getType(Key.CALL_TYPE, isOptional: true);
       }
     }
   }
@@ -901,6 +897,12 @@ class ClassElementZ extends DeserializedElementZ
 
   @override
   bool get isUnnamedMixinApplication => false;
+
+  @override
+  FunctionType get callType {
+    _ensureSuperHierarchy();
+    return _callType;
+  }
 }
 
 abstract class MixinApplicationElementMixin

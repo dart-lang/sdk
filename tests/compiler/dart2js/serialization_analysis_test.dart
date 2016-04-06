@@ -17,6 +17,10 @@ import 'serialization_helper.dart';
 
 const List<Test> TESTS = const <Test>[
   const Test(const {
+    'main.dart': 'main() {}'
+  }),
+
+  const Test(const {
     'main.dart': 'main() => print("Hello World");'
   }),
 

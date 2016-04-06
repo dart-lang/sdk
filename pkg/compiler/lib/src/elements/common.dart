@@ -9,6 +9,8 @@ library elements.common;
 import '../common/names.dart' show
     Names,
     Uris;
+import '../core_types.dart' show
+    CoreClasses;
 import '../dart_types.dart' show
     DartType,
     InterfaceType,
@@ -427,6 +429,12 @@ abstract class ClassElementCommon implements ClassElement {
   bool implementsInterface(ClassElement intrface) {
     return this != intrface &&
         allSupertypesAndSelf.asInstanceOf(intrface) != null;
+  }
+
+  @override
+  bool implementsFunction(CoreClasses coreClasses) {
+    return asInstanceOf(coreClasses.functionClass) != null ||
+        callType != null;
   }
 
   @override

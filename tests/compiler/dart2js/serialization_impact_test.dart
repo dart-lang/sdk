@@ -37,25 +37,28 @@ Future check(
   Compiler compilerNormal = compilerFor(
       memorySourceFiles: sourceFiles,
       options: [Flags.analyzeOnly]);
-  compilerNormal.resolution.retainCaches = true;
+  compilerNormal.resolution.retainCachesForTesting = true;
   await compilerNormal.run(entryPoint);
 
   Compiler compilerDeserialized = compilerFor(
       memorySourceFiles: sourceFiles,
       options: [Flags.analyzeOnly]);
-  compilerDeserialized.resolution.retainCaches = true;
+  compilerDeserialized.resolution.retainCachesForTesting = true;
   deserialize(compilerDeserialized, serializedData);
   await compilerDeserialized.run(entryPoint);
 
-  checkResolutionImpacts(compilerNormal, compilerDeserialized);
+  checkResolutionImpacts(compilerNormal, compilerDeserialized, verbose: true);
 }
 
 /// Check equivalence of [impact1] and [impact2].
 void checkImpacts(Element element1, Element element2,
-                  ResolutionImpact impact1, ResolutionImpact impact2) {
+                  ResolutionImpact impact1, ResolutionImpact impact2,
+                  {bool verbose: false}) {
   if (impact1 == null || impact2 == null) return;
 
-  print('Checking impacts for $element1 vs $element2');
+  if (verbose) {
+    print('Checking impacts for $element1 vs $element2');
+  }
 
   testResolutionImpactEquivalence(impact1, impact2, const CheckStrategy());
 }
@@ -63,7 +66,10 @@ void checkImpacts(Element element1, Element element2,
 
 /// Check equivalence between all resolution impacts common to [compiler1] and
 /// [compiler2].
-void checkResolutionImpacts(Compiler compiler1, Compiler compiler2) {
+void checkResolutionImpacts(
+    Compiler compiler1,
+    Compiler compiler2,
+    {bool verbose: false}) {
 
   void checkMembers(Element member1, Element member2) {
     if (member1.isClass && member2.isClass) {
@@ -87,7 +93,8 @@ void checkResolutionImpacts(Compiler compiler1, Compiler compiler2) {
       checkImpacts(
           member1, member2,
           compiler1.resolution.getResolutionImpact(member1),
-          compiler2.serialization.deserializer.getResolutionImpact(member2));
+          compiler2.serialization.deserializer.getResolutionImpact(member2),
+          verbose: verbose);
     }
   }
 

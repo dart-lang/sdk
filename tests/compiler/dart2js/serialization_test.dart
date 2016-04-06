@@ -171,19 +171,24 @@ bool checkListEquivalence(
   return true;
 }
 
-/// Check equivalence of the two iterables, [set1] and [set1], as sets using
-/// [elementEquivalence] to compute the pair-wise equivalence.
+/// Computes the set difference between [set1] and [set2] using
+/// [elementEquivalence] to determine element equivalence.
 ///
-/// Uses [object1], [object2] and [property] to provide context for failures.
-bool checkSetEquivalence(
-    var object1,
-    var object2,
-    String property,
+/// Elements both in [set1] and [set2] are added to [common], elements in [set1]
+/// but not in [set2] are added to [unfound], and the set of elements in [set2]
+/// but not in [set1] are returned.
+Set computeSetDifference(
     Iterable set1,
     Iterable set2,
-    bool sameElement(a, b)) {
-  List common = [];
-  List unfound = [];
+    List common,
+    List unfound,
+    [bool sameElement(a, b) = equality]) {
+  // TODO(johnniwinther): Avoid the quadratic cost here. Some ideas:
+  // - convert each set to a list and sort it first, then compare by walking
+  // both lists in parallel
+  // - map each element to a canonical object, create a map containing those
+  // mappings, use the mapped sets to compare (then operations like
+  // set.difference would work)
   Set remaining = set2.toSet();
   for (var element1 in set1) {
     bool found = false;
@@ -200,6 +205,24 @@ bool checkSetEquivalence(
       unfound.add(element1);
     }
   }
+  return remaining;
+}
+
+/// Check equivalence of the two iterables, [set1] and [set1], as sets using
+/// [elementEquivalence] to compute the pair-wise equivalence.
+///
+/// Uses [object1], [object2] and [property] to provide context for failures.
+bool checkSetEquivalence(
+    var object1,
+    var object2,
+    String property,
+    Iterable set1,
+    Iterable set2,
+    bool sameElement(a, b)) {
+  List common = [];
+  List unfound = [];
+  Set remaining =
+      computeSetDifference(set1, set2, common, unfound, sameElement);
   if (unfound.isNotEmpty || remaining.isNotEmpty) {
     String message =
         "Set mismatch for `$property` on $object1 vs $object2: \n"

@@ -13,8 +13,6 @@ import '../compiler.dart' show
 import '../constants/constant_constructors.dart';
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
-import '../core_types.dart' show
-    CoreClasses;
 import '../dart_types.dart';
 import '../diagnostics/messages.dart' show
     MessageTemplate;
@@ -2699,11 +2697,6 @@ abstract class BaseClassElementX extends ElementX
 
   void forEachBackendMember(void f(Element member)) {
     backendMembers.forEach(f);
-  }
-
-  bool implementsFunction(CoreClasses coreClasses) {
-    return asInstanceOf(coreClasses.functionClass) != null ||
-        callType != null;
   }
 
   // TODO(johnniwinther): Remove these when issue 18630 is fixed.
