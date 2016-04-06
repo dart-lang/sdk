@@ -4993,6 +4993,25 @@ f() { // 1
     }
   }
 
+  test_executable_localVariables_forEachLoop_outside() {
+    String code = r'''
+f() { // 1
+  int i;
+  for (i in <int>[]) {
+    print(i);
+  }
+} // 4
+''';
+    UnlinkedExecutable executable = serializeExecutableText(code);
+    List<UnlinkedVariable> variables = executable.localVariables;
+    expect(variables, hasLength(1));
+    {
+      UnlinkedVariable i = variables.singleWhere((v) => v.name == 'i');
+      _assertVariableVisible(code, i, '{ // 1', '} // 4');
+      checkTypeRef(i.type, 'dart:core', 'dart:core', 'int');
+    }
+  }
+
   test_executable_localVariables_forLoop() {
     String code = r'''
 f() { // 1
