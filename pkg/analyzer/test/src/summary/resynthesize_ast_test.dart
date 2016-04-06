@@ -13,6 +13,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/prelink.dart';
 import 'package:analyzer/src/summary/resynthesize.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
@@ -25,6 +26,7 @@ import '../../reflective_tests.dart';
 import '../context/abstract_context.dart';
 import '../task/strong/inferred_type_test.dart';
 import 'resynthesize_test.dart';
+import 'summary_common.dart';
 
 main() {
   groupSep = ' | ';
@@ -212,6 +214,18 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
+  void test_genericMethods_doNotInferInvalidOverrideOfGenericMethod() {
+    super.test_genericMethods_doNotInferInvalidOverrideOfGenericMethod();
+  }
+
+  @override
+  @failingTest
+  void test_genericMethods_handleOverrideOfNnGenericWithGeneric() {
+    super.test_genericMethods_handleOverrideOfNnGenericWithGeneric();
+  }
+
+  @override
+  @failingTest
   void test_genericMethods_inferGenericMethodType() {
     super.test_genericMethods_inferGenericMethodType();
   }
@@ -254,32 +268,14 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
+  void test_inferFromRhsOnlyIfItWontConflictWithOverriddenFields() {
+    super.test_inferFromRhsOnlyIfItWontConflictWithOverriddenFields();
+  }
+
+  @override
+  @failingTest
   void test_inferFromRhsOnlyIfItWontConflictWithOverriddenFields2() {
     super.test_inferFromRhsOnlyIfItWontConflictWithOverriddenFields2();
-  }
-
-  @override
-  @failingTest
-  void test_inferFromVariablesInCycleLibsWhenFlagIsOn() {
-    super.test_inferFromVariablesInCycleLibsWhenFlagIsOn();
-  }
-
-  @override
-  @failingTest
-  void test_inferFromVariablesInCycleLibsWhenFlagIsOn2() {
-    super.test_inferFromVariablesInCycleLibsWhenFlagIsOn2();
-  }
-
-  @override
-  @failingTest
-  void test_inferFromVariablesInNonCycleImportsWithFlag() {
-    super.test_inferFromVariablesInNonCycleImportsWithFlag();
-  }
-
-  @override
-  @failingTest
-  void test_inferFromVariablesInNonCycleImportsWithFlag2() {
-    super.test_inferFromVariablesInNonCycleImportsWithFlag2();
   }
 
   @override
@@ -346,12 +342,6 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   @failingTest
   void test_inferTypeOnVarFromTopLevel() {
     super.test_inferTypeOnVarFromTopLevel();
-  }
-
-  @override
-  @failingTest
-  void test_inferTypeRegardlessOfDeclarationOrderOrCycles() {
-    super.test_inferTypeRegardlessOfDeclarationOrderOrCycles();
   }
 
   @override
@@ -464,8 +454,8 @@ class ResynthesizeAstTest extends ResynthesizeTest
 
   @override
   @failingTest
-  void test_constructor_withCycles_const() {
-    super.test_constructor_withCycles_const();
+  void test_constructor_initializers_field_notConst() {
+    super.test_constructor_initializers_field_notConst();
   }
 
   @override
@@ -511,7 +501,8 @@ class ResynthesizeAstTest extends ResynthesizeTest
 abstract class _AstResynthesizeTestMixin {
   final Set<Source> serializedSources = new Set<Source>();
   final PackageBundleAssembler bundleAssembler = new PackageBundleAssembler();
-  final Map<Uri, UnlinkedUnitBuilder> uriToUnit = <Uri, UnlinkedUnitBuilder>{};
+  final Map<String, UnlinkedUnitBuilder> uriToUnit =
+      <String, UnlinkedUnitBuilder>{};
 
   AnalysisContext get context;
 
@@ -527,22 +518,39 @@ abstract class _AstResynthesizeTestMixin {
         new PackageBundle.fromBuffer(bundleAssembler.assemble().toBuffer());
 
     Map<String, UnlinkedUnit> unlinkedSummaries = <String, UnlinkedUnit>{};
-    Map<String, LinkedLibrary> linkedSummaries = <String, LinkedLibrary>{};
     for (int i = 0; i < bundle.unlinkedUnitUris.length; i++) {
       String uri = bundle.unlinkedUnitUris[i];
       unlinkedSummaries[uri] = bundle.unlinkedUnits[i];
     }
-    for (int i = 0; i < bundle.linkedLibraryUris.length; i++) {
-      String uri = bundle.linkedLibraryUris[i];
-      linkedSummaries[uri] = bundle.linkedLibraries[i];
+
+    LinkedLibrary getDependency(String absoluteUri) {
+      Map<String, LinkedLibrary> sdkLibraries =
+          SerializedMockSdk.instance.uriToLinkedLibrary;
+      // TODO(scheglov) Add support non-SDK linked libraries.
+      LinkedLibrary linkedLibrary = sdkLibraries[absoluteUri];
+      if (linkedLibrary == null) {
+        fail('Linker unexpectedly requested LinkedLibrary for "$absoluteUri".'
+            '  Libraries available: ${sdkLibraries.keys}');
+      }
+      return linkedLibrary;
     }
+    UnlinkedUnit getUnit(String absoluteUri) {
+      UnlinkedUnit unit = uriToUnit[absoluteUri] ??
+          SerializedMockSdk.instance.uriToUnlinkedUnit[absoluteUri];
+      if (unit == null) {
+        fail('Linker unexpectedly requested unit for "$absoluteUri".');
+      }
+      return unit;
+    }
+    Map<String, LinkedLibrary> linkedSummaries = link(uriToUnit.keys.toSet(),
+        getDependency, getUnit, context.analysisOptions.strongMode);
 
     return new TestSummaryResynthesizer(
         null, context, unlinkedSummaries, linkedSummaries);
   }
 
   UnlinkedUnitBuilder _getUnlinkedUnit(Source source) {
-    return uriToUnit.putIfAbsent(source.uri, () {
+    return uriToUnit.putIfAbsent(source.uri.toString(), () {
       CompilationUnit unit = context.computeResult(source, PARSED_UNIT);
       UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
       bundleAssembler.addUnlinkedUnit(source, unlinkedUnit);
@@ -576,8 +584,6 @@ abstract class _AstResynthesizeTestMixin {
     UnlinkedUnitBuilder definingUnit = _getUnlinkedUnit(librarySource);
     LinkedLibraryBuilder linkedLibrary =
         prelink(definingUnit, getPart, getImport);
-    bundleAssembler.addLinkedLibrary(
-        librarySource.uri.toString(), linkedLibrary);
     linkedLibrary.dependencies.skip(1).forEach((LinkedDependency d) {
       _serializeLibrary(resolveRelativeUri(d.uri));
     });
