@@ -47,358 +47,429 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   }
 
   @override
+  @failingTest
   void test_blockBodiedLambdas_async_allReturnsAreValues() {
-    // TODO(scheglov) fix me
+    super.test_blockBodiedLambdas_async_allReturnsAreValues();
   }
 
   @override
+  @failingTest
   void test_blockBodiedLambdas_async_alReturnsAreFutures() {
-    // TODO(scheglov) fix me
+    super.test_blockBodiedLambdas_async_alReturnsAreFutures();
   }
 
   @override
+  @failingTest
   void test_blockBodiedLambdas_async_mixOfValuesAndFutures() {
-    // TODO(scheglov) fix me
+    super.test_blockBodiedLambdas_async_mixOfValuesAndFutures();
   }
 
   @override
+  @failingTest
   void test_blockBodiedLambdas_asyncStar() {
-    // TODO(scheglov) fix me
+    super.test_blockBodiedLambdas_asyncStar();
   }
 
   @override
+  @failingTest
   void test_blockBodiedLambdas_basic() {
-    // TODO(scheglov) fix me
+    super.test_blockBodiedLambdas_basic();
   }
 
   @override
+  @failingTest
   void test_blockBodiedLambdas_doesNotInferBottom_async() {
-    // TODO(scheglov) fix me
+    super.test_blockBodiedLambdas_doesNotInferBottom_async();
   }
 
   @override
+  @failingTest
   void test_blockBodiedLambdas_doesNotInferBottom_asyncStar() {
-    // TODO(scheglov) fix me
+    super.test_blockBodiedLambdas_doesNotInferBottom_asyncStar();
   }
 
   @override
+  @failingTest
   void test_blockBodiedLambdas_doesNotInferBottom_sync() {
-    // TODO(scheglov) fix me
+    super.test_blockBodiedLambdas_doesNotInferBottom_sync();
   }
 
   @override
+  @failingTest
   void test_blockBodiedLambdas_doesNotInferBottom_syncStar() {
-    // TODO(scheglov) fix me
+    super.test_blockBodiedLambdas_doesNotInferBottom_syncStar();
   }
 
   @override
+  @failingTest
   void test_blockBodiedLambdas_downwardsIncompatibleWithUpwardsInference() {
-    // TODO(scheglov) fix me
+    super.test_blockBodiedLambdas_downwardsIncompatibleWithUpwardsInference();
   }
 
   @override
+  @failingTest
   void test_blockBodiedLambdas_LUB() {
-    // TODO(scheglov) fix me
+    super.test_blockBodiedLambdas_LUB();
   }
 
   @override
+  @failingTest
   void test_blockBodiedLambdas_nestedLambdas() {
-    // TODO(scheglov) fix me
+    super.test_blockBodiedLambdas_nestedLambdas();
   }
 
   @override
+  @failingTest
   void test_blockBodiedLambdas_noReturn() {
-    // TODO(scheglov) fix me
+    super.test_blockBodiedLambdas_noReturn();
   }
 
   @override
+  @failingTest
   void test_blockBodiedLambdas_syncStar() {
-    // TODO(scheglov) fix me
+    super.test_blockBodiedLambdas_syncStar();
   }
 
   @override
+  @failingTest
   void test_canInferAlsoFromStaticAndInstanceFieldsFlagOn() {
-    // TODO(scheglov) fix me
+    super.test_canInferAlsoFromStaticAndInstanceFieldsFlagOn();
   }
 
   @override
+  @failingTest
   void test_conflictsCanHappen() {
-    // TODO(scheglov) fix me
+    super.test_conflictsCanHappen();
   }
 
   @override
+  @failingTest
   void test_conflictsCanHappen2() {
-    // TODO(scheglov) fix me
+    super.test_conflictsCanHappen2();
   }
 
   @override
+  @failingTest
   void test_doNotInferOverriddenFieldsThatExplicitlySayDynamic_infer() {
-    // TODO(scheglov) fix me
+    super.test_doNotInferOverriddenFieldsThatExplicitlySayDynamic_infer();
   }
 
   @override
+  @failingTest
   void test_dontInferFieldTypeWhenInitializerIsNull() {
-    // TODO(scheglov) fix me
+    super.test_dontInferFieldTypeWhenInitializerIsNull();
   }
 
   @override
+  @failingTest
   void test_dontInferTypeOnDynamic() {
-    // TODO(scheglov) fix me
+    super.test_dontInferTypeOnDynamic();
   }
 
   @override
+  @failingTest
   void test_dontInferTypeWhenInitializerIsNull() {
-    // TODO(scheglov) fix me
+    super.test_dontInferTypeWhenInitializerIsNull();
   }
 
   @override
+  @failingTest
   void test_downwardInference_miscellaneous() {
-    // TODO(scheglov) fix me
+    super.test_downwardInference_miscellaneous();
   }
 
   @override
+  @failingTest
   void test_downwardsInferenceAnnotations() {
-    // TODO(scheglov) fix me
+    super.test_downwardsInferenceAnnotations();
   }
 
   @override
+  @failingTest
   void test_downwardsInferenceAsyncAwait() {
-    // TODO(scheglov) fix me
+    super.test_downwardsInferenceAsyncAwait();
   }
 
   @override
+  @failingTest
   void test_downwardsInferenceForEach() {
-    // TODO(scheglov) fix me
+    super.test_downwardsInferenceForEach();
   }
 
   @override
+  @failingTest
   void test_downwardsInferenceInitializingFormalDefaultFormal() {
-    // TODO(scheglov) fix me
+    super.test_downwardsInferenceInitializingFormalDefaultFormal();
   }
 
   @override
+  @failingTest
   void test_downwardsInferenceOnFunctionExpressions() {
-    // TODO(scheglov) fix me
+    super.test_downwardsInferenceOnFunctionExpressions();
   }
 
   @override
+  @failingTest
   void test_downwardsInferenceOnFunctionOfTUsingTheT() {
-    // TODO(scheglov) fix me
+    super.test_downwardsInferenceOnFunctionOfTUsingTheT();
   }
 
   @override
+  @failingTest
   void test_downwardsInferenceOnGenericFunctionExpressions() {
-    // TODO(scheglov) fix me
+    super.test_downwardsInferenceOnGenericFunctionExpressions();
   }
 
   @override
+  @failingTest
   void test_downwardsInferenceOnInstanceCreations_inferDownwards() {
-    // TODO(scheglov) fix me
+    super.test_downwardsInferenceOnInstanceCreations_inferDownwards();
   }
 
   @override
+  @failingTest
   void test_downwardsInferenceOnListLiterals_inferDownwards() {
-    // TODO(scheglov) fix me
+    super.test_downwardsInferenceOnListLiterals_inferDownwards();
   }
 
   @override
+  @failingTest
   void test_downwardsInferenceOnMapLiterals() {
-    // TODO(scheglov) fix me
+    super.test_downwardsInferenceOnMapLiterals();
   }
 
   @override
+  @failingTest
   void test_downwardsInferenceYieldYieldStar() {
-    // TODO(scheglov) fix me
+    super.test_downwardsInferenceYieldYieldStar();
   }
 
   @override
+  @failingTest
   void test_genericMethods_IterableAndFuture() {
-    // TODO(scheglov) fix me
+    super.test_genericMethods_IterableAndFuture();
   }
 
   @override
+  @failingTest
   void test_inferConstsTransitively() {
-    // TODO(scheglov) fix me
+    super.test_inferConstsTransitively();
   }
 
   @override
+  @failingTest
   void test_inferCorrectlyOnMultipleVariablesDeclaredTogether() {
-    // TODO(scheglov) fix me
+    super.test_inferCorrectlyOnMultipleVariablesDeclaredTogether();
   }
 
   @override
+  @failingTest
   void test_inferenceInCyclesIsDeterministic() {
-    // TODO(scheglov) fix me
+    super.test_inferenceInCyclesIsDeterministic();
   }
 
   @override
+  @failingTest
   void test_inferFromComplexExpressionsIfOuterMostValueIsPrecise() {
-    // TODO(scheglov) fix me
+    super.test_inferFromComplexExpressionsIfOuterMostValueIsPrecise();
   }
 
   @override
+  @failingTest
   void test_inferFromRhsOnlyIfItWontConflictWithOverriddenFields() {
-    // TODO(scheglov) fix me
+    super.test_inferFromRhsOnlyIfItWontConflictWithOverriddenFields();
   }
 
   @override
+  @failingTest
   void test_inferFromRhsOnlyIfItWontConflictWithOverriddenFields2() {
-    // TODO(scheglov) fix me
+    super.test_inferFromRhsOnlyIfItWontConflictWithOverriddenFields2();
   }
 
   @override
+  @failingTest
   void test_inferFromVariablesInCycleLibsWhenFlagIsOn() {
-    // TODO(scheglov) fix me
+    super.test_inferFromVariablesInCycleLibsWhenFlagIsOn();
   }
 
   @override
+  @failingTest
   void test_inferFromVariablesInCycleLibsWhenFlagIsOn2() {
-    // TODO(scheglov) fix me
+    super.test_inferFromVariablesInCycleLibsWhenFlagIsOn2();
   }
 
   @override
+  @failingTest
   void test_inferIfComplexExpressionsReadPossibleInferredField() {
-    // TODO(scheglov) fix me
+    super.test_inferIfComplexExpressionsReadPossibleInferredField();
   }
 
   @override
+  @failingTest
   void test_inferListLiteralNestedInMapLiteral() {
-    // TODO(scheglov) fix me
+    super.test_inferListLiteralNestedInMapLiteral();
   }
 
   @override
+  @failingTest
   void test_inferredInitializingFormalChecksDefaultValue() {
-    // TODO(scheglov) fix me
+    super.test_inferredInitializingFormalChecksDefaultValue();
   }
 
   @override
+  @failingTest
   void test_inferStaticsTransitively() {
-    // TODO(scheglov) fix me
+    super.test_inferStaticsTransitively();
   }
 
   @override
+  @failingTest
   void test_inferStaticsTransitively2() {
-    // TODO(scheglov) fix me
+    super.test_inferStaticsTransitively2();
   }
 
   @override
+  @failingTest
   void test_inferStaticsTransitively3() {
-    // TODO(scheglov) fix me
+    super.test_inferStaticsTransitively3();
   }
 
   @override
+  @failingTest
   void test_inferStaticsWithMethodInvocations() {
-    // TODO(scheglov) fix me
+    super.test_inferStaticsWithMethodInvocations();
   }
 
   @override
+  @failingTest
   void test_inferTypeOnOverriddenFields2() {
-    // TODO(scheglov) fix me
+    super.test_inferTypeOnOverriddenFields2();
   }
 
   @override
+  @failingTest
   void test_inferTypeOnOverriddenFields4() {
-    // TODO(scheglov) fix me
+    super.test_inferTypeOnOverriddenFields4();
   }
 
   @override
+  @failingTest
   void test_inferTypeOnVar() {
-    // TODO(scheglov) fix me
+    super.test_inferTypeOnVar();
   }
 
   @override
+  @failingTest
   void test_inferTypeOnVar2() {
-    // TODO(scheglov) fix me
+    super.test_inferTypeOnVar2();
   }
 
   @override
+  @failingTest
   void test_inferTypeOnVarFromField() {
-    // TODO(scheglov) fix me
+    super.test_inferTypeOnVarFromField();
   }
 
   @override
+  @failingTest
   void test_inferTypeOnVarFromTopLevel() {
-    // TODO(scheglov) fix me
+    super.test_inferTypeOnVarFromTopLevel();
   }
 
   @override
+  @failingTest
   void test_inferTypesOnGenericInstantiations_3() {
-    // TODO(scheglov) fix me
+    super.test_inferTypesOnGenericInstantiations_3();
   }
 
   @override
+  @failingTest
   void test_inferTypesOnGenericInstantiations_5() {
-    // TODO(scheglov) fix me
+    super.test_inferTypesOnGenericInstantiations_5();
   }
 
   @override
+  @failingTest
   void test_inferTypesOnGenericInstantiations_infer() {
-    // TODO(scheglov) fix me
+    super.test_inferTypesOnGenericInstantiations_infer();
   }
 
   @override
+  @failingTest
   void test_inferTypesOnGenericInstantiationsInLibraryCycle() {
-    // TODO(scheglov) fix me
+    super.test_inferTypesOnGenericInstantiationsInLibraryCycle();
   }
 
   @override
+  @failingTest
   void test_inferTypesOnLoopIndices_forEachLoop() {
-    // TODO(scheglov) fix me
+    super.test_inferTypesOnLoopIndices_forEachLoop();
   }
 
   @override
+  @failingTest
   void test_inferTypesOnLoopIndices_forLoopWithInference() {
-    // TODO(scheglov) fix me
+    super.test_inferTypesOnLoopIndices_forLoopWithInference();
   }
 
   @override
+  @failingTest
   void test_listLiterals() {
-    // TODO(scheglov) fix me
+    super.test_listLiterals();
   }
 
   @override
+  @failingTest
   void test_listLiteralsShouldNotInferBottom() {
-    // TODO(scheglov) fix me
+    super.test_listLiteralsShouldNotInferBottom();
   }
 
   @override
+  @failingTest
   void test_mapLiterals() {
-    // TODO(scheglov) fix me
+    super.test_mapLiterals();
   }
 
   @override
+  @failingTest
   void test_mapLiteralsShouldNotInferBottom() {
-    // TODO(scheglov) fix me
+    super.test_mapLiteralsShouldNotInferBottom();
   }
 
   @override
+  @failingTest
   void test_noErrorWhenDeclaredTypeIsNumAndAssignedNull() {
-    // TODO(scheglov) fix me
+    super.test_noErrorWhenDeclaredTypeIsNumAndAssignedNull();
   }
 
   @override
+  @failingTest
   void test_nullLiteralShouldNotInferAsBottom() {
-    // TODO(scheglov) fix me
+    super.test_nullLiteralShouldNotInferAsBottom();
   }
 
   @override
+  @failingTest
   void test_propagateInferenceToFieldInClass() {
-    // TODO(scheglov) fix me
+    super.test_propagateInferenceToFieldInClass();
   }
 
   @override
+  @failingTest
   void test_propagateInferenceToFieldInClassDynamicWarnings() {
-    // TODO(scheglov) fix me
+    super.test_propagateInferenceToFieldInClassDynamicWarnings();
   }
 
   @override
+  @failingTest
   void test_propagateInferenceTransitively() {
-    // TODO(scheglov) fix me
+    super.test_propagateInferenceTransitively();
   }
 
   @override
+  @failingTest
   void test_propagateInferenceTransitively2() {
-    // TODO(scheglov) fix me
+    super.test_propagateInferenceTransitively2();
   }
 }
 
