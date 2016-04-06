@@ -1695,6 +1695,9 @@ const ICData* FlowGraphCompiler::GetOrAddInstanceCallICData(
   const ICData& ic_data = ICData::ZoneHandle(zone(), ICData::New(
       parsed_function().function(), target_name,
       arguments_descriptor, deopt_id, num_args_tested));
+#if defined(TAG_IC_DATA)
+  ic_data.set_tag(Instruction::kInstanceCall);
+#endif
   if (deopt_id_to_ic_data_ != NULL) {
     (*deopt_id_to_ic_data_)[deopt_id] = &ic_data;
   }
@@ -1719,6 +1722,9 @@ const ICData* FlowGraphCompiler::GetOrAddStaticCallICData(
       parsed_function().function(), String::Handle(zone(), target.name()),
       arguments_descriptor, deopt_id, num_args_tested));
   ic_data.AddTarget(target);
+#if defined(TAG_IC_DATA)
+  ic_data.set_tag(Instruction::kStaticCall);
+#endif
   if (deopt_id_to_ic_data_ != NULL) {
     (*deopt_id_to_ic_data_)[deopt_id] = &ic_data;
   }

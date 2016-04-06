@@ -12210,6 +12210,12 @@ void ICData::set_ic_data_array(const Array& value) const {
 }
 
 
+#if defined(TAG_IC_DATA)
+void ICData::set_tag(intptr_t value) const {
+  StoreNonPointer(&raw_ptr()->tag_, value);
+}
+#endif
+
 intptr_t ICData::NumArgsTested() const {
   return NumArgsTestedBits::decode(raw_ptr()->state_bits_);
 }
@@ -12790,6 +12796,9 @@ RawICData* ICData::NewDescriptor(Zone* zone,
   result.set_arguments_descriptor(arguments_descriptor);
   result.set_deopt_id(deopt_id);
   result.set_state_bits(0);
+#if defined(TAG_IC_DATA)
+  result.set_tag(-1);
+#endif
   result.SetNumArgsTested(num_args_tested);
   return result.raw();
 }
@@ -12807,6 +12816,9 @@ RawICData* ICData::New() {
   }
   result.set_deopt_id(Thread::kNoDeoptId);
   result.set_state_bits(0);
+#if defined(TAG_IC_DATA)
+  result.set_tag(-1);
+#endif
   return result.raw();
 }
 

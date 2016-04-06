@@ -2075,6 +2075,11 @@ class ICData : public Object {
     kCachedICDataArrayCount = 4
   };
 
+#if defined(TAG_IC_DATA)
+  void set_tag(intptr_t value) const;
+  intptr_t tag() const { return raw_ptr()->tag_; }
+#endif
+
  private:
   static RawICData* New();
 
