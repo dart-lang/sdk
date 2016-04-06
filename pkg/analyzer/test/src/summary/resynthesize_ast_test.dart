@@ -33,6 +33,9 @@ main() {
 class AstInferredTypeTest extends AbstractResynthesizeTest
     with _AstResynthesizeTestMixin, InferredTypeMixin {
   @override
+  bool get skipBrokenAstInference => true;
+
+  @override
   void addFile(String content, {String name: '/main.dart'}) {
     addSource(name, content);
   }
@@ -72,12 +75,6 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_basic() {
-    super.test_blockBodiedLambdas_basic();
-  }
-
-  @override
-  @failingTest
   void test_blockBodiedLambdas_doesNotInferBottom_async() {
     super.test_blockBodiedLambdas_doesNotInferBottom_async();
   }
@@ -108,12 +105,6 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_LUB() {
-    super.test_blockBodiedLambdas_LUB();
-  }
-
-  @override
-  @failingTest
   void test_blockBodiedLambdas_nestedLambdas() {
     super.test_blockBodiedLambdas_nestedLambdas();
   }
@@ -128,54 +119,6 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   @failingTest
   void test_blockBodiedLambdas_syncStar() {
     super.test_blockBodiedLambdas_syncStar();
-  }
-
-  @override
-  @failingTest
-  void test_canInferAlsoFromStaticAndInstanceFieldsFlagOn() {
-    super.test_canInferAlsoFromStaticAndInstanceFieldsFlagOn();
-  }
-
-  @override
-  @failingTest
-  void test_conflictsCanHappen() {
-    super.test_conflictsCanHappen();
-  }
-
-  @override
-  @failingTest
-  void test_conflictsCanHappen2() {
-    super.test_conflictsCanHappen2();
-  }
-
-  @override
-  @failingTest
-  void test_doNotInferOverriddenFieldsThatExplicitlySayDynamic_infer() {
-    super.test_doNotInferOverriddenFieldsThatExplicitlySayDynamic_infer();
-  }
-
-  @override
-  @failingTest
-  void test_dontInferFieldTypeWhenInitializerIsNull() {
-    super.test_dontInferFieldTypeWhenInitializerIsNull();
-  }
-
-  @override
-  @failingTest
-  void test_dontInferTypeOnDynamic() {
-    super.test_dontInferTypeOnDynamic();
-  }
-
-  @override
-  @failingTest
-  void test_dontInferTypeWhenInitializerIsNull() {
-    super.test_dontInferTypeWhenInitializerIsNull();
-  }
-
-  @override
-  @failingTest
-  void test_downwardInference_miscellaneous() {
-    super.test_downwardInference_miscellaneous();
   }
 
   @override
@@ -204,12 +147,6 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_downwardsInferenceOnFunctionExpressions() {
-    super.test_downwardsInferenceOnFunctionExpressions();
-  }
-
-  @override
-  @failingTest
   void test_downwardsInferenceOnFunctionOfTUsingTheT() {
     super.test_downwardsInferenceOnFunctionOfTUsingTheT();
   }
@@ -218,12 +155,6 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   @failingTest
   void test_downwardsInferenceOnGenericFunctionExpressions() {
     super.test_downwardsInferenceOnGenericFunctionExpressions();
-  }
-
-  @override
-  @failingTest
-  void test_downwardsInferenceOnInstanceCreations_inferDownwards() {
-    super.test_downwardsInferenceOnInstanceCreations_inferDownwards();
   }
 
   @override
@@ -258,26 +189,8 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_inferCorrectlyOnMultipleVariablesDeclaredTogether() {
-    super.test_inferCorrectlyOnMultipleVariablesDeclaredTogether();
-  }
-
-  @override
-  @failingTest
   void test_inferenceInCyclesIsDeterministic() {
     super.test_inferenceInCyclesIsDeterministic();
-  }
-
-  @override
-  @failingTest
-  void test_inferFromComplexExpressionsIfOuterMostValueIsPrecise() {
-    super.test_inferFromComplexExpressionsIfOuterMostValueIsPrecise();
-  }
-
-  @override
-  @failingTest
-  void test_inferFromRhsOnlyIfItWontConflictWithOverriddenFields() {
-    super.test_inferFromRhsOnlyIfItWontConflictWithOverriddenFields();
   }
 
   @override
@@ -288,26 +201,8 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_inferFromVariablesInCycleLibsWhenFlagIsOn() {
-    super.test_inferFromVariablesInCycleLibsWhenFlagIsOn();
-  }
-
-  @override
-  @failingTest
-  void test_inferFromVariablesInCycleLibsWhenFlagIsOn2() {
-    super.test_inferFromVariablesInCycleLibsWhenFlagIsOn2();
-  }
-
-  @override
-  @failingTest
   void test_inferIfComplexExpressionsReadPossibleInferredField() {
     super.test_inferIfComplexExpressionsReadPossibleInferredField();
-  }
-
-  @override
-  @failingTest
-  void test_inferListLiteralNestedInMapLiteral() {
-    super.test_inferListLiteralNestedInMapLiteral();
   }
 
   @override
@@ -336,36 +231,6 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_inferStaticsWithMethodInvocations() {
-    super.test_inferStaticsWithMethodInvocations();
-  }
-
-  @override
-  @failingTest
-  void test_inferTypeOnOverriddenFields2() {
-    super.test_inferTypeOnOverriddenFields2();
-  }
-
-  @override
-  @failingTest
-  void test_inferTypeOnOverriddenFields4() {
-    super.test_inferTypeOnOverriddenFields4();
-  }
-
-  @override
-  @failingTest
-  void test_inferTypeOnVar() {
-    super.test_inferTypeOnVar();
-  }
-
-  @override
-  @failingTest
-  void test_inferTypeOnVar2() {
-    super.test_inferTypeOnVar2();
-  }
-
-  @override
-  @failingTest
   void test_inferTypeOnVarFromField() {
     super.test_inferTypeOnVarFromField();
   }
@@ -378,44 +243,8 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_inferTypesOnGenericInstantiations_3() {
-    super.test_inferTypesOnGenericInstantiations_3();
-  }
-
-  @override
-  @failingTest
-  void test_inferTypesOnGenericInstantiations_5() {
-    super.test_inferTypesOnGenericInstantiations_5();
-  }
-
-  @override
-  @failingTest
-  void test_inferTypesOnGenericInstantiations_infer() {
-    super.test_inferTypesOnGenericInstantiations_infer();
-  }
-
-  @override
-  @failingTest
-  void test_inferTypesOnGenericInstantiationsInLibraryCycle() {
-    super.test_inferTypesOnGenericInstantiationsInLibraryCycle();
-  }
-
-  @override
-  @failingTest
   void test_inferTypesOnLoopIndices_forEachLoop() {
     super.test_inferTypesOnLoopIndices_forEachLoop();
-  }
-
-  @override
-  @failingTest
-  void test_inferTypesOnLoopIndices_forLoopWithInference() {
-    super.test_inferTypesOnLoopIndices_forLoopWithInference();
-  }
-
-  @override
-  @failingTest
-  void test_listLiterals() {
-    super.test_listLiterals();
   }
 
   @override
@@ -426,50 +255,14 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_mapLiterals() {
-    super.test_mapLiterals();
-  }
-
-  @override
-  @failingTest
   void test_mapLiteralsShouldNotInferBottom() {
     super.test_mapLiteralsShouldNotInferBottom();
   }
 
   @override
   @failingTest
-  void test_noErrorWhenDeclaredTypeIsNumAndAssignedNull() {
-    super.test_noErrorWhenDeclaredTypeIsNumAndAssignedNull();
-  }
-
-  @override
-  @failingTest
   void test_nullLiteralShouldNotInferAsBottom() {
     super.test_nullLiteralShouldNotInferAsBottom();
-  }
-
-  @override
-  @failingTest
-  void test_propagateInferenceToFieldInClass() {
-    super.test_propagateInferenceToFieldInClass();
-  }
-
-  @override
-  @failingTest
-  void test_propagateInferenceToFieldInClassDynamicWarnings() {
-    super.test_propagateInferenceToFieldInClassDynamicWarnings();
-  }
-
-  @override
-  @failingTest
-  void test_propagateInferenceTransitively() {
-    super.test_propagateInferenceTransitively();
-  }
-
-  @override
-  @failingTest
-  void test_propagateInferenceTransitively2() {
-    super.test_propagateInferenceTransitively2();
   }
 }
 
