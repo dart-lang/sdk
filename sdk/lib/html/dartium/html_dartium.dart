@@ -20088,6 +20088,10 @@ class HtmlDocument extends Document {
    */
   void registerElement(String tag, Type customElementClass,
       {String extendsTag}) {
+    // Hack to setup an interceptor for HTMLElement so it isn't changed when a custom element is created.
+    var jsHTMLElementPrototype = js.JsNative.getProperty(js.JsNative.getProperty(js.context, 'HTMLElement'),'prototype');
+    _blink.Blink_Utils.defineInterceptor(jsHTMLElementPrototype, HtmlElement.instanceRuntimeType);
+
     // Figure out which DOM class is being extended from the user's Dart class.
     var classMirror = reflectClass(customElementClass);
 

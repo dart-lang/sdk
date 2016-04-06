@@ -418,8 +418,10 @@ class Isolate : public BaseIsolate {
 
   void PrintJSON(JSONStream* stream, bool ref = true);
 
-  CompilerStats* compiler_stats() {
-    return compiler_stats_;
+  // Mutator thread is used to aggregate compiler stats.
+  CompilerStats* aggregate_compiler_stats() {
+    ASSERT(HasMutatorThread());
+    return mutator_thread_->compiler_stats();
   }
 
   VMTagCounters* vm_tag_counters() {
@@ -573,6 +575,8 @@ class Isolate : public BaseIsolate {
   static void DisableIsolateCreation();
   static void EnableIsolateCreation();
 
+  void StopBackgroundCompiler();
+
  private:
   friend class Dart;  // Init, InitOnce, Shutdown.
   friend class IsolateKillerVisitor;  // Kill().
@@ -670,8 +674,6 @@ class Isolate : public BaseIsolate {
   Dart_GcEpilogueCallback gc_epilogue_callback_;
   intptr_t defer_finalization_count_;
   DeoptContext* deopt_context_;
-
-  CompilerStats* compiler_stats_;
 
   bool is_service_isolate_;
 

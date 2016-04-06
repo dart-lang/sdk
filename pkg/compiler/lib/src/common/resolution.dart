@@ -29,6 +29,8 @@ import '../elements/elements.dart' show
     TypeVariableElement;
 import '../enqueue.dart' show
     ResolutionEnqueuer;
+import '../options.dart' show
+    ParserOptions;
 import '../parser/element_listener.dart' show
     ScannerOptions;
 import '../tree/tree.dart' show
@@ -145,6 +147,10 @@ class MapLiteralUse {
         isConstant == other.isConstant &&
         isEmpty == other.isEmpty;
   }
+
+  String toString() {
+    return 'MapLiteralUse($type,isConstant:$isConstant,isEmpty:$isEmpty)';
+  }
 }
 
 /// A use of a list literal seen during resolution.
@@ -170,6 +176,10 @@ class ListLiteralUse {
         isConstant == other.isConstant &&
         isEmpty == other.isEmpty;
   }
+
+  String toString() {
+    return 'ListLiteralUse($type,isConstant:$isConstant,isEmpty:$isEmpty)';
+  }
 }
 
 // TODO(johnniwinther): Rename to `Resolver` or `ResolverContext`.
@@ -177,6 +187,10 @@ abstract class Resolution {
   Parsing get parsing;
   DiagnosticReporter get reporter;
   CoreTypes get coreTypes;
+
+  /// If set to `true` resolution caches will not be cleared. Use this only for
+  /// testing.
+  bool retainCachesForTesting;
 
   void resolveTypedef(TypedefElement typdef);
   void resolveClass(ClassElement cls);
@@ -189,6 +203,12 @@ abstract class Resolution {
 
   ResolutionWorkItem createWorkItem(
       Element element, ItemCompilationContext compilationContext);
+
+  /// Returns `true` if the [ResolutionImpact] for [element] is cached.
+  bool hasResolutionImpact(Element element);
+
+  /// Returns the precomputed [ResolutionImpact] for [element].
+  ResolutionImpact getResolutionImpact(Element element);
 
   /// Returns the precomputed [WorldImpact] for [element].
   WorldImpact getWorldImpact(Element element);
@@ -212,4 +232,5 @@ abstract class Parsing {
   void parsePatchClass(ClassElement cls);
   measure(f());
   ScannerOptions getScannerOptionsFor(Element element);
+  ParserOptions get parserOptions;
 }

@@ -1558,12 +1558,14 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
  public:
   CatchBlockEntryInstr(intptr_t block_id,
                        intptr_t try_index,
+                       GraphEntryInstr* graph_entry,
                        const Array& handler_types,
                        intptr_t catch_try_index,
                        const LocalVariable& exception_var,
                        const LocalVariable& stacktrace_var,
                        bool needs_stacktrace)
       : BlockEntryInstr(block_id, try_index),
+        graph_entry_(graph_entry),
         predecessor_(NULL),
         catch_handler_types_(Array::ZoneHandle(handler_types.raw())),
         catch_try_index_(catch_try_index),
@@ -1580,6 +1582,8 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
     ASSERT((index == 0) && (predecessor_ != NULL));
     return predecessor_;
   }
+
+  GraphEntryInstr* graph_entry() const { return graph_entry_; }
 
   const LocalVariable& exception_var() const { return exception_var_; }
   const LocalVariable& stacktrace_var() const { return stacktrace_var_; }
@@ -1606,6 +1610,7 @@ class CatchBlockEntryInstr : public BlockEntryInstr {
     predecessor_ = predecessor;
   }
 
+  GraphEntryInstr* graph_entry_;
   BlockEntryInstr* predecessor_;
   const Array& catch_handler_types_;
   const intptr_t catch_try_index_;
@@ -1912,10 +1917,11 @@ class PhiInstr : public Definition {
   PhiInstr(JoinEntryInstr* block, intptr_t num_inputs)
     : block_(block),
       inputs_(num_inputs),
-      is_alive_(false),
       representation_(kTagged),
       reaching_defs_(NULL),
-      loop_variable_info_(NULL) {
+      loop_variable_info_(NULL),
+      is_alive_(false),
+      is_receiver_(kUnknownReceiver) {
     for (intptr_t i = 0; i < num_inputs; ++i) {
       inputs_.Add(NULL);
     }
@@ -1985,6 +1991,20 @@ class PhiInstr : public Definition {
 
   PRINT_TO_SUPPORT
 
+  enum ReceiverType {
+    kUnknownReceiver = -1,
+    kNotReceiver = 0,
+    kReceiver = 1
+  };
+
+  ReceiverType is_receiver() const {
+    return static_cast<ReceiverType>(is_receiver_);
+  }
+
+  void set_is_receiver(ReceiverType is_receiver) {
+    is_receiver_ = is_receiver;
+  }
+
  private:
   // Direct access to inputs_ in order to resize it due to unreachable
   // predecessors.
@@ -1994,11 +2014,11 @@ class PhiInstr : public Definition {
 
   JoinEntryInstr* block_;
   GrowableArray<Value*> inputs_;
-  bool is_alive_;
   Representation representation_;
-
   BitVector* reaching_defs_;
   InductionVariableInfo* loop_variable_info_;
+  bool is_alive_;
+  int8_t is_receiver_;
 
   DISALLOW_COPY_AND_ASSIGN(PhiInstr);
 };
@@ -7784,6 +7804,7 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
   bool DeoptIfNotNull() const;
 
   bool IsDenseSwitch() const;
+  static bool IsDenseCidRange(const ICData& unary_checks);
   intptr_t ComputeCidMask() const;
   static bool IsDenseMask(intptr_t mask);
 
@@ -7802,6 +7823,7 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
   const ICData& unary_checks_;
   GrowableArray<intptr_t> cids_;  // Sorted, lowest first.
   bool licm_hoisted_;
+  bool is_dense_switch_;
   const TokenPosition token_pos_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckClassInstr);

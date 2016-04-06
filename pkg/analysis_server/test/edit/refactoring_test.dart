@@ -653,11 +653,10 @@ void res(int a, int b) {
 ''');
   }
 
-  Future<Response> _computeChange() {
-    return _prepareOptions().then((_) {
-      // send request with the options
-      return _sendExtractRequest();
-    });
+  Future<Response> _computeChange() async {
+    await _prepareOptions();
+    // send request with the options
+    return _sendExtractRequest();
   }
 
   Future<ExtractMethodFeedback> _computeInitialFeedback() {
@@ -1867,12 +1866,10 @@ class _AbstractGetRefactoring_Test extends AbstractAnalysisTest {
   }
 
   Future<EditGetRefactoringResult> getRefactoringResult(
-      Future<Response> requestSender()) {
-    return waitForTasksFinished().then((_) {
-      return requestSender().then((Response response) {
-        return new EditGetRefactoringResult.fromResponse(response);
-      });
-    });
+      Future<Response> requestSender()) async {
+    await waitForTasksFinished();
+    Response response = await requestSender();
+    return new EditGetRefactoringResult.fromResponse(response);
   }
 
   Future<Response> sendRequest(

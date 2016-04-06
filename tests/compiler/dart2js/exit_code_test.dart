@@ -27,6 +27,7 @@ import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/library_loader.dart';
 import 'package:compiler/src/null_compiler_output.dart';
 import 'package:compiler/src/old_to_new_api.dart';
+import 'package:compiler/src/options.dart' show CompilerOptions;
 import 'package:compiler/src/resolution/resolution.dart';
 import 'package:compiler/src/scanner/scanner_task.dart';
 import 'package:compiler/src/universe/world_impact.dart';
@@ -51,7 +52,7 @@ class TestCompiler extends apiimpl.CompilerImpl {
                String this.testType,
                Function this.onTest)
       : super(inputProvider, outputProvider, handler,
-            new api.CompilerOptions.parse(
+            new CompilerOptions.parse(
                 libraryRoot: libraryRoot,
                 packageRoot: packageRoot,
                 options: options,

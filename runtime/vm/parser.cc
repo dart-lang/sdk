@@ -4565,8 +4565,11 @@ void Parser::ParseClassDeclaration(const GrowableObjectArray& pending_classes,
     cls.set_is_patch();
     // Apply the changes to the patched class looked up above.
     ASSERT(obj.raw() == library_.LookupLocalObject(class_name));
-    // The patched class must not be finalized yet.
-    ASSERT(!Class::Cast(obj).is_finalized());
+    const Class& orig_class = Class::Cast(obj);
+    if (orig_class.is_finalized()) {
+      orig_class.SetRefinalizeAfterPatch();
+      pending_classes.Add(orig_class, Heap::kOld);
+    }
     library_.AddPatchClass(cls);
   }
   pending_classes.Add(cls, Heap::kOld);
@@ -4634,6 +4637,14 @@ void Parser::ParseClassDefinition(const Class& cls) {
     const Class& orig_class = Class::Cast(obj);
     ASSERT(!orig_class.is_finalized());
     Error& error = Error::Handle(Z);
+    // Check if this is a case of patching a class after it has already
+    // been finalized.
+    if (orig_class.is_refinalize_after_patch()) {
+      if (!cls.ValidatePostFinalizePatch(orig_class, &error)) {
+        Report::LongJumpF(error, script_, class_pos,
+                          "patch validation failed, not applying patch.\n");
+      }
+    }
     if (!orig_class.ApplyPatch(cls, &error)) {
       Report::LongJumpF(error, script_, class_pos, "applying patch failed");
     }
@@ -12019,7 +12030,7 @@ void Parser::CacheConstantValue(TokenPosition token_pos,
   ConstantsMap constants(isolate()->object_store()->compile_time_constants());
   constants.InsertNewOrGetValue(key, value);
   if (FLAG_compiler_stats) {
-    isolate_->compiler_stats()->num_cached_consts = constants.NumOccupied();
+    thread_->compiler_stats()->num_cached_consts = constants.NumOccupied();
   }
   isolate()->object_store()->set_compile_time_constants(constants.Release());
 }
@@ -12038,7 +12049,7 @@ bool Parser::GetCachedConstant(TokenPosition token_pos, Instance* value) {
   // do not assert that 'compile_time_constants' has not changed.
   constants.Release();
   if (FLAG_compiler_stats && is_present) {
-    isolate_->compiler_stats()->num_const_cache_hits++;
+    thread_->compiler_stats()->num_const_cache_hits++;
   }
   return is_present;
 }

@@ -74,12 +74,12 @@ class EditBuilderImplTest {
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
     int offset = 10;
     String text = 'content';
-    builder.addFileEdit(source, 0, (FileEditBuilderImpl builder) {
-      builder.addInsertion(10, (EditBuilderImpl builder) {
+    builder.addFileEdit(source, 0, (FileEditBuilder builder) {
+      builder.addInsertion(10, (EditBuilder builder) {
         builder.addLinkedEdit('a', (LinkedEditBuilder builder) {
           builder.write(text);
         });
-        SourceEdit sourceEdit = builder.sourceEdit;
+        SourceEdit sourceEdit = (builder as EditBuilderImpl).sourceEdit;
         expect(sourceEdit.replacement, text);
       });
     });
@@ -97,9 +97,10 @@ class EditBuilderImplTest {
 
   void test_createLinkedEditBuilder() {
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
-    builder.addFileEdit(source, 0, (FileEditBuilderImpl builder) {
-      builder.addInsertion(10, (EditBuilderImpl builder) {
-        LinkedEditBuilderImpl linkBuilder = builder.createLinkedEditBuilder();
+    builder.addFileEdit(source, 0, (FileEditBuilder builder) {
+      builder.addInsertion(10, (EditBuilder builder) {
+        LinkedEditBuilderImpl linkBuilder =
+            (builder as EditBuilderImpl).createLinkedEditBuilder();
         expect(linkBuilder, new isInstanceOf<LinkedEditBuilder>());
       });
     });
@@ -110,8 +111,8 @@ class EditBuilderImplTest {
     int timeStamp = 93;
     int offset = 10;
     String text = 'write';
-    builder.addFileEdit(source, timeStamp, (FileEditBuilderImpl builder) {
-      builder.addInsertion(offset, (EditBuilderImpl builder) {
+    builder.addFileEdit(source, timeStamp, (FileEditBuilder builder) {
+      builder.addInsertion(offset, (EditBuilder builder) {
         builder.write(text);
       });
     });
@@ -140,8 +141,8 @@ class EditBuilderImplTest {
     int timeStamp = 39;
     int offset = 52;
     int length = 12;
-    builder.addFileEdit(source, timeStamp, (FileEditBuilderImpl builder) {
-      builder.addReplacement(offset, length, (EditBuilderImpl builder) {
+    builder.addFileEdit(source, timeStamp, (FileEditBuilder builder) {
+      builder.addReplacement(offset, length, (EditBuilder builder) {
         builder.writeln();
       });
     });
@@ -171,8 +172,8 @@ class EditBuilderImplTest {
     int offset = 52;
     int length = 12;
     String text = 'writeln';
-    builder.addFileEdit(source, timeStamp, (FileEditBuilderImpl builder) {
-      builder.addReplacement(offset, length, (EditBuilderImpl builder) {
+    builder.addFileEdit(source, timeStamp, (FileEditBuilder builder) {
+      builder.addReplacement(offset, length, (EditBuilder builder) {
         builder.writeln(text);
       });
     });
@@ -204,8 +205,8 @@ class FileEditBuilderImplTest {
 
   void test_addInsertion() {
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
-    builder.addFileEdit(source, 0, (FileEditBuilderImpl builder) {
-      builder.addInsertion(10, (EditBuilderImpl builder) {
+    builder.addFileEdit(source, 0, (FileEditBuilder builder) {
+      builder.addInsertion(10, (EditBuilder builder) {
         expect(builder, isNotNull);
       });
     });
@@ -214,7 +215,7 @@ class FileEditBuilderImplTest {
   void test_addLinkedPosition() {
     ChangeBuilderImpl changeBuilder = new ChangeBuilderImpl();
     String groupName = 'a';
-    changeBuilder.addFileEdit(source, 0, (FileEditBuilderImpl builder) {
+    changeBuilder.addFileEdit(source, 0, (FileEditBuilder builder) {
       builder.addLinkedPosition(3, 6, groupName);
     });
 
@@ -229,8 +230,8 @@ class FileEditBuilderImplTest {
 
   void test_addReplacement() {
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
-    builder.addFileEdit(source, 0, (FileEditBuilderImpl builder) {
-      builder.addReplacement(4, 5, (EditBuilderImpl builder) {
+    builder.addFileEdit(source, 0, (FileEditBuilder builder) {
+      builder.addReplacement(4, 5, (EditBuilder builder) {
         expect(builder, isNotNull);
       });
     });
@@ -238,10 +239,11 @@ class FileEditBuilderImplTest {
 
   void test_createEditBuilder() {
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
-    builder.addFileEdit(source, 0, (FileEditBuilderImpl builder) {
+    builder.addFileEdit(source, 0, (FileEditBuilder builder) {
       int offset = 4;
       int length = 5;
-      EditBuilderImpl editBuilder = builder.createEditBuilder(offset, length);
+      EditBuilderImpl editBuilder =
+          (builder as FileEditBuilderImpl).createEditBuilder(offset, length);
       expect(editBuilder, new isInstanceOf<EditBuilder>());
       SourceEdit sourceEdit = editBuilder.sourceEdit;
       expect(sourceEdit.length, length);
@@ -258,9 +260,9 @@ class LinkedEditBuilderImplTest {
   void test_addSuggestion() {
     String groupName = 'a';
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
-    builder.addFileEdit(source, 0, (FileEditBuilderImpl builder) {
-      builder.addInsertion(10, (EditBuilderImpl builder) {
-        builder.addLinkedEdit(groupName, (LinkedEditBuilderImpl builder) {
+    builder.addFileEdit(source, 0, (FileEditBuilder builder) {
+      builder.addInsertion(10, (EditBuilder builder) {
+        builder.addLinkedEdit(groupName, (LinkedEditBuilder builder) {
           builder.addSuggestion(LinkedEditSuggestionKind.TYPE, 'A');
         });
       });
@@ -273,9 +275,9 @@ class LinkedEditBuilderImplTest {
   void test_addSuggestions() {
     String groupName = 'a';
     ChangeBuilderImpl builder = new ChangeBuilderImpl();
-    builder.addFileEdit(source, 0, (FileEditBuilderImpl builder) {
-      builder.addInsertion(10, (EditBuilderImpl builder) {
-        builder.addLinkedEdit(groupName, (LinkedEditBuilderImpl builder) {
+    builder.addFileEdit(source, 0, (FileEditBuilder builder) {
+      builder.addInsertion(10, (EditBuilder builder) {
+        builder.addLinkedEdit(groupName, (LinkedEditBuilder builder) {
           builder.addSuggestions(LinkedEditSuggestionKind.TYPE, ['A', 'B']);
         });
       });

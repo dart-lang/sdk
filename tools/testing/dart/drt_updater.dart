@@ -28,7 +28,11 @@ class _DartiumUpdater {
     if (!isActive) {
       isActive = true;
       print('Updating $name.');
-      onUpdated = [() {updated = true;} ];
+      onUpdated = [
+        () {
+          updated = true;
+        }
+      ];
       _updatingProcess = Process.run('python', _getUpdateCommand);
       _updatingProcess.then(_onUpdatedHandler).catchError((e) {
         print("Error starting $script process: $e");
@@ -57,7 +61,7 @@ class _DartiumUpdater {
       print(result.stderr);
       exit(1);
     }
-    for (var callback in onUpdated ) callback();
+    for (var callback in onUpdated) callback();
   }
 }
 
@@ -69,17 +73,15 @@ _DartiumUpdater runtimeUpdater(Map configuration) {
   if (runtime == 'drt' && configuration['drt'] == '') {
     // Download the default content shell from Google Storage.
     if (_contentShellUpdater == null) {
-      _contentShellUpdater = new _DartiumUpdater('Content Shell',
-                                                 'tools/get_archive.py',
-                                                 'drt');
+      _contentShellUpdater =
+          new _DartiumUpdater('Content Shell', 'tools/get_archive.py', 'drt');
     }
     return _contentShellUpdater;
   } else if (runtime == 'dartium' && configuration['dartium'] == '') {
     // Download the default Dartium from Google Storage.
     if (_dartiumUpdater == null) {
-      _dartiumUpdater = new _DartiumUpdater('Dartium Chrome',
-                                            'tools/get_archive.py',
-                                            'dartium');
+      _dartiumUpdater = new _DartiumUpdater(
+          'Dartium Chrome', 'tools/get_archive.py', 'dartium');
     }
     return _dartiumUpdater;
   } else {

@@ -71,6 +71,9 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
   bool get isProxy => actualElement.isProxy;
 
   @override
+  bool get isRequired => actualElement.isRequired;
+
+  @override
   bool get isValidMixin => actualElement.isValidMixin;
 
   @override
@@ -93,6 +96,9 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
 
   @override
   ConstructorElement get unnamedConstructor => actualElement.unnamedConstructor;
+
+  @override
+  NamedCompilationUnitMember computeNode() => super.computeNode();
 
   @override
   FieldElement getField(String fieldName) => actualElement.getField(fieldName);
@@ -357,6 +363,9 @@ abstract class ElementHandle implements Element {
 
   @override
   bool get isPublic => actualElement.isPublic;
+
+  @override
+  bool get isRequired => actualElement.isRequired;
 
   @override
   bool get isSynthetic => actualElement.isSynthetic;
@@ -895,6 +904,9 @@ class ParameterElementHandle extends VariableElementHandle
 
   @override
   SourceRange get visibleRange => actualElement.visibleRange;
+
+  @override
+  FormalParameter computeNode() => super.computeNode();
 }
 
 /**
@@ -1013,6 +1025,9 @@ class TopLevelVariableElementHandle extends PropertyInducingElementHandle
 
   @override
   ElementKind get kind => ElementKind.TOP_LEVEL_VARIABLE;
+
+  @override
+  VariableDeclaration computeNode() => super.computeNode();
 }
 
 /**
@@ -1075,10 +1090,12 @@ abstract class VariableElementHandle extends ElementHandle
   @override
   bool get isFinal => actualElement.isFinal;
 
+  @deprecated
   @override
   bool get isPotentiallyMutatedInClosure =>
       actualElement.isPotentiallyMutatedInClosure;
 
+  @deprecated
   @override
   bool get isPotentiallyMutatedInScope =>
       actualElement.isPotentiallyMutatedInScope;

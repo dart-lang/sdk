@@ -132,7 +132,7 @@ class _PhysicalFile extends _PhysicalResource implements File {
   }
 
   @override
-  Resource renameSync(String newPath) {
+  File renameSync(String newPath) {
     try {
       io.File file = _entry as io.File;
       io.File newFile = file.renameSync(newPath);

@@ -1542,6 +1542,12 @@ void RegExp::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("_externalOneByteFunction", func);
   func = function(kExternalTwoByteStringCid);
   jsobj.AddProperty("_externalTwoByteFunction", func);
+
+  TypedData& bc = TypedData::Handle();
+  bc = bytecode(true);
+  jsobj.AddProperty("_oneByteBytecode", bc);
+  bc = bytecode(false);
+  jsobj.AddProperty("_twoByteBytecode", bc);
 }
 
 

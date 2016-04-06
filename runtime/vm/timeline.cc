@@ -379,6 +379,18 @@ void TimelineEvent::End(const char* label,
 }
 
 
+void TimelineEvent::Counter(const char* label, int64_t micros) {
+  Init(kCounter, label);
+  set_timestamp0(micros);
+}
+
+
+void TimelineEvent::Metadata(const char* label, int64_t micros) {
+  Init(kMetadata, label);
+  set_timestamp0(micros);
+}
+
+
 void TimelineEvent::CompleteWithPreSerializedJSON(const char* json) {
   set_pre_serialized_json(true);
   SetNumArguments(1);
@@ -575,6 +587,14 @@ void TimelineEvent::PrintJSON(JSONStream* stream) const {
     case kAsyncEnd: {
       obj.AddProperty("ph", "e");
       obj.AddPropertyF("id", "%" Px64 "", AsyncId());
+    }
+    break;
+    case kMetadata: {
+      obj.AddProperty("ph", "M");
+    }
+    break;
+    case kCounter: {
+      obj.AddProperty("ph", "C");
     }
     break;
     default:
@@ -1156,6 +1176,7 @@ void TimelineEventFixedBufferRecorder::PrintTraceEvent(
     return;
   }
   JSONArray events(js);
+  PrintJSONMeta(&events);
   PrintJSONEvents(&events, filter);
 }
 
@@ -1301,6 +1322,7 @@ void TimelineEventEndlessRecorder::PrintTraceEvent(
     return;
   }
   JSONArray events(js);
+  PrintJSONMeta(&events);
   PrintJSONEvents(&events, filter);
 }
 

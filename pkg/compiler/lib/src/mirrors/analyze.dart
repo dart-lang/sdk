@@ -9,7 +9,7 @@ import 'dart:async';
 import 'source_mirrors.dart';
 import 'dart2js_mirrors.dart' show Dart2JsMirrorSystem;
 import '../../compiler.dart' as api;
-import '../../compiler_new.dart' as new_api;
+import '../options.dart' show CompilerOptions;
 import '../apiimpl.dart' as apiimpl;
 import '../compiler.dart' show Compiler;
 import '../old_to_new_api.dart';
@@ -59,7 +59,7 @@ Future<MirrorSystem> analyze(List<Uri> libraries,
       new LegacyCompilerInput(inputProvider),
       new LegacyCompilerOutput(),
       new LegacyCompilerDiagnostics(internalDiagnosticHandler),
-      new new_api.CompilerOptions.parse(
+      new CompilerOptions.parse(
           libraryRoot: libraryRoot,
           packageRoot: packageRoot,
           options: options,

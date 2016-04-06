@@ -3816,7 +3816,7 @@ class Parser {
       return _createSyntheticToken(TokenType.SEMICOLON);
     }
     _reportErrorForCurrentToken(ParserErrorCode.EXPECTED_TOKEN, [type.lexeme]);
-    return _currentToken;
+    return _createSyntheticToken(type);
   }
 
   /**
@@ -8634,8 +8634,10 @@ class Parser {
             return null;
           } else if (type == TokenType.OPEN_CURLY_BRACKET) {
             bracketNestingLevel++;
+            token = token.next;
           } else if (type == TokenType.CLOSE_CURLY_BRACKET) {
             bracketNestingLevel--;
+            token = token.next;
           } else if (type == TokenType.STRING) {
             token = _skipStringLiteral(token);
             if (token == null) {

@@ -480,6 +480,17 @@ abstract class ResynthesizeTest extends AbstractSingleUnitTest {
           fail('Prefix of type ${o.prefix.staticElement.runtimeType} should not'
               ' have been elided');
         }
+      } else if (o is SimpleIdentifier && r is PrefixedIdentifier) {
+        // In 'class C {static const a = 0; static const b = a;}' the reference
+        // to 'a' in 'b' is serialized as a fully qualified 'C.a' reference.
+        if (r.prefix.staticElement is ClassElement) {
+          compareElements(
+              r.prefix.staticElement, o.staticElement?.enclosingElement, desc);
+          compareConstAsts(r.identifier, o, desc);
+        } else {
+          fail('Prefix of type ${r.prefix.staticElement.runtimeType} should not'
+              ' have been elided');
+        }
       } else if (o is PropertyAccess &&
           o.target is PrefixedIdentifier &&
           r is PrefixedIdentifier) {
@@ -558,6 +569,13 @@ abstract class ResynthesizeTest extends AbstractSingleUnitTest {
         compareConstAstLists(
             r.typeArguments?.arguments, o.typeArguments?.arguments, desc);
         compareConstAstLists(r.entries, o.entries, desc);
+      } else if (o is MethodInvocation && r is MethodInvocation) {
+        compareConstAsts(r.target, o.target, desc);
+        compareConstAsts(r.methodName, o.methodName, desc);
+        compareConstAstLists(
+            r.typeArguments?.arguments, o.typeArguments?.arguments, desc);
+        compareConstAstLists(
+            r.argumentList?.arguments, o.argumentList?.arguments, desc);
       } else if (o is InstanceCreationExpression &&
           r is InstanceCreationExpression) {
         compareElements(r.staticElement, o.staticElement, desc);
@@ -1076,8 +1094,20 @@ abstract class ResynthesizeTest extends AbstractSingleUnitTest {
       expect(resynthesized.typeArguments.length, original.typeArguments.length,
           reason: desc);
       for (int i = 0; i < resynthesized.typeArguments.length; i++) {
-        compareTypes(resynthesized.typeArguments[i], original.typeArguments[i],
-            '$desc type argument ${original.typeArguments[i].name}');
+        if (resynthesized.typeArguments[i].isDynamic &&
+            original.typeArguments[i] is TypeParameterType) {
+          // It's ok for type arguments to get converted to `dynamic` if they
+          // are not used.
+          expect(
+              isTypeParameterUsed(
+                  original.typeArguments[i], original.element.type),
+              isFalse);
+        } else {
+          compareTypes(
+              resynthesized.typeArguments[i],
+              original.typeArguments[i],
+              '$desc type argument ${original.typeArguments[i].name}');
+        }
       }
       if (original.typeParameters == null) {
         expect(resynthesized.typeParameters, isNull, reason: desc);
@@ -1242,6 +1272,25 @@ abstract class ResynthesizeTest extends AbstractSingleUnitTest {
       fail('Unexpected type for resynthesized ($desc):'
           ' ${element.runtimeType}');
       return null;
+    }
+  }
+
+  /**
+   * Determine if [type] makes use of the given [typeParameter].
+   */
+  bool isTypeParameterUsed(TypeParameterType typeParameter, DartType type) {
+    if (type is FunctionType) {
+      return isTypeParameterUsed(typeParameter, type.returnType) ||
+          type.parameters.any((ParameterElement e) =>
+              isTypeParameterUsed(typeParameter, e.type));
+    } else if (type is InterfaceType) {
+      return type.typeArguments
+          .any((DartType t) => isTypeParameterUsed(typeParameter, t));
+    } else if (type is TypeParameterType) {
+      return type == typeParameter;
+    } else {
+      expect(type.isDynamic || type.isVoid, isTrue);
+      return false;
     }
   }
 
@@ -2844,6 +2893,14 @@ class C {
 }''');
   }
 
+  test_field_static_final_untyped() {
+    checkLibrary('class C { static final x = 0; }');
+  }
+
+  test_field_untyped() {
+    checkLibrary('class C { var x = 0; }');
+  }
+
   test_function_documented() {
     checkLibrary('''
 // Extra comment so doc comment offset != 0
@@ -4088,6 +4145,16 @@ typedef F();''');
     checkLibrary('f() {} g() {}');
   }
 
+  test_unused_type_parameter() {
+    checkLibrary('''
+class C<T> {
+  void f() {}
+}
+C<int> c;
+var v = c.f;
+''');
+  }
+
   test_variable_const() {
     checkLibrary('const int i = 0;');
   }
@@ -4103,6 +4170,10 @@ var x;''');
 
   test_variable_final() {
     checkLibrary('final int x = 0;');
+  }
+
+  test_variable_final_top_level_untyped() {
+    checkLibrary('final v = 0;');
   }
 
   test_variable_getterInLib_setterInPart() {

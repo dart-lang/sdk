@@ -7,6 +7,7 @@ library dart2js.serialization;
 import '../elements/elements.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
+import '../util/enumset.dart';
 
 import 'constant_serialization.dart';
 import 'element_serialization.dart';
@@ -101,6 +102,17 @@ abstract class AbstractEncoder<K> {
   void setEnum(K key, var value) {
     _checkKey(key);
     _map[key] = new EnumValue(value);
+  }
+
+  /// Maps the [key] entry to the set of enum [values] in the encoded object.
+  void setEnums(K key, Iterable values) {
+    setEnumSet(key, new EnumSet.fromValues(values));
+  }
+
+  /// Maps the [key] entry to the enum [set] in the encoded object.
+  void setEnumSet(K key, EnumSet set) {
+    _checkKey(key);
+    _map[key] = new IntValue(set.value);
   }
 
   /// Maps the [key] entry to the [element] in the encoded object.
@@ -319,6 +331,22 @@ abstract class AbstractDecoder<K> {
       throw new StateError("enum value '$key' not found in $_map.");
     }
     return enumValues[value];
+  }
+
+  /// Returns the set of enum values associated with [key] in the decoded
+  /// object.
+  ///
+  /// If no value is associated with [key], then if [isOptional] is `true`,
+  /// [defaultValue] is returned, otherwise an exception is thrown.
+  EnumSet getEnums(K key, {bool isOptional: false}) {
+    int value = _map[_getKeyValue(key)];
+    if (value == null) {
+      if (isOptional) {
+        return const EnumSet.fixed(0);
+      }
+      throw new StateError("enum values '$key' not found in $_map.");
+    }
+    return new EnumSet.fixed(value);
   }
 
   /// Returns the [Element] value associated with [key] in the decoded object.

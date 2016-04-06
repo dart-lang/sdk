@@ -91,7 +91,9 @@ class RequestOperation extends Operation {
           .log(Level.FINE, 'Response received: $method : $elapsed\n  $result');
     }
 
-    driver.send(method, json['params']).then((Map<String, dynamic> result) {
+    driver
+        .send(method, converter.asMap(json['params']))
+        .then((Map<String, dynamic> result) {
       recordResult(true, result);
       processResult(originalId, result, stopwatch);
     }).catchError((exception) {

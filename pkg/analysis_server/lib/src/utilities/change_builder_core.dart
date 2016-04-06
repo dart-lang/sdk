@@ -235,7 +235,7 @@ class LinkedEditBuilderImpl implements LinkedEditBuilder {
   }
 
   @override
-  void addSuggestions(LinkedEditSuggestionKind kind, List<String> values) {
+  void addSuggestions(LinkedEditSuggestionKind kind, Iterable<String> values) {
     values.forEach((value) => addSuggestion(kind, value));
   }
 

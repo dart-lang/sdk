@@ -646,6 +646,11 @@ abstract class Element implements AnalysisTarget {
   bool get isPublic;
 
   /**
+   * Return `true` if this element has an annotation of the form '@required'.
+   */
+  bool get isRequired;
+
+  /**
    * Return `true` if this element is synthetic. A synthetic element is an
    * element that is not represented in the source code explicitly, but is
    * implied by the source code, such as the default constructor for a class
@@ -830,6 +835,12 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
    * a proxy object.
    */
   bool get isProxy;
+
+  /**
+   * Return `true` if this annotation marks the associated member as being
+   * required.
+   */
+  bool get isRequired;
 }
 
 /**

@@ -50,7 +50,7 @@ import 'dart_types.dart' show
 import 'deferred_load.dart' show DeferredLoadTask, OutputUnit;
 import 'diagnostics/code_location.dart';
 import 'diagnostics/diagnostic_listener.dart' show
-    DiagnosticOptions;
+    DiagnosticReporter;
 import 'diagnostics/invariant.dart' show
     REPORT_EXCESS_RESOLUTION;
 import 'diagnostics/messages.dart' show
@@ -95,6 +95,10 @@ import 'common/names.dart' show
 import 'null_compiler_output.dart' show
     NullCompilerOutput,
     NullSink;
+import 'options.dart' show
+    CompilerOptions,
+    DiagnosticOptions,
+    ParserOptions;
 import 'parser/diet_parser_task.dart' show
     DietParserTask;
 import 'parser/element_listener.dart' show
@@ -191,7 +195,7 @@ abstract class Compiler implements LibraryLoaderListener {
       new ResolutionRegistry(null, new TreeElementMapping(null));
 
   /// Options provided from command-line arguments.
-  final api.CompilerOptions options;
+  final CompilerOptions options;
 
   /**
    * If true, stop compilation after type inference is complete. Used for
@@ -356,19 +360,17 @@ abstract class Compiler implements LibraryLoaderListener {
     compilationFailedInternal = value;
   }
 
-  Compiler({api.CompilerOptions options,
+  Compiler({CompilerOptions options,
             api.CompilerOutput outputProvider,
             this.environment: const _EmptyEnvironment()})
       : this.options = options,
         this.cacheStrategy = new CacheStrategy(options.hasIncrementalSupport),
         this.userOutputProvider = outputProvider == null
             ? const NullCompilerOutput() : outputProvider {
-
     world = new World(this);
     // TODO(johnniwinther): Initialize core types in [initializeCoreClasses] and
     // make its field final.
-    _reporter = new _CompilerDiagnosticReporter(
-        this, options.diagnosticOptions);
+    _reporter = new _CompilerDiagnosticReporter(this, options);
     _parsing = new _CompilerParsing(this);
     _resolution = new _CompilerResolution(this);
     _coreTypes = new _CompilerCoreTypes(_resolution);
@@ -399,8 +401,7 @@ abstract class Compiler implements LibraryLoaderListener {
     }
 
     tasks = [
-      dietParser = new DietParserTask(
-          this, enableConditionalDirectives: options.enableConditionalDirectives),
+      dietParser = new DietParserTask(this, parsing.parserOptions),
       scanner = createScannerTask(),
       serialization = new SerializationTask(this),
       libraryLoader = new LibraryLoaderTask(this,
@@ -410,10 +411,8 @@ abstract class Compiler implements LibraryLoaderListener {
           this.serialization,
           this,
           environment),
-      parser = new ParserTask(this,
-          enableConditionalDirectives: options.enableConditionalDirectives),
-      patchParser = new PatchParserTask(
-          this, enableConditionalDirectives: options.enableConditionalDirectives),
+      parser = new ParserTask(this, parsing.parserOptions),
+      patchParser = new PatchParserTask(this, parsing.parserOptions),
       resolver = createResolverTask(),
       closureToClassMapper = new closureMapping.ClosureTask(this),
       checker = new TypeCheckerTask(this),
@@ -1957,7 +1956,10 @@ class _CompilerDiagnosticReporter extends DiagnosticReporter {
 // TODO(johnniwinther): Move [ResolverTask] here.
 class _CompilerResolution implements Resolution {
   final Compiler compiler;
+  final Map<Element, ResolutionImpact> _resolutionImpactCache =
+      <Element, ResolutionImpact>{};
   final Map<Element, WorldImpact> _worldImpactCache = <Element, WorldImpact>{};
+  bool retainCachesForTesting = false;
 
   _CompilerResolution(this.compiler);
 
@@ -2001,6 +2003,19 @@ class _CompilerResolution implements Resolution {
   }
 
   @override
+  bool hasResolutionImpact(Element element) {
+    return _resolutionImpactCache.containsKey(element);
+  }
+
+  @override
+  ResolutionImpact getResolutionImpact(Element element) {
+    ResolutionImpact resolutionImpact = _resolutionImpactCache[element];
+    assert(invariant(element, resolutionImpact != null,
+        message: "ResolutionImpact not available for $element."));
+    return resolutionImpact;
+  }
+
+  @override
   WorldImpact getWorldImpact(Element element) {
     WorldImpact worldImpact = _worldImpactCache[element];
     assert(invariant(element, worldImpact != null,
@@ -2016,6 +2031,14 @@ class _CompilerResolution implements Resolution {
       assert(invariant(element, !element.isSynthesized || tree == null));
       ResolutionImpact resolutionImpact =
           compiler.resolver.resolve(element);
+      if (compiler.serialization.supportSerialization || retainCachesForTesting) {
+        // [ResolutionImpact] is currently only used by serialization. The
+        // enqueuer uses the [WorldImpact] which is always cached.
+        // TODO(johnniwinther): Align these use cases better; maybe only
+        // cache [ResolutionImpact] and let the enqueuer transform it into
+        // a [WorldImpact].
+        _resolutionImpactCache[element] = resolutionImpact;
+      }
       if (tree != null && !compiler.options.analyzeSignaturesOnly) {
         // TODO(het): don't do this if suppressWarnings is on, currently we have
         // to do it because the typechecker also sets types
@@ -2031,17 +2054,21 @@ class _CompilerResolution implements Resolution {
 
   @override
   void uncacheWorldImpact(Element element) {
+    if (retainCachesForTesting) return;
     if (compiler.serialization.isDeserialized(element)) return;
     assert(invariant(element, _worldImpactCache[element] != null,
         message: "WorldImpact not computed for $element."));
     _worldImpactCache[element] = const WorldImpact();
+    _resolutionImpactCache.remove(element);
   }
 
   @override
   void emptyCache() {
+    if (retainCachesForTesting) return;
     for (Element element in _worldImpactCache.keys) {
       _worldImpactCache[element] = const WorldImpact();
     }
+    _resolutionImpactCache.clear();
   }
 
   @override
@@ -2083,10 +2110,10 @@ class _CompilerParsing implements Parsing {
     });
   }
 
-  ScannerOptions getScannerOptionsFor(Element element) {
-    return new ScannerOptions(
-      canUseNative: compiler.backend.canLibraryUseNative(element.library));
-  }
+  ScannerOptions getScannerOptionsFor(Element element) =>
+      new ScannerOptions.from(compiler, element.library);
+
+  ParserOptions get parserOptions => compiler.options;
 }
 
 class GlobalDependencyRegistry extends EagerRegistry {

@@ -114,7 +114,8 @@ analyzer:
 ''');
 
     List<ErrorProcessor> processors =
-        context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS);
+        context.getConfigurationData(CONFIGURED_ERROR_PROCESSORS)
+        as List<ErrorProcessor>;
     expect(processors, hasLength(2));
 
     var unused_local = new AnalysisError(
@@ -222,7 +223,8 @@ class GenerateOptionsErrorsTaskTest extends AbstractContextTest {
     AnalysisTarget target = newSource(optionsFilePath, code);
     computeResult(target, ANALYSIS_OPTIONS_ERRORS);
     expect(task, isGenerateOptionsErrorsTask);
-    List<AnalysisError> errors = outputs[ANALYSIS_OPTIONS_ERRORS];
+    List<AnalysisError> errors =
+        outputs[ANALYSIS_OPTIONS_ERRORS] as List<AnalysisError>;
     expect(errors, hasLength(1));
     expect(errors[0].errorCode, AnalysisOptionsErrorCode.PARSE_ERROR);
   }
@@ -250,7 +252,8 @@ analyzer:
     AnalysisTarget target = newSource(optionsFilePath, code);
     computeResult(target, ANALYSIS_OPTIONS_ERRORS);
     expect(task, isGenerateOptionsErrorsTask);
-    List<AnalysisError> errors = outputs[ANALYSIS_OPTIONS_ERRORS];
+    List<AnalysisError> errors =
+        outputs[ANALYSIS_OPTIONS_ERRORS] as List<AnalysisError>;
     expect(errors, hasLength(1));
     expect(errors[0].errorCode,
         AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUES);
@@ -396,7 +399,7 @@ linter:
         [AnalysisOptionsWarningCode.UNSUPPORTED_OPTION_WITH_LEGAL_VALUE]);
   }
 
-  void validate(String source, List<AnalysisOptionsErrorCode> expected) {
+  void validate(String source, List<ErrorCode> expected) {
     var options = optionsProvider.getOptionsFromString(source);
     var errors = validator.validate(options);
     expect(errors.map((AnalysisError e) => e.errorCode),

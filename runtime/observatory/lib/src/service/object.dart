@@ -2323,6 +2323,8 @@ class Instance extends HeapObject {
   @observable Function twoByteFunction;  // If a RegExp.
   @observable Function externalOneByteFunction;  // If a RegExp.
   @observable Function externalTwoByteFunction;  // If a RegExp.
+  @observable Instance oneByteBytecode;  // If a RegExp.
+  @observable Instance twoByteBytecode;  // If a RegExp.
   @observable bool isCaseSensitive;  // If a RegExp.
   @observable bool isMultiLine;  // If a RegExp.
 
@@ -2414,6 +2416,8 @@ class Instance extends HeapObject {
     twoByteFunction = map['_twoByteFunction'];
     externalOneByteFunction = map['_externalOneByteFunction'];
     externalTwoByteFunction = map['_externalTwoByteFunction'];
+    oneByteBytecode = map['_oneByteBytecode'];
+    twoByteBytecode = map['_twoByteBytecode'];
 
     nativeFields = map['_nativeFields'];
     fields = map['fields'];

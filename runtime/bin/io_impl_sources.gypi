@@ -51,6 +51,7 @@
     'secure_socket.h',
     'secure_socket_boringssl.cc',
     'secure_socket_boringssl.h',
+    'secure_socket_ios.cc',
     'secure_socket_macos.cc',
     'secure_socket_macos.h',
     'secure_socket_unsupported.cc',

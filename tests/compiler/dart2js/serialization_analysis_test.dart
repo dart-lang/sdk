@@ -8,20 +8,18 @@ import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/common/backend_api.dart';
 import 'package:compiler/src/common/names.dart';
-import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/compiler.dart';
-import 'package:compiler/src/elements/elements.dart';
 import 'package:compiler/src/filenames.dart';
-import 'package:compiler/src/serialization/element_serialization.dart';
-import 'package:compiler/src/serialization/impact_serialization.dart';
-import 'package:compiler/src/serialization/json_serializer.dart';
-import 'package:compiler/src/serialization/serialization.dart';
-import 'package:compiler/src/serialization/task.dart';
-import 'package:compiler/src/universe/world_impact.dart';
 import 'memory_compiler.dart';
+import 'serialization_helper.dart';
 
 const List<Test> TESTS = const <Test>[
+  const Test(const {
+    'main.dart': 'main() {}'
+  }),
+
   const Test(const {
     'main.dart': 'main() => print("Hello World");'
   }),
@@ -241,13 +239,7 @@ Future analyze(String serializedData, Uri entryPoint, Test test) async {
       options: [Flags.analyzeOnly],
       diagnosticHandler: diagnosticCollector,
       beforeRun: (Compiler compiler) {
-        Deserializer deserializer = new Deserializer.fromText(
-            new DeserializationContext(),
-            serializedData,
-            const JsonSerializationDecoder());
-        deserializer.plugins.add(compiler.backend.serialization.deserializer);
-        compiler.serialization.deserializer =
-            new _DeserializerSystem(deserializer);
+        deserialize(compiler, serializedData);
       });
   if (test != null) {
     Expect.equals(test.expectedErrorCount, diagnosticCollector.errors.length,
@@ -263,84 +255,3 @@ Future analyze(String serializedData, Uri entryPoint, Test test) async {
   }
 }
 
-Future<String> serializeDartCore() async {
-  Compiler compiler = compilerFor(
-      options: [Flags.analyzeAll]);
-  compiler.serialization.supportSerialization = true;
-  await compiler.run(Uris.dart_core);
-  return serialize(compiler);
-}
-
-String serialize(Compiler compiler) {
-  Serializer serializer = new Serializer();
-  serializer.plugins.add(compiler.backend.serialization.serializer);
-  serializer.plugins.add(new WorldImpactSerializer(compiler.resolution));
-
-  for (LibraryElement library in compiler.libraryLoader.libraries) {
-    serializer.serialize(library);
-  }
-  return serializer.toText(const JsonSerializationEncoder());
-}
-
-const String WORLD_IMPACT_TAG = 'worldImpact';
-
-class WorldImpactSerializer extends SerializerPlugin {
-  final Resolution resolution;
-
-  WorldImpactSerializer(this.resolution);
-
-  @override
-  void onElement(Element element, ObjectEncoder createEncoder(String tag)) {
-    if (resolution.hasBeenResolved(element)) {
-      WorldImpact impact = resolution.getWorldImpact(element);
-      ObjectEncoder encoder = createEncoder(WORLD_IMPACT_TAG);
-      impact.apply(new ImpactSerializer(encoder));
-    }
-  }
-}
-
-class WorldImpactDeserializer extends DeserializerPlugin {
-  Map<Element, WorldImpact> impactMap = <Element, WorldImpact>{};
-
-  @override
-  void onElement(Element element, ObjectDecoder getDecoder(String tag)) {
-    ObjectDecoder decoder = getDecoder(WORLD_IMPACT_TAG);
-    if (decoder != null) {
-      impactMap[element] = ImpactDeserializer.deserializeImpact(decoder);
-    }
-  }
-}
-
-class _DeserializerSystem extends DeserializerSystem {
-  final Deserializer _deserializer;
-  final List<LibraryElement> deserializedLibraries = <LibraryElement>[];
-  final WorldImpactDeserializer _worldImpactDeserializer =
-      new WorldImpactDeserializer();
-
-  _DeserializerSystem(this._deserializer) {
-    _deserializer.plugins.add(_worldImpactDeserializer);
-  }
-
-  LibraryElement readLibrary(Uri resolvedUri) {
-    LibraryElement library = _deserializer.lookupLibrary(resolvedUri);
-    if (library != null) {
-      deserializedLibraries.add(library);
-    }
-    return library;
-  }
-
-  @override
-  WorldImpact computeWorldImpact(Element element) {
-    WorldImpact impact = _worldImpactDeserializer.impactMap[element];
-    if (impact == null) {
-      print('No impact found for $element (${element.library})');
-      impact = const WorldImpact();
-    }
-    return impact;
-  }
-
-  @override
-  bool isDeserialized(Element element) {
-    return deserializedLibraries.contains(element.library);
-  }
-}

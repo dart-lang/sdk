@@ -63,6 +63,18 @@ OSThread::~OSThread() {
 }
 
 
+
+void OSThread::SetName(const char* name) {
+  MutexLocker ml(thread_list_lock_);
+  // Clear the old thread name.
+  if (name_ != NULL) {
+    free(name_);
+    name_ = NULL;
+  }
+  set_name(name);
+}
+
+
 void OSThread::DisableThreadInterrupts() {
   ASSERT(OSThread::Current() == this);
   AtomicOperations::FetchAndIncrement(&thread_interrupt_disabled_);

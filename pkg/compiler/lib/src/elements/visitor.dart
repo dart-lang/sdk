@@ -30,7 +30,10 @@ abstract class ElementVisitor<R, A> {
   R visitFieldElement(FieldElement e, A arg) => null;
   R visitFieldParameterElement(InitializingFormalElement e, A arg) => null;
   R visitAbstractFieldElement(AbstractFieldElement e, A arg) => null;
-  R visitFunctionElement(FunctionElement e, A arg) => null;
+  R visitMethodElement(FunctionElement e, A arg) => null;
+  R visitGetterElement(GetterElement e, A arg) => null;
+  R visitSetterElement(SetterElement e, A arg) => null;
+  R visitLocalFunctionElement(LocalFunctionElement e, A arg) => null;
   R visitConstructorElement(ConstructorElement e, A arg) => null;
   R visitConstructorBodyElement(ConstructorBodyElement e, A arg) => null;
   R visitClassElement(ClassElement e, A arg) => null;
@@ -127,9 +130,28 @@ abstract class BaseElementVisitor<R, A> extends ElementVisitor<R, A> {
     return visitElement(e, arg);
   }
 
-  @override
   R visitFunctionElement(FunctionElement e, A arg) {
     return visitElement(e, arg);
+  }
+
+  @override
+  R visitMethodElement(MethodElement e, A arg) {
+    return visitFunctionElement(e, arg);
+  }
+
+  @override
+  R visitGetterElement(GetterElement e, A arg) {
+    return visitFunctionElement(e, arg);
+  }
+
+  @override
+  R visitSetterElement(SetterElement e, A arg) {
+    return visitFunctionElement(e, arg);
+  }
+
+  @override
+  R visitLocalFunctionElement(LocalFunctionElement e, A arg) {
+    return visitFunctionElement(e, arg);
   }
 
   @override

@@ -776,7 +776,6 @@ Isolate::Isolate(const Dart_IsolateFlags& api_flags)
       gc_epilogue_callback_(NULL),
       defer_finalization_count_(0),
       deopt_context_(NULL),
-      compiler_stats_(NULL),
       is_service_isolate_(false),
       stacktrace_(NULL),
       stack_frame_index_(-1),
@@ -846,10 +845,6 @@ Isolate::~Isolate() {
   boxed_field_list_mutex_ = NULL;
   ASSERT(spawn_count_ == 0);
   delete spawn_count_monitor_;
-  if (compiler_stats_ != NULL) {
-    delete compiler_stats_;
-    compiler_stats_ = NULL;
-  }
   delete safepoint_handler_;
   delete thread_registry_;
 }
@@ -920,13 +915,6 @@ Isolate* Isolate::Init(const char* name_prefix,
     if (name_prefix == NULL || strcmp(name_prefix, "vm-isolate") != 0) {
       OS::Print("[+] Starting isolate:\n"
                 "\tisolate:    %s\n", result->name());
-    }
-  }
-
-  if (FLAG_support_compiler_stats) {
-    result->compiler_stats_ = new CompilerStats(result);
-    if (FLAG_compiler_benchmark) {
-      result->compiler_stats_->EnableBenchmark();
     }
   }
 
@@ -1536,12 +1524,17 @@ void Isolate::LowLevelShutdown() {
 }
 
 
-void Isolate::Shutdown() {
-  ASSERT(this == Isolate::Current());
+void Isolate::StopBackgroundCompiler() {
   // Wait until all background compilation has finished.
   if (background_compiler_ != NULL) {
     BackgroundCompiler::Stop(background_compiler_);
   }
+}
+
+
+void Isolate::Shutdown() {
+  ASSERT(this == Isolate::Current());
+  StopBackgroundCompiler();
 
 #if defined(DEBUG)
   if (heap_ != NULL) {
@@ -1571,7 +1564,7 @@ void Isolate::Shutdown() {
     if (FLAG_support_compiler_stats && FLAG_compiler_stats
         && !ServiceIsolate::IsServiceIsolateDescendant(this)
         && (this != Dart::vm_isolate())) {
-      OS::Print("%s", compiler_stats()->PrintToZone());
+      OS::Print("%s", aggregate_compiler_stats()->PrintToZone());
     }
   }
 

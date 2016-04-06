@@ -39,7 +39,7 @@ class ConstantTaskInput<V> extends TaskInputImpl<V> {
  * A [TaskInputBuilder] used to build an input based on a [ConstantTaskInput].
  */
 class ConstantTaskInputBuilder<V> implements TaskInputBuilder<V> {
-  final ConstantTaskInput input;
+  final ConstantTaskInput<V> input;
 
   ConstantTaskInputBuilder(this.input);
 
@@ -159,7 +159,7 @@ class ListToFlattenListTaskInputBuilder<B, E>
 
   @override
   void _addResultElement(B baseElement, E resultElement) {
-    _resultValue.addAll(resultElement as Iterable);
+    _resultValue.addAll(resultElement as Iterable<E>);
   }
 
   @override
@@ -418,6 +418,8 @@ class MapToFlattenListTaskInputBuilder<K, V, E>
 class ObjectToListTaskInput<E> extends TaskInputImpl<List<E>>
     with ListTaskInputMixin<E>
     implements ListTaskInput<E> {
+  // TODO(brianwilkerson) Add another type parameter to this class that can be
+  // used as the type of the keys of [mapper].
   /**
    * The input used to compute the value to be mapped.
    */

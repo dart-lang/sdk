@@ -309,6 +309,7 @@ class BoxFieldElement extends ElementX
 /// A local variable used encode the direct (uncaptured) references to [this].
 class ThisLocal extends Local {
   final ExecutableElement executableContext;
+  final hashCode = ++ElementX.elementHashCode;
 
   ThisLocal(this.executableContext);
 
@@ -352,6 +353,10 @@ class SynthesizedCallMethodElementX extends BaseFunctionElementX
   }
 
   Element get analyzableElement => closureClass.methodElement.analyzableElement;
+
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitMethodElement(this, arg);
+  }
 }
 
 // The box-element for a scope, and the captured variables that need to be

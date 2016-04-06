@@ -280,7 +280,13 @@ source_set("embedded_dart_io") {
   }
   set_sources_assignment_filter(custom_sources_filter)
 
-  defines = [ "DART_IO_SECURE_SOCKET_DISABLED" ]
+  if (is_mac || is_ios) {
+    libs = [
+      "Security.framework",
+    ]
+  } else {
+    defines = [ "DART_IO_SECURE_SOCKET_DISABLED" ]
+  }
 
   sources = io_impl_sources_gypi.sources + builtin_impl_sources_gypi.sources
   sources += [

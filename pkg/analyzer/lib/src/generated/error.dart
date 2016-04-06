@@ -177,7 +177,7 @@ class AnalysisError {
    * Return the value of the given [property], or `null` if the given property
    * is not defined for this error.
    */
-  Object getProperty(ErrorProperty property) => null;
+  Object/*=V*/ getProperty/*<V>*/(ErrorProperty/*<V>*/ property) => null;
 
   @override
   String toString() {
@@ -256,13 +256,14 @@ class AnalysisErrorWithProperties extends AnalysisError {
       : super(source, offset, length, errorCode, arguments);
 
   @override
-  Object getProperty(ErrorProperty property) => _propertyMap[property];
+  Object/*=V*/ getProperty/*<V>*/(ErrorProperty/*<V>*/ property) =>
+      _propertyMap[property] as Object/*=V*/;
 
   /**
    * Set the value of the given [property] to the given [value]. Using a value
    * of `null` will effectively remove the property from this error.
    */
-  void setProperty(ErrorProperty property, Object value) {
+  void setProperty/*<V>*/(ErrorProperty/*<V>*/ property, Object/*=V*/ value) {
     _propertyMap[property] = value;
   }
 }
@@ -2682,6 +2683,7 @@ abstract class ErrorCode {
     HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION,
     HintCode.INVALID_ASSIGNMENT,
     HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
+    HintCode.MISSING_REQUIRED_PARAM,
     HintCode.MISSING_RETURN,
     HintCode.NULL_AWARE_IN_CONDITION,
     HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER,
@@ -3068,28 +3070,28 @@ abstract class ErrorCode {
 /**
  * The properties that can be associated with an [AnalysisError].
  */
-class ErrorProperty extends Enum<ErrorProperty> {
+class ErrorProperty<V> extends Enum<ErrorProperty> {
   /**
    * A property whose value is a list of [FieldElement]s that are final, but
    * not initialized by a constructor.
    */
-  static const ErrorProperty NOT_INITIALIZED_FIELDS =
-      const ErrorProperty('NOT_INITIALIZED_FIELDS', 0);
+  static const ErrorProperty<List<FieldElement>> NOT_INITIALIZED_FIELDS =
+      const ErrorProperty<List<FieldElement>>('NOT_INITIALIZED_FIELDS', 0);
 
   /**
    * A property whose value is the name of the library that is used by all
    * of the "part of" directives, so should be used in the "library" directive.
    * Is `null` if there is no a single name used by all of the parts.
    */
-  static const ErrorProperty PARTS_LIBRARY_NAME =
-      const ErrorProperty('PARTS_LIBRARY_NAME', 1);
+  static const ErrorProperty<String> PARTS_LIBRARY_NAME =
+      const ErrorProperty<String>('PARTS_LIBRARY_NAME', 1);
 
   /**
    * A property whose value is a list of [ExecutableElement] that should
    * be but are not implemented by a concrete class.
    */
-  static const ErrorProperty UNIMPLEMENTED_METHODS =
-      const ErrorProperty('UNIMPLEMENTED_METHODS', 2);
+  static const ErrorProperty<List<ExecutableElement>> UNIMPLEMENTED_METHODS =
+      const ErrorProperty<List<ExecutableElement>>('UNIMPLEMENTED_METHODS', 2);
 
   static const List<ErrorProperty> values = const [
     NOT_INITIALIZED_FIELDS,
@@ -3569,6 +3571,17 @@ class HintCode extends ErrorCode {
   static const HintCode INVALID_USE_OF_PROTECTED_MEMBER = const HintCode(
       'INVALID_USE_OF_PROTECTED_MEMBER',
       "The member '{0}' can only be used within instance members of subclasses of '{1}'");
+
+  /**
+   * Generate a hint for a constructor, function or method invocation where a
+   * required parameter is missing.
+   *
+   * Parameters:
+   * 0: the name of the parameter
+   * 1: an optional reason
+   */
+  static const HintCode MISSING_REQUIRED_PARAM = const HintCode(
+      'MISSING_REQUIRED_PARAM', "The parameter '{0}' is required. {1}");
 
   /**
    * Generate a hint for methods or functions that have a return type, but do

@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22,11 +22,14 @@ import "package:compiler/src/elements/modelx.dart"
     show CompilationUnitElementX, ElementX, LibraryElementX;
 
 import "package:compiler/src/compiler.dart";
+import 'package:compiler/src/options.dart';
 import "package:compiler/src/diagnostics/source_span.dart";
 import "package:compiler/src/diagnostics/spannable.dart";
 import "package:compiler/src/diagnostics/diagnostic_listener.dart";
 import "package:compiler/src/diagnostics/messages.dart";
 import "package:compiler/src/script.dart";
+
+import "options_helper.dart";
 
 export "package:compiler/src/diagnostics/diagnostic_listener.dart";
 export 'package:compiler/src/parser/listener.dart';
@@ -38,6 +41,8 @@ export "package:compiler/src/tokens/token.dart";
 export "package:compiler/src/tokens/token_constants.dart";
 
 class LoggerCanceler extends DiagnosticReporter {
+  DiagnosticOptions get options => const MockDiagnosticOptions();
+
   void log(message) {
     print(message);
   }
@@ -102,7 +107,7 @@ Node parseBodyCode(String text, Function parseMethod,
   NodeListener listener = new NodeListener(
       new ScannerOptions(canUseNative: true),
       reporter, library.entryCompilationUnit);
-  Parser parser = new Parser(listener, enableConditionalDirectives: true);
+  Parser parser = new Parser(listener, new MockParserOptions());
   Token endToken = parseMethod(parser, tokens);
   assert(endToken.kind == EOF_TOKEN);
   Node node = listener.popNode();
@@ -150,7 +155,7 @@ Link<Element> parseUnit(String text, Compiler compiler,
   ElementListener listener = new ElementListener(
       compiler.parsing.getScannerOptionsFor(library),
       reporter, unit, () => id++);
-  PartialParser parser = new PartialParser(listener);
+  PartialParser parser = new PartialParser(listener, new MockParserOptions());
   reporter.withCurrentElement(unit, () => parser.parseUnit(tokens));
   return unit.localMembers;
 }

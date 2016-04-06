@@ -135,7 +135,8 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
          BaseImplementationOfNewMixin<ir.Primitive, dynamic>,
          BaseImplementationOfCompoundsMixin<ir.Primitive, dynamic>,
          BaseImplementationOfSetIfNullsMixin<ir.Primitive, dynamic>,
-         BaseImplementationOfIndexCompoundsMixin<ir.Primitive, dynamic>
+         BaseImplementationOfIndexCompoundsMixin<ir.Primitive, dynamic>,
+         BaseImplementationOfSuperIndexSetIfNullMixin<ir.Primitive, dynamic>
     implements SemanticSendVisitor<ir.Primitive, dynamic> {
   final TreeElements elements;
   final Compiler compiler;
@@ -2717,6 +2718,22 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         sourceInformationBuilder.buildIndexSet(node));
   }
 
+  ir.Primitive translateIfNull(
+       ast.SendSet node,
+       ir.Primitive getValue(),
+       ast.Node rhs,
+       void setValue(ir.Primitive value)) {
+    ir.Primitive value = getValue();
+    // Unlike other compound operators if-null conditionally will not do the
+    // assignment operation.
+    return irBuilder.buildIfNull(value, nested(() {
+      ir.Primitive newValue = build(rhs);
+      setValue(newValue);
+      return newValue;
+    }),
+    sourceInformationBuilder.buildIf(node));
+  }
+
   ir.Primitive translateCompounds(
       ast.SendSet node,
       ir.Primitive getValue(),
@@ -2724,16 +2741,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       void setValue(ir.Primitive value)) {
     ir.Primitive value = getValue();
     op.BinaryOperator operator = rhs.operator;
-    if (operator.kind == op.BinaryOperatorKind.IF_NULL) {
-      // Unlike other compound operators if-null conditionally will not do the
-      // assignment operation.
-      return irBuilder.buildIfNull(value, nested(() {
-        ir.Primitive newValue = build(rhs.rhs);
-        setValue(newValue);
-        return newValue;
-      }),
-      sourceInformationBuilder.buildIf(node));
-    }
+    assert(operator.kind != op.BinaryOperatorKind.IF_NULL);
 
     Selector operatorSelector =
         new Selector.binaryOperator(operator.selectorName);
@@ -2775,6 +2783,68 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       return newValue;
     }),
     sourceInformationBuilder.buildIf(node));
+  }
+
+  @override
+  ir.Primitive handleSuperIndexSetIfNull(
+      ast.SendSet node,
+      Element indexFunction,
+      Element indexSetFunction,
+      ast.Node index,
+      ast.Node rhs,
+      arg,
+      {bool isGetterValid,
+       bool isSetterValid}) {
+    return translateSetIfNull(node, () {
+      if (isGetterValid) {
+        return irBuilder.buildSuperMethodGet(
+            indexFunction, sourceInformationBuilder.buildIndex(node));
+      } else {
+        return buildSuperNoSuchGetter(
+            indexFunction,
+            elements.getGetterTypeMaskInComplexSendSet(node),
+            sourceInformationBuilder.buildIndex(node));
+      }
+    }, rhs, (ir.Primitive result) {
+      if (isSetterValid) {
+        return irBuilder.buildSuperMethodGet(
+            indexSetFunction, sourceInformationBuilder.buildIndexSet(node));
+      } else {
+        return buildSuperNoSuchSetter(
+            indexSetFunction, elements.getTypeMask(node), result,
+            sourceInformationBuilder.buildIndexSet(node));
+      }
+    });
+  }
+
+  @override
+  ir.Primitive visitIndexSetIfNull(
+      ast.SendSet node,
+      ast.Node receiver,
+      ast.Node index,
+      ast.Node rhs,
+      arg) {
+    ir.Primitive target = visit(receiver);
+    ir.Primitive indexValue = visit(index);
+    return translateSetIfNull(node, () {
+      Selector selector = new Selector.index();
+      List<ir.Primitive> arguments = <ir.Primitive>[indexValue];
+      CallStructure callStructure =
+          normalizeDynamicArguments(selector.callStructure, arguments);
+      return irBuilder.buildDynamicInvocation(
+          target,
+          new Selector(selector.kind, selector.memberName, callStructure),
+          elements.getGetterTypeMaskInComplexSendSet(node),
+          arguments,
+          sourceInformationBuilder.buildCall(receiver, node));
+    }, rhs, (ir.Primitive result) {
+      irBuilder.buildDynamicIndexSet(
+          target,
+          elements.getTypeMask(node),
+          indexValue,
+          result,
+          sourceInformationBuilder.buildIndexSet(node));
+    });
   }
 
   @override

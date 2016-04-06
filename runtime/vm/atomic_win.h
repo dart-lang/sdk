@@ -41,6 +41,16 @@ inline void AtomicOperations::IncrementBy(intptr_t* p, intptr_t value) {
 }
 
 
+inline void AtomicOperations::IncrementInt64By(int64_t* p, int64_t value) {
+#if defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
+  InterlockedExchangeAdd64(reinterpret_cast<LONGLONG*>(p),
+                           static_cast<LONGLONG>(value));
+#else
+#error Unsupported host architecture.
+#endif
+}
+
+
 inline uintptr_t AtomicOperations::FetchAndDecrement(uintptr_t* p) {
 #if defined(HOST_ARCH_X64)
   return static_cast<uintptr_t>(

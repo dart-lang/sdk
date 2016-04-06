@@ -498,10 +498,12 @@ void DartUtils::WriteMagicNumber(File* file) {
 
 
 Dart_Handle DartUtils::LoadScript(const char* script_uri) {
+  Dart_TimelineEvent("LoadScript",
+                     Dart_TimelineGetMicros(),
+                     Dart_GetMainPortId(),
+                     Dart_Timeline_Event_Async_Begin,
+                     0, NULL, NULL);
   Dart_Handle uri = Dart_NewStringFromCString(script_uri);
-  IsolateData* isolate_data =
-      reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
-  Dart_TimelineAsyncBegin("LoadScript", &(isolate_data->load_async_id));
   return LoadDataAsync_Invoke(Dart_Null(), uri, Dart_Null());
 }
 

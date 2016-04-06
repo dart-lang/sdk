@@ -259,13 +259,13 @@ abstract class Stream<T> {
    *         _outputSink.add(data);
    *       }
    *
-   *       void addError(e, [st]) => _outputSink(e, st);
+   *       void addError(e, [st]) => _outputSink.addError(e, st);
    *       void close() => _outputSink.close();
    *     }
    *
    *     class DuplicationTransformer implements StreamTransformer<String, String> {
    *       // Some generic types ommitted for brevety.
-   *       Stream bind(Stream stream) => new Stream<String>.eventTransform(
+   *       Stream bind(Stream stream) => new Stream<String>.eventTransformed(
    *           stream,
    *           (EventSink sink) => new DuplicationSink(sink));
    *     }

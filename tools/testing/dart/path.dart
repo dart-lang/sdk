@@ -13,9 +13,12 @@ class Path {
   final bool isWindowsShare;
 
   Path(String source)
-      : _path = _clean(source), isWindowsShare = _isWindowsShare(source);
+      : _path = _clean(source),
+        isWindowsShare = _isWindowsShare(source);
 
-  Path.raw(String source) : _path = source, isWindowsShare = false;
+  Path.raw(String source)
+      : _path = source,
+        isWindowsShare = false;
 
   Path._internal(String this._path, bool this.isWindowsShare);
 
@@ -58,8 +61,7 @@ class Path {
     // Throws exception if an impossible case is reached.
     if (base.isAbsolute != isAbsolute ||
         base.isWindowsShare != isWindowsShare) {
-      throw new ArgumentError(
-          "Invalid case of Path.relativeTo(base):\n"
+      throw new ArgumentError("Invalid case of Path.relativeTo(base):\n"
           "  Path and base must both be relative, or both absolute.\n"
           "  Arguments: $_path.relativeTo($base)");
     }
@@ -72,29 +74,26 @@ class Path {
       bool pathHasDrive =
           _path.length >= 4 && _path[2] == ':' && _path[3] == '/';
       if (baseHasDrive && pathHasDrive) {
-        int baseDrive = basePath.codeUnitAt(1) | 32;  // Convert to uppercase.
+        int baseDrive = basePath.codeUnitAt(1) | 32; // Convert to uppercase.
         if (baseDrive >= 'a'.codeUnitAt(0) &&
             baseDrive <= 'z'.codeUnitAt(0) &&
             baseDrive == (_path.codeUnitAt(1) | 32)) {
-          if(basePath[1] != _path[1]) {
+          if (basePath[1] != _path[1]) {
             // Replace the drive letter in basePath with that from _path.
             basePath = '/${_path[1]}:/${basePath.substring(4)}';
             base = new Path(basePath);
           }
         } else {
-          throw new ArgumentError(
-              "Invalid case of Path.relativeTo(base):\n"
+          throw new ArgumentError("Invalid case of Path.relativeTo(base):\n"
               "  Base path and target path are on different Windows drives.\n"
               "  Arguments: $_path.relativeTo($base)");
         }
       } else if (baseHasDrive != pathHasDrive) {
-        throw new ArgumentError(
-            "Invalid case of Path.relativeTo(base):\n"
+        throw new ArgumentError("Invalid case of Path.relativeTo(base):\n"
             "  Base path must start with a drive letter if and "
             "only if target path does.\n"
             "  Arguments: $_path.relativeTo($base)");
       }
-
     }
     if (_path.startsWith(basePath)) {
       if (_path == basePath) return new Path('.');
@@ -125,8 +124,7 @@ class Path {
     final segments = new List<String>();
 
     if (common < baseSegments.length && baseSegments[common] == '..') {
-      throw new ArgumentError(
-          "Invalid case of Path.relativeTo(base):\n"
+      throw new ArgumentError("Invalid case of Path.relativeTo(base):\n"
           "  Base path has more '..'s than path does.\n"
           "  Arguments: $_path.relativeTo($base)");
     }
@@ -140,11 +138,10 @@ class Path {
       segments.add('.');
     }
     if (hasTrailingSeparator) {
-        segments.add('');
+      segments.add('');
     }
     return new Path(segments.join('/'));
   }
-
 
   Path join(Path further) {
     if (further.isAbsolute) {
@@ -175,19 +172,19 @@ class Path {
     // Contains no segments that are '.'.
     // Absolute paths have no segments that are '..'.
     // All '..' segments of a relative path are at the beginning.
-    if (isEmpty) return false;  // The canonical form of '' is '.'.
+    if (isEmpty) return false; // The canonical form of '' is '.'.
     if (_path == '.') return true;
-    List segs = _path.split('/');  // Don't mask the getter 'segments'.
-    if (segs[0] == '') {  // Absolute path
-      segs[0] = null;  // Faster than removeRange().
-    } else {  // A canonical relative path may start with .. segments.
-      for (int pos = 0;
-           pos < segs.length && segs[pos] == '..';
-           ++pos) {
+    List segs = _path.split('/'); // Don't mask the getter 'segments'.
+    if (segs[0] == '') {
+      // Absolute path
+      segs[0] = null; // Faster than removeRange().
+    } else {
+      // A canonical relative path may start with .. segments.
+      for (int pos = 0; pos < segs.length && segs[pos] == '..'; ++pos) {
         segs[pos] = null;
       }
     }
-    if (segs.last == '') segs.removeLast();  // Path ends with /.
+    if (segs.last == '') segs.removeLast(); // Path ends with /.
     // No remaining segments can be ., .., or empty.
     return !segs.any((s) => s == '' || s == '.' || s == '..');
   }
@@ -196,10 +193,7 @@ class Path {
     bool isAbs = isAbsolute;
     List segs = segments();
     String drive;
-    if (isAbs &&
-        !segs.isEmpty &&
-        segs[0].length == 2 &&
-        segs[0][1] == ':') {
+    if (isAbs && !segs.isEmpty && segs[0].length == 2 && segs[0][1] == ':') {
       drive = segs[0];
       segs.removeRange(0, 1);
     }

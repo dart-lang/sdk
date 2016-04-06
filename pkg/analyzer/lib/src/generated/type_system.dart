@@ -873,7 +873,7 @@ abstract class TypeSystem {
     // Walk the superinterface hierarchy looking for [genericType].
     List<DartType> candidates = <DartType>[];
     HashSet<ClassElement> visitedClasses = new HashSet<ClassElement>();
-    void recurse(InterfaceTypeImpl interface) {
+    void recurse(InterfaceType interface) {
       if (interface.element == genericType.element &&
           interface.typeArguments.isNotEmpty) {
         candidates.add(interface.typeArguments[0]);

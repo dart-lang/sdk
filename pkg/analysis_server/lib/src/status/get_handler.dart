@@ -457,6 +457,10 @@ class GetHandler {
     if (unit != null) {
       return unit;
     }
+    unit = entry.getValue(RESOLVED_UNIT12);
+    if (unit != null) {
+      return unit;
+    }
     return entry.getValue(RESOLVED_UNIT);
   }
 
@@ -526,6 +530,7 @@ class GetHandler {
       results.add(RESOLVED_UNIT9);
       results.add(RESOLVED_UNIT10);
       results.add(RESOLVED_UNIT11);
+      results.add(RESOLVED_UNIT12);
       results.add(RESOLVED_UNIT);
       results.add(STRONG_MODE_ERRORS);
       results.add(USED_IMPORTED_ELEMENTS);
@@ -886,12 +891,11 @@ class GetHandler {
     Map<Folder, List<CacheEntry>> entryMap =
         new HashMap<Folder, List<CacheEntry>>();
     StringBuffer invalidKeysBuffer = new StringBuffer();
-    analysisServer.folderMap
-        .forEach((Folder folder, InternalAnalysisContext context) {
+    analysisServer.folderMap.forEach((Folder folder, AnalysisContext context) {
       Source source = context.sourceFactory.forUri(sourceUri);
       if (source != null) {
         MapIterator<AnalysisTarget, CacheEntry> iterator =
-            context.analysisCache.iterator();
+            (context as InternalAnalysisContext).analysisCache.iterator();
         while (iterator.moveNext()) {
           if (source == iterator.key.source) {
             if (!allContexts.contains(folder)) {
@@ -1223,15 +1227,15 @@ class GetHandler {
       return _returnFailure(request, 'Invalid context: $contextFilter');
     }
 
-    List<String> priorityNames;
+    List<String> priorityNames = <String>[];
     List<String> explicitNames = <String>[];
     List<String> implicitNames = <String>[];
     Map<String, String> links = new HashMap<String, String>();
     List<CaughtException> exceptions = <CaughtException>[];
     InternalAnalysisContext context = analysisServer.folderMap[folder];
-    priorityNames = context.prioritySources
-        .map((Source source) => source.fullName)
-        .toList();
+    context.prioritySources.forEach((Source source) {
+      priorityNames.add(source.fullName);
+    });
     MapIterator<AnalysisTarget, CacheEntry> iterator =
         context.analysisCache.iterator(context: context);
     while (iterator.moveNext()) {
@@ -1885,7 +1889,7 @@ class GetHandler {
     buffer.write(_diagnosticCallAverage.value);
     buffer.write(' (ms)</p>&nbsp;');
 
-    var json = response.toJson()[Response.RESULT];
+    Map json = response.toJson()[Response.RESULT];
     List contexts = json['contexts'];
     contexts.sort((first, second) => first['name'].compareTo(second['name']));
 
@@ -2232,7 +2236,7 @@ class GetHandler {
     _writeTwoColumns(buffer, (StringBuffer buffer) {
       if (analysisServer == null) {
         buffer.write('Status: <span style="color:red">Not running</span>');
-        return false;
+        return;
       }
       buffer.write('<p>');
       buffer.write('Status: Running<br>');
@@ -2261,7 +2265,7 @@ class GetHandler {
     }, (StringBuffer buffer) {
       _writeSubscriptionList(buffer, ServerService.VALUES, services);
     });
-    return true;
+    return analysisServer != null;
   }
 
   /**

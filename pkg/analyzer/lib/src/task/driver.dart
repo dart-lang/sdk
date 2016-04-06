@@ -597,7 +597,7 @@ class WorkItem {
    * or `null` if all of the inputs have been collected and the task can be
    * created.
    */
-  TaskInputBuilder builder;
+  TopLevelTaskInputBuilder builder;
 
   /**
    * The [TargetedResult]s outputs of this task depends on.

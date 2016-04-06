@@ -40,8 +40,9 @@ void main(List<String> args) {
       new PackageUriResolver([new JavaFile(packageRoot)])
     ]);
 
-    context.analysisOptions.strongMode = true;
-    context.analysisOptions.strongModeHints = true;
+    AnalysisOptionsImpl options = context.analysisOptions;
+    options.strongMode = true;
+    options.strongModeHints = true;
 
     var mainSource =
         new FileBasedSource(new JavaFile(p.fromUri(Platform.script)));

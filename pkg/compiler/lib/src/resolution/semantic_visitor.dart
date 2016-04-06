@@ -3181,8 +3181,7 @@ abstract class SemanticSendVisitor<R, A> {
       A arg);
 
   /// Compound index assignment of [rhs] with [operator] to [index] on the
-  /// index operators of [receiver] whose getter and setter are defined by
-  /// [getterSelector] and [setterSelector], respectively.
+  /// index operators of [receiver].
   ///
   /// For instance:
   ///
@@ -3219,8 +3218,8 @@ abstract class SemanticSendVisitor<R, A> {
       A arg);
 
   /// Compound index assignment of [rhs] with [operator] to [index] on a super
-  /// super class where the index getter is undefined and the index setter is
-  /// defined by [setter].
+  /// class where the index getter is undefined and the index setter is defined
+  /// by [setter].
   ///
   /// For instance:
   ///
@@ -3240,8 +3239,8 @@ abstract class SemanticSendVisitor<R, A> {
       A arg);
 
   /// Compound index assignment of [rhs] with [operator] to [index] on a super
-  /// super class where the index getter is defined by [getter] but the index
-  /// setter is undefined.
+  /// class where the index getter is defined by [getter] but the index setter
+  /// is undefined.
   ///
   /// For instance:
   ///
@@ -3262,7 +3261,7 @@ abstract class SemanticSendVisitor<R, A> {
       A arg);
 
   /// Compound index assignment of [rhs] with [operator] to [index] on a super
-  /// super class where the index getter and setter are undefined.
+  /// class where the index getter and setter are undefined.
   ///
   /// For instance:
   ///
@@ -3277,6 +3276,99 @@ abstract class SemanticSendVisitor<R, A> {
       Element element,
       Node index,
       AssignmentOperator operator,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to [index] on the index operators
+  /// of [receiver].
+  ///
+  /// For instance:
+  ///
+  ///     m(receiver, index, rhs) => receiver[index] ??= rhs;
+  ///
+  R visitIndexSetIfNull(
+      SendSet node,
+      Node receiver,
+      Node index,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to [index] on the index operators
+  /// of a super class defined by [getter] and [setter].
+  ///
+  /// For instance:
+  ///
+  ///     class B {
+  ///       operator [](index) {}
+  ///       operator [](index, value) {}
+  ///     }
+  ///     class C extends B {
+  ///       m(index, rhs) => super[index] ??= rhs;
+  ///     }
+  ///
+  R visitSuperIndexSetIfNull(
+      SendSet node,
+      MethodElement getter,
+      MethodElement setter,
+      Node index,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to [index] on a super class where
+  /// the index getter is undefined and the index setter is defined by [setter].
+  ///
+  /// For instance:
+  ///
+  ///     class B {
+  ///       operator [](index, value) {}
+  ///     }
+  ///     class C extends B {
+  ///       m() => super[1] ??= 42;
+  ///     }
+  ///
+  R visitUnresolvedSuperGetterIndexSetIfNull(
+      Send node,
+      Element element,
+      MethodElement setter,
+      Node index,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to [index] on a super class where
+  /// the index getter is defined by [getter] but the index setter is undefined.
+  ///
+  /// For instance:
+  ///
+  ///     class B {
+  ///       operator [](index) => 42;
+  ///     }
+  ///     class C extends B {
+  ///       m() => super[1] ??= 42;
+  ///     }
+  ///
+  R visitUnresolvedSuperSetterIndexSetIfNull(
+      Send node,
+      MethodElement getter,
+      Element element,
+      Node index,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to [index] on a super class where
+  /// the index getter and setter are undefined.
+  ///
+  /// For instance:
+  ///
+  ///     class B {
+  ///     }
+  ///     class C extends B {
+  ///       m() => super[1] ??= 42;
+  ///     }
+  ///
+  R visitUnresolvedSuperIndexSetIfNull(
+      Send node,
+      Element element,
+      Node index,
       Node rhs,
       A arg);
 
@@ -5084,6 +5176,22 @@ abstract class SemanticSendVisitor<R, A> {
       Send node,
       ErroneousElement error,
       AssignmentOperator operator,
+      Node rhs,
+      A arg);
+
+  /// If-null assignment expression of [rhs] to [index] on the index operators
+  /// of an invalid expression.
+  ///
+  /// For instance:
+  ///
+  ///     import 'foo.dart' as p;
+  ///
+  ///     m(index, rhs) => p[index] ??= rhs;
+  ///
+  R errorInvalidIndexSetIfNull(
+      SendSet node,
+      ErroneousElement error,
+      Node index,
       Node rhs,
       A arg);
 

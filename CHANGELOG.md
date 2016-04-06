@@ -2,8 +2,9 @@
 
 ### Core library changes
 
-* `dart:core`
-  * Fixed DateTime implementation in the VM (issue #19923), but no API change.
+* `dart:io`
+  * Added `SecurityContext.alpnSupported`, which is true if a platform
+    supports ALPN, and false otherwise.
 
 ### Analyzer
 
@@ -26,6 +27,16 @@
 
   * Both `pub get` and `pub upgrade` now have a `--no-precompile` flag that
     disables precompilation of executables and transformed dependencies.
+
+* Dart Dev Compiler
+  * The **experimental** `dartdevc` executable has been added to the SDK.
+
+  * It will help early adopters validate the implementation and provide
+    feedback. `dartdevc` **is not** yet ready for production usage.
+
+  * Read more about the Dart Dev Compiler [here][dartdevc].
+
+[dartdevc]: https://github.com/dart-lang/dev_compiler
 
 ## 1.15.0 - 2016-03-09
 

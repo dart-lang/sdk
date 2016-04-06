@@ -450,7 +450,7 @@ class _CompilationUnitSerializer {
 
   /**
    * Compute the appropriate De Bruijn index to represent the given type
-   * parameter [type].
+   * parameter [type], or return `null` if the type parameter is not in scope.
    */
   int findTypeParameterIndex(TypeParameterType type, Element context) {
     Element originalContext = context;
@@ -475,8 +475,7 @@ class _CompilationUnitSerializer {
       }
       context = context.enclosingElement;
     }
-    throw new StateError(
-        'Unbound type parameter $type (${originalContext?.location})');
+    return null;
   }
 
   /**
@@ -504,10 +503,11 @@ class _CompilationUnitSerializer {
     if (element.metadata.isEmpty) {
       return const <UnlinkedConstBuilder>[];
     }
-    return element.metadata.map((ElementAnnotationImpl a) {
+    return element.metadata.map((ElementAnnotation a) {
       _ConstExprSerializer serializer =
           new _ConstExprSerializer(this, element, null);
-      serializer.serializeAnnotation(a.annotationAst);
+      serializer
+          .serializeAnnotation((a as ElementAnnotationImpl).annotationAst);
       return serializer.toBuilder();
     }).toList();
   }
@@ -852,12 +852,13 @@ class _CompilationUnitSerializer {
   /**
    * Serialize the given [label], creating an [UnlinkedLabelBuilder].
    */
-  UnlinkedLabelBuilder serializeLabel(LabelElementImpl label) {
+  UnlinkedLabelBuilder serializeLabel(LabelElement label) {
+    LabelElementImpl labelImpl = label as LabelElementImpl;
     UnlinkedLabelBuilder b = new UnlinkedLabelBuilder();
-    b.name = label.name;
-    b.nameOffset = label.nameOffset;
-    b.isOnSwitchMember = label.isOnSwitchMember;
-    b.isOnSwitchStatement = label.isOnSwitchStatement;
+    b.name = labelImpl.name;
+    b.nameOffset = labelImpl.nameOffset;
+    b.isOnSwitchMember = labelImpl.isOnSwitchMember;
+    b.isOnSwitchStatement = labelImpl.isOnSwitchStatement;
     return b;
   }
 
@@ -1007,7 +1008,15 @@ class _CompilationUnitSerializer {
     EntityRefBuilder b = new EntityRefBuilder(slot: slot);
     Element typeElement = type.element;
     if (type is TypeParameterType) {
-      b.paramReference = findTypeParameterIndex(type, context);
+      int typeParameterIndex = findTypeParameterIndex(type, context);
+      if (typeParameterIndex != null) {
+        b.paramReference = typeParameterIndex;
+      } else {
+        // Out-of-scope type parameters only occur in circumstances where they
+        // are irrelevant (i.e. when a type parameter is unused).  So we can
+        // safely convert them to `dynamic`.
+        b.reference = serializeReferenceForType(DynamicTypeImpl.instance);
+      }
     } else if (type is FunctionType &&
         typeElement is FunctionElement &&
         typeElement.enclosingElement == null) {
@@ -1069,8 +1078,8 @@ class _CompilationUnitSerializer {
   }
 
   /**
-   * Create a new entry in the references table ([UnlinkedLibrary.references]
-   * and [LinkedLibrary.references]) representing an entity having the given
+   * Create a new entry in the references table ([UnlinkedUnit.references]
+   * and [LinkedUnit.references]) representing an entity having the given
    * [name] and [kind].  If [unit] is given, it is the index of the compilation
    * unit containing the entity being referred to.  If [prefixReference] is
    * given, it indicates the entry in the references table for the prefix.
@@ -1273,11 +1282,6 @@ class _CompilationUnitSerializer {
       return index;
     });
   }
-
-  int _getLengthPropertyReference(int prefix) {
-    return serializeUnlinkedReference('length', ReferenceKind.length,
-        prefixReference: prefix);
-  }
 }
 
 /**
@@ -1351,70 +1355,58 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
 
   EntityRefBuilder serializeIdentifier(Identifier identifier,
       {int prefixReference: 0}) {
-    Element element = identifier.staticElement;
-    // Unresolved identifier.
-    if (element == null) {
-      int reference;
-      if (identifier is PrefixedIdentifier) {
-        int prefix = serializeIdentifier(identifier.prefix).reference;
-        reference = serializer.serializeUnlinkedReference(
-            identifier.identifier.name, ReferenceKind.unresolved,
-            prefixReference: prefix);
+    if (identifier is SimpleIdentifier) {
+      Element element = identifier.staticElement;
+      if (element is TypeParameterElement) {
+        int typeParameterIndex =
+            serializer.findTypeParameterIndex(element.type, context);
+        return new EntityRefBuilder(paramReference: typeParameterIndex);
+      } else if (_isPrelinkResolvableElement(element)) {
+        int ref = serializer._getElementReferenceId(element);
+        return new EntityRefBuilder(reference: ref);
       } else {
-        reference = serializer.serializeUnlinkedReference(
-            identifier.name, ReferenceKind.unresolved,
-            prefixReference: prefixReference);
+        int ref = serializer.serializeUnlinkedReference(
+            identifier.name, ReferenceKind.unresolved);
+        return new EntityRefBuilder(reference: ref);
       }
-      return new EntityRefBuilder(reference: reference);
-    }
-    // The only supported instance property accessor - `length`.
-    if (identifier is PrefixedIdentifier &&
-        element is PropertyAccessorElement &&
-        !element.isStatic) {
-      if (element.name != 'length') {
-        throw new StateError('Only "length" property is allowed in constants.');
+    } else if (identifier is PrefixedIdentifier) {
+      Element element = identifier.staticElement;
+      if (_isPrelinkResolvableElement(element)) {
+        int ref = serializer._getElementReferenceId(element);
+        return new EntityRefBuilder(reference: ref);
+      } else {
+        int prefixRef = serializeIdentifier(identifier.prefix).reference;
+        int ref = serializer.serializeUnlinkedReference(
+            identifier.identifier.name, ReferenceKind.unresolved,
+            prefixReference: prefixRef);
+        return new EntityRefBuilder(reference: ref);
       }
-      Element prefixElement = identifier.prefix.staticElement;
-      int prefixRef = serializer._getElementReferenceId(prefixElement);
-      int lengthRef = serializer._getLengthPropertyReference(prefixRef);
-      return new EntityRefBuilder(reference: lengthRef);
+    } else {
+      throw new StateError(
+          'Unexpected identifier type: ${identifier.runtimeType}');
     }
-    if (element is TypeParameterElement) {
-      throw new StateError('Constants may not refer to type parameters.');
-    }
-    return new EntityRefBuilder(
-        reference: serializer._getElementReferenceId(element));
   }
 
   @override
-  EntityRefBuilder serializePropertyAccess(PropertyAccess access) {
-    Element element = access.propertyName.staticElement;
-    // Unresolved property access.
-    if (element == null) {
-      Expression target = access.target;
-      if (target is Identifier) {
-        EntityRefBuilder targetRef = serializeIdentifier(target);
-        EntityRefBuilder propertyRef = serializeIdentifier(access.propertyName,
-            prefixReference: targetRef.reference);
-        return new EntityRefBuilder(reference: propertyRef.reference);
+  EntityRefBuilder serializeIdentifierSequence(Expression expr) {
+    if (expr is Identifier) {
+      return serializeIdentifier(expr);
+    }
+    if (expr is PropertyAccess) {
+      Element element = expr.propertyName.staticElement;
+      if (_isPrelinkResolvableElement(element)) {
+        int ref = serializer._getElementReferenceId(element);
+        return new EntityRefBuilder(reference: ref);
       } else {
-        // TODO(scheglov) should we handle other targets in malformed constants?
-        throw new StateError('Unexpected target type: ${target.runtimeType}');
+        int targetRef = serializeIdentifierSequence(expr.target).reference;
+        int ref = serializer.serializeUnlinkedReference(
+            expr.propertyName.name, ReferenceKind.unresolved,
+            prefixReference: targetRef);
+        return new EntityRefBuilder(reference: ref);
       }
+    } else {
+      throw new StateError('Unexpected node type: ${expr.runtimeType}');
     }
-    // The only supported instance property accessor - `length`.
-    Expression target = access.target;
-    if (target is Identifier &&
-        element is PropertyAccessorElement &&
-        !element.isStatic) {
-      assert(element.name == 'length');
-      Element prefixElement = target.staticElement;
-      int prefixRef = serializer._getElementReferenceId(prefixElement);
-      int lengthRef = serializer._getLengthPropertyReference(prefixRef);
-      return new EntityRefBuilder(reference: lengthRef);
-    }
-    return new EntityRefBuilder(
-        reference: serializer._getElementReferenceId(element));
   }
 
   @override
@@ -1427,6 +1419,31 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
     }
     DartType type = typeName != null ? typeName.type : DynamicTypeImpl.instance;
     return serializer.serializeTypeRef(type, context);
+  }
+
+  /**
+   * Return `true` if the given [element] can be resolved at prelink step.
+   */
+  static bool _isPrelinkResolvableElement(Element element) {
+    if (element == null) {
+      return false;
+    }
+    if (element == DynamicTypeImpl.instance.element) {
+      return true;
+    }
+    if (element is PrefixElement) {
+      return true;
+    }
+    Element enclosingElement = element.enclosingElement;
+    if (enclosingElement is CompilationUnitElement) {
+      return true;
+    }
+    if (enclosingElement is ClassElement) {
+      return element is ConstructorElement ||
+          element is ClassMemberElement && element.isStatic ||
+          element is PropertyAccessorElement && element.isStatic;
+    }
+    return false;
   }
 }
 

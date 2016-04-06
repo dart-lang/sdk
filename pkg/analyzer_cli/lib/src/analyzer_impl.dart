@@ -250,6 +250,7 @@ class AnalyzerImpl {
   ///   * if [options.enableTypeChecks] is false, then de-escalate checked-mode
   ///   compile time errors to a severity of [ErrorSeverity.INFO].
   ///   * if [options.hintsAreFatal] is true, escalate hints to errors.
+  ///   * if [options.lintsAreFatal] is true, escalate lints to errors.
   static ErrorSeverity computeSeverity(
       AnalysisError error, CommandLineOptions options,
       [AnalysisContext context]) {
@@ -267,6 +268,10 @@ class AnalyzerImpl {
     }
 
     if (options.hintsAreFatal && error.errorCode is HintCode) {
+      return ErrorSeverity.ERROR;
+    }
+
+    if (options.lintsAreFatal && error.errorCode is LintCode) {
       return ErrorSeverity.ERROR;
     }
 

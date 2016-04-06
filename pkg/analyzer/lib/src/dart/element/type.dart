@@ -688,7 +688,7 @@ class FunctionTypeImpl extends TypeImpl implements FunctionType {
       // base types.
       assert(this.prunedTypedefs == null);
       List<DartType> typeArgs = typeArguments
-          .map((TypeImpl t) => t.pruned(prune))
+          .map((DartType t) => (t as TypeImpl).pruned(prune))
           .toList(growable: false);
       return new FunctionTypeImpl._(
           element, name, prune, typeArgs, _isInstantiated);
@@ -1616,8 +1616,9 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
       // base types.
       assert(this.prunedTypedefs == null);
       InterfaceTypeImpl result = new InterfaceTypeImpl._(element, name, prune);
-      result.typeArguments =
-          typeArguments.map((TypeImpl t) => t.pruned(prune)).toList();
+      result.typeArguments = typeArguments
+          .map((DartType t) => (t as TypeImpl).pruned(prune))
+          .toList();
       return result;
     }
   }

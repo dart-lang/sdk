@@ -35,8 +35,8 @@ class CodegenMatchersVisitor extends HierarchicalApiVisitor with CodeGenerator {
   String context;
 
   CodegenMatchersVisitor(Api api)
-      : super(api),
-        toHtmlVisitor = new ToHtmlVisitor(api) {
+      : toHtmlVisitor = new ToHtmlVisitor(api),
+        super(api) {
     codeGeneratorSettings.commentLineLength = 79;
     codeGeneratorSettings.languageName = 'dart';
   }

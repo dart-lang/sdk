@@ -81,7 +81,8 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
         if (next.isSynthetic) {
           next = next.next;
         }
-        if (previous.lexeme == ')' && next.lexeme == '{') {
+        if (previous.type == TokenType.CLOSE_PAREN &&
+            next.type == TokenType.OPEN_CURLY_BRACKET) {
           _addSuggestion2(ASYNC);
           _addSuggestion2(ASYNC_STAR);
           _addSuggestion2(SYNC_STAR);

@@ -1936,6 +1936,8 @@ FullSnapshotWriter::FullSnapshotWriter(uint8_t** vm_isolate_snapshot_buffer,
 
 FullSnapshotWriter::~FullSnapshotWriter() {
   delete forward_list_;
+  // We may run Dart code afterwards, restore the symbol table.
+  isolate()->object_store()->set_symbol_table(symbol_table_);
   symbol_table_ = Array::null();
   scripts_ = Array::null();
 }

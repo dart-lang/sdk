@@ -179,6 +179,16 @@ abstract class ErrorBulkMixin<R, A>
   }
 
   @override
+  R errorInvalidIndexSetIfNull(
+      SendSet node,
+      ErroneousElement error,
+      Node index,
+      Node rhs,
+      A arg) {
+    return bulkHandleError(node, error, arg);
+  }
+
+  @override
   R errorInvalidIndexPrefix(
       Send node,
       ErroneousElement error,
@@ -1838,6 +1848,59 @@ abstract class SetIfNullBulkMixin<R, A>
       Send node,
       MethodElement getter,
       Element element,
+      Node rhs,
+      A arg) {
+    return bulkHandleSetIfNull(node, arg);
+  }
+
+  @override
+  R visitIndexSetIfNull(
+      SendSet node,
+      Node receiver,
+      Node index,
+      Node rhs,
+      A arg) {
+    return bulkHandleSetIfNull(node, arg);
+  }
+
+  @override
+  R visitSuperIndexSetIfNull(
+      SendSet node,
+      MethodElement getter,
+      MethodElement setter,
+      Node index,
+      Node rhs,
+      A arg) {
+    return bulkHandleSetIfNull(node, arg);
+  }
+
+  @override
+  R visitUnresolvedSuperGetterIndexSetIfNull(
+      Send node,
+      Element element,
+      MethodElement setter,
+      Node index,
+      Node rhs,
+      A arg) {
+    return bulkHandleSetIfNull(node, arg);
+  }
+
+  @override
+  R visitUnresolvedSuperSetterIndexSetIfNull(
+      Send node,
+      MethodElement getter,
+      Element element,
+      Node index,
+      Node rhs,
+      A arg) {
+    return bulkHandleSetIfNull(node, arg);
+  }
+
+  @override
+  R visitUnresolvedSuperIndexSetIfNull(
+      Send node,
+      Element element,
+      Node index,
       Node rhs,
       A arg) {
     return bulkHandleSetIfNull(node, arg);
@@ -4041,15 +4104,6 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       Send node,
       PrefixElement prefix,
       A arg) {
-  }
-
-  @override
-  R errorInvalidAssert(
-      Send node,
-      NodeList arguments,
-      A arg) {
-    apply(arguments, arg);
-    return null;
   }
 
   @override
@@ -7222,6 +7276,83 @@ class TraversalSendMixin<R, A> implements SemanticSendVisitor<R, A> {
       A arg) {
     return null;
   }
+
+  @override
+  R visitIndexSetIfNull(
+      SendSet node,
+      Node receiver,
+      Node index,
+      Node rhs,
+      A arg) {
+    apply(receiver, arg);
+    apply(index, arg);
+    apply(rhs, arg);
+    return null;
+  }
+
+  @override
+  R visitSuperIndexSetIfNull(
+      SendSet node,
+      MethodElement getter,
+      MethodElement setter,
+      Node index,
+      Node rhs,
+      A arg) {
+    apply(index, arg);
+    apply(rhs, arg);
+    return null;
+  }
+
+  @override
+  R visitUnresolvedSuperGetterIndexSetIfNull(
+      Send node,
+      Element element,
+      MethodElement setter,
+      Node index,
+      Node rhs,
+      A arg) {
+    apply(index, arg);
+    apply(rhs, arg);
+    return null;
+  }
+
+  @override
+  R visitUnresolvedSuperSetterIndexSetIfNull(
+      Send node,
+      MethodElement getter,
+      Element element,
+      Node index,
+      Node rhs,
+      A arg) {
+    apply(index, arg);
+    apply(rhs, arg);
+    return null;
+  }
+
+
+  @override
+  R visitUnresolvedSuperIndexSetIfNull(
+      Send node,
+      Element element,
+      Node index,
+      Node rhs,
+      A arg) {
+    apply(index, arg);
+    apply(rhs, arg);
+    return null;
+  }
+
+  @override
+  R errorInvalidIndexSetIfNull(
+      SendSet node,
+      ErroneousElement error,
+      Node index,
+      Node rhs,
+      A arg) {
+    apply(index, arg);
+    apply(rhs, arg);
+    return null;
+  }
 }
 
 /// [SemanticDeclarationVisitor] that visits subnodes.
@@ -9866,7 +9997,7 @@ abstract class BaseImplementationOfCompoundsMixin<R, A>
         arg);
   }
 
-
+  @override
   R visitSuperGetterSetterPrefix(
       Send node,
       FunctionElement getter,
@@ -11826,7 +11957,72 @@ abstract class BaseImplementationOfIndexCompoundsMixin<R, A>
   }
 }
 
+/// Simplified handling of super if-null assignments.
+abstract class BaseImplementationOfSuperIndexSetIfNullMixin<R, A>
+    implements SemanticSendVisitor<R, A> {
 
+  /// Handle a super index if-null assignments, like `super[index] ??= rhs`.
+  R handleSuperIndexSetIfNull(
+      SendSet node,
+      Element indexFunction,
+      Element indexSetFunction,
+      Node index,
+      Node rhs,
+      A arg,
+      {bool isGetterValid,
+       bool isSetterValid});
+
+  @override
+  R visitSuperIndexSetIfNull(
+      Send node,
+      FunctionElement indexFunction,
+      FunctionElement indexSetFunction,
+      Node index,
+      Node rhs,
+      A arg) {
+    return handleSuperIndexSetIfNull(
+        node, indexFunction, indexSetFunction, index, rhs, arg,
+        isGetterValid: true, isSetterValid: true);
+  }
+
+  @override
+  R visitUnresolvedSuperGetterIndexSetIfNull(
+      Send node,
+      Element indexFunction,
+      FunctionElement indexSetFunction,
+      Node index,
+      Node rhs,
+      A arg) {
+    return handleSuperIndexSetIfNull(
+        node, indexFunction, indexSetFunction, index, rhs, arg,
+        isGetterValid: false, isSetterValid: true);
+  }
+
+  @override
+  R visitUnresolvedSuperSetterIndexSetIfNull(
+      Send node,
+      FunctionElement indexFunction,
+      Element indexSetFunction,
+      Node index,
+      Node rhs,
+      A arg) {
+    return handleSuperIndexSetIfNull(
+        node, indexFunction, indexSetFunction, index, rhs, arg,
+        isGetterValid: true, isSetterValid: false);
+  }
+
+  @override
+  R visitUnresolvedSuperIndexSetIfNull(
+      Send node,
+      Element element,
+      Node index,
+      Node rhs,
+      A arg) {
+    return handleSuperIndexSetIfNull(
+        node, element, element, index, rhs, arg,
+        isGetterValid: false, isSetterValid: false);
+  }
+}
 
 /// Mixin that groups all `visitSuperXPrefix`, `visitSuperXPostfix` methods by
 /// delegating calls to `handleSuperXPostfixPrefix` methods.

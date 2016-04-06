@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "bin/builtin.h"
+#include "vm/compiler.h"
 #include "include/dart_api.h"
 #include "include/dart_mirrors_api.h"
 #include "include/dart_native_api.h"
@@ -9195,7 +9196,11 @@ TEST_CASE(Timeline_Dart_TimelineDuration) {
   // Make sure it is enabled.
   stream->set_enabled(true);
   // Add a duration event.
-  Dart_TimelineDuration("testDurationEvent", 0, 1);
+  Dart_TimelineEvent("testDurationEvent",
+                     0,
+                     1,
+                     Dart_Timeline_Event_Duration,
+                     0, NULL, NULL);
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
   Timeline::ReclaimCachedBlocksFromThreads();
@@ -9212,7 +9217,11 @@ TEST_CASE(Timeline_Dart_TimelineInstant) {
   TimelineStream* stream = Timeline::GetEmbedderStream();
   // Make sure it is enabled.
   stream->set_enabled(true);
-  Dart_TimelineInstant("testInstantEvent");
+  Dart_TimelineEvent("testInstantEvent",
+                     0,
+                     1,
+                     Dart_Timeline_Event_Instant,
+                     0, NULL, NULL);
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
   Timeline::ReclaimCachedBlocksFromThreads();
@@ -9228,12 +9237,12 @@ TEST_CASE(Timeline_Dart_TimelineAsyncDisabled) {
   TimelineStream* stream = Timeline::GetEmbedderStream();
   // Make sure it is disabled.
   stream->set_enabled(false);
-  int64_t async_id = -1;
-  Dart_TimelineAsyncBegin("testAsyncEvent", &async_id);
-  // Expect that the |async_id| is negative because the stream is disabled.
-  EXPECT(async_id < 0);
-  // Call Dart_TimelineAsyncEnd with a negative async_id.
-  Dart_TimelineAsyncEnd("testAsyncEvent", async_id);
+  int64_t async_id = 99;
+  Dart_TimelineEvent("testAsyncEvent",
+                     0,
+                     async_id,
+                     Dart_Timeline_Event_Async_Begin,
+                     0, NULL, NULL);
   // Check that testAsync is not in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
   Timeline::ReclaimCachedBlocksFromThreads();
@@ -9250,12 +9259,12 @@ TEST_CASE(Timeline_Dart_TimelineAsync) {
   TimelineStream* stream = Timeline::GetEmbedderStream();
   // Make sure it is enabled.
   stream->set_enabled(true);
-  int64_t async_id = -1;
-  Dart_TimelineAsyncBegin("testAsyncEvent", &async_id);
-  // Expect that the |async_id| is >= 0.
-  EXPECT(async_id >= 0);
-
-  Dart_TimelineAsyncEnd("testAsyncEvent", async_id);
+  int64_t async_id = 99;
+  Dart_TimelineEvent("testAsyncEvent",
+                     0,
+                     async_id,
+                     Dart_Timeline_Event_Async_Begin,
+                     0, NULL, NULL);
 
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
@@ -9539,6 +9548,15 @@ TEST_CASE(Timeline_Dart_GlobalTimelineGetTrace) {
                        1,
                        &arg_names[0],
                        &arg_values[0]);
+    // Add counter to the embedder stream.
+    Dart_TimelineEvent("COUNTER_EVENT",
+                       Dart_TimelineGetMicros(),
+                       0,
+                       Dart_Timeline_Event_Counter,
+                       0,
+                       NULL,
+                       NULL);
+    Dart_SetThreadName("CUSTOM THREAD NAME");
   }
 
   // Invoke main, which will be compiled resulting in a compiler event in
@@ -9583,6 +9601,8 @@ TEST_CASE(Timeline_Dart_GlobalTimelineGetTrace) {
   EXPECT_SUBSTRING("TRACE_EVENT", buffer);
   EXPECT_SUBSTRING("arg0", buffer);
   EXPECT_SUBSTRING("value0", buffer);
+  EXPECT_SUBSTRING("COUNTER_EVENT", buffer);
+  EXPECT_SUBSTRING("CUSTOM THREAD NAME", buffer);
 
   // Free buffer allocated by AppendStreamConsumer
   free(data.buffer);
@@ -9825,6 +9845,164 @@ TEST_CASE(Timeline_Dart_EmbedderTimelineStartStopRecording) {
   Timeline::SetStreamEmbedderEnabled(false);
   EXPECT(!start_called);
   EXPECT(stop_called);
+}
+
+
+TEST_CASE(Dart_LoadLibraryPatch_1) {
+  const char* kScriptChars1 =
+      "class A {\n"
+      "  int foo() { return 10; }\n"
+      "  external int zoo();\n"
+      "  external static int moo();\n"
+      "}\n"
+      "main() { new A().foo(); }\n"
+      "foozoo() { new A().zoo(); }\n"
+      "foomoo() { A.moo(); }\n";
+
+  const char* kScriptChars2 =
+      "patch class A {\n"
+      "  /* patch */ int zoo() { return 1; }\n"
+      "  /* patch */ static int moo() { return 1; }\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars1, NULL);
+  Dart_Handle result = Dart_Invoke(lib,
+                                   NewString("main"),
+                                   0,
+                                   NULL);
+  EXPECT_VALID(result);
+  Dart_Handle url = NewString("test-lib-patch");
+  Dart_Handle source = NewString(kScriptChars2);
+  result = Dart_LibraryLoadPatch(lib, url, source);
+  EXPECT_VALID(result);
+  result = Dart_FinalizeLoading(false);
+  EXPECT_VALID(result);
+  result = Dart_Invoke(lib,
+                       NewString("foozoo"),
+                       0,
+                       NULL);
+  EXPECT_VALID(result);
+  result = Dart_Invoke(lib,
+                       NewString("foomoo"),
+                       0,
+                       NULL);
+  EXPECT_VALID(result);
+}
+
+
+TEST_CASE(Dart_LoadLibraryPatch_Error1) {
+  const char* kScriptChars1 =
+      "class A {\n"
+      "  int foo() { return 10; }\n"
+      "  external int zoo();\n"
+      "}\n"
+      "main() { new A().foo(); }\n"
+      "foozoo() { new A().zoo(); }\n";
+
+  const char* kScriptChars2 =
+      "patch class A {\n"
+      "  /* patch */ int zoo() { return 1; }\n"
+      "  /* patch */ int fld1;\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars1, NULL);
+  Dart_Handle result = Dart_Invoke(lib,
+                                   NewString("main"),
+                                   0,
+                                   NULL);
+  EXPECT_VALID(result);
+  Dart_Handle url = NewString("test-lib-patch");
+  Dart_Handle source = NewString(kScriptChars2);
+  // We don't expect to be able to patch in this case as new fields
+  // are being added.
+  result = Dart_LibraryLoadPatch(lib, url, source);
+  EXPECT_VALID(result);
+  result = Dart_FinalizeLoading(false);
+  EXPECT_VALID(result);
+  result = Dart_Invoke(lib,
+                       NewString("foozoo"),
+                       0,
+                       NULL);
+  EXPECT(Dart_IsError(result));
+}
+
+
+TEST_CASE(Dart_LoadLibraryPatch_Error2) {
+  const char* kScriptChars1 =
+      "class A {\n"
+      "  int foo() { return 10; }\n"
+      "  int zoo() { return 20; }\n"
+      "}\n"
+      "main() { new A().foo(); }\n"
+      "foozoo() { new A().zoo(); }\n";
+
+  const char* kScriptChars2 =
+      "patch class A {\n"
+      "  /* patch */ int zoo() { return 1; }\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars1, NULL);
+  Dart_Handle result = Dart_Invoke(lib,
+                                   NewString("main"),
+                                   0,
+                                   NULL);
+  EXPECT_VALID(result);
+  Dart_Handle url = NewString("test-lib-patch");
+  Dart_Handle source = NewString(kScriptChars2);
+  // We don't expect to be able to patch in this case as a non external
+  // method is being patched.
+  result = Dart_LibraryLoadPatch(lib, url, source);
+  EXPECT_VALID(result);
+  result = Dart_FinalizeLoading(false);
+  EXPECT_VALID(result);
+  result = Dart_Invoke(lib,
+                       NewString("foozoo"),
+                       0,
+                       NULL);
+  EXPECT(Dart_IsError(result));
+  OS::Print("Patched class executed\n");
+}
+
+
+TEST_CASE(Dart_LoadLibraryPatch_Error3) {
+  const char* kScriptChars1 =
+      "class A {\n"
+      "  int foo() { return 10; }\n"
+      "  external int zoo();\n"
+      "}\n"
+      "main() { new A().foo(); }\n"
+      "foozoo() { new A().zoo(); }\n";
+
+  const char* kScriptChars2 =
+      "patch class A {\n"
+      "  /* patch */ int zoo() { return 1; }\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars1, NULL);
+  Dart_Handle result = Dart_Invoke(lib,
+                                   NewString("main"),
+                                   0,
+                                   NULL);
+  // We invoke the foozoo method to ensure that code for 'zoo' is generated
+  // which throws NoSuchMethod.
+  result = Dart_Invoke(lib,
+                       NewString("foozoo"),
+                       0,
+                       NULL);
+  EXPECT(Dart_IsError(result));
+  Dart_Handle url = NewString("test-lib-patch");
+  Dart_Handle source = NewString(kScriptChars2);
+  // We don't expect to be able to patch in this case as the function being
+  // patched has already executed.
+  result = Dart_LibraryLoadPatch(lib, url, source);
+  EXPECT_VALID(result);
+  result = Dart_FinalizeLoading(false);
+  EXPECT_VALID(result);
+  result = Dart_Invoke(lib,
+                       NewString("foozoo"),
+                       0,
+                       NULL);
+  EXPECT(Dart_IsError(result));
 }
 
 #endif  // !PRODUCT

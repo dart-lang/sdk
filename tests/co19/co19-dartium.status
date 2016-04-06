@@ -203,6 +203,7 @@ Language/Libraries_and_Scripts/URIs/syntax_t09: RuntimeError # Please triage thi
 Language/Libraries_and_Scripts/URIs/syntax_t10: RuntimeError # Please triage this failure.
 Language/Libraries_and_Scripts/URIs/syntax_t14: RuntimeError # Please triage this failure.
 Language/Libraries_and_Scripts/URIs/syntax_t15: RuntimeError # Please triage this failure.
+Language/Metadata/before_param_t09: RuntimeError # Issue 26187
 Language/Metadata/before_variable_t01: RuntimeError # Please triage this failure.
 Language/Mixins/Mixin_Application/error_t01: Fail # co19 issue 43
 Language/Mixins/Mixin_Application/error_t02: Fail # co19 issue 43
@@ -1353,14 +1354,6 @@ WebPlatformTest/shadow-dom/shadow-trees/upper-boundary-encapsulation/dom-tree-ac
 WebPlatformTest/shadow-dom/elements-and-dom-objects/extensions-to-event-interface/event-path-001_t01: RuntimeError # 45 roll issue https://github.com/dart-lang/co19/issues/32
 WebPlatformTest/shadow-dom/elements-and-dom-objects/shadowroot-object/shadowroot-methods/test-002_t01: RuntimeError # 45 roll issue https://github.com/dart-lang/co19/issues/33
 # Must fix failures below after JsInterop checkin.
-WebPlatformTest/custom-elements/instantiating/createElement_A02_t01: RuntimeError # Issue 26134
-WebPlatformTest/custom-elements/instantiating/isAttribute_A01_t02: RuntimeError # Issue 26134
-WebPlatformTest/custom-elements/instantiating/createElementNS_A04_t01: RuntimeError # Issue 26134
-WebPlatformTest/custom-elements/instantiating/createElementNS_A03_t01: RuntimeError # Issue 26134
-WebPlatformTest/custom-elements/instantiating/isAttribute_A01_t01: RuntimeError # Issue 26134
-WebPlatformTest/custom-elements/instantiating/createElementNS_A02_t01: RuntimeError # Issue 26134
-WebPlatformTest/custom-elements/instantiating/createElement_A03_t01: RuntimeError # Issue 26134
-WebPlatformTest/custom-elements/instantiating/createElement_A04_t01: RuntimeError # Issue 26134
 WebPlatformTest/dom/nodes/Node-appendChild_t01: RuntimeError # Issue 26134
 WebPlatformTest/dom/nodes/attributes/setAttribute_A01_t01: RuntimeError # Issue 26134
 LayoutTests/fast/dom/Document/createElement-invalid-names_t01: RuntimeError # Issue 26134
@@ -1370,7 +1363,6 @@ LayoutTests/fast/dom/HTMLTemplateElement/cycles-in-shadow_t01: RuntimeError # Is
 LayoutTests/fast/dom/HTMLTemplateElement/cycles_t01: RuntimeError # Issue 26134
 LayoutTests/fast/dom/computed-style-set-property_t01: RuntimeError # Issue 26134
 LayoutTests/fast/dom/custom/element-type_t01: RuntimeError # Issue 26134
-LayoutTests/fast/dom/custom/type-extensions_t01: RuntimeError # Issue 26134
 LayoutTests/fast/dom/custom/element-upgrade_t01: RuntimeError # Issue 26134
 LayoutTests/fast/dom/custom/document-register-type-extensions_t01: RuntimeError # Issue 26134
 LayoutTests/fast/dom/custom/document-register-namespace_t01: RuntimeError # Issue 26134

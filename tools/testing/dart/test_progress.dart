@@ -61,19 +61,19 @@ class ColorFormatter extends Formatter {
   }
 }
 
-
 List<String> _buildFailureOutput(TestCase test,
-                                 [Formatter formatter = const Formatter()]) {
-
+    [Formatter formatter = const Formatter()]) {
   List<String> getLinesWithoutCarriageReturn(List<int> output) {
-    return decodeUtf8(output).replaceAll('\r\n', '\n')
-        .replaceAll('\r', '\n').split('\n');
+    return decodeUtf8(output)
+        .replaceAll('\r\n', '\n')
+        .replaceAll('\r', '\n')
+        .split('\n');
   }
 
   List<String> output = new List<String>();
   output.add('');
   output.add(formatter.failed('FAILED: ${test.configurationString}'
-                              ' ${test.displayName}'));
+      ' ${test.displayName}'));
   StringBuffer expected = new StringBuffer();
   expected.write('Expected: ');
   for (var expectation in test.expectedOutcomes) {
@@ -82,8 +82,8 @@ List<String> _buildFailureOutput(TestCase test,
   output.add(expected.toString());
   output.add('Actual: ${test.result}');
   if (!test.lastCommandOutput.hasTimedOut) {
-    if (test.commandOutputs.length != test.commands.length
-        && !test.expectCompileError) {
+    if (test.commandOutputs.length != test.commands.length &&
+        !test.expectCompileError) {
       output.add('Unexpected compile-time error.');
     } else {
       if (test.expectCompileError) {
@@ -123,8 +123,7 @@ List<String> _buildFailureOutput(TestCase test,
   }
   if (test is BrowserTestCase) {
     // Additional command for rerunning the steps locally after the fact.
-    var command =
-      test.configuration["_servers_"].httpServerCommandline();
+    var command = test.configuration["_servers_"].httpServerCommandline();
     output.add('');
     output.add('To retest, run:  $command');
   }
@@ -152,20 +151,19 @@ List<String> _buildFailureOutput(TestCase test,
 }
 
 String _buildSummaryEnd(int failedTests) {
-    if (failedTests == 0) {
-      return '\n===\n=== All tests succeeded\n===\n';
-    } else {
-      var pluralSuffix = failedTests != 1 ? 's' : '';
-      return '\n===\n=== ${failedTests} test$pluralSuffix failed\n===\n';
-    }
+  if (failedTests == 0) {
+    return '\n===\n=== All tests succeeded\n===\n';
+  } else {
+    var pluralSuffix = failedTests != 1 ? 's' : '';
+    return '\n===\n=== ${failedTests} test$pluralSuffix failed\n===\n';
+  }
 }
 
-
 class EventListener {
-  void testAdded() { }
-  void done(TestCase test) { }
-  void allTestsKnown() { }
-  void allDone() { }
+  void testAdded() {}
+  void done(TestCase test) {}
+  void allTestsKnown() {}
+  void allDone() {}
 }
 
 class ExitCodeSetter extends EventListener {
@@ -226,10 +224,22 @@ class TestOutcomeLogWriter extends EventListener {
    *  },
    */
 
-  static final INTERESTED_CONFIGURATION_PARAMETERS =
-      ['mode', 'arch', 'compiler', 'runtime', 'checked', 'host_checked',
-       'minified', 'csp', 'system', 'vm_options', 'use_sdk',
-       'use_repository_packages', 'use_public_packages', 'builder_tag'];
+  static final INTERESTED_CONFIGURATION_PARAMETERS = [
+    'mode',
+    'arch',
+    'compiler',
+    'runtime',
+    'checked',
+    'host_checked',
+    'minified',
+    'csp',
+    'system',
+    'vm_options',
+    'use_sdk',
+    'use_repository_packages',
+    'use_public_packages',
+    'builder_tag'
+  ];
 
   IOSink _sink;
 
@@ -248,22 +258,20 @@ class TestOutcomeLogWriter extends EventListener {
     for (var command in test.commands) {
       var output = test.commandOutputs[command];
       if (output != null) {
-        double duration = output.time.inMicroseconds/1000.0;
+        double duration = output.time.inMicroseconds / 1000.0;
         totalDuration += duration;
-        commandResults.add({
-          'name': command.displayName,
-          'duration': duration,
-        });
+        commandResults
+            .add({'name': command.displayName, 'duration': duration,});
       }
     }
     _writeTestOutcomeRecord({
-      'name' : name,
-      'configuration' : configuration,
-      'test_result' : {
-        'outcome' : outcome,
-        'expected_outcomes' : expectations,
-        'duration' : totalDuration,
-        'command_results' : commandResults,
+      'name': name,
+      'configuration': configuration,
+      'test_result': {
+        'outcome': outcome,
+        'expected_outcomes': expectations,
+        'duration': totalDuration,
+        'command_results': commandResults,
       },
     });
   }
@@ -281,7 +289,6 @@ class TestOutcomeLogWriter extends EventListener {
   }
 }
 
-
 class UnexpectedCrashDumpArchiver extends EventListener {
   void done(TestCase test) {
     if (test.unexpectedOutput && test.result == Expectation.CRASH) {
@@ -294,18 +301,19 @@ class UnexpectedCrashDumpArchiver extends EventListener {
         var binBaseName = new Path(binName).filename;
         if (binFile.existsSync()) {
           var tmpPath = new Path(Directory.systemTemp.path);
-          var dir = new Path(TestUtils.mkdirRecursive(tmpPath,
-              new Path('coredump_${test.lastCommandOutput.pid}')).path);
+          var dir = new Path(TestUtils
+              .mkdirRecursive(
+                  tmpPath, new Path('coredump_${test.lastCommandOutput.pid}'))
+              .path);
           TestUtils.copyFile(new Path(name), dir.append(name));
           TestUtils.copyFile(new Path(binName), dir.append(binBaseName));
           print("\nCopied core dump and binary for unexpected crash to: "
-                "$dir");
+              "$dir");
         }
       }
     }
   }
 }
-
 
 class SummaryPrinter extends EventListener {
   final bool jsonOnly;
@@ -322,7 +330,6 @@ class SummaryPrinter extends EventListener {
     }
   }
 }
-
 
 class TimingPrinter extends EventListener {
   final _command2testCases = new Map<Command, List<TestCase>>();
@@ -357,8 +364,8 @@ class TimingPrinter extends EventListener {
       }).join(', ');
 
       print('${commandOutput.time} - '
-            '${command.displayName} - '
-            '$testCasesDescription');
+          '${command.displayName} - '
+          '$testCasesDescription');
     }
   }
 }
@@ -376,7 +383,6 @@ class StatusFileUpdatePrinter extends EventListener {
   void allDone() {
     _printFailureSummary();
   }
-
 
   void _printFailureOutput(TestCase test) {
     String status = '${test.displayName}: ${test.result}';
@@ -405,12 +411,11 @@ class StatusFileUpdatePrinter extends EventListener {
             runtimeToConfiguration.putIfAbsent(runtime, () => <String>[]);
         runtimeConfigs.add(config);
       }
-      runtimeToConfiguration.forEach((String runtime,
-                                      List<String> runtimeConfigs) {
+      runtimeToConfiguration
+          .forEach((String runtime, List<String> runtimeConfigs) {
         runtimeConfigs.sort((a, b) => a.compareTo(b));
-        List<String> statuses =
-            groupedStatuses.putIfAbsent('$runtime: $runtimeConfigs',
-                                        () => <String>[]);
+        List<String> statuses = groupedStatuses.putIfAbsent(
+            '$runtime: $runtimeConfigs', () => <String>[]);
         statuses.add(status);
       });
     });
@@ -432,15 +437,14 @@ class SkippedCompilationsPrinter extends EventListener {
 
   void done(TestCase test) {
     for (var commandOutput in test.commandOutputs.values) {
-      if (commandOutput.compilationSkipped)
-        _skippedCompilations++;
+      if (commandOutput.compilationSkipped) _skippedCompilations++;
     }
   }
 
   void allDone() {
     if (_skippedCompilations > 0) {
       print('\n$_skippedCompilations compilations were skipped because '
-            'the previous output was already up to date\n');
+          'the previous output was already up to date\n');
     }
   }
 }
@@ -460,24 +464,23 @@ class LeftOverTempDirPrinter extends EventListener {
 
   static Stream<Directory> getLeftOverTemporaryDirectories() {
     var regExp = _getTemporaryDirectoryRegexp();
-    return Directory.systemTemp.list().where(
-        (FileSystemEntity fse) {
-          if (fse is Directory) {
-            if (regExp.hasMatch(new Path(fse.path).filename)) {
-              return true;
-            }
-          }
-          return false;
-        });
+    return Directory.systemTemp.list().where((FileSystemEntity fse) {
+      if (fse is Directory) {
+        if (regExp.hasMatch(new Path(fse.path).filename)) {
+          return true;
+        }
+      }
+      return false;
+    });
   }
 
   void allDone() {
     getLeftOverTemporaryDirectories().length.then((int count) {
       if (count > MIN_NUMBER_OF_TEMP_DIRS) {
         DebugLogger.warning("There are ${count} directories "
-                            "in the system tempdir "
-                            "('${Directory.systemTemp.path}')! "
-                            "Maybe left over directories?\n");
+            "in the system tempdir "
+            "('${Directory.systemTemp.path}')! "
+            "Maybe left over directories?\n");
       }
     }).catchError((error) {
       DebugLogger.warning("Could not list temp directories, got: $error");
@@ -495,15 +498,13 @@ class LineProgressIndicator extends EventListener {
   }
 }
 
-
 class TestFailurePrinter extends EventListener {
   bool _printSummary;
   var _formatter;
   var _failureSummary = <String>[];
-  var _failedTests= 0;
+  var _failedTests = 0;
 
-  TestFailurePrinter(this._printSummary,
-                     [this._formatter = const Formatter()]);
+  TestFailurePrinter(this._printSummary, [this._formatter = const Formatter()]);
 
   void done(TestCase test) {
     if (test.unexpectedOutput) {
@@ -538,8 +539,9 @@ class TestFailurePrinter extends EventListener {
 class ProgressIndicator extends EventListener {
   ProgressIndicator(this._startTime);
 
-
-  void testAdded() { _foundTests++; }
+  void testAdded() {
+    _foundTests++;
+  }
 
   void done(TestCase test) {
     if (test.unexpectedOutput) {
@@ -566,8 +568,7 @@ class ProgressIndicator extends EventListener {
 }
 
 abstract class CompactIndicator extends ProgressIndicator {
-  CompactIndicator(DateTime startTime)
-      : super(startTime);
+  CompactIndicator(DateTime startTime) : super(startTime);
 
   void allDone() {
     if (_failedTests > 0) {
@@ -582,7 +583,6 @@ abstract class CompactIndicator extends ProgressIndicator {
   void _printProgress();
 }
 
-
 class CompactProgressIndicator extends CompactIndicator {
   Formatter _formatter;
 
@@ -595,18 +595,15 @@ class CompactProgressIndicator extends CompactIndicator {
     var passedPadded = _pad(_passedTests.toString(), 5);
     var failedPadded = _pad(_failedTests.toString(), 5);
     Duration d = (new DateTime.now()).difference(_startTime);
-    var progressLine =
-        '\r[${_timeString(d)} | $progressPadded% | '
+    var progressLine = '\r[${_timeString(d)} | $progressPadded% | '
         '+${_formatter.passed(passedPadded)} | '
         '-${_formatter.failed(failedPadded)}]';
     stdout.write(progressLine);
   }
 }
 
-
 class VerboseProgressIndicator extends ProgressIndicator {
-  VerboseProgressIndicator(DateTime startTime)
-      : super(startTime);
+  VerboseProgressIndicator(DateTime startTime) : super(startTime);
 
   void _printDoneProgress(TestCase test) {
     var status = 'pass';
@@ -616,7 +613,6 @@ class VerboseProgressIndicator extends ProgressIndicator {
     print('Done ${test.configurationString} ${test.displayName}: $status');
   }
 }
-
 
 class BuildbotProgressIndicator extends ProgressIndicator {
   static String stepName;
@@ -657,10 +653,8 @@ class BuildbotProgressIndicator extends ProgressIndicator {
   }
 }
 
-
-EventListener progressIndicatorFromName(String name,
-                                        DateTime startTime,
-                                        Formatter formatter) {
+EventListener progressIndicatorFromName(
+    String name, DateTime startTime, Formatter formatter) {
   switch (name) {
     case 'compact':
       return new CompactProgressIndicator(startTime, formatter);

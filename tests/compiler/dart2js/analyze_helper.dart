@@ -1,4 +1,4 @@
-// Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,13 +7,14 @@ library analyze_helper;
 import 'dart:async';
 import 'dart:io';
 import 'package:compiler/compiler.dart' as api;
-import 'package:compiler/compiler_new.dart' as new_api;
 import 'package:compiler/src/apiimpl.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/diagnostics/messages.dart' show
     Message,
     MessageKind;
 import 'package:compiler/src/filenames.dart';
+import 'package:compiler/src/options.dart' show
+    CompilerOptions;
 import 'package:compiler/src/source_file_provider.dart';
 import 'package:compiler/src/util/uri_extras.dart';
 
@@ -226,7 +227,7 @@ Future analyze(List<Uri> uriList,
       provider,
       null,
       handler,
-      new new_api.CompilerOptions.parse(
+      new CompilerOptions.parse(
           libraryRoot: libraryRoot,
           packageRoot: packageRoot,
           options: options,

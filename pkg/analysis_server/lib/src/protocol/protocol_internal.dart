@@ -131,16 +131,24 @@ bool mapEqual(Map mapA, Map mapB, bool valueEqual(a, b)) {
  * Translate the input [map], applying [keyCallback] to all its keys, and
  * [valueCallback] to all its values.
  */
-mapMap(Map map, {dynamic keyCallback(key), dynamic valueCallback(value)}) {
-  Map result = {};
+Map/*<KR, VR>*/ mapMap/*<KP, VP, KR, VR>*/(Map/*<KP, VP>*/ map,
+    {dynamic/*=KR*/ keyCallback(/*<KP>*/ key),
+    dynamic/*=VR*/ valueCallback(/*<VP>*/ value)}) {
+  Map/*<KR, VR>*/ result = new HashMap/*<KR, VR>*/();
   map.forEach((key, value) {
+    Object/*=KR*/ resultKey;
+    Object/*=VR*/ resultValue;
     if (keyCallback != null) {
-      key = keyCallback(key);
+      resultKey = keyCallback(key);
+    } else {
+      resultKey = key as Object/*=KR*/;
     }
     if (valueCallback != null) {
-      value = valueCallback(value);
+      resultValue = valueCallback(value);
+    } else {
+      resultValue = value as Object/*=VR*/;
     }
-    result[key] = value;
+    result[resultKey] = resultValue;
   });
   return result;
 }
@@ -222,7 +230,7 @@ RefactoringOptions refactoringOptionsFromJson(JsonDecoder jsonDecoder,
  * string describing the part of the JSON object being decoded, and [value] is
  * the part to decode.
  */
-typedef Object JsonDecoderCallback(String jsonPath, Object value);
+typedef E JsonDecoderCallback<E>(String jsonPath, Object value);
 
 /**
  * Instances of the class [HasToJson] implement [toJson] method that returns
@@ -303,14 +311,17 @@ abstract class JsonDecoder {
   }
 
   /**
-   * Decode a JSON object that is expected to be a List.  [decoder] is used to
-   * decode the items in the list.
+   * Decode a JSON object that is expected to be a List. The [decoder] is used
+   * to decode the items in the list.
+   *
+   * The type parameter [E] is the expected type of the elements in the list.
    */
-  List decodeList(String jsonPath, Object json, [JsonDecoderCallback decoder]) {
+  List/*<E>*/ decodeList/*<E>*/(String jsonPath, Object json,
+      [JsonDecoderCallback/*<E>*/ decoder]) {
     if (json == null) {
-      return [];
+      return/*<E>*/ [];
     } else if (json is List) {
-      List result = [];
+      List/*<E>*/ result = /*<E>*/ [];
       for (int i = 0; i < json.length; i++) {
         result.add(decoder('$jsonPath[$i]', json[i]));
       }
@@ -324,23 +335,24 @@ abstract class JsonDecoder {
    * Decode a JSON object that is expected to be a Map.  [keyDecoder] is used
    * to decode the keys, and [valueDecoder] is used to decode the values.
    */
-  Map decodeMap(String jsonPath, Object json,
-      {JsonDecoderCallback keyDecoder, JsonDecoderCallback valueDecoder}) {
+  Map/*<K, V>*/ decodeMap/*<K, V>*/(String jsonPath, Object json,
+      {JsonDecoderCallback/*<K>*/ keyDecoder,
+      JsonDecoderCallback/*<V>*/ valueDecoder}) {
     if (json == null) {
       return {};
     } else if (json is Map) {
-      Map result = {};
+      Map/*<K, V>*/ result = /*<K, V>*/ {};
       json.forEach((String key, value) {
-        Object decodedKey;
+        Object/*=K*/ decodedKey;
         if (keyDecoder != null) {
           decodedKey = keyDecoder('$jsonPath.key', key);
         } else {
-          decodedKey = key;
+          decodedKey = key as Object/*=K*/;
         }
         if (valueDecoder != null) {
           value = valueDecoder('$jsonPath[${JSON.encode(key)}]', value);
         }
-        result[decodedKey] = value;
+        result[decodedKey] = value as Object/*=V*/;
       });
       return result;
     } else {

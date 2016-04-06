@@ -130,6 +130,11 @@ class LinkedSummarizeAstSpecTest extends LinkedSummarizeAstTest {
   }
 
   @override
+  test_unused_type_parameter() {
+    // TODO(paulberry): fix.
+  }
+
+  @override
   test_variable_propagated_type_final_immediate() {
     // TODO(paulberry): fix.
   }
@@ -173,6 +178,9 @@ abstract class LinkedSummarizeAstTest extends Object with SummaryTest {
   bool get skipFullyLinkedData => false;
 
   @override
+  bool get skipNonConstInitializers => false;
+
+  @override
   addNamedSource(String filePath, String contents) {
     CompilationUnit unit = _parseText(contents);
     UnlinkedUnit unlinkedUnit =
@@ -205,7 +213,7 @@ abstract class LinkedSummarizeAstTest extends Object with SummaryTest {
       }
       return unit;
     }
-    linked = link(uriToUnit.keys.toSet(), getDependency, getUnit)[
+    linked = link(uriToUnit.keys.toSet(), getDependency, getUnit, strongMode)[
         testDartUri.toString()];
     expect(linked, isNotNull);
     validateLinkedLibrary(linked);

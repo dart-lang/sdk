@@ -2,6 +2,18 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Used to delay the initial timeline load until the timeline has finished
+// loading.
+timeline_loaded = false;
+timeline_vm_address = undefined;
+timeline_isolates = undefined;
+
+function registerForMessages() {
+  window.addEventListener("message", onMessage, false);
+}
+
+registerForMessages();
+
 function onModelLoaded() {
   viewer.globalMode = true;
   viewer.model = model;
@@ -26,9 +38,7 @@ function updateTimeline(events) {
   p.then(onModelLoaded, onImportFail);
 }
 
-function registerForMessages() {
-  window.addEventListener("message", onMessage, false);
-}
+
 
 function fetchUri(uri, onLoad, onError) {
   var xhr = new XMLHttpRequest();
@@ -196,7 +206,13 @@ function onMessage(event) {
   var params = request['params'];
   switch (method) {
     case 'refresh':
-      fetchTimeline(params['vmAddress'], params['isolateIds']);
+      if (!timeline_loaded) {
+        timeline_vm_address = params['vmAddress'];
+        timeline_isolates = params['isolateIds'];
+        console.log('Delaying timeline refresh until loaded.');
+      } else {
+        fetchTimeline(params['vmAddress'], params['isolateIds']);
+      }
     break;
     case 'clear':
       clearTimeline();
@@ -221,7 +237,13 @@ document.addEventListener('DOMContentLoaded', function() {
   viewer.id = 'trace-viewer';
   viewer.globalMode = true;
   document.body.appendChild(viewer);
-  registerForMessages();
+  timeline_loaded = true;
+  if (timeline_vm_address != undefined) {
+    console.log('Triggering delayed timeline refresh.');
+    fetchTimeline(timeline_vm_address, timeline_isolates);
+    timeline_vm_address = undefined;
+    timeline_isolates = undefined;
+  }
 });
 
 console.log('loaded');

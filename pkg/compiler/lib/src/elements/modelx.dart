@@ -13,8 +13,6 @@ import '../compiler.dart' show
 import '../constants/constant_constructors.dart';
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
-import '../core_types.dart' show
-    CoreClasses;
 import '../dart_types.dart';
 import '../diagnostics/messages.dart' show
     MessageTemplate;
@@ -2078,10 +2076,6 @@ abstract class BaseFunctionElementX
 
   bool get isAbstract => false;
 
-  accept(ElementVisitor visitor, arg) {
-    return visitor.visitFunctionElement(this, arg);
-  }
-
   // A function is defined by the implementation element.
   AstElement get definingElement => implementation;
 }
@@ -2132,6 +2126,10 @@ abstract class MethodElementX extends FunctionElementX {
   bool get isAbstract {
     return !modifiers.isExternal && !hasBody;
   }
+
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitMethodElement(this, arg);
+  }
 }
 
 abstract class AccessorElementX extends MethodElementX
@@ -2154,6 +2152,10 @@ abstract class GetterElementX extends AccessorElementX
                  Element enclosing,
                  bool hasBody)
       : super(name, ElementKind.GETTER, modifiers, enclosing, hasBody);
+
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitGetterElement(this, arg);
+  }
 }
 
 abstract class SetterElementX extends AccessorElementX
@@ -2164,6 +2166,10 @@ abstract class SetterElementX extends AccessorElementX
                  Element enclosing,
                  bool hasBody)
       : super(name, ElementKind.SETTER, modifiers, enclosing, hasBody);
+
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitSetterElement(this, arg);
+  }
 }
 
 class LocalFunctionElementX extends BaseFunctionElementX
@@ -2195,6 +2201,10 @@ class LocalFunctionElementX extends BaseFunctionElementX
   }
 
   bool get isLocal => true;
+
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitLocalFunctionElement(this, arg);
+  }
 }
 
 abstract class ConstantConstructorMixin implements ConstructorElement {
@@ -2687,11 +2697,6 @@ abstract class BaseClassElementX extends ElementX
 
   void forEachBackendMember(void f(Element member)) {
     backendMembers.forEach(f);
-  }
-
-  bool implementsFunction(CoreClasses coreClasses) {
-    return asInstanceOf(coreClasses.functionClass) != null ||
-        callType != null;
   }
 
   // TODO(johnniwinther): Remove these when issue 18630 is fixed.

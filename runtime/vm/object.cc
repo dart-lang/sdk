@@ -2779,6 +2779,81 @@ void Class::SetTraceAllocation(bool trace_allocation) const {
 }
 
 
+bool Class::ValidatePostFinalizePatch(const Class& orig_class,
+                                      Error* error) const {
+  ASSERT(error != NULL);
+  // Not allowed to add new fields in a post finalization patch.
+  if (fields() != Object::empty_array().raw()) {
+    *error = LanguageError::NewFormatted(
+        *error,  // No previous error.
+        Script::Handle(script()),
+        token_pos(),
+        Report::AtLocation,
+        Report::kError,
+        Heap::kNew,
+        "new fields are not allowed for this patch");
+    return false;
+  }
+  // There seem to be no functions, the patch is pointless.
+  if (functions() == Object::empty_array().raw()) {
+    *error = LanguageError::NewFormatted(
+        *error,  // No previous error.
+        Script::Handle(script()),
+        token_pos(),
+        Report::AtLocation,
+        Report::kError,
+        Heap::kNew,
+        "no functions to patch");
+    return false;
+  }
+  // Iterate over all functions that will be patched and make sure
+  // the original function was declared 'external' and has not executed
+  // so far i.e no code has been generated for it.
+  Thread* thread = Thread::Current();
+  ASSERT(thread->IsMutatorThread());
+  Zone* zone = thread->zone();
+  const Array& funcs = Array::Handle(zone, functions());
+  Function& func = Function::Handle(zone);
+  Function& orig_func = Function::Handle(zone);
+  String& name = String::Handle(zone);
+  for (intptr_t i = 0; i < funcs.Length(); i++) {
+    func ^= funcs.At(i);
+    name ^= func.name();
+    orig_func ^= orig_class.LookupFunctionAllowPrivate(name);
+    if (!orig_func.IsNull()) {
+      if (!orig_func.is_external() || orig_func.HasCode()) {
+        // We can only patch external functions in a post finalized class.
+        *error = LanguageError::NewFormatted(
+            *error,  // No previous error.
+            Script::Handle(script()),
+            token_pos(),
+            Report::AtLocation,
+            Report::kError,
+            Heap::kNew,
+            !orig_func.is_external() ?
+            "'%s' is not external and therefore cannot be patched" :
+            "'%s' has already executed and therefore cannot be patched",
+            name.ToCString());
+        return false;
+      }
+    } else if (!Library::IsPrivate(name)) {
+      // We can only have new private functions that are added.
+      *error = LanguageError::NewFormatted(
+          *error,  // No previous error.
+          Script::Handle(script()),
+          token_pos(),
+          Report::AtLocation,
+          Report::kError,
+          Heap::kNew,
+          "'%s' is not private and therefore cannot be patched",
+          name.ToCString());
+      return false;
+    }
+  }
+  return true;
+}
+
+
 void Class::set_cha_codes(const Array& cache) const {
   StorePointer(&raw_ptr()->cha_codes_, cache.raw());
 }
@@ -3419,6 +3494,14 @@ void Class::set_is_finalized() const {
   ASSERT(!is_finalized());
   set_state_bits(ClassFinalizedBits::update(RawClass::kFinalized,
                                             raw_ptr()->state_bits_));
+}
+
+
+void Class::SetRefinalizeAfterPatch() const {
+  ASSERT(!IsTopLevel());
+  set_state_bits(ClassFinalizedBits::update(RawClass::kRefinalizeAfterPatch,
+                                            raw_ptr()->state_bits_));
+  set_state_bits(TypeFinalizedBit::update(false, raw_ptr()->state_bits_));
 }
 
 
@@ -5757,7 +5840,7 @@ void Function::set_token_pos(TokenPosition token_pos) const {
 }
 
 
-void Function::set_kind_tag(intptr_t value) const {
+void Function::set_kind_tag(uint32_t value) const {
   StoreNonPointer(&raw_ptr()->kind_tag_, static_cast<uint32_t>(value));
 }
 
@@ -5832,6 +5915,7 @@ void Function::SetIsNativeAutoSetupScope(bool value) const {
 bool Function::CanBeInlined() const {
   Thread* thread = Thread::Current();
   return is_inlinable() &&
+         !is_external() &&
          !is_generated_body() &&
          (!FLAG_support_debugger ||
           !thread->isolate()->debugger()->HasBreakpoint(*this, thread->zone()));
@@ -6408,6 +6492,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_generated_body(false);
   result.set_always_inline(false);
   result.set_is_polymorphic_target(false);
+  result.set_was_compiled(false);
   result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_end_token_pos(token_pos);
@@ -9351,11 +9436,15 @@ RawObject* Library::ResolveName(const String& name) const {
     // are not cached. This reduces the size of the the cache.
     return obj.raw();
   }
-  String& accessor_name = String::Handle(Field::GetterName(name));
-  obj = LookupLocalObject(accessor_name);
-  if (obj.IsNull()) {
-    accessor_name = Field::SetterName(name);
+  String& accessor_name = String::Handle(Field::LookupGetterSymbol(name));
+  if (!accessor_name.IsNull()) {
     obj = LookupLocalObject(accessor_name);
+  }
+  if (obj.IsNull()) {
+    accessor_name = Field::LookupSetterSymbol(name);
+    if (!accessor_name.IsNull()) {
+      obj = LookupLocalObject(accessor_name);
+    }
     if (obj.IsNull() && !ShouldBePrivate(name)) {
       obj = LookupImportedObject(name);
     }
@@ -14471,12 +14560,12 @@ const char* UnwindError::ToCString() const {
 }
 
 
-RawObject* Instance::Evaluate(const String& expr,
+RawObject* Instance::Evaluate(const Class& method_cls,
+                              const String& expr,
                               const Array& param_names,
                               const Array& param_values) const {
-  const Class& cls = Class::Handle(clazz());
   const Function& eval_func =
-      Function::Handle(EvaluateHelper(cls, expr, param_names, false));
+      Function::Handle(EvaluateHelper(method_cls, expr, param_names, false));
   const Array& args = Array::Handle(Array::New(1 + param_values.Length()));
   PassiveObject& param = PassiveObject::Handle();
   args.SetAt(0, *this);

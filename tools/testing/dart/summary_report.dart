@@ -37,7 +37,7 @@ class SummaryReport {
         .any((expectation) => expectation.canBeOutcomeOf(Expectation.FAIL));
     bool containsPass = expectations.contains(Expectation.PASS);
     bool containsSkip = expectations
-      .any((expectation) => expectation.canBeOutcomeOf(Expectation.SKIP));
+        .any((expectation) => expectation.canBeOutcomeOf(Expectation.SKIP));
     bool containsSkipByDesign =
         expectations.contains(Expectation.SKIP_BY_DESIGN);
     bool containsCrash = expectations.contains(Expectation.CRASH);
@@ -100,19 +100,19 @@ class SummaryReport {
   }
 
   Map<String, int> get values => {
-    'total': _total,
-    'skippedOther': skippedOther,
-    'skippedByDesign': _skippedByDesign,
-    'pass': _pass,
-    'noCrash': _noCrash,
-    'flakyCrash': _flakyCrash,
-    'failOk': _failOk,
-    'fail': _fail,
-    'crash': _crash,
-    'timeout': _timeout,
-    'compileErrorSkip': _compileErrorSkip,
-    'bogus': bogus
-  };
+        'total': _total,
+        'skippedOther': skippedOther,
+        'skippedByDesign': _skippedByDesign,
+        'pass': _pass,
+        'noCrash': _noCrash,
+        'flakyCrash': _flakyCrash,
+        'failOk': _failOk,
+        'fail': _fail,
+        'crash': _crash,
+        'timeout': _timeout,
+        'compileErrorSkip': _compileErrorSkip,
+        'bogus': bogus
+      };
 
   String get report => """Total: $_total tests
  * $_skipped tests will be skipped ($_skippedByDesign skipped by design)

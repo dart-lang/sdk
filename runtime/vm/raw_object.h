@@ -677,6 +677,7 @@ class RawClass : public RawObject {
     kAllocated = 0,  // Initial state.
     kPreFinalized,  // VM classes: size precomputed, but no checks done.
     kFinalized,  // Class parsed, finalized and ready for use.
+    kRefinalizeAfterPatch,  // Class needs to be refinalized (patched).
   };
 
  private:
@@ -851,7 +852,8 @@ class RawFunction : public RawObject {
   int32_t usage_counter_;  // Incremented while function is running.
   int16_t num_fixed_parameters_;
   int16_t num_optional_parameters_;  // > 0: positional; < 0: named.
-  int16_t deoptimization_counter_;
+  int8_t deoptimization_counter_;
+  int8_t was_compiled_;
   uint32_t kind_tag_;  // See Function::KindTagBits.
   uint16_t optimized_instruction_count_;
   uint16_t optimized_call_site_count_;

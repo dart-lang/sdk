@@ -10143,9 +10143,9 @@ class BlinkLocation {
 
   ancestorOrigins_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis /* Location */, "ancestorOrigins");
 
-  hash_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis /* Location */, "hash");
+  hash_Getter_(mthis) native "Blink_Getter_Location_hash";
 
-  hash_Setter_(mthis, __arg_0) => Blink_JsNative_DomException.setProperty(mthis /* Location */, "hash", __arg_0);
+  hash_Setter_(mthis, __arg_0) native "Blink_Setter_Location_hash";
 
   host_Getter_(mthis) => Blink_JsNative_DomException.getProperty(mthis /* Location */, "host");
 
@@ -23301,6 +23301,7 @@ class Blink_Utils {
   // In any case, returns a typed JS wrapper compatibile with dart:html and the new
   // typed JS Interop.
   static defineInterceptorCustomElement(jsObject, Type type) native "Utils_defineInterceptorCustomElement";
+  static defineInterceptor(jsObject, Type type) native "Utils_defineInterceptor";
   static setInstanceInterceptor(o, Type type, {bool customElement: false}) native "Utils_setInstanceInterceptor";
 
   // This method will throw if the element isn't actually a real Element.

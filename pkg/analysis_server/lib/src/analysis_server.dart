@@ -1471,7 +1471,7 @@ class AnalysisServer {
     onContextsChanged.listen((ContextsChangedEvent event) {
       for (AnalysisContext context in event.added) {
         context
-            .onResultChanged(RESOLVED_UNIT2)
+            .onResultChanged(RESOLVED_UNIT3)
             .listen((ResultChangedEvent event) {
           if (event.wasComputed) {
             Object value = event.value;

@@ -309,10 +309,19 @@ abstract class ContainerMixin
 
 class AbstractFieldElementZ extends ElementZ implements AbstractFieldElement {
   final String name;
-  final FunctionElement getter;
-  final FunctionElement setter;
+  final GetterElementZ getter;
+  final SetterElementZ setter;
 
-  AbstractFieldElementZ(this.name, this.getter, this.setter);
+  AbstractFieldElementZ(this.name, this.getter, this.setter) {
+    if (getter != null) {
+      getter.abstractField = this;
+      getter.setter = setter;
+    }
+    if (setter != null) {
+      setter.abstractField = this;
+      setter.getter = getter;
+    }
+  }
 
   FunctionElement get _canonicalElement => getter != null ? getter : setter;
 
@@ -738,7 +747,6 @@ abstract class FunctionTypedElementMixin
 }
 
 abstract class ClassElementMixin implements ElementZ, ClassElement {
-
   InterfaceType _createType(List<DartType> typeArguments) {
     return new InterfaceType(this, typeArguments);
   }
@@ -768,11 +776,6 @@ abstract class ClassElementMixin implements ElementZ, ClassElement {
 
   @override
   bool get hasLocalScopeMembers => _unsupported('hasLocalScopeMembers');
-
-  @override
-  bool implementsFunction(CoreClasses coreClasses) {
-    return _unsupported('implementsFunction');
-  }
 
   @override
   bool get isEnumClass => false;
@@ -818,6 +821,7 @@ class ClassElementZ extends DeserializedElementZ
   DartType _supertype;
   OrderedTypeSet _allSupertypesAndSelf;
   Link<DartType> _interfaces;
+  FunctionType _callType;
 
   ClassElementZ(ObjectDecoder decoder)
       : super(decoder);
@@ -851,6 +855,7 @@ class ClassElementZ extends DeserializedElementZ
         _allSupertypesAndSelf =
             new OrderedTypeSetBuilder(this)
               .createOrderedTypeSet(_supertype, _interfaces);
+        _callType = _decoder.getType(Key.CALL_TYPE, isOptional: true);
       }
     }
   }
@@ -892,6 +897,12 @@ class ClassElementZ extends DeserializedElementZ
 
   @override
   bool get isUnnamedMixinApplication => false;
+
+  @override
+  FunctionType get callType {
+    _ensureSuperHierarchy();
+    return _callType;
+  }
 }
 
 abstract class MixinApplicationElementMixin
@@ -1349,7 +1360,7 @@ abstract class FunctionElementZ extends DeserializedElementZ
 
   @override
   accept(ElementVisitor visitor, arg) {
-    return visitor.visitFunctionElement(this, arg);
+    return visitor.visitMethodElement(this, arg);
   }
 
   @override
@@ -1422,7 +1433,7 @@ class LocalFunctionElementZ extends DeserializedElementZ
 
   @override
   accept(ElementVisitor visitor, arg) {
-    return visitor.visitFunctionElement(this, arg);
+    return visitor.visitLocalFunctionElement(this, arg);
   }
 
   @override
@@ -1436,7 +1447,10 @@ abstract class GetterElementZ extends DeserializedElementZ
          ParametersMixin,
          TypedElementMixin,
          MemberElementMixin
-    implements FunctionElement {
+    implements GetterElement {
+
+  AbstractFieldElement abstractField;
+  SetterElement setter;
 
   GetterElementZ(ObjectDecoder decoder)
       : super(decoder);
@@ -1446,7 +1460,7 @@ abstract class GetterElementZ extends DeserializedElementZ
 
   @override
   accept(ElementVisitor visitor, arg) {
-    return visitor.visitFunctionElement(this, arg);
+    return visitor.visitGetterElement(this, arg);
   }
 }
 
@@ -1474,7 +1488,10 @@ abstract class SetterElementZ extends DeserializedElementZ
          ParametersMixin,
          TypedElementMixin,
          MemberElementMixin
-    implements FunctionElement {
+    implements SetterElement {
+
+  AbstractFieldElement abstractField;
+  GetterElement getter;
 
   SetterElementZ(ObjectDecoder decoder)
       : super(decoder);
@@ -1484,7 +1501,7 @@ abstract class SetterElementZ extends DeserializedElementZ
 
   @override
   accept(ElementVisitor visitor, arg) {
-    return visitor.visitFunctionElement(this, arg);
+    return visitor.visitSetterElement(this, arg);
   }
 }
 

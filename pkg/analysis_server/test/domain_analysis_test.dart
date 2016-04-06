@@ -70,7 +70,7 @@ main() {
             new AnalysisGetReachableSourcesParams(fileA).toRequest('0');
         var response = handler.handleRequest(request);
 
-        var json = response.toJson()[Response.RESULT];
+        Map json = response.toJson()[Response.RESULT];
 
         // Sanity checks.
         expect(json['sources'], hasLength(6));

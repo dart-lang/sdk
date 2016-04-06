@@ -258,6 +258,18 @@ class UriContributorTest extends DartCompletionContributorTest {
         csKind: CompletionSuggestionKind.IMPORT);
   }
 
+  test_import_package2_with_trailing() async {
+    addPackageSource('foo', 'foo.dart', 'library foo;');
+    addPackageSource('foo', 'baz/too.dart', 'library too;');
+    addPackageSource('bar', 'bar.dart', 'library bar;');
+    addTestSource('import "package:foo/baz/^.dart" import');
+    await computeSuggestions();
+    assertSuggest('package:foo/baz/too.dart',
+        csKind: CompletionSuggestionKind.IMPORT);
+    expect(replacementOffset, completionOffset - 16);
+    expect(replacementLength, 5 + 16);
+  }
+
   test_import_package2_raw() async {
     addPackageSource('foo', 'foo.dart', 'library foo;');
     addPackageSource('foo', 'baz/too.dart', 'library too;');

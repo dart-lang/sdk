@@ -76,7 +76,13 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
   EntityRefBuilder serializeIdentifier(Identifier identifier) {
     EntityRefBuilder b = new EntityRefBuilder();
     if (identifier is SimpleIdentifier) {
-      b.reference = visitor.serializeSimpleReference(identifier.name);
+      int index = visitor.serializeSimpleReference(identifier.name,
+          allowTypeParameter: true);
+      if (index < 0) {
+        b.paramReference = -index;
+      } else {
+        b.reference = index;
+      }
     } else if (identifier is PrefixedIdentifier) {
       int prefix = visitor.serializeSimpleReference(identifier.prefix.name);
       b.reference =
@@ -89,15 +95,24 @@ class _ConstExprSerializer extends AbstractConstExprSerializer {
   }
 
   @override
-  EntityRefBuilder serializePropertyAccess(PropertyAccess access) {
-    Expression target = access.target;
-    if (target is Identifier) {
-      EntityRefBuilder targetRef = serializeIdentifier(target);
-      return new EntityRefBuilder(reference: visitor.serializeReference(
-          targetRef.reference, access.propertyName.name));
+  EntityRefBuilder serializeIdentifierSequence(Expression expr) {
+    if (expr is Identifier) {
+      AstNode parent = expr.parent;
+      if (parent is MethodInvocation &&
+          parent.methodName == expr &&
+          parent.target != null) {
+        int targetId = serializeIdentifierSequence(parent.target).reference;
+        int nameId = visitor.serializeReference(targetId, expr.name);
+        return new EntityRefBuilder(reference: nameId);
+      }
+      return serializeIdentifier(expr);
+    }
+    if (expr is PropertyAccess) {
+      int targetId = serializeIdentifierSequence(expr.target).reference;
+      int nameId = visitor.serializeReference(targetId, expr.propertyName.name);
+      return new EntityRefBuilder(reference: nameId);
     } else {
-      // TODO(scheglov) should we handle other targets in malformed constants?
-      throw new StateError('Unexpected target type: ${target.runtimeType}');
+      throw new StateError('Unexpected node type: ${expr.runtimeType}');
     }
   }
 
@@ -698,8 +713,12 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   /**
    * Serialize a reference to a name declared either at top level or in a
    * nested scope.
+   *
+   * If [allowTypeParameter] is `true`, then references to type
+   * parameters are allowed, and are returned as negative numbers.
    */
-  int serializeSimpleReference(String name) {
+  int serializeSimpleReference(String name, {bool allowTypeParameter: false}) {
+    int indexOffset = 0;
     for (int i = scopes.length - 1; i >= 0; i--) {
       _Scope scope = scopes[i];
       _ScopedEntity entity = scope[name];
@@ -707,6 +726,9 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
         if (entity is _ScopedClassMember) {
           return serializeReference(
               serializeReference(null, entity.className), name);
+        } else if (allowTypeParameter && entity is _ScopedTypeParameter) {
+          int paramReference = indexOffset + entity.index;
+          return -paramReference;
         } else {
           // Invalid reference to a type parameter.  Should never happen in
           // legal Dart code.
@@ -714,6 +736,9 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
           // code?
           throw new StateError('Invalid identifier reference');
         }
+      }
+      if (scope is _TypeParameterScope) {
+        indexOffset += scope.length;
       }
     }
     return serializeReference(null, name);
@@ -824,7 +849,8 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
       b.annotations = serializeAnnotations(annotations);
       b.codeRange = serializeCodeRange(variables.parent);
       if (variable.isConst ||
-          variable.isFinal && isField && !isDeclaredStatic) {
+          variable.isFinal && isField && !isDeclaredStatic ||
+          variables.type == null) {
         Expression initializer = variable.initializer;
         if (initializer != null) {
           b.constExpr = serializeConstExpr(initializer);

@@ -76,14 +76,16 @@ bool Platform::LocalHostname(char *buffer, intptr_t buffer_length) {
 
 char** Platform::Environment(intptr_t* count) {
 #if TARGET_OS_IOS
-  // TODO(iposva): On Mac (desktop), _NSGetEnviron() is used to access the
-  // environ from shared libraries or bundles. This is present in crt_externs.h
-  // which is unavailable on iOS. On iOS, everything is statically linked for
-  // now. So arguably, accessing the environ directly with a "extern char
-  // **environ" will work. But this approach is brittle as the target with this
-  // CU could be a dynamic framework (introduced in iOS 8). A more elegant
-  // approach needs to be devised.
-  return NULL;
+  // TODO(zra,chinmaygarde): On iOS, environment variables are seldom used. Wire
+  // this up if someone needs it. In the meantime, we return an empty array.
+  char** result;
+  result = reinterpret_cast<char**>(Dart_ScopeAllocate(1 * sizeof(*result)));
+  if (result == NULL) {
+    return NULL;
+  }
+  result[0] = NULL;
+  *count = 0;
+  return result;
 #else
   // Using environ directly is only safe as long as we do not
   // provide access to modifying environment variables.

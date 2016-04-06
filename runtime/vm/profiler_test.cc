@@ -1109,6 +1109,7 @@ TEST_CASE(Profiler_StringAllocation) {
 
 TEST_CASE(Profiler_StringInterpolation) {
   DisableNativeProfileScope dnps;
+  DisableBackgroundCompilationScope dbcs;
   const char* kScript = "String foo(String a, String b) => '$a | $b';";
   Dart_Handle lib = TestCase::LoadTestScript(kScript, NULL);
   EXPECT_VALID(lib);

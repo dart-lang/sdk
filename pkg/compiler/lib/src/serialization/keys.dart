@@ -10,6 +10,7 @@ class Key {
   static const Key ARGUMENTS = const Key('arguments');
   static const Key BOUND = const Key('bound');
   static const Key CALL_STRUCTURE = const Key('callStructure');
+  static const Key CALL_TYPE = const Key('callType');
   static const Key CANONICAL_URI = const Key('canonicalUri');
   static const Key CLASS = const Key('class');
   static const Key COMPILATION_UNIT = const Key('compilation-unit');
@@ -29,6 +30,7 @@ class Key {
   static const Key EXPORT_SCOPE = const Key('export-scope');
   static const Key EXPRESSION = const Key('expression');
   static const Key FALSE = const Key('false');
+  static const Key FEATURES = const Key('features');
   static const Key FIELD = const Key('field');
   static const Key FIELDS = const Key('fields');
   static const Key FUNCTION = const Key('function');
@@ -42,6 +44,7 @@ class Key {
   static const Key IS_ABSTRACT = const Key('isAbstract');
   static const Key IS_CONST = const Key('isConst');
   static const Key IS_DEFERRED = const Key('isDeferred');
+  static const Key IS_EMPTY = const Key('isEmpty');
   static const Key IS_EXTERNAL = const Key('isExternal');
   static const Key IS_FINAL = const Key('isFinal');
   static const Key IS_NAMED = const Key('isNamed');
@@ -58,6 +61,8 @@ class Key {
   static const Key LIBRARY = const Key('library');
   static const Key LIBRARY_DEPENDENCY = const Key('library-dependency');
   static const Key LIBRARY_NAME = const Key('library-name');
+  static const Key LISTS = const Key('lists');
+  static const Key MAPS = const Key('maps');
   static const Key MEMBERS = const Key('members');
   static const Key MIXIN = const Key('mixin');
   static const Key MIXINS = const Key('mixins');
@@ -78,6 +83,7 @@ class Key {
   static const Key STATIC_USES = const Key('static-uses');
   static const Key SUPERTYPE = const Key('supertype');
   static const Key SUPERTYPES = const Key('supertypes');
+  static const Key SYMBOLS = const Key('symbols');
   static const Key TAGS = const Key('tags');
   static const Key TRUE = const Key('true');
   static const Key TYPE = const Key('type');

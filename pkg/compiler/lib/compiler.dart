@@ -7,6 +7,7 @@ library compiler;
 import 'dart:async';
 import 'package:package_config/packages.dart';
 import 'compiler_new.dart' as new_api;
+import 'src/options.dart' show CompilerOptions;
 import 'src/old_to_new_api.dart';
 
 // Unless explicitly allowed, passing [:null:] for any argument to the
@@ -115,7 +116,7 @@ Future<CompilationResult> compile(
      Uri packageConfig,
      PackagesDiscoveryProvider packagesDiscoveryProvider]) {
 
-  new_api.CompilerOptions compilerOptions = new new_api.CompilerOptions.parse(
+  CompilerOptions compilerOptions = new CompilerOptions.parse(
       entryPoint: script,
       libraryRoot: libraryRoot,
       packageRoot: packageRoot,

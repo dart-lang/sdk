@@ -95,7 +95,8 @@ analyzer:
     group('processing', () {
       test('yaml map', () {
         var options = optionsProvider.getOptionsFromString(config);
-        var errorConfig = new ErrorConfig(options['analyzer']['errors']);
+        var errorConfig =
+            new ErrorConfig((options['analyzer'] as YamlMap)['errors']);
         expect(errorConfig.processors, hasLength(2));
 
         // ignore

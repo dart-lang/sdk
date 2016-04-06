@@ -1,13 +1,9 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 /// Check that 'dart:' libraries have their corresponding dart.library.X
 /// environment variable set.
-
-import "dart:io";
-
-import "dart:async";
 
 import "memory_source_file_helper.dart";
 
@@ -16,19 +12,15 @@ import "package:async_helper/async_helper.dart";
 import 'package:expect/expect.dart' show
     Expect;
 
-import 'package:compiler/src/elements/elements.dart' show
-    LibraryElement;
-
 import 'package:compiler/src/null_compiler_output.dart' show
     NullCompilerOutput;
 
-import 'package:compiler/compiler_new.dart' show
-    CompilerInput,
-    CompilerDiagnostics,
+import 'package:compiler/src/options.dart' show
     CompilerOptions;
 
-import 'package:sdk_library_metadata/libraries.dart' show
-    LibraryInfo;
+import 'package:compiler/compiler_new.dart' show
+    CompilerInput,
+    CompilerDiagnostics;
 
 const clientPlatform = r'''
 [dart-spec]

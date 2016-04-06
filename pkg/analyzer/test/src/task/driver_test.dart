@@ -241,8 +241,8 @@ class AnalysisDriverTest extends AbstractDriverTest {
 
   test_performAnalysisTask_infiniteLoop_handled() {
     AnalysisTarget target = new TestSource();
-    ResultDescriptor resultA = new ResultDescriptor('resultA', -1);
-    ResultDescriptor resultB = new ResultDescriptor('resultB', -2);
+    ResultDescriptor<int> resultA = new ResultDescriptor<int>('resultA', -1);
+    ResultDescriptor<int> resultB = new ResultDescriptor<int>('resultB', -2);
     // configure tasks
     TestAnalysisTask task1;
     TestAnalysisTask task2;
@@ -290,8 +290,8 @@ class AnalysisDriverTest extends AbstractDriverTest {
 
   test_performAnalysisTask_infiniteLoop_unhandled() {
     AnalysisTarget target = new TestSource();
-    ResultDescriptor resultA = new ResultDescriptor('resultA', -1);
-    ResultDescriptor resultB = new ResultDescriptor('resultB', -2);
+    ResultDescriptor<int> resultA = new ResultDescriptor<int>('resultA', -1);
+    ResultDescriptor<int> resultB = new ResultDescriptor<int>('resultB', -2);
     // configure tasks
     TestAnalysisTask task1;
     TestAnalysisTask task2;
@@ -324,8 +324,8 @@ class AnalysisDriverTest extends AbstractDriverTest {
 
   test_performAnalysisTask_inputsFirst() {
     AnalysisTarget target = new TestSource();
-    ResultDescriptor resultA = new ResultDescriptor('resultA', -1);
-    ResultDescriptor resultB = new ResultDescriptor('resultB', -2);
+    ResultDescriptor<int> resultA = new ResultDescriptor<int>('resultA', -1);
+    ResultDescriptor<int> resultB = new ResultDescriptor<int>('resultB', -2);
     // configure tasks
     TestAnalysisTask task1;
     TestAnalysisTask task2;

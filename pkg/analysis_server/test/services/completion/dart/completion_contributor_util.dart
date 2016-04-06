@@ -519,9 +519,13 @@ abstract class DartCompletionContributorTest extends AbstractContextTest {
     return cs;
   }
 
-  Future performAnalysis(int times, Completer completer) {
-    if (completer.isCompleted) return completer.future;
-    if (times == 0 || context == null) return new Future.value();
+  Future/*<E>*/ performAnalysis/*<E>*/(int times, Completer/*<E>*/ completer) {
+    if (completer.isCompleted) {
+      return completer.future;
+    }
+    if (times == 0 || context == null) {
+      return new Future.value();
+    }
     context.performAnalysisTask();
     // We use a delayed future to allow microtask events to finish. The
     // Future.value or Future() constructors use scheduleMicrotask themselves and

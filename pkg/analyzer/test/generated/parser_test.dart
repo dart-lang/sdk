@@ -2033,6 +2033,24 @@ class Foo {
         "static var x;", [ParserErrorCode.STATIC_TOP_LEVEL_DECLARATION]);
   }
 
+  void test_string_unterminated_interpolation_block() {
+    ParserTestCase.parseCompilationUnit(
+        r'''
+m() {
+ {
+ '${${
+''',
+        [
+          ScannerErrorCode.UNTERMINATED_STRING_LITERAL,
+          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.EXPECTED_TOKEN,
+          ParserErrorCode.EXPECTED_TOKEN,
+        ]);
+  }
+
   void test_switchHasCaseAfterDefaultCase() {
     parse4(
         "parseSwitchStatement",
@@ -3500,7 +3518,7 @@ class B = Object with A {}''',
 
   void test_expressionList_multiple_end() {
     List<Expression> result = parse4("parseExpressionList", ", 2, 3, 4",
-        [ParserErrorCode.MISSING_IDENTIFIER]);
+        [ParserErrorCode.MISSING_IDENTIFIER]) as List<Expression>;
     expect(result, hasLength(4));
     Expression syntheticExpression = result[0];
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier,
@@ -3510,7 +3528,7 @@ class B = Object with A {}''',
 
   void test_expressionList_multiple_middle() {
     List<Expression> result = parse4("parseExpressionList", "1, 2, , 4",
-        [ParserErrorCode.MISSING_IDENTIFIER]);
+        [ParserErrorCode.MISSING_IDENTIFIER]) as List<Expression>;
     expect(result, hasLength(4));
     Expression syntheticExpression = result[2];
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier,
@@ -3520,7 +3538,7 @@ class B = Object with A {}''',
 
   void test_expressionList_multiple_start() {
     List<Expression> result = parse4("parseExpressionList", "1, 2, 3,",
-        [ParserErrorCode.MISSING_IDENTIFIER]);
+        [ParserErrorCode.MISSING_IDENTIFIER]) as List<Expression>;
     expect(result, hasLength(4));
     Expression syntheticExpression = result[3];
     EngineTestCase.assertInstanceOf((obj) => obj is SimpleIdentifier,
@@ -6067,7 +6085,8 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCombinators_h() {
-    List<Combinator> combinators = parse4("parseCombinators", "hide a;");
+    List<Combinator> combinators =
+        parse4("parseCombinators", "hide a;") as List<Combinator>;
     expect(combinators, hasLength(1));
     HideCombinator combinator = combinators[0] as HideCombinator;
     expect(combinator, isNotNull);
@@ -6076,7 +6095,8 @@ class SimpleParserTest extends ParserTestCase {
   }
 
   void test_parseCombinators_hs() {
-    List<Combinator> combinators = parse4("parseCombinators", "hide a show b;");
+    List<Combinator> combinators =
+        parse4("parseCombinators", "hide a show b;") as List<Combinator>;
     expect(combinators, hasLength(2));
     HideCombinator hideCombinator = combinators[0] as HideCombinator;
     expect(hideCombinator, isNotNull);
@@ -6090,12 +6110,14 @@ class SimpleParserTest extends ParserTestCase {
 
   void test_parseCombinators_hshs() {
     List<Combinator> combinators =
-        parse4("parseCombinators", "hide a show b hide c show d;");
+        parse4("parseCombinators", "hide a show b hide c show d;")
+        as List<Combinator>;
     expect(combinators, hasLength(4));
   }
 
   void test_parseCombinators_s() {
-    List<Combinator> combinators = parse4("parseCombinators", "show a;");
+    List<Combinator> combinators =
+        parse4("parseCombinators", "show a;") as List<Combinator>;
     expect(combinators, hasLength(1));
     ShowCombinator combinator = combinators[0] as ShowCombinator;
     expect(combinator, isNotNull);
@@ -6256,7 +6278,8 @@ void''');
         TokenType.MULTI_LINE_COMMENT, "/** xxx [a] yyy [bb] zzz */", 3);
     List<DocumentationCommentToken> tokens = <DocumentationCommentToken>[token];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     List<Token> tokenReferences = token.references;
     expect(references, hasLength(2));
     expect(tokenReferences, hasLength(2));
@@ -6288,7 +6311,8 @@ void''');
           TokenType.MULTI_LINE_COMMENT, "/** [ some text", 5)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
@@ -6303,7 +6327,8 @@ void''');
           TokenType.MULTI_LINE_COMMENT, "/** [namePrefix some text", 5)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
@@ -6320,7 +6345,8 @@ void''');
           TokenType.SINGLE_LINE_COMMENT, "/// x [c]", 28)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, hasLength(3));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
@@ -6342,7 +6368,8 @@ void''');
           "/**\n *     a[i]\n * non-code line\n */", 3)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, isEmpty);
   }
 
@@ -6354,7 +6381,8 @@ void''');
           TokenType.SINGLE_LINE_COMMENT, "///     a[i] == b[i]", 0)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, isEmpty);
   }
 
@@ -6364,7 +6392,8 @@ void''');
           TokenType.MULTI_LINE_COMMENT, "/** [:xxx [a] yyy:] [b] zzz */", 3)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
@@ -6378,7 +6407,8 @@ void''');
           TokenType.MULTI_LINE_COMMENT, "/** `a[i]` and [b] */", 0)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
@@ -6392,7 +6422,8 @@ void''');
           TokenType.MULTI_LINE_COMMENT, "/** `a[i] and [b] */", 0)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, hasLength(2));
   }
 
@@ -6402,7 +6433,8 @@ void''');
           "/**\n *     a[i]\n * xxx [i] zzz\n */", 3)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
@@ -6416,7 +6448,8 @@ void''');
           "/** [a]: http://www.google.com (Google) [b] zzz */", 3)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
@@ -6430,7 +6463,8 @@ void''');
           "/** [a](http://www.google.com) [b] zzz */", 3)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
@@ -6444,7 +6478,8 @@ void''');
           TokenType.MULTI_LINE_COMMENT, "/** [a][c] [b] zzz */", 3)
     ];
     List<CommentReference> references =
-        parse("parseCommentReferences", <Object>[tokens], "");
+        parse("parseCommentReferences", <Object>[tokens], "")
+        as List<CommentReference>;
     expect(references, hasLength(1));
     CommentReference reference = references[0];
     expect(reference, isNotNull);
@@ -7405,12 +7440,14 @@ void''');
   }
 
   void test_parseExpressionList_multiple() {
-    List<Expression> result = parse4("parseExpressionList", "1, 2, 3");
+    List<Expression> result =
+        parse4("parseExpressionList", "1, 2, 3") as List<Expression>;
     expect(result, hasLength(3));
   }
 
   void test_parseExpressionList_single() {
-    List<Expression> result = parse4("parseExpressionList", "1");
+    List<Expression> result =
+        parse4("parseExpressionList", "1") as List<Expression>;
     expect(result, hasLength(1));
   }
 
@@ -8365,12 +8402,14 @@ void''');
   }
 
   void test_parseIdentifierList_multiple() {
-    List<SimpleIdentifier> list = parse4("parseIdentifierList", "a, b, c");
+    List<SimpleIdentifier> list =
+        parse4("parseIdentifierList", "a, b, c") as List<SimpleIdentifier>;
     expect(list, hasLength(3));
   }
 
   void test_parseIdentifierList_single() {
-    List<SimpleIdentifier> list = parse4("parseIdentifierList", "a");
+    List<SimpleIdentifier> list =
+        parse4("parseIdentifierList", "a") as List<SimpleIdentifier>;
     expect(list, hasLength(1));
   }
 

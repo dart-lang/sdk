@@ -2852,6 +2852,13 @@ class DirectiveResolver extends SimpleAstVisitor with ExistingElementResolver {
     }
     for (ExportElement export in exports) {
       if (export.exportedLibrary.source == source) {
+        // Must have the same offset.
+        if (export.nameOffset != node.offset) {
+          continue;
+        }
+        // In general we should also match combinators.
+        // But currently we invalidate element model on any directive change.
+        // So, either the combinators are the same, or we build new elements.
         return export;
       }
     }
@@ -2874,17 +2881,18 @@ class DirectiveResolver extends SimpleAstVisitor with ExistingElementResolver {
     for (ImportElement element in imports) {
       if (element.importedLibrary.source == source) {
         foundSource = true;
-        PrefixElement prefixElement = element.prefix;
-        if (prefix == null) {
-          if (prefixElement == null) {
-            return element;
-          }
-        } else {
-          if (prefixElement != null &&
-              prefix.name == prefixElement.displayName) {
-            return element;
-          }
+        // Must have the same offset.
+        if (element.nameOffset != node.offset) {
+          continue;
         }
+        // Must have the same prefix.
+        if (element.prefix?.displayName != prefix?.name) {
+          continue;
+        }
+        // In general we should also match combinators.
+        // But currently we invalidate element model on any directive change.
+        // So, either the combinators are the same, or we build new elements.
+        return element;
       }
     }
     if (foundSource) {
@@ -4082,17 +4090,17 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
 
   @override
   void visitExportDirective(ExportDirective node) {
-    _visitMetadata(node.metadata);
+    _visitDirective(node);
   }
 
   @override
   void visitImportDirective(ImportDirective node) {
-    _visitMetadata(node.metadata);
+    _visitDirective(node);
   }
 
   @override
   void visitLibraryDirective(LibraryDirective node) {
-    _visitMetadata(node.metadata);
+    _visitDirective(node);
   }
 
   @override
@@ -4114,6 +4122,14 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     _visitIdentifier(node.staticElement, node.name);
+  }
+
+  /**
+   * Visit identifiers used by the given [directive].
+   */
+  void _visitDirective(Directive directive) {
+    directive.documentationComment?.accept(this);
+    directive.metadata.accept(this);
   }
 
   void _visitIdentifier(Element element, String name) {
@@ -4149,20 +4165,6 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
     }
     // Remember the element.
     usedElements.elements.add(element);
-  }
-
-  /**
-   * Given some [NodeList] of [Annotation]s, ensure that the identifiers are visited by
-   * this visitor. Specifically, this covers the cases where AST nodes don't have their identifiers
-   * visited by this visitor, but still need their annotations visited.
-   *
-   * @param annotations the list of annotations to visit
-   */
-  void _visitMetadata(NodeList<Annotation> annotations) {
-    int count = annotations.length;
-    for (int i = 0; i < count; i++) {
-      annotations[i].accept(this);
-    }
   }
 }
 
@@ -4463,7 +4465,7 @@ class ImplicitLabelScope {
  * While this class does not yet have support for an "Organize Imports" action, this logic built up
  * in this class could be used for such an action in the future.
  */
-class ImportsVerifier /*extends RecursiveAstVisitor<Object>*/ {
+class ImportsVerifier {
   /**
    * A list of [ImportDirective]s that the current library imports, as identifiers are visited
    * by this visitor and an import has been identified as being used by the library, the
@@ -7543,8 +7545,10 @@ class ResolverVisitor extends ScopedVisitor {
 
     // Same number of type formals. Instantiate the function type so its
     // parameter and return type are in terms of the surrounding context.
-    return fnType.instantiate(
-        typeParameters.map((t) => t.name.staticElement.type).toList());
+    return fnType.instantiate(typeParameters
+        .map((TypeParameter t) =>
+            (t.name.staticElement as TypeParameterElement).type)
+        .toList());
   }
 
   /**

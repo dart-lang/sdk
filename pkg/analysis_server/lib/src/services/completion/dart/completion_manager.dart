@@ -299,7 +299,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
       CompilationUnit unit = await _computeAsync(
           this,
           new LibrarySpecificUnit(libElem.source, unresolvedUnit.source),
-          RESOLVED_UNIT3,
+          RESOLVED_UNIT4,
           performance,
           'resolve library unit');
       checkAborted();
@@ -376,7 +376,7 @@ class DartCompletionRequestImpl implements DartCompletionRequest {
       unit = await _computeAsync(
           request,
           new LibrarySpecificUnit(libSource, source),
-          resultDescriptor ?? RESOLVED_UNIT3,
+          resultDescriptor ?? RESOLVED_UNIT4,
           performance,
           'resolve declarations');
     }

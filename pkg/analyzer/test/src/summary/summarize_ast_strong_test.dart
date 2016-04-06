@@ -43,31 +43,6 @@ class LinkedSummarizeAstStrongTest extends LinkedSummarizeAstTest {
   }
 
   @override
-  test_field_formal_param_inferred_type_explicit() {
-    // TODO(paulberry): fix.
-  }
-
-  @override
-  test_field_formal_param_inferred_type_implicit() {
-    // TODO(paulberry): fix.
-  }
-
-  @override
-  test_field_inferred_type_nonstatic_implicit_initialized() {
-    // TODO(paulberry): fix.
-  }
-
-  @override
-  test_field_inferred_type_nonstatic_implicit_uninitialized() {
-    // TODO(paulberry): fix.
-  }
-
-  @override
-  test_field_inferred_type_static_implicit_initialized() {
-    // TODO(paulberry): fix.
-  }
-
-  @override
   test_field_propagated_type_final_immediate() {
     // TODO(paulberry): fix.
   }
@@ -78,37 +53,7 @@ class LinkedSummarizeAstStrongTest extends LinkedSummarizeAstTest {
   }
 
   @override
-  test_getter_inferred_type_nonstatic_implicit_return() {
-    // TODO(paulberry): fix.
-  }
-
-  @override
   test_implicit_dependencies_follow_other_dependencies() {
-    // TODO(paulberry): fix.
-  }
-
-  @override
-  test_inferred_type_refers_to_bound_type_param() {
-    // TODO(paulberry): fix.
-  }
-
-  @override
-  test_inferred_type_refers_to_function_typed_parameter_type_generic_class() {
-    // TODO(paulberry): fix.
-  }
-
-  @override
-  test_inferred_type_refers_to_function_typed_parameter_type_other_lib() {
-    // TODO(paulberry): fix.
-  }
-
-  @override
-  test_inferred_type_refers_to_method_function_typed_parameter_type() {
-    // TODO(paulberry): fix.
-  }
-
-  @override
-  test_inferred_type_refers_to_setter_function_typed_parameter_type() {
     // TODO(paulberry): fix.
   }
 
@@ -153,26 +98,6 @@ class LinkedSummarizeAstStrongTest extends LinkedSummarizeAstTest {
   }
 
   @override
-  test_method_inferred_type_nonstatic_implicit_param() {
-    // TODO(paulberry): fix.
-  }
-
-  @override
-  test_method_inferred_type_nonstatic_implicit_return() {
-    // TODO(paulberry): fix.
-  }
-
-  @override
-  test_setter_inferred_type_nonstatic_implicit_param() {
-    // TODO(paulberry): fix.
-  }
-
-  @override
-  test_setter_inferred_type_nonstatic_implicit_return() {
-    // TODO(paulberry): fix.
-  }
-
-  @override
   test_syntheticFunctionType_genericClosure() {
     // TODO(paulberry): fix.
   }
@@ -199,6 +124,11 @@ class LinkedSummarizeAstStrongTest extends LinkedSummarizeAstTest {
 
   @override
   test_syntheticFunctionType_withArguments() {
+    // TODO(paulberry): fix.
+  }
+
+  @override
+  test_unused_type_parameter() {
     // TODO(paulberry): fix.
   }
 

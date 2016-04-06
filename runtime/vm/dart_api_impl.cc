@@ -1483,6 +1483,8 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(
     return state;
   }
   I->heap()->CollectAllGarbage();
+  I->StopBackgroundCompiler();
+
 #if defined(DEBUG)
   FunctionVisitor check_canonical(T);
   I->heap()->IterateObjects(&check_canonical);
@@ -5947,7 +5949,7 @@ DART_EXPORT bool Dart_GlobalTimelineGetTrace(Dart_StreamConsumer consumer,
 
 DART_EXPORT void Dart_TimelineEvent(const char* label,
                                     int64_t timestamp0,
-                                    int64_t timestamp1,
+                                    int64_t timestamp1_or_async_id,
                                     Dart_Timeline_Event_Type type,
                                     intptr_t argument_count,
                                     const char** argument_names,
@@ -5958,7 +5960,7 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
   if (type < Dart_Timeline_Event_Begin) {
     return;
   }
-  if (type > Dart_Timeline_Event_Duration) {
+  if (type > Dart_Timeline_Event_Counter) {
     return;
   }
   TimelineStream* stream = Timeline::GetEmbedderStream();
@@ -5978,7 +5980,19 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
       event->Instant(label, timestamp0);
     break;
     case Dart_Timeline_Event_Duration:
-      event->Duration(label, timestamp0, timestamp1);
+      event->Duration(label, timestamp0, timestamp1_or_async_id);
+    break;
+    case Dart_Timeline_Event_Async_Begin:
+      event->AsyncBegin(label, timestamp1_or_async_id, timestamp0);
+    break;
+    case Dart_Timeline_Event_Async_End:
+      event->AsyncEnd(label, timestamp1_or_async_id, timestamp0);
+    break;
+    case Dart_Timeline_Event_Async_Instant:
+      event->AsyncInstant(label, timestamp1_or_async_id, timestamp0);
+    break;
+    case Dart_Timeline_Event_Counter:
+      event->Counter(label, timestamp0);
     break;
     default:
       FATAL("Unknown Dart_Timeline_Event_Type");
@@ -5991,114 +6005,15 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
 }
 
 
-DART_EXPORT void Dart_TimelineDuration(const char* label,
-                                       int64_t start_micros,
-                                       int64_t end_micros) {
-  if (!FLAG_support_timeline) {
+DART_EXPORT void Dart_SetThreadName(const char* name) {
+  OSThread* thread = OSThread::Current();
+  if (thread == NULL) {
+    // VM is shutting down.
     return;
   }
-  if (start_micros > end_micros) {
-    FATAL1("%s: start_micros must be <= end_micros", CURRENT_FUNC);
-  }
-  if (label == NULL) {
-    return;
-  }
-  TimelineStream* stream = Timeline::GetEmbedderStream();
-  ASSERT(stream != NULL);
-  TimelineEvent* event = stream->StartEvent();
-  if (event != NULL) {
-    event->Duration(label, start_micros, end_micros);
-    event->Complete();
-  }
+  thread->SetName(name);
 }
 
-
-DART_EXPORT void Dart_TimelineInstant(const char* label) {
-  if (!FLAG_support_timeline) {
-    return;
-  }
-  if (label == NULL) {
-    return;
-  }
-  TimelineStream* stream = Timeline::GetEmbedderStream();
-  ASSERT(stream != NULL);
-  TimelineEvent* event = stream->StartEvent();
-  if (event != NULL) {
-    event->Instant(label);
-    event->Complete();
-  }
-  return;
-}
-
-
-DART_EXPORT void Dart_TimelineAsyncBegin(const char* label,
-                                         int64_t* async_id) {
-  if (!FLAG_support_timeline) {
-    return;
-  }
-  if (label == NULL) {
-    return;
-  }
-  if (async_id == NULL) {
-    return;
-  }
-  *async_id = -1;
-  TimelineStream* stream = Timeline::GetEmbedderStream();
-  ASSERT(stream != NULL);
-  TimelineEvent* event = stream->StartEvent();
-  if (event != NULL) {
-    TimelineEventRecorder* recorder = Timeline::recorder();
-    ASSERT(recorder != NULL);
-    *async_id = recorder->GetNextAsyncId();
-    event->AsyncBegin(label, *async_id);
-    event->Complete();
-  }
-  return;
-}
-
-
-DART_EXPORT void Dart_TimelineAsyncInstant(const char* label,
-                                           int64_t async_id) {
-  if (!FLAG_support_timeline) {
-    return;
-  }
-  if (async_id < 0) {
-    return;
-  }
-  if (label == NULL) {
-    return;
-  }
-  TimelineStream* stream = Timeline::GetEmbedderStream();
-  ASSERT(stream != NULL);
-  TimelineEvent* event = stream->StartEvent();
-  if (event != NULL) {
-    event->AsyncInstant(label, async_id);
-    event->Complete();
-  }
-  return;
-}
-
-
-DART_EXPORT void Dart_TimelineAsyncEnd(const char* label,
-                                       int64_t async_id) {
-  if (!FLAG_support_timeline) {
-    return;
-  }
-  if (async_id < 0) {
-    return;
-  }
-  if (label == NULL) {
-    return;
-  }
-  TimelineStream* stream = Timeline::GetEmbedderStream();
-  ASSERT(stream != NULL);
-  TimelineEvent* event = stream->StartEvent();
-  if (event != NULL) {
-    event->AsyncEnd(label, async_id);
-    event->Complete();
-  }
-  return;
-}
 
 // The precompiler is included in dart_bootstrap and dart_noopt, and
 // excluded from dart and dart_precompiled_runtime.

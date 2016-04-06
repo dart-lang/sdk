@@ -159,6 +159,9 @@ class FlowGraph : public ZoneAllocated {
     return current_ssa_temp_index();
   }
 
+  bool InstanceCallNeedsClassCheck(InstanceCallInstr* call,
+                                   RawFunction::Kind kind) const;
+
   Thread* thread() const { return thread_; }
   Zone* zone() const { return thread()->zone(); }
   Isolate* isolate() const { return thread()->isolate(); }
@@ -351,6 +354,11 @@ class FlowGraph : public ZoneAllocated {
                         Representation to,
                         Value* use,
                         bool is_environment_use);
+
+  bool IsReceiver(Definition* def) const;
+  void ComputeIsReceiver(PhiInstr* phi) const;
+  void ComputeIsReceiverRecursive(PhiInstr* phi,
+                                  GrowableArray<PhiInstr*>* unmark) const;
 
   Thread* thread_;
 

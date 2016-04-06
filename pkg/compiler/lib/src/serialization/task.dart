@@ -5,6 +5,7 @@
 library dart2js.serialization.task;
 
 import '../common/resolution.dart' show
+    ResolutionImpact,
     ResolutionWorkItem;
 import '../common/tasks.dart' show
     CompilerTask;
@@ -89,5 +90,6 @@ class DeserializedResolutionWorkItem implements ResolutionWorkItem {
 abstract class DeserializerSystem {
   LibraryElement readLibrary(Uri resolvedUri);
   bool isDeserialized(Element element);
+  ResolutionImpact getResolutionImpact(Element element);
   WorldImpact computeWorldImpact(Element element);
 }

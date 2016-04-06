@@ -79,9 +79,9 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
   final Map<String, ImpliedType> impliedTypes;
 
   CodegenProtocolVisitor(Api api)
-      : super(api),
-        toHtmlVisitor = new ToHtmlVisitor(api),
-        impliedTypes = computeImpliedTypes(api) {
+      : toHtmlVisitor = new ToHtmlVisitor(api),
+        impliedTypes = computeImpliedTypes(api),
+        super(api) {
     codeGeneratorSettings.commentLineLength = 79;
     codeGeneratorSettings.languageName = 'dart';
   }

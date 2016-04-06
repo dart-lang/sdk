@@ -1037,6 +1037,7 @@ class SwitchCaseJumpHandler extends TargetJumpHandler {
 class SsaBuilder extends ast.Visitor
     with BaseImplementationOfCompoundsMixin,
          BaseImplementationOfSetIfNullsMixin,
+         BaseImplementationOfSuperIndexSetIfNullMixin,
          SemanticSendResolvedMixin,
          NewBulkMixin,
          ErrorBulkMixin
@@ -7105,6 +7106,32 @@ class SsaBuilder extends ast.Visitor
       ast.Node rhs,
       arg) {
     handleSuperSendSet(node);
+  }
+
+  @override
+  handleSuperIndexSetIfNull(
+      ast.SendSet node,
+      Element indexFunction,
+      Element indexSetFunction,
+      ast.Node index,
+      ast.Node rhs,
+      arg,
+      {bool isGetterValid,
+       bool isSetterValid}) {
+    handleCompoundSendSet(node);
+  }
+
+  @override
+  visitIndexSetIfNull(
+      ast.SendSet node,
+      ast.Node receiver,
+      ast.Node index,
+      ast.Node rhs,
+      arg,
+      {bool isGetterValid,
+       bool isSetterValid}) {
+    generateIsDeferredLoadedCheckOfSend(node);
+    handleIndexSendSet(node);
   }
 
   @override

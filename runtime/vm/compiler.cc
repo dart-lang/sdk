@@ -1109,6 +1109,7 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
                                        bool optimized,
                                        intptr_t osr_id) {
   ASSERT(!FLAG_precompiled_mode);
+  ASSERT(!optimized || function.was_compiled());
   LongJumpScope jump;
   if (setjmp(*jump.Set()) == 0) {
     Thread* const thread = Thread::Current();
@@ -1165,7 +1166,11 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
     }
 
     const bool success = helper.Compile(pipeline);
-    if (!success) {
+    if (success) {
+      if (!optimized) {
+        function.set_was_compiled(true);
+      }
+    } else {
       if (optimized) {
         if (Compiler::IsBackgroundCompilation()) {
           // Try again later, background compilation may abort because of
@@ -1375,15 +1380,20 @@ void Compiler::ComputeLocalVarDescriptors(const Code& code) {
   ASSERT(var_descs.IsNull());
   // IsIrregexpFunction have eager var descriptors generation.
   ASSERT(!function.IsIrregexpFunction());
-  // Parser should not produce any errors, therefore no LongJumpScope needed.
-  // (exception is background compilation).
-  ASSERT(!Compiler::IsBackgroundCompilation());
-  Parser::ParseFunction(parsed_function);
-  parsed_function->AllocateVariables();
-  var_descs = parsed_function->node_sequence()->scope()->
-      GetVarDescriptors(function);
-  ASSERT(!var_descs.IsNull());
-  code.set_var_descriptors(var_descs);
+  // In background compilation, parser can produce 'errors": bailouts
+  // if state changed while compiling in background.
+  LongJumpScope jump;
+  if (setjmp(*jump.Set()) == 0) {
+    Parser::ParseFunction(parsed_function);
+    parsed_function->AllocateVariables();
+    var_descs = parsed_function->node_sequence()->scope()->
+        GetVarDescriptors(function);
+    ASSERT(!var_descs.IsNull());
+    code.set_var_descriptors(var_descs);
+  } else {
+    // Only possible with background compilation.
+    ASSERT(Compiler::IsBackgroundCompilation());
+  }
 }
 
 
@@ -1676,6 +1686,8 @@ void BackgroundCompiler::Run() {
       Function& function = Function::Handle(zone);
       function = function_queue()->PeekFunction();
       while (running_ && !function.IsNull()) {
+        // Check that we have aggregated and cleared the stats.
+        ASSERT(thread->compiler_stats()->IsCleared());
         const Error& error = Error::Handle(zone,
             Compiler::CompileOptimizedFunction(thread,
                                                function,
@@ -1685,6 +1697,14 @@ void BackgroundCompiler::Run() {
         // unoptimized code. Any issues while optimizing are flagged by
         // making the result invalid.
         ASSERT(error.IsNull());
+#ifndef PRODUCT
+        Isolate* isolate = thread->isolate();
+        // We cannot aggregate stats if isolate is shutting down.
+        if (isolate->HasMutatorThread()) {
+          isolate->aggregate_compiler_stats()->Add(*thread->compiler_stats());
+        }
+        thread->compiler_stats()->Clear();
+#endif  // PRODUCT
         QueueElement* qelem = function_queue()->Remove();
         delete qelem;
         function = function_queue()->PeekFunction();
@@ -1763,10 +1783,12 @@ void BackgroundCompiler::EnsureInit(Thread* thread) {
   // compilation.
   Class& cls = Class::Handle(thread->zone(),
       Library::LookupCoreClass(Symbols::NoSuchMethodError()));
+  ASSERT(!cls.IsNull());
   Error& error = Error::Handle(thread->zone(),
       cls.EnsureIsFinalized(thread));
   ASSERT(error.IsNull());
   cls = Library::LookupCoreClass(Symbols::_Mint());
+  ASSERT(!cls.IsNull());
   error = cls.EnsureIsFinalized(thread);
   ASSERT(error.IsNull());
 

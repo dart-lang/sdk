@@ -3214,8 +3214,12 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         registry.registerDynamicUse(
             new DynamicUse(operatorSelector, null));
 
-        SendStructure sendStructure =
-            new CompoundIndexSetStructure(semantics, operator);
+        SendStructure sendStructure;
+        if (operator.kind == AssignmentOperatorKind.IF_NULL) {
+          sendStructure = new IndexSetIfNullStructure(semantics);
+        } else {
+          sendStructure = new CompoundIndexSetStructure(semantics, operator);
+        }
         registry.registerSendStructure(node, sendStructure);
         return const NoneResult();
       }
@@ -3338,8 +3342,12 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         registry.registerDynamicUse(
             new DynamicUse(operatorSelector, null));
 
-        SendStructure sendStructure =
-            new CompoundIndexSetStructure(semantics, operator);
+        SendStructure sendStructure;
+        if (operator.kind == AssignmentOperatorKind.IF_NULL) {
+          sendStructure = new IndexSetIfNullStructure(semantics);
+        } else {
+          sendStructure = new CompoundIndexSetStructure(semantics, operator);
+        }
         registry.registerSendStructure(node, sendStructure);
         return const NoneResult();
       }

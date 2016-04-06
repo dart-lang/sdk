@@ -32,14 +32,14 @@ class LogFileInputConverter extends CommonInputConverter {
       String timeStampString = _parseTimeStamp(line);
       String data = line.substring(timeStampString.length);
       if (data.startsWith(RECEIVED_FRAGMENT)) {
-        Map<String, dynamic> json = JSON.decode(data.substring(4));
+        Map<String, dynamic> json = asMap(JSON.decode(data.substring(4)));
         if (json.containsKey('event')) {
           return convertNotification(json);
         } else {
           return convertResponse(json);
         }
       } else if (data.startsWith(SENT_FRAGMENT)) {
-        Map<String, dynamic> json = JSON.decode(data.substring(4));
+        Map<String, dynamic> json = asMap(JSON.decode(data.substring(4)));
         if (json.containsKey('method')) {
           return convertRequest(json);
         }

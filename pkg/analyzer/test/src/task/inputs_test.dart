@@ -141,7 +141,8 @@ class ListTaskInputImplTest extends EngineTestCase {
 
   test_toList() {
     var input = new ListTaskInputImpl<AnalysisTarget>(target, result1);
-    TaskInput<List> input2 = input.toList((target) => 'name');
+    TaskInput<List> input2 =
+        input.toList((target) => new SimpleTaskInput(target, null));
     expect(input2,
         new isInstanceOf<ListToListTaskInput<AnalysisTarget, String>>());
   }
@@ -155,7 +156,8 @@ class ListTaskInputImplTest extends EngineTestCase {
 
   test_toMap() {
     var input = new ListTaskInputImpl<AnalysisTarget>(target, result1);
-    TaskInput<Map> input2 = input.toMap((target) => 'name');
+    TaskInput<Map> input2 =
+        input.toMap((target) => new SimpleTaskInput(target, null));
     expect(
         input2, new isInstanceOf<ListToMapTaskInput<AnalysisTarget, String>>());
   }
@@ -170,8 +172,8 @@ class ListTaskInputImplTest extends EngineTestCase {
 @reflectiveTest
 class ListToListTaskInputBuilderTest extends EngineTestCase {
   static final AnalysisTarget target1 = new TestSource();
-  static final ResultDescriptorImpl result1 =
-      new ResultDescriptorImpl('result1', null);
+  static final ResultDescriptorImpl<List> result1 =
+      new ResultDescriptorImpl<List>('result1', null);
   static final ResultDescriptorImpl result2 =
       new ResultDescriptorImpl('result2', null);
   static final ListToListTaskInput input = new ListToListTaskInput(
@@ -342,11 +344,11 @@ class ListToListTaskInputBuilderTest extends EngineTestCase {
 @reflectiveTest
 class ListToListTaskInputTest extends EngineTestCase {
   static final AnalysisTarget target = new TestSource();
-  static final ResultDescriptorImpl result =
-      new ResultDescriptorImpl('result', null);
+  static final ResultDescriptorImpl<List> result =
+      new ResultDescriptorImpl<List>('result', null);
 
   test_create() {
-    SimpleTaskInput baseAccessor = result.of(target);
+    SimpleTaskInput<List> baseAccessor = result.of(target);
     GenerateTaskInputs generate = (object) {};
     ListToListTaskInput input = new ListToListTaskInput(baseAccessor, generate);
     expect(input, isNotNull);
@@ -355,7 +357,7 @@ class ListToListTaskInputTest extends EngineTestCase {
   }
 
   test_createBuilder() {
-    SimpleTaskInput baseAccessor = result.of(target);
+    SimpleTaskInput<List> baseAccessor = result.of(target);
     GenerateTaskInputs generate = (object) {};
     ListToListTaskInput input = new ListToListTaskInput(baseAccessor, generate);
     expect(input.createBuilder(), isNotNull);
@@ -365,8 +367,8 @@ class ListToListTaskInputTest extends EngineTestCase {
 @reflectiveTest
 class ListToMapTaskInputBuilderTest extends EngineTestCase {
   static final AnalysisTarget target1 = new TestSource('target1');
-  static final ResultDescriptorImpl result1 =
-      new ResultDescriptorImpl('result1', null);
+  static final ResultDescriptorImpl<List> result1 =
+      new ResultDescriptorImpl<List>('result1', null);
   static final ResultDescriptorImpl result2 =
       new ResultDescriptorImpl('result2', null);
   static final ListToMapTaskInput input = new ListToMapTaskInput(
@@ -535,11 +537,11 @@ class ListToMapTaskInputBuilderTest extends EngineTestCase {
 @reflectiveTest
 class ListToMapTaskInputTest extends EngineTestCase {
   static final AnalysisTarget target = new TestSource();
-  static final ResultDescriptorImpl result =
-      new ResultDescriptorImpl('result', null);
+  static final ResultDescriptorImpl<List> result =
+      new ResultDescriptorImpl<List>('result', null);
 
   test_create() {
-    SimpleTaskInput baseAccessor = result.of(target);
+    SimpleTaskInput<List> baseAccessor = result.of(target);
     GenerateTaskInputs generate = (object) {};
     ListToMapTaskInput input = new ListToMapTaskInput(baseAccessor, generate);
     expect(input, isNotNull);
@@ -548,7 +550,7 @@ class ListToMapTaskInputTest extends EngineTestCase {
   }
 
   test_createBuilder() {
-    SimpleTaskInput baseAccessor = result.of(target);
+    SimpleTaskInput<List> baseAccessor = result.of(target);
     GenerateTaskInputs generate = (object) {};
     ListToMapTaskInput input = new ListToMapTaskInput(baseAccessor, generate);
     expect(input.createBuilder(), isNotNull);
@@ -561,7 +563,7 @@ class ObjectToListTaskInputBuilderTest {
   static final ResultDescriptorImpl result =
       new ResultDescriptorImpl('result', null);
   static final SimpleTaskInput baseInput = new SimpleTaskInput(target, result);
-  static final Function mapper = (x) => [x];
+  static final mapper = (Object x) => [x];
   static final ObjectToListTaskInput input =
       new ObjectToListTaskInput(baseInput, mapper);
 
@@ -689,7 +691,7 @@ class ObjectToListTaskInputTest extends EngineTestCase {
 
   test_create() {
     SimpleTaskInput baseInput = new SimpleTaskInput(target, result);
-    Function mapper = (x) => [x];
+    var mapper = (Object x) => [x];
     ObjectToListTaskInput input = new ObjectToListTaskInput(baseInput, mapper);
     expect(input, isNotNull);
     expect(input.baseInput, baseInput);
@@ -698,7 +700,7 @@ class ObjectToListTaskInputTest extends EngineTestCase {
 
   test_createBuilder() {
     SimpleTaskInput baseInput = new SimpleTaskInput(target, result);
-    Function mapper = (x) => [x];
+    var mapper = (Object x) => [x];
     ObjectToListTaskInput input = new ObjectToListTaskInput(baseInput, mapper);
     expect(input.createBuilder(),
         new isInstanceOf<ObjectToListTaskInputBuilder>());

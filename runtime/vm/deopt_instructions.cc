@@ -1183,11 +1183,11 @@ intptr_t DeoptInfoBuilder::EmitMaterializationArguments(intptr_t dest_index) {
     MaterializeObjectInstr* mat = materializations_[i];
     // Class of the instance to allocate.
     AddConstant(mat->cls(), dest_index++);
-    AddConstant(Smi::Handle(Smi::New(mat->num_variables())), dest_index++);
+    AddConstant(Smi::ZoneHandle(Smi::New(mat->num_variables())), dest_index++);
     for (intptr_t i = 0; i < mat->InputCount(); i++) {
       if (!mat->InputAt(i)->BindsToConstantNull()) {
         // Emit offset-value pair.
-        AddConstant(Smi::Handle(Smi::New(mat->FieldOffsetAt(i))),
+        AddConstant(Smi::ZoneHandle(Smi::New(mat->FieldOffsetAt(i))),
                     dest_index++);
         AddCopy(mat->InputAt(i), mat->LocationAt(i), dest_index++);
       }

@@ -7,11 +7,10 @@ library http_server;
 import 'dart:async';
 import 'dart:io';
 
-import 'dart:convert' show
-    HtmlEscape;
+import 'dart:convert' show HtmlEscape;
 
 import 'path.dart';
-import 'test_suite.dart';  // For TestUtils.
+import 'test_suite.dart'; // For TestUtils.
 // TODO(efortuna): Rewrite to not use the args library and simply take an
 // expected number of arguments, so test.dart doesn't rely on the args library?
 // See discussion on https://codereview.chromium.org/11931025/.
@@ -23,9 +22,8 @@ class DispatchingServer {
   Map<String, Function> _handlers = new Map<String, Function>();
   Function _notFound;
 
-  DispatchingServer(this.server,
-                    void onError(e),
-                    void this._notFound(HttpRequest request)) {
+  DispatchingServer(
+      this.server, void onError(e), void this._notFound(HttpRequest request)) {
     server.listen(_dispatchRequest, onError: onError);
   }
 
@@ -45,8 +43,6 @@ class DispatchingServer {
     _notFound(request);
   }
 }
-
-
 
 /// Interface of the HTTP server:
 ///
@@ -77,37 +73,37 @@ main(List<String> arguments) {
   TestUtils.setDartDirUri(Platform.script.resolve('../../..'));
   /** Convenience method for local testing. */
   var parser = new ArgParser();
-  parser.addOption('port', abbr: 'p',
+  parser.addOption('port',
+      abbr: 'p',
       help: 'The main server port we wish to respond to requests.',
       defaultsTo: '0');
-  parser.addOption('crossOriginPort', abbr: 'c',
+  parser.addOption('crossOriginPort',
+      abbr: 'c',
       help: 'A different port that accepts request from the main server port.',
       defaultsTo: '0');
-  parser.addFlag('help', abbr: 'h', negatable: false,
-      help: 'Print this usage information.');
+  parser.addFlag('help',
+      abbr: 'h', negatable: false, help: 'Print this usage information.');
   parser.addOption('build-directory', help: 'The build directory to use.');
   parser.addOption('package-root', help: 'The package root to use.');
-  parser.addOption('network', help: 'The network interface to use.',
-      defaultsTo: '0.0.0.0');
-  parser.addFlag('csp', help: 'Use Content Security Policy restrictions.',
-      defaultsTo: false);
-  parser.addOption('runtime', help: 'The runtime we are using (for csp flags).',
-      defaultsTo: 'none');
+  parser.addOption('network',
+      help: 'The network interface to use.', defaultsTo: '0.0.0.0');
+  parser.addFlag('csp',
+      help: 'Use Content Security Policy restrictions.', defaultsTo: false);
+  parser.addOption('runtime',
+      help: 'The runtime we are using (for csp flags).', defaultsTo: 'none');
 
   var args = parser.parse(arguments);
   if (args['help']) {
     print(parser.getUsage());
   } else {
     var servers = new TestingServers(new Path(args['build-directory']),
-                                     args['csp'],
-                                     args['runtime'],
-                                     null,
-                                     args['package-root']);
+        args['csp'], args['runtime'], null, args['package-root']);
     var port = int.parse(args['port']);
     var crossOriginPort = int.parse(args['crossOriginPort']);
-    servers.startServers(args['network'],
-                         port: port,
-                         crossOriginPort: crossOriginPort).then((_) {
+    servers
+        .startServers(args['network'],
+            port: port, crossOriginPort: crossOriginPort)
+        .then((_) {
       DebugLogger.info('Server listening on port ${servers.port}');
       DebugLogger.info('Server listening on port ${servers.crossOriginPort}');
     });
@@ -138,16 +134,16 @@ class TestingServers {
   final String runtime;
   DispatchingServer _server;
 
-  TestingServers(Path buildDirectory,
-                 this.useContentSecurityPolicy,
-                 [String this.runtime = 'none', String dartDirectory,
-                  String packageRoot]) {
+  TestingServers(Path buildDirectory, this.useContentSecurityPolicy,
+      [String this.runtime = 'none',
+      String dartDirectory,
+      String packageRoot]) {
     _buildDirectory = TestUtils.absolutePath(buildDirectory);
-    _dartDirectory = dartDirectory == null ? TestUtils.dartDir
-        : new Path(dartDirectory);
-    _packageRoot = packageRoot == null ?
-      _buildDirectory.append('packages') :
-      new Path(packageRoot);
+    _dartDirectory =
+        dartDirectory == null ? TestUtils.dartDir : new Path(dartDirectory);
+    _packageRoot = packageRoot == null
+        ? _buildDirectory.append('packages')
+        : new Path(packageRoot);
   }
 
   int get port => _serverList[0].port;
@@ -166,8 +162,7 @@ class TestingServers {
     return _startHttpServer(host, port: port).then((server) {
       _server = server;
       return _startHttpServer(host,
-                              port: crossOriginPort,
-                              allowedPort:_serverList[0].port);
+          port: crossOriginPort, allowedPort: _serverList[0].port);
     });
   }
 
@@ -178,8 +173,8 @@ class TestingServers {
     var buildDirectory = _buildDirectory.toNativePath();
     var csp = useContentSecurityPolicy ? '--csp ' : '';
     return '$dart $script -p $port -c $crossOriginPort $csp'
-           '--build-directory=$buildDirectory --runtime=$runtime '
-           '--package-root=$_packageRoot';
+        '--build-directory=$buildDirectory --runtime=$runtime '
+        '--package-root=$_packageRoot';
   }
 
   void stopServers() {
@@ -208,12 +203,11 @@ class TestingServers {
     });
   }
 
-  void _handleFileOrDirectoryRequest(HttpRequest request,
-                                     int allowedPort) {
+  void _handleFileOrDirectoryRequest(HttpRequest request, int allowedPort) {
     // Enable browsers to cache file/directory responses.
     var response = request.response;
-    response.headers.set("Cache-Control",
-                         "max-age=$_CACHE_EXPIRATION_IN_SECONDS");
+    response.headers
+        .set("Cache-Control", "max-age=$_CACHE_EXPIRATION_IN_SECONDS");
     var path = _getFilePathFromRequestPath(request.uri.path);
     if (path != null) {
       var file = new File(path.toNativePath());
@@ -235,9 +229,11 @@ class TestingServers {
       });
     } else {
       if (request.uri.path == '/') {
-        var entries = [new _Entry('root_dart', 'root_dart/'),
-                       new _Entry('root_build', 'root_build/'),
-                       new _Entry('echo', 'echo')];
+        var entries = [
+          new _Entry('root_dart', 'root_dart/'),
+          new _Entry('root_build', 'root_build/'),
+          new _Entry('echo', 'echo')
+        ];
         _sendDirectoryListing(entries, request, response);
       } else {
         _sendNotFound(request);
@@ -285,12 +281,10 @@ class TestingServers {
       var relativePath;
       if (pathSegments[0] == PREFIX_BUILDDIR) {
         basePath = _buildDirectory;
-        relativePath = new Path(
-            pathSegments.skip(1).join('/'));
+        relativePath = new Path(pathSegments.skip(1).join('/'));
       } else if (pathSegments[0] == PREFIX_DARTDIR) {
         basePath = _dartDirectory;
-        relativePath = new Path(
-            pathSegments.skip(1).join('/'));
+        relativePath = new Path(pathSegments.skip(1).join('/'));
       }
       var packagesIndex = pathSegments.indexOf('packages');
       if (packagesIndex != -1) {
@@ -309,24 +303,21 @@ class TestingServers {
     var completer = new Completer();
     var entries = [];
 
-    directory.list().listen(
-      (FileSystemEntity fse) {
-        var filename = new Path(fse.path).filename;
-        if (fse is File) {
-          entries.add(new _Entry(filename, filename));
-        } else if (fse is Directory) {
-          entries.add(new _Entry(filename, '$filename/'));
-        }
-      },
-      onDone: () {
-        completer.complete(entries);
-      });
+    directory.list().listen((FileSystemEntity fse) {
+      var filename = new Path(fse.path).filename;
+      if (fse is File) {
+        entries.add(new _Entry(filename, filename));
+      } else if (fse is Directory) {
+        entries.add(new _Entry(filename, '$filename/'));
+      }
+    }, onDone: () {
+      completer.complete(entries);
+    });
     return completer.future;
   }
 
-  void _sendDirectoryListing(List<_Entry> entries,
-                             HttpRequest request,
-                             HttpResponse response) {
+  void _sendDirectoryListing(
+      List<_Entry> entries, HttpRequest request, HttpResponse response) {
     response.headers.set('Content-Type', 'text/html');
     var header = '''<!DOCTYPE html>
     <html>
@@ -344,7 +335,6 @@ class TestingServers {
     </body>
     </html>''';
 
-
     entries.sort();
     response.write(header);
     for (var entry in entries) {
@@ -360,25 +350,20 @@ class TestingServers {
     });
   }
 
-  void _sendFileContent(HttpRequest request,
-                        HttpResponse response,
-                        int allowedPort,
-                        Path path,
-                        File file) {
+  void _sendFileContent(HttpRequest request, HttpResponse response,
+      int allowedPort, Path path, File file) {
     if (allowedPort != -1) {
       var headerOrigin = request.headers.value('Origin');
       var allowedOrigin;
       if (headerOrigin != null) {
         var origin = Uri.parse(headerOrigin);
         // Allow loading from http://*:$allowedPort in browsers.
-        allowedOrigin =
-          '${origin.scheme}://${origin.host}:${allowedPort}';
+        allowedOrigin = '${origin.scheme}://${origin.host}:${allowedPort}';
       } else {
         // IE10 appears to be bugged and is not sending the Origin header
         // when making CORS requests to the same domain but different port.
         allowedOrigin = '*';
       }
-
 
       response.headers.set("Access-Control-Allow-Origin", allowedOrigin);
       response.headers.set('Access-Control-Allow-Credentials', 'true');
@@ -392,8 +377,10 @@ class TestingServers {
       // whereas Firefox and IE10 use X-Content-Security-Policy. Safari
       // still uses the WebKit- prefixed version.
       var content_header_value = "script-src 'self'; object-src 'self'";
-      for (var header in ["Content-Security-Policy",
-                          "X-Content-Security-Policy"]) {
+      for (var header in [
+        "Content-Security-Policy",
+        "X-Content-Security-Policy"
+      ]) {
         response.headers.set(header, content_header_value);
       }
       if (const ["safari"].contains(runtime)) {
@@ -426,7 +413,7 @@ class TestingServers {
     }
     if (!isHarmlessPath(request.uri.path)) {
       DebugLogger.warning('HttpServer: could not find file for request path: '
-                          '"${request.uri.path}"');
+          '"${request.uri.path}"');
     }
     var response = request.response;
     response.statusCode = HttpStatus.NOT_FOUND;

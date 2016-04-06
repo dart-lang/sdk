@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
 import '../../abstract_single_unit.dart';
@@ -257,6 +258,14 @@ class A {
     index.indexDeclarations(testUnit);
   }
 
+  test_indexUnit_nullLibraryElement() async {
+    resolveTestUnit('');
+    CompilationUnitElement unitElement = new _CompilationUnitElementMock();
+    expect(unitElement.library, isNull);
+    testUnit.element = unitElement;
+    index.indexUnit(testUnit);
+  }
+
   test_indexUnit_nullUnit() async {
     index.indexUnit(null);
   }
@@ -341,3 +350,6 @@ class A {}
     return source;
   }
 }
+
+class _CompilationUnitElementMock extends TypedMock
+    implements CompilationUnitElement {}

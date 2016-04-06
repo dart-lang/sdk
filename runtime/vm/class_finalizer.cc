@@ -2427,7 +2427,12 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
     // fields because type parameters are parsed before the class body. Since
     // 'ResolveAndFinalizeMemberTypes(cls)' has not been called yet, unfinalized
     // member types could choke the snapshotter.
-    ASSERT(Array::Handle(cls.functions()).Length() == 0);
+    // Or
+    // if the class is being refinalized because a patch is being applied
+    // after the class has been finalized then it is ok for the class to have
+    // functions.
+    ASSERT((Array::Handle(cls.functions()).Length() == 0) ||
+           cls.is_refinalize_after_patch());
   }
 }
 
