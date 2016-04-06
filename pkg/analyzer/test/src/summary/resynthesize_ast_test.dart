@@ -7,7 +7,9 @@ library analyzer.test.src.summary.resynthesize_ast_test;
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/generated/engine.dart' show AnalysisContext;
+import 'package:analyzer/src/generated/engine.dart'
+    show AnalysisContext, AnalysisOptionsImpl;
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
@@ -20,6 +22,7 @@ import 'package:analyzer/task/dart.dart' show PARSED_UNIT;
 import 'package:unittest/unittest.dart';
 
 import '../../reflective_tests.dart';
+import '../context/abstract_context.dart';
 import '../task/strong/inferred_type_test.dart';
 import 'resynthesize_test.dart';
 
@@ -50,6 +53,14 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   }
 
   @override
+  DartSdk createDartSdk() => AbstractContextTest.SHARED_STRONG_MOCK_SDK;
+
+  @override
+  AnalysisOptionsImpl createOptions() => new AnalysisOptionsImpl()
+    ..enableGenericMethods = true
+    ..strongMode = true;
+
+  @override
   @failingTest
   void test_blockBodiedLambdas_async_allReturnsAreValues() {
     super.test_blockBodiedLambdas_async_allReturnsAreValues();
@@ -71,6 +82,12 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   @failingTest
   void test_blockBodiedLambdas_asyncStar() {
     super.test_blockBodiedLambdas_asyncStar();
+  }
+
+  @override
+  @failingTest
+  void test_blockBodiedLambdas_basic() {
+    super.test_blockBodiedLambdas_basic();
   }
 
   @override
@@ -105,6 +122,12 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
+  void test_blockBodiedLambdas_LUB() {
+    super.test_blockBodiedLambdas_LUB();
+  }
+
+  @override
+  @failingTest
   void test_blockBodiedLambdas_nestedLambdas() {
     super.test_blockBodiedLambdas_nestedLambdas();
   }
@@ -119,6 +142,18 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   @failingTest
   void test_blockBodiedLambdas_syncStar() {
     super.test_blockBodiedLambdas_syncStar();
+  }
+
+  @override
+  @failingTest
+  void test_dontInferFieldTypeWhenInitializerIsNull() {
+    super.test_dontInferFieldTypeWhenInitializerIsNull();
+  }
+
+  @override
+  @failingTest
+  void test_downwardInference_miscellaneous() {
+    super.test_downwardInference_miscellaneous();
   }
 
   @override
@@ -177,6 +212,18 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
+  void test_genericMethods_inferGenericMethodType() {
+    super.test_genericMethods_inferGenericMethodType();
+  }
+
+  @override
+  @failingTest
+  void test_genericMethods_inferJSBuiltin() {
+    super.test_genericMethods_inferJSBuiltin();
+  }
+
+  @override
+  @failingTest
   void test_genericMethods_IterableAndFuture() {
     super.test_genericMethods_IterableAndFuture();
   }
@@ -189,8 +236,20 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
+  void test_inferCorrectlyOnMultipleVariablesDeclaredTogether() {
+    super.test_inferCorrectlyOnMultipleVariablesDeclaredTogether();
+  }
+
+  @override
+  @failingTest
   void test_inferenceInCyclesIsDeterministic() {
     super.test_inferenceInCyclesIsDeterministic();
+  }
+
+  @override
+  @failingTest
+  void test_inferFromComplexExpressionsIfOuterMostValueIsPrecise() {
+    super.test_inferFromComplexExpressionsIfOuterMostValueIsPrecise();
   }
 
   @override
@@ -201,8 +260,38 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
+  void test_inferFromVariablesInCycleLibsWhenFlagIsOn() {
+    super.test_inferFromVariablesInCycleLibsWhenFlagIsOn();
+  }
+
+  @override
+  @failingTest
+  void test_inferFromVariablesInCycleLibsWhenFlagIsOn2() {
+    super.test_inferFromVariablesInCycleLibsWhenFlagIsOn2();
+  }
+
+  @override
+  @failingTest
+  void test_inferFromVariablesInNonCycleImportsWithFlag() {
+    super.test_inferFromVariablesInNonCycleImportsWithFlag();
+  }
+
+  @override
+  @failingTest
+  void test_inferFromVariablesInNonCycleImportsWithFlag2() {
+    super.test_inferFromVariablesInNonCycleImportsWithFlag2();
+  }
+
+  @override
+  @failingTest
   void test_inferIfComplexExpressionsReadPossibleInferredField() {
     super.test_inferIfComplexExpressionsReadPossibleInferredField();
+  }
+
+  @override
+  @failingTest
+  void test_inferListLiteralNestedInMapLiteral() {
+    super.test_inferListLiteralNestedInMapLiteral();
   }
 
   @override
@@ -231,6 +320,24 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
+  void test_inferTypeOnOverriddenFields2() {
+    super.test_inferTypeOnOverriddenFields2();
+  }
+
+  @override
+  @failingTest
+  void test_inferTypeOnOverriddenFields4() {
+    super.test_inferTypeOnOverriddenFields4();
+  }
+
+  @override
+  @failingTest
+  void test_inferTypeOnVar2() {
+    super.test_inferTypeOnVar2();
+  }
+
+  @override
+  @failingTest
   void test_inferTypeOnVarFromField() {
     super.test_inferTypeOnVarFromField();
   }
@@ -243,14 +350,62 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
+  void test_inferTypeRegardlessOfDeclarationOrderOrCycles() {
+    super.test_inferTypeRegardlessOfDeclarationOrderOrCycles();
+  }
+
+  @override
+  @failingTest
+  void test_inferTypesOnGenericInstantiations_3() {
+    super.test_inferTypesOnGenericInstantiations_3();
+  }
+
+  @override
+  @failingTest
+  void test_inferTypesOnGenericInstantiations_4() {
+    super.test_inferTypesOnGenericInstantiations_4();
+  }
+
+  @override
+  @failingTest
+  void test_inferTypesOnGenericInstantiations_5() {
+    super.test_inferTypesOnGenericInstantiations_5();
+  }
+
+  @override
+  @failingTest
+  void test_inferTypesOnGenericInstantiationsInLibraryCycle() {
+    super.test_inferTypesOnGenericInstantiationsInLibraryCycle();
+  }
+
+  @override
+  @failingTest
   void test_inferTypesOnLoopIndices_forEachLoop() {
     super.test_inferTypesOnLoopIndices_forEachLoop();
   }
 
   @override
   @failingTest
+  void test_inferTypesOnLoopIndices_forLoopWithInference() {
+    super.test_inferTypesOnLoopIndices_forLoopWithInference();
+  }
+
+  @override
+  @failingTest
+  void test_listLiterals() {
+    super.test_listLiterals();
+  }
+
+  @override
+  @failingTest
   void test_listLiteralsShouldNotInferBottom() {
     super.test_listLiteralsShouldNotInferBottom();
+  }
+
+  @override
+  @failingTest
+  void test_mapLiterals() {
+    super.test_mapLiterals();
   }
 
   @override
@@ -263,6 +418,24 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   @failingTest
   void test_nullLiteralShouldNotInferAsBottom() {
     super.test_nullLiteralShouldNotInferAsBottom();
+  }
+
+  @override
+  @failingTest
+  void test_propagateInferenceToFieldInClass() {
+    super.test_propagateInferenceToFieldInClass();
+  }
+
+  @override
+  @failingTest
+  void test_propagateInferenceTransitively() {
+    super.test_propagateInferenceTransitively();
+  }
+
+  @override
+  @failingTest
+  void test_propagateInferenceTransitively2() {
+    super.test_propagateInferenceTransitively2();
   }
 }
 
@@ -280,6 +453,9 @@ class ResynthesizeAstTest extends ResynthesizeTest
     LibraryElementImpl original = context.computeLibraryElement(source);
     checkLibraryElements(original, resynthesized);
   }
+
+  @override
+  DartSdk createDartSdk() => AbstractContextTest.SHARED_MOCK_SDK;
 
   @override
   TestSummaryResynthesizer encodeDecodeLibrarySource(Source source) {

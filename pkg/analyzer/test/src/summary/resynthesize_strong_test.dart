@@ -19,6 +19,7 @@ main() {
 
 @reflectiveTest
 class ResynthesizeStrongTest extends ResynthesizeElementTest {
+  @override
   DartSdk createDartSdk() => AbstractContextTest.SHARED_STRONG_MOCK_SDK;
 
   @override
