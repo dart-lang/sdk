@@ -71,6 +71,18 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/prelink.dart';
 import 'package:analyzer/src/task/strong_mode.dart';
 
+bool isIncrementOrDecrement(UnlinkedExprAssignOperator operator) {
+  switch (operator) {
+    case UnlinkedExprAssignOperator.prefixDecrement:
+    case UnlinkedExprAssignOperator.prefixIncrement:
+    case UnlinkedExprAssignOperator.postfixDecrement:
+    case UnlinkedExprAssignOperator.postfixIncrement:
+      return true;
+    default:
+      return false;
+  }
+}
+
 /**
  * Link together the build unit consisting of [libraryUris], using
  * [getDependency] to fetch the [LinkedLibrary] objects from other
@@ -447,7 +459,7 @@ class ClassElementForLink_Class extends ClassElementForLink
     for (ConstructorElementForLink constructorElement in constructors) {
       constructorElement.link(compilationUnit);
     }
-    if (compilationUnit.library._linker.strongMode) {
+    if (library._linker.strongMode) {
       for (MethodElementForLink methodElement in methods) {
         methodElement.link(compilationUnit);
       }
@@ -511,9 +523,9 @@ class ClassElementForLink_Enum extends ClassElementForLink {
   List<FieldElementForLink_EnumField> get fields {
     if (_fields == null) {
       _fields = <FieldElementForLink_EnumField>[];
-      _fields.add(new FieldElementForLink_EnumField(null));
+      _fields.add(new FieldElementForLink_EnumField(null, this));
       for (UnlinkedEnumValue value in _unlinkedEnum.values) {
-        _fields.add(new FieldElementForLink_EnumField(value));
+        _fields.add(new FieldElementForLink_EnumField(value, this));
       }
     }
     return _fields;
@@ -538,12 +550,18 @@ class ClassElementForLink_Enum extends ClassElementForLink {
   InterfaceType get supertype => library._linker.typeProvider.objectType;
 
   @override
+  DartType get type => _type ??= new InterfaceTypeImpl(this);
+
+  @override
+  List<TypeParameterElement> get typeParameters => const [];
+
+  @override
   ConstructorElementForLink get unnamedConstructor => null;
 
   @override
   DartType buildType(DartType getTypeArgument(int i),
           List<int> implicitFunctionTypeIndices) =>
-      _type ??= new InterfaceTypeImpl(this);
+      type;
 
   @override
   void link(CompilationUnitElementInBuildUnit compilationUnit) {}
@@ -836,6 +854,9 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
       new InstanceMemberInferrer(enclosingElement._linker.typeProvider,
               enclosingElement.inheritanceManager)
           .inferCompilationUnit(this);
+      for (TopLevelVariableElementForLink variable in topLevelVariables) {
+        variable.link(this);
+      }
     }
     for (ClassElementForLink classElement in types) {
       classElement.link(this);
@@ -1500,6 +1521,9 @@ class FieldElementForLink_ClassField extends VariableElementForLink
     _inferredInstanceType = inferredType;
   }
 
+  @override
+  TypeParameterizedElementForLink get _typeParameterContext => enclosingElement;
+
   /**
    * Store the results of type inference for this field in
    * [compilationUnit].
@@ -1531,7 +1555,10 @@ class FieldElementForLink_EnumField extends FieldElementForLink
    */
   final UnlinkedEnumValue unlinkedEnumValue;
 
-  FieldElementForLink_EnumField(this.unlinkedEnumValue);
+  @override
+  final ClassElementForLink_Enum enclosingElement;
+
+  FieldElementForLink_EnumField(this.unlinkedEnumValue, this.enclosingElement);
 
   @override
   ConstructorElementForLink get asConstructor => null;
@@ -1545,10 +1572,7 @@ class FieldElementForLink_EnumField extends FieldElementForLink
   }
 
   @override
-  DartType get asStaticType {
-    // TODO(paulberry): implement.
-    throw new UnimplementedError();
-  }
+  DartType get asStaticType => enclosingElement.type;
 
   @override
   TypeInferenceNode get asTypeInferenceNode => null;
@@ -1948,13 +1972,13 @@ class NonstaticMemberElementForLink implements ReferenceableElementForLink {
   @override
   DartType get asStaticType {
     // TODO(paulberry): implement.
-    throw new UnimplementedError();
+    return DynamicTypeImpl.instance;
   }
 
   @override
   TypeInferenceNode get asTypeInferenceNode {
     // TODO(paulberry): implement.
-    throw new UnimplementedError();
+    return null;
   }
 
   @override
@@ -2183,6 +2207,23 @@ class TopLevelVariableElementForLink extends VariableElementForLink
 
   @override
   bool get isStatic => true;
+
+  @override
+  TypeParameterizedElementForLink get _typeParameterContext => null;
+
+  /**
+   * Store the results of type inference for this variable in
+   * [compilationUnit].
+   */
+  void link(CompilationUnitElementInBuildUnit compilationUnit) {
+    if (hasImplicitType) {
+      TypeInferenceNode typeInferenceNode = this.asTypeInferenceNode;
+      if (typeInferenceNode != null) {
+        compilationUnit._storeLinkedType(unlinkedVariable.inferredTypeSlot,
+            typeInferenceNode.inferredType, null);
+      }
+    }
+  }
 }
 
 /**
@@ -2269,6 +2310,16 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
         case UnlinkedConstOperation.makeTypedMap:
           refPtr += 2;
           break;
+        case UnlinkedConstOperation.assignToRef:
+          // TODO(paulberry): if this reference refers to a variable, should it
+          // be considered a type inference dependency?
+          refPtr++;
+          break;
+        case UnlinkedConstOperation.invokeMethodRef:
+          // TODO(paulberry): if this reference refers to a variable, should it
+          // be considered a type inference dependency?
+          refPtr++;
+          break;
         default:
           break;
       }
@@ -2292,13 +2343,14 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
       _inferredType = DynamicTypeImpl.instance;
     } else if (!variableElement.unlinkedVariable.constExpr.isValidConst) {
       // TODO(paulberry): delete this case and fix errors.
-      throw new UnimplementedError();
+      _inferredType = DynamicTypeImpl.instance;
     } else {
       // Perform RPN evaluation of the cycle, using a stack of
       // inferred types.
       List<DartType> stack = <DartType>[];
       int refPtr = 0;
       int intPtr = 0;
+      int assignmentOperatorPtr = 0;
       UnlinkedConst unlinkedConst = variableElement.unlinkedVariable.constExpr;
       TypeProvider typeProvider =
           variableElement.compilationUnit.enclosingElement._linker.typeProvider;
@@ -2307,6 +2359,28 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
           case UnlinkedConstOperation.pushInt:
             intPtr++;
             stack.add(typeProvider.intType);
+            break;
+          case UnlinkedConstOperation.pushLongInt:
+            int numInts = unlinkedConst.ints[intPtr++];
+            intPtr += numInts;
+            stack.add(typeProvider.intType);
+            break;
+          case UnlinkedConstOperation.pushDouble:
+            stack.add(typeProvider.doubleType);
+            break;
+          case UnlinkedConstOperation.pushTrue:
+          case UnlinkedConstOperation.pushFalse:
+            stack.add(typeProvider.boolType);
+            break;
+          case UnlinkedConstOperation.pushString:
+            stack.add(typeProvider.stringType);
+            break;
+          case UnlinkedConstOperation.concatenate:
+            stack.length -= unlinkedConst.ints[intPtr++];
+            stack.add(typeProvider.stringType);
+            break;
+          case UnlinkedConstOperation.makeSymbol:
+            stack.add(typeProvider.symbolType);
             break;
           case UnlinkedConstOperation.pushNull:
             stack.add(BottomTypeImpl.instance);
@@ -2333,16 +2407,11 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
               }
             }
             break;
-          case UnlinkedConstOperation.makeTypedList:
-            refPtr++;
-            stack.length -= unlinkedConst.ints[intPtr++];
+          case UnlinkedConstOperation.extractProperty:
+            stack.removeLast();
             // TODO(paulberry): implement.
             stack.add(DynamicTypeImpl.instance);
             break;
-          case UnlinkedConstOperation.makeTypedMap:
-            refPtr += 2;
-            // TODO(paulberry): implement.
-            throw new UnimplementedError('$operation');
           case UnlinkedConstOperation.invokeConstructor:
             // TODO(paulberry): don't just pop the args; use their types
             // to infer the type of type arguments.
@@ -2352,13 +2421,120 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
             ConstructorElementForLink element = variableElement.compilationUnit
                 ._resolveRef(ref.reference)
                 .asConstructor;
-            if (ref.typeArguments.isNotEmpty) {
-              // TODO(paulberry): handle type arguments
-              throw new UnimplementedError();
+            if (element != null) {
+              stack.add(element.enclosingElement.buildType(
+                  (int i) => i >= ref.typeArguments.length
+                      ? DynamicTypeImpl.instance
+                      : variableElement.compilationUnit._resolveTypeRef(
+                          ref.typeArguments[i],
+                          variableElement._typeParameterContext),
+                  const []));
+            } else {
+              stack.add(DynamicTypeImpl.instance);
             }
-            // TODO(paulberry): do we have to follow constructor
-            // redirections?
-            stack.add(element.enclosingElement.type);
+            break;
+          case UnlinkedConstOperation.makeUntypedList:
+            stack.length -= unlinkedConst.ints[intPtr++];
+            // TODO(paulberry): implement.
+            stack.add(DynamicTypeImpl.instance);
+            break;
+          case UnlinkedConstOperation.makeUntypedMap:
+            stack.length -= 2 * unlinkedConst.ints[intPtr++];
+            // TODO(paulberry): implement.
+            stack.add(DynamicTypeImpl.instance);
+            break;
+          case UnlinkedConstOperation.makeTypedList:
+            refPtr++;
+            stack.length -= unlinkedConst.ints[intPtr++];
+            // TODO(paulberry): implement.
+            stack.add(DynamicTypeImpl.instance);
+            break;
+          case UnlinkedConstOperation.makeTypedMap:
+            refPtr += 2;
+            stack.length -= 2 * unlinkedConst.ints[intPtr++];
+            // TODO(paulberry): implement.
+            stack.add(DynamicTypeImpl.instance);
+            break;
+          case UnlinkedConstOperation.not:
+          case UnlinkedConstOperation.complement:
+          case UnlinkedConstOperation.negate:
+            stack.removeLast();
+            // TODO(paulberry): implement.
+            stack.add(DynamicTypeImpl.instance);
+            break;
+          case UnlinkedConstOperation.equal:
+          case UnlinkedConstOperation.notEqual:
+          case UnlinkedConstOperation.and:
+          case UnlinkedConstOperation.or:
+          case UnlinkedConstOperation.bitXor:
+          case UnlinkedConstOperation.bitAnd:
+          case UnlinkedConstOperation.bitOr:
+          case UnlinkedConstOperation.bitShiftRight:
+          case UnlinkedConstOperation.bitShiftLeft:
+          case UnlinkedConstOperation.add:
+          case UnlinkedConstOperation.subtract:
+          case UnlinkedConstOperation.multiply:
+          case UnlinkedConstOperation.divide:
+          case UnlinkedConstOperation.floorDivide:
+          case UnlinkedConstOperation.greater:
+          case UnlinkedConstOperation.less:
+          case UnlinkedConstOperation.greaterEqual:
+          case UnlinkedConstOperation.lessEqual:
+          case UnlinkedConstOperation.modulo:
+            stack.length -= 2;
+            // TODO(paulberry): implement.
+            stack.add(DynamicTypeImpl.instance);
+            break;
+          case UnlinkedConstOperation.conditional:
+            stack.length -= 3;
+            // TODO(paulberry): implement.
+            stack.add(DynamicTypeImpl.instance);
+            break;
+          case UnlinkedConstOperation.assignToRef:
+            if (!isIncrementOrDecrement(
+                unlinkedConst.assignmentOperators[assignmentOperatorPtr++])) {
+              stack.removeLast();
+            }
+            refPtr++;
+            // TODO(paulberry): implement.
+            stack.add(DynamicTypeImpl.instance);
+            break;
+          case UnlinkedConstOperation.assignToProperty:
+            stack.removeLast();
+            if (!isIncrementOrDecrement(
+                unlinkedConst.assignmentOperators[assignmentOperatorPtr++])) {
+              stack.removeLast();
+            }
+            // TODO(paulberry): implement.
+            stack.add(DynamicTypeImpl.instance);
+            break;
+          case UnlinkedConstOperation.assignToIndex:
+            stack.length -= 2;
+            if (!isIncrementOrDecrement(
+                unlinkedConst.assignmentOperators[assignmentOperatorPtr++])) {
+              stack.removeLast();
+            }
+            // TODO(paulberry): implement.
+            stack.add(DynamicTypeImpl.instance);
+            break;
+          case UnlinkedConstOperation.extractIndex:
+            stack.length -= 2;
+            // TODO(paulberry): implement.
+            stack.add(DynamicTypeImpl.instance);
+            break;
+          case UnlinkedConstOperation.invokeMethodRef:
+            stack.length -=
+                unlinkedConst.ints[intPtr++] + unlinkedConst.ints[intPtr++];
+            refPtr++;
+            // TODO(paulberry): implement.
+            stack.add(DynamicTypeImpl.instance);
+            break;
+          case UnlinkedConstOperation.invokeMethod:
+            stack.length -=
+                unlinkedConst.ints[intPtr++] + unlinkedConst.ints[intPtr++];
+            stack.removeLast();
+            // TODO(paulberry): implement.
+            stack.add(DynamicTypeImpl.instance);
             break;
           default:
             // TODO(paulberry): implement.
@@ -2367,6 +2543,7 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
       }
       assert(refPtr == unlinkedConst.references.length);
       assert(intPtr == unlinkedConst.ints.length);
+      assert(assignmentOperatorPtr == unlinkedConst.assignmentOperators.length);
       assert(stack.length == 1);
       _inferredType = stack[0];
     }
@@ -2700,7 +2877,7 @@ class VariableElementForLink
   @override
   DartType get asStaticType {
     // TODO(paulberry): implement.
-    throw new UnimplementedError();
+    return DynamicTypeImpl.instance;
   }
 
   @override
@@ -2737,6 +2914,12 @@ class VariableElementForLink
   void set type(DartType newType) {
     // TODO(paulberry): store inferred type.
   }
+
+  /**
+   * The context in which type parameters should be interpreted, or `null` if
+   * there are no type parameters in scope.
+   */
+  TypeParameterizedElementForLink get _typeParameterContext;
 
   @override
   DartType buildType(DartType getTypeArgument(int i),
