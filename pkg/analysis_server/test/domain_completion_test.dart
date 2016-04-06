@@ -140,10 +140,10 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
     await getSuggestions();
     expect(replacementOffset, completionOffset - 3);
     expect(replacementLength, 3);
-    assertHasResult(CompletionSuggestionKind.KEYWORD, 'export',
-        relevance: DART_RELEVANCE_HIGH);
-    assertHasResult(CompletionSuggestionKind.KEYWORD, 'import',
-        relevance: DART_RELEVANCE_HIGH);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'export \'\';',
+        selectionOffset: 8, relevance: DART_RELEVANCE_HIGH);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'import \'\';',
+        selectionOffset: 8, relevance: DART_RELEVANCE_HIGH);
     assertNoResult('extends');
     assertNoResult('library');
   }
@@ -174,12 +174,12 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
     expect(replacementLength, 1);
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'library',
         relevance: DART_RELEVANCE_HIGH);
-    assertHasResult(CompletionSuggestionKind.KEYWORD, 'import',
-        relevance: DART_RELEVANCE_HIGH);
-    assertHasResult(CompletionSuggestionKind.KEYWORD, 'export',
-        relevance: DART_RELEVANCE_HIGH);
-    assertHasResult(CompletionSuggestionKind.KEYWORD, 'part',
-        relevance: DART_RELEVANCE_HIGH);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'import \'\';',
+        selectionOffset: 8, relevance: DART_RELEVANCE_HIGH);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'export \'\';',
+        selectionOffset: 8, relevance: DART_RELEVANCE_HIGH);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'part \'\';',
+        selectionOffset: 6, relevance: DART_RELEVANCE_HIGH);
     assertNoResult('extends');
   }
 
@@ -353,8 +353,8 @@ class B extends A {
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset - 2));
       expect(replacementLength, equals(2));
-      assertHasResult(CompletionSuggestionKind.KEYWORD, 'export',
-          relevance: DART_RELEVANCE_HIGH);
+      assertHasResult(CompletionSuggestionKind.KEYWORD, 'export \'\';',
+          selectionOffset: 8, relevance: DART_RELEVANCE_HIGH);
       assertHasResult(CompletionSuggestionKind.KEYWORD, 'class',
           relevance: DART_RELEVANCE_HIGH);
     });

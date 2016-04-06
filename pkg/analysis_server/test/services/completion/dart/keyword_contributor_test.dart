@@ -220,6 +220,13 @@ class KeywordContributorTest extends DartCompletionContributorTest {
     Map<String, int> expectedOffsets = <String, int>{};
     Set<String> actualCompletions = new Set<String>();
     expectedCompletions.addAll(expectedKeywords.map((k) => k.syntax));
+    ['import', 'export', 'part'].forEach((s) {
+      if (expectedCompletions.contains(s)) {
+        expectedCompletions.remove(s);
+        expectedCompletions.add('$s \'\';');
+      }
+    });
+
     expectedCompletions.addAll(pseudoKeywords);
     for (CompletionSuggestion s in suggestions) {
       if (s.kind == CompletionSuggestionKind.KEYWORD) {
@@ -245,10 +252,6 @@ class KeywordContributorTest extends DartCompletionContributorTest {
       if (s.kind == CompletionSuggestionKind.KEYWORD) {
         if (s.completion.startsWith(Keyword.IMPORT.syntax)) {
           int importRelevance = relevance;
-          if (importRelevance == DART_RELEVANCE_HIGH &&
-              s.completion == "import '';") {
-            ++importRelevance;
-          }
           expect(s.relevance, equals(importRelevance), reason: s.completion);
         } else {
           if (s.completion == Keyword.RETHROW.syntax) {
@@ -261,7 +264,11 @@ class KeywordContributorTest extends DartCompletionContributorTest {
         if (expectedOffset == null) {
           expectedOffset = s.completion.length;
         }
-        expect(s.selectionOffset, equals(expectedOffset));
+        expect(
+            s.selectionOffset,
+            equals(s.completion.endsWith('\'\';')
+                ? expectedOffset - 2
+                : expectedOffset));
         expect(s.selectionLength, equals(0));
         expect(s.isDeprecated, equals(false));
         expect(s.isPotential, equals(false));

@@ -149,8 +149,12 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
           !node.directives.any((d) => d is LibraryDirective)) {
         _addSuggestions([Keyword.LIBRARY], DART_RELEVANCE_HIGH);
       }
-      _addSuggestions(
-          [Keyword.IMPORT, Keyword.EXPORT, Keyword.PART], DART_RELEVANCE_HIGH);
+      _addSuggestion2('${Keyword.IMPORT.syntax} \'\';',
+          offset: 8, relevance: DART_RELEVANCE_HIGH);
+      _addSuggestion2('${Keyword.EXPORT.syntax} \'\';',
+          offset: 8, relevance: DART_RELEVANCE_HIGH);
+      _addSuggestion2('${Keyword.PART.syntax} \'\';',
+          offset: 6, relevance: DART_RELEVANCE_HIGH);
     }
     if (entity == null || entity is Declaration) {
       if (previousMember is FunctionDeclaration &&
