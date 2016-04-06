@@ -10911,15 +10911,15 @@ RawObject* Namespace::Lookup(const String& name) const {
   if (!Field::IsGetterName(name) &&
       !Field::IsSetterName(name) &&
       (obj.IsNull() || obj.IsLibraryPrefix())) {
-    const String& getter_name = String::Handle(Field::LookupGetterSymbol(name));
-    if (!getter_name.IsNull()) {
-      obj = lib.LookupEntry(getter_name, &ignore);
+    String& accessor_name = String::Handle(zone);
+    accessor_name ^= Field::LookupGetterSymbol(name);
+    if (!accessor_name.IsNull()) {
+      obj = lib.LookupEntry(accessor_name, &ignore);
     }
     if (obj.IsNull()) {
-      const String& setter_name =
-          String::Handle(Field::LookupSetterSymbol(name));
-      if (!setter_name.IsNull()) {
-        obj = lib.LookupEntry(setter_name, &ignore);
+      accessor_name ^= Field::LookupSetterSymbol(name);
+      if (!accessor_name.IsNull()) {
+        obj = lib.LookupEntry(accessor_name, &ignore);
       }
     }
   }
@@ -10932,7 +10932,7 @@ RawObject* Namespace::Lookup(const String& name) const {
       // LookupReExport() only returns objects that match the given name.
       // If there is no field/func/getter, try finding a setter.
       const String& setter_name =
-          String::Handle(Field::LookupSetterSymbol(name));
+          String::Handle(zone, Field::LookupSetterSymbol(name));
       if (!setter_name.IsNull()) {
         obj = lib.LookupReExport(setter_name);
       }
