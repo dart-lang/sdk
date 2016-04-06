@@ -107,7 +107,11 @@ const _Literal literal = const _Literal();
 const _MustCallSuper mustCallSuper = const _MustCallSuper();
 const _Override override = const _Override();
 const _Protected protected = const _Protected();
-const _Required required = const _Required();
+const Required required = const Required();
+class Required {
+  final String reason;
+  const Required([this.reason]);
+}
 
 class _Factory {
   const _Factory();
@@ -1520,6 +1524,104 @@ class B extends A {
 }''');
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.OVERRIDE_ON_NON_OVERRIDING_SETTER]);
+    verify([source]);
+  }
+
+  void test_required_constructor_param() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  C({@Required('must specify an `a`') int a}) {}
+}
+
+main() {
+  new C();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM]);
+    verify([source]);
+  }
+
+  void test_required_constructor_param_no_reason() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  C({@required int a}) {}
+}
+
+main() {
+  new C();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM]);
+    verify([source]);
+  }
+
+  void test_required_constructor_param_null_reason() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  C({@Required(null) int a}) {}
+}
+
+main() {
+  new C();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM]);
+    verify([source]);
+  }
+
+  void test_required_constructor_param_OK() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  C({@required int a}) {}
+}
+
+main() {
+  new C(a: 2);
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_required_function_param() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+
+void f({@Required('must specify an `a`') int a}) {}
+
+main() {
+  f();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM]);
+    verify([source]);
+  }
+
+  void test_required_method_param() {
+    Source source = addSource(r'''
+import 'package:meta/meta.dart';
+class A {
+  void m({@Required('must specify an `a`') int a}) {}
+}
+f() {
+  new A().m();
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.MISSING_REQUIRED_PARAM]);
     verify([source]);
   }
 

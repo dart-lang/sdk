@@ -71,6 +71,9 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
   bool get isProxy => actualElement.isProxy;
 
   @override
+  bool get isRequired => actualElement.isRequired;
+
+  @override
   bool get isValidMixin => actualElement.isValidMixin;
 
   @override
@@ -360,6 +363,9 @@ abstract class ElementHandle implements Element {
 
   @override
   bool get isPublic => actualElement.isPublic;
+
+  @override
+  bool get isRequired => actualElement.isRequired;
 
   @override
   bool get isSynthetic => actualElement.isSynthetic;

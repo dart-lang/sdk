@@ -473,6 +473,9 @@ abstract class Member implements Element {
   bool get isPublic => _baseElement.isPublic;
 
   @override
+  bool get isRequired => _baseElement.isRequired;
+
+  @override
   bool get isSynthetic => _baseElement.isSynthetic;
 
   @override

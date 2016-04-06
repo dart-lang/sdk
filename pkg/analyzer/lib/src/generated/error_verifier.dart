@@ -818,6 +818,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         InterfaceType interfaceType = type;
         _checkForConstOrNewWithAbstractClass(node, typeName, interfaceType);
         _checkForConstOrNewWithEnum(node, typeName, interfaceType);
+        _checkForMissingRequiredParam(
+            node.staticElement?.type, node.argumentList, node.constructorName);
         if (_isInConstInstanceCreation) {
           _checkForConstWithNonConst(node);
           _checkForConstWithUndefinedConstructor(
@@ -929,6 +931,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     } else {
       _checkForUnqualifiedReferenceToNonLocalStaticMember(methodName);
     }
+    _checkForMissingRequiredParam(
+        node.staticInvokeType, node.argumentList, methodName);
     return super.visitMethodInvocation(node);
   }
 
@@ -3723,6 +3727,50 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         StaticTypeWarningCode.INSTANCE_ACCESS_TO_STATIC_MEMBER,
         name,
         [name.name]);
+  }
+
+  void _checkForMissingRequiredParam(
+      DartType type, ArgumentList argumentList, AstNode node) {
+    if (type is FunctionType) {
+      List<ParameterElement> parameters = type.parameters;
+      for (ParameterElement param in parameters) {
+        if (param.parameterKind == ParameterKind.NAMED) {
+          ElementAnnotationImpl annotation = _getRequiredAnnotation(param);
+          if (annotation != null) {
+            String paramName = param.name;
+            if (!_containsNamedExpression(argumentList, paramName)) {
+              DartObject constantValue = annotation.constantValue;
+              String reason =
+                  constantValue.getField('reason')?.toStringValue() ?? '';
+              // Append a `.` if needed.
+              if (reason != null &&
+                  reason.isNotEmpty &&
+                  !reason.endsWith('.')) {
+                reason += '.';
+              }
+
+              _errorReporter.reportErrorForNode(
+                  HintCode.MISSING_REQUIRED_PARAM, node, [paramName, reason]);
+            }
+          }
+        }
+      }
+    }
+  }
+
+  ElementAnnotationImpl _getRequiredAnnotation(ParameterElement param) => param
+      .metadata
+      .firstWhere((ElementAnnotation e) => e.isRequired, orElse: () => null);
+
+  bool _containsNamedExpression(ArgumentList args, String name) {
+    for (Expression expression in args.arguments) {
+      if (expression is NamedExpression) {
+        if (expression.name.label.name == name) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
   /**

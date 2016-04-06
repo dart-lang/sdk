@@ -1649,6 +1649,17 @@ class ElementAnnotationImpl implements ElementAnnotation {
   static String PROXY_VARIABLE_NAME = "proxy";
 
   /**
+   * The name of the class used to mark a parameter as being required.
+   */
+  static String _REQUIRED_CLASS_NAME = "Required";
+
+  /**
+   * The name of the top-level variable used to mark a parameter as being
+   * required.
+   */
+  static String _REQUIRED_VARIABLE_NAME = "required";
+
+  /**
    * The element representing the field, variable, or constructor being used as
    * an annotation.
    */
@@ -1719,6 +1730,15 @@ class ElementAnnotationImpl implements ElementAnnotation {
       element is PropertyAccessorElement &&
       element.name == PROXY_VARIABLE_NAME &&
       element.library?.isDartCore == true;
+
+  @override
+  bool get isRequired =>
+      element is ConstructorElement &&
+          element.enclosingElement.name == _REQUIRED_CLASS_NAME &&
+          element.library?.name == _META_LIB_NAME ||
+      element is PropertyAccessorElement &&
+          element.name == _REQUIRED_VARIABLE_NAME &&
+          element.library?.name == _META_LIB_NAME;
 
   /**
    * Get the library containing this annotation.
@@ -1933,6 +1953,16 @@ abstract class ElementImpl implements Element {
 
   @override
   bool get isPublic => !isPrivate;
+
+  @override
+  bool get isRequired {
+    for (ElementAnnotation annotation in metadata) {
+      if (annotation.isRequired) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   @override
   bool get isSynthetic => hasModifier(Modifier.SYNTHETIC);
@@ -4091,6 +4121,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   bool get isPublic => !isPrivate;
+
+  @override
+  bool get isRequired => false;
 
   @override
   bool get isSynthetic => true;

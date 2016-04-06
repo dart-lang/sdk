@@ -2683,6 +2683,7 @@ abstract class ErrorCode {
     HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION,
     HintCode.INVALID_ASSIGNMENT,
     HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
+    HintCode.MISSING_REQUIRED_PARAM,
     HintCode.MISSING_RETURN,
     HintCode.NULL_AWARE_IN_CONDITION,
     HintCode.OVERRIDE_ON_NON_OVERRIDING_GETTER,
@@ -3570,6 +3571,17 @@ class HintCode extends ErrorCode {
   static const HintCode INVALID_USE_OF_PROTECTED_MEMBER = const HintCode(
       'INVALID_USE_OF_PROTECTED_MEMBER',
       "The member '{0}' can only be used within instance members of subclasses of '{1}'");
+
+  /**
+   * Generate a hint for a constructor, function or method invocation where a
+   * required parameter is missing.
+   *
+   * Parameters:
+   * 0: the name of the parameter
+   * 1: an optional reason
+   */
+  static const HintCode MISSING_REQUIRED_PARAM = const HintCode(
+      'MISSING_REQUIRED_PARAM', "The parameter '{0}' is required. {1}");
 
   /**
    * Generate a hint for methods or functions that have a return type, but do
