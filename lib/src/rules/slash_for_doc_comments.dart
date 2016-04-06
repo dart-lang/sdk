@@ -4,7 +4,8 @@
 
 library linter.src.rules.slash_for_doc_comments;
 
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/linter.dart';
 
 const desc = r'Prefer to use /// for doc comments';

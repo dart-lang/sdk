@@ -4,7 +4,8 @@
 
 library linter.src.rules.constant_identifier_names;
 
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/linter.dart';
 import 'package:linter/src/util.dart';
 

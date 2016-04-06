@@ -4,7 +4,8 @@
 
 library linter.src.rules.camel_case_types;
 
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/linter.dart';
 
 const desc = 'Name types using UpperCamelCase.';
@@ -14,7 +15,7 @@ From the [style guide] (https://www.dartlang.org/articles/style-guide/):
 
 **DO** name types using UpperCamelCase.
 
-Classes and typedefs should capitalize the first letter of each word 
+Classes and typedefs should capitalize the first letter of each word
 (including the first word), and use no separators.
 
 **GOOD:**
@@ -31,6 +32,8 @@ class HttpRequest {
 typedef num Adder(num x, num y);
 ```
 ''';
+
+bool isUpperCamelCase(String s) => CamelCaseString.isCamelCase(s);
 
 class CamelCaseTypes extends LintRule {
   CamelCaseTypes() : super(
@@ -61,5 +64,3 @@ class Visitor extends SimpleAstVisitor {
     }
   }
 }
-
-bool isUpperCamelCase(String s) => CamelCaseString.isCamelCase(s);

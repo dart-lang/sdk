@@ -4,7 +4,8 @@
 
 library linter.src.rules.sort_unnamed_constructors_first;
 
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/linter.dart';
 
 const desc = r'Sort unnamed constructor declarations first';

@@ -7,9 +7,11 @@ library linter.src.util;
 import 'dart:io';
 
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/scanner/reader.dart';
+import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart' show Parser;
-import 'package:analyzer/src/generated/scanner.dart'
-    show CharSequenceReader, CommentToken, Scanner, Token;
 import 'package:analyzer/src/string_source.dart' show StringSource;
 import 'package:path/path.dart' as p;
 

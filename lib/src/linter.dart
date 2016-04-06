@@ -7,10 +7,10 @@ library linter.src.linter;
 import 'dart:io';
 
 import 'package:analyzer/analyzer.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisErrorInfo, AnalysisErrorInfoImpl, Logger;
 import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
-import 'package:analyzer/src/generated/scanner.dart' show Token;
 import 'package:analyzer/src/generated/source.dart'
     show LineInfo, LineInfo_Location, Source;
 import 'package:analyzer/src/services/lint.dart' show Linter;

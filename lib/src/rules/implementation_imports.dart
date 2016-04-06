@@ -4,8 +4,9 @@
 
 library linter.src.rules.implementation_imports;
 
-import 'package:analyzer/src/generated/ast.dart'
+import 'package:analyzer/dart/ast/ast.dart'
     show AstVisitor, ImportDirective, SimpleAstVisitor;
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/linter.dart';
 
 const desc = "Don't import implementation files from another package.";

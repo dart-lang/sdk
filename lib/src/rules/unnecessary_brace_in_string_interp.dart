@@ -4,8 +4,10 @@
 
 library linter.src.rules.unnecessary_brace_in_string_interp;
 
-import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/scanner.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:linter/src/linter.dart';
 
 const desc = 'Avoid using braces in interpolation when not needed.';

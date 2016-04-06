@@ -4,13 +4,14 @@
 
 library linter.src.rules.always_declare_return_types;
 
-import 'package:analyzer/src/generated/ast.dart'
+import 'package:analyzer/dart/ast/ast.dart'
     show
         AstVisitor,
         FunctionDeclaration,
         FunctionTypeAlias,
         MethodDeclaration,
         SimpleAstVisitor;
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/linter.dart';
 
 const desc = 'Declare method return types.';

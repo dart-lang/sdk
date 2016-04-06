@@ -4,7 +4,8 @@
 
 library linter.src.rules.type_annotate_public_apis;
 
-import 'package:analyzer/src/generated/ast.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:linter/src/ast.dart';
 import 'package:linter/src/linter.dart';
 import 'package:linter/src/util.dart';

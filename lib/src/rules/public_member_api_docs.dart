@@ -4,8 +4,9 @@
 
 library linter.src.rules.public_member_api_docs;
 
-import 'package:analyzer/src/generated/ast.dart';
-import 'package:analyzer/src/generated/element.dart';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:linter/src/ast.dart';
 import 'package:linter/src/linter.dart';
@@ -80,9 +81,6 @@ class Visitor extends GeneralizingAstVisitor {
     }
   }
 
-  bool isOverridingMember(Declaration node) =>
-      getOverriddenMember(node.element) != null;
-
   ExecutableElement getOverriddenMember(Element member) {
     if (member == null || manager == null) {
       return null;
@@ -95,6 +93,9 @@ class Visitor extends GeneralizingAstVisitor {
     }
     return manager.lookupInheritance(classElement, member.name);
   }
+
+  bool isOverridingMember(Declaration node) =>
+      getOverriddenMember(node.element) != null;
 
   @override
   visitClassDeclaration(ClassDeclaration node) {

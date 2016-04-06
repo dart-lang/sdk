@@ -4,7 +4,7 @@
 
 library linter.src.rules.prefer_is_not_empty;
 
-import 'package:analyzer/src/generated/ast.dart'
+import 'package:analyzer/dart/ast/ast.dart'
     show
         AstNode,
         AstVisitor,
@@ -13,8 +13,9 @@ import 'package:analyzer/src/generated/ast.dart'
         PropertyAccess,
         SimpleAstVisitor,
         SimpleIdentifier;
-import 'package:analyzer/src/generated/element.dart' show Element;
-import 'package:analyzer/src/generated/scanner.dart' show TokenType;
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart' show Element;
 import 'package:linter/src/ast.dart';
 import 'package:linter/src/linter.dart';
 

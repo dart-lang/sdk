@@ -6,8 +6,9 @@ library linter.test.engine_test;
 
 import 'dart:io';
 
-import 'package:analyzer/src/generated/ast.dart'
+import 'package:analyzer/dart/ast/ast.dart'
     show AstNode, AstVisitor, GeneralizingAstVisitor;
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/generated/error.dart' show AnalysisError, LintCode;
 import 'package:analyzer/src/string_source.dart' show StringSource;
 import 'package:cli_util/cli_util.dart' show getSdkDir;

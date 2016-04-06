@@ -5,7 +5,7 @@
 /// Common AST helpers.
 library linter.src.ast;
 
-import 'package:analyzer/src/generated/ast.dart'
+import 'package:analyzer/dart/ast/ast.dart'
     show
         Annotation,
         AssignmentExpression,
@@ -33,14 +33,15 @@ import 'package:analyzer/src/generated/ast.dart'
         TopLevelVariableDeclaration,
         TypeParameter,
         VariableDeclaration;
-import 'package:analyzer/src/generated/element.dart'
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart'
     show
         Element,
         GeneralizingElementVisitor,
         ParameterElement,
         PropertyAccessorElement;
-import 'package:analyzer/src/generated/scanner.dart'
-    show Keyword, KeywordToken, KeywordTokenWithComment, Token;
+import 'package:analyzer/dart/element/visitor.dart';
+import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:linter/src/util.dart';
 
 /// Returns direct children of [parent].

@@ -7,12 +7,12 @@ library linter.src.analysis;
 import 'dart:collection';
 import 'dart:io';
 
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart' show Folder;
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/package_map_provider.dart';
 import 'package:analyzer/source/package_map_resolver.dart';
 import 'package:analyzer/source/pub_package_map_provider.dart';
-import 'package:analyzer/src/generated/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/java_io.dart';
 import 'package:analyzer/src/generated/sdk.dart';
