@@ -2655,19 +2655,20 @@ class Q {
 !4part 'x';''',
         <String>[
           "1+library",
-          "2+import",
-          "3+export",
-          "4+part",
+          "2+import \'\';",
+          "3+export \'\';",
+          "4+part \'\';",
           "5+as",
           "6+hide",
           "7+show",
           "8-null"
         ],
-        failingTests: '567');
+        failingTests: '234567'); //TODO(jwren) 234 failing as correct selection
+        // offset assertions can't be passed into buildTests(..)
 
     // keywords
     buildTests('test018', '''!1part !2of foo;''', <String>["1+part", "2+of"],
-        failingTests: '2');
+        failingTests: '12');
 
     buildTests(
         'test019',
