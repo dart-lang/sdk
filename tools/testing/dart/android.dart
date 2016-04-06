@@ -12,17 +12,14 @@ import "dart:io";
 import "path.dart";
 import "utils.dart";
 
-Future _executeCommand(String executable,
-                       List<String> args,
-                       [String stdin = ""]) {
+Future _executeCommand(String executable, List<String> args,
+    [String stdin = ""]) {
   return _executeCommandRaw(executable, args, stdin).then((results) => null);
 }
 
-Future _executeCommandGetOutput(String executable,
-                                List<String> args,
-                                [String stdin = ""]) {
-  return _executeCommandRaw(executable, args, stdin)
-      .then((output) => output);
+Future _executeCommandGetOutput(String executable, List<String> args,
+    [String stdin = ""]) {
+  return _executeCommandRaw(executable, args, stdin).then((output) => output);
 }
 
 /**
@@ -32,11 +29,12 @@ Future _executeCommandGetOutput(String executable,
  * If the exit code of the process was nonzero it will complete with an error.
  * If starting the process failed, it will complete with an error as well.
  */
-Future _executeCommandRaw(String executable,
-                          List<String> args,
-                          [String stdin = ""]) {
+Future _executeCommandRaw(String executable, List<String> args,
+    [String stdin = ""]) {
   Future<String> getOutput(Stream<List<int>> stream) {
-    return stream.transform(UTF8.decoder).toList()
+    return stream
+        .transform(UTF8.decoder)
+        .toList()
         .then((data) => data.join(""));
   }
 
@@ -47,16 +45,18 @@ Future _executeCommandRaw(String executable,
     }
     process.stdin.close();
 
-    var futures = [getOutput(process.stdout),
-                   getOutput(process.stderr),
-                   process.exitCode];
+    var futures = [
+      getOutput(process.stdout),
+      getOutput(process.stderr),
+      process.exitCode
+    ];
     return Future.wait(futures).then((results) {
       bool success = results[2] == 0;
       if (!success) {
         var error = "Running: '\$ $executable ${args.join(' ')}' failed:"
-                    "stdout: \n ${results[0]}"
-                    "stderr: \n ${results[1]}"
-                    "exitCode: \n ${results[2]}";
+            "stdout: \n ${results[0]}"
+            "stderr: \n ${results[1]}"
+            "exitCode: \n ${results[2]}";
         throw new Exception(error);
       } else {
         DebugLogger.info("Success: $executable finished");
@@ -153,8 +153,18 @@ class AndroidEmulator {
  */
 class AndroidHelper {
   static Future createAvd(String name, String target) {
-    var args = ['--silent', 'create', 'avd', '--name', '$name',
-                '--target', '$target', '--force', '--abi', 'armeabi-v7a'];
+    var args = [
+      '--silent',
+      'create',
+      'avd',
+      '--name',
+      '$name',
+      '--target',
+      '$target',
+      '--force',
+      '--abi',
+      'armeabi-v7a'
+    ];
     // We're adding newlines to stdin to simulate <enter>.
     return _executeCommand("android", args, "\n\n\n\n");
   }
@@ -189,15 +199,15 @@ class AdbDevice {
     checkUntilBooted() {
       _adbCommandGetOutput(['shell', 'getprop', 'sys.boot_completed'])
           .then((String stdout) {
-            stdout = stdout.trim();
-            if (stdout == '1') {
-              completer.complete();
-            } else {
-              new Timer(timeout, checkUntilBooted);
-            }
-          }).catchError((error) {
-            new Timer(timeout, checkUntilBooted);
-          });
+        stdout = stdout.trim();
+        if (stdout == '1') {
+          completer.complete();
+        } else {
+          new Timer(timeout, checkUntilBooted);
+        }
+      }).catchError((error) {
+        new Timer(timeout, checkUntilBooted);
+      });
     }
     checkUntilBooted();
     return completer.future;
@@ -250,9 +260,16 @@ class AdbDevice {
    * Start the given intent on the device.
    */
   Future startActivity(Intent intent) {
-    var arguments = ['shell', 'am', 'start', '-W',
-                     '-a', intent.action,
-                     '-n', "${intent.package}/${intent.activity}"];
+    var arguments = [
+      'shell',
+      'am',
+      'start',
+      '-W',
+      '-a',
+      intent.action,
+      '-n',
+      "${intent.package}/${intent.activity}"
+    ];
     if (intent.dataUri != null) {
       arguments.addAll(['-d', intent.dataUri]);
     }
@@ -312,10 +329,12 @@ class AdbHelper {
     return Process.run('adb', ['devices']).then((ProcessResult result) {
       if (result.exitCode != 0) {
         throw new Exception("Could not list devices [stdout: ${result.stdout},"
-                            "stderr: ${result.stderr}]");
+            "stderr: ${result.stderr}]");
       }
-      return _deviceLineRegexp.allMatches(result.stdout)
-          .map((Match m) => m.group(1)).toList();
+      return _deviceLineRegexp
+          .allMatches(result.stdout)
+          .map((Match m) => m.group(1))
+          .toList();
     });
   }
 }
@@ -331,4 +350,3 @@ class Intent {
 
   Intent(this.action, this.package, this.activity, [this.dataUri]);
 }
-

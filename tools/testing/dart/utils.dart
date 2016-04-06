@@ -14,7 +14,7 @@ import 'path.dart';
 const Duration MAX_STDIO_DELAY = const Duration(seconds: 30);
 
 String MAX_STDIO_DELAY_PASSED_MESSAGE =
-"""Not waiting for stdout/stderr from subprocess anymore 
+    """Not waiting for stdout/stderr from subprocess anymore 
 ($MAX_STDIO_DELAY passed). Please note that this could be an indicator 
 that there is a hanging process which we were unable to kill.""";
 
@@ -46,6 +46,7 @@ class DebugLogger {
     // if (trace != null) msg += "\nStackTrace: $trace";
     return msg;
   }
+
   static void info(String msg, [error]) {
     msg = _formatErrorMessage(msg, error);
     _print("$_datetime Info: $msg");
@@ -88,13 +89,12 @@ String prettifyJson(Object json, {int startIndentation: 0, int shiftWidth: 6}) {
     if (newLine) buffer.write("\n");
   }
 
-  prettifyJsonInternal(
-      Object obj, {bool indentation: true, bool newLine: true}) {
+  prettifyJsonInternal(Object obj,
+      {bool indentation: true, bool newLine: true}) {
     if (obj is List) {
       addString("[", indentation: indentation);
       currentIndentation += shiftWidth;
       for (var item in obj) {
-
         prettifyJsonInternal(item, indentation: indentation, newLine: false);
         addString(",", indentation: false);
       }
@@ -119,7 +119,6 @@ String prettifyJson(Object json, {int startIndentation: 0, int shiftWidth: 6}) {
   return buffer.toString();
 }
 
-
 /**
  * [areByteArraysEqual] compares a range of bytes from [buffer1] with a
  * range of bytes from [buffer2].
@@ -129,9 +128,8 @@ String prettifyJson(Object json, {int startIndentation: 0, int shiftWidth: 6}) {
  * [offset2]).
  * Otherwise [false] is returned.
  */
-bool areByteArraysEqual(List<int> buffer1, int offset1,
-                        List<int> buffer2, int offset2,
-                        int count) {
+bool areByteArraysEqual(
+    List<int> buffer1, int offset1, List<int> buffer2, int offset2, int count) {
   if ((offset1 + count) > buffer1.length ||
       (offset2 + count) > buffer2.length) {
     return false;
@@ -151,7 +149,7 @@ bool areByteArraysEqual(List<int> buffer1, int offset1,
  * Returns [true] if [pattern] was found in [data].
  * Otherwise [false] is returned.
  */
-int findBytes(List<int> data, List<int> pattern, [int startPos=0]) {
+int findBytes(List<int> data, List<int> pattern, [int startPos = 0]) {
   // TODO(kustermann): Use one of the fast string-matching algorithms!
   for (int i = startPos; i < (data.length - pattern.length); i++) {
     bool found = true;
@@ -180,47 +178,47 @@ String decodeUtf8(List<int> bytes) {
 }
 
 class Locations {
-  static String getBrowserLocation(String browserName,
-                                   Map globalConfiguration) {
+  static String getBrowserLocation(
+      String browserName, Map globalConfiguration) {
     var location = globalConfiguration[browserName];
     if (location != null && location != '') {
       return location;
     }
     var browserLocations = {
-        'firefox': const {
-          'windows': 'C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe',
-          'linux': 'firefox',
-          'macos': '/Applications/Firefox.app/Contents/MacOS/firefox'
-        },
-        'chrome': const {
-          'windows':
+      'firefox': const {
+        'windows': 'C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe',
+        'linux': 'firefox',
+        'macos': '/Applications/Firefox.app/Contents/MacOS/firefox'
+      },
+      'chrome': const {
+        'windows':
             'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
-          'macos':
-            '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-          'linux': 'google-chrome'
-        },
-        'dartium': const {
-          'windows': 'client\\tests\\dartium\\chrome.exe',
-          'macos': 'client/tests/dartium/Chromium.app/Contents/MacOS/Chromium',
-          'linux': 'client/tests/dartium/chrome'
-        },
-        'safari': const {
-          'macos': '/Applications/Safari.app/Contents/MacOS/Safari'
-        },
-        'safarimobilesim': const {
-          'macos': '/Applications/Xcode.app/Contents/Developer/Platforms/'
-                   'iPhoneSimulator.platform/Developer/Applications/'
-                   'iPhone Simulator.app/Contents/MacOS/iPhone Simulator'
-        },
-        'ie9': const {
-          'windows': 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
-        },
-        'ie10': const {
-          'windows': 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
-        },
-        'ie11': const {
-          'windows': 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
-        }};
+        'macos': '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+        'linux': 'google-chrome'
+      },
+      'dartium': const {
+        'windows': 'client\\tests\\dartium\\chrome.exe',
+        'macos': 'client/tests/dartium/Chromium.app/Contents/MacOS/Chromium',
+        'linux': 'client/tests/dartium/chrome'
+      },
+      'safari': const {
+        'macos': '/Applications/Safari.app/Contents/MacOS/Safari'
+      },
+      'safarimobilesim': const {
+        'macos': '/Applications/Xcode.app/Contents/Developer/Platforms/'
+            'iPhoneSimulator.platform/Developer/Applications/'
+            'iPhone Simulator.app/Contents/MacOS/iPhone Simulator'
+      },
+      'ie9': const {
+        'windows': 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
+      },
+      'ie10': const {
+        'windows': 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
+      },
+      'ie11': const {
+        'windows': 'C:\\Program Files\\Internet Explorer\\iexplore.exe'
+      }
+    };
     browserLocations['ff'] = browserLocations['firefox'];
 
     assert(browserLocations[browserName] != null);
@@ -246,12 +244,15 @@ class HashCodeBuilder {
   int _value = 0;
 
   void add(Object object) {
-    _value = ((_value * 31) ^ object.hashCode)  & 0x3FFFFFFF;
+    _value = ((_value * 31) ^ object.hashCode) & 0x3FFFFFFF;
   }
 
   void addJson(Object object) {
-    if (object == null || object is num || object is String ||
-                  object is Uri || object is bool) {
+    if (object == null ||
+        object is num ||
+        object is String ||
+        object is Uri ||
+        object is bool) {
       add(object);
     } else if (object is List) {
       object.forEach(addJson);
@@ -304,7 +305,7 @@ class UniqueObject {
   final int _hashCode;
 
   int get hashCode => _hashCode;
-  operator==(other) => other is UniqueObject && _hashCode == other._hashCode;
+  operator ==(other) => other is UniqueObject && _hashCode == other._hashCode;
 
   UniqueObject() : _hashCode = ++_nextId;
 }

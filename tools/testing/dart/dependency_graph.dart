@@ -7,7 +7,6 @@ library dependency_graph;
 import 'dart:async';
 import 'utils.dart';
 
-
 /*
  * [Graph] represents a datastructure for representing an DAG (directed acyclic
  * graph). Each node in the graph is in a given [NodeState] and can have data
@@ -114,12 +113,12 @@ class Node extends UniqueObject {
 
 class NodeState extends UniqueObject {
   static NodeState Initialized = new NodeState._("Initialized");
-  static NodeState Waiting  = new NodeState._("Waiting");
-  static NodeState Enqueuing  = new NodeState._("Enqueuing");
-  static NodeState Processing  = new NodeState._("Running");
-  static NodeState Successful  = new NodeState._("Successful");
-  static NodeState Failed  = new NodeState._("Failed");
-  static NodeState UnableToRun  = new NodeState._("UnableToRun");
+  static NodeState Waiting = new NodeState._("Waiting");
+  static NodeState Enqueuing = new NodeState._("Enqueuing");
+  static NodeState Processing = new NodeState._("Running");
+  static NodeState Successful = new NodeState._("Successful");
+  static NodeState Failed = new NodeState._("Failed");
+  static NodeState UnableToRun = new NodeState._("UnableToRun");
 
   final String name;
 

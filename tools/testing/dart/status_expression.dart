@@ -49,13 +49,11 @@ class Token {
   static const String OR = "||";
 }
 
-
 class Tokenizer {
   String expression;
   List<String> tokens;
 
-  Tokenizer(String this.expression)
-    : tokens = new List<String>();
+  Tokenizer(String this.expression) : tokens = new List<String>();
 
   // Tokens are : "(", ")", "$", ",", "&&", "||", "==", "!=", and (maximal) \w+.
   static final testRegexp =
@@ -71,16 +69,13 @@ class Tokenizer {
   }
 }
 
-
 abstract class BooleanExpression {
   bool evaluate(Map<String, String> environment);
 }
 
-
 abstract class SetExpression {
   Set<String> evaluate(Map<String, String> environment);
 }
-
 
 class Comparison implements BooleanExpression {
   TermVariable left;
@@ -90,14 +85,13 @@ class Comparison implements BooleanExpression {
   Comparison(this.left, this.right, this.negate);
 
   bool evaluate(environment) {
-    return
-        negate != (left.termValue(environment) == right.termValue(environment));
+    return negate !=
+        (left.termValue(environment) == right.termValue(environment));
   }
 
   String toString() =>
       "(\$${left.name} ${negate ? '!=' : '=='} ${right.value})";
 }
-
 
 class TermVariable {
   String name;
@@ -107,14 +101,12 @@ class TermVariable {
   String termValue(environment) {
     var value = environment[name];
     if (value == null) {
-      throw new ExprEvaluationException(
-          "Could not find '$name' in environment "
+      throw new ExprEvaluationException("Could not find '$name' in environment "
           "while evaluating status file expression.");
     }
     return value.toString();
   }
 }
-
 
 class TermConstant {
   String value;
@@ -123,7 +115,6 @@ class TermConstant {
 
   String termValue(environment) => value;
 }
-
 
 class BooleanVariable implements BooleanExpression {
   TermVariable variable;
@@ -134,7 +125,6 @@ class BooleanVariable implements BooleanExpression {
   String toString() => "(bool \$${variable.name})";
 }
 
-
 class BooleanOperation implements BooleanExpression {
   String op;
   BooleanExpression left;
@@ -142,12 +132,11 @@ class BooleanOperation implements BooleanExpression {
 
   BooleanOperation(this.op, this.left, this.right);
 
-  bool evaluate(environment) => (op == Token.AND) ?
-      left.evaluate(environment) && right.evaluate(environment) :
-      left.evaluate(environment) || right.evaluate(environment);
+  bool evaluate(environment) => (op == Token.AND)
+      ? left.evaluate(environment) && right.evaluate(environment)
+      : left.evaluate(environment) || right.evaluate(environment);
   String toString() => "($left $op $right)";
 }
-
 
 class SetUnion implements SetExpression {
   SetExpression left;
@@ -166,18 +155,17 @@ class SetUnion implements SetExpression {
   String toString() => "($left || $right)";
 }
 
-
 class SetIf implements SetExpression {
   SetExpression left;
   BooleanExpression right;
 
   SetIf(this.left, this.right);
 
-  Set<String> evaluate(environment) => right.evaluate(environment) ?
-    left.evaluate(environment) : new Set<String>();
+  Set<String> evaluate(environment) => right.evaluate(environment)
+      ? left.evaluate(environment)
+      : new Set<String>();
   String toString() => "($left if $right)";
 }
-
 
 class SetConstant implements SetExpression {
   String value;
@@ -187,7 +175,6 @@ class SetConstant implements SetExpression {
   Set<String> evaluate(environment) => new Set<String>.from([value]);
   String toString() => value;
 }
-
 
 // An iterator that allows peeking at the current token.
 class Scanner {
@@ -207,7 +194,6 @@ class Scanner {
   }
 }
 
-
 class ExpressionParser {
   Scanner scanner;
 
@@ -217,7 +203,7 @@ class ExpressionParser {
 
   SetExpression parseSetUnion() {
     SetExpression left = parseSetIf();
-    while (scanner.hasMore() && scanner.current == Token.UNION){
+    while (scanner.hasMore() && scanner.current == Token.UNION) {
       scanner.advance();
       SetExpression right = parseSetIf();
       left = new SetUnion(left, right);
@@ -237,14 +223,13 @@ class ExpressionParser {
 
   SetExpression parseSetOr() {
     SetExpression left = parseSetAtomic();
-    while (scanner.hasMore() && scanner.current == Token.OR){
+    while (scanner.hasMore() && scanner.current == Token.OR) {
       scanner.advance();
       SetExpression right = parseSetAtomic();
       left = new SetUnion(left, right);
     }
     return left;
   }
-
 
   SetExpression parseSetAtomic() {
     if (scanner.current == Token.LEFT_PAREN) {
@@ -327,4 +312,3 @@ class ExpressionParser {
     }
   }
 }
-

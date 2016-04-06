@@ -6,78 +6,78 @@ import 'dart:io';
 import 'dart:convert';
 
 List<Map> LINUX_COMBINATIONS = [
-    {
-      'runtimes' : ['none'],
-      'modes' : ['release'],
-      'archs' : ['x64'],
-      'compiler' : 'dart2analyzer'
-    },
-    {
-      'runtimes' : ['vm'],
-      'modes' : ['debug', 'release'],
-      'archs' : ['ia32', 'x64', 'simarm', 'simmips'],
-      'compiler' : 'none'
-    },
-    {
-      'runtimes' : ['d8', 'jsshell', 'chrome', 'ff'],
-      'modes' : ['release'],
-      'archs' : ['ia32'],
-      'compiler' : 'dart2js'
-    },
-    {
-      'runtimes' : ['dartium'],
-      'modes' : ['release', 'debug'],
-      'archs' : ['ia32'],
-      'compiler' : 'none'
-    },
+  {
+    'runtimes': ['none'],
+    'modes': ['release'],
+    'archs': ['x64'],
+    'compiler': 'dart2analyzer'
+  },
+  {
+    'runtimes': ['vm'],
+    'modes': ['debug', 'release'],
+    'archs': ['ia32', 'x64', 'simarm', 'simmips'],
+    'compiler': 'none'
+  },
+  {
+    'runtimes': ['d8', 'jsshell', 'chrome', 'ff'],
+    'modes': ['release'],
+    'archs': ['ia32'],
+    'compiler': 'dart2js'
+  },
+  {
+    'runtimes': ['dartium'],
+    'modes': ['release', 'debug'],
+    'archs': ['ia32'],
+    'compiler': 'none'
+  },
 ];
 
 List<Map> MACOS_COMBINATIONS = [
-    {
-      'runtimes' : ['vm'],
-      'modes' : ['debug', 'release'],
-      'archs' : ['ia32', 'x64'],
-      'compiler' : 'none'
-    },
-    {
-      'runtimes' : ['safari', 'safarimobilesim'],
-      'modes' : ['release'],
-      'archs' : ['ia32'],
-      'compiler' : 'dart2js'
-    },
-    {
-      'runtimes' : ['dartium'],
-      'modes' : ['release', 'debug'],
-      'archs' : ['ia32'],
-      'compiler' : 'none'
-    },
+  {
+    'runtimes': ['vm'],
+    'modes': ['debug', 'release'],
+    'archs': ['ia32', 'x64'],
+    'compiler': 'none'
+  },
+  {
+    'runtimes': ['safari', 'safarimobilesim'],
+    'modes': ['release'],
+    'archs': ['ia32'],
+    'compiler': 'dart2js'
+  },
+  {
+    'runtimes': ['dartium'],
+    'modes': ['release', 'debug'],
+    'archs': ['ia32'],
+    'compiler': 'none'
+  },
 ];
 
 List<Map> WINDOWS_COMBINATIONS = [
-    {
-      'runtimes' : ['vm'],
-      'modes' : ['debug', 'release'],
-      'archs' : ['ia32', 'x64'],
-      'compiler' : 'none'
-    },
-    {
-      'runtimes' : ['chrome', 'ff', 'ie11', 'ie10'],
-      'modes' : ['release'],
-      'archs' : ['ia32'],
-      'compiler' : 'dart2js'
-    },
-    {
-      'runtimes' : ['dartium'],
-      'modes' : ['release', 'debug'],
-      'archs' : ['ia32'],
-      'compiler' : 'none'
-    },
+  {
+    'runtimes': ['vm'],
+    'modes': ['debug', 'release'],
+    'archs': ['ia32', 'x64'],
+    'compiler': 'none'
+  },
+  {
+    'runtimes': ['chrome', 'ff', 'ie11', 'ie10'],
+    'modes': ['release'],
+    'archs': ['ia32'],
+    'compiler': 'dart2js'
+  },
+  {
+    'runtimes': ['dartium'],
+    'modes': ['release', 'debug'],
+    'archs': ['ia32'],
+    'compiler': 'none'
+  },
 ];
 
 Map<String, List<Map>> COMBINATIONS = {
-  'linux' : LINUX_COMBINATIONS,
-  'windows' : WINDOWS_COMBINATIONS,
-  'macos' : MACOS_COMBINATIONS
+  'linux': LINUX_COMBINATIONS,
+  'windows': WINDOWS_COMBINATIONS,
+  'macos': MACOS_COMBINATIONS
 };
 
 List<Map> getCombinations() {
@@ -165,8 +165,15 @@ void main(List<String> args) {
         for (var runtime in combination['runtimes']) {
           var compiler = combination['compiler'];
 
-          var args = ['tools/test.py', '-m$mode', '-c$compiler', '-r$runtime',
-                      '-a$arch', '--report-in-json', '--use-sdk'];
+          var args = [
+            'tools/test.py',
+            '-m$mode',
+            '-c$compiler',
+            '-r$runtime',
+            '-a$arch',
+            '--report-in-json',
+            '--use-sdk'
+          ];
           var result = Process.runSync('python', args);
           if (result.exitCode != 0) {
             print(result.stdout);
@@ -202,7 +209,7 @@ void main(List<String> args) {
           for (var key in keys) {
             var value = map[key];
             values.add(value);
-            var pct = 100*(value/total);
+            var pct = 100 * (value / total);
             values.add('${pct.toStringAsFixed(3)}%');
           }
 
