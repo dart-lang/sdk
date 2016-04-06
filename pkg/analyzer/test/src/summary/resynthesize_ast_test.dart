@@ -422,54 +422,46 @@ class ResynthesizeAstTest extends ResynthesizeTest
     return _encodeLibrary(source);
   }
 
-  void setUp() {
-    super.setUp();
-    addLibrary('dart:core');
-  }
-
   @override
-  void test_const_invokeConstructor_named() {
-    // TODO(scheglov) fix me
-  }
-
-  @override
+  @failingTest
   void test_constructor_withCycles_const() {
-    // TODO(scheglov) fix me
+    super.test_constructor_withCycles_const();
   }
 
   @override
+  @failingTest
   void test_inferred_function_type_in_generic_class_constructor() {
-    // TODO(scheglov) fix me
+    super.test_inferred_function_type_in_generic_class_constructor();
   }
 
   @override
+  @failingTest
   void test_metadata_constructor_call_named() {
-    // TODO(scheglov) fix me
+    super.test_metadata_constructor_call_named();
   }
 
   @override
+  @failingTest
   void test_metadata_constructor_call_named_prefixed() {
-    // TODO(scheglov) fix me
+    super.test_metadata_constructor_call_named_prefixed();
   }
 
   @override
+  @failingTest
   void test_metadata_constructor_call_unnamed() {
-    // TODO(scheglov) fix me
+    super.test_metadata_constructor_call_unnamed();
   }
 
   @override
+  @failingTest
   void test_metadata_constructor_call_with_args() {
-    // TODO(scheglov) fix me
+    super.test_metadata_constructor_call_with_args();
   }
 
   @override
+  @failingTest
   void test_type_reference_to_import_part_in_subdir() {
-    // TODO(scheglov) fix me
-  }
-
-  @override
-  void test_unused_type_parameter() {
-    // TODO(paulberry): fix.
+    super.test_type_reference_to_import_part_in_subdir();
   }
 }
 
