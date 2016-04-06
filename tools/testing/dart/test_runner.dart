@@ -2558,32 +2558,25 @@ class CommandExecutorImpl implements CommandExecutor {
     }
     _getBrowserTestRunner(browserCommand.browser, browserCommand.configuration)
         .then((testRunner) {
-      testRunner.queueTest(browserTest);
+      testRunner.enqueueTest(browserTest);
     });
 
     return completer.future;
   }
 
   Future<BrowserTestRunner> _getBrowserTestRunner(String browser,
-                                                  Map configuration) {
+                                                  Map configuration) async {
     var localIp = globalConfiguration['local_ip'];
-    var num_browsers = maxBrowserProcesses;
     if (_browserTestRunners[configuration] == null) {
       var testRunner = new BrowserTestRunner(
-            configuration, localIp, browser, num_browsers);
+            configuration, localIp, browser, maxBrowserProcesses);
       if (globalConfiguration['verbose']) {
         testRunner.logger = DebugLogger.info;
       }
       _browserTestRunners[configuration] = testRunner;
-      return testRunner.start().then((started) {
-        if (started) {
-          return testRunner;
-        }
-        print("Issue starting browser test runner");
-        io.exit(1);
-      });
+      await testRunner.start();
     }
-    return new Future.value(_browserTestRunners[configuration]);
+    return _browserTestRunners[configuration];
   }
 }
 
