@@ -9487,6 +9487,7 @@ bool Library::LookupResolvedNamesCache(const String& name,
 // the name does not resolve to anything in this library scope.
 void Library::AddToResolvedNamesCache(const String& name,
                                       const Object& obj) const {
+  ASSERT(!Compiler::IsBackgroundCompilation());
   if (!FLAG_use_lib_cache) {
     return;
   }
@@ -9545,6 +9546,7 @@ void Library::GrowDictionary(const Array& dict, intptr_t dict_size) const {
 
 
 void Library::AddObject(const Object& obj, const String& name) const {
+  ASSERT(!Compiler::IsBackgroundCompilation());
   ASSERT(obj.IsClass() ||
          obj.IsFunction() ||
          obj.IsField() ||
@@ -9651,6 +9653,7 @@ RawObject* Library::LookupEntry(const String& name, intptr_t *index) const {
 
 
 void Library::ReplaceObject(const Object& obj, const String& name) const {
+  ASSERT(!Compiler::IsBackgroundCompilation());
   ASSERT(obj.IsClass() || obj.IsFunction() || obj.IsField());
   ASSERT(LookupLocalObject(name) != Object::null());
 
@@ -9663,6 +9666,7 @@ void Library::ReplaceObject(const Object& obj, const String& name) const {
 
 
 bool Library::RemoveObject(const Object& obj, const String& name) const {
+  ASSERT(!Compiler::IsBackgroundCompilation());
   Object& entry = Object::Handle();
 
   intptr_t index;
@@ -9708,12 +9712,14 @@ bool Library::RemoveObject(const Object& obj, const String& name) const {
 
 
 void Library::AddClass(const Class& cls) const {
+  ASSERT(!Compiler::IsBackgroundCompilation());
   const String& class_name = String::Handle(cls.Name());
   AddObject(cls, class_name);
   // Link class to this library.
   cls.set_library(*this);
   InvalidateResolvedName(class_name);
 }
+
 
 static void AddScriptIfUnique(const GrowableObjectArray& scripts,
                               const Script& candidate) {
@@ -9732,6 +9738,7 @@ static void AddScriptIfUnique(const GrowableObjectArray& scripts,
   // Add script to the list of scripts.
   scripts.Add(candidate);
 }
+
 
 RawArray* Library::LoadedScripts() const {
   // We compute the list of loaded scripts lazily. The result is

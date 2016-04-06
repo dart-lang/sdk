@@ -2732,7 +2732,6 @@ class Function : public Object {
   }
   bool was_compiled() const { return raw_ptr()->was_compiled_ == 1; }
 
-
   // static: Considered during class-side or top-level resolution rather than
   //         instance-side resolution.
   // const: Valid target of a const constructor call.

@@ -648,6 +648,15 @@ class CallSiteInliner : public ValueObject {
       return false;
     }
 
+    // Type feedback may have been cleared for this function (ClearICDataArray),
+    // but we need it for inlining.
+    if (!FLAG_precompiled_mode && (function.ic_data_array() == Array::null())) {
+      TRACE_INLINING(THR_Print("     Bailout: type feedback cleared\n"));
+      PRINT_INLINING_TREE("Not compiled",
+          &call_data->caller, &function, call_data->call);
+      return false;
+    }
+
     // Abort if this function has deoptimized too much.
     if (function.deoptimization_counter() >=
         FLAG_max_deoptimization_counter_threshold) {

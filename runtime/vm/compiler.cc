@@ -1616,6 +1616,7 @@ class BackgroundCompilationQueue {
     if (first_ == NULL) {
       first_ = value;
     } else {
+      ASSERT(last_ != NULL);
       last_->set_next(value);
     }
     value->set_next(NULL);
@@ -1732,6 +1733,7 @@ void BackgroundCompiler::Run() {
 void BackgroundCompiler::CompileOptimized(const Function& function) {
   ASSERT(Thread::Current()->IsMutatorThread());
   MonitorLocker ml(queue_monitor_);
+  ASSERT(running_);
   if (function_queue()->ContainsObj(function)) {
     return;
   }
