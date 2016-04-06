@@ -1214,6 +1214,9 @@ class Class : public Object {
                                        intptr_t* index) const;
 
   void InsertCanonicalConstant(intptr_t index, const Instance& constant) const;
+  void InsertCanonicalNumber(Zone* zone,
+                             intptr_t index,
+                             const Number& constant) const;
 
   intptr_t FindCanonicalTypeIndex(const AbstractType& needle) const;
   RawAbstractType* CanonicalTypeFromIndex(intptr_t idx) const;
@@ -5156,7 +5159,8 @@ class Instance : public Object {
   virtual RawInstance* CheckAndCanonicalize(const char** error_str) const;
 
   // Returns true if all fields are OK for canonicalization.
-  virtual bool CheckAndCanonicalizeFields(const char** error_str) const;
+  virtual bool CheckAndCanonicalizeFields(Zone* zone,
+                                          const char** error_str) const;
 
   RawObject* GetField(const Field& field) const {
     return *FieldAddr(field);
@@ -5943,6 +5947,9 @@ class Number : public Instance {
   // TODO(iposva): Add more useful Number methods.
   RawString* ToString(Heap::Space space) const;
 
+  // Numbers are canonicalized differently from other instances/strings.
+  virtual RawInstance* CheckAndCanonicalize(const char** error_str) const;
+
  private:
   OBJECT_IMPLEMENTATION(Number, Instance);
 
@@ -6016,10 +6023,6 @@ class Smi : public Integer {
   virtual bool Equals(const Instance& other) const;
   virtual bool IsZero() const { return Value() == 0; }
   virtual bool IsNegative() const { return Value() < 0; }
-  // Smi values are implicitly canonicalized.
-  virtual RawInstance* CheckAndCanonicalize(const char** error_str) const {
-    return reinterpret_cast<RawSmi*>(raw_value());
-  }
 
   virtual double AsDoubleValue() const;
   virtual int64_t AsInt64Value() const;
@@ -6139,6 +6142,7 @@ class Mint : public Integer {
 
   MINT_OBJECT_IMPLEMENTATION(Mint, Integer, Integer);
   friend class Class;
+  friend class Number;
 };
 
 
@@ -6155,7 +6159,8 @@ class Bigint : public Integer {
 
   virtual int CompareWith(const Integer& other) const;
 
-  virtual bool CheckAndCanonicalizeFields(const char** error_str) const;
+  virtual bool CheckAndCanonicalizeFields(Zone* zone,
+                                          const char** error_str) const;
 
   virtual bool FitsIntoSmi() const;
   bool FitsIntoInt64() const;
@@ -6270,6 +6275,7 @@ class Double : public Number {
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Double, Number);
   friend class Class;
+  friend class Number;
 };
 
 
@@ -6401,6 +6407,7 @@ class String : public Instance {
 
   bool StartsWith(const String& other) const;
 
+  // Strings are canonicalized using the symbol table.
   virtual RawInstance* CheckAndCanonicalize(const char** error_str) const;
 
   bool IsSymbol() const { return raw()->IsCanonical(); }
@@ -7104,7 +7111,8 @@ class Array : public Instance {
   }
 
   // Returns true if all elements are OK for canonicalization.
-  virtual bool CheckAndCanonicalizeFields(const char** error_str) const;
+  virtual bool CheckAndCanonicalizeFields(Zone* zone,
+                                          const char** error_str) const;
 
   // Make the array immutable to Dart code by switching the class pointer
   // to ImmutableArray.
@@ -7250,8 +7258,13 @@ class GrowableObjectArray : public Instance {
     StorePointer(&raw_ptr()->type_arguments_, value.raw());
   }
 
-  virtual bool CanonicalizeEquals(const Instance& other) const;
+  // We don't expect a growable object array to be canonicalized.
+  virtual bool CanonicalizeEquals(const Instance& other) const {
+    UNREACHABLE();
+    return false;
+  }
 
+  // We don't expect a growable object array to be canonicalized.
   virtual RawInstance* CheckAndCanonicalize(const char** error_str) const {
     UNREACHABLE();
     return Instance::null();
@@ -7941,7 +7954,8 @@ class Closure : public Instance {
   }
 
   // Returns true if all elements are OK for canonicalization.
-  virtual bool CheckAndCanonicalizeFields(const char** error_str) const {
+  virtual bool CheckAndCanonicalizeFields(Zone* zone,
+                                          const char** error_str) const {
     // None of the fields of a closure are instances.
     return true;
   }

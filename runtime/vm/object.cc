@@ -4399,6 +4399,21 @@ void Class::InsertCanonicalConstant(intptr_t index,
 }
 
 
+void Class::InsertCanonicalNumber(Zone* zone,
+                                  intptr_t index,
+                                  const Number& constant) const {
+  // The constant needs to be added to the list. Grow the list if it is full.
+  Array& canonical_list = Array::Handle(zone, constants());
+  const intptr_t list_len = canonical_list.Length();
+  if (index >= list_len) {
+    const intptr_t new_length = (list_len == 0) ? 4 : list_len + 4;
+    canonical_list ^= Array::Grow(canonical_list, new_length, Heap::kOld);
+    set_constants(canonical_list);
+  }
+  canonical_list.SetAt(index, constant);
+}
+
+
 RawUnresolvedClass* UnresolvedClass::New(const LibraryPrefix& library_prefix,
                                          const String& ident,
                                          TokenPosition token_pos) {
@@ -14654,12 +14669,13 @@ class CheckForPointers : public ObjectPointerVisitor {
 #endif  // DEBUG
 
 
-bool Instance::CheckAndCanonicalizeFields(const char** error_str) const {
-  const Class& cls = Class::Handle(this->clazz());
+bool Instance::CheckAndCanonicalizeFields(Zone* zone,
+                                          const char** error_str) const {
+  const Class& cls = Class::Handle(zone, this->clazz());
   if (cls.id() >= kNumPredefinedCids) {
     // Iterate over all fields, canonicalize numbers and strings, expect all
     // other instances to be canonical otherwise report error (return false).
-    Object& obj = Object::Handle();
+    Object& obj = Object::Handle(zone);
     intptr_t end_field_offset = cls.instance_size() - kWordSize;
     for (intptr_t field_offset = 0;
          field_offset <= end_field_offset;
@@ -14672,8 +14688,7 @@ bool Instance::CheckAndCanonicalizeFields(const char** error_str) const {
           this->SetFieldAtOffset(field_offset, obj);
         } else {
           ASSERT(error_str != NULL);
-          char* chars = OS::SCreate(Thread::Current()->zone(),
-              "field: %s\n", obj.ToCString());
+          char* chars = OS::SCreate(zone, "field: %s\n", obj.ToCString());
           *error_str = chars;
           return false;
         }
@@ -14696,11 +14711,11 @@ RawInstance* Instance::CheckAndCanonicalize(const char** error_str) const {
   if (this->IsCanonical()) {
     return this->raw();
   }
-  if (!CheckAndCanonicalizeFields(error_str)) {
-    return Instance::null();
-  }
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
+  if (!CheckAndCanonicalizeFields(zone, error_str)) {
+    return Instance::null();
+  }
   Isolate* isolate = thread->isolate();
   Instance& result = Instance::Handle(zone);
   const Class& cls = Class::Handle(zone, this->clazz());
@@ -14713,38 +14728,21 @@ RawInstance* Instance::CheckAndCanonicalize(const char** error_str) const {
     SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
     // Retry lookup.
     {
-      Instance& temp_result = Instance::Handle(zone,
-          cls.LookupCanonicalInstance(zone, *this, &index));
-      if (!temp_result.IsNull()) {
-        return temp_result.raw();
+      result ^= cls.LookupCanonicalInstance(zone, *this, &index);
+      if (!result.IsNull()) {
+        return result.raw();
       }
     }
 
     // The value needs to be added to the list. Grow the list if
     // it is full.
     result ^= this->raw();
-    if (result.IsNew() ||
-        (result.InVMHeap() && (isolate != Dart::vm_isolate()))) {
-      /**
-       * When a snapshot is generated on a 64 bit architecture and then read
-       * into a 32 bit architecture, values which are Smi on the 64 bit
-       * architecture could potentially be converted to Mint objects, however
-       * since Smi values do not have any notion of canonical bits we lose
-       * that information when the object becomes a Mint.
-       * Some of these values could be literal values and end up in the
-       * VM isolate heap. Later when these values are referenced in a
-       * constant list we try to ensure that all the objects in the list
-       * are canonical and try to canonicalize them. When these Mint objects
-       * are encountered they do not have the canonical bit set and
-       * canonicalizing them won't work as the VM heap is read only now.
-       * In these cases we clone the object into the isolate and then
-       * canonicalize it.
-       */
+    ASSERT((isolate == Dart::vm_isolate()) || !result.InVMHeap());
+    if (result.IsNew()) {
       // Create a canonical object in old space.
       result ^= Object::Clone(result, Heap::kOld);
     }
     ASSERT(result.IsOld());
-
     result.SetCanonical();
     cls.InsertCanonicalConstant(index, result);
     return result.raw();
@@ -14956,7 +14954,8 @@ bool Instance::IsIdenticalTo(const Instance& other) const {
     return Integer::Cast(*this).Equals(other);
   }
   if (IsDouble() && other.IsDouble()) {
-    return Double::Cast(*this).CanonicalizeEquals(other);
+    double other_value = Double::Cast(other).value();
+    return Double::Cast(*this).BitwiseEqualsToDouble(other_value);
   }
   return false;
 }
@@ -17360,6 +17359,61 @@ RawMixinAppType* MixinAppType::New(const AbstractType& super_type,
 }
 
 
+RawInstance* Number::CheckAndCanonicalize(const char** error_str) const {
+  intptr_t cid = GetClassId();
+  switch (cid) {
+    case kSmiCid:
+      return reinterpret_cast<RawSmi*>(raw_value());
+    case kMintCid:
+      return Mint::NewCanonical(Mint::Cast(*this).value());
+    case kDoubleCid:
+      return Double::NewCanonical(Double::Cast(*this).value());
+    case kBigintCid: {
+      Thread* thread = Thread::Current();
+      Zone* zone = thread->zone();
+      Isolate* isolate = thread->isolate();
+      if (!CheckAndCanonicalizeFields(zone, error_str)) {
+        return Instance::null();
+      }
+      Bigint& result = Bigint::Handle(zone);
+      const Class& cls = Class::Handle(zone, this->clazz());
+      intptr_t index = 0;
+      result ^= cls.LookupCanonicalBigint(zone, Bigint::Cast(*this), &index);
+      if (!result.IsNull()) {
+        return result.raw();
+      }
+      {
+        SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
+        // Retry lookup.
+        {
+          result ^= cls.LookupCanonicalBigint(
+              zone, Bigint::Cast(*this), &index);
+          if (!result.IsNull()) {
+            return result.raw();
+          }
+        }
+
+        // The value needs to be added to the list. Grow the list if
+        // it is full.
+        result ^= this->raw();
+        ASSERT((isolate == Dart::vm_isolate()) || !result.InVMHeap());
+        if (result.IsNew()) {
+          // Create a canonical object in old space.
+          result ^= Object::Clone(result, Heap::kOld);
+        }
+        ASSERT(result.IsOld());
+        result.SetCanonical();
+        cls.InsertCanonicalNumber(zone, index, result);
+        return result.raw();
+      }
+    }
+    default:
+      UNREACHABLE();
+  }
+  return Instance::null();
+}
+
+
 const char* Number::ToCString() const {
   // Number is an interface. No instances of Number should exist.
   UNREACHABLE();
@@ -17783,17 +17837,16 @@ RawMint* Mint::NewCanonical(int64_t value) {
     SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
     // Retry lookup.
     {
-      const Mint& result =
-          Mint::Handle(zone, cls.LookupCanonicalMint(zone, value, &index));
-      if (!result.IsNull()) {
-        return result.raw();
+      canonical_value ^= cls.LookupCanonicalMint(zone, value, &index);
+      if (!canonical_value.IsNull()) {
+        return canonical_value.raw();
       }
     }
     canonical_value = Mint::New(value, Heap::kOld);
     canonical_value.SetCanonical();
     // The value needs to be added to the constants list. Grow the list if
     // it is full.
-    cls.InsertCanonicalConstant(index, canonical_value);
+    cls.InsertCanonicalNumber(zone, index, canonical_value);
     return canonical_value.raw();
   }
 }
@@ -17936,17 +17989,16 @@ RawDouble* Double::NewCanonical(double value) {
     SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
     // Retry lookup.
     {
-      const Double& result =
-          Double::Handle(zone, cls.LookupCanonicalDouble(zone, value, &index));
-      if (!result.IsNull()) {
-        return result.raw();
+      canonical_value ^= cls.LookupCanonicalDouble(zone, value, &index);
+      if (!canonical_value.IsNull()) {
+        return canonical_value.raw();
       }
     }
     canonical_value = Double::New(value, Heap::kOld);
     canonical_value.SetCanonical();
     // The value needs to be added to the constants list. Grow the list if
     // it is full.
-    cls.InsertCanonicalConstant(index, canonical_value);
+    cls.InsertCanonicalNumber(zone, index, canonical_value);
     return canonical_value.raw();
   }
 }
@@ -18073,13 +18125,14 @@ bool Bigint::Equals(const Instance& other) const {
 }
 
 
-bool Bigint::CheckAndCanonicalizeFields(const char** error_str) const {
+bool Bigint::CheckAndCanonicalizeFields(Zone* zone,
+                                        const char** error_str) const {
   // Bool field neg should always be canonical.
-  ASSERT(Bool::Handle(neg()).IsCanonical());
+  ASSERT(Bool::Handle(zone, neg()).IsCanonical());
   // Smi field used is canonical by definition.
   if (Used() > 0) {
     // Canonicalize TypedData field digits.
-    TypedData& digits_ = TypedData::Handle(digits());
+    TypedData& digits_ = TypedData::Handle(zone, digits());
     digits_ ^= digits_.CheckAndCanonicalize(NULL);
     ASSERT(!digits_.IsNull());
     set_digits(digits_);
@@ -18237,8 +18290,8 @@ RawBigint* Bigint::NewCanonical(const String& str) {
   const Class& cls =
       Class::Handle(zone, isolate->object_store()->bigint_class());
   intptr_t index = 0;
-  const Bigint& canonical_value =
-      Bigint::Handle(zone, cls.LookupCanonicalBigint(zone, value, &index));
+  Bigint& canonical_value = Bigint::Handle(zone);
+  canonical_value ^= cls.LookupCanonicalBigint(zone, value, &index);
   if (!canonical_value.IsNull()) {
     return canonical_value.raw();
   }
@@ -18246,16 +18299,15 @@ RawBigint* Bigint::NewCanonical(const String& str) {
     SafepointMutexLocker ml(isolate->constant_canonicalization_mutex());
     // Retry lookup.
     {
-      const Bigint& result =
-          Bigint::Handle(zone, cls.LookupCanonicalBigint(zone, value, &index));
-      if (!result.IsNull()) {
-        return result.raw();
+      canonical_value ^= cls.LookupCanonicalBigint(zone, value, &index);
+      if (!canonical_value.IsNull()) {
+        return canonical_value.raw();
       }
     }
     value.SetCanonical();
     // The value needs to be added to the constants list. Grow the list if
     // it is full.
-    cls.InsertCanonicalConstant(index, value);
+    cls.InsertCanonicalNumber(zone, index, value);
     return value.raw();
   }
 }
@@ -20494,14 +20546,7 @@ bool Array::CanonicalizeEquals(const Instance& other) const {
     return false;
   }
 
-  // Both arrays must have the same type arguments.
-  const TypeArguments& type_args = TypeArguments::Handle(GetTypeArguments());
-  const TypeArguments& other_type_args = TypeArguments::Handle(
-      other.GetTypeArguments());
-  if (!type_args.Equals(other_type_args)) {
-    return false;
-  }
-
+  // First check if both arrays have the same length and elements.
   const Array& other_arr = Array::Cast(other);
 
   intptr_t len = this->Length();
@@ -20513,6 +20558,14 @@ bool Array::CanonicalizeEquals(const Instance& other) const {
     if (this->At(i) != other_arr.At(i)) {
       return false;
     }
+  }
+
+  // Now check if both arrays have the same type arguments.
+  const TypeArguments& type_args = TypeArguments::Handle(GetTypeArguments());
+  const TypeArguments& other_type_args = TypeArguments::Handle(
+      other.GetTypeArguments());
+  if (!type_args.Equals(other_type_args)) {
+    return false;
   }
   return true;
 }
@@ -20659,8 +20712,9 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
 }
 
 
-bool Array::CheckAndCanonicalizeFields(const char** error_str) const {
-  Object& obj = Object::Handle();
+bool Array::CheckAndCanonicalizeFields(Zone* zone,
+                                       const char** error_str) const {
+  Object& obj = Object::Handle(zone);
   // Iterate over all elements, canonicalize numbers and strings, expect all
   // other instances to be canonical otherwise report error (return false).
   for (intptr_t i = 0; i < Length(); i++) {
@@ -20727,44 +20781,6 @@ RawObject* GrowableObjectArray::RemoveLast() const {
   contents.SetAt(index, Object::null_object());
   SetLength(index);
   return obj.raw();
-}
-
-
-bool GrowableObjectArray::CanonicalizeEquals(const Instance& other) const {
-  // If both handles point to the same raw instance they are equal.
-  if (this->raw() == other.raw()) {
-    return true;
-  }
-
-  // Other instance must be non null and a GrowableObjectArray.
-  if (!other.IsGrowableObjectArray() || other.IsNull()) {
-    return false;
-  }
-
-  const GrowableObjectArray& other_arr = GrowableObjectArray::Cast(other);
-
-  // The capacity and length of both objects must be equal.
-  if (Capacity() != other_arr.Capacity() || Length() != other_arr.Length()) {
-    return false;
-  }
-
-  // Both arrays must have the same type arguments.
-  const TypeArguments& type_args = TypeArguments::Handle(GetTypeArguments());
-  const TypeArguments& other_type_args = TypeArguments::Handle(
-      other.GetTypeArguments());
-  if (!type_args.Equals(other_type_args)) {
-    return false;
-  }
-
-  // The data part in both arrays must be identical.
-  const Array& contents = Array::Handle(data());
-  const Array& other_contents = Array::Handle(other_arr.data());
-  for (intptr_t i = 0; i < Length(); i++) {
-    if (contents.At(i) != other_contents.At(i)) {
-      return false;
-    }
-  }
-  return true;
 }
 
 
