@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart' show ScannerErrorCode;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/generated/shared_messages.dart'
     as shared_messages;
 import 'package:analyzer/src/generated/java_core.dart';
@@ -5715,12 +5716,19 @@ class StaticWarningCode extends ErrorCode {
           "Add a case clause for the missing constant or add a default clause.");
 
   /**
+   * A flag indicating whether this warning is an error when running with strong
+   * mode enabled.
+   */
+  final bool isStrongModeError;
+
+  /**
    * Initialize a newly created error code to have the given [name]. The message
    * associated with the error will be created from the given [message]
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const StaticWarningCode(String name, String message, [String correction])
+  const StaticWarningCode(String name, String message,
+      [String correction, this.isStrongModeError = false])
       : super(name, message, correction);
 
   @override
