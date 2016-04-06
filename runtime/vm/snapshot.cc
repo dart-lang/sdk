@@ -1917,11 +1917,13 @@ FullSnapshotWriter::FullSnapshotWriter(uint8_t** vm_isolate_snapshot_buffer,
   ScriptVisitor script_visitor(thread(), &scripts_);
   heap()->IterateOldObjects(&script_visitor);
 
-  // Stash the symbol table away for writing and reading into the vm isolate,
-  // and reset the symbol table for the regular isolate so that we do not
-  // write these symbols into the snapshot of a regular dart isolate.
-  symbol_table_ = object_store->symbol_table();
-  Symbols::SetupSymbolTable(isolate());
+  if (vm_isolate_snapshot_buffer != NULL) {
+    // Stash the symbol table away for writing and reading into the vm isolate,
+    // and reset the symbol table for the regular isolate so that we do not
+    // write these symbols into the snapshot of a regular dart isolate.
+    symbol_table_ = object_store->symbol_table();
+    Symbols::SetupSymbolTable(isolate());
+  }
 
   forward_list_ = new ForwardList(thread(), SnapshotWriter::FirstObjectId());
   ASSERT(forward_list_ != NULL);
@@ -1936,9 +1938,11 @@ FullSnapshotWriter::FullSnapshotWriter(uint8_t** vm_isolate_snapshot_buffer,
 
 FullSnapshotWriter::~FullSnapshotWriter() {
   delete forward_list_;
-  // We may run Dart code afterwards, restore the symbol table.
-  isolate()->object_store()->set_symbol_table(symbol_table_);
-  symbol_table_ = Array::null();
+  // We may run Dart code afterwards, restore the symbol table if needed.
+  if (!symbol_table_.IsNull()) {
+    isolate()->object_store()->set_symbol_table(symbol_table_);
+    symbol_table_ = Array::null();
+  }
   scripts_ = Array::null();
 }
 
