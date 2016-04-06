@@ -263,6 +263,12 @@ class CommandLineOptions {
   }
 
   static CommandLineOptions _parse(List<String> args) {
+    // Check if the args are in a file (bazel worker mode).
+    if (args.last.startsWith('@')) {
+      var argsFile = new File(args.last.substring(1));
+      args = argsFile.readAsLinesSync();
+    }
+
     args = args.expand((String arg) => arg.split('=')).toList();
     var parser = new CommandLineParser()
       ..addFlag('batch',

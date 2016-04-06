@@ -4,9 +4,10 @@
 
 library analyzer_cli.src.build_mode;
 
-import 'dart:convert';
 import 'dart:core' hide Resource;
 import 'dart:io' as io;
+
+import 'package:protobuf/protobuf.dart';
 
 import 'package:analyzer/dart/ast/ast.dart' show CompilationUnit;
 import 'package:analyzer/dart/element/element.dart';
@@ -29,6 +30,9 @@ import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/options.dart';
+
+import 'message_grouper.dart';
+import 'worker_protocol.pb.dart';
 
 /**
  * Analyzer used when the "--build-mode" option is supplied.
@@ -284,28 +288,18 @@ class BuildMode {
 }
 
 /**
- * Interface that every worker related data object has.
- */
-abstract class WorkDataObject {
-  /**
-   * Translate the data in this class into a JSON map.
-   */
-  Map<String, Object> toJson();
-}
-
-/**
  * Connection between a worker and input / output.
  */
 abstract class WorkerConnection {
   /**
-   * Read a new line. Block until a line is read. Return `null` if EOF.
+   * Read a new [WorkRequest]. Returns [null] when there are no more requests.
    */
-  String readLineSync();
+  WorkRequest readRequest();
 
   /**
-   * Write the given [json] as a new line to the output.
+   * Write the given [response] as bytes to the output.
    */
-  void writeJson(Map<String, Object> json);
+  void writeResponse(WorkResponse response);
 }
 
 /**
@@ -322,8 +316,11 @@ class WorkerLoop {
 
   WorkerLoop(this.connection);
 
-  factory WorkerLoop.std() {
-    WorkerConnection connection = new _StdWorkerConnection();
+  factory WorkerLoop.std({io.Stdin stdinStream, io.Stdout stdoutStream}) {
+    stdinStream ??= io.stdin;
+    stdoutStream ??= io.stdout;
+    WorkerConnection connection =
+        new StdWorkerConnection(stdinStream, stdoutStream);
     return new WorkerLoop(connection);
   }
 
@@ -339,7 +336,7 @@ class WorkerLoop {
    */
   bool performSingle() {
     try {
-      WorkRequest request = _readRequest();
+      WorkRequest request = connection.readRequest();
       if (request == null) {
         return true;
       }
@@ -351,11 +348,15 @@ class WorkerLoop {
       // Analyze and respond.
       analyze(options);
       String msg = _getErrorOutputBuffersText();
-      _writeResponse(new WorkResponse(EXIT_CODE_OK, msg));
+      connection.writeResponse(new WorkResponse()
+        ..exitCode = EXIT_CODE_OK
+        ..output = msg);
     } catch (e, st) {
       String msg = _getErrorOutputBuffersText();
       msg += '$e \n $st';
-      _writeResponse(new WorkResponse(EXIT_CODE_ERROR, msg));
+      connection.writeResponse(new WorkResponse()
+        ..exitCode = EXIT_CODE_ERROR
+        ..output = msg);
     }
     return false;
   }
@@ -389,182 +390,34 @@ class WorkerLoop {
     }
     return msg;
   }
-
-  /**
-   * Read a new [WorkRequest]. Return `null` if EOF.
-   * Throw [ArgumentError] if cannot be parsed.
-   */
-  WorkRequest _readRequest() {
-    String line = connection.readLineSync();
-    if (line == null) {
-      return null;
-    }
-    Object json = JSON.decode(line);
-    if (json is Map) {
-      return new WorkRequest.fromJson(json);
-    } else {
-      throw new ArgumentError('The request line is not a  JSON object: $line');
-    }
-  }
-
-  void _writeResponse(WorkResponse response) {
-    Map<String, Object> json = response.toJson();
-    connection.writeJson(json);
-  }
-}
-
-/**
- * Input file.
- */
-class WorkInput implements WorkDataObject {
-  final String path;
-  final List<int> digest;
-
-  WorkInput(this.path, this.digest);
-
-  factory WorkInput.fromJson(Map<String, Object> json) {
-    // Parse path.
-    Object path2 = json['path'];
-    if (path2 == null) {
-      throw new ArgumentError('The field "path" is missing.');
-    }
-    if (path2 is! String) {
-      throw new ArgumentError('The field "path" must be a string.');
-    }
-    // Parse digest.
-    List<int> digest = const <int>[];
-    {
-      Object digestJson = json['digest'];
-      if (digestJson != null) {
-        if (digestJson is List && digestJson.every((e) => e is int)) {
-          digest = digestJson;
-        } else {
-          throw new ArgumentError(
-              'The field "digest" should be a list of int.');
-        }
-      }
-    }
-    // OK
-    return new WorkInput(path2, digest);
-  }
-
-  @override
-  Map<String, Object> toJson() {
-    Map<String, Object> json = <String, Object>{};
-    if (path != null) {
-      json['path'] = path;
-    }
-    if (digest != null) {
-      json['digest'] = digest;
-    }
-    return json;
-  }
-}
-
-/**
- * Single work unit that Bazel sends to the worker.
- */
-class WorkRequest implements WorkDataObject {
-  /**
-   * Command line arguments for this request.
-   */
-  final List<String> arguments;
-
-  /**
-   * Input files that the worker is allowed to read during execution of this
-   * request.
-   */
-  final List<WorkInput> inputs;
-
-  WorkRequest(this.arguments, this.inputs);
-
-  factory WorkRequest.fromJson(Map<String, Object> json) {
-    // Parse arguments.
-    List<String> arguments = const <String>[];
-    {
-      Object argumentsJson = json['arguments'];
-      if (argumentsJson != null) {
-        if (argumentsJson is List && argumentsJson.every((e) => e is String)) {
-          arguments = argumentsJson;
-        } else {
-          throw new ArgumentError(
-              'The field "arguments" should be a list of strings.');
-        }
-      }
-    }
-    // Parse inputs.
-    List<WorkInput> inputs = const <WorkInput>[];
-    {
-      Object inputsJson = json['inputs'];
-      if (inputsJson != null) {
-        if (inputsJson is List &&
-            inputsJson.every((e) {
-              return e is Map && e.keys.every((key) => key is String);
-            })) {
-          inputs = inputsJson
-              .map((Map input) => new WorkInput.fromJson(input))
-              .toList();
-        } else {
-          throw new ArgumentError(
-              'The field "inputs" should be a list of objects.');
-        }
-      }
-    }
-    // No inputs.
-    if (arguments.isEmpty && inputs.isEmpty) {
-      throw new ArgumentError('Both "arguments" and "inputs" cannot be empty.');
-    }
-    // OK
-    return new WorkRequest(arguments, inputs);
-  }
-
-  @override
-  Map<String, Object> toJson() {
-    Map<String, Object> json = <String, Object>{};
-    if (arguments != null) {
-      json['arguments'] = arguments;
-    }
-    if (inputs != null) {
-      json['inputs'] = inputs.map((input) => input.toJson()).toList();
-    }
-    return json;
-  }
-}
-
-/**
- * Result that the worker sends back to Bazel when it finished its work on a
- * [WorkRequest] message.
- */
-class WorkResponse implements WorkDataObject {
-  final int exitCode;
-  final String output;
-
-  WorkResponse(this.exitCode, this.output);
-
-  @override
-  Map<String, Object> toJson() {
-    Map<String, Object> json = <String, Object>{};
-    if (exitCode != null) {
-      json['exit_code'] = exitCode;
-    }
-    if (output != null) {
-      json['output'] = output;
-    }
-    return json;
-  }
 }
 
 /**
  * Default implementation of [WorkerConnection] that works with stdio.
  */
-class _StdWorkerConnection implements WorkerConnection {
+class StdWorkerConnection implements WorkerConnection {
+  final MessageGrouper _messageGrouper;
+  final io.Stdout _stdoutStream;
+
+  StdWorkerConnection(io.Stdin stdinStream, this._stdoutStream)
+      : _messageGrouper = new MessageGrouper(stdinStream);
+
   @override
-  String readLineSync() {
-    return io.stdin.readLineSync();
+  WorkRequest readRequest() {
+    var buffer = _messageGrouper.next;
+    if (buffer == null) return null;
+
+    return new WorkRequest.fromBuffer(buffer);
   }
 
   @override
-  void writeJson(Map<String, Object> json) {
-    io.stdout.writeln(JSON.encode(json));
+  void writeResponse(WorkResponse response) {
+    var responseBuffer = response.writeToBuffer();
+
+    var writer = new CodedBufferWriter();
+    writer.writeInt32NoTag(responseBuffer.length);
+    writer.writeRawBytes(responseBuffer);
+
+    _stdoutStream.add(writer.toBuffer());
   }
 }
