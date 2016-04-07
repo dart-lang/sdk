@@ -170,6 +170,9 @@ EntityRefBuilder _createLinkedType(
           .toList();
     }
     return result;
+  } else if (type is DynamicTypeImpl) {
+    result.reference = compilationUnit.addRawReference('dynamic');
+    return result;
   } else if (type is VoidTypeImpl) {
     result.reference = compilationUnit.addRawReference('void');
     return result;
@@ -2389,7 +2392,7 @@ abstract class ReferenceableElementForLink {
   ConstVariableNode get asConstVariable;
 
   /**
-   * Return the static type of the entity referred to by thi element.
+   * Return the static type of the entity referred to by this element.
    */
   DartType get asStaticType;
 
@@ -2621,6 +2624,12 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
         return type;
       }
 
+      DartType getNextTypeRef() {
+        EntityRef ref = unlinkedConst.references[refPtr++];
+        return variableElement.compilationUnit
+            ._resolveTypeRef(ref, variableElement._typeParameterContext);
+      }
+
       for (UnlinkedConstOperation operation in unlinkedConst.operations) {
         switch (operation) {
           case UnlinkedConstOperation.pushInt:
@@ -2745,16 +2754,16 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
                 .instantiate(<DartType>[keyType, valueType]));
             break;
           case UnlinkedConstOperation.makeTypedList:
-            refPtr++;
+            DartType itemType = getNextTypeRef();
             stack.length -= unlinkedConst.ints[intPtr++];
-            // TODO(paulberry): implement.
-            stack.add(DynamicTypeImpl.instance);
+            stack.add(typeProvider.listType.instantiate(<DartType>[itemType]));
             break;
           case UnlinkedConstOperation.makeTypedMap:
-            refPtr += 2;
+            DartType keyType = getNextTypeRef();
+            DartType valueType = getNextTypeRef();
             stack.length -= 2 * unlinkedConst.ints[intPtr++];
-            // TODO(paulberry): implement.
-            stack.add(DynamicTypeImpl.instance);
+            stack.add(typeProvider.mapType
+                .instantiate(<DartType>[keyType, valueType]));
             break;
           case UnlinkedConstOperation.not:
           case UnlinkedConstOperation.complement:

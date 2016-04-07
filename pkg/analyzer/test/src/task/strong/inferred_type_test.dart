@@ -1351,6 +1351,26 @@ var d = t ? 1 : (throw 2);
 ''');
   }
 
+  void test_infer_typedListLiteral() {
+    checkFile(r'''
+var a = <int>[];
+var b = <double>[1.0, 2.0, 3.0];
+var c = <List<int>>[];
+var d = <dynamic>[1, 2.0, false];
+''');
+  }
+
+  void test_infer_typedMapLiteral() {
+    checkFile(r'''
+var a = <int, String>{0: 'aaa', 1: 'bbb'};
+var b = <double, int>{1.1: 1, 2.2: 2};
+var c = <List<int>, Map<String, double>>{};
+var d = <int, dynamic>{};
+var e = <dynamic, int>{};
+var f = <dynamic, dynamic>{};
+''');
+  }
+
   void test_inferConstsTransitively() {
     addFile(
         '''
