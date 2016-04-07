@@ -224,6 +224,15 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
     super.test_genericMethods_IterableAndFuture();
   }
 
+  void test_infer_extractProperty_getter() {
+    checkFile(r'''
+var a = 1.isEven;
+var b = 2.isNaN;
+var c = 3.foo;
+var d = foo.bar;
+  ''');
+  }
+
   @override
   @failingTest
   void test_inferConstsTransitively() {

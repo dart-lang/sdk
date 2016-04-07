@@ -454,6 +454,26 @@ class ClassElementForLink_Class extends ClassElementForLink
   }
 
   @override
+  PropertyAccessorElement getGetter(String getterName) {
+    for (PropertyAccessorElement accessor in accessors) {
+      if (accessor.isGetter && accessor.name == getterName) {
+        return accessor;
+      }
+    }
+    return null;
+  }
+
+  @override
+  MethodElement getMethod(String methodName) {
+    for (MethodElement method in methods) {
+      if (method.name == methodName) {
+        return method;
+      }
+    }
+    return null;
+  }
+
+  @override
   void link(CompilationUnitElementInBuildUnit compilationUnit) {
     for (ConstructorElementForLink constructorElement in constructors) {
       constructorElement.link(compilationUnit);
@@ -2348,12 +2368,15 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
       // Perform RPN evaluation of the cycle, using a stack of
       // inferred types.
       List<DartType> stack = <DartType>[];
-      int refPtr = 0;
       int intPtr = 0;
+      int refPtr = 0;
+      int strPtr = 0;
       int assignmentOperatorPtr = 0;
       UnlinkedConst unlinkedConst = variableElement.unlinkedVariable.constExpr;
 
-      _Linker linker = variableElement.compilationUnit.enclosingElement._linker;
+      LibraryElementForLink libraryElement =
+          variableElement.compilationUnit.enclosingElement;
+      _Linker linker = libraryElement._linker;
       TypeProvider typeProvider = linker.typeProvider;
 
       DartType leastUpperBound(DartType s, DartType t) {
@@ -2392,6 +2415,7 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
             stack.add(typeProvider.boolType);
             break;
           case UnlinkedConstOperation.pushString:
+            strPtr++;
             stack.add(typeProvider.stringType);
             break;
           case UnlinkedConstOperation.concatenate:
@@ -2399,6 +2423,7 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
             stack.add(typeProvider.stringType);
             break;
           case UnlinkedConstOperation.makeSymbol:
+            strPtr++;
             stack.add(typeProvider.symbolType);
             break;
           case UnlinkedConstOperation.pushNull:
@@ -2427,15 +2452,26 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
             }
             break;
           case UnlinkedConstOperation.extractProperty:
-            stack.removeLast();
-            // TODO(paulberry): implement.
-            stack.add(DynamicTypeImpl.instance);
+            DartType target = stack.removeLast();
+            String propertyName = unlinkedConst.strings[strPtr++];
+            stack.add(() {
+              if (target is InterfaceType) {
+                PropertyAccessorElement getter =
+                    target.lookUpGetter(propertyName, libraryElement);
+                if (getter != null) {
+                  return getter.returnType;
+                }
+              }
+              return DynamicTypeImpl.instance;
+            }());
             break;
           case UnlinkedConstOperation.invokeConstructor:
+            int numNamed = unlinkedConst.ints[intPtr++];
+            int numPositional = unlinkedConst.ints[intPtr++];
             // TODO(paulberry): don't just pop the args; use their types
             // to infer the type of type arguments.
-            stack.length -=
-                unlinkedConst.ints[intPtr++] + unlinkedConst.ints[intPtr++];
+            stack.length -= numNamed + numPositional;
+            strPtr += numNamed;
             EntityRef ref = unlinkedConst.references[refPtr++];
             ConstructorElementForLink element = variableElement.compilationUnit
                 ._resolveRef(ref.reference)
@@ -2535,6 +2571,7 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
             stack.add(DynamicTypeImpl.instance);
             break;
           case UnlinkedConstOperation.assignToProperty:
+            strPtr++;
             stack.removeLast();
             if (!isIncrementOrDecrement(
                 unlinkedConst.assignmentOperators[assignmentOperatorPtr++])) {
@@ -2558,15 +2595,24 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
             stack.add(DynamicTypeImpl.instance);
             break;
           case UnlinkedConstOperation.invokeMethodRef:
-            stack.length -=
-                unlinkedConst.ints[intPtr++] + unlinkedConst.ints[intPtr++];
+            int numNamed = unlinkedConst.ints[intPtr++];
+            int numPositional = unlinkedConst.ints[intPtr++];
+            // TODO(paulberry): don't just pop the args; use their types
+            // to infer the type of type arguments.
+            stack.length -= numNamed + numPositional;
+            strPtr += numNamed;
             refPtr++;
             // TODO(paulberry): implement.
             stack.add(DynamicTypeImpl.instance);
             break;
           case UnlinkedConstOperation.invokeMethod:
-            stack.length -=
-                unlinkedConst.ints[intPtr++] + unlinkedConst.ints[intPtr++];
+            strPtr++;
+            int numNamed = unlinkedConst.ints[intPtr++];
+            int numPositional = unlinkedConst.ints[intPtr++];
+            // TODO(paulberry): don't just pop the args; use their types
+            // to infer the type of type arguments.
+            stack.length -= numNamed + numPositional;
+            strPtr += numNamed;
             stack.removeLast();
             // TODO(paulberry): implement.
             stack.add(DynamicTypeImpl.instance);
@@ -2597,8 +2643,9 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
             throw new UnimplementedError('$operation');
         }
       }
-      assert(refPtr == unlinkedConst.references.length);
       assert(intPtr == unlinkedConst.ints.length);
+      assert(refPtr == unlinkedConst.references.length);
+      assert(strPtr == unlinkedConst.strings.length);
       assert(assignmentOperatorPtr == unlinkedConst.assignmentOperators.length);
       assert(stack.length == 1);
       _inferredType = stack[0];
