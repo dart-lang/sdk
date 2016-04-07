@@ -58,6 +58,7 @@
  *   checks.  E.g. see [ReferenceableElementForLink.asConstructor].
  */
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart' show TokenType;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
@@ -2703,6 +2704,51 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
             ._resolveTypeRef(ref, variableElement._typeParameterContext);
       }
 
+      DartType refineBinaryExpressionType(TokenType operator,
+          DartType currentType, DartType leftType, DartType rightType) {
+        DartType intType = typeProvider.intType;
+        if (leftType == intType) {
+          // int op double
+          if (operator == TokenType.MINUS ||
+              operator == TokenType.PERCENT ||
+              operator == TokenType.PLUS ||
+              operator == TokenType.STAR) {
+            DartType doubleType = typeProvider.doubleType;
+            if (rightType == doubleType) {
+              return doubleType;
+            }
+          }
+          // int op int
+          if (operator == TokenType.MINUS ||
+              operator == TokenType.PERCENT ||
+              operator == TokenType.PLUS ||
+              operator == TokenType.STAR ||
+              operator == TokenType.TILDE_SLASH) {
+            if (rightType == intType) {
+              return intType;
+            }
+          }
+        }
+        // default
+        return currentType;
+      }
+
+      void computeBinaryOperatorType(TokenType operator) {
+        DartType right = stack.removeLast();
+        DartType left = stack.removeLast();
+        if (left is InterfaceType) {
+          MethodElement method =
+              left.lookUpMethod(operator.lexeme, libraryElement);
+          if (method != null) {
+            DartType type = method.returnType;
+            type = refineBinaryExpressionType(operator, type, left, right);
+            stack.add(type);
+            return;
+          }
+        }
+        stack.add(DynamicTypeImpl.instance);
+      }
+
       for (UnlinkedConstOperation operation in unlinkedConst.operations) {
         switch (operation) {
           case UnlinkedConstOperation.pushInt:
@@ -2845,28 +2891,57 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
             // TODO(paulberry): implement.
             stack.add(DynamicTypeImpl.instance);
             break;
-          case UnlinkedConstOperation.equal:
-          case UnlinkedConstOperation.notEqual:
           case UnlinkedConstOperation.and:
           case UnlinkedConstOperation.or:
-          case UnlinkedConstOperation.bitXor:
-          case UnlinkedConstOperation.bitAnd:
-          case UnlinkedConstOperation.bitOr:
-          case UnlinkedConstOperation.bitShiftRight:
-          case UnlinkedConstOperation.bitShiftLeft:
-          case UnlinkedConstOperation.add:
-          case UnlinkedConstOperation.subtract:
-          case UnlinkedConstOperation.multiply:
-          case UnlinkedConstOperation.divide:
-          case UnlinkedConstOperation.floorDivide:
-          case UnlinkedConstOperation.greater:
-          case UnlinkedConstOperation.less:
-          case UnlinkedConstOperation.greaterEqual:
-          case UnlinkedConstOperation.lessEqual:
-          case UnlinkedConstOperation.modulo:
+          case UnlinkedConstOperation.equal:
+          case UnlinkedConstOperation.notEqual:
             stack.length -= 2;
-            // TODO(paulberry): implement.
-            stack.add(DynamicTypeImpl.instance);
+            stack.add(typeProvider.boolType);
+            break;
+          case UnlinkedConstOperation.bitXor:
+            computeBinaryOperatorType(TokenType.CARET);
+            break;
+          case UnlinkedConstOperation.bitAnd:
+            computeBinaryOperatorType(TokenType.AMPERSAND);
+            break;
+          case UnlinkedConstOperation.bitOr:
+            computeBinaryOperatorType(TokenType.BAR);
+            break;
+          case UnlinkedConstOperation.bitShiftRight:
+            computeBinaryOperatorType(TokenType.GT_GT);
+            break;
+          case UnlinkedConstOperation.bitShiftLeft:
+            computeBinaryOperatorType(TokenType.LT_LT);
+            break;
+          case UnlinkedConstOperation.add:
+            computeBinaryOperatorType(TokenType.PLUS);
+            break;
+          case UnlinkedConstOperation.subtract:
+            computeBinaryOperatorType(TokenType.MINUS);
+            break;
+          case UnlinkedConstOperation.multiply:
+            computeBinaryOperatorType(TokenType.STAR);
+            break;
+          case UnlinkedConstOperation.divide:
+            computeBinaryOperatorType(TokenType.SLASH);
+            break;
+          case UnlinkedConstOperation.floorDivide:
+            computeBinaryOperatorType(TokenType.TILDE_SLASH);
+            break;
+          case UnlinkedConstOperation.greater:
+            computeBinaryOperatorType(TokenType.GT);
+            break;
+          case UnlinkedConstOperation.less:
+            computeBinaryOperatorType(TokenType.LT);
+            break;
+          case UnlinkedConstOperation.greaterEqual:
+            computeBinaryOperatorType(TokenType.GT_EQ);
+            break;
+          case UnlinkedConstOperation.lessEqual:
+            computeBinaryOperatorType(TokenType.LT_EQ);
+            break;
+          case UnlinkedConstOperation.modulo:
+            computeBinaryOperatorType(TokenType.PERCENT);
             break;
           case UnlinkedConstOperation.conditional:
             DartType elseType = stack.removeLast();

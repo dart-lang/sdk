@@ -1334,6 +1334,91 @@ var d = (c = 1);
 ''');
   }
 
+  void test_infer_binary_custom() {
+    checkFile(r'''
+class A {
+  A();
+  int operator +(other) => 1;
+  double operator -(other) => 2.0;
+}
+var v_add = new A() + 'foo';
+var v_minus = new A() - 'bar';
+''');
+  }
+
+  void test_infer_binary_doubleDouble() {
+    checkFile(r'''
+var a_equal = 1.0 == 2.0;
+var a_notEqual = 1.0 != 2.0;
+var a_add = 1.0 + 2.0;
+var a_subtract = 1.0 - 2.0;
+var a_multiply = 1.0 * 2.0;
+var a_divide = 1.0 / 2.0;
+var a_flootDivide = 1.0 ~/ 2.0;
+var a_greater = 1.0 > 2.0;
+var a_less = 1.0 < 2.0;
+var a_greaterEqual = 1.0 >= 2.0;
+var a_lessEqual = 1.0 <= 2.0;
+var a_modulo = 1.0 % 2.0;
+''');
+  }
+
+  void test_infer_binary_doubleInt() {
+    checkFile(r'''
+var a_equal = 1.0 == 2;
+var a_notEqual = 1.0 != 2;
+var a_add = 1.0 + 2;
+var a_subtract = 1.0 - 2;
+var a_multiply = 1.0 * 2;
+var a_divide = 1.0 / 2;
+var a_flootDivide = 1.0 ~/ 2;
+var a_greater = 1.0 > 2;
+var a_less = 1.0 < 2;
+var a_greaterEqual = 1.0 >= 2;
+var a_lessEqual = 1.0 <= 2;
+var a_modulo = 1.0 % 2;
+''');
+  }
+
+  void test_infer_binary_intDouble() {
+    checkFile(r'''
+var a_equal = 1 == 2.0;
+var a_notEqual = 1 != 2.0;
+var a_add = 1 + 2.0;
+var a_subtract = 1 - 2.0;
+var a_multiply = 1 * 2.0;
+var a_divide = 1 / 2.0;
+var a_flootDivide = 1 ~/ 2.0;
+var a_greater = 1 > 2.0;
+var a_less = 1 < 2.0;
+var a_greaterEqual = 1 >= 2.0;
+var a_lessEqual = 1 <= 2.0;
+var a_modulo = 1 % 2.0;
+''');
+  }
+
+  void test_infer_binary_intInt() {
+    checkFile(r'''
+var a_equal = 1 == 2;
+var a_notEqual = 1 != 2;
+var a_bitXor = 1 ^ 2;
+var a_bitAnd = 1 & 2;
+var a_bitOr = 1 | 2;
+var a_bitShiftRight = 1 >> 2;
+var a_bitShiftLeft = 1 << 2;
+var a_add = 1 + 2;
+var a_subtract = 1 - 2;
+var a_multiply = 1 * 2;
+var a_divide = 1 / 2;
+var a_flootDivide = 1 ~/ 2;
+var a_greater = 1 > 2;
+var a_less = 1 < 2;
+var a_greaterEqual = 1 >= 2;
+var a_lessEqual = 1 <= 2;
+var a_modulo = 1 % 2;
+''');
+  }
+
   void test_infer_conditional() {
     checkFile(r'''
 var a = 1 == 2 ? 1 : 2.0;
