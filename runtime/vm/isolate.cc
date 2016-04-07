@@ -1784,6 +1784,10 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
     Error& error = Error::Handle(Thread::Current()->sticky_error());
     ASSERT(!error.IsNull());
     jsobj.AddProperty("error", error, false);
+  } else if (sticky_error() != Object::null()) {
+    Error& error = Error::Handle(sticky_error());
+    ASSERT(!error.IsNull());
+    jsobj.AddProperty("error", error, false);
   }
 
   {
