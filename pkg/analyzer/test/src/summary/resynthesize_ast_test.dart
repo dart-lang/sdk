@@ -526,7 +526,6 @@ abstract class _AstResynthesizeTestMixin {
     LinkedLibrary getDependency(String absoluteUri) {
       Map<String, LinkedLibrary> sdkLibraries =
           SerializedMockSdk.instance.uriToLinkedLibrary;
-      // TODO(scheglov) Add support non-SDK linked libraries.
       LinkedLibrary linkedLibrary = sdkLibraries[absoluteUri];
       if (linkedLibrary == null) {
         fail('Linker unexpectedly requested LinkedLibrary for "$absoluteUri".'
@@ -534,6 +533,7 @@ abstract class _AstResynthesizeTestMixin {
       }
       return linkedLibrary;
     }
+
     UnlinkedUnit getUnit(String absoluteUri) {
       UnlinkedUnit unit = uriToUnit[absoluteUri] ??
           SerializedMockSdk.instance.uriToUnlinkedUnit[absoluteUri];
@@ -542,15 +542,38 @@ abstract class _AstResynthesizeTestMixin {
       }
       return unit;
     }
-    Map<String, LinkedLibrary> linkedSummaries = link(uriToUnit.keys.toSet(),
+
+    Set<String> nonSdkLibraryUris = context.sources
+        .where((Source source) =>
+            !source.isInSystemLibrary &&
+            context.computeKindOf(source) == SourceKind.LIBRARY)
+        .map((Source source) => source.uri.toString())
+        .toSet();
+
+    Map<String, LinkedLibrary> linkedSummaries = link(nonSdkLibraryUris,
         getDependency, getUnit, context.analysisOptions.strongMode);
 
     return new TestSummaryResynthesizer(
-        null, context, unlinkedSummaries, linkedSummaries);
+        null,
+        context,
+        new Map<String, UnlinkedUnit>()
+          ..addAll(SerializedMockSdk.instance.uriToUnlinkedUnit)
+          ..addAll(unlinkedSummaries),
+        new Map<String, LinkedLibrary>()
+          ..addAll(SerializedMockSdk.instance.uriToLinkedLibrary)
+          ..addAll(linkedSummaries));
   }
 
-  UnlinkedUnitBuilder _getUnlinkedUnit(Source source) {
-    return uriToUnit.putIfAbsent(source.uri.toString(), () {
+  UnlinkedUnit _getUnlinkedUnit(Source source) {
+    String uriStr = source.uri.toString();
+    {
+      UnlinkedUnit unlinkedUnitInSdk =
+          SerializedMockSdk.instance.uriToUnlinkedUnit[uriStr];
+      if (unlinkedUnitInSdk != null) {
+        return unlinkedUnitInSdk;
+      }
+    }
+    return uriToUnit.putIfAbsent(uriStr, () {
       CompilationUnit unit = context.computeResult(source, PARSED_UNIT);
       UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
       bundleAssembler.addUnlinkedUnit(source, unlinkedUnit);
@@ -559,6 +582,9 @@ abstract class _AstResynthesizeTestMixin {
   }
 
   void _serializeLibrary(Source librarySource) {
+    if (librarySource.isInSystemLibrary) {
+      return;
+    }
     if (!serializedSources.add(librarySource)) {
       return;
     }
@@ -573,7 +599,7 @@ abstract class _AstResynthesizeTestMixin {
       return resolvedSource;
     }
 
-    UnlinkedUnitBuilder getPart(String relativeUri) {
+    UnlinkedUnit getPart(String relativeUri) {
       return _getUnlinkedUnit(resolveRelativeUri(relativeUri));
     }
 
@@ -581,7 +607,7 @@ abstract class _AstResynthesizeTestMixin {
       return getPart(relativeUri).publicNamespace;
     }
 
-    UnlinkedUnitBuilder definingUnit = _getUnlinkedUnit(librarySource);
+    UnlinkedUnit definingUnit = _getUnlinkedUnit(librarySource);
     LinkedLibraryBuilder linkedLibrary =
         prelink(definingUnit, getPart, getImport);
     linkedLibrary.dependencies.skip(1).forEach((LinkedDependency d) {

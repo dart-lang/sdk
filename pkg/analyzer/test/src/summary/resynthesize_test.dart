@@ -61,8 +61,10 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     otherLibrarySources.add(context.sourceFactory.forUri(uri));
   }
 
-  void addLibrarySource(String filePath, String contents) {
-    otherLibrarySources.add(addSource(filePath, contents));
+  Source addLibrarySource(String filePath, String contents) {
+    Source source = addSource(filePath, contents);
+    otherLibrarySources.add(source);
+    return source;
   }
 
   void assertNoErrors(Source source) {
@@ -3028,8 +3030,9 @@ class C<T, U> {
 
   test_getElement_constructor_named() {
     String text = 'class C { C.named(); }';
+    Source source = addLibrarySource('/test.dart', text);
     ConstructorElement original = context
-        .computeLibraryElement(addTestSource(text))
+        .computeLibraryElement(source)
         .getType('C')
         .getNamedConstructor('named');
     expect(original, isNotNull);
@@ -3039,10 +3042,9 @@ class C<T, U> {
 
   test_getElement_constructor_unnamed() {
     String text = 'class C { C(); }';
-    ConstructorElement original = context
-        .computeLibraryElement(addTestSource(text))
-        .getType('C')
-        .unnamedConstructor;
+    Source source = addLibrarySource('/test.dart', text);
+    ConstructorElement original =
+        context.computeLibraryElement(source).getType('C').unnamedConstructor;
     expect(original, isNotNull);
     ConstructorElement resynthesized = validateGetElement(text, original);
     compareConstructorElements(resynthesized, original, 'C.constructor');
@@ -3050,10 +3052,9 @@ class C<T, U> {
 
   test_getElement_field() {
     String text = 'class C { var f; }';
-    FieldElement original = context
-        .computeLibraryElement(addTestSource(text))
-        .getType('C')
-        .getField('f');
+    Source source = addLibrarySource('/test.dart', text);
+    FieldElement original =
+        context.computeLibraryElement(source).getType('C').getField('f');
     expect(original, isNotNull);
     FieldElement resynthesized = validateGetElement(text, original);
     compareFieldElements(resynthesized, original, 'C.field f');
@@ -3061,10 +3062,9 @@ class C<T, U> {
 
   test_getElement_getter() {
     String text = 'class C { get f => null; }';
-    PropertyAccessorElement original = context
-        .computeLibraryElement(addTestSource(text))
-        .getType('C')
-        .getGetter('f');
+    Source source = addLibrarySource('/test.dart', text);
+    PropertyAccessorElement original =
+        context.computeLibraryElement(source).getType('C').getGetter('f');
     expect(original, isNotNull);
     PropertyAccessorElement resynthesized = validateGetElement(text, original);
     comparePropertyAccessorElements(resynthesized, original, 'C.getter f');
@@ -3072,10 +3072,9 @@ class C<T, U> {
 
   test_getElement_method() {
     String text = 'class C { f() {} }';
-    MethodElement original = context
-        .computeLibraryElement(addTestSource(text))
-        .getType('C')
-        .getMethod('f');
+    Source source = addLibrarySource('/test.dart', text);
+    MethodElement original =
+        context.computeLibraryElement(source).getType('C').getMethod('f');
     expect(original, isNotNull);
     MethodElement resynthesized = validateGetElement(text, original);
     compareMethodElements(resynthesized, original, 'C.method f');
@@ -3083,10 +3082,9 @@ class C<T, U> {
 
   test_getElement_operator() {
     String text = 'class C { operator+(x) => null; }';
-    MethodElement original = context
-        .computeLibraryElement(addTestSource(text))
-        .getType('C')
-        .getMethod('+');
+    Source source = addLibrarySource('/test.dart', text);
+    MethodElement original =
+        context.computeLibraryElement(source).getType('C').getMethod('+');
     expect(original, isNotNull);
     MethodElement resynthesized = validateGetElement(text, original);
     compareMethodElements(resynthesized, original, 'C.operator+');
@@ -3094,10 +3092,9 @@ class C<T, U> {
 
   test_getElement_setter() {
     String text = 'class C { void set f(value) {} }';
-    PropertyAccessorElement original = context
-        .computeLibraryElement(addTestSource(text))
-        .getType('C')
-        .getSetter('f');
+    Source source = addLibrarySource('/test.dart', text);
+    PropertyAccessorElement original =
+        context.computeLibraryElement(source).getType('C').getSetter('f');
     expect(original, isNotNull);
     PropertyAccessorElement resynthesized = validateGetElement(text, original);
     comparePropertyAccessorElements(resynthesized, original, 'C.setter f');
@@ -3105,7 +3102,7 @@ class C<T, U> {
 
   test_getElement_unit() {
     String text = 'class C { f() {} }';
-    Source source = addTestSource(text);
+    Source source = addLibrarySource('/test.dart', text);
     CompilationUnitElement original =
         context.computeLibraryElement(source).definingCompilationUnit;
     expect(original, isNotNull);
