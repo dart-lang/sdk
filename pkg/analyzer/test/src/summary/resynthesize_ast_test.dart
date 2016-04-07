@@ -227,6 +227,12 @@ var d = foo.bar;
   ''');
   }
 
+  void test_infer_extractProperty_method() {
+    checkFile(r'''
+var a = 1.round;
+  ''');
+  }
+
   @override
   @failingTest
   void test_inferConstsTransitively() {

@@ -1305,6 +1305,35 @@ main() {
 ''');
   }
 
+  void test_infer_assignToIndex() {
+    checkFile(r'''
+List<double> a = <double>[];
+var b = (a[0] = 1.0);
+''');
+  }
+
+  void test_infer_assignToProperty() {
+    checkFile(r'''
+class A {
+  int f;
+}
+A a = new A();
+var b = (new A().f = 1);
+''');
+  }
+
+  void test_infer_assignToRef() {
+    checkFile(r'''
+class A {
+  int f;
+}
+A a = new A();
+var b = (a.f = 1);
+var c = 0;
+var d = (c = 1);
+''');
+  }
+
   void test_infer_conditional() {
     checkFile(r'''
 var a = 1 == 2 ? 1 : 2.0;

@@ -195,6 +195,16 @@ EntityRefBuilder _createLinkedType(
       }
       return result;
     }
+    if (element is MethodElementForLink) {
+      result.reference = compilationUnit.addReference(element);
+      if (type.typeArguments.isNotEmpty) {
+        result.typeArguments = type.typeArguments
+            .map((DartType t) =>
+                _createLinkedType(t, compilationUnit, typeParameterContext))
+            .toList();
+      }
+      return result;
+    }
     // TODO(paulberry): implement other cases.
     throw new UnimplementedError('${element.runtimeType}');
   }
@@ -2676,6 +2686,11 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
                 if (getter != null) {
                   return getter.returnType;
                 }
+                MethodElement method =
+                    target.lookUpMethod(propertyName, libraryElement);
+                if (method != null) {
+                  return method.type;
+                }
               }
               return DynamicTypeImpl.instance;
             }());
@@ -2780,32 +2795,53 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
             stack.add(type);
             break;
           case UnlinkedConstOperation.assignToRef:
-            if (!isIncrementOrDecrement(
-                unlinkedConst.assignmentOperators[assignmentOperatorPtr++])) {
-              stack.removeLast();
-            }
             refPtr++;
-            // TODO(paulberry): implement.
-            stack.add(DynamicTypeImpl.instance);
+            UnlinkedExprAssignOperator operator =
+                unlinkedConst.assignmentOperators[assignmentOperatorPtr++];
+            if (operator == UnlinkedExprAssignOperator.assign) {
+              // The type of the assignment is the type of the value,
+              // which is already in the stack.
+            } else if (isIncrementOrDecrement(operator)) {
+              // TODO(scheglov) implement
+              stack.add(DynamicTypeImpl.instance);
+            } else {
+              stack.removeLast();
+              // TODO(scheglov) implement
+              stack.add(DynamicTypeImpl.instance);
+            }
             break;
           case UnlinkedConstOperation.assignToProperty:
             strPtr++;
             stack.removeLast();
-            if (!isIncrementOrDecrement(
-                unlinkedConst.assignmentOperators[assignmentOperatorPtr++])) {
+            UnlinkedExprAssignOperator operator =
+                unlinkedConst.assignmentOperators[assignmentOperatorPtr++];
+            if (operator == UnlinkedExprAssignOperator.assign) {
+              // The type of the assignment is the type of the value,
+              // which is already in the stack.
+            } else if (isIncrementOrDecrement(operator)) {
+              // TODO(scheglov) implement
+              stack.add(DynamicTypeImpl.instance);
+            } else {
               stack.removeLast();
+              // TODO(scheglov) implement
+              stack.add(DynamicTypeImpl.instance);
             }
-            // TODO(paulberry): implement.
-            stack.add(DynamicTypeImpl.instance);
             break;
           case UnlinkedConstOperation.assignToIndex:
             stack.length -= 2;
-            if (!isIncrementOrDecrement(
-                unlinkedConst.assignmentOperators[assignmentOperatorPtr++])) {
+            UnlinkedExprAssignOperator operator =
+                unlinkedConst.assignmentOperators[assignmentOperatorPtr++];
+            if (operator == UnlinkedExprAssignOperator.assign) {
+              // The type of the assignment is the type of the value,
+              // which is already in the stack.
+            } else if (isIncrementOrDecrement(operator)) {
+              // TODO(scheglov) implement
+              stack.add(DynamicTypeImpl.instance);
+            } else {
               stack.removeLast();
+              // TODO(scheglov) implement
+              stack.add(DynamicTypeImpl.instance);
             }
-            // TODO(paulberry): implement.
-            stack.add(DynamicTypeImpl.instance);
             break;
           case UnlinkedConstOperation.extractIndex:
             stack.length -= 2;
