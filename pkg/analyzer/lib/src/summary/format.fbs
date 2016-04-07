@@ -978,6 +978,12 @@ table LinkedLibrary {
   dependencies:[LinkedDependency] (id: 0);
 
   /**
+   * For each export in [UnlinkedUnit.exports], an index into [dependencies]
+   * of the library being exported.
+   */
+  exportDependencies:[uint] (id: 6);
+
+  /**
    * Information about entities in the export namespace of the library that are
    * not in the public namespace of the library (that is, entities that are
    * brought into the namespace via `export` directives).

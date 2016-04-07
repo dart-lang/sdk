@@ -1802,14 +1802,8 @@ abstract class LibraryElementForLink<
   Element get enclosingElement => null;
 
   @override
-  List<LibraryElementForLink> get exportedLibraries {
-    // TODO(paulberry): add an exportDependencies list to LinkedLibrary so that
-    // we don't have to duplicate work already done by the prelinker.
-    return _exportedLibraries ??= definingUnlinkedUnit.publicNamespace.exports
-        .map((UnlinkedExportPublic exp) => _linker
-            .getLibrary(resolveRelativeUri(_absoluteUri, Uri.parse(exp.uri))))
-        .toList();
-  }
+  List<LibraryElementForLink> get exportedLibraries => _exportedLibraries ??=
+      _linkedLibrary.exportDependencies.map(_getDependency).toList();
 
   @override
   List<LibraryElementForLink> get importedLibraries => _importedLibraries ??=

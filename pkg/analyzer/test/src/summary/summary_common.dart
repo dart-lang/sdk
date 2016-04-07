@@ -26,6 +26,14 @@ import 'package:unittest/unittest.dart';
 import '../context/mock_sdk.dart';
 
 /**
+ * Convert [path] to a suitably formatted absolute path URI for the current
+ * platform.
+ */
+String absUri(String path) {
+  return FileUtilities2.createFile(path).toURI().toString();
+}
+
+/**
  * Convert a summary object (or a portion of one) into a canonical form that
  * can be easily compared using [expect].  If [orderByName] is true, and the
  * object is a [List], it is sorted by the `name` field of its elements.
@@ -125,14 +133,6 @@ class SerializedMockSdk {
       return null;
     }
   }
-}
-
-/**
- * Convert [path] to a suitably formatted absolute path URI for the current
- * platform.
- */
-String absUri(String path) {
-  return FileUtilities2.createFile(path).toURI().toString();
 }
 
 /**
@@ -5691,6 +5691,12 @@ f(MyFunction myFunction) {}
     expect(linked.exportNames, hasLength(1));
     checkExportName(linked.exportNames[0], absUri('/a.dart'), 'a.dart', 'C',
         ReferenceKind.classOrEnum);
+  }
+
+  test_export_dependency() {
+    serializeLibraryText('export "dart:async";');
+    expect(unlinkedUnits[0].exports, hasLength(1));
+    checkDependency(linked.exportDependencies[0], 'dart:async', 'dart:async');
   }
 
   test_export_enum() {

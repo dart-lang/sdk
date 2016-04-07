@@ -120,6 +120,7 @@ class SummarizeElementsTest extends AbstractSingleUnitTest with SummaryTest {
     }
     serializeLibraryElement(library);
     expect(unlinkedUnits[0].imports.length, linked.importDependencies.length);
+    expect(unlinkedUnits[0].exports.length, linked.exportDependencies.length);
     expect(linked.units.length, unlinkedUnits.length);
     for (int i = 0; i < linked.units.length; i++) {
       expect(unlinkedUnits[i].references.length,

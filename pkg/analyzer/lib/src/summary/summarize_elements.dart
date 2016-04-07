@@ -454,7 +454,6 @@ class _CompilationUnitSerializer {
    * parameter [type], or return `null` if the type parameter is not in scope.
    */
   int findTypeParameterIndex(TypeParameterType type, Element context) {
-    Element originalContext = context;
     int index = 0;
     while (context != null) {
       List<TypeParameterElement> typeParameters;
@@ -1489,6 +1488,12 @@ class _LibrarySerializer {
   final List<int> linkedImports = <int>[];
 
   /**
+   * The linked portion of the "exports table".  This is the list of ints
+   * which should be written to [LinkedLibrary.exports].
+   */
+  final List<int> linkedExports = <int>[];
+
+  /**
    * Set of libraries which have been seen so far while visiting the transitive
    * closure of exports.
    */
@@ -1595,6 +1600,7 @@ class _LibrarySerializer {
     LinkedLibraryBuilder pb = new LinkedLibraryBuilder();
     for (ExportElement exportElement in libraryElement.exports) {
       addTransitiveExportClosure(exportElement.exportedLibrary);
+      linkedExports.add(serializeDependency(exportElement.exportedLibrary));
     }
     for (ImportElement importElement in libraryElement.imports) {
       addTransitiveExportClosure(importElement.importedLibrary);
@@ -1620,6 +1626,7 @@ class _LibrarySerializer {
       compilationUnitSerializer.createLinkedInfo();
     }
     pb.importDependencies = linkedImports;
+    pb.exportDependencies = linkedExports;
     List<String> exportedNames =
         libraryElement.exportNamespace.definedNames.keys.toList();
     exportedNames.sort();
