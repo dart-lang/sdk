@@ -334,6 +334,11 @@ abstract class Compiler implements LibraryLoaderListener {
       }
     }
 
+    if (options.dumpInfo && options.useStartupEmitter) {
+      throw new ArgumentError(
+          '--dump-info is not supported with the fast startup emitter');
+    }
+
     tasks = [
       dietParser = new DietParserTask(this, parsing.parserOptions),
       scanner = createScannerTask(),
