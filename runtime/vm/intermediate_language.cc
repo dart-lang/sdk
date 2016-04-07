@@ -91,10 +91,12 @@ const ICData* Instruction::GetICData(
   if (deopt_id_ < ic_data_array.length()) {
     const ICData* result = ic_data_array[deopt_id_];
 #if defined(TAG_IC_DATA)
-    if (result->tag() == -1) {
-      result->set_tag(tag());
-    } else if (result->tag() != tag()) {
-      FATAL("ICData tag mismatch");
+    if (result != NULL) {
+      if (result->tag() == -1) {
+        result->set_tag(tag());
+      } else if (result->tag() != tag()) {
+        FATAL("ICData tag mismatch");
+      }
     }
 #endif
     return result;

@@ -1564,7 +1564,8 @@ class QueueElement {
     ASSERT(Thread::Current()->IsMutatorThread());
   }
 
-  ~QueueElement() {
+  virtual ~QueueElement() {
+    next_ = NULL;
     function_ = Function::null();
   }
 
@@ -1592,7 +1593,7 @@ class QueueElement {
 class BackgroundCompilationQueue {
  public:
   BackgroundCompilationQueue() : first_(NULL), last_(NULL) {}
-  ~BackgroundCompilationQueue() {
+  virtual ~BackgroundCompilationQueue() {
     while (!IsEmpty()) {
       QueueElement* e = Remove();
       delete e;
@@ -1613,14 +1614,16 @@ class BackgroundCompilationQueue {
 
   void Add(QueueElement* value) {
     ASSERT(value != NULL);
+    ASSERT(value->next() == NULL);
     if (first_ == NULL) {
       first_ = value;
+      ASSERT(last_ == NULL);
     } else {
       ASSERT(last_ != NULL);
       last_->set_next(value);
     }
-    value->set_next(NULL);
     last_ = value;
+    ASSERT(first_ != NULL && last_ != NULL);
   }
 
   QueueElement* Peek() const {
@@ -1673,6 +1676,17 @@ BackgroundCompiler::BackgroundCompiler(Isolate* isolate)
 }
 
 
+// Fields all deleted in ::Stop; here clear them.
+BackgroundCompiler::~BackgroundCompiler() {
+  isolate_ = NULL;
+  running_ = false;
+  done_ = NULL;
+  queue_monitor_ = NULL;
+  done_monitor_ = NULL;
+  function_queue_ = NULL;
+}
+
+
 void BackgroundCompiler::Run() {
   while (running_) {
     // Maybe something is already in the queue, check first before waiting
@@ -1685,7 +1699,9 @@ void BackgroundCompiler::Run() {
       Zone* zone = stack_zone.GetZone();
       HANDLESCOPE(thread);
       Function& function = Function::Handle(zone);
-      function = function_queue()->PeekFunction();
+      { MonitorLocker ml(queue_monitor_);
+        function = function_queue()->PeekFunction();
+      }
       while (running_ && !function.IsNull()) {
         // Check that we have aggregated and cleared the stats.
         ASSERT(thread->compiler_stats()->IsCleared());
@@ -1706,9 +1722,13 @@ void BackgroundCompiler::Run() {
         }
         thread->compiler_stats()->Clear();
 #endif  // PRODUCT
-        QueueElement* qelem = function_queue()->Remove();
+
+        QueueElement* qelem = NULL;
+        { MonitorLocker ml(queue_monitor_);
+          qelem = function_queue()->Remove();
+          function = function_queue()->PeekFunction();
+        }
         delete qelem;
-        function = function_queue()->PeekFunction();
       }
     }
     Thread::ExitIsolateAsHelper();

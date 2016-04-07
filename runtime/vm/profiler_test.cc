@@ -2365,6 +2365,8 @@ TEST_CASE(Profiler_GetSourceReport) {
   // Disable profiling for this thread.
   DisableThreadInterruptsScope dtis(Thread::Current());
 
+  DisableBackgroundCompilationScope dbcs;
+
   SampleBuffer* sample_buffer = Profiler::sample_buffer();
   EXPECT(sample_buffer != NULL);
 

@@ -156,6 +156,8 @@ class Compiler : public AllStatic {
 // No OSR compilation in the background compiler.
 class BackgroundCompiler : public ThreadPool::Task {
  public:
+  virtual ~BackgroundCompiler();
+
   static void EnsureInit(Thread* thread);
 
   static void Stop(BackgroundCompiler* task);
