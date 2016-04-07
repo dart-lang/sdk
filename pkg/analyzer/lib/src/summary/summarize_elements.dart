@@ -20,6 +20,7 @@ import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/name_filter.dart';
 import 'package:analyzer/src/summary/summarize_const_expr.dart';
 import 'package:crypto/crypto.dart';
+import 'package:path/path.dart' as path;
 
 /**
  * Serialize all the elements in [lib] to a summary using [ctx] as the context
@@ -156,8 +157,8 @@ class PackageBundleAssembler {
   void addFallbackUnit(Source source) {
     String uri = source.uri.toString();
     _unlinkedUnitUris.add(uri);
-    _unlinkedUnits
-        .add(new UnlinkedUnitBuilder(fallbackModePath: source.fullName));
+    _unlinkedUnits.add(new UnlinkedUnitBuilder(
+        fallbackModePath: path.relative(source.fullName)));
   }
 
   void addLinkedLibrary(String uri, LinkedLibraryBuilder library) {
