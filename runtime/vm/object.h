@@ -3094,9 +3094,7 @@ class Field : public Object {
     set_kind_bits(UnboxingCandidateBit::update(b, raw_ptr()->kind_bits_));
   }
 
-  static bool IsExternalizableCid(intptr_t cid) {
-    return (cid == kOneByteStringCid) || (cid == kTwoByteStringCid);
-  }
+  static bool IsExternalizableCid(intptr_t cid);
 
   enum {
     kUnknownLengthOffset = -1,

@@ -63,6 +63,7 @@ DECLARE_FLAG(bool, compiler_stats);
 DECLARE_FLAG(int, max_deoptimization_counter_threshold);
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
+DECLARE_FLAG(bool, support_externalizable_strings);
 DECLARE_FLAG(bool, verify_compiler);
 
 // Quick access to the current zone.
@@ -590,6 +591,7 @@ class CallSiteInliner : public ValueObject {
         inlined_recursive_call_ = false;
       }
     }
+
     collected_call_sites_ = NULL;
     inlining_call_sites_ = NULL;
   }
@@ -2782,6 +2784,7 @@ static Definition* PrepareInlineStringIndexOp(
       Type::ZoneHandle(Z, Type::SmiType()),
       str->token_pos());
   length->set_result_cid(kSmiCid);
+  length->set_is_immutable(!FLAG_support_externalizable_strings);
   length->set_recognized_kind(MethodRecognizer::kStringBaseLength);
 
   cursor = flow_graph->AppendTo(cursor, length, NULL, FlowGraph::kValue);

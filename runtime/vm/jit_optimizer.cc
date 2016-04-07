@@ -96,6 +96,7 @@ bool JitOptimizer::TryCreateICData(InstanceCallInstr* call) {
     // to megamorphic call.
     return false;
   }
+
   GrowableArray<intptr_t> class_ids(call->ic_data()->NumArgsTested());
   ASSERT(call->ic_data()->NumArgsTested() <= call->ArgumentCount());
   for (intptr_t i = 0; i < call->ic_data()->NumArgsTested(); i++) {

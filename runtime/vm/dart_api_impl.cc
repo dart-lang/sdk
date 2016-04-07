@@ -59,6 +59,9 @@ DEFINE_FLAG(bool, check_function_fingerprints, true,
 #endif  // defined(DART_NO_SNAPSHOT).
 DEFINE_FLAG(bool, verify_acquired_data, false,
             "Verify correct API acquire/release of typed data.");
+DEFINE_FLAG(bool, support_externalizable_strings, true,
+            "Support Dart_MakeExternalString.");
+
 
 ThreadLocalKey Api::api_native_key_ = kUnsetThreadLocalKey;
 Dart_Handle Api::true_handle_ = NULL;
@@ -2519,6 +2522,10 @@ DART_EXPORT Dart_Handle Dart_MakeExternalString(Dart_Handle str,
                                                 void* peer,
                                                 Dart_PeerFinalizer cback) {
   DARTSCOPE(Thread::Current());
+  if (!FLAG_support_externalizable_strings) {
+    return Api::NewError("Dart_MakeExternalString with "
+                         "--support_externalizable_strings=false");
+  }
   const String& str_obj = Api::UnwrapStringHandle(Z, str);
   if (str_obj.IsExternal()) {
     return str;  // String is already an external string.

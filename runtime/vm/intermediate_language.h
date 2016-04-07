@@ -7815,8 +7815,6 @@ class CheckClassInstr : public TemplateInstruction<1, NoThrow> {
 
   void set_licm_hoisted(bool value) { licm_hoisted_ = value; }
 
-  static bool IsImmutableClassId(intptr_t cid);
-
   PRINT_OPERANDS_TO_SUPPORT
 
  private:

@@ -36,6 +36,7 @@ DEFINE_FLAG(bool, two_args_smi_icd, true,
 DEFINE_FLAG(bool, unbox_numeric_fields, true,
     "Support unboxed double and float32x4 fields.");
 DECLARE_FLAG(bool, eliminate_type_checks);
+DECLARE_FLAG(bool, support_externalizable_strings);
 
 
 #if defined(DEBUG)
@@ -179,22 +180,11 @@ bool CheckClassInstr::AttributesEqual(Instruction* other) const {
 }
 
 
-bool CheckClassInstr::IsImmutableClassId(intptr_t cid) {
-  switch (cid) {
-    case kOneByteStringCid:
-    case kTwoByteStringCid:
-      return false;
-    default:
-      return true;
-  }
-}
-
-
 static bool AreAllChecksImmutable(const ICData& checks) {
   const intptr_t len = checks.NumberOfChecks();
   for (intptr_t i = 0; i < len; i++) {
     if (checks.IsUsedAt(i)) {
-      if (!CheckClassInstr::IsImmutableClassId(
+      if (Field::IsExternalizableCid(
               checks.GetReceiverClassIdAt(i))) {
         return false;
       }
@@ -213,7 +203,7 @@ EffectSet CheckClassInstr::Dependencies() const {
 
 EffectSet CheckClassIdInstr::Dependencies() const {
   // Externalization of strings via the API can change the class-id.
-  return !CheckClassInstr::IsImmutableClassId(cid_) ?
+  return Field::IsExternalizableCid(cid_) ?
       EffectSet::Externalization() : EffectSet::None();
 }
 

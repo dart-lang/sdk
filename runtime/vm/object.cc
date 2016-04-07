@@ -65,6 +65,7 @@ DECLARE_FLAG(bool, show_invisible_frames);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
 DECLARE_FLAG(bool, write_protect_code);
+DECLARE_FLAG(bool, support_externalizable_strings);
 
 
 static const char* const kGetterPrefix = "get:";
@@ -7827,6 +7828,15 @@ const char* Field::GuardedPropertiesAsCString() const {
   return Thread::Current()->zone()->PrintToString("<%s %s>",
     is_nullable() ? "nullable" : "not-nullable",
     class_name);
+}
+
+
+bool Field::IsExternalizableCid(intptr_t cid) {
+  if (FLAG_support_externalizable_strings) {
+    return (cid == kOneByteStringCid) || (cid == kTwoByteStringCid);
+  } else {
+    return false;
+  }
 }
 
 
@@ -19672,6 +19682,7 @@ RawString* String::MakeExternal(void* array,
                                 intptr_t length,
                                 void* peer,
                                 Dart_PeerFinalizer cback) const {
+  ASSERT(FLAG_support_externalizable_strings);
   String& result = String::Handle();
   void* external_data;
   Dart_WeakPersistentHandleFinalizer finalizer;

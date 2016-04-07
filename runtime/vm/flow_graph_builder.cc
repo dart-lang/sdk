@@ -40,6 +40,7 @@ DEFINE_FLAG(bool, trace_type_check_elimination, false,
             "Trace type check elimination at compile time.");
 
 DECLARE_FLAG(bool, profile_vm);
+DECLARE_FLAG(bool, support_externalizable_strings);
 
 // Quick access to the locally defined zone() method.
 #define Z (zone())
@@ -3468,6 +3469,7 @@ void EffectGraphVisitor::VisitNativeBodyNode(NativeBodyNode* node) {
         LoadFieldInstr* load = BuildNativeGetter(
             node, MethodRecognizer::kStringBaseLength, String::length_offset(),
             Type::ZoneHandle(Z, Type::SmiType()), kSmiCid);
+        load->set_is_immutable(!FLAG_support_externalizable_strings);
         if (kind == MethodRecognizer::kStringBaseLength) {
           return ReturnDefinition(load);
         }
