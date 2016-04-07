@@ -57,7 +57,6 @@
  * - Where possible, we favor method dispatch instead of "is" and "as"
  *   checks.  E.g. see [ReferenceableElementForLink.asConstructor].
  */
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -477,12 +476,12 @@ class ClassElementForLink_Class extends ClassElementForLink
    * Convert [typeRef] into an [InterfaceType].
    */
   InterfaceType _computeInterfaceType(EntityRef typeRef) {
-    if (_unlinkedClass.supertype != null) {
-      DartType supertype = enclosingElement._resolveTypeRef(typeRef, this);
-      if (supertype is InterfaceType) {
-        return supertype;
+    if (typeRef != null) {
+      DartType type = enclosingElement._resolveTypeRef(typeRef, this);
+      if (type is InterfaceType) {
+        return type;
       }
-      // In the event that the supertype isn't an interface type (which may
+      // In the event that the `typeRef` isn't an interface type (which may
       // happen in the event of erroneous code) just fall through and pretend
       // the supertype is `Object`.
     }
@@ -2337,12 +2336,8 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
     return dependencies;
   }
 
-  @override
   void evaluate(bool inCycle) {
     if (inCycle) {
-      _inferredType = DynamicTypeImpl.instance;
-    } else if (!variableElement.unlinkedVariable.constExpr.isValidConst) {
-      // TODO(paulberry): delete this case and fix errors.
       _inferredType = DynamicTypeImpl.instance;
     } else {
       // Perform RPN evaluation of the cycle, using a stack of
@@ -2352,8 +2347,27 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
       int intPtr = 0;
       int assignmentOperatorPtr = 0;
       UnlinkedConst unlinkedConst = variableElement.unlinkedVariable.constExpr;
-      TypeProvider typeProvider =
-          variableElement.compilationUnit.enclosingElement._linker.typeProvider;
+
+      _Linker linker = variableElement.compilationUnit.enclosingElement._linker;
+      TypeProvider typeProvider = linker.typeProvider;
+
+      DartType leastUpperBound(DartType s, DartType t) {
+        return linker.typeSystem.getLeastUpperBound(typeProvider, s, t);
+      }
+
+      List<DartType> popList(int n) {
+        List<DartType> result = stack.sublist(stack.length - n, stack.length);
+        stack.length -= n;
+        return result;
+      }
+
+      DartType dynamicIfNull(DartType type) {
+        if (type == null || type.isBottom) {
+          return DynamicTypeImpl.instance;
+        }
+        return type;
+      }
+
       for (UnlinkedConstOperation operation in unlinkedConst.operations) {
         switch (operation) {
           case UnlinkedConstOperation.pushInt:
@@ -2434,14 +2448,30 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
             }
             break;
           case UnlinkedConstOperation.makeUntypedList:
-            stack.length -= unlinkedConst.ints[intPtr++];
-            // TODO(paulberry): implement.
-            stack.add(DynamicTypeImpl.instance);
+            int numItems = unlinkedConst.ints[intPtr++];
+            DartType itemType = popList(numItems).reduce(leastUpperBound);
+            itemType = dynamicIfNull(itemType);
+            stack.add(typeProvider.listType.instantiate(<DartType>[itemType]));
             break;
           case UnlinkedConstOperation.makeUntypedMap:
-            stack.length -= 2 * unlinkedConst.ints[intPtr++];
-            // TODO(paulberry): implement.
-            stack.add(DynamicTypeImpl.instance);
+            int numEntries = unlinkedConst.ints[intPtr++];
+            List<DartType> keysValues = popList(2 * numEntries);
+            DartType keyType = null;
+            DartType valueType = null;
+            for (int i = 0; i < 2 * numEntries; i++) {
+              DartType type = keysValues[i];
+              if (i.isEven) {
+                keyType =
+                    keyType == null ? type : leastUpperBound(keyType, type);
+              } else {
+                valueType =
+                    valueType == null ? type : leastUpperBound(valueType, type);
+              }
+            }
+            keyType = dynamicIfNull(keyType);
+            valueType = dynamicIfNull(valueType);
+            stack.add(typeProvider.mapType
+                .instantiate(<DartType>[keyType, valueType]));
             break;
           case UnlinkedConstOperation.makeTypedList:
             refPtr++;
@@ -2569,6 +2599,18 @@ class TypeParameterElementForLink implements TypeParameterElement {
   TypeParameterTypeImpl _type;
 
   TypeParameterElementForLink(this._unlinkedTypeParam, this.nestingLevel);
+
+  @override
+  DartType get bound {
+    if (_unlinkedTypeParam.bound == null) {
+      return null;
+    }
+    // TODO(scheglov) implement
+    throw new UnimplementedError();
+  }
+
+  @override
+  ElementKind get kind => ElementKind.TYPE_PARAMETER;
 
   @override
   String get name => _unlinkedTypeParam.name;
@@ -2791,9 +2833,11 @@ class TypeProviderForLink implements TypeProvider {
 
   InterfaceType _buildInterfaceType(
       LibraryElementForLink library, String name) {
-    return library
-        .getContainedName(name)
-        .buildType((int i) => DynamicTypeImpl.instance, const []);
+    return library.getContainedName(name).buildType((int i) {
+      // TODO(scheglov) accept type parameter names
+      var element = new TypeParameterElementImpl('T$i', -1);
+      return new TypeParameterTypeImpl(element);
+    }, const []);
   }
 }
 
@@ -2973,6 +3017,7 @@ class _Linker {
   LibraryElementForLink _coreLibrary;
   LibraryElementForLink _asyncLibrary;
   TypeProviderForLink _typeProvider;
+  TypeSystem _typeSystem;
 
   _Linker(Map<String, LinkedLibraryBuilder> linkedLibraries, this.getDependency,
       this.getUnit, this.strongMode) {
@@ -3003,6 +3048,12 @@ class _Linker {
    */
   TypeProviderForLink get typeProvider =>
       _typeProvider ??= new TypeProviderForLink(this);
+
+  /**
+   * Get an instance of [TypeSystem] for use during linking.
+   */
+  TypeSystem get typeSystem => _typeSystem ??=
+      strongMode ? new StrongTypeSystemImpl() : new TypeSystemImpl();
 
   /**
    * Get the library element for the library having the given [uri].

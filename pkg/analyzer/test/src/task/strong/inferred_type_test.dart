@@ -1154,7 +1154,7 @@ void functionExpressionInvocation() {
 ''');
   }
 
-  void test_genericMethods_handleOverrideOfNnGenericWithGeneric() {
+  void test_genericMethods_handleOverrideOfNonGenericWithGeneric() {
     // Regression test for crash when adding genericity
     checkFile('''
 class C {
@@ -2107,6 +2107,24 @@ test2() {
   ''');
   }
 
+  void test_listLiterals_topLevel() {
+    checkFile(r'''
+var x1 = [1, 2, 3];
+test1() {
+  x1.add(/*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi');
+  x1.add(/*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/4.0);
+  x1.add(4);
+  List<num> y = x1;
+}
+var x2 = [1, 2.0, 3];
+test2() {
+  x2.add(/*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi');
+  x2.add(4.0);
+  List<int> y = /*info:ASSIGNMENT_CAST*/x2;
+}
+  ''');
+  }
+
   void test_listLiteralsShouldNotInferBottom() {
     var unit = checkFile(r'''
 test1() {
@@ -2138,6 +2156,30 @@ test2() {
   Pattern p = null;
   x[2] = p;
   Map<int, String> y = /*info:ASSIGNMENT_CAST*/x;
+}
+  ''');
+  }
+
+  void test_mapLiterals_topLevel() {
+    checkFile(r'''
+var x1 = { 1: 'x', 2: 'y' };
+test1() {
+  x1[3] = 'z';
+  x1[/*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi'] = 'w';
+  x1[/*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/4.0] = 'u';
+  x1[3] = /*warning:INVALID_ASSIGNMENT*/42;
+  Map<num, String> y = x1;
+}
+
+var x2 = { 1: 'x', 2: 'y', 3.0: new RegExp('.') };
+test2() {
+  x2[3] = 'z';
+  x2[/*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/'hi'] = 'w';
+  x2[4.0] = 'u';
+  x2[3] = /*warning:INVALID_ASSIGNMENT*/42;
+  Pattern p = null;
+  x2[2] = p;
+  Map<int, String> y = /*info:ASSIGNMENT_CAST*/x2;
 }
   ''');
   }

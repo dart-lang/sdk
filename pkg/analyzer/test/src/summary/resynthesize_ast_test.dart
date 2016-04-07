@@ -214,24 +214,6 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_genericMethods_doNotInferInvalidOverrideOfGenericMethod() {
-    super.test_genericMethods_doNotInferInvalidOverrideOfGenericMethod();
-  }
-
-  @override
-  @failingTest
-  void test_genericMethods_handleOverrideOfNnGenericWithGeneric() {
-    super.test_genericMethods_handleOverrideOfNnGenericWithGeneric();
-  }
-
-  @override
-  @failingTest
-  void test_genericMethods_inferGenericMethodType() {
-    super.test_genericMethods_inferGenericMethodType();
-  }
-
-  @override
-  @failingTest
   void test_genericMethods_inferJSBuiltin() {
     super.test_genericMethods_inferJSBuiltin();
   }
