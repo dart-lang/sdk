@@ -208,12 +208,6 @@ expect_test: RuntimeError, OK # Issue 13080
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
-[ $compiler == dart2js && $runtime == chrome && $system == macos ]
-await_future_test: Pass, Timeout # Issue 22695.
-async_await_test/none: Pass, Timeout # Issue 22695.
-async_await_test/02: Pass, Timeout # Issue 22695.
-async_await_test/03: Pass, Timeout # Issue 22695.
-
 [ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim)]
 round_test: Fail, OK # Common JavaScript engine Math.round bug.
 

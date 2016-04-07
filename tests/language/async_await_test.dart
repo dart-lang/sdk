@@ -4,6 +4,8 @@
 
 library async_await_test;
 
+// Use of package:unittest and package:test is deprecated in sdk/tests.
+// Do not add any more uses of this package.
 import "package:unittest/unittest.dart";
 import "dart:async";
 
@@ -1728,37 +1730,37 @@ main() {
 
     if (!checkedMode) return;
 
-    test("inside assert, true", () {                       /// 03: ok
-      f() async {                                          /// 03: continued
-        assert(await new Future.microtask(() => true));    /// 03: continued
-        return 42;                                         /// 03: continued
-      }                                                    /// 03: continued
-      return expect42(f());                                /// 03: continued
-    });                                                    /// 03: continued
+    test("inside assert, true", () {
+      f() async {
+        assert(await new Future.microtask(() => true));
+        return 42;
+      }
+      return expect42(f());
+    });
 
-    test("inside assert, false", () {                      /// 03: continued
-      f() async {                                          /// 03: continued
-        assert(await new Future.microtask(() => false));   /// 03: continued
-        return 42;                                         /// 03: continued
-      }                                                    /// 03: continued
-      return f().then((_) {                                /// 03: continued
-        fail("assert didn't throw");                       /// 03: continued
-      }, onError: (e, s) {                                 /// 03: continued
-        expect(e is AssertionError, isTrue);               /// 03: continued
-      });                                                  /// 03: continued
-    });                                                    /// 03: continued
+    test("inside assert, false", () {
+      f() async {
+        assert(await new Future.microtask(() => false));
+        return 42;
+      }
+      return f().then((_) {
+        fail("assert didn't throw");
+      }, onError: (e, s) {
+        expect(e is AssertionError, isTrue);
+      });
+    });
 
-    test("inside assert, function -> false", () {          /// 03: continued
-      f() async {                                          /// 03: continued
-        assert(await new Future.microtask(() => false));   /// 03: continued
-        return 42;                                         /// 03: continued
-      }                                                    /// 03: continued
-      return f().then((_) {                                /// 03: continued
-        fail("assert didn't throw");                       /// 03: continued
-      }, onError: (e, s) {                                 /// 03: continued
-        expect(e is AssertionError, isTrue);               /// 03: continued
-      });                                                  /// 03: continued
-    });                                                    /// 03: continued
+    test("inside assert, function -> false", () {
+      f() async {
+        assert(await new Future.microtask(() => false));
+        return 42;
+      }
+      return f().then((_) {
+        fail("assert didn't throw");
+      }, onError: (e, s) {
+        expect(e is AssertionError, isTrue);
+      });
+    });
 
   });
 
@@ -1769,11 +1771,11 @@ main() {
       expect(async, equals(42));
     });
 
-    test("await as variable", () {                         /// 02: ok
-      // Valid identifiers outside of async function.      /// 02: continued
-      var await = 42;                                      /// 02: continued
-      expect(await, equals(42));                           /// 02: continued
-    });                                                    /// 02: continued
+    test("await as variable", () {
+      // Valid identifiers outside of async function.
+      var await = 42;
+      expect(await, equals(42));
+    });
 
     test("yield as variable", () {
       // Valid identifiers outside of async function.
