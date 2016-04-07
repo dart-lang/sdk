@@ -1721,16 +1721,45 @@ class FunctionElementForLink_Initializer implements FunctionElementImpl {
  * An instance of [LibraryCycleForLink] represents a single library cycle
  * discovered during linking; it consists of one or more libraries in the build
  * unit being linked.
- *
- * This is a stub implementation; at the moment all libraries in the build unit
- * being linked are considered to be part of the same library cycle.  Hence
- * there is just a singleton instance of this class.
- * TODO(paulberry): replace this with a correct implementation.
  */
 class LibraryCycleForLink {
-  static final LibraryCycleForLink instance = const LibraryCycleForLink._();
+  /**
+   * The libraries in the cycle.
+   */
+  final List<LibraryElementInBuildUnit> libraries;
 
-  const LibraryCycleForLink._();
+  /**
+   * The library cycles which this library depends on.
+   */
+  final List<LibraryCycleForLink> dependencies;
+
+  LibraryCycleForLink(this.libraries, this.dependencies);
+}
+
+/**
+ * Specialization of [DependencyWalker] for computing library cycles.
+ */
+class LibraryDependencyWalker extends DependencyWalker<LibraryNode> {
+  @override
+  void evaluate(LibraryNode v) => evaluateScc(<LibraryNode>[v]);
+
+  @override
+  void evaluateScc(List<LibraryNode> scc) {
+    Set<LibraryCycleForLink> dependentCycles = new Set<LibraryCycleForLink>();
+    for (LibraryNode node in scc) {
+      for (LibraryNode dependency in node.dependencies) {
+        if (dependency.isEvaluated) {
+          dependentCycles.add(dependency._libraryCycle);
+        }
+      }
+    }
+    LibraryCycleForLink cycle = new LibraryCycleForLink(
+        scc.map((LibraryNode n) => n.library).toList(),
+        dependentCycles.toList());
+    for (LibraryNode node in scc) {
+      node._libraryCycle = cycle;
+    }
+  }
 }
 
 /**
@@ -1756,6 +1785,8 @@ abstract class LibraryElementForLink<
       <String, ReferenceableElementForLink>{};
   final List<LibraryElementForLink> _dependencies = <LibraryElementForLink>[];
   UnlinkedUnit _definingUnlinkedUnit;
+  List<LibraryElementForLink> _importedLibraries;
+  List<LibraryElementForLink> _exportedLibraries;
 
   LibraryElementForLink(this._linker, this._absoluteUri) {
     _dependencies.length = _linkedLibrary.dependencies.length;
@@ -1769,6 +1800,20 @@ abstract class LibraryElementForLink<
 
   @override
   Element get enclosingElement => null;
+
+  @override
+  List<LibraryElementForLink> get exportedLibraries {
+    // TODO(paulberry): add an exportDependencies list to LinkedLibrary so that
+    // we don't have to duplicate work already done by the prelinker.
+    return _exportedLibraries ??= definingUnlinkedUnit.publicNamespace.exports
+        .map((UnlinkedExportPublic exp) => _linker
+            .getLibrary(resolveRelativeUri(_absoluteUri, Uri.parse(exp.uri))))
+        .toList();
+  }
+
+  @override
+  List<LibraryElementForLink> get importedLibraries => _importedLibraries ??=
+      _linkedLibrary.importDependencies.map(_getDependency).toList();
 
   /**
    * If this library is part of the build unit being linked, return the library
@@ -1844,10 +1889,18 @@ class LibraryElementInBuildUnit
   @override
   final LinkedLibraryBuilder _linkedLibrary;
 
+  /**
+   * The [LibraryNode] representing this library in the library dependency
+   * graph.
+   */
+  LibraryNode _libraryNode;
+
   InheritanceManager _inheritanceManager;
 
   LibraryElementInBuildUnit(Linker linker, Uri absoluteUri, this._linkedLibrary)
-      : super(linker, absoluteUri);
+      : super(linker, absoluteUri) {
+    _libraryNode = new LibraryNode(this);
+  }
 
   /**
    * Get the inheritance manager for this library (creating it if necessary).
@@ -1856,7 +1909,12 @@ class LibraryElementInBuildUnit
       _inheritanceManager ??= new InheritanceManager(this);
 
   @override
-  LibraryCycleForLink get libraryCycleForLink => LibraryCycleForLink.instance;
+  LibraryCycleForLink get libraryCycleForLink {
+    if (!_libraryNode.isEvaluated) {
+      new LibraryDependencyWalker().walk(_libraryNode);
+    }
+    return _libraryNode._libraryCycle;
+  }
 
   /**
    * If this library already has a dependency in its dependencies table matching
@@ -1926,6 +1984,46 @@ class LibraryElementInDependency
           UnlinkedUnit unlinkedUnit, int i) =>
       new CompilationUnitElementInDependency(
           this, unlinkedUnit, _linkedLibrary.units[i], i);
+}
+
+/**
+ * Specialization of [Node] used to construct the library dependency graph.
+ */
+class LibraryNode extends Node<LibraryNode> {
+  /**
+   * The library this [Node] represents.
+   */
+  final LibraryElementInBuildUnit library;
+
+  /**
+   * The library cycle to which [library] belongs, if it has been computed.
+   * Otherwise `null`.
+   */
+  LibraryCycleForLink _libraryCycle;
+
+  LibraryNode(this.library);
+
+  @override
+  bool get isEvaluated => _libraryCycle != null;
+
+  @override
+  List<LibraryNode> computeDependencies() {
+    // Note: we only need to consider dependencies within the build unit being
+    // linked; dependencies in other build units can't participate in library
+    // cycles with us.
+    List<LibraryNode> dependencies = <LibraryNode>[];
+    for (LibraryElement dependency in library.importedLibraries) {
+      if (dependency is LibraryElementInBuildUnit) {
+        dependencies.add(dependency._libraryNode);
+      }
+    }
+    for (LibraryElement dependency in library.exportedLibraries) {
+      if (dependency is LibraryElementInBuildUnit) {
+        dependencies.add(dependency._libraryNode);
+      }
+    }
+    return dependencies;
+  }
 }
 
 /**
