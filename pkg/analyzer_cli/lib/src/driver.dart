@@ -245,7 +245,7 @@ class Driver implements CommandLineStarter {
   ErrorSeverity _buildModeAnalyze(CommandLineOptions options) {
     return _analyzeAllTag.makeCurrentWhile(() {
       if (options.buildModePersistentWorker) {
-        new WorkerLoop.std().run();
+        new WorkerLoop.std(dartSdkPath: options.dartSdkPath).run();
       } else {
         return new BuildMode(options, stats).analyze();
       }

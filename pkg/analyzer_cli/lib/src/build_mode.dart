@@ -314,20 +314,24 @@ class WorkerLoop {
   final StringBuffer errorBuffer = new StringBuffer();
   final StringBuffer outBuffer = new StringBuffer();
 
-  WorkerLoop(this.connection);
+  final String dartSdkPath;
 
-  factory WorkerLoop.std({io.Stdin stdinStream, io.Stdout stdoutStream}) {
+  WorkerLoop(this.connection, {this.dartSdkPath});
+
+  factory WorkerLoop.std(
+      {io.Stdin stdinStream, io.Stdout stdoutStream, String dartSdkPath}) {
     stdinStream ??= io.stdin;
     stdoutStream ??= io.stdout;
     WorkerConnection connection =
         new StdWorkerConnection(stdinStream, stdoutStream);
-    return new WorkerLoop(connection);
+    return new WorkerLoop(connection, dartSdkPath: dartSdkPath);
   }
 
   /**
    * Performs analysis with given [options].
    */
   void analyze(CommandLineOptions options) {
+    options.dartSdkPath ??= dartSdkPath;
     new BuildMode(options, new AnalysisStats()).analyze();
   }
 
