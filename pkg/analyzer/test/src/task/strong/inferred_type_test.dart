@@ -1305,6 +1305,23 @@ main() {
 ''');
   }
 
+  void test_infer_conditional() {
+    checkFile(r'''
+var a = 1 == 2 ? 1 : 2.0;
+var b = 1 == 2 ? 1.0 : 2;
+''');
+  }
+
+  void test_infer_throw() {
+    checkFile(r'''
+var t = true;
+var a = (throw 0);
+var b = (throw 0) ? 1 : 2;
+var c = t ? (throw 1) : 2;
+var d = t ? 1 : (throw 2);
+''');
+  }
+
   void test_inferConstsTransitively() {
     addFile(
         '''

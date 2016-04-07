@@ -148,12 +148,6 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_dontInferFieldTypeWhenInitializerIsNull() {
-    super.test_dontInferFieldTypeWhenInitializerIsNull();
-  }
-
-  @override
-  @failingTest
   void test_downwardInference_miscellaneous() {
     super.test_downwardInference_miscellaneous();
   }

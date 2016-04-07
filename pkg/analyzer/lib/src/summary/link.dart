@@ -2680,9 +2680,12 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
             stack.add(DynamicTypeImpl.instance);
             break;
           case UnlinkedConstOperation.conditional:
-            stack.length -= 3;
-            // TODO(paulberry): implement.
-            stack.add(DynamicTypeImpl.instance);
+            DartType elseType = stack.removeLast();
+            DartType thenType = stack.removeLast();
+            stack.removeLast();
+            DartType type = leastUpperBound(thenType, elseType);
+            type = dynamicIfNull(type);
+            stack.add(type);
             break;
           case UnlinkedConstOperation.assignToRef:
             if (!isIncrementOrDecrement(
@@ -2759,7 +2762,7 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
             break;
           case UnlinkedConstOperation.throwException:
             stack.removeLast();
-            stack.add(DynamicTypeImpl.instance);
+            stack.add(BottomTypeImpl.instance);
             break;
           default:
             // TODO(paulberry): implement.
@@ -2771,7 +2774,7 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
       assert(strPtr == unlinkedConst.strings.length);
       assert(assignmentOperatorPtr == unlinkedConst.assignmentOperators.length);
       assert(stack.length == 1);
-      _inferredType = stack[0];
+      _inferredType = dynamicIfNull(stack[0]);
     }
   }
 }
