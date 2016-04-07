@@ -65,7 +65,7 @@ void CheckField(const Library& lib,
   Function& function = Function::Handle();
   Field& field = Field::Handle();
   if (expect_static) {
-    field ^= cls.LookupStaticField(fieldname);
+    field ^= cls.LookupStaticFieldAllowPrivate(fieldname);
     functionname ^= Field::GetterName(fieldname);
     function ^= cls.LookupStaticFunction(functionname);
     EXPECT(function.IsNull());
@@ -73,7 +73,7 @@ void CheckField(const Library& lib,
     function ^= cls.LookupStaticFunction(functionname);
     EXPECT(function.IsNull());
   } else {
-    field ^= cls.LookupInstanceField(fieldname);
+    field ^= cls.LookupInstanceFieldAllowPrivate(fieldname);
     functionname ^= Field::GetterName(fieldname);
     function ^= cls.LookupDynamicFunction(functionname);
     EXPECT(!function.IsNull());

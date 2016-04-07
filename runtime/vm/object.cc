@@ -4161,26 +4161,80 @@ RawField* Class::LookupField(const String& name, MemberKind kind) const {
   ASSERT(!flds.IsNull());
   intptr_t len = flds.Length();
   Field& field = thread->FieldHandle();
+  if (name.IsSymbol()) {
+    // Use fast raw pointer string compare for symbols.
+    for (intptr_t i = 0; i < len; i++) {
+      field ^= flds.At(i);
+      if (name.raw() == field.name()) {
+        if (kind == kInstance) {
+          return field.is_static() ? Field::null() : field.raw();
+        } else if (kind == kStatic) {
+          return field.is_static() ? field.raw() : Field::null();
+        }
+        ASSERT(kind == kAny);
+        return field.raw();
+      }
+    }
+  } else {
+    String& field_name = thread->StringHandle();
+    for (intptr_t i = 0; i < len; i++) {
+      field ^= flds.At(i);
+      field_name ^= field.name();
+      if (name.Equals(field_name)) {
+        if (kind == kInstance) {
+          return field.is_static() ? Field::null() : field.raw();
+        } else if (kind == kStatic) {
+          return field.is_static() ? field.raw() : Field::null();
+        }
+        ASSERT(kind == kAny);
+        return field.raw();
+      }
+    }
+  }
+  return Field::null();
+}
+
+
+RawField* Class::LookupFieldAllowPrivate(const String& name) const {
+  // Use slow string compare, ignoring privacy name mangling.
+  Thread* thread = Thread::Current();
+  if (EnsureIsFinalized(thread) != Error::null()) {
+    return Field::null();
+  }
+  REUSABLE_ARRAY_HANDLESCOPE(thread);
+  REUSABLE_FIELD_HANDLESCOPE(thread);
+  REUSABLE_STRING_HANDLESCOPE(thread);
+  Array& flds = thread->ArrayHandle();
+  flds ^= fields();
+  ASSERT(!flds.IsNull());
+  intptr_t len = flds.Length();
+  Field& field = thread->FieldHandle();
   String& field_name = thread->StringHandle();
   for (intptr_t i = 0; i < len; i++) {
     field ^= flds.At(i);
     field_name ^= field.name();
     if (String::EqualsIgnoringPrivateKey(field_name, name)) {
-      if (kind == kInstance) {
-        if (!field.is_static()) {
-          return field.raw();
-        }
-      } else if (kind == kStatic) {
-        if (field.is_static()) {
-          return field.raw();
-        }
-      } else if (kind == kAny) {
-        return field.raw();
-      }
-      return Field::null();
+      return field.raw();
     }
   }
-  // No field found.
+  return Field::null();
+}
+
+
+RawField* Class::LookupInstanceFieldAllowPrivate(const String& name) const {
+  Field& field = Field::Handle(LookupFieldAllowPrivate(name));
+  if (!field.IsNull() && !field.is_static()) {
+    return field.raw();
+  }
+  return Field::null();
+}
+
+
+RawField* Class::LookupStaticFieldAllowPrivate(const String& name) const {
+  Field& field = Field::Handle(LookupFieldAllowPrivate(name));
+  if (!field.IsNull() && field.is_static()) {
+    return field.raw();
+  }
   return Field::null();
 }
 
@@ -9434,14 +9488,13 @@ RawObject* Library::GetMetadata(const Object& obj) const {
 
 static bool ShouldBePrivate(const String& name) {
   return
-      (name.Length() >= 1 &&
-       name.CharAt(0) == '_') ||
+      (name.Length() >= 1 && name.CharAt(0) == '_') ||
       (name.Length() >= 5 &&
-       (name.CharAt(4) == '_' &&
-        (name.CharAt(0) == 'g' || name.CharAt(0) == 's') &&
-        name.CharAt(1) == 'e' &&
-        name.CharAt(2) == 't' &&
-        name.CharAt(3) == ':'));
+        (name.CharAt(4) == '_' &&
+          (name.CharAt(0) == 'g' || name.CharAt(0) == 's') &&
+          name.CharAt(1) == 'e' &&
+          name.CharAt(2) == 't' &&
+          name.CharAt(3) == ':'));
 }
 
 

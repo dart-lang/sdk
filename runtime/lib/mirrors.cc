@@ -717,7 +717,8 @@ static RawInstance* InvokeClassGetter(const Class& klass,
                                       const String& getter_name,
                                       const bool throw_nsm_if_absent) {
   // Note static fields do not have implicit getters.
-  const Field& field = Field::Handle(klass.LookupStaticField(getter_name));
+  const Field& field =
+      Field::Handle(klass.LookupStaticFieldAllowPrivate(getter_name));
   if (field.IsNull() || field.IsUninitialized()) {
     const String& internal_getter_name = String::Handle(
         Field::GetterName(getter_name));
@@ -1569,7 +1570,8 @@ DEFINE_NATIVE_ENTRY(ClassMirror_invokeSetter, 4) {
   }
 
   // Check for real fields and user-defined setters.
-  const Field& field = Field::Handle(klass.LookupStaticField(setter_name));
+  const Field& field =
+      Field::Handle(klass.LookupStaticFieldAllowPrivate(setter_name));
   Function& setter = Function::Handle();
   const String& internal_setter_name = String::Handle(
       Field::SetterName(setter_name));

@@ -4794,7 +4794,7 @@ void Parser::ParseEnumDefinition(const Class& cls) {
   // Create a static field that contains the list of enumeration names.
   // Clone the _enum_names field from the helper class.
   Field& names_field = Field::Handle(Z,
-      helper_class.LookupStaticField(Symbols::_EnumNames()));
+      helper_class.LookupStaticFieldAllowPrivate(Symbols::_EnumNames()));
   ASSERT(!names_field.IsNull());
   names_field = names_field.Clone(cls);
   enum_members.AddField(names_field);

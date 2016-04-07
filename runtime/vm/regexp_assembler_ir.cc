@@ -431,7 +431,7 @@ ConstantInstr* IRRegExpMacroAssembler::WordCharacterMapConstant() const {
   const Class& regexp_class = Class::Handle(Z,
         lib.LookupClassAllowPrivate(Symbols::_RegExp()));
   const Field& word_character_field = Field::ZoneHandle(Z,
-      regexp_class.LookupStaticField(Symbols::_wordCharacterMap()));
+      regexp_class.LookupStaticFieldAllowPrivate(Symbols::_wordCharacterMap()));
   ASSERT(!word_character_field.IsNull());
 
   if (word_character_field.IsUninitialized()) {

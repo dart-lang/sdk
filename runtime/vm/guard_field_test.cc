@@ -18,7 +18,8 @@ RawField* LookupField(Dart_Handle library, const char* class_name,
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
 
   String& fieldname = String::Handle(String::New(field_name));
-  Field& field = Field::ZoneHandle(cls.LookupInstanceField(fieldname));
+  Field& field =
+      Field::ZoneHandle(cls.LookupInstanceFieldAllowPrivate(fieldname));
   EXPECT(!field.IsNull());
   return field.raw();
 }

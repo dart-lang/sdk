@@ -79,7 +79,7 @@ DEFINE_NATIVE_ENTRY(Math_doublePow, 2) {
 static RawTypedData* GetRandomStateArray(const Instance& receiver) {
   const Class& random_class = Class::Handle(receiver.clazz());
   const Field& state_field =
-      Field::Handle(random_class.LookupField(Symbols::_state()));
+      Field::Handle(random_class.LookupFieldAllowPrivate(Symbols::_state()));
   ASSERT(!state_field.IsNull());
   const Instance& state_field_value =
       Instance::Cast(Object::Handle(receiver.GetField(state_field)));

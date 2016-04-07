@@ -270,7 +270,8 @@ static RawField* LookupStacktraceField(const Instance& instance) {
   AbstractType& type = AbstractType::Handle(zone, AbstractType::null());
   while (true) {
     if (test_class.raw() == error_class.raw()) {
-      return error_class.LookupInstanceField(Symbols::_stackTrace());
+      return error_class.LookupInstanceFieldAllowPrivate(
+          Symbols::_stackTrace());
     }
     type = test_class.super_type();
     if (type.IsNull()) return Field::null();
