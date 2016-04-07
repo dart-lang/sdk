@@ -128,6 +128,14 @@ class SerializedMockSdk {
 }
 
 /**
+ * Convert [path] to a suitably formatted absolute path URI for the current
+ * platform.
+ */
+String absUri(String path) {
+  return FileUtilities2.createFile(path).toURI().toString();
+}
+
+/**
  * Base class containing most summary tests.  This allows summary tests to be
  * re-used to exercise all the different ways in which summaries can be
  * generated (e.g. direct from the AST, from the element model, from a
@@ -188,14 +196,6 @@ abstract class SummaryTest {
    * serializing and deserializing the library under test.
    */
   List<UnlinkedUnit> get unlinkedUnits;
-
-  /**
-   * Convert [path] to a suitably formatted absolute path URI for the current
-   * platform.
-   */
-  String absUri(String path) {
-    return FileUtilities2.createFile(path).toURI().toString();
-  }
 
   /**
    * Add the given source file so that it may be referenced by the file under

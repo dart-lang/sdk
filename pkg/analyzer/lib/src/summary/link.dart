@@ -100,16 +100,7 @@ bool isIncrementOrDecrement(UnlinkedExprAssignOperator operator) {
 Map<String, LinkedLibraryBuilder> link(Set<String> libraryUris,
     GetDependencyCallback getDependency, GetUnitCallback getUnit, bool strong) {
   Map<String, LinkedLibraryBuilder> linkedLibraries =
-      <String, LinkedLibraryBuilder>{};
-  for (String absoluteUri in libraryUris) {
-    Uri uri = Uri.parse(absoluteUri);
-    UnlinkedUnit getRelativeUnit(String relativeUri) =>
-        getUnit(resolveRelativeUri(uri, Uri.parse(relativeUri)).toString());
-    linkedLibraries[absoluteUri] = prelink(
-        getUnit(absoluteUri),
-        getRelativeUnit,
-        (String relativeUri) => getRelativeUnit(relativeUri)?.publicNamespace);
-  }
+      setupForLink(libraryUris, getUnit);
   relink(linkedLibraries, getDependency, getUnit, strong);
   return linkedLibraries;
 }
@@ -129,7 +120,32 @@ Map<String, LinkedLibraryBuilder> link(Set<String> libraryUris,
  */
 void relink(Map<String, LinkedLibraryBuilder> libraries,
     GetDependencyCallback getDependency, GetUnitCallback getUnit, bool strong) {
-  new _Linker(libraries, getDependency, getUnit, strong).link();
+  new Linker(libraries, getDependency, getUnit, strong).link();
+}
+
+/**
+ * Prepare to link together the build unit consisting of [libraryUris], using
+ * [getUnit] to fetch the [UnlinkedUnit] objects from both this build unit and
+ * other build units.
+ *
+ * The libraries are prelinked, and a map is returned whose keys are the URIs of
+ * the libraries in this build unit, and whose values are the corresponding
+ * [LinkedLibraryBuilder]s.
+ */
+Map<String, LinkedLibraryBuilder> setupForLink(
+    Set<String> libraryUris, GetUnitCallback getUnit) {
+  Map<String, LinkedLibraryBuilder> linkedLibraries =
+      <String, LinkedLibraryBuilder>{};
+  for (String absoluteUri in libraryUris) {
+    Uri uri = Uri.parse(absoluteUri);
+    UnlinkedUnit getRelativeUnit(String relativeUri) =>
+        getUnit(resolveRelativeUri(uri, Uri.parse(relativeUri)).toString());
+    linkedLibraries[absoluteUri] = prelink(
+        getUnit(absoluteUri),
+        getRelativeUnit,
+        (String relativeUri) => getRelativeUnit(relativeUri)?.publicNamespace);
+  }
+  return linkedLibraries;
 }
 
 /**
@@ -1728,7 +1744,7 @@ abstract class LibraryElementForLink<
   /**
    * Pointer back to the linker.
    */
-  final _Linker _linker;
+  final Linker _linker;
 
   /**
    * The absolute URI of this library.
@@ -1830,8 +1846,7 @@ class LibraryElementInBuildUnit
 
   InheritanceManager _inheritanceManager;
 
-  LibraryElementInBuildUnit(
-      _Linker linker, Uri absoluteUri, this._linkedLibrary)
+  LibraryElementInBuildUnit(Linker linker, Uri absoluteUri, this._linkedLibrary)
       : super(linker, absoluteUri);
 
   /**
@@ -1900,7 +1915,7 @@ class LibraryElementInDependency
   final LinkedLibrary _linkedLibrary;
 
   LibraryElementInDependency(
-      _Linker linker, Uri absoluteUri, this._linkedLibrary)
+      Linker linker, Uri absoluteUri, this._linkedLibrary)
       : super(linker, absoluteUri);
 
   @override
@@ -1911,6 +1926,114 @@ class LibraryElementInDependency
           UnlinkedUnit unlinkedUnit, int i) =>
       new CompilationUnitElementInDependency(
           this, unlinkedUnit, _linkedLibrary.units[i], i);
+}
+
+/**
+ * Instances of [Linker] contain the necessary information to link
+ * together a single build unit.
+ */
+class Linker {
+  /**
+   * Callback to ask the client for a [LinkedLibrary] for a
+   * dependency.
+   */
+  final GetDependencyCallback getDependency;
+
+  /**
+   * Callback to ask the client for an [UnlinkedUnit].
+   */
+  final GetUnitCallback getUnit;
+
+  /**
+   * Map containing all library elements accessed during linking,
+   * whether they are part of the build unit being linked or whether
+   * they are dependencies.
+   */
+  final Map<Uri, LibraryElementForLink> _libraries =
+      <Uri, LibraryElementForLink>{};
+
+  /**
+   * List of library elements for the libraries in the build unit
+   * being linked.
+   */
+  final List<LibraryElementInBuildUnit> _librariesInBuildUnit =
+      <LibraryElementInBuildUnit>[];
+
+  /**
+   * Indicates whether type inference should use strong mode rules.
+   */
+  final bool strongMode;
+
+  LibraryElementForLink _coreLibrary;
+  LibraryElementForLink _asyncLibrary;
+  TypeProviderForLink _typeProvider;
+  TypeSystem _typeSystem;
+
+  Linker(Map<String, LinkedLibraryBuilder> linkedLibraries, this.getDependency,
+      this.getUnit, this.strongMode) {
+    // Create elements for the libraries to be linked.  The rest of
+    // the element model will be created on demand.
+    linkedLibraries
+        .forEach((String absoluteUri, LinkedLibraryBuilder linkedLibrary) {
+      Uri uri = Uri.parse(absoluteUri);
+      _librariesInBuildUnit.add(_libraries[uri] =
+          new LibraryElementInBuildUnit(this, uri, linkedLibrary));
+    });
+  }
+
+  /**
+   * Get the library element for `dart:async`.
+   */
+  LibraryElementForLink get asyncLibrary =>
+      _asyncLibrary ??= getLibrary(Uri.parse('dart:async'));
+
+  /**
+   * Get the library element for `dart:core`.
+   */
+  LibraryElementForLink get coreLibrary =>
+      _coreLibrary ??= getLibrary(Uri.parse('dart:core'));
+
+  /**
+   * Get an instance of [TypeProvider] for use during linking.
+   */
+  TypeProviderForLink get typeProvider =>
+      _typeProvider ??= new TypeProviderForLink(this);
+
+  /**
+   * Get an instance of [TypeSystem] for use during linking.
+   */
+  TypeSystem get typeSystem => _typeSystem ??=
+      strongMode ? new StrongTypeSystemImpl() : new TypeSystemImpl();
+
+  /**
+   * Get the library element for the library having the given [uri].
+   */
+  LibraryElementForLink getLibrary(Uri uri) => _libraries.putIfAbsent(
+      uri,
+      () => new LibraryElementInDependency(
+          this, uri, getDependency(uri.toString())));
+
+  /**
+   * Perform type inference and const cycle detection on all libraries
+   * in the build unit being linked.
+   */
+  void link() {
+    // TODO(paulberry): link library cycles in appropriate dependency order.
+    for (LibraryElementInBuildUnit library in _librariesInBuildUnit) {
+      library.link();
+    }
+    // TODO(paulberry): set dependencies.
+  }
+
+  /**
+   * Throw away any information stored in the summary by a previous call to
+   * [link].
+   */
+  void unlink() {
+    for (LibraryElementInBuildUnit library in _librariesInBuildUnit) {
+      library.unlink();
+    }
+  }
 }
 
 /**
@@ -2376,7 +2499,7 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
 
       LibraryElementForLink libraryElement =
           variableElement.compilationUnit.enclosingElement;
-      _Linker linker = libraryElement._linker;
+      Linker linker = libraryElement._linker;
       TypeProvider typeProvider = linker.typeProvider;
 
       DartType leastUpperBound(DartType s, DartType t) {
@@ -2769,7 +2892,7 @@ abstract class TypeParameterizedElementForLink
 }
 
 class TypeProviderForLink implements TypeProvider {
-  final _Linker _linker;
+  final Linker _linker;
 
   InterfaceType _boolType;
   InterfaceType _deprecatedType;
@@ -3049,112 +3172,4 @@ class VariableElementForLink
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-/**
- * Instances of [_Linker] contain the necessary information to link
- * together a single build unit.
- */
-class _Linker {
-  /**
-   * Callback to ask the client for a [LinkedLibrary] for a
-   * dependency.
-   */
-  final GetDependencyCallback getDependency;
-
-  /**
-   * Callback to ask the client for an [UnlinkedUnit].
-   */
-  final GetUnitCallback getUnit;
-
-  /**
-   * Map containing all library elements accessed during linking,
-   * whether they are part of the build unit being linked or whether
-   * they are dependencies.
-   */
-  final Map<Uri, LibraryElementForLink> _libraries =
-      <Uri, LibraryElementForLink>{};
-
-  /**
-   * List of library elements for the libraries in the build unit
-   * being linked.
-   */
-  final List<LibraryElementInBuildUnit> _librariesInBuildUnit =
-      <LibraryElementInBuildUnit>[];
-
-  /**
-   * Indicates whether type inference should use strong mode rules.
-   */
-  final bool strongMode;
-
-  LibraryElementForLink _coreLibrary;
-  LibraryElementForLink _asyncLibrary;
-  TypeProviderForLink _typeProvider;
-  TypeSystem _typeSystem;
-
-  _Linker(Map<String, LinkedLibraryBuilder> linkedLibraries, this.getDependency,
-      this.getUnit, this.strongMode) {
-    // Create elements for the libraries to be linked.  The rest of
-    // the element model will be created on demand.
-    linkedLibraries
-        .forEach((String absoluteUri, LinkedLibraryBuilder linkedLibrary) {
-      Uri uri = Uri.parse(absoluteUri);
-      _librariesInBuildUnit.add(_libraries[uri] =
-          new LibraryElementInBuildUnit(this, uri, linkedLibrary));
-    });
-  }
-
-  /**
-   * Get the library element for `dart:async`.
-   */
-  LibraryElementForLink get asyncLibrary =>
-      _asyncLibrary ??= getLibrary(Uri.parse('dart:async'));
-
-  /**
-   * Get the library element for `dart:core`.
-   */
-  LibraryElementForLink get coreLibrary =>
-      _coreLibrary ??= getLibrary(Uri.parse('dart:core'));
-
-  /**
-   * Get an instance of [TypeProvider] for use during linking.
-   */
-  TypeProviderForLink get typeProvider =>
-      _typeProvider ??= new TypeProviderForLink(this);
-
-  /**
-   * Get an instance of [TypeSystem] for use during linking.
-   */
-  TypeSystem get typeSystem => _typeSystem ??=
-      strongMode ? new StrongTypeSystemImpl() : new TypeSystemImpl();
-
-  /**
-   * Get the library element for the library having the given [uri].
-   */
-  LibraryElementForLink getLibrary(Uri uri) => _libraries.putIfAbsent(
-      uri,
-      () => new LibraryElementInDependency(
-          this, uri, getDependency(uri.toString())));
-
-  /**
-   * Perform type inference and const cycle detection on all libraries
-   * in the build unit being linked.
-   */
-  void link() {
-    // TODO(paulberry): link library cycles in appropriate dependency order.
-    for (LibraryElementInBuildUnit library in _librariesInBuildUnit) {
-      library.link();
-    }
-    // TODO(paulberry): set dependencies.
-  }
-
-  /**
-   * Throw away any information stored in the summary by a previous call to
-   * [link].
-   */
-  void unlink() {
-    for (LibraryElementInBuildUnit library in _librariesInBuildUnit) {
-      library.unlink();
-    }
-  }
 }

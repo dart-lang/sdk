@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/scanner/reader.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/parser.dart';
+import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
@@ -179,18 +180,13 @@ class LinkedSummarizeAstSpecTest extends LinkedSummarizeAstTest {
  * AST.
  */
 @reflectiveTest
-abstract class LinkedSummarizeAstTest extends Object with SummaryTest {
+abstract class LinkedSummarizeAstTest extends SummaryLinkerTest
+    with SummaryTest {
   @override
   LinkedLibrary linked;
 
   @override
   List<UnlinkedUnit> unlinkedUnits;
-
-  /**
-   * Map from absolute URI to the [UnlinkedUnit] for each compilation unit
-   * passed to [addNamedSource].
-   */
-  Map<String, UnlinkedUnit> uriToUnit = <String, UnlinkedUnit>{};
 
   @override
   bool get checkAstDerivedData => true;
@@ -205,46 +201,18 @@ abstract class LinkedSummarizeAstTest extends Object with SummaryTest {
   bool get skipNonConstInitializers => false;
 
   @override
-  addNamedSource(String filePath, String contents) {
-    CompilationUnit unit = _parseText(contents);
-    UnlinkedUnit unlinkedUnit =
-        new UnlinkedUnit.fromBuffer(serializeAstUnlinked(unit).toBuffer());
-    uriToUnit[absUri(filePath)] = unlinkedUnit;
-  }
-
-  @override
   void serializeLibraryText(String text, {bool allowErrors: false}) {
-    Uri testDartUri = Uri.parse(absUri('/test.dart'));
-    CompilationUnit unit = _parseText(text);
-    UnlinkedUnit definingUnit =
-        new UnlinkedUnit.fromBuffer(serializeAstUnlinked(unit).toBuffer());
-    uriToUnit[testDartUri.toString()] = definingUnit;
-    LinkedLibrary getDependency(String absoluteUri) {
-      Map<String, LinkedLibrary> sdkLibraries =
-          SerializedMockSdk.instance.uriToLinkedLibrary;
-      LinkedLibrary linkedLibrary = sdkLibraries[absoluteUri];
-      if (linkedLibrary == null && !allowMissingFiles) {
-        fail('Linker unexpectedly requested LinkedLibrary for "$absoluteUri".'
-            '  Libraries available: ${sdkLibraries.keys}');
-      }
-      return linkedLibrary;
-    }
-    UnlinkedUnit getUnit(String absoluteUri) {
-      UnlinkedUnit unit = uriToUnit[absoluteUri] ??
-          SerializedMockSdk.instance.uriToUnlinkedUnit[absoluteUri];
-      if (unit == null && !allowMissingFiles) {
-        fail('Linker unexpectedly requested unit for "$absoluteUri".');
-      }
-      return unit;
-    }
-    linked = link(uriToUnit.keys.toSet(), getDependency, getUnit, strongMode)[
-        testDartUri.toString()];
+    LinkerInputs linkerInputs = createLinkerInputs(text);
+    linked = link(linkerInputs.linkedLibraries, linkerInputs.getDependency,
+        linkerInputs.getUnit, strongMode)[linkerInputs.testDartUri.toString()];
     expect(linked, isNotNull);
     validateLinkedLibrary(linked);
-    unlinkedUnits = <UnlinkedUnit>[definingUnit];
-    for (String relativeUri in definingUnit.publicNamespace.parts) {
+    unlinkedUnits = <UnlinkedUnit>[linkerInputs.unlinkedDefiningUnit];
+    for (String relativeUri
+        in linkerInputs.unlinkedDefiningUnit.publicNamespace.parts) {
       UnlinkedUnit unit = uriToUnit[
-          resolveRelativeUri(testDartUri, Uri.parse(relativeUri)).toString()];
+          resolveRelativeUri(linkerInputs.testDartUri, Uri.parse(relativeUri))
+              .toString()];
       if (unit == null) {
         if (!allowMissingFiles) {
           fail('Test referred to unknown unit $relativeUri');
@@ -260,6 +228,84 @@ abstract class LinkedSummarizeAstTest extends Object with SummaryTest {
         className: 'Object');
     expect(cls.supertype, isNull);
     expect(cls.hasNoSupertype, isTrue);
+  }
+}
+
+/**
+ * Instances of the class [LinkerInputs] encapsulate the necessary information
+ * to pass to the summary linker.
+ */
+class LinkerInputs {
+  final bool _allowMissingFiles;
+  final Map<String, UnlinkedUnit> _uriToUnit;
+  final Uri testDartUri;
+  final UnlinkedUnit unlinkedDefiningUnit;
+
+  LinkerInputs(this._allowMissingFiles, this._uriToUnit, this.testDartUri,
+      this.unlinkedDefiningUnit);
+
+  Set<String> get linkedLibraries => _uriToUnit.keys.toSet();
+
+  LinkedLibrary getDependency(String absoluteUri) {
+    Map<String, LinkedLibrary> sdkLibraries =
+        SerializedMockSdk.instance.uriToLinkedLibrary;
+    LinkedLibrary linkedLibrary = sdkLibraries[absoluteUri];
+    if (linkedLibrary == null && !_allowMissingFiles) {
+      fail('Linker unexpectedly requested LinkedLibrary for "$absoluteUri".'
+          '  Libraries available: ${sdkLibraries.keys}');
+    }
+    return linkedLibrary;
+  }
+
+  UnlinkedUnit getUnit(String absoluteUri) {
+    UnlinkedUnit unit = _uriToUnit[absoluteUri] ??
+        SerializedMockSdk.instance.uriToUnlinkedUnit[absoluteUri];
+    if (unit == null && !_allowMissingFiles) {
+      fail('Linker unexpectedly requested unit for "$absoluteUri".');
+    }
+    return unit;
+  }
+}
+
+/**
+ * Base class providing the ability to run the summary linker using summaries
+ * build from ASTs.
+ */
+abstract class SummaryLinkerTest {
+  /**
+   * Map from absolute URI to the [UnlinkedUnit] for each compilation unit
+   * passed to [addNamedSource].
+   */
+  final Map<String, UnlinkedUnit> uriToUnit = <String, UnlinkedUnit>{};
+
+  /**
+   * A test will set this to `true` if it contains `import`, `export`, or
+   * `part` declarations that deliberately refer to non-existent files.
+   */
+  bool get allowMissingFiles;
+
+  /**
+   * Add the given source file so that it may be referenced by the file under
+   * test.
+   */
+  Source addNamedSource(String filePath, String contents) {
+    CompilationUnit unit = _parseText(contents);
+    UnlinkedUnit unlinkedUnit =
+        new UnlinkedUnit.fromBuffer(serializeAstUnlinked(unit).toBuffer());
+    uriToUnit[absUri(filePath)] = unlinkedUnit;
+    // Tests using SummaryLinkerTest don't actually need the returned
+    // Source, so we can safely return `null`.
+    return null;
+  }
+
+  LinkerInputs createLinkerInputs(String text) {
+    Uri testDartUri = Uri.parse(absUri('/test.dart'));
+    CompilationUnit unit = _parseText(text);
+    UnlinkedUnit unlinkedDefiningUnit =
+        new UnlinkedUnit.fromBuffer(serializeAstUnlinked(unit).toBuffer());
+    uriToUnit[testDartUri.toString()] = unlinkedDefiningUnit;
+    return new LinkerInputs(
+        allowMissingFiles, uriToUnit, testDartUri, unlinkedDefiningUnit);
   }
 
   CompilationUnit _parseText(String text) {
