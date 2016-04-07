@@ -3386,7 +3386,7 @@ class Parser {
    */
   Identifier parsePrefixedIdentifier() {
     SimpleIdentifier qualifier = parseSimpleIdentifier();
-    if (!_matches(TokenType.PERIOD)) {
+    if (!_matches(TokenType.PERIOD) || _injectGenericCommentTypeList()) {
       return qualifier;
     }
     Token period = getAndAdvance();
