@@ -309,12 +309,6 @@ class TransitionToGenerated : public TransitionSafepointState {
     } else {
       ASSERT(execution_state_ == Thread::kThreadInVM);
       thread()->set_execution_state(Thread::kThreadInVM);
-      // Fast check to see if a safepoint is requested or not.
-      // We do the more expensive operation of blocking the thread
-      // only if a safepoint is requested.
-      if (thread()->IsSafepointRequested()) {
-        handler()->BlockForSafepoint(thread());
-      }
     }
   }
 
