@@ -23,7 +23,7 @@ import 'package:analyzer/src/summary/summarize_elements.dart'
     as summarize_elements;
 import 'package:unittest/unittest.dart';
 
-import '../../generated/analysis_context_factory.dart';
+import '../context/mock_sdk.dart';
 
 /**
  * Convert a summary object (or a portion of one) into a canonical form that
@@ -99,13 +99,14 @@ class SerializedMockSdk {
 
   static SerializedMockSdk _serializeMockSdk() {
     try {
-      AnalysisContext analysisContext =
-          AnalysisContextFactory.contextWithCore();
+      AnalysisContext analysisContext = new MockSdk().context;
       Map<String, UnlinkedUnit> uriToUnlinkedUnit = <String, UnlinkedUnit>{};
       Map<String, LinkedLibrary> uriToLinkedLibrary = <String, LinkedLibrary>{};
       List<LibraryElement> libraries = [
         analysisContext.typeProvider.objectType.element.library,
-        analysisContext.typeProvider.futureType.element.library
+        analysisContext.typeProvider.futureType.element.library,
+        analysisContext.computeLibraryElement(
+            analysisContext.sourceFactory.resolveUri(null, 'dart:math')),
       ];
       for (LibraryElement library in libraries) {
         summarize_elements.LibrarySerializationResult serializedLibrary =
@@ -7219,7 +7220,7 @@ Stream s;
     checkTypeRef(findVariable('f').type, 'dart:async', 'dart:async', 'Future',
         numTypeParameters: 1);
     checkTypeRef(findVariable('s').type, 'dart:async', 'dart:async', 'Stream',
-        numTypeParameters: 1);
+        expectedTargetUnit: 1, numTypeParameters: 1);
   }
 
   test_import_reference_merged_prefixed() {
@@ -7233,7 +7234,7 @@ a.Stream s;
     checkTypeRef(findVariable('f').type, 'dart:async', 'dart:async', 'Future',
         expectedPrefix: 'a', numTypeParameters: 1);
     checkTypeRef(findVariable('s').type, 'dart:async', 'dart:async', 'Stream',
-        expectedPrefix: 'a', numTypeParameters: 1);
+        expectedTargetUnit: 1, expectedPrefix: 'a', numTypeParameters: 1);
   }
 
   test_import_reference_merged_prefixed_separate_libraries() {
