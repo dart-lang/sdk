@@ -12,7 +12,6 @@
 #include "vm/code_observers.h"
 #include "vm/compiler.h"
 #include "vm/compiler_stats.h"
-#include "vm/coverage.h"
 #include "vm/dart_api_message.h"
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
@@ -1553,12 +1552,6 @@ void Isolate::Shutdown() {
     // Ensure we have a zone and handle scope so that we can call VM functions.
     StackZone stack_zone(thread);
     HandleScope handle_scope(thread);
-
-    // Write out the coverage data if collection has been enabled.
-    if ((this != Dart::vm_isolate()) &&
-        !ServiceIsolate::IsServiceIsolateDescendant(this)) {
-      CodeCoverage::Write(thread);
-    }
 
     // Write compiler stats data if enabled.
     if (FLAG_support_compiler_stats && FLAG_compiler_stats

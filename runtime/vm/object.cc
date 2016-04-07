@@ -60,7 +60,6 @@ DEFINE_FLAG(bool, use_lib_cache, true, "Use library name cache");
 DEFINE_FLAG(bool, ignore_patch_signature_mismatch, false,
             "Ignore patch file member signature mismatch.");
 
-DECLARE_FLAG(charp, coverage_dir);
 DECLARE_FLAG(bool, show_invisible_frames);
 DECLARE_FLAG(bool, trace_deoptimization);
 DECLARE_FLAG(bool, trace_deoptimization_verbose);
@@ -5887,10 +5886,6 @@ void Function::SetNumOptionalParameters(intptr_t num_optional_parameters,
 
 
 bool Function::IsOptimizable() const {
-  if (FLAG_coverage_dir != NULL) {
-    // Do not optimize if collecting coverage data.
-    return false;
-  }
   if (is_native()) {
     // Native methods don't need to be optimized.
     return false;

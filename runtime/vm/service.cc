@@ -9,7 +9,6 @@
 #include "platform/globals.h"
 
 #include "vm/compiler.h"
-#include "vm/coverage.h"
 #include "vm/cpu.h"
 #include "vm/dart_api_impl.h"
 #include "vm/dart_api_state.h"
@@ -2287,121 +2286,6 @@ static bool GetInstances(Thread* thread, JSONStream* js) {
 }
 
 
-class LibraryCoverageFilter : public CoverageFilter {
- public:
-  explicit LibraryCoverageFilter(const Library& lib) : lib_(lib) {}
-  bool ShouldOutputCoverageFor(const Library& lib,
-                               const Script& script,
-                               const Class& cls,
-                               const Function& func) const {
-    return lib.raw() == lib_.raw();
-  }
- private:
-  const Library& lib_;
-};
-
-
-class ScriptCoverageFilter : public CoverageFilter {
- public:
-  explicit ScriptCoverageFilter(const Script& script)
-      : script_(script) {}
-  bool ShouldOutputCoverageFor(const Library& lib,
-                               const Script& script,
-                               const Class& cls,
-                               const Function& func) const {
-    return script.raw() == script_.raw();
-  }
- private:
-  const Script& script_;
-};
-
-
-class ClassCoverageFilter : public CoverageFilter {
- public:
-  explicit ClassCoverageFilter(const Class& cls) : cls_(cls) {}
-  bool ShouldOutputCoverageFor(const Library& lib,
-                               const Script& script,
-                               const Class& cls,
-                               const Function& func) const {
-    return cls.raw() == cls_.raw();
-  }
- private:
-  const Class& cls_;
-};
-
-
-class FunctionCoverageFilter : public CoverageFilter {
- public:
-  explicit FunctionCoverageFilter(const Function& func) : func_(func) {}
-  bool ShouldOutputCoverageFor(const Library& lib,
-                               const Script& script,
-                               const Class& cls,
-                               const Function& func) const {
-    return func.raw() == func_.raw();
-  }
- private:
-  const Function& func_;
-};
-
-
-static bool GetHitsOrSites(Thread* thread, JSONStream* js, bool as_sites) {
-  if (!thread->isolate()->compilation_allowed()) {
-    js->PrintError(kFeatureDisabled,
-        "Cannot get coverage data when running a precompiled program.");
-    return true;
-  }
-  if (!js->HasParam("targetId")) {
-    CodeCoverage::PrintJSON(thread, js, NULL, as_sites);
-    return true;
-  }
-  const char* target_id = js->LookupParam("targetId");
-  Object& obj = Object::Handle(LookupHeapObject(thread, target_id, NULL));
-  if (obj.raw() == Object::sentinel().raw()) {
-    PrintInvalidParamError(js, "targetId");
-    return true;
-  }
-  if (obj.IsScript()) {
-    ScriptCoverageFilter sf(Script::Cast(obj));
-    CodeCoverage::PrintJSON(thread, js, &sf, as_sites);
-    return true;
-  }
-  if (obj.IsLibrary()) {
-    LibraryCoverageFilter lf(Library::Cast(obj));
-    CodeCoverage::PrintJSON(thread, js, &lf, as_sites);
-    return true;
-  }
-  if (obj.IsClass()) {
-    ClassCoverageFilter cf(Class::Cast(obj));
-    CodeCoverage::PrintJSON(thread, js, &cf, as_sites);
-    return true;
-  }
-  if (obj.IsFunction()) {
-    FunctionCoverageFilter ff(Function::Cast(obj));
-    CodeCoverage::PrintJSON(thread, js, &ff, as_sites);
-    return true;
-  }
-  js->PrintError(kInvalidParams,
-                 "%s: invalid 'targetId' parameter: "
-                 "id '%s' does not correspond to a "
-                 "script, library, class, or function",
-                 js->method(), target_id);
-  return true;
-}
-
-
-static const MethodParameter* get_coverage_params[] = {
-  RUNNABLE_ISOLATE_PARAMETER,
-  new IdParameter("targetId", false),
-  NULL,
-};
-
-
-static bool GetCoverage(Thread* thread, JSONStream* js) {
-  // TODO(rmacnak): Remove this response; it is subsumed by GetCallSiteData.
-  return GetHitsOrSites(thread, js, false);
-}
-
-
 static const char* const report_enum_names[] = {
   SourceReport::kCallSitesStr,
   SourceReport::kCoverageStr,
@@ -2487,18 +2371,6 @@ static bool GetSourceReport(Thread* thread, JSONStream* js) {
                    TokenPosition(start_pos),
                    TokenPosition(end_pos));
   return true;
-}
-
-
-static const MethodParameter* get_call_site_data_params[] = {
-  RUNNABLE_ISOLATE_PARAMETER,
-  new IdParameter("targetId", false),
-  NULL,
-};
-
-
-static bool GetCallSiteData(Thread* thread, JSONStream* js) {
-  return GetHitsOrSites(thread, js, true);
 }
 
 
@@ -4015,12 +3887,8 @@ static const ServiceMethodDescriptor service_methods_[] = {
     get_allocation_profile_params },
   { "_getAllocationSamples", GetAllocationSamples,
       get_allocation_samples_params },
-  { "_getCallSiteData", GetCallSiteData,
-    get_call_site_data_params },
   { "getClassList", GetClassList,
     get_class_list_params },
-  { "_getCoverage", GetCoverage,
-    get_coverage_params },
   { "_getCpuProfile", GetCpuProfile,
     get_cpu_profile_params },
   { "_getCpuProfileTimeline", GetCpuProfileTimeline,
