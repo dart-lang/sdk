@@ -121,7 +121,8 @@ class LoopInvariantBranchMotion extends BlockVisitor implements Pass {
       Node use = ref.parent;
       if (use is InvokeContinuation) {
         for (Parameter loopParam in parameters) {
-          use.argumentRefs.add(new Reference<Primitive>(loopParam)..parent = use);
+          use.argumentRefs
+              .add(new Reference<Primitive>(loopParam)..parent = use);
         }
       }
     }
@@ -148,7 +149,7 @@ class LoopInvariantBranchMotion extends BlockVisitor implements Pass {
       hoistedCase = trueCont;
       loopCase = falseCont;
     } else if (loopHierarchy.getLoopHeader(falseCont) != loop &&
-               loopHierarchy.getLoopHeader(trueCont) == loop) {
+        loopHierarchy.getLoopHeader(trueCont) == loop) {
       hoistedCase = falseCont;
       loopCase = trueCont;
     } else {
@@ -211,13 +212,12 @@ class LoopInvariantBranchMotion extends BlockVisitor implements Pass {
     //     branch b newTrue newFalse
     //
     InvokeContinuation loopEntry = loopBinding.body;
-    List<Primitive> loopArgs =
-        loopEntry.arguments.toList();
+    List<Primitive> loopArgs = loopEntry.arguments.toList();
     CpsFragment cps = new CpsFragment();
-    cps.branch(condition,
-          strict: branch.isStrictCheck,
-          negate: hoistedCase == falseCont)
-       .invokeContinuation(hoistedCase, loopArgs);
+    cps
+        .branch(condition,
+            strict: branch.isStrictCheck, negate: hoistedCase == falseCont)
+        .invokeContinuation(hoistedCase, loopArgs);
 
     // The continuations created in the fragment need to have their loop header
     // set so the loop hierarchy remains intact

@@ -5,31 +5,23 @@
 library types;
 
 import '../common.dart';
-import '../common/backend_api.dart' show
-    Backend;
-import '../common/tasks.dart' show
-    CompilerTask;
-import '../compiler.dart' show
-    Compiler;
-import '../constants/values.dart' show
-    PrimitiveConstantValue;
+import '../common/backend_api.dart' show Backend;
+import '../common/tasks.dart' show CompilerTask;
+import '../compiler.dart' show Compiler;
+import '../constants/values.dart' show PrimitiveConstantValue;
 import '../elements/elements.dart';
-import '../inferrer/type_graph_inferrer.dart' show
-    TypeGraphInferrer;
+import '../inferrer/type_graph_inferrer.dart' show TypeGraphInferrer;
 import '../tree/tree.dart';
 import '../util/util.dart';
-import '../universe/selector.dart' show
-    Selector;
-import '../universe/universe.dart' show
-    ReceiverConstraint,
-    UniverseSelectorConstraints,
-    SelectorConstraintsStrategy;
-import '../world.dart' show
-    ClassWorld,
-    World;
+import '../universe/selector.dart' show Selector;
+import '../universe/universe.dart'
+    show
+        ReceiverConstraint,
+        UniverseSelectorConstraints,
+        SelectorConstraintsStrategy;
+import '../world.dart' show ClassWorld, World;
 
-import 'abstract_value_domain.dart' show
-    AbstractValue;
+import 'abstract_value_domain.dart' show AbstractValue;
 
 part 'container_type_mask.dart';
 part 'dictionary_type_mask.dart';
@@ -284,12 +276,11 @@ class TypesTask extends CompilerTask {
   bool better(TypeMask type1, TypeMask type2) {
     if (type1 == null) return false;
     if (type2 == null) {
-      return (type1 != null) &&
-             (type1 != dynamicType);
+      return (type1 != null) && (type1 != dynamicType);
     }
     return (type1 != type2) &&
-           type2.containsMask(type1, classWorld) &&
-           !type1.containsMask(type2, classWorld);
+        type2.containsMask(type1, classWorld) &&
+        !type1.containsMask(type2, classWorld);
   }
 
   /**
@@ -320,8 +311,7 @@ class TypesTask extends CompilerTask {
       return dynamicType;
     }
 
-    TypeMask guaranteedType =
-        typesInferrer.getReturnTypeOfElement(element);
+    TypeMask guaranteedType = typesInferrer.getReturnTypeOfElement(element);
     return guaranteedType;
   }
 
@@ -338,8 +328,7 @@ class TypesTask extends CompilerTask {
    * Return the (inferred) guaranteed type of [selector] or null.
    */
   TypeMask getGuaranteedTypeOfSelector(Selector selector, TypeMask mask) {
-    TypeMask guaranteedType =
-        typesInferrer.getTypeOfSelector(selector, mask);
+    TypeMask guaranteedType = typesInferrer.getTypeOfSelector(selector, mask);
     return guaranteedType;
   }
 }

@@ -5,24 +5,15 @@
 library dart2js.parser.diet.task;
 
 import '../common.dart';
-import '../common/tasks.dart' show
-    CompilerTask;
-import '../compiler.dart' show
-    Compiler;
-import '../elements/elements.dart' show
-    CompilationUnitElement;
-import '../tokens/token.dart' show
-    Token;
+import '../common/tasks.dart' show CompilerTask;
+import '../compiler.dart' show Compiler;
+import '../elements/elements.dart' show CompilationUnitElement;
+import '../tokens/token.dart' show Token;
 
-import 'listener.dart' show
-    ParserError;
-import 'element_listener.dart' show
-    ElementListener,
-    ScannerOptions;
-import '../options.dart' show
-    ParserOptions;
-import 'partial_parser.dart' show
-    PartialParser;
+import 'listener.dart' show ParserError;
+import 'element_listener.dart' show ElementListener, ScannerOptions;
+import '../options.dart' show ParserOptions;
+import 'partial_parser.dart' show PartialParser;
 
 class DietParserTask extends CompilerTask {
   final ParserOptions _parserOptions;
@@ -41,7 +32,7 @@ class DietParserTask extends CompilerTask {
       PartialParser parser = new PartialParser(listener, _parserOptions);
       try {
         parser.parseUnit(tokens);
-      } on ParserError catch(_) {
+      } on ParserError catch (_) {
         assert(invariant(compilationUnit, compiler.compilationFailed));
       }
     });

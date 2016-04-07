@@ -49,7 +49,6 @@ abstract class Name {
 
   LibraryElement get library;
 
-
   /// Returns `true` when [s] is private if used as an identifier.
   static bool isPrivateName(String s) => !s.isEmpty && s.codeUnitAt(0) == $_;
 
@@ -107,7 +106,7 @@ class PrivateName extends PublicName {
 
   bool operator ==(other) {
     if (other is! PrivateName) return false;
-    return super==(other) && library == other.library;
+    return super == (other) && library == other.library;
   }
 
   String toString() => '${library.libraryName}#${super.toString()}';

@@ -4,14 +4,10 @@
 
 library js_backend.serialization;
 
-import '../common/backend_api.dart' show
-    BackendSerialization;
+import '../common/backend_api.dart' show BackendSerialization;
 import '../elements/elements.dart';
-import '../serialization/serialization.dart' show
-    DeserializerPlugin,
-    ObjectDecoder,
-    ObjectEncoder,
-    SerializerPlugin;
+import '../serialization/serialization.dart'
+    show DeserializerPlugin, ObjectDecoder, ObjectEncoder, SerializerPlugin;
 import '../serialization/keys.dart';
 import 'js_backend.dart';
 
@@ -57,4 +53,3 @@ class JavaScriptBackendDeserializer implements DeserializerPlugin {
     }
   }
 }
-

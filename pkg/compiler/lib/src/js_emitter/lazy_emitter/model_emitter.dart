@@ -4,39 +4,32 @@
 
 library dart2js.js_emitter.lazy_emitter.model_emitter;
 
-import '../../compiler.dart' show
-    Compiler;
-import '../../constants/values.dart' show
-    ConstantValue,
-    FunctionConstantValue;
-import '../../core_types.dart' show
-    CoreClasses;
-import '../../elements/elements.dart' show
-    ClassElement,
-    FunctionElement;
+import '../../compiler.dart' show Compiler;
+import '../../constants/values.dart' show ConstantValue, FunctionConstantValue;
+import '../../core_types.dart' show CoreClasses;
+import '../../elements/elements.dart' show ClassElement, FunctionElement;
 import '../../js/js.dart' as js;
-import '../../js_backend/js_backend.dart' show
-    JavaScriptBackend,
-    Namer,
-    ConstantEmitter;
+import '../../js_backend/js_backend.dart'
+    show JavaScriptBackend, Namer, ConstantEmitter;
 
 import '../js_emitter.dart' show NativeEmitter;
 import '../constant_ordering.dart' show deepCompareConstants;
 
-import 'package:js_runtime/shared/embedded_names.dart' show
-    CREATE_NEW_ISOLATE,
-    DEFERRED_LIBRARY_URIS,
-    DEFERRED_LIBRARY_HASHES,
-    GET_TYPE_FROM_NAME,
-    INITIALIZE_LOADED_HUNK,
-    INTERCEPTORS_BY_TAG,
-    IS_HUNK_INITIALIZED,
-    IS_HUNK_LOADED,
-    LEAF_TAGS,
-    MANGLED_GLOBAL_NAMES,
-    METADATA,
-    TYPE_TO_INTERCEPTOR_MAP,
-    TYPES;
+import 'package:js_runtime/shared/embedded_names.dart'
+    show
+        CREATE_NEW_ISOLATE,
+        DEFERRED_LIBRARY_URIS,
+        DEFERRED_LIBRARY_HASHES,
+        GET_TYPE_FROM_NAME,
+        INITIALIZE_LOADED_HUNK,
+        INTERCEPTORS_BY_TAG,
+        IS_HUNK_INITIALIZED,
+        IS_HUNK_LOADED,
+        LEAF_TAGS,
+        MANGLED_GLOBAL_NAMES,
+        METADATA,
+        TYPE_TO_INTERCEPTOR_MAP,
+        TYPES;
 
 import '../js_emitter.dart' show NativeGenerator, buildTearOffCode;
 import '../model.dart';
@@ -60,10 +53,8 @@ class ModelEmitter {
   ModelEmitter(Compiler compiler, Namer namer, this.nativeEmitter)
       : this.compiler = compiler,
         this.namer = namer {
-
     this.constantEmitter = new ConstantEmitter(
-        compiler, namer, this.generateConstantReference,
-        constantListGenerator);
+        compiler, namer, this.generateConstantReference, constantListGenerator);
   }
 
   js.Expression constantListGenerator(js.Expression array) {
@@ -81,9 +72,9 @@ class ModelEmitter {
   }
 
   bool isConstantInlinedOrAlreadyEmitted(ConstantValue constant) {
-    if (constant.isFunction) return true;    // Already emitted.
-    if (constant.isPrimitive) return true;   // Inlined.
-    if (constant.isDummy) return true;       // Inlined.
+    if (constant.isFunction) return true; // Already emitted.
+    if (constant.isPrimitive) return true; // Inlined.
+    if (constant.isDummy) return true; // Inlined.
     // The name is null when the constant is already a JS constant.
     // TODO(floitsch): every constant should be registered, so that we can
     // share the ones that take up too much space (like some strings).
@@ -130,8 +121,8 @@ class ModelEmitter {
     if (isConstantInlinedOrAlreadyEmitted(value)) {
       return constantEmitter.generate(value);
     }
-    return js.js('#.#()', [namer.globalObjectForConstant(value),
-                           namer.constantName(value)]);
+    return js.js('#.#()',
+        [namer.globalObjectForConstant(value), namer.constantName(value)]);
   }
 
   int emitProgram(Program program) {
@@ -144,8 +135,8 @@ class ModelEmitter {
     // We have to emit the deferred fragments first, since we need their
     // deferred hash (which depends on the output) when emitting the main
     // fragment.
-    List<js.Expression> fragmentsCode = deferredFragments.map(
-            (DeferredFragment deferredUnit) {
+    List<js.Expression> fragmentsCode =
+        deferredFragments.map((DeferredFragment deferredUnit) {
       js.Expression types =
           program.metadataTypesForOutputUnit(deferredUnit.outputUnit);
       return emitDeferredFragment(types, deferredUnit, program.holders);
@@ -163,16 +154,17 @@ class ModelEmitter {
     for (int i = 0; i < fragmentsCode.length; ++i) {
       String code = js.createCodeBuffer(fragmentsCode[i], compiler).getText();
       totalSize += code.length;
-      compiler.outputProvider(fragments[i+1].outputFileName, deferredExtension)
+      compiler.outputProvider(
+          fragments[i + 1].outputFileName, deferredExtension)
         ..add(code)
         ..close();
     }
 
     String mainCode = js.createCodeBuffer(mainAst, compiler).getText();
     compiler.outputProvider(mainFragment.outputFileName, 'js')
-        ..add(buildGeneratedBy(compiler))
-        ..add(mainCode)
-        ..close();
+      ..add(buildGeneratedBy(compiler))
+      ..add(mainCode)
+      ..close();
     totalSize += mainCode.length;
 
     return totalSize;
@@ -187,7 +179,7 @@ class ModelEmitter {
   ///
   /// See [_UnparsedNode] for details.
   js.Literal unparse(Compiler compiler, js.Node value,
-                     {bool protectForEval: true}) {
+      {bool protectForEval: true}) {
     return new js.UnparsedNode(value, compiler, protectForEval);
   }
 
@@ -208,31 +200,31 @@ class ModelEmitter {
 
     js.Expression code = new js.ArrayInitializer(elements);
 
-    Map<String, dynamic> holes =
-      {'deferredInitializer': emitDeferredInitializerGlobal(program.loadMap),
-       'holders': emitHolders(program.holders),
-       'tearOff': buildTearOffCode(backend),
-       'parseFunctionDescriptor':
-           js.js.statement(parseFunctionDescriptorBoilerplate,
-               {'argumentCount': js.string(namer.requiredParameterField),
-                'defaultArgumentValues': js.string(namer.defaultValuesField),
-                'callName': js.string(namer.callNameField)}),
-
-       'cyclicThrow':
-           backend.emitter.staticFunctionAccess(
-               backend.helpers.cyclicThrowHelper),
-       'outputContainsConstantList': program.outputContainsConstantList,
-       'embeddedGlobals': emitEmbeddedGlobals(program),
-       'readMetadataTypeFunction': readMetadataTypeFunction,
-       'staticNonFinals':
-            emitStaticNonFinalFields(fragment.staticNonFinalFields),
-       'operatorIsPrefix': js.string(namer.operatorIsPrefix),
-       'callName': js.string(namer.callNameField),
-       'argumentCount': js.string(namer.requiredParameterField),
-       'defaultArgumentValues': js.string(namer.defaultValuesField),
-       'eagerClasses': emitEagerClassInitializations(fragment.libraries),
-       'invokeMain': fragment.invokeMain,
-       'code': code};
+    Map<String, dynamic> holes = {
+      'deferredInitializer': emitDeferredInitializerGlobal(program.loadMap),
+      'holders': emitHolders(program.holders),
+      'tearOff': buildTearOffCode(backend),
+      'parseFunctionDescriptor':
+          js.js.statement(parseFunctionDescriptorBoilerplate, {
+        'argumentCount': js.string(namer.requiredParameterField),
+        'defaultArgumentValues': js.string(namer.defaultValuesField),
+        'callName': js.string(namer.callNameField)
+      }),
+      'cyclicThrow': backend.emitter
+          .staticFunctionAccess(backend.helpers.cyclicThrowHelper),
+      'outputContainsConstantList': program.outputContainsConstantList,
+      'embeddedGlobals': emitEmbeddedGlobals(program),
+      'readMetadataTypeFunction': readMetadataTypeFunction,
+      'staticNonFinals':
+          emitStaticNonFinalFields(fragment.staticNonFinalFields),
+      'operatorIsPrefix': js.string(namer.operatorIsPrefix),
+      'callName': js.string(namer.callNameField),
+      'argumentCount': js.string(namer.requiredParameterField),
+      'defaultArgumentValues': js.string(namer.defaultValuesField),
+      'eagerClasses': emitEagerClassInitializations(fragment.libraries),
+      'invokeMain': fragment.invokeMain,
+      'code': code
+    };
 
     holes.addAll(nativeHoles(program));
 
@@ -256,7 +248,6 @@ class ModelEmitter {
     nativeHoles['nativeIsolateAffinityTagInitialization'] =
         nativeIsolateAffinityTagInitialization;
 
-
     js.Expression nativeInfoAccess = js.js('nativeInfo', []);
     js.Expression constructorAccess = js.js('constructor', []);
     Function subclassReadGenerator = (js.Expression subclass) {
@@ -264,8 +255,7 @@ class ModelEmitter {
     };
     js.Expression interceptorsByTagAccess =
         generateEmbeddedGlobalAccess(INTERCEPTORS_BY_TAG);
-    js.Expression leafTagsAccess =
-        generateEmbeddedGlobalAccess(LEAF_TAGS);
+    js.Expression leafTagsAccess = generateEmbeddedGlobalAccess(LEAF_TAGS);
     js.Statement nativeInfoHandler = NativeGenerator.buildNativeInfoHandler(
         nativeInfoAccess,
         constructorAccess,
@@ -292,15 +282,17 @@ class ModelEmitter {
     // that covers the entire program.
 
     List<js.Statement> statements = [
-        new js.ExpressionStatement(
-            new js.VariableDeclarationList(holders.map((e) =>
-                new js.VariableInitialization(
-                    new js.VariableDeclaration(e.name, allowRename: false),
-                    new js.ObjectInitializer(const []))).toList())),
-        js.js.statement('var holders = #', new js.ArrayInitializer(
-            holders.map((e) => new js.VariableUse(e.name))
-                   .toList(growable: false))),
-        js.js.statement('var holdersMap = Object.create(null)')
+      new js.ExpressionStatement(new js.VariableDeclarationList(holders
+          .map((e) => new js.VariableInitialization(
+              new js.VariableDeclaration(e.name, allowRename: false),
+              new js.ObjectInitializer(const [])))
+          .toList())),
+      js.js.statement(
+          'var holders = #',
+          new js.ArrayInitializer(holders
+              .map((e) => new js.VariableUse(e.name))
+              .toList(growable: false))),
+      js.js.statement('var holdersMap = Object.create(null)')
     ];
     return new js.Block(statements);
   }
@@ -313,15 +305,14 @@ class ModelEmitter {
     }
 
     if (program.typeToInterceptorMap != null) {
-      globals.add(new js.Property(js.string(TYPE_TO_INTERCEPTOR_MAP),
-                                  program.typeToInterceptorMap));
+      globals.add(new js.Property(
+          js.string(TYPE_TO_INTERCEPTOR_MAP), program.typeToInterceptorMap));
     }
 
     if (program.hasIsolateSupport) {
       String isolateName = namer.staticStateHolder;
-      globals.add(
-          new js.Property(js.string(CREATE_NEW_ISOLATE),
-                          js.js('function () { return $isolateName; }')));
+      globals.add(new js.Property(js.string(CREATE_NEW_ISOLATE),
+          js.js('function () { return $isolateName; }')));
       // TODO(floitsch): add remaining isolate functions.
     }
 
@@ -332,20 +323,21 @@ class ModelEmitter {
     globals.addAll(emitMetadata(program));
 
     if (program.needsNativeSupport) {
-      globals.add(new js.Property(js.string(INTERCEPTORS_BY_TAG),
-                                  js.js('Object.create(null)', [])));
-      globals.add(new js.Property(js.string(LEAF_TAGS),
-                                  js.js('Object.create(null)', [])));
+      globals.add(new js.Property(
+          js.string(INTERCEPTORS_BY_TAG), js.js('Object.create(null)', [])));
+      globals.add(new js.Property(
+          js.string(LEAF_TAGS), js.js('Object.create(null)', [])));
     }
 
     js.ObjectInitializer globalsObject = new js.ObjectInitializer(globals);
 
-    List<js.Statement> statements =
-        [new js.ExpressionStatement(
-            new js.VariableDeclarationList(
-                [new js.VariableInitialization(
-                    new js.VariableDeclaration("init", allowRename: false),
-                    globalsObject)]))];
+    List<js.Statement> statements = [
+      new js.ExpressionStatement(new js.VariableDeclarationList([
+        new js.VariableInitialization(
+            new js.VariableDeclaration("init", allowRename: false),
+            globalsObject)
+      ]))
+    ];
     return new js.Block(statements);
   }
 
@@ -355,17 +347,22 @@ class ModelEmitter {
     CoreClasses coreClasses = compiler.coreClasses;
     // We want to keep the original names for the most common core classes when
     // calling toString on them.
-    List<ClassElement> nativeClassesNeedingUnmangledName =
-        [coreClasses.intClass, coreClasses.doubleClass, coreClasses.numClass,
-         coreClasses.stringClass, coreClasses.boolClass, coreClasses.nullClass,
-         coreClasses.listClass];
+    List<ClassElement> nativeClassesNeedingUnmangledName = [
+      coreClasses.intClass,
+      coreClasses.doubleClass,
+      coreClasses.numClass,
+      coreClasses.stringClass,
+      coreClasses.boolClass,
+      coreClasses.nullClass,
+      coreClasses.listClass
+    ];
     nativeClassesNeedingUnmangledName.forEach((element) {
-        names.add(new js.Property(js.quoteName(namer.className(element)),
-                                  js.string(element.name)));
+      names.add(new js.Property(
+          js.quoteName(namer.className(element)), js.string(element.name)));
     });
 
-    return new js.Property(js.string(MANGLED_GLOBAL_NAMES),
-                           new js.ObjectInitializer(names));
+    return new js.Property(
+        js.string(MANGLED_GLOBAL_NAMES), new js.ObjectInitializer(names));
   }
 
   js.Statement emitDeferredInitializerGlobal(Map loadMap) {
@@ -378,7 +375,6 @@ class ModelEmitter {
 
   Iterable<js.Property> emitEmbeddedGlobalsForDeferredLoading(
       Map<String, List<Fragment>> loadMap) {
-
     List<js.Property> globals = <js.Property>[];
 
     js.ArrayInitializer fragmentUris(List<Fragment> fragments) {
@@ -402,44 +398,44 @@ class ModelEmitter {
       count++;
     });
 
-    globals.add(new js.Property(js.string(DEFERRED_LIBRARY_URIS),
-                                new js.ObjectInitializer(uris)));
-    globals.add(new js.Property(js.string(DEFERRED_LIBRARY_HASHES),
-                                new js.ObjectInitializer(hashes)));
+    globals.add(new js.Property(
+        js.string(DEFERRED_LIBRARY_URIS), new js.ObjectInitializer(uris)));
+    globals.add(new js.Property(
+        js.string(DEFERRED_LIBRARY_HASHES), new js.ObjectInitializer(hashes)));
 
     js.Expression isHunkLoadedFunction =
         js.js("function(hash) { return !!$deferredInitializersGlobal[hash]; }");
-    globals.add(new js.Property(js.string(IS_HUNK_LOADED),
-                                isHunkLoadedFunction));
+    globals
+        .add(new js.Property(js.string(IS_HUNK_LOADED), isHunkLoadedFunction));
 
     js.Expression isHunkInitializedFunction =
         js.js("function(hash) { return false; }");
-    globals.add(new js.Property(js.string(IS_HUNK_INITIALIZED),
-                                isHunkInitializedFunction));
+    globals.add(new js.Property(
+        js.string(IS_HUNK_INITIALIZED), isHunkInitializedFunction));
 
     js.Expression typesAccess = generateEmbeddedGlobalAccess(TYPES);
 
     /// See [emitEmbeddedGlobalsForDeferredLoading] for the format of the
     /// deferred hunk.
-    js.Expression initializeLoadedHunkFunction =
-        js.js("""
+    js.Expression initializeLoadedHunkFunction = js.js(
+        """
           function(hash) {
             var hunk = $deferredInitializersGlobal[hash];
             $setupProgramName(hunk[0], #typesAccess.length);
             eval(hunk[1]);
             var deferredTypes = eval(hunk[2]);
             #typesAccess.push.apply(#typesAccess, deferredTypes);
-          }""", {'typesAccess': typesAccess});
+          }""",
+        {'typesAccess': typesAccess});
 
-    globals.add(new js.Property(js.string(INITIALIZE_LOADED_HUNK),
-                                initializeLoadedHunkFunction));
+    globals.add(new js.Property(
+        js.string(INITIALIZE_LOADED_HUNK), initializeLoadedHunkFunction));
 
     return globals;
   }
 
   js.Property emitGetTypeFromName() {
-    js.Expression function =
-        js.js( """function(name) {
+    js.Expression function = js.js("""function(name) {
                     return holdersMap[name][name].ensureResolved();
                   }""");
     return new js.Property(js.string(GET_TYPE_FROM_NAME), function);
@@ -451,14 +447,16 @@ class ModelEmitter {
     // Types are non-evaluated and must be compiled at first use.
     // Compiled strings are guaranteed not to be strings, and it's thus safe
     // to use a type-test to determine if a type has already been compiled.
-    return js.js.statement('''function $readMetadataTypeName(index) {
+    return js.js.statement(
+        '''function $readMetadataTypeName(index) {
       var type = #typesAccess[index];
       if (typeof type == 'string') {
         type = expressionCompile(type);
         #typesAccess[index] = type;
       }
       return type;
-    }''', {"typesAccess": generateEmbeddedGlobalAccess(TYPES)});
+    }''',
+        {"typesAccess": generateEmbeddedGlobalAccess(TYPES)});
   }
 
   js.Template get templateForReadType {
@@ -474,17 +472,19 @@ class ModelEmitter {
     // Types are non-evaluated and must be compiled at first use.
     // Compiled strings are guaranteed not to be strings, and it's thus safe
     // to use a type-test to determine if a type has already been compiled.
-    return js.js.statement('''function $readMetadataName(index) {
+    return js.js.statement(
+        '''function $readMetadataName(index) {
       var lazyMetadata = #lazyMetadataAccess[index];
       if (typeof lazyMetadata == 'string') {
         #metadataAccess[index] = expressionCompile(lazyMetadata);
         #lazyMetadataAccess[index] = null;
       }
       return #metadataAccess[index];
-    }''', {
-      "lazyMetadataAccess": generateEmbeddedGlobalAccess(lazyMetadataName),
-      "metadataAccess": generateEmbeddedGlobalAccess(METADATA)
-    });
+    }''',
+        {
+          "lazyMetadataAccess": generateEmbeddedGlobalAccess(lazyMetadataName),
+          "metadataAccess": generateEmbeddedGlobalAccess(METADATA)
+        });
   }
 
   js.Template get templateForReadMetadata {
@@ -509,8 +509,7 @@ class ModelEmitter {
   }
 
   js.Expression emitDeferredFragment(js.Expression deferredTypes,
-                                     DeferredFragment fragment,
-                                     List<Holder> holders) {
+      DeferredFragment fragment, List<Holder> holders) {
     // TODO(floitsch): initialize eager classes.
     // TODO(floitsch): the hash must depend on the output.
     int hash = fragment.hashCode;
@@ -527,15 +526,14 @@ class ModelEmitter {
     // This is the code that must be evaluated after all deferred classes have
     // been setup.
     js.Statement immediateCode = new js.Block([
-        emitStaticNonFinalFields(fragment.staticNonFinalFields),
-        emitEagerClassInitializations(fragment.libraries)]);
-
+      emitStaticNonFinalFields(fragment.staticNonFinalFields),
+      emitEagerClassInitializations(fragment.libraries)
+    ]);
 
     js.Literal immediateString = unparse(compiler, immediateCode);
 
-    js.ArrayInitializer hunk =
-        new js.ArrayInitializer([deferredArray, immediateString,
-                                 deferredTypes]);
+    js.ArrayInitializer hunk = new js.ArrayInitializer(
+        [deferredArray, immediateString, deferredTypes]);
 
     return js.js("$deferredInitializersGlobal[$hash] = #", hunk);
   }
@@ -563,18 +561,19 @@ class ModelEmitter {
 
   js.Block emitStaticNonFinalFields(List<StaticField> fields) {
     Iterable<js.Statement> statements = fields.map((StaticField field) {
-      return js.js.statement("#.# = #;",
-                             [field.holder.name, field.name, field.code]);
+      return js.js
+          .statement("#.# = #;", [field.holder.name, field.name, field.code]);
     });
     return new js.Block(statements.toList());
   }
 
   js.Expression emitLazilyInitializedStatics(List<StaticField> fields) {
-    Iterable fieldDescriptors = fields.expand((field) =>
-        [ js.quoteName(field.name),
+    Iterable fieldDescriptors = fields.expand((field) => [
+          js.quoteName(field.name),
           js.quoteName(namer.deriveLazyInitializerName(field.name)),
           js.number(field.holder.index),
-          emitLazyInitializer(field) ]);
+          emitLazyInitializer(field)
+        ]);
     return new js.ArrayInitializer(fieldDescriptors.toList(growable: false));
   }
 
@@ -583,18 +582,17 @@ class ModelEmitter {
       return js.js.statement('new #.#()', [cls.holder.name, cls.name]);
     }
 
-    List<js.Statement> instantiations =
-        libraries.expand((Library library) => library.classes)
-                 .where((Class cls) => cls.isEager)
-                 .map(createInstantiation)
-                 .toList(growable: false);
+    List<js.Statement> instantiations = libraries
+        .expand((Library library) => library.classes)
+        .where((Class cls) => cls.isEager)
+        .map(createInstantiation)
+        .toList(growable: false);
     return new js.Block(instantiations);
   }
 
   // This string should be referenced wherever JavaScript code makes assumptions
   // on the mixin format.
-  static final String nativeInfoDescription =
-      "A class is encoded as follows:"
+  static final String nativeInfoDescription = "A class is encoded as follows:"
       "   [name, class-code, holder-index], or "
       "   [name, class-code, native-info, holder-index].";
 
@@ -632,8 +630,8 @@ class ModelEmitter {
     js.Name name = cls.name;
 
     Iterable<js.Name> assignments = fieldNames.map((js.Name field) {
-        return js.js("this.#field = #field", {"field": field});
-      });
+      return js.js("this.#field = #field", {"field": field});
+    });
 
     return js.js('function #(#) { # }', [name, fieldNames, assignments]);
   }
@@ -641,9 +639,12 @@ class ModelEmitter {
   Method _generateGetter(Field field) {
     String getterTemplateFor(int flags) {
       switch (flags) {
-        case 1: return "function() { return this[#]; }";
-        case 2: return "function(receiver) { return receiver[#]; }";
-        case 3: return "function(receiver) { return this[#]; }";
+        case 1:
+          return "function() { return this[#]; }";
+        case 2:
+          return "function(receiver) { return receiver[#]; }";
+        case 3:
+          return "function(receiver) { return this[#]; }";
       }
       return null;
     }
@@ -657,9 +658,12 @@ class ModelEmitter {
   Method _generateSetter(Field field) {
     String setterTemplateFor(int flags) {
       switch (flags) {
-        case 1: return "function(val) { return this[#] = val; }";
-        case 2: return "function(receiver, val) { return receiver[#] = val; }";
-        case 3: return "function(receiver, val) { return this[#] = val; }";
+        case 1:
+          return "function(val) { return this[#] = val; }";
+        case 2:
+          return "function(receiver, val) { return receiver[#] = val; }";
+        case 3:
+          return "function(receiver, val) { return this[#] = val; }";
       }
       return null;
     }
@@ -689,8 +693,10 @@ class ModelEmitter {
       "reference.";
 
   js.Expression emitClass(Class cls) {
-    List elements = [js.quoteName(cls.superclassName, allowNull: true),
-                     js.number(cls.superclassHolderIndex)];
+    List elements = [
+      js.quoteName(cls.superclassName, allowNull: true),
+      js.number(cls.superclassHolderIndex)
+    ];
 
     if (cls.isMixinApplication) {
       MixinApplication mixin = cls;
@@ -708,9 +714,14 @@ class ModelEmitter {
     Iterable<Method> typeVariableReaderStubs = cls.typeVariableReaderStubs;
     Iterable<Method> noSuchMethodStubs = cls.noSuchMethodStubs;
     Iterable<Method> gettersSetters = _generateGettersSetters(cls);
-    Iterable<Method> allMethods =
-        [methods, isChecks, callStubs, typeVariableReaderStubs,
-         noSuchMethodStubs, gettersSetters].expand((x) => x);
+    Iterable<Method> allMethods = [
+      methods,
+      isChecks,
+      callStubs,
+      typeVariableReaderStubs,
+      noSuchMethodStubs,
+      gettersSetters
+    ].expand((x) => x);
     elements.addAll(allMethods.expand(emitInstanceMethod));
 
     return unparse(compiler, new js.ArrayInitializer(elements));
@@ -813,15 +824,14 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
           method.optionalParameterDefaultValues;
       List<js.Property> properties = <js.Property>[];
       defaultValues.forEach((String name, ConstantValue value) {
-        properties.add(new js.Property(js.string(name),
-            generateConstantReference(value)));
+        properties.add(
+            new js.Property(js.string(name), generateConstantReference(value)));
       });
       return new js.ObjectInitializer(properties);
     }
   }
 
   Iterable<js.Expression> emitInstanceMethod(Method method) {
-
     List<js.Expression> makeNameCodePair(Method method) {
       return [js.quoteName(method.name), method.code];
     }
@@ -905,8 +915,11 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
           data.add(js.number(method.requiredParameterCount));
           data.add(_encodeOptionalParameterDefaultValues(method));
         }
-        return [js.quoteName(method.name), holderIndex,
-                new js.ArrayInitializer(data)];
+        return [
+          js.quoteName(method.name),
+          holderIndex,
+          new js.ArrayInitializer(data)
+        ];
       } else {
         method.parameterStubs.forEach(_addMethod);
       }
@@ -1257,5 +1270,4 @@ function parseFunctionDescriptor(proto, name, descriptor, typesOffset) {
 
 })(Date.now(), #code)
 }""";
-
 }

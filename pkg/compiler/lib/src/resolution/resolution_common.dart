@@ -5,21 +5,15 @@
 library dart2js.resolution.common;
 
 import '../common.dart';
-import '../common/resolution.dart' show
-    Resolution;
-import '../common/tasks.dart' show
-    DeferredAction;
-import '../compiler.dart' show
-    Compiler;
+import '../common/resolution.dart' show Resolution;
+import '../common/tasks.dart' show DeferredAction;
+import '../compiler.dart' show Compiler;
 import '../elements/elements.dart';
 import '../tree/tree.dart';
 
-import 'registry.dart' show
-    ResolutionRegistry;
-import 'scope.dart' show
-    Scope;
-import 'type_resolver.dart' show
-    TypeResolver;
+import 'registry.dart' show ResolutionRegistry;
+import 'scope.dart' show Scope;
+import 'type_resolver.dart' show TypeResolver;
 
 class CommonResolverVisitor<R> extends Visitor<R> {
   final Compiler compiler;
@@ -31,8 +25,8 @@ class CommonResolverVisitor<R> extends Visitor<R> {
   Resolution get resolution => compiler.resolution;
 
   R visitNode(Node node) {
-    return reporter.internalError(node,
-        'internal error: Unhandled node: ${node.getObjectDescription()}');
+    return reporter.internalError(
+        node, 'internal error: Unhandled node: ${node.getObjectDescription()}');
   }
 
   R visitEmptyStatement(Node node) => null;
@@ -52,8 +46,10 @@ class CommonResolverVisitor<R> extends Visitor<R> {
 abstract class MappingVisitor<T> extends CommonResolverVisitor<T> {
   final ResolutionRegistry registry;
   final TypeResolver typeResolver;
+
   /// The current enclosing element for the visited AST nodes.
   Element get enclosingElement;
+
   /// The current scope of the visitor.
   Scope get scope;
 
@@ -77,9 +73,9 @@ abstract class MappingVisitor<T> extends CommonResolverVisitor<T> {
           element.name == 'async' ||
           element.name == 'await') {
         reporter.reportErrorMessage(
-            node, MessageKind.ASYNC_KEYWORD_AS_IDENTIFIER,
-            {'keyword': element.name,
-             'modifier': currentAsyncMarker});
+            node,
+            MessageKind.ASYNC_KEYWORD_AS_IDENTIFIER,
+            {'keyword': element.name, 'modifier': currentAsyncMarker});
       }
     }
   }
@@ -93,19 +89,14 @@ abstract class MappingVisitor<T> extends CommonResolverVisitor<T> {
     registry.defineElement(node, element);
   }
 
-  void reportDuplicateDefinition(String name,
-                                 Spannable definition,
-                                 Spannable existing) {
+  void reportDuplicateDefinition(
+      String name, Spannable definition, Spannable existing) {
     reporter.reportError(
         reporter.createMessage(
-            definition,
-            MessageKind.DUPLICATE_DEFINITION,
-            {'name': name}),
+            definition, MessageKind.DUPLICATE_DEFINITION, {'name': name}),
         <DiagnosticMessage>[
-            reporter.createMessage(
-                existing,
-                MessageKind.EXISTING_DEFINITION,
-                {'name': name}),
+          reporter.createMessage(
+              existing, MessageKind.EXISTING_DEFINITION, {'name': name}),
         ]);
   }
 }

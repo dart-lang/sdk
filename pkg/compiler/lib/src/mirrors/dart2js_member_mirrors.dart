@@ -9,13 +9,11 @@ part of dart2js.mirrors;
 //------------------------------------------------------------------------------
 
 abstract class Dart2JsMemberMirror extends Dart2JsElementMirror {
-
   Dart2JsMemberMirror(Dart2JsMirrorSystem system, AstElement element)
       : super(system, element);
 
   bool get isStatic => false;
 }
-
 
 class Dart2JsMethodKind {
   static const Dart2JsMethodKind REGULAR = const Dart2JsMethodKind("regular");
@@ -36,21 +34,21 @@ class Dart2JsMethodKind {
   String toString() => text;
 }
 
-class Dart2JsMethodMirror extends Dart2JsMemberMirror
-    implements MethodMirror {
+class Dart2JsMethodMirror extends Dart2JsMemberMirror implements MethodMirror {
   final Dart2JsDeclarationMirror owner;
   final String _simpleNameString;
   final Dart2JsMethodKind _kind;
 
-  Dart2JsMethodMirror._internal(Dart2JsDeclarationMirror owner,
+  Dart2JsMethodMirror._internal(
+      Dart2JsDeclarationMirror owner,
       FunctionElement function,
       String this._simpleNameString,
       Dart2JsMethodKind this._kind)
       : this.owner = owner,
         super(owner.mirrorSystem, function);
 
-  factory Dart2JsMethodMirror(Dart2JsDeclarationMirror owner,
-                              FunctionElement function) {
+  factory Dart2JsMethodMirror(
+      Dart2JsDeclarationMirror owner, FunctionElement function) {
     String simpleName = function.name;
     // TODO(ahe): This method should not be calling
     // Elements.operatorNameToIdentifier.
@@ -75,8 +73,7 @@ class Dart2JsMethodMirror extends Dart2JsMemberMirror
     } else {
       kind = Dart2JsMethodKind.REGULAR;
     }
-    return new Dart2JsMethodMirror._internal(owner, function,
-        simpleName, kind);
+    return new Dart2JsMethodMirror._internal(owner, function, simpleName, kind);
   }
 
   FunctionElement get _function => _element;
@@ -86,21 +83,22 @@ class Dart2JsMethodMirror extends Dart2JsMemberMirror
   // TODO(johnniwinther): This seems stale and broken.
   Symbol get constructorName => isConstructor ? simpleName : const Symbol('');
 
-  bool get isConstructor
-      => isGenerativeConstructor || isConstConstructor ||
-         isFactoryConstructor || isRedirectingConstructor;
+  bool get isConstructor =>
+      isGenerativeConstructor ||
+      isConstConstructor ||
+      isFactoryConstructor ||
+      isRedirectingConstructor;
 
   bool get isSynthetic => false;
 
   bool get isStatic => _function.isStatic;
 
   List<ParameterMirror> get parameters {
-    return _parametersFromFunctionSignature(this,
-        _function.functionSignature);
+    return _parametersFromFunctionSignature(this, _function.functionSignature);
   }
 
-  TypeMirror get returnType => owner._getTypeMirror(
-      _function.functionSignature.type.returnType);
+  TypeMirror get returnType =>
+      owner._getTypeMirror(_function.functionSignature.type.returnType);
 
   bool get isAbstract => _function.isAbstract;
 
@@ -140,8 +138,7 @@ class Dart2JsFieldMirror extends Dart2JsMemberMirror implements VariableMirror {
   final Dart2JsDeclarationMirror owner;
   VariableElement _variable;
 
-  Dart2JsFieldMirror(Dart2JsDeclarationMirror owner,
-                     VariableElement variable)
+  Dart2JsFieldMirror(Dart2JsDeclarationMirror owner, VariableElement variable)
       : this.owner = owner,
         this._variable = variable,
         super(owner.mirrorSystem, variable);
@@ -155,8 +152,6 @@ class Dart2JsFieldMirror extends Dart2JsMemberMirror implements VariableMirror {
   bool get isConst => _variable.isConst;
 
   TypeMirror get type => owner._getTypeMirror(_variable.type);
-
-
 }
 
 class Dart2JsParameterMirror extends Dart2JsMemberMirror
@@ -165,10 +160,9 @@ class Dart2JsParameterMirror extends Dart2JsMemberMirror
   final bool isOptional;
   final bool isNamed;
 
-  factory Dart2JsParameterMirror(Dart2JsDeclarationMirror owner,
-                                 FormalElement element,
-                                 {bool isOptional: false,
-                                  bool isNamed: false}) {
+  factory Dart2JsParameterMirror(
+      Dart2JsDeclarationMirror owner, FormalElement element,
+      {bool isOptional: false, bool isNamed: false}) {
     if (element is InitializingFormalElement) {
       return new Dart2JsFieldParameterMirror(
           owner, element, isOptional, isNamed);
@@ -179,11 +173,9 @@ class Dart2JsParameterMirror extends Dart2JsMemberMirror
   }
 
   Dart2JsParameterMirror._normal(Dart2JsDeclarationMirror owner,
-                                 FormalElement element,
-                                 this.isOptional,
-                                 this.isNamed)
-    : this.owner = owner,
-      super(owner.mirrorSystem, element);
+      FormalElement element, this.isOptional, this.isNamed)
+      : this.owner = owner,
+        super(owner.mirrorSystem, element);
 
   FormalElement get _element => super._element;
 
@@ -198,13 +190,13 @@ class Dart2JsParameterMirror extends Dart2JsMemberMirror
       // TODO(johnniwinther): Get the constant from the [TreeElements]
       // associated with the enclosing method.
       ParameterElement parameter = _element;
-      ConstantExpression constant = mirrorSystem.compiler.constants
-          .getConstantForVariable(parameter);
+      ConstantExpression constant =
+          mirrorSystem.compiler.constants.getConstantForVariable(parameter);
       assert(invariant(parameter, constant != null,
           message: "Missing constant for parameter "
-                   "$parameter with default value."));
-      return _convertConstantToInstanceMirror(mirrorSystem,
-          constant, mirrorSystem.compiler.constants.getConstantValue(constant));
+              "$parameter with default value."));
+      return _convertConstantToInstanceMirror(mirrorSystem, constant,
+          mirrorSystem.compiler.constants.getConstantValue(constant));
     }
     return null;
   }
@@ -223,17 +215,14 @@ class Dart2JsParameterMirror extends Dart2JsMemberMirror
 }
 
 class Dart2JsFieldParameterMirror extends Dart2JsParameterMirror {
-
   Dart2JsFieldParameterMirror(Dart2JsDeclarationMirror method,
-                              InitializingFormalElement element,
-                              bool isOptional,
-                              bool isNamed)
+      InitializingFormalElement element, bool isOptional, bool isNamed)
       : super._normal(method, element, isOptional, isNamed);
 
   InitializingFormalElement get _fieldParameterElement => _element;
 
   bool get isInitializingFormal => true;
 
-  VariableMirror get initializedField => new Dart2JsFieldMirror(
-      owner.owner, _fieldParameterElement.fieldElement);
+  VariableMirror get initializedField =>
+      new Dart2JsFieldMirror(owner.owner, _fieldParameterElement.fieldElement);
 }

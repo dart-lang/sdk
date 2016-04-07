@@ -17,9 +17,9 @@ class NaiveAnalysisResult implements AnalysisResult {
   NaiveAnalysisResult();
 
   ReceiverInfo infoForReceiver(Node receiver) =>
-    new NaiveReceiverInfo(receiver);
+      new NaiveReceiverInfo(receiver);
   SelectorInfo infoForSelector(Node receiver, Selector selector) =>
-    new NaiveSelectorInfo(receiver, selector);
+      new NaiveSelectorInfo(receiver, selector);
 }
 
 class NaiveReceiverInfo implements ReceiverInfo {

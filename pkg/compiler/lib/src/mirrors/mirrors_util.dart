@@ -42,7 +42,7 @@ String displayName(DeclarationMirror mirror) {
     String simpleName = nameOf(mirror);
     if (mirror.isSetter) {
       // Remove trailing '='.
-      return simpleName.substring(0, simpleName.length-1);
+      return simpleName.substring(0, simpleName.length - 1);
     } else if (mirror.isOperator) {
       return 'operator ${operatorName(mirror)}';
     } else if (mirror.isConstructor) {
@@ -77,8 +77,8 @@ String operatorName(MethodMirror methodMirror) {
  * Returns an iterable over the type declarations directly inheriting from
  * the declaration of [type] within [mirrors].
  */
-Iterable<ClassMirror> computeSubdeclarations(MirrorSystem mirrors,
-                                             ClassMirror type) {
+Iterable<ClassMirror> computeSubdeclarations(
+    MirrorSystem mirrors, ClassMirror type) {
   type = type.originalDeclaration;
   var subtypes = <ClassMirror>[];
   mirrors.libraries.forEach((_, library) {
@@ -174,22 +174,19 @@ LibraryMirror getLibrary(DeclarationMirror declaration) {
 
 Iterable<DeclarationMirror> membersOf(
     Map<Symbol, DeclarationMirror> declarations) {
-  return declarations.values.where(
-      (mirror) => mirror is MethodMirror || mirror is VariableMirror);
+  return declarations.values
+      .where((mirror) => mirror is MethodMirror || mirror is VariableMirror);
 }
 
-Iterable<TypeMirror> classesOf(
-    Map<Symbol, DeclarationMirror> declarations) {
+Iterable<TypeMirror> classesOf(Map<Symbol, DeclarationMirror> declarations) {
   return new _TypeOfIterable<ClassMirror>(declarations.values);
 }
 
-Iterable<TypeMirror> typesOf(
-    Map<Symbol, DeclarationMirror> declarations) {
+Iterable<TypeMirror> typesOf(Map<Symbol, DeclarationMirror> declarations) {
   return new _TypeOfIterable<TypeMirror>(declarations.values);
 }
 
-Iterable<MethodMirror> methodsOf(
-    Map<Symbol, DeclarationMirror> declarations) {
+Iterable<MethodMirror> methodsOf(Map<Symbol, DeclarationMirror> declarations) {
   return anyMethodOf(declarations).where((mirror) => mirror.isRegularMethod);
 }
 
@@ -198,13 +195,11 @@ Iterable<MethodMirror> constructorsOf(
   return anyMethodOf(declarations).where((mirror) => mirror.isConstructor);
 }
 
-Iterable<MethodMirror> settersOf(
-    Map<Symbol, DeclarationMirror> declarations) {
+Iterable<MethodMirror> settersOf(Map<Symbol, DeclarationMirror> declarations) {
   return anyMethodOf(declarations).where((mirror) => mirror.isSetter);
 }
 
-Iterable<MethodMirror> gettersOf(
-    Map<Symbol, DeclarationMirror> declarations) {
+Iterable<MethodMirror> gettersOf(Map<Symbol, DeclarationMirror> declarations) {
   return anyMethodOf(declarations).where((mirror) => mirror.isGetter);
 }
 
@@ -234,7 +229,7 @@ class _TypeOfIterator<T> implements Iterator<T> {
   _TypeOfIterator(this._source);
 
   bool moveNext() {
-    while(_source.moveNext()) {
+    while (_source.moveNext()) {
       if (_source.current is T) {
         return true;
       }
@@ -350,7 +345,7 @@ String stripComment(String comment) {
     comment = match[1];
     var sb = new StringBuffer();
     List<String> lines = comment.split('\n');
-    for (int index = 0 ; index < lines.length ; index++) {
+    for (int index = 0; index < lines.length; index++) {
       String line = lines[index];
       if (index == 0) {
         sb.write(line); // Add the first line unprocessed.
@@ -360,7 +355,7 @@ String stripComment(String comment) {
       match = _multiLineCommentLineStart.firstMatch(line);
       if (match != null) {
         sb.write(match[1]);
-      } else if (index < lines.length-1 || !line.trim().isEmpty) {
+      } else if (index < lines.length - 1 || !line.trim().isEmpty) {
         // Do not add the last line if it only contains white space.
         // This interprets cases like
         //     /*
@@ -388,8 +383,8 @@ String stripComment(String comment) {
  * variable of [:Iterable:] and 'col.Iterable.contains.element' finds the
  * [:element:] parameter of the [:contains:] method on [:Iterable:].
  */
-DeclarationMirror lookupQualifiedInScope(DeclarationSourceMirror declaration,
-                                         String name) {
+DeclarationMirror lookupQualifiedInScope(
+    DeclarationSourceMirror declaration, String name) {
   // TODO(11653): Support lookup of constructors using the [:new Foo:]
   // syntax.
   int offset = 1;
@@ -419,11 +414,12 @@ DeclarationMirror _lookupLocal(Mirror mirror, Symbol id) {
     if (result != null) return result;
     // Try type variables.
     result = mirror.typeVariables.firstWhere(
-        (TypeVariableMirror v) => v.simpleName == id, orElse: () => null);
+        (TypeVariableMirror v) => v.simpleName == id,
+        orElse: () => null);
   } else if (mirror is MethodMirror) {
     result = mirror.parameters.firstWhere(
-        (ParameterMirror p) => p.simpleName == id, orElse: () => null);
+        (ParameterMirror p) => p.simpleName == id,
+        orElse: () => null);
   }
   return result;
-
 }

@@ -4,20 +4,13 @@
 
 library dart2js.scanner.utf8;
 
-import 'dart:convert' show
-    UNICODE_BOM_CHARACTER_RUNE,
-    UTF8;
+import 'dart:convert' show UNICODE_BOM_CHARACTER_RUNE, UTF8;
 
-import '../io/source_file.dart' show
-    SourceFile;
-import '../tokens/precedence.dart' show
-    PrecedenceInfo;
-import '../tokens/token.dart' show
-    StringToken,
-    Token;
+import '../io/source_file.dart' show SourceFile;
+import '../tokens/precedence.dart' show PrecedenceInfo;
+import '../tokens/token.dart' show StringToken, Token;
 
-import 'array_based_scanner.dart' show
-    ArrayBasedScanner;
+import 'array_based_scanner.dart' show ArrayBasedScanner;
 
 /**
  * Scanner that reads from a UTF-8 encoded list of bytes and creates tokens
@@ -100,7 +93,7 @@ class Utf8BytesScanner extends ArrayBasedScanner {
    * scanning.
    */
   Utf8BytesScanner.fromBytes(List<int> zeroTerminatedBytes,
-                             {bool includeComments: false})
+      {bool includeComments: false})
       : this.bytes = zeroTerminatedBytes,
         super(null, includeComments) {
     assert(bytes.last == 0);
@@ -212,7 +205,7 @@ class Utf8BytesScanner extends ArrayBasedScanner {
   Token previousToken() => tail;
 
   void appendSubstringToken(PrecedenceInfo info, int start, bool asciiOnly,
-                            [int extraOffset = 0]) {
+      [int extraOffset = 0]) {
     tail.next = new StringToken.fromUtf8Bytes(
         info, bytes, start, byteOffset + extraOffset, asciiOnly, tokenStart);
     tail = tail.next;

@@ -4,22 +4,14 @@
 
 library dart2js.scanner.task;
 
-import '../common/tasks.dart' show
-    CompilerTask;
-import '../compiler.dart' show
-    Compiler;
-import '../elements/elements.dart' show
-    CompilationUnitElement,
-    LibraryElement;
-import '../script.dart' show
-    Script;
-import '../tokens/token.dart' show
-    Token;
+import '../common/tasks.dart' show CompilerTask;
+import '../compiler.dart' show Compiler;
+import '../elements/elements.dart' show CompilationUnitElement, LibraryElement;
+import '../script.dart' show Script;
+import '../tokens/token.dart' show Token;
 
-import 'scanner.dart' show
-    Scanner;
-import 'string_scanner.dart' show
-    StringScanner;
+import 'scanner.dart' show Scanner;
+import 'string_scanner.dart' show StringScanner;
 
 class ScannerTask extends CompilerTask {
   ScannerTask(Compiler compiler) : super(compiler);
@@ -46,7 +38,8 @@ class ScannerTask extends CompilerTask {
   void scanElements(CompilationUnitElement compilationUnit) {
     Script script = compilationUnit.script;
     Token tokens = new Scanner(script.file,
-        includeComments: compiler.options.preserveComments).tokenize();
+            includeComments: compiler.options.preserveComments)
+        .tokenize();
     if (compiler.options.preserveComments) {
       tokens = compiler.processAndStripComments(tokens);
     }

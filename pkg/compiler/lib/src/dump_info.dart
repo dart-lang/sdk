@@ -4,41 +4,26 @@
 
 library dump_info;
 
-import 'dart:convert' show
-    ChunkedConversionSink,
-    HtmlEscape,
-    JsonEncoder,
-    StringConversionSink;
+import 'dart:convert'
+    show ChunkedConversionSink, HtmlEscape, JsonEncoder, StringConversionSink;
 
 import 'package:dart2js_info/info.dart';
 
 import 'common.dart';
-import 'common/tasks.dart' show
-    CompilerTask;
-import 'constants/values.dart' show
-    ConstantValue,
-    InterceptorConstantValue;
-import 'compiler.dart' show
-    Compiler;
-import 'deferred_load.dart' show
-    OutputUnit;
+import 'common/tasks.dart' show CompilerTask;
+import 'constants/values.dart' show ConstantValue, InterceptorConstantValue;
+import 'compiler.dart' show Compiler;
+import 'deferred_load.dart' show OutputUnit;
 import 'elements/elements.dart';
 import 'elements/visitor.dart';
-import 'info/send_info.dart' show
-    collectSendMeasurements;
-import 'js_backend/js_backend.dart' show
-    JavaScriptBackend;
-import 'js_emitter/full_emitter/emitter.dart' as full show
-    Emitter;
+import 'info/send_info.dart' show collectSendMeasurements;
+import 'js_backend/js_backend.dart' show JavaScriptBackend;
+import 'js_emitter/full_emitter/emitter.dart' as full show Emitter;
 import 'js/js.dart' as jsAst;
-import 'types/types.dart' show
-    TypeMask;
-import 'universe/universe.dart' show
-    ReceiverConstraint;
-import 'universe/world_impact.dart' show
-    ImpactUseCase,
-    WorldImpact,
-    WorldImpactVisitorImpl;
+import 'types/types.dart' show TypeMask;
+import 'universe/universe.dart' show ReceiverConstraint;
+import 'universe/world_impact.dart'
+    show ImpactUseCase, WorldImpact, WorldImpactVisitorImpl;
 
 class ElementInfoCollector extends BaseElementVisitor<Info, dynamic> {
   final Compiler compiler;
@@ -453,16 +438,13 @@ class DumpInfoTask extends CompilerTask implements InfoReporter {
     compiler.impactStrategy.visitImpact(
         element,
         impact,
-        new WorldImpactVisitorImpl(
-            visitDynamicUse: (dynamicUse) {
-              selections.addAll(compiler.world.allFunctions
-                        .filter(dynamicUse.selector, dynamicUse.mask)
-                        .map((e) => new Selection(e, dynamicUse.mask)));
-            },
-            visitStaticUse: (staticUse) {
-              selections.add(new Selection(staticUse.element, null));
-            }
-        ),
+        new WorldImpactVisitorImpl(visitDynamicUse: (dynamicUse) {
+          selections.addAll(compiler.world.allFunctions
+              .filter(dynamicUse.selector, dynamicUse.mask)
+              .map((e) => new Selection(e, dynamicUse.mask)));
+        }, visitStaticUse: (staticUse) {
+          selections.add(new Selection(staticUse.element, null));
+        }),
         IMPACT_USE);
     return selections;
   }

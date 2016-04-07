@@ -22,33 +22,29 @@ class TypeMaskFactory {
   static TypeMask inferredReturnTypeForElement(
       Element element, Compiler compiler) {
     return fromInferredType(
-        compiler.typesTask.getGuaranteedReturnTypeOfElement(element),
-        compiler);
+        compiler.typesTask.getGuaranteedReturnTypeOfElement(element), compiler);
   }
 
   static TypeMask inferredTypeForElement(Element element, Compiler compiler) {
     return fromInferredType(
-        compiler.typesTask.getGuaranteedTypeOfElement(element),
-        compiler);
+        compiler.typesTask.getGuaranteedTypeOfElement(element), compiler);
   }
 
-  static TypeMask inferredTypeForSelector(Selector selector,
-                                          TypeMask mask,
-                                          Compiler compiler) {
+  static TypeMask inferredTypeForSelector(
+      Selector selector, TypeMask mask, Compiler compiler) {
     return fromInferredType(
         compiler.typesTask.getGuaranteedTypeOfSelector(selector, mask),
         compiler);
   }
 
-  static TypeMask inferredForNode(Element owner, ast.Node node,
-                                  Compiler compiler) {
+  static TypeMask inferredForNode(
+      Element owner, ast.Node node, Compiler compiler) {
     return fromInferredType(
-        compiler.typesTask.getGuaranteedTypeOfNode(owner, node),
-        compiler);
+        compiler.typesTask.getGuaranteedTypeOfNode(owner, node), compiler);
   }
 
-  static TypeMask fromNativeBehavior(native.NativeBehavior nativeBehavior,
-                                     Compiler compiler) {
+  static TypeMask fromNativeBehavior(
+      native.NativeBehavior nativeBehavior, Compiler compiler) {
     ClassWorld classWorld = compiler.world;
     JavaScriptBackend backend = compiler.backend;
     if (nativeBehavior.typesReturned.isEmpty) return backend.dynamicType;

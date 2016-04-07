@@ -62,18 +62,15 @@ class ImpactSerializer implements WorldImpactVisitor {
     ObjectEncoder object = dynamicUses.createObject();
     object.setEnum(Key.KIND, dynamicUse.selector.kind);
 
-    object.setInt(Key.ARGUMENTS,
-        dynamicUse.selector.callStructure.argumentCount);
-    object.setStrings(Key.NAMED_ARGUMENTS,
-        dynamicUse.selector.callStructure.namedArguments);
+    object.setInt(
+        Key.ARGUMENTS, dynamicUse.selector.callStructure.argumentCount);
+    object.setStrings(
+        Key.NAMED_ARGUMENTS, dynamicUse.selector.callStructure.namedArguments);
 
-    object.setString(Key.NAME,
-        dynamicUse.selector.memberName.text);
-    object.setBool(Key.IS_SETTER,
-        dynamicUse.selector.memberName.isSetter);
+    object.setString(Key.NAME, dynamicUse.selector.memberName.text);
+    object.setBool(Key.IS_SETTER, dynamicUse.selector.memberName.isSetter);
     if (dynamicUse.selector.memberName.library != null) {
-      object.setElement(Key.LIBRARY,
-        dynamicUse.selector.memberName.library);
+      object.setElement(Key.LIBRARY, dynamicUse.selector.memberName.library);
     }
   }
 
@@ -109,15 +106,15 @@ class DeserializedResolutionImpact extends WorldImpact
   final Iterable<StaticUse> staticUses;
   final Iterable<TypeUse> typeUses;
 
-  DeserializedResolutionImpact({
-    this.constSymbolNames,
-    this.constantLiterals,
-    this.dynamicUses,
-    EnumSet<Feature> features,
-    this.listLiterals,
-    this.mapLiterals,
-    this.staticUses,
-    this.typeUses})
+  DeserializedResolutionImpact(
+      {this.constSymbolNames,
+      this.constantLiterals,
+      this.dynamicUses,
+      EnumSet<Feature> features,
+      this.listLiterals,
+      this.mapLiterals,
+      this.staticUses,
+      this.typeUses})
       : this._features = features;
 
   Iterable<Feature> get features => _features.iterable(Feature.values);
@@ -146,13 +143,10 @@ class ImpactDeserializer {
       String name = object.getString(Key.NAME);
       bool isSetter = object.getBool(Key.IS_SETTER);
       LibraryElement library = object.getElement(Key.LIBRARY, isOptional: true);
-      dynamicUses.add(
-          new DynamicUse(
-              new Selector(
-                  kind,
-                  new Name(name, library, isSetter: isSetter),
-                  new CallStructure(argumentCount, namedArguments)),
-              null));
+      dynamicUses.add(new DynamicUse(
+          new Selector(kind, new Name(name, library, isSetter: isSetter),
+              new CallStructure(argumentCount, namedArguments)),
+          null));
     }
 
     ListDecoder typeUseDecoder = objectDecoder.getList(Key.TYPE_USES);
@@ -183,8 +177,8 @@ class ImpactDeserializer {
         DartType type = useDecoder.getType(Key.TYPE);
         bool isConstant = useDecoder.getBool(Key.IS_CONST);
         bool isEmpty = useDecoder.getBool(Key.IS_EMPTY);
-        listLiterals.add(new ListLiteralUse(
-            type, isConstant: isConstant, isEmpty: isEmpty));
+        listLiterals.add(
+            new ListLiteralUse(type, isConstant: isConstant, isEmpty: isEmpty));
       }
     }
 
@@ -198,8 +192,8 @@ class ImpactDeserializer {
         DartType type = useDecoder.getType(Key.TYPE);
         bool isConstant = useDecoder.getBool(Key.IS_CONST);
         bool isEmpty = useDecoder.getBool(Key.IS_EMPTY);
-        mapLiterals.add(new MapLiteralUse(
-            type, isConstant: isConstant, isEmpty: isEmpty));
+        mapLiterals.add(
+            new MapLiteralUse(type, isConstant: isConstant, isEmpty: isEmpty));
       }
     }
 

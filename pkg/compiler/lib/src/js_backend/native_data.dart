@@ -5,11 +5,8 @@
 library js_backend.native_data;
 
 import '../common.dart';
-import '../elements/elements.dart' show
-    ClassElement,
-    Element,
-    FunctionElement,
-    MemberElement;
+import '../elements/elements.dart'
+    show ClassElement, Element, FunctionElement, MemberElement;
 
 /// Additional element information for native classes and methods and js-interop
 /// methods.
@@ -38,10 +35,9 @@ class NativeData {
 
   /// Sets the explicit js interop [name] for [element].
   void setJsInteropName(Element element, String name) {
-    assert(invariant(element,
-        isJsInterop(element),
+    assert(invariant(element, isJsInterop(element),
         message:
-          'Element $element is not js interop but given a js interop name.'));
+            'Element $element is not js interop but given a js interop name.'));
     jsInteropNames[element.declaration] = name;
   }
 
@@ -77,8 +73,7 @@ class NativeData {
 
   String _jsNameHelper(Element element) {
     String jsInteropName = jsInteropNames[element.declaration];
-    assert(invariant(element,
-        !(_isJsInterop(element) && jsInteropName == null),
+    assert(invariant(element, !(_isJsInterop(element) && jsInteropName == null),
         message:
             'Element $element is js interop but js interop name has not yet '
             'been computed.'));
@@ -121,13 +116,13 @@ class NativeData {
     // TODO(johnniwinther): Avoid setting this more than once. The enqueuer
     // might enqueue [element] several times (before processing it) and computes
     // name on each call to `internalAddToWorkList`.
-    assert(invariant(element,
+    assert(invariant(
+        element,
         nativeMemberName[element.declaration] == null ||
-        nativeMemberName[element.declaration] == name,
-        message:
-          "Native member name set inconsistently on $element: "
-          "Existing name '${nativeMemberName[element.declaration]}', "
-          "new name '$name'."));
+            nativeMemberName[element.declaration] == name,
+        message: "Native member name set inconsistently on $element: "
+            "Existing name '${nativeMemberName[element.declaration]}', "
+            "new name '$name'."));
     nativeMemberName[element.declaration] = name;
   }
 
@@ -141,13 +136,13 @@ class NativeData {
     // compiler copies pre-processed elements into a new compiler through
     // [Compiler.onLibraryScanned] and thereby causes multiple calls to this
     // method.
-    assert(invariant(cls,
+    assert(invariant(
+        cls,
         nativeClassTagInfo[cls.declaration] == null ||
-        nativeClassTagInfo[cls.declaration] == tagInfo,
-        message:
-          "Native tag info set inconsistently on $cls: "
-          "Existing tag info '${nativeClassTagInfo[cls.declaration]}', "
-          "new tag info '$tagInfo'."));
+            nativeClassTagInfo[cls.declaration] == tagInfo,
+        message: "Native tag info set inconsistently on $cls: "
+            "Existing tag info '${nativeClassTagInfo[cls.declaration]}', "
+            "new tag info '$tagInfo'."));
     nativeClassTagInfo[cls.declaration] = tagInfo;
   }
 
@@ -159,8 +154,9 @@ class NativeData {
 
   /// Returns the list of non-directive native tag words for [cls].
   List<String> getNativeTagsOfClass(ClassElement cls) {
-    return getNativeTagsOfClassRaw(cls).where(
-        (s) => !s.startsWith('!')).toList();
+    return getNativeTagsOfClassRaw(cls)
+        .where((s) => !s.startsWith('!'))
+        .toList();
   }
 
   /// Returns `true` if [cls] has a `!nonleaf` tag word.

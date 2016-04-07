@@ -6,7 +6,6 @@ import '../universe/side_effects.dart' show SideEffects;
 
 import 'nodes.dart';
 
-
 class ValueSet {
   int size = 0;
   List<HInstruction> table;

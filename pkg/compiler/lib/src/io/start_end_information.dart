@@ -8,11 +8,8 @@
 library dart2js.source_information.start_end;
 
 import '../common.dart';
-import '../diagnostics/messages.dart' show
-    MessageTemplate;
-import '../elements/elements.dart' show
-    AstElement,
-    LocalElement;
+import '../diagnostics/messages.dart' show MessageTemplate;
+import '../elements/elements.dart' show AstElement, LocalElement;
 import '../js/js.dart' as js;
 import '../js/js_source_mapping.dart';
 import '../tokens/token.dart' show Token;
@@ -51,21 +48,20 @@ class StartEndSourceInformation extends SourceInformation {
 
   int get hashCode {
     return 0x7FFFFFFF &
-           (startPosition.hashCode * 17 + endPosition.hashCode * 19);
+        (startPosition.hashCode * 17 + endPosition.hashCode * 19);
   }
 
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! StartEndSourceInformation) return false;
     return startPosition == other.startPosition &&
-           endPosition == other.endPosition;
+        endPosition == other.endPosition;
   }
 
   // TODO(johnniwinther): Inline this in
   // [StartEndSourceInformationBuilder.buildDeclaration].
   static StartEndSourceInformation _computeSourceInformation(
       AstElement element) {
-
     AstElement implementation = element.implementation;
     SourceFile sourceFile = implementation.compilationUnit.script.file;
     String name = computeElementNameForSourceMaps(element);
@@ -140,10 +136,8 @@ class StartEndSourceInformationProcessor extends SourceInformationProcessor {
   StartEndSourceInformationProcessor(this.sourceMapper);
 
   @override
-  void onPositions(js.Node node,
-                   int startPosition,
-                   int endPosition,
-                   int closingPosition) {
+  void onPositions(
+      js.Node node, int startPosition, int endPosition, int closingPosition) {
     if (node.sourceInformation != null) {
       StartEndSourceInformation sourceInformation = node.sourceInformation;
       sourceMapper.register(
@@ -183,10 +177,11 @@ class StartEndSourceInformationBuilder extends SourceInformationBuilder {
       SourceLocation location, SourceFile sourceFile, int offset) {
     if (!location.isValid) {
       throw MessageTemplate.TEMPLATES[MessageKind.INVALID_SOURCE_FILE_LOCATION]
-          .message(
-              {'offset': offset,
-               'fileName': sourceFile.filename,
-               'length': sourceFile.length});
+          .message({
+        'offset': offset,
+        'fileName': sourceFile.filename,
+        'length': sourceFile.length
+      });
     }
   }
 
@@ -224,11 +219,8 @@ class StartEndSourceInformationBuilder extends SourceInformationBuilder {
   SourceInformation buildIf(Node node) => buildGeneric(node);
 
   @override
-  SourceInformationBuilder forContext(
-      AstElement element, {SourceInformation sourceInformation}) {
+  SourceInformationBuilder forContext(AstElement element,
+      {SourceInformation sourceInformation}) {
     return new StartEndSourceInformationBuilder(element);
   }
 }
-
-
-

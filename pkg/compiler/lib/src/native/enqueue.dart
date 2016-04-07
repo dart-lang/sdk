@@ -5,40 +5,22 @@
 import 'dart:collection' show Queue;
 
 import '../common.dart';
-import '../common/backend_api.dart' show
-    ForeignResolver;
-import '../common/registry.dart' show
-    Registry;
-import '../common/resolution.dart' show
-    Parsing,
-    Resolution;
-import '../compiler.dart' show
-    Compiler;
+import '../common/backend_api.dart' show ForeignResolver;
+import '../common/registry.dart' show Registry;
+import '../common/resolution.dart' show Parsing, Resolution;
+import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
-import '../core_types.dart' show
-    CoreTypes;
+import '../core_types.dart' show CoreTypes;
 import '../dart_types.dart';
-import '../enqueue.dart' show
-    Enqueuer,
-    ResolutionEnqueuer;
+import '../enqueue.dart' show Enqueuer, ResolutionEnqueuer;
 import '../elements/elements.dart';
-import '../elements/modelx.dart' show
-    BaseClassElementX,
-    ElementX,
-    FunctionElementX,
-    LibraryElementX;
-import '../js_backend/backend_helpers.dart' show
-    BackendHelpers;
+import '../elements/modelx.dart'
+    show BaseClassElementX, ElementX, FunctionElementX, LibraryElementX;
+import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/js_backend.dart';
-import '../js_emitter/js_emitter.dart' show
-    CodeEmitterTask,
-    NativeEmitter;
-import '../tokens/token.dart' show
-    BeginGroupToken,
-    Token;
-import '../tokens/token_constants.dart' as Tokens show
-    EOF_TOKEN,
-    STRING_TOKEN;
+import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
+import '../tokens/token.dart' show BeginGroupToken, Token;
+import '../tokens/token_constants.dart' as Tokens show EOF_TOKEN, STRING_TOKEN;
 import '../tree/tree.dart';
 
 import 'behavior.dart';
@@ -81,7 +63,6 @@ class NativeEnqueuer {
   ClassElement get annotationReturnsClass => null;
   ClassElement get annotationJsNameClass => null;
 }
-
 
 abstract class NativeEnqueuerBase implements NativeEnqueuer {
   static final RegExp _identifier = new RegExp(r'^[a-zA-Z_$][a-zA-Z0-9_$]*$');
@@ -188,10 +169,8 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
         if (element.isClass) {
           String extendsName = findExtendsNameOfClass(element);
           if (extendsName != null) {
-            Set<ClassElement> potentialSubclasses =
-                potentialExtends.putIfAbsent(
-                    extendsName,
-                    () => new Set<ClassElement>());
+            Set<ClassElement> potentialSubclasses = potentialExtends
+                .putIfAbsent(extendsName, () => new Set<ClassElement>());
             potentialSubclasses.add(element);
           }
         }
@@ -215,9 +194,9 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       if (nativeSuperclass != null) {
         nativeClassesAndSubclasses.add(element);
         if (!backend.isNative(element)) {
-          nonNativeSubclasses.putIfAbsent(nativeSuperclass,
-              () => new Set<ClassElement>())
-            .add(element);
+          nonNativeSubclasses
+              .putIfAbsent(nativeSuperclass, () => new Set<ClassElement>())
+              .add(element);
         }
         Set<ClassElement> potentialSubclasses = potentialExtends[element.name];
         if (potentialSubclasses != null) {
@@ -348,16 +327,16 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       Iterable<ConstantValue> fields = constructedObject.fields.values;
       // TODO(sra): Better validation of the constant.
       if (fields.length != 1 || fields.single is! StringConstantValue) {
-        reporter.internalError(annotation,
-            'Annotations needs one string: ${annotation.node}');
+        reporter.internalError(
+            annotation, 'Annotations needs one string: ${annotation.node}');
       }
       StringConstantValue specStringConstant = fields.single;
       String specString = specStringConstant.toDartString().slowToString();
       if (name == null) {
         name = specString;
       } else {
-        reporter.internalError(annotation,
-            'Too many JSName annotations: ${annotation.node}');
+        reporter.internalError(
+            annotation, 'Too many JSName annotations: ${annotation.node}');
       }
     }
     return name;
@@ -367,7 +346,9 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     assert(unusedClasses.contains(classElement));
     unusedClasses.remove(classElement);
     pendingClasses.add(classElement);
-    queue.add(() { processClass(classElement, cause); });
+    queue.add(() {
+      processClass(classElement, cause);
+    });
   }
 
   void flushQueue() {
@@ -382,7 +363,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
   processClass(ClassElement classElement, cause) {
     // TODO(ahe): Fix this assertion to work in incremental compilation.
     assert(compiler.options.hasIncrementalSupport ||
-           !registeredClasses.contains(classElement));
+        !registeredClasses.contains(classElement));
 
     bool firstTime = registeredClasses.isEmpty;
     pendingClasses.remove(classElement);
@@ -469,12 +450,13 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
       List<String> nativeNames =
           backend.nativeData.getNativeTagsOfClassRaw(element.enclosingClass);
       if (nativeNames.length != 1) {
-        reporter.internalError(element,
+        reporter.internalError(
+            element,
             'Unable to determine a native name for the enclosing class, '
             'options: $nativeNames');
       }
-      backend.nativeData.setNativeMemberName(
-          element, '${nativeNames[0]}.$name');
+      backend.nativeData
+          .setNativeMemberName(element, '${nativeNames[0]}.$name');
     } else {
       backend.nativeData.setNativeMemberName(element, name);
     }
@@ -537,16 +519,15 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
         } else if (type == coreTypes.numType) {
           backend.registerInstantiatedType(
               coreTypes.doubleType, world, registry);
-          backend.registerInstantiatedType(
-              coreTypes.intType, world, registry);
+          backend.registerInstantiatedType(coreTypes.intType, world, registry);
         } else if (type == coreTypes.stringType) {
           backend.registerInstantiatedType(type, world, registry);
         } else if (type == coreTypes.nullType) {
           backend.registerInstantiatedType(type, world, registry);
         } else if (type == coreTypes.boolType) {
           backend.registerInstantiatedType(type, world, registry);
-        } else if (compiler.types.isSubtype(
-                      type, backend.listImplementation.rawType)) {
+        } else if (compiler.types
+            .isSubtype(type, backend.listImplementation.rawType)) {
           backend.registerInstantiatedType(type, world, registry);
         }
       }
@@ -564,9 +545,8 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     }
   }
 
-  enqueueUnusedClassesMatching(bool predicate(classElement),
-                               cause,
-                               [String reason]) {
+  enqueueUnusedClassesMatching(bool predicate(classElement), cause,
+      [String reason]) {
     Iterable matches = unusedClasses.where(predicate);
     matches.toList().forEach((c) => enqueueClass(c, cause));
   }
@@ -586,23 +566,20 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
 
   addNativeExceptions() {
     enqueueUnusedClassesMatching((classElement) {
-        // TODO(sra): Annotate exception classes in dart:html.
-        String name = classElement.name;
-        if (name.contains('Exception')) return true;
-        if (name.contains('Error')) return true;
-        return false;
-      },
-      'native exception');
+      // TODO(sra): Annotate exception classes in dart:html.
+      String name = classElement.name;
+      if (name.contains('Exception')) return true;
+      if (name.contains('Error')) return true;
+      return false;
+    }, 'native exception');
   }
 }
 
-
 class NativeResolutionEnqueuer extends NativeEnqueuerBase {
-
   Map<String, ClassElement> tagOwner = new Map<String, ClassElement>();
 
   NativeResolutionEnqueuer(Enqueuer world, Compiler compiler)
-    : super(world, compiler, compiler.options.enableNativeLiveTypeAnalysis);
+      : super(world, compiler, compiler.options.enableNativeLiveTypeAnalysis);
 
   void processNativeClass(ClassElement classElement) {
     super.processNativeClass(classElement);
@@ -645,7 +622,6 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
     nativeBehaviors[node] = behavior;
   }
 
-
   /**
    * Handles JS-embedded global calls, which can be an instantiation point for
    * types.
@@ -661,7 +637,6 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
     registerNativeBehavior(behavior, node);
     nativeBehaviors[node] = behavior;
   }
-
 
   /**
    * Handles JS-compiler builtin calls, which can be an instantiation point for
@@ -680,15 +655,13 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
   }
 }
 
-
 class NativeCodegenEnqueuer extends NativeEnqueuerBase {
-
   final CodeEmitterTask emitter;
 
   final Set<ClassElement> doneAddSubtypes = new Set<ClassElement>();
 
   NativeCodegenEnqueuer(Enqueuer world, Compiler compiler, this.emitter)
-    : super(world, compiler, compiler.options.enableNativeLiveTypeAnalysis);
+      : super(world, compiler, compiler.options.enableNativeLiveTypeAnalysis);
 
   void processNativeClasses(Iterable<LibraryElement> libraries) {
     super.processNativeClasses(libraries);
@@ -720,9 +693,8 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
     addSubtypes(cls.superclass, emitter);
 
     for (DartType type in cls.allSupertypes) {
-      List<Element> subtypes = emitter.subtypes.putIfAbsent(
-          type.element,
-          () => <ClassElement>[]);
+      List<Element> subtypes =
+          emitter.subtypes.putIfAbsent(type.element, () => <ClassElement>[]);
       subtypes.add(cls);
     }
 
@@ -735,9 +707,8 @@ class NativeCodegenEnqueuer extends NativeEnqueuerBase {
       superclass = superclass.superclass;
     }
 
-    List<Element> directSubtypes = emitter.directSubtypes.putIfAbsent(
-        superclass,
-        () => <ClassElement>[]);
+    List<Element> directSubtypes =
+        emitter.directSubtypes.putIfAbsent(superclass, () => <ClassElement>[]);
     directSubtypes.add(cls);
   }
 

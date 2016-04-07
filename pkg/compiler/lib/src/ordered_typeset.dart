@@ -6,15 +6,10 @@ library ordered_typeset;
 
 import 'common.dart';
 import 'dart_types.dart';
-import 'diagnostics/diagnostic_listener.dart' show
-    DiagnosticReporter;
-import 'elements/elements.dart' show
-    ClassElement;
-import 'util/util.dart' show
-    Link,
-    LinkBuilder;
-import 'util/util_implementation.dart' show
-    LinkEntry;
+import 'diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
+import 'elements/elements.dart' show ClassElement;
+import 'util/util.dart' show Link, LinkBuilder;
+import 'util/util_implementation.dart' show LinkEntry;
 
 /**
  * An ordered set of the supertypes of a class. The supertypes of a class are
@@ -39,8 +34,7 @@ class OrderedTypeSet {
   final Link<DartType> _supertypes;
 
   OrderedTypeSet.internal(List<Link<DartType>> this._levels,
-                           Link<DartType> this.types,
-                           Link<DartType> this._supertypes);
+      Link<DartType> this.types, Link<DartType> this._supertypes);
 
   factory OrderedTypeSet.singleton(DartType type) {
     Link<DartType> types =
@@ -56,9 +50,8 @@ class OrderedTypeSet {
   OrderedTypeSet extendClass(InterfaceType type) {
     assert(invariant(type.element, types.head.treatAsRaw,
         message: 'Cannot extend generic class ${types.head} using '
-                 'OrderedTypeSet.extendClass'));
-    Link<DartType> extendedTypes =
-        new LinkEntry<DartType>(type, types);
+            'OrderedTypeSet.extendClass'));
+    Link<DartType> extendedTypes = new LinkEntry<DartType>(type, types);
     List<Link<DartType>> list = new List<Link<DartType>>(levels + 1);
     for (int i = 0; i < levels; i++) {
       list[i] = _levels[i];
@@ -161,9 +154,7 @@ class OrderedTypeSetBuilder {
       : this._objectType = objectType;
 
   OrderedTypeSet createOrderedTypeSet(
-      InterfaceType supertype,
-      Link<DartType> interfaces) {
-
+      InterfaceType supertype, Link<DartType> interfaces) {
     if (_objectType == null) {
       // Find `Object` through in hierarchy. This is used for serialization
       // where it is assumed that the hierarchy is valid.
@@ -197,7 +188,7 @@ class OrderedTypeSetBuilder {
     Link<DartType> supertypes = classElement.allSupertypes;
     assert(invariant(cls, supertypes != null,
         message: "Supertypes not computed on $classElement "
-                 "during resolution of $cls"));
+            "during resolution of $cls"));
     while (!supertypes.isEmpty) {
       DartType supertype = supertypes.head;
       add(supertype.substByContext(type));
@@ -227,12 +218,11 @@ class OrderedTypeSetBuilder {
       if (existingType == type) return;
       if (existingType.element == type.element) {
         if (reporter != null) {
-          reporter.reportErrorMessage(
-              cls,
-              MessageKind.MULTI_INHERITANCE,
-              {'thisType': cls.thisType,
-               'firstType': existingType,
-               'secondType': type});
+          reporter.reportErrorMessage(cls, MessageKind.MULTI_INHERITANCE, {
+            'thisType': cls.thisType,
+            'firstType': existingType,
+            'secondType': type
+          });
         } else {
           assert(invariant(cls, false,
               message: 'Invalid ordered typeset for $cls'));

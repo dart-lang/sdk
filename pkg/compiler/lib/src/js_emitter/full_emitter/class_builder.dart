@@ -79,9 +79,8 @@ class ClassBuilder {
     List<jsAst.Property> fieldsAndProperties;
     if (emitClassDescriptor) {
       fieldsAndProperties = <jsAst.Property>[];
-      fieldsAndProperties.add(
-          new jsAst.Property(
-              js.string(namer.classDescriptorProperty), classData));
+      fieldsAndProperties.add(new jsAst.Property(
+          js.string(namer.classDescriptorProperty), classData));
       fieldsAndProperties.addAll(properties);
     } else {
       fieldsAndProperties = properties;

@@ -20,7 +20,7 @@ import 'optimizers.dart';
 /// meaningless during this pass, until repaired by [AlphaRenamer] at
 /// the end.
 class RedundantJoinEliminator extends TrampolineRecursiveVisitor
-      implements Pass {
+    implements Pass {
   String get passName => 'Redundant join elimination';
 
   final Set<Branch> workSet = new Set<Branch>();
@@ -110,7 +110,7 @@ class RedundantJoinEliminator extends TrampolineRecursiveVisitor
     // replacing a boolean variable with a labeled break.
     // TODO(asgerf): The labeled break might be better? Evaluate.
     if (!(trueHits == 1 && !trueCall.isEscapingTry ||
-          falseHits == 1 && !falseCall.isEscapingTry)) {
+        falseHits == 1 && !falseCall.isEscapingTry)) {
       return;
     }
 
@@ -140,8 +140,8 @@ class RedundantJoinEliminator extends TrampolineRecursiveVisitor
           Expression use = ref.parent;
           if (use is InvokeContinuation) {
             for (Parameter param in branchCont.parameters) {
-              use.argumentRefs.add(
-                  new Reference<Primitive>(param)..parent = use);
+              use.argumentRefs
+                  .add(new Reference<Primitive>(param)..parent = use);
             }
           } else {
             // The branch will be eliminated, so don't worry about updating it.

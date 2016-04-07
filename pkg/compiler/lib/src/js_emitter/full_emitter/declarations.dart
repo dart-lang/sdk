@@ -10,8 +10,8 @@ const DEBUG_FAST_OBJECTS = false;
 /**
  * Call-back for adding property with [name] and [value].
  */
-typedef jsAst.Property AddPropertyFunction(jsAst.Name name,
-                                           jsAst.Expression value);
+typedef jsAst.Property AddPropertyFunction(
+    jsAst.Name name, jsAst.Expression value);
 
 // Compact field specifications.  The format of the field specification is
 // <accessorName>:<fieldName><suffix> where the suffix and accessor name
@@ -29,9 +29,9 @@ typedef jsAst.Property AddPropertyFunction(jsAst.Name name,
 const FIELD_CODE_CHARACTERS = r"<=>?@{|}~%&'()*";
 const NO_FIELD_CODE = 0;
 const FIRST_FIELD_CODE = 1;
-const RANGE1_FIRST = 0x3c;   //  <=>?@    encodes 1..5
+const RANGE1_FIRST = 0x3c; //  <=>?@    encodes 1..5
 const RANGE1_LAST = 0x40;
-const RANGE2_FIRST = 0x7b;   //  {|}~     encodes 6..9
+const RANGE2_FIRST = 0x7b; //  {|}~     encodes 6..9
 const RANGE2_LAST = 0x7e;
-const RANGE3_FIRST = 0x25;   //  %&'()*+  encodes 10..16
+const RANGE3_FIRST = 0x25; //  %&'()*+  encodes 10..16
 const RANGE3_LAST = 0x2b;

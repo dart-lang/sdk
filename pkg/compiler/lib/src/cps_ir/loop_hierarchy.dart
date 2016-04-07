@@ -123,8 +123,7 @@ class LoopHierarchy {
         target = loopTarget[node.continuation];
       }
     } else if (node is Branch) {
-      target = _markInnerLoop(
-          loopTarget[node.trueContinuation],
+      target = _markInnerLoop(loopTarget[node.trueContinuation],
           loopTarget[node.falseContinuation]);
     } else if (node == null) {
       // If the code ends abruptly, use the exit loop provided in [update].
@@ -166,8 +165,7 @@ class LoopHierarchy {
   /// [catchLoop] is the loop target for the catch clause of the try/catch
   /// surrounding the inserted fragment.
   void update(CpsFragment fragment,
-              {Continuation exitLoop,
-               Continuation catchLoop}) {
+      {Continuation exitLoop, Continuation catchLoop}) {
     if (fragment.isEmpty) return;
     _exitLoop = exitLoop;
     _currentDepth = getDepth(exitLoop);

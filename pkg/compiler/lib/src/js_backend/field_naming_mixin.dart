@@ -146,8 +146,8 @@ class _FieldNamingScope {
   }
 
   factory _FieldNamingScope.forBox(Local box, _FieldNamingRegistry registry) {
-    return registry.scopes.putIfAbsent(
-        box, () => new _BoxFieldNamingScope(box, registry));
+    return registry.scopes
+        .putIfAbsent(box, () => new _BoxFieldNamingScope(box, registry));
   }
 
   _FieldNamingScope.rootScope(this.container, this.registry)

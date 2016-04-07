@@ -125,4 +125,3 @@ Future<CompilationResult> compile(
     return new CompilationResult(compiler, isSuccess: success);
   });
 }
-

@@ -7,16 +7,15 @@ library dart2js.util.command_line;
 /// The accepted escapes in the input of the --batch processor.
 ///
 /// Contrary to Dart strings it does not contain hex escapes (\u or \x).
-Map<String, String> ESCAPE_MAPPING =
-    const {
-      "n": "\n",
-      "r": "\r",
-      "t": "\t",
-      "b": "\b",
-      "f": "\f",
-      "v": "\v",
-      "\\": "\\",
-    };
+Map<String, String> ESCAPE_MAPPING = const {
+  "n": "\n",
+  "r": "\r",
+  "t": "\t",
+  "b": "\b",
+  "f": "\f",
+  "v": "\v",
+  "\\": "\\",
+};
 
 /// Splits the line similar to how a shell would split arguments. If [windows]
 /// is `true` escapes will be handled like on the Windows command-line.
@@ -48,7 +47,7 @@ List<String> splitLine(String line, {bool windows: false}) {
         throw new FormatException("Unfinished escape: $line");
       }
       if (windows) {
-        String next = line[i+1];
+        String next = line[i + 1];
         if (next == '"' || next == r'\') {
           buffer.write(next);
           i++;
@@ -75,4 +74,3 @@ List<String> splitLine(String line, {bool windows: false}) {
   if (buffer.isNotEmpty) result.add(buffer.toString());
   return result;
 }
-

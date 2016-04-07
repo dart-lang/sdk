@@ -27,7 +27,6 @@ enum ScopeType { InScope, InDefinition, NotInScope }
 /// - Each reference object occurs only once in the IR (no sharing).
 ///
 class CheckCpsIntegrity extends TrampolineRecursiveVisitor {
-
   FunctionDefinition topLevelNode;
   final Map<Definition, ScopeType> inScope = <Definition, ScopeType>{};
   final List<Definition> definitions = [];
@@ -40,13 +39,16 @@ class CheckCpsIntegrity extends TrampolineRecursiveVisitor {
     int i = 0;
     for (Reference ref = def.firstRef; ref != null; ref = ref.next) {
       if (ref.definition != def) {
-        error('Reference to ${ref.definition} found in '
-              'reference chain for $def', def);
+        error(
+            'Reference to ${ref.definition} found in '
+            'reference chain for $def',
+            def);
       }
       if (ref == anchor) {
         error('Cyclic reference chain for $def', def);
       }
-      if (i & ++i == 0) { // Move the anchor every 2^Nth step.
+      if (i & ++i == 0) {
+        // Move the anchor every 2^Nth step.
         anchor = ref;
       }
     }
@@ -225,9 +227,9 @@ class CheckCpsIntegrity extends TrampolineRecursiveVisitor {
       sexpr = '(Set DUMP_IR flag to enable SExpr dump)';
     }
     throw 'CPS integrity violation\n'
-          'After \'$previousPass\' on ${topLevelNode.element}\n'
-          '$message\n\n'
-          '$sexpr\n';
+        'After \'$previousPass\' on ${topLevelNode.element}\n'
+        '$message\n\n'
+        '$sexpr\n';
   }
 }
 
@@ -260,7 +262,7 @@ class ParentChecker extends DeepRecursiveVisitor {
     _worklist.add(node);
     if (node.parent != _parent) {
       error('Parent pointer on $node is ${node.parent} but should be $_parent',
-            node);
+          node);
     }
   }
 
@@ -268,7 +270,7 @@ class ParentChecker extends DeepRecursiveVisitor {
   processReference(Reference node) {
     if (node.parent != _parent) {
       error('Parent pointer on $node is ${node.parent} but should be $_parent',
-            node);
+          node);
     }
   }
 }

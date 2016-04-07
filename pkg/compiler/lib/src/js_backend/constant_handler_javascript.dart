@@ -17,8 +17,7 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
 
   JavaScriptConstantTask(Compiler compiler)
       : this.dartConstantCompiler = new DartConstantCompiler(compiler),
-        this.jsConstantCompiler =
-            new JavaScriptConstantCompiler(compiler),
+        this.jsConstantCompiler = new JavaScriptConstantCompiler(compiler),
         super(compiler);
 
   String get name => 'ConstantHandler';
@@ -66,20 +65,18 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
   }
 
   ConstantExpression compileNode(Node node, TreeElements elements,
-                                 {bool enforceConst: true}) {
+      {bool enforceConst: true}) {
     return measure(() {
-      ConstantExpression result =
-          dartConstantCompiler.compileNode(node, elements,
-                                           enforceConst: enforceConst);
+      ConstantExpression result = dartConstantCompiler
+          .compileNode(node, elements, enforceConst: enforceConst);
       jsConstantCompiler.compileNode(node, elements,
           enforceConst: enforceConst);
       return result;
     });
   }
 
-  ConstantExpression compileMetadata(MetadataAnnotation metadata,
-                           Node node,
-                           TreeElements elements) {
+  ConstantExpression compileMetadata(
+      MetadataAnnotation metadata, Node node, TreeElements elements) {
     return measure(() {
       ConstantExpression constant =
           dartConstantCompiler.compileMetadata(metadata, node, elements);
@@ -92,10 +89,10 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
   // expressions.
   @override
   void copyConstantValues(JavaScriptConstantTask task) {
-    jsConstantCompiler.constantValueMap.addAll(
-        task.jsConstantCompiler.constantValueMap);
-    dartConstantCompiler.constantValueMap.addAll(
-        task.dartConstantCompiler.constantValueMap);
+    jsConstantCompiler.constantValueMap
+        .addAll(task.jsConstantCompiler.constantValueMap);
+    dartConstantCompiler.constantValueMap
+        .addAll(task.dartConstantCompiler.constantValueMap);
   }
 }
 
@@ -106,7 +103,6 @@ class JavaScriptConstantTask extends ConstantCompilerTask {
  */
 class JavaScriptConstantCompiler extends ConstantCompilerBase
     implements BackendConstantEnvironment {
-
   /** Set of all registered compiled constants. */
   final Set<ConstantValue> compiledConstants = new Set<ConstantValue>();
 
@@ -125,15 +121,15 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
   JavaScriptConstantCompiler(Compiler compiler)
       : super(compiler, JAVA_SCRIPT_CONSTANT_SYSTEM);
 
-  ConstantExpression compileVariableWithDefinitions(VariableElement element,
-                                          TreeElements definitions,
-                                          {bool isConst: false,
-                                           bool checkType: true}) {
+  ConstantExpression compileVariableWithDefinitions(
+      VariableElement element, TreeElements definitions,
+      {bool isConst: false, bool checkType: true}) {
     if (!isConst && lazyStatics.contains(element)) {
       return null;
     }
     ConstantExpression value = super.compileVariableWithDefinitions(
-        element, definitions, isConst: isConst, checkType: checkType);
+        element, definitions,
+        isConst: isConst, checkType: checkType);
     if (!isConst && value == null) {
       lazyStatics.add(element);
     }
@@ -152,10 +148,10 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
   Iterable<VariableElement> getStaticNonFinalFieldsForEmission() {
     return initialVariableValues.keys.where((element) {
       return element.kind == ElementKind.FIELD &&
-             !element.isInstanceMember &&
-             !element.modifiers.isFinal &&
-             // The const fields are all either emitted elsewhere or inlined.
-             !element.modifiers.isConst;
+          !element.isInstanceMember &&
+          !element.modifiers.isFinal &&
+          // The const fields are all either emitted elsewhere or inlined.
+          !element.modifiers.isConst;
     });
   }
 
@@ -202,13 +198,13 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
   }
 
   ConstantExpression compileNode(Node node, TreeElements elements,
-                                 {bool enforceConst: true}) {
+      {bool enforceConst: true}) {
     return compileNodeWithDefinitions(node, elements, isConst: enforceConst);
   }
 
-  ConstantExpression compileNodeWithDefinitions(Node node,
-                                      TreeElements definitions,
-                                      {bool isConst: true}) {
+  ConstantExpression compileNodeWithDefinitions(
+      Node node, TreeElements definitions,
+      {bool isConst: true}) {
     ConstantExpression constant = nodeConstantMap[node];
     if (constant != null && getConstantValue(constant) != null) {
       return constant;
@@ -238,9 +234,7 @@ class JavaScriptConstantCompiler extends ConstantCompilerBase
   }
 
   ConstantExpression compileMetadata(
-      MetadataAnnotation metadata,
-      Node node,
-      TreeElements elements) {
+      MetadataAnnotation metadata, Node node, TreeElements elements) {
     ConstantExpression constant =
         super.compileMetadata(metadata, node, elements);
     metadataConstantMap[metadata] = constant;
@@ -269,8 +263,8 @@ class ForgetConstantElementVisitor
     }
   }
 
-  void visitFunctionElement(FunctionElement e,
-                            JavaScriptConstantCompiler constants) {
+  void visitFunctionElement(
+      FunctionElement e, JavaScriptConstantCompiler constants) {
     super.visitFunctionElement(e, constants);
     if (e.hasFunctionSignature) {
       e.functionSignature.forEachParameter((p) => visit(p, constants));
@@ -288,12 +282,12 @@ class ForgetConstantNodeVisitor extends Visitor {
     constants.nodeConstantMap.remove(node);
 
     // TODO(ahe): This doesn't belong here. Rename this class and generalize.
-    var closureClassMap =
-        constants.compiler.closureToClassMapper.closureMappingCache
+    var closureClassMap = constants
+        .compiler.closureToClassMapper.closureMappingCache
         .remove(node);
     if (closureClassMap != null) {
-      closureClassMap.removeMyselfFrom(
-          constants.compiler.enqueuer.codegen.universe);
+      closureClassMap
+          .removeMyselfFrom(constants.compiler.enqueuer.codegen.universe);
     }
   }
 }

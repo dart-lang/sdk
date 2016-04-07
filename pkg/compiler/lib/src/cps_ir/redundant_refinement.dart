@@ -28,7 +28,7 @@ import 'type_mask_system.dart';
 /// Ideally, this pass should go away and GVN should handle refinements
 /// directly.
 class RedundantRefinementEliminator extends TrampolineRecursiveVisitor
-                                    implements Pass {
+    implements Pass {
   String get passName => 'Redundant refinement elimination';
 
   TypeMaskSystem typeSystem;
@@ -45,7 +45,9 @@ class RedundantRefinementEliminator extends TrampolineRecursiveVisitor
       Refinement refinement = node.primitive;
       Primitive value = refinement.value.definition;
       if (typeSystem.isMorePreciseOrEqual(value.type, refinement.refineType)) {
-        refinement..replaceUsesWith(value)..destroy();
+        refinement
+          ..replaceUsesWith(value)
+          ..destroy();
         node.remove();
         return next;
       }

@@ -5,11 +5,9 @@
 library types.constants;
 
 import '../common.dart';
-import '../compiler.dart' show
-    Compiler;
+import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
-import '../js_backend/js_backend.dart' show
-    SyntheticConstantKind;
+import '../js_backend/js_backend.dart' show SyntheticConstantKind;
 import 'types.dart';
 
 /// Computes the [TypeMask] for the constant [value].
@@ -21,8 +19,8 @@ class ConstantValueTypeMasks extends ConstantValueVisitor<TypeMask, Compiler> {
   const ConstantValueTypeMasks();
 
   @override
-  TypeMask visitConstructed(ConstructedConstantValue constant,
-                            Compiler compiler) {
+  TypeMask visitConstructed(
+      ConstructedConstantValue constant, Compiler compiler) {
     if (compiler.backend.isInterceptorClass(constant.type.element)) {
       return compiler.typesTask.nonNullType;
     }
@@ -61,8 +59,8 @@ class ConstantValueTypeMasks extends ConstantValueVisitor<TypeMask, Compiler> {
         return compiler.typesTask.stringType;
       default:
         DiagnosticReporter reporter = compiler.reporter;
-        reporter.internalError(CURRENT_ELEMENT_SPANNABLE,
-                               "Unexpected DummyConstantKind.");
+        reporter.internalError(
+            CURRENT_ELEMENT_SPANNABLE, "Unexpected DummyConstantKind.");
         return null;
     }
   }
@@ -86,8 +84,8 @@ class ConstantValueTypeMasks extends ConstantValueVisitor<TypeMask, Compiler> {
   }
 
   @override
-  TypeMask visitInterceptor(InterceptorConstantValue constant,
-                            Compiler compiler) {
+  TypeMask visitInterceptor(
+      InterceptorConstantValue constant, Compiler compiler) {
     return compiler.typesTask.nonNullType;
   }
 

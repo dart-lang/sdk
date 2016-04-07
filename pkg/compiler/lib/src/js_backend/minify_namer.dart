@@ -7,8 +7,11 @@ part of js_backend;
 /**
  * Assigns JavaScript identifiers to Dart variables, class-names and members.
  */
-class MinifyNamer extends Namer with _MinifiedFieldNamer,
-    _MinifyConstructorBodyNamer, _MinifiedOneShotInterceptorNamer {
+class MinifyNamer extends Namer
+    with
+        _MinifiedFieldNamer,
+        _MinifyConstructorBodyNamer,
+        _MinifiedOneShotInterceptorNamer {
   MinifyNamer(Compiler compiler) : super(compiler) {
     reserveBackendNames();
     fieldRegistry = new _FieldNamingRegistry(this);
@@ -24,8 +27,8 @@ class MinifyNamer extends Namer with _MinifiedFieldNamer,
   final String setterPrefix = 's';
   final String callPrefix = ''; // this will create function names $<n>
 
-  final ALPHABET_CHARACTERS = 52;  // a-zA-Z.
-  final ALPHANUMERIC_CHARACTERS = 62;  // a-zA-Z0-9.
+  final ALPHABET_CHARACTERS = 52; // a-zA-Z.
+  final ALPHANUMERIC_CHARACTERS = 62; // a-zA-Z0-9.
 
   /// You can pass an invalid identifier to this and unlike its non-minifying
   /// counterpart it will never return the proposedName as the new fresh name.
@@ -33,10 +36,8 @@ class MinifyNamer extends Namer with _MinifiedFieldNamer,
   /// [sanitizeForNatives] and [sanitizeForAnnotations] are ignored because the
   /// minified names will always avoid clashing with annotated names or natives.
   @override
-  String _generateFreshStringForName(String proposedName,
-      NamingScope scope,
-      {bool sanitizeForNatives: false,
-       bool sanitizeForAnnotations: false}) {
+  String _generateFreshStringForName(String proposedName, NamingScope scope,
+      {bool sanitizeForNatives: false, bool sanitizeForAnnotations: false}) {
     String freshName;
     String suggestion = scope.suggestName(proposedName);
     if (suggestion != null && scope.isUnused(suggestion)) {
@@ -53,28 +54,29 @@ class MinifyNamer extends Namer with _MinifiedFieldNamer,
   // OK to use them as fields, as we only access fields directly if we know
   // the receiver type.
   static const List<String> _reservedNativeProperties = const <String>[
-      'a', 'b', 'c', 'd', 'e', 'f', 'r', 'x', 'y', 'z', 'Q',
-      // 2-letter:
-      'ch', 'cx', 'cy', 'db', 'dx', 'dy', 'fr', 'fx', 'fy', 'go', 'id', 'k1',
-      'k2', 'k3', 'k4', 'r1', 'r2', 'rx', 'ry', 'x1', 'x2', 'y1', 'y2',
-      // 3-letter:
-      'add', 'all', 'alt', 'arc', 'CCW', 'cmp', 'dir', 'end', 'get', 'in1',
-      'in2', 'INT', 'key', 'log', 'low', 'm11', 'm12', 'm13', 'm14', 'm21',
-      'm22', 'm23', 'm24', 'm31', 'm32', 'm33', 'm34', 'm41', 'm42', 'm43',
-      'm44', 'max', 'min', 'now', 'ONE', 'put', 'red', 'rel', 'rev', 'RGB',
-      'sdp', 'set', 'src', 'tag', 'top', 'uid', 'uri', 'url', 'URL',
-      // 4-letter:
-      'abbr', 'atob', 'Attr', 'axes', 'axis', 'back', 'BACK', 'beta', 'bias',
-      'Blob', 'blue', 'blur', 'BLUR', 'body', 'BOOL', 'BOTH', 'btoa', 'BYTE',
-      'cite', 'clip', 'code', 'cols', 'cues', 'data', 'DECR', 'DONE', 'face',
-      'file', 'File', 'fill', 'find', 'font', 'form', 'gain', 'hash', 'head',
-      'high', 'hint', 'host', 'href', 'HRTF', 'IDLE', 'INCR', 'info', 'INIT',
-      'isId', 'item', 'KEEP', 'kind', 'knee', 'lang', 'left', 'LESS', 'line',
-      'link', 'list', 'load', 'loop', 'mode', 'name', 'Node', 'None', 'NONE',
-      'only', 'open', 'OPEN', 'ping', 'play', 'port', 'rect', 'Rect', 'refX',
-      'refY', 'RGBA', 'root', 'rows', 'save', 'seed', 'seek', 'self', 'send',
-      'show', 'SINE', 'size', 'span', 'stat', 'step', 'stop', 'tags', 'text',
-      'Text', 'time', 'type', 'view', 'warn', 'wrap', 'ZERO'];
+    'a', 'b', 'c', 'd', 'e', 'f', 'r', 'x', 'y', 'z', 'Q',
+    // 2-letter:
+    'ch', 'cx', 'cy', 'db', 'dx', 'dy', 'fr', 'fx', 'fy', 'go', 'id', 'k1',
+    'k2', 'k3', 'k4', 'r1', 'r2', 'rx', 'ry', 'x1', 'x2', 'y1', 'y2',
+    // 3-letter:
+    'add', 'all', 'alt', 'arc', 'CCW', 'cmp', 'dir', 'end', 'get', 'in1',
+    'in2', 'INT', 'key', 'log', 'low', 'm11', 'm12', 'm13', 'm14', 'm21',
+    'm22', 'm23', 'm24', 'm31', 'm32', 'm33', 'm34', 'm41', 'm42', 'm43',
+    'm44', 'max', 'min', 'now', 'ONE', 'put', 'red', 'rel', 'rev', 'RGB',
+    'sdp', 'set', 'src', 'tag', 'top', 'uid', 'uri', 'url', 'URL',
+    // 4-letter:
+    'abbr', 'atob', 'Attr', 'axes', 'axis', 'back', 'BACK', 'beta', 'bias',
+    'Blob', 'blue', 'blur', 'BLUR', 'body', 'BOOL', 'BOTH', 'btoa', 'BYTE',
+    'cite', 'clip', 'code', 'cols', 'cues', 'data', 'DECR', 'DONE', 'face',
+    'file', 'File', 'fill', 'find', 'font', 'form', 'gain', 'hash', 'head',
+    'high', 'hint', 'host', 'href', 'HRTF', 'IDLE', 'INCR', 'info', 'INIT',
+    'isId', 'item', 'KEEP', 'kind', 'knee', 'lang', 'left', 'LESS', 'line',
+    'link', 'list', 'load', 'loop', 'mode', 'name', 'Node', 'None', 'NONE',
+    'only', 'open', 'OPEN', 'ping', 'play', 'port', 'rect', 'Rect', 'refX',
+    'refY', 'RGBA', 'root', 'rows', 'save', 'seed', 'seek', 'self', 'send',
+    'show', 'SINE', 'size', 'span', 'stat', 'step', 'stop', 'tags', 'text',
+    'Text', 'time', 'type', 'view', 'warn', 'wrap', 'ZERO'
+  ];
 
   void reserveBackendNames() {
     for (String name in _reservedNativeProperties) {
@@ -98,43 +100,89 @@ class MinifyNamer extends Namer with _MinifiedFieldNamer,
     // individually per program, but that would mean that the output of the
     // minifier was less stable from version to version of the program being
     // minified.
-    _populateSuggestedNames(
-        instanceScope,
-        const <String>[
-            r'$add', r'add$1', r'$and',
-            r'$or',
-            r'current', r'$shr', r'$eq', r'$ne',
-            r'$index', r'$indexSet',
-            r'$xor', r'clone$0',
-            r'iterator', r'length',
-            r'$lt', r'$gt', r'$le', r'$ge',
-            r'moveNext$0', r'node', r'on', r'$negate', r'push', r'self',
-            r'start', r'target', r'$shl', r'value', r'width', r'style',
-            r'noSuchMethod$1', r'$mul', r'$div', r'$sub', r'$not', r'$mod',
-            r'$tdiv', r'toString$0']);
+    _populateSuggestedNames(instanceScope, const <String>[
+      r'$add',
+      r'add$1',
+      r'$and',
+      r'$or',
+      r'current',
+      r'$shr',
+      r'$eq',
+      r'$ne',
+      r'$index',
+      r'$indexSet',
+      r'$xor',
+      r'clone$0',
+      r'iterator',
+      r'length',
+      r'$lt',
+      r'$gt',
+      r'$le',
+      r'$ge',
+      r'moveNext$0',
+      r'node',
+      r'on',
+      r'$negate',
+      r'push',
+      r'self',
+      r'start',
+      r'target',
+      r'$shl',
+      r'value',
+      r'width',
+      r'style',
+      r'noSuchMethod$1',
+      r'$mul',
+      r'$div',
+      r'$sub',
+      r'$not',
+      r'$mod',
+      r'$tdiv',
+      r'toString$0'
+    ]);
 
-    _populateSuggestedNames(
-        globalScope,
-        const <String>[
-            r'Object', 'wrapException', r'$eq', r'S', r'ioore',
-            r'UnsupportedError$', r'length', r'$sub',
-            r'$add', r'$gt', r'$ge', r'$lt', r'$le', r'add',
-            r'iae',
-            r'ArgumentError$', r'BoundClosure', r'Closure', r'StateError$',
-            r'getInterceptor', r'max', r'$mul',
-            r'Map', r'Key_Key', r'$div',
-            r'List_List$from',
-            r'LinkedHashMap_LinkedHashMap$_empty',
-            r'LinkedHashMap_LinkedHashMap$_literal',
-            r'min',
-            r'RangeError$value', r'JSString', r'JSNumber',
-            r'JSArray', r'createInvocationMirror', r'String',
-            r'setRuntimeTypeInfo', r'createRuntimeType'
-            ]);
+    _populateSuggestedNames(globalScope, const <String>[
+      r'Object',
+      'wrapException',
+      r'$eq',
+      r'S',
+      r'ioore',
+      r'UnsupportedError$',
+      r'length',
+      r'$sub',
+      r'$add',
+      r'$gt',
+      r'$ge',
+      r'$lt',
+      r'$le',
+      r'add',
+      r'iae',
+      r'ArgumentError$',
+      r'BoundClosure',
+      r'Closure',
+      r'StateError$',
+      r'getInterceptor',
+      r'max',
+      r'$mul',
+      r'Map',
+      r'Key_Key',
+      r'$div',
+      r'List_List$from',
+      r'LinkedHashMap_LinkedHashMap$_empty',
+      r'LinkedHashMap_LinkedHashMap$_literal',
+      r'min',
+      r'RangeError$value',
+      r'JSString',
+      r'JSNumber',
+      r'JSArray',
+      r'createInvocationMirror',
+      r'String',
+      r'setRuntimeTypeInfo',
+      r'createRuntimeType'
+    ]);
   }
 
-  void _populateSuggestedNames(NamingScope scope,
-                               List<String> suggestions) {
+  void _populateSuggestedNames(NamingScope scope, List<String> suggestions) {
     int c = $a - 1;
     String letter;
     for (String name in suggestions) {
@@ -148,7 +196,6 @@ class MinifyNamer extends Namer with _MinifiedFieldNamer,
     }
   }
 
-
   // This gets a minified name based on a hash of the proposed name.  This
   // is slightly less efficient than just getting the next name in a series,
   // but it means that small changes in the input program will give smallish
@@ -156,7 +203,7 @@ class MinifyNamer extends Namer with _MinifiedFieldNamer,
   String _getUnusedName(String proposedName, NamingScope scope) {
     int hash = _calculateHash(proposedName);
     // Avoid very small hashes that won't try many names.
-    hash = hash < 1000 ? hash * 314159 : hash;  // Yes, it's prime.
+    hash = hash < 1000 ? hash * 314159 : hash; // Yes, it's prime.
 
     // Try other n-character names based on the hash.  We try one to three
     // character identifiers.  For each length we try around 10 different names
@@ -275,16 +322,16 @@ class _ConstructorBodyNamingScope {
         _startIndex = 0,
         _constructors = cls.constructors.toList(growable: false);
 
-  _ConstructorBodyNamingScope.forClass(ClassElement cls,
-                                       _ConstructorBodyNamingScope superScope)
+  _ConstructorBodyNamingScope.forClass(
+      ClassElement cls, _ConstructorBodyNamingScope superScope)
       : _superScope = superScope,
         _startIndex = superScope._startIndex + superScope.numberOfConstructors,
         _constructors = cls.constructors.toList(growable: false);
 
   // Mixin Applications have constructors but we never generate code for them,
   // so they do not count in the inheritance chain.
-  _ConstructorBodyNamingScope.forMixinApplication(ClassElement cls,
-      _ConstructorBodyNamingScope superScope)
+  _ConstructorBodyNamingScope.forMixinApplication(
+      ClassElement cls, _ConstructorBodyNamingScope superScope)
       : _superScope = superScope,
         _startIndex = superScope._startIndex + superScope.numberOfConstructors,
         _constructors = const [];
@@ -295,11 +342,11 @@ class _ConstructorBodyNamingScope {
       if (cls.superclass == null) {
         return new _ConstructorBodyNamingScope.rootScope(cls);
       } else if (cls.isMixinApplication) {
-        return new _ConstructorBodyNamingScope.forMixinApplication(cls,
-            new _ConstructorBodyNamingScope(cls.superclass, registry));
+        return new _ConstructorBodyNamingScope.forMixinApplication(
+            cls, new _ConstructorBodyNamingScope(cls.superclass, registry));
       } else {
-        return new _ConstructorBodyNamingScope.forClass(cls,
-            new _ConstructorBodyNamingScope(cls.superclass, registry));
+        return new _ConstructorBodyNamingScope.forClass(
+            cls, new _ConstructorBodyNamingScope(cls.superclass, registry));
       }
     });
   }
@@ -317,12 +364,11 @@ abstract class _MinifyConstructorBodyNamer implements Namer {
 
   @override
   jsAst.Name constructorBodyName(FunctionElement method) {
-    _ConstructorBodyNamingScope scope =
-        new _ConstructorBodyNamingScope(method.enclosingClass,
-                                        _constructorBodyScopes);
+    _ConstructorBodyNamingScope scope = new _ConstructorBodyNamingScope(
+        method.enclosingClass, _constructorBodyScopes);
     String key = scope.constructorBodyKeyFor(method);
-    return _disambiguateMemberByKey(key,
-        () => _proposeNameForConstructorBody(method));
+    return _disambiguateMemberByKey(
+        key, () => _proposeNameForConstructorBody(method));
   }
 }
 
@@ -330,20 +376,18 @@ abstract class _MinifiedOneShotInterceptorNamer implements Namer {
   /// Property name used for the one-shot interceptor method for the given
   /// [selector] and return-type specialization.
   @override
-  jsAst.Name nameForGetOneShotInterceptor(Selector selector,
-      Iterable<ClassElement> classes) {
+  jsAst.Name nameForGetOneShotInterceptor(
+      Selector selector, Iterable<ClassElement> classes) {
     String root = selector.isOperator
         ? operatorNameToIdentifier(selector.name)
         : privateName(selector.memberName);
-    String prefix = selector.isGetter
-        ? r"$get"
-        : selector.isSetter ? r"$set" : "";
-    String callSuffix =
-        selector.isCall ? callSuffixForStructure(selector.callStructure).join()
-                        : "";
+    String prefix =
+        selector.isGetter ? r"$get" : selector.isSetter ? r"$set" : "";
+    String callSuffix = selector.isCall
+        ? callSuffixForStructure(selector.callStructure).join()
+        : "";
     String suffix = suffixForGetInterceptor(classes);
     String fullName = "\$intercepted$prefix\$$root$callSuffix\$$suffix";
     return _disambiguateInternalGlobal(fullName);
   }
 }
-

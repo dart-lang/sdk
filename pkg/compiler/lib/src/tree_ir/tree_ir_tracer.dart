@@ -11,6 +11,7 @@ import 'tree_ir_nodes.dart';
 class Block {
   Label label;
   int index;
+
   /// Mixed list of [Statement] and [Block].
   /// A [Block] represents a synthetic goto statement.
   final List statements = [];
@@ -51,6 +52,7 @@ class BlockCollector extends StatementVisitor {
   void _addStatement(Statement statement) {
     blocks.last.statements.add(statement);
   }
+
   void _addGotoStatement(Block target) {
     blocks.last.statements.add(target);
   }
@@ -230,8 +232,8 @@ class TreeTracer extends TracerUtil with StatementVisitor {
           printStatement(null, 'Entry ($params)');
         }
         if (block.label != null) {
-          printStatement(null,
-              "Label ${block.name}, useCount=${block.label.useCount}");
+          printStatement(
+              null, "Label ${block.name}, useCount=${block.label.useCount}");
         }
         if (block.catcher != null) {
           printStatement(null, 'Catch exceptions at ${block.catcher.name}');
@@ -283,8 +285,8 @@ class TreeTracer extends TracerUtil with StatementVisitor {
   }
 
   visitContinue(Continue node) {
-    printStatement(null,
-        "continue ${collector.continueTargets[node.target].name}");
+    printStatement(
+        null, "continue ${collector.continueTargets[node.target].name}");
   }
 
   visitIf(If node) {
@@ -305,7 +307,7 @@ class TreeTracer extends TracerUtil with StatementVisitor {
     printStatement(null, "while ${expr(node.condition)}");
     printStatement(null, "do $bodyTarget");
     printStatement(null, "updates ($updates)");
-    printStatement(null, "then $nextTarget" );
+    printStatement(null, "then $nextTarget");
   }
 
   visitTry(Try node) {
@@ -424,9 +426,9 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
 
   static bool usesInfixNotation(Expression node) {
     return node is Conditional ||
-           node is LogicalOperator ||
-           node is Assign ||
-           node is SetField;
+        node is LogicalOperator ||
+        node is Assign ||
+        node is SetField;
   }
 
   String visitConditional(Conditional node) {

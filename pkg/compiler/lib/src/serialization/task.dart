@@ -4,20 +4,13 @@
 
 library dart2js.serialization.task;
 
-import '../common/resolution.dart' show
-    ResolutionImpact,
-    ResolutionWorkItem;
-import '../common/tasks.dart' show
-    CompilerTask;
-import '../common/work.dart' show
-    ItemCompilationContext;
-import '../compiler.dart' show
-    Compiler;
+import '../common/resolution.dart' show ResolutionImpact, ResolutionWorkItem;
+import '../common/tasks.dart' show CompilerTask;
+import '../common/work.dart' show ItemCompilationContext;
+import '../compiler.dart' show Compiler;
 import '../elements/elements.dart';
-import '../enqueue.dart' show
-    ResolutionEnqueuer;
-import '../universe/world_impact.dart' show
-    WorldImpact;
+import '../enqueue.dart' show ResolutionEnqueuer;
+import '../universe/world_impact.dart' show WorldImpact;
 
 /// A deserializer that can load a library element by reading it's information
 /// from a serialized form.

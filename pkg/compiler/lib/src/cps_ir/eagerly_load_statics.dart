@@ -23,7 +23,7 @@ class EagerlyLoadStatics extends TrampolineRecursiveVisitor implements Pass {
       <Continuation, Map<FieldElement, Primitive>>{};
 
   static Map<FieldElement, Primitive> cloneFieldMap(
-        Map<FieldElement, Primitive> map) {
+      Map<FieldElement, Primitive> map) {
     return new Map<FieldElement, Primitive>.from(map);
   }
 
@@ -62,9 +62,8 @@ class EagerlyLoadStatics extends TrampolineRecursiveVisitor implements Pass {
       // No reason to create a GetStatic when the field is final.
       node.replaceWithFragment(new CpsFragment(), initializer);
     } else if (initializer != null) {
-      GetStatic newNode = new GetStatic.witnessed(node.element,
-          initializer, sourceInformation: node.sourceInformation)
-          ..type = node.type;
+      GetStatic newNode = new GetStatic.witnessed(node.element, initializer,
+          sourceInformation: node.sourceInformation)..type = node.type;
       node.replaceWith(newNode);
     } else {
       initializerFor[node.element] = node;

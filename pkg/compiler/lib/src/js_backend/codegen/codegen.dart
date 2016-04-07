@@ -6,31 +6,20 @@ library code_generator;
 
 import 'glue.dart';
 
-import '../../closure.dart' show
-    ClosureClassElement;
-import '../../common/codegen.dart' show
-    CodegenRegistry;
+import '../../closure.dart' show ClosureClassElement;
+import '../../common/codegen.dart' show CodegenRegistry;
 import '../../constants/values.dart';
 import '../../dart_types.dart';
 import '../../elements/elements.dart';
-import '../../io/source_information.dart' show
-    SourceInformation;
+import '../../io/source_information.dart' show SourceInformation;
 import '../../js/js.dart' as js;
 import '../../tree_ir/tree_ir_nodes.dart' as tree_ir;
-import '../../tree_ir/tree_ir_nodes.dart' show
-    BuiltinMethod,
-    BuiltinOperator,
-    isCompoundableOperator;
-import '../../types/types.dart' show
-    TypeMask;
-import '../../universe/call_structure.dart' show
-    CallStructure;
-import '../../universe/selector.dart' show
-    Selector;
-import '../../universe/use.dart' show
-    DynamicUse,
-    StaticUse,
-    TypeUse;
+import '../../tree_ir/tree_ir_nodes.dart'
+    show BuiltinMethod, BuiltinOperator, isCompoundableOperator;
+import '../../types/types.dart' show TypeMask;
+import '../../universe/call_structure.dart' show CallStructure;
+import '../../universe/selector.dart' show Selector;
+import '../../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
 import '../../util/maplet.dart';
 
 class CodegenBailout {
@@ -43,7 +32,7 @@ class CodegenBailout {
 }
 
 class CodeGenerator extends tree_ir.StatementVisitor
-                    with tree_ir.ExpressionVisitor<js.Expression> {
+    with tree_ir.ExpressionVisitor<js.Expression> {
   final CodegenRegistry registry;
 
   final Glue glue;
@@ -65,8 +54,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
   /// Stacks whose top element is the current target of an unlabeled break
   /// or continue. For continues, this is the loop node itself.
   final tree_ir.FallthroughStack shortBreak = new tree_ir.FallthroughStack();
-  final tree_ir.FallthroughStack shortContinue =
-      new tree_ir.FallthroughStack();
+  final tree_ir.FallthroughStack shortContinue = new tree_ir.FallthroughStack();
 
   /// When the top element is true, [Unreachable] statements will be emitted
   /// as [Return]s, otherwise they are emitted as empty because they are
@@ -130,8 +118,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
       if (!declaredVariables.add(use.name)) break;
 
       js.VariableInitialization jsVariable = new js.VariableInitialization(
-        new js.VariableDeclaration(use.name),
-        assign.value);
+          new js.VariableDeclaration(use.name), assign.value);
       jsVariables.add(jsVariable);
 
       ++accumulatorIndex;
@@ -139,8 +126,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
     // If the last statement is a for loop with an initializer expression, try
     // to pull that expression into an initializer as well.
-    pullFromForLoop:
-    if (accumulatorIndex < accumulator.length &&
+    pullFromForLoop: if (accumulatorIndex < accumulator.length &&
         accumulator[accumulatorIndex] is js.For) {
       js.For forLoop = accumulator[accumulatorIndex];
       if (forLoop.init is! js.Assignment) break pullFromForLoop;
@@ -156,8 +142,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
       if (!declaredVariables.add(use.name)) break pullFromForLoop;
 
       js.VariableInitialization jsVariable = new js.VariableInitialization(
-        new js.VariableDeclaration(use.name),
-        assign.value);
+          new js.VariableDeclaration(use.name), assign.value);
       jsVariables.add(jsVariable);
 
       // Remove the initializer from the for loop.
@@ -174,16 +159,16 @@ class CodeGenerator extends tree_ir.StatementVisitor
     for (tree_ir.Variable variable in variableNames.keys) {
       String name = getVariableName(variable);
       if (declaredVariables.contains(name)) continue;
-      js.VariableInitialization jsVariable = new js.VariableInitialization(
-        new js.VariableDeclaration(name),
-        null);
+      js.VariableInitialization jsVariable =
+          new js.VariableInitialization(new js.VariableDeclaration(name), null);
       jsVariables.add(jsVariable);
     }
 
     if (jsVariables.length > 0) {
       // Would be nice to avoid inserting at the beginning of list.
-      accumulator.insert(0, new js.ExpressionStatement(
-          new js.VariableDeclarationList(jsVariables)
+      accumulator.insert(
+          0,
+          new js.ExpressionStatement(new js.VariableDeclarationList(jsVariables)
               .withSourceInformation(function.sourceInformation)));
     }
     return new js.Fun(parameters, new js.Block(accumulator));
@@ -213,9 +198,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
     // Synthesize a variable name that isn't used elsewhere.
     String prefix = variable.element == null ? 'v' : variable.element.name;
     int counter = 0;
-    name = glue.safeVariableName(variable.element == null
-        ? '$prefix$counter'
-        : variable.element.name);
+    name = glue.safeVariableName(
+        variable.element == null ? '$prefix$counter' : variable.element.name);
     while (!usedVariableNames.add(name)) {
       ++counter;
       name = '$prefix$counter';
@@ -235,7 +219,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   giveup(tree_ir.Node node,
-         [String reason = 'unimplemented in CodeGenerator']) {
+      [String reason = 'unimplemented in CodeGenerator']) {
     throw new CodegenBailout(node, reason);
   }
 
@@ -248,32 +232,28 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   js.Expression buildConstant(ConstantValue constant,
-                              {SourceInformation sourceInformation}) {
+      {SourceInformation sourceInformation}) {
     registry.registerCompileTimeConstant(constant);
-    return glue.constantReference(constant)
+    return glue
+        .constantReference(constant)
         .withSourceInformation(sourceInformation);
   }
 
   @override
   js.Expression visitConstant(tree_ir.Constant node) {
-    return buildConstant(
-        node.value,
-        sourceInformation: node.sourceInformation);
+    return buildConstant(node.value, sourceInformation: node.sourceInformation);
   }
 
-  js.Expression buildStaticInvoke(Element target,
-                                  List<js.Expression> arguments,
-                                  {SourceInformation sourceInformation}) {
+  js.Expression buildStaticInvoke(Element target, List<js.Expression> arguments,
+      {SourceInformation sourceInformation}) {
     if (target.isConstructor) {
       // TODO(johnniwinther): Avoid dependency on [isGenerativeConstructor] by
       // using backend-specific [StatisUse] classes.
-      registry.registerStaticUse(
-          new StaticUse.constructorInvoke(target.declaration,
-              new CallStructure.unnamed(arguments.length)));
+      registry.registerStaticUse(new StaticUse.constructorInvoke(
+          target.declaration, new CallStructure.unnamed(arguments.length)));
     } else {
-      registry.registerStaticUse(
-          new StaticUse.staticInvoke(target.declaration,
-              new CallStructure.unnamed(arguments.length)));
+      registry.registerStaticUse(new StaticUse.staticInvoke(
+          target.declaration, new CallStructure.unnamed(arguments.length)));
     }
     js.Expression elementAccess = glue.staticFunctionAccess(target);
     return new js.Call(elementAccess, arguments,
@@ -287,9 +267,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
     registry.registerInstantiation(node.type);
     FunctionElement target = node.target;
     List<js.Expression> arguments = visitExpressionList(node.arguments);
-    return buildStaticInvoke(
-        target,
-        arguments,
+    return buildStaticInvoke(target, arguments,
         sourceInformation: node.sourceInformation);
   }
 
@@ -306,9 +284,11 @@ class CodeGenerator extends tree_ir.StatementVisitor
   js.Expression visitInvokeMethod(tree_ir.InvokeMethod node) {
     TypeMask mask = glue.extendMaskIfReachesAll(node.selector, node.mask);
     registerMethodInvoke(node.selector, mask);
-    return js.propertyCall(visitExpression(node.receiver),
-                           glue.invocationName(node.selector),
-                           visitExpressionList(node.arguments))
+    return js
+        .propertyCall(
+            visitExpression(node.receiver),
+            glue.invocationName(node.selector),
+            visitExpressionList(node.arguments))
         .withSourceInformation(node.sourceInformation);
   }
 
@@ -317,7 +297,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
     FunctionElement target = node.target;
     List<js.Expression> arguments = visitExpressionList(node.arguments);
     return buildStaticInvoke(target, arguments,
-          sourceInformation: node.sourceInformation);
+        sourceInformation: node.sourceInformation);
   }
 
   @override
@@ -327,44 +307,43 @@ class CodeGenerator extends tree_ir.StatementVisitor
       // will be created, and that this tear-off must bypass ordinary
       // dispatch to ensure the super method is invoked.
       registry.registerStaticUse(new StaticUse.staticInvoke(
-          glue.closureFromTearOff, new CallStructure.unnamed(
-            glue.closureFromTearOff.parameters.length)));
+          glue.closureFromTearOff,
+          new CallStructure.unnamed(
+              glue.closureFromTearOff.parameters.length)));
       registry.registerStaticUse(new StaticUse.superTearOff(node.target));
     }
     if (node.target is ConstructorBodyElement) {
-      registry.registerStaticUse(
-          new StaticUse.constructorBodyInvoke(
-              node.target.declaration,
-              new CallStructure.unnamed(node.arguments.length)));
+      registry.registerStaticUse(new StaticUse.constructorBodyInvoke(
+          node.target.declaration,
+          new CallStructure.unnamed(node.arguments.length)));
       // A constructor body cannot be overriden or intercepted, so we can
       // use the short form for this invocation.
-      return js.js('#.#(#)',
-          [visitExpression(node.receiver),
-           glue.instanceMethodName(node.target),
-           visitExpressionList(node.arguments)])
-          .withSourceInformation(node.sourceInformation);
+      return js.js('#.#(#)', [
+        visitExpression(node.receiver),
+        glue.instanceMethodName(node.target),
+        visitExpressionList(node.arguments)
+      ]).withSourceInformation(node.sourceInformation);
     }
-    registry.registerStaticUse(
-        new StaticUse.superInvoke(
-            node.target.declaration,
-            new CallStructure.unnamed(node.arguments.length)));
-    return js.js('#.#.call(#, #)',
-        [glue.prototypeAccess(node.target.enclosingClass),
-         glue.invocationName(node.selector),
-         visitExpression(node.receiver),
-         visitExpressionList(node.arguments)])
-        .withSourceInformation(node.sourceInformation);
+    registry.registerStaticUse(new StaticUse.superInvoke(
+        node.target.declaration,
+        new CallStructure.unnamed(node.arguments.length)));
+    return js.js('#.#.call(#, #)', [
+      glue.prototypeAccess(node.target.enclosingClass),
+      glue.invocationName(node.selector),
+      visitExpression(node.receiver),
+      visitExpressionList(node.arguments)
+    ]).withSourceInformation(node.sourceInformation);
   }
 
   @override
   js.Expression visitOneShotInterceptor(tree_ir.OneShotInterceptor node) {
     registerMethodInvoke(node.selector, node.mask);
     registry.registerUseInterceptor();
-    return js.js('#.#(#)',
-        [glue.getInterceptorLibrary(),
-         glue.registerOneShotInterceptor(node.selector),
-         visitExpressionList(node.arguments)])
-        .withSourceInformation(node.sourceInformation);
+    return js.js('#.#(#)', [
+      glue.getInterceptorLibrary(),
+      glue.registerOneShotInterceptor(node.selector),
+      visitExpressionList(node.arguments)
+    ]).withSourceInformation(node.sourceInformation);
   }
 
   @override
@@ -377,9 +356,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
   @override
   js.Expression visitLogicalOperator(tree_ir.LogicalOperator node) {
     return new js.Binary(
-        node.operator,
-        visitExpression(node.left),
-        visitExpression(node.right));
+        node.operator, visitExpression(node.left), visitExpression(node.right));
   }
 
   @override
@@ -431,9 +408,9 @@ class CodeGenerator extends tree_ir.StatementVisitor
         }
         // TODO(sra): Implement fast cast via calling 'boolTypeCast'.
       } else if (node.isTypeTest &&
-                 node.typeArguments.isEmpty &&
-                 glue.mayGenerateInstanceofCheck(type) &&
-                 tryRegisterInstanceofCheck(clazz)) {
+          node.typeArguments.isEmpty &&
+          glue.mayGenerateInstanceofCheck(type) &&
+          tryRegisterInstanceofCheck(clazz)) {
         return js.js('# instanceof #', [value, glue.constructorAccess(clazz)]);
       }
 
@@ -449,9 +426,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
       //
       // Any of the last two arguments may be null if there are no type
       // arguments, and/or if no substitution is required.
-      Element function = node.isTypeTest
-          ? glue.getCheckSubtype()
-          : glue.getSubtypeCast();
+      Element function =
+          node.isTypeTest ? glue.getCheckSubtype() : glue.getSubtypeCast();
 
       js.Expression isT = js.quoteName(glue.getTypeTestTag(type));
 
@@ -464,8 +440,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
           : new js.LiteralNull();
 
       return buildStaticHelperInvocation(
-          function,
-          <js.Expression>[value, isT, typeArgumentArray, asT]);
+          function, <js.Expression>[value, isT, typeArgumentArray, asT]);
     } else if (type is TypeVariableType || type is FunctionType) {
       registry.registerTypeUse(new TypeUse.isCheck(type));
 
@@ -477,8 +452,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
       js.Expression typeValue = typeArguments.single;
 
       return buildStaticHelperInvocation(
-          function,
-          <js.Expression>[value, typeValue]);
+          function, <js.Expression>[value, typeValue]);
     }
     return giveup(node, 'type check unimplemented for $type.');
   }
@@ -526,19 +500,16 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   bool isCompoundableBuiltin(tree_ir.Expression exp) {
     return exp is tree_ir.ApplyBuiltinOperator &&
-           exp.arguments.length == 2 &&
-           isCompoundableOperator(exp.operator);
+        exp.arguments.length == 2 &&
+        isCompoundableOperator(exp.operator);
   }
 
   bool isOneConstant(tree_ir.Expression exp) {
     return exp is tree_ir.Constant && exp.value.isOne;
   }
 
-  js.Expression makeAssignment(
-      js.Expression leftHand,
-      tree_ir.Expression value,
-      {SourceInformation sourceInformation,
-       BuiltinOperator compound}) {
+  js.Expression makeAssignment(js.Expression leftHand, tree_ir.Expression value,
+      {SourceInformation sourceInformation, BuiltinOperator compound}) {
     if (isOneConstant(value)) {
       if (compound == BuiltinOperator.NumAdd) {
         return new js.Prefix('++', leftHand)
@@ -550,8 +521,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
       }
     }
     if (compound != null) {
-      return new js.Assignment.compound(leftHand,
-          getAsCompoundOperator(compound), visitExpression(value))
+      return new js.Assignment.compound(
+              leftHand, getAsCompoundOperator(compound), visitExpression(value))
           .withSourceInformation(sourceInformation);
     }
     return new js.Assignment(leftHand, visitExpression(value))
@@ -566,12 +537,12 @@ class CodeGenerator extends tree_ir.StatementVisitor
       tree_ir.Expression left = rhs.arguments[0];
       tree_ir.Expression right = rhs.arguments[1];
       if (left is tree_ir.VariableUse && left.variable == node.variable) {
-        return makeAssignment(variable, right, compound: rhs.operator,
-            sourceInformation: node.sourceInformation);
+        return makeAssignment(variable, right,
+            compound: rhs.operator, sourceInformation: node.sourceInformation);
       }
     }
-    return makeAssignment(
-        variable, node.value, sourceInformation: node.sourceInformation);
+    return makeAssignment(variable, node.value,
+        sourceInformation: node.sourceInformation);
   }
 
   @override
@@ -594,14 +565,14 @@ class CodeGenerator extends tree_ir.StatementVisitor
   /// target. This means jumping to [other] is equivalent to executing [node].
   bool isEffectiveBreakTarget(tree_ir.Break node, tree_ir.Statement other) {
     return node.target.binding.next == other ||
-           other is tree_ir.Break && node.target == other.target;
+        other is tree_ir.Break && node.target == other.target;
   }
 
   /// True if the given break is equivalent to an unlabeled continue.
   bool isShortContinue(tree_ir.Break node) {
     tree_ir.Statement next = node.target.binding.next;
     return next is tree_ir.Continue &&
-           next.target.binding == shortContinue.target;
+        next.target.binding == shortContinue.target;
   }
 
   @override
@@ -628,8 +599,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
     if (node.next is tree_ir.Unreachable && emitUnreachableAsReturn.last) {
       // Emit as 'return exp' to assist local analysis in the VM.
       SourceInformation sourceInformation = node.expression.sourceInformation;
-      accumulator.add(
-          new js.Return(exp).withSourceInformation(sourceInformation));
+      accumulator
+          .add(new js.Return(exp).withSourceInformation(sourceInformation));
       return null;
     } else {
       accumulator.add(new js.ExpressionStatement(exp));
@@ -643,7 +614,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   bool isEndOfMethod(tree_ir.Statement node) {
     return isNullReturn(node) ||
-           node is tree_ir.Break && isNullReturn(node.target.binding.next);
+        node is tree_ir.Break && isNullReturn(node.target.binding.next);
   }
 
   @override
@@ -728,7 +699,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   js.Expression makeSequence(List<tree_ir.Expression> list) {
-    return list.map(visitExpression).reduce((x,y) => new js.Binary(',', x, y));
+    return list.map(visitExpression).reduce((x, y) => new js.Binary(',', x, y));
   }
 
   @override
@@ -746,7 +717,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
     js.Statement loopNode;
     if (node.updates.isEmpty) {
       loopNode = new js.While(condition, body);
-    } else { // Compile as a for loop.
+    } else {
+      // Compile as a for loop.
       js.Expression init;
       if (accumulator.isNotEmpty &&
           accumulator.last is js.ExpressionStatement) {
@@ -778,8 +750,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
       fallthrough.use();
     }
     shortBreak.pop();
-    accumulator.add(
-        insertLabel(node.label, new js.For(null, null, null, jsBody)));
+    accumulator
+        .add(insertLabel(node.label, new js.For(null, null, null, jsBody)));
   }
 
   bool isNull(tree_ir.Expression node) {
@@ -794,7 +766,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
       fallthrough.use();
     } else {
       accumulator.add(new js.Return(visitExpression(node.value))
-            .withSourceInformation(node.sourceInformation));
+          .withSourceInformation(node.sourceInformation));
     }
   }
 
@@ -838,8 +810,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
     if (classElement is ClosureClassElement) {
       registry.registerInstantiatedClosure(classElement.methodElement);
     }
-    js.Expression instance = new js.New(
-            glue.constructorAccess(classElement),
+    js.Expression instance = new js.New(glue.constructorAccess(classElement),
             visitExpressionList(node.arguments))
         .withSourceInformation(node.sourceInformation);
 
@@ -847,8 +818,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
     if (typeInformation != null) {
       FunctionElement helper = glue.getAddRuntimeTypeInformation();
       js.Expression typeArguments = visitExpression(typeInformation);
-      return buildStaticHelperInvocation(helper,
-          <js.Expression>[instance, typeArguments],
+      return buildStaticHelperInvocation(
+          helper, <js.Expression>[instance, typeArguments],
           sourceInformation: node.sourceInformation);
     } else {
       return instance;
@@ -862,8 +833,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
     js.Expression internalName =
         js.quoteName(glue.invocationName(node.selector));
     js.Expression kind = js.number(node.selector.invocationMirrorKind);
-    js.Expression arguments = new js.ArrayInitializer(
-        visitExpressionList(node.arguments));
+    js.Expression arguments =
+        new js.ArrayInitializer(visitExpressionList(node.arguments));
     js.Expression argumentNames = new js.ArrayInitializer(
         node.selector.namedArguments.map(js.string).toList(growable: false));
     return buildStaticHelperInvocation(glue.createInvocationMirrorMethod,
@@ -881,29 +852,29 @@ class CodeGenerator extends tree_ir.StatementVisitor
     registry.registerSpecializedGetInterceptor(interceptedClasses);
     js.Name helperName = glue.getInterceptorName(interceptedClasses);
     js.Expression globalHolder = glue.getInterceptorLibrary();
-    return js.js('#.#(#)',
-        [globalHolder, helperName, visitExpression(node.input)])
-            .withSourceInformation(node.sourceInformation);
+    return js.js('#.#(#)', [
+      globalHolder,
+      helperName,
+      visitExpression(node.input)
+    ]).withSourceInformation(node.sourceInformation);
   }
 
   @override
   js.Expression visitGetField(tree_ir.GetField node) {
     registry.registerStaticUse(new StaticUse.fieldGet(node.field));
-    return new js.PropertyAccess(
-        visitExpression(node.object),
-        glue.instanceFieldPropertyName(node.field))
+    return new js.PropertyAccess(visitExpression(node.object),
+            glue.instanceFieldPropertyName(node.field))
         .withSourceInformation(node.sourceInformation);
   }
 
   @override
   js.Expression visitSetField(tree_ir.SetField node) {
     registry.registerStaticUse(new StaticUse.fieldSet(node.field));
-    js.PropertyAccess field =
-        new js.PropertyAccess(
-            visitExpression(node.object),
-            glue.instanceFieldPropertyName(node.field));
-    return makeAssignment(field, node.value, compound: node.compound,
-        sourceInformation: node.sourceInformation);
+    js.PropertyAccess field = new js.PropertyAccess(
+        visitExpression(node.object),
+        glue.instanceFieldPropertyName(node.field));
+    return makeAssignment(field, node.value,
+        compound: node.compound, sourceInformation: node.sourceInformation);
   }
 
   @override
@@ -913,8 +884,9 @@ class CodeGenerator extends tree_ir.StatementVisitor
       // Tear off a method.
       registry.registerStaticUse(
           new StaticUse.staticTearOff(node.element.declaration));
-      return glue.isolateStaticClosureAccess(node.element)
-        .withSourceInformation(node.sourceInformation);
+      return glue
+          .isolateStaticClosureAccess(node.element)
+          .withSourceInformation(node.sourceInformation);
     }
     if (node.useLazyGetter) {
       // Read a lazily initialized field.
@@ -925,20 +897,21 @@ class CodeGenerator extends tree_ir.StatementVisitor
           sourceInformation: node.sourceInformation);
     }
     // Read an eagerly initialized field.
-    registry.registerStaticUse(
-        new StaticUse.staticGet(node.element.declaration));
-    return glue.staticFieldAccess(node.element)
+    registry
+        .registerStaticUse(new StaticUse.staticGet(node.element.declaration));
+    return glue
+        .staticFieldAccess(node.element)
         .withSourceInformation(node.sourceInformation);
   }
 
   @override
   js.Expression visitSetStatic(tree_ir.SetStatic node) {
     assert(node.element is FieldElement);
-    registry.registerStaticUse(
-        new StaticUse.staticSet(node.element.declaration));
+    registry
+        .registerStaticUse(new StaticUse.staticSet(node.element.declaration));
     js.Expression field = glue.staticFieldAccess(node.element);
-    return makeAssignment(field, node.value, compound: node.compound,
-        sourceInformation: node.sourceInformation);
+    return makeAssignment(field, node.value,
+        compound: node.compound, sourceInformation: node.sourceInformation);
   }
 
   @override
@@ -949,8 +922,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
   @override
   js.Expression visitGetIndex(tree_ir.GetIndex node) {
     return new js.PropertyAccess(
-        visitExpression(node.object),
-        visitExpression(node.index));
+        visitExpression(node.object), visitExpression(node.index));
   }
 
   @override
@@ -961,24 +933,21 @@ class CodeGenerator extends tree_ir.StatementVisitor
   }
 
   js.Expression buildStaticHelperInvocation(
-      FunctionElement helper,
-      List<js.Expression> arguments,
+      FunctionElement helper, List<js.Expression> arguments,
       {SourceInformation sourceInformation}) {
     registry.registerStaticUse(new StaticUse.staticInvoke(
         helper, new CallStructure.unnamed(arguments.length)));
-    return buildStaticInvoke(
-        helper, arguments, sourceInformation: sourceInformation);
+    return buildStaticInvoke(helper, arguments,
+        sourceInformation: sourceInformation);
   }
 
   @override
   js.Expression visitReifyRuntimeType(tree_ir.ReifyRuntimeType node) {
     js.Expression typeToString = buildStaticHelperInvocation(
-        glue.getRuntimeTypeToString(),
-        [visitExpression(node.value)],
+        glue.getRuntimeTypeToString(), [visitExpression(node.value)],
         sourceInformation: node.sourceInformation);
     return buildStaticHelperInvocation(
-        glue.getCreateRuntimeType(),
-        [typeToString],
+        glue.getCreateRuntimeType(), [typeToString],
         sourceInformation: node.sourceInformation);
   }
 
@@ -988,14 +957,12 @@ class CodeGenerator extends tree_ir.StatementVisitor
     js.Expression index = js.number(glue.getTypeVariableIndex(node.variable));
     if (glue.needsSubstitutionForTypeVariableAccess(context)) {
       js.Expression typeName = glue.getRuntimeTypeName(context);
-      return buildStaticHelperInvocation(
-          glue.getRuntimeTypeArgument(),
+      return buildStaticHelperInvocation(glue.getRuntimeTypeArgument(),
           [visitExpression(node.target), typeName, index],
           sourceInformation: node.sourceInformation);
     } else {
       return buildStaticHelperInvocation(
-          glue.getTypeArgumentByIndex(),
-          [visitExpression(node.target), index],
+          glue.getTypeArgumentByIndex(), [visitExpression(node.target), index],
           sourceInformation: node.sourceInformation);
     }
   }
@@ -1009,8 +976,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
             node.dartType, arguments, registry);
       case tree_ir.TypeExpressionKind.INSTANCE:
         // We expect only flat types for the INSTANCE representation.
-        assert(node.dartType ==
-               (node.dartType.element as ClassElement).thisType);
+        assert(
+            node.dartType == (node.dartType.element as ClassElement).thisType);
         registry.registerInstantiatedClass(glue.listClass);
         return new js.ArrayInitializer(arguments);
     }
@@ -1020,14 +987,13 @@ class CodeGenerator extends tree_ir.StatementVisitor
     if (node.dependency != null) {
       // Dependency is only used if [node] calls a Dart function. Currently only
       // through foreign function `RAW_DART_FUNCTION_REF`.
-      registry.registerStaticUse(
-          new StaticUse.staticInvoke(
-              node.dependency,
-              new CallStructure.unnamed(node.arguments.length)));
+      registry.registerStaticUse(new StaticUse.staticInvoke(
+          node.dependency, new CallStructure.unnamed(node.arguments.length)));
     }
     // TODO(sra,johnniwinther): Should this be in CodegenRegistry?
     glue.registerNativeBehavior(node.nativeBehavior, node);
-    return node.codeTemplate.instantiate(visitExpressionList(node.arguments))
+    return node.codeTemplate
+        .instantiate(visitExpressionList(node.arguments))
         .withSourceInformation(node.sourceInformation);
   }
 
@@ -1120,7 +1086,7 @@ class CodeGenerator extends tree_ir.StatementVisitor
           return js.js('-#', args);
         case BuiltinOperator.StringConcatenate:
           if (args.isEmpty) return js.string('');
-          return args.reduce((e1,e2) => new js.Binary('+', e1, e2));
+          return args.reduce((e1, e2) => new js.Binary('+', e1, e2));
         case BuiltinOperator.CharCodeAt:
           return js.js('#.charCodeAt(#)', args);
         case BuiltinOperator.Identical:
@@ -1169,8 +1135,8 @@ class CodeGenerator extends tree_ir.StatementVisitor
 
   /// Add a uint32 normalization `op >>> 0` to [op] if it is not in 31-bit
   /// range.
-  js.Expression normalizeBitOp(js.Expression op,
-                               tree_ir.ApplyBuiltinOperator node) {
+  js.Expression normalizeBitOp(
+      js.Expression op, tree_ir.ApplyBuiltinOperator node) {
     const MAX_UINT31 = 0x7fffffff;
     const MAX_UINT32 = 0xffffffff;
 

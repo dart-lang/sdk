@@ -74,21 +74,27 @@ class UseFieldInitializers extends BlockVisitor implements Pass {
   void visitContinuation(Continuation node) {
     endBasicBlock();
   }
+
   void visitLetHandler(LetHandler node) {
     endBasicBlock();
   }
+
   void visitInvokeContinuation(InvokeContinuation node) {
     endBasicBlock();
   }
+
   void visitBranch(Branch node) {
     endBasicBlock();
   }
+
   void visitRethrow(Rethrow node) {
     endBasicBlock();
   }
+
   void visitThrow(Throw node) {
     endBasicBlock();
   }
+
   void visitUnreachable(Unreachable node) {
     endBasicBlock();
   }
@@ -109,7 +115,9 @@ class UseFieldInitializers extends BlockVisitor implements Pass {
   void sinkLetConts() {
     if (letContSinkTarget != null) {
       for (LetCont letCont in letConts.reversed) {
-        letCont..remove()..insertBelow(letContSinkTarget);
+        letCont
+          ..remove()
+          ..insertBelow(letContSinkTarget);
       }
       letContSinkTarget = null;
     }

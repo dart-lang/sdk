@@ -59,8 +59,7 @@ import 'type_mask_system.dart';
 // TODO(asgerf): Could be more precise if GVN shared expressions that are not
 // in direct scope of one another, e.g. by using phis pass the shared value.
 //
-class PathBasedOptimizer extends TrampolineRecursiveVisitor
-                         implements Pass {
+class PathBasedOptimizer extends TrampolineRecursiveVisitor implements Pass {
   String get passName => 'Path-based optimizations';
 
   // Classification of all values.
@@ -158,7 +157,7 @@ class PathBasedOptimizer extends TrampolineRecursiveVisitor
       // Only self-interceptors can respond to a non-intercepted selector.
       valueOf[node.receiver] = receiverValue & SELF_INTERCEPTOR;
     } else if (receiverValue & ~SELF_INTERCEPTOR == 0 &&
-               node.callingConvention == CallingConvention.Intercepted) {
+        node.callingConvention == CallingConvention.Intercepted) {
       // This is an intercepted call whose receiver is definitely a
       // self-interceptor.
       // TODO(25646): If TypeMasks could represent "any self-interceptor" this
@@ -167,8 +166,8 @@ class PathBasedOptimizer extends TrampolineRecursiveVisitor
 
       // Replace the extra receiver argument with a dummy value if the
       // target definitely does not use it.
-      if (typeSystem.targetIgnoresReceiverArgument(node.receiver.type,
-            node.selector)) {
+      if (typeSystem.targetIgnoresReceiverArgument(
+          node.receiver.type, node.selector)) {
         node.makeDummyIntercepted();
       }
     }

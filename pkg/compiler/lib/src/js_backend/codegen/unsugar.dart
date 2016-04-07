@@ -107,18 +107,17 @@ class UnsugarVisitor extends TrampolineRecursiveVisitor implements Pass {
     //       body;
     //
     CpsFragment cps = new CpsFragment();
-    Primitive isNull = cps.applyBuiltin(
-        BuiltinOperator.Identical,
+    Primitive isNull = cps.applyBuiltin(BuiltinOperator.Identical,
         <Primitive>[function.parameters.single, cps.makeNull()]);
     CpsFragment trueBranch = cps.ifTruthy(isNull);
-    trueBranch.invokeContinuation(function.returnContinuation,
-        <Primitive>[trueBranch.makeFalse()]);
+    trueBranch.invokeContinuation(
+        function.returnContinuation, <Primitive>[trueBranch.makeFalse()]);
     cps.insertAbove(function.body);
   }
 
   /// Insert a static call to [function] immediately above [node].
-  Primitive insertStaticCallAbove(FunctionElement function,
-      List<Primitive> arguments, Expression node) {
+  Primitive insertStaticCallAbove(
+      FunctionElement function, List<Primitive> arguments, Expression node) {
     // TODO(johnniwinther): Come up with an implementation of SourceInformation
     // for calls such as this one that don't appear in the original source.
     InvokeStatic invoke = new InvokeStatic(
@@ -152,9 +151,7 @@ class UnsugarVisitor extends TrampolineRecursiveVisitor implements Pass {
 
       if (stackTraceParameter.hasAtLeastOneUse) {
         InvokeStatic stackTraceValue = insertStaticCallAbove(
-            _glue.getTraceFromException(),
-            [_exceptionParameter],
-            body);
+            _glue.getTraceFromException(), [_exceptionParameter], body);
         stackTraceParameter.replaceUsesWith(stackTraceValue);
       }
     }
@@ -171,9 +168,7 @@ class UnsugarVisitor extends TrampolineRecursiveVisitor implements Pass {
   processThrow(Throw node) {
     // The subexpression of throw is wrapped in the JavaScript output.
     Primitive wrappedException = insertStaticCallAbove(
-        _glue.getWrapExceptionHelper(),
-        [node.value],
-        node);
+        _glue.getWrapExceptionHelper(), [node.value], node);
     node.valueRef.changeTo(wrappedException);
   }
 
@@ -201,10 +196,8 @@ class UnsugarVisitor extends TrampolineRecursiveVisitor implements Pass {
     if (node.selector == Selectors.equals &&
         node.argumentRefs.length == 1 &&
         isNullConstant(node.argument(0))) {
-      node.replaceWith(new ApplyBuiltinOperator(
-          BuiltinOperator.Identical,
-          [node.receiver, node.argument(0)],
-          node.sourceInformation));
+      node.replaceWith(new ApplyBuiltinOperator(BuiltinOperator.Identical,
+          [node.receiver, node.argument(0)], node.sourceInformation));
       return;
     }
 

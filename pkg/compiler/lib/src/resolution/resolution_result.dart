@@ -8,17 +8,9 @@ import '../constants/expressions.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../tree/tree.dart';
-import '../universe/call_structure.dart' show
-    CallStructure;
+import '../universe/call_structure.dart' show CallStructure;
 
-enum ResultKind {
-  NONE,
-  ELEMENT,
-  TYPE,
-  ASSERT,
-  CONSTANT,
-  PREFIX,
-}
+enum ResultKind { NONE, ELEMENT, TYPE, ASSERT, CONSTANT, PREFIX, }
 
 /// The result of resolving a node.
 abstract class ResolutionResult {
@@ -121,9 +113,7 @@ class ArgumentsResult {
   /// expression.
   final bool isValidAsConstant;
 
-  ArgumentsResult(
-      this.callStructure,
-      this.argumentResults,
+  ArgumentsResult(this.callStructure, this.argumentResults,
       {this.isValidAsConstant});
 
   /// Returns the list of [ConstantExpression]s for each of the arguments. If

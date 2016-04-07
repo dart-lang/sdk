@@ -4,15 +4,10 @@
 
 library dart2js.js_helpers.impact;
 
-import '../compiler.dart' show
-    Compiler;
-import '../core_types.dart' show
-    CoreClasses;
-import '../dart_types.dart' show
-    InterfaceType;
-import '../elements/elements.dart' show
-    ClassElement,
-    Element;
+import '../compiler.dart' show Compiler;
+import '../core_types.dart' show CoreClasses;
+import '../dart_types.dart' show InterfaceType;
+import '../elements/elements.dart' show ClassElement, Element;
 
 import 'backend_helpers.dart';
 import 'constant_system_javascript.dart';
@@ -25,10 +20,11 @@ class BackendImpact {
   final List<ClassElement> instantiatedClasses;
   final List<BackendImpact> otherImpacts;
 
-  BackendImpact({this.staticUses: const <Element>[],
-                 this.instantiatedTypes: const <InterfaceType>[],
-                 this.instantiatedClasses: const <ClassElement>[],
-                 this.otherImpacts: const <BackendImpact>[]});
+  BackendImpact(
+      {this.staticUses: const <Element>[],
+      this.instantiatedTypes: const <InterfaceType>[],
+      this.instantiatedClasses: const <ClassElement>[],
+      this.otherImpacts: const <BackendImpact>[]});
 }
 
 /// The JavaScript backend dependencies for various features.
@@ -47,11 +43,11 @@ class BackendImpacts {
 
   BackendImpact get getRuntimeTypeArgument {
     if (_getRuntimeTypeArgument == null) {
-      _getRuntimeTypeArgument = new BackendImpact(
-          staticUses: [
-            helpers.getRuntimeTypeArgument,
-            helpers.getTypeArgumentByIndex,
-            helpers.copyTypeArguments]);
+      _getRuntimeTypeArgument = new BackendImpact(staticUses: [
+        helpers.getRuntimeTypeArgument,
+        helpers.getTypeArgumentByIndex,
+        helpers.copyTypeArguments
+      ]);
     }
     return _getRuntimeTypeArgument;
   }
@@ -60,14 +56,14 @@ class BackendImpacts {
 
   BackendImpact get computeSignature {
     if (_computeSignature == null) {
-      _computeSignature = new BackendImpact(
-          staticUses: [
-            helpers.setRuntimeTypeInfo,
-            helpers.getRuntimeTypeInfo,
-            helpers.computeSignature,
-            helpers.getRuntimeTypeArguments],
-          otherImpacts: [
-            listValues]);
+      _computeSignature = new BackendImpact(staticUses: [
+        helpers.setRuntimeTypeInfo,
+        helpers.getRuntimeTypeInfo,
+        helpers.computeSignature,
+        helpers.getRuntimeTypeArguments
+      ], otherImpacts: [
+        listValues
+      ]);
     }
     return _computeSignature;
   }
@@ -76,12 +72,12 @@ class BackendImpacts {
 
   BackendImpact get asyncBody {
     if (_asyncBody == null) {
-      _asyncBody = new BackendImpact(
-          staticUses: [
-            helpers.asyncHelper,
-            helpers.syncCompleterConstructor,
-            helpers.streamIteratorConstructor,
-            helpers.wrapBody]);
+      _asyncBody = new BackendImpact(staticUses: [
+        helpers.asyncHelper,
+        helpers.syncCompleterConstructor,
+        helpers.streamIteratorConstructor,
+        helpers.wrapBody
+      ]);
     }
     return _asyncBody;
   }
@@ -90,14 +86,14 @@ class BackendImpacts {
 
   BackendImpact get syncStarBody {
     if (_syncStarBody == null) {
-      _syncStarBody = new BackendImpact(
-          staticUses: [
-            helpers.syncStarIterableConstructor,
-            helpers.endOfIteration,
-            helpers.yieldStar,
-            helpers.syncStarUncaughtError],
-          instantiatedClasses: [
-            helpers.syncStarIterable]);
+      _syncStarBody = new BackendImpact(staticUses: [
+        helpers.syncStarIterableConstructor,
+        helpers.endOfIteration,
+        helpers.yieldStar,
+        helpers.syncStarUncaughtError
+      ], instantiatedClasses: [
+        helpers.syncStarIterable
+      ]);
     }
     return _syncStarBody;
   }
@@ -106,17 +102,17 @@ class BackendImpacts {
 
   BackendImpact get asyncStarBody {
     if (_asyncStarBody == null) {
-      _asyncStarBody = new BackendImpact(
-          staticUses: [
-            helpers.asyncStarHelper,
-            helpers.streamOfController,
-            helpers.yieldSingle,
-            helpers.yieldStar,
-            helpers.asyncStarControllerConstructor,
-            helpers.streamIteratorConstructor,
-            helpers.wrapBody],
-          instantiatedClasses: [
-            helpers.asyncStarController]);
+      _asyncStarBody = new BackendImpact(staticUses: [
+        helpers.asyncStarHelper,
+        helpers.streamOfController,
+        helpers.yieldSingle,
+        helpers.yieldStar,
+        helpers.asyncStarControllerConstructor,
+        helpers.streamIteratorConstructor,
+        helpers.wrapBody
+      ], instantiatedClasses: [
+        helpers.asyncStarController
+      ]);
     }
     return _asyncStarBody;
   }
@@ -126,9 +122,7 @@ class BackendImpacts {
   BackendImpact get typeVariableBoundCheck {
     if (_typeVariableBoundCheck == null) {
       _typeVariableBoundCheck = new BackendImpact(
-          staticUses: [
-            helpers.throwTypeError,
-            helpers.assertIsSubtype]);
+          staticUses: [helpers.throwTypeError, helpers.assertIsSubtype]);
     }
     return _typeVariableBoundCheck;
   }
@@ -138,10 +132,8 @@ class BackendImpacts {
   BackendImpact get abstractClassInstantiation {
     if (_abstractClassInstantiation == null) {
       _abstractClassInstantiation = new BackendImpact(
-          staticUses: [
-            helpers.throwAbstractClassInstantiationError],
-          otherImpacts: [
-            _needsString('Needed to encode the message.')]);
+          staticUses: [helpers.throwAbstractClassInstantiationError],
+          otherImpacts: [_needsString('Needed to encode the message.')]);
     }
     return _abstractClassInstantiation;
   }
@@ -150,9 +142,8 @@ class BackendImpacts {
 
   BackendImpact get fallThroughError {
     if (_fallThroughError == null) {
-      _fallThroughError = new BackendImpact(
-          staticUses: [
-            helpers.fallThroughError]);
+      _fallThroughError =
+          new BackendImpact(staticUses: [helpers.fallThroughError]);
     }
     return _fallThroughError;
   }
@@ -161,9 +152,7 @@ class BackendImpacts {
 
   BackendImpact get asCheck {
     if (_asCheck == null) {
-      _asCheck = new BackendImpact(
-          staticUses: [
-            helpers.throwRuntimeError]);
+      _asCheck = new BackendImpact(staticUses: [helpers.throwRuntimeError]);
     }
     return _asCheck;
   }
@@ -172,15 +161,14 @@ class BackendImpacts {
 
   BackendImpact get throwNoSuchMethod {
     if (_throwNoSuchMethod == null) {
-      _throwNoSuchMethod = new BackendImpact(
-          staticUses: [
-            helpers.throwNoSuchMethod],
-          otherImpacts: [
-            // Also register the types of the arguments passed to this method.
-            _needsList(
-                'Needed to encode the arguments for throw NoSuchMethodError.'),
-            _needsString(
-                'Needed to encode the name for throw NoSuchMethodError.')]);
+      _throwNoSuchMethod = new BackendImpact(staticUses: [
+        helpers.throwNoSuchMethod
+      ], otherImpacts: [
+        // Also register the types of the arguments passed to this method.
+        _needsList(
+            'Needed to encode the arguments for throw NoSuchMethodError.'),
+        _needsString('Needed to encode the name for throw NoSuchMethodError.')
+      ]);
     }
     return _throwNoSuchMethod;
   }
@@ -189,9 +177,8 @@ class BackendImpacts {
 
   BackendImpact get stringValues {
     if (_stringValues == null) {
-      _stringValues = new BackendImpact(
-          instantiatedClasses: [
-            helpers.jsStringClass]);
+      _stringValues =
+          new BackendImpact(instantiatedClasses: [helpers.jsStringClass]);
     }
     return _stringValues;
   }
@@ -200,14 +187,14 @@ class BackendImpacts {
 
   BackendImpact get numValues {
     if (_numValues == null) {
-      _numValues = new BackendImpact(
-          instantiatedClasses: [
-            helpers.jsIntClass,
-            helpers.jsPositiveIntClass,
-            helpers.jsUInt32Class,
-            helpers.jsUInt31Class,
-            helpers.jsNumberClass,
-            helpers.jsDoubleClass]);
+      _numValues = new BackendImpact(instantiatedClasses: [
+        helpers.jsIntClass,
+        helpers.jsPositiveIntClass,
+        helpers.jsUInt32Class,
+        helpers.jsUInt31Class,
+        helpers.jsNumberClass,
+        helpers.jsDoubleClass
+      ]);
     }
     return _numValues;
   }
@@ -220,9 +207,8 @@ class BackendImpacts {
 
   BackendImpact get boolValues {
     if (_boolValues == null) {
-      _boolValues = new BackendImpact(
-          instantiatedClasses: [
-            helpers.jsBoolClass]);
+      _boolValues =
+          new BackendImpact(instantiatedClasses: [helpers.jsBoolClass]);
     }
     return _boolValues;
   }
@@ -231,9 +217,8 @@ class BackendImpacts {
 
   BackendImpact get nullValue {
     if (_nullValue == null) {
-      _nullValue = new BackendImpact(
-          instantiatedClasses: [
-            helpers.jsNullClass]);
+      _nullValue =
+          new BackendImpact(instantiatedClasses: [helpers.jsNullClass]);
     }
     return _nullValue;
   }
@@ -242,13 +227,13 @@ class BackendImpacts {
 
   BackendImpact get listValues {
     if (_listValues == null) {
-      _listValues = new BackendImpact(
-          instantiatedClasses: [
-            helpers.jsArrayClass,
-            helpers.jsMutableArrayClass,
-            helpers.jsFixedArrayClass,
-            helpers.jsExtendableArrayClass,
-            helpers.jsUnmodifiableArrayClass]);
+      _listValues = new BackendImpact(instantiatedClasses: [
+        helpers.jsArrayClass,
+        helpers.jsMutableArrayClass,
+        helpers.jsFixedArrayClass,
+        helpers.jsExtendableArrayClass,
+        helpers.jsUnmodifiableArrayClass
+      ]);
     }
     return _listValues;
   }
@@ -257,12 +242,12 @@ class BackendImpacts {
 
   BackendImpact get throwRuntimeError {
     if (_throwRuntimeError == null) {
-      _throwRuntimeError = new BackendImpact(
-          staticUses: [
-            helpers.throwRuntimeError],
-          otherImpacts: [
-            // Also register the types of the arguments passed to this method.
-            stringValues]);
+      _throwRuntimeError = new BackendImpact(staticUses: [
+        helpers.throwRuntimeError
+      ], otherImpacts: [
+        // Also register the types of the arguments passed to this method.
+        stringValues
+      ]);
     }
     return _throwRuntimeError;
   }
@@ -271,17 +256,15 @@ class BackendImpacts {
 
   BackendImpact get superNoSuchMethod {
     if (_superNoSuchMethod == null) {
-      _superNoSuchMethod = new BackendImpact(
-          staticUses: [
-            helpers.createInvocationMirror,
-            helpers.objectNoSuchMethod],
-          otherImpacts: [
-            _needsInt(
-                'Needed to encode the invocation kind of super.noSuchMethod.'),
-            _needsList(
-                'Needed to encode the arguments of super.noSuchMethod.'),
-            _needsString(
-                'Needed to encode the name of super.noSuchMethod.')]);
+      _superNoSuchMethod = new BackendImpact(staticUses: [
+        helpers.createInvocationMirror,
+        helpers.objectNoSuchMethod
+      ], otherImpacts: [
+        _needsInt(
+            'Needed to encode the invocation kind of super.noSuchMethod.'),
+        _needsList('Needed to encode the arguments of super.noSuchMethod.'),
+        _needsString('Needed to encode the name of super.noSuchMethod.')
+      ]);
     }
     return _superNoSuchMethod;
   }
@@ -290,17 +273,16 @@ class BackendImpacts {
 
   BackendImpact get constantMapLiteral {
     if (_constantMapLiteral == null) {
-
       ClassElement find(String name) {
         return helpers.find(helpers.jsHelperLibrary, name);
       }
 
-      _constantMapLiteral = new BackendImpact(
-          instantiatedClasses: [
-            find(JavaScriptMapConstant.DART_CLASS),
-            find(JavaScriptMapConstant.DART_PROTO_CLASS),
-            find(JavaScriptMapConstant.DART_STRING_CLASS),
-            find(JavaScriptMapConstant.DART_GENERAL_CLASS)]);
+      _constantMapLiteral = new BackendImpact(instantiatedClasses: [
+        find(JavaScriptMapConstant.DART_CLASS),
+        find(JavaScriptMapConstant.DART_PROTO_CLASS),
+        find(JavaScriptMapConstant.DART_STRING_CLASS),
+        find(JavaScriptMapConstant.DART_GENERAL_CLASS)
+      ]);
     }
     return _constantMapLiteral;
   }
@@ -310,8 +292,7 @@ class BackendImpacts {
   BackendImpact get symbolConstructor {
     if (_symbolConstructor == null) {
       _symbolConstructor = new BackendImpact(
-        staticUses: [
-          helpers.compiler.symbolValidatedConstructor]);
+          staticUses: [helpers.compiler.symbolValidatedConstructor]);
     }
     return _symbolConstructor;
   }
@@ -321,10 +302,8 @@ class BackendImpacts {
   BackendImpact get constSymbol {
     if (_constSymbol == null) {
       _constSymbol = new BackendImpact(
-        instantiatedClasses: [
-          coreClasses.symbolClass],
-        staticUses: [
-          compiler.symbolConstructor.declaration]);
+          instantiatedClasses: [coreClasses.symbolClass],
+          staticUses: [compiler.symbolConstructor.declaration]);
     }
     return _constSymbol;
   }
@@ -361,9 +340,8 @@ class BackendImpacts {
 
   BackendImpact get assertWithoutMessage {
     if (_assertWithoutMessage == null) {
-      _assertWithoutMessage = new BackendImpact(
-          staticUses: [
-            helpers.assertHelper]);
+      _assertWithoutMessage =
+          new BackendImpact(staticUses: [helpers.assertHelper]);
     }
     return _assertWithoutMessage;
   }
@@ -373,9 +351,7 @@ class BackendImpacts {
   BackendImpact get assertWithMessage {
     if (_assertWithMessage == null) {
       _assertWithMessage = new BackendImpact(
-          staticUses: [
-            helpers.assertTest,
-            helpers.assertThrow]);
+          staticUses: [helpers.assertTest, helpers.assertThrow]);
     }
     return _assertWithMessage;
   }
@@ -384,9 +360,8 @@ class BackendImpacts {
 
   BackendImpact get asyncForIn {
     if (_asyncForIn == null) {
-      _asyncForIn = new BackendImpact(
-          staticUses: [
-            helpers.streamIteratorConstructor]);
+      _asyncForIn =
+          new BackendImpact(staticUses: [helpers.streamIteratorConstructor]);
     }
     return _asyncForIn;
   }
@@ -396,10 +371,8 @@ class BackendImpacts {
   BackendImpact get stringInterpolation {
     if (_stringInterpolation == null) {
       _stringInterpolation = new BackendImpact(
-          staticUses: [
-            helpers.stringInterpolationHelper],
-          otherImpacts: [
-            _needsString('Strings are created.')]);
+          staticUses: [helpers.stringInterpolationHelper],
+          otherImpacts: [_needsString('Strings are created.')]);
     }
     return _stringInterpolation;
   }
@@ -427,12 +400,12 @@ class BackendImpacts {
 
   BackendImpact get catchStatement {
     if (_catchStatement == null) {
-      _catchStatement = new BackendImpact(
-          staticUses: [
-            helpers.exceptionUnwrapper],
-          instantiatedClasses: [
-            helpers.jsPlainJavaScriptObjectClass,
-            helpers.jsUnknownJavaScriptObjectClass]);
+      _catchStatement = new BackendImpact(staticUses: [
+        helpers.exceptionUnwrapper
+      ], instantiatedClasses: [
+        helpers.jsPlainJavaScriptObjectClass,
+        helpers.jsUnknownJavaScriptObjectClass
+      ]);
     }
     return _catchStatement;
   }
@@ -447,7 +420,8 @@ class BackendImpacts {
           // here, even though we may not need the throwExpression helper.
           staticUses: [
             helpers.wrapExceptionHelper,
-            helpers.throwExpressionHelper]);
+            helpers.throwExpressionHelper
+          ]);
     }
     return _throwExpression;
   }
@@ -456,9 +430,7 @@ class BackendImpacts {
 
   BackendImpact get lazyField {
     if (_lazyField == null) {
-      _lazyField = new BackendImpact(
-          staticUses: [
-            helpers.cyclicThrowHelper]);
+      _lazyField = new BackendImpact(staticUses: [helpers.cyclicThrowHelper]);
     }
     return _lazyField;
   }
@@ -468,10 +440,8 @@ class BackendImpacts {
   BackendImpact get typeLiteral {
     if (_typeLiteral == null) {
       _typeLiteral = new BackendImpact(
-          instantiatedClasses: [
-            backend.typeImplementation],
-          staticUses: [
-            helpers.createRuntimeType]);
+          instantiatedClasses: [backend.typeImplementation],
+          staticUses: [helpers.createRuntimeType]);
     }
     return _typeLiteral;
   }
@@ -481,10 +451,8 @@ class BackendImpacts {
   BackendImpact get stackTraceInCatch {
     if (_stackTraceInCatch == null) {
       _stackTraceInCatch = new BackendImpact(
-          instantiatedClasses: [
-            helpers.stackTraceClass],
-          staticUses: [
-            helpers.traceFromException]);
+          instantiatedClasses: [helpers.stackTraceClass],
+          staticUses: [helpers.traceFromException]);
     }
     return _stackTraceInCatch;
   }
@@ -496,8 +464,7 @@ class BackendImpacts {
       _syncForIn = new BackendImpact(
           // The SSA builder recognizes certain for-in loops and can generate
           // calls to throwConcurrentModificationError.
-          staticUses: [
-            helpers.checkConcurrentModificationError]);
+          staticUses: [helpers.checkConcurrentModificationError]);
     }
     return _syncForIn;
   }
@@ -506,17 +473,16 @@ class BackendImpacts {
 
   BackendImpact get typeVariableExpression {
     if (_typeVariableExpression == null) {
-      _typeVariableExpression = new BackendImpact(
-          staticUses: [
-            helpers.setRuntimeTypeInfo,
-            helpers.getRuntimeTypeInfo,
-            helpers.runtimeTypeToString,
-            helpers.createRuntimeType],
-          otherImpacts: [
-            listValues,
-            getRuntimeTypeArgument,
-            _needsInt('Needed for accessing a type variable literal on this.')
-          ]);
+      _typeVariableExpression = new BackendImpact(staticUses: [
+        helpers.setRuntimeTypeInfo,
+        helpers.getRuntimeTypeInfo,
+        helpers.runtimeTypeToString,
+        helpers.createRuntimeType
+      ], otherImpacts: [
+        listValues,
+        getRuntimeTypeArgument,
+        _needsInt('Needed for accessing a type variable literal on this.')
+      ]);
     }
     return _typeVariableExpression;
   }
@@ -525,9 +491,7 @@ class BackendImpacts {
 
   BackendImpact get typeCheck {
     if (_typeCheck == null) {
-      _typeCheck = new BackendImpact(
-          otherImpacts: [
-            boolValues]);
+      _typeCheck = new BackendImpact(otherImpacts: [boolValues]);
     }
     return _typeCheck;
   }
@@ -536,9 +500,8 @@ class BackendImpacts {
 
   BackendImpact get checkedModeTypeCheck {
     if (_checkedModeTypeCheck == null) {
-      _checkedModeTypeCheck = new BackendImpact(
-          staticUses: [
-            helpers.throwRuntimeError]);
+      _checkedModeTypeCheck =
+          new BackendImpact(staticUses: [helpers.throwRuntimeError]);
     }
     return _checkedModeTypeCheck;
   }
@@ -547,9 +510,8 @@ class BackendImpacts {
 
   BackendImpact get malformedTypeCheck {
     if (_malformedTypeCheck == null) {
-      _malformedTypeCheck = new BackendImpact(
-          staticUses: [
-            helpers.throwTypeError]);
+      _malformedTypeCheck =
+          new BackendImpact(staticUses: [helpers.throwTypeError]);
     }
     return _malformedTypeCheck;
   }
@@ -558,15 +520,15 @@ class BackendImpacts {
 
   BackendImpact get genericTypeCheck {
     if (_genericTypeCheck == null) {
-      _genericTypeCheck = new BackendImpact(
-          staticUses: [
-            helpers.checkSubtype,
-            // TODO(johnniwinther): Investigate why this is needed.
-            helpers.setRuntimeTypeInfo,
-            helpers.getRuntimeTypeInfo],
-          otherImpacts: [
-            listValues,
-            getRuntimeTypeArgument]);
+      _genericTypeCheck = new BackendImpact(staticUses: [
+        helpers.checkSubtype,
+        // TODO(johnniwinther): Investigate why this is needed.
+        helpers.setRuntimeTypeInfo,
+        helpers.getRuntimeTypeInfo
+      ], otherImpacts: [
+        listValues,
+        getRuntimeTypeArgument
+      ]);
     }
     return _genericTypeCheck;
   }
@@ -575,9 +537,7 @@ class BackendImpacts {
 
   BackendImpact get genericIsCheck {
     if (_genericIsCheck == null) {
-      _genericIsCheck = new BackendImpact(
-          otherImpacts: [
-            intValues]);
+      _genericIsCheck = new BackendImpact(otherImpacts: [intValues]);
     }
     return _genericIsCheck;
   }
@@ -586,9 +546,8 @@ class BackendImpacts {
 
   BackendImpact get genericCheckedModeTypeCheck {
     if (_genericCheckedModeTypeCheck == null) {
-      _genericCheckedModeTypeCheck = new BackendImpact(
-          staticUses: [
-            helpers.assertSubtype]);
+      _genericCheckedModeTypeCheck =
+          new BackendImpact(staticUses: [helpers.assertSubtype]);
     }
     return _genericCheckedModeTypeCheck;
   }
@@ -597,9 +556,8 @@ class BackendImpacts {
 
   BackendImpact get typeVariableTypeCheck {
     if (_typeVariableTypeCheck == null) {
-      _typeVariableTypeCheck = new BackendImpact(
-          staticUses: [
-            helpers.checkSubtypeOfRuntimeType]);
+      _typeVariableTypeCheck =
+          new BackendImpact(staticUses: [helpers.checkSubtypeOfRuntimeType]);
     }
     return _typeVariableTypeCheck;
   }
@@ -608,9 +566,8 @@ class BackendImpacts {
 
   BackendImpact get typeVariableCheckedModeTypeCheck {
     if (_typeVariableCheckedModeTypeCheck == null) {
-      _typeVariableCheckedModeTypeCheck = new BackendImpact(
-        staticUses: [
-          helpers.assertSubtypeOfRuntimeType]);
+      _typeVariableCheckedModeTypeCheck =
+          new BackendImpact(staticUses: [helpers.assertSubtypeOfRuntimeType]);
     }
     return _typeVariableCheckedModeTypeCheck;
   }
@@ -619,9 +576,8 @@ class BackendImpacts {
 
   BackendImpact get functionTypeCheck {
     if (_functionTypeCheck == null) {
-      _functionTypeCheck = new BackendImpact(
-          staticUses: [
-            helpers.functionTypeTestMetaHelper]);
+      _functionTypeCheck =
+          new BackendImpact(staticUses: [helpers.functionTypeTestMetaHelper]);
     }
     return _functionTypeCheck;
   }
@@ -630,12 +586,12 @@ class BackendImpacts {
 
   BackendImpact get nativeTypeCheck {
     if (_nativeTypeCheck == null) {
-      _nativeTypeCheck = new BackendImpact(
-          staticUses: [
-            // We will neeed to add the "$is" and "$as" properties on the
-            // JavaScript object prototype, so we make sure
-            // [:defineProperty:] is compiled.
-            helpers.defineProperty]);
+      _nativeTypeCheck = new BackendImpact(staticUses: [
+        // We will neeed to add the "$is" and "$as" properties on the
+        // JavaScript object prototype, so we make sure
+        // [:defineProperty:] is compiled.
+        helpers.defineProperty
+      ]);
     }
     return _nativeTypeCheck;
   }
@@ -644,9 +600,8 @@ class BackendImpacts {
 
   BackendImpact get closure {
     if (_closure == null) {
-      _closure = new BackendImpact(
-          instantiatedClasses: [
-            coreClasses.functionClass]);
+      _closure =
+          new BackendImpact(instantiatedClasses: [coreClasses.functionClass]);
     }
     return _closure;
   }

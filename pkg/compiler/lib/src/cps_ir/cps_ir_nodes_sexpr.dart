@@ -7,8 +7,7 @@ library dart2js.ir_nodes_sexpr;
 import '../constants/values.dart';
 import '../util/util.dart';
 import 'cps_ir_nodes.dart';
-import '../universe/call_structure.dart' show
-    CallStructure;
+import '../universe/call_structure.dart' show CallStructure;
 
 /// A [Decorator] is a function used by [SExpressionStringifier] to augment the
 /// output produced for a node or reference.  It can be provided to the
@@ -178,8 +177,8 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     return '$indentation(LetMutable ($name $value)\n$body)';
   }
 
-  String formatArguments(CallStructure call,
-      List<Reference<Primitive>> arguments,
+  String formatArguments(
+      CallStructure call, List<Reference<Primitive>> arguments,
       [CallingConvention callingConvention = CallingConvention.Normal]) {
     int positionalArgumentCount = call.positionalArgumentCount;
     List<String> args =
@@ -191,15 +190,16 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
       args.add("($name: $arg)");
     }
     // Constructors can have type parameter after the named arguments.
-    args.addAll(
-        arguments.skip(positionalArgumentCount + argumentNames.length)
-            .map(access));
+    args.addAll(arguments
+        .skip(positionalArgumentCount + argumentNames.length)
+        .map(access));
     return '(${args.join(' ')})';
   }
 
   String visitInvokeStatic(InvokeStatic node) {
     String name = node.target.name;
-    String args = formatArguments(node.selector.callStructure, node.argumentRefs);
+    String args =
+        formatArguments(node.selector.callStructure, node.argumentRefs);
     return '(InvokeStatic $name $args)';
   }
 
@@ -207,8 +207,8 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     String name = node.selector.name;
     String interceptor = optionalAccess(node.interceptorRef);
     String receiver = access(node.receiverRef);
-    String arguments = formatArguments(node.selector.callStructure,
-        node.argumentRefs, node.callingConvention);
+    String arguments = formatArguments(
+        node.selector.callStructure, node.argumentRefs, node.callingConvention);
     return '(InvokeMethod $interceptor $receiver $name $arguments)';
   }
 
@@ -216,8 +216,8 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     String interceptor = optionalAccess(node.interceptorRef);
     String receiver = access(node.receiverRef);
     String name = node.selector.name;
-    String arguments = formatArguments(node.selector.callStructure,
-        node.argumentRefs, node.callingConvention);
+    String arguments = formatArguments(
+        node.selector.callStructure, node.argumentRefs, node.callingConvention);
     return '(InvokeMethodDirectly $interceptor $receiver $name $arguments)';
   }
 
@@ -232,7 +232,8 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     if (!node.target.name.isEmpty) {
       name = '${name}.${node.target.name}';
     }
-    String args = formatArguments(node.selector.callStructure, node.argumentRefs);
+    String args =
+        formatArguments(node.selector.callStructure, node.argumentRefs);
     return '(InvokeConstructor $name $args)';
   }
 
@@ -241,7 +242,7 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     if (node.isRecursive) name = 'rec $name';
     String args = node.argumentRefs == null
         ? '**** NULL ****'
-	: node.argumentRefs.map(access).join(' ');
+        : node.argumentRefs.map(access).join(' ');
     String escaping = node.isEscapingTry ? ' escape' : '';
     return '$indentation(InvokeContinuation $name ($args)$escaping)';
   }
@@ -259,10 +260,8 @@ class SExpressionStringifier extends Indentation implements Visitor<String> {
     String condition = access(node.conditionRef);
     assert(isBranchTarget(node.trueContinuation));
     assert(isBranchTarget(node.falseContinuation));
-    String trueCont =
-        indentBlock(() => visit(node.trueContinuation));
-    String falseCont =
-        indentBlock(() => visit(node.falseContinuation));
+    String trueCont = indentBlock(() => visit(node.trueContinuation));
+    String falseCont = indentBlock(() => visit(node.falseContinuation));
     String strict = node.isStrictCheck ? 'Strict' : 'NonStrict';
     return '$indentation(Branch $strict $condition\n$trueCont\n$falseCont)';
   }
@@ -494,7 +493,7 @@ class ConstantStringifier extends ConstantValueVisitor<String, Null> {
 
   String visitList(ListConstantValue constant, _) {
     String entries =
-      constant.entries.map((entry) => entry.accept(this, _)).join(' ');
+        constant.entries.map((entry) => entry.accept(this, _)).join(' ');
     return '(List $entries)';
   }
 

@@ -10,26 +10,26 @@ import '../universe/selector.dart' show Selector;
 import 'node_tracer.dart';
 import 'type_graph_nodes.dart';
 
-Set<String> okMapSelectorsSet = new Set.from(
-    const <String>[
-      // From Object.
-      "==",
-      "hashCode",
-      "toString",
-      "noSuchMethod",
-      "runtimeType",
-      // From Map
-      "[]",
-      "isEmpty",
-      "isNotEmpty",
-      "keys",
-      "length",
-      "values",
-      "clear",
-      "containsKey",
-      "containsValue",
-      "forEach",
-      "remove"]);
+Set<String> okMapSelectorsSet = new Set.from(const <String>[
+  // From Object.
+  "==",
+  "hashCode",
+  "toString",
+  "noSuchMethod",
+  "runtimeType",
+  // From Map
+  "[]",
+  "isEmpty",
+  "isNotEmpty",
+  "keys",
+  "length",
+  "values",
+  "clear",
+  "containsKey",
+  "containsValue",
+  "forEach",
+  "remove"
+]);
 
 class MapTracerVisitor extends TracerVisitor<MapTypeInformation> {
   // These lists are used to keep track of newly discovered assignments to
@@ -121,7 +121,7 @@ class MapTracerVisitor extends TracerVisitor<MapTypeInformation> {
         }
       }
     } else if (selector.isCall &&
-               !info.targets.every((element) => element.isFunction)) {
+        !info.targets.every((element) => element.isFunction)) {
       bailout('Passed to a closure');
       return;
     }

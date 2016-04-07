@@ -4,11 +4,8 @@
 
 library dart2js.resolution.label_scope;
 
-import '../elements/elements.dart' show
-    JumpTarget,
-    LabelDefinition;
-import '../util/util.dart' show
-    Link;
+import '../elements/elements.dart' show JumpTarget, LabelDefinition;
+import '../util/util.dart' show Link;
 
 abstract class LabelScope {
   LabelScope get outer;
@@ -65,10 +62,10 @@ class StatementScope {
   }
 
   JumpTarget currentBreakTarget() =>
-    breakTargetStack.isEmpty ? null : breakTargetStack.head;
+      breakTargetStack.isEmpty ? null : breakTargetStack.head;
 
   JumpTarget currentContinueTarget() =>
-    continueTargetStack.isEmpty ? null : continueTargetStack.head;
+      continueTargetStack.isEmpty ? null : continueTargetStack.head;
 
   void enterLabelScope(Map<String, LabelDefinition> elements) {
     labels = new LabeledStatementLabelScope(labels, elements);
@@ -92,8 +89,8 @@ class StatementScope {
     continueTargetStack = continueTargetStack.tail;
   }
 
-  void enterSwitch(JumpTarget breakElement,
-                   Map<String, LabelDefinition> continueElements) {
+  void enterSwitch(
+      JumpTarget breakElement, Map<String, LabelDefinition> continueElements) {
     breakTargetStack = breakTargetStack.prepend(breakElement);
     labels = new SwitchLabelScope(labels, continueElements);
     nestingLevel++;
