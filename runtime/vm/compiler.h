@@ -169,6 +169,7 @@ class BackgroundCompiler : public ThreadPool::Task {
   void VisitPointers(ObjectPointerVisitor* visitor);
 
   BackgroundCompilationQueue* function_queue() const { return function_queue_; }
+  bool is_running() const { return running_; }
 
  private:
   explicit BackgroundCompiler(Isolate* isolate);

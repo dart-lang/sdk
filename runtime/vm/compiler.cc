@@ -1035,6 +1035,10 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
             // Do not Garbage collect during this stage and instead allow the
             // heap to grow.
             NoHeapGrowthControlScope no_growth_control;
+            if (!isolate()->background_compiler()->is_running()) {
+              // The background compiler is being stopped.
+              Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId);
+            }
             FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
           }
           if (isolate()->heap()->NeedsGarbageCollection()) {
@@ -1594,11 +1598,7 @@ class BackgroundCompilationQueue {
  public:
   BackgroundCompilationQueue() : first_(NULL), last_(NULL) {}
   virtual ~BackgroundCompilationQueue() {
-    while (!IsEmpty()) {
-      QueueElement* e = Remove();
-      delete e;
-    }
-    ASSERT((first_ == NULL) && (last_ == NULL));
+    Clear();
   }
 
   void VisitObjectPointers(ObjectPointerVisitor* visitor) {
@@ -1658,6 +1658,14 @@ class BackgroundCompilationQueue {
       p = p->next();
     }
     return false;
+  }
+
+  void Clear() {
+    while (!IsEmpty()) {
+      QueueElement* e = Remove();
+      delete e;
+    }
+    ASSERT((first_ == NULL) && (last_ == NULL));
   }
 
  private:
@@ -1725,10 +1733,17 @@ void BackgroundCompiler::Run() {
 
         QueueElement* qelem = NULL;
         { MonitorLocker ml(queue_monitor_);
-          qelem = function_queue()->Remove();
-          function = function_queue()->PeekFunction();
+          if (function_queue()->IsEmpty()) {
+            // We are shutting down, queue was cleared.
+            function = Function::null();
+          } else {
+            qelem = function_queue()->Remove();
+            function = function_queue()->PeekFunction();
+          }
         }
-        delete qelem;
+        if (qelem != NULL) {
+          delete qelem;
+        }
       }
     }
     Thread::ExitIsolateAsHelper();
@@ -1778,8 +1793,9 @@ void BackgroundCompiler::Stop(BackgroundCompiler* task) {
   bool* task_done = task->done_;
   // Wake up compiler task and stop it.
   {
-    MonitorLocker ml(task->queue_monitor_);
+    MonitorLocker ml(queue_monitor);
     task->running_ = false;
+    function_queue->Clear();
     // 'task' will be deleted by thread pool.
     task = NULL;
     ml.Notify();   // Stop waiting for the queue.
