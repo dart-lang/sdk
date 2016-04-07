@@ -1731,6 +1731,22 @@ class FunctionElementForLink_Initializer implements FunctionElementImpl {
 }
 
 /**
+ * Specialization of [DependencyWalker] for linking library cycles.
+ */
+class LibraryCycleDependencyWalker extends DependencyWalker<LibraryCycleNode> {
+  @override
+  void evaluate(LibraryCycleNode v) {
+    v.link();
+  }
+
+  @override
+  void evaluateScc(List<LibraryCycleNode> scc) {
+    // There should never be a cycle among library cycles.
+    throw new StateError('Cycle among library cycles');
+  }
+}
+
+/**
  * An instance of [LibraryCycleForLink] represents a single library cycle
  * discovered during linking; it consists of one or more libraries in the build
  * unit being linked.
@@ -1746,7 +1762,62 @@ class LibraryCycleForLink {
    */
   final List<LibraryCycleForLink> dependencies;
 
-  LibraryCycleForLink(this.libraries, this.dependencies);
+  /**
+   * The [LibraryCycleNode] for this library cycle.
+   */
+  LibraryCycleNode _node;
+
+  LibraryCycleForLink(this.libraries, this.dependencies) {
+    _node = new LibraryCycleNode(this);
+  }
+
+  LibraryCycleNode get node => _node;
+
+  /**
+   * Link this library cycle and any library cycles it depends on.  Does
+   * nothing if this library cycle has already been linked.
+   */
+  void ensureLinked() {
+    if (!node.isEvaluated) {
+      new LibraryCycleDependencyWalker().walk(node);
+    }
+  }
+}
+
+/**
+ * Specialization of [Node] used to link library cycles in proper dependency
+ * order.
+ */
+class LibraryCycleNode extends Node<LibraryCycleNode> {
+  /**
+   * The library cycle this [Node] represents.
+   */
+  final LibraryCycleForLink libraryCycle;
+
+  /**
+   * Indicates whether this library cycle has been linked yet.
+   */
+  bool _isLinked = false;
+
+  LibraryCycleNode(this.libraryCycle);
+
+  @override
+  bool get isEvaluated => _isLinked;
+
+  @override
+  List<LibraryCycleNode> computeDependencies() => libraryCycle.dependencies
+      .map((LibraryCycleForLink cycle) => cycle.node)
+      .toList();
+
+  /**
+   * Link this library cycle.
+   */
+  void link() {
+    for (LibraryElementInBuildUnit library in libraryCycle.libraries) {
+      library.link();
+    }
+    _isLinked = true;
+  }
 }
 
 /**
@@ -1802,7 +1873,9 @@ abstract class LibraryElementForLink<
   List<LibraryElementForLink> _exportedLibraries;
 
   LibraryElementForLink(this._linker, this._absoluteUri) {
-    _dependencies.length = _linkedLibrary.dependencies.length;
+    if (_linkedLibrary != null) {
+      _dependencies.length = _linkedLibrary.dependencies.length;
+    }
   }
 
   /**
@@ -2123,9 +2196,9 @@ class Linker {
    * in the build unit being linked.
    */
   void link() {
-    // TODO(paulberry): link library cycles in appropriate dependency order.
+    // Link library cycles in appropriate dependency order.
     for (LibraryElementInBuildUnit library in _librariesInBuildUnit) {
-      library.link();
+      library.libraryCycleForLink.ensureLinked();
     }
     // TODO(paulberry): set dependencies.
   }

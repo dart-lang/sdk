@@ -45,6 +45,23 @@ class LinkerUnitTest extends SummaryLinkerTest {
     expect(libraryCycle.libraries, [testLibrary]);
   }
 
+  void test_libraryCycle_linkEnsuresDependenciesLinked() {
+    addNamedSource('/a.dart', 'import "b.dart";');
+    addNamedSource('/b.dart', '');
+    addNamedSource('/c.dart', '');
+    createLinker('import "a.dart"; import "c.dart";');
+    LibraryElementForLink libA = getLibrary('file:///a.dart');
+    LibraryElementForLink libB = getLibrary('file:///b.dart');
+    LibraryElementForLink libC = getLibrary('file:///c.dart');
+    expect(libA.libraryCycleForLink.node.isEvaluated, isFalse);
+    expect(libB.libraryCycleForLink.node.isEvaluated, isFalse);
+    expect(libC.libraryCycleForLink.node.isEvaluated, isFalse);
+    libA.libraryCycleForLink.ensureLinked();
+    expect(libA.libraryCycleForLink.node.isEvaluated, isTrue);
+    expect(libB.libraryCycleForLink.node.isEvaluated, isTrue);
+    expect(libC.libraryCycleForLink.node.isEvaluated, isFalse);
+  }
+
   void test_libraryCycle_nontrivial() {
     addNamedSource('/a.dart', 'import "b.dart";');
     addNamedSource('/b.dart', 'import "a.dart";');
