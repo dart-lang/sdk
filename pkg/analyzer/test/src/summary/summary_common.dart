@@ -5760,6 +5760,21 @@ f(MyFunction myFunction) {}
     expect(linked.exportNames, isNotEmpty);
   }
 
+  test_export_missing() {
+    if (!checkAstDerivedData) {
+      // TODO(paulberry): At the moment unresolved exports are not included in
+      // the element model, so we can't pass this test.
+      return;
+    }
+    // Unresolved exports are included since this is necessary for proper
+    // dependency tracking.
+    allowMissingFiles = true;
+    serializeLibraryText('export "foo.dart";', allowErrors: true);
+    expect(unlinkedUnits[0].imports, hasLength(1));
+    checkDependency(
+        linked.exportDependencies[0], absUri('/foo.dart'), 'foo.dart');
+  }
+
   test_export_names_excludes_names_from_library() {
     addNamedSource('/a.dart', 'part of my.lib; int y; int _y;');
     serializeLibraryText('library my.lib; part "a.dart"; int x; int _x;');
