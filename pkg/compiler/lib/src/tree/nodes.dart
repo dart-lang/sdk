@@ -110,6 +110,139 @@ abstract class Visitor<R> {
   R visitYield(Yield node) => visitStatement(node);
 }
 
+/// Visitor for [Node]s that take an additional argument of type [A] and returns
+/// a value of type [R].
+abstract class Visitor1<R, A> {
+  const Visitor1();
+
+  R visitNode(Node node, A arg);
+
+  R visitAssert(Assert node, A arg) => visitStatement(node, arg);
+  R visitAsyncForIn(AsyncForIn node, A arg) => visitLoop(node, arg);
+  R visitAsyncModifier(AsyncModifier node, A arg) => visitNode(node, arg);
+  R visitAwait(Await node, A arg) => visitExpression(node, arg);
+  R visitBlock(Block node, A arg) => visitStatement(node, arg);
+  R visitBreakStatement(BreakStatement node, A arg) {
+    return visitGotoStatement(node, arg);
+  }
+  R visitCascade(Cascade node, A arg) => visitExpression(node, arg);
+  R visitCascadeReceiver(CascadeReceiver node, A arg) {
+    return visitExpression(node, arg);
+  }
+  R visitCaseMatch(CaseMatch node, A arg) => visitNode(node, arg);
+  R visitCatchBlock(CatchBlock node, A arg) => visitNode(node, arg);
+  R visitClassNode(ClassNode node, A arg) => visitNode(node, arg);
+  R visitCombinator(Combinator node, A arg) => visitNode(node, arg);
+  R visitConditional(Conditional node, A arg) => visitExpression(node, arg);
+  R visitConditionalUri(ConditionalUri node, A arg) {
+    return visitNode(node, arg);
+  }
+  R visitContinueStatement(ContinueStatement node, A arg) {
+    return visitGotoStatement(node, arg);
+  }
+  R visitDottedName(DottedName node, A arg) {
+    return visitExpression(node, arg);
+  }
+  R visitDoWhile(DoWhile node, A arg) => visitLoop(node, arg);
+  R visitEmptyStatement(EmptyStatement node, A arg) {
+    return visitStatement(node, arg);
+  }
+  R visitEnum(Enum node, A arg) => visitNode(node, arg);
+  R visitExport(Export node, A arg) => visitLibraryDependency(node, arg);
+  R visitExpression(Expression node, A arg) => visitNode(node, arg);
+  R visitExpressionStatement(ExpressionStatement node, A arg) {
+    return visitStatement(node, arg);
+  }
+  R visitFor(For node, A arg) => visitLoop(node, arg);
+  R visitFunctionDeclaration(FunctionDeclaration node, A arg) {
+    return visitStatement(node, arg);
+  }
+  R visitFunctionExpression(FunctionExpression node, A arg) {
+    return visitExpression(node, arg);
+  }
+  R visitGotoStatement(GotoStatement node, A arg) {
+    return visitStatement(node, arg);
+  }
+  R visitIdentifier(Identifier node, A arg) {
+    return visitExpression(node, arg);
+  }
+  R visitImport(Import node, A arg) {
+    return visitLibraryDependency(node, arg);
+  }
+  R visitIf(If node, A arg) => visitStatement(node, arg);
+  R visitLabel(Label node, A arg) => visitNode(node, arg);
+  R visitLabeledStatement(LabeledStatement node, A arg) {
+    return visitStatement(node, arg);
+  }
+  R visitLibraryDependency(LibraryDependency node, A arg) {
+    return visitLibraryTag(node, arg);
+  }
+  R visitLibraryName(LibraryName node, A arg) => visitLibraryTag(node, arg);
+  R visitLibraryTag(LibraryTag node, A arg) => visitNode(node, arg);
+  R visitLiteral(Literal node, A arg) => visitExpression(node, arg);
+  R visitLiteralBool(LiteralBool node, A arg) => visitLiteral(node, arg);
+  R visitLiteralDouble(LiteralDouble node, A arg) => visitLiteral(node, arg);
+  R visitLiteralInt(LiteralInt node, A arg) => visitLiteral(node, arg);
+  R visitLiteralList(LiteralList node, A arg) => visitExpression(node, arg);
+  R visitLiteralMap(LiteralMap node, A arg) => visitExpression(node, arg);
+  R visitLiteralMapEntry(LiteralMapEntry node, A arg) => visitNode(node, arg);
+  R visitLiteralNull(LiteralNull node, A arg) => visitLiteral(node, arg);
+  R visitLiteralString(LiteralString node, A arg) => visitStringNode(node, arg);
+  R visitStringJuxtaposition(StringJuxtaposition node, A arg) {
+    return visitStringNode(node, arg);
+  }
+  R visitSyncForIn(SyncForIn node, A arg) => visitLoop(node, arg);
+  R visitLoop(Loop node, A arg) => visitStatement(node, arg);
+  R visitMetadata(Metadata node, A arg) => visitNode(node, arg);
+  R visitMixinApplication(MixinApplication node, A arg) => visitNode(node, arg);
+  R visitModifiers(Modifiers node, A arg) => visitNode(node, arg);
+  R visitNamedArgument(NamedArgument node, A arg) => visitExpression(node, arg);
+  R visitNamedMixinApplication(NamedMixinApplication node, A arg) {
+    return visitMixinApplication(node, arg);
+  }
+  R visitNewExpression(NewExpression node, A arg) => visitExpression(node, arg);
+  R visitNodeList(NodeList node, A arg) => visitNode(node, arg);
+  R visitOperator(Operator node, A arg) => visitIdentifier(node, arg);
+  R visitParenthesizedExpression(ParenthesizedExpression node, A arg) {
+    return visitExpression(node, arg);
+  }
+  R visitPart(Part node, A arg) => visitLibraryTag(node, arg);
+  R visitPartOf(PartOf node, A arg) => visitNode(node, arg);
+  R visitPostfix(Postfix node, A arg) => visitNodeList(node, arg);
+  R visitPrefix(Prefix node, A arg) => visitNodeList(node, arg);
+  R visitRedirectingFactoryBody(RedirectingFactoryBody node, A arg) {
+    return visitStatement(node, arg);
+  }
+  R visitRethrow(Rethrow node, A arg) => visitStatement(node, arg);
+  R visitReturn(Return node, A arg) => visitStatement(node, arg);
+  R visitSend(Send node, A arg) => visitExpression(node, arg);
+  R visitSendSet(SendSet node, A arg) => visitSend(node, arg);
+  R visitStatement(Statement node, A arg) => visitNode(node, arg);
+  R visitStringNode(StringNode node, A arg) => visitExpression(node, arg);
+  R visitStringInterpolation(StringInterpolation node, A arg) {
+    return visitStringNode(node, arg);
+  }
+  R visitStringInterpolationPart(StringInterpolationPart node, A arg) {
+    return visitNode(node, arg);
+  }
+  R visitSwitchCase(SwitchCase node, A arg) => visitNode(node, arg);
+  R visitSwitchStatement(SwitchStatement node, A arg) {
+    return visitStatement(node, arg);
+  }
+  R visitLiteralSymbol(LiteralSymbol node, A arg) => visitExpression(node, arg);
+  R visitThrow(Throw node, A arg) => visitExpression(node, arg);
+  R visitTryStatement(TryStatement node, A arg) => visitStatement(node, arg);
+  R visitTypeAnnotation(TypeAnnotation node, A arg) => visitNode(node, arg);
+  R visitTypedef(Typedef node, A arg) => visitNode(node, arg);
+  R visitTypeVariable(TypeVariable node, A arg) => visitNode(node, arg);
+  R visitVariableDefinitions(VariableDefinitions node, A arg) {
+    return visitStatement(node, arg);
+  }
+  R visitWhile(While node, A arg) => visitLoop(node, arg);
+  R visitYield(Yield node, A arg) => visitStatement(node, arg);
+}
+
+
 Token firstBeginToken(Node first, Node second) {
   Token token = null;
   if (first != null) {
@@ -141,7 +274,11 @@ abstract class Node extends NullTreeElementMixin implements Spannable {
 
   accept(Visitor visitor);
 
+  accept1(Visitor1 visitor, arg);
+
   visitChildren(Visitor visitor);
+
+  visitChildren1(Visitor1 visitor, arg);
 
   /**
    * Returns this node unparsed to Dart source string.
@@ -271,12 +408,22 @@ class ClassNode extends Node {
 
   accept(Visitor visitor) => visitor.visitClassNode(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitClassNode(this, arg);
+
   visitChildren(Visitor visitor) {
     if (name != null) name.accept(visitor);
     if (typeParameters != null) typeParameters.accept(visitor);
     if (superclass != null) superclass.accept(visitor);
     if (interfaces != null) interfaces.accept(visitor);
     if (body != null) body.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    if (name != null) name.accept1(visitor, arg);
+    if (typeParameters != null) typeParameters.accept1(visitor, arg);
+    if (superclass != null) superclass.accept1(visitor, arg);
+    if (interfaces != null) interfaces.accept1(visitor, arg);
+    if (body != null) body.accept1(visitor, arg);
   }
 
   Token getBeginToken() => beginToken;
@@ -313,9 +460,16 @@ class MixinApplication extends Node {
 
   accept(Visitor visitor) => visitor.visitMixinApplication(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitMixinApplication(this, arg);
+
   visitChildren(Visitor visitor) {
     if (superclass != null) superclass.accept(visitor);
     if (mixins != null) mixins.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    if (superclass != null) superclass.accept1(visitor, arg);
+    if (mixins != null) mixins.accept1(visitor, arg);
   }
 
   Token getBeginToken() => superclass.getBeginToken();
@@ -347,12 +501,24 @@ class NamedMixinApplication extends Node implements MixinApplication {
 
   accept(Visitor visitor) => visitor.visitNamedMixinApplication(this);
 
+  accept1(Visitor1 visitor, arg) {
+    return visitor.visitNamedMixinApplication(this, arg);
+  }
+
   visitChildren(Visitor visitor) {
     name.accept(visitor);
     if (typeParameters != null) typeParameters.accept(visitor);
     if (modifiers != null) modifiers.accept(visitor);
     if (interfaces != null) interfaces.accept(visitor);
     mixinApplication.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    name.accept1(visitor, arg);
+    if (typeParameters != null) typeParameters.accept1(visitor, arg);
+    if (modifiers != null) modifiers.accept1(visitor, arg);
+    if (interfaces != null) interfaces.accept1(visitor, arg);
+    mixinApplication.accept1(visitor, arg);
   }
 
   Token getBeginToken() => classKeyword;
@@ -363,18 +529,12 @@ abstract class Expression extends Node {
   Expression();
 
   Expression asExpression() => this;
-
-  // TODO(ahe): make class abstract instead of adding an abstract method.
-  accept(Visitor visitor);
 }
 
 abstract class Statement extends Node {
   Statement();
 
   Statement asStatement() => this;
-
-  // TODO(ahe): make class abstract instead of adding an abstract method.
-  accept(Visitor visitor);
 
   bool isValidBreakTarget() => true;
 }
@@ -423,10 +583,18 @@ class Send extends Expression with StoredTreeElementMixin {
 
   accept(Visitor visitor) => visitor.visitSend(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitSend(this, arg);
+
   visitChildren(Visitor visitor) {
     if (receiver != null) receiver.accept(visitor);
     if (selector != null) selector.accept(visitor);
     if (argumentsNode != null) argumentsNode.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    if (receiver != null) receiver.accept1(visitor, arg);
+    if (selector != null) selector.accept1(visitor, arg);
+    if (argumentsNode != null) argumentsNode.accept1(visitor, arg);
   }
 
   int argumentCount() {
@@ -529,17 +697,24 @@ class SendSet extends Send {
 
   accept(Visitor visitor) => visitor.visitSendSet(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitSendSet(this, arg);
+
+  visitChildren(Visitor visitor) {
+    super.visitChildren(visitor);
+    if (assignmentOperator != null) assignmentOperator.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    super.visitChildren1(visitor, arg);
+    if (assignmentOperator != null) assignmentOperator.accept1(visitor, arg);
+  }
+
   /// `true` if this send is not a simple assignment.
   bool get isComplex => !identical(assignmentOperator.source, '=');
 
   /// Whether this is an if-null assignment of the form `a ??= b`.
   bool get isIfNullAssignment =>
       identical(assignmentOperator.source, '??=');
-
-  visitChildren(Visitor visitor) {
-    super.visitChildren(visitor);
-    if (assignmentOperator != null) assignmentOperator.accept(visitor);
-  }
 
   Send copyWithReceiver(Node newReceiver, bool isConditional) {
     assert(receiver == null);
@@ -571,8 +746,14 @@ class NewExpression extends Expression {
 
   accept(Visitor visitor) => visitor.visitNewExpression(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitNewExpression(this, arg);
+
   visitChildren(Visitor visitor) {
     if (send != null) send.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    if (send != null) send.accept1(visitor, arg);
   }
 
   bool get isConst {
@@ -617,10 +798,19 @@ class NodeList extends Node with IterableMixin<Node> {
 
   accept(Visitor visitor) => visitor.visitNodeList(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitNodeList(this, arg);
+
   visitChildren(Visitor visitor) {
     if (nodes == null) return;
     for (Link<Node> link = nodes; !link.isEmpty; link = link.tail) {
       if (link.head != null) link.head.accept(visitor);
+    }
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    if (nodes == null) return;
+    for (Link<Node> link = nodes; !link.isEmpty; link = link.tail) {
+      if (link.head != null) link.head.accept1(visitor, arg);
     }
   }
 
@@ -664,8 +854,14 @@ class Block extends Statement {
 
   accept(Visitor visitor) => visitor.visitBlock(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitBlock(this, arg);
+
   visitChildren(Visitor visitor) {
     if (statements != null) statements.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    if (statements != null) statements.accept1(visitor, arg);
   }
 
   Token getBeginToken() => statements.getBeginToken();
@@ -690,10 +886,18 @@ class If extends Statement {
 
   accept(Visitor visitor) => visitor.visitIf(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitIf(this, arg);
+
   visitChildren(Visitor visitor) {
     if (condition != null) condition.accept(visitor);
     if (thenPart != null) thenPart.accept(visitor);
     if (elsePart != null) elsePart.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    if (condition != null) condition.accept1(visitor, arg);
+    if (thenPart != null) thenPart.accept1(visitor, arg);
+    if (elsePart != null) elsePart.accept1(visitor, arg);
   }
 
   Token getBeginToken() => ifToken;
@@ -719,10 +923,18 @@ class Conditional extends Expression {
 
   accept(Visitor visitor) => visitor.visitConditional(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitConditional(this, arg);
+
   visitChildren(Visitor visitor) {
     condition.accept(visitor);
     thenExpression.accept(visitor);
     elseExpression.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    condition.accept1(visitor, arg);
+    thenExpression.accept1(visitor, arg);
+    elseExpression.accept1(visitor, arg);
   }
 
   Token getBeginToken() => condition.getBeginToken();
@@ -756,11 +968,20 @@ class For extends Loop {
 
   accept(Visitor visitor) => visitor.visitFor(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitFor(this, arg);
+
   visitChildren(Visitor visitor) {
     if (initializer != null) initializer.accept(visitor);
     if (conditionStatement != null) conditionStatement.accept(visitor);
     if (update != null) update.accept(visitor);
     if (body != null) body.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    if (initializer != null) initializer.accept1(visitor, arg);
+    if (conditionStatement != null) conditionStatement.accept1(visitor, arg);
+    if (update != null) update.accept1(visitor, arg);
+    if (body != null) body.accept1(visitor, arg);
   }
 
   Token getBeginToken() => forToken;
@@ -779,7 +1000,11 @@ class FunctionDeclaration extends Statement {
 
   accept(Visitor visitor) => visitor.visitFunctionDeclaration(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitFunctionDeclaration(this, arg);
+
   visitChildren(Visitor visitor) => function.accept(visitor);
+
+  visitChildren1(Visitor1 visitor, arg) => function.accept1(visitor, arg);
 
   Token getBeginToken() => function.getBeginToken();
 
@@ -804,7 +1029,11 @@ class AsyncModifier extends Node {
 
   accept(Visitor visitor) => visitor.visitAsyncModifier(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitAsyncModifier(this, arg);
+
   visitChildren(Visitor visitor) {}
+
+  visitChildren1(Visitor1 visitor, arg) {}
 
   Token getBeginToken() => asyncToken;
 
@@ -845,6 +1074,8 @@ class FunctionExpression extends Expression with StoredTreeElementMixin {
 
   accept(Visitor visitor) => visitor.visitFunctionExpression(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitFunctionExpression(this, arg);
+
   bool get isRedirectingFactory {
     return body != null && body.asRedirectingFactoryBody() != null;
   }
@@ -857,6 +1088,16 @@ class FunctionExpression extends Expression with StoredTreeElementMixin {
     if (initializers != null) initializers.accept(visitor);
     if (asyncModifier != null) asyncModifier.accept(visitor);
     if (body != null) body.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    if (modifiers != null) modifiers.accept1(visitor, arg);
+    if (returnType != null) returnType.accept1(visitor, arg);
+    if (name != null) name.accept1(visitor, arg);
+    if (parameters != null) parameters.accept1(visitor, arg);
+    if (initializers != null) initializers.accept1(visitor, arg);
+    if (asyncModifier != null) asyncModifier.accept1(visitor, arg);
+    if (body != null) body.accept1(visitor, arg);
   }
 
   bool get hasBody => body.asEmptyStatement() == null;
@@ -898,6 +1139,8 @@ abstract class Literal<T> extends Expression {
 
   visitChildren(Visitor visitor) {}
 
+  visitChildren1(Visitor1 visitor, arg) {}
+
   Token getBeginToken() => token;
 
   Token getEndToken() => token;
@@ -921,6 +1164,8 @@ class LiteralInt extends Literal<int> {
   }
 
   accept(Visitor visitor) => visitor.visitLiteralInt(this);
+
+  accept1(Visitor1 visitor, arg) => visitor.visitLiteralInt(this, arg);
 }
 
 class LiteralDouble extends Literal<double> {
@@ -942,6 +1187,8 @@ class LiteralDouble extends Literal<double> {
   }
 
   accept(Visitor visitor) => visitor.visitLiteralDouble(this);
+
+  accept1(Visitor1 visitor, arg) => visitor.visitLiteralDouble(this, arg);
 }
 
 class LiteralBool extends Literal<bool> {
@@ -957,6 +1204,8 @@ class LiteralBool extends Literal<bool> {
   }
 
   accept(Visitor visitor) => visitor.visitLiteralBool(this);
+
+  accept1(Visitor1 visitor, arg) => visitor.visitLiteralBool(this, arg);
 }
 
 
@@ -1031,14 +1280,18 @@ class LiteralString extends StringNode {
 
   LiteralString asLiteralString() => this;
 
-  void visitChildren(Visitor visitor) {}
-
   bool get isInterpolation => false;
 
   Token getBeginToken() => token;
   Token getEndToken() => token;
 
   accept(Visitor visitor) => visitor.visitLiteralString(this);
+
+  accept1(Visitor1 visitor, arg) => visitor.visitLiteralString(this, arg);
+
+  void visitChildren(Visitor visitor) {}
+
+  void visitChildren1(Visitor1 visitor, arg) {}
 }
 
 class LiteralNull extends Literal<String> {
@@ -1049,6 +1302,8 @@ class LiteralNull extends Literal<String> {
   String get value => null;
 
   accept(Visitor visitor) => visitor.visitLiteralNull(this);
+
+  accept1(Visitor1 visitor, arg) => visitor.visitLiteralNull(this, arg);
 }
 
 class LiteralList extends Expression {
@@ -1064,9 +1319,16 @@ class LiteralList extends Expression {
   LiteralList asLiteralList() => this;
   accept(Visitor visitor) => visitor.visitLiteralList(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitLiteralList(this, arg);
+
   visitChildren(Visitor visitor) {
     if (typeArguments != null) typeArguments.accept(visitor);
     elements.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    if (typeArguments != null) typeArguments.accept1(visitor, arg);
+    elements.accept1(visitor, arg);
   }
 
   Token getBeginToken() {
@@ -1086,11 +1348,17 @@ class LiteralSymbol extends Expression {
 
   LiteralSymbol asLiteralSymbol() => this;
 
+  accept(Visitor visitor) => visitor.visitLiteralSymbol(this);
+
+  accept1(Visitor1 visitor, arg) => visitor.visitLiteralSymbol(this, arg);
+
   void visitChildren(Visitor visitor) {
     if (identifiers != null) identifiers.accept(visitor);
   }
 
-  accept(Visitor visitor) => visitor.visitLiteralSymbol(this);
+  void visitChildren1(Visitor1 visitor, arg) {
+    if (identifiers != null) identifiers.accept1(visitor, arg);
+  }
 
   Token getBeginToken() => hashToken;
 
@@ -1118,7 +1386,11 @@ class Identifier extends Expression with StoredTreeElementMixin {
 
   accept(Visitor visitor) => visitor.visitIdentifier(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitIdentifier(this, arg);
+
   visitChildren(Visitor visitor) {}
+
+  visitChildren1(Visitor1 visitor, arg) {}
 
   Token getBeginToken() => token;
 
@@ -1135,11 +1407,17 @@ class DottedName extends Expression {
 
   DottedName asDottedName() => this;
 
+  accept(Visitor visitor) => visitor.visitDottedName(this);
+
+  accept1(Visitor1 visitor, arg) => visitor.visitDottedName(this, arg);
+
   void visitChildren(Visitor visitor) {
     identifiers.accept(visitor);
   }
 
-  accept(Visitor visitor) => visitor.visitDottedName(this);
+  void visitChildren1(Visitor1 visitor, arg) {
+    identifiers.accept1(visitor, arg);
+  }
 
   Token getBeginToken() => token;
   Token getEndToken() => identifiers.getEndToken();
@@ -1163,6 +1441,8 @@ class Operator extends Identifier {
   Operator asOperator() => this;
 
   accept(Visitor visitor) => visitor.visitOperator(this);
+
+  accept1(Visitor1 visitor, arg) => visitor.visitOperator(this, arg);
 }
 
 class Return extends Statement {
@@ -1181,8 +1461,14 @@ class Return extends Statement {
 
   accept(Visitor visitor) => visitor.visitReturn(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitReturn(this, arg);
+
   visitChildren(Visitor visitor) {
     if (expression != null) expression.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    if (expression != null) expression.accept1(visitor, arg);
   }
 
   Token getBeginToken() => beginToken;
@@ -1207,8 +1493,14 @@ class Yield extends Statement {
 
   accept(Visitor visitor) => visitor.visitYield(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitYield(this, arg);
+
   visitChildren(Visitor visitor) {
     expression.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    expression.accept1(visitor, arg);
   }
 
   Token getBeginToken() => yieldToken;
@@ -1228,8 +1520,16 @@ class RedirectingFactoryBody extends Statement with StoredTreeElementMixin {
 
   accept(Visitor visitor) => visitor.visitRedirectingFactoryBody(this);
 
+  accept1(Visitor1 visitor, arg) {
+    return visitor.visitRedirectingFactoryBody(this, arg);
+  }
+
   visitChildren(Visitor visitor) {
     constructorReference.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    constructorReference.accept1(visitor, arg);
   }
 
   Token getBeginToken() => beginToken;
@@ -1247,8 +1547,14 @@ class ExpressionStatement extends Statement {
 
   accept(Visitor visitor) => visitor.visitExpressionStatement(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitExpressionStatement(this, arg);
+
   visitChildren(Visitor visitor) {
     if (expression != null) expression.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    if (expression != null) expression.accept1(visitor, arg);
   }
 
   Token getBeginToken() => expression.getBeginToken();
@@ -1268,8 +1574,14 @@ class Throw extends Expression {
 
   accept(Visitor visitor) => visitor.visitThrow(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitThrow(this, arg);
+
   visitChildren(Visitor visitor) {
     expression.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    expression.accept1(visitor, arg);
   }
 
   Token getBeginToken() => throwToken;
@@ -1288,8 +1600,14 @@ class Await extends Expression {
 
   accept(Visitor visitor) => visitor.visitAwait(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitAwait(this, arg);
+
   visitChildren(Visitor visitor) {
     expression.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    expression.accept1(visitor, arg);
   }
 
   Token getBeginToken() => awaitToken;
@@ -1312,9 +1630,16 @@ class Assert extends Statement {
 
   accept(Visitor visitor) => visitor.visitAssert(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitAssert(this, arg);
+
   visitChildren(Visitor visitor) {
     condition.accept(visitor);
     if (message != null) message.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    condition.accept1(visitor, arg);
+    if (message != null) message.accept1(visitor, arg);
   }
 
   Token getBeginToken() => assertToken;
@@ -1330,7 +1655,12 @@ class Rethrow extends Statement {
   Rethrow asRethrow() => this;
 
   accept(Visitor visitor) => visitor.visitRethrow(this);
+
+  accept1(Visitor1 visitor, arg) => visitor.visitRethrow(this, arg);
+
   visitChildren(Visitor visitor) { }
+
+  visitChildren1(Visitor1 visitor, arg) { }
 
   Token getBeginToken() => throwToken;
   Token getEndToken() => endToken;
@@ -1346,9 +1676,16 @@ class TypeAnnotation extends Node {
 
   accept(Visitor visitor) => visitor.visitTypeAnnotation(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitTypeAnnotation(this, arg);
+
   visitChildren(Visitor visitor) {
     typeName.accept(visitor);
     if (typeArguments != null) typeArguments.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    typeName.accept1(visitor, arg);
+    if (typeArguments != null) typeArguments.accept1(visitor, arg);
   }
 
   Token getBeginToken() => typeName.getBeginToken();
@@ -1366,10 +1703,19 @@ class TypeVariable extends Node {
 
   accept(Visitor visitor) => visitor.visitTypeVariable(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitTypeVariable(this, arg);
+
   visitChildren(Visitor visitor) {
     name.accept(visitor);
     if (bound != null) {
       bound.accept(visitor);
+    }
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    name.accept1(visitor, arg);
+    if (bound != null) {
+      bound.accept1(visitor, arg);
     }
   }
 
@@ -1407,10 +1753,18 @@ class VariableDefinitions extends Statement {
 
   accept(Visitor visitor) => visitor.visitVariableDefinitions(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitVariableDefinitions(this, arg);
+
   visitChildren(Visitor visitor) {
     if (metadata != null) metadata.accept(visitor);
     if (type != null) type.accept(visitor);
     if (definitions != null) definitions.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    if (metadata != null) metadata.accept1(visitor, arg);
+    if (type != null) type.accept1(visitor, arg);
+    if (definitions != null) definitions.accept1(visitor, arg);
   }
 
   Token getBeginToken() {
@@ -1448,9 +1802,16 @@ class DoWhile extends Loop {
 
   accept(Visitor visitor) => visitor.visitDoWhile(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitDoWhile(this, arg);
+
   visitChildren(Visitor visitor) {
     if (condition != null) condition.accept(visitor);
     if (body != null) body.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    if (condition != null) condition.accept1(visitor, arg);
+    if (body != null) body.accept1(visitor, arg);
   }
 
   Token getBeginToken() => doKeyword;
@@ -1469,9 +1830,16 @@ class While extends Loop {
 
   accept(Visitor visitor) => visitor.visitWhile(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitWhile(this, arg);
+
   visitChildren(Visitor visitor) {
     if (condition != null) condition.accept(visitor);
     if (body != null) body.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    if (condition != null) condition.accept1(visitor, arg);
+    if (body != null) body.accept1(visitor, arg);
   }
 
   Token getBeginToken() => whileKeyword;
@@ -1490,8 +1858,16 @@ class ParenthesizedExpression extends Expression {
 
   accept(Visitor visitor) => visitor.visitParenthesizedExpression(this);
 
+  accept1(Visitor1 visitor, arg) {
+    return visitor.visitParenthesizedExpression(this, arg);
+  }
+
   visitChildren(Visitor visitor) {
     if (expression != null) expression.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    if (expression != null) expression.accept1(visitor, arg);
   }
 
   Token getBeginToken() => beginToken;
@@ -1559,8 +1935,14 @@ class Modifiers extends Node {
   Modifiers asModifiers() => this;
   Token getBeginToken() => nodes.getBeginToken();
   Token getEndToken() => nodes.getEndToken();
+
   accept(Visitor visitor) => visitor.visitModifiers(this);
+
+  accept1(Visitor1 visitor, arg) => visitor.visitModifiers(this, arg);
+
   visitChildren(Visitor visitor) => nodes.accept(visitor);
+
+  visitChildren1(Visitor1 visitor, arg) => nodes.accept1(visitor, arg);
 
   bool get isStatic => (flags & FLAG_STATIC) != 0;
   bool get isAbstract => (flags & FLAG_ABSTRACT) != 0;
@@ -1602,9 +1984,16 @@ class StringInterpolation extends StringNode {
 
   accept(Visitor visitor) => visitor.visitStringInterpolation(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitStringInterpolation(this, arg);
+
   visitChildren(Visitor visitor) {
     string.accept(visitor);
     parts.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    string.accept1(visitor, arg);
+    parts.accept1(visitor, arg);
   }
 
   Token getBeginToken() => string.getBeginToken();
@@ -1621,9 +2010,18 @@ class StringInterpolationPart extends Node {
 
   accept(Visitor visitor) => visitor.visitStringInterpolationPart(this);
 
+  accept1(Visitor1 visitor, arg) {
+    return visitor.visitStringInterpolationPart(this, arg);
+  }
+
   visitChildren(Visitor visitor) {
     expression.accept(visitor);
     string.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    expression.accept1(visitor, arg);
+    string.accept1(visitor, arg);
   }
 
   Token getBeginToken() => expression.getBeginToken();
@@ -1687,9 +2085,16 @@ class StringJuxtaposition extends StringNode {
 
   accept(Visitor visitor) => visitor.visitStringJuxtaposition(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitStringJuxtaposition(this, arg);
+
   void visitChildren(Visitor visitor) {
     first.accept(visitor);
     second.accept(visitor);
+  }
+
+  void visitChildren1(Visitor1 visitor, arg) {
+    first.accept1(visitor, arg);
+    second.accept1(visitor, arg);
   }
 
   Token getBeginToken() => first.getBeginToken();
@@ -1706,7 +2111,11 @@ class EmptyStatement extends Statement {
 
   accept(Visitor visitor) => visitor.visitEmptyStatement(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitEmptyStatement(this, arg);
+
   visitChildren(Visitor visitor) {}
+
+  visitChildren1(Visitor1 visitor, arg) {}
 
   Token getBeginToken() => semicolonToken;
 
@@ -1727,9 +2136,16 @@ class LiteralMap extends Expression {
 
   accept(Visitor visitor) => visitor.visitLiteralMap(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitLiteralMap(this, arg);
+
   visitChildren(Visitor visitor) {
     if (typeArguments != null) typeArguments.accept(visitor);
     entries.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    if (typeArguments != null) typeArguments.accept1(visitor, arg);
+    entries.accept1(visitor, arg);
   }
 
   Token getBeginToken() {
@@ -1752,9 +2168,16 @@ class LiteralMapEntry extends Node {
 
   accept(Visitor visitor) => visitor.visitLiteralMapEntry(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitLiteralMapEntry(this, arg);
+
   visitChildren(Visitor visitor) {
     key.accept(visitor);
     value.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    key.accept1(visitor, arg);
+    value.accept1(visitor, arg);
   }
 
   Token getBeginToken() => key.getBeginToken();
@@ -1774,9 +2197,16 @@ class NamedArgument extends Expression {
 
   accept(Visitor visitor) => visitor.visitNamedArgument(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitNamedArgument(this, arg);
+
   visitChildren(Visitor visitor) {
     name.accept(visitor);
     expression.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    name.accept1(visitor, arg);
+    expression.accept1(visitor, arg);
   }
 
   Token getBeginToken() => name.getBeginToken();
@@ -1799,9 +2229,16 @@ class SwitchStatement extends Statement {
 
   accept(Visitor visitor) => visitor.visitSwitchStatement(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitSwitchStatement(this, arg);
+
   visitChildren(Visitor visitor) {
     parenthesizedExpression.accept(visitor);
     cases.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    parenthesizedExpression.accept1(visitor, arg);
+    cases.accept1(visitor, arg);
   }
 
   Token getBeginToken() => switchKeyword;
@@ -1818,8 +2255,14 @@ class CaseMatch extends Node {
   CaseMatch asCaseMatch() => this;
   Token getBeginToken() => caseKeyword;
   Token getEndToken() => colonToken;
+
   accept(Visitor visitor) => visitor.visitCaseMatch(this);
+
+  accept1(Visitor1 visitor, arg) => visitor.visitCaseMatch(this, arg);
+
   visitChildren(Visitor visitor) => expression.accept(visitor);
+
+  visitChildren1(Visitor1 visitor, arg) => expression.accept1(visitor, arg);
 }
 
 class SwitchCase extends Node {
@@ -1851,9 +2294,16 @@ class SwitchCase extends Node {
 
   accept(Visitor visitor) => visitor.visitSwitchCase(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitSwitchCase(this, arg);
+
   visitChildren(Visitor visitor) {
     labelsAndCases.accept(visitor);
     statements.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    labelsAndCases.accept1(visitor, arg);
+    statements.accept1(visitor, arg);
   }
 
   Token getBeginToken() {
@@ -1886,6 +2336,10 @@ abstract class GotoStatement extends Statement {
     if (target != null) target.accept(visitor);
   }
 
+  visitChildren1(Visitor1 visitor, arg) {
+    if (target != null) target.accept1(visitor, arg);
+  }
+
   Token getBeginToken() => keywordToken;
 
   Token getEndToken() => semicolonToken;
@@ -1901,6 +2355,8 @@ class BreakStatement extends GotoStatement {
   BreakStatement asBreakStatement() => this;
 
   accept(Visitor visitor) => visitor.visitBreakStatement(this);
+
+  accept1(Visitor1 visitor, arg) => visitor.visitBreakStatement(this, arg);
 }
 
 class ContinueStatement extends GotoStatement {
@@ -1910,6 +2366,8 @@ class ContinueStatement extends GotoStatement {
   ContinueStatement asContinueStatement() => this;
 
   accept(Visitor visitor) => visitor.visitContinueStatement(this);
+
+  accept1(Visitor1 visitor, arg) => visitor.visitContinueStatement(this, arg);
 }
 
 abstract class ForIn extends Loop {
@@ -1938,10 +2396,18 @@ class SyncForIn extends ForIn with StoredTreeElementMixin {
 
   accept(Visitor visitor) => visitor.visitSyncForIn(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitSyncForIn(this, arg);
+
   visitChildren(Visitor visitor) {
     declaredIdentifier.accept(visitor);
     expression.accept(visitor);
     body.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    declaredIdentifier.accept1(visitor, arg);
+    expression.accept1(visitor, arg);
+    body.accept1(visitor, arg);
   }
 
   Token getBeginToken() => forToken;
@@ -1958,10 +2424,18 @@ class AsyncForIn extends ForIn with StoredTreeElementMixin {
 
   accept(Visitor visitor) => visitor.visitAsyncForIn(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitAsyncForIn(this, arg);
+
   visitChildren(Visitor visitor) {
     declaredIdentifier.accept(visitor);
     expression.accept(visitor);
     body.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    declaredIdentifier.accept1(visitor, arg);
+    expression.accept1(visitor, arg);
+    body.accept1(visitor, arg);
   }
 
   Token getBeginToken() => awaitToken;
@@ -1979,8 +2453,14 @@ class Label extends Node {
 
   accept(Visitor visitor) => visitor.visitLabel(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitLabel(this, arg);
+
   void visitChildren(Visitor visitor) {
     identifier.accept(visitor);
+  }
+
+  void visitChildren1(Visitor1 visitor, arg) {
+    identifier.accept1(visitor, arg);
   }
 
   Token getBeginToken() => identifier.token;
@@ -1997,9 +2477,16 @@ class LabeledStatement extends Statement {
 
   accept(Visitor visitor) => visitor.visitLabeledStatement(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitLabeledStatement(this, arg);
+
   visitChildren(Visitor visitor) {
     labels.accept(visitor);
     statement.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    labels.accept1(visitor, arg);
+    statement.accept1(visitor, arg);
   }
 
   Token getBeginToken() => labels.getBeginToken();
@@ -2037,7 +2524,11 @@ class LibraryName extends LibraryTag {
 
   accept(Visitor visitor) => visitor.visitLibraryName(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitLibraryName(this, arg);
+
   visitChildren(Visitor visitor) => name.accept(visitor);
+
+  visitChildren1(Visitor1 visitor, arg) => name.accept1(visitor, arg);
 
   Token getBeginToken() => libraryKeyword;
 
@@ -2089,10 +2580,18 @@ class Import extends LibraryDependency {
 
   accept(Visitor visitor) => visitor.visitImport(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitImport(this, arg);
+
   visitChildren(Visitor visitor) {
     uri.accept(visitor);
     if (prefix != null) prefix.accept(visitor);
     if (combinators != null) combinators.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    uri.accept1(visitor, arg);
+    if (prefix != null) prefix.accept1(visitor, arg);
+    if (combinators != null) combinators.accept1(visitor, arg);
   }
 
   Token getBeginToken() => importKeyword;
@@ -2127,10 +2626,18 @@ class ConditionalUri extends Node {
 
   accept(Visitor visitor) => visitor.visitConditionalUri(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitConditionalUri(this, arg);
+
   visitChildren(Visitor visitor) {
     key.accept(visitor);
     if (value != null) value.accept(visitor);
     uri.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    key.accept1(visitor, arg);
+    if (value != null) value.accept1(visitor, arg);
+    uri.accept1(visitor, arg);
   }
 
   Token getBeginToken() => ifToken;
@@ -2156,9 +2663,16 @@ class Enum extends Node {
 
   accept(Visitor visitor) => visitor.visitEnum(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitEnum(this, arg);
+
   visitChildren(Visitor visitor) {
     name.accept(visitor);
     if (names != null) names.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    name.accept1(visitor, arg);
+    if (names != null) names.accept1(visitor, arg);
   }
 
   Token getBeginToken() => enumToken;
@@ -2188,9 +2702,16 @@ class Export extends LibraryDependency {
 
   accept(Visitor visitor) => visitor.visitExport(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitExport(this, arg);
+
   visitChildren(Visitor visitor) {
     uri.accept(visitor);
     if (combinators != null) combinators.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    uri.accept1(visitor, arg);
+    if (combinators != null) combinators.accept1(visitor, arg);
   }
 
   Token getBeginToken() => exportKeyword;
@@ -2216,7 +2737,11 @@ class Part extends LibraryTag {
 
   accept(Visitor visitor) => visitor.visitPart(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitPart(this, arg);
+
   visitChildren(Visitor visitor) => uri.accept(visitor);
+
+  visitChildren1(Visitor1 visitor, arg) => uri.accept1(visitor, arg);
 
   Token getBeginToken() => partKeyword;
 
@@ -2240,7 +2765,11 @@ class PartOf extends Node {
 
   accept(Visitor visitor) => visitor.visitPartOf(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitPartOf(this, arg);
+
   visitChildren(Visitor visitor) => name.accept(visitor);
+
+  visitChildren1(Visitor1 visitor, arg) => name.accept1(visitor, arg);
 
   Token getBeginToken() => partKeyword;
 
@@ -2262,7 +2791,11 @@ class Combinator extends Node {
 
   accept(Visitor visitor) => visitor.visitCombinator(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitCombinator(this, arg);
+
   visitChildren(Visitor visitor) => identifiers.accept(visitor);
+
+  visitChildren1(Visitor1 visitor, arg) => identifiers.accept1(visitor, arg);
 
   Token getBeginToken() => keywordToken;
 
@@ -2285,11 +2818,20 @@ class Typedef extends Node {
 
   accept(Visitor visitor) => visitor.visitTypedef(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitTypedef(this, arg);
+
   visitChildren(Visitor visitor) {
     if (returnType != null) returnType.accept(visitor);
     name.accept(visitor);
     if (typeParameters != null) typeParameters.accept(visitor);
     formals.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    if (returnType != null) returnType.accept1(visitor, arg);
+    name.accept1(visitor, arg);
+    if (typeParameters != null) typeParameters.accept1(visitor, arg);
+    formals.accept1(visitor, arg);
   }
 
   Token getBeginToken() => typedefKeyword;
@@ -2312,10 +2854,18 @@ class TryStatement extends Statement {
 
   accept(Visitor visitor) => visitor.visitTryStatement(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitTryStatement(this, arg);
+
   visitChildren(Visitor visitor) {
     tryBlock.accept(visitor);
     catchBlocks.accept(visitor);
     if (finallyBlock != null) finallyBlock.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    tryBlock.accept1(visitor, arg);
+    catchBlocks.accept1(visitor, arg);
+    if (finallyBlock != null) finallyBlock.accept1(visitor, arg);
   }
 
   Token getBeginToken() => tryKeyword;
@@ -2334,8 +2884,14 @@ class Cascade extends Expression {
   Cascade asCascade() => this;
   accept(Visitor visitor) => visitor.visitCascade(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitCascade(this, arg);
+
   void visitChildren(Visitor visitor) {
     expression.accept(visitor);
+  }
+
+  void visitChildren1(Visitor1 visitor, arg) {
+    expression.accept1(visitor, arg);
   }
 
   Token getBeginToken() => expression.getBeginToken();
@@ -2351,8 +2907,14 @@ class CascadeReceiver extends Expression {
   CascadeReceiver asCascadeReceiver() => this;
   accept(Visitor visitor) => visitor.visitCascadeReceiver(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitCascadeReceiver(this, arg);
+
   void visitChildren(Visitor visitor) {
     expression.accept(visitor);
+  }
+
+  void visitChildren1(Visitor1 visitor, arg) {
+    expression.accept1(visitor, arg);
   }
 
   Token getBeginToken() => expression.getBeginToken();
@@ -2375,6 +2937,8 @@ class CatchBlock extends Node {
 
   accept(Visitor visitor) => visitor.visitCatchBlock(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitCatchBlock(this, arg);
+
   Node get exception {
     if (formals == null || formals.nodes.isEmpty) return null;
     VariableDefinitions declarations = formals.nodes.head;
@@ -2395,6 +2959,12 @@ class CatchBlock extends Node {
     block.accept(visitor);
   }
 
+  visitChildren1(Visitor1 visitor, arg) {
+    if (type != null) type.accept1(visitor, arg);
+    if (formals != null) formals.accept1(visitor, arg);
+    block.accept1(visitor, arg);
+  }
+
   Token getBeginToken() => onKeyword != null ? onKeyword : catchKeyword;
 
   Token getEndToken() => block.getEndToken();
@@ -2410,8 +2980,14 @@ class Metadata extends Node {
 
   accept(Visitor visitor) => visitor.visitMetadata(this);
 
+  accept1(Visitor1 visitor, arg) => visitor.visitMetadata(this, arg);
+
   visitChildren(Visitor visitor) {
     expression.accept(visitor);
+  }
+
+  visitChildren1(Visitor1 visitor, arg) {
+    expression.accept1(visitor, arg);
   }
 
   Token getBeginToken() => token;
@@ -2482,7 +3058,11 @@ class ErrorNode
 
   accept(Visitor visitor) {}
 
+  accept1(Visitor1 visitor, arg) {}
+
   visitChildren(Visitor visitor) {}
+
+  visitChildren1(Visitor1 visitor, arg) {}
 
   bool get isErroneous => true;
 
