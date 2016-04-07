@@ -2290,6 +2290,7 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
       return;
     }
     int refPtr = 0;
+
     for (UnlinkedConstOperation operation in unlinkedConst.operations) {
       switch (operation) {
         case UnlinkedConstOperation.pushReference:
@@ -2317,6 +2318,10 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
         case UnlinkedConstOperation.invokeMethodRef:
           // TODO(paulberry): if this reference refers to a variable, should it
           // be considered a type inference dependency?
+          refPtr++;
+          break;
+        case UnlinkedConstOperation.typeCast:
+        case UnlinkedConstOperation.typeCheck:
           refPtr++;
           break;
         default:
@@ -2564,6 +2569,27 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
                 unlinkedConst.ints[intPtr++] + unlinkedConst.ints[intPtr++];
             stack.removeLast();
             // TODO(paulberry): implement.
+            stack.add(DynamicTypeImpl.instance);
+            break;
+          case UnlinkedConstOperation.cascadeSectionBegin:
+            stack.add(stack.last);
+            break;
+          case UnlinkedConstOperation.cascadeSectionEnd:
+            stack.removeLast();
+            break;
+          case UnlinkedConstOperation.typeCast:
+            stack.removeLast();
+            refPtr++;
+            // TODO(scheglov) implement
+            stack.add(DynamicTypeImpl.instance);
+            break;
+          case UnlinkedConstOperation.typeCheck:
+            stack.removeLast();
+            refPtr++;
+            stack.add(typeProvider.boolType);
+            break;
+          case UnlinkedConstOperation.throwException:
+            stack.removeLast();
             stack.add(DynamicTypeImpl.instance);
             break;
           default:

@@ -6694,7 +6694,6 @@ final v = 42 as num;
 ''');
     _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
       UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushReference,
       UnlinkedConstOperation.typeCast,
     ], ints: [
       42
@@ -6713,7 +6712,6 @@ final v = 42 is num;
 ''');
     _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
       UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushReference,
       UnlinkedConstOperation.typeCheck,
     ], ints: [
       42

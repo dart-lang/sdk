@@ -16,6 +16,7 @@ import 'prelinker_test.dart' as prelinker_test;
 import 'resynthesize_ast_test.dart' as resynthesize_ast_test;
 import 'resynthesize_strong_test.dart' as resynthesize_strong_test;
 import 'resynthesize_test.dart' as resynthesize_test;
+import 'summarize_ast_strong_test.dart' as summarize_ast_strong_test;
 import 'summarize_ast_test.dart' as summarize_ast_test;
 import 'summarize_elements_strong_test.dart' as summarize_elements_strong_test;
 import 'summarize_elements_test.dart' as summarize_elements_test;
@@ -33,6 +34,7 @@ main() {
     resynthesize_ast_test.main();
     resynthesize_strong_test.main();
     resynthesize_test.main();
+    summarize_ast_strong_test.main();
     summarize_ast_test.main();
     summarize_elements_strong_test.main();
     summarize_elements_test.main();

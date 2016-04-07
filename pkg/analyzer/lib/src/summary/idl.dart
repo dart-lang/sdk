@@ -1431,7 +1431,7 @@ enum UnlinkedConstOperation {
   typeCast,
 
   /**
-   * Pop the top value from the stack and check whether is is a subclass of the
+   * Pop the top value from the stack and check whether it is a subclass of the
    * type with reference from [UnlinkedConst.references], push the result into
    * the stack.
    */
