@@ -382,7 +382,7 @@ void Precompiler::AddEntryPoints(Dart_QualifiedFunctionName entry_points[]) {
 
       ASSERT(!cls.IsNull());
       func = cls.LookupFunctionAllowPrivate(function_name);
-      field = cls.LookupField(function_name);
+      field = cls.LookupFieldAllowPrivate(function_name);
     }
 
     if (func.IsNull() && field.IsNull()) {
