@@ -48,6 +48,7 @@ class OpTypeTest {
   void assertOpType(
       {bool caseLabel: false,
       bool constructors: false,
+      bool namedArgs: false,
       bool prefixed: false,
       bool returnValue: false,
       bool statementLabel: false,
@@ -58,6 +59,8 @@ class OpTypeTest {
     expect(visitor.includeCaseLabelSuggestions, caseLabel, reason: 'caseLabel');
     expect(visitor.includeConstructorSuggestions, constructors,
         reason: 'constructors');
+    expect(visitor.includeNamedArgumentSuggestions, namedArgs,
+        reason: 'namedArgs');
     expect(visitor.includeReturnValueSuggestions, returnValue,
         reason: 'returnValue');
     expect(visitor.includeStatementLabelSuggestions, statementLabel,
@@ -88,8 +91,34 @@ class OpTypeTest {
 
   test_ArgumentList() {
     // ArgumentList  MethodInvocation  ExpressionStatement  Block
-    addTestSource('void main() {expect(^)}');
+    addTestSource('void main() {expect(^)}', resolved: false);
+    // If "expect()" were resolved, then either namedArgs would be true
+    // or returnValue and typeNames would be true.
+    assertOpType(namedArgs: true, returnValue: true, typeNames: true);
+  }
+
+  test_ArgumentList_resolved() {
+    // ArgumentList  MethodInvocation  ExpressionStatement  Block
+    addTestSource('void main() {int.parse(^)}', resolved: true);
     assertOpType(returnValue: true, typeNames: true);
+  }
+
+  test_ArgumentList_resolved_1_0() {
+    // ArgumentList  MethodInvocation  ExpressionStatement  Block
+    addTestSource('main() { foo(^);} foo({one, two}) {}', resolved: true);
+    assertOpType(namedArgs: true);
+  }
+
+  test_ArgumentList_resolved_1_1() {
+    // ArgumentList  MethodInvocation  ExpressionStatement  Block
+    addTestSource('main() { foo(o^);} foo({one, two}) {}', resolved: true);
+    assertOpType(namedArgs: true);
+  }
+
+  test_ArgumentList_resolved_2_0() {
+    // ArgumentList  MethodInvocation  ExpressionStatement  Block
+    addTestSource('void main() {int.parse("16", ^)}', resolved: true);
+    assertOpType(namedArgs: true);
   }
 
   test_ArgumentList_namedParam() {

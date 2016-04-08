@@ -13,6 +13,8 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analysis_server/src/services/completion/dart/completion_manager.dart';
+import 'package:analysis_server/src/services/completion/dart/optype.dart';
 
 const ASYNC = 'async';
 const ASYNC_STAR = 'async*';
@@ -50,6 +52,13 @@ class _KeywordVisitor extends GeneralizingAstVisitor {
 
   @override
   visitArgumentList(ArgumentList node) {
+    if (request is DartCompletionRequestImpl) {
+      //TODO(danrubel) consider adding opType to the API then remove this cast
+      OpType opType = (request as DartCompletionRequestImpl).opType;
+      if (opType.includeOnlyNamedArgumentSuggestions) {
+        return;
+      }
+    }
     if (entity == node.rightParenthesis) {
       _addExpressionKeywords(node);
       Token previous = (entity as Token).previous;

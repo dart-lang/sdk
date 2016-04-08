@@ -28,6 +28,55 @@ main() {
 
 @reflectiveTest
 class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
+  test_ArgumentList_imported_function_named_param() async {
+    addTestFile('main() { int.parse("16", ^);}');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'radix: ',
+        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'onError: ',
+        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    expect(suggestions, hasLength(2));
+  }
+
+  test_ArgumentList_imported_function_named_param1() async {
+    addTestFile('main() { foo(o^);} foo({one, two}) {}');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'one: ',
+        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'two: ',
+        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    expect(suggestions, hasLength(2));
+  }
+
+  test_ArgumentList_imported_function_named_param_label1() async {
+    addTestFile('main() { int.parse("16", r^: 16);}');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'radix: ',
+        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'onError: ',
+        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    expect(suggestions, hasLength(2));
+  }
+
+  test_ArgumentList_imported_function_named_param_label3() async {
+    addTestFile('main() { int.parse("16", ^: 16);}');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'radix: ',
+        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'onError: ',
+        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    expect(suggestions, hasLength(2));
+  }
+
+  test_ArgumentList_imported_function_named_param2() async {
+    addTestFile('mainx() {A a = new A(); a.foo(one: 7, ^);}'
+        'class A { foo({one, two}) {} }');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'two: ',
+        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    expect(suggestions, hasLength(1));
+  }
+
   test_html() {
     testFile = '/project/web/test.html';
     addTestFile('''

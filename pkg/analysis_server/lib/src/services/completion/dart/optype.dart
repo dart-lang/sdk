@@ -4,12 +4,14 @@
 
 library services.completion.dart.optype;
 
-import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analysis_server/src/protocol_server.dart' hide Element;
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 
 /**
  * An [AstVisitor] for determining whether top level suggestions or invocation
@@ -38,6 +40,11 @@ class OpType {
    * have a non-[void] return type should be suggested.
    */
   bool includeReturnValueSuggestions = false;
+
+  /**
+   * Indicates whether named arguments should be suggested.
+   */
+  bool includeNamedArgumentSuggestions = false;
 
   /**
    * Indicates whether statement labels should be suggested.
@@ -86,6 +93,16 @@ class OpType {
    */
   bool get includeOnlyTypeNameSuggestions =>
       includeTypeNameSuggestions &&
+      !includeNamedArgumentSuggestions &&
+      !includeReturnValueSuggestions &&
+      !includeVoidReturnSuggestions;
+
+  /**
+   * Indicate whether only type names should be suggested
+   */
+  bool get includeOnlyNamedArgumentSuggestions =>
+      includeNamedArgumentSuggestions &&
+      !includeTypeNameSuggestions &&
       !includeReturnValueSuggestions &&
       !includeVoidReturnSuggestions;
 }
@@ -123,6 +140,31 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
 
   @override
   void visitArgumentList(ArgumentList node) {
+    AstNode parent = node.parent;
+    if (parent is InvocationExpression) {
+      Expression function = parent.function;
+      if (function is SimpleIdentifier) {
+        var elem = function.bestElement;
+        if (elem is FunctionTypedElement) {
+          List<ParameterElement> parameters = elem.parameters;
+          if (parameters != null) {
+            int index =
+                node.arguments.isEmpty ? 0 : node.arguments.indexOf(entity);
+            if (0 <= index && index < parameters.length) {
+              ParameterElement param = parameters[index];
+              if (param?.parameterKind == ParameterKind.NAMED) {
+                optype.includeNamedArgumentSuggestions = true;
+                return;
+              }
+            }
+          }
+        } else if (elem == null) {
+          // If unresolved, then include named arguments
+          optype.includeNamedArgumentSuggestions = true;
+          // fall through to include others as well
+        }
+      }
+    }
     optype.includeReturnValueSuggestions = true;
     optype.includeTypeNameSuggestions = true;
   }
