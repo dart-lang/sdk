@@ -1346,7 +1346,6 @@ var v_minus = new A() - 'bar';
   }
 
   void test_infer_binary_doubleDouble() {
-    // TODO(paulberry): the warnings below seem like a bug.
     checkFile(r'''
 var a_equal = 1.0 == 2.0;
 var a_notEqual = 1.0 != 2.0;
@@ -1354,12 +1353,12 @@ var a_add = 1.0 + 2.0;
 var a_subtract = 1.0 - 2.0;
 var a_multiply = 1.0 * 2.0;
 var a_divide = 1.0 / 2.0;
-var a_floorDivide = 1.0 ~/ /*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/2.0;
+var a_floorDivide = 1.0 ~/ 2.0;
 var a_greater = 1.0 > 2.0;
 var a_less = 1.0 < 2.0;
 var a_greaterEqual = 1.0 >= 2.0;
 var a_lessEqual = 1.0 <= 2.0;
-var a_modulo = 1.0 % /*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/2.0;
+var a_modulo = 1.0 % 2.0;
 ''');
   }
 
@@ -1381,7 +1380,6 @@ var a_modulo = 1.0 % 2;
   }
 
   void test_infer_binary_intDouble() {
-    // TODO(paulberry): the warnings below seem like a bug.
     checkFile(r'''
 var a_equal = 1 == 2.0;
 var a_notEqual = 1 != 2.0;
@@ -1389,12 +1387,12 @@ var a_add = 1 + 2.0;
 var a_subtract = 1 - 2.0;
 var a_multiply = 1 * 2.0;
 var a_divide = 1 / 2.0;
-var a_floorDivide = 1 ~/ /*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/2.0;
+var a_floorDivide = 1 ~/ 2.0;
 var a_greater = 1 > 2.0;
 var a_less = 1 < 2.0;
 var a_greaterEqual = 1 >= 2.0;
 var a_lessEqual = 1 <= 2.0;
-var a_modulo = 1 % /*warning:ARGUMENT_TYPE_NOT_ASSIGNABLE*/2.0;
+var a_modulo = 1 % 2.0;
 ''');
   }
 
