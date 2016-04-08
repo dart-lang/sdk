@@ -375,16 +375,42 @@ class StaticTypeAnalyzerTest extends EngineTestCase {
     _listener.assertNoErrors();
   }
 
-  void test_visitAssignmentExpression_compound() {
-    // i += 1
-    InterfaceType numType = _typeProvider.numType;
-    SimpleIdentifier identifier = _resolvedVariable(_typeProvider.intType, "i");
-    AssignmentExpression node = AstFactory.assignmentExpression(
-        identifier, TokenType.PLUS_EQ, _resolvedInteger(1));
-    MethodElement plusMethod = getMethod(numType, "+");
-    node.staticElement = plusMethod;
-    expect(_analyze(node), same(numType));
-    _listener.assertNoErrors();
+  void test_visitAssignmentExpression_compound_II() {
+    validate(TokenType operator) {
+      InterfaceType numType = _typeProvider.numType;
+      InterfaceType intType = _typeProvider.intType;
+      SimpleIdentifier identifier = _resolvedVariable(intType, "i");
+      AssignmentExpression node = AstFactory.assignmentExpression(
+          identifier, operator, _resolvedInteger(1));
+      MethodElement plusMethod = getMethod(numType, "+");
+      node.staticElement = plusMethod;
+      expect(_analyze(node), same(intType));
+      _listener.assertNoErrors();
+    }
+    validate(TokenType.MINUS_EQ);
+    validate(TokenType.PERCENT_EQ);
+    validate(TokenType.PLUS_EQ);
+    validate(TokenType.STAR_EQ);
+    validate(TokenType.TILDE_SLASH_EQ);
+  }
+
+  void test_visitAssignmentExpression_compound_plusID() {
+    validate(TokenType operator) {
+      InterfaceType numType = _typeProvider.numType;
+      InterfaceType intType = _typeProvider.intType;
+      InterfaceType doubleType = _typeProvider.doubleType;
+      SimpleIdentifier identifier = _resolvedVariable(intType, "i");
+      AssignmentExpression node = AstFactory.assignmentExpression(
+          identifier, operator, _resolvedDouble(1.0));
+      MethodElement plusMethod = getMethod(numType, "+");
+      node.staticElement = plusMethod;
+      expect(_analyze(node), same(doubleType));
+      _listener.assertNoErrors();
+    }
+    validate(TokenType.MINUS_EQ);
+    validate(TokenType.PERCENT_EQ);
+    validate(TokenType.PLUS_EQ);
+    validate(TokenType.STAR_EQ);
   }
 
   void test_visitAssignmentExpression_compoundIfNull_differentTypes() {

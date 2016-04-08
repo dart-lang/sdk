@@ -22,6 +22,7 @@ import 'parser_test.dart' as parser_test;
 import 'resolver_test.dart' as resolver_test;
 import 'scanner_test.dart' as scanner_test;
 import 'source_factory_test.dart' as source_factory_test;
+import 'static_type_analyzer_test.dart' as static_type_analyzer_test;
 import 'static_type_warning_code_test.dart' as static_type_warning_code_test;
 import 'static_warning_code_test.dart' as static_warning_code_test;
 import 'type_system_test.dart' as type_system_test;
@@ -46,6 +47,7 @@ main() {
     resolver_test.main();
     scanner_test.main();
     source_factory_test.main();
+    static_type_analyzer_test.main();
     static_type_warning_code_test.main();
     static_warning_code_test.main();
     type_system_test.main();
