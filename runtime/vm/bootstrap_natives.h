@@ -95,6 +95,7 @@ namespace dart {
   V(Double_truncate, 1)                                                        \
   V(Double_toInt, 1)                                                           \
   V(Double_parse, 3)                                                           \
+  V(Double_toString, 1)                                                        \
   V(Double_toStringAsFixed, 2)                                                 \
   V(Double_toStringAsExponential, 2)                                           \
   V(Double_toStringAsPrecision, 2)                                             \
@@ -352,7 +353,6 @@ namespace dart {
   V(UserTag_makeCurrent, 1)                                                    \
   V(Profiler_getCurrentTag, 0)                                                 \
   V(ClassID_getID, 1)                                                          \
-  V(Num_toString, 1)                                                           \
   V(VMService_SendIsolateServiceMessage, 2)                                    \
   V(VMService_SendRootServiceMessage, 1)                                       \
   V(VMService_OnStart, 0)                                                      \
