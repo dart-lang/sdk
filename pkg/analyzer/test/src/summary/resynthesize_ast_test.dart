@@ -233,6 +233,74 @@ var a = 1.round;
   ''');
   }
 
+  void test_infer_invokeConstructor_factoryRedirected() {
+    checkFile(r'''
+class A {
+  factory A() = B;
+}
+class B implements A {}
+var a = new A();
+  ''');
+  }
+
+  void test_infer_invokeConstructor_named() {
+    checkFile(r'''
+class A {
+  A.aaa();
+}
+class B<K, V> {
+  B.bbb();
+}
+var a = new A.aaa();
+var b1 = new B.bbb();
+var b2 = new B<int, String>.bbb();
+var b3 = new B<List<int>, Map<List<int>, Set<String>>>.bbb();
+  ''');
+  }
+
+  void test_infer_invokeConstructor_named_importedWithPrefix() {
+    addFile(
+        r'''
+class A {
+  A.aaa();
+}
+class B<K, V> {
+  B.bbb();
+}
+''',
+        name: '/a.dart');
+    checkFile(r'''
+import 'a.dart' as p;
+var a = new p.A.aaa();
+var b1 = new p.B.bbb();
+var b2 = new p.B<int, String>.bbb();
+  ''');
+  }
+
+  void test_infer_invokeConstructor_unnamed() {
+    checkFile(r'''
+class A {
+  A();
+}
+class B<T> {
+  B();
+}
+var a = new A();
+var b1 = new B();
+var b2 = new B<int>();
+  ''');
+  }
+
+  void test_infer_invokeConstructor_unnamed_synthetic() {
+    checkFile(r'''
+class A {}
+class B<T> {}
+var a = new A();
+var b1 = new B();
+var b2 = new B<int>();
+  ''');
+  }
+
   @override
   @failingTest
   void test_inferConstsTransitively() {

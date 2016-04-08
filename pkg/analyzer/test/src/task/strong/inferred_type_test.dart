@@ -1337,7 +1337,6 @@ var d = (c = 1);
   void test_infer_binary_custom() {
     checkFile(r'''
 class A {
-  A();
   int operator +(other) => 1;
   double operator -(other) => 2.0;
 }

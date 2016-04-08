@@ -384,6 +384,11 @@ class ClassElementForLink_Class extends ClassElementForLink
               .add(new ConstructorElementForLink(this, unlinkedExecutable));
         }
       }
+      if (_constructors.isEmpty) {
+        _unnamedConstructorComputed = true;
+        _unnamedConstructor = new ConstructorElementForLink_Synthetic(this);
+        _constructors.add(_unnamedConstructor);
+      }
     }
     return _constructors;
   }
@@ -1201,6 +1206,7 @@ class ConstructorElementForLink extends ExecutableElementForLink
       UnlinkedExecutable unlinkedExecutable)
       : super(enclosingElement, unlinkedExecutable) {
     if (enclosingElement.enclosingElement.isInBuildUnit &&
+        _unlinkedExecutable != null &&
         _unlinkedExecutable.constCycleSlot != 0) {
       _constNode = new ConstConstructorNode(this);
     }
@@ -1251,6 +1257,21 @@ class ConstructorElementForLink extends ExecutableElementForLink
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/**
+ * A synthetic constructor.
+ */
+class ConstructorElementForLink_Synthetic extends ConstructorElementForLink {
+  ConstructorElementForLink_Synthetic(
+      ClassElementForLink_Class enclosingElement)
+      : super(enclosingElement, null);
+
+  @override
+  String get name => '';
+
+  @override
+  List<ParameterElement> get parameters => const <ParameterElement>[];
 }
 
 /**
