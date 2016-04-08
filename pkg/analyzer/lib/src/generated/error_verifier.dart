@@ -4208,7 +4208,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   }
 
   void _checkForMissingJSLibAnnotation(Annotation node) {
-    if (node.elementAnnotation.isJS) {
+    if (node.elementAnnotation?.isJS ?? false) {
       Element element = ElementLocator.locate(node.parent);
       if (element?.library?.isJS != true) {
         _errorReporter.reportErrorForNode(
