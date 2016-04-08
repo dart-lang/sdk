@@ -57,6 +57,13 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   }
 
   @override
+  void compareLocalVariableElementLists(ExecutableElement resynthesized,
+      ExecutableElement original, String desc) {
+    // We don't resynthesize local elements during link.
+    // So, we should not compare them.
+  }
+
+  @override
   DartSdk createDartSdk() => AbstractContextTest.SHARED_STRONG_MOCK_SDK;
 
   @override
@@ -90,8 +97,8 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_basic() {
-    super.test_blockBodiedLambdas_basic();
+  void test_blockBodiedLambdas_basic_topLevel() {
+    super.test_blockBodiedLambdas_basic_topLevel();
   }
 
   @override
@@ -126,8 +133,8 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_blockBodiedLambdas_LUB() {
-    super.test_blockBodiedLambdas_LUB();
+  void test_blockBodiedLambdas_LUB_topLevel() {
+    super.test_blockBodiedLambdas_LUB_topLevel();
   }
 
   @override
@@ -152,12 +159,6 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   @failingTest
   void test_canInferAlsoFromStaticAndInstanceFieldsFlagOn() {
     super.test_canInferAlsoFromStaticAndInstanceFieldsFlagOn();
-  }
-
-  @override
-  @failingTest
-  void test_downwardInference_miscellaneous() {
-    super.test_downwardInference_miscellaneous();
   }
 
   @override
@@ -353,12 +354,6 @@ var b2 = new B<int>();
 
   @override
   @failingTest
-  void test_inferListLiteralNestedInMapLiteral() {
-    super.test_inferListLiteralNestedInMapLiteral();
-  }
-
-  @override
-  @failingTest
   void test_inferredInitializingFormalChecksDefaultValue() {
     super.test_inferredInitializingFormalChecksDefaultValue();
   }
@@ -379,12 +374,6 @@ var b2 = new B<int>();
   @failingTest
   void test_inferStaticsTransitively3() {
     super.test_inferStaticsTransitively3();
-  }
-
-  @override
-  @failingTest
-  void test_inferTypeOnVar2() {
-    super.test_inferTypeOnVar2();
   }
 
   @override
@@ -419,32 +408,8 @@ var b2 = new B<int>();
 
   @override
   @failingTest
-  void test_inferTypesOnLoopIndices_forEachLoop() {
-    super.test_inferTypesOnLoopIndices_forEachLoop();
-  }
-
-  @override
-  @failingTest
-  void test_inferTypesOnLoopIndices_forLoopWithInference() {
-    super.test_inferTypesOnLoopIndices_forLoopWithInference();
-  }
-
-  @override
-  @failingTest
-  void test_listLiterals() {
-    super.test_listLiterals();
-  }
-
-  @override
-  @failingTest
   void test_listLiteralsShouldNotInferBottom() {
     super.test_listLiteralsShouldNotInferBottom();
-  }
-
-  @override
-  @failingTest
-  void test_mapLiterals() {
-    super.test_mapLiterals();
   }
 
   @override
@@ -457,24 +422,6 @@ var b2 = new B<int>();
   @failingTest
   void test_nullLiteralShouldNotInferAsBottom() {
     super.test_nullLiteralShouldNotInferAsBottom();
-  }
-
-  @override
-  @failingTest
-  void test_propagateInferenceToFieldInClass() {
-    super.test_propagateInferenceToFieldInClass();
-  }
-
-  @override
-  @failingTest
-  void test_propagateInferenceTransitively() {
-    super.test_propagateInferenceTransitively();
-  }
-
-  @override
-  @failingTest
-  void test_propagateInferenceTransitively2() {
-    super.test_propagateInferenceTransitively2();
   }
 
   LibraryElementImpl _checkSource(

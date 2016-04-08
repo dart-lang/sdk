@@ -723,13 +723,7 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
       }
     }
     if (original is! Member) {
-      List<LocalVariableElement> rVariables = resynthesized.localVariables;
-      List<LocalVariableElement> oVariables = original.localVariables;
-      expect(rVariables, hasLength(oVariables.length));
-      for (int i = 0; i < oVariables.length; i++) {
-        compareVariableElements(rVariables[i], oVariables[i],
-            '$desc local variable ${oVariables[i].name}');
-      }
+      compareLocalVariableElementLists(resynthesized, original, desc);
     }
   }
 
@@ -806,6 +800,17 @@ abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
     expect(resynthesized.isOnSwitchStatement, original.isOnSwitchStatement,
         reason: desc);
     compareElements(resynthesized, original, desc);
+  }
+
+  void compareLocalVariableElementLists(ExecutableElement resynthesized,
+      ExecutableElement original, String desc) {
+    List<LocalVariableElement> rVariables = resynthesized.localVariables;
+    List<LocalVariableElement> oVariables = original.localVariables;
+    expect(rVariables, hasLength(oVariables.length));
+    for (int i = 0; i < oVariables.length; i++) {
+      compareVariableElements(rVariables[i], oVariables[i],
+          '$desc local variable ${oVariables[i].name}');
+    }
   }
 
   void compareMetadata(List<ElementAnnotation> resynthesized,

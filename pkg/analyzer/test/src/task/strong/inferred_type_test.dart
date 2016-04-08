@@ -117,6 +117,14 @@ test1() {
 ''');
   }
 
+  void test_blockBodiedLambdas_basic_topLevel() {
+    checkFile(r'''
+List<int> o;
+var y = o.map(/*info:INFERRED_TYPE_CLOSURE*/(x) { return x + 1; });
+Iterable<int> z = y;
+''');
+  }
+
   void test_blockBodiedLambdas_doesNotInferBottom_async() {
     var mainUnit = checkFile(r'''
 import 'dart:async';
@@ -208,6 +216,22 @@ test2() {
   Iterable<num> w = y;
   Iterable<int> z = /*info:ASSIGNMENT_CAST*/y;
 }
+''');
+  }
+
+  void test_blockBodiedLambdas_LUB_topLevel() {
+    checkFile(r'''
+import 'dart:math' show Random;
+List<num> o;
+var y = o.map(/*info:INFERRED_TYPE_CLOSURE*/(x) {
+  if (new Random().nextBool()) {
+    return x.toInt() + 1;
+  } else {
+    return x.toDouble();
+  }
+});
+Iterable<num> w = y;
+Iterable<int> z = /*info:ASSIGNMENT_CAST*/y;
 ''');
   }
 
@@ -408,16 +432,16 @@ class A<T> {
   A(this.x);
 }
 void main() {
-    {  // Variables, nested literals
-      var x = "hello";
-      var y = 3;
-      void f(List<Map<int, String>> l) {};
-      f(/*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/{y: x}]);
-    }
-    {
-      int f(int x) => 0;
-      A<int> a = /*info:INFERRED_TYPE_ALLOCATION*/new A(f);
-    }
+  {  // Variables, nested literals
+    var x = "hello";
+    var y = 3;
+    void f(List<Map<int, String>> l) {};
+    f(/*info:INFERRED_TYPE_LITERAL*/[/*info:INFERRED_TYPE_LITERAL*/{y: x}]);
+  }
+  {
+    int f(int x) => 0;
+    A<int> a = /*info:INFERRED_TYPE_ALLOCATION*/new A(f);
+  }
 }
 ''');
   }
