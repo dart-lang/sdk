@@ -1480,6 +1480,20 @@ var d = t ? 1 : (throw 2);
 ''');
   }
 
+  void test_infer_typeCast() {
+    checkFile(r'''
+class A<T> {}
+class B<T> extends A<T> {
+  foo() {}
+}
+A<num> a = new B<int>();
+var b = (a as B<int>);
+main() {
+  b.foo();
+}
+''');
+  }
+
   void test_infer_typedListLiteral() {
     checkFile(r'''
 var a = <int>[];

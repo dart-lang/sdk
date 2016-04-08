@@ -3184,9 +3184,8 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
             break;
           case UnlinkedConstOperation.typeCast:
             stack.removeLast();
-            refPtr++;
-            // TODO(scheglov) implement
-            stack.add(DynamicTypeImpl.instance);
+            DartType type = getNextTypeRef();
+            stack.add(type);
             break;
           case UnlinkedConstOperation.typeCheck:
             stack.removeLast();
