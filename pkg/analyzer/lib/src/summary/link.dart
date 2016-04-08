@@ -1440,6 +1440,7 @@ abstract class ExecutableElementForLink extends Object
   DartType _inferredReturnType;
   FunctionTypeImpl _type;
   List<TypeParameterElementForLink> _typeParameters;
+  String _name;
   List<ParameterElementForLink> _parameters;
 
   /**
@@ -1467,7 +1468,15 @@ abstract class ExecutableElementForLink extends Object
   LibraryElementForLink get library => enclosingElement.library;
 
   @override
-  String get name => _unlinkedExecutable.name;
+  String get name {
+    if (_name == null) {
+      _name = _unlinkedExecutable.name;
+      if (_name == '-' && _unlinkedExecutable.parameters.isEmpty) {
+        _name = 'unary-';
+      }
+    }
+    return _name;
+  }
 
   @override
   List<ParameterElementForLink> get parameters {
@@ -2754,7 +2763,7 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
         return currentType;
       }
 
-      void computeBinaryOperatorType(TokenType operator) {
+      void computeBinaryExpressionType(TokenType operator) {
         DartType right = stack.removeLast();
         DartType left = stack.removeLast();
         if (left is InterfaceType) {
@@ -2763,6 +2772,20 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
           if (method != null) {
             DartType type = method.returnType;
             type = refineBinaryExpressionType(operator, type, left, right);
+            stack.add(type);
+            return;
+          }
+        }
+        stack.add(DynamicTypeImpl.instance);
+      }
+
+      void computePrefixExpressionType(String operatorName) {
+        DartType operand = stack.removeLast();
+        if (operand is InterfaceType) {
+          MethodElement method =
+              operand.lookUpMethod(operatorName, libraryElement);
+          if (method != null) {
+            DartType type = method.returnType;
             stack.add(type);
             return;
           }
@@ -2906,11 +2929,14 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
                 .instantiate(<DartType>[keyType, valueType]));
             break;
           case UnlinkedConstOperation.not:
+            stack.length -= 1;
+            stack.add(typeProvider.boolType);
+            break;
           case UnlinkedConstOperation.complement:
+            computePrefixExpressionType('~');
+            break;
           case UnlinkedConstOperation.negate:
-            stack.removeLast();
-            // TODO(paulberry): implement.
-            stack.add(DynamicTypeImpl.instance);
+            computePrefixExpressionType('unary-');
             break;
           case UnlinkedConstOperation.and:
           case UnlinkedConstOperation.or:
@@ -2920,49 +2946,49 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
             stack.add(typeProvider.boolType);
             break;
           case UnlinkedConstOperation.bitXor:
-            computeBinaryOperatorType(TokenType.CARET);
+            computeBinaryExpressionType(TokenType.CARET);
             break;
           case UnlinkedConstOperation.bitAnd:
-            computeBinaryOperatorType(TokenType.AMPERSAND);
+            computeBinaryExpressionType(TokenType.AMPERSAND);
             break;
           case UnlinkedConstOperation.bitOr:
-            computeBinaryOperatorType(TokenType.BAR);
+            computeBinaryExpressionType(TokenType.BAR);
             break;
           case UnlinkedConstOperation.bitShiftRight:
-            computeBinaryOperatorType(TokenType.GT_GT);
+            computeBinaryExpressionType(TokenType.GT_GT);
             break;
           case UnlinkedConstOperation.bitShiftLeft:
-            computeBinaryOperatorType(TokenType.LT_LT);
+            computeBinaryExpressionType(TokenType.LT_LT);
             break;
           case UnlinkedConstOperation.add:
-            computeBinaryOperatorType(TokenType.PLUS);
+            computeBinaryExpressionType(TokenType.PLUS);
             break;
           case UnlinkedConstOperation.subtract:
-            computeBinaryOperatorType(TokenType.MINUS);
+            computeBinaryExpressionType(TokenType.MINUS);
             break;
           case UnlinkedConstOperation.multiply:
-            computeBinaryOperatorType(TokenType.STAR);
+            computeBinaryExpressionType(TokenType.STAR);
             break;
           case UnlinkedConstOperation.divide:
-            computeBinaryOperatorType(TokenType.SLASH);
+            computeBinaryExpressionType(TokenType.SLASH);
             break;
           case UnlinkedConstOperation.floorDivide:
-            computeBinaryOperatorType(TokenType.TILDE_SLASH);
+            computeBinaryExpressionType(TokenType.TILDE_SLASH);
             break;
           case UnlinkedConstOperation.greater:
-            computeBinaryOperatorType(TokenType.GT);
+            computeBinaryExpressionType(TokenType.GT);
             break;
           case UnlinkedConstOperation.less:
-            computeBinaryOperatorType(TokenType.LT);
+            computeBinaryExpressionType(TokenType.LT);
             break;
           case UnlinkedConstOperation.greaterEqual:
-            computeBinaryOperatorType(TokenType.GT_EQ);
+            computeBinaryExpressionType(TokenType.GT_EQ);
             break;
           case UnlinkedConstOperation.lessEqual:
-            computeBinaryOperatorType(TokenType.LT_EQ);
+            computeBinaryExpressionType(TokenType.LT_EQ);
             break;
           case UnlinkedConstOperation.modulo:
-            computeBinaryOperatorType(TokenType.PERCENT);
+            computeBinaryExpressionType(TokenType.PERCENT);
             break;
           case UnlinkedConstOperation.conditional:
             DartType elseType = stack.removeLast();

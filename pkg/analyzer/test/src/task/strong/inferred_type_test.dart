@@ -1425,6 +1425,27 @@ var b = 1 == 2 ? 1.0 : 2;
 ''');
   }
 
+  void test_infer_prefixExpression() {
+    checkFile(r'''
+var a_not = !true;
+var a_complement = ~1;
+var a_negate = -1;
+''');
+  }
+
+  void test_infer_prefixExpression_custom() {
+    checkFile(r'''
+class A {
+  A();
+  int operator ~() => 1;
+  double operator -() => 2.0;
+}
+var a = new A();
+var v_complement = ~a;
+var v_negate = -a;
+''');
+  }
+
   void test_infer_throw() {
     checkFile(r'''
 var t = true;
