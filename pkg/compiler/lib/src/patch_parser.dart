@@ -130,6 +130,7 @@ import 'elements/modelx.dart'
         LibraryElementX,
         MetadataAnnotationX,
         SetterElementX;
+import 'id_generator.dart';
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'library_loader.dart' show LibraryLoader;
 import 'options.dart' show ParserOptions;
@@ -176,9 +177,8 @@ class PatchParserTask extends CompilerTask {
       // TODO(johnniwinther): Test that parts and exports are handled correctly.
       Script script = compilationUnit.script;
       Token tokens = new Scanner(script.file).tokenize();
-      Function idGenerator = compiler.getNextFreeClassId;
       Listener patchListener =
-          new PatchElementListener(compiler, compilationUnit, idGenerator);
+          new PatchElementListener(compiler, compilationUnit, compiler);
       try {
         new PartialParser(patchListener, parserOptions).parseUnit(tokens);
       } on ParserError catch (e) {
@@ -259,8 +259,8 @@ class PatchClassElementParser extends PartialParser {
 class PatchElementListener extends ElementListener implements Listener {
   final Compiler compiler;
 
-  PatchElementListener(
-      Compiler compiler, CompilationUnitElement patchElement, int idGenerator())
+  PatchElementListener(Compiler compiler, CompilationUnitElement patchElement,
+      IdGenerator idGenerator)
       : this.compiler = compiler,
         super(compiler.parsing.getScannerOptionsFor(patchElement),
             compiler.reporter, patchElement, idGenerator);

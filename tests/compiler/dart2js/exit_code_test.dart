@@ -151,7 +151,8 @@ class TestDiagnosticReporter extends DiagnosticReporterWrapper {
 }
 
 class TestScanner extends ScannerTask {
-  TestScanner(TestCompiler compiler) : super(compiler);
+  TestScanner(TestCompiler compiler)
+      : super(compiler, compiler.dietParser);
 
   TestCompiler get compiler => super.compiler;
 

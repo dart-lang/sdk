@@ -7,6 +7,7 @@ library parser_helper;
 import "package:expect/expect.dart";
 
 import "package:compiler/src/elements/elements.dart";
+import 'package:compiler/src/id_generator.dart';
 import "package:compiler/src/tree/tree.dart";
 import "package:compiler/src/parser/element_listener.dart";
 import "package:compiler/src/parser/node_listener.dart";
@@ -150,11 +151,10 @@ Link<Element> parseUnit(String text, Compiler compiler,
   }
   var script = new Script(uri, uri, new MockFile(text));
   var unit = new CompilationUnitElementX(script, library);
-  int id = 0;
   DiagnosticReporter reporter = compiler.reporter;
   ElementListener listener = new ElementListener(
       compiler.parsing.getScannerOptionsFor(library),
-      reporter, unit, () => id++);
+      reporter, unit, new IdGenerator());
   PartialParser parser = new PartialParser(listener, new MockParserOptions());
   reporter.withCurrentElement(unit, () => parser.parseUnit(tokens));
   return unit.localMembers;

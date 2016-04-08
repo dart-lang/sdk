@@ -185,7 +185,7 @@ class ClosureClassElement extends ClassElementX {
             // By assigning a fresh class-id we make sure that the hashcode
             // is unique, but also emit closure classes after all other
             // classes (since the emitter sorts classes by their id).
-            compiler.getNextFreeClassId(),
+            compiler.getNextFreeId(),
             STATE_DONE) {
     JavaScriptBackend backend = compiler.backend;
     ClassElement superclass = methodElement.isInstanceMember

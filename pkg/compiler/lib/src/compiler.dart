@@ -47,6 +47,7 @@ import 'enqueue.dart'
         ResolutionEnqueuer,
         QueueFilter;
 import 'environment.dart';
+import 'id_generator.dart';
 import 'io/source_information.dart' show SourceInformation;
 import 'js_backend/backend_helpers.dart' as js_backend show BackendHelpers;
 import 'js_backend/js_backend.dart' as js_backend show JavaScriptBackend;
@@ -76,7 +77,6 @@ import 'script.dart' show Script;
 import 'ssa/nodes.dart' show HInstruction;
 import 'tracer.dart' show Tracer;
 import 'tokens/token.dart' show StringToken, Token, TokenPair;
-import 'tokens/token_constants.dart' as Tokens show COMMENT_TOKEN, EOF_TOKEN;
 import 'tokens/token_map.dart' show TokenMap;
 import 'tree/tree.dart' show Node, TypeAnnotation;
 import 'typechecker.dart' show TypeCheckerTask;
@@ -89,9 +89,9 @@ import 'universe/world_impact.dart' show ImpactStrategy, WorldImpact;
 import 'util/util.dart' show Link, Setlet;
 import 'world.dart' show World;
 
-abstract class Compiler implements LibraryLoaderListener {
+abstract class Compiler implements LibraryLoaderListener, IdGenerator {
   final Stopwatch totalCompileTime = new Stopwatch();
-  int nextFreeClassId = 0;
+  final IdGenerator idGenerator = new IdGenerator();
   World world;
   Types types;
   _CompilerCoreTypes _coreTypes;
@@ -340,7 +340,7 @@ abstract class Compiler implements LibraryLoaderListener {
     }
 
     tasks = [
-      dietParser = new DietParserTask(this, parsing.parserOptions),
+      dietParser = new DietParserTask(this, parsing.parserOptions, idGenerator),
       scanner = createScannerTask(),
       serialization = new SerializationTask(this),
       libraryLoader = new LibraryLoaderTask(
@@ -371,7 +371,8 @@ abstract class Compiler implements LibraryLoaderListener {
   /// Creates the scanner task.
   ///
   /// Override this to mock the scanner for testing.
-  ScannerTask createScannerTask() => new ScannerTask(this);
+  ScannerTask createScannerTask() => new ScannerTask(this, dietParser,
+      preserveComments: options.preserveComments, commentMap: commentMap);
 
   /// Creates the resolver task.
   ///
@@ -390,7 +391,9 @@ abstract class Compiler implements LibraryLoaderListener {
   bool get disableTypeInference =>
       options.disableTypeInference || compilationFailed;
 
-  int getNextFreeClassId() => nextFreeClassId++;
+  // TODO(het): remove this and pass idGenerator directly instead
+  @deprecated
+  int getNextFreeId() => idGenerator.getNextFreeId();
 
   void unimplemented(Spannable spannable, String methodName) {
     reporter.internalError(spannable, "$methodName not implemented.");
@@ -1148,28 +1151,6 @@ abstract class Compiler implements LibraryLoaderListener {
   }
 
   bool get isMockCompilation => false;
-
-  Token processAndStripComments(Token currentToken) {
-    Token firstToken = currentToken;
-    Token prevToken;
-    while (currentToken.kind != Tokens.EOF_TOKEN) {
-      if (identical(currentToken.kind, Tokens.COMMENT_TOKEN)) {
-        Token firstCommentToken = currentToken;
-        while (identical(currentToken.kind, Tokens.COMMENT_TOKEN)) {
-          currentToken = currentToken.next;
-        }
-        commentMap[currentToken] = firstCommentToken;
-        if (prevToken == null) {
-          firstToken = currentToken;
-        } else {
-          prevToken.next = currentToken;
-        }
-      }
-      prevToken = currentToken;
-      currentToken = currentToken.next;
-    }
-    return firstToken;
-  }
 
   void reportUnusedCode() {
     void checkLive(member) {

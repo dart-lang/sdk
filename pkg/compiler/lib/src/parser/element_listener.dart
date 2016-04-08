@@ -19,6 +19,7 @@ import '../elements/modelx.dart'
         LibraryElementX,
         NamedMixinApplicationElementX,
         VariableList;
+import '../id_generator.dart';
 import '../native/native.dart' as native;
 import '../string_validator.dart' show StringValidator;
 import '../tokens/keyword.dart' show Keyword;
@@ -38,8 +39,6 @@ import 'partial_elements.dart'
         PartialMetadataAnnotation,
         PartialTypedefElement;
 import 'listener.dart' show closeBraceFor, Listener, ParserError, VERBOSE;
-
-typedef int IdGenerator();
 
 /// Options used for scanning.
 ///
@@ -171,7 +170,7 @@ class ElementListener extends Listener {
     NodeList names = makeNodeList(count, enumKeyword.next.next, endBrace, ",");
     Identifier name = popNode();
 
-    int id = idGenerator();
+    int id = idGenerator.getNextFreeId();
     Element enclosing = compilationUnitElement;
     pushElement(new EnumClassElementX(
         name.source, enclosing, id, new Enum(enumKeyword, name, names)));
@@ -249,7 +248,7 @@ class ElementListener extends Listener {
     popNode(); // superType
     popNode(); // typeParameters
     Identifier name = popNode();
-    int id = idGenerator();
+    int id = idGenerator.getNextFreeId();
     PartialClassElement element = new PartialClassElement(
         name.source, beginToken, endToken, compilationUnitElement, id);
     pushElement(element);
@@ -290,7 +289,7 @@ class ElementListener extends Listener {
         classKeyword,
         endToken);
 
-    int id = idGenerator();
+    int id = idGenerator.getNextFreeId();
     Element enclosing = compilationUnitElement;
     pushElement(new NamedMixinApplicationElementX(
         name.source, enclosing, id, namedMixinApplication));
