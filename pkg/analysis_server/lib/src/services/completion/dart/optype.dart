@@ -10,6 +10,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
@@ -28,6 +29,13 @@ class OpType {
    * Indicates whether type names should be suggested.
    */
   bool includeTypeNameSuggestions = false;
+
+  /**
+   * If [includeTypeNameSuggestions] is set to true, then this function may be
+   * set to the non-default function to filter out potential suggestions based
+   * on their static [DartType].
+   */
+  Function typeNameSuggestionsFilter = (DartType _) => true;
 
   /**
    * Indicates whether setters along with methods and functions that
@@ -494,10 +502,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   void visitIsExpression(IsExpression node) {
     if (identical(entity, node.type)) {
       optype.includeTypeNameSuggestions = true;
-      // TODO (danrubel) Possible future improvement:
-      // on the RHS of an "is" or "as" expression, don't suggest types that are
-      // guaranteed to pass or guaranteed to fail the cast.
-      // See dartbug.com/18860
+      optype.typeNameSuggestionsFilter = (DartType dartType) {
+        DartType bestType = node.expression.bestType;
+        return bestType.isDynamic ||
+            (dartType.isSubtypeOf(bestType) && dartType != bestType);
+      };
     }
   }
 

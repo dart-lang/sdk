@@ -2750,6 +2750,38 @@ main(){var a; if (a is Obj^)}''');
     assertNotSuggested('Object');
   }
 
+  test_IsExpression_type_subtype_extends_filter() async {
+    // SimpleIdentifier  TypeName  IsExpression  IfStatement
+    addTestSource('''
+class A {} class B extends A {} class C extends A {} class D {}
+f(A a){ if (a is ^) {}}''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestClass('B');
+    assertSuggestClass('C');
+    assertNotSuggested('A');
+    assertNotSuggested('D');
+    assertNotSuggested('Object');
+  }
+
+  test_IsExpression_type_subtype_implements_filter() async {
+    // SimpleIdentifier  TypeName  IsExpression  IfStatement
+    addTestSource('''
+class A {} class B extends A {} class C implements A {} class D {}
+f(A a){ if (a is ^) {}}''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestClass('B');
+    assertSuggestClass('C');
+    assertNotSuggested('A');
+    assertNotSuggested('D');
+    assertNotSuggested('Object');
+  }
+
   test_keyword() async {
     addSource(
         '/testB.dart',

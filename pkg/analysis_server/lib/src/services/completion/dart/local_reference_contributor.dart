@@ -17,6 +17,8 @@ import 'package:analysis_server/src/services/completion/dart/optype.dart';
 import 'package:analysis_server/src/services/correction/strings.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart' show ParameterKind;
@@ -161,6 +163,10 @@ class LocalReferenceContributor extends DartCompletionContributor {
 
         // Do not suggest local vars within the current expression
         while (node is Expression) {
+          // If node is an Expression, ensure that it is resolved. Resolution is
+          // used in cases such as the use of optype.typeNameSuggestionsFilter
+          // below.
+          await request.resolveExpression(node);
           node = node.parent;
         }
 
@@ -388,7 +394,14 @@ class _LocalVisitor extends LocalDeclarationVisitor {
           suggestion.completion.startsWith('_')) {
         suggestion.relevance = privateMemberRelevance;
       }
-      suggestionMap.putIfAbsent(suggestion.completion, () => suggestion);
+      // if includeTypeNameSuggestions, then use the filter
+      if (optype.includeTypeNameSuggestions) {
+        if (optype.typeNameSuggestionsFilter(_staticTypeOfIdentifier(id))) {
+          suggestionMap.putIfAbsent(suggestion.completion, () => suggestion);
+        }
+      } else {
+        suggestionMap.putIfAbsent(suggestion.completion, () => suggestion);
+      }
       suggestion.element = _createLocalElement(request.source, elemKind, id,
           isAbstract: isAbstract,
           isDeprecated: isDeprecated,
@@ -447,5 +460,13 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       }
     }
     return false;
+  }
+
+  DartType _staticTypeOfIdentifier(Identifier id) {
+    if (id.staticElement is ClassElement) {
+      return (id.staticElement as ClassElement).type;
+    } else {
+      return id.staticType;
+    }
   }
 }
