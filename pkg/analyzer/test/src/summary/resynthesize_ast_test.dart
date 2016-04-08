@@ -42,15 +42,17 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   void addFile(String content, {String name: '/main.dart'}) {
-    addSource(name, content);
+    addLibrarySource(name, content);
   }
 
   @override
   CompilationUnitElement checkFile(String content) {
     Source source = addSource('/main.dart', content);
-    LibraryElementImpl resynthesized = _encodeDecodeLibraryElement(source);
-    LibraryElementImpl original = context.computeLibraryElement(source);
-    checkLibraryElements(original, resynthesized);
+    SummaryResynthesizer resynthesizer = _encodeLibrary(source);
+    LibraryElementImpl resynthesized = _checkSource(resynthesizer, source);
+    for (Source otherSource in otherLibrarySources) {
+      _checkSource(resynthesizer, otherSource);
+    }
     return resynthesized.definingCompilationUnit;
   }
 
@@ -144,6 +146,12 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   @failingTest
   void test_blockBodiedLambdas_syncStar() {
     super.test_blockBodiedLambdas_syncStar();
+  }
+
+  @override
+  @failingTest
+  void test_canInferAlsoFromStaticAndInstanceFieldsFlagOn() {
+    super.test_canInferAlsoFromStaticAndInstanceFieldsFlagOn();
   }
 
   @override
@@ -485,6 +493,15 @@ var b2 = new B<int>();
   @failingTest
   void test_propagateInferenceTransitively2() {
     super.test_propagateInferenceTransitively2();
+  }
+
+  LibraryElementImpl _checkSource(
+      SummaryResynthesizer resynthesizer, Source source) {
+    LibraryElementImpl resynthesized =
+        resynthesizer.getLibraryElement(source.uri.toString());
+    LibraryElementImpl original = context.computeLibraryElement(source);
+    checkLibraryElements(original, resynthesized);
+    return resynthesized;
   }
 }
 
