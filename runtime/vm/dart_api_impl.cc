@@ -59,7 +59,7 @@ DEFINE_FLAG(bool, check_function_fingerprints, true,
 #endif  // defined(DART_NO_SNAPSHOT).
 DEFINE_FLAG(bool, verify_acquired_data, false,
             "Verify correct API acquire/release of typed data.");
-DEFINE_FLAG(bool, support_externalizable_strings, true,
+DEFINE_FLAG(bool, support_externalizable_strings, false,
             "Support Dart_MakeExternalString.");
 
 
