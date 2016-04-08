@@ -2707,6 +2707,7 @@ abstract class ErrorCode {
     HintCode.UNUSED_CATCH_CLAUSE,
     HintCode.UNUSED_CATCH_STACK,
     HintCode.UNUSED_LOCAL_VARIABLE,
+    HintCode.UNUSED_SHOWN_NAME,
     HintCode.USE_OF_VOID_RESULT,
     HintCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE,
     HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE,
@@ -3777,6 +3778,12 @@ class HintCode extends ErrorCode {
   static const HintCode UNUSED_LOCAL_VARIABLE = const HintCode(
       'UNUSED_LOCAL_VARIABLE',
       "The value of the local variable '{0}' is not used");
+
+  /**
+   * Unused shown names are names shown on imports which are never used.
+   */
+  static const HintCode UNUSED_SHOWN_NAME =
+      const HintCode('UNUSED_SHOWN_NAME', "The name {0} is shown, but not used.");
 
   /**
    * Hint for cases where the source expects a method or function to return a

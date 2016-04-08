@@ -3162,7 +3162,11 @@ get x => null;''');
 
   test_import_show() {
     addLibrary('dart:async');
-    checkLibrary('import "dart:async" show Future, Stream; Future f;');
+    checkLibrary('''
+import "dart:async" show Future, Stream;
+Future f;
+Stream s;
+''');
   }
 
   test_imports() {

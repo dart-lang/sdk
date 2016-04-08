@@ -2838,6 +2838,82 @@ class B {}''');
     verify([source, source2]);
   }
 
+  void test_unusedShownName() {
+    Source source = addSource(r'''
+library L;
+import 'lib1.dart' show A, B;
+A a;''');
+    Source source2 = addNamedSource(
+        "/lib1.dart", r'''
+library lib1;
+class A {}
+class B {}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.UNUSED_SHOWN_NAME]);
+    assertNoErrors(source2);
+    verify([source, source2]);
+  }
+
+  void test_unusedShownName_topLevelVariable() {
+    Source source = addSource(r'''
+library L;
+import 'lib1.dart' show var1, var2;
+import 'lib1.dart' show var3, var4;
+int a = var1;
+int b = var2;
+int c = var3;''');
+    Source source2 = addNamedSource(
+        "/lib1.dart",
+        r'''
+library lib1;
+const int var1 = 1;
+const int var2 = 2;
+const int var3 = 3;
+const int var4 = 4;''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.UNUSED_SHOWN_NAME]);
+    assertNoErrors(source2);
+    verify([source, source2]);
+  }
+
+  void test_unusedShownName_as() {
+    Source source = addSource(r'''
+library L;
+import 'lib1.dart' as p show A, B;
+p.A a;''');
+    Source source2 = addNamedSource(
+        "/lib1.dart", r'''
+library lib1;
+class A {}
+class B {}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.UNUSED_SHOWN_NAME]);
+    assertNoErrors(source2);
+    verify([source, source2]);
+  }
+
+  void test_unusedShownName_duplicates() {
+    Source source = addSource(r'''
+library L;
+import 'lib1.dart' show A, B;
+import 'lib1.dart' show C, D;
+A a;
+C c;''');
+    Source source2 = addNamedSource(
+        "/lib1.dart", r'''
+library lib1;
+class A {}
+class B {}
+class C {}
+class D {}''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [
+        HintCode.UNUSED_SHOWN_NAME,
+        HintCode.UNUSED_SHOWN_NAME]);
+    assertNoErrors(source2);
+    verify([source, source2]);
+  }
+
   void test_unusedLocalVariable_inCatch_exception() {
     enableUnusedLocalVariable = true;
     Source source = addSource(r'''

@@ -4111,7 +4111,9 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
     SimpleIdentifier prefixIdentifier = node.prefix;
     Element element = prefixIdentifier.staticElement;
     if (element is PrefixElement) {
-      usedElements.prefixes.add(element);
+      List<Element> prefixedElements =
+          usedElements.prefixMap.putIfAbsent(element, () => <Element>[]);
+      prefixedElements.add(node.identifier.staticElement);
       return;
     }
     // Otherwise, pass the prefixed identifier element and name onto
@@ -4145,7 +4147,7 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
       }
       return;
     } else if (element is PrefixElement) {
-      usedElements.prefixes.add(element);
+      usedElements.prefixMap.putIfAbsent(element, () => <Element>[]);
       return;
     } else if (element.enclosingElement is! CompilationUnitElement) {
       // Identifiers that aren't a prefix element and whose enclosing element
@@ -4375,6 +4377,7 @@ class HintGenerator {
             .removeUsedElements(_usedImportedElementsVisitor.usedElements);
         importsVerifier.generateDuplicateImportHints(definingUnitErrorReporter);
         importsVerifier.generateUnusedImportHints(definingUnitErrorReporter);
+        importsVerifier.generateUnusedShownNameHints(definingUnitErrorReporter);
       }
       _library.accept(new UnusedLocalElementsVerifier(
           _errorListener, _usedLocalElementsVisitor.usedElements));
@@ -4457,20 +4460,23 @@ class ImplicitLabelScope {
 }
 
 /**
- * Instances of the class `ImportsVerifier` visit all of the referenced libraries in the
- * source code verifying that all of the imports are used, otherwise a
- * [HintCode.UNUSED_IMPORT] is generated with
- * [generateUnusedImportHints].
+ * Instances of the class `ImportsVerifier` visit all of the referenced libraries in the source code
+ * verifying that all of the imports are used, otherwise a [HintCode.UNUSED_IMPORT] hint is
+ * generated with [generateUnusedImportHints].
+ *
+ * Additionally, [generateDuplicateImportHints] generates [HintCode.DUPLICATE_IMPORT] hints and
+ * [HintCode.UNUSED_SHOWN_NAME] hints.
  *
  * While this class does not yet have support for an "Organize Imports" action, this logic built up
  * in this class could be used for such an action in the future.
  */
 class ImportsVerifier {
   /**
-   * A list of [ImportDirective]s that the current library imports, as identifiers are visited
-   * by this visitor and an import has been identified as being used by the library, the
-   * [ImportDirective] is removed from this list. After all the sources in the library have
-   * been evaluated, this list represents the set of unused imports.
+   * A list of [ImportDirective]s that the current library imports, but does not use.
+   *
+   * As identifiers are visited by this visitor and an import has been identified as being used
+   * by the library, the [ImportDirective] is removed from this list. After all the sources in the
+   * library have been evaluated, this list represents the set of unused imports.
    *
    * See [ImportsVerifier.generateUnusedImportErrors].
    */
@@ -4483,15 +4489,14 @@ class ImportsVerifier {
   final List<ImportDirective> _duplicateImports = <ImportDirective>[];
 
   /**
-   * This is a map between the set of [LibraryElement]s that the current library imports, and
-   * a list of [ImportDirective]s that imports the library. In cases where the current library
-   * imports a library with a single directive (such as `import lib1.dart;`), the library
+   * This is a map between the set of [LibraryElement]s that the current library imports, and the
+   * list of [ImportDirective]s that import each [LibraryElement]. In cases where the current
+   * library imports a library with a single directive (such as `import lib1.dart;`), the library
    * element will map to a list of one [ImportDirective], which will then be removed from the
    * [unusedImports] list. In cases where the current library imports a library with multiple
-   * directives (such as `import lib1.dart; import lib1.dart show C;`), the
-   * [LibraryElement] will be mapped to a list of the import directives, and the namespace
-   * will need to be used to compute the correct [ImportDirective] being used, see
-   * [namespaceMap].
+   * directives (such as `import lib1.dart; import lib1.dart show C;`), the [LibraryElement] will
+   * be mapped to a list of the import directives, and the namespace will need to be used to
+   * compute the correct [ImportDirective] being used; see [_namespaceMap].
    */
   final HashMap<LibraryElement, List<ImportDirective>> _libraryMap =
       new HashMap<LibraryElement, List<ImportDirective>>();
@@ -4518,44 +4523,62 @@ class ImportsVerifier {
   final HashMap<PrefixElement, List<ImportDirective>> _prefixElementMap =
       new HashMap<PrefixElement, List<ImportDirective>>();
 
+  /**
+   * A map of identifiers that the current library's imports show, but that the library does not
+   * use.
+   *
+   * Each import directive maps to a list of the identifiers that are imported via the "show"
+   * keyword.
+   *
+   * As each identifier is visited by this visitor, it is identified as being used by the library,
+   * and the identifier is removed from this map (under the import that imported it). After all the
+   * sources in the library have been evaluated, each list in this map's values present the set of
+   * unused shown elements.
+   *
+   * See [ImportsVerifier.generateUnusedShownNameHints].
+   */
+  final HashMap<ImportDirective, List<SimpleIdentifier>> _unusedShownNamesMap =
+      new HashMap<ImportDirective, List<SimpleIdentifier>>();
+
   void addImports(CompilationUnit node) {
     for (Directive directive in node.directives) {
       if (directive is ImportDirective) {
         ImportDirective importDirective = directive;
         LibraryElement libraryElement = importDirective.uriElement;
-        if (libraryElement != null) {
-          _unusedImports.add(importDirective);
-          //
-          // Initialize prefixElementMap
-          //
-          if (importDirective.asKeyword != null) {
-            SimpleIdentifier prefixIdentifier = importDirective.prefix;
-            if (prefixIdentifier != null) {
-              Element element = prefixIdentifier.staticElement;
-              if (element is PrefixElement) {
-                PrefixElement prefixElementKey = element;
-                List<ImportDirective> list =
-                    _prefixElementMap[prefixElementKey];
-                if (list == null) {
-                  list = new List<ImportDirective>();
-                  _prefixElementMap[prefixElementKey] = list;
-                }
-                list.add(importDirective);
-              }
-              // TODO (jwren) Can the element ever not be a PrefixElement?
-            }
-          }
-          //
-          // Initialize libraryMap: libraryElement -> importDirective
-          //
-          _putIntoLibraryMap(libraryElement, importDirective);
-          //
-          // For this new addition to the libraryMap, also recursively add any
-          // exports from the libraryElement.
-          //
-          _addAdditionalLibrariesForExports(
-              libraryElement, importDirective, new List<LibraryElement>());
+        if (libraryElement == null) {
+          continue;
         }
+        _unusedImports.add(importDirective);
+        //
+        // Initialize prefixElementMap
+        //
+        if (importDirective.asKeyword != null) {
+          SimpleIdentifier prefixIdentifier = importDirective.prefix;
+          if (prefixIdentifier != null) {
+            Element element = prefixIdentifier.staticElement;
+            if (element is PrefixElement) {
+              PrefixElement prefixElementKey = element;
+              List<ImportDirective> list = _prefixElementMap[prefixElementKey];
+              if (list == null) {
+                list = new List<ImportDirective>();
+                _prefixElementMap[prefixElementKey] = list;
+              }
+              list.add(importDirective);
+            }
+            // TODO (jwren) Can the element ever not be a PrefixElement?
+          }
+        }
+        //
+        // Initialize libraryMap: libraryElement -> importDirective
+        //
+        _putIntoLibraryMap(libraryElement, importDirective);
+        //
+        // For this new addition to the libraryMap, also recursively add any
+        // exports from the libraryElement.
+        //
+        _addAdditionalLibrariesForExports(
+            libraryElement, importDirective, new List<LibraryElement>());
+        _addShownNames(importDirective);
       }
     }
     if (_unusedImports.length > 1) {
@@ -4598,12 +4621,12 @@ class ImportsVerifier {
   }
 
   /**
-   * After all of the compilation units have been visited by this visitor, this method can be called
-   * to report an [HintCode.UNUSED_IMPORT] hint for each of the import directives in the
-   * [unusedImports] list.
+   * Report an [HintCode.UNUSED_IMPORT] hint for each unused import.
    *
-   * @param errorReporter the error reporter to report the set of [HintCode.UNUSED_IMPORT]
-   *          hints to
+   * Only call this method after all of the compilation units have been visited by this visitor.
+   *
+   * @param errorReporter the error reporter used to report the set of [HintCode.UNUSED_IMPORT]
+   *          hints
    */
   void generateUnusedImportHints(ErrorReporter errorReporter) {
     for (ImportDirective unusedImport in _unusedImports) {
@@ -4621,32 +4644,58 @@ class ImportsVerifier {
   }
 
   /**
+   * Report an [HintCode.UNUSED_SHOWN_NAME] hint for each unused shown name.
+   *
+   * Only call this method after all of the compilation units have been visited by this visitor.
+   *
+   * @param errorReporter the error reporter used to report the set of [HintCode.UNUSED_SHOWN_NAME]
+   *          hints
+   */
+  void generateUnusedShownNameHints(ErrorReporter reporter) {
+    _unusedShownNamesMap.forEach((ImportDirective importDirective,
+        List<SimpleIdentifier> identifiers) {
+      if (_unusedImports.contains(importDirective)) {
+        // This import is actually wholly unused, not just one or more shown names from it.
+        // This is then an "unused import", rather than unused shown names.
+        return;
+      }
+      for (Identifier identifier in identifiers) {
+        reporter.reportErrorForNode(HintCode.UNUSED_SHOWN_NAME, identifier, [identifier.name]);
+      }
+    });
+  }
+
+  /**
    * Remove elements from [_unusedImports] using the given [usedElements].
    */
   void removeUsedElements(UsedImportedElements usedElements) {
-    // Stop if all the imports are known to be used.
-    if (_unusedImports.isEmpty) {
+    // Stop if all the imports and shown names are known to be used.
+    if (_unusedImports.isEmpty && _unusedShownNamesMap.isEmpty) {
       return;
     }
     // Process import prefixes.
-    for (PrefixElement prefix in usedElements.prefixes) {
+    usedElements.prefixMap.forEach((PrefixElement prefix, List<Element> elements) {
       List<ImportDirective> importDirectives = _prefixElementMap[prefix];
       if (importDirectives != null) {
         for (ImportDirective importDirective in importDirectives) {
           _unusedImports.remove(importDirective);
+          for (Element element in elements) {
+            _removeFromUnusedShownNamesMap(element, importDirective);
+          }
         }
       }
-    }
+    });
     // Process top-level elements.
     for (Element element in usedElements.elements) {
-      // Stop if all the imports are known to be used.
-      if (_unusedImports.isEmpty) {
+      // Stop if all the imports and shown names are known to be used.
+      if (_unusedImports.isEmpty && _unusedShownNamesMap.isEmpty) {
         return;
       }
-      // Prepare import directives for this library.
+      // Prepare import directives for this element's library.
       LibraryElement library = element.library;
       List<ImportDirective> importsLibrary = _libraryMap[library];
       if (importsLibrary == null) {
+        // element's library is not imported. Must be the current library.
         continue;
       }
       // If there is only one import directive for this library, then it must be
@@ -4655,6 +4704,7 @@ class ImportsVerifier {
       if (importsLibrary.length == 1) {
         ImportDirective usedImportDirective = importsLibrary[0];
         _unusedImports.remove(usedImportDirective);
+        _removeFromUnusedShownNamesMap(element, usedImportDirective);
         continue;
       }
       // Otherwise, find import directives using namespaces.
@@ -4663,8 +4713,38 @@ class ImportsVerifier {
         Namespace namespace = _computeNamespace(importDirective);
         if (namespace != null && namespace.get(name) != null) {
           _unusedImports.remove(importDirective);
+          _removeFromUnusedShownNamesMap(element, importDirective);
         }
       }
+    }
+  }
+
+  /**
+   * Remove [element] from the list of names shown by [importDirective].
+   */
+  void _removeFromUnusedShownNamesMap(Element element,
+      ImportDirective importDirective) {
+    List<SimpleIdentifier> identifiers = _unusedShownNamesMap[importDirective];
+    if (identifiers == null) {
+      return;
+    }
+    for (Identifier identifier in identifiers) {
+      if (element is PropertyAccessorElement) {
+        // If the getter or setter of a variable is used, then the variable (the
+        // shown name) is used.
+        if (identifier.staticElement == element.variable) {
+          identifiers.remove(identifier);
+          break;
+        }
+      } else {
+        if (identifier.staticElement == element) {
+          identifiers.remove(identifier);
+          break;
+        }
+      }
+    }
+    if (identifiers.isEmpty) {
+      _unusedShownNamesMap.remove(importDirective);
     }
   }
 
@@ -4685,9 +4765,10 @@ class ImportsVerifier {
   }
 
   /**
-   * Lookup and return the [Namespace] from the [namespaceMap], if the map does not
-   * have the computed namespace, compute it and cache it in the map. If the import directive is not
-   * resolved or is not resolvable, `null` is returned.
+   * Lookup and return the [Namespace] from the [_namespaceMap].
+   *
+   * If the map does not have the computed namespace, compute it and cache it in the map. If
+   * [importDirective] is not resolved or is not resolvable, `null` is returned.
    *
    * @param importDirective the import directive used to compute the returned namespace
    * @return the computed or looked up [Namespace]
@@ -4721,6 +4802,24 @@ class ImportsVerifier {
       _libraryMap[libraryElement] = importList;
     }
     importList.add(importDirective);
+  }
+
+  /**
+   * Add every shown name from [importDirective] into [_unusedShownNamesMap].
+   */
+  void _addShownNames(ImportDirective importDirective) {
+    if (importDirective.combinators == null) {
+      return;
+    }
+    List<SimpleIdentifier> identifiers = new List<SimpleIdentifier>();
+    _unusedShownNamesMap[importDirective] = identifiers;
+    for (Combinator combinator in importDirective.combinators) {
+      if (combinator is ShowCombinator) {
+        for (SimpleIdentifier name in combinator.shownNames) {
+          identifiers.add(name);
+        }
+      }
+    }
   }
 }
 
@@ -12566,9 +12665,10 @@ class UnusedLocalElementsVerifier extends RecursiveElementVisitor {
  */
 class UsedImportedElements {
   /**
-   * The set of referenced [PrefixElement]s.
+   * The map of referenced [PrefixElement]s and the [Element]s that they prefix.
    */
-  final Set<PrefixElement> prefixes = new HashSet<PrefixElement>();
+  final Map<PrefixElement, List<Element>> prefixMap =
+      new HashMap<PrefixElement, List<Element>>();
 
   /**
    * The set of referenced top-level [Element]s.

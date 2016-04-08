@@ -2764,6 +2764,7 @@ class GenerateHintsTask extends SourceBasedAnalysisTask {
       usedImportedElementsList.forEach(verifier.removeUsedElements);
       verifier.generateDuplicateImportHints(errorReporter);
       verifier.generateUnusedImportHints(errorReporter);
+      verifier.generateUnusedShownNameHints(errorReporter);
     }
     // Unused local elements.
     {
