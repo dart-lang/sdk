@@ -52,8 +52,6 @@ abstract class CompilerConfiguration {
     bool useSdk = configuration['use_sdk'];
     bool isCsp = configuration['csp'];
     bool useCps = configuration['cps_ir'];
-    // TODO(26060): Remove the browser multiplier when issue resolved.
-    bool isBrowser = configuration['browser'];
 
     switch (compiler) {
       case 'dart2analyzer':
@@ -70,7 +68,6 @@ abstract class CompilerConfiguration {
             useCps: useCps,
             useSdk: useSdk,
             isCsp: isCsp,
-            isBrowser: isBrowser,
             extraDart2jsOptions:
                 TestUtils.getExtraOptions(configuration, 'dart2js_options'));
       case 'dart2app':
@@ -241,7 +238,6 @@ class Dart2xCompilerConfiguration extends CompilerConfiguration {
 class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
   final bool isCsp;
   final bool useCps;
-  final bool isBrowser;
   final List<String> extraDart2jsOptions;
   // We cache the extended environment to save memory.
   static Map<String, String> cpsFlagCache;
@@ -254,7 +250,6 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
       bool useSdk,
       bool this.useCps,
       bool this.isCsp,
-      bool this.isBrowser,
       this.extraDart2jsOptions})
       : super('dart2js',
             isDebug: isDebug,
@@ -267,7 +262,6 @@ class Dart2jsCompilerConfiguration extends Dart2xCompilerConfiguration {
     if (isDebug) multiplier *= 4;
     if (isChecked) multiplier *= 2;
     if (isHostChecked) multiplier *= 16;
-    if (isBrowser) multiplier *= 2;  // TODO(26060): Remove when issue fixed.
     return multiplier;
   }
 
