@@ -303,6 +303,13 @@ class AnalyzerImpl {
     ErrorSeverity severity = computeSeverity(error, options, context);
     bool isOverridden = false;
 
+    // Skip TODOs categorically (unless escalated to ERROR or HINT.)
+    // https://github.com/dart-lang/sdk/issues/26215
+    if (error.errorCode.type == ErrorType.TODO &&
+        severity == ErrorSeverity.INFO) {
+      return null;
+    }
+
     // First check for a filter.
     if (severity == null) {
       // Null severity means the error has been explicitly ignored.
@@ -315,11 +322,6 @@ class AnalyzerImpl {
     if (!isOverridden) {
       // Check for global hint filtering.
       if (severity == ErrorSeverity.INFO && options.disableHints) {
-        return null;
-      }
-
-      // Skip TODOs.
-      if (severity == ErrorType.TODO) {
         return null;
       }
     }
