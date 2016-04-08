@@ -43,6 +43,7 @@ generic_sends_test: CompileTimeError # Issue 25835
 [ $compiler == dart2js && $runtime == jsshell ]
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
 async_star_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
+regress_23996_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
 async_star_no_cancel_test: RuntimeError # Need triage
 async_star_no_cancel2_test: RuntimeError # Need triage
 
