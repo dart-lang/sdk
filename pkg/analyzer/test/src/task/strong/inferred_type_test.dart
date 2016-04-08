@@ -1341,8 +1341,30 @@ var b = (a[0] = 1.0);
 class A {
   int f;
 }
-A a = new A();
-var b = (new A().f = 1);
+var v_assign = (new A().f = 1);
+var v_plus = (new A().f += 1);
+var v_minus = (new A().f -= 1);
+var v_multiply = (new A().f *= 1);
+var v_prefix_pp = (++new A().f);
+var v_prefix_mm = (--new A().f);
+var v_postfix_pp = (new A().f++);
+var v_postfix_mm = (new A().f--);
+''');
+  }
+
+  void test_infer_assignToProperty_custom() {
+    checkFile(r'''
+class A {
+  int operator +(other) => 1;
+  double operator -(other) => 2.0;
+}
+class B {
+  A a;
+}
+var v_prefix_pp = (++new B().a);
+var v_prefix_mm = (--new B().a);
+var v_postfix_pp = (new B().a++);
+var v_postfix_mm = (new B().a--);
 ''');
   }
 

@@ -2864,9 +2864,8 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
         return currentType;
       }
 
-      void computeBinaryExpressionType(TokenType operator) {
-        DartType right = stack.removeLast();
-        DartType left = stack.removeLast();
+      void computeBinaryOperatorType(
+          DartType left, TokenType operator, DartType right) {
         if (left is InterfaceType) {
           MethodElement method =
               left.lookUpMethod(operator.lexeme, libraryElement);
@@ -2878,6 +2877,12 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
           }
         }
         stack.add(DynamicTypeImpl.instance);
+      }
+
+      void computeBinaryExpressionType(TokenType operator) {
+        DartType right = stack.removeLast();
+        DartType left = stack.removeLast();
+        computeBinaryOperatorType(left, operator, right);
       }
 
       void computePrefixExpressionType(String operatorName) {
@@ -2892,6 +2897,67 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
           }
         }
         stack.add(DynamicTypeImpl.instance);
+      }
+
+      TokenType convertAssignOperatorToTokenType(UnlinkedExprAssignOperator o) {
+        switch (o) {
+          case UnlinkedExprAssignOperator.assign:
+            return null;
+          case UnlinkedExprAssignOperator.ifNull:
+            return TokenType.QUESTION_QUESTION;
+          case UnlinkedExprAssignOperator.multiply:
+            return TokenType.STAR;
+          case UnlinkedExprAssignOperator.divide:
+            return TokenType.SLASH;
+          case UnlinkedExprAssignOperator.floorDivide:
+            return TokenType.TILDE_SLASH;
+          case UnlinkedExprAssignOperator.modulo:
+            return TokenType.PERCENT;
+          case UnlinkedExprAssignOperator.plus:
+            return TokenType.PLUS;
+          case UnlinkedExprAssignOperator.minus:
+            return TokenType.MINUS;
+          case UnlinkedExprAssignOperator.shiftLeft:
+            return TokenType.LT_LT;
+          case UnlinkedExprAssignOperator.shiftRight:
+            return TokenType.GT_GT;
+          case UnlinkedExprAssignOperator.bitAnd:
+            return TokenType.AMPERSAND;
+          case UnlinkedExprAssignOperator.bitXor:
+            return TokenType.CARET;
+          case UnlinkedExprAssignOperator.bitOr:
+            return TokenType.BAR;
+          case UnlinkedExprAssignOperator.prefixIncrement:
+            return TokenType.PLUS_PLUS;
+          case UnlinkedExprAssignOperator.prefixDecrement:
+            return TokenType.MINUS_MINUS;
+          case UnlinkedExprAssignOperator.postfixIncrement:
+            return TokenType.PLUS_PLUS;
+          case UnlinkedExprAssignOperator.postfixDecrement:
+            return TokenType.MINUS_MINUS;
+        }
+      }
+
+      /**
+       * Return the type of the property with the given [propertyName] in the
+       * given [targetType]. May return `dynamic` if the property cannot be
+       * resolved.
+       */
+      DartType getPropertyType(DartType targetType, String propertyName) {
+        return targetType is InterfaceType
+            ? targetType.lookUpGetter(propertyName, libraryElement)?.returnType
+            : DynamicTypeImpl.instance;
+      }
+
+      /**
+       * Extract the property with the given [propertyName], apply the operator
+       * with the given [operandType], push the type of applying operand of the
+       * given [operandType].
+       */
+      void computePropertyBinaryExpression(DartType targetType,
+          String propertyName, TokenType operator, DartType operandType) {
+        DartType propertyType = getPropertyType(targetType, propertyName);
+        computeBinaryOperatorType(propertyType, operator, operandType);
       }
 
       for (UnlinkedConstOperation operation in unlinkedConst.operations) {
@@ -3116,24 +3182,37 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
             }
             break;
           case UnlinkedConstOperation.assignToProperty:
-            strPtr++;
-            stack.removeLast();
-            UnlinkedExprAssignOperator operator =
+            DartType targetType = stack.removeLast();
+            String propertyName = unlinkedConst.strings[strPtr++];
+            UnlinkedExprAssignOperator assignOperator =
                 unlinkedConst.assignmentOperators[assignmentOperatorPtr++];
-            if (operator == UnlinkedExprAssignOperator.assign) {
+            if (assignOperator == UnlinkedExprAssignOperator.assign) {
               // The type of the assignment is the type of the value,
               // which is already in the stack.
-            } else if (isIncrementOrDecrement(operator)) {
-              // TODO(scheglov) implement
-              stack.add(DynamicTypeImpl.instance);
+            } else if (assignOperator ==
+                    UnlinkedExprAssignOperator.postfixDecrement ||
+                assignOperator == UnlinkedExprAssignOperator.postfixIncrement) {
+              DartType propertyType = getPropertyType(targetType, propertyName);
+              stack.add(propertyType);
+            } else if (assignOperator ==
+                UnlinkedExprAssignOperator.prefixDecrement) {
+              computePropertyBinaryExpression(targetType, propertyName,
+                  TokenType.MINUS, typeProvider.intType);
+            } else if (assignOperator ==
+                UnlinkedExprAssignOperator.prefixIncrement) {
+              computePropertyBinaryExpression(targetType, propertyName,
+                  TokenType.PLUS, typeProvider.intType);
             } else {
-              stack.removeLast();
-              // TODO(scheglov) implement
-              stack.add(DynamicTypeImpl.instance);
+              TokenType binaryOperator =
+                  convertAssignOperatorToTokenType(assignOperator);
+              DartType operandType = stack.removeLast();
+              computePropertyBinaryExpression(
+                  targetType, propertyName, binaryOperator, operandType);
             }
             break;
           case UnlinkedConstOperation.assignToIndex:
-            stack.length -= 2;
+            stack.removeLast();
+            stack.removeLast();
             UnlinkedExprAssignOperator operator =
                 unlinkedConst.assignmentOperators[assignmentOperatorPtr++];
             if (operator == UnlinkedExprAssignOperator.assign) {
