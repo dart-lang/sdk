@@ -383,18 +383,6 @@ var b2 = new B<int>();
 
   @override
   @failingTest
-  void test_inferTypeOnOverriddenFields2() {
-    super.test_inferTypeOnOverriddenFields2();
-  }
-
-  @override
-  @failingTest
-  void test_inferTypeOnOverriddenFields4() {
-    super.test_inferTypeOnOverriddenFields4();
-  }
-
-  @override
-  @failingTest
   void test_inferTypeOnVar2() {
     super.test_inferTypeOnVar2();
   }
@@ -409,12 +397,6 @@ var b2 = new B<int>();
   @failingTest
   void test_inferTypeOnVarFromTopLevel() {
     super.test_inferTypeOnVarFromTopLevel();
-  }
-
-  @override
-  @failingTest
-  void test_inferTypesOnGenericInstantiations_3() {
-    super.test_inferTypesOnGenericInstantiations_3();
   }
 
   @override

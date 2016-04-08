@@ -335,16 +335,16 @@ class ClassElementForLink_Class extends ClassElementForLink
   List<MethodElementForLink> _methods;
   List<InterfaceType> _mixins;
   List<InterfaceType> _interfaces;
-  List<PropertyAccessorElementForLink> _accessors;
+  List<PropertyAccessorElement> _accessors;
 
   ClassElementForLink_Class(
       CompilationUnitElementForLink enclosingElement, this._unlinkedClass)
       : super(enclosingElement);
 
   @override
-  List<PropertyAccessorElementForLink> get accessors {
+  List<PropertyAccessorElement> get accessors {
     if (_accessors == null) {
-      _accessors = <PropertyAccessorElementForLink>[];
+      _accessors = <PropertyAccessorElement>[];
       Map<String, SyntheticVariableElementForLink> syntheticVariables =
           <String, SyntheticVariableElementForLink>{};
       for (UnlinkedExecutable unlinkedExecutable
@@ -358,8 +358,8 @@ class ClassElementForLink_Class extends ClassElementForLink
           }
           SyntheticVariableElementForLink syntheticVariable = syntheticVariables
               .putIfAbsent(name, () => new SyntheticVariableElementForLink());
-          PropertyAccessorElementForLink accessor =
-              new PropertyAccessorElementForLink(
+          PropertyAccessorElementForLink_Executable accessor =
+              new PropertyAccessorElementForLink_Executable(
                   this, unlinkedExecutable, syntheticVariable);
           _accessors.add(accessor);
           if (unlinkedExecutable.kind == UnlinkedExecutableKind.getter) {
@@ -367,6 +367,14 @@ class ClassElementForLink_Class extends ClassElementForLink
           } else {
             syntheticVariable._setter = accessor;
           }
+        }
+      }
+      for (FieldElementForLink_ClassField field in fields) {
+        _accessors
+            .add(new PropertyAccessorElementForLink_Variable(field, false));
+        if (!field.isConst && !field.isFinal) {
+          _accessors
+              .add(new PropertyAccessorElementForLink_Variable(field, true));
         }
       }
     }
@@ -673,6 +681,18 @@ abstract class CompilationUnitElementForLink implements CompilationUnitElement {
    * currently being linked.
    */
   bool get isInBuildUnit;
+
+  /**
+   * Determine whether type inference is complete in this compilation unit.
+   */
+  bool get isTypeInferenceComplete {
+    LibraryCycleForLink libraryCycleForLink = library.libraryCycleForLink;
+    if (libraryCycleForLink == null) {
+      return true;
+    } else {
+      return libraryCycleForLink._node.isEvaluated;
+    }
+  }
 
   @override
   LibraryElementForLink get library => enclosingElement;
@@ -2448,17 +2468,29 @@ class ParameterElementForLink implements ParameterElementImpl {
  * Element representing a getter or setter resynthesized from a summary during
  * linking.
  */
-class PropertyAccessorElementForLink extends ExecutableElementForLink
+abstract class PropertyAccessorElementForLink
     implements PropertyAccessorElementImpl {
+  void link(CompilationUnitElementInBuildUnit compilationUnit);
+}
+
+/**
+ * Specialization of [PropertyAccessorElementForLink] for non-synthetic
+ * accessors explicitly declared in the source code.
+ */
+class PropertyAccessorElementForLink_Executable extends ExecutableElementForLink
+    implements PropertyAccessorElementForLink {
   @override
   SyntheticVariableElementForLink variable;
 
-  PropertyAccessorElementForLink(ClassElementForLink_Class enclosingElement,
-      UnlinkedExecutable unlinkedExecutable, this.variable)
+  PropertyAccessorElementForLink_Executable(
+      ClassElementForLink_Class enclosingElement,
+      UnlinkedExecutable unlinkedExecutable,
+      this.variable)
       : super(enclosingElement, unlinkedExecutable);
 
   @override
-  PropertyAccessorElementForLink get correspondingGetter => variable.getter;
+  PropertyAccessorElementForLink_Executable get correspondingGetter =>
+      variable.getter;
 
   @override
   bool get isGetter =>
@@ -2471,6 +2503,75 @@ class PropertyAccessorElementForLink extends ExecutableElementForLink
   @override
   ElementKind get kind => _unlinkedExecutable.kind ==
       UnlinkedExecutableKind.getter ? ElementKind.GETTER : ElementKind.SETTER;
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/**
+ * Specialization of [PropertyAccessorElementForLink] for synthetic accessors
+ * implied by a field or variable declaration.
+ */
+class PropertyAccessorElementForLink_Variable
+    implements PropertyAccessorElementForLink {
+  @override
+  final bool isSetter;
+
+  final VariableElementForLink _variable;
+  FunctionTypeImpl _type;
+
+  PropertyAccessorElementForLink_Variable(this._variable, this.isSetter);
+
+  @override
+  Element get enclosingElement => _variable.enclosingElement;
+
+  @override
+  bool get isGetter => !isSetter;
+
+  @override
+  bool get isStatic => _variable.isStatic;
+
+  @override
+  bool get isSynthetic => true;
+
+  @override
+  ElementKind get kind => isSetter ? ElementKind.SETTER : ElementKind.GETTER;
+
+  @override
+  String get name => isSetter ? '${_variable.name}=' : _variable.name;
+
+  @override
+  DartType get returnType {
+    if (isSetter) {
+      return VoidTypeImpl.instance;
+    } else if (_variable.hasImplicitType &&
+        !isStatic &&
+        !_variable.compilationUnit.isTypeInferenceComplete) {
+      // This is an instance field and we are currently inferring types in the
+      // library cycle containing it.  So we shouldn't use the inferred type
+      // (even if we have already computed it), since that would lead to
+      // non-deterministic type inference results.
+      return DynamicTypeImpl.instance;
+    } else {
+      return _variable.type;
+    }
+  }
+
+  @override
+  FunctionTypeImpl get type => _type ??= new FunctionTypeImpl(this);
+
+  @override
+  List<TypeParameterElement> get typeParameters {
+    // TODO(paulberry): is this correct for fields in generic classes?
+    return const [];
+  }
+
+  @override
+  bool isAccessibleIn(LibraryElement library) =>
+      !Identifier.isPrivateName(name) || identical(this.library, library);
+
+  @override
+  void link(CompilationUnitElementInBuildUnit compilationUnit) {}
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -2530,14 +2631,14 @@ abstract class ReferenceableElementForLink {
  * linking.
  */
 class SyntheticVariableElementForLink implements PropertyInducingElementImpl {
-  PropertyAccessorElementForLink _getter;
-  PropertyAccessorElementForLink _setter;
+  PropertyAccessorElementForLink_Executable _getter;
+  PropertyAccessorElementForLink_Executable _setter;
 
   @override
-  PropertyAccessorElementForLink get getter => _getter;
+  PropertyAccessorElementForLink_Executable get getter => _getter;
 
   @override
-  PropertyAccessorElementForLink get setter => _setter;
+  PropertyAccessorElementForLink_Executable get setter => _setter;
 
   @override
   void set type(DartType inferredType) {}

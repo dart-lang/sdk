@@ -2473,6 +2473,57 @@ void main() {
 }
 ''');
   }
+
+  void test_staticRefersToNonstaticField_inOtherLibraryCycle() {
+    addFile(
+        '''
+import 'b.dart';
+var x = new C().f;
+''',
+        name: '/a.dart');
+    addFile(
+        '''
+class C {
+  var f = 0;
+}
+''',
+        name: '/b.dart');
+    checkFile('''
+import 'a.dart';
+test() {
+  x = /*warning:INVALID_ASSIGNMENT*/"hi";
+}
+''');
+  }
+
+  void test_staticRefersToNonstaticField_inSameLibraryCycle() {
+    addFile(
+        '''
+import 'b.dart';
+var x = new C().f;
+class D {
+  var f = 0;
+}
+''',
+        name: '/a.dart');
+    addFile(
+        '''
+import 'a.dart';
+var y = new D().f;
+class C {
+  var f = 0;
+}
+''',
+        name: '/b.dart');
+    checkFile('''
+import 'a.dart';
+import 'b.dart';
+test() {
+  x = "hi";
+  y = "hi";
+}
+''');
+  }
 }
 
 @reflectiveTest
