@@ -657,9 +657,9 @@ abstract class CompilationUnitElementForLink implements CompilationUnitElement {
    */
   final int unitNum;
 
-  CompilationUnitElementForLink(UnlinkedUnit unlinkedUnit, this.unitNum)
-      : _references = new List<ReferenceableElementForLink>(
-            unlinkedUnit.references.length),
+  CompilationUnitElementForLink(
+      UnlinkedUnit unlinkedUnit, this.unitNum, int numReferences)
+      : _references = new List<ReferenceableElementForLink>(numReferences),
         _unlinkedUnit = unlinkedUnit;
 
   @override
@@ -750,6 +750,14 @@ abstract class CompilationUnitElementForLink implements CompilationUnitElement {
         name, () => UndefinedElementForLink.instance);
   }
 
+  /**
+   * Compute the type referred to by the given linked type [slot] (interpreted
+   * relative to [typeParameterContext]).  If there is no inferred type in the
+   * given slot, `dynamic` is returned.
+   */
+  DartType getLinkedType(
+      int slot, TypeParameterizedElementForLink typeParameterContext);
+
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
@@ -760,10 +768,17 @@ abstract class CompilationUnitElementForLink implements CompilationUnitElement {
    */
   ReferenceableElementForLink _resolveRef(int index) {
     if (_references[index] == null) {
-      UnlinkedReference unlinkedReference = _unlinkedUnit.references[index];
+      UnlinkedReference unlinkedReference =
+          index < _unlinkedUnit.references.length
+              ? _unlinkedUnit.references[index]
+              : null;
       LinkedReference linkedReference = _linkedUnit.references[index];
-      String name = unlinkedReference.name;
-      int containingReference = unlinkedReference.prefixReference;
+      String name = unlinkedReference == null
+          ? linkedReference.name
+          : unlinkedReference.name;
+      int containingReference = unlinkedReference == null
+          ? linkedReference.containingReference
+          : unlinkedReference.prefixReference;
       if (containingReference != 0 &&
           _linkedUnit.references[containingReference].kind !=
               ReferenceKind.prefix) {
@@ -833,7 +848,7 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
 
   CompilationUnitElementInBuildUnit(this.enclosingElement,
       UnlinkedUnit unlinkedUnit, this._linkedUnit, int unitNum)
-      : super(unlinkedUnit, unitNum);
+      : super(unlinkedUnit, unitNum, unlinkedUnit.references.length);
 
   @override
   bool get isInBuildUnit => true;
@@ -919,6 +934,16 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
     throw new UnimplementedError('${element.runtimeType}');
   }
 
+  @override
+  DartType getLinkedType(
+      int slot, TypeParameterizedElementForLink typeParameterContext) {
+    // This method should only be called on compilation units that come from
+    // dependencies, never on compilation units that are part of the current
+    // build unit.
+    throw new StateError(
+        'Linker tried to access linked type from current build unit');
+  }
+
   /**
    * Perform type inference and const cycle detection on this
    * compilation unit.
@@ -982,15 +1007,39 @@ class CompilationUnitElementInDependency extends CompilationUnitElementForLink {
   @override
   final LinkedUnit _linkedUnit;
 
+  List<EntityRef> _linkedTypeRefs;
+
   @override
   final LibraryElementInDependency enclosingElement;
 
   CompilationUnitElementInDependency(this.enclosingElement,
-      UnlinkedUnit unlinkedUnit, this._linkedUnit, int unitNum)
-      : super(unlinkedUnit, unitNum);
+      UnlinkedUnit unlinkedUnit, LinkedUnit linkedUnit, int unitNum)
+      : _linkedUnit = linkedUnit,
+        super(unlinkedUnit, unitNum, linkedUnit.references.length) {
+    // Make one pass through the linked types to determine the lengths for
+    // _linkedTypeRefs and _linkedTypes.  TODO(paulberry): add an int to the
+    // summary to make this unnecessary.
+    int maxLinkedTypeSlot = 0;
+    for (EntityRef ref in _linkedUnit.types) {
+      if (ref.slot > maxLinkedTypeSlot) {
+        maxLinkedTypeSlot = ref.slot;
+      }
+    }
+    // Initialize _linkedTypeRefs.
+    _linkedTypeRefs = new List<EntityRef>(maxLinkedTypeSlot + 1);
+    for (EntityRef ref in _linkedUnit.types) {
+      _linkedTypeRefs[ref.slot] = ref;
+    }
+  }
 
   @override
   bool get isInBuildUnit => false;
+
+  @override
+  DartType getLinkedType(
+      int slot, TypeParameterizedElementForLink typeParameterContext) {
+    return _resolveTypeRef(_linkedTypeRefs[slot], typeParameterContext);
+  }
 }
 
 /**
@@ -1599,6 +1648,8 @@ class FieldElementForLink_ClassField extends VariableElementForLink
 
   @override
   DartType get type {
+    // TODO(paulberry): can this be unified with
+    // [VariableElementForLink.asStaticType]?
     assert(!isStatic);
     if (_inferredInstanceType != null) {
       return _inferredInstanceType;
@@ -3607,6 +3658,7 @@ class VariableElementForLink
   TypeInferenceNode _typeInferenceNode;
 
   FunctionElementForLink_Initializer _initializer;
+  DartType _staticType;
 
   /**
    * The compilation unit in which this variable appears.
@@ -3630,8 +3682,16 @@ class VariableElementForLink
 
   @override
   DartType get asStaticType {
-    // TODO(paulberry): implement.
-    return DynamicTypeImpl.instance;
+    if (_staticType == null) {
+      if (hasImplicitType) {
+        _staticType = compilationUnit.getLinkedType(
+            unlinkedVariable.inferredTypeSlot, _typeParameterContext);
+      } else {
+        _staticType = compilationUnit._resolveTypeRef(
+            unlinkedVariable.type, _typeParameterContext);
+      }
+    }
+    return _staticType;
   }
 
   @override

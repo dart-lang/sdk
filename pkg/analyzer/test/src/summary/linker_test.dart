@@ -26,8 +26,8 @@ class LinkerUnitTest extends SummaryLinkerTest {
   LibraryElementInBuildUnit get testLibrary => _testLibrary ??=
       linker.getLibrary(linkerInputs.testDartUri) as LibraryElementInBuildUnit;
 
-  void createLinker(String text) {
-    linkerInputs = createLinkerInputs(text);
+  void createLinker(String text, {String path: '/test.dart'}) {
+    linkerInputs = createLinkerInputs(text, path: path);
     Map<String, LinkedLibraryBuilder> linkedLibraries =
         setupForLink(linkerInputs.linkedLibraries, linkerInputs.getUnit);
     linker = new Linker(linkedLibraries, linkerInputs.getDependency,
@@ -36,6 +36,20 @@ class LinkerUnitTest extends SummaryLinkerTest {
 
   LibraryElementForLink getLibrary(String uri) {
     return linker.getLibrary(Uri.parse(uri));
+  }
+
+  void test_inferredTypeFromOutsideBuildUnit_topLevelVariable() {
+    var bundle = createPackageBundle('var a = 0;', path: '/a.dart');
+    addBundle(bundle);
+    createLinker('import "a.dart"; var b = a;', path: '/b.dart');
+    expect(
+        linker
+            .getLibrary(linkerInputs.testDartUri)
+            .getContainedName('b')
+            .asTypeInferenceNode
+            .inferredType
+            .toString(),
+        'int');
   }
 
   void test_libraryCycle_ignoresDependenciesOutsideBuildUnit() {

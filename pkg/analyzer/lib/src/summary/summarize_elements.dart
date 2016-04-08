@@ -167,9 +167,13 @@ class PackageBundleAssembler {
   }
 
   void addUnlinkedUnit(Source source, UnlinkedUnitBuilder unit) {
-    _unlinkedUnitUris.add(source.uri.toString());
+    addUnlinkedUnitWithHash(source.uri.toString(), unit, _hash(source.contents.data));
+  }
+
+  void addUnlinkedUnitWithHash(String uri, UnlinkedUnitBuilder unit, String hash) {
+    _unlinkedUnitUris.add(uri);
     _unlinkedUnits.add(unit);
-    _unlinkedUnitHashes.add(_hash(source.contents.data));
+    _unlinkedUnitHashes.add(hash);
   }
 
   /**
