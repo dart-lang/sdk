@@ -14,6 +14,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -305,6 +306,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
   @override
   Object visitAnnotation(Annotation node) {
     _checkForInvalidAnnotationFromDeferredLibrary(node);
+    _checkForMissingJSLibAnnotation(node);
     return super.visitAnnotation(node);
   }
 
@@ -3729,43 +3731,6 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
         [name.name]);
   }
 
-  void _checkForMissingRequiredParam(
-      DartType type, ArgumentList argumentList, AstNode node) {
-    if (type is FunctionType) {
-      List<ParameterElement> parameters = type.parameters;
-      for (ParameterElement param in parameters) {
-        if (param.parameterKind == ParameterKind.NAMED) {
-          ElementAnnotationImpl annotation = _getRequiredAnnotation(param);
-          if (annotation != null) {
-            String paramName = param.name;
-            if (!_containsNamedExpression(argumentList, paramName)) {
-              DartObject constantValue = annotation.constantValue;
-              String reason =
-                  constantValue.getField('reason')?.toStringValue() ?? '';
-              _errorReporter.reportErrorForNode(
-                  HintCode.MISSING_REQUIRED_PARAM, node, [paramName, reason]);
-            }
-          }
-        }
-      }
-    }
-  }
-
-  ElementAnnotationImpl _getRequiredAnnotation(ParameterElement param) => param
-      .metadata
-      .firstWhere((ElementAnnotation e) => e.isRequired, orElse: () => null);
-
-  bool _containsNamedExpression(ArgumentList args, String name) {
-    for (Expression expression in args.arguments) {
-      if (expression is NamedExpression) {
-        if (expression.name.label.name == name) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
   /**
    * Check whether the given [executableElement] collides with the name of a
    * static method in one of its superclasses, and reports the appropriate
@@ -4239,6 +4204,38 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
           offset,
           end - offset,
           [constantNames[i]]);
+    }
+  }
+
+  void _checkForMissingJSLibAnnotation(Annotation node) {
+    if (node.elementAnnotation.isJS) {
+      Element element = ElementLocator.locate(node.parent);
+      if (element?.library?.isJS != true) {
+        _errorReporter.reportErrorForNode(
+            HintCode.MISSING_JS_LIB_ANNOTATION, node, [element.name]);
+      }
+    }
+  }
+
+  void _checkForMissingRequiredParam(
+      DartType type, ArgumentList argumentList, AstNode node) {
+    if (type is FunctionType) {
+      List<ParameterElement> parameters = type.parameters;
+      for (ParameterElement param in parameters) {
+        if (param.parameterKind == ParameterKind.NAMED) {
+          ElementAnnotationImpl annotation = _getRequiredAnnotation(param);
+          if (annotation != null) {
+            String paramName = param.name;
+            if (!_containsNamedExpression(argumentList, paramName)) {
+              DartObject constantValue = annotation.constantValue;
+              String reason =
+                  constantValue.getField('reason')?.toStringValue() ?? '';
+              _errorReporter.reportErrorForNode(
+                  HintCode.MISSING_REQUIRED_PARAM, node, [paramName, reason]);
+            }
+          }
+        }
+      }
     }
   }
 
@@ -5655,6 +5652,17 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     return staticReturnType;
   }
 
+  bool _containsNamedExpression(ArgumentList args, String name) {
+    for (Expression expression in args.arguments) {
+      if (expression is NamedExpression) {
+        if (expression.name.label.name == name) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   MethodElement _findOverriddenMemberThatMustCallSuper(MethodDeclaration node) {
     ExecutableElement overriddenMember = _getOverriddenMember(node.element);
     List<ExecutableElement> seen = <ExecutableElement>[];
@@ -5734,6 +5742,10 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     }
     return _inheritanceManager.lookupInheritance(classElement, member.name);
   }
+
+  ElementAnnotationImpl _getRequiredAnnotation(ParameterElement param) => param
+      .metadata
+      .firstWhere((ElementAnnotation e) => e.isRequired, orElse: () => null);
 
   /**
    * Return the type of the first and only parameter of the given [setter].

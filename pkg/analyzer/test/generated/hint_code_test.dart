@@ -132,6 +132,12 @@ class _Required {
   final String reason;
   const _Required([this.reason]));
 }
+''',
+      'package:js/js.dart': r'''
+library js;
+class JS {
+  const JS([String js]) { }
+}
 '''
     });
   }
@@ -1238,6 +1244,65 @@ main() {
     Source source = addSource("var v = 1 is! double;");
     computeLibrarySourceErrors(source);
     assertErrors(source, [HintCode.IS_NOT_DOUBLE]);
+    verify([source]);
+  }
+
+  void test_js_lib_OK() {
+    Source source = addSource(r'''
+@JS()
+library foo;
+
+import 'package:js/js.dart';
+
+@JS()
+class A { }
+''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
+  void test_missing_js_lib_on_class_decl() {
+    Source source = addSource(r'''
+library foo;
+
+import 'package:js/js.dart';
+
+@JS()
+class A { }
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.MISSING_JS_LIB_ANNOTATION]);
+    verify([source]);
+  }
+
+  void test_missing_js_lib_on_function() {
+    Source source = addSource(r'''
+library foo;
+
+import 'package:js/js.dart';
+
+@JS('acxZIndex')
+set _currentZIndex(int value) { }
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.MISSING_JS_LIB_ANNOTATION]);
+    verify([source]);
+  }
+
+  void test_missing_js_lib_on_member() {
+    Source source = addSource(r'''
+library foo;
+
+import 'package:js/js.dart';
+
+class A {
+  @JS()
+  void a() { }
+}
+''');
+    computeLibrarySourceErrors(source);
+    assertErrors(source, [HintCode.MISSING_JS_LIB_ANNOTATION]);
     verify([source]);
   }
 

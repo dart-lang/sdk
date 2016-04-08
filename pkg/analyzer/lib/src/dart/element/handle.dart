@@ -62,6 +62,9 @@ class ClassElementHandle extends ElementHandle implements ClassElement {
   bool get isEnum => actualElement.isEnum;
 
   @override
+  bool get isJS => actualElement.isJS;
+
+  @override
   bool get isMixinApplication => actualElement.isMixinApplication;
 
   @override
@@ -351,6 +354,9 @@ abstract class ElementHandle implements Element {
 
   @override
   bool get isDeprecated => actualElement.isDeprecated;
+
+  @override
+  bool get isJS => actualElement.isJS;
 
   @override
   bool get isOverride => actualElement.isOverride;

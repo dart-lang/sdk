@@ -2684,6 +2684,7 @@ abstract class ErrorCode {
     HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION,
     HintCode.INVALID_ASSIGNMENT,
     HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
+    HintCode.MISSING_JS_LIB_ANNOTATION,
     HintCode.MISSING_REQUIRED_PARAM,
     HintCode.MISSING_RETURN,
     HintCode.NULL_AWARE_IN_CONDITION,
@@ -3584,6 +3585,14 @@ class HintCode extends ErrorCode {
    */
   static const HintCode MISSING_REQUIRED_PARAM = const HintCode(
       'MISSING_REQUIRED_PARAM', "The parameter '{0}' is required. {1}");
+
+   /**
+   * Generate a hint for an element that is annotated with `@JS(...)` whose
+   * library declaration is not similarly annotated.
+   */
+  static const HintCode MISSING_JS_LIB_ANNOTATION = const HintCode(
+      'MISSING_JS_LIB_ANNOTATION',
+      "The @JS() annotation can only be used if it is also declared on the library directive.");
 
   /**
    * Generate a hint for methods or functions that have a return type, but do
