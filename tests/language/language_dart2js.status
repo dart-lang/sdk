@@ -7,7 +7,6 @@ getter_setter_in_lib_test: Fail # Issue 23288
 method_name_test: Fail # issue 25574
 
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853
-async_star_await_pauses_test: Fail, Timeout # Issue 22853
 tearoff_basic_test: Skip # Tear-off not supported
 tearoff_constructor_basic_test: Skip # Tear-off not supported
 
