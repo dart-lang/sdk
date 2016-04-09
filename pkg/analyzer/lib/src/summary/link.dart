@@ -1615,6 +1615,553 @@ abstract class ExecutableElementForLink extends Object
   }
 }
 
+class ExprTypeComputer {
+  VariableElementForLink variable;
+  CompilationUnitElementForLink unit;
+  LibraryElementForLink library;
+  Linker linker;
+  TypeProvider typeProvider;
+  UnlinkedConst unlinkedConst;
+
+  final List<DartType> stack = <DartType>[];
+  int intPtr = 0;
+  int refPtr = 0;
+  int strPtr = 0;
+  int assignmentOperatorPtr = 0;
+
+  ExprTypeComputer(VariableElementForLink variableElement) {
+    this.variable = variableElement;
+    unit = variableElement.compilationUnit;
+    library = unit.enclosingElement;
+    linker = library._linker;
+    typeProvider = linker.typeProvider;
+    unlinkedConst = variableElement.unlinkedVariable.constExpr;
+  }
+
+  DartType compute() {
+    // Perform RPN evaluation of the constant, using a stack of inferred types.
+    for (UnlinkedConstOperation operation in unlinkedConst.operations) {
+      switch (operation) {
+        case UnlinkedConstOperation.pushInt:
+          intPtr++;
+          stack.add(typeProvider.intType);
+          break;
+        case UnlinkedConstOperation.pushLongInt:
+          int numInts = _getNextInt();
+          intPtr += numInts;
+          stack.add(typeProvider.intType);
+          break;
+        case UnlinkedConstOperation.pushDouble:
+          stack.add(typeProvider.doubleType);
+          break;
+        case UnlinkedConstOperation.pushTrue:
+        case UnlinkedConstOperation.pushFalse:
+          stack.add(typeProvider.boolType);
+          break;
+        case UnlinkedConstOperation.pushString:
+          strPtr++;
+          stack.add(typeProvider.stringType);
+          break;
+        case UnlinkedConstOperation.concatenate:
+          stack.length -= _getNextInt();
+          stack.add(typeProvider.stringType);
+          break;
+        case UnlinkedConstOperation.makeSymbol:
+          strPtr++;
+          stack.add(typeProvider.symbolType);
+          break;
+        case UnlinkedConstOperation.pushNull:
+          stack.add(BottomTypeImpl.instance);
+          break;
+        case UnlinkedConstOperation.pushReference:
+          _doPushReference();
+          break;
+        case UnlinkedConstOperation.extractProperty:
+          _doExtractProperty();
+          break;
+        case UnlinkedConstOperation.invokeConstructor:
+          _doInvokeConstructor();
+          break;
+        case UnlinkedConstOperation.makeUntypedList:
+          _doMakeUntypedList();
+          break;
+        case UnlinkedConstOperation.makeUntypedMap:
+          _doMakeUntypedMap();
+          break;
+        case UnlinkedConstOperation.makeTypedList:
+          _doMakeTypedList();
+          break;
+        case UnlinkedConstOperation.makeTypedMap:
+          _doMakeTypeMap();
+          break;
+        case UnlinkedConstOperation.not:
+          stack.length -= 1;
+          stack.add(typeProvider.boolType);
+          break;
+        case UnlinkedConstOperation.complement:
+          _computePrefixExpressionType('~');
+          break;
+        case UnlinkedConstOperation.negate:
+          _computePrefixExpressionType('unary-');
+          break;
+        case UnlinkedConstOperation.and:
+        case UnlinkedConstOperation.or:
+        case UnlinkedConstOperation.equal:
+        case UnlinkedConstOperation.notEqual:
+          stack.length -= 2;
+          stack.add(typeProvider.boolType);
+          break;
+        case UnlinkedConstOperation.bitXor:
+          _computeBinaryExpressionType(TokenType.CARET);
+          break;
+        case UnlinkedConstOperation.bitAnd:
+          _computeBinaryExpressionType(TokenType.AMPERSAND);
+          break;
+        case UnlinkedConstOperation.bitOr:
+          _computeBinaryExpressionType(TokenType.BAR);
+          break;
+        case UnlinkedConstOperation.bitShiftRight:
+          _computeBinaryExpressionType(TokenType.GT_GT);
+          break;
+        case UnlinkedConstOperation.bitShiftLeft:
+          _computeBinaryExpressionType(TokenType.LT_LT);
+          break;
+        case UnlinkedConstOperation.add:
+          _computeBinaryExpressionType(TokenType.PLUS);
+          break;
+        case UnlinkedConstOperation.subtract:
+          _computeBinaryExpressionType(TokenType.MINUS);
+          break;
+        case UnlinkedConstOperation.multiply:
+          _computeBinaryExpressionType(TokenType.STAR);
+          break;
+        case UnlinkedConstOperation.divide:
+          _computeBinaryExpressionType(TokenType.SLASH);
+          break;
+        case UnlinkedConstOperation.floorDivide:
+          _computeBinaryExpressionType(TokenType.TILDE_SLASH);
+          break;
+        case UnlinkedConstOperation.greater:
+          _computeBinaryExpressionType(TokenType.GT);
+          break;
+        case UnlinkedConstOperation.less:
+          _computeBinaryExpressionType(TokenType.LT);
+          break;
+        case UnlinkedConstOperation.greaterEqual:
+          _computeBinaryExpressionType(TokenType.GT_EQ);
+          break;
+        case UnlinkedConstOperation.lessEqual:
+          _computeBinaryExpressionType(TokenType.LT_EQ);
+          break;
+        case UnlinkedConstOperation.modulo:
+          _computeBinaryExpressionType(TokenType.PERCENT);
+          break;
+        case UnlinkedConstOperation.conditional:
+          _doConditional();
+          break;
+        case UnlinkedConstOperation.assignToRef:
+          _doAssignToRef();
+          break;
+        case UnlinkedConstOperation.assignToProperty:
+          _doAssignToProperty();
+          break;
+        case UnlinkedConstOperation.assignToIndex:
+          _doAssignToIndex();
+          break;
+        case UnlinkedConstOperation.extractIndex:
+          stack.length -= 2;
+          // TODO(paulberry): implement.
+          stack.add(DynamicTypeImpl.instance);
+          break;
+        case UnlinkedConstOperation.invokeMethodRef:
+          _doInvokeMethodRef();
+          break;
+        case UnlinkedConstOperation.invokeMethod:
+          _doInvokeMethod();
+          break;
+        case UnlinkedConstOperation.cascadeSectionBegin:
+          stack.add(stack.last);
+          break;
+        case UnlinkedConstOperation.cascadeSectionEnd:
+          stack.removeLast();
+          break;
+        case UnlinkedConstOperation.typeCast:
+          stack.removeLast();
+          DartType type = _getNextTypeRef();
+          stack.add(type);
+          break;
+        case UnlinkedConstOperation.typeCheck:
+          stack.removeLast();
+          refPtr++;
+          stack.add(typeProvider.boolType);
+          break;
+        case UnlinkedConstOperation.throwException:
+          stack.removeLast();
+          stack.add(BottomTypeImpl.instance);
+          break;
+        default:
+          // TODO(paulberry): implement.
+          throw new UnimplementedError('$operation');
+      }
+    }
+    assert(intPtr == unlinkedConst.ints.length);
+    assert(refPtr == unlinkedConst.references.length);
+    assert(strPtr == unlinkedConst.strings.length);
+    assert(assignmentOperatorPtr == unlinkedConst.assignmentOperators.length);
+    assert(stack.length == 1);
+    return _dynamicIfNull(stack[0]);
+  }
+
+  void _computeBinaryExpressionType(TokenType operator) {
+    DartType right = stack.removeLast();
+    DartType left = stack.removeLast();
+    _pushBinaryOperatorType(left, operator, right);
+  }
+
+  void _computePrefixExpressionType(String operatorName) {
+    DartType operand = stack.removeLast();
+    if (operand is InterfaceType) {
+      MethodElement method = operand.lookUpMethod(operatorName, library);
+      if (method != null) {
+        DartType type = method.returnType;
+        stack.add(type);
+        return;
+      }
+    }
+    stack.add(DynamicTypeImpl.instance);
+  }
+
+  void _doAssignToIndex() {
+    stack.removeLast();
+    stack.removeLast();
+    UnlinkedExprAssignOperator operator =
+        unlinkedConst.assignmentOperators[assignmentOperatorPtr++];
+    if (operator == UnlinkedExprAssignOperator.assign) {
+      // The type of the assignment is the type of the value,
+      // which is already in the stack.
+    } else if (isIncrementOrDecrement(operator)) {
+      // TODO(scheglov) implement
+      stack.add(DynamicTypeImpl.instance);
+    } else {
+      stack.removeLast();
+      // TODO(scheglov) implement
+      stack.add(DynamicTypeImpl.instance);
+    }
+  }
+
+  void _doAssignToProperty() {
+    DartType targetType = stack.removeLast();
+    String propertyName = unlinkedConst.strings[strPtr++];
+    UnlinkedExprAssignOperator assignOperator =
+        unlinkedConst.assignmentOperators[assignmentOperatorPtr++];
+    if (assignOperator == UnlinkedExprAssignOperator.assign) {
+      // The type of the assignment is the type of the value,
+      // which is already in the stack.
+    } else if (assignOperator == UnlinkedExprAssignOperator.postfixDecrement ||
+        assignOperator == UnlinkedExprAssignOperator.postfixIncrement) {
+      DartType propertyType = _getPropertyType(targetType, propertyName);
+      stack.add(propertyType);
+    } else if (assignOperator == UnlinkedExprAssignOperator.prefixDecrement) {
+      _pushPropertyBinaryExpression(
+          targetType, propertyName, TokenType.MINUS, typeProvider.intType);
+    } else if (assignOperator == UnlinkedExprAssignOperator.prefixIncrement) {
+      _pushPropertyBinaryExpression(
+          targetType, propertyName, TokenType.PLUS, typeProvider.intType);
+    } else {
+      TokenType binaryOperator =
+          _convertAssignOperatorToTokenType(assignOperator);
+      DartType operandType = stack.removeLast();
+      _pushPropertyBinaryExpression(
+          targetType, propertyName, binaryOperator, operandType);
+    }
+  }
+
+  void _doAssignToRef() {
+    refPtr++;
+    UnlinkedExprAssignOperator operator =
+        unlinkedConst.assignmentOperators[assignmentOperatorPtr++];
+    if (operator == UnlinkedExprAssignOperator.assign) {
+      // The type of the assignment is the type of the value,
+      // which is already in the stack.
+    } else if (isIncrementOrDecrement(operator)) {
+      // TODO(scheglov) implement
+      stack.add(DynamicTypeImpl.instance);
+    } else {
+      stack.removeLast();
+      // TODO(scheglov) implement
+      stack.add(DynamicTypeImpl.instance);
+    }
+  }
+
+  void _doConditional() {
+    DartType elseType = stack.removeLast();
+    DartType thenType = stack.removeLast();
+    stack.removeLast();
+    DartType type = _leastUpperBound(thenType, elseType);
+    type = _dynamicIfNull(type);
+    stack.add(type);
+  }
+
+  void _doExtractProperty() {
+    DartType target = stack.removeLast();
+    String propertyName = unlinkedConst.strings[strPtr++];
+    stack.add(() {
+      if (target is InterfaceType) {
+        PropertyAccessorElement getter =
+            target.lookUpGetter(propertyName, library);
+        if (getter != null) {
+          return getter.returnType;
+        }
+        MethodElement method = target.lookUpMethod(propertyName, library);
+        if (method != null) {
+          return method.type;
+        }
+      }
+      return DynamicTypeImpl.instance;
+    }());
+  }
+
+  void _doInvokeConstructor() {
+    int numNamed = _getNextInt();
+    int numPositional = _getNextInt();
+    // TODO(paulberry): don't just pop the args; use their types
+    // to infer the type of type arguments.
+    stack.length -= numNamed + numPositional;
+    strPtr += numNamed;
+    EntityRef ref = unlinkedConst.references[refPtr++];
+    ConstructorElementForLink element =
+        unit._resolveRef(ref.reference).asConstructor;
+    if (element != null) {
+      stack.add(element.enclosingElement.buildType(
+          (int i) => i >= ref.typeArguments.length
+              ? DynamicTypeImpl.instance
+              : unit._resolveTypeRef(
+                  ref.typeArguments[i], variable._typeParameterContext),
+          const []));
+    } else {
+      stack.add(DynamicTypeImpl.instance);
+    }
+  }
+
+  void _doInvokeMethod() {
+    strPtr++;
+    int numNamed = _getNextInt();
+    int numPositional = _getNextInt();
+    // TODO(paulberry): don't just pop the args; use their types
+    // to infer the type of type arguments.
+    stack.length -= numNamed + numPositional;
+    strPtr += numNamed;
+    stack.removeLast();
+    // TODO(paulberry): implement.
+    stack.add(DynamicTypeImpl.instance);
+  }
+
+  void _doInvokeMethodRef() {
+    int numNamed = _getNextInt();
+    int numPositional = _getNextInt();
+    // TODO(paulberry): don't just pop the args; use their types
+    // to infer the type of type arguments.
+    stack.length -= numNamed + numPositional;
+    strPtr += numNamed;
+    refPtr++;
+    // TODO(paulberry): implement.
+    stack.add(DynamicTypeImpl.instance);
+  }
+
+  void _doMakeTypedList() {
+    DartType itemType = _getNextTypeRef();
+    stack.length -= _getNextInt();
+    stack.add(typeProvider.listType.instantiate(<DartType>[itemType]));
+  }
+
+  void _doMakeTypeMap() {
+    DartType keyType = _getNextTypeRef();
+    DartType valueType = _getNextTypeRef();
+    stack.length -= 2 * _getNextInt();
+    stack.add(typeProvider.mapType.instantiate(<DartType>[keyType, valueType]));
+  }
+
+  void _doMakeUntypedList() {
+    int numItems = _getNextInt();
+    DartType itemType = _popList(numItems).reduce(_leastUpperBound);
+    itemType = _dynamicIfNull(itemType);
+    stack.add(typeProvider.listType.instantiate(<DartType>[itemType]));
+  }
+
+  void _doMakeUntypedMap() {
+    int numEntries = _getNextInt();
+    List<DartType> keysValues = _popList(2 * numEntries);
+    DartType keyType = null;
+    DartType valueType = null;
+    for (int i = 0; i < 2 * numEntries; i++) {
+      DartType type = keysValues[i];
+      if (i.isEven) {
+        keyType = keyType == null ? type : _leastUpperBound(keyType, type);
+      } else {
+        valueType =
+            valueType == null ? type : _leastUpperBound(valueType, type);
+      }
+    }
+    keyType = _dynamicIfNull(keyType);
+    valueType = _dynamicIfNull(valueType);
+    stack.add(typeProvider.mapType.instantiate(<DartType>[keyType, valueType]));
+  }
+
+  void _doPushReference() {
+    EntityRef ref = unlinkedConst.references[refPtr++];
+    if (ref.paramReference != 0) {
+      stack.add(typeProvider.typeType);
+    } else {
+      // Synthetic function types can't be directly referred
+      // to by expressions.
+      assert(ref.syntheticReturnType == null);
+      // Nor can implicit function types derived from
+      // function-typed parameters.
+      assert(ref.implicitFunctionTypeIndices.isEmpty);
+      ReferenceableElementForLink element =
+          variable.compilationUnit._resolveRef(ref.reference);
+      TypeInferenceNode typeInferenceNode = element.asTypeInferenceNode;
+      if (typeInferenceNode != null) {
+        assert(typeInferenceNode.isEvaluated);
+        stack.add(typeInferenceNode._inferredType);
+      } else {
+        stack.add(element.asStaticType);
+      }
+    }
+  }
+
+  int _getNextInt() {
+    return unlinkedConst.ints[intPtr++];
+  }
+
+  DartType _getNextTypeRef() {
+    EntityRef ref = unlinkedConst.references[refPtr++];
+    return unit._resolveTypeRef(ref, variable._typeParameterContext);
+  }
+
+  /**
+   * Return the type of the property with the given [propertyName] in the
+   * given [targetType]. May return `dynamic` if the property cannot be
+   * resolved.
+   */
+  DartType _getPropertyType(DartType targetType, String propertyName) {
+    return targetType is InterfaceType
+        ? targetType.lookUpGetter(propertyName, library)?.returnType
+        : DynamicTypeImpl.instance;
+  }
+
+  DartType _leastUpperBound(DartType s, DartType t) {
+    return linker.typeSystem.getLeastUpperBound(typeProvider, s, t);
+  }
+
+  List<DartType> _popList(int n) {
+    List<DartType> result = stack.sublist(stack.length - n, stack.length);
+    stack.length -= n;
+    return result;
+  }
+
+  void _pushBinaryOperatorType(
+      DartType left, TokenType operator, DartType right) {
+    if (left is InterfaceType) {
+      MethodElement method = left.lookUpMethod(operator.lexeme, library);
+      if (method != null) {
+        DartType type = method.returnType;
+        type = _refineBinaryExpressionType(operator, type, left, right);
+        stack.add(type);
+        return;
+      }
+    }
+    stack.add(DynamicTypeImpl.instance);
+  }
+
+  /**
+   * Extract the property with the given [propertyName], apply the operator
+   * with the given [operandType], push the type of applying operand of the
+   * given [operandType].
+   */
+  void _pushPropertyBinaryExpression(DartType targetType, String propertyName,
+      TokenType operator, DartType operandType) {
+    DartType propertyType = _getPropertyType(targetType, propertyName);
+    _pushBinaryOperatorType(propertyType, operator, operandType);
+  }
+
+  DartType _refineBinaryExpressionType(TokenType operator, DartType currentType,
+      DartType leftType, DartType rightType) {
+    DartType intType = typeProvider.intType;
+    if (leftType == intType) {
+      // int op double
+      if (operator == TokenType.MINUS ||
+          operator == TokenType.PERCENT ||
+          operator == TokenType.PLUS ||
+          operator == TokenType.STAR) {
+        DartType doubleType = typeProvider.doubleType;
+        if (rightType == doubleType) {
+          return doubleType;
+        }
+      }
+      // int op int
+      if (operator == TokenType.MINUS ||
+          operator == TokenType.PERCENT ||
+          operator == TokenType.PLUS ||
+          operator == TokenType.STAR ||
+          operator == TokenType.TILDE_SLASH) {
+        if (rightType == intType) {
+          return intType;
+        }
+      }
+    }
+    // default
+    return currentType;
+  }
+
+  static TokenType _convertAssignOperatorToTokenType(
+      UnlinkedExprAssignOperator o) {
+    switch (o) {
+      case UnlinkedExprAssignOperator.assign:
+        return null;
+      case UnlinkedExprAssignOperator.ifNull:
+        return TokenType.QUESTION_QUESTION;
+      case UnlinkedExprAssignOperator.multiply:
+        return TokenType.STAR;
+      case UnlinkedExprAssignOperator.divide:
+        return TokenType.SLASH;
+      case UnlinkedExprAssignOperator.floorDivide:
+        return TokenType.TILDE_SLASH;
+      case UnlinkedExprAssignOperator.modulo:
+        return TokenType.PERCENT;
+      case UnlinkedExprAssignOperator.plus:
+        return TokenType.PLUS;
+      case UnlinkedExprAssignOperator.minus:
+        return TokenType.MINUS;
+      case UnlinkedExprAssignOperator.shiftLeft:
+        return TokenType.LT_LT;
+      case UnlinkedExprAssignOperator.shiftRight:
+        return TokenType.GT_GT;
+      case UnlinkedExprAssignOperator.bitAnd:
+        return TokenType.AMPERSAND;
+      case UnlinkedExprAssignOperator.bitXor:
+        return TokenType.CARET;
+      case UnlinkedExprAssignOperator.bitOr:
+        return TokenType.BAR;
+      case UnlinkedExprAssignOperator.prefixIncrement:
+        return TokenType.PLUS_PLUS;
+      case UnlinkedExprAssignOperator.prefixDecrement:
+        return TokenType.MINUS_MINUS;
+      case UnlinkedExprAssignOperator.postfixIncrement:
+        return TokenType.PLUS_PLUS;
+      case UnlinkedExprAssignOperator.postfixDecrement:
+        return TokenType.MINUS_MINUS;
+    }
+  }
+
+  static DartType _dynamicIfNull(DartType type) {
+    if (type == null || type.isBottom) {
+      return DynamicTypeImpl.instance;
+    }
+    return type;
+  }
+}
+
 /**
  * Element representing a field resynthesized from a summary during
  * linking.
@@ -2849,494 +3396,7 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
     if (inCycle) {
       _inferredType = DynamicTypeImpl.instance;
     } else {
-      // Perform RPN evaluation of the cycle, using a stack of
-      // inferred types.
-      List<DartType> stack = <DartType>[];
-      int intPtr = 0;
-      int refPtr = 0;
-      int strPtr = 0;
-      int assignmentOperatorPtr = 0;
-      UnlinkedConst unlinkedConst = variableElement.unlinkedVariable.constExpr;
-
-      LibraryElementForLink libraryElement =
-          variableElement.compilationUnit.enclosingElement;
-      Linker linker = libraryElement._linker;
-      TypeProvider typeProvider = linker.typeProvider;
-
-      DartType leastUpperBound(DartType s, DartType t) {
-        return linker.typeSystem.getLeastUpperBound(typeProvider, s, t);
-      }
-
-      List<DartType> popList(int n) {
-        List<DartType> result = stack.sublist(stack.length - n, stack.length);
-        stack.length -= n;
-        return result;
-      }
-
-      DartType dynamicIfNull(DartType type) {
-        if (type == null || type.isBottom) {
-          return DynamicTypeImpl.instance;
-        }
-        return type;
-      }
-
-      DartType getNextTypeRef() {
-        EntityRef ref = unlinkedConst.references[refPtr++];
-        return variableElement.compilationUnit
-            ._resolveTypeRef(ref, variableElement._typeParameterContext);
-      }
-
-      DartType refineBinaryExpressionType(TokenType operator,
-          DartType currentType, DartType leftType, DartType rightType) {
-        DartType intType = typeProvider.intType;
-        if (leftType == intType) {
-          // int op double
-          if (operator == TokenType.MINUS ||
-              operator == TokenType.PERCENT ||
-              operator == TokenType.PLUS ||
-              operator == TokenType.STAR) {
-            DartType doubleType = typeProvider.doubleType;
-            if (rightType == doubleType) {
-              return doubleType;
-            }
-          }
-          // int op int
-          if (operator == TokenType.MINUS ||
-              operator == TokenType.PERCENT ||
-              operator == TokenType.PLUS ||
-              operator == TokenType.STAR ||
-              operator == TokenType.TILDE_SLASH) {
-            if (rightType == intType) {
-              return intType;
-            }
-          }
-        }
-        // default
-        return currentType;
-      }
-
-      void computeBinaryOperatorType(
-          DartType left, TokenType operator, DartType right) {
-        if (left is InterfaceType) {
-          MethodElement method =
-              left.lookUpMethod(operator.lexeme, libraryElement);
-          if (method != null) {
-            DartType type = method.returnType;
-            type = refineBinaryExpressionType(operator, type, left, right);
-            stack.add(type);
-            return;
-          }
-        }
-        stack.add(DynamicTypeImpl.instance);
-      }
-
-      void computeBinaryExpressionType(TokenType operator) {
-        DartType right = stack.removeLast();
-        DartType left = stack.removeLast();
-        computeBinaryOperatorType(left, operator, right);
-      }
-
-      void computePrefixExpressionType(String operatorName) {
-        DartType operand = stack.removeLast();
-        if (operand is InterfaceType) {
-          MethodElement method =
-              operand.lookUpMethod(operatorName, libraryElement);
-          if (method != null) {
-            DartType type = method.returnType;
-            stack.add(type);
-            return;
-          }
-        }
-        stack.add(DynamicTypeImpl.instance);
-      }
-
-      TokenType convertAssignOperatorToTokenType(UnlinkedExprAssignOperator o) {
-        switch (o) {
-          case UnlinkedExprAssignOperator.assign:
-            return null;
-          case UnlinkedExprAssignOperator.ifNull:
-            return TokenType.QUESTION_QUESTION;
-          case UnlinkedExprAssignOperator.multiply:
-            return TokenType.STAR;
-          case UnlinkedExprAssignOperator.divide:
-            return TokenType.SLASH;
-          case UnlinkedExprAssignOperator.floorDivide:
-            return TokenType.TILDE_SLASH;
-          case UnlinkedExprAssignOperator.modulo:
-            return TokenType.PERCENT;
-          case UnlinkedExprAssignOperator.plus:
-            return TokenType.PLUS;
-          case UnlinkedExprAssignOperator.minus:
-            return TokenType.MINUS;
-          case UnlinkedExprAssignOperator.shiftLeft:
-            return TokenType.LT_LT;
-          case UnlinkedExprAssignOperator.shiftRight:
-            return TokenType.GT_GT;
-          case UnlinkedExprAssignOperator.bitAnd:
-            return TokenType.AMPERSAND;
-          case UnlinkedExprAssignOperator.bitXor:
-            return TokenType.CARET;
-          case UnlinkedExprAssignOperator.bitOr:
-            return TokenType.BAR;
-          case UnlinkedExprAssignOperator.prefixIncrement:
-            return TokenType.PLUS_PLUS;
-          case UnlinkedExprAssignOperator.prefixDecrement:
-            return TokenType.MINUS_MINUS;
-          case UnlinkedExprAssignOperator.postfixIncrement:
-            return TokenType.PLUS_PLUS;
-          case UnlinkedExprAssignOperator.postfixDecrement:
-            return TokenType.MINUS_MINUS;
-        }
-      }
-
-      /**
-       * Return the type of the property with the given [propertyName] in the
-       * given [targetType]. May return `dynamic` if the property cannot be
-       * resolved.
-       */
-      DartType getPropertyType(DartType targetType, String propertyName) {
-        return targetType is InterfaceType
-            ? targetType.lookUpGetter(propertyName, libraryElement)?.returnType
-            : DynamicTypeImpl.instance;
-      }
-
-      /**
-       * Extract the property with the given [propertyName], apply the operator
-       * with the given [operandType], push the type of applying operand of the
-       * given [operandType].
-       */
-      void computePropertyBinaryExpression(DartType targetType,
-          String propertyName, TokenType operator, DartType operandType) {
-        DartType propertyType = getPropertyType(targetType, propertyName);
-        computeBinaryOperatorType(propertyType, operator, operandType);
-      }
-
-      for (UnlinkedConstOperation operation in unlinkedConst.operations) {
-        switch (operation) {
-          case UnlinkedConstOperation.pushInt:
-            intPtr++;
-            stack.add(typeProvider.intType);
-            break;
-          case UnlinkedConstOperation.pushLongInt:
-            int numInts = unlinkedConst.ints[intPtr++];
-            intPtr += numInts;
-            stack.add(typeProvider.intType);
-            break;
-          case UnlinkedConstOperation.pushDouble:
-            stack.add(typeProvider.doubleType);
-            break;
-          case UnlinkedConstOperation.pushTrue:
-          case UnlinkedConstOperation.pushFalse:
-            stack.add(typeProvider.boolType);
-            break;
-          case UnlinkedConstOperation.pushString:
-            strPtr++;
-            stack.add(typeProvider.stringType);
-            break;
-          case UnlinkedConstOperation.concatenate:
-            stack.length -= unlinkedConst.ints[intPtr++];
-            stack.add(typeProvider.stringType);
-            break;
-          case UnlinkedConstOperation.makeSymbol:
-            strPtr++;
-            stack.add(typeProvider.symbolType);
-            break;
-          case UnlinkedConstOperation.pushNull:
-            stack.add(BottomTypeImpl.instance);
-            break;
-          case UnlinkedConstOperation.pushReference:
-            EntityRef ref = unlinkedConst.references[refPtr++];
-            if (ref.paramReference != 0) {
-              stack.add(typeProvider.typeType);
-            } else {
-              // Synthetic function types can't be directly referred
-              // to by expressions.
-              assert(ref.syntheticReturnType == null);
-              // Nor can implicit function types derived from
-              // function-typed parameters.
-              assert(ref.implicitFunctionTypeIndices.isEmpty);
-              ReferenceableElementForLink element =
-                  variableElement.compilationUnit._resolveRef(ref.reference);
-              TypeInferenceNode typeInferenceNode = element.asTypeInferenceNode;
-              if (typeInferenceNode != null) {
-                assert(typeInferenceNode.isEvaluated);
-                stack.add(typeInferenceNode._inferredType);
-              } else {
-                stack.add(element.asStaticType);
-              }
-            }
-            break;
-          case UnlinkedConstOperation.extractProperty:
-            DartType target = stack.removeLast();
-            String propertyName = unlinkedConst.strings[strPtr++];
-            stack.add(() {
-              if (target is InterfaceType) {
-                PropertyAccessorElement getter =
-                    target.lookUpGetter(propertyName, libraryElement);
-                if (getter != null) {
-                  return getter.returnType;
-                }
-                MethodElement method =
-                    target.lookUpMethod(propertyName, libraryElement);
-                if (method != null) {
-                  return method.type;
-                }
-              }
-              return DynamicTypeImpl.instance;
-            }());
-            break;
-          case UnlinkedConstOperation.invokeConstructor:
-            int numNamed = unlinkedConst.ints[intPtr++];
-            int numPositional = unlinkedConst.ints[intPtr++];
-            // TODO(paulberry): don't just pop the args; use their types
-            // to infer the type of type arguments.
-            stack.length -= numNamed + numPositional;
-            strPtr += numNamed;
-            EntityRef ref = unlinkedConst.references[refPtr++];
-            ConstructorElementForLink element = variableElement.compilationUnit
-                ._resolveRef(ref.reference)
-                .asConstructor;
-            if (element != null) {
-              stack.add(element.enclosingElement.buildType(
-                  (int i) => i >= ref.typeArguments.length
-                      ? DynamicTypeImpl.instance
-                      : variableElement.compilationUnit._resolveTypeRef(
-                          ref.typeArguments[i],
-                          variableElement._typeParameterContext),
-                  const []));
-            } else {
-              stack.add(DynamicTypeImpl.instance);
-            }
-            break;
-          case UnlinkedConstOperation.makeUntypedList:
-            int numItems = unlinkedConst.ints[intPtr++];
-            DartType itemType = popList(numItems).reduce(leastUpperBound);
-            itemType = dynamicIfNull(itemType);
-            stack.add(typeProvider.listType.instantiate(<DartType>[itemType]));
-            break;
-          case UnlinkedConstOperation.makeUntypedMap:
-            int numEntries = unlinkedConst.ints[intPtr++];
-            List<DartType> keysValues = popList(2 * numEntries);
-            DartType keyType = null;
-            DartType valueType = null;
-            for (int i = 0; i < 2 * numEntries; i++) {
-              DartType type = keysValues[i];
-              if (i.isEven) {
-                keyType =
-                    keyType == null ? type : leastUpperBound(keyType, type);
-              } else {
-                valueType =
-                    valueType == null ? type : leastUpperBound(valueType, type);
-              }
-            }
-            keyType = dynamicIfNull(keyType);
-            valueType = dynamicIfNull(valueType);
-            stack.add(typeProvider.mapType
-                .instantiate(<DartType>[keyType, valueType]));
-            break;
-          case UnlinkedConstOperation.makeTypedList:
-            DartType itemType = getNextTypeRef();
-            stack.length -= unlinkedConst.ints[intPtr++];
-            stack.add(typeProvider.listType.instantiate(<DartType>[itemType]));
-            break;
-          case UnlinkedConstOperation.makeTypedMap:
-            DartType keyType = getNextTypeRef();
-            DartType valueType = getNextTypeRef();
-            stack.length -= 2 * unlinkedConst.ints[intPtr++];
-            stack.add(typeProvider.mapType
-                .instantiate(<DartType>[keyType, valueType]));
-            break;
-          case UnlinkedConstOperation.not:
-            stack.length -= 1;
-            stack.add(typeProvider.boolType);
-            break;
-          case UnlinkedConstOperation.complement:
-            computePrefixExpressionType('~');
-            break;
-          case UnlinkedConstOperation.negate:
-            computePrefixExpressionType('unary-');
-            break;
-          case UnlinkedConstOperation.and:
-          case UnlinkedConstOperation.or:
-          case UnlinkedConstOperation.equal:
-          case UnlinkedConstOperation.notEqual:
-            stack.length -= 2;
-            stack.add(typeProvider.boolType);
-            break;
-          case UnlinkedConstOperation.bitXor:
-            computeBinaryExpressionType(TokenType.CARET);
-            break;
-          case UnlinkedConstOperation.bitAnd:
-            computeBinaryExpressionType(TokenType.AMPERSAND);
-            break;
-          case UnlinkedConstOperation.bitOr:
-            computeBinaryExpressionType(TokenType.BAR);
-            break;
-          case UnlinkedConstOperation.bitShiftRight:
-            computeBinaryExpressionType(TokenType.GT_GT);
-            break;
-          case UnlinkedConstOperation.bitShiftLeft:
-            computeBinaryExpressionType(TokenType.LT_LT);
-            break;
-          case UnlinkedConstOperation.add:
-            computeBinaryExpressionType(TokenType.PLUS);
-            break;
-          case UnlinkedConstOperation.subtract:
-            computeBinaryExpressionType(TokenType.MINUS);
-            break;
-          case UnlinkedConstOperation.multiply:
-            computeBinaryExpressionType(TokenType.STAR);
-            break;
-          case UnlinkedConstOperation.divide:
-            computeBinaryExpressionType(TokenType.SLASH);
-            break;
-          case UnlinkedConstOperation.floorDivide:
-            computeBinaryExpressionType(TokenType.TILDE_SLASH);
-            break;
-          case UnlinkedConstOperation.greater:
-            computeBinaryExpressionType(TokenType.GT);
-            break;
-          case UnlinkedConstOperation.less:
-            computeBinaryExpressionType(TokenType.LT);
-            break;
-          case UnlinkedConstOperation.greaterEqual:
-            computeBinaryExpressionType(TokenType.GT_EQ);
-            break;
-          case UnlinkedConstOperation.lessEqual:
-            computeBinaryExpressionType(TokenType.LT_EQ);
-            break;
-          case UnlinkedConstOperation.modulo:
-            computeBinaryExpressionType(TokenType.PERCENT);
-            break;
-          case UnlinkedConstOperation.conditional:
-            DartType elseType = stack.removeLast();
-            DartType thenType = stack.removeLast();
-            stack.removeLast();
-            DartType type = leastUpperBound(thenType, elseType);
-            type = dynamicIfNull(type);
-            stack.add(type);
-            break;
-          case UnlinkedConstOperation.assignToRef:
-            refPtr++;
-            UnlinkedExprAssignOperator operator =
-                unlinkedConst.assignmentOperators[assignmentOperatorPtr++];
-            if (operator == UnlinkedExprAssignOperator.assign) {
-              // The type of the assignment is the type of the value,
-              // which is already in the stack.
-            } else if (isIncrementOrDecrement(operator)) {
-              // TODO(scheglov) implement
-              stack.add(DynamicTypeImpl.instance);
-            } else {
-              stack.removeLast();
-              // TODO(scheglov) implement
-              stack.add(DynamicTypeImpl.instance);
-            }
-            break;
-          case UnlinkedConstOperation.assignToProperty:
-            DartType targetType = stack.removeLast();
-            String propertyName = unlinkedConst.strings[strPtr++];
-            UnlinkedExprAssignOperator assignOperator =
-                unlinkedConst.assignmentOperators[assignmentOperatorPtr++];
-            if (assignOperator == UnlinkedExprAssignOperator.assign) {
-              // The type of the assignment is the type of the value,
-              // which is already in the stack.
-            } else if (assignOperator ==
-                    UnlinkedExprAssignOperator.postfixDecrement ||
-                assignOperator == UnlinkedExprAssignOperator.postfixIncrement) {
-              DartType propertyType = getPropertyType(targetType, propertyName);
-              stack.add(propertyType);
-            } else if (assignOperator ==
-                UnlinkedExprAssignOperator.prefixDecrement) {
-              computePropertyBinaryExpression(targetType, propertyName,
-                  TokenType.MINUS, typeProvider.intType);
-            } else if (assignOperator ==
-                UnlinkedExprAssignOperator.prefixIncrement) {
-              computePropertyBinaryExpression(targetType, propertyName,
-                  TokenType.PLUS, typeProvider.intType);
-            } else {
-              TokenType binaryOperator =
-                  convertAssignOperatorToTokenType(assignOperator);
-              DartType operandType = stack.removeLast();
-              computePropertyBinaryExpression(
-                  targetType, propertyName, binaryOperator, operandType);
-            }
-            break;
-          case UnlinkedConstOperation.assignToIndex:
-            stack.removeLast();
-            stack.removeLast();
-            UnlinkedExprAssignOperator operator =
-                unlinkedConst.assignmentOperators[assignmentOperatorPtr++];
-            if (operator == UnlinkedExprAssignOperator.assign) {
-              // The type of the assignment is the type of the value,
-              // which is already in the stack.
-            } else if (isIncrementOrDecrement(operator)) {
-              // TODO(scheglov) implement
-              stack.add(DynamicTypeImpl.instance);
-            } else {
-              stack.removeLast();
-              // TODO(scheglov) implement
-              stack.add(DynamicTypeImpl.instance);
-            }
-            break;
-          case UnlinkedConstOperation.extractIndex:
-            stack.length -= 2;
-            // TODO(paulberry): implement.
-            stack.add(DynamicTypeImpl.instance);
-            break;
-          case UnlinkedConstOperation.invokeMethodRef:
-            int numNamed = unlinkedConst.ints[intPtr++];
-            int numPositional = unlinkedConst.ints[intPtr++];
-            // TODO(paulberry): don't just pop the args; use their types
-            // to infer the type of type arguments.
-            stack.length -= numNamed + numPositional;
-            strPtr += numNamed;
-            refPtr++;
-            // TODO(paulberry): implement.
-            stack.add(DynamicTypeImpl.instance);
-            break;
-          case UnlinkedConstOperation.invokeMethod:
-            strPtr++;
-            int numNamed = unlinkedConst.ints[intPtr++];
-            int numPositional = unlinkedConst.ints[intPtr++];
-            // TODO(paulberry): don't just pop the args; use their types
-            // to infer the type of type arguments.
-            stack.length -= numNamed + numPositional;
-            strPtr += numNamed;
-            stack.removeLast();
-            // TODO(paulberry): implement.
-            stack.add(DynamicTypeImpl.instance);
-            break;
-          case UnlinkedConstOperation.cascadeSectionBegin:
-            stack.add(stack.last);
-            break;
-          case UnlinkedConstOperation.cascadeSectionEnd:
-            stack.removeLast();
-            break;
-          case UnlinkedConstOperation.typeCast:
-            stack.removeLast();
-            DartType type = getNextTypeRef();
-            stack.add(type);
-            break;
-          case UnlinkedConstOperation.typeCheck:
-            stack.removeLast();
-            refPtr++;
-            stack.add(typeProvider.boolType);
-            break;
-          case UnlinkedConstOperation.throwException:
-            stack.removeLast();
-            stack.add(BottomTypeImpl.instance);
-            break;
-          default:
-            // TODO(paulberry): implement.
-            throw new UnimplementedError('$operation');
-        }
-      }
-      assert(intPtr == unlinkedConst.ints.length);
-      assert(refPtr == unlinkedConst.references.length);
-      assert(strPtr == unlinkedConst.strings.length);
-      assert(assignmentOperatorPtr == unlinkedConst.assignmentOperators.length);
-      assert(stack.length == 1);
-      _inferredType = dynamicIfNull(stack[0]);
+      _inferredType = new ExprTypeComputer(variableElement).compute();
     }
   }
 }
