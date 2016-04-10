@@ -1840,6 +1840,46 @@ test1() {
 ''');
   }
 
+  void test_inferGenericMethodType_named() {
+    var unit = checkFile('''
+class C {
+  /*=T*/ m/*<T>*/(int a, {String b, /*=T*/ c}) => null;
+}
+var y = new C().m(1, b: 'bbb', c: 2.0);
+  ''');
+    expect(unit.topLevelVariables[0].type.toString(), 'double');
+  }
+
+  void test_inferGenericMethodType_positional() {
+    var unit = checkFile('''
+class C {
+  /*=T*/ m/*<T>*/(int a, [/*=T*/ b]) => null;
+}
+var y = new C().m(1, 2.0);
+  ''');
+    expect(unit.topLevelVariables[0].type.toString(), 'double');
+  }
+
+  void test_inferGenericMethodType_positional2() {
+    var unit = checkFile('''
+class C {
+  /*=T*/ m/*<T>*/(int a, [String b, /*=T*/ c]) => null;
+}
+var y = new C().m(1, 'bbb', 2.0);
+  ''');
+    expect(unit.topLevelVariables[0].type.toString(), 'double');
+  }
+
+  void test_inferGenericMethodType_required() {
+    var unit = checkFile('''
+class C {
+  /*=T*/ m/*<T>*/(/*=T*/ x) => x;
+}
+var y = new C().m(42);
+  ''');
+    expect(unit.topLevelVariables[0].type.toString(), 'int');
+  }
+
   void test_inferIfComplexExpressionsReadPossibleInferredField() {
     // but flags can enable this behavior.
     addFile(

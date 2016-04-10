@@ -1851,7 +1851,7 @@ class ExprTypeComputer {
 
   void _doAssignToProperty() {
     DartType targetType = stack.removeLast();
-    String propertyName = unlinkedConst.strings[strPtr++];
+    String propertyName = _getNextString();
     UnlinkedExprAssignOperator assignOperator =
         unlinkedConst.assignmentOperators[assignmentOperatorPtr++];
     if (assignOperator == UnlinkedExprAssignOperator.assign) {
@@ -1904,7 +1904,7 @@ class ExprTypeComputer {
 
   void _doExtractProperty() {
     DartType target = stack.removeLast();
-    String propertyName = unlinkedConst.strings[strPtr++];
+    String propertyName = _getNextString();
     stack.add(() {
       if (target is InterfaceType) {
         PropertyAccessorElement getter =
@@ -1944,16 +1944,59 @@ class ExprTypeComputer {
   }
 
   void _doInvokeMethod() {
-    strPtr++;
-    int numNamed = _getNextInt();
-    int numPositional = _getNextInt();
-    // TODO(paulberry): don't just pop the args; use their types
-    // to infer the type of type arguments.
-    stack.length -= numNamed + numPositional;
-    strPtr += numNamed;
-    stack.removeLast();
-    // TODO(paulberry): implement.
-    stack.add(DynamicTypeImpl.instance);
+    int numNamed = unlinkedConst.ints[intPtr++];
+    int numPositional = unlinkedConst.ints[intPtr++];
+    List<String> namedArgNames = _getNextStrings(numNamed);
+    List<DartType> namedArgTypeList = _popList(numNamed);
+    List<DartType> positionalArgTypes = _popList(numPositional);
+    String methodName = _getNextString();
+    DartType target = stack.removeLast();
+    stack.add(() {
+      if (target is InterfaceType) {
+        MethodElement method = target.lookUpMethod(methodName, library);
+        DartType rawMethodType = method?.type;
+        TypeSystem ts = linker.typeSystem;
+        if (rawMethodType is FunctionType) {
+          if (rawMethodType.typeFormals.isNotEmpty &&
+              ts is StrongTypeSystemImpl) {
+            List<DartType> paramTypes = <DartType>[];
+            List<DartType> argTypes = <DartType>[];
+            // Add positional parameter and argument types.
+            for (int i = 0; i < numPositional; i++) {
+              ParameterElement parameter = rawMethodType.parameters[i];
+              if (parameter != null) {
+                paramTypes.add(parameter.type);
+                argTypes.add(positionalArgTypes[i]);
+              }
+            }
+            // Prepare named argument types map.
+            Map<String, DartType> namedArgTypes = <String, DartType>{};
+            for (int i = 0; i < numNamed; i++) {
+              String name = namedArgNames[i];
+              DartType type = namedArgTypeList[i];
+              namedArgTypes[name] = type;
+            }
+            // Add named parameter and argument types.
+            Map<String, DartType> namedParameterTypes =
+                rawMethodType.namedParameterTypes;
+            namedArgTypes.forEach((String name, DartType argType) {
+              DartType parameterType = namedParameterTypes[name];
+              if (parameterType != null) {
+                paramTypes.add(parameterType);
+                argTypes.add(argType);
+              }
+            });
+            // Perform inference.
+            FunctionType inferred = ts.inferGenericFunctionCall(
+                typeProvider, rawMethodType, paramTypes, argTypes, null);
+            return inferred.returnType;
+          }
+          // Not a generic method, use the raw return type.
+          return rawMethodType.returnType;
+        }
+      }
+      return DynamicTypeImpl.instance;
+    }());
   }
 
   void _doInvokeMethodRef() {
@@ -2032,6 +2075,18 @@ class ExprTypeComputer {
 
   int _getNextInt() {
     return unlinkedConst.ints[intPtr++];
+  }
+
+  String _getNextString() {
+    return unlinkedConst.strings[strPtr++];
+  }
+
+  List<String> _getNextStrings(int n) {
+    List<String> result = new List<String>(n);
+    for (int i = 0; i < n; i++) {
+      result[i] = _getNextString();
+    }
+    return result;
   }
 
   DartType _getNextTypeRef() {

@@ -406,6 +406,26 @@ var b2 = new B<int>();
     super.test_inferTypesOnGenericInstantiationsInLibraryCycle();
   }
 
+  void test_invokeMethod_notGeneric_genericClass() {
+    var unit = checkFile(r'''
+class C<T> {
+  T m(int a, {String b, T c}) => null;
+}
+var v = new C<double>().m(1, b: 'bbb', c: 2.0);
+  ''');
+    expect(unit.topLevelVariables[0].type.toString(), 'double');
+  }
+
+  void test_invokeMethod_notGeneric_notGenericClass() {
+    var unit = checkFile(r'''
+class C {
+  int m(int a, {String b, int c}) => null;
+}
+var v = new C().m(1, b: 'bbb', c: 2.0);
+  ''');
+    expect(unit.topLevelVariables[0].type.toString(), 'int');
+  }
+
   @override
   @failingTest
   void test_listLiteralsShouldNotInferBottom() {
