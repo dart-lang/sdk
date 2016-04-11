@@ -1216,7 +1216,7 @@ class CallSiteInliner : public ValueObject {
       PolymorphicInstanceCallInstr* call = call_info[call_idx].call;
       if (call->with_checks()) {
         // PolymorphicInliner introduces deoptimization paths.
-        if (!FLAG_polymorphic_with_deopt) {
+        if (!call->complete() && !FLAG_polymorphic_with_deopt) {
           TRACE_INLINING(THR_Print(
               "  => %s\n     Bailout: call with checks\n",
               call->instance_call()->function_name().ToCString()));
@@ -1633,18 +1633,21 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
     if ((i == (inlined_variants_.length() - 1)) &&
         non_inlined_variants_.is_empty()) {
       // If it is the last variant use a check class id instruction which can
-      // deoptimize, followed unconditionally by the body.
-      RedefinitionInstr* cid_redefinition =
-          new RedefinitionInstr(new(Z) Value(load_cid));
-      cid_redefinition->set_ssa_temp_index(
-          owner_->caller_graph()->alloc_ssa_temp_index());
-      cursor = AppendInstruction(cursor, cid_redefinition);
-      CheckClassIdInstr* check_class_id = new(Z) CheckClassIdInstr(
-          new(Z) Value(cid_redefinition),
-          inlined_variants_[i].cid,
-          call_->deopt_id());
-      check_class_id->InheritDeoptTarget(zone(), call_);
-      cursor = AppendInstruction(cursor, check_class_id);
+      // deoptimize, followed unconditionally by the body. Omit the check if
+      // we know that we have covered all possible classes.
+      if (!call_->complete()) {
+        RedefinitionInstr* cid_redefinition =
+            new RedefinitionInstr(new(Z) Value(load_cid));
+        cid_redefinition->set_ssa_temp_index(
+            owner_->caller_graph()->alloc_ssa_temp_index());
+        cursor = AppendInstruction(cursor, cid_redefinition);
+        CheckClassIdInstr* check_class_id = new(Z) CheckClassIdInstr(
+            new(Z) Value(cid_redefinition),
+            inlined_variants_[i].cid,
+            call_->deopt_id());
+        check_class_id->InheritDeoptTarget(zone(), call_);
+        cursor = AppendInstruction(cursor, check_class_id);
+      }
 
       // The next instruction is the first instruction of the inlined body.
       // Handle the two possible cases (unshared and shared subsequent
@@ -1777,7 +1780,8 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
     PolymorphicInstanceCallInstr* fallback_call =
         new PolymorphicInstanceCallInstr(call_->instance_call(),
                                          new_checks,
-                                         true);  // With checks.
+                                         /* with_checks = */ true,
+                                         call_->complete());
     fallback_call->set_ssa_temp_index(
         owner_->caller_graph()->alloc_ssa_temp_index());
     fallback_call->InheritDeoptTarget(zone(), call_);
@@ -2873,6 +2877,11 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
                                                  const ICData& ic_data,
                                                  TargetEntryInstr** entry,
                                                  Definition** last) {
+  if (FLAG_precompiled_mode) {
+    // The graphs generated below include deopts.
+    return false;
+  }
+
   ICData& value_check = ICData::ZoneHandle(Z);
   MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(target);
   switch (kind) {

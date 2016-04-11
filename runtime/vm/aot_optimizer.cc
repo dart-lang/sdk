@@ -29,6 +29,10 @@
 
 namespace dart {
 
+DEFINE_FLAG(int, max_exhaustive_polymorphic_checks, 5,
+            "If a call receiver is known to be of at most this many classes, "
+            "generate exhaustive class tests instead of a megamorphic call");
+
 // Quick access to the current isolate and zone.
 #define I (isolate())
 #define Z (zone())
@@ -281,11 +285,11 @@ void AotOptimizer::SpecializePolymorphicInstanceCall(
     return;
   }
 
-  const bool with_checks = false;
   PolymorphicInstanceCallInstr* specialized =
       new(Z) PolymorphicInstanceCallInstr(call->instance_call(),
                                           ic_data,
-                                          with_checks);
+                                          /* with_checks = */ false,
+                                          /* complete = */ false);
   call->ReplaceWith(specialized, current_iterator());
 }
 
@@ -2441,7 +2445,8 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
             instr, function_kind)) {
       PolymorphicInstanceCallInstr* call =
           new(Z) PolymorphicInstanceCallInstr(instr, unary_checks,
-                                              /* with_checks = */ false);
+                                              /* with_checks = */ false,
+                                              /* complete = */ true);
       instr->ReplaceWith(call, current_iterator());
       return;
     }
@@ -2514,9 +2519,67 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
         ic_data.AddReceiverCheck(receiver_class.id(), function);
         PolymorphicInstanceCallInstr* call =
             new(Z) PolymorphicInstanceCallInstr(instr, ic_data,
-                                                /* with_checks = */ false);
+                                                /* with_checks = */ false,
+                                                /* complete = */ true);
         instr->ReplaceWith(call, current_iterator());
         return;
+      }
+    }
+  }
+
+  Definition* callee_receiver = instr->ArgumentAt(0);
+  const Function& function = flow_graph_->function();
+  if (function.IsDynamicFunction() &&
+      flow_graph_->IsReceiver(callee_receiver)) {
+    // Call receiver is method receiver.
+    Class& receiver_class = Class::Handle(Z, function.Owner());
+    GrowableArray<intptr_t> class_ids(6);
+    if (thread()->cha()->ConcreteSubclasses(receiver_class, &class_ids)) {
+      if (class_ids.length() <= FLAG_max_exhaustive_polymorphic_checks) {
+        if (FLAG_trace_cha) {
+          THR_Print("  **(CHA) Only %" Pd " concrete subclasses of %s for %s\n",
+                    class_ids.length(),
+                    receiver_class.ToCString(),
+                    instr->function_name().ToCString());
+        }
+
+        const Array& args_desc_array = Array::Handle(Z,
+            ArgumentsDescriptor::New(instr->ArgumentCount(),
+                                     instr->argument_names()));
+        ArgumentsDescriptor args_desc(args_desc_array);
+
+        const ICData& ic_data = ICData::Handle(
+            ICData::New(function,
+                        instr->function_name(),
+                        args_desc_array,
+                        Thread::kNoDeoptId,
+                        /* args_tested = */ 1));
+
+        Function& target = Function::Handle(Z);
+        Class& cls = Class::Handle(Z);
+        bool includes_dispatcher_case = false;
+        for (intptr_t i = 0; i < class_ids.length(); i++) {
+          intptr_t cid = class_ids[i];
+          cls = isolate()->class_table()->At(cid);
+          target = Resolver::ResolveDynamicForReceiverClass(
+              cls,
+              instr->function_name(),
+              args_desc);
+          if (target.IsNull()) {
+            // noSuchMethod, call through getter or closurization
+            includes_dispatcher_case = true;
+          } else {
+            ic_data.AddReceiverCheck(cid, target);
+          }
+        }
+        if (!includes_dispatcher_case && (ic_data.NumberOfChecks() > 0)) {
+          PolymorphicInstanceCallInstr* call =
+              new(Z) PolymorphicInstanceCallInstr(instr, ic_data,
+                                                  /* with_checks = */ true,
+                                                  /* complete = */ true);
+          instr->ReplaceWith(call, current_iterator());
+          return;
+        }
       }
     }
   }
@@ -2529,7 +2592,8 @@ void AotOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     // deoptimization is allowed.
     PolymorphicInstanceCallInstr* call =
         new(Z) PolymorphicInstanceCallInstr(instr, unary_checks,
-                                            /* with_checks = */ true);
+                                            /* with_checks = */ true,
+                                            /* complete = */ false);
     instr->ReplaceWith(call, current_iterator());
     return;
   }

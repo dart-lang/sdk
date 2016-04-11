@@ -1505,8 +1505,10 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         Label* match_found,
                                         intptr_t deopt_id,
                                         TokenPosition token_index,
-                                        LocationSummary* locs) {
+                                        LocationSummary* locs,
+                                        bool complete) {
   ASSERT(is_optimizing());
+  ASSERT(!complete);
   __ Comment("EmitTestAndCall");
   const Array& arguments_descriptor =
       Array::ZoneHandle(zone(), ArgumentsDescriptor::New(argument_count,

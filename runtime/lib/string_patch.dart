@@ -47,7 +47,7 @@ patch class String {
  * [_StringBase] contains common methods used by concrete String
  * implementations, e.g., _OneByteString.
  */
-class _StringBase {
+abstract class _StringBase {
   // Constants used by replaceAll encoding of string slices between matches.
   // A string slice (start+length) is encoded in a single Smi to save memory
   // overhead in the common case.

@@ -1596,7 +1596,8 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         Label* match_found,
                                         intptr_t deopt_id,
                                         TokenPosition token_index,
-                                        LocationSummary* locs) {
+                                        LocationSummary* locs,
+                                        bool complete) {
   ASSERT(is_optimizing());
   __ Comment("EmitTestAndCall");
   const Array& arguments_descriptor =
@@ -1613,8 +1614,8 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
   ASSERT(!ic_data.IsNull() && (kNumChecks > 0));
 
   Label after_smi_test;
-  __ tst(R0, Operand(kSmiTagMask));
   if (kFirstCheckIsSmi) {
+    __ tst(R0, Operand(kSmiTagMask));
     // Jump if receiver is not Smi.
     if (kNumChecks == 1) {
       __ b(failed, NE);
@@ -1638,7 +1639,10 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
   } else {
     // Receiver is Smi, but Smi is not a valid class therefore fail.
     // (Smi class must be first in the list).
-    __ b(failed, EQ);
+    if (!complete) {
+      __ tst(R0, Operand(kSmiTagMask));
+      __ b(failed, EQ);
+    }
   }
   __ Bind(&after_smi_test);
 
@@ -1657,11 +1661,18 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
     const bool kIsLastCheck = (i == (kSortedLen - 1));
     ASSERT(sorted[i].cid != kSmiCid);
     Label next_test;
-    __ CompareImmediate(R2, sorted[i].cid);
-    if (kIsLastCheck) {
-      __ b(failed, NE);
+    if (!complete) {
+      __ CompareImmediate(R2, sorted[i].cid);
+      if (kIsLastCheck) {
+        __ b(failed, NE);
+      } else {
+        __ b(&next_test, NE);
+      }
     } else {
-      __ b(&next_test, NE);
+      if (!kIsLastCheck) {
+        __ CompareImmediate(R2, sorted[i].cid);
+        __ b(&next_test, NE);
+      }
     }
     // Do not use the code from the function, but let the code be patched so
     // that we can record the outgoing edges to other code.

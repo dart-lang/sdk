@@ -303,6 +303,8 @@ class FlowGraph : public ZoneAllocated {
   // Remove environments from the instructions which do not deoptimize.
   void EliminateEnvironments();
 
+  bool IsReceiver(Definition* def) const;
+
  private:
   friend class IfConverter;
   friend class BranchSimplifier;
@@ -355,7 +357,6 @@ class FlowGraph : public ZoneAllocated {
                         Value* use,
                         bool is_environment_use);
 
-  bool IsReceiver(Definition* def) const;
   void ComputeIsReceiver(PhiInstr* phi) const;
   void ComputeIsReceiverRecursive(PhiInstr* phi,
                                   GrowableArray<PhiInstr*>* unmark) const;

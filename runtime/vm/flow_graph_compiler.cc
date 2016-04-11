@@ -1843,7 +1843,8 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
     const Array& argument_names,
     intptr_t deopt_id,
     TokenPosition token_pos,
-    LocationSummary* locs) {
+    LocationSummary* locs,
+    bool complete) {
   if (FLAG_polymorphic_with_deopt) {
     Label* deopt = AddDeoptStub(deopt_id,
                                 ICData::kDeoptPolymorphicInstanceCallTestFail);
@@ -1851,23 +1852,32 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
     EmitTestAndCall(ic_data, argument_count, argument_names,
                     deopt,  // No cid match.
                     &ok,    // Found cid.
-                    deopt_id, token_pos, locs);
+                    deopt_id, token_pos, locs, complete);
     assembler()->Bind(&ok);
   } else {
-    // Instead of deoptimizing, do a megamorphic call when no matching
-    // cid found.
-    Label ok;
-    MegamorphicSlowPath* slow_path =
+    if (complete) {
+      Label ok;
+      EmitTestAndCall(ic_data, argument_count, argument_names,
+                      NULL,                      // No cid match.
+                      &ok,                       // Found cid.
+                      deopt_id, token_pos, locs, true);
+      assembler()->Bind(&ok);
+    } else {
+      // Instead of deoptimizing, do a megamorphic call when no matching
+      // cid found.
+      Label ok;
+      MegamorphicSlowPath* slow_path =
         new MegamorphicSlowPath(ic_data, argument_count, deopt_id,
                                 token_pos, locs, CurrentTryIndex());
-    AddSlowPathCode(slow_path);
-    EmitTestAndCall(ic_data, argument_count, argument_names,
-                    slow_path->entry_label(),  // No cid match.
-                    &ok,                       // Found cid.
-                    deopt_id, token_pos, locs);
+      AddSlowPathCode(slow_path);
+      EmitTestAndCall(ic_data, argument_count, argument_names,
+                      slow_path->entry_label(),  // No cid match.
+                      &ok,                       // Found cid.
+                      deopt_id, token_pos, locs, false);
 
-    assembler()->Bind(slow_path->exit_label());
-    assembler()->Bind(&ok);
+      assembler()->Bind(slow_path->exit_label());
+      assembler()->Bind(&ok);
+    }
   }
 }
 

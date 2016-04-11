@@ -3138,7 +3138,8 @@ void PolymorphicInstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                         instance_call()->argument_names(),
                                         deopt_id(),
                                         instance_call()->token_pos(),
-                                        locs());
+                                        locs(),
+                                        complete());
 }
 
 

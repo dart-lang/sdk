@@ -451,7 +451,8 @@ class FlowGraphCompiler : public ValueObject {
                                    const Array& argument_names,
                                    intptr_t deopt_id,
                                    TokenPosition token_pos,
-                                   LocationSummary* locs);
+                                   LocationSummary* locs,
+                                   bool complete);
 
   // Pass a value for try-index where block is not available (e.g. slow path).
   void EmitMegamorphicInstanceCall(
@@ -476,7 +477,8 @@ class FlowGraphCompiler : public ValueObject {
                        Label* match_found,
                        intptr_t deopt_id,
                        TokenPosition token_index,
-                       LocationSummary* locs);
+                       LocationSummary* locs,
+                       bool complete);
 
   Condition EmitEqualityRegConstCompare(Register reg,
                                         const Object& obj,
