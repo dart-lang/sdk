@@ -215,7 +215,8 @@ static const char* MergeSubStrings(Zone* zone,
 //   _MyClass@6328321.named -> _MyClass.named
 //
 RawString* String::ScrubName(const String& name) {
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
 
 NOT_IN_PRODUCT(
   if (name.Equals(Symbols::TopLevel())) {
@@ -299,7 +300,7 @@ NOT_IN_PRODUCT(
 
   if ((start == 0) && (dot_pos == -1)) {
     // This unmangled_name is fine as it is.
-    return Symbols::New(unmangled_name, sum_segment_len);
+    return Symbols::New(thread, unmangled_name, sum_segment_len);
   }
 
   // Drop the trailing dot if needed.
@@ -318,7 +319,7 @@ NOT_IN_PRODUCT(
   unmangled_name = MergeSubStrings(zone, unmangled_segments, final_len);
 )
 
-  return Symbols::New(unmangled_name);
+  return Symbols::New(thread, unmangled_name);
 }
 
 
@@ -1521,7 +1522,7 @@ NOT_IN_PRODUCT(
   type = Type::NewNonParameterizedType(cls);
   object_store->set_double_type(type);
 
-  name = Symbols::New("String");
+  name = Symbols::_String().raw();
   cls = Class::New<Instance>(kIllegalCid);
   RegisterClass(cls, name, core_lib);
   cls.set_num_type_arguments(0);
@@ -1586,9 +1587,9 @@ NOT_IN_PRODUCT(
   CLASS_LIST_NO_OBJECT(V)
 
 #define ADD_SET_FIELD(clazz)                                                   \
-  field_name = Symbols::New("cid"#clazz);                                      \
+  field_name = Symbols::New(thread, "cid"#clazz);                              \
   field = Field::New(field_name, true, false, true, false, cls,                \
-      Type::Handle(Type::IntType()), TokenPosition::kMinSource);             \
+      Type::Handle(Type::IntType()), TokenPosition::kMinSource);               \
   value = Smi::New(k##clazz##Cid);                                             \
   field.SetStaticValue(value, true);                                           \
   cls.AddField(field);                                                         \
@@ -2570,8 +2571,10 @@ RawFunction* Class::GetInvocationDispatcher(const String& target_name,
 RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
                                                const Array& args_desc,
                                                RawFunction::Kind kind) const {
-  Function& invocation = Function::Handle(
-      Function::New(String::Handle(Symbols::New(target_name)),
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Function& invocation = Function::Handle(zone,
+      Function::New(String::Handle(zone, Symbols::New(thread, target_name)),
                     kind,
                     false,  // Not static.
                     false,  // Not const.
@@ -2584,10 +2587,10 @@ RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
   invocation.set_num_fixed_parameters(desc.PositionalCount());
   invocation.SetNumOptionalParameters(desc.NamedCount(),
                                       false);  // Not positional.
-  invocation.set_parameter_types(Array::Handle(Array::New(desc.Count(),
-                                                          Heap::kOld)));
-  invocation.set_parameter_names(Array::Handle(Array::New(desc.Count(),
-                                                          Heap::kOld)));
+  invocation.set_parameter_types(Array::Handle(zone, Array::New(desc.Count(),
+                                                                Heap::kOld)));
+  invocation.set_parameter_names(Array::Handle(zone, Array::New(desc.Count(),
+                                                                Heap::kOld)));
   // Receiver.
   invocation.SetParameterTypeAt(0, Object::dynamic_type());
   invocation.SetParameterNameAt(0, Symbols::This());
@@ -2597,14 +2600,15 @@ RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
     invocation.SetParameterTypeAt(i, Object::dynamic_type());
     char name[64];
     OS::SNPrint(name, 64, ":p%" Pd, i);
-    invocation.SetParameterNameAt(i, String::Handle(Symbols::New(name)));
+    invocation.SetParameterNameAt(i, String::Handle(zone,
+        Symbols::New(thread, name)));
   }
 
   // Named parameters.
   for (; i < desc.Count(); i++) {
     invocation.SetParameterTypeAt(i, Object::dynamic_type());
     intptr_t index = i - desc.PositionalCount();
-    invocation.SetParameterNameAt(i, String::Handle(desc.NameAt(index)));
+    invocation.SetParameterNameAt(i, String::Handle(zone, desc.NameAt(index)));
   }
   invocation.set_result_type(Object::dynamic_type());
   invocation.set_is_debuggable(false);
@@ -2622,13 +2626,15 @@ RawFunction* Class::CreateInvocationDispatcher(const String& target_name,
 // is created and injected as a getter (under the name get:M) into the class
 // owning method M.
 RawFunction* Function::CreateMethodExtractor(const String& getter_name) const {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   ASSERT(Field::IsGetterName(getter_name));
   const Function& closure_function =
-      Function::Handle(ImplicitClosureFunction());
+      Function::Handle(zone, ImplicitClosureFunction());
 
-  const Class& owner = Class::Handle(closure_function.Owner());
-  Function& extractor = Function::Handle(
-    Function::New(String::Handle(Symbols::New(getter_name)),
+  const Class& owner = Class::Handle(zone, closure_function.Owner());
+  Function& extractor = Function::Handle(zone,
+    Function::New(String::Handle(zone, Symbols::New(thread, getter_name)),
                   RawFunction::kMethodExtractor,
                   false,  // Not static.
                   false,  // Not const.
@@ -4507,15 +4513,16 @@ void UnresolvedClass::set_library_prefix(
 
 RawString* UnresolvedClass::Name() const {
   if (library_prefix() != LibraryPrefix::null()) {
-    const LibraryPrefix& lib_prefix = LibraryPrefix::Handle(library_prefix());
-    String& name = String::Handle();
-    name = lib_prefix.name();  // Qualifier.
-    Zone* zone = Thread::Current()->zone();
+    Thread* thread = Thread::Current();
+    Zone* zone = thread->zone();
+    const LibraryPrefix& lib_prefix = LibraryPrefix::Handle(zone,
+                                                            library_prefix());
+    const String& name = String::Handle(zone, lib_prefix.name());  // Qualifier.
     GrowableHandlePtrArray<const String> strs(zone, 3);
     strs.Add(name);
     strs.Add(Symbols::Dot());
     strs.Add(String::Handle(zone, ident()));
-    return Symbols::FromConcatAll(strs);
+    return Symbols::FromConcatAll(thread, strs);
   } else {
     return ident();
   }
@@ -4564,13 +4571,14 @@ intptr_t TypeArguments::Hash() const {
 RawString* TypeArguments::SubvectorName(intptr_t from_index,
                                         intptr_t len,
                                         NameVisibility name_visibility) const {
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   ASSERT(from_index + len <= Length());
   String& name = String::Handle(zone);
   const intptr_t num_strings = (len == 0) ? 2 : 2*len + 1;  // "<""T"", ""T"">".
   GrowableHandlePtrArray<const String> pieces(zone, num_strings);
   pieces.Add(Symbols::LAngleBracket());
-  AbstractType& type = AbstractType::Handle();
+  AbstractType& type = AbstractType::Handle(zone);
   for (intptr_t i = 0; i < len; i++) {
     type = TypeAt(from_index + i);
     name = type.BuildName(name_visibility);
@@ -4581,7 +4589,7 @@ RawString* TypeArguments::SubvectorName(intptr_t from_index,
   }
   pieces.Add(Symbols::RAngleBracket());
   ASSERT(pieces.length() == num_strings);
-  return Symbols::FromConcatAll(pieces);
+  return Symbols::FromConcatAll(thread, pieces);
 }
 
 
@@ -5239,15 +5247,16 @@ RawString* TypeArguments::EnumerateURIs() const {
   if (IsNull()) {
     return Symbols::Empty().raw();
   }
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   AbstractType& type = AbstractType::Handle(zone);
   const intptr_t num_types = Length();
-  GrowableHandlePtrArray<const String> pieces(zone, num_types);
+  const Array& pieces = Array::Handle(zone, Array::New(num_types));
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
-    pieces.Add(String::Handle(zone, type.EnumerateURIs()));
+    pieces.SetAt(i, String::Handle(zone, type.EnumerateURIs()));
   }
-  return Symbols::FromConcatAll(pieces);
+  return String::ConcatAll(pieces);
 }
 
 
@@ -6658,8 +6667,10 @@ RawFunction* Function::NewSignatureFunction(const Class& owner,
 RawFunction* Function::NewEvalFunction(const Class& owner,
                                        const Script& script,
                                        bool is_static) {
-  const Function& result = Function::Handle(
-      Function::New(String::Handle(Symbols::New(":Eval")),
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const Function& result = Function::Handle(zone,
+      Function::New(String::Handle(Symbols::New(thread, ":Eval")),
                     RawFunction::kRegularFunction,
                     is_static,
                     /* is_const = */ false,
@@ -6755,23 +6766,25 @@ void Function::DropUncompiledImplicitClosureFunction() const {
 
 
 RawString* Function::UserVisibleFormalParameters() const {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   // Typically 3, 5,.. elements in 'pieces', e.g.:
   // '_LoadRequest', CommaSpace, '_LoadError'.
-  GrowableHandlePtrArray<const String> pieces(Thread::Current()->zone(), 5);
-  const TypeArguments& instantiator = TypeArguments::Handle();
-  BuildSignatureParameters(false, kUserVisibleName, instantiator, &pieces);
-  return Symbols::FromConcatAll(pieces);
+  GrowableHandlePtrArray<const String> pieces(zone, 5);
+  const TypeArguments& instantiator = TypeArguments::Handle(zone);
+  BuildSignatureParameters(thread, zone,
+                           false, kUserVisibleName, instantiator, &pieces);
+  return Symbols::FromConcatAll(thread, pieces);
 }
 
 
 void Function::BuildSignatureParameters(
+    Thread* thread,
+    Zone* zone,
     bool instantiate,
     NameVisibility name_visibility,
     const TypeArguments& instantiator,
     GrowableHandlePtrArray<const String>* pieces) const {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-
   AbstractType& param_type = AbstractType::Handle(zone);
   const intptr_t num_params = NumParameters();
   const intptr_t num_fixed_params = num_fixed_parameters();
@@ -6911,7 +6924,8 @@ RawString* Function::BuildSignature(bool instantiate,
     }
   }
   pieces.Add(Symbols::LParen());
-  BuildSignatureParameters(instantiate,
+  BuildSignatureParameters(thread, zone,
+                           instantiate,
                            name_visibility,
                            instantiator,
                            &pieces);
@@ -6923,7 +6937,7 @@ RawString* Function::BuildSignature(bool instantiate,
   }
   name = res_type.BuildName(name_visibility);
   pieces.Add(name);
-  return Symbols::FromConcatAll(pieces);
+  return Symbols::FromConcatAll(thread, pieces);
 }
 
 
@@ -7347,12 +7361,12 @@ RawString* Field::GetterName(const String& field_name) {
 
 
 RawString* Field::GetterSymbol(const String& field_name) {
-  return Symbols::FromConcat(Symbols::GetterPrefix(), field_name);
+  return Symbols::FromGet(Thread::Current(), field_name);
 }
 
 
 RawString* Field::LookupGetterSymbol(const String& field_name) {
-  return Symbols::LookupFromConcat(Symbols::GetterPrefix(), field_name);
+  return Symbols::LookupFromGet(Thread::Current(), field_name);
 }
 
 
@@ -7362,23 +7376,23 @@ RawString* Field::SetterName(const String& field_name) {
 
 
 RawString* Field::SetterSymbol(const String& field_name) {
-  return Symbols::FromConcat(Symbols::SetterPrefix(), field_name);
+  return Symbols::FromSet(Thread::Current(), field_name);
 }
 
 
 RawString* Field::LookupSetterSymbol(const String& field_name) {
-  return Symbols::LookupFromConcat(Symbols::SetterPrefix(), field_name);
+  return Symbols::LookupFromSet(Thread::Current(), field_name);
 }
 
 
 RawString* Field::NameFromGetter(const String& getter_name) {
-  return Symbols::New(getter_name, kGetterPrefixLength,
+  return Symbols::New(Thread::Current(), getter_name, kGetterPrefixLength,
       getter_name.Length() - kGetterPrefixLength);
 }
 
 
 RawString* Field::NameFromSetter(const String& setter_name) {
-  return Symbols::New(setter_name, kSetterPrefixLength,
+  return Symbols::New(Thread::Current(), setter_name, kSetterPrefixLength,
       setter_name.Length() - kSetterPrefixLength);
 }
 
@@ -7621,21 +7635,24 @@ const char* Field::ToCString() const {
 // field f and cache the closure in a newly created static field
 // named #f (or #f= in case of a setter).
 RawInstance* Field::AccessorClosure(bool make_setter) const {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   ASSERT(is_static());
-  const Class& field_owner = Class::Handle(Owner());
+  const Class& field_owner = Class::Handle(zone, Owner());
 
-  String& closure_name = String::Handle(this->name());
-  closure_name = Symbols::FromConcat(Symbols::HashMark(), closure_name);
+  String& closure_name = String::Handle(zone, this->name());
+  closure_name = Symbols::FromConcat(thread, Symbols::HashMark(), closure_name);
   if (make_setter) {
-    closure_name = Symbols::FromConcat(Symbols::HashMark(), closure_name);
+    closure_name = Symbols::FromConcat(thread,
+        Symbols::HashMark(), closure_name);
   }
 
-  Field& closure_field = Field::Handle();
+  Field& closure_field = Field::Handle(zone);
   closure_field = field_owner.LookupStaticField(closure_name);
   if (!closure_field.IsNull()) {
     ASSERT(closure_field.is_static());
-    const Instance& closure =
-        Instance::Handle(closure_field.StaticValue());
+    const Instance& closure = Instance::Handle(zone,
+        closure_field.StaticValue());
     ASSERT(!closure.IsNull());
     ASSERT(closure.IsClosure());
     return closure.raw();
@@ -7643,8 +7660,8 @@ RawInstance* Field::AccessorClosure(bool make_setter) const {
 
   // This is the first time a closure for this field is requested.
   // Create the closure and a new static field in which it is stored.
-  const char* field_name = String::Handle(name()).ToCString();
-  String& expr_src = String::Handle();
+  const char* field_name = String::Handle(zone, name()).ToCString();
+  String& expr_src = String::Handle(zone);
   if (make_setter) {
     expr_src =
         String::NewFormatted("(%s_) { return %s = %s_; }",
@@ -7652,10 +7669,10 @@ RawInstance* Field::AccessorClosure(bool make_setter) const {
   } else {
     expr_src = String::NewFormatted("() { return %s; }", field_name);
   }
-  Object& result =
-      Object::Handle(field_owner.Evaluate(expr_src,
-                                          Object::empty_array(),
-                                          Object::empty_array()));
+  Object& result = Object::Handle(zone,
+      field_owner.Evaluate(expr_src,
+                           Object::empty_array(),
+                           Object::empty_array()));
   ASSERT(result.IsInstance());
   // The caller may expect the closure to be allocated in old space. Copy
   // the result here, since Object::Clone() is a private method.
@@ -8657,10 +8674,7 @@ RawString* TokenStream::Iterator::MakeLiteralToken(const Object& obj) const {
     Token::Kind kind = static_cast<Token::Kind>(
         Smi::Value(reinterpret_cast<RawSmi*>(obj.raw())));
     ASSERT(kind < Token::kNumTokens);
-    if (Token::IsPseudoKeyword(kind) || Token::IsKeyword(kind)) {
-      return Symbols::Keyword(kind).raw();
-    }
-    return Symbols::New(Token::Str(kind));
+    return Symbols::Token(kind).raw();
   } else {
     ASSERT(obj.IsLiteralToken());  // Must be a literal token.
     const LiteralToken& literal_token = LiteralToken::Cast(obj);
@@ -9057,8 +9071,10 @@ RawScript* Script::New() {
 RawScript* Script::New(const String& url,
                        const String& source,
                        RawScript::Kind kind) {
-  const Script& result = Script::Handle(Script::New());
-  result.set_url(String::Handle(Symbols::New(url)));
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const Script& result = Script::Handle(zone, Script::New());
+  result.set_url(String::Handle(zone, Symbols::New(thread, url)));
   result.set_source(source);
   result.set_kind(kind);
   result.SetLocationOffset(0, 0);
@@ -9075,10 +9091,10 @@ RawLibrary* Script::FindLibrary() const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   Isolate* isolate = thread->isolate();
-  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
-      zone, isolate->object_store()->libraries());
-  Library& lib = Library::Handle();
-  Array& scripts = Array::Handle();
+  const GrowableObjectArray& libs = GrowableObjectArray::Handle(zone,
+      isolate->object_store()->libraries());
+  Library& lib = Library::Handle(zone);
+  Array& scripts = Array::Handle(zone);
   for (intptr_t i = 0; i < libs.Length(); i++) {
     lib ^= libs.At(i);
     scripts = lib.LoadedScripts();
@@ -9333,49 +9349,57 @@ void Library::RemovePatchClass(const Class& cls) const {
 }
 
 
-static RawString* MakeClassMetaName(const Class& cls) {
-  return Symbols::FromConcat(Symbols::At(), String::Handle(cls.Name()));
+static RawString* MakeClassMetaName(Thread* thread, Zone* zone,
+                                    const Class& cls) {
+  return Symbols::FromConcat(thread,
+                             Symbols::At(), String::Handle(zone, cls.Name()));
 }
 
 
-static RawString* MakeFieldMetaName(const Field& field) {
-  const String& cname =
-      String::Handle(MakeClassMetaName(Class::Handle(field.Origin())));
-  GrowableHandlePtrArray<const String> pieces(Thread::Current()->zone(), 3);
+static RawString* MakeFieldMetaName(Thread* thread, Zone* zone,
+                                    const Field& field) {
+  const String& cname = String::Handle(zone,
+      MakeClassMetaName(thread, zone, Class::Handle(zone, field.Origin())));
+  GrowableHandlePtrArray<const String> pieces(zone, 3);
   pieces.Add(cname);
   pieces.Add(Symbols::At());
   pieces.Add(String::Handle(field.name()));
-  return Symbols::FromConcatAll(pieces);
+  return Symbols::FromConcatAll(thread, pieces);
 }
 
 
-static RawString* MakeFunctionMetaName(const Function& func) {
-  const String& cname =
-      String::Handle(MakeClassMetaName(Class::Handle(func.origin())));
-  GrowableHandlePtrArray<const String> pieces(Thread::Current()->zone(), 3);
+static RawString* MakeFunctionMetaName(Thread* thread, Zone* zone,
+                                       const Function& func) {
+  const String& cname = String::Handle(zone,
+      MakeClassMetaName(thread, zone, Class::Handle(zone, func.origin())));
+  GrowableHandlePtrArray<const String> pieces(zone, 3);
   pieces.Add(cname);
   pieces.Add(Symbols::At());
   pieces.Add(String::Handle(func.QualifiedScrubbedName()));
-  return Symbols::FromConcatAll(pieces);
+  return Symbols::FromConcatAll(thread, pieces);
 }
 
 
-static RawString* MakeTypeParameterMetaName(const TypeParameter& param) {
-  const String& cname = String::Handle(
-      MakeClassMetaName(Class::Handle(param.parameterized_class())));
-  GrowableHandlePtrArray<const String> pieces(Thread::Current()->zone(), 3);
+static RawString* MakeTypeParameterMetaName(Thread* thread, Zone* zone,
+                                            const TypeParameter& param) {
+  const String& cname = String::Handle(zone,
+      MakeClassMetaName(thread, zone,
+                        Class::Handle(zone, param.parameterized_class())));
+  GrowableHandlePtrArray<const String> pieces(zone, 3);
   pieces.Add(cname);
   pieces.Add(Symbols::At());
   pieces.Add(String::Handle(param.name()));
-  return Symbols::FromConcatAll(pieces);
+  return Symbols::FromConcatAll(thread, pieces);
 }
 
 
 void Library::AddMetadata(const Object& owner,
                           const String& name,
                           TokenPosition token_pos) const {
-  const String& metaname = String::Handle(Symbols::New(name));
-  const Field& field = Field::Handle(
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const String& metaname = String::Handle(zone, Symbols::New(thread, name));
+  const Field& field = Field::Handle(zone,
       Field::NewTopLevel(metaname,
                          false,  // is_final
                          false,  // is_const
@@ -9385,7 +9409,7 @@ void Library::AddMetadata(const Object& owner,
   field.set_is_reflectable(false);
   field.SetStaticValue(Array::empty_array(), true);
   GrowableObjectArray& metadata =
-      GrowableObjectArray::Handle(this->metadata());
+      GrowableObjectArray::Handle(zone, this->metadata());
   metadata.Add(field, Heap::kOld);
 }
 
@@ -9393,34 +9417,43 @@ void Library::AddMetadata(const Object& owner,
 void Library::AddClassMetadata(const Class& cls,
                                const Object& tl_owner,
                                TokenPosition token_pos) const {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   // We use the toplevel class as the owner of a class's metadata field because
   // a class's metadata is in scope of the library, not the class.
   AddMetadata(tl_owner,
-              String::Handle(MakeClassMetaName(cls)),
+              String::Handle(zone, MakeClassMetaName(thread, zone, cls)),
               token_pos);
 }
 
 
 void Library::AddFieldMetadata(const Field& field,
                                TokenPosition token_pos) const {
-  AddMetadata(Object::Handle(field.RawOwner()),
-              String::Handle(MakeFieldMetaName(field)),
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  AddMetadata(Object::Handle(zone, field.RawOwner()),
+              String::Handle(zone, MakeFieldMetaName(thread, zone, field)),
               token_pos);
 }
 
 
 void Library::AddFunctionMetadata(const Function& func,
                                   TokenPosition token_pos) const {
-  AddMetadata(Object::Handle(func.RawOwner()),
-              String::Handle(MakeFunctionMetaName(func)),
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  AddMetadata(Object::Handle(zone, func.RawOwner()),
+              String::Handle(zone, MakeFunctionMetaName(thread, zone, func)),
               token_pos);
 }
 
 
 void Library::AddTypeParameterMetadata(const TypeParameter& param,
                                        TokenPosition token_pos) const {
-  AddMetadata(Class::Handle(param.parameterized_class()),
-              String::Handle(MakeTypeParameterMetaName(param)),
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  AddMetadata(Class::Handle(zone, param.parameterized_class()),
+              String::Handle(zone,
+                             MakeTypeParameterMetaName(thread, zone, param)),
               token_pos);
 }
 
@@ -9432,16 +9465,18 @@ void Library::AddLibraryMetadata(const Object& tl_owner,
 
 
 RawString* Library::MakeMetadataName(const Object& obj) const {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   if (obj.IsClass()) {
-    return MakeClassMetaName(Class::Cast(obj));
+    return MakeClassMetaName(thread, zone, Class::Cast(obj));
   } else if (obj.IsField()) {
-    return MakeFieldMetaName(Field::Cast(obj));
+    return MakeFieldMetaName(thread, zone, Field::Cast(obj));
   } else if (obj.IsFunction()) {
-    return MakeFunctionMetaName(Function::Cast(obj));
+    return MakeFunctionMetaName(thread, zone, Function::Cast(obj));
   } else if (obj.IsLibrary()) {
     return Symbols::TopLevel().raw();
   } else if (obj.IsTypeParameter()) {
-    return MakeTypeParameterMetaName(TypeParameter::Cast(obj));
+    return MakeTypeParameterMetaName(thread, zone, TypeParameter::Cast(obj));
   }
   UNIMPLEMENTED();
   return String::null();
@@ -10311,9 +10346,12 @@ RawObject* Library::Evaluate(const String& expr,
 
 void Library::InitNativeWrappersLibrary(Isolate* isolate) {
   static const int kNumNativeWrappersClasses = 4;
-  ASSERT(kNumNativeWrappersClasses > 0 && kNumNativeWrappersClasses < 10);
+  COMPILE_ASSERT((kNumNativeWrappersClasses > 0) &&
+                 (kNumNativeWrappersClasses < 10));
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   const String& native_flds_lib_url = Symbols::DartNativeWrappers();
-  const Library& native_flds_lib = Library::Handle(
+  const Library& native_flds_lib = Library::Handle(zone,
       Library::NewLibraryHelper(native_flds_lib_url, false));
   const String& native_flds_lib_name = Symbols::DartNativeWrappersLibName();
   native_flds_lib.SetName(native_flds_lib_name);
@@ -10325,14 +10363,14 @@ void Library::InitNativeWrappersLibrary(Isolate* isolate) {
   static const int kNameLength = 25;
   ASSERT(kNameLength == (strlen(kNativeWrappersClass) + 1 + 1));
   char name_buffer[kNameLength];
-  String& cls_name = String::Handle();
+  String& cls_name = String::Handle(zone);
   for (int fld_cnt = 1; fld_cnt <= kNumNativeWrappersClasses; fld_cnt++) {
     OS::SNPrint(name_buffer,
                 kNameLength,
                 "%s%d",
                 kNativeWrappersClass,
                 fld_cnt);
-    cls_name = Symbols::New(name_buffer);
+    cls_name = Symbols::New(thread, name_buffer);
     Class::NewNativeWrapper(native_flds_lib, cls_name, fld_cnt);
   }
   native_flds_lib.SetLoaded();
@@ -10427,11 +10465,14 @@ const String& Library::PrivateCoreLibName(const String& member) {
 
 
 RawClass* Library::LookupCoreClass(const String& class_name) {
-  const Library& core_lib = Library::Handle(Library::CoreLibrary());
-  String& name = String::Handle(class_name.raw());
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
+  String& name = String::Handle(zone, class_name.raw());
   if (class_name.CharAt(0) == kPrivateIdentifierStart) {
     // Private identifiers are mangled on a per library basis.
-    name = Symbols::FromConcat(name, String::Handle(core_lib.private_key()));
+    name = Symbols::FromConcat(thread,
+        name, String::Handle(zone, core_lib.private_key()));
   }
   return core_lib.LookupClass(name);
 }
@@ -10440,11 +10481,14 @@ RawClass* Library::LookupCoreClass(const String& class_name) {
 // Cannot handle qualified names properly as it only appends private key to
 // the end (e.g. _Alfa.foo -> _Alfa.foo@...).
 RawString* Library::PrivateName(const String& name) const {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   ASSERT(IsPrivate(name));
   // ASSERT(strchr(name, '@') == NULL);
-  String& str = String::Handle();
+  String& str = String::Handle(zone);
   str = name.raw();
-  str = Symbols::FromConcat(str, String::Handle(this->private_key()));
+  str = Symbols::FromConcat(thread,
+                            str, String::Handle(zone, this->private_key()));
   return str.raw();
 }
 
@@ -11077,14 +11121,16 @@ RawError* Library::CompileAll() {
 RawFunction* Library::GetFunction(const GrowableArray<Library*>& libs,
                                   const char* class_name,
                                   const char* function_name) {
-  Function& func = Function::Handle();
-  String& class_str = String::Handle();
-  String& func_str = String::Handle();
-  Class& cls = Class::Handle();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  Function& func = Function::Handle(zone);
+  String& class_str = String::Handle(zone);
+  String& func_str = String::Handle(zone);
+  Class& cls = Class::Handle(zone);
   for (intptr_t l = 0; l < libs.length(); l++) {
     const Library& lib = *libs[l];
     if (strcmp(class_name, "::") == 0) {
-      func_str = Symbols::New(function_name);
+      func_str = Symbols::New(thread, function_name);
       func = lib.LookupFunctionAllowPrivate(func_str);
     } else {
       class_str = String::New(class_name);
@@ -13685,16 +13731,20 @@ RawString* Code::Name() const {
   const Object& obj = Object::Handle(owner());
   if (obj.IsNull()) {
     // Regular stub.
+    Thread* thread = Thread::Current();
+    Zone* zone = thread->zone();
     const char* name = StubCode::NameOfStub(EntryPoint());
     ASSERT(name != NULL);
-    const String& stub_name = String::Handle(Symbols::New(name));
-    return Symbols::FromConcat(Symbols::StubPrefix(), stub_name);
+    const String& stub_name = String::Handle(zone, String::New(name));
+    return Symbols::FromConcat(thread, Symbols::StubPrefix(), stub_name);
   } else if (obj.IsClass()) {
     // Allocation stub.
+    Thread* thread = Thread::Current();
+    Zone* zone = thread->zone();
     const Class& cls = Class::Cast(obj);
-    String& cls_name = String::Handle(cls.ScrubbedName());
+    String& cls_name = String::Handle(zone, cls.ScrubbedName());
     ASSERT(!cls_name.IsNull());
-    return Symbols::FromConcat(Symbols::AllocationStubFor(), cls_name);
+    return Symbols::FromConcat(thread, Symbols::AllocationStubFor(), cls_name);
   } else {
     ASSERT(obj.IsFunction());
     // Dart function.
@@ -15437,9 +15487,10 @@ bool AbstractType::TestAndAddBuddyToTrail(TrailPtr* trail,
 
 RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
   ASSERT(name_visibility != kScrubbedName);
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   if (IsBoundedType()) {
-    const AbstractType& type = AbstractType::Handle(
+    const AbstractType& type = AbstractType::Handle(zone,
         BoundedType::Cast(*this).type());
     if (name_visibility == kUserVisibleName) {
       return type.BuildName(kUserVisibleName);
@@ -15449,8 +15500,8 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
     pieces.Add(type_name);
     pieces.Add(Symbols::SpaceExtendsSpace());
     // Build the bound name without causing divergence.
-    const AbstractType& bound = AbstractType::Handle(
-        zone, BoundedType::Cast(*this).bound());
+    const AbstractType& bound = AbstractType::Handle(zone,
+        BoundedType::Cast(*this).bound());
     String& bound_name = String::Handle(zone);
     if (bound.IsTypeParameter()) {
       bound_name = TypeParameter::Cast(bound).name();
@@ -15465,7 +15516,7 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
     } else {
       pieces.Add(Symbols::OptimizedOut());
     }
-    return Symbols::FromConcatAll(pieces);
+    return Symbols::FromConcatAll(thread, pieces);
   }
   if (IsTypeParameter()) {
     return TypeParameter::Cast(*this).name();
@@ -15480,8 +15531,8 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
   Class& cls = Class::Handle(zone);
   if (IsFunctionType()) {
     cls = type_class();
-    const Function& signature_function = Function::Handle(
-        zone, Type::Cast(*this).signature());
+    const Function& signature_function = Function::Handle(zone,
+        Type::Cast(*this).signature());
     if (!cls.IsTypedefClass() ||
         (cls.signature_function() != signature_function.raw())) {
       if (!IsFinalized() || IsBeingFinalized() || IsMalformed()) {
@@ -15556,7 +15607,7 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
   // The name is only used for type checking and debugging purposes.
   // Unless profiling data shows otherwise, it is not worth caching the name in
   // the type.
-  return Symbols::FromConcatAll(pieces);
+  return Symbols::FromConcatAll(thread, pieces);
 }
 
 
@@ -15574,14 +15625,15 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
 //                            MyClass is from my_uri
 //                            int is from dart:core
 RawString* AbstractType::UserVisibleNameWithURI() const {
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   GrowableHandlePtrArray<const String> pieces(zone, 3);
   pieces.Add(String::Handle(zone, BuildName(kUserVisibleName)));
   if (!IsDynamicType() && !IsVoidType()) {
     pieces.Add(Symbols::SpaceWhereNewLine());
     pieces.Add(String::Handle(zone, EnumerateURIs()));
   }
-  return Symbols::FromConcatAll(pieces);
+  return Symbols::FromConcatAll(thread, pieces);
 }
 
 
@@ -16554,7 +16606,8 @@ RawString* Type::EnumerateURIs() const {
   if (IsDynamicType() || IsVoidType()) {
     return Symbols::Empty().raw();
   }
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   GrowableHandlePtrArray<const String> pieces(zone, 6);
   if (IsFunctionType()) {
     // The scope class and type arguments do not appear explicitly in the user
@@ -16582,7 +16635,7 @@ RawString* Type::EnumerateURIs() const {
     const TypeArguments& type_args = TypeArguments::Handle(zone, arguments());
     pieces.Add(String::Handle(zone, type_args.EnumerateURIs()));
   }
-  return Symbols::FromConcatAll(pieces);
+  return Symbols::FromConcatAll(thread, pieces);
 }
 
 
@@ -16798,9 +16851,10 @@ RawAbstractType* TypeRef::Canonicalize(TrailPtr trail) const {
 
 
 RawString* TypeRef::EnumerateURIs() const {
-  const AbstractType& ref_type = AbstractType::Handle(type());
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const AbstractType& ref_type = AbstractType::Handle(zone, type());
   ASSERT(!ref_type.IsDynamicType() && !ref_type.IsVoidType());
-  Zone* zone = Thread::Current()->zone();
   GrowableHandlePtrArray<const String> pieces(zone, 6);
   const Class& cls = Class::Handle(zone, ref_type.type_class());
   pieces.Add(Symbols::TwoSpaces());
@@ -16811,7 +16865,7 @@ RawString* TypeRef::EnumerateURIs() const {
   const Library& library = Library::Handle(zone, cls.library());
   pieces.Add(String::Handle(zone, library.url()));
   pieces.Add(Symbols::NewLine());
-  return Symbols::FromConcatAll(pieces);
+  return Symbols::FromConcatAll(thread, pieces);
 }
 
 
@@ -17033,7 +17087,8 @@ RawAbstractType* TypeParameter::CloneUninstantiated(
 
 
 RawString* TypeParameter::EnumerateURIs() const {
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   GrowableHandlePtrArray<const String> pieces(zone, 4);
   pieces.Add(Symbols::TwoSpaces());
   pieces.Add(String::Handle(zone, name()));
@@ -17044,7 +17099,7 @@ RawString* TypeParameter::EnumerateURIs() const {
   const Library& library = Library::Handle(zone, cls.library());
   pieces.Add(String::Handle(zone, library.url()));
   pieces.Add(Symbols::NewLine());
-  return Symbols::FromConcatAll(pieces);
+  return Symbols::FromConcatAll(thread, pieces);
 }
 
 
@@ -19170,7 +19225,7 @@ RawInstance* String::CheckAndCanonicalize(const char** error_str) const {
   if (IsCanonical()) {
     return this->raw();
   }
-  return Symbols::New(*this);
+  return Symbols::New(Thread::Current(), *this);
 }
 
 

@@ -300,7 +300,7 @@ RawError* Bootstrap::LoadandCompileScripts() {
       continue;
     }
 #endif  // !PRODUCT
-    uri = Symbols::New(bootstrap_libraries[i].uri_);
+    uri = Symbols::New(thread, bootstrap_libraries[i].uri_);
     lib = Library::LookupLibrary(uri);
     if (lib.IsNull()) {
       lib = Library::NewLibraryHelper(uri, false);
@@ -320,7 +320,7 @@ RawError* Bootstrap::LoadandCompileScripts() {
       continue;
     }
 #endif  // PRODUCT
-    uri = Symbols::New(bootstrap_libraries[i].uri_);
+    uri = Symbols::New(thread, bootstrap_libraries[i].uri_);
     lib = Library::LookupLibrary(uri);
     ASSERT(!lib.IsNull());
     source = GetLibrarySource(lib, uri, false);
@@ -338,7 +338,7 @@ RawError* Bootstrap::LoadandCompileScripts() {
     }
     // If a patch exists, load and patch the script.
     if (bootstrap_libraries[i].patch_paths_ != NULL) {
-      patch_uri = Symbols::New(bootstrap_libraries[i].patch_uri_);
+      patch_uri = Symbols::New(thread, bootstrap_libraries[i].patch_uri_);
       error = LoadPatchFiles(zone,
                              lib,
                              patch_uri,

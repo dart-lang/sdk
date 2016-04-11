@@ -163,6 +163,8 @@ P(use_field_guards, bool, true,                                                \
   "Use field guards and track field types")                                    \
 C(use_osr, false, true, bool, true,                                            \
   "Use OSR")                                                                   \
+R(verbose_dev, false, bool, false,                                             \
+  "Enables verbose messages during development.")                              \
 P(verbose_gc, bool, false,                                                     \
   "Enables verbose GC.")                                                       \
 P(verbose_gc_hdr, int, 40,                                                     \

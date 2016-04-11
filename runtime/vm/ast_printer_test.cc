@@ -18,7 +18,7 @@ TEST_CASE(AstPrinter) {
   const TokenPosition kPos = TokenPosition::kNoSource;
   LocalVariable* v =
       new LocalVariable(kPos,
-                        String::ZoneHandle(Symbols::New("wurscht")),
+                        String::ZoneHandle(Symbols::New(thread, "wurscht")),
                         Type::ZoneHandle(Type::DynamicType()));
   v->set_index(5);
   LoadLocalNode* ll = new LoadLocalNode(kPos, v);

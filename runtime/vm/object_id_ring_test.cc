@@ -37,7 +37,7 @@ class ObjectIdRingTestHelper {
   }
 
   static RawObject* MakeString(const char* s) {
-    return Symbols::New(s);
+    return Symbols::New(Thread::Current(), s);
   }
 
   static void ExpectString(RawObject* obj, const char* s) {

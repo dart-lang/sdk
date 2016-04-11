@@ -2852,6 +2852,8 @@ FOR_EACH_FUNCTION_KIND_BIT(DEFINE_BIT)
   RawString* QualifiedName(NameVisibility name_visibility) const;
 
   void BuildSignatureParameters(
+      Thread* thread,
+      Zone* zone,
       bool instantiate,
       NameVisibility name_visibility,
       const TypeArguments& instantiator,

@@ -45,6 +45,9 @@ DECLARE_FLAG(bool, support_externalizable_strings);
 // Quick access to the locally defined zone() method.
 #define Z (zone())
 
+// Quick access to the locally defined thread() method.
+#define T (thread())
+
 // Quick synthetic token position.
 #define ST(token_pos) ((token_pos).ToSynthetic())
 
@@ -1392,7 +1395,7 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
       new(Z) ZoneGrowableArray<PushArgumentInstr*>(2);
   arguments->Add(push_left);
   arguments->Add(push_right);
-  const String& name = String::ZoneHandle(Z, Symbols::New(node->TokenName()));
+  const String& name = Symbols::Token(node->kind());
   const intptr_t kNumArgsChecked = 2;
   InstanceCallInstr* call = new(Z) InstanceCallInstr(node->token_pos(),
                                                      name,
@@ -1828,7 +1831,7 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
   ASSERT(Token::IsRelationalOperator(node->kind()));
   InstanceCallInstr* comp = new(Z) InstanceCallInstr(
       node->token_pos(),
-      String::ZoneHandle(Z, Symbols::New(node->TokenName())),
+      Symbols::Token(node->kind()),
       node->kind(),
       arguments,
       Object::null_array(),
@@ -1864,7 +1867,7 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
   arguments->Add(push_value);
   InstanceCallInstr* call = new(Z) InstanceCallInstr(
       node->token_pos(),
-      String::ZoneHandle(Z, Symbols::New(node->TokenName())),
+      Symbols::Token(node->kind()),
       node->kind(),
       arguments,
       Object::null_array(),
@@ -2301,7 +2304,7 @@ LocalVariable* EffectGraphVisitor::EnterTempLocalScope(
   OS::SNPrint(name, 64, ":tmp_local%" Pd, index);
   LocalVariable*  var =
       new(Z) LocalVariable(TokenPosition::kNoSource,
-                           String::ZoneHandle(Z, Symbols::New(name)),
+                           String::ZoneHandle(Z, Symbols::New(T, name)),
                            *value->Type()->ToAbstractType());
   var->set_index(index);
   return var;
@@ -3226,7 +3229,8 @@ void EffectGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
   if (node->is_super_getter()) {
     // Statically resolved instance getter, i.e. "super getter".
     ASSERT(node->receiver() != NULL);
-    getter_function = Resolver::ResolveDynamicAnyArgs(node->cls(), getter_name);
+    getter_function = Resolver::ResolveDynamicAnyArgs(Z,
+        node->cls(), getter_name);
     if (getter_function.IsNull()) {
       // Resolve and call noSuchMethod.
       ArgumentListNode* arguments = new(Z) ArgumentListNode(node->token_pos());
@@ -3794,9 +3798,8 @@ void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
   Function* super_function = NULL;
   if (node->IsSuperLoad()) {
     // Resolve the load indexed operator in the super class.
-    super_function = &Function::ZoneHandle(
-          Z, Resolver::ResolveDynamicAnyArgs(node->super_class(),
-                                             Symbols::IndexToken()));
+    super_function = &Function::ZoneHandle(Z, Resolver::ResolveDynamicAnyArgs(Z,
+        node->super_class(), Symbols::IndexToken()));
     if (super_function->IsNull()) {
       // Could not resolve super operator. Generate call noSuchMethod() of the
       // super class instead.
@@ -3857,9 +3860,8 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
   const TokenPosition token_pos = node->token_pos();
   if (node->IsSuperStore()) {
     // Resolve the store indexed operator in the super class.
-    super_function = &Function::ZoneHandle(
-        Z, Resolver::ResolveDynamicAnyArgs(node->super_class(),
-                                           Symbols::AssignIndexToken()));
+    super_function = &Function::ZoneHandle(Z, Resolver::ResolveDynamicAnyArgs(Z,
+        node->super_class(), Symbols::AssignIndexToken()));
     if (super_function->IsNull()) {
       // Could not resolve super operator. Generate call noSuchMethod() of the
       // super class instead.
@@ -3925,11 +3927,9 @@ Definition* EffectGraphVisitor::BuildStoreIndexedValues(
   } else {
     // Generate dynamic call to operator []=.
     const intptr_t checked_argument_count = 2;  // Do not check for value type.
-    const String& name =
-        String::ZoneHandle(Z, Symbols::New(Token::Str(Token::kASSIGN_INDEX)));
     InstanceCallInstr* store =
         new(Z) InstanceCallInstr(token_pos,
-                                 name,
+                                 Symbols::AssignIndexToken(),
                                  Token::kASSIGN_INDEX,
                                  arguments,
                                  Object::null_array(),
@@ -4474,7 +4474,7 @@ StaticCallInstr* EffectGraphVisitor::BuildThrowNoSuchMethodError(
   arguments->Add(PushArgument(receiver_value));
   // String memberName.
   const String& member_name =
-      String::ZoneHandle(Z, Symbols::New(function_name));
+      String::ZoneHandle(Z, Symbols::New(T, function_name));
   Value* member_name_value = Bind(new(Z) ConstantInstr(member_name));
   arguments->Add(PushArgument(member_name_value));
   // Smi invocation_type.

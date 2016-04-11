@@ -1425,7 +1425,7 @@ class RegExpEngine: public AllStatic {
       Zone* zone);
 
   static RawRegExp* CreateRegExp(
-      Zone* zone,
+      Thread* thread,
       const String& pattern,
       bool multi_line,
       bool ignore_case);

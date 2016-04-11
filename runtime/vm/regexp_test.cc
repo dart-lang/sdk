@@ -13,9 +13,10 @@
 namespace dart {
 
 static RawArray* Match(const String& pat, const String& str) {
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   const RegExp& regexp = RegExp::Handle(
-      RegExpEngine::CreateRegExp(zone, pat, false, false));
+      RegExpEngine::CreateRegExp(thread, pat, false, false));
   const Smi& idx = Smi::Handle(Smi::New(0));
   return IRRegExpMacroAssembler::Execute(regexp, str, idx, zone);
 }

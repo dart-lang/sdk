@@ -1300,26 +1300,26 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invoke, 5) {
   GET_NON_NULL_NATIVE_ARGUMENT(Array, arg_names, arguments->NativeArgAt(4));
 
   Class& klass = Class::Handle(reflectee.clazz());
-  Function& function = Function::Handle(
-      Resolver::ResolveDynamicAnyArgs(klass, function_name));
+  Function& function = Function::Handle(zone,
+      Resolver::ResolveDynamicAnyArgs(zone, klass, function_name));
 
   const Array& args_descriptor =
-      Array::Handle(ArgumentsDescriptor::New(args.Length(), arg_names));
+      Array::Handle(zone, ArgumentsDescriptor::New(args.Length(), arg_names));
 
   if (function.IsNull()) {
     // Didn't find a method: try to find a getter and invoke call on its result.
     const String& getter_name =
-        String::Handle(Field::GetterName(function_name));
-    function = Resolver::ResolveDynamicAnyArgs(klass, getter_name);
+        String::Handle(zone, Field::GetterName(function_name));
+    function = Resolver::ResolveDynamicAnyArgs(zone, klass, getter_name);
     if (!function.IsNull()) {
       ASSERT(function.kind() != RawFunction::kMethodExtractor);
       // Invoke the getter.
       const int kNumArgs = 1;
-      const Array& getter_args = Array::Handle(Array::New(kNumArgs));
+      const Array& getter_args = Array::Handle(zone, Array::New(kNumArgs));
       getter_args.SetAt(0, reflectee);
       const Array& getter_args_descriptor =
-          Array::Handle(ArgumentsDescriptor::New(getter_args.Length()));
-      const Instance& getter_result = Instance::Handle(
+          Array::Handle(zone, ArgumentsDescriptor::New(getter_args.Length()));
+      const Instance& getter_result = Instance::Handle(zone,
           InvokeDynamicFunction(reflectee,
                                 function,
                                 getter_name,
@@ -1329,7 +1329,7 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invoke, 5) {
       args.SetAt(0, getter_result);
       // Call the closure.
       const Object& call_result =
-          Object::Handle(DartEntry::InvokeClosure(args, args_descriptor));
+          Object::Handle(zone, DartEntry::InvokeClosure(args, args_descriptor));
       if (call_result.IsError()) {
         Exceptions::PropagateError(Error::Cast(call_result));
         UNREACHABLE();
@@ -1357,24 +1357,24 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invokeGetter, 3) {
 
   const String& internal_getter_name = String::Handle(
       Field::GetterName(getter_name));
-  Function& function = Function::Handle(
-      Resolver::ResolveDynamicAnyArgs(klass, internal_getter_name));
+  Function& function = Function::Handle(zone,
+      Resolver::ResolveDynamicAnyArgs(zone, klass, internal_getter_name));
 
   // Check for method extraction when method extractors are not created.
   if (function.IsNull() && !FLAG_lazy_dispatchers) {
-    function = Resolver::ResolveDynamicAnyArgs(klass, getter_name);
+    function = Resolver::ResolveDynamicAnyArgs(zone, klass, getter_name);
     if (!function.IsNull()) {
       const Function& closure_function =
-        Function::Handle(function.ImplicitClosureFunction());
+        Function::Handle(zone, function.ImplicitClosureFunction());
       return closure_function.ImplicitInstanceClosure(reflectee);
     }
   }
 
   const int kNumArgs = 1;
-  const Array& args = Array::Handle(Array::New(kNumArgs));
+  const Array& args = Array::Handle(zone, Array::New(kNumArgs));
   args.SetAt(0, reflectee);
   const Array& args_descriptor =
-      Array::Handle(ArgumentsDescriptor::New(args.Length()));
+      Array::Handle(zone, ArgumentsDescriptor::New(args.Length()));
 
   // InvokeDynamic invokes NoSuchMethod if the provided function is null.
   return InvokeDynamicFunction(reflectee,
@@ -1393,18 +1393,18 @@ DEFINE_NATIVE_ENTRY(InstanceMirror_invokeSetter, 4) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, setter_name, arguments->NativeArgAt(2));
   GET_NATIVE_ARGUMENT(Instance, value, arguments->NativeArgAt(3));
 
-  const Class& klass = Class::Handle(reflectee.clazz());
+  const Class& klass = Class::Handle(zone, reflectee.clazz());
   const String& internal_setter_name =
-      String::Handle(Field::SetterName(setter_name));
-  const Function& setter = Function::Handle(
-      Resolver::ResolveDynamicAnyArgs(klass, internal_setter_name));
+      String::Handle(zone, Field::SetterName(setter_name));
+  const Function& setter = Function::Handle(zone,
+      Resolver::ResolveDynamicAnyArgs(zone, klass, internal_setter_name));
 
   const int kNumArgs = 2;
-  const Array& args = Array::Handle(Array::New(kNumArgs));
+  const Array& args = Array::Handle(zone, Array::New(kNumArgs));
   args.SetAt(0, reflectee);
   args.SetAt(1, value);
   const Array& args_descriptor =
-      Array::Handle(ArgumentsDescriptor::New(args.Length()));
+      Array::Handle(zone, ArgumentsDescriptor::New(args.Length()));
 
   return InvokeDynamicFunction(reflectee,
                                setter,

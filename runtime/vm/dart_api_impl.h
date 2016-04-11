@@ -57,7 +57,7 @@ const char* CanonicalFunction(const char* func);
 #define DARTSCOPE(thread)                                                      \
   Thread* T = (thread);                                                        \
   CHECK_API_SCOPE(T);                                                          \
-  TransitionNativeToVM trainsition(T);                                         \
+  TransitionNativeToVM transition(T);                                          \
   HANDLESCOPE(T);
 
 

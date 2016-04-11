@@ -284,7 +284,7 @@ class SourcePositionTest : public ValueObject {
 
   RawClass* GetClass(const Library& lib, const char* name) {
     const Class& cls = Class::Handle(
-        lib.LookupClass(String::Handle(Symbols::New(name))));
+        lib.LookupClass(String::Handle(Symbols::New(thread_, name))));
     EXPECT(!cls.IsNull());  // No ambiguity error expected.
     return cls.raw();
   }

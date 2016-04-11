@@ -30,7 +30,7 @@ TEST_CASE(DartEntry) {
   EXPECT_EQ(true, CompilerTest::TestCompileScript(lib, script));
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New("A"))));
+      lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
   String& name = String::Handle(String::New("foo"));
   Function& function = Function::Handle(cls.LookupStaticFunction(name));
@@ -58,7 +58,7 @@ TEST_CASE(InvokeStatic_CompileError) {
   EXPECT_EQ(true, CompilerTest::TestCompileScript(lib, script));
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New("A"))));
+      lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
   String& name = String::Handle(String::New("foo"));
   Function& function = Function::Handle(cls.LookupStaticFunction(name));
@@ -84,14 +84,14 @@ TEST_CASE(InvokeDynamic_CompileError) {
   EXPECT_EQ(true, CompilerTest::TestCompileScript(lib, script));
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New("A"))));
+      lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
   EXPECT(!cls.IsNull());  // No ambiguity error expected.
 
   // Invoke the constructor.
   const Instance& instance = Instance::Handle(Instance::New(cls));
   const Array& constructor_arguments = Array::Handle(Array::New(1));
   constructor_arguments.SetAt(0, instance);
-  String& constructor_name = String::Handle(Symbols::New("A."));
+  String& constructor_name = String::Handle(Symbols::New(thread, "A."));
   Function& constructor =
     Function::Handle(cls.LookupConstructor(constructor_name));
   ASSERT(!constructor.IsNull());

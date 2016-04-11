@@ -3052,8 +3052,8 @@ void InstanceCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       ASSERT(call_ic_data->NumArgsTested() == 2);
       const String& name = String::Handle(zone, call_ic_data->target_name());
       const Class& smi_class = Class::Handle(zone, Smi::Class());
-      const Function& smi_op_target =
-          Function::Handle(Resolver::ResolveDynamicAnyArgs(smi_class, name));
+      const Function& smi_op_target = Function::Handle(zone,
+          Resolver::ResolveDynamicAnyArgs(zone, smi_class, name));
       if (call_ic_data->NumberOfChecks() == 0) {
         GrowableArray<intptr_t> class_ids(2);
         class_ids.Add(kSmiCid);
@@ -3481,7 +3481,8 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
     return this;
   }
   const intptr_t length = Smi::Cast(num_elements->BoundConstant()).Value();
-  Zone* zone = Thread::Current()->zone();
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   GrowableHandlePtrArray<const String> pieces(zone, length);
   for (intptr_t i = 0; i < length; i++) {
     pieces.Add(Object::null_string());
@@ -3509,7 +3510,7 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
         pieces.SetAt(store_index, String::Cast(obj));
       } else if (obj.IsSmi()) {
         const char* cstr = obj.ToCString();
-        pieces.SetAt(store_index, String::Handle(zone, Symbols::New(cstr)));
+        pieces.SetAt(store_index, String::Handle(zone, String::New(cstr)));
       } else if (obj.IsBool()) {
         pieces.SetAt(store_index,
             Bool::Cast(obj).value() ? Symbols::True() : Symbols::False());
@@ -3523,9 +3524,8 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
     }
   }
 
-  ASSERT(pieces.length() == length);
   const String& concatenated = String::ZoneHandle(zone,
-      Symbols::FromConcatAll(pieces));
+      Symbols::FromConcatAll(thread, pieces));
   return flow_graph->GetConstant(concatenated);
 }
 

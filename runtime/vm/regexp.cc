@@ -5244,7 +5244,7 @@ RegExpEngine::CompilationResult RegExpEngine::CompileBytecode(
 }
 
 
-static void CreateSpecializedFunction(Zone* zone,
+static void CreateSpecializedFunction(Thread* thread, Zone* zone,
                                       const RegExp& regexp,
                                       intptr_t specialization_cid,
                                       const Object& owner) {
@@ -5252,7 +5252,7 @@ static void CreateSpecializedFunction(Zone* zone,
 
   Function& fn = Function::Handle(zone, Function::New(
       // Append the regexp pattern to the function name.
-      String::Handle(zone, Symbols::New(
+      String::Handle(zone, Symbols::New(thread,
           String::Handle(zone, String::Concat(
               String::Handle(zone, String::Concat(
                   Symbols::ColonMatcher(),
@@ -5297,10 +5297,11 @@ static void CreateSpecializedFunction(Zone* zone,
 }
 
 
-RawRegExp* RegExpEngine::CreateRegExp(Zone* zone,
-                                          const String& pattern,
-                                          bool multi_line,
-                                          bool ignore_case) {
+RawRegExp* RegExpEngine::CreateRegExp(Thread* thread,
+                                      const String& pattern,
+                                      bool multi_line,
+                                      bool ignore_case) {
+  Zone* zone = thread->zone();
   const RegExp& regexp = RegExp::Handle(RegExp::New());
 
   regexp.set_pattern(pattern);
@@ -5319,13 +5320,15 @@ RawRegExp* RegExpEngine::CreateRegExp(Zone* zone,
 
   if (!FLAG_interpret_irregexp) {
     const Library& lib = Library::Handle(zone, Library::CoreLibrary());
-    const Class& owner = Class::Handle(
-        zone, lib.LookupClass(Symbols::RegExp()));
+    const Class& owner = Class::Handle(zone,
+                                       lib.LookupClass(Symbols::RegExp()));
 
-    CreateSpecializedFunction(zone, regexp, kOneByteStringCid, owner);
-    CreateSpecializedFunction(zone, regexp, kTwoByteStringCid, owner);
-    CreateSpecializedFunction(zone, regexp, kExternalOneByteStringCid, owner);
-    CreateSpecializedFunction(zone, regexp, kExternalTwoByteStringCid, owner);
+    CreateSpecializedFunction(thread, zone, regexp, kOneByteStringCid, owner);
+    CreateSpecializedFunction(thread, zone, regexp, kTwoByteStringCid, owner);
+    CreateSpecializedFunction(thread, zone,
+                              regexp, kExternalOneByteStringCid, owner);
+    CreateSpecializedFunction(thread, zone,
+                              regexp, kExternalTwoByteStringCid, owner);
   }
 
   return regexp.raw();

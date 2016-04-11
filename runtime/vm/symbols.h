@@ -33,6 +33,7 @@ class ObjectPointerVisitor;
   V(DefaultLabel, ":L")                                                        \
   V(Other, "other")                                                            \
   V(Call, "call")                                                              \
+  V(GetCall, "get:call")                                                       \
   V(Current, "current")                                                        \
   V(_current, "_current")                                                      \
   V(MoveNext, "moveNext")                                                      \
@@ -55,6 +56,7 @@ class ObjectPointerVisitor;
   V(Values, "values")                                                          \
   V(_EnumNames, "_enum_names")                                                 \
   V(ExprTemp, ":expr_temp")                                                    \
+  V(FinallyRetVal, ":finally_ret_val")                                         \
   V(AnonymousClosure, "<anonymous closure>")                                   \
   V(AnonymousSignature, "<anonymous signature>")                               \
   V(ImplicitClosure, "<implicit closure>")                                     \
@@ -406,12 +408,13 @@ class Symbols : public AllStatic {
     PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
 #undef DEFINE_SYMBOL_INDEX
 
-    kKwTableStart,  // First keyword at kKwTableStart + 1.
+    kTokenTableStart,  // First token at kTokenTableStart + 1.
 
-#define DEFINE_KEYWORD_SYMBOL_INDEX(t, s, p, a)                                \
+#define DEFINE_TOKEN_SYMBOL_INDEX(t, s, p, a)                                  \
     t##Id,
-    DART_KEYWORD_LIST(DEFINE_KEYWORD_SYMBOL_INDEX)
-#undef DEFINE_KEYWORD_SYMBOL_INDEX
+    DART_TOKEN_LIST(DEFINE_TOKEN_SYMBOL_INDEX)
+    DART_KEYWORD_LIST(DEFINE_TOKEN_SYMBOL_INDEX)
+#undef DEFINE_TOKEN_SYMBOL_INDEX
 
     kNullCharId,  // One char code symbol starts here and takes up 256 entries.
     kMaxPredefinedId = kNullCharId + kMaxOneCharCodeSymbol + 1,
@@ -524,7 +527,7 @@ class Symbols : public AllStatic {
     return *(symbol_handles_[kNullCharId + '~']);
   }
 
-  static const String& Empty() { return *(symbol_handles_[kKwTableStart]); }
+  static const String& Empty() { return *(symbol_handles_[kTokenTableStart]); }
   static const String& False() { return *(symbol_handles_[kFALSEId]); }
   static const String& Library() { return *(symbol_handles_[kLIBRARYId]); }
   static const String& Super() { return *(symbol_handles_[kSUPERId]); }
@@ -542,11 +545,12 @@ class Symbols : public AllStatic {
   // Access methods for symbol handles stored in the vm isolate for keywords.
 #define DEFINE_SYMBOL_HANDLE_ACCESSOR(t, s, p, a)                              \
   static const String& t() { return *(symbol_handles_[t##Id]); }
+  DART_TOKEN_LIST(DEFINE_SYMBOL_HANDLE_ACCESSOR)
   DART_KEYWORD_LIST(DEFINE_SYMBOL_HANDLE_ACCESSOR)
 #undef DEFINE_SYMBOL_HANDLE_ACCESSOR
 
-  // Get symbol for scanner keyword.
-  static const String& Keyword(Token::Kind keyword);
+  // Get symbol for scanner token.
+  static const String& Token(Token::Kind token);
 
   // Initialize frequently used symbols in the vm isolate.
   static void InitOnce(Isolate* isolate);
@@ -569,41 +573,58 @@ class Symbols : public AllStatic {
   // Creates a Symbol given a C string that is assumed to contain
   // UTF-8 encoded characters and '\0' is considered a termination character.
   // TODO(7123) - Rename this to FromCString(....).
-  static RawString* New(const char* cstr) {
-    return New(cstr, strlen(cstr));
+  static RawString* New(Thread* thread, const char* cstr) {
+    return New(thread, cstr, strlen(cstr));
   }
-  static RawString* New(const char* cstr, intptr_t length);
+  static RawString* New(Thread* thread, const char* cstr, intptr_t length);
 
   // Creates a new Symbol from an array of UTF-8 encoded characters.
-  static RawString* FromUTF8(const uint8_t* utf8_array, intptr_t len);
+  static RawString* FromUTF8(Thread* thread,
+                             const uint8_t* utf8_array,
+                             intptr_t len);
 
   // Creates a new Symbol from an array of Latin-1 encoded characters.
-  static RawString* FromLatin1(const uint8_t* latin1_array, intptr_t len);
+  static RawString* FromLatin1(Thread* thread,
+                               const uint8_t* latin1_array,
+                               intptr_t len);
 
   // Creates a new Symbol from an array of UTF-16 encoded characters.
-  static RawString* FromUTF16(const uint16_t* utf16_array, intptr_t len);
+  static RawString* FromUTF16(Thread* thread,
+                              const uint16_t* utf16_array,
+                              intptr_t len);
 
   // Creates a new Symbol from an array of UTF-32 encoded characters.
-  static RawString* FromUTF32(const int32_t* utf32_array, intptr_t len);
+  static RawString* FromUTF32(Thread* thread,
+                              const int32_t* utf32_array,
+                              intptr_t len);
 
-  static RawString* New(const String& str);
-  static RawString* New(const String& str,
+  static RawString* New(Thread* thread, const String& str);
+  static RawString* New(Thread* thread,
+                        const String& str,
                         intptr_t begin_index,
                         intptr_t length);
 
-  static RawString* NewFormatted(const char* format, ...)
-      PRINTF_ATTRIBUTE(1, 2);
-  static RawString* NewFormattedV(const char* format, va_list args);
+  static RawString* NewFormatted(Thread* thread, const char* format, ...)
+      PRINTF_ATTRIBUTE(2, 3);
+  static RawString* NewFormattedV(Thread* thread,
+                                  const char* format,
+                                  va_list args);
 
-  static RawString* FromConcat(const String& str1, const String& str2);
+  static RawString* FromConcat(Thread* thread,
+                               const String& str1,
+                               const String& str2);
 
-  static RawString* FromConcatAll(
+  static RawString* FromConcatAll(Thread* thread,
       const GrowableHandlePtrArray<const String>& strs);
+
+  static RawString* FromGet(Thread* thread, const String& str);
+  static RawString* FromSet(Thread* thread, const String& str);
+  static RawString* FromDot(Thread* thread, const String& str);
 
   // Returns char* of predefined symbol.
   static const char* Name(SymbolId symbol);
 
-  static RawString* FromCharCode(int32_t char_code);
+  static RawString* FromCharCode(Thread* thread, int32_t char_code);
 
   static RawString** PredefinedAddress() {
     return reinterpret_cast<RawString**>(&predefined_);
@@ -613,10 +634,16 @@ class Symbols : public AllStatic {
 
   // Returns Symbol::Null if no symbol is found.
   template<typename StringType>
-  static RawString* Lookup(const StringType& str);
+  static RawString* Lookup(Thread* thread, const StringType& str);
 
   // Returns Symbol::Null if no symbol is found.
-  static RawString* LookupFromConcat(const String& str1, const String& str2);
+  static RawString* LookupFromConcat(Thread* thread,
+                                     const String& str1,
+                                     const String& str2);
+
+  static RawString* LookupFromGet(Thread* thread, const String& str);
+  static RawString* LookupFromSet(Thread* thread, const String& str);
+  static RawString* LookupFromDot(Thread* thread, const String& str);
 
  private:
   enum {
@@ -629,7 +656,7 @@ class Symbols : public AllStatic {
                        intptr_t* capacity);
 
   template<typename StringType>
-  static RawString* NewSymbol(const StringType& str);
+  static RawString* NewSymbol(Thread* thread, const StringType& str);
 
   static intptr_t LookupVMSymbol(RawObject* obj);
   static RawObject* GetVMSymbol(intptr_t object_id);
