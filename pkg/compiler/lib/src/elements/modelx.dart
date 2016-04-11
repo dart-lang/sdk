@@ -1546,10 +1546,6 @@ abstract class VariableElementX extends ElementX
   // cases, for example, for function typed parameters.
   Token get position => token;
 
-  accept(ElementVisitor visitor, arg) {
-    return visitor.visitVariableElement(this, arg);
-  }
-
   DeclarationSite get declarationSite => variables;
 }
 
@@ -1566,6 +1562,10 @@ class LocalVariableElementX extends VariableElementX
   MemberElement get memberContext => executableContext.memberContext;
 
   bool get isLocal => true;
+
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitLocalVariableElement(this, arg);
+  }
 }
 
 class FieldElementX extends VariableElementX
@@ -2753,6 +2753,9 @@ class EnumConstructorElementX extends ConstructorElementX {
 
   @override
   FunctionExpression parseNode(Parsing parsing) => node;
+
+  @override
+  SourceSpan get sourcePosition => enclosingClass.sourcePosition;
 }
 
 class EnumMethodElementX extends MethodElementX {
@@ -2767,6 +2770,9 @@ class EnumMethodElementX extends MethodElementX {
 
   @override
   FunctionExpression parseNode(Parsing parsing) => node;
+
+  @override
+  SourceSpan get sourcePosition => enclosingClass.sourcePosition;
 }
 
 class EnumFormalElementX extends InitializingFormalElementX {
@@ -2778,6 +2784,9 @@ class EnumFormalElementX extends InitializingFormalElementX {
       : super(constructor, variables, identifier, null, fieldElement) {
     typeCache = fieldElement.type;
   }
+
+  @override
+  SourceSpan get sourcePosition => enclosingClass.sourcePosition;
 }
 
 class EnumFieldElementX extends FieldElementX {
@@ -2788,6 +2797,30 @@ class EnumFieldElementX extends FieldElementX {
     definitionsCache = new VariableDefinitions(
         null, variableList.modifiers, new NodeList.singleton(definition));
     initializerCache = initializer;
+  }
+
+  @override
+  SourceSpan get sourcePosition => enclosingClass.sourcePosition;
+}
+
+class EnumConstantElementX extends EnumFieldElementX
+    implements EnumConstantElement {
+  final int index;
+
+  EnumConstantElementX(
+      Identifier name,
+      EnumClassElementX enumClass,
+      VariableList variableList,
+      Node definition,
+      Expression initializer,
+      this.index)
+      : super(name, enumClass, variableList, definition, initializer);
+
+  @override
+  SourceSpan get sourcePosition {
+    return new SourceSpan(
+        enclosingClass.sourcePosition.uri,
+        position.charOffset, position.charEnd);
   }
 }
 
@@ -3088,7 +3121,9 @@ abstract class AstElementMixin implements AstElement {
   /// itself.
   AstElement get definingElement;
 
-  bool get hasResolvedAst => definingElement.hasTreeElements;
+  bool get hasResolvedAst {
+    return definingElement.hasNode && definingElement.hasTreeElements;
+  }
 
   ResolvedAst get resolvedAst {
     return new ResolvedAst(

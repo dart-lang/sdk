@@ -439,7 +439,10 @@ class LibraryElementZ extends DeserializedElementZ
   }
 
   @override
-  Element findExported(String elementName) => _unsupported('findExported');
+  Element findExported(String elementName) {
+    _ensureExports();
+    return _exportsMap.lookup(elementName);
+  }
 
   void _ensureImports() {
     if (_importsMap == null) {
@@ -1301,6 +1304,14 @@ class StaticFieldElementZ extends FieldElementZ
   StaticFieldElementZ(ObjectDecoder decoder) : super(decoder);
 }
 
+class EnumConstantElementZ extends StaticFieldElementZ
+    implements EnumConstantElement {
+  EnumConstantElementZ(ObjectDecoder decoder)
+      : super(decoder);
+
+  int get index => _decoder.getInt(Key.INDEX);
+}
+
 class InstanceFieldElementZ extends FieldElementZ
     with ClassMemberMixin, InstanceMemberMixin {
   InstanceFieldElementZ(ObjectDecoder decoder) : super(decoder);
@@ -1775,6 +1786,48 @@ class InitializingFormalElementZ extends ParameterElementZ
 
   @override
   ElementKind get kind => ElementKind.INITIALIZING_FORMAL;
+}
+
+
+class LocalVariableElementZ extends DeserializedElementZ
+    with
+        AnalyzableElementMixin,
+        AstElementMixin,
+        LocalExecutableMixin,
+        TypedElementMixin
+    implements LocalVariableElement {
+  bool _isConst;
+  ConstantExpression _constant;
+
+  LocalVariableElementZ(ObjectDecoder decoder) : super(decoder);
+
+  @override
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitLocalVariableElement(this, arg);
+  }
+
+  @override
+  ElementKind get kind => ElementKind.VARIABLE;
+
+  @override
+  bool get isConst {
+    if (_isConst == null) {
+      _constant = _decoder.getConstant(Key.CONSTANT);
+      _isConst = _constant != null;
+    }
+    return _isConst;
+  }
+
+  @override
+  ConstantExpression get constant {
+    if (isConst) {
+      return _constant;
+    }
+    return null;
+  }
+
+  @override
+  Expression get initializer => _unsupported('initializer');
 }
 
 class ImportElementZ extends DeserializedElementZ

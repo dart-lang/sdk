@@ -639,9 +639,7 @@ class Unparser extends Indentation implements Visitor {
     visitGotoStatement(node);
   }
 
-  visitAsyncForIn(AsyncForIn node) {
-    write(node.awaitToken.value);
-    write(' ');
+  visitForIn(ForIn node) {
     write(node.forToken.value);
     space();
     write('(');
@@ -654,17 +652,14 @@ class Unparser extends Indentation implements Visitor {
     visit(node.body);
   }
 
-  visitSyncForIn(SyncForIn node) {
-    write(node.forToken.value);
-    space();
-    write('(');
-    visit(node.declaredIdentifier);
+  visitAsyncForIn(AsyncForIn node) {
+    write(node.awaitToken.value);
     write(' ');
-    addToken(node.inToken);
-    visit(node.expression);
-    write(')');
-    space();
-    visit(node.body);
+    visitForIn(node);
+  }
+
+  visitSyncForIn(SyncForIn node) {
+    visitForIn(node);
   }
 
   visitLabel(Label node) {

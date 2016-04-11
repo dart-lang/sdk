@@ -23,6 +23,7 @@ import 'elements/elements.dart'
         Element,
         Elements,
         EnumClassElement,
+        EnumConstantElement,
         ExecutableElement,
         FieldElement,
         FunctionElement,
@@ -1953,7 +1954,7 @@ class TypeCheckerVisitor extends Visitor<DartType> {
             <ConstantValue, FieldElement>{};
         List<FieldElement> unreferencedFields = <FieldElement>[];
         EnumClassElement enumClass = expressionType.element;
-        enumClass.enumValues.forEach((FieldElement field) {
+        enumClass.enumValues.forEach((EnumConstantElement field) {
           ConstantValue constantValue =
               compiler.constants.getConstantValueForVariable(field);
           if (constantValue == null) {

@@ -22,7 +22,7 @@ abstract class ElementVisitor<R, A> {
   R visitExportElement(ExportElement e, A arg) => null;
   R visitPrefixElement(PrefixElement e, A arg) => null;
   R visitTypedefElement(TypedefElement e, A arg) => null;
-  R visitVariableElement(VariableElement e, A arg) => null;
+  R visitLocalVariableElement(LocalVariableElement e, A arg) => null;
   R visitParameterElement(ParameterElement e, A arg) => null;
   R visitFormalElement(FormalElement e, A arg) => null;
   R visitFieldElement(FieldElement e, A arg) => null;
@@ -97,9 +97,13 @@ abstract class BaseElementVisitor<R, A> extends ElementVisitor<R, A> {
     return visitElement(e, arg);
   }
 
-  @override
   R visitVariableElement(VariableElement e, A arg) {
     return visitElement(e, arg);
+  }
+
+  @override
+  R visitLocalVariableElement(LocalVariableElement e, A arg) {
+    return visitVariableElement(e, arg);
   }
 
   @override

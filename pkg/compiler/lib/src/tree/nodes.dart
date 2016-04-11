@@ -24,7 +24,7 @@ abstract class Visitor<R> {
   R visitNode(Node node);
 
   R visitAssert(Assert node) => visitStatement(node);
-  R visitAsyncForIn(AsyncForIn node) => visitLoop(node);
+  R visitAsyncForIn(AsyncForIn node) => visitForIn(node);
   R visitAsyncModifier(AsyncModifier node) => visitNode(node);
   R visitAwait(Await node) => visitExpression(node);
   R visitBlock(Block node) => visitStatement(node);
@@ -46,6 +46,7 @@ abstract class Visitor<R> {
   R visitExpression(Expression node) => visitNode(node);
   R visitExpressionStatement(ExpressionStatement node) => visitStatement(node);
   R visitFor(For node) => visitLoop(node);
+  R visitForIn(ForIn node) => visitLoop(node);
   R visitFunctionDeclaration(FunctionDeclaration node) => visitStatement(node);
   R visitFunctionExpression(FunctionExpression node) => visitExpression(node);
   R visitGotoStatement(GotoStatement node) => visitStatement(node);
@@ -67,7 +68,7 @@ abstract class Visitor<R> {
   R visitLiteralNull(LiteralNull node) => visitLiteral(node);
   R visitLiteralString(LiteralString node) => visitStringNode(node);
   R visitStringJuxtaposition(StringJuxtaposition node) => visitStringNode(node);
-  R visitSyncForIn(SyncForIn node) => visitLoop(node);
+  R visitSyncForIn(SyncForIn node) => visitForIn(node);
   R visitLoop(Loop node) => visitStatement(node);
   R visitMetadata(Metadata node) => visitNode(node);
   R visitMixinApplication(MixinApplication node) => visitNode(node);
@@ -124,7 +125,7 @@ abstract class Visitor1<R, A> {
   R visitNode(Node node, A arg);
 
   R visitAssert(Assert node, A arg) => visitStatement(node, arg);
-  R visitAsyncForIn(AsyncForIn node, A arg) => visitLoop(node, arg);
+  R visitAsyncForIn(AsyncForIn node, A arg) => visitForIn(node, arg);
   R visitAsyncModifier(AsyncModifier node, A arg) => visitNode(node, arg);
   R visitAwait(Await node, A arg) => visitExpression(node, arg);
   R visitBlock(Block node, A arg) => visitStatement(node, arg);
@@ -167,6 +168,7 @@ abstract class Visitor1<R, A> {
   }
 
   R visitFor(For node, A arg) => visitLoop(node, arg);
+  R visitForIn(ForIn node, A arg) => visitLoop(node, arg);
   R visitFunctionDeclaration(FunctionDeclaration node, A arg) {
     return visitStatement(node, arg);
   }
@@ -212,7 +214,7 @@ abstract class Visitor1<R, A> {
     return visitStringNode(node, arg);
   }
 
-  R visitSyncForIn(SyncForIn node, A arg) => visitLoop(node, arg);
+  R visitSyncForIn(SyncForIn node, A arg) => visitForIn(node, arg);
   R visitLoop(Loop node, A arg) => visitStatement(node, arg);
   R visitMetadata(Metadata node, A arg) => visitNode(node, arg);
   R visitMixinApplication(MixinApplication node, A arg) => visitNode(node, arg);

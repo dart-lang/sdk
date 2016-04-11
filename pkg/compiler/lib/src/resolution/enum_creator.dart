@@ -223,7 +223,7 @@ class EnumCreator {
     constructor.functionSignature = constructorSignature;
     enumClass.addMember(constructor, reporter);
 
-    List<FieldElement> enumValues = <FieldElement>[];
+    List<EnumConstantElement> enumValues = <EnumConstantElement>[];
     VariableList variableList =
         new VariableList(builder.modifiers(isStatic: true, isConst: true));
     variableList.type = enumType;
@@ -247,8 +247,8 @@ class EnumCreator {
           isConst: true);
       SendSet definition = valueBuilder.createDefinition(name, initializer);
 
-      EnumFieldElementX field = new EnumFieldElementX(
-          name, enumClass, variableList, definition, initializer);
+      EnumConstantElementX field = new EnumConstantElementX(
+          name, enumClass, variableList, definition, initializer, index);
       enumValues.add(field);
       enumClass.addMember(field, reporter);
       index++;

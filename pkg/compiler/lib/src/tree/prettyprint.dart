@@ -122,14 +122,19 @@ class PrettyPrinter extends Indentation with Tagging<Node> implements Visitor {
     visitNodeWithChildren(node, "For");
   }
 
+  visitForIn(ForIn node) {
+    node.visitChildren(this);
+    closeNode();
+  }
+
   visitAsyncForIn(AsyncForIn node) {
     openNode(node, "AsyncForIn");
+    visitForIn(node);
   }
 
   visitSyncForIn(SyncForIn node) {
-    openNode(node, "ForIn");
-    node.visitChildren(this);
-    closeNode();
+    openNode(node, "SyncForIn");
+    visitForIn(node);
   }
 
   visitFunctionDeclaration(FunctionDeclaration node) {

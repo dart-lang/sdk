@@ -3179,11 +3179,12 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     /// Lookup the value of the enum described by [node].
     getEnumValue(ast.Node node, EnumClassElement enumClass, List values) {
       Element element = elements[node];
-      if (element is! FieldElement || element.enclosingClass != enumClass) {
+      if (element is! EnumConstantElement ||
+          element.enclosingClass != enumClass) {
         internalError(node, 'expected a JsBuiltin enum value');
       }
-
-      int index = enumClass.enumValues.indexOf(element);
+      EnumConstantElement enumConstant = element;
+      int index = enumConstant.index;
       return values[index];
     }
 

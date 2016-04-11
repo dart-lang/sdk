@@ -26,6 +26,7 @@ enum SerializedElementKind {
   TOPLEVEL_FIELD,
   STATIC_FIELD,
   INSTANCE_FIELD,
+  ENUM_CONSTANT,
   TOPLEVEL_FUNCTION,
   TOPLEVEL_GETTER,
   TOPLEVEL_SETTER,
@@ -43,6 +44,7 @@ enum SerializedElementKind {
   IMPORT,
   EXPORT,
   PREFIX,
+  LOCAL_VARIABLE,
   EXTERNAL_LIBRARY,
   EXTERNAL_LIBRARY_MEMBER,
   EXTERNAL_STATIC_MEMBER,
@@ -69,6 +71,7 @@ const List<ElementSerializer> ELEMENT_SERIALIZERS = const [
   const ImportSerializer(),
   const ExportSerializer(),
   const PrefixSerializer(),
+  const LocalVariableSerializer(),
 ];
 
 /// Interface for a function that can serialize a set of element kinds.
@@ -353,7 +356,12 @@ class FieldSerializer implements ElementSerializer {
   SerializedElementKind getSerializedKind(Element element) {
     if (element.isField) {
       if (element.isTopLevel) return SerializedElementKind.TOPLEVEL_FIELD;
-      if (element.isStatic) return SerializedElementKind.STATIC_FIELD;
+      if (element.isStatic) {
+        if (element is EnumConstantElement) {
+          return SerializedElementKind.ENUM_CONSTANT;
+        }
+        return SerializedElementKind.STATIC_FIELD;
+      }
       if (element.isInstanceMember) return SerializedElementKind.INSTANCE_FIELD;
     }
     return null;
@@ -375,6 +383,10 @@ class FieldSerializer implements ElementSerializer {
     } else {
       encoder.setElement(Key.LIBRARY, element.library);
       encoder.setElement(Key.COMPILATION_UNIT, element.compilationUnit);
+    }
+    if (element is EnumConstantElement) {
+      EnumConstantElement enumConstant = element;
+      encoder.setInt(Key.INDEX, enumConstant.index);
     }
   }
 }
@@ -506,6 +518,31 @@ class ParameterSerializer implements ElementSerializer {
   }
 }
 
+class LocalVariableSerializer implements ElementSerializer {
+  const LocalVariableSerializer();
+
+  SerializedElementKind getSerializedKind(Element element) {
+    if (element.isVariable) {
+      return SerializedElementKind.LOCAL_VARIABLE;
+    }
+    return null;
+  }
+
+  void serialize(LocalVariableElement element, ObjectEncoder encoder,
+      SerializedElementKind kind) {
+    encoder.setString(Key.NAME, element.name);
+    SerializerUtil.serializePosition(element, encoder);
+    encoder.setType(Key.TYPE, element.type);
+    encoder.setBool(Key.IS_FINAL, element.isFinal);
+    encoder.setBool(Key.IS_CONST, element.isConst);
+    if (element.isConst) {
+      ConstantExpression constant = element.constant;
+      encoder.setConstant(Key.CONSTANT, constant);
+    }
+    encoder.setElement(Key.EXECUTABLE_CONTEXT, element.executableContext);
+  }
+}
+
 class ImportSerializer implements ElementSerializer {
   const ImportSerializer();
 
@@ -599,6 +636,8 @@ class ElementDeserializer {
         return new TopLevelFieldElementZ(decoder);
       case SerializedElementKind.STATIC_FIELD:
         return new StaticFieldElementZ(decoder);
+      case SerializedElementKind.ENUM_CONSTANT:
+        return new EnumConstantElementZ(decoder);
       case SerializedElementKind.INSTANCE_FIELD:
         return new InstanceFieldElementZ(decoder);
       case SerializedElementKind.GENERATIVE_CONSTRUCTOR:
@@ -639,6 +678,8 @@ class ElementDeserializer {
         return new ExportElementZ(decoder);
       case SerializedElementKind.PREFIX:
         return new PrefixElementZ(decoder);
+      case SerializedElementKind.LOCAL_VARIABLE:
+        return new LocalVariableElementZ(decoder);
       case SerializedElementKind.EXTERNAL_LIBRARY:
       case SerializedElementKind.EXTERNAL_LIBRARY_MEMBER:
       case SerializedElementKind.EXTERNAL_STATIC_MEMBER:

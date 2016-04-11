@@ -272,6 +272,13 @@ class ElementIdentityEquivalence extends BaseElementVisitor<bool, Element> {
     return checkMembers(element1.memberContext, element2.memberContext);
   }
 
+  @override
+  bool visitLocalVariableElement(
+      LocalVariableElement element1, LocalVariableElement element2) {
+    // TODO(johnniwinther): Define an equivalence on locals.
+    return checkMembers(element1.memberContext, element2.memberContext);
+  }
+
   bool visitAbstractFieldElement(
       AbstractFieldElement element1, AbstractFieldElement element2) {
     return checkMembers(element1, element2);

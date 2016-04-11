@@ -4145,13 +4145,13 @@ class SsaBuilder extends ast.Visitor
     }
     Element element = elements[argument];
     if (element == null ||
-        element is! FieldElement ||
+        element is! EnumConstantElement ||
         element.enclosingClass != helpers.jsGetNameEnum) {
       reporter.reportErrorMessage(argument, MessageKind.GENERIC,
           {'text': 'Error: Expected a JsGetName enum value.'});
     }
-    EnumClassElement enumClass = element.enclosingClass;
-    int index = enumClass.enumValues.indexOf(element);
+    EnumConstantElement enumConstant = element;
+    int index = enumConstant.index;
     stack.add(addConstantStringFromName(
         backend.namer.getNameForJsGetName(argument, JsGetName.values[index])));
   }
@@ -4166,13 +4166,13 @@ class SsaBuilder extends ast.Visitor
 
     Element builtinElement = elements[arguments[1]];
     if (builtinElement == null ||
-        (builtinElement is! FieldElement) ||
+        (builtinElement is! EnumConstantElement) ||
         builtinElement.enclosingClass != helpers.jsBuiltinEnum) {
       reporter.reportErrorMessage(argument, MessageKind.GENERIC,
           {'text': 'Error: Expected a JsBuiltin enum value.'});
     }
-    EnumClassElement enumClass = builtinElement.enclosingClass;
-    int index = enumClass.enumValues.indexOf(builtinElement);
+    EnumConstantElement enumConstant = builtinElement;
+    int index = enumConstant.index;
 
     js.Template template =
         backend.emitter.builtinTemplateFor(JsBuiltin.values[index]);
