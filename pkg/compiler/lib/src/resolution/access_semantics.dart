@@ -291,7 +291,7 @@ class ConstantAccess extends AccessSemantics {
 class StaticAccess extends AccessSemantics {
   final Element element;
 
-  StaticAccess._(AccessKind kind, this.element) : super._(kind);
+  StaticAccess.internal(AccessKind kind, this.element) : super._(kind);
 
   StaticAccess.superSetter(MethodElement this.element)
       : super._(AccessKind.SUPER_SETTER);

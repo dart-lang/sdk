@@ -427,6 +427,24 @@ class AssignmentOperator {
         return null;
     }
   }
+
+  static AssignmentOperator fromKind(AssignmentOperatorKind kind) {
+    switch (kind) {
+      case AssignmentOperatorKind.ASSIGN: return ASSIGN;
+      case AssignmentOperatorKind.IF_NULL: return IF_NULL;
+      case AssignmentOperatorKind.ADD: return ADD;
+      case AssignmentOperatorKind.SUB: return SUB;
+      case AssignmentOperatorKind.MUL: return MUL;
+      case AssignmentOperatorKind.DIV: return DIV;
+      case AssignmentOperatorKind.IDIV: return IDIV;
+      case AssignmentOperatorKind.MOD: return MOD;
+      case AssignmentOperatorKind.SHL: return SHL;
+      case AssignmentOperatorKind.SHR: return SHR;
+      case AssignmentOperatorKind.AND: return AND;
+      case AssignmentOperatorKind.OR: return OR;
+      case AssignmentOperatorKind.XOR: return XOR;
+    }
+  }
 }
 
 enum IncDecOperatorKind { INC, DEC }
@@ -458,6 +476,13 @@ class IncDecOperator {
         return DEC;
       default:
         return null;
+    }
+  }
+
+  static IncDecOperator fromKind(IncDecOperatorKind kind) {
+    switch (kind) {
+      case IncDecOperatorKind.INC: return INC;
+      case IncDecOperatorKind.DEC: return DEC;
     }
   }
 }

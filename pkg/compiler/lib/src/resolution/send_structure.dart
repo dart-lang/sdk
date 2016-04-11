@@ -24,6 +24,37 @@ abstract class SemanticSendStructure<R, A> {
   R dispatch(SemanticSendVisitor<R, A> visitor, Node node, A arg);
 }
 
+enum SendStructureKind {
+  IF_NULL,
+  LOGICAL_AND,
+  LOGICAL_OR,
+  IS,
+  IS_NOT,
+  AS,
+  INVOKE,
+  INCOMPATIBLE_INVOKE,
+  GET,
+  SET,
+  NOT,
+  UNARY,
+  INVALID_UNARY,
+  INDEX,
+  EQUALS,
+  NOT_EQUALS,
+  BINARY,
+  INVALID_BINARY,
+  INDEX_SET,
+  INDEX_PREFIX,
+  INDEX_POSTFIX,
+  COMPOUND,
+  SET_IF_NULL,
+  COMPOUND_INDEX_SET,
+  INDEX_SET_IF_NULL,
+  PREFIX,
+  POSTFIX,
+  DEFERRED_PREFIX,
+}
+
 /// Interface for the structure of the semantics of a [Send] node.
 ///
 /// Subclasses handle each of the [Send] variations; `assert(e)`, `a && b`,
@@ -31,6 +62,8 @@ abstract class SemanticSendStructure<R, A> {
 abstract class SendStructure<R, A> extends SemanticSendStructure<R, A> {
   /// Calls the matching visit method on [visitor] with [send] and [arg].
   R dispatch(SemanticSendVisitor<R, A> visitor, Send send, A arg);
+
+  SendStructureKind get kind;
 }
 
 /// The structure for a [Send] of the form `a ?? b`.
@@ -40,6 +73,9 @@ class IfNullStructure<R, A> implements SendStructure<R, A> {
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     return visitor.visitIfNull(node, node.receiver, node.arguments.single, arg);
   }
+
+  @override
+  SendStructureKind get kind => SendStructureKind.IF_NULL;
 
   String toString() => '??';
 }
@@ -53,6 +89,9 @@ class LogicalAndStructure<R, A> implements SendStructure<R, A> {
         node, node.receiver, node.arguments.single, arg);
   }
 
+  @override
+  SendStructureKind get kind => SendStructureKind.LOGICAL_AND;
+
   String toString() => '&&';
 }
 
@@ -64,6 +103,9 @@ class LogicalOrStructure<R, A> implements SendStructure<R, A> {
     return visitor.visitLogicalOr(
         node, node.receiver, node.arguments.single, arg);
   }
+
+  @override
+  SendStructureKind get kind => SendStructureKind.LOGICAL_OR;
 
   String toString() => '||';
 }
@@ -79,6 +121,9 @@ class IsStructure<R, A> implements SendStructure<R, A> {
     return visitor.visitIs(node, node.receiver, type, arg);
   }
 
+  @override
+  SendStructureKind get kind => SendStructureKind.IS;
+
   String toString() => 'is $type';
 }
 
@@ -93,6 +138,9 @@ class IsNotStructure<R, A> implements SendStructure<R, A> {
     return visitor.visitIsNot(node, node.receiver, type, arg);
   }
 
+  @override
+  SendStructureKind get kind => SendStructureKind.IS_NOT;
+
   String toString() => 'is! $type';
 }
 
@@ -106,6 +154,9 @@ class AsStructure<R, A> implements SendStructure<R, A> {
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     return visitor.visitAs(node, node.receiver, type, arg);
   }
+
+  @override
+  SendStructureKind get kind => SendStructureKind.AS;
 
   String toString() => 'as $type';
 }
@@ -124,6 +175,9 @@ class InvokeStructure<R, A> implements SendStructure<R, A> {
   CallStructure get callStructure => selector.callStructure;
 
   InvokeStructure(this.semantics, this.selector);
+
+  @override
+  SendStructureKind get kind => SendStructureKind.INVOKE;
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
@@ -260,6 +314,9 @@ class IncompatibleInvokeStructure<R, A> implements SendStructure<R, A> {
 
   IncompatibleInvokeStructure(this.semantics, this.selector);
 
+  @override
+  SendStructureKind get kind => SendStructureKind.INCOMPATIBLE_INVOKE;
+
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
       case AccessKind.STATIC_METHOD:
@@ -291,6 +348,9 @@ class GetStructure<R, A> implements SendStructure<R, A> {
   final AccessSemantics semantics;
 
   GetStructure(this.semantics);
+
+  @override
+  SendStructureKind get kind => SendStructureKind.GET;
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
@@ -378,6 +438,9 @@ class SetStructure<R, A> implements SendStructure<R, A> {
   final AccessSemantics semantics;
 
   SetStructure(this.semantics);
+
+  @override
+  SendStructureKind get kind => SendStructureKind.SET;
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
@@ -498,6 +561,9 @@ class NotStructure<R, A> implements SendStructure<R, A> {
     return visitor.visitNot(node, node.receiver, arg);
   }
 
+  @override
+  SendStructureKind get kind => SendStructureKind.NOT;
+
   String toString() => 'not()';
 }
 
@@ -511,6 +577,9 @@ class UnaryStructure<R, A> implements SendStructure<R, A> {
   final UnaryOperator operator;
 
   UnaryStructure(this.semantics, this.operator);
+
+  @override
+  SendStructureKind get kind => SendStructureKind.UNARY;
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
@@ -545,6 +614,9 @@ class InvalidUnaryStructure<R, A> implements SendStructure<R, A> {
         node, node.selector, node.receiver, arg);
   }
 
+  @override
+  SendStructureKind get kind => SendStructureKind.INVALID_UNARY;
+
   String toString() => 'invalid unary';
 }
 
@@ -555,6 +627,9 @@ class IndexStructure<R, A> implements SendStructure<R, A> {
   final AccessSemantics semantics;
 
   IndexStructure(this.semantics);
+
+  @override
+  SendStructureKind get kind => SendStructureKind.INDEX;
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
@@ -586,6 +661,9 @@ class EqualsStructure<R, A> implements SendStructure<R, A> {
 
   EqualsStructure(this.semantics);
 
+  @override
+  SendStructureKind get kind => SendStructureKind.EQUALS;
+
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
       case AccessKind.EXPRESSION:
@@ -614,6 +692,9 @@ class NotEqualsStructure<R, A> implements SendStructure<R, A> {
   final AccessSemantics semantics;
 
   NotEqualsStructure(this.semantics);
+
+  @override
+  SendStructureKind get kind => SendStructureKind.NOT_EQUALS;
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
@@ -647,6 +728,9 @@ class BinaryStructure<R, A> implements SendStructure<R, A> {
   final BinaryOperator operator;
 
   BinaryStructure(this.semantics, this.operator);
+
+  @override
+  SendStructureKind get kind => SendStructureKind.BINARY;
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
@@ -683,6 +767,9 @@ class InvalidBinaryStructure<R, A> implements SendStructure<R, A> {
         node, node.receiver, node.selector, node.arguments.single, arg);
   }
 
+  @override
+  SendStructureKind get kind => SendStructureKind.INVALID_BINARY;
+
   String toString() => 'invalid binary';
 }
 
@@ -692,6 +779,9 @@ class IndexSetStructure<R, A> implements SendStructure<R, A> {
   final AccessSemantics semantics;
 
   IndexSetStructure(this.semantics);
+
+  @override
+  SendStructureKind get kind => SendStructureKind.INDEX_SET;
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
@@ -729,6 +819,9 @@ class IndexPrefixStructure<R, A> implements SendStructure<R, A> {
   final IncDecOperator operator;
 
   IndexPrefixStructure(this.semantics, this.operator);
+
+  @override
+  SendStructureKind get kind => SendStructureKind.INDEX_PREFIX;
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
@@ -787,6 +880,9 @@ class IndexPostfixStructure<R, A> implements SendStructure<R, A> {
   final IncDecOperator operator;
 
   IndexPostfixStructure(this.semantics, this.operator);
+
+  @override
+  SendStructureKind get kind => SendStructureKind.INDEX_POSTFIX;
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
@@ -850,6 +946,9 @@ class CompoundStructure<R, A> implements SendStructure<R, A> {
   final AssignmentOperator operator;
 
   CompoundStructure(this.semantics, this.operator);
+
+  @override
+  SendStructureKind get kind => SendStructureKind.COMPOUND;
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
@@ -1098,6 +1197,9 @@ class SetIfNullStructure<R, A> implements SendStructure<R, A> {
 
   SetIfNullStructure(this.semantics);
 
+  @override
+  SendStructureKind get kind => SendStructureKind.SET_IF_NULL;
+
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
       case AccessKind.CONDITIONAL_DYNAMIC_PROPERTY:
@@ -1328,6 +1430,9 @@ class CompoundIndexSetStructure<R, A> implements SendStructure<R, A> {
 
   CompoundIndexSetStructure(this.semantics, this.operator);
 
+  @override
+  SendStructureKind get kind => SendStructureKind.COMPOUND_INDEX_SET;
+
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
       case AccessKind.EXPRESSION:
@@ -1398,6 +1503,9 @@ class IndexSetIfNullStructure<R, A> implements SendStructure<R, A> {
 
   IndexSetIfNullStructure(this.semantics);
 
+  @override
+  SendStructureKind get kind => SendStructureKind.INDEX_SET;
+
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
       case AccessKind.EXPRESSION:
@@ -1466,6 +1574,9 @@ class PrefixStructure<R, A> implements SendStructure<R, A> {
   final IncDecOperator operator;
 
   PrefixStructure(this.semantics, this.operator);
+
+  @override
+  SendStructureKind get kind => SendStructureKind.PREFIX;
 
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
@@ -1703,6 +1814,9 @@ class PostfixStructure<R, A> implements SendStructure<R, A> {
 
   PostfixStructure(this.semantics, this.operator);
 
+  @override
+  SendStructureKind get kind => SendStructureKind.POSTFIX;
+
   R dispatch(SemanticSendVisitor<R, A> visitor, Send node, A arg) {
     switch (semantics.kind) {
       case AccessKind.CONDITIONAL_DYNAMIC_PROPERTY:
@@ -1937,16 +2051,23 @@ class DeferredPrefixStructure<R, A> implements SendStructure<R, A> {
   }
 
   @override
+  SendStructureKind get kind => SendStructureKind.DEFERRED_PREFIX;
+
+  @override
   R dispatch(SemanticSendVisitor<R, A> visitor, Send send, A arg) {
     visitor.previsitDeferredAccess(send, prefix, arg);
     return sendStructure.dispatch(visitor, send, arg);
   }
 }
 
+enum NewStructureKind { NEW_INVOKE, CONST_INVOKE, LATE_CONST, }
+
 /// The structure for a [NewExpression] of a new invocation.
 abstract class NewStructure<R, A> implements SemanticSendStructure<R, A> {
   /// Calls the matching visit method on [visitor] with [node] and [arg].
   R dispatch(SemanticSendVisitor<R, A> visitor, NewExpression node, A arg);
+
+  NewStructureKind get kind;
 }
 
 /// The structure for a [NewExpression] of a new invocation. For instance
@@ -1956,6 +2077,9 @@ class NewInvokeStructure<R, A> extends NewStructure<R, A> {
   final Selector selector;
 
   NewInvokeStructure(this.semantics, this.selector);
+
+  @override
+  NewStructureKind get kind => NewStructureKind.NEW_INVOKE;
 
   CallStructure get callStructure => selector.callStructure;
 
@@ -2069,13 +2193,16 @@ enum ConstantInvokeKind {
 /// The structure for a [NewExpression] of a constant invocation. For instance
 /// `const C()`.
 class ConstInvokeStructure<R, A> extends NewStructure<R, A> {
-  final ConstantInvokeKind kind;
+  final ConstantInvokeKind constantInvokeKind;
   final ConstantExpression constant;
 
-  ConstInvokeStructure(this.kind, this.constant);
+  ConstInvokeStructure(this.constantInvokeKind, this.constant);
+
+  @override
+  NewStructureKind get kind => NewStructureKind.CONST_INVOKE;
 
   R dispatch(SemanticSendVisitor<R, A> visitor, NewExpression node, A arg) {
-    switch (kind) {
+    switch (constantInvokeKind) {
       case ConstantInvokeKind.CONSTRUCTED:
         return visitor.visitConstConstructorInvoke(node, constant, arg);
       case ConstantInvokeKind.BOOL_FROM_ENVIRONMENT:
@@ -2099,6 +2226,9 @@ class LateConstInvokeStructure<R, A> extends NewStructure<R, A> {
   final TreeElements elements;
 
   LateConstInvokeStructure(this.elements);
+
+  @override
+  NewStructureKind get kind => NewStructureKind.LATE_CONST;
 
   /// Convert this new structure into a regular new structure using the data
   /// available in [elements].
