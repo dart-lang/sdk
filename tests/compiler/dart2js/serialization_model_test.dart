@@ -27,9 +27,8 @@ import 'package:compiler/src/universe/class_set.dart';
 import 'package:compiler/src/universe/use.dart';
 import 'memory_compiler.dart';
 import 'serialization_helper.dart';
-import 'serialization_analysis_test.dart';
-import 'serialization_impact_test.dart';
-import 'serialization_test.dart';
+import 'serialization_test_data.dart';
+import 'serialization_test_helper.dart';
 
 main(List<String> arguments) {
   String filename;
@@ -109,7 +108,7 @@ Future check(
   await compilerDeserialized.run(entryPoint);
   compilerDeserialized.world.populate();
 
-  checkResolutionImpacts(
+  checkAllImpacts(
       compilerNormal, compilerDeserialized,
       verbose: verbose);
 

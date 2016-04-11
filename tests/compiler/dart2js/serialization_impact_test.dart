@@ -14,7 +14,7 @@ import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/serialization/equivalence.dart';
 import 'memory_compiler.dart';
 import 'serialization_helper.dart';
-import 'serialization_test.dart';
+import 'serialization_test_helper.dart';
 
 main(List<String> arguments) {
   asyncTest(() async {
@@ -47,65 +47,5 @@ Future check(
   deserialize(compilerDeserialized, serializedData);
   await compilerDeserialized.run(entryPoint);
 
-  checkResolutionImpacts(compilerNormal, compilerDeserialized, verbose: true);
-}
-
-/// Check equivalence of [impact1] and [impact2].
-void checkImpacts(Element element1, Element element2,
-                  ResolutionImpact impact1, ResolutionImpact impact2,
-                  {bool verbose: false}) {
-  if (impact1 == null || impact2 == null) return;
-
-  if (verbose) {
-    print('Checking impacts for $element1 vs $element2');
-  }
-
-  testResolutionImpactEquivalence(impact1, impact2, const CheckStrategy());
-}
-
-
-/// Check equivalence between all resolution impacts common to [compiler1] and
-/// [compiler2].
-void checkResolutionImpacts(
-    Compiler compiler1,
-    Compiler compiler2,
-    {bool verbose: false}) {
-
-  void checkMembers(Element member1, Element member2) {
-    if (member1.isClass && member2.isClass) {
-      ClassElement class1 = member1;
-      ClassElement class2 = member2;
-      class1.forEachLocalMember((m1) {
-        checkMembers(m1, class2.lookupLocalMember(m1.name));
-      });
-      return;
-    }
-
-    if (!compiler1.resolution.hasResolutionImpact(member1)) {
-      return;
-    }
-
-    if (member2 == null) {
-      return;
-    }
-
-    if (areElementsEquivalent(member1, member2)) {
-      checkImpacts(
-          member1, member2,
-          compiler1.resolution.getResolutionImpact(member1),
-          compiler2.serialization.deserializer.getResolutionImpact(member2),
-          verbose: verbose);
-    }
-  }
-
-  for (LibraryElement library1 in compiler1.libraryLoader.libraries) {
-    LibraryElement library2 =
-        compiler2.libraryLoader.lookupLibrary(library1.canonicalUri);
-    if (library2 != null) {
-      library1.forEachLocalMember((Element member1) {
-        checkMembers(member1, library2.localLookup(member1.name));
-      });
-
-    }
-  }
+  checkAllImpacts(compilerNormal, compilerDeserialized, verbose: true);
 }
