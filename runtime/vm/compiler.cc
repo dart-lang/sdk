@@ -381,6 +381,9 @@ class CompileParsedFunctionHelper : public ValueObject {
         field_invalidation_gen_at_start_(isolate()->field_invalidation_gen()),
         loading_invalidation_gen_at_start_(
             isolate()->loading_invalidation_gen()) {
+    if (Compiler::IsBackgroundCompilation()) {
+      Isolate::Current()->ClearDisablingFieldList();
+    }
   }
 
   bool Compile(CompilationPipeline* pipeline);
@@ -410,6 +413,28 @@ class CompileParsedFunctionHelper : public ValueObject {
 
   DISALLOW_COPY_AND_ASSIGN(CompileParsedFunctionHelper);
 };
+
+
+// Returns true if any of disabling fields is inside the guarded_fields.
+// The number of guarded_fields and disabling-fields is expected to be small
+// (less than 5).
+static bool CheckDisablingFields(
+    Thread* thread,
+    const ZoneGrowableArray<const Field*>& guarded_fields) {
+  Isolate* isolate = thread->isolate();
+  Zone* zone = thread->zone();
+  Field& field = Field::Handle(zone, isolate->GetDisablingField());
+  while (!field.IsNull()) {
+    for (intptr_t i = 0; i < guarded_fields.length(); i++) {
+      if (guarded_fields.At(i)->raw() == field.raw()) {
+        return true;
+      }
+    }
+    // Get next field.
+    field = isolate->GetDisablingField();
+  }
+  return false;
+}
 
 
 void CompileParsedFunctionHelper::FinalizeCompilation(
@@ -499,10 +524,15 @@ NOT_IN_PRODUCT(
       if (!flow_graph->parsed_function().guarded_fields()->is_empty()) {
         if (field_invalidation_gen_at_start() !=
             isolate()->field_invalidation_gen()) {
-          code_is_valid = false;
-          if (trace_compiler) {
-            THR_Print("--> FAIL: Field invalidation.");
-          }
+          const ZoneGrowableArray<const Field*>& guarded_fields =
+              *flow_graph->parsed_function().guarded_fields();
+          bool field_conflict = CheckDisablingFields(thread(), guarded_fields);
+          if (field_conflict) {
+            code_is_valid = false;
+            if (trace_compiler) {
+              THR_Print("--> FAIL: Field invalidation.");
+            }
+         }
         }
       }
       if (loading_invalidation_gen_at_start() !=

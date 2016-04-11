@@ -7745,8 +7745,11 @@ void Field::RegisterDependentCode(const Code& code) const {
 
 
 void Field::DeoptimizeDependentCode() const {
-  ASSERT(IsOriginal());
   ASSERT(Thread::Current()->IsMutatorThread());
+  ASSERT(IsOriginal());
+  if (FLAG_background_compilation) {
+    Isolate::Current()->AddDisablingField(*this);
+  }
   FieldDependentArray a(*this);
   a.DisableCode();
 }
