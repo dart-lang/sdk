@@ -4711,6 +4711,9 @@ class ImportsVerifier {
       String name = element.displayName;
       for (ImportDirective importDirective in importsLibrary) {
         Namespace namespace = _computeNamespace(importDirective);
+        if (importDirective.prefix != null) {
+          name = "${importDirective.prefix.name}.$name";
+        }
         if (namespace != null && namespace.get(name) != null) {
           _unusedImports.remove(importDirective);
           _removeFromUnusedShownNamesMap(element, importDirective);
