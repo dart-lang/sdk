@@ -1038,7 +1038,11 @@ class CompilationUnitElementInDependency extends CompilationUnitElementForLink {
   @override
   DartType getLinkedType(
       int slot, TypeParameterizedElementForLink typeParameterContext) {
-    return _resolveTypeRef(_linkedTypeRefs[slot], typeParameterContext);
+    if (slot < _linkedTypeRefs.length) {
+      return _resolveTypeRef(_linkedTypeRefs[slot], typeParameterContext);
+    } else {
+      return DynamicTypeImpl.instance;
+    }
   }
 }
 
@@ -1520,6 +1524,12 @@ abstract class ExecutableElementForLink extends Object
 
   ExecutableElementForLink(this.enclosingElement, this._unlinkedExecutable);
 
+  /**
+   * Return the compilation unit in which this executable appears.
+   */
+  CompilationUnitElementForLink get compilationUnit =>
+      enclosingElement.enclosingElement;
+
   @override
   TypeParameterizedElementForLink get enclosingTypeParameterContext =>
       enclosingElement;
@@ -1570,6 +1580,10 @@ abstract class ExecutableElementForLink extends Object
         if (_unlinkedExecutable.kind == UnlinkedExecutableKind.constructor) {
           // TODO(paulberry): implement.
           throw new UnimplementedError();
+        } else if (!compilationUnit.isInBuildUnit) {
+          _inferredReturnType = compilationUnit.getLinkedType(
+              _unlinkedExecutable.inferredReturnTypeSlot, this);
+          return _inferredReturnType;
         } else if (_unlinkedExecutable.kind == UnlinkedExecutableKind.setter &&
             library._linker.strongMode) {
           // In strong mode, setters without an explicit return type are
@@ -2063,13 +2077,7 @@ class ExprTypeComputer {
       assert(ref.implicitFunctionTypeIndices.isEmpty);
       ReferenceableElementForLink element =
           variable.compilationUnit._resolveRef(ref.reference);
-      TypeInferenceNode typeInferenceNode = element.asTypeInferenceNode;
-      if (typeInferenceNode != null) {
-        assert(typeInferenceNode.isEvaluated);
-        stack.add(typeInferenceNode._inferredType);
-      } else {
-        stack.add(element.asStaticType);
-      }
+      stack.add(element.asStaticType);
     }
   }
 
@@ -2257,6 +2265,11 @@ class FieldElementForLink_ClassField extends VariableElementForLink
       return _inferredInstanceType;
     } else if (_declaredType == null) {
       if (unlinkedVariable.type == null) {
+        if (!compilationUnit.isInBuildUnit) {
+          _inferredInstanceType = compilationUnit.getLinkedType(
+              unlinkedVariable.inferredTypeSlot, enclosingElement);
+          return _inferredInstanceType;
+        }
         _declaredType = DynamicTypeImpl.instance;
       } else {
         _declaredType = compilationUnit._resolveTypeRef(
@@ -3084,12 +3097,17 @@ class ParameterElementForLink implements ParameterElementImpl {
       return _inferredType;
     } else if (_declaredType == null) {
       if (_unlinkedParam.isFunctionTyped) {
-        // TODO(paulberry): implement.
         _declaredType = new FunctionTypeImpl(
             new FunctionElementForLink_FunctionTypedParam(
                 this, enclosingElement, <int>[_parameterIndex]));
       } else if (_unlinkedParam.type == null) {
-        _declaredType = DynamicTypeImpl.instance;
+        if (!compilationUnit.isInBuildUnit) {
+          _inferredType = compilationUnit.getLinkedType(
+              _unlinkedParam.inferredTypeSlot, _typeParameterContext);
+          return _inferredType;
+        } else {
+          _declaredType = DynamicTypeImpl.instance;
+        }
       } else {
         _declaredType = compilationUnit._resolveTypeRef(
             _unlinkedParam.type, _typeParameterContext);
@@ -3250,7 +3268,8 @@ abstract class ReferenceableElementForLink {
   ConstVariableNode get asConstVariable;
 
   /**
-   * Return the static type of the entity referred to by this element.
+   * Return the static type (possibly inferred) of the entity referred to by
+   * this element.
    */
   DartType get asStaticType;
 
@@ -3798,9 +3817,16 @@ class VariableElementForLink
   @override
   DartType get asStaticType {
     if (_staticType == null) {
-      if (hasImplicitType) {
-        _staticType = compilationUnit.getLinkedType(
-            unlinkedVariable.inferredTypeSlot, _typeParameterContext);
+      if (_typeInferenceNode != null) {
+        assert(_typeInferenceNode.isEvaluated);
+        _staticType = _typeInferenceNode.inferredType;
+      } else if (hasImplicitType) {
+        if (!compilationUnit.isInBuildUnit) {
+          _staticType = compilationUnit.getLinkedType(
+              unlinkedVariable.inferredTypeSlot, _typeParameterContext);
+        } else {
+          _staticType = DynamicTypeImpl.instance;
+        }
       } else {
         _staticType = compilationUnit._resolveTypeRef(
             unlinkedVariable.type, _typeParameterContext);
