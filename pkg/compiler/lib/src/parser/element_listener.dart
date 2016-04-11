@@ -309,6 +309,7 @@ class ElementListener extends Listener {
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
     bool hasParseError = currentMemberHasParseError;
     memberErrors = memberErrors.tail;
+    popNode(); // typeVariables
     Identifier name = popNode();
     popNode(); // type
     Modifiers modifiers = popNode();
@@ -378,7 +379,7 @@ class ElementListener extends Listener {
     pushNode(makeNodeList(count, beginToken, endToken, ','));
   }
 
-  void handleNoTypeVariables(token) {
+  void handleNoTypeVariables(Token token) {
     pushNode(null);
   }
 

@@ -51,6 +51,7 @@ class Flags {
 
   // Experimental flags.
   static const String conditionalDirectives = '--conditional-directives';
+  static const String genericMethodSyntax = '--generic-method-syntax';
 }
 
 class Option {

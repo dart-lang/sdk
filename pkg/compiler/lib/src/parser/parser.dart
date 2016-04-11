@@ -41,6 +41,8 @@ import '../tokens/token_constants.dart'
         EOF_TOKEN,
         EQ_TOKEN,
         FUNCTION_TOKEN,
+        GT_TOKEN,
+        GT_GT_TOKEN,
         HASH_TOKEN,
         HEXADECIMAL_TOKEN,
         IDENTIFIER_TOKEN,
@@ -100,8 +102,12 @@ class Parser {
   bool mayParseFunctionExpressions = true;
   bool asyncAwaitKeywordsEnabled;
 
-  Parser(this.listener, this.parserOptions,
-      {this.asyncAwaitKeywordsEnabled: false});
+  final bool enableGenericMethodSyntax;
+
+  Parser(this.listener, ParserOptions parserOptions,
+      {this.asyncAwaitKeywordsEnabled: false}) :
+          parserOptions = parserOptions,
+          enableGenericMethodSyntax = parserOptions.enableGenericMethodSyntax;
 
   Token parseUnit(Token token) {
     listener.beginCompilationUnit(token);
@@ -520,6 +526,81 @@ class Parser {
           (identical(value, 'void'));
     }
     return false;
+  }
+
+  /// Returns true if [token] matches '<' type (',' type)* '>' '(', and
+  /// otherwise returns false. The final '(' is not part of the grammar
+  /// construct `typeArguments`, but it is required here such that type
+  /// arguments in generic method invocations can be recognized, and as few as
+  /// possible other constructs will pass (e.g., 'a < C, D > 3').
+  bool isValidMethodTypeArguments(Token token) {
+    return tryParseMethodTypeArguments(token) != null;
+  }
+
+  /// Returns token after match if [token] matches '<' type (',' type)* '>' '(',
+  /// and otherwise returns null. Does not produce listener events. With respect
+  /// to the final '(', please see the description of
+  /// [isValidMethodTypeArguments].
+  Token tryParseMethodTypeArguments(Token token) {
+    if (!identical(token.kind, LT_TOKEN)) return null;
+    BeginGroupToken beginToken = token;
+    Token endToken = beginToken.endGroup;
+    if (endToken == null || !identical(endToken.next.kind, OPEN_PAREN_TOKEN)) {
+      return null;
+    }
+    token = tryParseType(token.next);
+    while (token != null && identical(token.kind, COMMA_TOKEN)) {
+      token = tryParseType(token.next);
+    }
+    if (token == null || !identical(token.kind, GT_TOKEN)) return null;
+    return token.next;
+  }
+
+  /// Returns token after match if [token] matches typeName typeArguments?, and
+  /// otherwise returns null. Does not produce listener events.
+  Token tryParseType(Token token) {
+    token = tryParseQualified(token);
+    if (token == null) return null;
+    Token tokenAfterQualified = token;
+    token = tryParseNestedTypeArguments(token);
+    return token == null ? tokenAfterQualified : token;
+  }
+
+  /// Returns token after match if [token] matches identifier ('.' identifier)?,
+  /// and otherwise returns null. Does not produce listener events.
+  Token tryParseQualified(Token token) {
+    if (!identical(token.kind, IDENTIFIER_TOKEN)) return null;
+    token = token.next;
+    if (!identical(token.kind, PERIOD_TOKEN)) return token;
+    token = token.next;
+    if (!identical(token.kind, IDENTIFIER_TOKEN)) return null;
+    return token.next;
+  }
+
+  /// Returns token after match if [token] matches '<' type (',' type)* '>',
+  /// and otherwise returns null. Does not produce listener events. The final
+  /// '>' may be the first character in a '>>' token, in which case a synthetic
+  /// '>' token is created and returned, representing the second '>' in the
+  /// '>>' token.
+  Token tryParseNestedTypeArguments(Token token) {
+    if (!identical(token.kind, LT_TOKEN)) return null;
+    // If the initial '<' matches the first '>' in a '>>' token, we will have
+    // `token.endGroup == null`, so we cannot rely on `token.endGroup == null`
+    // to imply that the match must fail. Hence no `token.endGroup == null`
+    // test here.
+    token = tryParseType(token.next);
+    while (token != null && identical(token.kind, COMMA_TOKEN)) {
+      token = tryParseType(token.next);
+    }
+    if (token == null) return null;
+    if (identical(token.kind, GT_TOKEN)) return token.next;
+    if (!identical(token.kind, GT_GT_TOKEN)) return null;
+    // [token] is '>>' of which the final '>' that we are parsing is the first
+    // character. In order to keep the parsing process on track we must return
+    // a synthetic '>' corresponding to the second character of that '>>'.
+    Token syntheticToken = new SymbolToken(GT_INFO, token.charOffset + 1);
+    syntheticToken.next = token.next;
+    return syntheticToken;
   }
 
   Token parseQualified(Token token) {
@@ -1000,6 +1081,11 @@ class Parser {
     }
     Token token = parseIdentifier(name);
 
+    if (enableGenericMethodSyntax && getOrSet == null) {
+      token = parseTypeVariablesOpt(token);
+    } else {
+      listener.handleNoTypeVariables(token);
+    }
     token = parseFormalParametersOpt(token);
     bool previousAsyncAwaitKeywordsEnabled = asyncAwaitKeywordsEnabled;
     token = parseAsyncModifier(token);
@@ -1304,7 +1390,8 @@ class Parser {
       if ((identical(value, '(')) ||
           (identical(value, '.')) ||
           (identical(value, '{')) ||
-          (identical(value, '=>'))) {
+          (identical(value, '=>')) ||
+          (enableGenericMethodSyntax && identical(value, '<'))) {
         isField = false;
         break;
       } else if (identical(value, ';')) {
@@ -1396,6 +1483,11 @@ class Parser {
     }
 
     token = parseQualifiedRestOpt(token);
+    if (enableGenericMethodSyntax && getOrSet == null) {
+      token = parseTypeVariablesOpt(token);
+    } else {
+      listener.handleNoTypeVariables(token);
+    }
     token = parseFormalParametersOpt(token);
     token = parseInitializersOpt(token);
     bool previousAsyncAwaitKeywordsEnabled = asyncAwaitKeywordsEnabled;
@@ -1482,6 +1574,11 @@ class Parser {
     }
     token = parseQualifiedRestOpt(token);
     listener.endFunctionName(token);
+    if (enableGenericMethodSyntax && getOrSet == null) {
+      token = parseTypeVariablesOpt(token);
+    } else {
+      listener.handleNoTypeVariables(token);
+    }
     token = parseFormalParametersOpt(token);
     token = parseInitializersOpt(token);
     bool previousAsyncAwaitKeywordsEnabled = asyncAwaitKeywordsEnabled;
@@ -1522,6 +1619,11 @@ class Parser {
     listener.beginFunctionName(token);
     token = parseIdentifier(token);
     listener.endFunctionName(token);
+    if (enableGenericMethodSyntax) {
+      token = parseTypeVariablesOpt(token);
+    } else {
+      listener.handleNoTypeVariables(token);
+    }
     token = parseFormalParameters(token);
     listener.handleNoInitializers();
     bool previousAsyncAwaitKeywordsEnabled = asyncAwaitKeywordsEnabled;
@@ -1985,6 +2087,7 @@ class Parser {
         listener.handleIndexedExpression(openSquareBracket, token);
         token = expect(']', token);
       } else if (optional('(', token)) {
+        listener.handleNoTypeArguments(token);
         token = parseArguments(token);
         listener.endSend(token);
       } else {
@@ -2081,6 +2184,7 @@ class Parser {
     token = token.next;
     if (optional('(', token)) {
       // Constructor forwarding.
+      listener.handleNoTypeArguments(token);
       token = parseArguments(token);
       listener.endSend(token);
     }
@@ -2092,6 +2196,7 @@ class Parser {
     token = token.next;
     if (optional('(', token)) {
       // Super constructor.
+      listener.handleNoTypeArguments(token);
       token = parseArguments(token);
       listener.endSend(token);
     }
@@ -2308,6 +2413,11 @@ class Parser {
   Token parseSend(Token token) {
     listener.beginSend(token);
     token = parseIdentifier(token);
+    if (enableGenericMethodSyntax && isValidMethodTypeArguments(token)) {
+      token = parseTypeArgumentsOpt(token);
+    } else {
+      listener.handleNoTypeArguments(token);
+    }
     token = parseArgumentsOpt(token);
     listener.endSend(token);
     return token;

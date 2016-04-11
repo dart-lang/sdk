@@ -86,6 +86,7 @@ class NodeListener extends ElementListener {
   void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
     popNode(); // body
     popNode(); // formalParameters
+    popNode(); // typeVariables
     Identifier name = popNode();
     popNode(); // type
     Modifiers modifiers = popNode();
@@ -310,6 +311,7 @@ class NodeListener extends ElementListener {
 
   void endSend(Token token) {
     NodeList arguments = popNode();
+    popNode(); // typeArguments
     Node selector = popNode();
     // TODO(ahe): Handle receiver.
     pushNode(new Send(null, selector, arguments));
@@ -344,6 +346,7 @@ class NodeListener extends ElementListener {
     AsyncModifier asyncModifier = popNode();
     NodeList initializers = popNode();
     NodeList formals = popNode();
+    popNode(); // typeVariables
     // The name can be an identifier or a send in case of named constructors.
     Expression name = popNode();
     TypeAnnotation type = popNode();
@@ -492,6 +495,7 @@ class NodeListener extends ElementListener {
     AsyncModifier asyncModifier = popNode();
     NodeList initializers = popNode();
     NodeList formalParameters = popNode();
+    popNode(); // typeVariables
     Expression name = popNode();
     TypeAnnotation returnType = popNode();
     Modifiers modifiers = popNode();
