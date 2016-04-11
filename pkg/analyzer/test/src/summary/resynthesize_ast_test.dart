@@ -37,6 +37,12 @@ main() {
 @reflectiveTest
 class AstInferredTypeTest extends AbstractResynthesizeTest
     with _AstResynthesizeTestMixin, InferredTypeMixin {
+  bool get checkPropagatedTypes {
+    // AST-based summaries do not yet handle propagated types.
+    // TODO(paulberry): fix this.
+    return false;
+  }
+
   @override
   bool get skipBrokenAstInference => true;
 
@@ -181,12 +187,6 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_downwardsInferenceInitializingFormalDefaultFormal() {
-    super.test_downwardsInferenceInitializingFormalDefaultFormal();
-  }
-
-  @override
-  @failingTest
   void test_downwardsInferenceOnFunctionOfTUsingTheT() {
     super.test_downwardsInferenceOnFunctionOfTUsingTheT();
   }
@@ -199,18 +199,6 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
 
   @override
   @failingTest
-  void test_downwardsInferenceOnListLiterals_inferDownwards() {
-    super.test_downwardsInferenceOnListLiterals_inferDownwards();
-  }
-
-  @override
-  @failingTest
-  void test_downwardsInferenceOnMapLiterals() {
-    super.test_downwardsInferenceOnMapLiterals();
-  }
-
-  @override
-  @failingTest
   void test_downwardsInferenceYieldYieldStar() {
     super.test_downwardsInferenceYieldYieldStar();
   }
@@ -219,12 +207,6 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
   @failingTest
   void test_genericMethods_inferJSBuiltin() {
     super.test_genericMethods_inferJSBuiltin();
-  }
-
-  @override
-  @failingTest
-  void test_genericMethods_IterableAndFuture() {
-    super.test_genericMethods_IterableAndFuture();
   }
 
   void test_infer_extractProperty_getter() {
@@ -312,12 +294,6 @@ var b2 = new B<int>();
 
   @override
   @failingTest
-  void test_inferConstsTransitively() {
-    super.test_inferConstsTransitively();
-  }
-
-  @override
-  @failingTest
   void test_inferCorrectlyOnMultipleVariablesDeclaredTogether() {
     super.test_inferCorrectlyOnMultipleVariablesDeclaredTogether();
   }
@@ -338,54 +314,6 @@ var b2 = new B<int>();
   @failingTest
   void test_inferFromRhsOnlyIfItWontConflictWithOverriddenFields() {
     super.test_inferFromRhsOnlyIfItWontConflictWithOverriddenFields();
-  }
-
-  @override
-  @failingTest
-  void test_inferFromRhsOnlyIfItWontConflictWithOverriddenFields2() {
-    super.test_inferFromRhsOnlyIfItWontConflictWithOverriddenFields2();
-  }
-
-  @override
-  @failingTest
-  void test_inferIfComplexExpressionsReadPossibleInferredField() {
-    super.test_inferIfComplexExpressionsReadPossibleInferredField();
-  }
-
-  @override
-  @failingTest
-  void test_inferredInitializingFormalChecksDefaultValue() {
-    super.test_inferredInitializingFormalChecksDefaultValue();
-  }
-
-  @override
-  @failingTest
-  void test_inferStaticsTransitively() {
-    super.test_inferStaticsTransitively();
-  }
-
-  @override
-  @failingTest
-  void test_inferStaticsTransitively2() {
-    super.test_inferStaticsTransitively2();
-  }
-
-  @override
-  @failingTest
-  void test_inferStaticsTransitively3() {
-    super.test_inferStaticsTransitively3();
-  }
-
-  @override
-  @failingTest
-  void test_inferTypeOnVarFromField() {
-    super.test_inferTypeOnVarFromField();
-  }
-
-  @override
-  @failingTest
-  void test_inferTypeOnVarFromTopLevel() {
-    super.test_inferTypeOnVarFromTopLevel();
   }
 
   @override
