@@ -1536,6 +1536,18 @@ var f = <dynamic, dynamic>{};
 ''');
   }
 
+  void test_infer_use_of_void() {
+    checkFile('''
+class B {
+  void f() {}
+}
+class C extends B {
+  f() {}
+}
+var x = new C()./*info:USE_OF_VOID_RESULT*/f();
+''');
+  }
+
   void test_inferConstsTransitively() {
     addFile(
         '''

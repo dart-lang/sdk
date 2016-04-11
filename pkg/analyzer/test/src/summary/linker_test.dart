@@ -191,6 +191,22 @@ var x = new C().f(0); // Inferred type: int
         'int');
   }
 
+  void test_inferredType_methodReturnType_void() {
+    createLinker('''
+class B {
+  void f() {}
+}
+class C extends B {
+  f() {}
+}
+''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    library.libraryCycleForLink.ensureLinked();
+    ClassElementForLink_Class cls = library.getContainedName('C');
+    expect(cls.methods, hasLength(1));
+    expect(cls.methods[0].returnType.toString(), 'void');
+  }
+
   void test_inferredTypeFromOutsideBuildUnit_methodParamType_viaInheritance() {
     var bundle = createPackageBundle(
         '''

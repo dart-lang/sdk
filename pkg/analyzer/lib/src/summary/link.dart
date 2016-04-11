@@ -785,7 +785,15 @@ abstract class CompilationUnitElementForLink implements CompilationUnitElement {
         _references[index] =
             _resolveRef(containingReference).getContainedName(name);
       } else if (linkedReference.dependency == 0) {
-        _references[index] = enclosingElement.getContainedName(name);
+        if (name == 'void') {
+          _references[index] = enclosingElement._linker.voidElement;
+        } else if (name == '*bottom*') {
+          _references[index] = enclosingElement._linker.bottomElement;
+        } else if (name == 'dynamic') {
+          _references[index] = enclosingElement._linker.dynamicElement;
+        } else {
+          _references[index] = enclosingElement.getContainedName(name);
+        }
       } else {
         LibraryElementForLink dependency =
             enclosingElement._getDependency(linkedReference.dependency);
@@ -2218,7 +2226,7 @@ class ExprTypeComputer {
   }
 
   static DartType _dynamicIfNull(DartType type) {
-    if (type == null || type.isBottom) {
+    if (type == null || type.isBottom || type.isVoid) {
       return DynamicTypeImpl.instance;
     }
     return type;
@@ -2863,6 +2871,9 @@ class Linker {
   LibraryElementForLink _asyncLibrary;
   TypeProviderForLink _typeProvider;
   TypeSystem _typeSystem;
+  SpecialTypeElementForLink _voidElement;
+  SpecialTypeElementForLink _dynamicElement;
+  SpecialTypeElementForLink _bottomElement;
 
   Linker(Map<String, LinkedLibraryBuilder> linkedLibraries, this.getDependency,
       this.getUnit, this.strongMode) {
@@ -2883,10 +2894,22 @@ class Linker {
       _asyncLibrary ??= getLibrary(Uri.parse('dart:async'));
 
   /**
+   * Get the element representing the "bottom" type.
+   */
+  SpecialTypeElementForLink get bottomElement => _bottomElement ??=
+      new SpecialTypeElementForLink(this, BottomTypeImpl.instance);
+
+  /**
    * Get the library element for `dart:core`.
    */
   LibraryElementForLink get coreLibrary =>
       _coreLibrary ??= getLibrary(Uri.parse('dart:core'));
+
+  /**
+   * Get the element representing `dynamic`.
+   */
+  SpecialTypeElementForLink get dynamicElement => _dynamicElement ??=
+      new SpecialTypeElementForLink(this, DynamicTypeImpl.instance);
 
   /**
    * Get an instance of [TypeProvider] for use during linking.
@@ -2899,6 +2922,12 @@ class Linker {
    */
   TypeSystem get typeSystem => _typeSystem ??=
       strongMode ? new StrongTypeSystemImpl() : new TypeSystemImpl();
+
+  /**
+   * Get the element representing `void`.
+   */
+  SpecialTypeElementForLink get voidElement => _voidElement ??=
+      new SpecialTypeElementForLink(this, VoidTypeImpl.instance);
 
   /**
    * Get the library element for the library having the given [uri].
@@ -3296,6 +3325,39 @@ abstract class ReferenceableElementForLink {
    * [UndefinedElementForLink].
    */
   ReferenceableElementForLink getContainedName(String name);
+}
+
+/**
+ * Element used for references to special types such as `void`.
+ */
+class SpecialTypeElementForLink extends ReferenceableElementForLink {
+  final Linker linker;
+  final DartType type;
+
+  SpecialTypeElementForLink(this.linker, this.type);
+
+  @override
+  ConstructorElementForLink get asConstructor => null;
+
+  @override
+  ConstVariableNode get asConstVariable => null;
+
+  @override
+  DartType get asStaticType => linker.typeProvider.typeType;
+
+  @override
+  TypeInferenceNode get asTypeInferenceNode => null;
+
+  @override
+  DartType buildType(
+      DartType getTypeArgument(int i), List<int> implicitFunctionTypeIndices) {
+    return type;
+  }
+
+  @override
+  ReferenceableElementForLink getContainedName(String name) {
+    return UndefinedElementForLink.instance;
+  }
 }
 
 /**
