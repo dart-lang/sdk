@@ -70,7 +70,8 @@ class Base64Codec extends Codec<List<int>, String> {
  *
  * The results are ASCII strings using a restricted alphabet.
  */
-class Base64Encoder extends Converter<List<int>, String> {
+class Base64Encoder extends
+    ChunkedConverter<List<int>, String, List<int>, String> {
   final bool _urlSafe;
 
   const Base64Encoder() : _urlSafe = false;
@@ -88,14 +89,6 @@ class Base64Encoder extends Converter<List<int>, String> {
       return new _Utf8Base64EncoderSink(sink.asUtf8Sink(false), _urlSafe);
     }
     return new _AsciiBase64EncoderSink(sink, _urlSafe);
-  }
-
-  Stream<String> bind(Stream<List<int>> stream) {
-    return new Stream<String>.eventTransformed(
-        stream,
-        (EventSink sink) =>
-            new _ConverterStreamEventSink<List<int>, String>(
-                this, sink));
   }
 }
 
@@ -348,7 +341,9 @@ class _Utf8Base64EncoderSink extends _Base64EncoderSink {
  *
  * The encoding is required to be properly padded.
  */
-class Base64Decoder extends Converter<String, List<int>> {
+class Base64Decoder extends
+    ChunkedConverter<String, List<int>, String, List<int>> {
+
   const Base64Decoder();
 
   List<int> convert(String input, [int start = 0, int end]) {
