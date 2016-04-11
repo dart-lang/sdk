@@ -2100,6 +2100,45 @@ class LateConstInvokeStructure<R, A> extends NewStructure<R, A> {
 
   LateConstInvokeStructure(this.elements);
 
+  /// Convert this new structure into a regular new structure using the data
+  /// available in [elements].
+  NewStructure resolve(NewExpression node) {
+    Element element = elements[node.send];
+    Selector selector = elements.getSelector(node.send);
+    DartType type = elements.getType(node);
+    ConstantExpression constant = elements.getConstant(node);
+    if (element.isMalformed ||
+        constant == null ||
+        constant.kind == ConstantExpressionKind.ERRONEOUS) {
+      // This is a non-constant constant constructor invocation, like
+      // `const Const(method())`.
+      return new NewInvokeStructure(
+          new ConstructorAccessSemantics(
+              ConstructorAccessKind.NON_CONSTANT_CONSTRUCTOR, element, type),
+          selector);
+    } else {
+      ConstantInvokeKind kind;
+      switch (constant.kind) {
+        case ConstantExpressionKind.CONSTRUCTED:
+          kind = ConstantInvokeKind.CONSTRUCTED;
+          break;
+        case ConstantExpressionKind.BOOL_FROM_ENVIRONMENT:
+          kind = ConstantInvokeKind.BOOL_FROM_ENVIRONMENT;
+          break;
+        case ConstantExpressionKind.INT_FROM_ENVIRONMENT:
+          kind = ConstantInvokeKind.INT_FROM_ENVIRONMENT;
+          break;
+        case ConstantExpressionKind.STRING_FROM_ENVIRONMENT:
+          kind = ConstantInvokeKind.STRING_FROM_ENVIRONMENT;
+          break;
+        default:
+          throw new SpannableAssertionFailure(
+              node, "Unexpected constant kind $kind: ${constant.getText()}");
+      }
+      return new ConstInvokeStructure(kind, constant);
+    }
+  }
+
   R dispatch(SemanticSendVisitor<R, A> visitor, NewExpression node, A arg) {
     Element element = elements[node.send];
     Selector selector = elements.getSelector(node.send);

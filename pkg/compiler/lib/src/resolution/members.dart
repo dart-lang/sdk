@@ -3844,6 +3844,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       registry.registerTypeUse(new TypeUse.instantiation(type));
     }
 
+    ResolutionResult resolutionResult = const NoneResult();
     if (node.isConst) {
       bool isValidAsConstant = !isInvalid && constructor.isConst;
 
@@ -3880,6 +3881,11 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
         isValidAsConstant = false;
       }
 
+      // Callback hook for when the compile-time constant evaluator has
+      // analyzed the constant.
+      // TODO(johnniwinther): Remove this when all constants are computed
+      // in resolution.
+      Function onAnalyzed;
       if (isValidAsConstant &&
           argumentsResult.isValidAsConstant &&
           // TODO(johnniwinther): Remove this when all constants are computed
@@ -3893,7 +3899,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
                 type, constructor, callStructure, arguments);
         registry.registerNewStructure(node,
             new ConstInvokeStructure(ConstantInvokeKind.CONSTRUCTED, constant));
-        return new ConstantResult(node, constant);
+        resolutionResult = new ConstantResult(node, constant);
       } else if (isInvalid) {
         // Known to be non-constant.
         kind == ConstructorAccessKind.NON_CONSTANT_CONSTRUCTOR;
@@ -3905,9 +3911,17 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
       } else {
         // Might be valid but we don't know for sure. The compile-time constant
         // evaluator will compute the actual constant as a deferred action.
-        registry.registerNewStructure(
-            node, new LateConstInvokeStructure(registry.mapping));
+        LateConstInvokeStructure structure =
+            new LateConstInvokeStructure(registry.mapping);
+        // TODO(johnniwinther): Avoid registering the
+        // [LateConstInvokeStructure]; it might not be necessary.
+        registry.registerNewStructure(node, structure);
+        onAnalyzed = () {
+          registry.registerNewStructure(node, structure.resolve(node));
+        };
       }
+
+      analyzeConstantDeferred(node, onAnalyzed: onAnalyzed);
     } else {
       // Not constant.
       if (constructor == compiler.symbolConstructor &&
@@ -3922,7 +3936,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
               selector));
     }
 
-    return const NoneResult();
+    return resolutionResult;
   }
 
   void checkConstMapKeysDontOverrideEquals(
@@ -3956,9 +3970,13 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
     }
   }
 
-  void analyzeConstantDeferred(Node node, {bool enforceConst: true}) {
+  void analyzeConstantDeferred(Node node,
+      {bool enforceConst: true, void onAnalyzed()}) {
     addDeferredAction(enclosingElement, () {
       analyzeConstant(node, enforceConst: enforceConst);
+      if (onAnalyzed != null) {
+        onAnalyzed();
+      }
     });
   }
 
