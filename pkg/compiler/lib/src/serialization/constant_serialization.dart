@@ -105,8 +105,7 @@ class ConstantSerializer
 
   @override
   void visitSymbol(SymbolConstantExpression exp, ObjectEncoder encoder) {
-    throw new UnsupportedError(
-        "ConstantSerializer.visitSymbol: ${exp.getText()}");
+    encoder.setString(Key.NAME, exp.name);
   }
 
   @override

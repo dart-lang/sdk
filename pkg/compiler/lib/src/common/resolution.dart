@@ -20,6 +20,7 @@ import '../elements/elements.dart'
         LocalFunctionElement,
         MetadataAnnotation,
         MethodElement,
+        ResolvedAst,
         TypedefElement,
         TypeVariableElement;
 import '../enqueue.dart' show ResolutionEnqueuer;
@@ -206,6 +207,12 @@ abstract class Resolution {
 
   ResolutionWorkItem createWorkItem(
       Element element, ItemCompilationContext compilationContext);
+
+  /// Returns `true` if [element] as a fully computed [ResolvedAst].
+  bool hasResolvedAst(Element element);
+
+  /// Returns the `ResolvedAst` for the [element].
+  ResolvedAst getResolvedAst(Element element);
 
   /// Returns `true` if the [ResolutionImpact] for [element] is cached.
   bool hasResolutionImpact(Element element);

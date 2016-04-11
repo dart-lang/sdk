@@ -1306,8 +1306,7 @@ class StaticFieldElementZ extends FieldElementZ
 
 class EnumConstantElementZ extends StaticFieldElementZ
     implements EnumConstantElement {
-  EnumConstantElementZ(ObjectDecoder decoder)
-      : super(decoder);
+  EnumConstantElementZ(ObjectDecoder decoder) : super(decoder);
 
   int get index => _decoder.getInt(Key.INDEX);
 }
@@ -1787,7 +1786,6 @@ class InitializingFormalElementZ extends ParameterElementZ
   @override
   ElementKind get kind => ElementKind.INITIALIZING_FORMAL;
 }
-
 
 class LocalVariableElementZ extends DeserializedElementZ
     with

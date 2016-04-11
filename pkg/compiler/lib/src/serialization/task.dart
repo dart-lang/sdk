@@ -4,6 +4,7 @@
 
 library dart2js.serialization.task;
 
+import 'dart:async' show Future;
 import '../common/resolution.dart' show ResolutionImpact, ResolutionWorkItem;
 import '../common/tasks.dart' show CompilerTask;
 import '../common/work.dart' show ItemCompilationContext;
@@ -17,7 +18,7 @@ import '../universe/world_impact.dart' show WorldImpact;
 abstract class LibraryDeserializer {
   /// Loads the [LibraryElement] associated with a library under [uri], or null
   /// if no serialized information is available for the given library.
-  LibraryElement readLibrary(Uri uri);
+  Future<LibraryElement> readLibrary(Uri uri);
 }
 
 /// Task that supports deserialization of elements.
@@ -35,8 +36,8 @@ class SerializationTask extends CompilerTask implements LibraryDeserializer {
 
   /// Returns the [LibraryElement] for [resolvedUri] if available from
   /// serialization.
-  LibraryElement readLibrary(Uri resolvedUri) {
-    if (deserializer == null) return null;
+  Future<LibraryElement> readLibrary(Uri resolvedUri) {
+    if (deserializer == null) return new Future<LibraryElement>.value();
     return deserializer.readLibrary(resolvedUri);
   }
 
@@ -81,8 +82,9 @@ class DeserializedResolutionWorkItem implements ResolutionWorkItem {
 /// The interface for a system that supports deserialization of libraries and
 /// elements.
 abstract class DeserializerSystem {
-  LibraryElement readLibrary(Uri resolvedUri);
+  Future<LibraryElement> readLibrary(Uri resolvedUri);
   bool isDeserialized(Element element);
+  ResolvedAst getResolvedAst(Element element);
   ResolutionImpact getResolutionImpact(Element element);
   WorldImpact computeWorldImpact(Element element);
 }

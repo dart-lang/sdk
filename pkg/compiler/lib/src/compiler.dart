@@ -1894,6 +1894,25 @@ class _CompilerResolution implements Resolution {
   }
 
   @override
+  bool hasResolvedAst(Element element) {
+    return element is AstElement &&
+        hasBeenResolved(element) &&
+        element.hasResolvedAst;
+  }
+
+  @override
+  ResolvedAst getResolvedAst(Element element) {
+    if (hasResolvedAst(element)) {
+      AstElement astElement = element;
+      return astElement.resolvedAst;
+    }
+    assert(invariant(element, hasResolvedAst(element),
+        message: "ResolvedAst not available for $element."));
+    return null;
+  }
+
+
+  @override
   bool hasResolutionImpact(Element element) {
     return _resolutionImpactCache.containsKey(element);
   }

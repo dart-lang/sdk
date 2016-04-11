@@ -634,46 +634,49 @@ class _LibraryLoaderTask extends CompilerTask implements LibraryLoaderTask {
     if (library != null) {
       return new Future.value(library);
     }
-    library = deserializer.readLibrary(resolvedUri);
-    if (library != null) {
-      return loadDeserializedLibrary(handler, library);
-    }
-    return reporter.withCurrentElement(importingLibrary, () {
-      return _readScript(node, readableUri, resolvedUri).then((Script script) {
-        if (script == null) return null;
-        LibraryElement element =
-            createLibrarySync(handler, script, resolvedUri);
-        CompilationUnitElementX compilationUnit = element.entryCompilationUnit;
-        if (compilationUnit.partTag != null) {
-          if (skipFileWithPartOfTag) {
-            // TODO(johnniwinther): Avoid calling [listener.onLibraryCreated]
-            // for this library.
-            libraryCanonicalUriMap.remove(resolvedUri);
-            return null;
+    return deserializer.readLibrary(resolvedUri).then((LibraryElement library) {
+      if (library != null) {
+        return loadDeserializedLibrary(handler, library);
+      }
+      return reporter.withCurrentElement(importingLibrary, () {
+        return _readScript(node, readableUri, resolvedUri)
+            .then((Script script) {
+          if (script == null) return null;
+          LibraryElement element =
+              createLibrarySync(handler, script, resolvedUri);
+          CompilationUnitElementX compilationUnit =
+              element.entryCompilationUnit;
+          if (compilationUnit.partTag != null) {
+            if (skipFileWithPartOfTag) {
+              // TODO(johnniwinther): Avoid calling [listener.onLibraryCreated]
+              // for this library.
+              libraryCanonicalUriMap.remove(resolvedUri);
+              return null;
+            }
+            if (importingLibrary == null) {
+              DiagnosticMessage error = reporter.withCurrentElement(
+                  compilationUnit,
+                  () => reporter.createMessage(
+                      compilationUnit.partTag, MessageKind.MAIN_HAS_PART_OF));
+              reporter.reportError(error);
+            } else {
+              DiagnosticMessage error = reporter.withCurrentElement(
+                  compilationUnit,
+                  () => reporter.createMessage(
+                      compilationUnit.partTag, MessageKind.IMPORT_PART_OF));
+              DiagnosticMessage info = reporter.withCurrentElement(
+                  importingLibrary,
+                  () => reporter.createMessage(
+                      node, MessageKind.IMPORT_PART_OF_HERE));
+              reporter.reportError(error, [info]);
+            }
           }
-          if (importingLibrary == null) {
-            DiagnosticMessage error = reporter.withCurrentElement(
-                compilationUnit,
-                () => reporter.createMessage(
-                    compilationUnit.partTag, MessageKind.MAIN_HAS_PART_OF));
-            reporter.reportError(error);
-          } else {
-            DiagnosticMessage error = reporter.withCurrentElement(
-                compilationUnit,
-                () => reporter.createMessage(
-                    compilationUnit.partTag, MessageKind.IMPORT_PART_OF));
-            DiagnosticMessage info = reporter.withCurrentElement(
-                importingLibrary,
-                () => reporter.createMessage(
-                    node, MessageKind.IMPORT_PART_OF_HERE));
-            reporter.reportError(error, [info]);
-          }
-        }
-        return processLibraryTags(handler, element).then((_) {
-          reporter.withCurrentElement(element, () {
-            handler.registerLibraryExports(element);
+          return processLibraryTags(handler, element).then((_) {
+            reporter.withCurrentElement(element, () {
+              handler.registerLibraryExports(element);
+            });
+            return element;
           });
-          return element;
         });
       });
     });

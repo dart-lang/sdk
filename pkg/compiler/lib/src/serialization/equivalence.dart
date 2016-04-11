@@ -11,8 +11,13 @@ import '../constants/expressions.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/visitor.dart';
+import '../resolution/send_structure.dart';
+import '../resolution/tree_elements.dart';
+import '../tokens/token.dart';
+import '../tree/nodes.dart';
 import '../universe/selector.dart';
 import '../universe/use.dart';
+import 'resolved_ast_serialization.dart';
 
 /// Equality based equivalence function.
 bool equality(a, b) => a == b;
@@ -90,6 +95,8 @@ bool areConstantListsEquivalent(
 
 /// Returns `true` if the selectors [a] and [b] are equivalent.
 bool areSelectorsEquivalent(Selector a, Selector b) {
+  if (identical(a, b)) return true;
+  if (a == null || b == null) return false;
   return a.kind == b.kind &&
       a.callStructure == b.callStructure &&
       areNamesEquivalent(a.memberName, b.memberName);
@@ -131,14 +138,33 @@ bool areMapLiteralUsesEquivalent(MapLiteralUse a, MapLiteralUse b) {
       a.isEmpty == b.isEmpty;
 }
 
+/// Returns `true` if the send structures [a] and [b] are equivalent.
+bool areSendStructuresEquivalent(SendStructure a, SendStructure b) {
+  if (identical(a, b)) return true;
+  if (a == null || b == null) return false;
+  if (a.kind != b.kind) return false;
+  // TODO(johnniwinther): Compute a deep equivalence.
+  return true;
+}
+
+/// Returns `true` if the new structures [a] and [b] are equivalent.
+bool areNewStructuresEquivalent(NewStructure a, NewStructure b) {
+  if (identical(a, b)) return true;
+  if (a == null || b == null) return false;
+  if (a.kind != b.kind) return false;
+  // TODO(johnniwinther): Compute a deep equivalence.
+  return true;
+}
+
 /// Strategy for testing equivalence.
 ///
 /// Use this strategy to determine equivalence without failing on inequivalence.
 class TestStrategy {
   const TestStrategy();
 
-  bool test(var object1, var object2, String property, var value1, var value2) {
-    return value1 == value2;
+  bool test(var object1, var object2, String property, var value1, var value2,
+      [bool equivalence(a, b) = equality]) {
+    return equivalence(value1, value2);
   }
 
   bool testLists(
@@ -483,8 +509,9 @@ class ConstantEquivalence
   @override
   bool visitSymbol(
       SymbolConstantExpression exp1, SymbolConstantExpression exp2) {
-    // TODO: implement visitSymbol
-    return true;
+    // TODO(johnniwinther): Handle private names. Currently not even supported
+    // in resolution.
+    return strategy.test(exp1, exp2, 'name', exp1.name, exp2.name);
   }
 
   @override
@@ -572,7 +599,7 @@ class ConstantEquivalence
   @override
   bool visitDeferred(
       DeferredConstantExpression exp1, DeferredConstantExpression exp2) {
-    // TODO: implement visitDeferred
+    // TODO(johnniwinther): Implement this.
     return true;
   }
 }
@@ -602,4 +629,179 @@ bool testResolutionImpactEquivalence(
           impact2.staticUses, areStaticUsesEquivalent) &&
       strategy.testSets(impact1, impact2, 'typeUses', impact1.typeUses,
           impact2.typeUses, areTypeUsesEquivalent);
+}
+
+/// Tests the equivalence of [resolvedAst1] and [resolvedAst2] using [strategy].
+bool testResolvedAstEquivalence(
+    ResolvedAst resolvedAst1, ResolvedAst resolvedAst2,
+    [TestStrategy strategy = const TestStrategy()]) {
+  return strategy.testElements(resolvedAst1, resolvedAst2, 'element',
+          resolvedAst1.element, resolvedAst2.element) &&
+      // Compute AST equivalence by structural comparison.
+      strategy.test(
+          resolvedAst1,
+          resolvedAst2,
+          'node',
+          resolvedAst1.node.toDebugString(),
+          resolvedAst2.node.toDebugString()) &&
+      testTreeElementsEquivalence(resolvedAst1, resolvedAst2, strategy);
+}
+
+/// Tests the equivalence of the data stored in the [TreeElements] of
+/// [resolvedAst1] and [resolvedAst2] using [strategy].
+bool testTreeElementsEquivalence(
+    ResolvedAst resolvedAst1, ResolvedAst resolvedAst2,
+    [TestStrategy strategy = const TestStrategy()]) {
+  AstIndexComputer indices1 = new AstIndexComputer();
+  resolvedAst1.node.accept(indices1);
+  AstIndexComputer indices2 = new AstIndexComputer();
+  resolvedAst2.node.accept(indices2);
+
+  TreeElements elements1 = resolvedAst1.elements;
+  TreeElements elements2 = resolvedAst2.elements;
+
+  TreeElementsEquivalenceVisitor visitor = new TreeElementsEquivalenceVisitor(
+      indices1, indices2, elements1, elements2, strategy);
+  resolvedAst1.node.accept(visitor);
+  return visitor.success;
+}
+
+/// Visitor that checks the equivalence of [TreeElements] data.
+class TreeElementsEquivalenceVisitor extends Visitor {
+  final TestStrategy strategy;
+  final AstIndexComputer indices1;
+  final AstIndexComputer indices2;
+  final TreeElements elements1;
+  final TreeElements elements2;
+  bool success = true;
+
+  TreeElementsEquivalenceVisitor(
+      this.indices1, this.indices2, this.elements1, this.elements2,
+      [this.strategy = const TestStrategy()]);
+
+  visitNode(Node node1) {
+    if (!success) return;
+    int index = indices1.nodeIndices[node1];
+    Node node2 = indices2.nodeList[index];
+    success = strategy.testElements(
+            node1, node2, '[$index]', elements1[node1], elements2[node2]) &&
+        strategy.testTypes(node1, node2, 'getType($index)',
+            elements1.getType(node1), elements2.getType(node2)) &&
+        strategy.test(
+            node1,
+            node2,
+            'getSelector($index)',
+            elements1.getSelector(node1),
+            elements2.getSelector(node2),
+            areSelectorsEquivalent) &&
+        strategy.testConstants(node1, node2, 'getConstant($index)',
+            elements1.getConstant(node1), elements2.getConstant(node2)) &&
+        strategy.testTypes(node1, node2, 'typesCache[$index]',
+            elements1.typesCache[node1], elements2.typesCache[node2]);
+
+    node1.visitChildren(this);
+  }
+
+  @override
+  visitSend(Send node1) {
+    visitExpression(node1);
+    if (!success) return;
+    int index = indices1.nodeIndices[node1];
+    Send node2 = indices2.nodeList[index];
+    success = strategy.test(node1, node2, 'isTypeLiteral($index)',
+            elements1.isTypeLiteral(node1), elements2.isTypeLiteral(node2)) &&
+        strategy.testTypes(
+            node1,
+            node2,
+            'getTypeLiteralType($index)',
+            elements1.getTypeLiteralType(node1),
+            elements2.getTypeLiteralType(node2)) &&
+        strategy.test(
+            node1,
+            node2,
+            'getSendStructure($index)',
+            elements1.getSendStructure(node1),
+            elements2.getSendStructure(node2),
+            areSendStructuresEquivalent);
+  }
+
+  @override
+  visitNewExpression(NewExpression node1) {
+    visitExpression(node1);
+    if (!success) return;
+    int index = indices1.nodeIndices[node1];
+    NewExpression node2 = indices2.nodeList[index];
+    success = strategy.test(
+        node1,
+        node2,
+        'getNewStructure($index)',
+        elements1.getNewStructure(node1),
+        elements2.getNewStructure(node2),
+        areNewStructuresEquivalent);
+  }
+
+  @override
+  visitSendSet(SendSet node1) {
+    visitSend(node1);
+    if (!success) return;
+    int index = indices1.nodeIndices[node1];
+    SendSet node2 = indices2.nodeList[index];
+    success = strategy.test(
+            node1,
+            node2,
+            'getGetterSelectorInComplexSendSet($index)',
+            elements1.getGetterSelectorInComplexSendSet(node1),
+            elements2.getGetterSelectorInComplexSendSet(node2),
+            areSelectorsEquivalent) &&
+        strategy.test(
+            node1,
+            node2,
+            'getOperatorSelectorInComplexSendSet($index)',
+            elements1.getOperatorSelectorInComplexSendSet(node1),
+            elements2.getOperatorSelectorInComplexSendSet(node2),
+            areSelectorsEquivalent);
+  }
+
+  @override
+  visitFunctionExpression(FunctionExpression node1) {
+    visitNode(node1);
+    if (!success) return;
+    int index = indices1.nodeIndices[node1];
+    FunctionExpression node2 = indices2.nodeList[index];
+    if (elements1[node1] is! FunctionElement) {
+      // [getFunctionDefinition] is currently stored in [] which doesn't always
+      // contain a [FunctionElement].
+      return;
+    }
+    success = strategy.testElements(
+        node1,
+        node2,
+        'getFunctionDefinition($index)',
+        elements1.getFunctionDefinition(node1),
+        elements2.getFunctionDefinition(node2));
+  }
+
+  @override
+  visitForIn(ForIn node1) {
+    visitLoop(node1);
+    if (!success) return;
+    int index = indices1.nodeIndices[node1];
+    ForIn node2 = indices2.nodeList[index];
+    success = strategy.testElements(node1, node2, 'getForInVariable($index)',
+        elements1.getForInVariable(node1), elements2.getForInVariable(node2));
+  }
+
+  @override
+  visitRedirectingFactoryBody(RedirectingFactoryBody node1) {
+    visitStatement(node1);
+    if (!success) return;
+    int index = indices1.nodeIndices[node1];
+    RedirectingFactoryBody node2 = indices2.nodeList[index];
+    success = strategy.testElements(
+        node1,
+        node2,
+        'getRedirectingTargetConstructor($index)',
+        elements1.getRedirectingTargetConstructor(node1),
+        elements2.getRedirectingTargetConstructor(node2));
+  }
 }
