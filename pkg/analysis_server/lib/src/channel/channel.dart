@@ -85,13 +85,12 @@ abstract class ClientCommunicationChannel {
  * Instances of the class [JsonStreamDecoder] convert JSON strings to JSON
  * maps.
  */
-class JsonStreamDecoder extends
-    ChunkedConverter<String, Map, String, Map> {
+class JsonStreamDecoder extends Converter<String, Map> {
   @override
   Map convert(String text) => JSON.decode(text);
 
   @override
-  ChunkedConversionSink<String> startChunkedConversion(Sink<Map> sink) =>
+  ChunkedConversionSink startChunkedConversion(Sink sink) =>
       new ChannelChunkSink<String, Map>(this, sink);
 }
 
@@ -99,26 +98,24 @@ class JsonStreamDecoder extends
  * Instances of the class [NotificationConverter] convert JSON maps to
  * [Notification]s.
  */
-class NotificationConverter extends
-    ChunkedConverter<Map, Notification, Map, Notification> {
+class NotificationConverter extends Converter<Map, Notification> {
   @override
   Notification convert(Map json) => new Notification.fromJson(json);
 
   @override
-  ChunkedConversionSink<Map> startChunkedConversion(Sink<Notification> sink) =>
+  ChunkedConversionSink startChunkedConversion(Sink sink) =>
       new ChannelChunkSink<Map, Notification>(this, sink);
 }
 
 /**
  * Instances of the class [ResponseConverter] convert JSON maps to [Response]s.
  */
-class ResponseConverter extends
-    ChunkedConverter<Map, Response, Map, Response> {
+class ResponseConverter extends Converter<Map, Response> {
   @override
   Response convert(Map json) => new Response.fromJson(json);
 
   @override
-  ChunkedConversionSink<Map> startChunkedConversion(Sink<Response> sink) =>
+  ChunkedConversionSink startChunkedConversion(Sink sink) =>
       new ChannelChunkSink<Map, Response>(this, sink);
 }
 
