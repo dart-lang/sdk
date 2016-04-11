@@ -181,10 +181,11 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   void visitAsExpression(AsExpression node) {
     if (identical(entity, node.type)) {
       optype.includeTypeNameSuggestions = true;
-      // TODO (danrubel) Possible future improvement:
-      // on the RHS of an "is" or "as" expression, don't suggest types that are
-      // guaranteed to pass or guaranteed to fail the cast.
-      // See dartbug.com/18860
+      optype.typeNameSuggestionsFilter = (DartType dartType) {
+        DartType staticType = node.expression.staticType;
+        return staticType.isDynamic ||
+            (dartType.isSubtypeOf(staticType) && dartType != staticType);
+      };
     }
   }
 
@@ -503,9 +504,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     if (identical(entity, node.type)) {
       optype.includeTypeNameSuggestions = true;
       optype.typeNameSuggestionsFilter = (DartType dartType) {
-        DartType bestType = node.expression.bestType;
-        return bestType.isDynamic ||
-            (dartType.isSubtypeOf(bestType) && dartType != bestType);
+        DartType staticType = node.expression.staticType;
+        return staticType.isDynamic ||
+            (dartType.isSubtypeOf(staticType) && dartType != staticType);
       };
     }
   }

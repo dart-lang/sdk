@@ -2906,7 +2906,7 @@ class A<Z extends X> {
 
     // test analysis of untyped fields and top-level vars
     buildTests('test039', '''class X{}var x = null as !1X;''',
-        <String>["1+X", "1-void"]);
+        <String>["1-void"]);
 
     // test arg lists with named params
     buildTests('test040', '''m(){f(a, b, {x1, x2, y}) {};f(1, 2, !1)!2;}''',
