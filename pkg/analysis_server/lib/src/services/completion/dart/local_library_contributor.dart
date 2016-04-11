@@ -44,7 +44,11 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor
   @override
   void visitClassElement(ClassElement element) {
     if (optype.includeTypeNameSuggestions) {
-      addSuggestion(element, prefix: prefix, relevance: DART_RELEVANCE_DEFAULT);
+      // if includeTypeNameSuggestions, then use the filter
+      if (optype.typeNameSuggestionsFilter(element.type)) {
+        addSuggestion(element,
+            prefix: prefix, relevance: DART_RELEVANCE_DEFAULT);
+      }
     }
     if (optype.includeConstructorSuggestions) {
       _addConstructorSuggestions(element, DART_RELEVANCE_DEFAULT);

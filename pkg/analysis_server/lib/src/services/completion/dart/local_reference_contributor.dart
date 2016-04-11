@@ -157,16 +157,22 @@ class LocalReferenceContributor extends DartCompletionContributor {
       if (optype.includeReturnValueSuggestions ||
           optype.includeTypeNameSuggestions ||
           optype.includeVoidReturnSuggestions) {
-        _LocalVisitor visitor =
-            new _LocalVisitor(request, request.offset, optype);
+        // If the target is in an expression
+        // then resolve the outermost/entire expression
         AstNode node = request.target.containingNode;
+        if (node is Expression) {
+          while (node.parent is Expression) {
+            node = node.parent;
+          }
+          await request.resolveExpression(node);
+
+          // Discard any cached target information
+          // because it may have changed as a result of the resolution
+          node = request.target.containingNode;
+        }
 
         // Do not suggest local vars within the current expression
         while (node is Expression) {
-          // If node is an Expression, ensure that it is resolved. Resolution is
-          // used in cases such as the use of optype.typeNameSuggestionsFilter
-          // below.
-          await request.resolveExpression(node);
           node = node.parent;
         }
 
@@ -176,6 +182,8 @@ class LocalReferenceContributor extends DartCompletionContributor {
           node = node.parent;
         }
 
+        _LocalVisitor visitor =
+            new _LocalVisitor(request, request.offset, optype);
         visitor.visit(node);
         return visitor.suggestions;
       }
