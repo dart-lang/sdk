@@ -25,7 +25,7 @@ P(allow_absolute_addresses, bool, true,                                        \
   "Allow embedding absolute addresses in generated code.")                     \
 P(always_megamorphic_calls, bool, false,                                       \
   "Instance call always as megamorphic.")                                      \
-C(background_compilation, false, true, bool, true,                             \
+C(background_compilation, false, false, bool, false,                           \
   "Run optimizing compilation in background")                                  \
 R(break_at_isolate_spawn, false, bool, false,                                  \
   "Insert a one-time breakpoint at the entrypoint for all spawned isolates")   \
