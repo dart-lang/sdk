@@ -68,6 +68,7 @@ import_mirrors_test: Slow, Pass
 interop_anonymous_unreachable_test: Pass, Slow
 mirror_final_field_inferrer2_test: Pass, Slow
 source_map_pub_build_validity_test: Pass, Slow
+serialization*: Slow, Pass
 uri_retention_test: Pass, Slow
 value_range_test: Pass, Slow
 
