@@ -56,6 +56,12 @@ const _Literal literal = const _Literal();
 ///   without invoking the overridden method.
 const _MustCallSuper mustCallSuper = const _MustCallSuper();
 
+/// Used to annotate a class declaration `C`. Indicates that any type arguments
+/// declared on `C` are to be treated as optional.  Tools such as the analyzer
+/// and linter can use this information to suppress warnings that would
+/// otherwise require type arguments to be provided for instances of `C`.
+const _OptionalTypeArgs optionalTypeArgs = const _OptionalTypeArgs();
+
 /// Used to annotate an instance member (method, getter, setter, operator, or
 /// field) `m` in a class `C`. If the annotation is on a field it applies to the
 /// getter, and setter if appropriate, that are induced by the field. Indicates
@@ -115,6 +121,10 @@ class _Literal {
 
 class _MustCallSuper {
   const _MustCallSuper();
+}
+
+class _OptionalTypeArgs {
+  const _OptionalTypeArgs();
 }
 
 class _Protected {
