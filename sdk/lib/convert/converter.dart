@@ -29,14 +29,22 @@ abstract class Converter<S, T> implements StreamTransformer {
   }
 
   /**
-   * Starts a chunked conversion.
+   * Deprecated.
+   *
+   * Use the [ChunkedConverter] interface instead.
    */
+  @deprecated
   ChunkedConversionSink startChunkedConversion(Sink sink) {
     throw new UnsupportedError(
         "This converter does not support chunked conversions: $this");
   }
 
-  // Subclasses are encouraged to provide better types.
+  /**
+   * Deprecated.
+   *
+   * Use the [ChunkedConverter] interface instead.
+   */
+  @deprecated
   Stream bind(Stream stream) {
     return new Stream.eventTransformed(
         stream,
@@ -50,14 +58,10 @@ abstract class Converter<S, T> implements StreamTransformer {
  * For a non-chunked conversion converts the input in sequence.
  */
 class _FusedConverter<S, M, T> extends Converter<S, T> {
-  final Converter _first;
-  final Converter _second;
+  final Converter<S, M> _first;
+  final Converter<M, T> _second;
 
   _FusedConverter(this._first, this._second);
 
   T convert(S input) => _second.convert(_first.convert(input));
-
-  ChunkedConversionSink startChunkedConversion(Sink sink) {
-    return _first.startChunkedConversion(_second.startChunkedConversion(sink));
-  }
 }

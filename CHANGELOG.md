@@ -8,6 +8,9 @@
   * Added `SecurityContext.alpnSupported`, which is true if a platform
     supports ALPN, and false otherwise.
 
+* `dart:convert`
+  * Introduce `ChunkedConverter` and deprecate chunked methods on `Converter`.
+
 ### Analyzer
 
 *   Static checking of `for in` statements. These will now produce static

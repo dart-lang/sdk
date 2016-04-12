@@ -17,7 +17,8 @@ const int _CR = 13;
  *
  * The returned lines do not contain the line terminators.
  */
-class LineSplitter extends Converter<String, List<String>> {
+class LineSplitter extends
+    ChunkedConverter<String, List<String>, String, String> {
 
   const LineSplitter();
 
@@ -79,9 +80,6 @@ class LineSplitter extends Converter<String, List<String>> {
     }
     return new _LineSplitterSink(sink);
   }
-
-  // Override the base-class' bind, to provide a better type.
-  Stream<String> bind(Stream<String> stream) => super.bind(stream);
 }
 
 // TODO(floitsch): deal with utf8.

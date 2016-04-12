@@ -76,7 +76,8 @@ class Utf8Codec extends Encoding {
  * This class converts strings to their UTF-8 code units (a list of
  * unsigned 8-bit integers).
  */
-class Utf8Encoder extends Converter<String, List<int>> {
+class Utf8Encoder extends
+    ChunkedConverter<String, List<int>, String, List<int>> {
 
   const Utf8Encoder();
 
@@ -304,7 +305,8 @@ class _Utf8EncoderSink extends _Utf8Encoder with StringConversionSinkMixin {
  * This class converts UTF-8 code units (lists of unsigned 8-bit integers)
  * to a string.
  */
-class Utf8Decoder extends Converter<List<int>, String> {
+class Utf8Decoder extends
+    ChunkedConverter<List<int>, String, List<int>, String> {
   final bool _allowMalformed;
 
   /**
