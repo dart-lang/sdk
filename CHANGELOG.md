@@ -1,3 +1,10 @@
+# 0.1.14
+
+* Fix to respect `@optionalTypeArgs` (#196).
+* Lint to warn if a field overrides or hides other field.
+* Fix to allow single char UPPER_CASE non-constants (#201).
+* Fix to accept casts to dynamic (#195).
+
 # 0.1.13
 
 * Fix to skip overriding members in API doc checks (`public_member_api_docs`).
