@@ -6,6 +6,7 @@
 
 // Same test as js_typed_interop_anonymous2, but using the
 // --experimental-trust-js-interop-type-annotations flag.
+@JS()
 library js_typed_interop_anonymous2_exp_test;
 
 import 'dart:html';
