@@ -1791,9 +1791,7 @@ class ExprTypeComputer {
           _doAssignToIndex();
           break;
         case UnlinkedConstOperation.extractIndex:
-          stack.length -= 2;
-          // TODO(paulberry): implement.
-          stack.add(DynamicTypeImpl.instance);
+          _doExtractIndex();
           break;
         case UnlinkedConstOperation.invokeMethodRef:
           _doInvokeMethodRef();
@@ -1922,6 +1920,20 @@ class ExprTypeComputer {
     DartType type = _leastUpperBound(thenType, elseType);
     type = _dynamicIfNull(type);
     stack.add(type);
+  }
+
+  void _doExtractIndex() {
+    stack.removeLast(); // index
+    DartType target = stack.removeLast();
+    stack.add(() {
+      if (target is InterfaceType) {
+        MethodElement method = target.lookUpMethod('[]', library);
+        if (method != null) {
+          return method.returnType;
+        }
+      }
+      return DynamicTypeImpl.instance;
+    }());
   }
 
   void _doExtractProperty() {

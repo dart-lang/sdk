@@ -209,6 +209,33 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
     super.test_genericMethods_inferJSBuiltin();
   }
 
+  void test_infer_extractIndex_custom() {
+    var unit = checkFile('''
+class A {
+  String operator [](_) => null;
+}
+var a = new A();
+var b = a[0];
+  ''');
+    expect(unit.topLevelVariables[1].type.toString(), 'String');
+  }
+
+  void test_infer_extractIndex_fromList() {
+    var unit = checkFile('''
+var a = <int>[1, 2, 3];
+var b = a[0];
+  ''');
+    expect(unit.topLevelVariables[1].type.toString(), 'int');
+  }
+
+  void test_infer_extractIndex_fromMap() {
+    var unit = checkFile('''
+var a = <int, double>{};
+var b = a[0];
+  ''');
+    expect(unit.topLevelVariables[1].type.toString(), 'double');
+  }
+
   void test_infer_extractProperty_getter() {
     checkFile(r'''
 var a = 1.isEven;
