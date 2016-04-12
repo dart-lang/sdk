@@ -2048,7 +2048,9 @@ class ExprTypeComputer {
 
   void _doMakeUntypedList() {
     int numItems = _getNextInt();
-    DartType itemType = _popList(numItems).reduce(_leastUpperBound);
+    DartType itemType = numItems == 0
+        ? DynamicTypeImpl.instance
+        : _popList(numItems).reduce(_leastUpperBound);
     itemType = _dynamicIfNull(itemType);
     stack.add(typeProvider.listType.instantiate(<DartType>[itemType]));
   }

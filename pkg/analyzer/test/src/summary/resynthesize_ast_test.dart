@@ -306,12 +306,6 @@ var b2 = new B<int>();
 
   @override
   @failingTest
-  void test_inferFromComplexExpressionsIfOuterMostValueIsPrecise() {
-    super.test_inferFromComplexExpressionsIfOuterMostValueIsPrecise();
-  }
-
-  @override
-  @failingTest
   void test_inferFromRhsOnlyIfItWontConflictWithOverriddenFields() {
     super.test_inferFromRhsOnlyIfItWontConflictWithOverriddenFields();
   }
