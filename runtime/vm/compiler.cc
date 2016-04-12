@@ -382,7 +382,7 @@ class CompileParsedFunctionHelper : public ValueObject {
         loading_invalidation_gen_at_start_(
             isolate()->loading_invalidation_gen()) {
     if (Compiler::IsBackgroundCompilation()) {
-      Isolate::Current()->ClearDisablingFieldList();
+      isolate()->ClearDisablingFieldList();
     }
   }
 
@@ -1825,8 +1825,8 @@ void BackgroundCompiler::VisitPointers(ObjectPointerVisitor* visitor) {
 }
 
 
-void BackgroundCompiler::Stop(BackgroundCompiler* task) {
-  ASSERT(Isolate::Current()->background_compiler() == task);
+void BackgroundCompiler::Stop(Isolate* isolate) {
+  BackgroundCompiler* task = isolate->background_compiler();
   ASSERT(task != NULL);
   BackgroundCompilationQueue* function_queue = task->function_queue();
 
@@ -1853,7 +1853,7 @@ void BackgroundCompiler::Stop(BackgroundCompiler* task) {
   delete done_monitor;
   delete queue_monitor;
   delete function_queue;
-  Isolate::Current()->set_background_compiler(NULL);
+  isolate->set_background_compiler(NULL);
 }
 
 
@@ -1994,7 +1994,7 @@ void BackgroundCompiler::VisitPointers(ObjectPointerVisitor* visitor) {
 }
 
 
-void BackgroundCompiler::Stop(BackgroundCompiler* task) {
+void BackgroundCompiler::Stop(Isolate* isolate) {
   UNREACHABLE();
 }
 

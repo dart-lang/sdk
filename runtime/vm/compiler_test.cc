@@ -109,7 +109,7 @@ VM_TEST_CASE(CompileFunctionOnHelperThread) {
   while (!func.HasOptimizedCode()) {
     ml.WaitWithSafepointCheck(thread, 1);
   }
-  BackgroundCompiler::Stop(isolate->background_compiler());
+  BackgroundCompiler::Stop(isolate);
 }
 
 

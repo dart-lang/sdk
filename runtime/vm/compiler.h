@@ -161,7 +161,8 @@ class BackgroundCompiler : public ThreadPool::Task {
 
   static void EnsureInit(Thread* thread);
 
-  static void Stop(BackgroundCompiler* task);
+  // Stops background compiler of the given isolate.
+  static void Stop(Isolate* isolate);
 
   // Call to optimize a function in the background, enters the function in the
   // compilation queue.

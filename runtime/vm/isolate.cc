@@ -1527,7 +1527,7 @@ void Isolate::LowLevelShutdown() {
 void Isolate::StopBackgroundCompiler() {
   // Wait until all background compilation has finished.
   if (background_compiler_ != NULL) {
-    BackgroundCompiler::Stop(background_compiler_);
+    BackgroundCompiler::Stop(this);
   }
 }
 
@@ -1905,8 +1905,10 @@ void Isolate::AddDisablingField(const Field& field) {
 
 
 RawField* Isolate::GetDisablingField() {
-  ASSERT(Compiler::IsBackgroundCompilation());
-  MutexLocker ml(field_list_mutex_);
+  ASSERT(Compiler::IsBackgroundCompilation() &&
+         (!Isolate::Current()->HasMutatorThread() ||
+         Isolate::Current()->mutator_thread()->IsAtSafepoint()));
+  ASSERT(Thread::Current()->IsAtSafepoint());
   if (disabling_field_list_ == GrowableObjectArray::null()) {
     return Field::null();
   }

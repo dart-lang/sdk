@@ -525,7 +525,8 @@ class Isolate : public BaseIsolate {
   // Used by mutator thread to notify background compiler which fields
   // triggered code invalidation.
   void AddDisablingField(const Field& field);
-  // Returns Field::null() if none available in the list.
+  // Returns Field::null() if none available in the list. Can be called
+  // only from background compiler and while mutator thread is at safepoint.
   RawField* GetDisablingField();
   void ClearDisablingFieldList();
 
