@@ -136,7 +136,11 @@ RawString* ConcatString::ToSymbol() const {
 class SymbolTraits {
  public:
   static bool IsMatch(const Object& a, const Object& b) {
-    return String::Cast(a).Equals(String::Cast(b));
+    const String& a_str = String::Cast(a);
+    const String& b_str = String::Cast(b);
+    ASSERT(a_str.HasHash());
+    ASSERT(b_str.HasHash());
+    return a_str.Equals(b_str);
   }
   template<typename CharType>
   static bool IsMatch(const CharArray<CharType>& array, const Object& obj) {
@@ -213,9 +217,9 @@ void Symbols::InitOnce(Isolate* vm_isolate) {
     String* str = String::ReadOnlyHandle();
     *str = OneByteString::New(names[i], Heap::kOld);
     str->Hash();
-    str->SetCanonical();
-    bool present = table.Insert(*str);
-    ASSERT(!present);
+    RawString* entry = reinterpret_cast<RawString*>(table.InsertOrGet(*str));
+    *str = entry;
+    str->SetCanonical();  // Make canonical once entered.
     symbol_handles_[i] = str;
   }
 
@@ -228,9 +232,10 @@ void Symbols::InitOnce(Isolate* vm_isolate) {
     String* str = String::ReadOnlyHandle();
     *str = OneByteString::New(&ch, 1, Heap::kOld);
     str->Hash();
-    str->SetCanonical();
-    bool present = table.Insert(*str);
-    ASSERT(!present);
+    RawString* entry = reinterpret_cast<RawString*>(table.InsertOrGet(*str));
+    *str = entry;
+    ASSERT(predefined_[c] == NULL);
+    str->SetCanonical();  // Make canonical once entered.
     predefined_[c] = str->raw();
     symbol_handles_[idx] = str;
   }
@@ -295,9 +300,8 @@ void Symbols::AddPredefinedSymbolsToIsolate() {
   for (intptr_t i = 1; i < Symbols::kNullCharId; i++) {
     str = OneByteString::New(names[i], Heap::kOld);
     str.Hash();
-    str.SetCanonical();
-    bool present = table.Insert(str);
-    ASSERT(!present);
+    str ^= table.InsertOrGet(str);
+    str.SetCanonical();  // Make canonical once entered.
   }
 
   // Add Latin1 characters as Symbols, so that Symbols::FromCharCode is fast.
@@ -308,9 +312,8 @@ void Symbols::AddPredefinedSymbolsToIsolate() {
     uint8_t ch = static_cast<uint8_t>(c);
     str = OneByteString::New(&ch, 1, Heap::kOld);
     str.Hash();
-    str.SetCanonical();
-    bool present = table.Insert(str);
-    ASSERT(!present);
+    str ^= table.InsertOrGet(str);
+    str.SetCanonical();  // Make canonical once entered.
   }
 
   isolate->object_store()->set_symbol_table(table.Release());

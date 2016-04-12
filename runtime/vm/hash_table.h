@@ -636,7 +636,7 @@ class HashSet : public BaseIterTable {
       BaseIterTable::InsertKey(entry, key);
       return key.raw();
     } else {
-      return BaseIterTable::GetPayload(entry, 0);
+      return BaseIterTable::GetKey(entry);
     }
   }
 
