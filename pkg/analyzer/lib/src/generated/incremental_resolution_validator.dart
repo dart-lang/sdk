@@ -856,6 +856,8 @@ class _SameResolutionValidator implements AstVisitor {
     if (a is LocalElement && b is LocalElement) {
       _verifyEqual('visibleRange', a.visibleRange, b.visibleRange);
     }
+    _verifyEqual(
+        'documentationComment', a.documentationComment, b.documentationComment);
   }
 
   void _verifyEqual(String name, actual, expected) {
