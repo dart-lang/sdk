@@ -78,6 +78,7 @@ mirrors/mixin_application_test: RuntimeError # Issue 12464
 mirrors/other_declarations_location_test: CompileTimeError # Issue 10905
 mirrors/parameter_test/none: RuntimeError # Issue 6490
 mirrors/parameter_of_mixin_app_constructor_test: RuntimeError # Issue 6490
+mirrors/private_class_field_test: CompileTimeError
 mirrors/private_symbol_test: CompileTimeError # Issue 13597
 mirrors/private_types_test: RuntimeError # Issue 6490
 mirrors/redirecting_factory_test/none: RuntimeError # Issue 6490
