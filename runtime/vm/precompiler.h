@@ -372,6 +372,8 @@ class Precompiler : public ValueObject {
 
 class FunctionsTraits {
  public:
+  static const char* Name() { return "FunctionsTraits"; }
+
   static bool IsMatch(const Object& a, const Object& b) {
     Zone* zone = Thread::Current()->zone();
     String& a_s = String::Handle(zone);

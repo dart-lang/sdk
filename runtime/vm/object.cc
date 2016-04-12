@@ -2088,6 +2088,8 @@ class FunctionName {
 // Traits for looking up Functions by name.
 class ClassFunctionsTraits {
  public:
+  static const char* Name() { return "ClassFunctionsTraits"; }
+
   // Called when growing the table.
   static bool IsMatch(const Object& a, const Object& b) {
     ASSERT(a.IsFunction() && b.IsFunction());
@@ -8330,6 +8332,8 @@ RawTokenStream* TokenStream::New(intptr_t len) {
 // It also supports lookup by TokenDescriptor.
 class CompressedTokenTraits {
  public:
+  static const char* Name() { return "CompressedTokenTraits"; }
+
   static bool IsMatch(const Scanner::TokenDescriptor& descriptor,
                       const Object& key) {
     if (!key.IsLiteralToken()) {
@@ -9258,6 +9262,8 @@ void Library::SetLoadError(const Instance& error) const {
 // Traits for looking up Libraries by url in a hash set.
 class LibraryUrlTraits {
  public:
+  static const char* Name() { return "LibraryUrlTraits"; }
+
   // Called when growing the table.
   static bool IsMatch(const Object& a, const Object& b) {
     ASSERT(a.IsLibrary() && b.IsLibrary());
@@ -9567,6 +9573,8 @@ RawObject* Library::ResolveName(const String& name) const {
 
 class StringEqualsTraits {
  public:
+  static const char* Name() { return "StringEqualsTraits"; }
+
   static bool IsMatch(const Object& a, const Object& b) {
     return String::Cast(a).Equals(String::Cast(b));
   }

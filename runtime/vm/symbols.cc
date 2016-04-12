@@ -135,6 +135,8 @@ RawString* ConcatString::ToSymbol() const {
 
 class SymbolTraits {
  public:
+  static const char* Name() { return "SymbolTraits"; }
+
   static bool IsMatch(const Object& a, const Object& b) {
     const String& a_str = String::Cast(a);
     const String& b_str = String::Cast(b);

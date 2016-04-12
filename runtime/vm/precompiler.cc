@@ -1057,6 +1057,8 @@ void Precompiler::CheckForNewDynamicFunctions() {
 
 class NameFunctionsTraits {
  public:
+  static const char* Name() { return "NameFunctionsTraits"; }
+
   static bool IsMatch(const Object& a, const Object& b) {
     return a.IsString() && b.IsString() &&
         String::Cast(a).Equals(String::Cast(b));
