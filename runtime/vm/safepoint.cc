@@ -96,8 +96,15 @@ void SafepointHandler::SafepointThreads(Thread* T) {
   // Now wait for all threads that are not already at a safepoint to check-in.
   {
     MonitorLocker sl(safepoint_lock_);
+    intptr_t num_attempts = 0;
     while (number_threads_not_at_safepoint_ > 0) {
-      sl.Wait();
+      Monitor::WaitResult retval = sl.Wait(1000);
+      if (retval == Monitor::kTimedOut) {
+        num_attempts += 1;
+        OS::Print("Attempt:%" Pd " waiting for %d threads to check in\n",
+                  num_attempts,
+                  number_threads_not_at_safepoint_);
+      }
     }
   }
 }
