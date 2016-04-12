@@ -138,6 +138,39 @@ class Blink_Utils {
   static initializeCustomElement(element) native "Utils_initializeCustomElement";
 }
 
+class Blink_DOMWindowCrossFrame {
+  // FIXME: Return to using explicit cross frame entry points after roll to M35
+  static get_history(_DOMWindowCrossFrame) native "Window_history_cross_frame_Getter";
+
+  static get_location(_DOMWindowCrossFrame) native "Window_location_cross_frame_Getter";
+
+  static get_closed(_DOMWindowCrossFrame) native "Window_closed_Getter";
+
+  static get_opener(_DOMWindowCrossFrame) native "Window_opener_Getter";
+
+  static get_parent(_DOMWindowCrossFrame) native "Window_parent_Getter";
+
+  static get_top(_DOMWindowCrossFrame) native "Window_top_Getter";
+
+  static close(_DOMWindowCrossFrame) native "Window_close_Callback";
+
+  static postMessage(_DOMWindowCrossFrame, message, targetOrigin, [messagePorts]) native "Window_postMessage_Callback";
+}
+
+class Blink_HistoryCrossFrame {
+  // _HistoryCrossFrame native entry points
+  static back(_HistoryCrossFrame) native "History_back_Callback";
+
+  static forward(_HistoryCrossFrame) native "History_forward_Callback";
+
+  static go(_HistoryCrossFrame, distance) native "History_go_Callback";
+}
+
+class Blink_LocationCrossFrame {
+  // _LocationCrossFrame native entry points
+  static set_href(_LocationCrossFrame, h) native "Location_href_Setter";
+}
+
 class Blink_DOMStringMap {
   // _DOMStringMap native entry  points
   static containsKey(_DOMStringMap, key) native "DOMStringMap_containsKey_Callback";

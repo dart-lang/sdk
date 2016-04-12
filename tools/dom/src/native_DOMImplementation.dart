@@ -1065,31 +1065,33 @@ class _Utils {
       _blink.Blink_Utils.createElement(document, tagName);
 }
 
+// TODO(jacobr): this seems busted. I believe we are actually
+// giving users real windows for opener, parent, top, etc.
+// Or worse, we are probaly returning a raw JSObject.
 class _DOMWindowCrossFrame extends DartHtmlDomObject implements WindowBase {
   _DOMWindowCrossFrame.internal();
 
   static _createSafe(win) =>
-    win is _DOMWindowCrossFrame ? win : _blink.Blink_Utils.setInstanceInterceptor(win, _DOMWindowCrossFrame);
+      _blink.Blink_Utils.setInstanceInterceptor(win, _DOMWindowCrossFrame);
 
   // Fields.
-  HistoryBase get history {
-    var history =  _blink.BlinkWindow.instance.history_Getter_(this);
-    return history is _HistoryCrossFrame ? history : _blink.Blink_Utils.setInstanceInterceptor(history, _HistoryCrossFrame);
-  }
-
-  LocationBase get location {
-    var location = _blink.BlinkWindow.instance.location_Getter_(this);
-    return location is _LocationCrossFrame ? location : _blink.Blink_Utils.setInstanceInterceptor(location, _LocationCrossFrame);
-  }
-
-  bool get closed => _blink.BlinkWindow.instance.closed_Getter_(this);
-  WindowBase get opener => _convertNativeToDart_Window(_blink.BlinkWindow.instance.opener_Getter_(this));
-  WindowBase get parent => _convertNativeToDart_Window(_blink.BlinkWindow.instance.parent_Getter_(this));
-  WindowBase get top => _convertNativeToDart_Window(_blink.BlinkWindow.instance.top_Getter_(this));
+  HistoryBase get history => _blink.Blink_DOMWindowCrossFrame.get_history(this);
+  LocationBase get location =>
+      _blink.Blink_DOMWindowCrossFrame.get_location(this);
+  bool get closed => _blink.Blink_DOMWindowCrossFrame.get_closed(this);
+  WindowBase get opener => _blink.Blink_DOMWindowCrossFrame.get_opener(this);
+  WindowBase get parent => _blink.Blink_DOMWindowCrossFrame.get_parent(this);
+  WindowBase get top => _blink.Blink_DOMWindowCrossFrame.get_top(this);
 
   // Methods.
-  void close() => _blink.BlinkWindow.instance.close_Callback_0_(this);
-  void postMessage(Object message, String targetOrigin, [List<MessagePort> transfer]) => _blink.BlinkWindow.instance.postMessage_Callback_3_(this, convertDartToNative_SerializedScriptValue(message), targetOrigin, transfer);
+  void close() => _blink.Blink_DOMWindowCrossFrame.close(this);
+  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin,
+          [List messagePorts]) =>
+      _blink.Blink_DOMWindowCrossFrame.postMessage(
+          this,
+          convertDartToNative_SerializedScriptValue(message),
+          targetOrigin,
+          messagePorts);
 
   // Implementation support.
   String get typeName => "Window";
@@ -1126,16 +1128,9 @@ class _HistoryCrossFrame extends DartHtmlDomObject implements HistoryBase {
   _HistoryCrossFrame.internal();
 
   // Methods.
-  void back() => _blink.BlinkHistory.instance.back_Callback_0_(this);
-  void forward() => _blink.BlinkHistory.instance.forward_Callback_0_(this);
-  void go([int delta]) {
-    if (delta != null) {
-      _blink.BlinkHistory.instance.go_Callback_1_(this, delta);
-      return;
-    }
-    _blink.BlinkHistory.instance.go_Callback_0_(this);
-    return;
-  }
+  void back() => _blink.Blink_HistoryCrossFrame.back(this);
+  void forward() => _blink.Blink_HistoryCrossFrame.forward(this);
+  void go(int distance) => _blink.Blink_HistoryCrossFrame.go(this, distance);
 
   // Implementation support.
   String get typeName => "History";
@@ -1145,7 +1140,7 @@ class _LocationCrossFrame extends DartHtmlDomObject implements LocationBase {
   _LocationCrossFrame.internal();
 
   // Fields.
-  set href(String value) => _blink.BlinkLocation.instance.href_Setter_(this, value);
+  set href(String h) => _blink.Blink_LocationCrossFrame.set_href(this, h);
 
   // Implementation support.
   String get typeName => "Location";
