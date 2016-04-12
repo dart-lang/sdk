@@ -62,6 +62,10 @@ class CharArray {
     return result.raw();
   }
   bool Equals(const String& other) const {
+    ASSERT(other.HasHash());
+    if (other.Hash() != hash_) {
+      return false;
+    }
     return other.Equals(data_, len_);
   }
   intptr_t Hash() const { return hash_; }
@@ -83,6 +87,10 @@ class StringSlice {
   }
   RawString* ToSymbol() const;
   bool Equals(const String& other) const {
+    ASSERT(other.HasHash());
+    if (other.Hash() != hash_) {
+      return false;
+    }
     return other.Equals(str_, begin_index_, len_);
   }
   intptr_t Hash() const { return hash_; }
@@ -115,6 +123,10 @@ class ConcatString {
       : str1_(str1), str2_(str2), hash_(String::HashConcat(str1, str2)) {}
   RawString* ToSymbol() const;
   bool Equals(const String& other) const {
+    ASSERT(other.HasHash());
+    if (other.Hash() != hash_) {
+      return false;
+    }
     return other.EqualsConcat(str1_, str2_);
   }
   intptr_t Hash() const { return hash_; }
@@ -142,7 +154,15 @@ class SymbolTraits {
     const String& b_str = String::Cast(b);
     ASSERT(a_str.HasHash());
     ASSERT(b_str.HasHash());
-    return a_str.Equals(b_str);
+    if (a_str.Hash() != b_str.Hash()) {
+      return false;
+    }
+    intptr_t a_len = a_str.Length();
+    if (a_len != b_str.Length()) {
+      return false;
+    }
+    // Use a comparison which does not consider the state of the canonical bit.
+    return a_str.Equals(b_str, 0, a_len);
   }
   template<typename CharType>
   static bool IsMatch(const CharArray<CharType>& array, const Object& obj) {
@@ -219,8 +239,7 @@ void Symbols::InitOnce(Isolate* vm_isolate) {
     String* str = String::ReadOnlyHandle();
     *str = OneByteString::New(names[i], Heap::kOld);
     str->Hash();
-    RawString* entry = reinterpret_cast<RawString*>(table.InsertOrGet(*str));
-    *str = entry;
+    *str ^= table.InsertOrGet(*str);
     str->SetCanonical();  // Make canonical once entered.
     symbol_handles_[i] = str;
   }
@@ -234,8 +253,7 @@ void Symbols::InitOnce(Isolate* vm_isolate) {
     String* str = String::ReadOnlyHandle();
     *str = OneByteString::New(&ch, 1, Heap::kOld);
     str->Hash();
-    RawString* entry = reinterpret_cast<RawString*>(table.InsertOrGet(*str));
-    *str = entry;
+    *str ^= table.InsertOrGet(*str);
     ASSERT(predefined_[c] == NULL);
     str->SetCanonical();  // Make canonical once entered.
     predefined_[c] = str->raw();
