@@ -2,7 +2,7 @@
 
 ### Core library changes
 
-* `dart:convet`
+* `dart:convert`
   * Added `BASE64URL` codec and corresponding `Base64Codec.urlSafe` constructor.
 * `dart:io`
   * Added `SecurityContext.alpnSupported`, which is true if a platform
