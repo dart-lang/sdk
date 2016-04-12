@@ -673,7 +673,40 @@ Type _getSvgType(String key) {
   return null;
 }
 
-// TODO(jacobr): it would be nice to place this in a consistent place for dart2js and dartium.
+// TODO(jacobr): it would be nice to place these conversion methods in a consistent place for dart2js and dartium.
+
+WindowBase _convertNativeToDart_Window(win) {
+  if (win == null) return null;
+  return _DOMWindowCrossFrame._createSafe(win);
+}
+
+EventTarget _convertNativeToDart_EventTarget(e) {
+  if (e == null) {
+    return null;
+  }
+  // Assume it's a Window if it contains the postMessage property.  It may be
+  // from a different frame - without a patched prototype - so we cannot
+  // rely on Dart type checking.
+  try {
+    if (js.JsNative.hasProperty(e, "postMessage")) {
+      var window = _DOMWindowCrossFrame._createSafe(e);
+      // If it's a native window.
+      if (window is EventTarget) {
+        return window;
+      }
+      return null;
+    }
+  } catch (err) {
+    print("Error calling _convertNativeToDart_EventTarget... $err");
+  }
+  return e;
+}
+
+EventTarget _convertDartToNative_EventTarget(e) {
+  // _DOMWindowCrossFrame uses an interceptor so we don't need to do anything unlike Dart2Js.
+  return e;
+}
+
 _convertNativeToDart_XHR_Response(o) {
   if (o is Document) {
     return o;
@@ -736,10 +769,6 @@ debug_or_assert(message, expression) {
     throw new DebugAssertException("$message");
   }
 }
-
-// TODO(jacobr): we shouldn't be generating this call in the dart:html
-// bindings but we are.
-_convertDartToNative_EventTarget(target) => target;
 
 @Deprecated("Internal Use Only")
 Map<String, dynamic> convertNativeObjectToDartMap(js.JsObject jsObject) {
@@ -10193,7 +10222,7 @@ class Document extends Node
   
   @DomName('Document.defaultView')
   @DocsEditable()
-  WindowBase get window => _blink.BlinkDocument.instance.defaultView_Getter_(this);
+  WindowBase get window => _convertNativeToDart_Window(_blink.BlinkDocument.instance.defaultView_Getter_(this));
   
   @DomName('Document.documentElement')
   @DocsEditable()
@@ -16699,7 +16728,7 @@ class Event extends DartHtmlDomObject {
   
   @DomName('Event.currentTarget')
   @DocsEditable()
-  EventTarget get currentTarget => _blink.BlinkEvent.instance.currentTarget_Getter_(this);
+  EventTarget get currentTarget => _convertNativeToDart_EventTarget(_blink.BlinkEvent.instance.currentTarget_Getter_(this));
   
   @DomName('Event.defaultPrevented')
   @DocsEditable()
@@ -16726,7 +16755,7 @@ class Event extends DartHtmlDomObject {
   
   @DomName('Event.target')
   @DocsEditable()
-  EventTarget get target => _blink.BlinkEvent.instance.target_Getter_(this);
+  EventTarget get target => _convertNativeToDart_EventTarget(_blink.BlinkEvent.instance.target_Getter_(this));
   
   @DomName('Event.timeStamp')
   @DocsEditable()
@@ -17943,7 +17972,7 @@ class FocusEvent extends UIEvent {
 
   @DomName('FocusEvent.relatedTarget')
   @DocsEditable()
-  EventTarget get relatedTarget => _blink.BlinkFocusEvent.instance.relatedTarget_Getter_(this);
+  EventTarget get relatedTarget => _convertNativeToDart_EventTarget(_blink.BlinkFocusEvent.instance.relatedTarget_Getter_(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21948,7 +21977,7 @@ class IFrameElement extends HtmlElement {
   
   @DomName('HTMLIFrameElement.contentWindow')
   @DocsEditable()
-  WindowBase get contentWindow => _blink.BlinkHTMLIFrameElement.instance.contentWindow_Getter_(this);
+  WindowBase get contentWindow => _convertNativeToDart_Window(_blink.BlinkHTMLIFrameElement.instance.contentWindow_Getter_(this));
   
   @DomName('HTMLIFrameElement.height')
   @DocsEditable()
@@ -25926,7 +25955,7 @@ class MessageEvent extends Event {
   
   @DomName('MessageEvent.source')
   @DocsEditable()
-  EventTarget get source => _blink.BlinkMessageEvent.instance.source_Getter_(this);
+  EventTarget get source => _convertNativeToDart_EventTarget(_blink.BlinkMessageEvent.instance.source_Getter_(this));
   
   @DomName('MessageEvent.initMessageEvent')
   @DocsEditable()
@@ -26790,7 +26819,7 @@ class MouseEvent extends UIEvent {
   
   @DomName('MouseEvent.relatedTarget')
   @DocsEditable()
-  EventTarget get relatedTarget => _blink.BlinkMouseEvent.instance.relatedTarget_Getter_(this);
+  EventTarget get relatedTarget => _convertNativeToDart_EventTarget(_blink.BlinkMouseEvent.instance.relatedTarget_Getter_(this));
   
   @DomName('MouseEvent.screenX')
   @DocsEditable()
@@ -31464,7 +31493,7 @@ class RelatedEvent extends Event {
   @DomName('RelatedEvent.relatedTarget')
   @DocsEditable()
   @Experimental() // untriaged
-  EventTarget get relatedTarget => _blink.BlinkRelatedEvent.instance.relatedTarget_Getter_(this);
+  EventTarget get relatedTarget => _convertNativeToDart_EventTarget(_blink.BlinkRelatedEvent.instance.relatedTarget_Getter_(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36997,7 +37026,7 @@ class Touch extends DartHtmlDomObject {
   
   @DomName('Touch.target')
   @DocsEditable()
-  EventTarget get target => _blink.BlinkTouch.instance.target_Getter_(this);
+  EventTarget get target => _convertNativeToDart_EventTarget(_blink.BlinkTouch.instance.target_Getter_(this));
   
 
 // As of Chrome 37, these all changed from long to double.  This code
@@ -37617,7 +37646,7 @@ class UIEvent extends Event {
   
   @DomName('UIEvent.view')
   @DocsEditable()
-  WindowBase get view => _blink.BlinkUIEvent.instance.view_Getter_(this);
+  WindowBase get view => _convertNativeToDart_Window(_blink.BlinkUIEvent.instance.view_Getter_(this));
   
   @DomName('UIEvent.which')
   @DocsEditable()
@@ -39724,7 +39753,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   
   @DomName('Window.opener')
   @DocsEditable()
-  WindowBase get opener => _blink.BlinkWindow.instance.opener_Getter_(this);
+  WindowBase get opener => _convertNativeToDart_Window(_blink.BlinkWindow.instance.opener_Getter_(this));
   
   @DomName('Window.opener')
   @DocsEditable()
@@ -39795,7 +39824,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   
   @DomName('Window.parent')
   @DocsEditable()
-  WindowBase get parent => _blink.BlinkWindow.instance.parent_Getter_(this);
+  WindowBase get parent => _convertNativeToDart_Window(_blink.BlinkWindow.instance.parent_Getter_(this));
   
   /**
    * Timing and navigation data for this window.
@@ -39907,7 +39936,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.self')
   @DocsEditable()
-  WindowBase get self => _blink.BlinkWindow.instance.self_Getter_(this);
+  WindowBase get self => _convertNativeToDart_Window(_blink.BlinkWindow.instance.self_Getter_(this));
   
   /**
    * Storage for this window that is cleared when this session ends.
@@ -39994,7 +40023,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   
   @DomName('Window.top')
   @DocsEditable()
-  WindowBase get top => _blink.BlinkWindow.instance.top_Getter_(this);
+  WindowBase get top => _convertNativeToDart_Window(_blink.BlinkWindow.instance.top_Getter_(this));
   
   /**
    * The current window.
@@ -40006,7 +40035,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.window')
   @DocsEditable()
-  WindowBase get window => _blink.BlinkWindow.instance.window_Getter_(this);
+  WindowBase get window => _convertNativeToDart_Window(_blink.BlinkWindow.instance.window_Getter_(this));
   
   WindowBase __getter__(index_OR_name) {
     if ((index_OR_name is int)) {
@@ -40122,7 +40151,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   
   @DomName('Window.open')
   @DocsEditable()
-  WindowBase open(String url, String target, [String features]) => _blink.BlinkWindow.instance.open_Callback_3_(this, url, target, features);
+  WindowBase open(String url, String target, [String features]) => _convertNativeToDart_Window(_blink.BlinkWindow.instance.open_Callback_3_(this, url, target, features));
   
   SqlDatabase openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) {
     if (creationCallback != null) {
@@ -48958,33 +48987,31 @@ class _Utils {
       _blink.Blink_Utils.createElement(document, tagName);
 }
 
-// TODO(jacobr): this seems busted. I believe we are actually
-// giving users real windows for opener, parent, top, etc.
-// Or worse, we are probaly returning a raw JSObject.
 class _DOMWindowCrossFrame extends DartHtmlDomObject implements WindowBase {
   _DOMWindowCrossFrame.internal();
 
   static _createSafe(win) =>
-      _blink.Blink_Utils.setInstanceInterceptor(win, _DOMWindowCrossFrame);
+    win is _DOMWindowCrossFrame ? win : _blink.Blink_Utils.setInstanceInterceptor(win, _DOMWindowCrossFrame);
 
   // Fields.
-  HistoryBase get history => _blink.Blink_DOMWindowCrossFrame.get_history(this);
-  LocationBase get location =>
-      _blink.Blink_DOMWindowCrossFrame.get_location(this);
-  bool get closed => _blink.Blink_DOMWindowCrossFrame.get_closed(this);
-  WindowBase get opener => _blink.Blink_DOMWindowCrossFrame.get_opener(this);
-  WindowBase get parent => _blink.Blink_DOMWindowCrossFrame.get_parent(this);
-  WindowBase get top => _blink.Blink_DOMWindowCrossFrame.get_top(this);
+  HistoryBase get history {
+    var history =  _blink.BlinkWindow.instance.history_Getter_(this);
+    return history is _HistoryCrossFrame ? history : _blink.Blink_Utils.setInstanceInterceptor(history, _HistoryCrossFrame);
+  }
+
+  LocationBase get location {
+    var location = _blink.BlinkWindow.instance.location_Getter_(this);
+    return location is _LocationCrossFrame ? location : _blink.Blink_Utils.setInstanceInterceptor(location, _LocationCrossFrame);
+  }
+
+  bool get closed => _blink.BlinkWindow.instance.closed_Getter_(this);
+  WindowBase get opener => _convertNativeToDart_Window(_blink.BlinkWindow.instance.opener_Getter_(this));
+  WindowBase get parent => _convertNativeToDart_Window(_blink.BlinkWindow.instance.parent_Getter_(this));
+  WindowBase get top => _convertNativeToDart_Window(_blink.BlinkWindow.instance.top_Getter_(this));
 
   // Methods.
-  void close() => _blink.Blink_DOMWindowCrossFrame.close(this);
-  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin,
-          [List messagePorts]) =>
-      _blink.Blink_DOMWindowCrossFrame.postMessage(
-          this,
-          convertDartToNative_SerializedScriptValue(message),
-          targetOrigin,
-          messagePorts);
+  void close() => _blink.BlinkWindow.instance.close_Callback_0_(this);
+  void postMessage(Object message, String targetOrigin, [List<MessagePort> transfer]) => _blink.BlinkWindow.instance.postMessage_Callback_3_(this, convertDartToNative_SerializedScriptValue(message), targetOrigin, transfer);
 
   // Implementation support.
   String get typeName => "Window";
@@ -49021,9 +49048,16 @@ class _HistoryCrossFrame extends DartHtmlDomObject implements HistoryBase {
   _HistoryCrossFrame.internal();
 
   // Methods.
-  void back() => _blink.Blink_HistoryCrossFrame.back(this);
-  void forward() => _blink.Blink_HistoryCrossFrame.forward(this);
-  void go(int distance) => _blink.Blink_HistoryCrossFrame.go(this, distance);
+  void back() => _blink.BlinkHistory.instance.back_Callback_0_(this);
+  void forward() => _blink.BlinkHistory.instance.forward_Callback_0_(this);
+  void go([int delta]) {
+    if (delta != null) {
+      _blink.BlinkHistory.instance.go_Callback_1_(this, delta);
+      return;
+    }
+    _blink.BlinkHistory.instance.go_Callback_0_(this);
+    return;
+  }
 
   // Implementation support.
   String get typeName => "History";
@@ -49033,7 +49067,7 @@ class _LocationCrossFrame extends DartHtmlDomObject implements LocationBase {
   _LocationCrossFrame.internal();
 
   // Fields.
-  set href(String h) => _blink.Blink_LocationCrossFrame.set_href(this, h);
+  set href(String value) => _blink.BlinkLocation.instance.href_Setter_(this, value);
 
   // Implementation support.
   String get typeName => "Location";
