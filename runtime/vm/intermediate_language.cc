@@ -3510,7 +3510,8 @@ Definition* StringInterpolateInstr::Canonicalize(FlowGraph* flow_graph) {
         pieces.SetAt(store_index, String::Cast(obj));
       } else if (obj.IsSmi()) {
         const char* cstr = obj.ToCString();
-        pieces.SetAt(store_index, String::Handle(zone, String::New(cstr)));
+        pieces.SetAt(store_index,
+            String::Handle(zone, String::New(cstr, Heap::kOld)));
       } else if (obj.IsBool()) {
         pieces.SetAt(store_index,
             Bool::Cast(obj).value() ? Symbols::True() : Symbols::False());

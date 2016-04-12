@@ -2464,7 +2464,7 @@ StaticCallNode* Parser::ParseSuperInitializer(const Class& cls,
   const Class& super_class = Class::Handle(Z, cls.SuperClass());
   ASSERT(!super_class.IsNull());
   String& ctor_name = String::Handle(Z, super_class.Name());
-  ctor_name = String::Concat(ctor_name, Symbols::Dot());
+  ctor_name =  Symbols::FromConcat(T, ctor_name, Symbols::Dot());
   if (CurrentToken() == Token::kPERIOD) {
     ConsumeToken();
     ctor_name = Symbols::FromConcat(T,

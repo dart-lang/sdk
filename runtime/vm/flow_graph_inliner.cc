@@ -732,7 +732,8 @@ class CallSiteInliner : public ValueObject {
                    isolate->loading_invalidation_gen())) {
             // Loading occured while parsing. We need to abort here because
             // state changed while compiling.
-            Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId);
+            Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId,
+                "Loading occured while parsing in inliner");
           }
         }
 
@@ -743,7 +744,8 @@ class CallSiteInliner : public ValueObject {
         function.RestoreICDataMap(ic_data_array, clone_ic_data);
         if (Compiler::IsBackgroundCompilation() &&
             (function.ic_data_array() == Array::null())) {
-          Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId);
+          Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId,
+              "ICData cleared while inlining");
         }
 
         // Build the callee graph.

@@ -657,7 +657,8 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
 
           if (Compiler::IsBackgroundCompilation() &&
               (function.ic_data_array() == Array::null())) {
-            Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId);
+            Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId,
+                "RestoreICDataMap: ICData array cleared.");
           }
           if (FLAG_print_ic_data_map) {
             for (intptr_t i = 0; i < ic_data_array->length(); i++) {
@@ -1067,7 +1068,8 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
             NoHeapGrowthControlScope no_growth_control;
             if (!isolate()->background_compiler()->is_running()) {
               // The background compiler is being stopped.
-              Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId);
+              Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId,
+                  "Background compilation is being stopped");
             }
             FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
           }
@@ -1195,7 +1197,8 @@ static RawError* CompileFunctionHelper(CompilationPipeline* pipeline,
                isolate->loading_invalidation_gen())) {
         // Loading occured while parsing. We need to abort here because state
         // changed while compiling.
-        Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId);
+        Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId,
+            "Invalidated state during parsing because of script loading");
       }
     }
 
@@ -1579,9 +1582,18 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
 }
 
 
-void Compiler::AbortBackgroundCompilation(intptr_t deopt_id) {
+void Compiler::AbortBackgroundCompilation(intptr_t deopt_id, const char* msg) {
   if (FLAG_trace_compiler) {
-    THR_Print("ABORT background compilation\n");
+    THR_Print("ABORT background compilation: %s\n", msg);
+  }
+  TimelineStream* stream = Timeline::GetCompilerStream();
+  ASSERT(stream != NULL);
+  TimelineEvent* event = stream->StartEvent();
+  if (event != NULL) {
+    event->Instant("AbortBackgroundCompilation");
+    event->SetNumArguments(1);
+    event->CopyArgument(0, "reason", msg);
+    event->Complete();
   }
   ASSERT(Compiler::IsBackgroundCompilation());
   Thread::Current()->long_jump_base()->Jump(
@@ -1967,7 +1979,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
 }
 
 
-void Compiler::AbortBackgroundCompilation(intptr_t deopt_id) {
+void Compiler::AbortBackgroundCompilation(intptr_t deopt_id, const char* msg) {
   UNREACHABLE();
 }
 
