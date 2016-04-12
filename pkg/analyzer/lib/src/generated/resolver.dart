@@ -4104,26 +4104,8 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
   }
 
   @override
-  void visitPrefixedIdentifier(PrefixedIdentifier node) {
-    // If the prefixed identifier references some A.B, where A is a library
-    // prefix, then we can lookup the associated ImportDirective in
-    // prefixElementMap and remove it from the unusedImports list.
-    SimpleIdentifier prefixIdentifier = node.prefix;
-    Element element = prefixIdentifier.staticElement;
-    if (element is PrefixElement) {
-      List<Element> prefixedElements =
-          usedElements.prefixMap.putIfAbsent(element, () => <Element>[]);
-      prefixedElements.add(node.identifier.staticElement);
-      return;
-    }
-    // Otherwise, pass the prefixed identifier element and name onto
-    // visitIdentifier.
-    _visitIdentifier(element, prefixIdentifier.name);
-  }
-
-  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    _visitIdentifier(node.staticElement, node.name);
+    _visitIdentifier(node, node.staticElement);
   }
 
   /**
@@ -4134,7 +4116,7 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
     directive.metadata.accept(this);
   }
 
-  void _visitIdentifier(Element element, String name) {
+  void _visitIdentifier(SimpleIdentifier identifier, Element element) {
     if (element == null) {
       return;
     }
@@ -4143,10 +4125,17 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
     if (element is MultiplyDefinedElement) {
       MultiplyDefinedElement multiplyDefinedElement = element;
       for (Element elt in multiplyDefinedElement.conflictingElements) {
-        _visitIdentifier(elt, name);
+        _visitIdentifier(identifier, elt);
       }
       return;
-    } else if (element is PrefixElement) {
+    }
+
+    // Record `importPrefix.identifier` into 'prefixMap'.
+    if (_recordPrefixMap(identifier, element)) {
+      return;
+    }
+
+    if (element is PrefixElement) {
       usedElements.prefixMap.putIfAbsent(element, () => <Element>[]);
       return;
     } else if (element.enclosingElement is! CompilationUnitElement) {
@@ -4167,6 +4156,30 @@ class GatherUsedImportedElementsVisitor extends RecursiveAstVisitor {
     }
     // Remember the element.
     usedElements.elements.add(element);
+  }
+
+  /**
+   * If the given [identifier] is prefixed with a [PrefixElement], fill the
+   * corresponding `UsedImportedElements.prefixMap` entry and return `true`.
+   */
+  bool _recordPrefixMap(SimpleIdentifier identifier, Element element) {
+    bool recordIfTargetIsPrefixElement(Expression target) {
+      if (target is SimpleIdentifier && target.staticElement is PrefixElement) {
+        List<Element> prefixedElements = usedElements.prefixMap
+            .putIfAbsent(target.staticElement, () => <Element>[]);
+        prefixedElements.add(element);
+        return true;
+      }
+      return false;
+    }
+    AstNode parent = identifier.parent;
+    if (parent is MethodInvocation && parent.methodName == identifier) {
+      return recordIfTargetIsPrefixElement(parent.target);
+    }
+    if (parent is PrefixedIdentifier && parent.identifier == identifier) {
+      return recordIfTargetIsPrefixElement(parent.prefix);
+    }
+    return false;
   }
 }
 
@@ -4652,15 +4665,16 @@ class ImportsVerifier {
    *          hints
    */
   void generateUnusedShownNameHints(ErrorReporter reporter) {
-    _unusedShownNamesMap.forEach((ImportDirective importDirective,
-        List<SimpleIdentifier> identifiers) {
+    _unusedShownNamesMap.forEach(
+        (ImportDirective importDirective, List<SimpleIdentifier> identifiers) {
       if (_unusedImports.contains(importDirective)) {
         // This import is actually wholly unused, not just one or more shown names from it.
         // This is then an "unused import", rather than unused shown names.
         return;
       }
       for (Identifier identifier in identifiers) {
-        reporter.reportErrorForNode(HintCode.UNUSED_SHOWN_NAME, identifier, [identifier.name]);
+        reporter.reportErrorForNode(
+            HintCode.UNUSED_SHOWN_NAME, identifier, [identifier.name]);
       }
     });
   }
@@ -4674,7 +4688,8 @@ class ImportsVerifier {
       return;
     }
     // Process import prefixes.
-    usedElements.prefixMap.forEach((PrefixElement prefix, List<Element> elements) {
+    usedElements.prefixMap
+        .forEach((PrefixElement prefix, List<Element> elements) {
       List<ImportDirective> importDirectives = _prefixElementMap[prefix];
       if (importDirectives != null) {
         for (ImportDirective importDirective in importDirectives) {
@@ -4711,43 +4726,11 @@ class ImportsVerifier {
       String name = element.displayName;
       for (ImportDirective importDirective in importsLibrary) {
         Namespace namespace = _computeNamespace(importDirective);
-        if (importDirective.prefix != null) {
-          name = "${importDirective.prefix.name}.$name";
-        }
         if (namespace != null && namespace.get(name) != null) {
           _unusedImports.remove(importDirective);
           _removeFromUnusedShownNamesMap(element, importDirective);
         }
       }
-    }
-  }
-
-  /**
-   * Remove [element] from the list of names shown by [importDirective].
-   */
-  void _removeFromUnusedShownNamesMap(Element element,
-      ImportDirective importDirective) {
-    List<SimpleIdentifier> identifiers = _unusedShownNamesMap[importDirective];
-    if (identifiers == null) {
-      return;
-    }
-    for (Identifier identifier in identifiers) {
-      if (element is PropertyAccessorElement) {
-        // If the getter or setter of a variable is used, then the variable (the
-        // shown name) is used.
-        if (identifier.staticElement == element.variable) {
-          identifiers.remove(identifier);
-          break;
-        }
-      } else {
-        if (identifier.staticElement == element) {
-          identifiers.remove(identifier);
-          break;
-        }
-      }
-    }
-    if (identifiers.isEmpty) {
-      _unusedShownNamesMap.remove(importDirective);
     }
   }
 
@@ -4764,6 +4747,24 @@ class ImportsVerifier {
       _putIntoLibraryMap(exportedLibraryElt, importDirective);
       _addAdditionalLibrariesForExports(
           exportedLibraryElt, importDirective, exportPath);
+    }
+  }
+
+  /**
+   * Add every shown name from [importDirective] into [_unusedShownNamesMap].
+   */
+  void _addShownNames(ImportDirective importDirective) {
+    if (importDirective.combinators == null) {
+      return;
+    }
+    List<SimpleIdentifier> identifiers = new List<SimpleIdentifier>();
+    _unusedShownNamesMap[importDirective] = identifiers;
+    for (Combinator combinator in importDirective.combinators) {
+      if (combinator is ShowCombinator) {
+        for (SimpleIdentifier name in combinator.shownNames) {
+          identifiers.add(name);
+        }
+      }
     }
   }
 
@@ -4808,20 +4809,31 @@ class ImportsVerifier {
   }
 
   /**
-   * Add every shown name from [importDirective] into [_unusedShownNamesMap].
+   * Remove [element] from the list of names shown by [importDirective].
    */
-  void _addShownNames(ImportDirective importDirective) {
-    if (importDirective.combinators == null) {
+  void _removeFromUnusedShownNamesMap(
+      Element element, ImportDirective importDirective) {
+    List<SimpleIdentifier> identifiers = _unusedShownNamesMap[importDirective];
+    if (identifiers == null) {
       return;
     }
-    List<SimpleIdentifier> identifiers = new List<SimpleIdentifier>();
-    _unusedShownNamesMap[importDirective] = identifiers;
-    for (Combinator combinator in importDirective.combinators) {
-      if (combinator is ShowCombinator) {
-        for (SimpleIdentifier name in combinator.shownNames) {
-          identifiers.add(name);
+    for (Identifier identifier in identifiers) {
+      if (element is PropertyAccessorElement) {
+        // If the getter or setter of a variable is used, then the variable (the
+        // shown name) is used.
+        if (identifier.staticElement == element.variable) {
+          identifiers.remove(identifier);
+          break;
+        }
+      } else {
+        if (identifier.staticElement == element) {
+          identifiers.remove(identifier);
+          break;
         }
       }
+    }
+    if (identifiers.isEmpty) {
+      _unusedShownNamesMap.remove(importDirective);
     }
   }
 }

@@ -1096,6 +1096,30 @@ topLevelFunction() {}''');
     verify([source]);
   }
 
+  void test_unusedImport_prefix_topLevelFunction2() {
+    Source source = addSource(r'''
+library L;
+import 'lib1.dart' hide topLevelFunction;
+import 'lib1.dart' as one show topLevelFunction;
+import 'lib1.dart' as two show topLevelFunction;
+class A {
+  static void x() {
+    One o;
+    one.topLevelFunction();
+    two.topLevelFunction();
+  }
+}''');
+    addNamedSource(
+        "/lib1.dart",
+        r'''
+library lib1;
+class One {}
+topLevelFunction() {}''');
+    computeLibrarySourceErrors(source);
+    assertNoErrors(source);
+    verify([source]);
+  }
+
   void test_useOfVoidResult_implicitReturnValue() {
     Source source = addSource(r'''
 f() {}
