@@ -58,8 +58,12 @@ const List<MessageKind> MESSAGE_SKIP_LIST = const <MessageKind>[
 
 main(List<String> arguments) {
   List<String> options = <String>[];
-  if (arguments.contains('-v') || arguments.contains(Flags.verbose)) {
-    options.add(Flags.verbose);
+  for (String argument in arguments) {
+    if (argument == '-v') {
+      options.add(Flags.verbose);
+    } else if (argument.startsWith('-')) {
+      options.add(argument);
+    }
   }
   List<Uri> uriList = <Uri>[];
   for (String arg in arguments) {
