@@ -2,6 +2,20 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+
+// Hack to work around issues importing `meta.dart` in tests.
+// Ideally, remove:
+library meta;
+
+class _OptionalTypeArgs {
+  const _OptionalTypeArgs();
+}
+
+const _OptionalTypeArgs optionalTypeArgs = const _OptionalTypeArgs();
+
+// ... and replace w/:
+// import 'package:meta/meta.dart';
+
 List list; // LINT
 List<List> lists; //LINT
 List<int> ints; //OK
@@ -16,6 +30,9 @@ b(s) {} //LINT [3:1]
 c(int x) {}
 d(final x) {} //LINT
 e(final int x) {}
+
+@optionalTypeArgs
+class P<T> { }
 
 main() {
   var x = ''; //LINT [3:3]
@@ -42,6 +59,13 @@ main() {
   listen((_) { // OK!
     // ...
   });
+
+  P p = new P(); //OK (optionalTypeArgs)
+}
+
+P doSomething(P p) //OK (optionalTypeArgs)
+{
+  return p;
 }
 
 listen(void onData(Object event)) {}

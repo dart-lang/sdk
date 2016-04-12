@@ -13,6 +13,7 @@ import 'package:analyzer/dart/ast/ast.dart'
         VariableDeclarationList,
         TypeName;
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:linter/src/linter.dart';
 import 'package:linter/src/util.dart';
@@ -20,8 +21,7 @@ import 'package:linter/src/util.dart';
 const desc = 'Specify type annotations.';
 
 const details = '''
-From the [flutter style guide]
-(https://github.com/flutter/engine/blob/master/sky/specs/style-guide.md):
+From the [flutter style guide](https://flutter.io/style-guide/):
 
 **DO** specify type annotations.
 
@@ -44,7 +44,47 @@ var foo = 10;
 final bar = new Bar();
 const quux = 20;
 ```
+
+NOTE: Using the the `@optionalTypeArgs` annotation in the `meta` package, API
+authors can special-case type variables whose type needs to by dynamic but whose
+declaration should be treated as optional.  For example, suppose you have a
+`Key` object whose type parameter you'd like to treat as optional.  Using the
+`@optionalTypeArgs` would look like this:
+
+```
+import 'package:meta/meta.dart';
+
+@optionalTypeArgs
+class Key<T> {
+ ...
+}
+
+main() {
+  Key s = new Key(); // OK!
+}
+```
 ''';
+
+/// The name of `meta` library, used to define analysis annotations.
+String _META_LIB_NAME = "meta";
+
+/// The name of the top-level variable used to mark a Class as having optional
+/// type args.
+String _OPTIONAL_TYPE_ARGS_VAR_NAME = "optionalTypeArgs";
+
+bool _isOptionallyParameterized(ParameterizedType type) {
+  List<ElementAnnotation> metadata = type.element?.metadata;
+  if (metadata != null) {
+    return metadata
+        .any((ElementAnnotation a) => _isOptionalTypeArgs(a.element));
+  }
+  return false;
+}
+
+bool _isOptionalTypeArgs(Element element) =>
+    element is PropertyAccessorElement &&
+    element.name == _OPTIONAL_TYPE_ARGS_VAR_NAME &&
+    element.library?.name == _META_LIB_NAME;
 
 class AlwaysSpecifyTypes extends LintRule {
   AlwaysSpecifyTypes()
@@ -84,7 +124,9 @@ class Visitor extends SimpleAstVisitor {
   visitTypeName(TypeName typeName) {
     DartType type = typeName.type;
     if (type is ParameterizedType) {
-      if (type.typeParameters.isNotEmpty && typeName.typeArguments == null) {
+      if (type.typeParameters.isNotEmpty &&
+          typeName.typeArguments == null &&
+          !_isOptionallyParameterized(type)) {
         rule.reportLint(typeName);
       }
     }
