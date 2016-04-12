@@ -332,6 +332,54 @@ class ImportedReferenceContributorTest extends DartCompletionContributorTest {
     assertNotSuggested('==');
   }
 
+  test_AsExpression_type_subtype_extends_filter() async {
+    // SimpleIdentifier  TypeName  AsExpression  IfStatement
+    addSource(
+        '/testB.dart',
+        '''
+          foo() { }
+          class A {} class B extends A {} class C extends B {}
+          class X {X.c(); X._d(); z() {}}''');
+    addTestSource('''
+          import "/testB.dart";
+         main(){A a; if (a as ^)}''');
+
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestClass('B');
+    assertSuggestClass('C');
+    assertNotSuggested('A');
+    assertNotSuggested('X');
+    assertNotSuggested('Object');
+    assertNotSuggested('a');
+    assertNotSuggested('main');
+  }
+
+  test_AsExpression_type_subtype_implements_filter() async {
+    // SimpleIdentifier  TypeName  AsExpression  IfStatement
+    addSource(
+        '/testB.dart',
+        '''
+          foo() { }
+          class A {} class B implements A {} class C implements B {}
+          class X {X.c(); X._d(); z() {}}''');
+    addTestSource('''
+          import "/testB.dart";
+          main(){A a; if (a as ^)}''');
+
+    await computeSuggestions();
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestClass('B');
+    assertSuggestClass('C');
+    assertNotSuggested('A');
+    assertNotSuggested('X');
+    assertNotSuggested('Object');
+    assertNotSuggested('a');
+    assertNotSuggested('main');
+  }
+
   test_AssignmentExpression_name() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement  Block
