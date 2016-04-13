@@ -17240,7 +17240,9 @@ bool BoundedType::IsRecursive() const {
 
 
 void BoundedType::set_type(const AbstractType& value) const {
-  ASSERT(value.IsFinalized() || value.IsBeingFinalized());
+  ASSERT(value.IsFinalized() ||
+         value.IsBeingFinalized() ||
+         value.IsTypeParameter());
   ASSERT(!value.IsMalformed());
   StorePointer(&raw_ptr()->type_, value.raw());
 }
@@ -17309,8 +17311,8 @@ RawAbstractType* BoundedType::InstantiateFrom(
         return bounded_type.raw();
       }
       const TypeParameter& type_param = TypeParameter::Handle(type_parameter());
-      if (instantiated_bounded_type.IsBeingFinalized() ||
-          instantiated_upper_bound.IsBeingFinalized() ||
+      if (!instantiated_bounded_type.IsFinalized() ||
+          !instantiated_upper_bound.IsFinalized() ||
           (!type_param.CheckBound(instantiated_bounded_type,
                                   instantiated_upper_bound,
                                   bound_error,
@@ -17319,7 +17321,8 @@ RawAbstractType* BoundedType::InstantiateFrom(
            bound_error->IsNull())) {
         // We cannot determine yet whether the bounded_type is below the
         // upper_bound, because one or both of them is still being finalized or
-        // uninstantiated.
+        // uninstantiated. For example, instantiated_bounded_type may be the
+        // still unfinalized cloned type parameter of a mixin application class.
         ASSERT(instantiated_bounded_type.IsBeingFinalized() ||
                instantiated_upper_bound.IsBeingFinalized() ||
                !instantiated_bounded_type.IsInstantiated() ||

@@ -993,13 +993,16 @@ void ClassFinalizer::CheckTypeArgumentBounds(const Class& cls,
           !(type_arg.Equals(type_param) &&
             instantiated_bound.Equals(declared_bound))) {
         // If type_arg is a type parameter, its declared bound may not be
-        // resolved yet.
+        // finalized yet.
         if (type_arg.IsTypeParameter()) {
           const Class& type_arg_cls = Class::Handle(
               TypeParameter::Cast(type_arg).parameterized_class());
           AbstractType& bound = AbstractType::Handle(
               TypeParameter::Cast(type_arg).bound());
-          ResolveType(type_arg_cls, bound);
+          if (!bound.IsFinalized() && !bound.IsBeingFinalized()) {
+            bound = FinalizeType(type_arg_cls, bound, kCanonicalize);
+            TypeParameter::Cast(type_arg).set_bound(bound);
+          }
         }
         // This may be called only if type needs to be finalized, therefore
         // seems OK to allocate finalized types in old space.
