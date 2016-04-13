@@ -4,19 +4,12 @@
 
 library dart2js.js_emitter.full_emitter;
 
-import 'dart:convert';
 import 'dart:collection' show HashMap;
+import 'dart:convert';
 
 import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
 import 'package:js_runtime/shared/embedded_names.dart'
     show JsBuiltin, JsGetName;
-
-import '../headers.dart';
-import '../js_emitter.dart' hide Emitter;
-import '../js_emitter.dart' as js_emitter show Emitter;
-import '../model.dart';
-import '../program_builder/program_builder.dart';
-import '../constant_ordering.dart' show deepCompareConstants;
 
 import '../../common.dart';
 import '../../common/names.dart' show Names;
@@ -28,21 +21,16 @@ import '../../deferred_load.dart' show OutputUnit;
 import '../../elements/elements.dart'
     show
         ClassElement,
-        ConstructorBodyElement,
         Element,
         Elements,
-        ElementKind,
         FieldElement,
         FunctionElement,
         FunctionSignature,
         LibraryElement,
         MetadataAnnotation,
         MethodElement,
-        MemberElement,
         Name,
-        ParameterElement,
         TypedefElement,
-        TypeVariableElement,
         VariableElement;
 import '../../hash/sha1.dart' show Hasher;
 import '../../io/code_output.dart';
@@ -54,25 +42,25 @@ import '../../js/js.dart' show js;
 import '../../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../../js_backend/js_backend.dart'
     show
-        CheckedModeHelper,
         CompoundName,
         ConstantEmitter,
-        CustomElementsAnalysis,
         GetterName,
         JavaScriptBackend,
         JavaScriptConstantCompiler,
         Namer,
-        RuntimeTypes,
         SetterName,
-        Substitution,
-        TypeCheck,
-        TypeChecks,
         TypeVariableHandler;
 import '../../universe/call_structure.dart' show CallStructure;
 import '../../universe/selector.dart' show Selector;
-import '../../util/characters.dart' show $$, $A, $HASH, $PERIOD, $Z, $a, $z;
+import '../../util/characters.dart' show $$, $A, $HASH, $Z, $a, $z;
 import '../../util/uri_extras.dart' show relativize;
 import '../../util/util.dart' show equalElements;
+import '../constant_ordering.dart' show deepCompareConstants;
+import '../headers.dart';
+import '../js_emitter.dart' hide Emitter;
+import '../js_emitter.dart' as js_emitter show Emitter;
+import '../model.dart';
+import '../program_builder/program_builder.dart';
 
 part 'class_builder.dart';
 part 'class_emitter.dart';

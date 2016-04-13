@@ -14,19 +14,15 @@ import '../elements/elements.dart'
         AstElement,
         ClassElement,
         Element,
-        ErroneousElement,
         FunctionElement,
         FunctionSignature,
-        LocalFunctionElement,
         MetadataAnnotation,
-        MethodElement,
         ResolvedAst,
-        TypedefElement,
-        TypeVariableElement;
+        TypedefElement;
 import '../enqueue.dart' show ResolutionEnqueuer;
 import '../options.dart' show ParserOptions;
 import '../parser/element_listener.dart' show ScannerOptions;
-import '../tree/tree.dart' show AsyncForIn, Send, TypeAnnotation;
+import '../tree/tree.dart' show TypeAnnotation;
 import '../universe/world_impact.dart' show WorldImpact;
 import 'work.dart' show ItemCompilationContext, WorkItem;
 

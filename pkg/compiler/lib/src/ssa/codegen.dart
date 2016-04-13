@@ -15,17 +15,16 @@ import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/js_backend.dart';
-import '../js_emitter/js_emitter.dart' show CodeEmitterTask, NativeEmitter;
+import '../js_emitter/js_emitter.dart' show NativeEmitter;
 import '../native/native.dart' as native;
 import '../types/types.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
 import '../util/util.dart';
-import '../world.dart' show ClassWorld, World;
-
-import 'nodes.dart';
+import '../world.dart' show ClassWorld;
 import 'codegen_helpers.dart';
+import 'nodes.dart';
 import 'variable_allocator.dart';
 
 class SsaCodeGeneratorTask extends CompilerTask {
@@ -1613,7 +1612,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     var isolate = new js.VariableUse(
         backend.namer.globalObjectFor(helpers.interceptorsLibrary));
     Selector selector = node.selector;
-    TypeMask mask = getOptimizedSelectorFor(node, selector, node.mask);
     js.Name methodName = backend.registerOneShotInterceptor(selector);
     push(js
         .propertyCall(isolate, methodName, arguments)
@@ -2182,15 +2180,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       {SourceInformation sourceInformation}) {
     js.Expression jsHelper = backend.emitter.staticFunctionAccess(helper);
     List arguments = [];
-    var location;
     if (argument is List) {
-      location = argument[0];
       argument.forEach((instruction) {
         use(instruction);
         arguments.add(pop());
       });
     } else {
-      location = argument;
       use(argument);
       arguments.add(pop());
     }

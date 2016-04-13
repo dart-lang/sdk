@@ -4,34 +4,26 @@
 
 library simple_types_inferrer;
 
-import '../closure.dart' show ClosureClassMap, ClosureScope;
+import '../closure.dart' show ClosureClassMap;
 import '../common.dart';
 import '../common/names.dart' show Selectors;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart' show ConstantValue, IntConstantValue;
 import '../core_types.dart' show CoreClasses, CoreTypes;
 import '../cps_ir/cps_ir_nodes.dart' as cps_ir show Node;
-import '../dart_types.dart'
-    show DartType, FunctionType, InterfaceType, TypeKind;
+import '../dart_types.dart' show DartType;
 import '../elements/elements.dart';
 import '../js_backend/js_backend.dart' as js;
 import '../native/native.dart' as native;
-import '../resolution/tree_elements.dart' show TreeElements;
 import '../resolution/operators.dart' as op;
+import '../resolution/tree_elements.dart' show TreeElements;
 import '../tree/tree.dart' as ast;
-import '../types/types.dart'
-    show
-        TypesInferrer,
-        FlatTypeMask,
-        TypeMask,
-        ContainerTypeMask,
-        ValueTypeMask;
-import '../util/util.dart' show Link, Setlet;
+import '../types/types.dart' show TypeMask;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
+import '../util/util.dart' show Link, Setlet;
 import '../world.dart' show ClassWorld;
-
 import 'inferrer_visitor.dart';
 
 /**

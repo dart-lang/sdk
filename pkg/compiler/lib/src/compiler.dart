@@ -9,36 +9,29 @@ import 'dart:async' show EventSink, Future;
 import '../compiler_new.dart' as api;
 import 'cache_strategy.dart' show CacheStrategy;
 import 'closure.dart' as closureMapping show ClosureTask;
-import 'common.dart';
 import 'common/backend_api.dart' show Backend;
-import 'common/codegen.dart' show CodegenImpact, CodegenWorkItem;
+import 'common/codegen.dart' show CodegenWorkItem;
+import 'common/names.dart' show Selectors;
 import 'common/names.dart' show Identifiers, Uris;
 import 'common/registry.dart' show EagerRegistry, Registry;
 import 'common/resolution.dart'
     show Parsing, Resolution, ResolutionWorkItem, ResolutionImpact;
 import 'common/tasks.dart' show CompilerTask, GenericTask;
 import 'common/work.dart' show ItemCompilationContext, WorkItem;
+import 'common.dart';
 import 'compile_time_constants.dart';
 import 'constants/values.dart';
 import 'core_types.dart' show CoreClasses, CoreTypes;
 import 'dart_backend/dart_backend.dart' as dart_backend;
 import 'dart_types.dart' show DartType, DynamicType, InterfaceType, Types;
-import 'deferred_load.dart' show DeferredLoadTask, OutputUnit;
+import 'deferred_load.dart' show DeferredLoadTask;
 import 'diagnostics/code_location.dart';
 import 'diagnostics/diagnostic_listener.dart' show DiagnosticReporter;
 import 'diagnostics/invariant.dart' show REPORT_EXCESS_RESOLUTION;
 import 'diagnostics/messages.dart' show Message, MessageTemplate;
 import 'dump_info.dart' show DumpInfoTask;
 import 'elements/elements.dart';
-import 'elements/modelx.dart'
-    show
-        ErroneousElementX,
-        ClassElementX,
-        CompilationUnitElementX,
-        DeferredLoaderGetterElementX,
-        MethodElementX,
-        LibraryElementX,
-        PrefixElementX;
+import 'elements/modelx.dart' show ErroneousElementX;
 import 'enqueue.dart'
     show
         CodegenEnqueuer,
@@ -61,7 +54,6 @@ import 'library_loader.dart'
         ResolvedUriTranslator,
         ScriptLoader;
 import 'mirrors_used.dart' show MirrorUsageAnalyzerTask;
-import 'common/names.dart' show Selectors;
 import 'null_compiler_output.dart' show NullCompilerOutput, NullSink;
 import 'options.dart' show CompilerOptions, DiagnosticOptions, ParserOptions;
 import 'parser/diet_parser_task.dart' show DietParserTask;
@@ -72,12 +64,12 @@ import 'resolution/registry.dart' show ResolutionRegistry;
 import 'resolution/resolution.dart' show ResolverTask;
 import 'resolution/tree_elements.dart' show TreeElementMapping;
 import 'scanner/scanner_task.dart' show ScannerTask;
-import 'serialization/task.dart' show SerializationTask;
 import 'script.dart' show Script;
+import 'serialization/task.dart' show SerializationTask;
 import 'ssa/nodes.dart' show HInstruction;
-import 'tracer.dart' show Tracer;
 import 'tokens/token.dart' show StringToken, Token, TokenPair;
 import 'tokens/token_map.dart' show TokenMap;
+import 'tracer.dart' show Tracer;
 import 'tree/tree.dart' show Node, TypeAnnotation;
 import 'typechecker.dart' show TypeCheckerTask;
 import 'types/types.dart' as ti;

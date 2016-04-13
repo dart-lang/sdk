@@ -9,12 +9,11 @@ library dart2js.source_information.start_end;
 
 import '../common.dart';
 import '../diagnostics/messages.dart' show MessageTemplate;
-import '../elements/elements.dart' show AstElement, LocalElement;
+import '../elements/elements.dart' show AstElement;
 import '../js/js.dart' as js;
 import '../js/js_source_mapping.dart';
 import '../tokens/token.dart' show Token;
-import '../tree/tree.dart' show Node, Send;
-
+import '../tree/tree.dart' show Node;
 import 'source_file.dart';
 import 'source_information.dart';
 

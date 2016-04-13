@@ -8,17 +8,13 @@ import 'package:js_ast/src/precedence.dart' as js_precedence;
 import 'package:js_runtime/shared/embedded_names.dart' as embeddedNames;
 import 'package:js_runtime/shared/embedded_names.dart' show JsBuiltin;
 
+import '../closure.dart'
+    show ClosureClassElement, ClosureClassMap, ClosureFieldElement;
 import '../common.dart';
 import '../common/names.dart' show Identifiers;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
-import '../closure.dart'
-    show
-        ClosureClassElement,
-        ClosureClassMap,
-        ClosureFieldElement,
-        CapturedVariable;
 import '../core_types.dart' show CoreClasses;
 import '../dart_types.dart'
     show
@@ -32,17 +28,14 @@ import '../deferred_load.dart' show OutputUnit;
 import '../elements/elements.dart'
     show
         ClassElement,
-        ConstructorBodyElement,
         ConstructorElement,
         Element,
-        Elements,
         ElementKind,
         FieldElement,
         FunctionElement,
         FunctionSignature,
         MetadataAnnotation,
         MethodElement,
-        MemberElement,
         MixinApplicationElement,
         ParameterElement,
         TypeVariableElement;
@@ -51,17 +44,12 @@ import '../js/js.dart' show js;
 import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/js_backend.dart'
     show
-        CheckedModeHelper,
-        CompoundName,
-        ConstantEmitter,
         CustomElementsAnalysis,
-        GetterName,
         JavaScriptBackend,
         JavaScriptConstantCompiler,
         Namer,
         RuntimeTypes,
         RuntimeTypesEncoder,
-        SetterName,
         Substitution,
         TypeCheck,
         TypeChecks,
@@ -70,7 +58,6 @@ import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/universe.dart' show SelectorConstraints;
 import '../util/util.dart' show Setlet;
-
 import 'full_emitter/emitter.dart' as full_js_emitter;
 import 'lazy_emitter/emitter.dart' as lazy_js_emitter;
 import 'model.dart';

@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../common.dart';
-import '../parser/listener.dart' show Listener;
 import '../parser/element_listener.dart' show ElementListener;
+import '../parser/listener.dart' show Listener;
 import '../tokens/token.dart' show BeginGroupToken, Token;
-import '../tokens/token_constants.dart' as Tokens show EOF_TOKEN, STRING_TOKEN;
+import '../tokens/token_constants.dart' as Tokens show STRING_TOKEN;
 
 void checkAllowedLibrary(ElementListener listener, Token token) {
   if (listener.scannerOptions.canUseNative) return;

@@ -815,7 +815,6 @@ class NativeBehavior {
         _escape(parameter, resolution);
       }
     } else {
-      DartType instantiated = null;
       JavaScriptBackend backend = compiler?.backend;
       if (!isInterop) {
         typesInstantiated.add(type);

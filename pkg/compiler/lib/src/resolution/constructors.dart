@@ -171,7 +171,6 @@ class InitializerResolver {
     ConstructorElement foundConstructor =
         findConstructor(constructor.library, lookupTarget, constructorName);
 
-    final bool isImplicitSuperCall = false;
     final String className = lookupTarget.name;
     CallStructure callStructure = argumentsResult.callStructure;
     ConstructorElement calledConstructor = verifyThatConstructorMatchesCall(

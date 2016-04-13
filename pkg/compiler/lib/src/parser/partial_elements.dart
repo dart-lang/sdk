@@ -10,13 +10,10 @@ import '../dart_types.dart' show DynamicType;
 import '../elements/elements.dart'
     show
         CompilationUnitElement,
-        ConstructorElement,
         Element,
         ElementKind,
         GetterElement,
-        LibraryElement,
         MetadataAnnotation,
-        MethodElement,
         SetterElement,
         STATE_NOT_STARTED,
         STATE_DONE;
@@ -27,7 +24,6 @@ import '../elements/modelx.dart'
         ConstructorElementX,
         DeclarationSite,
         ElementX,
-        FieldElementX,
         GetterElementX,
         MetadataAnnotationX,
         MethodElementX,
@@ -35,24 +31,14 @@ import '../elements/modelx.dart'
         TypedefElementX,
         VariableList;
 import '../elements/visitor.dart' show ElementVisitor;
-import '../tokens/token.dart'
-    show
-        BadInputToken,
-        BeginGroupToken,
-        ErrorToken,
-        KeywordToken,
-        StringToken,
-        Token,
-        UnmatchedToken,
-        UnterminatedToken;
+import '../tokens/token.dart' show Token;
 import '../tokens/token_constants.dart' as Tokens show EOF_TOKEN;
 import '../tree/tree.dart';
-
 import 'class_element_parser.dart' show ClassElementParser;
-import 'parser.dart' show Parser;
 import 'listener.dart' show ParserError;
 import 'member_listener.dart' show MemberListener;
 import 'node_listener.dart' show NodeListener;
+import 'parser.dart' show Parser;
 
 abstract class PartialElement implements DeclarationSite {
   Token beginToken;

@@ -4,21 +4,21 @@
 
 library cps_ir.optimization.inline;
 
+import 'package:js_ast/js_ast.dart' as js;
+
+import '../dart_types.dart' show DartType, GenericType;
+import '../elements/elements.dart';
+import '../js_backend/codegen/task.dart' show CpsFunctionCompiler;
+import '../js_backend/js_backend.dart' show JavaScriptBackend;
+import '../types/types.dart' show TypeMask;
+import '../universe/call_structure.dart' show CallStructure;
+import '../universe/selector.dart' show Selector;
+import '../world.dart' show World;
 import 'cps_fragment.dart';
 import 'cps_ir_builder.dart' show ThisParameterLocal;
 import 'cps_ir_nodes.dart';
 import 'optimizers.dart';
 import 'type_mask_system.dart' show TypeMaskSystem;
-import '../dart_types.dart' show DartType, GenericType;
-import '../world.dart' show World;
-import '../elements/elements.dart';
-import '../js_backend/js_backend.dart' show JavaScriptBackend;
-import '../js_backend/codegen/task.dart' show CpsFunctionCompiler;
-import '../types/types.dart'
-    show FlatTypeMask, ForwardingTypeMask, TypeMask, UnionTypeMask;
-import '../universe/call_structure.dart' show CallStructure;
-import '../universe/selector.dart' show Selector;
-import 'package:js_ast/js_ast.dart' as js;
 
 /// Inlining stack entries.
 ///

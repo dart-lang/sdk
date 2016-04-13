@@ -9,38 +9,35 @@ import 'dart:async' show Future;
 import '../common.dart';
 import '../common/codegen.dart' show CodegenImpact;
 import '../common/resolution.dart' show ResolutionImpact;
-import '../compiler.dart' show Compiler;
 import '../compile_time_constants.dart'
     show BackendConstantEnvironment, ConstantCompilerTask;
-import '../constants/expressions.dart' show ConstantExpression;
+import '../compiler.dart' show Compiler;
 import '../constants/constant_system.dart' show ConstantSystem;
+import '../constants/expressions.dart' show ConstantExpression;
 import '../constants/values.dart' show ConstantValue;
 import '../dart_types.dart' show DartType, InterfaceType;
 import '../elements/elements.dart'
     show
         ClassElement,
-        ConstructorElement,
         Element,
         FunctionElement,
         LibraryElement,
         MetadataAnnotation,
         MethodElement;
-import '../enqueue.dart' show Enqueuer, CodegenEnqueuer, ResolutionEnqueuer;
+import '../enqueue.dart' show Enqueuer, ResolutionEnqueuer;
 import '../io/code_output.dart' show CodeBuffer;
 import '../io/source_information.dart' show SourceInformationStrategy;
 import '../js_backend/backend_helpers.dart' as js_backend show BackendHelpers;
-import '../js_backend/js_backend.dart' as js_backend show JavaScriptBackend;
+import '../js_backend/js_backend.dart' as js_backend;
 import '../library_loader.dart' show LibraryLoader, LoadedLibraries;
 import '../native/native.dart' as native show NativeEnqueuer, maybeEnableNative;
 import '../patch_parser.dart'
     show checkNativeAnnotation, checkJsInteropAnnotation;
-import '../resolution/tree_elements.dart' show TreeElements;
 import '../serialization/serialization.dart'
-    show DeserializerPlugin, ObjectDecoder, ObjectEncoder, SerializerPlugin;
+    show DeserializerPlugin, SerializerPlugin;
 import '../tree/tree.dart' show Node, Send;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/world_impact.dart' show ImpactStrategy, WorldImpact;
-
 import 'codegen.dart' show CodegenWorkItem;
 import 'registry.dart' show Registry;
 import 'tasks.dart' show CompilerTask;

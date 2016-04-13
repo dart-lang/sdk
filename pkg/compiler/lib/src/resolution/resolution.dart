@@ -10,9 +10,9 @@ import '../common.dart';
 import '../common/names.dart' show Identifiers;
 import '../common/resolution.dart'
     show Feature, Parsing, Resolution, ResolutionImpact;
-import '../common/tasks.dart' show CompilerTask, DeferredAction;
-import '../compiler.dart' show Compiler;
+import '../common/tasks.dart' show CompilerTask;
 import '../compile_time_constants.dart' show ConstantCompiler;
+import '../compiler.dart' show Compiler;
 import '../constants/expressions.dart'
     show
         ConstantExpression,
@@ -47,8 +47,7 @@ import '../tree/tree.dart';
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/use.dart' show StaticUse, TypeUse;
 import '../universe/world_impact.dart' show WorldImpact;
-import '../util/util.dart' show Link, LinkBuilder, Setlet;
-
+import '../util/util.dart' show Link, Setlet;
 import 'class_hierarchy.dart';
 import 'class_members.dart' show MembersCreator;
 import 'constructors.dart';

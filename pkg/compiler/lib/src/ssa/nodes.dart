@@ -20,10 +20,9 @@ import '../types/types.dart';
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../util/util.dart';
-import '../world.dart' show ClassWorld, World;
-
-import 'validate.dart';
+import '../world.dart' show ClassWorld;
 import 'invoke_dynamic_specializers.dart';
+import 'validate.dart';
 
 abstract class HVisitor<R> {
   R visitAdd(HAdd node);

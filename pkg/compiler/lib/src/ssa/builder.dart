@@ -18,9 +18,9 @@ import '../constants/values.dart';
 import '../core_types.dart' show CoreClasses;
 import '../dart_types.dart';
 import '../diagnostics/messages.dart' show Message, MessageTemplate;
+import '../dump_info.dart' show InfoReporter;
 import '../elements/elements.dart';
-import '../elements/modelx.dart'
-    show ConstructorBodyElementX, ElementX, VariableElementX;
+import '../elements/modelx.dart' show ConstructorBodyElementX;
 import '../io/source_information.dart';
 import '../js/js.dart' as js;
 import '../js_backend/backend_helpers.dart' show BackendHelpers;
@@ -37,11 +37,9 @@ import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
 import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
 import '../util/util.dart';
-import '../world.dart' show ClassWorld, World;
-import '../dump_info.dart' show InfoReporter;
-
-import 'nodes.dart';
+import '../world.dart' show ClassWorld;
 import 'codegen.dart';
+import 'nodes.dart';
 import 'optimize.dart';
 import 'types.dart';
 
@@ -3458,8 +3456,6 @@ class SsaBuilder extends ast.Visitor
   /// Generate read access of an unresolved static or top level entity.
   void generateStaticUnresolvedGet(ast.Send node, Element element) {
     if (element is ErroneousElement) {
-      SourceInformation sourceInformation =
-          sourceInformationBuilder.buildGet(node);
       // An erroneous element indicates an unresolved static getter.
       handleInvalidStaticGet(node, element);
     } else {
@@ -5546,17 +5542,10 @@ class SsaBuilder extends ast.Visitor
     }
   }
 
-  bool _hasNamedParameters(FunctionElement function) {
-    FunctionSignature params = function.functionSignature;
-    return params.optionalParameterCount > 0 &&
-        params.optionalParametersAreNamed;
-  }
-
   HForeignCode invokeJsInteropFunction(FunctionElement element,
       List<HInstruction> arguments, SourceInformation sourceInformation) {
     assert(backend.isJsInterop(element));
     nativeEmitter.nativeMethods.add(element);
-    String templateString;
 
     if (element.isFactoryConstructor &&
         backend.jsInteropAnalysis
@@ -6605,7 +6594,7 @@ class SsaBuilder extends ast.Visitor
 
     int position = 0;
 
-    for (ParameterElement targetParameter in targetRequireds) {
+    for (ParameterElement _ in targetRequireds) {
       loadPosition(position++, null);
     }
 
@@ -6927,7 +6916,6 @@ class SsaBuilder extends ast.Visitor
     // method is inlined.  We would require full scalar replacement in that
     // case.
 
-    Selector selector = Selectors.iterator;
     TypeMask mask = elements.getIteratorTypeMask(node);
 
     ClassWorld classWorld = compiler.world;

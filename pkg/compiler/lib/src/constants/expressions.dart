@@ -11,7 +11,6 @@ import '../dart_types.dart';
 import '../elements/elements.dart'
     show
         ConstructorElement,
-        Element,
         FieldElement,
         FunctionElement,
         PrefixElement,

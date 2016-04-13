@@ -4,19 +4,14 @@
 
 library dart2js.serialization.util;
 
-import '../dart_types.dart';
-import '../common/resolution.dart';
 import '../constants/expressions.dart';
+import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../resolution/access_semantics.dart';
 import '../resolution/operators.dart';
 import '../resolution/send_structure.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
-import '../universe/world_impact.dart';
-import '../universe/use.dart';
-import '../util/enumset.dart';
-
 import 'keys.dart';
 import 'serialization.dart';
 

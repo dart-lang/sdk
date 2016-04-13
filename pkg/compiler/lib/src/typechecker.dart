@@ -4,10 +4,10 @@
 
 library dart2js.typechecker;
 
-import 'common.dart';
 import 'common/names.dart' show Identifiers;
 import 'common/resolution.dart' show Resolution;
 import 'common/tasks.dart' show CompilerTask;
+import 'common.dart';
 import 'compiler.dart' show Compiler;
 import 'constants/expressions.dart';
 import 'constants/values.dart';
@@ -30,7 +30,6 @@ import 'elements/elements.dart'
         GetterElement,
         InitializingFormalElement,
         LibraryElement,
-        Member,
         MemberSignature,
         Name,
         ParameterElement,
@@ -40,10 +39,9 @@ import 'elements/elements.dart'
         SetterElement,
         TypeDeclarationElement,
         TypedElement,
-        TypedefElement,
         VariableElement;
-import 'resolution/tree_elements.dart' show TreeElements;
 import 'resolution/class_members.dart' show MembersCreator;
+import 'resolution/tree_elements.dart' show TreeElements;
 import 'tree/tree.dart';
 import 'util/util.dart' show Link, LinkBuilder;
 

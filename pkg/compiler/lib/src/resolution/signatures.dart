@@ -13,14 +13,12 @@ import '../elements/modelx.dart'
         ErroneousFieldElementX,
         ErroneousInitializingFormalElementX,
         FormalElementX,
-        FunctionElementX,
         FunctionSignatureX,
         InitializingFormalElementX,
         LocalParameterElementX;
 import '../tree/tree.dart';
 import '../universe/use.dart' show TypeUse;
 import '../util/util.dart' show Link, LinkBuilder;
-
 import 'members.dart' show ResolverVisitor;
 import 'registry.dart' show ResolutionRegistry;
 import 'resolution_common.dart' show MappingVisitor;

@@ -317,7 +317,6 @@ class DartBackend extends Backend {
             superclass.forEachLocalMember((MemberElement element) {
               if (element.isConstructor || element.isStatic) return;
 
-              FunctionElement function = element.asFunctionElement();
               element.computeType(resolution);
               Selector selector = new Selector.fromElement(element);
               registerUse(new DynamicUse(selector, null));

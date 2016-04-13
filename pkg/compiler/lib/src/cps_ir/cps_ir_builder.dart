@@ -6,10 +6,10 @@ library dart2js.ir_builder;
 
 import '../closure.dart' as closure;
 import '../common.dart';
-import '../common/names.dart' show Names, Selectors;
+import '../common/names.dart' show Selectors;
 import '../compile_time_constants.dart' show BackendConstantEnvironment;
 import '../constants/constant_system.dart';
-import '../constants/values.dart' show ConstantValue, PrimitiveConstantValue;
+import '../constants/values.dart' show ConstantValue;
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../io/source_information.dart';
@@ -27,7 +27,6 @@ import '../tree/tree.dart' as ast;
 import '../types/types.dart' show TypeMask;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector, SelectorKind;
-
 import 'cps_ir_builder_task.dart' show GlobalProgramInformation;
 import 'cps_ir_nodes.dart' as ir;
 

@@ -29,20 +29,16 @@
 // Where DART_LOCATION is the gclient directory where you found .gclient.
 
 import 'dart:io';
-
 import 'dart:mirrors';
-
-import 'package:sdk_library_metadata/libraries.dart'
-    show libraries, LibraryInfo;
-
-import 'package:compiler/src/mirrors/analyze.dart' show analyze;
-import 'package:compiler/src/mirrors/dart2js_mirrors.dart' show BackDoor;
-import 'package:compiler/src/mirrors/mirrors_util.dart' show nameOf;
 
 import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/io/source_file.dart';
+import 'package:compiler/src/mirrors/analyze.dart' show analyze;
+import 'package:compiler/src/mirrors/dart2js_mirrors.dart' show BackDoor;
+import 'package:compiler/src/mirrors/mirrors_util.dart' show nameOf;
 import 'package:compiler/src/source_file_provider.dart';
 import 'package:compiler/src/util/uri_extras.dart';
+import 'package:sdk_library_metadata/libraries.dart' show libraries;
 
 const DART2JS = 'package:compiler/src/dart2js.dart';
 const DART2JS_MIRROR = 'package:compiler/src/mirrors/dart2js_mirrors.dart';

@@ -15,7 +15,6 @@ import '../tokens/precedence_constants.dart'
         CASCADE_PRECEDENCE,
         EQUALITY_PRECEDENCE,
         GT_INFO,
-        GT_GT_INFO,
         IS_INFO,
         MINUS_MINUS_INFO,
         OPEN_PAREN_INFO,

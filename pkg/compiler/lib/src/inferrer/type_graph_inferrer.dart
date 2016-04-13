@@ -7,34 +7,31 @@ library type_graph_inferrer;
 import 'dart:collection' show Queue;
 
 import '../common.dart';
-import '../common/names.dart' show Identifiers, Names;
+import '../common/names.dart' show Identifiers;
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart';
-import '../dart_types.dart'
-    show DartType, FunctionType, InterfaceType, TypeKind;
+import '../dart_types.dart' show DartType;
 import '../elements/elements.dart';
 import '../js_backend/js_backend.dart' show Annotations, JavaScriptBackend;
 import '../resolution/tree_elements.dart' show TreeElementMapping;
 import '../tree/tree.dart' as ast
-    show DartString, Node, LiteralBool, Send, SendSet, TryStatement;
+    show DartString, Node, LiteralBool, TryStatement;
+import '../types/constants.dart' show computeTypeMask;
 import '../types/types.dart'
     show ContainerTypeMask, MapTypeMask, TypeMask, TypesInferrer;
-import '../types/constants.dart' show computeTypeMask;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
 import '../universe/side_effects.dart' show SideEffects;
-import '../util/util.dart' show ImmutableEmptySet, Setlet;
+import '../util/util.dart' show Setlet;
 import '../world.dart' show ClassWorld;
-
-import 'inferrer_visitor.dart' show ArgumentsTypes, TypeSystem;
-import 'simple_types_inferrer.dart';
-
 import 'closure_tracer.dart';
+import 'debug.dart' as debug;
+import 'inferrer_visitor.dart' show ArgumentsTypes, TypeSystem;
 import 'list_tracer.dart';
 import 'map_tracer.dart';
-import 'type_graph_nodes.dart';
+import 'simple_types_inferrer.dart';
 import 'type_graph_dump.dart';
-import 'debug.dart' as debug;
+import 'type_graph_nodes.dart';
 
 class TypeInformationSystem extends TypeSystem<TypeInformation> {
   final Compiler compiler;

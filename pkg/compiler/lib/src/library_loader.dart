@@ -6,9 +6,9 @@ library dart2js.library_loader;
 
 import 'dart:async';
 
-import 'common.dart';
 import 'common/names.dart' show Uris;
 import 'common/tasks.dart' show CompilerTask;
+import 'common.dart';
 import 'compiler.dart' show Compiler;
 import 'elements/elements.dart'
     show
@@ -16,8 +16,7 @@ import 'elements/elements.dart'
         Element,
         ImportElement,
         ExportElement,
-        LibraryElement,
-        PrefixElement;
+        LibraryElement;
 import 'elements/modelx.dart'
     show
         CompilationUnitElementX,

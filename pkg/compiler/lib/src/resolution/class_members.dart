@@ -18,8 +18,7 @@ import '../elements/elements.dart'
         MemberElement,
         MemberSignature,
         MixinApplicationElement,
-        Name,
-        PublicName;
+        Name;
 import '../util/util.dart';
 
 part 'member_impl.dart';

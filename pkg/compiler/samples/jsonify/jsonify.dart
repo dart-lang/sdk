@@ -3,18 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:io';
 import 'dart:convert';
-
+import 'dart:io';
 import 'dart:mirrors';
 
-import 'package:sdk_library_metadata/libraries.dart'
-    show libraries, LibraryInfo;
-
-import '../../lib/src/mirrors/analyze.dart' show analyze;
-import '../../lib/src/mirrors/dart2js_mirrors.dart' show BackDoor;
+import 'package:sdk_library_metadata/libraries.dart' show libraries;
 
 import '../../lib/src/filenames.dart';
+import '../../lib/src/mirrors/analyze.dart' show analyze;
+import '../../lib/src/mirrors/dart2js_mirrors.dart' show BackDoor;
 import '../../lib/src/source_file_provider.dart';
 import '../../lib/src/util/uri_extras.dart';
 

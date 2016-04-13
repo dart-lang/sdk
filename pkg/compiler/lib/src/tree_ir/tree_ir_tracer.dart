@@ -587,7 +587,6 @@ class SubexpressionVisitor extends ExpressionVisitor<String> {
     return 'Await($value)';
   }
 
-  @override
   String visitYield(Yield node) {
     String value = visitExpression(node.input);
     return 'Yield($value)';

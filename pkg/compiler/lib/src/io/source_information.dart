@@ -6,8 +6,8 @@ library dart2js.source_information;
 
 import '../common.dart';
 import '../elements/elements.dart' show AstElement, LocalElement;
-import '../tree/tree.dart' show Node, Send;
 import '../js/js.dart' show JavaScriptNodeSourceInformation;
+import '../tree/tree.dart' show Node;
 import 'source_file.dart';
 
 /// Interface for passing source information, for instance for use in source

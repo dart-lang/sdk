@@ -7,9 +7,7 @@ library dart2js.new_js_emitter.model;
 import '../constants/values.dart' show ConstantValue;
 import '../deferred_load.dart' show OutputUnit;
 import '../elements/elements.dart' show Element;
-import '../js/js.dart' as js
-    show Expression, Literal, Name, Statement, TokenFinalizer;
-
+import '../js/js.dart' as js show Expression, Name, Statement, TokenFinalizer;
 import 'js_emitter.dart' show MetadataCollector;
 
 class Program {

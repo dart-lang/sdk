@@ -7,12 +7,10 @@ library dart2js.parser.node_listener;
 import '../common.dart';
 import '../elements/elements.dart' show CompilationUnitElement;
 import '../native/native.dart' as native;
-import '../tokens/precedence_constants.dart' as Precedence
-    show BAD_INPUT_INFO, EOF_INFO, INDEX_INFO;
+import '../tokens/precedence_constants.dart' as Precedence show INDEX_INFO;
 import '../tokens/token.dart' show ErrorToken, StringToken, Token;
 import '../tree/tree.dart';
 import '../util/util.dart' show Link;
-
 import 'element_listener.dart' show ElementListener, ScannerOptions;
 import 'partial_elements.dart' show PartialFunctionElement;
 

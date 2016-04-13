@@ -116,10 +116,10 @@ library dart2js.patchparser;
 
 import 'dart:async';
 
-import 'constants/values.dart' show ConstantValue;
+import 'common/tasks.dart' show CompilerTask;
 import 'common.dart';
 import 'compiler.dart' show Compiler;
-import 'common/tasks.dart' show CompilerTask;
+import 'constants/values.dart' show ConstantValue;
 import 'dart_types.dart' show DartType;
 import 'elements/elements.dart';
 import 'elements/modelx.dart'
@@ -128,18 +128,17 @@ import 'elements/modelx.dart'
         ClassElementX,
         GetterElementX,
         LibraryElementX,
-        MetadataAnnotationX,
         SetterElementX;
 import 'id_generator.dart';
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
 import 'library_loader.dart' show LibraryLoader;
 import 'options.dart' show ParserOptions;
-import 'parser/listener.dart' show Listener, ParserError;
 import 'parser/element_listener.dart' show ElementListener;
+import 'parser/listener.dart' show Listener, ParserError;
 import 'parser/member_listener.dart' show MemberListener;
+import 'parser/parser.dart' show Parser;
 import 'parser/partial_elements.dart' show PartialClassElement;
 import 'parser/partial_parser.dart' show PartialParser;
-import 'parser/parser.dart' show Parser;
 import 'scanner/scanner.dart' show Scanner;
 import 'script.dart';
 import 'tokens/token.dart' show StringToken, Token;

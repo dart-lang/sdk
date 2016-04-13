@@ -8,16 +8,16 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as math;
-
-import '../compiler.dart' as api show Diagnostic, DiagnosticHandler;
-import '../compiler_new.dart' as api show CompilerInput, CompilerDiagnostics;
-import 'dart2js.dart' show AbortLeg;
-import 'colors.dart' as colors;
-import 'io/source_file.dart';
-import 'filenames.dart';
-import 'util/uri_extras.dart';
 import 'dart:typed_data';
+
+import '../compiler.dart' as api show Diagnostic;
+import '../compiler_new.dart' as api;
 import '../compiler_new.dart';
+import 'colors.dart' as colors;
+import 'dart2js.dart' show AbortLeg;
+import 'filenames.dart';
+import 'io/source_file.dart';
+import 'util/uri_extras.dart';
 
 List<int> readAll(String filename) {
   var file = (new File(filename)).openSync();

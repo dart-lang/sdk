@@ -2098,10 +2098,6 @@ class Branch extends TailExpression {
 //                            UTILITY STUFF
 // ----------------------------------------------------------------------------
 
-Reference<Primitive> _reference(Primitive definition) {
-  return new Reference<Primitive>(definition);
-}
-
 Reference<Primitive> _optionalReference(Primitive definition) {
   return definition == null ? null : new Reference<Primitive>(definition);
 }

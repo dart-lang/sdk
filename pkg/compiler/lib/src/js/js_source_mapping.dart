@@ -4,11 +4,10 @@
 
 library js.source_mapping;
 
-import 'js.dart';
-import '../io/code_output.dart'
-    show BufferedCodeOutput, CodeBuffer, SourceLocations;
+import '../io/code_output.dart' show BufferedCodeOutput, SourceLocations;
 import '../io/source_information.dart'
     show SourceLocation, SourceInformation, SourceInformationStrategy;
+import 'js.dart';
 
 /// [SourceInformationStrategy] that can associate source information with
 /// JavaScript output.

@@ -4,44 +4,39 @@
 
 library dart2js.ir_builder_task;
 
+import 'package:js_runtime/shared/embedded_names.dart'
+    show JsBuiltin, JsGetName;
+
 import '../closure.dart' as closure;
 import '../common.dart';
 import '../common/names.dart' show Identifiers, Names, Selectors;
 import '../common/tasks.dart' show CompilerTask;
 import '../compiler.dart' show Compiler;
 import '../constants/expressions.dart';
+import '../constants/values.dart' show ConstantValue;
+import '../constants/values.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
-import '../elements/modelx.dart'
-    show
-        SynthesizedConstructorElementX,
-        ConstructorBodyElementX,
-        FunctionSignatureX;
+import '../elements/modelx.dart' show ConstructorBodyElementX;
 import '../io/source_information.dart';
+import '../js/js.dart' as js show js, Template, Expression, Name;
 import '../js_backend/backend_helpers.dart' show BackendHelpers;
 import '../js_backend/js_backend.dart'
     show JavaScriptBackend, SyntheticConstantKind;
-import '../resolution/tree_elements.dart' show TreeElements;
-import '../resolution/semantic_visitor.dart';
+import '../native/native.dart' show NativeBehavior, HasCapturedPlaceholders;
 import '../resolution/operators.dart' as op;
+import '../resolution/semantic_visitor.dart';
+import '../resolution/tree_elements.dart' show TreeElements;
+import '../ssa/types.dart' show TypeMaskFactory;
 import '../tree/tree.dart' as ast;
 import '../types/types.dart' show TypeMask;
 import '../universe/call_structure.dart' show CallStructure;
 import '../universe/selector.dart' show Selector;
-import '../constants/values.dart' show ConstantValue;
-import 'cps_ir_nodes.dart' as ir;
-import 'cps_ir_builder.dart';
-import '../native/native.dart' show NativeBehavior, HasCapturedPlaceholders;
-
-// TODO(karlklose): remove.
-import '../js/js.dart' as js show js, Template, Expression, Name;
-import '../ssa/types.dart' show TypeMaskFactory;
 import '../util/util.dart';
-
-import 'package:js_runtime/shared/embedded_names.dart'
-    show JsBuiltin, JsGetName;
-import '../constants/values.dart';
+import 'cps_ir_builder.dart';
+import 'cps_ir_nodes.dart' as ir;
 import 'type_mask_system.dart' show TypeMaskSystem;
+// TODO(karlklose): remove.
 
 typedef void IrBuilderCallback(Element element, ir.FunctionDefinition irNode);
 
@@ -910,7 +905,6 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       //
       assert(parameters.length == 1 || parameters.length == 2);
       ir.Primitive allocation = irBuilder.buildLocalGet(parameters[0]);
-      ClassElement classElement = element.enclosingElement;
 
       // Only call setRuntimeTypeInfo if JSArray requires the type parameter.
       if (requiresRuntimeTypes) {
@@ -1132,7 +1126,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         <ir.Primitive>[stream, dummyTypeArgument],
         sourceInformationBuilder.buildGeneric(node)));
 
-    ir.Node buildTryBody(IrBuilder builder) {
+    buildTryBody(IrBuilder builder) {
       ir.Node buildLoopCondition(IrBuilder builder) {
         ir.Primitive moveNext = builder.buildDynamicInvocation(
             iterator,

@@ -5,6 +5,8 @@
 /// Analysis to determine how to generate code for `LookupMap`s.
 library compiler.src.js_backend.lookup_map_analysis;
 
+import 'package:pub_semver/pub_semver.dart';
+
 import '../common.dart';
 import '../common/registry.dart' show Registry;
 import '../compiler.dart' show Compiler;
@@ -17,19 +19,10 @@ import '../constants/values.dart'
         StringConstantValue,
         TypeConstantValue;
 import '../dart_types.dart' show DartType;
+import '../dart_types.dart' show InterfaceType;
 import '../elements/elements.dart'
-    show
-        ClassElement,
-        Element,
-        Elements,
-        FieldElement,
-        FunctionElement,
-        FunctionSignature,
-        LibraryElement,
-        VariableElement;
+    show ClassElement, FieldElement, LibraryElement, VariableElement;
 import 'js_backend.dart' show JavaScriptBackend;
-import '../dart_types.dart' show DynamicType, InterfaceType;
-import 'package:pub_semver/pub_semver.dart';
 
 /// An analysis and optimization to remove unused entries from a `LookupMap`.
 ///
