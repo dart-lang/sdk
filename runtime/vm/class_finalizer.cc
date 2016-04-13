@@ -2519,20 +2519,22 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
 // values field. We also don't have to generate the code for these getters
 // from thin air (no source code is available).
 void ClassFinalizer::AllocateEnumValues(const Class &enum_cls) {
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   const Field& index_field =
-      Field::Handle(enum_cls.LookupInstanceField(Symbols::Index()));
+      Field::Handle(zone, enum_cls.LookupInstanceField(Symbols::Index()));
   ASSERT(!index_field.IsNull());
   const Field& values_field =
-      Field::Handle(enum_cls.LookupStaticField(Symbols::Values()));
+      Field::Handle(zone, enum_cls.LookupStaticField(Symbols::Values()));
   ASSERT(!values_field.IsNull());
-  ASSERT(Instance::Handle(values_field.StaticValue()).IsArray());
+  ASSERT(Instance::Handle(zone, values_field.StaticValue()).IsArray());
   Array& values_list = Array::Handle(
-      Array::RawCast(values_field.StaticValue()));
+      zone, Array::RawCast(values_field.StaticValue()));
 
-  const Array& fields = Array::Handle(enum_cls.fields());
-  Field& field = Field::Handle();
-  Instance& ordinal_value = Instance::Handle();
-  Instance& enum_value = Instance::Handle();
+  const Array& fields = Array::Handle(zone, enum_cls.fields());
+  Field& field = Field::Handle(zone);
+  Instance& ordinal_value = Instance::Handle(zone);
+  Instance& enum_value = Instance::Handle(zone);
 
   for (intptr_t i = 0; i < fields.Length(); i++) {
     field = Field::RawCast(fields.At(i));
@@ -2545,7 +2547,7 @@ void ClassFinalizer::AllocateEnumValues(const Class &enum_cls) {
     enum_value = Instance::New(enum_cls, Heap::kOld);
     enum_value.SetField(index_field, ordinal_value);
     const char* error_msg = "";
-    enum_value = enum_value.CheckAndCanonicalize(&error_msg);
+    enum_value = enum_value.CheckAndCanonicalize(thread, &error_msg);
     ASSERT(!enum_value.IsNull());
     ASSERT(enum_value.IsCanonical());
     field.SetStaticValue(enum_value, true);
@@ -2556,7 +2558,7 @@ void ClassFinalizer::AllocateEnumValues(const Class &enum_cls) {
   }
   values_list.MakeImmutable();
   const char* error_msg = NULL;
-  values_list ^= values_list.CheckAndCanonicalize(&error_msg);
+  values_list ^= values_list.CheckAndCanonicalize(thread, &error_msg);
   ASSERT(!values_list.IsNull());
 }
 

@@ -244,7 +244,7 @@ DEFINE_NATIVE_ENTRY(Integer_fromEnvironment, 3) {
       if (result.IsSmi()) {
         return result.raw();
       }
-      return result.CheckAndCanonicalize(NULL);
+      return result.CheckAndCanonicalize(thread, NULL);
     }
   }
   return default_value.raw();
