@@ -4448,7 +4448,6 @@ class CanonicalInstanceKey {
 
  private:
   DISALLOW_ALLOCATION();
-  DISALLOW_COPY_AND_ASSIGN(CanonicalInstanceKey);
 };
 
 
