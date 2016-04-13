@@ -13798,8 +13798,9 @@ RawString* Code::Name() const {
     Zone* zone = thread->zone();
     const char* name = StubCode::NameOfStub(EntryPoint());
     ASSERT(name != NULL);
-    const String& stub_name = String::Handle(zone, String::New(name));
-    return Symbols::FromConcat(thread, Symbols::StubPrefix(), stub_name);
+    char* stub_name = OS::SCreate(zone,
+        "%s%s", Symbols::StubPrefix().ToCString(), name);
+    return Symbols::New(thread, stub_name, strlen(stub_name));
   } else if (obj.IsClass()) {
     // Allocation stub.
     Thread* thread = Thread::Current();
