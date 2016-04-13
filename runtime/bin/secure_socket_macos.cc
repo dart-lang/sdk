@@ -66,134 +66,6 @@ static const bool SSL_LOG_CERTS = false;
 static const int SSL_ERROR_MESSAGE_BUFFER_SIZE = 1000;
 static const intptr_t PEM_BUFSIZE = 1024;
 
-// SSLCertContext wraps the certificates needed for a SecureTransport
-// connection. Fields are protected by the mutex_ field, and may only be set
-// once. This is to allow access by both the Dart thread and the IOService
-// thread. Setters return false if the field was already set.
-class SSLCertContext {
- public:
-  SSLCertContext() :
-      mutex_(new Mutex()),
-      private_key_(NULL),
-      keychain_(NULL),
-      cert_chain_(NULL),
-      trusted_certs_(NULL),
-      cert_authorities_(NULL),
-      trust_builtin_(false) {}
-
-  ~SSLCertContext() {
-    if (private_key_ != NULL) {
-      CFRelease(private_key_);
-    }
-    if (keychain_ != NULL) {
-      SecKeychainDelete(keychain_);
-      CFRelease(keychain_);
-    }
-    if (cert_chain_ != NULL) {
-      CFRelease(cert_chain_);
-    }
-    if (trusted_certs_ != NULL) {
-      CFRelease(trusted_certs_);
-    }
-    if (cert_authorities_ != NULL) {
-      CFRelease(cert_authorities_);
-    }
-    delete mutex_;
-  }
-
-  SecKeyRef private_key() {
-    MutexLocker m(mutex_);
-    return private_key_;
-  }
-  bool set_private_key(SecKeyRef private_key) {
-    MutexLocker m(mutex_);
-    if (private_key_ != NULL) {
-      return false;
-    }
-    private_key_ = private_key;
-    return true;
-  }
-
-  SecKeychainRef keychain() {
-    MutexLocker m(mutex_);
-    return keychain_;
-  }
-  bool set_keychain(SecKeychainRef keychain) {
-    MutexLocker m(mutex_);
-    if (keychain_ != NULL) {
-      return false;
-    }
-    keychain_ = keychain;
-    return true;
-  }
-
-  CFArrayRef cert_chain() {
-    MutexLocker m(mutex_);
-    return cert_chain_;
-  }
-  bool set_cert_chain(CFArrayRef cert_chain) {
-    MutexLocker m(mutex_);
-    if (cert_chain_ != NULL) {
-      return false;
-    }
-    cert_chain_ = cert_chain;
-    return true;
-  }
-
-  CFArrayRef trusted_certs() {
-    MutexLocker m(mutex_);
-    return trusted_certs_;
-  }
-  bool set_trusted_certs(CFArrayRef trusted_certs) {
-    MutexLocker m(mutex_);
-    if (trusted_certs_ != NULL) {
-      return false;
-    }
-    trusted_certs_ = trusted_certs;
-    return true;
-  }
-
-  CFArrayRef cert_authorities() {
-    MutexLocker m(mutex_);
-    return cert_authorities_;
-  }
-  bool set_cert_authorities(CFArrayRef cert_authorities) {
-    MutexLocker m(mutex_);
-    if (cert_authorities_ != NULL) {
-      return false;
-    }
-    cert_authorities_ = cert_authorities;
-    return true;
-  }
-
-  bool trust_builtin() {
-    MutexLocker m(mutex_);
-    return trust_builtin_;
-  }
-  void set_trust_builtin(bool trust_builtin) {
-    MutexLocker m(mutex_);
-    trust_builtin_ = trust_builtin;
-  }
-
- private:
-  // The context is accessed both by Dart code and the IOService. This mutex
-  // protects all fields.
-  Mutex* mutex_;
-
-  SecKeyRef private_key_;
-  SecKeychainRef keychain_;
-
-  // CFArrays of SecCertificateRef.
-  CFArrayRef cert_chain_;
-  CFArrayRef trusted_certs_;
-  CFArrayRef cert_authorities_;
-
-  bool trust_builtin_;
-
-  DISALLOW_COPY_AND_ASSIGN(SSLCertContext);
-};
-
-
 static char* CFStringRefToCString(CFStringRef cfstring) {
   CFIndex len = CFStringGetLength(cfstring);
   CFIndex max_len =
@@ -257,7 +129,7 @@ static void DeleteFilter(void* isolate_data,
                          Dart_WeakPersistentHandle handle,
                          void* context_pointer) {
   SSLFilter* filter = reinterpret_cast<SSLFilter*>(context_pointer);
-  delete filter;
+  filter->Release();
 }
 
 
@@ -296,7 +168,7 @@ static void DeleteCertContext(void* isolate_data,
                               Dart_WeakPersistentHandle handle,
                               void* context_pointer) {
   SSLCertContext* context = static_cast<SSLCertContext*>(context_pointer);
-  delete context;
+  context->Release();
 }
 
 
@@ -679,7 +551,7 @@ void FUNCTION_NAME(SecureSocket_Init)(Dart_NativeArguments args) {
   SSLFilter* filter = new SSLFilter();  // Deleted in DeleteFilter finalizer.
   Dart_Handle err = SetFilter(args, filter);
   if (Dart_IsError(err)) {
-    delete filter;
+    filter->Release();
     Dart_PropagateError(err);
   }
   err = filter->Init(dart_this);
@@ -791,7 +663,11 @@ void FUNCTION_NAME(SecureSocket_PeerCertificate)
 
 
 void FUNCTION_NAME(SecureSocket_FilterPointer)(Dart_NativeArguments args) {
-  intptr_t filter_pointer = reinterpret_cast<intptr_t>(GetFilter(args));
+  SSLFilter* filter = GetFilter(args);
+  // This filter pointer is passed to the IO Service thread. The IO Service
+  // thread must Release() the pointer when it is done with it.
+  filter->Retain();
+  intptr_t filter_pointer = reinterpret_cast<intptr_t>(filter);
   Dart_SetReturnValue(args, Dart_NewInteger(filter_pointer));
 }
 
@@ -801,7 +677,7 @@ void FUNCTION_NAME(SecurityContext_Allocate)(Dart_NativeArguments args) {
   // cert_context deleted in DeleteCertContext finalizer.
   Dart_Handle err = SetSecurityContext(args, cert_context);
   if (Dart_IsError(err)) {
-    delete cert_context;
+    cert_context->Release();
     Dart_PropagateError(err);
   }
 }
@@ -995,7 +871,7 @@ void FUNCTION_NAME(X509_Subject)(Dart_NativeArguments args) {
       reinterpret_cast<CFStringRef>(kSecOIDCommonName));
   if (subject_name == NULL) {
     Dart_ThrowException(DartUtils::NewDartArgumentError(
-        "X509.subject failed to find issuer's common name."));
+        "X509.subject failed to find subject's common name."));
   } else {
     Dart_SetReturnValue(args, Dart_NewStringFromCString(subject_name));
   }
@@ -1086,6 +962,8 @@ void FUNCTION_NAME(X509_EndValidity)(Dart_NativeArguments args) {
 CObject* SSLFilter::ProcessFilterRequest(const CObjectArray& request) {
   CObjectIntptr filter_object(request[0]);
   SSLFilter* filter = reinterpret_cast<SSLFilter*>(filter_object.Value());
+  RefCntReleaseScope<SSLFilter> rs(filter);
+
   bool in_handshake = CObjectBool(request[1]).Value();
   intptr_t starts[SSLFilter::kNumBuffers];
   intptr_t ends[SSLFilter::kNumBuffers];
@@ -1514,7 +1392,7 @@ void SSLFilter::Connect(Dart_Handle dart_this,
   }
 
   // Add the contexts to our wrapper.
-  cert_context_ = context;
+  cert_context_.set(context);
   ssl_context_ = ssl_context;
   is_server_ = is_server;
 
@@ -1553,8 +1431,9 @@ OSStatus SSLFilter::EvaluatePeerTrust() {
   }
 
   CFArrayRef trusted_certs = NULL;
-  if (cert_context_->trusted_certs() != NULL) {
-    trusted_certs = CFArrayCreateCopy(NULL, cert_context_->trusted_certs());
+  if (cert_context_.get()->trusted_certs() != NULL) {
+    trusted_certs =
+      CFArrayCreateCopy(NULL, cert_context_.get()->trusted_certs());
   } else {
     trusted_certs = CFArrayCreate(NULL, NULL, 0, &kCFTypeArrayCallBacks);
   }
@@ -1572,11 +1451,11 @@ OSStatus SSLFilter::EvaluatePeerTrust() {
 
   if (SSL_LOG_STATUS) {
     Log::Print("Handshake %s built in root certs\n",
-        cert_context_->trust_builtin() ? "trusting" : "not trusting");
+        cert_context_.get()->trust_builtin() ? "trusting" : "not trusting");
   }
 
   status = SecTrustSetAnchorCertificatesOnly(
-      peer_trust, !cert_context_->trust_builtin());
+      peer_trust, !cert_context_.get()->trust_builtin());
   if (status != noErr) {
     CFRelease(trusted_certs);
     CFRelease(peer_trust);
@@ -1619,7 +1498,7 @@ OSStatus SSLFilter::EvaluatePeerTrust() {
 
 
 OSStatus SSLFilter::Handshake() {
-  ASSERT(cert_context_ != NULL);
+  ASSERT(cert_context_.get() != NULL);
   ASSERT(ssl_context_ != NULL);
   // Try and push handshake along.
   if (SSL_LOG_STATUS) {
@@ -1732,8 +1611,6 @@ void SSLFilter::Renegotiate(bool use_session_cache,
 
 
 SSLFilter::~SSLFilter() {
-  // cert_context_ deleted by finalizer. Don't delete here.
-  cert_context_ = NULL;
   if (ssl_context_ != NULL) {
     CFRelease(ssl_context_);
     ssl_context_ = NULL;

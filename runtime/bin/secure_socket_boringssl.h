@@ -21,6 +21,7 @@
 
 #include "bin/builtin.h"
 #include "bin/dartutils.h"
+#include "bin/reference_counting.h"
 #include "bin/socket.h"
 #include "bin/thread.h"
 #include "bin/utils.h"
@@ -39,7 +40,7 @@ extern unsigned int root_certificates_pem_length;
  * reading and writing encrypted text.  The filter handles handshaking
  * and certificate verification.
  */
-class SSLFilter {
+class SSLFilter : public ReferenceCounted<SSLFilter> {
  public:
   // These enums must agree with those in sdk/lib/io/secure_socket.dart.
   enum BufferIndex {

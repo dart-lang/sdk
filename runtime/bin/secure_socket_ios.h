@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_SECURE_SOCKET_MACOS_H_
-#define BIN_SECURE_SOCKET_MACOS_H_
+#ifndef BIN_SECURE_SOCKET_IOS_H_
+#define BIN_SECURE_SOCKET_IOS_H_
 
 #if !defined(BIN_SECURE_SOCKET_H_)
 #error Do not include secure_socket_macos.h directly. Use secure_socket.h.
@@ -38,61 +38,52 @@ class SSLCertContext : public ReferenceCounted<SSLCertContext> {
   SSLCertContext() :
       ReferenceCounted(),
       mutex_(new Mutex()),
-      private_key_(NULL),
-      keychain_(NULL),
-      cert_chain_(NULL),
       trusted_certs_(NULL),
-      cert_authorities_(NULL),
-      trust_builtin_(false) {
-  }
+      identity_(NULL),
+      cert_chain_(NULL),
+      trust_builtin_(false) {}
 
   ~SSLCertContext() {
     {
       MutexLocker m(mutex_);
-      if (private_key_ != NULL) {
-        CFRelease(private_key_);
-      }
-      if (keychain_ != NULL) {
-        SecKeychainDelete(keychain_);
-        CFRelease(keychain_);
-      }
-      if (cert_chain_ != NULL) {
-        CFRelease(cert_chain_);
-      }
       if (trusted_certs_ != NULL) {
         CFRelease(trusted_certs_);
       }
-      if (cert_authorities_ != NULL) {
-        CFRelease(cert_authorities_);
+      if (identity_ != NULL) {
+        CFRelease(identity_);
+      }
+      if (cert_chain_ != NULL) {
+        CFRelease(cert_chain_);
       }
     }
     delete mutex_;
   }
 
-  SecKeyRef private_key() {
+  CFMutableArrayRef trusted_certs() {
     MutexLocker m(mutex_);
-    return private_key_;
+    return trusted_certs_;
   }
-  bool set_private_key(SecKeyRef private_key) {
+  void add_trusted_cert(SecCertificateRef trusted_cert) {
+    // Takes ownership of trusted_cert.
     MutexLocker m(mutex_);
-    if (private_key_ != NULL) {
-      return false;
+    if (trusted_certs_ == NULL) {
+      trusted_certs_ = CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
     }
-    private_key_ = private_key;
-    return true;
+    CFArrayAppendValue(trusted_certs_, trusted_cert);
+    CFRelease(trusted_cert);  // trusted_cert is retained by the array.
   }
 
-  SecKeychainRef keychain() {
+  SecIdentityRef identity() {
     MutexLocker m(mutex_);
-    return keychain_;
+    return identity_;
   }
-  bool set_keychain(SecKeychainRef keychain) {
+  bool set_identity(SecIdentityRef identity) {
     MutexLocker m(mutex_);
-    if (keychain_ != NULL) {
-      return false;
+    if (identity_ == NULL) {
+      identity_ = identity;
+      return true;
     }
-    keychain_ = keychain;
-    return true;
+    return false;
   }
 
   CFArrayRef cert_chain() {
@@ -101,37 +92,11 @@ class SSLCertContext : public ReferenceCounted<SSLCertContext> {
   }
   bool set_cert_chain(CFArrayRef cert_chain) {
     MutexLocker m(mutex_);
-    if (cert_chain_ != NULL) {
-      return false;
+    if (cert_chain_ == NULL) {
+      cert_chain_ = cert_chain;
+      return true;
     }
-    cert_chain_ = cert_chain;
-    return true;
-  }
-
-  CFArrayRef trusted_certs() {
-    MutexLocker m(mutex_);
-    return trusted_certs_;
-  }
-  bool set_trusted_certs(CFArrayRef trusted_certs) {
-    MutexLocker m(mutex_);
-    if (trusted_certs_ != NULL) {
-      return false;
-    }
-    trusted_certs_ = trusted_certs;
-    return true;
-  }
-
-  CFArrayRef cert_authorities() {
-    MutexLocker m(mutex_);
-    return cert_authorities_;
-  }
-  bool set_cert_authorities(CFArrayRef cert_authorities) {
-    MutexLocker m(mutex_);
-    if (cert_authorities_ != NULL) {
-      return false;
-    }
-    cert_authorities_ = cert_authorities;
-    return true;
+    return false;
   }
 
   bool trust_builtin() {
@@ -147,15 +112,9 @@ class SSLCertContext : public ReferenceCounted<SSLCertContext> {
   // The context is accessed both by Dart code and the IOService. This mutex
   // protects all fields.
   Mutex* mutex_;
-
-  SecKeyRef private_key_;
-  SecKeychainRef keychain_;
-
-  // CFArrays of SecCertificateRef.
+  CFMutableArrayRef trusted_certs_;
+  SecIdentityRef identity_;
   CFArrayRef cert_chain_;
-  CFArrayRef trusted_certs_;
-  CFArrayRef cert_authorities_;
-
   bool trust_builtin_;
 
   DISALLOW_COPY_AND_ASSIGN(SSLCertContext);
@@ -278,4 +237,4 @@ class SSLFilter : public ReferenceCounted<SSLFilter> {
 }  // namespace bin
 }  // namespace dart
 
-#endif  // BIN_SECURE_SOCKET_MACOS_H_
+#endif  // BIN_SECURE_SOCKET_IOS_H_

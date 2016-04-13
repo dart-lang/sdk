@@ -412,7 +412,6 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   bool _filterActive = false;
 
   _SecureFilter _secureFilter = new _SecureFilter();
-  int _filterPointer;
   String _selectedProtocol;
 
   static Future<_RawSecureSocket> connect(
@@ -472,7 +471,6 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
     // Throw an ArgumentError if any field is invalid.  After this, all
     // errors will be reported through the future or the stream.
     _secureFilter.init();
-    _filterPointer = _secureFilter._pointer();
     _secureFilter.registerHandshakeCompleteCallback(
         _secureHandshakeCompleteHandler);
     if (onBadCertificate != null) {
@@ -976,7 +974,7 @@ class _RawSecureSocket extends Stream<RawSocketEvent>
   Future<_FilterStatus> _pushAllFilterStages() {
     bool wasInHandshake = _status != CONNECTED;
     List args = new List(2 + NUM_BUFFERS * 2);
-    args[0] = _filterPointer;
+    args[0] = _secureFilter._pointer();
     args[1] = wasInHandshake;
     var bufs = _secureFilter.buffers;
     for (var i = 0; i < NUM_BUFFERS; ++i) {
@@ -1201,6 +1199,10 @@ abstract class _SecureFilter {
   int processBuffer(int bufferIndex);
   void registerBadCertificateCallback(Function callback);
   void registerHandshakeCompleteCallback(Function handshakeCompleteHandler);
+
+  // This call may cause a reference counted pointer in the native
+  // implementation to be retained. It should only be called when the resulting
+  // value is passed to the IO service through a call to dispatch().
   int _pointer();
 
   List<_ExternalBuffer> get buffers;
