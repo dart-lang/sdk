@@ -11,6 +11,7 @@ import '../constants/expressions.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
 import '../elements/visitor.dart';
+import '../resolution/access_semantics.dart';
 import '../resolution/send_structure.dart';
 import '../resolution/tree_elements.dart';
 import '../tokens/token.dart';
@@ -139,13 +140,114 @@ bool areMapLiteralUsesEquivalent(MapLiteralUse a, MapLiteralUse b) {
       a.isEmpty == b.isEmpty;
 }
 
+/// Returns `true` if the access semantics [a] and [b] are equivalent.
+bool areAccessSemanticsEquivalent(AccessSemantics a, AccessSemantics b) {
+  if (a.kind != b.kind) return false;
+  switch (a.kind) {
+    case AccessKind.EXPRESSION:
+    case AccessKind.THIS:
+      // No additional properties.
+      return true;
+    case AccessKind.THIS_PROPERTY:
+    case AccessKind.DYNAMIC_PROPERTY:
+    case AccessKind.CONDITIONAL_DYNAMIC_PROPERTY:
+      return areNamesEquivalent(a.name, b.name);
+    case AccessKind.CLASS_TYPE_LITERAL:
+    case AccessKind.TYPEDEF_TYPE_LITERAL:
+    case AccessKind.DYNAMIC_TYPE_LITERAL:
+      return areConstantsEquivalent(a.constant, b.constant);
+    case AccessKind.LOCAL_FUNCTION:
+    case AccessKind.LOCAL_VARIABLE:
+    case AccessKind.FINAL_LOCAL_VARIABLE:
+    case AccessKind.PARAMETER:
+    case AccessKind.FINAL_PARAMETER:
+    case AccessKind.STATIC_FIELD:
+    case AccessKind.FINAL_STATIC_FIELD:
+    case AccessKind.STATIC_METHOD:
+    case AccessKind.STATIC_GETTER:
+    case AccessKind.STATIC_SETTER:
+    case AccessKind.TOPLEVEL_FIELD:
+    case AccessKind.FINAL_TOPLEVEL_FIELD:
+    case AccessKind.TOPLEVEL_METHOD:
+    case AccessKind.TOPLEVEL_GETTER:
+    case AccessKind.TOPLEVEL_SETTER:
+    case AccessKind.SUPER_FIELD:
+    case AccessKind.SUPER_FINAL_FIELD:
+    case AccessKind.SUPER_METHOD:
+    case AccessKind.SUPER_GETTER:
+    case AccessKind.SUPER_SETTER:
+    case AccessKind.TYPE_PARAMETER_TYPE_LITERAL:
+    case AccessKind.UNRESOLVED:
+    case AccessKind.UNRESOLVED_SUPER:
+    case AccessKind.INVALID:
+      return areElementsEquivalent(a.element, b.element);
+    case AccessKind.COMPOUND:
+      CompoundAccessSemantics compoundAccess1 = a;
+      CompoundAccessSemantics compoundAccess2 = b;
+      return compoundAccess1.compoundAccessKind ==
+              compoundAccess2.compoundAccessKind &&
+          areElementsEquivalent(
+              compoundAccess1.getter, compoundAccess2.getter) &&
+          areElementsEquivalent(compoundAccess1.setter, compoundAccess2.setter);
+    case AccessKind.CONSTANT:
+      throw new UnsupportedError('Unsupported access kind: ${a.kind}');
+  }
+}
+
 /// Returns `true` if the send structures [a] and [b] are equivalent.
 bool areSendStructuresEquivalent(SendStructure a, SendStructure b) {
   if (identical(a, b)) return true;
   if (a == null || b == null) return false;
   if (a.kind != b.kind) return false;
-  // TODO(johnniwinther): Compute a deep equivalence.
-  return true;
+
+  var ad = a;
+  var bd = b;
+  switch (a.kind) {
+    case SendStructureKind.IF_NULL:
+    case SendStructureKind.LOGICAL_AND:
+    case SendStructureKind.LOGICAL_OR:
+    case SendStructureKind.NOT:
+    case SendStructureKind.INVALID_UNARY:
+    case SendStructureKind.INVALID_BINARY:
+      // No additional properties.
+      return true;
+
+    case SendStructureKind.IS:
+    case SendStructureKind.IS_NOT:
+    case SendStructureKind.AS:
+      return areTypesEquivalent(ad.type, bd.type);
+
+    case SendStructureKind.INVOKE:
+    case SendStructureKind.INCOMPATIBLE_INVOKE:
+      if (!areSelectorsEquivalent(ad.selector, bd.selector)) return false;
+      continue semantics;
+
+    case SendStructureKind.UNARY:
+    case SendStructureKind.BINARY:
+    case SendStructureKind.PREFIX:
+    case SendStructureKind.POSTFIX:
+    case SendStructureKind.INDEX_PREFIX:
+    case SendStructureKind.INDEX_POSTFIX:
+    case SendStructureKind.COMPOUND:
+    case SendStructureKind.COMPOUND_INDEX_SET:
+      if (ad.operator != bd.operator) return false;
+      continue semantics;
+
+    case SendStructureKind.DEFERRED_PREFIX:
+      return areElementsEquivalent(ad.prefix, bd.prefix) &&
+          areSendStructuresEquivalent(ad.sendStructure, bd.sendStructure);
+
+    semantics: case SendStructureKind.GET:
+    case SendStructureKind.SET:
+    case SendStructureKind.INDEX:
+    case SendStructureKind.INDEX_SET:
+    case SendStructureKind.EQUALS:
+    case SendStructureKind.NOT_EQUALS:
+    case SendStructureKind.SET_IF_NULL:
+    case SendStructureKind.INDEX_SET_IF_NULL:
+      return areAccessSemanticsEquivalent(ad.semantics, bd.semantics);
+  }
+  throw new UnsupportedError('Unexpected send structures $a vs $b');
 }
 
 /// Returns `true` if the new structures [a] and [b] are equivalent.
@@ -153,8 +255,21 @@ bool areNewStructuresEquivalent(NewStructure a, NewStructure b) {
   if (identical(a, b)) return true;
   if (a == null || b == null) return false;
   if (a.kind != b.kind) return false;
-  // TODO(johnniwinther): Compute a deep equivalence.
-  return true;
+
+  var ad = a;
+  var bd = b;
+  switch (a.kind) {
+    case NewStructureKind.NEW_INVOKE:
+      return ad.semantics.kind == bd.semantics.kind &&
+          areElementsEquivalent(ad.semantics.element, bd.semantics.element) &&
+          areTypesEquivalent(ad.semantics.type, bd.semantics.type) &&
+          areSelectorsEquivalent(ad.selector, bd.selector);
+    case NewStructureKind.CONST_INVOKE:
+      return ad.constantInvokeKind == bd.constantInvokeKind &&
+          areConstantsEquivalent(ad.constant, bd.constant);
+    case NewStructureKind.LATE_CONST:
+      throw new UnsupportedError('Unsupported NewStructure kind ${a.kind}.');
+  }
 }
 
 /// Strategy for testing equivalence.
