@@ -1586,6 +1586,7 @@ void Compiler::AbortBackgroundCompilation(intptr_t deopt_id, const char* msg) {
   if (FLAG_trace_compiler) {
     THR_Print("ABORT background compilation: %s\n", msg);
   }
+NOT_IN_PRODUCT(
   TimelineStream* stream = Timeline::GetCompilerStream();
   ASSERT(stream != NULL);
   TimelineEvent* event = stream->StartEvent();
@@ -1595,6 +1596,7 @@ void Compiler::AbortBackgroundCompilation(intptr_t deopt_id, const char* msg) {
     event->CopyArgument(0, "reason", msg);
     event->Complete();
   }
+)  // !PRODUCT
   ASSERT(Compiler::IsBackgroundCompilation());
   Thread::Current()->long_jump_base()->Jump(
       deopt_id, Object::background_compilation_error());

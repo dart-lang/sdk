@@ -2089,6 +2089,7 @@ class FunctionName {
 class ClassFunctionsTraits {
  public:
   static const char* Name() { return "ClassFunctionsTraits"; }
+  static bool ReportStats() { return false; }
 
   // Called when growing the table.
   static bool IsMatch(const Object& a, const Object& b) {
@@ -8333,6 +8334,7 @@ RawTokenStream* TokenStream::New(intptr_t len) {
 class CompressedTokenTraits {
  public:
   static const char* Name() { return "CompressedTokenTraits"; }
+  static bool ReportStats() { return false; }
 
   static bool IsMatch(const Scanner::TokenDescriptor& descriptor,
                       const Object& key) {
@@ -9263,6 +9265,7 @@ void Library::SetLoadError(const Instance& error) const {
 class LibraryUrlTraits {
  public:
   static const char* Name() { return "LibraryUrlTraits"; }
+  static bool ReportStats() { return false; }
 
   // Called when growing the table.
   static bool IsMatch(const Object& a, const Object& b) {
@@ -9574,6 +9577,7 @@ RawObject* Library::ResolveName(const String& name) const {
 class StringEqualsTraits {
  public:
   static const char* Name() { return "StringEqualsTraits"; }
+  static bool ReportStats() { return false; }
 
   static bool IsMatch(const Object& a, const Object& b) {
     return String::Cast(a).Equals(String::Cast(b));
@@ -20946,6 +20950,9 @@ const char* GrowableObjectArray::ToCString() const {
 // Equivalent to Dart's operator "==" and hashCode.
 class DefaultHashTraits {
  public:
+  static const char* Name() { return "DefaultHashTraits"; }
+  static bool ReportStats() { return false; }
+
   static bool IsMatch(const Object& a, const Object& b) {
     if (a.IsNull() || b.IsNull()) {
       return (a.IsNull() && b.IsNull());

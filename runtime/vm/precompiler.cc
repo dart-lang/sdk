@@ -1058,6 +1058,7 @@ void Precompiler::CheckForNewDynamicFunctions() {
 class NameFunctionsTraits {
  public:
   static const char* Name() { return "NameFunctionsTraits"; }
+  static bool ReportStats() { return false; }
 
   static bool IsMatch(const Object& a, const Object& b) {
     return a.IsString() && b.IsString() &&

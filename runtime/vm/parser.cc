@@ -11978,6 +11978,7 @@ struct ConstantPosKey : ValueObject {
 class ConstMapKeyEqualsTraits {
  public:
   static const char* Name() { return "ConstMapKeyEqualsTraits"; }
+  static bool ReportStats() { return false; }
 
   static bool IsMatch(const Object& a, const Object& b) {
     const Array& key1 = Array::Cast(a);

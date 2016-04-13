@@ -21,6 +21,7 @@ namespace dart {
 class TestTraits {
  public:
   static const char* Name() { return "TestTraits"; }
+  static bool ReportStats() { return false; }
 
   static bool IsMatch(const char* key, const Object& obj) {
     return String::Cast(obj).Equals(key);
