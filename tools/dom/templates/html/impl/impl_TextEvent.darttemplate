@@ -12,7 +12,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     if (view == null) {
       view = window;
     }
-    var e = document._createEvent("TextEvent");
+    TextEvent e = document._createEvent("TextEvent");
     e._initTextEvent(type, canBubble, cancelable, view, data);
     return e;
   }

@@ -165,7 +165,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   @DomName('HTMLAnchorElement.HTMLAnchorElement')
   @DocsEditable()
   factory AnchorElement({String href}) {
-    var e = document.createElement("a");
+    AnchorElement e = document.createElement("a");
     if (href != null) e.href = href;
     return e;
   }
@@ -1868,7 +1868,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   @DomName('HTMLCanvasElement.HTMLCanvasElement')
   @DocsEditable()
   factory CanvasElement({int width, int height}) {
-    var e = document.createElement("canvas");
+    CanvasElement e = document.createElement("canvas");
     if (width != null) e.width = width;
     if (height != null) e.height = height;
     return e;
@@ -3099,7 +3099,7 @@ class CompositionEvent extends UIEvent {
     if (view == null) {
       view = window;
     }
-    var e = document._createEvent("CompositionEvent");
+    CompositionEvent e = document._createEvent("CompositionEvent");
 
     if (Device.isFirefox) {
       // Firefox requires the locale parameter that isn't supported elsewhere.
@@ -3201,7 +3201,7 @@ class CompositorWorker extends EventTarget implements AbstractWorker {
   @DomName('CompositorWorker.errorEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+  static const EventStreamProvider<ErrorEvent> errorEvent = const EventStreamProvider<ErrorEvent>('error');
 
   @DomName('CompositorWorker.messageEvent')
   @DocsEditable()
@@ -3247,7 +3247,7 @@ class CompositorWorker extends EventTarget implements AbstractWorker {
   @DomName('CompositorWorker.onerror')
   @DocsEditable()
   @Experimental() // untriaged
-  Stream<Event> get onError => errorEvent.forTarget(this);
+  Stream<ErrorEvent> get onError => errorEvent.forTarget(this);
 
   @DomName('CompositorWorker.onmessage')
   @DocsEditable()
@@ -9429,7 +9429,7 @@ class DeviceOrientationEvent extends Event {
   factory DeviceOrientationEvent(String type,
       {bool canBubble: true, bool cancelable: true, num alpha: 0, num beta: 0,
       num gamma: 0, bool absolute: false}) {
-    var e = document._createEvent("DeviceOrientationEvent");
+    DeviceOrientationEvent e = document._createEvent("DeviceOrientationEvent");
     e._initDeviceOrientationEvent(type, canBubble, cancelable, alpha, beta,
         gamma, absolute);
     return e;
@@ -10675,6 +10675,23 @@ class Document extends Node
       [int whatToShow, NodeFilter filter])
       => JS('TreeWalker', '#.createTreeWalker(#, #, #, false)',
           this, root, whatToShow, filter);
+
+  /**
+   * Returns true if this document can display elements in fullscreen mode.
+   *
+   * ## Other resources
+   *
+   * * [Using the fullscreen
+   *   API](http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)
+   *   from WebPlatform.org.
+   * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
+   */
+  @DomName('Document.webkitFullscreenEnabled')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
+  bool get fullscreenEnabled => _webkitFullscreenEnabled;
+
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11202,125 +11219,53 @@ class DomMatrixReadOnly extends Interceptor {
   // To suppress missing implicit constructor warnings.
   factory DomMatrixReadOnly._() { throw new UnsupportedError("Not supported"); }
 
-  @DomName('DOMMatrixReadOnly.a')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double a;
+  num get a => JS("num", "#.a", this);
 
-  @DomName('DOMMatrixReadOnly.b')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double b;
+  num get b => JS("num", "#.b", this);
 
-  @DomName('DOMMatrixReadOnly.c')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double c;
+  num get c => JS("num", "#.c", this);
 
-  @DomName('DOMMatrixReadOnly.d')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double d;
+  num get d => JS("num", "#.d", this);
 
-  @DomName('DOMMatrixReadOnly.e')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double e;
+  num get e => JS("num", "#.e", this);
 
-  @DomName('DOMMatrixReadOnly.f')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double f;
+  num get f => JS("num", "#.f", this);
 
-  @DomName('DOMMatrixReadOnly.is2D')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final bool is2D;
+  bool get is2D => JS("bool", "#.is2D", this);
 
-  @DomName('DOMMatrixReadOnly.isIdentity')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final bool isIdentity;
+  bool get isIdentity => JS("bool", "#.isIdentity", this);
 
-  @DomName('DOMMatrixReadOnly.m11')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m11;
+  num get m11 => JS("num", "#.m11", this);
 
-  @DomName('DOMMatrixReadOnly.m12')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m12;
+  num get m12 => JS("num", "#.m12", this);
 
-  @DomName('DOMMatrixReadOnly.m13')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m13;
+  num get m13 => JS("num", "#.m13", this);
 
-  @DomName('DOMMatrixReadOnly.m14')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m14;
+  num get m14 => JS("num", "#.m14", this);
 
-  @DomName('DOMMatrixReadOnly.m21')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m21;
+  num get m21 => JS("num", "#.m21", this);
 
-  @DomName('DOMMatrixReadOnly.m22')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m22;
+  num get m22 => JS("num", "#.m22", this);
 
-  @DomName('DOMMatrixReadOnly.m23')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m23;
+  num get m23 => JS("num", "#.m23", this);
 
-  @DomName('DOMMatrixReadOnly.m24')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m24;
+  num get m24 => JS("num", "#.m24", this);
 
-  @DomName('DOMMatrixReadOnly.m31')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m31;
+  num get m31 => JS("num", "#.m31", this);
 
-  @DomName('DOMMatrixReadOnly.m32')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m32;
+  num get m32 => JS("num", "#.m32", this);
 
-  @DomName('DOMMatrixReadOnly.m33')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m33;
+  num get m33 => JS("num", "#.m33", this);
 
-  @DomName('DOMMatrixReadOnly.m34')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m34;
+  num get m34 => JS("num", "#.m34", this);
 
-  @DomName('DOMMatrixReadOnly.m41')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m41;
+  num get m41 => JS("num", "#.m41", this);
 
-  @DomName('DOMMatrixReadOnly.m42')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m42;
+  num get m42 => JS("num", "#.m42", this);
 
-  @DomName('DOMMatrixReadOnly.m43')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m43;
+  num get m43 => JS("num", "#.m43", this);
 
-  @DomName('DOMMatrixReadOnly.m44')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double m44;
+  num get m44 => JS("num", "#.m44", this);
 
   @DomName('DOMMatrixReadOnly.multiply')
   @DocsEditable()
@@ -11475,25 +11420,13 @@ class DomPointReadOnly extends Interceptor {
   }
   static DomPointReadOnly _create_1(x, y, z, w) => JS('DomPointReadOnly', 'new DOMPointReadOnly(#,#,#,#)', x, y, z, w);
 
-  @DomName('DOMPointReadOnly.w')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double w;
+  num get w => JS("num", "#.w", this);
 
-  @DomName('DOMPointReadOnly.x')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double x;
+  num get x => JS("num", "#.x", this);
 
-  @DomName('DOMPointReadOnly.y')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double y;
+  num get y => JS("num", "#.y", this);
 
-  @DomName('DOMPointReadOnly.z')
-  @DocsEditable()
-  @Experimental() // untriaged
-  final double z;
+  num get z => JS("num", "#.z", this);
 }
 // Copyright (c) 2013, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12531,8 +12464,8 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
 // declared to return `ElementList`.  This provides all the static analysis
 // benefit so there is no need for this class have a constrained type parameter.
 //
-class _FrozenElementList extends ListBase
-    implements ElementList, NodeListWrapper {
+class _FrozenElementList extends ListBase<Element>
+    implements ElementList<Element>, NodeListWrapper {
   final List<Node> _nodeList;
 
   _FrozenElementList._wrap(this._nodeList);
@@ -12575,7 +12508,7 @@ class _FrozenElementList extends ListBase
     //
     // as the code below converts the Iterable[value] to a string multiple
     // times.  Maybe compute the string and set className here.
-    _nodeList.forEach((e) => e.classes = value);
+    forEach((e) => e.classes = value);
   }
 
   CssRect get contentEdge => new _ContentCssListRect(this);
@@ -14025,7 +13958,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
 
       // Workaround for Safari bug. Was also previously Chrome bug 229142
       // - URIs are not resolved in new doc.
-      var base = _parseDocument.createElement('base');
+      BaseElement base = _parseDocument.createElement('base');
       base.href = document.baseUri;
       _parseDocument.head.append(base);
     }
@@ -16215,7 +16148,7 @@ class Event extends Interceptor {
     e._initEvent(name, canBubble, cancelable);
     return e;
   }
-  
+
   /** The CSS selector involved with event delegation. */
   String _selector;
 
@@ -16229,8 +16162,8 @@ class Event extends Interceptor {
       throw new UnsupportedError('Cannot call matchingTarget if this Event did'
           ' not arise as a result of event delegation.');
     }
-    var currentTarget = this.currentTarget;
-    var target = this.target;
+    Element currentTarget = this.currentTarget;
+    Element target = this.target;
     var matchedTarget;
     do {
       if (target.matches(_selector)) return target;
@@ -16523,26 +16456,24 @@ class Events {
 }
 
 class ElementEvents extends Events {
-  /* Raw event target. */
-  final Element _ptr;
   static final webkitEvents = {
-    'animationend' : 'webkitAnimationEnd', 
-    'animationiteration' : 'webkitAnimationIteration', 
-    'animationstart' : 'webkitAnimationStart', 
-    'fullscreenchange' : 'webkitfullscreenchange', 
+    'animationend' : 'webkitAnimationEnd',
+    'animationiteration' : 'webkitAnimationIteration',
+    'animationstart' : 'webkitAnimationStart',
+    'fullscreenchange' : 'webkitfullscreenchange',
     'fullscreenerror' : 'webkitfullscreenerror',
-    'keyadded' : 'webkitkeyadded', 
-    'keyerror' : 'webkitkeyerror', 
-    'keymessage' : 'webkitkeymessage', 
-    'needkey' : 'webkitneedkey', 
-    'pointerlockchange' : 'webkitpointerlockchange', 
-    'pointerlockerror' : 'webkitpointerlockerror', 
-    'resourcetimingbufferfull' : 'webkitresourcetimingbufferfull', 
+    'keyadded' : 'webkitkeyadded',
+    'keyerror' : 'webkitkeyerror',
+    'keymessage' : 'webkitkeymessage',
+    'needkey' : 'webkitneedkey',
+    'pointerlockchange' : 'webkitpointerlockchange',
+    'pointerlockerror' : 'webkitpointerlockerror',
+    'resourcetimingbufferfull' : 'webkitresourcetimingbufferfull',
     'transitionend': 'webkitTransitionEnd',
     'speechchange' : 'webkitSpeechChange'
   };
 
-  ElementEvents(Element ptr) : this._ptr = ptr, super(ptr);
+  ElementEvents(Element ptr) : super(ptr);
 
   Stream operator [](String type) {
     if (webkitEvents.keys.contains(type.toLowerCase())) {
@@ -19196,22 +19127,6 @@ class HtmlDocument extends Document {
   @Experimental()
   Element get fullscreenElement => _webkitFullscreenElement;
 
-  /**
-   * Returns true if this document can display elements in fullscreen mode.
-   *
-   * ## Other resources
-   *
-   * * [Using the fullscreen
-   *   API](http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)
-   *   from WebPlatform.org.
-   * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
-   */
-  @DomName('Document.webkitFullscreenEnabled')
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  bool get fullscreenEnabled => _webkitFullscreenEnabled;
-
   @DomName('Document.webkitHidden')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -20394,7 +20309,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   @DomName('HTMLImageElement.HTMLImageElement')
   @DocsEditable()
   factory ImageElement({String src, int width, int height}) {
-    var e = document.createElement("img");
+    ImageElement e = document.createElement("img");
     if (src != null) e.src = src;
     if (width != null) e.width = width;
     if (height != null) e.height = height;
@@ -21402,15 +21317,15 @@ abstract class ButtonInputElement implements InputElementBase {
 @Native("KeyboardEvent")
 class KeyboardEvent extends UIEvent {
 
-  /** 
-   * Programmatically create a KeyboardEvent. 
+  /**
+   * Programmatically create a KeyboardEvent.
    *
    * Due to browser differences, keyCode, charCode, or keyIdentifier values
    * cannot be specified in this base level constructor. This constructor
    * enables the user to programmatically create and dispatch a [KeyboardEvent],
    * but it will not contain any particular key content. For programmatically
    * creating keyboard events with specific key value contents, see the custom
-   * Event [KeyEvent]. 
+   * Event [KeyEvent].
    */
   factory KeyboardEvent(String type,
       {Window view, bool canBubble: true, bool cancelable: true,
@@ -21419,7 +21334,7 @@ class KeyboardEvent extends UIEvent {
     if (view == null) {
       view = window;
     }
-    final e = document._createEvent("KeyboardEvent");
+    KeyboardEvent e = document._createEvent("KeyboardEvent");
     e._initKeyboardEvent(type, canBubble, cancelable, view, "",
         keyLocation, ctrlKey, altKey, shiftKey, metaKey);
     return e;
@@ -23448,7 +23363,7 @@ class MessageEvent extends Event {
           type, canBubble, cancelable, data, origin, lastEventId, source,
           messagePorts);
     }
-    var event = document._createEvent("MessageEvent");
+    MessageEvent event = document._createEvent("MessageEvent");
     event._initMessageEvent(type, canBubble, cancelable, data, origin,
         lastEventId, source, messagePorts);
     return event;
@@ -24066,7 +23981,7 @@ class MouseEvent extends UIEvent {
     if (view == null) {
       view = window;
     }
-    var event = document._createEvent('MouseEvent');
+    MouseEvent event = document._createEvent('MouseEvent');
     event._initMouseEvent(type, canBubble, cancelable, view, detail,
         screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey,
         button, relatedTarget);
@@ -30210,7 +30125,7 @@ class SharedWorker extends EventTarget implements AbstractWorker {
   @DomName('SharedWorker.errorEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+  static const EventStreamProvider<ErrorEvent> errorEvent = const EventStreamProvider<ErrorEvent>('error');
 
   @DomName('SharedWorker.SharedWorker')
   @DocsEditable()
@@ -30235,7 +30150,7 @@ class SharedWorker extends EventTarget implements AbstractWorker {
   @DomName('SharedWorker.onerror')
   @DocsEditable()
   @Experimental() // untriaged
-  Stream<Event> get onError => errorEvent.forTarget(this);
+  Stream<ErrorEvent> get onError => errorEvent.forTarget(this);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31452,7 +31367,7 @@ class StorageEvent extends Event {
     {bool canBubble: false, bool cancelable: false, String key, String oldValue,
     String newValue, String url, Storage storageArea}) {
 
-    var e = document._createEvent("StorageEvent");
+    StorageEvent e = document._createEvent("StorageEvent");
     e._initStorageEvent(type, canBubble, cancelable, key, oldValue,
         newValue, url, storageArea);
     return e;
@@ -32386,7 +32301,7 @@ class TextEvent extends UIEvent {
     if (view == null) {
       view = window;
     }
-    var e = document._createEvent("TextEvent");
+    TextEvent e = document._createEvent("TextEvent");
     e._initTextEvent(type, canBubble, cancelable, view, data);
     return e;
   }
@@ -32980,7 +32895,7 @@ class TouchEvent extends UIEvent {
     if (view == null) {
       view = window;
     }
-    var e = document._createEvent("TouchEvent");
+    TouchEvent e = document._createEvent("TouchEvent");
     e._initTouchEvent(touches, targetTouches, changedTouches, type, view,
         screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
     return e;
@@ -33414,7 +33329,7 @@ class UIEvent extends Event {
     if (view == null) {
       view = window;
     }
-    final e = document._createEvent("UIEvent");
+    UIEvent e = document._createEvent("UIEvent");
     e._initUIEvent(type, canBubble, cancelable, view, detail);
     return e;
   }
@@ -36909,7 +36824,7 @@ class Worker extends EventTarget implements AbstractWorker {
   @DomName('Worker.errorEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
+  static const EventStreamProvider<ErrorEvent> errorEvent = const EventStreamProvider<ErrorEvent>('error');
 
   /**
    * Static factory designed to expose `message` events to event
@@ -36960,7 +36875,7 @@ class Worker extends EventTarget implements AbstractWorker {
   @DomName('Worker.onerror')
   @DocsEditable()
   @Experimental() // untriaged
-  Stream<Event> get onError => errorEvent.forTarget(this);
+  Stream<ErrorEvent> get onError => errorEvent.forTarget(this);
 
   /// Stream of `message` events handled by this [Worker].
   @DomName('Worker.onmessage')
@@ -38293,7 +38208,7 @@ abstract class _MutationEvent extends Event {
       {bool canBubble: false, bool cancelable: false, Node relatedNode,
       String prevValue, String newValue, String attrName, int attrChange: 0}) {
 
-    var event = document._createEvent('MutationEvent');
+    MutationEvent event = document._createEvent('MutationEvent');
     event._initMutationEvent(type, canBubble, cancelable, relatedNode,
         prevValue, newValue, attrName, attrChange);
     return event;

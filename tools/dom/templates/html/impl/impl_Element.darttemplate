@@ -264,8 +264,8 @@ $!STREAM_GETTER_SIGNATURES
 // declared to return `ElementList`.  This provides all the static analysis
 // benefit so there is no need for this class have a constrained type parameter.
 //
-class _FrozenElementList extends ListBase
-    implements ElementList, NodeListWrapper {
+class _FrozenElementList extends ListBase<Element>
+    implements ElementList<Element>, NodeListWrapper {
   final List<Node> _nodeList;
 
 $if JSINTEROP
@@ -316,7 +316,7 @@ $endif
     //
     // as the code below converts the Iterable[value] to a string multiple
     // times.  Maybe compute the string and set className here.
-    _nodeList.forEach((e) => e.classes = value);
+    forEach((e) => e.classes = value);
   }
 
   CssRect get contentEdge => new _ContentCssListRect(this);
@@ -1333,7 +1333,7 @@ $endif
 
       // Workaround for Safari bug. Was also previously Chrome bug 229142
       // - URIs are not resolved in new doc.
-      var base = _parseDocument.createElement('base');
+      BaseElement base = _parseDocument.createElement('base');
       base.href = document.baseUri;
       _parseDocument.head.append(base);
     }
