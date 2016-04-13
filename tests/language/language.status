@@ -43,7 +43,6 @@ least_upper_bound_expansive_test/*: Fail, OK
 
 async_star_regression_2238_test: CompileTimeError, RuntimeError # drt only runtime-errs.
 async_star_cancel_while_paused_test: RuntimeError
-async_star_await_pauses_test: Skip # Times out. Issue 23996
 
 # Experimental feature: Syntactic support for generic methods.
 generic_methods_test: CompiletimeError # Issue 25869
@@ -95,7 +94,10 @@ generic_functions_test: RuntimeError # Issue 25869
 generic_sends_test: RuntimeError # Issue 25869
 
 [ $compiler == none && $runtime == dartium && $system == linux && $arch != x64 ]
-issue_22780_test/01 : Pass, Timeout # Issue 24473
+issue_22780_test/01: Pass, Timeout # Issue 24473
+
+[ $compiler == none && $runtime == dartium && $system == linux && $arch == x64 ]
+async_await_test: Skip # Issue 26198
 
 [ $compiler == none && $runtime == drt ]
 disassemble_test: Pass, Fail # Issue 18122

@@ -204,7 +204,7 @@ class DartWorkManager implements WorkManager {
       }
     }
     List<Source> libraries = partLibrariesMap[part];
-    return libraries != null ? libraries : Source.EMPTY_LIST;
+    return libraries?.toList() ?? Source.EMPTY_LIST;
   }
 
   @override

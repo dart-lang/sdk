@@ -23,14 +23,15 @@ import '../old_to_new_api.dart';
  * static inspection of the source code.
  */
 // TODO(johnniwinther): Move this to [compiler/compiler.dart].
-Future<MirrorSystem> analyze(List<Uri> libraries,
-                             Uri libraryRoot,
-                             Uri packageRoot,
-                             api.CompilerInputProvider inputProvider,
-                             api.DiagnosticHandler diagnosticHandler,
-                             [List<String> options = const <String>[],
-                              Uri packageConfig,
-                              api.PackagesDiscoveryProvider findPackages]) {
+Future<MirrorSystem> analyze(
+    List<Uri> libraries,
+    Uri libraryRoot,
+    Uri packageRoot,
+    api.CompilerInputProvider inputProvider,
+    api.DiagnosticHandler diagnosticHandler,
+    [List<String> options = const <String>[],
+    Uri packageConfig,
+    api.PackagesDiscoveryProvider findPackages]) {
   if (!libraryRoot.path.endsWith("/")) {
     throw new ArgumentError("libraryRoot must end with a /");
   }
@@ -46,10 +47,9 @@ Future<MirrorSystem> analyze(List<Uri> libraries,
   options.add('--allow-native-extensions');
 
   bool compilationFailed = false;
-  void internalDiagnosticHandler(Uri uri, int begin, int end,
-                                 String message, api.Diagnostic kind) {
-    if (kind == api.Diagnostic.ERROR ||
-        kind == api.Diagnostic.CRASH) {
+  void internalDiagnosticHandler(
+      Uri uri, int begin, int end, String message, api.Diagnostic kind) {
+    if (kind == api.Diagnostic.ERROR || kind == api.Diagnostic.CRASH) {
       compilationFailed = true;
     }
     diagnosticHandler(uri, begin, end, message, kind);

@@ -1021,7 +1021,7 @@ class RawLibrary : public RawObject {
   RawString* private_key_;
   RawArray* dictionary_;         // Top-level names in this library.
   RawGrowableObjectArray* metadata_;  // Metadata on classes, methods etc.
-  RawClass* toplevel_class_;  // Class containing top-level elements.
+  RawClass* toplevel_class_;     // Class containing top-level elements.
   RawGrowableObjectArray* patch_classes_;
   RawArray* imports_;            // List of Namespaces imported without prefix.
   RawArray* exports_;            // List of re-exported Namespaces.
@@ -1040,13 +1040,13 @@ class RawLibrary : public RawObject {
 
   Dart_NativeEntryResolver native_entry_resolver_;  // Resolves natives.
   Dart_NativeEntrySymbol native_entry_symbol_resolver_;
-  classid_t index_;             // Library id number.
-  uint16_t num_imports_;        // Number of entries in imports_.
-  int8_t load_state_;           // Of type LibraryState.
+  classid_t index_;              // Library id number.
+  uint16_t num_imports_;         // Number of entries in imports_.
+  int8_t load_state_;            // Of type LibraryState.
   bool corelib_imported_;
   bool is_dart_scheme_;
-  bool debuggable_;             // True if debugger can stop in library.
-  bool is_in_fullsnapshot_;     // True if library is in a full snapshot.
+  bool debuggable_;              // True if debugger can stop in library.
+  bool is_in_fullsnapshot_;      // True if library is in a full snapshot.
 
   friend class Class;
   friend class Isolate;
@@ -1478,6 +1478,10 @@ class RawICData : public RawObject {
   int32_t deopt_id_;     // Deoptimization id corresponding to this IC.
   uint32_t state_bits_;  // Number of arguments tested in IC, deopt reasons,
                          // range feedback.
+#if defined(TAG_IC_DATA)
+  intptr_t tag_;  // Debugging, verifying that the icdata is assigned to the
+                  // same instruction again. Store -1 or Instruction::Tag.
+#endif
 };
 
 

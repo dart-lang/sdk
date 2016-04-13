@@ -943,7 +943,7 @@ TEST_CASE(SerializeScript) {
   Script& script = Script::Handle(Script::New(url,
                                               source,
                                               RawScript::kScriptTag));
-  const String& lib_url = String::Handle(Symbols::New("TestLib"));
+  const String& lib_url = String::Handle(Symbols::New(thread, "TestLib"));
   Library& lib = Library::Handle(Library::New(lib_url));
   lib.Register();
   EXPECT(CompilerTest::TestCompileScript(lib, script));

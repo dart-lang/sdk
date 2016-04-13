@@ -999,6 +999,7 @@ LibTest/html/IFrameElement/attributes_setter_A01_t01: RuntimeError # co19-roll r
 LibTest/html/IFrameElement/blur_A01_t01: Skip # co19-roll r706.  Please triage this failure.
 LibTest/html/IFrameElement/borderEdge_A01_t01: RuntimeError # co19-roll r706.  Issue 16574
 LibTest/html/IFrameElement/clone_A01_t02: RuntimeError # co19-roll r706.  Please triage this failure.
+LibTest/html/IFrameElement/contentWindow_A01_t01: RuntimeError # Also fails in dart2js as this test should not pass given current Dart semantics for cross frame windows.
 LibTest/html/IFrameElement/createFragment_A01_t01: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/IFrameElement/createFragment_A01_t02: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/IFrameElement/createFragment_A01_t03: RuntimeError # co19-roll r706.  Please triage this failure.
@@ -1025,9 +1026,11 @@ LibTest/html/Window/document_A01_t01: Skip # accesses window.document from a cro
 LibTest/html/Window/find_A01_t01: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/Window/find_A03_t01: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/Window/find_A06_t01: RuntimeError # co19-roll r706.  Please triage this failure.
+LibTest/html/Window/moveBy_A01_t01: RuntimeError # Also fails in dart2js as this test should not pass given current Dart semantics for cross frame windows.
 LibTest/html/Window/moveTo_A01_t01: RuntimeError, Pass # co19-roll r706.  Please triage this failure.
 LibTest/html/Window/moveTo_A02_t01: RuntimeError # co19-roll r706.  Please triage this failure.
 LibTest/html/Window/postMessage_A01_t01: RuntimeError # co19-roll r706.  Please triage this failure.
+LibTest/html/Window/postMessage_A01_t02: RuntimeError # Also fails in dart2js.
 LibTest/html/Window/requestFileSystem_A01_t02: RuntimeError,Pass # co19-roll r722: Please triage this failure.
 LibTest/html/Window/requestFileSystem_A02_t01: Skip # Issue 24585.
 LibTest/html/Window/resizeBy_A01_t01: RuntimeError # co19-roll r706.  Please triage this failure.

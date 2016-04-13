@@ -43,7 +43,14 @@ List<AnalysisError> doAnalysisError_listFromEngine(
             .add(newAnalysisError_fromEngine(lineInfo, error, severity));
       }
     } else {
-      serverErrors.add(newAnalysisError_fromEngine(lineInfo, error));
+      AnalysisError error2 = newAnalysisError_fromEngine(lineInfo, error);
+      bool isStrongMode = context.analysisOptions.strongMode;
+      if (isStrongMode &&
+          error is engine.StaticWarningCode &&
+          (error as engine.StaticWarningCode).isStrongModeError) {
+        error2.severity = AnalysisErrorSeverity.ERROR;
+      }
+      serverErrors.add(error2);
     }
   }
   return serverErrors;

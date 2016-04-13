@@ -987,6 +987,7 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
   bool _finished = false;
 
   List<LinkedDependencyBuilder> _dependencies;
+  List<int> _exportDependencies;
   List<LinkedExportNameBuilder> _exportNames;
   bool _fallbackMode;
   List<int> _importDependencies;
@@ -1015,6 +1016,19 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
   void set dependencies(List<LinkedDependencyBuilder> _value) {
     assert(!_finished);
     _dependencies = _value;
+  }
+
+  @override
+  List<int> get exportDependencies => _exportDependencies ??= <int>[];
+
+  /**
+   * For each export in [UnlinkedUnit.exports], an index into [dependencies]
+   * of the library being exported.
+   */
+  void set exportDependencies(List<int> _value) {
+    assert(!_finished);
+    assert(_value == null || _value.every((e) => e >= 0));
+    _exportDependencies = _value;
   }
 
   @override
@@ -1085,8 +1099,9 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
     _units = _value;
   }
 
-  LinkedLibraryBuilder({List<LinkedDependencyBuilder> dependencies, List<LinkedExportNameBuilder> exportNames, bool fallbackMode, List<int> importDependencies, int numPrelinkedDependencies, List<LinkedUnitBuilder> units})
+  LinkedLibraryBuilder({List<LinkedDependencyBuilder> dependencies, List<int> exportDependencies, List<LinkedExportNameBuilder> exportNames, bool fallbackMode, List<int> importDependencies, int numPrelinkedDependencies, List<LinkedUnitBuilder> units})
     : _dependencies = dependencies,
+      _exportDependencies = exportDependencies,
       _exportNames = exportNames,
       _fallbackMode = fallbackMode,
       _importDependencies = importDependencies,
@@ -1111,11 +1126,15 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
     assert(!_finished);
     _finished = true;
     fb.Offset offset_dependencies;
+    fb.Offset offset_exportDependencies;
     fb.Offset offset_exportNames;
     fb.Offset offset_importDependencies;
     fb.Offset offset_units;
     if (!(_dependencies == null || _dependencies.isEmpty)) {
       offset_dependencies = fbBuilder.writeList(_dependencies.map((b) => b.finish(fbBuilder)).toList());
+    }
+    if (!(_exportDependencies == null || _exportDependencies.isEmpty)) {
+      offset_exportDependencies = fbBuilder.writeListUint32(_exportDependencies);
     }
     if (!(_exportNames == null || _exportNames.isEmpty)) {
       offset_exportNames = fbBuilder.writeList(_exportNames.map((b) => b.finish(fbBuilder)).toList());
@@ -1129,6 +1148,9 @@ class LinkedLibraryBuilder extends Object with _LinkedLibraryMixin implements id
     fbBuilder.startTable();
     if (offset_dependencies != null) {
       fbBuilder.addOffset(0, offset_dependencies);
+    }
+    if (offset_exportDependencies != null) {
+      fbBuilder.addOffset(6, offset_exportDependencies);
     }
     if (offset_exportNames != null) {
       fbBuilder.addOffset(4, offset_exportNames);
@@ -1167,6 +1189,7 @@ class _LinkedLibraryImpl extends Object with _LinkedLibraryMixin implements idl.
   _LinkedLibraryImpl(this._bp);
 
   List<idl.LinkedDependency> _dependencies;
+  List<int> _exportDependencies;
   List<idl.LinkedExportName> _exportNames;
   bool _fallbackMode;
   List<int> _importDependencies;
@@ -1177,6 +1200,12 @@ class _LinkedLibraryImpl extends Object with _LinkedLibraryMixin implements idl.
   List<idl.LinkedDependency> get dependencies {
     _dependencies ??= const fb.ListReader<idl.LinkedDependency>(const _LinkedDependencyReader()).vTableGet(_bp, 0, const <idl.LinkedDependency>[]);
     return _dependencies;
+  }
+
+  @override
+  List<int> get exportDependencies {
+    _exportDependencies ??= const fb.Uint32ListReader().vTableGet(_bp, 6, const <int>[]);
+    return _exportDependencies;
   }
 
   @override
@@ -1215,6 +1244,7 @@ abstract class _LinkedLibraryMixin implements idl.LinkedLibrary {
   Map<String, Object> toJson() {
     Map<String, Object> _result = <String, Object>{};
     if (dependencies.isNotEmpty) _result["dependencies"] = dependencies.map((_value) => _value.toJson()).toList();
+    if (exportDependencies.isNotEmpty) _result["exportDependencies"] = exportDependencies;
     if (exportNames.isNotEmpty) _result["exportNames"] = exportNames.map((_value) => _value.toJson()).toList();
     if (fallbackMode != false) _result["fallbackMode"] = fallbackMode;
     if (importDependencies.isNotEmpty) _result["importDependencies"] = importDependencies;
@@ -1226,6 +1256,7 @@ abstract class _LinkedLibraryMixin implements idl.LinkedLibrary {
   @override
   Map<String, Object> toMap() => {
     "dependencies": dependencies,
+    "exportDependencies": exportDependencies,
     "exportNames": exportNames,
     "fallbackMode": fallbackMode,
     "importDependencies": importDependencies,
@@ -4571,9 +4602,9 @@ class UnlinkedExecutableBuilder extends Object with _UnlinkedExecutableMixin imp
     _codeRange = null;
     _constantInitializers?.forEach((b) => b.flushInformative());
     _documentationComment = null;
-    _localFunctions?.forEach((b) => b.flushInformative());
-    _localLabels?.forEach((b) => b.flushInformative());
-    _localVariables?.forEach((b) => b.flushInformative());
+    _localFunctions = null;
+    _localLabels = null;
+    _localVariables = null;
     _nameEnd = null;
     _nameOffset = null;
     _parameters?.forEach((b) => b.flushInformative());
@@ -8082,7 +8113,7 @@ class UnlinkedVariableBuilder extends Object with _UnlinkedVariableMixin impleme
     _codeRange = null;
     _constExpr?.flushInformative();
     _documentationComment = null;
-    _initializer?.flushInformative();
+    _initializer = null;
     _nameOffset = null;
     _type?.flushInformative();
   }

@@ -254,27 +254,28 @@ class AnalyzerImpl {
   static ErrorSeverity computeSeverity(
       AnalysisError error, CommandLineOptions options,
       [AnalysisContext context]) {
+    bool isStrongMode = false;
     if (context != null) {
       ErrorProcessor processor = ErrorProcessor.getProcessor(context, error);
       // If there is a processor for this error, defer to it.
       if (processor != null) {
         return processor.severity;
       }
+      isStrongMode = context.analysisOptions.strongMode;
     }
 
     if (!options.enableTypeChecks &&
         error.errorCode.type == ErrorType.CHECKED_MODE_COMPILE_TIME_ERROR) {
       return ErrorSeverity.INFO;
-    }
-
-    if (options.hintsAreFatal && error.errorCode is HintCode) {
+    } else if (options.hintsAreFatal && error.errorCode is HintCode) {
+      return ErrorSeverity.ERROR;
+    } else if (options.lintsAreFatal && error.errorCode is LintCode) {
+      return ErrorSeverity.ERROR;
+    } else if (isStrongMode &&
+        error is StaticWarningCode &&
+        (error as StaticWarningCode).isStrongModeError) {
       return ErrorSeverity.ERROR;
     }
-
-    if (options.lintsAreFatal && error.errorCode is LintCode) {
-      return ErrorSeverity.ERROR;
-    }
-
     return error.errorCode.errorSeverity;
   }
 
@@ -302,6 +303,13 @@ class AnalyzerImpl {
     ErrorSeverity severity = computeSeverity(error, options, context);
     bool isOverridden = false;
 
+    // Skip TODOs categorically (unless escalated to ERROR or HINT.)
+    // https://github.com/dart-lang/sdk/issues/26215
+    if (error.errorCode.type == ErrorType.TODO &&
+        severity == ErrorSeverity.INFO) {
+      return null;
+    }
+
     // First check for a filter.
     if (severity == null) {
       // Null severity means the error has been explicitly ignored.
@@ -314,11 +322,6 @@ class AnalyzerImpl {
     if (!isOverridden) {
       // Check for global hint filtering.
       if (severity == ErrorSeverity.INFO && options.disableHints) {
-        return null;
-      }
-
-      // Skip TODOs.
-      if (severity == ErrorType.TODO) {
         return null;
       }
     }

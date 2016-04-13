@@ -9,8 +9,7 @@ class LocalPlaceholder {
   final Set<Node> nodes;
   LocalPlaceholder(this.identifier) : nodes = new Set<Node>();
   int get hashCode => identifier.hashCode;
-  String toString() =>
-      'local_placeholder[id($identifier), nodes($nodes)]';
+  String toString() => 'local_placeholder[id($identifier), nodes($nodes)]';
 }
 
 class FunctionScope {
@@ -18,7 +17,7 @@ class FunctionScope {
   final Set<LocalPlaceholder> localPlaceholders;
   FunctionScope()
       : parameterIdentifiers = new Set<String>(),
-      localPlaceholders = new Set<LocalPlaceholder>();
+        localPlaceholders = new Set<LocalPlaceholder>();
   void registerParameter(Identifier node) {
     parameterIdentifiers.add(node.source);
   }
@@ -133,18 +132,17 @@ class SendVisitor extends Visitor {
 
   visitStaticSend(Send node) {
     Element element = elements[node];
-    collector.mirrorRenamer.registerStaticSend(
-        collector.currentElement, element, node);
+    collector.mirrorRenamer
+        .registerStaticSend(collector.currentElement, element, node);
 
-    if (Elements.isUnresolved(element)
-        || element.isDeferredLoaderGetter) {
+    if (Elements.isUnresolved(element) || element.isDeferredLoaderGetter) {
       return;
     }
     if (element.isConstructor || element.isFactoryConstructor) {
       // Rename named constructor in redirection position:
       // class C { C.named(); C.redirecting() : this.named(); }
-      if (node.receiver is Identifier
-          && node.receiver.asIdentifier().isThis()) {
+      if (node.receiver is Identifier &&
+          node.receiver.asIdentifier().isThis()) {
         assert(node.selector is Identifier);
         collector.tryMakeConstructorPlaceholder(node, element);
       }
@@ -178,16 +176,16 @@ class PlaceholderCollector extends Visitor {
   final Set<Node> prefixNodesToErase = new Set<Node>();
   final Set<Node> unresolvedNodes = new Set<Node>();
   final Map<Element, Set<Node>> elementNodes = new Map<Element, Set<Node>>();
-  final Map<FunctionElement, FunctionScope> functionScopes
-      = new Map<FunctionElement, FunctionScope>();
+  final Map<FunctionElement, FunctionScope> functionScopes =
+      new Map<FunctionElement, FunctionScope>();
   final Map<LibraryElement, Set<Identifier>> privateNodes =
       new Map<LibraryElement, Set<Identifier>>();
-  final List<DeclarationTypePlaceholder> declarationTypePlaceholders
-      = new List<DeclarationTypePlaceholder>();
-  final Map<String, Set<Identifier>> memberPlaceholders
-      = new Map<String, Set<Identifier>>();
-  final List<ConstructorPlaceholder> constructorPlaceholders
-      = new List<ConstructorPlaceholder>();
+  final List<DeclarationTypePlaceholder> declarationTypePlaceholders =
+      new List<DeclarationTypePlaceholder>();
+  final Map<String, Set<Identifier>> memberPlaceholders =
+      new Map<String, Set<Identifier>>();
+  final List<ConstructorPlaceholder> constructorPlaceholders =
+      new List<ConstructorPlaceholder>();
   Map<String, LocalPlaceholder> currentLocalPlaceholders;
   Element currentElement;
   FunctionElement topmostEnclosingFunction;
@@ -196,9 +194,8 @@ class PlaceholderCollector extends Visitor {
   get currentFunctionScope => functionScopes.putIfAbsent(
       topmostEnclosingFunction, () => new FunctionScope());
 
-  PlaceholderCollector(this.reporter, this.mirrorRenamer,
-                       this.fixedMemberNames, this.elementAsts,
-                       this.mainFunction);
+  PlaceholderCollector(this.reporter, this.mirrorRenamer, this.fixedMemberNames,
+      this.elementAsts, this.mainFunction);
 
   void collectFunctionDeclarationPlaceholders(
       FunctionElement element, FunctionExpression node) {
@@ -212,8 +209,7 @@ class PlaceholderCollector extends Visitor {
         FunctionElement redirectTarget = constructor.immediateRedirectionTarget;
         assert(redirectTarget != null && redirectTarget != element);
         tryMakeConstructorPlaceholder(
-            bodyAsRedirectingFactoryBody.constructorReference,
-            redirectTarget);
+            bodyAsRedirectingFactoryBody.constructorReference, redirectTarget);
       }
     } else if (Elements.isStaticOrTopLevel(element)) {
       // Note: this code should only rename private identifiers for class'
@@ -281,7 +277,8 @@ class PlaceholderCollector extends Visitor {
       }
       return false;
     }
-    if (element.isParameter && !isTypedefParameter(element) &&
+    if (element.isParameter &&
+        !isTypedefParameter(element) &&
         isNamedOptionalParameter()) {
       currentFunctionScope.registerParameter(node);
     } else if (Elements.isLocal(element) && !isTypedefParameter(element)) {
@@ -294,8 +291,9 @@ class PlaceholderCollector extends Visitor {
     if (node is Operator) return;
     String identifier = node.source;
     if (fixedMemberNames.contains(identifier)) return;
-    memberPlaceholders.putIfAbsent(
-        identifier, () => new Set<Identifier>()).add(node);
+    memberPlaceholders
+        .putIfAbsent(identifier, () => new Set<Identifier>())
+        .add(node);
   }
 
   void makeTypePlaceholder(Node node, DartType type) {
@@ -324,8 +322,8 @@ class PlaceholderCollector extends Visitor {
 
   void makeOmitDeclarationTypePlaceholder(TypeAnnotation type) {
     if (type == null) return;
-    declarationTypePlaceholders.add(
-        new DeclarationTypePlaceholder(type, false));
+    declarationTypePlaceholders
+        .add(new DeclarationTypePlaceholder(type, false));
   }
 
   void makeVarDeclarationTypePlaceholder(VariableDefinitions node) {
@@ -335,8 +333,8 @@ class PlaceholderCollector extends Visitor {
     // and/or catch syntax changes.
     if (node.type == null) return;
     bool requiresVar = !node.modifiers.isFinalOrConst;
-    declarationTypePlaceholders.add(
-        new DeclarationTypePlaceholder(node.type, requiresVar));
+    declarationTypePlaceholders
+        .add(new DeclarationTypePlaceholder(node.type, requiresVar));
   }
 
   /// Marks [node] to be erased in the output.
@@ -378,8 +376,9 @@ class PlaceholderCollector extends Visitor {
         !Elements.isStaticOrTopLevel(element) &&
         !Elements.isLocal(element) &&
         Name.isPrivateName(node.source)) {
-      privateNodes.putIfAbsent(
-          currentElement.library, () => new Set<Identifier>()).add(node);
+      privateNodes
+          .putIfAbsent(currentElement.library, () => new Set<Identifier>())
+          .add(node);
     }
   }
 
@@ -429,7 +428,7 @@ class PlaceholderCollector extends Visitor {
         Send receiver = node.receiver;
         // prefix.ClassName.constructorName()
         assert(treeElements[receiver.receiver] != null &&
-               treeElements[receiver.receiver].isPrefix);
+            treeElements[receiver.receiver].isPrefix);
         prefix = receiver.receiver;
         className = receiver.selector;
         constructorName = node.selector;
@@ -468,8 +467,8 @@ class PlaceholderCollector extends Visitor {
 
     if (constructorName != null) {
       Element definingConstructor = findDefiningConstructor(element);
-      constructorPlaceholders.add(new ConstructorPlaceholder(constructorName,
-          definingConstructor));
+      constructorPlaceholders.add(
+          new ConstructorPlaceholder(constructorName, definingConstructor));
       tryMakePrivateIdentifier(constructorName, element);
     }
   }
@@ -480,7 +479,9 @@ class PlaceholderCollector extends Visitor {
 
   visit(Node node) => (node == null) ? null : node.accept(this);
 
-  visitNode(Node node) { node.visitChildren(this); }  // We must go deeper.
+  visitNode(Node node) {
+    node.visitChildren(this);
+  } // We must go deeper.
 
   visitNewExpression(NewExpression node) {
     Send send = node.send;
@@ -544,10 +545,13 @@ class PlaceholderCollector extends Visitor {
       if (Elements.isStaticOrTopLevel(element)) {
         // TODO(smok): Worth investigating why sometimes we get getter/setter
         // here and sometimes abstract field.
-        assert(element.isClass || element is VariableElement ||
-               element.isAccessor || element.isAbstractField ||
-               element.isFunction || element.isTypedef ||
-               element is TypeVariableElement);
+        assert(element.isClass ||
+            element is VariableElement ||
+            element.isAccessor ||
+            element.isAbstractField ||
+            element.isFunction ||
+            element.isTypedef ||
+            element is TypeVariableElement);
         makeElementPlaceholder(send.selector, element);
       } else {
         Identifier identifier = send.selector.asIdentifier();
@@ -600,9 +604,7 @@ class PlaceholderCollector extends Visitor {
       Identifier identifier = definition is Identifier
           ? definition
           : definition is Send
-              ? (send.selector is Identifier
-                  ? send.selector
-                  : null)
+              ? (send.selector is Identifier ? send.selector : null)
               : null;
 
       tryMakePrivateIdentifier(identifier, definitionElement);
@@ -619,8 +621,7 @@ class PlaceholderCollector extends Visitor {
         } else {
           assert(send.selector is FunctionExpression);
           if (definitionElement.isInitializingFormal) {
-            tryMakeMemberPlaceholder(
-                send.selector.asFunctionExpression().name);
+            tryMakeMemberPlaceholder(send.selector.asFunctionExpression().name);
           }
         }
       } else if (definition is Identifier) {

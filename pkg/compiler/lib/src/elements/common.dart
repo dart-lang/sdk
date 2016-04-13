@@ -6,17 +6,10 @@
 
 library elements.common;
 
-import '../common/names.dart' show
-    Names,
-    Uris;
-import '../core_types.dart' show
-    CoreClasses;
-import '../dart_types.dart' show
-    DartType,
-    InterfaceType,
-    FunctionType;
-import '../util/util.dart' show
-    Link;
+import '../common/names.dart' show Names, Uris;
+import '../core_types.dart' show CoreClasses;
+import '../dart_types.dart' show DartType, InterfaceType, FunctionType;
+import '../util/util.dart' show Link;
 
 import 'elements.dart';
 
@@ -52,7 +45,7 @@ abstract class ElementCommon implements Element {
   bool get isSetter => kind == ElementKind.SETTER;
 
   @override
-  bool get isConstructor => isGenerativeConstructor ||  isFactoryConstructor;
+  bool get isConstructor => isGenerativeConstructor || isFactoryConstructor;
 
   @override
   bool get isGenerativeConstructor =>
@@ -62,8 +55,7 @@ abstract class ElementCommon implements Element {
   bool get isGenerativeConstructorBody =>
       kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY;
 
-  bool get isFactoryConstructor =>
-      kind == ElementKind.FACTORY_CONSTRUCTOR;
+  bool get isFactoryConstructor => kind == ElementKind.FACTORY_CONSTRUCTOR;
 
   @override
   bool get isVariable => kind == ElementKind.VARIABLE;
@@ -178,7 +170,6 @@ abstract class CompilationUnitElementCommon implements CompilationUnitElement {
 }
 
 abstract class ClassElementCommon implements ClassElement {
-
   @override
   Link<DartType> get allSupertypes => allSupertypesAndSelf.supertypes;
 
@@ -196,7 +187,6 @@ abstract class ClassElementCommon implements ClassElement {
     Element result = localLookup(name);
     return result != null && result.isConstructor ? result : null;
   }
-
 
   /**
    * Find the first member in the class chain with the given [memberName].
@@ -221,8 +211,8 @@ abstract class ClassElementCommon implements ClassElement {
     bool isPrivate = memberName.isPrivate;
     LibraryElement library = memberName.library;
     for (ClassElement current = isSuperLookup ? superclass : this;
-         current != null;
-         current = current.superclass) {
+        current != null;
+        current = current.superclass) {
       Element member = current.lookupLocalMember(name);
       if (member == null && current.isPatched) {
         // Doing lookups on selectors is done after resolution, so it
@@ -251,7 +241,7 @@ abstract class ClassElementCommon implements ClassElement {
             return getter;
           }
         }
-      // Abstract members can be defined in a super class.
+        // Abstract members can be defined in a super class.
       } else if (!member.isAbstract) {
         return member;
       }
@@ -295,8 +285,8 @@ abstract class ClassElementCommon implements ClassElement {
    * This will ignore constructors.
    */
   @override
-  Element lookupSuperMemberInLibrary(String memberName,
-                                     LibraryElement library) {
+  Element lookupSuperMemberInLibrary(
+      String memberName, LibraryElement library) {
     bool isPrivate = Name.isPrivateName(memberName);
     for (ClassElement s = superclass; s != null; s = s.superclass) {
       // Private members from a different library are not visible.
@@ -332,8 +322,7 @@ abstract class ClassElementCommon implements ClassElement {
   // TODO(johnniwinther): Clean up lookup to get rid of the include predicates.
   @override
   void forEachMember(void f(ClassElement enclosingClass, Element member),
-                     {includeBackendMembers: false,
-                      includeSuperAndInjectedMembers: false}) {
+      {includeBackendMembers: false, includeSuperAndInjectedMembers: false}) {
     bool includeInjectedMembers = includeSuperAndInjectedMembers || isPatch;
     ClassElement classElement = declaration;
     do {
@@ -352,9 +341,8 @@ abstract class ClassElementCommon implements ClassElement {
           });
         }
       }
-      classElement = includeSuperAndInjectedMembers
-          ? classElement.superclass
-          : null;
+      classElement =
+          includeSuperAndInjectedMembers ? classElement.superclass : null;
     } while (classElement != null);
   }
 
@@ -368,9 +356,9 @@ abstract class ClassElementCommon implements ClassElement {
    * origin and in the patch are included.
    */
   @override
-  void forEachInstanceField(void f(ClassElement enclosingClass,
-                                   FieldElement field),
-                            {bool includeSuperAndInjectedMembers: false}) {
+  void forEachInstanceField(
+      void f(ClassElement enclosingClass, FieldElement field),
+      {bool includeSuperAndInjectedMembers: false}) {
     // Filters so that [f] is only invoked with instance fields.
     void fieldFilter(ClassElement enclosingClass, Element member) {
       if (member.isInstanceMember && member.kind == ElementKind.FIELD) {
@@ -433,8 +421,7 @@ abstract class ClassElementCommon implements ClassElement {
 
   @override
   bool implementsFunction(CoreClasses coreClasses) {
-    return asInstanceOf(coreClasses.functionClass) != null ||
-        callType != null;
+    return asInstanceOf(coreClasses.functionClass) != null || callType != null;
   }
 
   @override
@@ -498,8 +485,8 @@ abstract class FunctionSignatureCommon implements FunctionSignature {
       if (requiredParameterCount != signature.requiredParameterCount) {
         return false;
       }
-      Set<String> names = optionalParameters.map(
-          (Element element) => element.name).toSet();
+      Set<String> names =
+          optionalParameters.map((Element element) => element.name).toSet();
       for (Element namedParameter in signature.optionalParameters) {
         if (!names.contains(namedParameter.name)) {
           return false;
@@ -512,8 +499,8 @@ abstract class FunctionSignatureCommon implements FunctionSignature {
       // optional parameters is not a problem, they simply are never provided
       // by call sites of a call to a method with the other signature.
       int otherTotalCount = signature.parameterCount;
-      return requiredParameterCount <= otherTotalCount
-          && parameterCount >= otherTotalCount;
+      return requiredParameterCount <= otherTotalCount &&
+          parameterCount >= otherTotalCount;
     }
     return true;
   }
@@ -526,9 +513,7 @@ abstract class MixinApplicationElementCommon
   }
 
   FunctionElement _lookupLocalConstructor(String name) {
-    for (Link<Element> link = constructors;
-         !link.isEmpty;
-         link = link.tail) {
+    for (Link<Element> link = constructors; !link.isEmpty; link = link.tail) {
       if (link.head.name == name) return link.head;
     }
     return null;
@@ -547,7 +532,8 @@ abstract class MixinApplicationElementCommon
   @override
   void forEachLocalMember(void f(Element member)) {
     constructors.forEach(f);
-    if (mixin != null) mixin.forEachLocalMember((Element mixedInElement) {
+    if (mixin != null)
+      mixin.forEachLocalMember((Element mixedInElement) {
       if (mixedInElement.isInstanceMember) f(mixedInElement);
     });
   }

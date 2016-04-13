@@ -8,19 +8,15 @@ library js.debug;
 
 import 'package:js_ast/js_ast.dart';
 
-import '../io/code_output.dart' show
-    BufferedCodeOutput;
-import '../util/util.dart' show
-    Indentation,
-    Tagging;
+import '../io/code_output.dart' show BufferedCodeOutput;
+import '../util/util.dart' show Indentation, Tagging;
 
 /// Unparse the JavaScript [node].
 String nodeToString(Node node) {
   JavaScriptPrintingOptions options = new JavaScriptPrintingOptions(
       shouldCompressOutput: true,
       preferSemicolonToNewlineInMinifiedOutput: true);
-  LenientPrintingContext printingContext =
-      new LenientPrintingContext();
+  LenientPrintingContext printingContext = new LenientPrintingContext();
   new Printer(options, printingContext).visit(node);
   return printingContext.getText();
 }

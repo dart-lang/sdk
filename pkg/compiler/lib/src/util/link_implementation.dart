@@ -52,7 +52,7 @@ class MappedLinkIterable<S, T> extends IterableBase<T> {
   MappedLinkIterable(this._link, this._transformation);
 
   Iterator<T> get iterator {
-    return new MappedLinkIterator<S,T>(_link, _transformation);
+    return new MappedLinkIterator<S, T>(_link, _transformation);
   }
 }
 
@@ -61,7 +61,7 @@ class LinkEntry<T> extends Link<T> {
   Link<T> tail;
 
   LinkEntry(T this.head, [Link<T> tail])
-    : this.tail = ((tail == null) ? new Link<T>() : tail);
+      : this.tail = ((tail == null) ? new Link<T>() : tail);
 
   Link<T> prepend(T element) {
     // TODO(ahe): Use new Link<T>, but this cost 8% performance on VM.
@@ -103,7 +103,7 @@ class LinkEntry<T> extends Link<T> {
 
   Link<T> skip(int n) {
     Link<T> link = this;
-    for (int i = 0 ; i < n ; i++) {
+    for (int i = 0; i < n; i++) {
       if (link.isEmpty) {
         throw new RangeError('Index $n out of range');
       }
@@ -122,7 +122,7 @@ class LinkEntry<T> extends Link<T> {
   }
 
   bool operator ==(other) {
-    if (other is !Link<T>) return false;
+    if (other is! Link<T>) return false;
     Link<T> myElements = this;
     while (myElements.isNotEmpty && other.isNotEmpty) {
       if (myElements.head != other.head) {

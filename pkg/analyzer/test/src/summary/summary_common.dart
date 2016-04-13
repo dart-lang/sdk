@@ -23,7 +23,15 @@ import 'package:analyzer/src/summary/summarize_elements.dart'
     as summarize_elements;
 import 'package:unittest/unittest.dart';
 
-import '../../generated/analysis_context_factory.dart';
+import '../context/mock_sdk.dart';
+
+/**
+ * Convert [path] to a suitably formatted absolute path URI for the current
+ * platform.
+ */
+String absUri(String path) {
+  return FileUtilities2.createFile(path).toURI().toString();
+}
 
 /**
  * Convert a summary object (or a portion of one) into a canonical form that
@@ -99,13 +107,14 @@ class SerializedMockSdk {
 
   static SerializedMockSdk _serializeMockSdk() {
     try {
-      AnalysisContext analysisContext =
-          AnalysisContextFactory.contextWithCore();
+      AnalysisContext analysisContext = new MockSdk().context;
       Map<String, UnlinkedUnit> uriToUnlinkedUnit = <String, UnlinkedUnit>{};
       Map<String, LinkedLibrary> uriToLinkedLibrary = <String, LinkedLibrary>{};
       List<LibraryElement> libraries = [
         analysisContext.typeProvider.objectType.element.library,
-        analysisContext.typeProvider.futureType.element.library
+        analysisContext.typeProvider.futureType.element.library,
+        analysisContext.computeLibraryElement(
+            analysisContext.sourceFactory.resolveUri(null, 'dart:math')),
       ];
       for (LibraryElement library in libraries) {
         summarize_elements.LibrarySerializationResult serializedLibrary =
@@ -187,14 +196,6 @@ abstract class SummaryTest {
    * serializing and deserializing the library under test.
    */
   List<UnlinkedUnit> get unlinkedUnits;
-
-  /**
-   * Convert [path] to a suitably formatted absolute path URI for the current
-   * platform.
-   */
-  String absUri(String path) {
-    return FileUtilities2.createFile(path).toURI().toString();
-  }
 
   /**
    * Add the given source file so that it may be referenced by the file under
@@ -4993,6 +4994,25 @@ f() { // 1
     }
   }
 
+  test_executable_localVariables_forEachLoop_outside() {
+    String code = r'''
+f() { // 1
+  int i;
+  for (i in <int>[]) {
+    print(i);
+  }
+} // 4
+''';
+    UnlinkedExecutable executable = serializeExecutableText(code);
+    List<UnlinkedVariable> variables = executable.localVariables;
+    expect(variables, hasLength(1));
+    {
+      UnlinkedVariable i = variables.singleWhere((v) => v.name == 'i');
+      _assertVariableVisible(code, i, '{ // 1', '} // 4');
+      checkTypeRef(i.type, 'dart:core', 'dart:core', 'int');
+    }
+  }
+
   test_executable_localVariables_forLoop() {
     String code = r'''
 f() { // 1
@@ -5673,6 +5693,12 @@ f(MyFunction myFunction) {}
         ReferenceKind.classOrEnum);
   }
 
+  test_export_dependency() {
+    serializeLibraryText('export "dart:async";');
+    expect(unlinkedUnits[0].exports, hasLength(1));
+    checkDependency(linked.exportDependencies[0], 'dart:async', 'dart:async');
+  }
+
   test_export_enum() {
     addNamedSource('/a.dart', 'enum E { v }');
     serializeLibraryText('export "a.dart";');
@@ -5732,6 +5758,21 @@ f(MyFunction myFunction) {}
         unlinkedUnits[0].publicNamespace.exports[0].combinators[0].offset, 0);
     expect(unlinkedUnits[0].publicNamespace.exports[0].combinators[0].end, 0);
     expect(linked.exportNames, isNotEmpty);
+  }
+
+  test_export_missing() {
+    if (!checkAstDerivedData) {
+      // TODO(paulberry): At the moment unresolved exports are not included in
+      // the element model, so we can't pass this test.
+      return;
+    }
+    // Unresolved exports are included since this is necessary for proper
+    // dependency tracking.
+    allowMissingFiles = true;
+    serializeLibraryText('export "foo.dart";', allowErrors: true);
+    expect(unlinkedUnits[0].imports, hasLength(1));
+    checkDependency(
+        linked.exportDependencies[0], absUri('/foo.dart'), 'foo.dart');
   }
 
   test_export_names_excludes_names_from_library() {
@@ -6674,7 +6715,6 @@ final v = 42 as num;
 ''');
     _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
       UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushReference,
       UnlinkedConstOperation.typeCast,
     ], ints: [
       42
@@ -6693,7 +6733,6 @@ final v = 42 is num;
 ''');
     _assertUnlinkedConst(variable.constExpr, isValidConst: false, operators: [
       UnlinkedConstOperation.pushInt,
-      UnlinkedConstOperation.pushReference,
       UnlinkedConstOperation.typeCheck,
     ], ints: [
       42
@@ -7200,7 +7239,7 @@ Stream s;
     checkTypeRef(findVariable('f').type, 'dart:async', 'dart:async', 'Future',
         numTypeParameters: 1);
     checkTypeRef(findVariable('s').type, 'dart:async', 'dart:async', 'Stream',
-        numTypeParameters: 1);
+        expectedTargetUnit: 1, numTypeParameters: 1);
   }
 
   test_import_reference_merged_prefixed() {
@@ -7214,7 +7253,7 @@ a.Stream s;
     checkTypeRef(findVariable('f').type, 'dart:async', 'dart:async', 'Future',
         expectedPrefix: 'a', numTypeParameters: 1);
     checkTypeRef(findVariable('s').type, 'dart:async', 'dart:async', 'Stream',
-        expectedPrefix: 'a', numTypeParameters: 1);
+        expectedTargetUnit: 1, expectedPrefix: 'a', numTypeParameters: 1);
   }
 
   test_import_reference_merged_prefixed_separate_libraries() {

@@ -59,11 +59,11 @@ class HTracer extends HGraphVisitor with TracerUtil {
     }
   }
 
-  void addInstructions(HInstructionStringifier stringifier,
-                       HInstructionList list) {
+  void addInstructions(
+      HInstructionStringifier stringifier, HInstructionList list) {
     for (HInstruction instruction = list.first;
-         instruction != null;
-         instruction = instruction.next) {
+        instruction != null;
+        instruction = instruction.next) {
       int bci = 0;
       int uses = instruction.usedBy.length;
       String changes = instruction.sideEffects.hasSideEffects() ? '!' : ' ';
@@ -162,7 +162,7 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String handleInvokeBinary(HInvokeBinary node, String opcode) {
     String left = temporaryId(node.left);
-    String right= temporaryId(node.right);
+    String right = temporaryId(node.right);
     return '$opcode: $left $right';
   }
 
@@ -255,6 +255,7 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitGreaterEqual(HGreaterEqual node) {
     return handleInvokeBinary(node, 'GreaterEqual');
   }
+
   String visitIdentity(HIdentity node) => handleInvokeBinary(node, 'Identity');
 
   String visitIf(HIf node) {
@@ -264,8 +265,8 @@ class HInstructionStringifier implements HVisitor<String> {
     return "If ($conditionId): (B${thenBlock.id}) else (B${elseBlock.id})";
   }
 
-  String handleGenericInvoke(String invokeType, String functionName,
-                             List<HInstruction> arguments) {
+  String handleGenericInvoke(
+      String invokeType, String functionName, List<HInstruction> arguments) {
     StringBuffer argumentsString = new StringBuffer();
     for (int i = 0; i < arguments.length; i++) {
       if (i != 0) argumentsString.write(", ");
@@ -298,8 +299,8 @@ class HInstructionStringifier implements HVisitor<String> {
     return "Interceptor: $value";
   }
 
-  String visitInvokeClosure(HInvokeClosure node)
-      => handleInvokeDynamic(node, "InvokeClosure");
+  String visitInvokeClosure(HInvokeClosure node) =>
+      handleInvokeDynamic(node, "InvokeClosure");
 
   String handleInvokeDynamic(HInvokeDynamic invoke, String kind) {
     String receiver = temporaryId(invoke.receiver);
@@ -307,16 +308,15 @@ class HInstructionStringifier implements HVisitor<String> {
     String target = "$receiver.$name";
     int offset = HInvoke.ARGUMENTS_OFFSET;
     List arguments = invoke.inputs.sublist(offset);
-    return handleGenericInvoke(kind, target, arguments) +
-        "(${invoke.mask})";
+    return handleGenericInvoke(kind, target, arguments) + "(${invoke.mask})";
   }
 
-  String visitInvokeDynamicMethod(HInvokeDynamicMethod node)
-      => handleInvokeDynamic(node, "InvokeDynamicMethod");
-  String visitInvokeDynamicGetter(HInvokeDynamicGetter node)
-      => handleInvokeDynamic(node, "InvokeDynamicGetter");
-  String visitInvokeDynamicSetter(HInvokeDynamicSetter node)
-      => handleInvokeDynamic(node, "InvokeDynamicSetter");
+  String visitInvokeDynamicMethod(HInvokeDynamicMethod node) =>
+      handleInvokeDynamic(node, "InvokeDynamicMethod");
+  String visitInvokeDynamicGetter(HInvokeDynamicGetter node) =>
+      handleInvokeDynamic(node, "InvokeDynamicGetter");
+  String visitInvokeDynamicSetter(HInvokeDynamicSetter node) =>
+      handleInvokeDynamic(node, "InvokeDynamicSetter");
 
   String visitInvokeStatic(HInvokeStatic invoke) {
     String target = invoke.element.name;
@@ -334,14 +334,13 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   String visitForeignCode(HForeignCode foreign) {
-    return handleGenericInvoke("ForeignCode", "${foreign.codeTemplate.ast}",
-                              foreign.inputs);
+    return handleGenericInvoke(
+        "ForeignCode", "${foreign.codeTemplate.ast}", foreign.inputs);
   }
 
   String visitForeignNew(HForeignNew node) {
-    return handleGenericInvoke("ForeignNew",
-                              "${node.element.name}",
-                              node.inputs);
+    return handleGenericInvoke(
+        "ForeignNew", "${node.element.name}", node.inputs);
   }
 
   String visitLess(HLess node) => handleInvokeBinary(node, 'Less');
@@ -361,8 +360,7 @@ class HInstructionStringifier implements HVisitor<String> {
     HBasicBlock bodyBlock = currentBlock.successors[0];
     HBasicBlock exitBlock = currentBlock.successors[1];
     String conditionId = temporaryId(branch.inputs[0]);
-    return
-      "LoopBranch ($conditionId): (B${bodyBlock.id}) then (B${exitBlock.id})";
+    return "LoopBranch ($conditionId): (B${bodyBlock.id}) then (B${exitBlock.id})";
   }
 
   String visitMultiply(HMultiply node) => handleInvokeBinary(node, 'Multiply');
@@ -403,14 +401,13 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitShiftRight(HShiftRight node) =>
       handleInvokeBinary(node, 'ShiftRight');
 
-  String visitStatic(HStatic node)
-      => "Static: ${node.element.name}";
+  String visitStatic(HStatic node) => "Static: ${node.element.name}";
 
-  String visitLazyStatic(HLazyStatic node)
-      => "LazyStatic: ${node.element.name}";
+  String visitLazyStatic(HLazyStatic node) =>
+      "LazyStatic: ${node.element.name}";
 
-  String visitOneShotInterceptor(HOneShotInterceptor node)
-      => handleInvokeDynamic(node, "OneShotInterceptor");
+  String visitOneShotInterceptor(HOneShotInterceptor node) =>
+      handleInvokeDynamic(node, "OneShotInterceptor");
 
   String visitStaticStore(HStaticStore node) {
     String lhs = node.element.name;
@@ -490,11 +487,10 @@ class HInstructionStringifier implements HVisitor<String> {
 
   String visitTypeConversion(HTypeConversion node) {
     assert(node.inputs.length <= 2);
-    String otherInput = (node.inputs.length == 2)
-        ? temporaryId(node.inputs[1])
-        : '';
+    String otherInput =
+        (node.inputs.length == 2) ? temporaryId(node.inputs[1]) : '';
     return "TypeConversion: ${temporaryId(node.checkedInput)} to "
-      "${node.instructionType} $otherInput";
+        "${node.instructionType} $otherInput";
   }
 
   String visitTypeKnown(HTypeKnown node) {

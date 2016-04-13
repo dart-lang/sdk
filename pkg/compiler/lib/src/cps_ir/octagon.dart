@@ -72,8 +72,8 @@ class Octagon {
     SignedVariable v1 = new SignedVariable._make();
     if (min != null) {
       // v1 >= min   <==>   -v1 - v1 <= -2 * min
-      v1.negated._constraints.add(
-          new Constraint(v1.negated, v1.negated, -2 * min));
+      v1.negated._constraints
+          .add(new Constraint(v1.negated, v1.negated, -2 * min));
     }
     if (max != null) {
       // v1 <= max   <==>   v1 + v1 <= 2 * max

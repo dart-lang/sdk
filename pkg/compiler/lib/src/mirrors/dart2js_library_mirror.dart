@@ -4,8 +4,7 @@
 
 part of dart2js.mirrors;
 
-class Dart2JsLibraryMirror
-    extends Dart2JsElementMirror
+class Dart2JsLibraryMirror extends Dart2JsElementMirror
     with ObjectMirrorMixin, ContainerMixin
     implements LibrarySourceMirror {
   List<LibraryDependencySourceMirror> _libraryDependencies;
@@ -80,7 +79,7 @@ class Dart2JsLibraryMirror
           <LibraryDependency, Dart2JsLibraryDependencyMirror>{};
 
       void addLibraryDependency(LibraryDependency libraryDependency,
-                                LibraryElement targetLibraryElement) {
+          LibraryElement targetLibraryElement) {
         assert(targetLibraryElement != null);
         LibraryMirror targetLibrary =
             mirrorSystem._getLibrary(targetLibraryElement);
@@ -119,14 +118,13 @@ class Dart2JsLibraryDependencyMirror implements LibraryDependencySourceMirror {
   final Dart2JsLibraryMirror _targetLibrary;
   List<CombinatorMirror> _combinators;
 
-  Dart2JsLibraryDependencyMirror(this._node,
-                                 this._sourceLibrary,
-                                 this._targetLibrary);
+  Dart2JsLibraryDependencyMirror(
+      this._node, this._sourceLibrary, this._targetLibrary);
 
   SourceLocation get location {
     return new Dart2JsSourceLocation(
-      _sourceLibrary._element.entryCompilationUnit.script,
-      _sourceLibrary.mirrorSystem.compiler.reporter.spanFromSpannable(_node));
+        _sourceLibrary._element.entryCompilationUnit.script,
+        _sourceLibrary.mirrorSystem.compiler.reporter.spanFromSpannable(_node));
   }
 
   List<CombinatorMirror> get combinators {
@@ -138,8 +136,8 @@ class Dart2JsLibraryDependencyMirror implements LibraryDependencySourceMirror {
           for (Identifier identifier in combinator.identifiers.nodes) {
             identifiers.add(identifier.source);
           }
-          _combinators.add(new Dart2JsCombinatorMirror(
-              identifiers, isShow: combinator.isShow));
+          _combinators.add(new Dart2JsCombinatorMirror(identifiers,
+              isShow: combinator.isShow));
         }
       }
     }

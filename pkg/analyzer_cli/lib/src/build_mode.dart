@@ -4,7 +4,6 @@
 
 library analyzer_cli.src.build_mode;
 
-import 'dart:convert';
 import 'dart:core' hide Resource;
 import 'dart:io' as io;
 
@@ -20,8 +19,8 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
+import 'package:analyzer/src/summary/link.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
-import 'package:analyzer/src/summary/prelink.dart';
 import 'package:analyzer/src/summary/summarize_ast.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
 import 'package:analyzer/task/dart.dart';
@@ -29,6 +28,10 @@ import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/options.dart';
+import 'package:protobuf/protobuf.dart';
+
+import 'message_grouper.dart';
+import 'worker_protocol.pb.dart';
 
 /**
  * Analyzer used when the "--build-mode" option is supplied.
@@ -95,20 +98,22 @@ class BuildMode {
 
     // Write summary.
     if (options.buildSummaryOutput != null) {
-      for (Source source in explicitSources) {
-        if (context.computeKindOf(source) == SourceKind.LIBRARY) {
-          if (options.buildSummaryFallback) {
-            assembler.addFallbackLibrary(source);
-          } else if (options.buildSummaryOnlyAst) {
-            _serializeAstBasedSummary(source);
-          } else {
-            LibraryElement libraryElement =
-                context.computeLibraryElement(source);
-            assembler.serializeLibraryElement(libraryElement);
+      if (options.buildSummaryOnlyAst && !options.buildSummaryFallback) {
+        _serializeAstBasedSummary(explicitSources);
+      } else {
+        for (Source source in explicitSources) {
+          if (context.computeKindOf(source) == SourceKind.LIBRARY) {
+            if (options.buildSummaryFallback) {
+              assembler.addFallbackLibrary(source);
+            } else {
+              LibraryElement libraryElement =
+                  context.computeLibraryElement(source);
+              assembler.serializeLibraryElement(libraryElement);
+            }
           }
-        }
-        if (options.buildSummaryFallback) {
-          assembler.addFallbackUnit(source);
+          if (options.buildSummaryFallback) {
+            assembler.addFallbackUnit(source);
+          }
         }
       }
       // Write the whole package bundle.
@@ -212,33 +217,28 @@ class BuildMode {
   }
 
   /**
-   * Serialize the library with the given [source] into [assembler] using only
-   * its AST, [UnlinkedUnit]s of input packages and ASTs (via [UnlinkedUnit]s)
-   * of package sources.
+   * Serialize the package with the given [sources] into [assembler] using only
+   * their ASTs and [LinkedUnit]s of input packages.
    */
-  void _serializeAstBasedSummary(Source source) {
-    Source resolveRelativeUri(String relativeUri) {
-      Source resolvedSource =
-          context.sourceFactory.resolveUri(source, relativeUri);
-      if (resolvedSource == null) {
-        context.sourceFactory.resolveUri(source, relativeUri);
-        throw new StateError('Could not resolve $relativeUri in the context of '
-            '$source (${source.runtimeType})');
-      }
-      return resolvedSource;
-    }
+  void _serializeAstBasedSummary(List<Source> sources) {
+    Set<String> sourceUris =
+        sources.map((Source s) => s.uri.toString()).toSet();
 
-    UnlinkedUnit _getUnlinkedUnit(Source source) {
+    LinkedLibrary _getDependency(String absoluteUri) =>
+        summaryDataStore.linkedMap[absoluteUri];
+
+    UnlinkedUnit _getUnit(String absoluteUri) {
       // Maybe an input package contains the source.
       {
-        String uriStr = source.uri.toString();
-        UnlinkedUnit unlinkedUnit = summaryDataStore.unlinkedMap[uriStr];
+        UnlinkedUnit unlinkedUnit = summaryDataStore.unlinkedMap[absoluteUri];
         if (unlinkedUnit != null) {
           return unlinkedUnit;
         }
       }
       // Parse the source and serialize its AST.
-      return uriToUnit.putIfAbsent(source.uri, () {
+      Uri uri = Uri.parse(absoluteUri);
+      Source source = context.sourceFactory.forUri2(uri);
+      return uriToUnit.putIfAbsent(uri, () {
         CompilationUnit unit = context.computeResult(source, PARSED_UNIT);
         UnlinkedUnitBuilder unlinkedUnit = serializeAstUnlinked(unit);
         assembler.addUnlinkedUnit(source, unlinkedUnit);
@@ -246,18 +246,9 @@ class BuildMode {
       });
     }
 
-    UnlinkedUnit getPart(String relativeUri) {
-      return _getUnlinkedUnit(resolveRelativeUri(relativeUri));
-    }
-
-    UnlinkedPublicNamespace getImport(String relativeUri) {
-      return getPart(relativeUri).publicNamespace;
-    }
-
-    UnlinkedUnitBuilder definingUnit = _getUnlinkedUnit(source);
-    LinkedLibraryBuilder linkedLibrary =
-        prelink(definingUnit, getPart, getImport);
-    assembler.addLinkedLibrary(source.uri.toString(), linkedLibrary);
+    Map<String, LinkedLibraryBuilder> linkResult =
+        link(sourceUris, _getDependency, _getUnit, options.strongMode);
+    linkResult.forEach(assembler.addLinkedLibrary);
   }
 
   /**
@@ -284,13 +275,33 @@ class BuildMode {
 }
 
 /**
- * Interface that every worker related data object has.
+ * Default implementation of [WorkerConnection] that works with stdio.
  */
-abstract class WorkDataObject {
-  /**
-   * Translate the data in this class into a JSON map.
-   */
-  Map<String, Object> toJson();
+class StdWorkerConnection implements WorkerConnection {
+  final MessageGrouper _messageGrouper;
+  final io.Stdout _stdoutStream;
+
+  StdWorkerConnection(io.Stdin stdinStream, this._stdoutStream)
+      : _messageGrouper = new MessageGrouper(stdinStream);
+
+  @override
+  WorkRequest readRequest() {
+    var buffer = _messageGrouper.next;
+    if (buffer == null) return null;
+
+    return new WorkRequest.fromBuffer(buffer);
+  }
+
+  @override
+  void writeResponse(WorkResponse response) {
+    var responseBuffer = response.writeToBuffer();
+
+    var writer = new CodedBufferWriter();
+    writer.writeInt32NoTag(responseBuffer.length);
+    writer.writeRawBytes(responseBuffer);
+
+    _stdoutStream.add(writer.toBuffer());
+  }
 }
 
 /**
@@ -298,14 +309,14 @@ abstract class WorkDataObject {
  */
 abstract class WorkerConnection {
   /**
-   * Read a new line. Block until a line is read. Return `null` if EOF.
+   * Read a new [WorkRequest]. Returns [null] when there are no more requests.
    */
-  String readLineSync();
+  WorkRequest readRequest();
 
   /**
-   * Write the given [json] as a new line to the output.
+   * Write the given [response] as bytes to the output.
    */
-  void writeJson(Map<String, Object> json);
+  void writeResponse(WorkResponse response);
 }
 
 /**
@@ -320,17 +331,24 @@ class WorkerLoop {
   final StringBuffer errorBuffer = new StringBuffer();
   final StringBuffer outBuffer = new StringBuffer();
 
-  WorkerLoop(this.connection);
+  final String dartSdkPath;
 
-  factory WorkerLoop.std() {
-    WorkerConnection connection = new _StdWorkerConnection();
-    return new WorkerLoop(connection);
+  WorkerLoop(this.connection, {this.dartSdkPath});
+
+  factory WorkerLoop.std(
+      {io.Stdin stdinStream, io.Stdout stdoutStream, String dartSdkPath}) {
+    stdinStream ??= io.stdin;
+    stdoutStream ??= io.stdout;
+    WorkerConnection connection =
+        new StdWorkerConnection(stdinStream, stdoutStream);
+    return new WorkerLoop(connection, dartSdkPath: dartSdkPath);
   }
 
   /**
    * Performs analysis with given [options].
    */
   void analyze(CommandLineOptions options) {
+    options.dartSdkPath ??= dartSdkPath;
     new BuildMode(options, new AnalysisStats()).analyze();
   }
 
@@ -339,7 +357,7 @@ class WorkerLoop {
    */
   bool performSingle() {
     try {
-      WorkRequest request = _readRequest();
+      WorkRequest request = connection.readRequest();
       if (request == null) {
         return true;
       }
@@ -351,11 +369,15 @@ class WorkerLoop {
       // Analyze and respond.
       analyze(options);
       String msg = _getErrorOutputBuffersText();
-      _writeResponse(new WorkResponse(EXIT_CODE_OK, msg));
+      connection.writeResponse(new WorkResponse()
+        ..exitCode = EXIT_CODE_OK
+        ..output = msg);
     } catch (e, st) {
       String msg = _getErrorOutputBuffersText();
       msg += '$e \n $st';
-      _writeResponse(new WorkResponse(EXIT_CODE_ERROR, msg));
+      connection.writeResponse(new WorkResponse()
+        ..exitCode = EXIT_CODE_ERROR
+        ..output = msg);
     }
     return false;
   }
@@ -388,183 +410,5 @@ class WorkerLoop {
       msg += outBuffer.toString() + '\n';
     }
     return msg;
-  }
-
-  /**
-   * Read a new [WorkRequest]. Return `null` if EOF.
-   * Throw [ArgumentError] if cannot be parsed.
-   */
-  WorkRequest _readRequest() {
-    String line = connection.readLineSync();
-    if (line == null) {
-      return null;
-    }
-    Object json = JSON.decode(line);
-    if (json is Map) {
-      return new WorkRequest.fromJson(json);
-    } else {
-      throw new ArgumentError('The request line is not a  JSON object: $line');
-    }
-  }
-
-  void _writeResponse(WorkResponse response) {
-    Map<String, Object> json = response.toJson();
-    connection.writeJson(json);
-  }
-}
-
-/**
- * Input file.
- */
-class WorkInput implements WorkDataObject {
-  final String path;
-  final List<int> digest;
-
-  WorkInput(this.path, this.digest);
-
-  factory WorkInput.fromJson(Map<String, Object> json) {
-    // Parse path.
-    Object path2 = json['path'];
-    if (path2 == null) {
-      throw new ArgumentError('The field "path" is missing.');
-    }
-    if (path2 is! String) {
-      throw new ArgumentError('The field "path" must be a string.');
-    }
-    // Parse digest.
-    List<int> digest = const <int>[];
-    {
-      Object digestJson = json['digest'];
-      if (digestJson != null) {
-        if (digestJson is List && digestJson.every((e) => e is int)) {
-          digest = digestJson;
-        } else {
-          throw new ArgumentError(
-              'The field "digest" should be a list of int.');
-        }
-      }
-    }
-    // OK
-    return new WorkInput(path2, digest);
-  }
-
-  @override
-  Map<String, Object> toJson() {
-    Map<String, Object> json = <String, Object>{};
-    if (path != null) {
-      json['path'] = path;
-    }
-    if (digest != null) {
-      json['digest'] = digest;
-    }
-    return json;
-  }
-}
-
-/**
- * Single work unit that Bazel sends to the worker.
- */
-class WorkRequest implements WorkDataObject {
-  /**
-   * Command line arguments for this request.
-   */
-  final List<String> arguments;
-
-  /**
-   * Input files that the worker is allowed to read during execution of this
-   * request.
-   */
-  final List<WorkInput> inputs;
-
-  WorkRequest(this.arguments, this.inputs);
-
-  factory WorkRequest.fromJson(Map<String, Object> json) {
-    // Parse arguments.
-    List<String> arguments = const <String>[];
-    {
-      Object argumentsJson = json['arguments'];
-      if (argumentsJson != null) {
-        if (argumentsJson is List && argumentsJson.every((e) => e is String)) {
-          arguments = argumentsJson;
-        } else {
-          throw new ArgumentError(
-              'The field "arguments" should be a list of strings.');
-        }
-      }
-    }
-    // Parse inputs.
-    List<WorkInput> inputs = const <WorkInput>[];
-    {
-      Object inputsJson = json['inputs'];
-      if (inputsJson != null) {
-        if (inputsJson is List &&
-            inputsJson.every((e) {
-              return e is Map && e.keys.every((key) => key is String);
-            })) {
-          inputs = inputsJson
-              .map((Map input) => new WorkInput.fromJson(input))
-              .toList();
-        } else {
-          throw new ArgumentError(
-              'The field "inputs" should be a list of objects.');
-        }
-      }
-    }
-    // No inputs.
-    if (arguments.isEmpty && inputs.isEmpty) {
-      throw new ArgumentError('Both "arguments" and "inputs" cannot be empty.');
-    }
-    // OK
-    return new WorkRequest(arguments, inputs);
-  }
-
-  @override
-  Map<String, Object> toJson() {
-    Map<String, Object> json = <String, Object>{};
-    if (arguments != null) {
-      json['arguments'] = arguments;
-    }
-    if (inputs != null) {
-      json['inputs'] = inputs.map((input) => input.toJson()).toList();
-    }
-    return json;
-  }
-}
-
-/**
- * Result that the worker sends back to Bazel when it finished its work on a
- * [WorkRequest] message.
- */
-class WorkResponse implements WorkDataObject {
-  final int exitCode;
-  final String output;
-
-  WorkResponse(this.exitCode, this.output);
-
-  @override
-  Map<String, Object> toJson() {
-    Map<String, Object> json = <String, Object>{};
-    if (exitCode != null) {
-      json['exit_code'] = exitCode;
-    }
-    if (output != null) {
-      json['output'] = output;
-    }
-    return json;
-  }
-}
-
-/**
- * Default implementation of [WorkerConnection] that works with stdio.
- */
-class _StdWorkerConnection implements WorkerConnection {
-  @override
-  String readLineSync() {
-    return io.stdin.readLineSync();
-  }
-
-  @override
-  void writeJson(Map<String, Object> json) {
-    io.stdout.writeln(JSON.encode(json));
   }
 }

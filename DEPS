@@ -56,7 +56,7 @@ vars = {
   "intl_rev": "@a8b480b9c436f6c0ec16730804c914bdb4e30d53",
   "jinja2_rev": "@2222b31554f03e62600cd7e383376a7c187967a1",
   "json_rpc_2_tag": "@2.0.0",
-  "linter_rev": "@ca7c6b3f1085cf302c4726598704d36cf240695f",
+  "linter_rev": "@bcd4cf615665a80edf3f9a924388e59644a667cd",
   "logging_rev": "@85d83e002670545e9039ad3985f0018ab640e597",
   "markdown_rev": "@4aaadf3d940bb172e1f6285af4d2b1710d309982",
   "matcher_tag": "@0.12.0",
@@ -71,6 +71,7 @@ vars = {
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "plugin_tag": "@0.1.0",
   "pool_tag": "@1.2.1",
+  "protobuf_tag": "@0.5.0+1",
   "pub_rev": "@c1405b945c6d818c8cfe78334e8d4b11fd913103",
   "pub_cache_tag": "@v0.1.0",
   "pub_semver_tag": "@1.2.1",
@@ -225,6 +226,8 @@ deps = {
       (Var("github_mirror") % "plugin") + Var("plugin_tag"),
   Var("dart_root") + "/third_party/pkg/pool":
       (Var("github_mirror") % "pool") + Var("pool_tag"),
+  Var("dart_root") + "/third_party/pkg/protobuf":
+      (Var("github_dartlang") % "dart-protobuf") + Var("protobuf_tag"),
   Var("dart_root") + "/third_party/pkg/pub_semver":
       (Var("github_mirror") % "pub_semver") + Var("pub_semver_tag"),
   Var("dart_root") + "/third_party/pkg/pub":

@@ -1602,10 +1602,10 @@ void Intrinsifier::Random_nextState(Assembler* assembler) {
       math_lib.LookupClassAllowPrivate(Symbols::_Random()));
   ASSERT(!random_class.IsNull());
   const Field& state_field = Field::ZoneHandle(
-      random_class.LookupInstanceField(Symbols::_state()));
+      random_class.LookupInstanceFieldAllowPrivate(Symbols::_state()));
   ASSERT(!state_field.IsNull());
   const Field& random_A_field = Field::ZoneHandle(
-      random_class.LookupStaticField(Symbols::_A()));
+      random_class.LookupStaticFieldAllowPrivate(Symbols::_A()));
   ASSERT(!random_A_field.IsNull());
   ASSERT(random_A_field.is_const());
   const Instance& a_value = Instance::Handle(random_A_field.StaticValue());

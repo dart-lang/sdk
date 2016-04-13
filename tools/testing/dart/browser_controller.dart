@@ -1092,6 +1092,9 @@ class BrowserTestRunner {
       if (status.currentTest.lastKnownMessage.length > 0) {
         lastKnownMessage = status.currentTest.lastKnownMessage;
       }
+      if (status.lastTest != null) {
+        lastKnownMessage += '\nPrevious test was ${status.lastTest.url}';
+      }
       // Wait until the browser is closed before reporting the test as timeout.
       // This will enable us to capture stdout/stderr from the browser
       // (which might provide us with information about what went wrong).

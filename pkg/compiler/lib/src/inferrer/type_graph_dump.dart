@@ -29,10 +29,10 @@ class TypeGraphDump {
   static const String outputDir = 'typegraph';
 
   final TypeGraphInferrerEngine inferrer;
-  final Map<TypeInformation, Set<TypeInformation>> assignmentsBeforeAnalysis
-      = <TypeInformation, Set<TypeInformation>>{};
-  final Map<TypeInformation, Set<TypeInformation>> assignmentsBeforeTracing
-      = <TypeInformation, Set<TypeInformation>>{};
+  final Map<TypeInformation, Set<TypeInformation>> assignmentsBeforeAnalysis =
+      <TypeInformation, Set<TypeInformation>>{};
+  final Map<TypeInformation, Set<TypeInformation>> assignmentsBeforeTracing =
+      <TypeInformation, Set<TypeInformation>>{};
   final Set<String> usedFilenames = new Set<String>();
 
   TypeGraphDump(this.inferrer);
@@ -65,8 +65,9 @@ class TypeGraphDump {
         <Element, List<TypeInformation>>{};
     for (TypeInformation node in inferrer.types.allTypes) {
       if (node.contextMember != null) {
-        nodes.putIfAbsent(node.contextMember, () => <TypeInformation>[])
-             .add(node);
+        nodes
+            .putIfAbsent(node.contextMember, () => <TypeInformation>[])
+            .add(node);
       }
     }
     // Print every group separately.
@@ -100,9 +101,8 @@ class TypeGraphDump {
     List<String> parts = <String>[];
     parts.add(element.library?.libraryName);
     parts.add(element.enclosingClass?.name);
-    Element namedElement = element is LocalElement
-        ? element.executableContext
-        : element;
+    Element namedElement =
+        element is LocalElement ? element.executableContext : element;
     if (namedElement.isGetter) {
       parts.add('get-${namedElement.name}');
     } else if (namedElement.isSetter) {
@@ -114,7 +114,8 @@ class TypeGraphDump {
         parts.add(namedElement.name);
       }
     } else if (namedElement.isOperator) {
-      parts.add(Elements.operatorNameToIdentifier(namedElement.name)
+      parts.add(Elements
+          .operatorNameToIdentifier(namedElement.name)
           .replaceAll(r'$', '-'));
     } else {
       parts.add(namedElement.name);
@@ -205,10 +206,8 @@ class _GraphGenerator extends TypeInformationVisitor {
   ///
   /// If [dst] is a record type node, [port] may refer to one of the fields
   /// defined in that record (e.g. `obj`, `arg0`, `arg1`, etc)
-  void addEdge(TypeInformation src,
-               TypeInformation dst,
-               {String port,
-                String color: 'black'}) {
+  void addEdge(TypeInformation src, TypeInformation dst,
+      {String port, String color: 'black'}) {
     if (isExternal(src) && isExternal(dst)) {
       return; // Do not add edges between external nodes.
     }
@@ -270,10 +269,8 @@ class _GraphGenerator extends TypeInformationVisitor {
   ///
   /// [inputs] specify named inputs to the node. If omitted, edges will be
   /// based on [node.assignments].
-  void addNode(TypeInformation node,
-               String text,
-               {String color: defaultNodeColor,
-                Map<String, TypeInformation> inputs}) {
+  void addNode(TypeInformation node, String text,
+      {String color: defaultNodeColor, Map<String, TypeInformation> inputs}) {
     seen.add(node);
     String style = getStyleForNode(node, color);
     text = appendDetails(node, text);
@@ -297,9 +294,8 @@ class _GraphGenerator extends TypeInformationVisitor {
       var tracerSet = global.assignmentsBeforeTracing[node] ?? const [];
       var currentSet = node.assignments.toSet();
       for (TypeInformation assignment in currentSet) {
-        String color = originalSet.contains(assignment)
-            ? unchangedEdge
-            : addedEdge;
+        String color =
+            originalSet.contains(assignment) ? unchangedEdge : addedEdge;
         addEdge(assignment, node, color: color);
       }
       for (TypeInformation assignment in originalSet) {
@@ -351,7 +347,7 @@ class _GraphGenerator extends TypeInformationVisitor {
   }
 
   void visitStringLiteralTypeInformation(StringLiteralTypeInformation info) {
-    String text = shorten(info.value.slowToString()).replaceAll('\n','\\n');
+    String text = shorten(info.value.slowToString()).replaceAll('\n', '\\n');
     addNode(info, 'StringLiteral\n"$text"');
   }
 
@@ -373,7 +369,8 @@ class _GraphGenerator extends TypeInformationVisitor {
     addNode(info, text, color: callColor, inputs: inputs);
   }
 
-  void visitClosureCallSiteTypeInformation(ClosureCallSiteTypeInformation info) {
+  void visitClosureCallSiteTypeInformation(
+      ClosureCallSiteTypeInformation info) {
     handleCall(info, 'ClosureCallSite', {});
   }
 
@@ -381,10 +378,9 @@ class _GraphGenerator extends TypeInformationVisitor {
     handleCall(info, 'StaticCallSite', {});
   }
 
-  void visitDynamicCallSiteTypeInformation(DynamicCallSiteTypeInformation info) {
-    handleCall(info, 'DynamicCallSite', {
-      'obj': info.receiver
-    });
+  void visitDynamicCallSiteTypeInformation(
+      DynamicCallSiteTypeInformation info) {
+    handleCall(info, 'DynamicCallSite', {'obj': info.receiver});
   }
 
   void visitMemberTypeInformation(MemberTypeInformation info) {

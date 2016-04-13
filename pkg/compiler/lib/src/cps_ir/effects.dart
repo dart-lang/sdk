@@ -30,8 +30,7 @@ class Effects {
   static const int changesIndexableLength = _changes << _indexableLength;
   static const int changesOther = _changes << _other;
 
-  static const int changesAll =
-      changesStaticField |
+  static const int changesAll = changesStaticField |
       changesInstanceField |
       changesIndexableContent |
       changesIndexableLength |
@@ -45,8 +44,7 @@ class Effects {
   static const int dependsOnIndexableLength = _depends << _indexableLength;
   static const int dependsOnOther = _depends << _other;
 
-  static const int dependsOnAll =
-      dependsOnStaticField |
+  static const int dependsOnAll = dependsOnStaticField |
       dependsOnInstanceField |
       dependsOnIndexableContent |
       dependsOnIndexableLength |
@@ -131,9 +129,9 @@ class EffectNumbers {
     return new EffectNumbers._zero().._effectNumbers.setAll(0, _effectNumbers);
   }
 
-  int operator[](int i) => _effectNumbers[i];
+  int operator [](int i) => _effectNumbers[i];
 
-  void operator[]=(int i, int value) {
+  void operator []=(int i, int value) {
     _effectNumbers[i] = value;
   }
 
@@ -146,15 +144,19 @@ class EffectNumbers {
   void set staticField(int n) {
     _effectNumbers[Effects._staticField] = n;
   }
+
   void set instanceField(int n) {
     _effectNumbers[Effects._instanceField] = n;
   }
+
   void set indexableContent(int n) {
     _effectNumbers[Effects._indexableContent] = n;
   }
+
   void set indexableLength(int n) {
     _effectNumbers[Effects._indexableLength] = n;
   }
+
   void set other(int n) {
     _effectNumbers[Effects._other] = n;
   }

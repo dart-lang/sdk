@@ -6,9 +6,7 @@ library visitor;
 
 import 'elements.dart';
 import '../closure.dart'
-    show BoxFieldElement,
-         ClosureClassElement,
-         ClosureFieldElement;
+    show BoxFieldElement, ClosureClassElement, ClosureFieldElement;
 
 abstract class ElementVisitor<R, A> {
   const ElementVisitor();
@@ -24,7 +22,7 @@ abstract class ElementVisitor<R, A> {
   R visitExportElement(ExportElement e, A arg) => null;
   R visitPrefixElement(PrefixElement e, A arg) => null;
   R visitTypedefElement(TypedefElement e, A arg) => null;
-  R visitVariableElement(VariableElement e, A arg) => null;
+  R visitLocalVariableElement(LocalVariableElement e, A arg) => null;
   R visitParameterElement(ParameterElement e, A arg) => null;
   R visitFormalElement(FormalElement e, A arg) => null;
   R visitFieldElement(FieldElement e, A arg) => null;
@@ -44,7 +42,6 @@ abstract class ElementVisitor<R, A> {
   R visitClosureClassElement(ClosureClassElement e, A arg) => null;
   R visitClosureFieldElement(ClosureFieldElement e, A arg) => null;
 }
-
 
 abstract class BaseElementVisitor<R, A> extends ElementVisitor<R, A> {
   const BaseElementVisitor();
@@ -100,9 +97,13 @@ abstract class BaseElementVisitor<R, A> extends ElementVisitor<R, A> {
     return visitElement(e, arg);
   }
 
-  @override
   R visitVariableElement(VariableElement e, A arg) {
     return visitElement(e, arg);
+  }
+
+  @override
+  R visitLocalVariableElement(LocalVariableElement e, A arg) {
+    return visitVariableElement(e, arg);
   }
 
   @override

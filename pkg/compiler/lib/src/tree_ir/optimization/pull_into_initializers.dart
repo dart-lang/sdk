@@ -57,8 +57,7 @@ enum AssignArea {
 /// [PullIntoInitializers] cannot pull `y` into an initializer because
 /// the impure expressions `foo()` and `bar()` would then be swapped.
 ///
-class PullIntoInitializers extends RecursiveTransformer
-                           implements Pass {
+class PullIntoInitializers extends RecursiveTransformer implements Pass {
   String get passName => 'Pull into initializers';
 
   /// Denotes where each variable is currently assigned.

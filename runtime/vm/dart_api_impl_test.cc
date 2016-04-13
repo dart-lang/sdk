@@ -23,6 +23,7 @@ namespace dart {
 
 DECLARE_FLAG(bool, verify_acquired_data);
 DECLARE_FLAG(bool, ignore_patch_signature_mismatch);
+DECLARE_FLAG(bool, support_externalizable_strings);
 
 #ifndef PRODUCT
 
@@ -5575,6 +5576,9 @@ static Dart_NativeFunction native_args_lookup(Dart_Handle name,
 
 
 TEST_CASE(GetNativeArguments) {
+  const bool saved_flag = FLAG_support_externalizable_strings;
+  FLAG_support_externalizable_strings = true;
+
   const char* kScriptChars =
       "import 'dart:nativewrappers';"
       "class MyObject extends NativeFieldWrapperClass2 {"
@@ -5621,6 +5625,8 @@ TEST_CASE(GetNativeArguments) {
   Dart_Handle result = Dart_Invoke(lib, NewString("testMain"), 1, args);
   EXPECT_VALID(result);
   EXPECT(Dart_IsInteger(result));
+
+  FLAG_support_externalizable_strings = saved_flag;
 }
 
 
@@ -8497,6 +8503,9 @@ static void MakeExternalCback(void* peer) {
 
 
 TEST_CASE(MakeExternalString) {
+  const bool saved_flag = FLAG_support_externalizable_strings;
+  FLAG_support_externalizable_strings = true;
+
   static int peer8 = 40;
   static int peer16 = 41;
   static int canonical_str_peer = 42;
@@ -8563,7 +8572,8 @@ TEST_CASE(MakeExternalString) {
 
     // Test with single character canonical string, it should not become
     // external string but the peer should be setup for it.
-    Dart_Handle canonical_str = Api::NewHandle(thread, Symbols::New("*"));
+    Dart_Handle canonical_str = Api::NewHandle(thread, Symbols::New(thread,
+                                                                    "*"));
     EXPECT(Dart_IsString(canonical_str));
     EXPECT(!Dart_IsExternalString(canonical_str));
     uint8_t ext_canonical_str[kLength];
@@ -8653,8 +8663,8 @@ TEST_CASE(MakeExternalString) {
     // Test with a symbol (hash value should be preserved on externalization).
     const char* symbol_ascii = "?unseen";
     expected_length = strlen(symbol_ascii);
-    Dart_Handle symbol_str =
-        Api::NewHandle(thread, Symbols::New(symbol_ascii, expected_length));
+    Dart_Handle symbol_str = Api::NewHandle(thread,
+        Symbols::New(thread, symbol_ascii, expected_length));
     EXPECT_VALID(symbol_str);
     EXPECT(Dart_IsString(symbol_str));
     EXPECT(Dart_IsStringLatin1(symbol_str));
@@ -8700,10 +8710,15 @@ TEST_CASE(MakeExternalString) {
   EXPECT_EQ(80, peer8);
   EXPECT_EQ(82, peer16);
   EXPECT_EQ(42, canonical_str_peer);  // "*" Symbol is not removed on GC.
+
+  FLAG_support_externalizable_strings = saved_flag;
 }
 
 
 TEST_CASE(ExternalizeConstantStrings) {
+  const bool saved_flag = FLAG_support_externalizable_strings;
+  FLAG_support_externalizable_strings = true;
+
   const char* kScriptChars =
       "String testMain() {\n"
       "  return 'constant string';\n"
@@ -8727,6 +8742,8 @@ TEST_CASE(ExternalizeConstantStrings) {
   for (intptr_t i = 0; i < kExpectedLen; i++) {
     EXPECT_EQ(expected_str[i], ext_str[i]);
   }
+
+  FLAG_support_externalizable_strings = saved_flag;
 }
 
 
@@ -8816,6 +8833,9 @@ static Dart_NativeFunction ExternalStringDeoptimize_native_lookup(
 // Do not use guarding mechanism on externalizable classes, since their class
 // can change on the fly,
 TEST_CASE(GuardExternalizedString) {
+  const bool saved_flag = FLAG_support_externalizable_strings;
+  FLAG_support_externalizable_strings = true;
+
   const char* kScriptChars =
       "main() {\n"
       "  var a = new A('hello');\n"
@@ -8851,10 +8871,15 @@ TEST_CASE(GuardExternalizedString) {
   result = Dart_IntegerToInt64(result, &value);
   EXPECT_VALID(result);
   EXPECT_EQ(10640000, value);
+
+  FLAG_support_externalizable_strings = saved_flag;
 }
 
 
 TEST_CASE(ExternalStringDeoptimize) {
+  const bool saved_flag = FLAG_support_externalizable_strings;
+  FLAG_support_externalizable_strings = true;
+
   const char* kScriptChars =
       "String str = 'A';\n"
       "class A {\n"
@@ -8886,10 +8911,15 @@ TEST_CASE(ExternalStringDeoptimize) {
   result = Dart_IntegerToInt64(result, &value);
   EXPECT_VALID(result);
   EXPECT_EQ(260, value);
+
+  FLAG_support_externalizable_strings = saved_flag;
 }
 
 
 TEST_CASE(ExternalStringPolymorphicDeoptimize) {
+  const bool saved_flag = FLAG_support_externalizable_strings;
+  FLAG_support_externalizable_strings = true;
+
   const char* kScriptChars =
       "const strA = 'AAAA';\n"
       "class A {\n"
@@ -8922,10 +8952,15 @@ TEST_CASE(ExternalStringPolymorphicDeoptimize) {
   result = Dart_BooleanValue(result, &value);
   EXPECT_VALID(result);
   EXPECT(value);
+
+  FLAG_support_externalizable_strings = saved_flag;
 }
 
 
 TEST_CASE(ExternalStringGuardFieldDeoptimize) {
+  const bool saved_flag = FLAG_support_externalizable_strings;
+  FLAG_support_externalizable_strings = true;
+
   const char* kScriptChars =
       "const strA = 'AAAA';\n"
       "class A {\n"
@@ -8963,10 +8998,15 @@ TEST_CASE(ExternalStringGuardFieldDeoptimize) {
   result = Dart_BooleanValue(result, &value);
   EXPECT_VALID(result);
   EXPECT(value);
+
+  FLAG_support_externalizable_strings = saved_flag;
 }
 
 
 TEST_CASE(ExternalStringStaticFieldDeoptimize) {
+  const bool saved_flag = FLAG_support_externalizable_strings;
+  FLAG_support_externalizable_strings = true;
+
   const char* kScriptChars =
       "const strA = 'AAAA';\n"
       "class A {\n"
@@ -8999,10 +9039,15 @@ TEST_CASE(ExternalStringStaticFieldDeoptimize) {
   result = Dart_BooleanValue(result, &value);
   EXPECT_VALID(result);
   EXPECT(value);
+
+  FLAG_support_externalizable_strings = saved_flag;
 }
 
 
 TEST_CASE(ExternalStringTrimDoubleParse) {
+  const bool saved_flag = FLAG_support_externalizable_strings;
+  FLAG_support_externalizable_strings = true;
+
   const char* kScriptChars =
       "String str = 'A';\n"
       "class A {\n"
@@ -9028,10 +9073,15 @@ TEST_CASE(ExternalStringTrimDoubleParse) {
   result = Dart_IntegerToInt64(result, &value);
   EXPECT_VALID(result);
   EXPECT_EQ(8, value);
+
+  FLAG_support_externalizable_strings = saved_flag;
 }
 
 
 TEST_CASE(ExternalStringDoubleParse) {
+  const bool saved_flag = FLAG_support_externalizable_strings;
+  FLAG_support_externalizable_strings = true;
+
   const char* kScriptChars =
       "String str = 'A';\n"
       "class A {\n"
@@ -9057,11 +9107,13 @@ TEST_CASE(ExternalStringDoubleParse) {
   result = Dart_IntegerToInt64(result, &value);
   EXPECT_VALID(result);
   EXPECT_EQ(8, value);
+
+  FLAG_support_externalizable_strings = saved_flag;
 }
 
 
 TEST_CASE(ExternalStringIndexOf) {
-    const char* kScriptChars =
+  const char* kScriptChars =
       "main(String pattern) {\n"
       "  var str = 'Hello World';\n"
       "  return str.indexOf(pattern);\n"

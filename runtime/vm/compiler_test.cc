@@ -47,7 +47,7 @@ VM_TEST_CASE(CompileFunction) {
   EXPECT(CompilerTest::TestCompileScript(lib, script));
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New("A"))));
+      lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
   EXPECT(!cls.IsNull());
   String& function_foo_name = String::Handle(String::New("foo"));
   Function& function_foo =
@@ -87,7 +87,7 @@ VM_TEST_CASE(CompileFunctionOnHelperThread) {
   EXPECT(CompilerTest::TestCompileScript(lib, script));
   EXPECT(ClassFinalizer::ProcessPendingClasses());
   Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New("A"))));
+      lib.LookupClass(String::Handle(Symbols::New(thread, "A"))));
   EXPECT(!cls.IsNull());
   String& function_foo_name = String::Handle(String::New("foo"));
   Function& func =
@@ -109,7 +109,7 @@ VM_TEST_CASE(CompileFunctionOnHelperThread) {
   while (!func.HasOptimizedCode()) {
     ml.WaitWithSafepointCheck(thread, 1);
   }
-  BackgroundCompiler::Stop(isolate->background_compiler());
+  BackgroundCompiler::Stop(isolate);
 }
 
 
@@ -129,7 +129,7 @@ TEST_CASE(RegenerateAllocStubs) {
   RawLibrary* raw_library = Library::RawCast(Api::UnwrapHandle(lib));
   Library& lib_handle = Library::ZoneHandle(raw_library);
   Class& cls = Class::Handle(
-      lib_handle.LookupClass(String::Handle(Symbols::New("A"))));
+      lib_handle.LookupClass(String::Handle(Symbols::New(thread, "A"))));
   EXPECT(!cls.IsNull());
 
   Zone* zone = thread->zone();

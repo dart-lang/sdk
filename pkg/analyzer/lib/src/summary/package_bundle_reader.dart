@@ -85,6 +85,15 @@ class InputPackagesResultProvider extends ResultProvider {
         }
         return false;
       }
+    } else if (target is VariableElement) {
+      if (!_resynthesizer
+          .hasLibrarySummary(target.library.source.uri.toString())) {
+        return false;
+      }
+      if (result == PROPAGATED_VARIABLE || result == INFERRED_STATIC_VARIABLE) {
+        entry.setValue(result, target, TargetedResult.EMPTY_LIST);
+        return true;
+      }
     }
     return false;
   }

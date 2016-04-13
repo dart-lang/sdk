@@ -52,8 +52,7 @@ import '../../constants/values.dart' as values;
 ///
 ///   !x ? y : false  ==>  !x && y
 ///
-class LogicalRewriter extends RecursiveTransformer
-                      implements Pass {
+class LogicalRewriter extends RecursiveTransformer implements Pass {
   String get passName => 'Logical rewriter';
 
   @override
@@ -68,20 +67,20 @@ class LogicalRewriter extends RecursiveTransformer
   /// This means it will ultimately translate to an empty statement.
   bool isFallthrough(Statement node) {
     return node is Break && isFallthroughBreak(node) ||
-           node is Continue && isFallthroughContinue(node) ||
-           node is Return && isFallthroughReturn(node);
+        node is Continue && isFallthroughContinue(node) ||
+        node is Return && isFallthroughReturn(node);
   }
 
   bool isFallthroughBreak(Break node) {
     Statement target = fallthrough.target;
     return node.target.binding.next == target ||
-           target is Break && target.target == node.target;
+        target is Break && target.target == node.target;
   }
 
   bool isFallthroughContinue(Continue node) {
     Statement target = fallthrough.target;
     return node.target.binding == target ||
-           target is Continue && target.target == node.target;
+        target is Continue && target.target == node.target;
   }
 
   bool isFallthroughReturn(Return node) {
@@ -90,8 +89,8 @@ class LogicalRewriter extends RecursiveTransformer
 
   bool isTerminator(Statement node) {
     return (node is Jump || node is Return) && !isFallthrough(node) ||
-           (node is ExpressionStatement && node.next is Unreachable) ||
-           node is Throw;
+        (node is ExpressionStatement && node.next is Unreachable) ||
+        node is Throw;
   }
 
   Statement visitIf(If node) {
@@ -123,7 +122,7 @@ class LogicalRewriter extends RecursiveTransformer
       // if (E) {} else {S} ==> if (!E) {S}
       bestThenBranch = ELSE;
     } else if (isFallthrough(node.elseStatement) &&
-               !isFallthrough(node.thenStatement)) {
+        !isFallthrough(node.thenStatement)) {
       // Keep the empty statement in the 'else' branch.
       // if (E) {S} else {}
       bestThenBranch = THEN;
@@ -136,12 +135,12 @@ class LogicalRewriter extends RecursiveTransformer
       // if (E) {S1; return v}; S2
       bestThenBranch = THEN;
     } else if (isTerminator(node.elseStatement) &&
-               !isTerminator(node.thenStatement)) {
+        !isTerminator(node.thenStatement)) {
       // Put early termination in the 'then' branch to reduce nesting depth.
       // if (E) {S}; return v ==> if (!E) return v; S
       bestThenBranch = ELSE;
     } else if (isTerminator(node.thenStatement) &&
-               !isTerminator(node.elseStatement)) {
+        !isTerminator(node.elseStatement)) {
       // Keep early termination in the 'then' branch to reduce nesting depth.
       // if (E) {return v;} S
       bestThenBranch = THEN;
@@ -160,7 +159,7 @@ class LogicalRewriter extends RecursiveTransformer
     //   ==>
     // if (E) S2 else S1
     node.condition = makeCondition(node.condition, true,
-                                   liftNots: bestThenBranch == NEITHER);
+        liftNots: bestThenBranch == NEITHER);
     if (bestThenBranch == NEITHER && node.condition is Not) {
       node.condition = (node.condition as Not).operand;
       Statement tmp = node.thenStatement;
@@ -269,15 +268,13 @@ class LogicalRewriter extends RecursiveTransformer
     // x ? y : 0     ==> x && y  (if x is truthy or zero) (and so on...)
     if (matchesFalsyValue(node.condition, getConstant(node.elseExpression))) {
       return new LogicalOperator.and(
-          visitExpression(node.condition),
-          node.thenExpression);
+          visitExpression(node.condition), node.thenExpression);
     }
     // x ? true : y ==> x || y  (if x is falsy or true)
     // x ? 1    : y ==> x || y  (if x is falsy or one) (and so on...)
     if (matchesTruthyValue(node.condition, getConstant(node.thenExpression))) {
       return new LogicalOperator.or(
-          visitExpression(node.condition),
-          node.elseExpression);
+          visitExpression(node.condition), node.elseExpression);
     }
     // x ? y : true ==> !x || y
     if (isTrue(node.elseExpression)) {
@@ -328,11 +325,11 @@ class LogicalRewriter extends RecursiveTransformer
   /// rewritten anyway.
   bool isBooleanValued(Expression e) {
     return isTrue(e) ||
-           isFalse(e) ||
-           e is Not ||
-           e is LogicalOperator && isBooleanValuedLogicalOperator(e) ||
-           e is ApplyBuiltinOperator && operatorReturnsBool(e.operator) ||
-           e is TypeOperator && isBooleanValuedTypeOperator(e);
+        isFalse(e) ||
+        e is Not ||
+        e is LogicalOperator && isBooleanValuedLogicalOperator(e) ||
+        e is ApplyBuiltinOperator && operatorReturnsBool(e.operator) ||
+        e is TypeOperator && isBooleanValuedTypeOperator(e);
   }
 
   bool isBooleanValuedLogicalOperator(LogicalOperator e) {
@@ -368,14 +365,22 @@ class LogicalRewriter extends RecursiveTransformer
 
   BuiltinOperator negateBuiltin(BuiltinOperator operator) {
     switch (operator) {
-      case BuiltinOperator.StrictEq: return BuiltinOperator.StrictNeq;
-      case BuiltinOperator.StrictNeq: return BuiltinOperator.StrictEq;
-      case BuiltinOperator.LooseEq: return BuiltinOperator.LooseNeq;
-      case BuiltinOperator.LooseNeq: return BuiltinOperator.LooseEq;
-      case BuiltinOperator.IsNumber: return BuiltinOperator.IsNotNumber;
-      case BuiltinOperator.IsNotNumber: return BuiltinOperator.IsNumber;
-      case BuiltinOperator.IsInteger: return BuiltinOperator.IsNotInteger;
-      case BuiltinOperator.IsNotInteger: return BuiltinOperator.IsInteger;
+      case BuiltinOperator.StrictEq:
+        return BuiltinOperator.StrictNeq;
+      case BuiltinOperator.StrictNeq:
+        return BuiltinOperator.StrictEq;
+      case BuiltinOperator.LooseEq:
+        return BuiltinOperator.LooseNeq;
+      case BuiltinOperator.LooseNeq:
+        return BuiltinOperator.LooseEq;
+      case BuiltinOperator.IsNumber:
+        return BuiltinOperator.IsNotNumber;
+      case BuiltinOperator.IsNotNumber:
+        return BuiltinOperator.IsNumber;
+      case BuiltinOperator.IsInteger:
+        return BuiltinOperator.IsNotInteger;
+      case BuiltinOperator.IsNotInteger:
+        return BuiltinOperator.IsInteger;
       case BuiltinOperator.IsUnsigned32BitInteger:
         return BuiltinOperator.IsNotUnsigned32BitInteger;
       case BuiltinOperator.IsNotUnsigned32BitInteger:
@@ -406,7 +411,7 @@ class LogicalRewriter extends RecursiveTransformer
   /// If [polarity] if false, the negated condition will be created instead.
   /// If [liftNots] is true (default) then Not expressions will be lifted toward
   /// the root of the condition so they can be eliminated by the caller.
-  Expression makeCondition(Expression e, bool polarity, {bool liftNots:true}) {
+  Expression makeCondition(Expression e, bool polarity, {bool liftNots: true}) {
     if (e is Not) {
       // !!E ==> E
       return makeCondition(e.operand, !polarity, liftNots: liftNots);
@@ -453,27 +458,23 @@ class LogicalRewriter extends RecursiveTransformer
       }
       // x ? true : y  ==> x || y
       if (isTrue(e.thenExpression)) {
-        return makeOr(makeCondition(e.condition, true),
-                      e.elseExpression,
-                      liftNots: liftNots);
+        return makeOr(makeCondition(e.condition, true), e.elseExpression,
+            liftNots: liftNots);
       }
       // x ? false : y  ==> !x && y
       if (isFalse(e.thenExpression)) {
-        return makeAnd(makeCondition(e.condition, false),
-                       e.elseExpression,
-                       liftNots: liftNots);
+        return makeAnd(makeCondition(e.condition, false), e.elseExpression,
+            liftNots: liftNots);
       }
       // x ? y : true  ==> !x || y
       if (isTrue(e.elseExpression)) {
-        return makeOr(makeCondition(e.condition, false),
-                      e.thenExpression,
-                      liftNots: liftNots);
+        return makeOr(makeCondition(e.condition, false), e.thenExpression,
+            liftNots: liftNots);
       }
       // x ? y : false  ==> x && y
       if (isFalse(e.elseExpression)) {
-        return makeAnd(makeCondition(e.condition, true),
-                       e.thenExpression,
-                       liftNots: liftNots);
+        return makeAnd(makeCondition(e.condition, true), e.thenExpression,
+            liftNots: liftNots);
       }
 
       e.condition = makeCondition(e.condition, true);

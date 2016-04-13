@@ -1047,15 +1047,17 @@ class _SummarizeAstVisitor extends RecursiveAstVisitor {
   @override
   void visitForEachStatement(ForEachStatement node) {
     DeclaredIdentifier loopVariable = node.loopVariable;
-    serializeDeclaredIdentifier(
-        node,
-        loopVariable.documentationComment,
-        loopVariable.metadata,
-        loopVariable.isFinal,
-        loopVariable.isConst,
-        loopVariable.type,
-        true,
-        loopVariable.identifier);
+    if (loopVariable != null) {
+      serializeDeclaredIdentifier(
+          node,
+          loopVariable.documentationComment,
+          loopVariable.metadata,
+          loopVariable.isFinal,
+          loopVariable.isConst,
+          loopVariable.type,
+          true,
+          loopVariable.identifier);
+    }
     super.visitForEachStatement(node);
   }
 

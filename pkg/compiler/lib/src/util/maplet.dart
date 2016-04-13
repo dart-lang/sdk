@@ -101,7 +101,7 @@ class Maplet<K, V> extends MapBase<K, V> {
         list[CAPACITY + 1] = value;
         _key = list;
         _value = null;
-        _extra = 2;  // Two elements.
+        _extra = 2; // Two elements.
       }
     } else if (_MARKER == _extra) {
       _key[key] = value;

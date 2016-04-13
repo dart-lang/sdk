@@ -1972,6 +1972,9 @@ RawICData* ICData::ReadFrom(SnapshotReader* reader,
 
   result.set_deopt_id(reader->Read<int32_t>());
   result.set_state_bits(reader->Read<uint32_t>());
+#if defined(TAG_IC_DATA)
+  result.set_tag(reader->Read<int16_t>());
+#endif
 
   // Set all the object fields.
   RawObject** toobj = reader->snapshot_code()
@@ -2004,6 +2007,9 @@ void RawICData::WriteTo(SnapshotWriter* writer,
   // Write out all the non object fields.
   writer->Write<int32_t>(ptr()->deopt_id_);
   writer->Write<uint32_t>(ptr()->state_bits_);
+#if defined(TAG_IC_DATA)
+  writer->Write<int16_t>(ptr()->tag_);
+#endif
 
   // Write out all the object pointer fields.
   // In precompiled snapshots, omit the owner field. The owner field may
@@ -2512,7 +2518,7 @@ void String::ReadFromImpl(SnapshotReader* reader,
     for (intptr_t i = 0; i < len; i++) {
       ptr[i] = reader->Read<CharacterType>();
     }
-    *str_obj ^= (*new_symbol)(ptr, len);
+    *str_obj ^= (*new_symbol)(reader->thread(), ptr, len);
   } else {
     // Set up the string object.
     *str_obj = StringType::New(len, HEAP_SPACE(kind));

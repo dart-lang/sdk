@@ -4,12 +4,9 @@
 
 library dart2js.diagnostics.source_span;
 
-import '../tokens/token.dart' show
-    Token;
-import '../tree/tree.dart' show
-    Node;
-import 'spannable.dart' show
-    Spannable;
+import '../tokens/token.dart' show Token;
+import '../tree/tree.dart' show Node;
+import 'spannable.dart' show Spannable;
 
 class SourceSpan implements Spannable {
   final Uri uri;
@@ -34,17 +31,13 @@ class SourceSpan implements Spannable {
   }
 
   int get hashCode {
-    return 13 * uri.hashCode +
-           17 * begin.hashCode +
-           19 * end.hashCode;
+    return 13 * uri.hashCode + 17 * begin.hashCode + 19 * end.hashCode;
   }
 
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! SourceSpan) return false;
-    return uri == other.uri &&
-           begin == other.begin &&
-           end == other.end;
+    return uri == other.uri && begin == other.begin && end == other.end;
   }
 
   String toString() => 'SourceSpan($uri, $begin, $end)';

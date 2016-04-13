@@ -257,6 +257,8 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else {
       ExecutableElement staticMethodElement = node.staticElement;
       DartType staticType = _computeStaticReturnType(staticMethodElement);
+      staticType =
+          _refineAssignmentExpressionType(node, staticType, _getStaticType);
       _recordStaticType(node, staticType);
       MethodElement propagatedMethodElement = node.propagatedElement;
       if (!identical(propagatedMethodElement, staticMethodElement)) {
@@ -2092,6 +2094,44 @@ class StaticTypeAnalyzer extends SimpleAstVisitor<Object> {
     } else {
       expression.staticType = type;
     }
+  }
+
+  /**
+   * Attempts to make a better guess for the type of the given assignment
+   * [expression], given that resolution has so far produced the [currentType].
+   * The [typeAccessor] is used to access the corresponding type of the left
+   * and right operands.
+   */
+  DartType _refineAssignmentExpressionType(AssignmentExpression expression,
+      DartType currentType, DartType typeAccessor(Expression node)) {
+    Expression leftHandSize = expression.leftHandSide;
+    Expression rightHandSide = expression.rightHandSide;
+    TokenType operator = expression.operator.type;
+    DartType intType = _typeProvider.intType;
+    if (typeAccessor(leftHandSize) == intType) {
+      // int op= double
+      if (operator == TokenType.MINUS_EQ ||
+          operator == TokenType.PERCENT_EQ ||
+          operator == TokenType.PLUS_EQ ||
+          operator == TokenType.STAR_EQ) {
+        DartType doubleType = _typeProvider.doubleType;
+        if (typeAccessor(rightHandSide) == doubleType) {
+          return doubleType;
+        }
+      }
+      // int op= int
+      if (operator == TokenType.MINUS_EQ ||
+          operator == TokenType.PERCENT_EQ ||
+          operator == TokenType.PLUS_EQ ||
+          operator == TokenType.STAR_EQ ||
+          operator == TokenType.TILDE_SLASH_EQ) {
+        if (typeAccessor(rightHandSide) == intType) {
+          return intType;
+        }
+      }
+    }
+    // default
+    return currentType;
   }
 
   /**

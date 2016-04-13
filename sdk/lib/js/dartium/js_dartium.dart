@@ -506,9 +506,11 @@ List<String> _generateExternalMethods(List<String> libraryPaths) {
     mirrors.currentMirrorSystem().libraries.forEach((uri, library) {
       var library_name = "${uri.scheme}:${uri.path}";
       if (cached_patches.containsKey(library_name)) {
+        // Use the pre-generated patch files for DOM dart:nnnn libraries.
         var patch = cached_patches[library_name];
         staticCodegen.addAll(patch);
-      } else {
+      } else if (_hasJsName(library)) {
+        // Library marked with @JS
         _generateLibraryCodegen(uri, library, staticCodegen);
       }
     });    // End of library foreach
@@ -532,7 +534,13 @@ _generateLibraryCodegen(uri, library, staticCodegen) {
 
     var sb = new StringBuffer();
     String jsLibraryName = _getJsName(library);
-    library.declarations.forEach((name, declaration) {
+
+    // Sort by patch file by its declaration name.
+    var sortedDeclKeys = library.declarations.keys.toList();
+    sortedDeclKeys.sort((a, b) => mirrors.MirrorSystem.getName(a).compareTo(mirrors.MirrorSystem.getName(b)));
+
+    sortedDeclKeys.forEach((name) {
+      var declaration = library.declarations[name];
       if (declaration is mirrors.MethodMirror) {
         if ((_hasJsName(declaration) || jsLibraryName != null) &&
             _isExternal(declaration)) {

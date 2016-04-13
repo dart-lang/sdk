@@ -35,6 +35,11 @@ class CHA : public StackResource {
   static bool HasSubclasses(const Class& cls);
   bool HasSubclasses(intptr_t cid) const;
 
+  // Collect the concrete subclasses of 'cls' into 'class_ids'. Return true if
+  // the result is valid (may be invalid because we don't track the subclasses
+  // of classes allocated in the VM isolate or class Object).
+  bool ConcreteSubclasses(const Class& cls, GrowableArray<intptr_t> *class_ids);
+
   // Return true if the class is implemented by some other class.
   static bool IsImplemented(const Class& cls);
 

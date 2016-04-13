@@ -71,7 +71,9 @@ class BackwardNullCheckRemover extends BlockVisitor implements Pass {
     if (prim is ReceiverCheck && prim.isNullCheck) {
       Primitive value = prim.value;
       LetPrim let = prim.parent;
-      prim..replaceUsesWith(value)..destroy();
+      prim
+        ..replaceUsesWith(value)
+        ..destroy();
       let.remove();
     } else if (prim is GetLength || prim is GetField || prim is GetIndex) {
       if (prim.hasNoRefinedUses) {

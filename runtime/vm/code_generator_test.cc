@@ -47,7 +47,8 @@ CODEGEN_TEST2_RUN(SimpleStaticCallCodegen, SmiReturnCodegen, Smi::New(3))
 
 // Helper to allocate and return a LocalVariable.
 static LocalVariable* NewTestLocalVariable(const char* name) {
-  const String& variable_name = String::ZoneHandle(Symbols::New(name));
+  const String& variable_name = String::ZoneHandle(
+      Symbols::New(Thread::Current(), name));
   const Type& variable_type = Type::ZoneHandle(Type::DynamicType());
   return new LocalVariable(kPos, variable_name, variable_type);
 }
@@ -212,7 +213,8 @@ CODEGEN_TEST_RUN(DoubleUnaryOpCodegen, Double::New(-12.0))
 
 
 static Library& MakeTestLibrary(const char* url) {
-  const String& lib_url = String::ZoneHandle(Symbols::New(url));
+  const String& lib_url = String::ZoneHandle(Symbols::New(Thread::Current(),
+                                                          url));
   Library& lib = Library::ZoneHandle(Library::New(lib_url));
   lib.Register();
   Library& core_lib = Library::Handle(Library::CoreLibrary());
@@ -225,7 +227,8 @@ static Library& MakeTestLibrary(const char* url) {
 
 
 static RawClass* LookupClass(const Library& lib, const char* name) {
-  const String& cls_name = String::ZoneHandle(Symbols::New(name));
+  const String& cls_name = String::ZoneHandle(Symbols::New(Thread::Current(),
+                                                           name));
   return lib.LookupClass(cls_name);
 }
 
@@ -301,7 +304,8 @@ CODEGEN_TEST_GENERATE(InstanceCallCodegen, test) {
   EXPECT(!constructor.IsNull());
 
   // The unit test creates an instance of class A and calls function 'bar'.
-  String& function_bar_name = String::ZoneHandle(Symbols::New("bar"));
+  String& function_bar_name = String::ZoneHandle(Symbols::New(Thread::Current(),
+                                                              "bar"));
   ArgumentListNode* no_arguments = new ArgumentListNode(kPos);
   const TypeArguments& no_type_arguments = TypeArguments::ZoneHandle();
   InstanceCallNode* call_bar = new InstanceCallNode(
@@ -360,7 +364,8 @@ CODEGEN_TEST_RAW_RUN(AllocateNewObjectCodegen, function) {
   app_lib ^= libs.At(num_libs - 1);
   ASSERT(!app_lib.IsNull());
   const Class& cls = Class::Handle(
-      app_lib.LookupClass(String::Handle(Symbols::New("A"))));
+      app_lib.LookupClass(String::Handle(Symbols::New(Thread::Current(),
+                                                      "A"))));
   EXPECT_EQ(cls.raw(), result.clazz());
 }
 

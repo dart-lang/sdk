@@ -28,6 +28,55 @@ main() {
 
 @reflectiveTest
 class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
+  test_ArgumentList_imported_function_named_param() async {
+    addTestFile('main() { int.parse("16", ^);}');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'radix: ',
+        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'onError: ',
+        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    expect(suggestions, hasLength(2));
+  }
+
+  test_ArgumentList_imported_function_named_param1() async {
+    addTestFile('main() { foo(o^);} foo({one, two}) {}');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'one: ',
+        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'two: ',
+        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    expect(suggestions, hasLength(2));
+  }
+
+  test_ArgumentList_imported_function_named_param_label1() async {
+    addTestFile('main() { int.parse("16", r^: 16);}');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'radix: ',
+        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'onError: ',
+        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    expect(suggestions, hasLength(2));
+  }
+
+  test_ArgumentList_imported_function_named_param_label3() async {
+    addTestFile('main() { int.parse("16", ^: 16);}');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'radix: ',
+        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'onError: ',
+        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    expect(suggestions, hasLength(2));
+  }
+
+  test_ArgumentList_imported_function_named_param2() async {
+    addTestFile('mainx() {A a = new A(); a.foo(one: 7, ^);}'
+        'class A { foo({one, two}) {} }');
+    await getSuggestions();
+    assertHasResult(CompletionSuggestionKind.NAMED_ARGUMENT, 'two: ',
+        relevance: DART_RELEVANCE_NAMED_PARAMETER);
+    expect(suggestions, hasLength(1));
+  }
+
   test_html() {
     testFile = '/project/web/test.html';
     addTestFile('''
@@ -140,10 +189,10 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
     await getSuggestions();
     expect(replacementOffset, completionOffset - 3);
     expect(replacementLength, 3);
-    assertHasResult(CompletionSuggestionKind.KEYWORD, 'export',
-        relevance: DART_RELEVANCE_HIGH);
-    assertHasResult(CompletionSuggestionKind.KEYWORD, 'import',
-        relevance: DART_RELEVANCE_HIGH);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'export \'\';',
+        selectionOffset: 8, relevance: DART_RELEVANCE_HIGH);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'import \'\';',
+        selectionOffset: 8, relevance: DART_RELEVANCE_HIGH);
     assertNoResult('extends');
     assertNoResult('library');
   }
@@ -174,12 +223,12 @@ class CompletionDomainHandlerTest extends AbstractCompletionDomainTest {
     expect(replacementLength, 1);
     assertHasResult(CompletionSuggestionKind.KEYWORD, 'library',
         relevance: DART_RELEVANCE_HIGH);
-    assertHasResult(CompletionSuggestionKind.KEYWORD, 'import',
-        relevance: DART_RELEVANCE_HIGH);
-    assertHasResult(CompletionSuggestionKind.KEYWORD, 'export',
-        relevance: DART_RELEVANCE_HIGH);
-    assertHasResult(CompletionSuggestionKind.KEYWORD, 'part',
-        relevance: DART_RELEVANCE_HIGH);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'import \'\';',
+        selectionOffset: 8, relevance: DART_RELEVANCE_HIGH);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'export \'\';',
+        selectionOffset: 8, relevance: DART_RELEVANCE_HIGH);
+    assertHasResult(CompletionSuggestionKind.KEYWORD, 'part \'\';',
+        selectionOffset: 6, relevance: DART_RELEVANCE_HIGH);
     assertNoResult('extends');
   }
 
@@ -353,8 +402,8 @@ class B extends A {
     return getSuggestions().then((_) {
       expect(replacementOffset, equals(completionOffset - 2));
       expect(replacementLength, equals(2));
-      assertHasResult(CompletionSuggestionKind.KEYWORD, 'export',
-          relevance: DART_RELEVANCE_HIGH);
+      assertHasResult(CompletionSuggestionKind.KEYWORD, 'export \'\';',
+          selectionOffset: 8, relevance: DART_RELEVANCE_HIGH);
       assertHasResult(CompletionSuggestionKind.KEYWORD, 'class',
           relevance: DART_RELEVANCE_HIGH);
     });

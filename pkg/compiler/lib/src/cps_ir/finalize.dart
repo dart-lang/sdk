@@ -38,18 +38,22 @@ class Finalize extends TrampolineRecursiveVisitor implements Pass {
   CpsFragment visitBoundsCheck(BoundsCheck node) {
     CpsFragment cps = new CpsFragment(node.sourceInformation);
     if (node.hasNoChecks) {
-      node..replaceUsesWith(node.object)..destroy();
+      node
+        ..replaceUsesWith(node.object)
+        ..destroy();
       return cps;
     }
     Continuation fail = cps.letCont();
     Primitive index = node.index;
     if (node.hasIntegerCheck) {
-      cps.ifTruthy(cps.applyBuiltin(BuiltinOperator.IsNotUnsigned32BitInteger,
-          [index, index]))
+      cps
+          .ifTruthy(cps.applyBuiltin(
+              BuiltinOperator.IsNotUnsigned32BitInteger, [index, index]))
           .invokeContinuation(fail);
     } else if (node.hasLowerBoundCheck) {
-      cps.ifTruthy(cps.applyBuiltin(BuiltinOperator.NumLt,
-          [index, cps.makeZero()]))
+      cps
+          .ifTruthy(
+              cps.applyBuiltin(BuiltinOperator.NumLt, [index, cps.makeZero()]))
           .invokeContinuation(fail);
     }
     if (node.hasUpperBoundCheck) {
@@ -63,25 +67,29 @@ class Finalize extends TrampolineRecursiveVisitor implements Pass {
         lengthBinding.remove();
         cps.letPrim(length);
       }
-      cps.ifTruthy(cps.applyBuiltin(BuiltinOperator.NumGe,
-          [index, length]))
+      cps
+          .ifTruthy(cps.applyBuiltin(BuiltinOperator.NumGe, [index, length]))
           .invokeContinuation(fail);
     }
     if (node.hasEmptinessCheck) {
-      cps.ifTruthy(cps.applyBuiltin(BuiltinOperator.StrictEq,
-          [node.length, cps.makeZero()]))
+      cps
+          .ifTruthy(cps.applyBuiltin(
+              BuiltinOperator.StrictEq, [node.length, cps.makeZero()]))
           .invokeContinuation(fail);
     }
     cps.insideContinuation(fail).invokeStaticThrower(
-          helpers.throwIndexOutOfRangeException,
-          [node.object, index]);
-    node..replaceUsesWith(node.object)..destroy();
+        helpers.throwIndexOutOfRangeException, [node.object, index]);
+    node
+      ..replaceUsesWith(node.object)
+      ..destroy();
     return cps;
   }
 
   void visitGetStatic(GetStatic node) {
     if (node.witnessRef != null) {
-      node..witnessRef.unlink()..witnessRef = null;
+      node
+        ..witnessRef.unlink()
+        ..witnessRef = null;
     }
   }
 
@@ -93,7 +101,7 @@ class Finalize extends TrampolineRecursiveVisitor implements Pass {
       // after allocation.  After the finalize pass, this assumption is no
       // longer needed, so we can replace the remaining idenitity templates.
       Refinement refinement = new Refinement(node.argument(0), node.type)
-          ..type = node.type;
+        ..type = node.type;
       node.replaceWith(refinement);
     }
   }

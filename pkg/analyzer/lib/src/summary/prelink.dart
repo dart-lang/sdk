@@ -477,9 +477,12 @@ class _Prelinker {
       }
     }
 
-    // Fill in imported names.
+    // Fill in imported and exported names.
     List<int> importDependencies =
         definingUnit.imports.map(handleImport).toList();
+    List<int> exportDependencies = definingUnit.publicNamespace.exports
+        .map((UnlinkedExportPublic exp) => uriToDependency[exp.uri])
+        .toList();
 
     // Link each compilation unit.
     List<LinkedUnitBuilder> linkedUnits = units.map(linkUnit).toList();
@@ -488,6 +491,7 @@ class _Prelinker {
         units: linkedUnits,
         dependencies: dependencies,
         importDependencies: importDependencies,
+        exportDependencies: exportDependencies,
         exportNames: exportNames,
         numPrelinkedDependencies: dependencies.length);
   }

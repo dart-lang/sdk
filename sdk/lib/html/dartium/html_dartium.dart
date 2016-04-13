@@ -673,7 +673,40 @@ Type _getSvgType(String key) {
   return null;
 }
 
-// TODO(jacobr): it would be nice to place this in a consistent place for dart2js and dartium.
+// TODO(jacobr): it would be nice to place these conversion methods in a consistent place for dart2js and dartium.
+
+WindowBase _convertNativeToDart_Window(win) {
+  if (win == null) return null;
+  return _DOMWindowCrossFrame._createSafe(win);
+}
+
+EventTarget _convertNativeToDart_EventTarget(e) {
+  if (e == null) {
+    return null;
+  }
+  // Assume it's a Window if it contains the postMessage property.  It may be
+  // from a different frame - without a patched prototype - so we cannot
+  // rely on Dart type checking.
+  try {
+    if (js.JsNative.hasProperty(e, "postMessage")) {
+      var window = _DOMWindowCrossFrame._createSafe(e);
+      // If it's a native window.
+      if (window is EventTarget) {
+        return window;
+      }
+      return null;
+    }
+  } catch (err) {
+    print("Error calling _convertNativeToDart_EventTarget... $err");
+  }
+  return e;
+}
+
+EventTarget _convertDartToNative_EventTarget(e) {
+  // _DOMWindowCrossFrame uses an interceptor so we don't need to do anything unlike Dart2Js.
+  return e;
+}
+
 _convertNativeToDart_XHR_Response(o) {
   if (o is Document) {
     return o;
@@ -736,10 +769,6 @@ debug_or_assert(message, expression) {
     throw new DebugAssertException("$message");
   }
 }
-
-// TODO(jacobr): we shouldn't be generating this call in the dart:html
-// bindings but we are.
-_convertDartToNative_EventTarget(target) => target;
 
 @Deprecated("Internal Use Only")
 Map<String, dynamic> convertNativeObjectToDartMap(js.JsObject jsObject) {
@@ -10193,7 +10222,7 @@ class Document extends Node
   
   @DomName('Document.defaultView')
   @DocsEditable()
-  WindowBase get window => _blink.BlinkDocument.instance.defaultView_Getter_(this);
+  WindowBase get window => _convertNativeToDart_Window(_blink.BlinkDocument.instance.defaultView_Getter_(this));
   
   @DomName('Document.documentElement')
   @DocsEditable()
@@ -16699,7 +16728,7 @@ class Event extends DartHtmlDomObject {
   
   @DomName('Event.currentTarget')
   @DocsEditable()
-  EventTarget get currentTarget => _blink.BlinkEvent.instance.currentTarget_Getter_(this);
+  EventTarget get currentTarget => _convertNativeToDart_EventTarget(_blink.BlinkEvent.instance.currentTarget_Getter_(this));
   
   @DomName('Event.defaultPrevented')
   @DocsEditable()
@@ -16726,7 +16755,7 @@ class Event extends DartHtmlDomObject {
   
   @DomName('Event.target')
   @DocsEditable()
-  EventTarget get target => _blink.BlinkEvent.instance.target_Getter_(this);
+  EventTarget get target => _convertNativeToDart_EventTarget(_blink.BlinkEvent.instance.target_Getter_(this));
   
   @DomName('Event.timeStamp')
   @DocsEditable()
@@ -17943,7 +17972,7 @@ class FocusEvent extends UIEvent {
 
   @DomName('FocusEvent.relatedTarget')
   @DocsEditable()
-  EventTarget get relatedTarget => _blink.BlinkFocusEvent.instance.relatedTarget_Getter_(this);
+  EventTarget get relatedTarget => _convertNativeToDart_EventTarget(_blink.BlinkFocusEvent.instance.relatedTarget_Getter_(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21948,7 +21977,7 @@ class IFrameElement extends HtmlElement {
   
   @DomName('HTMLIFrameElement.contentWindow')
   @DocsEditable()
-  WindowBase get contentWindow => _blink.BlinkHTMLIFrameElement.instance.contentWindow_Getter_(this);
+  WindowBase get contentWindow => _convertNativeToDart_Window(_blink.BlinkHTMLIFrameElement.instance.contentWindow_Getter_(this));
   
   @DomName('HTMLIFrameElement.height')
   @DocsEditable()
@@ -25926,7 +25955,7 @@ class MessageEvent extends Event {
   
   @DomName('MessageEvent.source')
   @DocsEditable()
-  EventTarget get source => _blink.BlinkMessageEvent.instance.source_Getter_(this);
+  EventTarget get source => _convertNativeToDart_EventTarget(_blink.BlinkMessageEvent.instance.source_Getter_(this));
   
   @DomName('MessageEvent.initMessageEvent')
   @DocsEditable()
@@ -26790,7 +26819,7 @@ class MouseEvent extends UIEvent {
   
   @DomName('MouseEvent.relatedTarget')
   @DocsEditable()
-  EventTarget get relatedTarget => _blink.BlinkMouseEvent.instance.relatedTarget_Getter_(this);
+  EventTarget get relatedTarget => _convertNativeToDart_EventTarget(_blink.BlinkMouseEvent.instance.relatedTarget_Getter_(this));
   
   @DomName('MouseEvent.screenX')
   @DocsEditable()
@@ -31464,7 +31493,7 @@ class RelatedEvent extends Event {
   @DomName('RelatedEvent.relatedTarget')
   @DocsEditable()
   @Experimental() // untriaged
-  EventTarget get relatedTarget => _blink.BlinkRelatedEvent.instance.relatedTarget_Getter_(this);
+  EventTarget get relatedTarget => _convertNativeToDart_EventTarget(_blink.BlinkRelatedEvent.instance.relatedTarget_Getter_(this));
   
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -36997,7 +37026,7 @@ class Touch extends DartHtmlDomObject {
   
   @DomName('Touch.target')
   @DocsEditable()
-  EventTarget get target => _blink.BlinkTouch.instance.target_Getter_(this);
+  EventTarget get target => _convertNativeToDart_EventTarget(_blink.BlinkTouch.instance.target_Getter_(this));
   
 
 // As of Chrome 37, these all changed from long to double.  This code
@@ -37617,7 +37646,7 @@ class UIEvent extends Event {
   
   @DomName('UIEvent.view')
   @DocsEditable()
-  WindowBase get view => _blink.BlinkUIEvent.instance.view_Getter_(this);
+  WindowBase get view => _convertNativeToDart_Window(_blink.BlinkUIEvent.instance.view_Getter_(this));
   
   @DomName('UIEvent.which')
   @DocsEditable()
@@ -39724,7 +39753,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   
   @DomName('Window.opener')
   @DocsEditable()
-  WindowBase get opener => _blink.BlinkWindow.instance.opener_Getter_(this);
+  WindowBase get opener => _convertNativeToDart_Window(_blink.BlinkWindow.instance.opener_Getter_(this));
   
   @DomName('Window.opener')
   @DocsEditable()
@@ -39795,7 +39824,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   
   @DomName('Window.parent')
   @DocsEditable()
-  WindowBase get parent => _blink.BlinkWindow.instance.parent_Getter_(this);
+  WindowBase get parent => _convertNativeToDart_Window(_blink.BlinkWindow.instance.parent_Getter_(this));
   
   /**
    * Timing and navigation data for this window.
@@ -39907,7 +39936,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.self')
   @DocsEditable()
-  WindowBase get self => _blink.BlinkWindow.instance.self_Getter_(this);
+  WindowBase get self => _convertNativeToDart_Window(_blink.BlinkWindow.instance.self_Getter_(this));
   
   /**
    * Storage for this window that is cleared when this session ends.
@@ -39994,7 +40023,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   
   @DomName('Window.top')
   @DocsEditable()
-  WindowBase get top => _blink.BlinkWindow.instance.top_Getter_(this);
+  WindowBase get top => _convertNativeToDart_Window(_blink.BlinkWindow.instance.top_Getter_(this));
   
   /**
    * The current window.
@@ -40006,7 +40035,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
    */
   @DomName('Window.window')
   @DocsEditable()
-  WindowBase get window => _blink.BlinkWindow.instance.window_Getter_(this);
+  WindowBase get window => _convertNativeToDart_Window(_blink.BlinkWindow.instance.window_Getter_(this));
   
   WindowBase __getter__(index_OR_name) {
     if ((index_OR_name is int)) {
@@ -40122,7 +40151,7 @@ class Window extends EventTarget implements WindowEventHandlers, WindowBase, Glo
   
   @DomName('Window.open')
   @DocsEditable()
-  WindowBase open(String url, String target, [String features]) => _blink.BlinkWindow.instance.open_Callback_3_(this, url, target, features);
+  WindowBase open(String url, String target, [String features]) => _convertNativeToDart_Window(_blink.BlinkWindow.instance.open_Callback_3_(this, url, target, features));
   
   SqlDatabase openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) {
     if (creationCallback != null) {
@@ -47898,12 +47927,12 @@ abstract class ElementUpgrader {
 
 
 class _Property {
-  _Property(this.name) :
-      _hasValue = false,
-      writable = false,
-      isMethod = false,
-      isOwn = true,
-      wasThrown = false;
+  _Property(this.name)
+      : _hasValue = false,
+        writable = false,
+        isMethod = false,
+        isOwn = true,
+        wasThrown = false;
 
   bool get hasValue => _hasValue;
   get value => _value;
@@ -47921,6 +47950,203 @@ class _Property {
   bool isMethod;
   bool isOwn;
   bool wasThrown;
+}
+
+/**
+ * Manager for navigating between libraries from the devtools console.
+ */
+class _LibraryManager {
+  /**
+   * Current active library
+   */
+  static var _currentLibrary;
+  static var _validCache = false;
+
+  static List<Uri> _libraryUris;
+
+  // List of all maps to check to determine if there is an exact match.
+  static Map<String, List<Uri>> _fastPaths;
+
+  static void _addFastPath(String key, Uri uri) {
+    _fastPaths.putIfAbsent(key, () => <Uri>[]).add(uri);
+  }
+
+  static cache() {
+    if (_validCache) return;
+    _validCache = true;
+    _libraryUris = <Uri>[];
+    _fastPaths = new Map<String, List<Uri>>();
+    var system = currentMirrorSystem();
+    system.libraries.forEach((uri, library) {
+      _libraryUris.add(uri);
+      _addFastPath(uri.toString(), uri);
+      _addFastPath(MirrorSystem.getName(library.simpleName), uri);
+    });
+  }
+
+  static String get currentLibrary {
+    if (_currentLibrary == null) {
+      _currentLibrary =
+          currentMirrorSystem().isolate.rootLibrary.uri.toString();
+    }
+    return _currentLibrary;
+  }
+
+  /**
+   * Find libraries matching a given name.
+   *
+   * Uses heuristics to only return a single match when the user intent is
+   * generally unambiguous.
+   */
+  static List<Uri> findMatches(String name) {
+    cache();
+    var nameAsFile = name.endsWith('.dart') ? name : '${name}.dart';
+    // Perfect match first.
+    var fastPatchMatches = _fastPaths[name];
+    if (fastPatchMatches != null) {
+      return fastPatchMatches.toList();
+    }
+
+    // Exact match for file path.
+    var matches = new LinkedHashSet<Uri>();
+    for (var uri in _libraryUris) {
+      if (uri.path == name || uri.path == nameAsFile) matches.add(uri);
+    }
+    if (matches.isNotEmpty) return matches.toList();
+
+    // Exact match for file name.
+    if (name != nameAsFile) {
+      for (var uri in _libraryUris) {
+        if (uri.pathSegments.isNotEmpty &&
+            (uri.pathSegments.last == nameAsFile)) {
+          matches.add(uri);
+        }
+      }
+      if (matches.isNotEmpty) return matches.toList();
+    }
+
+    for (var uri in _libraryUris) {
+      if (uri.pathSegments.isNotEmpty && (uri.pathSegments.last == name)) {
+        matches.add(uri);
+      }
+    }
+    if (matches.isNotEmpty) return matches.toList();
+
+    // Partial match on path.
+    for (var uri in _libraryUris) {
+      if (uri.path.contains(name)) {
+        matches.add(uri);
+      }
+    }
+    if (matches.isNotEmpty) return matches.toList();
+
+    // Partial match on entire uri.
+    for (var uri in _libraryUris) {
+      if (uri.toString().contains(name)) {
+        matches.add(uri);
+      }
+    }
+
+    if (matches.isNotEmpty) return matches.toList();
+
+    // Partial match on entire uri ignoring case.
+    name = name.toLowerCase();
+    for (var uri in _libraryUris) {
+      if (uri.toString().toLowerCase().contains(name)) {
+        matches.add(uri);
+      }
+    }
+    return matches.toList();
+  }
+
+  static setLibrary([String name]) {
+    // Bust cache in case library list has changed. Ideally we would listen for
+    // when libraries are loaded and invalidate based on that.
+    _validCache = false;
+    cache();
+    if (name == null) {
+      window.console
+        ..group("Current library: $_currentLibrary")
+        ..groupCollapsed("All libraries:");
+      _listLibraries();
+      window.console..groupEnd()..groupEnd();
+      return;
+    }
+    var matches = findMatches(name);
+    if (matches.length != 1) {
+      if (matches.length > 1) {
+        window.console.warn("Ambiguous library name: $name");
+      }
+      showMatches(name, matches);
+      return;
+    }
+    _currentLibrary = matches.first.toString();
+    window.console.log("Set library to $_currentLibrary");
+  }
+
+  static getLibrary() {
+    return currentLibrary;
+  }
+
+  static List<Uri> _sortUris(Iterable<Uri> uris) {
+    return (uris.toList())
+      ..sort((Uri a, Uri b) {
+        if (a.scheme != b.scheme) {
+          if (a.scheme == 'dart') return -1;
+          if (b.scheme == 'dart') return 1;
+          return a.scheme.compareTo(b.scheme);
+        }
+        return a.toString().compareTo(b.toString());
+      });
+  }
+
+  static void listLibraries() {
+    _validCache = false;
+    cache();
+    _listLibraries();
+  }
+
+  static void _listLibraries() {
+    window.console.log(_sortUris(_libraryUris).join("\n"));
+  }
+
+  // Workaround to allow calling console.log with an arbitrary number of
+  // arguments.
+  static void _log(List<String> args) {
+    js.JsNative.callMethod(window.console, 'log', args);
+  }
+
+  static showMatches(String key, Iterable<Uri> uris) {
+    var boldPairs = [];
+    var sb = new StringBuffer();
+    if (uris.isEmpty) {
+      window.console.group("All libraries:");
+      _listLibraries();
+      window.console
+        ..groupEnd()
+        ..error("No library names or URIs match '$key'");
+      return;
+    }
+    sb.write("${uris.length} matches\n");
+    var lowerCaseKey = key.toLowerCase();
+    for (var uri in uris) {
+      var txt = uri.toString();
+      int index = txt.toLowerCase().indexOf(lowerCaseKey);
+      if (index != -1) {
+        // %c enables styling console log messages with css
+        // specified at the end of the console.
+        sb..write(txt.substring(0, index))..write('%c');
+        var matchEnd = index + key.length;
+        sb
+          ..write(txt.substring(index, matchEnd))
+          ..write('%c')
+          ..write(txt.substring(matchEnd))
+          ..write('\n');
+        boldPairs..add('font-weight: bold')..add('font-weight: normal');
+      }
+    }
+    _log([sb.toString()]..addAll(boldPairs));
+  }
 }
 
 class _ConsoleVariables {
@@ -47968,15 +48194,15 @@ abstract class _Trampoline implements Function {
 }
 
 class _MethodTrampoline extends _Trampoline {
-  _MethodTrampoline(ObjectMirror receiver, MethodMirror methodMirror,
-      Symbol selector) :
-      super(receiver, methodMirror, selector);
+  _MethodTrampoline(
+      ObjectMirror receiver, MethodMirror methodMirror, Symbol selector)
+      : super(receiver, methodMirror, selector);
 
   noSuchMethod(Invocation msg) {
     if (msg.memberName != #call) return super.noSuchMethod(msg);
-    return _receiver.invoke(_selector,
-                            msg.positionalArguments,
-                            msg.namedArguments).reflectee;
+    return _receiver
+        .invoke(_selector, msg.positionalArguments, msg.namedArguments)
+        .reflectee;
   }
 }
 
@@ -47984,9 +48210,9 @@ class _MethodTrampoline extends _Trampoline {
  * Invocation trampoline class used to closurize getters.
  */
 class _GetterTrampoline extends _Trampoline {
-  _GetterTrampoline(ObjectMirror receiver, MethodMirror methodMirror,
-      Symbol selector) :
-      super(receiver, methodMirror, selector);
+  _GetterTrampoline(
+      ObjectMirror receiver, MethodMirror methodMirror, Symbol selector)
+      : super(receiver, methodMirror, selector);
 
   call() => _receiver.getField(_selector).reflectee;
 }
@@ -47995,9 +48221,9 @@ class _GetterTrampoline extends _Trampoline {
  * Invocation trampoline class used to closurize setters.
  */
 class _SetterTrampoline extends _Trampoline {
-  _SetterTrampoline(ObjectMirror receiver, MethodMirror methodMirror,
-      Symbol selector) :
-      super(receiver, methodMirror, selector);
+  _SetterTrampoline(
+      ObjectMirror receiver, MethodMirror methodMirror, Symbol selector)
+      : super(receiver, methodMirror, selector);
 
   call(value) {
     _receiver.setField(_selector, value);
@@ -48010,7 +48236,7 @@ class _Utils {
   static DateTime doubleToDateTime(double dateTime) {
     try {
       return new DateTime.fromMillisecondsSinceEpoch(dateTime.toInt());
-    } catch(_) {
+    } catch (_) {
       // TODO(antonnm): treat exceptions properly in bindings and
       // find out how to treat NaNs.
       return null;
@@ -48055,7 +48281,10 @@ class _Utils {
 
   static Map createMap() => {};
 
-  static parseJson(String jsonSource) => const JsonDecoder().convert(jsonSource);
+  static parseJson(String jsonSource) =>
+      const JsonDecoder().convert(jsonSource);
+
+  static String getLibraryUrl() => _LibraryManager.currentLibrary;
 
   static makeUnimplementedError(String fileName, int lineNo) {
     return new UnsupportedError('[info: $fileName:$lineNo]');
@@ -48080,7 +48309,8 @@ class _Utils {
     return element;
   }
 
-  static forwardingPrint(String message) => _blink.Blink_Utils.forwardingPrint(message);
+  static forwardingPrint(String message) =>
+      _blink.Blink_Utils.forwardingPrint(message);
   static void spawnDomHelper(Function f, int replyTo) =>
       _blink.Blink_Utils.spawnDomHelper(f, replyTo);
 
@@ -48113,8 +48343,8 @@ class _Utils {
    */
   static Map<String, dynamic> createLocalVariablesMap(List localVariables) {
     var map = {};
-    for (int i = 0; i < localVariables.length; i+=2) {
-      map[stripMemberName(localVariables[i])] = localVariables[i+1];
+    for (int i = 0; i < localVariables.length; i += 2) {
+      map[stripMemberName(localVariables[i])] = localVariables[i + 1];
     }
     return map;
   }
@@ -48143,8 +48373,8 @@ class _Utils {
    * [_consoleTempVariables, 40, 2, someValue, someOtherValue]]
    * </code>
    */
-  static List wrapExpressionAsClosure(String expression, List locals,
-      bool includeCommandLineAPI) {
+  static List wrapExpressionAsClosure(
+      String expression, List locals, bool includeCommandLineAPI) {
     var args = {};
     var sb = new StringBuffer("(");
     addArg(arg, value) {
@@ -48179,26 +48409,24 @@ class _Utils {
       final _SET_VARIABLE = new RegExp("^(\\s*)(\\w+)(\\s*=)");
       // Match trailing semicolons.
       final _ENDING_SEMICOLONS = new RegExp("(;\\s*)*\$");
-      expression = expression.replaceAllMapped(_VARIABLE_DECLARATION,
-          (match) {
-            var variableName = match[2];
-            // Set the console variable if it isn't already set.
-            if (!_consoleTempVariables._data.containsKey(variableName)) {
-              _consoleTempVariables._data[variableName] = null;
-            }
-            return "${match[1]}\$consoleVariables.${variableName}";
-          });
+      expression = expression.replaceAllMapped(_VARIABLE_DECLARATION, (match) {
+        var variableName = match[2];
+        // Set the console variable if it isn't already set.
+        if (!_consoleTempVariables._data.containsKey(variableName)) {
+          _consoleTempVariables._data[variableName] = null;
+        }
+        return "${match[1]}\$consoleVariables.${variableName}";
+      });
 
-      expression = expression.replaceAllMapped(_SET_VARIABLE,
-          (match) {
-            var variableName = match[2];
-            // Only rewrite if the name matches an existing console variable.
-            if (_consoleTempVariables._data.containsKey(variableName)) {
-              return "${match[1]}\$consoleVariables.${variableName}${match[3]}";
-            } else {
-              return match[0];
-            }
-          });
+      expression = expression.replaceAllMapped(_SET_VARIABLE, (match) {
+        var variableName = match[2];
+        // Only rewrite if the name matches an existing console variable.
+        if (_consoleTempVariables._data.containsKey(variableName)) {
+          return "${match[1]}\$consoleVariables.${variableName}${match[3]}";
+        } else {
+          return match[0];
+        }
+      });
 
       // We only allow dart expressions not Dart statements. Silently remove
       // trailing semicolons the user might have added by accident to reduce the
@@ -48207,8 +48435,8 @@ class _Utils {
     }
 
     if (locals != null) {
-      for (int i = 0; i < locals.length; i+= 2) {
-        addArg(locals[i], locals[i+1]);
+      for (int i = 0; i < locals.length; i += 2) {
+        addArg(locals[i], locals[i + 1]);
       }
     }
     // Inject all the already defined console variables.
@@ -48223,18 +48451,50 @@ class _Utils {
     return [sb.toString(), args.values.toList(growable: false)];
   }
 
-  static String _getShortSymbolName(Symbol symbol,
-                                    DeclarationMirror declaration) {
+  static String _getShortSymbolName(
+      Symbol symbol, DeclarationMirror declaration) {
     var name = MirrorSystem.getName(symbol);
     if (declaration is MethodMirror) {
-      if (declaration.isSetter && name[name.length-1] == "=") {
-        return name.substring(0, name.length-1);
+      if (declaration.isSetter && name[name.length - 1] == "=") {
+        return name.substring(0, name.length - 1);
       }
       if (declaration.isConstructor) {
         return name.substring(name.indexOf('.') + 1);
       }
     }
     return name;
+  }
+
+  /**
+   * Handle special console commands such as $lib and $libs that should not be
+   * evaluated as Dart expressions and instead should be interpreted directly.
+   * Commands supported:
+   * library <-- shows the current library and lists all libraries.
+   * library "library_uri" <-- select a specific library
+   * library "library_uri_fragment"
+   */
+  static bool maybeHandleSpecialConsoleCommand(String expression) {
+    expression = expression.trim();
+    var setLibraryCommand = r'library ';
+    if (expression == r'library') {
+      _LibraryManager.setLibrary();
+      return true;
+    }
+    if (expression.startsWith(setLibraryCommand)) {
+      expression = expression.substring(setLibraryCommand.length);
+      if (expression.length >= 2) {
+        String start = expression[0];
+        String end = expression[expression.length - 1];
+        // TODO(jacobr): maybe we should require quotes.
+        if ((start == "'" && end == "'") || (start == '"' && end == '"')) {
+          expression = expression.substring(1, expression.length - 1);
+        }
+      }
+
+      _LibraryManager.setLibrary(expression);
+      return true;
+    }
+    return false;
   }
 
   /**
@@ -48247,19 +48507,17 @@ class _Utils {
       map.forEach((symbol, mirror) {
         if (mirror.isStatic == isStatic && !mirror.isPrivate) {
           var name = MirrorSystem.getName(symbol);
-          if (mirror is MethodMirror && mirror.isSetter)
-            name = name.substring(0, name.length - 1);
+          if (mirror is MethodMirror && mirror.isSetter) name =
+              name.substring(0, name.length - 1);
           completions.add(name);
         }
       });
     }
 
     addForClass(ClassMirror mirror, bool isStatic) {
-      if (mirror == null)
-        return;
+      if (mirror == null) return;
       addAll(mirror.declarations, isStatic);
-      if (mirror.superclass != null)
-        addForClass(mirror.superclass, isStatic);
+      if (mirror.superclass != null) addForClass(mirror.superclass, isStatic);
       for (var interface in mirror.superinterfaces) {
         addForClass(interface, isStatic);
       }
@@ -48277,8 +48535,8 @@ class _Utils {
    * Adds all candidate String completitions from [declarations] to [output]
    * filtering based on [staticContext] and [includePrivate].
    */
-  static void _getCompletionsHelper(ClassMirror classMirror,
-      bool staticContext, LibraryMirror libraryMirror, Set<String> output) {
+  static void _getCompletionsHelper(ClassMirror classMirror, bool staticContext,
+      LibraryMirror libraryMirror, Set<String> output) {
     bool includePrivate = libraryMirror == classMirror.owner;
     classMirror.declarations.forEach((symbol, declaration) {
       if (!includePrivate && declaration.isPrivate) return;
@@ -48301,12 +48559,11 @@ class _Utils {
 
     if (!staticContext) {
       for (var interface in classMirror.superinterfaces) {
-        _getCompletionsHelper(interface, staticContext,
-            libraryMirror, output);
+        _getCompletionsHelper(interface, staticContext, libraryMirror, output);
       }
       if (classMirror.superclass != null) {
-        _getCompletionsHelper(classMirror.superclass, staticContext,
-            libraryMirror, output);
+        _getCompletionsHelper(
+            classMirror.superclass, staticContext, libraryMirror, output);
       }
     }
   }
@@ -48373,13 +48630,13 @@ class _Utils {
   }
 
   static final SIDE_EFFECT_FREE_LIBRARIES = new Set<String>()
-      ..add('dart:html')
-      ..add('dart:indexed_db')
-      ..add('dart:svg')
-      ..add('dart:typed_data')
-      ..add('dart:web_audio')
-      ..add('dart:web_gl')
-      ..add('dart:web_sql');
+    ..add('dart:html')
+    ..add('dart:indexed_db')
+    ..add('dart:svg')
+    ..add('dart:typed_data')
+    ..add('dart:web_audio')
+    ..add('dart:web_gl')
+    ..add('dart:web_sql');
 
   static LibraryMirror _getLibrary(MethodMirror methodMirror) {
     var owner = methodMirror.owner;
@@ -48398,8 +48655,8 @@ class _Utils {
    * In the future we should consider adding an annotation to tag getters
    * in user libraries as side effect free.
    */
-  static bool _isSideEffectFreeGetter(MethodMirror methodMirror,
-      LibraryMirror libraryMirror) {
+  static bool _isSideEffectFreeGetter(
+      MethodMirror methodMirror, LibraryMirror libraryMirror) {
     // This matches JavaScript behavior. We should consider displaying
     // getters for all dart platform libraries rather than just the DOM
     // libraries.
@@ -48411,11 +48668,11 @@ class _Utils {
    * Whether we should treat a property as a field for the purposes of the
    * debugger.
    */
-  static bool treatPropertyAsField(MethodMirror methodMirror,
-      LibraryMirror libraryMirror) {
+  static bool treatPropertyAsField(
+      MethodMirror methodMirror, LibraryMirror libraryMirror) {
     return (methodMirror.isGetter || methodMirror.isSetter) &&
-          (methodMirror.isSynthetic ||
-              _isSideEffectFreeGetter(methodMirror,libraryMirror));
+        (methodMirror.isSynthetic ||
+            _isSideEffectFreeGetter(methodMirror, libraryMirror));
   }
 
   // TODO(jacobr): generate more concise function descriptions instead of
@@ -48432,27 +48689,36 @@ class _Utils {
 
   static List getInvocationTrampolineDetails(_Trampoline method) {
     var loc = method._methodMirror.location;
-    return [loc.line, loc.column, loc.sourceUri.toString(),
-        MirrorSystem.getName(method._selector)];
+    return [
+      loc.line,
+      loc.column,
+      loc.sourceUri.toString(),
+      MirrorSystem.getName(method._selector)
+    ];
   }
 
-  static List getLibraryProperties(String libraryUrl, bool ownProperties,
-      bool accessorPropertiesOnly) {
+  static List getLibraryProperties(
+      String libraryUrl, bool ownProperties, bool accessorPropertiesOnly) {
     var properties = new Map<String, _Property>();
     var libraryMirror = getLibraryMirror(libraryUrl);
-    _addInstanceMirrors(libraryMirror, libraryMirror,
+    _addInstanceMirrors(
+        libraryMirror,
+        libraryMirror,
         libraryMirror.declarations,
-        ownProperties, accessorPropertiesOnly, false, false,
+        ownProperties,
+        accessorPropertiesOnly,
+        false,
+        false,
         properties);
     if (!accessorPropertiesOnly) {
       // We need to add class properties for all classes in the library.
       libraryMirror.declarations.forEach((symbol, declarationMirror) {
         if (declarationMirror is ClassMirror) {
           var name = MirrorSystem.getName(symbol);
-          if (declarationMirror.hasReflectedType
-              && !properties.containsKey(name)) {
+          if (declarationMirror.hasReflectedType &&
+              !properties.containsKey(name)) {
             properties[name] = new _Property(name)
-                ..value = declarationMirror.reflectedType;
+              ..value = declarationMirror.reflectedType;
           }
         }
       });
@@ -48460,34 +48726,44 @@ class _Utils {
     return packageProperties(properties);
   }
 
-  static List getObjectProperties(o, bool ownProperties,
-      bool accessorPropertiesOnly) {
+  static List getObjectProperties(
+      o, bool ownProperties, bool accessorPropertiesOnly) {
     var properties = new Map<String, _Property>();
     var names = new Set<String>();
     var objectMirror = reflect(o);
     var classMirror = objectMirror.type;
-    _addInstanceMirrors(objectMirror, classMirror.owner,
+    _addInstanceMirrors(
+        objectMirror,
+        classMirror.owner,
         classMirror.instanceMembers,
-        ownProperties, accessorPropertiesOnly, false, true,
+        ownProperties,
+        accessorPropertiesOnly,
+        false,
+        true,
         properties);
     return packageProperties(properties);
   }
 
-  static List getObjectClassProperties(o, bool ownProperties,
-      bool accessorPropertiesOnly) {
+  static List getObjectClassProperties(
+      o, bool ownProperties, bool accessorPropertiesOnly) {
     var properties = new Map<String, _Property>();
     var objectMirror = reflect(o);
     var classMirror = objectMirror.type;
-    _addInstanceMirrors(objectMirror, classMirror.owner,
+    _addInstanceMirrors(
+        objectMirror,
+        classMirror.owner,
         classMirror.instanceMembers,
-        ownProperties, accessorPropertiesOnly, true, false,
+        ownProperties,
+        accessorPropertiesOnly,
+        true,
+        false,
         properties);
     _addStatics(classMirror, properties, accessorPropertiesOnly);
     return packageProperties(properties);
   }
 
-  static List getClassProperties(Type t, bool ownProperties,
-      bool accessorPropertiesOnly) {
+  static List getClassProperties(
+      Type t, bool ownProperties, bool accessorPropertiesOnly) {
     var properties = new Map<String, _Property>();
     var classMirror = reflectClass(t);
     _addStatics(classMirror, properties, accessorPropertiesOnly);
@@ -48495,8 +48771,7 @@ class _Utils {
   }
 
   static void _addStatics(ClassMirror classMirror,
-                          Map<String, _Property> properties,
-                          bool accessorPropertiesOnly) {
+      Map<String, _Property> properties, bool accessorPropertiesOnly) {
     var libraryMirror = classMirror.owner;
     classMirror.declarations.forEach((symbol, declaration) {
       var name = _getShortSymbolName(symbol, declaration);
@@ -48505,8 +48780,8 @@ class _Utils {
         if (accessorPropertiesOnly) return;
         if (!declaration.isStatic) return;
         properties.putIfAbsent(name, () => new _Property(name))
-            ..value = classMirror.getField(symbol).reflectee
-            ..writable = !declaration.isFinal && !declaration.isConst;
+          ..value = classMirror.getField(symbol).reflectee
+          ..writable = !declaration.isFinal && !declaration.isConst;
       } else if (declaration is MethodMirror) {
         MethodMirror methodMirror = declaration;
         // FIXMEDART: should we display constructors?
@@ -48528,31 +48803,35 @@ class _Utils {
     });
   }
 
-  static void _fillMethodMirrorProperty(LibraryMirror libraryMirror,
-        methodOwner, MethodMirror methodMirror, Symbol symbol,
-        bool accessorPropertiesOnly, _Property property) {
+  static void _fillMethodMirrorProperty(
+      LibraryMirror libraryMirror,
+      methodOwner,
+      MethodMirror methodMirror,
+      Symbol symbol,
+      bool accessorPropertiesOnly,
+      _Property property) {
     if (methodMirror.isRegularMethod) {
       property
-          ..value = new _MethodTrampoline(methodOwner, methodMirror, symbol)
-          ..isMethod = true;
+        ..value = new _MethodTrampoline(methodOwner, methodMirror, symbol)
+        ..isMethod = true;
     } else if (methodMirror.isGetter) {
       if (treatPropertyAsField(methodMirror, libraryMirror)) {
         try {
           property.value = methodOwner.getField(symbol).reflectee;
         } catch (e) {
           property
-              ..wasThrown = true
-              ..value = e;
+            ..wasThrown = true
+            ..value = e;
         }
       } else if (accessorPropertiesOnly) {
-        property.getter = new _GetterTrampoline(methodOwner,
-            methodMirror, symbol);
+        property.getter =
+            new _GetterTrampoline(methodOwner, methodMirror, symbol);
       }
     } else if (methodMirror.isSetter) {
       if (accessorPropertiesOnly &&
           !treatPropertyAsField(methodMirror, libraryMirror)) {
-        property.setter = new _SetterTrampoline(methodOwner,
-            methodMirror, MirrorSystem.getSymbol(property.name, libraryMirror));
+        property.setter = new _SetterTrampoline(methodOwner, methodMirror,
+            MirrorSystem.getSymbol(property.name, libraryMirror));
       }
       property.writable = true;
     }
@@ -48572,8 +48851,10 @@ class _Utils {
       ObjectMirror objectMirror,
       LibraryMirror libraryMirror,
       Map<Symbol, Mirror> declarations,
-      bool ownProperties, bool accessorPropertiesOnly,
-      bool hideFields, bool hideMethods,
+      bool ownProperties,
+      bool accessorPropertiesOnly,
+      bool hideFields,
+      bool hideMethods,
       Map<String, _Property> properties) {
     declarations.forEach((symbol, declaration) {
       if (declaration is TypedefMirror || declaration is ClassMirror) return;
@@ -48584,7 +48865,8 @@ class _Utils {
               treatPropertyAsField(declaration, libraryMirror));
       if ((isField && hideFields) || (hideMethods && !isField)) return;
       if (accessorPropertiesOnly) {
-        if (declaration is VariableMirror || declaration.isRegularMethod ||
+        if (declaration is VariableMirror ||
+            declaration.isRegularMethod ||
             isField) {
           return;
         }
@@ -48596,8 +48878,8 @@ class _Utils {
       var property = properties.putIfAbsent(name, () => new _Property(name));
       if (declaration is VariableMirror) {
         property
-            ..value = objectMirror.getField(symbol).reflectee
-            ..writable = !declaration.isFinal && !declaration.isConst;
+          ..value = objectMirror.getField(symbol).reflectee
+          ..writable = !declaration.isFinal && !declaration.isConst;
         return;
       }
       _fillMethodMirrorProperty(libraryMirror, objectMirror, declaration,
@@ -48612,15 +48894,17 @@ class _Utils {
   static List packageProperties(Map<String, _Property> properties) {
     var ret = [];
     for (var property in properties.values) {
-      ret.addAll([property.name,
-                  property.setter,
-                  property.getter,
-                  property.value,
-                  property.hasValue,
-                  property.writable,
-                  property.isMethod,
-                  property.isOwn,
-                  property.wasThrown]);
+      ret.addAll([
+        property.name,
+        property.setter,
+        property.getter,
+        property.value,
+        property.hasValue,
+        property.writable,
+        property.isMethod,
+        property.isOwn,
+        property.wasThrown
+      ]);
     }
     return ret;
   }
@@ -48639,9 +48923,10 @@ class _Utils {
         LibraryMirror library = classMirror.owner;
         if (!attemptedLibraries.contains(library)) {
           try {
-            return objectMirror.getField(
-                MirrorSystem.getSymbol(propertyName, library)).reflectee;
-          } catch (e) { }
+            return objectMirror
+                .getField(MirrorSystem.getSymbol(propertyName, library))
+                .reflectee;
+          } catch (e) {}
           attemptedLibraries.add(library);
         }
         classMirror = classMirror.superclass;
@@ -48649,8 +48934,9 @@ class _Utils {
       return null;
     }
     try {
-      return objectMirror.getField(
-          MirrorSystem.getSymbol(propertyName)).reflectee;
+      return objectMirror
+          .getField(MirrorSystem.getSymbol(propertyName))
+          .reflectee;
     } catch (e) {
       return null;
     }
@@ -48662,25 +48948,25 @@ class _Utils {
    */
   static List consoleApi(host) {
     return [
-        "inspect",
-        (o) {
-          js.JsNative.callMethod(host, "_inspect", [o]);
-          return o;
-        },
-        "dir",
-        window.console.dir,
-        "dirxml",
-        window.console.dirxml
-        // FIXME: add copy method.
-        ];
+      "inspect",
+      (o) {
+        js.JsNative.callMethod(host, "_inspect", [o]);
+        return o;
+      },
+      "dir",
+      window.console.dir,
+      "dirxml",
+      window.console.dirxml
+      // FIXME: add copy method.
+    ];
   }
 
   static List getMapKeyList(Map map) => map.keys.toList();
 
   static bool isNoSuchMethodError(obj) => obj is NoSuchMethodError;
 
-  static void register(Document document, String tag, Type type,
-      String extendsTagName) {
+  static void register(
+      Document document, String tag, Type type, String extendsTagName) {
     var nativeClass = _validateCustomType(type);
 
     if (extendsTagName == null) {
@@ -48694,70 +48980,90 @@ class _Utils {
   }
 
   static void _register(Document document, String tag, Type customType,
-    String extendsTagName) => _blink.Blink_Utils.register(document, tag, customType, extendsTagName);
+          String extendsTagName) =>
+      _blink.Blink_Utils.register(document, tag, customType, extendsTagName);
 
   static Element createElement(Document document, String tagName) =>
       _blink.Blink_Utils.createElement(document, tagName);
 }
 
-// TODO(jacobr): this seems busted. I believe we are actually
-// giving users real windows for opener, parent, top, etc.
-// Or worse, we are probaly returning a raw JSObject.
-class _DOMWindowCrossFrame extends DartHtmlDomObject implements
-    WindowBase {
-
+class _DOMWindowCrossFrame extends DartHtmlDomObject implements WindowBase {
   _DOMWindowCrossFrame.internal();
-  
-  static _createSafe(win) => _blink.Blink_Utils.setInstanceInterceptor(win, _DOMWindowCrossFrame);
+
+  static _createSafe(win) {
+    if (identical(win, window)) {
+      // The current Window object is the only window object that should not
+      // use _DOMWindowCrossFrame.
+      return window;
+    }
+    return win is _DOMWindowCrossFrame ? win : _blink.Blink_Utils.setInstanceInterceptor(win, _DOMWindowCrossFrame);
+  }
 
   // Fields.
-  HistoryBase get history => _blink.Blink_DOMWindowCrossFrame.get_history(this);
-  LocationBase get location => _blink.Blink_DOMWindowCrossFrame.get_location(this);
-  bool get closed => _blink.Blink_DOMWindowCrossFrame.get_closed(this);
-  WindowBase get opener => _blink.Blink_DOMWindowCrossFrame.get_opener(this);
-  WindowBase get parent => _blink.Blink_DOMWindowCrossFrame.get_parent(this);
-  WindowBase get top => _blink.Blink_DOMWindowCrossFrame.get_top(this);
+  HistoryBase get history {
+    var history =  _blink.BlinkWindow.instance.history_Getter_(this);
+    return history is _HistoryCrossFrame ? history : _blink.Blink_Utils.setInstanceInterceptor(history, _HistoryCrossFrame);
+  }
+
+  LocationBase get location {
+    var location = _blink.BlinkWindow.instance.location_Getter_(this);
+    return location is _LocationCrossFrame ? location : _blink.Blink_Utils.setInstanceInterceptor(location, _LocationCrossFrame);
+  }
+
+  bool get closed => _blink.BlinkWindow.instance.closed_Getter_(this);
+  WindowBase get opener => _convertNativeToDart_Window(_blink.BlinkWindow.instance.opener_Getter_(this));
+  WindowBase get parent => _convertNativeToDart_Window(_blink.BlinkWindow.instance.parent_Getter_(this));
+  WindowBase get top => _convertNativeToDart_Window(_blink.BlinkWindow.instance.top_Getter_(this));
 
   // Methods.
-  void close() => _blink.Blink_DOMWindowCrossFrame.close(this);
-  void postMessage(/*SerializedScriptValue*/ message, String targetOrigin, [List messagePorts]) =>
-      _blink.Blink_DOMWindowCrossFrame.postMessage(this,
-         convertDartToNative_SerializedScriptValue(message), targetOrigin, messagePorts);
+  void close() => _blink.BlinkWindow.instance.close_Callback_0_(this);
+  void postMessage(Object message, String targetOrigin, [List<MessagePort> transfer]) => _blink.BlinkWindow.instance.postMessage_Callback_3_(this, convertDartToNative_SerializedScriptValue(message), targetOrigin, transfer);
 
   // Implementation support.
   String get typeName => "Window";
 
   // TODO(efortuna): Remove this method. dartbug.com/16814
   Events get on => throw new UnsupportedError(
-    'You can only attach EventListeners to your own window.');
+      'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
-  void _addEventListener([String type, EventListener listener, bool useCapture])
-      => throw new UnsupportedError(
-    'You can only attach EventListeners to your own window.');
+  void _addEventListener(
+          [String type, EventListener listener, bool useCapture]) =>
+      throw new UnsupportedError(
+          'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
-  void addEventListener(String type, EventListener listener, [bool useCapture])
-      => throw new UnsupportedError(
-    'You can only attach EventListeners to your own window.');
+  void addEventListener(String type, EventListener listener,
+          [bool useCapture]) =>
+      throw new UnsupportedError(
+          'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
   bool dispatchEvent(Event event) => throw new UnsupportedError(
-    'You can only attach EventListeners to your own window.');
+      'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
-  void _removeEventListener([String type, EventListener listener,
-      bool useCapture]) => throw new UnsupportedError(
-    'You can only attach EventListeners to your own window.');
+  void _removeEventListener(
+          [String type, EventListener listener, bool useCapture]) =>
+      throw new UnsupportedError(
+          'You can only attach EventListeners to your own window.');
   // TODO(efortuna): Remove this method. dartbug.com/16814
   void removeEventListener(String type, EventListener listener,
-      [bool useCapture]) => throw new UnsupportedError(
-    'You can only attach EventListeners to your own window.');
+          [bool useCapture]) =>
+      throw new UnsupportedError(
+          'You can only attach EventListeners to your own window.');
 }
 
 class _HistoryCrossFrame extends DartHtmlDomObject implements HistoryBase {
   _HistoryCrossFrame.internal();
 
   // Methods.
-  void back() => _blink.Blink_HistoryCrossFrame.back(this);
-  void forward() => _blink.Blink_HistoryCrossFrame.forward(this);
-  void go(int distance) => _blink.Blink_HistoryCrossFrame.go(this, distance);
+  void back() => _blink.BlinkHistory.instance.back_Callback_0_(this);
+  void forward() => _blink.BlinkHistory.instance.forward_Callback_0_(this);
+  void go([int delta]) {
+    if (delta != null) {
+      _blink.BlinkHistory.instance.go_Callback_1_(this, delta);
+      return;
+    }
+    _blink.BlinkHistory.instance.go_Callback_0_(this);
+    return;
+  }
 
   // Implementation support.
   String get typeName => "History";
@@ -48767,7 +49073,7 @@ class _LocationCrossFrame extends DartHtmlDomObject implements LocationBase {
   _LocationCrossFrame.internal();
 
   // Fields.
-  set href(String h) => _blink.Blink_LocationCrossFrame.set_href(this, h);
+  set href(String value) => _blink.BlinkLocation.instance.href_Setter_(this, value);
 
   // Implementation support.
   String get typeName => "Location";
@@ -48790,8 +49096,9 @@ _makeSendPortFuture(spawnRequest) {
   return completer.future;
 }
 
-Future<SendPort> _spawnDomHelper(Function f) =>
-    _makeSendPortFuture((portId) { _Utils.spawnDomHelper(f, portId); });
+Future<SendPort> _spawnDomHelper(Function f) => _makeSendPortFuture((portId) {
+      _Utils.spawnDomHelper(f, portId);
+    });
 
 final Future<SendPort> __HELPER_ISOLATE_PORT =
     _spawnDomHelper(_helperIsolateMain);
@@ -48833,10 +49140,15 @@ _helperIsolateMain(originalSendPort) {
     if (cmd == _NEW_TIMER) {
       final duration = new Duration(milliseconds: msg[1]);
       bool periodic = msg[2];
-      ping() { replyTo.send(_TIMER_PING); };
-      _TIMER_REGISTRY[replyTo] = periodic ?
-          new Timer.periodic(duration, (_) { ping(); }) :
-          new Timer(duration, ping);
+      ping() {
+        replyTo.send(_TIMER_PING);
+      }
+      ;
+      _TIMER_REGISTRY[replyTo] = periodic
+          ? new Timer.periodic(duration, (_) {
+              ping();
+            })
+          : new Timer(duration, ping);
     } else if (cmd == _CANCEL_TIMER) {
       _TIMER_REGISTRY.remove(replyTo).cancel();
     } else if (cmd == _PRINT) {
@@ -48849,7 +49161,7 @@ _helperIsolateMain(originalSendPort) {
 
 final _printClosure = (s) => window.console.log(s);
 final _pureIsolatePrintClosure = (s) {
-    _sendToHelperIsolate([_PRINT, s], null);
+  _sendToHelperIsolate([_PRINT, s], null);
 };
 
 final _forwardingPrintClosure = _Utils.forwardingPrint;
@@ -48858,7 +49170,7 @@ final _uriBaseClosure = () => Uri.parse(window.location.href);
 
 final _pureIsolateUriBaseClosure = () {
   throw new UnimplementedError("Uri.base on a background isolate "
-                               "is not supported in the browser");
+      "is not supported in the browser");
 };
 
 class _Timer implements Timer {
@@ -48869,13 +49181,17 @@ class _Timer implements Timer {
   _Timer(int milliSeconds, void callback(Timer timer), bool repeating) {
     if (repeating) {
       _state = (window._setInterval(() {
-        callback(this);
-      }, milliSeconds) << 1) | _STATE_INTERVAL;
+                callback(this);
+              }, milliSeconds) <<
+              1) |
+          _STATE_INTERVAL;
     } else {
       _state = (window._setTimeout(() {
-        _state = null;
-        callback(this);
-      }, milliSeconds) << 1) | _STATE_TIMEOUT;
+                _state = null;
+                callback(this);
+              }, milliSeconds) <<
+              1) |
+          _STATE_TIMEOUT;
     }
   }
 
@@ -48895,8 +49211,8 @@ class _Timer implements Timer {
 
 get _timerFactoryClosure =>
     (int milliSeconds, void callback(Timer timer), bool repeating) {
-  return new _Timer(milliSeconds, callback, repeating);
-};
+      return new _Timer(milliSeconds, callback, repeating);
+    };
 
 class _PureIsolateTimer implements Timer {
   bool _isActive = true;
@@ -48936,7 +49252,7 @@ class _PureIsolateTimer implements Timer {
 
 get _pureIsolateTimerFactoryClosure =>
     ((int milliSeconds, void callback(Timer time), bool repeating) =>
-  new _PureIsolateTimer(milliSeconds, callback, repeating));
+        new _PureIsolateTimer(milliSeconds, callback, repeating));
 
 class _ScheduleImmediateHelper {
   MutationObserver _observer;
@@ -48975,13 +49291,12 @@ final _ScheduleImmediateHelper _scheduleImmediateHelper =
     new _ScheduleImmediateHelper();
 
 get _scheduleImmediateClosure => (void callback()) {
-  _scheduleImmediateHelper._schedule(callback);
-};
+      _scheduleImmediateHelper._schedule(callback);
+    };
 
 get _pureIsolateScheduleImmediateClosure => ((void callback()) =>
-  throw new UnimplementedError("scheduleMicrotask in background isolates "
-                               "are not supported in the browser"));
+    throw new UnimplementedError("scheduleMicrotask in background isolates "
+        "are not supported in the browser"));
 
 // Class for unsupported native browser 'DOM' objects.
-class _UnsupportedBrowserObject extends DartHtmlDomObject {
-}
+class _UnsupportedBrowserObject extends DartHtmlDomObject {}

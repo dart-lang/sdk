@@ -2364,7 +2364,8 @@ RawObject* Debugger::GetInstanceField(const Class& cls,
 
 RawObject* Debugger::GetStaticField(const Class& cls,
                                     const String& field_name) {
-  const Field& fld = Field::Handle(cls.LookupStaticField(field_name));
+  const Field& fld =
+      Field::Handle(cls.LookupStaticFieldAllowPrivate(field_name));
   if (!fld.IsNull()) {
     // Return the value in the field if it has been initialized already.
     const Instance& value = Instance::Handle(fld.StaticValue());

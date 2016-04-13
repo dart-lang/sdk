@@ -180,6 +180,7 @@ class Scanner : ValueObject {
 
   CharAtFunc CallCharAt() const { return char_at_func_; }
 
+  Thread* thread() const { return thread_; }
   Zone* zone() const { return zone_; }
 
   static void PrintTokens(const GrowableTokenStream& ts);
@@ -209,6 +210,7 @@ class Scanner : ValueObject {
 
   const CharAtFunc char_at_func_;
 
+  Thread* thread_;
   Zone* zone_;
 
   static KeywordTable keywords_[Token::kNumKeywords];

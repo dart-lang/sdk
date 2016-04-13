@@ -1620,6 +1620,16 @@ class ElementAnnotationImpl implements ElementAnnotation {
   static String _DEPRECATED_VARIABLE_NAME = "deprecated";
 
   /**
+   * The name of the class used to JS annotate an element.
+   */
+  static String _JS_CLASS_NAME = "JS";
+
+  /**
+   * The name of `js` library, used to define JS annotations.
+   */
+  static String _JS_LIB_NAME = "js";
+
+  /**
    * The name of `meta` library, used to define analysis annotations.
    */
   static String _META_LIB_NAME = "meta";
@@ -1706,6 +1716,11 @@ class ElementAnnotationImpl implements ElementAnnotation {
     }
     return false;
   }
+
+  @override
+  bool get isJS => element is ConstructorElement &&
+        element.enclosingElement.name == _JS_CLASS_NAME &&
+        element.library?.name == _JS_LIB_NAME;
 
   @override
   bool get isMustCallSuper =>
@@ -1916,6 +1931,16 @@ abstract class ElementImpl implements Element {
   bool get isDeprecated {
     for (ElementAnnotation annotation in metadata) {
       if (annotation.isDeprecated) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  bool get isJS {
+    for (ElementAnnotation annotation in metadata) {
+      if (annotation.isJS) {
         return true;
       }
     }
@@ -4103,6 +4128,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
 
   @override
   bool get isDeprecated => false;
+
+  @override
+  bool get isJS => false;
 
   @override
   bool get isOverride => false;

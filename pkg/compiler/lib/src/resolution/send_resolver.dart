@@ -20,9 +20,8 @@ abstract class DeclStructure<R, A> {
   DeclStructure(this.element);
 
   /// Calls the matching visit method on [visitor] with [node] and [arg].
-  R dispatch(SemanticDeclarationVisitor<R, A> visitor,
-             FunctionExpression node,
-             A arg);
+  R dispatch(
+      SemanticDeclarationVisitor<R, A> visitor, FunctionExpression node, A arg);
 }
 
 enum ConstructorKind {
@@ -38,9 +37,8 @@ class ConstructorDeclStructure<R, A> extends DeclStructure<R, A> {
   ConstructorDeclStructure(this.kind, ConstructorElement constructor)
       : super(constructor);
 
-  R dispatch(SemanticDeclarationVisitor<R, A> visitor,
-             FunctionExpression node,
-             A arg) {
+  R dispatch(SemanticDeclarationVisitor<R, A> visitor, FunctionExpression node,
+      A arg) {
     switch (kind) {
       case ConstructorKind.GENERATIVE:
         return visitor.visitGenerativeConstructorDeclaration(
@@ -54,8 +52,8 @@ class ConstructorDeclStructure<R, A> extends DeclStructure<R, A> {
       default:
         break;
     }
-    throw new SpannableAssertionFailure(node,
-        "Unhandled constructor declaration kind: ${kind}");
+    throw new SpannableAssertionFailure(
+        node, "Unhandled constructor declaration kind: ${kind}");
   }
 }
 
@@ -64,18 +62,14 @@ class RedirectingFactoryConstructorDeclStructure<R, A>
   InterfaceType redirectionTargetType;
   ConstructorElement redirectionTarget;
 
-  RedirectingFactoryConstructorDeclStructure(
-      ConstructorElement constructor,
-      this.redirectionTargetType,
-      this.redirectionTarget)
+  RedirectingFactoryConstructorDeclStructure(ConstructorElement constructor,
+      this.redirectionTargetType, this.redirectionTarget)
       : super(constructor);
 
-  R dispatch(SemanticDeclarationVisitor<R, A> visitor,
-             FunctionExpression node,
-             A arg) {
-    return visitor.visitRedirectingFactoryConstructorDeclaration(
-        node, element, node.parameters,
-        redirectionTargetType, redirectionTarget, arg);
+  R dispatch(SemanticDeclarationVisitor<R, A> visitor, FunctionExpression node,
+      A arg) {
+    return visitor.visitRedirectingFactoryConstructorDeclaration(node, element,
+        node.parameters, redirectionTargetType, redirectionTarget, arg);
   }
 }
 
@@ -96,16 +90,13 @@ enum FunctionKind {
   CLOSURE,
 }
 
-class FunctionDeclStructure<R, A>
-    extends DeclStructure<R, A> {
+class FunctionDeclStructure<R, A> extends DeclStructure<R, A> {
   final FunctionKind kind;
 
-  FunctionDeclStructure(this.kind, FunctionElement function)
-      : super(function);
+  FunctionDeclStructure(this.kind, FunctionElement function) : super(function);
 
-  R dispatch(SemanticDeclarationVisitor<R, A> visitor,
-             FunctionExpression node,
-             A arg) {
+  R dispatch(SemanticDeclarationVisitor<R, A> visitor, FunctionExpression node,
+      A arg) {
     switch (kind) {
       case FunctionKind.TOP_LEVEL_GETTER:
         return visitor.visitTopLevelGetterDeclaration(
@@ -126,8 +117,7 @@ class FunctionDeclStructure<R, A>
         return visitor.visitStaticFunctionDeclaration(
             node, element, node.parameters, node.body, arg);
       case FunctionKind.ABSTRACT_GETTER:
-        return visitor.visitAbstractGetterDeclaration(
-            node, element, arg);
+        return visitor.visitAbstractGetterDeclaration(node, element, arg);
       case FunctionKind.ABSTRACT_SETTER:
         return visitor.visitAbstractSetterDeclaration(
             node, element, node.parameters, arg);
@@ -282,8 +272,8 @@ abstract class DeclarationResolverMixin {
       if (optionalParameters != null) {
         bool isNamed = optionalParameters.beginToken.stringValue == '{';
         for (Node node in optionalParameters) {
-          list.add(computeParameterStructure(
-              node, index++, isRequired: false, isNamed: isNamed));
+          list.add(computeParameterStructure(node, index++,
+              isRequired: false, isNamed: isNamed));
         }
       } else {
         list.add(computeParameterStructure(node, index++));
@@ -293,8 +283,7 @@ abstract class DeclarationResolverMixin {
   }
 
   ParameterStructure computeParameterStructure(
-      VariableDefinitions definitions,
-      int index,
+      VariableDefinitions definitions, int index,
       {bool isRequired: true, bool isNamed: false}) {
     Node node = definitions.definitions.nodes.single;
     ParameterElement element = elements[node];
@@ -303,8 +292,7 @@ abstract class DeclarationResolverMixin {
           node, "No parameter structure for $node.");
     }
     if (isRequired) {
-      return new RequiredParameterStructure(
-          definitions, node, element, index);
+      return new RequiredParameterStructure(definitions, node, element, index);
     } else {
       // TODO(johnniwinther): Should we differentiate between implicit (null)
       // and explicit values? What about optional parameters on redirecting
@@ -319,11 +307,10 @@ abstract class DeclarationResolverMixin {
     }
   }
 
-  void computeVariableStructures(
-      VariableDefinitions definitions,
+  void computeVariableStructures(VariableDefinitions definitions,
       void callback(Node node, VariableStructure structure)) {
     for (Node node in definitions.definitions) {
-       callback(definitions, computeVariableStructure(node));
+      callback(definitions, computeVariableStructure(node));
     }
   }
 

@@ -7,22 +7,14 @@ library universe;
 import 'dart:collection';
 
 import '../common.dart';
-import '../compiler.dart' show
-    Compiler;
+import '../compiler.dart' show Compiler;
 import '../elements/elements.dart';
 import '../dart_types.dart';
 import '../util/util.dart';
-import '../world.dart' show
-    ClassWorld,
-    World;
+import '../world.dart' show ClassWorld, World;
 
-import 'selector.dart' show
-    Selector;
-import 'use.dart' show
-    DynamicUse,
-    DynamicUseKind,
-    StaticUse,
-    StaticUseKind;
+import 'selector.dart' show Selector;
+import 'use.dart' show DynamicUse, DynamicUseKind, StaticUse, StaticUseKind;
 
 /// The known constraint on receiver for a dynamic call site.
 ///
@@ -227,9 +219,9 @@ class Universe {
   // subclass and through subtype instantiated types/classes.
   // TODO(johnniwinther): Support unknown type arguments for generic types.
   void registerTypeInstantiation(InterfaceType type,
-                                 {bool byMirrors: false,
-                                  bool isNative: false,
-                                  void onImplemented(ClassElement cls)}) {
+      {bool byMirrors: false,
+      bool isNative: false,
+      void onImplemented(ClassElement cls)}) {
     _instantiatedTypes.add(type);
     ClassElement cls = type.element;
     if (!cls.isAbstract
@@ -237,11 +229,13 @@ class Universe {
         // classes; a native abstract class may have non-abstract subclasses
         // not declared to the program.  Instances of these classes are
         // indistinguishable from the abstract class.
-        || isNative
+        ||
+        isNative
         // Likewise, if this registration comes from the mirror system,
         // all bets are off.
         // TODO(herhut): Track classes required by mirrors seperately.
-        || byMirrors) {
+        ||
+        byMirrors) {
       _directlyInstantiatedClasses.add(cls);
     }
 
@@ -258,8 +252,7 @@ class Universe {
   }
 
   bool _hasMatchingSelector(Map<Selector, SelectorConstraints> selectors,
-                            Element member,
-                            World world) {
+      Element member, World world) {
     if (selectors == null) return false;
     for (Selector selector in selectors.keys) {
       if (selector.appliesUnnamed(member, world)) {
@@ -296,16 +289,15 @@ class Universe {
     }
   }
 
-  bool _registerNewSelector(
-      DynamicUse dynamicUse,
+  bool _registerNewSelector(DynamicUse dynamicUse,
       Map<String, Map<Selector, SelectorConstraints>> selectorMap) {
     Selector selector = dynamicUse.selector;
     String name = selector.name;
     ReceiverConstraint mask = dynamicUse.mask;
     Map<Selector, SelectorConstraints> selectors = selectorMap.putIfAbsent(
         name, () => new Maplet<Selector, SelectorConstraints>());
-    UniverseSelectorConstraints constraints = selectors.putIfAbsent(
-        selector, () {
+    UniverseSelectorConstraints constraints =
+        selectors.putIfAbsent(selector, () {
       return selectorConstraintsStrategy.createSelectorConstraints(selector);
     });
     return constraints.addReceiverConstraint(mask);
@@ -389,12 +381,9 @@ class Universe {
     fieldGetters.remove(element);
     _directlyInstantiatedClasses.remove(element);
     if (element is ClassElement) {
-      assert(invariant(
-          element, element.thisType.isRaw,
+      assert(invariant(element, element.thisType.isRaw,
           message: 'Generic classes not supported (${element.thisType}).'));
-      _instantiatedTypes
-          ..remove(element.rawType)
-          ..remove(element.thisType);
+      _instantiatedTypes..remove(element.rawType)..remove(element.thisType);
     }
   }
 
@@ -404,7 +393,7 @@ class Universe {
     // Return new list to guard against concurrent modifications.
     return new List<LocalFunctionElement>.from(
         allClosures.where((LocalFunctionElement closure) {
-          return closure.executableContext == element;
-        }));
+      return closure.executableContext == element;
+    }));
   }
 }

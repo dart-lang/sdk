@@ -8,8 +8,7 @@
 library dart2js.helpers;
 
 import '../common.dart';
-import '../diagnostics/invariant.dart' show
-    DEBUG_MODE;
+import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../util/util.dart';
 
 import 'trace.dart';
@@ -36,6 +35,7 @@ void enableDebugMode() {
 class _DebugIndentation extends Indentation {
   final String indentationUnit = " ";
 }
+
 _DebugIndentation _indentation = new _DebugIndentation();
 
 /// Function signature of [debugPrint].
@@ -79,9 +79,8 @@ debugBreak() {
 }
 
 /// Function signature of [reportHere].
-typedef ReportHere(DiagnosticReporter reporter,
-                   Spannable node,
-                   String debugMessage);
+typedef ReportHere(
+    DiagnosticReporter reporter, Spannable node, String debugMessage);
 
 /// Print a message with a source location.
 ReportHere get reportHere {
@@ -91,8 +90,8 @@ ReportHere get reportHere {
 
 /// Implementation of [reportHere]
 _reportHere(DiagnosticReporter reporter, Spannable node, String debugMessage) {
-  reporter.reportInfo(node,
-      MessageKind.GENERIC, {'text': 'HERE: $debugMessage'});
+  reporter
+      .reportInfo(node, MessageKind.GENERIC, {'text': 'HERE: $debugMessage'});
 }
 
 /// Set of tracked objects used by [track] and [ifTracked].

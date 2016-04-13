@@ -63,6 +63,7 @@ DECLARE_FLAG(bool, compiler_stats);
 DECLARE_FLAG(int, max_deoptimization_counter_threshold);
 DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, print_flow_graph_optimized);
+DECLARE_FLAG(bool, support_externalizable_strings);
 DECLARE_FLAG(bool, verify_compiler);
 
 // Quick access to the current zone.
@@ -590,6 +591,7 @@ class CallSiteInliner : public ValueObject {
         inlined_recursive_call_ = false;
       }
     }
+
     collected_call_sites_ = NULL;
     inlining_call_sites_ = NULL;
   }
@@ -643,6 +645,15 @@ class CallSiteInliner : public ValueObject {
     // if a function was compiled.
     if (!FLAG_precompiled_mode && !function.was_compiled()) {
       TRACE_INLINING(THR_Print("     Bailout: not compiled yet\n"));
+      PRINT_INLINING_TREE("Not compiled",
+          &call_data->caller, &function, call_data->call);
+      return false;
+    }
+
+    // Type feedback may have been cleared for this function (ClearICDataArray),
+    // but we need it for inlining.
+    if (!FLAG_precompiled_mode && (function.ic_data_array() == Array::null())) {
+      TRACE_INLINING(THR_Print("     Bailout: type feedback cleared\n"));
       PRINT_INLINING_TREE("Not compiled",
           &call_data->caller, &function, call_data->call);
       return false;
@@ -721,7 +732,8 @@ class CallSiteInliner : public ValueObject {
                    isolate->loading_invalidation_gen())) {
             // Loading occured while parsing. We need to abort here because
             // state changed while compiling.
-            Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId);
+            Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId,
+                "Loading occured while parsing in inliner");
           }
         }
 
@@ -732,7 +744,8 @@ class CallSiteInliner : public ValueObject {
         function.RestoreICDataMap(ic_data_array, clone_ic_data);
         if (Compiler::IsBackgroundCompilation() &&
             (function.ic_data_array() == Array::null())) {
-          Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId);
+          Compiler::AbortBackgroundCompilation(Thread::kNoDeoptId,
+              "ICData cleared while inlining");
         }
 
         // Build the callee graph.
@@ -1205,7 +1218,7 @@ class CallSiteInliner : public ValueObject {
       PolymorphicInstanceCallInstr* call = call_info[call_idx].call;
       if (call->with_checks()) {
         // PolymorphicInliner introduces deoptimization paths.
-        if (!FLAG_polymorphic_with_deopt) {
+        if (!call->complete() && !FLAG_polymorphic_with_deopt) {
           TRACE_INLINING(THR_Print(
               "  => %s\n     Bailout: call with checks\n",
               call->instance_call()->function_name().ToCString()));
@@ -1622,18 +1635,21 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
     if ((i == (inlined_variants_.length() - 1)) &&
         non_inlined_variants_.is_empty()) {
       // If it is the last variant use a check class id instruction which can
-      // deoptimize, followed unconditionally by the body.
-      RedefinitionInstr* cid_redefinition =
-          new RedefinitionInstr(new(Z) Value(load_cid));
-      cid_redefinition->set_ssa_temp_index(
-          owner_->caller_graph()->alloc_ssa_temp_index());
-      cursor = AppendInstruction(cursor, cid_redefinition);
-      CheckClassIdInstr* check_class_id = new(Z) CheckClassIdInstr(
-          new(Z) Value(cid_redefinition),
-          inlined_variants_[i].cid,
-          call_->deopt_id());
-      check_class_id->InheritDeoptTarget(zone(), call_);
-      cursor = AppendInstruction(cursor, check_class_id);
+      // deoptimize, followed unconditionally by the body. Omit the check if
+      // we know that we have covered all possible classes.
+      if (!call_->complete()) {
+        RedefinitionInstr* cid_redefinition =
+            new RedefinitionInstr(new(Z) Value(load_cid));
+        cid_redefinition->set_ssa_temp_index(
+            owner_->caller_graph()->alloc_ssa_temp_index());
+        cursor = AppendInstruction(cursor, cid_redefinition);
+        CheckClassIdInstr* check_class_id = new(Z) CheckClassIdInstr(
+            new(Z) Value(cid_redefinition),
+            inlined_variants_[i].cid,
+            call_->deopt_id());
+        check_class_id->InheritDeoptTarget(zone(), call_);
+        cursor = AppendInstruction(cursor, check_class_id);
+      }
 
       // The next instruction is the first instruction of the inlined body.
       // Handle the two possible cases (unshared and shared subsequent
@@ -1766,7 +1782,8 @@ TargetEntryInstr* PolymorphicInliner::BuildDecisionGraph() {
     PolymorphicInstanceCallInstr* fallback_call =
         new PolymorphicInstanceCallInstr(call_->instance_call(),
                                          new_checks,
-                                         true);  // With checks.
+                                         /* with_checks = */ true,
+                                         call_->complete());
     fallback_call->set_ssa_temp_index(
         owner_->caller_graph()->alloc_ssa_temp_index());
     fallback_call->InheritDeoptTarget(zone(), call_);
@@ -2773,6 +2790,7 @@ static Definition* PrepareInlineStringIndexOp(
       Type::ZoneHandle(Z, Type::SmiType()),
       str->token_pos());
   length->set_result_cid(kSmiCid);
+  length->set_is_immutable(!FLAG_support_externalizable_strings);
   length->set_recognized_kind(MethodRecognizer::kStringBaseLength);
 
   cursor = flow_graph->AppendTo(cursor, length, NULL, FlowGraph::kValue);
@@ -2861,6 +2879,11 @@ bool FlowGraphInliner::TryInlineRecognizedMethod(FlowGraph* flow_graph,
                                                  const ICData& ic_data,
                                                  TargetEntryInstr** entry,
                                                  Definition** last) {
+  if (FLAG_precompiled_mode) {
+    // The graphs generated below include deopts.
+    return false;
+  }
+
   ICData& value_check = ICData::ZoneHandle(Z);
   MethodRecognizer::Kind kind = MethodRecognizer::RecognizeKind(target);
   switch (kind) {

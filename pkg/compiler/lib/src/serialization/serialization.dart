@@ -27,7 +27,7 @@ class ObjectEncoder extends AbstractEncoder<Key> {
   /// Creates an [ObjectEncoder] in the scope of [serializer] that uses [map]
   /// as its internal storage.
   ObjectEncoder(Serializer serializer, Map<dynamic, Value> map)
-        : super(serializer, map);
+      : super(serializer, map);
 
   String get _name => 'Object';
 }
@@ -97,7 +97,6 @@ abstract class AbstractEncoder<K> {
     _map[key] = value;
   }
 
-
   /// Maps the [key] entry to the enum [value] in the encoded object.
   void setEnum(K key, var value) {
     _checkKey(key);
@@ -127,8 +126,8 @@ abstract class AbstractEncoder<K> {
   void setElements(K key, Iterable<Element> elements) {
     _checkKey(key);
     if (elements.isNotEmpty) {
-      _map[key] = new ListValue(
-          elements.map(_serializer.createElementValue).toList());
+      _map[key] =
+          new ListValue(elements.map(_serializer.createElementValue).toList());
     }
   }
 
@@ -252,8 +251,7 @@ abstract class AbstractEncoder<K> {
 class ObjectDecoder extends AbstractDecoder<Key> {
   /// Creates an [ObjectDecoder] that decodes [map] into deserialized values
   /// using [deserializer] to create canonicalized values.
-  ObjectDecoder(Deserializer deserializer, Map map)
-      : super(deserializer, map);
+  ObjectDecoder(Deserializer deserializer, Map map) : super(deserializer, map);
 
   @override
   _getKeyValue(Key key) => _deserializer.decoder.getObjectPropertyValue(key);
@@ -695,7 +693,7 @@ class Serializer {
           ObjectEncoder encoder = new ObjectEncoder(this, dataObject.map);
           encoder.setUri(Key.URI, library.canonicalUri, library.canonicalUri);
         } else if (element.isStatic) {
-          Value classId =_getElementId(element.enclosingClass);
+          Value classId = _getElementId(element.enclosingClass);
           _elementMap[element] = dataObject = new DataObject(
               new IntValue(_elementMap.length),
               new EnumValue(SerializedElementKind.EXTERNAL_STATIC_MEMBER));
@@ -703,7 +701,7 @@ class Serializer {
           encoder.setValue(Key.CLASS, classId);
           encoder.setString(Key.NAME, element.name);
         } else if (element.isConstructor) {
-          Value classId =_getElementId(element.enclosingClass);
+          Value classId = _getElementId(element.enclosingClass);
           _elementMap[element] = dataObject = new DataObject(
               new IntValue(_elementMap.length),
               new EnumValue(SerializedElementKind.EXTERNAL_CONSTRUCTOR));
@@ -711,7 +709,7 @@ class Serializer {
           encoder.setValue(Key.CLASS, classId);
           encoder.setString(Key.NAME, element.name);
         } else {
-          Value libraryId =_getElementId(element.library);
+          Value libraryId = _getElementId(element.library);
           _elementMap[element] = dataObject = new DataObject(
               new IntValue(_elementMap.length),
               new EnumValue(SerializedElementKind.EXTERNAL_LIBRARY_MEMBER));
@@ -780,8 +778,8 @@ class Serializer {
 
   /// Encodes [constant] into the [ObjectValue] of [dataObject].
   void _encodeConstant(ConstantExpression constant, DataObject dataObject) {
-    const ConstantSerializer().visit(constant,
-        new ObjectEncoder(this, dataObject.map));
+    const ConstantSerializer()
+        .visit(constant, new ObjectEncoder(this, dataObject.map));
   }
 
   /// Creates the [ConstantValue] for [constant].
@@ -997,7 +995,7 @@ class Deserializer {
       // this case.
       for (DeserializerPlugin plugin in plugins) {
         plugin.onElement(element,
-          (String tag) => pluginData?.getObject(tag, isOptional: true));
+            (String tag) => pluginData?.getObject(tag, isOptional: true));
       }
     }
     return element;

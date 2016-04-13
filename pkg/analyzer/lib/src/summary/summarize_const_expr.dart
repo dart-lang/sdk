@@ -271,12 +271,12 @@ abstract class AbstractConstExprSerializer {
     } else if (expr is AsExpression) {
       isValidConst = false;
       _serialize(expr.expression);
-      _serialize(expr.type.name);
+      references.add(serializeType(expr.type));
       operations.add(UnlinkedConstOperation.typeCast);
     } else if (expr is IsExpression) {
       isValidConst = false;
       _serialize(expr.expression);
-      _serialize(expr.type.name);
+      references.add(serializeType(expr.type));
       operations.add(UnlinkedConstOperation.typeCheck);
     } else if (expr is ThrowExpression) {
       isValidConst = false;

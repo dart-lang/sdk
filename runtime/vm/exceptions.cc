@@ -270,7 +270,8 @@ static RawField* LookupStacktraceField(const Instance& instance) {
   AbstractType& type = AbstractType::Handle(zone, AbstractType::null());
   while (true) {
     if (test_class.raw() == error_class.raw()) {
-      return error_class.LookupInstanceField(Symbols::_stackTrace());
+      return error_class.LookupInstanceFieldAllowPrivate(
+          Symbols::_stackTrace());
     }
     type = test_class.super_type();
     if (type.IsNull()) return Field::null();
@@ -419,7 +420,10 @@ RawScript* Exceptions::GetCallerScript(DartFrameIterator* iterator) {
 // TODO(hausner): Rename this NewCoreInstance to call out the fact that
 // the class name is resolved in the core library implicitly?
 RawInstance* Exceptions::NewInstance(const char* class_name) {
-  const String& cls_name = String::Handle(Symbols::New(class_name));
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  const String& cls_name = String::Handle(zone,
+                                          Symbols::New(thread, class_name));
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
   // No ambiguity error expected: passing NULL.
   Class& cls = Class::Handle(core_lib.LookupClass(cls_name));
@@ -459,7 +463,8 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
   args.SetAt(2, Smi::Handle(zone, Smi::New(column)));
 
   // Construct '_errorMsg'.
-  GrowableHandlePtrArray<const String> pieces(zone, 20);
+  const GrowableObjectArray& pieces = GrowableObjectArray::Handle(zone,
+      GrowableObjectArray::New(20));
 
   // Print bound error first, if any.
   if (!bound_error_msg.IsNull() && (bound_error_msg.Length() > 0)) {
@@ -472,7 +477,7 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
     const LanguageError& error = LanguageError::Handle(zone, dst_type.error());
     if (!error.IsNull()) {
       // Print the embedded error only.
-      pieces.Add(String::Handle(zone, Symbols::New(error.ToErrorCString())));
+      pieces.Add(String::Handle(zone, String::New(error.ToErrorCString())));
       pieces.Add(Symbols::NewLine());
     } else {
       // Describe the type error.
@@ -514,8 +519,8 @@ void Exceptions::CreateAndThrowTypeError(TokenPosition location,
       }
     }
   }
-  const String& error_msg =
-      String::Handle(zone, Symbols::FromConcatAll(pieces));
+  const Array& arr = Array::Handle(zone, Array::MakeArray(pieces));
+  const String& error_msg = String::Handle(zone, String::ConcatAll(arr));
   args.SetAt(3, error_msg);
 
   // Type errors in the core library may be difficult to diagnose.

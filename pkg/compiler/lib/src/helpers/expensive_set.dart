@@ -10,7 +10,6 @@ import 'dart:collection';
  * hash set, but it uses 10 times more memory (by default).
  */
 class ExpensiveSet<E> extends IterableBase<E> implements Set<E> {
-
   final List _sets;
 
   ExpensiveSet([int copies = 10]) : _sets = new List(copies) {

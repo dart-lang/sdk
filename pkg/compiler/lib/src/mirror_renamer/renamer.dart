@@ -40,10 +40,10 @@ class MirrorRenamerImpl implements MirrorRenamer {
 
   MirrorRenamerImpl(this.compiler, this.backend, LibraryElement library)
       : this.helperLibrary = library,
-        getNameFunction = library.find(
-            MirrorRenamerImpl.MIRROR_HELPER_GET_NAME_FUNCTION),
-        symbolsMapVariable = library.find(
-            MirrorRenamerImpl.MIRROR_HELPER_SYMBOLS_MAP_NAME);
+        getNameFunction =
+            library.find(MirrorRenamerImpl.MIRROR_HELPER_GET_NAME_FUNCTION),
+        symbolsMapVariable =
+            library.find(MirrorRenamerImpl.MIRROR_HELPER_SYMBOLS_MAP_NAME);
 
   bool isMirrorHelperLibrary(LibraryElement element) {
     return element == helperLibrary;
@@ -67,7 +67,7 @@ class MirrorRenamerImpl implements MirrorRenamer {
    * contain all the toplevel ast nodes that will be emitted in the output.
    */
   void addRenames(Map<Node, String> renames, List<Node> topLevelNodes,
-                  PlaceholderCollector placeholderCollector) {
+      PlaceholderCollector placeholderCollector) {
     // Right now we only support instances of MirrorSystem.getName,
     // hence if there are no occurence of these we don't do anything.
     if (mirrorSystemGetNameNodes.isEmpty) {

@@ -31,7 +31,6 @@ abstract class TreeElementMixin {
 ///
 /// This class is the superclass of all AST nodes.
 abstract class NullTreeElementMixin implements TreeElementMixin, Spannable {
-
   // Deliberately using [Object] here to thwart code completion.
   // You're not really supposed to access this field anyways.
   Object get _element => null;

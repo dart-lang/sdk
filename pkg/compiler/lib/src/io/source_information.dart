@@ -5,14 +5,9 @@
 library dart2js.source_information;
 
 import '../common.dart';
-import '../elements/elements.dart' show
-    AstElement,
-    LocalElement;
-import '../tree/tree.dart' show
-    Node,
-    Send;
-import '../js/js.dart' show
-    JavaScriptNodeSourceInformation;
+import '../elements/elements.dart' show AstElement, LocalElement;
+import '../tree/tree.dart' show Node, Send;
+import '../js/js.dart' show JavaScriptNodeSourceInformation;
 import 'source_file.dart';
 
 /// Interface for passing source information, for instance for use in source
@@ -181,16 +176,16 @@ abstract class SourceLocation {
 
   int get hashCode {
     return sourceUri.hashCode * 17 +
-           offset.hashCode * 17 +
-           sourceName.hashCode * 23;
+        offset.hashCode * 17 +
+        sourceName.hashCode * 23;
   }
 
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! SourceLocation) return false;
     return sourceUri == other.sourceUri &&
-           offset == other.offset &&
-           sourceName == other.sourceName;
+        offset == other.offset &&
+        sourceName == other.sourceName;
   }
 
   String get shortText {

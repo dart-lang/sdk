@@ -21,7 +21,8 @@ DECLARE_FLAG(bool, show_invisible_frames);
 static void DumpFunction(const Library& lib,
                          const char* cname,
                          const char* fname) {
-  const String& classname = String::Handle(Symbols::New(cname));
+  const String& classname = String::Handle(Symbols::New(Thread::Current(),
+                                                        cname));
   String& funcname = String::Handle(String::New(fname));
 
   bool retval;
@@ -56,7 +57,8 @@ void CheckField(const Library& lib,
                 const char* field_name,
                 bool expect_static,
                 bool is_final) {
-  const String& classname = String::Handle(Symbols::New(class_name));
+  const String& classname = String::Handle(Symbols::New(Thread::Current(),
+                                                        class_name));
   Class& cls = Class::Handle(lib.LookupClass(classname));
   EXPECT(!cls.IsNull());
 
@@ -65,7 +67,7 @@ void CheckField(const Library& lib,
   Function& function = Function::Handle();
   Field& field = Field::Handle();
   if (expect_static) {
-    field ^= cls.LookupStaticField(fieldname);
+    field ^= cls.LookupStaticFieldAllowPrivate(fieldname);
     functionname ^= Field::GetterName(fieldname);
     function ^= cls.LookupStaticFunction(functionname);
     EXPECT(function.IsNull());
@@ -73,7 +75,7 @@ void CheckField(const Library& lib,
     function ^= cls.LookupStaticFunction(functionname);
     EXPECT(function.IsNull());
   } else {
-    field ^= cls.LookupInstanceField(fieldname);
+    field ^= cls.LookupInstanceFieldAllowPrivate(fieldname);
     functionname ^= Field::GetterName(fieldname);
     function ^= cls.LookupDynamicFunction(functionname);
     EXPECT(!function.IsNull());
@@ -91,7 +93,8 @@ void CheckFunction(const Library& lib,
                    const char* class_name,
                    const char* function_name,
                    bool expect_static) {
-  const String& classname = String::Handle(Symbols::New(class_name));
+  const String& classname = String::Handle(Symbols::New(Thread::Current(),
+                                                        class_name));
   Class& cls = Class::Handle(lib.LookupClass(classname));
   EXPECT(!cls.IsNull());
 

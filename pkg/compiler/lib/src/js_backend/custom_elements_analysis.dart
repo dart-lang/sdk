@@ -120,7 +120,6 @@ class CustomElementsAnalysis {
       codegenJoin.computeEscapingConstructors(classElement);
 }
 
-
 class CustomElementsAnalysisJoin {
   final JavaScriptBackend backend;
   Compiler get compiler => backend.compiler;
@@ -200,8 +199,7 @@ class CustomElementsAnalysisJoin {
       }
     }
     classElement.forEachMember(selectGenerativeConstructors,
-        includeBackendMembers: false,
-        includeSuperAndInjectedMembers: false);
+        includeBackendMembers: false, includeSuperAndInjectedMembers: false);
     return result;
   }
 }

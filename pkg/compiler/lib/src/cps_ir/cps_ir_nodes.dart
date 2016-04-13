@@ -423,14 +423,9 @@ class FunctionDefinition extends InteriorNode {
   final SourceInformation sourceInformation;
   Expression body;
 
-  FunctionDefinition(
-      this.element,
-      this.receiverParameter,
-      this.parameters,
-      this.returnContinuation,
-      this.body,
-      {this.interceptorParameter,
-       this.sourceInformation});
+  FunctionDefinition(this.element, this.receiverParameter, this.parameters,
+      this.returnContinuation, this.body,
+      {this.interceptorParameter, this.sourceInformation});
 
   accept(BlockVisitor visitor) => visitor.visitFunctionDefinition(this);
 
@@ -568,8 +563,8 @@ class InvokeMethod extends InvocationPrimitive {
   InvokeMethod(
       Primitive receiver, this.selector, this.mask, List<Primitive> arguments,
       {this.sourceInformation,
-       CallingConvention callingConvention,
-       Primitive interceptor})
+      CallingConvention callingConvention,
+      Primitive interceptor})
       : this.receiverRef = new Reference<Primitive>(receiver),
         this.argumentRefs = _referenceList(arguments),
         this.interceptorRef = _optionalReference(interceptor),
@@ -1144,9 +1139,7 @@ class SetMutable extends Primitive {
   MutableVariable get variable => variableRef.definition;
   Primitive get value => valueRef.definition;
 
-  SetMutable(
-      MutableVariable variable,
-      Primitive value,
+  SetMutable(MutableVariable variable, Primitive value,
       {this.sourceInformation})
       : this.variableRef = new Reference<MutableVariable>(variable),
         this.valueRef = new Reference<Primitive>(value);
@@ -1181,11 +1174,8 @@ class GetField extends Primitive {
 
   Primitive get object => objectRef.definition;
 
-  GetField(
-      Primitive object,
-      this.field,
-      {this.sourceInformation,
-       this.isFinal: false})
+  GetField(Primitive object, this.field,
+      {this.sourceInformation, this.isFinal: false})
       : this.objectRef = new Reference<Primitive>(object);
 
   accept(Visitor visitor) => visitor.visitGetField(this);
@@ -1213,10 +1203,7 @@ class SetField extends Primitive {
   Primitive get object => objectRef.definition;
   Primitive get value => valueRef.definition;
 
-  SetField(
-      Primitive object,
-      this.field,
-      Primitive value,
+  SetField(Primitive object, this.field, Primitive value,
       {this.sourceInformation})
       : this.objectRef = new Reference<Primitive>(object),
         this.valueRef = new Reference<Primitive>(value);
@@ -1548,12 +1535,8 @@ class ForeignCode extends UnsafePrimitive {
   Primitive argument(int n) => argumentRefs[n].definition;
   Iterable<Primitive> get arguments => _dereferenceList(argumentRefs);
 
-  ForeignCode(
-      this.codeTemplate,
-      this.storedType,
-      List<Primitive> arguments,
-      this.nativeBehavior,
-      this.sourceInformation,
+  ForeignCode(this.codeTemplate, this.storedType, List<Primitive> arguments,
+      this.nativeBehavior, this.sourceInformation,
       {this.dependency})
       : this.argumentRefs = _referenceList(arguments) {
     effects = Effects.from(nativeBehavior.sideEffects);
@@ -2084,10 +2067,7 @@ class Branch extends TailExpression {
   /// boolean.
   bool isStrictCheck;
 
-  Branch(
-      Primitive condition,
-      Continuation trueCont,
-      Continuation falseCont,
+  Branch(Primitive condition, Continuation trueCont, Continuation falseCont,
       this.sourceInformation,
       {bool strict})
       : this.conditionRef = new Reference<Primitive>(condition),
@@ -2097,18 +2077,12 @@ class Branch extends TailExpression {
     assert(strict != null);
   }
 
-  Branch.strict(
-      Primitive condition,
-      Continuation trueCont,
-      Continuation falseCont,
-      SourceInformation sourceInformation)
+  Branch.strict(Primitive condition, Continuation trueCont,
+      Continuation falseCont, SourceInformation sourceInformation)
       : this(condition, trueCont, falseCont, sourceInformation, strict: true);
 
-  Branch.loose(
-      Primitive condition,
-      Continuation trueCont,
-      Continuation falseCont,
-      SourceInformation sourceInformation)
+  Branch.loose(Primitive condition, Continuation trueCont,
+      Continuation falseCont, SourceInformation sourceInformation)
       : this(condition, trueCont, falseCont, sourceInformation, strict: false);
 
   accept(BlockVisitor visitor) => visitor.visitBranch(this);
@@ -2888,8 +2862,8 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
   }
 
   Definition visitGetMutable(GetMutable node) {
-    return new GetMutable(
-        getCopy(node.variableRef), sourceInformation: node.sourceInformation);
+    return new GetMutable(getCopy(node.variableRef),
+        sourceInformation: node.sourceInformation);
   }
 
   Definition visitParameter(Parameter node) {
@@ -3004,8 +2978,7 @@ class DefinitionCopyingVisitor extends Visitor<Definition> {
 
   Definition visitForeignCode(ForeignCode node) {
     return new ForeignCode(node.codeTemplate, node.storedType,
-        getList(node.argumentRefs), node.nativeBehavior,
-        node.sourceInformation,
+        getList(node.argumentRefs), node.nativeBehavior, node.sourceInformation,
         dependency: node.dependency);
   }
 }

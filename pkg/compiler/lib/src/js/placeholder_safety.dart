@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 library js.safety;
 
 import "js.dart" as js;
@@ -29,8 +28,8 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
   // exceptions. The possible values of expressions are represented by
   // integers. Small non-negative integers 0, 1, 2, ... represent the values of
   // the placeholders. Other values are:
-  static const int NONNULL_VALUE = -1;  // Unknown but not null.
-  static const int UNKNOWN_VALUE = -2;  // Unknown and might be null.
+  static const int NONNULL_VALUE = -1; // Unknown but not null.
+  static const int UNKNOWN_VALUE = -2; // Unknown and might be null.
 
   PlaceholderSafetyAnalysis._(this.isNullableInput);
 
@@ -147,14 +146,14 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
       safe = false;
       return leftToRight();
     }
-    
+
     // Assignment operators dereference the LHS before evaluating the RHS.
     if (node.op != null) return leftToRight();
 
     // Assignment (1) evaluates the LHS as a Reference `lval`, (2) evaluates the
     // RHS as a value, (3) dereferences the `lval` in PutValue.
     if (left is js.VariableReference) {
-      int value = visit(right); 
+      int value = visit(right);
       // Assignment could change an observed global or cause a ReferenceError.
       safe = false;
       return value;
@@ -213,7 +212,7 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
       case "|":
         int left = visit(node.left);
         int right = visit(node.right);
-        return NONNULL_VALUE;  // Number, String, Boolean.
+        return NONNULL_VALUE; // Number, String, Boolean.
 
       case ',':
         int left = visit(node.left);
@@ -258,7 +257,7 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
       // "typeof a" first evaluates to a Reference. If the Reference is to a
       // variable that is not present, "undefined" is returned without
       // dereferencing.
-      if (node.argument is js.VariableUse) return NONNULL_VALUE;  // A string.
+      if (node.argument is js.VariableUse) return NONNULL_VALUE; // A string.
     }
 
     visit(node.argument);
@@ -273,14 +272,14 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
         return NONNULL_VALUE;
 
       case 'typeof':
-        return NONNULL_VALUE;  // Always a string.
+        return NONNULL_VALUE; // Always a string.
 
       case 'void':
         return UNKNOWN_VALUE;
 
       case '--':
       case '++':
-        return NONNULL_VALUE;  // Always a number.
+        return NONNULL_VALUE; // Always a number.
 
       default:
         safe = false;
@@ -291,7 +290,7 @@ class PlaceholderSafetyAnalysis extends js.BaseVisitor<int> {
   int visitPostfix(js.Postfix node) {
     assert(node.op == '--' || node.op == '++');
     visit(node.argument);
-    return NONNULL_VALUE;  // Always a number, even for "(a=null, a++)".
+    return NONNULL_VALUE; // Always a number, even for "(a=null, a++)".
   }
 
   int visitVariableUse(js.VariableUse node) {

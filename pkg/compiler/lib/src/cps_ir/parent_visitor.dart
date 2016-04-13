@@ -40,4 +40,3 @@ class ParentVisitor extends DeepRecursiveVisitor {
     node.parent = _parent;
   }
 }
-

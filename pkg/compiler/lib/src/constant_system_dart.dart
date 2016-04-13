@@ -4,13 +4,11 @@
 
 library dart2js.constant_system.dart;
 
-import 'compiler.dart' show
-    Compiler;
+import 'compiler.dart' show Compiler;
 import 'constants/constant_system.dart';
 import 'constants/values.dart';
 import 'dart_types.dart';
-import 'tree/tree.dart' show
-    DartString;
+import 'tree/tree.dart' show DartString;
 
 const DART_CONSTANT_SYSTEM = const DartConstantSystem();
 
@@ -77,7 +75,7 @@ abstract class BinaryBitOperation implements BinaryOperation {
 class BitOrOperation extends BinaryBitOperation {
   final String name = '|';
   const BitOrOperation();
-  int foldInts(int left, int right)  => left | right;
+  int foldInts(int left, int right) => left | right;
   apply(left, right) => left | right;
 }
 
@@ -104,6 +102,7 @@ class ShiftLeftOperation extends BinaryBitOperation {
     if (right > 100 || right < 0) return null;
     return left << right;
   }
+
   apply(left, right) => left << right;
 }
 
@@ -114,6 +113,7 @@ class ShiftRightOperation extends BinaryBitOperation {
     if (right < 0) return null;
     return left >> right;
   }
+
   apply(left, right) => left >> right;
 }
 
@@ -161,8 +161,7 @@ abstract class ArithmeticNumOperation implements BinaryOperation {
       }
       // A division by 0 means that we might not have a folded value.
       if (foldedValue == null) return null;
-      if (left.isInt && right.isInt && !isDivide() ||
-          isTruncatingDivide()) {
+      if (left.isInt && right.isInt && !isDivide() || isTruncatingDivide()) {
         assert(foldedValue is int);
         return DART_CONSTANT_SYSTEM.createInt(foldedValue);
       } else {
@@ -199,6 +198,7 @@ class ModuloOperation extends ArithmeticNumOperation {
     if (right == 0) return null;
     return left % right;
   }
+
   num foldNums(num left, num right) => left % right;
   apply(left, right) => left % right;
 }
@@ -210,11 +210,13 @@ class TruncatingDivideOperation extends ArithmeticNumOperation {
     if (right == 0) return null;
     return left ~/ right;
   }
+
   num foldNums(num left, num right) {
     num ratio = left / right;
     if (ratio.isNaN || ratio.isInfinite) return null;
     return ratio.truncate().toInt();
   }
+
   apply(left, right) => left ~/ right;
   bool isTruncatingDivide() => true;
 }
@@ -244,13 +246,14 @@ class AddOperation implements BinaryOperation {
     } else if (left.isString && right.isString) {
       StringConstantValue leftString = left;
       StringConstantValue rightString = right;
-      DartString result = new DartString.concat(leftString.primitiveValue,
-                                                rightString.primitiveValue);
+      DartString result = new DartString.concat(
+          leftString.primitiveValue, rightString.primitiveValue);
       return DART_CONSTANT_SYSTEM.createString(result);
     } else {
       return null;
     }
   }
+
   apply(left, right) => left + right;
 }
 
@@ -316,6 +319,7 @@ class EqualsOperation implements BinaryOperation {
     }
     return DART_CONSTANT_SYSTEM.createBool(left == right);
   }
+
   apply(left, right) => left == right;
 }
 
@@ -329,6 +333,7 @@ class IdentityOperation implements BinaryOperation {
     if (left.isNaN && right.isNaN) return null;
     return DART_CONSTANT_SYSTEM.createBool(left == right);
   }
+
   apply(left, right) => identical(left, right);
 }
 
@@ -339,6 +344,7 @@ class IfNullOperation implements BinaryOperation {
     if (left.isNull) return right;
     return left;
   }
+
   apply(left, right) => left ?? right;
 }
 
@@ -407,7 +413,6 @@ class DartConstantSystem extends ConstantSystem {
 
   const DartConstantSystem();
 
-
   @override
   IntConstantValue createInt(int i) => new IntConstantValue(i);
 
@@ -426,16 +431,13 @@ class DartConstantSystem extends ConstantSystem {
   NullConstantValue createNull() => new NullConstantValue();
 
   @override
-  ListConstantValue createList(InterfaceType type,
-                               List<ConstantValue> values) {
+  ListConstantValue createList(InterfaceType type, List<ConstantValue> values) {
     return new ListConstantValue(type, values);
   }
 
   @override
-  MapConstantValue createMap(Compiler compiler,
-                             InterfaceType type,
-                             List<ConstantValue> keys,
-                             List<ConstantValue> values) {
+  MapConstantValue createMap(Compiler compiler, InterfaceType type,
+      List<ConstantValue> keys, List<ConstantValue> values) {
     return new MapConstantValue(type, keys, values);
   }
 

@@ -6,13 +6,9 @@
 /// the compiler.
 library dart2js.common.names;
 
-import '../elements/elements.dart' show
-    Name,
-    PublicName;
-import '../universe/call_structure.dart' show
-    CallStructure;
-import '../universe/selector.dart' show
-    Selector;
+import '../elements/elements.dart' show Name, PublicName;
+import '../universe/call_structure.dart' show CallStructure;
+import '../universe/selector.dart' show Selector;
 
 /// [String]s commonly used.
 class Identifiers {
@@ -106,8 +102,7 @@ class Selectors {
       new Selector.call(Names.toString_, CallStructure.NO_ARGS);
 
   /// The selector for tearing off toString.
-  static final Selector toStringGetter =
-      new Selector.getter(Names.toString_);
+  static final Selector toStringGetter = new Selector.getter(Names.toString_);
 
   static final Selector hashCode_ =
       new Selector.getter(const PublicName('hashCode'));
@@ -131,9 +126,22 @@ class Selectors {
   /// These objects are shared between different runs in batch-mode and must
   /// thus remain in the [Selector.canonicalizedValues] map.
   static final List<Selector> ALL = <Selector>[
-      cancel, current, iterator, moveNext, noSuchMethod_, noSuchMethodGetter,
-      toString_, toStringGetter, hashCode_, compareTo, equals, length,
-      codeUnitAt, index, runtimeType_];
+    cancel,
+    current,
+    iterator,
+    moveNext,
+    noSuchMethod_,
+    noSuchMethodGetter,
+    toString_,
+    toStringGetter,
+    hashCode_,
+    compareTo,
+    equals,
+    length,
+    codeUnitAt,
+    index,
+    runtimeType_
+  ];
 }
 
 /// [Uri]s commonly used.

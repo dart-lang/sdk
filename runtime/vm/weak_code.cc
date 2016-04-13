@@ -113,6 +113,7 @@ void WeakCodeReferences::DisableCode() {
       function.SwitchToUnoptimizedCode();
     } else if (function.unoptimized_code() == code.raw()) {
       ReportSwitchingCode(code);
+      function.set_was_compiled(false);
       function.ClearICDataArray();
       // Remove the code object from the function. The next time the
       // function is invoked, it will be compiled again.

@@ -624,6 +624,11 @@ abstract class Element implements AnalysisTarget {
   bool get isDeprecated;
 
   /**
+   * Return `true` if this element has an annotation of the form '@JS(..)'.
+   */
+  bool get isJS;
+
+  /**
    * Return `true` if this element has an annotation of the form '@override'.
    */
   bool get isOverride;
@@ -811,6 +816,12 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
    * deprecated.
    */
   bool get isDeprecated;
+
+  /**
+   * Return `true` if this annotation marks the associated element with the `JS`
+   * annotation.
+   */
+  bool get isJS;
 
   /**
    * Return `true` if this annotation marks the associated member as requiring

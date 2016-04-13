@@ -48,7 +48,7 @@ class ElementValue implements Value {
   String toString() => element.toString();
 }
 
-class TypeValue implements Value  {
+class TypeValue implements Value {
   final DartType type;
   final Value id;
 
@@ -59,7 +59,7 @@ class TypeValue implements Value  {
   String toString() => type.toString();
 }
 
-class ConstantValue implements Value  {
+class ConstantValue implements Value {
   final ConstantExpression constant;
   final Value id;
 

@@ -650,6 +650,14 @@ static inline T ReadUnaligned(const T* ptr) {
 #define STDERR_FILENO 2
 #endif
 
+// For checking deterministic graph generation, we can store instruction
+// tag in the ICData and check it when recreating the flow graph in
+// optimizing compiler. Enable it for other modes (product, release) if needed
+// for debugging.
+#if defined(DEBUG)
+#define TAG_IC_DATA
+#endif
+
 }  // namespace dart
 
 #endif  // PLATFORM_GLOBALS_H_

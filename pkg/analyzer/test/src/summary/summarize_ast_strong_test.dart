@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library analyzer.test.src.summary.summarize_ast_test;
+library analyzer.test.src.summary.summarize_ast_strong_test;
 
 import 'package:unittest/unittest.dart';
 
@@ -23,132 +23,152 @@ class LinkedSummarizeAstStrongTest extends LinkedSummarizeAstTest {
   bool get strongMode => true;
 
   @override
+  @failingTest
   test_bottom_reference_shared() {
-    // TODO(paulberry): fix.
+    super.test_bottom_reference_shared();
   }
 
   @override
+  @failingTest
   test_closure_executable_with_imported_return_type() {
-    // TODO(paulberry): fix.
+    super.test_closure_executable_with_imported_return_type();
   }
 
   @override
+  @failingTest
   test_closure_executable_with_return_type_from_closure() {
-    // TODO(paulberry): fix.
+    super.test_closure_executable_with_return_type_from_closure();
   }
 
   @override
+  @failingTest
   test_closure_executable_with_unimported_return_type() {
-    // TODO(paulberry): fix.
+    super.test_closure_executable_with_unimported_return_type();
   }
 
   @override
+  @failingTest
   test_field_propagated_type_final_immediate() {
-    // TODO(paulberry): fix.
+    super.test_field_propagated_type_final_immediate();
   }
 
   @override
+  @failingTest
   test_fully_linked_references_follow_other_references() {
-    // TODO(paulberry): fix.
+    super.test_fully_linked_references_follow_other_references();
   }
 
   @override
+  @failingTest
   test_implicit_dependencies_follow_other_dependencies() {
-    // TODO(paulberry): fix.
+    super.test_implicit_dependencies_follow_other_dependencies();
   }
 
   @override
+  @failingTest
   test_initializer_executable_with_bottom_return_type() {
-    // TODO(paulberry): fix.
+    super.test_initializer_executable_with_bottom_return_type();
   }
 
   @override
+  @failingTest
   test_initializer_executable_with_imported_return_type() {
-    // TODO(paulberry): fix.
+    super.test_initializer_executable_with_imported_return_type();
   }
 
   @override
+  @failingTest
   test_initializer_executable_with_return_type_from_closure() {
-    // TODO(paulberry): fix.
+    super.test_initializer_executable_with_return_type_from_closure();
   }
 
   @override
+  @failingTest
   test_initializer_executable_with_return_type_from_closure_field() {
-    // TODO(paulberry): fix.
+    super.test_initializer_executable_with_return_type_from_closure_field();
   }
 
   @override
+  @failingTest
   test_initializer_executable_with_return_type_from_closure_local() {
-    // TODO(paulberry): fix.
+    super.test_initializer_executable_with_return_type_from_closure_local();
   }
 
   @override
+  @failingTest
   test_initializer_executable_with_unimported_return_type() {
-    // TODO(paulberry): fix.
+    super.test_initializer_executable_with_unimported_return_type();
   }
 
   @override
+  @failingTest
   test_linked_reference_reuse() {
-    // TODO(paulberry): fix.
+    super.test_linked_reference_reuse();
   }
 
   @override
+  @failingTest
   test_linked_type_dependency_reuse() {
-    // TODO(paulberry): fix.
+    super.test_linked_type_dependency_reuse();
   }
 
   @override
+  @failingTest
   test_syntheticFunctionType_genericClosure() {
-    // TODO(paulberry): fix.
+    super.test_syntheticFunctionType_genericClosure();
   }
 
   @override
+  @failingTest
   test_syntheticFunctionType_genericClosure_inGenericFunction() {
-    // TODO(paulberry): fix.
+    super.test_syntheticFunctionType_genericClosure_inGenericFunction();
   }
 
   @override
+  @failingTest
   test_syntheticFunctionType_inGenericClass() {
-    // TODO(paulberry): fix.
+    super.test_syntheticFunctionType_inGenericClass();
   }
 
   @override
+  @failingTest
   test_syntheticFunctionType_inGenericFunction() {
-    // TODO(paulberry): fix.
+    super.test_syntheticFunctionType_inGenericFunction();
   }
 
   @override
+  @failingTest
   test_syntheticFunctionType_noArguments() {
-    // TODO(paulberry): fix.
+    super.test_syntheticFunctionType_noArguments();
   }
 
   @override
+  @failingTest
   test_syntheticFunctionType_withArguments() {
-    // TODO(paulberry): fix.
+    super.test_syntheticFunctionType_withArguments();
   }
 
   @override
+  @failingTest
   test_unused_type_parameter() {
-    // TODO(paulberry): fix.
+    super.test_unused_type_parameter();
   }
 
   @override
-  test_variable_inferred_type_implicit_initialized() {
-    // TODO(paulberry): fix.
-  }
-
-  @override
+  @failingTest
   test_variable_propagated_type_final_immediate() {
-    // TODO(paulberry): fix.
+    super.test_variable_propagated_type_final_immediate();
   }
 
   @override
+  @failingTest
   test_variable_propagated_type_new_reference() {
-    // TODO(paulberry): fix.
+    super.test_variable_propagated_type_new_reference();
   }
 
   @override
+  @failingTest
   test_variable_propagated_type_omit_dynamic() {
-    // TODO(paulberry): fix.
+    super.test_variable_propagated_type_omit_dynamic();
   }
 }

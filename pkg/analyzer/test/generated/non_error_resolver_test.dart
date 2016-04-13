@@ -167,7 +167,7 @@ library lib2;
 class N {}
 class N2 {}''');
     computeLibrarySourceErrors(source);
-    assertNoErrors(source);
+    assertErrors(source, [HintCode.UNUSED_SHOWN_NAME]);
   }
 
   void test_annotated_partOfDeclaration() {

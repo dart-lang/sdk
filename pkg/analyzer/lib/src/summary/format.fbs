@@ -600,7 +600,7 @@ enum UnlinkedConstOperation : byte {
   typeCast,
 
   /**
-   * Pop the top value from the stack and check whether is is a subclass of the
+   * Pop the top value from the stack and check whether it is a subclass of the
    * type with reference from [UnlinkedConst.references], push the result into
    * the stack.
    */
@@ -976,6 +976,12 @@ table LinkedLibrary {
    * depends on the lack of a certain declaration in the library).
    */
   dependencies:[LinkedDependency] (id: 0);
+
+  /**
+   * For each export in [UnlinkedUnit.exports], an index into [dependencies]
+   * of the library being exported.
+   */
+  exportDependencies:[uint] (id: 6);
 
   /**
    * Information about entities in the export namespace of the library that are

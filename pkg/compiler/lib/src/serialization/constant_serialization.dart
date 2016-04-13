@@ -7,11 +7,9 @@ library dart2js.serialization.constants;
 import '../constants/constructors.dart';
 import '../constants/expressions.dart';
 import '../dart_types.dart';
-import '../elements/elements.dart' show
-    FieldElement;
+import '../elements/elements.dart' show FieldElement;
 import '../resolution/operators.dart';
-import '../universe/call_structure.dart' show
-    CallStructure;
+import '../universe/call_structure.dart' show CallStructure;
 import 'serialization.dart';
 import 'keys.dart';
 
@@ -27,30 +25,29 @@ class ConstantSerializer
   const ConstantSerializer();
 
   @override
-  void visitBinary(BinaryConstantExpression exp,
-                   ObjectEncoder encoder) {
+  void visitBinary(BinaryConstantExpression exp, ObjectEncoder encoder) {
     encoder.setEnum(Key.OPERATOR, exp.operator.kind);
     encoder.setConstant(Key.LEFT, exp.left);
     encoder.setConstant(Key.RIGHT, exp.right);
   }
 
   @override
-  void visitConcatenate(ConcatenateConstantExpression exp,
-                        ObjectEncoder encoder) {
+  void visitConcatenate(
+      ConcatenateConstantExpression exp, ObjectEncoder encoder) {
     encoder.setConstants(Key.ARGUMENTS, exp.expressions);
   }
 
   @override
-  void visitConditional(ConditionalConstantExpression exp,
-                        ObjectEncoder encoder) {
+  void visitConditional(
+      ConditionalConstantExpression exp, ObjectEncoder encoder) {
     encoder.setConstant(Key.CONDITION, exp.condition);
     encoder.setConstant(Key.TRUE, exp.trueExp);
     encoder.setConstant(Key.FALSE, exp.falseExp);
   }
 
   @override
-  void visitConstructed(ConstructedConstantExpression exp,
-                        ObjectEncoder encoder) {
+  void visitConstructed(
+      ConstructedConstantExpression exp, ObjectEncoder encoder) {
     encoder.setElement(Key.ELEMENT, exp.target);
     encoder.setType(Key.TYPE, exp.type);
     encoder.setStrings(Key.NAMES, exp.callStructure.namedArguments);
@@ -58,14 +55,12 @@ class ConstantSerializer
   }
 
   @override
-  void visitFunction(FunctionConstantExpression exp,
-                     ObjectEncoder encoder) {
+  void visitFunction(FunctionConstantExpression exp, ObjectEncoder encoder) {
     encoder.setElement(Key.ELEMENT, exp.element);
   }
 
   @override
-  void visitIdentical(IdenticalConstantExpression exp,
-                      ObjectEncoder encoder) {
+  void visitIdentical(IdenticalConstantExpression exp, ObjectEncoder encoder) {
     encoder.setConstant(Key.LEFT, exp.left);
     encoder.setConstant(Key.RIGHT, exp.right);
   }
@@ -109,34 +104,28 @@ class ConstantSerializer
   }
 
   @override
-  void visitSymbol(SymbolConstantExpression exp,
-                   ObjectEncoder encoder) {
-    throw new UnsupportedError(
-        "ConstantSerializer.visitSymbol: ${exp.getText()}");
+  void visitSymbol(SymbolConstantExpression exp, ObjectEncoder encoder) {
+    encoder.setString(Key.NAME, exp.name);
   }
 
   @override
-  void visitType(TypeConstantExpression exp,
-                 ObjectEncoder encoder) {
+  void visitType(TypeConstantExpression exp, ObjectEncoder encoder) {
     encoder.setType(Key.TYPE, exp.type);
   }
 
   @override
-  void visitUnary(UnaryConstantExpression exp,
-                  ObjectEncoder encoder) {
+  void visitUnary(UnaryConstantExpression exp, ObjectEncoder encoder) {
     encoder.setEnum(Key.OPERATOR, exp.operator.kind);
     encoder.setConstant(Key.EXPRESSION, exp.expression);
   }
 
   @override
-  void visitVariable(VariableConstantExpression exp,
-                     ObjectEncoder encoder) {
+  void visitVariable(VariableConstantExpression exp, ObjectEncoder encoder) {
     encoder.setElement(Key.ELEMENT, exp.element);
   }
 
   @override
-  void visitPositional(PositionalArgumentReference exp,
-                       ObjectEncoder encoder) {
+  void visitPositional(PositionalArgumentReference exp, ObjectEncoder encoder) {
     encoder.setInt(Key.INDEX, exp.index);
   }
 
@@ -146,8 +135,8 @@ class ConstantSerializer
   }
 
   @override
-  void visitBoolFromEnvironment(BoolFromEnvironmentConstantExpression exp,
-                                ObjectEncoder encoder) {
+  void visitBoolFromEnvironment(
+      BoolFromEnvironmentConstantExpression exp, ObjectEncoder encoder) {
     encoder.setConstant(Key.NAME, exp.name);
     if (exp.defaultValue != null) {
       encoder.setConstant(Key.DEFAULT, exp.defaultValue);
@@ -155,8 +144,8 @@ class ConstantSerializer
   }
 
   @override
-  void visitIntFromEnvironment(IntFromEnvironmentConstantExpression exp,
-                               ObjectEncoder encoder) {
+  void visitIntFromEnvironment(
+      IntFromEnvironmentConstantExpression exp, ObjectEncoder encoder) {
     encoder.setConstant(Key.NAME, exp.name);
     if (exp.defaultValue != null) {
       encoder.setConstant(Key.DEFAULT, exp.defaultValue);
@@ -164,8 +153,8 @@ class ConstantSerializer
   }
 
   @override
-  void visitStringFromEnvironment(StringFromEnvironmentConstantExpression exp,
-                                  ObjectEncoder encoder) {
+  void visitStringFromEnvironment(
+      StringFromEnvironmentConstantExpression exp, ObjectEncoder encoder) {
     encoder.setConstant(Key.NAME, exp.name);
     if (exp.defaultValue != null) {
       encoder.setConstant(Key.DEFAULT, exp.defaultValue);
@@ -173,15 +162,13 @@ class ConstantSerializer
   }
 
   @override
-  void visitStringLength(StringLengthConstantExpression exp,
-                         ObjectEncoder encoder) {
+  void visitStringLength(
+      StringLengthConstantExpression exp, ObjectEncoder encoder) {
     encoder.setConstant(Key.EXPRESSION, exp.expression);
   }
 
-
   @override
-  void visitDeferred(DeferredConstantExpression exp,
-                     ObjectEncoder encoder) {
+  void visitDeferred(DeferredConstantExpression exp, ObjectEncoder encoder) {
     throw new UnsupportedError(
         "ConstantSerializer.visitDeferred: ${exp.getText()}");
   }
@@ -191,7 +178,6 @@ class ConstantSerializer
 ///
 /// This is used by the [Deserializer].
 class ConstantDeserializer {
-
   /// Deserializes a [ConstantExpression] from an [ObjectDecoder].
   ///
   /// The class is called from the [Deserializer] when a [ConstantExpression]
@@ -203,15 +189,12 @@ class ConstantDeserializer {
         decoder.getEnum(Key.KIND, ConstantExpressionKind.values);
     switch (kind) {
       case ConstantExpressionKind.BINARY:
-        BinaryOperator operator = BinaryOperator.fromKind(decoder.getEnum(
-            Key.OPERATOR, BinaryOperatorKind.values));
-        return new BinaryConstantExpression(
-            decoder.getConstant(Key.LEFT),
-            operator,
-            decoder.getConstant(Key.RIGHT));
+        BinaryOperator operator = BinaryOperator
+            .fromKind(decoder.getEnum(Key.OPERATOR, BinaryOperatorKind.values));
+        return new BinaryConstantExpression(decoder.getConstant(Key.LEFT),
+            operator, decoder.getConstant(Key.RIGHT));
       case ConstantExpressionKind.BOOL:
-        return new BoolConstantExpression(
-            decoder.getBool(Key.VALUE));
+        return new BoolConstantExpression(decoder.getBool(Key.VALUE));
       case ConstantExpressionKind.BOOL_FROM_ENVIRONMENT:
         return new BoolFromEnvironmentConstantExpression(
             decoder.getConstant(Key.NAME),
@@ -225,10 +208,9 @@ class ConstantDeserializer {
             decoder.getConstant(Key.TRUE),
             decoder.getConstant(Key.FALSE));
       case ConstantExpressionKind.CONSTRUCTED:
-        List<String> names =
-            decoder.getStrings(Key.NAMES, isOptional: true);
+        List<String> names = decoder.getStrings(Key.NAMES, isOptional: true);
         List<ConstantExpression> arguments =
-              decoder.getConstants(Key.ARGUMENTS, isOptional: true);
+            decoder.getConstants(Key.ARGUMENTS, isOptional: true);
         return new ConstructedConstantExpression(
             decoder.getType(Key.TYPE),
             decoder.getElement(Key.ELEMENT),
@@ -239,12 +221,10 @@ class ConstantDeserializer {
       case ConstantExpressionKind.ERRONEOUS:
         break;
       case ConstantExpressionKind.FUNCTION:
-        return new FunctionConstantExpression(
-            decoder.getElement(Key.ELEMENT));
+        return new FunctionConstantExpression(decoder.getElement(Key.ELEMENT));
       case ConstantExpressionKind.IDENTICAL:
         return new IdenticalConstantExpression(
-            decoder.getConstant(Key.LEFT),
-            decoder.getConstant(Key.RIGHT));
+            decoder.getConstant(Key.LEFT), decoder.getConstant(Key.RIGHT));
       case ConstantExpressionKind.INT:
         return new IntConstantExpression(decoder.getInt(Key.VALUE));
       case ConstantExpressionKind.INT_FROM_ENVIRONMENT:
@@ -253,18 +233,14 @@ class ConstantDeserializer {
             decoder.getConstant(Key.DEFAULT, isOptional: true));
       case ConstantExpressionKind.LIST:
         return new ListConstantExpression(
-            decoder.getType(Key.TYPE),
-            decoder.getConstants(Key.VALUES));
+            decoder.getType(Key.TYPE), decoder.getConstants(Key.VALUES));
       case ConstantExpressionKind.MAP:
-        return new MapConstantExpression(
-            decoder.getType(Key.TYPE),
-            decoder.getConstants(Key.KEYS),
-            decoder.getConstants(Key.VALUES));
+        return new MapConstantExpression(decoder.getType(Key.TYPE),
+            decoder.getConstants(Key.KEYS), decoder.getConstants(Key.VALUES));
       case ConstantExpressionKind.NULL:
         return new NullConstantExpression();
       case ConstantExpressionKind.STRING:
-        return new StringConstantExpression(
-            decoder.getString(Key.VALUE));
+        return new StringConstantExpression(decoder.getString(Key.VALUE));
       case ConstantExpressionKind.STRING_FROM_ENVIRONMENT:
         return new StringFromEnvironmentConstantExpression(
             decoder.getConstant(Key.NAME),
@@ -277,26 +253,21 @@ class ConstantDeserializer {
       case ConstantExpressionKind.TYPE:
         return new TypeConstantExpression(decoder.getType(Key.TYPE));
       case ConstantExpressionKind.UNARY:
-        UnaryOperator operator = UnaryOperator.fromKind(
-            decoder.getEnum(Key.OPERATOR, UnaryOperatorKind.values));
+        UnaryOperator operator = UnaryOperator
+            .fromKind(decoder.getEnum(Key.OPERATOR, UnaryOperatorKind.values));
         return new UnaryConstantExpression(
-            operator,
-            decoder.getConstant(Key.EXPRESSION));
+            operator, decoder.getConstant(Key.EXPRESSION));
       case ConstantExpressionKind.VARIABLE:
-        return new VariableConstantExpression(
-            decoder.getElement(Key.ELEMENT));
+        return new VariableConstantExpression(decoder.getElement(Key.ELEMENT));
 
       case ConstantExpressionKind.POSITIONAL_REFERENCE:
-        return new PositionalArgumentReference(
-            decoder.getInt(Key.INDEX));
+        return new PositionalArgumentReference(decoder.getInt(Key.INDEX));
       case ConstantExpressionKind.NAMED_REFERENCE:
-        return new NamedArgumentReference(
-            decoder.getString(Key.NAME));
+        return new NamedArgumentReference(decoder.getString(Key.NAME));
       case ConstantExpressionKind.DEFERRED:
       case ConstantExpressionKind.SYNTHETIC:
     }
-    throw new UnsupportedError(
-        "Unexpected constant kind: ${kind} in $decoder");
+    throw new UnsupportedError("Unexpected constant kind: ${kind} in $decoder");
   }
 }
 
@@ -312,16 +283,14 @@ class ConstantConstructorSerializer
   const ConstantConstructorSerializer();
 
   @override
-  void visit(ConstantConstructor constantConstructor,
-             ObjectEncoder encoder) {
+  void visit(ConstantConstructor constantConstructor, ObjectEncoder encoder) {
     encoder.setEnum(Key.KIND, constantConstructor.kind);
     constantConstructor.accept(this, encoder);
   }
 
   @override
   void visitGenerative(
-      GenerativeConstantConstructor constructor,
-      ObjectEncoder encoder) {
+      GenerativeConstantConstructor constructor, ObjectEncoder encoder) {
     encoder.setType(Key.TYPE, constructor.type);
     MapEncoder defaults = encoder.createMap(Key.DEFAULTS);
     constructor.defaultValues.forEach((key, e) {
@@ -334,8 +303,8 @@ class ConstantConstructorSerializer
       fieldSerializer.setConstant(Key.CONSTANT, e);
     });
     if (constructor.superConstructorInvocation != null) {
-      encoder.setConstant(Key.CONSTRUCTOR,
-          constructor.superConstructorInvocation);
+      encoder.setConstant(
+          Key.CONSTRUCTOR, constructor.superConstructorInvocation);
     }
   }
 
@@ -343,8 +312,8 @@ class ConstantConstructorSerializer
   void visitRedirectingFactory(
       RedirectingFactoryConstantConstructor constructor,
       ObjectEncoder encoder) {
-    encoder.setConstant(Key.CONSTRUCTOR,
-        constructor.targetConstructorInvocation);
+    encoder.setConstant(
+        Key.CONSTRUCTOR, constructor.targetConstructorInvocation);
   }
 
   @override
@@ -355,10 +324,10 @@ class ConstantConstructorSerializer
     constructor.defaultValues.forEach((key, ConstantExpression e) {
       defaults.setConstant('$key', e);
     });
-    encoder.setConstant(Key.CONSTRUCTOR,
-        constructor.thisConstructorInvocation);
+    encoder.setConstant(Key.CONSTRUCTOR, constructor.thisConstructorInvocation);
   }
 }
+
 /// Utility class for deserializing [ConstantConstructor]s.
 ///
 /// This is used by the [ConstructorElementZ].
@@ -370,7 +339,6 @@ class ConstantConstructorDeserializer {
   /// [DartType], and [ConstantExpression] that the deserialized
   /// [ConstantConstructor] depends upon are available.
   static ConstantConstructor deserialize(ObjectDecoder decoder) {
-
     ConstantConstructorKind kind =
         decoder.getEnum(Key.KIND, ConstantConstructorKind.values);
 
@@ -378,7 +346,7 @@ class ConstantConstructorDeserializer {
       return decoder.getType(Key.TYPE);
     }
 
-    Map<dynamic/*int|String*/, ConstantExpression> readDefaults() {
+    Map<dynamic /*int|String*/, ConstantExpression> readDefaults() {
       Map<dynamic, ConstantExpression> defaultValues =
           <dynamic, ConstantExpression>{};
       if (decoder.containsKey(Key.DEFAULTS)) {
@@ -416,15 +384,11 @@ class ConstantConstructorDeserializer {
 
     switch (kind) {
       case ConstantConstructorKind.GENERATIVE:
-        return new GenerativeConstantConstructor(
-            readType(),
-            readDefaults(),
-            readFields(),
-            readConstructorInvocation());
+        return new GenerativeConstantConstructor(readType(), readDefaults(),
+            readFields(), readConstructorInvocation());
       case ConstantConstructorKind.REDIRECTING_GENERATIVE:
         return new RedirectingGenerativeConstantConstructor(
-            readDefaults(),
-            readConstructorInvocation());
+            readDefaults(), readConstructorInvocation());
       case ConstantConstructorKind.REDIRECTING_FACTORY:
         return new RedirectingFactoryConstantConstructor(
             readConstructorInvocation());

@@ -331,7 +331,7 @@ void main() {expect(foo: ^)}''');
     assertNotSuggested('main');
   }
 
-  test_AsExpression() async {
+  test_AsExpression_type() async {
     // SimpleIdentifier  TypeName  AsExpression
     addTestSource('''
         class A {var b; X _c; foo() {var a; (a as ^).foo();}''');
@@ -344,6 +344,38 @@ void main() {expect(foo: ^)}''');
     assertNotSuggested('Object');
     assertSuggestClass('A');
     assertNotSuggested('==');
+  }
+
+  test_AsExpression_type_filter_extends() async {
+    // SimpleIdentifier  TypeName  AsExpression
+    addTestSource('''
+class A {} class B extends A {} class C extends A {} class D {}
+f(A a){ (a as ^) }''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestClass('B');
+    assertSuggestClass('C');
+    assertNotSuggested('A');
+    assertNotSuggested('D');
+    assertNotSuggested('Object');
+  }
+
+  test_IsExpression_type_filter_implements() async {
+    // SimpleIdentifier  TypeName  AsExpression
+    addTestSource('''
+class A {} class B implements A {} class C implements A {} class D {}
+f(A a){ (a as ^) }''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestClass('B');
+    assertSuggestClass('C');
+    assertNotSuggested('A');
+    assertNotSuggested('D');
+    assertNotSuggested('Object');
   }
 
   test_AssignmentExpression_name() async {
@@ -2747,6 +2779,38 @@ main(){var a; if (a is Obj^)}''');
     assertNotSuggested('a');
     assertNotSuggested('main');
     assertSuggestClass('A');
+    assertNotSuggested('Object');
+  }
+
+  test_IsExpression_type_filter_extends() async {
+    // SimpleIdentifier  TypeName  IsExpression  IfStatement
+    addTestSource('''
+class A {} class B extends A {} class C extends A {} class D {}
+f(A a){ if (a is ^) {}}''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestClass('B');
+    assertSuggestClass('C');
+    assertNotSuggested('A');
+    assertNotSuggested('D');
+    assertNotSuggested('Object');
+  }
+
+  test_IsExpression_type_subtype_implements_filter() async {
+    // SimpleIdentifier  TypeName  IsExpression  IfStatement
+    addTestSource('''
+class A {} class B extends A {} class C implements A {} class D {}
+f(A a){ if (a is ^) {}}''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestClass('B');
+    assertSuggestClass('C');
+    assertNotSuggested('A');
+    assertNotSuggested('D');
     assertNotSuggested('Object');
   }
 

@@ -13,9 +13,10 @@
 namespace dart {
 
 TEST_CASE(Ast) {
-  LocalVariable* v = new LocalVariable(TokenPosition::kNoSource,
-                                       String::ZoneHandle(Symbols::New("v")),
-                                       Type::ZoneHandle(Type::DynamicType()));
+  LocalVariable* v = new LocalVariable(
+      TokenPosition::kNoSource,
+      String::ZoneHandle(Symbols::New(thread, "v")),
+      Type::ZoneHandle(Type::DynamicType()));
   AstNode* ll = new LoadLocalNode(TokenPosition::kNoSource, v);
   EXPECT(ll->IsLoadLocalNode());
   EXPECT(!ll->IsLiteralNode());
@@ -24,9 +25,10 @@ TEST_CASE(Ast) {
   v->set_index(1);
   EXPECT_EQ(1, v->index());
 
-  LocalVariable* p = new LocalVariable(TokenPosition::kNoSource,
-                                       String::ZoneHandle(Symbols::New("p")),
-                                       Type::ZoneHandle(Type::DynamicType()));
+  LocalVariable* p = new LocalVariable(
+      TokenPosition::kNoSource,
+      String::ZoneHandle(Symbols::New(thread, "p")),
+      Type::ZoneHandle(Type::DynamicType()));
   EXPECT(!p->HasIndex());
   p->set_index(-1);
   EXPECT(p->HasIndex());

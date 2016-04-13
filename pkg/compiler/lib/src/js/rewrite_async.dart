@@ -7,14 +7,12 @@ library rewrite_async;
 import "dart:math" show max;
 import 'dart:collection';
 
-import 'package:js_runtime/shared/async_await_error_codes.dart'
-    as error_codes;
+import 'package:js_runtime/shared/async_await_error_codes.dart' as error_codes;
 
 import "js.dart" as js;
 
 import '../common.dart';
-import '../util/util.dart' show
-    Pair;
+import '../util/util.dart' show Pair;
 
 /// Rewrites a [js.Fun] with async/sync*/async* functions and await and yield
 /// (with dart-like semantics) to an equivalent function without these.
@@ -28,7 +26,6 @@ import '../util/util.dart' show
 /// Look at [rewriteFunction], [visitDartYield] and [visitAwait] for more
 /// explanation.
 abstract class AsyncRewriterBase extends js.NodeVisitor {
-
   // Local variables are hoisted to the top of the function, so they are
   // collected here.
   List<js.VariableDeclaration> localVariables =
@@ -176,10 +173,8 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   bool get isSyncStar => false;
   bool get isAsyncStar => false;
 
-  AsyncRewriterBase(this.reporter,
-                    this._spannable,
-                    this.safeVariableName,
-                    this.bodyName);
+  AsyncRewriterBase(
+      this.reporter, this._spannable, this.safeVariableName, this.bodyName);
 
   /// Initialize names used by the subClass.
   void initializeNames();
@@ -212,8 +207,8 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   }
 
   js.Expression get currentErrorHandler {
-    return js.number(handlerLabels[jumpTargets.lastWhere(
-        (node) => handlerLabels[node] != null)]);
+    return js.number(handlerLabels[
+        jumpTargets.lastWhere((node) => handlerLabels[node] != null)]);
   }
 
   int allocateTempVar() {
@@ -349,8 +344,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   }
 
   void unreachable(js.Node node) {
-    reporter.internalError(
-        spannable, "Internal error, trying to visit $node");
+    reporter.internalError(spannable, "Internal error, trying to visit $node");
   }
 
   visitStatement(js.Statement node) {
@@ -372,7 +366,6 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   js.Expression visitExpression(js.Expression node) {
     return node.accept(this);
   }
-
 
   /// Calls [fn] with the value of evaluating [node1] and [node2].
   ///
@@ -429,8 +422,8 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   /// evaluation order we can write:
   ///     temp = <receiver>;
   ///     temp.m();
-  withCallTargetExpression(js.Expression node,
-                           fn(js.Expression result), {bool store}) {
+  withCallTargetExpression(js.Expression node, fn(js.Expression result),
+      {bool store}) {
     int oldTempVarIndex = currentTempVarIndex;
     js.Expression visited = visitExpression(node);
     js.Expression selector;
@@ -454,7 +447,6 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     currentTempVarIndex = oldTempVarIndex;
     return result;
   }
-
 
   /// Calls [fn] with the value of evaluating [node1] and [node2].
   ///
@@ -525,9 +517,10 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   }
 
   /// Returns the rewritten function.
-  js.Fun finishFunction(List<js.Parameter> parameters,
-                          js.Statement rewrittenBody,
-                          js.VariableDeclarationList variableDeclarations);
+  js.Fun finishFunction(
+      List<js.Parameter> parameters,
+      js.Statement rewrittenBody,
+      js.VariableDeclarationList variableDeclarations);
 
   Iterable<js.VariableInitialization> variableInitializations();
 
@@ -684,8 +677,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     List<js.SwitchClause> clauses = labelledParts.keys.map((label) {
       return new js.Case(js.number(label), new js.Block(labelledParts[label]));
     }).toList();
-    js.Statement rewrittenBody =
-        new js.Switch(goto, clauses);
+    js.Statement rewrittenBody = new js.Switch(goto, clauses);
     if (hasJumpThoughOuterLabel) {
       rewrittenBody = new js.LabeledStatement(outerLabelName, rewrittenBody);
     }
@@ -695,20 +687,18 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
 
     variables.add(_makeVariableInitializer(goto, js.number(0)));
     variables.addAll(variableInitializations());
-    variables.add(
-        _makeVariableInitializer(handler, js.number(rethrowLabel)));
+    variables.add(_makeVariableInitializer(handler, js.number(rethrowLabel)));
     variables.add(_makeVariableInitializer(currentError, null));
     if (analysis.hasFinally || (isAsyncStar && analysis.hasYield)) {
-      variables.add(_makeVariableInitializer(next,
-          new js.ArrayInitializer(<js.Expression>[])));
+      variables.add(_makeVariableInitializer(
+          next, new js.ArrayInitializer(<js.Expression>[])));
     }
     if (analysis.hasThis && !isSyncStar) {
       // Sync* functions must remember `this` on the level of the outer
       // function.
       variables.add(_makeVariableInitializer(self, js.js('this')));
     }
-    variables.addAll(localVariables.map(
-        (js.VariableDeclaration declaration) {
+    variables.addAll(localVariables.map((js.VariableDeclaration declaration) {
       return new js.VariableInitialization(declaration, null);
     }));
     variables.addAll(new Iterable.generate(tempVarHighWaterMark,
@@ -725,8 +715,8 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
       // The translation does not handle nested functions that are generators
       // or asynchronous.  These functions should only be ones that are
       // introduced by JS foreign code from our own libraries.
-      reporter.internalError(spannable,
-          'Nested function is a generator or asynchronous.');
+      reporter.internalError(
+          spannable, 'Nested function is a generator or asynchronous.');
     }
     return node;
   }
@@ -761,18 +751,16 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
         // A non-compound [js.Assignment] has `op==null`. So it works out to
         // use [js.Assignment.compound] for all cases.
         // Visit the [js.VariableUse] to ensure renaming is done correctly.
-        return new js.Assignment.compound(visitExpression(leftHandSide),
-                                          node.op,
-                                          value);
+        return new js.Assignment.compound(
+            visitExpression(leftHandSide), node.op, value);
       }, store: false);
     } else if (leftHandSide is js.PropertyAccess) {
-      return withExpressions([
-        leftHandSide.receiver,
-        leftHandSide.selector,
-        node.value
-      ], (evaluated) {
+      return withExpressions(
+          [leftHandSide.receiver, leftHandSide.selector, node.value],
+          (evaluated) {
         return new js.Assignment.compound(
-            new js.PropertyAccess(evaluated[0], evaluated[1]), node.op,
+            new js.PropertyAccess(evaluated[0], evaluated[1]),
+            node.op,
             evaluated[2]);
       });
     } else {
@@ -887,9 +875,11 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   @override
   js.Expression visitConditional(js.Conditional node) {
     if (!shouldTransform(node.then) && !shouldTransform(node.otherwise)) {
-      return js.js('# ? # : #', [visitExpression(node.condition),
-                                 visitExpression(node.then),
-                                 visitExpression(node.otherwise)]);
+      return js.js('# ? # : #', [
+        visitExpression(node.condition),
+        visitExpression(node.then),
+        visitExpression(node.otherwise)
+      ]);
     }
     int thenLabel = newLabel("then");
     int joinLabel = newLabel("join");
@@ -977,8 +967,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
       bool oldInsideUntranslatedBreakable = insideUntranslatedBreakable;
       insideUntranslatedBreakable = true;
       addStatement(js.js.statement('do {#} while (#)',
-                                   [translateInBlock(node.body),
-                                    visitExpression(node.condition)]));
+          [translateInBlock(node.body), visitExpression(node.condition)]));
       insideUntranslatedBreakable = oldInsideUntranslatedBreakable;
       return;
     }
@@ -998,8 +987,8 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
 
     beginLabel(continueLabel);
     withExpression(node.condition, (js.Expression condition) {
-      addStatement(js.js.statement('if (#) #',
-          [condition, gotoAndBreak(startLabel)]));
+      addStatement(
+          js.js.statement('if (#) #', [condition, gotoAndBreak(startLabel)]));
     }, store: false);
     beginLabel(afterLabel);
   }
@@ -1008,7 +997,6 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   void visitEmptyStatement(js.EmptyStatement node) {
     addStatement(node);
   }
-
 
   @override
   void visitExpressionStatement(js.ExpressionStatement node) {
@@ -1022,13 +1010,10 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
       insideUntranslatedBreakable = true;
       // Note that node.init, node.condition, node.update all can be null, but
       // withExpressions handles that.
-      withExpressions([
-        node.init,
-        node.condition,
-        node.update
-      ], (List<js.Expression> transformed) {
+      withExpressions([node.init, node.condition, node.update],
+          (List<js.Expression> transformed) {
         addStatement(new js.For(transformed[0], transformed[1], transformed[2],
-             translateInBlock(node.body)));
+            translateInBlock(node.body)));
       });
       insideUntranslatedBreakable = oldInsideUntranslated;
       return;
@@ -1100,18 +1085,14 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     }
     int thenLabel = newLabel("then");
     int joinLabel = newLabel("join");
-    int elseLabel = (node.otherwise is js.EmptyStatement)
-        ? joinLabel
-        : newLabel("else");
+    int elseLabel =
+        (node.otherwise is js.EmptyStatement) ? joinLabel : newLabel("else");
 
     withExpression(node.condition, (js.Expression condition) {
-      addExpressionStatement(
-          new js.Assignment(
-              goto,
-              new js.Conditional(
-                  condition,
-                  js.number(thenLabel),
-                  js.number(elseLabel))));
+      addExpressionStatement(new js.Assignment(
+          goto,
+          new js.Conditional(
+              condition, js.number(thenLabel), js.number(elseLabel))));
     }, store: false);
     addBreak();
     beginLabel(thenLabel);
@@ -1295,7 +1276,7 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   void visitReturn(js.Return node) {
     js.Node target = analysis.targets[node];
     if (node.value != null) {
-      if(isSyncStar || isAsyncStar) {
+      if (isSyncStar || isAsyncStar) {
         // Even though `return expr;` is not allowed in the dart sync* and
         // async*  code, the backend sometimes generates code like this, but
         // only when it is known that the 'expr' throws, and the return is just
@@ -1377,15 +1358,14 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
       for (js.SwitchClause clause in node.cases) {
         if (clause is js.Case) {
           labels[i] = newLabel("case");
-          clauses.add(new js.Case(visitExpression(clause.expression),
-                                  gotoAndBreak(labels[i])));
+          clauses.add(new js.Case(
+              visitExpression(clause.expression), gotoAndBreak(labels[i])));
         } else if (clause is js.Default) {
           labels[i] = newLabel("default");
           clauses.add(new js.Default(gotoAndBreak(labels[i])));
           hasDefault = true;
         } else {
-          reporter.internalError(
-              spannable, "Unknown clause type $clause");
+          reporter.internalError(spannable, "Unknown clause type $clause");
         }
         i++;
       }
@@ -1421,10 +1401,9 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   }
 
   setErrorHandler([int errorHandler]) {
-    js.Expression label = (errorHandler == null)
-        ? currentErrorHandler
-        : js.number(errorHandler);
-    addStatement(js.js.statement('# = #;',[handler, label]));
+    js.Expression label =
+        (errorHandler == null) ? currentErrorHandler : js.number(errorHandler);
+    addStatement(js.js.statement('# = #;', [handler, label]));
   }
 
   List<int> _finalliesUpToAndEnclosingHandler() {
@@ -1461,9 +1440,8 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
 
     hasTryBlocks = true;
     int uncaughtLabel = newLabel("uncaught");
-    int handlerLabel = (node.catchPart == null)
-        ? uncaughtLabel
-        : newLabel("catch");
+    int handlerLabel =
+        (node.catchPart == null) ? uncaughtLabel : newLabel("catch");
 
     int finallyLabel = newLabel("finally");
     int afterFinallyLabel = newLabel("after finally");
@@ -1514,9 +1492,8 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
       if (node.finallyPart != null) {
         // The error has been caught, so after the finally, continue after the
         // try.
-        addStatement(
-            js.js.statement("#.push(#);",
-                            [next, js.number(afterFinallyLabel)]));
+        addStatement(js.js
+            .statement("#.push(#);", [next, js.number(afterFinallyLabel)]));
         addGoto(finallyLabel);
       } else {
         addGoto(afterFinallyLabel);
@@ -1535,9 +1512,10 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
     if (enclosingFinallies.isNotEmpty) {
       // [enclosingFinallies] can be empty if there is no surrounding finally
       // blocks. Then [nextLabel] will be [rethrowLabel].
-      addStatement(
-          js.js.statement("# = #;", [next, new js.ArrayInitializer(
-              enclosingFinallies.map(js.number).toList())]));
+      addStatement(js.js.statement("# = #;", [
+        next,
+        new js.ArrayInitializer(enclosingFinallies.map(js.number).toList())
+      ]));
     }
     if (node.finallyPart == null) {
       // The finally-block belonging to [node] will be visited because of
@@ -1586,7 +1564,8 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   @override
   js.Expression visitVariableUse(js.VariableUse node) {
     Pair<String, String> renaming = variableRenamings.lastWhere(
-        (Pair renaming) => renaming.a == node.name, orElse: () => null);
+        (Pair renaming) => renaming.a == node.name,
+        orElse: () => null);
     if (renaming == null) return node;
     return new js.VariableUse(renaming.b);
   }
@@ -1639,8 +1618,8 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
   }
 }
 
-js.VariableInitialization
-    _makeVariableInitializer(dynamic variable, js.Expression initValue) {
+js.VariableInitialization _makeVariableInitializer(
+    dynamic variable, js.Expression initValue) {
   js.VariableDeclaration declaration;
   if (variable is js.VariableUse) {
     declaration = new js.VariableDeclaration(variable.name);
@@ -1654,7 +1633,6 @@ js.VariableInitialization
 }
 
 class AsyncRewriter extends AsyncRewriterBase {
-
   bool get isAsync => true;
 
   /// The Completer that will finish an async function.
@@ -1691,32 +1669,28 @@ class AsyncRewriter extends AsyncRewriterBase {
 
   final js.Expression wrapBody;
 
-  AsyncRewriter(DiagnosticReporter reporter,
-                Spannable spannable,
-                {this.asyncHelper,
-                 this.newCompleter,
-                 this.wrapBody,
-                 String safeVariableName(String proposedName),
-                 js.Name bodyName})
-        : super(reporter,
-                spannable,
-                safeVariableName,
-                bodyName);
+  AsyncRewriter(DiagnosticReporter reporter, Spannable spannable,
+      {this.asyncHelper,
+      this.newCompleter,
+      this.wrapBody,
+      String safeVariableName(String proposedName),
+      js.Name bodyName})
+      : super(reporter, spannable, safeVariableName, bodyName);
 
   @override
   void addYield(js.DartYield node, js.Expression expression) {
-    reporter.internalError(spannable,
-        "Yield in non-generating async function");
+    reporter.internalError(spannable, "Yield in non-generating async function");
   }
 
   void addErrorExit() {
     beginLabel(rethrowLabel);
     addStatement(js.js.statement(
         "return #thenHelper(#currentError, #errorCode, #completer);", {
-          "thenHelper": asyncHelper,
-          "errorCode": js.number(error_codes.ERROR),
-          "currentError": currentError,
-          "completer": completer}));
+      "thenHelper": asyncHelper,
+      "errorCode": js.number(error_codes.ERROR),
+      "currentError": currentError,
+      "completer": completer
+    }));
   }
 
   /// Returning from an async method calls [asyncStarHelper] with the result.
@@ -1730,21 +1704,22 @@ class AsyncRewriter extends AsyncRewriterBase {
     }
     addStatement(js.js.statement(
         "return #runtimeHelper(#returnValue, #successCode, "
-            "#completer, null);", {
-         "runtimeHelper": asyncHelper,
-         "successCode": js.number(error_codes.SUCCESS),
-         "returnValue": analysis.hasExplicitReturns
-             ? returnValue
-             : new js.LiteralNull(),
-         "completer": completer}));
+        "#completer, null);",
+        {
+          "runtimeHelper": asyncHelper,
+          "successCode": js.number(error_codes.SUCCESS),
+          "returnValue":
+              analysis.hasExplicitReturns ? returnValue : new js.LiteralNull(),
+          "completer": completer
+        }));
   }
 
   @override
   Iterable<js.VariableInitialization> variableInitializations() {
     List<js.VariableInitialization> variables =
         new List<js.VariableInitialization>();
-    variables.add(_makeVariableInitializer(completer,
-                                        new js.New(newCompleter, [])));
+    variables
+        .add(_makeVariableInitializer(completer, new js.New(newCompleter, [])));
     if (analysis.hasExplicitReturns) {
       variables.add(_makeVariableInitializer(returnValue, null));
     }
@@ -1758,22 +1733,27 @@ class AsyncRewriter extends AsyncRewriterBase {
 
   @override
   js.Statement awaitStatement(js.Expression value) {
-    return js.js.statement("""
+    return js.js.statement(
+        """
           return #asyncHelper(#value,
                               #bodyName,
                               #completer);
-          """, {
-            "asyncHelper": asyncHelper,
-            "value": value,
-            "bodyName": bodyName,
-            "completer": completer});
+          """,
+        {
+          "asyncHelper": asyncHelper,
+          "value": value,
+          "bodyName": bodyName,
+          "completer": completer
+        });
   }
 
   @override
-  js.Fun finishFunction(List<js.Parameter> parameters,
-                        js.Statement rewrittenBody,
-                        js.VariableDeclarationList variableDeclarations) {
-    return js.js("""
+  js.Fun finishFunction(
+      List<js.Parameter> parameters,
+      js.Statement rewrittenBody,
+      js.VariableDeclarationList variableDeclarations) {
+    return js.js(
+        """
         function (#parameters) {
           #variableDeclarations;
           var #bodyName = #wrapBody(function (#errorCode, #result) {
@@ -1784,7 +1764,8 @@ class AsyncRewriter extends AsyncRewriterBase {
             #rewrittenBody;
           });
           return #asyncHelper(null, #bodyName, #completer, null);
-        }""", {
+        }""",
+        {
           "parameters": parameters,
           "variableDeclarations": variableDeclarations,
           "ERROR": js.number(error_codes.ERROR),
@@ -1803,7 +1784,6 @@ class AsyncRewriter extends AsyncRewriterBase {
 }
 
 class SyncStarRewriter extends AsyncRewriterBase {
-
   bool get isSyncStar => true;
 
   /// Contructor creating the Iterable for a sync* method. Called with
@@ -1823,18 +1803,14 @@ class SyncStarRewriter extends AsyncRewriterBase {
   /// Used by sync* functions to throw exeptions.
   final js.Expression uncaughtErrorExpression;
 
-  SyncStarRewriter(DiagnosticReporter diagnosticListener,
-                spannable,
-                {this.endOfIteration,
-                 this.newIterable,
-                 this.yieldStarExpression,
-                 this.uncaughtErrorExpression,
-                 String safeVariableName(String proposedName),
-                 js.Name bodyName})
-        : super(diagnosticListener,
-                spannable,
-                safeVariableName,
-                bodyName);
+  SyncStarRewriter(DiagnosticReporter diagnosticListener, spannable,
+      {this.endOfIteration,
+      this.newIterable,
+      this.yieldStarExpression,
+      this.uncaughtErrorExpression,
+      String safeVariableName(String proposedName),
+      js.Name bodyName})
+      : super(diagnosticListener, spannable, safeVariableName, bodyName);
 
   /// Translates a yield/yield* in an sync*.
   ///
@@ -1851,9 +1827,10 @@ class SyncStarRewriter extends AsyncRewriterBase {
   }
 
   @override
-  js.Fun finishFunction(List<js.Parameter> parameters,
-                        js.Statement rewrittenBody,
-                        js.VariableDeclarationList variableDeclarations) {
+  js.Fun finishFunction(
+      List<js.Parameter> parameters,
+      js.Statement rewrittenBody,
+      js.VariableDeclarationList variableDeclarations) {
     // Each iterator invocation on the iterable should work on its own copy of
     // the parameters.
     // TODO(sigurdm): We only need to do this copying for parameters that are
@@ -1865,13 +1842,13 @@ class SyncStarRewriter extends AsyncRewriterBase {
       String name = parameter.name;
       String renamedName = freshName(name);
       renamedParameters.add(new js.Parameter(renamedName));
-      declarations.add(
-          new js.VariableInitialization(new js.VariableDeclaration(name),
-                                        new js.VariableUse(renamedName)));
+      declarations.add(new js.VariableInitialization(
+          new js.VariableDeclaration(name), new js.VariableUse(renamedName)));
     }
     js.VariableDeclarationList copyParameters =
         new js.VariableDeclarationList(declarations);
-    return js.js("""
+    return js.js(
+        """
           function (#renamedParameters) {
             if (#needsThis)
               var #self = this;
@@ -1889,29 +1866,30 @@ class SyncStarRewriter extends AsyncRewriterBase {
               };
             });
           }
-          """, {
-            "renamedParameters": renamedParameters,
-            "needsThis": analysis.hasThis,
-            "helperBody": rewrittenBody,
-            "hasParameters": parameters.isNotEmpty,
-            "copyParameters": copyParameters,
-            "varDecl": variableDeclarations,
-            "errorCode": errorCodeName,
-            "newIterable": newIterable,
-            "body": bodyName,
-            "self": selfName,
-            "result": resultName,
-            "goto": goto,
-            "handler": handler,
-            "currentError": currentErrorName,
-            "ERROR": js.number(error_codes.ERROR),
-          });
+          """,
+        {
+          "renamedParameters": renamedParameters,
+          "needsThis": analysis.hasThis,
+          "helperBody": rewrittenBody,
+          "hasParameters": parameters.isNotEmpty,
+          "copyParameters": copyParameters,
+          "varDecl": variableDeclarations,
+          "errorCode": errorCodeName,
+          "newIterable": newIterable,
+          "body": bodyName,
+          "self": selfName,
+          "result": resultName,
+          "goto": goto,
+          "handler": handler,
+          "currentError": currentErrorName,
+          "ERROR": js.number(error_codes.ERROR),
+        });
   }
 
   void addErrorExit() {
     beginLabel(rethrowLabel);
-    addStatement(js.js.statement('return #(#);',
-                 [uncaughtErrorExpression, currentError]));
+    addStatement(js.js
+        .statement('return #(#);', [uncaughtErrorExpression, currentError]));
   }
 
   /// Returning from a sync* function returns an [endOfIteration] marker.
@@ -1933,8 +1911,8 @@ class SyncStarRewriter extends AsyncRewriterBase {
 
   @override
   js.Statement awaitStatement(js.Expression value) {
-    throw reporter.internalError(spannable,
-        "Sync* functions cannot contain await statements.");
+    throw reporter.internalError(
+        spannable, "Sync* functions cannot contain await statements.");
   }
 
   @override
@@ -1942,7 +1920,6 @@ class SyncStarRewriter extends AsyncRewriterBase {
 }
 
 class AsyncStarRewriter extends AsyncRewriterBase {
-
   bool get isAsyncStar => true;
 
   /// The stack of labels of finally blocks to assign to [next] if the
@@ -1950,6 +1927,7 @@ class AsyncStarRewriter extends AsyncRewriterBase {
   js.VariableUse get nextWhenCanceled {
     return new js.VariableUse(nextWhenCanceledName);
   }
+
   String nextWhenCanceledName;
 
   /// The StreamController that controls an async* function.
@@ -1994,21 +1972,16 @@ class AsyncStarRewriter extends AsyncRewriterBase {
 
   final js.Expression wrapBody;
 
-  AsyncStarRewriter(DiagnosticReporter reporter,
-                    Spannable spannable,
-                    {this.asyncStarHelper,
-                     this.streamOfController,
-                     this.newController,
-                     this.yieldExpression,
-                     this.yieldStarExpression,
-                     this.wrapBody,
-                     String safeVariableName(String proposedName),
-                     js.Name bodyName})
-        : super(reporter,
-                spannable,
-                safeVariableName,
-                bodyName);
-
+  AsyncStarRewriter(DiagnosticReporter reporter, Spannable spannable,
+      {this.asyncStarHelper,
+      this.streamOfController,
+      this.newController,
+      this.yieldExpression,
+      this.yieldStarExpression,
+      this.wrapBody,
+      String safeVariableName(String proposedName),
+      js.Name bodyName})
+      : super(reporter, spannable, safeVariableName, bodyName);
 
   /// Translates a yield/yield* in an async* function.
   ///
@@ -2027,25 +2000,31 @@ class AsyncStarRewriter extends AsyncRewriterBase {
     enclosingFinallyLabels.addAll(jumpTargets
         .where((js.Node node) => finallyLabels[node] != null)
         .map((js.Block node) => finallyLabels[node]));
-    addStatement(js.js.statement("# = #;",
-        [nextWhenCanceled, new js.ArrayInitializer(
-            enclosingFinallyLabels.map(js.number).toList())]));
-    addStatement(js.js.statement("""
+    addStatement(js.js.statement("# = #;", [
+      nextWhenCanceled,
+      new js.ArrayInitializer(enclosingFinallyLabels.map(js.number).toList())
+    ]));
+    addStatement(js.js.statement(
+        """
         return #asyncStarHelper(#yieldExpression(#expression), #bodyName,
-            #controller);""", {
-      "asyncStarHelper": asyncStarHelper,
-      "yieldExpression": node.hasStar ? yieldStarExpression : yieldExpression,
-      "expression": expression,
-      "bodyName": bodyName,
-      "controller": controllerName,
-    }));
+            #controller);""",
+        {
+          "asyncStarHelper": asyncStarHelper,
+          "yieldExpression":
+              node.hasStar ? yieldStarExpression : yieldExpression,
+          "expression": expression,
+          "bodyName": bodyName,
+          "controller": controllerName,
+        }));
   }
 
   @override
-  js.Fun finishFunction(List<js.Parameter> parameters,
-                        js.Statement rewrittenBody,
-                        js.VariableDeclarationList variableDeclarations) {
-    return js.js("""
+  js.Fun finishFunction(
+      List<js.Parameter> parameters,
+      js.Statement rewrittenBody,
+      js.VariableDeclarationList variableDeclarations) {
+    return js.js(
+        """
         function (#parameters) {
           var #bodyName = #wrapBody(function (#errorCode, #result) {
             if (#hasYield) {
@@ -2068,7 +2047,8 @@ class AsyncStarRewriter extends AsyncRewriterBase {
           });
           #variableDeclarations;
           return #streamOfController(#controller);
-        }""", {
+        }""",
+        {
           "parameters": parameters,
           "variableDeclarations": variableDeclarations,
           "STREAM_WAS_CANCELED": js.number(error_codes.STREAM_WAS_CANCELED),
@@ -2094,10 +2074,11 @@ class AsyncStarRewriter extends AsyncRewriterBase {
     beginLabel(rethrowLabel);
     addStatement(js.js.statement(
         "return #asyncHelper(#currentError, #errorCode, #controller);", {
-          "asyncHelper": asyncStarHelper,
-          "errorCode": js.number(error_codes.ERROR),
-          "currentError": currentError,
-          "controller": controllerName}));
+      "asyncHelper": asyncStarHelper,
+      "errorCode": js.number(error_codes.ERROR),
+      "currentError": currentError,
+      "controller": controllerName
+    }));
   }
 
   /// Returning from an async* function calls the [streamHelper] with an
@@ -2106,20 +2087,20 @@ class AsyncStarRewriter extends AsyncRewriterBase {
   void addSuccesExit() {
     beginLabel(exitLabel);
 
-    addStatement(js.js.statement(
-      "return #streamHelper(null, #successCode, #controller);", {
+    addStatement(js.js
+        .statement("return #streamHelper(null, #successCode, #controller);", {
       "streamHelper": asyncStarHelper,
       "successCode": js.number(error_codes.SUCCESS),
-      "controller": controllerName}));
+      "controller": controllerName
+    }));
   }
 
   @override
   Iterable<js.VariableInitialization> variableInitializations() {
     List<js.VariableInitialization> variables =
         new List<js.VariableInitialization>();
-    variables.add(_makeVariableInitializer(controller,
-                         js.js('#(#)',
-                               [newController, bodyName])));
+    variables.add(_makeVariableInitializer(
+        controller, js.js('#(#)', [newController, bodyName])));
     if (analysis.hasYield) {
       variables.add(_makeVariableInitializer(nextWhenCanceled, null));
     }
@@ -2134,15 +2115,18 @@ class AsyncStarRewriter extends AsyncRewriterBase {
 
   @override
   js.Statement awaitStatement(js.Expression value) {
-    return js.js.statement("""
+    return js.js.statement(
+        """
           return #asyncHelper(#value,
                               #bodyName,
                               #controller);
-          """, {
-            "asyncHelper": asyncStarHelper,
-            "value": value,
-            "bodyName": bodyName,
-            "controller": controllerName});
+          """,
+        {
+          "asyncHelper": asyncStarHelper,
+          "value": value,
+          "bodyName": bodyName,
+          "controller": controllerName
+        });
   }
 }
 
@@ -2244,8 +2228,8 @@ class PreTranslationAnalysis extends js.NodeVisitor<bool> {
   @override
   bool visitBreak(js.Break node) {
     if (node.targetLabel != null) {
-      targets[node] = labelledStatements.lastWhere(
-          (js.LabeledStatement statement) {
+      targets[node] =
+          labelledStatements.lastWhere((js.LabeledStatement statement) {
         return statement.label == node.targetLabel;
       });
     } else {

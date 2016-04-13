@@ -7,10 +7,7 @@ library dart2js.js_emitter.constant_ordering;
 import '../constants/values.dart';
 
 import '../dart_types.dart';
-import '../elements/elements.dart'
-    show Element,
-         Elements,
-         FieldElement;
+import '../elements/elements.dart' show Element, Elements, FieldElement;
 import '../tree/tree.dart' show DartString;
 import '../js_backend/js_backend.dart' show SyntheticConstantKind;
 
@@ -64,8 +61,8 @@ class _CompareVisitor implements ConstantValueVisitor<int, ConstantValue> {
     if (a is GenericType) {
       GenericType aGeneric = a;
       GenericType bGeneric = b;
-      r = compareLists(compareDartTypes,
-                       aGeneric.typeArguments, bGeneric.typeArguments);
+      r = compareLists(
+          compareDartTypes, aGeneric.typeArguments, bGeneric.typeArguments);
       if (r != 0) return r;
     }
     throw 'unexpected compareDartTypes  $a  $b';
@@ -125,7 +122,8 @@ class _CompareVisitor implements ConstantValueVisitor<int, ConstantValue> {
     r = compareLists(compareElements, aFields, bFields);
     if (r != 0) return r;
 
-    return compareLists(compareValues,
+    return compareLists(
+        compareValues,
         aFields.map((field) => a.fields[field]).toList(),
         aFields.map((field) => b.fields[field]).toList());
   }

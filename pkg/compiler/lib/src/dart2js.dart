@@ -4,12 +4,18 @@
 
 library dart2js.cmdline;
 
-import 'dart:async'
-    show Future, EventSink;
+import 'dart:async' show Future, EventSink;
 import 'dart:convert' show UTF8, LineSplitter;
 import 'dart:io'
-    show exit, File, FileMode, Platform, RandomAccessFile, FileSystemException,
-         stdin, stderr;
+    show
+        exit,
+        File,
+        FileMode,
+        Platform,
+        RandomAccessFile,
+        FileSystemException,
+        stdin,
+        stderr;
 
 import '../compiler.dart' as api;
 import 'commandline_options.dart';
@@ -173,7 +179,10 @@ Future<api.CompilationResult> compile(List<String> argv) {
         out = currentDirectory.resolve('out.dart');
         sourceMapOut = currentDirectory.resolve('out.dart.map');
       }
-      diagnosticHandler(null, null, null,
+      diagnosticHandler(
+          null,
+          null,
+          null,
           "--output-type=dart is deprecated. It will remain available "
           "in Dart 1.11, but will be removed in Dart 1.12.",
           api.Diagnostic.WARNING);
@@ -257,7 +266,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
       for (String category in categories) {
         if (!["Client", "Server"].contains(category)) {
           fail('Unsupported library category "$category", '
-               'supported categories are: Client, Server, all');
+              'supported categories are: Client, Server, all');
         }
       }
     }
@@ -304,8 +313,8 @@ Future<api.CompilationResult> compile(List<String> argv) {
       passThrough(Flags.suppressWarnings);
     }),
     new OptionHandler(Flags.fatalWarnings, passThrough),
-    new OptionHandler(Flags.suppressHints,
-                      (_) => diagnosticHandler.showHints = false),
+    new OptionHandler(
+        Flags.suppressHints, (_) => diagnosticHandler.showHints = false),
     new OptionHandler(
         '--output-type=dart|--output-type=dart-multi|--output-type=js',
         setOutputType),
@@ -318,24 +327,24 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler(Flags.allowMockCompilation, passThrough),
     new OptionHandler(Flags.fastStartup, passThrough),
     new OptionHandler(Flags.conditionalDirectives, passThrough),
+    new OptionHandler(Flags.genericMethodSyntax, passThrough),
     new OptionHandler('${Flags.minify}|-m', implyCompilation),
     new OptionHandler(Flags.preserveUris, passThrough),
     new OptionHandler('--force-strip=.*', setStrip),
     new OptionHandler(Flags.disableDiagnosticColors,
-                      (_) => diagnosticHandler.enableColors = false),
+        (_) => diagnosticHandler.enableColors = false),
     new OptionHandler(Flags.enableDiagnosticColors,
-                      (_) => diagnosticHandler.enableColors = true),
+        (_) => diagnosticHandler.enableColors = true),
     new OptionHandler('--enable[_-]checked[_-]mode|--checked',
-                      (_) => setCheckedMode(Flags.enableCheckedMode)),
+        (_) => setCheckedMode(Flags.enableCheckedMode)),
     new OptionHandler(Flags.trustTypeAnnotations,
-                      (_) => setTrustTypeAnnotations(
-                          Flags.trustTypeAnnotations)),
+        (_) => setTrustTypeAnnotations(Flags.trustTypeAnnotations)),
     new OptionHandler(Flags.trustPrimitives,
-                      (_) => setTrustPrimitives(
-                          Flags.trustPrimitives)),
-    new OptionHandler(Flags.trustJSInteropTypeAnnotations,
-                      (_) => setTrustJSInteropTypeAnnotations(
-                          Flags.trustJSInteropTypeAnnotations)),
+        (_) => setTrustPrimitives(Flags.trustPrimitives)),
+    new OptionHandler(
+        Flags.trustJSInteropTypeAnnotations,
+        (_) => setTrustJSInteropTypeAnnotations(
+            Flags.trustJSInteropTypeAnnotations)),
     new OptionHandler(r'--help|/\?|/h', (_) => wantHelp = true),
     new OptionHandler('--packages=.+', setPackageConfig),
     new OptionHandler('--package-root=.+|-p.+', setPackageRoot),
@@ -349,8 +358,8 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler(Flags.terse, passThrough),
     new OptionHandler('--deferred-map=.+', implyCompilation),
     new OptionHandler(Flags.dumpInfo, setDumpInfo),
-    new OptionHandler('--disallow-unsafe-eval',
-                      (_) => hasDisallowUnsafeEval = true),
+    new OptionHandler(
+        '--disallow-unsafe-eval', (_) => hasDisallowUnsafeEval = true),
     new OptionHandler(Option.showPackageWarnings, passThrough),
     new OptionHandler(Flags.useContentSecurityPolicy, passThrough),
     new OptionHandler(Flags.enableExperimentalMirrors, passThrough),
@@ -361,7 +370,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
           "Async-await is supported by default.",
           api.Diagnostic.HINT);
     }),
-    new OptionHandler('--enable-null-aware-operators',  (_) {
+    new OptionHandler('--enable-null-aware-operators', (_) {
       diagnosticHandler.info(
           "Option '--enable-null-aware-operators' is no longer needed. "
           "Null aware operators are supported by default.",
@@ -393,18 +402,18 @@ Future<api.CompilationResult> compile(List<String> argv) {
   }
 
   if (hasDisallowUnsafeEval) {
-    String precompiledName =
-        relativize(currentDirectory,
-                   RandomAccessFileOutputProvider.computePrecompiledUri(out),
-                   Platform.isWindows);
+    String precompiledName = relativize(
+        currentDirectory,
+        RandomAccessFileOutputProvider.computePrecompiledUri(out),
+        Platform.isWindows);
     helpAndFail("Option '--disallow-unsafe-eval' has been removed."
-                " Instead, the compiler generates a file named"
-                " '$precompiledName'.");
+        " Instead, the compiler generates a file named"
+        " '$precompiledName'.");
   }
 
   if (outputLanguage != OUTPUT_LANGUAGE_DART && stripArgumentSet) {
     helpAndFail("Option '--force-strip' may only be used with "
-                "'--output-type=dart'.");
+        "'--output-type=dart'.");
   }
   if (arguments.isEmpty) {
     helpAndFail('No Dart file specified.');
@@ -416,7 +425,7 @@ Future<api.CompilationResult> compile(List<String> argv) {
 
   if (checkedMode && trustTypeAnnotations) {
     helpAndFail("Option '${Flags.trustTypeAnnotations}' may not be used in "
-                "checked mode.");
+        "checked mode.");
   }
 
   if (packageRoot != null && packageConfig != null) {
@@ -438,33 +447,33 @@ Future<api.CompilationResult> compile(List<String> argv) {
   if (!analyzeOnly) {
     if (allowNativeExtensions) {
       helpAndFail("Option '${Flags.allowNativeExtensions}' is only supported "
-                  "in combination with the '${Flags.analyzeOnly}' option.");
+          "in combination with the '${Flags.analyzeOnly}' option.");
     }
   }
   if (dumpInfo && outputLanguage == OUTPUT_LANGUAGE_DART) {
     helpAndFail("Option '${Flags.dumpInfo}' is not supported in "
-                "combination with the '--output-type=dart' option.");
+        "combination with the '--output-type=dart' option.");
   }
 
   options.add('--out=$out');
   options.add('--source-map=$sourceMapOut');
 
   RandomAccessFileOutputProvider outputProvider =
-      new RandomAccessFileOutputProvider(
-          out, sourceMapOut, onInfo: diagnosticHandler.info, onFailure: fail);
+      new RandomAccessFileOutputProvider(out, sourceMapOut,
+          onInfo: diagnosticHandler.info, onFailure: fail);
 
   api.CompilationResult compilationDone(api.CompilationResult result) {
     if (analyzeOnly) return result;
     if (!result.isSuccess) {
       fail('Compilation failed.');
     }
-    writeString(Uri.parse('$out.deps'),
-                getDepsOutput(inputProvider.sourceFiles));
-    diagnosticHandler.info(
-         'Compiled ${inputProvider.dartCharactersRead} characters Dart '
-         '-> ${outputProvider.totalCharactersWritten} characters '
-         '$outputLanguage in '
-         '${relativize(currentDirectory, out, Platform.isWindows)}');
+    writeString(
+        Uri.parse('$out.deps'), getDepsOutput(inputProvider.sourceFiles));
+    diagnosticHandler
+        .info('Compiled ${inputProvider.dartCharactersRead} characters Dart '
+            '-> ${outputProvider.totalCharactersWritten} characters '
+            '$outputLanguage in '
+            '${relativize(currentDirectory, out, Platform.isWindows)}');
     if (diagnosticHandler.verbose) {
       String input = uriPathToNative(arguments[0]);
       print('Dart file ($input) compiled to $outputLanguage.');
@@ -481,10 +490,18 @@ Future<api.CompilationResult> compile(List<String> argv) {
   }
 
   Uri uri = currentDirectory.resolve(arguments[0]);
-  return compileFunc(uri, libraryRoot, packageRoot, inputProvider,
-                     diagnosticHandler, options, outputProvider, environment,
-                     packageConfig, findPackages)
-            .then(compilationDone);
+  return compileFunc(
+          uri,
+          libraryRoot,
+          packageRoot,
+          inputProvider,
+          diagnosticHandler,
+          options,
+          outputProvider,
+          environment,
+          packageConfig,
+          findPackages)
+      .then(compilationDone);
 }
 
 class AbortLeg {
@@ -504,8 +521,7 @@ void writeString(Uri uri, String text) {
 
 void fail(String message) {
   if (diagnosticHandler != null) {
-    diagnosticHandler.report(
-        null, null, -1, -1, message, api.Diagnostic.ERROR);
+    diagnosticHandler.report(null, null, -1, -1, message, api.Diagnostic.ERROR);
   } else {
     print('Error: $message');
   }
@@ -515,7 +531,7 @@ void fail(String message) {
 Future<api.CompilationResult> compilerMain(List<String> arguments) {
   var root = uriPathToNative("/$LIBRARY_ROOT");
   arguments = <String>['--library-root=${Platform.script.toFilePath()}$root']
-      ..addAll(arguments);
+    ..addAll(arguments);
   return compile(arguments);
 }
 
@@ -660,14 +676,13 @@ be removed in a future version:
   --no-frequency-based-minification
     Experimental.  Disabled the new frequency based minifying namer and use the
     old namer instead.
-'''.trim());
+'''
+      .trim());
 }
 
 void helpAndExit(bool wantHelp, bool wantVersion, bool verbose) {
   if (wantVersion) {
-    var version = (BUILD_ID == null)
-        ? '<non-SDK build>'
-        : BUILD_ID;
+    var version = (BUILD_ID == null) ? '<non-SDK build>' : BUILD_ID;
     print('Dart-to-JavaScript compiler (dart2js) version: $version');
   }
   if (wantHelp) {
@@ -762,7 +777,7 @@ void batchMain(List<String> batchArguments) {
     }).whenComplete(() {
       // The testing framework waits for a status line on stdout and
       // stderr before moving to the next test.
-      if (exitCode == 0){
+      if (exitCode == 0) {
         print(">>> TEST OK");
       } else if (exitCode == 253) {
         print(">>> TEST CRASH");

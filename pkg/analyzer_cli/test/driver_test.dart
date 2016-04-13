@@ -66,6 +66,10 @@ main() {
         expect(processor.options['test_plugin'], isNotNull);
         expect(processor.exception, isNull);
       });
+      test('todos', () {
+        drive('data/file_with_todo.dart');
+        expect(outSink.toString().contains('[info]'), isFalse);
+      });
     });
 
     group('exit codes', () {

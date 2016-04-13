@@ -1,0 +1,29 @@
+*, *:before, *:after {
+    -moz-box-sizing: border-box; -webkit-box-sizing: border-box; box-sizing: border-box;
+}
+button {
+    position: fixed;
+    padding: 10px;
+    top: 5px;
+    left: 5px;
+    opacity: 0.8;
+    display: none;
+}
+g > * {
+    transition-property: stroke, stroke-width, transform, fill, font-size;
+    transition-duration: .2s;
+}
+g.active > text {
+    fill: blue;
+    font-size: 100%;
+}
+g.active > polygon, g.active > ellipse, g.active > path {
+    stroke: blue;
+    stroke-width: 3px !important;
+}
+g.active.edge > polygon {
+    fill: blue;
+}
+html, body { margin:10px; padding:0; }
+svg {  height:100%; width:100%; }
+svg.zoom {height: inherit; width: inherit;}

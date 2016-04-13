@@ -32,6 +32,15 @@ class Future<T> {
       Iterable<Future/*<T>*/> futures) => null;
   Future/*<R>*/ then/*<R>*/(/*=R*/ onValue(T value)) => null;
 }
+
+abstract class Completer<T> {
+  factory Completer() => new _AsyncCompleter<T>();
+  factory Completer.sync() => new _SyncCompleter<T>();
+  Future<T> get future;
+  void complete([value]);
+  void completeError(Object error, [StackTrace stackTrace]);
+  bool get isCompleted;
+}
 ''',
     const <String, String>{
       '/lib/async/stream.dart': r'''
@@ -118,8 +127,8 @@ abstract class num implements Comparable<num> {
   int operator |(int other);
   int operator <<(int other);
   int operator >>(int other);
-  int operator ~/(int other);
-  int operator %(int other);
+  int operator ~/(num other);
+  num operator %(num other);
   int operator ~();
   int toInt();
   double toDouble();

@@ -263,6 +263,12 @@ class CommandLineOptions {
   }
 
   static CommandLineOptions _parse(List<String> args) {
+    // Check if the args are in a file (bazel worker mode).
+    if (args.last.startsWith('@')) {
+      var argsFile = new File(args.last.substring(1));
+      args = argsFile.readAsLinesSync();
+    }
+
     args = args.expand((String arg) => arg.split('=')).toList();
     var parser = new CommandLineParser()
       ..addFlag('batch',
@@ -459,9 +465,20 @@ class CommandLineOptions {
 
       // Persistent worker.
       if (args.contains('--persistent_worker')) {
-        if (args.length != 2 || !args.contains('--build-mode')) {
+        bool validArgs;
+        if (!args.contains('--build-mode')) {
+          validArgs = false;
+        } else if (args.length == 2) {
+          validArgs = true;
+        } else if (args.length == 4 && args.contains('--dart-sdk')) {
+          validArgs = true;
+        } else {
+          validArgs = false;
+        }
+        if (!validArgs) {
           printAndFail('The --persistent_worker flag should be used with and '
-              'only with the --build-mode flag.');
+              'only with the --build-mode flag, and possibly the --dart-sdk '
+              'option. Got: $args');
           return null; // Only reachable in testing.
         }
         return new CommandLineOptions._fromArgs(results, definedVariables);

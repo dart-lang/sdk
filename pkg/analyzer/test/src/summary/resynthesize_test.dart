@@ -38,125 +38,33 @@ main() {
   runReflectiveTests(ResynthesizeElementTest);
 }
 
-@reflectiveTest
-class ResynthesizeElementTest extends ResynthesizeTest {
-  @override
-  void checkLibrary(String text,
-      {bool allowErrors: false, bool dumpSummaries: false}) {
-    Source source = addTestSource(text);
-    LibraryElementImpl original = context.computeLibraryElement(source);
-    LibraryElementImpl resynthesized = resynthesizeLibraryElement(
-        encodeLibrary(original,
-            allowErrors: allowErrors, dumpSummaries: dumpSummaries),
-        source.uri.toString(),
-        original);
-    checkLibraryElements(original, resynthesized);
-  }
-
-  @override
-  SummaryResynthesizer encodeDecodeLibrarySource(Source librarySource) {
-    LibraryElement libraryElement =
-        context.computeLibraryElement(librarySource);
-    return encodeLibrary(libraryElement);
-  }
-
-  /**
-   * Serialize the given [library] into a summary.  Then create a
-   * [TestSummaryResynthesizer] which can deserialize it, along with any
-   * references it makes to `dart:core`.
-   *
-   * Errors will lead to a test failure unless [allowErrors] is `true`.
-   */
-  TestSummaryResynthesizer encodeLibrary(LibraryElementImpl library,
-      {bool allowErrors: false, bool dumpSummaries: false}) {
-    if (!allowErrors) {
-      assertNoErrors(library.source);
-    }
-    addLibrary('dart:core');
-    addLibrary('dart:async');
-    addLibrary('dart:math');
-    return encodeLibraryElement(library, dumpSummaries: dumpSummaries);
-  }
-
-  /**
-   * Convert the library element [library] into a summary, and then create a
-   * [TestSummaryResynthesizer] which can deserialize it.
-   *
-   * Caller is responsible for checking the library for errors, and adding any
-   * dependent libraries using [addLibrary].
-   */
-  TestSummaryResynthesizer encodeLibraryElement(LibraryElementImpl library,
-      {bool dumpSummaries: false}) {
-    Map<String, UnlinkedUnit> unlinkedSummaries = <String, UnlinkedUnit>{};
-    LinkedLibrary getLinkedSummaryFor(LibraryElement lib) {
-      LibrarySerializationResult serialized = serializeLibrary(
-          lib, context.typeProvider, context.analysisOptions.strongMode);
-      for (int i = 0; i < serialized.unlinkedUnits.length; i++) {
-        unlinkedSummaries[serialized.unitUris[i]] =
-            new UnlinkedUnit.fromBuffer(serialized.unlinkedUnits[i].toBuffer());
-      }
-      return new LinkedLibrary.fromBuffer(serialized.linked.toBuffer());
-    }
-    Map<String, LinkedLibrary> linkedSummaries = <String, LinkedLibrary>{
-      library.source.uri.toString(): getLinkedSummaryFor(library)
-    };
-    for (Source source in otherLibrarySources) {
-      LibraryElement original = context.computeLibraryElement(source);
-      String uri = source.uri.toString();
-      linkedSummaries[uri] = getLinkedSummaryFor(original);
-    }
-    if (dumpSummaries) {
-      unlinkedSummaries.forEach((String path, UnlinkedUnit unit) {
-        print('Unlinked $path: ${JSON.encode(canonicalize(unit))}');
-      });
-      linkedSummaries.forEach((String path, LinkedLibrary lib) {
-        print('Linked $path: ${JSON.encode(canonicalize(lib))}');
-      });
-    }
-    return new TestSummaryResynthesizer(
-        null, context, unlinkedSummaries, linkedSummaries);
-  }
-
-  /**
-   * Resynthesize the library element associated with [uri] using
-   * [resynthesizer], and verify that it only had to consult one summary in
-   * order to do so.  [original] is consulted merely to verify that no
-   * unnecessary resynthesis work was performed.
-   */
-  LibraryElementImpl resynthesizeLibraryElement(
-      TestSummaryResynthesizer resynthesizer,
-      String uri,
-      LibraryElement original) {
-    LibraryElementImpl resynthesized = resynthesizer.getLibraryElement(uri);
-    checkMinimalResynthesisWork(resynthesizer, original);
-    return resynthesized;
-  }
-
-  test_core() {
-    addLibrary('dart:async');
-    addLibrary('dart:math');
-    String uri = 'dart:core';
-    LibraryElementImpl original =
-        context.computeLibraryElement(context.sourceFactory.forUri(uri));
-    LibraryElementImpl resynthesized = resynthesizeLibraryElement(
-        encodeLibraryElement(original), uri, original);
-    checkLibraryElements(original, resynthesized);
-  }
-}
-
-@reflectiveTest
-abstract class ResynthesizeTest extends AbstractSingleUnitTest {
+/**
+ * Abstract base class for resynthesizing and comparing elements.
+ */
+abstract class AbstractResynthesizeTest extends AbstractSingleUnitTest {
   Set<Source> otherLibrarySources = new Set<Source>();
   bool constantInitializersAreInvalid = false;
 
   bool get checkPropagatedTypes => true;
 
+  /**
+   * Derived classes can override this getter to return `true` in order to
+   * cause certain checks to be skipped if they are known to fail with
+   * AST-based type inference.
+   *
+   * TODO(paulberry): remove this flag once AST-based type inference is fully
+   * working.
+   */
+  bool get skipBrokenAstInference => false;
+
   void addLibrary(String uri) {
     otherLibrarySources.add(context.sourceFactory.forUri(uri));
   }
 
-  void addLibrarySource(String filePath, String contents) {
-    otherLibrarySources.add(addSource(filePath, contents));
+  Source addLibrarySource(String filePath, String contents) {
+    Source source = addSource(filePath, contents);
+    otherLibrarySources.add(source);
+    return source;
   }
 
   void assertNoErrors(Source source) {
@@ -188,9 +96,6 @@ abstract class ResynthesizeTest extends AbstractSingleUnitTest {
           ' should not have been elided');
     }
   }
-
-  void checkLibrary(String text,
-      {bool allowErrors: false, bool dumpSummaries: false});
 
   void checkLibraryElements(
       LibraryElementImpl original, LibraryElementImpl resynthesized) {
@@ -818,13 +723,7 @@ abstract class ResynthesizeTest extends AbstractSingleUnitTest {
       }
     }
     if (original is! Member) {
-      List<LocalVariableElement> rVariables = resynthesized.localVariables;
-      List<LocalVariableElement> oVariables = original.localVariables;
-      expect(rVariables, hasLength(oVariables.length));
-      for (int i = 0; i < oVariables.length; i++) {
-        compareVariableElements(rVariables[i], oVariables[i],
-            '$desc local variable ${oVariables[i].name}');
-      }
+      compareLocalVariableElementLists(resynthesized, original, desc);
     }
   }
 
@@ -901,6 +800,17 @@ abstract class ResynthesizeTest extends AbstractSingleUnitTest {
     expect(resynthesized.isOnSwitchStatement, original.isOnSwitchStatement,
         reason: desc);
     compareElements(resynthesized, original, desc);
+  }
+
+  void compareLocalVariableElementLists(ExecutableElement resynthesized,
+      ExecutableElement original, String desc) {
+    List<LocalVariableElement> rVariables = resynthesized.localVariables;
+    List<LocalVariableElement> oVariables = original.localVariables;
+    expect(rVariables, hasLength(oVariables.length));
+    for (int i = 0; i < oVariables.length; i++) {
+      compareVariableElements(rVariables[i], oVariables[i],
+          '$desc local variable ${oVariables[i].name}');
+    }
   }
 
   void compareMetadata(List<ElementAnnotation> resynthesized,
@@ -1159,8 +1069,10 @@ abstract class ResynthesizeTest extends AbstractSingleUnitTest {
     VariableElementImpl resynthesizedActual =
         getActualElement(resynthesized, desc);
     VariableElementImpl originalActual = getActualElement(original, desc);
-    compareFunctionElements(resynthesizedActual.initializer,
-        originalActual.initializer, '$desc initializer');
+    if (!skipBrokenAstInference) {
+      compareFunctionElements(resynthesizedActual.initializer,
+          originalActual.initializer, '$desc initializer');
+    }
     if (originalActual is ConstVariableElement) {
       Element oEnclosing = original.enclosingElement;
       if (oEnclosing is ClassElement && oEnclosing.isEnum) {
@@ -1187,12 +1099,6 @@ abstract class ResynthesizeTest extends AbstractSingleUnitTest {
    */
   AnalysisOptionsImpl createOptions() =>
       new AnalysisOptionsImpl()..enableGenericMethods = true;
-
-  /**
-   * Return a [SummaryResynthesizer] to resynthesize the library with the
-   * given [librarySource].
-   */
-  SummaryResynthesizer encodeDecodeLibrarySource(Source librarySource);
 
   /**
    * Serialize the given [library] into a summary.  Then create a
@@ -1251,10 +1157,6 @@ abstract class ResynthesizeTest extends AbstractSingleUnitTest {
         null, context, unlinkedSummaries, linkedSummaries);
   }
 
-  fail_library_hasExtUri() {
-    checkLibrary('import "dart-ext:doesNotExist.dart";');
-  }
-
   ElementImpl getActualElement(Element element, String desc) {
     if (element == null) {
       return null;
@@ -1298,6 +1200,134 @@ abstract class ResynthesizeTest extends AbstractSingleUnitTest {
   void setUp() {
     super.setUp();
     prepareAnalysisContext(createOptions());
+  }
+
+  void _assertUnresolvedIdentifier(Expression initializer, String desc) {
+    expect(initializer, new isInstanceOf<SimpleIdentifier>(), reason: desc);
+    SimpleIdentifier identifier = initializer;
+    expect(identifier.staticElement, isNull, reason: desc);
+  }
+}
+
+@reflectiveTest
+class ResynthesizeElementTest extends ResynthesizeTest {
+  @override
+  void checkLibrary(String text,
+      {bool allowErrors: false, bool dumpSummaries: false}) {
+    Source source = addTestSource(text);
+    LibraryElementImpl original = context.computeLibraryElement(source);
+    LibraryElementImpl resynthesized = resynthesizeLibraryElement(
+        encodeLibrary(original,
+            allowErrors: allowErrors, dumpSummaries: dumpSummaries),
+        source.uri.toString(),
+        original);
+    checkLibraryElements(original, resynthesized);
+  }
+
+  @override
+  SummaryResynthesizer encodeDecodeLibrarySource(Source librarySource) {
+    LibraryElement libraryElement =
+        context.computeLibraryElement(librarySource);
+    return encodeLibrary(libraryElement);
+  }
+
+  /**
+   * Serialize the given [library] into a summary.  Then create a
+   * [TestSummaryResynthesizer] which can deserialize it, along with any
+   * references it makes to `dart:core`.
+   *
+   * Errors will lead to a test failure unless [allowErrors] is `true`.
+   */
+  TestSummaryResynthesizer encodeLibrary(LibraryElementImpl library,
+      {bool allowErrors: false, bool dumpSummaries: false}) {
+    if (!allowErrors) {
+      assertNoErrors(library.source);
+    }
+    addLibrary('dart:core');
+    addLibrary('dart:async');
+    addLibrary('dart:math');
+    return encodeLibraryElement(library, dumpSummaries: dumpSummaries);
+  }
+
+  /**
+   * Convert the library element [library] into a summary, and then create a
+   * [TestSummaryResynthesizer] which can deserialize it.
+   *
+   * Caller is responsible for checking the library for errors, and adding any
+   * dependent libraries using [addLibrary].
+   */
+  TestSummaryResynthesizer encodeLibraryElement(LibraryElementImpl library,
+      {bool dumpSummaries: false}) {
+    Map<String, UnlinkedUnit> unlinkedSummaries = <String, UnlinkedUnit>{};
+    LinkedLibrary getLinkedSummaryFor(LibraryElement lib) {
+      LibrarySerializationResult serialized = serializeLibrary(
+          lib, context.typeProvider, context.analysisOptions.strongMode);
+      for (int i = 0; i < serialized.unlinkedUnits.length; i++) {
+        unlinkedSummaries[serialized.unitUris[i]] =
+            new UnlinkedUnit.fromBuffer(serialized.unlinkedUnits[i].toBuffer());
+      }
+      return new LinkedLibrary.fromBuffer(serialized.linked.toBuffer());
+    }
+    Map<String, LinkedLibrary> linkedSummaries = <String, LinkedLibrary>{
+      library.source.uri.toString(): getLinkedSummaryFor(library)
+    };
+    for (Source source in otherLibrarySources) {
+      LibraryElement original = context.computeLibraryElement(source);
+      String uri = source.uri.toString();
+      linkedSummaries[uri] = getLinkedSummaryFor(original);
+    }
+    if (dumpSummaries) {
+      unlinkedSummaries.forEach((String path, UnlinkedUnit unit) {
+        print('Unlinked $path: ${JSON.encode(canonicalize(unit))}');
+      });
+      linkedSummaries.forEach((String path, LinkedLibrary lib) {
+        print('Linked $path: ${JSON.encode(canonicalize(lib))}');
+      });
+    }
+    return new TestSummaryResynthesizer(
+        null, context, unlinkedSummaries, linkedSummaries);
+  }
+
+  /**
+   * Resynthesize the library element associated with [uri] using
+   * [resynthesizer], and verify that it only had to consult one summary in
+   * order to do so.  [original] is consulted merely to verify that no
+   * unnecessary resynthesis work was performed.
+   */
+  LibraryElementImpl resynthesizeLibraryElement(
+      TestSummaryResynthesizer resynthesizer,
+      String uri,
+      LibraryElement original) {
+    LibraryElementImpl resynthesized = resynthesizer.getLibraryElement(uri);
+    checkMinimalResynthesisWork(resynthesizer, original);
+    return resynthesized;
+  }
+
+  test_core() {
+    addLibrary('dart:async');
+    addLibrary('dart:math');
+    String uri = 'dart:core';
+    LibraryElementImpl original =
+        context.computeLibraryElement(context.sourceFactory.forUri(uri));
+    LibraryElementImpl resynthesized = resynthesizeLibraryElement(
+        encodeLibraryElement(original), uri, original);
+    checkLibraryElements(original, resynthesized);
+  }
+}
+
+@reflectiveTest
+abstract class ResynthesizeTest extends AbstractResynthesizeTest {
+  void checkLibrary(String text,
+      {bool allowErrors: false, bool dumpSummaries: false});
+
+  /**
+   * Return a [SummaryResynthesizer] to resynthesize the library with the
+   * given [librarySource].
+   */
+  SummaryResynthesizer encodeDecodeLibrarySource(Source librarySource);
+
+  fail_library_hasExtUri() {
+    checkLibrary('import "dart-ext:doesNotExist.dart";');
   }
 
   test_class_abstract() {
@@ -3005,8 +3035,9 @@ class C<T, U> {
 
   test_getElement_constructor_named() {
     String text = 'class C { C.named(); }';
+    Source source = addLibrarySource('/test.dart', text);
     ConstructorElement original = context
-        .computeLibraryElement(addTestSource(text))
+        .computeLibraryElement(source)
         .getType('C')
         .getNamedConstructor('named');
     expect(original, isNotNull);
@@ -3016,10 +3047,9 @@ class C<T, U> {
 
   test_getElement_constructor_unnamed() {
     String text = 'class C { C(); }';
-    ConstructorElement original = context
-        .computeLibraryElement(addTestSource(text))
-        .getType('C')
-        .unnamedConstructor;
+    Source source = addLibrarySource('/test.dart', text);
+    ConstructorElement original =
+        context.computeLibraryElement(source).getType('C').unnamedConstructor;
     expect(original, isNotNull);
     ConstructorElement resynthesized = validateGetElement(text, original);
     compareConstructorElements(resynthesized, original, 'C.constructor');
@@ -3027,10 +3057,9 @@ class C<T, U> {
 
   test_getElement_field() {
     String text = 'class C { var f; }';
-    FieldElement original = context
-        .computeLibraryElement(addTestSource(text))
-        .getType('C')
-        .getField('f');
+    Source source = addLibrarySource('/test.dart', text);
+    FieldElement original =
+        context.computeLibraryElement(source).getType('C').getField('f');
     expect(original, isNotNull);
     FieldElement resynthesized = validateGetElement(text, original);
     compareFieldElements(resynthesized, original, 'C.field f');
@@ -3038,10 +3067,9 @@ class C<T, U> {
 
   test_getElement_getter() {
     String text = 'class C { get f => null; }';
-    PropertyAccessorElement original = context
-        .computeLibraryElement(addTestSource(text))
-        .getType('C')
-        .getGetter('f');
+    Source source = addLibrarySource('/test.dart', text);
+    PropertyAccessorElement original =
+        context.computeLibraryElement(source).getType('C').getGetter('f');
     expect(original, isNotNull);
     PropertyAccessorElement resynthesized = validateGetElement(text, original);
     comparePropertyAccessorElements(resynthesized, original, 'C.getter f');
@@ -3049,10 +3077,9 @@ class C<T, U> {
 
   test_getElement_method() {
     String text = 'class C { f() {} }';
-    MethodElement original = context
-        .computeLibraryElement(addTestSource(text))
-        .getType('C')
-        .getMethod('f');
+    Source source = addLibrarySource('/test.dart', text);
+    MethodElement original =
+        context.computeLibraryElement(source).getType('C').getMethod('f');
     expect(original, isNotNull);
     MethodElement resynthesized = validateGetElement(text, original);
     compareMethodElements(resynthesized, original, 'C.method f');
@@ -3060,10 +3087,9 @@ class C<T, U> {
 
   test_getElement_operator() {
     String text = 'class C { operator+(x) => null; }';
-    MethodElement original = context
-        .computeLibraryElement(addTestSource(text))
-        .getType('C')
-        .getMethod('+');
+    Source source = addLibrarySource('/test.dart', text);
+    MethodElement original =
+        context.computeLibraryElement(source).getType('C').getMethod('+');
     expect(original, isNotNull);
     MethodElement resynthesized = validateGetElement(text, original);
     compareMethodElements(resynthesized, original, 'C.operator+');
@@ -3071,10 +3097,9 @@ class C<T, U> {
 
   test_getElement_setter() {
     String text = 'class C { void set f(value) {} }';
-    PropertyAccessorElement original = context
-        .computeLibraryElement(addTestSource(text))
-        .getType('C')
-        .getSetter('f');
+    Source source = addLibrarySource('/test.dart', text);
+    PropertyAccessorElement original =
+        context.computeLibraryElement(source).getType('C').getSetter('f');
     expect(original, isNotNull);
     PropertyAccessorElement resynthesized = validateGetElement(text, original);
     comparePropertyAccessorElements(resynthesized, original, 'C.setter f');
@@ -3082,7 +3107,7 @@ class C<T, U> {
 
   test_getElement_unit() {
     String text = 'class C { f() {} }';
-    Source source = addTestSource(text);
+    Source source = addLibrarySource('/test.dart', text);
     CompilationUnitElement original =
         context.computeLibraryElement(source).definingCompilationUnit;
     expect(original, isNotNull);
@@ -3142,7 +3167,11 @@ get x => null;''');
 
   test_import_show() {
     addLibrary('dart:async');
-    checkLibrary('import "dart:async" show Future, Stream; Future f;');
+    checkLibrary('''
+import "dart:async" show Future, Stream;
+Future f;
+Stream s;
+''');
   }
 
   test_imports() {
@@ -4251,12 +4280,6 @@ var x;''');
     expect(resynthesizer.resynthesisCount, 1);
     expect(result.location, location);
     return result;
-  }
-
-  void _assertUnresolvedIdentifier(Expression initializer, String desc) {
-    expect(initializer, new isInstanceOf<SimpleIdentifier>(), reason: desc);
-    SimpleIdentifier identifier = initializer;
-    expect(identifier.staticElement, isNull, reason: desc);
   }
 }
 

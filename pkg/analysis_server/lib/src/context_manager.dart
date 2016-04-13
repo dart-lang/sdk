@@ -46,11 +46,6 @@ import 'package:yaml/yaml.dart';
  */
 class ContextInfo {
   /**
-   * The [ContextManager] which is tracking this information.
-   */
-  final ContextManagerImpl contextManager;
-
-  /**
    * The [Folder] for which this information object is created.
    */
   final Folder folder;
@@ -102,8 +97,7 @@ class ContextInfo {
 
   ContextInfo(ContextManagerImpl contextManager, this.parent, Folder folder,
       File packagespecFile, this.packageRoot)
-      : contextManager = contextManager,
-        folder = folder,
+      : folder = folder,
         pathFilter = new PathFilter(
             folder.path, null, contextManager.resourceProvider.pathContext) {
     packageDescriptionPath = packagespecFile.path;
@@ -115,8 +109,7 @@ class ContextInfo {
    * [ContextInfo]s.
    */
   ContextInfo._root()
-      : contextManager = null,
-        folder = null,
+      : folder = null,
         pathFilter = null;
 
   /**

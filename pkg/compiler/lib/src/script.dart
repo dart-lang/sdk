@@ -16,7 +16,6 @@ class Script {
    */
   final Uri readableUri;
 
-
   /**
    * The resource URI from which this script was loaded.
    *
@@ -27,14 +26,13 @@ class Script {
   /// This script was synthesized.
   final bool isSynthesized;
 
-  Script(this.readableUri, this.resourceUri, this.file)
-      : isSynthesized = false;
+  Script(this.readableUri, this.resourceUri, this.file) : isSynthesized = false;
 
   Script.synthetic(Uri uri)
       : readableUri = uri,
         resourceUri = uri,
-        file = new StringSourceFile.fromUri(uri,
-            "// Synthetic source file generated for '$uri'."),
+        file = new StringSourceFile.fromUri(
+            uri, "// Synthetic source file generated for '$uri'."),
         isSynthesized = true;
 
   String get text => (file == null) ? null : file.slowText();

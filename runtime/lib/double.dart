@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _Double extends _Num implements double {
+class _Double implements double {
   factory _Double.fromInteger(int value)
       native "Double_doubleFromInteger";
 
@@ -140,6 +140,8 @@ class _Double extends _Num implements double {
   static final List _cache = new List(CACHE_LENGTH);
   static int _cacheEvictIndex = 0;
 
+  String _toString() native "Double_toString";
+
   String toString() {
     // TODO(koda): Consider starting at most recently inserted.
     for (int i = 0; i < CACHE_LENGTH; i += 2) {
@@ -152,7 +154,7 @@ class _Double extends _Num implements double {
     if (identical(0.0, this)) {
       return "0.0";
     }
-    String result = super.toString();
+    String result = _toString();
     // Replace the least recently inserted entry.
     _cache[_cacheEvictIndex] = this;
     _cache[_cacheEvictIndex + 1] = result;

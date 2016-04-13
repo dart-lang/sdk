@@ -49,6 +49,9 @@ import 'format.dart' as generated;
  * Annotation describing information which is not part of Dart semantics; in
  * other words, if this information (or any information it refers to) changes,
  * static analysis and runtime behavior of the library are unaffected.
+ *
+ * Information that has purely local effect (in other words, it does not affect
+ * the API of the code being analyzed) is also marked as `informative`.
  */
 const informative = null;
 
@@ -425,6 +428,13 @@ abstract class LinkedLibrary extends base.SummaryClass {
    */
   @Id(0)
   List<LinkedDependency> get dependencies;
+
+  /**
+   * For each export in [UnlinkedUnit.exports], an index into [dependencies]
+   * of the library being exported.
+   */
+  @Id(6)
+  List<int> get exportDependencies;
 
   /**
    * Information about entities in the export namespace of the library that are
@@ -1428,7 +1438,7 @@ enum UnlinkedConstOperation {
   typeCast,
 
   /**
-   * Pop the top value from the stack and check whether is is a subclass of the
+   * Pop the top value from the stack and check whether it is a subclass of the
    * type with reference from [UnlinkedConst.references], push the result into
    * the stack.
    */
@@ -1697,18 +1707,21 @@ abstract class UnlinkedExecutable extends base.SummaryClass {
   /**
    * The list of local functions.
    */
+  @informative
   @Id(18)
   List<UnlinkedExecutable> get localFunctions;
 
   /**
    * The list of local labels.
    */
+  @informative
   @Id(22)
   List<UnlinkedLabel> get localLabels;
 
   /**
    * The list of local variables.
    */
+  @informative
   @Id(19)
   List<UnlinkedVariable> get localVariables;
 
@@ -2605,6 +2618,7 @@ abstract class UnlinkedVariable extends base.SummaryClass {
    * The synthetic initializer function of the variable.  Absent if the variable
    * does not have an initializer.
    */
+  @informative
   @Id(13)
   UnlinkedExecutable get initializer;
 

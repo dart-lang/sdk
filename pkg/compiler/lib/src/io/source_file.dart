@@ -89,7 +89,7 @@ abstract class SourceFile implements LineColumnProvider {
     List<int> starts = lineStarts;
     if (position < 0 || starts.last <= position) {
       throw 'bad position #$position in file $filename with '
-            'length ${length}.';
+          'length ${length}.';
     }
     int first = 0;
     int count = starts.length;
@@ -132,8 +132,7 @@ abstract class SourceFile implements LineColumnProvider {
    * escape codes.
    */
   String getLocationMessage(String message, int start, int end,
-                            {bool includeSourceLine: true,
-                             String colorize(String text)}) {
+      {bool includeSourceLine: true, String colorize(String text)}) {
     if (colorize == null) {
       colorize = (text) => text;
     }
@@ -158,7 +157,7 @@ abstract class SourceFile implements LineColumnProvider {
       if (lineStart == lineEnd) {
         String textLine = getLineText(lineStart);
 
-        int toColumn = min(columnStart + (end-start), textLine.length);
+        int toColumn = min(columnStart + (end - start), textLine.length);
         buf.write(textLine.substring(0, columnStart));
         buf.write(colorize(textLine.substring(columnStart, toColumn)));
         buf.write(textLine.substring(toColumn));
@@ -196,7 +195,7 @@ abstract class SourceFile implements LineColumnProvider {
   String getLineText(int index) {
     // +1 for 0-indexing, +1 again to avoid the last line of the file
     if ((index + 2) < lineStarts.length) {
-      return slowSubstring(lineStarts[index], lineStarts[index+1]);
+      return slowSubstring(lineStarts[index], lineStarts[index + 1]);
     } else if ((index + 1) < lineStarts.length) {
       return '${slowSubstring(lineStarts[index], length)}\n';
     } else {
@@ -226,12 +225,12 @@ class Utf8BytesSourceFile extends SourceFile {
    * the constructor clones the content and adds a trailing 0.
    */
   Utf8BytesSourceFile(this.uri, List<int> content)
-    : this.zeroTerminatedContent = _zeroTerminateIfNecessary(content);
+      : this.zeroTerminatedContent = _zeroTerminateIfNecessary(content);
 
   String slowText() {
     // Don't convert the trailing zero byte.
-    return UTF8.decoder.convert(
-        zeroTerminatedContent, 0, zeroTerminatedContent.length - 1);
+    return UTF8.decoder
+        .convert(zeroTerminatedContent, 0, zeroTerminatedContent.length - 1);
   }
 
   List<int> slowUtf8ZeroTerminatedBytes() => zeroTerminatedContent;
@@ -249,6 +248,7 @@ class Utf8BytesSourceFile extends SourceFile {
     }
     return lengthCache;
   }
+
   set length(int v) => lengthCache = v;
   int lengthCache = -1;
 }
@@ -282,7 +282,7 @@ class StringSourceFile extends SourceFile {
       : this(new Uri(path: filename), filename, text);
 
   int get length => text.length;
-  set length(int v) { }
+  set length(int v) {}
 
   String slowText() => text;
 

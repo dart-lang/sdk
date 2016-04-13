@@ -52,8 +52,7 @@ typedef Future<String> ReadStringFromUri(Uri uri);
  * As more features are added to the compiler, new names and
  * extensions may be introduced.
  */
-typedef EventSink<String> CompilerOutputProvider(String name,
-                                                 String extension);
+typedef EventSink<String> CompilerOutputProvider(String name, String extension);
 
 /**
  * Invoked by the compiler to report diagnostics. If [uri] is
@@ -65,8 +64,8 @@ typedef EventSink<String> CompilerOutputProvider(String name,
  * diagnostic message, and [kind] indicates indicates what kind of
  * diagnostic it is.
  */
-typedef void DiagnosticHandler(Uri uri, int begin, int end,
-                               String message, Diagnostic kind);
+typedef void DiagnosticHandler(
+    Uri uri, int begin, int end, String message, Diagnostic kind);
 
 /**
  * Provides a package lookup mechanism in the case that no package root or
@@ -104,18 +103,13 @@ class CompilationResult {
  * as the compiler may create multiple files to support lazy loading
  * of libraries.
  */
-Future<CompilationResult> compile(
-    Uri script,
-    Uri libraryRoot,
-    Uri packageRoot,
-    CompilerInputProvider inputProvider,
-    DiagnosticHandler handler,
+Future<CompilationResult> compile(Uri script, Uri libraryRoot, Uri packageRoot,
+    CompilerInputProvider inputProvider, DiagnosticHandler handler,
     [List<String> options = const [],
-     CompilerOutputProvider outputProvider,
-     Map<String, dynamic> environment = const {},
-     Uri packageConfig,
-     PackagesDiscoveryProvider packagesDiscoveryProvider]) {
-
+    CompilerOutputProvider outputProvider,
+    Map<String, dynamic> environment = const {},
+    Uri packageConfig,
+    PackagesDiscoveryProvider packagesDiscoveryProvider]) {
   CompilerOptions compilerOptions = new CompilerOptions.parse(
       entryPoint: script,
       libraryRoot: libraryRoot,
@@ -131,8 +125,9 @@ Future<CompilationResult> compile(
   new_api.CompilerOutput compilerOutput =
       new LegacyCompilerOutput(outputProvider);
 
-  return new_api.compile(compilerOptions, compilerInput,
-                         compilerDiagnostics, compilerOutput)
+  return new_api
+      .compile(
+          compilerOptions, compilerInput, compilerDiagnostics, compilerOutput)
       .then((new_api.CompilationResult result) {
     return new CompilationResult(result.compiler, isSuccess: result.isSuccess);
   });

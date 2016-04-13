@@ -5,19 +5,18 @@
 library dart2js.parser.listener;
 
 import '../common.dart';
-import '../diagnostics/messages.dart' show
-    MessageTemplate;
-import '../tokens/precedence_constants.dart' as Precedence show
-    EOF_INFO,
-    IDENTIFIER_INFO;
-import '../tokens/token.dart' show
-    BadInputToken,
-    BeginGroupToken,
-    ErrorToken,
-    StringToken,
-    Token,
-    UnmatchedToken,
-    UnterminatedToken;
+import '../diagnostics/messages.dart' show MessageTemplate;
+import '../tokens/precedence_constants.dart' as Precedence
+    show EOF_INFO, IDENTIFIER_INFO;
+import '../tokens/token.dart'
+    show
+        BadInputToken,
+        BeginGroupToken,
+        ErrorToken,
+        StringToken,
+        Token,
+        UnmatchedToken,
+        UnterminatedToken;
 import '../tree/tree.dart';
 
 const bool VERBOSE = false;
@@ -27,582 +26,404 @@ const bool VERBOSE = false;
  * on parser errors.
  */
 class Listener {
-  set suppressParseErrors(bool value) {
-  }
+  set suppressParseErrors(bool value) {}
 
-  void beginArguments(Token token) {
-  }
+  void beginArguments(Token token) {}
 
-  void endArguments(int count, Token beginToken, Token endToken) {
-  }
+  void endArguments(int count, Token beginToken, Token endToken) {}
 
   /// Handle async modifiers `async`, `async*`, `sync`.
-  void handleAsyncModifier(Token asyncToken, Token startToken) {
-  }
+  void handleAsyncModifier(Token asyncToken, Token startToken) {}
 
-  void beginAwaitExpression(Token token) {
-  }
+  void beginAwaitExpression(Token token) {}
 
-  void endAwaitExpression(Token beginToken, Token endToken) {
-  }
+  void endAwaitExpression(Token beginToken, Token endToken) {}
 
-  void beginBlock(Token token) {
-  }
+  void beginBlock(Token token) {}
 
-  void endBlock(int count, Token beginToken, Token endToken) {
-  }
+  void endBlock(int count, Token beginToken, Token endToken) {}
 
-  void beginCascade(Token token) {
-  }
+  void beginCascade(Token token) {}
 
-  void endCascade() {
-  }
+  void endCascade() {}
 
-  void beginClassBody(Token token) {
-  }
+  void beginClassBody(Token token) {}
 
-  void endClassBody(int memberCount, Token beginToken, Token endToken) {
-  }
+  void endClassBody(int memberCount, Token beginToken, Token endToken) {}
 
-  void beginClassDeclaration(Token token) {
-  }
+  void beginClassDeclaration(Token token) {}
 
   void endClassDeclaration(int interfacesCount, Token beginToken,
-                           Token extendsKeyword, Token implementsKeyword,
-                           Token endToken) {
-  }
+      Token extendsKeyword, Token implementsKeyword, Token endToken) {}
 
-  void beginCombinators(Token token) {
-  }
+  void beginCombinators(Token token) {}
 
-  void endCombinators(int count) {
-  }
+  void endCombinators(int count) {}
 
-  void beginCompilationUnit(Token token) {
-  }
+  void beginCompilationUnit(Token token) {}
 
-  void endCompilationUnit(int count, Token token) {
-  }
+  void endCompilationUnit(int count, Token token) {}
 
-  void beginConstructorReference(Token start) {
-  }
+  void beginConstructorReference(Token start) {}
 
-  void endConstructorReference(Token start, Token periodBeforeName,
-                               Token endToken) {
-  }
+  void endConstructorReference(
+      Token start, Token periodBeforeName, Token endToken) {}
 
-  void beginDoWhileStatement(Token token) {
-  }
+  void beginDoWhileStatement(Token token) {}
 
-  void endDoWhileStatement(Token doKeyword, Token whileKeyword,
-                           Token endToken) {
-  }
+  void endDoWhileStatement(
+      Token doKeyword, Token whileKeyword, Token endToken) {}
 
-  void beginEnum(Token enumKeyword) {
-  }
+  void beginEnum(Token enumKeyword) {}
 
-  void endEnum(Token enumKeyword, Token endBrace, int count) {
-  }
+  void endEnum(Token enumKeyword, Token endBrace, int count) {}
 
-  void beginExport(Token token) {
-  }
+  void beginExport(Token token) {}
 
-  void endExport(Token exportKeyword, Token semicolon) {
-  }
+  void endExport(Token exportKeyword, Token semicolon) {}
 
-  void beginExpressionStatement(Token token) {
-  }
+  void beginExpressionStatement(Token token) {}
 
-  void endExpressionStatement(Token token) {
-  }
+  void endExpressionStatement(Token token) {}
 
-  void beginFactoryMethod(Token token) {
-  }
+  void beginFactoryMethod(Token token) {}
 
-  void endFactoryMethod(Token beginToken, Token endToken) {
-  }
+  void endFactoryMethod(Token beginToken, Token endToken) {}
 
-  void beginFormalParameter(Token token) {
-  }
+  void beginFormalParameter(Token token) {}
 
-  void endFormalParameter(Token thisKeyword) {
-  }
+  void endFormalParameter(Token thisKeyword) {}
 
-  void handleNoFormalParameters(Token token) {
-  }
+  void handleNoFormalParameters(Token token) {}
 
-  void beginFormalParameters(Token token) {
-  }
+  void beginFormalParameters(Token token) {}
 
-  void endFormalParameters(int count, Token beginToken, Token endToken) {
-  }
+  void endFormalParameters(int count, Token beginToken, Token endToken) {}
 
-  void endFields(int count, Token beginToken, Token endToken) {
-  }
+  void endFields(int count, Token beginToken, Token endToken) {}
 
-  void beginForStatement(Token token) {
-  }
+  void beginForStatement(Token token) {}
 
-  void endForStatement(int updateExpressionCount,
-                       Token beginToken, Token endToken) {
-  }
+  void endForStatement(
+      int updateExpressionCount, Token beginToken, Token endToken) {}
 
-  void endForIn(Token awaitToken, Token forToken,
-                Token inKeyword, Token endToken) {
-  }
+  void endForIn(
+      Token awaitToken, Token forToken, Token inKeyword, Token endToken) {}
 
-  void beginFunction(Token token) {
-  }
+  void beginFunction(Token token) {}
 
-  void endFunction(Token getOrSet, Token endToken) {
-  }
+  void endFunction(Token getOrSet, Token endToken) {}
 
-  void beginFunctionDeclaration(Token token) {
-  }
+  void beginFunctionDeclaration(Token token) {}
 
-  void endFunctionDeclaration(Token token) {
-  }
+  void endFunctionDeclaration(Token token) {}
 
-  void beginFunctionBody(Token token) {
-  }
+  void beginFunctionBody(Token token) {}
 
-  void endFunctionBody(int count, Token beginToken, Token endToken) {
-  }
+  void endFunctionBody(int count, Token beginToken, Token endToken) {}
 
-  void handleNoFunctionBody(Token token) {
-  }
+  void handleNoFunctionBody(Token token) {}
 
-  void skippedFunctionBody(Token token) {
-  }
+  void skippedFunctionBody(Token token) {}
 
-  void beginFunctionName(Token token) {
-  }
+  void beginFunctionName(Token token) {}
 
-  void endFunctionName(Token token) {
-  }
+  void endFunctionName(Token token) {}
 
-  void beginFunctionTypeAlias(Token token) {
-  }
+  void beginFunctionTypeAlias(Token token) {}
 
-  void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
-  }
+  void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {}
 
-  void beginMixinApplication(Token token) {
-  }
+  void beginMixinApplication(Token token) {}
 
-  void endMixinApplication() {
-  }
+  void endMixinApplication() {}
 
-  void beginNamedMixinApplication(Token token) {
-  }
+  void beginNamedMixinApplication(Token token) {}
 
-  void endNamedMixinApplication(Token classKeyword,
-                                Token implementsKeyword,
-                                Token endToken) {
-  }
+  void endNamedMixinApplication(
+      Token classKeyword, Token implementsKeyword, Token endToken) {}
 
-  void beginHide(Token hideKeyword) {
-  }
+  void beginHide(Token hideKeyword) {}
 
-  void endHide(Token hideKeyword) {
-  }
+  void endHide(Token hideKeyword) {}
 
-  void beginIdentifierList(Token token) {
-  }
+  void beginIdentifierList(Token token) {}
 
-  void endIdentifierList(int count) {
-  }
+  void endIdentifierList(int count) {}
 
-  void beginTypeList(Token token) {
-  }
+  void beginTypeList(Token token) {}
 
-  void endTypeList(int count) {
-  }
+  void endTypeList(int count) {}
 
-  void beginIfStatement(Token token) {
-  }
+  void beginIfStatement(Token token) {}
 
-  void endIfStatement(Token ifToken, Token elseToken) {
-  }
+  void endIfStatement(Token ifToken, Token elseToken) {}
 
-  void beginImport(Token importKeyword) {
-  }
+  void beginImport(Token importKeyword) {}
 
-  void endImport(Token importKeyword, Token DeferredKeyword,
-                 Token asKeyword, Token semicolon) {
-  }
+  void endImport(Token importKeyword, Token DeferredKeyword, Token asKeyword,
+      Token semicolon) {}
 
-  void beginConditionalUris(Token token) {
-  }
+  void beginConditionalUris(Token token) {}
 
-  void endConditionalUris(int count) {
-  }
+  void endConditionalUris(int count) {}
 
-  void beginConditionalUri(Token ifKeyword) {
-  }
+  void beginConditionalUri(Token ifKeyword) {}
 
-  void endConditionalUri(Token ifKeyword, Token equalitySign) {
-  }
+  void endConditionalUri(Token ifKeyword, Token equalitySign) {}
 
-  void beginDottedName(Token token) {
-  }
+  void beginDottedName(Token token) {}
 
-  void endDottedName(int count, Token firstIdentifier) {
-  }
+  void endDottedName(int count, Token firstIdentifier) {}
 
-  void beginInitializedIdentifier(Token token) {
-  }
+  void beginInitializedIdentifier(Token token) {}
 
-  void endInitializedIdentifier() {
-  }
+  void endInitializedIdentifier() {}
 
-  void beginInitializer(Token token) {
-  }
+  void beginInitializer(Token token) {}
 
-  void endInitializer(Token assignmentOperator) {
-  }
+  void endInitializer(Token assignmentOperator) {}
 
-  void beginInitializers(Token token) {
-  }
+  void beginInitializers(Token token) {}
 
-  void endInitializers(int count, Token beginToken, Token endToken) {
-  }
+  void endInitializers(int count, Token beginToken, Token endToken) {}
 
-  void handleNoInitializers() {
-  }
+  void handleNoInitializers() {}
 
-  void handleLabel(Token token) {
-  }
+  void handleLabel(Token token) {}
 
-  void beginLabeledStatement(Token token, int labelCount) {
-  }
+  void beginLabeledStatement(Token token, int labelCount) {}
 
-  void endLabeledStatement(int labelCount) {
-  }
+  void endLabeledStatement(int labelCount) {}
 
-  void beginLibraryName(Token token) {
-  }
+  void beginLibraryName(Token token) {}
 
-  void endLibraryName(Token libraryKeyword, Token semicolon) {
-  }
+  void endLibraryName(Token libraryKeyword, Token semicolon) {}
 
-  void beginLiteralMapEntry(Token token) {
-  }
+  void beginLiteralMapEntry(Token token) {}
 
-  void endLiteralMapEntry(Token colon, Token endToken) {
-  }
+  void endLiteralMapEntry(Token colon, Token endToken) {}
 
-  void beginLiteralString(Token token) {
-  }
+  void beginLiteralString(Token token) {}
 
-  void endLiteralString(int interpolationCount) {
-  }
+  void endLiteralString(int interpolationCount) {}
 
-  void handleStringJuxtaposition(int literalCount) {
-  }
+  void handleStringJuxtaposition(int literalCount) {}
 
-  void beginMember(Token token) {
-  }
+  void beginMember(Token token) {}
 
-  void endMethod(Token getOrSet, Token beginToken, Token endToken) {
-  }
+  void endMethod(Token getOrSet, Token beginToken, Token endToken) {}
 
-  void beginMetadataStar(Token token) {
-  }
+  void beginMetadataStar(Token token) {}
 
-  void endMetadataStar(int count, bool forParameter) {
-  }
+  void endMetadataStar(int count, bool forParameter) {}
 
-  void beginMetadata(Token token) {
-  }
+  void beginMetadata(Token token) {}
 
-  void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {
-  }
+  void endMetadata(Token beginToken, Token periodBeforeName, Token endToken) {}
 
-  void beginOptionalFormalParameters(Token token) {
-  }
+  void beginOptionalFormalParameters(Token token) {}
 
-  void endOptionalFormalParameters(int count,
-                                   Token beginToken, Token endToken) {
-  }
+  void endOptionalFormalParameters(
+      int count, Token beginToken, Token endToken) {}
 
-  void beginPart(Token token) {
-  }
+  void beginPart(Token token) {}
 
-  void endPart(Token partKeyword, Token semicolon) {
-  }
+  void endPart(Token partKeyword, Token semicolon) {}
 
-  void beginPartOf(Token token) {
-  }
+  void beginPartOf(Token token) {}
 
-  void endPartOf(Token partKeyword, Token semicolon) {
-  }
+  void endPartOf(Token partKeyword, Token semicolon) {}
 
-  void beginRedirectingFactoryBody(Token token) {
-  }
+  void beginRedirectingFactoryBody(Token token) {}
 
-  void endRedirectingFactoryBody(Token beginToken, Token endToken) {
-  }
+  void endRedirectingFactoryBody(Token beginToken, Token endToken) {}
 
-  void beginReturnStatement(Token token) {
-  }
+  void beginReturnStatement(Token token) {}
 
-  void endReturnStatement(bool hasExpression,
-                          Token beginToken, Token endToken) {
-  }
+  void endReturnStatement(
+      bool hasExpression, Token beginToken, Token endToken) {}
 
-  void beginSend(Token token) {
-  }
+  void beginSend(Token token) {}
 
-  void endSend(Token token) {
-  }
+  void endSend(Token token) {}
 
-  void beginShow(Token showKeyword) {
-  }
+  void beginShow(Token showKeyword) {}
 
-  void endShow(Token showKeyword) {
-  }
+  void endShow(Token showKeyword) {}
 
-  void beginSwitchStatement(Token token) {
-  }
+  void beginSwitchStatement(Token token) {}
 
-  void endSwitchStatement(Token switchKeyword, Token endToken) {
-  }
+  void endSwitchStatement(Token switchKeyword, Token endToken) {}
 
-  void beginSwitchBlock(Token token) {
-  }
+  void beginSwitchBlock(Token token) {}
 
-  void endSwitchBlock(int caseCount, Token beginToken, Token endToken) {
-  }
+  void endSwitchBlock(int caseCount, Token beginToken, Token endToken) {}
 
-  void beginLiteralSymbol(Token token) {
-  }
+  void beginLiteralSymbol(Token token) {}
 
-  void endLiteralSymbol(Token hashToken, int identifierCount) {
-  }
+  void endLiteralSymbol(Token hashToken, int identifierCount) {}
 
-  void beginThrowExpression(Token token) {
-  }
+  void beginThrowExpression(Token token) {}
 
-  void endThrowExpression(Token throwToken, Token endToken) {
-  }
+  void endThrowExpression(Token throwToken, Token endToken) {}
 
-  void beginRethrowStatement(Token token) {
-  }
+  void beginRethrowStatement(Token token) {}
 
-  void endRethrowStatement(Token throwToken, Token endToken) {
-  }
+  void endRethrowStatement(Token throwToken, Token endToken) {}
 
-  void endTopLevelDeclaration(Token token) {
-  }
+  void endTopLevelDeclaration(Token token) {}
 
-  void beginTopLevelMember(Token token) {
-  }
+  void beginTopLevelMember(Token token) {}
 
-  void endTopLevelFields(int count, Token beginToken, Token endToken) {
-  }
+  void endTopLevelFields(int count, Token beginToken, Token endToken) {}
 
-  void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {
-  }
+  void endTopLevelMethod(Token beginToken, Token getOrSet, Token endToken) {}
 
-  void beginTryStatement(Token token) {
-  }
+  void beginTryStatement(Token token) {}
 
-  void handleCaseMatch(Token caseKeyword, Token colon) {
-  }
+  void handleCaseMatch(Token caseKeyword, Token colon) {}
 
-  void handleCatchBlock(Token onKeyword, Token catchKeyword) {
-  }
+  void handleCatchBlock(Token onKeyword, Token catchKeyword) {}
 
-  void handleFinallyBlock(Token finallyKeyword) {
-  }
+  void handleFinallyBlock(Token finallyKeyword) {}
 
-  void endTryStatement(int catchCount, Token tryKeyword, Token finallyKeyword) {
-  }
+  void endTryStatement(
+      int catchCount, Token tryKeyword, Token finallyKeyword) {}
 
-  void endType(Token beginToken, Token endToken) {
-  }
+  void endType(Token beginToken, Token endToken) {}
 
-  void beginTypeArguments(Token token) {
-  }
+  void beginTypeArguments(Token token) {}
 
-  void endTypeArguments(int count, Token beginToken, Token endToken) {
-  }
+  void endTypeArguments(int count, Token beginToken, Token endToken) {}
 
-  void handleNoTypeArguments(Token token) {
-  }
+  void handleNoTypeArguments(Token token) {}
 
-  void beginTypeVariable(Token token) {
-  }
+  void beginTypeVariable(Token token) {}
 
-  void endTypeVariable(Token token) {
-  }
+  void endTypeVariable(Token token) {}
 
-  void beginTypeVariables(Token token) {
-  }
+  void beginTypeVariables(Token token) {}
 
-  void endTypeVariables(int count, Token beginToken, Token endToken) {
-  }
+  void endTypeVariables(int count, Token beginToken, Token endToken) {}
 
-  void beginUnnamedFunction(Token token) {
-  }
+  void beginUnnamedFunction(Token token) {}
 
-  void endUnnamedFunction(Token token) {
-  }
+  void endUnnamedFunction(Token token) {}
 
-  void beginVariablesDeclaration(Token token) {
-  }
+  void beginVariablesDeclaration(Token token) {}
 
-  void endVariablesDeclaration(int count, Token endToken) {
-  }
+  void endVariablesDeclaration(int count, Token endToken) {}
 
-  void beginWhileStatement(Token token) {
-  }
+  void beginWhileStatement(Token token) {}
 
-  void endWhileStatement(Token whileKeyword, Token endToken) {
-  }
+  void endWhileStatement(Token whileKeyword, Token endToken) {}
 
   void handleAsOperator(Token operathor, Token endToken) {
     // TODO(ahe): Rename [operathor] to "operator" when VM bug is fixed.
   }
 
-  void handleAssignmentExpression(Token token) {
-  }
+  void handleAssignmentExpression(Token token) {}
 
-  void handleBinaryExpression(Token token) {
-  }
+  void handleBinaryExpression(Token token) {}
 
-  void handleConditionalExpression(Token question, Token colon) {
-  }
+  void handleConditionalExpression(Token question, Token colon) {}
 
-  void handleConstExpression(Token token) {
-  }
+  void handleConstExpression(Token token) {}
 
-  void handleFunctionTypedFormalParameter(Token token) {
-  }
+  void handleFunctionTypedFormalParameter(Token token) {}
 
-  void handleIdentifier(Token token) {
-  }
+  void handleIdentifier(Token token) {}
 
-  void handleIndexedExpression(Token openCurlyBracket,
-                               Token closeCurlyBracket) {
-  }
+  void handleIndexedExpression(
+      Token openCurlyBracket, Token closeCurlyBracket) {}
 
   void handleIsOperator(Token operathor, Token not, Token endToken) {
     // TODO(ahe): Rename [operathor] to "operator" when VM bug is fixed.
   }
 
-  void handleLiteralBool(Token token) {
-  }
+  void handleLiteralBool(Token token) {}
 
-  void handleBreakStatement(bool hasTarget,
-                            Token breakKeyword, Token endToken) {
-  }
+  void handleBreakStatement(
+      bool hasTarget, Token breakKeyword, Token endToken) {}
 
-  void handleContinueStatement(bool hasTarget,
-                               Token continueKeyword, Token endToken) {
-  }
+  void handleContinueStatement(
+      bool hasTarget, Token continueKeyword, Token endToken) {}
 
-  void handleEmptyStatement(Token token) {
-  }
+  void handleEmptyStatement(Token token) {}
 
-  void handleAssertStatement(Token assertKeyword,
-                             Token commaToken, Token semicolonToken) {
-  }
+  void handleAssertStatement(
+      Token assertKeyword, Token commaToken, Token semicolonToken) {}
 
   /** Called with either the token containing a double literal, or
     * an immediately preceding "unary plus" token.
     */
-  void handleLiteralDouble(Token token) {
-  }
+  void handleLiteralDouble(Token token) {}
 
   /** Called with either the token containing an integer literal,
     * or an immediately preceding "unary plus" token.
     */
-  void handleLiteralInt(Token token) {
-  }
+  void handleLiteralInt(Token token) {}
 
-  void handleLiteralList(int count, Token beginToken, Token constKeyword,
-                         Token endToken) {
-  }
+  void handleLiteralList(
+      int count, Token beginToken, Token constKeyword, Token endToken) {}
 
-  void handleLiteralMap(int count, Token beginToken, Token constKeyword,
-                        Token endToken) {
-  }
+  void handleLiteralMap(
+      int count, Token beginToken, Token constKeyword, Token endToken) {}
 
-  void handleLiteralNull(Token token) {
-  }
+  void handleLiteralNull(Token token) {}
 
-  void handleModifier(Token token) {
-  }
+  void handleModifier(Token token) {}
 
-  void handleModifiers(int count) {
-  }
+  void handleModifiers(int count) {}
 
-  void handleNamedArgument(Token colon) {
-  }
+  void handleNamedArgument(Token colon) {}
 
-  void handleNewExpression(Token token) {
-  }
+  void handleNewExpression(Token token) {}
 
-  void handleNoArguments(Token token) {
-  }
+  void handleNoArguments(Token token) {}
 
-  void handleNoExpression(Token token) {
-  }
+  void handleNoExpression(Token token) {}
 
-  void handleNoType(Token token) {
-  }
+  void handleNoType(Token token) {}
 
-  void handleNoTypeVariables(Token token) {
-  }
+  void handleNoTypeVariables(Token token) {}
 
-  void handleOperator(Token token) {
-  }
+  void handleOperator(Token token) {}
 
-  void handleOperatorName(Token operatorKeyword, Token token) {
-  }
+  void handleOperatorName(Token operatorKeyword, Token token) {}
 
-  void handleParenthesizedExpression(BeginGroupToken token) {
-  }
+  void handleParenthesizedExpression(BeginGroupToken token) {}
 
-  void handleQualified(Token period) {
-  }
+  void handleQualified(Token period) {}
 
-  void handleStringPart(Token token) {
-  }
+  void handleStringPart(Token token) {}
 
-  void handleSuperExpression(Token token) {
-  }
+  void handleSuperExpression(Token token) {}
 
-  void handleSwitchCase(int labelCount, int expressionCount,
-                        Token defaultKeyword, int statementCount,
-                        Token firstToken, Token endToken) {
-  }
+  void handleSwitchCase(
+      int labelCount,
+      int expressionCount,
+      Token defaultKeyword,
+      int statementCount,
+      Token firstToken,
+      Token endToken) {}
 
-  void handleThisExpression(Token token) {
-  }
+  void handleThisExpression(Token token) {}
 
-  void handleUnaryPostfixAssignmentExpression(Token token) {
-  }
+  void handleUnaryPostfixAssignmentExpression(Token token) {}
 
-  void handleUnaryPrefixExpression(Token token) {
-  }
+  void handleUnaryPrefixExpression(Token token) {}
 
-  void handleUnaryPrefixAssignmentExpression(Token token) {
-  }
+  void handleUnaryPrefixAssignmentExpression(Token token) {}
 
-  void handleValuedFormalParameter(Token equals, Token token) {
-  }
+  void handleValuedFormalParameter(Token equals, Token token) {}
 
-  void handleVoidKeyword(Token token) {
-  }
+  void handleVoidKeyword(Token token) {}
 
-  void beginYieldStatement(Token token) {
-  }
+  void beginYieldStatement(Token token) {}
 
-  void endYieldStatement(Token yieldToken, Token starToken, Token endToken) {
-  }
+  void endYieldStatement(Token yieldToken, Token starToken, Token endToken) {}
 
   Token expected(String string, Token token) {
     if (token is ErrorToken) {
@@ -614,9 +435,8 @@ class Listener {
   }
 
   Token synthesizeIdentifier(Token token) {
-    Token synthesizedToken =
-        new StringToken.fromString(
-            Precedence.IDENTIFIER_INFO, '?', token.charOffset);
+    Token synthesizedToken = new StringToken.fromString(
+        Precedence.IDENTIFIER_INFO, '?', token.charOffset);
     synthesizedToken.next = token.next;
     return synthesizedToken;
   }
@@ -726,9 +546,8 @@ class Listener {
     throw new ParserError("$message @ ${token.charOffset}");
   }
 
-  void reportError(Spannable spannable,
-                   MessageKind messageKind,
-                   [Map arguments = const {}]) {
+  void reportError(Spannable spannable, MessageKind messageKind,
+      [Map arguments = const {}]) {
     MessageTemplate template = MessageTemplate.TEMPLATES[messageKind];
     String message = template.message(arguments, true).toString();
     Token token;
@@ -795,13 +614,7 @@ class Listener {
 }
 
 String closeBraceFor(String openBrace) {
-  return const {
-    '(': ')',
-    '[': ']',
-    '{': '}',
-    '<': '>',
-    r'${': '}',
-  }[openBrace];
+  return const {'(': ')', '[': ']', '{': '}', '<': '>', r'${': '}',}[openBrace];
 }
 
 class ParserError {

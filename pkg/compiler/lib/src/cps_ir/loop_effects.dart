@@ -85,7 +85,8 @@ class LoopSideEffects extends TrampolineRecursiveVisitor {
         if (inner == null) {
           // The shrinking reductions pass must run before any pass that relies
           // on computing loop side effects.
-          world.compiler.reporter.internalError(null,
+          world.compiler.reporter.internalError(
+              null,
               'Unreachable continuations must be removed before computing '
               'loop side effects.');
         }

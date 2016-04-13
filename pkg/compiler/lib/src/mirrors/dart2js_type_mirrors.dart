@@ -9,9 +9,9 @@ abstract class ClassMirrorMixin implements ClassSourceMirror {
   Type get reflectedType {
     throw new UnsupportedError("ClassMirror.reflectedType is not supported.");
   }
-  InstanceMirror newInstance(Symbol constructorName,
-                             List positionalArguments,
-                             [Map<Symbol, dynamic> namedArguments]) {
+
+  InstanceMirror newInstance(Symbol constructorName, List positionalArguments,
+      [Map<Symbol, dynamic> namedArguments]) {
     throw new UnsupportedError("ClassMirror.newInstance is not supported.");
   }
 }
@@ -64,19 +64,17 @@ abstract class Dart2JsTypeMirror
   }
 
   String toString() => _type.toString();
-
 }
 
 /// Base implementations for mirrors on element based types.
-abstract class Dart2JsTypeElementMirror
-    extends Dart2JsElementMirror
+abstract class Dart2JsTypeElementMirror extends Dart2JsElementMirror
     with Dart2JsTypeMirror
     implements TypeSourceMirror {
   final DartType _type;
 
   Dart2JsTypeElementMirror(Dart2JsMirrorSystem system, DartType type)
-    : super(system, type.element),
-      this._type = type;
+      : super(system, type.element),
+        this._type = type;
 
   Dart2JsLibraryMirror get library {
     return mirrorSystem._getLibrary(_type.element.library);
@@ -84,7 +82,6 @@ abstract class Dart2JsTypeElementMirror
 }
 
 abstract class DeclarationMixin implements TypeMirror {
-
   bool get isOriginalDeclaration => true;
 
   TypeMirror get originalDeclaration => this;
@@ -124,8 +121,8 @@ abstract class Dart2JsGenericTypeMirror extends Dart2JsTypeElementMirror {
     if (_typeVariables == null) {
       _typeVariables = <TypeVariableMirror>[];
       for (TypeVariableType typeVariable in _element.typeVariables) {
-        _typeVariables.add(
-            new Dart2JsTypeVariableMirror(mirrorSystem, typeVariable));
+        _typeVariables
+            .add(new Dart2JsTypeVariableMirror(mirrorSystem, typeVariable));
       }
     }
     return _typeVariables;
@@ -152,8 +149,8 @@ abstract class Dart2JsGenericTypeMirror extends Dart2JsTypeElementMirror {
     if (newTypeArguments.isEmpty) return owner._getTypeMirror(_type.asRaw());
     if (newTypeArguments.length != typeVariables.length) {
       throw new ArgumentError('Cannot create generic instantiation of $_type '
-                              'with ${newTypeArguments.length} arguments, '
-                              'expect ${typeVariables.length} arguments.');
+          'with ${newTypeArguments.length} arguments, '
+          'expect ${typeVariables.length} arguments.');
     }
     List<DartType> builder = <DartType>[];
     for (TypeSourceMirror newTypeArgument in newTypeArguments) {
@@ -163,8 +160,7 @@ abstract class Dart2JsGenericTypeMirror extends Dart2JsTypeElementMirror {
       if (newTypeArgument is Dart2JsTypeMirror) {
         builder.add(newTypeArgument._type);
       } else {
-        throw new UnsupportedError(
-            'Cannot create instantiation using a type '
+        throw new UnsupportedError('Cannot create instantiation using a type '
             'mirror from a different mirrorSystem implementation.');
       }
     }
@@ -172,19 +168,18 @@ abstract class Dart2JsGenericTypeMirror extends Dart2JsTypeElementMirror {
   }
 }
 
-class Dart2JsInterfaceTypeMirror
-    extends Dart2JsGenericTypeMirror
+class Dart2JsInterfaceTypeMirror extends Dart2JsGenericTypeMirror
     with ObjectMirrorMixin, ClassMirrorMixin, ContainerMixin
     implements ClassMirror {
-  Dart2JsInterfaceTypeMirror(Dart2JsMirrorSystem system,
-                             InterfaceType interfaceType)
+  Dart2JsInterfaceTypeMirror(
+      Dart2JsMirrorSystem system, InterfaceType interfaceType)
       : super(system, interfaceType);
 
   ClassElement get _element => super._element;
 
   InterfaceType get _type => super._type;
 
-  bool get isNameSynthetic  {
+  bool get isNameSynthetic {
     if (_element.isMixinApplication) {
       MixinApplicationElement mixinApplication = _element;
       return mixinApplication.isUnnamedMixinApplication;
@@ -206,7 +201,7 @@ class Dart2JsInterfaceTypeMirror
   bool isSubclassOf(Mirror other) {
     if (other is Dart2JsTypeMirror) {
       return other._type.element != null &&
-             _element.isSubclassOf(other._type.element);
+          _element.isSubclassOf(other._type.element);
     } else {
       throw new ArgumentError(other);
     }
@@ -251,12 +246,9 @@ class Dart2JsInterfaceTypeMirror
   String toString() => 'Mirror on interface type $_type';
 }
 
-class Dart2JsClassDeclarationMirror
-    extends Dart2JsInterfaceTypeMirror
+class Dart2JsClassDeclarationMirror extends Dart2JsInterfaceTypeMirror
     with DeclarationMixin {
-
-  Dart2JsClassDeclarationMirror(Dart2JsMirrorSystem system,
-                                InterfaceType type)
+  Dart2JsClassDeclarationMirror(Dart2JsMirrorSystem system, InterfaceType type)
       : super(system, type);
 
   bool isSubclassOf(ClassMirror other) {
@@ -273,8 +265,7 @@ class Dart2JsClassDeclarationMirror
   String toString() => 'Mirror on class ${_type.name}';
 }
 
-class Dart2JsTypedefMirror
-    extends Dart2JsGenericTypeMirror
+class Dart2JsTypedefMirror extends Dart2JsGenericTypeMirror
     implements TypedefMirror {
   final Dart2JsLibraryMirror _library;
   List<TypeVariableMirror> _typeVariables;
@@ -284,8 +275,8 @@ class Dart2JsTypedefMirror
       : this._library = system._getLibrary(_typedef.element.library),
         super(system, _typedef);
 
-  Dart2JsTypedefMirror.fromLibrary(Dart2JsLibraryMirror library,
-                                   TypedefType _typedef)
+  Dart2JsTypedefMirror.fromLibrary(
+      Dart2JsLibraryMirror library, TypedefType _typedef)
       : this._library = library,
         super(library.mirrorSystem, _typedef);
 
@@ -311,11 +302,9 @@ class Dart2JsTypedefMirror
   String toString() => 'Mirror on typedef $_type';
 }
 
-class Dart2JsTypedefDeclarationMirror
-    extends Dart2JsTypedefMirror
+class Dart2JsTypedefDeclarationMirror extends Dart2JsTypedefMirror
     with DeclarationMixin {
-  Dart2JsTypedefDeclarationMirror(Dart2JsMirrorSystem system,
-                                  TypedefType type)
+  Dart2JsTypedefDeclarationMirror(Dart2JsMirrorSystem system, TypedefType type)
       : super(system, type);
 
   String toString() => 'Mirror on typedef ${_type.name}';
@@ -325,16 +314,16 @@ class Dart2JsTypeVariableMirror extends Dart2JsTypeElementMirror
     implements TypeVariableMirror {
   Dart2JsDeclarationMirror _owner;
 
-  Dart2JsTypeVariableMirror(Dart2JsMirrorSystem system,
-                            TypeVariableType typeVariableType)
-    : super(system, typeVariableType);
+  Dart2JsTypeVariableMirror(
+      Dart2JsMirrorSystem system, TypeVariableType typeVariableType)
+      : super(system, typeVariableType);
 
   TypeVariableType get _type => super._type;
 
   Dart2JsDeclarationMirror get owner {
     if (_owner == null) {
-      _owner = mirrorSystem._getTypeDeclarationMirror(
-          _type.element.typeDeclaration);
+      _owner =
+          mirrorSystem._getTypeDeclarationMirror(_type.element.typeDeclaration);
     }
     return _owner;
   }
@@ -364,10 +353,10 @@ class Dart2JsFunctionTypeMirror extends Dart2JsTypeElementMirror
     implements FunctionTypeMirror {
   List<ParameterMirror> _parameters;
 
-  Dart2JsFunctionTypeMirror(Dart2JsMirrorSystem system,
-                            FunctionType functionType)
+  Dart2JsFunctionTypeMirror(
+      Dart2JsMirrorSystem system, FunctionType functionType)
       : super(system, functionType) {
-    assert (functionType.element != null);
+    assert(functionType.element != null);
   }
 
   FunctionType get _type => super._type;
@@ -392,12 +381,10 @@ class Dart2JsFunctionTypeMirror extends Dart2JsTypeElementMirror
   bool get isFunction => true;
 
   MethodMirror get callMethod => _convertElementMethodToMethodMirror(
-      mirrorSystem._getLibrary(_type.element.library),
-      _type.element);
+      mirrorSystem._getLibrary(_type.element.library), _type.element);
 
-  ClassMirror get originalDeclaration =>
-      mirrorSystem._getTypeDeclarationMirror(
-          mirrorSystem.compiler.coreClasses.functionClass);
+  ClassMirror get originalDeclaration => mirrorSystem._getTypeDeclarationMirror(
+      mirrorSystem.compiler.coreClasses.functionClass);
 
   // TODO(johnniwinther): Substitute type arguments for type variables.
   ClassMirror get superclass => originalDeclaration.superclass;
@@ -441,8 +428,8 @@ abstract class Dart2JsBuiltinTypeMirror extends Dart2JsDeclarationMirror
   final Dart2JsMirrorSystem mirrorSystem;
   final DartType _type;
 
-  Dart2JsBuiltinTypeMirror(Dart2JsMirrorSystem this.mirrorSystem,
-                           DartType this._type);
+  Dart2JsBuiltinTypeMirror(
+      Dart2JsMirrorSystem this.mirrorSystem, DartType this._type);
 
   Symbol get qualifiedName => simpleName;
 

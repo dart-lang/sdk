@@ -28,8 +28,7 @@ const Spannable CURRENT_ELEMENT_SPANNABLE =
 /// Sentinel spannable used to mark that there might be no location for the
 /// diagnostic. Use this only when it is not an error not to have a current
 /// element.
-const Spannable NO_LOCATION_SPANNABLE =
-    const _SpannableSentinel("No location");
+const Spannable NO_LOCATION_SPANNABLE = const _SpannableSentinel("No location");
 
 class SpannableAssertionFailure {
   final Spannable node;
@@ -37,5 +36,5 @@ class SpannableAssertionFailure {
   SpannableAssertionFailure(this.node, this.message);
 
   String toString() => 'Assertion failure'
-                       '${message != null ? ': $message' : ''}';
+      '${message != null ? ': $message' : ''}';
 }

@@ -6,6 +6,7 @@ library analyzer.test.src.summary.summarize_elements_test;
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/source_io.dart';
 import 'package:analyzer/src/summary/format.dart';
@@ -16,8 +17,9 @@ import 'package:analyzer/src/summary/summarize_elements.dart'
     as summarize_elements;
 import 'package:unittest/unittest.dart';
 
-import '../../generated/resolver_test_case.dart';
 import '../../reflective_tests.dart';
+import '../abstract_single_unit.dart';
+import '../context/abstract_context.dart';
 import 'summary_common.dart';
 
 main() {
@@ -29,7 +31,7 @@ main() {
  * Override of [SummaryTest] which creates summaries from the element model.
  */
 @reflectiveTest
-class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
+class SummarizeElementsTest extends AbstractSingleUnitTest with SummaryTest {
   /**
    * The list of absolute unit URIs corresponding to the compilation units in
    * [unlinkedUnits].
@@ -71,10 +73,13 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
 
   @override
   Source addNamedSource(String filePath, String contents) {
-    Source source = super.addNamedSource(filePath, contents);
+    Source source = super.addSource(filePath, contents);
     _fileContents[source] = contents;
     return source;
   }
+
+  @override
+  DartSdk createDartSdk() => AbstractContextTest.SHARED_MOCK_SDK;
 
   /**
    * Serialize the library containing the given class [element], then
@@ -92,7 +97,7 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
   void serializeLibraryElement(LibraryElement library) {
     summarize_elements.LibrarySerializationResult serializedLib =
         summarize_elements.serializeLibrary(
-            library, typeProvider, analysisContext.analysisOptions.strongMode);
+            library, context.typeProvider, context.analysisOptions.strongMode);
     {
       List<int> buffer = serializedLib.linked.toBuffer();
       linked = new LinkedLibrary.fromBuffer(buffer);
@@ -107,14 +112,15 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
 
   @override
   void serializeLibraryText(String text, {bool allowErrors: false}) {
-    Source source = addSource(text);
+    Source source = addTestSource(text);
     _fileContents[source] = text;
-    LibraryElement library = resolve2(source);
+    LibraryElement library = context.computeLibraryElement(source);
     if (!allowErrors) {
-      assertNoErrors(source);
+      assertNoErrorsInSource(source);
     }
     serializeLibraryElement(library);
     expect(unlinkedUnits[0].imports.length, linked.importDependencies.length);
+    expect(unlinkedUnits[0].exports.length, linked.exportDependencies.length);
     expect(linked.units.length, unlinkedUnits.length);
     for (int i = 0; i < linked.units.length; i++) {
       expect(unlinkedUnits[i].references.length,
@@ -126,11 +132,12 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
   @override
   void setUp() {
     super.setUp();
-    resetWithOptions(options);
+    prepareAnalysisContext(options);
   }
 
   test_class_no_superclass() {
-    UnlinkedClass cls = serializeClassElement(typeProvider.objectType.element);
+    UnlinkedClass cls =
+        serializeClassElement(context.typeProvider.objectType.element);
     expect(cls.supertype, isNull);
     expect(cls.hasNoSupertype, isTrue);
   }
@@ -141,7 +148,7 @@ class SummarizeElementsTest extends ResolverTestCase with SummaryTest {
    */
   void verifyPublicNamespace() {
     for (int i = 0; i < unlinkedUnits.length; i++) {
-      Source source = analysisContext.sourceFactory.forUri(unitUris[i]);
+      Source source = context.sourceFactory.forUri(unitUris[i]);
       String text = _fileContents[source];
       if (text == null) {
         if (!allowMissingFiles) {

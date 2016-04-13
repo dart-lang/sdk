@@ -56,9 +56,8 @@ class ValueRangeInfo {
   }
 
   Range newMarkerRange() {
-    return new Range(new MarkerValue(false, this),
-                     new MarkerValue(true, this),
-                     this);
+    return new Range(
+        new MarkerValue(false, this), new MarkerValue(true, this), this);
   }
 }
 
@@ -73,7 +72,7 @@ abstract class Value {
 
   Value operator +(Value other) => const UnknownValue();
   Value operator -(Value other) => const UnknownValue();
-  Value operator -()  => const UnknownValue();
+  Value operator -() => const UnknownValue();
   Value operator &(Value other) => const UnknownValue();
 
   Value min(Value other) {
@@ -138,7 +137,7 @@ class IntValue extends Value {
 
   Value operator +(other) {
     if (other.isZero) return this;
-    if (other is !IntValue) return other + this;
+    if (other is! IntValue) return other + this;
     ConstantSystem constantSystem = info.constantSystem;
     var constant = constantSystem.add.fold(
         constantSystem.createInt(value), constantSystem.createInt(other.value));
@@ -148,7 +147,7 @@ class IntValue extends Value {
 
   Value operator -(other) {
     if (other.isZero) return this;
-    if (other is !IntValue) return -other + this;
+    if (other is! IntValue) return -other + this;
     ConstantSystem constantSystem = info.constantSystem;
     var constant = constantSystem.subtract.fold(
         constantSystem.createInt(value), constantSystem.createInt(other.value));
@@ -159,14 +158,13 @@ class IntValue extends Value {
   Value operator -() {
     if (isZero) return this;
     ConstantSystem constantSystem = info.constantSystem;
-    var constant = constantSystem.negate.fold(
-        constantSystem.createInt(value));
+    var constant = constantSystem.negate.fold(constantSystem.createInt(value));
     if (!constant.isInt) return const UnknownValue();
     return info.newIntValue(constant.primitiveValue);
   }
 
   Value operator &(other) {
-    if (other is !IntValue) return const UnknownValue();
+    if (other is! IntValue) return const UnknownValue();
     ConstantSystem constantSystem = info.constantSystem;
     var constant = constantSystem.bitAnd.fold(
         constantSystem.createInt(value), constantSystem.createInt(other.value));
@@ -174,17 +172,17 @@ class IntValue extends Value {
   }
 
   Value min(other) {
-    if (other is !IntValue) return other.min(this);
+    if (other is! IntValue) return other.min(this);
     return this.value < other.value ? this : other;
   }
 
   Value max(other) {
-    if (other is !IntValue) return other.max(this);
+    if (other is! IntValue) return other.max(this);
     return this.value < other.value ? other : this;
   }
 
   bool operator ==(other) {
-    if (other is !IntValue) return false;
+    if (other is! IntValue) return false;
     return this.value == other.value;
   }
 
@@ -252,7 +250,7 @@ class InstructionValue extends Value {
   InstructionValue(this.instruction, info) : super(info);
 
   bool operator ==(other) {
-    if (other is !InstructionValue) return false;
+    if (other is! InstructionValue) return false;
     return this.instruction == other.instruction;
   }
 
@@ -319,9 +317,9 @@ class AddValue extends BinaryOperationValue {
   AddValue(left, right, info) : super(left, right, info);
 
   bool operator ==(other) {
-    if (other is !AddValue) return false;
-    return (left == other.left && right == other.right)
-      || (left == other.right && right == other.left);
+    if (other is! AddValue) return false;
+    return (left == other.left && right == other.right) ||
+        (left == other.right && right == other.left);
   }
 
   int get hashCode => throw new UnsupportedError('AddValue.hashCode');
@@ -367,7 +365,7 @@ class SubtractValue extends BinaryOperationValue {
   SubtractValue(left, right, info) : super(left, right, info);
 
   bool operator ==(other) {
-    if (other is !SubtractValue) return false;
+    if (other is! SubtractValue) return false;
     return left == other.left && right == other.right;
   }
 
@@ -415,7 +413,7 @@ class NegateValue extends Value {
   NegateValue(this.value, info) : super(info);
 
   bool operator ==(other) {
-    if (other is !NegateValue) return false;
+    if (other is! NegateValue) return false;
     return value == other.value;
   }
 
@@ -481,10 +479,9 @@ class Range {
    * Checks if the given values are unknown, and creates a
    * range that does not have any unknown values.
    */
-  Range.normalize(Value low, Value up, info) : this(
-      low == const UnknownValue() ? const MinIntValue() : low,
-      up == const UnknownValue() ? const MaxIntValue() : up,
-      info);
+  Range.normalize(Value low, Value up, info)
+      : this(low == const UnknownValue() ? const MinIntValue() : low,
+            up == const UnknownValue() ? const MaxIntValue() : up, info);
 
   Range union(Range other) {
     return info.newNormalizedRange(
@@ -497,14 +494,20 @@ class Range {
     // If we could not compute max or min, pick a value in the two
     // ranges, with priority to [IntValue]s because they are simpler.
     if (low == const UnknownValue()) {
-      if (lower is IntValue) low = lower;
-      else if (other.lower is IntValue) low = other.lower;
-      else low = lower;
+      if (lower is IntValue)
+        low = lower;
+      else if (other.lower is IntValue)
+        low = other.lower;
+      else
+        low = lower;
     }
     if (up == const UnknownValue()) {
-      if (upper is IntValue) up = upper;
-      else if (other.upper is IntValue) up = other.upper;
-      else up = upper;
+      if (upper is IntValue)
+        up = upper;
+      else if (other.upper is IntValue)
+        up = other.upper;
+      else
+        up = upper;
     }
     return info.newNormalizedRange(low, up);
   }
@@ -522,10 +525,10 @@ class Range {
   }
 
   Range operator &(Range other) {
-    if (isSingleValue
-        && other.isSingleValue
-        && lower is IntValue
-        && other.lower is IntValue) {
+    if (isSingleValue &&
+        other.isSingleValue &&
+        lower is IntValue &&
+        other.lower is IntValue) {
       return info.newNormalizedRange(lower & other.lower, upper & other.upper);
     }
     if (isPositive && other.isPositive) {
@@ -607,10 +610,8 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   CodegenWorkItem work;
   HGraph graph;
 
-  SsaValueRangeAnalyzer(this.compiler,
-                        constantSystem,
-                        this.optimizer,
-                        this.work)
+  SsaValueRangeAnalyzer(
+      this.compiler, constantSystem, this.optimizer, this.work)
       : info = new ValueRangeInfo(constantSystem),
         this.constantSystem = constantSystem;
 
@@ -633,7 +634,6 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   }
 
   void visitBasicBlock(HBasicBlock block) {
-
     void visit(HInstruction instruction) {
       Range range = instruction.accept(this);
       if (instruction.isInteger(compiler)) {
@@ -732,14 +732,14 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     // Check if the index is strictly below the upper bound of the length
     // range.
     Value maxIndex = lengthRange.upper - info.intOne;
-    bool belowLength = maxIndex != const MaxIntValue()
-        && indexRange.upper.min(maxIndex) == indexRange.upper;
+    bool belowLength = maxIndex != const MaxIntValue() &&
+        indexRange.upper.min(maxIndex) == indexRange.upper;
 
     // Check if the index is strictly below the lower bound of the length
     // range.
-    belowLength = belowLength
-        || (indexRange.upper != lengthRange.lower
-            && indexRange.upper.min(lengthRange.lower) == indexRange.upper);
+    belowLength = belowLength ||
+        (indexRange.upper != lengthRange.lower &&
+            indexRange.upper.min(lengthRange.lower) == indexRange.upper);
     if (indexRange.isPositive && belowLength) {
       check.block.rewrite(check, check.index);
       check.block.remove(check);
@@ -759,16 +759,15 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
       // greater or equal than the lower bound of the index.
       Value low = lengthRange.lower.max(indexRange.lower);
       if (low != const UnknownValue()) {
-        HInstruction instruction =
-            createRangeConversion(next, check.length);
+        HInstruction instruction = createRangeConversion(next, check.length);
         ranges[instruction] = info.newNormalizedRange(low, lengthRange.upper);
       }
     }
 
     // Update the range of the index if using the maximum index
     // narrows it. Use that new range for this instruction as well.
-    Range newIndexRange = indexRange.intersection(
-        info.newNormalizedRange(info.intZero, maxIndex));
+    Range newIndexRange = indexRange
+        .intersection(info.newNormalizedRange(info.intZero, maxIndex));
     if (indexRange == newIndexRange) return indexRange;
     // Explicitly attach the range information to the index instruction,
     // which may be used by other instructions.  Returning the new range will
@@ -790,12 +789,12 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     if (relational is HIdentity) {
       handleEqualityCheck(relational);
     } else if (operation.apply(leftRange, rightRange)) {
-      relational.block.rewrite(
-          relational, graph.addConstantBool(true, compiler));
+      relational.block
+          .rewrite(relational, graph.addConstantBool(true, compiler));
       relational.block.remove(relational);
     } else if (negateOperation(operation).apply(leftRange, rightRange)) {
-      relational.block.rewrite(
-          relational, graph.addConstantBool(false, compiler));
+      relational.block
+          .rewrite(relational, graph.addConstantBool(false, compiler));
       relational.block.remove(relational);
     }
     return info.newUnboundRange();
@@ -805,8 +804,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     Range right = ranges[node.right];
     Range left = ranges[node.left];
     if (left.isSingleValue && right.isSingleValue && left == right) {
-      node.block.rewrite(
-          node, graph.addConstantBool(true, compiler));
+      node.block.rewrite(node, graph.addConstantBool(true, compiler));
       node.block.remove(node);
     }
   }
@@ -820,18 +818,18 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
       // so special case those.
       if (left.isInteger(compiler) && right.isInteger(compiler)) {
         if (divisor.isPositive) {
-          return info.newNormalizedRange(info.intZero, divisor.upper -
-              info.intOne);
+          return info.newNormalizedRange(
+              info.intZero, divisor.upper - info.intOne);
         } else if (divisor.isNegative) {
-          return info.newNormalizedRange(info.intZero, info.newNegateValue(
-              divisor.lower) - info.intOne);
+          return info.newNormalizedRange(
+              info.intZero, info.newNegateValue(divisor.lower) - info.intOne);
         }
       } else if (left.isNumber(compiler) && right.isNumber(compiler)) {
         if (divisor.isPositive) {
           return info.newNormalizedRange(info.intZero, divisor.upper);
         } else if (divisor.isNegative) {
-          return info.newNormalizedRange(info.intZero, info.newNegateValue(
-              divisor.lower));
+          return info.newNormalizedRange(
+              info.intZero, info.newNegateValue(divisor.lower));
         }
       }
     }
@@ -846,8 +844,9 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
 
   Range handleBinaryOperation(HBinaryArithmetic instruction) {
     if (!instruction.isInteger(compiler)) return info.newUnboundRange();
-    return instruction.operation(constantSystem).apply(
-        ranges[instruction.left], ranges[instruction.right]);
+    return instruction
+        .operation(constantSystem)
+        .apply(ranges[instruction.left], ranges[instruction.right]);
   }
 
   Range visitAdd(HAdd add) {
@@ -891,8 +890,8 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     return ranges[instruction.checkedInput];
   }
 
-  HInstruction createRangeConversion(HInstruction cursor,
-                                     HInstruction instruction) {
+  HInstruction createRangeConversion(
+      HInstruction cursor, HInstruction instruction) {
     JavaScriptBackend backend = compiler.backend;
     HRangeConversion newInstruction =
         new HRangeConversion(instruction, backend.intType);
@@ -932,9 +931,8 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
     }
   }
 
-  Range computeConstrainedRange(BinaryOperation operation,
-                                Range leftRange,
-                                Range rightRange) {
+  Range computeConstrainedRange(
+      BinaryOperation operation, Range leftRange, Range rightRange) {
     Range range;
     if (operation == const LessOperation()) {
       range = info.newNormalizedRange(
@@ -955,7 +953,7 @@ class SsaValueRangeAnalyzer extends HBaseVisitor implements OptimizationPhase {
   Range visitConditionalBranch(HConditionalBranch branch) {
     var condition = branch.condition;
     // TODO(ngeoffray): Handle complex conditions.
-    if (condition is !HRelational) return info.newUnboundRange();
+    if (condition is! HRelational) return info.newUnboundRange();
     if (condition is HIdentity) return info.newUnboundRange();
     HInstruction right = condition.right;
     HInstruction left = condition.left;

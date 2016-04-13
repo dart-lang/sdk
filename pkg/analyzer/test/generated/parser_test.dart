@@ -8643,7 +8643,9 @@ void''');
     expect(expression.keyword, token);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    expect(name.type, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments, isNull);
     expect(name.period, isNull);
     expect(name.name, isNull);
     expect(expression.argumentList, isNotNull);
@@ -8656,9 +8658,76 @@ void''');
     expect(expression.keyword, token);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    expect(name.type, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments, isNull);
     expect(name.period, isNotNull);
     expect(name.name, isNotNull);
+    expect(expression.argumentList, isNotNull);
+  }
+
+  void
+      test_parseInstanceCreationExpression_qualifiedType_named_typeParameterComment() {
+    enableGenericMethodComments = true;
+    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
+    InstanceCreationExpression expression = parse(
+        "parseInstanceCreationExpression", <Object>[token], "A.B/*<E>*/.c()");
+    expect(expression.keyword, token);
+    ConstructorName name = expression.constructorName;
+    expect(name, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments.arguments, hasLength(1));
+    expect(name.period, isNotNull);
+    expect(name.name, isNotNull);
+    expect(expression.argumentList, isNotNull);
+  }
+
+  void
+      test_parseInstanceCreationExpression_qualifiedType_named_typeParameters() {
+    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
+    InstanceCreationExpression expression =
+        parse("parseInstanceCreationExpression", <Object>[token], "A.B<E>.c()");
+    expect(expression.keyword, token);
+    ConstructorName name = expression.constructorName;
+    expect(name, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments.arguments, hasLength(1));
+    expect(name.period, isNotNull);
+    expect(name.name, isNotNull);
+    expect(expression.argumentList, isNotNull);
+  }
+
+  void
+      test_parseInstanceCreationExpression_qualifiedType_typeParameterComment() {
+    enableGenericMethodComments = true;
+    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
+    InstanceCreationExpression expression = parse(
+        "parseInstanceCreationExpression", <Object>[token], "A.B/*<E>*/()");
+    expect(expression.keyword, token);
+    ConstructorName name = expression.constructorName;
+    expect(name, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments.arguments, hasLength(1));
+    expect(name.period, isNull);
+    expect(name.name, isNull);
+    expect(expression.argumentList, isNotNull);
+  }
+
+  void test_parseInstanceCreationExpression_qualifiedType_typeParameters() {
+    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
+    InstanceCreationExpression expression =
+        parse("parseInstanceCreationExpression", <Object>[token], "A.B<E>()");
+    expect(expression.keyword, token);
+    ConstructorName name = expression.constructorName;
+    expect(name, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments.arguments, hasLength(1));
+    expect(name.period, isNull);
+    expect(name.name, isNull);
     expect(expression.argumentList, isNotNull);
   }
 
@@ -8669,22 +8738,89 @@ void''');
     expect(expression.keyword, token);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    expect(name.type, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments, isNull);
     expect(name.period, isNull);
     expect(name.name, isNull);
     expect(expression.argumentList, isNotNull);
   }
 
   void test_parseInstanceCreationExpression_type_named() {
+    enableGenericMethodComments = true;
+    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
+    InstanceCreationExpression expression =
+        parse("parseInstanceCreationExpression", <Object>[token], "A.c()");
+    expect(expression.keyword, token);
+    ConstructorName name = expression.constructorName;
+    expect(name, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments, isNull);
+    expect(name.period, isNull);
+    expect(name.name, isNull);
+    expect(expression.argumentList, isNotNull);
+  }
+
+  void test_parseInstanceCreationExpression_type_named_typeParameterComment() {
+    enableGenericMethodComments = true;
+    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
+    InstanceCreationExpression expression = parse(
+        "parseInstanceCreationExpression", <Object>[token], "A/*<B>*/.c()");
+    expect(expression.keyword, token);
+    ConstructorName name = expression.constructorName;
+    expect(name, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments.arguments, hasLength(1));
+    expect(name.period, isNotNull);
+    expect(name.name, isNotNull);
+    expect(expression.argumentList, isNotNull);
+  }
+
+  void test_parseInstanceCreationExpression_type_named_typeParameters() {
     Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
     InstanceCreationExpression expression =
         parse("parseInstanceCreationExpression", <Object>[token], "A<B>.c()");
     expect(expression.keyword, token);
     ConstructorName name = expression.constructorName;
     expect(name, isNotNull);
-    expect(name.type, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments.arguments, hasLength(1));
     expect(name.period, isNotNull);
     expect(name.name, isNotNull);
+    expect(expression.argumentList, isNotNull);
+  }
+
+  void test_parseInstanceCreationExpression_type_typeParameterComment() {
+    enableGenericMethodComments = true;
+    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
+    InstanceCreationExpression expression =
+        parse("parseInstanceCreationExpression", <Object>[token], "A/*<B>*/()");
+    expect(expression.keyword, token);
+    ConstructorName name = expression.constructorName;
+    expect(name, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments.arguments, hasLength(1));
+    expect(name.period, isNull);
+    expect(name.name, isNull);
+    expect(expression.argumentList, isNotNull);
+  }
+
+  void test_parseInstanceCreationExpression_type_typeParameters() {
+    Token token = TokenFactory.tokenFromKeyword(Keyword.NEW);
+    InstanceCreationExpression expression =
+        parse("parseInstanceCreationExpression", <Object>[token], "A<B>()");
+    expect(expression.keyword, token);
+    ConstructorName name = expression.constructorName;
+    expect(name, isNotNull);
+    TypeName type = name.type;
+    expect(type, isNotNull);
+    expect(type.typeArguments.arguments, hasLength(1));
+    expect(name.period, isNull);
+    expect(name.name, isNull);
     expect(expression.argumentList, isNotNull);
   }
 

@@ -59,6 +59,9 @@ DEFINE_FLAG(bool, check_function_fingerprints, true,
 #endif  // defined(DART_NO_SNAPSHOT).
 DEFINE_FLAG(bool, verify_acquired_data, false,
             "Verify correct API acquire/release of typed data.");
+DEFINE_FLAG(bool, support_externalizable_strings, false,
+            "Support Dart_MakeExternalString.");
+
 
 ThreadLocalKey Api::api_native_key_ = kUnsetThreadLocalKey;
 Dart_Handle Api::true_handle_ = NULL;
@@ -2519,6 +2522,10 @@ DART_EXPORT Dart_Handle Dart_MakeExternalString(Dart_Handle str,
                                                 void* peer,
                                                 Dart_PeerFinalizer cback) {
   DARTSCOPE(Thread::Current());
+  if (!FLAG_support_externalizable_strings) {
+    return Api::NewError("Dart_MakeExternalString with "
+                         "--support_externalizable_strings=false");
+  }
   const String& str_obj = Api::UnwrapStringHandle(Z, str);
   if (str_obj.IsExternal()) {
     return str;  // String is already an external string.
@@ -4262,7 +4269,7 @@ DART_EXPORT Dart_Handle Dart_GetField(Dart_Handle container, Dart_Handle name) {
     // getter Function.
     Class& cls = Class::Handle(Z, Type::Cast(obj).type_class());
 
-    field = cls.LookupStaticField(field_name);
+    field = cls.LookupStaticFieldAllowPrivate(field_name);
     if (field.IsNull() || field.IsUninitialized()) {
       const String& getter_name =
           String::Handle(Z, Field::GetterName(field_name));
@@ -4392,7 +4399,7 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
     // setter Function.
     Class& cls = Class::Handle(Z, Type::Cast(obj).type_class());
 
-    field = cls.LookupStaticField(field_name);
+    field = cls.LookupStaticFieldAllowPrivate(field_name);
     if (field.IsNull()) {
       String& setter_name = String::Handle(Z, Field::SetterName(field_name));
       setter = cls.LookupStaticFunctionAllowPrivate(setter_name);
@@ -4431,7 +4438,7 @@ DART_EXPORT Dart_Handle Dart_SetField(Dart_Handle container,
     Class& cls = Class::Handle(Z, instance.clazz());
     String& setter_name = String::Handle(Z, Field::SetterName(field_name));
     while (!cls.IsNull()) {
-      field = cls.LookupInstanceField(field_name);
+      field = cls.LookupInstanceFieldAllowPrivate(field_name);
       if (!field.IsNull() && field.is_final()) {
         return Api::NewError("%s: cannot set final field '%s'.",
                              CURRENT_FUNC, field_name.ToCString());
@@ -4611,7 +4618,7 @@ DART_EXPORT Dart_Handle Dart_CreateNativeWrapperClass(Dart_Handle library,
   }
   CHECK_CALLBACK_STATE(T);
 
-  String& cls_symbol = String::Handle(Z, Symbols::New(cls_name));
+  String& cls_symbol = String::Handle(Z, Symbols::New(T, cls_name));
   const Class& cls = Class::Handle(Z,
       Class::NewNativeWrapper(lib, cls_symbol, field_count));
   if (cls.IsNull()) {
@@ -5465,7 +5472,7 @@ DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
   CHECK_CALLBACK_STATE(T);
   CHECK_COMPILATION_ALLOWED(I);
 
-  const String& prefix_symbol = String::Handle(Z, Symbols::New(prefix_vm));
+  const String& prefix_symbol = String::Handle(Z, Symbols::New(T, prefix_vm));
   const Namespace& import_ns = Namespace::Handle(Z,
       Namespace::New(import_vm, Object::null_array(), Object::null_array()));
   if (prefix_vm.Length() == 0) {

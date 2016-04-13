@@ -1,3 +1,9 @@
+## 0.12.0
+* Introduce `@optionalTypeArgs` annotation for classes whose type arguments are to be treated as optional.
+
+## 0.11.0
+* Added new `Required` constructor with a means to specify a reason to explain why a parameter is required.
+
 ## 0.10.0
 * Introduce `@factory` annotation for methods that must either be abstract or
 must return a newly allocated object.

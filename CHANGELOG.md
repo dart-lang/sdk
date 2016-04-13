@@ -2,9 +2,14 @@
 
 ### Core library changes
 
+* `dart:convert`
+  * Added `BASE64URL` codec and corresponding `Base64Codec.urlSafe` constructor.
 * `dart:io`
   * Added `SecurityContext.alpnSupported`, which is true if a platform
     supports ALPN, and false otherwise.
+
+* `dart:convert`
+  * Introduce `ChunkedConverter` and deprecate chunked methods on `Converter`.
 
 ### Analyzer
 

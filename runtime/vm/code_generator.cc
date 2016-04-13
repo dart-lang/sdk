@@ -1078,7 +1078,7 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodDispatcher, 4) {
     if (is_extractor) {
       field_name = String::SubString(field_name, 1);
       ASSERT(!Field::IsGetterName(field_name));
-      field_name = Symbols::New(field_name);
+      field_name = Symbols::New(thread, field_name);
 
       if (!Field::IsSetterName(field_name)) {
         const String& getter_name =

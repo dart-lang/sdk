@@ -6,20 +6,16 @@
 /// of phase or subfunctionality.
 library dart2js.common;
 
-export 'diagnostics/diagnostic_listener.dart' show
-    DiagnosticMessage,
-    DiagnosticReporter;
-export 'diagnostics/invariant.dart' show
-    assertDebugMode,
-    InternalErrorFunction,
-    invariant;
-export 'diagnostics/messages.dart' show
-    MessageKind;
-export 'diagnostics/source_span.dart' show
-    SourceSpan;
-export 'diagnostics/spannable.dart' show
-    CURRENT_ELEMENT_SPANNABLE,
-    NO_LOCATION_SPANNABLE,
-    Spannable,
-    SpannableAssertionFailure;
+export 'diagnostics/diagnostic_listener.dart'
+    show DiagnosticMessage, DiagnosticReporter;
+export 'diagnostics/invariant.dart'
+    show assertDebugMode, InternalErrorFunction, invariant;
+export 'diagnostics/messages.dart' show MessageKind;
+export 'diagnostics/source_span.dart' show SourceSpan;
+export 'diagnostics/spannable.dart'
+    show
+        CURRENT_ELEMENT_SPANNABLE,
+        NO_LOCATION_SPANNABLE,
+        Spannable,
+        SpannableAssertionFailure;
 export 'helpers/helpers.dart';

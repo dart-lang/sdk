@@ -43,7 +43,7 @@ RawString* Report::PrependSnippet(Kind kind,
       // Only report the line position if we have the original source. We still
       // need to get a valid column so that we can report the ^ mark below the
       // snippet.
-      // Allocate formatted strings in old sapce as they may be created during
+      // Allocate formatted strings in old space as they may be created during
       // optimizing compilation. Those strings are created rarely and should not
       // polute old space.
       if (script.HasSource()) {
@@ -61,24 +61,23 @@ RawString* Report::PrependSnippet(Kind kind,
                                       line);
       }
       // Append the formatted error or warning message.
-      GrowableHandlePtrArray<const String> strs(Thread::Current()->zone(), 5);
-      strs.Add(result);
-      strs.Add(message);
+      const Array& strs = Array::Handle(
+          Array::New(6, Heap::kOld));
+      strs.SetAt(0, result);
+      strs.SetAt(1, message);
       // Append the source line.
       const String& script_line = String::Handle(
           script.GetLine(line, Heap::kOld));
       ASSERT(!script_line.IsNull());
-      strs.Add(Symbols::NewLine());
-      strs.Add(script_line);
-      strs.Add(Symbols::NewLine());
+      strs.SetAt(2, Symbols::NewLine());
+      strs.SetAt(3, script_line);
+      strs.SetAt(4, Symbols::NewLine());
       // Append the column marker.
       const String& column_line = String::Handle(
           String::NewFormatted(Heap::kOld,
                                "%*s\n", static_cast<int>(column), "^"));
-      strs.Add(column_line);
-      // TODO(srdjan): Use Strings::FromConcatAll in old space, once
-      // implemented.
-      result = Symbols::FromConcatAll(strs);
+      strs.SetAt(5, column_line);
+      result = String::ConcatAll(strs, Heap::kOld);
     } else {
       // Token position is unknown.
       result = String::NewFormatted(Heap::kOld, "'%s': %s: ",

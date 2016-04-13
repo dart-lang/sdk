@@ -36,7 +36,7 @@ DEFINE_NATIVE_ENTRY(RegExp_factory, 4) {
   }
 
   // Create a RegExp object containing only the initial parameters.
-  return RegExpEngine::CreateRegExp(zone,
+  return RegExpEngine::CreateRegExp(thread,
                                     pattern,
                                     multi_line,
                                     ignore_case);

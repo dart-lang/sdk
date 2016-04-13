@@ -7,6 +7,7 @@
 // Similar test to js_typed_interop_side_cast, but because we are using the
 // --experimental-trust-js-interop-type-annotations flag, we test a slighly
 // different behavior.
+@JS()
 library js_typed_interop_side_cast_exp_test;
 
 import 'dart:html';

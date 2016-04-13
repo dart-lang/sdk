@@ -13,6 +13,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart' show ScannerErrorCode;
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/generated/shared_messages.dart'
     as shared_messages;
 import 'package:analyzer/src/generated/java_core.dart';
@@ -2683,6 +2684,7 @@ abstract class ErrorCode {
     HintCode.IMPORT_DEFERRED_LIBRARY_WITH_LOAD_FUNCTION,
     HintCode.INVALID_ASSIGNMENT,
     HintCode.INVALID_USE_OF_PROTECTED_MEMBER,
+    HintCode.MISSING_JS_LIB_ANNOTATION,
     HintCode.MISSING_REQUIRED_PARAM,
     HintCode.MISSING_RETURN,
     HintCode.NULL_AWARE_IN_CONDITION,
@@ -2706,6 +2708,7 @@ abstract class ErrorCode {
     HintCode.UNUSED_CATCH_CLAUSE,
     HintCode.UNUSED_CATCH_STACK,
     HintCode.UNUSED_LOCAL_VARIABLE,
+    HintCode.UNUSED_SHOWN_NAME,
     HintCode.USE_OF_VOID_RESULT,
     HintCode.FILE_IMPORT_INSIDE_LIB_REFERENCES_FILE_OUTSIDE,
     HintCode.FILE_IMPORT_OUTSIDE_LIB_REFERENCES_FILE_INSIDE,
@@ -3583,6 +3586,14 @@ class HintCode extends ErrorCode {
   static const HintCode MISSING_REQUIRED_PARAM = const HintCode(
       'MISSING_REQUIRED_PARAM', "The parameter '{0}' is required. {1}");
 
+   /**
+   * Generate a hint for an element that is annotated with `@JS(...)` whose
+   * library declaration is not similarly annotated.
+   */
+  static const HintCode MISSING_JS_LIB_ANNOTATION = const HintCode(
+      'MISSING_JS_LIB_ANNOTATION',
+      "The @JS() annotation can only be used if it is also declared on the library directive.");
+
   /**
    * Generate a hint for methods or functions that have a return type, but do
    * not have a non-void return statement on all branches. At the end of methods
@@ -3776,6 +3787,12 @@ class HintCode extends ErrorCode {
   static const HintCode UNUSED_LOCAL_VARIABLE = const HintCode(
       'UNUSED_LOCAL_VARIABLE',
       "The value of the local variable '{0}' is not used");
+
+  /**
+   * Unused shown names are names shown on imports which are never used.
+   */
+  static const HintCode UNUSED_SHOWN_NAME =
+      const HintCode('UNUSED_SHOWN_NAME', "The name {0} is shown, but not used.");
 
   /**
    * Hint for cases where the source expects a method or function to return a
@@ -5715,12 +5732,19 @@ class StaticWarningCode extends ErrorCode {
           "Add a case clause for the missing constant or add a default clause.");
 
   /**
+   * A flag indicating whether this warning is an error when running with strong
+   * mode enabled.
+   */
+  final bool isStrongModeError;
+
+  /**
    * Initialize a newly created error code to have the given [name]. The message
    * associated with the error will be created from the given [message]
    * template. The correction associated with the error will be created from the
    * given [correction] template.
    */
-  const StaticWarningCode(String name, String message, [String correction])
+  const StaticWarningCode(String name, String message,
+      [String correction, this.isStrongModeError = false])
       : super(name, message, correction);
 
   @override

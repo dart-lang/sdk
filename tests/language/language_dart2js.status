@@ -7,7 +7,6 @@ getter_setter_in_lib_test: Fail # Issue 23288
 method_name_test: Fail # issue 25574
 
 async_star_cancel_while_paused_test: RuntimeError # Issue 22853
-async_star_await_pauses_test: Fail, Timeout # Issue 22853
 tearoff_basic_test: Skip # Tear-off not supported
 tearoff_constructor_basic_test: Skip # Tear-off not supported
 
@@ -44,6 +43,7 @@ generic_sends_test: CompileTimeError # Issue 25835
 [ $compiler == dart2js && $runtime == jsshell ]
 await_for_test: Skip # Jsshell does not provide periodic timers, Issue 7728
 async_star_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
+regress_23996_test: RuntimeError # Jsshell does not provide non-zero timers, Issue 7728
 async_star_no_cancel_test: RuntimeError # Need triage
 async_star_no_cancel2_test: RuntimeError # Need triage
 
@@ -207,12 +207,6 @@ expect_test: RuntimeError, OK # Issue 13080
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
-
-[ $compiler == dart2js && $runtime == chrome && $system == macos ]
-await_future_test: Pass, Timeout # Issue 22695.
-async_await_test/none: Pass, Timeout # Issue 22695.
-async_await_test/02: Pass, Timeout # Issue 22695.
-async_await_test/03: Pass, Timeout # Issue 22695.
 
 [ $compiler == dart2js && ($runtime == safari || $runtime == safarimobilesim)]
 round_test: Fail, OK # Common JavaScript engine Math.round bug.

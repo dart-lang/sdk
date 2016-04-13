@@ -25,7 +25,7 @@ P(allow_absolute_addresses, bool, true,                                        \
   "Allow embedding absolute addresses in generated code.")                     \
 P(always_megamorphic_calls, bool, false,                                       \
   "Instance call always as megamorphic.")                                      \
-C(background_compilation, false, false, bool, false,                           \
+C(background_compilation, false, true, bool, true,                             \
   "Run optimizing compilation in background")                                  \
 R(break_at_isolate_spawn, false, bool, false,                                  \
   "Insert a one-time breakpoint at the entrypoint for all spawned isolates")   \
@@ -135,8 +135,6 @@ R(support_il_printer, false, bool, true,                                       \
   "Support the IL printer.")                                                   \
 R(support_service, false, bool, true,                                          \
   "Support the service protocol.")                                             \
-R(support_coverage, false, bool, true,                                         \
-  "Support code coverage.")                                                    \
 R(support_timeline, false, bool, true,                                         \
   "Support timeline.")                                                         \
 D(trace_cha, bool, false,                                                      \
@@ -165,6 +163,8 @@ P(use_field_guards, bool, true,                                                \
   "Use field guards and track field types")                                    \
 C(use_osr, false, true, bool, true,                                            \
   "Use OSR")                                                                   \
+R(verbose_dev, false, bool, false,                                             \
+  "Enables verbose messages during development.")                              \
 P(verbose_gc, bool, false,                                                     \
   "Enables verbose GC.")                                                       \
 P(verbose_gc_hdr, int, 40,                                                     \

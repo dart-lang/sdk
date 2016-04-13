@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -16,6 +16,7 @@ import '../util/enumset.dart';
 
 import 'keys.dart';
 import 'serialization.dart';
+import 'serialization_util.dart';
 
 /// Visitor that serializes a [ResolutionImpact] object using an
 /// [ObjectEncoder].
@@ -60,21 +61,7 @@ class ImpactSerializer implements WorldImpactVisitor {
   @override
   void visitDynamicUse(DynamicUse dynamicUse) {
     ObjectEncoder object = dynamicUses.createObject();
-    object.setEnum(Key.KIND, dynamicUse.selector.kind);
-
-    object.setInt(Key.ARGUMENTS,
-        dynamicUse.selector.callStructure.argumentCount);
-    object.setStrings(Key.NAMED_ARGUMENTS,
-        dynamicUse.selector.callStructure.namedArguments);
-
-    object.setString(Key.NAME,
-        dynamicUse.selector.memberName.text);
-    object.setBool(Key.IS_SETTER,
-        dynamicUse.selector.memberName.isSetter);
-    if (dynamicUse.selector.memberName.library != null) {
-      object.setElement(Key.LIBRARY,
-        dynamicUse.selector.memberName.library);
-    }
+    serializeSelector(dynamicUse.selector, object);
   }
 
   @override
@@ -109,15 +96,15 @@ class DeserializedResolutionImpact extends WorldImpact
   final Iterable<StaticUse> staticUses;
   final Iterable<TypeUse> typeUses;
 
-  DeserializedResolutionImpact({
-    this.constSymbolNames,
-    this.constantLiterals,
-    this.dynamicUses,
-    EnumSet<Feature> features,
-    this.listLiterals,
-    this.mapLiterals,
-    this.staticUses,
-    this.typeUses})
+  DeserializedResolutionImpact(
+      {this.constSymbolNames,
+      this.constantLiterals,
+      this.dynamicUses,
+      EnumSet<Feature> features,
+      this.listLiterals,
+      this.mapLiterals,
+      this.staticUses,
+      this.typeUses})
       : this._features = features;
 
   Iterable<Feature> get features => _features.iterable(Feature.values);
@@ -139,20 +126,8 @@ class ImpactDeserializer {
     List<DynamicUse> dynamicUses = <DynamicUse>[];
     for (int index = 0; index < dynamicUseDecoder.length; index++) {
       ObjectDecoder object = dynamicUseDecoder.getObject(index);
-      SelectorKind kind = object.getEnum(Key.KIND, SelectorKind.values);
-      int argumentCount = object.getInt(Key.ARGUMENTS);
-      List<String> namedArguments =
-          object.getStrings(Key.NAMED_ARGUMENTS, isOptional: true);
-      String name = object.getString(Key.NAME);
-      bool isSetter = object.getBool(Key.IS_SETTER);
-      LibraryElement library = object.getElement(Key.LIBRARY, isOptional: true);
-      dynamicUses.add(
-          new DynamicUse(
-              new Selector(
-                  kind,
-                  new Name(name, library, isSetter: isSetter),
-                  new CallStructure(argumentCount, namedArguments)),
-              null));
+      Selector selector = deserializeSelector(object);
+      dynamicUses.add(new DynamicUse(selector, null));
     }
 
     ListDecoder typeUseDecoder = objectDecoder.getList(Key.TYPE_USES);
@@ -183,8 +158,8 @@ class ImpactDeserializer {
         DartType type = useDecoder.getType(Key.TYPE);
         bool isConstant = useDecoder.getBool(Key.IS_CONST);
         bool isEmpty = useDecoder.getBool(Key.IS_EMPTY);
-        listLiterals.add(new ListLiteralUse(
-            type, isConstant: isConstant, isEmpty: isEmpty));
+        listLiterals.add(
+            new ListLiteralUse(type, isConstant: isConstant, isEmpty: isEmpty));
       }
     }
 
@@ -198,8 +173,8 @@ class ImpactDeserializer {
         DartType type = useDecoder.getType(Key.TYPE);
         bool isConstant = useDecoder.getBool(Key.IS_CONST);
         bool isEmpty = useDecoder.getBool(Key.IS_EMPTY);
-        mapLiterals.add(new MapLiteralUse(
-            type, isConstant: isConstant, isEmpty: isEmpty));
+        mapLiterals.add(
+            new MapLiteralUse(type, isConstant: isConstant, isEmpty: isEmpty));
       }
     }
 

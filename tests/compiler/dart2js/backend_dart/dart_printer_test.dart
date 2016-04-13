@@ -233,6 +233,7 @@ class AstBuilder extends Listener {
   }
   endSend(t) {
     List<Argument> arguments = pop();
+    pop(); // typeArguments
     if (arguments == null)
       return; // not a function call
     Expression selector = pop();

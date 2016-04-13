@@ -96,6 +96,7 @@ bool JitOptimizer::TryCreateICData(InstanceCallInstr* call) {
     // to megamorphic call.
     return false;
   }
+
   GrowableArray<intptr_t> class_ids(call->ic_data()->NumArgsTested());
   ASSERT(call->ic_data()->NumArgsTested() <= call->ArgumentCount());
   for (intptr_t i = 0; i < call->ic_data()->NumArgsTested(); i++) {
@@ -249,10 +250,12 @@ void JitOptimizer::SpecializePolymorphicInstanceCall(
   }
 
   const bool with_checks = false;
+  const bool complete = false;
   PolymorphicInstanceCallInstr* specialized =
       new(Z) PolymorphicInstanceCallInstr(call->instance_call(),
                                           ic_data,
-                                          with_checks);
+                                          with_checks,
+                                          complete);
   call->ReplaceWith(specialized, current_iterator());
 }
 
@@ -2755,7 +2758,8 @@ void JitOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     if (!flow_graph()->InstanceCallNeedsClassCheck(instr, function_kind)) {
       PolymorphicInstanceCallInstr* call =
           new(Z) PolymorphicInstanceCallInstr(instr, unary_checks,
-                                              /* call_with_checks = */ false);
+                                              /* call_with_checks = */ false,
+                                              /* complete = */ false);
       instr->ReplaceWith(call, current_iterator());
       return;
     }
@@ -2774,7 +2778,8 @@ void JitOptimizer::VisitInstanceCall(InstanceCallInstr* instr) {
     }
     PolymorphicInstanceCallInstr* call =
         new(Z) PolymorphicInstanceCallInstr(instr, unary_checks,
-                                            call_with_checks);
+                                            call_with_checks,
+                                            /* complete = */ false);
     instr->ReplaceWith(call, current_iterator());
   }
 }

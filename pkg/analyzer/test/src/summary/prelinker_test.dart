@@ -49,7 +49,7 @@ class PrelinkerTest extends SummarizeElementsTest {
 
   String resolveToAbsoluteUri(LibraryElement library, String relativeUri) {
     Source resolvedSource =
-        analysisContext.sourceFactory.resolveUri(library.source, relativeUri);
+        context.sourceFactory.resolveUri(library.source, relativeUri);
     if (resolvedSource == null) {
       fail('Failed to resolve relative uri "$relativeUri"');
     }

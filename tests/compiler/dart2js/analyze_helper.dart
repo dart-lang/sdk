@@ -17,6 +17,7 @@ import 'package:compiler/src/options.dart' show
     CompilerOptions;
 import 'package:compiler/src/source_file_provider.dart';
 import 'package:compiler/src/util/uri_extras.dart';
+import 'diagnostic_helper.dart';
 
 /// Option for hiding whitelisted messages.
 const String HIDE_WHITELISTED = '--hide-whitelisted';
@@ -43,6 +44,7 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
   Map<String, Map<dynamic/*String|MessageKind*/, int>> whiteListMap
       = new Map<String, Map<dynamic/*String|MessageKind*/, int>>();
   List<MessageKind> skipList;
+  List<CollectedMessage> collectedMessages = <CollectedMessage>[];
 
   CollectingDiagnosticHandler(
       Map<String, List/*<String|MessageKind>*/> whiteList,
@@ -61,6 +63,7 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
   bool checkResults() {
     bool validWhiteListUse = checkWhiteListUse();
     reportWhiteListUse();
+    reportCollectedMessages();
     return !hasWarnings && !hasHint && !hasErrors && validWhiteListUse;
   }
 
@@ -76,6 +79,19 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
       }
     }
     return allUsed;
+  }
+
+  void reportCollectedMessages() {
+    if (collectedMessages.isNotEmpty) {
+      print('----------------------------------------------------------------');
+      print('Unexpected messages:');
+      print('----------------------------------------------------------------');
+      for (CollectedMessage message in collectedMessages) {
+        super.report(message.message, message.uri, message.begin,
+            message.end, message.text, message.kind);
+      }
+      print('----------------------------------------------------------------');
+    }
   }
 
   void reportWhiteListUse() {
@@ -156,6 +172,10 @@ class CollectingDiagnosticHandler extends FormattingDiagnosticHandler {
       return;
     }
     lastWasWhitelisted = false;
+    if (kind != api.Diagnostic.VERBOSE_INFO) {
+      collectedMessages.add(new CollectedMessage(
+          message, uri, begin, end, text, kind));
+    }
     super.report(message, uri, begin, end, text, kind);
   }
 }

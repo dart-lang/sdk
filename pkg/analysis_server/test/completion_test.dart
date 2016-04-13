@@ -2655,19 +2655,20 @@ class Q {
 !4part 'x';''',
         <String>[
           "1+library",
-          "2+import",
-          "3+export",
-          "4+part",
+          "2+import \'\';",
+          "3+export \'\';",
+          "4+part \'\';",
           "5+as",
           "6+hide",
           "7+show",
           "8-null"
         ],
-        failingTests: '567');
+        failingTests: '234567'); //TODO(jwren) 234 failing as correct selection
+        // offset assertions can't be passed into buildTests(..)
 
     // keywords
     buildTests('test018', '''!1part !2of foo;''', <String>["1+part", "2+of"],
-        failingTests: '2');
+        failingTests: '12');
 
     buildTests(
         'test019',
@@ -2905,7 +2906,7 @@ class A<Z extends X> {
 
     // test analysis of untyped fields and top-level vars
     buildTests('test039', '''class X{}var x = null as !1X;''',
-        <String>["1+X", "1-void"]);
+        <String>["1-void"]);
 
     // test arg lists with named params
     buildTests('test040', '''m(){f(a, b, {x1, x2, y}) {};f(1, 2, !1)!2;}''',

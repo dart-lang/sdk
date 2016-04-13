@@ -5,22 +5,16 @@
 library dart2js.common.work;
 
 import '../common.dart';
-import '../compiler.dart' show
-    Compiler;
-import '../elements/elements.dart' show
-    AstElement;
-import '../enqueue.dart' show
-    Enqueuer;
-import '../universe/world_impact.dart' show
-    WorldImpact;
-
+import '../compiler.dart' show Compiler;
+import '../elements/elements.dart' show AstElement;
+import '../enqueue.dart' show Enqueuer;
+import '../universe/world_impact.dart' show WorldImpact;
 
 /**
  * Contains backend-specific data that is used throughout the compilation of
  * one work item.
  */
-class ItemCompilationContext {
-}
+class ItemCompilationContext {}
 
 abstract class WorkItem {
   final ItemCompilationContext compilationContext;

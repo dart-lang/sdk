@@ -151,21 +151,24 @@ class HashTable : public ValueObject {
   // Returns the entry that matches 'key', or -1 if none exists.
   template<typename Key>
   intptr_t FindKey(const Key& key) const {
-    ASSERT(NumOccupied() < NumEntries());
+    const intptr_t num_entries = NumEntries();
+    ASSERT(NumOccupied() < num_entries);
     // TODO(koda): Add salt.
-    intptr_t probe = static_cast<uword>(KeyTraits::Hash(key)) % NumEntries();
+    uword hash = KeyTraits::Hash(key);
+    intptr_t probe = hash % num_entries;
     // TODO(koda): Consider quadratic probing.
-    for (; ; probe = (probe + 1) % NumEntries()) {
+    while (true) {
       if (IsUnused(probe)) {
         return -1;
-      } else if (IsDeleted(probe)) {
-        continue;
-      } else {
+      } else if (!IsDeleted(probe)) {
         key_handle_ = GetKey(probe);
         if (KeyTraits::IsMatch(key, key_handle_)) {
           return probe;
         }
       }
+      // Advance probe.
+      probe++;
+      probe = (probe == num_entries) ? 0 : probe;
     }
     UNREACHABLE();
     return -1;
@@ -177,12 +180,14 @@ class HashTable : public ValueObject {
   //   and returns false.
   template<typename Key>
   bool FindKeyOrDeletedOrUnused(const Key& key, intptr_t* entry) const {
+    const intptr_t num_entries = NumEntries();
     ASSERT(entry != NULL);
-    ASSERT(NumOccupied() < NumEntries());
-    intptr_t probe = static_cast<uword>(KeyTraits::Hash(key)) % NumEntries();
+    ASSERT(NumOccupied() < num_entries);
+    uword hash = KeyTraits::Hash(key);
+    intptr_t probe = hash % num_entries;
     intptr_t deleted = -1;
     // TODO(koda): Consider quadratic probing.
-    for (; ; probe = (probe + 1) % NumEntries()) {
+    while (true) {
       if (IsUnused(probe)) {
         *entry = (deleted != -1) ? deleted : probe;
         return false;
@@ -197,6 +202,9 @@ class HashTable : public ValueObject {
           return true;
         }
       }
+      // Advance probe.
+      probe++;
+      probe = (probe == num_entries) ? 0 : probe;
     }
     UNREACHABLE();
     return false;
@@ -636,7 +644,7 @@ class HashSet : public BaseIterTable {
       BaseIterTable::InsertKey(entry, key);
       return key.raw();
     } else {
-      return BaseIterTable::GetPayload(entry, 0);
+      return BaseIterTable::GetKey(entry);
     }
   }
 

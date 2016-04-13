@@ -4,38 +4,59 @@
 
 library analyzer_cli.test.built_mode;
 
+import 'dart:collection';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:analyzer_cli/src/build_mode.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/options.dart';
+import 'package:analyzer_cli/src/worker_protocol.pb.dart';
+import 'package:protobuf/protobuf.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:typed_mock/typed_mock.dart';
 import 'package:unittest/unittest.dart';
 
+import 'utils.dart';
+
 main() {
   defineReflectiveTests(WorkerLoopTest);
-  defineReflectiveTests(WorkInputTest);
-  defineReflectiveTests(WorkRequestTest);
 }
 
 typedef void _TestWorkerLoopAnalyze(CommandLineOptions options);
 
 @reflectiveTest
 class WorkerLoopTest {
-  final _TestWorkerConnection connection = new _TestWorkerConnection();
+  final TestStdinStream stdinStream = new TestStdinStream();
+  final TestStdoutStream stdoutStream = new TestStdoutStream();
+  _TestWorkerConnection connection;
+
+  WorkerLoopTest() {
+    connection = new _TestWorkerConnection(this.stdinStream, this.stdoutStream);
+  }
 
   void setUp() {}
 
+  List<int> _serializeProto(GeneratedMessage message) {
+    var buffer = message.writeToBuffer();
+
+    var writer = new CodedBufferWriter();
+    writer.writeInt32NoTag(buffer.length);
+    writer.writeRawBytes(buffer);
+
+    return writer.toBuffer();
+  }
+
   test_run() {
-    _setInputLine(JSON.encode({
-      'arguments': [
-        '--build-summary-input=/tmp/1.sum',
-        '--build-summary-input=/tmp/2.sum',
-        'package:foo/foo.dart|/inputs/foo/lib/foo.dart',
-        'package:foo/bar.dart|/inputs/foo/lib/bar.dart'
-      ],
-    }));
+    var request = new WorkRequest();
+    request.arguments.addAll([
+      '--build-summary-input=/tmp/1.sum',
+      '--build-summary-input=/tmp/2.sum',
+      'package:foo/foo.dart|/inputs/foo/lib/foo.dart',
+      'package:foo/bar.dart|/inputs/foo/lib/bar.dart',
+    ]);
+    stdinStream.addInputBytes(_serializeProto(request));
+
     new _TestWorkerLoop(connection, (CommandLineOptions options) {
       expect(options.buildSummaryInputs,
           unorderedEquals(['/tmp/1.sum', '/tmp/2.sum']));
@@ -51,235 +72,71 @@ class WorkerLoopTest {
       errorSink.writeln('errorSink b');
     }).run();
     expect(connection.outputList, hasLength(1));
-    expect(connection.outputList[0], {
-      'exit_code': WorkerLoop.EXIT_CODE_OK,
-      'output': allOf(contains('errorSink a'), contains('errorSink a'),
-          contains('outSink a'), contains('outSink b'))
-    });
+
+    var response = connection.outputList[0];
+    expect(response.exitCode, WorkerLoop.EXIT_CODE_OK);
+    expect(
+        response.output,
+        allOf(contains('errorSink a'), contains('errorSink a'),
+            contains('outSink a'), contains('outSink b')));
+
+    // Check that a serialized version was written to std out.
+    expect(stdoutStream.writes, hasLength(1));
+    expect(stdoutStream.writes[0], _serializeProto(response));
   }
 
   test_run_invalidOptions() {
-    _setInputLine(JSON.encode({
-      'arguments': ['--unknown-option', '/foo.dart', '/bar.dart',],
-    }));
+    var request = new WorkRequest();
+    request.arguments.addAll(['--unknown-option', '/foo.dart', '/bar.dart']);
+    stdinStream.addInputBytes(_serializeProto(request));
     new _TestWorkerLoop(connection).run();
     expect(connection.outputList, hasLength(1));
-    expect(connection.outputList[0],
-        {'exit_code': WorkerLoop.EXIT_CODE_ERROR, 'output': anything});
+
+    var response = connection.outputList[0];
+    expect(response.exitCode, WorkerLoop.EXIT_CODE_ERROR);
+    expect(response.output, anything);
   }
 
   test_run_invalidRequest_noArgumentsInputs() {
-    _setInputLine('{}');
+    stdinStream.addInputBytes(_serializeProto(new WorkRequest()));
+
     new _TestWorkerLoop(connection).run();
     expect(connection.outputList, hasLength(1));
-    expect(connection.outputList[0],
-        {'exit_code': WorkerLoop.EXIT_CODE_ERROR, 'output': anything});
+
+    var response = connection.outputList[0];
+    expect(response.exitCode, WorkerLoop.EXIT_CODE_ERROR);
+    expect(response.output, anything);
   }
 
-  test_run_invalidRequest_notJson() {
-    _setInputLine('not a JSON string');
+  test_run_invalidRequest_randomBytes() {
+    stdinStream.addInputBytes([1, 2, 3]);
     new _TestWorkerLoop(connection).run();
     expect(connection.outputList, hasLength(1));
-    expect(connection.outputList[0],
-        {'exit_code': WorkerLoop.EXIT_CODE_ERROR, 'output': anything});
+
+    var response = connection.outputList[0];
+    expect(response.exitCode, WorkerLoop.EXIT_CODE_ERROR);
+    expect(response.output, anything);
   }
 
   test_run_stopAtEOF() {
-    when(connection.readLineSync()).thenReturnList([null]);
+    stdinStream.addInputBytes([-1]);
     new _TestWorkerLoop(connection).run();
-  }
-
-  void _setInputLine(String line) {
-    when(connection.readLineSync()).thenReturnList([line, null]);
-  }
-}
-
-@reflectiveTest
-class WorkInputTest {
-  test_fromJson() {
-    WorkInput input = new WorkInput.fromJson({
-      'path': '/my/path',
-      'digest': [1, 2, 3, 4, 5]
-    });
-    expect(input.path, '/my/path');
-    expect(input.digest, <int>[1, 2, 3, 4, 5]);
-  }
-
-  test_fromJson_digest_isMissing() {
-    WorkInput input = new WorkInput.fromJson({'path': '/my/path',});
-    expect(input.path, '/my/path');
-    expect(input.digest, <int>[]);
-  }
-
-  test_fromJson_digest_isNotList() {
-    expect(() {
-      new WorkInput.fromJson({'path': '/my/path', 'digest': 0});
-    }, throwsArgumentError);
-  }
-
-  test_fromJson_digest_isNotListOfInt() {
-    expect(() {
-      new WorkInput.fromJson({
-        'path': '/my/path',
-        'digest': ['a', 'b', 'c']
-      });
-    }, throwsArgumentError);
-  }
-
-  test_fromJson_path_isMissing() {
-    expect(() {
-      new WorkInput.fromJson({
-        'digest': [1, 2, 3, 4, 5]
-      });
-    }, throwsArgumentError);
-  }
-
-  test_fromJson_path_isNotString() {
-    expect(() {
-      new WorkInput.fromJson({
-        'path': 0,
-        'digest': [1, 2, 3, 4, 5]
-      });
-    }, throwsArgumentError);
-  }
-
-  test_toJson() {
-    WorkInput input = new WorkInput('/my/path', <int>[1, 2, 3, 4, 5]);
-    Map<String, Object> json = input.toJson();
-    expect(json, {
-      'path': '/my/path',
-      'digest': [1, 2, 3, 4, 5]
-    });
-  }
-
-  test_toJson_withoutDigest() {
-    WorkInput input = new WorkInput('/my/path', null);
-    Map<String, Object> json = input.toJson();
-    expect(json, {'path': '/my/path'});
-  }
-}
-
-@reflectiveTest
-class WorkRequestTest {
-  test_fromJson() {
-    WorkRequest request = new WorkRequest.fromJson({
-      'arguments': ['--arg1', '--arg2', '--arg3'],
-      'inputs': [
-        {
-          'path': '/my/path1',
-          'digest': [11, 12, 13]
-        },
-        {
-          'path': '/my/path2',
-          'digest': [21, 22, 23]
-        }
-      ]
-    });
-    expect(request.arguments, ['--arg1', '--arg2', '--arg3']);
-    expect(request.inputs, hasLength(2));
-    expect(request.inputs[0].path, '/my/path1');
-    expect(request.inputs[0].digest, <int>[11, 12, 13]);
-    expect(request.inputs[1].path, '/my/path2');
-    expect(request.inputs[1].digest, <int>[21, 22, 23]);
-  }
-
-  test_fromJson_arguments_isMissing() {
-    WorkRequest request = new WorkRequest.fromJson({
-      'inputs': [
-        {
-          'path': '/my/path1',
-          'digest': [11, 12, 13]
-        },
-      ]
-    });
-    expect(request.arguments, isEmpty);
-    expect(request.inputs, hasLength(1));
-    expect(request.inputs[0].path, '/my/path1');
-    expect(request.inputs[0].digest, <int>[11, 12, 13]);
-  }
-
-  test_fromJson_arguments_isNotList() {
-    expect(() {
-      new WorkRequest.fromJson({'arguments': 0, 'inputs': []});
-    }, throwsArgumentError);
-  }
-
-  test_fromJson_arguments_isNotListOfString() {
-    expect(() {
-      new WorkRequest.fromJson({
-        'arguments': [0, 1, 2],
-        'inputs': []
-      });
-    }, throwsArgumentError);
-  }
-
-  test_fromJson_inputs_isMissing() {
-    WorkRequest request = new WorkRequest.fromJson({
-      'arguments': ['--arg1', '--arg2', '--arg3'],
-    });
-    expect(request.arguments, ['--arg1', '--arg2', '--arg3']);
-    expect(request.inputs, hasLength(0));
-  }
-
-  test_fromJson_inputs_isNotList() {
-    expect(() {
-      new WorkRequest.fromJson({
-        'arguments': ['--arg1', '--arg2', '--arg3'],
-        'inputs': 0
-      });
-    }, throwsArgumentError);
-  }
-
-  test_fromJson_inputs_isNotListOfObject() {
-    expect(() {
-      new WorkRequest.fromJson({
-        'arguments': ['--arg1', '--arg2', '--arg3'],
-        'inputs': [0, 1, 2]
-      });
-    }, throwsArgumentError);
-  }
-
-  test_fromJson_noArgumentsInputs() {
-    expect(() {
-      new WorkRequest.fromJson({});
-    }, throwsArgumentError);
-  }
-
-  test_toJson() {
-    WorkRequest request = new WorkRequest(<String>[
-      '--arg1',
-      '--arg2',
-      '--arg3'
-    ], <WorkInput>[
-      new WorkInput('/my/path1', <int>[11, 12, 13]),
-      new WorkInput('/my/path2', <int>[21, 22, 23])
-    ]);
-    Map<String, Object> json = request.toJson();
-    expect(json, {
-      'arguments': ['--arg1', '--arg2', '--arg3'],
-      'inputs': [
-        {
-          'path': '/my/path1',
-          'digest': [11, 12, 13]
-        },
-        {
-          'path': '/my/path2',
-          'digest': [21, 22, 23]
-        }
-      ]
-    });
   }
 }
 
 /**
- * [WorkerConnection] mock.
+ * A [StdWorkerConnection] which records its responses.
  */
-class _TestWorkerConnection extends TypedMock implements WorkerConnection {
-  final outputList = <Map<String, Object>>[];
+class _TestWorkerConnection extends StdWorkerConnection {
+  final outputList = <WorkResponse>[];
+
+  _TestWorkerConnection(Stdin stdinStream, Stdout stdoutStream)
+      : super(stdinStream, stdoutStream);
 
   @override
-  void writeJson(Map<String, Object> json) {
-    outputList.add(json);
+  void writeResponse(WorkResponse response) {
+    super.writeResponse(response);
+    outputList.add(response);
   }
 }
 

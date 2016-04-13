@@ -15,7 +15,8 @@ import 'optimizers.dart';
 /// (except for feedback). Redundant parameters are removed from the
 /// continuation signature, all invocations, and replaced within the
 /// continuation body.
-class RedundantPhiEliminator extends TrampolineRecursiveVisitor implements Pass {
+class RedundantPhiEliminator extends TrampolineRecursiveVisitor
+    implements Pass {
   String get passName => 'Redundant phi elimination';
 
   final Set<Continuation> workSet = new Set<Continuation>();
@@ -122,8 +123,8 @@ class RedundantPhiEliminator extends TrampolineRecursiveVisitor implements Pass 
       // Add continuations of about-to-be modified invokes to worklist since
       // we might introduce new optimization opportunities.
       for (Reference ref = oldDefinition.firstRef;
-           ref != null;
-           ref = ref.next) {
+          ref != null;
+          ref = ref.next) {
         Node parent = ref.parent;
         if (parent is InvokeContinuation) {
           Continuation thatCont = parent.continuation;

@@ -267,9 +267,15 @@ Type lookupType(js.JsObject jsObject, bool isElement) {
       }
       prototype = js.JsNative.getProperty(prototype, '__proto__');
     }
-  } catch (e, stacktrace) {
-    if (e is DebugAssertException) print("${e.message}\n ${stacktrace}");
-    else print("${stacktrace}");
+  } catch (e) {
+    // This case can happen for cross frame objects.
+    if (js.JsNative.hasProperty(e, "postMessage")) {
+      // assume this is a Window. To match Dart2JS, separate conversion code
+      // in dart:html will switch the wrapper to a cross frame window as
+      // required.
+      // TODO(jacobr): we could consider removing this code completely.
+      return Window.instanceRuntimeType;
+    }
   }
   return js.JSObject.instanceRuntimeType;
 }

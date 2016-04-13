@@ -7,29 +7,18 @@
 /// method on an unknown class.
 library dart2js.universe.use;
 
-import '../closure.dart' show
-  BoxFieldElement;
+import '../closure.dart' show BoxFieldElement;
 import '../common.dart';
 import '../dart_types.dart';
 import '../elements/elements.dart';
-import '../world.dart' show
-    ClassWorld;
-import '../util/util.dart' show
-    Hashing;
+import '../world.dart' show ClassWorld;
+import '../util/util.dart' show Hashing;
 
-import 'call_structure.dart' show
-    CallStructure;
-import 'selector.dart' show
-    Selector;
-import 'universe.dart' show
-    ReceiverConstraint;
+import 'call_structure.dart' show CallStructure;
+import 'selector.dart' show Selector;
+import 'universe.dart' show ReceiverConstraint;
 
-
-enum DynamicUseKind {
-  INVOKE,
-  GET,
-  SET,
-}
+enum DynamicUseKind { INVOKE, GET, SET, }
 
 /// The use of a dynamic property. [selector] defined the name and kind of the
 /// property and [mask] defines the known constraint for the object on which
@@ -90,17 +79,17 @@ class StaticUse {
         this.hashCode = Hashing.objectHash(element, Hashing.objectHash(kind)) {
     assert(invariant(element, element.isDeclaration,
         message: "Static use element $element must be "
-                 "the declaration element."));
+            "the declaration element."));
   }
 
   /// Invocation of a static or top-level [element] with the given
   /// [callStructure].
-  factory StaticUse.staticInvoke(MethodElement element,
-                                 CallStructure callStructure) {
+  factory StaticUse.staticInvoke(
+      MethodElement element, CallStructure callStructure) {
     // TODO(johnniwinther): Use the [callStructure].
     assert(invariant(element, element.isStatic || element.isTopLevel,
         message: "Static invoke element $element must be a top-level "
-                 "or static method."));
+            "or static method."));
     return new StaticUse.internal(element, StaticUseKind.GENERAL);
   }
 
@@ -108,7 +97,7 @@ class StaticUse {
   factory StaticUse.staticTearOff(MethodElement element) {
     assert(invariant(element, element.isStatic || element.isTopLevel,
         message: "Static tear-off element $element must be a top-level "
-                 "or static method."));
+            "or static method."));
     return new StaticUse.internal(element, StaticUseKind.STATIC_TEAR_OFF);
   }
 
@@ -116,7 +105,7 @@ class StaticUse {
   factory StaticUse.staticGet(MemberElement element) {
     assert(invariant(element, element.isStatic || element.isTopLevel,
         message: "Static get element $element must be a top-level "
-                 "or static method."));
+            "or static method."));
     assert(invariant(element, element.isField || element.isGetter,
         message: "Static get element $element must be a field or a getter."));
     return new StaticUse.internal(element, StaticUseKind.GENERAL);
@@ -126,7 +115,7 @@ class StaticUse {
   factory StaticUse.staticSet(MemberElement element) {
     assert(invariant(element, element.isStatic || element.isTopLevel,
         message: "Static set element $element must be a top-level "
-                 "or static method."));
+            "or static method."));
     assert(invariant(element, element.isField || element.isSetter,
         message: "Static set element $element must be a field or a setter."));
     return new StaticUse.internal(element, StaticUseKind.GENERAL);
@@ -137,15 +126,15 @@ class StaticUse {
   factory StaticUse.staticInit(FieldElement element) {
     assert(invariant(element, element.isStatic || element.isTopLevel,
         message: "Static init element $element must be a top-level "
-                 "or static method."));
+            "or static method."));
     assert(invariant(element, element.isField,
         message: "Static init element $element must be a field."));
     return new StaticUse.internal(element, StaticUseKind.GENERAL);
   }
 
   /// Invocation of a super method [element] with the given [callStructure].
-  factory StaticUse.superInvoke(MethodElement element,
-                                CallStructure callStructure) {
+  factory StaticUse.superInvoke(
+      MethodElement element, CallStructure callStructure) {
     // TODO(johnniwinther): Use the [callStructure].
     assert(invariant(element, element.isInstanceMember,
         message: "Super invoke element $element must be an instance method."));
@@ -188,27 +177,26 @@ class StaticUse {
 
   /// Invocation of a constructor [element] through a this or super
   /// constructor call with the given [callStructure].
-  factory StaticUse.superConstructorInvoke(Element element,
-                                           CallStructure callStructure) {
+  factory StaticUse.superConstructorInvoke(
+      Element element, CallStructure callStructure) {
     // TODO(johnniwinther): Use the [callStructure].
-    assert(invariant(element,
-        element.isGenerativeConstructor,
+    assert(invariant(element, element.isGenerativeConstructor,
         message: "Constructor invoke element $element must be a "
-                 "generative constructor."));
+            "generative constructor."));
     return new StaticUse.internal(element, StaticUseKind.GENERAL);
   }
 
   /// Invocation of a constructor (body) [element] through a this or super
   /// constructor call with the given [callStructure].
-  factory StaticUse.constructorBodyInvoke(ConstructorBodyElement element,
-                                          CallStructure callStructure) {
+  factory StaticUse.constructorBodyInvoke(
+      ConstructorBodyElement element, CallStructure callStructure) {
     // TODO(johnniwinther): Use the [callStructure].
     return new StaticUse.internal(element, StaticUseKind.GENERAL);
   }
 
   /// Constructor invocation of [element] with the given [callStructure].
-  factory StaticUse.constructorInvoke(ConstructorElement element,
-                                      CallStructure callStructure) {
+  factory StaticUse.constructorInvoke(
+      ConstructorElement element, CallStructure callStructure) {
     // TODO(johnniwinther): Use the [callStructure].
     return new StaticUse.internal(element, StaticUseKind.GENERAL);
   }
@@ -227,19 +215,19 @@ class StaticUse {
 
   /// Read access of an instance field or boxed field [element].
   factory StaticUse.fieldGet(Element element) {
-    assert(invariant(element,
-        element.isInstanceMember || element is BoxFieldElement,
+    assert(invariant(
+        element, element.isInstanceMember || element is BoxFieldElement,
         message: "Field init element $element must be an instance "
-                 "or boxed field."));
+            "or boxed field."));
     return new StaticUse.internal(element, StaticUseKind.FIELD_GET);
   }
 
   /// Write access of an instance field or boxed field [element].
   factory StaticUse.fieldSet(Element element) {
-    assert(invariant(element,
-        element.isInstanceMember || element is BoxFieldElement,
+    assert(invariant(
+        element, element.isInstanceMember || element is BoxFieldElement,
         message: "Field init element $element must be an instance "
-                 "or boxed field."));
+            "or boxed field."));
     return new StaticUse.internal(element, StaticUseKind.FIELD_SET);
   }
 
@@ -257,8 +245,7 @@ class StaticUse {
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! StaticUse) return false;
-    return element == other.element &&
-           kind == other.kind;
+    return element == other.element && kind == other.kind;
   }
 
   String toString() => 'StaticUse($element,$kind)';
@@ -317,8 +304,7 @@ class TypeUse {
   bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! TypeUse) return false;
-    return type == other.type &&
-           kind == other.kind;
+    return type == other.type && kind == other.kind;
   }
 
   String toString() => 'TypeUse($type,$kind)';
