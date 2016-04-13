@@ -413,12 +413,16 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       ClassDeclaration classDecl,
       FormalParameterList param,
       int relevance: DART_RELEVANCE_DEFAULT}) {
-    _addLocalSuggestion(id, typeName, elemKind,
-        isAbstract: isAbstract,
-        isDeprecated: isDeprecated,
-        classDecl: classDecl,
-        param: param,
-        relevance: relevance);
+    int filterResult =
+        optype.returnValueSuggestionsFilter(_staticTypeOfIdentifier(id));
+    if (filterResult != null) {
+      _addLocalSuggestion(id, typeName, elemKind,
+          isAbstract: isAbstract,
+          isDeprecated: isDeprecated,
+          classDecl: classDecl,
+          param: param,
+          relevance: relevance + filterResult);
+    }
   }
 
   void _addLocalSuggestion(

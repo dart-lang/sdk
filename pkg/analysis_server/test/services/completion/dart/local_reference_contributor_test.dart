@@ -362,7 +362,7 @@ f(A a){ (a as ^) }''');
     assertNotSuggested('Object');
   }
 
-  test_IsExpression_type_filter_implements() async {
+  test_AsExpression_type_filter_implements() async {
     // SimpleIdentifier  TypeName  AsExpression
     addTestSource('''
 class A {} class B implements A {} class C implements A {} class D {}
@@ -1874,6 +1874,42 @@ class A {a(blat: ^) { }}''');
     assertNotSuggested('bar');
   }
 
+  test_DefaultFormalParameter_named_expression_filter() async {
+    // DefaultFormalParameter FormalParameterList MethodDeclaration
+    addTestSource('''
+        class A {}
+        class B extends A {}
+        class C implements A {}
+        class D {}
+        class E {
+          A a;
+          E({A someA});
+        }
+        A a = new A();
+        B b = new B();
+        C c = new C();
+        D d = new D();
+        E e = new E(someA: ^);
+  ''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestTopLevelVar('a', 'A',
+        relevance:
+            DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE + DART_RELEVANCE_INCREMENT);
+    assertSuggestTopLevelVar('b', 'B',
+        relevance:
+            DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE + DART_RELEVANCE_INCREMENT);
+    assertSuggestTopLevelVar('c', 'C',
+        relevance:
+            DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE + DART_RELEVANCE_INCREMENT);
+    assertSuggestTopLevelVar('d', 'D',
+        relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
+    assertSuggestTopLevelVar('e', 'E',
+        relevance: DART_RELEVANCE_LOCAL_TOP_LEVEL_VARIABLE);
+  }
+
   test_enum() async {
     addTestSource('enum E { one, two } main() {^}');
     await computeSuggestions();
@@ -2798,10 +2834,10 @@ f(A a){ if (a is ^) {}}''');
     assertNotSuggested('Object');
   }
 
-  test_IsExpression_type_subtype_implements_filter() async {
+  test_IsExpression_type_filter_implements() async {
     // SimpleIdentifier  TypeName  IsExpression  IfStatement
     addTestSource('''
-class A {} class B extends A {} class C implements A {} class D {}
+class A {} class B implements A {} class C implements A {} class D {}
 f(A a){ if (a is ^) {}}''');
     await computeSuggestions();
 

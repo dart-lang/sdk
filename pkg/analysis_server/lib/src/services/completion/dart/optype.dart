@@ -5,6 +5,7 @@
 library services.completion.dart.optype;
 
 import 'package:analysis_server/src/protocol_server.dart' hide Element;
+import 'package:analysis_server/src/provisional/completion/dart/completion_dart.dart';
 import 'package:analysis_server/src/provisional/completion/dart/completion_target.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -32,7 +33,7 @@ class OpType {
 
   /**
    * If [includeTypeNameSuggestions] is set to true, then this function may be
-   * set to the non-default function to filter out potential suggestions based
+   * set to a non-default function to filter out potential suggestions based
    * on their static [DartType].
    */
   Function typeNameSuggestionsFilter = (DartType _) => true;
@@ -48,6 +49,14 @@ class OpType {
    * have a non-[void] return type should be suggested.
    */
   bool includeReturnValueSuggestions = false;
+
+  /**
+   * If [includeReturnValueSuggestions] is set to true, then this function may
+   * be set to a non-default function to filter out potential suggestions (null)
+   * based on their static [DartType], or change the relative relevance by
+   * returning a positive or negative integer.
+   */
+  Function returnValueSuggestionsFilter = (DartType _) => 0;
 
   /**
    * Indicates whether named arguments should be suggested.
@@ -433,7 +442,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
     optype.includeVoidReturnSuggestions = true;
     // TODO (danrubel) void return suggestions only belong after
     // the 2nd semicolon.  Return value suggestions only belong after the
-    // e1st or second semicolon.
+    // first or second semicolon.
   }
 
   @override
@@ -548,6 +557,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor {
   void visitNamedExpression(NamedExpression node) {
     if (identical(entity, node.expression)) {
       optype.includeReturnValueSuggestions = true;
+      optype.returnValueSuggestionsFilter = (DartType dartType) {
+        DartType type = node.element?.type;
+        bool isCorrectType = type != null &&
+            dartType != null &&
+            !type.isDynamic &&
+            dartType.isSubtypeOf(type);
+        return isCorrectType ? DART_RELEVANCE_INCREMENT : 0;
+      };
       optype.includeTypeNameSuggestions = true;
     }
   }
