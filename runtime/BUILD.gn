@@ -12,6 +12,10 @@ declare_args() {
   # while themselves doing a Debug build.
   dart_debug = false
 
+  # Product mode drops many features (e.g. debugger, profiler, etc) in order to
+  # shrink download size and decrease memory and cpu usage.
+  dart_product = false
+
   # Explicitly set the target architecture in case of precompilation. Leaving
   # this unspecified results in automatic target architecture detection.
   # Available options are: arm, arm64, mips, x64 and ia32
@@ -49,6 +53,15 @@ config("dart_config") {
   } else {
     defines += ["NDEBUG"]
   }
+
+  if (dart_product) {
+    if (dart_debug) {
+      print("Debug and product mode are mutually exclusive.")
+    }
+    assert(!dart_debug)
+    defines += ["PRODUCT"]
+  }
+
 
   if (is_ios || is_mac) {
     defines += ["DART_PRECOMPILER"]
@@ -111,6 +124,14 @@ config("dart_config_no_precompiler") {
     defines += ["DEBUG"]
   } else {
     defines += ["NDEBUG"]
+  }
+
+  if (dart_product) {
+    if (dart_debug) {
+      print("Debug and product mode are mutually exclusive.")
+    }
+    assert(!dart_debug)
+    defines += ["PRODUCT"]
   }
 
   cflags = [
