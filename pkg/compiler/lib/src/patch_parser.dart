@@ -177,8 +177,8 @@ class PatchParserTask extends CompilerTask {
       // TODO(johnniwinther): Test that parts and exports are handled correctly.
       Script script = compilationUnit.script;
       Token tokens = new Scanner(script.file).tokenize();
-      Listener patchListener =
-          new PatchElementListener(compiler, compilationUnit, compiler);
+      Listener patchListener = new PatchElementListener(
+          compiler, compilationUnit, compiler.idGenerator);
       try {
         new PartialParser(patchListener, parserOptions).parseUnit(tokens);
       } on ParserError catch (e) {

@@ -89,7 +89,7 @@ import 'universe/world_impact.dart' show ImpactStrategy, WorldImpact;
 import 'util/util.dart' show Link, Setlet;
 import 'world.dart' show World;
 
-abstract class Compiler implements LibraryLoaderListener, IdGenerator {
+abstract class Compiler implements LibraryLoaderListener {
   final Stopwatch totalCompileTime = new Stopwatch();
   final IdGenerator idGenerator = new IdGenerator();
   World world;
@@ -390,10 +390,6 @@ abstract class Compiler implements LibraryLoaderListener, IdGenerator {
 
   bool get disableTypeInference =>
       options.disableTypeInference || compilationFailed;
-
-  // TODO(het): remove this and pass idGenerator directly instead
-  @deprecated
-  int getNextFreeId() => idGenerator.getNextFreeId();
 
   void unimplemented(Spannable spannable, String methodName) {
     reporter.internalError(spannable, "$methodName not implemented.");

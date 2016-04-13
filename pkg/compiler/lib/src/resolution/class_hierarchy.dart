@@ -299,8 +299,11 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     String superName = supertype.name;
     String mixinName = mixinType.name;
     MixinApplicationElementX mixinApplication =
-        new UnnamedMixinApplicationElementX("${superName}+${mixinName}",
-            element.compilationUnit, compiler.getNextFreeId(), node);
+        new UnnamedMixinApplicationElementX(
+            "${superName}+${mixinName}",
+            element.compilationUnit,
+            compiler.idGenerator.getNextFreeId(),
+            node);
     // Create synthetic type variables for the mixin application.
     List<DartType> typeVariables = <DartType>[];
     int index = 0;
