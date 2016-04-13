@@ -19917,6 +19917,22 @@ class HtmlDocument extends Document {
   @Experimental()
   Element get fullscreenElement => _webkitFullscreenElement;
 
+  /**
+   * Returns true if this document can display elements in fullscreen mode.
+   *
+   * ## Other resources
+   *
+   * * [Using the fullscreen
+   *   API](http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)
+   *   from WebPlatform.org.
+   * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
+   */
+  @DomName('Document.webkitFullscreenEnabled')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
+  bool get fullscreenEnabled => _webkitFullscreenEnabled;
+
   @DomName('Document.webkitHidden')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -37724,10 +37740,10 @@ class Url extends DartHtmlDomObject implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");

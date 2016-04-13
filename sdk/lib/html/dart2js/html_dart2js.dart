@@ -10675,23 +10675,6 @@ class Document extends Node
       [int whatToShow, NodeFilter filter])
       => JS('TreeWalker', '#.createTreeWalker(#, #, #, false)',
           this, root, whatToShow, filter);
-
-  /**
-   * Returns true if this document can display elements in fullscreen mode.
-   *
-   * ## Other resources
-   *
-   * * [Using the fullscreen
-   *   API](http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)
-   *   from WebPlatform.org.
-   * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
-   */
-  @DomName('Document.webkitFullscreenEnabled')
-  @SupportedBrowser(SupportedBrowser.CHROME)
-  @SupportedBrowser(SupportedBrowser.SAFARI)
-  @Experimental()
-  bool get fullscreenEnabled => _webkitFullscreenEnabled;
-
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19126,6 +19109,22 @@ class HtmlDocument extends Document {
   @SupportedBrowser(SupportedBrowser.SAFARI)
   @Experimental()
   Element get fullscreenElement => _webkitFullscreenElement;
+
+  /**
+   * Returns true if this document can display elements in fullscreen mode.
+   *
+   * ## Other resources
+   *
+   * * [Using the fullscreen
+   *   API](http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)
+   *   from WebPlatform.org.
+   * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
+   */
+  @DomName('Document.webkitFullscreenEnabled')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
+  bool get fullscreenEnabled => _webkitFullscreenEnabled;
 
   @DomName('Document.webkitHidden')
   @SupportedBrowser(SupportedBrowser.CHROME)
