@@ -17,6 +17,7 @@ import '../tokens/token.dart';
 import '../tree/nodes.dart';
 import '../universe/selector.dart';
 import '../universe/use.dart';
+import '../util/util.dart';
 import 'resolved_ast_serialization.dart';
 
 /// Equality based equivalence function.
@@ -637,13 +638,8 @@ bool testResolvedAstEquivalence(
     [TestStrategy strategy = const TestStrategy()]) {
   return strategy.testElements(resolvedAst1, resolvedAst2, 'element',
           resolvedAst1.element, resolvedAst2.element) &&
-      // Compute AST equivalence by structural comparison.
-      strategy.test(
-          resolvedAst1,
-          resolvedAst2,
-          'node',
-          resolvedAst1.node.toDebugString(),
-          resolvedAst2.node.toDebugString()) &&
+      new NodeEquivalenceVisitor(strategy).testNodes(resolvedAst1, resolvedAst2,
+          'node', resolvedAst1.node, resolvedAst2.node) &&
       testTreeElementsEquivalence(resolvedAst1, resolvedAst2, strategy);
 }
 
@@ -803,5 +799,711 @@ class TreeElementsEquivalenceVisitor extends Visitor {
         'getRedirectingTargetConstructor($index)',
         elements1.getRedirectingTargetConstructor(node1),
         elements2.getRedirectingTargetConstructor(node2));
+  }
+}
+
+class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
+  final TestStrategy strategy;
+
+  const NodeEquivalenceVisitor([this.strategy = const TestStrategy()]);
+
+  bool testNodes(
+      var object1, var object2, String property, Node node1, Node node2) {
+    if (node1 == node2) return true;
+    if (node1 == null || node2 == null) return false;
+    return node1.accept1(this, node2);
+  }
+
+  bool testNodeLists(var object1, var object2, String property,
+      Link<Node> list1, Link<Node> list2) {
+    if (list1 == list2) return true;
+    if (list1 == null || list2 == null) return false;
+    while (list1.isNotEmpty && list2.isNotEmpty) {
+      if (!list1.head.accept1(this, list2.head)) {
+        return false;
+      }
+      list1 = list1.tail;
+      list2 = list2.tail;
+    }
+    return list1.isEmpty && list2.isEmpty;
+  }
+
+  bool testTokens(
+      var object1, var object2, String property, Token token1, Token token2) {
+    if (token1 == token2) return true;
+    if (token1 == null || token2 == null) return false;
+    return token1.hashCode == token2.hashCode;
+  }
+
+  @override
+  bool visitAssert(Assert node1, Assert node2) {
+    return testTokens(node1, node2, 'assertToken', node1.assertToken,
+            node2.assertToken) &&
+        testNodes(
+            node1, node2, 'condition', node1.condition, node2.condition) &&
+        testNodes(node1, node2, 'message', node1.message, node2.message);
+  }
+
+  @override
+  bool visitAsyncForIn(AsyncForIn node1, AsyncForIn node2) {
+    return visitForIn(node1, node2) &&
+        testTokens(
+            node1, node2, 'awaitToken', node1.awaitToken, node2.awaitToken);
+  }
+
+  @override
+  bool visitAsyncModifier(AsyncModifier node1, AsyncModifier node2) {
+    return testTokens(
+            node1, node2, 'asyncToken', node1.asyncToken, node2.asyncToken) &&
+        testTokens(node1, node2, 'starToken', node1.starToken, node2.starToken);
+  }
+
+  @override
+  bool visitAwait(Await node1, Await node2) {
+    return testTokens(
+            node1, node2, 'awaitToken', node1.awaitToken, node2.awaitToken) &&
+        testNodes(
+            node1, node2, 'expression', node1.expression, node2.expression);
+  }
+
+  @override
+  bool visitBlock(Block node1, Block node2) {
+    return testNodes(
+        node1, node2, 'statements', node1.statements, node2.statements);
+  }
+
+  @override
+  bool visitBreakStatement(BreakStatement node1, BreakStatement node2) {
+    return testTokens(node1, node2, 'keywordToken', node1.keywordToken,
+            node2.keywordToken) &&
+        testNodes(node1, node2, 'target', node1.target, node2.target);
+  }
+
+  @override
+  bool visitCascade(Cascade node1, Cascade node2) {
+    return testNodes(
+        node1, node2, 'expression', node1.expression, node2.expression);
+  }
+
+  @override
+  bool visitCascadeReceiver(CascadeReceiver node1, CascadeReceiver node2) {
+    return testTokens(node1, node2, 'cascadeOperator', node1.cascadeOperator,
+            node2.cascadeOperator) &&
+        testNodes(
+            node1, node2, 'expression', node1.expression, node2.expression);
+  }
+
+  @override
+  bool visitCaseMatch(CaseMatch node1, CaseMatch node2) {
+    return testTokens(node1, node2, 'caseKeyword', node1.caseKeyword,
+            node2.caseKeyword) &&
+        testNodes(
+            node1, node2, 'expression', node1.expression, node2.expression);
+  }
+
+  @override
+  bool visitCatchBlock(CatchBlock node1, CatchBlock node2) {
+    return testTokens(node1, node2, 'catchKeyword', node1.catchKeyword,
+            node2.catchKeyword) &&
+        testTokens(
+            node1, node2, 'onKeyword', node1.onKeyword, node2.onKeyword) &&
+        testNodes(node1, node2, 'type', node1.type, node2.type) &&
+        testNodes(node1, node2, 'formals', node1.formals, node2.formals) &&
+        testNodes(node1, node2, 'block', node1.block, node2.block);
+  }
+
+  @override
+  bool visitClassNode(ClassNode node1, ClassNode node2) {
+    return testTokens(
+            node1, node2, 'beginToken', node1.beginToken, node2.beginToken) &&
+        testTokens(node1, node2, 'extendsKeyword', node1.extendsKeyword,
+            node2.extendsKeyword) &&
+        testTokens(node1, node2, 'endToken', node1.endToken, node2.endToken) &&
+        testNodes(
+            node1, node2, 'modifiers', node1.modifiers, node2.modifiers) &&
+        testNodes(node1, node2, 'name', node1.name, node2.name) &&
+        testNodes(
+            node1, node2, 'superclass', node1.superclass, node2.superclass) &&
+        testNodes(
+            node1, node2, 'interfaces', node1.interfaces, node2.interfaces) &&
+        testNodes(node1, node2, 'typeParameters', node1.typeParameters,
+            node2.typeParameters) &&
+        testNodes(node1, node2, 'body', node1.body, node2.body);
+  }
+
+  @override
+  bool visitCombinator(Combinator node1, Combinator node2) {
+    return testTokens(node1, node2, 'keywordToken', node1.keywordToken,
+            node2.keywordToken) &&
+        testNodes(
+            node1, node2, 'identifiers', node1.identifiers, node2.identifiers);
+  }
+
+  @override
+  bool visitConditional(Conditional node1, Conditional node2) {
+    return testTokens(node1, node2, 'questionToken', node1.questionToken,
+            node2.questionToken) &&
+        testTokens(
+            node1, node2, 'colonToken', node1.colonToken, node2.colonToken) &&
+        testNodes(
+            node1, node2, 'condition', node1.condition, node2.condition) &&
+        testNodes(node1, node2, 'thenExpression', node1.thenExpression,
+            node2.thenExpression) &&
+        testNodes(node1, node2, 'elseExpression', node1.elseExpression,
+            node2.elseExpression);
+  }
+
+  @override
+  bool visitConditionalUri(ConditionalUri node1, ConditionalUri node2) {
+    return testTokens(node1, node2, 'ifToken', node1.ifToken, node2.ifToken) &&
+        testNodes(node1, node2, 'key', node1.key, node2.key) &&
+        testNodes(node1, node2, 'value', node1.value, node2.value) &&
+        testNodes(node1, node2, 'uri', node1.uri, node2.uri);
+  }
+
+  @override
+  bool visitContinueStatement(
+      ContinueStatement node1, ContinueStatement node2) {
+    return testTokens(node1, node2, 'keywordToken', node1.keywordToken,
+            node2.keywordToken) &&
+        testNodes(node1, node2, 'target', node1.target, node2.target);
+  }
+
+  @override
+  bool visitDoWhile(DoWhile node1, DoWhile node2) {
+    return testTokens(
+            node1, node2, 'doKeyword', node1.doKeyword, node2.doKeyword) &&
+        testTokens(node1, node2, 'whileKeyword', node1.whileKeyword,
+            node2.whileKeyword) &&
+        testTokens(node1, node2, 'endToken', node1.endToken, node2.endToken) &&
+        testNodes(
+            node1, node2, 'condition', node1.condition, node2.condition) &&
+        testNodes(node1, node2, 'body', node1.body, node2.body);
+  }
+
+  @override
+  bool visitDottedName(DottedName node1, DottedName node2) {
+    return testTokens(node1, node2, 'token', node1.token, node2.token) &&
+        testNodes(
+            node1, node2, 'identifiers', node1.identifiers, node2.identifiers);
+  }
+
+  @override
+  bool visitEmptyStatement(EmptyStatement node1, EmptyStatement node2) {
+    return testTokens(node1, node2, 'semicolonToken', node1.semicolonToken,
+        node2.semicolonToken);
+  }
+
+  @override
+  bool visitEnum(Enum node1, Enum node2) {
+    return testTokens(
+            node1, node2, 'enumToken', node1.enumToken, node2.enumToken) &&
+        testNodes(node1, node2, 'name', node1.name, node2.name) &&
+        testNodes(node1, node2, 'names', node1.names, node2.names);
+  }
+
+  @override
+  bool visitExport(Export node1, Export node2) {
+    return visitLibraryDependency(node1, node2) &&
+        testTokens(node1, node2, 'exportKeyword', node1.exportKeyword,
+            node2.exportKeyword);
+  }
+
+  @override
+  bool visitExpressionStatement(
+      ExpressionStatement node1, ExpressionStatement node2) {
+    return testTokens(
+            node1, node2, 'endToken', node1.endToken, node2.endToken) &&
+        testNodes(
+            node1, node2, 'expression', node1.expression, node2.expression);
+  }
+
+  @override
+  bool visitFor(For node1, For node2) {
+    return testTokens(
+            node1, node2, 'forToken', node1.forToken, node2.forToken) &&
+        testNodes(node1, node2, 'initializer', node1.initializer,
+            node2.initializer) &&
+        testNodes(node1, node2, 'conditionStatement', node1.conditionStatement,
+            node2.conditionStatement) &&
+        testNodes(node1, node2, 'update', node1.update, node2.update) &&
+        testNodes(node1, node2, 'body', node1.body, node2.body);
+  }
+
+  @override
+  bool visitForIn(ForIn node1, ForIn node2) {
+    return testNodes(
+            node1, node2, 'condition', node1.condition, node2.condition) &&
+        testNodes(
+            node1, node2, 'expression', node1.expression, node2.expression) &&
+        testNodes(node1, node2, 'body', node1.expression, node2.body) &&
+        testNodes(node1, node2, 'declaredIdentifier', node1.declaredIdentifier,
+            node2.declaredIdentifier);
+  }
+
+  @override
+  bool visitFunctionDeclaration(
+      FunctionDeclaration node1, FunctionDeclaration node2) {
+    return testNodes(node1, node2, 'function', node1.function, node2.function);
+  }
+
+  @override
+  bool visitFunctionExpression(
+      FunctionExpression node1, FunctionExpression node2) {
+    return testTokens(
+            node1, node2, 'getOrSet', node1.getOrSet, node2.getOrSet) &&
+        testNodes(node1, node2, 'name', node1.name, node2.name) &&
+        testNodes(
+            node1, node2, 'parameters', node1.parameters, node2.parameters) &&
+        testNodes(node1, node2, 'body', node1.body, node2.body) &&
+        testNodes(
+            node1, node2, 'returnType', node1.returnType, node2.returnType) &&
+        testNodes(
+            node1, node2, 'modifiers', node1.modifiers, node2.modifiers) &&
+        testNodes(node1, node2, 'initializers', node1.initializers,
+            node2.initializers) &&
+        testNodes(node1, node2, 'asyncModifier', node1.asyncModifier,
+            node2.asyncModifier);
+  }
+
+  @override
+  bool visitGotoStatement(GotoStatement node1, GotoStatement node2) {
+    return testTokens(node1, node2, 'keywordToken', node1.keywordToken,
+            node2.keywordToken) &&
+        testTokens(node1, node2, 'semicolonToken', node1.semicolonToken,
+            node2.semicolonToken) &&
+        testNodes(node1, node2, 'target', node1.target, node2.target);
+  }
+
+  @override
+  bool visitIdentifier(Identifier node1, Identifier node2) {
+    return testTokens(node1, node2, 'token', node1.token, node2.token);
+  }
+
+  @override
+  bool visitIf(If node1, If node2) {
+    return testTokens(node1, node2, 'ifToken', node1.ifToken, node2.ifToken) &&
+        testTokens(
+            node1, node2, 'elseToken', node1.elseToken, node2.elseToken) &&
+        testNodes(
+            node1, node2, 'condition', node1.condition, node2.condition) &&
+        testNodes(node1, node2, 'thenPart', node1.thenPart, node2.thenPart) &&
+        testNodes(node1, node2, 'elsePart', node1.elsePart, node2.elsePart);
+  }
+
+  @override
+  bool visitImport(Import node1, Import node2) {
+    return visitLibraryDependency(node1, node2) &&
+        testTokens(node1, node2, 'importKeyword', node1.importKeyword,
+            node2.importKeyword) &&
+        testNodes(node1, node2, 'prefix', node1.prefix, node2.prefix) &&
+        strategy.test(
+            node1, node2, 'isDeferred', node1.isDeferred, node2.isDeferred);
+  }
+
+  @override
+  bool visitLabel(Label node1, Label node2) {
+    return testTokens(
+            node1, node2, 'colonToken', node1.colonToken, node2.colonToken) &&
+        testNodes(
+            node1, node2, 'identifier', node1.identifier, node2.identifier);
+  }
+
+  @override
+  bool visitLabeledStatement(LabeledStatement node1, LabeledStatement node2) {
+    return testNodes(node1, node2, 'labels', node1.labels, node2.labels) &&
+        testNodes(node1, node2, 'statement', node1.statement, node2.statement);
+  }
+
+  @override
+  bool visitLibraryDependency(
+      LibraryDependency node1, LibraryDependency node2) {
+    return visitLibraryTag(node1, node2) &&
+        testNodes(node1, node2, 'uri', node1.uri, node2.uri) &&
+        testNodes(node1, node2, 'conditionalUris', node1.conditionalUris,
+            node2.conditionalUris) &&
+        testNodes(
+            node1, node2, 'combinators', node1.combinators, node2.combinators);
+  }
+
+  @override
+  bool visitLibraryName(LibraryName node1, LibraryName node2) {
+    return visitLibraryTag(node1, node2) &&
+        testTokens(node1, node2, 'libraryKeyword', node1.libraryKeyword,
+            node2.libraryKeyword) &&
+        testNodes(node1, node2, 'name', node1.name, node2.name);
+  }
+
+  @override
+  bool visitLibraryTag(LibraryTag node1, LibraryTag node2) {
+    // TODO(johnniwinther): Check metadata?
+    return true;
+  }
+
+  @override
+  bool visitLiteral(Literal node1, Literal node2) {
+    return testTokens(node1, node2, 'token', node1.token, node2.token);
+  }
+
+  @override
+  bool visitLiteralBool(LiteralBool node1, LiteralBool node2) {
+    return visitLiteral(node1, node2);
+  }
+
+  @override
+  bool visitLiteralDouble(LiteralDouble node1, LiteralDouble node2) {
+    return visitLiteral(node1, node2);
+  }
+
+  @override
+  bool visitLiteralInt(LiteralInt node1, LiteralInt node2) {
+    return visitLiteral(node1, node2);
+  }
+
+  @override
+  bool visitLiteralList(LiteralList node1, LiteralList node2) {
+    return testTokens(node1, node2, 'constKeyword', node1.constKeyword,
+            node2.constKeyword) &&
+        testNodes(node1, node2, 'typeArguments', node1.typeArguments,
+            node2.typeArguments) &&
+        testNodes(node1, node2, 'elements', node1.elements, node2.elements);
+  }
+
+  @override
+  bool visitLiteralMap(LiteralMap node1, LiteralMap node2) {
+    return testTokens(node1, node2, 'constKeyword', node1.constKeyword,
+            node2.constKeyword) &&
+        testNodes(node1, node2, 'typeArguments', node1.typeArguments,
+            node2.typeArguments) &&
+        testNodes(node1, node2, 'entries', node1.entries, node2.entries);
+  }
+
+  @override
+  bool visitLiteralMapEntry(LiteralMapEntry node1, LiteralMapEntry node2) {
+    return testTokens(
+            node1, node2, 'colonToken', node1.colonToken, node2.colonToken) &&
+        testNodes(node1, node2, 'key', node1.key, node2.key) &&
+        testNodes(node1, node2, 'value', node1.value, node2.value);
+  }
+
+  @override
+  bool visitLiteralNull(LiteralNull node1, LiteralNull node2) {
+    return visitLiteral(node1, node2);
+  }
+
+  @override
+  bool visitLiteralString(LiteralString node1, LiteralString node2) {
+    return testTokens(node1, node2, 'token', node1.token, node2.token) &&
+        strategy.test(
+            node1, node2, 'dartString', node1.dartString, node2.dartString);
+  }
+
+  @override
+  bool visitLiteralSymbol(LiteralSymbol node1, LiteralSymbol node2) {
+    return testTokens(
+            node1, node2, 'hashToken', node1.hashToken, node2.hashToken) &&
+        testNodes(
+            node1, node2, 'identifiers', node1.identifiers, node2.identifiers);
+  }
+
+  @override
+  bool visitLoop(Loop node1, Loop node2) {
+    return testNodes(
+            node1, node2, 'condition', node1.condition, node2.condition) &&
+        testNodes(node1, node2, 'body', node1.body, node2.body);
+  }
+
+  @override
+  bool visitMetadata(Metadata node1, Metadata node2) {
+    return testTokens(node1, node2, 'token', node1.token, node2.token) &&
+        testNodes(
+            node1, node2, 'expression', node1.expression, node2.expression);
+  }
+
+  @override
+  bool visitMixinApplication(MixinApplication node1, MixinApplication node2) {
+    return testNodes(
+            node1, node2, 'superclass', node1.superclass, node2.superclass) &&
+        testNodes(node1, node2, 'mixins', node1.mixins, node2.mixins);
+  }
+
+  @override
+  bool visitModifiers(Modifiers node1, Modifiers node2) {
+    return strategy.test(node1, node2, 'flags', node1.flags, node2.flags) &&
+        testNodes(node1, node2, 'nodes', node1.nodes, node2.nodes);
+  }
+
+  @override
+  bool visitNamedArgument(NamedArgument node1, NamedArgument node2) {
+    return testTokens(
+            node1, node2, 'colonToken', node1.colonToken, node2.colonToken) &&
+        testNodes(node1, node2, 'name', node1.name, node2.name) &&
+        testNodes(
+            node1, node2, 'expression', node1.expression, node2.expression);
+  }
+
+  @override
+  bool visitNamedMixinApplication(
+      NamedMixinApplication node1, NamedMixinApplication node2) {
+    return testTokens(node1, node2, 'classKeyword', node1.classKeyword,
+            node2.classKeyword) &&
+        testTokens(node1, node2, 'endToken', node1.endToken, node2.endToken) &&
+        testNodes(node1, node2, 'name', node1.name, node2.name) &&
+        testNodes(node1, node2, 'typeParameters', node1.typeParameters,
+            node2.typeParameters) &&
+        testNodes(
+            node1, node2, 'modifiers', node1.modifiers, node2.modifiers) &&
+        testNodes(node1, node2, 'mixinApplication', node1.mixinApplication,
+            node2.mixinApplication) &&
+        testNodes(
+            node1, node2, 'interfaces', node1.interfaces, node2.interfaces);
+  }
+
+  @override
+  bool visitNewExpression(NewExpression node1, NewExpression node2) {
+    return testTokens(
+            node1, node2, 'newToken', node1.newToken, node2.newToken) &&
+        testNodes(node1, node2, 'send', node1.send, node2.send);
+  }
+
+  @override
+  bool visitNodeList(NodeList node1, NodeList node2) {
+    return testTokens(
+            node1, node2, 'beginToken', node1.beginToken, node2.beginToken) &&
+        testTokens(node1, node2, 'endToken', node1.endToken, node2.endToken) &&
+        strategy.test(
+            node1, node2, 'delimiter', node1.delimiter, node2.delimiter) &&
+        testNodeLists(node1, node2, 'nodes', node1.nodes, node2.nodes);
+  }
+
+  @override
+  bool visitOperator(Operator node1, Operator node2) {
+    return visitIdentifier(node1, node2);
+  }
+
+  @override
+  bool visitParenthesizedExpression(
+      ParenthesizedExpression node1, ParenthesizedExpression node2) {
+    return testTokens(
+            node1, node2, 'beginToken', node1.beginToken, node2.beginToken) &&
+        testNodes(
+            node1, node2, 'expression', node1.expression, node2.expression);
+  }
+
+  @override
+  bool visitPart(Part node1, Part node2) {
+    return visitLibraryTag(node1, node2) &&
+        testTokens(node1, node2, 'partKeyword', node1.partKeyword,
+            node2.partKeyword) &&
+        testNodes(node1, node2, 'uri', node1.uri, node2.uri);
+  }
+
+  @override
+  bool visitPartOf(PartOf node1, PartOf node2) {
+    // TODO(johnniwinther): Check metadata?
+    return testTokens(node1, node2, 'partKeyword', node1.partKeyword,
+            node2.partKeyword) &&
+        testNodes(node1, node2, 'name', node1.name, node2.name);
+  }
+
+  @override
+  bool visitPostfix(Postfix node1, Postfix node2) {
+    return visitNodeList(node1, node2);
+  }
+
+  @override
+  bool visitPrefix(Prefix node1, Prefix node2) {
+    return visitNodeList(node1, node2);
+  }
+
+  @override
+  bool visitRedirectingFactoryBody(
+      RedirectingFactoryBody node1, RedirectingFactoryBody node2) {
+    return testTokens(
+            node1, node2, 'beginToken', node1.beginToken, node2.beginToken) &&
+        testTokens(node1, node2, 'endToken', node1.endToken, node2.endToken) &&
+        testNodes(node1, node2, 'constructorReference',
+            node1.constructorReference, node2.constructorReference);
+  }
+
+  @override
+  bool visitRethrow(Rethrow node1, Rethrow node2) {
+    return testTokens(
+            node1, node2, 'throwToken', node1.throwToken, node2.throwToken) &&
+        testTokens(node1, node2, 'endToken', node1.endToken, node2.endToken);
+  }
+
+  @override
+  bool visitReturn(Return node1, Return node2) {
+    return testTokens(
+            node1, node2, 'beginToken', node1.beginToken, node2.beginToken) &&
+        testTokens(node1, node2, 'endToken', node1.endToken, node2.endToken) &&
+        testNodes(
+            node1, node2, 'expression', node1.expression, node2.expression);
+  }
+
+  @override
+  bool visitSend(Send node1, Send node2) {
+    return strategy.test(node1, node2, 'isConditional', node1.isConditional,
+            node2.isConditional) &&
+        testNodes(node1, node2, 'receiver', node1.receiver, node2.receiver) &&
+        testNodes(node1, node2, 'selector', node1.selector, node2.selector) &&
+        testNodes(node1, node2, 'argumentsNode', node1.argumentsNode,
+            node2.argumentsNode);
+  }
+
+  @override
+  bool visitSendSet(SendSet node1, SendSet node2) {
+    return visitSend(node1, node2) &&
+        testNodes(node1, node2, 'assignmentOperator', node1.assignmentOperator,
+            node2.assignmentOperator);
+  }
+
+  @override
+  bool visitStringInterpolation(
+      StringInterpolation node1, StringInterpolation node2) {
+    return testNodes(node1, node2, 'string', node1.string, node2.string) &&
+        testNodes(node1, node2, 'parts', node1.parts, node2.parts);
+  }
+
+  @override
+  bool visitStringInterpolationPart(
+      StringInterpolationPart node1, StringInterpolationPart node2) {
+    return testNodes(
+        node1, node2, 'expression', node1.expression, node2.expression);
+  }
+
+  @override
+  bool visitStringJuxtaposition(
+      StringJuxtaposition node1, StringJuxtaposition node2) {
+    return testNodes(node1, node2, 'first', node1.first, node2.first) &&
+        testNodes(node1, node2, 'second', node1.second, node2.second);
+  }
+
+  @override
+  bool visitSwitchCase(SwitchCase node1, SwitchCase node2) {
+    return testTokens(node1, node2, 'defaultKeyword', node1.defaultKeyword,
+            node2.defaultKeyword) &&
+        testTokens(
+            node1, node2, 'startToken', node1.startToken, node2.startToken) &&
+        testNodes(node1, node2, 'labelsAndCases', node1.labelsAndCases,
+            node2.labelsAndCases) &&
+        testNodes(
+            node1, node2, 'statements', node1.statements, node2.statements);
+  }
+
+  @override
+  bool visitSwitchStatement(SwitchStatement node1, SwitchStatement node2) {
+    return testTokens(node1, node2, 'switchKeyword', node1.switchKeyword,
+            node2.switchKeyword) &&
+        testNodes(node1, node2, 'parenthesizedExpression',
+            node1.parenthesizedExpression, node2.parenthesizedExpression) &&
+        testNodes(node1, node2, 'cases', node1.cases, node2.cases);
+  }
+
+  @override
+  bool visitSyncForIn(SyncForIn node1, SyncForIn node2) {
+    return visitForIn(node1, node2);
+  }
+
+  @override
+  bool visitThrow(Throw node1, Throw node2) {
+    return testTokens(
+            node1, node2, 'throwToken', node1.throwToken, node2.throwToken) &&
+        testTokens(node1, node2, 'endToken', node1.endToken, node2.endToken) &&
+        testNodes(
+            node1, node2, 'expression', node1.expression, node2.expression);
+  }
+
+  @override
+  bool visitTryStatement(TryStatement node1, TryStatement node2) {
+    return testTokens(
+            node1, node2, 'tryKeyword', node1.tryKeyword, node2.tryKeyword) &&
+        testTokens(node1, node2, 'finallyKeyword', node1.finallyKeyword,
+            node2.finallyKeyword) &&
+        testNodes(node1, node2, 'tryBlock', node1.tryBlock, node2.tryBlock) &&
+        testNodes(node1, node2, 'catchBlocks', node1.catchBlocks,
+            node2.catchBlocks) &&
+        testNodes(node1, node2, 'finallyBlock', node1.finallyBlock,
+            node2.finallyBlock);
+  }
+
+  @override
+  bool visitTypeAnnotation(TypeAnnotation node1, TypeAnnotation node2) {
+    return testNodes(
+            node1, node2, 'typeName', node1.typeName, node2.typeName) &&
+        testNodes(node1, node2, 'typeArguments', node1.typeArguments,
+            node2.typeArguments);
+  }
+
+  @override
+  bool visitTypeVariable(TypeVariable node1, TypeVariable node2) {
+    return testNodes(node1, node2, 'name', node1.name, node2.name) &&
+        testNodes(node1, node2, 'bound', node1.bound, node2.bound);
+  }
+
+  @override
+  bool visitTypedef(Typedef node1, Typedef node2) {
+    return testTokens(node1, node2, 'typedefKeyword', node1.typedefKeyword,
+            node2.typedefKeyword) &&
+        testTokens(node1, node2, 'endToken', node1.endToken, node2.endToken) &&
+        testNodes(
+            node1, node2, 'returnType', node1.returnType, node2.returnType) &&
+        testNodes(node1, node2, 'name', node1.name, node2.name) &&
+        testNodes(node1, node2, 'typeParameters', node1.typeParameters,
+            node2.typeParameters) &&
+        testNodes(node1, node2, 'formals', node1.formals, node2.formals);
+  }
+
+  @override
+  bool visitVariableDefinitions(
+      VariableDefinitions node1, VariableDefinitions node2) {
+    return testNodes(
+            node1, node2, 'metadata', node1.metadata, node2.metadata) &&
+        testNodes(node1, node2, 'type', node1.type, node2.type) &&
+        testNodes(
+            node1, node2, 'modifiers', node1.modifiers, node2.modifiers) &&
+        testNodes(
+            node1, node2, 'definitions', node1.definitions, node2.definitions);
+  }
+
+  @override
+  bool visitWhile(While node1, While node2) {
+    return testTokens(node1, node2, 'whileKeyword', node1.whileKeyword,
+            node2.whileKeyword) &&
+        testNodes(
+            node1, node2, 'condition', node1.condition, node2.condition) &&
+        testNodes(node1, node2, 'body', node1.body, node2.body);
+  }
+
+  @override
+  bool visitYield(Yield node1, Yield node2) {
+    return testTokens(
+            node1, node2, 'yieldToken', node1.yieldToken, node2.yieldToken) &&
+        testTokens(
+            node1, node2, 'starToken', node1.starToken, node2.starToken) &&
+        testTokens(node1, node2, 'endToken', node1.endToken, node2.endToken) &&
+        testNodes(
+            node1, node2, 'expression', node1.expression, node2.expression);
+  }
+
+  @override
+  bool visitNode(Node node1, Node node2) {
+    throw new UnsupportedError('Unexpected nodes: $node1 <> $node2');
+  }
+
+  @override
+  bool visitExpression(Expression node1, Expression node2) {
+    throw new UnsupportedError('Unexpected nodes: $node1 <> $node2');
+  }
+
+  @override
+  bool visitStatement(Statement node1, Statement node2) {
+    throw new UnsupportedError('Unexpected nodes: $node1 <> $node2');
+  }
+
+  @override
+  bool visitStringNode(StringNode node1, StringNode node2) {
+    throw new UnsupportedError('Unexpected nodes: $node1 <> $node2');
   }
 }
