@@ -2252,7 +2252,8 @@ class JavaScriptBackend extends Backend {
     lookupMapAnalysis.onCodegenStart();
   }
 
-  void onElementResolved(Element element, TreeElements elements) {
+  @override
+  void onElementResolved(Element element) {
     if (element.isMalformed) {
       // Elements that are marker as malformed during parsing or resolution
       // might be registered here. These should just be ignored.

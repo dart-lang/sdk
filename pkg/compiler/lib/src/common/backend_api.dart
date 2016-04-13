@@ -361,9 +361,7 @@ abstract class Backend {
   void onCodegenStart() {}
 
   /// Called after [element] has been resolved.
-  // TODO(johnniwinther): Change [TreeElements] to [Registry] or a dependency
-  // node. [elements] is currently unused by the implementation.
-  void onElementResolved(Element element, TreeElements elements) {}
+  void onElementResolved(Element element) {}
 
   // Does this element belong in the output
   bool shouldOutput(Element element) => true;

@@ -59,9 +59,9 @@ void checkMemberElement(Compiler compiler, MemberElement member) {
   if (!compiler.resolution.hasBeenResolved(member)) return;
 
   ResolvedAst resolvedAst = member.resolvedAst;
-  RelatedTypesChecker relatedTypesChecker =
-      new RelatedTypesChecker(compiler, resolvedAst);
-  if (resolvedAst.node != null) {
+  if (resolvedAst.kind == ResolvedAstKind.PARSED) {
+    RelatedTypesChecker relatedTypesChecker =
+        new RelatedTypesChecker(compiler, resolvedAst);
     compiler.reporter.withCurrentElement(member.implementation, () {
       relatedTypesChecker.apply(resolvedAst.node);
     });

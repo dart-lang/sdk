@@ -79,14 +79,14 @@ class IrBuilderTask extends CompilerTask {
     return measure(() {
       bailoutMessage = null;
 
-      TreeElements elementsMapping = element.resolvedAst.elements;
+      ResolvedAst resolvedAst = element.resolvedAst;
       element = element.implementation;
       return reporter.withCurrentElement(element, () {
         SourceInformationBuilder sourceInformationBuilder =
             sourceInformationStrategy.createBuilderForContext(element);
 
-        IrBuilderVisitor builder = new IrBuilderVisitor(elementsMapping,
-            compiler, sourceInformationBuilder, typeMaskSystem);
+        IrBuilderVisitor builder = new IrBuilderVisitor(
+            resolvedAst, compiler, sourceInformationBuilder, typeMaskSystem);
         ir.FunctionDefinition irNode = builder.buildExecutable(element);
         if (irNode == null) {
           bailoutMessage = builder.bailoutMessage;
@@ -123,7 +123,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
         BaseImplementationOfIndexCompoundsMixin<ir.Primitive, dynamic>,
         BaseImplementationOfSuperIndexSetIfNullMixin<ir.Primitive, dynamic>
     implements SemanticSendVisitor<ir.Primitive, dynamic> {
-  final TreeElements elements;
+  final ResolvedAst resolvedAst;
   final Compiler compiler;
   final SourceInformationBuilder sourceInformationBuilder;
   final TypeMaskSystem typeMaskSystem;
@@ -155,8 +155,10 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   // arguments, and what the arguments are.
 
   /// Construct a top-level visitor.
-  IrBuilderVisitor(this.elements, this.compiler, this.sourceInformationBuilder,
-      this.typeMaskSystem);
+  IrBuilderVisitor(this.resolvedAst, this.compiler,
+      this.sourceInformationBuilder, this.typeMaskSystem);
+
+  TreeElements get elements => resolvedAst.elements;
 
   JavaScriptBackend get backend => compiler.backend;
   BackendHelpers get helpers => backend.helpers;
@@ -193,7 +195,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   /// one currently being built.
   ClosureScope getClosureScopeForFunction(FunctionElement function) {
     closure.ClosureClassMap map = compiler.closureToClassMapper
-        .computeClosureToClassMapping(function, function.node, elements);
+        .computeClosureToClassMapping(function.resolvedAst);
     return new ClosureScope(map.capturingScopes[function.node]);
   }
 
@@ -505,7 +507,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   /// Every visitor can only be applied to nodes in one context, because
   /// the [elements] field is specific to that context.
   IrBuilderVisitor makeVisitorForContext(AstElement context) {
-    return new IrBuilderVisitor(context.resolvedAst.elements, compiler,
+    return new IrBuilderVisitor(context.resolvedAst, compiler,
         sourceInformationBuilder.forContext(context), typeMaskSystem);
   }
 
@@ -545,7 +547,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
   void loadArguments(ConstructorElement target, CallStructure call,
       List<ir.Primitive> arguments) {
     assert(target.isImplementation);
-    assert(target == elements.analyzedElement);
+    assert(target.declaration == resolvedAst.element);
     FunctionSignature signature = target.functionSignature;
 
     // Establish a scope in case parameters are captured.
@@ -620,7 +622,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       List<ConstructorElement> supers,
       Map<FieldElement, ir.Primitive> fieldValues) {
     assert(constructor.isImplementation);
-    assert(constructor == elements.analyzedElement);
+    assert(constructor.declaration == resolvedAst.element);
     ClassElement enclosingClass = constructor.enclosingClass.implementation;
     // Evaluate declaration-site field initializers, unless this constructor
     // redirects to another using a `this()` initializer. In that case, these
@@ -714,7 +716,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     ConstructorElement constructor = body.constructor;
     ast.FunctionExpression node = constructor.node;
     closureClassMap = compiler.closureToClassMapper
-        .computeClosureToClassMapping(constructor, node, elements);
+        .computeClosureToClassMapping(constructor.resolvedAst);
 
     // We compute variables boxed in mutable variables on entry to each try
     // block, not including variables captured by a closure (which are boxed
@@ -745,7 +747,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
     assert(elements[node] != null);
 
     closureClassMap = compiler.closureToClassMapper
-        .computeClosureToClassMapping(element, node, elements);
+        .computeClosureToClassMapping(element.resolvedAst);
     TryBoxedVariables variables = _analyzeTryBoxedVariables(node);
     tryStatements = variables.tryStatements;
     IrBuilder builder = getBuilderFor(element);
@@ -758,7 +760,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       return null; // Nothing to do.
     }
     closureClassMap = compiler.closureToClassMapper
-        .computeClosureToClassMapping(element, element.node, elements);
+        .computeClosureToClassMapping(element.resolvedAst);
     IrBuilder builder = getBuilderFor(element);
     return withBuilder(builder, () {
       irBuilder.buildFunctionHeader(<Local>[]);

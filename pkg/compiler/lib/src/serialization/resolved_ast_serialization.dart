@@ -73,6 +73,21 @@ class ResolvedAstSerializer extends Visitor {
 
   /// Serializes [resolvedAst] into [objectEncoder].
   void serialize() {
+    objectEncoder.setEnum(Key.KIND, resolvedAst.kind);
+    switch (resolvedAst.kind) {
+      case ResolvedAstKind.PARSED:
+        serializeParsed();
+        break;
+      case ResolvedAstKind.DEFAULT_CONSTRUCTOR:
+      case ResolvedAstKind.FORWARDING_CONSTRUCTOR:
+        // No additional properties.
+        break;
+    }
+  }
+
+  /// Serialize [ResolvedAst] that is defined in terms of an AST together with
+  /// [TreeElements].
+  void serializeParsed() {
     objectEncoder.setUri(
         Key.URI,
         elements.analyzedElement.compilationUnit.script.resourceUri,
@@ -110,7 +125,7 @@ class ResolvedAstSerializer extends Visitor {
         }
       }
     }
-    objectEncoder.setEnum(Key.KIND, kind);
+    objectEncoder.setEnum(Key.SUB_KIND, kind);
     root.accept(indexComputer);
     root.accept(this);
   }
@@ -216,6 +231,25 @@ class ResolvedAstDeserializer {
   /// [element] from its source code.
   static ResolvedAst deserialize(Element element, ObjectDecoder objectDecoder,
       Parsing parsing, Token getBeginToken(Uri uri, int charOffset)) {
+    ResolvedAstKind kind =
+        objectDecoder.getEnum(Key.KIND, ResolvedAstKind.values);
+    switch (kind) {
+      case ResolvedAstKind.PARSED:
+        return deserializeParsed(
+            element, objectDecoder, parsing, getBeginToken);
+      case ResolvedAstKind.DEFAULT_CONSTRUCTOR:
+      case ResolvedAstKind.FORWARDING_CONSTRUCTOR:
+        return new SynthesizedResolvedAst(element, kind);
+    }
+  }
+
+  /// Deserialize a [ResolvedAst] that is defined in terms of an AST together
+  /// with [TreeElements].
+  static ResolvedAst deserializeParsed(
+      Element element,
+      ObjectDecoder objectDecoder,
+      Parsing parsing,
+      Token getBeginToken(Uri uri, int charOffset)) {
     CompilationUnitElement compilationUnit = element.compilationUnit;
     DiagnosticReporter reporter = parsing.reporter;
 
@@ -366,7 +400,7 @@ class ResolvedAstDeserializer {
       }
     }
 
-    AstKind kind = objectDecoder.getEnum(Key.KIND, AstKind.values);
+    AstKind kind = objectDecoder.getEnum(Key.SUB_KIND, AstKind.values);
     Node root = computeNode(kind);
     TreeElementMapping elements = new TreeElementMapping(element);
     AstIndexComputer indexComputer = new AstIndexComputer();
@@ -417,6 +451,6 @@ class ResolvedAstDeserializer {
         }
       }
     }
-    return new ResolvedAst(element, root, elements);
+    return new ParsedResolvedAst(element, root, elements);
   }
 }

@@ -339,16 +339,24 @@ class SimpleTypeInferrerVisitor<T>
   final Setlet<Entity> capturedVariables = new Setlet<Entity>();
 
   SimpleTypeInferrerVisitor.internal(
-      analyzedElement, this.outermostElement, inferrer, compiler, locals)
-      : super(analyzedElement, inferrer, inferrer.types, compiler, locals),
+      AstElement analyzedElement,
+      ResolvedAst resolvedAst,
+      this.outermostElement,
+      inferrer,
+      compiler,
+      locals)
+      : super(analyzedElement, resolvedAst, inferrer, inferrer.types, compiler,
+            locals),
         this.inferrer = inferrer {
     assert(outermostElement != null);
   }
 
-  SimpleTypeInferrerVisitor(Element element, Compiler compiler,
-      InferrerEngine<T, TypeSystem<T>> inferrer, [LocalsHandler<T> handler])
+  SimpleTypeInferrerVisitor(Element element, ResolvedAst resolvedAst,
+      Compiler compiler, InferrerEngine<T, TypeSystem<T>> inferrer,
+      [LocalsHandler<T> handler])
       : this.internal(
             element,
+            resolvedAst,
             element.outermostEnclosingMemberOrTopLevel.implementation,
             inferrer,
             compiler,
@@ -375,8 +383,8 @@ class SimpleTypeInferrerVisitor<T>
     // be handled specially, in that we are computing their LUB at
     // each update, and reading them yields the type that was found in a
     // previous analysis of [outermostElement].
-    ClosureClassMap closureData = compiler.closureToClassMapper
-        .computeClosureToClassMapping(analyzedElement, node, elements);
+    ClosureClassMap closureData =
+        compiler.closureToClassMapper.computeClosureToClassMapping(resolvedAst);
     closureData.forEachCapturedVariable((variable, field) {
       locals.setCaptured(variable, field);
     });
@@ -402,8 +410,8 @@ class SimpleTypeInferrerVisitor<T>
       SimpleTypeInferrerVisitor visitor = this;
       if (inferrer.hasAlreadyComputedTypeOfParameterDefault(element)) return;
       if (element.functionDeclaration != analyzedElement) {
-        visitor = new SimpleTypeInferrerVisitor(
-            element.functionDeclaration, compiler, inferrer);
+        visitor = new SimpleTypeInferrerVisitor(element.functionDeclaration,
+            element.functionDeclaration.resolvedAst, compiler, inferrer);
       }
       T type =
           (defaultValue == null) ? types.nullType : visitor.visit(defaultValue);
@@ -552,7 +560,7 @@ class SimpleTypeInferrerVisitor<T>
     LocalsHandler closureLocals =
         new LocalsHandler<T>.from(locals, node, useOtherTryBlock: false);
     SimpleTypeInferrerVisitor visitor = new SimpleTypeInferrerVisitor<T>(
-        element, compiler, inferrer, closureLocals);
+        element, element.resolvedAst, compiler, inferrer, closureLocals);
     visitor.run();
     inferrer.recordReturnType(element, visitor.returnType);
 

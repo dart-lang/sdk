@@ -2328,21 +2328,28 @@ class ConstructorBodyElementX extends BaseFunctionElementX
  */
 class SynthesizedConstructorElementX extends ConstructorElementX {
   final ConstructorElement definingConstructor;
-  final bool isDefaultConstructor;
+  ResolvedAst _resolvedAst;
 
   SynthesizedConstructorElementX.notForDefault(
       String name, this.definingConstructor, Element enclosing)
-      : isDefaultConstructor = false,
-        super(name, ElementKind.GENERATIVE_CONSTRUCTOR, Modifiers.EMPTY,
-            enclosing);
+      : super(name, ElementKind.GENERATIVE_CONSTRUCTOR, Modifiers.EMPTY,
+            enclosing) {
+    _resolvedAst = new SynthesizedResolvedAst(
+        this, ResolvedAstKind.FORWARDING_CONSTRUCTOR);
+  }
 
   SynthesizedConstructorElementX.forDefault(
       this.definingConstructor, Element enclosing)
-      : isDefaultConstructor = true,
-        super('', ElementKind.GENERATIVE_CONSTRUCTOR, Modifiers.EMPTY,
+      : super('', ElementKind.GENERATIVE_CONSTRUCTOR, Modifiers.EMPTY,
             enclosing) {
     functionSignature = new FunctionSignatureX(
         type: new FunctionType.synthesized(enclosingClass.thisType));
+    _resolvedAst =
+        new SynthesizedResolvedAst(this, ResolvedAstKind.DEFAULT_CONSTRUCTOR);
+  }
+
+  bool get isDefaultConstructor {
+    return _resolvedAst.kind == ResolvedAstKind.DEFAULT_CONSTRUCTOR;
   }
 
   FunctionExpression parseNode(Parsing parsing) => null;
@@ -2354,6 +2361,10 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
   Token get position => enclosingElement.position;
 
   bool get isSynthesized => true;
+
+  bool get hasResolvedAst => true;
+
+  ResolvedAst get resolvedAst => _resolvedAst;
 
   DartType get type {
     if (isDefaultConstructor) {
@@ -2694,6 +2705,31 @@ abstract class ClassElementX extends BaseClassElementX {
   }
 }
 
+/// This element is used to encode an enum class.
+///
+/// For instance
+///
+///     enum A { b, c, }
+///
+/// is modelled as
+///
+///     class A {
+///       final int index;
+///
+///       const A(this.index);
+///
+///       String toString() {
+///         return const <int, A>{0: 'A.b', 1: 'A.c'}[index];
+///       }
+///
+///       static const A b = const A(0);
+///       static const A c = const A(1);
+///
+///       static const List<A> values = const <A>[b, c];
+///     }
+///
+///  where the `A` class is encoded using this element.
+///
 class EnumClassElementX extends ClassElementX
     implements EnumClassElement, DeclarationSite {
   final Enum node;
@@ -2737,6 +2773,31 @@ class EnumClassElementX extends ClassElementX
   DeclarationSite get declarationSite => this;
 }
 
+/// This element is used to encode the implicit constructor in an enum class.
+///
+/// For instance
+///
+///     enum A { b, c, }
+///
+/// is modelled as
+///
+///     class A {
+///       final int index;
+///
+///       const A(this.index);
+///
+///       String toString() {
+///         return const <int, A>{0: 'A.b', 1: 'A.c'}[index];
+///       }
+///
+///       static const A b = const A(0);
+///       static const A c = const A(1);
+///
+///       static const List<A> values = const <A>[b, c];
+///     }
+///
+///  where the `const A(...)` constructor is encoded using this element.
+///
 class EnumConstructorElementX extends ConstructorElementX {
   final FunctionExpression node;
 
@@ -2758,6 +2819,31 @@ class EnumConstructorElementX extends ConstructorElementX {
   SourceSpan get sourcePosition => enclosingClass.sourcePosition;
 }
 
+/// This element is used to encode the implicit methods in an enum class.
+///
+/// For instance
+///
+///     enum A { b, c, }
+///
+/// is modelled as
+///
+///     class A {
+///       final int index;
+///
+///       const A(this.index);
+///
+///       String toString() {
+///         return const <int, A>{0: 'A.b', 1: 'A.c'}[index];
+///       }
+///
+///       static const A b = const A(0);
+///       static const A c = const A(1);
+///
+///       static const List<A> values = const <A>[b, c];
+///     }
+///
+///  where the `toString` method is encoded using this element.
+///
 class EnumMethodElementX extends MethodElementX {
   final FunctionExpression node;
 
@@ -2775,6 +2861,32 @@ class EnumMethodElementX extends MethodElementX {
   SourceSpan get sourcePosition => enclosingClass.sourcePosition;
 }
 
+/// This element is used to encode the initializing formal of the implicit
+/// constructor in an enum class.
+///
+/// For instance
+///
+///     enum A { b, c, }
+///
+/// is modelled as
+///
+///     class A {
+///       final int index;
+///
+///       const A(this.index);
+///
+///       String toString() {
+///         return const <int, A>{0: 'A.b', 1: 'A.c'}[index];
+///       }
+///
+///       static const A b = const A(0);
+///       static const A c = const A(1);
+///
+///       static const List<A> values = const <A>[b, c];
+///     }
+///
+///  where the `this.index` formal is encoded using this element.
+///
 class EnumFormalElementX extends InitializingFormalElementX {
   EnumFormalElementX(
       ConstructorElement constructor,
@@ -2789,6 +2901,31 @@ class EnumFormalElementX extends InitializingFormalElementX {
   SourceSpan get sourcePosition => enclosingClass.sourcePosition;
 }
 
+/// This element is used to encode the implicitly fields in an enum class.
+///
+/// For instance
+///
+///     enum A { b, c, }
+///
+/// is modelled as
+///
+///     class A {
+///       final int index;
+///
+///       const A(this.index);
+///
+///       String toString() {
+///         return const <int, A>{0: 'A.b', 1: 'A.c'}[index];
+///       }
+///
+///       static const A b = const A(0);
+///       static const A c = const A(1);
+///
+///       static const List<A> values = const <A>[b, c];
+///     }
+///
+///  where the `index` and `values` fields are encoded using this element.
+///
 class EnumFieldElementX extends FieldElementX {
   EnumFieldElementX(Identifier name, EnumClassElementX enumClass,
       VariableList variableList, Node definition,
@@ -2803,6 +2940,31 @@ class EnumFieldElementX extends FieldElementX {
   SourceSpan get sourcePosition => enclosingClass.sourcePosition;
 }
 
+/// This element is used to encode the constant value in an enum class.
+///
+/// For instance
+///
+///     enum A { b, c, }
+///
+/// is modelled as
+///
+///     class A {
+///       final int index;
+///
+///       const A(this.index);
+///
+///       String toString() {
+///         return const <int, A>{0: 'A.b', 1: 'A.c'}[index];
+///       }
+///
+///       static const A b = const A(0);
+///       static const A c = const A(1);
+///
+///       static const List<A> values = const <A>[b, c];
+///     }
+///
+///  where the `b` and `c` fields are encoded using this element.
+///
 class EnumConstantElementX extends EnumFieldElementX
     implements EnumConstantElement {
   final int index;
@@ -2818,8 +2980,7 @@ class EnumConstantElementX extends EnumFieldElementX
 
   @override
   SourceSpan get sourcePosition {
-    return new SourceSpan(
-        enclosingClass.sourcePosition.uri,
+    return new SourceSpan(enclosingClass.sourcePosition.uri,
         position.charOffset, position.charEnd);
   }
 }
@@ -3126,7 +3287,7 @@ abstract class AstElementMixin implements AstElement {
   }
 
   ResolvedAst get resolvedAst {
-    return new ResolvedAst(
+    return new ParsedResolvedAst(
         declaration, definingElement.node, definingElement.treeElements);
   }
 }

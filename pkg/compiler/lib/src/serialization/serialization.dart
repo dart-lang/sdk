@@ -682,6 +682,7 @@ class Serializer {
     if (element == null) {
       throw new ArgumentError('Serializer._getElementDataObject(null)');
     }
+    element = element.declaration;
     DataObject dataObject = _elementMap[element];
     if (dataObject == null) {
       if (!shouldInclude(element)) {

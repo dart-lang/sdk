@@ -4,10 +4,12 @@
 
 library dart2js.serialization_helper;
 
+import 'dart:io';
 import 'dart:async';
 import 'package:async_helper/async_helper.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/compiler_new.dart';
+import 'package:compiler/src/common.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/common/backend_api.dart';
 import 'package:compiler/src/common/names.dart';
@@ -29,17 +31,70 @@ import 'package:compiler/src/script.dart';
 import 'package:compiler/src/universe/world_impact.dart';
 import 'memory_compiler.dart';
 
+class Arguments {
+  final String filename;
+  final bool loadSerializedData;
+  final bool saveSerializedData;
+  final String serializedDataFileName;
+  final bool verbose;
 
-Future<String> serializeDartCore({bool serializeResolvedAst: false}) async {
-  Compiler compiler = compilerFor(
-      options: [Flags.analyzeAll]);
-  compiler.serialization.supportSerialization = true;
-  await compiler.run(Uris.dart_core);
-  return serialize(
-      compiler,
-      compiler.libraryLoader.libraries,
-      serializeResolvedAst: serializeResolvedAst)
-        .toText(const JsonSerializationEncoder());
+  const Arguments({
+    this.filename,
+    this.loadSerializedData: false,
+    this.saveSerializedData: false,
+    this.serializedDataFileName: 'out.data',
+    this.verbose: false});
+
+  factory Arguments.from(List<String> arguments) {
+    String filename;
+    for (String arg in arguments) {
+      if (!arg.startsWith('-')) {
+        filename = arg;
+      }
+    }
+    bool verbose = arguments.contains('-v');
+    bool loadSerializedData = arguments.contains('-l');
+    bool saveSerializedData = arguments.contains('-s');
+    return new Arguments(
+        filename: filename,
+        verbose: verbose,
+        loadSerializedData: loadSerializedData,
+        saveSerializedData: saveSerializedData);
+  }
+}
+
+
+Future<String> serializeDartCore(
+    {Arguments arguments: const Arguments(),
+     bool serializeResolvedAst: false}) async {
+  print('------------------------------------------------------------------');
+  print('serialize dart:core');
+  print('------------------------------------------------------------------');
+  String serializedData;
+  if (arguments.loadSerializedData) {
+    File file = new File(arguments.serializedDataFileName);
+    if (file.existsSync()) {
+      print('Loading data from $file');
+      serializedData = file.readAsStringSync();
+    }
+  }
+  if (serializedData == null) {
+    Compiler compiler = compilerFor(
+        options: [Flags.analyzeAll]);
+    compiler.serialization.supportSerialization = true;
+    await compiler.run(Uris.dart_core);
+    serializedData = serialize(
+        compiler,
+        compiler.libraryLoader.libraries,
+        serializeResolvedAst: serializeResolvedAst)
+          .toText(const JsonSerializationEncoder());
+    if (arguments.saveSerializedData) {
+      File file = new File(arguments.serializedDataFileName);
+      print('Saving data to $file');
+      file.writeAsStringSync(serializedData);
+    }
+  }
+  return serializedData;
 }
 
 Serializer serialize(
@@ -154,6 +209,14 @@ class _DeserializerSystem extends DeserializerSystem {
   }
 
   @override
+  bool hasResolvedAst(Element element) {
+    if (_resolvedAstDeserializer != null) {
+      return _resolvedAstDeserializer.hasResolvedAst(element);
+    }
+    return false;
+  }
+
+  @override
   ResolvedAst getResolvedAst(Element element) {
     if (_resolvedAstDeserializer != null) {
       return _resolvedAstDeserializer.getResolvedAst(element);
@@ -192,7 +255,11 @@ class ResolvedAstSerializerPlugin extends SerializerPlugin {
 
   @override
   void onElement(Element element, ObjectEncoder createEncoder(String tag)) {
-    if (element is MemberElement && resolution.hasResolvedAst(element)) {
+    assert(invariant(element, element.isDeclaration,
+        message: "Element $element must be the declaration"));
+    if (element is MemberElement) {
+      assert(invariant(element, resolution.hasResolvedAst(element),
+          message: "Element $element must have a resolved ast"));
       ResolvedAst resolvedAst = resolution.getResolvedAst(element);
       ObjectEncoder objectEncoder = createEncoder(RESOLVED_AST_TAG);
       new ResolvedAstSerializer(objectEncoder, resolvedAst).serialize();
@@ -209,6 +276,11 @@ class ResolvedAstDeserializerPlugin extends DeserializerPlugin {
   Map<Uri, Token> beginTokenMap = <Uri, Token>{};
 
   ResolvedAstDeserializerPlugin(this.parsing);
+
+  bool hasResolvedAst(Element element) {
+    return _resolvedAstMap.containsKey(element) ||
+        _decoderMap.containsKey(element);
+  }
 
   ResolvedAst getResolvedAst(Element element) {
     ResolvedAst resolvedAst = _resolvedAstMap[element];

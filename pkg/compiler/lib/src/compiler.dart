@@ -1063,7 +1063,7 @@ abstract class Compiler implements LibraryLoaderListener, IdGenerator {
       return const WorldImpact();
     }
     WorldImpact worldImpact = analyzeElement(element);
-    backend.onElementResolved(element, element.resolvedAst.elements);
+    backend.onElementResolved(element);
     world.registerProcessedElement(element);
     return worldImpact;
   }
@@ -1895,6 +1895,8 @@ class _CompilerResolution implements Resolution {
 
   @override
   bool hasResolvedAst(Element element) {
+    assert(invariant(element, element.isDeclaration,
+        message: "Element $element must be the declaration."));
     return element is AstElement &&
         hasBeenResolved(element) &&
         element.hasResolvedAst;
@@ -1902,6 +1904,8 @@ class _CompilerResolution implements Resolution {
 
   @override
   ResolvedAst getResolvedAst(Element element) {
+    assert(invariant(element, element.isDeclaration,
+        message: "Element $element must be the declaration."));
     if (hasResolvedAst(element)) {
       AstElement astElement = element;
       return astElement.resolvedAst;
@@ -1911,14 +1915,17 @@ class _CompilerResolution implements Resolution {
     return null;
   }
 
-
   @override
   bool hasResolutionImpact(Element element) {
+    assert(invariant(element, element.isDeclaration,
+        message: "Element $element must be the declaration."));
     return _resolutionImpactCache.containsKey(element);
   }
 
   @override
   ResolutionImpact getResolutionImpact(Element element) {
+    assert(invariant(element, element.isDeclaration,
+        message: "Element $element must be the declaration."));
     ResolutionImpact resolutionImpact = _resolutionImpactCache[element];
     assert(invariant(element, resolutionImpact != null,
         message: "ResolutionImpact not available for $element."));
@@ -1927,6 +1934,8 @@ class _CompilerResolution implements Resolution {
 
   @override
   WorldImpact getWorldImpact(Element element) {
+    assert(invariant(element, element.isDeclaration,
+        message: "Element $element must be the declaration."));
     WorldImpact worldImpact = _worldImpactCache[element];
     assert(invariant(element, worldImpact != null,
         message: "WorldImpact not computed for $element."));
@@ -1935,6 +1944,8 @@ class _CompilerResolution implements Resolution {
 
   @override
   WorldImpact computeWorldImpact(Element element) {
+    assert(invariant(element, element.isDeclaration,
+        message: "Element $element must be the declaration."));
     return _worldImpactCache.putIfAbsent(element, () {
       assert(compiler.parser != null);
       Node tree = compiler.parser.parse(element);
@@ -1963,6 +1974,8 @@ class _CompilerResolution implements Resolution {
 
   @override
   void uncacheWorldImpact(Element element) {
+    assert(invariant(element, element.isDeclaration,
+        message: "Element $element must be the declaration."));
     if (retainCachesForTesting) return;
     if (compiler.serialization.isDeserialized(element)) return;
     assert(invariant(element, _worldImpactCache[element] != null,

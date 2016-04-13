@@ -1092,6 +1092,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
   final ConstructorElement constructor;
   final Map<Element, AstConstant> definitions;
   final Map<Element, AstConstant> fieldValues;
+  final ResolvedAst resolvedAst;
 
   /**
    * Documentation wanted -- johnniwinther
@@ -1103,10 +1104,13 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
       : this.constructor = constructor,
         this.definitions = new Map<Element, AstConstant>(),
         this.fieldValues = new Map<Element, AstConstant>(),
-        super(handler, _analyzeElementEagerly(compiler, constructor), compiler,
-            isConst: true) {
+        this.resolvedAst = _analyzeElementEagerly(compiler, constructor),
+        super(handler, null, compiler, isConst: true) {
     assert(invariant(constructor, constructor.isImplementation));
   }
+
+  @override
+  TreeElements get elements => resolvedAst.elements;
 
   AstConstant visitSend(Send send) {
     Element element = elements[send];
@@ -1333,9 +1337,9 @@ class ErroneousAstConstant extends AstConstant {
 }
 
 // TODO(johnniwinther): Clean this up.
-TreeElements _analyzeElementEagerly(Compiler compiler, AstElement element) {
+ResolvedAst _analyzeElementEagerly(Compiler compiler, AstElement element) {
   compiler.resolution.computeWorldImpact(element.declaration);
-  return element.resolvedAst.elements;
+  return element.resolvedAst;
 }
 
 class _CompilerEnvironment implements Environment {

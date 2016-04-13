@@ -830,13 +830,13 @@ class TypeGraphInferrerEngine
     processLoopInformation();
   }
 
-  void analyze(Element element, ArgumentsTypes arguments) {
+  void analyze(AstElement element, ArgumentsTypes arguments) {
     element = element.implementation;
     if (analyzedElements.contains(element)) return;
     analyzedElements.add(element);
 
-    SimpleTypeInferrerVisitor visitor =
-        new SimpleTypeInferrerVisitor(element, compiler, this);
+    SimpleTypeInferrerVisitor visitor = new SimpleTypeInferrerVisitor(
+        element, element.resolvedAst, compiler, this);
     TypeInformation type;
     reporter.withCurrentElement(element, () {
       type = visitor.run();
@@ -1239,7 +1239,7 @@ class TypeGraphInferrerEngine
       // TODO(ngeoffray): Not sure why the resolver would put a null
       // mapping.
       if (!compiler.enqueuer.resolution.hasBeenProcessed(element)) return;
-      TreeElementMapping mapping = element.resolvedAst.elements;
+      ResolvedAst resolvedAst = element.resolvedAst;
       element = element.implementation;
       if (element.impliesType) return;
       assert(invariant(
@@ -1253,7 +1253,11 @@ class TypeGraphInferrerEngine
       if (element.isAbstract) return;
       // Put the other operators in buckets by length, later to be added in
       // length order.
-      int length = mapping.getSelectorCount();
+      int length = 0;
+      if (resolvedAst.kind == ResolvedAstKind.PARSED) {
+        TreeElementMapping mapping = resolvedAst.elements;
+        length = mapping.getSelectorCount();
+      }
       max = length > max ? length : max;
       Setlet<Element> set =
           methodSizes.putIfAbsent(length, () => new Setlet<Element>());

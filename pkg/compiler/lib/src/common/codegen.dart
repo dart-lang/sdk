@@ -14,9 +14,9 @@ import '../elements/elements.dart'
         ClassElement,
         Element,
         FunctionElement,
-        LocalFunctionElement;
+        LocalFunctionElement,
+        ResolvedAst;
 import '../enqueue.dart' show CodegenEnqueuer;
-import '../resolution/tree_elements.dart' show TreeElements;
 import '../universe/use.dart' show DynamicUse, StaticUse, TypeUse;
 import '../universe/world_impact.dart'
     show WorldImpact, WorldImpactBuilder, WorldImpactVisitor;
@@ -235,7 +235,7 @@ class CodegenWorkItem extends WorkItem {
     assert(invariant(
         element, compiler.enqueuer.resolution.hasBeenProcessed(element),
         message: "$element has not been resolved."));
-    assert(invariant(element, element.resolvedAst.elements != null,
+    assert(invariant(element, element.hasResolvedAst,
         message: 'Resolution tree is null for $element in codegen work item'));
     return new CodegenWorkItem.internal(element, compilationContext);
   }
@@ -244,7 +244,7 @@ class CodegenWorkItem extends WorkItem {
       AstElement element, ItemCompilationContext compilationContext)
       : super(element, compilationContext);
 
-  TreeElements get resolutionTree => element.resolvedAst.elements;
+  ResolvedAst get resolvedAst => element.resolvedAst;
 
   WorldImpact run(Compiler compiler, CodegenEnqueuer world) {
     if (world.isProcessed(element)) return const WorldImpact();

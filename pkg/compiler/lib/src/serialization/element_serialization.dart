@@ -105,14 +105,29 @@ class SerializerUtil {
     if (element.sourcePosition != null) {
       SourceSpan position = element.sourcePosition;
       encoder.setInt(Key.OFFSET, position.begin);
+      // TODO(johnniwinther): What is the base URI in the case?
       if (position.uri != element.compilationUnit.script.resourceUri) {
-        // TODO(johnniwinther): What is the base URI in the case?
         encoder.setUri(Key.URI, element.library.canonicalUri, position.uri);
       }
       int length = position.end - position.begin;
       if (element.name.length != length) {
         encoder.setInt(Key.LENGTH, length);
       }
+    }
+  }
+
+  /// Serialize the parent relation for [element] into [encoder], i.e library,
+  /// enclosing class, and compilation unit references.
+  static void serializeParentRelation(Element element, ObjectEncoder encoder) {
+    if (element.enclosingClass != null) {
+      encoder.setElement(Key.CLASS, element.enclosingClass);
+      if (element.enclosingClass.declaration.compilationUnit !=
+          element.compilationUnit) {
+        encoder.setElement(Key.COMPILATION_UNIT, element.compilationUnit);
+      }
+    } else {
+      encoder.setElement(Key.LIBRARY, element.library);
+      encoder.setElement(Key.COMPILATION_UNIT, element.compilationUnit);
     }
   }
 
@@ -333,7 +348,7 @@ class ConstructorSerializer implements ElementSerializer {
 
   void serialize(ConstructorElement element, ObjectEncoder encoder,
       SerializedElementKind kind) {
-    encoder.setElement(Key.CLASS, element.enclosingClass);
+    SerializerUtil.serializeParentRelation(element, encoder);
     encoder.setType(Key.TYPE, element.type);
     encoder.setString(Key.NAME, element.name);
     SerializerUtil.serializePosition(element, encoder);
@@ -378,12 +393,7 @@ class FieldSerializer implements ElementSerializer {
       ConstantExpression constant = element.constant;
       encoder.setConstant(Key.CONSTANT, constant);
     }
-    if (kind != SerializedElementKind.TOPLEVEL_FIELD) {
-      encoder.setElement(Key.CLASS, element.enclosingClass);
-    } else {
-      encoder.setElement(Key.LIBRARY, element.library);
-      encoder.setElement(Key.COMPILATION_UNIT, element.compilationUnit);
-    }
+    SerializerUtil.serializeParentRelation(element, encoder);
     if (element is EnumConstantElement) {
       EnumConstantElement enumConstant = element;
       encoder.setInt(Key.INDEX, enumConstant.index);
@@ -431,12 +441,7 @@ class FunctionSerializer implements ElementSerializer {
     if (element.isFunction) {
       encoder.setBool(Key.IS_OPERATOR, element.isOperator);
     }
-    if (element.enclosingClass != null) {
-      encoder.setElement(Key.CLASS, element.enclosingClass);
-    } else {
-      encoder.setElement(Key.LIBRARY, element.library);
-      encoder.setElement(Key.COMPILATION_UNIT, element.compilationUnit);
-    }
+    SerializerUtil.serializeParentRelation(element, encoder);
     encoder.setBool(Key.IS_EXTERNAL, element.isExternal);
     if (element.isLocal) {
       LocalFunctionElement localFunction = element;

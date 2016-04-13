@@ -347,7 +347,6 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
           throw message;
         }
       }
-      //print('Checking member ${member1} against ${member2}');
       visit(member1, member2);
     }
   }

@@ -1626,14 +1626,71 @@ abstract class AstElement extends AnalyzableElement {
   ResolvedAst get resolvedAst;
 }
 
-class ResolvedAst {
+/// Enum values for different ways of defining semantics for an element.
+enum ResolvedAstKind {
+  /// The semantics of the element is defined in terms of an AST with resolved
+  /// data mapped in [TreeElements].
+  PARSED,
+
+  /// The element is an implicit default constructor. No AST or [TreeElements]
+  /// are provided.
+  DEFAULT_CONSTRUCTOR,
+
+  /// The element is an implicit forwarding constructor on a mixin application.
+  /// No AST or [TreeElements] are provided.
+  FORWARDING_CONSTRUCTOR,
+}
+
+/// [ResolvedAst] contains info that define the semantics of an element.
+abstract class ResolvedAst {
+  /// The element whose semantics is defined.
+  Element get element;
+
+  /// The kind of semantics definition used for this object.
+  ResolvedAstKind get kind;
+
+  /// The AST node for [element]. This only available of [kind] is
+  /// `ResolvedAstKind.PARSED`.
+  Node get node;
+
+  /// The [TreeElements] containing the resolution data for [node]. This only
+  /// available of [kind] is `ResolvedAstKind.PARSED`.
+  TreeElements get elements;
+}
+
+/// [ResolvedAst] implementation used for elements whose semantics is defined in
+/// terms an AST and a [TreeElements].
+class ParsedResolvedAst implements ResolvedAst {
   final Element element;
   final Node node;
   final TreeElements elements;
 
-  ResolvedAst(this.element, this.node, this.elements);
+  ParsedResolvedAst(this.element, this.node, this.elements);
 
-  String toString() => '$element:$node';
+  ResolvedAstKind get kind => ResolvedAstKind.PARSED;
+
+  String toString() => '$kind:$element:$node';
+}
+
+/// [ResolvedAst] implementation used for synthesized elements whose semantics
+/// is not defined in terms an AST and a [TreeElements].
+class SynthesizedResolvedAst implements ResolvedAst {
+  final Element element;
+  final ResolvedAstKind kind;
+
+  SynthesizedResolvedAst(this.element, this.kind);
+
+  @override
+  TreeElements get elements {
+    throw new UnsupportedError('$this does not provide a TreeElements');
+  }
+
+  @override
+  Node get node {
+    throw new UnsupportedError('$this does not have an AST');
+  }
+
+  String toString() => '$kind:$element';
 }
 
 /// A [MemberSignature] is a member of an interface.

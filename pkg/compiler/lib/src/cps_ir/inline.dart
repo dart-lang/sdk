@@ -211,7 +211,8 @@ class Inliner implements Pass {
     // Do not inline in functions containing try statements.  V8 does not
     // optimize code in such functions, so inlining will move optimizable code
     // into a context where it cannot be optimized.
-    if (function.resolvedAst.elements.containsTryStatement) {
+    if (function.resolvedAst.kind == ResolvedAstKind.PARSED &&
+        function.resolvedAst.elements.containsTryStatement) {
       return;
     }
 

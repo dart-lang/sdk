@@ -359,6 +359,8 @@ class ElementIdentityEquivalence extends BaseElementVisitor<bool, Element> {
       CompilationUnitElement element1, CompilationUnitElement element2) {
     return strategy.test(
             element1, element2, 'name', element1.name, element2.name) &&
+        strategy.test(element1, element2, 'script.resourceUri',
+            element1.script.resourceUri, element2.script.resourceUri) &&
         visit(element1.library, element2.library);
   }
 

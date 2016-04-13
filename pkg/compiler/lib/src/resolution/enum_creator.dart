@@ -171,6 +171,29 @@ class AstBuilder {
   }
 }
 
+/// This class generates the model for an enum class.
+///
+/// For instance
+///
+///     enum A { b, c, }
+///
+/// is modelled as
+///
+///     class A {
+///       final int index;
+///
+///       const A(this.index);
+///
+///       String toString() {
+///         return const <int, A>{0: 'A.b', 1: 'A.c'}[index];
+///       }
+///
+///       static const A b = const A(0);
+///       static const A c = const A(1);
+///
+///       static const List<A> values = const <A>[b, c];
+///     }
+///
 // TODO(johnniwinther): Avoid creating synthesized ASTs for enums when SSA is
 // removed.
 class EnumCreator {

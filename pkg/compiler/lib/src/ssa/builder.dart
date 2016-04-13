@@ -109,7 +109,7 @@ class SsaBuilderTask extends CompilerTask {
       return reporter.withCurrentElement(element, () {
         SsaBuilder builder = new SsaBuilder(
             work.element.implementation,
-            work.resolutionTree,
+            work.resolvedAst,
             work.compilationContext,
             work.registry,
             backend,
@@ -326,11 +326,11 @@ class LocalsHandler {
    *
    * Invariant: [function] must be an implementation element.
    */
-  void startFunction(Element element, ast.Node node) {
+  void startFunction(AstElement element, ast.Node node) {
     assert(invariant(element, element.isImplementation));
     Compiler compiler = builder.compiler;
     closureData = compiler.closureToClassMapper
-        .computeClosureToClassMapping(element, node, builder.elements);
+        .computeClosureToClassMapping(element.resolvedAst);
 
     if (element is FunctionElement) {
       FunctionElement functionElement = element;
@@ -1005,8 +1005,7 @@ class SsaBuilder extends ast.Visitor
   /// The element for which this SSA builder is being used.
   final Element target;
 
-  /// Reference to resolved elements in [target]'s AST.
-  TreeElements elements;
+  ResolvedAst resolvedAst;
 
   /// Used to report information about inlining (which occurs while building the
   /// SSA graph), when dump-info is enabled.
@@ -1120,7 +1119,7 @@ class SsaBuilder extends ast.Visitor
   // TODO(sigmund): make most args optional
   SsaBuilder(
       this.target,
-      this.elements,
+      this.resolvedAst,
       this.context,
       this.registry,
       JavaScriptBackend backend,
@@ -1148,6 +1147,9 @@ class SsaBuilder extends ast.Visitor
   DiagnosticReporter get reporter => compiler.reporter;
 
   CoreClasses get coreClasses => compiler.coreClasses;
+
+  /// Reference to resolved elements in [target]'s AST.
+  TreeElements get elements => resolvedAst.elements;
 
   @override
   SemanticSendVisitor get sendVisitor => this;
@@ -1834,7 +1836,7 @@ class SsaBuilder extends ast.Visitor
       {InterfaceType instanceType}) {
     localsHandler = new LocalsHandler(this, function, instanceType);
     localsHandler.closureData = compiler.closureToClassMapper
-        .computeClosureToClassMapping(function, function.node, elements);
+        .computeClosureToClassMapping(function.resolvedAst);
     returnLocal = new SyntheticLocal("result", function);
     localsHandler.updateLocal(returnLocal, graph.addConstantNull(compiler));
 
@@ -1863,8 +1865,8 @@ class SsaBuilder extends ast.Visitor
     }
     assert(argumentIndex == compiledArguments.length);
 
-    elements = function.resolvedAst.elements;
-    assert(elements != null);
+    resolvedAst = function.resolvedAst;
+    assert(resolvedAst != null);
     returnType = signature.type.returnType;
     stack = <HInstruction>[];
 
@@ -1876,7 +1878,7 @@ class SsaBuilder extends ast.Visitor
     localsHandler = state.oldLocalsHandler;
     returnLocal = state.oldReturnLocal;
     inTryStatement = state.inTryStatement;
-    elements = state.oldElements;
+    resolvedAst = state.oldResolvedAst;
     returnType = state.oldReturnType;
     assert(stack.isEmpty);
     stack = state.oldStack;
@@ -2007,19 +2009,67 @@ class SsaBuilder extends ast.Visitor
       });
 
       // Build the initializers in the context of the new constructor.
-      TreeElements oldElements = elements;
-      ResolvedAst resolvedAst = callee.resolvedAst;
-      elements = resolvedAst.elements;
+      ResolvedAst oldResolvedAst = resolvedAst;
+      resolvedAst = callee.resolvedAst;
       ClosureClassMap oldClosureData = localsHandler.closureData;
-      ast.Node node = resolvedAst.node;
       ClosureClassMap newClosureData = compiler.closureToClassMapper
-          .computeClosureToClassMapping(callee, node, elements);
+          .computeClosureToClassMapping(resolvedAst);
       localsHandler.closureData = newClosureData;
-      localsHandler.enterScope(node, callee);
+      if (resolvedAst.kind == ResolvedAstKind.PARSED) {
+        localsHandler.enterScope(resolvedAst.node, callee);
+      }
       buildInitializers(callee, constructors, fieldValues);
       localsHandler.closureData = oldClosureData;
-      elements = oldElements;
+      resolvedAst = oldResolvedAst;
     });
+  }
+
+  void buildInitializers(
+      ConstructorElement constructor,
+      List<FunctionElement> constructors,
+      Map<Element, HInstruction> fieldValues) {
+    assert(invariant(
+        constructor, resolvedAst.element == constructor.declaration,
+        message: "Expected ResolvedAst for $constructor, found $resolvedAst"));
+    if (resolvedAst.kind == ResolvedAstKind.PARSED) {
+      buildParsedInitializers(constructor, constructors, fieldValues);
+    } else {
+      buildSynthesizedConstructorInitializers(
+          constructor, constructors, fieldValues);
+    }
+  }
+
+  void buildSynthesizedConstructorInitializers(
+      ConstructorElement constructor,
+      List<FunctionElement> constructors,
+      Map<Element, HInstruction> fieldValues) {
+    assert(invariant(constructor, constructor.isSynthesized));
+    List<HInstruction> arguments = <HInstruction>[];
+    HInstruction compileArgument(ParameterElement parameter) {
+      return localsHandler.readLocal(parameter);
+    }
+
+    Element target = constructor.definingConstructor.implementation;
+    bool match = !target.isMalformed &&
+        CallStructure.addForwardingElementArgumentsToList(
+            constructor,
+            arguments,
+            target,
+            compileArgument,
+            handleConstantForOptionalParameter);
+    if (!match) {
+      if (compiler.elementHasCompileTimeError(constructor)) {
+        return;
+      }
+      // If this fails, the selector we constructed for the call to a
+      // forwarding constructor in a mixin application did not match the
+      // constructor (which, for example, may happen when the libraries are
+      // not compatible for private names, see issue 20394).
+      reporter.internalError(
+          constructor, 'forwarding constructor call does not match');
+    }
+    inlineSuperOrRedirect(
+        target, arguments, constructors, fieldValues, constructor);
   }
 
   /**
@@ -2032,40 +2082,13 @@ class SsaBuilder extends ast.Visitor
    * Invariant: The [constructor] and elements in [constructors] must all be
    * implementation elements.
    */
-  void buildInitializers(
+  void buildParsedInitializers(
       ConstructorElement constructor,
       List<FunctionElement> constructors,
       Map<Element, HInstruction> fieldValues) {
     assert(invariant(constructor, constructor.isImplementation));
-    if (constructor.isSynthesized) {
-      List<HInstruction> arguments = <HInstruction>[];
-      HInstruction compileArgument(ParameterElement parameter) {
-        return localsHandler.readLocal(parameter);
-      }
-
-      Element target = constructor.definingConstructor.implementation;
-      bool match = !target.isMalformed &&
-          CallStructure.addForwardingElementArgumentsToList(
-              constructor,
-              arguments,
-              target,
-              compileArgument,
-              handleConstantForOptionalParameter);
-      if (!match) {
-        if (compiler.elementHasCompileTimeError(constructor)) {
-          return;
-        }
-        // If this fails, the selector we constructed for the call to a
-        // forwarding constructor in a mixin application did not match the
-        // constructor (which, for example, may happen when the libraries are
-        // not compatible for private names, see issue 20394).
-        reporter.internalError(
-            constructor, 'forwarding constructor call does not match');
-      }
-      inlineSuperOrRedirect(
-          target, arguments, constructors, fieldValues, constructor);
-      return;
-    }
+    assert(invariant(constructor, !constructor.isSynthesized,
+        message: "Unexpected synthesized constructor: $constructor"));
     ast.FunctionExpression functionNode = constructor.node;
 
     bool foundSuperOrRedirect = false;
@@ -2143,7 +2166,6 @@ class SsaBuilder extends ast.Visitor
         (ClassElement enclosingClass, VariableElement member) {
       if (compiler.elementHasCompileTimeError(member)) return;
       reporter.withCurrentElement(member, () {
-        TreeElements definitions = member.treeElements;
         ast.Node node = member.node;
         ast.Expression initializer = member.initializer;
         if (initializer == null) {
@@ -2154,14 +2176,14 @@ class SsaBuilder extends ast.Visitor
           }
         } else {
           ast.Node right = initializer;
-          TreeElements savedElements = elements;
-          elements = definitions;
+          ResolvedAst savedResolvedAst = resolvedAst;
+          resolvedAst = member.resolvedAst;
           // In case the field initializer uses closures, run the
           // closure to class mapper.
           compiler.closureToClassMapper
-              .computeClosureToClassMapping(member, node, elements);
+              .computeClosureToClassMapping(resolvedAst);
           inlinedFrom(member, () => right.accept(this));
-          elements = savedElements;
+          resolvedAst = savedResolvedAst;
           fieldValues[member] = pop();
         }
       });
@@ -7876,7 +7898,7 @@ class SsaBuilder extends ast.Visitor
         function,
         returnLocal,
         returnType,
-        elements,
+        resolvedAst,
         stack,
         localsHandler,
         inTryStatement,
@@ -8196,7 +8218,7 @@ abstract class InliningState {
 class AstInliningState extends InliningState {
   final Local oldReturnLocal;
   final DartType oldReturnType;
-  final TreeElements oldElements;
+  final ResolvedAst oldResolvedAst;
   final List<HInstruction> oldStack;
   final LocalsHandler oldLocalsHandler;
   final bool inTryStatement;
@@ -8206,7 +8228,7 @@ class AstInliningState extends InliningState {
       FunctionElement function,
       this.oldReturnLocal,
       this.oldReturnType,
-      this.oldElements,
+      this.oldResolvedAst,
       this.oldStack,
       this.oldLocalsHandler,
       this.inTryStatement,

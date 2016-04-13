@@ -30,6 +30,7 @@ import 'elements/elements.dart'
         LocalFunctionElement,
         MetadataAnnotation,
         PrefixElement,
+        ResolvedAstKind,
         ScopeContainerElement,
         TypedefElement;
 import 'js_backend/js_backend.dart' show JavaScriptBackend;
@@ -336,6 +337,10 @@ class DeferredLoadTask extends CompilerTask {
               }
             }),
             IMPACT_USE);
+
+        if (analyzableElement.resolvedAst.kind != ResolvedAstKind.PARSED) {
+          return;
+        }
 
         TreeElements treeElements = analyzableElement.resolvedAst.elements;
         assert(treeElements != null);

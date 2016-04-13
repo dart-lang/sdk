@@ -104,9 +104,9 @@ class CheckStrategy implements TestStrategy {
 bool check(var object1, var object2, String property, var value1, var value2,
            [bool equivalence(a, b) = equality]) {
   if (!equivalence(value1, value2)) {
-    throw "property='$property' "
-          "object1=$object1 (${object1.runtimeType}), value='${value1}' <> "
-          "object2=$object2 (${object2.runtimeType}), value='${value2}'";
+    throw "property='$property'\n "
+          "object1=$object1 (${object1.runtimeType})\n value='${value1}' <>\n "
+          "object2=$object2 (${object2.runtimeType})\n value='${value2}'";
   }
   return true;
 }
@@ -212,12 +212,8 @@ bool checkElementIdentities(
     Object object1, Object object2, String property,
     Element element1, Element element2) {
   if (identical(element1, element2)) return true;
-  if (element1 == null || element2 == null) {
-    return check(object1, object2, property, element1, element2);
-  } else {
-    return const ElementIdentityEquivalence(const CheckStrategy())
-        .visit(element1, element2);
-  }
+  return check(object1, object2,
+      property, element1, element2, areElementsEquivalent);
 }
 
 /// Checks the pair-wise equivalence of the identity (but not properties) of the

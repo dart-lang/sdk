@@ -726,18 +726,19 @@ class ResolverTask extends CompilerTask {
         // TODO(johnniwinther): Obtain the [TreeElements] for [member]
         // differently.
         if (compiler.enqueuer.resolution.hasBeenProcessed(member)) {
-          checkMixinSuperUses(
-              member.resolvedAst.elements, mixinApplication, mixin);
+          if (member.resolvedAst.kind == ResolvedAstKind.PARSED) {
+            checkMixinSuperUses(
+                member.resolvedAst.elements, mixinApplication, mixin);
+          }
         }
       }
     });
   }
 
-  void checkMixinSuperUses(TreeElements resolutionTree,
+  void checkMixinSuperUses(TreeElements elements,
       MixinApplicationElement mixinApplication, ClassElement mixin) {
     // TODO(johnniwinther): Avoid the use of [TreeElements] here.
-    if (resolutionTree == null) return;
-    Iterable<SourceSpan> superUses = resolutionTree.superUses;
+    Iterable<SourceSpan> superUses = elements.superUses;
     if (superUses.isEmpty) return;
     DiagnosticMessage error = reporter.createMessage(mixinApplication,
         MessageKind.ILLEGAL_MIXIN_WITH_SUPER, {'className': mixin.name});

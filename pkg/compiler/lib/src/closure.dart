@@ -30,9 +30,15 @@ class ClosureTask extends CompilerTask {
 
   String get name => "Closure Simplifier";
 
-  ClosureClassMap computeClosureToClassMapping(
-      Element element, Node node, TreeElements elements) {
+  ClosureClassMap computeClosureToClassMapping(ResolvedAst resolvedAst) {
     return measure(() {
+      Element element = resolvedAst.element;
+      if (resolvedAst.kind != ResolvedAstKind.PARSED) {
+        return new ClosureClassMap(null, null, null, new ThisLocal(element));
+      }
+      Node node = resolvedAst.node;
+      TreeElements elements = resolvedAst.elements;
+
       ClosureClassMap cached = closureMappingCache[node];
       if (cached != null) return cached;
 
@@ -44,6 +50,8 @@ class ClosureTask extends CompilerTask {
       if (node is FunctionExpression) {
         translator.translateFunction(element, node);
       } else if (element.isSynthesized) {
+        reporter.internalError(
+            element, "Unexpected synthesized element: $element");
         return new ClosureClassMap(null, null, null, new ThisLocal(element));
       } else {
         assert(element.isField);
@@ -123,7 +131,7 @@ class ClosureFieldElement extends ElementX
   bool get hasResolvedAst => hasTreeElements;
 
   ResolvedAst get resolvedAst {
-    return new ResolvedAst(this, null, treeElements);
+    return new ParsedResolvedAst(this, null, treeElements);
   }
 
   Expression get initializer {
@@ -338,7 +346,7 @@ class SynthesizedCallMethodElementX extends BaseFunctionElementX
   FunctionExpression parseNode(Parsing parsing) => node;
 
   ResolvedAst get resolvedAst {
-    return new ResolvedAst(this, node, treeElements);
+    return new ParsedResolvedAst(this, node, treeElements);
   }
 
   Element get analyzableElement => closureClass.methodElement.analyzableElement;

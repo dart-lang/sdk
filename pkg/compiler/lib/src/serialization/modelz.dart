@@ -588,6 +588,7 @@ abstract class LibraryMemberMixin implements DeserializedElementZ {
 
 abstract class ClassMemberMixin implements DeserializedElementZ {
   ClassElement _class;
+  CompilationUnitElement _compilationUnit;
 
   @override
   Element get enclosingElement => enclosingClass;
@@ -607,7 +608,16 @@ abstract class ClassMemberMixin implements DeserializedElementZ {
   LibraryElement get library => enclosingClass.library;
 
   @override
-  CompilationUnitElement get compilationUnit => enclosingClass.compilationUnit;
+  CompilationUnitElement get compilationUnit {
+    if (_compilationUnit == null) {
+      _compilationUnit =
+          _decoder.getElement(Key.COMPILATION_UNIT, isOptional: true);
+      if (_compilationUnit == null) {
+        _compilationUnit = enclosingClass.compilationUnit;
+      }
+    }
+    return _compilationUnit;
+  }
 }
 
 abstract class InstanceMemberMixin implements DeserializedElementZ {
