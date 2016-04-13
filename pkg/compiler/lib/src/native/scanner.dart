@@ -13,7 +13,7 @@ void checkAllowedLibrary(ElementListener listener, Token token) {
   listener.reportError(token, MessageKind.NATIVE_NOT_SUPPORTED);
 }
 
-Token handleNativeBlockToSkip(Listener listener, Token token) {
+Token handleNativeBlockToSkip(ElementListener listener, Token token) {
   checkAllowedLibrary(listener, token);
   token = token.next;
   if (identical(token.kind, Tokens.STRING_TOKEN)) {

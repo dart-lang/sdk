@@ -29,6 +29,7 @@ import 'elements/modelx.dart'
         PrefixElementX,
         SyntheticImportElement;
 import 'environment.dart';
+import 'resolved_uri_translator.dart';
 import 'script.dart';
 import 'serialization/serialization.dart' show LibraryDeserializer;
 import 'tree/tree.dart';
@@ -1402,17 +1403,6 @@ class _LoadedLibraries implements LoadedLibraries {
   }
 
   String toString() => 'root=$rootLibrary,libraries=${loadedLibraries.keys}';
-}
-
-/// API used by the library loader to translate internal SDK URIs into file
-/// system readable URIs.
-abstract class ResolvedUriTranslator {
-  // TODO(sigmund): move here the comments from library loader.
-  /// Translate the resolved [uri] in the context of [importingLibrary].
-  ///
-  /// Use [spannable] for error reporting.
-  Uri translate(LibraryElement importingLibrary, Uri uri,
-      [Spannable spannable]);
 }
 
 // TODO(sigmund): remove ScriptLoader & ElementScanner. Such abstraction seems

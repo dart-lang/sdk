@@ -51,7 +51,6 @@ import 'library_loader.dart'
         LibraryLoaderTask,
         LoadedLibraries,
         LibraryLoaderListener,
-        ResolvedUriTranslator,
         ScriptLoader;
 import 'mirrors_used.dart' show MirrorUsageAnalyzerTask;
 import 'null_compiler_output.dart' show NullCompilerOutput, NullSink;
@@ -63,6 +62,7 @@ import 'patch_parser.dart' show PatchParserTask;
 import 'resolution/registry.dart' show ResolutionRegistry;
 import 'resolution/resolution.dart' show ResolverTask;
 import 'resolution/tree_elements.dart' show TreeElementMapping;
+import 'resolved_uri_translator.dart';
 import 'scanner/scanner_task.dart' show ScannerTask;
 import 'script.dart' show Script;
 import 'serialization/task.dart' show SerializationTask;
@@ -133,10 +133,7 @@ abstract class Compiler implements LibraryLoaderListener {
 
   List<Uri> librariesToAnalyzeWhenRun;
 
-  /// The set of platform libraries reported as unsupported.
-  ///
-  /// For instance when importing 'dart:io' without '--categories=Server'.
-  Set<Uri> disallowedLibraryUris = new Setlet<Uri>();
+  ResolvedUriTranslator get resolvedUriTranslator;
 
   Tracer tracer;
 
@@ -332,12 +329,13 @@ abstract class Compiler implements LibraryLoaderListener {
     }
 
     tasks = [
-      dietParser = new DietParserTask(this, parsing.parserOptions, idGenerator),
+      dietParser = new DietParserTask(
+          this, parsing.parserOptions, idGenerator, backend, reporter),
       scanner = createScannerTask(),
       serialization = new SerializationTask(this),
       libraryLoader = new LibraryLoaderTask(
           this,
-          new _ResolvedUriTranslator(this),
+          this.resolvedUriTranslator,
           new _ScriptLoader(this),
           new _ElementScanner(scanner),
           this.serialization,
@@ -390,7 +388,7 @@ abstract class Compiler implements LibraryLoaderListener {
   // Compiles the dart script at [uri].
   //
   // The resulting future will complete with true if the compilation
-  // succeded.
+  // succeeded.
   Future<bool> run(Uri uri) {
     totalCompileTime.start();
 
@@ -512,13 +510,6 @@ abstract class Compiler implements LibraryLoaderListener {
     return importChains;
   }
 
-  /// Register that [uri] was recognized but disallowed as a dependency.
-  ///
-  /// For instance import of 'dart:io' without '--categories=Server'.
-  void registerDisallowedLibraryUse(Uri uri) {
-    disallowedLibraryUris.add(uri);
-  }
-
   /// This method is called when all new libraries loaded through
   /// [LibraryLoader.loadLibrary] has been loaded and their imports/exports
   /// have been computed.
@@ -529,7 +520,7 @@ abstract class Compiler implements LibraryLoaderListener {
   /// libraries.
   Future onLibrariesLoaded(LoadedLibraries loadedLibraries) {
     return new Future.sync(() {
-      for (Uri uri in disallowedLibraryUris) {
+      for (Uri uri in resolvedUriTranslator.disallowedLibraryUris) {
         if (loadedLibraries.containsLibrary(uri)) {
           Set<String> importChains =
               computeImportChainsFor(loadedLibraries, uri);
@@ -1098,26 +1089,6 @@ abstract class Compiler implements LibraryLoaderListener {
     if (markCompilationAsFailed(message, kind)) {
       compilationFailed = true;
     }
-  }
-
-  // TODO(sigmund): move this dart doc somewhere else too.
-  /**
-   * Translates the [resolvedUri] into a readable URI.
-   *
-   * The [importingLibrary] holds the library importing [resolvedUri] or
-   * [:null:] if [resolvedUri] is loaded as the main library. The
-   * [importingLibrary] is used to grant access to internal libraries from
-   * platform libraries and patch libraries.
-   *
-   * If the [resolvedUri] is not accessible from [importingLibrary], this method
-   * is responsible for reporting errors.
-   *
-   * See [LibraryLoader] for terminology on URIs.
-   */
-  Uri translateResolvedUri(
-      LibraryElement importingLibrary, Uri resolvedUri, Spannable spannable) {
-    unimplemented(importingLibrary, 'Compiler.translateResolvedUri');
-    return null;
   }
 
   /**
@@ -2020,8 +1991,8 @@ class _CompilerParsing implements Parsing {
     });
   }
 
-  ScannerOptions getScannerOptionsFor(Element element) =>
-      new ScannerOptions.from(compiler, element.library);
+  ScannerOptions getScannerOptionsFor(Element element) => new ScannerOptions(
+      canUseNative: compiler.backend.canLibraryUseNative(element.library));
 
   ParserOptions get parserOptions => compiler.options;
 }
@@ -2048,17 +2019,6 @@ class GlobalDependencyRegistry extends EagerRegistry {
   Iterable<Element> get otherDependencies {
     return _otherDependencies != null ? _otherDependencies : const <Element>[];
   }
-}
-
-// TODO(sigmund): in the future, each of these classes should be self contained
-// and not use references to `compiler`.
-class _ResolvedUriTranslator implements ResolvedUriTranslator {
-  Compiler compiler;
-  _ResolvedUriTranslator(this.compiler);
-
-  Uri translate(LibraryElement importingLibrary, Uri resolvedUri,
-          [Spannable spannable]) =>
-      compiler.translateResolvedUri(importingLibrary, resolvedUri, spannable);
 }
 
 class _ScriptLoader implements ScriptLoader {

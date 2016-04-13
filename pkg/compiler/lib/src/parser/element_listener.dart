@@ -51,9 +51,6 @@ class ScannerOptions {
   final bool canUseNative;
 
   const ScannerOptions({this.canUseNative: false});
-
-  ScannerOptions.from(Compiler compiler, LibraryElement libraryElement)
-      : canUseNative = compiler.backend.canLibraryUseNative(libraryElement);
 }
 
 /**

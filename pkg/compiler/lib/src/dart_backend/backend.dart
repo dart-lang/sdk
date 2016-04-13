@@ -236,7 +236,7 @@ class DartBackend extends Backend {
     if (useMirrorHelperLibrary &&
         loadedLibraries.containsLibrary(Uris.dart_mirrors)) {
       return compiler.libraryLoader
-          .loadLibrary(compiler.translateResolvedUri(
+          .loadLibrary(compiler.resolvedUriTranslator.translate(
               loadedLibraries.getLibrary(Uris.dart_mirrors),
               MirrorRenamerImpl.DART_MIRROR_HELPER,
               null))

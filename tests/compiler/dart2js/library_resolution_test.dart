@@ -37,12 +37,6 @@ class CustomCompiler extends CompilerImpl {
             new CompilerOptions(
                 libraryRoot: libraryRoot,
                 packageRoot: packageRoot));
-
-  Uri lookupLibraryUri(String libraryName) {
-    if (libraryName == "m_o_c_k_1") return mock1LibraryUri;
-    if (libraryName == "m_o_c_k_2") return mock2LibraryUri;
-    return super.lookupLibraryUri(libraryName);
-  }
 }
 
 main() async {
@@ -87,6 +81,9 @@ main() async {
 
   asyncStart();
   await compiler.setupSdk();
+  // TODO(het): Find cleaner way to do this
+  compiler.resolvedUriTranslator.sdkLibraries['m_o_c_k_1'] = mock1LibraryUri;
+  compiler.resolvedUriTranslator.sdkLibraries['m_o_c_k_2'] = mock2LibraryUri;
   var library =
       await compiler.libraryLoader.loadLibrary(Uri.parse("dart:m_o_c_k_1"));
   await checkLibrary(library);
