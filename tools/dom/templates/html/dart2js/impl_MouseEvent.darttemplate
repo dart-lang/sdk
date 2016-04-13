@@ -14,7 +14,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     if (view == null) {
       view = window;
     }
-    var event = document._createEvent('MouseEvent');
+    MouseEvent event = document._createEvent('MouseEvent');
     event._initMouseEvent(type, canBubble, cancelable, view, detail,
         screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey,
         button, relatedTarget);

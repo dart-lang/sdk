@@ -587,7 +587,7 @@ class HtmlDartGenerator(object):
         inits = self._members_emitter.Emit(
             '\n  $(METADATA)'
             'factory $CONSTRUCTOR($PARAMS) {\n'
-            '    var e = $FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n'
+            '    $CONSTRUCTOR e = $FACTORY.$CTOR_FACTORY_NAME($FACTORY_PARAMS);\n'
             '$!INITS'
             '    return e;\n'
             '  }\n',
