@@ -1385,4 +1385,3 @@ LibTest/html/Element/text_A01_t01: RuntimeError # Issue 26134
 LibTest/html/Element/insertBefore_A01_t01: RuntimeError # Issue 26134
 LibTest/html/Element/insertAllBefore_A01_t01: RuntimeError # Issue 26134
 LibTest/html/CanvasRenderingContext2D/addEventListener_A01_t06: Skip # Issue 26134, timeout
-html/cross_domain_iframe_test: RuntimeError # Issue 26134

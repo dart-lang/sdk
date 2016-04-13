@@ -92,6 +92,7 @@ vm/debug_break_enabled_vm_test/*: Skip # Issue 14651.
 generic_methods_test: RuntimeError # Issue 25869
 generic_functions_test: RuntimeError # Issue 25869
 generic_sends_test: RuntimeError # Issue 25869
+config_import_test: Skip  # Issue 26250
 
 [ $compiler == none && $runtime == dartium && $system == linux && $arch != x64 ]
 issue_22780_test/01: Pass, Timeout # Issue 24473
