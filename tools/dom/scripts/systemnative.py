@@ -116,7 +116,7 @@ class DartiumBackend(HtmlDartGenerator):
     if idl_type == 'Promise':
       return _promise_to_future
     if conversion:
-      if conversion.function_name in ('_convertNativeToDart_Window', '_convertNativeToDart_EventTarget', 'convertNativeToDart_DateTime', 'convertNativeToDart_ImageData'):
+      if conversion.function_name in ('convertNativeToDart_DateTime', 'convertNativeToDart_ImageData'):
         return None
     return conversion
 

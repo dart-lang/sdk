@@ -256,7 +256,40 @@ Type _getSvgType(String key) {
   return null;
 }
 
-// TODO(jacobr): it would be nice to place this in a consistent place for dart2js and dartium.
+// TODO(jacobr): it would be nice to place these conversion methods in a consistent place for dart2js and dartium.
+
+WindowBase _convertNativeToDart_Window(win) {
+  if (win == null) return null;
+  return _DOMWindowCrossFrame._createSafe(win);
+}
+
+EventTarget _convertNativeToDart_EventTarget(e) {
+  if (e == null) {
+    return null;
+  }
+  // Assume it's a Window if it contains the postMessage property.  It may be
+  // from a different frame - without a patched prototype - so we cannot
+  // rely on Dart type checking.
+  try {
+    if (js.JsNative.hasProperty(e, "postMessage")) {
+      var window = _DOMWindowCrossFrame._createSafe(e);
+      // If it's a native window.
+      if (window is EventTarget) {
+        return window;
+      }
+      return null;
+    }
+  } catch (err) {
+    print("Error calling _convertNativeToDart_EventTarget... $err");
+  }
+  return e;
+}
+
+EventTarget _convertDartToNative_EventTarget(e) {
+  // _DOMWindowCrossFrame uses an interceptor so we don't need to do anything unlike Dart2Js.
+  return e;
+}
+
 _convertNativeToDart_XHR_Response(o) {
   if (o is Document) {
     return o;
@@ -320,10 +353,6 @@ debug_or_assert(message, expression) {
     throw new DebugAssertException("$message");
   }
 }
-
-// TODO(jacobr): we shouldn't be generating this call in the dart:html
-// bindings but we are.
-_convertDartToNative_EventTarget(target) => target;
 
 @Deprecated("Internal Use Only")
 Map<String, dynamic> convertNativeObjectToDartMap(js.JsObject jsObject) {
