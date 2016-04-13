@@ -33,6 +33,10 @@
   * Both `pub get` and `pub upgrade` now have a `--no-precompile` flag that
     disables precompilation of executables and transformed dependencies.
 
+  * `pub publish` now resolves symlinks when publishing from a Git repository.
+    This matches the behavior it always had when publishing a package that
+    wasn't in a Git repository.
+
 * Dart Dev Compiler
   * The **experimental** `dartdevc` executable has been added to the SDK.
 
