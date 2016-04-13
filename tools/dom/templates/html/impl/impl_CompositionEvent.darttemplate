@@ -13,7 +13,7 @@ $(ANNOTATIONS)$(NATIVESPEC)$(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS
     if (view == null) {
       view = window;
     }
-    CompositionEvent e = document._createEvent("CompositionEvent");
+    var e = document._createEvent("CompositionEvent");
 
 $if DART2JS
     if (Device.isFirefox) {

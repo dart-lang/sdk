@@ -908,15 +908,6 @@ class Dart2JSBackend(HtmlDartGenerator):
       self._AddAttributeUsingProperties(attribute, html_name, read_only)
       return
 
-    # If the attribute is shadowed incompatibly in a subclass then we also
-    # can't just generate it as a field. In particular, this happens with
-    # DomMatrixReadOnly and its subclass DomMatrix. Force the superclass
-    # to generate getters. Hardcoding the known problem classes for now.
-    # TODO(alanknight): Fix this more generally.
-    if (self._interface.id == 'DOMMatrixReadOnly' or self._interface.id == 'DOMPointReadOnly'):
-        self._AddAttributeUsingProperties(attribute, html_name, read_only)
-        return
-
     # If the type has a conversion we need a getter or setter to contain the
     # conversion code.
     if (self._OutputConversion(attribute.type.id, attribute.id) or

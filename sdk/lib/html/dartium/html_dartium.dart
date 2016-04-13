@@ -829,7 +829,7 @@ class AnchorElement extends HtmlElement implements UrlUtils {
   @DomName('HTMLAnchorElement.HTMLAnchorElement')
   @DocsEditable()
   factory AnchorElement({String href}) {
-    AnchorElement e = document.createElement("a");
+    var e = document.createElement("a");
     if (href != null) e.href = href;
     return e;
   }
@@ -3058,7 +3058,7 @@ class CanvasElement extends HtmlElement implements CanvasImageSource {
   @DomName('HTMLCanvasElement.HTMLCanvasElement')
   @DocsEditable()
   factory CanvasElement({int width, int height}) {
-    CanvasElement e = document.createElement("canvas");
+    var e = document.createElement("canvas");
     if (width != null) e.width = width;
     if (height != null) e.height = height;
     return e;
@@ -4462,7 +4462,7 @@ class CompositionEvent extends UIEvent {
     if (view == null) {
       view = window;
     }
-    CompositionEvent e = document._createEvent("CompositionEvent");
+    var e = document._createEvent("CompositionEvent");
 
       e._initCompositionEvent(type, canBubble, cancelable, view, data);
 
@@ -4592,7 +4592,7 @@ class CompositorWorker extends EventTarget implements AbstractWorker {
   @DomName('CompositorWorker.errorEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  static const EventStreamProvider<ErrorEvent> errorEvent = const EventStreamProvider<ErrorEvent>('error');
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
   @DomName('CompositorWorker.messageEvent')
   @DocsEditable()
@@ -4630,7 +4630,7 @@ class CompositorWorker extends EventTarget implements AbstractWorker {
   @DomName('CompositorWorker.onerror')
   @DocsEditable()
   @Experimental() // untriaged
-  Stream<ErrorEvent> get onError => errorEvent.forTarget(this);
+  Stream<Event> get onError => errorEvent.forTarget(this);
 
   @DomName('CompositorWorker.onmessage')
   @DocsEditable()
@@ -9763,7 +9763,7 @@ class DeviceOrientationEvent extends Event {
   factory DeviceOrientationEvent(String type,
       {bool canBubble: true, bool cancelable: true, num alpha: 0, num beta: 0,
       num gamma: 0, bool absolute: false}) {
-    DeviceOrientationEvent e = document._createEvent("DeviceOrientationEvent");
+    var e = document._createEvent("DeviceOrientationEvent");
     e._initDeviceOrientationEvent(type, canBubble, cancelable, alpha, beta,
         gamma, absolute);
     return e;
@@ -13136,8 +13136,8 @@ abstract class ElementList<T extends Element> extends ListBase<T> {
 // declared to return `ElementList`.  This provides all the static analysis
 // benefit so there is no need for this class have a constrained type parameter.
 //
-class _FrozenElementList extends ListBase<Element>
-    implements ElementList<Element>, NodeListWrapper {
+class _FrozenElementList extends ListBase
+    implements ElementList, NodeListWrapper {
   final List<Node> _nodeList;
 
   var dartClass_instance;
@@ -13184,7 +13184,7 @@ class _FrozenElementList extends ListBase<Element>
     //
     // as the code below converts the Iterable[value] to a string multiple
     // times.  Maybe compute the string and set className here.
-    forEach((e) => e.classes = value);
+    _nodeList.forEach((e) => e.classes = value);
   }
 
   CssRect get contentEdge => new _ContentCssListRect(this);
@@ -14498,7 +14498,7 @@ class Element extends Node implements NonDocumentTypeChildNode, GlobalEventHandl
 
       // Workaround for Safari bug. Was also previously Chrome bug 229142
       // - URIs are not resolved in new doc.
-      BaseElement base = _parseDocument.createElement('base');
+      var base = _parseDocument.createElement('base');
       base.href = document.baseUri;
       _parseDocument.head.append(base);
     }
@@ -16640,7 +16640,7 @@ class Event extends DartHtmlDomObject {
     e._initEvent(name, canBubble, cancelable);
     return e;
   }
-
+  
   /** The CSS selector involved with event delegation. */
   String _selector;
 
@@ -16654,8 +16654,8 @@ class Event extends DartHtmlDomObject {
       throw new UnsupportedError('Cannot call matchingTarget if this Event did'
           ' not arise as a result of event delegation.');
     }
-    Element currentTarget = this.currentTarget;
-    Element target = this.target;
+    var currentTarget = this.currentTarget;
+    var target = this.target;
     var matchedTarget;
     do {
       if (target.matches(_selector)) return target;
@@ -16945,24 +16945,26 @@ class Events {
 }
 
 class ElementEvents extends Events {
+  /* Raw event target. */
+  final Element _ptr;
   static final webkitEvents = {
-    'animationend' : 'webkitAnimationEnd',
-    'animationiteration' : 'webkitAnimationIteration',
-    'animationstart' : 'webkitAnimationStart',
-    'fullscreenchange' : 'webkitfullscreenchange',
+    'animationend' : 'webkitAnimationEnd', 
+    'animationiteration' : 'webkitAnimationIteration', 
+    'animationstart' : 'webkitAnimationStart', 
+    'fullscreenchange' : 'webkitfullscreenchange', 
     'fullscreenerror' : 'webkitfullscreenerror',
-    'keyadded' : 'webkitkeyadded',
-    'keyerror' : 'webkitkeyerror',
-    'keymessage' : 'webkitkeymessage',
-    'needkey' : 'webkitneedkey',
-    'pointerlockchange' : 'webkitpointerlockchange',
-    'pointerlockerror' : 'webkitpointerlockerror',
-    'resourcetimingbufferfull' : 'webkitresourcetimingbufferfull',
+    'keyadded' : 'webkitkeyadded', 
+    'keyerror' : 'webkitkeyerror', 
+    'keymessage' : 'webkitkeymessage', 
+    'needkey' : 'webkitneedkey', 
+    'pointerlockchange' : 'webkitpointerlockchange', 
+    'pointerlockerror' : 'webkitpointerlockerror', 
+    'resourcetimingbufferfull' : 'webkitresourcetimingbufferfull', 
     'transitionend': 'webkitTransitionEnd',
     'speechchange' : 'webkitSpeechChange'
   };
 
-  ElementEvents(Element ptr) : super(ptr);
+  ElementEvents(Element ptr) : this._ptr = ptr, super(ptr);
 
   Stream operator [](String type) {
     if (webkitEvents.keys.contains(type.toLowerCase())) {
@@ -19917,6 +19919,22 @@ class HtmlDocument extends Document {
   @Experimental()
   Element get fullscreenElement => _webkitFullscreenElement;
 
+  /**
+   * Returns true if this document can display elements in fullscreen mode.
+   *
+   * ## Other resources
+   *
+   * * [Using the fullscreen
+   *   API](http://docs.webplatform.org/wiki/tutorials/using_the_full-screen_api)
+   *   from WebPlatform.org.
+   * * [Fullscreen specification](http://www.w3.org/TR/fullscreen/) from W3C.
+   */
+  @DomName('Document.webkitFullscreenEnabled')
+  @SupportedBrowser(SupportedBrowser.CHROME)
+  @SupportedBrowser(SupportedBrowser.SAFARI)
+  @Experimental()
+  bool get fullscreenEnabled => _webkitFullscreenEnabled;
+
   @DomName('Document.webkitHidden')
   @SupportedBrowser(SupportedBrowser.CHROME)
   @SupportedBrowser(SupportedBrowser.SAFARI)
@@ -22104,7 +22122,7 @@ class ImageElement extends HtmlElement implements CanvasImageSource {
   @DomName('HTMLImageElement.HTMLImageElement')
   @DocsEditable()
   factory ImageElement({String src, int width, int height}) {
-    ImageElement e = document.createElement("img");
+    var e = document.createElement("img");
     if (src != null) e.src = src;
     if (width != null) e.width = width;
     if (height != null) e.height = height;
@@ -25892,7 +25910,7 @@ class MessageEvent extends Event {
     if (source == null) {
       source = window;
     }
-    MessageEvent event = document._createEvent("MessageEvent");
+    var event = document._createEvent("MessageEvent");
     event._initMessageEvent(type, canBubble, cancelable, data, origin,
         lastEventId, source, messagePorts);
     return event;
@@ -33680,7 +33698,7 @@ class SharedWorker extends EventTarget implements AbstractWorker {
   @DomName('SharedWorker.errorEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  static const EventStreamProvider<ErrorEvent> errorEvent = const EventStreamProvider<ErrorEvent>('error');
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
   @DomName('SharedWorker.SharedWorker')
   @DocsEditable()
@@ -33708,7 +33726,7 @@ class SharedWorker extends EventTarget implements AbstractWorker {
   @DomName('SharedWorker.onerror')
   @DocsEditable()
   @Experimental() // untriaged
-  Stream<ErrorEvent> get onError => errorEvent.forTarget(this);
+  Stream<Event> get onError => errorEvent.forTarget(this);
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -35240,7 +35258,7 @@ class StorageEvent extends Event {
     {bool canBubble: false, bool cancelable: false, String key, String oldValue,
     String newValue, String url, Storage storageArea}) {
 
-    StorageEvent e = document._createEvent("StorageEvent");
+    var e = document._createEvent("StorageEvent");
     e._initStorageEvent(type, canBubble, cancelable, key, oldValue,
         newValue, url, storageArea);
     return e;
@@ -36385,7 +36403,7 @@ class TextEvent extends UIEvent {
     if (view == null) {
       view = window;
     }
-    TextEvent e = document._createEvent("TextEvent");
+    var e = document._createEvent("TextEvent");
     e._initTextEvent(type, canBubble, cancelable, view, data);
     return e;
   }
@@ -37068,7 +37086,7 @@ class TouchEvent extends UIEvent {
     if (view == null) {
       view = window;
     }
-    TouchEvent e = document._createEvent("TouchEvent");
+    var e = document._createEvent("TouchEvent");
     e._initTouchEvent(touches, targetTouches, changedTouches, type, view,
         screenX, screenY, clientX, clientY, ctrlKey, altKey, shiftKey, metaKey);
     return e;
@@ -37584,7 +37602,7 @@ class UIEvent extends Event {
     if (view == null) {
       view = window;
     }
-    UIEvent e = document._createEvent("UIEvent");
+    final e = document._createEvent("UIEvent");
     e._initUIEvent(type, canBubble, cancelable, view, detail);
     return e;
   }
@@ -40979,7 +40997,7 @@ class Worker extends EventTarget implements AbstractWorker {
   @DomName('Worker.errorEvent')
   @DocsEditable()
   @Experimental() // untriaged
-  static const EventStreamProvider<ErrorEvent> errorEvent = const EventStreamProvider<ErrorEvent>('error');
+  static const EventStreamProvider<Event> errorEvent = const EventStreamProvider<Event>('error');
 
   /**
    * Static factory designed to expose `message` events to event
@@ -41025,7 +41043,7 @@ class Worker extends EventTarget implements AbstractWorker {
   @DomName('Worker.onerror')
   @DocsEditable()
   @Experimental() // untriaged
-  Stream<ErrorEvent> get onError => errorEvent.forTarget(this);
+  Stream<Event> get onError => errorEvent.forTarget(this);
 
   /// Stream of `message` events handled by this [Worker].
   @DomName('Worker.onmessage')
@@ -42686,7 +42704,7 @@ class _MutationEvent extends Event {
       {bool canBubble: false, bool cancelable: false, Node relatedNode,
       String prevValue, String newValue, String attrName, int attrChange: 0}) {
 
-    MutationEvent event = document._createEvent('MutationEvent');
+    var event = document._createEvent('MutationEvent');
     event._initMutationEvent(type, canBubble, cancelable, relatedNode,
         prevValue, newValue, attrName, attrChange);
     return event;
