@@ -4,12 +4,12 @@
 
 * `dart:convert`
   * Added `BASE64URL` codec and corresponding `Base64Codec.urlSafe` constructor.
+
+  * Introduce `ChunkedConverter` and deprecate chunked methods on `Converter`.
+
 * `dart:io`
   * Added `SecurityContext.alpnSupported`, which is true if a platform
     supports ALPN, and false otherwise.
-
-* `dart:convert`
-  * Introduce `ChunkedConverter` and deprecate chunked methods on `Converter`.
 
 ### Analyzer
 
