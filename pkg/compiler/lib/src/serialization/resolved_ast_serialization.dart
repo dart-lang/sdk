@@ -10,6 +10,7 @@ import '../constants/expressions.dart';
 import '../dart_types.dart';
 import '../diagnostics/diagnostic_listener.dart';
 import '../elements/elements.dart';
+import '../elements/modelx.dart';
 import '../parser/listener.dart' show ParserError;
 import '../parser/node_listener.dart' show NodeListener;
 import '../parser/parser.dart' show Parser;
@@ -19,6 +20,7 @@ import '../resolution/tree_elements.dart';
 import '../tokens/token.dart';
 import '../tree/tree.dart';
 import '../universe/selector.dart';
+import '../util/util.dart';
 import 'keys.dart';
 import 'serialization.dart';
 import 'serialization_util.dart';
@@ -70,6 +72,20 @@ class ResolvedAstSerializer extends Visitor {
 
   Map<Node, int> get nodeIndices => indexComputer.nodeIndices;
   List<Node> get nodeList => indexComputer.nodeList;
+
+  Map<JumpTarget, int> jumpTargetMap = <JumpTarget, int>{};
+  Map<LabelDefinition, int> labelDefinitionMap = <LabelDefinition, int>{};
+
+  /// Returns the unique id for [jumpTarget], creating it if necessary.
+  int getJumpTargetId(JumpTarget jumpTarget) {
+    return jumpTargetMap.putIfAbsent(jumpTarget, () => jumpTargetMap.length);
+  }
+
+  /// Returns the unique id for [labelDefinition], creating it if necessary.
+  int getLabelDefinitionId(LabelDefinition labelDefinition) {
+    return labelDefinitionMap.putIfAbsent(
+        labelDefinition, () => labelDefinitionMap.length);
+  }
 
   /// Serializes [resolvedAst] into [objectEncoder].
   void serialize() {
@@ -128,6 +144,44 @@ class ResolvedAstSerializer extends Visitor {
     objectEncoder.setEnum(Key.SUB_KIND, kind);
     root.accept(indexComputer);
     root.accept(this);
+    if (jumpTargetMap.isNotEmpty) {
+      ListEncoder list = objectEncoder.createList(Key.JUMP_TARGETS);
+      for (JumpTarget jumpTarget in jumpTargetMap.keys) {
+        serializeJumpTarget(jumpTarget, list.createObject());
+      }
+    }
+    if (labelDefinitionMap.isNotEmpty) {
+      ListEncoder list = objectEncoder.createList(Key.LABEL_DEFINITIONS);
+      for (LabelDefinition labelDefinition in labelDefinitionMap.keys) {
+        serializeLabelDefinition(labelDefinition, list.createObject());
+      }
+    }
+  }
+
+  /// Serialize [target] into [encoder].
+  void serializeJumpTarget(JumpTarget jumpTarget, ObjectEncoder encoder) {
+    encoder.setElement(Key.EXECUTABLE_CONTEXT, jumpTarget.executableContext);
+    encoder.setInt(Key.NODE, nodeIndices[jumpTarget.statement]);
+    encoder.setInt(Key.NESTING_LEVEL, jumpTarget.nestingLevel);
+    encoder.setBool(Key.IS_BREAK_TARGET, jumpTarget.isBreakTarget);
+    encoder.setBool(Key.IS_CONTINUE_TARGET, jumpTarget.isContinueTarget);
+    if (jumpTarget.labels.isNotEmpty) {
+      List<int> labelIdList = <int>[];
+      for (LabelDefinition label in jumpTarget.labels) {
+        labelIdList.add(getLabelDefinitionId(label));
+      }
+      encoder.setInts(Key.LABELS, labelIdList);
+    }
+  }
+
+  /// Serialize [label] into [encoder].
+  void serializeLabelDefinition(
+      LabelDefinition labelDefinition, ObjectEncoder encoder) {
+    encoder.setInt(Key.NODE, nodeIndices[labelDefinition.label]);
+    encoder.setString(Key.NAME, labelDefinition.labelName);
+    encoder.setBool(Key.IS_BREAK_TARGET, labelDefinition.isBreakTarget);
+    encoder.setBool(Key.IS_CONTINUE_TARGET, labelDefinition.isContinueTarget);
+    encoder.setInt(Key.JUMP_TARGET, getJumpTargetId(labelDefinition.target));
   }
 
   /// Computes the [ListEncoder] for serializing data for nodes.
@@ -177,7 +231,11 @@ class ResolvedAstSerializer extends Visitor {
     if (cachedType != null) {
       getNodeDataEncoder(node).setType(Key.CACHED_TYPE, cachedType);
     }
-    // TODO(johnniwinther): Serialize [JumpTarget]s.
+    JumpTarget jumpTargetDefinition = elements.getTargetDefinition(node);
+    if (jumpTargetDefinition != null) {
+      getNodeDataEncoder(node).setInt(
+          Key.JUMP_TARGET_DEFINITION, getJumpTargetId(jumpTargetDefinition));
+    }
     node.visitChildren(this);
   }
 
@@ -204,13 +262,28 @@ class ResolvedAstSerializer extends Visitor {
   @override
   visitGotoStatement(GotoStatement node) {
     visitStatement(node);
-    // TODO(johnniwinther): Serialize [JumpTarget]s and [LabelDefinition]s.
+    JumpTarget jumpTarget = elements.getTargetOf(node);
+    if (jumpTarget != null) {
+      getNodeDataEncoder(node)
+          .setInt(Key.JUMP_TARGET, getJumpTargetId(jumpTarget));
+    }
+    if (node.target != null) {
+      LabelDefinition targetLabel = elements.getTargetLabel(node);
+      if (targetLabel != null) {
+        getNodeDataEncoder(node)
+            .setInt(Key.TARGET_LABEL, getLabelDefinitionId(targetLabel));
+      }
+    }
   }
 
   @override
   visitLabel(Label node) {
     visitNode(node);
-    // TODO(johnniwinther): Serialize[LabelDefinition]s.
+    LabelDefinition labelDefinition = elements.getLabelDefinition(node);
+    if (labelDefinition != null) {
+      getNodeDataEncoder(node)
+          .setInt(Key.LABEL_DEFINITION, getLabelDefinitionId(labelDefinition));
+    }
   }
 }
 
@@ -407,6 +480,56 @@ class ResolvedAstDeserializer {
     Map<Node, int> nodeIndices = indexComputer.nodeIndices;
     List<Node> nodeList = indexComputer.nodeList;
     root.accept(indexComputer);
+
+    List<JumpTarget> jumpTargets = <JumpTarget>[];
+    Map<JumpTarget, List<int>> jumpTargetLabels = <JumpTarget, List<int>>{};
+    List<LabelDefinition> labelDefinitions = <LabelDefinition>[];
+
+    ListDecoder jumpTargetsDecoder =
+        objectDecoder.getList(Key.JUMP_TARGETS, isOptional: true);
+    if (jumpTargetsDecoder != null) {
+      for (int i = 0; i < jumpTargetsDecoder.length; i++) {
+        ObjectDecoder decoder = jumpTargetsDecoder.getObject(i);
+        ExecutableElement executableContext =
+            decoder.getElement(Key.EXECUTABLE_CONTEXT);
+        Node statement = nodeList[decoder.getInt(Key.NODE)];
+        int nestingLevel = decoder.getInt(Key.NESTING_LEVEL);
+        JumpTarget jumpTarget =
+            new JumpTargetX(statement, nestingLevel, executableContext);
+        jumpTarget.isBreakTarget = decoder.getBool(Key.IS_BREAK_TARGET);
+        jumpTarget.isContinueTarget = decoder.getBool(Key.IS_CONTINUE_TARGET);
+        jumpTargetLabels[jumpTarget] =
+            decoder.getInts(Key.LABELS, isOptional: true);
+        jumpTargets.add(jumpTarget);
+      }
+    }
+
+    ListDecoder labelDefinitionsDecoder =
+        objectDecoder.getList(Key.LABEL_DEFINITIONS, isOptional: true);
+    if (labelDefinitionsDecoder != null) {
+      for (int i = 0; i < labelDefinitionsDecoder.length; i++) {
+        ObjectDecoder decoder = labelDefinitionsDecoder.getObject(i);
+        Label label = nodeList[decoder.getInt(Key.NODE)];
+        String labelName = decoder.getString(Key.NAME);
+        JumpTarget target = jumpTargets[decoder.getInt(Key.JUMP_TARGET)];
+        LabelDefinitionX labelDefinition =
+            new LabelDefinitionX(label, labelName, target);
+        labelDefinition.isBreakTarget = decoder.getBool(Key.IS_BREAK_TARGET);
+        labelDefinition.isContinueTarget =
+            decoder.getBool(Key.IS_CONTINUE_TARGET);
+        labelDefinitions.add(labelDefinition);
+      }
+    }
+    jumpTargetLabels.forEach((JumpTargetX jumpTarget, List<int> labelIds) {
+      if (labelIds.isEmpty) return;
+      LinkBuilder<LabelDefinition> linkBuilder =
+          new LinkBuilder<LabelDefinition>();
+      for (int labelId in labelIds) {
+        linkBuilder.addLast(labelDefinitions[labelId]);
+      }
+      jumpTarget.labels = linkBuilder.toLink();
+    });
+
     ListDecoder dataDecoder = objectDecoder.getList(Key.DATA);
     if (dataDecoder != null) {
       for (int i = 0; i < dataDecoder.length; i++) {
@@ -448,6 +571,26 @@ class ResolvedAstDeserializer {
         if (newStructureDecoder != null) {
           elements.setNewStructure(
               node, deserializeNewStructure(newStructureDecoder));
+        }
+        int targetDefinitionId =
+            objectDecoder.getInt(Key.JUMP_TARGET_DEFINITION, isOptional: true);
+        if (targetDefinitionId != null) {
+          elements.defineTarget(node, jumpTargets[targetDefinitionId]);
+        }
+        int targetOfId =
+            objectDecoder.getInt(Key.JUMP_TARGET, isOptional: true);
+        if (targetOfId != null) {
+          elements.registerTargetOf(node, jumpTargets[targetOfId]);
+        }
+        int labelDefinitionId =
+            objectDecoder.getInt(Key.LABEL_DEFINITION, isOptional: true);
+        if (labelDefinitionId != null) {
+          elements.defineLabel(node, labelDefinitions[labelDefinitionId]);
+        }
+        int targetLabelId =
+            objectDecoder.getInt(Key.TARGET_LABEL, isOptional: true);
+        if (targetLabelId != null) {
+          elements.registerTargetLabel(node, labelDefinitions[targetLabelId]);
         }
       }
     }

@@ -188,6 +188,19 @@ main() {
   },
   expectedWarningCount: 1,
   expectedInfoCount: 0),
+
+  const Test(const {
+    'main.dart': '''
+main() {
+  loop: for (var a in []) {
+    for (var b in []) {
+      continue loop;
+    }
+    break;
+  }      
+}'''
+  }),
+
 ];
 
 class Test {

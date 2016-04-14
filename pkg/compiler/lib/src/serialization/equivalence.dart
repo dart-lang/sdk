@@ -792,6 +792,40 @@ class TreeElementsEquivalenceVisitor extends Visitor {
       this.indices1, this.indices2, this.elements1, this.elements2,
       [this.strategy = const TestStrategy()]);
 
+  bool testJumpTargets(
+      Node node1, Node node2, String property, JumpTarget a, JumpTarget b) {
+    if (identical(a, b)) return true;
+    if (a == null || b == null) return false;
+    return strategy.testElements(a, b, 'executableContext', a.executableContext,
+            b.executableContext) &&
+        strategy.test(a, b, 'nestingLevel', a.nestingLevel, b.nestingLevel) &&
+        strategy.test(a, b, 'statement', indices1.nodeIndices[a.statement],
+            indices2.nodeIndices[b.statement]) &&
+        strategy.test(
+            a, b, 'isBreakTarget', a.isBreakTarget, b.isBreakTarget) &&
+        strategy.test(
+            a, b, 'isContinueTarget', a.isContinueTarget, b.isContinueTarget) &&
+        strategy.testLists(a, b, 'labels', a.labels.toList(), b.labels.toList(),
+            (a, b) {
+          return indices1.nodeIndices[a.label] == indices2.nodeIndices[b.label];
+        });
+  }
+
+  bool testLabelDefinitions(Node node1, Node node2, String property,
+      LabelDefinition a, LabelDefinition b) {
+    if (identical(a, b)) return true;
+    if (a == null || b == null) return false;
+    return strategy.test(a, b, 'label', indices1.nodeIndices[a.label],
+            indices2.nodeIndices[b.label]) &&
+        strategy.test(a, b, 'labelName', a.labelName, b.labelName) &&
+        strategy.test(a, b, 'target', indices1.nodeIndices[a.target.statement],
+            indices2.nodeIndices[b.target.statement]) &&
+        strategy.test(
+            a, b, 'isBreakTarget', a.isBreakTarget, b.isBreakTarget) &&
+        strategy.test(
+            a, b, 'isContinueTarget', a.isContinueTarget, b.isContinueTarget);
+  }
+
   visitNode(Node node1) {
     if (!success) return;
     int index = indices1.nodeIndices[node1];
@@ -810,7 +844,13 @@ class TreeElementsEquivalenceVisitor extends Visitor {
         strategy.testConstants(node1, node2, 'getConstant($index)',
             elements1.getConstant(node1), elements2.getConstant(node2)) &&
         strategy.testTypes(node1, node2, 'typesCache[$index]',
-            elements1.typesCache[node1], elements2.typesCache[node2]);
+            elements1.typesCache[node1], elements2.typesCache[node2]) &&
+        testJumpTargets(
+            node1,
+            node2,
+            'getTargetDefinition($index)',
+            elements1.getTargetDefinition(node1),
+            elements2.getTargetDefinition(node2));
 
     node1.visitChildren(this);
   }
@@ -916,6 +956,36 @@ class TreeElementsEquivalenceVisitor extends Visitor {
         'getRedirectingTargetConstructor($index)',
         elements1.getRedirectingTargetConstructor(node1),
         elements2.getRedirectingTargetConstructor(node2));
+  }
+
+  @override
+  visitGotoStatement(GotoStatement node1) {
+    visitStatement(node1);
+    if (!success) return;
+    int index = indices1.nodeIndices[node1];
+    GotoStatement node2 = indices2.nodeList[index];
+    success = testJumpTargets(node1, node2, 'getTargetOf($index)',
+        elements1.getTargetOf(node1), elements2.getTargetOf(node2));
+    if (!success) return;
+    if (node1.target == null && node2.target == null) {
+      return;
+    }
+    success = testLabelDefinitions(node1, node2, 'getTarget($index)',
+        elements1.getTargetLabel(node1), elements2.getTargetLabel(node2));
+  }
+
+  @override
+  visitLabel(Label node1) {
+    visitNode(node1);
+    if (!success) return;
+    int index = indices1.nodeIndices[node1];
+    Label node2 = indices2.nodeList[index];
+    success = testLabelDefinitions(
+        node1,
+        node2,
+        'getLabelDefinition($index)',
+        elements1.getLabelDefinition(node1),
+        elements2.getLabelDefinition(node2));
   }
 }
 
