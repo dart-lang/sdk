@@ -38198,29 +38198,6 @@ abstract class _HTMLMarqueeElement extends HtmlElement {
 // BSD-style license that can be found in the LICENSE file.
 
 
-@DomName('MutationEvent')
-// http://www.w3.org/TR/DOM-Level-3-Events/#events-mutationevents
-@deprecated
-@Native("MutationEvent")
-abstract class _MutationEvent extends Event {
-  factory _MutationEvent(String type,
-      {bool canBubble: false, bool cancelable: false, Node relatedNode,
-      String prevValue, String newValue, String attrName, int attrChange: 0}) {
-
-    _MutationEvent event = document._createEvent('MutationEvent');
-    event._initMutationEvent(type, canBubble, cancelable, relatedNode,
-        prevValue, newValue, attrName, attrChange);
-    return event;
-  }
-  // To suppress missing implicit constructor warnings.
-  factory _MutationEvent._() { throw new UnsupportedError("Not supported"); }
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
 @DocsEditable()
 @DomName('NamedNodeMap')
 // http://dom.spec.whatwg.org/#namednodemap

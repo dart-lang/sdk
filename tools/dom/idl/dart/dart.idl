@@ -422,6 +422,10 @@ interface MIDIOutput : MIDIPort {
     [DartSuppress] void send(sequence<unsigned long> data, optional double timestamp);
 };
 
+[DartSuppress]
+interface MutationEvent {};
+
+
 Element implements GlobalEventHandlers;
 
 

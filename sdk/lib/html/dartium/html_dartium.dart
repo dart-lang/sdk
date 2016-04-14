@@ -401,7 +401,6 @@ final htmlBlinkMap = {
   'MimeType': () => MimeType.instanceRuntimeType,
   'MimeTypeArray': () => MimeTypeArray.instanceRuntimeType,
   'MouseEvent': () => MouseEvent.instanceRuntimeType,
-  'MutationEvent': () => _MutationEvent.instanceRuntimeType,
   'MutationObserver': () => MutationObserver.instanceRuntimeType,
   'MutationRecord': () => MutationRecord.instanceRuntimeType,
   'NamedNodeMap': () => _NamedNodeMap.instanceRuntimeType,
@@ -37740,10 +37739,10 @@ class Url extends DartHtmlDomObject implements UrlUtils {
     if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream == null)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaSource)) {
+    if ((blob_OR_source_OR_stream is MediaStream)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_source_OR_stream is MediaStream)) {
+    if ((blob_OR_source_OR_stream is MediaSource)) {
       return _blink.BlinkURL.instance.createObjectURL_Callback_1_(blob_OR_source_OR_stream);
     }
     throw new ArgumentError("Incorrect number or type of arguments");
@@ -42687,36 +42686,6 @@ class _HTMLMarqueeElement extends HtmlElement {
    * This can only be called by subclasses from their created constructor.
    */
   _HTMLMarqueeElement.created() : super.created();
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-
-@DomName('MutationEvent')
-// http://www.w3.org/TR/DOM-Level-3-Events/#events-mutationevents
-@deprecated
-class _MutationEvent extends Event {
-  factory _MutationEvent(String type,
-      {bool canBubble: false, bool cancelable: false, Node relatedNode,
-      String prevValue, String newValue, String attrName, int attrChange: 0}) {
-
-    _MutationEvent event = document._createEvent('MutationEvent');
-    event._initMutationEvent(type, canBubble, cancelable, relatedNode,
-        prevValue, newValue, attrName, attrChange);
-    return event;
-  }
-  // To suppress missing implicit constructor warnings.
-  factory _MutationEvent._() { throw new UnsupportedError("Not supported"); }
-
-
-  @Deprecated("Internal Use Only")
-  external static Type get instanceRuntimeType;
-
-  @Deprecated("Internal Use Only")
-  _MutationEvent.internal_() : super.internal_();
-
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
