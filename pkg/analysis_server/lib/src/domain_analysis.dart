@@ -14,10 +14,7 @@ import 'package:analysis_server/src/constants.dart';
 import 'package:analysis_server/src/context_manager.dart';
 import 'package:analysis_server/src/domains/analysis/navigation.dart';
 import 'package:analysis_server/src/operation/operation_analysis.dart'
-    show
-        NavigationOperation,
-        OccurrencesOperation,
-        sendAnalysisNotificationNavigation;
+    show NavigationOperation, OccurrencesOperation;
 import 'package:analysis_server/src/protocol/protocol_internal.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/dependencies/library_dependencies.dart';

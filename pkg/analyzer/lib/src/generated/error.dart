@@ -13,7 +13,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart' show ScannerErrorCode;
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/generated/shared_messages.dart'
     as shared_messages;
 import 'package:analyzer/src/generated/java_core.dart';
@@ -3586,7 +3585,7 @@ class HintCode extends ErrorCode {
   static const HintCode MISSING_REQUIRED_PARAM = const HintCode(
       'MISSING_REQUIRED_PARAM', "The parameter '{0}' is required. {1}");
 
-   /**
+  /**
    * Generate a hint for an element that is annotated with `@JS(...)` whose
    * library declaration is not similarly annotated.
    */
@@ -3791,8 +3790,8 @@ class HintCode extends ErrorCode {
   /**
    * Unused shown names are names shown on imports which are never used.
    */
-  static const HintCode UNUSED_SHOWN_NAME =
-      const HintCode('UNUSED_SHOWN_NAME', "The name {0} is shown, but not used.");
+  static const HintCode UNUSED_SHOWN_NAME = const HintCode(
+      'UNUSED_SHOWN_NAME', "The name {0} is shown, but not used.");
 
   /**
    * Hint for cases where the source expects a method or function to return a

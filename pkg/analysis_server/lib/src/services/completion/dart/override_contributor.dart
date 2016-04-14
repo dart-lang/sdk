@@ -7,7 +7,7 @@ library services.completion.dart.override;
 import 'dart:async';
 
 import 'package:analysis_server/src/protocol_server.dart'
-    show CompletionSuggestion, CompletionSuggestionKind, SourceChange;
+    show CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/protocol_server.dart' as protocol
     hide CompletionSuggestion, CompletionSuggestionKind;
 import 'package:analysis_server/src/provisional/completion/completion_core.dart';

@@ -10,8 +10,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/generated/engine.dart'
     show AnalysisContext, AnalysisOptions;
-import 'package:analyzer/src/generated/source.dart'
-    show ContentCache, Source, UriKind;
+import 'package:analyzer/src/generated/source.dart' show Source;
 
 /**
  * A function used to create a new DartSdk with the given [options]. If the
