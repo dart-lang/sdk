@@ -1,11 +1,12 @@
 dart_library.library('notnull', null, /* Imports */[
-  'dart/_runtime',
-  'dart/core'
-], /* Lazy imports */[
-], function(exports, dart, core) {
+  'dart_sdk'
+], function(exports, dart_sdk) {
   'use strict';
-  let dartx = dart.dartx;
-  function intAssignments() {
+  const core = dart_sdk.core;
+  const dart = dart_sdk.dart;
+  const dartx = dart_sdk.dartx;
+  const notnull = Object.create(null);
+  notnull.intAssignments = function() {
     let i = 0;
     i = i & 1;
     i = i | 1;
@@ -25,21 +26,21 @@ dart_library.library('notnull', null, /* Imports */[
     let j = 1;
     j = i < 10 ? 1 : 2;
     core.print(j + 1);
-  }
-  dart.fn(intAssignments, dart.void, []);
-  function doubleAssignments() {
+  };
+  dart.fn(notnull.intAssignments, dart.void, []);
+  notnull.doubleAssignments = function() {
     let d = 0.0;
     d = d / 1;
     core.print(d + 1);
-  }
-  dart.fn(doubleAssignments, dart.void, []);
-  function boolAssignments() {
+  };
+  dart.fn(notnull.doubleAssignments, dart.void, []);
+  notnull.boolAssignments = function() {
     let b = true;
     b != b;
     core.print(b);
-  }
-  dart.fn(boolAssignments, dart.void, []);
-  function increments() {
+  };
+  dart.fn(notnull.boolAssignments, dart.void, []);
+  notnull.increments = function() {
     let i = 1;
     core.print(++i);
     core.print(i++);
@@ -59,9 +60,9 @@ dart_library.library('notnull', null, /* Imports */[
       j = dart.notNull(x) - 1;
       return x;
     })());
-  }
-  dart.fn(increments, dart.void, []);
-  function conditionals(cond) {
+  };
+  dart.fn(notnull.increments, dart.void, []);
+  notnull.conditionals = function(cond) {
     if (cond === void 0) cond = null;
     let nullable = null;
     nullable = 1;
@@ -71,9 +72,9 @@ dart_library.library('notnull', null, /* Imports */[
     let c = dart.notNull(cond) ? nonNullable : nonNullable;
     let d = dart.notNull(cond) ? nonNullable : nullable;
     core.print(dart.notNull(a) + dart.notNull(b) + c + dart.notNull(d));
-  }
-  dart.fn(conditionals, dart.void, [], [core.bool]);
-  function nullAwareOps() {
+  };
+  dart.fn(notnull.conditionals, dart.void, [], [core.bool]);
+  notnull.nullAwareOps = function() {
     let nullable = null;
     let nonNullable = 1;
     let a = (nullable != null ? nullable : nullable);
@@ -83,9 +84,9 @@ dart_library.library('notnull', null, /* Imports */[
     core.print(dart.notNull(a) + dart.notNull(b) + c + d);
     let s = "";
     core.print(dart.notNull(s[dartx.length]) + 1);
-  }
-  dart.fn(nullAwareOps, dart.void, []);
-  function nullableLocals(param) {
+  };
+  dart.fn(notnull.nullAwareOps, dart.void, []);
+  notnull.nullableLocals = function(param) {
     core.print(dart.notNull(param) + 1);
     let i = null;
     i = 1;
@@ -93,21 +94,21 @@ dart_library.library('notnull', null, /* Imports */[
     let j = 1;
     j = i == 1 ? 1 : null;
     core.print(dart.notNull(j) + 1);
-  }
-  dart.fn(nullableLocals, dart.void, [core.int]);
-  function optParams(x, y) {
+  };
+  dart.fn(notnull.nullableLocals, dart.void, [core.int]);
+  notnull.optParams = function(x, y) {
     if (x === void 0) x = null;
     if (y === void 0) y = 1;
     core.print(dart.notNull(x) + dart.notNull(y));
-  }
-  dart.fn(optParams, dart.void, [], [core.int, core.int]);
-  function namedParams(opts) {
+  };
+  dart.fn(notnull.optParams, dart.void, [], [core.int, core.int]);
+  notnull.namedParams = function(opts) {
     let x = opts && 'x' in opts ? opts.x : null;
     let y = opts && 'y' in opts ? opts.y : 1;
     core.print(dart.notNull(x) + dart.notNull(y));
-  }
-  dart.fn(namedParams, dart.void, [], {x: core.int, y: core.int});
-  function forLoops(length) {
+  };
+  dart.fn(notnull.namedParams, dart.void, [], {x: core.int, y: core.int});
+  notnull.forLoops = function(length) {
     for (let i = 0; i < 10; i++) {
       core.print(i + 1);
     }
@@ -120,9 +121,9 @@ dart_library.library('notnull', null, /* Imports */[
     for (let i = 0, n = dart.notNull(length()) + 0; i < n; i++) {
       core.print(i + 1);
     }
-  }
-  dart.fn(forLoops, dart.void, [dart.functionType(core.int, [])]);
-  function nullableCycle() {
+  };
+  dart.fn(notnull.forLoops, dart.void, [dart.functionType(core.int, [])]);
+  notnull.nullableCycle = function() {
     let x = 1;
     let y = 2;
     let z = null;
@@ -133,9 +134,9 @@ dart_library.library('notnull', null, /* Imports */[
     let s = null;
     s = s;
     core.print(dart.notNull(s) + 1);
-  }
-  dart.fn(nullableCycle, dart.void, []);
-  function nonNullableCycle() {
+  };
+  dart.fn(notnull.nullableCycle, dart.void, []);
+  notnull.nonNullableCycle = function() {
     let x = 1;
     let y = 2;
     let z = 3;
@@ -146,9 +147,9 @@ dart_library.library('notnull', null, /* Imports */[
     let s = 1;
     s = s;
     core.print(s + 1);
-  }
-  dart.fn(nonNullableCycle, dart.void, []);
-  class Foo extends core.Object {
+  };
+  dart.fn(notnull.nonNullableCycle, dart.void, []);
+  notnull.Foo = class Foo extends core.Object {
     Foo() {
       this.intField = null;
       this.varField = null;
@@ -173,24 +174,24 @@ dart_library.library('notnull', null, /* Imports */[
       while (dart.notNull(o.intField) < 10)
         o.intField = dart.notNull(o.intField) + 1;
     }
-  }
-  dart.setSignature(Foo, {
-    methods: () => ({f: [dart.dynamic, [Foo]]})
+  };
+  dart.setSignature(notnull.Foo, {
+    methods: () => ({f: [dart.dynamic, [notnull.Foo]]})
   });
-  function _foo() {
+  notnull._foo = function() {
     return 1;
-  }
-  dart.fn(_foo, core.int, []);
-  function calls() {
+  };
+  dart.fn(notnull._foo, core.int, []);
+  notnull.calls = function() {
     let a = 1;
     let b = 1;
     b = dart.as(dart.dcall(dart.fn(x => x), a), core.int);
     core.print(dart.notNull(b) + 1);
-    let c = _foo();
+    let c = notnull._foo();
     core.print(dart.notNull(c) + 1);
-  }
-  dart.fn(calls);
-  function localEscapes() {
+  };
+  dart.fn(notnull.calls);
+  notnull.localEscapes = function() {
     let a = 1;
     let f = dart.fn(x => a = dart.as(x, core.int));
     let b = 1;
@@ -201,9 +202,9 @@ dart_library.library('notnull', null, /* Imports */[
     dart.dcall(f, 1);
     g(1);
     core.print(dart.notNull(a) + dart.notNull(b));
-  }
-  dart.fn(localEscapes);
-  function controlFlow() {
+  };
+  dart.fn(notnull.localEscapes);
+  notnull.controlFlow = function() {
     for (let i = null, j = null;;) {
       i = j = 1;
       core.print(dart.notNull(i) + dart.notNull(j) + 1);
@@ -222,9 +223,9 @@ dart_library.library('notnull', null, /* Imports */[
       core.print(`${typeof e == 'string' ? e : dart.toString(e)} at ${trace}`);
     }
 
-  }
-  dart.fn(controlFlow);
-  function cascadesOnNull() {
+  };
+  dart.fn(notnull.controlFlow);
+  notnull.cascadesOnNull = function() {
     let x = null;
     core.print(dart.hashCode(((() => {
       dart.toString(x);
@@ -237,43 +238,26 @@ dart_library.library('notnull', null, /* Imports */[
       dart.runtimeType(y);
       return y;
     })())));
-  }
-  dart.fn(cascadesOnNull);
-  function main() {
-    intAssignments();
-    doubleAssignments();
-    boolAssignments();
-    nullableLocals(1);
-    optParams(1, 2);
-    namedParams({x: 1, y: 2});
-    forLoops(dart.fn(() => 10, core.int, []));
-    increments();
-    conditionals(true);
-    calls();
-    localEscapes();
-    controlFlow();
-    cascadesOnNull();
-    nullableCycle();
-    nonNullableCycle();
-  }
-  dart.fn(main);
+  };
+  dart.fn(notnull.cascadesOnNull);
+  notnull.main = function() {
+    notnull.intAssignments();
+    notnull.doubleAssignments();
+    notnull.boolAssignments();
+    notnull.nullableLocals(1);
+    notnull.optParams(1, 2);
+    notnull.namedParams({x: 1, y: 2});
+    notnull.forLoops(dart.fn(() => 10, core.int, []));
+    notnull.increments();
+    notnull.conditionals(true);
+    notnull.calls();
+    notnull.localEscapes();
+    notnull.controlFlow();
+    notnull.cascadesOnNull();
+    notnull.nullableCycle();
+    notnull.nonNullableCycle();
+  };
+  dart.fn(notnull.main);
   // Exports:
-  exports.intAssignments = intAssignments;
-  exports.doubleAssignments = doubleAssignments;
-  exports.boolAssignments = boolAssignments;
-  exports.increments = increments;
-  exports.conditionals = conditionals;
-  exports.nullAwareOps = nullAwareOps;
-  exports.nullableLocals = nullableLocals;
-  exports.optParams = optParams;
-  exports.namedParams = namedParams;
-  exports.forLoops = forLoops;
-  exports.nullableCycle = nullableCycle;
-  exports.nonNullableCycle = nonNullableCycle;
-  exports.Foo = Foo;
-  exports.calls = calls;
-  exports.localEscapes = localEscapes;
-  exports.controlFlow = controlFlow;
-  exports.cascadesOnNull = cascadesOnNull;
-  exports.main = main;
+  exports.notnull = notnull;
 });

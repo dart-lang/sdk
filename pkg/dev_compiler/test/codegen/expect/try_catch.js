@@ -1,11 +1,12 @@
 dart_library.library('try_catch', null, /* Imports */[
-  'dart/_runtime',
-  'dart/core'
-], /* Lazy imports */[
-], function(exports, dart, core) {
+  'dart_sdk'
+], function(exports, dart_sdk) {
   'use strict';
-  let dartx = dart.dartx;
-  function foo() {
+  const core = dart_sdk.core;
+  const dart = dart_sdk.dart;
+  const dartx = dart_sdk.dartx;
+  const try_catch = Object.create(null);
+  try_catch.foo = function() {
     try {
       dart.throw("hi there");
     } catch (e$) {
@@ -19,9 +20,9 @@ dart_library.library('try_catch', null, /* Imports */[
       }
     }
 
-  }
-  dart.fn(foo);
-  function bar() {
+  };
+  dart.fn(try_catch.foo);
+  try_catch.bar = function() {
     try {
       dart.throw("hi there");
     } catch (e$) {
@@ -29,17 +30,17 @@ dart_library.library('try_catch', null, /* Imports */[
       let t = dart.stackTrace(e);
     }
 
-  }
-  dart.fn(bar);
-  function baz() {
+  };
+  dart.fn(try_catch.bar);
+  try_catch.baz = function() {
     try {
       dart.throw("finally only");
     } finally {
       return true;
     }
-  }
-  dart.fn(baz);
-  function qux() {
+  };
+  dart.fn(try_catch.baz);
+  try_catch.qux = function() {
     try {
       dart.throw("on only");
     } catch (e) {
@@ -50,9 +51,9 @@ dart_library.library('try_catch', null, /* Imports */[
         throw e;
     }
 
-  }
-  dart.fn(qux);
-  function wub() {
+  };
+  dart.fn(try_catch.qux);
+  try_catch.wub = function() {
     try {
       dart.throw("on without exception parameter");
     } catch (e) {
@@ -61,21 +62,16 @@ dart_library.library('try_catch', null, /* Imports */[
         throw e;
     }
 
-  }
-  dart.fn(wub);
-  function main() {
-    foo();
-    bar();
-    baz();
-    qux();
-    wub();
-  }
-  dart.fn(main);
+  };
+  dart.fn(try_catch.wub);
+  try_catch.main = function() {
+    try_catch.foo();
+    try_catch.bar();
+    try_catch.baz();
+    try_catch.qux();
+    try_catch.wub();
+  };
+  dart.fn(try_catch.main);
   // Exports:
-  exports.foo = foo;
-  exports.bar = bar;
-  exports.baz = baz;
-  exports.qux = qux;
-  exports.wub = wub;
-  exports.main = main;
+  exports.try_catch = try_catch;
 });

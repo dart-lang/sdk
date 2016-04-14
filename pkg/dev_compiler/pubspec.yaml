@@ -1,6 +1,5 @@
 name: dev_compiler
-# When updating this version, also update the version in lib/devc.dart.
-version: 0.1.24
+version: 0.2.0
 description: >
   Experimental Dart to JavaScript compiler designed to create idiomatic,
   readable JavaScript output.
@@ -9,20 +8,16 @@ author: Dart Dev Compiler team <dev-compiler@dartlang.org>
 homepage: https://github.com/dart-lang/dev_compiler
 
 dependencies:
-  analyzer: ^0.27.3-alpha.5
+  analyzer: ^0.27.3
   args: ^0.13.0
   cli_util: ^0.0.1
   func: ^0.1.0
   html: ^0.12.0
   js: ^0.6.0
-  logging: ">=0.9.2 <0.12.0"
   path: ^1.3.0
   pub_semver: ^1.1.0
-  shelf: ">=0.5.6 <0.7.0"
-  shelf_static: ^0.2.1
   source_maps: ^0.10.0
   source_span: ^1.0.2
-  yaml: ^2.1.2
 
 dev_dependencies:
   # We pin a specific version to ensure everyone is formatting the code exactly
@@ -40,6 +35,3 @@ executables:
   # "dartdevc".
   dartdevc: dartdevc
   dev_compiler: dartdevc
-  # Similar to dartdevc, but runs the (single) entry point with iojs (requires
-  # a very recent iojs next-nightly version).
-  dartdevrun: devrun

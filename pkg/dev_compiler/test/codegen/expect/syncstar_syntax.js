@@ -1,19 +1,21 @@
 dart_library.library('syncstar_syntax', null, /* Imports */[
-  'dart/_runtime',
-  'dart/core',
-  'expect/expect'
-], /* Lazy imports */[
-], function(exports, dart, core, expect) {
+  'dart_sdk',
+  'expect'
+], function(exports, dart_sdk, expect) {
   'use strict';
-  let dartx = dart.dartx;
-  function foo() {
+  const core = dart_sdk.core;
+  const dart = dart_sdk.dart;
+  const dartx = dart_sdk.dartx;
+  const expect$ = expect.expect;
+  const syncstar_syntax = Object.create(null);
+  syncstar_syntax.foo = function() {
     return dart.syncStar(function*() {
       yield 1;
       yield* dart.list([2, 3], core.int);
     }, core.int);
-  }
-  dart.fn(foo, core.Iterable$(core.int), []);
-  class Class extends core.Object {
+  };
+  dart.fn(syncstar_syntax.foo, core.Iterable$(core.int), []);
+  syncstar_syntax.Class = class Class extends core.Object {
     bar() {
       return dart.syncStar(function*() {
         yield 1;
@@ -26,13 +28,13 @@ dart_library.library('syncstar_syntax', null, /* Imports */[
         yield* dart.list([2, 3], core.int);
       }, core.int);
     }
-  }
-  dart.setSignature(Class, {
+  };
+  dart.setSignature(syncstar_syntax.Class, {
     methods: () => ({bar: [core.Iterable$(core.int), []]}),
     statics: () => ({baz: [core.Iterable$(core.int), []]}),
     names: ['baz']
   });
-  function main() {
+  syncstar_syntax.main = function() {
     function qux() {
       return dart.syncStar(function*() {
         yield 1;
@@ -40,14 +42,12 @@ dart_library.library('syncstar_syntax', null, /* Imports */[
       }, core.int);
     }
     dart.fn(qux, core.Iterable$(core.int), []);
-    expect.Expect.listEquals(dart.list([1, 2, 3], core.int), foo()[dartx.toList]());
-    expect.Expect.listEquals(dart.list([1, 2, 3], core.int), new Class().bar()[dartx.toList]());
-    expect.Expect.listEquals(dart.list([1, 2, 3], core.int), Class.baz()[dartx.toList]());
-    expect.Expect.listEquals(dart.list([1, 2, 3], core.int), qux()[dartx.toList]());
-  }
-  dart.fn(main);
+    expect$.Expect.listEquals(dart.list([1, 2, 3], core.int), syncstar_syntax.foo()[dartx.toList]());
+    expect$.Expect.listEquals(dart.list([1, 2, 3], core.int), new syncstar_syntax.Class().bar()[dartx.toList]());
+    expect$.Expect.listEquals(dart.list([1, 2, 3], core.int), syncstar_syntax.Class.baz()[dartx.toList]());
+    expect$.Expect.listEquals(dart.list([1, 2, 3], core.int), qux()[dartx.toList]());
+  };
+  dart.fn(syncstar_syntax.main);
   // Exports:
-  exports.foo = foo;
-  exports.Class = Class;
-  exports.main = main;
+  exports.syncstar_syntax = syncstar_syntax;
 });

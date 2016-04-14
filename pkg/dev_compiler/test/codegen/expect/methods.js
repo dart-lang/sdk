@@ -1,12 +1,13 @@
 dart_library.library('methods', null, /* Imports */[
-  'dart/_runtime',
-  'dart/core'
-], /* Lazy imports */[
-], function(exports, dart, core) {
+  'dart_sdk'
+], function(exports, dart_sdk) {
   'use strict';
-  let dartx = dart.dartx;
+  const core = dart_sdk.core;
+  const dart = dart_sdk.dart;
+  const dartx = dart_sdk.dartx;
+  const methods = Object.create(null);
   const _c = Symbol('_c');
-  class A extends core.Object {
+  methods.A = class A extends core.Object {
     A() {
       this[_c] = 3;
     }
@@ -50,8 +51,8 @@ dart_library.library('methods', null, /* Imports */[
     set c(c) {
       this[_c] = c;
     }
-  }
-  dart.setSignature(A, {
+  };
+  dart.setSignature(methods.A, {
     methods: () => ({
       x: [core.int, []],
       y: [core.int, [core.int]],
@@ -63,35 +64,32 @@ dart_library.library('methods', null, /* Imports */[
       clashWithJsReservedName: [dart.dynamic, [], {function: dart.dynamic}]
     })
   });
-  class Bar extends core.Object {
+  methods.Bar = class Bar extends core.Object {
     call(x) {
       return core.print(`hello from ${x}`);
     }
-  }
-  dart.setSignature(Bar, {
+  };
+  dart.setSignature(methods.Bar, {
     methods: () => ({call: [dart.dynamic, [dart.dynamic]]})
   });
-  class Foo extends core.Object {
+  methods.Foo = class Foo extends core.Object {
     Foo() {
-      this.bar = new Bar();
+      this.bar = new methods.Bar();
     }
-  }
-  function test() {
-    let f = new Foo();
+  };
+  methods.test = function() {
+    let f = new methods.Foo();
     dart.dcall(f.bar, "Bar's call method!");
-    let a = new A();
+    let a = new methods.A();
     let g = dart.bind(a, 'x');
-    let aa = new A();
+    let aa = new methods.A();
     let h = dart.dload(aa, 'x');
     let ts = dart.bind(a, 'toString');
     let nsm = dart.bind(a, 'noSuchMethod');
     let c = dart.bind("", dartx.padLeft);
     let r = dart.bind(3.0, dartx.floor);
-  }
-  dart.fn(test);
+  };
+  dart.fn(methods.test);
   // Exports:
-  exports.A = A;
-  exports.Bar = Bar;
-  exports.Foo = Foo;
-  exports.test = test;
+  exports.methods = methods;
 });

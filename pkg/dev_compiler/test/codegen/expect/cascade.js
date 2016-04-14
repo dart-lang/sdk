@@ -1,17 +1,18 @@
 dart_library.library('cascade', null, /* Imports */[
-  'dart/_runtime',
-  'dart/core'
-], /* Lazy imports */[
-], function(exports, dart, core) {
+  'dart_sdk'
+], function(exports, dart_sdk) {
   'use strict';
-  let dartx = dart.dartx;
-  class A extends core.Object {
+  const core = dart_sdk.core;
+  const dart = dart_sdk.dart;
+  const dartx = dart_sdk.dartx;
+  const cascade = Object.create(null);
+  cascade.A = class A extends core.Object {
     A() {
       this.x = null;
     }
-  }
-  function test_closure_with_mutate() {
-    let a = new A();
+  };
+  cascade.test_closure_with_mutate = function() {
+    let a = new cascade.A();
     a.x = dart.fn(() => {
       core.print("hi");
       a = null;
@@ -20,44 +21,44 @@ dart_library.library('cascade', null, /* Imports */[
     dart.dcall(_.x);
     dart.dcall(_.x);
     core.print(a);
-  }
-  dart.fn(test_closure_with_mutate, dart.void, []);
-  function test_closure_without_mutate() {
-    let a = new A();
+  };
+  dart.fn(cascade.test_closure_with_mutate, dart.void, []);
+  cascade.test_closure_without_mutate = function() {
+    let a = new cascade.A();
     a.x = dart.fn(() => {
       core.print(a);
     });
     dart.dcall(a.x);
     dart.dcall(a.x);
     core.print(a);
-  }
-  dart.fn(test_closure_without_mutate, dart.void, []);
-  function test_mutate_inside_cascade() {
+  };
+  dart.fn(cascade.test_closure_without_mutate, dart.void, []);
+  cascade.test_mutate_inside_cascade = function() {
     let a = null;
-    let _ = new A();
+    let _ = new cascade.A();
     _.x = a = null;
     _.x = a = null;
     a = _;
     core.print(a);
-  }
-  dart.fn(test_mutate_inside_cascade, dart.void, []);
-  function test_mutate_outside_cascade() {
+  };
+  dart.fn(cascade.test_mutate_inside_cascade, dart.void, []);
+  cascade.test_mutate_outside_cascade = function() {
     let a = null, b = null;
-    a = new A();
+    a = new cascade.A();
     a.x = b = null;
     a.x = b = null;
     a = null;
     core.print(a);
-  }
-  dart.fn(test_mutate_outside_cascade, dart.void, []);
-  function test_VariableDeclaration_single() {
+  };
+  dart.fn(cascade.test_mutate_outside_cascade, dart.void, []);
+  cascade.test_VariableDeclaration_single = function() {
     let a = [];
     a[dartx.length] = 2;
     a[dartx.add](42);
     core.print(a);
-  }
-  dart.fn(test_VariableDeclaration_single, dart.void, []);
-  function test_VariableDeclaration_last() {
+  };
+  dart.fn(cascade.test_VariableDeclaration_single, dart.void, []);
+  cascade.test_VariableDeclaration_last = function() {
     let a = 42, b = (() => {
       let _ = [];
       _[dartx.length] = 2;
@@ -65,9 +66,9 @@ dart_library.library('cascade', null, /* Imports */[
       return _;
     })();
     core.print(b);
-  }
-  dart.fn(test_VariableDeclaration_last, dart.void, []);
-  function test_VariableDeclaration_first() {
+  };
+  dart.fn(cascade.test_VariableDeclaration_last, dart.void, []);
+  cascade.test_VariableDeclaration_first = function() {
     let a = (() => {
       let _ = [];
       _[dartx.length] = 2;
@@ -75,18 +76,18 @@ dart_library.library('cascade', null, /* Imports */[
       return _;
     })(), b = 2;
     core.print(a);
-  }
-  dart.fn(test_VariableDeclaration_first, dart.void, []);
-  function test_increment() {
-    let a = new A();
+  };
+  dart.fn(cascade.test_VariableDeclaration_first, dart.void, []);
+  cascade.test_increment = function() {
+    let a = new cascade.A();
     let y = ((() => {
       a.x = dart.dsend(a.x, '+', 1);
       a.x = dart.dsend(a.x, '-', 1);
       return a;
     })());
-  }
-  dart.fn(test_increment, dart.void, []);
-  const Base$ = dart.generic(function(T) {
+  };
+  dart.fn(cascade.test_increment, dart.void, []);
+  cascade.Base$ = dart.generic(T => {
     class Base extends core.Object {
       Base() {
         this.x = dart.list([], T);
@@ -94,8 +95,8 @@ dart_library.library('cascade', null, /* Imports */[
     }
     return Base;
   });
-  let Base = Base$();
-  class Foo extends Base$(core.int) {
+  cascade.Base = cascade.Base$();
+  cascade.Foo = class Foo extends cascade.Base$(core.int) {
     Foo() {
       super.Base();
     }
@@ -105,21 +106,10 @@ dart_library.library('cascade', null, /* Imports */[
       this.x[dartx.add](3);
       this.x[dartx.add](4);
     }
-  }
-  dart.setSignature(Foo, {
+  };
+  dart.setSignature(cascade.Foo, {
     methods: () => ({test_final_field_generic: [dart.void, [dart.dynamic]]})
   });
   // Exports:
-  exports.A = A;
-  exports.test_closure_with_mutate = test_closure_with_mutate;
-  exports.test_closure_without_mutate = test_closure_without_mutate;
-  exports.test_mutate_inside_cascade = test_mutate_inside_cascade;
-  exports.test_mutate_outside_cascade = test_mutate_outside_cascade;
-  exports.test_VariableDeclaration_single = test_VariableDeclaration_single;
-  exports.test_VariableDeclaration_last = test_VariableDeclaration_last;
-  exports.test_VariableDeclaration_first = test_VariableDeclaration_first;
-  exports.test_increment = test_increment;
-  exports.Base$ = Base$;
-  exports.Base = Base;
-  exports.Foo = Foo;
+  exports.cascade = cascade;
 });

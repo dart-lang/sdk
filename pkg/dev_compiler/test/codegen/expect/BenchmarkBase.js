@@ -1,11 +1,12 @@
 dart_library.library('BenchmarkBase', null, /* Imports */[
-  'dart/_runtime',
-  'dart/core'
-], /* Lazy imports */[
-], function(exports, dart, core) {
+  'dart_sdk'
+], function(exports, dart_sdk) {
   'use strict';
-  let dartx = dart.dartx;
-  class Expect extends core.Object {
+  const core = dart_sdk.core;
+  const dart = dart_sdk.dart;
+  const dartx = dart_sdk.dartx;
+  const BenchmarkBase$ = Object.create(null);
+  BenchmarkBase$.Expect = class Expect extends core.Object {
     static equals(expected, actual) {
       if (!dart.equals(expected, actual)) {
         dart.throw(`Values not equal: ${expected} vs ${actual}`);
@@ -16,14 +17,14 @@ dart_library.library('BenchmarkBase', null, /* Imports */[
         dart.throw(`Lists have different lengths: ${expected[dartx.length]} vs ${actual[dartx.length]}`);
       }
       for (let i = 0; i < dart.notNull(actual[dartx.length]); i++) {
-        Expect.equals(expected[dartx.get](i), actual[dartx.get](i));
+        BenchmarkBase$.Expect.equals(expected[dartx.get](i), actual[dartx.get](i));
       }
     }
     fail(message) {
       dart.throw(message);
     }
-  }
-  dart.setSignature(Expect, {
+  };
+  dart.setSignature(BenchmarkBase$.Expect, {
     methods: () => ({fail: [dart.dynamic, [dart.dynamic]]}),
     statics: () => ({
       equals: [dart.void, [dart.dynamic, dart.dynamic]],
@@ -31,7 +32,7 @@ dart_library.library('BenchmarkBase', null, /* Imports */[
     }),
     names: ['equals', 'listEquals']
   });
-  class BenchmarkBase extends core.Object {
+  BenchmarkBase$.BenchmarkBase = class BenchmarkBase extends core.Object {
     BenchmarkBase(name) {
       this.name = name;
     }
@@ -61,10 +62,10 @@ dart_library.library('BenchmarkBase', null, /* Imports */[
     }
     measure() {
       this.setup();
-      BenchmarkBase.measureFor(dart.fn(() => {
+      BenchmarkBase$.BenchmarkBase.measureFor(dart.fn(() => {
         this.warmup();
       }), 100);
-      let result = BenchmarkBase.measureFor(dart.fn(() => {
+      let result = BenchmarkBase$.BenchmarkBase.measureFor(dart.fn(() => {
         this.exercise();
       }), 2000);
       this.teardown();
@@ -74,9 +75,9 @@ dart_library.library('BenchmarkBase', null, /* Imports */[
       let score = this.measure();
       core.print(`${this.name}(RunTime): ${score} us.`);
     }
-  }
-  dart.setSignature(BenchmarkBase, {
-    constructors: () => ({BenchmarkBase: [BenchmarkBase, [core.String]]}),
+  };
+  dart.setSignature(BenchmarkBase$.BenchmarkBase, {
+    constructors: () => ({BenchmarkBase: [BenchmarkBase$.BenchmarkBase, [core.String]]}),
     methods: () => ({
       run: [dart.void, []],
       warmup: [dart.void, []],
@@ -90,6 +91,5 @@ dart_library.library('BenchmarkBase', null, /* Imports */[
     names: ['measureFor']
   });
   // Exports:
-  exports.Expect = Expect;
-  exports.BenchmarkBase = BenchmarkBase;
+  exports.BenchmarkBase = BenchmarkBase$;
 });

@@ -1,73 +1,70 @@
 dart_library.library('async_helper', null, /* Imports */[
-  'dart/_runtime',
-  'dart/core'
-], /* Lazy imports */[
-], function(exports, dart, core) {
+  'dart_sdk'
+], function(exports, dart_sdk) {
   'use strict';
-  let dartx = dart.dartx;
-  exports._initialized = false;
-  const _Action0 = dart.typedef('_Action0', () => dart.functionType(dart.void, []));
-  exports._onAsyncEnd = null;
-  exports._asyncLevel = 0;
-  function _buildException(msg) {
+  const core = dart_sdk.core;
+  const dart = dart_sdk.dart;
+  const dartx = dart_sdk.dartx;
+  const async_helper = Object.create(null);
+  async_helper._initialized = false;
+  async_helper._Action0 = dart.typedef('_Action0', () => dart.functionType(dart.void, []));
+  async_helper._onAsyncEnd = null;
+  async_helper._asyncLevel = 0;
+  async_helper._buildException = function(msg) {
     return core.Exception.new(`Fatal: ${msg}. This is most likely a bug in your test.`);
-  }
-  dart.fn(_buildException, core.Exception, [core.String]);
-  function asyncTestInitialize(callback) {
-    exports._asyncLevel = 0;
-    exports._initialized = false;
-    exports._onAsyncEnd = callback;
-  }
-  dart.fn(asyncTestInitialize, dart.void, [_Action0]);
-  dart.copyProperties(exports, {
+  };
+  dart.fn(async_helper._buildException, core.Exception, [core.String]);
+  async_helper.asyncTestInitialize = function(callback) {
+    async_helper._asyncLevel = 0;
+    async_helper._initialized = false;
+    async_helper._onAsyncEnd = callback;
+  };
+  dart.fn(async_helper.asyncTestInitialize, dart.void, [async_helper._Action0]);
+  dart.copyProperties(async_helper, {
     get asyncTestStarted() {
-      return exports._initialized;
+      return async_helper._initialized;
     }
   });
-  function asyncStart() {
-    if (dart.notNull(exports._initialized) && exports._asyncLevel == 0) {
-      dart.throw(_buildException('asyncStart() was called even though we are done ' + 'with testing.'));
+  async_helper.asyncStart = function() {
+    if (dart.notNull(async_helper._initialized) && async_helper._asyncLevel == 0) {
+      dart.throw(async_helper._buildException('asyncStart() was called even though we are done ' + 'with testing.'));
     }
-    if (!dart.notNull(exports._initialized)) {
-      if (exports._onAsyncEnd == null) {
-        dart.throw(_buildException('asyncStart() was called before asyncTestInitialize()'));
+    if (!dart.notNull(async_helper._initialized)) {
+      if (async_helper._onAsyncEnd == null) {
+        dart.throw(async_helper._buildException('asyncStart() was called before asyncTestInitialize()'));
       }
       core.print('unittest-suite-wait-for-done');
-      exports._initialized = true;
+      async_helper._initialized = true;
     }
-    exports._asyncLevel = dart.notNull(exports._asyncLevel) + 1;
-  }
-  dart.fn(asyncStart, dart.void, []);
-  function asyncEnd() {
-    if (dart.notNull(exports._asyncLevel) <= 0) {
-      if (!dart.notNull(exports._initialized)) {
-        dart.throw(_buildException('asyncEnd() was called before asyncStart().'));
+    async_helper._asyncLevel = dart.notNull(async_helper._asyncLevel) + 1;
+  };
+  dart.fn(async_helper.asyncStart, dart.void, []);
+  async_helper.asyncEnd = function() {
+    if (dart.notNull(async_helper._asyncLevel) <= 0) {
+      if (!dart.notNull(async_helper._initialized)) {
+        dart.throw(async_helper._buildException('asyncEnd() was called before asyncStart().'));
       } else {
-        dart.throw(_buildException('asyncEnd() was called more often than ' + 'asyncStart().'));
+        dart.throw(async_helper._buildException('asyncEnd() was called more often than ' + 'asyncStart().'));
       }
     }
-    exports._asyncLevel = dart.notNull(exports._asyncLevel) - 1;
-    if (exports._asyncLevel == 0) {
-      let callback = exports._onAsyncEnd;
-      exports._onAsyncEnd = null;
+    async_helper._asyncLevel = dart.notNull(async_helper._asyncLevel) - 1;
+    if (async_helper._asyncLevel == 0) {
+      let callback = async_helper._onAsyncEnd;
+      async_helper._onAsyncEnd = null;
       callback();
       core.print('unittest-suite-success');
     }
-  }
-  dart.fn(asyncEnd, dart.void, []);
-  function asyncSuccess(_) {
-    return asyncEnd();
-  }
-  dart.fn(asyncSuccess, dart.void, [dart.dynamic]);
-  function asyncTest(f) {
-    asyncStart();
-    dart.dsend(f(), 'then', asyncSuccess);
-  }
-  dart.fn(asyncTest, dart.void, [dart.functionType(dart.dynamic, [])]);
+  };
+  dart.fn(async_helper.asyncEnd, dart.void, []);
+  async_helper.asyncSuccess = function(_) {
+    return async_helper.asyncEnd();
+  };
+  dart.fn(async_helper.asyncSuccess, dart.void, [dart.dynamic]);
+  async_helper.asyncTest = function(f) {
+    async_helper.asyncStart();
+    dart.dsend(f(), 'then', async_helper.asyncSuccess);
+  };
+  dart.fn(async_helper.asyncTest, dart.void, [dart.functionType(dart.dynamic, [])]);
   // Exports:
-  exports.asyncTestInitialize = asyncTestInitialize;
-  exports.asyncStart = asyncStart;
-  exports.asyncEnd = asyncEnd;
-  exports.asyncSuccess = asyncSuccess;
-  exports.asyncTest = asyncTest;
+  exports.async_helper = async_helper;
 });

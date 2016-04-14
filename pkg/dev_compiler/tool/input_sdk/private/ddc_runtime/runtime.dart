@@ -19,18 +19,6 @@ part 'rtti.dart';
 part 'types.dart';
 part 'utils.dart';
 
-// From dart_utils
-final defineLazyClass = JS('', '$defineLazy');
-final defineLazyProperties = JS('', '$defineLazy');
-final defineLazyClassGeneric = JS('', '$defineLazyProperty');
-
-// Renames
-@JSExportName('as')
-final as_ = JS('', '$cast');
-
-@JSExportName('is')
-final is_ = JS('', '$instanceOf');
-
 @JSExportName('global')
 final global_ = JS('', 'typeof window == "undefined" ? global : window');
 final JsSymbol = JS('', 'Symbol');

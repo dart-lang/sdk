@@ -1,25 +1,26 @@
 dart_library.library('temps', null, /* Imports */[
-  'dart/_runtime',
-  'dart/core'
-], /* Lazy imports */[
-], function(exports, dart, core) {
+  'dart_sdk'
+], function(exports, dart_sdk) {
   'use strict';
-  let dartx = dart.dartx;
+  const core = dart_sdk.core;
+  const dart = dart_sdk.dart;
+  const dartx = dart_sdk.dartx;
+  const temps = Object.create(null);
   const _x = Symbol('_x');
   const __x = Symbol('__x');
   const _function = Symbol('_function');
-  class FormalCollision extends core.Object {
+  temps.FormalCollision = class FormalCollision extends core.Object {
     FormalCollision(x, _x$, func) {
       this[_x] = x;
       this[__x] = _x$;
       this[_function] = func;
     }
-  }
-  dart.setSignature(FormalCollision, {
-    constructors: () => ({FormalCollision: [FormalCollision, [core.int, core.int, core.Function]]})
+  };
+  dart.setSignature(temps.FormalCollision, {
+    constructors: () => ({FormalCollision: [temps.FormalCollision, [core.int, core.int, core.Function]]})
   });
   const _opt = Symbol('_opt');
-  class OptionalArg extends core.Object {
+  temps.OptionalArg = class OptionalArg extends core.Object {
     OptionalArg(opt) {
       if (opt === void 0) opt = 123;
       this[_opt] = opt;
@@ -30,22 +31,20 @@ dart_library.library('temps', null, /* Imports */[
       this.opt = opt;
       this[_opt] = null;
     }
-  }
-  dart.defineNamedConstructor(OptionalArg, 'named');
-  dart.setSignature(OptionalArg, {
+  };
+  dart.defineNamedConstructor(temps.OptionalArg, 'named');
+  dart.setSignature(temps.OptionalArg, {
     constructors: () => ({
-      OptionalArg: [OptionalArg, [], [core.int]],
-      named: [OptionalArg, [], {opt: core.int}]
+      OptionalArg: [temps.OptionalArg, [], [core.int]],
+      named: [temps.OptionalArg, [], {opt: core.int}]
     })
   });
-  function main() {
-    core.print(new FormalCollision(1, 2, dart.fn(x => x)));
-    core.print(new OptionalArg()[_opt]);
-    core.print(new OptionalArg.named()[_opt]);
-  }
-  dart.fn(main);
+  temps.main = function() {
+    core.print(new temps.FormalCollision(1, 2, dart.fn(x => x)));
+    core.print(new temps.OptionalArg()[_opt]);
+    core.print(new temps.OptionalArg.named()[_opt]);
+  };
+  dart.fn(temps.main);
   // Exports:
-  exports.FormalCollision = FormalCollision;
-  exports.OptionalArg = OptionalArg;
-  exports.main = main;
+  exports.temps = temps;
 });

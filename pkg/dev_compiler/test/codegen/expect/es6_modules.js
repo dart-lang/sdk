@@ -1,29 +1,27 @@
-const exports = {};
-import dart from "./dart/_runtime";
-import core from "./dart/core";
-let dartx = dart.dartx;
-const Callback = dart.typedef('Callback', () => dart.functionType(dart.void, [], {i: core.int}));
-class A extends core.Object {}
-class _A extends core.Object {}
-const B$ = dart.generic(function(T) {
+export const es6_modules = Object.create(null);
+import { core, dart, dartx } from 'dart_sdk';
+es6_modules.Callback = dart.typedef('Callback', () => dart.functionType(dart.void, [], {i: core.int}));
+es6_modules.A = class A extends core.Object {};
+es6_modules._A = class _A extends core.Object {};
+es6_modules.B$ = dart.generic(T => {
   class B extends core.Object {}
   return B;
 });
-let B = B$();
-const _B$ = dart.generic(function(T) {
+es6_modules.B = es6_modules.B$();
+es6_modules._B$ = dart.generic(T => {
   class _B extends core.Object {}
   return _B;
 });
-let _B = _B$();
-function f() {
-}
-dart.fn(f);
-function _f() {
-}
-dart.fn(_f);
-const constant = "abc";
-exports.finalConstant = "abc";
-dart.defineLazyProperties(exports, {
+es6_modules._B = es6_modules._B$();
+es6_modules.f = function() {
+};
+dart.fn(es6_modules.f);
+es6_modules._f = function() {
+};
+dart.fn(es6_modules._f);
+es6_modules.constant = "abc";
+es6_modules.finalConstant = "abc";
+dart.defineLazy(es6_modules, {
   get lazy() {
     return dart.fn(() => {
       core.print('lazy');
@@ -31,8 +29,8 @@ dart.defineLazyProperties(exports, {
     }, core.String, [])();
   }
 });
-exports.mutable = "abc";
-dart.defineLazyProperties(exports, {
+es6_modules.mutable = "abc";
+dart.defineLazy(es6_modules, {
   get lazyMutable() {
     return dart.fn(() => {
       core.print('lazyMutable');
@@ -41,11 +39,3 @@ dart.defineLazyProperties(exports, {
   },
   set lazyMutable(_) {}
 });
-// Exports:
-exports.Callback = Callback;
-exports.A = A;
-exports.B$ = B$;
-exports.B = B;
-exports.f = f;
-exports.constant = constant;
-export default exports;

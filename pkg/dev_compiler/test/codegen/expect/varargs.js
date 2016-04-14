@@ -1,20 +1,21 @@
 dart_library.library('varargs', null, /* Imports */[
-  'dart/_runtime'
-], /* Lazy imports */[
-], function(exports, dart) {
+  'dart_sdk'
+], function(exports, dart_sdk) {
   'use strict';
-  let dartx = dart.dartx;
-  function varargsTest(x, ...others) {
+  const core = dart_sdk.core;
+  const dart = dart_sdk.dart;
+  const dartx = dart_sdk.dartx;
+  const varargs = Object.create(null);
+  varargs.varargsTest = function(x, ...others) {
     let args = [1, others];
     dart.dsend(x, 'call', ...args);
-  }
-  dart.fn(varargsTest);
-  function varargsTest2(x, ...others) {
+  };
+  dart.fn(varargs.varargsTest);
+  varargs.varargsTest2 = function(x, ...others) {
     let args = [1, others];
     dart.dsend(x, 'call', ...args);
-  }
-  dart.fn(varargsTest2);
+  };
+  dart.fn(varargs.varargsTest2);
   // Exports:
-  exports.varargsTest = varargsTest;
-  exports.varargsTest2 = varargsTest2;
+  exports.varargs = varargs;
 });

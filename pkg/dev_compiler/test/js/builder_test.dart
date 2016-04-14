@@ -1,4 +1,4 @@
-import 'package:dev_compiler/src/js/js_ast.dart';
+import 'package:dev_compiler/src/js_ast/js_ast.dart';
 import 'package:test/test.dart';
 
 final _prenumberedPlaceholders = new RegExp(r'#\d+');

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import '../js/js_ast.dart' as JS show TypeRef, JsTypeRef, ClosureTypePrinter;
+import '../js_ast/js_ast.dart' as JS show TypeRef, ClosureTypePrinter;
 
 /// Set of closure annotations that can be [toString]ed to a single JsDoc comment.
 /// See https://developers.google.com/closure/compiler/docs/js-for-compiler

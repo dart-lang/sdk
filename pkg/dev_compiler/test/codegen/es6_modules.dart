@@ -1,6 +1,5 @@
+// compile options: --modules=es6
 library test;
-
-import 'dart:js';
 
 typedef void Callback({int i});
 

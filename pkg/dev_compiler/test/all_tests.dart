@@ -11,7 +11,6 @@ import 'closure/closure_annotation_test.dart' as closure_annotation_test;
 import 'closure/closure_type_test.dart' as closure_type_test;
 import 'codegen_test.dart' as codegen_test;
 import 'js/builder_test.dart' as builder_test;
-import 'utils_test.dart' as utils_test;
 
 void main() {
   group('codegen', () => codegen_test.main([]));
@@ -20,5 +19,4 @@ void main() {
     closure_type_test.main();
   });
   group('js', builder_test.main);
-  group('utils', utils_test.main);
 }

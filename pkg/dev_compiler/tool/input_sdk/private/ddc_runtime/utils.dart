@@ -83,10 +83,22 @@ defineMemoizedGetter(obj, String name, getter) => JS('', '''(() => {
   return $defineLazyProperty($obj, $name, {get: $getter});
 })()''');
 
+
+// TODO(jmesserly): don't stomp on native Symbol.iterator.
+// We need to find a better solution for this.
+// See: https://github.com/dart-lang/dev_compiler/issues/487
 copyTheseProperties(to, from, names) => JS('', '''(() => {
   for (let name of $names) {
-    var desc = $getOwnPropertyDescriptor($from, name);
+    let desc = $getOwnPropertyDescriptor($from, name);
     if (desc != void 0) {
+      if (name == Symbol.iterator) {
+        // On native types, Symbol.iterator may already be present.
+        let existing = $getOwnPropertyDescriptor($to, name);
+        if (existing != null) {
+          if (existing.writable) $to[Symbol.iterator] = desc.value;
+          continue;
+        }
+      }
       $defineProperty($to, name, desc);
     } else {
       $defineLazyProperty($to, name, () => $from[name]);
@@ -99,17 +111,4 @@ copyTheseProperties(to, from, names) => JS('', '''(() => {
 /// This operation is commonly called `mixin` in JS.
 copyProperties(to, from) => JS('', '''(() => {
   return $copyTheseProperties($to, $from, $getOwnNamesAndSymbols($from));
-})()''');
-
-/// Exports from one Dart module to another.
-@JSExportName('export')
-export_(to, from, show, hide) => JS('', '''(() => {
-  if ($show == void 0 || $show.length == 0) {
-    $show = $getOwnNamesAndSymbols($from);
-  }
-  if ($hide != void 0) {
-    var hideMap = new Set($hide);
-    $show = $show.filter((k) => !hideMap.has(k));
-  }
-  return $copyTheseProperties($to, $from, $show);
 })()''');

@@ -66,7 +66,7 @@ fn(closure, @rest args) => JS('', '''(() => {
     // construct it.
     t = $definiteFunctionType.apply(null, $args);
   }
-  tag($closure, t);
+  $tag($closure, t);
   return $closure;
 })()''');
 

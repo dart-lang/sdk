@@ -1,3 +1,7 @@
+// compile options: --source-map
+// TODO(jmesserly): more comprehensive strategy for testing the source map.
+// (this is used so we're covering it in at least one test)
+
 import 'dart:math' show Random;
 main() {
   // Uses a JS object literal

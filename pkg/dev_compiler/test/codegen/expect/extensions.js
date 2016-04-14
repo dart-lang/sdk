@@ -1,25 +1,25 @@
 dart_library.library('extensions', null, /* Imports */[
-  'dart/_runtime',
-  'dart/collection',
-  'dart/core'
-], /* Lazy imports */[
-], function(exports, dart, collection, core) {
+  'dart_sdk'
+], function(exports, dart_sdk) {
   'use strict';
-  let dartx = dart.dartx;
-  class StringIterable extends collection.IterableBase$(core.String) {
+  const core = dart_sdk.core;
+  const collection = dart_sdk.collection;
+  const dart = dart_sdk.dart;
+  const dartx = dart_sdk.dartx;
+  const extensions = Object.create(null);
+  extensions.StringIterable = class StringIterable extends collection.IterableBase$(core.String) {
     StringIterable() {
       this.iterator = null;
       super.IterableBase();
     }
-  }
-  dart.virtualField(StringIterable, 'iterator');
-  dart.setSignature(StringIterable, {});
-  dart.defineExtensionMembers(StringIterable, ['iterator']);
-  function main() {
-    return new StringIterable();
-  }
-  dart.fn(main);
+  };
+  dart.virtualField(extensions.StringIterable, 'iterator');
+  dart.setSignature(extensions.StringIterable, {});
+  dart.defineExtensionMembers(extensions.StringIterable, ['iterator']);
+  extensions.main = function() {
+    return new extensions.StringIterable();
+  };
+  dart.fn(extensions.main);
   // Exports:
-  exports.StringIterable = StringIterable;
-  exports.main = main;
+  exports.extensions = extensions;
 });

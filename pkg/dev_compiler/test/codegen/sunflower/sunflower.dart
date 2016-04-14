@@ -4,10 +4,10 @@
 
 library sunflower;
 
+import 'dart:html';
 import 'dart:math';
 
 import 'circle.dart';
-import 'dom.dart';
 import 'painter.dart';
 
 const SEED_RADIUS = 2;
@@ -41,7 +41,7 @@ void draw() {
     final y = centerY - r * sin(theta);
     new SunflowerSeed(x, y, SEED_RADIUS).draw(context);
   }
-  notes.textContent = "$seeds seeds";
+  notes.text = "$seeds seeds";
 }
 
 // This example was modified to use classes and mixins.
@@ -51,5 +51,3 @@ class SunflowerSeed extends Circle with CirclePainter {
     if (color != null) this.color = color;
   }
 }
-
-

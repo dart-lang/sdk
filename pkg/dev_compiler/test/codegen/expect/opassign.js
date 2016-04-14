@@ -1,60 +1,59 @@
 dart_library.library('opassign', null, /* Imports */[
-  'dart/_runtime',
-  'dart/core'
-], /* Lazy imports */[
-], function(exports, dart, core) {
+  'dart_sdk'
+], function(exports, dart_sdk) {
   'use strict';
-  let dartx = dart.dartx;
-  dart.copyProperties(exports, {
+  const core = dart_sdk.core;
+  const dart = dart_sdk.dart;
+  const dartx = dart_sdk.dartx;
+  const opassign = Object.create(null);
+  dart.copyProperties(opassign, {
     get index() {
       core.print('called "index" getter');
       return 0;
     }
   });
-  dart.defineLazyProperties(exports, {
+  dart.defineLazy(opassign, {
     get _foo() {
-      return new Foo();
+      return new opassign.Foo();
     }
   });
-  dart.copyProperties(exports, {
+  dart.copyProperties(opassign, {
     get foo() {
       core.print('called "foo" getter');
-      return exports._foo;
+      return opassign._foo;
     }
   });
-  class Foo extends core.Object {
+  opassign.Foo = class Foo extends core.Object {
     Foo() {
       this.x = 100;
     }
-  }
-  function main() {
+  };
+  opassign.main = function() {
     let f = dart.map([0, 40]);
     core.print('should only call "index" 2 times:');
-    let i = dart.as(exports.index, core.int);
+    let i = dart.as(opassign.index, core.int);
     f[dartx.set](i, dart.notNull(f[dartx.get](i)) + 1);
-    forcePostfix((() => {
-      let i = dart.as(exports.index, core.int), x = f[dartx.get](i);
+    opassign.forcePostfix((() => {
+      let i = dart.as(opassign.index, core.int), x = f[dartx.get](i);
       f[dartx.set](i, dart.notNull(x) + 1);
       return x;
     })());
     core.print('should only call "foo" 2 times:');
-    let o = exports.foo;
+    let o = opassign.foo;
     dart.dput(o, 'x', dart.dsend(dart.dload(o, 'x'), '+', 1));
-    forcePostfix((() => {
-      let o = exports.foo, x = dart.dload(o, 'x');
+    opassign.forcePostfix((() => {
+      let o = opassign.foo, x = dart.dload(o, 'x');
       dart.dput(o, 'x', dart.dsend(x, '+', 1));
       return x;
     })());
     core.print('op assign test, should only call "index" twice:');
-    let i$ = dart.as(exports.index, core.int);
-    f[dartx.set](i$, dart.notNull(f[dartx.get](i$)) + dart.notNull(f[dartx.get](exports.index)));
-  }
-  dart.fn(main);
-  function forcePostfix(x) {
-  }
-  dart.fn(forcePostfix);
+    let i$ = dart.as(opassign.index, core.int);
+    f[dartx.set](i$, dart.notNull(f[dartx.get](i$)) + dart.notNull(f[dartx.get](opassign.index)));
+  };
+  dart.fn(opassign.main);
+  opassign.forcePostfix = function(x) {
+  };
+  dart.fn(opassign.forcePostfix);
   // Exports:
-  exports.Foo = Foo;
-  exports.main = main;
-  exports.forcePostfix = forcePostfix;
+  exports.opassign = opassign;
 });

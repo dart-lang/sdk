@@ -21,70 +21,44 @@ var dart_library =
   // ES6, AMD, RequireJS, ....
 
   class LibraryLoader {
-    constructor(name, defaultValue, imports, lazyImports, loader) {
+    constructor(name, defaultValue, imports, loader) {
       this._name = name;
       this._library = defaultValue ? defaultValue : {};
       this._imports = imports;
-      this._lazyImports = lazyImports;
       this._loader = loader;
 
       // Cyclic import detection
       this._state = LibraryLoader.NOT_LOADED;
     }
 
-    loadImports(pendingSet) {
-      return this.handleImports(this._imports, (lib) => lib.load(pendingSet));
-    }
-
-    deferLazyImports(pendingSet) {
-      return this.handleImports(this._lazyImports,
-        (lib) => {
-          pendingSet.add(lib._name);
-          return lib.stub();
-      });
-    }
-
-    loadLazyImports(pendingSet) {
-      return this.handleImports(pendingSet, (lib) => lib.load());
-    }
-
-    handleImports(list, handler) {
+    loadImports() {
       let results = [];
-      for (let name of list) {
+      for (let name of this._imports) {
         let lib = libraries.get(name);
         if (!lib) {
           throwLibraryError('Library not available: ' + name);
         }
-        results.push(handler(lib));
+        results.push(lib.load());
       }
       return results;
     }
 
-    load(inheritedPendingSet) {
+    load() {
       // Check for cycles
       if (this._state == LibraryLoader.LOADING) {
         throwLibraryError('Circular dependence on library: '
                               + this._name);
-      } else if (this._state >= LibraryLoader.LOADED) {
+      } else if (this._state >= LibraryLoader.READY) {
         return this._library;
       }
       this._state = LibraryLoader.LOADING;
 
-      // Handle imports and record lazy imports
-      let pendingSet = inheritedPendingSet ? inheritedPendingSet : new Set();
-      let args = this.loadImports(pendingSet);
-      args = args.concat(this.deferLazyImports(pendingSet));
+      // Handle imports
+      let args = this.loadImports();
 
       // Load the library
       args.unshift(this._library);
       this._loader.apply(null, args);
-      this._state = LibraryLoader.LOADED;
-
-      // Handle lazy imports
-      if (inheritedPendingSet === void 0) {
-        // Drain the queue
-        this.loadLazyImports(pendingSet);
-      }
       this._state = LibraryLoader.READY;
       return this._library;
     }
@@ -95,15 +69,14 @@ var dart_library =
   }
   LibraryLoader.NOT_LOADED = 0;
   LibraryLoader.LOADING = 1;
-  LibraryLoader.LOADED = 2;
-  LibraryLoader.READY = 3;
+  LibraryLoader.READY = 2;
 
   // Map from name to LibraryLoader
   let libraries = new Map();
-  dart_library.libraries = function() { return libraries.keys(); }
+  dart_library.libraries = function() { return libraries.keys(); };
 
-  function library(name, defaultValue, imports, lazyImports, loader) {
-    let result = new LibraryLoader(name, defaultValue, imports, lazyImports, loader);
+  function library(name, defaultValue, imports, loader) {
+    let result = new LibraryLoader(name, defaultValue, imports, loader);
     libraries.set(name, result);
     return result;
   }
@@ -119,10 +92,11 @@ var dart_library =
   }
   dart_library.import = import_;
 
-  function start(libraryName) {
-    let library = import_(libraryName);
-    let _isolate_helper = import_('dart/_isolate_helper');
-    _isolate_helper.startRootIsolate(library.main, []);
+  function start(moduleName, libraryName) {
+    if (libraryName == null) libraryName = moduleName;
+    let library = import_(moduleName)[libraryName];
+    let dart_sdk = import_('dart_sdk');
+    dart_sdk._isolate_helper.startRootIsolate(library.main, []);
   }
   dart_library.start = start;
 
@@ -132,7 +106,11 @@ var dart_library =
     _bootstrapped = true;
 
     // Force import of core.
-    var core = import_('dart/core');
+    var dart_sdk = import_('dart_sdk');
+    var core = dart_sdk.core;
+
+    // TODO(jmesserly): this can't be right.
+    // See: https://github.com/dart-lang/dev_compiler/issues/488
     core.Object.toString = function() {
       // Interface types are represented by the corresponding constructor
       // function.  This ensures that Dart interface types print properly.
@@ -150,8 +128,7 @@ var dart_library =
 
     // This import is only needed for chrome debugging. We should provide an
     // option to compile without it.
-    var devtoolsDebugger = import_('dart/_debugger');
-    devtoolsDebugger.registerDevtoolsFormatter();
+    dart_sdk._debugger.registerDevtoolsFormatter();
   }
 
 })(dart_library);

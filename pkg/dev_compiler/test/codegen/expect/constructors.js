@@ -1,146 +1,147 @@
 dart_library.library('constructors', null, /* Imports */[
-  'dart/_runtime',
-  'dart/core'
-], /* Lazy imports */[
-], function(exports, dart, core) {
+  'dart_sdk'
+], function(exports, dart_sdk) {
   'use strict';
-  let dartx = dart.dartx;
-  class A extends core.Object {}
-  class B extends core.Object {
+  const core = dart_sdk.core;
+  const dart = dart_sdk.dart;
+  const dartx = dart_sdk.dartx;
+  const constructors = Object.create(null);
+  constructors.A = class A extends core.Object {};
+  constructors.B = class B extends core.Object {
     B() {
     }
-  }
-  dart.setSignature(B, {
-    constructors: () => ({B: [B, []]})
+  };
+  dart.setSignature(constructors.B, {
+    constructors: () => ({B: [constructors.B, []]})
   });
-  class C extends core.Object {
+  constructors.C = class C extends core.Object {
     named() {
     }
-  }
-  dart.defineNamedConstructor(C, 'named');
-  dart.setSignature(C, {
-    constructors: () => ({named: [C, []]})
+  };
+  dart.defineNamedConstructor(constructors.C, 'named');
+  dart.setSignature(constructors.C, {
+    constructors: () => ({named: [constructors.C, []]})
   });
-  class C2 extends C {
+  constructors.C2 = class C2 extends constructors.C {
     named() {
       super.named();
     }
-  }
-  dart.defineNamedConstructor(C2, 'named');
-  dart.setSignature(C2, {
-    constructors: () => ({named: [C2, []]})
+  };
+  dart.defineNamedConstructor(constructors.C2, 'named');
+  dart.setSignature(constructors.C2, {
+    constructors: () => ({named: [constructors.C2, []]})
   });
-  class D extends core.Object {
+  constructors.D = class D extends core.Object {
     D() {
     }
     named() {
     }
-  }
-  dart.defineNamedConstructor(D, 'named');
-  dart.setSignature(D, {
+  };
+  dart.defineNamedConstructor(constructors.D, 'named');
+  dart.setSignature(constructors.D, {
     constructors: () => ({
-      D: [D, []],
-      named: [D, []]
+      D: [constructors.D, []],
+      named: [constructors.D, []]
     })
   });
-  class E extends core.Object {
+  constructors.E = class E extends core.Object {
     E(name) {
       this.name = name;
     }
-  }
-  dart.setSignature(E, {
-    constructors: () => ({E: [E, [core.String]]})
+  };
+  dart.setSignature(constructors.E, {
+    constructors: () => ({E: [constructors.E, [core.String]]})
   });
-  class F extends E {
+  constructors.F = class F extends constructors.E {
     F(name) {
       super.E(name);
     }
-  }
-  dart.setSignature(F, {
-    constructors: () => ({F: [F, [core.String]]})
+  };
+  dart.setSignature(constructors.F, {
+    constructors: () => ({F: [constructors.F, [core.String]]})
   });
-  class G extends core.Object {
+  constructors.G = class G extends core.Object {
     G(p1) {
       if (p1 === void 0) p1 = null;
     }
-  }
-  dart.setSignature(G, {
-    constructors: () => ({G: [G, [], [core.String]]})
+  };
+  dart.setSignature(constructors.G, {
+    constructors: () => ({G: [constructors.G, [], [core.String]]})
   });
-  class H extends core.Object {
+  constructors.H = class H extends core.Object {
     H(opts) {
       let p1 = opts && 'p1' in opts ? opts.p1 : null;
     }
-  }
-  dart.setSignature(H, {
-    constructors: () => ({H: [H, [], {p1: core.String}]})
+  };
+  dart.setSignature(constructors.H, {
+    constructors: () => ({H: [constructors.H, [], {p1: core.String}]})
   });
-  class I extends core.Object {
+  constructors.I = class I extends core.Object {
     I() {
       this.name = 'default';
     }
     named(name) {
       this.name = name;
     }
-  }
-  dart.defineNamedConstructor(I, 'named');
-  dart.setSignature(I, {
+  };
+  dart.defineNamedConstructor(constructors.I, 'named');
+  dart.setSignature(constructors.I, {
     constructors: () => ({
-      I: [I, []],
-      named: [I, [core.String]]
+      I: [constructors.I, []],
+      named: [constructors.I, [core.String]]
     })
   });
-  class J extends core.Object {
+  constructors.J = class J extends core.Object {
     J() {
       this.initialized = true;
       this.nonInitialized = null;
     }
-  }
-  dart.setSignature(J, {
-    constructors: () => ({J: [J, []]})
+  };
+  dart.setSignature(constructors.J, {
+    constructors: () => ({J: [constructors.J, []]})
   });
-  class K extends core.Object {
+  constructors.K = class K extends core.Object {
     K() {
       this.s = 'a';
     }
     withS(s) {
       this.s = s;
     }
-  }
-  dart.defineNamedConstructor(K, 'withS');
-  dart.setSignature(K, {
+  };
+  dart.defineNamedConstructor(constructors.K, 'withS');
+  dart.setSignature(constructors.K, {
     constructors: () => ({
-      K: [K, []],
-      withS: [K, [core.String]]
+      K: [constructors.K, []],
+      withS: [constructors.K, [core.String]]
     })
   });
-  class L extends core.Object {
+  constructors.L = class L extends core.Object {
     L(foo) {
       this.foo = foo;
     }
-  }
-  dart.setSignature(L, {
-    constructors: () => ({L: [L, [dart.dynamic]]})
+  };
+  dart.setSignature(constructors.L, {
+    constructors: () => ({L: [constructors.L, [dart.dynamic]]})
   });
-  class M extends L {
+  constructors.M = class M extends constructors.L {
     named(x) {
       super.L(dart.notNull(x) + 42);
     }
-  }
-  dart.defineNamedConstructor(M, 'named');
-  dart.setSignature(M, {
-    constructors: () => ({named: [M, [core.int]]})
+  };
+  dart.defineNamedConstructor(constructors.M, 'named');
+  dart.setSignature(constructors.M, {
+    constructors: () => ({named: [constructors.M, [core.int]]})
   });
-  class N extends M {
+  constructors.N = class N extends constructors.M {
     named(y) {
       super.named(dart.notNull(y) + 100);
     }
-  }
-  dart.defineNamedConstructor(N, 'named');
-  dart.setSignature(N, {
-    constructors: () => ({named: [N, [core.int]]})
+  };
+  dart.defineNamedConstructor(constructors.N, 'named');
+  dart.setSignature(constructors.N, {
+    constructors: () => ({named: [constructors.N, [core.int]]})
   });
-  class P extends N {
+  constructors.P = class P extends constructors.N {
     P(z) {
       super.named(dart.notNull(z) + 9000);
     }
@@ -150,69 +151,52 @@ dart_library.library('constructors', null, /* Imports */[
     bar() {
       this.foo(1);
     }
-  }
-  dart.defineNamedConstructor(P, 'foo');
-  dart.defineNamedConstructor(P, 'bar');
-  dart.setSignature(P, {
+  };
+  dart.defineNamedConstructor(constructors.P, 'foo');
+  dart.defineNamedConstructor(constructors.P, 'bar');
+  dart.setSignature(constructors.P, {
     constructors: () => ({
-      P: [P, [core.int]],
-      foo: [P, [core.int]],
-      bar: [P, []]
+      P: [constructors.P, [core.int]],
+      foo: [constructors.P, [core.int]],
+      bar: [constructors.P, []]
     })
   });
-  const Q$ = dart.generic(function(T) {
+  constructors.Q$ = dart.generic(T => {
     class Q extends core.Object {
       Q(y) {
         this.x = dart.as(y, T);
       }
       static foo() {
-        return new (Q$())("hello");
+        return new constructors.Q("hello");
       }
       bar() {
-        let q = Q$().foo();
+        let q = constructors.Q.foo();
         return dart.as(q.x, core.String);
       }
       bar2() {
-        let q = new (Q$())("world");
+        let q = new constructors.Q("world");
         return dart.as(q.x, core.String);
       }
       static baz() {
-        let q = new (Q$(core.int))(42);
+        let q = new (constructors.Q$(core.int))(42);
         return dart.notNull(q.bar()) + dart.notNull(q.bar2());
       }
     }
     dart.setSignature(Q, {
-      constructors: () => ({Q: [Q$(T), [dart.dynamic]]}),
+      constructors: () => ({Q: [constructors.Q$(T), [dart.dynamic]]}),
       methods: () => ({
         bar: [core.String, []],
         bar2: [core.String, []]
       }),
       statics: () => ({
-        foo: [Q$(), []],
+        foo: [constructors.Q, []],
         baz: [core.String, []]
       }),
       names: ['foo', 'baz']
     });
     return Q;
   });
-  let Q = Q$();
+  constructors.Q = constructors.Q$();
   // Exports:
-  exports.A = A;
-  exports.B = B;
-  exports.C = C;
-  exports.C2 = C2;
-  exports.D = D;
-  exports.E = E;
-  exports.F = F;
-  exports.G = G;
-  exports.H = H;
-  exports.I = I;
-  exports.J = J;
-  exports.K = K;
-  exports.L = L;
-  exports.M = M;
-  exports.N = N;
-  exports.P = P;
-  exports.Q$ = Q$;
-  exports.Q = Q;
+  exports.constructors = constructors;
 });

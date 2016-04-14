@@ -268,7 +268,7 @@ final _extensionType = JS('', 'Symbol("extensionType")');
 
 getExtensionType(obj) => JS('', '$obj[$_extensionType]');
 
-final dartx = JS('', '{}');
+final dartx = JS('', 'dartx');
 
 getExtensionSymbol(name) => JS('', '''(() => {
   let sym = $dartx[$name];

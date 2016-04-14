@@ -1,16 +1,17 @@
 dart_library.library('fieldtest', null, /* Imports */[
-  'dart/_runtime',
-  'dart/core'
-], /* Lazy imports */[
-], function(exports, dart, core) {
+  'dart_sdk'
+], function(exports, dart_sdk) {
   'use strict';
-  let dartx = dart.dartx;
-  class A extends core.Object {
+  const core = dart_sdk.core;
+  const dart = dart_sdk.dart;
+  const dartx = dart_sdk.dartx;
+  const fieldtest = Object.create(null);
+  fieldtest.A = class A extends core.Object {
     A() {
       this.x = 42;
     }
-  }
-  const B$ = dart.generic(function(T) {
+  };
+  fieldtest.B$ = dart.generic(T => {
     class B extends core.Object {
       B() {
         this.x = null;
@@ -20,95 +21,97 @@ dart_library.library('fieldtest', null, /* Imports */[
     }
     return B;
   });
-  let B = B$();
-  function foo(a) {
+  fieldtest.B = fieldtest.B$();
+  fieldtest.foo = function(a) {
     core.print(a.x);
     return a.x;
-  }
-  dart.fn(foo, core.int, [A]);
-  function bar(a) {
+  };
+  dart.fn(fieldtest.foo, core.int, [fieldtest.A]);
+  fieldtest.bar = function(a) {
     core.print(dart.dload(a, 'x'));
     return dart.as(dart.dload(a, 'x'), core.int);
-  }
-  dart.fn(bar, core.int, [dart.dynamic]);
-  function baz(a) {
+  };
+  dart.fn(fieldtest.bar, core.int, [dart.dynamic]);
+  fieldtest.baz = function(a) {
     return a.x;
-  }
-  dart.fn(baz, dart.dynamic, [A]);
-  function compute() {
+  };
+  dart.fn(fieldtest.baz, dart.dynamic, [fieldtest.A]);
+  fieldtest.compute = function() {
     return 123;
-  }
-  dart.fn(compute, core.int, []);
-  dart.defineLazyProperties(exports, {
+  };
+  dart.fn(fieldtest.compute, core.int, []);
+  dart.defineLazy(fieldtest, {
     get y() {
-      return dart.notNull(compute()) + 444;
+      return dart.notNull(fieldtest.compute()) + 444;
     },
     set y(_) {}
   });
-  dart.copyProperties(exports, {
+  dart.copyProperties(fieldtest, {
     get q() {
       return 'life, ' + 'the universe ' + 'and everything';
-    },
+    }
+  });
+  dart.copyProperties(fieldtest, {
     get z() {
       return 42;
     },
     set z(value) {
-      exports.y = dart.as(value, core.int);
+      fieldtest.y = dart.as(value, core.int);
     }
   });
-  class BaseWithGetter extends core.Object {
+  fieldtest.BaseWithGetter = class BaseWithGetter extends core.Object {
     get foo() {
       return 1;
     }
-  }
-  class Derived extends BaseWithGetter {
+  };
+  fieldtest.Derived = class Derived extends fieldtest.BaseWithGetter {
     Derived() {
       this.foo = 2;
       this.bar = 3;
     }
-  }
-  dart.virtualField(Derived, 'foo');
-  const Generic$ = dart.generic(function(T) {
+  };
+  dart.virtualField(fieldtest.Derived, 'foo');
+  fieldtest.Generic$ = dart.generic(T => {
     class Generic extends core.Object {
       foo(t) {
         dart.as(t, T);
-        return core.print(dart.notNull(Generic$().bar) + dart.notNull(dart.as(t, core.String)));
+        return core.print(dart.notNull(fieldtest.Generic.bar) + dart.notNull(dart.as(t, core.String)));
       }
     }
     dart.setSignature(Generic, {
       methods: () => ({foo: [dart.dynamic, [T]]})
     });
-    Generic.bar = 'hello';
     return Generic;
   });
-  let Generic = Generic$();
-  class StaticFieldOrder1 extends core.Object {}
-  StaticFieldOrder1.d = 4;
-  dart.defineLazyProperties(StaticFieldOrder1, {
+  fieldtest.Generic = fieldtest.Generic$();
+  fieldtest.Generic.bar = 'hello';
+  fieldtest.StaticFieldOrder1 = class StaticFieldOrder1 extends core.Object {};
+  fieldtest.StaticFieldOrder1.d = 4;
+  dart.defineLazy(fieldtest.StaticFieldOrder1, {
     get a() {
-      return dart.notNull(StaticFieldOrder1.b) + 1;
+      return dart.notNull(fieldtest.StaticFieldOrder1.b) + 1;
     },
     get c() {
-      return dart.notNull(StaticFieldOrder1.d) + 2;
+      return dart.notNull(fieldtest.StaticFieldOrder1.d) + 2;
     },
     get b() {
-      return dart.notNull(StaticFieldOrder1.c) + 3;
+      return dart.notNull(fieldtest.StaticFieldOrder1.c) + 3;
     }
   });
-  class StaticFieldOrder2 extends core.Object {}
-  StaticFieldOrder2.d = 4;
-  dart.defineLazyProperties(StaticFieldOrder2, {
+  fieldtest.StaticFieldOrder2 = class StaticFieldOrder2 extends core.Object {};
+  fieldtest.StaticFieldOrder2.d = 4;
+  dart.defineLazy(fieldtest.StaticFieldOrder2, {
     get a() {
-      return dart.notNull(StaticFieldOrder2.b) + 1;
+      return dart.notNull(fieldtest.StaticFieldOrder2.b) + 1;
     },
     get c() {
-      return dart.notNull(StaticFieldOrder2.d) + 2;
+      return dart.notNull(fieldtest.StaticFieldOrder2.d) + 2;
     },
     get b() {
-      return dart.notNull(StaticFieldOrder2.c) + 3;
+      return dart.notNull(fieldtest.StaticFieldOrder2.c) + 3;
     }
   });
-  class MyEnum extends core.Object {
+  fieldtest.MyEnum = class MyEnum extends core.Object {
     MyEnum(index) {
       this.index = index;
     }
@@ -121,34 +124,20 @@ dart_library.library('fieldtest', null, /* Imports */[
       }[this.index];
     }
   };
-  MyEnum.Val1 = dart.const(new MyEnum(0));
-  MyEnum.Val2 = dart.const(new MyEnum(1));
-  MyEnum.Val3 = dart.const(new MyEnum(2));
-  MyEnum.Val4 = dart.const(new MyEnum(3));
-  MyEnum.values = dart.const(dart.list([MyEnum.Val1, MyEnum.Val2, MyEnum.Val3, MyEnum.Val4], MyEnum));
-  function main() {
-    let a = new A();
-    foo(a);
-    bar(a);
-    core.print(baz(a));
-    core.print(new (Generic$(core.String))().foo(' world'));
-    core.print(MyEnum.values);
-  }
-  dart.fn(main, dart.void, []);
+  fieldtest.MyEnum.Val1 = dart.const(new fieldtest.MyEnum(0));
+  fieldtest.MyEnum.Val2 = dart.const(new fieldtest.MyEnum(1));
+  fieldtest.MyEnum.Val3 = dart.const(new fieldtest.MyEnum(2));
+  fieldtest.MyEnum.Val4 = dart.const(new fieldtest.MyEnum(3));
+  fieldtest.MyEnum.values = dart.const(dart.list([fieldtest.MyEnum.Val1, fieldtest.MyEnum.Val2, fieldtest.MyEnum.Val3, fieldtest.MyEnum.Val4], fieldtest.MyEnum));
+  fieldtest.main = function() {
+    let a = new fieldtest.A();
+    fieldtest.foo(a);
+    fieldtest.bar(a);
+    core.print(fieldtest.baz(a));
+    core.print(new (fieldtest.Generic$(core.String))().foo(' world'));
+    core.print(fieldtest.MyEnum.values);
+  };
+  dart.fn(fieldtest.main, dart.void, []);
   // Exports:
-  exports.A = A;
-  exports.B$ = B$;
-  exports.B = B;
-  exports.foo = foo;
-  exports.bar = bar;
-  exports.baz = baz;
-  exports.compute = compute;
-  exports.BaseWithGetter = BaseWithGetter;
-  exports.Derived = Derived;
-  exports.Generic$ = Generic$;
-  exports.Generic = Generic;
-  exports.StaticFieldOrder1 = StaticFieldOrder1;
-  exports.StaticFieldOrder2 = StaticFieldOrder2;
-  exports.MyEnum = MyEnum;
-  exports.main = main;
+  exports.fieldtest = fieldtest;
 });

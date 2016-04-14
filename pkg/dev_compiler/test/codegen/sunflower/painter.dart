@@ -4,7 +4,7 @@
 
 library painter;
 
-import 'dom.dart';
+import 'dart:html';
 import 'dart:math';
 
 import 'circle.dart';

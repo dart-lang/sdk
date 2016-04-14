@@ -1,80 +1,69 @@
 dart_library.library('destructuring', null, /* Imports */[
-  'dart/_runtime',
-  'dart/core'
-], /* Lazy imports */[
-], function(exports, dart, core) {
+  'dart_sdk'
+], function(exports, dart_sdk) {
   'use strict';
-  let dartx = dart.dartx;
-  function f(a, b, c = 1) {
-    f(a, b, c);
-  }
-  dart.fn(f, dart.dynamic, [core.int, dart.dynamic], [dart.dynamic]);
-  function f_sync(a, b, c) {
+  const core = dart_sdk.core;
+  const dart = dart_sdk.dart;
+  const dartx = dart_sdk.dartx;
+  const destructuring = Object.create(null);
+  destructuring.f = function(a, b, c = 1) {
+    destructuring.f(a, b, c);
+  };
+  dart.fn(destructuring.f, dart.dynamic, [core.int, dart.dynamic], [dart.dynamic]);
+  destructuring.f_sync = function(a, b, c) {
     return dart.syncStar(function*(a, b, c = 1) {
     }, dart.dynamic, a, b, c);
-  }
-  dart.fn(f_sync, dart.dynamic, [core.int, dart.dynamic], [dart.dynamic]);
-  function f_async(a, b, c) {
+  };
+  dart.fn(destructuring.f_sync, dart.dynamic, [core.int, dart.dynamic], [dart.dynamic]);
+  destructuring.f_async = function(a, b, c) {
     return dart.asyncStar(function*(stream, a, b, c = 1) {
     }, dart.dynamic, a, b, c);
-  }
-  dart.fn(f_async, dart.dynamic, [core.int, dart.dynamic], [dart.dynamic]);
-  function g(a, b, {c = 1} = {}) {
-    f(a, b, c);
-  }
-  dart.fn(g, dart.dynamic, [core.int, dart.dynamic], {c: dart.dynamic});
-  function g_sync(a, b, opts) {
+  };
+  dart.fn(destructuring.f_async, dart.dynamic, [core.int, dart.dynamic], [dart.dynamic]);
+  destructuring.g = function(a, b, {c = 1} = {}) {
+    destructuring.f(a, b, c);
+  };
+  dart.fn(destructuring.g, dart.dynamic, [core.int, dart.dynamic], {c: dart.dynamic});
+  destructuring.g_sync = function(a, b, opts) {
     return dart.syncStar(function*(a, b, {c = 1} = {}) {
     }, dart.dynamic, a, b, opts);
-  }
-  dart.fn(g_sync, dart.dynamic, [core.int, dart.dynamic], {c: dart.dynamic});
-  function g_async(a, b, opts) {
+  };
+  dart.fn(destructuring.g_sync, dart.dynamic, [core.int, dart.dynamic], {c: dart.dynamic});
+  destructuring.g_async = function(a, b, opts) {
     return dart.asyncStar(function*(stream, a, b, {c = 1} = {}) {
     }, dart.dynamic, a, b, opts);
-  }
-  dart.fn(g_async, dart.dynamic, [core.int, dart.dynamic], {c: dart.dynamic});
-  function r(a, ...others) {
-    r(a, ...others);
-  }
-  dart.fn(r, dart.dynamic, [core.int, dart.dynamic]);
-  function r_sync(a, ...others) {
+  };
+  dart.fn(destructuring.g_async, dart.dynamic, [core.int, dart.dynamic], {c: dart.dynamic});
+  destructuring.r = function(a, ...others) {
+    destructuring.r(a, ...others);
+  };
+  dart.fn(destructuring.r, dart.dynamic, [core.int, dart.dynamic]);
+  destructuring.r_sync = function(a, ...others) {
     return dart.syncStar(function*(a, ...others) {
     }, dart.dynamic, a, ...others);
-  }
-  dart.fn(r_sync, dart.dynamic, [core.int, dart.dynamic]);
-  function r_async(a, ...others) {
+  };
+  dart.fn(destructuring.r_sync, dart.dynamic, [core.int, dart.dynamic]);
+  destructuring.r_async = function(a, ...others) {
     return dart.asyncStar(function*(stream, a, ...others) {
     }, dart.dynamic, a, ...others);
-  }
-  dart.fn(r_async, dart.dynamic, [core.int, dart.dynamic]);
-  function invalid_names1(let$, func, arguments$) {
-    f(let$, func, arguments$);
-  }
-  dart.fn(invalid_names1, dart.dynamic, [core.int, dart.dynamic, dart.dynamic]);
-  function invalid_names2(let$ = null, func = 1, arguments$ = null) {
-    f(let$, func, arguments$);
-  }
-  dart.fn(invalid_names2, dart.dynamic, [], [core.int, dart.dynamic, dart.dynamic]);
-  function invalid_names3({["let"]: let$ = null, ["function"]: func = null, ["arguments"]: arguments$ = 2} = {}) {
-    f(let$, func, arguments$);
-  }
-  dart.fn(invalid_names3, dart.dynamic, [], {let: core.int, function: dart.dynamic, arguments: dart.dynamic});
-  function names_clashing_with_object_props({constructor = null, valueOf = null, hasOwnProperty = 2} = Object.create(null)) {
-    f(constructor, valueOf, hasOwnProperty);
-  }
-  dart.fn(names_clashing_with_object_props, dart.dynamic, [], {constructor: core.int, valueOf: dart.dynamic, hasOwnProperty: dart.dynamic});
+  };
+  dart.fn(destructuring.r_async, dart.dynamic, [core.int, dart.dynamic]);
+  destructuring.invalid_names1 = function(let$, func, arguments$) {
+    destructuring.f(let$, func, arguments$);
+  };
+  dart.fn(destructuring.invalid_names1, dart.dynamic, [core.int, dart.dynamic, dart.dynamic]);
+  destructuring.invalid_names2 = function(let$ = null, func = 1, arguments$ = null) {
+    destructuring.f(let$, func, arguments$);
+  };
+  dart.fn(destructuring.invalid_names2, dart.dynamic, [], [core.int, dart.dynamic, dart.dynamic]);
+  destructuring.invalid_names3 = function({["let"]: let$ = null, ["function"]: func = null, ["arguments"]: arguments$ = 2} = {}) {
+    destructuring.f(let$, func, arguments$);
+  };
+  dart.fn(destructuring.invalid_names3, dart.dynamic, [], {let: core.int, function: dart.dynamic, arguments: dart.dynamic});
+  destructuring.names_clashing_with_object_props = function({constructor = null, valueOf = null, hasOwnProperty = 2} = Object.create(null)) {
+    destructuring.f(constructor, valueOf, hasOwnProperty);
+  };
+  dart.fn(destructuring.names_clashing_with_object_props, dart.dynamic, [], {constructor: core.int, valueOf: dart.dynamic, hasOwnProperty: dart.dynamic});
   // Exports:
-  exports.f = f;
-  exports.f_sync = f_sync;
-  exports.f_async = f_async;
-  exports.g = g;
-  exports.g_sync = g_sync;
-  exports.g_async = g_async;
-  exports.r = r;
-  exports.r_sync = r_sync;
-  exports.r_async = r_async;
-  exports.invalid_names1 = invalid_names1;
-  exports.invalid_names2 = invalid_names2;
-  exports.invalid_names3 = invalid_names3;
-  exports.names_clashing_with_object_props = names_clashing_with_object_props;
+  exports.destructuring = destructuring;
 });

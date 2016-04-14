@@ -1,4 +1,4 @@
-// Copyright (c) 2015, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2016, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7,154 +7,60 @@
 /// that the output is what we expected.
 library dev_compiler.test.codegen_test;
 
-import 'dart:io';
-import 'package:analyzer/src/generated/engine.dart'
-    show AnalysisContext, AnalysisEngine, Logger;
-import 'package:analyzer/src/generated/java_engine.dart' show CaughtException;
-import 'package:analyzer/src/generated/source_io.dart';
-import 'package:args/args.dart';
-import 'package:cli_util/cli_util.dart' show getSdkDir;
-import 'package:logging/logging.dart' show Level;
+import 'dart:convert' show JSON;
+import 'dart:io' show Directory, File, Platform;
+import 'package:args/args.dart' show ArgParser, ArgResults;
 import 'package:path/path.dart' as path;
-import 'package:test/test.dart';
+import 'package:test/test.dart' show group, test;
 
-import 'package:dev_compiler/devc.dart';
-import 'package:dev_compiler/src/analysis_context.dart';
-import 'package:dev_compiler/src/compiler.dart' show defaultRuntimeFiles;
-import 'package:dev_compiler/src/options.dart';
-import 'package:dev_compiler/src/report.dart' show LogReporter;
-
+import 'package:analyzer/analyzer.dart'
+    show
+        ExportDirective,
+        ImportDirective,
+        StringLiteral,
+        UriBasedDirective,
+        parseDirectives;
+import 'package:analyzer/src/generated/source.dart' show Source;
+import 'package:dev_compiler/src/analyzer/context.dart' show AnalyzerOptions;
+import 'package:dev_compiler/src/compiler/compiler.dart'
+    show BuildUnit, CompilerOptions, ModuleCompiler;
 import 'testing.dart' show testDirectory;
-import 'multitest.dart';
+import 'multitest.dart' show extractTestsFromMultitest, isMultiTest;
+import '../tool/build_sdk.dart' as build_sdk;
+import 'package:dev_compiler/src/compiler/compiler.dart';
 
 final ArgParser argParser = new ArgParser()
   ..addOption('dart-sdk', help: 'Dart SDK Path', defaultsTo: null);
-
-final inputDir = path.join(testDirectory, 'codegen');
-
-Iterable<String> _findTests(String dir, RegExp filePattern) {
-  var files = new Directory(dir)
-      .listSync()
-      .where((f) => f is File)
-      .map((f) => f.path)
-      .where((p) => p.endsWith('.dart') && filePattern.hasMatch(p));
-  if (dir != inputDir) {
-    files = files
-        .where((p) => p.endsWith('_test.dart') || p.endsWith('_multi.dart'));
-  }
-  return files;
-}
 
 main(arguments) {
   if (arguments == null) arguments = [];
   ArgResults args = argParser.parse(arguments);
   var filePattern = new RegExp(args.rest.length > 0 ? args.rest[0] : '.');
-  var compilerMessages = new StringBuffer();
-  var loggerSub;
-
-  bool codeCoverage = Platform.environment.containsKey('COVERALLS_TOKEN');
-
-  setUp(() {
-    compilerMessages.clear();
-    loggerSub = setupLogger(Level.CONFIG, compilerMessages.writeln);
-  });
-
-  tearDown(() {
-    if (loggerSub != null) {
-      loggerSub.cancel();
-      loggerSub = null;
-    }
-  });
 
   var expectDir = path.join(inputDir, 'expect');
+  var testDirs = ['language', path.join('lib', 'typed_data')];
 
-  BatchCompiler createCompiler(DartUriResolver sdkResolver,
-      {bool checkSdk: false,
-      bool sourceMaps: false,
-      bool destructureNamedParams: false,
-      bool closure: false,
-      ModuleFormat moduleFormat: ModuleFormat.legacy}) {
-    String _testCodegenPath(String p1, [String p2]) =>
-        path.join(testDirectory, 'codegen', p1, p2);
+  var multitests = expandMultiTests(testDirs, filePattern);
 
-    var context = createAnalysisContextWithSources(
-        new SourceResolverOptions(customUrlMappings: {
-          'package:expect/expect.dart': _testCodegenPath('expect.dart'),
-          'package:async_helper/async_helper.dart':
-              _testCodegenPath('async_helper.dart'),
-          'package:unittest/unittest.dart': _testCodegenPath('unittest.dart'),
-          'package:dom/dom.dart': _testCodegenPath('sunflower', 'dom.dart')
-        }),
-        sdkResolver: sdkResolver);
+  // Build packages tests depend on
+  var compiler = new ModuleCompiler(
+      new AnalyzerOptions(customUrlMappings: packageUrlMappings));
 
-    // TODO(jmesserly): add a way to specify flags in the test file, so
-    // they're more self-contained.
-    var runtimeDir = path.join(path.dirname(testDirectory), 'lib', 'runtime');
-    var options = new CompilerOptions(
-        codegenOptions: new CodegenOptions(
-            outputDir: expectDir,
-            emitSourceMaps: sourceMaps,
-            closure: closure,
-            destructureNamedParams: destructureNamedParams,
-            forceCompile: checkSdk,
-            moduleFormat: moduleFormat),
-        useColors: false,
-        checkSdk: checkSdk,
-        runtimeDir: runtimeDir,
-        inputBaseDir: inputDir);
-    var reporter = new LogReporter(context);
-    return new BatchCompiler(context, options, reporter: reporter);
-  }
+  group('dartdevc package', () {
+    _buildPackages(compiler, expectDir);
 
-  bool compile(BatchCompiler compiler, String filePath) {
-    compiler.compileFromUriString(filePath, (String url) {
-      // Write compiler messages to disk.
-      var messagePath = '${path.withoutExtension(url)}.txt';
-      var file = new File(messagePath);
-      var message = '''
-// Messages from compiling ${path.basenameWithoutExtension(url)}.dart
-$compilerMessages''';
-      var dir = file.parent;
-      if (!dir.existsSync()) dir.createSync(recursive: true);
-      file.writeAsStringSync(message);
-      compilerMessages.clear();
+    test('matcher', () {
+      _buildMatcher(compiler, expectDir);
     });
-    return !compiler.failure;
-  }
+  });
 
-  var testDirs = <String>['language', path.join('lib', 'typed_data')];
+  test('dartdevc sunflower', () {
+    _buildSunflower(compiler, expectDir);
+  });
 
-  var multitests = new Set<String>();
-  {
-    // Expand wacky multitests into a bunch of test files.
-    // We'll compile each one as if it was an input.
-    for (var testDir in testDirs) {
-      var fullDir = path.join(inputDir, testDir);
-      var testFiles = _findTests(fullDir, filePattern);
-
-      for (var filePath in testFiles) {
-        if (filePath.endsWith('_multi.dart')) continue;
-
-        var contents = new File(filePath).readAsStringSync();
-        if (isMultiTest(contents)) {
-          multitests.add(filePath);
-
-          var tests = new Map<String, String>();
-          var outcomes = new Map<String, Set<String>>();
-          extractTestsFromMultitest(filePath, contents, tests, outcomes);
-
-          var filename = path.basenameWithoutExtension(filePath);
-          tests.forEach((name, contents) {
-            new File(path.join(fullDir, '${filename}_${name}_multi.dart'))
-                .writeAsStringSync(contents);
-          });
-        }
-      }
-    }
-  }
-
-  var realSdkResolver = createSdkPathResolver(getSdkDir().path);
-  var batchCompiler = createCompiler(realSdkResolver);
+  // Our default compiler options. Individual tests can override these.
+  var defaultOptions = ['--no-source-map', '--no-summarize'];
+  var compilerArgParser = CompilerOptions.addArguments(new ArgParser());
 
   var allDirs = [null];
   allDirs.addAll(testDirs);
@@ -172,116 +78,204 @@ $compilerMessages''';
         var filename = path.basenameWithoutExtension(filePath);
 
         test('$filename.dart', () {
-          // TODO(jmesserly): this was added to get some coverage of source maps
-          // and closure annotations.
-          // We need a more comprehensive strategy to test them.
-          var sourceMaps = filename == 'map_keys';
-          var closure = filename == 'closure';
-          var destructureNamedParams = filename == 'destructuring' || closure;
-          var moduleFormat = filename == 'es6_modules' || closure
-              ? ModuleFormat.es6
-              : filename == 'node_modules'
-                  ? ModuleFormat.node
-                  : ModuleFormat.legacy;
-          var success;
-          // TODO(vsm): Is it okay to reuse the same context here?  If there is
-          // overlap between test files, we may need separate ones for each
-          // compiler.
-          var compiler = (sourceMaps ||
-                  closure ||
-                  destructureNamedParams ||
-                  moduleFormat != ModuleFormat.legacy)
-              ? createCompiler(realSdkResolver,
-                  sourceMaps: sourceMaps,
-                  destructureNamedParams: destructureNamedParams,
-                  closure: closure,
-                  moduleFormat: moduleFormat)
-              : batchCompiler;
-          success = compile(compiler, filePath);
+          // Check if we need to use special compile options.
+          var contents = new File(filePath).readAsStringSync();
+          var match =
+              new RegExp(r'// compile options: (.*)').matchAsPrefix(contents);
 
-          var outFile = new File(path.join(outDir.path, '$filename.js'));
-          expect(!success || outFile.existsSync(), true,
-              reason: '${outFile.path} was created if compilation succeeds');
+          var args = new List.from(defaultOptions);
+          if (match != null) {
+            args.addAll(match.group(1).split(' '));
+          }
+          var options =
+              new CompilerOptions.fromArguments(compilerArgParser.parse(args));
+
+          // Collect any other files we've imported.
+          var files = new Set<String>();
+          _collectTransitiveImports(contents, files, from: filePath);
+
+          var unit = new BuildUnit(filename, files.toList(), _moduleForLibrary);
+          var module = compiler.compile(unit, options);
+          _writeModule(path.join(outDir.path, filename), module);
         });
       }
     });
   }
 
   if (codeCoverage) {
-    group('sdk', () {
-      // The analyzer does not bubble exception messages for certain internal
-      // dart:* library failures, such as failing to find
-      // "_internal/libraries.dart". Instead it produces an opaque "failed to
-      // instantiate dart:core" message. To remedy this we hook up an analysis
-      // logger that prints these messages.
-      var savedLogger;
-      setUp(() {
-        savedLogger = AnalysisEngine.instance.logger;
-        AnalysisEngine.instance.logger = new PrintLogger();
-      });
-      tearDown(() {
-        AnalysisEngine.instance.logger = savedLogger;
-      });
-
-      test('devc dart:core', () {
-        var testSdkResolver = createSdkPathResolver(
-            path.join(testDirectory, '..', 'tool', 'generated_sdk'));
-
-        // Get the test SDK. We use a checked in copy so test expectations can
-        // be generated against a specific SDK version.
-        var compiler = createCompiler(testSdkResolver, checkSdk: true);
-        compile(compiler, 'dart:core');
-        var outFile = new File(path.join(expectDir, 'dart/core.js'));
-        expect(outFile.existsSync(), true,
-            reason: '${outFile.path} was created for dart:core');
-      });
+    test('build_sdk code coverage', () {
+      var generatedSdkDir =
+          path.join(testDirectory, '..', 'tool', 'generated_sdk');
+      return build_sdk.main(['--dart-sdk', generatedSdkDir, '-o', expectDir]);
     });
   }
-
-  var expectedRuntime =
-      defaultRuntimeFiles.map((f) => 'dev_compiler/runtime/$f');
-
-  test('devc jscodegen sunflower.html', () {
-    var filePath = path.join(inputDir, 'sunflower', 'sunflower.html');
-    var success = compile(batchCompiler, filePath);
-
-    var expectedFiles = ['sunflower.html', 'sunflower.js',];
-
-    for (var filepath in expectedFiles) {
-      var outFile = new File(path.join(expectDir, 'sunflower', filepath));
-      expect(outFile.existsSync(), success,
-          reason: '${outFile.path} was created iff compilation succeeds');
-    }
-  });
-
-  test('devc jscodegen html_input.html', () {
-    var filePath = path.join(inputDir, 'html_input.html');
-    var success = compile(batchCompiler, filePath);
-
-    var expectedFiles = [
-      'html_input.html',
-      'dir/html_input_a.js',
-      'dir/html_input_b.js',
-      'dir/html_input_c.js',
-      'dir/html_input_d.js',
-      'dir/html_input_e.js'
-    ]..addAll(expectedRuntime);
-
-    for (var filepath in expectedFiles) {
-      var outFile = new File(path.join(expectDir, filepath));
-      expect(outFile.existsSync(), success,
-          reason: '${outFile.path} was created iff compilation succeeds');
-    }
-  });
 }
 
-/// An implementation of analysis engine's [Logger] that prints.
-class PrintLogger implements Logger {
-  @override
-  void logError(String message, [CaughtException exception]) {
-    print('[AnalysisEngine] error $message $exception');
-  }
+void _writeModule(String outPath, JSModuleFile result) {
+  new Directory(path.dirname(outPath)).createSync(recursive: true);
 
-  void logInformation(String message, [CaughtException exception]) {}
-  void logInformation2(String message, Object exception) {}
+  result.errors.add(''); // for trailing newline
+  new File(outPath + '.txt').writeAsStringSync(result.errors.join('\n'));
+
+  if (result.isValid) {
+    new File(outPath + '.js').writeAsStringSync(result.code);
+    if (result.sourceMap != null) {
+      var mapPath = outPath + '.js.map';
+      new File(mapPath)
+          .writeAsStringSync(JSON.encode(result.placeSourceMap(mapPath)));
+    }
+  }
+}
+
+void _buildSunflower(ModuleCompiler compiler, String expectDir) {
+  var files = ['sunflower', 'circle', 'painter']
+      .map((f) => path.join(inputDir, 'sunflower', '$f.dart'))
+      .toList();
+  var input = new BuildUnit('sunflower', files, _moduleForLibrary);
+  var options = new CompilerOptions(summarizeApi: false);
+
+  var built = compiler.compile(input, options);
+  _writeModule(path.join(expectDir, 'sunflower', 'sunflower'), built);
+}
+
+void _buildPackages(ModuleCompiler compiler, String expectDir) {
+  // Note: we don't summarize these, as we're going to rely on our in-memory
+  // shared analysis context for caching, and `_moduleForLibrary` below
+  // understands these are from other modules.
+  var options = new CompilerOptions(sourceMap: false, summarizeApi: false);
+
+  for (var uri in packageUrlMappings.keys) {
+    assert(uri.startsWith('package:'));
+    var uriPath = uri.substring('package:'.length);
+    var name = path.basenameWithoutExtension(uriPath);
+    test(name, () {
+      var input = new BuildUnit(name, [uri], _moduleForLibrary);
+      var built = compiler.compile(input, options);
+
+      var outPath = path.join(expectDir, path.withoutExtension(uriPath));
+      _writeModule(outPath, built);
+    });
+  }
+}
+
+void _buildMatcher(ModuleCompiler compiler, String expectDir) {
+  var options = new CompilerOptions(sourceMap: false, summarizeApi: false);
+
+  var filePath = path.join(inputDir, 'packages', 'matcher', 'matcher.dart');
+  var contents = new File(filePath).readAsStringSync();
+
+  // Collect any other files we've imported.
+  var files = new Set<String>();
+  _collectTransitiveImports(contents, files, from: filePath);
+
+  var unit = new BuildUnit('matcher', files.toList(), _moduleForLibrary);
+  var module = compiler.compile(unit, options);
+
+  var outPath = path.join(expectDir, 'matcher', 'matcher');
+  _writeModule(outPath, module);
+}
+
+String _moduleForLibrary(Source source) {
+  var scheme = source.uri.scheme;
+  if (scheme == 'package') {
+    return source.uri.pathSegments.first;
+  }
+  throw new Exception('Module not found for library "${source.fullName}"');
+}
+
+/// Expands wacky multitests into a bunch of test files.
+///
+/// We'll compile each one as if it was an input.
+/// NOTE: this will write the individual test files to disk.
+Set<String> expandMultiTests(List testDirs, RegExp filePattern) {
+  var multitests = new Set<String>();
+
+  for (var testDir in testDirs) {
+    var fullDir = path.join(inputDir, testDir);
+    var testFiles = _findTests(fullDir, filePattern);
+
+    for (var filePath in testFiles) {
+      if (filePath.endsWith('_multi.dart')) continue;
+
+      var contents = new File(filePath).readAsStringSync();
+      if (isMultiTest(contents)) {
+        multitests.add(filePath);
+
+        var tests = new Map<String, String>();
+        var outcomes = new Map<String, Set<String>>();
+        extractTestsFromMultitest(filePath, contents, tests, outcomes);
+
+        var filename = path.basenameWithoutExtension(filePath);
+        tests.forEach((name, contents) {
+          new File(path.join(fullDir, '${filename}_${name}_multi.dart'))
+              .writeAsStringSync(contents);
+        });
+      }
+    }
+  }
+  return multitests;
+}
+
+// TODO(jmesserly): switch this to a .packages file.
+final packageUrlMappings = {
+  'package:expect/expect.dart': path.join(inputDir, 'expect.dart'),
+  'package:async_helper/async_helper.dart':
+      path.join(inputDir, 'async_helper.dart'),
+  'package:unittest/unittest.dart': path.join(inputDir, 'unittest.dart'),
+  'package:js/js.dart': path.join(inputDir, 'packages', 'js', 'js.dart')
+};
+
+final codeCoverage = Platform.environment.containsKey('COVERALLS_TOKEN');
+
+final inputDir = path.join(testDirectory, 'codegen');
+
+Iterable<String> _findTests(String dir, RegExp filePattern) {
+  var files = new Directory(dir)
+      .listSync()
+      .where((f) => f is File)
+      .map((f) => f.path)
+      .where((p) => p.endsWith('.dart') && filePattern.hasMatch(p));
+  if (dir != inputDir) {
+    files = files
+        .where((p) => p.endsWith('_test.dart') || p.endsWith('_multi.dart'));
+  }
+  return files;
+}
+
+/// Parse directives from [contents] and find the complete set of transitive
+/// imports, reading files as needed.
+///
+/// This will not include dart:* libraries, as those are implicitly available.
+void _collectTransitiveImports(String contents, Set<String> libraries,
+    {String from}) {
+  if (!libraries.add(from)) return;
+
+  var unit = parseDirectives(contents, name: from, suppressErrors: true);
+  for (var d in unit.directives) {
+    if (d is ImportDirective || d is ExportDirective) {
+      String uri = _resolveDirective(d);
+      if (uri == null ||
+          uri.startsWith('dart:') ||
+          uri.startsWith('package:')) {
+        continue;
+      }
+
+      var f = new File(path.join(path.dirname(from), uri));
+      if (f.existsSync()) {
+        _collectTransitiveImports(f.readAsStringSync(), libraries,
+            from: f.path);
+      }
+    }
+  }
+}
+
+/// Simplified from ParseDartTask.resolveDirective.
+String _resolveDirective(UriBasedDirective directive) {
+  StringLiteral uriLiteral = directive.uri;
+  String uriContent = uriLiteral.stringValue;
+  if (uriContent != null) {
+    uriContent = uriContent.trim();
+    directive.uriContent = uriContent;
+  }
+  return directive.validate() == null ? uriContent : null;
 }

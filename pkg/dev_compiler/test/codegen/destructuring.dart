@@ -1,3 +1,4 @@
+// compile options: --destructure-named-params
 import 'dart-ext:foo';
 import 'package:js/src/varargs.dart';
 

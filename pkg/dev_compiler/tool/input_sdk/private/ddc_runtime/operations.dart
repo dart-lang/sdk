@@ -152,13 +152,13 @@ _ignoreTypeFailure(actual, type) => JS('', '''(() => {
   // TODO(vsm): Remove this hack ...
   // This is primarily due to the lack of generic methods,
   // but we need to triage all the types.
-  if (isSubtype($type, $Iterable) && isSubtype($actual, $Iterable) ||
-      isSubtype($type, $Future) && isSubtype($actual, $Future) ||
-      isSubtype($type, $Map) && isSubtype($actual, $Map) ||
-      isSubtype($type, $Function) && isSubtype($actual, $Function) ||
-      isSubtype($type, $Stream) && isSubtype($actual, $Stream) ||
-      isSubtype($type, $StreamSubscription) &&
-          isSubtype($actual, $StreamSubscription)) {
+  if ($isSubtype($type, $Iterable) && $isSubtype($actual, $Iterable) ||
+      $isSubtype($type, $Future) && $isSubtype($actual, $Future) ||
+      $isSubtype($type, $Map) && $isSubtype($actual, $Map) ||
+      $isSubtype($type, $Function) && $isSubtype($actual, $Function) ||
+      $isSubtype($type, $Stream) && $isSubtype($actual, $Stream) ||
+      $isSubtype($type, $StreamSubscription) &&
+          $isSubtype($actual, $StreamSubscription)) {
     console.warn('Ignoring cast fail from ' + $typeName($actual) +
       ' to ' + $typeName($type));
     return true;
@@ -181,6 +181,7 @@ instanceOfOrNull(obj, type) => JS('', '''(() => {
   return false;
 })()''');
 
+@JSExportName('is')
 instanceOf(obj, type) => JS('', '''(() => {
   if ($strongInstanceOf($obj, $type)) return true;
   // TODO(#296): This is perhaps too eager to throw a StrongModeError?
@@ -194,6 +195,7 @@ instanceOf(obj, type) => JS('', '''(() => {
     $typeName($type));
 })()''');
 
+@JSExportName('as')
 cast(obj, type) => JS('', '''(() => {
   // TODO(#296): This is perhaps too eager to throw a StrongModeError?
   // TODO(vsm): handle non-nullable types

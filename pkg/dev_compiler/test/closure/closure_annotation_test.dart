@@ -7,7 +7,7 @@ library dev_compiler.test.closure_annotation_test;
 import 'package:test/test.dart';
 
 import 'package:dev_compiler/src/closure/closure_annotation.dart';
-import 'package:dev_compiler/src/js/js_ast.dart' show TypeRef, Identifier;
+import 'package:dev_compiler/src/js_ast/js_ast.dart' show TypeRef, Identifier;
 
 void main() {
   group('ClosureAnnotation', () {

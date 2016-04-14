@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 var assert = chai.assert;
-var core = dart_library.import('dart/core');
-var collection = dart_library.import('dart/collection');
-var dart = dart_library.import('dart/_runtime');
+var dart_sdk = dart_library.import('dart_sdk');
+var core = dart_sdk.core;
+var collection = dart_sdk.collection;
+var dart = dart_sdk.dart;
 var dartx = dart.dartx;
 
 suite('generic', () => {

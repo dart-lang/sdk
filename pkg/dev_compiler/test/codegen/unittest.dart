@@ -7,27 +7,28 @@
 library minitest;
 
 import 'dart:async';
-import 'package:dom/dom.dart';
+import 'dart:js';
 import 'package:matcher/matcher.dart';
 export 'package:matcher/matcher.dart';
 
-void group(String name, void body()) => (window as dynamic).suite(name, body);
+void group(String name, void body()) => context.callMethod('suite', [name, body]);
 
 void test(String name, body(), {String skip}) {
   if (skip != null) {
     print('SKIP $name: $skip');
     return;
   }
-  (window as dynamic).test(name, (done) {
+  JsObject result = context.callMethod('test', [name, (JsFunction done) {
     _finishTest(f) {
       if (f is Future) {
         f.then(_finishTest);
       } else {
-        done();
+        done.apply([]);
       }
     }
     _finishTest(body());
-  });
+  }]);
+  result['async'] = 1;
 }
 
 

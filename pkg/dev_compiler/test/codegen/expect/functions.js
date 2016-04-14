@@ -1,33 +1,29 @@
 dart_library.library('functions', null, /* Imports */[
-  'dart/_runtime',
-  'dart/core'
-], /* Lazy imports */[
-], function(exports, dart, core) {
+  'dart_sdk'
+], function(exports, dart_sdk) {
   'use strict';
-  let dartx = dart.dartx;
-  function bootstrap() {
-    return dart.list([new Foo()], Foo);
-  }
-  dart.fn(bootstrap, () => dart.definiteFunctionType(core.List$(Foo), []));
-  const A2B$ = dart.generic(function(A, B) {
+  const core = dart_sdk.core;
+  const dart = dart_sdk.dart;
+  const dartx = dart_sdk.dartx;
+  const functions = Object.create(null);
+  functions.bootstrap = function() {
+    return dart.list([new functions.Foo()], functions.Foo);
+  };
+  dart.fn(functions.bootstrap, () => dart.definiteFunctionType(core.List$(functions.Foo), []));
+  functions.A2B$ = dart.generic((A, B) => {
     const A2B = dart.typedef('A2B', () => dart.functionType(B, [A]));
     return A2B;
   });
-  let A2B = A2B$();
-  function id(f) {
+  functions.A2B = functions.A2B$();
+  functions.id = function(f) {
     return f;
-  }
-  dart.fn(id, () => dart.definiteFunctionType(A2B$(Foo, Foo), [A2B$(Foo, Foo)]));
-  class Foo extends core.Object {}
-  function main() {
-    core.print(bootstrap()[dartx.get](0));
-  }
-  dart.fn(main, dart.void, []);
+  };
+  dart.fn(functions.id, () => dart.definiteFunctionType(functions.A2B$(functions.Foo, functions.Foo), [functions.A2B$(functions.Foo, functions.Foo)]));
+  functions.Foo = class Foo extends core.Object {};
+  functions.main = function() {
+    core.print(functions.bootstrap()[dartx.get](0));
+  };
+  dart.fn(functions.main, dart.void, []);
   // Exports:
-  exports.bootstrap = bootstrap;
-  exports.A2B$ = A2B$;
-  exports.A2B = A2B;
-  exports.id = id;
-  exports.Foo = Foo;
-  exports.main = main;
+  exports.functions = functions;
 });

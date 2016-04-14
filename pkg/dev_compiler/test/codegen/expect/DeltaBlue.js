@@ -1,34 +1,93 @@
 dart_library.library('DeltaBlue', null, /* Imports */[
-  'dart/_runtime',
-  'BenchmarkBase',
-  'dart/core'
-], /* Lazy imports */[
-], function(exports, dart, BenchmarkBase, core) {
+  'dart_sdk'
+], function(exports, dart_sdk) {
   'use strict';
-  let dartx = dart.dartx;
-  function main() {
-    new DeltaBlue().report();
-  }
-  dart.fn(main);
-  class DeltaBlue extends BenchmarkBase.BenchmarkBase {
+  const core = dart_sdk.core;
+  const dart = dart_sdk.dart;
+  const dartx = dart_sdk.dartx;
+  const DeltaBlue$ = Object.create(null);
+  const BenchmarkBase$ = Object.create(null);
+  DeltaBlue$.main = function() {
+    new DeltaBlue$.DeltaBlue().report();
+  };
+  dart.fn(DeltaBlue$.main);
+  BenchmarkBase$.BenchmarkBase = class BenchmarkBase extends core.Object {
+    BenchmarkBase(name) {
+      this.name = name;
+    }
+    run() {}
+    warmup() {
+      this.run();
+    }
+    exercise() {
+      for (let i = 0; i < 10; i++) {
+        this.run();
+      }
+    }
+    setup() {}
+    teardown() {}
+    static measureFor(f, timeMinimum) {
+      let time = 0;
+      let iter = 0;
+      let watch = new core.Stopwatch();
+      watch.start();
+      let elapsed = 0;
+      while (dart.notNull(elapsed) < dart.notNull(timeMinimum)) {
+        dart.dcall(f);
+        elapsed = watch.elapsedMilliseconds;
+        iter++;
+      }
+      return 1000.0 * dart.notNull(elapsed) / iter;
+    }
+    measure() {
+      this.setup();
+      BenchmarkBase$.BenchmarkBase.measureFor(dart.fn(() => {
+        this.warmup();
+      }), 100);
+      let result = BenchmarkBase$.BenchmarkBase.measureFor(dart.fn(() => {
+        this.exercise();
+      }), 2000);
+      this.teardown();
+      return result;
+    }
+    report() {
+      let score = this.measure();
+      core.print(`${this.name}(RunTime): ${score} us.`);
+    }
+  };
+  dart.setSignature(BenchmarkBase$.BenchmarkBase, {
+    constructors: () => ({BenchmarkBase: [BenchmarkBase$.BenchmarkBase, [core.String]]}),
+    methods: () => ({
+      run: [dart.void, []],
+      warmup: [dart.void, []],
+      exercise: [dart.void, []],
+      setup: [dart.void, []],
+      teardown: [dart.void, []],
+      measure: [core.double, []],
+      report: [dart.void, []]
+    }),
+    statics: () => ({measureFor: [core.double, [core.Function, core.int]]}),
+    names: ['measureFor']
+  });
+  DeltaBlue$.DeltaBlue = class DeltaBlue extends BenchmarkBase$.BenchmarkBase {
     DeltaBlue() {
       super.BenchmarkBase("DeltaBlue");
     }
     run() {
-      chainTest(100);
-      projectionTest(100);
+      DeltaBlue$.chainTest(100);
+      DeltaBlue$.projectionTest(100);
     }
-  }
-  dart.setSignature(DeltaBlue, {
-    constructors: () => ({DeltaBlue: [DeltaBlue, []]})
+  };
+  dart.setSignature(DeltaBlue$.DeltaBlue, {
+    constructors: () => ({DeltaBlue: [DeltaBlue$.DeltaBlue, []]})
   });
-  class Strength extends core.Object {
+  DeltaBlue$.Strength = class Strength extends core.Object {
     Strength(value, name) {
       this.value = value;
       this.name = name;
     }
     nextWeaker() {
-      return dart.const(dart.list([STRONG_PREFERRED, PREFERRED, STRONG_DEFAULT, NORMAL, WEAK_DEFAULT, WEAKEST], Strength))[dartx.get](this.value);
+      return dart.const(dart.list([DeltaBlue$.STRONG_PREFERRED, DeltaBlue$.PREFERRED, DeltaBlue$.STRONG_DEFAULT, DeltaBlue$.NORMAL, DeltaBlue$.WEAK_DEFAULT, DeltaBlue$.WEAKEST], DeltaBlue$.Strength))[dartx.get](this.value);
     }
     static stronger(s1, s2) {
       return dart.notNull(s1.value) < dart.notNull(s2.value);
@@ -37,42 +96,42 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       return dart.notNull(s1.value) > dart.notNull(s2.value);
     }
     static weakest(s1, s2) {
-      return dart.notNull(Strength.weaker(s1, s2)) ? s1 : s2;
+      return dart.notNull(DeltaBlue$.Strength.weaker(s1, s2)) ? s1 : s2;
     }
     static strongest(s1, s2) {
-      return dart.notNull(Strength.stronger(s1, s2)) ? s1 : s2;
+      return dart.notNull(DeltaBlue$.Strength.stronger(s1, s2)) ? s1 : s2;
     }
-  }
-  dart.setSignature(Strength, {
-    constructors: () => ({Strength: [Strength, [core.int, core.String]]}),
-    methods: () => ({nextWeaker: [Strength, []]}),
+  };
+  dart.setSignature(DeltaBlue$.Strength, {
+    constructors: () => ({Strength: [DeltaBlue$.Strength, [core.int, core.String]]}),
+    methods: () => ({nextWeaker: [DeltaBlue$.Strength, []]}),
     statics: () => ({
-      stronger: [core.bool, [Strength, Strength]],
-      weaker: [core.bool, [Strength, Strength]],
-      weakest: [Strength, [Strength, Strength]],
-      strongest: [Strength, [Strength, Strength]]
+      stronger: [core.bool, [DeltaBlue$.Strength, DeltaBlue$.Strength]],
+      weaker: [core.bool, [DeltaBlue$.Strength, DeltaBlue$.Strength]],
+      weakest: [DeltaBlue$.Strength, [DeltaBlue$.Strength, DeltaBlue$.Strength]],
+      strongest: [DeltaBlue$.Strength, [DeltaBlue$.Strength, DeltaBlue$.Strength]]
     }),
     names: ['stronger', 'weaker', 'weakest', 'strongest']
   });
-  const REQUIRED = dart.const(new Strength(0, "required"));
-  const STRONG_PREFERRED = dart.const(new Strength(1, "strongPreferred"));
-  const PREFERRED = dart.const(new Strength(2, "preferred"));
-  const STRONG_DEFAULT = dart.const(new Strength(3, "strongDefault"));
-  const NORMAL = dart.const(new Strength(4, "normal"));
-  const WEAK_DEFAULT = dart.const(new Strength(5, "weakDefault"));
-  const WEAKEST = dart.const(new Strength(6, "weakest"));
-  class Constraint extends core.Object {
+  DeltaBlue$.REQUIRED = dart.const(new DeltaBlue$.Strength(0, "required"));
+  DeltaBlue$.STRONG_PREFERRED = dart.const(new DeltaBlue$.Strength(1, "strongPreferred"));
+  DeltaBlue$.PREFERRED = dart.const(new DeltaBlue$.Strength(2, "preferred"));
+  DeltaBlue$.STRONG_DEFAULT = dart.const(new DeltaBlue$.Strength(3, "strongDefault"));
+  DeltaBlue$.NORMAL = dart.const(new DeltaBlue$.Strength(4, "normal"));
+  DeltaBlue$.WEAK_DEFAULT = dart.const(new DeltaBlue$.Strength(5, "weakDefault"));
+  DeltaBlue$.WEAKEST = dart.const(new DeltaBlue$.Strength(6, "weakest"));
+  DeltaBlue$.Constraint = class Constraint extends core.Object {
     Constraint(strength) {
       this.strength = strength;
     }
     addConstraint() {
       this.addToGraph();
-      exports.planner.incrementalAdd(this);
+      DeltaBlue$.planner.incrementalAdd(this);
     }
     satisfy(mark) {
       this.chooseMethod(dart.as(mark, core.int));
       if (!dart.notNull(this.isSatisfied())) {
-        if (dart.equals(this.strength, REQUIRED)) {
+        if (dart.equals(this.strength, DeltaBlue$.REQUIRED)) {
           core.print("Could not satisfy a required constraint!");
         }
         return null;
@@ -82,28 +141,28 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       let overridden = out.determinedBy;
       if (overridden != null) overridden.markUnsatisfied();
       out.determinedBy = this;
-      if (!dart.notNull(exports.planner.addPropagate(this, dart.as(mark, core.int)))) core.print("Cycle encountered");
+      if (!dart.notNull(DeltaBlue$.planner.addPropagate(this, dart.as(mark, core.int)))) core.print("Cycle encountered");
       out.mark = dart.as(mark, core.int);
       return overridden;
     }
     destroyConstraint() {
-      if (dart.notNull(this.isSatisfied())) exports.planner.incrementalRemove(this);
+      if (dart.notNull(this.isSatisfied())) DeltaBlue$.planner.incrementalRemove(this);
       this.removeFromGraph();
     }
     isInput() {
       return false;
     }
-  }
-  dart.setSignature(Constraint, {
-    constructors: () => ({Constraint: [Constraint, [Strength]]}),
+  };
+  dart.setSignature(DeltaBlue$.Constraint, {
+    constructors: () => ({Constraint: [DeltaBlue$.Constraint, [DeltaBlue$.Strength]]}),
     methods: () => ({
       addConstraint: [dart.void, []],
-      satisfy: [Constraint, [dart.dynamic]],
+      satisfy: [DeltaBlue$.Constraint, [dart.dynamic]],
       destroyConstraint: [dart.void, []],
       isInput: [core.bool, []]
     })
   });
-  class UnaryConstraint extends Constraint {
+  DeltaBlue$.UnaryConstraint = class UnaryConstraint extends DeltaBlue$.Constraint {
     UnaryConstraint(myOutput, strength) {
       this.myOutput = myOutput;
       this.satisfied = false;
@@ -115,7 +174,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       this.satisfied = false;
     }
     chooseMethod(mark) {
-      this.satisfied = this.myOutput.mark != mark && dart.notNull(Strength.stronger(this.strength, this.myOutput.walkStrength));
+      this.satisfied = this.myOutput.mark != mark && dart.notNull(DeltaBlue$.Strength.stronger(this.strength, this.myOutput.walkStrength));
     }
     isSatisfied() {
       return this.satisfied;
@@ -139,32 +198,32 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       if (this.myOutput != null) this.myOutput.removeConstraint(this);
       this.satisfied = false;
     }
-  }
-  dart.setSignature(UnaryConstraint, {
-    constructors: () => ({UnaryConstraint: [UnaryConstraint, [Variable, Strength]]}),
+  };
+  dart.setSignature(DeltaBlue$.UnaryConstraint, {
+    constructors: () => ({UnaryConstraint: [DeltaBlue$.UnaryConstraint, [DeltaBlue$.Variable, DeltaBlue$.Strength]]}),
     methods: () => ({
       addToGraph: [dart.void, []],
       chooseMethod: [dart.void, [core.int]],
       isSatisfied: [core.bool, []],
       markInputs: [dart.void, [core.int]],
-      output: [Variable, []],
+      output: [DeltaBlue$.Variable, []],
       recalculate: [dart.void, []],
       markUnsatisfied: [dart.void, []],
       inputsKnown: [core.bool, [core.int]],
       removeFromGraph: [dart.void, []]
     })
   });
-  class StayConstraint extends UnaryConstraint {
+  DeltaBlue$.StayConstraint = class StayConstraint extends DeltaBlue$.UnaryConstraint {
     StayConstraint(v, str) {
       super.UnaryConstraint(v, str);
     }
     execute() {}
-  }
-  dart.setSignature(StayConstraint, {
-    constructors: () => ({StayConstraint: [StayConstraint, [Variable, Strength]]}),
+  };
+  dart.setSignature(DeltaBlue$.StayConstraint, {
+    constructors: () => ({StayConstraint: [DeltaBlue$.StayConstraint, [DeltaBlue$.Variable, DeltaBlue$.Strength]]}),
     methods: () => ({execute: [dart.void, []]})
   });
-  class EditConstraint extends UnaryConstraint {
+  DeltaBlue$.EditConstraint = class EditConstraint extends DeltaBlue$.UnaryConstraint {
     EditConstraint(v, str) {
       super.UnaryConstraint(v, str);
     }
@@ -172,60 +231,60 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       return true;
     }
     execute() {}
-  }
-  dart.setSignature(EditConstraint, {
-    constructors: () => ({EditConstraint: [EditConstraint, [Variable, Strength]]}),
+  };
+  dart.setSignature(DeltaBlue$.EditConstraint, {
+    constructors: () => ({EditConstraint: [DeltaBlue$.EditConstraint, [DeltaBlue$.Variable, DeltaBlue$.Strength]]}),
     methods: () => ({execute: [dart.void, []]})
   });
-  const NONE = 1;
-  const FORWARD = 2;
-  const BACKWARD = 0;
-  class BinaryConstraint extends Constraint {
+  DeltaBlue$.NONE = 1;
+  DeltaBlue$.FORWARD = 2;
+  DeltaBlue$.BACKWARD = 0;
+  DeltaBlue$.BinaryConstraint = class BinaryConstraint extends DeltaBlue$.Constraint {
     BinaryConstraint(v1, v2, strength) {
       this.v1 = v1;
       this.v2 = v2;
-      this.direction = NONE;
+      this.direction = DeltaBlue$.NONE;
       super.Constraint(strength);
       this.addConstraint();
     }
     chooseMethod(mark) {
       if (this.v1.mark == mark) {
-        this.direction = this.v2.mark != mark && dart.notNull(Strength.stronger(this.strength, this.v2.walkStrength)) ? FORWARD : NONE;
+        this.direction = this.v2.mark != mark && dart.notNull(DeltaBlue$.Strength.stronger(this.strength, this.v2.walkStrength)) ? DeltaBlue$.FORWARD : DeltaBlue$.NONE;
       }
       if (this.v2.mark == mark) {
-        this.direction = this.v1.mark != mark && dart.notNull(Strength.stronger(this.strength, this.v1.walkStrength)) ? BACKWARD : NONE;
+        this.direction = this.v1.mark != mark && dart.notNull(DeltaBlue$.Strength.stronger(this.strength, this.v1.walkStrength)) ? DeltaBlue$.BACKWARD : DeltaBlue$.NONE;
       }
-      if (dart.notNull(Strength.weaker(this.v1.walkStrength, this.v2.walkStrength))) {
-        this.direction = dart.notNull(Strength.stronger(this.strength, this.v1.walkStrength)) ? BACKWARD : NONE;
+      if (dart.notNull(DeltaBlue$.Strength.weaker(this.v1.walkStrength, this.v2.walkStrength))) {
+        this.direction = dart.notNull(DeltaBlue$.Strength.stronger(this.strength, this.v1.walkStrength)) ? DeltaBlue$.BACKWARD : DeltaBlue$.NONE;
       } else {
-        this.direction = dart.notNull(Strength.stronger(this.strength, this.v2.walkStrength)) ? FORWARD : BACKWARD;
+        this.direction = dart.notNull(DeltaBlue$.Strength.stronger(this.strength, this.v2.walkStrength)) ? DeltaBlue$.FORWARD : DeltaBlue$.BACKWARD;
       }
     }
     addToGraph() {
       this.v1.addConstraint(this);
       this.v2.addConstraint(this);
-      this.direction = NONE;
+      this.direction = DeltaBlue$.NONE;
     }
     isSatisfied() {
-      return this.direction != NONE;
+      return this.direction != DeltaBlue$.NONE;
     }
     markInputs(mark) {
       this.input().mark = mark;
     }
     input() {
-      return this.direction == FORWARD ? this.v1 : this.v2;
+      return this.direction == DeltaBlue$.FORWARD ? this.v1 : this.v2;
     }
     output() {
-      return this.direction == FORWARD ? this.v2 : this.v1;
+      return this.direction == DeltaBlue$.FORWARD ? this.v2 : this.v1;
     }
     recalculate() {
       let ihn = this.input(), out = this.output();
-      out.walkStrength = Strength.weakest(this.strength, ihn.walkStrength);
+      out.walkStrength = DeltaBlue$.Strength.weakest(this.strength, ihn.walkStrength);
       out.stay = ihn.stay;
       if (dart.notNull(out.stay)) this.execute();
     }
     markUnsatisfied() {
-      this.direction = NONE;
+      this.direction = DeltaBlue$.NONE;
     }
     inputsKnown(mark) {
       let i = this.input();
@@ -234,25 +293,25 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     removeFromGraph() {
       if (this.v1 != null) this.v1.removeConstraint(this);
       if (this.v2 != null) this.v2.removeConstraint(this);
-      this.direction = NONE;
+      this.direction = DeltaBlue$.NONE;
     }
-  }
-  dart.setSignature(BinaryConstraint, {
-    constructors: () => ({BinaryConstraint: [BinaryConstraint, [Variable, Variable, Strength]]}),
+  };
+  dart.setSignature(DeltaBlue$.BinaryConstraint, {
+    constructors: () => ({BinaryConstraint: [DeltaBlue$.BinaryConstraint, [DeltaBlue$.Variable, DeltaBlue$.Variable, DeltaBlue$.Strength]]}),
     methods: () => ({
       chooseMethod: [dart.void, [core.int]],
       addToGraph: [dart.void, []],
       isSatisfied: [core.bool, []],
       markInputs: [dart.void, [core.int]],
-      input: [Variable, []],
-      output: [Variable, []],
+      input: [DeltaBlue$.Variable, []],
+      output: [DeltaBlue$.Variable, []],
       recalculate: [dart.void, []],
       markUnsatisfied: [dart.void, []],
       inputsKnown: [core.bool, [core.int]],
       removeFromGraph: [dart.void, []]
     })
   });
-  class ScaleConstraint extends BinaryConstraint {
+  DeltaBlue$.ScaleConstraint = class ScaleConstraint extends DeltaBlue$.BinaryConstraint {
     ScaleConstraint(src, scale, offset, dest, strength) {
       this.scale = scale;
       this.offset = offset;
@@ -273,7 +332,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       this.scale.mark = this.offset.mark = mark;
     }
     execute() {
-      if (this.direction == FORWARD) {
+      if (this.direction == DeltaBlue$.FORWARD) {
         this.v2.value = dart.notNull(this.v1.value) * dart.notNull(this.scale.value) + dart.notNull(this.offset.value);
       } else {
         this.v1.value = ((dart.notNull(this.v2.value) - dart.notNull(this.offset.value)) / dart.notNull(this.scale.value))[dartx.truncate]();
@@ -281,35 +340,35 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     }
     recalculate() {
       let ihn = this.input(), out = this.output();
-      out.walkStrength = Strength.weakest(this.strength, ihn.walkStrength);
+      out.walkStrength = DeltaBlue$.Strength.weakest(this.strength, ihn.walkStrength);
       out.stay = dart.notNull(ihn.stay) && dart.notNull(this.scale.stay) && dart.notNull(this.offset.stay);
       if (dart.notNull(out.stay)) this.execute();
     }
-  }
-  dart.setSignature(ScaleConstraint, {
-    constructors: () => ({ScaleConstraint: [ScaleConstraint, [Variable, Variable, Variable, Variable, Strength]]}),
+  };
+  dart.setSignature(DeltaBlue$.ScaleConstraint, {
+    constructors: () => ({ScaleConstraint: [DeltaBlue$.ScaleConstraint, [DeltaBlue$.Variable, DeltaBlue$.Variable, DeltaBlue$.Variable, DeltaBlue$.Variable, DeltaBlue$.Strength]]}),
     methods: () => ({execute: [dart.void, []]})
   });
-  class EqualityConstraint extends BinaryConstraint {
+  DeltaBlue$.EqualityConstraint = class EqualityConstraint extends DeltaBlue$.BinaryConstraint {
     EqualityConstraint(v1, v2, strength) {
       super.BinaryConstraint(v1, v2, strength);
     }
     execute() {
       this.output().value = this.input().value;
     }
-  }
-  dart.setSignature(EqualityConstraint, {
-    constructors: () => ({EqualityConstraint: [EqualityConstraint, [Variable, Variable, Strength]]}),
+  };
+  dart.setSignature(DeltaBlue$.EqualityConstraint, {
+    constructors: () => ({EqualityConstraint: [DeltaBlue$.EqualityConstraint, [DeltaBlue$.Variable, DeltaBlue$.Variable, DeltaBlue$.Strength]]}),
     methods: () => ({execute: [dart.void, []]})
   });
-  class Variable extends core.Object {
+  DeltaBlue$.Variable = class Variable extends core.Object {
     Variable(name, value) {
-      this.constraints = dart.list([], Constraint);
+      this.constraints = dart.list([], DeltaBlue$.Constraint);
       this.name = name;
       this.value = value;
       this.determinedBy = null;
       this.mark = 0;
-      this.walkStrength = WEAKEST;
+      this.walkStrength = DeltaBlue$.WEAKEST;
       this.stay = true;
     }
     addConstraint(c) {
@@ -319,15 +378,15 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       this.constraints[dartx.remove](c);
       if (dart.equals(this.determinedBy, c)) this.determinedBy = null;
     }
-  }
-  dart.setSignature(Variable, {
-    constructors: () => ({Variable: [Variable, [core.String, core.int]]}),
+  };
+  dart.setSignature(DeltaBlue$.Variable, {
+    constructors: () => ({Variable: [DeltaBlue$.Variable, [core.String, core.int]]}),
     methods: () => ({
-      addConstraint: [dart.void, [Constraint]],
-      removeConstraint: [dart.void, [Constraint]]
+      addConstraint: [dart.void, [DeltaBlue$.Constraint]],
+      removeConstraint: [dart.void, [DeltaBlue$.Constraint]]
     })
   });
-  class Planner extends core.Object {
+  DeltaBlue$.Planner = class Planner extends core.Object {
     Planner() {
       this.currentMark = 0;
     }
@@ -341,21 +400,21 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       c.markUnsatisfied();
       c.removeFromGraph();
       let unsatisfied = this.removePropagateFrom(out);
-      let strength = REQUIRED;
+      let strength = DeltaBlue$.REQUIRED;
       do {
         for (let i = 0; i < dart.notNull(unsatisfied[dartx.length]); i++) {
           let u = unsatisfied[dartx.get](i);
           if (dart.equals(u.strength, strength)) this.incrementalAdd(u);
         }
         strength = strength.nextWeaker();
-      } while (!dart.equals(strength, WEAKEST));
+      } while (!dart.equals(strength, DeltaBlue$.WEAKEST));
     }
     newMark() {
       return this.currentMark = dart.notNull(this.currentMark) + 1;
     }
     makePlan(sources) {
       let mark = this.newMark();
-      let plan = new Plan();
+      let plan = new DeltaBlue$.Plan();
       let todo = sources;
       while (dart.notNull(todo[dartx.length]) > 0) {
         let c = todo[dartx.removeLast]();
@@ -368,7 +427,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       return plan;
     }
     extractPlanFromConstraints(constraints) {
-      let sources = dart.list([], Constraint);
+      let sources = dart.list([], DeltaBlue$.Constraint);
       for (let i = 0; i < dart.notNull(constraints[dartx.length]); i++) {
         let c = constraints[dartx.get](i);
         if (dart.notNull(c.isInput()) && dart.notNull(c.isSatisfied())) sources[dartx.add](c);
@@ -376,7 +435,7 @@ dart_library.library('DeltaBlue', null, /* Imports */[
       return this.makePlan(sources);
     }
     addPropagate(c, mark) {
-      let todo = dart.list([c], Constraint);
+      let todo = dart.list([c], DeltaBlue$.Constraint);
       while (dart.notNull(todo[dartx.length]) > 0) {
         let d = todo[dartx.removeLast]();
         if (d.output().mark == mark) {
@@ -390,10 +449,10 @@ dart_library.library('DeltaBlue', null, /* Imports */[
     }
     removePropagateFrom(out) {
       out.determinedBy = null;
-      out.walkStrength = WEAKEST;
+      out.walkStrength = DeltaBlue$.WEAKEST;
       out.stay = true;
-      let unsatisfied = dart.list([], Constraint);
-      let todo = dart.list([out], Variable);
+      let unsatisfied = dart.list([], DeltaBlue$.Constraint);
+      let todo = dart.list([out], DeltaBlue$.Variable);
       while (dart.notNull(todo[dartx.length]) > 0) {
         let v = todo[dartx.removeLast]();
         for (let i = 0; i < dart.notNull(v.constraints[dartx.length]); i++) {
@@ -418,22 +477,22 @@ dart_library.library('DeltaBlue', null, /* Imports */[
         if (!dart.equals(c, determining) && dart.notNull(c.isSatisfied())) coll[dartx.add](c);
       }
     }
-  }
-  dart.setSignature(Planner, {
+  };
+  dart.setSignature(DeltaBlue$.Planner, {
     methods: () => ({
-      incrementalAdd: [dart.void, [Constraint]],
-      incrementalRemove: [dart.void, [Constraint]],
+      incrementalAdd: [dart.void, [DeltaBlue$.Constraint]],
+      incrementalRemove: [dart.void, [DeltaBlue$.Constraint]],
       newMark: [core.int, []],
-      makePlan: [Plan, [core.List$(Constraint)]],
-      extractPlanFromConstraints: [Plan, [core.List$(Constraint)]],
-      addPropagate: [core.bool, [Constraint, core.int]],
-      removePropagateFrom: [core.List$(Constraint), [Variable]],
-      addConstraintsConsumingTo: [dart.void, [Variable, core.List$(Constraint)]]
+      makePlan: [DeltaBlue$.Plan, [core.List$(DeltaBlue$.Constraint)]],
+      extractPlanFromConstraints: [DeltaBlue$.Plan, [core.List$(DeltaBlue$.Constraint)]],
+      addPropagate: [core.bool, [DeltaBlue$.Constraint, core.int]],
+      removePropagateFrom: [core.List$(DeltaBlue$.Constraint), [DeltaBlue$.Variable]],
+      addConstraintsConsumingTo: [dart.void, [DeltaBlue$.Variable, core.List$(DeltaBlue$.Constraint)]]
     })
   });
-  class Plan extends core.Object {
+  DeltaBlue$.Plan = class Plan extends core.Object {
     Plan() {
-      this.list = dart.list([], Constraint);
+      this.list = dart.list([], DeltaBlue$.Constraint);
     }
     addConstraint(c) {
       this.list[dartx.add](c);
@@ -446,27 +505,27 @@ dart_library.library('DeltaBlue', null, /* Imports */[
         this.list[dartx.get](i).execute();
       }
     }
-  }
-  dart.setSignature(Plan, {
+  };
+  dart.setSignature(DeltaBlue$.Plan, {
     methods: () => ({
-      addConstraint: [dart.void, [Constraint]],
+      addConstraint: [dart.void, [DeltaBlue$.Constraint]],
       size: [core.int, []],
       execute: [dart.void, []]
     })
   });
-  function chainTest(n) {
-    exports.planner = new Planner();
+  DeltaBlue$.chainTest = function(n) {
+    DeltaBlue$.planner = new DeltaBlue$.Planner();
     let prev = null, first = null, last = null;
     for (let i = 0; i <= dart.notNull(n); i++) {
-      let v = new Variable("v", 0);
-      if (prev != null) new EqualityConstraint(prev, v, REQUIRED);
+      let v = new DeltaBlue$.Variable("v", 0);
+      if (prev != null) new DeltaBlue$.EqualityConstraint(prev, v, DeltaBlue$.REQUIRED);
       if (i == 0) first = v;
       if (i == n) last = v;
       prev = v;
     }
-    new StayConstraint(last, STRONG_DEFAULT);
-    let edit = new EditConstraint(first, PREFERRED);
-    let plan = exports.planner.extractPlanFromConstraints(dart.list([edit], Constraint));
+    new DeltaBlue$.StayConstraint(last, DeltaBlue$.STRONG_DEFAULT);
+    let edit = new DeltaBlue$.EditConstraint(first, DeltaBlue$.PREFERRED);
+    let plan = DeltaBlue$.planner.extractPlanFromConstraints(dart.list([edit], DeltaBlue$.Constraint));
     for (let i = 0; i < 100; i++) {
       first.value = i;
       plan.execute();
@@ -475,71 +534,73 @@ dart_library.library('DeltaBlue', null, /* Imports */[
         core.print(`Expected last value to be ${i} but it was ${last.value}.`);
       }
     }
-  }
-  dart.fn(chainTest, dart.void, [core.int]);
-  function projectionTest(n) {
-    exports.planner = new Planner();
-    let scale = new Variable("scale", 10);
-    let offset = new Variable("offset", 1000);
+  };
+  dart.fn(DeltaBlue$.chainTest, dart.void, [core.int]);
+  DeltaBlue$.projectionTest = function(n) {
+    DeltaBlue$.planner = new DeltaBlue$.Planner();
+    let scale = new DeltaBlue$.Variable("scale", 10);
+    let offset = new DeltaBlue$.Variable("offset", 1000);
     let src = null, dst = null;
-    let dests = dart.list([], Variable);
+    let dests = dart.list([], DeltaBlue$.Variable);
     for (let i = 0; i < dart.notNull(n); i++) {
-      src = new Variable("src", i);
-      dst = new Variable("dst", i);
+      src = new DeltaBlue$.Variable("src", i);
+      dst = new DeltaBlue$.Variable("dst", i);
       dests[dartx.add](dst);
-      new StayConstraint(src, NORMAL);
-      new ScaleConstraint(src, scale, offset, dst, REQUIRED);
+      new DeltaBlue$.StayConstraint(src, DeltaBlue$.NORMAL);
+      new DeltaBlue$.ScaleConstraint(src, scale, offset, dst, DeltaBlue$.REQUIRED);
     }
-    change(src, 17);
+    DeltaBlue$.change(src, 17);
     if (dst.value != 1170) core.print("Projection 1 failed");
-    change(dst, 1050);
+    DeltaBlue$.change(dst, 1050);
     if (src.value != 5) core.print("Projection 2 failed");
-    change(scale, 5);
+    DeltaBlue$.change(scale, 5);
     for (let i = 0; i < dart.notNull(n) - 1; i++) {
       if (dests[dartx.get](i).value != i * 5 + 1000) core.print("Projection 3 failed");
     }
-    change(offset, 2000);
+    DeltaBlue$.change(offset, 2000);
     for (let i = 0; i < dart.notNull(n) - 1; i++) {
       if (dests[dartx.get](i).value != i * 5 + 2000) core.print("Projection 4 failed");
     }
-  }
-  dart.fn(projectionTest, dart.void, [core.int]);
-  function change(v, newValue) {
-    let edit = new EditConstraint(v, PREFERRED);
-    let plan = exports.planner.extractPlanFromConstraints(dart.list([edit], EditConstraint));
+  };
+  dart.fn(DeltaBlue$.projectionTest, dart.void, [core.int]);
+  DeltaBlue$.change = function(v, newValue) {
+    let edit = new DeltaBlue$.EditConstraint(v, DeltaBlue$.PREFERRED);
+    let plan = DeltaBlue$.planner.extractPlanFromConstraints(dart.list([edit], DeltaBlue$.EditConstraint));
     for (let i = 0; i < 10; i++) {
       v.value = newValue;
       plan.execute();
     }
     edit.destroyConstraint();
-  }
-  dart.fn(change, dart.void, [Variable, core.int]);
-  exports.planner = null;
+  };
+  dart.fn(DeltaBlue$.change, dart.void, [DeltaBlue$.Variable, core.int]);
+  DeltaBlue$.planner = null;
+  BenchmarkBase$.Expect = class Expect extends core.Object {
+    static equals(expected, actual) {
+      if (!dart.equals(expected, actual)) {
+        dart.throw(`Values not equal: ${expected} vs ${actual}`);
+      }
+    }
+    static listEquals(expected, actual) {
+      if (expected[dartx.length] != actual[dartx.length]) {
+        dart.throw(`Lists have different lengths: ${expected[dartx.length]} vs ${actual[dartx.length]}`);
+      }
+      for (let i = 0; i < dart.notNull(actual[dartx.length]); i++) {
+        BenchmarkBase$.Expect.equals(expected[dartx.get](i), actual[dartx.get](i));
+      }
+    }
+    fail(message) {
+      dart.throw(message);
+    }
+  };
+  dart.setSignature(BenchmarkBase$.Expect, {
+    methods: () => ({fail: [dart.dynamic, [dart.dynamic]]}),
+    statics: () => ({
+      equals: [dart.void, [dart.dynamic, dart.dynamic]],
+      listEquals: [dart.void, [core.List, core.List]]
+    }),
+    names: ['equals', 'listEquals']
+  });
   // Exports:
-  exports.main = main;
-  exports.DeltaBlue = DeltaBlue;
-  exports.Strength = Strength;
-  exports.REQUIRED = REQUIRED;
-  exports.STRONG_PREFERRED = STRONG_PREFERRED;
-  exports.PREFERRED = PREFERRED;
-  exports.STRONG_DEFAULT = STRONG_DEFAULT;
-  exports.NORMAL = NORMAL;
-  exports.WEAK_DEFAULT = WEAK_DEFAULT;
-  exports.WEAKEST = WEAKEST;
-  exports.Constraint = Constraint;
-  exports.UnaryConstraint = UnaryConstraint;
-  exports.StayConstraint = StayConstraint;
-  exports.EditConstraint = EditConstraint;
-  exports.NONE = NONE;
-  exports.FORWARD = FORWARD;
-  exports.BACKWARD = BACKWARD;
-  exports.BinaryConstraint = BinaryConstraint;
-  exports.ScaleConstraint = ScaleConstraint;
-  exports.EqualityConstraint = EqualityConstraint;
-  exports.Variable = Variable;
-  exports.Planner = Planner;
-  exports.Plan = Plan;
-  exports.chainTest = chainTest;
-  exports.projectionTest = projectionTest;
-  exports.change = change;
+  exports.DeltaBlue = DeltaBlue$;
+  exports.BenchmarkBase = BenchmarkBase$;
 });

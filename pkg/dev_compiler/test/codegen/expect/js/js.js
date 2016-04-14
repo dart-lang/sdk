@@ -1,30 +1,31 @@
-dart_library.library('js/js', null, /* Imports */[
-  'dart/_runtime',
-  'dart/js',
-  'dart/core'
-], /* Lazy imports */[
-], function(exports, dart, js, core) {
+dart_library.library('js', null, /* Imports */[
+  'dart_sdk'
+], function(exports, dart_sdk) {
   'use strict';
-  let dartx = dart.dartx;
-  dart.export(exports, js, ['allowInterop', 'allowInteropCaptureThis'], []);
-  class JS extends core.Object {
+  const core = dart_sdk.core;
+  const js = dart_sdk.js;
+  const dart = dart_sdk.dart;
+  const dartx = dart_sdk.dartx;
+  const js$ = Object.create(null);
+  js$.JS = class JS extends core.Object {
     JS(name) {
       if (name === void 0) name = null;
       this.name = name;
     }
-  }
-  dart.setSignature(JS, {
-    constructors: () => ({JS: [JS, [], [core.String]]})
+  };
+  dart.setSignature(js$.JS, {
+    constructors: () => ({JS: [js$.JS, [], [core.String]]})
   });
-  class _Anonymous extends core.Object {
+  js$._Anonymous = class _Anonymous extends core.Object {
     _Anonymous() {
     }
-  }
-  dart.setSignature(_Anonymous, {
-    constructors: () => ({_Anonymous: [_Anonymous, []]})
+  };
+  dart.setSignature(js$._Anonymous, {
+    constructors: () => ({_Anonymous: [js$._Anonymous, []]})
   });
-  const anonymous = dart.const(new _Anonymous());
+  js$.anonymous = dart.const(new js$._Anonymous());
+  js$.allowInteropCaptureThis = js.allowInteropCaptureThis;
+  js$.allowInterop = js.allowInterop;
   // Exports:
-  exports.JS = JS;
-  exports.anonymous = anonymous;
+  exports.js = js$;
 });

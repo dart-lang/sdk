@@ -1,3 +1,4 @@
+// compile options: --closure-experimental --destructure-named-params --modules=es6
 library test;
 import 'dart:js';
 

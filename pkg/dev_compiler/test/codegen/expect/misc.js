@@ -1,22 +1,23 @@
 dart_library.library('misc', null, /* Imports */[
-  'dart/_runtime',
-  'dart/core'
-], /* Lazy imports */[
-], function(exports, dart, core) {
+  'dart_sdk'
+], function(exports, dart_sdk) {
   'use strict';
-  let dartx = dart.dartx;
-  class _Uninitialized extends core.Object {
+  const core = dart_sdk.core;
+  const dart = dart_sdk.dart;
+  const dartx = dart_sdk.dartx;
+  const misc = Object.create(null);
+  misc._Uninitialized = class _Uninitialized extends core.Object {
     _Uninitialized() {
     }
-  }
-  dart.setSignature(_Uninitialized, {
-    constructors: () => ({_Uninitialized: [_Uninitialized, []]})
+  };
+  dart.setSignature(misc._Uninitialized, {
+    constructors: () => ({_Uninitialized: [misc._Uninitialized, []]})
   });
-  const UNINITIALIZED = dart.const(new _Uninitialized());
-  const Generic$ = dart.generic(function(T) {
+  misc.UNINITIALIZED = dart.const(new misc._Uninitialized());
+  misc.Generic$ = dart.generic(T => {
     class Generic extends core.Object {
       get type() {
-        return Generic$();
+        return misc.Generic;
       }
       m() {
         return core.print(T);
@@ -27,48 +28,42 @@ dart_library.library('misc', null, /* Imports */[
     });
     return Generic;
   });
-  let Generic = Generic$();
-  class Base extends core.Object {
+  misc.Generic = misc.Generic$();
+  misc.Base = class Base extends core.Object {
     Base() {
       this.x = 1;
       this.y = 2;
     }
     ['=='](obj) {
-      return dart.is(obj, Base) && obj.x == this.x && obj.y == this.y;
+      return dart.is(obj, misc.Base) && obj.x == this.x && obj.y == this.y;
     }
-  }
-  class Derived extends core.Object {
+  };
+  misc.Derived = class Derived extends core.Object {
     Derived() {
       this.z = 3;
     }
     ['=='](obj) {
-      return dart.is(obj, Derived) && obj.z == this.z && super['=='](obj);
+      return dart.is(obj, misc.Derived) && obj.z == this.z && super['=='](obj);
     }
-  }
-  function _isWhitespace(ch) {
+  };
+  misc._isWhitespace = function(ch) {
     return ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t';
-  }
-  dart.fn(_isWhitespace, core.bool, [core.String]);
-  const expr = 'foo';
-  const _escapeMap = dart.const(dart.map({'\n': '\\n', '\r': '\\r', '\f': '\\f', '\b': '\\b', '\t': '\\t', '\v': '\\v', '': '\\x7F', [`\${${expr}}`]: ''}));
-  function main() {
+  };
+  dart.fn(misc._isWhitespace, core.bool, [core.String]);
+  misc.expr = 'foo';
+  misc._escapeMap = dart.const(dart.map({'\n': '\\n', '\r': '\\r', '\f': '\\f', '\b': '\\b', '\t': '\\t', '\v': '\\v', '': '\\x7F', [`\${${misc.expr}}`]: ''}));
+  misc.main = function() {
     core.print(dart.toString(1));
     core.print(dart.toString(1.0));
     core.print(dart.toString(1.1));
     let x = 42;
     core.print(dart.equals(x, dart.dynamic));
-    core.print(dart.equals(x, Generic));
-    core.print(new (Generic$(core.int))().type);
-    core.print(dart.equals(new Derived(), new Derived()));
-    new (Generic$(core.int))().m();
-  }
-  dart.fn(main);
+    core.print(dart.equals(x, misc.Generic));
+    core.print(new (misc.Generic$(core.int))().type);
+    core.print(dart.equals(new misc.Derived(), new misc.Derived()));
+    new (misc.Generic$(core.int))().m();
+  };
+  dart.fn(misc.main);
   // Exports:
-  exports.UNINITIALIZED = UNINITIALIZED;
-  exports.Generic$ = Generic$;
-  exports.Generic = Generic;
-  exports.Base = Base;
-  exports.Derived = Derived;
-  exports.expr = expr;
-  exports.main = main;
+  exports.misc = misc;
 });

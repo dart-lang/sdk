@@ -11,6 +11,6 @@ cd $( dirname "${BASH_SOURCE[0]}" )/..
 #   * subdirectories of test/ and tool/, unless explicitly added. Those dirs
 #     contain a lot of generated or external source we should not reformat.
 (files=`git ls-files 'bin/*.dart' 'lib/*.dart' test/*.dart test/checker/*.dart \
-  tool/*.dart | grep -v lib/src/js/`; git status -s $files | grep -q . \
+  tool/*.dart | grep -v lib/src/js_ast/`; git status -s $files | grep -q . \
   && echo "Did not run the formatter, please commit edited files first." \
   || (echo "Running dart formatter" ; pub run dart_style:format -w $files))
