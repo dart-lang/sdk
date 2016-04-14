@@ -157,7 +157,7 @@ class BuildMode {
         new DirectoryBasedDartSdk(new JavaFile(options.dartSdkPath));
     sdk.analysisOptions =
         Driver.createAnalysisOptionsForCommandLineOptions(options);
-    sdk.useSummary = true;
+    sdk.useSummary = !options.buildSummaryOnlyAst;
 
     // Read the summaries.
     summaryDataStore = new SummaryDataStore(options.buildSummaryInputs);
@@ -183,10 +183,12 @@ class BuildMode {
       }
     });
 
-    // Configure using summaries.
-    context.typeProvider = sdk.context.typeProvider;
-    context.resultProvider =
-        new InputPackagesResultProvider(context, summaryDataStore);
+    if (!options.buildSummaryOnlyAst) {
+      // Configure using summaries.
+      context.typeProvider = sdk.context.typeProvider;
+      context.resultProvider =
+          new InputPackagesResultProvider(context, summaryDataStore);
+    }
   }
 
   /**
