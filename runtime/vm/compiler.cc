@@ -1073,9 +1073,11 @@ bool CompileParsedFunctionHelper::Compile(CompilationPipeline* pipeline) {
             }
             FinalizeCompilation(&assembler, &graph_compiler, flow_graph);
           }
-          if (isolate()->heap()->NeedsGarbageCollection()) {
-            isolate()->heap()->CollectAllGarbage();
-          }
+          // TODO(srdjan): Enable this and remove the one from
+          // 'BackgroundCompiler::CompileOptimize'
+          // if (isolate()->heap()->NeedsGarbageCollection()) {
+          //   isolate()->heap()->CollectAllGarbage();
+          // }
         }
       }
       // Mark that this isolate now has compiled code.
@@ -1812,14 +1814,21 @@ void BackgroundCompiler::Run() {
 
 void BackgroundCompiler::CompileOptimized(const Function& function) {
   ASSERT(Thread::Current()->IsMutatorThread());
-  MonitorLocker ml(queue_monitor_);
-  ASSERT(running_);
-  if (function_queue()->ContainsObj(function)) {
-    return;
+  // TODO(srdjan): Checking different strategy for collecting garbage
+  // accumulated by background compiler.
+  if (isolate_->heap()->NeedsGarbageCollection()) {
+    isolate_->heap()->CollectAllGarbage();
   }
-  QueueElement* elem = new QueueElement(function);
-  function_queue()->Add(elem);
-  ml.Notify();
+  {
+    MonitorLocker ml(queue_monitor_);
+    ASSERT(running_);
+    if (function_queue()->ContainsObj(function)) {
+      return;
+    }
+    QueueElement* elem = new QueueElement(function);
+    function_queue()->Add(elem);
+    ml.Notify();
+  }
 }
 
 
