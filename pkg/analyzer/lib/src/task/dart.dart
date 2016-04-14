@@ -2342,6 +2342,8 @@ class DartDelta extends Delta {
  * of errors.
  */
 class DartErrorsTask extends SourceBasedAnalysisTask {
+  static final RegExp spacesRegExp = new RegExp(r'\s+');
+
   /**
    * The task descriptor describing this kind of task.
    */
@@ -2424,7 +2426,7 @@ class DartErrorsTask extends SourceBasedAnalysisTask {
 
       // Normalize content.
       String comment =
-          comments?.lexeme?.toLowerCase()?.replaceAll(new RegExp(r'\s+'), '');
+          comments?.lexeme?.toLowerCase()?.replaceAll(spacesRegExp, '');
 
       // Check for ignores.
       if (comment != null && comment.startsWith(_normalizedIgnorePrefix)) {
