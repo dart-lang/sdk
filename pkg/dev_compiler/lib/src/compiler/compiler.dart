@@ -54,10 +54,9 @@ class ModuleCompiler {
 
     for (var sourcePath in unit.sources) {
       String sourceUri = sourcePath;
-      if (path.isRelative(sourcePath)) {
-        sourceUri = path.absolute(sourceUri);
+      if (path.isAbsolute(sourcePath)) {
+        sourceUri = path.toUri(sourcePath).toString();
       }
-      sourceUri = path.toUri(sourceUri).toString();
       Source source = context.sourceFactory.forUri(sourceUri);
       if (source == null) {
         throw new AnalysisException('could not create a source for $sourcePath.'
