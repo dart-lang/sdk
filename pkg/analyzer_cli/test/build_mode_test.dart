@@ -49,6 +49,7 @@ class WorkerLoopTest {
       'package:foo/bar.dart|/inputs/foo/lib/bar.dart',
     ]);
     stdinStream.addInputBytes(_serializeProto(request));
+    stdinStream.close();
 
     new TestAnalyzerWorkerLoop(connection, (CommandLineOptions options) {
       expect(options.buildSummaryInputs,
@@ -82,6 +83,7 @@ class WorkerLoopTest {
     var request = new WorkRequest();
     request.arguments.addAll(['--unknown-option', '/foo.dart', '/bar.dart']);
     stdinStream.addInputBytes(_serializeProto(request));
+    stdinStream.close();
     new TestAnalyzerWorkerLoop(connection).run();
     expect(connection.responses, hasLength(1));
 
@@ -92,6 +94,7 @@ class WorkerLoopTest {
 
   test_run_invalidRequest_noArgumentsInputs() {
     stdinStream.addInputBytes(_serializeProto(new WorkRequest()));
+    stdinStream.close();
 
     new TestAnalyzerWorkerLoop(connection).run();
     expect(connection.responses, hasLength(1));
@@ -103,6 +106,7 @@ class WorkerLoopTest {
 
   test_run_invalidRequest_randomBytes() {
     stdinStream.addInputBytes([1, 2, 3]);
+    stdinStream.close();
     new TestAnalyzerWorkerLoop(connection).run();
     expect(connection.responses, hasLength(1));
 
@@ -112,7 +116,7 @@ class WorkerLoopTest {
   }
 
   test_run_stopAtEOF() {
-    stdinStream.addInputBytes([-1]);
+    stdinStream.close();
     new TestAnalyzerWorkerLoop(connection).run();
   }
 }
