@@ -564,6 +564,7 @@ class NodeListener extends ElementListener {
 
   void handleFunctionTypedFormalParameter(Token endToken) {
     NodeList formals = popNode();
+    popNode(); // typeVariables
     Identifier name = popNode();
     TypeAnnotation returnType = popNode();
     pushNode(null); // Signal "no type" to endFormalParameter.
@@ -753,6 +754,7 @@ class NodeListener extends ElementListener {
     Statement body = popNode();
     AsyncModifier asyncModifier = popNode();
     NodeList formals = popNode();
+    popNode(); // typeVariables
     pushNode(new FunctionExpression(
         null, formals, body, null, Modifiers.EMPTY, null, null, asyncModifier));
   }

@@ -1736,8 +1736,9 @@ class TypeAnnotation extends Node {
 
 class TypeVariable extends Node {
   final Identifier name;
+  final Token extendsOrSuper;
   final TypeAnnotation bound;
-  TypeVariable(Identifier this.name, TypeAnnotation this.bound);
+  TypeVariable(this.name, this.extendsOrSuper, this.bound);
 
   accept(Visitor visitor) => visitor.visitTypeVariable(this);
 

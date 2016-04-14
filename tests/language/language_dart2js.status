@@ -37,6 +37,7 @@ accessor_conflict_import_test: RuntimeError # Issue 25626
 
 # Experimental feature: Syntactic support for generic methods.
 generic_functions_test: CompileTimeError # Issue 25835
+generic_local_functions_test: CompileTimeError # Issue 25835
 generic_methods_test: CompileTimeError # Issue 25835
 generic_sends_test: CompileTimeError # Issue 25835
 
