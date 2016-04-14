@@ -44,7 +44,9 @@ namespace dart {
 DEFINE_FLAG(bool, enable_debug_break, false, "Allow use of break \"message\".");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warn_mixin_typedef, true, "Warning on legacy mixin typedef.");
-DEFINE_FLAG(bool, conditional_directives, false,
+// TODO(floitsch): remove the conditional-directive flag, once we publicly
+// committed to the current version.
+DEFINE_FLAG(bool, conditional_directives, true,
     "Enable conditional directives");
 DEFINE_FLAG(bool, warn_super, false,
     "Warning if super initializer not last in initializer list.");

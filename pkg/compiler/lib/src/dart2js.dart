@@ -326,7 +326,6 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler('--out=.+|-o.*', setOutput, multipleArguments: true),
     new OptionHandler(Flags.allowMockCompilation, passThrough),
     new OptionHandler(Flags.fastStartup, passThrough),
-    new OptionHandler(Flags.conditionalDirectives, passThrough),
     new OptionHandler(Flags.genericMethodSyntax, passThrough),
     new OptionHandler('${Flags.minify}|-m', implyCompilation),
     new OptionHandler(Flags.preserveUris, passThrough),
@@ -364,6 +363,10 @@ Future<api.CompilationResult> compile(List<String> argv) {
     new OptionHandler(Flags.useContentSecurityPolicy, passThrough),
     new OptionHandler(Flags.enableExperimentalMirrors, passThrough),
     new OptionHandler(Flags.enableAssertMessage, passThrough),
+    // TODO(floitsch): remove conditional directives flag.
+    // We don't provide the info-message yet, since we haven't publicly
+    // launched the feature yet.
+    new OptionHandler(Flags.conditionalDirectives, (_) {}),
     new OptionHandler('--enable-async', (_) {
       diagnosticHandler.info(
           "Option '--enable-async' is no longer needed. "

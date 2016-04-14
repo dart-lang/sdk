@@ -68,7 +68,7 @@ analyzer:
   }
 
   test_configure_enableConditionalDirectives() {
-    expect(analysisOptions.enableConditionalDirectives, false);
+    expect(analysisOptions.enableConditionalDirectives, true);
     configureContext('''
 analyzer:
   language:
