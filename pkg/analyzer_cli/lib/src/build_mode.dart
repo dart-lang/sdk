@@ -350,7 +350,6 @@ class WorkerLoop {
    * Performs analysis with given [options].
    */
   void analyze(CommandLineOptions options) {
-    options.dartSdkPath ??= dartSdkPath;
     new BuildMode(options, new AnalysisStats()).analyze();
   }
 
@@ -363,9 +362,16 @@ class WorkerLoop {
       if (request == null) {
         return true;
       }
+      // Add in the dart-sdk argument if `dartSdkPath` is not null, otherwise it
+      // will try to find the currently installed sdk.
+      var arguments = new List.from(request.arguments);
+      if (dartSdkPath != null &&
+          !arguments.any((arg) => arg.startsWith('--dart-sdk'))) {
+        arguments.add('--dart-sdk=$dartSdkPath');
+      }
       // Prepare options.
       CommandLineOptions options =
-          CommandLineOptions.parse(request.arguments, (String msg) {
+          CommandLineOptions.parse(arguments, (String msg) {
         throw new ArgumentError(msg);
       });
       // Analyze and respond.

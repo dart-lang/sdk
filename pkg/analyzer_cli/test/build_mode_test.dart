@@ -74,7 +74,7 @@ class WorkerLoopTest {
     expect(connection.outputList, hasLength(1));
 
     var response = connection.outputList[0];
-    expect(response.exitCode, WorkerLoop.EXIT_CODE_OK);
+    expect(response.exitCode, WorkerLoop.EXIT_CODE_OK, reason: response.output);
     expect(
         response.output,
         allOf(contains('errorSink a'), contains('errorSink a'),
