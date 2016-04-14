@@ -42,9 +42,6 @@ multiline_newline_test/06: MissingCompileTimeError # Issue 23888
 
 const_for_in_variable_test/01: MissingCompileTimeError # Issue 25161
 
-# Unsupported configuration specific imports.
-config_import_test: CompileTimeError # Issue 24579
-
 # Please add new failing tests before this line.
 # Section below is for invalid tests.
 #

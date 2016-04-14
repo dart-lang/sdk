@@ -20,6 +20,5 @@ class MockDiagnosticOptions implements DiagnosticOptions {
 }
 
 class MockParserOptions implements ParserOptions {
-  bool get enableConditionalDirectives => true;
   bool get enableGenericMethodSyntax => true;
 }

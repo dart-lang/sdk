@@ -1062,6 +1062,7 @@ abstract class AnalysisOptions {
   /**
    * Return `true` to enable interface libraries (DEP 40).
    */
+  @deprecated
   bool get enableConditionalDirectives;
 
   /**
@@ -1201,7 +1202,10 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   /**
    * A flag indicating whether interface libraries are to be supported (DEP 40).
    */
-  bool enableConditionalDirectives = false;
+  bool get enableConditionalDirectives => true;
+
+  @deprecated
+  void set enableConditionalDirectives(_) {}
 
   /**
    * A flag indicating whether generic methods are to be supported (DEP 22).
@@ -1297,7 +1301,6 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     dart2jsHint = options.dart2jsHint;
     enableAssertMessage = options.enableAssertMessage;
     enableAsync = options.enableAsync;
-    enableConditionalDirectives = options.enableConditionalDirectives;
     enableStrictCallChecks = options.enableStrictCallChecks;
     enableGenericMethods = options.enableGenericMethods;
     enableSuperMixins = options.enableSuperMixins;

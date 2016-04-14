@@ -49,8 +49,9 @@ class Flags {
   static const String verbose = '--verbose';
   static const String version = '--version';
 
-  // Experimental flags.
   static const String conditionalDirectives = '--conditional-directives';
+
+  // Experimental flags.
   static const String genericMethodSyntax = '--generic-method-syntax';
 }
 
