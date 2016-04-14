@@ -19,6 +19,8 @@ import 'package:compiler/src/diagnostics/messages.dart' show MessageKind;
  */
 // TODO(johnniwinther): Support canonical URIs as keys.
 const Map<String, List<String>> WHITE_LIST = const {
+  // Issue 26258
+  'html_dart2js.dart': const ["Cannot resolve type 'MutationEvent'."],
 };
 
 void main() {
