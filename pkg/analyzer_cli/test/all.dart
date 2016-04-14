@@ -6,7 +6,6 @@ import 'boot_loader_test.dart' as boot_loader;
 import 'build_mode_test.dart' as build_mode_test;
 import 'driver_test.dart' as driver;
 import 'error_test.dart' as error;
-import 'message_grouper_test.dart' as message_grouper;
 import 'options_test.dart' as options;
 import 'package_prefix_test.dart' as package_prefix;
 import 'perf_report_test.dart' as perf;
@@ -25,7 +24,6 @@ main() {
   //sdk_ext.main();
   //strong_mode.main();
   error.main();
-  message_grouper.main();
   options.main();
   perf.main();
   plugin_manager.main();

@@ -28,10 +28,7 @@ import 'package:analyzer_cli/src/analyzer_impl.dart';
 import 'package:analyzer_cli/src/driver.dart';
 import 'package:analyzer_cli/src/error_formatter.dart';
 import 'package:analyzer_cli/src/options.dart';
-import 'package:protobuf/protobuf.dart';
-
-import 'message_grouper.dart';
-import 'worker_protocol.pb.dart';
+import 'package:bazel_worker/bazel_worker.dart';
 
 /**
  * Analyzer used when the "--build-mode" option is supplied.
@@ -277,73 +274,22 @@ class BuildMode {
 }
 
 /**
- * Default implementation of [WorkerConnection] that works with stdio.
- */
-class StdWorkerConnection implements WorkerConnection {
-  final MessageGrouper _messageGrouper;
-  final io.Stdout _stdoutStream;
-
-  StdWorkerConnection(io.Stdin stdinStream, this._stdoutStream)
-      : _messageGrouper = new MessageGrouper(stdinStream);
-
-  @override
-  WorkRequest readRequest() {
-    var buffer = _messageGrouper.next;
-    if (buffer == null) return null;
-
-    return new WorkRequest.fromBuffer(buffer);
-  }
-
-  @override
-  void writeResponse(WorkResponse response) {
-    var responseBuffer = response.writeToBuffer();
-
-    var writer = new CodedBufferWriter();
-    writer.writeInt32NoTag(responseBuffer.length);
-    writer.writeRawBytes(responseBuffer);
-
-    _stdoutStream.add(writer.toBuffer());
-  }
-}
-
-/**
- * Connection between a worker and input / output.
- */
-abstract class WorkerConnection {
-  /**
-   * Read a new [WorkRequest]. Returns [null] when there are no more requests.
-   */
-  WorkRequest readRequest();
-
-  /**
-   * Write the given [response] as bytes to the output.
-   */
-  void writeResponse(WorkResponse response);
-}
-
-/**
  * Persistent Bazel worker.
  */
-class WorkerLoop {
-  static const int EXIT_CODE_OK = 0;
-  static const int EXIT_CODE_ERROR = 15;
-
-  final WorkerConnection connection;
-
+class AnalyzerWorkerLoop extends SyncWorkerLoop {
   final StringBuffer errorBuffer = new StringBuffer();
   final StringBuffer outBuffer = new StringBuffer();
 
   final String dartSdkPath;
 
-  WorkerLoop(this.connection, {this.dartSdkPath});
+  AnalyzerWorkerLoop(SyncWorkerConnection connection, {this.dartSdkPath})
+      : super(connection: connection);
 
-  factory WorkerLoop.std(
+  factory AnalyzerWorkerLoop.std(
       {io.Stdin stdinStream, io.Stdout stdoutStream, String dartSdkPath}) {
-    stdinStream ??= io.stdin;
-    stdoutStream ??= io.stdout;
-    WorkerConnection connection =
-        new StdWorkerConnection(stdinStream, stdoutStream);
-    return new WorkerLoop(connection, dartSdkPath: dartSdkPath);
+    SyncWorkerConnection connection = new StdSyncWorkerConnection(
+        stdinStream: stdinStream, stdoutStream: stdoutStream);
+    return new AnalyzerWorkerLoop(connection, dartSdkPath: dartSdkPath);
   }
 
   /**
@@ -354,14 +300,12 @@ class WorkerLoop {
   }
 
   /**
-   * Perform a single loop step.  Return `true` if should exit the loop.
+   * Perform a single loop step.
    */
-  bool performSingle() {
+  WorkResponse performRequest(WorkRequest request) {
+    errorBuffer.clear();
+    outBuffer.clear();
     try {
-      WorkRequest request = connection.readRequest();
-      if (request == null) {
-        return true;
-      }
       // Add in the dart-sdk argument if `dartSdkPath` is not null, otherwise it
       // will try to find the currently installed sdk.
       var arguments = new List.from(request.arguments);
@@ -377,36 +321,29 @@ class WorkerLoop {
       // Analyze and respond.
       analyze(options);
       String msg = _getErrorOutputBuffersText();
-      connection.writeResponse(new WorkResponse()
+      return new WorkResponse()
         ..exitCode = EXIT_CODE_OK
-        ..output = msg);
+        ..output = msg;
     } catch (e, st) {
       String msg = _getErrorOutputBuffersText();
-      msg += '$e \n $st';
-      connection.writeResponse(new WorkResponse()
+      msg += '$e\n$st';
+      return new WorkResponse()
         ..exitCode = EXIT_CODE_ERROR
-        ..output = msg);
+        ..output = msg;
     }
-    return false;
   }
 
   /**
    * Run the worker loop.
    */
+  @override
   void run() {
     errorSink = errorBuffer;
     outSink = outBuffer;
     exitHandler = (int exitCode) {
       return throw new StateError('Exit called: $exitCode');
     };
-    while (true) {
-      errorBuffer.clear();
-      outBuffer.clear();
-      bool shouldExit = performSingle();
-      if (shouldExit) {
-        break;
-      }
-    }
+    super.run();
   }
 
   String _getErrorOutputBuffersText() {

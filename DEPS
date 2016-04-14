@@ -32,6 +32,7 @@ vars = {
   "args_tag": "@0.13.4",
   "async_tag": "@1.9.0",
   "barback_tag" : "@0.15.2+7",
+  "bazel_worker_tag": "@v0.1.0",
   "boolean_selector_tag" : "@1.0.0",
   "boringssl_rev" : "@daeafc22c66ad48f6b32fc8d3362eb9ba31b774e",
   "charcode_tag": "@1.1.0",
@@ -150,6 +151,8 @@ deps = {
       (Var("github_mirror") % "async") + Var("async_tag"),
   Var("dart_root") + "/third_party/pkg/barback":
       (Var("github_mirror") % "barback") + Var("barback_tag"),
+  Var("dart_root") + "/third_party/pkg/bazel_worker":
+      (Var("github_dartlang") % "bazel_worker") + Var("bazel_worker_tag"),
   Var("dart_root") + "/third_party/pkg/boolean_selector":
       (Var("github_dartlang") % "boolean_selector") +
       Var("boolean_selector_tag"),
