@@ -28,6 +28,8 @@ fi
 unset COVERALLS_TOKEN
 pub run test:test test/all_tests.dart || fail
 
+./tool/command_test.sh || fail
+
 {
   fc=`find test -name "*.dart" |\
       xargs grep "/\*\S* should be \S*\*/" | wc -l`

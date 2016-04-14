@@ -53,11 +53,11 @@ class ModuleCompiler {
     var errors = <AnalysisError>[];
 
     for (var sourcePath in unit.sources) {
-      String sourceUri = sourcePath;
-      if (path.isAbsolute(sourcePath)) {
-        sourceUri = path.toUri(sourcePath).toString();
+      var sourceUri = Uri.parse(sourcePath);
+      if (sourceUri.scheme == '') {
+        sourceUri = path.toUri(path.absolute(sourcePath));
       }
-      Source source = context.sourceFactory.forUri(sourceUri);
+      Source source = context.sourceFactory.forUri(sourceUri.toString());
       if (source == null) {
         throw new AnalysisException('could not create a source for $sourcePath.'
             ' The file name is in the wrong format or was not found.');
