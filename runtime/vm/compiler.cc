@@ -1754,7 +1754,7 @@ void BackgroundCompiler::Run() {
       { MonitorLocker ml(queue_monitor_);
         function = function_queue()->PeekFunction();
       }
-      while (running_ && !function.IsNull()) {
+      while (running_ && !function.IsNull() && !isolate_->IsTopLevelParsing()) {
         // Check that we have aggregated and cleared the stats.
         ASSERT(thread->compiler_stats()->IsCleared());
         const Error& error = Error::Handle(zone,
@@ -1794,7 +1794,8 @@ void BackgroundCompiler::Run() {
     {
       // Wait to be notified when the work queue is not empty.
       MonitorLocker ml(queue_monitor_);
-      while (function_queue()->IsEmpty() && running_) {
+      while ((function_queue()->IsEmpty() || isolate_->IsTopLevelParsing())
+              && running_) {
         ml.Wait();
       }
     }
