@@ -535,6 +535,9 @@ class ClassElementForLink_Class extends ClassElementForLink
     }
   }
 
+  @override
+  String toString() => '$enclosingElement.$name';
+
   /**
    * Convert [typeRef] into an [InterfaceType].
    */
@@ -627,6 +630,9 @@ class ClassElementForLink_Enum extends ClassElementForLink {
 
   @override
   void link(CompilationUnitElementInBuildUnit compilationUnit) {}
+
+  @override
+  String toString() => '$enclosingElement.$name';
 }
 
 /**
@@ -647,7 +653,6 @@ abstract class CompilationUnitElementForLink implements CompilationUnitElement {
   final List<ReferenceableElementForLink> _references;
 
   List<ClassElementForLink_Class> _types;
-
   Map<String, ReferenceableElementForLink> _containedNames;
   List<TopLevelVariableElementForLink> _topLevelVariables;
   List<ClassElementForLink_Enum> _enums;
@@ -760,6 +765,9 @@ abstract class CompilationUnitElementForLink implements CompilationUnitElement {
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  String toString() => enclosingElement.toString();
 
   /**
    * Return the element referred to by the given [index] in
@@ -2329,6 +2337,9 @@ class FieldElementForLink_ClassField extends VariableElementForLink
       }
     }
   }
+
+  @override
+  String toString() => '$enclosingElement.$name';
 }
 
 /**
@@ -2385,6 +2396,9 @@ class FieldElementForLink_EnumField extends FieldElementForLink
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  String toString() => '$enclosingElement.$name';
 }
 
 /**
@@ -2683,6 +2697,9 @@ abstract class LibraryElementForLink<
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  String toString() => _absoluteUri.toString();
 
   /**
    * Return the [LibraryElement] corresponding to the given dependency [index].
@@ -3220,6 +3237,9 @@ class PropertyAccessorElementForLink_Executable extends ExecutableElementForLink
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  String toString() => '$enclosingElement.$name';
 }
 
 /**
@@ -3250,6 +3270,10 @@ class PropertyAccessorElementForLink_Variable
 
   @override
   ElementKind get kind => isSetter ? ElementKind.SETTER : ElementKind.GETTER;
+
+  @override
+  LibraryElementForLink get library =>
+      _variable.compilationUnit.enclosingElement;
 
   @override
   String get name => isSetter ? '${_variable.name}=' : _variable.name;
@@ -3289,6 +3313,9 @@ class PropertyAccessorElementForLink_Variable
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  String toString() => '$enclosingElement.$name';
 }
 
 /**

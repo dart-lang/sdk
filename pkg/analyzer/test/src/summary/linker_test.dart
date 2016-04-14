@@ -38,6 +38,20 @@ class LinkerUnitTest extends SummaryLinkerTest {
     return linker.getLibrary(Uri.parse(uri));
   }
 
+  void test_baseClass_withPrivateField() {
+    createLinker('''
+class B {
+  var _b;
+}
+class C extends B {
+  var c;
+}
+''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    library.libraryCycleForLink.ensureLinked();
+    // No assertions--just make sure it doesn't crash.
+  }
+
   void test_inferredType_instanceField_dynamic() {
     createLinker('''
 var x;
@@ -85,6 +99,22 @@ class C extends B {
     ClassElementForLink_Class cls = library.getContainedName('C');
     expect(cls.methods, hasLength(1));
     expect(cls.methods[0].returnType.toString(), 'dynamic');
+  }
+
+  void test_inferredType_methodReturnType_void() {
+    createLinker('''
+class B {
+  void f() {}
+}
+class C extends B {
+  f() {}
+}
+''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    library.libraryCycleForLink.ensureLinked();
+    ClassElementForLink_Class cls = library.getContainedName('C');
+    expect(cls.methods, hasLength(1));
+    expect(cls.methods[0].returnType.toString(), 'void');
   }
 
   void test_inferredType_staticField_dynamic() {
@@ -189,22 +219,6 @@ var x = new C().f(0); // Inferred type: int
             .inferredType
             .toString(),
         'int');
-  }
-
-  void test_inferredType_methodReturnType_void() {
-    createLinker('''
-class B {
-  void f() {}
-}
-class C extends B {
-  f() {}
-}
-''');
-    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
-    library.libraryCycleForLink.ensureLinked();
-    ClassElementForLink_Class cls = library.getContainedName('C');
-    expect(cls.methods, hasLength(1));
-    expect(cls.methods[0].returnType.toString(), 'void');
   }
 
   void test_inferredTypeFromOutsideBuildUnit_methodParamType_viaInheritance() {
