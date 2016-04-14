@@ -5204,11 +5204,20 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer,
   CHECK_COMPILATION_ALLOWED(I);
 
   ASSERT(snapshot->kind() == Snapshot::kScript);
+  NOT_IN_PRODUCT(TimelineDurationScope tds2(T,
+      Timeline::GetIsolateStream(), "ScriptSnapshotReader"));
+
   ScriptSnapshotReader reader(snapshot->content(), snapshot->length(), T);
   const Object& tmp = Object::Handle(Z, reader.ReadScriptSnapshot());
   if (tmp.IsError()) {
     return Api::NewHandle(T, tmp.raw());
   }
+  NOT_IN_PRODUCT(if (tds2.enabled()) {
+    tds2.SetNumArguments(2);
+    tds2.FormatArgument(0, "snapshotSize", "%" Pd, snapshot->length());
+    tds2.FormatArgument(1, "heapSize", "%" Pd64,
+                        I->heap()->UsedInWords(Heap::kOld) * kWordSize);
+  });
   library ^= tmp.raw();
   library.set_debuggable(true);
   I->object_store()->set_root_library(library);
