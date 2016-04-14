@@ -542,7 +542,7 @@ RawObject* SnapshotReader::ReadInstance(intptr_t object_id,
       if (kind_ == Snapshot::kFull) {
         result->SetCanonical();
       } else {
-        *result = result->CheckAndCanonicalize(thread(), NULL);
+        *result = result->CheckAndCanonicalize(NULL);
         ASSERT(!result->IsNull());
       }
     }
