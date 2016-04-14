@@ -378,6 +378,18 @@ f(A a){ (a as ^) }''');
     assertNotSuggested('Object');
   }
 
+  test_AsExpression_type_filter_undefined_type() async {
+    // SimpleIdentifier  TypeName  AsExpression
+    addTestSource('''
+class A {}
+f(U u){ (u as ^) }''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestClass('A');
+  }
+
   test_AssignmentExpression_name() async {
     // SimpleIdentifier  VariableDeclaration  VariableDeclarationList
     // VariableDeclarationStatement  Block
@@ -2803,21 +2815,6 @@ main(){var a; if (a is ^)}''');
     assertNotSuggested('Object');
   }
 
-  test_IsExpression_type_partial() async {
-    // SimpleIdentifier  TypeName  IsExpression  IfStatement
-    addTestSource('''
-class A {int x; int y() => 0;}
-main(){var a; if (a is Obj^)}''');
-    await computeSuggestions();
-
-    expect(replacementOffset, completionOffset - 3);
-    expect(replacementLength, 3);
-    assertNotSuggested('a');
-    assertNotSuggested('main');
-    assertSuggestClass('A');
-    assertNotSuggested('Object');
-  }
-
   test_IsExpression_type_filter_extends() async {
     // SimpleIdentifier  TypeName  IsExpression  IfStatement
     addTestSource('''
@@ -2847,6 +2844,33 @@ f(A a){ if (a is ^) {}}''');
     assertSuggestClass('C');
     assertNotSuggested('A');
     assertNotSuggested('D');
+    assertNotSuggested('Object');
+  }
+
+  test_IsExpression_type_filter_undefined_type() async {
+    // SimpleIdentifier  TypeName  AsExpression
+    addTestSource('''
+class A {}
+f(U u){ (u as ^) }''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset);
+    expect(replacementLength, 0);
+    assertSuggestClass('A');
+  }
+
+  test_IsExpression_type_partial() async {
+    // SimpleIdentifier  TypeName  IsExpression  IfStatement
+    addTestSource('''
+class A {int x; int y() => 0;}
+main(){var a; if (a is Obj^)}''');
+    await computeSuggestions();
+
+    expect(replacementOffset, completionOffset - 3);
+    expect(replacementLength, 3);
+    assertNotSuggested('a');
+    assertNotSuggested('main');
+    assertSuggestClass('A');
     assertNotSuggested('Object');
   }
 
