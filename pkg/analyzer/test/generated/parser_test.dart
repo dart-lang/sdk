@@ -2766,12 +2766,6 @@ class ParserTestCase extends EngineTestCase {
   bool parseAsync = true;
 
   /**
-   * A flag indicating whether conditional directives support should be enabled
-   * for a specific test.
-   */
-  bool enableConditionalDirectives = false;
-
-  /**
    * A flag indicating whether generic method support should be enabled for a
    * specific test.
    */
@@ -2833,7 +2827,6 @@ class ParserTestCase extends EngineTestCase {
     //
     Parser parser = createParser(listener);
     parser.parseAsync = parseAsync;
-    parser.parseConditionalDirectives = enableConditionalDirectives;
     parser.parseGenericMethods = enableGenericMethods;
     parser.parseGenericMethodComments = enableGenericMethodComments;
     parser.parseFunctionBodies = parseFunctionBodies;
@@ -2964,7 +2957,6 @@ class ParserTestCase extends EngineTestCase {
     Parser parser = createParser(listener);
     parser.parseAsync = parseAsync;
     parser.parseFunctionBodies = parseFunctionBodies;
-    parser.parseConditionalDirectives = enableConditionalDirectives;
     parser.parseGenericMethods = enableGenericMethods;
     parser.parseGenericMethodComments = enableGenericMethodComments;
     CompilationUnit unit = parser.parseCompilationUnit(token);
@@ -7262,7 +7254,6 @@ void''');
   }
 
   void test_parseExportDirective_configuration_multiple() {
-    enableConditionalDirectives = true;
     ExportDirective directive = parse(
         "parseExportDirective",
         <Object>[emptyCommentAndMetadata()],
@@ -7277,7 +7268,6 @@ void''');
   }
 
   void test_parseExportDirective_configuration_single() {
-    enableConditionalDirectives = true;
     ExportDirective directive = parse(
         "parseExportDirective",
         <Object>[emptyCommentAndMetadata()],
@@ -8472,7 +8462,6 @@ void''');
   }
 
   void test_parseImportDirective_configuration_multiple() {
-    enableConditionalDirectives = true;
     ImportDirective directive = parse(
         "parseImportDirective",
         <Object>[emptyCommentAndMetadata()],
@@ -8490,7 +8479,6 @@ void''');
   }
 
   void test_parseImportDirective_configuration_single() {
-    enableConditionalDirectives = true;
     ImportDirective directive = parse(
         "parseImportDirective",
         <Object>[emptyCommentAndMetadata()],

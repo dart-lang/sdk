@@ -2169,12 +2169,6 @@ class Parser {
   bool _inInitializer = false;
 
   /**
-   * A flag indicating whether the parser is to parse conditional directives
-   * syntax.
-   */
-  bool parseConditionalDirectives = false;
-
-  /**
    * A flag indicating whether the parser is to parse generic method syntax.
    */
   bool parseGenericMethods = false;
@@ -2216,6 +2210,12 @@ class Parser {
   void set parseAsync(bool parseAsync) {
     this._parseAsync = parseAsync;
   }
+
+  @deprecated
+  bool get parseConditionalDirectives => true;
+
+  @deprecated
+  void set parseConditionalDirectives(bool value) {}
 
   /**
    * Set whether parser is to parse function bodies.
@@ -5360,10 +5360,8 @@ class Parser {
    */
   List<Configuration> _parseConfigurations() {
     List<Configuration> configurations = <Configuration>[];
-    if (parseConditionalDirectives) {
-      while (_matchesKeyword(Keyword.IF)) {
-        configurations.add(_parseConfiguration());
-      }
+    while (_matchesKeyword(Keyword.IF)) {
+      configurations.add(_parseConfiguration());
     }
     return configurations;
   }

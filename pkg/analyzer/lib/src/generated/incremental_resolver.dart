@@ -1622,7 +1622,6 @@ class PoorMansIncrementalResolver {
       RecordingErrorListener errorListener = new RecordingErrorListener();
       Parser parser = new Parser(_unitSource, errorListener);
       AnalysisOptions options = _unitElement.context.analysisOptions;
-      parser.parseConditionalDirectives = options.enableConditionalDirectives;
       parser.parseGenericMethods = options.enableGenericMethods;
       CompilationUnit unit = parser.parseCompilationUnit(token);
       _newParseErrors = errorListener.errors;
