@@ -42702,7 +42702,7 @@ class _MutationEvent extends Event {
       {bool canBubble: false, bool cancelable: false, Node relatedNode,
       String prevValue, String newValue, String attrName, int attrChange: 0}) {
 
-    MutationEvent event = document._createEvent('MutationEvent');
+    _MutationEvent event = document._createEvent('MutationEvent');
     event._initMutationEvent(type, canBubble, cancelable, relatedNode,
         prevValue, newValue, attrName, attrChange);
     return event;
