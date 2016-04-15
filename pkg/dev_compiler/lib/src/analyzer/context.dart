@@ -16,6 +16,11 @@ import 'package:analyzer/src/generated/source_io.dart'
         PackageUriResolver,
         SourceFactory,
         UriResolver;
+import 'package:analyzer/src/summary/package_bundle_reader.dart'
+    show
+        InSummaryPackageUriResolver,
+        InputPackagesResultProvider,
+        SummaryDataStore;
 import 'package:cli_util/cli_util.dart' show getSdkDir;
 
 import 'dart_sdk.dart' show MockDartSdk, mockSdkSources;
@@ -97,9 +102,30 @@ class AnalyzerOptions {
 AnalysisContext createAnalysisContextWithSources(AnalyzerOptions options,
     {DartUriResolver sdkResolver, List<UriResolver> fileResolvers}) {
   AnalysisEngine.instance.processRequiredPlugins();
-  var srcFactory = createSourceFactory(options,
-      sdkResolver: sdkResolver, fileResolvers: fileResolvers);
-  return createAnalysisContext()..sourceFactory = srcFactory;
+
+  sdkResolver ??= options.useMockSdk
+      ? createMockSdkResolver(mockSdkSources)
+      : createSdkPathResolver(options.dartSdkPath);
+
+  // Read the summaries.
+  SummaryDataStore summaryData;
+  if (options.summaryPaths.isNotEmpty) {
+    summaryData = new SummaryDataStore(options.summaryPaths);
+  }
+
+  var srcFactory = _createSourceFactory(options,
+      sdkResolver: sdkResolver,
+      fileResolvers: fileResolvers,
+      summaryData: summaryData);
+
+  var context = createAnalysisContext();
+  context.sourceFactory = srcFactory;
+  if (summaryData != null) {
+    context.typeProvider = sdkResolver.dartSdk.context.typeProvider;
+    context.resultProvider =
+        new InputPackagesResultProvider(context, summaryData);
+  }
+  return context;
 }
 
 /// Creates an analysis context that contains our restricted typing rules.
@@ -116,17 +142,19 @@ AnalysisContext createAnalysisContext() {
 ///
 /// If supplied, [fileResolvers] will override the default `file:` and
 /// `package:` URI resolvers.
-SourceFactory createSourceFactory(AnalyzerOptions options,
-    {DartUriResolver sdkResolver, List<UriResolver> fileResolvers}) {
-  sdkResolver ??= options.useMockSdk
-      ? createMockSdkResolver(mockSdkSources)
-      : createSdkPathResolver(options.dartSdkPath);
-
+SourceFactory _createSourceFactory(AnalyzerOptions options,
+    {DartUriResolver sdkResolver,
+    List<UriResolver> fileResolvers,
+    SummaryDataStore summaryData}) {
   var resolvers = <UriResolver>[];
   if (options.customUrlMappings.isNotEmpty) {
     resolvers.add(new CustomUriResolver(options.customUrlMappings));
   }
   resolvers.add(sdkResolver);
+  if (summaryData != null) {
+    resolvers.add(new InSummaryPackageUriResolver(summaryData));
+  }
+
   if (fileResolvers == null) fileResolvers = createFileResolvers(options);
   resolvers.addAll(fileResolvers);
   return new SourceFactory(resolvers);

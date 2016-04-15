@@ -70,15 +70,70 @@ main() {
       expect(await messageGrouper.next, isNull);
     });
 
-    test('can compile in basic mode', () async {
+    test('can compile in basic mode', () {
       var args = new List.from(executableArgs)..addAll(compilerArgs);
-      var process = await Process.start('dart', args);
-      stderr.addStream(process.stderr);
-      var futureProcessOutput = process.stdout.map(UTF8.decode).toList();
+      var result = Process.runSync('dart', args);
 
-      expect(await process.exitCode, EXIT_CODE_OK);
-      expect((await futureProcessOutput).join(), isEmpty);
+      expect(result.exitCode, EXIT_CODE_OK);
+      expect(result.stdout, isEmpty);
+      expect(result.stderr, isEmpty);
       expect(outputJsFile.existsSync(), isTrue);
+    });
+  });
+
+  group('Hello World with Summaries', () {
+    final greetingDart = new File('test/worker/greeting.dart').absolute;
+    final helloDart = new File('test/worker/hello.dart').absolute;
+
+    final greetingJS = new File('test/worker/greeting.js').absolute;
+    final greetingSummary = new File('test/worker/greeting.sum').absolute;
+    final helloJS = new File('test/worker/hello_world.js').absolute;
+
+    setUp(() {
+      greetingDart.writeAsStringSync('String greeting = "hello";');
+      helloDart.writeAsStringSync(
+          'import "greeting.dart";'
+          'main() => print(greeting);');
+    });
+
+    tearDown(() {
+      if (greetingDart.existsSync()) greetingDart.deleteSync();
+      if (helloDart.existsSync()) helloDart.deleteSync();
+      if (greetingJS.existsSync()) greetingJS.deleteSync();
+      if (greetingSummary.existsSync()) greetingSummary.deleteSync();
+      if (helloJS.existsSync()) helloJS.deleteSync();
+    });
+
+    test('can compile in basic mode', () {
+      var result = Process.runSync('dart', [
+        'bin/dartdevc.dart',
+        'compile',
+        '--no-source-map',
+        '-o',
+        greetingJS.path,
+        greetingDart.path,
+      ]);
+      expect(result.exitCode, EXIT_CODE_OK);
+      expect(result.stdout, isEmpty);
+      expect(result.stderr, isEmpty);
+      expect(greetingJS.existsSync(), isTrue);
+      expect(greetingSummary.existsSync(), isTrue);
+
+      result = Process.runSync('dart', [
+        'bin/dartdevc.dart',
+        'compile',
+        '--no-source-map',
+        '--no-summarize',
+        '-s',
+        greetingSummary.path,
+        '-o',
+        helloJS.path,
+        helloDart.path,
+      ]);
+      expect(result.exitCode, EXIT_CODE_OK);
+      expect(result.stdout, isEmpty);
+      expect(result.stderr, isEmpty);
+      expect(helloJS.existsSync(), isTrue);
     });
   });
 }

@@ -46,7 +46,7 @@ main(List<String> args) async {
   runner.addCommand(new CompileCommand());
   try {
     await runner.run(args);
-  } catch(e, s) {
+  } catch (e, s) {
     exit(handleError(e, s, args));
   }
 }
