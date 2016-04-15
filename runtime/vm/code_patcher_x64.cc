@@ -35,6 +35,12 @@ intptr_t IndexFromPPLoad(uword start) {
 }
 
 
+intptr_t IndexFromPPLoadDisp8(uword start) {
+  int8_t offset = *reinterpret_cast<int8_t*>(start);
+  return ObjectPool::IndexFromOffset(offset);
+}
+
+
 class UnoptimizedCall : public ValueObject {
  public:
   UnoptimizedCall(uword return_address, const Code& code)

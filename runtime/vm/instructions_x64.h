@@ -22,6 +22,7 @@ class RawObject;
 
 
 intptr_t IndexFromPPLoad(uword start);
+intptr_t IndexFromPPLoadDisp8(uword start);
 
 
 // Template class for all instruction pattern classes.
