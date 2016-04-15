@@ -26,6 +26,8 @@ import 'package:linter/src/rules/implementation_imports.dart';
 import 'package:linter/src/rules/library_names.dart';
 import 'package:linter/src/rules/library_prefixes.dart';
 import 'package:linter/src/rules/non_constant_identifier_names.dart';
+import 'package:linter/src/rules/no_control_flow_in_finally_block.dart';
+import 'package:linter/src/rules/no_throw_in_finally_block.dart';
 import 'package:linter/src/rules/one_member_abstracts.dart';
 import 'package:linter/src/rules/package_api_docs.dart';
 import 'package:linter/src/rules/package_prefixed_library_names.dart';
@@ -60,6 +62,8 @@ final Registry ruleRegistry = new Registry()
   ..register(new LibraryNames())
   ..register(new LibraryPrefixes())
   ..register(new NonConstantIdentifierNames())
+  ..register(new NoControlFlowInFinallyBlock())
+  ..register(new NoThrowInFinallyBlock())
   ..register(new PreferIsNotEmpty())
   ..register(new OneMemberAbstracts())
   ..register(new PackageApiDocs())
