@@ -439,4 +439,22 @@ class D extends C {
         unorderedEquals([libA.libraryCycleForLink, libB.libraryCycleForLink]));
     expect(libraryCycle.libraries, [testLibrary]);
   }
+
+  void test_multiplyInheritedExecutable_differentSignatures() {
+    createLinker('''
+class B {
+  void f() {}
+}
+abstract class I {
+   f();
+}
+class C extends B with I {}
+class D extends C {
+  void f() {}
+}
+''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    library.libraryCycleForLink.ensureLinked();
+    // No assertions--just make sure it doesn't crash.
+  }
 }

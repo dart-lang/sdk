@@ -64,6 +64,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary/format.dart';
@@ -1410,6 +1411,22 @@ class ConstVariableNode extends ConstNode {
 }
 
 /**
+ * Stub implementation of [AnalysisContext] which provides just those methods
+ * needed during linking.
+ */
+class ContextForLink implements AnalysisContext {
+  final Linker _linker;
+
+  ContextForLink(this._linker);
+
+  @override
+  TypeSystem get typeSystem => _linker.typeSystem;
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/**
  * An instance of [DependencyWalker] contains the core algorithms for
  * walking a dependency graph and evaluating nodes in a safe order.
  */
@@ -1553,6 +1570,7 @@ abstract class ExecutableElementForLink extends Object
   List<TypeParameterElementForLink> _typeParameters;
   String _name;
   List<ParameterElementForLink> _parameters;
+  String _displayName;
 
   /**
    * TODO(paulberry): this won't always be a class element.
@@ -1567,6 +1585,17 @@ abstract class ExecutableElementForLink extends Object
    */
   CompilationUnitElementForLink get compilationUnit =>
       enclosingElement.enclosingElement;
+
+  @override
+  String get displayName {
+    if (_displayName == null) {
+      _displayName = _unlinkedExecutable.name;
+      if (_unlinkedExecutable.kind == UnlinkedExecutableKind.setter) {
+        _displayName = _displayName.substring(0, _displayName.length - 1);
+      }
+    }
+    return _displayName;
+  }
 
   @override
   TypeParameterizedElementForLink get enclosingTypeParameterContext =>
@@ -2653,6 +2682,9 @@ abstract class LibraryElementForLink<
     }
   }
 
+  @override
+  ContextForLink get context => _linker.context;
+
   /**
    * Get the [UnlinkedUnit] for the defining compilation unit of this library.
    */
@@ -2934,6 +2966,7 @@ class Linker {
   SpecialTypeElementForLink _voidElement;
   SpecialTypeElementForLink _dynamicElement;
   SpecialTypeElementForLink _bottomElement;
+  ContextForLink _context;
 
   Linker(Map<String, LinkedLibraryBuilder> linkedLibraries, this.getDependency,
       this.getUnit, this.strongMode) {
@@ -2958,6 +2991,12 @@ class Linker {
    */
   SpecialTypeElementForLink get bottomElement => _bottomElement ??=
       new SpecialTypeElementForLink(this, BottomTypeImpl.instance);
+
+  /**
+   * Get a stub implementation of [AnalysisContext] which can be used during
+   * linking.
+   */
+  get context => _context ??= new ContextForLink(this);
 
   /**
    * Get the library element for `dart:core`.
