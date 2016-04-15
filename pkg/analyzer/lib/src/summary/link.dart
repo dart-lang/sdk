@@ -2705,6 +2705,9 @@ abstract class LibraryElementForLink<
   List<LibraryElementForLink> get importedLibraries => _importedLibraries ??=
       _linkedLibrary.importDependencies.map(_getDependency).toList();
 
+  @override
+  bool get isDartAsync => _absoluteUri == 'dart:async';
+
   /**
    * If this library is part of the build unit being linked, return the library
    * cycle it is part of.  Otherwise return `null`.

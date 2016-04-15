@@ -66,6 +66,21 @@ class C<V> extends B<V> {
     // No assertions--just make sure it doesn't crash.
   }
 
+  void test_baseClass_genericWithGenericMethod_returnsGenericFuture() {
+    createLinker('''
+import 'dart:async';
+class B<T> {
+  Future<T> f() => null;
+}
+class C<T> extends B<T> {
+  Future<T> f() => null;
+}
+''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    library.libraryCycleForLink.ensureLinked();
+    // No assertions--just make sure it doesn't crash.
+  }
+
   void test_baseClass_withPrivateField() {
     createLinker('''
 class B {
