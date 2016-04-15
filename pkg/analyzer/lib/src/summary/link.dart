@@ -419,6 +419,9 @@ class ClassElementForLink_Class extends ClassElementForLink
   }
 
   @override
+  String get identifier => name;
+
+  @override
   List<InterfaceType> get interfaces => _interfaces ??=
       _unlinkedClass.interfaces.map(_computeInterfaceType).toList();
 
@@ -639,7 +642,8 @@ class ClassElementForLink_Enum extends ClassElementForLink {
  * Element representing a compilation unit resynthesized from a
  * summary during linking.
  */
-abstract class CompilationUnitElementForLink implements CompilationUnitElement {
+abstract class CompilationUnitElementForLink
+    implements CompilationUnitElementImpl {
   /**
    * The unlinked representation of the compilation unit in the
    * summary.
@@ -652,6 +656,11 @@ abstract class CompilationUnitElementForLink implements CompilationUnitElement {
    */
   final List<ReferenceableElementForLink> _references;
 
+  /**
+   * The absolute URI of this compilation unit.
+   */
+  final String _absoluteUri;
+
   List<ClassElementForLink_Class> _types;
   Map<String, ReferenceableElementForLink> _containedNames;
   List<TopLevelVariableElementForLink> _topLevelVariables;
@@ -662,8 +671,8 @@ abstract class CompilationUnitElementForLink implements CompilationUnitElement {
    */
   final int unitNum;
 
-  CompilationUnitElementForLink(
-      UnlinkedUnit unlinkedUnit, this.unitNum, int numReferences)
+  CompilationUnitElementForLink(UnlinkedUnit unlinkedUnit, this.unitNum,
+      int numReferences, this._absoluteUri)
       : _references = new List<ReferenceableElementForLink>(numReferences),
         _unlinkedUnit = unlinkedUnit;
 
@@ -680,6 +689,9 @@ abstract class CompilationUnitElementForLink implements CompilationUnitElement {
     }
     return _enums;
   }
+
+  @override
+  String get identifier => _absoluteUri;
 
   /**
    * Indicates whether this compilation element is part of the build unit
@@ -862,9 +874,14 @@ class CompilationUnitElementInBuildUnit extends CompilationUnitElementForLink {
   @override
   final LibraryElementInBuildUnit enclosingElement;
 
-  CompilationUnitElementInBuildUnit(this.enclosingElement,
-      UnlinkedUnit unlinkedUnit, this._linkedUnit, int unitNum)
-      : super(unlinkedUnit, unitNum, unlinkedUnit.references.length);
+  CompilationUnitElementInBuildUnit(
+      this.enclosingElement,
+      UnlinkedUnit unlinkedUnit,
+      this._linkedUnit,
+      int unitNum,
+      String absoluteUri)
+      : super(
+            unlinkedUnit, unitNum, unlinkedUnit.references.length, absoluteUri);
 
   @override
   bool get isInBuildUnit => true;
@@ -1028,10 +1045,15 @@ class CompilationUnitElementInDependency extends CompilationUnitElementForLink {
   @override
   final LibraryElementInDependency enclosingElement;
 
-  CompilationUnitElementInDependency(this.enclosingElement,
-      UnlinkedUnit unlinkedUnit, LinkedUnit linkedUnit, int unitNum)
+  CompilationUnitElementInDependency(
+      this.enclosingElement,
+      UnlinkedUnit unlinkedUnit,
+      LinkedUnit linkedUnit,
+      int unitNum,
+      String absoluteUri)
       : _linkedUnit = linkedUnit,
-        super(unlinkedUnit, unitNum, linkedUnit.references.length) {
+        super(
+            unlinkedUnit, unitNum, linkedUnit.references.length, absoluteUri) {
     // Make one pass through the linked types to determine the lengths for
     // _linkedTypeRefs and _linkedTypes.  TODO(paulberry): add an int to the
     // summary to make this unnecessary.
@@ -2606,7 +2628,7 @@ class LibraryDependencyWalker extends DependencyWalker<LibraryNode> {
  */
 abstract class LibraryElementForLink<
         UnitElement extends CompilationUnitElementForLink>
-    implements LibraryElement {
+    implements LibraryElementImpl {
   /**
    * Pointer back to the linker.
    */
@@ -2645,6 +2667,9 @@ abstract class LibraryElementForLink<
       _linkedLibrary.exportDependencies.map(_getDependency).toList();
 
   @override
+  String get identifier => _absoluteUri.toString();
+
+  @override
   List<LibraryElementForLink> get importedLibraries => _importedLibraries ??=
       _linkedLibrary.importDependencies.map(_getDependency).toList();
 
@@ -2658,17 +2683,20 @@ abstract class LibraryElementForLink<
   List<UnitElement> get units {
     if (_units == null) {
       UnlinkedUnit definingUnit = definingUnlinkedUnit;
-      _units = <UnitElement>[_makeUnitElement(definingUnit, 0)];
+      _units = <UnitElement>[
+        _makeUnitElement(definingUnit, 0, _absoluteUri.toString())
+      ];
       int numParts = definingUnit.parts.length;
       for (int i = 0; i < numParts; i++) {
         // TODO(paulberry): make sure we handle the case where Uri.parse fails.
         // TODO(paulberry): make sure we handle the case where
         // resolveRelativeUri fails.
-        UnlinkedUnit partUnit = _linker.getUnit(resolveRelativeUri(
+        String partAbsoluteUri = resolveRelativeUri(
                 _absoluteUri, Uri.parse(definingUnit.publicNamespace.parts[i]))
-            .toString());
-        _units.add(
-            _makeUnitElement(partUnit ?? new UnlinkedUnitBuilder(), i + 1));
+            .toString();
+        UnlinkedUnit partUnit = _linker.getUnit(partAbsoluteUri);
+        _units.add(_makeUnitElement(
+            partUnit ?? new UnlinkedUnitBuilder(), i + 1, partAbsoluteUri));
       }
     }
     return _units;
@@ -2713,7 +2741,8 @@ abstract class LibraryElementForLink<
    * Create a [UnitElement] for one of the library's compilation
    * units.
    */
-  UnitElement _makeUnitElement(UnlinkedUnit unlinkedUnit, int i);
+  UnitElement _makeUnitElement(
+      UnlinkedUnit unlinkedUnit, int i, String absoluteUri);
 }
 
 /**
@@ -2794,9 +2823,9 @@ class LibraryElementInBuildUnit
 
   @override
   CompilationUnitElementInBuildUnit _makeUnitElement(
-          UnlinkedUnit unlinkedUnit, int i) =>
+          UnlinkedUnit unlinkedUnit, int i, String absoluteUri) =>
       new CompilationUnitElementInBuildUnit(
-          this, unlinkedUnit, _linkedLibrary.units[i], i);
+          this, unlinkedUnit, _linkedLibrary.units[i], i, absoluteUri);
 }
 
 /**
@@ -2817,9 +2846,9 @@ class LibraryElementInDependency
 
   @override
   CompilationUnitElementInDependency _makeUnitElement(
-          UnlinkedUnit unlinkedUnit, int i) =>
+          UnlinkedUnit unlinkedUnit, int i, String absoluteUri) =>
       new CompilationUnitElementInDependency(
-          this, unlinkedUnit, _linkedLibrary.units[i], i);
+          this, unlinkedUnit, _linkedLibrary.units[i], i, absoluteUri);
 }
 
 /**
@@ -3001,10 +3030,16 @@ class MethodElementForLink extends ExecutableElementForLink
       : super(enclosingElement, unlinkedExecutable);
 
   @override
+  String get identifier => name;
+
+  @override
   ElementKind get kind => ElementKind.METHOD;
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+
+  @override
+  String toString() => '$enclosingElement.$name';
 }
 
 /**
@@ -3585,7 +3620,7 @@ class TypeInferenceNode extends Node<TypeInferenceNode> {
  * Element representing a type parameter resynthesized from a summary during
  * linking.
  */
-class TypeParameterElementForLink implements TypeParameterElement {
+class TypeParameterElementForLink implements TypeParameterElementImpl {
   /**
    * The unlinked representation of the type parameter in the summary.
    */
@@ -3597,9 +3632,14 @@ class TypeParameterElementForLink implements TypeParameterElement {
    */
   final int nestingLevel;
 
-  TypeParameterTypeImpl _type;
+  @override
+  final TypeParameterizedElementForLink enclosingElement;
 
-  TypeParameterElementForLink(this._unlinkedTypeParam, this.nestingLevel);
+  TypeParameterTypeImpl _type;
+  ElementLocation _location;
+
+  TypeParameterElementForLink(
+      this.enclosingElement, this._unlinkedTypeParam, this.nestingLevel);
 
   @override
   DartType get bound {
@@ -3611,7 +3651,14 @@ class TypeParameterElementForLink implements TypeParameterElement {
   }
 
   @override
+  String get identifier => name;
+
+  @override
   ElementKind get kind => ElementKind.TYPE_PARAMETER;
+
+  @override
+  ElementLocation get location =>
+      _location ??= new ElementLocationImpl.con1(this);
 
   @override
   String get name => _unlinkedTypeParam.name;
@@ -3653,7 +3700,7 @@ abstract class TypeParameterizedElementForLink
           new List<TypeParameterElementForLink>(numTypeParameters);
       for (int i = 0; i < numTypeParameters; i++) {
         _typeParameters[i] = new TypeParameterElementForLink(
-            _unlinkedTypeParams[i], enclosingNestingLevel + i);
+            this, _unlinkedTypeParams[i], enclosingNestingLevel + i);
       }
     }
     return _typeParameters;

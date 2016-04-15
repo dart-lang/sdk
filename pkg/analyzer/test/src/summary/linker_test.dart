@@ -52,6 +52,20 @@ class C<U> extends B<U> {
     // No assertions--just make sure it doesn't crash.
   }
 
+  void test_baseClass_genericWithGenericMethod() {
+    createLinker('''
+class B<T> {
+  List<U> f<U>(U u) => null;
+}
+class C<V> extends B<V> {
+  var j;
+}
+''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    library.libraryCycleForLink.ensureLinked();
+    // No assertions--just make sure it doesn't crash.
+  }
+
   void test_baseClass_withPrivateField() {
     createLinker('''
 class B {
