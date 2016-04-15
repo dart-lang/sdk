@@ -6,7 +6,7 @@ library closureToClassMapper;
 
 import 'common.dart';
 import 'common/names.dart' show Identifiers;
-import 'common/resolution.dart' show Parsing, Resolution;
+import 'common/resolution.dart' show ParsingContext, Resolution;
 import 'common/tasks.dart' show CompilerTask;
 import 'compiler.dart' show Compiler;
 import 'constants/expressions.dart';
@@ -221,7 +221,7 @@ class ClosureClassElement extends ClassElementX {
 
   Token get position => node.getBeginToken();
 
-  Node parseNode(Parsing parsing) => node;
+  Node parseNode(ParsingContext parsing) => node;
 
   // A [ClosureClassElement] is nested inside a function or initializer in terms
   // of [enclosingElement], but still has to be treated as a top-level
@@ -343,7 +343,7 @@ class SynthesizedCallMethodElementX extends BaseFunctionElementX
 
   FunctionExpression get node => expression.node;
 
-  FunctionExpression parseNode(Parsing parsing) => node;
+  FunctionExpression parseNode(ParsingContext parsing) => node;
 
   ResolvedAst get resolvedAst {
     return new ParsedResolvedAst(this, node, treeElements);

@@ -45,7 +45,7 @@ Future<Compiler> applyPatch(String script, String patch,
 }
 
 void expectHasBody(compiler, ElementX element) {
-    var node = element.parseNode(compiler.parsing);
+    var node = element.parseNode(compiler.parsingContext);
     Expect.isNotNull(node, "Element isn't parseable, when a body was expected");
     Expect.isNotNull(node.body);
     // If the element has a body it is either a Block or a Return statement,
@@ -55,7 +55,7 @@ void expectHasBody(compiler, ElementX element) {
 }
 
 void expectHasNoBody(compiler, ElementX element) {
-    var node = element.parseNode(compiler.parsing);
+    var node = element.parseNode(compiler.parsingContext);
     Expect.isNotNull(node, "Element isn't parseable, when a body was expected");
     Expect.isFalse(node.hasBody);
 }
@@ -336,7 +336,7 @@ Future testPatchMember() async {
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
                          expectIsPatched: true);
-  container.parseNode(compiler.parsing);
+  container.parseNode(compiler.parsingContext);
   ensure(compiler, "Class", compiler.coreLibrary.patch.find,
          expectIsPatch: true);
 
@@ -366,7 +366,7 @@ Future testPatchGetter() async {
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
                          expectIsPatched: true);
-  container.parseNode(compiler.parsing);
+  container.parseNode(compiler.parsingContext);
   ensure(compiler,
          "field",
          container.lookupLocalMember,
@@ -400,7 +400,7 @@ Future testRegularMember() async {
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
                          expectIsPatched: true);
-  container.parseNode(compiler.parsing);
+  container.parseNode(compiler.parsingContext);
   ensure(compiler, "Class", compiler.coreLibrary.patch.find,
          expectIsPatch: true);
 
@@ -429,7 +429,7 @@ Future testInjectedMember() async {
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
                          expectIsPatched: true);
-  container.parseNode(compiler.parsing);
+  container.parseNode(compiler.parsingContext);
   ensure(compiler, "Class", compiler.coreLibrary.patch.find,
          expectIsPatch: true);
 
@@ -458,7 +458,7 @@ Future testInjectedPublicMember() async {
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
                          expectIsPatched: true);
-  container.parseNode(compiler.parsing);
+  container.parseNode(compiler.parsingContext);
   ensure(compiler, "Class", compiler.coreLibrary.patch.find,
          expectIsPatch: true);
 
@@ -555,7 +555,7 @@ Future testPatchSignatureCheck() async {
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
                          expectIsPatched: true);
   container.ensureResolved(compiler.resolution);
-  container.parseNode(compiler.parsing);
+  container.parseNode(compiler.parsingContext);
   DiagnosticCollector collector = compiler.diagnosticCollector;
 
   void expect(String methodName, List infos, List errors) {
@@ -635,7 +635,7 @@ Future testExternalWithoutImplementationMember() async {
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
                          expectIsPatched: true);
-  container.parseNode(compiler.parsing);
+  container.parseNode(compiler.parsingContext);
   DiagnosticCollector collector = compiler.diagnosticCollector;
   collector.clear();
   compiler.resolver.resolveMethodElement(
@@ -696,7 +696,7 @@ Future testPatchNonExistingMember() async {
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
                          expectIsPatched: true);
-  container.parseNode(compiler.parsing);
+  container.parseNode(compiler.parsingContext);
   DiagnosticCollector collector = compiler.diagnosticCollector;
 
   Expect.isTrue(collector.warnings.isEmpty,
@@ -784,7 +784,7 @@ Future testPatchNonExternalMember() async {
       """);
   var container = ensure(compiler, "Class", compiler.coreLibrary.find,
                          expectIsPatched: true);
-  container.parseNode(compiler.parsing);
+  container.parseNode(compiler.parsingContext);
 
   DiagnosticCollector collector = compiler.diagnosticCollector;
   print('testPatchNonExternalMember.errors:${collector.errors}');

@@ -216,7 +216,7 @@ class PatchMemberListener extends MemberListener {
 
   PatchMemberListener(Compiler compiler, ClassElement enclosingClass)
       : this.compiler = compiler,
-        super(compiler.parsing.getScannerOptionsFor(enclosingClass),
+        super(compiler.parsingContext.getScannerOptionsFor(enclosingClass),
             compiler.reporter, enclosingClass);
 
   @override
@@ -261,7 +261,7 @@ class PatchElementListener extends ElementListener implements Listener {
   PatchElementListener(Compiler compiler, CompilationUnitElement patchElement,
       IdGenerator idGenerator)
       : this.compiler = compiler,
-        super(compiler.parsing.getScannerOptionsFor(patchElement),
+        super(compiler.parsingContext.getScannerOptionsFor(patchElement),
             compiler.reporter, patchElement, idGenerator);
 
   @override

@@ -15,7 +15,7 @@ import 'common/names.dart' show Selectors;
 import 'common/names.dart' show Identifiers, Uris;
 import 'common/registry.dart' show EagerRegistry, Registry;
 import 'common/resolution.dart'
-    show Parsing, Resolution, ResolutionWorkItem, ResolutionImpact;
+    show ParsingContext, Resolution, ResolutionWorkItem, ResolutionImpact;
 import 'common/tasks.dart' show CompilerTask, GenericTask;
 import 'common/work.dart' show ItemCompilationContext, WorkItem;
 import 'common.dart';
@@ -54,9 +54,8 @@ import 'library_loader.dart'
         ScriptLoader;
 import 'mirrors_used.dart' show MirrorUsageAnalyzerTask;
 import 'null_compiler_output.dart' show NullCompilerOutput, NullSink;
-import 'options.dart' show CompilerOptions, DiagnosticOptions, ParserOptions;
+import 'options.dart' show CompilerOptions, DiagnosticOptions;
 import 'parser/diet_parser_task.dart' show DietParserTask;
-import 'parser/element_listener.dart' show ScannerOptions;
 import 'parser/parser_task.dart' show ParserTask;
 import 'patch_parser.dart' show PatchParserTask;
 import 'resolution/registry.dart' show ResolutionRegistry;
@@ -73,7 +72,6 @@ import 'tracer.dart' show Tracer;
 import 'tree/tree.dart' show Node, TypeAnnotation;
 import 'typechecker.dart' show TypeCheckerTask;
 import 'types/types.dart' as ti;
-import 'universe/call_structure.dart' show CallStructure;
 import 'universe/selector.dart' show Selector;
 import 'universe/universe.dart' show Universe;
 import 'universe/use.dart' show StaticUse;
@@ -89,7 +87,7 @@ abstract class Compiler implements LibraryLoaderListener {
   _CompilerCoreTypes _coreTypes;
   _CompilerDiagnosticReporter _reporter;
   _CompilerResolution _resolution;
-  _CompilerParsing _parsing;
+  ParsingContext _parsingContext;
 
   final CacheStrategy cacheStrategy;
 
@@ -154,7 +152,7 @@ abstract class Compiler implements LibraryLoaderListener {
   CoreClasses get coreClasses => _coreTypes;
   CoreTypes get coreTypes => _coreTypes;
   Resolution get resolution => _resolution;
-  Parsing get parsing => _parsing;
+  ParsingContext get parsingContext => _parsingContext;
 
   ClassElement typedDataClass;
 
@@ -293,7 +291,6 @@ abstract class Compiler implements LibraryLoaderListener {
     // TODO(johnniwinther): Initialize core types in [initializeCoreClasses] and
     // make its field final.
     _reporter = new _CompilerDiagnosticReporter(this, options);
-    _parsing = new _CompilerParsing(this);
     _resolution = new _CompilerResolution(this);
     _coreTypes = new _CompilerCoreTypes(_resolution);
     types = new Types(_resolution);
@@ -328,8 +325,8 @@ abstract class Compiler implements LibraryLoaderListener {
     }
 
     tasks = [
-      dietParser = new DietParserTask(
-          this, parsing.parserOptions, idGenerator, backend, reporter),
+      dietParser =
+          new DietParserTask(this, options, idGenerator, backend, reporter),
       scanner = createScannerTask(),
       serialization = new SerializationTask(this),
       libraryLoader = new LibraryLoaderTask(
@@ -340,8 +337,8 @@ abstract class Compiler implements LibraryLoaderListener {
           this.serialization,
           this,
           environment),
-      parser = new ParserTask(this, parsing.parserOptions),
-      patchParser = new PatchParserTask(this, parsing.parserOptions),
+      parser = new ParserTask(this, options),
+      patchParser = new PatchParserTask(this, options),
       resolver = createResolverTask(),
       closureToClassMapper = new closureMapping.ClosureTask(this),
       checker = new TypeCheckerTask(this),
@@ -353,6 +350,9 @@ abstract class Compiler implements LibraryLoaderListener {
       dumpInfoTask = new DumpInfoTask(this),
       reuseLibraryTask = new GenericTask('Reuse library', this),
     ];
+
+    _parsingContext =
+        new ParsingContext(reporter, options, parser, patchParser, backend);
 
     tasks.addAll(backend.tasks);
   }
@@ -1811,7 +1811,7 @@ class _CompilerResolution implements Resolution {
   DiagnosticReporter get reporter => compiler.reporter;
 
   @override
-  Parsing get parsing => compiler.parsing;
+  ParsingContext get parsingContext => compiler.parsingContext;
 
   @override
   CoreTypes get coreTypes => compiler.coreTypes;
@@ -1961,34 +1961,6 @@ class _CompilerResolution implements Resolution {
       return new ResolutionWorkItem(element, compilationContext);
     }
   }
-}
-
-// TODO(johnniwinther): Move [ParserTask], [PatchParserTask], [DietParserTask]
-// and [ScannerTask] here.
-class _CompilerParsing implements Parsing {
-  final Compiler compiler;
-
-  _CompilerParsing(this.compiler);
-
-  @override
-  DiagnosticReporter get reporter => compiler.reporter;
-
-  @override
-  measure(f()) => compiler.parser.measure(f);
-
-  @override
-  void parsePatchClass(ClassElement cls) {
-    compiler.patchParser.measure(() {
-      if (cls.isPatch) {
-        compiler.patchParser.parsePatchClassNode(cls);
-      }
-    });
-  }
-
-  ScannerOptions getScannerOptionsFor(Element element) => new ScannerOptions(
-      canUseNative: compiler.backend.canLibraryUseNative(element.library));
-
-  ParserOptions get parserOptions => compiler.options;
 }
 
 class GlobalDependencyRegistry extends EagerRegistry {

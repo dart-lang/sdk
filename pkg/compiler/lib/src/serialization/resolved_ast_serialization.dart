@@ -303,7 +303,7 @@ class ResolvedAstDeserializer {
   /// [parsing] and [getBeginToken] are used for parsing the [Node] for
   /// [element] from its source code.
   static ResolvedAst deserialize(Element element, ObjectDecoder objectDecoder,
-      Parsing parsing, Token getBeginToken(Uri uri, int charOffset)) {
+      ParsingContext parsing, Token getBeginToken(Uri uri, int charOffset)) {
     ResolvedAstKind kind =
         objectDecoder.getEnum(Key.KIND, ResolvedAstKind.values);
     switch (kind) {
@@ -321,7 +321,7 @@ class ResolvedAstDeserializer {
   static ResolvedAst deserializeParsed(
       Element element,
       ObjectDecoder objectDecoder,
-      Parsing parsing,
+      ParsingContext parsing,
       Token getBeginToken(Uri uri, int charOffset)) {
     CompilationUnitElement compilationUnit = element.compilationUnit;
     DiagnosticReporter reporter = parsing.reporter;

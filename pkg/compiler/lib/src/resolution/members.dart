@@ -388,7 +388,7 @@ class ResolverVisitor extends MappingVisitor<ResolutionResult> {
   }
 
   FunctionElement resolveConstructorRedirection(FunctionElementX constructor) {
-    FunctionExpression node = constructor.parseNode(resolution.parsing);
+    FunctionExpression node = constructor.parseNode(resolution.parsingContext);
 
     // A synthetic constructor does not have a node.
     if (node == null) return null;

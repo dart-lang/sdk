@@ -37,7 +37,7 @@ class TestCompiler extends apiimpl.CompilerImpl {
   final String testMarker;
   final String testType;
   final Function onTest;
-  DiagnosticReporter reporter;
+  TestDiagnosticReporter reporter;
 
   TestCompiler(api.CompilerInput inputProvider,
                api.CompilerOutput outputProvider,
@@ -51,7 +51,8 @@ class TestCompiler extends apiimpl.CompilerImpl {
                String this.testMarker,
                String this.testType,
                Function this.onTest)
-      : super(inputProvider, outputProvider, handler,
+      : reporter = new TestDiagnosticReporter(),
+        super(inputProvider, outputProvider, handler,
             new CompilerOptions.parse(
                 libraryRoot: libraryRoot,
                 packageRoot: packageRoot,
@@ -59,7 +60,8 @@ class TestCompiler extends apiimpl.CompilerImpl {
                 environment: environment,
                 packageConfig: packageConfig,
                 packagesDiscoveryProvider: findPackages)) {
-    reporter = new TestDiagnosticReporter(this, super.reporter);
+    reporter.compiler = this;
+    reporter.reporter = super.reporter;
     test('Compiler');
   }
 
@@ -136,10 +138,8 @@ class TestCompiler extends apiimpl.CompilerImpl {
 }
 
 class TestDiagnosticReporter extends DiagnosticReporterWrapper {
-  final TestCompiler compiler;
-  final DiagnosticReporter reporter;
-
-  TestDiagnosticReporter(this.compiler, this.reporter);
+  TestCompiler compiler;
+  DiagnosticReporter reporter;
 
   @override
   withCurrentElement(Element element, f()) {

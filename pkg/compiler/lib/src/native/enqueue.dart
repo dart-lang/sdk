@@ -466,7 +466,7 @@ abstract class NativeEnqueuerBase implements NativeEnqueuer {
     if (!backend.canLibraryUseNative(element.library)) return false;
     // Native method?
     return reporter.withCurrentElement(element, () {
-      Node node = element.parseNode(resolution.parsing);
+      Node node = element.parseNode(resolution.parsingContext);
       if (node is! FunctionExpression) return false;
       FunctionExpression functionExpression = node;
       node = functionExpression.body;
@@ -615,7 +615,7 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
    */
   void registerJsCall(Send node, ForeignResolver resolver) {
     NativeBehavior behavior = NativeBehavior.ofJsCall(
-        node, reporter, compiler.parsing, compiler.coreTypes, resolver);
+        node, reporter, compiler.parsingContext, compiler.coreTypes, resolver);
     registerNativeBehavior(behavior, node);
     nativeBehaviors[node] = behavior;
   }
@@ -631,7 +631,7 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
    */
   void registerJsEmbeddedGlobalCall(Send node, ForeignResolver resolver) {
     NativeBehavior behavior = NativeBehavior.ofJsEmbeddedGlobalCall(
-        node, reporter, compiler.parsing, compiler.coreTypes, resolver);
+        node, reporter, compiler.parsingContext, compiler.coreTypes, resolver);
     registerNativeBehavior(behavior, node);
     nativeBehaviors[node] = behavior;
   }
@@ -647,7 +647,7 @@ class NativeResolutionEnqueuer extends NativeEnqueuerBase {
    */
   void registerJsBuiltinCall(Send node, ForeignResolver resolver) {
     NativeBehavior behavior = NativeBehavior.ofJsBuiltinCall(
-        node, reporter, compiler.parsing, compiler.coreTypes, resolver);
+        node, reporter, compiler.parsingContext, compiler.coreTypes, resolver);
     registerNativeBehavior(behavior, node);
     nativeBehaviors[node] = behavior;
   }

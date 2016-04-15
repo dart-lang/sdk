@@ -4,31 +4,27 @@
 
 library dart2js.serialization_helper;
 
-import 'dart:io';
 import 'dart:async';
-import 'package:async_helper/async_helper.dart';
-import 'package:expect/expect.dart';
-import 'package:compiler/compiler_new.dart';
-import 'package:compiler/src/common.dart';
+import 'dart:io';
+
 import 'package:compiler/src/commandline_options.dart';
+import 'package:compiler/src/common.dart';
 import 'package:compiler/src/common/backend_api.dart';
 import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/common/resolution.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/elements.dart';
-import 'package:compiler/src/filenames.dart';
 import 'package:compiler/src/io/source_file.dart';
 import 'package:compiler/src/scanner/scanner.dart';
-import 'package:compiler/src/serialization/element_serialization.dart';
+import 'package:compiler/src/script.dart';
 import 'package:compiler/src/serialization/impact_serialization.dart';
 import 'package:compiler/src/serialization/json_serializer.dart';
 import 'package:compiler/src/serialization/resolved_ast_serialization.dart';
 import 'package:compiler/src/serialization/serialization.dart';
-import 'package:compiler/src/serialization/modelz.dart';
 import 'package:compiler/src/serialization/task.dart';
 import 'package:compiler/src/tokens/token.dart';
-import 'package:compiler/src/script.dart';
 import 'package:compiler/src/universe/world_impact.dart';
+
 import 'memory_compiler.dart';
 
 class Arguments {
@@ -181,7 +177,7 @@ class _DeserializerSystem extends DeserializerSystem {
       : this._compiler = compiler,
         this._deserializeResolvedAst = deserializeResolvedAst,
         this._resolvedAstDeserializer = deserializeResolvedAst
-           ? new ResolvedAstDeserializerPlugin(compiler.parsing) : null {
+           ? new ResolvedAstDeserializerPlugin(compiler.parsingContext) : null {
     _deserializer.plugins.add(_resolutionImpactDeserializer);
     if (_deserializeResolvedAst) {
       _deserializer.plugins.add(_resolvedAstDeserializer);
@@ -268,14 +264,14 @@ class ResolvedAstSerializerPlugin extends SerializerPlugin {
 }
 
 class ResolvedAstDeserializerPlugin extends DeserializerPlugin {
-  final Parsing parsing;
+  final ParsingContext parsingContext;
   final Map<Uri, SourceFile> sourceFiles = <Uri, SourceFile>{};
 
   Map<Element, ResolvedAst> _resolvedAstMap = <Element, ResolvedAst>{};
   Map<Element, ObjectDecoder> _decoderMap = <Element, ObjectDecoder>{};
   Map<Uri, Token> beginTokenMap = <Uri, Token>{};
 
-  ResolvedAstDeserializerPlugin(this.parsing);
+  ResolvedAstDeserializerPlugin(this.parsingContext);
 
   bool hasResolvedAst(Element element) {
     return _resolvedAstMap.containsKey(element) ||
@@ -289,7 +285,7 @@ class ResolvedAstDeserializerPlugin extends DeserializerPlugin {
       if (decoder != null) {
         resolvedAst = _resolvedAstMap[element] =
             ResolvedAstDeserializer.deserialize(
-                element, decoder, parsing, findToken);
+                element, decoder, parsingContext, findToken);
         _decoderMap.remove(element);
       }
     }

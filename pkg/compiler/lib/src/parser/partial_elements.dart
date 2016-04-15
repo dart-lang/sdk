@@ -5,7 +5,7 @@
 library dart2js.parser.partial_elements;
 
 import '../common.dart';
-import '../common/resolution.dart' show Parsing, Resolution;
+import '../common/resolution.dart' show ParsingContext, Resolution;
 import '../dart_types.dart' show DynamicType;
 import '../elements/elements.dart'
     show
@@ -83,7 +83,7 @@ abstract class PartialFunctionMixin implements BaseFunctionElementX {
     return cachedNode;
   }
 
-  FunctionExpression parseNode(Parsing parsing) {
+  FunctionExpression parseNode(ParsingContext parsing) {
     if (cachedNode != null) return cachedNode;
     parseFunction(Parser p) {
       if (isClassMember && modifiers.isFactory) {
@@ -226,7 +226,7 @@ class PartialFieldList extends VariableList with PartialElement {
     super.hasParseError = hasParseError;
   }
 
-  VariableDefinitions parseNode(Element element, Parsing parsing) {
+  VariableDefinitions parseNode(Element element, ParsingContext parsing) {
     if (definitions != null) return definitions;
     DiagnosticReporter reporter = parsing.reporter;
     reporter.withCurrentElement(element, () {
@@ -251,7 +251,7 @@ class PartialFieldList extends VariableList with PartialElement {
   computeType(Element element, Resolution resolution) {
     if (type != null) return type;
     // TODO(johnniwinther): Compute this in the resolver.
-    VariableDefinitions node = parseNode(element, resolution.parsing);
+    VariableDefinitions node = parseNode(element, resolution.parsingContext);
     if (node.type != null) {
       type = resolution.reporter.withCurrentElement(element, () {
         return resolution.resolveTypeAnnotation(element, node.type);
@@ -274,7 +274,7 @@ class PartialTypedefElement extends TypedefElementX with PartialElement {
 
   Token get token => beginToken;
 
-  Node parseNode(Parsing parsing) {
+  Node parseNode(ParsingContext parsing) {
     if (cachedNode != null) return cachedNode;
     cachedNode = parse(parsing, this, declarationSite,
         (p) => p.parseTopLevelDeclaration(token));
@@ -315,7 +315,7 @@ class PartialMetadataAnnotation extends MetadataAnnotationX
     throw new UnsupportedError("endToken=");
   }
 
-  Node parseNode(Parsing parsing) {
+  Node parseNode(ParsingContext parsing) {
     if (cachedNode != null) return cachedNode;
     var metadata = parse(parsing, annotatedElement, declarationSite,
         (p) => p.parseMetadata(beginToken));
@@ -366,7 +366,7 @@ class PartialClassElement extends ClassElementX with PartialElement {
     return cachedNode;
   }
 
-  ClassNode parseNode(Parsing parsing) {
+  ClassNode parseNode(ParsingContext parsing) {
     if (cachedNode != null) return cachedNode;
     DiagnosticReporter reporter = parsing.reporter;
     reporter.withCurrentElement(this, () {
@@ -426,7 +426,7 @@ class PartialClassElement extends ClassElementX with PartialElement {
   }
 }
 
-Node parse(Parsing parsing, ElementX element, PartialElement partial,
+Node parse(ParsingContext parsing, ElementX element, PartialElement partial,
     doParse(Parser parser)) {
   DiagnosticReporter reporter = parsing.reporter;
   return parsing.measure(() {

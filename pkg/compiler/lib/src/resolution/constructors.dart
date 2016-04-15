@@ -77,7 +77,7 @@ class InitializerResolver {
     if (initialized.containsKey(field)) {
       reportDuplicateInitializerError(field, init, initialized[field]);
     } else if (field.isFinal) {
-      field.parseNode(visitor.resolution.parsing);
+      field.parseNode(visitor.resolution.parsingContext);
       Expression initializer = field.initializer;
       if (initializer != null) {
         reportDuplicateInitializerError(

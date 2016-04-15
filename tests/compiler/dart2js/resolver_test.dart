@@ -227,7 +227,7 @@ Future testSuperCalls() {
             new ResolutionRegistry(compiler,
                 new CollectingTreeElements(fooB)));
     FunctionExpression node =
-        (fooB as FunctionElementX).parseNode(compiler.parsing);
+        (fooB as FunctionElementX).parseNode(compiler.parsingContext);
     visitor.visit(node.body);
     Map mapping = map(visitor);
 
@@ -271,7 +271,7 @@ Future testThis() {
               new ResolutionRegistry(compiler,
                   new CollectingTreeElements(funElement)));
       FunctionExpression function =
-          (funElement as FunctionElementX).parseNode(compiler.parsing);
+          (funElement as FunctionElementX).parseNode(compiler.parsingContext);
       visitor.visit(function.body);
       Map mapping = map(visitor);
       List<Element> values = mapping.values.toList();
@@ -296,7 +296,7 @@ Future testThis() {
           new ResolutionRegistry(compiler,
               new CollectingTreeElements(funElement)));
       FunctionExpression function =
-          (funElement as FunctionElementX).parseNode(compiler.parsing);
+          (funElement as FunctionElementX).parseNode(compiler.parsingContext);
       visitor.visit(function.body);
       DiagnosticCollector collector = compiler.diagnosticCollector;
       Expect.equals(0, collector.warnings.length);
@@ -665,7 +665,7 @@ Future testTopLevelFields() {
     VariableElementX element = compiler.mainApp.find("a");
     Expect.equals(ElementKind.FIELD, element.kind);
     VariableDefinitions node =
-        element.variables.parseNode(element, compiler.parsing);
+        element.variables.parseNode(element, compiler.parsingContext);
     Identifier typeName = node.type.typeName;
     Expect.equals(typeName.source, 'int');
 
@@ -677,9 +677,9 @@ Future testTopLevelFields() {
     Expect.isTrue(bElement != cElement);
 
     VariableDefinitions bNode =
-        bElement.variables.parseNode(bElement, compiler.parsing);
+        bElement.variables.parseNode(bElement, compiler.parsingContext);
     VariableDefinitions cNode =
-        cElement.variables.parseNode(cElement, compiler.parsing);
+        cElement.variables.parseNode(cElement, compiler.parsingContext);
     Expect.equals(bNode, cNode);
     Expect.isNull(bNode.type);
     Expect.isTrue(bNode.modifiers.isVar);

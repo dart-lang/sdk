@@ -355,7 +355,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
 
   void doApplyMixinTo(MixinApplicationElementX mixinApplication,
       DartType supertype, DartType mixinType) {
-    Node node = mixinApplication.parseNode(resolution.parsing);
+    Node node = mixinApplication.parseNode(resolution.parsingContext);
 
     if (mixinApplication.supertype != null) {
       // [supertype] is not null if there was a cycle.

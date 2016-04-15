@@ -5,7 +5,7 @@
 library elements.modelx;
 
 import '../common.dart';
-import '../common/resolution.dart' show Resolution, Parsing;
+import '../common/resolution.dart' show Resolution, ParsingContext;
 import '../compiler.dart' show Compiler;
 import '../constants/constant_constructors.dart';
 import '../constants/constructors.dart';
@@ -52,7 +52,7 @@ abstract class ElementX extends Element with ElementCommon {
 
   Modifiers get modifiers => Modifiers.EMPTY;
 
-  Node parseNode(Parsing parsing) {
+  Node parseNode(ParsingContext parsing) {
     parsing.reporter.internalError(this, 'parseNode not implemented on $this.');
     return null;
   }
@@ -1328,7 +1328,7 @@ class TypedefElementX extends ElementX
 
   TypedefType computeType(Resolution resolution) {
     if (thisTypeCache != null) return thisTypeCache;
-    Typedef node = parseNode(resolution.parsing);
+    Typedef node = parseNode(resolution.parsingContext);
     setThisAndRawTypes(createTypeVariables(node.typeParameters));
     ensureResolved(resolution);
     return thisTypeCache;
@@ -1401,7 +1401,7 @@ class VariableList implements DeclarationSite {
     metadataInternal = metadata;
   }
 
-  VariableDefinitions parseNode(Element element, Parsing parsing) {
+  VariableDefinitions parseNode(Element element, ParsingContext parsing) {
     return definitions;
   }
 
@@ -1480,7 +1480,7 @@ abstract class VariableElementX extends ElementX
     return initializerCache;
   }
 
-  Node parseNode(Parsing parsing) {
+  Node parseNode(ParsingContext parsing) {
     if (definitionsCache != null) return definitionsCache;
 
     VariableDefinitions definitions = variables.parseNode(this, parsing);
@@ -1530,7 +1530,7 @@ abstract class VariableElementX extends ElementX
     if (variables.type != null) return variables.type;
     // Call [parseNode] to ensure that [definitionsCache] and [initializerCache]
     // are set as a consequence of calling [computeType].
-    parseNode(resolution.parsing);
+    parseNode(resolution.parsingContext);
     return variables.computeType(this, resolution);
   }
 
@@ -1700,7 +1700,7 @@ class FormalElementX extends ElementX
 
   Token get position => identifier.getBeginToken();
 
-  Node parseNode(Parsing parsing) => definitions;
+  Node parseNode(ParsingContext parsing) => definitions;
 
   DartType computeType(Resolution resolution) {
     assert(invariant(this, type != null,
@@ -1860,7 +1860,7 @@ class AbstractFieldElementX extends ElementX implements AbstractFieldElement {
     throw "internal error: AbstractFieldElement has no type";
   }
 
-  Node parseNode(Parsing parsing) {
+  Node parseNode(ParsingContext parsing) {
     throw "internal error: AbstractFieldElement has no node";
   }
 
@@ -2114,7 +2114,7 @@ class LocalFunctionElementX extends BaseFunctionElementX
 
   bool get hasNode => true;
 
-  FunctionExpression parseNode(Parsing parsing) => node;
+  FunctionExpression parseNode(ParsingContext parsing) => node;
 
   Token get position {
     // Use the name as position if this is not an unnamed closure.
@@ -2271,7 +2271,7 @@ class DeferredLoaderGetterElementX extends GetterElementX
   // error messages.
   Token get position => null;
 
-  FunctionExpression parseNode(Parsing parsing) => null;
+  FunctionExpression parseNode(ParsingContext parsing) => null;
 
   bool get hasNode => false;
 
@@ -2352,7 +2352,7 @@ class SynthesizedConstructorElementX extends ConstructorElementX {
     return _resolvedAst.kind == ResolvedAstKind.DEFAULT_CONSTRUCTOR;
   }
 
-  FunctionExpression parseNode(Parsing parsing) => null;
+  FunctionExpression parseNode(ParsingContext parsing) => null;
 
   bool get hasNode => false;
 
@@ -2533,7 +2533,7 @@ abstract class BaseClassElementX extends ElementX
       rawTypeCache = origin.rawType;
     } else if (thisTypeCache == null) {
       computeThisAndRawType(
-          resolution, computeTypeParameters(resolution.parsing));
+          resolution, computeTypeParameters(resolution.parsingContext));
     }
     return thisTypeCache;
   }
@@ -2555,7 +2555,7 @@ abstract class BaseClassElementX extends ElementX
     return new InterfaceType(this, typeArguments);
   }
 
-  List<DartType> computeTypeParameters(Parsing parsing);
+  List<DartType> computeTypeParameters(ParsingContext parsing);
 
   bool get isObject {
     assert(invariant(this, isResolved,
@@ -2687,7 +2687,7 @@ abstract class ClassElementX extends BaseClassElementX {
     addMember(constructor, reporter);
   }
 
-  List<DartType> computeTypeParameters(Parsing parsing) {
+  List<DartType> computeTypeParameters(ParsingContext parsing) {
     ClassNode node = parseNode(parsing);
     return createTypeVariables(node.typeParameters);
   }
@@ -2748,14 +2748,15 @@ class EnumClassElementX extends ClassElementX
   bool get isEnumClass => true;
 
   @override
-  Node parseNode(Parsing parsing) => node;
+  Node parseNode(ParsingContext parsing) => node;
 
   @override
   accept(ElementVisitor visitor, arg) {
     return visitor.visitEnumClassElement(this, arg);
   }
 
-  List<DartType> computeTypeParameters(Parsing parsing) => const <DartType>[];
+  List<DartType> computeTypeParameters(ParsingContext parsing) =>
+      const <DartType>[];
 
   List<FieldElement> get enumValues {
     assert(invariant(this, _enumValues != null,
@@ -2813,7 +2814,7 @@ class EnumConstructorElementX extends ConstructorElementX {
   bool get hasNode => true;
 
   @override
-  FunctionExpression parseNode(Parsing parsing) => node;
+  FunctionExpression parseNode(ParsingContext parsing) => node;
 
   @override
   SourceSpan get sourcePosition => enclosingClass.sourcePosition;
@@ -2855,7 +2856,7 @@ class EnumMethodElementX extends MethodElementX {
   bool get hasNode => true;
 
   @override
-  FunctionExpression parseNode(Parsing parsing) => node;
+  FunctionExpression parseNode(ParsingContext parsing) => node;
 
   @override
   SourceSpan get sourcePosition => enclosingClass.sourcePosition;
@@ -3009,7 +3010,7 @@ abstract class MixinApplicationElementX extends BaseClassElementX
 
   Token get position => node.getBeginToken();
 
-  Node parseNode(Parsing parsing) => node;
+  Node parseNode(ParsingContext parsing) => node;
 
   void addMember(Element element, DiagnosticReporter reporter) {
     throw new UnsupportedError("Cannot add member to $this.");
@@ -3029,7 +3030,7 @@ abstract class MixinApplicationElementX extends BaseClassElementX
     addConstructor(constructor);
   }
 
-  List<DartType> computeTypeParameters(Parsing parsing) {
+  List<DartType> computeTypeParameters(ParsingContext parsing) {
     NamedMixinApplication named = node.asNamedMixinApplication();
     if (named == null) {
       throw new SpannableAssertionFailure(
@@ -3153,7 +3154,7 @@ class TypeVariableElementX extends ElementX
 
   bool get hasNode => true;
 
-  Node parseNode(Parsing parsing) => node;
+  Node parseNode(ParsingContext parsing) => node;
 
   Token get position => node.getBeginToken();
 
@@ -3216,7 +3217,7 @@ abstract class MetadataAnnotationX implements MetadataAnnotation {
     return this;
   }
 
-  Node parseNode(Parsing parsing);
+  Node parseNode(ParsingContext parsing);
 
   String toString() => 'MetadataAnnotation($constant, $resolutionState)';
 }
@@ -3227,7 +3228,7 @@ class ParameterMetadataAnnotation extends MetadataAnnotationX {
 
   ParameterMetadataAnnotation(Metadata this.metadata);
 
-  Node parseNode(Parsing parsing) => metadata.expression;
+  Node parseNode(ParsingContext parsing) => metadata.expression;
 
   Token get beginToken => metadata.getBeginToken();
 

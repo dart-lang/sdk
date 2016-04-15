@@ -9,7 +9,7 @@ import 'dart:collection' show Queue;
 import '../common.dart';
 import '../common/names.dart' show Identifiers;
 import '../common/resolution.dart'
-    show Feature, Parsing, Resolution, ResolutionImpact;
+    show Feature, ParsingContext, Resolution, ResolutionImpact;
 import '../common/tasks.dart' show CompilerTask;
 import '../compile_time_constants.dart' show ConstantCompiler;
 import '../compiler.dart' show Compiler;
@@ -66,7 +66,7 @@ class ResolverTask extends CompilerTask {
 
   Resolution get resolution => compiler.resolution;
 
-  Parsing get parsing => compiler.parsing;
+  ParsingContext get parsingContext => compiler.parsingContext;
 
   CoreClasses get coreClasses => compiler.coreClasses;
 
@@ -311,7 +311,7 @@ class ResolverTask extends CompilerTask {
           return const ResolutionImpact();
         }
       } else {
-        element.parseNode(resolution.parsing);
+        element.parseNode(resolution.parsingContext);
         element.computeType(resolution);
         FunctionElementX implementation = element;
         if (element.isExternal) {
@@ -336,7 +336,7 @@ class ResolverTask extends CompilerTask {
   }
 
   WorldImpact resolveField(FieldElementX element) {
-    VariableDefinitions tree = element.parseNode(parsing);
+    VariableDefinitions tree = element.parseNode(parsingContext);
     if (element.modifiers.isStatic && element.isTopLevel) {
       reporter.reportErrorMessage(element.modifiers.getStatic(),
           MessageKind.TOP_LEVEL_VARIABLE_DECLARED_STATIC);
@@ -508,7 +508,7 @@ class ResolverTask extends CompilerTask {
       reporter.withCurrentElement(cls, () {
         // TODO(ahe): Cache the node in cls.
         cls
-            .parseNode(parsing)
+            .parseNode(parsingContext)
             .accept(new ClassSupertypeResolver(compiler, cls));
         if (cls.supertypeLoadState != STATE_DONE) {
           cls.supertypeLoadState = STATE_DONE;
@@ -597,7 +597,7 @@ class ResolverTask extends CompilerTask {
           () => measure(() {
                 assert(element.resolutionState == STATE_NOT_STARTED);
                 element.resolutionState = STATE_STARTED;
-                Node tree = element.parseNode(parsing);
+                Node tree = element.parseNode(parsingContext);
                 loadSupertypes(element, tree);
 
                 ClassResolverVisitor visitor =
@@ -965,13 +965,13 @@ class ResolverTask extends CompilerTask {
   FunctionSignature resolveSignature(FunctionElementX element) {
     MessageKind defaultValuesError = null;
     if (element.isFactoryConstructor) {
-      FunctionExpression body = element.parseNode(parsing);
+      FunctionExpression body = element.parseNode(parsingContext);
       if (body.isRedirectingFactory) {
         defaultValuesError = MessageKind.REDIRECTING_FACTORY_WITH_DEFAULT;
       }
     }
     return reporter.withCurrentElement(element, () {
-      FunctionExpression node = element.parseNode(parsing);
+      FunctionExpression node = element.parseNode(parsingContext);
       return measure(() => SignatureResolver.analyze(
           compiler,
           node.parameters,
@@ -993,7 +993,7 @@ class ResolverTask extends CompilerTask {
         return measure(() {
           assert(element.resolutionState == STATE_NOT_STARTED);
           element.resolutionState = STATE_STARTED;
-          Typedef node = element.parseNode(parsing);
+          Typedef node = element.parseNode(parsingContext);
           TypedefResolverVisitor visitor =
               new TypedefResolverVisitor(compiler, element, registry);
           visitor.visit(node);
@@ -1011,7 +1011,7 @@ class ResolverTask extends CompilerTask {
               assert(annotation.resolutionState == STATE_NOT_STARTED);
               annotation.resolutionState = STATE_STARTED;
 
-              Node node = annotation.parseNode(parsing);
+              Node node = annotation.parseNode(parsingContext);
               Element annotatedElement = annotation.annotatedElement;
               AnalyzableElement context = annotatedElement.analyzableElement;
               ClassElement classElement = annotatedElement.enclosingClass;

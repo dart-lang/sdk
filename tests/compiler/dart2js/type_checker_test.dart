@@ -2513,13 +2513,13 @@ analyzeTopLevel(String text, [expectedWarnings]) {
         classElement.forEachLocalMember((Element e) {
           if (!e.isSynthesized) {
             element = e;
-            node = element.parseNode(compiler.parsing);
+            node = element.parseNode(compiler.parsingContext);
             compiler.resolver.resolve(element);
             mapping = element.treeElements;
           }
         });
       } else {
-        node = element.parseNode(compiler.parsing);
+        node = element.parseNode(compiler.parsingContext);
         compiler.resolver.resolve(element);
         mapping = element.treeElements;
       }

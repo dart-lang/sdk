@@ -22,8 +22,11 @@ import '../elements/elements.dart'
 import '../enqueue.dart' show ResolutionEnqueuer;
 import '../options.dart' show ParserOptions;
 import '../parser/element_listener.dart' show ScannerOptions;
+import '../parser/parser_task.dart';
+import '../patch_parser.dart';
 import '../tree/tree.dart' show TypeAnnotation;
 import '../universe/world_impact.dart' show WorldImpact;
+import 'backend_api.dart';
 import 'work.dart' show ItemCompilationContext, WorkItem;
 
 /// [WorkItem] used exclusively by the [ResolutionEnqueuer].
@@ -184,7 +187,7 @@ class ListLiteralUse {
 
 // TODO(johnniwinther): Rename to `Resolver` or `ResolverContext`.
 abstract class Resolution {
-  Parsing get parsing;
+  ParsingContext get parsingContext;
   DiagnosticReporter get reporter;
   CoreTypes get coreTypes;
 
@@ -232,11 +235,55 @@ abstract class Resolution {
   void emptyCache();
 }
 
-// TODO(johnniwinther): Rename to `Parser` or `ParsingContext`.
-abstract class Parsing {
+/// A container of commonly used dependencies for tasks that involve parsing.
+abstract class ParsingContext {
+  factory ParsingContext(
+      DiagnosticReporter reporter,
+      ParserOptions parserOptions,
+      ParserTask parser,
+      PatchParserTask patchParser,
+      Backend backend) = _ParsingContext;
+
   DiagnosticReporter get reporter;
-  void parsePatchClass(ClassElement cls);
-  measure(f());
-  ScannerOptions getScannerOptionsFor(Element element);
   ParserOptions get parserOptions;
+  ParserTask get parser;
+  PatchParserTask get patchParser;
+
+  /// Use [patchParser] directly instead.
+  @deprecated
+  void parsePatchClass(ClassElement cls);
+
+  /// Use [parser] and measure directly instead.
+  @deprecated
+  measure(f());
+
+  /// Get the [ScannerOptions] to scan the given [element].
+  ScannerOptions getScannerOptionsFor(Element element);
+}
+
+class _ParsingContext implements ParsingContext {
+  final DiagnosticReporter reporter;
+  final ParserOptions parserOptions;
+  final ParserTask parser;
+  final PatchParserTask patchParser;
+  final Backend backend;
+
+  _ParsingContext(this.reporter, this.parserOptions, this.parser,
+      this.patchParser, this.backend);
+
+  @override
+  measure(f()) => parser.measure(f);
+
+  @override
+  void parsePatchClass(ClassElement cls) {
+    patchParser.measure(() {
+      if (cls.isPatch) {
+        patchParser.parsePatchClassNode(cls);
+      }
+    });
+  }
+
+  @override
+  ScannerOptions getScannerOptionsFor(Element element) => new ScannerOptions(
+      canUseNative: backend.canLibraryUseNative(element.library));
 }
