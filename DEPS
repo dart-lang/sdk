@@ -72,7 +72,7 @@ vars = {
   "ply_rev": "@604b32590ffad5cbb82e4afef1d305512d06ae93",
   "plugin_tag": "@0.1.0",
   "pool_tag": "@1.2.1",
-  "protobuf_tag": "@0.5.0+1",
+  "protobuf_tag": "@0.5.1+1",
   "pub_rev": "@5257a0630a8db4f1ae339910eef5080ce384afc7",
   "pub_cache_tag": "@v0.1.0",
   "pub_semver_tag": "@1.2.1",
