@@ -3041,6 +3041,7 @@ static RawFunction* EvaluateHelper(const Class& cls,
 RawObject* Class::Evaluate(const String& expr,
                            const Array& param_names,
                            const Array& param_values) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   const Function& eval_func =
       Function::Handle(EvaluateHelper(*this, expr, param_names, true));
   const Object& result =
@@ -9315,6 +9316,7 @@ RawInstance* Library::TransitiveLoadError() const {
 
 
 void Library::AddPatchClass(const Class& cls) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(cls.is_patch());
   ASSERT(GetPatchClass(String::Handle(cls.Name())) == Class::null());
   const GrowableObjectArray& patch_classes =
@@ -9324,6 +9326,7 @@ void Library::AddPatchClass(const Class& cls) const {
 
 
 RawClass* Library::GetPatchClass(const String& name) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   const GrowableObjectArray& patch_classes =
       GrowableObjectArray::Handle(this->patch_classes());
   Object& obj = Object::Handle();
@@ -9339,6 +9342,7 @@ RawClass* Library::GetPatchClass(const String& name) const {
 
 
 void Library::RemovePatchClass(const Class& cls) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(cls.is_patch());
   const GrowableObjectArray& patch_classes =
       GrowableObjectArray::Handle(this->patch_classes());
@@ -9406,6 +9410,7 @@ void Library::AddMetadata(const Object& owner,
                           const String& name,
                           TokenPosition token_pos) const {
   Thread* thread = Thread::Current();
+  ASSERT(thread->IsMutatorThread());
   Zone* zone = thread->zone();
   const String& metaname = String::Handle(zone, Symbols::New(thread, name));
   const Field& field = Field::Handle(zone,
@@ -9493,6 +9498,7 @@ RawString* Library::MakeMetadataName(const Object& obj) const {
 
 
 RawField* Library::GetMetadataField(const String& metaname) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   const GrowableObjectArray& metadata =
       GrowableObjectArray::Handle(this->metadata());
   Field& entry = Field::Handle();
@@ -9599,8 +9605,15 @@ bool Library::LookupResolvedNamesCache(const String& name,
   *obj = cache.GetOrNull(name, &present);
   // Mutator compiler thread may add entries and therefore
   // change 'resolved_names()' while running a background compilation;
-  // do not ASSERT that 'resolved_names()' has not changed.
-  cache.Release();
+  // ASSERT that 'resolved_names()' has not changed only in mutator.
+#if defined(DEBUG)
+  if (Thread::Current()->IsMutatorThread()) {
+    ASSERT(cache.Release().raw() == resolved_names());
+  } else {
+    // Release must be called in debug mode.
+    cache.Release();
+  }
+#endif
   return present;
 }
 
@@ -9669,7 +9682,7 @@ void Library::GrowDictionary(const Array& dict, intptr_t dict_size) const {
 
 
 void Library::AddObject(const Object& obj, const String& name) const {
-  ASSERT(!Compiler::IsBackgroundCompilation());
+  ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(obj.IsClass() ||
          obj.IsFunction() ||
          obj.IsField() ||
@@ -9789,8 +9802,10 @@ void Library::ReplaceObject(const Object& obj, const String& name) const {
 
 
 bool Library::RemoveObject(const Object& obj, const String& name) const {
-  ASSERT(!Compiler::IsBackgroundCompilation());
-  Object& entry = Object::Handle();
+  Thread* thread = Thread::Current();
+  ASSERT(thread->IsMutatorThread());
+  Zone* zone = thread->zone();
+  Object& entry = Object::Handle(zone);
 
   intptr_t index;
   entry = LookupEntry(name, &index);
@@ -9798,12 +9813,12 @@ bool Library::RemoveObject(const Object& obj, const String& name) const {
     return false;
   }
 
-  const Array& dict = Array::Handle(dictionary());
+  const Array& dict = Array::Handle(zone, dictionary());
   dict.SetAt(index, Object::null_object());
   intptr_t dict_size = dict.Length() - 1;
 
   // Fix any downstream collisions.
-  String& key = String::Handle();
+  String& key = String::Handle(zone);
   for (;;) {
     index = (index + 1) % dict_size;
     entry = dict.At(index);
@@ -9826,7 +9841,7 @@ bool Library::RemoveObject(const Object& obj, const String& name) const {
 
   // Update used count.
   intptr_t used_elements = Smi::Value(Smi::RawCast(dict.At(dict_size))) - 1;
-  dict.SetAt(dict_size, Smi::Handle(Smi::New(used_elements)));
+  dict.SetAt(dict_size, Smi::Handle(zone, Smi::New(used_elements)));
 
   InvalidateResolvedNamesCache();
 
@@ -9864,6 +9879,7 @@ static void AddScriptIfUnique(const GrowableObjectArray& scripts,
 
 
 RawArray* Library::LoadedScripts() const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   // We compute the list of loaded scripts lazily. The result is
   // cached in loaded_scripts_.
   if (loaded_scripts() == Array::null()) {
@@ -10242,6 +10258,7 @@ static RawArray* NewDictionary(intptr_t initial_size) {
 
 void Library::InitResolvedNamesCache(intptr_t size,
                                      SnapshotReader* reader) const {
+  ASSERT(Thread::Current()->IsMutatorThread());
   if (reader == NULL) {
     StorePointer(&raw_ptr()->resolved_names_,
                  HashTables::New<ResolvedNamesMap>(size));
@@ -10280,7 +10297,10 @@ RawLibrary* Library::New() {
 
 RawLibrary* Library::NewLibraryHelper(const String& url,
                                       bool import_core_lib) {
-  const Library& result = Library::Handle(Library::New());
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
+  ASSERT(thread->IsMutatorThread());
+  const Library& result = Library::Handle(zone, Library::New());
   result.StorePointer(&result.raw_ptr()->name_, Symbols::Empty().raw());
   result.StorePointer(&result.raw_ptr()->url_, url.raw());
   result.StorePointer(&result.raw_ptr()->resolved_names_,
@@ -10314,9 +10334,9 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.InitImportList();
   result.AllocatePrivateKey();
   if (import_core_lib) {
-    const Library& core_lib = Library::Handle(Library::CoreLibrary());
+    const Library& core_lib = Library::Handle(zone, Library::CoreLibrary());
     ASSERT(!core_lib.IsNull());
-    const Namespace& ns = Namespace::Handle(
+    const Namespace& ns = Namespace::Handle(zone,
         Namespace::New(core_lib, Object::null_array(), Object::null_array()));
     result.AddImport(ns);
   }

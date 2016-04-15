@@ -81,6 +81,8 @@ class Compiler : public AllStatic {
   static const intptr_t kNoOSRDeoptId = Thread::kNoDeoptId;
 
   static bool IsBackgroundCompilation();
+  // The result for a function may change if debugging gets turned on/off.
+  static bool CanOptimizeFunction(Thread* thread, const Function& function);
 
   // Extracts top level entities from the script and populates
   // the class dictionary of the library.

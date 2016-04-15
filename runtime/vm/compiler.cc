@@ -55,6 +55,7 @@ DEFINE_FLAG(int, max_deoptimization_counter_threshold, 16,
     "How many times we allow deoptimization before we disallow optimization.");
 DEFINE_FLAG(bool, loop_invariant_code_motion, true,
     "Do loop invariant code motion.");
+DEFINE_FLAG(charp, optimization_filter, NULL, "Optimize only named function");
 DEFINE_FLAG(bool, print_flow_graph, false, "Print the IR flow graph.");
 DEFINE_FLAG(bool, print_flow_graph_optimized, false,
     "Print the IR flow graph when optimizing.");
@@ -62,7 +63,13 @@ DEFINE_FLAG(bool, print_ic_data_map, false,
     "Print the deopt-id to ICData map in optimizing compiler.");
 DEFINE_FLAG(bool, print_code_source_map, false, "Print code source map.");
 DEFINE_FLAG(bool, range_analysis, true, "Enable range analysis");
+DEFINE_FLAG(bool, stress_test_background_compilation, false,
+    "Keep background compiler running all the time");
+DEFINE_FLAG(bool, stop_on_excessive_deoptimization, false,
+    "Debugging: stops program if deoptimizing same function too often");
 DEFINE_FLAG(bool, trace_compiler, false, "Trace compiler operations.");
+DEFINE_FLAG(bool, trace_failed_optimization_attempts, false,
+    "Traces all failed optimization attempts");
 DEFINE_FLAG(bool, trace_optimizing_compiler, false,
     "Trace only optimizing compiler operations.");
 DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from ssa compiler.");
@@ -160,6 +167,69 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
   }
+}
+
+
+bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
+  if (FLAG_support_debugger) {
+    Isolate* isolate = thread->isolate();
+    if (isolate->debugger()->IsStepping() ||
+        isolate->debugger()->HasBreakpoint(function, thread->zone())) {
+      // We cannot set breakpoints and single step in optimized code,
+      // so do not optimize the function.
+      function.set_usage_counter(0);
+      return false;
+    }
+  }
+  if (function.deoptimization_counter() >=
+      FLAG_max_deoptimization_counter_threshold) {
+    if (FLAG_trace_failed_optimization_attempts ||
+        FLAG_stop_on_excessive_deoptimization) {
+      THR_Print("Too many deoptimizations: %s\n",
+          function.ToFullyQualifiedCString());
+      if (FLAG_stop_on_excessive_deoptimization) {
+        FATAL("Stop on excessive deoptimization");
+      }
+    }
+    // The function will not be optimized any longer. This situation can occur
+    // mostly with small optimization counter thresholds.
+    function.SetIsOptimizable(false);
+    function.set_usage_counter(INT_MIN);
+    return false;
+  }
+  if (FLAG_optimization_filter != NULL) {
+    // FLAG_optimization_filter is a comma-separated list of strings that are
+    // matched against the fully-qualified function name.
+    char* save_ptr;  // Needed for strtok_r.
+    const char* function_name = function.ToFullyQualifiedCString();
+    intptr_t len = strlen(FLAG_optimization_filter) + 1;  // Length with \0.
+    char* filter = new char[len];
+    strncpy(filter, FLAG_optimization_filter, len);  // strtok modifies arg 1.
+    char* token = strtok_r(filter, ",", &save_ptr);
+    bool found = false;
+    while (token != NULL) {
+      if (strstr(function_name, token) != NULL) {
+        found = true;
+        break;
+      }
+      token = strtok_r(NULL, ",", &save_ptr);
+    }
+    delete[] filter;
+    if (!found) {
+      function.set_usage_counter(INT_MIN);
+      return false;
+    }
+  }
+  if (!function.IsOptimizable()) {
+    // Huge methods (code size above --huge_method_cutoff_in_code_size) become
+    // non-optimizable only after the code has been generated.
+    if (FLAG_trace_failed_optimization_attempts) {
+      THR_Print("Not optimizable: %s\n", function.ToFullyQualifiedCString());
+    }
+    function.set_usage_counter(INT_MIN);
+    return false;
+  }
+  return true;
 }
 
 
@@ -542,7 +612,8 @@ NOT_IN_PRODUCT(
           THR_Print("--> FAIL: Loading invalidation.");
         }
       }
-      if (code_is_valid) {
+      // Setting breakpoints at runtime could make a function non-optimizable.
+      if (code_is_valid && Compiler::CanOptimizeFunction(thread(), function)) {
         const bool is_osr = osr_id() != Compiler::kNoOSRDeoptId;
         ASSERT(!is_osr);  // OSR is not compiled in background.
         function.InstallOptimizedCode(code, is_osr);
@@ -1611,7 +1682,6 @@ class QueueElement {
   explicit QueueElement(const Function& function)
       : next_(NULL),
         function_(function.raw()) {
-    ASSERT(Thread::Current()->IsMutatorThread());
   }
 
   virtual ~QueueElement() {
@@ -1784,6 +1854,13 @@ void BackgroundCompiler::Run() {
             function = Function::null();
           } else {
             qelem = function_queue()->Remove();
+            if (FLAG_stress_test_background_compilation) {
+              const Function& old = Function::Handle(qelem->Function());
+              if (Compiler::CanOptimizeFunction(thread, old)) {
+                QueueElement* repeat_qelem = new QueueElement(old);
+                function_queue()->Add(repeat_qelem);
+              }
+            }
             function = function_queue()->PeekFunction();
           }
         }
@@ -1920,6 +1997,12 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
 
 
 bool Compiler::IsBackgroundCompilation() {
+  UNREACHABLE();
+  return false;
+}
+
+
+bool Compiler::CanOptimizeFunction(Thread* thread, const Function& function) {
   UNREACHABLE();
   return false;
 }
