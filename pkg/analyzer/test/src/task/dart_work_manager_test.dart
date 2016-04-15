@@ -9,7 +9,6 @@ import 'package:analyzer/src/context/cache.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart' show ScannerErrorCode;
 import 'package:analyzer/src/generated/engine.dart'
     show
-        AnalysisErrorInfo,
         AnalysisErrorInfoImpl,
         CacheState,
         ChangeNoticeImpl,

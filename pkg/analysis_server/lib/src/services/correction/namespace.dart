@@ -6,7 +6,7 @@ library services.src.correction.namespace;
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/generated/resolver.dart';
+import 'package:analyzer/src/dart/resolver/scope.dart';
 
 /**
  * Returns the [Element] exported from the given [LibraryElement].
