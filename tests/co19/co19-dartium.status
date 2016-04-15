@@ -203,7 +203,6 @@ Language/Libraries_and_Scripts/URIs/syntax_t09: RuntimeError # Please triage thi
 Language/Libraries_and_Scripts/URIs/syntax_t10: RuntimeError # Please triage this failure.
 Language/Libraries_and_Scripts/URIs/syntax_t14: RuntimeError # Please triage this failure.
 Language/Libraries_and_Scripts/URIs/syntax_t15: RuntimeError # Please triage this failure.
-Language/Metadata/before_param_t09: RuntimeError # Issue 26187
 Language/Metadata/before_variable_t01: RuntimeError # Please triage this failure.
 Language/Mixins/Mixin_Application/error_t01: Fail # co19 issue 43
 Language/Mixins/Mixin_Application/error_t02: Fail # co19 issue 43
