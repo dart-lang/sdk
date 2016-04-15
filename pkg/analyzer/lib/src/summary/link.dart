@@ -3413,6 +3413,9 @@ class SyntheticVariableElementForLink implements PropertyInducingElementImpl {
   PropertyAccessorElementForLink_Executable get getter => _getter;
 
   @override
+  bool get isSynthetic => true;
+
+  @override
   PropertyAccessorElementForLink_Executable get setter => _setter;
 
   @override

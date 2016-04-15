@@ -38,6 +38,20 @@ class LinkerUnitTest extends SummaryLinkerTest {
     return linker.getLibrary(Uri.parse(uri));
   }
 
+  void test_baseClass_genericWithAccessor() {
+    createLinker('''
+class B<T> {
+  int get i => null;
+}
+class C<U> extends B<U> {
+  var j;
+}
+    ''');
+    LibraryElementForLink library = linker.getLibrary(linkerInputs.testDartUri);
+    library.libraryCycleForLink.ensureLinked();
+    // No assertions--just make sure it doesn't crash.
+  }
+
   void test_baseClass_withPrivateField() {
     createLinker('''
 class B {
