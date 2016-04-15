@@ -3273,6 +3273,32 @@ class ParameterElementForLink implements ParameterElementImpl {
 }
 
 /**
+ * Element representing the parameter of a synthetic setter for a variable
+ * resynthesized during linking.
+ */
+class ParameterElementForLink_VariableSetter implements ParameterElementImpl {
+  @override
+  final PropertyAccessorElementForLink_Variable enclosingElement;
+
+  ParameterElementForLink_VariableSetter(this.enclosingElement);
+
+  @override
+  bool get isSynthetic => true;
+
+  @override
+  String get name => 'x';
+
+  @override
+  ParameterKind get parameterKind => ParameterKind.REQUIRED;
+
+  @override
+  DartType get type => enclosingElement.computeVariableType();
+
+  @override
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+/**
  * Element representing a getter or setter resynthesized from a summary during
  * linking.
  */
@@ -3328,19 +3354,20 @@ class PropertyAccessorElementForLink_Variable
   @override
   final bool isSetter;
 
-  final VariableElementForLink _variable;
+  final VariableElementForLink variable;
   FunctionTypeImpl _type;
+  List<ParameterElement> _parameters;
 
-  PropertyAccessorElementForLink_Variable(this._variable, this.isSetter);
+  PropertyAccessorElementForLink_Variable(this.variable, this.isSetter);
 
   @override
-  Element get enclosingElement => _variable.enclosingElement;
+  Element get enclosingElement => variable.enclosingElement;
 
   @override
   bool get isGetter => !isSetter;
 
   @override
-  bool get isStatic => _variable.isStatic;
+  bool get isStatic => variable.isStatic;
 
   @override
   bool get isSynthetic => true;
@@ -3350,25 +3377,28 @@ class PropertyAccessorElementForLink_Variable
 
   @override
   LibraryElementForLink get library =>
-      _variable.compilationUnit.enclosingElement;
+      variable.compilationUnit.enclosingElement;
 
   @override
-  String get name => isSetter ? '${_variable.name}=' : _variable.name;
+  String get name => isSetter ? '${variable.name}=' : variable.name;
+
+  @override
+  List<ParameterElement> get parameters {
+    if (_parameters == null) {
+      _parameters = <ParameterElementForLink_VariableSetter>[];
+      if (isSetter) {
+        _parameters.add(new ParameterElementForLink_VariableSetter(this));
+      }
+    }
+    return _parameters;
+  }
 
   @override
   DartType get returnType {
     if (isSetter) {
       return VoidTypeImpl.instance;
-    } else if (_variable.hasImplicitType &&
-        !isStatic &&
-        !_variable.compilationUnit.isTypeInferenceComplete) {
-      // This is an instance field and we are currently inferring types in the
-      // library cycle containing it.  So we shouldn't use the inferred type
-      // (even if we have already computed it), since that would lead to
-      // non-deterministic type inference results.
-      return DynamicTypeImpl.instance;
     } else {
-      return _variable.type;
+      return computeVariableType();
     }
   }
 
@@ -3379,6 +3409,24 @@ class PropertyAccessorElementForLink_Variable
   List<TypeParameterElement> get typeParameters {
     // TODO(paulberry): is this correct for fields in generic classes?
     return const [];
+  }
+
+  /**
+   * Compute the type of the corresponding variable, which may depend on the
+   * progress of type inference.
+   */
+  DartType computeVariableType() {
+    if (variable.hasImplicitType &&
+        !isStatic &&
+        !variable.compilationUnit.isTypeInferenceComplete) {
+      // This is an instance field and we are currently inferring types in the
+      // library cycle containing it.  So we shouldn't use the inferred type
+      // (even if we have already computed it), since that would lead to
+      // non-deterministic type inference results.
+      return DynamicTypeImpl.instance;
+    } else {
+      return variable.type;
+    }
   }
 
   @override
@@ -3966,7 +4014,10 @@ class UndefinedElementForLink implements ReferenceableElementForLink {
  * summary during linking.
  */
 class VariableElementForLink
-    implements VariableElementImpl, ReferenceableElementForLink {
+    implements
+        VariableElementImpl,
+        PropertyInducingElement,
+        ReferenceableElementForLink {
   /**
    * The unlinked representation of the variable in the summary.
    */
@@ -4059,6 +4110,12 @@ class VariableElementForLink
 
   @override
   String get name => unlinkedVariable.name;
+
+  @override
+  DartType get propagatedType {
+    // TODO(paulberry): implement propagated types in the linker.
+    return DynamicTypeImpl.instance;
+  }
 
   @override
   void set type(DartType newType) {

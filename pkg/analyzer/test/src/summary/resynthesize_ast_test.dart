@@ -333,18 +333,6 @@ var b2 = new B<int>();
 
   @override
   @failingTest
-  void test_inferFromRhsOnlyIfItWontConflictWithOverriddenFields() {
-    super.test_inferFromRhsOnlyIfItWontConflictWithOverriddenFields();
-  }
-
-  @override
-  @failingTest
-  void test_inferTypesOnGenericInstantiations_4() {
-    super.test_inferTypesOnGenericInstantiations_4();
-  }
-
-  @override
-  @failingTest
   void test_inferTypesOnGenericInstantiations_5() {
     super.test_inferTypesOnGenericInstantiations_5();
   }
