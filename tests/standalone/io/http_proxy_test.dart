@@ -173,7 +173,7 @@ class ProxyServer {
               List<String> tokens = authorization.split(" ");
               Expect.equals("Basic", tokens[0]);
               String auth =
-                  CryptoUtils.bytesToBase64(UTF8.encode("$username:$password"));
+                  BASE64.encode(UTF8.encode("$username:$password"));
               if (auth != tokens[1]) {
                 basicAuthenticationRequired(request);
                 return;

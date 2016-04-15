@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:convert' show UTF8;
+import 'dart:convert' show ChunkedConversionSink, UTF8;
 import 'dart:core' hide Resource;
 
 import 'package:analyzer/dart/element/element.dart';
@@ -12,6 +12,7 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/summarize_elements.dart';
+import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 
 /**
@@ -242,7 +243,7 @@ class IncrementalCache {
    */
   String _getCacheSourceContentKey(Source source) {
     List<int> hash = _getSourceContentHash(source);
-    String hashStr = CryptoUtils.bytesToHex(hash);
+    String hashStr = hex.encode(hash);
     return '$hashStr.content';
   }
 
@@ -267,7 +268,7 @@ class IncrementalCache {
    */
   String _getLibraryBundleKey(Source librarySource) {
     List<int> hash = _getLibraryClosureHash(librarySource);
-    String hashStr = CryptoUtils.bytesToHex(hash);
+    String hashStr = hex.encode(hash);
     return '$hashStr.summary';
   }
 
@@ -291,13 +292,31 @@ class IncrementalCache {
   List<int> _getLibraryClosureHash(Source librarySource) {
     return _libraryClosureHashMap.putIfAbsent(librarySource, () {
       List<Source> closure = _getLibraryClosure(librarySource);
-      MD5 md5 = new MD5();
+
+      Digest digest;
+
+      var digestSink = new ChunkedConversionSink<Digest>.withCallback(
+          (List<Digest> digests) {
+        digest = digests.single;
+      });
+
+      var byteSink = md5.startChunkedConversion(digestSink);
+
       for (Source source in closure) {
         List<int> sourceHash = _getSourceContentHash(source);
-        md5.add(sourceHash);
+        byteSink.add(sourceHash);
       }
-      md5.add(configSalt);
-      return md5.close();
+      byteSink.add(configSalt);
+
+      byteSink.close();
+      // TODO(paulberry): this call to `close` should not be needed.
+      // Can be removed once
+      //   https://github.com/dart-lang/crypto/issues/33
+      // is fixed – ensure the min version constraint on crypto is updated, tho.
+      // Does not cause any problems in the mean time.
+      digestSink.close();
+
+      return digest.bytes;
     });
   }
 
@@ -308,7 +327,7 @@ class IncrementalCache {
     return _sourceContentHashMap.putIfAbsent(source, () {
       String sourceText = source.contents.data;
       List<int> sourceBytes = UTF8.encode(sourceText);
-      return (new MD5()..add(sourceBytes)).close();
+      return md5.convert(sourceBytes).bytes;
     });
   }
 

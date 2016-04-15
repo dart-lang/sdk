@@ -40,7 +40,7 @@ vars = {
   "cli_util_tag" : "@0.0.1+2",
   "collection_rev": "@f6135e6350c63eb3f4dd12953b8d4363faff16fc",
   "convert_tag": "@1.0.0",
-  "crypto_rev" : "@2df57a1e26dd88e8d0614207d4b062c73209917d",
+  "crypto_tag" : "@1.1.0",
   "csslib_tag" : "@0.12.0",
   "dart2js_info_rev" : "@0a221eaf16aec3879c45719de656680ccb80d8a1",
   "dartdoc_tag" : "@v0.9.0",
@@ -165,7 +165,7 @@ deps = {
   Var("dart_root") + "/third_party/pkg/convert":
       "https://github.com/dart-lang/convert.git" + Var("convert_tag"),
   Var("dart_root") + "/third_party/pkg/crypto":
-      (Var("github_mirror") % "crypto") + Var("crypto_rev"),
+      (Var("github_mirror") % "crypto") + Var("crypto_tag"),
   Var("dart_root") + "/third_party/pkg/csslib":
       (Var("github_mirror") % "csslib") + Var("csslib_tag"),
   Var("dart_root") + "/third_party/dart-services":

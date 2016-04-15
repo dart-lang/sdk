@@ -19,6 +19,7 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/summary/name_filter.dart';
 import 'package:analyzer/src/summary/summarize_const_expr.dart';
+import 'package:convert/convert.dart';
 import 'package:crypto/crypto.dart';
 import 'package:path/path.dart' as path;
 
@@ -212,9 +213,7 @@ class PackageBundleAssembler {
    * Compute a hash of the given file contents.
    */
   String _hash(String contents) {
-    MD5 md5 = new MD5();
-    md5.add(UTF8.encode(contents));
-    return CryptoUtils.bytesToHex(md5.close());
+    return hex.encode(md5.convert(UTF8.encode(contents)).bytes);
   }
 }
 

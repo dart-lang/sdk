@@ -80,12 +80,16 @@ testSameHash(String tmpDirPath) {
   if (dartExecutable == "") throw "dart executable not available";
 
   // actions to take
-  runAddHash() =>
-      Process.runSync(dartExecutable,
-                      [path.join(dartRootPath, "tools", "addlatexhash.dart"),
-                       tmpPar8timesPath,
-                       hashPath,
-                       listPath]);
+  runAddHash() {
+    var args = [
+      '--package-root=${Platform.packageRoot}',
+      path.join(dartRootPath, "tools", "addlatexhash.dart"),
+      tmpPar8timesPath,
+      hashPath,
+      listPath
+    ];
+    return Process.runSync(dartExecutable, args);
+  }
 
   // perform test
   new File(par8timesPath).copySync(tmpPar8timesPath);
@@ -149,12 +153,16 @@ testSameDVI(String tmpDirPath) {
   runLatex(fileName,workingDirectory) =>
       Process.runSync("latex", [fileName], workingDirectory: workingDirectory);
 
-  runAddHash() =>
-      Process.runSync(dartExecutable,
-                      [path.join(dartRootPath, "tools", "addlatexhash.dart"),
-                       tmpSpecPath,
-                       hashPath,
-                       listPath]);
+  runAddHash() {
+    var args = [
+      '--package-root=${Platform.packageRoot}',
+      path.join(dartRootPath, "tools", "addlatexhash.dart"),
+      tmpSpecPath,
+      hashPath,
+      listPath
+    ];
+    return Process.runSync(dartExecutable, args);
+  }
 
   runDvi2tty(dviFile) =>
       Process.runSync("dvi2tty", [dviFile], workingDirectory: tmpDirPath);
