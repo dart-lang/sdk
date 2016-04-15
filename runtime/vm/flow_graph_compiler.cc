@@ -1153,8 +1153,9 @@ void FlowGraphCompiler::GenerateInstanceCall(
     intptr_t argument_count,
     LocationSummary* locs,
     const ICData& ic_data_in) {
-  const ICData& ic_data = ICData::ZoneHandle(ic_data_in.Original());
+  ICData& ic_data = ICData::ZoneHandle(ic_data_in.Original());
   if (FLAG_precompiled_mode) {
+    ic_data = ic_data.AsUnaryClassChecks();
     EmitSwitchableInstanceCall(ic_data, argument_count,
                                deopt_id, token_pos, locs);
     return;

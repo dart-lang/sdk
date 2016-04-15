@@ -1375,21 +1375,9 @@ void FlowGraphCompiler::EmitSwitchableInstanceCall(
     LocationSummary* locs) {
   __ Comment("SwitchableCall");
   __ movq(RDI, Address(RSP, (argument_count - 1) * kWordSize));
-  if (ic_data.NumArgsTested() == 1) {
-    __ LoadUniqueObject(RBX, ic_data);
-    __ CallPatchable(*StubCode::ICLookupThroughFunction_entry());
-  } else {
-    const String& name = String::Handle(zone(), ic_data.target_name());
-    const Array& arguments_descriptor =
-        Array::ZoneHandle(zone(), ic_data.arguments_descriptor());
-    ASSERT(!arguments_descriptor.IsNull() &&
-           (arguments_descriptor.Length() > 0));
-    const MegamorphicCache& cache = MegamorphicCache::ZoneHandle(zone(),
-        MegamorphicCacheTable::Lookup(isolate(), name, arguments_descriptor));
-
-    __ LoadUniqueObject(RBX, cache);
-    __ CallPatchable(*StubCode::MegamorphicLookup_entry());
-  }
+  ASSERT(ic_data.NumArgsTested() == 1);
+  __ LoadUniqueObject(RBX, ic_data);
+  __ CallPatchable(*StubCode::ICLookupThroughFunction_entry());
   __ call(RCX);
 
   AddCurrentDescriptor(RawPcDescriptors::kOther,
