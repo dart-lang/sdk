@@ -40,39 +40,27 @@ import 'package:args/command_runner.dart';
 import 'package:dev_compiler/src/compiler/command.dart';
 
 main(List<String> args) async {
+  args = _preprocessArgs(args);
+
   var runner = new CommandRunner('dartdevc', 'Dart Development Compiler');
   runner.addCommand(new CompileCommand());
   try {
     await runner.run(args);
-  } on UsageException catch (e) {
-    // Incorrect usage, input file not found, etc.
-    print(e);
-    exit(64);
-  } on CompileErrorException catch (e) {
-    // Code has error(s) and failed to compile.
-    print(e);
-    exit(1);
-  } catch (e, s) {
-    // Anything else is likely a compiler bug.
-    //
-    // --unsafe-force-compile is a bit of a grey area, but it's nice not to
-    // crash while compiling
-    // (of course, output code may crash, if it had errors).
-    //
-    print("");
-    print("We're sorry, you've found a bug in our compiler.");
-    print("You can report this bug at:");
-    print("    https://github.com/dart-lang/dev_compiler/issues");
-    print("");
-    print("Please include the information below in your report, along with");
-    print("any other information that may help us track it down. Thanks!");
-    print("");
-    print("    dartdevc arguments: " + args.join(' '));
-    print("    dart --version: ${Platform.version}");
-    print("");
-    print("```");
-    print(e);
-    print(s);
-    print("```");
+  } catch(e, s) {
+    exit(handleError(e, s, args));
+  }
+}
+
+/// If the final arg is `@file_path` then read in all the lines of that file
+/// and add those as args.
+///
+/// Bazel actions that support workers must provide all their per-WorkRequest
+/// arguments in a file like this instead of as normal args.
+List<String> _preprocessArgs(List<String> args) {
+  if (args.last.startsWith('@')) {
+    return new List.from(args)
+      ..addAll(new File(args.last.substring(1)).readAsLinesSync());
+  } else {
+    return args;
   }
 }
