@@ -2152,7 +2152,6 @@ DART_EXPORT Dart_Handle Dart_IntegerToInt64(Dart_Handle integer,
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
   CHECK_ISOLATE(isolate);
-  API_TIMELINE_DURATION;
   if (Api::IsSmi(integer)) {
     *value = Api::SmiValue(integer);
     return Api::Success();
@@ -2181,7 +2180,6 @@ DART_EXPORT Dart_Handle Dart_IntegerToInt64(Dart_Handle integer,
 
 DART_EXPORT Dart_Handle Dart_IntegerToUint64(Dart_Handle integer,
                                              uint64_t* value) {
-  API_TIMELINE_DURATION;
   // Fast path for Smis.
   Thread* thread = Thread::Current();
   Isolate* isolate = thread->isolate();
@@ -2241,7 +2239,6 @@ DART_EXPORT Dart_Handle Dart_IntegerToHexCString(Dart_Handle integer,
 
 
 DART_EXPORT Dart_Handle Dart_NewDouble(double value) {
-  API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
   CHECK_CALLBACK_STATE(T);
   return Api::NewHandle(T, Double::New(value));
@@ -2250,7 +2247,6 @@ DART_EXPORT Dart_Handle Dart_NewDouble(double value) {
 
 DART_EXPORT Dart_Handle Dart_DoubleValue(Dart_Handle double_obj,
                                          double* value) {
-  API_TIMELINE_DURATION;
   DARTSCOPE(Thread::Current());
   const Double& obj = Api::UnwrapDoubleHandle(Z, double_obj);
   if (obj.IsNull()) {
@@ -4823,7 +4819,6 @@ DART_EXPORT Dart_Handle Dart_GetNativeArguments(
 
 DART_EXPORT Dart_Handle Dart_GetNativeArgument(Dart_NativeArguments args,
                                                int index) {
-  API_TIMELINE_DURATION;
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   if ((index < 0) || (index >= arguments->NativeArgCount())) {
     return Api::NewError(
@@ -4836,7 +4831,6 @@ DART_EXPORT Dart_Handle Dart_GetNativeArgument(Dart_NativeArguments args,
 
 
 DART_EXPORT int Dart_GetNativeArgumentCount(Dart_NativeArguments args) {
-  API_TIMELINE_DURATION;
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   return arguments->NativeArgCount();
 }
@@ -4895,7 +4889,6 @@ DART_EXPORT Dart_Handle Dart_GetNativeStringArgument(Dart_NativeArguments args,
 DART_EXPORT Dart_Handle Dart_GetNativeIntegerArgument(Dart_NativeArguments args,
                                                       int index,
                                                       int64_t* value) {
-  API_TIMELINE_DURATION;
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   if ((index < 0) || (index >= arguments->NativeArgCount())) {
     return Api::NewError(
@@ -4913,7 +4906,6 @@ DART_EXPORT Dart_Handle Dart_GetNativeIntegerArgument(Dart_NativeArguments args,
 DART_EXPORT Dart_Handle Dart_GetNativeBooleanArgument(Dart_NativeArguments args,
                                                       int index,
                                                       bool* value) {
-  API_TIMELINE_DURATION;
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   if ((index < 0) || (index >= arguments->NativeArgCount())) {
     return Api::NewError(
@@ -4931,7 +4923,6 @@ DART_EXPORT Dart_Handle Dart_GetNativeBooleanArgument(Dart_NativeArguments args,
 DART_EXPORT Dart_Handle Dart_GetNativeDoubleArgument(Dart_NativeArguments args,
                                                      int index,
                                                      double* value) {
-  API_TIMELINE_DURATION;
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   if ((index < 0) || (index >= arguments->NativeArgCount())) {
     return Api::NewError(
@@ -5056,7 +5047,6 @@ DART_EXPORT Dart_Handle Dart_SetEnvironmentCallback(
 // --- Scripts and Libraries ---
 DART_EXPORT void Dart_SetBooleanReturnValue(Dart_NativeArguments args,
                                             bool retval) {
-  API_TIMELINE_DURATION;
   NativeArguments* arguments = reinterpret_cast<NativeArguments*>(args);
   arguments->SetReturn(Bool::Get(retval));
 }
