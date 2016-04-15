@@ -28,6 +28,8 @@ class CodeViewElement extends ObservatoryElement {
   DisassemblyTable disassemblyTable;
   InlineTable inlineTable;
 
+  static const kDisassemblyColumnIndex = 3;
+
   CodeViewElement.created() : super.created() {
     // Create table models.
     var columns = [
@@ -212,7 +214,20 @@ class CodeViewElement extends ObservatoryElement {
         element.ref = content;
         cell.children = [element];
       } else if (content != null) {
-        cell.text = content.toString();
+        String text = '$content';
+        if (i == kDisassemblyColumnIndex) {
+          // Disassembly might be a comment. Reduce indentation, change styling,
+          // widen to span next column (which should be empty).
+          if (text.startsWith('        ;;')) {
+            cell.attributes['colspan'] = '2';
+            cell.classes.add('code-comment');
+            text = text.substring(6);
+          } else {
+            cell.attributes['colspan'] = '1';
+            cell.classes.remove('code-comment');
+          }
+        }
+        cell.text = text;
       }
     }
   }
