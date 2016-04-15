@@ -155,8 +155,8 @@ File* File::ScopedOpen(const char* name, FileOpenMode mode) {
   // Report errors for non-regular files.
   struct stat64 st;
   if (TEMP_FAILURE_RETRY(stat64(name, &st)) == 0) {
-    // Only accept regular files and character devices.
-    if (!S_ISREG(st.st_mode) && !S_ISCHR(st.st_mode)) {
+    // Only accept regular files, character devices, and pipes.
+    if (!S_ISREG(st.st_mode) && !S_ISCHR(st.st_mode) && !S_ISFIFO(st.st_mode)) {
       errno = (S_ISDIR(st.st_mode)) ? EISDIR : ENOENT;
       return NULL;
     }
