@@ -295,6 +295,9 @@ TimelineEvent::~TimelineEvent() {
 
 
 void TimelineEvent::Reset() {
+  if (owns_label() && label_ != NULL) {
+    free(const_cast<char*>(label_));
+  }
   state_ = 0;
   thread_ = OSThread::kInvalidThreadId;
   isolate_id_ = ILLEGAL_PORT;
@@ -303,6 +306,7 @@ void TimelineEvent::Reset() {
   FreeArguments();
   set_pre_serialized_json(false);
   set_event_type(kNone);
+  set_owns_label(false);
 }
 
 
@@ -502,6 +506,7 @@ void TimelineEvent::Init(EventType event_type,
   FreeArguments();
   set_pre_serialized_json(false);
   set_event_type(event_type);
+  set_owns_label(false);
 }
 
 

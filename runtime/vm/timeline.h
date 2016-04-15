@@ -286,6 +286,10 @@ class TimelineEvent {
 
   const char* GetSerializedJSON() const;
 
+  void set_owns_label(bool owns_label) {
+    state_ = OwnsLabelBit::update(owns_label, state_);
+  }
+
  private:
   void FreeArguments();
 
@@ -315,15 +319,21 @@ class TimelineEvent {
     state_ = PreSerializedJSON::update(pre_serialized_json, state_);
   }
 
+  bool owns_label() const {
+    return OwnsLabelBit::decode(state_);
+  }
+
   enum StateBits {
     kEventTypeBit = 0,  // reserve 4 bits for type.
     kPreSerializedJSON = 4,
-    kNextBit = 5,
+    kOwnsLabelBit = 5,
+    kNextBit = 6,
   };
 
   class EventTypeField : public BitField<uword, EventType, kEventTypeBit, 4> {};
   class PreSerializedJSON :
       public BitField<uword, bool, kPreSerializedJSON, 1> {};
+  class OwnsLabelBit : public BitField<uword, bool, kOwnsLabelBit, 1> {};
 
   int64_t timestamp0_;
   int64_t timestamp1_;
