@@ -5062,17 +5062,21 @@ void Parser::ParseTypedef(const GrowableObjectArray& pending_classes,
       &Symbols::ClosureParameter(),
       &Object::dynamic_type());
 
-  const bool no_explicit_default_values = false;
-  ParseFormalParameterList(no_explicit_default_values, false, &func_params);
-  ExpectSemicolon();
+  // Mark the current class as a typedef class (by setting its signature
+  // function field to a non-null function) before parsing its formal parameters
+  // so that parsed function types are aware that their owner class is a
+  // typedef class.
   Function& signature_function =
       Function::Handle(Z, Function::NewSignatureFunction(function_type_alias,
                                                          alias_name_pos));
-  signature_function.set_result_type(result_type);
-  AddFormalParamsToFunction(&func_params, signature_function);
-
   // Set the signature function in the function type alias class.
   function_type_alias.set_signature_function(signature_function);
+
+  const bool no_explicit_default_values = false;
+  ParseFormalParameterList(no_explicit_default_values, false, &func_params);
+  ExpectSemicolon();
+  signature_function.set_result_type(result_type);
+  AddFormalParamsToFunction(&func_params, signature_function);
 
   if (FLAG_trace_parser) {
     OS::Print("TopLevel parsing function type alias '%s'\n",

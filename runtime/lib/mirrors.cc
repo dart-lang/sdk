@@ -2068,18 +2068,7 @@ DEFINE_NATIVE_ENTRY(TypedefMirror_referent, 1) {
   ASSERT(cls.IsTypedefClass());
   const Function& sig_func = Function::Handle(cls.signature_function());
   Type& referent_type = Type::Handle(sig_func.SignatureType());
-  // If the scope class of the function type is not generic, replace it with
-  // Closure class (Function::SignatureType() keeps it).
   ASSERT(cls.raw() == referent_type.type_class());
-  if (!cls.IsGeneric()) {
-    referent_type = Type::New(
-        Class::Handle(Isolate::Current()->object_store()->closure_class()),
-        TypeArguments::Handle(referent_type.arguments()),
-        referent_type.token_pos());
-    referent_type.set_signature(sig_func);
-    referent_type ^= ClassFinalizer::FinalizeType(
-        cls, referent_type, ClassFinalizer::kCanonicalize);
-  }
   referent_type ^= InstantiateType(referent_type, type);
   return CreateFunctionTypeMirror(referent_type);
 }

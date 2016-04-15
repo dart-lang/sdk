@@ -10954,10 +10954,10 @@ void Namespace::set_metadata_field(const Field& value) const {
 void Namespace::AddMetadata(const Object& owner, TokenPosition token_pos) {
   ASSERT(Field::Handle(metadata_field()).IsNull());
   Field& field = Field::Handle(Field::NewTopLevel(Symbols::TopLevel(),
-                                          false,  // is_final
-                                          false,  // is_const
-                                          owner,
-                                          token_pos));
+                                                  false,  // is_final
+                                                  false,  // is_const
+                                                  owner,
+                                                  token_pos));
   field.set_is_reflectable(false);
   field.SetFieldType(Object::dynamic_type());
   field.SetStaticValue(Array::empty_array(), true);
@@ -16534,8 +16534,8 @@ RawAbstractType* Type::Canonicalize(TrailPtr trail) const {
     return Object::dynamic_type().raw();
   }
   // Fast canonical lookup/registry for simple types.
-  if (!cls.IsGeneric() && !cls.IsClosureClass()) {
-    ASSERT(!IsFunctionType() || cls.IsTypedefClass());
+  if (!cls.IsGeneric() && !cls.IsClosureClass() && !cls.IsTypedefClass()) {
+    ASSERT(!IsFunctionType());
     type = cls.CanonicalType();
     if (type.IsNull()) {
       ASSERT(!cls.raw()->IsVMHeapObject() || (isolate == Dart::vm_isolate()));
