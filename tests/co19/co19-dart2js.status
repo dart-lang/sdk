@@ -286,7 +286,8 @@ LibTest/typed_data/Uint8List/Uint8List.view_A05_t01: RuntimeError # co19-roll r5
 LibTest/typed_data/Uint8List/Uint8List.view_A05_t02: RuntimeError # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint8List/Uint8List.view_A05_t03: RuntimeError # co19-roll r559: Please triage this failure
 LibTest/typed_data/Uint8List/Uint8List_A02_t01: fail # co19-roll r576: Please triage this failure
-Utils/tests/Expect/identical_A01_t01: fail # co19-roll r546: Please triage this failure
+Utils/tests/Expect/identical_A01_t01: fail # co19-roll r546: Please triage this
+WebPlatformTest/DOMEvents/approved/domnodeinserted_t01: Skip # Issue 51
 WebPlatformTest/Utils/test/testFail_t01: RuntimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/DOMImplementation-createHTMLDocument_t01: CompileTimeError # co19-roll r722: Please triage this failure.
 WebPlatformTest/dom/nodes/Document-createElement_t01: CompileTimeError # co19-roll r722: Please triage this failure.
