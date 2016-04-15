@@ -2267,7 +2267,7 @@ class IrBuilderVisitor extends ast.Visitor<ir.Primitive>
       // libraries contain a dummy const constructor implementation that
       // doesn't perform validation and the compiler compiles a call to
       // (non-const) Symbol.validated when it sees new Symbol(...).
-      target = compiler.symbolValidatedConstructor;
+      target = helpers.symbolValidatedConstructor;
     } else {
       target = constructor.implementation;
     }

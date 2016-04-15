@@ -291,8 +291,8 @@ class BackendImpacts {
 
   BackendImpact get symbolConstructor {
     if (_symbolConstructor == null) {
-      _symbolConstructor = new BackendImpact(
-          staticUses: [helpers.compiler.symbolValidatedConstructor]);
+      _symbolConstructor =
+          new BackendImpact(staticUses: [helpers.symbolValidatedConstructor]);
     }
     return _symbolConstructor;
   }

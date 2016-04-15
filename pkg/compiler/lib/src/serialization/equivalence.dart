@@ -1223,7 +1223,7 @@ class NodeEquivalenceVisitor implements Visitor1<bool, Node> {
             node1, node2, 'condition', node1.condition, node2.condition) &&
         testNodes(
             node1, node2, 'expression', node1.expression, node2.expression) &&
-        testNodes(node1, node2, 'body', node1.expression, node2.body) &&
+        testNodes(node1, node2, 'body', node1.body, node2.body) &&
         testNodes(node1, node2, 'declaredIdentifier', node1.declaredIdentifier,
             node2.declaredIdentifier);
   }

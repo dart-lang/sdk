@@ -619,7 +619,7 @@ class JavaScriptBackend extends Backend {
     assert(invariant(element, element.isDeclaration, message: ""));
     if (element == helpers.streamIteratorConstructor ||
         element == helpers.compiler.symbolConstructor ||
-        element == helpers.compiler.symbolValidatedConstructor ||
+        helpers.isSymbolValidatedConstructor(element) ||
         element == helpers.syncCompleterConstructor ||
         element == coreClasses.symbolClass ||
         element == helpers.objectNoSuchMethod) {

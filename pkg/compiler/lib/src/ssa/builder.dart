@@ -4884,10 +4884,10 @@ class SsaBuilder extends ast.Visitor
         constructorDeclaration == helpers.jsArrayTypedConstructor;
 
     if (isSymbolConstructor) {
-      constructor = compiler.symbolValidatedConstructor;
+      constructor = helpers.symbolValidatedConstructor;
       assert(invariant(send, constructor != null,
           message: 'Constructor Symbol.validated is missing'));
-      callStructure = compiler.symbolValidatedConstructorSelector.callStructure;
+      callStructure = helpers.symbolValidatedConstructorSelector.callStructure;
       assert(invariant(send, callStructure != null,
           message: 'Constructor Symbol.validated is missing'));
     }

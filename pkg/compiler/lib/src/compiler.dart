@@ -168,8 +168,17 @@ abstract class Compiler implements LibraryLoaderListener {
   // TODO(johnniwinther): Move this to the JavaScriptBackend.
   ClassElement nativeAnnotationClass;
 
-  // Initialized after symbolClass has been resolved.
-  FunctionElement symbolConstructor;
+  ConstructorElement _symbolConstructor;
+  ConstructorElement get symbolConstructor {
+    if (_symbolConstructor == null) {
+      ClassElement symbolClass = coreClasses.symbolClass;
+      symbolClass.ensureResolved(resolution);
+      _symbolConstructor = symbolClass.lookupConstructor('');
+      assert(invariant(symbolClass, _symbolConstructor != null,
+          message: "Default constructor not found ${symbolClass}."));
+    }
+    return _symbolConstructor;
+  }
 
   // Initialized when dart:mirrors is loaded.
   ClassElement mirrorSystemClass;
@@ -179,13 +188,6 @@ abstract class Compiler implements LibraryLoaderListener {
 
   // Initialized after mirrorSystemClass has been resolved.
   FunctionElement mirrorSystemGetNameFunction;
-
-  // Initialized when dart:_internal is loaded.
-  ClassElement symbolImplementationClass;
-
-  // Initialized when symbolImplementationClass has been resolved.
-  // TODO(johnniwinther): Move this to [BackendHelpers].
-  FunctionElement symbolValidatedConstructor;
 
   // Initialized when mirrorsUsedClass has been resolved.
   FunctionElement mirrorsUsedConstructor;
@@ -245,9 +247,6 @@ abstract class Compiler implements LibraryLoaderListener {
 
   /// A customizable filter that is applied to enqueued work items.
   QueueFilter enqueuerFilter = new QueueFilter();
-
-  final Selector symbolValidatedConstructorSelector =
-      new Selector.call(const PublicName('validated'), CallStructure.ONE_ARG);
 
   static const String CREATE_INVOCATION_MIRROR = 'createInvocationMirror';
 
@@ -434,8 +433,6 @@ abstract class Compiler implements LibraryLoaderListener {
     if (uri == Uris.dart_core) {
       initializeCoreClasses();
       identicalFunction = coreLibrary.find('identical');
-    } else if (uri == Uris.dart__internal) {
-      symbolImplementationClass = findRequiredElement(library, 'Symbol');
     } else if (uri == Uris.dart_mirrors) {
       mirrorSystemClass = findRequiredElement(library, 'MirrorSystem');
       mirrorsUsedClass = findRequiredElement(library, 'MirrorsUsed');
@@ -597,14 +594,11 @@ abstract class Compiler implements LibraryLoaderListener {
   // [JavaScriptBackend]. Currently needed for testing.
   String get patchVersion => backend.patchVersion;
 
+  // TODO(johnniwinther): Remove this. All elements should be looked up on
+  // demand.
   void onClassResolved(ClassElement cls) {
     if (mirrorSystemClass == cls) {
       mirrorSystemGetNameFunction = cls.lookupLocalMember('getName');
-    } else if (coreClasses.symbolClass == cls) {
-      symbolConstructor = cls.constructors.head;
-    } else if (symbolImplementationClass == cls) {
-      symbolValidatedConstructor =
-          cls.lookupConstructor(symbolValidatedConstructorSelector.name);
     } else if (mirrorsUsedClass == cls) {
       mirrorsUsedConstructor = cls.constructors.head;
     } else if (coreClasses.intClass == cls) {

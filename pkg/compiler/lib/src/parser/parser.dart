@@ -104,9 +104,9 @@ class Parser {
   final bool enableGenericMethodSyntax;
 
   Parser(this.listener, ParserOptions parserOptions,
-      {this.asyncAwaitKeywordsEnabled: false}) :
-          parserOptions = parserOptions,
-          enableGenericMethodSyntax = parserOptions.enableGenericMethodSyntax;
+      {this.asyncAwaitKeywordsEnabled: false})
+      : parserOptions = parserOptions,
+        enableGenericMethodSyntax = parserOptions.enableGenericMethodSyntax;
 
   Token parseUnit(Token token) {
     listener.beginCompilationUnit(token);
@@ -2312,7 +2312,7 @@ class Parser {
   /// This is a suffix parser because it is assumed that type arguments have
   /// been parsed, or `listener.handleNoTypeArguments(..)` has been executed.
   Token parseLiteralFunctionSuffix(Token token) {
-    assert(optional('(',token));
+    assert(optional('(', token));
     BeginGroupToken beginGroup = token;
     if (beginGroup.endGroup != null) {
       Token nextToken = beginGroup.endGroup.next;
