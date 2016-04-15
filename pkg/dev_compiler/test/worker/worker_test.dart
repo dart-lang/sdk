@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -27,7 +28,13 @@ main() {
       inputDartFile.path,
     ];
 
+    setUp(() {
+      inputDartFile.createSync();
+      inputDartFile.writeAsStringSync('main() => print("hello world");');
+    });
+
     tearDown(() {
+      if (inputDartFile.existsSync()) inputDartFile.deleteSync();
       if (outputJsFile.existsSync()) outputJsFile.deleteSync();
     });
 
@@ -38,23 +45,23 @@ main() {
 
       var request = new WorkRequest();
       request.arguments.addAll(compilerArgs);
-
       process.stdin.add(protoToDelimitedBuffer(request));
 
-      var buffer = await messageGrouper.next;
-      WorkResponse response;
-      try {
-        response = new WorkResponse.fromBuffer(buffer);
-      } catch (_) {
-        throw 'Failed to parse response: \n'
-            'bytes: $buffer\n'
-            'String: ${new String.fromCharCodes(buffer)}\n';
-      }
-
+      var response = await _readResponse(messageGrouper);
       expect(response.exitCode, EXIT_CODE_OK, reason: response.output);
       expect(response.output, isEmpty);
 
       expect(outputJsFile.existsSync(), isTrue);
+      expect(outputJsFile.readAsStringSync(), contains('hello world'));
+
+      /// Now update hello_world.dart and send another [WorkRequest].
+      inputDartFile.writeAsStringSync('main() => print("goodbye world");');
+      process.stdin.add(protoToDelimitedBuffer(request));
+
+      response = await _readResponse(messageGrouper);
+      expect(response.exitCode, EXIT_CODE_OK, reason: response.output);
+      expect(response.output, isEmpty);
+      expect(outputJsFile.readAsStringSync(), contains('goodbye world'));
 
       process.kill();
 
@@ -74,4 +81,15 @@ main() {
       expect(outputJsFile.existsSync(), isTrue);
     });
   });
+}
+
+Future<WorkResponse> _readResponse(MessageGrouper messageGrouper) async {
+  var buffer = await messageGrouper.next;
+  try {
+    return new WorkResponse.fromBuffer(buffer);
+  } catch (_) {
+    throw 'Failed to parse response: \n'
+        'bytes: $buffer\n'
+        'String: ${new String.fromCharCodes(buffer)}\n';
+  }
 }

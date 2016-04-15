@@ -4,7 +4,6 @@
 
 import 'dart:convert' show JSON;
 import 'dart:io';
-import 'package:args/args.dart';
 import 'package:args/command_runner.dart';
 import 'package:analyzer/src/generated/source.dart' show Source;
 import 'package:analyzer/src/summary/package_bundle_reader.dart'
@@ -32,13 +31,15 @@ class CompileCommand extends Command {
 
   @override
   void run() {
-    var compiler =
-        new ModuleCompiler(new AnalyzerOptions.fromArguments(argResults));
+    var analyzerOptions = new AnalyzerOptions.fromArguments(argResults);
     if (argResults['persistent_worker']) {
-      new _CompilerWorker(compiler, argParser, this, argResults.rest).run();
+      new _CompilerWorker(analyzerOptions, this).run();
     } else {
-      compile(compiler, new CompilerOptions.fromArguments(argResults),
-          argResults['out'], argResults.rest);
+      compile(
+          new ModuleCompiler(analyzerOptions),
+          new CompilerOptions.fromArguments(argResults),
+          argResults['out'],
+          argResults.rest);
     }
   }
 
@@ -129,24 +130,23 @@ class CompileErrorException implements Exception {
 
 /// Runs the compiler worker loop.
 class _CompilerWorker extends SyncWorkerLoop {
-  final ModuleCompiler compiler;
-  final ArgParser argParser;
+  final AnalyzerOptions analyzerOptions;
   final CompileCommand compileCommand;
-  final List<String> extraArgs;
 
-  _CompilerWorker(
-      this.compiler, this.argParser, this.compileCommand, this.extraArgs)
-      : super();
+  _CompilerWorker(this.analyzerOptions, this.compileCommand) : super();
 
   WorkResponse performRequest(WorkRequest request) {
-    var argResults = argParser.parse(request.arguments);
+    var arguments = new List.from(request.arguments)
+      ..addAll(compileCommand.argResults.rest);
+    var argResults = compileCommand.argParser.parse(arguments);
+
     var output = new StringBuffer();
     try {
       compileCommand.compile(
-          compiler,
+          new ModuleCompiler(analyzerOptions),
           new CompilerOptions.fromArguments(argResults),
           argResults['out'],
-          new List.from(argResults.rest)..addAll(extraArgs),
+          argResults.rest,
           forEachError: output.writeln);
       return new WorkResponse()
         ..exitCode = EXIT_CODE_OK
