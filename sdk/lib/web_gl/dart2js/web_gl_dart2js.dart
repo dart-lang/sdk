@@ -2771,7 +2771,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   @DomName('WebGLRenderingContext.texImage2D')
   @DocsEditable()
   void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, TypedData pixels]) {
-    if (pixels != null && type != null && format != null && (border_OR_canvas_OR_image_OR_pixels_OR_video is int)) {
+    if (type != null && format != null && (border_OR_canvas_OR_image_OR_pixels_OR_video is int)) {
       _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
       return;
     }
@@ -2826,7 +2826,7 @@ class RenderingContext extends Interceptor implements CanvasRenderingContext {
   @DomName('WebGLRenderingContext.texSubImage2D')
   @DocsEditable()
   void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, TypedData pixels]) {
-    if (pixels != null && type != null && (canvas_OR_format_OR_image_OR_pixels_OR_video is int)) {
+    if (type != null && (canvas_OR_format_OR_image_OR_pixels_OR_video is int)) {
       _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
       return;
     }
@@ -4894,7 +4894,7 @@ class RenderingContext2 extends Interceptor implements _WebGL2RenderingContextBa
   @DocsEditable()
   @Experimental() // untriaged
   void texSubImage3D(int target, int level, int xoffset, int yoffset, int zoffset, int format_OR_width, int height_OR_type, canvas_OR_data_OR_depth_OR_image_OR_video, [int format, int type, TypedData pixels]) {
-    if (pixels != null && type != null && format != null && (canvas_OR_data_OR_depth_OR_image_OR_video is int)) {
+    if (type != null && format != null && (canvas_OR_data_OR_depth_OR_image_OR_video is int)) {
       _texSubImage3D_1(target, level, xoffset, yoffset, zoffset, format_OR_width, height_OR_type, canvas_OR_data_OR_depth_OR_image_OR_video, format, type, pixels);
       return;
     }
@@ -5600,7 +5600,7 @@ class RenderingContext2 extends Interceptor implements _WebGL2RenderingContextBa
   @DocsEditable()
   @Experimental() // untriaged
   void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, TypedData pixels]) {
-    if (pixels != null && type != null && format != null && (border_OR_canvas_OR_image_OR_pixels_OR_video is int)) {
+    if (type != null && format != null && (border_OR_canvas_OR_image_OR_pixels_OR_video is int)) {
       _texImage2D_1(target, level, internalformat, format_OR_width, height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, format, type, pixels);
       return;
     }
@@ -5663,7 +5663,7 @@ class RenderingContext2 extends Interceptor implements _WebGL2RenderingContextBa
   @DocsEditable()
   @Experimental() // untriaged
   void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, TypedData pixels]) {
-    if (pixels != null && type != null && (canvas_OR_format_OR_image_OR_pixels_OR_video is int)) {
+    if (type != null && (canvas_OR_format_OR_image_OR_pixels_OR_video is int)) {
       _texSubImage2D_1(target, level, xoffset, yoffset, format_OR_width, height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, type, pixels);
       return;
     }
