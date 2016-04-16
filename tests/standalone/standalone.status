@@ -255,6 +255,7 @@ io/file_lock_test: Skip # Platform.executable
 io/code_collection_test: Skip # Platform.executable
 io/raw_socket_cross_process_test: Skip # Platform.executable
 io/test_extension_test: Skip # Platform.executable
+io/named_pipe_script_test: Skip # Platform.executable
 io/regress_7679_test: Skip # Platform.executable
 io/process_*: Skip # Most use Platform.executable
 assert_test: SkipByDesign # Requires checked mode.
