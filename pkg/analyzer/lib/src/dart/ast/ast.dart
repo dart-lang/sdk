@@ -3391,8 +3391,7 @@ abstract class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
    * The element associated with this directive, or `null` if the AST structure
    * has not been resolved or if this directive could not be resolved.
    */
-  @override
-  Element element;
+  Element _element;
 
   /**
    * Initialize a newly create directive. Either or both of the [comment] and
@@ -3401,6 +3400,16 @@ abstract class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
    */
   DirectiveImpl(Comment comment, List<Annotation> metadata)
       : super(comment, metadata);
+
+  @override
+  Element get element => _element;
+
+  /**
+   * Set the element associated with this directive to be the given [element].
+   */
+  void set element(Element element) {
+    _element = element;
+  }
 }
 
 /**

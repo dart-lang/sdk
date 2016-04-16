@@ -6523,13 +6523,6 @@ class ResolverVisitor extends ScopedVisitor {
   TypeSystem typeSystem;
 
   /**
-   * The class element representing the class containing the current node,
-   * or `null` if the current node is not contained in a class.
-   */
-  @override
-  ClassElement enclosingClass = null;
-
-  /**
    * The class declaration representing the class containing the current node, or `null` if
    * the current node is not contained in a class.
    */
