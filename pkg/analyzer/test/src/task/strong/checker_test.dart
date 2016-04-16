@@ -737,7 +737,47 @@ void main() {
     test('dynamic functions - closures are not fuzzy', () {
       // Regression test for
       // https://github.com/dart-lang/sdk/issues/26118
+      // https://github.com/dart-lang/sdk/issues/26156
       checkFile('''
+        void takesF(void f(int x)) {}
+
+        typedef void TakesInt(int x);
+
+        void update(_) {}
+        void updateOpt([_]) {}
+        void updateOptNum([num x]) {}
+
+        class A {
+          TakesInt f;
+          A(TakesInt g) {
+            f = update;
+            f = updateOpt;
+            f = updateOptNum;
+          }
+          TakesInt g(bool a, bool b) {
+            if (a) {
+              return update;
+            } else if (b) {
+              return updateOpt;
+            } else {
+              return updateOptNum;
+            }
+          }
+        }
+
+        void test0() {
+          takesF(update);
+          takesF(updateOpt);
+          takesF(updateOptNum);
+          TakesInt f;
+          f = update;
+          f = updateOpt;
+          f = updateOptNum;
+          new A(update);
+          new A(updateOpt);
+          new A(updateOptNum);
+        }
+
         void test1() {
           void takesF(f(int x)) => null;
           takesF((dynamic y) => 3);

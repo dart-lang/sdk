@@ -800,7 +800,7 @@ class CodeChecker extends RecursiveAstVisitor {
 
     // Remove fuzzy arrow if possible.
     if (t is FunctionType && StaticInfo.isKnownFunction(expr)) {
-      t = _removeFuzz(t);
+      t = rules.functionTypeToConcreteType(typeProvider, t);
     }
 
     return t;
@@ -906,55 +906,6 @@ class CodeChecker extends RecursiveAstVisitor {
       // assert(CoercionInfo.get(info.node) == null);
       CoercionInfo.set(info.node, info);
     }
-  }
-
-  /// Remove "fuzzy arrow" in this function type.
-  ///
-  /// Normally we treat dynamically typed parameters as bottom for function
-  /// types. This allows type tests such as `if (f is SingleArgFunction)`.
-  /// It also requires a dynamic check on the parameter type to call these
-  /// functions.
-  ///
-  /// When we convert to a strict arrow, dynamically typed parameters become
-  /// top. This is safe to do for known functions, like top-level or local
-  /// functions and static methods. Those functions must already be essentially
-  /// treating dynamic as top.
-  ///
-  /// Only the outer-most arrow can be strict. Any others must be fuzzy, because
-  /// we don't know what function value will be passed there.
-  // TODO(jmesserly): should we use a real "fuzzyArrow" bit on the function
-  // type? That would allow us to implement this in the subtype relation.
-  // TODO(jmesserly): we'll need to factor this differently if we want to
-  // move CodeChecker's functionality into existing analyzer. Likely we can
-  // let the Expression have a strict arrow, then in places were we do
-  // inference, convert back to a fuzzy arrow.
-  FunctionType _removeFuzz(FunctionType t) {
-    bool foundFuzz = false;
-    List<ParameterElement> parameters = <ParameterElement>[];
-    for (ParameterElement p in t.parameters) {
-      ParameterElement newP = _removeParameterFuzz(p);
-      parameters.add(newP);
-      if (p != newP) foundFuzz = true;
-    }
-    if (!foundFuzz) {
-      return t;
-    }
-
-    FunctionElementImpl function = new FunctionElementImpl("", -1);
-    function.synthetic = true;
-    function.returnType = t.returnType;
-    function.shareTypeParameters(t.typeFormals);
-    function.shareParameters(parameters);
-    return function.type = new FunctionTypeImpl(function);
-  }
-
-  /// Removes fuzzy arrow, see [_removeFuzz].
-  ParameterElement _removeParameterFuzz(ParameterElement p) {
-    if (p.type.isDynamic) {
-      return new ParameterElementImpl.synthetic(
-          p.name, typeProvider.objectType, p.parameterKind);
-    }
-    return p;
   }
 
   DartType _specializedBinaryReturnType(

@@ -20,12 +20,14 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/element_resolver.dart';
+import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/error.dart';
 import 'package:analyzer/src/generated/java_engine.dart';
 import 'package:analyzer/src/generated/parser.dart' show ParserErrorCode;
 import 'package:analyzer/src/generated/resolver.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk, SdkLibrary;
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:analyzer/src/task/strong/info.dart' show StaticInfo;
 
 /**
  * A visitor used to traverse an AST structure looking for additional errors and
@@ -69,6 +71,11 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
    * The type representing the type 'int'.
    */
   InterfaceType _intType;
+
+  /**
+   * The options for verification.
+   */
+  AnalysisOptions _options;
 
   /**
    * The object providing access to the types defined by the language.
@@ -300,6 +307,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     _intType = _typeProvider.intType;
     _DISALLOWED_TYPES_TO_EXTEND_OR_IMPLEMENT = _typeProvider.nonSubtypableTypes;
     _typeSystem = _currentLibrary.context.typeSystem;
+    _options = _currentLibrary.context.analysisOptions;
   }
 
   @override
@@ -2007,11 +2015,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       DartType actualStaticType,
       ErrorCode errorCode) {
     // Warning case: test static type information
-    if (actualStaticType != null &&
-        expectedStaticType != null &&
-        !_typeSystem.isAssignableTo(actualStaticType, expectedStaticType)) {
-      _errorReporter.reportTypeErrorForNode(
-          errorCode, expression, [actualStaticType, expectedStaticType]);
+    if (actualStaticType != null && expectedStaticType != null) {
+      _checkForAssignableExpressionAtType(
+          expression, actualStaticType, expectedStaticType, errorCode);
     }
   }
 
@@ -2091,10 +2097,34 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (expressionType == null) {
       return;
     }
-    if (_typeSystem.isAssignableTo(expressionType, type)) {
+    if (_expressionIsAssignableAtType(expression, expressionType, type)) {
       return;
     }
     _errorReporter.reportErrorForNode(errorCode, expression, arguments);
+  }
+
+  bool _checkForAssignableExpression(
+      Expression expression, DartType expectedStaticType, ErrorCode errorCode) {
+    DartType actualStaticType = getStaticType(expression);
+    return actualStaticType != null &&
+        _checkForAssignableExpressionAtType(
+            expression, actualStaticType, expectedStaticType, errorCode);
+  }
+
+  bool _checkForAssignableExpressionAtType(
+      Expression expression,
+      DartType actualStaticType,
+      DartType expectedStaticType,
+      ErrorCode errorCode) {
+    // TODO(leafp): Move the Downcast functionality here.
+    // TODO(leafp): Support strict downcasts
+    if (!_expressionIsAssignableAtType(
+        expression, actualStaticType, expectedStaticType)) {
+      _errorReporter.reportTypeErrorForNode(
+          errorCode, expression, [actualStaticType, expectedStaticType]);
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -3283,7 +3313,7 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     if (staticType == null) {
       return;
     }
-    if (_typeSystem.isAssignableTo(staticType, fieldType)) {
+    if (_expressionIsAssignableAtType(expression, staticType, fieldType)) {
       return;
     }
     // report problem
@@ -3851,13 +3881,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
     DartType leftType = (leftVariableElement == null)
         ? getStaticType(lhs)
         : leftVariableElement.type;
-    DartType staticRightType = getStaticType(rhs);
-    if (!_typeSystem.isAssignableTo(staticRightType, leftType)) {
-      _errorReporter.reportTypeErrorForNode(
-          StaticTypeWarningCode.INVALID_ASSIGNMENT,
-          rhs,
-          [staticRightType, leftType]);
-    }
+    _checkForAssignableExpression(
+        rhs, leftType, StaticTypeWarningCode.INVALID_ASSIGNMENT);
   }
 
   /**
@@ -5059,7 +5084,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       ]);
       return;
     }
-    if (_typeSystem.isAssignableTo(staticReturnType, expectedReturnType)) {
+    if (_expressionIsAssignableAtType(
+        returnExpression, staticReturnType, expectedReturnType)) {
       return;
     }
     _errorReporter.reportTypeErrorForNode(
@@ -5137,8 +5163,9 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
 
     Expression caseExpression = switchCase.expression;
     DartType caseType = getStaticType(caseExpression);
+
     // check types
-    if (!_typeSystem.isAssignableTo(expressionType, caseType)) {
+    if (!_expressionIsAssignableAtType(expression, expressionType, caseType)) {
       _errorReporter.reportErrorForNode(
           StaticWarningCode.SWITCH_EXPRESSION_NOT_ASSIGNABLE,
           expression,
@@ -5544,11 +5571,8 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       impliedReturnType =
           _typeProvider.iterableType.instantiate(<DartType>[staticYieldedType]);
     }
-    if (!_typeSystem.isAssignableTo(impliedReturnType, declaredReturnType)) {
-      _errorReporter.reportTypeErrorForNode(
-          StaticTypeWarningCode.YIELD_OF_INVALID_TYPE,
-          yieldExpression,
-          [impliedReturnType, declaredReturnType]);
+    if (!_checkForAssignableExpressionAtType(yieldExpression, impliedReturnType,
+        declaredReturnType, StaticTypeWarningCode.YIELD_OF_INVALID_TYPE)) {
       return;
     }
     if (isYieldEach) {
@@ -5660,6 +5684,25 @@ class ErrorVerifier extends RecursiveAstVisitor<Object> {
       }
     }
     return false;
+  }
+
+  bool _expressionIsAssignable(
+      Expression expression, DartType expectedStaticType) {
+    return _expressionIsAssignableAtType(
+        expression, getStaticType(expression), expectedStaticType);
+  }
+
+  bool _expressionIsAssignableAtType(Expression expression,
+      DartType actualStaticType, DartType expectedStaticType) {
+    bool concrete =
+        _options.strongMode && StaticInfo.isKnownFunction(expression);
+    if (concrete) {
+      actualStaticType =
+          _typeSystem.typeToConcreteType(_typeProvider, actualStaticType);
+      // TODO(leafp): Move the Downcast functionality here.
+      // TODO(leafp): Support strict downcasts
+    }
+    return _typeSystem.isAssignableTo(actualStaticType, expectedStaticType);
   }
 
   MethodElement _findOverriddenMemberThatMustCallSuper(MethodDeclaration node) {
