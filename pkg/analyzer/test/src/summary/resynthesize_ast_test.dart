@@ -245,6 +245,54 @@ var d = foo.bar;
   ''');
   }
 
+  void test_infer_extractProperty_getter_sequence() {
+    var unit = checkFile(r'''
+class A {
+  B b = new B();
+}
+class B {
+  C c = new C();
+}
+class C {
+  int d;
+}
+var a = new A();
+var v = a.b.c.d;
+  ''');
+    expect(unit.topLevelVariables[1].type.toString(), 'int');
+  }
+
+  void test_infer_extractProperty_getter_sequence_generic() {
+    var unit = checkFile(r'''
+class A<T> {
+  B<T> b = new B<T>();
+}
+class B<K> {
+  C<List<K>, int> c = new C<List<K>, int>();
+}
+class C<K, V> {
+  Map<K, V> d;
+}
+var a = new A<double>();
+var v = a.b.c.d;
+  ''');
+    expect(unit.topLevelVariables[1].type.toString(), 'Map<List<double>, int>');
+  }
+
+  void test_infer_extractProperty_getter_sequence_withUnresolved() {
+    var unit = checkFile(r'''
+class A {
+  B b = new B();
+}
+class B {
+  int c;
+}
+var a = new A();
+var v = a.b.foo.c;
+  ''');
+    expect(unit.topLevelVariables[1].type.toString(), 'dynamic');
+  }
+
   void test_infer_extractProperty_method() {
     checkFile(r'''
 var a = 1.round;
