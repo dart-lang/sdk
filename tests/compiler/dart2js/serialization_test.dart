@@ -479,6 +479,10 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
         checkElementProperties);
     check(element1, element2, 'isOperator',
           element1.isOperator, element2.isOperator);
+    check(
+        element1, element2, 'asyncMarker',
+        element1.asyncMarker,
+        element2.asyncMarker);
 
     checkElementIdentities(
         element1, element2, 'library',
@@ -489,6 +493,44 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
     checkElementIdentities(
         element1, element2, 'enclosingClass',
         element1.enclosingClass, element2.enclosingClass);
+
+    check(
+        element1, element2, 'functionSignature.type',
+        element1.functionSignature.type,
+        element2.functionSignature.type,
+        areTypesEquivalent);
+    checkElementLists(
+        element1, element2, 'functionSignature.requiredParameters',
+        element1.functionSignature.requiredParameters,
+        element2.functionSignature.requiredParameters);
+    checkElementLists(
+        element1, element2, 'functionSignature.optionalParameters',
+        element1.functionSignature.optionalParameters,
+        element2.functionSignature.optionalParameters);
+    check(
+        element1, element2, 'functionSignature.requiredParameterCount',
+        element1.functionSignature.requiredParameterCount,
+        element2.functionSignature.requiredParameterCount);
+    check(
+        element1, element2, 'functionSignature.optionalParameterCount',
+        element1.functionSignature.optionalParameterCount,
+        element2.functionSignature.optionalParameterCount);
+    check(
+        element1, element2, 'functionSignature.optionalParametersAreNamed',
+        element1.functionSignature.optionalParametersAreNamed,
+        element2.functionSignature.optionalParametersAreNamed);
+    check(
+        element1, element2, 'functionSignature.hasOptionalParameters',
+        element1.functionSignature.hasOptionalParameters,
+        element2.functionSignature.hasOptionalParameters);
+    check(
+        element1, element2, 'functionSignature.parameterCount',
+        element1.functionSignature.parameterCount,
+        element2.functionSignature.parameterCount);
+    checkElementLists(
+        element1, element2, 'functionSignature.orderedOptionalParameters',
+        element1.functionSignature.orderedOptionalParameters,
+        element2.functionSignature.orderedOptionalParameters);
   }
 
   @override
@@ -585,6 +627,9 @@ class ElementPropertyEquivalence extends BaseElementVisitor<dynamic, Element> {
     check(
         element1, element2, 'isNamed',
         element1.isNamed, element2.isNamed);
+    check(
+        element1, element2, 'isFinal',
+        element1.isFinal, element2.isFinal);
     check(element1, element2, 'name', element1.name, element2.name);
     if (element1.isOptional) {
       checkConstants(

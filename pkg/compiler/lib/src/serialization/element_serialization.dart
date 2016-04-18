@@ -440,6 +440,7 @@ class FunctionSerializer implements ElementSerializer {
     encoder.setType(Key.TYPE, element.type);
     if (element.isFunction) {
       encoder.setBool(Key.IS_OPERATOR, element.isOperator);
+      encoder.setEnum(Key.ASYNC_MARKER, element.asyncMarker);
     }
     SerializerUtil.serializeParentRelation(element, encoder);
     encoder.setBool(Key.IS_EXTERNAL, element.isExternal);
@@ -513,6 +514,7 @@ class ParameterSerializer implements ElementSerializer {
     encoder.setType(Key.TYPE, element.type);
     encoder.setBool(Key.IS_OPTIONAL, element.isOptional);
     encoder.setBool(Key.IS_NAMED, element.isNamed);
+    encoder.setBool(Key.IS_FINAL, element.isFinal);
     if (element.isOptional) {
       encoder.setConstant(Key.CONSTANT, element.constant);
     }
@@ -674,7 +676,7 @@ class ElementDeserializer {
       case SerializedElementKind.TYPEVARIABLE:
         return new TypeVariableElementZ(decoder);
       case SerializedElementKind.PARAMETER:
-        return new ParameterElementZ(decoder);
+        return new LocalParameterElementZ(decoder);
       case SerializedElementKind.INITIALIZING_FORMAL:
         return new InitializingFormalElementZ(decoder);
       case SerializedElementKind.IMPORT:

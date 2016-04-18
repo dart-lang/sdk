@@ -1106,7 +1106,6 @@ abstract class FunctionSignature {
   int get requiredParameterCount;
   int get optionalParameterCount;
   bool get optionalParametersAreNamed;
-  FormalElement get firstOptionalParameter;
   bool get hasOptionalParameters;
 
   int get parameterCount;
@@ -1196,6 +1195,18 @@ class AsyncMarker {
   String toString() {
     return '${isAsync ? 'async' : 'sync'}${isYielding ? '*' : ''}';
   }
+
+  /// Canonical list of marker values.
+  ///
+  /// Added to make [AsyncMarker] enum-like.
+  static const List<AsyncMarker> values =
+      const <AsyncMarker>[SYNC, SYNC_STAR, ASYNC, ASYNC_STAR];
+
+
+  /// Index to this marker within [values].
+  ///
+  /// Added to make [AsyncMarker] enum-like.
+  int get index => values.indexOf(this);
 }
 
 /// A top level, static or instance function.

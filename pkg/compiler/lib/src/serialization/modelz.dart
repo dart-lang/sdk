@@ -80,9 +80,6 @@ abstract class ElementZ extends Element with ElementCommon {
   bool get isAbstract => false;
 
   @override
-  bool get isAssignable => _unsupported('isAssignable');
-
-  @override
   bool get isClassMember => false;
 
   @override
@@ -122,11 +119,6 @@ abstract class ElementZ extends Element with ElementCommon {
   // TODO(johnniwinther): Support metadata.
   @override
   Iterable<MetadataAnnotation> get metadata => const <MetadataAnnotation>[];
-
-  @override
-  Element get outermostEnclosingMemberOrTopLevel {
-    return _unsupported('outermostEnclosingMemberOrTopLevel');
-  }
 
   @override
   Token get position => _unsupported('position');
@@ -670,30 +662,34 @@ abstract class ParametersMixin
       bool optionalParametersAreNamed = false;
       List<DartType> parameterTypes = <DartType>[];
       List<DartType> optionalParameterTypes = <DartType>[];
-      List<String> namedParameters = <String>[];
-      List<DartType> namedParameterTypes = <DartType>[];
       for (ParameterElement parameter in parameters) {
         if (parameter.isOptional) {
           optionalParameterCount++;
-          requiredParameters.add(parameter);
+          optionalParameters.add(parameter);
           orderedOptionalParameters.add(parameter);
           if (parameter.isNamed) {
             optionalParametersAreNamed = true;
-            namedParameters.add(parameter.name);
-            namedParameterTypes.add(parameter.type);
           } else {
             optionalParameterTypes.add(parameter.type);
           }
         } else {
           requiredParameterCount++;
-          optionalParameters.add(parameter);
+          requiredParameters.add(parameter);
           parameterTypes.add(parameter.type);
         }
       }
+      List<String> namedParameters = const <String>[];
+      List<DartType> namedParameterTypes = const <DartType>[];
       if (optionalParametersAreNamed) {
+        namedParameters = <String>[];
+        namedParameterTypes = <DartType>[];
         orderedOptionalParameters.sort((Element a, Element b) {
           return a.name.compareTo(b.name);
         });
+        for (ParameterElement parameter in orderedOptionalParameters) {
+          namedParameters.add(parameter.name);
+          namedParameterTypes.add(parameter.type);
+        }
       }
 
       FunctionType type = new FunctionType(
@@ -1080,7 +1076,7 @@ abstract class ConstructorElementZ extends DeserializedElementZ
   }
 
   @override
-  AsyncMarker get asyncMarker => _unsupported('asyncMarker');
+  AsyncMarker get asyncMarker => AsyncMarker.SYNC;
 
   @override
   InterfaceType computeEffectiveTargetType(InterfaceType newType) {
@@ -1344,6 +1340,11 @@ abstract class FunctionElementZ extends DeserializedElementZ
   }
 
   @override
+  AsyncMarker get asyncMarker {
+    return _decoder.getEnum(Key.ASYNC_MARKER, AsyncMarker.values);
+  }
+
+  @override
   bool get isOperator => _decoder.getBool(Key.IS_OPERATOR);
 }
 
@@ -1438,6 +1439,9 @@ abstract class GetterElementZ extends DeserializedElementZ
   accept(ElementVisitor visitor, arg) {
     return visitor.visitGetterElement(this, arg);
   }
+
+  @override
+  AsyncMarker get asyncMarker => AsyncMarker.SYNC;
 }
 
 class TopLevelGetterElementZ extends GetterElementZ with LibraryMemberMixin {
@@ -1475,6 +1479,9 @@ abstract class SetterElementZ extends DeserializedElementZ
   accept(ElementVisitor visitor, arg) {
     return visitor.visitSetterElement(this, arg);
   }
+
+  @override
+  AsyncMarker get asyncMarker => AsyncMarker.SYNC;
 }
 
 class TopLevelSetterElementZ extends SetterElementZ with LibraryMemberMixin {
@@ -1706,7 +1713,7 @@ class SyntheticTypeVariableElementZ extends ElementZ
   SourceSpan get sourcePosition => typeDeclaration.sourcePosition;
 }
 
-class ParameterElementZ extends DeserializedElementZ
+abstract class ParameterElementZ extends DeserializedElementZ
     with AnalyzableElementMixin, AstElementMixin, TypedElementMixin
     implements ParameterElement {
   FunctionElement _functionDeclaration;
@@ -1716,9 +1723,10 @@ class ParameterElementZ extends DeserializedElementZ
   ParameterElementZ(ObjectDecoder decoder) : super(decoder);
 
   @override
-  accept(ElementVisitor visitor, arg) {
-    return visitor.visitParameterElement(this, arg);
-  }
+  bool get isFinal => _decoder.getBool(Key.IS_FINAL);
+
+  @override
+  bool get isConst => false;
 
   @override
   ConstantExpression get constant {
@@ -1763,13 +1771,23 @@ class ParameterElementZ extends DeserializedElementZ
   bool get isOptional => _decoder.getBool(Key.IS_OPTIONAL);
 
   @override
-  ElementKind get kind => ElementKind.PARAMETER;
-
-  @override
   LibraryElement get library => executableContext.library;
 
   @override
   MemberElement get memberContext => executableContext.memberContext;
+}
+
+class LocalParameterElementZ extends ParameterElementZ
+    implements LocalParameterElement {
+  LocalParameterElementZ(ObjectDecoder decoder) : super(decoder);
+
+  @override
+  accept(ElementVisitor visitor, arg) {
+    return visitor.visitParameterElement(this, arg);
+  }
+
+  @override
+  ElementKind get kind => ElementKind.PARAMETER;
 }
 
 class InitializingFormalElementZ extends ParameterElementZ
@@ -1816,9 +1834,12 @@ class LocalVariableElementZ extends DeserializedElementZ
   ElementKind get kind => ElementKind.VARIABLE;
 
   @override
+  bool get isFinal => _decoder.getBool(Key.IS_FINAL);
+
+  @override
   bool get isConst {
     if (_isConst == null) {
-      _constant = _decoder.getConstant(Key.CONSTANT);
+      _constant = _decoder.getConstant(Key.CONSTANT, isOptional: true);
       _isConst = _constant != null;
     }
     return _isConst;

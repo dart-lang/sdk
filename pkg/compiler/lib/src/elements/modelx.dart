@@ -109,12 +109,6 @@ abstract class ElementX extends Element with ElementCommon {
     return enclosingElement != null && enclosingElement.isCompilationUnit;
   }
 
-  bool get isAssignable {
-    if (isFinal || isConst) return false;
-    if (isFunction || isConstructor) return false;
-    return true;
-  }
-
   Token get position => null;
 
   SourceSpan get sourcePosition {
@@ -173,19 +167,6 @@ abstract class ElementX extends Element with ElementCommon {
   Element get enclosingClassOrCompilationUnit {
     for (Element e = this; e != null; e = e.enclosingElement) {
       if (e.isClass || e.isCompilationUnit) return e;
-    }
-    return null;
-  }
-
-  Element get outermostEnclosingMemberOrTopLevel {
-    // TODO(lrn): Why is this called "Outermost"?
-    // TODO(johnniwinther): Clean up this method: This method does not return
-    // the outermost for elements in closure classses, but some call-sites rely
-    // on that behavior.
-    for (Element e = this; e != null; e = e.enclosingElement) {
-      if (e.isClassMember || e.isTopLevel) {
-        return e;
-      }
     }
     return null;
   }

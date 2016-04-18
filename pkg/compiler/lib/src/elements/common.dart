@@ -88,6 +88,13 @@ abstract class ElementCommon implements Element {
   bool get impliesType => (kind.category & ElementCategory.IMPLIES_TYPE) != 0;
 
   @override
+  bool get isAssignable {
+    if (isFinal || isConst) return false;
+    if (isFunction || isConstructor) return false;
+    return true;
+  }
+
+  @override
   Element get declaration => this;
 
   @override
@@ -129,6 +136,20 @@ abstract class ElementCommon implements Element {
       }
     }
     return cls;
+  }
+
+  @override
+  Element get outermostEnclosingMemberOrTopLevel {
+    // TODO(lrn): Why is this called "Outermost"?
+    // TODO(johnniwinther): Clean up this method: This method does not return
+    // the outermost for elements in closure classses, but some call-sites rely
+    // on that behavior.
+    for (Element e = this; e != null; e = e.enclosingElement) {
+      if (e.isClassMember || e.isTopLevel) {
+        return e;
+      }
+    }
+    return null;
   }
 }
 
@@ -454,8 +475,6 @@ abstract class FunctionSignatureCommon implements FunctionSignature {
   void forEachOptionalParameter(void function(Element parameter)) {
     optionalParameters.forEach(function);
   }
-
-  Element get firstOptionalParameter => optionalParameters.first;
 
   void forEachParameter(void function(Element parameter)) {
     forEachRequiredParameter(function);
