@@ -757,6 +757,8 @@ bool testResolvedAstEquivalence(
           resolvedAst1.element, resolvedAst2.element) &&
       new NodeEquivalenceVisitor(strategy).testNodes(resolvedAst1, resolvedAst2,
           'node', resolvedAst1.node, resolvedAst2.node) &&
+      new NodeEquivalenceVisitor(strategy).testNodes(resolvedAst1, resolvedAst2,
+          'body', resolvedAst1.body, resolvedAst2.body) &&
       testTreeElementsEquivalence(resolvedAst1, resolvedAst2, strategy);
 }
 

@@ -1850,6 +1850,9 @@ class _CompilerResolution implements Resolution {
   bool hasResolvedAst(Element element) {
     assert(invariant(element, element.isDeclaration,
         message: "Element $element must be the declaration."));
+    if (compiler.serialization.isDeserialized(element)) {
+      return compiler.serialization.hasResolvedAst(element);
+    }
     return element is AstElement &&
         hasBeenResolved(element) &&
         element.hasResolvedAst;
@@ -1860,6 +1863,9 @@ class _CompilerResolution implements Resolution {
     assert(invariant(element, element.isDeclaration,
         message: "Element $element must be the declaration."));
     if (hasResolvedAst(element)) {
+      if (compiler.serialization.isDeserialized(element)) {
+        return compiler.serialization.getResolvedAst(element);
+      }
       AstElement astElement = element;
       return astElement.resolvedAst;
     }

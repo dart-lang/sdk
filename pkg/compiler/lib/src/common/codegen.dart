@@ -4,6 +4,7 @@
 
 library dart2js.common.codegen;
 
+import '../closure.dart' show SynthesizedCallMethodElementX;
 import '../common.dart';
 import '../compiler.dart' show Compiler;
 import '../constants/values.dart' show ConstantValue;
@@ -225,6 +226,7 @@ class CodegenRegistry extends Registry {
 /// [WorkItem] used exclusively by the [CodegenEnqueuer].
 class CodegenWorkItem extends WorkItem {
   CodegenRegistry registry;
+  final ResolvedAst resolvedAst;
 
   factory CodegenWorkItem(Compiler compiler, AstElement element,
       ItemCompilationContext compilationContext) {
@@ -235,16 +237,14 @@ class CodegenWorkItem extends WorkItem {
     assert(invariant(
         element, compiler.enqueuer.resolution.hasBeenProcessed(element),
         message: "$element has not been resolved."));
-    assert(invariant(element, element.hasResolvedAst,
-        message: 'Resolution tree is null for $element in codegen work item'));
-    return new CodegenWorkItem.internal(element, compilationContext);
+    ResolvedAst resolvedAst = compiler.backend.frontend.getResolvedAst(element);
+    return new CodegenWorkItem.internal(resolvedAst, compilationContext);
   }
 
   CodegenWorkItem.internal(
-      AstElement element, ItemCompilationContext compilationContext)
-      : super(element, compilationContext);
-
-  ResolvedAst get resolvedAst => element.resolvedAst;
+      ResolvedAst resolvedAst, ItemCompilationContext compilationContext)
+      : this.resolvedAst = resolvedAst,
+        super(resolvedAst.element, compilationContext);
 
   WorldImpact run(Compiler compiler, CodegenEnqueuer world) {
     if (world.isProcessed(element)) return const WorldImpact();

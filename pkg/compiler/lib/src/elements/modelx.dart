@@ -3269,7 +3269,15 @@ abstract class AstElementMixin implements AstElement {
   }
 
   ResolvedAst get resolvedAst {
+    Node node = definingElement.node;
+    Node body;
+    if (definingElement.isField) {
+      FieldElement field = definingElement;
+      body = field.initializer;
+    } else if (node != null && node.asFunctionExpression() != null) {
+      body = node.asFunctionExpression().body;
+    }
     return new ParsedResolvedAst(
-        declaration, definingElement.node, definingElement.treeElements);
+        declaration, node, body, definingElement.treeElements);
   }
 }

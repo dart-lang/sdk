@@ -8,7 +8,7 @@ import 'dart:async' show Future;
 
 import '../common.dart';
 import '../common/codegen.dart' show CodegenImpact;
-import '../common/resolution.dart' show ResolutionImpact;
+import '../common/resolution.dart' show ResolutionImpact, Frontend;
 import '../compile_time_constants.dart'
     show BackendConstantEnvironment, ConstantCompilerTask;
 import '../compiler.dart' show Compiler;
@@ -393,6 +393,9 @@ abstract class Backend {
       bool supportSerialization: true}) {
     return const ImpactStrategy();
   }
+
+  /// Backend access to the front-end.
+  Frontend get frontend => compiler.resolution;
 }
 
 /// Interface for resolving calls to foreign functions.

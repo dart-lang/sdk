@@ -511,6 +511,8 @@ class JavaScriptBackend extends Backend {
   final BackendHelpers helpers;
   final BackendImpacts impacts;
 
+  final JSFrontendAccess frontend;
+
   JavaScriptBackend(Compiler compiler,
       {bool generateSourceMap: true,
       bool useStartupEmitter: false,
@@ -529,6 +531,7 @@ class JavaScriptBackend extends Backend {
             : const JavaScriptSourceInformationStrategy(),
         helpers = new BackendHelpers(compiler),
         impacts = new BackendImpacts(compiler),
+        frontend = new JSFrontendAccess(compiler),
         super(compiler) {
     emitter = new CodeEmitterTask(
         compiler, namer, generateSourceMap, useStartupEmitter);
@@ -2472,6 +2475,32 @@ class JavaScriptBackend extends Backend {
         supportDeferredLoad: supportDeferredLoad,
         supportDumpInfo: supportDumpInfo,
         supportSerialization: supportSerialization);
+  }
+}
+
+class JSFrontendAccess implements Frontend {
+  final Compiler compiler;
+
+  JSFrontendAccess(this.compiler);
+
+  Resolution get resolution => compiler.resolution;
+
+  @override
+  ResolutionImpact getResolutionImpact(Element element) {
+    return resolution.getResolutionImpact(element);
+  }
+
+  @override
+  ResolvedAst getResolvedAst(Element element) {
+    if (element is SynthesizedCallMethodElementX) {
+      return element.resolvedAst;
+    } else if (element is ConstructorBodyElementX) {
+      return element.resolvedAst;
+    } else {
+      assert(invariant(element, resolution.hasResolvedAst(element.declaration),
+          message: 'No ResolvedAst for $element'));
+      return resolution.getResolvedAst(element.declaration);
+    }
   }
 }
 

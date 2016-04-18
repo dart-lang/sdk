@@ -1199,9 +1199,12 @@ class AsyncMarker {
   /// Canonical list of marker values.
   ///
   /// Added to make [AsyncMarker] enum-like.
-  static const List<AsyncMarker> values =
-      const <AsyncMarker>[SYNC, SYNC_STAR, ASYNC, ASYNC_STAR];
-
+  static const List<AsyncMarker> values = const <AsyncMarker>[
+    SYNC,
+    SYNC_STAR,
+    ASYNC,
+    ASYNC_STAR
+  ];
 
   /// Index to this marker within [values].
   ///
@@ -1660,9 +1663,18 @@ abstract class ResolvedAst {
   /// The kind of semantics definition used for this object.
   ResolvedAstKind get kind;
 
-  /// The AST node for [element]. This only available of [kind] is
-  /// `ResolvedAstKind.PARSED`.
+  /// The root AST node for the declaration of [element]. This only available if
+  /// [kind] is `ResolvedAstKind.PARSED`.
   Node get node;
+
+  /// The AST node for the 'body' of [element].
+  ///
+  /// For functions and constructors this is the root AST node of the method
+  /// body, and for variables this is the root AST node of the initializer, if
+  /// available.
+  ///
+  /// This only available if [kind] is `ResolvedAstKind.PARSED`.
+  Node get body;
 
   /// The [TreeElements] containing the resolution data for [node]. This only
   /// available of [kind] is `ResolvedAstKind.PARSED`.
@@ -1674,9 +1686,10 @@ abstract class ResolvedAst {
 class ParsedResolvedAst implements ResolvedAst {
   final Element element;
   final Node node;
+  final Node body;
   final TreeElements elements;
 
-  ParsedResolvedAst(this.element, this.node, this.elements);
+  ParsedResolvedAst(this.element, this.node, this.body, this.elements);
 
   ResolvedAstKind get kind => ResolvedAstKind.PARSED;
 
@@ -1698,7 +1711,12 @@ class SynthesizedResolvedAst implements ResolvedAst {
 
   @override
   Node get node {
-    throw new UnsupportedError('$this does not have an AST');
+    throw new UnsupportedError('$this does not have a root AST node');
+  }
+
+  @override
+  Node get body {
+    throw new UnsupportedError('$this does not have a body AST node');
   }
 
   String toString() => '$kind:$element';

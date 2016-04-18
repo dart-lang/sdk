@@ -9,6 +9,7 @@ class Key {
   static const Key ALIAS = const Key('alias');
   static const Key ARGUMENTS = const Key('arguments');
   static const Key ASYNC_MARKER = const Key('asyncMarker');
+  static const Key BODY = const Key('body');
   static const Key BOUND = const Key('bound');
   static const Key CACHED_TYPE = const Key('cachedType');
   static const Key CALL_STRUCTURE = const Key('callStructure');

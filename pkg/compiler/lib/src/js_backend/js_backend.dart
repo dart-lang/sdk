@@ -18,7 +18,13 @@ import '../common/codegen.dart' show CodegenImpact, CodegenWorkItem;
 import '../common/names.dart' show Identifiers, Names, Selectors, Uris;
 import '../common/registry.dart' show EagerRegistry, Registry;
 import '../common/resolution.dart'
-    show Feature, ListLiteralUse, MapLiteralUse, Resolution, ResolutionImpact;
+    show
+        Feature,
+        Frontend,
+        ListLiteralUse,
+        MapLiteralUse,
+        Resolution,
+        ResolutionImpact;
 import '../common/tasks.dart' show CompilerTask;
 import '../common/work.dart' show ItemCompilationContext;
 import '../compile_time_constants.dart';
@@ -32,6 +38,7 @@ import '../deferred_load.dart' show DeferredLoadTask;
 import '../diagnostics/invariant.dart' show DEBUG_MODE;
 import '../dump_info.dart' show DumpInfoTask;
 import '../elements/elements.dart';
+import '../elements/modelx.dart' show ConstructorBodyElementX;
 import '../elements/visitor.dart' show BaseElementVisitor;
 import '../enqueue.dart' show Enqueuer, ResolutionEnqueuer;
 import '../io/code_output.dart';

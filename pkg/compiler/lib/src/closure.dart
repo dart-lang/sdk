@@ -131,7 +131,7 @@ class ClosureFieldElement extends ElementX
   bool get hasResolvedAst => hasTreeElements;
 
   ResolvedAst get resolvedAst {
-    return new ParsedResolvedAst(this, null, treeElements);
+    return new ParsedResolvedAst(this, null, null, treeElements);
   }
 
   Expression get initializer {
@@ -346,7 +346,7 @@ class SynthesizedCallMethodElementX extends BaseFunctionElementX
   FunctionExpression parseNode(ParsingContext parsing) => node;
 
   ResolvedAst get resolvedAst {
-    return new ParsedResolvedAst(this, node, treeElements);
+    return new ParsedResolvedAst(this, node, node.body, treeElements);
   }
 
   Element get analyzableElement => closureClass.methodElement.analyzableElement;
@@ -378,6 +378,29 @@ class ClosureScope {
   void forEachCapturedVariable(
       f(LocalVariableElement variable, BoxFieldElement boxField)) {
     capturedVariables.forEach(f);
+  }
+
+  String toString() {
+    StringBuffer sb = new StringBuffer();
+    if (boxElement != null) {
+      sb.write('box=$boxElement');
+    }
+    if (boxedLoopVariables.isNotEmpty) {
+      if (sb.isNotEmpty) {
+        sb.write(',');
+      }
+      sb.write('boxedLoopVariables=${boxedLoopVariables}');
+    }
+    if (capturedVariables.isNotEmpty) {
+      if (sb.isNotEmpty) {
+        sb.write(',');
+      }
+      sb.write('capturedVariables=');
+      capturedVariables.forEach((Local local, BoxFieldElement field) {
+        sb.write('$local->${field} ');
+      });
+    }
+    return sb.toString();
   }
 }
 

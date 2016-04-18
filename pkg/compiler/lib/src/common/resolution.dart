@@ -185,8 +185,18 @@ class ListLiteralUse {
   }
 }
 
+/// Interface for the accessing the front-end analysis.
+// TODO(johnniwinther): Find a better name for this.
+abstract class Frontend {
+  /// Returns the `ResolvedAst` for the [element].
+  ResolvedAst getResolvedAst(Element element);
+
+  /// Returns the [ResolutionImpact] for [element].
+  ResolutionImpact getResolutionImpact(Element element);
+}
+
 // TODO(johnniwinther): Rename to `Resolver` or `ResolverContext`.
-abstract class Resolution {
+abstract class Resolution implements Frontend {
   ParsingContext get parsingContext;
   DiagnosticReporter get reporter;
   CoreTypes get coreTypes;

@@ -108,6 +108,9 @@ class ResolvedAstSerializer extends Visitor {
         Key.URI,
         elements.analyzedElement.compilationUnit.script.resourceUri,
         elements.analyzedElement.compilationUnit.script.resourceUri);
+    if (resolvedAst.body != null) {
+      objectEncoder.setInt(Key.BODY, nodeIndices[resolvedAst.body]);
+    }
     AstKind kind;
     if (element.enclosingClass is EnumClassElement) {
       if (element.name == 'index') {
@@ -479,6 +482,11 @@ class ResolvedAstDeserializer {
     AstIndexComputer indexComputer = new AstIndexComputer();
     Map<Node, int> nodeIndices = indexComputer.nodeIndices;
     List<Node> nodeList = indexComputer.nodeList;
+    Node body;
+    int bodyNodeIndex = objectDecoder.getInt(Key.BODY, isOptional: true);
+    if (bodyNodeIndex != null) {
+      body = nodeList[bodyNodeIndex];
+    }
     root.accept(indexComputer);
 
     List<JumpTarget> jumpTargets = <JumpTarget>[];
@@ -594,6 +602,6 @@ class ResolvedAstDeserializer {
         }
       }
     }
-    return new ParsedResolvedAst(element, root, elements);
+    return new ParsedResolvedAst(element, root, body, elements);
   }
 }

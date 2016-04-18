@@ -327,8 +327,8 @@ class LocalsHandler {
   void startFunction(AstElement element, ast.Node node) {
     assert(invariant(element, element.isImplementation));
     Compiler compiler = builder.compiler;
-    closureData = compiler.closureToClassMapper
-        .computeClosureToClassMapping(element.resolvedAst);
+    closureData = compiler.closureToClassMapper.computeClosureToClassMapping(
+        compiler.backend.frontend.getResolvedAst(element.declaration));
 
     if (element is FunctionElement) {
       FunctionElement functionElement = element;
@@ -457,7 +457,8 @@ class LocalsHandler {
           builder.reporter.internalError(builder.compiler.currentElement,
               "Runtime type information not available for $local.");
         } else {
-          builder.reporter.internalError(local, "Cannot find value $local.");
+          builder.reporter.internalError(
+              local, "Cannot find value $local in ${directLocals.keys}.");
         }
       }
       HInstruction value = directLocals[local];
@@ -1377,6 +1378,7 @@ class SsaBuilder extends ast.Visitor
     if (compiler.elementHasCompileTimeError(element)) return false;
 
     FunctionElement function = element;
+    ResolvedAst functionResolvedAst = backend.frontend.getResolvedAst(function);
     bool insideLoop = loopNesting > 0 || graph.calledInLoop;
 
     // Bail out early if the inlining decision is in the cache and we can't
@@ -1436,7 +1438,7 @@ class SsaBuilder extends ast.Visitor
 
     bool doesNotContainCode() {
       // A function with size 1 does not contain any code.
-      return InlineWeeder.canBeInlined(function, 1, true,
+      return InlineWeeder.canBeInlined(functionResolvedAst, 1, true,
           enableUserAssertions: compiler.options.enableUserAssertions);
     }
 
@@ -1444,7 +1446,7 @@ class SsaBuilder extends ast.Visitor
       // The call is on a path which is executed rarely, so inline only if it
       // does not make the program larger.
       if (isCalledOnce(element)) {
-        return InlineWeeder.canBeInlined(function, -1, false,
+        return InlineWeeder.canBeInlined(functionResolvedAst, -1, false,
             enableUserAssertions: compiler.options.enableUserAssertions);
       }
       // TODO(sra): Measure if inlining would 'reduce' the size.  One desirable
@@ -1482,7 +1484,7 @@ class SsaBuilder extends ast.Visitor
       if (cachedCanBeInlined == true) {
         // We may have forced the inlining of some methods. Therefore check
         // if we can inline this method regardless of size.
-        assert(InlineWeeder.canBeInlined(function, -1, false,
+        assert(InlineWeeder.canBeInlined(functionResolvedAst, -1, false,
             allowLoops: true,
             enableUserAssertions: compiler.options.enableUserAssertions));
         return true;
@@ -1507,7 +1509,7 @@ class SsaBuilder extends ast.Visitor
       }
       bool canInline;
       canInline = InlineWeeder.canBeInlined(
-          function, maxInliningNodes, useMaxInliningNodes,
+          functionResolvedAst, maxInliningNodes, useMaxInliningNodes,
           enableUserAssertions: compiler.options.enableUserAssertions);
       if (canInline) {
         backend.inlineCache.markAsInlinable(element, insideLoop: insideLoop);
@@ -1531,7 +1533,7 @@ class SsaBuilder extends ast.Visitor
       }
       List<HInstruction> compiledArguments = completeSendArgumentsList(
           function, selector, providedArguments, currentNode);
-      enterInlinedMethod(function, currentNode, compiledArguments,
+      enterInlinedMethod(function, functionResolvedAst, compiledArguments,
           instanceType: instanceType);
       inlinedFrom(function, () {
         if (!isReachable) {
@@ -1678,7 +1680,7 @@ class SsaBuilder extends ast.Visitor
   HGraph buildMethod(FunctionElement functionElement) {
     assert(invariant(functionElement, functionElement.isImplementation));
     graph.calledInLoop = compiler.world.isCalledInLoop(functionElement);
-    ast.FunctionExpression function = functionElement.node;
+    ast.FunctionExpression function = resolvedAst.node;
     assert(function != null);
     assert(elements.getFunctionDefinition(function) != null);
     openFunction(functionElement, function);
@@ -1832,9 +1834,12 @@ class SsaBuilder extends ast.Visitor
   void setupStateForInlining(
       FunctionElement function, List<HInstruction> compiledArguments,
       {InterfaceType instanceType}) {
+    ResolvedAst resolvedAst =
+        compiler.backend.frontend.getResolvedAst(function.declaration);
+    assert(resolvedAst != null);
     localsHandler = new LocalsHandler(this, function, instanceType);
-    localsHandler.closureData = compiler.closureToClassMapper
-        .computeClosureToClassMapping(function.resolvedAst);
+    localsHandler.closureData =
+        compiler.closureToClassMapper.computeClosureToClassMapping(resolvedAst);
     returnLocal = new SyntheticLocal("result", function);
     localsHandler.updateLocal(returnLocal, graph.addConstantNull(compiler));
 
@@ -1863,8 +1868,6 @@ class SsaBuilder extends ast.Visitor
     }
     assert(argumentIndex == compiledArguments.length);
 
-    resolvedAst = function.resolvedAst;
-    assert(resolvedAst != null);
     returnType = signature.type.returnType;
     stack = <HInstruction>[];
 
@@ -2008,7 +2011,7 @@ class SsaBuilder extends ast.Visitor
 
       // Build the initializers in the context of the new constructor.
       ResolvedAst oldResolvedAst = resolvedAst;
-      resolvedAst = callee.resolvedAst;
+      resolvedAst = backend.frontend.getResolvedAst(callee);
       ClosureClassMap oldClosureData = localsHandler.closureData;
       ClosureClassMap newClosureData = compiler.closureToClassMapper
           .computeClosureToClassMapping(resolvedAst);
@@ -2175,7 +2178,7 @@ class SsaBuilder extends ast.Visitor
         } else {
           ast.Node right = initializer;
           ResolvedAst savedResolvedAst = resolvedAst;
-          resolvedAst = member.resolvedAst;
+          resolvedAst = backend.frontend.getResolvedAst(member);
           // In case the field initializer uses closures, run the
           // closure to class mapper.
           compiler.closureToClassMapper
@@ -2382,7 +2385,7 @@ class SsaBuilder extends ast.Visitor
         bodyCallInputs.add(interceptor);
       }
       bodyCallInputs.add(newObject);
-      ResolvedAst resolvedAst = constructor.resolvedAst;
+      ResolvedAst resolvedAst = backend.frontend.getResolvedAst(constructor);
       ast.Node node = resolvedAst.node;
       ClosureClassMap parameterClosureData =
           compiler.closureToClassMapper.getMappingForNestedFunction(node);
@@ -7879,8 +7882,8 @@ class SsaBuilder extends ast.Visitor
    * This method is invoked before inlining the body of [function] into this
    * [SsaBuilder].
    */
-  void enterInlinedMethod(FunctionElement function, ast.Node _,
-      List<HInstruction> compiledArguments,
+  void enterInlinedMethod(FunctionElement function,
+      ResolvedAst functionResolvedAst, List<HInstruction> compiledArguments,
       {InterfaceType instanceType}) {
     AstInliningState state = new AstInliningState(
         function,
@@ -7891,6 +7894,7 @@ class SsaBuilder extends ast.Visitor
         localsHandler,
         inTryStatement,
         allInlinedFunctionsCalledOnce && isFunctionCalledOnce(function));
+    resolvedAst = functionResolvedAst;
     inliningStack.add(state);
 
     // Setting up the state of the (AST) builder is performed even when the
@@ -8087,14 +8091,14 @@ class InlineWeeder extends ast.Visitor {
       this.enableUserAssertions);
 
   static bool canBeInlined(
-      FunctionElement function, int maxInliningNodes, bool useMaxInliningNodes,
+      ResolvedAst resolvedAst, int maxInliningNodes, bool useMaxInliningNodes,
       {bool allowLoops: false, bool enableUserAssertions: null}) {
     assert(enableUserAssertions is bool); // Ensure we passed it.
-    if (function.resolvedAst.elements.containsTryStatement) return false;
+    if (resolvedAst.elements.containsTryStatement) return false;
 
     InlineWeeder weeder = new InlineWeeder(maxInliningNodes,
         useMaxInliningNodes, allowLoops, enableUserAssertions);
-    ast.FunctionExpression functionExpression = function.node;
+    ast.FunctionExpression functionExpression = resolvedAst.node;
     weeder.visit(functionExpression.initializers);
     weeder.visit(functionExpression.body);
     weeder.visit(functionExpression.asyncModifier);

@@ -54,6 +54,14 @@ class SerializationTask extends CompilerTask implements LibraryDeserializer {
     return new DeserializedResolutionWorkItem(
         element, context, deserializer.computeWorldImpact(element));
   }
+
+  bool hasResolvedAst(Element element) {
+    return deserializer != null ? deserializer.hasResolvedAst(element) : false;
+  }
+
+  ResolvedAst getResolvedAst(Element element) {
+    return deserializer != null ? deserializer.getResolvedAst(element) : null;
+  }
 }
 
 /// A [ResolutionWorkItem] for a deserialized element.
@@ -84,6 +92,7 @@ class DeserializedResolutionWorkItem implements ResolutionWorkItem {
 abstract class DeserializerSystem {
   Future<LibraryElement> readLibrary(Uri resolvedUri);
   bool isDeserialized(Element element);
+  bool hasResolvedAst(Element element);
   ResolvedAst getResolvedAst(Element element);
   ResolutionImpact getResolutionImpact(Element element);
   WorldImpact computeWorldImpact(Element element);
