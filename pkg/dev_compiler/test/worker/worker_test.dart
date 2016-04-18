@@ -14,12 +14,10 @@ import 'package:test/test.dart';
 
 main() {
   group('Hello World', () {
+    final argsFile = new File('test/worker/hello_world.args').absolute;
     final inputDartFile = new File('test/worker/hello_world.dart').absolute;
     final outputJsFile = new File('test/worker/hello_world.js').absolute;
-    final executableArgs = [
-      'bin/dartdevc.dart',
-      'compile',
-    ];
+    final executableArgs = ['bin/dartdevc.dart', 'compile',];
     final compilerArgs = [
       '--no-source-map',
       '--no-summarize',
@@ -36,6 +34,7 @@ main() {
     tearDown(() {
       if (inputDartFile.existsSync()) inputDartFile.deleteSync();
       if (outputJsFile.existsSync()) outputJsFile.deleteSync();
+      if (argsFile.existsSync()) argsFile.deleteSync();
     });
 
     test('can compile in worker mode', () async {
@@ -77,6 +76,19 @@ main() {
       expect(result.exitCode, EXIT_CODE_OK);
       expect(result.stdout, isEmpty);
       expect(result.stderr, isEmpty);
+      expect(outputJsFile.existsSync(), isTrue);
+    });
+
+    test('can compile in basic mode with args in a file', () async {
+      argsFile.createSync();
+      argsFile.writeAsStringSync(compilerArgs.join('\n'));
+      var args = new List.from(executableArgs)..add('@${argsFile.path}');
+      var process = await Process.start('dart', args);
+      stderr.addStream(process.stderr);
+      var futureProcessOutput = process.stdout.map(UTF8.decode).toList();
+
+      expect(await process.exitCode, EXIT_CODE_OK);
+      expect((await futureProcessOutput).join(), isEmpty);
       expect(outputJsFile.existsSync(), isTrue);
     });
   });
@@ -143,8 +155,8 @@ Future<WorkResponse> _readResponse(MessageGrouper messageGrouper) async {
   try {
     return new WorkResponse.fromBuffer(buffer);
   } catch (_) {
-    throw 'Failed to parse response: \n'
-        'bytes: $buffer\n'
-        'String: ${new String.fromCharCodes(buffer)}\n';
+    var bufferAsString =
+        buffer == null ? '' : 'String: ${UTF8.decode(buffer)}\n';
+    throw 'Failed to parse response:\nbytes: $buffer\n$bufferAsString';
   }
 }
