@@ -77,6 +77,16 @@ class AstInferredTypeTest extends AbstractResynthesizeTest
     ..enableGenericMethods = true
     ..strongMode = true;
 
+  void fail_infer_invokeMethodRef_function() {
+    // TODO(scheglov) requires an element for top-level functions
+    // TODO(scheglov) add more tests - imported, and with prefix
+    var unit = checkFile(r'''
+int m() => 0;
+var a = m();
+  ''');
+    expect(unit.topLevelVariables[0].type.toString(), 'int');
+  }
+
   @override
   @failingTest
   void test_blockBodiedLambdas_async_allReturnsAreValues() {
@@ -394,6 +404,91 @@ var a = new A();
 var b1 = new B();
 var b2 = new B<int>();
   ''');
+  }
+
+  void test_infer_invokeMethodRef_method() {
+    var unit = checkFile(r'''
+class A {
+  int m() => 0;
+}
+var a = new A();
+var b = a.m();
+  ''');
+    expect(unit.topLevelVariables[1].type.toString(), 'int');
+  }
+
+  void test_infer_invokeMethodRef_method_g() {
+    var unit = checkFile(r'''
+class A {
+  /*=T*/ m/*<T>*/(/*=T*/ a) => null;
+}
+var a = new A();
+var b = a.m(1.0);
+  ''');
+    expect(unit.topLevelVariables[1].type.toString(), 'double');
+  }
+
+  void test_infer_invokeMethodRef_method_gg() {
+    var unit = checkFile(r'''
+class A<K> {
+  /*=Map<K, V>*/ m/*<V>*/(/*=V*/ a) => null;
+}
+var a = new A<int>();
+var b = a.m(1.0);
+  ''');
+    expect(unit.topLevelVariables[1].type.toString(), 'Map<int, double>');
+  }
+
+  void test_infer_invokeMethodRef_method_genericSequence() {
+    var unit = checkFile(r'''
+class A<T> {
+  B<T> b = new B<T>();
+}
+class B<K> {
+  C<List<K>, int> c = new C<List<K>, int>();
+}
+class C<K, V> {
+  Map<K, V> m() => null;
+}
+var a = new A<double>();
+var v = a.b.c.m();
+  ''');
+    expect(unit.topLevelVariables[1].type.toString(), 'Map<List<double>, int>');
+  }
+
+  void test_infer_invokeMethodRef_method_importedWithPrefix() {
+    addFile(
+        r'''
+class A {
+  int m() => 0;
+}
+var a = new A();
+''',
+        name: '/a.dart');
+    var unit = checkFile(r'''
+import 'a.dart' as p;
+var b = p.a.m();
+  ''');
+    expect(unit.topLevelVariables[0].type.toString(), 'int');
+  }
+
+  void test_infer_invokeMethodRef_method_importedWithPrefix2() {
+    addFile(
+        r'''
+class A {
+  B b = new B();
+}
+class B {
+  int m() => 0;
+}
+var a = new A();
+''',
+        name: '/a.dart');
+    var unit = checkFile(r'''
+import 'a.dart' as p;
+var b = p.a.b.m();
+  ''');
+    expect(unit.topLevelVariables[0].type.toString(), 'int');
   }
 
   @override
