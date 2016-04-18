@@ -157,10 +157,12 @@
 
 #if defined(TARGET_ARCH_ARM) ||                                                \
     defined(TARGET_ARCH_MIPS) ||                                               \
-    defined(TARGET_ARCH_ARM64)
+    defined(TARGET_ARCH_ARM64) ||                                              \
+    defined(TARGET_ARCH_DBC)
 #if defined(HOST_ARCH_ARM) ||                                                  \
     defined(HOST_ARCH_MIPS) ||                                                 \
-    defined(HOST_ARCH_ARM64)
+    defined(HOST_ARCH_ARM64) ||                                                \
+    !defined(TARGET_ARCH_DBC)
 // Running on actual ARM or MIPS hardware, execute code natively.
 #define EXECUTE_TEST_CODE_INT32(name, entry) reinterpret_cast<name>(entry)()
 #define EXECUTE_TEST_CODE_INT64(name, entry) reinterpret_cast<name>(entry)()
@@ -374,7 +376,7 @@ class AssemblerTest {
   // using the ABI calling convention.
   // ResultType is the return type of the assembler test function.
   // ArgNType is the type of the Nth argument.
-#if defined(USING_SIMULATOR)
+#if defined(USING_SIMULATOR) && !defined(TARGET_ARCH_DBC)
 
 #if defined(ARCH_IS_64_BIT)
   // TODO(fschneider): Make InvokeWithCodeAndThread<> more general and work on
@@ -454,7 +456,7 @@ class AssemblerTest {
     typedef ResultType (*FunctionType) (Arg1Type, Arg2Type, Arg3Type);
     return reinterpret_cast<FunctionType>(entry())(arg1, arg2, arg3);
   }
-#endif  // USING_SIMULATOR
+#endif  // defined(USING_SIMULATOR) && !defined(TARGET_ARCH_DBC)
 
   // Assemble test and set code_.
   void Assemble();

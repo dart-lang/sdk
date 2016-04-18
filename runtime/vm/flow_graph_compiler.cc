@@ -503,7 +503,7 @@ void FlowGraphCompiler::VisitBlocks() {
       continue;
     }
 
-#if defined(DEBUG)
+#if defined(DEBUG) && !defined(TARGET_ARCH_DBC)
     if (!is_optimizing()) {
       FrameStateClear();
     }
@@ -557,14 +557,14 @@ void FlowGraphCompiler::VisitBlocks() {
         EndCodeSourceRange(instr->token_pos());
       }
 
-#if defined(DEBUG)
+#if defined(DEBUG) && !defined(TARGET_ARCH_DBC)
       if (!is_optimizing()) {
         FrameStateUpdateWith(instr);
       }
 #endif
     }
 
-#if defined(DEBUG)
+#if defined(DEBUG) && !defined(TARGET_ARCH_DBC)
     ASSERT(is_optimizing() || FrameStateIsSafeToCall());
 #endif
   }
@@ -1147,6 +1147,9 @@ bool FlowGraphCompiler::TryIntrinsify() {
 }
 
 
+// DBC is very different from other architectures in how it performs instance
+// and static calls because it does not use stubs.
+#if !defined(TARGET_ARCH_DBC)
 void FlowGraphCompiler::GenerateInstanceCall(
     intptr_t deopt_id,
     TokenPosition token_pos,
@@ -1286,7 +1289,7 @@ void FlowGraphCompiler::GenerateListTypeCheck(Register kClassIdReg,
   CheckClassIds(kClassIdReg, args, is_instance_lbl, &unknown);
   assembler()->Bind(&unknown);
 }
-
+#endif  // !defined(TARGET_ARCH_DBC)
 
 void FlowGraphCompiler::EmitComment(Instruction* instr) {
   if (!FLAG_support_il_printer || !FLAG_support_disassembler) {
@@ -1301,6 +1304,8 @@ void FlowGraphCompiler::EmitComment(Instruction* instr) {
 }
 
 
+#if !defined(TARGET_ARCH_DBC)
+// TODO(vegorov) enable edge-counters on DBC if we consider them beneficial.
 bool FlowGraphCompiler::NeedsEdgeCounter(TargetEntryInstr* block) {
   // Only emit an edge counter if there is not goto at the end of the block,
   // except for the entry block.
@@ -1321,18 +1326,17 @@ static Register AllocateFreeRegister(bool* blocked_registers) {
   UNREACHABLE();
   return kNoRegister;
 }
-
-
-static uword RegMaskBit(Register reg) {
-  return ((reg) != kNoRegister) ? (1 << (reg)) : 0;
-}
+#endif
 
 
 void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
   ASSERT(!is_optimizing());
-
   instr->InitializeLocationSummary(zone(),
                                    false);  // Not optimizing.
+
+  // No need to allocate registers based on LocationSummary on DBC as in
+  // unoptimized mode it's a stack based bytecode just like IR itself.
+#if !defined(TARGET_ARCH_DBC)
   LocationSummary* locs = instr->locs();
 
   bool blocked_registers[kNumberOfCpuRegisters];
@@ -1422,6 +1426,12 @@ void FlowGraphCompiler::AllocateRegistersLocally(Instruction* instr) {
     }
     locs->set_out(0, result_location);
   }
+#endif  // !defined(TARGET_ARCH_DBC)
+}
+
+
+static uword RegMaskBit(Register reg) {
+  return ((reg) != kNoRegister) ? (1 << (reg)) : 0;
 }
 
 
@@ -1838,6 +1848,9 @@ NOT_IN_PRODUCT(
 }
 
 
+#if !defined(TARGET_ARCH_DBC)
+// DBC emits calls very differently from other architectures due to its
+// interpreted nature.
 void FlowGraphCompiler::EmitPolymorphicInstanceCall(
     const ICData& ic_data,
     intptr_t argument_count,
@@ -1881,9 +1894,12 @@ void FlowGraphCompiler::EmitPolymorphicInstanceCall(
     }
   }
 }
+#endif
 
-
-#if defined(DEBUG)
+#if defined(DEBUG) && !defined(TARGET_ARCH_DBC)
+// TODO(vegorov) re-enable frame state tracking on DBC. It is
+// currently disabled because it relies on LocationSummaries and
+// we don't use them during unoptimized compilation on DBC.
 void FlowGraphCompiler::FrameStateUpdateWith(Instruction* instr) {
   ASSERT(!is_optimizing());
 
@@ -1954,7 +1970,7 @@ void FlowGraphCompiler::FrameStateClear() {
   ASSERT(!is_optimizing());
   frame_state_.TruncateTo(0);
 }
-#endif
+#endif  // defined(DEBUG) && !defined(TARGET_ARCH_DBC)
 
 
 }  // namespace dart

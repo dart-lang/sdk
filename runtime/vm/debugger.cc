@@ -231,7 +231,9 @@ void Breakpoint::PrintJSON(JSONStream* stream) {
 
 void CodeBreakpoint::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&code_));
+#if !defined(TARGET_ARCH_DBC)
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&saved_value_));
+#endif
 }
 
 
@@ -859,24 +861,25 @@ intptr_t ActivationFrame::NumLocalVariables() {
 }
 
 
+DART_FORCE_INLINE static RawObject* GetVariableValue(uword addr) {
+  return *reinterpret_cast<RawObject**>(addr);
+}
+
+
 RawObject* ActivationFrame::GetParameter(intptr_t index) {
   intptr_t num_parameters = function().num_fixed_parameters();
   ASSERT(0 <= index && index < num_parameters);
-  intptr_t reverse_index = num_parameters - index;
 
   if (function().NumOptionalParameters() > 0) {
     // If the function has optional parameters, the first positional parameter
     // can be in a number of places in the caller's frame depending on how many
     // were actually supplied at the call site, but they are copied to a fixed
     // place in the callee's frame.
-    uword var_address = fp() + ((kFirstLocalSlotFromFp - index) * kWordSize);
-    return reinterpret_cast<RawObject*>(
-        *reinterpret_cast<uword*>(var_address));
+    return GetVariableValue(LocalVarAddress(fp(),
+                                            (kFirstLocalSlotFromFp - index)));
   } else {
-    uword var_address = fp() + (kParamEndSlotFromFp * kWordSize)
-                             + (reverse_index * kWordSize);
-    return reinterpret_cast<RawObject*>(
-        *reinterpret_cast<uword*>(var_address));
+    intptr_t reverse_index = num_parameters - index;
+    return GetVariableValue(ParamAddress(fp(), reverse_index));
   }
 }
 
@@ -889,9 +892,7 @@ RawObject* ActivationFrame::GetClosure() {
 
 RawObject* ActivationFrame::GetStackVar(intptr_t slot_index) {
   if (deopt_frame_.IsNull()) {
-    uword var_address = fp() + slot_index * kWordSize;
-    return reinterpret_cast<RawObject*>(
-        *reinterpret_cast<uword*>(var_address));
+    return GetVariableValue(LocalVarAddress(fp(), slot_index));
   } else {
     return deopt_frame_.At(deopt_frame_offset_ + slot_index);
   }
@@ -1171,7 +1172,12 @@ CodeBreakpoint::CodeBreakpoint(const Code& code,
       bpt_location_(NULL),
       next_(NULL),
       breakpoint_kind_(kind),
-      saved_value_(Code::null()) {
+#if !defined(TARGET_ARCH_DBC)
+      saved_value_(Code::null())
+#else
+      saved_value_(Bytecode::kTrap)
+#endif
+    {
   ASSERT(!code.IsNull());
   ASSERT(token_pos_.IsReal());
   ASSERT(pc_ != 0);
@@ -2693,11 +2699,11 @@ RawError* Debugger::DebuggerStepCallback() {
   if (stepping_fp_ != 0) {
     // There is an "interesting frame" set. Only pause at appropriate
     // locations in this frame.
-    if (stepping_fp_ > frame->fp()) {
+    if (IsCalleeFrameOf(stepping_fp_, frame->fp())) {
       // We are i n a callee of the frame we're interested in.
       // Ignore this stepping break.
       return Error::null();
-    } else if (frame->fp() > stepping_fp_) {
+    } else if (IsCalleeFrameOf(frame->fp(), stepping_fp_)) {
       // We returned from the "interesting frame", there can be no more
       // stepping breaks for it. Pause at the next appropriate location
       // and let the user set the "interesting" frame again.

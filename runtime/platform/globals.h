@@ -257,6 +257,15 @@ typedef simd128_value_t fpu_register_t;
 #error Automatic compiler detection failed.
 #endif
 
+// DART_NOINLINE tells compiler to never inline a particular function.
+#ifdef _MSC_VER
+#define DART_NOINLINE __declspec(noinline)
+#elif __GNUC__
+#define DART_NOINLINE __attribute__((noinline))
+#else
+#error Automatic compiler detection failed.
+#endif
+
 // DART_UNUSED inidicates to the compiler that a variable/typedef is expected
 // to be unused and disables the related warning.
 #ifdef __GNUC__
@@ -282,6 +291,7 @@ typedef simd128_value_t fpu_register_t;
 #if !defined(TARGET_ARCH_X64)
 #if !defined(TARGET_ARCH_IA32)
 #if !defined(TARGET_ARCH_ARM64)
+#if !defined(TARGET_ARCH_DBC)
 // No target architecture specified pick the one matching the host architecture.
 #if defined(HOST_ARCH_MIPS)
 #define TARGET_ARCH_MIPS 1
@@ -295,6 +305,7 @@ typedef simd128_value_t fpu_register_t;
 #define TARGET_ARCH_ARM64 1
 #else
 #error Automatic target architecture detection failed.
+#endif
 #endif
 #endif
 #endif
@@ -336,6 +347,9 @@ typedef simd128_value_t fpu_register_t;
 #if !defined(HOST_ARCH_MIPS)
 #define USING_SIMULATOR 1
 #endif
+
+#elif defined(TARGET_ARCH_DBC)
+#define USING_SIMULATOR 1
 
 #else
 #error Unknown architecture.

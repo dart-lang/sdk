@@ -1540,9 +1540,13 @@ RawObjectPool* ObjectPool::ReadFrom(SnapshotReader* reader,
           break;
         }
         case ObjectPool::kNativeEntry: {
+#if !defined(TARGET_ARCH_DBC)
           // Read nothing. Initialize with the lazy link entry.
           uword new_entry = NativeEntry::LinkNativeCallEntry();
           result->SetRawValueAt(i, static_cast<intptr_t>(new_entry));
+#else
+          UNREACHABLE();  // DBC does not support lazy native call linking.
+#endif
           break;
         }
         default:
@@ -1592,14 +1596,16 @@ void RawObjectPool::WriteTo(SnapshotWriter* writer,
       Entry& entry = ptr()->data()[i];
       switch (entry_type) {
         case ObjectPool::kTaggedObject: {
+#if !defined(TARGET_ARCH_DBC)
           if (entry.raw_obj_ == StubCode::CallNativeCFunction_entry()->code()) {
             // Natives can run while precompiling, becoming linked and switching
             // their stub. Reset to the initial stub used for lazy-linking.
             writer->WriteObjectImpl(
                 StubCode::CallBootstrapCFunction_entry()->code(), kAsReference);
-          } else {
-            writer->WriteObjectImpl(entry.raw_obj_, kAsReference);
+            break;
           }
+#endif
+          writer->WriteObjectImpl(entry.raw_obj_, kAsReference);
           break;
         }
         case ObjectPool::kImmediate: {
@@ -1608,6 +1614,9 @@ void RawObjectPool::WriteTo(SnapshotWriter* writer,
         }
         case ObjectPool::kNativeEntry: {
           // Write nothing. Will initialize with the lazy link entry.
+#if defined(TARGET_ARCH_DBC)
+          UNREACHABLE();   // DBC does not support lazy native call linking.
+#endif
           break;
         }
         default:

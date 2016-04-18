@@ -654,6 +654,7 @@ static void CheckResultError(const Object& result) {
 }
 
 
+#if !defined(TARGET_ARCH_DBC)
 // Gets called from debug stub when code reaches a breakpoint
 // set on a runtime stub call.
 DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
@@ -674,6 +675,20 @@ DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
   }
   arguments.SetReturn(orig_stub);
 }
+#else
+// Gets called from the simulator when the breakpoint is reached.
+DEFINE_RUNTIME_ENTRY(BreakpointRuntimeHandler, 0) {
+  if (!FLAG_support_debugger) {
+    UNREACHABLE();
+    return;
+  }
+  const Error& error = Error::Handle(isolate->debugger()->SignalBpReached());
+  if (!error.IsNull()) {
+    Exceptions::PropagateError(error);
+    UNREACHABLE();
+  }
+}
+#endif  // !defined(TARGET_ARCH_DBC)
 
 
 DEFINE_RUNTIME_ENTRY(SingleStepHandler, 0) {
@@ -956,6 +971,8 @@ DEFINE_RUNTIME_ENTRY(StaticCallMissHandlerTwoArgs, 3) {
 //   Arg2: Arguments descriptor array.
 //   Returns: target function to call.
 DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
+// DBC does not use megamorphic calls right now.
+#if !defined(TARGET_ARCH_DBC)
   const Instance& receiver = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   const Object& ic_data_or_cache = Object::Handle(zone, arguments.ArgAt(1));
   const Array& descriptor = Array::CheckedHandle(zone, arguments.ArgAt(2));
@@ -1013,6 +1030,9 @@ DEFINE_RUNTIME_ENTRY(MegamorphicCacheMissHandler, 3) {
     cache.Insert(class_id, target_function);
   }
   arguments.SetReturn(target_function);
+#else
+  UNREACHABLE();
+#endif  // !defined(TARGET_ARCH_DBC)
 }
 
 
@@ -1192,7 +1212,7 @@ DEFINE_RUNTIME_ENTRY(InvokeClosureNoSuchMethod, 3) {
 
 DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
 #if defined(USING_SIMULATOR)
-  uword stack_pos = Simulator::Current()->get_register(SPREG);
+  uword stack_pos = Simulator::Current()->get_sp();
 #else
   uword stack_pos = Thread::GetCurrentStackPointer();
 #endif
@@ -1204,7 +1224,7 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   // If an interrupt happens at the same time as a stack overflow, we
   // process the stack overflow now and leave the interrupt for next
   // time.
-  if (stack_pos < thread->saved_stack_limit()) {
+  if (IsCalleeFrameOf(thread->saved_stack_limit(), stack_pos)) {
     // Use the preallocated stack overflow exception to avoid calling
     // into dart code.
     const Instance& exception =

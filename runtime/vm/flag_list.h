@@ -5,6 +5,12 @@
 #ifndef VM_FLAG_LIST_H_
 #define VM_FLAG_LIST_H_
 
+#if defined(TARGET_ARCH_DBC)
+#define USING_DBC 1
+#else
+#define USING_DBC 0
+#endif
+
 // List of all flags in the VM.
 // Flags can be one of three categories:
 // * P roduct flags: Can be set in any of the deployment modes, including in
@@ -70,9 +76,9 @@ P(getter_setter_ratio, int, 13,                                                \
   "Ratio of getter/setter usage used for double field unboxing heuristics")    \
 P(guess_icdata_cid, bool, true,                                                \
   "Artificially create type feedback for arithmetic etc. operations")          \
-P(ic_range_profiling, bool, true,                                              \
+P(ic_range_profiling, bool, !USING_DBC,                                        \
   "Generate special IC stubs collecting range information ")                   \
-P(interpret_irregexp, bool, false,                                             \
+P(interpret_irregexp, bool, USING_DBC,                                         \
   "Use irregexp bytecode interpreter")                                         \
 P(lazy_dispatchers, bool, true,                                                \
   "Generate dispatchers lazily")                                               \
@@ -119,7 +125,7 @@ R(print_ssa_liveranges, false, bool, false,                                    \
   "Print live ranges after allocation.")                                       \
 C(print_stop_message, false, false, bool, false,                               \
   "Print stop message.")                                                       \
-R(profiler, false, bool, true,                                                 \
+R(profiler, false, bool, !USING_DBC,                                           \
   "Enable the profiler.")                                                      \
 P(reorder_basic_blocks, bool, true,                                            \
   "Reorder basic blocks")                                                      \
@@ -159,7 +165,7 @@ P(truncating_left_shift, bool, true,                                           \
   "Optimize left shift to truncate if possible")                               \
 P(use_cha_deopt, bool, true,                                                   \
   "Use class hierarchy analysis even if it can cause deoptimization.")         \
-P(use_field_guards, bool, true,                                                \
+P(use_field_guards, bool, !USING_DBC,                                          \
   "Use field guards and track field types")                                    \
 C(use_osr, false, true, bool, true,                                            \
   "Use OSR")                                                                   \

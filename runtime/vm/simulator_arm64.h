@@ -65,6 +65,10 @@ class Simulator {
   void get_vregister(VRegister reg, simd_value_t* value) const;
   void set_vregister(VRegister reg, const simd_value_t& value);
 
+  int64_t get_sp() const {
+    return get_register(SPREG);
+  }
+
   int64_t get_pc() const;
   int64_t get_last_pc() const;
   void set_pc(int64_t pc);

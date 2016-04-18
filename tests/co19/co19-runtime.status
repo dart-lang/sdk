@@ -163,3 +163,8 @@ LibTest/typed_data/Uint32List/runtimeType_A01_t01: Fail,OK  # Expects exact type
 LibTest/typed_data/Uint64List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
 LibTest/typed_data/Uint8ClampedList/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
 LibTest/typed_data/Uint8List/runtimeType_A01_t01: Fail,OK  # Expects exact type name.
+
+[ $arch == simdbc && $mode == debug ]
+# TODO(vegorov) These tests are very slow on unoptimized SIMDBC
+LibTest/collection/ListMixin/ListMixin_class_A01_t02: Timeout
+LibTest/collection/ListBase/ListBase_class_A01_t02: Timeout

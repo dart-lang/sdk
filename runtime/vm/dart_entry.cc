@@ -103,15 +103,22 @@ RawObject* DartEntry::InvokeFunction(const Function& function,
     }
   }
   // Now Call the invoke stub which will invoke the dart function.
+#if !defined(TARGET_ARCH_DBC)
   invokestub entrypoint = reinterpret_cast<invokestub>(
       StubCode::InvokeDartCode_entry()->EntryPoint());
+#endif
   const Code& code = Code::Handle(zone, function.CurrentCode());
   ASSERT(!code.IsNull());
   ASSERT(thread->no_callback_scope_depth() == 0);
   ScopedIsolateStackLimits stack_limit(thread);
   SuspendLongJumpScope suspend_long_jump_scope(thread);
   TransitionToGenerated transition(thread);
-#if defined(USING_SIMULATOR)
+#if defined(TARGET_ARCH_DBC)
+  return Simulator::Current()->Call(code,
+                                    arguments_descriptor,
+                                    arguments,
+                                    thread);
+#elif defined(USING_SIMULATOR)
   return bit_copy<RawObject*, int64_t>(Simulator::Current()->Call(
       reinterpret_cast<intptr_t>(entrypoint),
       reinterpret_cast<intptr_t>(&code),

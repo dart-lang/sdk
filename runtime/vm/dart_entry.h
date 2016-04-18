@@ -86,6 +86,19 @@ class ArgumentsDescriptor : public ValueObject {
 
   static RawArray* NewNonCached(intptr_t count, bool canonicalize = true);
 
+  // Used by Simulator to parse argument descriptors.
+  static intptr_t name_index(intptr_t index) {
+    return kFirstNamedEntryIndex +
+           (index * kNamedEntrySize) +
+           kNameOffset;
+  }
+
+  static intptr_t position_index(intptr_t index) {
+    return kFirstNamedEntryIndex +
+           (index * kNamedEntrySize) +
+           kPositionOffset;
+  }
+
   const Array& array_;
 
   // A cache of VM heap allocated arguments descriptors.
@@ -93,6 +106,7 @@ class ArgumentsDescriptor : public ValueObject {
 
   friend class SnapshotReader;
   friend class SnapshotWriter;
+  friend class Simulator;
   DISALLOW_COPY_AND_ASSIGN(ArgumentsDescriptor);
 };
 

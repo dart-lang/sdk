@@ -42,15 +42,21 @@ class Intrinsifier : public AllStatic {
   static void enum_name(Assembler* assembler);
 
   ALL_INTRINSICS_LIST(DECLARE_FUNCTION)
+#if defined(TARGET_ARCH_DBC)
+  // On DBC graph intrinsics are handled in the same way as non-graph ones.
+  GRAPH_INTRINSICS_LIST(DECLARE_FUNCTION)
+#endif
 
 #undef DECLARE_FUNCTION
 
+#if !defined(TARGET_ARCH_DBC)
 #define DECLARE_FUNCTION(test_class_name, test_function_name, enum_name, fp)   \
   static bool Build_##enum_name(FlowGraph* flow_graph);
 
   GRAPH_INTRINSICS_LIST(DECLARE_FUNCTION)
 
 #undef DECLARE_FUNCTION
+#endif
 };
 
 }  // namespace dart

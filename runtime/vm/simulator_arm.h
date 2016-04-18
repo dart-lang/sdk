@@ -52,6 +52,10 @@ class Simulator {
   void set_register(Register reg, int32_t value);
   int32_t get_register(Register reg) const;
 
+  int32_t get_sp() const {
+    return get_register(SPREG);
+  }
+
   // Special case of set_register and get_register to access the raw PC value.
   void set_pc(int32_t value);
   int32_t get_pc() const;

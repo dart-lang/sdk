@@ -26,6 +26,7 @@
       ['"<(target_arch)"=="simarm64"', { 'dart_target_arch': 'SIMARM64', }],
       ['"<(target_arch)"=="mips"', { 'dart_target_arch': 'MIPS', }],
       ['"<(target_arch)"=="simmips"', { 'dart_target_arch': 'SIMMIPS', }],
+      ['"<(target_arch)"=="simdbc"', { 'dart_target_arch': 'SIMDBC', }],
       [ 'OS=="linux"', { 'dart_target_os': 'Linux', } ],
       [ 'OS=="mac"', { 'dart_target_os': 'Macos', } ],
       [ 'OS=="win"', { 'dart_target_os': 'Win', } ],
@@ -130,6 +131,14 @@
         'defines': [
           'TARGET_ARCH_MIPS',
         ],
+      },
+
+      'Dart_simdbc_Base': {
+        'abstract': 1,
+        'defines': [
+          'TARGET_ARCH_DBC',
+          'USING_SIMULATOR',
+        ]
       },
 
       'Dart_Debug': {
@@ -356,6 +365,26 @@
         ],
       },
 
+      'DebugSIMDBC': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_simdbc_Base', 'Dart_Debug',
+          'Dart_<(dart_target_os)_Base',
+          'Dart_<(dart_target_os)_simdbc_Base',
+          'Dart_<(dart_target_os)_Debug',
+        ],
+        'defines': [
+          'DEBUG',
+        ],
+      },
+
+      'ReleaseSIMDBC': {
+        'inherit_from': [
+          'Dart_Base', 'Dart_simdbc_Base', 'Dart_Release',
+          'Dart_<(dart_target_os)_Base',
+          'Dart_<(dart_target_os)_simdbc_Base',
+          'Dart_<(dart_target_os)_Release',
+        ],
+      },
 
       # ARM and MIPS hardware configurations are only for Linux and Android.
       'DebugXARM': {

@@ -21,10 +21,6 @@ namespace dart {
 
 DECLARE_FLAG(bool, write_protect_code);
 
-static RawLibrary* CreateDummyLibrary(const String& library_name) {
-  return Library::New(library_name);
-}
-
 
 static RawClass* CreateDummyClass(const String& class_name,
                                   const Script& script) {
@@ -2690,6 +2686,12 @@ VM_TEST_CASE(CheckedHandle) {
 }
 
 
+#if !defined(TARGET_ARCH_DBC)
+static RawLibrary* CreateDummyLibrary(const String& library_name) {
+  return Library::New(library_name);
+}
+
+
 static RawFunction* CreateFunction(const char* name) {
   Thread* thread = Thread::Current();
   const String& class_name = String::Handle(Symbols::New(thread, "ownerClass"));
@@ -2966,6 +2968,7 @@ VM_TEST_CASE(PcDescriptorsLargeDeltas) {
 
   EXPECT_EQ(false, iter.MoveNext());
 }
+#endif  // !defined(TARGET_ARCH_DBC)
 
 
 static RawClass* CreateTestClass(const char* name) {

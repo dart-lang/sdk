@@ -119,6 +119,9 @@ void Intrinsifier::InitializeState() {
 }
 #endif  // defined(DART_NO_SNAPSHOT).
 
+
+// DBC does not use graph intrinsics.
+#if !defined(TARGET_ARCH_DBC)
 static void EmitCodeFor(FlowGraphCompiler* compiler,
                         FlowGraph* graph) {
   // The FlowGraph here is constructed by the intrinsics builder methods, and
@@ -154,10 +157,12 @@ static void EmitCodeFor(FlowGraphCompiler* compiler,
   }
   compiler->assembler()->Comment("Graph intrinsic end");
 }
+#endif
 
 
 bool Intrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
                                    FlowGraphCompiler* compiler) {
+#if !defined(TARGET_ARCH_DBC)
   ZoneGrowableArray<const ICData*>* ic_data_array =
       new ZoneGrowableArray<const ICData*>();
   FlowGraphBuilder builder(parsed_function,
@@ -204,6 +209,9 @@ bool Intrinsifier::GraphIntrinsify(const ParsedFunction& parsed_function,
   }
   EmitCodeFor(compiler, graph);
   return true;
+#else
+  return false;
+#endif  // !defined(TARGET_ARCH_DBC)
 }
 
 
@@ -235,10 +243,22 @@ void Intrinsifier::Intrinsify(const ParsedFunction& parsed_function,
     default:
       break;
   }
+
+  // On DBC all graph intrinsics are handled in the same way as non-graph
+  // intrinsics.
+#if defined(TARGET_ARCH_DBC)
+  switch (function.recognized_kind()) {
+    GRAPH_INTRINSICS_LIST(EMIT_CASE)
+    default:
+      break;
+  }
+#endif
+
 #undef EMIT_INTRINSIC
 }
 
 
+#if !defined(TARGET_ARCH_DBC)
 static intptr_t CidForRepresentation(Representation rep) {
   switch (rep) {
     case kUnboxedDouble:
@@ -1138,5 +1158,7 @@ bool Intrinsifier::Build_DoubleRound(FlowGraph* flow_graph) {
   return BuildInvokeMathCFunction(&builder,
                                   MethodRecognizer::kDoubleRound);
 }
+#endif  // !defined(TARGET_ARCH_DBC)
+
 
 }  // namespace dart

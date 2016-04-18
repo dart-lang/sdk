@@ -231,6 +231,8 @@ CLASS_LIST_TYPED_DATA(V)
   friend class object;                                                         \
   friend class RawObject;                                                      \
   friend class Heap;                                                           \
+  friend class Simulator;                                                      \
+  friend class SimulatorHelpers;                                               \
   DISALLOW_ALLOCATION();                                                       \
   DISALLOW_IMPLICIT_CONSTRUCTORS(Raw##object)
 
@@ -665,6 +667,8 @@ class RawObject {
   friend class StackFrame;  // GetCodeObject assertion.
   friend class CodeLookupTableBuilder;  // profiler
   friend class NativeEntry;  // GetClassId
+  friend class Simulator;
+  friend class SimulatorHelpers;
 
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(RawObject);

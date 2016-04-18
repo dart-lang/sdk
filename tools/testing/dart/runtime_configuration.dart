@@ -171,6 +171,7 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
       case 'simmips':
       case 'mips':
       case 'simarm64':
+      case 'simdbc':
         multiplier *= 4;
         break;
     }

@@ -13825,6 +13825,7 @@ void Code::DisableDartCode() const {
 
 
 void Code::DisableStubCode() const {
+#if !defined(TARGET_ARCH_DBC)
   ASSERT(Thread::Current()->IsMutatorThread());
   ASSERT(IsAllocationStubCode());
   ASSERT(!IsDisabled());
@@ -13832,6 +13833,10 @@ void Code::DisableStubCode() const {
       Code::Handle(StubCode::FixAllocationStubTarget_entry()->code());
   ASSERT(new_code.instructions()->IsVMHeapObject());
   SetActiveInstructions(new_code.instructions());
+#else
+  // DBC does not use allocation stubs.
+  UNIMPLEMENTED();
+#endif  // !defined(TARGET_ARCH_DBC)
 }
 
 
@@ -14970,7 +14975,9 @@ bool Instance::IsInstanceOf(const AbstractType& other,
   Zone* zone = Thread::Current()->zone();
   const Class& cls = Class::Handle(zone, clazz());
   if (cls.IsClosureClass()) {
-    if (other.IsObjectType() || other.IsDartFunctionType()) {
+    if (other.IsObjectType() ||
+        other.IsDartFunctionType() ||
+        other.IsDartClosureType()) {
       return true;
     }
     Function& other_signature = Function::Handle(zone);
@@ -15754,6 +15761,13 @@ bool AbstractType::IsDartFunctionType() const {
   return !IsFunctionType() &&
       HasResolvedTypeClass() &&
       (type_class() == Type::Handle(Type::DartFunctionType()).type_class());
+}
+
+
+bool AbstractType::IsDartClosureType() const {
+  return !IsFunctionType() &&
+      HasResolvedTypeClass() &&
+      (type_class() == Isolate::Current()->object_store()->closure_class());
 }
 
 

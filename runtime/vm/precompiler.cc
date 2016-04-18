@@ -1721,6 +1721,7 @@ void Precompiler::BindStaticCalls() {
 
 
 void Precompiler::SwitchICCalls() {
+#if !defined(TARGET_ARCH_DBC)
   // Now that all functions have been compiled, we can switch to an instance
   // call sequence that loads the Code object and entry point directly from
   // the ic data array instead indirectly through a Function in the ic data
@@ -1794,6 +1795,7 @@ void Precompiler::SwitchICCalls() {
   ASSERT(!I->compilation_allowed());
   SwitchICCallsVisitor visitor(Z);
   VisitFunctions(&visitor);
+#endif
 }
 
 

@@ -208,3 +208,6 @@ data_resource_test: Skip # Resolve URI not supported yet in product mode.
 package_resource_test: Skip # Resolve URI not supported yet in product mode.
 file_resource_test: Skip # Resolve URI not supported yet in product mode.
 http_resource_test: Skip # Resolve URI not supported yet in product mode.
+
+[ $arch == simdbc ]
+regexp/stack-overflow_test: RuntimeError, OK # Smaller limit with irregex interpreter

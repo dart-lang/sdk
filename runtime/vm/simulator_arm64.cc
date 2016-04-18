@@ -43,7 +43,6 @@ DEFINE_FLAG(uint64_t, stop_sim_at, ULLONG_MAX,
 // The runtime then does a Longjmp on that buffer to return to the simulator.
 class SimulatorSetjmpBuffer {
  public:
-  int Setjmp() { return setjmp(buffer_); }
   void Longjmp() {
     // "This" is now the last setjmp buffer.
     simulator_->set_last_setjmp_buffer(this);

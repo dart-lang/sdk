@@ -5485,6 +5485,9 @@ class AbstractType : public Instance {
   // Check if this type represents the Dart 'Function' type.
   bool IsDartFunctionType() const;
 
+  // Check if this type represents the Dart '_Closure' type.
+  bool IsDartClosureType() const;
+
   // Check the subtype relationship.
   bool IsSubtypeOf(const AbstractType& other,
                    Error* bound_error,

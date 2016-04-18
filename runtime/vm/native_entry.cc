@@ -90,7 +90,8 @@ const uint8_t* NativeEntry::ResolveSymbol(uword pc) {
 
 uword NativeEntry::NativeCallWrapperEntry() {
   uword entry = reinterpret_cast<uword>(NativeEntry::NativeCallWrapper);
-#if defined(USING_SIMULATOR)
+#if defined(USING_SIMULATOR) && !defined(TARGET_ARCH_DBC)
+  // DBC does not use redirections unlike other simulators.
   entry = Simulator::RedirectExternalReference(
       entry, Simulator::kNativeCall, NativeEntry::kNumCallWrapperArguments);
 #endif
@@ -177,6 +178,8 @@ void NativeEntry::NativeCallWrapperNoStackCheck(Dart_NativeArguments args,
 }
 
 
+// DBC does not support lazy native call linking.
+#if !defined(TARGET_ARCH_DBC)
 static NativeFunction ResolveNativeFunction(Zone* zone,
                                             const Function& func,
                                             bool* is_bootstrap_native) {
@@ -260,9 +263,10 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
 #endif
 
     call_through_wrapper = !is_bootstrap_native;
-    const Code& trampoline = Code::Handle(call_through_wrapper ?
-        StubCode::CallNativeCFunction_entry()->code() :
-        StubCode::CallBootstrapCFunction_entry()->code());
+    const Code& trampoline =
+        Code::Handle(call_through_wrapper ?
+            StubCode::CallNativeCFunction_entry()->code() :
+            StubCode::CallBootstrapCFunction_entry()->code());
 
     NativeFunction patch_target_function = target_function;
 #if defined(USING_SIMULATOR)
@@ -295,6 +299,7 @@ void NativeEntry::LinkNativeCall(Dart_NativeArguments args) {
     target_function(arguments);
   }
 }
+#endif  // !defined(TARGET_ARCH_DBC)
 
 
 }  // namespace dart

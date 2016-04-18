@@ -290,6 +290,11 @@ bool ReturnAddressLocator::LocateReturnAddress(uword* return_address) {
   ASSERT(return_address != NULL);
   return false;
 }
+#elif defined(TARGET_ARCH_DBC)
+bool ReturnAddressLocator::LocateReturnAddress(uword* return_address) {
+  ASSERT(return_address != NULL);
+  return false;
+}
 #else
 #error ReturnAddressLocator implementation missing for this architecture.
 #endif
@@ -839,7 +844,7 @@ static Sample* SetupSample(Thread* thread,
   Sample* sample = sample_buffer->ReserveSample();
   sample->Init(isolate, OS::GetCurrentMonotonicMicros(), tid);
   uword vm_tag = thread->vm_tag();
-#if defined(USING_SIMULATOR)
+#if defined(USING_SIMULATOR) && !defined(TARGET_ARCH_DBC)
   // When running in the simulator, the runtime entry function address
   // (stored as the vm tag) is the address of a redirect function.
   // Attempt to find the real runtime entry function address and use that.
@@ -973,6 +978,11 @@ void Profiler::SampleThreadSingleFrame(Thread* thread, uintptr_t pc) {
 
 void Profiler::SampleThread(Thread* thread,
                             const InterruptedThreadState& state) {
+#if defined(TARGET_ARCH_DBC)
+  // TODO(vegorov) implement simulator stack sampling.
+  return;
+#endif
+
   ASSERT(thread != NULL);
   OSThread* os_thread = thread->os_thread();
   ASSERT(os_thread != NULL);
@@ -996,13 +1006,15 @@ void Profiler::SampleThread(Thread* thread,
   uintptr_t sp = 0;
   uintptr_t fp = state.fp;
   uintptr_t pc = state.pc;
-#if defined(USING_SIMULATOR)
+#if defined(USING_SIMULATOR) && !defined(TARGET_ARCH_DBC)
   Simulator* simulator = NULL;
 #endif
 
   if (in_dart_code) {
     // If we're in Dart code, use the Dart stack pointer.
-#if defined(USING_SIMULATOR)
+#if defined(TARGET_ARCH_DBC)
+    UNIMPLEMENTED();
+#elif defined(USING_SIMULATOR)
     simulator = isolate->simulator();
     sp = simulator->get_register(SPREG);
     fp = simulator->get_register(FPREG);

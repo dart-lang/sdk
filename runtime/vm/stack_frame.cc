@@ -69,6 +69,7 @@ void ExitFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
 
 
 void EntryFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
+#if !defined(TARGET_ARCH_DBC)
   ASSERT(thread() == Thread::Current());
   // Visit objects between SP and (FP - callee_save_area).
   ASSERT(visitor != NULL);
@@ -76,10 +77,17 @@ void EntryFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   RawObject** last = reinterpret_cast<RawObject**>(
       fp() + (kExitLinkSlotFromEntryFp - 1) * kWordSize);
   visitor->VisitPointers(first, last);
+#else
+  // On DBC stack is growing upwards which implies fp() <= sp().
+  RawObject** first = reinterpret_cast<RawObject**>(fp());
+  RawObject** last = reinterpret_cast<RawObject**>(sp());
+  visitor->VisitPointers(first, last);
+#endif
 }
 
 
 void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
+#if !defined(TARGET_ARCH_DBC)
   // NOTE: This code runs while GC is in progress and runs within
   // a NoHandleScope block. Hence it is not ok to use regular Zone or
   // Scope handles. We use direct stack handles, the raw pointers in
@@ -159,6 +167,13 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   RawObject** last = reinterpret_cast<RawObject**>(
       fp() + (kFirstObjectSlotFromFp * kWordSize));
   visitor->VisitPointers(first, last);
+#else
+  // On DBC stack grows upwards: fp() <= sp().
+  RawObject** first = reinterpret_cast<RawObject**>(
+      fp() + (kFirstObjectSlotFromFp * kWordSize));
+  RawObject** last = reinterpret_cast<RawObject**>(sp());
+  visitor->VisitPointers(first, last);
+#endif  // !defined(TARGET_ARCH_DBC)
 }
 
 
@@ -319,6 +334,7 @@ StackFrameIterator::StackFrameIterator(uword last_fp, bool validate,
 }
 
 
+#if !defined(TARGET_ARCH_DBC)
 StackFrameIterator::StackFrameIterator(uword fp, uword sp, uword pc,
                                        bool validate, Thread* thread)
     : validate_(validate),
@@ -333,6 +349,7 @@ StackFrameIterator::StackFrameIterator(uword fp, uword sp, uword pc,
   frames_.sp_ = sp;
   frames_.pc_ = pc;
 }
+#endif
 
 
 StackFrame* StackFrameIterator::NextFrame() {
@@ -353,6 +370,7 @@ StackFrame* StackFrameIterator::NextFrame() {
       return NULL;
     }
     UnpoisonStack(frames_.fp_);
+#if !defined(TARGET_ARCH_DBC)
     if (frames_.pc_ == 0) {
       // Iteration starts from an exit frame given by its fp.
       current_frame_ = NextExitFrame();
@@ -364,6 +382,12 @@ StackFrame* StackFrameIterator::NextFrame() {
       // Iteration starts from a Dart or stub frame given by its fp, sp, and pc.
       current_frame_ = frames_.NextFrame(validate_);
     }
+#else
+    // Iteration starts from an exit frame given by its fp. This is the only
+    // mode supported on DBC.
+    ASSERT(frames_.pc_ == 0);
+    current_frame_ = NextExitFrame();
+#endif  // !defined(TARGET_ARCH_DBC)
     return current_frame_;
   }
   ASSERT((validate_ == kDontValidateFrames) || current_frame_->IsValid());

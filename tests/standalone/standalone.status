@@ -285,3 +285,13 @@ package/scenarios/invalid/non_existent_packages_file_test: Skip
 package/scenarios/empty_packages_file/empty_packages_file_noimports_test: Skip
 package/scenarios/packages_option_only/packages_option_only_noimports_test: Skip
 package/scenarios/packages_option_only/packages_option_only_test: Skip
+
+[ $arch == simdbc ]
+# TODO(vegorov) SIMDBC interpreter doesn't support coverage yet.
+full_coverage_test: Skip
+
+# SIMDBC interpreter doesn't support lazy linking of natives.
+link_natives_lazily_test: SkipByDesign
+
+# SIMDBC interpreter doesn't support --no_lazy_dispatchers
+no_lazy_dispatchers_test: SkipByDesign

@@ -197,7 +197,8 @@ void OS::AlignedFree(void* ptr) {
 intptr_t OS::ActivationFrameAlignment() {
 #if defined(TARGET_ARCH_IA32) ||                                               \
     defined(TARGET_ARCH_X64) ||                                                \
-    defined(TARGET_ARCH_ARM64)
+    defined(TARGET_ARCH_ARM64) ||                                              \
+    defined(TARGET_ARCH_DBC)
   const int kMinimumAlignment = 16;
 #elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
   const int kMinimumAlignment = 8;
@@ -217,7 +218,8 @@ intptr_t OS::ActivationFrameAlignment() {
 intptr_t OS::PreferredCodeAlignment() {
 #if defined(TARGET_ARCH_IA32) ||                                               \
     defined(TARGET_ARCH_X64) ||                                                \
-    defined(TARGET_ARCH_ARM64)
+    defined(TARGET_ARCH_ARM64) ||                                              \
+    defined(TARGET_ARCH_DBC)
   const int kMinimumAlignment = 32;
 #elif defined(TARGET_ARCH_ARM) || defined(TARGET_ARCH_MIPS)
   const int kMinimumAlignment = 16;
