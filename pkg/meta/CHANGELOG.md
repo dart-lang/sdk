@@ -1,3 +1,6 @@
+## 0.12.1
+* Fixed markdown in dartdocs.
+
 ## 0.12.0
 * Introduce `@optionalTypeArgs` annotation for classes whose type arguments are to be treated as optional.
 
